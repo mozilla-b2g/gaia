@@ -224,9 +224,10 @@ var Navigation = {
       case '#browser_privacy':
         UIManager.mainTitle.innerHTML = _('aboutBrowser');
         var linkPrivacy = document.getElementById('external-link-privacy');
-        navigator.mozL10n.localize(linkPrivacy, 'learn-more-privacy', {
-          link: getLocalizedLink('learn-more-privacy')
-        });
+        navigator.mozL10n.declareLocalizable(linkPrivacy,
+          'learn-more-privacy', {
+            link: getLocalizedLink('learn-more-privacy')
+          });
         break;
       case '#SIM_mandatory':
         UIManager.mainTitle.innerHTML = _('SIM_mandatory');
@@ -242,13 +243,15 @@ var Navigation = {
         UIManager.progressBar.classList.add('hidden');
         UIManager.navBar.classList.add('back-only');
         var linkTelemetry = document.getElementById('external-link-telemetry');
-        navigator.mozL10n.localize(linkTelemetry, 'learn-more-telemetry', {
-          link: getLocalizedLink('learn-more-telemetry')
-        });
+        navigator.mozL10n.declareLocalizable(linkTelemetry,
+          'learn-more-telemetry', {
+            link: getLocalizedLink('learn-more-telemetry')
+          });
         var linkInfo = document.getElementById('external-link-information');
-        navigator.mozL10n.localize(linkInfo, 'learn-more-information', {
-          link: getLocalizedLink('learn-more-information')
-        });
+        navigator.mozL10n.declareLocalizable(linkInfo,
+          'learn-more-information', {
+            link: getLocalizedLink('learn-more-information')
+          });
         break;
     }
 

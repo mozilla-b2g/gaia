@@ -161,7 +161,7 @@ var VIEWS = {
     render: function renderGroup() {
       var participants = Threads.get(this.id).participants;
       this.renderContactList(participants);
-      navigator.mozL10n.localize(ThreadUI.headerText, 'participant', {
+      navigator.mozL10n.declareLocalizable(ThreadUI.headerText, 'participant', {
         n: participants.length
       });
     },
@@ -183,7 +183,7 @@ var VIEWS = {
     },
 
     render: function renderReport() {
-      var localize = navigator.mozL10n.localize;
+      var localize = navigator.mozL10n.declareLocalizable;
       var request = MessageManager.getMessage(this.id);
 
       request.onsuccess = (function() {

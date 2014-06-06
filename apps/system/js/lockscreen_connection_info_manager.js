@@ -164,7 +164,7 @@
       node.removeAttribute('data-content');
     }
 
-    navigator.mozL10n.localize(node, l10nId, l10nArgs);
+    navigator.mozL10n.declareLocalizable(node, l10nId, l10nArgs);
 
     if (text) {
       node.textContent = text;

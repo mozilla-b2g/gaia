@@ -117,7 +117,7 @@ function loadJSON(href, callback) {
  * L10n helper
  */
 
-var localize = navigator.mozL10n.localize;
+var localize = navigator.mozL10n.declareLocalizable;
 
 /**
  * Helper class for formatting file size strings

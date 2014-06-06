@@ -363,7 +363,7 @@ if (!contacts.MatchingUI) {
               if (isMatch(matchings, aField, fieldValue)) {
                 item.classList.add('selected');
               }
-              navigator.mozL10n.localize(item, 'itemWithLabel', {
+              navigator.mozL10n.declareLocalizable(item, 'itemWithLabel', {
                 label: _(fieldValue.type),
                 item: fieldValue.value
               });
@@ -401,8 +401,9 @@ if (!contacts.MatchingUI) {
     }
 
     function checkMergeButton() {
-      navigator.mozL10n.localize(mergeButton, 'mergeActionButtonLabel',
-                                                                { n: checked });
+      navigator.mozL10n.declareLocalizable(mergeButton,
+                                           'mergeActionButtonLabel',
+                                           { n: checked });
       mergeButton.disabled = (checked === 0);
     }
 

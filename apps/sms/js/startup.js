@@ -37,7 +37,8 @@ navigator.mozL10n.ready(function localized() {
       if (element.dataset.l10nId && element.dataset.l10nArgs) {
         var args = JSON.parse(element.dataset.l10nArgs);
         args.date = localeData;
-        navigator.mozL10n.localize(element, element.dataset.l10nId, args);
+        navigator.mozL10n.declareLocalizable(element, element.dataset.l10nId,
+                                             args);
       } else {
         element.textContent = localeData;
       }

@@ -255,7 +255,7 @@ var AppInstallManager = {
     var appName = appManifest.name;
     var appDescription = appManifest.description;
     this.setupAppDescription.textContent = appDescription;
-    navigator.mozL10n.localize(this.setupAppName,
+    navigator.mozL10n.declareLocalizable(this.setupAppName,
                               'app-install-success', { appName: appName });
     this.setupInstalledAppDialog.classList.add('visible');
     window.dispatchEvent(new CustomEvent('applicationsetupdialogshow'));

@@ -421,8 +421,7 @@ var UIManager = {
     // Update the email
     UIManager.newsletterInput.value = acct.email;
     // Update the string
-    UIManager.fxaIntro.innerHTML = '';
-    navigator.mozL10n.localize(
+    navigator.mozL10n.declareLocalizable(
       UIManager.fxaIntro,
       acct.verified ? 'fxa-signed-in' : 'fxa-email-sent',
       {
@@ -438,7 +437,7 @@ var UIManager = {
     // Clean fields
     UIManager.newsletterInput.value = '';
     // Reset the field
-    navigator.mozL10n.localize(
+    navigator.mozL10n.declareLocalizable(
       UIManager.fxaIntro,
       'fxa-overview'
     );
@@ -512,7 +511,7 @@ var UIManager = {
     document.getElementById('time_zone_overlay').className =
       'UTC' + utcOffset.replace(/[+:]/g, '');
     var timezoneTitle = document.getElementById('time-zone-title');
-    navigator.mozL10n.localize(timezoneTitle, 'timezoneTitle', {
+    navigator.mozL10n.declareLocalizable(timezoneTitle, 'timezoneTitle', {
       utcOffset: utcOffset,
       region: timezone.region,
       city: timezone.city

@@ -68,11 +68,11 @@ var AboutMoreInfo = {
       if (req.result && req.result.statusMessage) {
         deviceInfoImei.textContent = req.result.statusMessage;
       } else {
-        navigator.mozL10n.localize(deviceInfoImei, 'unavailable');
+        navigator.mozL10n.declareLocalizable(deviceInfoImei, 'unavailable');
       }
     };
     req.onerror = function() {
-      navigator.mozL10n.localize(deviceInfoImei, 'unavailable');
+      navigator.mozL10n.declareLocalizable(deviceInfoImei, 'unavailable');
     };
   },
 
@@ -98,10 +98,10 @@ var AboutMoreInfo = {
           'SIM ' + (index + 1) + ': ' + conn.iccId : conn.iccId;
       } else {
         if (multiSim) {
-          navigator.mozL10n.localize(span,
+          navigator.mozL10n.declareLocalizable(span,
             'deviceInfo-ICCID-unavailable-sim', { index: index + 1 });
         } else {
-          navigator.mozL10n.localize(span, 'unavailable');
+          navigator.mozL10n.declareLocalizable(span, 'unavailable');
         }
       }
       deviceInfoIccIds.appendChild(span);

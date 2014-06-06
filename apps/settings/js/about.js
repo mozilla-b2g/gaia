@@ -87,10 +87,10 @@ var About = {
           'SIM ' + (index + 1) + ': ' + msisdn : msisdn;
       } else {
         if (multiSim) {
-          navigator.mozL10n.localize(span,
+          navigator.mozL10n.declareLocalizable(span,
             'unknown-phoneNumber-sim', { index: index + 1 });
         } else {
-          navigator.mozL10n.localize(span, 'unknown-phoneNumber');
+          navigator.mozL10n.declareLocalizable(span, 'unknown-phoneNumber');
         }
       }
       deviceInfoMsisdns.appendChild(span);

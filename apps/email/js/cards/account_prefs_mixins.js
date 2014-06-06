@@ -47,7 +47,8 @@ define(function(require) {
               seconds = interval / 1000;
 
           node.value = String(interval);
-          mozL10n.localize(node, 'settings-check-dynamic', { n: seconds });
+          mozL10n.declareLocalizable(node, 'settings-check-dynamic',
+                                     { n: seconds });
           checkIntervalNode.appendChild(node);
         });
 

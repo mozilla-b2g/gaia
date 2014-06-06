@@ -30,13 +30,13 @@ var FxaMenu = (function fxa_menu() {
     var email = e ? Normalizer.escapeHTML(e.email) : '';
 
     if (!e) {
-      navigator.mozL10n.localize(menuStatus, 'fxa-invitation');
+      navigator.mozL10n.declareLocalizable(menuStatus, 'fxa-invitation');
     } else if (e.verified) {
-      navigator.mozL10n.localize(menuStatus, 'fxa-logged-in-text', {
+      navigator.mozL10n.declareLocalizable(menuStatus, 'fxa-logged-in-text', {
         email: email
       });
     } else { // unverified
-      navigator.mozL10n.localize(menuStatus, 'fxa-confirm-email', {
+      navigator.mozL10n.declareLocalizable(menuStatus, 'fxa-confirm-email', {
         email: email
       });
     }

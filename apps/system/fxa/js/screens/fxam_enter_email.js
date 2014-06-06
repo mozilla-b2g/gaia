@@ -47,7 +47,7 @@ var FxaModuleEnterEmail = (function() {
   var Module = Object.create(FxaModule);
   Module.init = function init(options) {
     _ = navigator.mozL10n.get;
-    localize = navigator.mozL10n.localize;
+    localize = navigator.mozL10n.declareLocalizable;
 
     // Cache static HTML elements
     this.importElements(

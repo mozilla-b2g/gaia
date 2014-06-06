@@ -52,7 +52,7 @@ suite('L10n', function() {
 
     _ = navigator.mozL10n.get;
     _translateFragment = navigator.mozL10n.translateFragment;
-    _localize = navigator.mozL10n.localize;
+    _localize = navigator.mozL10n.declareLocalizable;
 
     // en-US has already been loaded in setup.js and l10n.js is smart enough
     // not to re-fetch resources;  hence, set the lang to something new

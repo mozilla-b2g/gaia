@@ -64,21 +64,21 @@ suite('attachment_menu_test.js', function() {
         });
         test('sets view text', function() {
           assert.ok(
-            navigator.mozL10n.localize.calledWith(
+            navigator.mozL10n.declareLocalizable.calledWith(
               AttachmentMenu.viewButton, 'view-attachment-' + type
             )
           );
         });
         test('sets remove text', function() {
           assert.ok(
-            navigator.mozL10n.localize.calledWith(
+            navigator.mozL10n.declareLocalizable.calledWith(
               AttachmentMenu.removeButton, 'remove-attachment-' + type
             )
           );
         });
         test('sets replace text', function() {
           assert.ok(
-            navigator.mozL10n.localize.calledWith(
+            navigator.mozL10n.declareLocalizable.calledWith(
               AttachmentMenu.replaceButton, 'replace-attachment-' + type
             )
           );

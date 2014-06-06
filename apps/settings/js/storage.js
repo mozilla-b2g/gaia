@@ -64,7 +64,7 @@ require([
 
     // ums info
     updateUmsInfo: function storage_updateUmsInfo() {
-      var localize = navigator.mozL10n.localize;
+      var localize = navigator.mozL10n.declareLocalizable;
       var key;
       if (this.umsEnabledCheckBox.checked) {
         //TODO list all enabled volume name
@@ -150,7 +150,7 @@ require([
     },
 
     updateVolumeState: function storage_updateVolumeState(volume, state) {
-      var localize = navigator.mozL10n.localize;
+      var localize = navigator.mozL10n.declareLocalizable;
       this.defaultVolumeState = state;
       this.updateUmsInfo();
       switch (state) {

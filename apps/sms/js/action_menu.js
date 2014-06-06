@@ -119,7 +119,7 @@ var OptionMenu = function(options) {
   items.forEach(function renderOption(item) {
     var button = document.createElement('button');
     if (item.l10nId) {
-      navigator.mozL10n.localize(button, item.l10nId, item.l10nArgs);
+      navigator.mozL10n.declareLocalizable(button, item.l10nId, item.l10nArgs);
     } else if (item.name && item.name.length) {
       button.textContent = item.name || '';
     } else {

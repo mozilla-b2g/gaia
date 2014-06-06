@@ -157,7 +157,7 @@ suite('UI Manager > ', function() {
     });
 
     teardown(function() {
-      navigator.mozL10n.localize.restore();
+      navigator.mozL10n.declareLocalizable.restore();
     });
 
     test('Show correct success message after verified login', function() {

@@ -42,9 +42,10 @@
     }
 
     navigator.mozL10n.translate(this.confirmNFCConnectTitle);
-    navigator.mozL10n.localize(this.buttonOK, okayId);
-    navigator.mozL10n.localize(this.buttonCancel, cancelId);
-    navigator.mozL10n.localize(this.confirmNFCConnectMsg, msgId, l10nArgs);
+    navigator.mozL10n.declareLocalizable(this.buttonOK, okayId);
+    navigator.mozL10n.declareLocalizable(this.buttonCancel, cancelId);
+    navigator.mozL10n.declareLocalizable(this.confirmNFCConnectMsg, msgId,
+                                         l10nArgs);
   };
 
   NfcConnectSystemDialog.prototype.hide = function ncsd_hide(reason) {

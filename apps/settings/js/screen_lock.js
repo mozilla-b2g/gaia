@@ -30,7 +30,7 @@ require([
     },
 
     _watchChanges: function() {
-      var localize = navigator.mozL10n.localize;
+      var localize = navigator.mozL10n.declareLocalizable;
 
       // reflect UI changes on screenLock-Desc
       SettingsListener.observe('lockscreen.enabled', false,

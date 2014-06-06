@@ -42,7 +42,7 @@ suite('SIM picker', function() {
 
     realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockMozL10n;
-    navigator.mozL10n.localize = function() {};
+    navigator.mozL10n.declareLocalizable = function() {};
 
     realTelephonyHelper = window.TelephonyHelper;
     window.TelephonyHelper = null;

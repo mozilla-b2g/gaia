@@ -68,7 +68,7 @@ suite('firefox accounts panel > ', function() {
   });
 
   teardown(function() {
-    navigator.mozL10n.localize.restore();
+    navigator.mozL10n.declareLocalizable.restore();
     MockFxAccountsIACHelper.resetListeners();
   });
 

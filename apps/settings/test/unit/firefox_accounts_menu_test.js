@@ -40,7 +40,7 @@ suite('firefox accounts menu item > ', function() {
 
   teardown(function() {
     MockFxAccountsIACHelper.resetListeners();
-    navigator.mozL10n.localize.restore();
+    navigator.mozL10n.declareLocalizable.restore();
   });
 
   test('check the html loaded correctly', function() {

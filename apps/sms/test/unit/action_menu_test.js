@@ -157,7 +157,7 @@ suite('OptionMenu', function() {
       assert.equal(buttons[0].textContent, options.items[0].name);
     });
     test('Localized button', function() {
-      sinon.assert.calledWith(navigator.mozL10n.localize, buttons[1],
+      sinon.assert.calledWith(navigator.mozL10n.declareLocalizable, buttons[1],
         options.items[1].l10nId, options.items[1].l10nArgs);
     });
     test('classes', function() {

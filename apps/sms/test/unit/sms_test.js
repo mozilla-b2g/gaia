@@ -279,7 +279,7 @@ suite('SMS App Unit-Test', function() {
         // Given a number, we should retrieve the contact and update the info
         var threadWithContact = document.getElementById('thread-1');
         var contactName = threadWithContact.getElementsByClassName('name')[0];
-        assert.deepEqual(navigator.mozL10n.localize.args[0],
+        assert.deepEqual(navigator.mozL10n.declareLocalizable.args[0],
           [contactName, 'thread-header-text', {name: 'Pepito O\'Hare', n: 0}]);
       });
     });

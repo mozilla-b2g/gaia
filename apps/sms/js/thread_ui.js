@@ -497,7 +497,7 @@ var ThreadUI = global.ThreadUI = {
   },
 
   showMaxLengthNotice: function thui_showMaxLengthNotice(l10nKey) {
-    navigator.mozL10n.localize(
+    navigator.mozL10n.declareLocalizable(
       this.maxLengthNotice.querySelector('p'), l10nKey);
     this.maxLengthNotice.classList.remove('hide');
   },
@@ -876,7 +876,7 @@ var ThreadUI = global.ThreadUI = {
 
     var message = 'converted-to-' + type;
     var messageContainer = this.convertNotice.querySelector('p');
-    navigator.mozL10n.localize(messageContainer, message);
+    navigator.mozL10n.declareLocalizable(messageContainer, message);
     this.convertNotice.classList.remove('hide');
 
     if (this._convertNoticeTimeout) {
@@ -947,11 +947,11 @@ var ThreadUI = global.ThreadUI = {
   updateComposerHeader: function thui_updateComposerHeader() {
     var recipientCount = this.recipients.numbers.length;
     if (recipientCount > 0) {
-      navigator.mozL10n.localize(this.headerText, 'recipient', {
+      navigator.mozL10n.declareLocalizable(this.headerText, 'recipient', {
           n: recipientCount
       });
     } else {
-      navigator.mozL10n.localize(this.headerText, 'newMessage');
+      navigator.mozL10n.declareLocalizable(this.headerText, 'newMessage');
     }
     // Check if we need to enable send button.
     this.enableSend();
@@ -1374,10 +1374,11 @@ var ThreadUI = global.ThreadUI = {
     // the callback directly in order to make it work!
     // https://bugzilla.mozilla.org/show_bug.cgi?id=836733
     if (!this._mozMobileMessage) {
-      navigator.mozL10n.localize(this.headerText, 'thread-header-text', {
-        name: number,
-        n: others
-      });
+      navigator.mozL10n.declareLocalizable(this.headerText,
+        'thread-header-text', {
+          name: number,
+          n: others
+        });
       return Promise.resolve();
     }
 
@@ -1397,10 +1398,11 @@ var ThreadUI = global.ThreadUI = {
         var contactName = details.title || number;
         this.headerText.dataset.isContact = !!details.isContact;
         this.headerText.dataset.title = contactName;
-        navigator.mozL10n.localize(this.headerText, 'thread-header-text', {
+        navigator.mozL10n.declareLocalizable(this.headerText,
+          'thread-header-text', {
             name: contactName,
             n: others
-        });
+          });
 
         this.updateCarrier(thread, contacts);
         resolve();
@@ -1665,7 +1667,7 @@ var ThreadUI = global.ThreadUI = {
 
     var pElement = messageDOM.querySelector('p');
     if (invalidEmptyContent) {
-      navigator.mozL10n.localize(pElement, 'no-attachment-text');
+      navigator.mozL10n.declareLocalizable(pElement, 'no-attachment-text');
     }
 
     if (message.type === 'mms' && !isNotDownloaded && !noAttachment) { // MMS
@@ -1943,10 +1945,11 @@ var ThreadUI = global.ThreadUI = {
     this.deleteButton.disabled = !isAnySelected;
 
     if (isAnySelected) {
-      navigator.mozL10n.localize(this.editMode, 'selected',
+      navigator.mozL10n.declareLocalizable(this.editMode, 'selected',
         {n: selected.length});
     } else {
-      navigator.mozL10n.localize(this.editMode, 'deleteMessages-title');
+      navigator.mozL10n.declareLocalizable(this.editMode,
+                                           'deleteMessages-title');
     }
   },
 
@@ -2430,7 +2433,7 @@ var ThreadUI = global.ThreadUI = {
 
     messageDOM.classList.add('pending');
     messageDOM.classList.remove('error');
-    navigator.mozL10n.localize(button, 'downloading-attachment');
+    navigator.mozL10n.declareLocalizable(button, 'downloading-attachment');
 
     request.onsuccess = (function retrieveMMSSuccess() {
       this.removeMessageDOM(messageDOM);
@@ -2439,7 +2442,7 @@ var ThreadUI = global.ThreadUI = {
     request.onerror = (function retrieveMMSError() {
       messageDOM.classList.remove('pending');
       messageDOM.classList.add('error');
-      navigator.mozL10n.localize(button, 'download-attachment');
+      navigator.mozL10n.declareLocalizable(button, 'download-attachment');
 
       // Show NonActiveSimCard/Other error dialog while retrieving MMS
       var errorCode = (request.error && request.error.name) ?
@@ -2466,7 +2469,8 @@ var ThreadUI = global.ThreadUI = {
             // ready yet.
             messageDOM.classList.add('pending');
             messageDOM.classList.remove('error');
-            navigator.mozL10n.localize(button, 'downloading-attachment');
+            navigator.mozL10n.declareLocalizable(button,
+                                                 'downloading-attachment');
             Settings.switchMmsSimHandler(serviceId).then(
               this.retrieveMMS.bind(this, messageDOM))
             .catch(function(err) {

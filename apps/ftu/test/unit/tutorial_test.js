@@ -188,7 +188,7 @@ suite('Tutorial >', function() {
           2
         );
         // We are in step 2 and taking into account the current layout
-        assert.equal(navigator.mozL10n.localize.args[0][1],
+        assert.equal(navigator.mozL10n.declareLocalizable.args[0][1],
                     Tutorial.config['default'].steps[1].l10nKey);
         // Now we check the element src.
         // As we are in 'tiny' (default layout in the mock)

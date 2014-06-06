@@ -12,7 +12,7 @@ function SimPinDialog(dialog) {
     return;
   }
 
-  var _localize = navigator.mozL10n.localize;
+  var _localize = navigator.mozL10n.declareLocalizable;
 
 
   /**

@@ -227,12 +227,12 @@ suite('Information view', function() {
       reportView.id = 1;
       reportView.render();
       assert.isFalse(reportView.container.classList.contains('received'));
-      sinon.assert.calledWith(navigator.mozL10n.localize, reportView.type,
-        'message-type-sms');
-      sinon.assert.calledWith(navigator.mozL10n.localize, reportView.status,
-        'message-status-sending');
+      sinon.assert.calledWith(navigator.mozL10n.declareLocalizable,
+        reportView.type, 'message-type-sms');
+      sinon.assert.calledWith(navigator.mozL10n.declareLocalizable,
+        reportView.status, 'message-status-sending');
       assert.equal(reportView.status.dataset.type, 'sending');
-      sinon.assert.calledWith(navigator.mozL10n.localize,
+      sinon.assert.calledWith(navigator.mozL10n.declareLocalizable,
         reportView.contactTitle, 'report-recipients');
       assert.isTrue(reportView.sizeBlock.classList.contains('hide'));
       sinon.assert.called(reportView.renderContactList);
@@ -249,12 +249,12 @@ suite('Information view', function() {
       reportView.id = 1;
       reportView.render();
       assert.isFalse(reportView.container.classList.contains('received'));
-      sinon.assert.calledWith(navigator.mozL10n.localize, reportView.type,
-        'message-type-sms');
-      sinon.assert.calledWith(navigator.mozL10n.localize, reportView.status,
-        'message-status-sent');
+      sinon.assert.calledWith(navigator.mozL10n.declareLocalizable,
+        reportView.type, 'message-type-sms');
+      sinon.assert.calledWith(navigator.mozL10n.declareLocalizable,
+        reportView.status, 'message-status-sent');
       assert.equal(reportView.status.dataset.type, 'sent');
-      sinon.assert.calledWith(navigator.mozL10n.localize,
+      sinon.assert.calledWith(navigator.mozL10n.declareLocalizable,
         reportView.contactTitle, 'report-recipients');
       assert.isTrue(reportView.sizeBlock.classList.contains('hide'));
       sinon.assert.called(reportView.renderContactList);
@@ -270,12 +270,12 @@ suite('Information view', function() {
       reportView.id = 1;
       reportView.render();
       assert.isFalse(reportView.container.classList.contains('received'));
-      sinon.assert.calledWith(navigator.mozL10n.localize, reportView.type,
-        'message-type-sms');
-      sinon.assert.calledWith(navigator.mozL10n.localize, reportView.status,
-        'message-status-error');
+      sinon.assert.calledWith(navigator.mozL10n.declareLocalizable,
+        reportView.type, 'message-type-sms');
+      sinon.assert.calledWith(navigator.mozL10n.declareLocalizable,
+        reportView.status, 'message-status-error');
       assert.equal(reportView.status.dataset.type, 'error');
-      sinon.assert.calledWith(navigator.mozL10n.localize,
+      sinon.assert.calledWith(navigator.mozL10n.declareLocalizable,
         reportView.contactTitle, 'report-recipients');
       assert.isTrue(reportView.sizeBlock.classList.contains('hide'));
       sinon.assert.called(reportView.renderContactList);
@@ -295,12 +295,12 @@ suite('Information view', function() {
       reportView.render();
       assert.isFalse(reportView.container.classList.contains('received'));
       assert.equal(reportView.subject.textContent, messageOpts.subject);
-      sinon.assert.calledWith(navigator.mozL10n.localize, reportView.type,
-        'message-type-mms');
-      sinon.assert.calledWith(navigator.mozL10n.localize, reportView.status,
-        'message-status-sent');
+      sinon.assert.calledWith(navigator.mozL10n.declareLocalizable,
+        reportView.type, 'message-type-mms');
+      sinon.assert.calledWith(navigator.mozL10n.declareLocalizable,
+        reportView.status, 'message-status-sent');
       assert.equal(reportView.status.dataset.type, 'sent');
-      sinon.assert.calledWith(navigator.mozL10n.localize,
+      sinon.assert.calledWith(navigator.mozL10n.declareLocalizable,
         reportView.contactTitle, 'report-recipients');
       assert.isTrue(reportView.sizeBlock.classList.contains('hide'));
       sinon.assert.called(reportView.renderContactList);
@@ -319,14 +319,16 @@ suite('Information view', function() {
       reportView.render();
       assert.isFalse(reportView.container.classList.contains('received'));
       assert.equal(reportView.subject.textContent, '');
-      sinon.assert.calledWith(navigator.mozL10n.localize, reportView.type,
-        'message-type-mms');
-      sinon.assert.calledWith(navigator.mozL10n.localize, reportView.size,
-        'attachmentSize', { n: (testImageBlob.size / 1024).toFixed(1) });
-      sinon.assert.calledWith(navigator.mozL10n.localize, reportView.status,
-        'message-status-sent');
+      sinon.assert.calledWith(navigator.mozL10n.declareLocalizable,
+        reportView.type, 'message-type-mms');
+      sinon.assert.calledWith(navigator.mozL10n.declareLocalizable,
+        reportView.size, 'attachmentSize', {
+          n: (testImageBlob.size / 1024).toFixed(1)
+        });
+      sinon.assert.calledWith(navigator.mozL10n.declareLocalizable,
+        reportView.status, 'message-status-sent');
       assert.equal(reportView.status.dataset.type, 'sent');
-      sinon.assert.calledWith(navigator.mozL10n.localize,
+      sinon.assert.calledWith(navigator.mozL10n.declareLocalizable,
         reportView.contactTitle, 'report-recipients');
       assert.isFalse(reportView.sizeBlock.classList.contains('hide'));
       sinon.assert.called(reportView.renderContactList);
@@ -340,12 +342,12 @@ suite('Information view', function() {
       reportView.id = 1;
       reportView.render();
       assert.isTrue(reportView.container.classList.contains('received'));
-      sinon.assert.calledWith(navigator.mozL10n.localize, reportView.type,
-        'message-type-sms');
-      sinon.assert.calledWith(navigator.mozL10n.localize, reportView.status,
-        'message-status-received');
+      sinon.assert.calledWith(navigator.mozL10n.declareLocalizable,
+        reportView.type, 'message-type-sms');
+      sinon.assert.calledWith(navigator.mozL10n.declareLocalizable,
+        reportView.status, 'message-status-received');
       assert.equal(reportView.status.dataset.type, 'received');
-      sinon.assert.calledWith(navigator.mozL10n.localize,
+      sinon.assert.calledWith(navigator.mozL10n.declareLocalizable,
         reportView.contactTitle, 'report-from');
       assert.isTrue(reportView.sizeBlock.classList.contains('hide'));
       sinon.assert.calledWith(reportView.renderContactList, [message.sender]);
@@ -362,14 +364,16 @@ suite('Information view', function() {
       reportView.render();
       assert.isTrue(reportView.container.classList.contains('received'));
       assert.equal(reportView.subject.textContent, message.subject);
-      sinon.assert.calledWith(navigator.mozL10n.localize, reportView.type,
-        'message-type-mms');
-      sinon.assert.calledWith(navigator.mozL10n.localize, reportView.size,
-        'attachmentSize', { n: (testImageBlob.size / 1024).toFixed(1) });
-      sinon.assert.calledWith(navigator.mozL10n.localize, reportView.status,
-        'message-status-received');
+      sinon.assert.calledWith(navigator.mozL10n.declareLocalizable,
+        reportView.type, 'message-type-mms');
+      sinon.assert.calledWith(navigator.mozL10n.declareLocalizable,
+        reportView.size, 'attachmentSize', {
+          n: (testImageBlob.size / 1024).toFixed(1)
+        });
+      sinon.assert.calledWith(navigator.mozL10n.declareLocalizable,
+        reportView.status, 'message-status-received');
       assert.equal(reportView.status.dataset.type, 'received');
-      sinon.assert.calledWith(navigator.mozL10n.localize,
+      sinon.assert.calledWith(navigator.mozL10n.declareLocalizable,
         reportView.contactTitle, 'report-from');
       assert.isFalse(reportView.sizeBlock.classList.contains('hide'));
       sinon.assert.calledWith(reportView.renderContactList, [message.sender]);
@@ -384,12 +388,12 @@ suite('Information view', function() {
       reportView.id = 2;
       reportView.render();
       assert.isTrue(reportView.container.classList.contains('received'));
-      sinon.assert.calledWith(navigator.mozL10n.localize, reportView.type,
-        'message-type-mms');
-      sinon.assert.calledWith(navigator.mozL10n.localize, reportView.status,
-        'message-status-not-downloaded');
+      sinon.assert.calledWith(navigator.mozL10n.declareLocalizable,
+        reportView.type, 'message-type-mms');
+      sinon.assert.calledWith(navigator.mozL10n.declareLocalizable,
+        reportView.status, 'message-status-not-downloaded');
       assert.equal(reportView.status.dataset.type, 'not-downloaded');
-      sinon.assert.calledWith(navigator.mozL10n.localize,
+      sinon.assert.calledWith(navigator.mozL10n.declareLocalizable,
         reportView.contactTitle, 'report-from');
       sinon.assert.called(reportView.renderContactList);
     });
@@ -714,7 +718,7 @@ suite('Information view', function() {
     });
     test('view status before show method', function() {
       sinon.assert.calledWith(groupView.renderContactList, participants);
-      sinon.assert.calledWithMatch(navigator.mozL10n.localize,
+      sinon.assert.calledWithMatch(navigator.mozL10n.declareLocalizable,
         ThreadUI.headerText, 'participant', {n: participants.length});
     });
   });

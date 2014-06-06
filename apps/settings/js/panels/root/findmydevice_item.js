@@ -37,7 +37,7 @@ define(function(require) {
         return;
       }
 
-      navigator.mozL10n.localize(element,
+      navigator.mozL10n.declareLocalizable(element,
         this._FMDEnabled ? 'enabled' : 'disabled');
       element.hidden = false;
     },

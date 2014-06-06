@@ -127,12 +127,12 @@ suite('Find My Device panel > ', function() {
 
     this.sinon.spy(navigator.mozL10n, 'localize');
     MockSettingsListener.mCallbacks['findmydevice.tracking'](true);
-    assert.ok(navigator.mozL10n.localize.calledWith(
+    assert.ok(navigator.mozL10n.declareLocalizable.calledWith(
         trackingSection, 'findmydevice-active-tracking'));
     MockSettingsListener.mCallbacks['findmydevice.tracking'](false);
-    assert.ok(navigator.mozL10n.localize.calledWith(
+    assert.ok(navigator.mozL10n.declareLocalizable.calledWith(
         trackingSection, 'findmydevice-not-tracking'));
-    navigator.mozL10n.localize.reset();
+    navigator.mozL10n.declareLocalizable.reset();
   });
 
   suiteTeardown(function() {

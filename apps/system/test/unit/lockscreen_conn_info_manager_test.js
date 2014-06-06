@@ -249,7 +249,7 @@ suite('system/LockScreenConnInfoManager >', function() {
                                      'operator-info',
                                      l10nArgs));
 
-        navigator.mozL10n.localize.restore();
+        navigator.mozL10n.declareLocalizable.restore();
 
         subject._cellbroadcastLabel = null;
     });
@@ -291,7 +291,7 @@ suite('system/LockScreenConnInfoManager >', function() {
                                    'roaming',
                                    l10nArgs));
 
-      navigator.mozL10n.localize.restore();
+      navigator.mozL10n.declareLocalizable.restore();
     });
 
     test('Show localized roaming',
@@ -311,7 +311,7 @@ suite('system/LockScreenConnInfoManager >', function() {
         assert.ok(l10nSpy.calledWith(domConnstateL1, 'roaming', l10nArgs),
           'Roaming network name displayed localized with proper string');
 
-        navigator.mozL10n.localize.restore();
+        navigator.mozL10n.declareLocalizable.restore();
     });
 
     suite('Show correct card states when emergency calls only', function() {

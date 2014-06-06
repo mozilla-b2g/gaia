@@ -595,7 +595,7 @@ suite('SimPinLock > ', function() {
         SimPinLock.updateSimSecurityDescUI(true);
       });
       test('is description with enabled wording', function() {
-        assert.equal(window.navigator.mozL10n.localize.args[0][1],
+        assert.equal(window.navigator.mozL10n.declareLocalizable.args[0][1],
           'enabled');
       });
     });
@@ -604,7 +604,7 @@ suite('SimPinLock > ', function() {
         SimPinLock.updateSimSecurityDescUI(false);
       });
       test('is description with disabled wording', function() {
-        assert.equal(window.navigator.mozL10n.localize.args[0][1],
+        assert.equal(window.navigator.mozL10n.declareLocalizable.args[0][1],
           'disabled');
       });
     });

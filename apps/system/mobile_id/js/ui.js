@@ -197,7 +197,7 @@
     // Remove the progress bar
     verificationCodeTimer.classList.remove('show');
     // Update the string
-    navigator.mozL10n.localize(
+    navigator.mozL10n.declareLocalizable(
       successExplanation,
       'successMessage',
       {
@@ -331,7 +331,7 @@
       // Cache the name of the app
       appName = name;
       // Let's localize the explanation
-      navigator.mozL10n.localize(
+      navigator.mozL10n.declareLocalizable(
         stepsExplanation,
         'mobileIDExplanation',
         {
@@ -431,7 +431,7 @@
       _enablePanel('verification');
 
       // Update the string
-      navigator.mozL10n.localize(
+      navigator.mozL10n.declareLocalizable(
         verificationExplanation,
         'verificationCodeExplanation',
         {

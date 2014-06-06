@@ -113,8 +113,8 @@
       }.bind(this));
     },
     updateSimSecurityDescUI: function(enabled) {
-      window.navigator.mozL10n.localize(this.simSecurityDesc, enabled ?
-        'enabled' : 'disabled');
+      window.navigator.mozL10n.declareLocalizable(this.simSecurityDesc,
+        enabled ? 'enabled' : 'disabled');
       this.simSecurityDesc.dataset.l10nId = enabled ? 'enabled' : 'disabled';
     },
     handleEvent: function(evt) {

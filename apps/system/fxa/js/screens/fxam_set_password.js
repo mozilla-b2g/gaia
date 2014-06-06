@@ -87,7 +87,7 @@ var FxaModuleSetPassword = (function() {
 
     this.email = options.email;
 
-    navigator.mozL10n.localize(this.fxaHelloUser, 'fxa-hello-user', {
+    navigator.mozL10n.declareLocalizable(this.fxaHelloUser, 'fxa-hello-user', {
       email: ''
     });
     this.fxaUserSetEmail.textContent = this.email;

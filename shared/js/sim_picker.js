@@ -32,11 +32,12 @@
       navigator.mozL10n.ready(function() {
         var dialViaElt = document.getElementById('sim-picker-dial-via');
         if (phoneNumber) {
-          navigator.mozL10n.localize(
+          navigator.mozL10n.declareLocalizable(
             dialViaElt, 'sim-picker-dial-via-with-number',
             {phoneNumber: phoneNumber});
         } else {
-          navigator.mozL10n.localize(dialViaElt, 'sim-picker-select-sim');
+          navigator.mozL10n.declareLocalizable(dialViaElt,
+                                               'sim-picker-select-sim');
         }
 
         var simButtons = self._simPickerElt.querySelectorAll(
@@ -71,7 +72,8 @@
           clonedNode.dataset.cardIndex = i;
 
           var button = clonedNode.querySelector('.js-sim-picker-button');
-          navigator.mozL10n.localize(button, 'sim-picker-button', {n: i + 1});
+          navigator.mozL10n.declareLocalizable(button, 'sim-picker-button',
+                                               {n: i + 1});
           templateNode.parentNode.insertBefore(clonedNode, templateNode);
         }
         templateNode.remove();

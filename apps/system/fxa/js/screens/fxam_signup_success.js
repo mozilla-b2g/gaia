@@ -19,9 +19,10 @@ var FxaModuleSignupSuccess = (function() {
       'fxa-will-send-email'
     );
 
-    navigator.mozL10n.localize(this.fxaWillSendEmail, 'fxa-will-send-email', {
-      email: ''
-    });
+    navigator.mozL10n.declareLocalizable(this.fxaWillSendEmail,
+      'fxa-will-send-email', {
+        email: ''
+      });
     this.fxaSummaryEmail.textContent = options.email;
   };
 

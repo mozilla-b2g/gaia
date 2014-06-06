@@ -210,7 +210,7 @@ define(function(require) {
       time: Utils.format.durationMs(time)
     });
     li.innerHTML = html;
-    mozL10n.localize(
+    mozL10n.declareLocalizable(
       li.querySelector('.lap-name'),
       'lap-number',
       { n: num }
@@ -221,7 +221,7 @@ define(function(require) {
   function updateLapDom(num, time, li) {
     li.querySelector('.lap-duration').textContent =
       Utils.format.durationMs(time);
-    mozL10n.localize(
+    mozL10n.declareLocalizable(
       li.querySelector('.lap-name'),
       'lap-number',
       { n: num }

@@ -137,7 +137,7 @@ var ThreadListUI = {
     }
 
     if (!number) {
-      navigator.mozL10n.localize(
+      navigator.mozL10n.declareLocalizable(
         node.querySelector('.name'), 'no-recipient'
       );
       return;
@@ -164,7 +164,7 @@ var ThreadListUI = {
         node.dataset.photoUrl = src;
       }
 
-      navigator.mozL10n.localize(name, 'thread-header-text', {
+      navigator.mozL10n.declareLocalizable(name, 'thread-header-text', {
         name: title,
         n: others
       });
@@ -242,11 +242,13 @@ var ThreadListUI = {
     if (selected) {
       this.uncheckAllButton.disabled = false;
       this.deleteButton.disabled = false;
-      navigator.mozL10n.localize(this.editMode, 'selected', {n: selected});
+      navigator.mozL10n.declareLocalizable(this.editMode, 'selected',
+                                           {n: selected});
     } else {
       this.uncheckAllButton.disabled = true;
       this.deleteButton.disabled = true;
-      navigator.mozL10n.localize(this.editMode, 'deleteMessages-title');
+      navigator.mozL10n.declareLocalizable(this.editMode,
+                                           'deleteMessages-title');
     }
   },
 
