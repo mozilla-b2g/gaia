@@ -56,18 +56,18 @@
   </head>
   <body>
     <div id="edit-mode-curtain"></div>
-    
+
     <div class="scrollable">
-      <div id="search">
+      <div id="search" role="button" aria-labelledby="search-input" aria-haspopup="true">
         <form id="search-form">
-          <input id="search-input" type="text" x-inputmode="verbatim"
+          <input id="search-input" type="text" x-inputmode="verbatim" role="presentation"
             placeholder="Search or enter address" data-l10n-id="search-or-enter-address" value="">
           </input>
         </form>
       </div>
       <gaia-grid id="icons" zoom dragdrop></gaia-grid>
     </div>
-    
+
     <div id="zoom" hidden>
       <div class="curtain"></div>
       <div class="arrows"></div>
