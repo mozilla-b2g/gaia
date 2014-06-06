@@ -23,8 +23,9 @@ class VideoPlayer(Base):
         Base.launch(self)
 
     def wait_for_thumbnails_to_load(self, files_number):
+        timeout = (self.marionette.timeout / 1000) + (files_number * 5)
         self.wait_for_condition(lambda m: len(m.find_elements(*self._video_items_locator)) == files_number,
-                                timeout=files_number * 5)
+                                timeout=timeout)
 
     @property
     def total_video_count(self):
