@@ -2,6 +2,11 @@
  * SWITCHES
  * ---------------------------------- */
 
+gaia-switch {
+  display: inline-block;
+  width: 100%;
+}
+
 label.pack-switch {
   display: inline-block;
   vertical-align: middle;
@@ -20,6 +25,10 @@ label.pack-switch span {
   line-height: 3rem;
   box-sizing: border-box;
   display: block;
+}
+
+label.pack-switch span:not(:empty) {
+  padding-right: 6rem;
 }
 
 label.pack-switch input {
