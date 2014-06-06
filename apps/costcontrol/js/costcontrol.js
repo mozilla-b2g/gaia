@@ -1,6 +1,6 @@
-/* global debug, ConfigManager, Toolkit, addAlarmTimeout, Common, SimManager,
-          DEBUGGING
- */
+/* global debug, ConfigManager, Toolkit, addAlarmTimeout, Common, LazyLoader,
+          SimManager, IACManager, DEBUGGING
+*/
 /* exported CostControl */
 'use strict';
 
@@ -143,7 +143,9 @@ var CostControl = (function() {
         }
 
         // Dispatch
-        requestBalance(configuration, settings, callback, result);
+        LazyLoader.load('js/iac_manager.js', function() {
+          requestBalance(configuration, settings, callback, result);
+        });
       }
 
       function _requestTopUp(connection) {
@@ -186,7 +188,9 @@ var CostControl = (function() {
 
         // Dispatch
         var code = requestObj.data;
-        requestTopUp(configuration, settings, code, callback, result);
+        LazyLoader.load('js/iac_manager.js', function() {
+          requestTopUp(configuration, settings, code, callback, result);
+        });
       }
       switch (requestObj.type) {
         case 'balance':
@@ -206,6 +210,7 @@ var CostControl = (function() {
             _requestDataStatistics();
           }
           break;
+
         case 'telephony':
           // Can not fail: only dispatch
           result.data = settings.lastTelephonyActivity;
@@ -269,60 +274,68 @@ var CostControl = (function() {
     debug('Requesting balance...');
     result.data = settings.lastBalance;
 
-    // Send request SMS
-    var newSMS = mobileMessageManager.send(
-      configuration.balance.destination,
-      configuration.balance.text
-    );
+    function sendSMS() {
+      debug('After IAC broadcast ask for starting - balance');
+      // Send request SMS
+      var newSMS = mobileMessageManager.send(
+        configuration.balance.destination,
+        configuration.balance.text
+      );
 
-    newSMS.onsuccess = function _onSuccess() {
-      debug('Request SMS sent! Waiting for response.');
+      newSMS.onsuccess = function _onSuccess() {
+        debug('Request SMS sent! Waiting for response.');
 
-      if (!DEBUGGING) {
-        mobileMessageManager.delete(newSMS.result.id);
-      }
+        if (!DEBUGGING) {
+          mobileMessageManager.delete(newSMS.result.id);
+        }
 
-      // Add the timeout
-      var newAlarm = addAlarmTimeout('balanceTimeout', BALANCE_TIMEOUT);
+        // Add the timeout
+        var newAlarm = addAlarmTimeout('balanceTimeout', BALANCE_TIMEOUT);
 
-      newAlarm.onsuccess = function _alarmSet(evt) {
-        var id = evt.target.result;
-        debug('Timeout for balance (', id, ') update set to:', BALANCE_TIMEOUT);
+        newAlarm.onsuccess = function _alarmSet(evt) {
+          var id = evt.target.result;
+          debug('Timeout for balance (', id, ') update set to:',
+                BALANCE_TIMEOUT);
 
-        ConfigManager.setOption(
-          {
-            'waitingForBalance': id,
-            'lastBalanceRequest': new Date()
-          },
-          function _onSet() {
-            result.status = 'success';
-            if (callback) {
-              callback(result);
+          ConfigManager.setOption(
+            {
+              'waitingForBalance': id,
+              'lastBalanceRequest': new Date()
+            },
+            function _onSet() {
+              result.status = 'success';
+              if (callback) {
+                callback(result);
+              }
             }
+          );
+        };
+
+        newAlarm.onerror = function _alarmFailedToSet(evt) {
+          debug('Failed to set timeout for balance request!');
+          result.status = 'error';
+          result.details = 'timeout_fail';
+          if (callback) {
+            callback(result);
           }
-        );
+        };
       };
 
-      newAlarm.onerror = function _alarmFailedToSet(evt) {
-        debug('Failed to set timeout for balance request!');
+      newSMS.onerror = function _onError() {
+        debug('Request SMS failed! But returning stored balance.');
+        IACManager.broadcastEndOfSMSQuery('balance').then(function(msg) {
+          debug('After IAC broadcast ask for ending - balance');
+        });
         result.status = 'error';
-        result.details = 'timout_fail';
+        result.details = 'request_fail';
         if (callback) {
           callback(result);
         }
       };
-    };
-
-    newSMS.onerror = function _onError() {
-      debug('Request SMS failed! But returning stored balance.');
-      result.status = 'error';
-      result.details = 'request_fail';
-      if (callback) {
-        callback(result);
-      }
-    };
-
-    debug('Balance out of date. Requesting fresh data...');
+      debug('Balance out of date. Requesting fresh data...');
+    }
+    IACManager.init(configuration);
+    IACManager.broadcastStartOfSMSQuery('balance').then(sendSMS, sendSMS);
   }
 
   // Send a top up SMS and set timeouts for interrupting waiting for response
@@ -330,61 +343,71 @@ var CostControl = (function() {
   function requestTopUp(configuration, settings, code, callback, result) {
     debug('Requesting TopUp with code', code, '...');
 
-    // TODO: Ensure is free
-    var newSMS = mobileMessageManager.send(
-      configuration.topup.destination,
-      configuration.topup.text.replace(/\&code/g, code)
-    );
+    function sendSMS() {
+      debug('After IAC broadcast ask for starting - topup');
 
-    newSMS.onsuccess = function _onSuccess() {
-      debug('TopUp SMS sent! Waiting for response.');
+      // TODO: Ensure is free
+      var newSMS = mobileMessageManager.send(
+        configuration.topup.destination,
+        configuration.topup.text.replace(/\&code/g, code)
+      );
 
-      if (!DEBUGGING) {
-        mobileMessageManager.delete(newSMS.result.id);
-      }
+      newSMS.onsuccess = function _onSuccess() {
+        debug('TopUp SMS sent! Waiting for response.');
 
-      // Add the timeout (if fail, do not inform the callback)
-      var newAlarm = addAlarmTimeout('topupTimeout', TOPUP_TIMEOUT);
+        if (!DEBUGGING) {
+          mobileMessageManager.delete(newSMS.result.id);
+        }
 
-      newAlarm.onsuccess = function _alarmSet(evt) {
-        var id = evt.target.result;
-        debug('Timeout for TopUp (', id, ') update set to:', TOPUP_TIMEOUT);
+        // Add the timeout (if fail, do not inform the callback)
+        var newAlarm = addAlarmTimeout('topupTimeout', TOPUP_TIMEOUT);
 
-        // XXX: waitingForTopUp can be null if no waiting or distinct
-        // than null to indicate the unique id of the timeout waiting
-        // for the response message
-        ConfigManager.setOption(
-          {
-            'waitingForTopUp': id,
-            'lastTopUpRequest': new Date()
-          },
-          function _onSet() {
-            result.status = 'success';
-            if (callback) {
-              callback(result);
+        newAlarm.onsuccess = function _alarmSet(evt) {
+          var id = evt.target.result;
+          debug('Timeout for TopUp (', id, ') update set to:', TOPUP_TIMEOUT);
+
+          // XXX: waitingForTopUp can be null if no waiting or distinct
+          // than null to indicate the unique id of the timeout waiting
+          // for the response message
+          ConfigManager.setOption(
+            {
+              'waitingForTopUp': id,
+              'lastTopUpRequest': new Date()
+            },
+            function _onSet() {
+              result.status = 'success';
+              if (callback) {
+                callback(result);
+              }
             }
+          );
+        };
+
+        newAlarm.onerror = function _alarmFailedToSet(evt) {
+          debug('Failed to set timeout for TopUp request!');
+          result.status = 'error';
+          result.details = 'timeout_fail';
+          if (callback) {
+            callback(result);
           }
-        );
+        };
       };
 
-      newAlarm.onerror = function _alarmFailedToSet(evt) {
-        debug('Failed to set timeout for TopUp request!');
+      newSMS.onerror = function _onError() {
+        debug('TopUp SMS failed!');
+        IACManager.broadcastEndOfSMSQuery('topup').then(function(msg) {
+          debug('After IAC broadcast ask for ending - topup');
+        });
         result.status = 'error';
-        result.details = 'timeout_fail';
+        result.details = 'request_fail';
         if (callback) {
           callback(result);
         }
       };
-    };
+    }
 
-    newSMS.onerror = function _onError() {
-      debug('TopUp SMS failed!');
-      result.status = 'error';
-      result.details = 'request_fail';
-      if (callback) {
-        callback(result);
-      }
-    };
+    IACManager.init(configuration);
+    IACManager.broadcastStartOfSMSQuery('topup').then(sendSMS, sendSMS);
   }
 
   // XXX: pending on bug XXX to get statistics by SIM
