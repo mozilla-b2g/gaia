@@ -501,13 +501,16 @@
           clearTimeout(closing);
           debug('SMS sent!');
 
-          ConfigManager.requestAll(function _onInfo(configuration, settings) {
-            var mode = ConfigManager.getApplicationMode();
-            if (mode === 'PREPAID' &&
-                !costcontrol.isBalanceRequestSMS(sms, configuration)) {
-              costcontrol.request({ type: 'balance' });
-            }
-
+          var configuration = ConfigManager.configuration;
+          var mode = ConfigManager.getApplicationMode();
+          if (mode === 'PREPAID' &&
+              !costcontrol.isBalanceRequestSMS(sms, configuration)) {
+            costcontrol.request({ type: 'balance' });
+          }
+          if (mode === 'PREPAID' &&
+              costcontrol.isBalanceRequestSMS(sms, configuration)) {
+            closeIfProceeds();
+          } else {
             var mobileMessageManager = window.navigator.mozMobileMessage;
             var infoRequest =
               mobileMessageManager.getSegmentInfoForText(sms.body);
@@ -520,23 +523,28 @@
               } else {
                 realCount = smsInfo.segments;
               }
-              updateSMSCount(settings, realCount);
+              updateSMSCount(realCount);
             };
             infoRequest.onerror = function onError() {
               console.error('Can not retrieve segment info for body ' +
                              sms.body);
-              updateSMSCount(settings, 1);
+              updateSMSCount(1);
             };
-          });
+          }
 
-          function updateSMSCount(settings, count) {
-            settings.lastTelephonyActivity.timestamp = new Date();
-            settings.lastTelephonyActivity.smscount += count;
-            ConfigManager.setOption({
-              lastTelephonyActivity: settings.lastTelephonyActivity
-            }, function _sync() {
-              localStorage.sync = 'lastTelephonyActivity#' + Math.random();
-              closeIfProceeds();
+          function updateSMSCount(count) {
+            SimManager.requestDataSimIcc(function(dataSimIcc) {
+              ConfigManager.requestSettings(dataSimIcc.iccId,
+                                            function _onSettings(settings) {
+                settings.lastTelephonyActivity.timestamp = new Date();
+                settings.lastTelephonyActivity.smscount += count;
+                ConfigManager.setOption({
+                  lastTelephonyActivity: settings.lastTelephonyActivity
+                }, function _sync() {
+                  localStorage.sync = 'lastTelephonyActivity#' + Math.random();
+                  closeIfProceeds();
+                });
+              });
             });
           }
         });
@@ -570,7 +578,6 @@
             });
           }
         );
-
       }
 
       // Notify message handler is ready
