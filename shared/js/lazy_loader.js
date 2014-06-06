@@ -56,6 +56,11 @@ var LazyLoader = (function() {
           break;
         }
       }
+
+      window.dispatchEvent(new CustomEvent('lazy-loaded-html', {
+        detail: domNode
+      }));
+
       callback();
     },
 
