@@ -128,35 +128,20 @@ Calendar.ns('Views').Week = (function() {
 
       var i = 0;
       var hour;
+      var displayHour;
 
       for (; i < 24; i++) {
         hour = String(i);
+        displayHour = Calendar.Calc.formatHourAbbr(i);
 
         element.insertAdjacentHTML(
           'beforeend',
           template.sidebarHour.render({
             hour: hour,
-            displayHour: this._formatDisplayHour(i)
+            displayHour: displayHour
           })
         );
       }
-    },
-
-    _formatDisplayHour: function(hour) {
-      var date = new Date();
-      date.setHours(hour, 0, 0, 0);
-
-      var format = navigator.mozL10n.get('hour-week-view-sidebar', {
-        ampm: '<span class="ampm">' +
-          navigator.mozL10n.get('hour-week-view-sidebar-ampm') +
-          '</span>'
-      });
-      var result = Calendar.App.dateFormat.localeFormat(date, format);
-
-      // remove leading zero
-      result = result.replace(/^0/, '');
-
-      return result;
     }
   };
 
