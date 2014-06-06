@@ -5,12 +5,15 @@
 import time
 
 from gaiatest import GaiaTestCase
+from gaiatest.apps.clock.app import Clock
+from gaiatest.apps.calendar.app import Calendar
+from gaiatest.apps.homescreen.app import Homescreen
 
 
 class TestKillAll(GaiaTestCase):
 
     def test_kill_all(self):
-        for app in ['Calendar', 'Clock']:
+        for app in [Calendar.name, Clock.name]:
             self.apps.launch(app)
             time.sleep(1)
 
@@ -23,7 +26,7 @@ class TestKillAll(GaiaTestCase):
         self.check_no_apps_running()
 
     def test_kill_all_twice(self):
-        apps = ['Calendar', 'Clock']
+        apps = [Calendar.name, Clock.name]
         for app in apps:
             self.apps.launch(app)
             time.sleep(1)
@@ -38,5 +41,4 @@ class TestKillAll(GaiaTestCase):
         self.apps.kill_all()
 
     def check_no_apps_running(self):
-        self.assertEqual(
-            [a.name.lower() for a in self.apps.running_apps], ['homescreen'])
+        self.assertEqual([a.name for a in self.apps.running_apps], [Homescreen.name])

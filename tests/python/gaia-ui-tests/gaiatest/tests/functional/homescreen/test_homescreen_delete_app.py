@@ -18,7 +18,6 @@ class TestDeleteApp(GaiaTestCase):
 
         self.homescreen = Homescreen(self.marionette)
         self.apps.switch_to_displayed_app()
-        self.homescreen.wait_for_homescreen_to_load()
 
         if not self.apps.is_app_installed(self.APP_NAME):
 

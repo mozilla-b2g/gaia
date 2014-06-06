@@ -565,25 +565,25 @@ class GaiaDevice(object):
 
     def touch_home_button(self):
         apps = GaiaApps(self.marionette)
-        if apps.displayed_app.name.lower() != 'homescreen':
+        if apps.displayed_app.name.lower() != 'vertical':
             # touching home button will return to homescreen
             self._dispatch_home_button_event()
             Wait(self.marionette).until(
-                lambda m: apps.displayed_app.name.lower() == 'homescreen')
+                lambda m: apps.displayed_app.name.lower() == 'vertical')
             apps.switch_to_displayed_app()
         else:
             apps.switch_to_displayed_app()
-            mode = self.marionette.find_element(By.TAG_NAME, 'body').get_attribute('data-mode')
+            mode = self.marionette.find_element(By.TAG_NAME, 'body').get_attribute('class')
             self._dispatch_home_button_event()
             apps.switch_to_displayed_app()
-            if mode == 'edit':
+            if mode == 'edit-mode':
                 # touching home button will exit edit mode
                 Wait(self.marionette).until(lambda m: m.find_element(
-                    By.TAG_NAME, 'body').get_attribute('data-mode') == 'normal')
+                    By.TAG_NAME, 'body').get_attribute('class') != mode)
             else:
-                # touching home button will move to first page
+                # touching home button inside homescreen will scroll it to the top
                 Wait(self.marionette).until(lambda m: m.execute_script(
-                    'return window.wrappedJSObject.GridManager.pageHelper.getCurrentPageNumber();') == 0)
+                    "return document.querySelector('.scrollable').scrollTop") == 0)
 
     def _dispatch_home_button_event(self):
         self.marionette.switch_to_frame()
@@ -718,12 +718,6 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
                 self.data_layer.set_bool_pref(name, value)
             else:
                 self.data_layer.set_char_pref(name, value)
-
-        # set homescreen origin to old homescreen - remove after migration to vertical homescreen
-        self.marionette.switch_to_frame()
-        self.data_layer.set_setting('homescreen.manifestURL', 'app://homescreen.gaiamobile.org/manifest.webapp')
-        homescreen = self.marionette.find_element(By.ID, 'homescreen')
-        Wait(self.marionette, timeout=60).until(lambda m: homescreen.get_attribute('loading-state') == 'false')
 
         # unlock
         self.device.unlock()
