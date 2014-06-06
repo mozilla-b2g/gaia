@@ -61,8 +61,13 @@
     <link rel="stylesheet" type="text/css" href="shared/style/value_selector.css">
     <link rel="stylesheet" type="text/css" href="shared/style/date_selector.css">
     <link rel="stylesheet" type="text/css" href="shared/style/time_selector.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/object_menu.css">
 
     <link rel="stylesheet" type="text/css" href="style/fake-notification.css"/>
+
+    <!-- Include shared web components -->
+    <script defer src="shared/js/component_utils.js"></script>
+    <script defer src="shared/elements/gaia_buttons/script.js"></script>
 
     <!-- Include shared resources
     <link rel="resource" type="application/json" href="shared/resources/apn.json"/>
@@ -1202,14 +1207,18 @@
       </div>
 
       <div id="sleep-menu" data-z-index-level="sleep-menu">
-        <div id="sleep-menu-container">
-          <h1 data-l10n-id="deviceMenu">Device menu</h1>
-          <ul role="menu">
-          </ul>
+        <div id="sleep-menu-container" role="dialog" data-type="object">
+          <header>
+            <h1 data-l10n-id="deviceMenu">Device menu</h1>
+          </header>
+          <section>
+            <ul role="menu">
+            </ul>
+          </section>
+          <gaia-buttons skin="dark">
+            <button data-l10n-id="cancel">Cancel</button>
+          </gaia-buttons>
         </div>
-        <menu>
-          <button data-l10n-id="cancel">Cancel</button>
-        </menu>
       </div>
 
       <div id="system-overlay" data-z-index-level="system-overlay">
