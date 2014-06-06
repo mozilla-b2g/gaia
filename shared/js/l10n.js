@@ -1150,6 +1150,14 @@
     localize: function localize(element, id, args) {
       return localizeElement.call(navigator.mozL10n, element, id, args);
     },
+    declareLocalizable: function(element, id, args) {
+      if (id) {
+        element.setAttribute('data-l10n-id', id);
+      }
+      if (args) {
+        element.setAttribute('data-l10n-args', JSON.stringify(args));
+      }
+    },
     translate: function () {
       // XXX: Remove after removing obsolete calls. Bugs 992473 and 1020136
     },
