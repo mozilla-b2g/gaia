@@ -22,17 +22,23 @@ class TestFtu(GaiaTestCase):
         self.ftu.tap_take_tour()
 
         # Walk through the tour
-        self.assertEqual(self.ftu.step1_header_text, "Swipe up and down to browse your apps. Tap and hold on an icon to move or delete it.")
+        self.assertEqual(self.ftu.step1_header_text, "Swipe from right to left to browse your apps.")
         self.ftu.tap_tour_next()
-        self.assertEqual(self.ftu.step2_header_text, "Swipe down to access recent notifications, credit information and settings.")
+        self.assertEqual(self.ftu.step2_header_text, "Tap and hold on an icon to delete or move it.")
         self.ftu.tap_tour_next()
-        self.assertEqual(self.ftu.step3_header_text, "Drag from the left edge of your screen to return to recently used apps.")
+        self.assertEqual(self.ftu.step3_header_text, "Enter any keyword or topic and your phone will instantly adapt.")
+        self.ftu.tap_tour_next()
+        self.assertEqual(self.ftu.step4_header_text, "Swipe down to access recent notifications, credit information and settings.")
+        self.ftu.tap_tour_next()
+        self.assertEqual(self.ftu.step5_header_text, "Tap and hold the home button to browse and close recent apps.")
 
         # Try going back a step
         self.ftu.tap_back()
-        self.assertEqual(self.ftu.step2_header_text, "Swipe down to access recent notifications, credit information and settings.")
+        self.assertEqual(self.ftu.step4_header_text, "Swipe down to access recent notifications, credit information and settings.")
         self.ftu.tap_tour_next()
-        self.assertEqual(self.ftu.step3_header_text, "Drag from the left edge of your screen to return to recently used apps.")
+        self.assertEqual(self.ftu.step5_header_text, "Tap and hold the home button to browse and close recent apps.")
+        self.ftu.tap_tour_next()
+        self.assertEqual(self.ftu.step6_header_text, "Swipe from the side of the screen to move back and forth between recent apps.")
         self.ftu.tap_tour_next()
         self.ftu.wait_for_finish_tutorial_section()
         self.ftu.tap_lets_go_button()

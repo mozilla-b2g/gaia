@@ -57,40 +57,19 @@
       stepData.l10nKey
     );
 
-    // Update the image/video
-    var imgElement = dom.tutorialStepMedia.querySelector('img'),
-        videoElement = dom.tutorialStepMedia.querySelector('video');
-
-    function onVideoLoadOrError(evt) {
-      videoElement.removeEventListener('loadeddata', onVideoLoadOrError);
-      videoElement.removeEventListener('error', onVideoLoadOrError);
-      callback(evt);
+    if (typeof callback === 'function') {
+      dom.tutorialStepImage.querySelector('img').onload = callback;
     }
+    // Update the image
+    dom.tutorialStepImage.querySelector('img').src = stepData.image;
 
-    if (stepData.video) {
-
-      if (typeof callback === 'function') {
-        videoElement.addEventListener('loadeddata', onVideoLoadOrError, false);
-        videoElement.addEventListener('error', onVideoLoadOrError, false);
-      }
-      videoElement.src = stepData.video;
-      videoElement.hidden = false;
-      imgElement.hidden = true;
-    } else {
-      if (typeof callback === 'function') {
-        imgElement.onload = imgElement.onerror = callback;
-      }
-      imgElement.hidden = false;
-      imgElement.src = stepData.image;
-      videoElement.hidden = true;
-    }
     _setProgressBarStep(currentStep);
   }
 
   var elementIDs = [
     'tutorial',
     'tutorial-step-title',
-    'tutorial-step-media',
+    'tutorial-step-image',
     'forward-tutorial',
     'back-tutorial',
     'tutorial-progress',
