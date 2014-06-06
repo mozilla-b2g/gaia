@@ -69,7 +69,7 @@ function runCropResizeRotateTests(imageWidth, imageHeight) {
           var canvas = document.createElement('canvas');
           canvas.width = image.width;
           canvas.height = image.height;
-          var context = canvas.getContext('2d');
+          var context = canvas.getContext('2d', { willReadFrequently: true });
           context.drawImage(image, 0, 0);
           var imageData = context.getImageData(0, 0,
                                                canvas.width, canvas.height);
