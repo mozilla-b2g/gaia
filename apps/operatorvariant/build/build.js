@@ -53,6 +53,9 @@ Resources.prototype.getResources = function(conf) {
   operatorJSON.wallpaper = this.getWallpaperResource(conf.wallpaper);
   operatorJSON.ringtone = this.getRingtoneResource(conf.ringtone);
   operatorJSON.power = this.getPowerResource(conf.power);
+  operatorJSON.search = this.getSearchResource(conf.search);
+  operatorJSON.default_search =
+    this.getDefaultSearchResource(conf.default_search);
   operatorJSON.keyboard_settings = this.getKeyboardResource(conf.keyboard);
   operatorJSON.data_ftu = conf.data_ftu;
 
@@ -97,7 +100,7 @@ Resources.prototype.addFile = function(path, key) {
 
 // Create a new JSON file and add to resources.
 Resources.prototype.createJSON = function(name, content) {
-  var obj = { filename: name + '.json',
+  var obj = { filename: name,
               content: content };
 
   return this.addEntry(obj, obj.filename);
@@ -122,7 +125,7 @@ Resources.prototype.getWallpaperResource = function(wallpaper) {
     var content = { uri: uri,
                     default: this.settings['wallpaper.image'] };
 
-    var jsonName = 'wallpaper-' + getHash(wallpaper);
+    var jsonName = 'wallpaper-' + getHash(wallpaper) + '.json';
     return this.createJSON(jsonName, content);
   }
 };
@@ -130,7 +133,7 @@ Resources.prototype.getWallpaperResource = function(wallpaper) {
 // Create ringtone JSON and add file. 
 Resources.prototype.getRingtoneResource = function(ringtone) {
   if (ringtone) {
-    var jsonName = 'ringtone-' + getHash(JSON.stringify(ringtone));
+    var jsonName = 'ringtone-' + getHash(JSON.stringify(ringtone)) + '.json';
 
     var ringtoneName = ringtone.name;
     if (!ringtoneName) {
@@ -160,7 +163,7 @@ Resources.prototype.getRingtoneResource = function(ringtone) {
 // Create power JSON and add files.
 Resources.prototype.getPowerResource = function (power) {
   if (power) {
-    var jsonName = 'power-' + getHash(JSON.stringify(power));
+    var jsonName = 'power-' + getHash(JSON.stringify(power)) + '.json';
     var powerJSON = power;
     var poweron = power.poweron;
     var poweronFile;
@@ -204,6 +207,49 @@ Resources.prototype.getPowerResource = function (power) {
   }
 };
 
+// Create search JSON and add files.
+Resources.prototype.getSearchResource = function (searchPath) {
+  if (searchPath) {
+    var file = this.getFile(searchPath);
+    var searchContent = utils.getJSON(file);
+
+    searchContent.forEach(function(engine) {
+      if (!engine.iconPath.startsWith(this.appPrefix)) {
+        var searchFile = this.getFile(engine.iconPath);
+        this.addEntry(searchFile, searchFile.leafname);
+        engine.iconUrl = this.appURL + searchFile.leafName;
+        delete engine.iconPath;
+      }
+    }.bind(this));
+
+    return this.createJSON(file.leafName, searchContent);
+  }
+};
+
+// Create default search JSON and add files.
+Resources.prototype.getDefaultSearchResource = function (defaultSearchPath) {
+  if (defaultSearchPath) {
+    var file = this.getFile(defaultSearchPath);
+    var searchContent = utils.getJSON(file);
+
+    if (!searchContent.urlTemplate ||
+        !searchContent.suggestionsUrlTemplate ||
+        !searchContent.iconPath) {
+      throw new Error('Invalid format of the default provider search engine.');
+    }
+
+    if (!searchContent.iconPath.startsWith(this.appPrefix)) {
+      var searchFile = this.getFile(searchContent.iconPath);
+      this.addEntry(searchFile, searchFile.leafname);
+      searchContent.iconUrl = this.appURL + searchFile.leafName;
+      delete searchContent.iconPath;
+    }
+
+    return this.createJSON(file.leafName, searchContent);
+  }
+};
+
+
 // Create keyboard JSON.
 Resources.prototype.getKeyboardResource = function (keyboard) {
   if (keyboard) {
@@ -223,7 +269,7 @@ Resources.prototype.getKeyboardResource = function (keyboard) {
     var content = { values: utils.getJSON(file),
                     defaults: defaults };
 
-    var jsonName = 'keyboard-' + getHash(keyboard);
+    var jsonName = 'keyboard-' + getHash(keyboard) + '.json';
     return this.createJSON(jsonName, content);
   }
 };
