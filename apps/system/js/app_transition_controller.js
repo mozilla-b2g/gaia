@@ -306,7 +306,7 @@
 
       var classes = ['enlarge', 'reduce', 'to-cardview', 'from-cardview',
         'invoking', 'invoked', 'zoom-in', 'zoom-out', 'fade-in', 'fade-out',
-        'transition-opening', 'transition-closing', 'immediate',
+        'transition-opening', 'transition-closing', 'immediate', 'fadeout',
         'slideleft', 'slideright', 'in-from-left', 'out-to-right',
         'slideup', 'slidedown', 'will-become-active', 'will-become-inactive'];
 
