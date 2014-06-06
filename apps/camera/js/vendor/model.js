@@ -20,9 +20,30 @@ function Model(obj) {
 }
 
 Model.prototype = events({
+
+  /**
+   * Returns the value of the given
+   * key, or if not key is given a
+   * shallow clone of the model is
+   * returned.
+   *
+   * We check `aguments.length` so that
+   * when calling `get()` with an unknown
+   * key, `undefined` is returned and not
+   * the entire model.
+   *
+   * Example:
+   *
+   *   model.get(); //=> { ... }
+   *   model.get('undefinedKey'); //=> undefined
+   *
+   * @param  {String} key
+   * @return {*}
+   * @public
+   */
   get: function(key) {
     var data = this._getData();
-    return key ? data[key] : mix({}, data);
+    return arguments.length ? data[key] : mix({}, data);
   },
 
   set: function(key, value, options) {
