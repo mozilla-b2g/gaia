@@ -11,7 +11,7 @@ define run-build-test
     --harmony \
     --reporter $(REPORTER) \
     --ui tdd \
-    --timeout 0 \
+    --timeout 180000 \
     $(strip $1)
 endef
 
