@@ -24,6 +24,8 @@ class TestUtilityTrayNotificationsAccessibility(GaiaTestCase):
         notifications = utility_tray.notifications
         self.assertEqual(1, len(notifications), 'Expected one notification.')
 
+        self.wait_for_condition(lambda m: not self.accessibility.is_hidden(m.find_element(
+            *utility_tray._notification_clear_locator)))
         # Clear the notification by "Clear all"
         utility_tray.a11y_clear_all_notifications()
 

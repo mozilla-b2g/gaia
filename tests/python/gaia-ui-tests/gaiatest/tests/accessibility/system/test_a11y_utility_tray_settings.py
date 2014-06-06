@@ -18,6 +18,8 @@ class TestUtilityTraySettingsAccessibility(GaiaTestCase):
         utility_tray = self.system.open_utility_tray()
         utility_tray.wait_for_notification_container_displayed()
 
+        self.wait_for_condition(lambda m: not self.accessibility.is_hidden(m.find_element(
+            *utility_tray._quick_settings_full_app_locator)))
         settings = utility_tray.a11y_click_quick_settings_full_app()
 
         # Make sure that Settings is the currently displayed app.
