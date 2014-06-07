@@ -27,6 +27,7 @@ require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
 require('/shared/test/unit/mocks/dialer/mock_keypad.js');
 require('/shared/test/unit/mocks/mock_notification.js');
 require('/shared/test/unit/mocks/mock_image.js');
+require('/shared/test/unit/mocks/mock_sim_settings_helper.js');
 
 var mocksHelperForCallLog = new MocksHelper([
   'asyncStorage',
@@ -39,7 +40,8 @@ var mocksHelperForCallLog = new MocksHelper([
   'ContactPhotoHelper',
   'StickyHeader',
   'CallHandler',
-  'KeypadManager'
+  'KeypadManager',
+  'SimSettingsHelper'
 ]).init();
 
 suite('dialer/call_log', function() {
@@ -802,24 +804,29 @@ suite('dialer/call_log', function() {
         showSpy, missedGroup.contact.id, missedGroup.number);
     };
 
-    suite('One SIM', function() {
-      setup(function() {
-        MockNavigatorMozIccManager.addIcc('12345', {'cardState': 'ready'});
-        CallLog.init();
-      });
+    [0, 1].forEach(function(cardIndex) {
+      suite('One SIM in slot ' + cardIndex, function() {
+        setup(function() {
+          MockNavigatorMozIccManager.addIcc('12345', {'cardState': 'ready'});
+          MockSimSettingsHelper._defaultCards.outgoingCall = cardIndex;
+          CallLog.init();
+        });
 
-      test('should not put the dual sim class on the container', function() {
-        assert.isFalse(CallLog.callLogContainer.classList.contains('dual-sim'));
-      });
+        test('should not put the dual sim class on the container', function() {
+          assert.isFalse(
+            CallLog.callLogContainer.classList.contains('dual-sim'));
+        });
 
-      test('tapping the entry should place call immediately', function() {
-        var callSpy = this.sinon.spy(CallHandler, 'call');
-        simulateClick(CallLog.appendGroup(missedGroup));
-        sinon.assert.calledWith(callSpy, missedGroup.number, 0);
-      });
+        test('tapping the entry should place call immediately', function() {
+          var callSpy = this.sinon.spy(CallHandler, 'call');
+          simulateClick(CallLog.appendGroup(missedGroup));
+          sinon.assert.calledWith(callSpy, missedGroup.number,
+            MockSimSettingsHelper._defaultCards.outgoingCall);
+        });
 
-      test('long pressing the entry should show action menu',
-           longPressShouldShowActionMenu);
+        test('long pressing the entry should show action menu',
+             longPressShouldShowActionMenu);
+      });
     });
 
     suite('Dual SIM', function() {
