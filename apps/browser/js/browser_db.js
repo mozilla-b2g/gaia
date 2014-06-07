@@ -64,7 +64,7 @@ var BrowserDB = {
           reader.onerror = function() {
             console.error('Unable to read iconUri from blob');
           };
-          reader.readAsDataURL(data[0].iconUri);
+          reader.readAsDataURL(topSite.iconUri);
           return;
         }
 
