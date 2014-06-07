@@ -10,6 +10,7 @@
   var SEARCH_DELAY = 600;
 
   window.Search = {
+
     _port: null,
 
     providers: {},
@@ -24,6 +25,8 @@
 
     searchResults: document.getElementById('search-results'),
     newTabPage: document.getElementById('newtab-page'),
+
+    suggestionsEnabled: false,
 
     init: function() {
 
@@ -63,12 +66,17 @@
       }
 
       // Listen for changes in default search engine
-      SettingsListener.observe('search.urlTemplate', false,
-        function(value) {
+      SettingsListener.observe('search.urlTemplate', false, function(value) {
         if (value) {
           this.urlTemplate = value;
         }
       }.bind(this));
+
+      var enabledKey = 'search.suggestions.enabled';
+      SettingsListener.observe(enabledKey, true, function(enabled) {
+        this.suggestionsEnabled = enabled;
+      }.bind(this));
+
     },
 
     /**
@@ -115,7 +123,10 @@
 
         for (var i in providers) {
           var provider = providers[i];
-          provider.search(input, this.collect.bind(this, provider));
+          // If suggestions are disabled, only use local providers
+          if (this.suggestionsEnabled || !provider.remote) {
+            provider.search(input, this.collect.bind(this, provider));
+          }
         }
       }.bind(this), SEARCH_DELAY);
     },

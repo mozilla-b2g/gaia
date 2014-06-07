@@ -1,12 +1,14 @@
 'use strict';
 /* global MockNavigatormozApps, MockNavigatormozSetMessageHandler,
-          MockMozActivity, Search */
+          MockMozActivity, Search, MockProvider */
 
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
 require('/shared/test/unit/mocks/mock_moz_activity.js');
 require('/shared/js/url_helper.js');
 require('/shared/js/dedupe.js');
+requireApp('search/test/unit/mock_provider.js');
+
 
 suite('search/search', function() {
   var realMozApps;
@@ -501,5 +503,50 @@ suite('search/search', function() {
       Search.collect(provider, results);
       assert.equal(renderStub.getCall(0).args[0].length, 2);
     });
+
+    test('Dont search remote providers when suggestions disabled', function() {
+      var localProvider = new MockProvider('local');
+      var remoteProvider = new MockProvider('remote');
+      remoteProvider.remote = true;
+
+      var remoteStub = this.sinon.stub(remoteProvider, 'search');
+      var localStub = this.sinon.stub(localProvider, 'search');
+
+      Search.provider(localProvider);
+      Search.provider(remoteProvider);
+
+      Search.suggestionsEnabled = false;
+      Search.change({data: {input: 'test'}});
+      clock.tick(1000);
+
+      assert.ok(remoteStub.notCalled);
+      assert.ok(localStub.calledOnce);
+
+      Search.removeProvider(localProvider);
+      Search.removeProvider(remoteProvider);
+    });
+
+    test('Search all providers when suggestions enabled', function() {
+      var localProvider = new MockProvider('local');
+      var remoteProvider = new MockProvider('remote');
+      remoteProvider.remote = true;
+
+      var remoteStub = this.sinon.stub(remoteProvider, 'search');
+      var localStub = this.sinon.stub(localProvider, 'search');
+
+      Search.provider(localProvider);
+      Search.provider(remoteProvider);
+
+      Search.suggestionsEnabled = true;
+      Search.change({data: {input: 'test'}});
+      clock.tick(1000);
+
+      assert.ok(remoteStub.calledOnce);
+      assert.ok(localStub.calledOnce);
+
+      Search.removeProvider(localProvider);
+      Search.removeProvider(remoteProvider);
+    });
+
   });
 });
