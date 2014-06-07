@@ -125,7 +125,14 @@
         dom.forwardTutorial.addEventListener('click', this);
         dom.backTutorial.addEventListener('click', this);
 
-        _initProgressBar();
+        // toggle the layout based number of steps and whether we'll show the
+        // progress bar or not
+        if (stepsConfig.steps.length > 3) {
+          dom.tutorial.dataset.progressbar = true;
+          _initProgressBar();
+        } else {
+          delete dom.tutorial.dataset.progressbar;
+        }
 
         // Set the first step
         currentStep = 1;
