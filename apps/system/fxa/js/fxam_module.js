@@ -1,7 +1,7 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/* global HtmlHelper, FxaModuleOverlay, LazyLoader, FxaModuleErrors,
+/* global Utils, FxaModuleOverlay, LazyLoader, FxaModuleErrors,
    FxaModuleErrorOverlay */
 /* exported FxaModule */
 
@@ -34,7 +34,7 @@ var FxaModule = (function() {
       var args = [].slice.call(arguments);
       // context to import into is the first argument to importElements
       args.unshift(this);
-      HtmlHelper.importElements.apply(null, args);
+      Utils.importElements.apply(null, args);
     },
 
     showErrorResponse: function fxam_showErrorResponse(response) {

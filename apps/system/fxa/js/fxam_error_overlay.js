@@ -1,7 +1,7 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/* global HtmlHelper */
+/* global Utils */
 /* exported FxaModuleErrorOverlay */
 
 'use strict';
@@ -18,7 +18,7 @@ var FxaModuleErrorOverlay = {
       return;
     }
 
-    HtmlHelper.importElements(this,
+    Utils.importElements(this,
       'fxa-error-overlay',
       'fxa-error-title',
       'fxa-error-msg',
