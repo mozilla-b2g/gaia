@@ -81,15 +81,20 @@ suite('phone action menu', function() {
       callOptionItem.click();
     }
 
-    suite('Mono SIM', function() {
-      setup(function() {
-        MockNavigatorMozIccManager.iccIds[0] = 0;
-      });
+    [0, 1].forEach(function(cardIndex) {
+      suite('Mono SIM in slot ' + cardIndex, function() {
+        setup(function() {
+          MockNavigatorMozIccManager.iccIds[0] = cardIndex;
+          MockNavigatorSettings.mSettings['ril.telephony.defaultServiceId'] =
+            cardIndex;
+        });
 
-      test('should call directly', function() {
-        this.sinon.spy(CallHandler, 'call');
-        chooseCall();
-        sinon.assert.calledWith(CallHandler.call, '123', 0);
+        test('should call directly', function() {
+          this.sinon.spy(CallHandler, 'call');
+          chooseCall();
+          MockNavigatorSettings.mReplyToRequests();
+          sinon.assert.calledWith(CallHandler.call, '123', cardIndex);
+        });
       });
     });
 
@@ -97,7 +102,7 @@ suite('phone action menu', function() {
       setup(function() {
         MockNavigatorMozIccManager.iccIds[0] = 0;
         navigator.mozIccManager.iccIds[1] = 1;
-        MockNavigatorSettings.mSettings['ril.voicemail.defaultServiceId'] = 1;
+        MockNavigatorSettings.mSettings['ril.telephony.defaultServiceId'] = 1;
 
         this.sinon.spy(MockSimPicker, 'getOrPick');
         this.sinon.spy(CallHandler, 'call');

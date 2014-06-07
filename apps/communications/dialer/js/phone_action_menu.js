@@ -42,21 +42,25 @@ var PhoneNumberActionMenu = (function() {
   var _call = function _call() {
     if (_newPhoneNumber) {
       _updateLatestVisit();
-      if (navigator.mozIccManager.iccIds.length <= 1) {
-        CallHandler.call(_newPhoneNumber, 0);
-      } else {
-        var callFn = CallHandler.call.bind(CallHandler, _newPhoneNumber);
 
-        var key = 'ril.voicemail.defaultServiceId';
-        var req = navigator.mozSettings.createLock().get(key);
-        req.onsuccess = function() {
+      var key = 'ril.telephony.defaultServiceId';
+      var req = navigator.mozSettings.createLock().get(key);
+
+      req.onsuccess = function() {
+        var cardIndex = req.result[key];
+
+        if (navigator.mozIccManager.iccIds.length <= 1) {
+          CallHandler.call(_newPhoneNumber, cardIndex);
+        } else {
+          var callFn = CallHandler.call.bind(CallHandler, _newPhoneNumber);
+
           LazyLoader.load(['/shared/js/sim_picker.js'], function() {
             LazyL10n.get(function(_) {
-              SimPicker.getOrPick(req.result[key], _newPhoneNumber, callFn);
+              SimPicker.getOrPick(cardIndex, _newPhoneNumber, callFn);
             });
           });
-        };
-      }
+        }
+      };
     }
     _addContactActionMenu.classList.remove('visible');
   };
