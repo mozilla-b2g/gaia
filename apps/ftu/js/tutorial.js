@@ -68,7 +68,6 @@
     }
 
     if (stepData.video) {
-
       if (typeof callback === 'function') {
         videoElement.addEventListener('loadeddata', onVideoLoadOrError, false);
         videoElement.addEventListener('error', onVideoLoadOrError, false);
@@ -104,6 +103,9 @@
 
     init: function(stepsKey, onLoaded) {
       if (initialized) {
+        if (typeof onLoaded == 'function') {
+          this._configPromise.then(onLoaded);
+        }
         return;
       }
       // Cache DOM elements
