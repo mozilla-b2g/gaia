@@ -32,3 +32,14 @@
   opacity: 0.5;
 }
 
+@media (orientation: landscape) {
+  #left-panel {
+    top: 3rem;
+    height: calc(100% - 4rem);
+  }
+
+  #right-panel {
+    top: 3rem;
+    height: calc(100% - 4rem);
+  }
+}
