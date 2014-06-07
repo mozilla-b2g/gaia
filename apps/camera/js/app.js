@@ -42,6 +42,7 @@ model(App.prototype);
  */
 function App(options) {
   debug('initialize');
+  var self = this;
   bindAll(this);
   this.views = {};
   this.el = options.el;
@@ -55,6 +56,32 @@ function App(options) {
   this.settings = options.settings;
   this.camera = options.camera;
   this.activity = {};
+
+  //
+  // If the system app is opening an attention screen (because
+  // of an incoming call or an alarm, e.g.) and if we are
+  // currently recording a video then we need to stop recording
+  // before the ringer or alarm starts sounding. We will be sent
+  // to the background shortly after this and will stop recording
+  // when that happens, but by that time it is too late and we
+  // have already recorded some sound. See bugs 995540 and 1006200.
+  //
+  // XXX We're abusing the settings API here to allow the system app
+  // to broadcast a message to any certified apps that care. There
+  // ought to be a better way, but this is a quick and easy way to
+  // fix a last-minute release blocker.
+  //
+  navigator.mozSettings.addObserver(
+    'private.broadcast.attention_screen_opening',
+    function(event) {
+      // If event.settingValue is true, then an attention screen will
+      // soon appear. If it is false, then the attention screen is
+      // going away.
+      if (event.settingValue) {
+        self.emit('attentionscreenopened');
+      }
+  });
+
   debug('initialized');
 }
 
