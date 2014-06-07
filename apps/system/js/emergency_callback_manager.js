@@ -176,12 +176,4 @@ var EmergencyCbManager = {
 // Always initialize EmergencyCbManager when start up because only CDMA
 // connection will fire emergencycbmodechange event and it's harmless to
 // add listener for other type of network.
-if (navigator.mozL10n.readyState == 'complete' ||
-    navigator.mozL10n.readyState == 'interactive') {
-  EmergencyCbManager.init();
-} else {
-  window.addEventListener('localized', function startup(evt) {
-    window.removeEventListener('localized', startup);
-    EmergencyCbManager.init();
-  });
-}
+navigator.mozL10n.once(EmergencyCbManager.init.bind(EmergencyCbManager));
