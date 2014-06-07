@@ -7,27 +7,35 @@
  * Tiny devices. Number of steps is 3
  */
 
-#tutorial .step-state {
-  top: 2.5rem;
+#tutorial #tutorial-progress {
+  display: none;
 }
 
 #tutorial-steps-container {
-  top: 4rem;
+  top: 0.5rem;
 }
 
-#tutorial-step-title {
-  color: white;
-  height: 5rem;
-  padding: 0 1.5rem 1rem 1.5rem;
-  text-align: left;
-  font-size: 1.4rem;
-  line-height: 2rem;
+#tutorial-step-header {
+  height: 8.5rem;
+  display: flex;
+  align-items: center;
+  padding: 0 1.5rem 0.5rem 1.5rem;
   overflow: hidden;
   -moz-box-sizing: border-box;
 }
 
+#tutorial-step-title {
+  color: white;
+  display: block;
+  padding: 0;
+  margin: 0;
+  text-align: left;
+  font-size: 1.4rem;
+  line-height: 2rem;
+}
+
 #tutorial-step-media {
-  height: calc(100% - 6rem);
+  height: calc(100% - 9.5rem);
   text-align: center;
   overflow: hidden;
 }
@@ -50,6 +58,30 @@
 
 #tutorial[data-step="1"] .recommend{
   width: 100%;
+}
+
+/*
+ * Visible progress-bar (used for > 3 steps)
+ */
+
+#tutorial[data-progressbar] #tutorial-progress {
+  visibility: visible;
+}
+
+#tutorial[data-progressbar] .step-state {
+  top: 2.5rem;
+}
+
+#tutorial[data-progressbar] #tutorial-steps-container {
+  top: 4rem;
+}
+
+#tutorial[data-progressbar] #tutorial-step-header {
+  height: 5rem;
+}
+
+#tutorial[data-progressbar] #tutorial-step-media {
+  height: calc(100% - 6rem);
 }
 
 /*
