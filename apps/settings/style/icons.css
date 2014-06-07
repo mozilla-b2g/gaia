@@ -183,6 +183,18 @@ li:active:not([aria-disabled="true"]) .menu-item::before,
   background-position: -6rem -18rem;
 }
 
+#suggestions-desc {
+  left: 0;
+}
+
+#menuItem-suggestions {
+  padding-left: 1.5rem;
+}
+
+#menuItem-suggestions::before {
+  background: none;
+}
+
 /******************************************************************************
  * Wi-Fi icons
  */
