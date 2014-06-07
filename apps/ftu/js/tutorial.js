@@ -57,19 +57,40 @@
       stepData.l10nKey
     );
 
-    if (typeof callback === 'function') {
-      dom.tutorialStepImage.querySelector('img').onload = callback;
-    }
-    // Update the image
-    dom.tutorialStepImage.querySelector('img').src = stepData.image;
+    // Update the image/video
+    var imgElement = dom.tutorialStepMedia.querySelector('img'),
+        videoElement = dom.tutorialStepMedia.querySelector('video');
 
+    function onVideoLoadOrError(evt) {
+      videoElement.removeEventListener('loadeddata', onVideoLoadOrError);
+      videoElement.removeEventListener('error', onVideoLoadOrError);
+      callback(evt);
+    }
+
+    if (stepData.video) {
+
+      if (typeof callback === 'function') {
+        videoElement.addEventListener('loadeddata', onVideoLoadOrError, false);
+        videoElement.addEventListener('error', onVideoLoadOrError, false);
+      }
+      videoElement.src = stepData.video;
+      videoElement.hidden = false;
+      imgElement.hidden = true;
+    } else {
+      if (typeof callback === 'function') {
+        imgElement.onload = imgElement.onerror = callback;
+      }
+      imgElement.hidden = false;
+      imgElement.src = stepData.image;
+      videoElement.hidden = true;
+    }
     _setProgressBarStep(currentStep);
   }
 
   var elementIDs = [
     'tutorial',
     'tutorial-step-title',
-    'tutorial-step-image',
+    'tutorial-step-media',
     'forward-tutorial',
     'back-tutorial',
     'tutorial-progress',
@@ -90,15 +111,14 @@
         dom[Utils.camelCase(name)] = document.getElementById(name);
       }, this);
 
-      this.ensureConfig().then(function() {
+      // Init in progress
+      initialized = true;
+
+      this.ensureConfig().then(function initWithConfig() {
         if (!stepsKey) {
           stepsKey = 'default';
         }
-        if (!this.config) {
-          throw new Error('Tutorial.init: config not loaded');
-        }
         stepsConfig = this.config[stepsKey] || this.config['default'];
-
         // Add event listeners
         dom.forwardTutorial.addEventListener('click', this);
         dom.backTutorial.addEventListener('click', this);
@@ -114,14 +134,13 @@
           // Show the panel
           dom.tutorial.classList.add('show');
         });
-      }.bind(this), function Tutorial_configLoadError(err) {
-        throw new Error('Tutorial config load error: ' + err.statusText);
+
+        // Custom event that can be used to apply (screen reader) visibility
+        // changes.
+        window.dispatchEvent(new CustomEvent('tutorialinitialized'));
+      }.bind(this), function() {
+        console.log('Tutorial.init: config not loaded');
       });
-      // Init in progress
-      initialized = true;
-      // Custom event that can be used to apply (screen reader) visibility
-      // changes.
-      window.dispatchEvent(new CustomEvent('tutorialinitialized'));
     },
     handleEvent: function(evt) {
       if (evt.type === 'click') {
@@ -171,13 +190,21 @@
 
           xhr.onload = function() {
             Tutorial._configRequest = null;
-            Tutorial.config = xhr.response;
-            resolve(Tutorial.config);
+            if (xhr.response) {
+              Tutorial.config = xhr.response;
+              resolve(Tutorial.config);
+            } else {
+              reject(
+                new Error('Tutorial config failed to load from: ' + configUrl)
+              );
+            }
           };
 
           xhr.onerror = function(err) {
             Tutorial._configRequest = null;
-            reject(err);
+            reject(
+              new Error('Tutorial config failed to load from: ' + configUrl)
+            );
           };
           xhr.send(null);
         });
