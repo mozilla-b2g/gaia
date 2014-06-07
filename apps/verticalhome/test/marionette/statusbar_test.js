@@ -1,6 +1,5 @@
 'use strict';
 
-var assert = require('assert');
 var Homescreen = require('./lib/home2');
 var Actions = require('marionette-client').Actions;
 var System = require('../../../../apps/system/test/marionette/lib/system');
@@ -31,16 +30,20 @@ marionette('Statusbar', function() {
       actions.perform();
       client.helper.wait(2000); // Waiting for scroll animation
       client.switchToFrame();
-      assert.ok(home.containsClass(System.Selector.statusbarBackground,
-               'opaque'));
+      client.waitFor(function() {
+        return home.containsClass(System.Selector.statusbarBackground,
+               'opaque');
+      });
 
       client.apps.switchToApp(Homescreen.URL);
       actions.flick(body, 200, 200, 200, 300);
       actions.perform();
       client.helper.wait(2000); // Waiting for scroll animation
       client.switchToFrame();
-      assert.ok(!home.containsClass(System.Selector.statusbarBackground,
-               'opaque'));
+      client.waitFor(function() {
+        return !home.containsClass(System.Selector.statusbarBackground,
+               'opaque');
+      });
     });
   });
 });
