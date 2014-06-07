@@ -231,13 +231,25 @@ suite('system/LockScreenConnInfoManager >', function() {
 
         var carrier = 'TIM';
         var region = 'SP';
-        var exceptedText = 'TIM SP';
         MobileOperator.mCarrier = carrier;
         MobileOperator.mRegion = region;
 
         subject._cellbroadcastLabel = DUMMYTEXT1;
+
+        var l10nSpy = sinon.spy(navigator.mozL10n, 'localize');
+
+        var l10nArgs = {
+          carrier: carrier,
+          region: region
+        };
+
         subject.updateConnStates();
-        assert.equal(domConnstateL2.textContent, exceptedText);
+
+        assert.ok(l10nSpy.calledWith(domConnstateL2,
+                                     'operator-info',
+                                     l10nArgs));
+
+        navigator.mozL10n.localize.restore();
 
         subject._cellbroadcastLabel = null;
     });
@@ -248,7 +260,7 @@ suite('system/LockScreenConnInfoManager >', function() {
         state: 'notSearching'
       };
       subject.updateConnStates();
-      assert.equal(domConnstateL1.textContent, 'noNetwork');
+      assert.equal(domConnstateL1.dataset.l10nId, 'noNetwork');
     });
 
     test('Show searching', function() {
@@ -257,7 +269,7 @@ suite('system/LockScreenConnInfoManager >', function() {
         emergencyCallsOnly: false
       };
       subject.updateConnStates();
-      assert.equal(domConnstateL1.textContent, 'searching');
+      assert.equal(domConnstateL1.dataset.l10nId, 'searching');
     });
 
     test('Show roaming', function() {
@@ -266,9 +278,20 @@ suite('system/LockScreenConnInfoManager >', function() {
         emergencyCallsOnly: false,
         roaming: true
       };
+
+      var l10nSpy = sinon.spy(navigator.mozL10n, 'localize');
+
+      var l10nArgs = {
+        operator: MockMobileOperator.mOperator
+      };
+
       subject.updateConnStates();
-      assert.equal(domConnstateL1.textContent,
-        'roaming{"operator":"' + MockMobileOperator.mOperator + '"}');
+
+      assert.ok(l10nSpy.calledWith(domConnstateL1,
+                                   'roaming',
+                                   l10nArgs));
+
+      navigator.mozL10n.localize.restore();
     });
 
     test('Show localized roaming',
@@ -287,6 +310,8 @@ suite('system/LockScreenConnInfoManager >', function() {
         subject.updateConnStates();
         assert.ok(l10nSpy.calledWith(domConnstateL1, 'roaming', l10nArgs),
           'Roaming network name displayed localized with proper string');
+
+        navigator.mozL10n.localize.restore();
     });
 
     suite('Show correct card states when emergency calls only', function() {
@@ -298,8 +323,8 @@ suite('system/LockScreenConnInfoManager >', function() {
         iccObj.cardState = 'unknown';
 
         subject.updateConnStates();
-        assert.equal(domConnstateL1.textContent, 'emergencyCallsOnly');
-        assert.equal(domConnstateL2.textContent,
+        assert.equal(domConnstateL1.dataset.l10nId, 'emergencyCallsOnly');
+        assert.equal(domConnstateL2.dataset.l10nId,
           'emergencyCallsOnly-unknownSIMState');
       });
 
@@ -311,8 +336,8 @@ suite('system/LockScreenConnInfoManager >', function() {
         iccObj.cardState = 'otherCardState';
 
         subject.updateConnStates();
-        assert.equal(domConnstateL1.textContent, 'emergencyCallsOnly');
-        assert.equal(domConnstateL2.textContent, '');
+        assert.equal(domConnstateL1.dataset.l10nId, 'emergencyCallsOnly');
+        assert.isFalse(domConnstateL2.hasAttribute('data-l10n-id'));
       });
 
       ['pinRequired', 'pukRequired', 'networkLocked',
@@ -327,8 +352,8 @@ suite('system/LockScreenConnInfoManager >', function() {
           iccObj.cardState = cardState;
 
           subject.updateConnStates();
-          assert.equal(domConnstateL1.textContent, 'emergencyCallsOnly');
-          assert.equal(domConnstateL2.textContent,
+          assert.equal(domConnstateL1.dataset.l10nId, 'emergencyCallsOnly');
+          assert.equal(domConnstateL2.dataset.l10nId,
             'emergencyCallsOnly-' + cardState);
         });
       });
@@ -402,22 +427,26 @@ suite('system/LockScreenConnInfoManager >', function() {
       test('Should only show one conn state', function() {
         subject.updateConnStates();
 
-        assert.equal(domConnStateList[0].domConnstateL1.textContent,
+        assert.equal(domConnStateList[0].domConnstateL1.dataset.l10nId,
           'emergencyCallsOnly-noSIM');
-        assert.equal(domConnStateList[1].domConnstateL1.textContent, '');
-        assert.equal(domConnStateList[1].domConnstateL2.textContent, '');
+        assert.isFalse(
+          domConnStateList[1].domConnstateL1.hasAttribute('data-l10n-id'));
+        assert.isFalse(
+          domConnStateList[1].domConnstateL2.hasAttribute('data-l10n-id'));
       });
 
       test('Should show emergency call text', function() {
         mockMobileConnections[0].voice.emergencyCallsOnly = true;
         subject.updateConnStates();
 
-        assert.equal(domConnStateList[0].domConnstateL1.textContent,
+        assert.equal(domConnStateList[0].domConnstateL1.dataset.l10nId,
           'emergencyCallsOnly');
-        assert.equal(domConnStateList[0].domConnstateL2.textContent,
+        assert.equal(domConnStateList[0].domConnstateL2.dataset.l10nId,
           'emergencyCallsOnly-noSIM');
-        assert.equal(domConnStateList[1].domConnstateL1.textContent, '');
-        assert.equal(domConnStateList[1].domConnstateL2.textContent, '');
+        assert.isFalse(
+          domConnStateList[1].domConnstateL1.hasAttribute('data-l10n-id'));
+        assert.isFalse(
+          domConnStateList[1].domConnstateL2.hasAttribute('data-l10n-id'));
       });
     });
 
@@ -457,9 +486,10 @@ suite('system/LockScreenConnInfoManager >', function() {
 
           assert.isFalse(domConnStateList[0].hidden);
           assert.isTrue(domConnStateList[0].domConnstateIDLine.hidden);
-          assert.equal(domConnStateList[0].domConnstateL1.textContent,
+          assert.equal(domConnStateList[0].domConnstateL1.dataset.l10nId,
             'airplaneMode');
-          assert.equal(domConnStateList[0].domConnstateL2.textContent, '');
+          assert.isFalse(
+            domConnStateList[0].domConnstateL2.hasAttribute('data-l10n-id'));
 
           subject._airplaneMode = false;
       });
@@ -514,14 +544,22 @@ suite('system/LockScreenConnInfoManager >', function() {
       });
 
       test('Should show carrier and region on Line 2', function() {
+        var l10nSpy = sinon.spy(navigator.mozL10n, 'localize');
+
+        var l10nArgs = {
+          carrier: MockMobileOperator.mCarrier,
+          region: MockMobileOperator.mRegion
+        };
+
         subject.updateConnStates();
 
-        var connState1line2 = domConnStateList[0].domConnstateL2;
-        var connState2line2 = domConnStateList[1].domConnstateL2;
-        assert.equal(connState1line2.textContent,
-          MockMobileOperator.mCarrier + ' ' + MockMobileOperator.mRegion);
-        assert.equal(connState2line2.textContent,
-          MockMobileOperator.mCarrier + ' ' + MockMobileOperator.mRegion);
+        assert.ok(l10nSpy.calledWith(domConnStateList[0].domConnstateL2,
+                                     'operator-info',
+                                     l10nArgs));
+
+        assert.ok(l10nSpy.calledWith(domConnStateList[1].domConnstateL2,
+                                     'operator-info',
+                                     l10nArgs));
       });
 
       test('Should display "emergency calls only" if target sim is the ' +
@@ -531,7 +569,7 @@ suite('system/LockScreenConnInfoManager >', function() {
           subject.updateConnStates();
 
           var connState1line1 = domConnStateList[0].domConnstateL1;
-          assert.equal(connState1line1.textContent, 'emergencyCallsOnly');
+          assert.equal(connState1line1.dataset.l10nId, 'emergencyCallsOnly');
       });
 
       test('Should hide the conn state of the target sim if it is not the ' +

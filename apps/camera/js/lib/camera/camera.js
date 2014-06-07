@@ -529,7 +529,7 @@ Camera.prototype.setPictureSize = function(size, options) {
     }
   }
 
-  this.mozCamera.pictureSize = size;
+  this.mozCamera.setPictureSize(size);
   this.pictureSize = size;
   this.setThumbnailSize();
 
@@ -591,9 +591,9 @@ Camera.prototype.getRecorderProfile = function() {
 
 Camera.prototype.setThumbnailSize = function() {
   var sizes = this.mozCamera.capabilities.thumbnailSizes;
-  var pictureSize = this.mozCamera.pictureSize;
+  var pictureSize = this.mozCamera.getPictureSize();
   var picked = this.pickThumbnailSize(sizes, pictureSize);
-  if (picked) { this.mozCamera.thumbnailSize = picked; }
+  if (picked) { this.mozCamera.setThumbnailSize(picked); }
 };
 
 /**
@@ -748,37 +748,41 @@ Camera.prototype.takePicture = function(options) {
     fileFormat: 'jpeg'
   };
 
-  // If position has been
-  // passed in, add it to
-  // the config object.
+  // If position has been passed in,
+  // add it to the config object.
   if (position) {
     config.position = position;
   }
 
+  // Front camera is inverted, so flip rotation
   rotation = selectedCamera === 'front' ? -rotation : rotation;
-  debug('take picture');
-  this.emit('busy');
+
+  // If the camera focus is 'continuous' or 'infinity'
+  // we can take the picture straight away.
   if (this.focus.getMode() === 'auto') {
     this.set('focus', 'focusing');
     this.focus.focus(onFocused);
   } else {
-    self.mozCamera.takePicture(config, onSuccess, onError);
+    takePicture();
   }
 
   function onFocused(err) {
-    if (err) {
-      self.set('focus', 'fail');
-    } else {
-      self.set('focus', 'focused');
-    }
+    var focus = err ? 'fail' : 'focused';
+    self.set('focus', focus);
+    takePicture();
+  }
+
+  function takePicture() {
+    self.emit('takingpicture');
     self.mozCamera.takePicture(config, onSuccess, onError);
   }
 
   function onError(error) {
     var title = navigator.mozL10n.get('error-saving-title');
     var text = navigator.mozL10n.get('error-saving-text');
-    // if taking a picture fails because there's already
-    // a picture being taken we ignore it
+
+    // if taking a picture fails because there's
+    // already a picture being taken we ignore it.
     if (error === 'TakePictureAlreadyInProgress') {
       complete();
     } else {
@@ -798,9 +802,13 @@ Camera.prototype.takePicture = function(options) {
   }
 
   function complete() {
-    // If we are in C-AF mode, we have to call resume() in
-    // order to get the camera to resume focusing on what we point it at.
+
+    // If we are in C-AF mode, we have
+    // to call resume() in order to get
+    // the camera to resume focusing
+    // on what we point it at.
     self.focus.resume();
+
     self.set('focus', 'none');
     self.ready();
   }
@@ -885,6 +893,7 @@ Camera.prototype.startRecording = function(options) {
 
     self.createVideoFilepath(function(filepath) {
       video.filepath = filepath;
+      self.emit('willrecord');
       self.mozCamera.startRecording(
         config,
         storage,

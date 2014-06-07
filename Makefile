@@ -465,6 +465,7 @@ define BUILD_CONFIG
 	"GAIA_DISTRIBUTION_DIR" : "$(GAIA_DISTRIBUTION_DIR)", \
 	"GAIA_APPDIRS" : "$(GAIA_APPDIRS)", \
 	"GAIA_ALLAPPDIRS" : "$(GAIA_ALLAPPDIRS)", \
+	"GAIA_MEMORY_PROFILE" : "$(GAIA_MEMORY_PROFILE)", \
 	"NOFTU" : "$(NOFTU)", \
 	"REMOTE_DEBUGGER" : "$(REMOTE_DEBUGGER)", \
 	"HAIDA" : $(HAIDA), \
@@ -515,7 +516,11 @@ test-agent-bootstrap: $(XULRUNNER_BASE_DIRECTORY)
 $(STAGE_DIR):
 	mkdir -p $@
 
+ifeq (${BUILD_APP_NAME},*)
 APP_RULES := $(foreach appdir,$(GAIA_APPDIRS),$(notdir $(appdir)))
+else
+APP_RULES := ${BUILD_APP_NAME}
+endif
 $(foreach appdir,$(GAIA_APPDIRS), \
 	$(eval $(call app-makefile-template,$(notdir $(appdir)),$(appdir))) \
 )

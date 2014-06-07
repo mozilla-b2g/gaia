@@ -43,7 +43,9 @@
       "known_networks": "mobizilla/mobizilla_known_networks.json",
       "nfc": "mobizilla/mobizilla_nfc.json",
       "sms": "mobizilla/mobizilla_sms.json",
-      "data_ftu": true
+      "data_ftu": true,
+      "search": "mobizilla/mobizilla_search.json",
+      "default_search": "mobizilla/mobizilla_default_search.json"
     }
   ]
 }

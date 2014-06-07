@@ -25,6 +25,9 @@
     <!-- <script src="shared/js/async_storage.js"></script> -->
     <!-- <script src="shared/elements/gaia_grid/js/icon_retriever.js"></script> -->
 
+    <script defer src="js/app_manager.js"></script>
+    <script defer src="js/statusbar.js"></script>
+
     <script defer src="shared/js/homescreens/vertical_preferences.js"></script>
     <script defer src="shared/js/bookmarks_database.js"></script>
     <script defer src="shared/js/collections_database.js"></script>
@@ -56,18 +59,18 @@
   </head>
   <body>
     <div id="edit-mode-curtain"></div>
-    
+
     <div class="scrollable">
-      <div id="search">
+      <div id="search" role="button" aria-labelledby="search-input" aria-haspopup="true">
         <form id="search-form">
-          <input id="search-input" type="text" x-inputmode="verbatim"
+          <input id="search-input" type="text" x-inputmode="verbatim" role="presentation"
             placeholder="Search or enter address" data-l10n-id="search-or-enter-address" value="">
           </input>
         </form>
       </div>
       <gaia-grid id="icons" zoom dragdrop></gaia-grid>
     </div>
-    
+
     <div id="zoom" hidden>
       <div class="curtain"></div>
       <div class="arrows"></div>

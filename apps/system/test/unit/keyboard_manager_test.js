@@ -504,15 +504,18 @@ suite('KeyboardManager', function() {
     });
 
     test('sheetstransitionstart event: do nothing if no keyboard', function() {
+      var spy = this.sinon.spy(navigator.mozInputMethod, 'removeFocus');
       trigger('sheetstransitionstart');
-      assert.ok(hideKeyboard.notCalled);
+      assert.ok(spy.notCalled);
     });
 
     test('sheetstransitionstart event: hide keyboard if needed', function() {
       var realActive = KeyboardManager.hasActiveKeyboard;
       KeyboardManager.hasActiveKeyboard = true;
+      var spy = this.sinon.spy(navigator.mozInputMethod, 'removeFocus');
       trigger('sheetstransitionstart');
-      assert.ok(hideKeyboard.calledOnce);
+      sinon.assert.calledOnce(spy);
+
       KeyboardManager.hasActiveKeyboard = realActive;
     });
   });
@@ -626,12 +629,6 @@ suite('KeyboardManager', function() {
       sinon.assert.callCount(rsk, 1, 'resetShowingKeyborad');
       sinon.assert.callCount(kh, 1, 'keyboardhide event');
       sinon.assert.callCount(khed, 1, 'keyboardhidden event');
-    });
-
-    test('Hide removes the IM focus', function() {
-      var spy = this.sinon.spy(navigator.mozInputMethod, 'removeFocus');
-      KeyboardManager.hideKeyboard();
-      sinon.assert.calledOnce(spy);
     });
   });
 

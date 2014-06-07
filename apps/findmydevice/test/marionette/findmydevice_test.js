@@ -51,6 +51,7 @@ marionette('Find My Device lock >', function() {
       return false;
     });
 
+    // sanity-check the settings we should have set
     var settings = {
       'lockscreen.enabled': true,
       'lockscreen.passcode-lock.enabled': true,
@@ -62,5 +63,22 @@ marionette('Find My Device lock >', function() {
     for (var s in settings) {
       assert.equal(client.settings.get(s), settings[s]);
     }
+
+    // now unlock the screen and re-lock it, the message should disappear
+    client.executeScript(function() {
+      window.wrappedJSObject.lockScreen.unlock();
+      window.wrappedJSObject.lockScreen.lock();
+    });
+
+    client.waitFor(function() {
+      return lockscreen.displayed();
+    });
+
+    lockscreenMessage = client.findElement('#lockscreen-message');
+    client.waitFor(function() {
+      return !lockscreenMessage.displayed();
+    });
+
+    assert.equal(client.settings.get('lockscreen.lock-message'), '');
   });
 });

@@ -213,6 +213,9 @@ var StatusBar = {
     // Listen to 'screenchange' from screen_manager.js
     window.addEventListener('screenchange', this);
 
+    // for iac connection
+    window.addEventListener('iac-change-appearance-statusbar', this);
+
     // mozChromeEvent fired from Gecko is earlier been loaded,
     // so we use mozAudioChannelManager to
     // check the headphone plugged or not when booting up
@@ -431,6 +434,10 @@ var StatusBar = {
           evt.deltaY < 0 && !this.isLocked()) {
           window.dispatchEvent(new CustomEvent('statusbarwheel'));
         }
+        break;
+
+      case 'iac-change-appearance-statusbar':
+        this.setAppearance(evt.detail);
         break;
     }
   },
@@ -1096,6 +1103,22 @@ var StatusBar = {
     icon.hidden = !enable;
   },
 
+  /*
+   * It changes the appearance of the status bar. The values supported are
+   * "opaque" and "semi-transparent"
+   */
+  setAppearance: function sb_setAppearance(value) {
+    switch (value) {
+      case 'opaque':
+        this.background.classList.add('opaque');
+        break;
+
+      case 'semi-transparent':
+        this.background.classList.remove('opaque');
+        break;
+    }
+  },
+
   updateNotification: function sb_updateNotification(count) {
     var icon = this.icons.notification;
     if (!count) {
@@ -1220,12 +1243,4 @@ var StatusBar = {
   }
 };
 
-if (navigator.mozL10n.readyState == 'complete' ||
-    navigator.mozL10n.readyState == 'interactive') {
-  StatusBar.init();
-} else {
-  window.addEventListener('localized', function statusbar_init() {
-    window.removeEventListener('localized', statusbar_init);
-    StatusBar.init();
-  });
-}
+navigator.mozL10n.once(StatusBar.init.bind(StatusBar));

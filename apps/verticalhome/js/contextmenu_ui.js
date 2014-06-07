@@ -70,7 +70,9 @@
 
           activity.onerror = function onerror(e) {
             app.homescreenFocused = true;
-            alert(this.error.name || 'generic-error-message');
+            if (this.error.name !== 'ActivityCanceled') {
+              alert(this.error.name);
+            }
           };
 
           break;

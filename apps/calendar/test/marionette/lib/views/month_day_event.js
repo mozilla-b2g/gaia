@@ -30,6 +30,24 @@ MonthDayEvent.prototype = {
       .text();
   },
 
+  get allDay() {
+    return this
+      .findElement('.all-day')
+      .text();
+  },
+
+  get startTime() {
+    return this
+      .findElement('.start-time')
+      .text();
+  },
+
+  get endTime() {
+    return this
+      .findElement('.end-time')
+      .text();
+  },
+
   get iconAlarm() {
     return this.findElement('.icon-alarm');
   },

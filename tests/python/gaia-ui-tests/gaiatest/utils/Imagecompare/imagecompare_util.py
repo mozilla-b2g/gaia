@@ -2,8 +2,6 @@ import mozdevice
 import os
 import subprocess
 import time
-from gaiatest import GaiaTestCase
-
 
 class ImageCompareUtil():
     def __init__(self, marionette, apps, local_path):

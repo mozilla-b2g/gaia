@@ -228,6 +228,7 @@
     background: rgba(255, 255, 255, 0.85);
     -moz-box-sizing: border-box;
     border-radius: 0;
+    padding: 0;
   }
 
   .co-advanced-option:not([disabled]):active {
@@ -259,30 +260,31 @@
   }
 
   .icon-mute {
-    background-image: url('images/call_screen/actionicon_activecall_mute_40x120.png');
+    background-image: url('images/call_screen/actionicon_activecall_mute_40x80.png');
   }
 
   .icon-keypad-visibility {
-    background-image: url('images/call_screen/actionicon_activecall_dialpad_40x80.png');
+    background-image: url('images/call_screen/actionicon_activecall_dialpad.png');
   }
 
   .icon-place-new-call {
-    background-image: url('images/call_screen/actionicon_activecall_add_call_40x80.png');
+    background-image: url('images/call_screen/actionicon_activecall_add_call.png');
   }
 
   .icon-speaker {
-    background-image: url('images/call_screen/actionicon_activecall_speaker_40x120.png');
+    background-image: url('images/call_screen/actionicon_activecall_speaker_40x80.png');
   }
 
-  .co-advanced-option:active .icon,
-  .co-advanced-option.active-state:active .icon {
+  .co-advanced-option.active-state .icon.icon-mute,
+  .co-advanced-option.active-state .icon.icon-speaker  {
     background-position: 0 -4rem;
   }
 
-  .active-state .icon.icon-mute,
-  .active-state .icon.icon-speaker {
-    background-position: 0 -8rem;
+  .co-advanced-option:active .icon.icon-mute,
+  .co-advanced-option:active .icon.icon-speaker {
+    background-position: 0 0rem;
   }
+
 
   .icon-bt {
     background-image: url('images/call_screen/actionicon_activecall_speaker.png');
@@ -310,8 +312,7 @@
     display: none;
   }
 
-  #callbar > button,
-  #callbar > button:active {
+  #callbar > button {
     padding: 0;
     border: none;
     background: none;

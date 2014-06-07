@@ -451,9 +451,9 @@ var Awesomescreen = {
 
     // Add contextmenu event listener for long press on bookmarks
     if (listType === 'bookmarks') {
-      link.addEventListener('contextmenu', function() {
-        Browser.showBookmarkTabContextMenu(data.uri);
-      });
+      link.addEventListener('contextmenu', (function(uri) {
+        Browser.showBookmarkTabContextMenu(uri);
+      }).bind(data.uri));
     }
 
     // If the result was cached, nothing left to do so return it

@@ -40,7 +40,11 @@
     }
   },
   "icons": {
-    "64": "/style/icons/64/Wallpaper.png"
+    "84": "/style/icons/64/wallpaper_84.png",
+    "126": "/style/icons/64/wallpaper_126.png",
+    "142": "/style/icons/64/wallpaper_142.png",
+    "189": "/style/icons/64/wallpaper_189.png",
+    "289": "/style/icons/64/wallpaper_289.png"
   },
   "locales": {
     "en-US": {

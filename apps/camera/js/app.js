@@ -42,6 +42,7 @@ model(App.prototype);
  */
 function App(options) {
   debug('initialize');
+  var self = this;
   bindAll(this);
   this.views = {};
   this.el = options.el;
@@ -55,12 +56,40 @@ function App(options) {
   this.settings = options.settings;
   this.camera = options.camera;
   this.activity = {};
+
+  //
+  // If the system app is opening an attention screen (because
+  // of an incoming call or an alarm, e.g.) and if we are
+  // currently recording a video then we need to stop recording
+  // before the ringer or alarm starts sounding. We will be sent
+  // to the background shortly after this and will stop recording
+  // when that happens, but by that time it is too late and we
+  // have already recorded some sound. See bugs 995540 and 1006200.
+  //
+  // XXX We're abusing the settings API here to allow the system app
+  // to broadcast a message to any certified apps that care. There
+  // ought to be a better way, but this is a quick and easy way to
+  // fix a last-minute release blocker.
+  //
+  navigator.mozSettings.addObserver(
+    'private.broadcast.attention_screen_opening',
+    function(event) {
+      // If event.settingValue is true, then an attention screen will
+      // soon appear. If it is false, then the attention screen is
+      // going away.
+      if (event.settingValue) {
+        self.emit('attentionscreenopened');
+      }
+  });
+
   debug('initialized');
 }
 
 /**
- * Runs all the methods
- * to boot the app.
+ * Runs all the methods to boot the app.
+ *
+ * The loading screen is shown until the
+ * camera is 'ready', then it is taken down.
  *
  * @public
  */
@@ -71,8 +100,8 @@ App.prototype.boot = function() {
   this.initializeViews();
   this.runControllers();
   this.injectViews();
-  this.booted = true;
   this.showLoading();
+  this.booted = true;
   debug('booted');
 };
 
@@ -103,15 +132,7 @@ App.prototype.runControllers = function() {
  * @param  {String} path
  */
 App.prototype.loadController = function(path) {
-  var self = this;
-  this.require([path, 'lib/string-utils'],
-    function(controller, StringUtils) {
-      var name = StringUtils.toCamelCase(
-        StringUtils.lastPathComponent(path));
-
-      self.controllers[name] = controller(self);
-    }
-  );
+  this.require([path], function(controller) { controller(this); }.bind(this));
 };
 
 /**
@@ -153,6 +174,8 @@ App.prototype.bindEvents = function() {
   // App
   this.once('viewfinder:visible', this.onCriticalPathDone);
   this.once('storage:checked:healthy', this.geolocationWatch);
+  this.on('camera:takingpicture', this.showLoading);
+  this.on('camera:ready', this.clearLoading);
   this.on('visible', this.onVisible);
   this.on('hidden', this.onHidden);
 
@@ -218,10 +241,11 @@ App.prototype.onCriticalPathDone = function() {
   var start = window.performance.timing.domLoading;
   var took = Date.now() - start;
 
+  // Indicate critical path is done to help track performance
   PerformanceTestingHelper.dispatch('startup-path-done');
   console.log('critical-path took %s', took + 'ms');
 
-  this.clearLoading();
+  // Load non-critical modules
   this.loadController(this.controllers.previewGallery);
   this.loadController(this.controllers.storage);
   this.loadController(this.controllers.confirm);
@@ -348,6 +372,7 @@ App.prototype.clearLoading = function() {
   clearTimeout(this.loadingTimeout);
   if (!view) { return; }
   view.hide(view.destroy);
+  this.views.loading = null;
 };
 
 });

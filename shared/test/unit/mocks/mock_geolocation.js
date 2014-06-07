@@ -9,6 +9,19 @@ var MockGeolocation = {
     this.activeWatches = [];
 
     var self = this;
+
+    this.realGetCurrentPosition = navigator.geolocation.getCurrentPosition;
+    navigator.geolocation.getCurrentPosition = function(onsuccess, onerror) {
+      if (onsuccess) {
+        onsuccess({
+          coords: {
+            latitude: self.latitude,
+            longitude: self.longitude
+          }
+        });
+      }
+    };
+
     this.realWatchPosition = navigator.geolocation.watchPosition;
     navigator.geolocation.watchPosition = function(onsuccess, onerror) {
       var watch = setInterval(function() {
@@ -43,6 +56,7 @@ var MockGeolocation = {
     }
 
     this.activeWatches = [];
+    navigator.geolocation.getCurrentPosition = this.realGetCurrentPosition;
     navigator.geolocation.watchPosition = this.realWatchPosition;
     navigator.geolocation.clearWatch = this.realClearWatch;
   }

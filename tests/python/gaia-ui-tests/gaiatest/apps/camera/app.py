@@ -31,8 +31,8 @@ class Camera(Base):
     # HUD View
     _hud_locator = (By.CSS_SELECTOR, '.hud')
     _loading_screen_locator = (By.CSS_SELECTOR, '.loading-screen')
-    _toggle_flash_button_locator = (By.CSS_SELECTOR, '.test-toggle-flash')
-    _toggle_camera_button_locator = (By.CSS_SELECTOR, '.test-toggle-camera')
+    _toggle_flash_button_locator = (By.CSS_SELECTOR, '.test-flash-button')
+    _toggle_camera_button_locator = (By.CSS_SELECTOR, '.test-camera-toggle')
 
     _viewfinder_video_locator = (By.CLASS_NAME, 'viewfinder-video')
     _focus_ring_locator = (By.CSS_SELECTOR, '.focus-ring')

@@ -214,5 +214,11 @@
     AttentionScreen.open(asRequest);
   };
 
+  DialerAgent.prototype.showCallScreen = function da_showCallScreen() {
+    if (this._callScreen) {
+      AttentionScreen.show(this._callScreen);
+    }
+  };
+
   exports.DialerAgent = DialerAgent;
 }(window));

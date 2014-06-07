@@ -38,38 +38,47 @@ suite('Tutorial >', function() {
     teardown(function() {
       Tutorial.reset();
     });
+
     test('init before loadConfig', function() {
       Tutorial.init();
       assert.ok(!Tutorial.config, 'Tutorial.config not yet defined');
     });
 
     test('promised config', function(done) {
-      var result = Tutorial.loadConfig();
-      assert.equal(typeof result.then, 'function',
-                  'return value has a then method');
+      function onOutcome(arg) {
+        assert.isTrue(true, 'loadConfig promise was resolved');
+      }
+      function onReject(arg) {
+        assert.isFalse(1, 'loadConfig promise was rejected');
+      }
 
-      result.then(function() {
-        assert.ok(Tutorial.config);
+      var result = Tutorial.loadConfig();
+      assert.ok(result && typeof result.then == 'function',
+                'loadConfig returned a thenable');
+
+      if (result) {
+        result.then(onOutcome, onReject).then(done, done);
+      } else {
         done();
-      });
+      }
     });
 
     test('reset', function(done) {
-      Tutorial.loadConfig().then(function() {
+      function onOutcome() {
         Tutorial.init();
         assert.ok(Tutorial.config);
         Tutorial.reset();
         assert.ok(!Tutorial.config);
-        done();
-      });
+      }
+      Tutorial.loadConfig().then(onOutcome, onOutcome)
+                           .then(done, done);
     });
   });
 
   suite(' post-init', function() {
     suiteSetup(function(done) {
-      Tutorial.loadConfig().then(function() {
-        Tutorial.init(null, done);
-      });
+      Tutorial.reset();
+      Tutorial.init(null, done);
     });
 
     test(' is shown properly after Tutorial.init', function() {

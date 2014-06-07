@@ -105,15 +105,14 @@
 
 /* sidebar styles */
 #week-view .sidebar {
-   min-height: 5rem;
-   width: 2.9rem;
-   color: #707070;
-   text-align: center;
-   text-transform: uppercase;
-   font-size: 1.5rem;
-   border-left: none;
-   border-top: none;
-   float: left;
+  min-height: 5rem;
+  width: 2.9rem;
+  color: #707070;
+  text-align: center;
+  font-size: 1.5rem;
+  border-left: none;
+  border-top: none;
+  float: left;
 
   /**
    * set scrollable areas to a solid background color
@@ -127,7 +126,7 @@
 }
 
 #week-view .sidebar > li {
-  line-height: 1.5;
+  line-height: 1.2;
   width: 3rem;
   padding: 0.2rem;
   float: left;
@@ -135,6 +134,11 @@
   text-align: center;
   border-bottom: 0.1rem solid #f8f8f8;
   overflow: hidden;
+}
+
+#week-view .display-hour .ampm {
+  display: block;
+  font-size: 1.3rem;
 }
 
 #week-view .scroll {

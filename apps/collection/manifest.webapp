@@ -1,6 +1,6 @@
 {
-  "name": "Collection",
-  "description": "Collection Manager",
+  "name": "Smart Collections",
+  "description": "Smart Collections Manager",
   "type": "certified",
   "launch_path": "/testpage/testpage.html",
   "role": "system",
@@ -45,8 +45,8 @@
   },
   "locales": {
     "en-US": {
-      "name": "Collection",
-      "description": "Collection Manager"
+      "name": "Smart Collections",
+      "description": "Smart Collections Manager"
     }
   },
   "default_locale": "en-US",
@@ -54,6 +54,15 @@
     "collections_store": {
       "access": "readwrite",
       "description": "Stores collections"
+    }
+  },
+  "connections": {
+    "setup": {
+      "description": "It populates datastore with pre-installed collections",
+      "rules": {
+        "manifestURLs": ["app://ftu.gaiamobile.org/manifest.webapp"]
+      },
+      "handler_path": "/setup.html"
     }
   }
 }

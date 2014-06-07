@@ -15,9 +15,21 @@ var MockL10n = {
   },
 
   localize: function localize(element, key, params) {
-    if (params) {
-      key += JSON.stringify(params);
+    if (key) {
+      element.setAttribute('data-l10n-id', key);
+    } else {
+      element.removeAttribute('data-l10n-id');
     }
+
+    if (params) {
+      if (key) {
+        key += JSON.stringify(params);
+      }
+      element.setAttribute('data-l10n-args', params);
+    } else {
+      element.removeAttribute('data-l10n-args');
+    }
+
     element.textContent = key;
   },
 

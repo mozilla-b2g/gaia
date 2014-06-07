@@ -2,7 +2,7 @@
 
 /* global MockNavigatorSettings, MockasyncStorage, MockXMLHttpRequest,
           MockNavigatorMozMobileConnections, MockNavigatorMozIccManager,
-          MockMobileOperator, FtuPing */
+          MockMobileOperator, MockSIMSlotManager, MockSIMSlot, FtuPing */
 
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/apps/system/test/unit/mock_asyncStorage.js');
@@ -12,6 +12,8 @@ require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/mock_mobile_operator.js');
 
 require('/apps/system/js/uuid.js');
+require('/apps/system/js/mock_simslot_manager.js');
+require('/apps/system/js/mock_simslot.js');
 require('/apps/system/js/ftu_ping.js');
 
 if (!window.asyncStorage) {
@@ -26,10 +28,14 @@ if (!window.XMLHttpRequest) {
   window.XMLHttpRequest = null;
 }
 
+if (!window.SIMSlotManager) {
+    window.SIMSlotManager = null;
+}
+
 suite('FtuPing', function() {
   var realMozSettings, realAsyncStorage, realXHR;
   var realMobileConnections, realIccManager;
-  var realMobileOperator;
+  var realMobileOperator, realSIMSlotManager;
 
   suiteSetup(function() {
     realMozSettings = navigator.mozSettings;
@@ -38,6 +44,7 @@ suite('FtuPing', function() {
     realMobileConnections = navigator.mozMobileConnections;
     realIccManager = navigator.mozIccManager;
     realMobileOperator = window.MobileOperator;
+    realSIMSlotManager = window.SIMSlotManager;
 
     navigator.mozSettings = MockNavigatorSettings;
     window.asyncStorage = MockasyncStorage;
@@ -45,6 +52,7 @@ suite('FtuPing', function() {
     navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
     navigator.mozIccManager = MockNavigatorMozIccManager;
     window.MobileOperator = MockMobileOperator;
+    window.SIMSlotManager = MockSIMSlotManager;
   });
 
   suiteTeardown(function() {
@@ -54,6 +62,7 @@ suite('FtuPing', function() {
     navigator.mozMobileConnections = realMobileConnections;
     navigator.mozIccManager = realIccManager;
     window.MobileOperator = realMobileOperator;
+    window.SIMSlotManager = realSIMSlotManager;
   });
 
   teardown(function() {
@@ -62,6 +71,7 @@ suite('FtuPing', function() {
     MockXMLHttpRequest.mTeardown();
     MockNavigatorMozMobileConnections.mTeardown();
     MockMobileOperator.mTeardown();
+    MockSIMSlotManager.mTeardown();
     FtuPing.reset();
   });
 
@@ -240,6 +250,119 @@ suite('FtuPing', function() {
     });
   });
 
+  function addMockMobileConnection() {
+    MockNavigatorMozMobileConnections.mAddMobileConnection();
+
+    var mockConn = MockNavigatorMozMobileConnections[0];
+    mockConn.iccId = 'test_icc';
+    mockConn.voice = {
+      network: {
+        mnc: 'voice_mnc',
+        mcc: 'voice_mcc'
+      }
+    };
+
+    var mockIcc = {
+      iccInfo: {
+        mnc: 'icc_mnc',
+        mcc: 'icc_mcc',
+        spn: 'icc_spn'
+      }
+    };
+
+    MockNavigatorMozIccManager.addIcc('test_icc', mockIcc);
+    MockMobileOperator.mOperator = 'test_operator';
+    MockMobileOperator.mCarrier = 'test_carrier';
+    MockMobileOperator.mRegion = 'test_region';
+    return mockConn;
+  }
+
+  suite('checkMobileNetwork', function() {
+    test('fails with no sim card connected to network', function() {
+        this.sinon.stub(MockSIMSlotManager, 'noSIMCardConnectedToNetwork')
+            .returns(true);
+        assert.throw(function() { FtuPing.checkMobileNetwork(); },
+                     /No SIM cards/);
+        assert.equal(FtuPing.getNetworkFailCount(), 1);
+        MockSIMSlotManager.noSIMCardConnectedToNetwork.restore();
+    });
+
+    test('fails with no mobile connections', function() {
+      this.sinon.stub(MockSIMSlotManager, 'noSIMCardConnectedToNetwork')
+          .returns(false);
+      assert.throw(function() { FtuPing.checkMobileNetwork(); },
+                   /No mobile connections/);
+      assert.equal(FtuPing.getNetworkFailCount(), 1);
+      MockSIMSlotManager.noSIMCardConnectedToNetwork.restore();
+    });
+
+    test('fails with no SIM slots', function() {
+      this.sinon.stub(MockSIMSlotManager, 'noSIMCardConnectedToNetwork')
+          .returns(false);
+      MockNavigatorMozMobileConnections.mAddMobileConnection();
+      assert.throw(function() { FtuPing.checkMobileNetwork(); },
+                   /No mobile connections/);
+      MockSIMSlotManager.noSIMCardConnectedToNetwork.restore();
+    });
+
+    suite('dual SIM', function() {
+      var slot1, slot2, conn;
+      setup(function() {
+        this.sinon.stub(MockSIMSlotManager, 'noSIMCardConnectedToNetwork')
+            .returns(false);
+        conn = addMockMobileConnection();
+
+        slot1 = new MockSIMSlot(conn, 0), slot2 = new MockSIMSlot(conn, 1);
+        MockSIMSlotManager.mInstances.push(slot1);
+        MockSIMSlotManager.mInstances.push(slot2);
+      });
+
+      teardown(function() {
+        MockSIMSlotManager.noSIMCardConnectedToNetwork.restore();
+      });
+
+      test('fails when both absent', function() {
+        slot1.absent = true;
+        slot2.absent = true;
+        assert.throw(function() { FtuPing.checkMobileNetwork(); },
+                     /No unlocked or active/);
+      });
+
+      test('fails when only slot 2 is active but locked', function() {
+        slot1.absent = true;
+        slot2.locked = true;
+        assert.throw(function() { FtuPing.checkMobileNetwork(); },
+                     /No unlocked or active/);
+      });
+
+      test('succeeds with only slot 1 active and unlocked', function() {
+        slot2.absent = true;
+        assert.doesNotThrow(function() { FtuPing.checkMobileNetwork(); });
+      });
+
+      test('succeeds with only slot 2 active and unlocked', function() {
+        slot1.absent = true;
+        assert.doesNotThrow(function() { FtuPing.checkMobileNetwork(); });
+      });
+    });
+
+    test('max mobile failures pings anyway', function(done) {
+      MockasyncStorage.mItems['ftu.pingNetworkFailCount'] = 1;
+      MockNavigatorSettings.mSettings['ftu.pingMaxNetworkFails'] = 1;
+      MockNavigatorSettings.mSettings['deviceinfo.os'] = 'test_os';
+
+      FtuPing.initSettings(function() {
+        assert.doesNotThrow(function() { FtuPing.checkMobileNetwork(); });
+
+        var pingData = FtuPing.getPingData();
+        assert.ok(!pingData.network);
+        assert.ok(!pingData.icc);
+        done();
+      });
+    });
+
+  });
+
   suite('tryPing', function() {
     var realPing, pingCallback;
     setup(function() {
@@ -256,26 +379,6 @@ suite('FtuPing', function() {
       pingCallback = null;
     });
 
-    test('fails with no mobile connections', function() {
-      assert.ok(!FtuPing.tryPing());
-      assert.equal(FtuPing.getNetworkFailCount(), 1);
-    });
-
-    test('max mobile failures pings anyway', function(done) {
-      MockasyncStorage.mItems['ftu.pingNetworkFailCount'] = 1;
-      MockNavigatorSettings.mSettings['ftu.pingMaxNetworkFails'] = 1;
-      MockNavigatorSettings.mSettings['deviceinfo.os'] = 'test_os';
-
-      FtuPing.initSettings(function() {
-        assert.ok(FtuPing.tryPing());
-
-        var pingData = FtuPing.getPingData();
-        assert.ok(!pingData.network);
-        assert.ok(!pingData.icc);
-        done();
-      });
-    });
-
     test('no deviceinfo.os fails', function(done) {
       MockasyncStorage.mItems['ftu.pingNetworkFailCount'] = 1;
       MockNavigatorSettings.mSettings['ftu.pingMaxNetworkFails'] = 1;
@@ -287,29 +390,10 @@ suite('FtuPing', function() {
 
     test('iccinfo and voice network make it into pingData', function(done) {
       MockNavigatorSettings.mSettings['deviceinfo.os'] = 'test_os';
-      MockNavigatorMozMobileConnections.mAddMobileConnection();
-
-      var mockConn = MockNavigatorMozMobileConnections[0];
-      mockConn.iccId = 'test_icc';
-      mockConn.voice = {
-        network: {
-          mnc: 'voice_mnc',
-          mcc: 'voice_mcc'
-        }
-      };
-
-      var mockIcc = {
-        iccInfo: {
-          mnc: 'icc_mnc',
-          mcc: 'icc_mcc',
-          spn: 'icc_spn'
-        }
-      };
-
-      MockNavigatorMozIccManager.addIcc('test_icc', mockIcc);
-      MockMobileOperator.mOperator = 'test_operator';
-      MockMobileOperator.mCarrier = 'test_carrier';
-      MockMobileOperator.mRegion = 'test_region';
+      this.sinon.stub(MockSIMSlotManager, 'noSIMCardConnectedToNetwork')
+          .returns(false);
+      var conn = addMockMobileConnection();
+      MockSIMSlotManager.mInstances.push(new MockSIMSlot(conn, 0));
 
       FtuPing.initSettings(function() {
         assert.ok(FtuPing.tryPing());
@@ -326,6 +410,7 @@ suite('FtuPing', function() {
         assert.equal(pingData.network.operator, 'test_operator');
         assert.equal(pingData.network.carrier, 'test_carrier');
         assert.equal(pingData.network.region, 'test_region');
+        MockSIMSlotManager.noSIMCardConnectedToNetwork.restore();
         done();
       });
     });

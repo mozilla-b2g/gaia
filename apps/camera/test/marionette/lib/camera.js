@@ -4,6 +4,7 @@
 function Camera(client) {
   this.client = client || marionette.client();
   this.$ = require('./vendor/mquery')(client);
+  this.touches = [];
 }
 
 Camera.prototype = {
@@ -29,7 +30,8 @@ Camera.prototype = {
     selfTimer2SecondsOption: '.setting-option[data-key=secs2]',
     selfTimerCountDown : '.timer',
     notification: '.notification li',
-    grid: '.viewfinder-grid'
+    grid: '.viewfinder-grid',
+    zoomBar: '.zoom-bar',
   },
 
   launch: function() {
@@ -44,6 +46,115 @@ Camera.prototype = {
 
   tap: function(selector) {
     this.$(selector).tap();
+  },
+
+  addOrReplaceTouch: function(identifier, x, y) {
+    var touches = this.touches;
+    for (var i = 0, length = touches.length; i < length; i++) {
+      if (touches[i].identifier === identifier) {
+        touches[i].x = x;
+        touches[i].y = y;
+        return;
+      }
+    }
+
+    touches.push({
+      identifier: identifier,
+      x: x,
+      y: y
+    });
+  },
+
+  removeTouch: function(identifier) {
+    var touches = this.touches;
+    for (var i = 0, length = touches.length; i < length; i++) {
+      if (touches[i].identifier === identifier) {
+        touches.splice(i, 1);
+        return;
+      }
+    }
+  },
+
+  touch: function(selector, type, identifier, x, y) {
+    var eventName = 'touch' + type;
+    if (eventName === 'touchend') {
+      this.removeTouch(identifier);
+    } else {
+      this.addOrReplaceTouch(identifier, x, y);
+    }
+
+    var el = this.$(selector).waitToAppear().el;
+    el.scriptWith(dispatchTouchEvent, [this.touches, eventName]);
+
+    function dispatchTouchEvent(el, touches, eventName) {
+      var fakeTouches = [];
+      touches.forEach(function(touch) {
+        fakeTouches.push(
+          document.createTouch(window, el, touch.identifier, touch.x, touch.y));
+      });
+
+      var touchList = document.createTouchList(fakeTouches);
+      var touchEvent = document.createEvent('TouchEvent');
+      touchEvent.initTouchEvent(eventName,  // name
+                                true,       // bubbles
+                                true,       // cancelable
+                                window,     // view
+                                null,       // detail
+                                false,      // ctrlKey
+                                false,      // altKey
+                                false,      // shiftKey
+                                false,      // metaKey
+                                touchList,  // touches
+                                touchList,  // targetTouches
+                                touchList); // changedTouches
+
+      el.dispatchEvent(touchEvent);
+    }
+  },
+
+  pinch: function(selector, options) {
+    var x = options.x || 100;
+    var y = options.y || 100;
+    var distance = options.distance || 10;
+    var halfDistance = Math.abs(distance) / 2;
+    var inTouch1 = {
+      x: x,
+      y: y
+    };
+    var inTouch2 = {
+      x: x + 1,
+      y: y + 1
+    };
+    var outTouch1 = {
+      x: x - halfDistance,
+      y: y - halfDistance
+    };
+    var outTouch2 = {
+      x: x + 1 + halfDistance,
+      y: y + 1 + halfDistance
+    };
+
+    var startTouches;
+    var endTouches;
+
+    // Zoom in
+    if (distance > 0) {
+      startTouches = [inTouch1, inTouch2];
+      endTouches = [outTouch1, outTouch2];
+    }
+
+    // Zoom out
+    else {
+      startTouches = [outTouch1, outTouch2];
+      endTouches = [inTouch1, inTouch2];
+    }
+
+    this.touch(selector, 'start', 1, startTouches[0].x, startTouches[0].y);
+    this.touch(selector, 'start', 2, startTouches[1].x, startTouches[1].y);
+    this.touch(selector, 'move', 1, endTouches[0].x, endTouches[0].y);
+    this.touch(selector, 'move', 2, endTouches[1].x, endTouches[1].y);
+    this.touch(selector, 'end', 1);
+    this.touch(selector, 'end', 2);
   },
 
   waitFor: function(selector) {
@@ -140,6 +251,14 @@ Camera.prototype = {
 
   waitForCountDown: function() {
     this.waitFor(this.selectors.selfTimerCountDown + '.visible');
+  },
+
+  waitForZoomBarEnabled: function() {
+    this.waitFor(this.selectors.zoomBar + '.zooming');
+  },
+
+  waitForZoomBarDisabled: function() {
+    this.waitFor(this.selectors.zoomBar + ':not(.zooming)');
   },
 
   get mode() {

@@ -134,7 +134,7 @@ var MusicComms = {
 
     this.mrc.notifyAppInfo({
       origin: window.location.origin,
-      icon: window.location.origin + '/style/icons/Music_60.png'
+      icon: window.location.origin + '/style/icons/music_84.png'
     });
 
     this.enabled = true;

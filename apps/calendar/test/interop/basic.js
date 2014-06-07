@@ -8,7 +8,9 @@ var Calendar = require('../marionette/lib/calendar'),
     path = require('path');
 
 // See https://bugzil.la/1011192 about Yahoo!
-var providers = [];
+var providers = [
+  'oracle'
+];
 
 var sharedPath = __dirname + '/../../../../shared/test/integration';
 

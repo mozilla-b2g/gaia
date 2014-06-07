@@ -38,7 +38,6 @@ class TestBrowserSearch(GaiaTestCase):
 
         browser.switch_to_content()
         self.wait_for_element_displayed(*self._google_search_input_locator)
-        time.sleep(5)
         self.graphics.invoke_screen_capture()
 
     def tearDown(self):

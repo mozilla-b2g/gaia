@@ -97,14 +97,8 @@ var Identity = (function() {
   };
 })();
 
-// Make sure L10n is ready before init.
-// Check for existence of navigator.mozL10n in order not to raise
-// errors in test suites.
-if (navigator.mozL10n &&
-    (navigator.mozL10n.readyState == 'complete' ||
-     navigator.mozL10n.readyState == 'interactive')) {
-  Identity.init();
-} else {
-  window.addEventListener('localized', Identity.init.bind(Identity));
+// Make sure L10n is ready before init.  Check for existence of
+// navigator.mozL10n in order not to raise errors in test suites.
+if (navigator.mozL10n) {
+  navigator.mozL10n.once(Identity.init.bind(Identity));
 }
-

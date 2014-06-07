@@ -68,7 +68,6 @@
     }
 
     if (stepData.video) {
-
       if (typeof callback === 'function') {
         videoElement.addEventListener('loadeddata', onVideoLoadOrError, false);
         videoElement.addEventListener('error', onVideoLoadOrError, false);
@@ -104,6 +103,9 @@
 
     init: function(stepsKey, onLoaded) {
       if (initialized) {
+        if (typeof onLoaded == 'function') {
+          this._configPromise.then(onLoaded);
+        }
         return;
       }
       // Cache DOM elements
@@ -111,15 +113,14 @@
         dom[Utils.camelCase(name)] = document.getElementById(name);
       }, this);
 
-      this.ensureConfig().then(function() {
+      // Init in progress
+      initialized = true;
+
+      this.ensureConfig().then(function initWithConfig() {
         if (!stepsKey) {
           stepsKey = 'default';
         }
-        if (!this.config) {
-          throw new Error('Tutorial.init: config not loaded');
-        }
         stepsConfig = this.config[stepsKey] || this.config['default'];
-
         // Add event listeners
         dom.forwardTutorial.addEventListener('click', this);
         dom.backTutorial.addEventListener('click', this);
@@ -135,14 +136,13 @@
           // Show the panel
           dom.tutorial.classList.add('show');
         });
-      }.bind(this), function Tutorial_configLoadError(err) {
-        throw new Error('Tutorial config load error: ' + err.statusText);
+
+        // Custom event that can be used to apply (screen reader) visibility
+        // changes.
+        window.dispatchEvent(new CustomEvent('tutorialinitialized'));
+      }.bind(this), function() {
+        console.log('Tutorial.init: config not loaded');
       });
-      // Init in progress
-      initialized = true;
-      // Custom event that can be used to apply (screen reader) visibility
-      // changes.
-      window.dispatchEvent(new CustomEvent('tutorialinitialized'));
     },
     handleEvent: function(evt) {
       if (evt.type === 'click') {
@@ -192,13 +192,21 @@
 
           xhr.onload = function() {
             Tutorial._configRequest = null;
-            Tutorial.config = xhr.response;
-            resolve(Tutorial.config);
+            if (xhr.response) {
+              Tutorial.config = xhr.response;
+              resolve(Tutorial.config);
+            } else {
+              reject(
+                new Error('Tutorial config failed to load from: ' + configUrl)
+              );
+            }
           };
 
           xhr.onerror = function(err) {
             Tutorial._configRequest = null;
-            reject(err);
+            reject(
+              new Error('Tutorial config failed to load from: ' + configUrl)
+            );
           };
           xhr.send(null);
         });

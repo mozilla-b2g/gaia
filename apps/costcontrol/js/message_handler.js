@@ -1,5 +1,7 @@
 /* global ConfigManager, CostControl, debug, Common, asyncStorage, Formatting,
-          NotificationHelper, _, MozActivity, NetworkUsageAlarm, SimManager */
+          NotificationHelper, _, MozActivity, NetworkUsageAlarm, LazyLoader,
+          SimManager, IACManager, DEBUGGING
+*/
 /* exported activity */
 /*jshint -W020 */
 /* The previous directive,ignore the "Read only" errors, that are produced when
@@ -343,6 +345,15 @@
     };
   }
 
+  function disableSilentModeFor(type, configuration) {
+    LazyLoader.load('js/iac_manager.js', function() {
+      IACManager.init(configuration);
+      IACManager.broadcastEndOfSMSQuery(type).then(function(msg) {
+        debug('After broadcasting for ' + type + ' (disabling)');
+      });
+    });
+  }
+
   // Register in standalone or for application
   var costcontrol;
   function _getCCInstance() {
@@ -419,7 +430,12 @@
               return;
             }
 
-            // TODO: Remove the SMS
+            if (!DEBUGGING &&
+                (isBalance && (settings.waitingForBalance !== null)) ||
+                (isConfirmation && (settings.waitingForTopUp !== null))) {
+              var mobileMessageManager = window.navigator.mozMobileMessage;
+              mobileMessageManager.delete(sms.id);
+            }
 
             if (isBalance) {
               // Compose new balance
@@ -431,10 +447,14 @@
                 timestamp: new Date()
               };
 
-              // Remove the timeout
-              navigator.mozAlarms.remove(settings.waitingForBalance);
-              debug('Balance timeout:', settings.waitingForBalance, 'removed');
+              if (settings.waitingForBalance !== null) {
+                // Remove the timeout
+                navigator.mozAlarms.remove(settings.waitingForBalance);
+                debug('Balance timeout:', settings.waitingForBalance,
+                      'removed');
 
+                disableSilentModeFor('balance', configuration);
+              }
               // Store new balance and sync
               ConfigManager.setOption(
                 { 'lastBalance': newBalance, 'waitingForBalance': null },
@@ -447,9 +467,12 @@
                 }
               );
             } else if (isConfirmation) {
-              // Store SUCCESS for TopIp and sync
-              navigator.mozAlarms.remove(settings.waitingForTopUp);
-              debug('TopUp timeout:', settings.waitingForTopUp, 'removed');
+              if (settings.waitingForTopUp !== null) {
+                // Store SUCCESS for TopIp and sync
+                navigator.mozAlarms.remove(settings.waitingForTopUp);
+                debug('TopUp timeout:', settings.waitingForTopUp, 'removed');
+                disableSilentModeFor('topup', configuration);
+              }
               ConfigManager.setOption(
                 {
                   'waitingForTopUp': null,
@@ -494,13 +517,16 @@
           clearTimeout(closing);
           debug('SMS sent!');
 
-          ConfigManager.requestAll(function _onInfo(configuration, settings) {
-            var mode = ConfigManager.getApplicationMode();
-            if (mode === 'PREPAID' &&
-                !costcontrol.isBalanceRequestSMS(sms, configuration)) {
-              costcontrol.request({ type: 'balance' });
-            }
-
+          var configuration = ConfigManager.configuration;
+          var mode = ConfigManager.getApplicationMode();
+          if (mode === 'PREPAID' &&
+              !costcontrol.isBalanceRequestSMS(sms, configuration)) {
+            costcontrol.request({ type: 'balance' });
+          }
+          if (mode === 'PREPAID' &&
+              costcontrol.isBalanceRequestSMS(sms, configuration)) {
+            closeIfProceeds();
+          } else {
             var mobileMessageManager = window.navigator.mozMobileMessage;
             var infoRequest =
               mobileMessageManager.getSegmentInfoForText(sms.body);
@@ -513,23 +539,28 @@
               } else {
                 realCount = smsInfo.segments;
               }
-              updateSMSCount(settings, realCount);
+              updateSMSCount(realCount);
             };
             infoRequest.onerror = function onError() {
               console.error('Can not retrieve segment info for body ' +
                              sms.body);
-              updateSMSCount(settings, 1);
+              updateSMSCount(1);
             };
-          });
+          }
 
-          function updateSMSCount(settings, count) {
-            settings.lastTelephonyActivity.timestamp = new Date();
-            settings.lastTelephonyActivity.smscount += count;
-            ConfigManager.setOption({
-              lastTelephonyActivity: settings.lastTelephonyActivity
-            }, function _sync() {
-              localStorage.sync = 'lastTelephonyActivity#' + Math.random();
-              closeIfProceeds();
+          function updateSMSCount(count) {
+            SimManager.requestDataSimIcc(function(dataSimIcc) {
+              ConfigManager.requestSettings(dataSimIcc.iccId,
+                                            function _onSettings(settings) {
+                settings.lastTelephonyActivity.timestamp = new Date();
+                settings.lastTelephonyActivity.smscount += count;
+                ConfigManager.setOption({
+                  lastTelephonyActivity: settings.lastTelephonyActivity
+                }, function _sync() {
+                  localStorage.sync = 'lastTelephonyActivity#' + Math.random();
+                  closeIfProceeds();
+                });
+              });
             });
           }
         });
@@ -563,7 +594,6 @@
             });
           }
         );
-
       }
 
       // Notify message handler is ready

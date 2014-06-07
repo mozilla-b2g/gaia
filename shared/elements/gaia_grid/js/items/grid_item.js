@@ -146,6 +146,18 @@
         'url(' + URL.createObjectURL(blob) + ')';
     },
 
+    showDownloading: function() {
+      if (this.element) {
+        this.element.classList.add('loading');
+      }
+    },
+
+    hideDownloading: function() {
+      if (this.element) {
+        this.element.classList.remove('loading');
+      }
+    },
+
     /**
      * Renders the icon to the container.
      * @param {Array} coordinates Grid coordinates to render to.
@@ -188,9 +200,10 @@
             var app = this.app;
             // The download should finish when the icon is local
             if (app && app.downloading && this.icon.startsWith('app:')) {
+              this.showDownloading();
               app.ondownloadsuccess = app.ondownloaderror = function() {
                 app.ondownloadsuccess = app.ondownloaderror = null;
-                IconRetriever.get(this);
+                IconRetriever.get(this, this.hideDownloading.bind(this));
               }.bind(this);
               return;
             }

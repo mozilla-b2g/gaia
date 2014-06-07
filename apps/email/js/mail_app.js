@@ -51,6 +51,12 @@ if (typeof TestUrlResolver === 'undefined') {
   });
 }
 
+// Tell audio channel manager that we want to adjust the notification
+// channel if the user press the volumeup/volumedown buttons in Email.
+if (navigator.mozAudioChannelManager) {
+  navigator.mozAudioChannelManager.volumeControlChannel = 'notification';
+}
+
 // Named module, so it is the same before and after build, and referenced
 // in the require at the end of this file.
 define('mail_app', function(require, exports, module) {
@@ -67,6 +73,7 @@ var appMessages = require('app_messages'),
     waitingForCreateAccountPrompt = false,
     activityCallback = null;
 
+require('shared/js/font_size_utils');
 require('sync');
 require('wake_locks');
 

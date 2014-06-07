@@ -472,4 +472,13 @@ suite('system/DialerAgent', function() {
 
     navigator.mozTelephony = MockNavigatorMozTelephony;
   });
+
+  test('AttentionScreen should be shown if asked', function() {
+    subject = new DialerAgent();
+    subject.start();
+
+    this.sinon.spy(MockAttentionScreen, 'show');
+    subject.showCallScreen();
+    assert.isTrue(MockAttentionScreen.show.calledOnce);
+  });
 });

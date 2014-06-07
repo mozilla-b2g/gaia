@@ -1,6 +1,8 @@
 define(function(require) {
 'use strict';
 
+require('shared/js/font_size_utils');
+
 var Tabs = require('tabs');
 var View = require('view');
 var PerformanceTestingHelper = require('shared/js/performance_testing_helper');
@@ -17,6 +19,11 @@ var App = {
 
     window.addEventListener('hashchange', this);
     window.addEventListener('visibilitychange', this);
+    // Tell audio channel manager that we want to adjust the alarm channel
+    // if the user press the volumeup/volumedown buttons in Clock.
+    if (navigator.mozAudioChannelManager) {
+      navigator.mozAudioChannelManager.volumeControlChannel = 'alarm';
+    }
 
     this.visible = !document.hidden;
     this.panels = Array.prototype.map.call(

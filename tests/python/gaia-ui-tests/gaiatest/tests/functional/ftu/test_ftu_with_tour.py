@@ -4,6 +4,7 @@
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.ftu.app import Ftu
+from gaiatest.apps.homescreen.app import Homescreen
 
 
 class TestFtu(GaiaTestCase):
@@ -22,7 +23,7 @@ class TestFtu(GaiaTestCase):
         self.ftu.tap_take_tour()
 
         # Walk through the tour
-        self.assertEqual(self.ftu.step1_header_text, "Swipe up and down to browse your apps. Tap and hold on an icon to move or delete it.")
+        self.assertEqual(self.ftu.step1_header_text, "Swipe up and down to browse your apps. Tap and hold an icon to move or delete it.")
         self.ftu.tap_tour_next()
         self.assertEqual(self.ftu.step2_header_text, "Swipe down to access recent notifications, credit information and settings.")
         self.ftu.tap_tour_next()
@@ -38,4 +39,4 @@ class TestFtu(GaiaTestCase):
         self.ftu.tap_lets_go_button()
 
         # Switch back to top level now that FTU app is gone
-        self.wait_for_condition(lambda m: self.apps.displayed_app.name == 'Homescreen')
+        self.wait_for_condition(lambda m: self.apps.displayed_app.name == Homescreen.name)

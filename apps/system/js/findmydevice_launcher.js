@@ -16,13 +16,7 @@ navigator.mozSettings.addObserver('findmydevice.enabled', function(event) {
   }
 });
 
-window.addEventListener('mozFxAccountsUnsolChromeEvent', function(event) {
-  if (!event || !event.detail) {
-    return;
-  }
-
-  if (event.detail.eventName === 'onlogout') {
-    var helper = SettingsHelper('findmydevice.enabled');
-    helper.set(false);
-  }
+window.addEventListener('will-unlock', function(event) {
+  var helper = SettingsHelper('lockscreen.lock-message');
+  helper.set('');
 });

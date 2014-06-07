@@ -119,32 +119,22 @@ document.addEventListener('visibilitychange', function visibilityChange() {
   }
 });
 
-window.addEventListener('localized', function initLocale() {
-  document.documentElement.lang = navigator.mozL10n.language.code;
-  document.documentElement.dir = navigator.mozL10n.language.direction;
-});
+navigator.mozL10n.once(init);
 
-navigator.mozL10n.ready(function initVideo() {
-  // This function should be called once. According to the implementation of
-  // mozL10n.ready, it may become the event handler of localized. So, we need to
-  // prevent database re-initialize.
-  // XXX: once bug 882592 is fixed, we should remove it and just call init.
-  if (!videodb)
-    init();
+// we don't need to wait for l10n ready to have correct css layout.
+initLayout();
+initThumbnailSize();
 
-  if (!isPhone) {
+if (!isPhone) {
+  navigator.mozL10n.ready(function localizeThumbnailListTitle() {
     // reload the thumbnail list title field for tablet which is the app name.
     var req = navigator.mozApps.getSelf();
     req.onsuccess = function() {
       var manifest = new ManifestHelper(req.result.manifest);
       dom.thumbnailListTitle.textContent = manifest.name;
     };
-  }
-});
-
-// we don't need to wait for l10n ready to have correct css layout.
-initLayout();
-initThumbnailSize();
+  });
+}
 
 function init() {
   thumbnailList = new ThumbnailList(ThumbnailDateGroup, dom.thumbnails);

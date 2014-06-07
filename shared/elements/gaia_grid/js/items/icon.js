@@ -25,10 +25,6 @@
       entryPoint: entryPoint,
       index: 0
     };
-
-    app.ondownloadapplied = function(event) {
-      this.displayIcon();
-    }.bind(this);
   }
 
   Icon.prototype = {
@@ -48,13 +44,12 @@
     gridWidth: 1,
 
     get name() {
-      var name = this.descriptor.name;
       var userLang = document.documentElement.lang;
 
-      if (name[userLang]) {
-        return name[userLang];
-      }
-      return name;
+      var locales = this.descriptor.locales;
+      var localized = locales && locales[userLang] && locales[userLang].name;
+
+      return localized || this.descriptor.name;
     },
 
     _icon: function() {

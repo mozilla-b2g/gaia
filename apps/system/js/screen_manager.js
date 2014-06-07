@@ -270,7 +270,7 @@ var ScreenManager = {
         if (this._cpuWakeLock) {
           // In case of user making an extra call, the attention screen
           // may be hidden at top so we need to confirm it's shown again.
-          AttentionScreen.show();
+          dialerAgent.showCallScreen();
           break;
         }
 
@@ -566,8 +566,9 @@ var ScreenManager = {
       self.turnScreenOn(true);
     };
 
+    var finalTimeout = instant ? time * 1000 : (time * 1000) - this._dimNotice;
     this._idleTimerId = window.setIdleTimeout(idleCallback,
-                                              activeCallback, time * 1000);
+                                              activeCallback, finalTimeout);
   },
 
   fireScreenChangeEvent: function scm_fireScreenChangeEvent() {

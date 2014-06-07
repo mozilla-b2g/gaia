@@ -376,11 +376,8 @@ var QuickSettings = {
   }
 };
 
-if (navigator.mozL10n &&
-    (navigator.mozL10n.readyState == 'complete' ||
-      navigator.mozL10n.readyState == 'interactive')) {
-  QuickSettings.init();
-} else {
-  window.addEventListener('localized', QuickSettings.init.bind(QuickSettings));
+// Make sure L10n is ready before init.  Check for existence of
+// navigator.mozL10n in order not to raise errors in test suites.
+if (navigator.mozL10n) {
+  navigator.mozL10n.once(QuickSettings.init.bind(QuickSettings));
 }
-

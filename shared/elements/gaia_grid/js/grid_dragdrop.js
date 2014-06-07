@@ -95,9 +95,8 @@
     finish: function(e) {
       this.currentTouch = null;
 
-      delete this.icon.noTransform;
-      this.icon = null;
       this.target.classList.remove('active');
+      delete this.icon.noTransform;
 
       if (this.rearrangeDelay !== null) {
         clearTimeout(this.rearrangeDelay);
@@ -105,6 +104,10 @@
       } else {
         this.gridView.render();
       }
+
+      // Rearrange can access the item, so null it out only after the
+      // last possible rearrange.
+      this.icon = null;
 
       // Save icon state if we need to
       if (this.dirty) {
@@ -211,22 +214,33 @@
       }
 
       // Insert at the found position
-      var myIndex = this.icon.detail.index;
-      if (foundIndex !== myIndex) {
+      if (foundIndex !== this.icon.detail.index) {
         clearTimeout(this.rearrangeDelay);
-        this.doRearrange = this.rearrange.bind(this, myIndex, foundIndex);
+        this.doRearrange = this.rearrange.bind(this, foundIndex);
         this.rearrangeDelay = setTimeout(this.doRearrange.bind(this),
                                          rearrangeDelay);
       }
     },
 
-    rearrange: function(sIndex, tIndex) {
+    /**
+     * Rearranges items in GridView.items
+     * @param {Integer} insertAt The position to insert our icon at.
+     */
+    rearrange: function(tIndex) {
+
+      // We get a reference to the position of this.icon within the items
+      // array. Because placeholders are shifting around while we are dragging,
+      // we can't trust the detail.index attribute. This will be fixed on every
+      // render call though.
+      var sIndex = this.gridView.items.indexOf(this.icon);
+      var toInsert = this.gridView.items.splice(sIndex, 1)[0];
+
       this.rearrangeDelay = null;
       this.dirty = true;
-      this.gridView.items.splice(tIndex, 0,
-        this.gridView.items.splice(sIndex, 1)[0]);
-      tIndex < sIndex ? this.gridView.render(tIndex, sIndex) :
-        this.gridView.render(sIndex, tIndex);
+      this.gridView.items.splice(tIndex, 0, toInsert);
+      this.gridView.render({
+        from: Math.min(tIndex, sIndex)
+      });
     },
 
     enterEditMode: function() {

@@ -1,68 +1,68 @@
 'use strict';
 /* global asyncStorage */
-
 (function(exports) {
 
   const MAX_NUMBER_OF_ATTEMPTS = 3;
 
   const XHR_TIMEOUT = 10000;
-  
-  var pendingIcons = Object.create(null);
 
-  var onGoingIcons = Object.create(null);
+  var pendingItems = Object.create(null);
+
+  var onGoingItems = Object.create(null);
 
   function onerror(caller, status, data) {
     // TODO: We can control more cases, error codes, etc... Current
     // implementation only retries three times when the reason is an error or a
     // timeout
-    var icon = data.icon;
-    var id = icon.identifier;
-    delete onGoingIcons[id];
+    var gridItem = data.gridItem;
+    var id = gridItem.identifier;
+    delete onGoingItems[id];
 
     if (caller === 'onerror' && data.attempts < MAX_NUMBER_OF_ATTEMPTS) {
       // Retrying when the device gets connection
       ++data.attempts;
-      pendingIcons[id] = data;
+      pendingItems[id] = data;
     }
 
     asyncStorage.getItem(id, function(blob) {
-      renderBlob(icon, blob);
+      renderBlob(gridItem, blob);
+      data.callback && data.callback();
     });
   }
 
-  function renderBlob(icon, blob) {
+  function renderBlob(gridItem, blob) {
     if (blob) {
       var img = document.createElement('img');
       img.src = URL.createObjectURL(blob);
       img.onload = function() {
-        icon.displayFromImage(img);
+        gridItem.displayFromImage(img);
         URL.revokeObjectURL(img.src);
       };
     }
   }
 
   function doGet(data) {
-    var icon = data.icon;
+    var gridItem = data.gridItem;
 
-    if (!icon) {
+    if (!gridItem) {
       return;
     }
 
-    var id = icon.identifier;
-    if (onGoingIcons[id]) {
+    var id = gridItem.identifier;
+    if (onGoingItems[id]) {
       // Already being processed, do nothing for now...
       return;
     }
 
-    onGoingIcons[id] = data;
-    delete pendingIcons[id];
+    onGoingItems[id] = data;
+    delete pendingItems[id];
 
     var xhr = new XMLHttpRequest({
       mozAnon: true,
       mozSystem: true
     });
 
-    var url = icon.icon;
+    var url = gridItem.icon;
     xhr.open('GET', url, true);
     xhr.responseType = 'blob';
     xhr.timeout = XHR_TIMEOUT;
@@ -76,9 +76,10 @@
         return;
       }
 
-      delete onGoingIcons[id];
-      renderBlob(icon, xhr.response);
+      delete onGoingItems[id];
+      renderBlob(gridItem, xhr.response);
       asyncStorage.setItem(id, xhr.response);
+      data.callback && data.callback();
     };
 
     xhr.onerror = xhr.ontimeout = function() {
@@ -90,16 +91,24 @@
   window.addEventListener('online', function online() {
     // Try again pending operations. Note that since we've just come online we
     // should *not* have anything on the ongoing list
-    Object.keys(pendingIcons).forEach(function(id) {
-      doGet(pendingIcons[id]);
+    Object.keys(pendingItems).forEach(function(id) {
+      doGet(pendingItems[id]);
     });
   });
 
   exports.IconRetriever = {
-    get: function(icon) {
+
+    /**
+    Begin fetching the icon for a GridItem subclass.
+
+    @param {GridIcon} gridItem who we are fetching an icon for.
+    @param {Function} callback [Error] fired when download completes.
+    */
+    get: function(gridItem, callback) {
       doGet({
-        icon: icon,
-        attempts: 0
+        gridItem: gridItem,
+        attempts: 0,
+        callback: callback
       });
     }
   };

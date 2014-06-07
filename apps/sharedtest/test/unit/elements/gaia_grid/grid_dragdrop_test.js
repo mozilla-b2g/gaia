@@ -30,7 +30,7 @@ suite('GaiaGrid > DragDrop', function() {
     url: 'http://mozilla.org'
   };
 
-  setup(function() {
+  suiteSetup(function() {
     document.body.innerHTML = '<div id="zoom"><div class="arrows">' +
     '</div><div class="curtain"></div><div class="indicator"></div></div>';
     this.container = document.createElement('div');
@@ -73,4 +73,15 @@ suite('GaiaGrid > DragDrop', function() {
     assert.equal(grid.items[1].name, 'first');
   });
 
+  test('rearrange uses reference of icon for position', function() {
+    var subject = grid.dragdrop;
+    subject.icon = grid.items[0];
+
+    // The current positions are second -> first -> placeholder
+    // Simulate a drop past the placeholder (index 2).
+    subject.rearrange(2);
+
+    assert.equal(grid.items[0].name, 'first');
+    assert.equal(grid.items[1].name, 'second');
+  });
 });

@@ -29,9 +29,6 @@ suite('sendFeedback > ', function() {
       textContent: 'testAlertMsg'
     },
     doneDialog: {
-      hidden: false
-    },
-    doneBtn: {
       hidden: true
     },
     title: {
@@ -166,7 +163,7 @@ suite('sendFeedback > ', function() {
 
       sendFeedback._xhr.readyState = 4;
       sendFeedback._xhr.triggerReadyStateChange(201);
-      assert.equal(sendFeedback.elements.doneBtn.hidden, false);
+      assert.equal(sendFeedback.elements.doneDialog.hidden, false);
       assert.equal(sendFeedback.elements.sendBtn.disabled, false);
     });
 
@@ -193,6 +190,22 @@ suite('sendFeedback > ', function() {
       sendFeedback._responseHandler();
       assert.equal(sendFeedback.elements.alertMsg.textContent,
         'feedback-errormessage-connect-error');
+    });
+
+    suite('_messageHandler', function() {
+      test('_messageHandler with success', function() {
+        sendFeedback._messageHandler('success');
+        assert.equal(sendFeedback.elements.doneDialog.hidden, false);
+        assert.equal(sendFeedback.elements.sendBtn.disabled, false);
+      });
+
+      test('_messageHandler with failure', function() {
+        this.sinon.stub(sendFeedback, '_keepAllInputs');
+        sendFeedback._messageHandler('wrong-email');
+        assert.equal(sendFeedback._keepAllInputs.called, true);
+        assert.equal(sendFeedback.elements.alertDialog.hidden, false);
+        assert.equal(sendFeedback.elements.sendBtn.disabled, false);
+      });
     });
   });
 });

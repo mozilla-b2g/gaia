@@ -342,18 +342,18 @@
       larrow.onload = (function() {
         var offset =
           this.useNewStyle ?
-          (this._dpx(this.arrows.left.width) + this.handle.radius) :
+          (this.arrows.left.width + this.handle.radius) :
           (this.arrows.left.width << 1);
         this.arrows.ldraw.x =
           center.x - offset;
         this.arrows.ldraw.y =
-          center.y - (this._dpx(this.arrows.left.height) >> 1);
+          center.y - (this.arrows.left.height >> 1);
         var ctx = this.canvas.getContext('2d');
         ctx.drawImage(this.arrows.left,
           this.arrows.ldraw.x,
           this.arrows.ldraw.y,
-          this._dpx(this.arrows.left.width),
-          this._dpx(this.arrows.left.height));
+          this.arrows.left.width,
+          this.arrows.left.height);
       }).bind(this);
       rarrow.onload = (function() {
         var offset =
@@ -361,13 +361,13 @@
         this.arrows.rdraw.x =
           center.x + offset;
         this.arrows.rdraw.y =
-          center.y - (this._dpx(this.arrows.right.height) >> 1);
+          center.y - (this.arrows.right.height >> 1);
         var ctx = this.canvas.getContext('2d');
         ctx.drawImage(this.arrows.right,
           this.arrows.rdraw.x,
           this.arrows.rdraw.y,
-          this._dpx(this.arrows.right.width),
-          this._dpx(this.arrows.right.height));
+          this.arrows.right.width,
+          this.arrows.right.height);
       }).bind(this);
 
       this.width = this._dpx(window.innerWidth);
@@ -757,21 +757,21 @@
         // XXX:<<1: OK but don't know why!
         var position =
           this.useNewStyle ?
-          (tx - this._dpx(this.arrows.left.width) - this.handle.radius) :
+          (tx - this.arrows.left.width - this.handle.radius) :
           (tx - (this.arrows.left.width << 1));
         var oldAlpha = ctx.globalAlpha;
         ctx.globalAlpha = alpha;
         ctx.drawImage(this.arrows.left,
           position,
           this.arrows.ldraw.y,
-          this._dpx(this.arrows.left.width),
-          this._dpx(this.arrows.left.height));
+          this.arrows.left.width,
+          this.arrows.left.height);
         ctx.globalAlpha = oldAlpha;
         ctx.drawImage(this.arrows.right,
           this.arrows.rdraw.x,
           this.arrows.rdraw.y,
-          this._dpx(this.arrows.right.width),
-          this._dpx(this.arrows.right.height));
+          this.arrows.right.width,
+          this.arrows.right.height);
 
       } else {
         var position =
@@ -783,14 +783,14 @@
         ctx.drawImage(this.arrows.right,
           position,
           this.arrows.rdraw.y,
-          this._dpx(this.arrows.right.width),
-          this._dpx(this.arrows.right.height));
+          this.arrows.right.width,
+          this.arrows.right.height);
         ctx.globalAlpha = oldAlpha;
         ctx.drawImage(this.arrows.left,
           this.arrows.ldraw.x,
           this.arrows.ldraw.y,
-          this._dpx(this.arrows.left.width),
-          this._dpx(this.arrows.left.height));
+          this.arrows.left.width,
+          this.arrows.left.height);
       }
     };
 
@@ -1141,13 +1141,13 @@
       ctx.drawImage(this.arrows.left,
           this.arrows.ldraw.x,
           this.arrows.ldraw.y,
-          this._dpx(this.arrows.left.width),
-          this._dpx(this.arrows.left.height));
+          this.arrows.left.width,
+          this.arrows.left.height);
       ctx.drawImage(this.arrows.right,
           this.arrows.rdraw.x,
           this.arrows.rdraw.y,
-          this._dpx(this.arrows.right.width),
-          this._dpx(this.arrows.right.height));
+          this.arrows.right.width,
+          this.arrows.right.height);
     };
 
   /**

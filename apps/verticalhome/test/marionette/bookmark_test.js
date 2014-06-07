@@ -54,7 +54,9 @@ marionette('Vertical - Bookmark', function() {
     homescreenFrame = client.findElement('iframe[src*="' + Home2.URL + '"]');
     client.switchToFrame(homescreenFrame);
 
-    assert.equal(numIcons + 1, home.numIcons);
+    client.waitFor(function() {
+      return numIcons + 1 === home.numIcons;
+    });
     assert.equal(numDividers, home.numDividers);
   });
 
