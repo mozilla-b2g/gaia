@@ -8,7 +8,7 @@ var AppInstall =
   require('../../../../apps/system/test/marionette/lib/app_install');
 var createAppServer = require('./server/parent');
 
-marionette('app installs', function() {
+marionette('Vertical Home - Hosted App Pending', function() {
   var client = marionette.client(Home2.clientOptions);
 
   var server;
@@ -45,8 +45,8 @@ marionette('app installs', function() {
     client.switchToFrame();
 
     // don't let the server send the zip archive
-    server.cork();
-    appInstall.installPackage(server.manifestURL);
+    server.cork('/style/icons/Blank.png');
+    appInstall.install(server.manifestURL);
 
     // switch back to the homescreen
     client.switchToFrame(system.getHomescreenIframe());
@@ -55,7 +55,7 @@ marionette('app installs', function() {
     // wait until the icon is spinning!
     client.waitFor(hasClass.bind(this, appIcon, 'loading'));
     // let the rest of the app come through
-    server.uncork();
+    server.uncork('/style/icons/Blank.png');
     // wait until it is no longer loading
     client.waitFor(function() {
       return !hasClass(appIcon, 'loading');
