@@ -10,7 +10,7 @@
   "permissions": {
     "browser":{},
     "systemXHR":{},
-    "settings":{ "access": "readwrite" },
+    "settings":{ "access": "readonly" },
     "geolocation" : {},
     "storage": {},
     "desktop-notification" : {},

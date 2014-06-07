@@ -57,7 +57,6 @@ Resources.prototype.getResources = function(conf) {
   operatorJSON.default_search =
     this.getDefaultSearchResource(conf.default_search);
   operatorJSON.keyboard_settings = this.getKeyboardResource(conf.keyboard);
-  operatorJSON.topsites = this.getTopsitesResource(conf.topsites);
   operatorJSON.data_ftu = conf.data_ftu;
 
   conf['mcc-mnc'].forEach(function(mcc) {
@@ -272,25 +271,6 @@ Resources.prototype.getKeyboardResource = function (keyboard) {
 
     var jsonName = 'keyboard-' + getHash(keyboard) + '.json';
     return this.createJSON(jsonName, content);
-  }
-};
-
-// Create topsites JSON.
-Resources.prototype.getTopsitesResource = function (topsitesPath) {
-  if (topsitesPath) {
-    var file = this.getFile(topsitesPath);
-    var topsites = utils.getJSON(file);
-
-    topsites.topSites.forEach(function(site) {
-      if (site.iconPath) {
-        var file = this.getFile(site.iconPath);
-        var icon = utils.getFileAsDataURI(file);
-        site.iconUri = icon;
-        delete site.iconPath;
-      }
-    }.bind(this));
-
-    return this.createJSON(file.leafName, topsites);
   }
 };
 
