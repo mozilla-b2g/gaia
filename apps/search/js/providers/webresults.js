@@ -14,6 +14,7 @@
 
     dedupes: true,
     dedupeStrategy: 'fuzzy',
+    remote: true,
 
     renderFullscreen: false,
 
