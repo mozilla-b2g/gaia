@@ -98,10 +98,6 @@
   background: url(images/remove.png) no-repeat;
 }
 
-.edit-mode .icon:not(.active) {
-  opacity: 0.8;
-}
-
 .icon .remove {
   display: none;
 }
