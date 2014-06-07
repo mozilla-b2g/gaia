@@ -14,7 +14,7 @@
   // 320 / 3.8 = 84px | 480 / 3.8 = 126px | 540 / 3.8 = 142px | ...
   const iconScaleFactorMinIconsPerRow = 3.8;
 
-  const distanceBetweenIconsWithMinIconsPerRow = 32;
+  const distanceBetweenIconsWithMinIconsPerRow = 40;
 
   const distanceBetweenIconsWithMaxIconsPerRow = 44;
 
