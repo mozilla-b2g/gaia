@@ -22,6 +22,7 @@
     <script defer src="shared/elements/gaia_grid/js/grid_zoom.js"></script>
     <script defer src="shared/elements/gaia_grid/script.js"></script>
 
+    <script defer src="shared/js/async_storage.js"></script>
     <script defer src="shared/js/url_helper.js"></script>
     <script defer src="shared/js/utilities.js"></script>
     <script defer src="shared/js/settings_listener.js"></script>
@@ -44,10 +45,28 @@
 
   </head>
   <body>
+
     <div id="search-results" class="hidden">
-      <section id="suggestions" class="suggestions" data-l10n-id="suggestions" aria-label="Suggestions"></section>
-      <section id="contacts" class="local" data-l10n-id="contacts" aria-label="Contacts"></section>
-      <section id="places" class="local" data-l10n-id="places" aria-label="Places"></section>
+
+      <div id="suggestions-wrapper">
+        <section id="suggestions"
+                 class="suggestions" data-l10n-id="suggestions"
+                 aria-label="Suggestions"></section>
+      </div>
+
+      <div id="suggestions-notice-wrapper" hidden>
+        <p data-l10n-id="suggestions-notice">
+          Search suggestions are shown as you type. Go to the Homescreen section
+          of Settings to change your search preferences.
+        </p>
+        <button id="suggestions-notice-confirm" data-l10n-id="ok">Ok</button>
+      </div>
+
+      <section id="contacts" class="local" data-l10n-id="contacts"
+               aria-label="Contacts"></section>
+      <section id="places" class="local" data-l10n-id="places"
+               aria-label="Places"></section>
+
       <section class="apps" data-l10n-id="apps" aria-label="Apps">
         <gaia-grid cols="4" id="icons"></gaia-grid>
       </section>

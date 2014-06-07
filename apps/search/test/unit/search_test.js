@@ -1,16 +1,17 @@
 'use strict';
 /* global MockNavigatormozApps, MockNavigatormozSetMessageHandler,
-          MockMozActivity, Search, MockProvider */
+          MockMozActivity, Search, MockProvider, MockasyncStorage */
 
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
 require('/shared/test/unit/mocks/mock_moz_activity.js');
 require('/shared/js/url_helper.js');
 require('/shared/js/dedupe.js');
+require('/shared/test/unit/mocks/mock_async_storage.js');
 requireApp('search/test/unit/mock_provider.js');
 
-
 suite('search/search', function() {
+  var realAsyncStorage;
   var realMozApps;
   var realMozActivity;
   var realSetMessageHandler;
@@ -25,6 +26,9 @@ suite('search/search', function() {
 
     realMozActivity = window.MozActivity;
     window.MozActivity = MockMozActivity;
+
+    realAsyncStorage = window.asyncStorage;
+    window.asyncStorage = MockasyncStorage;
     
     window.SettingsListener = {
       observe: function() {}
@@ -39,6 +43,7 @@ suite('search/search', function() {
     navigator.mozSetMessageHandler = realSetMessageHandler;
     navigator.mozApps = realMozApps;
     window.MozActivity = realMozActivity;
+    window.asyncStorage = realAsyncStorage;
     clock.restore();
     delete window.SettingsListener;
   });
@@ -56,7 +61,12 @@ suite('search/search', function() {
 
   suite('init', function() {
     test('will call provider init method', function() {
+
       var initCalled;
+      var fakeElement = document.createElement('div');
+      var confirmStub = this.sinon.stub(document, 'getElementById')
+        .returns(fakeElement);
+
       Search.providers = [{
         init: function() {
           initCalled = true;
@@ -72,6 +82,7 @@ suite('search/search', function() {
       MockNavigatormozApps.mLastConnectionCallback([]);
       assert.ok(initCalled);
       Search.providers = [];
+      confirmStub.restore();
     });
   });
 
