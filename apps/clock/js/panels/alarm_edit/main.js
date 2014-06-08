@@ -17,10 +17,6 @@ var AlarmEdit = function() {
   Panel.apply(this, arguments);
   this.element.innerHTML = html;
 
-  window.dispatchEvent(new CustomEvent('lazyload', {
-    detail: this.element
-  }));
-
   mozL10n.translate(this.element);
   var handleDomEvent = this.handleDomEvent.bind(this);
 
@@ -229,6 +225,10 @@ Utils.extend(AlarmEdit.prototype, {
     }
 
     location.hash = '#alarm-edit-panel';
+
+    window.dispatchEvent(new CustomEvent('lazyload', {
+      detail: this.element
+    }));
   },
 
   initTimeSelect: function aev_initTimeSelect() {
