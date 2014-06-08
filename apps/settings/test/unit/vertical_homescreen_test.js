@@ -1,9 +1,11 @@
 'use strict';
 
 /* global verticalPreferences, verticalHomescreen, requireElements,
-          suiteTemplate */
+          suiteTemplate, MockNavigatorSettings */
 
 require('/shared/js/homescreens/vertical_preferences.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+require('/shared/js/settings_listener.js');
 requireElements('settings/elements/homescreen.html');
 
 suite('vertical_homescreen.js >', function() {
@@ -12,6 +14,7 @@ suite('vertical_homescreen.js >', function() {
   var updateStub = null;
   var updateHandler = null;
   var pref = 'grid.cols';
+  var realMozSettings = null;
 
   suiteTemplate('homescreen', {
     id: 'homescreen'
@@ -22,11 +25,14 @@ suite('vertical_homescreen.js >', function() {
                                 function(type, handler) {
       updateHandler = handler;
     });
+    realMozSettings = navigator.mozSettings;
+    navigator.mozSettings = MockNavigatorSettings;
   });
 
   suiteTeardown(function() {
     document.body.innerHTML = '';
     updateStub.restore();
+    navigator.mozSettings = realMozSettings;
   });
 
   setup(function(done) {
@@ -57,7 +63,7 @@ suite('vertical_homescreen.js >', function() {
   });
 
   suite('Updating grid layout select > ', function() {
-    
+
     function dispatchChangeEvent() {
       verticalHomescreen.gridSelect.dispatchEvent(new CustomEvent('change'));
     }
@@ -70,7 +76,8 @@ suite('vertical_homescreen.js >', function() {
     test('Datastore was updated properly ', function(done) {
       var expectedNumCols = 3;
 
-      var putStub = sinon.stub(verticalPreferences, 'put', function(id, value) {
+      var putStub = sinon.stub(verticalPreferences, 'put',
+        function(id, value) {
         assertPreferenceUpdated(id, value, expectedNumCols);
         putStub.restore();
         done();
@@ -102,6 +109,92 @@ suite('vertical_homescreen.js >', function() {
       dispatchUpdatedEvent(expectedNumCols);
       assertNumberOfColumns(expectedNumCols);
     });
+  });
+
+  suite('Initialise search engines', function() {
+    var xhr;
+    var requests = [];
+
+    setup(function() {
+      navigator.mozSettings.mSetup();
+      navigator.mozSettings.mSyncRepliesOnly = true;
+       xhr = sinon.useFakeXMLHttpRequest();
+       xhr.onCreate = function (xhr) {
+         requests.push(xhr);
+       };
+    });
+
+    teardown(function() {
+      navigator.mozSettings.mTeardown();
+      xhr.restore();
+    });
+
+    test('getCurrentSearchEngine()', function() {
+      navigator.mozSettings.mSettings['search.urlTemplate'] = 'foo.com';
+      verticalHomescreen.getCurrentSearchEngine();
+      navigator.mozSettings.mReplyToRequests();
+      assert.equal(verticalHomescreen.searchUrlTemplate, 'foo.com');
+    });
+
+    test('initSearchEngineSelect()', function() {
+      var populateSearchEnginesStub = this.sinon.stub(verticalHomescreen,
+      'populateSearchEngines');
+      var generateSearchEngineOptionsStub = this.sinon.stub(
+        verticalHomescreen, 'generateSearchEngineOptions');
+      verticalHomescreen.initSearchEngineSelect();
+      navigator.mozSettings.mReplyToRequests();
+      assert.ok(populateSearchEnginesStub.calledOnce);
+
+      navigator.mozSettings.mSettings['search.providers'] = [{'foo': 'bar'}];
+      verticalHomescreen.initSearchEngineSelect();
+      navigator.mozSettings.mReplyToRequests();
+      assert.ok(generateSearchEngineOptionsStub.called);
+
+      populateSearchEnginesStub.restore();
+      generateSearchEngineOptionsStub.restore();
+    });
+
+    test('populateSearchEngines()', function() {
+      var callback = sinon.spy();
+      verticalHomescreen.populateSearchEngines(callback);
+      assert.equal(1, requests.length);
+
+      requests[0].respond(200, { 'Content-Type': 'application/json' },
+        '[{ "foo": "bar"}]');
+      assert.ok(callback.called);
+
+      assert.equal((navigator.mozSettings.mSettings['search.providers']).
+        toString(), ([{ 'foo': 'bar'}]).toString());
+    });
+
+    test('generateSearchEngineOptions()', function() {
+      var realSearchEngineSelect = verticalHomescreen.searchEngineSelect;
+      verticalHomescreen.searchEngineSelect = document.createElement('select');
+      var option = document.createElement('option');
+      option.value = 'dummy';
+      option.text = 'dummy';
+      verticalHomescreen.searchEngineSelect.add(option);
+
+      var data = [
+        {
+          'title': 'Foo Search',
+          'urlTemplate': 'http://foo.com/?q={searchTerms}'
+        },
+        {
+          'bar': 'Bar Search',
+          'urlTemplate': 'http://bar.com/?q={searchTerms}'
+        }
+      ];
+      verticalHomescreen.generateSearchEngineOptions(data);
+      assert.equal(verticalHomescreen.searchEngineSelect.length, 2);
+      assert.equal(verticalHomescreen.searchEngineSelect[0].value,
+        'http://foo.com/?q={searchTerms}');
+      assert.equal(verticalHomescreen.searchEngineSelect[0].text,
+        'Foo Search');
+
+      verticalHomescreen.searchEngineSelect = realSearchEngineSelect;
+    });
+
   });
 
 });
