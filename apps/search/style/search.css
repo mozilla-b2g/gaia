@@ -13,6 +13,8 @@ body, a {
 }
 
 section.suggestions {
+  margin-left: 0.7rem;
+  font-size: 16px;
   font-style: italic;
 }
 
