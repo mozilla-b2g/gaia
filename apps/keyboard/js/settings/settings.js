@@ -16,8 +16,7 @@
     var activity = new MozActivity({
       name: 'configure',
       data: {
-        target: 'device',
-        section: 'keyboard'
+        target: 'device'
       }
     });
   });
