@@ -171,6 +171,37 @@ var CarrierSettings = (function(window, document, undefined) {
         });
       });
     });
+
+    // We need to refresh call setting items as they can be changed in dialer.
+    document.addEventListener('visibilitychange', function() {
+      if (document.hidden) {
+        return;
+      }
+
+      if (Settings.currentPanel === '#carrier-dataSettings') {
+        cs_refreshItems('data');
+      } else if (Settings.currentPanel === '#carrier-mmsSettings') {
+        cs_refreshItems('mms');
+      } else if (Settings.currentPanel === '#carrier-suplSettings') {
+        cs_refreshItems('supl');
+      } else if (Settings.currentPanel === '#carrier-dunSettings') {
+        cs_refreshItems('dun');
+      } else if (Settings.currentPanel === '##carrier-imsSettings') {
+        cs_refreshItems('ims');
+      }
+    });
+  }
+
+  function cs_refreshItems(usage) {
+    _mobileConnections = window.navigator.mozMobileConnections;
+    _mobileConnection = _mobileConnections[
+      DsdsSettings.getIccCardIndexForCellAndDataSettings()
+    ];
+    if (!_mobileConnection) {
+      return;
+    }
+    var networkType = _mobileConnection.data.type;
+    cs_queryApns(cs_updateApnList, usage, networkType);
   }
 
   /**
