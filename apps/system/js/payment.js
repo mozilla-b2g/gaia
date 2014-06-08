@@ -144,4 +144,9 @@ var Payment = {
 };
 
 // Make sure L10n is ready before init
-navigator.mozL10n.once(Payment.init.bind(Payment));
+if (navigator.mozL10n.readyState == 'complete' ||
+    navigator.mozL10n.readyState == 'interactive') {
+  Payment.init();
+} else {
+  window.addEventListener('localized', Payment.init.bind(Payment));
+}

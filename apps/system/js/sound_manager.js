@@ -158,7 +158,8 @@
     }
   });
 
-  navigator.mozL10n.once(function() {
+  window.addEventListener('localized', function(e) {
+
     SettingsListener.observe('audio.volume.cemaxvol', 11, function(volume) {
       CEWarningVol = volume;
     });

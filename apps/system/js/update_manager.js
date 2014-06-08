@@ -612,4 +612,8 @@ var UpdateManager = {
   }
 };
 
-navigator.mozL10n.once(UpdateManager.init.bind(UpdateManager));
+window.addEventListener('localized', function startup(evt) {
+  window.removeEventListener('localized', startup);
+
+  UpdateManager.init();
+});

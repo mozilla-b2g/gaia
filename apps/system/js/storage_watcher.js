@@ -152,4 +152,7 @@ var DeviceStorageWatcher = {
   }
 };
 
-navigator.mozL10n.once(DeviceStorageWatcher.init.bind(DeviceStorageWatcher));
+window.addEventListener('localized', function startup(evt) {
+  window.removeEventListener('localized', startup);
+  DeviceStorageWatcher.init();
+});

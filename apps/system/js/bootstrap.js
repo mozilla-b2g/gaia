@@ -127,7 +127,7 @@ window.addEventListener('load', function startup() {
   window.wallpaperManager = new window.WallpaperManager();
   window.wallpaperManager.start();
 
-  navigator.mozL10n.once(function l10n_ready() {
+  navigator.mozL10n.ready(function l10n_ready() {
     window.mediaRecording = new MediaRecording().start();
   });
 
@@ -148,6 +148,13 @@ window.addEventListener('load', function startup() {
 });
 
 window.storage = new Storage();
+
+/* === Localization === */
+/* set the 'lang' and 'dir' attributes to <html> when the page is translated */
+window.addEventListener('localized', function onlocalized() {
+  document.documentElement.lang = navigator.mozL10n.language.code;
+  document.documentElement.dir = navigator.mozL10n.language.direction;
+});
 
 // Define the default background to use for all homescreens
 window.addEventListener('wallpaperchange', function(evt) {
