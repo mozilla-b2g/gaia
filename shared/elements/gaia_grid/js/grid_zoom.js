@@ -94,28 +94,28 @@
           this.zoomStartTouches = touches;
           this.zoomStartDistance = touchDistance;
 
-          if (layout.perRow < layout.maxIconsPerRow) {
+          if (layout.cols < layout.maxIconsPerRow) {
             this.arrows.classList.add('grow');
           } else {
             this.arrows.classList.add('shrink');
           }
 
-          this.indicator.dataset.cols = layout.perRow;
+          this.indicator.dataset.cols = layout.cols;
           this._attachGestureListeners();
           break;
 
         case 'touchmove':
-          if (layout.perRow < layout.maxIconsPerRow &&
+          if (layout.cols < layout.maxIconsPerRow &&
               touchDistance < this.zoomStartDistance &&
               Math.abs(touchDistance - this.zoomStartDistance) >
                 pinchThreshold) {
-              layout.percent = 0.75;
+              this.gridView.cols = layout.maxIconsPerRow;
               this.zoomInProgress = true;
-          } else if (layout.perRow > layout.minIconsPerRow &&
+          } else if (layout.cols > layout.minIconsPerRow &&
                      touchDistance > this.zoomStartDistance &&
                      Math.abs(touchDistance - this.zoomStartDistance) >
                        pinchThreshold) {
-            layout.percent = 1;
+            this.gridView.cols = layout.minIconsPerRow;
             this.zoomInProgress = true;
           } else {
             return;
@@ -129,11 +129,7 @@
             // Change the indicator color at the end.
             this.indicator.classList.add('active');
 
-            window.dispatchEvent(new CustomEvent('appzoom', {
-              'detail': {
-                cols: layout.perRow
-              }
-            }));
+            this.gridView.render();
 
             // Reset zoom element state after a set time.
             var zoomHideTime = 400;
@@ -142,7 +138,7 @@
 
           this.arrows.addEventListener('transitionend', ontransitionend);
 
-          this.indicator.dataset.cols = layout.perRow;
+          this.indicator.dataset.cols = layout.cols;
 
           this.arrows.classList.add('zooming');
           // Force a sync reflow

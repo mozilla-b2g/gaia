@@ -33,17 +33,15 @@
     } else {
       this.onReady();
     }
-
-    window.addEventListener('appzoom', this);
   }
 
   GridLayout.prototype = {
 
-    perRow: minIconsPerRow,
-
     minIconsPerRow: minIconsPerRow,
 
     maxIconsPerRow: maxIconsPerRow,
+
+    _cols: minIconsPerRow,
 
     _offsetY: 0,
 
@@ -59,21 +57,25 @@
       return this._percent;
     },
 
-    set percent(value) {
-      // Reset the y-offset because we will re-render everything anyway.
-      this._offsetY = 0;
-
-      this._percent = value;
-      this.perRow = maxIconsPerRow + minIconsPerRow - maxIconsPerRow * value;
+    get cols() {
+      return this._cols;
     },
 
     set cols(value) {
-      if (!value) {
+      if (!value || value === this._cols) {
         return;
       }
-      
-      this.percent = value == minIconsPerRow ? 1 : 0.75;
-      document.body.dataset.cols = this.perRow;
+
+      if (window.verticalPreferences) {
+        verticalPreferences.put('grid.cols', value);
+      }
+
+      // Reset the y-offset because we will re-render everything anyway.
+      this._offsetY = 0;
+
+      this._percent = value == minIconsPerRow ? 1 :
+        minIconsPerRow / maxIconsPerRow;
+      this._cols = value;
     },
 
     /**
@@ -81,7 +83,7 @@
      */
     get gridItemHeight() {
       return this.gridIconSize +
-            (this.perRow === minIconsPerRow ?
+            (this._cols === minIconsPerRow ?
                              distanceBetweenIconsWithMinIconsPerRow :
                              distanceBetweenIconsWithMaxIconsPerRow);
     },
@@ -91,7 +93,7 @@
      * This number changes based on current zoom level.
      */
     get gridItemWidth() {
-      return windowWidth / this.perRow;
+      return windowWidth / this._cols;
     },
 
     /**
@@ -112,7 +114,7 @@
      * characteristics.
      */
     get gridIconSize() {
-      var numCols = this.perRow;
+      var numCols = this._cols;
 
       var size = windowWidth / numCols;
       if (numCols === minIconsPerRow) {
@@ -120,7 +122,6 @@
       } else if (numCols === maxIconsPerRow) {
         size = windowWidth / iconScaleFactorMaxIconsPerRow;
       }
-
       return size;
     },
 
@@ -153,26 +154,12 @@
         case 'updated':
           var prop = e.target;
           if (prop.name === 'grid.cols') {
-            this.onColsUpdated(prop.value);
-          }
-
-          break;
-
-        case 'appzoom':
-          var cols = e.detail.cols;
-          if (window.verticalPreferences) {
-            verticalPreferences.put('grid.cols', cols);
-          } else {
-            this.onColsUpdated(cols);
+            this.cols = parseInt(prop.value, 10);
+            this.gridView.render();
           }
 
           break;
       }
-    },
-
-    onColsUpdated: function(cols) {
-      this.cols = cols;
-      this.gridView.render();
     },
 
     calculateSize: function() {
