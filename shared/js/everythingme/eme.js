@@ -20,7 +20,7 @@
         });
       } else {
         // when running unit tests, device is not required
-        eme.log('INIT WARNING: NO DEVICE');
+        eme.warn('INIT: NO DEVICE');
         return Promise.resolve();
       }
     },
@@ -31,6 +31,11 @@
         args.unshift('evme');
         console.log.apply(console, args);
       }
+    },
+    warn: function warn() {
+      var args = Array.prototype.slice.apply(arguments);
+      args.unshift('evme', 'WARNING');
+      console.warn.apply(console, args);
     }
 
   };
