@@ -1,3 +1,4 @@
+/* jshint -W098 */
 define(function(require) {
 'use strict';
 
@@ -12,6 +13,7 @@ var View = require('vendor/view');
 var orientation = require('lib/orientation');
 var addPanAndZoomHandlers = require('lib/panzoom');
 var MediaFrame = require('MediaFrame');
+var FontSizeUtils = require('FontSizeUtils');
 
 /**
  * Constants
@@ -42,6 +44,10 @@ return View.extend({
     this.els.mediaFrame = this.find('.js-media-frame');
     this.els.countText = this.find('.js-count-text');
     this.els.previewMenu = this.find('.js-preview-menu');
+
+    window.dispatchEvent(new CustomEvent('lazyload', {
+      detail: this.el
+    }));
 
     // Update localization strings
     navigator.mozL10n.translate(this.el);

@@ -59,6 +59,10 @@ define(function(require) {
 
       _showDialog: function sl_showDialog(mode) {
         SettingsService.navigate('screenLock-passcode', mode);
+
+        window.dispatchEvent(new CustomEvent('lazyload', {
+          detail: document.getElementById('screenLock-passcode')
+        }));
       },
 
       handleEvent: function sl_handleEvent(evt) {

@@ -186,6 +186,10 @@ define(function(require) {
               }
               break;
           }
+
+          window.dispatchEvent(new CustomEvent('lazyload', {
+            detail: this._panel
+          }));
         }
       },
 

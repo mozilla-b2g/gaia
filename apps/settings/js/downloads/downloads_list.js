@@ -359,6 +359,10 @@
     // Change edit mdoe status
     isEditMode = true;
     _updateButtonsStatus();
+
+    window.dispatchEvent(new CustomEvent('lazyload', {
+      detail: targetHeader
+    }));
   }
 
   function _closeEditMode() {
