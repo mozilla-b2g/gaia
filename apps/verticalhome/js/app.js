@@ -7,6 +7,8 @@
   const HIDDEN_ROLES = ['system', 'input', 'homescreen', 'search'];
 
   function App() {
+    screen.mozLockOrientation('portrait-primary');
+
     this.scrollable = document.querySelector('.scrollable');
     this.grid = document.getElementById('icons');
 
