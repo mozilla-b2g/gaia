@@ -55,7 +55,8 @@
                 id: app.id,
                 name: app.name,
                 url: app.appUrl,
-                icon: app.icon
+                icon: app.icon,
+                clipIcon: true
               })
             });
           }, this);
