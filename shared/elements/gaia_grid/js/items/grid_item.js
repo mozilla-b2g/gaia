@@ -198,16 +198,16 @@
             ['/shared/js/async_storage.js',
              '/shared/elements/gaia_grid/js/icon_retriever.js'], function() {
             var app = this.app;
-            this.showDownloading();
             // The download should finish when the icon is local
             if (app && app.downloading && this.icon.startsWith('app:')) {
+              this.showDownloading();
               app.ondownloadsuccess = app.ondownloaderror = function() {
                 app.ondownloadsuccess = app.ondownloaderror = null;
                 IconRetriever.get(this, this.hideDownloading.bind(this));
               }.bind(this);
               return;
             }
-            IconRetriever.get(this, this.hideDownloading.bind(this));
+            IconRetriever.get(this);
           }.bind(this));
         } else {
           this.displayIcon();

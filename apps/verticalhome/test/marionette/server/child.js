@@ -5,19 +5,13 @@
 App server for fixtures. Serves up packaged apps.
 */
 
-
-var debug = require('debug')('appserver:child');
 var http = require('http');
+var root = __dirname + '/../fixtures/';
 var fs = require('fs');
 var fsPath = require('path');
-var mime = require('mime');
+
 var archiver = require('archiver');
-
 var EventEmitter = require('events').EventEmitter;
-
-var ROOT = __dirname + '/../fixtures/';
-// following slash is required for correct zip manifest paths.
-var APP_ROOT = fsPath.join(ROOT, 'app/');
 
 function readdirRecursive(dir) {
   dir = fsPath.join(dir, '/');
@@ -38,6 +32,15 @@ function readdirRecursive(dir) {
   return results;
 }
 
+var controller = new EventEmitter();
+
+var model = {
+  /**
+  When corked the archive will not respond with a body.
+  */
+  corked: false
+};
+
 function writeJSON(res, object) {
   var json = JSON.stringify(object);
   res.writeHead(200, {
@@ -47,60 +50,22 @@ function writeJSON(res, object) {
   res.end(json);
 }
 
-function decorateHandlerForJSON(method) {
-  return function(req, res) {
-    // if it is not json just skip it
-    var type = req.headers['content-type'];
-    if (!type || type.indexOf('json') === -1) {
-      return method(req, res);
-    }
-
-    var buffer = '';
-    req.on('data', function(data) {
-      buffer += data;
-    });
-
-    req.once('end', function() {
-      req.body = JSON.parse(buffer);
-      method(req, res);
-    });
-  };
-}
-
-function defaultSettings() {
-  return { corked: false };
-}
-
-var controller = new EventEmitter();
-var requests = {};
 var routes = {
-  '/settings/cork': decorateHandlerForJSON(function(req, res) {
-    var url = req.body;
-    requests[url] = requests[url] || defaultSettings();
-    requests[url].corked = true;
+  '/settings/cork': function(req, res) {
+    model.corked = true;
+    controller.emit('corked');
+    writeJSON(res, true);
+  },
 
-    // issue a cork to the particular endpoint
-    var event = 'corked ' + url;
-    debug('cork event', event);
-    controller.emit('corked ' + url);
-    writeJSON(res, url);
-  }),
+  '/settings/uncork': function(req, res) {
+    model.corked = false;
+    controller.emit('uncorked');
+    writeJSON(res, true);
+  },
 
-  '/settings/uncork': decorateHandlerForJSON(function(req, res) {
-    var url = req.body;
-    requests[url] = requests[url] || defaultSettings();
-    requests[url].corked = false;
-
-
-    var event = 'uncorked ' + url;
-    debug('uncork event', event);
-    controller.emit(event);
-    writeJSON(res, url);
-  }),
-
-  '/package.manifest': function(req, res) {
+  '/webapp.manifest': function(req, res) {
     var port = req.socket.address().port;
-    var json = JSON.parse(fs.readFileSync(ROOT + '/app/manifest.webapp'));
+    var json = JSON.parse(fs.readFileSync(root + '/app/manifest.webapp'));
     json.package_path = 'http://localhost:' + port + '/app.zip';
 
     var body = JSON.stringify(json, null, 2);
@@ -112,20 +77,21 @@ var routes = {
   },
 
   '/app.zip': function(req, res) {
-    var url = req.url;
-    var state = requests[url];
     // always write the head we need it in all cases
     res.writeHead(200, {
       'Content-Type': 'application/zip'
     });
 
     function writeZip() {
+      // slash vs no slash differently...
+      var appRoot = fsPath.join(root, 'app/');
+
       // read the entire app directory
-      var files = readdirRecursive(APP_ROOT);
+      var files = readdirRecursive(appRoot);
       var zip = archiver.create('zip');
 
       files.forEach(function(file) {
-        var zipPath = file.replace(APP_ROOT, '');
+        var zipPath = file.replace(appRoot, '');
         zip.append(fs.createReadStream(file), { name: zipPath });
       });
       zip.finalize();
@@ -133,59 +99,23 @@ var routes = {
     }
 
     // if we are not corked just write the zip and we are done
-    if (!state.corked) {
+    if (!model.corked) {
       return writeZip();
-    } else {
-      controller.once('uncorked ' + url, writeZip);
-    }
-  },
-
-  /**
-  Catch all handler which serves up static assets.
-  */
-  '*': function(req, res) {
-    var url = req.url;
-    var state = requests[url];
-    var filePath = fsPath.join(APP_ROOT, url);
-
-    // XXX: This is not a production quality server don't use sync methods in
-    //      in servers in your user facing node code.
-    if (!fs.existsSync(filePath)) {
-      res.writeHead(404);
-      res.end();
-      return;
     }
 
-    var contentType = mime.lookup(filePath);
-    var contentLength = fs.statSync(filePath).size;
-
-    // write out the head
-    res.writeHead(200, {
-      'Content-Type': contentType,
-      'Content-Length': contentLength
+    // uncorked we need to hold of on sending the body until uncork is sent
+    controller.once('uncorked', function() {
+      writeZip();
     });
-
-    function writeContent() {
-      fs.createReadStream(filePath).pipe(res);
-    }
-
-    if (!state.corked) {
-      // if we are not corked just return the stream
-      return writeContent();
-    } else {
-      // otherwise wait for the uncork
-      controller.once('uncorked ' + url, writeContent);
-    }
   }
-
 };
 
 var server = http.createServer(function(req, res) {
-  // each and every request is given base settings
-  requests[req.url] = requests[req.url] || defaultSettings();
-
-  var handler = routes[req.url] || routes['*'];
-  return handler(req, res);
+  if (routes[req.url]) {
+    return routes[req.url](req, res);
+  }
+  res.writeHead(404);
+  res.end();
 });
 
 server.listen(0, function() {

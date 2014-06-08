@@ -5,18 +5,17 @@ var fork = require('child_process').fork;
 /**
 issue a POST request via marionette
 */
-function post(client, url, json) {
+function post(client, url) {
   // must run in chrome so we can do cross domain xhr
   client = client.scope({ context: 'chrome' });
   return client.executeAsyncScript(function(url, json) {
     var xhr = new XMLHttpRequest();
-    xhr.open('POST', url, true);
-    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.open('POST', url);
     xhr.onload = function() {
       marionetteScriptFinished(xhr.response);
     };
-    xhr.send(json);
-  }, [url, JSON.stringify(json)]);
+    xhr.send();
+  }, [url]);
 }
 
 function AppServer(marionette, port, proc) {
@@ -26,12 +25,12 @@ function AppServer(marionette, port, proc) {
 }
 
 AppServer.prototype = {
-  cork: function(url) {
-    post(this.marionette, this.url + '/settings/cork', url);
+  cork: function() {
+    post(this.marionette, this.url + '/settings/cork');
   },
 
-  uncork: function(url) {
-    return post(this.marionette, this.url + '/settings/uncork', url);
+  uncork: function() {
+    return post(this.marionette, this.url + '/settings/uncork');
   },
 
   close: function(callback) {
@@ -39,19 +38,8 @@ AppServer.prototype = {
     this.process.once('exit', callback.bind(this, null));
   },
 
-  /**
-  URI where the application zip lives this defined in child.js
-  */
-  get applicationZipUri() {
-    return '/app.zip';
-  },
-
   get manifestURL() {
-    return this.url + '/manifest.webapp';
-  },
-
-  get packageManifestURL() {
-    return this.url + '/package.manifest';
+    return this.url + '/webapp.manifest';
   }
 };
 

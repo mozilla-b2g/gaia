@@ -47,8 +47,5 @@
     "test-agent": "0.22.12",
     "travis-project-jobs": "0.0.1",
     "watch": "~0.9.0"
-  },
-  "dependencies": {
-    "mime": "^1.2.11"
   }
 }
