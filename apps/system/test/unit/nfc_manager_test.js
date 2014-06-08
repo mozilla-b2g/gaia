@@ -573,15 +573,6 @@ suite('Nfc Manager Functions', function() {
       assert.equal(activityOptions.data.url, 'http://mozilla.com');
     });
 
-    test('TNF well known rtd smart poster', function() {
-      // smart poster handling is application specific, don't need payload
-      var dummyNdefMsg = [new MozNDEFRecord(NDEF.TNF_WELL_KNOWN,
-                                            NDEF.RTD_SMART_POSTER,
-                                            new Uint8Array(),
-                                            new Uint8Array())];
-      execCommonTest(dummyNdefMsg, 'smartposter');
-    });
-
     test('TNF mime media-type text/plain', function() {
       var type = new Uint8Array([0x74, 0x65, 0x78, 0x74,
                                  0x2F, 0x70, 0x6C, 0x61,
@@ -642,6 +633,195 @@ suite('Nfc Manager Functions', function() {
       assert.equal(activityUnchngd.name, 'nfc-ndef-discovered');
       assert.isUndefined(activityUnchngd.data.type);
       assert.isUndefined(activityUnchngd.data.records);
+    });
+
+    suite('Smart posters', function() {
+      /**
+       * Constructs a NDEF message with one record. This record
+       * is a smart poster, so it contains multiple subrecords
+       * in the payload, encoded as bytes.
+       *
+       * Accepts 3*N arguments, where:
+       *  3*(N + 0) argument - TNF of the record
+       *  3*(N + 1) argument - type given as string
+       *  3*(N + 2) argument - payload, given as Uint8Array
+       */
+      var makePoster = function() {
+        var records = [];
+        for (var arg = 0; arg < arguments.length; arg += 3) {
+          records.push({
+            tnf: arguments[arg],
+            type: NfcUtils.fromUTF8(arguments[arg + 1]),
+            payload: arguments[arg + 2],
+            id: new Uint8Array()
+          });
+        }
+
+        var payload = NfcUtils.encodeNDEF(records);
+        return [new MozNDEFRecord(NDEF.TNF_WELL_KNOWN,
+                                  NDEF.RTD_SMART_POSTER,
+                                  new Uint8Array(),
+                                  new Uint8Array(payload))];
+      };
+
+      var recordURI,
+          recordTextEnglish,
+          recordTextPolish,
+          recordAction,
+          recordIcon;
+
+      setup(function() {
+        // URI "http://www.youtube.com" with abbreviation
+        // for "http://www."
+        recordURI = [
+          0x01,  // Payload: abbreviation
+          0x79, 0x6F, 0x75, 0x74, // 'yout'
+          0x75, 0x62, 0x65, 0x2E, // 'ube.'
+          0x63, 0x6F, 0x6D        // 'com'
+        ];
+
+        // Text record with contents: "Best page ever!  q#@"
+        // and language code: "en"
+        recordTextEnglish = [
+          0x02,  // Status byte: UTF-8, two byte lang code
+          0x65, 0x6E, // ISO language code: 'en'
+          0x42, 0x65, 0x73, 0x74, // 'Best'
+          0x20, 0x70, 0x61, 0x67, // ' pag'
+          0x65, 0x20, 0x65, 0x76, // 'e ev'
+          0x65, 0x72, 0x21, 0x20, // 'er! '
+          0x20, 0x71, 0x23, 0x40  // ' q#@'
+        ];
+
+        // Text record with contents: "ąćńó"
+        // and language code: "pl"
+        recordTextPolish = [
+         0x02,  // Status byte: UTF-8, two byte lang code
+         0x70, 0x6C, // ISO language code: 'pl'
+         0xC4, 0x85, 0xC4, 0x87, // 'ąć'
+         0xC5, 0x84, 0xC3, 0xB3  // 'ńó'
+        ];
+
+        // Action record with action = 0
+        recordAction = [0x00];
+
+        // Icon record with simple 4x4 PNG image.
+        recordIcon = [
+          0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+          0x00, 0x00, 0x00, 0x0d, 0x49, 0x48, 0x44, 0x52,
+          0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x04,
+          0x08, 0x02, 0x00, 0x00, 0x00, 0x26, 0x93, 0x09,
+          0x29, 0x00, 0x00, 0x00, 0x1b, 0x49, 0x44, 0x41,
+          0x54, 0x08, 0xd7, 0x63, 0xf8, 0xff, 0xff, 0x3f,
+          0x03, 0x0c, 0x30, 0xc2, 0x39, 0x8c, 0x8c, 0x8c,
+          0x4c, 0x10, 0x0a, 0x2a, 0x85, 0xac, 0x0c, 0x00,
+          0x26, 0x0b, 0x09, 0x01, 0xc3, 0xd1, 0x9a, 0x7b,
+          0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4e, 0x44,
+          0xae, 0x42, 0x60, 0x82
+        ];
+      });
+
+      test('Decodes simple poster', function() {
+        var poster = makePoster(NDEF.TNF_WELL_KNOWN, 'U', recordURI);
+        var activityOptions = execCommonTest(poster, 'url');
+        assert.equal(activityOptions.data.url, 'http://www.youtube.com');
+      });
+
+      test('Decodes extra records', function() {
+        var poster = makePoster(NDEF.TNF_WELL_KNOWN, 'U', recordURI,
+                                NDEF.TNF_WELL_KNOWN, 'T', recordTextEnglish,
+                                NDEF.TNF_WELL_KNOWN, 'T', recordTextPolish,
+                                NDEF.TNF_WELL_KNOWN, 'act', recordAction,
+                                NDEF.TNF_MIME_MEDIA, 'image/png', recordIcon);
+
+        var activityOptions = execCommonTest(poster, 'url');
+        assert.equal(activityOptions.data.url, 'http://www.youtube.com');
+        assert.equal(activityOptions.data.text.en, 'Best page ever!  q#@');
+        assert.equal(activityOptions.data.text.pl, 'ąćńó');
+        assert.equal(activityOptions.data.icons.length, 1);
+        assert.equal(activityOptions.data.icons[0].type, 'image/png');
+        assert.isTrue(NfcUtils.equalArrays(activityOptions.data.icons[0].bytes,
+                                           recordIcon));
+      });
+
+      test('Does not handle poster with multiple URIs', function() {
+        var poster = makePoster(NDEF.TNF_WELL_KNOWN, 'U', recordURI,
+                                NDEF.TNF_WELL_KNOWN, 'U', recordURI);
+
+        var activityOptions = NfcManager.handleNdefMessage(poster);
+        assert.deepEqual(activityOptions.data, {});
+      });
+
+      test('Does not handle poster with no URI', function() {
+        var poster = makePoster(NDEF.TNF_WELL_KNOWN, 'T', recordTextEnglish,
+                                NDEF.TNF_WELL_KNOWN, 'act', recordAction);
+
+        var activityOptions = NfcManager.handleNdefMessage(poster);
+        assert.deepEqual(activityOptions.data, {});
+      });
+
+      test('Does not handle poster with multiple title ' +
+        'records in the same language', function() {
+
+        var poster = makePoster(NDEF.TNF_WELL_KNOWN, 'U', recordURI,
+                                NDEF.TNF_WELL_KNOWN, 'T', recordTextEnglish,
+                                NDEF.TNF_WELL_KNOWN, 'T', recordTextEnglish);
+
+        var activityOptions = NfcManager.handleNdefMessage(poster);
+        assert.deepEqual(activityOptions.data, {});
+      });
+
+      test('Handles poster with not supported recrods',
+        function() {
+
+        var poster = makePoster(NDEF.TNF_WELL_KNOWN, 'U', recordURI,
+                                NDEF.TNF_WELL_KNOWN, 'T', recordTextEnglish,
+                                NDEF.TNF_WELL_KNOWN, 'X', [0xAB, 0xCD, 0xEF]);
+
+        var activityOptions = execCommonTest(poster, 'url');
+        assert.equal(activityOptions.data.url, 'http://www.youtube.com');
+        assert.equal(activityOptions.data.text.en, 'Best page ever!  q#@');
+
+        // Unsupported 'X' record is last, so look at last 7 bytes
+        // from payload: 1 byte - header (TNF+flags),
+        //               1 byte - type length,
+        //               1 byte - payload length
+        //               1 byte - name
+        //               3 bytes - payload
+        var records = Array.apply([], activityOptions.data.records[0].payload);
+        var recordX = records.slice(records.length - 7);
+        assert.deepEqual(recordX, [0x51, 0x01, 0x03, 0x58, 0xAB, 0xCD, 0xEF]);
+      });
+
+      test('When smart poster is first of multiple toplevel records, ' +
+        'it takes precedence', function() {
+
+        var poster = makePoster(NDEF.TNF_WELL_KNOWN, 'U', recordURI);
+        poster.push(new MozNDEFRecord(NDEF.TNF_WELL_KNOWN,
+                                      NDEF.RTD_URI,
+                                      new Uint8Array(),
+                                      [0x01, 0x77, 0x69, 0x6B, 0x69, // 'wiki'
+                                       0x70, 0x65, 0x64, 0x69, 0x61, // 'pedia'
+                                       0x2E, 0x6F, 0x72, 0x67]));    // '.com'
+
+        var activityOptions = execCommonTest(poster, 'url');
+        assert.equal(activityOptions.data.url, 'http://www.youtube.com');
+      });
+
+      test('When smart poster is one of multiple toplevel records, ' +
+        'it takes precedence over other URI records', function() {
+
+        var poster = makePoster(NDEF.TNF_WELL_KNOWN, 'U', recordURI);
+        poster.unshift(new MozNDEFRecord(NDEF.TNF_WELL_KNOWN,
+                                      NDEF.RTD_URI,
+                                      new Uint8Array(),
+                                      new Uint8Array(
+                                      [0x01, 0x77, 0x69, 0x6B, 0x69, // 'wiki'
+                                       0x70, 0x65, 0x64, 0x69, 0x61, // 'pedia'
+                                       0x2E, 0x6F, 0x72, 0x67])));   // '.com'
+
+        var activityOptions = execCommonTest(poster, 'url');
+        assert.equal(activityOptions.data.url, 'http://www.youtube.com');
+      });
     });
   });
 
