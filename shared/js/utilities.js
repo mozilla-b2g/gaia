@@ -111,10 +111,21 @@ var HtmlHelper = {
     if (escapeQuotes)
       return span.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#x27;'); //"
     return span.innerHTML;
+  },
+
+  // Import elements into context. The first argument
+  // is the context to import into, each subsequent
+  // argument is the id of an element to import.
+  // Elements can be accessed using the camelCased id
+  importElements: function importElements(context) {
+    var ids = [].slice.call(arguments, 1);
+    ids.forEach(function(id) {
+      context[StringHelper.camelCase(id)] = document.getElementById(id);
+    });
   }
+
 };
 
-// Taken (and modified) from /apps/system/js/nfc_manager.js
 var StringHelper = {
   fromUTF8: function ut_fromUTF8(str) {
     var buf = new Uint8Array(str.length);
@@ -122,6 +133,12 @@ var StringHelper = {
       buf[i] = str.charCodeAt(i);
     }
     return buf;
-  }
+  },
 
+  camelCase: function ut_camelCase(str) {
+    var rdashes = /-(.)/g;
+    return str.replace(rdashes, function replacer(str, p1) {
+      return p1.toUpperCase();
+    });
+  }
 };
