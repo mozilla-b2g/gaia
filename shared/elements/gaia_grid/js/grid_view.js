@@ -29,6 +29,11 @@
 
     this.layout = new GridLayout(this);
 
+    // Set columns if we have a 'cols' attribute
+    if (config.element.hasAttribute('cols')) {
+      this.layout.cols = parseInt(config.element.getAttribute('cols'), 10);
+    }
+
     // Enable event listeners when instantiated.
     this.start();
   }
@@ -51,6 +56,13 @@
      */
     get element() {
       return this.config.element;
+    },
+
+    /**
+     * Sets the number of columns.
+     */
+    set cols(value) {
+      this.layout.cols = value;
     },
 
     /**
@@ -244,10 +256,10 @@
         // If the item would go over the boundary before rendering,
         // step the y-axis.
         if (x > 0 && item.gridWidth > 1 &&
-            x + item.gridWidth >= this.layout.perRow) {
+            x + item.gridWidth >= this.layout.cols) {
 
           // Insert placeholders to fill remaining space
-          var remaining = this.layout.perRow - x;
+          var remaining = this.layout.cols - x;
           this.createPlaceholders([x, y], idx, remaining);
 
           // Increment the current index due to divider insertion
@@ -268,10 +280,12 @@
         // Increment the x-step by the sizing of the item.
         // If we go over the current boundary, reset it, and step the y-axis.
         x += item.gridWidth;
-        if (x >= this.layout.perRow) {
+        if (x >= this.layout.cols) {
           step(item);
         }
       }
+
+      this.element.setAttribute('cols', this.layout.cols);
     }
   };
 
