@@ -1,15 +1,16 @@
+/* global Search, SearchDedupe, UrlHelper, SettingsListener, asyncStorage,
+          MozActivity */
+/*jshint nonew: false */
+
 (function() {
 
   'use strict';
-  /* global Search */
-  /* global SearchDedupe */
-  /* global UrlHelper */
-  /* global SettingsListener */
 
   // timeout before notifying providers
   var SEARCH_DELAY = 600;
 
   window.Search = {
+
     _port: null,
 
     providers: {},
@@ -24,6 +25,16 @@
 
     searchResults: document.getElementById('search-results'),
     newTabPage: document.getElementById('newtab-page'),
+
+    suggestionsEnabled: false,
+
+    /**
+     * Used to display a notice on how to configure the search provider
+     * on first use
+     */
+    suggestionNotice: document.getElementById('suggestions-notice-wrapper'),
+    toShowNotice: false,
+    changeCount: 0,
 
     init: function() {
 
@@ -63,12 +74,25 @@
       }
 
       // Listen for changes in default search engine
-      SettingsListener.observe('search.urlTemplate', false,
-        function(value) {
+      SettingsListener.observe('search.urlTemplate', false, function(value) {
         if (value) {
           this.urlTemplate = value;
         }
       }.bind(this));
+
+      var enabledKey = 'search.suggestions.enabled';
+      SettingsListener.observe(enabledKey, true, function(enabled) {
+        this.suggestionsEnabled = enabled;
+      }.bind(this));
+
+      this.initConfigureLink();
+      this.initNotice();
+
+      // Fire off a dummy geolocation request so the prompt can be responded
+      // to before the user starts typing
+      if ('geolocation' in navigator) {
+        navigator.geolocation.getCurrentPosition();
+      }
     },
 
     /**
@@ -108,6 +132,7 @@
       var input = msg.data.input;
       var providers = this.providers;
 
+      this.maybeShowNotice();
       this.clear();
 
       this.changeTimeout = setTimeout(function doSearch() {
@@ -115,9 +140,54 @@
 
         for (var i in providers) {
           var provider = providers[i];
-          provider.search(input, this.collect.bind(this, provider));
+          // If suggestions are disabled, only use local providers
+          if (this.suggestionsEnabled || !provider.remote) {
+            provider.search(input, this.collect.bind(this, provider));
+          }
         }
       }.bind(this), SEARCH_DELAY);
+    },
+
+    /**
+     * Show a notice to the user informaing them of how to configure
+     * search providers, should only be shown once.
+     */
+    initNotice: function() {
+
+      var noticeKey = 'notice-shown';
+      var confirm = document.getElementById('suggestions-notice-confirm');
+
+      confirm.addEventListener('click', function() {
+        this.suggestionNotice.hidden = true;
+        this.toShowNotice = false;
+        asyncStorage.setItem(noticeKey, true);
+      }.bind(this));
+
+      asyncStorage.getItem(noticeKey, function(value) {
+        this.toShowNotice = !value;
+      }.bind(this));
+    },
+
+    maybeShowNotice: function() {
+      if (this.toShowNotice && ++this.changeCount > 2) {
+        this.suggestionNotice.hidden = false;
+      }
+    },
+
+    /**
+     * Open a settings activity so use can configure search providers
+     */
+    initConfigureLink: function() {
+      var confirm = document.getElementById('configure-provider');
+      confirm.addEventListener('click', function() {
+        new MozActivity({
+          name: 'configure',
+          data: {
+            target: 'device',
+            section: 'homescreen'
+          }
+        });
+      });
     },
 
     /**

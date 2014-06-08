@@ -10,7 +10,6 @@
     <script defer src="shared/js/lazy_loader.js"></script>
 
     <!-- Lazy load for Remote icons -->
-    <!-- <script src="shared/js/async_storage.js"></script> -->
     <!-- <script src="js/icon_retrivier.js"></script> -->
 
     <!--- gaia_grid required scripts -->
@@ -26,6 +25,7 @@
     <script defer src="shared/elements/gaia_grid/js/grid_zoom.js"></script>
     <script defer src="shared/elements/gaia_grid/script.js"></script>
 
+    <script defer src="shared/js/async_storage.js"></script>
     <script defer src="shared/js/url_helper.js"></script>
     <script defer src="shared/js/utilities.js"></script>
     <script defer src="shared/js/settings_listener.js"></script>
@@ -49,10 +49,29 @@
 
   </head>
   <body>
+
     <div id="search-results" class="hidden">
-      <section id="suggestions" class="suggestions" data-l10n-id="suggestions" aria-label="Suggestions"></section>
-      <section id="contacts" class="local" data-l10n-id="contacts" aria-label="Contacts"></section>
-      <section id="places" class="local" data-l10n-id="places" aria-label="Places"></section>
+
+      <div id="suggestions-wrapper">
+        <a id="configure-provider"></a>
+        <section id="suggestions"
+                 class="suggestions" data-l10n-id="suggestions"
+                 aria-label="Suggestions">stuff</section>
+      </div>
+
+      <div id="suggestions-notice-wrapper" hidden>
+        <p data-l10n-id="suggestions-notice">
+          Search suggestions are shown as you type. Tap the icon any time to change
+          your search preference.
+        </p>
+        <button id="suggestions-notice-confirm" data-l10n-id="ok">Ok</button>
+      </div>
+
+      <section id="contacts" class="local" data-l10n-id="contacts"
+               aria-label="Contacts"></section>
+      <section id="places" class="local" data-l10n-id="places"
+               aria-label="Places"></section>
+
       <section class="apps" data-l10n-id="apps" aria-label="Apps">
         <gaia-grid id="icons"></gaia-grid>
       </section>
