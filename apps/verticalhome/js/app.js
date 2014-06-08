@@ -12,6 +12,9 @@
 
     window.addEventListener('hashchange', this);
     window.addEventListener('gaiagrid-saveitems', this);
+
+    var editModeDone = document.getElementById('exit-edit-mode');
+    editModeDone.addEventListener('click', this.exitEditMode);
   }
 
   App.prototype = {
@@ -57,6 +60,15 @@
         var element = item.element.querySelector('.title');
         element.textContent = item.name;
       });
+    },
+
+    /**
+     * Called when we press 'Done' to exit edit mode.
+     * Fires a custom event to use the same path as pressing the home button.
+     */
+    exitEditMode: function(e) {
+      e.preventDefault();
+      window.dispatchEvent(new CustomEvent('hashchange'));
     },
 
     /**

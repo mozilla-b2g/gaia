@@ -247,6 +247,7 @@
       this.inEditMode = true;
       this.container.classList.add('edit-mode');
       document.body.classList.add('edit-mode');
+      window.dispatchEvent(new CustomEvent('gaiagrid-editmode-start'));
       document.addEventListener('visibilitychange', this);
     },
 
@@ -254,6 +255,7 @@
       this.inEditMode = false;
       this.container.classList.remove('edit-mode');
       document.body.classList.remove('edit-mode');
+      window.dispatchEvent(new CustomEvent('gaiagrid-editmode-end'));
       document.removeEventListener('visibilitychange', this);
       this.removeDragHandlers();
     },
