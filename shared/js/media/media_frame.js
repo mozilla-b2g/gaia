@@ -358,7 +358,6 @@ MediaFrame.prototype.displayVideo = function displayVideo(videoblob, posterblob,
   this.video.show();
 };
 
-
 // Get rid of the image if we have one
 MediaFrame.prototype._clearImage = function _clearImage() {
   if (this.image) {

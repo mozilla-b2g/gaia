@@ -222,6 +222,10 @@ suite('controllers/activity', function() {
       };
 
       this.settings.activity.get
+        .withArgs('maxPickPixelSize')
+        .returns(480000);
+
+      this.settings.activity.get
         .withArgs('maxPixelSizeScaleFactor')
         .returns(2.5);
     });
@@ -237,13 +241,13 @@ suite('controllers/activity', function() {
       assert.equal(result, 25000);
     });
 
-    test('Should return `null` if neither supplied', function() {
+    test('Should return `maxPickPixelSize` if neither supplied', function() {
       delete this.activity.source.data.maxFileSizeBytes;
       delete this.activity.source.data.width;
       delete this.activity.source.data.height;
 
       var result = this.controller.getMaxPixelSize(this.activity);
-      assert.equal(result, undefined);
+      assert.equal(result, this.settings.activity.get('maxPickPixelSize'));
     });
 
     test('Should be able to cope with only one dimension being specified', function() {
