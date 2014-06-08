@@ -1,5 +1,4 @@
 'use strict';
-/* global app */
 /* global LazyLoader */
 /* global MozActivity */
 /* global wallpaper */
@@ -62,14 +61,7 @@
             }
           });
 
-          app.homescreenFocused = false;
-
-          activity.onsuccess = function onsuccess() {
-            app.homescreenFocused = true;
-          };
-
           activity.onerror = function onerror(e) {
-            app.homescreenFocused = true;
             if (this.error.name !== 'ActivityCanceled') {
               alert(this.error.name);
             }

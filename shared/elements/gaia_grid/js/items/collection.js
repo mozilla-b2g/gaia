@@ -76,19 +76,10 @@
      * Launches the application for this icon.
      */
     launch: function() {
-      var activity = new MozActivity({
+      new MozActivity({
         name: 'view-collection',
         data: this.detail
       });
-
-      window.dispatchEvent(new CustomEvent('gaiagrid-collection-open'));
-
-      activity.onsuccess = onClose;
-      activity.onerror = onClose;
-
-      function onClose() {
-        window.dispatchEvent(new CustomEvent('gaiagrid-collection-close'));
-      }
     },
 
 

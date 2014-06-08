@@ -31,7 +31,6 @@ suite('app.js > ', function() {
     loadBodyHTML('/index.html');
     require('/js/app.js', function() {
       initialize();
-      assert.ok(app.homescreenFocused);
       done();
     });
   });
