@@ -81,10 +81,6 @@
     this.deviceId = null;
     this.deviceType = null;
     this.carrierName = null;
-    this.screen = {
-      width: window.screen.width * window.devicePixelRatio,
-      height: window.screen.height * window.devicePixelRatio
-    };
 
     // observe info that may change
     mozSettings.addObserver('language.current', function setLocale(e) {
