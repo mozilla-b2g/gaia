@@ -148,6 +148,10 @@
   padding: 3rem 0 2rem 1.2rem;
 }
 
+#permission-device-selector.hidden {
+  display: none;
+}
+
 #permission-devices {
   margin: 0;
   padding: 0;
