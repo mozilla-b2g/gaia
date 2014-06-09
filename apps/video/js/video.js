@@ -922,7 +922,7 @@ function setNFCSharing(enable) {
     window.navigator.mozNfc.onpeerready = function(event) {
       // The callback function is called when user confirm to share the
       // content, send it with NFC Peer.
-      videodb.getFile(video.name, function(file) {
+      videodb.getFile(currentVideo.name, function(file) {
         navigator.mozNfc.getNFCPeer(event.detail).sendFile(file);
       });
     };
