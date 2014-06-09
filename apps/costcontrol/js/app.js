@@ -186,18 +186,22 @@ var CostControlApp = (function() {
 
   function loadMessageHandler() {
     var messageHandlerFrame = document.getElementById('message-handler');
-    if (messageHandlerFrame.src.contains('message_handler.html')) {
-      if (ConfigManager.option('nextReset')) {
-        setNextReset(ConfigManager.option('nextReset'));
-      }
-    // message_handler has not been loaded
-    } else if (ConfigManager.option('nextReset')) {
-      window.addEventListener('messagehandlerready', function _setNextReset() {
+    var thereIsNextReset = ConfigManager.option('nextReset');
+    var alreadyLoaded = messageHandlerFrame.src
+      .contains('message_handler.html');
+
+    if (alreadyLoaded && thereIsNextReset) {
+      setNextReset(ConfigManager.option('nextReset'));
+      return;
+    }
+
+    if (thereIsNextReset) {
+      window.addEventListener('messagehandlerready',  function _setNextReset() {
         window.removeEventListener('messagehandlerready', _setNextReset);
         setNextReset(ConfigManager.option('nextReset'));
       });
-      messageHandlerFrame.src = 'message_handler.html';
     }
+    messageHandlerFrame.src = 'message_handler.html';
   }
 
   function _onDataSimChange() {
