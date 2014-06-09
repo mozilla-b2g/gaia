@@ -74,6 +74,11 @@
   z-index: 65538;
 }
 
+/* permission dialog should over keyboards when rocketbar is focused */
+#screen.rocketbar-focused > [data-z-index-level="permission-screen"] {
+  z-index: 4095;
+}
+
 #screen > [data-z-index-level="keyboards"] {
 
   /* It should lower than UtilityTray's, to let the tray overlay it
