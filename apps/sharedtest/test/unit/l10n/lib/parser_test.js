@@ -44,6 +44,22 @@ describe('L10n Parser', function() {
     assert.equal(ast.id.attr1, 'foo');
   });
 
+  it('attribute errors', function() {
+    var strings = [
+      'key.foo.bar = foo',
+    ];
+
+    for (var i in strings) {
+      if (strings.hasOwnProperty(i)) {
+
+        /* jshint -W083 */
+        assert.throws(function() {
+          parse(strings[i]);
+        }, /Nested attributes are not supported./);
+      }
+    }
+  });
+
   it('plural macro', function() {
     var ast = parse('id = {[ plural(m) ]} \nid[one] = foo');
     assert.ok(ast.id._ instanceof Object);
