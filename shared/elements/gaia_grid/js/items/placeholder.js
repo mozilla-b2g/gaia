@@ -1,5 +1,5 @@
 'use strict';
-/* global GridItem */
+/* global GaiaGrid */
 
 (function(exports) {
 
@@ -16,7 +16,7 @@
 
   Placeholder.prototype = {
 
-    __proto__: GridItem.prototype,
+    __proto__: GaiaGrid.GridItem.prototype,
 
     /**
      * Returns the height in pixels of each icon.
@@ -71,6 +71,6 @@
     }
   };
 
-  exports.Placeholder = Placeholder;
+  exports.GaiaGrid.Placeholder = Placeholder;
 
 }(window));
