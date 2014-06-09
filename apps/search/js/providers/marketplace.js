@@ -21,7 +21,6 @@
 
     dedupes: true,
     dedupeStrategy: 'exact',
-    remote: true,
 
     search: function(input, collect) {
       this.abort();

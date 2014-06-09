@@ -22,8 +22,6 @@
 
     name: 'Suggestions',
 
-    remote: true,
-
     init: function(config) {
       Provider.prototype.init.apply(this, arguments);
       eme.init();
