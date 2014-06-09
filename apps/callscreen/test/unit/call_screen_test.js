@@ -533,12 +533,21 @@ suite('call screen', function() {
     });
   });
 
-  suite('Emeregency Wallpaper setter', function() {
-    test('should add emergency-active class', function() {
-      var classList = CallScreen.mainContainer.classList;
+  suite('Emergency Wallpaper setter', function() {
+    test('should change background of the main container', function(done) {
+      var realMozSettings = navigator.mozSettings;
+      var fakeBlob = new Blob([], {type: 'image/png'});
+      var fakeURL = URL.createObjectURL(fakeBlob);
+      navigator.mozSettings = MockNavigatorSettings;
+      MockNavigatorSettings.mSettings['wallpaper.image'] = fakeBlob;
+      this.sinon.stub(URL, 'createObjectURL').returns(fakeURL);
 
       CallScreen.setEmergencyWallpaper();
-      assert.isTrue(classList.contains('emergency-active'));
+      setTimeout(function() {
+        assert.equal(CallScreen.mainContainer.style.backgroundImage,
+          'url("' + fakeURL + '")');
+        done();
+      });
     });
   });
 

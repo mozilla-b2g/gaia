@@ -135,9 +135,12 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
 
   var isEmergencyNumber = this.call.emergency;
   if (isEmergencyNumber) {
+    this.node.classList.add('emergency');
     LazyL10n.get(function localized(_) {
-      node.textContent = _('emergencyNumber');
-      self._cachedInfo = _('emergencyNumber');
+      self.replacePhoneNumber(number, 'end');
+      self._cachedInfo = number;
+      self.replaceAdditionalContactInfo(_('emergencyNumber'));
+      self._cachedAdditionalInfo = _('emergencyNumber');
     });
 
     // Set Emergency Wallpaper
