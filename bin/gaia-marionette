@@ -81,8 +81,9 @@ if [ -n "$PART" ] ; then
 
   # the quotes are important here, otherwise bash replace newlines characters by
   # spaces
-  echo "$TEST_FILES" > $TEMP_FILE
+  echo "$TEST_FILES" | sort > $TEMP_FILE
   TEST_FILES=$(split -n l/$PART/$NBPARTS $TEMP_FILE)
+  echo -e "------- Will run the following test files:\n$TEST_FILES\n-------"
   rm -f $TEMP_FILE
 fi
 
