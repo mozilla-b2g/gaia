@@ -86,14 +86,21 @@ suite('KeyboardManager', function() {
   mocksHelperForKeyboardManager.attachTestHelpers();
 
   var realMozSettings = null;
+  var realKeyboard = null;
 
   suiteSetup(function() {
     document.body.innerHTML += '<div id="run-container"></div>';
     navigator.mozSettings = MockNavigatorSettings;
+
+    realKeyboard = window.navigator.mozInputMethod;
+    window.navigator.mozInputMethod = {
+      removeFocus: function() {}
+    };
   });
 
   suiteTeardown(function() {
     navigator.mozSettings = realMozSettings;
+    window.navigator.mozInputMethod = realKeyboard;
   });
 
   setup(function() {
@@ -487,6 +494,22 @@ suite('KeyboardManager', function() {
     test('applicationsetupdialogshow event', function() {
       trigger('applicationsetupdialogshow');
       assert.ok(hideKeyboardImmediately.called);
+    });
+
+    test('lock event: do nothing if no keyboard', function() {
+      var spy = this.sinon.spy(navigator.mozInputMethod, 'removeFocus');
+      trigger('lock');
+      assert.ok(spy.notCalled);
+    });
+
+    test('lock event: hide keyboard if needed', function() {
+      var realActive = KeyboardManager.hasActiveKeyboard;
+      KeyboardManager.hasActiveKeyboard = true;
+      var spy = this.sinon.spy(navigator.mozInputMethod, 'removeFocus');
+      trigger('lock');
+      sinon.assert.calledOnce(spy);
+
+      KeyboardManager.hasActiveKeyboard = realActive;
     });
   });
 

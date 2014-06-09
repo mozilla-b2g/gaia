@@ -138,6 +138,7 @@ var KeyboardManager = {
     window.addEventListener('mozbrowsererror', this);
     window.addEventListener('applicationsetupdialogshow', this);
     window.addEventListener('mozmemorypressure', this);
+    window.addEventListener('lock', this);
 
     // To handle keyboard layout switching
     window.addEventListener('mozChromeEvent', function(evt) {
@@ -455,6 +456,14 @@ var KeyboardManager = {
           Object.keys(this.runningLayouts).forEach(this.removeKeyboard, this);
           this.runningLayouts = {};
           this._debug('mozmemorypressure event; keyboard removed');
+        }
+        break;
+
+      case 'lock':
+        if (this.hasActiveKeyboard) {
+          // Instead of hideKeyboard(), we should removeFocus() here.
+          // (and, removing the focus cause Gecko to ask us to hideKeyboard())
+          navigator.mozInputMethod.removeFocus();
         }
         break;
     }
