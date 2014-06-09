@@ -1,6 +1,9 @@
 'use strict';
 
-/* global CallLog */
+/* global CallHandler, CallLog, CallLogDBManager, KeypadManager, MockImage,
+          MockMozL10n, MockNavigatorMozIccManager, MockNotification,
+          MocksHelper, MockSimSettingsHelper, Notification,
+          PhoneNumberActionMenu */
 
 require('/dialer/js/call_log.js');
 require('/shared/js/dialer/utils.js');
@@ -24,6 +27,7 @@ require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
 require('/shared/test/unit/mocks/dialer/mock_keypad.js');
 require('/shared/test/unit/mocks/mock_notification.js');
 require('/shared/test/unit/mocks/mock_image.js');
+require('/shared/test/unit/mocks/mock_sim_settings_helper.js');
 
 var mocksHelperForCallLog = new MocksHelper([
   'asyncStorage',
@@ -36,7 +40,8 @@ var mocksHelperForCallLog = new MocksHelper([
   'ContactPhotoHelper',
   'StickyHeader',
   'CallHandler',
-  'KeypadManager'
+  'KeypadManager',
+  'SimSettingsHelper'
 ]).init();
 
 suite('dialer/call_log', function() {
@@ -250,18 +255,19 @@ suite('dialer/call_log', function() {
     CallLog.render();
     setTimeout(function() {
       var sections = CallLog.callLogContainer.getElementsByTagName('section');
+      var i, groupDOM, doms;
       if (date) {
         assert.equal(sections.length, 1);
-        var groupDOM = sections[0].getElementsByTagName('ol')[0];
-        var doms = groupDOM.getElementsByTagName('li');
-        for (var i = 0; i < count; i++) {
+        groupDOM = sections[0].getElementsByTagName('ol')[0];
+        doms = groupDOM.getElementsByTagName('li');
+        for (i = 0; i < count; i++) {
           checkGroupDOM(doms[i], groups[i], null);
         }
       } else {
         assert.equal(sections.length, count);
-        for (var i = 0; i < count; i++) {
-          var groupDOM = sections[i].getElementsByTagName('ol')[0];
-          var doms = groupDOM.getElementsByTagName('li');
+        for (i = 0; i < count; i++) {
+          groupDOM = sections[i].getElementsByTagName('ol')[0];
+          doms = groupDOM.getElementsByTagName('li');
           checkGroupDOM(doms[0], groups[i], null);
         }
       }
@@ -552,14 +558,15 @@ suite('dialer/call_log', function() {
       grp.date = 1;
       CallLogDBManager.add(grp);
       // Day 2 - 100 groups
-      for (var i = 2; i < 102; i++) {
+      var i;
+      for (i = 2; i < 102; i++) {
         grp = JSON.parse(JSON.stringify(incomingGroup));
         grp.id = i;
         grp.date = 2;
         CallLogDBManager.add(grp);
       }
       // Day 3 - 10 group
-      for (var i = 102; i < 112; i++) {
+      for (i = 102; i < 112; i++) {
         grp = JSON.parse(JSON.stringify(incomingGroup));
         grp.id = i;
         grp.date = 3;
@@ -797,24 +804,29 @@ suite('dialer/call_log', function() {
         showSpy, missedGroup.contact.id, missedGroup.number);
     };
 
-    suite('One SIM', function() {
-      setup(function() {
-        MockNavigatorMozIccManager.addIcc('12345', {'cardState': 'ready'});
-        CallLog.init();
-      });
+    [0, 1].forEach(function(cardIndex) {
+      suite('One SIM in slot ' + cardIndex, function() {
+        setup(function() {
+          MockNavigatorMozIccManager.addIcc('12345', {'cardState': 'ready'});
+          MockSimSettingsHelper._defaultCards.outgoingCall = cardIndex;
+          CallLog.init();
+        });
 
-      test('should not put the dual sim class on the container', function() {
-        assert.isFalse(CallLog.callLogContainer.classList.contains('dual-sim'));
-      });
+        test('should not put the dual sim class on the container', function() {
+          assert.isFalse(
+            CallLog.callLogContainer.classList.contains('dual-sim'));
+        });
 
-      test('tapping the entry should place call immediately', function() {
-        var callSpy = this.sinon.spy(CallHandler, 'call');
-        simulateClick(CallLog.appendGroup(missedGroup));
-        sinon.assert.calledWith(callSpy, missedGroup.number, 0);
-      });
+        test('tapping the entry should place call immediately', function() {
+          var callSpy = this.sinon.spy(CallHandler, 'call');
+          simulateClick(CallLog.appendGroup(missedGroup));
+          sinon.assert.calledWith(callSpy, missedGroup.number,
+            MockSimSettingsHelper._defaultCards.outgoingCall);
+        });
 
-      test('long pressing the entry should show action menu',
-           longPressShouldShowActionMenu);
+        test('long pressing the entry should show action menu',
+             longPressShouldShowActionMenu);
+      });
     });
 
     suite('Dual SIM', function() {
