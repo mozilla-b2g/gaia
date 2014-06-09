@@ -142,13 +142,10 @@ var Wallpaper = {
       s = C / (1 - Math.abs(2 * l - 1));
     }
 
-    s *= 1.25;
-    l *= 0.8;
-
     h = parseInt(h);
     s = parseInt(s * 100) + '%';
     l = parseInt(l * 100) + '%';
-    return 'hsla(' + h + ', ' + s + ', ' + l + ', 0.75)';
+    return 'hsla(' + h + ', ' + s + ', ' + l + ', 0.7)';
   }
 };
 
