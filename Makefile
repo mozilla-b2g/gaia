@@ -392,8 +392,14 @@ GAIA_DEFAULT_LOCALE?=en-US
 GAIA_INLINE_LOCALES?=1
 GAIA_CONCAT_LOCALES?=1
 
+# Variables defined to facilitate the string replacement
+ull  :=
+space := $(null) #
+comma := ,
 # This variable is for customizing the keyboard layouts in a build.
-GAIA_KEYBOARD_LAYOUTS?=en,pt-BR,es,de,fr,pl,zh-Hans-Pinyin,en-Dvorak
+GAIA_KEYBOARD_LAYOUTS ?= en pt-BR es de fr pl zh-Hans-Pinyin en-Dvorak
+GAIA_KEYBOARD_LAYOUTS += $(GAIA_KEYBOARD_LAYOUTS_EXTRA)
+GAIA_KEYBOARD_LAYOUTS := $(subst $(space),$(comma),$(strip $(GAIA_KEYBOARD_LAYOUTS)))
 
 ifeq ($(SYS),Darwin)
 MD5SUM = md5 -r
