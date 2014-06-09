@@ -110,6 +110,25 @@ suite('conference group handler', function() {
         assert.deepEqual(MockLazyL10n.keys['group-call'], {n: 2});
       });
 
+      test('should update the group label in CDMA', function() {
+        MockCallsHandler.mIsCdmaNetwork = true;
+
+        flush();
+        assert.equal(fakeGroupLabel.textContent, 'conference');
+
+        MockCallsHandler.mIsCdmaNetwork = false;
+      });
+
+      test('should update call screen in cdma network', function() {
+        MockCallsHandler.mIsCdmaNetwork = true;
+        MockCallScreen.mCdmaConferenceCall = false;
+
+        flush();
+        assert.isTrue(MockCallScreen.mCdmaConferenceCall);
+
+        MockCallsHandler.mIsCdmaNetwork = false;
+      });
+
       suite('when a new called is merged in the conference', function() {
         setup(function() {
           flush();

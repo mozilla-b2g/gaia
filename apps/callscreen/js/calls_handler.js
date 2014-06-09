@@ -118,6 +118,18 @@ var CallsHandler = (function callsHandler() {
     } else if (!displayed && !closing) {
       toggleScreen();
     }
+
+    if (isCdmaNetwork()) {
+      var call_cnt = navigator.mozTelephony.calls.length;
+      var group_cnt = navigator.mozTelephony.conferenceGroup.calls.length;
+      var ac = activeCall();
+
+      if (call_cnt >= 2 || group_cnt > 0 || ac == null) {
+        CallScreen.hideAddCallButton = true;
+      } else {
+        CallScreen.hideAddCallButton = false;
+      }
+    }
   }
 
   function addCall(call) {
@@ -732,6 +744,24 @@ var CallsHandler = (function callsHandler() {
             (telephony.calls[0].secondNumber || telephony.calls[0].secondId));
   }
 
+  /**
+   * Detects if we're in CDMA network
+   *
+   * @return {Boolean} Return true if we're in CDMA network.
+   */
+  function isCdmaNetwork() {
+    var cdmaTypes = ['evdo0', 'evdoa', 'evdob', '1xrtt', 'is95a', 'is95b'];
+
+    if (handledCalls.length !== 0) {
+      var ci = handledCalls[0].call.serviceId;
+      var type = window.navigator.mozMobileConnections[ci].voice.type;
+
+      return (cdmaTypes.indexOf(type) !== -1);
+    } else {
+      return false;
+    }
+  }
+
   function mergeActiveCallWith(call) {
     if (telephony.active == telephony.conferenceGroup) {
       telephony.conferenceGroup.add(call);
@@ -772,6 +802,8 @@ var CallsHandler = (function callsHandler() {
 
     get activeCallForContactImage() {
       return activeCallForContactImage();
-    }
+    },
+
+    isCdmaNetwork: isCdmaNetwork
   };
 })();

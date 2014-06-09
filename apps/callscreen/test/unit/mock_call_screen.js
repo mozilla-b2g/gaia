@@ -69,6 +69,14 @@ var MockCallScreen = {
   setEndConferenceCall: function() {
     this.mSetEndConferenceCall = true;
   },
+  cdmaConferenceCall: function() {
+    this.mCdmaConferenceCall = true;
+  },
+
+  set hideAddCallButton(enabled) {
+    this.mHideAddCallButton = enabled;
+  },
+  mHideAddCallButton: false,
 
   set holdAndAnswerOnly(enabled) {
     this.mHoldAndAnswerOnly = enabled;
@@ -123,5 +131,6 @@ var MockCallScreen = {
     this.mGroupDetailsShown = false;
     this.mRemoveCallCalled = false;
     this.mSetEndConferenceCall = false;
+    this.mCdmaConferenceCall = false;
   }
 };

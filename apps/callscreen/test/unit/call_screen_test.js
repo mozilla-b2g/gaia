@@ -225,6 +225,16 @@ suite('call screen', function() {
             incomingContainer.classList.contains('hold-and-answer-only'));
         }
       );
+
+      test('hideAddCallButton toggle the no-add-call class', function() {
+        CallScreen.hideAddCallButton = true;
+        assert.isTrue(callToolbar.classList.contains('no-add-call'));
+      });
+
+      test('hideAddCallButton NOT toggle the no-add-call class', function() {
+        CallScreen.hideAddCallButton = false;
+        assert.isFalse(callToolbar.classList.contains('no-add-call'));
+      });
     });
 
     suite('updateCallsDisplay', function() {
@@ -976,6 +986,14 @@ suite('call screen', function() {
       assert.isFalse(bluetoothMenu.classList.contains('display'));
       CallScreen.toggleBluetoothMenu(true);
       assert.isTrue(bluetoothMenu.classList.contains('display'));
+    });
+  });
+
+  suite('cdmaConferenceCall', function() {
+    test('should toggle no-add-call class and hidden group-show', function() {
+      CallScreen.cdmaConferenceCall();
+      assert.isTrue(callToolbar.classList.contains('no-add-call'));
+      assert.isTrue(CallScreen.showGroupButton.hidden);
     });
   });
 });
