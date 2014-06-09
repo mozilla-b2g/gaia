@@ -74,22 +74,19 @@ suite('SimSettingsHelper > ', function() {
     });
   });
 
-  /*
-   * Disabled bug 1017831
   suite('SimSettingsHelper._setToSettingsDB > ', function() {
     var fakeSettingKey = 'ril.sms.defaultServiceId';
     var fakeSettingValue = 0;
 
-    suiteSetup(function() {
-      SimSettingsHelper._setToSettingsDB(fakeSettingKey, fakeSettingValue);
-    });
-
-    test('setToSettingsDB is called successfully', function() {
-      assert.equal(window.navigator.mozSettings.mSettings[fakeSettingKey],
-        fakeSettingValue);
+    test('setToSettingsDB is called successfully', function(done) {
+      SimSettingsHelper._setToSettingsDB(fakeSettingKey, fakeSettingValue,
+        function() {
+        assert.equal(window.navigator.mozSettings.mSettings[fakeSettingKey],
+          fakeSettingValue);
+        done();
+      });
     });
   });
-  */
 
   suite('SimSettingsHelper._set("key")._on(cardIndex) > ', function() {
     var fakeCardIndex = 0;
