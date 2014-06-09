@@ -217,6 +217,19 @@ var icc_worker = {
   '0x21': function STK_CMD_DISPLAY_TEXT(command, iccManager) {
     DUMP('STK_CMD_DISPLAY_TEXT:', command.options);
     var options = command.options;
+
+    // Check if device is idle
+    var activeApp = AppWindowManager.getActiveApp();
+    if (!options.isHighPriority && !activeApp.isHomescreen) {
+      DUMP('Do not display the text because normal priority.');
+      iccManager.responseSTKCommand({
+        resultCode:
+          iccManager._iccManager.STK_RESULT_TERMINAL_CRNTLY_UNABLE_TO_PROCESS,
+        additionalInformation: 0x01
+      });
+      return;
+    }
+
     if (options.responseNeeded) {
       iccManager.responseSTKCommand({
         resultCode: iccManager._iccManager.STK_RESULT_OK
