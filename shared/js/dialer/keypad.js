@@ -1,8 +1,9 @@
 /* exported KeypadManager */
 
 /* globals CallHandler, CallLogDBManager, CallsHandler, CallScreen,
-           LazyLoader, LazyL10n, MultiSimActionButton, PhoneNumberActionMenu,
-           SimPicker, SettingsListener, TonePlayer, Utils */
+           CustomDialog, LazyLoader, LazyL10n, MultiSimActionButton,
+           PhoneNumberActionMenu, SimPicker, SettingsListener, TonePlayer,
+           Utils */
 
 'use strict';
 
@@ -80,70 +81,71 @@ var KeypadManager = {
 
   get phoneNumberView() {
     delete this.phoneNumberView;
-    return this.phoneNumberView = document.getElementById('phone-number-view');
+    return (this.phoneNumberView =
+      document.getElementById('phone-number-view'));
   },
 
   get fakePhoneNumberView() {
     delete this.fakePhoneNumberView;
-    return this.fakePhoneNumberView =
-      document.getElementById('fake-phone-number-view');
+    return (this.fakePhoneNumberView =
+      document.getElementById('fake-phone-number-view'));
   },
 
   get phoneNumberViewContainer() {
     delete this.phoneNumberViewContainer;
-    return this.phoneNumberViewContainer =
-      document.getElementById('phone-number-view-container');
+    return (this.phoneNumberViewContainer =
+      document.getElementById('phone-number-view-container'));
   },
 
   get keypad() {
     delete this.keypad;
-    return this.keypad = document.getElementById('keypad');
+    return (this.keypad = document.getElementById('keypad'));
   },
 
   get callBar() {
     delete this.callBar;
-    return this.callBar =
-      document.getElementById('keypad-callbar');
+    return (this.callBar =
+      document.getElementById('keypad-callbar'));
   },
 
   get hideBar() {
     delete this.hideBar;
-    return this.hideBar = document.getElementById('keypad-hidebar');
+    return (this.hideBar = document.getElementById('keypad-hidebar'));
   },
 
   get callBarAddContact() {
     delete this.callBarAddContact;
-    return this.callBarAddContact =
-      document.getElementById('keypad-callbar-add-contact');
+    return (this.callBarAddContact =
+      document.getElementById('keypad-callbar-add-contact'));
   },
 
   get callBarCallAction() {
     delete this.callBarCallAction;
-    return this.callBarCallAction =
-      document.getElementById('keypad-callbar-call-action');
+    return (this.callBarCallAction =
+      document.getElementById('keypad-callbar-call-action'));
   },
 
   get callBarCancelAction() {
     delete this.callBarCancelAction;
-    return this.callBarCancelAction =
-      document.getElementById('keypad-callbar-cancel');
+    return (this.callBarCancelAction =
+      document.getElementById('keypad-callbar-cancel'));
   },
 
   get deleteButton() {
     delete this.deleteButton;
-    return this.deleteButton = document.getElementById('keypad-delete');
+    return (this.deleteButton = document.getElementById('keypad-delete'));
   },
 
   get hideBarHangUpAction() {
     delete this.hideBarHangUpAction;
-    return this.hideBarHangUpAction =
-      document.getElementById('keypad-hidebar-hang-up-action-wrapper');
+    return (this.hideBarHangUpAction =
+      document.getElementById('keypad-hidebar-hang-up-action-wrapper'));
   },
 
   get hideBarHideAction() {
     delete this.hideBarHideAction;
-    return this.hideBarHideAction =
-      document.getElementById('keypad-hidebar-hide-keypad-action');
+    return (this.hideBarHideAction =
+      document.getElementById('keypad-hidebar-hide-keypad-action'));
   },
 
   multiSimActionButton: null,
@@ -234,7 +236,9 @@ var KeypadManager = {
     TonePlayer.init('normal');
     var channel = this._onCall ? 'telephony' : 'normal';
     window.addEventListener('visibilitychange', (function() {
-      TonePlayer.setChannel(document.mozHidden ? 'normal' : channel);
+      if (TonePlayer) {
+        TonePlayer.setChannel(document.mozHidden ? 'normal' : channel);
+      }
     }).bind(this));
 
     this.render();

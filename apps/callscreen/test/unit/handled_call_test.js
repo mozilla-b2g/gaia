@@ -187,7 +187,7 @@ suite('dialer/handled_call', function() {
 
     test('number', function() {
       assert.ok(subject.numberNode);
-      assert.equal(MockContacts.mCalledWith, mockCall.number);
+      assert.equal(MockContacts.mCalledWith, mockCall.id.number);
     });
 
     test('initial state', function() {
@@ -535,7 +535,7 @@ suite('dialer/handled_call', function() {
   test('should display switch-calls l10n key', function() {
     mockCall = new MockCall('888', 'connected');
     subject = new HandledCall(mockCall);
-    mockCall.secondNumber = '999';
+    mockCall.secondId = { number: '999' };
     subject.updateCallNumber();
 
     assert.equal(subject.numberNode.textContent, 'switch-calls');
@@ -599,7 +599,7 @@ suite('dialer/handled_call', function() {
     test('check switch-calls mode', function() {
       mockCall = new MockCall('888', 'connected');
       subject = new HandledCall(mockCall);
-      mockCall.secondNumber = '999';
+      mockCall.secondId = { number: '999' };
       subject.updateCallNumber();
 
       assert.equal('', subject.additionalInfoNode.textContent);

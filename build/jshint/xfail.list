@@ -15,11 +15,9 @@ apps/browser/test/marionette/navigate_test.js
 apps/browser/test/marionette/settings_test.js
 apps/browser/test/marionette/share_url_test.js
 apps/browser/test/unit/browser_db_test.js
-apps/callscreen/js/calls_handler.js
 apps/callscreen/js/fake-oncall-desktop.js
 apps/callscreen/js/index.js
 apps/callscreen/test/unit/call_screen_test.js
-apps/callscreen/test/unit/calls_handler_test.js
 apps/callscreen/test/unit/mock_call_screen.js
 apps/callscreen/test/unit/mock_mozbluetooth.js
 apps/callscreen/test/unit/mock_simple_phone_matcher.js
@@ -532,7 +530,6 @@ apps/wallpaper/js/share.js
 apps/wallpaper/test/unit/pick_test.js
 shared/js/blobview.js
 shared/js/dialer/contacts.js
-shared/js/dialer/keypad.js
 shared/js/dialer/utils.js
 shared/js/dialer/voicemail.js
 shared/js/fb/fb_data_reader.js
