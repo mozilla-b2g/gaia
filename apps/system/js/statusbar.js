@@ -1243,12 +1243,7 @@ var StatusBar = {
   }
 };
 
-if (navigator.mozL10n.readyState == 'complete' ||
-    navigator.mozL10n.readyState == 'interactive') {
-  StatusBar.init();
-} else {
-  window.addEventListener('localized', function statusbar_init() {
-    window.removeEventListener('localized', statusbar_init);
-    StatusBar.init();
-  });
+// unit tests call init() manually
+if (navigator.mozL10n) {
+  navigator.mozL10n.once(StatusBar.init.bind(StatusBar));
 }

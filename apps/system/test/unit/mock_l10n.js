@@ -47,8 +47,10 @@ var MockL10n = {
     callback();
   },
 
-  once: function(callback) {
-    callback();
+  once: function() {
+    // No-op because unit tests call init() methods manually, and we actually
+    // don't want to call them via mozL10n.once(init).
+    // See bug https://bugzil.la/1022558
   },
 
   translate: function() {
