@@ -392,6 +392,6 @@
     }
   };
 
-  exports.GridItem = GridItem;
+  exports.GaiaGrid.GridItem = GridItem;
 
 }(window));
