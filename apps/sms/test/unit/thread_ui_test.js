@@ -7,7 +7,7 @@
          ThreadListUI, ContactRenderer, UIEvent, Drafts, OptionMenu,
          ActivityPicker, KeyEvent, MockNavigatorSettings, MockContactRenderer,
          Draft, MockStickyHeader, MultiSimActionButton, Promise,
-         MockLazyLoader, WaitingScreen
+         MockLazyLoader, WaitingScreen, Navigation
 */
 
 'use strict';
@@ -54,6 +54,7 @@ require('/test/unit/mock_information.js');
 require('/test/unit/mock_contact_renderer.js');
 require('/test/unit/mock_message_manager.js');
 require('/test/unit/mock_waiting_screen.js');
+require('/test/unit/mock_navigation.js');
 
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 require('/shared/test/unit/mocks/mock_sticky_header.js');
@@ -61,6 +62,7 @@ require('/shared/test/unit/mocks/mock_multi_sim_action_button.js');
 require('/shared/test/unit/mocks/mock_audio.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_async_storage.js');
+require('/shared/test/unit/mocks/mock_notification.js');
 
 var mocksHelperForThreadUI = new MocksHelper([
   'asyncStorage',
@@ -89,7 +91,9 @@ var mocksHelperForThreadUI = new MocksHelper([
   'MultiSimActionButton',
   'Audio',
   'LazyLoader',
-  'WaitingScreen'
+  'WaitingScreen',
+  'Navigation',
+  'Notification'
 ]);
 
 mocksHelperForThreadUI.init();
@@ -102,6 +106,9 @@ suite('thread_ui.js >', function() {
   var composeForm;
   var recipientsList;
   var sticky;
+  var threadMessages;
+  var mainWrapper;
+  var headerText;
 
   var realMozL10n;
   var realMozMobileMessage;
@@ -186,6 +193,9 @@ suite('thread_ui.js >', function() {
       document.getElementById('messages-dual-sim-information');
     composeForm = document.getElementById('messages-compose-form');
     recipientsList = document.getElementById('messages-recipients-list');
+    threadMessages = document.getElementById('thread-messages');
+    mainWrapper = document.getElementById('main-wrapper');
+    headerText = document.getElementById('messages-header-text');
 
     this.sinon.useFakeTimers();
 
@@ -198,7 +208,14 @@ suite('thread_ui.js >', function() {
   });
 
   teardown(function() {
+    // This is added in ThreadUI.init, so we need to remove the listener to
+    // prevent having the listener being called several times.
+    document.removeEventListener(
+      'visibilitychange', ThreadUI.onVisibilityChange
+    );
+
     document.body.innerHTML = '';
+    Threads.currentId = null;
 
     MockNavigatormozMobileMessage.mTeardown();
     mocksHelper.teardown();
@@ -268,14 +285,15 @@ suite('thread_ui.js >', function() {
 
   suite('Search', function() {
     setup(function() {
-      window.location.hash = '#new';
+      this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
+      Navigation.isCurrentPanel.withArgs('composer').returns(true);
+
       Compose.clear();
       ThreadUI.recipients.length = 0;
       ThreadUI.recipients.inputValue = '';
     });
 
     teardown(function() {
-      window.location.hash = '';
       Compose.clear();
       ThreadUI.recipients.length = 0;
       ThreadUI.recipients.inputValue = '';
@@ -359,22 +377,18 @@ suite('thread_ui.js >', function() {
     setup(function() {
       Compose.clear();
       ThreadUI.updateCounter();
-      window.location.hash = '#thread-1';
+
+      this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
     });
 
     teardown(function() {
       Compose.clear();
-      window.location.hash = '';
     });
 
     suite('In #thread view, button should be...', function() {
       setup(function() {
-        window.location.hash = '#thread-1';
+        Navigation.isCurrentPanel.withArgs('thread', { id: 1 }).returns(true);
         Compose.clear();
-      });
-
-      teardown(function() {
-        window.location.hash = '';
       });
 
       test('disabled at the beginning', function() {
@@ -415,17 +429,16 @@ suite('thread_ui.js >', function() {
       });
     });
 
-
     suite('In #new view, button should be...', function() {
       setup(function() {
-        window.location.hash = '#new';
+        Navigation.isCurrentPanel.withArgs('composer').returns(true);
+
         Compose.clear();
         ThreadUI.recipients.length = 0;
         ThreadUI.recipients.inputValue = '';
       });
 
       teardown(function() {
-        window.location.hash = '';
         Compose.clear();
         ThreadUI.recipients.length = 0;
         ThreadUI.recipients.inputValue = '';
@@ -1159,11 +1172,10 @@ suite('thread_ui.js >', function() {
         });
 
         test('banner should be hidden after an amount of secs.',
-          function(done) {
+          function() {
           assert.isFalse(banner.classList.contains('hide'));
           clock.tick(3100);
           assert.isTrue(banner.classList.contains('hide'));
-          done();
         });
 
         test('should be visible', function() {
@@ -1509,6 +1521,8 @@ suite('thread_ui.js >', function() {
       this.sinon.spy(ThreadUI.recipients, 'visible');
       this.sinon.spy(Utils, 'basicContact');
 
+      this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
+
       Threads.set(1, {
         participants: ['999']
       });
@@ -1516,13 +1530,12 @@ suite('thread_ui.js >', function() {
 
     teardown(function() {
       Threads.delete(1);
-      window.location.hash = '';
     });
 
     suite('Recipients.View.isFocusable', function() {
 
       setup(function() {
-        window.location.hash = '#new';
+        Navigation.isCurrentPanel.withArgs('composer').returns(true);
         Recipients.View.isFocusable = true;
       });
 
@@ -1535,7 +1548,7 @@ suite('thread_ui.js >', function() {
     suite('Existing Conversation', function() {
 
       setup(function() {
-        window.location.hash = '#thread=1';
+        Navigation.isCurrentPanel.withArgs('thread', { id: 1 }).returns(true);
       });
 
       test('Will not assimilate recipients ', function() {
@@ -1550,7 +1563,7 @@ suite('thread_ui.js >', function() {
       var node;
 
       setup(function() {
-        window.location.hash = '#new';
+        Navigation.isCurrentPanel.withArgs('composer').returns(true);
 
         node = document.createElement('span');
         node.isPlaceholder = true;
@@ -2069,7 +2082,17 @@ suite('thread_ui.js >', function() {
         this.fakeMessage.deliveryInfo = [{
           receiver: null, readStatus: 'success'}];
         ThreadUI.onReadSuccess(this.fakeMessage);
-        assert.isTrue(this.container.classList.contains('delivered'));
+        assert.isTrue(this.container.classList.contains('read'));
+      });
+      test('display read icon when both delivery/read success', function() {
+        this.fakeMessage.type = 'mms';
+        this.fakeMessage.delivery = 'sent';
+        this.fakeMessage.deliveryInfo = [{
+          receiver: null, deliveryStatus: 'success', readStatus: 'success'}];
+        ThreadUI.onDeliverySuccess(this.fakeMessage);
+        ThreadUI.onReadSuccess(this.fakeMessage);
+        assert.isFalse(this.container.classList.contains('delivered'));
+        assert.isTrue(this.container.classList.contains('read'));
       });
       test('multiple recipients mms read success', function() {
         this.fakeMessage.type = 'mms';
@@ -2078,7 +2101,7 @@ suite('thread_ui.js >', function() {
           {receiver: null, readStatus: 'success'},
           {receiver: null, readStatus: 'success'}];
         ThreadUI.onReadSuccess(this.fakeMessage);
-        assert.isTrue(this.container.classList.contains('delivered'));
+        assert.isTrue(this.container.classList.contains('read'));
       });
       test('not all recipients return mms read success', function() {
         this.fakeMessage.type = 'mms';
@@ -2087,14 +2110,15 @@ suite('thread_ui.js >', function() {
           {receiver: null, readStatus: 'success'},
           {receiver: null, readStatus: 'pending'}];
         ThreadUI.onReadSuccess(this.fakeMessage);
-        assert.isFalse(this.container.classList.contains('delivered'));
+        assert.isFalse(this.container.classList.contains('read'));
       });
     });
   });
 
   suite('removeMessageDOM', function() {
     setup(function() {
-      ThreadUI.container.innerHTML = '<h2></h2><ul><li></li><li></li></ul>';
+      ThreadUI.container.innerHTML =
+        '<div><h2></h2><ul><li></li><li></li></ul></div>';
     });
     teardown(function() {
       ThreadUI.container.innerHTML = '';
@@ -2103,11 +2127,10 @@ suite('thread_ui.js >', function() {
       ThreadUI.removeMessageDOM(ThreadUI.container.querySelector('li'));
       assert.equal(ThreadUI.container.querySelectorAll('li').length, 1);
     });
-    test('removeMessageDOM removes headers and ul', function() {
+    test('removeMessageDOM removes header and list container', function() {
       ThreadUI.removeMessageDOM(ThreadUI.container.querySelector('li'));
       ThreadUI.removeMessageDOM(ThreadUI.container.querySelector('li'));
-      assert.equal(ThreadUI.container.querySelectorAll('h2').length, 0);
-      assert.equal(ThreadUI.container.querySelectorAll('ul').length, 0);
+      assert.equal(ThreadUI.container.childElementCount, 0);
     });
   });
 
@@ -2322,25 +2345,94 @@ suite('thread_ui.js >', function() {
     });
   });
 
-  suite('appendMessage removes old message', function() {
+  suite('appendMessage >', function() {
+    var someDateInThePast;
+
     setup(function() {
-      this.targetMsg = {
-        id: 23,
-        type: 'sms',
-        receivers: this.receivers,
-        body: 'This is a test',
-        delivery: 'error',
-        timestamp: Date.now()
-      };
-      ThreadUI.appendMessage(this.targetMsg);
-      this.original = ThreadUI.container.querySelector(
-        '[data-message-id="' + this.targetMsg.id + '"]');
-      ThreadUI.appendMessage(this.targetMsg);
+      someDateInThePast = new Date(2010, 10, 10, 16, 0);
+
+      ThreadUI.appendMessage({
+        id: 1,
+        threadId: 1,
+        timestamp: +someDateInThePast
+      });
     });
-    test('original message removed when rendered a second time', function() {
-      var message = ThreadUI.container.querySelector(
-        '[data-message-id="' + this.targetMsg.id + '"]');
-      assert.notEqual(message, this.original);
+
+    teardown(function() {
+      ThreadUI.container = '';
+    });
+
+    test('removes original message when rendered a second time', function() {
+      var originalMessage = ThreadUI.container.querySelector(
+        '[data-message-id="1"]'
+      );
+
+      ThreadUI.appendMessage({
+        id: 1,
+        threadId: 1,
+        timestamp: +someDateInThePast
+      });
+
+      var message = ThreadUI.container.querySelector('[data-message-id="1"]');
+
+      assert.isNotNull(originalMessage);
+      assert.isNotNull(message);
+      assert.notEqual(message, originalMessage);
+    });
+
+    test('inserts message at the beginning', function() {
+      someDateInThePast.setHours(someDateInThePast.getHours() - 1);
+
+      ThreadUI.appendMessage({
+        id: 2,
+        threadId: 1,
+        timestamp: +someDateInThePast
+      });
+
+      var messageItemNodes = ThreadUI.container.querySelectorAll('.message');
+
+      assert.equal(messageItemNodes.length, 2);
+      assert.equal(+messageItemNodes[0].dataset.messageId, 2);
+      assert.equal(+messageItemNodes[1].dataset.messageId, 1);
+    });
+
+    test('inserts message at the right spot in the middle', function() {
+      someDateInThePast.setHours(someDateInThePast.getHours() + 2);
+      ThreadUI.appendMessage({
+        id: 3,
+        threadId: 1,
+        timestamp: +someDateInThePast
+      });
+
+      someDateInThePast.setHours(someDateInThePast.getHours() - 1);
+      ThreadUI.appendMessage({
+        id: 2,
+        threadId: 1,
+        timestamp: +someDateInThePast
+      });
+
+      var messageItemNodes = ThreadUI.container.querySelectorAll('.message');
+
+      assert.equal(messageItemNodes.length, 3);
+      assert.equal(+messageItemNodes[0].dataset.messageId, 1);
+      assert.equal(+messageItemNodes[1].dataset.messageId, 2);
+      assert.equal(+messageItemNodes[2].dataset.messageId, 3);
+    });
+
+    test('inserts message at the end', function() {
+      someDateInThePast.setHours(someDateInThePast.getHours() + 1);
+
+      ThreadUI.appendMessage({
+        id: 2,
+        threadId: 1,
+        timestamp: +someDateInThePast
+      });
+
+      var messageItemNodes = ThreadUI.container.querySelectorAll('.message');
+
+      assert.equal(messageItemNodes.length, 2);
+      assert.equal(+messageItemNodes[0].dataset.messageId, 1);
+      assert.equal(+messageItemNodes[1].dataset.messageId, 2);
     });
   });
 
@@ -2416,6 +2508,47 @@ suite('thread_ui.js >', function() {
       assert.isFalse(
         node.querySelector('progress').classList.contains('light')
       );
+    });
+
+    test('sets delivery class when delivery status is success', function() {
+      var message = MockMessages.mms({
+        delivery: 'sent',
+        deliveryInfo: [{
+          receiver: null,
+          deliveryStatus: 'success'
+        }]
+      });
+
+      var node = ThreadUI.buildMessageDOM(message);
+      assert.isTrue(node.classList.contains('delivered'));
+    });
+
+    test('sets read class when read status is success', function() {
+      var message = MockMessages.mms({
+        delivery: 'sent',
+        deliveryInfo: [{
+          receiver: null,
+          readStatus: 'success'
+        }]
+      });
+
+      var node = ThreadUI.buildMessageDOM(message);
+      assert.isTrue(node.classList.contains('read'));
+    });
+
+    test('sets read class only when both statuses are success', function() {
+      var message = MockMessages.mms({
+        delivery: 'sent',
+        deliveryInfo: [{
+          receiver: null,
+          deliveryStatus: 'success',
+          readStatus: 'success'
+        }]
+      });
+
+      var node = ThreadUI.buildMessageDOM(message);
+      assert.isFalse(node.classList.contains('delivered'));
+      assert.isTrue(node.classList.contains('read'));
     });
   });
 
@@ -2550,10 +2683,12 @@ suite('thread_ui.js >', function() {
     });
 
     test('deleting all messages deletes the thread', function() {
+      this.sinon.spy(Navigation, 'toPanel');
       this.sinon.spy(ThreadListUI, 'removeThread');
+
       ThreadUI.deleteUIMessages(testMessages.map((m) => m.id));
       sinon.assert.calledOnce(ThreadListUI.removeThread);
-      assert.equal(window.location.hash, '#thread-list');
+      sinon.assert.calledWith(Navigation.toPanel, 'thread-list');
     });
 
     test('error still calls callback', function() {
@@ -3198,6 +3333,7 @@ suite('thread_ui.js >', function() {
         .returns(this.getMessageReq);
       this.sinon.stub(MessageManager, 'deleteMessage').callsArgWith(1, true);
       this.sinon.stub(MessageManager, 'resendMessage');
+      this.sinon.spy(ThreadUI, 'onMessageSendRequestCompleted');
     });
 
     // TODO: Implement this functionality in a specialized method and update
@@ -3225,7 +3361,31 @@ suite('thread_ui.js >', function() {
       this.getMessageReq.onsuccess();
 
       var args = MessageManager.resendMessage.args[0];
-      assert.deepEqual(args[0], this.targetMsg);
+      assert.deepEqual(args[0].message, this.targetMsg);
+    });
+
+    test('invokes onMessageSendRequestCompleted on successful send request',
+      function() {
+      MessageManager.resendMessage.yieldsTo('onsuccess');
+
+      ThreadUI.resendMessage(23);
+
+      this.getMessageReq.result = this.targetMsg;
+      this.getMessageReq.onsuccess();
+
+      sinon.assert.called(ThreadUI.onMessageSendRequestCompleted);
+    });
+
+    test('does not invoke onMessageSendRequestCompleted on failed send request',
+      function() {
+      MessageManager.resendMessage.yieldsTo('onerror', new Error('failed'));
+
+      ThreadUI.resendMessage(23);
+
+      this.getMessageReq.result = this.targetMsg;
+      this.getMessageReq.onsuccess();
+
+      sinon.assert.notCalled(ThreadUI.onMessageSendRequestCompleted);
     });
   });
 
@@ -3255,12 +3415,18 @@ suite('thread_ui.js >', function() {
       'should try to resend and remove the errored message',
       function() {
       window.confirm.returns(true);
-      this.errorMsg.querySelector('.pack-end').click();
+      this.errorMsg.querySelector('.message-status').click();
 
       request.result = message;
       request.onsuccess && request.onsuccess.call(request);
       assert.isNull(ThreadUI.container.querySelector('li'));
-      assert.ok(MessageManager.resendMessage.calledWith(message));
+      assert.ok(
+        MessageManager.resendMessage.calledWithMatch({
+          onerror: sinon.match.func,
+          onsuccess: sinon.match.func,
+          message: message
+        })
+      );
     });
   });
 
@@ -3317,7 +3483,7 @@ suite('thread_ui.js >', function() {
 
   suite('updateCarrier', function() {
     var contacts = [], details, number;
-    var threadMessages, carrierTag;
+    var carrierTag;
 
     suiteSetup(function() {
       contacts.push(new MockContact());
@@ -3326,8 +3492,6 @@ suite('thread_ui.js >', function() {
     });
 
     setup(function() {
-      loadBodyHTML('/index.html');
-      threadMessages = document.getElementById('thread-messages');
       carrierTag = document.getElementById('contact-carrier');
     });
 
@@ -3344,22 +3508,57 @@ suite('thread_ui.js >', function() {
       assert.isFalse(threadMessages.classList.contains('has-carrier'));
     });
 
-    test(' If there is one participant & contacts', function() {
-      var thread = {
-        participants: [number]
-      };
+    suite(' If there is one participant', function() {
+      var thread;
 
-      ThreadUI.updateCarrier(thread, contacts, details);
-      assert.isTrue(threadMessages.classList.contains('has-carrier'));
-    });
+      setup(function() {
+        thread = {
+          participants: [number]
+        };
+      });
 
-    test(' If there is one participant & no contacts', function() {
-      var thread = {
-        participants: [number]
-      };
+      test(' And contacts available', function() {
+        ThreadUI.updateCarrier(thread, contacts, details);
+        assert.isTrue(threadMessages.classList.contains('has-carrier'));
+      });
 
-      ThreadUI.updateCarrier(thread, [], details);
-      assert.isFalse(threadMessages.classList.contains('has-carrier'));
+      test(' And no contacts and any phone details available', function() {
+        ThreadUI.updateCarrier(thread, [], details);
+
+        assert.isFalse(threadMessages.classList.contains('has-carrier'));
+        assert.isFalse(carrierTag.classList.contains('has-phone-type'));
+        assert.isFalse(carrierTag.classList.contains('has-phone-details'));
+      });
+
+      test(' And only phone type is available', function() {
+        ThreadUI.updateCarrier(thread, [{
+          tel: [{
+            value: number,
+            type: 'type'
+          }]
+        }], {});
+
+        assert.isTrue(carrierTag.classList.contains('has-phone-type'));
+        assert.isFalse(carrierTag.classList.contains('has-phone-details'));
+      });
+
+      test(' And only phone details are available', function() {
+        ThreadUI.updateCarrier(thread, [{
+          tel: [{
+            value: number
+          }]
+        }], details);
+
+        assert.isFalse(carrierTag.classList.contains('has-phone-type'));
+        assert.isTrue(carrierTag.classList.contains('has-phone-details'));
+      });
+
+      test(' And phone type and details are available', function() {
+        ThreadUI.updateCarrier(thread, contacts, details);
+
+        assert.isTrue(carrierTag.classList.contains('has-phone-type'));
+        assert.isTrue(carrierTag.classList.contains('has-phone-details'));
+      });
     });
   });
 
@@ -3572,10 +3771,10 @@ suite('thread_ui.js >', function() {
       };
     });
 
-    test('clicking on "pack-end" aside in an error message' +
+    test('clicking on "message-status" aside in an error message' +
       'triggers a confirmation dialog',
       function() {
-      this.elems.errorMsg.querySelector('.pack-end').click();
+      this.elems.errorMsg.querySelector('.message-status').click();
       assert.equal(window.confirm.callCount, 1);
     });
 
@@ -3592,10 +3791,11 @@ suite('thread_ui.js >', function() {
       assert.equal(window.confirm.callCount, 0);
     });
 
-    test('clicking on "pack-end" aside in an error message and accepting the ' +
-      'confirmation dialog triggers a message re-send operation', function() {
+    test('clicking on "message-status" aside in an error message and ' +
+      'accepting the confirmation dialog triggers a message re-send operation',
+    function() {
       window.confirm.returns(true);
-      this.elems.errorMsg.querySelector('.pack-end').click();
+      this.elems.errorMsg.querySelector('.message-status').click();
       assert.equal(ThreadUI.resendMessage.callCount, 1);
     });
 
@@ -3689,158 +3889,205 @@ suite('thread_ui.js >', function() {
   suite('Header Actions/Display', function() {
     setup(function() {
       Threads.delete(1);
-      window.location.hash = '';
       MockActivityPicker.dial.mSetup();
       MockOptionMenu.mSetup();
     });
 
     teardown(function() {
       Threads.delete(1);
-      window.location.hash = '';
       MockActivityPicker.dial.mTeardown();
       MockOptionMenu.mTeardown();
     });
 
-    suite('OptionMenu', function() {
+    suite('OptionMenu >', function() {
+      setup(function() {
+        this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
+        Threads.currentId = 1;
+      });
 
-      suite('prompt', function() {
-        test('Single known', function() {
-
-          var contact = new MockContact();
-
-          Threads.set(1, {
-            participants: ['999']
-          });
-
-          window.location.hash = '#thread=1';
-
-          var header = document.createElement('div');
-
-          ThreadUI.prompt({
-            number: '999',
-            contactId: contact.id,
-            isContact: true,
-            header: header
-          });
-
-          assert.equal(MockOptionMenu.calls.length, 1);
-
-          var call = MockOptionMenu.calls[0];
-          var items = call.items;
-
-          // we use the passed header as the dialog's header
-          assert.equal(call.header, header);
-
-          // no section is passed for contact
-          assert.isUndefined(call.section);
-
-          assert.equal(items.length, 3);
-
-          // The first item is a "call" option
-          assert.equal(items[0].l10nId, 'call');
-
-          // The second item is a "viewContact" option
-          assert.equal(items[1].l10nId, 'viewContact');
-
-          // The fourth and last item is a "cancel" option
-          assert.equal(items[2].l10nId, 'cancel');
-        });
-
-        test('Single unknown (phone)', function() {
+      suite('one recipient >', function() {
+        setup(function() {
+          Navigation.isCurrentPanel.withArgs('thread', { id: 1 }).returns(true);
+          Navigation.isCurrentPanel.withArgs('thread').returns(true);
 
           Threads.set(1, {
             participants: ['999']
           });
-
-          window.location.hash = '#thread=1';
-
-          ThreadUI.prompt({
-            number: '999',
-            isContact: false
-          });
-
-          assert.equal(MockOptionMenu.calls.length, 1);
-
-          var call = MockOptionMenu.calls[0];
-          var items = call.items;
-
-          // Ensures that the OptionMenu was given
-          // the phone number to diplay
-          assert.equal(call.header, '999');
-
-          // Only known Contact details should appear in the "section"
-          assert.isUndefined(call.section);
-
-          assert.equal(items.length, 4);
-
-          // The first item is a "call" option
-          assert.equal(items[0].l10nId, 'call');
-
-          // The second item is a "createNewContact" option
-          assert.equal(items[1].l10nId, 'createNewContact');
-
-          // The third item is a "addToExistingContact" option
-          assert.equal(items[2].l10nId, 'addToExistingContact');
-
-          // The fourth and last item is a "cancel" option
-          assert.equal(items[3].l10nId, 'cancel');
         });
 
-        test('Single unknown (email)', function() {
+        suite('prompt()', function() {
+          test('Known recipient', function() {
+            var contact = new MockContact();
 
-          this.sinon.spy(ActivityPicker, 'email');
+            var header = document.createElement('div');
 
-          Threads.set(1, {
-            participants: ['999']
+            ThreadUI.prompt({
+              number: '999',
+              contactId: contact.id,
+              isContact: true,
+              header: header
+            });
+
+            assert.equal(MockOptionMenu.calls.length, 1);
+
+            var call = MockOptionMenu.calls[0];
+            var items = call.items;
+
+            // we use the passed header as the dialog's header
+            assert.equal(call.header, header);
+
+            // no section is passed for contact
+            assert.isUndefined(call.section);
+
+            assert.equal(items.length, 3);
+
+            // The first item is a "call" option
+            assert.equal(items[0].l10nId, 'call');
+
+            // The second item is a "viewContact" option
+            assert.equal(items[1].l10nId, 'viewContact');
+
+            // The fourth and last item is a "cancel" option
+            assert.equal(items[2].l10nId, 'cancel');
           });
 
-          window.location.hash = '#thread=1';
+          test('Unknown recipient (phone)', function() {
+            ThreadUI.prompt({
+              number: '999',
+              isContact: false
+            });
 
-          ThreadUI.prompt({
-            email: 'a@b.com',
-            isContact: false
+            assert.equal(MockOptionMenu.calls.length, 1);
+
+            var call = MockOptionMenu.calls[0];
+            var items = call.items;
+
+            // Ensures that the OptionMenu was given
+            // the phone number to diplay
+            assert.equal(call.header, '999');
+
+            // Only known Contact details should appear in the "section"
+            assert.isUndefined(call.section);
+
+            assert.equal(items.length, 4);
+
+            // The first item is a "call" option
+            assert.equal(items[0].l10nId, 'call');
+
+            // The second item is a "createNewContact" option
+            assert.equal(items[1].l10nId, 'createNewContact');
+
+            // The third item is a "addToExistingContact" option
+            assert.equal(items[2].l10nId, 'addToExistingContact');
+
+            // The fourth and last item is a "cancel" option
+            assert.equal(items[3].l10nId, 'cancel');
           });
 
-          assert.equal(MockOptionMenu.calls.length, 1);
+          test('Unknown recipient (email)', function() {
+            this.sinon.spy(ActivityPicker, 'email');
 
-          var call = MockOptionMenu.calls[0];
-          var items = call.items;
+            ThreadUI.prompt({
+              email: 'a@b.com',
+              isContact: false
+            });
 
-          // Ensures that the OptionMenu was given
-          // the email address to diplay
-          assert.equal(call.header, 'a@b.com');
+            assert.equal(MockOptionMenu.calls.length, 1);
 
-          // Only known Contact details should appear in the "section"
-          assert.isUndefined(call.section);
+            var call = MockOptionMenu.calls[0];
+            var items = call.items;
 
-          assert.equal(items.length, 4);
+            // Ensures that the OptionMenu was given
+            // the email address to diplay
+            assert.equal(call.header, 'a@b.com');
 
-          // The first item is a "sendEmail" option
-          assert.equal(items[0].l10nId, 'sendEmail');
+            // Only known Contact details should appear in the "section"
+            assert.isUndefined(call.section);
 
-          // Trigger the option to ensure that correct Activity is used.
-          items[0].method();
+            assert.equal(items.length, 4);
 
-          sinon.assert.called(ActivityPicker.email);
+            // The first item is a "sendEmail" option
+            assert.equal(items[0].l10nId, 'sendEmail');
 
-          // The second item is a "createNewContact" option
-          assert.equal(items[1].l10nId, 'createNewContact');
+            // Trigger the option to ensure that correct Activity is used.
+            items[0].method();
 
-          // The third item is a "addToExistingContact" option
-          assert.equal(items[2].l10nId, 'addToExistingContact');
+            sinon.assert.called(ActivityPicker.email);
 
-          // The fourth and last item is a "cancel" option
-          assert.equal(items[3].l10nId, 'cancel');
+            // The second item is a "createNewContact" option
+            assert.equal(items[1].l10nId, 'createNewContact');
+
+            // The third item is a "addToExistingContact" option
+            assert.equal(items[2].l10nId, 'addToExistingContact');
+
+            // The fourth and last item is a "cancel" option
+            assert.equal(items[3].l10nId, 'cancel');
+          });
+
         });
-        test('Multiple known', function() {
+
+        suite('onHeaderActivation >', function() {
+          test('Known recipient', function() {
+            this.sinon.spy(ContactRenderer.prototype, 'render');
+
+            Threads.set(1, {
+              participants: ['+12125559999']
+            });
+
+            headerText.dataset.isContact = true;
+            headerText.dataset.number = '+12125559999';
+
+            ThreadUI.onHeaderActivation();
+
+            var calls = MockOptionMenu.calls;
+
+            assert.equal(calls.length, 1);
+
+            // contacts do not show up in the body
+            assert.isUndefined(calls[0].section);
+
+            // contacts show up in the header
+            sinon.assert.calledWithMatch(ContactRenderer.prototype.render, {
+              target: calls[0].header
+            });
+
+            assert.equal(calls[0].items.length, 3);
+            assert.equal(typeof calls[0].complete, 'function');
+          });
+
+          test('Unknown recipient', function() {
+
+            Threads.set(1, {
+              participants: ['777']
+            });
+
+            headerText.dataset.isContact = false;
+            headerText.dataset.number = '777';
+
+            ThreadUI.onHeaderActivation();
+
+            var calls = MockOptionMenu.calls;
+
+            assert.equal(calls.length, 1);
+            assert.equal(calls[0].header, '777');
+            assert.equal(calls[0].items.length, 4);
+            assert.equal(typeof calls[0].complete, 'function');
+          });
+        });
+      });
+
+      suite('multi recipients, in group view >', function() {
+        setup(function() {
+          Navigation.isCurrentPanel.withArgs('group-view').returns(true);
 
           Threads.set(1, {
             participants: ['999', '888']
           });
+        });
 
-          window.location.hash = '#thread=1';
-
+        test('known recipient', function() {
           var header = document.createElement('div');
+
           ThreadUI.prompt({
             number: '999',
             header: header,
@@ -3870,14 +4117,7 @@ suite('thread_ui.js >', function() {
           assert.equal(items[2].l10nId, 'cancel');
         });
 
-        test('Multiple unknown', function() {
-
-          Threads.set(1, {
-            participants: ['999', '888']
-          });
-
-          window.location.hash = '#thread=1';
-
+        test('Unknown recipient', function() {
           ThreadUI.prompt({
             number: '999',
             isContact: false
@@ -3910,74 +4150,12 @@ suite('thread_ui.js >', function() {
           assert.equal(items[4].l10nId, 'cancel');
         });
       });
-
-      suite('onHeaderActivation', function() {
-        test('Single known', function() {
-          this.sinon.spy(ContactRenderer.prototype, 'render');
-
-          Threads.set(1, {
-            participants: ['+12125559999']
-          });
-
-          window.location.hash = '#thread=1';
-
-
-          ThreadUI.headerText.dataset.isContact = true;
-          ThreadUI.headerText.dataset.number = '+12125559999';
-
-          ThreadUI.onHeaderActivation();
-
-          var calls = MockOptionMenu.calls;
-
-          assert.equal(calls.length, 1);
-
-          // contacts do not show up in the body
-          assert.isUndefined(calls[0].section);
-
-          // contacts show up in the header
-          sinon.assert.calledWithMatch(ContactRenderer.prototype.render, {
-            target: calls[0].header
-          });
-
-          assert.equal(calls[0].items.length, 3);
-          assert.equal(typeof calls[0].complete, 'function');
-        });
-
-        test('Single unknown', function() {
-
-          Threads.set(1, {
-            participants: ['777']
-          });
-
-          window.location.hash = '#thread=1';
-
-          ThreadUI.headerText.dataset.isContact = false;
-          ThreadUI.headerText.dataset.number = '777';
-
-          ThreadUI.onHeaderActivation();
-
-          var calls = MockOptionMenu.calls;
-
-          assert.equal(calls.length, 1);
-          assert.equal(calls[0].header, '777');
-          assert.equal(calls[0].items.length, 4);
-          assert.equal(typeof calls[0].complete, 'function');
-        });
-      });
     });
 
     suite('updateHeaderData', function() {
-
-      test('callback does not exist', function() {
-        ThreadUI.updateHeaderData({});
+      test('returns a promise that is eventually resolved', function(done) {
+        ThreadUI.updateHeaderData().then(done, done);
       });
-
-      test('callback exists', function(done) {
-        ThreadUI.updateHeaderData(function() {
-          done();
-        });
-      });
-
     });
 
     // See: utils_test.js
@@ -3986,14 +4164,17 @@ suite('thread_ui.js >', function() {
     suite('Single participant', function() {
 
       suite('Carrier Tag', function() {
-        test('Carrier Tag (non empty string)', function(done) {
-
+        setup(function() {
           Threads.set(1, {
             participants: ['+12125559999']
           });
 
-          window.location.hash = '#thread=1';
+          this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
+          Navigation.isCurrentPanel.withArgs('thread', { id: 1 }).returns(true);
+          Threads.currentId = 1;
+        });
 
+        test('Carrier Tag (non empty string)', function(done) {
           this.sinon.stub(MockUtils, 'getCarrierTag', function() {
             return 'non empty string';
           });
@@ -4003,8 +4184,6 @@ suite('thread_ui.js >', function() {
 
             fn([new MockContact()]);
 
-            var threadMessages = document.getElementById('thread-messages');
-
             assert.isTrue(threadMessages.classList.contains('has-carrier'));
             done();
           });
@@ -4013,13 +4192,6 @@ suite('thread_ui.js >', function() {
         });
 
         test('Carrier Tag (empty string)', function(done) {
-
-          Threads.set(1, {
-            participants: ['+12125559999']
-          });
-
-          window.location.hash = '#thread=1';
-
           this.sinon.stub(MockUtils, 'getCarrierTag', function() {
             return '';
           });
@@ -4028,8 +4200,6 @@ suite('thread_ui.js >', function() {
             MockContacts, 'findByPhoneNumber', function(phone, fn) {
 
             fn([new MockContact()]);
-
-            var threadMessages = document.getElementById('thread-messages');
 
             assert.isFalse(threadMessages.classList.contains('has-carrier'));
 
@@ -4044,15 +4214,22 @@ suite('thread_ui.js >', function() {
     suite('Multi participant', function() {
       var localize;
       setup(function() {
-        window.location.hash = '';
         MockActivityPicker.dial.mSetup();
         MockOptionMenu.mSetup();
         localize = this.sinon.spy(navigator.mozL10n, 'localize');
+
+        Threads.set(1, {
+          participants: ['999', '888']
+        });
+
+        this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
+        Navigation.isCurrentPanel.withArgs('thread', { id: 1 }).returns(true);
+        Navigation.isCurrentPanel.withArgs('thread').returns(true);
+        Threads.currentId = 1;
       });
 
       teardown(function() {
         Threads.delete(1);
-        window.location.hash = '';
         MockActivityPicker.dial.mTeardown();
         MockOptionMenu.mTeardown();
       });
@@ -4061,14 +4238,8 @@ suite('thread_ui.js >', function() {
 
         test('DOES NOT Invoke Activities', function() {
 
-          Threads.set(1, {
-            participants: ['999', '888']
-          });
-
-          window.location.hash = '#thread=1';
-
-          ThreadUI.headerText.dataset.isContact = true;
-          ThreadUI.headerText.dataset.number = '999';
+          headerText.dataset.isContact = true;
+          headerText.dataset.number = '999';
 
           ThreadUI.onHeaderActivation();
 
@@ -4078,56 +4249,38 @@ suite('thread_ui.js >', function() {
 
         test('DOES NOT Invoke Options', function() {
 
-          Threads.set(1, {
-            participants: ['999', '888']
-          });
-
-          window.location.hash = '#thread=1';
-
-          ThreadUI.headerText.dataset.isContact = true;
-          ThreadUI.headerText.dataset.number = '999';
+          headerText.dataset.isContact = true;
+          headerText.dataset.number = '999';
 
           ThreadUI.onHeaderActivation();
 
           assert.equal(MockOptionMenu.calls.length, 0);
         });
 
-        test('Moves to Group information View', function(done) {
-          Threads.set(1, {
-            participants: ['999', '888']
-          });
+        test('Moves to Group information View', function() {
+          this.sinon.spy(Navigation, 'toPanel');
 
-          // Change to #thread=n
-          window.onhashchange = function() {
-            // Change to #group-view (per ThreadUI.onHeaderActivation())
-            window.onhashchange = function() {
-              window.onhashchange = null;
-              assert.equal(window.location.hash, '#group-view');
-              // View should not go back to thread view when header is
-              // activated in group-view
-              ThreadUI.onHeaderActivation();
-              assert.equal(window.location.hash, '#group-view');
-              done();
-            };
+          ThreadUI.onHeaderActivation();
 
-            ThreadUI.onHeaderActivation();
-          };
+          sinon.assert.calledWithMatch(
+            Navigation.toPanel, 'group-view', { id: 1 }
+          );
 
-          window.location.hash = '#thread=1';
+          Navigation.isCurrentPanel.withArgs('thread').returns(false);
+          Navigation.isCurrentPanel.withArgs('group-view').returns(true);
+
+          ThreadUI.onHeaderActivation();
+
+          // View should not go back to thread view when header is
+          // activated in group-view
+          sinon.assert.calledOnce(Navigation.toPanel);
         });
       });
 
       suite('Carrier Tag', function() {
         test('Carrier Tag (empty string)', function() {
 
-          Threads.set(1, {
-            participants: ['999', '888']
-          });
-
-          window.location.hash = '#thread=1';
           ThreadUI.updateHeaderData();
-
-          var threadMessages = document.getElementById('thread-messages');
 
           assert.isFalse(threadMessages.classList.contains('has-carrier'));
         });
@@ -4137,8 +4290,6 @@ suite('thread_ui.js >', function() {
   });
 
   suite('Sending Behavior (onSendClick)', function() {
-    var spy;
-
     function clickButton() {
       clickButtonAndSelectSim(0);
     }
@@ -4150,7 +4301,6 @@ suite('thread_ui.js >', function() {
     }
 
     setup(function() {
-      window.location.hash = '#new';
       this.sinon.stub(MessageManager, 'sendSMS');
       this.sinon.stub(MessageManager, 'sendMMS');
 
@@ -4161,6 +4311,11 @@ suite('thread_ui.js >', function() {
       this.sinon.stub(Compose, 'isEmpty').returns(false);
       this.sinon.stub(Settings, 'hasSeveralSim').returns(false);
       this.sinon.stub(Settings, 'isDualSimDevice').returns(false);
+
+      this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
+      Navigation.isCurrentPanel.withArgs('composer').returns(true);
+
+      this.sinon.spy(Navigation, 'toPanel');
     });
 
     test('SMS, 1 Recipient, moves to thread', function() {
@@ -4187,7 +4342,11 @@ suite('thread_ui.js >', function() {
       });
       ThreadUI.onMessageSending(sentMessage);
 
-      assert.equal(window.location.hash, '#thread=' + sentMessage.threadId);
+      sinon.assert.calledWith(
+        Navigation.toPanel,
+        'thread',
+        { id: sentMessage.threadId }
+      );
     });
 
     test('MMS, 1 Recipient, moves to thread', function() {
@@ -4211,7 +4370,11 @@ suite('thread_ui.js >', function() {
       });
       ThreadUI.onMessageSending(sentMessage);
 
-      assert.equal(window.location.hash, '#thread=' + sentMessage.threadId);
+      sinon.assert.calledWith(
+        Navigation.toPanel,
+        'thread',
+        { id: sentMessage.threadId }
+      );
     });
 
     suite('SMS, >1 Recipient,', function() {
@@ -4248,7 +4411,7 @@ suite('thread_ui.js >', function() {
 
       test('moves to thread list', function() {
         sendSmsToSeveralRecipients();
-        assert.equal(window.location.hash, '#thread-list');
+        sinon.assert.calledWith(Navigation.toPanel, 'thread-list');
       });
 
       test('then closes if we\'re in the activity', function() {
@@ -4256,7 +4419,7 @@ suite('thread_ui.js >', function() {
         this.sinon.stub(ActivityHandler, 'isInActivity').returns(true);
 
         sendSmsToSeveralRecipients();
-        assert.equal(window.location.hash, '#thread-list');
+        sinon.assert.calledWith(Navigation.toPanel, 'thread-list');
 
         this.sinon.clock.tick(ThreadUI.LEAVE_ACTIVITY_DELAY);
 
@@ -4277,7 +4440,7 @@ suite('thread_ui.js >', function() {
 
       clickButton();
 
-      assert.equal(window.location.hash, '#new');
+      sinon.assert.notCalled(Navigation.toPanel);
       sinon.assert.calledWithMatch(MessageManager.sendMMS, {
         recipients: recipients,
         serviceId: 0
@@ -4289,7 +4452,11 @@ suite('thread_ui.js >', function() {
 
       ThreadUI.onMessageSending(sentMessage);
 
-      assert.equal(window.location.hash, '#thread=' + sentMessage.threadId);
+      sinon.assert.calledWith(
+        Navigation.toPanel,
+        'thread',
+        { id: sentMessage.threadId }
+      );
     });
 
     suite('DSDS behavior', function() {
@@ -4341,21 +4508,58 @@ suite('thread_ui.js >', function() {
           serviceId: 0
         });
       });
-
-      suite('SIM picker', function() {
-        test('loads and translates SIM picker', function() {
-          var simPickerElt = document.getElementById('sim-picker');
-          var translateSpy = this.sinon.spy(MockL10n, 'translate');
-          var loadSpy = this.sinon.spy(MockLazyLoader, 'load');
-
-          ThreadUI.onBeforeEnter();
-
-          sinon.assert.calledWith(translateSpy, simPickerElt);
-          sinon.assert.calledWith(loadSpy, [simPickerElt]);
-        });
-      });
     });
 
+    suite('onMessageSendRequestCompleted >', function() {
+      setup(function() {
+        ThreadUI.recipients.add({
+          number: '999'
+        });
+
+        this.sinon.spy(ThreadUI, 'onMessageSendRequestCompleted');
+      });
+
+      test('called if SMS is successfully sent', function() {
+        MessageManager.sendSMS.yieldsTo('oncomplete', {});
+        Compose.append('foo');
+
+        clickButton();
+
+        sinon.assert.called(ThreadUI.onMessageSendRequestCompleted);
+      });
+
+      test('is not called if SMS is failed to be sent', function() {
+        MessageManager.sendSMS.yieldsTo('oncomplete', {
+          hasError: true,
+          return: [{
+            success: true
+          }]
+        });
+        Compose.append('foo');
+
+        clickButton();
+
+        sinon.assert.notCalled(ThreadUI.onMessageSendRequestCompleted);
+      });
+
+      test('called if MMS is successfully sent', function() {
+        MessageManager.sendMMS.yieldsTo('onsuccess', {});
+        Compose.append(mockAttachment(512));
+
+        clickButton();
+
+        sinon.assert.called(ThreadUI.onMessageSendRequestCompleted);
+      });
+
+      test('is not called if MMS is failed to be sent', function() {
+        MessageManager.sendMMS.yieldsTo('onerror', new Error('failed'));
+        Compose.append(mockAttachment(512));
+
+        clickButton();
+
+        sinon.assert.notCalled(ThreadUI.onMessageSendRequestCompleted);
+      });
+    });
 
     test('Deletes draft if there was a draft', function() {
       this.sinon.spy(Drafts, 'delete');
@@ -4377,7 +4581,7 @@ suite('thread_ui.js >', function() {
     });
 
     test('Removes draft thread if there was a draft thread', function() {
-      spy = this.sinon.spy(ThreadListUI, 'removeThread');
+      this.sinon.spy(ThreadListUI, 'removeThread');
 
       ThreadUI.draft = {id: 3};
       ThreadUI.recipients.add({
@@ -4387,7 +4591,7 @@ suite('thread_ui.js >', function() {
 
       clickButton();
 
-      assert.isTrue(spy.calledOnce);
+      sinon.assert.calledOnce(ThreadListUI.removeThread);
     });
 
     suite('sendMMS errors', function() {
@@ -4470,12 +4674,10 @@ suite('thread_ui.js >', function() {
   suite('recipient handling >', function() {
     var localize;
     setup(function() {
-      location.hash = '#new';
-      localize = this.sinon.spy(navigator.mozL10n, 'localize');
-    });
+      this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
+      Navigation.isCurrentPanel.withArgs('composer').returns(true);
 
-    teardown(function() {
-      location.hash = '';
+      localize = this.sinon.spy(navigator.mozL10n, 'localize');
     });
 
     function testPickButtonEnabled() {
@@ -4492,7 +4694,7 @@ suite('thread_ui.js >', function() {
 
       test('header is correct', function() {
         assert.deepEqual(localize.args[0], [
-          ThreadUI.headerText, 'newMessage'
+          headerText, 'newMessage'
         ]);
       });
 
@@ -4508,7 +4710,7 @@ suite('thread_ui.js >', function() {
 
       test('header is correct', function() {
         assert.deepEqual(localize.args[0], [
-          ThreadUI.headerText, 'recipient', {n: 1}
+          headerText, 'recipient', {n: 1}
         ]);
       });
 
@@ -4528,7 +4730,7 @@ suite('thread_ui.js >', function() {
       test('header is correct', function() {
         assert.ok(localize.calledTwice);
         assert.deepEqual(localize.args[1], [
-          ThreadUI.headerText, 'recipient', {n: 2}
+          headerText, 'recipient', {n: 2}
         ]);
       });
 
@@ -4552,7 +4754,8 @@ suite('thread_ui.js >', function() {
     var addSpy, updateSpy, bannerSpy, arg;
 
     setup(function() {
-      window.location.hash = '#new';
+      this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
+
       addSpy = this.sinon.spy(Drafts, 'add');
       updateSpy = this.sinon.spy(ThreadListUI, 'updateThread');
       bannerSpy = this.sinon.spy(ThreadListUI, 'onDraftSaved');
@@ -4564,165 +4767,137 @@ suite('thread_ui.js >', function() {
       Compose.append('foo');
     });
 
-    test('do not preserve draft for replacement', function() {
-      ThreadUI.saveDraft();
-
-      assert.isNull(ThreadUI.draft);
-    });
-
-    test('preserve pre-existing draft for replacement', function() {
-      var draft = {id: 55};
-      ThreadUI.draft = draft;
-      ThreadUI.saveDraft({preserve: true});
-
-      assert.isNotNull(ThreadUI.draft);
-      assert.equal(ThreadUI.draft, draft);
-    });
-
-    test('preserve new draft for replacement', function() {
-      ThreadUI.draft = null;
-      ThreadUI.saveDraft({preserve: true});
-
-      assert.isNotNull(ThreadUI.draft);
-      assert.deepEqual(ThreadUI.draft.recipients, ['999']);
-      assert.equal(ThreadUI.draft.content, 'foo');
-      assert.equal(ThreadUI.draft.threadId, null);
-    });
-
-    test('has entered content and recipients', function() {
-      ThreadUI.saveDraft();
-      arg = addSpy.firstCall.args[0];
-
-      assert.deepEqual(arg.recipients, ['999']);
-      assert.deepEqual(arg.content, ['foo']);
-    });
-
-    test('has entered recipients but not content', function() {
-      Compose.clear();
-      ThreadUI.saveDraft();
-      arg = addSpy.firstCall.args[0];
-
-      assert.deepEqual(arg.recipients, ['999']);
-      assert.deepEqual(arg.content, []);
-    });
-
-    test('has entered content but not recipients', function() {
-      ThreadUI.recipients.remove('999');
-      ThreadUI.saveDraft();
-      arg = addSpy.firstCall.args[0];
-
-      assert.deepEqual(arg.recipients, []);
-      assert.deepEqual(arg.content, ['foo']);
-    });
-
-    test('thread is updated in thread list, threadbound', function() {
-      Threads.set(1, {
-        participants: ['999']
-      });
-      window.location.hash = '#thread=1';
-
-      ThreadUI.saveDraft();
-
-      sinon.assert.calledOnce(updateSpy);
-    });
-
-    test('thread is updated in thread list, threadless', function() {
-      ThreadUI.saveDraft();
-
-      sinon.assert.calledOnce(updateSpy);
-    });
-
-    test('saves brand new threadless draft if not within thread', function() {
-      Drafts.clear();
-
-      ThreadUI.draft = {id: 1};
-      ThreadUI.saveDraft();
-      assert.equal(Drafts.byThreadId(null).length, 1);
-
-      ThreadUI.draft = {id: 2};
-      ThreadUI.saveDraft();
-      assert.equal(Drafts.byThreadId(null).length, 2);
-
-      ThreadUI.draft = {id: 3};
-      ThreadUI.saveDraft();
-      assert.equal(Drafts.byThreadId(null).length, 3);
-    });
-
-    test('saves draft to existing thread if within thread', function() {
-      Threads.set(1, {
-        participants: ['999']
-      });
-      window.location.hash = '#thread=1';
-
-      ThreadUI.saveDraft();
-      assert.equal(Drafts.byThreadId(1).length, 1);
-
-      Compose.append('baz');
-      ThreadUI.saveDraft();
-      assert.equal(Drafts.byThreadId(1).length, 1);
-
-      Compose.append('foo');
-      ThreadUI.saveDraft();
-      assert.equal(Drafts.byThreadId(1).length, 1);
-    });
-
-    test('Update thread timestamp if within thread', function() {
-
-      this.sinon.stub(window, 'Draft').returns({
-        timestamp: 2
+    suite('threadless >', function() {
+      setup(function() {
+        Navigation.isCurrentPanel.withArgs('composer').returns(true);
       });
 
-      Threads.set(1, {
-        participants: ['999'],
-        timestamp: 1
+      test('do not preserve draft for replacement', function() {
+        ThreadUI.saveDraft();
+
+        assert.isNull(ThreadUI.draft);
       });
 
-      window.location.hash = '#thread=1';
+      test('preserve pre-existing draft for replacement', function() {
+        var draft = {id: 55};
+        ThreadUI.draft = draft;
+        ThreadUI.saveDraft({preserve: true});
 
-      ThreadUI.saveDraft();
+        assert.isNotNull(ThreadUI.draft);
+        assert.equal(ThreadUI.draft, draft);
+      });
 
-      assert.equal(Threads.get(1).timestamp, 2);
+      test('preserve new draft for replacement', function() {
+        ThreadUI.draft = null;
+        ThreadUI.saveDraft({preserve: true});
+
+        assert.isNotNull(ThreadUI.draft);
+        assert.deepEqual(ThreadUI.draft.recipients, ['999']);
+        assert.equal(ThreadUI.draft.content, 'foo');
+        assert.equal(ThreadUI.draft.threadId, null);
+      });
+
+      test('has entered content and recipients', function() {
+        ThreadUI.saveDraft();
+        arg = addSpy.firstCall.args[0];
+
+        assert.deepEqual(arg.recipients, ['999']);
+        assert.deepEqual(arg.content, ['foo']);
+      });
+
+      test('has entered recipients but not content', function() {
+        Compose.clear();
+        ThreadUI.saveDraft();
+        arg = addSpy.firstCall.args[0];
+
+        assert.deepEqual(arg.recipients, ['999']);
+        assert.deepEqual(arg.content, []);
+      });
+
+      test('has entered content but not recipients', function() {
+        ThreadUI.recipients.remove('999');
+        ThreadUI.saveDraft();
+        arg = addSpy.firstCall.args[0];
+
+        assert.deepEqual(arg.recipients, []);
+        assert.deepEqual(arg.content, ['foo']);
+      });
+
+      test('thread is updated in thread list, threadless', function() {
+        ThreadUI.saveDraft();
+
+        sinon.assert.calledOnce(updateSpy);
+      });
+
+      test('saves brand new threadless draft if not within thread', function() {
+        Drafts.clear();
+
+        ThreadUI.draft = {id: 1};
+        ThreadUI.saveDraft();
+        assert.equal(Drafts.byThreadId(null).length, 1);
+
+        ThreadUI.draft = {id: 2};
+        ThreadUI.saveDraft();
+        assert.equal(Drafts.byThreadId(null).length, 2);
+
+        ThreadUI.draft = {id: 3};
+        ThreadUI.saveDraft();
+        assert.equal(Drafts.byThreadId(null).length, 3);
+      });
     });
 
-    test('Update thread unreadCount if within thread', function() {
+    suite('within an existing thread >', function() {
+       setup(function() {
+        Threads.set(1, {
+          participants: ['999']
+        });
 
-      this.sinon.stub(window, 'Draft').returns({
-        unreadCount: 2
+        Navigation.isCurrentPanel.withArgs('thread', { id: 1 }).returns(true);
+        Threads.currentId = 1;
+       });
+
+      test('thread is updated in thread list', function() {
+        ThreadUI.saveDraft();
+
+        sinon.assert.calledOnce(updateSpy);
       });
 
-      Threads.set(1, {
-        participants: ['999'],
-        unreadCount: 0
+      test('saves draft to existing thread', function() {
+        ThreadUI.saveDraft();
+        assert.equal(Drafts.byThreadId(1).length, 1);
+
+        Compose.append('baz');
+        ThreadUI.saveDraft();
+        assert.equal(Drafts.byThreadId(1).length, 1);
+
+        Compose.append('foo');
+        ThreadUI.saveDraft();
+        assert.equal(Drafts.byThreadId(1).length, 1);
       });
 
-      window.location.hash = '#thread=1';
+      test('Update thread timestamp', function() {
+        this.sinon.stub(window, 'Draft').returns({
+          timestamp: 2
+        });
 
-      ThreadUI.saveDraft();
+        ThreadUI.saveDraft();
 
-      assert.equal(Threads.get(1).unreadCount, 0);
+        assert.equal(Threads.get(1).timestamp, 2);
+      });
+
+      test('shows draft saved banner if not autosaved', function() {
+        ThreadUI.saveDraft();
+
+        sinon.assert.calledOnce(bannerSpy);
+      });
+
+      test('does not show draft saved banner if autosaved', function() {
+        ThreadUI.saveDraft({autoSave: true});
+
+        sinon.assert.notCalled(bannerSpy);
+      });
     });
 
-    test('shows draft saved banner if not autosaved', function() {
-      Threads.set(1, {
-        participants: ['999']
-      });
-      window.location.hash = '#thread=1';
-
-      ThreadUI.saveDraft();
-
-      sinon.assert.calledOnce(bannerSpy);
-    });
-
-    test('does not show draft saved banner if autosaved', function() {
-      Threads.set(1, {
-        participants: ['999']
-      });
-      window.location.hash = '#thread=1';
-
-      ThreadUI.saveDraft({autoSave: true});
-
-      sinon.assert.notCalled(bannerSpy);
-    });
   });
 
   suite('onVisibilityChange() >', function() {
@@ -4739,11 +4914,12 @@ suite('thread_ui.js >', function() {
 
     suiteTeardown(function() {
       delete document.hidden;
-      MessageManager.draft = null;
+      ThreadUI.draft = null;
     });
 
     setup(function() {
       this.sinon.spy(ThreadUI, 'saveDraft');
+      this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
     });
 
     teardown(function() {
@@ -4756,7 +4932,7 @@ suite('thread_ui.js >', function() {
       });
 
       test('new: has message', function() {
-        window.location.hash = '#new';
+        Navigation.isCurrentPanel.withArgs('composer').returns(true);
 
         isDocumentHidden = true;
 
@@ -4770,7 +4946,7 @@ suite('thread_ui.js >', function() {
       });
 
       test('new: has message, has recipients', function() {
-        window.location.hash = '#new';
+        Navigation.isCurrentPanel.withArgs('composer').returns(true);
 
         ThreadUI.recipients.length = 1;
         isDocumentHidden = true;
@@ -4785,7 +4961,7 @@ suite('thread_ui.js >', function() {
       });
 
       test('thread: has message', function() {
-        window.location.hash = '#thread=1';
+        Navigation.isCurrentPanel.withArgs('thread').returns(true);
 
         isDocumentHidden = true;
 
@@ -4801,9 +4977,9 @@ suite('thread_ui.js >', function() {
 
     suite('Draft saved: content OR recipients exist', function() {
       test('new: has message, no recipients', function() {
-        window.location.hash = '#new';
-
+        Navigation.isCurrentPanel.withArgs('composer').returns(true);
         this.sinon.stub(Compose, 'isEmpty').returns(false);
+
         ThreadUI.recipients.length = 0;
         isDocumentHidden = true;
 
@@ -4817,9 +4993,9 @@ suite('thread_ui.js >', function() {
       });
 
       test('new: no message, has recipients', function() {
-        window.location.hash = '#new';
-
+        Navigation.isCurrentPanel.withArgs('composer').returns(true);
         this.sinon.stub(Compose, 'isEmpty').returns(true);
+
         ThreadUI.recipients.length = 1;
         isDocumentHidden = true;
 
@@ -4840,7 +5016,7 @@ suite('thread_ui.js >', function() {
       });
 
       test('new: no message', function() {
-        window.location.hash = '#new';
+        Navigation.isCurrentPanel.withArgs('composer').returns(true);
 
         isDocumentHidden = true;
 
@@ -4850,7 +5026,7 @@ suite('thread_ui.js >', function() {
       });
 
       test('new: no message, no recipients', function() {
-        window.location.hash = '#new';
+        Navigation.isCurrentPanel.withArgs('composer').returns(true);
 
         ThreadUI.recipients.length = 0;
         isDocumentHidden = true;
@@ -4861,7 +5037,7 @@ suite('thread_ui.js >', function() {
       });
 
       test('thread: no message', function() {
-        window.location.hash = '#thread=1';
+        Navigation.isCurrentPanel.withArgs('thread').returns(true);
 
         isDocumentHidden = true;
 
@@ -4891,7 +5067,8 @@ suite('thread_ui.js >', function() {
         this.sinon.stub(ThreadUI, 'isKeyboardDisplayed').returns(false);
         this.sinon.stub(ThreadUI, 'stopRendering');
 
-        window.location.hash = '#new';
+        this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
+        Navigation.isCurrentPanel.withArgs('composer').returns(true);
 
         ThreadUI.recipients.add({
           number: '999'
@@ -4950,46 +5127,42 @@ suite('thread_ui.js >', function() {
       });
 
       suite('OptionMenu operations', function(done) {
+        setup(function() {
+          this.sinon.spy(Navigation, 'toPanel');
+          this.sinon.spy(ThreadUI, 'saveDraft');
+          this.sinon.spy(ThreadListUI, 'removeThread');
+        });
+
         test('Save as Draft', function(done) {
-          var spy = this.sinon.spy(ThreadUI, 'saveDraft');
           optionMenuTargetItemIndex = 0;
 
           ThreadUI.back().then(function() {
-            // These things will be true
-            assert.isTrue(spy.calledOnce);
-            assert.equal(window.location.hash, '#thread-list');
-            assert.equal(ThreadUI.recipients.length, 0);
-            assert.equal(Compose.getContent(), '');
+            sinon.assert.calledOnce(ThreadUI.saveDraft);
+            sinon.assert.calledWith(Navigation.toPanel, 'thread-list');
           }).then(done, done);
         });
 
         test('Discard', function(done) {
-          var spy = this.sinon.spy(ThreadListUI, 'removeThread');
           optionMenuTargetItemIndex = 1;
           ThreadUI.draft = new Draft({id: 3});
           ThreadUI.draft.isEdited = true;
 
           ThreadUI.back().then(function() {
-            assert.equal(window.location.hash, '#thread-list');
-            assert.equal(ThreadUI.recipients.length, 0);
-            assert.equal(Compose.getContent(), '');
-            assert.isTrue(spy.calledOnce);
+            sinon.assert.calledWith(Navigation.toPanel, 'thread-list');
+            sinon.assert.calledOnce(ThreadListUI.removeThread);
             assert.isNull(ThreadUI.draft);
           }).then(done, done);
         });
 
         test('Cancel', function(done) {
-          var saveDraftSpy = this.sinon.spy(ThreadUI, 'saveDraft');
-          var discardDraftSpy = this.sinon.spy(ThreadListUI, 'removeThread');
           optionMenuTargetItemIndex = 2;
 
           ThreadUI.back().then(function() {
             throw new Error('Success callback should not have been called.');
           }, function() {
-            // These things will be true
-            sinon.assert.notCalled(saveDraftSpy);
-            sinon.assert.notCalled(discardDraftSpy);
-            assert.equal(window.location.hash, '#new');
+            sinon.assert.notCalled(ThreadUI.saveDraft);
+            sinon.assert.notCalled(ThreadListUI.removeThread);
+            sinon.assert.notCalled(Navigation.toPanel);
           }).then(done, done);
         });
       });
@@ -5169,23 +5342,20 @@ suite('thread_ui.js >', function() {
    */
   suite('Options menu', function() {
     setup(function() {
-      window.location.hash = '';
       MockOptionMenu.mSetup();
     });
 
     teardown(function() {
-      window.location.hash = '';
       MockOptionMenu.mTeardown();
     });
 
     suite('opens from new message', function() {
       var options;
       setup(function() {
-        window.location.hash = '#new';
+        this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
+        Navigation.isCurrentPanel.withArgs('composer').returns(true);
       });
-      teardown(function() {
-        window.location.hash = '';
-      });
+
       test('should show proper options', function() {
         ThreadUI.showOptions();
         options = MockOptionMenu.calls[0].items;
@@ -5198,13 +5368,14 @@ suite('thread_ui.js >', function() {
     suite('opens from existing message', function() {
       var options;
       setup(function() {
-        window.location.hash = '#thread=1';
+        this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
+        Navigation.isCurrentPanel.withArgs('thread', { id: 1 }).returns(true);
+        Navigation.isCurrentPanel.withArgs('thread').returns(true);
+
         ThreadUI.showOptions();
         options = MockOptionMenu.calls[0].items;
       });
-      teardown(function() {
-        window.location.hash = '';
-      });
+
       test('should show options overlay', function() {
         assert.equal(MockOptionMenu.calls.length, 1);
       });
@@ -5292,8 +5463,9 @@ suite('thread_ui.js >', function() {
 
     setup(function() {
       this.sinon.stub(ThreadUI, 'appendMessage');
+      this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
 
-      window.location.hash = '#thread=1';
+      this.sinon.spy(Navigation, 'toPanel');
     });
 
     teardown(function() {
@@ -5302,6 +5474,10 @@ suite('thread_ui.js >', function() {
 
 
     test('should append message if the user is in correct thread', function() {
+      // not implemented yet: https://github.com/cjohansen/Sinon.JS/issues/461
+      // Navigation.isCurrentPanel.withExactArgs('thread').returns(true);
+      Navigation.isCurrentPanel.withArgs('thread', { id: 1 }).returns(true);
+
       var message = MockMessages.sms({
         threadId: 1
       });
@@ -5311,7 +5487,8 @@ suite('thread_ui.js >', function() {
     });
 
     test('should do nothing if the user is not in correct thread', function() {
-      var originalHash = window.location.hash;
+      Navigation.isCurrentPanel.withArgs('thread', { id: 1 }).returns(true);
+
       var message = MockMessages.sms({
         threadId: 2
       });
@@ -5320,11 +5497,12 @@ suite('thread_ui.js >', function() {
       sinon.assert.notCalled(ThreadUI.appendMessage);
 
       // should not change the panel since we didn't click the send button
-      assert.equal(window.location.hash, originalHash);
+      sinon.assert.notCalled(Navigation.toPanel);
     });
 
     test('should not change panel if the user is in the composer', function() {
-      window.location.hash = '#new';
+      Navigation.isCurrentPanel.withArgs('composer').returns(true);
+
       var message = MockMessages.sms({
         threadId: 1
       });
@@ -5334,61 +5512,632 @@ suite('thread_ui.js >', function() {
       sinon.assert.notCalled(ThreadUI.appendMessage);
 
       // should not change the panel since we didn't click the send button
-      assert.equal(window.location.hash, '#new');
+      sinon.assert.notCalled(Navigation.toPanel);
     });
   });
 
-  suite('onBeforeEnter()', function() {
+  suite('handleDraft()', function() {
     setup(function() {
-      this.sinon.spy(window, 'MultiSimActionButton');
-      ThreadUI.onBeforeEnter();
+      ThreadUI.draft = new Draft({
+        threadId: 1234,
+        recipients: []
+      });
+      this.sinon.spy(Compose, 'fromDraft');
+      this.sinon.stub(Drafts, 'delete').returns(Drafts);
+      this.sinon.stub(Drafts, 'store').returns(Drafts);
+      this.sinon.spy(ThreadUI.recipients, 'add');
+      this.sinon.spy(ThreadUI, 'updateHeaderData');
     });
 
-    test('initializes MultiSimActionButton', function() {
-      sinon.assert.calledWith(
-        MultiSimActionButton,
-        sendButton,
-        sinon.match.func,
-        Settings.SERVICE_ID_KEYS.smsServiceId
-      );
+    teardown(function() {
+      ThreadUI.draft = null;
     });
 
-    test('initializes only once', function() {
-      ThreadUI.onBeforeEnter();
-      sinon.assert.calledOnce(MultiSimActionButton);
+    test('Calls Compose.fromDraft(), no recipients loaded', function() {
+      ThreadUI.handleDraft();
+      sinon.assert.calledOnce(Compose.fromDraft);
+      sinon.assert.notCalled(ThreadUI.recipients.add);
+      sinon.assert.notCalled(ThreadUI.updateHeaderData);
     });
 
-    test('Should set the isFocusable value to \'true\'', function() {
-      Recipients.View.isFocusable = false;
-      ThreadUI.onBeforeEnter();
-      assert.isTrue(Recipients.View.isFocusable);
+    test('with recipients', function() {
+      ThreadUI.draft.recipients = ['800 732 0872', '800 555 1212'];
+      ThreadUI.handleDraft();
+      sinon.assert.calledTwice(ThreadUI.recipients.add);
+      sinon.assert.notCalled(ThreadUI.updateHeaderData);
+    });
+
+    test('discards draft record', function() {
+      ThreadUI.draft = new Draft({
+        recipients: []
+      });
+
+      ThreadUI.handleDraft();
+
+      sinon.assert.called(Drafts.delete);
+      sinon.assert.called(Drafts.store);
+    });
+  });
+
+  suite('handleActivity() >', function() {
+    setup(function() {
+      this.sinon.stub(Compose, 'fromDraft');
+      this.sinon.stub(Compose, 'fromMessage');
+    });
+
+    test('from activity with unknown contact', function() {
+      var activity = {
+        number: '998',
+        contact: null
+      };
+      ThreadUI.handleActivity(activity);
+
+      assert.equal(ThreadUI.recipients.numbers.length, 1);
+      assert.equal(ThreadUI.recipients.numbers[0], '998');
+      sinon.assert.calledWith(Compose.fromMessage, activity);
+    });
+
+    test('from activity with known contact', function() {
+      var activity = {
+        contact: new MockContact()
+      };
+      ThreadUI.handleActivity(activity);
+
+      assert.equal(ThreadUI.recipients.numbers.length, 1);
+      assert.equal(ThreadUI.recipients.numbers[0], '+346578888888');
+      sinon.assert.calledWith(Compose.fromMessage, activity);
+    });
+
+    test('with message body', function() {
+      var activity = {
+        number: '998',
+        contact: null,
+        body: 'test'
+      };
+      ThreadUI.handleActivity(activity);
+      sinon.assert.calledWith(Compose.fromMessage, activity);
+    });
+
+    test('No contact and no number', function() {
+      var activity = {
+        number: null,
+        contact: null,
+        body: 'Youtube url'
+      };
+      ThreadUI.handleActivity(activity);
+      assert.equal(ThreadUI.recipients.numbers.length, 0);
+      sinon.assert.calledWith(Compose.fromMessage, activity);
+    });
+  });
+
+  suite('handleForward() >', function() {
+    var message;
+    setup(function() {
+      this.sinon.spy(Compose, 'fromMessage');
+      this.sinon.stub(MessageManager, 'getMessage', function(id) {
+        switch (id) {
+          case 1:
+            message = MockMessages.sms();
+            break;
+          case 2:
+            message = MockMessages.mms();
+            break;
+          case 3:
+            message = MockMessages.mms({subject: 'Title'});
+        }
+        var request = {
+          result: message,
+          set onsuccess(cb) {
+            cb();
+          },
+          get onsuccess() {
+            return {};
+          }
+        };
+        return request;
+      });
+    });
+
+    test(' forward SMS', function() {
+      var forward = {
+        messageId: 1
+      };
+      ThreadUI.handleForward(forward);
+      sinon.assert.calledOnce(MessageManager.getMessage);
+      sinon.assert.calledWith(MessageManager.getMessage, 1);
+      sinon.assert.calledWith(Compose.fromMessage, message);
+    });
+
+    test(' forward MMS with attachment', function() {
+      var forward = {
+        messageId: 2
+      };
+      ThreadUI.handleForward(forward);
+      sinon.assert.calledOnce(MessageManager.getMessage);
+      sinon.assert.calledWith(MessageManager.getMessage, 2);
+      sinon.assert.calledWith(Compose.fromMessage, message);
+    });
+
+    test(' forward MMS with subject', function() {
+      var forward = {
+        messageId: 3
+      };
+      ThreadUI.handleForward(forward);
+      sinon.assert.calledOnce(MessageManager.getMessage);
+      sinon.assert.calledWith(MessageManager.getMessage, 3);
+      sinon.assert.calledWith(Compose.fromMessage, message);
+    });
+  });
+
+  suite('beforeLeave() ', function() {
+    test('to thread-list, exits edit mode', function() {
+      this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
+      Navigation.isCurrentPanel.withArgs('thread-list').returns(true);
+
+      ThreadUI.startEdit();
+      ThreadUI.beforeLeave();
+
+      assert.isFalse(mainWrapper.classList.contains('edit'));
+    });
+
+    test('to thread view, exits edit mode', function() {
+      // this can happen when the user clicks a notification
+      this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
+      Navigation.isCurrentPanel.withArgs('thread').returns(true);
+
+      ThreadUI.startEdit();
+      ThreadUI.beforeLeave();
+
+      assert.isFalse(mainWrapper.classList.contains('edit'));
+    });
+  });
+
+  suite('afterLeave()', function() {
+    setup(function() {
+       this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
+    });
+
+    test('properly clean the composer when moving back to thread list',
+    function() {
+      Navigation.isCurrentPanel.withArgs('thread-list').returns(true);
+      Compose.append('some stuff');
+      ThreadUI.recipients.add({
+        number: '999'
+      });
+
+      ThreadUI.afterLeave();
+
+      assert.equal(Compose.getContent(), '');
+      assert.equal(ThreadUI.recipients.length, 0);
+    });
+
+    test('properly cleans the thread view when moving back to thread list',
+    function() {
+      var contact = new MockContact(),
+          number = contact.tel[0].value,
+          contactDetails = Utils.getContactDetails(number, [contact]),
+          thread = {
+            participants: [number]
+          };
+      Navigation.isCurrentPanel.withArgs('thread-list').returns(true);
+
+      ThreadUI.updateCarrier(thread, [contact], contactDetails);
+      assert.isTrue(threadMessages.classList.contains('has-carrier'));
+
+      ThreadUI.afterLeave();
+
+      assert.isFalse(threadMessages.classList.contains('has-carrier'));
+    });
+  });
+
+
+  function beforeEnterGeneralTests(getTransitionArgs) {
+    suite('beforeEnter()', function() {
+      var transitionArgs;
+
+      setup(function() {
+        transitionArgs = getTransitionArgs();
+        this.sinon.spy(MockL10n, 'translate');
+        this.sinon.spy(MockLazyLoader, 'load');
+        this.sinon.spy(window, 'MultiSimActionButton');
+        ThreadUI.beforeEnter(transitionArgs);
+      });
+
+      test('initializes MultiSimActionButton', function() {
+        sinon.assert.calledWith(
+          MultiSimActionButton,
+          sendButton,
+          sinon.match.func,
+          Settings.SERVICE_ID_KEYS.smsServiceId
+        );
+      });
+
+      test('initializes only once', function() {
+        ThreadUI.beforeEnter(transitionArgs);
+        sinon.assert.calledOnce(MultiSimActionButton);
+      });
+
+      test('Should set the isFocusable value to \'true\'', function() {
+        Recipients.View.isFocusable = false;
+        ThreadUI.beforeEnter(transitionArgs);
+        assert.isTrue(Recipients.View.isFocusable);
+      });
+
+      test('loads and translates SIM picker', function() {
+        var simPickerElt = document.getElementById('sim-picker');
+
+        sinon.assert.calledWith(MockL10n.translate, simPickerElt);
+        sinon.assert.calledWith(MockLazyLoader.load, [simPickerElt]);
+      });
+    });
+
+  }
+
+  suite('switch to composer >', function() {
+    var transitionArgs = {
+      meta: {
+        next: { panel: 'composer', args: {} },
+        prev: { panel: 'thread-list', args: {} }
+      }
+    };
+
+    setup(function() {
+      this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
+    });
+
+
+    suite('beforeEnter()', function() {
+      setup(function() {
+        Navigation.isCurrentPanel.withArgs('thread-list').returns(true);
+      });
+
+      beforeEnterGeneralTests(() => transitionArgs);
+
+      suite('composer-specific tests', function() {
+        setup(function() {
+          this.sinon.spy(ThreadUI, 'cleanFields');
+          this.sinon.spy(ThreadUI.recipients, 'focus');
+
+          ThreadUI.draft = null;
+          Compose.append('some stuff');
+          ThreadUI.recipients.add({number: '456789'});
+
+          ThreadUI.beforeEnter(transitionArgs);
+        });
+
+        test(' all fields cleaned', function() {
+          sinon.assert.calledWith(ThreadUI.cleanFields, true);
+        });
+
+        test(' layout updated', function() {
+          assert.ok(threadMessages.classList.contains('new'));
+        });
+
+        test('cleans up the state', function() {
+          assert.equal(Compose.getContent(), '');
+          assert.equal(ThreadUI.recipients.length, 0);
+        });
+
+        test('updates the header', function() {
+          // the l10n mock adds the key as text content
+          assert.equal(headerText.textContent, 'newMessage');
+        });
+      });
+
+      test('coming from a thread, should reset currentId', function() {
+        Threads.currentId = 1;
+        ThreadUI.beforeEnter(transitionArgs);
+        assert.isNull(Threads.currentId);
+      });
+    });
+
+    suite('afterEnter()', function() {
+      setup(function() {
+        Navigation.isCurrentPanel.withArgs('composer').returns(true);
+        this.sinon.stub(ThreadUI.recipients, 'focus');
+
+        // we test these functions separately so it's fine to merely test
+        // they're called
+        this.sinon.stub(ThreadUI, 'handleForward');
+        this.sinon.stub(ThreadUI, 'handleActivity');
+        this.sinon.stub(ThreadUI, 'handleDraft');
+      });
+
+      test('handles the activity', function() {
+        transitionArgs.activity = {};
+        ThreadUI.afterEnter(transitionArgs);
+        sinon.assert.calledWith(
+          ThreadUI.handleActivity, transitionArgs.activity
+        );
+      });
+
+      test('recalls the draft', function() {
+        transitionArgs.draftId = '1';
+        ThreadUI.afterEnter(transitionArgs);
+        sinon.assert.calledWith(ThreadUI.handleDraft, +transitionArgs.draftId);
+      });
+
+      test('handles the forward', function() {
+        transitionArgs.forward = {
+          messageId: 1
+        };
+        ThreadUI.afterEnter(transitionArgs);
+        sinon.assert.calledWith(ThreadUI.handleForward, transitionArgs.forward);
+      });
+
+      test('focus the composer', function() {
+        ThreadUI.afterEnter(transitionArgs);
+        sinon.assert.called(ThreadUI.recipients.focus);
+      });
+    });
+  });
+
+  suite('switch to thread panel >', function() {
+    var threadId = 100;
+    var transitionArgs;
+
+    setup(function() {
+      transitionArgs = {
+        id: threadId,
+        meta: {
+          next: { panel: 'thread', args: { id: threadId } },
+          prev: { panel: 'thread-list', args: {} }
+        }
+      };
+
+      this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
+      this.sinon.stub(ThreadListUI, 'mark');
+      this.sinon.stub(ThreadUI, 'renderMessages');
+      this.sinon.stub(Threads, 'get').returns({});
+      this.sinon.stub(Compose, 'fromDraft');
+      this.sinon.stub(Utils, 'closeNotificationsForThread');
+      Utils.closeNotificationsForThread.returns(Promise.resolve());
+
+      this.sinon.spy(ThreadUI, 'updateHeaderData');
+    });
+
+    suite('beforeEnter()', function() {
+      setup(function() {
+        Navigation.isCurrentPanel.withArgs('thread-list').returns(true);
+      });
+
+      beforeEnterGeneralTests(() => transitionArgs);
+
+      suite('beforeEnter() specific tests', function() {
+        setup(function() {
+          ThreadUI.beforeEnter(transitionArgs);
+        });
+
+        test('calls updateHeaderData', function() {
+          sinon.assert.called(ThreadUI.updateHeaderData);
+        });
+
+        test('updates Threads.currentId', function() {
+          assert.equal(Threads.currentId, threadId);
+        });
+      });
+    });
+
+    suite('afterEnter()', function() {
+      setup(function() {
+        // Using a string checks that we correctly convert the id to a number
+        transitionArgs.id = '' + threadId;
+
+        Navigation.isCurrentPanel.withArgs('thread').returns(true);
+        Navigation.isCurrentPanel.withArgs('thread', { id: threadId })
+          .returns(true);
+      });
+
+      test('calls ThreadListUI.mark', function() {
+        ThreadUI.afterEnter(transitionArgs);
+
+        sinon.assert.calledWith(ThreadListUI.mark, threadId, 'read');
+      });
+
+      test('renders messages', function() {
+        ThreadUI.afterEnter(transitionArgs);
+
+        sinon.assert.calledWith(ThreadUI.renderMessages, threadId);
+      });
+
+      test('closes notifications', function() {
+        ThreadUI.afterEnter(transitionArgs);
+
+        sinon.assert.calledWith(Utils.closeNotificationsForThread, threadId);
+      });
+
+      suite('recalls draft for this thread >', function() {
+        var draft;
+
+        setup(function() {
+          // ensures a clean state
+          ThreadUI.draft = null;
+
+          draft = {};
+          Threads.get.withArgs(threadId).returns({
+            hasDrafts: true,
+            drafts: {
+              latest: draft
+            }
+          });
+
+          ThreadUI.afterEnter(transitionArgs);
+        });
+
+        test('Draft rendered after clearing composer', function() {
+          sinon.assert.callOrder(ThreadUI.renderMessages, Compose.fromDraft);
+          sinon.assert.calledWith(Compose.fromDraft, draft);
+          assert.equal(draft, ThreadUI.draft);
+          assert.isFalse(ThreadUI.draft.isEdited);
+        });
+
+      });
+    });
+
+    suite('enter from report view', function() {
+      setup(function() {
+        transitionArgs.meta.prev = {
+          panel: 'report-view',
+          args: { id: 1 }
+        };
+
+        Threads.get.withArgs(threadId).returns({
+          hasDrafts: true,
+          drafts: {
+            latest: {}
+          }
+        });
+
+        Navigation.isCurrentPanel.withArgs('report-view').returns(true);
+        ThreadUI.beforeEnter(transitionArgs);
+        Navigation.isCurrentPanel.withArgs('report-view').returns(false);
+        Navigation.isCurrentPanel.withArgs('thread').returns(true);
+        Navigation.isCurrentPanel.withArgs('thread', { id: threadId })
+          .returns(true);
+        ThreadUI.afterEnter(transitionArgs);
+      });
+
+      test('does not render messages', function() {
+        sinon.assert.notCalled(ThreadUI.renderMessages);
+      });
+
+      test('calls ThreadListUI.mark', function() {
+        sinon.assert.calledWith(ThreadListUI.mark, threadId, 'read');
+      });
+
+      test('does not recall draft', function() {
+        sinon.assert.notCalled(Compose.fromDraft);
+      });
+    });
+
+    suite('enter from group view', function() {
+      setup(function() {
+        transitionArgs.meta.prev = {
+          panel: 'group-view',
+          args: { id: threadId }
+        };
+
+        Threads.get.withArgs(threadId).returns({
+          hasDrafts: true,
+          drafts: {
+            latest: {}
+          }
+        });
+
+        Navigation.isCurrentPanel.withArgs('group-view').returns(true);
+        ThreadUI.beforeEnter(transitionArgs);
+        Navigation.isCurrentPanel.withArgs('group-view').returns(false);
+        Navigation.isCurrentPanel.withArgs('thread').returns(true);
+        Navigation.isCurrentPanel.withArgs('thread', { id: threadId })
+          .returns(true);
+        ThreadUI.afterEnter(transitionArgs);
+      });
+
+      test('does not render messages', function() {
+        sinon.assert.notCalled(ThreadUI.renderMessages);
+      });
+
+      test('calls ThreadListUI.mark', function() {
+        sinon.assert.calledWith(ThreadListUI.mark, threadId, 'read');
+      });
+
+      test('does not recall draft', function() {
+        sinon.assert.notCalled(Compose.fromDraft);
+      });
+    });
+
+    suite('entering from composer ', function() {
+      setup(function() {
+        transitionArgs.meta.prev = {
+          panel: 'composer'
+        };
+
+        Compose.append('some existing text');
+
+        // threadMessages is in edit mode
+        threadMessages.classList.add('new');
+
+        Navigation.isCurrentPanel.withArgs('composer').returns(true);
+        ThreadUI.beforeLeave(transitionArgs);
+        ThreadUI.beforeEnter(transitionArgs);
+        Navigation.isCurrentPanel.withArgs('composer').returns(false);
+        Navigation.isCurrentPanel.withArgs('thread').returns(true);
+        Navigation.isCurrentPanel.withArgs('thread', { id: threadId })
+          .returns(true);
+        ThreadUI.afterLeave(transitionArgs);
+        ThreadUI.afterEnter(transitionArgs);
+      });
+
+      test('renders messages', function() {
+        sinon.assert.calledWith(ThreadUI.renderMessages, threadId);
+      });
+
+      test('calls ThreadListUI.mark', function() {
+        sinon.assert.calledWith(ThreadListUI.mark, threadId, 'read');
+      });
+
+      test('removes "new" class from messages container', function() {
+        assert.isFalse(threadMessages.classList.contains('new'));
+      });
+
+      test('calls updateHeaderData', function() {
+        sinon.assert.called(ThreadUI.updateHeaderData);
+      });
+
+      test('updates Threads.currentId', function() {
+        assert.equal(Threads.currentId, threadId);
+      });
     });
   });
 
   suite('Compose mode tests', function() {
     teardown(function() {
-      window.location.hash = '';
       Compose.clear();
     });
 
     suite('message editor focus', function() {
       setup(function() {
         this.sinon.spy(Compose, 'focus');
+        this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
       });
 
       test('focus on container click if in Composer', function() {
-        window.location.hash = '#new';
+        Navigation.isCurrentPanel.withArgs('composer').returns(true);
         container.click();
 
         sinon.assert.called(Compose.focus);
       });
 
       test('do not focus on container click if not in Composer', function() {
-        window.location.hash = '#thread=1';
+        Navigation.isCurrentPanel.withArgs('thread').returns(true);
 
         container.click();
         sinon.assert.notCalled(Compose.focus);
       });
+    });
+  });
+
+  suite('onMessageSendRequestCompleted >', function() {
+    setup(function() {
+       this.sinon.stub(ThreadUI, 'sentAudio', {
+         play: sinon.stub()
+       });
+    });
+
+    test('play sent audio if it is enabled', function() {
+      this.sinon.stub(ThreadUI, 'sentAudioEnabled', true);
+
+      ThreadUI.onMessageSendRequestCompleted();
+
+      sinon.assert.called(ThreadUI.sentAudio.play);
+    });
+
+    test('does not play sent audio if it is not enabled', function() {
+      this.sinon.stub(ThreadUI, 'sentAudioEnabled', false);
+
+      ThreadUI.onMessageSendRequestCompleted();
+
+      sinon.assert.notCalled(ThreadUI.sentAudio.play);
     });
   });
 });

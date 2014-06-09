@@ -26,5 +26,18 @@ Day.prototype = {
 
   get allDayIcon() {
     return this.activeDay.findElement('.hour-allday .icon-allday');
+  },
+
+  get currentTime() {
+    return this.activeDay.findElement('.current-time');
+  },
+
+  get currentHour() {
+    var now = new Date();
+    return this.activeDay.findElement('.hour-'+ now.getHours());
+  },
+
+  get currentDisplayHour() {
+    return this.currentHour.findElement('.display-hour');
   }
 };

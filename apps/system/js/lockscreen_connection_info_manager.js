@@ -151,6 +151,27 @@
   };
 
   /**
+   * This is a helper function that uses a flag dataset.content
+   * to determine if the line has content or not.
+   *
+   * The content of the connstateLine may come from l10nId or manually
+   * injected text content.
+   */
+  function lineText(node, l10nId, l10nArgs, text) {
+    if (!l10nId && !text) {
+      node.setAttribute('data-content', true);
+    } else {
+      node.removeAttribute('data-content');
+    }
+
+    navigator.mozL10n.localize(node, l10nId, l10nArgs);
+
+    if (text) {
+      node.textContent = text;
+    }
+  }
+
+  /**
    * Update the state of a sim slot.
    *
    * @param {SIMSlot} simslot
@@ -166,7 +187,6 @@
       var connstateLines =
         Array.prototype.slice.call(
           connstate.querySelectorAll('.connstate-line'));
-      var localize = navigator.mozL10n.localize;
       var iccObj = simslot.simCard;
       var voice = conn.voice;
 
@@ -182,12 +202,12 @@
 
       // Reset Lines
       connstateLines.forEach(function(line) {
-        localize(line);
+        lineText(line);
       });
       var nextLine = function() {
         for (var i = 0; i < connstateLines.length; i++) {
           var line = connstateLines[i];
-          if (line.textContent === '') {
+          if (line.hasAttribute('data-content')) {
             return line;
           }
         }
@@ -198,7 +218,7 @@
       if (this._airplaneMode) {
         // Only show one airplane mode status
         if (index == 0) {
-          localize(nextLine(), 'airplaneMode');
+          lineText(nextLine(), 'airplaneMode');
         } else {
           connstate.hidden = true;
         }
@@ -210,17 +230,17 @@
       if (SIMSlotManager.noSIMCardOnDevice()) {
         if (index == 0) {
           if (voice.emergencyCallsOnly) {
-            localize(nextLine(), 'emergencyCallsOnly');
-            localize(nextLine(), 'emergencyCallsOnly-noSIM');
+            lineText(nextLine(), 'emergencyCallsOnly');
+            lineText(nextLine(), 'emergencyCallsOnly-noSIM');
           } else {
-            localize(nextLine(), 'emergencyCallsOnly-noSIM');
+            lineText(nextLine(), 'emergencyCallsOnly-noSIM');
           }
         }
         simIDLine.hidden = true;
         return;
       } else if (SIMSlotManager.noSIMCardConnectedToNetwork()) {
         if (index == 0) {
-          localize(nextLine(), 'emergencyCallsOnly');
+          lineText(nextLine(), 'emergencyCallsOnly');
         }
         simIDLine.hidden = true;
         return;
@@ -240,7 +260,7 @@
       // where the latter three mean the phone is trying to grab the network.
       // See https://bugzilla.mozilla.org/show_bug.cgi?id=777057
       if (voice && 'state' in voice && voice.state == 'notSearching') {
-        localize(nextLine(), 'noNetwork');
+        lineText(nextLine(), 'noNetwork');
         return;
       }
 
@@ -249,14 +269,14 @@
         // voice.state can be any of the latter three values.
         // (it's possible that the phone is briefly 'registered'
         // but not yet connected.)
-        localize(nextLine(), 'searching');
+        lineText(nextLine(), 'searching');
         return;
       }
 
       if (voice.emergencyCallsOnly) {
         if (this._telephonyDefaultServiceId == index) {
-          localize(nextLine(), 'emergencyCallsOnly');
-          localize(nextLine(), _lockedStateMsgMap[iccObj.cardState]);
+          lineText(nextLine(), 'emergencyCallsOnly');
+          lineText(nextLine(), _lockedStateMsgMap[iccObj.cardState]);
         } else {
           connstate.hidden = true;
         }
@@ -271,22 +291,18 @@
 
       if (voice.roaming) {
         var l10nArgs = { operator: operator };
-        localize(nextLine(), 'roaming', l10nArgs);
+        lineText(nextLine(), 'roaming', l10nArgs);
       } else {
-        var line = nextLine();
-        line.l10nId = '';
-        line.textContent = operator;
+        lineText(nextLine(), null, null, operator);
       }
 
+
       if (this._cellbroadcastLabel && is2G) {
-        var line = nextLine();
-        line.l10nId = '';
-        line.textContent = this._cellbroadcastLabel;
+        lineText(nextLine(), null, null, this._cellbroadcastLabel);
       } else if (operatorInfos.carrier) {
-        var line = nextLine();
-      line.l10nId = '';
-        line.textContent = operatorInfos.carrier + ' ' +
-          operatorInfos.region;
+        var l10nArgs = { carrier: operatorInfos.carrier,
+                         region: operatorInfos.region };
+        lineText(nextLine(), 'operator-info', l10nArgs);
       }
   };
 

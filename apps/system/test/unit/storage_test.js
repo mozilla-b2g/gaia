@@ -5,9 +5,6 @@ requireApp('system/test/unit/mock_lock_screen.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/js/storage.js');
 
-mocha.globals(['lockScreen', 'Storage', 'addEventListener',
-  'removeEventListener']);
-
 var mocksForStorage = new MocksHelper([
   'SettingsListener'
 ]).init();

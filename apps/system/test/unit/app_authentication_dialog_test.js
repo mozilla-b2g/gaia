@@ -3,8 +3,6 @@
 /* global AppWindow */
 /* global MocksHelper */
 
-mocha.globals(['AppWindow', 'System', 'BaseUI', 'AppAuthenticationDialog']);
-
 requireApp('system/test/unit/mock_app_window.js');
 
 var mocksForAppAuthDialog = new MocksHelper([

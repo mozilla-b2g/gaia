@@ -30,6 +30,7 @@ requireApp('system/js/permission_manager.js');
 requireApp('system/js/remote_debugger.js');
 requireApp('system/js/secure_window_factory.js');
 requireApp('system/js/secure_window_manager.js');
+requireApp('system/js/sleep_menu.js');
 requireApp('system/js/software_button_manager.js');
 requireApp('system/js/source_view.js');
 requireApp('system/js/storage.js');
@@ -37,48 +38,13 @@ requireApp('system/js/system_dialog_manager.js');
 requireApp('system/js/telephony_settings.js');
 requireApp('system/js/ttlview.js');
 requireApp('system/js/visibility_manager.js');
+requireApp('system/js/wallpaper_manager.js');
 
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/test/unit/mock_places.js');
 requireApp('system/test/unit/mock_screen_manager.js');
 requireApp('system/test/unit/mock_task_manager.js');
-
-mocha.globals([
-  'accessibility',
-  'activityWindowManager',
-  'activities',
-  'applications',
-  'appWindowFactory',
-  'cancelHomeTouchstart',
-  'cancelHomeTouchend',
-  'cancelHomeClick',
-  'developerHUD',
-  'dialerAgent',
-  'homeGesture',
-  'homeSearchbar',
-  'homescreenLauncher',
-  'internetSharing',
-  'layoutManager',
-  'lockScreenWindowManager',
-  'mediaRecording',
-  'permissionManager',
-  'places',
-  'remoteDebugger',
-  'rocketbar',
-  'secureWindowFactory',
-  'secureWindowManager',
-  'Shortcuts',
-  'sourceView',
-  'softwareButtonManager',
-  'storage',
-  'systemDialogManager',
-  'taskManager',
-  'telephonySettings',
-  'ttlView',
-  'visibilityManager',
-  'wallpaperURL'
-]);
 
 var mocksForBootstrap = new MocksHelper([
   'Applications',
@@ -99,6 +65,7 @@ suite('system/Bootstrap', function() {
   var realDocumentElementLang;
   var realApplications;
   var stubById;
+  var stubQuerySelector;
   var fakeElement;
 
   mocksForBootstrap.attachTestHelpers();
@@ -107,10 +74,13 @@ suite('system/Bootstrap', function() {
     fakeElement = document.createElement('div');
     stubById = this.sinon.stub(document, 'getElementById')
                          .returns(fakeElement.cloneNode(true));
+    stubQuerySelector = this.sinon.stub(document, 'querySelector')
+                         .returns(fakeElement.cloneNode(true));
   });
 
   teardown(function() {
     stubById.restore();
+    stubQuerySelector.restore();
   });
 
   suiteSetup(function(done) {

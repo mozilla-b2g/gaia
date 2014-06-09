@@ -3,8 +3,6 @@
 
 'use strict';
 
-mocha.globals(['AppWindow', 'CardsHelper']);
-
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/js/cards_helper.js');
 

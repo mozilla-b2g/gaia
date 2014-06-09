@@ -1,5 +1,5 @@
 /* global Radio, MocksHelper, MockNavigatorMozMobileConnections,
-          mocha, requireApp, suite, suiteSetup, suiteTeardown,
+          requireApp, suite, suiteSetup, suiteTeardown,
           test, setup, assert */
 
 'use strict';
@@ -10,8 +10,6 @@ requireApp(
 var mocksForRadio = new MocksHelper([
   'NavigatorMozMobileConnections'
 ]).init();
-
-mocha.globals(['Radio']);
 
 suite('Radio > ', function() {
   var realMozMobileConnections;

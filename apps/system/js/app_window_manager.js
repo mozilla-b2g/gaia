@@ -237,6 +237,7 @@
       window.addEventListener('homegesture-enabled', this);
       window.addEventListener('homegesture-disabled', this);
       window.addEventListener('system-resize', this);
+      window.addEventListener('orientationchange', this);
       window.addEventListener('sheetstransitionstart', this);
 
       this._settingsObserveHandler = {
@@ -311,6 +312,7 @@
       window.removeEventListener('homegesture-enabled', this);
       window.removeEventListener('homegesture-disabled', this);
       window.removeEventListener('system-resize', this);
+      window.removeEventListener('orientationchange', this);
       window.removeEventListener('sheetstransitionstart', this);
 
       for (var name in this._settingsObserveHandler) {
@@ -327,6 +329,9 @@
       this.debug('handling ' + evt.type);
       var activeApp = this._activeApp;
       switch (evt.type) {
+        case 'orientationchange':
+          this.broadcastMessage(evt.type);
+          break;
         case 'system-resize':
           this.debug(' Resizing...');
           if (activeApp) {

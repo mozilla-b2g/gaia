@@ -230,22 +230,26 @@
   height: 3.8rem;
   border: 0;
   color: #5F5F5F;
+  background-repeat: no-repeat;
+  background-position: 50% 50%;
+  background-color: transparent;
+  background-size: 2rem auto;
 }
 
 .fld-account-switch-arrow {
-  background: url(images/icons/arrow_up.png) no-repeat scroll 50% 50% transparent;
+  background-image: url(images/icons/arrow_up.png);
 }
 
 .fld-acct-header:active .fld-account-switch-arrow {
-  background: url(images/icons/arrow_up_press.png) no-repeat scroll 50% 50% transparent;
+  background-image: url(images/icons/arrow_up_press.png);
 }
 
 .fld-acct-header.closed .fld-account-switch-arrow {
-  background: url(images/icons/arrow_down.png) no-repeat scroll 50% 50% transparent;
+  background-image: url(images/icons/arrow_down.png);
 }
 
 .fld-acct-header.closed:active .fld-account-switch-arrow {
-  background: url(images/icons/arrow_down_press.png) no-repeat scroll 50% 50% transparent;
+  background-image: url(images/icons/arrow_down_press.png);
 }
 
 .fld-folder-item:last-child {
@@ -315,13 +319,13 @@ also used in value_selector.
 */
 
 .fld-folder-depthnonzero .fld-folder-name {
-  background: url('images/icons/folder_icon.png') center left no-repeat;
+  background: url('images/icons/folder_icon.png') no-repeat center left / 1.6rem auto;
   padding-left: 2.2rem;
 }
 
 .fld-folder-depthnonzero .fld-folder-name:active,
 .fld-folder-depthnonzero:active .fld-folder-name {
-  background: url('images/icons/folder_icon_press.png') center left no-repeat;
+  background-image: url('images/icons/folder_icon_press.png');
 }
 
 .fld-settings-link {
@@ -336,7 +340,7 @@ also used in value_selector.
   left: 0;
   width: 100%;
   height: 4.5rem;
-  background: url("images/icons/settings_icon.png") no-repeat 50% 50%;
+  background: url("images/icons/settings_icon.png") no-repeat 50% 50% / 3rem auto;
 }
 
 .fld-settings-link:active:after {

@@ -81,7 +81,8 @@
      { "cdma-info-rec-received": "/index.html" },
      { "nfc-manager-tech-discovered": "/index.html" },
      { "nfc-manager-tech-lost": "/index.html" },
-     { "nfc-manager-send-file": "/index.html" }
+     { "nfc-manager-send-file": "/index.html" },
+     { "bluetooth-pairing-request": "/index.html" }
   ],
   "connections": {
     "mediacomms": {
@@ -105,6 +106,10 @@
       "rules": {
         "minimumAccessLevel": "certified"
       }
+    },
+    "change-appearance-statusbar": {
+      "description": "Homescreens change statusbar appearance",
+      "rules": {}
     }
   },
   "datastores-owned": {
@@ -115,6 +120,12 @@
     "places": {
       "access": "readwrite",
       "description": "Stores data about browsing history."
+    }
+  },
+  "datastores-access": {
+    "Basket_Newsletter": {
+      "readonly": false,
+      "description": "Email address for sending newsletter"
     }
   }
 }

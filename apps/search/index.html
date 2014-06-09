@@ -3,40 +3,58 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1.0">
-    <link rel="stylesheet" href="style/bgimage.css">
     <link rel="stylesheet" href="style/search.css">
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
+
+    <script defer src="shared/js/l10n.js"></script>
+    <script defer src="shared/js/lazy_loader.js"></script>
+
+    <!-- Lazy load for Remote icons -->
+    <!-- <script src="shared/js/async_storage.js"></script> -->
+    <!-- <script src="js/icon_retrivier.js"></script> -->
+
+    <!--- gaia_grid required scripts -->
+    <script defer src="shared/elements/gaia_grid/js/grid_view.js"></script>
+    <script defer src="shared/elements/gaia_grid/js/items/grid_item.js"></script>
+    <script defer src="shared/elements/gaia_grid/js/items/bookmark.js"></script>
+    <script defer src="shared/elements/gaia_grid/js/items/marketplace_app.js"></script>
+    <script defer src="shared/elements/gaia_grid/js/items/collection.js"></script>
+    <script defer src="shared/elements/gaia_grid/js/items/divider.js"></script>
+    <script defer src="shared/elements/gaia_grid/js/items/icon.js"></script>
+    <script defer src="shared/elements/gaia_grid/js/items/placeholder.js"></script>
+    <script defer src="shared/elements/gaia_grid/js/grid_layout.js"></script>
+    <script defer src="shared/elements/gaia_grid/js/grid_zoom.js"></script>
+    <script defer src="shared/elements/gaia_grid/script.js"></script>
+
     <script defer src="shared/js/url_helper.js"></script>
     <script defer src="shared/js/utilities.js"></script>
     <script defer src="shared/js/settings_listener.js"></script>
+    <script defer src="shared/js/mobile_operator.js"></script>
+    <script defer src="shared/js/everythingme/eme.js"></script>
+    <script defer src="shared/js/everythingme/cache.js"></script>
+    <script defer src="shared/js/everythingme/device.js"></script>
+    <script defer src="shared/js/everythingme/api.js"></script>
+    <script defer src="shared/js/dedupe.js"></script>
     <script defer src="js/search.js"></script>
-    <script defer src="js/eme/eme.js"></script>
-    <script defer src="js/eme/api.js"></script>
     <script defer src="js/providers/provider.js"></script>
+    <script defer src="js/providers/grid_provider.js"></script>
 
     <!-- Ordering of the following files will impact which queries we send first -->
-    <script defer src="js/providers/googlelink.js"></script>
     <script defer src="js/providers/marketplace.js"></script>
     <script defer src="js/providers/places.js"></script>
     <script defer src="js/places_preload.js"></script>
     <script defer src="js/providers/local_apps.js"></script>
     <script defer src="js/providers/suggestions.js"></script>
-    <script defer src="js/providers/bgimage.js"></script>
     <script defer src="js/providers/webresults.js"></script>
 
-    <script defer src="shared/js/l10n.js"></script>
   </head>
   <body>
-
     <div id="search-results" class="hidden">
       <section id="suggestions" class="suggestions" data-l10n-id="suggestions" aria-label="Suggestions"></section>
       <section id="contacts" class="local" data-l10n-id="contacts" aria-label="Contacts"></section>
       <section id="places" class="local" data-l10n-id="places" aria-label="Places"></section>
-      <section id="googlelink"></section>
       <section class="apps" data-l10n-id="apps" aria-label="Apps">
-        <section id="localapps" role="presentation"></section>
-        <section id="marketplace" role="presentation"></section>
-        <section id="webresults" role="presentation"></section>
+        <gaia-grid id="icons"></gaia-grid>
       </section>
     </div>
 

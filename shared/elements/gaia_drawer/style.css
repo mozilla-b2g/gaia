@@ -1,0 +1,69 @@
+
+/** Gaia Drawer
+ ---------------------------------------------------------*/
+
+gaia-drawer {
+  display: block;
+  position: relative;
+  overflow: hidden;
+}
+
+/** Inner
+ ---------------------------------------------------------*/
+
+.inner {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%
+}
+
+/** Content
+ ---------------------------------------------------------*/
+
+.content {
+  position: relative;
+  min-height: calc(100% - 200px);
+  max-height: calc(100% - 95px);
+  overflow: auto;
+  color: #5F5F5F;
+  background-color: #F4F4F4;
+  transform: translateY(-100%);
+  transition: transform 300ms ease, visibility 300ms;
+  will-change: transform;
+  visibility: hidden;
+}
+
+/**
+ * open
+ */
+
+[open] .content {
+  transform: translateY(0);
+  visibility: visible;
+}
+
+/** Background
+ ---------------------------------------------------------*/
+
+.background {
+  display: block;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.6);
+  transition: opacity 240ms ease;
+  will-change: opacity;
+  opacity: 0;
+}
+
+/**
+ * open
+ */
+
+[open] .background {
+  opacity: 1;
+}

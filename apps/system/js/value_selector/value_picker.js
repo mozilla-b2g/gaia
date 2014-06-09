@@ -44,11 +44,16 @@ var ValuePicker = (function() {
     if (tunedIndex > this._upper)
       tunedIndex = this._upper;
 
+    var beforeIndex = this._currentIndex;
     if (this._currentIndex != tunedIndex) {
       this._currentIndex = tunedIndex;
       this.onselectedindexchange(this._currentIndex);
     }
     this.updateUI(tunedIndex, ignorePicker);
+
+    var elementChildren = this.element.children;
+    elementChildren[beforeIndex].classList.remove('selected');
+    elementChildren[this._currentIndex].classList.add('selected');
 
     return tunedIndex;
   };
@@ -57,10 +62,8 @@ var ValuePicker = (function() {
     var newIndex = this._valueDisplayedText.indexOf(displayedText);
     if (newIndex != -1) {
       if (this._currentIndex != newIndex) {
-        this._currentIndex = newIndex;
-        this.onselectedindexchange(this._currentIndex);
+        this.setSelectedIndex(newIndex);
       }
-      this.updateUI(newIndex);
     }
   };
 
@@ -238,9 +241,6 @@ var ValuePicker = (function() {
     event.stopPropagation();
     this.removeEventListeners();
 
-    // Add animation back
-    this.element.classList.add('animation-on');
-
     // Add momentum if speed is higher than a given threshold.
     if (Math.abs(currentSpeed) > SPEED_THRESHOLD) {
       var direction = currentSpeed > 0 ? 1 : -1;
@@ -252,9 +252,6 @@ var ValuePicker = (function() {
 
   function vp_touchstart(event) {
     event.stopPropagation();
-
-    // Stop animation
-    this.element.classList.remove('animation-on');
 
     startEvent = currentEvent = cloneEvent(event);
     tunedIndex = this._currentIndex;

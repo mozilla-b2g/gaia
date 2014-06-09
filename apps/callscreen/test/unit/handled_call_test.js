@@ -120,7 +120,7 @@ suite('dialer/handled_call', function() {
     });
 
     test('should set caller image by contact photo', function() {
-      assert.equal(MockCallScreen.mSetCallerContactImageArg, subject.photo);
+      assert.isTrue(MockCallScreen.mSetCallerContactImageCalled);
     });
 
     test('call', function() {
@@ -187,7 +187,7 @@ suite('dialer/handled_call', function() {
 
     test('number', function() {
       assert.ok(subject.numberNode);
-      assert.equal(MockContacts.mCalledWith, mockCall.number);
+      assert.equal(MockContacts.mCalledWith, mockCall.id.number);
     });
 
     test('initial state', function() {
@@ -315,19 +315,10 @@ suite('dialer/handled_call', function() {
       assert.isTrue(MockCallScreen.mSetCallerContactImageCalled);
     });
 
-    suite('with a contact with no picture', function() {
-      var setContactStub;
-
-      setup(function() {
-        subject.photo = null;
-        setContactStub = this.sinon.stub(MockCallScreen,
-                                         'setCallerContactImage');
-        mockCall._connect();
-      });
-
-      test('wallpaper displaying', function() {
-        assert.isTrue(setContactStub.calledWith(null));
-      });
+    test('should set contact picture', function() {
+      this.sinon.stub(MockCallScreen, 'setCallerContactImage');
+      mockCall._connect();
+      sinon.assert.calledOnce(MockCallScreen.setCallerContactImage);
     });
 
     suite('in a group', function() {
@@ -338,8 +329,8 @@ suite('dialer/handled_call', function() {
         mockCall._connect();
       });
 
-      test('don\'t display any photos', function() {
-        assert.isFalse(MockCallScreen.mSetCallerContactImageCalled);
+      test('contact image updated', function() {
+        assert.isTrue(MockCallScreen.mSetCallerContactImageCalled);
       });
     });
 
@@ -469,13 +460,10 @@ suite('dialer/handled_call', function() {
   });
 
   suite('resuming', function() {
-    var setContactStub;
-
     setup(function() {
       mockCall._hold();
       MockCallScreen.mSyncSpeakerCalled = false;
       MockCallScreen.mEnableKeypadCalled = false;
-      setContactStub = this.sinon.stub(MockCallScreen, 'setCallerContactImage');
       subject.photo = 'dummy_photo_1';
       mockCall._resume();
     });
@@ -493,7 +481,6 @@ suite('dialer/handled_call', function() {
     });
 
     test('changed the user photo', function() {
-      assert.isTrue(setContactStub.calledWith(subject.photo));
       assert.isTrue(MockCallScreen.mSetCallerContactImageCalled);
     });
   });
@@ -548,7 +535,7 @@ suite('dialer/handled_call', function() {
   test('should display switch-calls l10n key', function() {
     mockCall = new MockCall('888', 'connected');
     subject = new HandledCall(mockCall);
-    mockCall.secondNumber = '999';
+    mockCall.secondId = { number: '999' };
     subject.updateCallNumber();
 
     assert.equal(subject.numberNode.textContent, 'switch-calls');
@@ -559,12 +546,19 @@ suite('dialer/handled_call', function() {
       MockCallScreen.mSetEmergencyWallpaperCalled = false;
     });
 
+    test('should set the emergency class', function() {
+      mockCall = new MockCall('112', 'dialing');
+      subject = new HandledCall(mockCall);
+
+      assert.isTrue(subject.node.classList.contains('emergency'));
+    });
+
     test('should display emergency number label', function() {
       mockCall = new MockCall('112', 'dialing');
       mockCall.emergency = true;
       subject = new HandledCall(mockCall);
 
-      assert.equal(subject.numberNode.textContent, 'emergencyNumber');
+      assert.equal(subject.numberNode.textContent, '112');
     });
 
     test('should display emergency Wallpaper', function() {
@@ -605,7 +599,7 @@ suite('dialer/handled_call', function() {
     test('check switch-calls mode', function() {
       mockCall = new MockCall('888', 'connected');
       subject = new HandledCall(mockCall);
-      mockCall.secondNumber = '999';
+      mockCall.secondId = { number: '999' };
       subject.updateCallNumber();
 
       assert.equal('', subject.additionalInfoNode.textContent);
@@ -714,7 +708,7 @@ suite('dialer/handled_call', function() {
       subject = new HandledCall(mockCall);
 
       subject.restorePhoneNumber();
-      assert.equal(subject.numberNode.textContent, 'emergencyNumber');
+      assert.equal(subject.numberNode.textContent, '112');
     });
   });
 
@@ -723,47 +717,11 @@ suite('dialer/handled_call', function() {
       MockCallScreen.mSetCallerContactImageCalled = false;
     });
 
-    test('should reset photo when no contact info exists', function() {
+    test('should reset photo when receiving a new handled call', function() {
       mockCall = new MockCall('111', 'incoming');
       subject = new HandledCall(mockCall);
 
       assert.isTrue(MockCallScreen.mSetCallerContactImageCalled);
-      assert.isNull(MockCallScreen.mSetCallerContactImageArg);
-    });
-
-    test('should reset photo for withheld number', function() {
-      mockCall = new MockCall('', 'incoming');
-      subject = new HandledCall(mockCall);
-
-      assert.isTrue(MockCallScreen.mSetCallerContactImageCalled);
-      assert.isNull(MockCallScreen.mSetCallerContactImageArg);
-    });
-
-    test('should reset photo for more than 1 calls in CDMA', function() {
-      mockCall = new MockCall('888', 'connected');
-      subject = new HandledCall(mockCall);
-      mockCall.secondNumber = '999';
-      subject.updateCallNumber();
-
-      assert.isTrue(MockCallScreen.mSetCallerContactImageCalled);
-      assert.isNull(MockCallScreen.mSetCallerContactImageArg);
-    });
-
-    test('should reset photo for emergency number', function() {
-      mockCall = new MockCall('112', 'dialing');
-      mockCall.emergency = true;
-      subject = new HandledCall(mockCall);
-
-      assert.isTrue(MockCallScreen.mSetCallerContactImageCalled);
-      assert.isNull(MockCallScreen.mSetCallerContactImageArg);
-    });
-
-    test('should reset photo for voicemail', function() {
-      mockCall = new MockCall('123', 'dialing');
-      subject = new HandledCall(mockCall);
-
-      assert.isTrue(MockCallScreen.mSetCallerContactImageCalled);
-      assert.isNull(MockCallScreen.mSetCallerContactImageArg);
     });
   });
 

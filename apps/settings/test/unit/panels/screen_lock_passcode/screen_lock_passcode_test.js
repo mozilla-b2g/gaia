@@ -1,12 +1,4 @@
 /* global SettingsService */
-mocha.globals([
-  'MockNavigatorSettings',
-  'MockLock',
-  'MockSettingsListener',
-  'SettingsListener',
-  'SettingsService'
-]);
-
 suite('ScreenLockPasscode > ', function() {
   'use strict';
 

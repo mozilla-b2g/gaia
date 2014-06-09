@@ -2,8 +2,6 @@
           HomescreenLauncher, MockSheetsTransition */
 'use strict';
 
-mocha.globals(['homescreenLauncher', 'layoutManager']);
-
 requireApp('system/js/stack_manager.js');
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_homescreen_launcher.js');

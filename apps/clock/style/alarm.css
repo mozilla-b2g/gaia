@@ -75,11 +75,11 @@ ul.compact li label:active {
   display: none;
 }
 
-.new-alarm-title {
+section[role="region"] > header:first-child h1.new-alarm-title {
   display: none;
 }
-.new .new-alarm-title { display: block; }
-.new .edit-alarm-title { display: none; }
+section[role="region"].new > header:first-child h1.new-alarm-title { display: block; }
+section[role="region"].new > header:first-child h1.edit-alarm-title { display: none; }
 
 /* ----------- Alarm List ---------- */
 #alarms {

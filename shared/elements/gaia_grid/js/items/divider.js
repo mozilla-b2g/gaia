@@ -42,7 +42,10 @@
       if (!this.divider) {
         var divider = this.divider = document.createElement('div');
         divider.className = 'divider';
-        divider.innerHTML = '<span></span>';
+
+        var span = document.createElement('span');
+        divider.appendChild(span);
+
         this.grid.element.appendChild(divider);
       }
 

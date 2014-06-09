@@ -44,6 +44,12 @@ var UtilityTray = {
     window.addEventListener('keyboardchanged', this);
     window.addEventListener('keyboardchangecanceled', this);
 
+    // Firing when user swipes down with a screen reader when focused on
+    // status bar.
+    window.addEventListener('statusbarwheel', this);
+    // Firing when user swipes up with a screen reader when focused on grippy.
+    this.grippy.addEventListener('wheel', this);
+
     this.overlay.addEventListener('transitionend', this);
 
     if (window.navigator.mozMobileConnections) {
@@ -137,6 +143,16 @@ var UtilityTray = {
         this.onTouchEnd(touch);
         break;
 
+      case 'statusbarwheel':
+        this.show();
+        break;
+      case 'wheel':
+        if (evt.deltaMode === evt.DOM_DELTA_PAGE && evt.deltaY &&
+          evt.deltaY > 0) {
+          this.hide();
+        }
+        break;
+
       case 'transitionend':
         if (!this.shown)
           this.screen.classList.remove('utility-tray');
@@ -202,6 +218,7 @@ var UtilityTray = {
     if (instant || style.MozTransform == '') {
       this.screen.classList.remove('utility-tray');
     }
+    window.dispatchEvent(new CustomEvent('utility-tray-overlayclosed'));
 
     if (!alreadyHidden) {
       var evt = document.createEvent('CustomEvent');
@@ -217,6 +234,7 @@ var UtilityTray = {
     style.MozTransform = 'translateY(100%)';
     this.shown = true;
     this.screen.classList.add('utility-tray');
+    window.dispatchEvent(new CustomEvent('utility-tray-overlayopened'));
 
     if (!alreadyShown) {
       var evt = document.createEvent('CustomEvent');

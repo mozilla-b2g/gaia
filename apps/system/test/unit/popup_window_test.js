@@ -2,10 +2,6 @@
 
 'use strict';
 
-mocha.globals(['AppWindow', 'BrowserMixin', 'PopupWindow',
-  'System', 'BrowserFrame', 'BrowserConfigHelper', 'OrientationManager',
-  'SettingsListener', 'Applications', 'AppChrome']);
-
 requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');

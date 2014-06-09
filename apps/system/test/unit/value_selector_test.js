@@ -1,7 +1,5 @@
 'use strict';
 
-mocha.globals(['ValueSelector']);
-
 require('/shared/js/input_parser.js');
 require('/shared/test/unit/load_body_html_helper.js');
 require('/apps/system/js/value_selector/value_picker.js');

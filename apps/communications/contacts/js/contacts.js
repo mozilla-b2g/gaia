@@ -12,12 +12,13 @@
 /* global PerformanceTestingHelper */
 /* global SmsIntegration */
 /* global utils */
+/* global TAG_OPTIONS */
+
 /* exported COMMS_APP_ORIGIN */
 /* exported SCALE_RATIO */
 /* jshint nonew: false */
 
 var _;
-var TAG_OPTIONS;
 var COMMS_APP_ORIGIN = location.origin;
 
 // Scale ratio for different devices
@@ -89,7 +90,7 @@ var Contacts = (function() {
           var id = params.id;
           cList.getContactById(id, function onSuccess(savedContact) {
             currentContact = savedContact;
-            contactsDetails.render(currentContact, TAG_OPTIONS);
+            contactsDetails.render(currentContact);
             if (params.tel) {
 
               contactsDetails.reMark(
@@ -200,34 +201,6 @@ var Contacts = (function() {
     addButton = document.getElementById('add-contact-button');
     editModeTitleElement = document.getElementById('edit-title');
     appTitleElement = document.getElementById('app-title');
-
-    TAG_OPTIONS = {
-      'phone-type' : [
-        {type: 'mobile', value: _('mobile')},
-        {type: 'home', value: _('home')},
-        {type: 'work', value: _('work')},
-        {type: 'personal', value: _('personal')},
-        {type: 'faxHome', value: _('faxHome')},
-        {type: 'faxOffice', value: _('faxOffice')},
-        {type: 'faxOther', value: _('faxOther')},
-        {type: 'other', value: _('other')}
-      ],
-      'email-type' : [
-        {type: 'personal', value: _('personal')},
-        {type: 'home', value: _('home')},
-        {type: 'work', value: _('work')},
-        {type: 'other', value: _('other')}
-      ],
-      'address-type' : [
-        {type: 'current', value: _('current')},
-        {type: 'home', value: _('home')},
-        {type: 'work', value: _('work')}
-      ],
-      'date-type': [
-        {type: 'birthday', value: _('birthday')},
-        {type: 'anniversary', value: _('anniversary')}
-      ]
-    };
   };
 
   var onLocalized = function onLocalized() {
@@ -263,6 +236,12 @@ var Contacts = (function() {
     }
     else {
       window.console.info('FB Already migrated!!!');
+    }
+
+    // Tell audio channel manager that we want to adjust the notification
+    // channel if the user press the volumeup/volumedown buttons in Contacts.
+    if (navigator.mozAudioChannelManager) {
+      navigator.mozAudioChannelManager.volumeControlChannel = 'notification';
     }
   };
 
@@ -323,7 +302,7 @@ var Contacts = (function() {
           }
           return;
         }
-        contactsDetails.render(currentContact, TAG_OPTIONS, currentFbContact);
+        contactsDetails.render(currentContact, currentFbContact);
         if (contacts.Search && contacts.Search.isInSearchMode()) {
           navigation.go('view-contact-details', 'go-deeper-search');
         } else {
@@ -336,7 +315,7 @@ var Contacts = (function() {
   var updateContactDetail = function updateContactDetail(id) {
     contactsList.getContactById(id, function findCallback(contact) {
       currentContact = contact;
-      contactsDetails.render(currentContact, TAG_OPTIONS);
+      contactsDetails.render(currentContact);
     });
   };
 
@@ -659,8 +638,8 @@ var Contacts = (function() {
     }, SHARED_UTILS);
   };
 
-  var showStatus = function c_showStatus(message) {
-    utils.status.show(message);
+  var showStatus = function c_showStatus(message, additional) {
+    utils.status.show(message, additional);
   };
 
   var showSettings = function showSettings() {
@@ -695,16 +674,14 @@ var Contacts = (function() {
           handler: enterSearchMode
         }
       ],
+      // For screen reader users
+      '#search-start > input': [
+        {
+          event: 'focus',
+          handler: enterSearchMode
+        }
+      ],
       'button[type="reset"]': stopPropagation
-    });
-  };
-
-  var onLineChanged = function() {
-    Contacts.view('Settings', function viewLoaded() {
-      contacts.Settings.onLineChanged();
-    });
-    Contacts.view('Details', function viewLoaded() {
-      contacts.Details.onLineChanged();
     });
   };
 
@@ -722,6 +699,7 @@ var Contacts = (function() {
       '/shared/js/contacts/utilities/templates.js',
       '/shared/js/contacts/contacts_shortcuts.js',
       '/contacts/js/contacts_tag.js',
+      '/contacts/js/tag_options.js',
       SHARED_UTILS_PATH + '/' + 'misc.js',
       '/contacts/js/utilities/normalizer.js',
       '/shared/js/text_normalizer.js',
@@ -804,7 +782,7 @@ var Contacts = (function() {
             function success(contact, enrichedContact) {
               currentContact = contact;
               if (contactsDetails) {
-                contactsDetails.render(currentContact, null, enrichedContact);
+                contactsDetails.render(currentContact, enrichedContact);
               }
               if (contactsList) {
                 contactsList.refresh(enrichedContact || currentContact,
@@ -843,8 +821,6 @@ var Contacts = (function() {
       var actHandler = ActivityHandler.handle.bind(ActivityHandler);
       window.navigator.mozSetMessageHandler('activity', actHandler);
     }
-    window.addEventListener('online', Contacts.onLineChanged);
-    window.addEventListener('offline', Contacts.onLineChanged);
 
     document.addEventListener('visibilitychange', function visibility(e) {
       if (ActivityHandler.currentlyHandling && document.hidden) {
@@ -978,14 +954,12 @@ var Contacts = (function() {
     'getLength': getLength,
     'showForm': showForm,
     'setCurrent': setCurrent,
-    'getTags': TAG_OPTIONS,
     'onLocalized': onLocalized,
     'init': init,
     'showOverlay': showOverlay,
     'hideOverlay': hideOverlay,
     'showContactDetail': contactListClickHandler,
     'updateContactDetail': updateContactDetail,
-    'onLineChanged': onLineChanged,
     'showStatus': showStatus,
     'loadFacebook': loadFacebook,
     'confirmDialog': loadConfirmDialog,

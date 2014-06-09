@@ -14,14 +14,6 @@
   outline: none;
 }
 
-#fake-phone-number-view {
-  font-size: 3rem;
-  position: absolute;
-  left: 0;
-  line-height: 0;
-  visibility: hidden;
-}
-
 #phone-number-view-container {
   width: 100%;
   height: 28%;
@@ -36,7 +28,7 @@
   margin-bottom: 4.5rem;
   display: flex;
   align-items: center;
-  padding-left: 2rem;
+  padding: 0 1rem 0 2rem;
 }
 
 #phone-number-view-container.keypad-visible {
@@ -45,6 +37,7 @@
 }
 
 #phone-number-view {
+  font-size: 4.1rem;
   width: 100%;
   border: 0;
   background: transparent;
@@ -52,12 +45,19 @@
   cursor: none;
   -moz-user-select: none;
   padding: 0;
+  pointer-events: none;
+}
+
+#fake-phone-number-view {
+  position: absolute;
+  left: 2rem;
+  line-height: 0;
+  visibility: hidden;
 }
 
 #keypad-delete {
-  width: 10rem;
   margin-bottom: 4.5rem;
-  padding: 0;
+  padding: 0 2.5rem 0 0;
   visibility: hidden;
   text-align: right;
 }
@@ -68,7 +68,6 @@
   width: 3rem;
   height: 2rem;
   display: inline-block;
-  margin-right: 2.5rem;
   background-size: 100%;
 }
 
@@ -78,12 +77,10 @@
 
 #keyboard-container {
   height: 72%;
-  background-color: white;
-  margin: 0 1rem;
+  padding: 0 1rem;
 }
 
 #keypad {
-  background: #fff;
   width: 100%;
   height: 80%;
   display: table;
@@ -108,8 +105,9 @@
 }
 
 .keypad-key span {
-  width: 2rem;
+  width: 1.5rem;
   display: inline-block;
+  overflow: visible;
 }
 
 .keypad-key em {
@@ -119,6 +117,7 @@
   color: #038282;
   font-style: normal;
   width: 4.5rem;
+  overflow: visible;
 }
 
 .keypad-key:active {
@@ -160,6 +159,7 @@
   width: 4rem;
   margin-top: 1rem;
   margin-left: 0.2rem;
+  overflow: visible;
 }
 
 .sharp {
@@ -168,10 +168,10 @@
   line-height: 0;
   margin-top: -0.5rem;
   margin-left: 0.2rem;
+  overflow: visible;
 }
 
 #keypad-callbar {
-  background: #fff;
   height: 20%;
   display: flex;
   flex-direction: row;
@@ -275,46 +275,42 @@
 }
 
 #keypad-hidebar {
-  background: rgba(24,24,24,.92);
-  border: solid 0.1rem rgba(255, 255, 255, 0.2);
-  border-right-color: rgba(0, 0, 0, 0.4);
-  border-bottom-color: rgba(0, 0, 0, 0.4);
-  border-left: 0;
+  border: 0;
   -moz-box-sizing: border-box;
 }
 
 #keypad-hidebar-hang-up-action-wrapper {
   float: left;
-  height: 6.5rem;
+  height: 6rem;
   width: 50%;
 }
 
 #keypad-hidebar-hide-keypad-action-wrapper {
-  height: 6.5rem;
+  height: 6rem;
   width: 50%;
 }
 
 .keypad-hidebar-button {
   height: 4rem;
   border: 0;
-  border-radius:.2rem;
+  border-radius: 2rem;
   display: block;
 }
 
 #keypad-hidebar-hang-up-action {
-  background: url('keypad/images/btn_hang_up.png') repeat-x;
   background-size: auto 100%;
   opacity: 1.0;
-  margin: 1rem .5rem 1.5rem 1.5rem;
+  margin: 1rem .5rem 1rem 0.5rem;
+  background: #e00000;
 }
 
 #keypad-hidebar-hang-up-action:active {
-  background: #820000;
+  background: #ff5933;
 }
 
 #keypad-hidebar-hang-up-action > div {
   margin: 0 auto;
-  background-image: url('keypad/images/ActionIcon_40x40_hangup.png');
+  background-image: url('keypad/images/actionicon_activecall_hangup.png');
   background-repeat: no-repeat;
   background-size: 4rem 4rem;
   background-position: center;
@@ -323,19 +319,19 @@
 }
 
 #keypad-hidebar-hide-keypad-action {
-  background: url('keypad/images/btn_generic.png') repeat-x;
   background-size: auto 100%;
   opacity: 1.0;
-  margin: 1rem 1.5rem 1.5rem .5rem;
+  margin: 1rem 0.5rem 1rem .5rem;
+  background: #e7e7e7;
 }
 
 #keypad-hidebar-hide-keypad-action:active {
-  background: #333333;
+  background: #b2f2ff;
 }
 
 #keypad-hidebar-hide-keypad-action > div {
   margin: -moz-calc((4rem - 3rem)/2) auto;
-  background-image: url('keypad/images/ActionIcons_40x40_dismiss_keyboard.png');
+  background-image: url('keypad/images/actionicon_activecall_dismisskeyboard.png');
   background-repeat: no-repeat;
   background-size: 4rem 4rem;
   background-position: center;
@@ -343,7 +339,14 @@
   height: 3rem;
 }
 
+#keypad-hidebar-hide-keypad-action:active > div {
+ background-image: url('keypad/images/actionicon_activecall_dismisskeyboard_hitstate.png');
+}
+
 .phone-number-font {
-  font-size: 3rem;
   color: #fff;
+}
+
+.full-height {
+  height: 100%;
 }

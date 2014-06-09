@@ -1,8 +1,6 @@
-/*global mocha, MocksHelper, MockL10n, AppWindow, BrowserContextMenu */
+/*global MocksHelper, MockL10n, AppWindow, BrowserContextMenu */
 
 'use strict';
-
-mocha.globals(['AppWindow', 'BrowserContextMenu', 'System', 'BaseUI']);
 
 requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/test/unit/mock_orientation_manager.js');
@@ -118,6 +116,13 @@ suite('system/BrowserContextMenu', function() {
       md1.elements.list.querySelector('button:first-child').
         style.backgroundImage,
       'url("' + fakeContextMenuEvent.detail.contextmenu.items[0].icon + '")');
+  });
+
+  test('manually launch menu', function() {
+    var app1 = new AppWindow(fakeAppConfig1);
+    var md1 = new BrowserContextMenu(app1);
+    md1.showDefaultMenu();
+    assert.isTrue(md1.element.classList.contains('visible'));
   });
 
   test('Check that a context menu containing items is prevented', function() {

@@ -4,6 +4,7 @@
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.ftu.app import Ftu
+from gaiatest.apps.homescreen.app import Homescreen
 
 
 class TestFtu(GaiaTestCase):
@@ -55,4 +56,4 @@ class TestFtu(GaiaTestCase):
         self.ftu.tap_skip_tour()
 
         # Switch back to top level now that FTU app is gone
-        self.wait_for_condition(lambda m: self.apps.displayed_app.name == 'Homescreen')
+        self.wait_for_condition(lambda m: self.apps.displayed_app.name == Homescreen.name)

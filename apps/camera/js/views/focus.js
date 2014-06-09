@@ -41,7 +41,7 @@ module.exports = View.extend({
     this.set('mode', mode);
   },
 
-  changePosition: function(x, y) {
+  setPosition: function(x, y) {
     this.el.style.left = x + 'px';
     this.el.style.top = y + 'px';
   },

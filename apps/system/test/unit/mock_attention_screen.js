@@ -1,6 +1,7 @@
 var MockAttentionScreen = {
   attentionScreen: document.createElement('div'),
   open: function() {},
+  show: function() {},
   mVisible: false,
   mFullyVisible: false,
   isVisible: function() {

@@ -27,7 +27,9 @@ function SettingsAccountCard(domNode, mode, args) {
   this.nodeFromClass('tng-account-header-label').
        textContent = args.account.name;
 
-  this._bindPrefs('tng-account-check-interval', 'tng-notify-mail');
+  this._bindPrefs('tng-account-check-interval',
+                  'tng-notify-mail',
+                  'tng-sound-onsend');
 
   this.nodeFromClass('tng-back-btn')
     .addEventListener('click', this.onBack.bind(this), false);

@@ -10,11 +10,9 @@ requireApp('system/js/battery_manager.js');
 
 var mocksForBatteryManager = new MocksHelper([
   'SettingsListener',
-  'SleepMenu',
+  'sleepMenu',
   'GestureDetector'
 ]).init();
-
-mocha.globals(['dispatchEvent']);
 
 suite('battery manager >', function() {
   var realBattery;

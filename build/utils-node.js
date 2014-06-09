@@ -124,6 +124,15 @@ function getLocaleBasedir(original) {
     original.replace('/', '\\', 'g') : original;
 }
 
+function existsInAppDirs(appDirs, appName) {
+  var apps = appDirs.split(' ');
+  var exists = apps.some(function (appPath) {
+    let appFile = getFile(appPath);
+    return (appName === appFile.leafName);
+  });
+  return exists;
+}
+
 var Services = {};
 
 exports.Services = Services;
@@ -142,3 +151,5 @@ exports.processEvents = processEvents;
 exports.writeContent = writeContent;
 exports.Q = Q;
 exports.getLocaleBasedir = getLocaleBasedir;
+exports.existsInAppDirs = existsInAppDirs;
+

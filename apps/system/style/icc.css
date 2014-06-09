@@ -9,6 +9,7 @@
   position: fixed;
   width: 100%;
   height: 100%;
+  top: 0;
 }
 
 #icc-view > form {
@@ -23,10 +24,13 @@
 #icc-confirm menu button:first-child {
   margin: 0;
 }
-#icc-input menu button,
-#icc-confirm menu button,
-#icc-input .yesnodisabled  {
+#icc-confirm menu button {
   width: calc((100% - 2rem) / 3);
+  margin-left: 1rem;
+}
+#icc-input menu button,
+#icc-input .yesnodisabled  {
+  width: calc((100% - 2rem) / 4);
   margin-left: 1rem;
 }
 
@@ -34,7 +38,7 @@
   display: none;
 }
 .yesnomode menu button {
-  width: calc((100% - 2rem) / 4);
+  width: calc((100% - 2rem) / 5);
   margin-left: 1rem;
 }
 #icc-input.yesnomode .yesnoenabled {
@@ -43,7 +47,7 @@
 
 #icc-input.yesnomode button,
 #icc-input.yesnomode menu span {
-  width: calc((100% - 3rem) /4);
+  width: calc((100% - 3rem) /5);
 }
 #icc-input.yesnomode menu .yesnoenabled {
   margin-left: 1rem;

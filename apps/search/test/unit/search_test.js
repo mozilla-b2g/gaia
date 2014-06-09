@@ -1,14 +1,14 @@
 'use strict';
 /* global MockNavigatormozApps, MockNavigatormozSetMessageHandler,
-          MockMozActivity, Search */
+          MockMozActivity, Search, MockProvider */
 
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
 require('/shared/test/unit/mocks/mock_moz_activity.js');
-
 require('/shared/js/url_helper.js');
+require('/shared/js/dedupe.js');
+requireApp('search/test/unit/mock_provider.js');
 
-mocha.globals(['Search', 'open', 'MozActivity']);
 
 suite('search/search', function() {
   var realMozApps;
@@ -25,6 +25,10 @@ suite('search/search', function() {
 
     realMozActivity = window.MozActivity;
     window.MozActivity = MockMozActivity;
+    
+    window.SettingsListener = {
+      observe: function() {}
+    };
 
     clock = sinon.useFakeTimers();
 
@@ -36,6 +40,7 @@ suite('search/search', function() {
     navigator.mozApps = realMozApps;
     window.MozActivity = realMozActivity;
     clock.restore();
+    delete window.SettingsListener;
   });
 
   setup(function() {
@@ -66,6 +71,7 @@ suite('search/search', function() {
         'search-results');
       MockNavigatormozApps.mLastConnectionCallback([]);
       assert.ok(initCalled);
+      Search.providers = [];
     });
   });
 
@@ -106,7 +112,8 @@ suite('search/search', function() {
       var fakeProvider = {
         name: 'Foo',
         search: function() {},
-        abort: function() {}
+        abort: function() {},
+        clear: function() {}
       };
       Search.provider(fakeProvider);
     });
@@ -148,7 +155,7 @@ suite('search/search', function() {
   });
 
   suite('submit', function() {
-    test('calls navigate for submit types', function() {
+    test('Navigates to a URL', function() {
       var stub = this.sinon.stub(Search, 'navigate');
       Search.dispatchMessage({
         data: {
@@ -158,6 +165,34 @@ suite('search/search', function() {
       });
       clock.tick(1000); // For typing timeout
       assert.ok(stub.calledOnce);
+    });
+    
+    test('Uses configured search template', function() {
+      var navigateStub = this.sinon.stub(Search, 'navigate');
+      var realUrlTemplate = Search.urlTemplate;
+      Search.urlTemplate = 'http://example.com/?q={searchTerms}';
+      var msg = {
+        data: {
+          input: 'foo'
+        }
+      };
+      Search.submit(msg);
+      assert.ok(navigateStub.calledWith('http://example.com/?q=foo'));
+      Search.urlTemplate = realUrlTemplate;
+    });
+    
+    test('Uses special case for everything.me full search', function() {
+      var expandSearchStub = this.sinon.stub(Search, 'expandSearch');
+      var realUrlTemplate = Search.urlTemplate;
+      Search.urlTemplate = 'everything.me';
+      var msg = {
+        data: {
+          input: 'foo'
+        }
+      };
+      Search.submit(msg);
+      assert.ok(expandSearchStub.calledOnce);
+      Search.urlTemplate = realUrlTemplate;
     });
   });
 
@@ -221,12 +256,6 @@ suite('search/search', function() {
           abort: function() {},
           search: function() {},
           fullscreen: function() {}
-        },
-        BGImage: {
-          clear: function() {},
-          abort: function() {},
-          search: function() {},
-          fetchImage: function() {}
         }
       };
     });
@@ -235,12 +264,6 @@ suite('search/search', function() {
       var stub = this.sinon.stub(Search.providers.WebResults,'fullscreen');
       Search.expandSearch();
       assert.ok(stub.calledOnce);
-    });
-
-    test('calls fetchImage for BGImage', function() {
-      var searchStub = this.sinon.stub(Search.providers.BGImage, 'fetchImage');
-      Search.expandSearch();
-      assert.ok(searchStub.calledOnce);
     });
   });
 
@@ -257,8 +280,8 @@ suite('search/search', function() {
   suite('collect', function() {
 
     setup(function() {
-      Search.exactResults = {};
-      Search.fuzzyResults = {};
+      Search.dedupe.exactResults = {};
+      Search.dedupe.fuzzyResults = {};
     });
 
     // Suppport functions
@@ -480,5 +503,50 @@ suite('search/search', function() {
       Search.collect(provider, results);
       assert.equal(renderStub.getCall(0).args[0].length, 2);
     });
+
+    test('Dont search remote providers when suggestions disabled', function() {
+      var localProvider = new MockProvider('local');
+      var remoteProvider = new MockProvider('remote');
+      remoteProvider.remote = true;
+
+      var remoteStub = this.sinon.stub(remoteProvider, 'search');
+      var localStub = this.sinon.stub(localProvider, 'search');
+
+      Search.provider(localProvider);
+      Search.provider(remoteProvider);
+
+      Search.suggestionsEnabled = false;
+      Search.change({data: {input: 'test'}});
+      clock.tick(1000);
+
+      assert.ok(remoteStub.notCalled);
+      assert.ok(localStub.calledOnce);
+
+      Search.removeProvider(localProvider);
+      Search.removeProvider(remoteProvider);
+    });
+
+    test('Search all providers when suggestions enabled', function() {
+      var localProvider = new MockProvider('local');
+      var remoteProvider = new MockProvider('remote');
+      remoteProvider.remote = true;
+
+      var remoteStub = this.sinon.stub(remoteProvider, 'search');
+      var localStub = this.sinon.stub(localProvider, 'search');
+
+      Search.provider(localProvider);
+      Search.provider(remoteProvider);
+
+      Search.suggestionsEnabled = true;
+      Search.change({data: {input: 'test'}});
+      clock.tick(1000);
+
+      assert.ok(remoteStub.calledOnce);
+      assert.ok(localStub.calledOnce);
+
+      Search.removeProvider(localProvider);
+      Search.removeProvider(remoteProvider);
+    });
+
   });
 });

@@ -1,5 +1,6 @@
 Keyboards.hr = {
   label: 'Croatian',
+  shortLabel: 'Hr',
   menuLabel: 'Hrvatski',
   imEngine: 'latin',
   types: ['text', 'url', 'email'],

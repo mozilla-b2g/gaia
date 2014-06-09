@@ -1,12 +1,6 @@
 {
   "calendar": {
-    "src": ["apps/calendar/js/**/*.js",
-            "!apps/calendar/js/controllers/time.js",
-            "!apps/calendar/js/models/account.js",
-            "!apps/calendar/js/models/calendar.js",
-            "!apps/calendar/js/models/event.js",
-            "!apps/calendar/js/views/month_child.js"
-            ],
+    "src": ["apps/calendar/js/**/*.js"],
     "options": {
       "destination": "docs/calendar"
     }

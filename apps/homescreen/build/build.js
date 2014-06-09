@@ -301,6 +301,25 @@ HomescreenAppBuilder.prototype.customizeHomescreen = function() {
   return content;
 };
 
+/**
+ * Updates the homescreen manifest.
+ * Changes the role from homescreen to system for phones.
+ */
+HomescreenAppBuilder.prototype.updateManifest = function() {
+  var options = this.options;
+
+  if (options.GAIA_DEVICE_TYPE !== 'phone') {
+    return;
+  }
+
+  var manifest =
+    utils.getJSON(utils.getFile(options.APP_DIR, 'manifest.webapp'));
+  manifest.role = 'system';
+  // Write content to build_stage
+  utils.writeContent(utils.getFile(options.STAGE_DIR, 'manifest.webapp'),
+                     JSON.stringify(manifest));
+};
+
 HomescreenAppBuilder.prototype.execute = function(options) {
   this.setOptions(options);
   var homescreen = this.customizeHomescreen();
@@ -310,6 +329,8 @@ HomescreenAppBuilder.prototype.execute = function(options) {
   if (options.VARIANT_PATH) {
     svoperapps.execute(options, homescreen, this.stageDir);
   }
+
+  this.updateManifest();
 };
 
 HomescreenAppBuilder.prototype.customizeSettings = function(origin, custom) {

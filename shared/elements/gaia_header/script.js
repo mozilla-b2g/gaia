@@ -1,13 +1,13 @@
+'use strict';
+/* global ComponentUtils */
 
 window.GaiaHeader = (function(win) {
-  'use strict';
-
   // Extend from the HTMLElement prototype
   var proto = Object.create(HTMLElement.prototype);
 
-  // Allow user to override the stylesheet url if need be
-  var stylesheet = win.GaiaHeaderCSS || '/shared/style/headers.css';
-
+  // Allow baseurl to be overridden (used for demo page)
+  var baseurl = window.GaiaHeaderBaseurl ||
+    '/shared/elements/gaia_header/';
 
   /**
    * Supported action types
@@ -32,29 +32,39 @@ window.GaiaHeader = (function(win) {
     var shadow = this.createShadowRoot();
 
     this._template = template.content.cloneNode(true);
+    this._actionButton = this._template.getElementById('action-button');
+    this._header = this._template.getElementById('header');
     this._configureActionButton();
     this._configureSkin();
-    this._styleHack();
+    this._actionButton.addEventListener(
+      'click', proto._onActionButtonClick.bind(this)
+    );
 
     shadow.appendChild(this._template);
+
+    ComponentUtils.style.call(this, baseurl);
   };
 
   /**
-   * We clone the scoped stylesheet and append
-   * it outside the shadow-root so that we can
-   * style projected <content> without the need
-   * of the :content selector.
-   *
-   * When the :content selector lands, we won't
-   * need this hack anymore and can style projected
-   * <content> from stylesheets within the shadow root.
-   * (bug 992249)
+   * Called when one of the attributes on the element changes.
    *
    * @private
    */
-  proto._styleHack = function() {
-    var style = this._template.querySelector('style');
-    this.appendChild(style.cloneNode(true));
+  proto.attributeChangedCallback = function(attr, oldVal, newVal) {
+    if (attr === 'action') {
+      this._configureActionButton();
+    } else if (attr === 'skin') {
+      this._configureSkin();
+    }
+  };
+
+  /**
+   * When called, trigger the action button.
+   */
+  proto.triggerAction = function() {
+    if (this._isSupportedAction(this.getAttribute('action'))) {
+      this._actionButton.click();
+    }
   };
 
   /**
@@ -65,37 +75,35 @@ window.GaiaHeader = (function(win) {
    * @private
    */
   proto._configureActionButton = function() {
-    var button = this._template.getElementById('action-button');
-    var type = this.dataset.action;
+    var type = this.getAttribute('action');
 
     // TODO: Action button should be
     // hidden by default then shown
     // only with supported action types
-    if (!type || !actionTypes[type]) {
-      button.style.display = 'none';
+    if (!this._isSupportedAction(type)) {
+      this._actionButton.style.display = 'none';
       return;
     }
-
-    // Add icon class to inner
-    var inner = this._template.getElementById('action-button-inner');
-    inner.classList.add('icon-' + type);
-
-    button.dataset.action = type;
-    button.addEventListener('click', proto._onActionButtonClick.bind(this));
+    this._actionButton.style.display = 'block';
+    this._actionButton.setAttribute('icon', type);
   };
 
   /**
-   * Configure the skin based on the
-   * `data-skin` attribute.
+   * Copy the skin to the template.
    *
    * @private
    */
   proto._configureSkin = function() {
-    var skin = this.dataset.skin;
-    if (skin) {
-      var header = this._template.getElementById('header');
-      header.parentNode.classList.add('skin-' + skin);
-    }
+    this._header.setAttribute('skin', this.getAttribute('skin'));
+  };
+
+  /**
+   * Validate action against supported list.
+   *
+   * @private
+   */
+  proto._isSupportedAction = function(action) {
+    return action && actionTypes[action];
   };
 
   /**
@@ -109,7 +117,7 @@ window.GaiaHeader = (function(win) {
    * @private
    */
   proto._onActionButtonClick = function(e) {
-    var config = { detail: { type: this.dataset.action } };
+    var config = { detail: { type: this.getAttribute('action') } };
     var actionEvent = new CustomEvent('action', config);
     setTimeout(this.dispatchEvent.bind(this, actionEvent));
   };
@@ -125,19 +133,14 @@ window.GaiaHeader = (function(win) {
   // hack until we can import entire custom-elements
   // using HTML Imports (bug 877072).
   var template = document.createElement('template');
-  template.innerHTML = '<style scoped>' +
-    '@import url(' + stylesheet + ');</style>' +
-    '<section role="region">' +
-      '<header id="header">' +
-        '<button id="action-button">' +
-          '<span id="action-button-inner" class="icon"></span></button>' +
-        '<menu id="menu-buttons" type="toolbar">' +
-          '<content id="buttons-content" select="button,a"></content>' +
-        '</menu>' +
-        '<content select="h1,h2,h3,h4"></content>' +
-        '<content id="content"></content>' +
-      '</header>' +
-    '</section>';
+  template.innerHTML = '<header id="header">' +
+      '<button id="action-button"></button>' +
+      '<menu id="menu-buttons" type="toolbar">' +
+        '<content id="buttons-content" select="button,a"></content>' +
+      '</menu>' +
+      '<content select="h1,h2,h3,h4"></content>' +
+      '<content id="content"></content>' +
+    '</header>';
 
   // Register and return the constructor
   return document.registerElement('gaia-header', { prototype: proto });

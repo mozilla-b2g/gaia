@@ -301,6 +301,8 @@ var WifiUI = {
     } else {
       networksList = document.createElement('ul');
       networksList.id = 'networks-list';
+      networksList.setAttribute('role', 'listbox');
+      networksList.setAttribute('aria-label', _('networksList'));
       var networksShown = [];
       networks.sort(function(a, b) {
         return b.relSignalStrength - a.relSignalStrength;
@@ -324,6 +326,8 @@ var WifiUI = {
           icon.classList.add('wifi-icon');
           var level = Math.min(Math.floor(network.relSignalStrength / 20), 4);
           icon.classList.add('level-' + level);
+          icon.setAttribute('aria-label', _('wifiLevel', {level: level}));
+          icon.setAttribute('role', 'presentation');
           // Set SSID
           ssidp.textContent = network.ssid;
           li.dataset.ssid = network.ssid;
@@ -342,15 +346,21 @@ var WifiUI = {
           icon.classList.add('wifi-signal');
           if (WifiHelper.isConnected(network)) {
             small.textContent = _('shortStatus-connected');
+            small.removeAttribute('aria-label');
             icon.classList.add('connected');
             li.classList.add('connected');
             li.dataset.wifiSelected = true;
+          } else {
+            small.setAttribute('aria-label', _('security'));
           }
 
           // Update list of shown netwoks
           networksShown.push(network.ssid);
           // Append the elements to li
           li.setAttribute('id', network.ssid);
+          li.setAttribute('role', 'option');
+          li.setAttribute('aria-live', true);
+          li.setAttribute('aria-relevant', 'text');
           li.appendChild(icon);
           li.appendChild(ssidp);
           li.appendChild(small);

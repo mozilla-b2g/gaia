@@ -1,16 +1,14 @@
-/*global Notify, Compose, mocha, MocksHelper, ActivityHandler, Contacts,
-         MessageManager, Attachment, ThreadUI, Settings, Notification,
-         Threads  */
+/*global Notify, Compose, MocksHelper, ActivityHandler, Contacts,
+         Attachment, ThreadUI, Settings, Notification,
+         Threads, Navigation, Promise  */
 /*global MockNavigatormozSetMessageHandler, MockNavigatormozApps,
          MockNavigatorWakeLock, MockOptionMenu,
-         MockMessages, MockL10n,
+         MockMessages, MockL10n, MockSilentSms,
          MockNavigatormozMobileMessage,
          Settings
 */
 
 'use strict';
-
-mocha.globals(['alert', 'confirm', 'Notify']);
 
 requireApp(
   'sms/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js'
@@ -24,7 +22,6 @@ requireApp('sms/shared/test/unit/mocks/mock_settings_url.js');
 
 requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/test/unit/mock_attachment.js');
-requireApp('sms/test/unit/mock_black_list.js');
 requireApp('sms/test/unit/mock_compose.js');
 requireApp('sms/test/unit/mock_contacts.js');
 requireApp('sms/test/unit/mock_messages.js');
@@ -34,6 +31,8 @@ requireApp('sms/test/unit/mock_thread_ui.js');
 requireApp('sms/test/unit/mock_action_menu.js');
 require('/test/unit/mock_settings.js');
 require('/test/unit/mock_notify.js');
+require('/test/unit/mock_navigation.js');
+require('/test/unit/mock_silent_sms.js');
 
 requireApp('sms/js/utils.js');
 requireApp('sms/test/unit/mock_utils.js');
@@ -43,7 +42,6 @@ requireApp('sms/js/activity_handler.js');
 
 var mocksHelperForActivityHandler = new MocksHelper([
   'Attachment',
-  'BlackList',
   'Compose',
   'Contacts',
   'MessageManager',
@@ -53,9 +51,11 @@ var mocksHelperForActivityHandler = new MocksHelper([
   'OptionMenu',
   'Settings',
   'SettingsURL',
+  'SilentSms',
   'Threads',
   'ThreadUI',
-  'Utils'
+  'Utils',
+  'Navigation'
 ]).init();
 
 suite('ActivityHandler', function() {
@@ -78,9 +78,6 @@ suite('ActivityHandler', function() {
 
     realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
-
-    // in case a previous state does not properly clean its stuff
-    window.location.hash = '';
   });
 
   suiteTeardown(function() {
@@ -94,6 +91,10 @@ suite('ActivityHandler', function() {
     this.sinon.stub(window, 'alert');
 
     MockNavigatormozSetMessageHandler.mSetup();
+
+    // simulate localization is ready
+    this.sinon.stub(navigator.mozL10n, 'once').yields();
+
     ActivityHandler.init();
   });
 
@@ -116,10 +117,9 @@ suite('ActivityHandler', function() {
   suite('"share" activity', function() {
     var shareActivity, blobs, names;
     var arr = [];
+    var panelPromise;
 
     setup(function() {
-      this.prevHash = window.location.hash;
-
       shareActivity = {
         source: {
           name: 'share',
@@ -139,10 +139,12 @@ suite('ActivityHandler', function() {
         postResult: sinon.stub(),
         postError: sinon.stub()
       };
+
+      panelPromise = Promise.resolve();
+      this.sinon.stub(Navigation, 'toPanel').returns(panelPromise);
     });
 
     teardown(function() {
-      window.location.hash = this.prevHash;
       ActivityHandler.leaveActivity();
     });
 
@@ -163,52 +165,58 @@ suite('ActivityHandler', function() {
       assert.ok(arr.length > 0);
     });
 
-    test('modifies the URL "hash" when necessary', function() {
-      window.location.hash = '#wrong-location';
+    test('moves to the composer panel', function() {
+
       MockNavigatormozSetMessageHandler.mTrigger('activity', shareActivity);
-      assert.equal(window.location.hash, '#new');
+
+      sinon.assert.calledWith(Navigation.toPanel, 'composer');
     });
 
     test('Appends an attachment to the Compose field for each media file',
-      function() {
+      function(done) {
       this.sinon.stub(Compose, 'append');
-      window.location.hash = '#new';
 
       MockNavigatormozSetMessageHandler.mTrigger('activity', shareActivity);
 
-      sinon.assert.calledWith(Compose.append, [
-        sinon.match.instanceOf(Attachment),
-        sinon.match.instanceOf(Attachment),
-        sinon.match.instanceOf(Attachment),
-        sinon.match.instanceOf(Attachment),
-        sinon.match.instanceOf(Attachment)
-      ]);
+      panelPromise.then(function() {
+        sinon.assert.calledWith(Compose.append, [
+          sinon.match.instanceOf(Attachment),
+          sinon.match.instanceOf(Attachment),
+          sinon.match.instanceOf(Attachment),
+          sinon.match.instanceOf(Attachment),
+          sinon.match.instanceOf(Attachment)
+        ]);
+      }).then(done, done);
     });
 
-    test('Attachment size over max mms should not be appended', function() {
+    test('Attachment size over max mms should not be appended', function(done) {
       // Adjust mmsSizeLimitation for verifying alert popup when size over
       // limitation
       Settings.mmsSizeLimitation = 1;
       this.sinon.spy(Compose, 'append');
-      window.location.hash = '#new';
 
       MockNavigatormozSetMessageHandler.mTrigger('activity', shareActivity);
-      sinon.assert.notCalled(Compose.append);
-      sinon.assert.calledWith(window.alert, 'files-too-large{"n":5}');
+
+      panelPromise.then(function() {
+        sinon.assert.notCalled(Compose.append);
+        sinon.assert.calledWith(window.alert, 'files-too-large{"n":5}');
+      }).then(done, done);
     });
 
-    test('Should append images even when they are big', function() {
+    test('Should append images even when they are big', function(done) {
       shareActivity.source.data.blobs = [
         new Blob(['test'], { type: 'image/jpeg' }),
       ];
 
       Settings.mmsSizeLimitation = 1;
       this.sinon.spy(Compose, 'append');
-      window.location.hash = '#new';
 
       MockNavigatormozSetMessageHandler.mTrigger('activity', shareActivity);
-      sinon.assert.called(Compose.append);
-      sinon.assert.notCalled(window.alert);
+
+      panelPromise.then(function() {
+        sinon.assert.called(Compose.append);
+        sinon.assert.notCalled(window.alert);
+      }).then(done, done);
     });
 
     test('share message should switch application to request activity mode',
@@ -220,14 +228,15 @@ suite('ActivityHandler', function() {
       }
     );
 
-    test('share message should set the current activity', function() {
+    test('share message should set the current activity', function(done) {
       MockNavigatormozSetMessageHandler.mTrigger('activity', shareActivity);
-      assert.isTrue(ActivityHandler.isInActivity());
+      panelPromise.then(function() {
+        assert.isTrue(ActivityHandler.isInActivity());
+      }).then(done, done);
     });
 
     test('Appends URL to the Compose field for activity with URL data type',
-      function() {
-      window.location.hash = '#new';
+      function(done) {
       this.sinon.stub(Compose, 'append');
       var shareURLActivity = {
         source: {
@@ -242,11 +251,14 @@ suite('ActivityHandler', function() {
 
       MockNavigatormozSetMessageHandler.mTrigger('activity', shareURLActivity);
 
-      sinon.assert.calledWith(Compose.append, shareURLActivity.source.data.url);
+      panelPromise.then(function() {
+        sinon.assert.calledWith(
+          Compose.append, shareURLActivity.source.data.url
+        );
+      }).then(done, done);
     });
 
     test('Call activity postError if no data to share', function() {
-      window.location.hash = '#new';
       this.sinon.spy(Compose, 'append');
       this.sinon.spy(ActivityHandler, 'leaveActivity');
 
@@ -272,7 +284,6 @@ suite('ActivityHandler', function() {
     });
 
     test('Call activity postError on unknown activity data type', function() {
-      window.location.hash = '#new';
       this.sinon.spy(Compose, 'append');
       this.sinon.spy(ActivityHandler, 'leaveActivity');
 
@@ -303,6 +314,8 @@ suite('ActivityHandler', function() {
 
     setup(function() {
       message = MockMessages.sms();
+      this.sinon.stub(MockSilentSms, 'checkSilentModeFor')
+            .returns(Promise.resolve(false));
       MockNavigatormozSetMessageHandler.mTrigger('sms-received', message);
     });
 
@@ -458,6 +471,35 @@ suite('ActivityHandler', function() {
     });
   });
 
+  suite('Silent mode', function() {
+    var message;
+
+    setup(function() {
+      message = MockMessages.sms();
+      this.sinon.stub(Navigation, 'isCurrentPanel').returns(true);
+    });
+
+    test('sender with Silent Mode enabled - not play ringtone', function(done) {
+      this.sinon.stub(Notify, 'ringtone');
+      var promise = Promise.resolve(true);
+      this.sinon.stub(MockSilentSms, 'checkSilentModeFor').returns(promise);
+      // trigger message
+      MockNavigatormozSetMessageHandler.mTrigger('sms-received', message);
+      promise.then(function() {
+        sinon.assert.notCalled(Notify.ringtone);
+      }).then(done, done);
+    });
+
+    test('sender with Silent Mode disabled - play ringtone', function(done) {
+      this.sinon.stub(Notify, 'ringtone', function _assertionFunction() {
+        done();
+      });
+      var promise = Promise.resolve(false);
+      this.sinon.stub(MockSilentSms, 'checkSilentModeFor').returns(promise);
+      MockNavigatormozSetMessageHandler.mTrigger('sms-received', message);
+    });
+  });
+
   suite('Dual SIM behavior >', function() {
     var message;
 
@@ -465,7 +507,8 @@ suite('ActivityHandler', function() {
       message = MockMessages.sms({
         iccId: '0'
       });
-
+      this.sinon.stub(MockSilentSms, 'checkSilentModeFor')
+        .returns(Promise.resolve(false));
       this.sinon.stub(Settings, 'hasSeveralSim').returns(true);
       this.sinon.spy(window, 'Notification');
 
@@ -548,20 +591,25 @@ suite('ActivityHandler', function() {
     });
 
     suite('receive message when in thread with the same id', function() {
+      var newMessage;
       setup(function() {
-        //mimic user clicking thread
-        Threads.currentId = 1;
+        this.sinon.stub(MockSilentSms, 'checkSilentModeFor')
+          .returns(Promise.resolve(false));
 
-        this.sinon.stub(Notify, 'ringtone');
-        this.sinon.stub(Notify, 'vibrate');
+        newMessage = MockMessages.sms();
 
-        var newMessage = MockMessages.sms();
-        MockNavigatormozSetMessageHandler.mTrigger('sms-received', newMessage);
+        this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
+        Navigation.isCurrentPanel.withArgs(
+          'thread', { id: newMessage.threadId }
+        ).returns(true);
       });
 
-      test('play ringtone and vibrate even if in correct thread', function() {
-        sinon.assert.called(Notify.ringtone);
-        sinon.assert.called(Notify.vibrate);
+      test('play ringtone and vibrate even if in correct thread',
+           function(done) {
+        this.sinon.stub(Notify, 'ringtone', function _assertionFunction() {
+          done();
+        });
+        MockNavigatormozSetMessageHandler.mTrigger('sms-received', newMessage);
       });
     });
 
@@ -619,27 +667,28 @@ suite('ActivityHandler', function() {
     setup(function() {
       // find no contact in here
       this.sinon.stub(Contacts, 'findByPhoneNumber').callsArgWith(1, []);
+      this.sinon.spy(Navigation, 'toPanel');
     });
 
     teardown(function() {
-      MessageManager.activity = null;
       ActivityHandler.leaveActivity();
     });
 
-    suiteSetup(function() {
-      window.location.hash = '#new';
+    test('Activity lock should be released properly', function() {
+      MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
+
+      assert.isFalse(ActivityHandler.isLocked);
     });
 
-    test('Activity lock should be released properly', function() {
-      // Review the status after handling the activity
-      this.sinon.stub(MessageManager, 'handleActivity', function(activity) {
-        assert.equal(activity.number, '123');
-        assert.equal(activity.body, 'foo');
-        //Is the lock released for a new request?
-        assert.isFalse(ActivityHandler.isLocked);
-      });
-
+    test('Should move to the composer', function() {
       MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
+
+      sinon.assert.calledWithMatch(Navigation.toPanel, 'composer', {
+        activity: {
+          number: '123',
+          body: 'foo'
+        }
+      });
     });
 
     test('new message with empty msg', function() {
@@ -649,7 +698,6 @@ suite('ActivityHandler', function() {
         assert.ok(false, 'confirmation dialog should not show');
       });
 
-      // Call the activity. As we are in 'new' there is no hashchange.
       MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
     });
 
@@ -660,19 +708,10 @@ suite('ActivityHandler', function() {
         assert.ok(false, 'confirmation dialog should not show');
       });
 
-      // Call the activity. As we are in 'new' there is no hashchange.
       MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity_empty);
     });
 
     test('new message with user input msg, discard it', function() {
-      // Review the status after handling the activity
-      this.sinon.stub(MessageManager, 'handleActivity', function(activity) {
-        assert.equal(activity.number, '123');
-        assert.equal(activity.body, 'foo');
-        //Is the lock released for a new request?
-        assert.isFalse(ActivityHandler.isLocked);
-
-      });
       // User typed message in the input field
       Compose.mEmpty = false;
       this.sinon.stub(MockOptionMenu.prototype, 'show', function() {
@@ -692,8 +731,15 @@ suite('ActivityHandler', function() {
         items[1].method(items[1].params[0]);
       });
 
-      // Call the activity. As we are in 'new' there is no hashchange.
       MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
+
+      // should be called after discarding
+      sinon.assert.calledWithMatch(Navigation.toPanel, 'composer', {
+        activity: {
+          number: '123',
+          body: 'foo'
+        }
+      });
     });
 
     test('new message with user input msg, edit it', function() {
@@ -716,6 +762,8 @@ suite('ActivityHandler', function() {
         items[0].method();
       });
       MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
+
+      sinon.assert.notCalled(Navigation.toPanel);
     });
 
     test('new message should set the current activity', function() {

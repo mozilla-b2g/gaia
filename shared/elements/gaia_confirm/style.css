@@ -8,7 +8,7 @@ gaia-confirm {
     url(images/pattern.png) repeat left top,
     url(images/gradient.png) no-repeat left top / 100% 100%;
   overflow: hidden;
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;
@@ -22,6 +22,10 @@ gaia-confirm {
   display: flex;
   align-items: center;
   flex-direction: row;
+}
+
+gaia-confirm[hidden] {
+  display: none;
 }
 
 .confirm section {

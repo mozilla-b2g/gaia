@@ -4,7 +4,7 @@
 requireApp('/system/test/unit/fxa_test/load_element_helper.js');
 
 // Real code
-requireApp('system/fxa/js/utils.js');
+require('/shared/js/utilities.js');
 requireApp('system/fxa/js/fxam_module.js');
 requireApp('system/fxa/js/fxam_states.js');
 
@@ -42,9 +42,7 @@ suite('Screen: Signin Success', function() {
     LoadElementHelper.load('fxa-signin-success.html');
     // Import the element and execute the right init
     HtmlImports.populate(function() {
-      FxaModuleSigninSuccess.init({
-        email: emailTest
-      });
+      FxaModuleSigninSuccess.init();
       done();
     });
   });
@@ -55,16 +53,6 @@ suite('Screen: Signin Success', function() {
     mocksHelperForSigninSuccess.suiteTeardown();
   });
 
-
-  suite(' > init ', function() {
-    test(' > email shown properly', function() {
-      assert.equal(
-        FxaModuleSigninSuccess.fxaSummaryEmail.innerHTML,
-        emailTest
-      );
-    });
-
-  });
 
   suite(' > onNext ', function() {
     test(' > go to DONE Step', function() {

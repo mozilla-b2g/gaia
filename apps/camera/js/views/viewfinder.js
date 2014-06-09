@@ -58,6 +58,10 @@ module.exports = View.extend({
   getSize: function() {
     this.width = window.innerWidth;
     this.height = window.innerHeight;
+    return {
+      width: this.width,
+      height: this.height
+    };
   },
 
   onClick: function(e) {
@@ -114,6 +118,16 @@ module.exports = View.extend({
     this._zoom = clamp(zoom, this._minimumZoom, this._maximumZoom);
   },
 
+  _useZoomPreviewAdjustment: false,
+
+  enableZoomPreviewAdjustment: function() {
+    this._useZoomPreviewAdjustment = true;
+  },
+
+  disableZoomPreviewAdjustment: function() {
+    this._useZoomPreviewAdjustment = false;
+  },
+
   /**
    * Adjust the scale of the <video/> tag to compensate for the inability
    * of the Camera API to zoom the preview stream beyond a certain point.
@@ -121,7 +135,9 @@ module.exports = View.extend({
    * calculated by `Camera.prototype.getZoomPreviewAdjustment()`.
    */
   setZoomPreviewAdjustment: function(zoomPreviewAdjustment) {
-    this.els.video.style.transform = 'scale(' + zoomPreviewAdjustment + ')';
+    if (this._useZoomPreviewAdjustment) {
+      this.els.video.style.transform = 'scale(' + zoomPreviewAdjustment + ')';
+    }
   },
 
   stopStream: function() {

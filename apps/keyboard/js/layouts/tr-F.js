@@ -1,5 +1,6 @@
 Keyboards['tr-F'] = {
   label: 'Turkish F',
+  shortLabel: 'Tr',
   imEngine: 'latin',
   types: ['text', 'url', 'email'],
   autoCorrectLanguage: 'tr',

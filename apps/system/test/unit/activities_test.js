@@ -7,9 +7,6 @@ requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/js/action_menu.js');
 requireApp('system/shared/js/manifest_helper.js');
 requireApp('system/js/activities.js');
-mocha.globals(['Activities', 'addEventListener', 'dispatchEvent',
-              'applications']);
-
 var mocksForActivities = new MocksHelper([
   'Applications'
 ]).init();
@@ -83,6 +80,13 @@ suite('system/Activities', function() {
       });
       assert.ok(stub.calledWith(detail));
     });
+
+    test('hides actionMenu on appopended if it exists', function() {
+      var stub = this.sinon.stub(ActionMenu.prototype, 'hide');
+      subject.actionMenu = new ActionMenu();
+      subject.handleEvent({type: 'appopened'});
+      assert.ok(stub.calledOnce);
+    });
   });
 
   suite('chooseActivity', function() {
@@ -107,6 +111,68 @@ suite('system/Activities', function() {
       assert.equal(dispatchStub.getCall(1).args[0].type,
         'activitymenuwillopen');
     });
+
+    test('does not allow a choice that would subvert forward lock', function() {
+      var stub = this.sinon.stub(subject, 'choose');
+      var dispatchStub = this.sinon.stub(window, 'dispatchEvent');
+      subject.chooseActivity({
+        id: 'single',
+        name: 'view',
+        choices: [{
+          manifest: 'app://fl.example.com/manifest.webapp'
+        },{
+          manifest: 'app://fl.gaiamobile.org/manifest.webapp'
+        }]
+      });
+
+      // If it is a view activity and one of the choices is the FL app, we
+      // must always choose the FL app.
+      assert.ok(stub.calledWith('1'));
+      // Ensure that we're not dispatching an activitymenuwillopen event
+      this.sinon.clock.tick();
+      assert.ok(dispatchStub.calledOnce);
+      assert.notEqual(dispatchStub.firstCall.args[0].type,
+                      'activitymenuwillopen');
+    });
+
+    test('allows choice for non-forward lock view activities', function() {
+      var stub = this.sinon.stub(window, 'dispatchEvent');
+      subject.chooseActivity({
+        id: 'single',
+        name: 'view',
+        choices: [{
+          manifest: 'app://gallery.gaiamobile.org/manifest.webapp'
+        },{
+          manifest: 'app://video.gaiamobile.org/manifest.webapp'
+        }]
+      });
+
+      // If this is a view activity without the FL app as one of the choices
+      // we must allow the user to make a choice.
+      this.sinon.clock.tick();
+      assert.equal(stub.firstCall.args[0].type, 'activityrequesting');
+      assert.equal(stub.secondCall.args[0].type, 'activitymenuwillopen');
+    });
+
+    test('allows choice for non-view activities that include FL', function() {
+      var stub = this.sinon.stub(window, 'dispatchEvent');
+      subject.chooseActivity({
+        id: 'single',
+        name: 'pick',
+        choices: [{
+          manifest: 'app://gallery.gaiamobile.org/manifest.webapp'
+        },{
+          manifest: 'app://fl.gaiamobile.org/manifest.webapp'
+        }]
+      });
+
+      // If this is a not a view activity then we must allow the user to make
+      // a choice even if the FL app is one of the choices.
+      this.sinon.clock.tick();
+      assert.equal(stub.firstCall.args[0].type, 'activityrequesting');
+      assert.equal(stub.secondCall.args[0].type, 'activitymenuwillopen');
+    });
+
   });
 
   suite('choose', function() {

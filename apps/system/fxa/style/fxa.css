@@ -34,6 +34,9 @@ h3 {
   text-align: left;
 }
 
+input {
+  -moz-user-select: text;
+}
 
 /* * * * * * * * * * * * * * * * * * * * * * * *
  * Navigation bar based on a flex model

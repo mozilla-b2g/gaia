@@ -1,5 +1,6 @@
 Keyboards.sv = {
   label: 'Swedish',
+  shortLabel: 'Sv',
   menuLabel: 'Svenska',
   imEngine: 'latin',
   autoCorrectLanguage: 'sv',

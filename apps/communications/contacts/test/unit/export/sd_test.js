@@ -1,4 +1,4 @@
-/* globals ContactsSDExport, mocha, MockgetDeviceStorage,
+/* globals ContactsSDExport, MockgetDeviceStorage,
            MockGetStorageIfAvailable, MockGetUnusedFilename */
 
 'use strict';
@@ -6,15 +6,6 @@
 requireApp('communications/contacts/js/export/sd.js');
 requireApp('communications/contacts/test/unit/mock_get_device_storage.js');
 requireApp('communications/contacts/test/unit/export/mock_export_utils.js');
-
-mocha.globals(
-  [
-    '_',
-    'ContactToVcard',
-    'getUnusedFilename',
-    'getStorageIfAvailable'
-  ]
-);
 
 suite('Sd export', function() {
 

@@ -1,4 +1,5 @@
 'use strict';
+/* global devicePixelRatio */
 /* global IconRetriever */
 /* global LazyLoader */
 
@@ -8,12 +9,15 @@
   const SHADOW_OFFSET_Y = 1;
   const SHADOW_OFFSET_X = 1;
   const SHADOW_COLOR = 'rgba(0, 0, 0, 0.2)';
-  const CANVAS_PADDING = 2;
+  const UNSCALED_CANVAS_PADDING = 2;
+  const CANVAS_PADDING = UNSCALED_CANVAS_PADDING * devicePixelRatio;
 
   /**
    * Represents a generic grid item from which other items can inherit from.
    */
-  function GridItem() {}
+  function GridItem() {
+    this.detail = {};
+  }
 
   GridItem.prototype = {
 
@@ -31,6 +35,11 @@
     gridWidth: 1,
 
     scale: 1,
+
+    /**
+     * Whether or not this icon will persist to the database.
+     */
+    persistToDB: true,
 
     /**
      * Returns a reference to the current grid.
@@ -83,20 +92,45 @@
      * @param {HTMLImageElement} img An image element to display from.
      */
     displayFromImage: function(img) {
-      const MAX_ICON_SIZE = this.grid.layout.gridIconSize;
+      const MAX_ICON_SIZE = this.grid.layout.gridIconSize * devicePixelRatio;
 
-      var canvas = document.createElement('canvas');
-      canvas.width = MAX_ICON_SIZE + (CANVAS_PADDING * 2);
-      canvas.height = MAX_ICON_SIZE + (CANVAS_PADDING * 2);
-      var ctx = canvas.getContext('2d');
+      var shadowCanvas = document.createElement('canvas');
+      shadowCanvas.width = MAX_ICON_SIZE + (CANVAS_PADDING * 2);
+      shadowCanvas.height = MAX_ICON_SIZE + (CANVAS_PADDING * 2);
+      var shadowCtx = shadowCanvas.getContext('2d');
 
-      ctx.shadowColor = SHADOW_COLOR;
-      ctx.shadowBlur = SHADOW_BLUR;
-      ctx.shadowOffsetY = SHADOW_OFFSET_Y;
-      ctx.shadowOffsetX = SHADOW_OFFSET_X;
-      ctx.drawImage(img, CANVAS_PADDING, CANVAS_PADDING,
-                    MAX_ICON_SIZE, MAX_ICON_SIZE);
-      canvas.toBlob(this.renderIconFromBlob.bind(this));
+      shadowCtx.shadowColor = SHADOW_COLOR;
+      shadowCtx.shadowBlur = SHADOW_BLUR;
+      shadowCtx.shadowOffsetY = SHADOW_OFFSET_Y;
+      shadowCtx.shadowOffsetX = SHADOW_OFFSET_X;
+
+      if (this.detail.clipIcon) {
+        // clipping to round the icon
+        var clipCanvas = document.createElement('canvas');
+        clipCanvas.width = shadowCanvas.width;
+        clipCanvas.height = shadowCanvas.height;
+        var clipCtx = clipCanvas.getContext('2d');
+
+        clipCtx.beginPath();
+        clipCtx.arc(clipCanvas.width / 2, clipCanvas.height / 2,
+                    clipCanvas.height / 2 - CANVAS_PADDING, 0, 2 * Math.PI);
+        clipCtx.clip();
+
+        clipCtx.drawImage(img, CANVAS_PADDING, CANVAS_PADDING,
+                               MAX_ICON_SIZE, MAX_ICON_SIZE);
+
+        var clipImage = new Image();
+        clipImage.onload = function clip_onload() {
+          shadowCtx.drawImage(clipImage, CANVAS_PADDING, CANVAS_PADDING,
+                                MAX_ICON_SIZE, MAX_ICON_SIZE);
+          shadowCanvas.toBlob(this.renderIconFromBlob.bind(this));
+        }.bind(this);
+        clipImage.src = clipCanvas.toDataURL();
+      } else {
+        shadowCtx.drawImage(img, CANVAS_PADDING, CANVAS_PADDING,
+                      MAX_ICON_SIZE, MAX_ICON_SIZE);
+        shadowCanvas.toBlob(this.renderIconFromBlob.bind(this));
+      }
     },
 
     /**
@@ -106,9 +140,22 @@
     renderIconFromBlob: function(blob) {
       this.element.style.height = this.grid.layout.gridItemHeight + 'px';
       this.element.style.backgroundSize =
-        (this.grid.layout.gridIconSize + CANVAS_PADDING) + 'px';
+        ((this.grid.layout.gridIconSize * (1 / this.scale)) +
+        UNSCALED_CANVAS_PADDING) +'px';
       this.element.style.backgroundImage =
         'url(' + URL.createObjectURL(blob) + ')';
+    },
+
+    showDownloading: function() {
+      if (this.element) {
+        this.element.classList.add('loading');
+      }
+    },
+
+    hideDownloading: function() {
+      if (this.element) {
+        this.element.classList.remove('loading');
+      }
     },
 
     /**
@@ -117,6 +164,8 @@
      * @param {Number} index The index of the items list of this item.
      */
     render: function(coordinates, index) {
+      this.scale = this.grid.layout.percent;
+
       // Generate an element if we need to
       if (!this.element) {
         var tile = document.createElement('div');
@@ -127,7 +176,8 @@
         // This <p> has been added in order to place the title with respect
         // to this container via CSS without touching JS.
         var nameContainerEl = document.createElement('p');
-        nameContainerEl.style.marginTop = this.grid.layout.gridIconSize + 'px';
+        nameContainerEl.style.marginTop = (this.grid.layout.gridIconSize *
+                                          (1 / this.scale)) + 'px';
         tile.appendChild(nameContainerEl);
 
         var nameEl = document.createElement('span');
@@ -144,8 +194,19 @@
 
         this.element = tile;
         if (this.isIconFromOrigin()) {
-          LazyLoader.load(['shared/js/async_storage.js',
-                           'js/icon_retrivier.js'], function() {
+          LazyLoader.load(
+            ['/shared/js/async_storage.js',
+             '/shared/elements/gaia_grid/js/icon_retriever.js'], function() {
+            var app = this.app;
+            // The download should finish when the icon is local
+            if (app && app.downloading && this.icon.startsWith('app:')) {
+              this.showDownloading();
+              app.ondownloadsuccess = app.ondownloaderror = function() {
+                app.ondownloadsuccess = app.ondownloaderror = null;
+                IconRetriever.get(this, this.hideDownloading.bind(this));
+              }.bind(this);
+              return;
+            }
             IconRetriever.get(this);
           }.bind(this));
         } else {
@@ -160,7 +221,6 @@
       this.setPosition(index);
       this.x = x;
       this.y = y;
-      this.scale = this.grid.layout.percent;
 
       // Avoid rendering the icon during a drag to prevent jumpiness
       if (this.noTransform) {

@@ -206,7 +206,7 @@ var GaiaApps = {
     let apps = GaiaApps.getApps();
     for (let id in apps) {
       let origin = apps[id].origin;
-      if (origin.indexOf('homescreen') == -1) {
+      if (!/homescreen|verticalhome/.test(origin)) {
         originsToClose.push(origin);
       }
     }

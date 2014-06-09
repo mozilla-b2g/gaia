@@ -2,6 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import time
+
 from marionette.by import By
 from gaiatest.apps.base import Base
 
@@ -53,7 +55,11 @@ class Language(Base):
             raise Exception("Element '%s' could not be found in select wrapper" % match_string)
 
         close_button.tap()
+        self.wait_for_element_not_displayed(By.CSS_SELECTOR, 'button.value-option-confirm')
 
-        self.wait_for_condition(lambda m: not m.find_element(By.ID, 'value-selector').is_displayed())
+        # TODO we should find something suitable to wait for, but this goes too
+        # fast against desktop builds causing intermittent failures
+        time.sleep(0.2)
+
         # now back to app
         self.apps.switch_to_displayed_app()

@@ -1,4 +1,4 @@
-/* global eme, Provider, Search */
+/* global eme, Search, DataGridProvider, Bookmark */
 
 (function() {
 
@@ -8,40 +8,19 @@
 
   WebResults.prototype = {
 
-    __proto__: Provider.prototype,
+    __proto__: DataGridProvider.prototype,
 
     name: 'WebResults',
 
     dedupes: true,
     dedupeStrategy: 'fuzzy',
+    remote: true,
 
     renderFullscreen: false,
 
     init: function() {
-      Provider.prototype.init.apply(this, arguments);
+      DataGridProvider.prototype.init.apply(this, arguments);
       eme.init();
-    },
-
-    click: function(e) {
-      var url = e.target && e.target.dataset.url;
-      if (url) {
-
-        var features = {
-          remote: true,
-          useAsyncPanZoom: true,
-          icon: e.target.dataset.icon,
-          originUrl: url,
-          originName: e.target.dataset.title
-        };
-
-        var featureStr = Object.keys(features)
-          .map(function(key) {
-            return encodeURIComponent(key) + '=' +
-              encodeURIComponent(features[key]);
-          }).join(',');
-
-        window.open(url, '_blank', featureStr);
-      }
     },
 
     /**
@@ -57,7 +36,6 @@
     },
 
     search: function(input, collect) {
-      this.clear();
 
       if (!eme.api.Apps) {
         return;
@@ -73,14 +51,14 @@
           var results = [];
           response.apps.forEach(function each(app) {
             results.push({
-              title: app.name,
-              icon: app.icon,
               dedupeId: app.appUrl,
-              dataset: {
-                title: app.name,
+              data: new Bookmark({
+                id: app.id,
+                name: app.name,
                 url: app.appUrl,
-                icon: app.icon
-              }
+                icon: app.icon,
+                clipIcon: true
+              })
             });
           }, this);
           collect(results);

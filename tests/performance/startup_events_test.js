@@ -6,6 +6,8 @@ var App = require('./app');
 var PerformanceHelper = requireGaia('/tests/performance/performance_helper.js');
 var MarionetteHelper = requireGaia('/tests/js-marionette/helper.js');
 
+var appPath = mozTestInfo.appPath;
+
 var whitelistedApps = [
   'communications/contacts',
   'camera',
@@ -15,17 +17,24 @@ var whitelistedApps = [
   'sms'
 ];
 
-if (whitelistedApps.indexOf(mozTestInfo.appPath) === -1) {
+var whitelistedUnifiedApps = [
+  'settings'
+];
+
+function contains(haystack, needle) {
+  return haystack.indexOf(needle) !== -1;
+}
+
+if (!contains(whitelistedApps, appPath)) {
   return;
 }
 
-var manifestPath, entryPoint;
-var arr = mozTestInfo.appPath.split('/');
-manifestPath = arr[0];
-entryPoint = arr[1];
+var arr = appPath.split('/');
+var manifestPath = arr[0];
+var entryPoint = arr[1];
 
 
-marionette('startup event test > ' + mozTestInfo.appPath + ' >', function() {
+marionette('startup event test > ' + appPath + ' >', function() {
 
   var client = marionette.client({
     settings: {
@@ -35,9 +44,11 @@ marionette('startup event test > ' + mozTestInfo.appPath + ' >', function() {
   // Do nothing on script timeout. Bug 987383
   client.onScriptTimeout = null;
 
-  var lastEvent = 'startup-path-done';
+  var lastEvent = contains(whitelistedUnifiedApps, appPath)
+    ? 'moz-app-loaded'
+    : 'startup-path-done';
 
-  var app = new App(client, mozTestInfo.appPath);
+  var app = new App(client, appPath);
   if (app.skip) {
     return;
   }

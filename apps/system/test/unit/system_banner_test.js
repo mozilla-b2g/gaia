@@ -1,8 +1,6 @@
 'use strict';
 /* global SystemBanner, AnimationEvent */
 
-mocha.globals(['SystemBanner']);
-
 suite('system/SystemBanner', function() {
   var stubById;
   var fakeElement;

@@ -36,12 +36,16 @@ requireApp('camera/js/vendor/alameda.js', function() {
       'getVideoRotation': '../shared/js/media/get_video_rotation',
       'performance-testing-helper': '../shared/js/performance_testing_helper',
       'jpegMetaDataParser': '../shared/js/media/jpeg_metadata_parser',
+      'downsample': '../shared/js/media/downsample',
+      'getImageSize': '../shared/js/media/image_size',
+      'cropResizeRotate': '../shared/js/media/crop_resize_rotate',
       'format': '../shared/js/format',
       'GestureDetector': '../shared/js/gesture_detector',
       'VideoPlayer': '../shared/js/media/video_player',
       'MediaFrame': '../shared/js/media/media_frame',
       'BlobView': '../shared/js/blobview',
       'CustomDialog': '../shared/js/custom_dialog',
+      'FontSizeUtils': '../shared/js/font_size_utils',
       'debug': 'vendor/debug'
     },
     shim: {
@@ -68,11 +72,22 @@ requireApp('camera/js/vendor/alameda.js', function() {
       'jpegMetaDataParser': {
         exports: 'parseJPEGMetadata'
       },
+      'getImageSize': {
+        deps: ['BlobView', 'jpegMetaDataParser'],
+        exports: 'getImageSize'
+      },
+      'cropResizeRotate': {
+        deps: ['BlobView', 'getImageSize', 'jpegMetaDataParser', 'downsample'],
+        exports: 'cropResizeRotate'
+      },
       'GestureDetector': {
         exports: 'GestureDetector'
       },
       'CustomDialog': {
         exports: 'CustomDialog'
+      },
+      'FontSizeUtils': {
+        exports: 'FontSizeUtils'
       }
     }
   });

@@ -39,9 +39,6 @@ suite('Utils', function() {
     this.sinon.stub(navigator.mozL10n, 'get',
       function get(key, params) {
         if (params) {
-          if (key == 'thread-header') {
-            return params.numberType + ' | ' + params.numberDetail;
-          }
           return key + JSON.stringify(params);
         }
         if (key == 'thread-separator') {
@@ -432,7 +429,11 @@ suite('Utils', function() {
 
       var a = Utils.getCarrierTag('101', tel);
 
-      assert.equal(a, 'Mobile | Nynex');
+      assert.deepEqual(a, {
+        type: tel[0].type[0],
+        carrier: tel[0].carrier,
+        number: tel[0].value
+      });
     });
 
     test('Single no carrier', function() {
@@ -443,7 +444,11 @@ suite('Utils', function() {
 
       var a = Utils.getCarrierTag('201', tel);
 
-      assert.equal(a, 'Mobile | 201');
+      assert.deepEqual(a, {
+        type: tel[0].type[0],
+        carrier: null,
+        number: tel[0].value
+      });
     });
 
     test('Single no name', function() {
@@ -454,7 +459,11 @@ suite('Utils', function() {
 
       var a = Utils.getCarrierTag('201', tel, { name: '' });
 
-      assert.equal(a, 'Mobile | Telco');
+      assert.deepEqual(a, {
+        type: tel[0].type[0],
+        carrier: tel[0].carrier,
+        number: null
+      });
     });
 
     test('Single no name, no carrier', function() {
@@ -465,7 +474,11 @@ suite('Utils', function() {
 
       var a = Utils.getCarrierTag('201', tel, { name: '' });
 
-      assert.equal(a, 'Mobile');
+      assert.deepEqual(a, {
+        type: tel[0].type[0],
+        carrier: null,
+        number: null
+      });
     });
 
     test('Single no name, no carrier, no type', function() {
@@ -476,7 +489,7 @@ suite('Utils', function() {
 
       var a = Utils.getCarrierTag('201', tel, { name: '' });
 
-      assert.equal(a, '');
+      assert.isNull(a);
     });
 
     test('Multi different carrier & type, match both', function() {
@@ -489,8 +502,16 @@ suite('Utils', function() {
       var a = Utils.getCarrierTag('301', tel);
       var b = Utils.getCarrierTag('302', tel);
 
-      assert.equal(a, 'Mobile | Nynex');
-      assert.equal(b, 'Home | MCI');
+      assert.deepEqual(a, {
+        type: tel[0].type[0],
+        carrier: tel[0].carrier,
+        number: tel[0].value
+      });
+      assert.deepEqual(b, {
+        type: tel[1].type[0],
+        carrier: tel[1].carrier,
+        number: tel[1].value
+      });
     });
 
     test('Multi different carrier, match first', function() {
@@ -502,7 +523,11 @@ suite('Utils', function() {
 
       var a = Utils.getCarrierTag('401', tel);
 
-      assert.equal(a, 'Mobile | Nynex');
+      assert.deepEqual(a, {
+        type: tel[0].type[0],
+        carrier: tel[0].carrier,
+        number: tel[0].value
+      });
     });
 
     test('Multi different carrier, match second', function() {
@@ -514,7 +539,11 @@ suite('Utils', function() {
 
       var a = Utils.getCarrierTag('502', tel);
 
-      assert.equal(a, 'Home | MCI');
+      assert.deepEqual(a, {
+        type: tel[1].type[0],
+        carrier: tel[1].carrier,
+        number: tel[1].value
+      });
     });
 
     test('Multi same carrier & type', function() {
@@ -527,8 +556,16 @@ suite('Utils', function() {
       var a = Utils.getCarrierTag('601', tel);
       var b = Utils.getCarrierTag('602', tel);
 
-      assert.equal(a, 'Mobile | 601');
-      assert.equal(b, 'Mobile | 602');
+      assert.deepEqual(a, {
+        type: tel[0].type[0],
+        carrier: null,
+        number: tel[0].value
+      });
+      assert.deepEqual(b, {
+        type: tel[1].type[0],
+        carrier: null,
+        number: tel[1].value
+      });
     });
 
     test('Multi same carrier, different type', function() {
@@ -541,8 +578,16 @@ suite('Utils', function() {
       var a = Utils.getCarrierTag('701', tel);
       var b = Utils.getCarrierTag('702', tel);
 
-      assert.equal(a, 'Mobile | Nynex');
-      assert.equal(b, 'Home | Nynex');
+      assert.deepEqual(a, {
+        type: tel[0].type[0],
+        carrier: tel[0].carrier,
+        number: tel[0].value
+      });
+      assert.deepEqual(b, {
+        type: tel[1].type[0],
+        carrier: tel[1].carrier,
+        number: tel[1].value
+      });
     });
 
     test('Multi different carrier, same type', function() {
@@ -555,8 +600,16 @@ suite('Utils', function() {
       var a = Utils.getCarrierTag('801', tel);
       var b = Utils.getCarrierTag('802', tel);
 
-      assert.equal(a, 'Mobile | Nynex');
-      assert.equal(b, 'Mobile | MCI');
+      assert.deepEqual(a, {
+        type: tel[0].type[0],
+        carrier: tel[0].carrier,
+        number: tel[0].value
+      });
+      assert.deepEqual(b, {
+        type: tel[1].type[0],
+        carrier: tel[1].carrier,
+        number: tel[1].value
+      });
     });
 
     test('Multi different carrier, same type - intl number', function() {
@@ -569,8 +622,16 @@ suite('Utils', function() {
       var a = Utils.getCarrierTag('+1234567890', tel);
       var b = Utils.getCarrierTag('+0987654321', tel);
 
-      assert.equal(a, 'Mobile | Nynex');
-      assert.equal(b, 'Mobile | MCI');
+      assert.deepEqual(a, {
+        type: tel[0].type[0],
+        carrier: tel[0].carrier,
+        number: tel[0].value
+      });
+      assert.deepEqual(b, {
+        type: tel[1].type[0],
+        carrier: tel[1].carrier,
+        number: tel[1].value
+      });
     });
 
     test('Multi different carrier, same type - never match', function() {
@@ -583,8 +644,8 @@ suite('Utils', function() {
       var a = Utils.getCarrierTag('+9999999999', tel);
       var b = Utils.getCarrierTag('+9999999999', tel);
 
-      assert.equal(a, '');
-      assert.equal(b, '');
+      assert.isNull(a);
+      assert.isNull(b);
     });
   });
 
@@ -1063,9 +1124,6 @@ suite('getDisplayObject', function() {
     this.sinon.stub(navigator.mozL10n, 'get',
       function get(key, params) {
         if (params) {
-          if (key == 'thread-header') {
-            return params.numberType + ' | ' + params.numberDetail;
-          }
           return key + JSON.stringify(params);
         }
         if (key == 'thread-separator') {
@@ -1303,5 +1361,45 @@ test('getClosestSampleSize', function() {
   assert.equal(Utils.getClosestSampleSize(7), 4);
   assert.equal(Utils.getClosestSampleSize(8), 8);
   assert.equal(Utils.getClosestSampleSize(9), 8);
+});
+
+test('extend()', function() {
+  var source = {
+    prop1: 'prop1-source',
+    prop2: 'prop2-source'
+  };
+
+  var target = {
+    prop2: 'prop2-target',
+    prop3: 'prop3-target'
+  };
+
+  var prototype = {
+    prop4: 'prop4-proto'
+  };
+
+  target.prototype = Object.create(prototype);
+
+  Utils.extend(target, source);
+
+  assert.equal(
+    target.prop1, source.prop1,
+    'copies over properties'
+  );
+
+  assert.equal(
+    target.prop2, source.prop2,
+    'overrides properties'
+  );
+
+  assert.equal(
+    target.prop3, 'prop3-target',
+    'does not change properties that is not in target'
+  );
+
+  assert.isUndefined(
+    target.prop4,
+    'does not copy over properties from prototype'
+  );
 });
 

@@ -8,7 +8,9 @@ define(function(require, exports, module) {
 var debug = require('debug')('controller:viewfinder');
 var bindAll = require('lib/bind-all');
 var FocusView = require('views/focus');
+var FacesView = require('views/faces');
 var calculateFocusArea = require('lib/calculate-focus-area');
+var convertFaceToPixels = require('lib/convert-face-to-pixel-coordinates');
 
 /**
  * Exports
@@ -34,6 +36,8 @@ function ViewfinderController(app) {
   // Append focus ring to viewfinder
   this.views.focus = new FocusView();
   this.views.focus.appendTo(this.views.viewfinder.el);
+  this.views.faces = new FacesView();
+  this.views.faces.appendTo(this.views.viewfinder.el);
   this.bindEvents();
   this.configure();
   debug('initialized');
@@ -97,8 +101,10 @@ ViewfinderController.prototype.bindEvents = function() {
   this.views.viewfinder.on('click', this.onViewfinderClicked);
 
   this.camera.on('zoomchanged', this.onZoomChanged);
+  this.camera.on('zoomconfigured', this.onZoomConfigured);
   this.app.on('camera:focusconfigured', this.onFocusConfigured);
   this.app.on('camera:focusstatechanged', this.views.focus.setFocusState);
+  this.app.on('camera:facesdetected', this.onFacesDetected);
   this.app.on('camera:shutter', this.views.viewfinder.shutter);
   this.app.on('camera:busy', this.views.viewfinder.disable);
   this.app.on('camera:ready', this.views.viewfinder.enable);
@@ -121,7 +127,6 @@ ViewfinderController.prototype.onCameraConfigured = function() {
   debug('configuring');
   this.startStream();
   this.configurePreview();
-  this.configureZoom();
 
   // BUG: We have to use a 300ms timeout here
   // to conceal a Gecko rendering bug whereby the
@@ -143,7 +148,26 @@ ViewfinderController.prototype.show = function() {
 ViewfinderController.prototype.onFocusConfigured = function(config) {
   this.views.focus.setFocusMode(config.mode);
   this.touchFocusEnabled = config.touchFocus;
-  this.views.focus.enable('face-tracking', config.faceTracking);
+  this.views.faces.clear();
+  if (config.maxDetectedFaces > 0) {
+    this.views.faces.configure(config.maxDetectedFaces);
+  }
+};
+
+ViewfinderController.prototype.onFacesDetected = function(faces) {
+  var faceInPixels;
+  var facesInPixels = [];
+  var viewfinderSize =  this.views.viewfinder.getSize();
+  var viewportHeight = viewfinderSize.height;
+  var viewportWidth = viewfinderSize.width;
+
+  faces.forEach(function(face, index) {
+    // Face comes in camera coordinates from gecko
+    faceInPixels = convertFaceToPixels(face, viewportWidth, viewportHeight);
+    facesInPixels.push(faceInPixels);
+  });
+  this.views.faces.show();
+  this.views.faces.render(facesInPixels);
 };
 
 /**
@@ -212,7 +236,7 @@ ViewfinderController.prototype.configurePreview = function() {
  *
  * @private
  */
-ViewfinderController.prototype.configureZoom = function() {
+ViewfinderController.prototype.onZoomConfigured = function() {
   var zoomSupported = this.camera.isZoomSupported();
   var zoomEnabled = this.app.settings.zoom.enabled();
   var enableZoom = zoomSupported && zoomEnabled;
@@ -220,6 +244,12 @@ ViewfinderController.prototype.configureZoom = function() {
   if (!enableZoom) {
     this.views.viewfinder.disableZoom();
     return;
+  }
+
+  if (this.app.settings.zoom.get('useZoomPreviewAdjustment')) {
+    this.views.viewfinder.enableZoomPreviewAdjustment();
+  } else {
+    this.views.viewfinder.disableZoomPreviewAdjustment();
   }
 
   var minimumZoom = this.camera.getMinimumZoom();
@@ -264,11 +294,12 @@ ViewfinderController.prototype.onViewfinderClicked = function(e) {
     x: e.pageX,
     y: e.pageY
   };
+  this.views.faces.hide();
   focusPoint.area = calculateFocusArea(
     focusPoint.x, focusPoint.y,
     this.views.viewfinder.el.clientWidth,
     this.views.viewfinder.el.clientHeight);
-  this.views.focus.changePosition(focusPoint.x, focusPoint.y);
+  this.views.focus.setPosition(focusPoint.x, focusPoint.y);
   this.app.emit('viewfinder:focuspointchanged', focusPoint);
 };
 

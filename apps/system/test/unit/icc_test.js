@@ -14,8 +14,6 @@ require('/shared/test/unit/mocks/mock_dump.js');
 require('/shared/test/unit/load_body_html_helper.js');
 
 
-mocha.globals(['FtuLaucher', 'icc_worker', 'icc']);
-
 var mocksForIcc = new MocksHelper([
   'Dump',
   'FtuLauncher',

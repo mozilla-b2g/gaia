@@ -156,6 +156,28 @@ suite('controllers/camera', function() {
 
   suite('CameraController#onSettingsConfigured()', function() {
     setup(function() {
+
+      // Mock object that mimicks
+      // mozSettings get API. Inside
+      // tests set this.mozSettingsGetResult
+      // define the result of the mock call.
+      navigator.mozSettings = {
+        createLock: function() { return this; },
+        get: function(key) {
+          var mozSettings = this;
+          setTimeout(function() {
+            var result = {};
+            result[key] = 'the-result';
+            mozSettings.onsuccess({
+              target: {
+                result: result
+              }
+            });
+          });
+          return this;
+        }
+      };
+
       this.app.settings.flashModes.selected.returns('on');
       this.app.settings.isoModes.get = sinon.spy();
       this.app.settings.isoModes.selected.returns({key: 'auto'});

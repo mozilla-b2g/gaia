@@ -5,24 +5,17 @@
 
 html, body {
   height: 100%;
-}
-
-html {
-  background: #212121;
-}
-
-body, a {
-  color: #5A5A5A;
   font-size: 10px;
 }
 
-section {
-  color: #858585;
-  font-size: 1rem;
+body, a {
+  color: rgba(255, 255, 255, 0.9);
 }
 
 section.suggestions {
-  background: #1a1a1a;
+  margin-left: 0.7rem;
+  font-size: 16px;
+  font-style: italic;
 }
 
 section.suggestions ul {
@@ -73,10 +66,6 @@ section .result * {
   border-radius: 2px;
 }
 
-.local .meta {
-  color: #858585;
-}
-
 .local .title, .local .meta {
   display: block;
   white-space:nowrap;
@@ -89,15 +78,6 @@ section .result * {
   text-decoration: underline;
 }
 
-#googlelink .result {
-  color: #858585;
-  font-size: 1rem;
-  background: url(icons/google_favicon.png) 8px center no-repeat;
-  padding: 12px;
-  text-indent: 30px;
-  border-bottom: 1px solid #5A5A5A;
-}
-
 /* web */
 section.apps {
   padding-top: 1rem;
@@ -105,31 +85,10 @@ section.apps {
   font-size: 0;
 }
 
-section.apps section {
-  display: inline;
-  font-size: 0.8125rem;
-}
-
-section.apps .result {
-  width: calc(100%/4 - 0.4rem);
-  display: inline-block;
-  text-align: center;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  height: 6.1rem;
-  line-height: 1rem;
-  padding: 0 0.2rem;
-}
-
-section.apps img {
+gaia-grid {
   display: block;
-  margin: 0 auto 0.3rem;
-  pointer-events: none;
-  width: 2.75rem;
-}
-
-#webresults .result img {
-  border-radius: 50%;
+  height: 100%;
+  width: 100%;
 }
 
 #newtab-page {

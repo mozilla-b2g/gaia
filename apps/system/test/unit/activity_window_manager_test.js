@@ -2,8 +2,6 @@
 /* global MocksHelper, ActivityWindowManager, ActivityWindow,
    AppWindow */
 
-mocha.globals(['AppWindow', 'ActivityWindow', 'ActivityWindowManager']);
-
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_activity_window.js');
 

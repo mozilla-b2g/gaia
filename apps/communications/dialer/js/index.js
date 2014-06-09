@@ -6,6 +6,12 @@ window.addEventListener('load', function dialerSetup() {
   KeypadManager.init();
   NavbarManager.init();
 
+  // Tell audio channel manager that we want to adjust the notification
+  // channel if the user press the volumeup/volumedown buttons in Dialer.
+  if (navigator.mozAudioChannelManager) {
+    navigator.mozAudioChannelManager.volumeControlChannel = 'notification';
+  }
+
   setTimeout(function nextTick() {
     var lazyPanels = ['add-contact-action-menu',
                       'confirmation-message',
@@ -24,7 +30,6 @@ window.addEventListener('load', function dialerSetup() {
                        '/shared/js/fb/fb_reader_utils.js',
                        '/shared/style/confirm.css',
                        '/shared/js/confirm.js',
-                       '/dialer/js/newsletter_manager.js',
                        '/shared/style/edit_mode.css',
                        '/shared/style/headers.css']);
       lazyPanelsElements.forEach(navigator.mozL10n.translate);

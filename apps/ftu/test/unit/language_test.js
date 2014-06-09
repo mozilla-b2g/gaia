@@ -1,10 +1,7 @@
 'use strict';
 
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
-requireApp('ftu/test/unit/mock_settings.js');
 requireApp('ftu/js/language.js');
-
-mocha.globals(['KeyboardHelper']);
 
 suite('languages >', function() {
   var realSettings;

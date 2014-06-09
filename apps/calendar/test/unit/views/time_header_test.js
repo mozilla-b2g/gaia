@@ -44,7 +44,7 @@ suiteGroup('Views.TimeHeader', function() {
     controller.move(date);
     monthTitle = localeFormat(
       date,
-      '%B %Y'
+      '%b %Y'
     );
   });
 
@@ -86,7 +86,7 @@ suiteGroup('Views.TimeHeader', function() {
   test('#getScale for week', function() {
     controller.move(new Date(2012, 0, 15));
     var out = subject.getScale('week');
-    var compare = localeFormat(new Date(2012, 0, 30), '%B %Y');
+    var compare = localeFormat(new Date(2012, 0, 30), '%b %Y');
     assert.equal(out, compare);
   });
 
@@ -111,7 +111,7 @@ suiteGroup('Views.TimeHeader', function() {
     // even tho the week ends on the next month the days displayed on calendar
     // all belong to same month (since we break the week into Sun-Wed and
     // Thr-Sat)
-    assert.equal(out, localeFormat(new Date(2013, 6, 1), '%B %Y'));
+    assert.equal(out, localeFormat(new Date(2013, 6, 1), '%b %Y'));
   });
 
   test('#_updateTitle', function() {

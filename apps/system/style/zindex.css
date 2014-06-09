@@ -129,6 +129,9 @@
 #screen.attention:not(.active-statusbar) > [data-z-index-level="utility-tray"] {
   z-index: 16385;
 }
+#screen.attention:not(.active-statusbar) > [data-z-index-level="permission-screen"] {
+  z-index: 16385;
+}
 
 /* Level 6: Lock Screen */
 
@@ -220,7 +223,7 @@
 }
 
 #screen > [data-z-index-level="app"] > .appWindow.active:not(.homescreen),
-#screen.edges > [data-z-index-level="app"] > .appWindow:not(.homescreen),
+#screen:not(.on-homescreen) > [data-z-index-level="app"] > .appWindow:not(.homescreen):not(.lockScreenWindow),
 #screen > [data-z-index-level="app"] > .appWindow.will-become-active {
   z-index: 6;
 }

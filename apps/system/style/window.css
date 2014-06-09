@@ -11,6 +11,9 @@
   height: 100%;
   background-repeat: no-repeat;
   background-position: center center;
+
+  transform: translateX(0);
+  will-change: transform, opacity;
 }
 
 .appWindow > .appWindow {
@@ -39,7 +42,7 @@
   pointer-events: none;
 }
 
-.appWindow:not(.homescreen) {
+.appWindow:not(.homescreen):not(.searchWindow) {
   background-color: black;
 }
 
@@ -47,7 +50,7 @@
   background-color: white;
 }
 
-.appWindow:not(.homescreen).render {
+.appWindow:not(.homescreen):not(.searchWindow).render {
   background-image: none !important;
   background-color: transparent;
 }
@@ -96,7 +99,7 @@
   background-size: auto 0.3rem;
 }
 
-.appWindow:not(.homescreen).render > iframe {
+.appWindow:not(.homescreen):not(.searchWindow).render > iframe {
   background-color: #fff;
 }
 
@@ -214,13 +217,6 @@
 #windows.slow-transition .appWindow.transition-closing,
 #windows.slow-transition .appWindow.transition-opening {
   animation-duration: 3s;
-}
-
-.appWindow.transition-closing,
-.appWindow.transition-opening {
-  /* The animation takes .3 seconds so users cannot touch the app while the
-   * closing animation is performing */
-  pointer-events: none;
 }
 
 .appWindow.reduce {
@@ -354,6 +350,24 @@
   opacity: 0.8;
 }
 
+.appWindow > .touch-blocker {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  visibility: hidden;
+  background: transparent;
+  pointer-events: all;
+}
+
+.appWindow.transition-closing .touch-blocker,
+.appWindow.transition-opening .touch-blocker {
+  /* The animation takes .3 seconds so users cannot touch the app while the
+   * closing animation is performing */
+  visibility: visible;
+}
+
 .appWindow > .modal-dialog,
 .appWindow > .authentication-dialog,
 .authentication-dialog > .authentication-dialog-http {
@@ -435,8 +449,16 @@
 }
 
 .appWindow.suspended > .identification-overlay,
-#screen.edges .appWindow:not(.active) .identification-overlay.visible {
+.appWindow:not(.active) > .identification-overlay.visible {
   opacity: 1;
+}
+
+/* we don't want to show the overlay at all during the opening
+   transition (from the homescreen and from the cardview) */
+.appWindow.enlarge > .identification-overlay.visible,
+.appWindow.from-cardview > .identification-overlay.visible {
+  opacity: 0 !important;
+  transition: none !important;
 }
 
 .identification-overlay > div {
@@ -484,6 +506,10 @@
 
 .appWindow > .appWindow {
   z-index: 65536;
+}
+
+.appWindow > .touch-blocker {
+  z-index: 1026;
 }
 
 .appWindow > .fade-overlay {
@@ -617,11 +643,10 @@
 }
 
 /* Edges */
-#screen.edges #windows > .appWindow:not(.homescreen) {
+#windows > .appWindow:not(.homescreen):not(.lockScreenWindow) {
   /* in the viewport but not really */
   transform: translateX(-99.9999%);
   opacity: 1;
-  will-change: transform, opacity;
 }
 
 #screen:-moz-full-screen-ancestor > #windows .appWindow.active {
@@ -630,23 +655,23 @@
   will-change: auto;
 }
 
-#screen.edges .appWindow.will-become-inactive {
+#screen #windows > .appWindow.will-become-inactive {
   opacity: 0;
 }
 
-#screen.edges #windows > .appWindow.active:not(.will-become-inactive):not(.back),
-#screen.edges #windows > .appWindow.will-become-active,
-#screen.edges #windows > .appWindow.inside-edges {
+#screen #windows > .appWindow.active:not(.will-become-inactive):not(.back),
+#screen #windows > .appWindow.will-become-active,
+#screen #windows > .appWindow.inside-edges {
   opacity: 1;
   transform: translateX(0);
 }
 
-#screen.edges #windows > .appWindow.outside-edges-left {
+#screen #windows > .appWindow.outside-edges-left {
   opacity: 1;
   transform: translateX(calc(-100% - 2rem));
 }
 
-#screen.edges #windows > .appWindow.outside-edges-right {
+#screen #windows > .appWindow.outside-edges-right {
   opacity: 1;
   transform: translateX(calc(100% + 2rem));
 }

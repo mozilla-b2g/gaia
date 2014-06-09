@@ -17,6 +17,7 @@ var templateNode = require('tmpl!./compose.html'),
     cmpSendingContainerNode = require('tmpl!./cmp/sending_container.html'),
     msgAttachConfirmNode = require('tmpl!./msg/attach_confirm.html'),
     common = require('mail_common'),
+    Toaster = common.Toaster,
     model = require('model'),
     iframeShims = require('iframe_shims'),
     Marquee = require('marquee'),
@@ -24,7 +25,8 @@ var templateNode = require('tmpl!./compose.html'),
 
     prettyFileSize = common.prettyFileSize,
     Cards = common.Cards,
-    ConfirmDialog = common.ConfirmDialog;
+    ConfirmDialog = common.ConfirmDialog,
+    mimeToClass = common.mimeToClass;
 
 /**
  * Max composer attachment size is defined as 5120000 bytes.
@@ -59,6 +61,8 @@ function focusInputAndPositionCursorFromContainerClick(event, input) {
   input.setSelectionRange(cursorPos, cursorPos);
 }
 
+
+
 /**
  * Composer card; wants an initialized message composition object when it is
  * created (for now).
@@ -70,6 +74,12 @@ function ComposeCard(domNode, mode, args) {
   this.activity = args.activity;
   this.sending = false;
   this.wifiLock = null;
+
+  // Management of attachment work, to limit memory use
+  this._totalAttachmentsFinishing = 0;
+  this._totalAttachmentsDone = 0;
+  this._wantAttachment = false;
+  this._onAttachmentDone = this._onAttachmentDone.bind(this);
 
   domNode.getElementsByClassName('cmp-back-btn')[0]
     .addEventListener('click', this.onBack.bind(this), false);
@@ -145,21 +155,9 @@ function ComposeCard(domNode, mode, args) {
   this._selfClosed = false;
 
   // Sent sound init
-  this.sentAudioKey = 'mail.sent-sound.enabled';
   this.sentAudio = new Audio('/sounds/sent.ogg');
   this.sentAudio.mozAudioChannelType = 'notification';
-  this.sentAudioEnabled = false;
-
-  if (navigator.mozSettings) {
-    var req = navigator.mozSettings.createLock().get(this.sentAudioKey);
-    req.onsuccess = (function onsuccess() {
-      this.sentAudioEnabled = req.result[this.sentAudioKey];
-    }).bind(this);
-
-    navigator.mozSettings.addObserver(this.sentAudioKey, (function(e) {
-      this.sentAudioEnabled = e.settingValue;
-    }).bind(this));
-  }
+  this.playSoundOnSend = false;
 }
 ComposeCard.prototype = {
 
@@ -245,23 +243,32 @@ ComposeCard.prototype = {
     // the HTML bit needs us linked into the DOM so the iframe can be
     // linked in, hence this happens in postInsert.
     require(['iframe_shims'], function() {
-      if (this.composer) {
-        this._loadStateFromComposer();
-      } else {
-        var data = this.composerData;
-        model.latestOnce('folder', function(folder) {
-          this.composer = model.api.beginMessageComposition(data.message,
-                                                            folder,
-                                                            data.options,
-                                                            function() {
-            if (data.onComposer) {
-              data.onComposer(this.composer, this);
-            }
 
-            this._loadStateFromComposer();
+      // NOTE: when the compose card changes to allow switching the From account
+      // then this logic will need to change, both the acquisition of the
+      // account pref and the folder to use for the composer. So it is good to
+      // group this logic together, since they both will need to change later.
+      model.latestOnce('account', function(account) {
+        this.playSoundOnSend = !!account.playSoundOnSend;
+
+        if (this.composer) {
+          this._loadStateFromComposer();
+        } else {
+          var data = this.composerData;
+          model.latestOnce('folder', function(folder) {
+            this.composer = model.api.beginMessageComposition(data.message,
+                                                              folder,
+                                                              data.options,
+                                                              function() {
+              if (data.onComposer) {
+                data.onComposer(this.composer, this);
+              }
+
+              this._loadStateFromComposer();
+            }.bind(this));
           }.bind(this));
-        }.bind(this));
-      }
+        }
+      }.bind(this));
     }.bind(this));
   },
 
@@ -574,6 +581,45 @@ ComposeCard.prototype = {
   },
 
   /**
+   * Used to count when an attachment has been fully processed by this.composer.
+   * Broken out as a separate member method to avoid inline closures in
+   * addAttachmentsSubjectToSizeLimits that may lead to holding on to too much
+   * memory.
+   */
+  _onAttachmentDone: function() {
+    this._totalAttachmentsDone += 1;
+    if (this._totalAttachmentsDone < this._totalAttachmentsFinishing) {
+      return;
+    }
+
+    // Give a bit of time for all the DB transactions to clean up.
+    // Unfortunately there are no good signals to do this decisively so just
+    // adding a bit of a buffer, just to be nice for super low memory
+    // devices. Not a catastrophe if work is still going on when the timeout
+    // fires.
+    setTimeout(function() {
+      var wantAttachment = this._wantAttachment;
+      this._totalAttachmentsFinishing = 0;
+      this._totalAttachmentsDone = 0;
+      this._wantAttachment = false;
+
+      // Close out the toaster if it was showing. While the toaster could
+      // be showing for some other reason, this is the most likely cause,
+      // and want to give the user the impression of fast action.
+      if (Toaster.isShowing()) {
+        Toaster.hide();
+      }
+
+      // If the user wanted to add something else, proceed, since in many
+      // cases, the user just had to wait a second or so before we could
+      // proceed anyway.
+      if (wantAttachment) {
+        this.onAttachmentAdd();
+      }
+    }.bind(this), 600);
+  },
+
+  /**
    * Given a list of Blobs/Files that we want to attach, attach as many as
    * possible and generate an error message for any we can't attach.  This will
    * update the UI as a side-effect; you do not need to do it.
@@ -582,9 +628,11 @@ ComposeCard.prototype = {
     var totalSize = 0;
     // Tally the size of the already-attached attachments.
     if (this.composer.attachments) {
-      this.composer.attachments.forEach(function(attachment) {
-        totalSize += attachment.blob.size;
-      });
+      // Using a for loop to avoid any closures that may capture
+      // the large attachments.
+      for (var i = 0; i < this.composer.attachments.length; i++) {
+        totalSize += this.composer.attachments[i].blob.size;
+      }
     }
 
     // Keep attaching until we find one that puts us over the limit.  Then
@@ -605,7 +653,8 @@ ComposeCard.prototype = {
         break;
       }
 
-      this.composer.addAttachment(attachment);
+      this._totalAttachmentsFinishing += 1;
+      this.composer.addAttachment(attachment, this._onAttachmentDone);
       attachedAny = true;
     }
 
@@ -634,11 +683,13 @@ ComposeCard.prototype = {
 
       for (var i = 0; i < this.composer.attachments.length; i++) {
         var attachment = this.composer.attachments[i];
+
         filenameTemplate.textContent = attachment.name;
         filesizeTemplate.textContent = prettyFileSize(attachment.blob.size);
         var attachmentNode = attTemplate.cloneNode(true);
         attachmentsContainer.appendChild(attachmentNode);
 
+        attachmentNode.classList.add(mimeToClass(attachment.blob.type));
         attachmentNode.getElementsByClassName('cmp-attachment-remove')[0]
           .addEventListener('click',
                             this.onClickRemoveAttachment.bind(
@@ -838,7 +889,7 @@ ComposeCard.prototype = {
           return;
         }
 
-        if (self.sentAudioEnabled) {
+        if (self.playSoundOnSend) {
           self.sentAudio.play();
         }
 
@@ -877,7 +928,20 @@ ComposeCard.prototype = {
   },
 
   onAttachmentAdd: function(event) {
-    event.stopPropagation();
+    if (event) {
+      event.stopPropagation();
+    }
+
+    // To be nice on memory consumption, wait for any previous attachment to
+    // finish attaching before triggering another attachment action.
+    if (this._totalAttachmentsFinishing > 0) {
+      // Use a separate flag than testing if the toaster is showing, in case the
+      // toaster is shown for some other reason. In that case, do not want to
+      // trigger activity after previous attachment completes.
+      this._wantAttachment = true;
+      Toaster.show('text', mozL10n.get('compose-attachment-still-working'));
+      return;
+    }
 
     try {
       console.log('compose: attach: triggering web activity');

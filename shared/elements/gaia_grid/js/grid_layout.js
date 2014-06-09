@@ -1,4 +1,6 @@
 'use strict';
+/* global devicePixelRatio */
+/* global verticalPreferences */
 
 (function(exports) {
 
@@ -12,14 +14,26 @@
   // 320 / 3.8 = 84px | 480 / 3.8 = 126px | 540 / 3.8 = 142px | ...
   const iconScaleFactorMinIconsPerRow = 3.8;
 
-  const distanceBetweenIconsWithMinIconsPerRow = 32;
+  const distanceBetweenIconsWithMinIconsPerRow = 40;
 
   const distanceBetweenIconsWithMaxIconsPerRow = 44;
 
-  const windowWidth = window.innerWidth;
+  var windowWidth = window.innerWidth;
 
   function GridLayout(gridView) {
     this.gridView = gridView;
+
+    if (window.verticalPreferences) {
+      verticalPreferences.get('grid.cols').then(function(value) {
+        this.cols = value;
+        this.onReady();
+      }.bind(this), this.onReady);
+
+      verticalPreferences.addEventListener('updated', this);
+    } else {
+      this.onReady();
+    }
+
     window.addEventListener('appzoom', this);
   }
 
@@ -35,6 +49,12 @@
 
     _percent: 1,
 
+    /**
+     * The visible height of each divider.
+     * Calculated by the divider class and cached here.
+     */
+    _dividerLineHeight: 0,
+
     get percent() {
       return this._percent;
     },
@@ -45,6 +65,15 @@
 
       this._percent = value;
       this.perRow = maxIconsPerRow + minIconsPerRow - maxIconsPerRow * value;
+    },
+
+    set cols(value) {
+      if (!value) {
+        return;
+      }
+      
+      this.percent = value == minIconsPerRow ? 1 : 0.75;
+      document.body.dataset.cols = this.perRow;
     },
 
     /**
@@ -71,8 +100,11 @@
      * applied in dragdrop
      */
     get gridMaxIconSize() {
-      return (windowWidth / iconScaleFactorMinIconsPerRow) *
-              this.gridView.dragdrop.maxActiveScale;
+      var dragdrop = this.gridView.dragdrop;
+      var scaledSize = (windowWidth / iconScaleFactorMinIconsPerRow) *
+              (dragdrop ? dragdrop.maxActiveScale : 1);
+      scaledSize *= devicePixelRatio;
+      return scaledSize;
     },
 
     /**
@@ -117,9 +149,38 @@
      * General event handler.
      */
     handleEvent: function(e) {
-      if (e.type === 'appzoom') {
-        document.body.dataset.cols = this.perRow;
+      switch(e.type) {
+        case 'updated':
+          var prop = e.target;
+          if (prop.name === 'grid.cols') {
+            this.onColsUpdated(prop.value);
+          }
+
+          break;
+
+        case 'appzoom':
+          var cols = e.detail.cols;
+          if (window.verticalPreferences) {
+            verticalPreferences.put('grid.cols', cols);
+          } else {
+            this.onColsUpdated(cols);
+          }
+
+          break;
       }
+    },
+
+    onColsUpdated: function(cols) {
+      this.cols = cols;
+      this.gridView.render();
+    },
+
+    calculateSize: function() {
+      windowWidth = window.innerWidth;
+    },
+
+    onReady: function() {
+      window.dispatchEvent(new CustomEvent('gaiagrid-layout-ready'));
     }
   };
 

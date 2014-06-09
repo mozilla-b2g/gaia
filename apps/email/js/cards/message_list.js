@@ -21,7 +21,6 @@ var templateNode = require('tmpl!./message_list.html'),
     Toaster = common.Toaster,
     ConfirmDialog = common.ConfirmDialog,
     batchAddClass = common.batchAddClass,
-    bindContainerClickAndHold = common.bindContainerClickAndHold,
     bindContainerHandler = common.bindContainerHandler,
     appendMatchItemTo = common.appendMatchItemTo,
     displaySubject = common.displaySubject,
@@ -145,16 +144,11 @@ function MessageListCard(domNode, mode, args) {
 
   this.messagesContainer =
     domNode.getElementsByClassName('msg-messages-container')[0];
+  bindContainerHandler(this.messagesContainer, 'click',
+                       this.onClickMessage.bind(this));
 
   this.messageEmptyContainer =
     domNode.getElementsByClassName('msg-list-empty-container')[0];
-  // - message actions
-  bindContainerClickAndHold(
-    this.messagesContainer,
-    // clicking shows the message reader for a message
-    this.onClickMessage.bind(this),
-    // press-and-hold shows the single-message mutation options
-    this.onHoldMessage.bind(this));
 
   this.scrollContainer =
     domNode.getElementsByClassName('msg-list-scrollouter')[0];
@@ -1142,10 +1136,16 @@ MessageListCard.prototype = {
     // from the compose triggered in that view. The scrollStopped
     // is used to avoid a flash where the old message is briefly visible
     // before cleared, and having the empty layout overlay it.
-    if (headerCursor.messagesSlice.items.length + addedItems.length - howMany <
-        1) {
+    // Using the slice's headerCount because it is updated before splice
+    // listeners are notified, so should be accurate.
+    if (!headerCursor.messagesSlice.headerCount) {
       this.vScroll.once('scrollStopped', function() {
-        this.showEmptyLayout();
+        // Confirm there are still no messages. Since this callback happens
+        // async, some items could have appeared since first issuing the
+        // request to show empty.
+        if (!headerCursor.messagesSlice.headerCount) {
+          this.showEmptyLayout();
+        }
       }.bind(this));
     }
 
@@ -1214,6 +1214,8 @@ MessageListCard.prototype = {
 
     // some things only need to be done once
     var dateNode = msgNode.getElementsByClassName('msg-header-date')[0];
+    var subjectNode = msgNode.getElementsByClassName('msg-header-subject')[0];
+    var snippetNode = msgNode.getElementsByClassName('msg-header-snippet')[0];
     if (firstTime) {
       var listPerson;
       if (this.isIncomingFolder) {
@@ -1249,23 +1251,21 @@ MessageListCard.prototype = {
         msgNode.getElementsByClassName('msg-header-attachments')[0];
       attachmentsNode.classList.toggle('msg-header-attachments-yes',
                                        message.hasAttachments);
+      // snippet needs to be shorter if icon is shown
+      snippetNode.classList.toggle('icon-short', message.hasAttachments);
     }
 
     // snippet
-    msgNode.getElementsByClassName('msg-header-snippet')[0]
-      .textContent = message.snippet;
+    snippetNode.textContent = message.snippet;
 
-    // unread (we use very specific classes directly on the nodes rather than
-    // child selectors for hypothetical speed)
-    var unreadNode =
-      msgNode.getElementsByClassName('msg-header-unread-section')[0];
-    unreadNode.classList.toggle('msg-header-unread-section-unread',
-                                !message.isRead);
-    dateNode.classList.toggle('msg-header-date-unread', !message.isRead);
+    // update styles throughout the node for read vs unread
+    msgNode.classList.toggle('unread', !message.isRead);
 
     // star
     var starNode = msgNode.getElementsByClassName('msg-header-star')[0];
     starNode.classList.toggle('msg-header-star-starred', message.isStarred);
+    // subject needs to give space for star if it is visible
+    subjectNode.classList.toggle('icon-short', message.isStarred);
 
     // edit mode select state
     if (this.editMode) {
@@ -1296,6 +1296,7 @@ MessageListCard.prototype = {
 
     // some things only need to be done once
     var dateNode = msgNode.getElementsByClassName('msg-header-date')[0];
+    var subjectNode = msgNode.getElementsByClassName('msg-header-subject')[0];
     if (firstTime) {
       // author
       var authorNode = msgNode.getElementsByClassName('msg-header-author')[0];
@@ -1315,7 +1316,6 @@ MessageListCard.prototype = {
       dateNode.textContent = prettyDate(message.date);
 
       // subject
-      var subjectNode = msgNode.getElementsByClassName('msg-header-subject')[0];
       if (matches.subject) {
         subjectNode.textContent = '';
         appendMatchItemTo(matches.subject[0], subjectNode);
@@ -1338,6 +1338,8 @@ MessageListCard.prototype = {
         msgNode.getElementsByClassName('msg-header-attachments')[0];
       attachmentsNode.classList.toggle('msg-header-attachments-yes',
                                        message.hasAttachments);
+      // snippet needs to be shorter if icon is shown
+      snippetNode.classList.toggle('icon-short', message.hasAttachments);
     }
 
     // unread (we use very specific classes directly on the nodes rather than
@@ -1351,6 +1353,8 @@ MessageListCard.prototype = {
     // star
     var starNode = msgNode.getElementsByClassName('msg-header-star')[0];
     starNode.classList.toggle('msg-header-star-starred', message.isStarred);
+    // subject needs to give space for star if it is visible
+    subjectNode.classList.toggle('icon-short', message.isStarred);
 
     // edit mode select state
     if (this.editMode) {
@@ -1391,16 +1395,6 @@ MessageListCard.prototype = {
   },
 
   onClickMessage: function(messageNode, event) {
-    // Find the node that has the header info.
-    messageNode = event.originalTarget;
-    while (messageNode && !messageNode.classList.contains('msg-header-item')) {
-      messageNode = messageNode.parentNode;
-    }
-
-    if (!messageNode) {
-      return;
-    }
-
     var header = messageNode.message;
 
     // Skip nodes that are default/placeholder ones.

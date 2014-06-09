@@ -11,6 +11,7 @@
 /* global MockMozContactsObj */
 /* global MockThumbnailImage */
 /* global utils */
+/* exported _ */
 
 require('/shared/test/unit/mocks/mock_contact_all_fields.js');
 require('/shared/js/text_normalizer.js');
@@ -35,7 +36,8 @@ requireApp('communications/contacts/test/unit/mock_image_thumbnail.js');
 
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 
-var subject,
+var _ = function(key){ return key; },
+    subject,
     realL10n,
     Contacts,
     realFb,
@@ -44,13 +46,13 @@ var subject,
     footer,
     ActivityHandler;
 
+requireApp('communications/contacts/js/tag_options.js');
+
 var mocksForm = new MocksHelper([
   'Contacts',
   'ConfirmDialog',
   'ContactPhotoHelper'
 ]).init();
-
-mocha.globals(['fb', 'mozL10n', 'SimplePhoneMatcher']);
 
 suite('Render contact form', function() {
 
@@ -84,7 +86,7 @@ suite('Render contact form', function() {
       currentlyHandling: false
     };
 
-    subject.init(Contacts.getTags());
+    subject.init();
   });
 
   suiteTeardown(function() {
@@ -282,6 +284,21 @@ suite('Render contact form', function() {
                      classList.contains('placeholder'));
     }
 
+    test('no scroll on first load', function() {
+      subject.render(mockContact);
+      var container = document.getElementById('contact-form').parentNode;
+      assert.equal(container.scrollTop, 0);
+    });
+
+    test('no scroll memorised from previous renders', function() {
+      subject.render(mockContact);
+      var container = document.getElementById('contact-form').parentNode;
+      // scroll container
+      container.scrollTop = 100;
+      subject.render(mockContact);
+      assert.equal(container.scrollTop, 0);
+    });
+
     test('with no name', function() {
       mockContact.givenName.pop();
       subject.render(mockContact);
@@ -368,6 +385,40 @@ suite('Render contact form', function() {
         assert.equal(deviceContact.bday.getTime(), 0);
     });
 
+    test('if the tel field is null, is ignored',
+      function() {
+        var deviceContact = new MockContactAllFields();
+        deviceContact.tel[0].value = null;
+        subject.render(deviceContact);
+        assert.equal(deviceContact.tel.length, 2);
+
+        subject.saveContact();
+        assert.equal(deviceContact.tel.length, 1);
+    });
+
+    test('if the email field is null, is ignored',
+      function() {
+        var deviceContact = new MockContactAllFields();
+        deviceContact.email[0].value = null;
+        subject.render(deviceContact);
+        assert.equal(deviceContact.email.length, 2);
+
+        subject.saveContact();
+        assert.equal(deviceContact.email.length, 1);
+    });
+
+    test('if the address field is null, is ignored',
+      function() {
+        var deviceContact = new MockContactAllFields();
+        deviceContact.adr.unshift({'type': ['personal']});
+        subject.render(deviceContact);
+        assert.equal(deviceContact.adr.length, 2);
+
+        subject.saveContact();
+        assert.equal(deviceContact.adr.length, 1);
+    });
+
+
     test('if tel field has a value, carrier input must be in regular state',
       function() {
         subject.render(mockContact);
@@ -451,6 +502,21 @@ suite('Render contact form', function() {
       };
     });
 
+    test('FB Contact. organization from Facebook', function() {
+      window.fb.setIsFbContact(true);
+
+      var deviceContact = new MockContactAllFields();
+      var fbContact = new Mockfb.Contact(deviceContact);
+      fbContact.getDataAndValues().onsuccess = function() {
+        subject.render(deviceContact, null, this.result);
+
+        var org = document.querySelector('input[name="org"]');
+
+        assert.isTrue(org.parentNode.classList.contains('facebook'));
+        assert.isTrue(org.parentNode.classList.contains('removed'));
+      };
+    });
+
     test('FB Contact. Birthday from Facebook', function() {
       window.fb.setIsFbContact(true);
 
@@ -496,7 +562,7 @@ suite('Render contact form', function() {
         subject.saveContact();
         assert.isTrue(promoteToLinkedSpy.called);
         assert.isTrue(setPropagatedFlagSpy.calledWithMatch('givenName'));
-        
+
         promoteToLinkedSpy.restore();
         setPropagatedFlagSpy.restore();
       };
@@ -519,7 +585,7 @@ suite('Render contact form', function() {
         subject.saveContact();
         assert.isTrue(promoteToLinkedSpy.called);
         assert.isTrue(setPropagatedFlagSpy.calledWithMatch('familyName'));
-        
+
         promoteToLinkedSpy.restore();
         setPropagatedFlagSpy.restore();
       };

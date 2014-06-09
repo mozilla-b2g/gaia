@@ -1,0 +1,68 @@
+{
+  "name": "Smart Collections",
+  "description": "Smart Collections Manager",
+  "type": "certified",
+  "launch_path": "/testpage/testpage.html",
+  "role": "system",
+  "orientation": "default",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "permissions": {
+    "geolocation": {},
+    "mobileconnection":{},
+    "open-remote-window":{},
+    "webapps-manage": {},
+    "settings":{ "access": "readwrite" },
+    "systemXHR":{}
+  },
+  "activities": {
+    "create-collection": {
+      "filters": {},
+      "disposition": "inline",
+      "href": "/create.html",
+      "returnValue": true
+    },
+    "update-collection": {
+      "filters": {},
+      "disposition": "inline",
+      "href": "/update.html",
+      "returnValue": true
+    },
+    "delete-collection": {
+      "filters": {},
+      "disposition": "inline",
+      "href": "/delete.html",
+      "returnValue": true
+    },
+    "view-collection": {
+      "filters": {},
+      "disposition": "inline",
+      "href": "/view.html",
+      "returnValue": true
+    }
+  },
+  "locales": {
+    "en-US": {
+      "name": "Smart Collections",
+      "description": "Smart Collections Manager"
+    }
+  },
+  "default_locale": "en-US",
+  "datastores-owned": {
+    "collections_store": {
+      "access": "readwrite",
+      "description": "Stores collections"
+    }
+  },
+  "connections": {
+    "setup": {
+      "description": "It populates datastore with pre-installed collections",
+      "rules": {
+        "manifestURLs": ["app://ftu.gaiamobile.org/manifest.webapp"]
+      },
+      "handler_path": "/setup.html"
+    }
+  }
+}

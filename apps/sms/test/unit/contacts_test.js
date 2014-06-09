@@ -1,7 +1,5 @@
-/*global MockContact, Contacts, mocha, fb, MockFbReaderUtilsObj */
+/*global MockContact, Contacts, fb, MockFbReaderUtilsObj */
 'use strict';
-
-mocha.globals(['SimplePhoneMatcher', 'fb']);
 
 require('/shared/test/unit/mocks/mock_moz_phone_number_service.js');
 require('/shared/test/unit/mocks/mock_fb_reader_utils.js');

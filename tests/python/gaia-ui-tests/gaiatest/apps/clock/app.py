@@ -75,5 +75,7 @@ class Clock(Base):
 
         def tap(self):
             self.root_element.tap()
+            # Bug 1022204 - The panel shows, slides out and back in. Marionette cannot interpret displayed state safely
+            time.sleep(0.5)
             from gaiatest.apps.clock.regions.alarm import EditAlarm
             return EditAlarm(self.marionette)

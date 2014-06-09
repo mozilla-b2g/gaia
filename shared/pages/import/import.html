@@ -35,6 +35,8 @@
     <script defer type="text/javascript" src="/shared/js/contacts/import/importer_ui.js"></script>
     <script defer type="text/javascript" src="/shared/js/contacts/import/import_init.js"></script>
     <script defer type="text/javascript" src="/shared/js/contacts/import/utilities/misc.js"></script>
+    <script defer type="text/javascript" src="/shared/js/component_utils.js"></script>
+    <script defer type="text/javascript" src="/shared/elements/gaia_buttons/script.js"></script>
 
     <script defer type="text/javascript" src="/shared/js/contacts/import/friends_list.js"></script>
     <script defer type="text/javascript" src="/shared/js/contacts/search.js"></script>
@@ -67,7 +69,7 @@
     <link href="/shared/style/progress_activity.css" rel="stylesheet">
     <link href="/shared/style/status.css" rel="stylesheet">
     <link href="/shared/style/headers.css" rel="stylesheet">
-    <link href="/shared/style_unstable/input_areas.css" rel="stylesheet">
+    <link href="/shared/style/input_areas.css" rel="stylesheet">
     <link href="/shared/style/switches.css" rel="stylesheet">
     <link href="/shared/style/lists.css" rel="stylesheet">
     <link href="/shared/style/confirm.css" rel="stylesheet">
@@ -135,14 +137,14 @@
         </section> <!-- mainContent -->
 
         <form role="dialog" data-type="confirm" class="no-overlay">
-          <menu id="select-all-wrapper">
+          <gaia-buttons id="select-all-wrapper">
             <button id="deselect-all" class="edit-button" data-l10n-id="deselectAll">
               Deselect all
             </button>
             <button id="select-all" class="edit-button" data-l10n-id="selectAll">
               Select all
             </button>
-          </menu>
+          </gaia-buttons>
         </form>
 
         <nav data-type="scrollbar">

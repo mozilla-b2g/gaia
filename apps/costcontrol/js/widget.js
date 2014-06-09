@@ -1,6 +1,6 @@
-/* global _, debug, BalanceView, AirplaneModeHelper, SettingsListener,
+/* global _, debug, BalanceView, AirplaneModeHelper, setNextReset, SimManager,
           ConfigManager, Common, CostControl, MozActivity, LazyLoader,
-          Formatting, setNextReset
+          Formatting
 */
 /* exported activity */
 
@@ -17,21 +17,18 @@
 var Widget = (function() {
 
   var costcontrol, activity;
-  function checkSIMStatus() {
+  function checkSIMStatus(dataSimIcc) {
 
-    var iccid = Common.dataSimIccId;
-    var dataSimIccInfo = Common.dataSimIcc;
-    var cardState = checkCardState();
+    var cardState = checkCardState(dataSimIcc.icc);
 
     if (cardState !== 'ready') {
-      debug('SIM not ready:', dataSimIccInfo.cardState);
+      debug('SIM not ready:', dataSimIcc.cardState);
       initialized = false;
-      dataSimIccInfo.oncardstatechange = checkSIMStatus;
+      dataSimIcc.oncardstatechange = checkSIMStatus;
     // SIM ready
     } else {
-      debug('SIM ready. ICCID:', iccid);
-      dataSimIccInfo.oncardstatechange = undefined;
-      dataSimIccInfo.oniccinfochange = undefined;
+      debug('SIM ready. ICCID:', dataSimIcc.iccId);
+      dataSimIcc.oncardstatechange = undefined;
       var SCRIPTS_NEEDED_TO_START = [
         'js/costcontrol.js',
         'js/config/config_manager.js'
@@ -43,9 +40,9 @@ var Widget = (function() {
 
   // Check the card status. Return 'ready' if all OK or take actions for
   // special situations such as 'pin/puk locked' or 'absent'.
-  function checkCardState() {
+  function checkCardState(dataSimIcc) {
     var state, cardState;
-    state = cardState = Common.dataSimIcc.cardState;
+    state = cardState = dataSimIcc.cardState;
 
     // SIM is absent
     if (!cardState || cardState === 'absent') {
@@ -143,8 +140,10 @@ var Widget = (function() {
         AirplaneModeHelper.ready(function() {
           if (!document.hidden && initialized &&
               (AirplaneModeHelper.getStatus() === 'disabled')) {
-            checkCardState(Common.dataSimIccId);
-            updateUI();
+            SimManager.requestDataSimIcc(function(dataSimIcc) {
+              checkCardState(dataSimIcc.icc);
+              updateUI();
+            });
           }
         });
       }
@@ -174,16 +173,15 @@ var Widget = (function() {
       updateUI();
     });
 
-    // Avoid reload data sim info on the application startup
-    var isFirstCall = true;
-    // Refresh UI when the user changes the SIM for data connections
-    SettingsListener.observe('ril.data.defaultServiceId', 0, function() {
-      if (!isFirstCall) {
-        Common.loadDataSIMIccId(updateUI.bind(null, true));
-      } else {
-        isFirstCall = false;
-      }
-    });
+    if (SimManager.isMultiSim()) {
+      window.addEventListener('dataSlotChange', function _onDataSimChange() {
+        // Before updating the widget, it's necessary remove the cached values
+        // of costcontrol and config to force an update
+        CostControl.reset();
+        ConfigManager.setConfig(null);
+        updateUI();
+      });
+    }
 
     initialized = true;
   }
@@ -478,13 +476,13 @@ var Widget = (function() {
           function _oniccdetected() {
             isWaitingForIcc = false;
             iccManager.removeEventListener('iccdetected', _oniccdetected);
-            Common.loadDataSIMIccId(checkSIMStatus);
+            SimManager.requestDataSimIcc(checkSIMStatus);
           }
         );
         isWaitingForIcc = true;
       }
     }
-    Common.loadDataSIMIccId(checkSIMStatus, function _errorNoSim() {
+    SimManager.requestDataSimIcc(checkSIMStatus, function _errorNoSim() {
       AirplaneModeHelper.ready(function() {
         waitForIccAndCheckSim();
         var errorMessageId = (AirplaneModeHelper.getStatus() === 'enabled') ?
@@ -518,6 +516,7 @@ var Widget = (function() {
         });
       } else {
         SCRIPTS_NEEDED = [
+          'js/sim_manager.js',
           'js/common.js',
           'js/utils/toolkit.js',
           'js/utils/debug.js'

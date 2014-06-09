@@ -27,7 +27,9 @@
     <script defer src="shared/js/screen_layout.js"></script>
     <script defer src="shared/js/iac_handler.js"></script>
     <script defer src="shared/js/apn_helper.js"></script>
+    <script defer src="shared/js/utilities.js"></script>
     <script defer src="js/touch_forwarder.js"></script>
+    <script defer src="shared/js/version_helper.js"></script>
 
     <script defer src="js/system.js"></script>
     <script defer src="js/base_ui.js"></script>
@@ -55,14 +57,19 @@
 
     <!-- Include shared building blocks -->
     <link rel="stylesheet" type="text/css" href="shared/style/confirm.css"/>
-    <link rel="stylesheet" type="text/css" href="shared/style_unstable/input_areas.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css">
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/switches.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/value_selector.css">
     <link rel="stylesheet" type="text/css" href="shared/style/date_selector.css">
     <link rel="stylesheet" type="text/css" href="shared/style/time_selector.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/object_menu.css">
 
     <link rel="stylesheet" type="text/css" href="style/fake-notification.css"/>
+
+    <!-- Include shared web components -->
+    <script defer src="shared/js/component_utils.js"></script>
+    <script defer src="shared/elements/gaia_buttons/script.js"></script>
 
     <!-- Include shared resources
     <link rel="resource" type="application/json" href="shared/resources/apn.json"/>
@@ -70,9 +77,8 @@
     <link rel="resource" type="image/png" href="shared/resources/branding/initlogo_large.png"/>
     -->
 
-    <link rel="resource" type="image/png" href="shared/resources/branding/Browser_60.png"/>
-    <link rel="resource" type="image/png" href="shared/resources/branding/Browser_90.png"/>
-    <link rel="resource" type="image/png" href="shared/resources/branding/Browser_120.png"/>
+    <link rel="resource" type="image/png" href="shared/resources/branding/browser_84.png"/>
+    <link rel="resource" type="image/png" href="shared/resources/branding/browser_126.png"/>
     <!-- applications.js must not be deferred
          in order to catch webapps-registry-ready mozChromeEvent -->
     <script src="js/applications.js"></script>
@@ -92,6 +98,7 @@
     <script defer src="js/dialer_agent.js"></script>
     <script defer src="js/system_banner.js"></script>
     <script defer src="js/home_gesture.js"></script>
+    <script defer src="js/wallpaper_manager.js"></script>
 
     <!-- TTL View -->
     <link rel="stylesheet" type="text/css" href="style/ttlview/ttlview.css">
@@ -143,13 +150,16 @@
     <script defer src="js/uuid.js"></script>
     <script defer src="js/ftu_ping.js"></script>
 
+    <!-- Basket newsletter -->
+    <script defer src="/shared/js/basket_client.js"></script>
+    <script defer src="js/newsletter_manager.js"></script>
+
     <!-- ICC/STK -->
     <!-- This depends on ftu_launcher.js, please load it in order ;) -->
     <link rel="stylesheet" type="text/css" href="style/icc.css">
     <script defer src="js/icc_events.js"></script>
     <script defer src="js/icc_worker.js"></script>
     <script defer src="js/icc.js"></script>
-    <script defer src="js/stkTester.js"></script>
 
     <!-- Media Playback -->
     <script defer src="js/media_playback.js"></script>
@@ -215,6 +225,11 @@
       <script src="shared/js/download/download_store.js"></script>
     -->
 
+    <!-- Nfc -->
+    <script defer src="js/ndef_utils.js"></script>
+    <script defer src="js/nfc_handover_manager.js"></script>
+    <script defer src="js/nfc_manager.js"></script>
+
     <!-- Cards View -->
     <link rel="stylesheet" type="text/css" href="style/cards_view/cards_view.css">
     <script defer src="js/cards_helper.js"></script>
@@ -229,11 +244,6 @@
 
     <!-- Wifi -->
     <script defer src="js/wifi.js"></script>
-
-    <!-- Nfc -->
-    <script defer src="js/ndef_utils.js"></script>
-    <script defer src="js/nfc_handover_manager.js"></script>
-    <script defer src="js/nfc_manager.js"></script>
 
     <!-- Radio  -->
     <script defer src="js/radio.js"></script>
@@ -382,6 +392,11 @@
     <!-- Find My Device -->
     <script defer src="js/findmydevice_launcher.js"></script>
 
+    <!-- Mobile ID -->
+    <link rel="stylesheet" type="text/css" href="style/mobileid/mobileid.css">
+    <script defer src="js/mobileid_manager.js"></script>
+    <script defer src="js/mobileid_dialog.js"></script>
+
     <style>
       /* initlogos style is here to prevent flashing */
 
@@ -456,11 +471,12 @@
           <div id="rocketbar-title">
             <span role="button" id="rocketbar-title-content" data-l10n-id="search-or-enter-address">Search or enter address</span>
           </div>
+          <button type="button" id="rocketbar-overflow-button"></button>
           <form id="rocketbar-form" class="hidden">
             <input id="rocketbar-input" type="text" x-inputmode="verbatim"
               placeholder="Search or enter address" data-l10n-id="search-or-enter-address" value="">
             </input>
-            <button type="reset" id="rocketbar-cancel" data-l10n-id="close">Close</button>
+            <button type="button" id="rocketbar-cancel" data-l10n-id="close">Close</button>
           </form>
         </div>
         <!-- Statusbar icons -->
@@ -514,7 +530,9 @@
       </div>
 
       <!-- Rocketbar Results -->
-      <div id="rocketbar-backdrop" class="hidden" data-z-index-level="rocketbar-results"></div>
+      <div id="rocketbar-backdrop" class="hidden" data-z-index-level="rocketbar-results">
+        <div id="rocketbar-backdrop-cover"></div>
+      </div>
       <div id="rocketbar-results" class="hidden" data-z-index-level="rocketbar-results"></div>
 
       <!-- Utility Tray -->
@@ -528,7 +546,7 @@
 
         <div id="notifications-container">
           <!-- Update Manager -->
-          <div id="update-manager-container" class="fake-notification">
+          <div id="update-manager-container" class="fake-notification" role="link">
             <div class="icon">
             </div>
             <div class="activity">
@@ -537,7 +555,7 @@
             </div>
           </div>
           <!-- Emergency callback Manager -->
-          <div id="emergency-callback-notification" class="fake-notification" hidden>
+          <div id="emergency-callback-notification" class="fake-notification" hidden role="link">
             <div class="icon">
             </div>
             <div class="message" data-l10n-id="emergency-callback-mode">
@@ -546,7 +564,7 @@
             </div>
           </div>
           <!-- Storage watcher notification -->
-          <div id="storage-watcher-container" class="fake-notification">
+          <div id="storage-watcher-container" class="fake-notification" role="link">
             <div class="icon">
             </div>
             <div class="message">
@@ -561,15 +579,15 @@
               </div>
               <div class="albumart">
               </div>
-              <div class="title">
+              <div class="title" data-l10n-id="mediaPlaybackTitle">
               </div>
-              <div class="artist">
+              <div class="artist" data-l10n-id="mediaPlaybackArtist">
               </div>
             </div>
-            <div class="media-playback-controls">
-              <button class="previous"></button>
+            <div class="media-playback-controls" role="toolbar" data-l10n-id="mediaPlaybackControls">
+              <button class="previous" data-l10n-id="mediaPlaybackPrevious"></button>
               <button class="play-pause"></button>
-              <button class="next"></button>
+              <button class="next" data-l10n-id="mediaPlaybackNext"></button>
             </div>
           </div>
           <!-- App Install Manager -->
@@ -580,7 +598,7 @@
           </div>
           <!-- Another entry to show IME list when the keyboard is activated -->
           <div id="keyboard-show-ime-list">
-            <div class="fake-notification">
+            <div class="fake-notification" role="link">
                 <div class="message">
                 </div>
                 <div class="tip">
@@ -588,7 +606,7 @@
             </div>
           </div>
           <!-- media recording status -->
-          <div id="media-recoding-status-list">
+          <div id="media-recoding-status-list" role="list">
           </div>
 
           <div id="desktop-notifications-container">
@@ -599,19 +617,19 @@
         <div id="cost-control-widget"></div>
 
         <!-- quick settings -->
-        <div id="quick-settings">
-          <a href="#" id="quick-settings-wifi" data-enabled="false"></a>
+        <div id="quick-settings" role="toolbar">
+          <a href="#" id="quick-settings-wifi" data-enabled="false" role="button"></a>
           <div class="separator"></div>
-          <a href="#" id="quick-settings-data" data-enabled="false"></a>
+          <a href="#" id="quick-settings-data" data-enabled="false" role="button"></a>
           <div class="separator"></div>
-          <a href="#" id="quick-settings-bluetooth" data-enabled="false"></a>
+          <a href="#" id="quick-settings-bluetooth" data-enabled="false" role="button"></a>
           <div class="separator"></div>
-          <a href="#" id="quick-settings-airplane-mode" data-enabled="false"></a>
+          <a href="#" id="quick-settings-airplane-mode" data-enabled="false" role="button"></a>
           <div class="separator"></div>
-          <a href="#" id="quick-settings-full-app" data-enabled="false"></a>
+          <a href="#" id="quick-settings-full-app" data-enabled="false" role="button" data-l10n-id="settingsButton"></a>
         </div>
 
-        <div id="utility-tray-grippy" role="button">
+        <div id="utility-tray-grippy" role="button" data-l10n-id="utilityTrayGrippy">
         </div>
       </div>
 
@@ -688,6 +706,9 @@
 
         <!-- Firefox Account Dialog -->
         <!-- <div id="fxa-dialog"></div> Add the dialog via SystemDialog dynamically. -->
+
+        <!-- Mobile ID -->
+        <!-- <div id="mobileid-dialog"></div> Add the dialog via SystemDialog dynamically. -->
 
         <div id="modal-dialog">
           <div id="modal-dialog-alert" role="dialog" class="generic-dialog" tabindex="-1">
@@ -812,6 +833,7 @@
       <div id="permission-screen" data-z-index-level="permission-screen">
         <div id="permission-dialog" role="dialog" class="generic-dialog">
           <div class="inner">
+            <h1 id="permission-title"></h1>
             <h2 id="permission-message"></h2>
             <div id="permission-more-info" class="hidden">
               <a id="permission-more-info-link" data-l10n-id="more-info" href="#">More Info…</a>
@@ -819,15 +841,16 @@
               <div id="permission-more-info-box" class="hidden"> </div>
             </div>
             <div id="permission-remember-section">
-              <a data-l10n-id="remember-my-choice" id="permission-remember-label">Remember my choice</a>
-              <label class="pack-switch">
+              <label class="pack-checkbox">
                 <input type="checkbox" id="permission-remember-checkbox" />
                 <span></span>
               </label>
+              <a data-l10n-id="remember-my-choice" id="permission-remember-label">Remember my choice</a>
             </div>
+            <div id="permission-device-selector"></div>
             <ul id="permission-devices">
             </ul>
-            <menu data-items="2">
+            <menu id="permission-buttons" data-items="2">
               <button id="permission-no"></button>
               <button id="permission-yes" class="affirmative"></button>
             </menu>
@@ -1001,6 +1024,7 @@
         <!--
         <div id="lockscreen" class="uninit" data-panel="main" data-z-index-level="lockscreen">
         <div id="lockscreen-background" class="lockscreen-background"></div>
+        <div id="lockscreen-masked-background" class="blank"></div>
         <div id="lockscreen-container">
           <div id="lockscreen-panel-main" class="lockscreen-panel">
             <div id="lockscreen-header">
@@ -1020,13 +1044,13 @@
               <div class="media-playback-nowplaying">
                 <div class="icon"></div>
                 <div class="albumart"></div>
-                <div class="title"></div>
-                <div class="artist"></div>
+                <div class="title" data-l10n-id="mediaPlaybackTitle"></div>
+                <div class="artist" data-l10n-id="mediaPlaybackArtist"></div>
               </div>
-              <div class="media-playback-controls big">
-                <button class="previous"></button>
+              <div class="media-playback-controls big" role="toolbar" data-l10n-id="mediaPlaybackControls">
+                <button class="previous" data-l10n-id="mediaPlaybackPrevious"></button>
                 <button class="play-pause"></button>
-                <button class="next"></button>
+                <button class="next" data-l10n-id="mediaPlaybackNext"></button>
               </div>
             </div>
             <div id="lockscreen-icon-container">
@@ -1051,22 +1075,22 @@
             </div>
           </div>
 
-          <div id="lockscreen-panel-passcode" class="lockscreen-panel">
+          <div id="lockscreen-panel-passcode" class="lockscreen-panel" data-l10n-id="panel-passcode">
             <p id="lockscreen-passcode-code"><span></span><span></span><span></span><span></span></p>
             <div id="lockscreen-passcode-pad">
-              <a role="button" href="#" data-key="1">1<span>.</span></a>
-              <a role="button" href="#" data-key="2">2<span>ABC</span></a>
-              <a role="button" href="#" data-key="3">3<span>DEF</span></a>
-              <a role="button" href="#" data-key="4">4<span>GHI</span></a>
-              <a role="button" href="#" data-key="5">5<span>JKL</span></a>
-              <a role="button" href="#" data-key="6">6<span>MNO</span></a>
-              <a role="button" href="#" data-key="7">7<span>PQRS</span></a>
-              <a role="button" href="#" data-key="8">8<span>TUV</span></a>
-              <a role="button" href="#" data-key="9">9<span>WXYZ</span></a>
-              <a role="button" href="#" data-key="e" class="lockscreen-passcode-pad-func last-row"><span data-l10n-id="emergency-call-button">Emergency Call</span></a>
-              <a role="button" href="#" data-key="0" class="last-row">0</a>
-              <a role="button" href="#" data-key="c" class="lockscreen-passcode-pad-func last-row"><span data-l10n-id="cancel">Cancel</span></a>
-              <a role="button" href="#" data-key="b" class="last-row">⌫</a>
+              <a role="key" href="#" data-key="1" class="row0"><div>1<span>.</span></div></a>
+              <a role="key" href="#" data-key="2" class="row0"><div>2<span>ABC</span></div></a>
+              <a role="key" href="#" data-key="3" class="row0"><div>3<span>DEF</span></div></a>
+              <a role="key" href="#" data-key="4" class="row1"><div>4<span>GHI</span></div></a>
+              <a role="key" href="#" data-key="5" class="row1"><div>5<span>JKL</span></div></a>
+              <a role="key" href="#" data-key="6" class="row1"><div>6<span>MNO</span></div></a>
+              <a role="key" href="#" data-key="7" class="row2"><div>7<span>PQRS</span></div></a>
+              <a role="key" href="#" data-key="8" class="row2"><div>8<span>TUV</span></div></a>
+              <a role="key" href="#" data-key="9" class="row2"><div>9<span>WXYZ</span></div></a>
+              <a role="button" href="#" data-key="e" class="lockscreen-passcode-pad-func last-row row3"><div><span data-l10n-id="emergency-call-button">Emergency Call</span></div></a>
+              <a role="key" href="#" data-key="0" class="last-row row3"><div>0</div></a>
+              <a role="button" href="#" data-key="c" class="lockscreen-passcode-pad-func last-row row3"><div><span data-l10n-id="cancel">Cancel</span></div></a>
+              <a role="button" href="#" data-key="b" class="last-row row3"><div data-l10n-id="undo">⌫</div></a>
             </div>
           </div>
 
@@ -1080,14 +1104,14 @@
         <div id="attention-bar"></div>
       </div>
 
-      <div id="update-manager-toaster" data-z-index-level="notification-toaster">
+      <div id="update-manager-toaster" data-z-index-level="notification-toaster" aria-live="assertive" aria-atomic="true">
         <div class="icon">
         </div>
         <div class="message">
         </div>
       </div>
 
-      <div id="emergency-callback-toaster" data-z-index-level="notification-toaster" hidden>
+      <div id="emergency-callback-toaster" data-z-index-level="notification-toaster" hidden role="link" aria-live="assertive" aria-atomic="true">
         <div class="icon">
         </div>
         <div class="message" data-l10n-id="emergency-callback-mode">
@@ -1096,8 +1120,8 @@
         </div>
       </div>
 
-      <div id="notification-toaster" data-z-index-level="notification-toaster">
-        <img id="toaster-icon" />
+      <div id="notification-toaster" data-z-index-level="notification-toaster" role="link" aria-live="assertive" aria-atomic="true">
+        <img id="toaster-icon" role="presentation"/>
         <div id="toaster-title"></div>
         <div id="toaster-detail"></div>
       </div>
@@ -1178,6 +1202,7 @@
           </section>
           <menu>
               <button type="button" data-l10n-id="help" id="icc-input-btn_help">Help</button>
+              <button type="button" data-l10n-id="close" id="icc-input-btn_close">Close</button>
               <button type="button" data-l10n-id="back" id="icc-input-btn_back">Back</button>
               <span class="yesnodisabled">
                 <button type="button" data-l10n-id="ok" id="icc-input-btn" class="recommend">OK</button>
@@ -1191,14 +1216,18 @@
       </div>
 
       <div id="sleep-menu" data-z-index-level="sleep-menu">
-        <div id="sleep-menu-container">
-          <h1 data-l10n-id="deviceMenu">Device menu</h1>
-          <ul role="menu">
-          </ul>
+        <div id="sleep-menu-container" role="dialog" data-type="object">
+          <header>
+            <h1 data-l10n-id="deviceMenu">Device menu</h1>
+          </header>
+          <section>
+            <ul role="menu">
+            </ul>
+          </section>
+          <gaia-buttons skin="dark">
+            <button data-l10n-id="cancel">Cancel</button>
+          </gaia-buttons>
         </div>
-        <menu>
-          <button data-l10n-id="cancel">Cancel</button>
-        </menu>
       </div>
 
       <div id="system-overlay" data-z-index-level="system-overlay">

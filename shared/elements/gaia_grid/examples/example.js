@@ -59,3 +59,8 @@ var items = [
 items.forEach(grid.add.bind(grid));
 
 grid.render();
+
+document.getElementById('clear').addEventListener('click', function() {
+  grid.clear();
+});
+

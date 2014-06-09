@@ -7,8 +7,8 @@
   <!-- Common style -->
   <link rel="stylesheet" href="/shared/style/headers.css">
   <link rel="stylesheet" href="/shared/style/switches.css">
-  <link rel="stylesheet" href="/shared/style_unstable/input_areas.css">
-  <link rel="stylesheet" href="/shared/style_unstable/buttons.css">
+  <link rel="stylesheet" href="/shared/style/input_areas.css">
+  <link rel="stylesheet" href="/shared/style/buttons.css">
   <link rel="stylesheet" href="/shared/style/confirm.css">
   <link rel="stylesheet" href="/shared/style/lists.css">
   <link rel="stylesheet" href="/shared/style/progress_activity.css">
@@ -16,12 +16,12 @@
   <link rel="stylesheet" href="/shared/style/animations.css">
 
   <!-- Specific style -->
-  <link rel="stylesheet" href="css/style.css">
-  <link rel="stylesheet" href="css/status.css">
-  <link rel="stylesheet" href="css/overlay.css">
-  <link rel="stylesheet" href="css/fb_extensions.css">
-  <link rel="stylesheet" href="css/tutorial.css">
-  <link rel="stylesheet" href="css/responsive.css">
+  <link rel="stylesheet" href="style/style.css">
+  <link rel="stylesheet" href="style/status.css">
+  <link rel="stylesheet" href="style/overlay.css">
+  <link rel="stylesheet" href="style/fb_extensions.css">
+  <link rel="stylesheet" href="style/tutorial.css">
+  <link rel="stylesheet" href="style/responsive.css">
   <link rel="stylesheet" href="/shared/pages/import/style/curtain_frame.css">
 
   <title>Welcome to Browser OS</title>
@@ -45,6 +45,7 @@
   <script src="/shared/js/l10n_date.js"></script>
   <script src="/shared/js/tz_select.js"></script>
   <script defer src="/shared/js/keyboard_helper.js"></script>
+  <script defer src="/shared/js/version_helper.js"></script>
 
   <!-- Import contacts help files -->
   <script defer src="/shared/js/contacts/import/utilities/status.js"></script>
@@ -60,7 +61,8 @@
   <script defer src="/shared/js/screen_layout.js"></script>
   <script defer src="/shared/js/text_normalizer.js"></script>
   <script defer src="/shared/js/lazy_loader.js"></script>
-  <script defer src="js/basket-client.js"></script>
+  <script defer src="/shared/js/font_size_utils.js"></script>
+  <script defer src="/shared/js/basket_client.js"></script>
   <script defer src="js/services_launcher.js"></script>
   <script defer src="/shared/js/fb/fb_request.js"></script>
   <script defer src="/shared/js/contacts/import/facebook/fb_data.js"></script>
@@ -93,9 +95,8 @@
   <script defer src="/shared/js/confirm.js"></script>
 
   <!-- Components -->
+  <script defer src="/shared/js/component_utils.js"></script>
   <script defer src="/shared/elements/gaia_switch/script.js"></script>
-
-  <link rel="import" href="/shared/pages/import/import.html">
 
   <!--
     <link href="/shared/pages/import/import.html">
@@ -229,16 +230,16 @@
       </menu>
       <h1 id="main-title"></h1>
     </header>
-    <ol id="progress-bar" class="step-state">
-      <li id="progress-bar-state" class="step-state-bar"></li>
-      <li>languages</li>
-      <li>SIM_mandatory</li>
-      <li>3g</li>
-      <li>wifi</li>
-      <li>configure network</li>
-      <li>date and time</li>
-      <li>geolocation</li>
-      <li>browser privacy</li>
+    <ol id="progress-bar" class="step-state" role="progressbar" aria-label="First Time Experience" data-l10n-id="progressbar">
+      <li id="progress-bar-state" class="step-state-bar" role="presentation"></li>
+      <li role="presentation">languages</li>
+      <li role="presentation">SIM_mandatory</li>
+      <li role="presentation">3g</li>
+      <li role="presentation">wifi</li>
+      <li role="presentation">configure network</li>
+      <li role="presentation">date and time</li>
+      <li role="presentation">geolocation</li>
+      <li role="presentation">browser privacy</li>
     </ol>
     <article role="main">
       <section role="region" id="languages">
@@ -300,13 +301,13 @@
           <form data-type="list">
             <ul>
               <li>
-                <label id="label_wifi_ssid" for="wifi_ssid" data-l10n-id="ssid-name">
+                <label id="label_wifi_ssid" for="hidden-wifi-ssid" data-l10n-id="ssid-name">
                   SSID Network Name
                 </label>
                 <input type="text" name="wifi_ssid" id="hidden-wifi-ssid"/>
               </li>
               <li>
-                <label id="label_wifi_security" for="wifi_security" data-l10n-id="security">
+                <label id="label_wifi_security" for="hidden-wifi-security" data-l10n-id="security">
                   Security
                 </label>
                 <span class="button icon icon-dialog">
@@ -319,17 +320,17 @@
                 </span>
               </li>
               <li class="hidden" id="hidden-wifi-identity-box">
-                <label id="label_wifi_identity" for="wifi_identity" data-l10n-id="identity">
+                <label id="label_wifi_identity" for="hidden-wifi-identity" data-l10n-id="identity">
                   Identity
                 </label>
                 <input type="text" name="wifi_identity" id="hidden-wifi-identity"/>
               </li>
               <li>
-                <label id="label_hidden_wifi_password" for="wifi_hidden_password" data-l10n-id="password">
+                <label id="label_hidden_wifi_password" for="hidden-wifi-password" data-l10n-id="password">
                   Password
                 </label>
                 <input type="password" name="wifi_hidden_password" id="hidden-wifi-password" value=""/>
-                <label class="pack-checkbox" id="label_show_password">
+                <label class="pack-checkbox" id="label_show_password" for="hidden-wifi-show-password">
                   <input type="checkbox" id="hidden-wifi-show-password">
                   <span data-l10n-id="showPassword">
                     Show Password
@@ -356,33 +357,33 @@
           <ul>
             <!-- timezones -->
             <li>
-              <button class="change icon icon-dialog" data-l10n-id="change" type="button">
+              <p id="tz-region-label" aria-label="region" data-l10n-id="region"></p>
+              <select id="tz-region" class="invisible"></select>
+              <button id="tz-region-button" class="change icon icon-dialog" data-l10n-id="change" type="button" aria-describedby="tz-region-label">
                 Change
               </button>
-              <p id="tz-region-label"></p>
-              <select id="tz-region" class="invisible"></select>
             </li>
             <li>
-              <button class="change icon icon-dialog" data-l10n-id="change" type="button">
+              <p id="tz-city-label" aria-label="city" data-l10n-id="city">GMT</p>
+              <select id="tz-city" class="invisible"></select>
+              <button id="tz-city-button" class="change icon icon-dialog" data-l10n-id="change" type="button" aria-describedby="tz-city-label">
                 Change
               </button>
-              <p id="tz-city-label">GMT</p>
-              <select id="tz-city" class="invisible"></select>
             </li>
             <!-- date/time -->
             <li>
-              <button class="change icon icon-dialog" data-l10n-id="change">
+              <p id="date-configuration-label" aria-label="date" data-l10n-id="date"></p>
+              <input id="date-configuration" class="invisible" type="date" min="1970-1-1" max="2037-12-31"></input>
+              <button id="date-configuration-button" class="change icon icon-dialog" data-l10n-id="change" aria-describedby="date-configuration-label">
                 Change
               </button>
-              <p id="date-configuration-label"></p>
-              <input id="date-configuration" class="invisible" type="date" min="1970-1-1" max="2037-12-31"></input>
             </li>
             <li>
-              <button class="change icon icon-dialog" data-l10n-id="change" type="button">
+              <p id="time-configuration-label" aria-label="time" data-l10n-id="time">00:00</p>
+              <input id="time-configuration" class="invisible" type="time"></input>
+              <button id="time-configuration-button" class="change icon icon-dialog" data-l10n-id="change" type="button" aria-describedby="time-configuration-label">
                 Change
               </button>
-              <p id="time-configuration-label">00:00</p>
-              <input id="time-configuration" class="invisible" type="time"></input>
             </li>
           </ul>
         </form>
@@ -391,7 +392,7 @@
         <article data-type="list">
           <ul>
             <li>
-              <gaia-switch id="geolocation-switch" name="geolocation.enabled">
+              <gaia-switch id="geolocation-switch" name="geolocation.enabled" checked>
                 <label data-l10n-id="geolocationCheckbox"></label>
               </gaia-switch>
             </li>
@@ -578,7 +579,7 @@
       </section>
       <section role="region" id="welcome_browser">
         <section id="browser_logo_horizontal">
-          <img src="/shared/resources/branding/logosmall.png">
+          <img src="/shared/resources/branding/logosmall.png" role="presentation">
         </section>
         <p data-l10n-id="welcomeBrowser">
           Welcome to Browser OS, the free and
@@ -654,15 +655,37 @@
     </section>
   </section>
 
-  <section id="tutorial" role="region" data-step="1" data-maxsteps-tiny="6" data-maxsteps-large="4">
-    <ol id="tutorial-progress" class="step-state">
+  <section id="update-screen" class="finish-screen-base" role="region">
+    <section class="content">
+      <h1 data-l10n-id="whatsNew">
+        What's new
+      </h1>
+      <p data-l10n-id="updatedSuccessfully">
+        Your phone has updated successfully! Start the tour to find out more about the new features.
+      </p>
+    </section>
+    <menu role="navigation">
+      <button id="update-skip-tutorial-button" class="button-left" data-l10n-id="skip">
+        Skip
+      </button>
+      <button id="update-lets-go-button" class="recommend" data-l10n-id="startTour">
+        Start Tour!
+      </button>
+    </menu>
+  </section>
+
+  <section id="tutorial" role="region" data-step="1">
+    <ol id="tutorial-progress" class="step-state" role="progressbar" aria-label="Tutorial" data-l10n-id="tutorial">
       <li id="tutorial-progress-bar" class="step-state-bar"></li>
     </ol>
     <article id="tutorial-steps-container" role="main">
-      <section id="tutorial-step-title">
+      <section id="tutorial-step-header">
+        <p id="tutorial-step-title">
+        </p>
       </section>
-      <section id="tutorial-step-image">
-        <img class="step-img-base">
+      <section id="tutorial-step-media">
+        <img class="step-img-base" role="presentation">
+        <video class="step-video-base" role="presentation" preload="auto" autoplay hidden loop></video>
       </section>
     </article>
     <nav role="navigation" id="tutorial-nav-bar">

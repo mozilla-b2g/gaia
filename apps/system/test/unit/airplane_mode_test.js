@@ -106,7 +106,7 @@ suite('system/airplane_mode.js', function() {
         });
         test('no further steps because we are waiting for other events',
           function() {
-            assert.isFalse(AirplaneMode._updateAirplaneModeStatus.called);
+            assert.isTrue(AirplaneMode._updateAirplaneModeStatus.called);
         });
       });
 
@@ -120,7 +120,7 @@ suite('system/airplane_mode.js', function() {
         });
         test('no further steps because we are waiting for other events',
           function() {
-            assert.isFalse(AirplaneMode._updateAirplaneModeStatus.called);
+            assert.isTrue(AirplaneMode._updateAirplaneModeStatus.called);
         });
       });
 

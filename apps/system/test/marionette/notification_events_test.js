@@ -16,8 +16,7 @@ marionette('Notification events', function() {
     }
   });
 
-  // FIXME: bug 1006537, only works in B2G with OOP
-  test.skip('click event starts application', function(done) {
+  test('click event starts application', function(done) {
     var notificationTitle = 'Title:' + Date.now();
 
     // switch to calendar app and send notification
@@ -179,7 +178,15 @@ marionette('Notification events', function() {
 
     // close app, to make sure.
     client.switchToFrame();
-    client.apps.close(CALENDAR_APP);
+    // We will use `client.apps.close(CALENDAR_APP)`
+    // to instead of the below code,
+    // after the http://bugzil.la/1016835 is fixed.
+    client.switchToFrame(
+      client.findElement('iframe[src*="' + CALENDAR_APP + '"]')
+    );
+    client.executeScript(function() {
+      window.wrappedJSObject.close();
+    });
 
     // switch to system app and send desktop-notification-click
     client.switchToFrame();

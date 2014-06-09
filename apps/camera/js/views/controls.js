@@ -33,14 +33,17 @@ module.exports = View.extend({
 
   onButtonClick: function(e, el) {
     var name = el.getAttribute('name');
+    var enabled = this.get('data-enabled');
     e.stopPropagation();
-    this.emit('click:' + name, e);
+    if (enabled === 'true') {
+      this.emit('click:' + name, e);
+    }
   },
 
   template: function() {
     /*jshint maxlen:false*/
     return '<div class="controls-left">' +
-      '<div class="controls-button controls-thumbnail-button test-thumbnail js-thumbnail js-btn rotates" name="thumbnail"></div>' +
+      '<div class="controls-button controls-thumbnail-button js-thumbnail js-btn rotates" name="thumbnail"></div>' +
       '<div class="controls-button controls-cancel-pick-button test-cancel-pick icon-pick-cancel js-btn rotates" name="cancel"></div>' +
     '</div>' +
     '<div class="controls-middle">' +
@@ -63,6 +66,7 @@ module.exports = View.extend({
   setThumbnail: function(blob) {
     if (!this.els.image) {
       this.els.image = new Image();
+      this.els.image.classList.add('test-thumbnail');
       this.els.thumbnail.appendChild(this.els.image);
       this.set('thumbnail', true);
     } else {

@@ -111,8 +111,12 @@
           this.handleSearchMessage(e);
           break;
       }
-    }
+    },
 
+    // Preventing the RocketBar implementation from triggering a background
+    // scale change before getting stuck because of the lack of transitionend.
+    enterHome: function() {
+    }
   };
 
   exports.HomeSearchbar = HomeSearchbar;

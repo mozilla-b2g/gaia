@@ -2,8 +2,6 @@
 
 /* global MockNavigatormozApps, mockMozActivityInstance */
 
-mocha.globals(['NetError']);
-
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');

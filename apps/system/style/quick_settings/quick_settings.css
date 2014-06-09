@@ -80,6 +80,9 @@
 .non-mobile #quick-settings-data + .separator {
   display: none;
 }
+#quick-settings-data[data-network="undefined"]  {
+  background-position: 15px 0;
+}
 #quick-settings-data[data-network="2G"]  {
   background-position: 15px -30px;
 }
@@ -133,6 +136,13 @@
 }
 #quick-settings-airplane-mode[data-enabled] {
   background-image: url(images/airplane-mode-on.png);
+}
+#quick-settings-airplane-mode[data-enabling] {
+  background-image: url(images/airplane-mode-on.png);
+  opacity: 0.5;
+}
+#quick-settings-airplane-mode[data-disabling] {
+  background-image: url(images/airplane-mode-off.png);
 }
 #quick-settings-full-app {
   background-image: url(images/settings-off.png);

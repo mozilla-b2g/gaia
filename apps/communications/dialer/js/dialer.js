@@ -240,7 +240,7 @@ var CallHandler = (function callHandler() {
 
   function callEnded(data) {
     var highPriorityWakeLock = navigator.requestWakeLock('high-priority');
-    var number = data.number;
+    var number = data.id ? data.id.number : data.number;
     var incoming = data.direction === 'incoming';
 
     NavbarManager.ensureResources(function() {
@@ -380,7 +380,6 @@ var CallHandler = (function callHandler() {
                      '/dialer/js/mmi.js',
                      '/dialer/js/mmi_ui.js',
                      '/shared/style/headers.css',
-                     '/shared/style/input_areas.css',
                      '/shared/style/progress_activity.css',
                      '/dialer/style/mmi.css'], function() {
 
@@ -450,6 +449,11 @@ window.onresize = function(e) {
 
 // If the app loses focus, close the audio stream.
 document.addEventListener('visibilitychange', function visibilitychanged() {
+  // Don't bother stopping the tone player if it's not been started
+  if (!TonePlayer) {
+    return;
+  }
+
   if (!document.hidden) {
     TonePlayer.ensureAudio();
   } else {

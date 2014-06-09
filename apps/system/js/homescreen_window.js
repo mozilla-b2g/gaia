@@ -95,7 +95,7 @@
 
   HomescreenWindow.REGISTERED_EVENTS =
     ['_opening', '_localized', 'mozbrowserclose', 'mozbrowsererror',
-      'mozbrowservisibilitychange', 'mozbrowserloadend'];
+      'mozbrowservisibilitychange', 'mozbrowserloadend', '_orientationchange'];
 
   HomescreenWindow.SUB_COMPONENTS = {
     'transitionController': window.AppTransitionController,
@@ -175,16 +175,31 @@
   // the homescreen app if it was killed in the background.
   HomescreenWindow.prototype.ensure = function hw_ensure(reset) {
     this.debug('ensuring homescreen...', this.frontWindow);
-    if (this.frontWindow) {
-      this.frontWindow.kill();
-    }
     if (!this.element) {
       this.render();
     } else if (reset) {
-      this.browser.element.src = this.browser_config.url + new Date();
+      if (this.frontWindow) {
+        // Just kill front window but not switch to the first page.
+        this.frontWindow.kill();
+      } else {
+        this.browser.element.src = this.browser_config.url + Date.now();
+      }
     }
 
     return this.element;
+  };
+
+  /**
+  *
+  * The homescreen instance always resizes if it's needed.
+  * (ie. the current layout is different from the current window dimensions)
+  * This helps with the back-to-homescreen transition.
+  *
+  */
+  HomescreenWindow.prototype.resize = function aw_resize() {
+    this.debug('request RESIZE...');
+    this.debug(' will resize... ');
+    this._resize();
   };
 
   /**

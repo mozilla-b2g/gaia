@@ -141,20 +141,6 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
   text-overflow: ellipsis;
 }
 
-#contact-detail li button.icon-call {
-  padding-left: 0;
-}
-
-#contact-detail li button>div {
-  display: inline-flex;
-  width: calc(100% - 1.5rem);
-  margin-left: 1.5rem;
-}
-
-#contact-detail li button>div b {
-  flex: 1;
-}
-
 #contact-detail .social-actions button {
   margin-bottom: 1rem;
 }
@@ -184,6 +170,10 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
 
 .block-item > * {
   pointer-events: none;
+}
+
+.view:not(.current) {
+  visibility: hidden;
 }
 
 /* Edit contact section */
@@ -232,28 +222,6 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
 
 #contacts-form-notes .setbox {
   width: calc(100% - 5rem);
-}
-
-/* FB info (non-editable) */
-.view-edit-contact .facebook fieldset legend,
-.view-edit-contact .facebook fieldset input[type="date"] {
-  width: 100%;
-  border-color: #acbee4;
-  color: #8d9abb;
-  background-image: url(fb/dialog.svg);
-}
-
-.view-edit-contact .facebook input {
-  border-color: #acbee4;
-  color: #8d9abb;
-}
-
-.view-edit-contact .facebook span {
-  color: #8d9abb;
-}
-
-.view-edit-contact .facebook input[value=""] {
-  display: none;
 }
 
 hr {
@@ -393,6 +361,9 @@ section[role="region"] > header .icon.icon-settings {
 #import-settings .view-body-inner,
 #view-contact-form .view-body-inner {
   background: #f4f4f4;
+}
+#view-contact-form #thumbnail-photo {
+   background-color: transparent;
 }
 
 /* Order switch */

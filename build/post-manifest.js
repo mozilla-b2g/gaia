@@ -15,17 +15,17 @@ function manifestInterAppHostnames(manifest, config) {
       .replace(/^(http|app):\/\//, config.GAIA_SCHEME)
       .replace(/gaiamobile.org(:[0-9])?/, host);
   }
-  if (manifest.connections) {
-    for (let i in manifest.connections) {
-      var connection = manifest.connections[i];
-      if (!connection.rules || !connection.rules.manifestURLs) {
-        continue;
-      }
-
-      var manifestURLs = connection.rules.manifestURLs;
-      manifestURLs = manifestURLs.map(convertToLocalUrl);
+  
+  for (let i in manifest.connections) {
+    var connection = manifest.connections[i];
+    if (!connection.rules || !connection.rules.manifestURLs) {
+      continue;
     }
+
+    var manifestURLs = connection.rules.manifestURLs;
+    manifestURLs = manifestURLs.map(convertToLocalUrl);
   }
+
   return manifest;
 }
 
@@ -50,10 +50,13 @@ function execute(options) {
     if (!stageManifest.exists()) {
       return;
     }
-
     var manifestContent = utils.getJSON(stageManifest);
-    manifestContent = manifestInterAppHostnames(manifestContent, options);
-    utils.writeContent(stageManifest, JSON.stringify(manifestContent));
+    if (manifestContent.connections) {
+      utils.log('modified');
+      manifestContent =
+        manifestInterAppHostnames(manifestContent, options);
+      utils.writeContent(stageManifest, JSON.stringify(manifestContent));
+    }
   });
 }
 exports.execute = execute;

@@ -159,9 +159,9 @@ suite('Render contacts list', function() {
   // Poor man's way of delaying until an element is onscreen as determined
   // by the visibility monitor.
   function doOnscreen(list, element, callback) {
+    var uuid = element.dataset.uuid;
+    list.notifyRowOnScreenByUUID(uuid, callback);
     element.scrollIntoView(true);
-    // XXX Replace this with a true callback from monitor or list
-    window.setTimeout(callback);
   }
 
   function assertNoGroup(title, container) {
@@ -1594,6 +1594,48 @@ suite('Render contacts list', function() {
           }
           done();
         }, new MockNavigationStack(), { isDanger: false });
+      });
+    });
+  });
+
+  suite('Row on screen notification', function() {
+    var names = [];
+    var elements = [];
+    setup(function (done) {
+      names = ['AA', 'AB', 'AC', 'AD', 'AE',
+       'AF', 'AG', 'AH', 'AI', 'AJ', 'AK'];
+      var list = [];
+      for (var i = 0; i < names.length; ++i) {
+        var name = names[i];
+        var c = new MockContactAllFields();
+        c.id = 'mock-' + i;
+        c.familyName = [name];
+        list.push(c);
+      }
+
+      doLoad(subject, list, function () {
+        elements = assertGroup(groupA, containerA, names.length);
+        done();
+      });
+    });
+
+    test('Scroll to a deep row', function (done) {
+      var element = elements[names.length -1];
+      doOnscreen(subject, element, function (row) {
+        assert.isNotNull(row);
+        assert.equal(row, element);
+        done();
+      });
+    });
+
+    test('Notify a row that is on the screen', function(done) {
+      var element = elements[0];
+      doOnscreen(subject, element, function (r) {
+        subject.notifyRowOnScreenByUUID(element.dataset.uuid, function(row) {
+          assert.isNotNull(row);
+          assert.equal(row, element);
+          done();
+        });
       });
     });
   });

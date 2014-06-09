@@ -7,7 +7,7 @@ dev_apps/bookmarks-reader
 dev_apps/ds-test
 dev_apps/demo-keyboard
 dev_apps/geoloc
-dev_apps/home2
+dev_apps/verticalhome
 dev_apps/membuster
 dev_apps/music2
 dev_apps/test-ime
@@ -30,3 +30,5 @@ dev_apps/sheet-app-2
 dev_apps/sheet-app-3
 dev_apps/test-findmydevice
 dev_apps/contacts-manager
+dev_apps/contacts-ds-provider1
+dev_apps/contacts-ds-provider2

@@ -12,8 +12,6 @@ require('/test/unit/mock_call_screen.js');
 
 // The ConferenceGroupHandler binds stuff when evaluated so we load it
 // after the mocks and we don't want it to show up as a leak.
-mocha.globals(['ConferenceGroupHandler']);
-
 var mocksHelperForConferenceGroupHandler = new MocksHelper([
   'HandledCall',
   'CallsHandler',
@@ -41,23 +39,32 @@ suite('conference group handler', function() {
     fakeDOM = document.createElement('div');
     fakeDOM.innerHTML = '<section id="group-call" hidden>' +
                             '<div class="numberWrapper">' +
-                              '<div id="group-show"></div>' +
-                              '<div id="group-call-label"' +
-                                'class="number font-light"></div>' +
-                            '</div>' +
-                            '<div class="fake-number font-light"></div>' +
-                            '<div id="group-call-summary"' +
-                              'class="additionalContactInfo"></div>' +
-                            '<div class="duration">' +
-                              '<span class="font-light"></span>' +
-                              '<div class="direction"></div>' +
-                              '<div class="total-duration font-light"></div>' +
-                            '</div>' +
-                            '<button class="merge-button"></button>' +
-                          '</section>' +
-                          '<form id="group-call-details">' +
-                            '<header></header>' +
-                          '</form>';
+                            '<div id="group-show"></div>' +
+                            '<div id="group-call-label" ' +
+                              'class="number font-light"></div>' +
+                          '</div>' +
+                          '<div class="fake-number font-light"></div>' +
+                          '<div id="group-call-summary" ' +
+                            'class="additionalContactInfo font-light"></div>' +
+                          '<div class="duration">' +
+                            '<span class="font-light"></span>' +
+                            '<div class="total-duration"></div>' +
+                            '<div class="direction"></div>' +
+                          '</div>' +
+                          '<button class="merge-button" data-l10n-id="merge">' +
+                            'Merge</button>' +
+                        '</section>' +
+                        '<form id="group-call-details" role="dialog" ' +
+                          'data-type="action" class="overlay">' +
+                          '<header></header>' +
+                          '<menu>' +
+                            '<ul id="group-call-details-list">' +
+                            '</ul>' +
+                            '<button id="group-hide" data-l10n-id="close">' +
+                              'Close' +
+                            '</button>' +
+                          '</menu>' +
+                        '</form>';
 
     document.body.appendChild(fakeDOM);
     fakeGroupLine = document.getElementById('group-call');
@@ -108,8 +115,8 @@ suite('conference group handler', function() {
 
       test('should update the group label', function() {
         flush();
-        assert.equal(fakeGroupLabel.textContent, 'group-call');
-        assert.deepEqual(MockLazyL10n.keys['group-call'], {n: 2});
+        assert.equal(fakeGroupLabel.textContent, 'conference');
+        assert.deepEqual(MockLazyL10n.keys.conference, {n: 2});
       });
 
       suite('when a new called is merged in the conference', function() {
@@ -126,8 +133,8 @@ suite('conference group handler', function() {
 
         test('should update the group label', function() {
           flush();
-          assert.equal(fakeGroupLabel.textContent, 'group-call');
-          assert.deepEqual(MockLazyL10n.keys['group-call'], {n: 3});
+          assert.equal(fakeGroupLabel.textContent, 'conference');
+          assert.deepEqual(MockLazyL10n.keys.conference, {n: 3});
         });
 
         test('should update single line status', function() {
@@ -147,8 +154,8 @@ suite('conference group handler', function() {
 
           test('should update the group label', function() {
             flush();
-            assert.equal(fakeGroupLabel.textContent, 'group-call');
-            assert.deepEqual(MockLazyL10n.keys['group-call'], {n: 2});
+            assert.equal(fakeGroupLabel.textContent, 'conference');
+            assert.deepEqual(MockLazyL10n.keys.conference, {n: 2});
           });
         });
 
@@ -163,8 +170,8 @@ suite('conference group handler', function() {
 
           test('should update the group label', function() {
             flush();
-            assert.equal(fakeGroupLabel.textContent, 'group-call');
-            assert.deepEqual(MockLazyL10n.keys['group-call'], {n: 2});
+            assert.equal(fakeGroupLabel.textContent, 'conference');
+            assert.deepEqual(MockLazyL10n.keys.conference, {n: 2});
           });
 
           test('should call CallsHandler.checkCalls if two more phones remains',
@@ -239,19 +246,17 @@ suite('conference group handler', function() {
       assert.isFalse(fakeGroupLine.hidden);
     });
 
-    test('should set photo to default when connected', function() {
+    test('should set photo when connected', function() {
       MockNavigatorMozTelephony.conferenceGroup.state = 'connected';
       MockNavigatorMozTelephony.mTriggerGroupStateChange();
 
-      assert.isNull(MockCallScreen.mSetCallerContactImageArg);
       assert.isTrue(MockCallScreen.mSetCallerContactImageCalled);
     });
 
-    test('should set photo to default when resuming', function() {
+    test('should set photo when resuming', function() {
       MockNavigatorMozTelephony.conferenceGroup.state = 'resuming';
       MockNavigatorMozTelephony.mTriggerGroupStateChange();
 
-      assert.isNull(MockCallScreen.mSetCallerContactImageArg);
       assert.isTrue(MockCallScreen.mSetCallerContactImageCalled);
     });
 

@@ -1,10 +1,5 @@
 'use strict';
 
-mocha.globals(['SettingsListener', 'lockScreen', 'Bluetooth', 'StatusBar',
-      'AttentionScreen', 'removeEventListener', 'addEventListener',
-      'ScreenManager', 'clearIdleTimeout', 'setIdleTimeout', 'dispatchEvent',
-      'AppWindowManager']);
-
 requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_lock_screen.js');
 requireApp('system/test/unit/mock_statusbar.js');
@@ -277,27 +272,27 @@ suite('system/ScreenManager', function() {
     });
 
     suite('Testing callschanged event', function() {
-      var stubTelephony, stubCpuWakeLock, stubAttentionScreen,
+      var stubTelephony, stubCpuWakeLock, stubDialerAgent,
         stubTurnOn, stubRemoveListener;
 
       setup(function() {
         stubTelephony = {};
         stubCpuWakeLock = {};
-        stubAttentionScreen = {};
+        stubDialerAgent = {};
         stubTurnOn = this.sinon.stub(ScreenManager, 'turnScreenOn');
         stubRemoveListener = this.sinon.stub(window, 'removeEventListener');
 
         stubCpuWakeLock.unlock = this.sinon.stub();
-        stubAttentionScreen.show = this.sinon.stub();
+        stubDialerAgent.showCallScreen = this.sinon.stub();
         ScreenManager._cpuWakeLock = stubCpuWakeLock;
 
         switchProperty(navigator, 'mozTelephony', stubTelephony, reals);
-        switchProperty(window, 'AttentionScreen', stubAttentionScreen, reals);
+        switchProperty(window, 'dialerAgent', stubDialerAgent, reals);
       });
 
       teardown(function() {
         restoreProperty(navigator, 'mozTelephony', reals);
-        restoreProperty(window, 'AttentionScreen', reals);
+        restoreProperty(window, 'dialerAgent', reals);
       });
 
       test('screen off by proximity', function() {
@@ -309,7 +304,7 @@ suite('system/ScreenManager', function() {
         assert.isTrue(stubTurnOn.called);
         assert.isNull(ScreenManager._cpuWakeLock);
         assert.isTrue(stubCpuWakeLock.unlock.called);
-        assert.isFalse(stubAttentionScreen.show.called);
+        assert.isFalse(stubDialerAgent.showCallScreen.called);
       });
 
       test('screen off', function() {
@@ -325,7 +320,7 @@ suite('system/ScreenManager', function() {
         stubTelephony.calls = [{'addEventListener': stubAddListener}];
         stubTelephony.conferenceGroup = {calls: []};
         ScreenManager.handleEvent({'type': 'callschanged'});
-        assert.isTrue(stubAttentionScreen.show.called);
+        assert.isTrue(stubDialerAgent.showCallScreen.called);
         assert.isFalse(stubAddListener.called);
       });
 
@@ -337,7 +332,7 @@ suite('system/ScreenManager', function() {
                   {'addEventListener': stubAddListener}]
         };
         ScreenManager.handleEvent({'type': 'callschanged'});
-        assert.isTrue(stubAttentionScreen.show.called);
+        assert.isTrue(stubDialerAgent.showCallScreen.called);
         assert.isFalse(stubAddListener.called);
       });
 
@@ -347,7 +342,7 @@ suite('system/ScreenManager', function() {
         stubTelephony.conferenceGroup = {calls: []};
         ScreenManager._cpuWakeLock = null;
         ScreenManager.handleEvent({'type': 'callschanged'});
-        assert.isFalse(stubAttentionScreen.show.called);
+        assert.isFalse(stubDialerAgent.showCallScreen.called);
         assert.isTrue(stubAddListener.called);
       });
     });
@@ -387,13 +382,13 @@ suite('system/ScreenManager', function() {
     });
 
     test('Testing shutdown event', function() {
-      var powerOffSpy = this.sinon.spy(MockSleepMenu, 'startPowerOff');
+      var powerOffSpy = this.sinon.spy(MocksleepMenu, 'startPowerOff');
       powerOffSpy.withArgs(false);
       this.sinon.stub(ScreenManager, 'turnScreenOn');
 
       ScreenManager.handleEvent({
         type: 'requestshutdown',
-        detail: MockSleepMenu
+        detail: MocksleepMenu
       });
 
       assert.isTrue(ScreenManager.turnScreenOn.calledOnce);

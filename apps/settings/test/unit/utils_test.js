@@ -7,12 +7,6 @@ require('/apps/settings/test/unit/mock_dsds_settings.js');
 require('/shared/test/unit/mocks/mock_iccmanager.js');
 require('/apps/settings/test/unit/mock_l10n.js');
 
-mocha.globals(['DsdsSettings', 'reopenSettings', 'openLink', 'openDialog',
-  'loadJSON', 'FileSizeFormatter', 'DeviceStorageHelper', 'getMobileConnection',
-  'getBluetooth', 'getNfc', 'getSupportedNetworkInfo', 'isIP', 'getIccByIndex',
-  'sanitizeAddress', 'getIccByIndexalize', 'localize',
-  'getSupportedLanguages']);
-
 suite('Utils', function() {
   var realDsDsSettings, realMozMobileConnections, realMozIccManager, realL10n;
 

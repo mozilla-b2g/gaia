@@ -2,8 +2,6 @@
 
 'use strict';
 
-mocha.globals(['DownloadUI']);
-
 requireApp('settings/test/unit/mock_l10n.js');
 // Mockup the API
 require('/shared/test/unit/mocks/mock_download.js');

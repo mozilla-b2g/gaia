@@ -1,7 +1,7 @@
+'use strict';
+/* global ComponentUtils */
 
 window.GaiaSubheader = (function(win) {
-  'use strict';
-
   // Extend from the HTMLElement prototype
   var proto = Object.create(HTMLElement.prototype);
 
@@ -10,14 +10,7 @@ window.GaiaSubheader = (function(win) {
     '/shared/elements/gaia_subheader/';
 
   proto.createdCallback = function() {
-    this._addStyle();
-  };
-
-  proto._addStyle = function() {
-    var style = document.createElement('style');
-    var url = baseurl + 'style.css';
-    style.innerHTML = '@import url(' + url + ')';
-    this.appendChild(style);
+    ComponentUtils.style.call(this, baseurl);
   };
 
   // Register and return the constructor

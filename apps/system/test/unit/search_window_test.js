@@ -11,13 +11,6 @@ requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 
-mocha.globals([
-  'applications',
-  'AppWindow',
-  'BrowserConfigHelper',
-  'SearchWindow'
-]);
-
 var mocks = new MocksHelper([
   'Applications',
   'ManifestHelper',

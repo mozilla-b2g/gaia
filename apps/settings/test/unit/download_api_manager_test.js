@@ -1,8 +1,6 @@
 
 'use strict';
 
-mocha.globals(['DownloadUI']);
-
 require('/shared/test/unit/mocks/mock_download.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_downloads.js');
 

@@ -7,14 +7,18 @@
   // Set the path to "empty" to prevent the scripts defining global objects
   // from being merged or they are removed after the optimization process,
   // which makes the objects inaccessible by reference.
+  // If the inquiries to the object are all performed by requirejs, we can
+  // remove the path of the object from the following list.
   paths: {
     'prim': 'empty:',
     'settings': 'empty:',
+    'connectivity': 'empty:',
     'shared/async_storage': 'empty:',
-    'shared/keyboard_helper': 'empty:',
+    'shared/icc_helper': 'empty:',
     'shared/lazy_loader': 'empty:',
     'shared/manifest_helper': 'empty:',
     'shared/settings_listener': 'empty:',
+    'utils': 'empty:'
   },
 
   findNestedDependencies: true,

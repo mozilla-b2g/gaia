@@ -1,5 +1,6 @@
 Keyboards.sk = {
   label: 'Slovak',
+  shortLabel: 'Sk',
   imEngine: 'latin',
   types: ['text', 'url', 'email'],
   autoCorrectLanguage: 'sk',

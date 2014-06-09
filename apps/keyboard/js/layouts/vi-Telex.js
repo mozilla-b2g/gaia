@@ -1,5 +1,6 @@
 Keyboards['vi-Telex'] = {
   label: 'Vietnamese (Telex)',
+  shortLabel: 'Vi',
   menuLabel: 'Tiếng Việt (Telex)',
   imEngine: 'jstelex',
   types: ['text', 'url', 'email'],

@@ -1,7 +1,7 @@
 'use strict';
 
 require('/shared/test/unit/mocks/mock_icc_helper.js');
-requireApp('ftu/test/unit/mock_navigator_moz_settings.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 
 requireApp('ftu/js/operatorVariant.js');
 

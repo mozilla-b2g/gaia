@@ -215,3 +215,17 @@ Browser: `input[type="file"][accept="image/*"]`, `input[type="file"][accept="ima
 }
 ```
 
+## Integration tests
+
+mozCamera API is not available on B2G desktop. The integration tests can only be run on device so they are disabled on TPBL. Running these tests before marking a pull request for review is going to help prevent regressions and give you confidence that you haven't made any obvious silly mistakes. You will have a proof that you still have a functional camera with working basic functionality.
+
+- To run the tests you have first to make sure that you have an engineering build of b2g in your device.
+
+To launch the tests you have to follow the steps below in your terminal and in the directory of your gaia clone:
+
+- export MARIONETTE_RUNNER_HOST=marionette-device-host
+- make test-integration-test APP=camera
+
+If you want to run only one of the test suits you can do:
+
+make test-integration-test APP=camera TEST_FILES=apps/camera/test/marionette/capture_test.js

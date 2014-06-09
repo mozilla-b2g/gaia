@@ -111,7 +111,7 @@ class ContactForm(Base):
 
     @property
     def picture_style(self):
-        return self.marionette.find_element(*self._thumbnail_photo_locator ).get_attribute('style')
+        return self.marionette.find_element(*self._thumbnail_photo_locator).get_attribute('style')
 
     def tap_picture(self):
         self.marionette.find_element(*self._thumbnail_photo_locator).tap()
@@ -143,12 +143,13 @@ class EditContact(ContactForm):
         update = self.wait_for_element_present(*self._update_locator)
         self.wait_for_condition(lambda m: update.location['y'] == 0)
 
-    def tap_update(self):
+    def tap_update(self, return_details=True):
         self.wait_for_update_button_enabled()
         self.marionette.find_element(*self._update_locator).tap()
-        self.wait_for_element_not_displayed(*self._update_locator)
-        from gaiatest.apps.contacts.regions.contact_details import ContactDetails
-        return ContactDetails(self.marionette)
+        if return_details:
+            self.wait_for_element_not_displayed(*self._update_locator)
+            from gaiatest.apps.contacts.regions.contact_details import ContactDetails
+            return ContactDetails(self.marionette)
 
     def tap_cancel(self):
         self.marionette.find_element(*self._cancel_locator).tap()

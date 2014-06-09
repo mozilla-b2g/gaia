@@ -1,12 +1,10 @@
-/* global mocha, MockL10n, SimFdnLock, test, suite, suiteTeardown, suiteSetup,
+/* global MockL10n, SimFdnLock, test, suite, suiteTeardown, suiteSetup,
    setup, assert, MockSimPinDialog */
 'use strict';
 
 require('/apps/settings/test/unit/mock_l10n.js');
 require('/apps/settings/test/unit/mock_sim_pin_dialog.js');
 require('/shared/test/unit/load_body_html_helper.js');
-
-mocha.globals(['SimFdnLock', 'SimPinDialog', 'getIccByIndex']);
 
 suite('SimCardFdn > ', function() {
   var realL10n;

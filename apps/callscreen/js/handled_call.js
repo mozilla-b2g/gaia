@@ -105,16 +105,15 @@ HandledCall.prototype.handleEvent = function hc_handle(evt) {
 };
 
 HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
-  var number = this.call.number;
-  var secondNumber = this.call.secondNumber;
+  var number = this.call.id ? this.call.id.number : this.call.number;
   var node = this.numberNode;
   var self = this;
 
-  CallScreen.setCallerContactImage(null);
+  CallScreen.setCallerContactImage();
 
   /* If we have a second call waiting in CDMA mode then we don't know which
    * number is currently active */
-  if (secondNumber) {
+  if (this.call.secondNumber || this.call.secondId) {
     LazyL10n.get(function localized(_) {
       node.textContent = _('switch-calls');
       self._cachedInfo = _('switch-calls');
@@ -135,9 +134,12 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
 
   var isEmergencyNumber = this.call.emergency;
   if (isEmergencyNumber) {
+    this.node.classList.add('emergency');
     LazyL10n.get(function localized(_) {
-      node.textContent = _('emergencyNumber');
-      self._cachedInfo = _('emergencyNumber');
+      self.replacePhoneNumber(number, 'end');
+      self._cachedInfo = number;
+      self.replaceAdditionalContactInfo(_('emergencyNumber'));
+      self._cachedAdditionalInfo = _('emergencyNumber');
     });
 
     // Set Emergency Wallpaper
@@ -198,7 +200,7 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
       var photo = ContactPhotoHelper.getFullResolution(contact);
       if (photo) {
         self.photo = photo;
-        CallScreen.setCallerContactImage(photo);
+        CallScreen.setCallerContactImage();
 
         var thumbnail = ContactPhotoHelper.getThumbnail(contact);
         contactCopy.photo = [thumbnail];
@@ -316,9 +318,7 @@ HandledCall.prototype.connected = function hc_connected() {
   CallScreen.enableKeypad();
   CallScreen.syncSpeakerEnabled();
 
-  if (!this.call.group) {
-    CallScreen.setCallerContactImage(this.photo);
-  }
+  CallScreen.setCallerContactImage();
 };
 
 HandledCall.prototype.disconnected = function hc_disconnected() {

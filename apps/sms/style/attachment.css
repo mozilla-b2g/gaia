@@ -7,6 +7,7 @@
  */
 .attachment-container {
   position: relative;
+  margin-bottom: 0.5rem;
 
   display: block;
   border: none;
@@ -34,7 +35,7 @@
 
 /*.attachment-container.preview {
  * 80x80 px thumbnail, no filename shown
- * thumbnail size is defined dynamically, extensible to 80x120 or 120x80 
+ * thumbnail size is defined dynamically, extensible to 80x120 or 120x80
  *}
  */
 
@@ -95,8 +96,8 @@
   padding: 0 0.4rem;
   display: none;
 
-  background: rgba(0, 0, 0, 0.6);
-  color: rgb(255, 255, 255);
+  background: rgba(255, 255, 255, 0.9);
+  color: #333;
   font-size: 1.5rem;
 }
 
@@ -110,15 +111,16 @@
   right: 0;
   left: 0;
 
-  height: 1.7rem;
+  height: 2rem;
   display: none;
 
-  line-height: 1.7rem;
-  font-size: 1.7rem;
+  line-height: 2rem;
+  font-size: 1.6rem;
+  font-style: italic;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  color: #474747;
+  color: #4a4a4a;
 }
 
 .outgoing .file-name {
@@ -145,7 +147,7 @@
   background-image: url('images/attachments.png');
   background-repeat: no-repeat;
   background-position: left top;
-  background-size: 120px;
+  background-size: 12rem;
 }
 
 .attachment-container .thumbnail,
@@ -163,36 +165,36 @@
 }
 
 .img-placeholder {
-  background-position: left -80px;
+  background-position: left -8rem;
 }
 
 .attachment-draft:hover .img-placeholder,
 .attachment-draft:active .img-placeholder,
 .attachment-container:hover .img-placeholder,
 .attachment-container:active .img-placeholder {
-  background-position: right -80px;
+  background-position: right -8rem;
 }
 
 .audio-placeholder {
-  background-position: left -160px;
+  background-position: left -16rem;
 }
 
 .attachment-draft:hover .audio-placeholder,
 .attachment-draft:active .audio-placeholder,
 .attachment-container:hover .audio-placeholder,
 .attachment-container:active .audio-placeholder {
-  background-position: right -160px;
+  background-position: right -16rem;
 }
 
 .video-placeholder {
-  background-position: left -240px;
+  background-position: left -24rem;
 }
 
 .attachment-draft:hover .video-placeholder,
 .attachment-draft:active .video-placeholder,
 .attachment-container:hover .video-placeholder,
 .attachment-container:active .video-placeholder  {
-  background-position: right -240px;
+  background-position: right -24rem;
 }
 
 .corrupted {

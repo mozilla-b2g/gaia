@@ -5,20 +5,11 @@ function MockInformation(type) {
 }
 
 MockInformation.prototype = {
-  show: function() {
-    this.show.called = true;
-  },
-  refresh: function() {
-    this.refresh.called = true;
-  },
-  reset: function() {
-    this.reset.called = true;
-  },
-  mSetup: function() {
-    this.show.called = false;
-    this.refresh.called = false;
-    this.reset.called = false;
-  }
+  onDeliverySuccess: function() {},
+  onReadSuccess: function() {},
+  show: function() {},
+  refresh: function() {},
+  reset: function() {}
 };
 
 var MockGroupView = new MockInformation();

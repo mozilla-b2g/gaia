@@ -391,6 +391,20 @@ navigator.mozL10n.once(function bluetoothSettings() {
         showDevicePaired(evt.status, 'Authentication Failed');
       };
 
+      defaultAdapter.ondiscoverystatechanged =
+        function bt_discoveryStateChanged(evt) {
+          if (!evt.discovering) {
+            searchAgainBtn.disabled = false;
+            searchingItem.hidden = true;
+
+            clearTimeout(discoverTimeout);
+            discoverTimeout = null;
+          } else {
+            searchAgainBtn.disabled = true;
+            searchingItem.hidden = false;
+          }
+        };
+
       defaultAdapter.onhfpstatuschanged = function bt_hfpStatusChanged(evt) {
         showDeviceConnected(evt.address, evt.status, Profiles.HFP);
       };
@@ -779,13 +793,11 @@ navigator.mozL10n.once(function bluetoothSettings() {
 
       var req = defaultAdapter.startDiscovery();
       req.onsuccess = function bt_discoveryStart() {
-        searchAgainBtn.disabled = true;
         if (!discoverTimeout)
           discoverTimeout = setTimeout(stopDiscovery, discoverTimeoutTime);
       };
       req.onerror = function bt_discoveryFailed() {
-        searchingItem.hidden = true;
-        searchAgainBtn.disabled = false;
+        console.error('Can not discover nearby device');
       };
     }
 
@@ -799,16 +811,12 @@ navigator.mozL10n.once(function bluetoothSettings() {
     function stopDiscovery() {
       if (!bluetooth.enabled || !defaultAdapter || !discoverTimeout)
         return;
+
       var req = defaultAdapter.stopDiscovery();
-      req.onsuccess = function bt_discoveryStopped() {
-        searchAgainBtn.disabled = false;
-        searchingItem.hidden = true;
-      };
       req.onerror = function bt_discoveryStopFailed() {
         console.error('Can not stop discover nearby device');
-        searchAgainBtn.disabled = true;
-        searchingItem.hidden = false;
       };
+
       clearTimeout(discoverTimeout);
       discoverTimeout = null;
     }

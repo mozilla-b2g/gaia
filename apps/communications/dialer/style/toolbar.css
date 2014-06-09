@@ -12,7 +12,7 @@
   background-image: url("images/dialpad.png");
 }
 
-.with-keyboard #views, .with-keyboard #contacts-view,
+.with-keyboard #views,
 .with-keyboard .bb-tablist .bb-tabpanel {
   height: 100% !important;
 }

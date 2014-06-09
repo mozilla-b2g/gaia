@@ -237,25 +237,39 @@ suite('SettingsManagerBase', function() {
     var req2 = lockGetSpy.getCall(1).returnValue;
     req2.fireSuccess({ 'foo2': 'bar2' });
 
-    p.then(function() {
-      assert.equal(settingsManager.fooValue, 'bar');
-      assert.equal(settingsManager.foo2Value, 'bar2');
+    assert.equal(settingsManager.initialized, false);
+
+    var p2 = settingsManager.initSettings();
+    assert.equal(p, p2);
+
+    p.then(function(settings) {
+      assert.equal(settingsManager.initialized, true);
+
+      assert.equal(settings.fooValue, 'bar');
+      assert.equal(settings.foo2Value, 'bar2');
+
+      var s = settingsManager.getSettingsSync();
+      assert.equal(s, settings);
 
       assert.isTrue(addObserverSpy.calledTwice);
       assert.isTrue(addObserverSpy.calledWith('foo'));
       assert.isTrue(addObserverSpy.calledWith('foo2'));
 
       var calls = 0;
-      settingsManager.onsettingchange = function() {
+      settingsManager.onsettingchange = function(s2) {
         calls++;
+
+        var s = settingsManager.getSettingsSync();
+        assert.equal(s2, s);
+
         switch (calls) {
           case 1:
-            assert.equal(settingsManager.fooValue, 'BAR');
+            assert.equal(s2.fooValue, 'BAR');
 
             break;
 
           case 2:
-            assert.equal(settingsManager.foo2Value, 'BAR2');
+            assert.equal(s2.foo2Value, 'BAR2');
 
             settingsManager.stopObserve();
             assert.isTrue(removeObserverSpy.calledTwice);
@@ -315,6 +329,7 @@ suite('SettingsManagerBase', function() {
 
       done();
     }, function(error) {
+      assert.equal(settingsManager.initialized, false);
       assert.equal(addObserverSpy.calledOnce, false);
       assert.equal(removeObserverSpy.calledOnce, false);
 

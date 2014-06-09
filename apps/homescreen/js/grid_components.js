@@ -86,14 +86,20 @@ GridItem.prototype = {
     return this.manifest.icons && this.manifest.icons['60'];
   },
 
-  getDescriptor: function gc_getDescriptor() {
-    return {
+  getDescriptor: function gc_getDescriptor(cb) {
+    var descriptor = {
       url: this.url,
       name: this.getName(),
       icon: this.getIcon(),
       iconable: this.iconable,
       useAsyncPanZoom: this.useAsyncPanZoom
     };
+
+    if (typeof cb === 'function') {
+      cb(descriptor);
+    } else {
+      return descriptor;
+    }
   }
 };
 
@@ -117,5 +123,35 @@ Collection.prototype = {
     window.dispatchEvent(new CustomEvent('collectionlaunch', {
       'detail': features
     }));
+  },
+
+  migrateURL: function sc_migratePath(url) {
+    if (url && url.startsWith(document.location.protocol)) {
+      return url.replace('//homescreen.', '//collection.');
+    } else {
+      return url;
+    }
+  },
+
+  getDescriptor: function sc_getDescriptor(cb) {
+    var descriptor = GridItem.prototype.getDescriptor.call(this);
+    descriptor.categoryId = this.providerId;
+    descriptor.pinned = this.manifest.apps || [];
+    descriptor.icon = this.migrateURL(descriptor.icon);
+
+    asyncStorage.getItem('evme-collectionsettings_' + this.id, function(data) {
+      if (data && data.value) {
+        data = data.value;
+        descriptor.name = data.name;
+        descriptor.background = data.bg;
+        descriptor.categoryId = data.experienceId || descriptor.categoryId;
+        descriptor.query = data.query;
+        descriptor.defaultIcon = this.migrateURL(data.defaultIcon);
+        descriptor.webicons = data.extraIconsData;
+        descriptor.pinned = data.apps;
+      }
+
+      cb(descriptor);
+    }.bind(this));
   }
 };

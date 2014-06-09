@@ -2,6 +2,16 @@
   'use strict';
 
   /* jshint validthis:true */
+  function L10nError(message, id, loc) {
+    this.name = 'L10nError';
+    this.message = message;
+    this.id = id;
+    this.loc = loc;
+  }
+  L10nError.prototype = Object.create(Error.prototype);
+  L10nError.prototype.constructor = L10nError;
+
+
   /* jshint browser:true */
 
   var io = {
@@ -18,7 +28,7 @@
         if (e.target.status === 200 || e.target.status === 0) {
           callback(null, e.target.responseText);
         } else {
-          callback(new Error('Not found: ' + url));
+          callback(new L10nError('Not found: ' + url));
         }
       });
       xhr.addEventListener('error', callback);
@@ -28,7 +38,7 @@
       try {
         xhr.send(null);
       } catch (e) {
-        callback(new Error('Not found: ' + url));
+        callback(new L10nError('Not found: ' + url));
       }
     },
 
@@ -46,7 +56,7 @@
         if (e.target.status === 200 || e.target.status === 0) {
           callback(null, e.target.response);
         } else {
-          callback(new Error('Not found: ' + url));
+          callback(new L10nError('Not found: ' + url));
         }
       });
       xhr.addEventListener('error', callback);
@@ -56,7 +66,7 @@
       try {
         xhr.send(null);
       } catch (e) {
-        callback(new Error('Not found: ' + url));
+        callback(new L10nError('Not found: ' + url));
       }
     }
   };
@@ -559,6 +569,7 @@
 
 
 
+
   var nestedProps = ['style', 'dataset'];
 
   var parsePatterns;
@@ -702,10 +713,11 @@
   function parseMacro(str) {
     var match = str.match(parsePatterns.macro);
     if (!match) {
-      throw new Error('Malformed macro');
+      throw new L10nError('Malformed macro');
     }
     return [match[1], match[2]];
   }
+
 
 
   var MAX_PLACEABLE_LENGTH = 2500;
@@ -795,8 +807,9 @@
       if (typeof value === 'string') {
         // prevent Billion Laughs attacks
         if (value.length >= MAX_PLACEABLE_LENGTH) {
-          throw new Error('Too many characters in placeable (' + value.length +
-                          ', max allowed is ' + MAX_PLACEABLE_LENGTH + ')');
+          throw new L10nError('Too many characters in placeable (' +
+                              value.length + ', max allowed is ' +
+                              MAX_PLACEABLE_LENGTH + ')');
         }
         return value;
       }
@@ -809,8 +822,8 @@
     var value = str.replace(rePlaceables, function(match, id) {
       // prevent Quadratic Blowup attacks
       if (placeablesCount++ >= MAX_PLACEABLES) {
-        throw new Error('Too many placeables (' + placeablesCount +
-                        ', max allowed is ' + MAX_PLACEABLES + ')');
+        throw new L10nError('Too many placeables (' + placeablesCount +
+                            ', max allowed is ' + MAX_PLACEABLES + ')');
       }
       return subPlaceable(ctxdata, env, match, id);
     });
@@ -989,7 +1002,7 @@
       /* jshint -W084 */
 
       if (!this.isReady) {
-        throw new ContextError('Context not ready');
+        throw new L10nError('Context not ready');
       }
 
       var cur = 0;
@@ -1004,14 +1017,14 @@
         var entry = locale.getEntry(id);
         if (entry === undefined) {
           cur++;
-          warning.call(this, new ContextError(id + ' not found in ' + loc, id,
-                                              loc));
+          warning.call(this, new L10nError(id + ' not found in ' + loc, id,
+                                           loc));
           continue;
         }
         return entry;
       }
 
-      error.call(this, new ContextError(id + ' not found', id));
+      error.call(this, new L10nError(id + ' not found', id));
       return null;
     }
 
@@ -1076,7 +1089,7 @@
 
     this.requestLocales = function requestLocales() {
       if (this.isLoading && !this.isReady) {
-        throw new ContextError('Context not ready');
+        throw new L10nError('Context not ready');
       }
 
       this.isLoading = true;
@@ -1132,23 +1145,12 @@
     }
   }
 
-  Context.Error = ContextError;
-
-  function ContextError(message, id, loc) {
-    this.name = 'ContextError';
-    this.message = message;
-    this.id = id;
-    this.loc = loc;
-  }
-  ContextError.prototype = Object.create(Error.prototype);
-  ContextError.prototype.constructor = ContextError;
-
 
   /* jshint -W104 */
 
   var DEBUG = false;
   var isPretranslated = false;
-  var rtlList = ['ar', 'he', 'fa', 'ps', 'ur'];
+  var rtlList = ['ar', 'he', 'fa', 'ps', 'qps-plocm', 'ur'];
 
   // Public API
 
@@ -1185,8 +1187,10 @@
     },
     _getInternalAPI: function() {
       return {
+        Error: L10nError,
         Context: Context,
         Locale: Locale,
+        Entity: Entity,
         getPluralRule: getPluralRule,
         rePlaceables: rePlaceables,
         getTranslatableChildren:  getTranslatableChildren,
@@ -1331,12 +1335,9 @@
 
   function initLocale() {
     this.ctx.requestLocales(navigator.language);
-    // mozSettings won't be required here when https://bugzil.la/780953 lands
-    if (navigator.mozSettings) {
-      navigator.mozSettings.addObserver('language.current', function(event) {
-        navigator.mozL10n.language.code = event.settingValue;
-      });
-    }
+    window.addEventListener('languagechange', function l10n_langchange() {
+      navigator.mozL10n.language.code = navigator.language;
+    });
   }
 
   function onReady() {

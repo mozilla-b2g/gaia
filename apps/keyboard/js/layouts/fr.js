@@ -1,5 +1,6 @@
 Keyboards.fr = {
   label: 'French',
+  shortLabel: 'Fr',
   menuLabel: 'Français',
   imEngine: 'latin',
   types: ['text', 'url', 'email'],

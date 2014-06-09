@@ -2,9 +2,6 @@
           MockModalDialog */
 'use strict';
 
-mocha.globals(['AppWindow', 'AppChrome', 'System',
-  'BaseUI', 'ModalDialog', 'homeGesture']);
-
 requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_popup_window.js');

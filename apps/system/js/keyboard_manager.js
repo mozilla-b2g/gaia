@@ -140,6 +140,7 @@ var KeyboardManager = {
     window.addEventListener('applicationsetupdialogshow', this);
     window.addEventListener('mozmemorypressure', this);
     window.addEventListener('sheetstransitionstart', this);
+    window.addEventListener('lock', this);
 
     // To handle keyboard layout switching
     window.addEventListener('mozChromeEvent', function(evt) {
@@ -428,12 +429,7 @@ var KeyboardManager = {
       document.body.dispatchEvent(new CustomEvent('keyboardchange', detail));
     };
 
-    // If the keyboard is hidden, or when transitioning is not finished
-    if (this.keyboardFrameContainer.classList.contains('hide')) {
-      this.showKeyboard(updateHeight);
-    } else {
-      updateHeight();
-    }
+    this.showKeyboard(updateHeight);
 
     // update latest keyboard info to notification bar
     // for swiching other keyboard layouts.
@@ -473,8 +469,14 @@ var KeyboardManager = {
           this._debug('mozmemorypressure event; keyboard removed');
         }
         break;
+      case 'lock':
+        /* falls through */
       case 'sheetstransitionstart':
-        this.hideKeyboard();
+        if (this.hasActiveKeyboard) {
+          // Instead of hideKeyboard(), we should removeFocus() here.
+          // (and, removing the focus cause Gecko to ask us to hideKeyboard())
+          navigator.mozInputMethod.removeFocus();
+        }
         break;
     }
   },

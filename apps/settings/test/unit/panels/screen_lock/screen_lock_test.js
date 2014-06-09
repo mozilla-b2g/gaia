@@ -1,10 +1,3 @@
-mocha.globals([
-  'MockLock',
-  'MockSettingsListener',
-  'MockNavigatorSettings',
-  'SettingsListener'
-]);
-
 suite('ScreenLock > ', function() {
   'use strict';
 

@@ -77,6 +77,12 @@ suiteGroup('Views.Week', function() {
         children,
         list
       );
+
+      subject._currentTime = {
+        activate: sinon.spy(),
+        deactivate: sinon.spy(),
+        destroy: sinon.spy()
+      };
     });
 
     test('initializer', function() {
@@ -116,6 +122,10 @@ suiteGroup('Views.Week', function() {
         list.contains(Calendar.View.ACTIVE),
         'adds active class to frame'
       );
+      assert.ok(
+        subject._currentTime.activate.calledOnce,
+        'activate current time'
+      );
     });
 
     test('#destroy', function() {
@@ -130,6 +140,10 @@ suiteGroup('Views.Week', function() {
       assert.equal(destroyCount, 3);
       assert.ok(!subject.timespan);
       assert.ok(!document.getElementById(elId), 'removes from dom');
+      assert.ok(
+        subject._currentTime.destroy.calledOnce,
+        'destroy current time'
+      );
     });
 
     test('#deactivate', function() {
@@ -142,6 +156,10 @@ suiteGroup('Views.Week', function() {
       assert.ok(
         !list.contains(Calendar.View.ACTIVE),
         'removes active class'
+      );
+      assert.ok(
+        subject._currentTime.deactivate.calledOnce,
+        'deactivate current time'
       );
     });
   });
@@ -200,19 +218,38 @@ suiteGroup('Views.Week', function() {
     });
   });
 
-  test('#changeDate', function() {
-    var expected = new Date(2012, 0, 1);
-    // initial sanity check
-    subject.changeDate(expected);
-    assert.deepEqual(subject.date, expected);
+  suite('#changeDate', function() {
+    var _createFrame;
 
-    // verify we enforce that all dates are normalized to a start/end of week.
-    subject.changeDate(new Date(2012, 0, 4));
-    assert.deepEqual(subject.date, expected);
+    setup(function() {
+      _createFrame = subject._createFrame;
+      subject._createFrame = sinon.stub().returns({
+        activate: sinon.spy(),
+        deactivate: sinon.spy(),
+        getScrollTop: sinon.spy(),
+        setScrollTop: sinon.spy(),
+        element: document.createElement('div')
+      });
+    });
 
-    // sanity check the week end case
-    subject.changeDate(new Date(2012, 0, 6));
-    assert.deepEqual(subject.date, new Date(2012, 0, 5));
+    teardown(function() {
+      subject._createFrame = _createFrame;
+    });
+
+    test('normalize dates', function() {
+      var expected = new Date(2012, 0, 1);
+      // initial sanity check
+      subject.changeDate(expected);
+      assert.deepEqual(subject.date, expected);
+
+      // verify we enforce that all dates are normalized to a start/end of week
+      subject.changeDate(new Date(2012, 0, 4));
+      assert.deepEqual(subject.date, expected);
+
+      // sanity check the week end case
+      subject.changeDate(new Date(2012, 0, 6));
+      assert.deepEqual(subject.date, new Date(2012, 0, 5));
+    });
   });
 
   test('#_createFrame', function() {
@@ -230,6 +267,12 @@ suiteGroup('Views.Week', function() {
         'child #' + i
       );
     }
+
+    assert.deepEqual(frame._currentTime, {
+      _container: frame.element.querySelector('.scroll-content'),
+      _sticky: frame.element.querySelector('.sticky'),
+      timespan: frame.timespan
+    }, 'should create current time');
   });
 
   test('#_nextTime', function() {
@@ -293,10 +336,12 @@ suiteGroup('Views.Week', function() {
       assert.ok(html, 'has contents');
 
       var i = 0;
+      var ampm;
       for (; i < 24; i++) {
         assert.include(html, i, 'has hour #' + i);
+        ampm = '<span class="ampm">' + (i < 12 ? 'AM' : 'PM' ) + '</span>';
         assert.include(
-          html, Calendar.Calc.formatHour(i),
+          html, (i % 12) + ampm,
           'has display hour #' + i
         );
       }

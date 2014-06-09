@@ -31,7 +31,6 @@ var mocksForStatusBar = new MocksHelper([
   'TouchForwarder'
 ]).init();
 
-mocha.globals(['Clock', 'StatusBar', 'lockScreen', 'System']);
 suite('system/Statusbar', function() {
   var mobileConnectionCount = 2;
   var fakeStatusBarNode, fakeTopPanel, fakeStatusBarBackground,

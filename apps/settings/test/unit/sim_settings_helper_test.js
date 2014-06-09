@@ -78,13 +78,13 @@ suite('SimSettingsHelper > ', function() {
     var fakeSettingKey = 'ril.sms.defaultServiceId';
     var fakeSettingValue = 0;
 
-    suiteSetup(function() {
-      SimSettingsHelper._setToSettingsDB(fakeSettingKey, fakeSettingValue);
-    });
-
-    test('setToSettingsDB is called successfully', function() {
-      assert.equal(window.navigator.mozSettings.mSettings[fakeSettingKey],
-        fakeSettingValue);
+    test('setToSettingsDB is called successfully', function(done) {
+      SimSettingsHelper._setToSettingsDB(fakeSettingKey, fakeSettingValue,
+        function() {
+        assert.equal(window.navigator.mozSettings.mSettings[fakeSettingKey],
+          fakeSettingValue);
+        done();
+      });
     });
   });
 

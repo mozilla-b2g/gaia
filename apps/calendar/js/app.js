@@ -164,6 +164,12 @@ Calendar.App = (function(window) {
 
       // observe sync events
       this.observePendingObject(this.syncController);
+
+      // Tell audio channel manager that we want to adjust the notification
+      // channel if the user press the volumeup/volumedown buttons in Calendar.
+      if (navigator.mozAudioChannelManager) {
+        navigator.mozAudioChannelManager.volumeControlChannel = 'notification';
+      }
     },
 
     /**

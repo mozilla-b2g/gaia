@@ -2,9 +2,6 @@
           TaskManager, Card, TaskCard, AppWindow,
           MockLockScreen, MockScreenLayout, MocksHelper */
 'use strict';
-mocha.globals(['lockScreen', 'SettingsListener',
-               'TaskManager', 'CardsHelper', 'Card', 'TaskCard', 'BaseUI']);
-
 require('/shared/test/unit/mocks/mock_gesture_detector.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 
@@ -28,7 +25,7 @@ var mocksForTaskManager = new MocksHelper([
   'UtilityTray',
   'AppWindowManager',
   'Rocketbar',
-  'SleepMenu',
+  'sleepMenu',
   'OrientationManager',
   'StackManager',
   'AppWindow'

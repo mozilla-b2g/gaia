@@ -71,16 +71,15 @@ var FxAccountsUI = {
   // Method for loading the iframe with the flow required.
   loadFlow: function fxa_ui_loadFlow(flow, params) {
     var url = '../fxa/fxa_module.html#' + flow;
+    if (FtuLauncher.isFtuRunning()) {
+      params = params || [];
+      params.push('isftu=true');
+    }
     if (params && Array.isArray(params)) {
       url += '?' + params.join('&');
     }
     this.iframe.setAttribute('src', url);
     this.panel.appendChild(this.iframe);
-    if (FtuLauncher.isFtuRunning()) {
-      this.panel.classList.add('isFTU');
-    } else {
-      this.panel.classList.remove('isFTU');
-    }
     this.dialog.show();
   },
 

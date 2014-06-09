@@ -1,5 +1,5 @@
 /* global KeyboardManager, softwareButtonManager, StatusBar,
-          System, lockScreen */
+          System */
 'use strict';
 
 (function(exports) {
@@ -53,14 +53,10 @@
      * @memberOf LayoutManager
      */
     get height() {
-      if (lockScreen.locked) {
-        return window.innerHeight;
-      } else {
-        return window.innerHeight -
-          (this.keyboardEnabled ? KeyboardManager.getHeight() : 0) -
-          StatusBar.height -
-          softwareButtonManager.height;
-      }
+      return window.innerHeight -
+        (this.keyboardEnabled ? KeyboardManager.getHeight() : 0) -
+        StatusBar.height -
+        softwareButtonManager.height;
     },
 
     /**
@@ -122,6 +118,10 @@
            * @event LayoutManager#system-resize
            */
           this.publish('system-resize');
+          break;
+        case 'resize':
+          this.publish('system-resize');
+          this.publish('orientationchange');
           break;
         default:
           if (evt.type === 'keyboardhide') {

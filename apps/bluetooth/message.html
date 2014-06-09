@@ -6,6 +6,9 @@
 
     <title>Bluetooth Pair Message</title>
     <meta name="description" content="Manage Bluetooth Pair Message">
+    <!-- Specific style -->
+    <link rel="stylesheet" type="text/css" href="shared/style/confirm.css"/>
+    <link rel="stylesheet" type="text/css" href="style/message.css">
     
     <!-- Localization -->
     <link rel="resource" type="application/l10n" href="locales/locales.ini"/>
@@ -14,7 +17,17 @@
     <!-- Specific code -->
     <script type="application/javascript" defer src="shared/js/bluetooth_helper.js"></script>
     <script type="application/javascript" defer src="js/pair_manager.js"></script>
+    <script type="application/javascript" defer src="js/pair_expired_dialog.js"></script>
   </head>
   <body role="application">
+    <form role="dialog" data-type="confirm" id="pairing-request-timeout" hidden>
+      <section>
+        <h1 data-l10n-id="pairing-request-timeout-title">Bluetooth Pairing Request</h1>
+        <p data-l10n-id="pairing-request-timeout-description">Bluetooth pairing request expired. Try to pair again.</p>
+      </section>
+      <menu>
+        <button data-l10n-id="ok" class="full recommend" id="incoming-pairing-timeout-confirm">OK</button>
+      </menu>
+    </form>
   </body>
 </html>

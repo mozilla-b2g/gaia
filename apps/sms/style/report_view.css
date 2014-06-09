@@ -50,6 +50,11 @@
   display: block;
 }
 
+/* Hide sent timestamp label if we don't have valid value to display */
+.report-view.no-valid-sent-timestamp .sent-timestamp-label {
+  display: none;
+}
+
 .report-view.received .description {
   padding-bottom: 3rem;
 }

@@ -43,8 +43,8 @@ function TimerController(app) {
  */
 TimerController.prototype.bindEvents = function() {
   this.app.on('startcountdown', this.start);
-  this.view.on('timer:immanent', this.beep);
   this.app.on('hidden', this.clear);
+  this.view.on('timer:immanent', this.app.firer('timer:immanent'));
 };
 
 /**
@@ -163,21 +163,6 @@ TimerController.prototype.bindTimerEvents = function() {
  */
 TimerController.prototype.unbindTimerEvents = function() {
   this.app.off('click', this.clear);
-};
-
-/**
- * Plays a beep sound.
- *
- * We don't have specific sound file for beep
- * so we are using recordingEnd sound for this.
- *
- * NOTE: Commented out until we have correct
- * sound effects in place (bug 991808).
- *
- * @private
- */
-TimerController.prototype.beep = function() {
-  // this.sounds.play('recordingEnd');
 };
 
 });

@@ -15,7 +15,9 @@ marionette('Search - App search', function() {
     system.waitForStartup();
   });
 
-  test('Search apps from Rocketbar', function() {
+  // Skip test since it fails to handle the geolocation permission dialog
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=1018925
+  test.skip('Search apps from Rocketbar', function() {
     rocketbar.focus();
     rocketbar.enterText('calendar');
     search.goToResults();
@@ -23,7 +25,9 @@ marionette('Search - App search', function() {
     search.goToApp('app://calendar.gaiamobile.org');
   });
 
-  test('Search for app with entry point', function() {
+  // Skip test since it fails to handle the geolocation permission dialog
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=1018925
+  test.skip('Search for app with entry point', function() {
     rocketbar.focus();
     rocketbar.enterText('Phone');
     search.goToResults();

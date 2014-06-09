@@ -16,8 +16,6 @@ var mocksHelperForSimPicker = new MocksHelper([
   'LazyL10n'
 ]).init();
 
-mocha.globals(['TelephonyHelper']);
-
 suite('SIM picker', function() {
   var subject;
   var realMozIccManager;

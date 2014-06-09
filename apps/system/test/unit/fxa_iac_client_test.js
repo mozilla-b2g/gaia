@@ -2,8 +2,6 @@
 
 requireApp('system/test/unit/mock_apps_mgmt.js');
 requireApp('system/test/unit/mock_app.js');
-mocha.globals(['FxAccountsIACHelper']);
-
 // XXX consider moving this to a separate file if it gets much more complex
 
 // arthurcc's suggested replacement:

@@ -639,6 +639,16 @@
         threadId: 11,
         sender: '109',
         read: true,
+        body: 'Hello from old database!',
+        delivery: 'received',
+        type: 'sms',
+        timestamp: now - 172800000,
+        sentTimestamp: 0
+      },
+      {
+        threadId: 11,
+        sender: '109',
+        read: true,
         body: 'Hello!',
         delivery: 'received',
         type: 'sms',

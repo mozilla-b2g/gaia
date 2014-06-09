@@ -9,6 +9,7 @@
 /* global MozActivity */
 /* global Normalizer */
 /* global utils */
+/* global TAG_OPTIONS */
 
 var contacts = window.contacts || {};
 
@@ -20,9 +21,10 @@ contacts.Form = (function() {
     'date': 0,
     'note': 0
   };
-  var TAG_OPTIONS;
+
   var currentContact = {};
   var dom,
+      contactForm,
       deleteContactButton,
       addNewDateButton,
       thumb,
@@ -64,13 +66,12 @@ contacts.Form = (function() {
 
     get: function textFieldsCache_get() {
       if (!this._textFields) {
-        var form = dom.getElementById('contact-form');
-        var fields = form.querySelectorAll('input.textfield');
+        var fields = contactForm.querySelectorAll('input.textfield');
 
         var removedFields =
-          Array.slice(form.querySelectorAll('.removed input.textfield'));
+          Array.slice(contactForm.querySelectorAll('.removed input.textfield'));
         var invalidFields =
-          Array.slice(form.querySelectorAll('.invalid input.textfield'));
+          Array.slice(contactForm.querySelectorAll('.invalid input.textfield'));
 
         this._textFields = Array.filter(fields, function(field) {
           return (removedFields.indexOf(field) === -1 &&
@@ -94,6 +95,7 @@ contacts.Form = (function() {
     saveButton = dom.querySelector('#save-button');
     addNewDateButton = dom.querySelector('#add-new-date');
     cancelButton = dom.querySelector('#cancel-edit');
+    contactForm = dom.getElementById('contact-form');
     formTitle = dom.getElementById('contact-form-title');
     currentContactId = dom.getElementById('contact-form-id');
     givenName = dom.getElementById('givenName');
@@ -153,7 +155,7 @@ contacts.Form = (function() {
 
   var init = function cf_init(tags, currentDom) {
     dom = currentDom || document;
-    TAG_OPTIONS = tags;
+  
     _ = navigator.mozL10n.get;
     initContainers();
 
@@ -161,8 +163,7 @@ contacts.Form = (function() {
       checkDisableButton();
     });
 
-    var form = dom.getElementById('contact-form');
-    form.addEventListener(touchstart, function click(event) {
+    contactForm.addEventListener(touchstart, function click(event) {
       var tgt = event.target;
       if (tgt.tagName == 'BUTTON' && tgt.getAttribute('type') == 'reset') {
         event.preventDefault();
@@ -232,6 +233,10 @@ contacts.Form = (function() {
     resetForm();
     (renderedContact && renderedContact.id) ?
        showEdit(renderedContact, fromUpdateActivity) : showAdd(renderedContact);
+
+    // reset the scroll from (possible) previous renders
+    contactForm.parentNode.scrollTop = 0;
+
     if (callback) {
       callback();
     }
@@ -938,11 +943,11 @@ contacts.Form = (function() {
       var carrierSelector = 'carrier_' + arrayIndex;
       var carrierField = dom.getElementById(carrierSelector).value || '';
       contact.tel = contact.tel || [];
-      contact.tel[i] = {
+      contact.tel.push({
         value: numberValue,
         type: [typeField],
         carrier: carrierField
-      };
+      });
     }
   };
 
@@ -954,20 +959,17 @@ contacts.Form = (function() {
       var arrayIndex = currentEmail.dataset.index;
       var emailField = dom.getElementById('email_' + arrayIndex);
       var emailValue = emailField.value;
-      if (emailValue) {
-        emailValue = emailValue.trim();
-      }
-      selector = 'email_type_' + arrayIndex;
-      var typeField = dom.getElementById(selector).dataset.value || '';
+      emailValue = emailValue && emailValue.trim();
       if (!emailValue) {
         continue;
       }
-
+      selector = 'email_type_' + arrayIndex;
+      var typeField = dom.getElementById(selector).dataset.value || '';
       contact.email = contact.email || [];
-      contact.email[i] = {
+      contact.email.push({
         value: emailValue,
         type: [typeField]
-      };
+      });
     }
   };
 
@@ -1017,16 +1019,19 @@ contacts.Form = (function() {
       var arrayIndex = currentAddress.dataset.index;
       var addressField = dom.getElementById('streetAddress_' + arrayIndex);
       var addressValue = addressField.value || '';
-
+      addressValue = addressValue.trim();
       selector = 'address_type_' + arrayIndex;
       var typeField = dom.getElementById(selector).dataset.value || '';
-
+      typeField = typeField.trim();
       selector = 'locality_' + arrayIndex;
       var locality = dom.getElementById(selector).value || '';
+      locality = locality.trim();
       selector = 'postalCode_' + arrayIndex;
       var postalCode = dom.getElementById(selector).value || '';
+      postalCode = postalCode.trim();
       selector = 'countryName_' + arrayIndex;
       var countryName = dom.getElementById(selector).value || '';
+      countryName = countryName.trim();
 
       // Sanity check for pameters, check all params but the typeField
       if (addressValue === '' && locality === '' &&
@@ -1035,13 +1040,13 @@ contacts.Form = (function() {
       }
 
       contact.adr = contact.adr || [];
-      contact.adr[i] = {
+      contact.adr.push({
         streetAddress: addressValue,
         postalCode: postalCode,
         locality: locality,
         countryName: countryName,
         type: [typeField]
-      };
+      });
     }
   };
 
@@ -1053,6 +1058,7 @@ contacts.Form = (function() {
       var arrayIndex = currentNote.dataset.index;
       var noteField = dom.getElementById('note_' + arrayIndex);
       var noteValue = noteField.value;
+      noteValue = noteValue && noteValue.trim();
       if (!noteValue) {
         continue;
       }
@@ -1104,6 +1110,7 @@ contacts.Form = (function() {
     var removedFields = dom.querySelectorAll('.removed');
     for (var i = 0; i < removedFields.length; i++) {
       removedFields[i].classList.remove(REMOVED_CLASS);
+      removedFields[i].classList.remove(FB_CLASS);
     }
     thumbAction.classList.remove('with-photo');
     var removeButton = thumbAction.querySelector('button');

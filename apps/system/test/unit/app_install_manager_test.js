@@ -20,8 +20,6 @@ require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 require('/shared/test/unit/mocks/mock_keyboard_helper.js');
 
 requireApp('system/js/app_install_manager.js');
-mocha.globals(['applications']);
-
 var mocksForAppInstallManager = new MocksHelper([
   'StatusBar',
   'SystemBanner',

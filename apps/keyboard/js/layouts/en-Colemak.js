@@ -1,5 +1,6 @@
 Keyboards['en-Colemak'] = {
   label: 'English - Colemak',
+  shortLabel: 'En',
   menuLabel: 'Colemak',
   imEngine: 'latin',
   types: ['text', 'url', 'email'],

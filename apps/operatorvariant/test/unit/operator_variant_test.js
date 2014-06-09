@@ -1,5 +1,5 @@
 /* global require, requireApp, suite, suiteSetup, suiteTeardown, setup,
-   teardown, test, assert, mocha, OperatorVariantManager
+   teardown, test, assert, OperatorVariantManager
  */
 
 'use strict';
@@ -12,8 +12,6 @@ require('/shared/test/unit/mocks/mock_lazy_loader.js');
 
 requireApp('operatorvariant/js/resources.js');
 requireApp('operatorvariant/js/operator_variant.js');
-
-mocha.globals(['LazyLoader']);
 
 suite(' OperatorVariantManager > ', function() {
   const TEST_NETWORK_MCC = '214';

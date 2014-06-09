@@ -8,10 +8,6 @@ requireApp('demo-keyboard/js/key.js');
 
 suite('KeyboardLayoutManager', function() {
 
-  mocha.globals([
-    'KeyboardLayout'
-  ]);
-
   function appSpy() {
     var app = {
       handleLayoutLoaded: function() {},

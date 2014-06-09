@@ -2,7 +2,7 @@
   <template>
     <header>
       <button class="cancel">
-        <span data-l10n-id="cancel" class="icon icon-back">Cancel</span>
+        <span data-l10n-id="cancel" class="icon icon-close">Cancel</span>
       </button>
 
       <menu type="toolbar">
@@ -12,9 +12,8 @@
         </button>
       </menu>
 
-      <h1 data-l10n-id="add-event-header">
-        Create Event
-      </h1>
+      <h1 data-l10n-id="new-event-header" class="save-text">Add Event</h1>
+      <h1 data-l10n-id="edit-event-header" class="done-text">Edit Event</h1>
     </header>
 
     <form>
@@ -28,7 +27,7 @@
         </li>
 
         <li class="allday">
-          <label class="pack-checkbox">
+          <label class="pack-switch">
             <input name="allday" type="checkbox" />
             <span data-l10n-id="event-is-allday">All Day Event?</span>
           </label>

@@ -4,10 +4,7 @@
 require('/shared/test/unit/mocks/mock_navigator_datastore.js');
 require('/shared/js/utilities.js');
 requireApp('search/test/unit/mock_search.js');
-requireApp('search/test/unit/mock_googlelink.js');
 requireApp('search/js/providers/provider.js');
-
-mocha.globals(['Places', 'SettingsListener']);
 
 suite('search/providers/places', function() {
   var fakeElement, stubById, subject;

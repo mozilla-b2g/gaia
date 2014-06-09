@@ -410,7 +410,7 @@ var AppInstallManager = {
     }
 
     var newNotif =
-      '<div class="fake-notification">' +
+      '<div class="fake-notification" role="link">' +
         '<div class="message"></div>' +
         '<progress></progress>' +
       '</div>';

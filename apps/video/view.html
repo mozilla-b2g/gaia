@@ -30,7 +30,6 @@
           </header>
 
           <footer id="videoBar">
-            <button id="play"></button>
             <div id="timeSlider">
               <span id="elapsed-text"></span>
               <div id="slider-wrapper">
@@ -40,6 +39,13 @@
                 <button id="playHead"></button>
               </div>
               <span id="duration-text"></span>
+            </div>
+          </footer>
+          <footer id="videoControlBar">
+            <div id="videoToolBar">
+              <button id="seek-backward" class="player-controls-button"></button>
+              <button id="play" class="player-controls-button"></button>
+              <button id="seek-forward" class="player-controls-button"></button>
             </div>
           </footer>
         </section>
@@ -52,11 +58,13 @@
     <script type="text/javascript" src="shared/js/l10n.js"></script>
     <script type="text/javascript" src="shared/js/device_storage/get_storage_if_available.js"></script>
     <script type="text/javascript" src="shared/js/device_storage/get_unused_filename.js"></script>
+    <script defer src="shared/js/font_size_utils.js"></script>
     <script defer src="shared/js/blobview.js"></script>
     <script defer src="shared/js/mime_mapper.js"></script>
     <script defer src="shared/js/media/get_video_rotation.js"></script>
     <script defer src="shared/js/media/media_utils.js"></script>
     <script defer src="js/video_utils.js"></script>
+    <script defer src="js/forward_rewind_controller.js"></script>
     <script type="text/javascript" src="js/view.js"></script>
   </body>
 </html>

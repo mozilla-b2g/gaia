@@ -8,6 +8,7 @@ var MockUtils = {
   // Utils.js
   camelCase: Utils.camelCase,
   date: Utils.date,
+  extend: Utils.extend,
   getFontSize: function() {
     return 12;
   },

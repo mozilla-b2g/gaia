@@ -17,7 +17,9 @@ function SetupAccountPrefsCard(domNode, mode, args) {
   this.nextButton = this.nodeFromClass('sup-info-next-btn');
   this.nextButton.addEventListener('click', this.onNext.bind(this), false);
 
-  this._bindPrefs('tng-account-check-interval', 'tng-notify-mail');
+  this._bindPrefs('tng-account-check-interval',
+                  'tng-notify-mail',
+                  'tng-sound-onsend');
 }
 
 SetupAccountPrefsCard.prototype = {

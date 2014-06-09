@@ -1,7 +1,7 @@
 'use strict';
 
-var View = require('./view'),
-    DayEvent = require('./day_event');
+var MonthDayEvent = require('./month_day_event'),
+    View = require('./view');
 
 function MonthDay() {
   View.apply(this, arguments);
@@ -19,33 +19,13 @@ MonthDay.prototype = {
 
   get events() {
     return this.findElements('.event').map(function(el) {
-      return new DayEvent(this.client, el);
+      return new MonthDayEvent(this.client, el);
     }, this);
   },
 
   get date() {
     return this
       .findElement('#event-list-date')
-      .text();
-  },
-
-  getTitle: function(event) {
-    return event
-      .findElement('h5')
-      .text();
-  },
-
-  getLocation: function(event) {
-    return event
-      .findElement('.location')
-      .text();
-  },
-
-  getStartHour: function(event) {
-    var section = this.client.helper
-      .closest(event, '.hour');
-    return section
-      .findElement('.display-hour')
       .text();
   },
 
@@ -60,7 +40,7 @@ MonthDay.prototype = {
     }
 
     event.scriptWith(function(element) {
-      var container = document.getElementById('event-list');
+      var container = document.getElementById('months-day-view');
       container.scrollTop = element.offsetTop;
     });
   }

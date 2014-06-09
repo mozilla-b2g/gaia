@@ -7,7 +7,7 @@
 requireApp('/system/test/unit/fxa_test/load_element_helper.js');
 
 // Real code
-requireApp('system/fxa/js/utils.js');
+require('/shared/js/utilities.js');
 requireApp('system/fxa/js/fxam_module.js');
 requireApp('system/fxa/js/fxam_states.js');
 requireApp('system/fxa/js/fxam_manager.js');
@@ -33,13 +33,6 @@ var mocksHelperForCoppaModule = new MocksHelper([
   'LazyLoader'
 ]);
 
-mocha.globals([
-  'LazyLoader',
-  'FxaModuleErrors',
-  'FxModuleServerRequest',
-  'FxaModuleUI'
-]);
-
 suite('Screen: COPPA', function() {
   var realL10n;
   suiteSetup(function(done) {
@@ -49,9 +42,6 @@ suite('Screen: COPPA', function() {
     mocksHelperForCoppaModule.suiteSetup();
     // Load real HTML
     loadBodyHTML('/fxa/fxa_module.html');
-    // wrap the body in an 'fxa-dialog' node for ftu testing
-    document.body.innerHTML =
-      '<div id="fxa-dialog">' + document.body.innerHTML + '</div>';
     // Load element to test
     LoadElementHelper.load('fxa-coppa.html');
     // Import the element and execute the right init

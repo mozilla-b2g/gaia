@@ -2,8 +2,6 @@
 
 'use strict';
 
-mocha.globals(['ShrinkingUI', 'dispatchEvent', 'OrientationManager']);
-
 requireApp('system/js/shrinking_ui.js');
 requireApp('system/test/unit/mock_orientation_manager.js');
 

@@ -6,7 +6,7 @@
 var gDeviceList = null;
 
 // handle Bluetooth settings
-navigator.mozL10n.ready(function deviceList() {
+navigator.mozL10n.once(function deviceList() {
   var _ = navigator.mozL10n.get;
   var settings = window.navigator.mozSettings;
   var bluetooth = window.navigator.mozBluetooth;

@@ -11,15 +11,17 @@ suite('controllers/viewfinder', function() {
       'controllers/viewfinder',
       'views/viewfinder',
       'views/focus',
+      'views/faces',
       'lib/activity',
       'lib/settings',
       'lib/setting'
     ], function(
       App, Camera, ViewfinderController, ViewfinderView,
-      FocusRingView, Activity, Settings, Setting) {
+      FocusRingView, FacesView, Activity, Settings, Setting) {
       self.ViewfinderController = ViewfinderController.ViewfinderController;
       self.ViewfinderView = ViewfinderView;
       self.FocusRingView = FocusRingView;
+      self.FacesView = FacesView;
       self.Settings = Settings;
       self.Setting = Setting;
       self.Activity = Activity;
@@ -38,6 +40,7 @@ suite('controllers/viewfinder', function() {
     this.app.views = {
       viewfinder: sinon.createStubInstance(this.ViewfinderView),
       focusRing: sinon.createStubInstance(this.FocusRingView),
+      faces: sinon.createStubInstance(this.FacesView)
     };
 
     // Fake elements
@@ -60,6 +63,7 @@ suite('controllers/viewfinder', function() {
     // Shortcuts
     this.viewfinder = this.controller.views.viewfinder;
     this.focusRing = this.controller.views.focus;
+    this.faces = this.controller.views.faces;
     this.settings = this.app.settings;
     this.camera = this.app.camera;
   });
@@ -127,6 +131,20 @@ suite('controllers/viewfinder', function() {
     });
   });
 
+  suite('ViewfinderController#onFacesDetected', function() {
+    setup(function() {
+      this.viewfinder.getSize.returns({ width: 800, height: 600});
+      sinon.spy(this.faces, 'show');
+      sinon.spy(this.faces, 'render');
+    });
+
+    test('Should call render faces and show the faces view', function() {
+      this.controller.onFacesDetected([]);
+      assert.isTrue(this.controller.views.faces.show.called);
+      assert.isTrue(this.faces.render.called);
+    });
+  });
+
   suite('ViewfinderController#startStream()', function() {
     test('Should load preview stream into viewfinder video element', function() {
       var video = this.viewfinder.els.video;
@@ -177,7 +195,7 @@ suite('controllers/viewfinder', function() {
     });
   });
 
-  suite('ViewfinderController#configureZoom()', function() {
+  suite('ViewfinderController#onZoomConfigured()', function() {
     setup(function() {
       this.camera.isZoomSupported.returns(true);
       this.settings.zoom.enabled.returns(true);
@@ -187,21 +205,21 @@ suite('controllers/viewfinder', function() {
     });
 
     test('Should call enableZoom on the viewfinder', function() {
-      this.controller.configureZoom();
+      this.controller.onZoomConfigured();
       assert.isTrue(this.viewfinder.enableZoom.calledWith(0, 3));
     });
 
     test('Should disable zoom if camera doesn\'t support zoom', function() {
       this.camera.isZoomSupported.returns(false);
 
-      this.controller.configureZoom();
+      this.controller.onZoomConfigured();
       assert.isTrue(this.viewfinder.disableZoom.called);
     });
 
     test('Should disable zoom if zoom disabled in settings', function() {
       this.settings.zoom.enabled.returns(false);
 
-      this.controller.configureZoom();
+      this.controller.onZoomConfigured();
       assert.isTrue(this.viewfinder.disableZoom.called);
     });
   });

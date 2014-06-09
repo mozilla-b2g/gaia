@@ -17,6 +17,8 @@ gaia-buttons {
   box-sizing: border-box;
   padding: 0 1.5rem 0 0;
   border-top: 0.1rem solid #e7e7e7;
+  background-color: #fff;
+  pointer-events: auto;
 }
 
 button::-moz-focus-inner {
@@ -24,7 +26,7 @@ button::-moz-focus-inner {
   outline: none;
 }
 
-a, 
+a,
 button {
   position: relative;
   font-family: sans-serif;
@@ -72,12 +74,17 @@ button:active {
   color: #fff;
 }
 
+a::-moz-selection,
+button::-moz-selection {
+  background-color: transparent;
+}
+
 /* Disabled */
 a[aria-disabled="true"],
 button[disabled] {
   background-color: rgba(0,0,0,0.05);
   color: #c7c7c7;
-  pointer-events: none;
+  pointer-events: auto;
 }
 
 a[aria-disabled="true"].recommend,
@@ -97,6 +104,11 @@ button[disabled]::-moz-selection {
   -moz-user-select: none;
 }
 
+/* Hidden */
+[hidden] {
+  display: none;
+}
+
 /* Icons */
 a.icon,
 button.icon {
@@ -113,7 +125,6 @@ button.icon:before {
   right: 0.5rem;
   margin-top: -1.5rem;
   background: transparent no-repeat center center / 100% auto;
-  pointer-events: none;
 }
 
 a.icon-next:before,
@@ -161,25 +172,55 @@ gaia-buttons[skin="dark"] {
 }
 
 /* -----------------------------------------------------------------
+  Transitions
+----------------------------------------------------------------- */
+
+[transition] {
+  display: flex;
+}
+
+[transition][hidden] {
+  pointer-events: none;
+}
+
+[transition="slide"] {
+  transform: translateY(0);
+  transition: transform 0.4s ease;
+}
+
+[transition="slide"][hidden] {
+  transform: translateY(100%);
+}
+
+[transition="fade"] {
+  opacity: 1;
+  transition: opacity 0.4s ease;
+}
+
+[transition="fade"][hidden] {
+  opacity: 0;
+}
+
+/* -----------------------------------------------------------------
   RESPONSIVE: tablet
 ----------------------------------------------------------------- */
 
 @media (min-width: 768px) {
-  
+
   gaia-buttons {
     height: 10rem;
     padding-right: 3rem;
     border-top-width: 0.2rem;
   }
-  
-  a, 
+
+  a,
   button {
     margin-left: 3rem;
     font-size: 2rem;
     height: 5rem;
     line-height: 5rem;
     border-radius: 2.5rem;
-    max-width: 40rem
+    max-width: 40rem;
   }
-  
+
 }

@@ -55,6 +55,7 @@ contacts.Merger = (function() {
     var categoriesHash;
     var telsHash;
     var mergedContact = {};
+    var mergedPhoto;
 
     mergedContact.givenName = [];
     copyStringArray(masterContact.givenName, mergedContact.givenName);
@@ -63,6 +64,8 @@ contacts.Merger = (function() {
     copyStringArray(masterContact.familyName, mergedContact.familyName);
 
     mergedContact.photo = masterContact.photo || [];
+    mergedPhoto = mergedContact.photo;
+
     mergedContact.bday = masterContact.bday;
     mergedContact.anniversary = masterContact.anniversary;
 
@@ -97,8 +100,6 @@ contacts.Merger = (function() {
 
     mergedContact.url = masterContact.url || [];
     mergedContact.note = masterContact.note || [];
-
-    var mergedPhoto = null;
 
     matchingContacts.forEach(function(aResult) {
       var theMatchingContact = aResult.matchingContact;
@@ -204,9 +205,10 @@ contacts.Merger = (function() {
         });
       }
 
-      if (!mergedPhoto && isDefined(theMatchingContact.photo)) {
+      if (!Array.isArray(mergedPhoto) || mergedPhoto.length === 0 &&
+          isDefined(theMatchingContact.photo)) {
         var photo = ContactPhotoHelper.getFullResolution(theMatchingContact);
-        mergedPhoto = photo;
+        mergedPhoto = [photo];
       }
 
       populateField(theMatchingContact.adr, mergedContact.adr,
@@ -307,7 +309,7 @@ contacts.Merger = (function() {
     }
   }
 
-  function fillMasterContact(masterContact, mergedContact, mergedPhoto, done) {
+  function fillMasterContact(masterContact, mergedContact, mergedPhotos, done) {
     var fields = ['familyName', 'givenName', 'name', 'org', 'email', 'tel',
                   'bday', 'anniversary', 'adr', 'category',
                   'url', 'note', 'photo'];
@@ -316,10 +318,13 @@ contacts.Merger = (function() {
       masterContact[aField] = mergedContact[aField];
     });
 
-    if (!mergedPhoto) {
+    if (!Array.isArray(mergedPhotos) || !mergedPhotos[0] ||
+        mergedPhotos.length >= 2) {
       done(masterContact);
       return;
     }
+
+    var mergedPhoto = mergedPhotos[0];
 
     utils.thumbnailImage(mergedPhoto, function gotTumbnail(thumbnail) {
       if (mergedPhoto !== thumbnail) {

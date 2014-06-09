@@ -4,7 +4,7 @@
 requireApp('/system/test/unit/fxa_test/load_element_helper.js');
 
 // Real code
-requireApp('system/fxa/js/utils.js');
+require('/shared/js/utilities.js');
 requireApp('system/fxa/js/fxam_module.js');
 requireApp('system/fxa/js/fxam_states.js');
 requireApp('system/fxa/js/fxam_manager.js');
@@ -39,13 +39,19 @@ var mocksHelperForEmailModule = new MocksHelper([
   'FxaModuleErrors'
 ]);
 
-mocha.globals(['FxModuleServerRequest']);
+mocha.globals(['FxModuleServerRequest', 'FxaModuleErrors']);
 
 suite('Screen: Enter email', function() {
   var realL10n;
   suiteSetup(function(done) {
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
+    // we have to special-case the l10n stub for the fxa-notice element
+    var l10nStub = sinon.stub(navigator.mozL10n, 'get');
+    var noticeStr = 'By proceeding, I agree to the {{tos}} and {{pn}} of ' +
+                    'Firefox cloud services';
+    l10nStub.withArgs('fxa-notice')
+      .returns(noticeStr);
 
     mocksHelperForEmailModule.suiteSetup();
     // Load real HTML

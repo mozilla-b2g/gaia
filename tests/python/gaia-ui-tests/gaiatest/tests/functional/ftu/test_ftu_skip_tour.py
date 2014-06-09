@@ -9,6 +9,7 @@ from marionette.errors import StaleElementException
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.ftu.app import Ftu
+from gaiatest.apps.homescreen.app import Homescreen
 
 
 class TestFtu(GaiaTestCase):
@@ -20,8 +21,7 @@ class TestFtu(GaiaTestCase):
         self.ftu.launch()
 
         # If mozWifiManager is not initialised an exception may be thrown
-        Wait(self.marionette, ignored_exceptions=JavascriptException).until(
-            lambda m: self.data_layer.is_wifi_enabled)
+        Wait(self.marionette).until(lambda m: self.data_layer.is_wifi_enabled)
 
     def test_ftu_skip_tour(self):
         """https://moztrap.mozilla.org/manage/case/3876/
@@ -100,4 +100,4 @@ class TestFtu(GaiaTestCase):
         self.ftu.tap_skip_tour()
 
         # Switch back to top level now that FTU app is gone
-        self.wait_for_condition(lambda m: self.apps.displayed_app.name == 'Homescreen')
+        self.wait_for_condition(lambda m: self.apps.displayed_app.name == Homescreen.name)

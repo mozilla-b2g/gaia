@@ -30,7 +30,36 @@ ModifyAccount.prototype = {
 
   save: function() {
     this
-      .findElement('button.save')
+      .findElement('.save')
       .click();
+  },
+
+  delete: function() {
+    this
+      .findElement('.delete-record')
+      .click();
+
+    this.client.waitFor(function() {
+      var confirm = this.findElement('.delete-confirm');
+      if (!confirm.displayed()) {
+        return false;
+      }
+
+      confirm.click();
+      return true;
+    }.bind(this));
+  },
+
+  /**
+   * Workaround to wait for the modify account view to disappear.
+   * Remove once https://bugzil.la/995563 is fixed.
+   */
+  waitForHide: function() {
+    return this.client.waitFor(function() {
+      var zIndex = this
+        .getElement()
+        .cssProperty('z-index');
+      return zIndex === '-1';
+    }.bind(this));
   }
 };

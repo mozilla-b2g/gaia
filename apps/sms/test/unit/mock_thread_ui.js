@@ -76,7 +76,6 @@ var MockThreadUI = {
   handleEvent: function() {},
   cleanFields: function() {},
   onSendClick: function() {},
-  onBeforeEnter: function() {},
   onMessageSending: function() {},
   onMessageSent: function() {},
   onMessageFailed: function() {},

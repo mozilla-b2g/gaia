@@ -14,10 +14,14 @@
 /* global Normalizer */
 /* global TelephonyHelper */
 /* global utils */
+/* export TAG_OPTIONS */
 /* exported SCALE_RATIO */
+/* exported _ */
 
 //Avoiding lint checking the DOM file renaming it to .html
 requireApp('communications/contacts/test/unit/mock_details_dom.js.html');
+requireApp(
+  'communications/contacts/test/unit/webrtc-client/mock_webrtc_client.js');
 
 require('/shared/js/text_normalizer.js');
 require('/shared/js/contacts/import/utilities/misc.js');
@@ -30,6 +34,7 @@ require('/shared/test/unit/mocks/mock_multi_sim_action_button.js');
 require('/dialer/test/unit/mock_mmi_manager.js');
 require('/dialer/test/unit/mock_telephony_helper.js');
 
+
 requireApp('communications/contacts/js/views/details.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
@@ -40,7 +45,8 @@ requireApp('communications/contacts/test/unit/mock_activities.js');
 
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 
-var subject,
+var _ = function(key) { return key; },
+    subject,
     container,
     realL10n,
     realOnLine,
@@ -70,16 +76,17 @@ var subject,
     realContactsList,
     mozL10nGetSpy;
 
+requireApp('communications/contacts/js/tag_optionsstem.js');
+
 var SCALE_RATIO = 1;
 
 if (!window.ActivityHandler) {
   window.ActivityHandler = null;
 }
 
-mocha.globals(['fb', 'mozL10n']);
-
 var mocksHelperForDetailView = new MocksHelper([
   'ContactPhotoHelper',
+  'WebrtcClient',
   'LazyLoader',
   'MmiManager',
   'MultiSimActionButton',
@@ -188,7 +195,6 @@ suite('Render contact', function() {
   setup(function() {
     mockContact = new MockContactAllFields(true);
     subject.setContact(mockContact);
-    TAG_OPTIONS = Contacts.getTags();
     window.set;
   });
 
@@ -834,8 +840,9 @@ suite('Render contact', function() {
       this.sinon.stub(MmiManager, 'isMMI').returns(false);
       subject.render(null, TAG_OPTIONS);
 
-      // We have two buttons, 2 calls per button created
-      assert.equal(LazyLoader.load.callCount, 4);
+      // We have two buttons, 2 calls per button created plus webrtc
+      // client call
+      assert.equal(LazyLoader.load.callCount, 5);
       var spyCall = LazyLoader.load.getCall(1);
       assert.deepEqual(
         ['/shared/js/multi_sim_action_button.js'], spyCall.args[0]);

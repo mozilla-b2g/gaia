@@ -1,5 +1,6 @@
 Keyboards.nl = {
   label: 'Dutch',
+  shortLabel: 'Nl',
   menuLabel: 'Nederlands',
   imEngine: 'latin',
   autoCorrectLanguage: 'nl',

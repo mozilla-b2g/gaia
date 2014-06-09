@@ -10,8 +10,6 @@ require('/shared/test/unit/mocks/mock_notification.js');
 require('/shared/test/unit/mocks/mock_dump.js');
 requireApp('system/js/icc_worker.js');
 
-mocha.globals(['icc']);
-
 var mocksForIcc = new MocksHelper([
   'L10n',
   'Dump',

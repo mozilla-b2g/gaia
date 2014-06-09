@@ -15,9 +15,21 @@ var MockL10n = {
   },
 
   localize: function localize(element, key, params) {
-    if (params) {
-      key += JSON.stringify(params);
+    if (key) {
+      element.setAttribute('data-l10n-id', key);
+    } else {
+      element.removeAttribute('data-l10n-id');
     }
+
+    if (params) {
+      if (key) {
+        key += JSON.stringify(params);
+      }
+      element.setAttribute('data-l10n-args', params);
+    } else {
+      element.removeAttribute('data-l10n-args');
+    }
+
     element.textContent = key;
   },
 
@@ -35,7 +47,13 @@ var MockL10n = {
     callback();
   },
 
+  once: function() {
+    // No-op because unit tests call init() methods manually, and we actually
+    // don't want to call them via mozL10n.once(init).
+    // See bug https://bugzil.la/1022558
+  },
+
   translate: function() {
-    
+
   }
 };

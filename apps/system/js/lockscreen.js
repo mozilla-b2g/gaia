@@ -189,13 +189,20 @@
           break;
         }
 
-        if (!evt.target.dataset.key) {
+        var key = evt.target.dataset.key;
+        if (!key &&
+            ('div' === evt.target.tagName.toLowerCase() &&
+             'a' === evt.target.parentNode.tagName.toLowerCase())
+           ) {
+          key = evt.target.parentNode.dataset.key;
+        }
+        if (!key) {
           break;
         }
 
         // Cancel the default action of <a>
         evt.preventDefault();
-        this.handlePassCodeInput(evt.target.dataset.key);
+        this.handlePassCodeInput(key);
         break;
 
       case 'touchstart':
@@ -295,6 +302,35 @@
       case 'lockscreen-mode-off':
         this.modeSwitch(evt.detail, false);
         break;
+      /**
+       * we need to know whether the media player widget is shown or not,
+       * in order to decide notification container's height
+       * we listen to the same events (iac-mediacomms & appterminated) as
+       * in media player widget's codes (/apps/system/js/media_playback.js)
+       */
+      case 'iac-mediacomms':
+        if (evt.detail.type === 'status') {
+          switch (evt.detail.data.playStatus) {
+            case 'PLAYING':
+              this.notificationsContainer.classList.add('collapsed');
+              break;
+            case 'PAUSED':
+              this.notificationsContainer.classList.add('collapsed');
+              break;
+            case 'STOPPED':
+              this.notificationsContainer.classList.remove('collapsed');
+              break;
+            case 'mozinterruptbegin':
+              this.notificationsContainer.classList.remove('collapsed');
+              break;
+          }
+        }
+        break;
+      case 'appterminated':
+        if (evt.detail.origin === this.mediaPlaybackWidget.origin) {
+          this.notificationsContainer.classList.remove('collapsed');
+        }
+        break;
     }
   };  // -- LockScreen#handleEvent --
 
@@ -313,8 +349,15 @@
   LockScreen.prototype.init =
   function ls_init() {
     this.ready = true;
-    this._unlocker = new window.LockScreenSlide();
+    /**
+     * "new style" slider: as described in https://bugzil.la/950884
+     * setting this parameter to true causes the LockScreenSlide to render
+     * the slider specified in that bugzilla issue
+     */
+    this._unlocker = new window.LockScreenSlide({useNewStyle: true});
     this.getAllElements();
+    this.notificationsContainer =
+      document.getElementById('notifications-lockscreen-container');
 
     this.lockIfEnabled(true);
     this.writeSetting(this.enabled);
@@ -365,19 +408,31 @@
     this.mediaPlaybackWidget =
       new window.MediaPlaybackWidget(this.mediaContainer);
 
+    // listen to media playback events to adjust notification container height
+    window.addEventListener('iac-mediacomms', this);
+    window.addEventListener('appterminated', this);
+
     window.SettingsListener.observe('lockscreen.enabled', true,
       (function(value) {
         this.setEnabled(value);
     }).bind(this));
 
-    var wallpaperURL = new window.SettingsURL();
-
-    window.SettingsListener.observe('wallpaper.image',
-                             'resources/images/backgrounds/default.png',
-                             (function(value) {
-                               this.updateBackground(wallpaperURL.set(value));
-                               this.overlay.classList.remove('uninit');
-                             }).bind(this));
+    // it is possible that lockscreen is initialized after wallpapermanager
+    // (e.g. user turns on lockscreen in settings after system is booted);
+    // if this is the case, then the wallpaperchange event might not be captured
+    //   and the lockscreen would initialize into empty wallpaper
+    // so we need to see if there is already a wallpaper blob available
+    if (window.wallpaperManager) {
+      var wallpaperURL = window.wallpaperManager.getBlobURL();
+      if (wallpaperURL) {
+        this.updateBackground(window.wallpaperManager.getBlobURL());
+        this.overlay.classList.remove('uninit');
+      }
+    }
+    window.addEventListener('wallpaperchange', (function(evt) {
+      this.updateBackground(evt.detail.url);
+      this.overlay.classList.remove('uninit');
+    }).bind(this));
 
     window.SettingsListener.observe(
       'lockscreen.passcode-lock.code', '0000', (function(value) {
@@ -403,6 +458,15 @@
       '', (function(value) {
       this.setLockMessage(value);
     }).bind(this));
+
+    window.SettingsListener.observe('wallpaper.color',
+      'hsla(23, 99%, 55%, 0.7)', (function(value) {
+      this.maskedBackground.dataset.wallpaperColor = value;
+      if (!this.maskedBackground.classList.contains('blank')) {
+        this.maskedBackground.style.backgroundColor = value;
+      }
+    }).bind(this));
+
     navigator.mozL10n.ready(this.l10nInit.bind(this));
   };
 
@@ -919,7 +983,8 @@
         'area-handle', 'area-slide', 'media-container', 'passcode-code',
         'alt-camera', 'alt-camera-button', 'slide-handle',
         'passcode-pad', 'camera', 'accessibility-camera',
-        'accessibility-unlock', 'panel-emergency-call', 'canvas', 'message'];
+        'accessibility-unlock', 'panel-emergency-call', 'canvas', 'message',
+        'masked-background'];
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {

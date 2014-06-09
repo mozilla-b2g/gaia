@@ -3,7 +3,7 @@
 
 /* Copyright © 2013, Deutsche Telekom, Inc. */
 
-/* globals dump, MozNDEFRecord */
+/* globals dump, MozNDEFRecord, TextEncoder, TextDecoder */
 /* exported NDEF, NfcBuffer, NfcUtils */
 'use strict';
 
@@ -39,6 +39,13 @@ const NDEF = {
   RTD_HANDOVER_REQUEST: 0,
   RTD_HANDOVER_SELECT: 0,
 
+  CPS_INACTIVE: 0,
+  CPS_ACTIVE: 1,
+  CPS_ACTIVATING: 2,
+  CPS_UNKNOWN: 3,
+
+  MIME_BLUETOOTH_OOB: 0,
+
   SMARTPOSTER_ACTION: 0,
 
   // Action Record Values:
@@ -58,6 +65,9 @@ const NDEF = {
     this.RTD_HANDOVER_CARRIER = NfcUtils.fromUTF8('Hc');
     this.RTD_HANDOVER_REQUEST = NfcUtils.fromUTF8('Hr');
     this.RTD_HANDOVER_SELECT = NfcUtils.fromUTF8('Hs');
+
+    this.MIME_BLUETOOTH_OOB =
+      NfcUtils.fromUTF8('application/vnd.bluetooth.ep.oob');
 
     this.SMARTPOSTER_ACTION = NfcUtils.fromUTF8('act');
 
@@ -100,7 +110,7 @@ const NDEF = {
   },
 
   RTD_TEXT_IANA_LENGTH: 0x3F,
-  RTD_TEXT_ENCODING: 0x40,
+  RTD_TEXT_ENCODING: 0x80,
   RTD_TEXT_UTF8: 0,
   RTD_TEXT_UTF16: 1
 };
@@ -122,23 +132,26 @@ function NfcBuffer(uint8array) {
 
 NfcBuffer.prototype.getOctet = function getOctet() {
   if (this.offset == this.uint8array.length) {
-    throw 'NfcBuffer too small';
+    throw Error('NfcBuffer too small');
   }
   return this.uint8array[this.offset++];
 };
 
 NfcBuffer.prototype.getOctetArray = function getOctetArray(len) {
-  if (this.offset + len > this.uint8array.length) {
-    throw 'NfcBuffer too small';
+  if (typeof len !== 'number' || len < 0 ||
+    this.offset + len > this.uint8array.length) {
+
+    throw Error('NfcBuffer too small');
   }
-  var a = this.uint8array.subarray(this.offset, this.offset + len);
-  this.offset += len;
-  return a;
+
+  return this.uint8array.subarray(this.offset, this.offset += len);
 };
 
 NfcBuffer.prototype.skip = function skip(len) {
-  if (this.offset + len > this.uint8array.length) {
-    throw 'NfcBuffer too small';
+  if (typeof len !== 'number' || len < 0 ||
+    this.offset + len > this.uint8array.length) {
+
+    throw Error('NfcBuffer too small');
   }
   this.offset += len;
 };
@@ -185,11 +198,8 @@ NfcUtils = {
       return null;
     }
 
-    var buf = new Uint8Array(str.length);
-    for (var i = 0; i < str.length; i++) {
-      buf[i] = str.charCodeAt(i);
-    }
-    return buf;
+    var enc = new TextEncoder('utf-8');
+    return enc.encode(str);
   },
 
   /**
@@ -213,7 +223,7 @@ NfcUtils = {
 
   /**
    * Returns a string representation of an Uint8Array.
-   * 
+   *
    * @param {Uint8Array} a Uint8Array instance.
    * @return {String}
    */
@@ -222,11 +232,54 @@ NfcUtils = {
       return null;
     }
 
-    var str = '';
-    for (var i = 0; i < a.length; i++) {
-      str += String.fromCharCode(a[i]);
+    // BOM removal
+    if (this.equalArrays(a.subarray(0, 3), [0xEF, 0xBB, 0xBF])) {
+      a = a.subarray(3);
     }
-    return str;
+    var dec = new TextDecoder('utf-8');
+    return dec.decode(a);
+  },
+
+  /**
+   * Decodes UTF-16 bytes array into a String
+   *
+   * @param {Uint8Array} array containing UTF-16 encoded bytes
+   * @return {string}
+   */
+  UTF16BytesToStr: function UTF16BytesToStr(array) {
+      if (!array) {
+        return null;
+      }
+
+      // if BOM not present Big-endian should be used
+      // NFCForum-TS-RTD_Text_1.0
+      var le = false;
+
+      var possibleBom = array.subarray(0, 2);
+      if (this.equalArrays(possibleBom, [0xFF, 0xFE])) {
+        array = array.subarray(2);
+        le = true;
+      } else if (this.equalArrays(possibleBom, [0xFE, 0xFF])) {
+        array = array.subarray(2);
+      }
+
+      var encoding = (le) ? 'utf-16le' : 'utf-16be';
+      var dec = new TextDecoder(encoding);
+      return dec.decode(array);
+  },
+
+  /**
+   * Ecodes string into Uint8Array conating UTF-16 BE bytes without BOM
+   * @param {string}
+   * @return {Uint8Array}
+   */
+  strToUTF16Bytes: function strToUTF16Bytes(str) {
+    if (!str) {
+      return null;
+    }
+
+    var enc = new TextEncoder('utf-16be');
+    return enc.encode(str);
   },
 
   /*****************************************************************************
@@ -319,13 +372,13 @@ NfcUtils = {
     do {
       firstOctet = buffer.getOctet();
       if (isFirstRecord && !(firstOctet & NDEF.MB)) {
-        throw 'MB bit not set in first NDEF record';
+        throw Error('MB bit not set in first NDEF record');
       }
       if (!isFirstRecord && (firstOctet & NDEF.MB)) {
-        throw 'MB can only be set for the first record';
+        throw Error('MB can only be set for the first record');
       }
       if (firstOctet & NDEF.CF) {
-        throw 'Cannot deal with chunked records';
+        throw Error('Cannot deal with chunked records');
       }
       records.push(this.parseNDEFRecord(buffer, firstOctet));
       isFirstRecord = false;
@@ -367,7 +420,7 @@ NfcUtils = {
         return record;
       }
     }
-    throw 'Could not find record with id';
+    throw Error('Could not find record with id');
   }
 };
 

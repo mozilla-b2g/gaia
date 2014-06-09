@@ -6,7 +6,16 @@ var Calendar = require('./lib/calendar'),
 marionette('day view', function() {
   var app;
   var day;
-  var client = marionette.client();
+  var client = marionette.client({
+    prefs: {
+      // we need to disable the keyboard to avoid intermittent failures on
+      // Travis (transitions might take longer to run and block UI)
+      'dom.mozInputMethod.enabled': false,
+      // Do not require the B2G-desktop app window to have focus (as per the
+      // system window manager) in order for it to do focus-related things.
+      'focusmanager.testmode': true,
+    }
+  });
 
   setup(function() {
     app = new Calendar(client);
@@ -170,6 +179,53 @@ marionette('day view', function() {
       );
     });
 
+  });
+
+  test('current-time', function() {
+    var currentTime = day.currentTime;
+
+    assert.include(
+      currentTime.getAttribute('className'),
+      'active',
+      'current-time should be active'
+    );
+
+    assert.ok(
+      intersect(currentTime, day.currentHour),
+      'current time should be inside current hour range'
+    );
+
+    var currentDisplayHour = day.currentDisplayHour;
+
+    if (intersect(currentTime, currentDisplayHour)) {
+      assert.ok(
+        !currentDisplayHour.displayed(),
+        'hour should be hidden if overlapping'
+      );
+    } else {
+      assert.ok(
+        currentDisplayHour.displayed(),
+        'hour should be displayed if not overlapping'
+      );
+    }
+
+    function intersect(el1, el2) {
+      var b1 = getBounds(el1);
+      var b2 = getBounds(el2);
+
+      return (
+        b1.left <= b2.right &&
+        b2.left <= b1.right &&
+        b1.top <= b2.bottom &&
+        b2.top <= b1.bottom
+      );
+    }
+
+    function getBounds(element) {
+      return element.scriptWith(function(el) {
+        return el.getBoundingClientRect();
+      });
+    }
   });
 
 });

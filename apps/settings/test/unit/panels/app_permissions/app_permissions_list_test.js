@@ -1,13 +1,5 @@
 'use strict';
 /* global MockLock, MockMozApps, MockPermissionSettings */
-mocha.globals([
-  'MockPermissionSettings',
-  'MockMozApps',
-  'MockManifestHelper',
-  'MockSettingsListener',
-  'MockNavigatorSettings',
-  'MockLock']);
-
 suite('app permission list > ', function() {
   var PermissionList;
 

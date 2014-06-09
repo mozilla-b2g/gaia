@@ -17,8 +17,6 @@ function switchReadOnlyProperty(originObject, propName, targetObj) {
   });
 }
 
-requireApp('bluetooth/js/transfer.js');
-
 var mocksForTransferHelper = new MocksHelper([
   'NavigatorSettings',
   'gDeviceList'
@@ -37,7 +35,7 @@ suite('Bluetooth app > transfer ', function() {
 
   mocksForTransferHelper.attachTestHelpers();
 
-  suiteSetup(function() {
+  suiteSetup(function(done) {
     realL10n = window.navigator.mozL10n;
     window.navigator.mozL10n = MockL10n;
 
@@ -51,6 +49,9 @@ suite('Bluetooth app > transfer ', function() {
     switchReadOnlyProperty(navigator, 'mozBluetooth', MockMozBluetooth);
 
     MockNavigatormozSetMessageHandler.mSetup();
+
+    loadBodyHTML('./_transfer.html');
+    requireApp('bluetooth/js/transfer.js', done);
   });
 
   suiteTeardown(function() {
@@ -59,13 +60,10 @@ suite('Bluetooth app > transfer ', function() {
     navigator.mozSettings = realMozSettings;
     switchReadOnlyProperty(navigator, 'mozBluetooth', realMozBluetooth);
     window.navigator.mozL10n = realL10n;
+    document.body.innerHTML = '';
   });
 
   setup(function() {
-    loadBodyHTML('./_transfer.html');
-
-    window.dispatchEvent(new CustomEvent('localized', {}));
-
     dialogConfirmBluetooth = document.getElementById('enable-bluetooth-view');
     bluetoothCancelButton = document.getElementById(
       'enable-bluetooth-button-cancel');
@@ -73,10 +71,6 @@ suite('Bluetooth app > transfer ', function() {
       'enable-bluetooth-button-turn-on');
     dialogAlertView = document.getElementById('alert-view');
     alertOkButton = document.getElementById('alert-button-ok');
-  });
-
-  teardown(function() {
-    document.body.innerHTML = '';
   });
 
   suite('handle "share" activity > ', function() {

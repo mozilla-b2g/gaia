@@ -1,5 +1,6 @@
 Keyboards.ru = {
   label: 'Russian',
+  shortLabel: 'Ru',
   menuLabel: 'Pусский',
   imEngine: 'latin',
   types: ['text', 'url', 'email'],

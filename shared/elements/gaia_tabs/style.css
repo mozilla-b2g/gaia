@@ -1,0 +1,151 @@
+
+/**
+ * Gaia Tabs
+ *
+ * Tabs allow users to navigate between
+ * multiple views within a single screen.
+ */
+
+gaia-tabs {
+  display: flex;
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  z-index: 0;
+  background: #fff;
+}
+
+/**
+ * [position="top"]
+ */
+
+gaia-tabs[position="top"] {
+  top: 0;
+  bottom: auto;
+}
+
+/** Top Border
+ ---------------------------------------------------------*/
+
+gaia-tabs:before {
+  content: "";
+  position: absolute;
+  bottom: 4.5rem;
+  left: 0;
+  width: 100%;
+  height: 0;
+  border-top: 0.1rem solid #e7e7e7;
+}
+
+/**
+ * [skin="dark"]
+ */
+
+gaia-tabs[skin="dark"]:before {
+  border-color: rgba(189,189,189, 0.1);
+}
+
+/**
+ * [position="top"]
+ */
+
+gaia-tabs[position="top"]:before {
+  top: 4.5rem;
+  bottom: auto;
+}
+
+/** Tab
+ ---------------------------------------------------------*/
+
+gaia-tabs > a,
+gaia-tabs > li,
+gaia-tabs > div,
+gaia-tabs > button {
+  box-sizing: content-box;
+  position: relative;
+  margin: 0;
+  padding: 0;
+  height: 4.5rem;
+  border: 0;
+  flex: 1 1 0;
+  font-size: 1.6rem;
+  line-height: 4.5rem;
+  text-align: center;
+  font-family: sans-serif;
+  text-decoration: none;
+  color: inherit;
+  background-color: transparent;
+  cursor: pointer;
+}
+
+/**
+ * [skin="dark"]
+ */
+
+gaia-tabs[skin="dark"] > a,
+gaia-tabs[skin="dark"] > li,
+gaia-tabs[skin="dark"] > div,
+gaia-tabs[skin="dark"] > button {
+  background-color: #000;
+  color: #fff;
+}
+
+/**
+ * :active
+ */
+
+gaia-tabs > :active {
+  border-radius: 0;
+  background-color: #b2f2ff;
+}
+
+/**
+ * .selected
+ */
+
+gaia-tabs > .selected {
+  color: #00aacc;
+}
+
+/**
+ * .selected &
+ * [skin="dark"]
+ */
+
+gaia-tabs[skin="dark"] > .selected {
+  color: #00aacc;
+}
+
+/**
+ * [disabled]
+ */
+
+gaia-tabs > [disabled] {
+  color: #333;
+  opacity: 0.25;
+  pointer-events: none;
+}
+
+/**
+ * [skin="dark"] &
+ * [disabled]
+ */
+
+gaia-tabs[skin="dark"] > [disabled] {
+  color: rgba(255,255,255,0.4);
+  opacity: 1;
+}
+
+/** Tab Bottom Border
+ ---------------------------------------------------------*/
+
+gaia-tabs > .selected:after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  border-bottom: 0.3rem solid #00aacc;
+}

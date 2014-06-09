@@ -1,5 +1,6 @@
 Keyboards.pl = {
   label: 'Polish',
+  shortLabel: 'Pl',
   imEngine: 'latin',
   types: ['text', 'url' , 'email'],
   autoCorrectLanguage: 'pl',

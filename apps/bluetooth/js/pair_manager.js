@@ -1,6 +1,6 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-/* global BluetoothHelper, PairManager */
+/* global BluetoothHelper, PairManager, PairExpiredDialog, Notification */
 
 'use strict';
 
@@ -29,22 +29,141 @@
       navigator.mozSetMessageHandler('bluetooth-cancel',
         this.onBluetoothCancel.bind(this)
       );
+
+      // Observe screen lockscreen locked/unlocked state for show pending
+      // pairing request immediately.
+      navigator.mozSettings.addObserver('lockscreen.locked',
+        function gotScreenLockedChanged(event) {
+          this.showPendingPairing(event.settingValue);
+      }.bind(this));
     },
 
-    onRequestPairing: function(message) {
-      this.debug('onRequestPairing(): message = ' + message);
+    onRequestPairing: function(pairingInfo) {
+      this.debug('onRequestPairing(): pairingInfo = ' + pairingInfo);
 
       var req = navigator.mozSettings.createLock().get('lockscreen.locked');
       var self = this;
       req.onsuccess = function bt_onGetLocksuccess() {
-        if (!req.result['lockscreen.locked']) {
-          self.showPairview(message);
+        if (req.result['lockscreen.locked']) {
+          // notify user that we are receiving pairing request
+          self.fireNotification(pairingInfo);
+        } else {
+          // We have clear up pending one before show the new pairing requst.
+          // Becasue the pending pairing request is no longer usefull.
+          self.cleanPendingPairing();
+
+          // show pair view directly while lock screen is unlocked
+          self.showPairview(pairingInfo);
         }
       };
       req.onerror = function bt_onGetLockError() {
+        // We have clear up pending one before show the new pairing requst.
+        // Becasue the pending pairing request is no longer usefull.
+        self.cleanPendingPairing();
+
         // fallback to default value 'unlocked'
-        self.showPairview(message);
+        self.showPairview(pairingInfo);
       };
+    },
+
+    fireNotification: function(pairingInfo) {
+      // Once we received a pairing request in screen locked mode,
+      // overwrite the object with the latest pairing request. Because the
+      // later pairing request might be timeout and useless now.
+      this.pendingPairing = {
+        showPairviewCallback: this.showPairview.bind(this, pairingInfo)
+      };
+      // Prepare notification toast.
+      var title = _('bluetooth-pairing-request-now-title');
+      var body = pairingInfo.name || _('unnamed-device');
+      var iconUrl =
+        'app://bluetooth.gaiamobile.org/style/images/icon_bluetooth.png';
+      // We always use tag "pairing-request" to manage these notifications.
+      var notificationId = 'pairing-request';
+      var notification = new Notification(title, {
+        body: body,
+        icon: iconUrl,
+        tag: notificationId
+      });
+
+      // set onclick handler for the notification
+      notification.onclick =
+        this.pairingRequestExpiredNotificationHandler.bind(this, notification);
+    },
+
+    // According to user story, it won't notify user again
+    // while the pending pairing request is just timeout or canceled.
+    // So we have to set onclick handler in this moment.
+    // The handler will pop out a pairing request expired prompt only.
+    pairingRequestExpiredNotificationHandler: function(notification) {
+      var req = navigator.mozSettings.createLock().get('lockscreen.locked');
+      req.onsuccess = function bt_onGetLocksuccess() {
+        // Avoid to do nothting while the notification toast is showing
+        // and a user is able to trigger onclick event. Make sure screen
+        // is unlocked, then show the prompt in bluetooth app.
+        if (!req.result['lockscreen.locked']) {
+          // Clean the pairing request notficiation which is expired.
+          notification.close();
+
+          navigator.mozApps.getSelf().onsuccess = function(evt) {
+            var app = evt.target.result;
+
+            // launch bluetooth app to foreground for showing the prompt
+            app.launch();
+
+            // show an alert with the overdue message
+            if (!PairExpiredDialog.isVisible) {
+              PairExpiredDialog.showConfirm(function() {
+                // Have to close Bluetooth app after the dialog is closed.
+                window.close();
+              });
+            }
+          };
+        }
+      };
+    },
+
+    // If there is a pending pairing request while a user just unlocks screen,
+    // we will show pair view immediately. Then, we clear up the notification.
+    showPendingPairing: function(screenLocked) {
+      if (!screenLocked && this.pendingPairing) {
+        // show pair view from the callback function
+        if (this.pendingPairing.showPairviewCallback) {
+          this.pendingPairing.showPairviewCallback();
+        }
+
+        this.cleanPendingPairing();
+      }
+    },
+
+    cleanPendingPairing: function() {
+      this.debug('cleanPendingPairing(): has pendingPairing = ' +
+                 (this.pendingPairing));
+
+      // Clear up the pending pairing request
+      if (this.pendingPairing) {
+        this.pendingPairing = null;
+      }
+
+      // Clear up the pairing request from notification.
+      this.cleanNotifications();
+    },
+
+    // Clean all notifications which are fired with tag 'pairing-request'.
+    cleanNotifications: function() {
+      Notification.get().then(function(notifications) {
+        if (notifications) {
+          notifications.forEach(function(notification) {
+            // Compare tags, as the tag is based on the "pairing-request" and
+            // we only have one notification for the request. Plus, there
+            // is no "id" field on the notification.
+            if (notification.tag === 'pairing-request' &&
+                notification.close) {
+                notification.close();
+            }
+          });
+        }
+      });
     },
 
     showPairview: function(pairingInfo) {
@@ -82,6 +201,23 @@
       if (this.childWindow) {
         this.childWindow.Pairview.closeInput();
         this.childWindow.close();
+      }
+
+      // If "bluetooth-cancel" system message is coming, and there is a
+      // pending pairing request, we have reset the object. Because the callback
+      // is useless since the older pairing request is expired.
+      // The moment is fit to notify user that the later pairing request
+      // is timeout or canceled. According to user story, do nothing here.
+      // Clear up the pending pairing request only.
+      if (this.pendingPairing) {
+        this.pendingPairing = null;
+      }
+
+      // Close pairing expired dialog if it is showing.
+      if (PairExpiredDialog.isVisible) {
+        PairExpiredDialog.close();
+        // Have to close Bluetooth app after the dialog is closed.
+        window.close();
       }
     },
 

@@ -1,5 +1,6 @@
 Keyboards.mk = {
   label: 'Macedonian',
+  shortLabel: 'Mk',
   menuLabel: 'Македонски',
   imEngine: 'latin',
   types: ['text', 'url', 'email'],

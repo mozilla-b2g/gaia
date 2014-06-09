@@ -180,8 +180,12 @@
 
     /* Build the notification's text, for text/vnd.wap.connectivity-xml
      * messages this needs to be localized. */
-    var text = (message.type == 'text/vnd.wap.connectivity-xml') ?
-               _(message.text) : message.text;
+    var text = '';
+
+    if (message.text) {
+      text = (message.type == 'text/vnd.wap.connectivity-xml') ?
+             _(message.text) : message.text;
+    }
 
     if (message.href) {
       text += (text ? ' ' : '');

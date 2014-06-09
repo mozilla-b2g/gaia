@@ -1,5 +1,6 @@
 Keyboards.el = {
   label: 'Greek',
+  shortLabel: 'El',
   menuLabel: 'Ελληνικό',
   imEngine: 'latin',
   types: ['text', 'url', 'email'],

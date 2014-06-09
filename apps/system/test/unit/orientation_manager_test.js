@@ -1,6 +1,5 @@
 'use strict';
 
-mocha.globals(['OrientationManager', 'SettingsListener', 'lockScreen']);
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_lock_screen.js');
 

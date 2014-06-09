@@ -4,7 +4,7 @@
 # GAIA_DOMAIN : change that if you plan to use a different domain to update   #
 #               your applications or want to use a local domain               #
 #                                                                             #
-# HOMESCREEN  : url of the homescreen to start on                             #
+# SYSTEM  : url of the SYSTEM to start on                             #
 #                                                                             #
 # ADB         : if you use a device and plan to send update it with your work #
 #               you need to have adb in your path or you can edit this line to#
@@ -150,7 +150,7 @@ else
 SCHEME=app://
 endif
 
-HOMESCREEN?=$(SCHEME)system.$(GAIA_DOMAIN)
+SYSTEM?=$(SCHEME)system.$(GAIA_DOMAIN)
 
 BUILD_APP_NAME?=*
 ifneq ($(APP),)
@@ -360,6 +360,8 @@ GAIA_APP_CONFIG := /tmp/gaia-apps-temp.list
 $(warning GAIA_APP_SRCDIRS is deprecated, please use GAIA_APP_CONFIG)
 endif
 
+GAIA_ALLAPPDIRS=$(shell find $(GAIA_DIR)$(SEP)apps $(GAIA_DIR)$(SEP)dev_apps -maxdepth 1 -mindepth 1 -type d  | sed 's@[/\\]@$(SEP_FOR_SED)@g')
+
 GAIA_APPDIRS=$(shell while read LINE; do \
 	if [ "$${LINE\#$${LINE%?}}" = "*" ]; then \
 		srcdir="`echo "$$LINE" | sed 's/.\{2\}$$//'`"; \
@@ -391,7 +393,7 @@ GAIA_INLINE_LOCALES?=1
 GAIA_CONCAT_LOCALES?=1
 
 # This variable is for customizing the keyboard layouts in a build.
-GAIA_KEYBOARD_LAYOUTS?=en,pt-BR,es,de,fr,pl,zh-Hans-Pinyin
+GAIA_KEYBOARD_LAYOUTS?=en,pt-BR,es,de,fr,pl,zh-Hans-Pinyin,en-Dvorak
 
 ifeq ($(SYS),Darwin)
 MD5SUM = md5 -r
@@ -442,7 +444,7 @@ define BUILD_CONFIG
 	"DESKTOP" : $(DESKTOP), \
 	"DEVICE_DEBUG" : $(DEVICE_DEBUG), \
 	"NO_LOCK_SCREEN" : $(NO_LOCK_SCREEN), \
-	"HOMESCREEN" : "$(HOMESCREEN)", \
+	"SYSTEM" : "$(SYSTEM)", \
 	"GAIA_PORT" : "$(GAIA_PORT)", \
 	"GAIA_LOCALES_PATH" : "$(GAIA_LOCALES_PATH)", \
 	"GAIA_INSTALL_PARENT" : "$(GAIA_INSTALL_PARENT)", \
@@ -462,7 +464,8 @@ define BUILD_CONFIG
 	"GAIA_ENGINE" : "xpcshell", \
 	"GAIA_DISTRIBUTION_DIR" : "$(GAIA_DISTRIBUTION_DIR)", \
 	"GAIA_APPDIRS" : "$(GAIA_APPDIRS)", \
-	"GAIA_DEVICE_TYPE" : "$(GAIA_DEVICE_TYPE)", \
+	"GAIA_ALLAPPDIRS" : "$(GAIA_ALLAPPDIRS)", \
+	"GAIA_MEMORY_PROFILE" : "$(GAIA_MEMORY_PROFILE)", \
 	"NOFTU" : "$(NOFTU)", \
 	"REMOTE_DEBUGGER" : "$(REMOTE_DEBUGGER)", \
 	"HAIDA" : $(HAIDA), \
@@ -482,19 +485,19 @@ define app-makefile-template
 .PHONY: $(1)
 $(1): $(XULRUNNER_BASE_DIRECTORY) keyboard-layouts contacts-import-services $(STAGE_DIR)/settings_stage.json webapp-manifests svoperapps clear-stage-app webapp-shared | $(STAGE_DIR)
 	@if [[ ("$(2)" =~ "${BUILD_APP_NAME}") || ("${BUILD_APP_NAME}" == "*") ]]; then \
-  	if [ -r "$(2)/Makefile" ]; then \
-  		echo "execute Makefile for $(1) app" ; \
-  		STAGE_APP_DIR="../../build_stage/$(1)" make -C "$(2)" ; \
-  	else \
-  		echo "copy $(1) to build_stage/" ; \
-  		cp -LR "$(2)" $(STAGE_DIR) && \
-  		if [ -r "$(2)/build/build.js" ]; then \
-  			echo "execute $(1)/build/build.js"; \
-  			export APP_DIR=$(2); \
-  			$(call run-js-command,app/build); \
-  		fi; \
-  	fi && \
-  	$(call clean-build-files,$(STAGE_DIR)/$(1)); \
+	if [ -r "$(2)/Makefile" ]; then \
+		echo "execute Makefile for $(1) app" ; \
+		STAGE_APP_DIR="../../build_stage/$(1)" make -C "$(2)" ; \
+	else \
+		echo "copy $(1) to build_stage/" ; \
+		cp -LR "$(2)" $(STAGE_DIR) && \
+		if [ -r "$(2)/build/build.js" ]; then \
+			echo "execute $(1)/build/build.js"; \
+			export APP_DIR=$(2); \
+			$(call run-js-command,app/build); \
+		fi; \
+	fi && \
+	$(call clean-build-files,$(STAGE_DIR)/$(1)); \
   fi;
 endef
 
@@ -513,7 +516,11 @@ test-agent-bootstrap: $(XULRUNNER_BASE_DIRECTORY)
 $(STAGE_DIR):
 	mkdir -p $@
 
+ifeq (${BUILD_APP_NAME},*)
 APP_RULES := $(foreach appdir,$(GAIA_APPDIRS),$(notdir $(appdir)))
+else
+APP_RULES := ${BUILD_APP_NAME}
+endif
 $(foreach appdir,$(GAIA_APPDIRS), \
 	$(eval $(call app-makefile-template,$(notdir $(appdir)),$(appdir))) \
 )
@@ -778,7 +785,7 @@ ifndef APPS
 	ifdef APP
 		APPS=$(APP)
 	else
-		APPS=template $(shell find apps -type d -name 'test' | sed -e 's|^apps/||' -e 's|/test$$||' )
+		APPS=template $(shell find apps -type d -name 'test' | sed -e 's|^apps/||' -e 's|/test$$||' | sort )
 	endif
 endif
 
@@ -809,16 +816,17 @@ test-integration-test:
 
 .PHONY: caldav-server-install
 caldav-server-install:
-	pip install --user virtualenv
-	virtualenv js-marionette-env; \
-  source ./js-marionette-env/bin/activate; \
+	source tests/travis_ci/venv.sh; \
 				export LC_ALL=en_US.UTF-8; \
 				export LANG=en_US.UTF-8; \
 				pip install radicale;
 
 .PHONY: test-perf
 test-perf:
-	MOZPERFOUT="$(MOZPERFOUT)" APPS="$(APPS)" MARIONETTE_RUNNER_HOST=$(MARIONETTE_RUNNER_HOST) GAIA_DIR="`pwd`" ./bin/gaia-perf-marionette
+	MOZPERFOUT="$(MOZPERFOUT)" APPS="$(APPS)" \
+	MARIONETTE_RUNNER_HOST=$(MARIONETTE_RUNNER_HOST) GAIA_DIR="`pwd`" \
+	REPORTER=$(REPORTER) \
+	./bin/gaia-perf-marionette
 
 .PHONY: tests
 tests: app-makefiles offline
@@ -850,7 +858,7 @@ ifeq ($(BUILD_APP_NAME),*)
 	@touch $(TEST_AGENT_CONFIG)
 	@rm -f /tmp/test-agent-config;
 	@# Build json array of all test files
-	@for d in ${GAIA_APPDIRS}; \
+	@for d in ${GAIA_ALLAPPDIRS}; \
 	do \
 		parent="`dirname $$d`"; \
 		pathlen=`expr $${#parent} + 2`; \
@@ -926,7 +934,7 @@ ifdef APP
   JSHINTED_PATH = apps/$(APP)
   GJSLINTED_PATH = $(shell grep "^apps/$(APP)" build/jshint/xfail.list | ( while read file ; do test -f "$$file" && echo $$file ; done ) )
 else
-  JSHINTED_PATH = apps shared build/test/unit dev_apps/home2
+  JSHINTED_PATH = apps shared build/test/unit
   GJSLINTED_PATH = $(shell ( while read file ; do test -f "$$file" && echo $$file ; done ) < build/jshint/xfail.list )
 endif
 endif
@@ -1005,9 +1013,9 @@ install-media-samples:
 	$(ADB) shell 'if test -d /sdcard/music; then mv /sdcard/music /sdcard/music.temp; mv /sdcard/music.temp /sdcard/Music; fi'
 	$(ADB) shell 'if test -d /sdcard/videos; then mv /sdcard/videos /sdcard/Movies;	fi'
 
-	$(ADB) push media-samples/DCIM $(MSYS_FIX)/sdcard/DCIM
-	$(ADB) push media-samples/Movies $(MSYS_FIX)/sdcard/Movies
-	$(ADB) push media-samples/Music $(MSYS_FIX)/sdcard/Music
+	$(ADB) push test_media/samples/DCIM $(MSYS_FIX)/sdcard/DCIM
+	$(ADB) push test_media/samples/Movies $(MSYS_FIX)/sdcard/Movies
+	$(ADB) push test_media/samples/Music $(MSYS_FIX)/sdcard/Music
 
 install-test-media:
 	$(ADB) push test_media/Pictures $(MSYS_FIX)/sdcard/DCIM
@@ -1112,7 +1120,7 @@ watch: $(NPM_INSTALLED_PROGRAMS)
 	node build/watcher.js
 
 .PHONY: multilocale
-multilocale: app-makefiles webapp-shared $(XULRUNNER_BASE_DIRECTORY)
+multilocale: post-manifest app-makefiles webapp-shared $(XULRUNNER_BASE_DIRECTORY)
 ifneq ($(LOCALE_BASEDIR),)
 	@$(call run-js-command,multilocale)
 endif

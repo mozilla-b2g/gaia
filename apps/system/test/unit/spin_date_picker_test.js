@@ -1,7 +1,5 @@
 'use strict';
 
-mocha.globals(['SpinDatePicker']);
-
 requireApp('system/js/value_selector/value_picker.js');
 requireApp('system/js/value_selector/spin_date_picker.js');
 requireApp('system/test/unit/mock_l10n.js');

@@ -7,7 +7,6 @@
 
 'use strict';
 
-mocha.globals(['Commands', 'DUMP']);
 require('/shared/test/unit/mocks/mocks_helper.js');
 require('/shared/test/unit/mocks/mock_settings_url.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
@@ -128,6 +127,17 @@ suite('FindMyDevice >', function() {
   });
 
   test('Erase command', function(done) {
+    // Meta-mock the mock getDeviceStorage so it returns null
+    // for some storage types
+    var mockGetDeviceStorage = navigator.getDeviceStorage;
+    navigator.getDeviceStorage = function(storage) {
+      if (storage === 'apps' || storage == 'sdcard') {
+        return null;
+      }
+
+      return mockGetDeviceStorage(storage);
+    };
+
     subject.erase(function(retval, error) {
       var instances = MockDeviceStorage.instances;
       for (var i = 0; i < instances.length; i++) {
@@ -136,6 +146,25 @@ suite('FindMyDevice >', function() {
       }
 
       assert.equal(navigator.mozPower.factoryResetCalled, true);
+      navigator.getDeviceStorage = mockGetDeviceStorage;
+      done();
+    });
+
+    fakeClock.tick();
+  });
+
+  test('Erase command with no device storages', function(done) {
+    // Meta-mock the mock getDeviceStorage so it returns null
+    // for all storage types. We must still factory reset in this case.
+    var mockGetDeviceStorage = navigator.getDeviceStorage;
+    navigator.getDeviceStorage = function(storage) {
+      return null;
+    };
+
+    subject.erase(function(retval, error) {
+      assert.deepEqual(MockDeviceStorage.instances, []);
+      assert.equal(navigator.mozPower.factoryResetCalled, true);
+      navigator.getDeviceStorage = mockGetDeviceStorage;
       done();
     });
 
@@ -161,9 +190,11 @@ suite('FindMyDevice >', function() {
           done();
         });
       }
+
+      fakeClock.tick(subject.TRACK_UPDATE_INTERVAL_MS);
     });
 
-    fakeClock.tick();
+    fakeClock.tick(subject.TRACK_UPDATE_INTERVAL_MS);
   });
 
   teardown(function() {

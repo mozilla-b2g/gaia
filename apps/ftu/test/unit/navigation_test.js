@@ -2,6 +2,7 @@
 
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 require('/shared/test/unit/mocks/mock_icc_helper.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 
 requireApp('ftu/js/external_links.js');
 requireApp('ftu/js/navigation.js');
@@ -17,10 +18,7 @@ requireApp('ftu/test/unit/mock_tutorial.js');
 requireApp('ftu/test/unit/mock_wifi_manager.js');
 requireApp('ftu/test/unit/mock_utils.js');
 requireApp('ftu/test/unit/mock_operatorVariant.js');
-requireApp('ftu/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('ftu/test/unit/mock_navigation.html.js');
-
-mocha.globals(['open']);
 
 var _;
 
@@ -109,13 +107,11 @@ suite('navigation >', function() {
 
   teardown(function() {
     Navigation.simMandatory = false;
-    Navigation.fxaEnabled = false;
   });
 
   test('navigates forward', function() {
     MockIccHelper.setProperty('cardState', 'ready');
     Navigation.simMandatory = true;
-    Navigation.fxaEnabled = true;
     Navigation.totalSteps = numSteps; // explicitly set the total steps
 
     setStepState(1);
@@ -130,7 +126,6 @@ suite('navigation >', function() {
 
   test('navigates backwards', function() {
     Navigation.simMandatory = true;
-    Navigation.fxaEnabled = true;
     Navigation.totalSteps = numSteps; // explicitly set the total steps
 
     setStepState(numSteps);
@@ -146,7 +141,6 @@ suite('navigation >', function() {
 
   test('progress bar start and end positions', function() {
     Navigation.simMandatory = true;
-    Navigation.fxaEnabled = true;
     Navigation.totalSteps = numSteps; // explicitly set the total steps
 
     // Start position
@@ -156,28 +150,6 @@ suite('navigation >', function() {
     // Last step position
     setStepState(numSteps);
     assert.equal(Navigation.getProgressBarState(), numSteps);
-  });
-
-  test('skip firefox accounts screen', function() {
-    Navigation.simMandatory = true;
-    Navigation.fxaEnabled = false;
-
-    setStepState(6); // #import_contacts screen, right before #firefox_accounts
-    assert.equal(Navigation.previousStep, 5);
-    assert.equal(Navigation.currentStep, 6);
-    assert.equal(Navigation.getProgressBarState(), 6);
-
-    // Go forward, skipping the #firefox_accounts screen
-    Navigation.forward();
-    assert.equal(Navigation.previousStep, 6);
-    assert.equal(Navigation.currentStep, 8);
-    assert.equal(Navigation.getProgressBarState(), 7);
-
-    // Go backward, skipping the #firefox_accounts screen
-    Navigation.back();
-    assert.equal(Navigation.previousStep, 8);
-    assert.equal(Navigation.currentStep, 6);
-    assert.equal(Navigation.getProgressBarState(), 6);
   });
 
   test('last step launches tutorial', function() {
@@ -198,12 +170,10 @@ suite('navigation >', function() {
     setup(function() {
       MockIccHelper.setProperty('cardState', 'ready');
       Navigation.simMandatory = false;
-      Navigation.fxaEnabled = true;
     });
 
     teardown(function() {
       Navigation.simMandatory = false;
-      Navigation.fxaEnabled = false;
     });
 
     test('languages screen >', function(done) {
@@ -214,6 +184,7 @@ suite('navigation >', function() {
         done();
       });
       observer.observe(UIManager.mainTitle, observerConfig);
+      assert.equal(Navigation.getProgressBarState(), 1);
     });
 
     test('data mobile screen >', function(done) {
@@ -224,6 +195,7 @@ suite('navigation >', function() {
         done();
       });
       observer.observe(UIManager.mainTitle, observerConfig);
+      assert.equal(Navigation.getProgressBarState(), 2);
     });
 
     test('wifi screen >', function(done) {
@@ -237,6 +209,7 @@ suite('navigation >', function() {
         done();
       });
       observer.observe(UIManager.mainTitle, observerConfig);
+      assert.equal(Navigation.getProgressBarState(), 3);
     });
 
     test('date&time screen >', function(done) {
@@ -247,6 +220,7 @@ suite('navigation >', function() {
         done();
       });
       observer.observe(UIManager.mainTitle, observerConfig);
+      assert.equal(Navigation.getProgressBarState(), 4);
     });
 
     test('geolocation screen >', function(done) {
@@ -257,6 +231,7 @@ suite('navigation >', function() {
         done();
       });
       observer.observe(UIManager.mainTitle, observerConfig);
+      assert.equal(Navigation.getProgressBarState(), 5);
     });
 
     test('import contacts screen >', function(done) {
@@ -267,6 +242,7 @@ suite('navigation >', function() {
         done();
       });
       observer.observe(UIManager.mainTitle, observerConfig);
+      assert.equal(Navigation.getProgressBarState(), 6);
     });
 
     test('firefox accounts screen >', function(done) {
@@ -277,6 +253,7 @@ suite('navigation >', function() {
         done();
       });
       observer.observe(UIManager.mainTitle, observerConfig);
+      assert.equal(Navigation.getProgressBarState(), 7);
     });
 
     test('welcome screen >', function(done) {
@@ -292,6 +269,7 @@ suite('navigation >', function() {
         done();
       });
       observer.observe(UIManager.mainTitle, observerConfig);
+      assert.equal(Navigation.getProgressBarState(), 8);
     });
 
     test('privacy screen >', function(done) {
@@ -302,6 +280,7 @@ suite('navigation >', function() {
         done();
       });
       observer.observe(UIManager.mainTitle, observerConfig);
+      assert.equal(Navigation.getProgressBarState(), 9);
     });
   });
 
@@ -412,13 +391,11 @@ suite('navigation >', function() {
 
     setup(function() {
       Navigation.simMandatory = true;
-      Navigation.fxaEnabled = true;
       setStepState(1);
     });
 
     teardown(function() {
       Navigation.simMandatory = false;
-      Navigation.fxaEnabled = true;
     });
 
     test('without SIM card', function() {

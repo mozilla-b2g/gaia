@@ -46,7 +46,9 @@ CameraController.prototype.bindEvents = function() {
   camera.on('change:videoElapsed', app.firer('camera:recorderTimeUpdate'));
   camera.on('focusconfigured',  app.firer('camera:focusconfigured'));
   camera.on('change:focus', app.firer('camera:focusstatechanged'));
+  camera.on('facesdetected', app.firer('camera:facesdetected'));
   camera.on('filesizelimitreached', this.onFileSizeLimitReached);
+  camera.on('takingpicture', app.firer('camera:takingpicture'));
   camera.on('change:recording', app.setter('recording'));
   camera.on('newcamera', app.firer('camera:newcamera'));
   camera.on('newimage', app.firer('camera:newimage'));
@@ -56,6 +58,7 @@ CameraController.prototype.bindEvents = function() {
   camera.on('loaded', app.firer('camera:loaded'));
   camera.on('ready', app.firer('camera:ready'));
   camera.on('busy', app.firer('camera:busy'));
+  camera.on('willrecord', app.firer('camera:willrecord'));
 
   // App
   app.on('viewfinder:focuspointchanged', this.onFocusPointChanged);
@@ -68,6 +71,7 @@ CameraController.prototype.bindEvents = function() {
   app.on('visible', this.camera.load);
   app.on('capture', this.capture);
   app.on('hidden', this.onHidden);
+  app.on('attentionscreenopened', this.camera.stopRecording);
 
   // Settings
   settings.recorderProfiles.on('change:selected', this.updateRecorderProfile);
@@ -111,6 +115,31 @@ CameraController.prototype.onSettingsConfigured = function() {
   this.camera.setRecorderProfile(recorderProfile);
   this.camera.setPictureSize(pictureSize);
   this.camera.configureZoom();
+
+  // Bug 983930 - [B2G][Camera] CameraControl API's "zoom" attribute doesn't
+  // scale preview properly
+  //
+  // For some reason, the above calculation for `maxHardwareZoom` does not
+  // work properly on Nexus 4 devices.
+  var hardware = navigator.mozSettings.createLock().get('deviceinfo.hardware');
+  var self = this;
+  hardware.onsuccess = function(evt) {
+    var device = evt.target.result['deviceinfo.hardware'];
+    if (device === 'mako') {
+
+      // Nexus 4 needs zoom preview adjustment since the viewfinder preview
+      // stream does not automatically reflect the current zoom value.
+      self.settings.zoom.set('useZoomPreviewAdjustment', true);
+
+      if (self.camera.selectedCamera === 'front') {
+        self.camera.set('maxHardwareZoom', 1);
+      } else {
+        self.camera.set('maxHardwareZoom', 1.25);
+      }
+
+      self.camera.emit('zoomconfigured');
+    }
+  };
 
   debug('camera configured with final settings');
 };

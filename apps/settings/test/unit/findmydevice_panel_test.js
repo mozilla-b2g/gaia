@@ -6,11 +6,6 @@
 
 'use strict';
 
-mocha.globals([
-  'FindMyDevice',
-  'loadJSON'
-]);
-
 require('mock_load_json.js');
 
 // require helpers for managing html

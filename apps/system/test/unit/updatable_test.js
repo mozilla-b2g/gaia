@@ -9,6 +9,7 @@ requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_apps_mgmt.js');
 requireApp('system/test/unit/mock_chrome_event.js');
 requireApp('system/test/unit/mock_utility_tray.js');
+requireApp('system/test/unit/mock_navigator_battery.js');
 requireApp('system/shared/test/unit/mocks/mock_custom_dialog.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 
@@ -640,14 +641,27 @@ suite('system/Updatable', function() {
   });
 
   function testSystemApplyPrompt() {
-    test('apply prompt shown', function() {
-      assert.isTrue(MockCustomDialog.mShown);
-      assert.equal('systemUpdateReady', MockCustomDialog.mShowedTitle);
-      assert.equal('wantToInstall', MockCustomDialog.mShowedMsg);
+    function testSystemApplyPromptBatteryOk() {
+      test('apply prompt shown', function() {
+        assert.isTrue(MockCustomDialog.mShown);
+        assert.equal('systemUpdateReady', MockCustomDialog.mShowedTitle);
+        assert.equal('wantToInstall', MockCustomDialog.mShowedMsg);
 
-      assert.equal('later', MockCustomDialog.mShowedCancel.title);
-      assert.equal('installNow', MockCustomDialog.mShowedConfirm.title);
-    });
+        assert.equal('later', MockCustomDialog.mShowedCancel.title);
+        assert.equal('installNow', MockCustomDialog.mShowedConfirm.title);
+      });
+    }
+
+    function testSystemApplyPromptBatteryNok() {
+      test('battery prompt shown', function() {
+        assert.isTrue(MockCustomDialog.mShown);
+        assert.equal('systemUpdateReady', MockCustomDialog.mShowedTitle);
+        assert.equal('systemUpdateLowBattery', MockCustomDialog.mShowedMsg);
+        assert.equal('ok', MockCustomDialog.mShowedCancel.title);
+      });
+    }
+
+    testSystemApplyPromptBatteryOk();
 
     test('utility tray hidden', function() {
       assert.isFalse(MockUtilityTray.mShown);
@@ -681,6 +695,53 @@ suite('system/Updatable', function() {
 
       assert.equal('update-prompt-apply-result', lastDispatchedEvent.type);
       assert.equal('restart', lastDispatchedEvent.value);
+    });
+
+    suite('battery level', function() {
+      var realNavigatorBattery;
+
+      setup(function() {
+        realNavigatorBattery = window.navigator.battery;
+        Object.defineProperty(window.navigator, 'battery', {
+          configurable: true,
+          value: MockNavigatorBattery
+        });
+      });
+
+      teardown(function() {
+        Object.defineProperty(window.navigator, 'battery', {
+          configurable: true,
+          value: realNavigatorBattery
+        });
+      });
+
+      suite('low battery', function() {
+        setup(function() {
+          asyncStorage.setItem(SystemUpdatable.KNOWN_UPDATE_FLAG, true);
+          MockUtilityTray.show();
+          MockNavigatorBattery.level = 0.1;
+          var event = new MockChromeEvent({
+            type: 'update-prompt-apply'
+          });
+          subject.handleEvent(event);
+        });
+
+        testSystemApplyPromptBatteryNok();
+      });
+
+      suite('high battery', function() {
+        setup(function() {
+          asyncStorage.setItem(SystemUpdatable.KNOWN_UPDATE_FLAG, true);
+          MockUtilityTray.show();
+          MockNavigatorBattery.level = 0.9;
+          var event = new MockChromeEvent({
+            type: 'update-prompt-apply'
+          });
+          subject.handleEvent(event);
+        });
+
+        testSystemApplyPromptBatteryOk();
+      });
     });
   }
 });

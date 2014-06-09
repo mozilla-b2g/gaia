@@ -12,6 +12,7 @@ if (!utils.alphaScroll) {
 
     var isScrolling = false;
     var alreadyRendered = false;
+    var isDesktop = false;
 
     // Callback invoked when scrolling is neded
     var P_SCROLLTO_CB = 'scrollToCb';
@@ -53,8 +54,9 @@ if (!utils.alphaScroll) {
       }
     })();
 
-    alphaScroll.init = function(params) {
-      if (alreadyRendered) {
+    alphaScroll.init = function(params, desktop) {
+      isDesktop = params && params.desktop;
+      if (alreadyRendered && !isDesktop) {
         return;
       }
       scrollToCallback = params[P_SCROLLTO_CB];
@@ -125,14 +127,18 @@ if (!utils.alphaScroll) {
       // We set the threshold of updating the shortcut to half of the offset
       // to avoid when touch already moved to center of the certain letter but
       // shows another letter.
-      if (Math.abs(lastY - currentY) < offset / 2) {
+      if (Math.abs(lastY - currentY) < offset / 2 && !isDesktop) {
         return;
       }
 
       lastY = currentY;
 
-      var dataset = getTarget(evt).dataset;
+      var elem = getTarget(evt);
+      if (!elem) {
+        return;
+      }
 
+      var dataset = elem.dataset;
       // Render
       if (dataset.letter) {
         overlay.textContent = dataset.letter;
@@ -172,14 +178,23 @@ if (!utils.alphaScroll) {
       overlayStyle.MozTransitionDuration = RESET_TRANSITION;
       overlayStyle.opacity = '1';
       isScrolling = true;
+
       scrollTo(evt);
     }
 
     function scrollEnd(evt) {
       evt.preventDefault();
       evt.stopPropagation();
-      overlayStyle.MozTransitionDelay = TRANSITION_DELAY;
-      overlayStyle.MozTransitionDuration = TRANSITION_DURATION;
+      var transitionDelay = TRANSITION_DELAY;
+      var transitionDuration = TRANSITION_DURATION;
+      // In the case of the scroll ending when we are at the
+      // bottom or the top, remove the transition inmediately
+      if (overlay.textContent === '#' || overlay.textContent === '') {
+        transitionDelay = RESET_TRANSITION;
+        transitionDuration = RESET_TRANSITION;
+      }
+      overlayStyle.MozTransitionDelay = transitionDelay;
+      overlayStyle.MozTransitionDuration = transitionDuration;
       overlayStyle.opacity = '0';
       overlay.textContent = null;
       isScrolling = false;

@@ -2827,6 +2827,7 @@ ActiveSyncAccount.prototype = {
       syncRange: this.accountDef.syncRange,
       syncInterval: this.accountDef.syncInterval,
       notifyOnNew: this.accountDef.notifyOnNew,
+      playSoundOnSend: this.accountDef.playSoundOnSend,
 
       identities: this.identities,
 
@@ -3627,6 +3628,8 @@ exports.configurator = {
           syncInterval: userDetails.syncInterval || 0,
           notifyOnNew: userDetails.hasOwnProperty('notifyOnNew') ?
                        userDetails.notifyOnNew : true,
+          playSoundOnSend: userDetails.hasOwnProperty('playSoundOnSend') ?
+                       userDetails.playSoundOnSend : true,
 
           credentials: credentials,
           connInfo: {
@@ -3669,6 +3672,8 @@ exports.configurator = {
       syncInterval: oldAccountDef.syncInterval || 0,
       notifyOnNew: oldAccountDef.hasOwnProperty('notifyOnNew') ?
                    oldAccountDef.notifyOnNew : true,
+      playSoundOnSend: oldAccountDef.hasOwnProperty('playSoundOnSend') ?
+                   oldAccountDef.playSoundOnSend : true,
 
       credentials: credentials,
       connInfo: {

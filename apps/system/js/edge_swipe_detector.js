@@ -33,9 +33,6 @@ var EdgeSwipeDetector = {
 
   settingUpdate: function esd_settingUpdate(enabled) {
     this._settingEnabled = enabled;
-    if (this._lifecycleEnabled && enabled) {
-      this.screen.classList.add('edges');
-    }
     this._updateEnabled();
   },
 
@@ -75,13 +72,9 @@ var EdgeSwipeDetector = {
         this._touchEnd(e);
         break;
       case 'appopen':
-        if (this._settingEnabled) {
-          this.screen.classList.add('edges');
-        }
         this.lifecycleEnabled = true;
         break;
       case 'homescreenopening':
-        this.screen.classList.remove('edges');
         this.lifecycleEnabled = false;
         break;
       case 'launchapp':

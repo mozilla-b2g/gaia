@@ -109,7 +109,7 @@ var FxaModuleRefreshAuth = (function() {
   };
 
   Module.onDone = function onDone(callback) {
-    FxaModuleOverlay.show(_('fxa-authenticating'));
+    FxaModuleOverlay.show(_('fxa-connecting'));
 
     FxModuleServerRequest.signIn(
       this.email,

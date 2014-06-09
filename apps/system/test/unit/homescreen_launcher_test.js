@@ -1,8 +1,5 @@
 'use strict';
 
-mocha.globals(['applications', 'HomescreenWindow', 'homescreenLauncher',
-              'SettingsListener', 'layoutManager']);
-
 
 requireApp('system/test/unit/mock_homescreen_window.js');
 requireApp('system/test/unit/mock_applications.js');
@@ -235,6 +232,35 @@ suite('system/HomescreenLauncher', function() {
       assert.ok(!window.homescreenLauncher._screen.classList.
         contains('on-homescreen'));
       window.homescreenLauncher._screen = null;
+    });
+
+    suite('software-button-*; resize the homescreenwindow', function() {
+      var isResizeCalled, stubGetHomescreen;
+
+      setup(function() {
+        isResizeCalled = false;
+        stubGetHomescreen = this.sinon.stub(window.homescreenLauncher,
+          'getHomescreen',
+          function() {
+            return {'resize': function() {
+              isResizeCalled = true;
+            }};
+          });
+      });
+
+      test('enabled', function() {
+        window.homescreenLauncher.handleEvent({
+          type: 'software-button-enabled'
+        });
+        assert.isTrue(isResizeCalled);
+      });
+
+      test('disabled', function() {
+        window.homescreenLauncher.handleEvent({
+          type: 'software-button-disabled'
+        });
+        assert.isTrue(isResizeCalled);
+      });
     });
   });
 });

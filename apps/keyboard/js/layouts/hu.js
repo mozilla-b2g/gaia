@@ -1,5 +1,6 @@
 Keyboards.hu = {
   label: 'Hungarian',
+  shortLabel: 'Hu',
   menuLabel: 'Magyar',
   imEngine: 'latin',
   types: ['text', 'url', 'email'],

@@ -5,6 +5,7 @@ apps/calendar
 apps/callscreen
 apps/camera
 apps/clock
+apps/collection
 apps/communications
 apps/costcontrol
 apps/email
@@ -12,6 +13,7 @@ apps/emergency-call
 apps/findmydevice
 apps/fl
 apps/fm
+apps/ftu
 apps/gallery
 apps/homescreen
 apps/keyboard
@@ -25,6 +27,7 @@ apps/setringtone
 apps/settings
 apps/sms
 apps/system
+apps/verticalhome
 apps/video
 apps/wallpaper
 apps/wappush

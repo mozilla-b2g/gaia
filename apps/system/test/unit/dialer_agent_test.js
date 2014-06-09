@@ -18,8 +18,6 @@ var mocksForDialerAgent = new MocksHelper([
   'SettingsURL'
 ]).init();
 
-mocha.globals(['lockScreen']);
-
 suite('system/DialerAgent', function() {
   mocksForDialerAgent.attachTestHelpers();
   var realTelephony, realVibrate, realLockscreen;
@@ -473,5 +471,14 @@ suite('system/DialerAgent', function() {
     assert.deepEqual(MockSettingsListener.mCallbacks, {});
 
     navigator.mozTelephony = MockNavigatorMozTelephony;
+  });
+
+  test('AttentionScreen should be shown if asked', function() {
+    subject = new DialerAgent();
+    subject.start();
+
+    this.sinon.spy(MockAttentionScreen, 'show');
+    subject.showCallScreen();
+    assert.isTrue(MockAttentionScreen.show.calledOnce);
   });
 });

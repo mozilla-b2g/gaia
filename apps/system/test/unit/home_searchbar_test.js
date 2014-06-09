@@ -4,6 +4,7 @@
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_search_window.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
+requireApp('system/shared/test/unit/mocks/mock_settings_url.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_iac_handler.js');
 requireApp('system/js/rocketbar.js');
@@ -13,10 +14,9 @@ var mocksForRocketbar = new MocksHelper([
   'AppWindowManager',
   'SearchWindow',
   'SettingsListener',
+  'SettingsURL',
   'IACPort'
 ]).init();
-
-mocha.globals(['HomeSearchbar', 'SearchWindow', 'Rocketbar']);
 
 suite('system/HomeSearchbar', function() {
   mocksForRocketbar.attachTestHelpers();

@@ -129,6 +129,10 @@ define(function(require, exports, module) {
     this.el.setAttribute(toDashed(key), value);
   };
 
+  View.prototype.get = function(key) {
+    return this.el.getAttribute(key);
+  };
+
   /**
    * Returns a function that when called
    * will .set() the given key.

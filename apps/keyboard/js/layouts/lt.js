@@ -1,5 +1,6 @@
 Keyboards.lt = {
   label: 'Lithuanian',
+  shortLabel: 'Lt',
   menuLabel: 'Lietuvių',
   imEngine: 'latin',
   types: ['text', 'url', 'email'],

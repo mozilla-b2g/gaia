@@ -36,7 +36,7 @@ var ConferenceGroupHandler = (function() {
 
     LazyL10n.get(function localized(_) {
       groupDetailsHeader.textContent = groupLabel.textContent =
-        _('group-call', {n: calls.length});
+        _('conference', {n: calls.length});
     });
 
     // When hanging up phones on conferenceGroup.calls.length >= 2,
@@ -56,7 +56,7 @@ var ConferenceGroupHandler = (function() {
     groupLine.classList.remove('held');
     groupDurationChildNode.textContent = null;
     CallScreen.createTicker(groupDuration);
-    CallScreen.setCallerContactImage(null);
+    CallScreen.setCallerContactImage();
   }
 
   function end() {

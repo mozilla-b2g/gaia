@@ -172,38 +172,40 @@
       return details;
     },
 
-    getCarrierTag: function ut_getCarrierTag(input, tels, details) {
-      /**
-        1. If a phone number has carrier associated with it
-            the output will be:
+    extend: function ut_extend(target, source) {
+      for (var key in source) {
+        if (source.hasOwnProperty(key)) {
+          target[key] = source[key];
+        }
+      }
+    },
 
-          type | carrier
-
-        2. If there is no carrier associated with the phone number
-            the output will be:
-
-          type | phonenumber
-
-        3. If for some reason a single contact has two phone numbers with
-            the same type and the same carrier the output will be:
-
-          type | phonenumber
-
-        4. If for some reason a single contact has no name and no carrier,
-            the output will be:
-
-          type
-
-        5. If for some reason a single contact has no name, no type
-            and no carrier, the output will be nothing.
-      */
+    /**
+     * Based on input number tries to extract more phone details like phone
+     * type, full phone number and phone carrier.
+     * 1. If a phone number has carrier associated with it then both "type" and
+     * "carrier" will be returned;
+     *
+     * 2. If there is no carrier associated with the phone number then "type"
+     *  and "phone number" will be returned;
+     *
+     * 3. If for some reason a single contact has two phone numbers with the
+     * same type and the same carrier then "type" and "phone number" will be
+     * returned;
+     *
+     * 4. If for some reason a single contact has no name and no carrier, only
+     * "type" will be returned;
+     *
+     * 5. If for some reason a single contact has no name, no type and no
+     * carrier, "null" will be returned.
+     */
+    getCarrierTag: function ut_getCarrierTag(input, tels, contactDetails) {
       var length = tels.length;
-      var hasDetails = typeof details !== 'undefined';
+      var hasContactDetails = typeof contactDetails !== 'undefined';
       var hasUniqueCarriers = true;
       var hasUniqueTypes = true;
-      var name = hasDetails ? details.name : '';
-      var found, tel, type, carrier, value, ending;
-      var _ = navigator.mozL10n.get;
+      var contactName = hasContactDetails ? contactDetails.name : '';
+      var found, tel, type, carrier, number;
 
       for (var i = 0; i < length; i++) {
         tel = tels[i];
@@ -225,28 +227,20 @@
       }
 
       if (!found) {
-        return '';
+        return null;
       }
 
-      type = (found.type && found.type[0]) || '';
-      // Non localized label is better than a blank string
-      type = type && _(type) || type;
-      carrier = (hasUniqueCarriers || hasUniqueTypes) ? found.carrier : '';
-      value = carrier || found.value;
-      ending = (carrier || value);
+      type = (found.type && found.type[0]) || null;
+      carrier = (hasUniqueCarriers || hasUniqueTypes) ? found.carrier : null;
+      // Return number only in case we don't have contact details or contact
+      // doesn't have name defined.
+      number = !hasContactDetails || !!contactName ? found.value : null;
 
-      if (hasDetails && !name && !carrier) {
-        ending = '';
-      }
-
-      if (type && ending) {
-        return _('thread-header', {
-          numberType: type,
-          numberDetail: ending
-        });
-      } else {
-        return type + ending;
-      }
+      return type || carrier || number ? {
+        type: type,
+        carrier: carrier,
+        number: number
+      } : null;
     },
 
     // Based on "non-dialables" in https://github.com/andreasgal/PhoneNumber.js

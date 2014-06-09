@@ -1,5 +1,6 @@
 Keyboards['bn-Probhat'] = {
   label: 'Bangla - Probhat',
+  shortLabel: 'Bn',
   menuLabel: 'বাংলা - প্রভাত',
   alternateLayoutKey: '?১২',
   basicLayoutKey: 'কখগ',

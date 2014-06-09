@@ -28,6 +28,11 @@ EditEvent.prototype = {
     this.setFormValue('location', value);
   },
 
+  set calendar(value) {
+    var select = this.findElement('select[name="calendarId"]');
+    this.client.helper.tapSelectOption(select, value);
+  },
+
   set startDate(value) {
     this.setFormValue('startDate', value);
   },

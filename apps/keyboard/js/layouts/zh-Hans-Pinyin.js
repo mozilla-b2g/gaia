@@ -1,5 +1,6 @@
 Keyboards['zh-Hans-Pinyin'] = {
   label: 'Chinese - Simplified - Pinyin',
+  shortLabel: '拼',
   menuLabel: '拼音',
   needsCandidatePanel: true,
   disableAlternateLayout: true,

@@ -59,12 +59,14 @@ var Browser = {
     this.urlInput.addEventListener('focus', this.urlFocus.bind(this));
     this.urlInput.addEventListener('blur', this.urlBlur.bind(this));
     this.urlInput.addEventListener('mouseup', this.urlMouseUp.bind(this));
-    this.urlInput.addEventListener('keyup',
+    this.urlInput.addEventListener('input',
       this.handleUrlInputKeypress.bind(this));
     this.urlButton.addEventListener('click',
       this.handleUrlFormSubmit.bind(this));
     this.tabsBadge.addEventListener('click',
       this.handleTabsBadgeClicked.bind(this));
+
+    this.addTabBtnActive();
 
     // Hack to make integration tests pass, see bug 912150
     this.urlInput.addEventListener('click', this.urlFocus.bind(this));
@@ -127,8 +129,8 @@ var Browser = {
     var filesToLoad = [
       // css files
       'shared/style/headers.css',
-      'shared/style_unstable/buttons.css',
-      'shared/style_unstable/input_areas.css',
+      'shared/style/buttons.css',
+      'shared/style/input_areas.css',
       'shared/style/status.css',
       'shared/style/confirm.css',
       'shared/style/action_menu.css',
@@ -237,6 +239,28 @@ var Browser = {
      AuthenticationDialog.init(false);
   },
 
+  getDefaultData: function browser_getConfData(callback) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', '/js/inittopsites.json', true);
+
+    xhr.addEventListener('load', (function browser_defaultConfDataListener() {
+      if (!(xhr.status === 200 | xhr.status === 0)) {
+        console.error('Unknown response when getting configuration data.');
+        return;
+      }
+
+      callback(JSON.parse(xhr.responseText));
+
+    }).bind(this), false);
+
+    xhr.onerror = function getDefaultConfDataError() {
+      callback(null);
+      console.error('Error getting configuration data.');
+    };
+
+    xhr.send();
+  },
+
   /**
    * Get configuration data from init.json file generated at build time.
    *
@@ -299,6 +323,24 @@ var Browser = {
     };
 
     xhr.send();
+  },
+
+  // Extract :active behaviour from CSS into js at it was misbehaving
+  addTabBtnActive: function() {
+    var self = this;
+
+    this.tabsBadge.addEventListener('mousedown', function() {
+
+      var leave = function() {
+        self.toolbarStart.classList.remove('tab-btn-active');
+        self.tabsBadge.removeEventListener('mouseleave', leave);
+        self.tabsBadge.removeEventListener('mouseup', leave);
+      };
+
+      self.toolbarStart.classList.add('tab-btn-active');
+      self.tabsBadge.addEventListener('mouseleave', leave);
+      self.tabsBadge.addEventListener('mouseup', leave);
+    });
   },
 
   // Clicking the page preview on the left gutter of the tab page opens
@@ -891,7 +933,8 @@ var Browser = {
     if (this.shouldFocus) {
       e.preventDefault();
       this.urlInput.focus();
-      this.urlInput.select();
+      this.urlInput.setSelectionRange(0, this.urlInput.value.length);
+      this.urlInput.scrollLeft = this.urlInput.scrollWidth;
       this.shouldFocus = false;
     }
   },
@@ -913,6 +956,7 @@ var Browser = {
   },
 
   urlBlur: function browser_urlBlur() {
+    this.urlInput.scrollLeft = 0;
     this.urlBar.classList.remove('focus');
   },
 

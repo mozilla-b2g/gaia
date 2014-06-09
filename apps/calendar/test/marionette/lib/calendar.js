@@ -106,6 +106,12 @@ Calendar.prototype = {
     return this;
   },
 
+  closeAdvancedSettingsView: function() {
+    var advancedSettings = this.advancedSettings;
+    advancedSettings.close();
+    advancedSettings.waitForHide();
+  },
+
   openDayView: function() {
     this.client
       .findElement('#view-selector a[href="/day/"]')
@@ -137,42 +143,43 @@ Calendar.prototype = {
     return this;
   },
 
-  createCalDavAccount: function(opts) {
-    var modifyAccount = this.modifyAccount;
-
+  setupAccount: function(options) {
     this.openAdvancedSettingsView();
-
     this.advancedSettings.createAccount();
     this.createAccount.waitForDisplay();
+    this.createAccount.chooseAccountType(options.accountType);
 
-    this.createAccount.createCalDavAccount();
+    var modifyAccount = this.modifyAccount;
     modifyAccount.waitForDisplay();
-
-    if (opts) {
-      if (opts.user) {
-        modifyAccount.user = opts.user;
+    [
+      'user',
+      'password',
+      'fullUrl'
+    ].forEach(function(key) {
+      if (key in options) {
+        modifyAccount[key] = options[key];
       }
-      if (opts.password) {
-        modifyAccount.password = opts.password;
-      }
-      if (opts.fullUrl) {
-        modifyAccount.fullUrl = opts.fullUrl;
-      }
-    }
+    });
 
     modifyAccount.save();
-    this.waitForKeyboardHide();
-    // XXX: Workaround to wait for the modify account view is hide.
-    // We should do `modifyAccount.waitForHide()` here
-    // after http://bugzil.la/995563 is fixed.
-    this.client.waitFor(function() {
-      return modifyAccount.getElement().cssProperty('z-index') === '-1';
-    });
+    modifyAccount.waitForHide();
     this.closeSettingsView();
     return this;
   },
 
-  syncCalendar: function() {
+  teardownAccount: function(username) {
+    this.openAdvancedSettingsView();
+    this.advancedSettings.clickAccount(username);
+    var modifyAccount = this.modifyAccount;
+    modifyAccount.waitForDisplay();
+    modifyAccount.delete();
+    modifyAccount.waitForHide();
+    this.closeAdvancedSettingsView();
+    this.closeSettingsView();
+    return this;
+  },
+
+  sync: function() {
     this.openSettingsView();
     this.settings.sync();
     this.closeSettingsView();
@@ -183,12 +190,14 @@ Calendar.prototype = {
    * Create an event.
    *
    * Options:
+   *   (String) calendar - calendar name [defaults to "Offline calendar"].
    *   (String) title - event title.
    *   (String) location - event location.
    *   (Date) startDate - event start date.
    *   (Date) endDate - event end date.
    *   (Number) startHour - shortcut for creating an event that starts today.
    *   (Number) duration - length of event in hours.
+   *   (Boolean) allDay - whether this is an all day event.
    *   (Array) reminders - array of strings like '5 minutes before'.
    */
   createEvent: function(opts) {
@@ -218,6 +227,7 @@ Calendar.prototype = {
     editEvent.title = opts.title;
     editEvent.location = opts.location || '';
     editEvent.description = opts.description || '';
+    editEvent.calendar = opts.calendar || 'Offline calendar';
     editEvent.startDate = startDate;
     editEvent.endDate = endDate;
     if (opts.allDay) {
@@ -231,7 +241,6 @@ Calendar.prototype = {
     editEvent.reminders = opts.reminders == null ? [] : opts.reminders;
     editEvent.save();
 
-    this.waitForKeyboardHide();
     editEvent.waitForHide();
     return this;
   },
@@ -263,29 +272,6 @@ Calendar.prototype = {
       throw new Error(msg);
     }
 
-    return this;
-  },
-
-  // TODO: extract this logic into the marionette-helper repository since this
-  // can be useful for other apps as well
-  waitForKeyboardHide: function() {
-    // FIXME: keyboard might affect the click if test is being executed on
-    // a slow machine (eg. travis-ci) so we do this hack until Bug 965131 is
-    // fixed
-    var client = this.client;
-
-    // need to go back to top most frame before being able to switch to
-    // a different app!!!
-    client.switchToFrame();
-    client.apps.switchToApp('app://keyboard.gaiamobile.org');
-    client.waitFor(function() {
-      return client.executeScript(function() {
-        return document.hidden;
-      });
-    });
-
-    client.switchToFrame();
-    client.apps.switchToApp(Calendar.ORIGIN);
     return this;
   },
 

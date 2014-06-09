@@ -20,6 +20,14 @@
   },
   "orientation": "default",
   "activities": {
+    "open" : {
+      "filters": {
+        "type": "application/pdf"
+      },
+      "disposition": "window",
+      "href": "/content/web/viewer.html",
+      "returnValue": true
+    },
     "view" : {
       "filters": {
         "type": "application/pdf"

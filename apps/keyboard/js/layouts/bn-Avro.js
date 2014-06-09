@@ -1,5 +1,6 @@
 Keyboards['bn-Avro'] = {
   label: 'Bangla - Avro',
+  shortLabel: 'Bn',
   imEngine: 'jsavrophonetic',
   menuLabel: 'বাংলা - অভ্র',
   alternateLayoutKey: '?১২৩',

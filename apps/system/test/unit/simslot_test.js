@@ -1,7 +1,5 @@
 'use strict';
 
-mocha.globals(['SIMSlot']);
-
 suite('SIMSlot', function() {
   suiteSetup(function() {
   });

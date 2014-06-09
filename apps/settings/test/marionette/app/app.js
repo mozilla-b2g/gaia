@@ -18,10 +18,8 @@ var Base = require('./base'),
     AppPermissionPanel = require('./regions/app_permission'),
     DisplayPanel = require('./regions/display'),
     AppStoragePanel = require('./regions/app_storage'),
-    MediaStoragePanel = require('./regions/media_storage');
-
-// origin of the settings app
-var ORIGIN = 'app://settings.gaiamobile.org';
+    MediaStoragePanel = require('./regions/media_storage'),
+    KeyboardPanel = require('./regions/keyboard');
 
 /**
  * Abstraction around settings app
@@ -31,8 +29,11 @@ var ORIGIN = 'app://settings.gaiamobile.org';
 function Settings(client) {
   this.client = client;
   // Call the Base constructor to initiate base class.
-  Base.call(this, this.client, ORIGIN, Settings.Selectors);
+  Base.call(this, this.client, Settings.ORIGIN, Settings.Selectors);
 }
+
+// origin of the settings app
+Settings.ORIGIN = 'app://settings.gaiamobile.org';
 
 module.exports = Settings;
 
@@ -55,7 +56,8 @@ Settings.Selectors = {
   'appPermissionPanel': '#menuItem-appPermissions',
   'displayMenuItem': '#menuItem-display',
   'appStorageMenuItem': '#menuItem-applicationStorage',
-  'mediaStorageMenuItem': '#menuItem-mediaStorage'
+  'mediaStorageMenuItem': '#menuItem-mediaStorage',
+  'keyboardMenuItem': '#menuItem-keyboard'
 };
 
 Settings.prototype = {
@@ -178,6 +180,12 @@ Settings.prototype = {
     this._mediaStoragePanel = this._mediaStoragePanel ||
       new MediaStoragePanel(this.client);
     return this._mediaStoragePanel;
+  },
+
+  get keyboardPanel() {
+    this.openPanel('keyboardMenuItem');
+    this._keyboardPanel = this._keyboardPanel || new KeyboardPanel(this.client);
+    return this._keyboardPanel;
   },
 
   set currentLanguage(value) {

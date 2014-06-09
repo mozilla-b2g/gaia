@@ -6,8 +6,6 @@ requireApp('system/test/unit/mock_modal_dialog.js');
 requireApp('system/test/unit/mock_screen_manager.js');
 requireApp('system/js/remote_debugger.js');
 
-mocha.globals(['RemoteDebugger', 'addEventListener', 'dispatchEvent']);
-
 var mocksForRemoteDebugger = new MocksHelper([
   'ModalDialog',
   'ScreenManager'

@@ -1,3 +1,7 @@
+/* globals CallsHandler, KeypadManager, LazyL10n, LockScreenSlide,
+           MozActivity */
+/* jshint nonew: false */
+
 'use strict';
 
 var CallScreen = {
@@ -38,6 +42,7 @@ var CallScreen = {
   hideGroupButton: document.getElementById('group-hide'),
 
   incomingContainer: document.getElementById('incoming-container'),
+  incomingInfo: document.getElementById('incoming-info'),
   incomingNumber: document.getElementById('incoming-number'),
   incomingSim: document.getElementById('incoming-sim'),
   incomingNumberAdditionalInfo:
@@ -169,6 +174,10 @@ var CallScreen = {
           }
         },
 
+        track: {
+          backgroundColor: 'rgba(0, 0, 0, 0.4)'
+        },
+
         colors: {
           left: {
             touchedColor: '255, 0, 0',
@@ -182,13 +191,15 @@ var CallScreen = {
         },
 
         resources: {
-          larrow: '/style/images/larrow.png',
-          rarrow: '/style/images/rarrow.png'
+          larrow: '/style/images/lock_screen/LArrow_Lockscreen.png',
+          rarrow: '/style/images/lock_screen/RArrow_Lockscreen.png'
         },
         handle: {
           autoExpand: {
             sentinelOffset: 80
-          }
+          },
+          backgroundColor: '255, 255, 255',
+          backgroundAlpha: 0.85
         }
       }
     );
@@ -230,7 +241,6 @@ var CallScreen = {
   _transitioning: false,
   _transitionDone: false,
   _contactBackgroundWaiting: false,
-  _contactImage: null,
 
   toggle: function cs_toggle(callback) {
     // Waiting for the wallpaper to be set before toggling the screen in
@@ -275,25 +285,21 @@ var CallScreen = {
   _onTransitionDone: function cs_onTransitionDone() {
     this._transitionDone = true;
     if (this._contactBackgroundWaiting) {
-      this.setCallerContactImage(this._contactImage);
+      this.setCallerContactImage();
       this._contactBackgroundWaiting = false;
     }
   },
 
-  setCallerContactImage: function cs_setContactImage(blob, force) {
+  setCallerContactImage: function cs_setCallerContactImage() {
     // Waiting for the call screen transition to end before updating
     // the contact image
     if (!this._transitionDone) {
-      this._contactImage = blob;
       this._contactBackgroundWaiting = true;
       return;
     }
 
-    if (this._contactImage == blob && !this._contactBackgroundWaiting) {
-      return;
-    }
-
-    this._contactImage = blob;
+    var activeCallForContactImage = CallsHandler.activeCallForContactImage;
+    var blob = activeCallForContactImage && activeCallForContactImage.photo;
 
     this.contactBackground.classList.remove('ready');
     var background = blob ? 'url(' + URL.createObjectURL(blob) + ')' : '';
@@ -301,8 +307,14 @@ var CallScreen = {
     this.contactBackground.classList.add('ready');
   },
 
+  /**
+   * This function is kept, although it currently sets the current wallpaper as
+   *  the emergency wallpaper, since it is expected to be needed once UX
+   *  provides the desired emergency image to use. See
+   *   https://bugzilla.mozilla.org/show_bug.cgi?id=993951#c6
+   */
   setEmergencyWallpaper: function cs_setEmergencyWallpaper() {
-    this.mainContainer.classList.add('emergency-active');
+    this.setWallpaper();
   },
 
   insertCall: function cs_insertCall(node) {
@@ -460,12 +472,8 @@ var CallScreen = {
       this._screenWakeLock.unlock();
       this._screenWakeLock = null;
     }
-    var hc = CallsHandler.activeCall;
-    if (hc) {
-      this.setCallerContactImage(hc.photo);
-    } else {
-      this.setCallerContactImage(null);
-    }
+
+    this.setCallerContactImage();
   },
 
   syncSpeakerEnabled: function cs_syncSpeakerEnabled() {
@@ -501,8 +509,9 @@ var CallScreen = {
   createTicker: function(durationNode) {
     var durationChildNode = durationNode.querySelector('span');
 
-    if (durationNode.dataset.tickerId)
+    if (durationNode.dataset.tickerId) {
       return false;
+    }
 
     durationChildNode.textContent = '00:00';
     durationNode.classList.add('isTimer');
