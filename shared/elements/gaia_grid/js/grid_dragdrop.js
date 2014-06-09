@@ -94,6 +94,10 @@
     },
 
     finish: function(e) {
+      // Remove the dragging property after the icon has transitioned into
+      // place to avoid jank due to animations starting that are disabled
+      // when dragging.
+      this.icon.element.addEventListener('transitionend', this);
       this.currentTouch = null;
 
       this.target.classList.remove('active');
@@ -107,10 +111,6 @@
                               to: this.icon.detail.index});
       }
 
-      // Rearrange can access the item, so null it out only after the
-      // last possible rearrange.
-      this.icon = null;
-
       // Save icon state if we need to
       if (this.dirty) {
         window.dispatchEvent(new CustomEvent('gaiagrid-saveitems'));
@@ -123,8 +123,6 @@
         this.gridView.start();
         window.dispatchEvent(new CustomEvent('gaiagrid-dragdrop-finish'));
       }.bind(this));
-
-      this.container.classList.remove('dragging');
     },
 
     /**
@@ -282,6 +280,11 @@
       window.dispatchEvent(new CustomEvent('gaiagrid-editmode-end'));
       document.removeEventListener('visibilitychange', this);
       this.removeDragHandlers();
+
+      if (this.icon) {
+        this.icon.element.removeEventListener('transitionend', this);
+        this.icon = null;
+      }
     },
 
     removeDragHandlers: function() {
@@ -308,6 +311,10 @@
             break;
 
           case 'contextmenu':
+            if (this.icon) {
+              return;
+            }
+
             this.target = e.target;
 
             if (!this.target) {
@@ -357,6 +364,17 @@
             e.preventDefault();
             this.removeDragHandlers();
             this.finish(e);
+            break;
+
+          case 'transitionend':
+            if (!this.icon) {
+              return;
+            }
+
+            this.container.classList.remove('dragging');
+            this.icon.element.removeEventListener('transitionend', this);
+            this.icon = null;
+
             break;
         }
     }
