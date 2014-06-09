@@ -12,7 +12,6 @@
 (function(exports) {
 
   var LockScreen = function() {
-    this.init();
   };
   LockScreen.prototype = {
     configs: {
