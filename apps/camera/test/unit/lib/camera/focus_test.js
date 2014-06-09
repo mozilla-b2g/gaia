@@ -88,6 +88,7 @@ suite('lib/camera/focus', function() {
         faceDetection: false
       };
       this.focus = new this.Focus(userPreferences);
+      this.focus.mozCamera = this.mozCamera;
       this.sandbox.stub(this.focus, 'isTouchFocusSupported');
       this.sandbox.stub(this.focus, 'isFaceDetectionSupported');
       this.sandbox.stub(this.focus, 'startFaceDetection');
@@ -251,6 +252,27 @@ suite('lib/camera/focus', function() {
       assert.ok(this.focus.mozCamera.resumeContinuousFocus.called);
     });
   });
+
+  suite('Focus#onAutoFocusMoving', function() {
+    setup(function() {
+      this.sandbox.spy(this.focus, 'onAutoFocusChanged');
+    });
+
+    teardown(function() {
+      this.sandbox.restore();
+    });
+
+    test('should call onAutoFocusChanged', function() {
+      this.focus.onAutoFocusMoving(true);
+      assert.ok(this.focus.onAutoFocusChanged.called);
+    });
+
+    test('should not call onAutoFocusChanged', function() {
+      this.focus.onAutoFocusMoving(false);
+      assert.ok(!this.focus.onAutoFocusChanged.called);
+    });
+  });
+
 
   suite('Focus#suspendContinuousFocus', function() {
     setup(function() {
@@ -508,6 +530,19 @@ suite('lib/camera/focus', function() {
 
   });
 
+  suite('Focus#stop()', function() {
+    setup(function() {
+      this.focus.stopContinuousFocus = sinon.spy();
+      this.focus.stopFaceDetection = sinon.spy();
+    });
+
+    test('Should stop face detection and continuous focus', function() {
+      this.focus.stop();
+      assert.ok(this.focus.stopContinuousFocus.called);
+      assert.ok(this.focus.stopFaceDetection.called);
+    });
+  });
+
   suite('Focus#reset()', function() {
     test('metering areas and focus areas are reset if touch focus enabled', function() {
       this.focus.touchFocus = true;
@@ -526,13 +561,13 @@ suite('lib/camera/focus', function() {
 
   suite('Focus#resume()', function() {
     setup(function() {
-      this.focus.suspendContinuousFocus = sinon.spy();
+      this.focus.resumeContinuousFocus = sinon.spy();
     });
 
     test('resumeContinuousFocus called if focus mode is continuous-picture', function() {
       this.focus.mozCamera.focusMode = 'continuous-picture'
       this.focus.resume();
-      assert.ok(this.focus.suspendContinuousFocus.called);
+      assert.ok(this.focus.resumeContinuousFocus.called);
     });
 
   });
