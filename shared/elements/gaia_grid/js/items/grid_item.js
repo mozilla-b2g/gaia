@@ -34,8 +34,6 @@
      */
     gridWidth: 1,
 
-    scale: 1,
-
     /**
      * Whether or not this icon will persist to the database.
      */
@@ -78,7 +76,8 @@
     },
 
     /**
-     * Displays the icon as a background of the element.
+     * Displays the icon as a background of the element. A shadow will be
+     * generated for the icon before it is rendered.
      * @param {String} url The image url to display.
      */
     displayIcon: function(url) {
@@ -123,27 +122,22 @@
         clipImage.onload = function clip_onload() {
           shadowCtx.drawImage(clipImage, CANVAS_PADDING, CANVAS_PADDING,
                                 MAX_ICON_SIZE, MAX_ICON_SIZE);
-          shadowCanvas.toBlob(this.renderIconFromBlob.bind(this));
+          this.renderIconFromURL(shadowCanvas.toDataURL());
         }.bind(this);
         clipImage.src = clipCanvas.toDataURL();
       } else {
         shadowCtx.drawImage(img, CANVAS_PADDING, CANVAS_PADDING,
                       MAX_ICON_SIZE, MAX_ICON_SIZE);
-        shadowCanvas.toBlob(this.renderIconFromBlob.bind(this));
+        this.renderIconFromURL(shadowCanvas.toDataURL());
       }
     },
 
     /**
-     * Displays an icon by blob
-     * @param {Blob} blob The image blob to display.
+     * Renders an icon by url
+     * @param {String} url The image url to render.
      */
-    renderIconFromBlob: function(blob) {
-      this.element.style.height = this.grid.layout.gridItemHeight + 'px';
-      this.element.style.backgroundSize =
-        ((this.grid.layout.gridIconSize * (1 / this.scale)) +
-        UNSCALED_CANVAS_PADDING) +'px';
-      this.element.style.backgroundImage =
-        'url(' + URL.createObjectURL(blob) + ')';
+    renderIconFromURL: function(url) {
+      this.iconElement.src = url;
     },
 
     showDownloading: function() {
@@ -162,10 +156,10 @@
      * Renders the icon to the container.
      * @param {Array} coordinates Grid coordinates to render to.
      * @param {Number} index The index of the items list of this item.
+     * @param {Boolean} useTransform Use a transform instead of left/top to
+     * position the item
      */
-    render: function(coordinates, index) {
-      this.scale = this.grid.layout.percent;
-
+    render: function(coordinates, index, useTransform) {
       // Generate an element if we need to
       if (!this.element) {
         var tile = document.createElement('div');
@@ -173,11 +167,13 @@
         tile.dataset.identifier = this.identifier;
         tile.setAttribute('role', 'link');
 
+        var icon = document.createElement('img');
+        icon.className = 'image';
+        tile.appendChild(icon);
+
         // This <p> has been added in order to place the title with respect
         // to this container via CSS without touching JS.
         var nameContainerEl = document.createElement('p');
-        nameContainerEl.style.marginTop = (this.grid.layout.gridIconSize *
-                                          (1 / this.scale)) + 'px';
         tile.appendChild(nameContainerEl);
 
         var nameEl = document.createElement('span');
@@ -193,6 +189,8 @@
         }
 
         this.element = tile;
+        this.iconElement = icon;
+
         if (this.isIconFromOrigin()) {
           LazyLoader.load(
             ['/shared/js/async_storage.js',
@@ -216,27 +214,59 @@
         this.grid.element.appendChild(tile);
       }
 
-      var x = coordinates[0] * this.grid.layout.gridItemWidth;
+      // XXX Ideally we'd set this in the CSS using calc(100% / columnWidth),
+      //     but it's a lot less hassle to set it here.
+      var width = this.grid.layout.gridItemWidth;
+
+      var x = coordinates[0] * width;
       var y = this.grid.layout.offsetY;
+      this.element.style.width = width + 'px';
       this.setPosition(index);
       this.x = x;
       this.y = y;
+      if (this.iconElement) {
+        this.iconElement.style.height = (this.grid.layout.gridIconSize) + 'px';
+      }
 
       // Avoid rendering the icon during a drag to prevent jumpiness
       if (this.noTransform) {
         return;
       }
 
-      this.transform(x, y, this.grid.layout.percent);
+      this.transform(x, y, 1, useTransform);
     },
 
     /**
      * Positions and scales an icon.
      */
-    transform: function(x, y, scale) {
-      scale = scale || 1;
-      this.element.style.transform =
-        'translate(' + x + 'px,' + y + 'px) scale(' + scale + ')';
+    transform: function(x, y, scale, useTransform) {
+      // There are two paths to position the icon, one using transforms and
+      // the other using absolute positioning. Both paths cause different
+      // layerisation behaviour in Gecko, and so either may be more
+      // performant depending on what properties are applied to the icon and
+      // its children.
+      if (useTransform) {
+        scale = scale || 1;
+        this.element.style.left = '';
+        this.element.style.top = '';
+        this.element.style.transform =
+          'translate(' + x + 'px,' + y + 'px) scale(' + scale + ')';
+
+        // Force a style computation so that the above doesn't incorrectly
+        // transition before adding this class
+        this.element.clientTop;
+
+        this.element.classList.add('has-transform');
+      } else {
+        this.element.classList.remove('has-transform');
+        this.element.style.left = x + 'px';
+        this.element.style.top = y + 'px';
+        if (scale && scale != 1) {
+          this.element.style.transform = 'scale(' + scale + ')';
+        } else {
+          this.element.style.transform = '';
+        }
+      }
     }
   };
 

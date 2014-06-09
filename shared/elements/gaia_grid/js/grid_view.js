@@ -3,11 +3,14 @@
 /* global GridDragDrop */
 /* global GridLayout */
 /* global GridZoom */
+/* global Icon */
 /* global Placeholder */
 
 (function(exports) {
 
   const PREVENT_CLICK_TIMEOUT = 300;
+
+  const ITEM_ADDED_TIMEOUT = 500;
 
   /**
    * GridView is a generic class to render and display a grid of items.
@@ -47,6 +50,11 @@
     items: [],
 
     /**
+     * List of all visible displayed app icons in the homescreen.
+     */
+    visibleIcons: [],
+
+    /**
      * Returns a reference to the gaia-grid element.
      */
     get element() {
@@ -63,23 +71,32 @@
       if (item.identifier) {
         this.icons[item.identifier] = item;
       }
+
+      // Recalculate visibility after adding items
+      clearTimeout(this.calcVisibilityTimeout);
+      this.calcVisibilityTimeout = setTimeout(function afterItemAdded() {
+        this.calcVisibility();
+      }.bind(this), ITEM_ADDED_TIMEOUT);
     },
 
     start: function() {
       this.element.addEventListener('click', this.clickIcon);
-      window.addEventListener('scroll', this.onScroll);
+      this.element.parentElement.addEventListener('scroll', this.onScroll);
     },
 
     stop: function() {
       this.element.removeEventListener('click', this.clickIcon);
-      window.removeEventListener('scroll', this.onScroll);
+      this.element.parentElement.removeEventListener('scroll', this.onScroll);
     },
 
     onScroll: function(e) {
+      this.element.classList.add('scrolling');
       this.element.removeEventListener('click', this.clickIcon);
       clearTimeout(this.preventClickTimeout);
       this.preventClickTimeout = setTimeout(function addClickEvent() {
         this.element.addEventListener('click', this.clickIcon);
+        this.element.classList.remove('scrolling');
+        this.calcVisibility();
       }.bind(this), PREVENT_CLICK_TIMEOUT);
     },
 
@@ -112,6 +129,32 @@
       }
 
       icon[action]();
+    },
+
+    /**
+     * Calculates whether an icon is visible or not and sets a CSS class
+     * accordingly.
+     */
+    calcVisibility: function() {
+      clearTimeout(this.calcVisibilityTimeout);
+
+      this.visibleIcons.forEach(function(item) {
+        item.element.classList.remove('visible');
+      }, this);
+      this.visibleIcons = [];
+
+      var visibleStart = this.element.parentElement.scrollTop;
+      var visibleEnd = visibleStart + this.element.parentElement.clientHeight;
+      var itemHeight = this.layout.gridItemHeight;
+      this.items.forEach(function(item) {
+        if (item instanceof Icon) {
+          if (item.element.offsetTop + itemHeight > visibleStart &&
+              item.element.offsetTop < visibleEnd) {
+            item.element.classList.add('visible');
+            this.visibleIcons.push(item);
+          }
+        }
+      }, this);
     },
 
     /**
@@ -205,25 +248,40 @@
      * on the grid.
      * @param {Object} options Options to render with including:
      *  - from {Integer} The index to start rendering from.
+     *  - to {Integer} The index to end rendering at.
      *  - skipDivider {Boolean} Whether or not to skip the divider
+     *  - useTransform {Boolean} Whether to render items using transforms or
+     *    absolute positioning.
      */
     render: function(options) {
       var self = this;
       options = options || {};
 
+      // Bounds-check the 'from' and 'to' parameters.
+      var from = Math.max(0, Math.min(this.items.length - 1, options.from || 0));
+      var to = Math.max(0, Math.min(this.items.length - 1,
+                 (options.to == 0) ? 0 : options.to || this.items.length - 1));
+      if (to < from) {
+        to = from;
+      }
+
+      // If we're rendering to the end of the grid, refresh the container height
+      var setContainerHeight = false;
+      if (to == this.items.length - 1) {
+        setContainerHeight = true;
+      }
+
+      // Store the from and to indices as items, as removing placeholders/
+      // cleaning will alter indexes.
+      var fromItem = this.items[from];
+      var toItem = this.items[to];
+
       this.removeAllPlaceholders();
       this.cleanItems(options.skipDivider);
 
-      // Start rendering from one before the drop target. If not,
-      // we may drop over the divider and miss rendering an icon.
-      var from = options.from - 1 || 0;
-
-      // TODO This variable should be an argument of this method. See
-      // https://bugzilla.mozilla.org/show_bug.cgi?id=1010742#c4
-      var to = this.items.length - 1;
-
-      // Reset offset steps
-      this.layout.offsetY = 0;
+      // Reset the to index until we find it again when iterating over items
+      // below.
+      to = this.items.length - 1;
 
       // Grid render coordinates
       var x = 0;
@@ -239,6 +297,9 @@
         x = 0;
         y++;
       }
+
+      // Reset offset steps
+      this.layout.offsetY = 0;
 
       for (var idx = 0; idx <= to; idx++) {
         var item = this.items[idx];
@@ -263,8 +324,18 @@
           step(lastItem);
         }
 
-        if (idx >= from) {
-          item.render([x, y], idx);
+        if (item == fromItem) {
+          from = idx;
+        }
+        if (item == toItem) {
+          to = idx;
+        }
+
+        // Check if idx is >= to also - there's a chance that decrementing from
+        // at the beginning of this function means fromItem is a placeholder
+        // or a removed divider.
+        if (idx >= from || idx >= to) {
+          item.render([x, y], idx, options.useTransform);
         }
 
         // Increment the x-step by the sizing of the item.
@@ -274,6 +345,14 @@
           step(item);
         }
       }
+
+      // Set our height based on position of the last item
+      if (setContainerHeight) {
+        this.element.style.height = (this.layout.offsetY + this.layout.gridItemHeight) + 'px';
+      }
+
+      // Reset offsetY as stepYAxis changes it and it may be needed elsewhere.
+      this.layout.offsetY = 0;
     }
   };
 
