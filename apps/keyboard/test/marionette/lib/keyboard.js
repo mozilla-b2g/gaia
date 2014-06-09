@@ -38,5 +38,6 @@ Keyboard.prototype = {
     var keyboardFrame = client.findElement('iframe[src*="' +
                                            Keyboard.ORIGIN + '"]');
     client.switchToFrame(keyboardFrame);
+
   }
 };
