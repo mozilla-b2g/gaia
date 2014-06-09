@@ -629,7 +629,7 @@
        TODO: Email Address check.
      */
     isEmailAddress: function(email) {
-      return email.match(rmail) ? true : false;
+      return rmail.test(email);
     },
     /*
       Helper function for removing notifications. It will fetch the notification
