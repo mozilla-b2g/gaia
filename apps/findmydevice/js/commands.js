@@ -151,12 +151,23 @@ var Commands = {
       };
     }
 
-    toWipe.forEach(function wipe_storage(storage) {
+    toWipe = toWipe.filter(function wipe_storage(storage) {
       var ds = navigator.getDeviceStorage(storage);
-      var cursor = ds.enumerate();
-      cursor.onsuccess = cursor_onsuccess(storage, ds);
-      cursor.onerror = cursor_onerror(storage);
+      if (ds !== null) {
+        var cursor = ds.enumerate();
+        cursor.onsuccess = cursor_onsuccess(storage, ds);
+        cursor.onerror = cursor_onerror(storage);
+      }
+      
+      return ds !== null;
+     
     });
+
+    if (toWipe.length === 0) {
+      DUMP('No storages on device, starting factory reset!');
+      navigator.mozPower.factoryReset();
+      reply(true);
+    }
   },
 
   lock: function fmdc_lock(message, passcode, reply) {
