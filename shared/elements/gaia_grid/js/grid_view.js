@@ -140,13 +140,13 @@
     /**
      * Scrubs the list of items, removing empty sections.
      */
-    cleanItems: function(skipDivider) {
+    cleanItems: function() {
       var appCount = 0;
       var toRemove = [];
 
       this.items.forEach(function(item, idx) {
         if (item instanceof GaiaGrid.Divider) {
-          if (appCount === 0) {
+          if (appCount === 0 || (idx === this.items.length - 1)) {
             toRemove.push(idx);
           }
           appCount = 0;
@@ -160,16 +160,6 @@
         var removed = this.items.splice(idx, 1)[0];
         removed.remove();
       }, this);
-
-      // There should always be a divider at the end, it's hidden in CSS when
-      // not in edit mode.
-      if (skipDivider) {
-        return;
-      }
-      var lastItem = this.items[this.items.length - 1];
-      if (!(lastItem instanceof GaiaGrid.Divider)) {
-        this.items.push(new GaiaGrid.Divider());
-      }
     },
 
     /**
@@ -226,25 +216,40 @@
      * on the grid.
      * @param {Object} options Options to render with including:
      *  - from {Integer} The index to start rendering from.
+     *  - to {Integer} The index to end rendering at.
      *  - skipDivider {Boolean} Whether or not to skip the divider
      */
     render: function(options) {
       var self = this;
       options = options || {};
 
+      // Bounds-check the 'from' and 'to' parameters.
+      var from =
+        Math.max(0, Math.min(this.items.length - 1, options.from || 0));
+      var to =
+        Math.max(0, Math.min(this.items.length - 1,
+          (options.to === 0) ? 0 : options.to || this.items.length - 1));
+      if (to < from) {
+        to = from;
+      }
+
+      // If we're rendering to the end of the grid, refresh the container height
+      var setContainerHeight = false;
+      if (to == this.items.length - 1) {
+        setContainerHeight = true;
+      }
+
+      // Store the from and to indices as items, as removing placeholders/
+      // cleaning will alter indexes.
+      var fromItem = this.items[from];
+      var toItem = this.items[to];
+
       this.removeAllPlaceholders();
-      this.cleanItems(options.skipDivider);
+      this.cleanItems();
 
-      // Start rendering from one before the drop target. If not,
-      // we may drop over the divider and miss rendering an icon.
-      var from = options.from - 1 || 0;
-
-      // TODO This variable should be an argument of this method. See
-      // https://bugzilla.mozilla.org/show_bug.cgi?id=1010742#c4
-      var to = this.items.length - 1;
-
-      // Reset offset steps
-      this.layout.offsetY = 0;
+      // Reset the to index until we find it again when iterating over items
+      // below.
+      to = this.items.length - 1;
 
       // Grid render coordinates
       var x = 0;
@@ -261,7 +266,12 @@
         y++;
       }
 
-      for (var idx = 0; idx <= to; idx++) {
+      // Reset offset steps
+      this.layout.offsetY = 0;
+
+      // We have to iterate the whole list to make sure placeholders are
+      // correctly setup.
+      for (var idx = 0; idx < this.items.length; idx++) {
         var item = this.items[idx];
 
         // If the item would go over the boundary before rendering,
@@ -284,7 +294,27 @@
           step(lastItem);
         }
 
-        if (idx >= from) {
+        if (item == fromItem) {
+          from = idx;
+        }
+        if (item == toItem) {
+          to = idx;
+        }
+
+        // There should always be a divider at the end, it's hidden in CSS when
+        // not in edit mode.
+        if ((idx == this.items.length - 1) && !options.skipDivider &&
+            !(item instanceof GaiaGrid.Divider)) {
+          this.items.push(new GaiaGrid.Divider());
+        }
+
+        // Check if the items is within the bounds we want to render. We
+        // always re-render the last divider item as it's always recreated.
+        // If fromItem is a placeholder, from will never be set, so check
+        // for (idx == to) as well as checking the bounds.
+        if (idx === to ||
+            ((idx === this.items.length - 1) && !options.skipDivider) ||
+            (idx >= from && idx <= to)) {
           item.render([x, y], idx);
         }
 
@@ -297,6 +327,9 @@
       }
 
       this.element.setAttribute('cols', this.layout.cols);
+
+      // Reset offsetY as stepYAxis changes it and it may be needed elsewhere.
+      this.layout.offsetY = 0;
     }
   };
 
