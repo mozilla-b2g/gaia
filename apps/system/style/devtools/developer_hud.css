@@ -13,12 +13,8 @@
   justify-content: flex-end;
 }
 
-.developer-hud > .widget {
-  font-size: 1.8rem;
-  padding: 0 5px;
-  line-height: 30px;
+.developer-hud > .widgets {
+  width: 100%;
   height: 30px;
-  min-width: 30px;
-  text-align: center;
-  opacity: 0.8;
+  opacity: 0.6;
 }
