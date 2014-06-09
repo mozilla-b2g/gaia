@@ -721,19 +721,8 @@ suite('KeyboardManager', function() {
       KeyboardManager.keyboardFrameContainer.classList.remove('hide');
       fakeMozbrowserResize(250);
       assert.equal(KeyboardManager.keyboardHeight, 250);
-      sinon.assert.callCount(showKeyboard, 1,
-                                        'showKeyboard should be called');
-    });
-
-    test('keyboard is showing.', function() {
-      KeyboardManager.setKeyboardToShow('text');
-      fakeMozbrowserResize(300);
-      KeyboardManager.keyboardFrameContainer.classList.remove('hide');
-      KeyboardManager.keyboardFrameContainer.dataset.transitionIn = 'true';
-      fakeMozbrowserResize(350);
-      assert.equal(KeyboardManager.keyboardHeight, 350);
-      sinon.assert.callCount(showKeyboard, 1,
-                                        'showKeyboard should be called once');
+      sinon.assert.callCount(showKeyboard, 2,
+                                          'showKeyboard should be called');
     });
   });
 
