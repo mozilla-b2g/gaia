@@ -258,6 +258,7 @@
       window.dispatchEvent(new CustomEvent('gaiagrid-editmode-end'));
       document.removeEventListener('visibilitychange', this);
       this.removeDragHandlers();
+      this.gridView.removeAllPlaceholders();
     },
 
     removeDragHandlers: function() {
