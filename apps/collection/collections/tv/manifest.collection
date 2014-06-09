@@ -11,12 +11,5 @@
     "90": "/collections/tv/icon_90.png",
     "120": "/collections/tv/icon_120.png",
     "135": "/collections/tv/icon_135.png"
-  },
-  "backgrounds": {
-    "480": "/collections/tv/background_320x480.jpg",
-    "800": "/collections/tv/background_480x800.jpg",
-    "854": "/collections/tv/background_480x854.jpg",
-    "960": "/collections/tv/background_540x960.jpg",
-    "1280": "/collections/tv/background_720x1280.jpg"
   }
 }
