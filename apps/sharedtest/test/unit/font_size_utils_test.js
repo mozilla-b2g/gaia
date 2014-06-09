@@ -42,7 +42,7 @@ suite('shared/js/text_utils.js', function() {
 
   function getDefaultContext() {
     var ctx = getContext();
-    ctx.font = kDefaultSize + 'px ' + kDefaultFace;
+    ctx.font = 'italic ' + kDefaultSize + 'px ' + kDefaultFace;
     return ctx;
   }
 
@@ -51,7 +51,7 @@ suite('shared/js/text_utils.js', function() {
     fontFace = fontFace || kDefaultFace;
 
     var ctx = getContext();
-    ctx.font = fontSize + 'px ' + fontFace;
+    ctx.font = 'italic ' + fontSize + 'px ' + fontFace;
 
     var str = kStringChar;
     while (ctx.measureText(str + kStringChar).width < width) {
@@ -306,7 +306,7 @@ suite('shared/js/text_utils.js', function() {
       var ctx = getContext();
       // test 2px up to 24px font size measurements
       for (var fontSize = 2; fontSize < 24; fontSize++) {
-        ctx.font = fontSize + 'px ' + kDefaultFace;
+        ctx.font = 'italic ' + fontSize + 'px ' + kDefaultFace;
         assert.equal(ctx.measureText(string).width,
                      FontSizeUtils.getFontWidth(string, fontSize,
                                                 kDefaultFace));

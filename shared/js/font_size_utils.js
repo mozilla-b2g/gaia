@@ -28,11 +28,17 @@
      *
      * @param {Integer} fontSize The font size of the canvas we want.
      * @param {String} fontFamily The font family of the canvas we want.
+     * @param {String} fontStyle The style of the font (default to italic).
      * @return {CanvasRenderingContext2D} A context with the specified font.
      */
-    _getCachedContext: function(fontSize, fontFamily) {
+    _getCachedContext: function(fontSize, fontFamily, fontStyle) {
+      // Default to italic style since this code is only ever used
+      // by headers right now and header text is always italic.
+      fontStyle = fontStyle || 'italic';
+
       var cache = this._cachedContexts;
-      var ctx = cache[fontSize] ? cache[fontSize][fontFamily] : null;
+      var ctx = cache[fontSize] && cache[fontSize][fontFamily] ?
+                cache[fontSize][fontFamily][fontStyle] : null;
 
       if (!ctx) {
         var canvas = document.createElement('canvas');
@@ -41,13 +47,16 @@
         canvas.setAttribute('height', '1');
 
         ctx = canvas.getContext('2d', { willReadFrequently: true });
-        ctx.font = fontSize + 'px ' + fontFamily;
+        ctx.font = fontStyle + ' ' + fontSize + 'px ' + fontFamily;
 
         // Populate the contexts cache.
         if (!cache[fontSize]) {
           cache[fontSize] = {};
         }
-        cache[fontSize][fontFamily] = ctx;
+        if (!cache[fontSize][fontFamily]) {
+          cache[fontSize][fontFamily] = {};
+        }
+        cache[fontSize][fontFamily][fontStyle] = ctx;
       }
 
       return ctx;
@@ -146,10 +155,11 @@
      * @param {String} string The string we are measuring.
      * @param {Integer} fontSize The size of the font to measure against.
      * @param {String} fontFamily The font family to measure against.
+     * @param {String} fontStyle The style of the font (default to italic).
      * @return {Integer} The pixel width of the string with the given font.
      */
-    getFontWidth: function(string, fontSize, fontFamily) {
-      var ctx = this._getCachedContext(fontSize, fontFamily);
+    getFontWidth: function(string, fontSize, fontFamily, fontStyle) {
+      var ctx = this._getCachedContext(fontSize, fontFamily, fontStyle);
       return ctx.measureText(string).width;
     },
 
