@@ -102,7 +102,7 @@
     get gridMaxIconSize() {
       var dragdrop = this.gridView.dragdrop;
       var scaledSize = (windowWidth / iconScaleFactorMinIconsPerRow) *
-              (dragdrop ? dragdrop.maxActiveScale : 1);
+              (dragdrop ? this.gridView.dragdrop.activeScale : 1);
       scaledSize *= devicePixelRatio;
       return scaledSize;
     },
