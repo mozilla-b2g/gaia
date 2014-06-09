@@ -623,6 +623,10 @@ const IMERender = (function() {
       var dataset;
       if (alt.compositeKey) {
         dataset = [{ 'key': 'compositeKey', 'value': alt.compositeKey }];
+        if (alt.upperCompositeKey) {
+          dataset.push({ 'key': 'upperCompositeKey',
+            'value': alt.upperCompositeKey });
+        }
       } else {
         dataset = [
            { 'key': 'keycode', 'value': alt.value.charCodeAt(0) },

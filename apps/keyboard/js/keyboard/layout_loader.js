@@ -201,8 +201,12 @@ LayoutLoader.prototype._normalizeAlternatives = function(layoutName) {
         // Creating an array for upper case too.
         // XXX: The original code does not respect layout.upperCase here.
         alt[upperCaseKey] = alternatives.map(function(key) {
-          if (key.value.length === 1) {
-            return { 'value': key.value.toUpperCase() };
+          if (key.value.length === 1 && !key.compositeKey) {
+            if (key.upperValue) {
+              return { 'value': key.value.upperValue };
+            } else {
+              return { 'value': key.value.toUpperCase() };
+            }
           }
 
           // The 'l·l' key in the Catalan layout needs to be
@@ -220,8 +224,21 @@ LayoutLoader.prototype._normalizeAlternatives = function(layoutName) {
 
           // We only capitalize the first character of the key in
           // the normalization here.
-          var compositeKey = key.value[0].toUpperCase() + key.value.substr(1);
-          return { 'value': compositeKey, 'compositeKey': compositeKey };
+          var compositeKey;
+          if (key.upperCompositeKey) {
+            compositeKey = key.upperCompositeKey;
+          } else {
+            if (key.compositeKey) {
+              compositeKey = key.compositeKey;
+            } else {
+              compositeKey = key.value[0].toUpperCase() + key.value.substr(1);
+            }
+          }
+          if (key.upperValue) {
+            return { 'value': key.upperValue, 'compositeKey': compositeKey };
+          } else {
+            return { 'value': compositeKey, 'compositeKey': compositeKey };
+          }
         });
 
         // If we really need an special upper case locked alternatives,
@@ -231,7 +248,11 @@ LayoutLoader.prototype._normalizeAlternatives = function(layoutName) {
         if (needDifferentUpperCaseLockedAlternatives) {
           alt[upperCaseKey].upperCaseLocked = alternatives.map(function(key) {
             var compositeKey = key.value.toUpperCase();
-            return { 'value': compositeKey, 'compositeKey': compositeKey };
+            if (key.upperValue) {
+              return { 'value': key.upperValue, 'compositeKey': compositeKey };
+            } else {
+              return { 'value': compositeKey, 'compositeKey': compositeKey };
+            }
           });
         }
       }
