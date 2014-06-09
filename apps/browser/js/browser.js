@@ -59,7 +59,7 @@ var Browser = {
     this.urlInput.addEventListener('focus', this.urlFocus.bind(this));
     this.urlInput.addEventListener('blur', this.urlBlur.bind(this));
     this.urlInput.addEventListener('mouseup', this.urlMouseUp.bind(this));
-    this.urlInput.addEventListener('keyup',
+    this.urlInput.addEventListener('input',
       this.handleUrlInputKeypress.bind(this));
     this.urlButton.addEventListener('click',
       this.handleUrlFormSubmit.bind(this));
