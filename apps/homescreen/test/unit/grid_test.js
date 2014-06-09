@@ -408,8 +408,6 @@ suite('grid.js >', function() {
         sendTouchEvent('touchmove', containerNode, move);
         sendMouseEvent('mousemove', containerNode, move);
 
-        assert.equal(document.body.dataset.transitioning, 'true');
-
         this.sinon.clock.tick();
         var currentPage = document.getElementById('landing-page');
         assert.equal(currentPage.style.MozTransform, 'translateX(0px)');
