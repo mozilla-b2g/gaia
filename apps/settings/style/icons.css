@@ -87,6 +87,10 @@ li:active:not([aria-disabled="true"]) .menu-item::before,
   background-position: -9rem -18rem;
 }
 
+#menuItem-navigation::before {
+  background-position: -12rem -18rem;
+}
+
 #menuItem-notifications::before {
   background-position: -9rem -3rem;
 }
