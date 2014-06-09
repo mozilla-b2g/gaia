@@ -261,10 +261,6 @@
   pointer-events: none;
 }
 
-.lockscreen-icon-area.dark .lockscreen-icon{
-  opacity: 0.65;
-}
-
 #lockscreen-area-slide {
   text-align: center;
   width: calc(100%);
