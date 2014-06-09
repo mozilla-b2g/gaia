@@ -11,7 +11,7 @@
    "app.update.interval": 86400,
    "app.update.url": "",
    "apz.force-enable": true,
-   "apz.overscroll.enabled": false,
+   "apz.overscroll.enabled": true,
    "audio.volume.alarm": 15,
    "audio.volume.bt_sco": 15,
    "audio.volume.dtmf": 15,
