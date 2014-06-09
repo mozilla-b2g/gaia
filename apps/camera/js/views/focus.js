@@ -28,11 +28,8 @@ module.exports = View.extend({
 
   setFocusState: function(state) {
     this.set('state', state);
-    if (this.fadeOutTimer) {
-      clearTimeout(this.fadeOutTimer);
-    }
-    if (state === 'fail' || state === 'focused') {
-      this.fadeOutTimer = this.fadeOut();
+    if (state !== 'focusing') {
+      this.fadeOut();
     }
   },
 
@@ -49,14 +46,17 @@ module.exports = View.extend({
   reset: function() {
     this.el.style.left = '50%';
     this.el.style.top = '50%';
-    this.setFocusState('none');
+    this.set('state', 'none');
   },
 
   fadeOut: function() {
     var self = this;
-    setTimeout(hide, this.fadeTime);
+    if (this.fadeOutTimer) {
+      clearTimeout(this.fadeOutTimer);
+    }
+    this.fadeOutTimer = setTimeout(hide, this.fadeTime);
     function hide() {
-      self.setFocusState('none');
+      self.reset();
     }
   },
 
