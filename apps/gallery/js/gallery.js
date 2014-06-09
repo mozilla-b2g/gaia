@@ -119,6 +119,11 @@ var lastFocusedThumbnail = null;
 
 var currentOverlay;  // The id of the current overlay or null if none.
 
+//flag to inform whether delete image,video files are in progress
+//this is required to defer the file selection process till get the
+// filedeleted confirmation
+var deleteinprogress = false;
+
 // mozL10n.once is the main entry point for the app.
 navigator.mozL10n.once(function showBody() {
   // <body> children are hidden until the UI is translated
@@ -517,6 +522,7 @@ function fileDeleted(filename) {
       setView(LAYOUT_MODE.list);
     showOverlay('emptygallery');
   }
+    deleteinprogress = false;
 }
 
 function deleteFile(n) {
@@ -529,6 +535,7 @@ function deleteFile(n) {
   var fileinfo = files[n];
   photodb.deleteFile(files[n].name);
 
+  deleteinprogress = true;
   // If it is a video, however, we can't just delete the poster image, but
   // must also delete the video file.
   if (fileinfo.metadata.video) {
@@ -1024,6 +1031,9 @@ window.addEventListener('visibilitychange', function() {
 // 2. On large/selectView -> update preview image
 // 3. On tiny/large with listView -> go to fullscreen image
 function thumbnailClickHandler(evt) {
+  if (deleteinprogress === true) {
+    return;
+  }
   var target = evt.target;
   if (!target || !target.classList.contains('thumbnailImage'))
     return;
