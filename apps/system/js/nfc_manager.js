@@ -205,44 +205,6 @@ var NfcManager = {
     return options;
   },
 
-  doClose: function nm_doClose(nfctag) {
-    var conn = nfctag.close();
-    var self = this;
-    conn.onsuccess = function() {
-      self._debug('NFC tech disconnected');
-    };
-    conn.onerror = function() {
-      self._debug('Disconnect failed.');
-    };
-  },
-
-  handleNdefDiscoveredUseConnect:
-    function nm_handleNdefDiscoveredUseConnect(tech, session) {
-      var self = this;
-
-      var nfcdom = window.navigator.mozNfc;
-      if (!nfcdom) {
-        return;
-      }
-
-      var token = session;
-      var nfctag = nfcdom.getNFCTag(token);
-
-      var conn = nfctag.connect(tech);
-      conn.onsuccess = function() {
-        var req = nfctag.readNDEF();
-        req.onsuccess = function() {
-          self._debug('NDEF Read result: ' + JSON.stringify(req.result));
-          self.handleNdefDiscovered(tech, session, req.result);
-          self.doClose(nfctag);
-        };
-        req.onerror = function() {
-          self._debug('Error reading NDEF record');
-          self.doClose(nfctag);
-        };
-      };
-  },
-
   handleNdefDiscovered:
     function nm_handleNdefDiscovered(tech, session, records) {
 
@@ -323,17 +285,25 @@ var NfcManager = {
     nfcdom.notifyUserAcceptedP2P(manifestURL);
   },
 
-  fireTagDiscovered: function nm_fireTagDiscovered(command) {
+  /**
+   * Fires nfc-tag-discovered activity to pass unsupported
+   * or NDEF_FORMATABLE tags to an app which can do some
+   * further processing.
+   * @param {Object} msg
+   * @param {string} type - tech with highest priority; for filtering 
+   */
+  fireTagDiscovered: function nm_fireTagDiscovered(msg, type) {
     var self = this;
-    // Fire off activity to whoever is registered to handle a generic
-    // binary blob.
-    var techList = command.techList;
+
     var a = new MozActivity({
       name: 'nfc-tag-discovered',
       data: {
-        type: 'tag',
-        sessionToken: command.sessionToken,
-        techList: techList
+        type: type,
+        sessionToken: msg.sessionToken,
+        techList: msg.techList,
+        // it might be possible we will have some content
+        // so app might handle it, real world testing needed
+        records: msg.records
       }
     });
     a.onerror = function() {
@@ -342,6 +312,10 @@ var NfcManager = {
   },
 
   getPrioritizedTech: function nm_getPrioritizedTech(techList) {
+    if (techList.length === 0) {
+      return 'Unknown';
+    }
+
     var self = this;
     techList.sort(function sorter(techA, techB) {
       var priorityA = self.TechPriority[techA] || self.TechPriority.Unsupported;
@@ -410,12 +384,12 @@ var NfcManager = {
         this.handleNdefDiscovered(tech, msg.sessionToken, msg.records);
         break;
       case 'NDEF_FORMATABLE':
-        this.handleNdefDiscoveredUseConnect(tech, msg.sessionToken);
+        // not moving to default for readability 
+        this.fireTagDiscovered(msg, tech);
         break;
       default:
-        this._debug('Unknown or unsupported tag type.' + tech +
-                    'Fire Tag-Discovered.');
-        this.fireTagDiscovered(msg);
+        this._debug('Tag tech: ' + tech + ', fire Tag-Discovered.');
+        this.fireTagDiscovered(msg, tech);
         break;
     }
   },
