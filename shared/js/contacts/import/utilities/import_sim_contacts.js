@@ -29,6 +29,8 @@ function SimContactsImporter(targetIcc) {
   var icc = targetIcc;
   var iccId = icc.iccInfo && icc.iccInfo.iccid;
 
+  var numDupsMerged = 0;
+
   function generateIccContactUrl(contactid) {
     var urlValue = 'urn:' + 'uuid:' + (iccId || 'iccId') + '-' + contactid;
     return [{
@@ -89,6 +91,8 @@ function SimContactsImporter(targetIcc) {
   }
 
   this.start = function() {
+    numDupsMerged = 0;
+    
     if (mustFinish) {
       notifyFinish();
       return;
@@ -195,8 +199,12 @@ function SimContactsImporter(targetIcc) {
 
       var cbs = {
         onmatch: function(results) {
+
           var mergeCbs = {
-            success: continueCb,
+            success: function() {
+              numDupsMerged++;
+              continueCb();
+            },
             error: function(e) {
               window.console.error('Error while merging: ', e.name);
               continueCb();

@@ -23,6 +23,9 @@
 
     var isOnLine = navigator.onLine;
 
+    // To count the number of merged duplicate contacts
+    var numMergedDuplicated = 0;
+
     window.addEventListener('online', onLineChanged);
     window.addEventListener('offline', onLineChanged);
 
@@ -97,6 +100,8 @@
     }
 
     this.start = function() {
+      numMergedDuplicated = 0;
+
       mustHold = false;
       holded = false;
       mustFinish = false;
@@ -129,6 +134,8 @@
     this.persist = function(contactData, successCb, errorCb) {
       var cbs = {
         onmatch: function(matches) {
+          numMergedDuplicated++;
+
           contacts.adaptAndMerge(this, matches, {
             success: successCb,
             error: errorCb
@@ -177,7 +184,7 @@
     function notifySuccess() {
       if (typeof self.onsuccess === 'function') {
         window.setTimeout(function do_success() {
-          self.onsuccess(numImported);
+          self.onsuccess(numImported, numMergedDuplicated);
         }, 0);
       }
     }

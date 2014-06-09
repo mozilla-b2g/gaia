@@ -576,6 +576,8 @@ var VCFReader = (function _VCFReader() {
     this.processed = 0;
     this.finished = false;
     this.currentChar = 0;
+
+    this.numDupsMerged = 0;
   };
 
   // Number of contacts processed at a given time.
@@ -598,6 +600,7 @@ var VCFReader = (function _VCFReader() {
      * change in case there are vcards with syntax errors or that our processor
      * can't parse.
      */
+    var self = this;
 
     var match = this.contents.match(/end:vcard/gi);
     // If there are no matches, then this probably isn't a vcard and we should
@@ -612,7 +615,9 @@ var VCFReader = (function _VCFReader() {
     this.importedContacts = [];
     this.total = match.length;
     this.onread && this.onread(this.total);
-    this.ondone = cb;
+    this.ondone = function(numImported) {
+      cb(numImported, self.numDupsMerged);
+    };
 
     LazyLoader.load(['/shared/js/simple_phone_matcher.js',
       '/shared/js/mime_mapper.js',
@@ -670,6 +675,7 @@ var VCFReader = (function _VCFReader() {
   VCFReader.prototype.post = function(contactObjects) {
     var _onParsed = this.onParsed.bind(this);
     var cursor = 0;
+    var self = this;
 
     function afterSave(ct, e) {
       _onParsed(e, ct);
@@ -691,7 +697,10 @@ var VCFReader = (function _VCFReader() {
       var matchCbs = {
         onmatch: function(matches) {
           var callbacks = {
-            success: afterSaveFn,
+            success: function() {
+              self.numDupsMerged++;
+              afterSaveFn();
+            },
             error: afterSaveFn
           };
           contacts.adaptAndMerge(contact, matches, callbacks);
