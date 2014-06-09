@@ -12,6 +12,7 @@
     "mobileconnection":{},
     "open-remote-window":{},
     "storage": {},
+    "geolocation": {},
     "webapps-manage": {},
     "systemXHR": {},
     "settings":{ "access": "readwrite" }
