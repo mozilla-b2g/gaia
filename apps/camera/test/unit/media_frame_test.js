@@ -3,8 +3,8 @@
 */
 'use strict';
 
-require('/shared/js/media/downsample.js');
-require('/shared/js/media/media_frame.js');
+var Downsample = require('/shared/js/media/downsample.js');
+var MediaFrame = require('/shared/js/media/media_frame.js');
 
 suite('Media Frame Unit Tests', function() {
 
@@ -13,7 +13,7 @@ suite('Media Frame Unit Tests', function() {
   suiteSetup(function() {
     this.clock = sinon.useFakeTimers();
 
-    if (!navigator['getDeviceStorage']) {
+    if (!navigator.getDeviceStorage) {
       // create dummy getDeviceStorage for sinon overriding.
       navigator.getDeviceStorage = function() {};
       mockDeviceStorage = true;
@@ -155,6 +155,7 @@ suite('Media Frame Unit Tests', function() {
             retObj.onsuccess();
             assert.isTrue(frame.displayingPreview);
             assert.isTrue(frame.displayingImage);
+            assert.ok(frame.previewblob);
             frame.reset();
           });
 
