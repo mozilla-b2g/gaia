@@ -910,7 +910,7 @@ const IMERender = (function() {
 
     var contentNode = document.createElement('button');
     contentNode.className = 'keyboard-key ' + className;
-    contentNode.setAttribute('style', 'width: ' + width + ';');
+    contentNode.style.width = width;
 
     if (attributeList) {
       attributeList.forEach(function(attribute) {
