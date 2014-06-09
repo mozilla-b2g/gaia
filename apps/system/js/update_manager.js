@@ -612,6 +612,12 @@ var UpdateManager = {
   }
 };
 
+// update texts when language setting changes
+SettingsListener.observe('language.current', null,
+  function(value) {
+    UpdateManager.render();
+});
+
 window.addEventListener('localized', function startup(evt) {
   window.removeEventListener('localized', startup);
 
