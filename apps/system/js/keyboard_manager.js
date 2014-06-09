@@ -429,12 +429,7 @@ var KeyboardManager = {
       document.body.dispatchEvent(new CustomEvent('keyboardchange', detail));
     };
 
-    // If the keyboard is hidden, or when transitioning is not finished
-    if (this.keyboardFrameContainer.classList.contains('hide')) {
-      this.showKeyboard(updateHeight);
-    } else {
-      updateHeight();
-    }
+    this.showKeyboard(updateHeight);
 
     // update latest keyboard info to notification bar
     // for swiching other keyboard layouts.
