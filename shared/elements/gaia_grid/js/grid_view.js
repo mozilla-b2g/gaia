@@ -173,9 +173,7 @@
       }, this);
 
       toSplice.reverse().forEach(function(idx) {
-        var item = this.items[idx];
-        item.element && item.element.parentNode.removeChild(item.element);
-        this.items.splice(idx, 1);
+        this.items.splice(idx, 1)[0].remove();
       }, this);
     },
 
