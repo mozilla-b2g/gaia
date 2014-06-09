@@ -76,14 +76,23 @@
 
       var maxSize = this.grid.layout.gridMaxMozappSize; // The goal size
       var accurateSize = list[0]; // The biggest icon available
+      var lastSize = accurateSize;
       for (var i = 0; i < length; i++) {
         var size = list[i];
 
-        if (size < maxSize) {
+        if (size <= maxSize) {
           break;
         }
 
+        lastSize = accurateSize;
         accurateSize = size;
+      }
+
+      // If the last biggest icon was closer to the size we want than  the
+      // one we've ended up with, pick that to decrease the chance of
+      // displaying a fuzzy icon.
+      if (Math.abs(maxSize - accurateSize) >= Math.abs(maxSize - lastSize)) {
+        accurateSize = lastSize;
       }
 
       var icon = icons[accurateSize];
