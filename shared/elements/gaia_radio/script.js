@@ -16,11 +16,22 @@ window.GaiaRadio = (function(win) {
     this._wrapper = this._template.getElementById('radio');
     this._wrapper.addEventListener('click', this.handleClick.bind(this));
 
+    // The default 'radio' accessibility role could be overridden.
+    if (this.dataset.role) {
+      this._wrapper.setAttribute('role', this.dataset.role);
+    }
+
+    if (!this.hasAttribute('role')) {
+      // The root element has no accessibility use, purge it from the tree.
+      this.setAttribute('role', 'presentation');
+    }
+
     this.configureClass();
 
     shadow.appendChild(this._template);
 
     this.checked = this.hasAttribute('checked');
+    this._wrapper.setAttribute('aria-checked', this.checked);
 
     // When events are triggered on content nodes, they do not bubble to
     // our custom element. We add an event listener on our children so we can
@@ -84,6 +95,7 @@ window.GaiaRadio = (function(win) {
     },
     set: function(value) {
       this._wrapper.classList.toggle('checked', value);
+      this._wrapper.setAttribute('aria-checked', value);
       this._checked = value;
     }
   });
@@ -92,7 +104,7 @@ window.GaiaRadio = (function(win) {
   // building blocks. Mainly radio labels and inputs inside a list
   // as this is a rather common use case.
   var template = document.createElement('template');
-  template.innerHTML = '<span id="radio">' +
+  template.innerHTML = '<span role="radio" id="radio">' +
       '<span><content select="p,label"></content></span>' +
     '</span>';
 
