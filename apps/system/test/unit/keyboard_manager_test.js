@@ -518,6 +518,22 @@ suite('KeyboardManager', function() {
 
       KeyboardManager.hasActiveKeyboard = realActive;
     });
+
+    test('lock event: do nothing if no keyboard', function() {
+      var spy = this.sinon.spy(navigator.mozInputMethod, 'removeFocus');
+      trigger('lock');
+      assert.ok(spy.notCalled);
+    });
+
+    test('lock event: hide keyboard if needed', function() {
+      var realActive = KeyboardManager.hasActiveKeyboard;
+      KeyboardManager.hasActiveKeyboard = true;
+      var spy = this.sinon.spy(navigator.mozInputMethod, 'removeFocus');
+      trigger('lock');
+      sinon.assert.calledOnce(spy);
+
+      KeyboardManager.hasActiveKeyboard = realActive;
+    });
   });
 
   suite('Hide Keyboard', function() {
