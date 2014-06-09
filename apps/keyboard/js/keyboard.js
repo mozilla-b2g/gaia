@@ -150,6 +150,7 @@ var fakeAppObject = {
   setLayoutPage: setLayoutPage,
   setUpperCase: setUpperCase,
   resetUpperCase: resetUpperCase,
+  isCapitalized: isCapitalized,
   replaceSurroundingText: replaceSurroundingText,
   getNumberOfCandidatesPerRow:
     IMERender.getNumberOfCandidatesPerRow.bind(IMERender)
@@ -740,6 +741,10 @@ function resetUpperCase() {
   }
 }
 
+function isCapitalized() {
+  return (isUpperCase || isUpperCaseLocked);
+}
+
 function setLayoutPage(newpage) {
   if (newpage === layoutPage)
     return;
@@ -772,8 +777,9 @@ function sendDelete(isRepeat) {
   // Pass the isRepeat argument to the input method. It may not want
   // to compute suggestions, for example, if this is just one in a series
   // of repeating events.
-  inputMethodManager.currentIMEngine
-    .click(KeyboardEvent.DOM_VK_BACK_SPACE, isRepeat);
+  inputMethodManager.currentIMEngine.click(KeyboardEvent.DOM_VK_BACK_SPACE,
+                                           null,
+                                           isRepeat);
 }
 
 // Return the upper value for a key object
@@ -1415,7 +1421,9 @@ function endPress(target, coords, touchId, hasCandidateScrolled) {
       }
     }
     else {
-      inputMethodManager.currentIMEngine.click(keyCode);
+      inputMethodManager.currentIMEngine.click(
+        parseInt(target.dataset.keycode, 10),
+        parseInt(target.dataset.keycodeUpper, 10));
     }
     break;
   }

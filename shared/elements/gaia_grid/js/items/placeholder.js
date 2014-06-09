@@ -63,6 +63,12 @@
 
       this.transform(x, y, this.grid.layout.percent);
     },
+
+    remove: function() {
+      if (this.element) {
+        this.element.parentNode.removeChild(this.element);
+      }
+    }
   };
 
   exports.Placeholder = Placeholder;

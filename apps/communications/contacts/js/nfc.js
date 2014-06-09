@@ -1,6 +1,6 @@
 'use strict';
 
-/* global LazyLoader, ContactToVcard, MozNDEFRecord */
+/* global LazyLoader, ContactToVcard, MozNDEFRecord, fb, Contacts */
 
 var contacts = window.contacts || {};
 
@@ -9,10 +9,18 @@ contacts.NFC = (function() {
   var currentContact;
   var vCardContact;
   var mozNfcPeer;
+  var _ = navigator.mozL10n.get;
 
   var startListening = function(contact) {
     currentContact = contact;
-    mozNfc.onpeerready = handlePeerReady;
+    // We cannot share Facebook data via NFC so we check if the contact
+    // is an FB contacts. However, if the contact is linked to a regular
+    // mozContact, we can share linked data
+    if (fb && !(fb.isFbContact(contact) && !fb.isFbLinked(contact))) {
+      mozNfc.onpeerready = handlePeerReady;
+    } else {
+      mozNfc.onpeerready = handlePeerReadyForFb;
+    }
   };
 
   var stopListening = function() {
@@ -71,6 +79,10 @@ contacts.NFC = (function() {
        console.log('Something goes wrong');
      };
    };
+
+  var handlePeerReadyForFb = function() {
+    Contacts.showStatus(_('facebook-export-forbidden'));
+  };
 
   return {
     startListening: startListening,

@@ -71,6 +71,22 @@ if [ -z "$TEST_FILES" ]; then
   fi
 fi
 
+if [ -n "$PART" ] ; then
+  if [ -z "$NBPARTS" ] ; then
+    echo "You need to specify the number of parts using the env variable NBPARTS"
+    exit 1
+  fi
+
+  TEMP_FILE=$(mktemp)
+
+  # the quotes are important here, otherwise bash replace newlines characters by
+  # spaces
+  echo "$TEST_FILES" | sort > $TEMP_FILE
+  TEST_FILES=$(split -n l/$PART/$NBPARTS $TEMP_FILE)
+  echo -e "------- Will run the following test files:\n$TEST_FILES\n-------"
+  rm -f $TEMP_FILE
+fi
+
 if [ -z "$XULRUNNER_DIRECTORY" ] ; then
   # the xulrunner directory isn't in the environment
   XULRUNNER_DIRECTORY=`ls -d "$DIR/../xulrunner-sdk"*/xulrunner-sdk | sort -nr | head -n1 2> /dev/null`

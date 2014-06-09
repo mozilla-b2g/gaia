@@ -22,7 +22,7 @@ SoundPanel.Selectors = {
   'ringerSlider': '#sound .notification input',
   'alarmSlider': '#sound .alarm input',
   'keypadCheckbox': '#sound input[name="phone.ring.keypad"]',
-  'keypadSpan': '#sound span[data-l10n-id="keypad"]',
+  'keypadSpan': '#sound span[data-l10n-id="dialpad"]',
   'cameraCheckbox': '#sound input[name="camera.sound.enabled"]',
   'cameraSpan': '#sound span[data-l10n-id="camera"]',
   'sentMessageCheckbox':

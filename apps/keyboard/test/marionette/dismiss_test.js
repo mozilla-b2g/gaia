@@ -1,6 +1,7 @@
 'use strict';
 
 var KeyboardTestApp = require('./lib/keyboard_test_app'),
+    System = require('./lib/system'),
     Keyboard = require('./lib/keyboard'),
     assert = require('assert'),
     Actions = require('marionette-client').Actions;
@@ -9,6 +10,7 @@ marionette('Dimiss the keyboard', function() {
   var apps = {};
   var keyboardTestApp = null;
   var keyboard = null;
+  var system = null;
 
   apps[KeyboardTestApp.ORIGIN] = __dirname + '/keyboardtestapp';
 
@@ -30,6 +32,7 @@ marionette('Dimiss the keyboard', function() {
   }
 
   setup(function() {
+    system = new System(client);
     keyboard = new Keyboard(client);
 
     // create a keyboard test app
@@ -38,8 +41,8 @@ marionette('Dimiss the keyboard', function() {
     keyboardTestApp.textInput.click();
 
     // Wait for the keyboard pop up and switch to it
-    keyboard.waitForDisplayed();
-    keyboard.switchToActiveKeyboardFrame();
+    system.waitForKeyboardFrameDisplayed();
+    system.switchToActiveKeyboardFrame();
   });
 
   test('Longpressing the space bar should dimiss the keyboard', function() {
@@ -47,7 +50,7 @@ marionette('Dimiss the keyboard', function() {
     longPressSpaceBar(1.0);
 
     client.waitFor(function() {
-      return !keyboard.keyboardFrameDisplayed();
+      return !system.keyboardFrameDisplayed();
     });
 
     assert.ok(true);

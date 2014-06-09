@@ -51,7 +51,7 @@
 }
 
 #lockscreen-masked-background.blank {
-  background-image: linear-gradient(to bottom, rgba(255,255,255,0.2), rgba(255,255,255,0));
+  background-image: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0));
   background-size: 100% 22.6rem;
 }
 
@@ -358,7 +358,7 @@ button::-moz-focus-inner {
   pointer-events: auto;
 
   background-image: url('./images/pin_camera.png');
-  background-position: 1.1rem center;
+  background-position: 1rem center;
   background-repeat: no-repeat;
   background-size: 3rem;
 }
@@ -378,7 +378,7 @@ button::-moz-focus-inner {
   bottom: 21.4rem;
   height: 7rem;
   width: 100%;
-  background-color: rgba(49, 60, 70, 0.9);
+  background-color: rgba(51, 51, 51, 0.3);
   margin: 0;
   padding: 0 1rem;
   -moz-box-sizing: border-box;
@@ -497,6 +497,12 @@ button::-moz-focus-inner {
   border-left: none;
 }
 
+#lockscreen-passcode-pad > a[data-key="b"] > div {
+  font-size: 1.5rem;
+  padding-left: 4rem;
+  color: #abb0b1;
+}
+
 #lockscreen-passcode-pad > a.last-row {
   height: 6.4rem;
   line-height: 5.6rem;
@@ -514,15 +520,8 @@ button::-moz-focus-inner {
   display: none;
 }
 
-#lockscreen-passcode-pad > a[data-key="b"] {
-  display: none;
-  background: url(images/icon-clear.png) no-repeat center center #525c5e;
-}
-
 .passcode-entered #lockscreen-passcode-pad > a[data-key="b"] {
   display: block;
-  text-align: left;
-  text-indent: -9999px;
 }
 
 #lockscreen-passcode-pad > a:active {

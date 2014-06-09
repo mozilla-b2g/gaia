@@ -97,7 +97,8 @@ suite('Distribution mechanism', function() {
         'power':'/resources/power-0ccc24f04b44aaadc8962735b5f86eabc5bb71e6.json',
         'data_ftu':true,
         'search': '/resources/mobizilla_search.json',
-        'default_search': '/resources/mobizilla_default_search.json'
+        'default_search': '/resources/mobizilla_default_search.json',
+        'topsites':'/resources/mobizilla_topsites.json'
     };
     var expectedCustom = {
       '310-260': variantConfig,
@@ -130,6 +131,8 @@ suite('Distribution mechanism', function() {
       path.join(cusDir, 'mobizilla', 'mobizilla_expected_search.json'));
     helper.checkFileInZip(zipPath, 'resources/mobizilla_default_search.json',
       path.join(cusDir, 'mobizilla', 'mobizilla_expected_default_search.json'));
+    helper.checkFileInZip(zipPath, 'resources/mobizilla_topsites.json',
+      path.join(cusDir, 'mobizilla', 'mobizilla_expected_topsites.json'));
   }
 
   function validateCalendar() {

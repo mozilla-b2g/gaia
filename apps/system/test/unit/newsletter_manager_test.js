@@ -25,7 +25,7 @@ var mocksHelperForNewsletterManager = new MocksHelper([
 ]).init();
 
 suite('Newsletter Manager >', function() {
-  var realL10n,
+  var realL10n, mockOnce,
       realOnLine,
       realDatastores;
 
@@ -41,7 +41,11 @@ suite('Newsletter Manager >', function() {
     });
 
     realL10n = navigator.mozL10n;
+    mockOnce = MockL10n.once;
     navigator.mozL10n = MockL10n;
+    navigator.mozL10n.once = function(callback) {
+      callback();
+    };
 
     realDatastores = navigator.getDataStores;
     navigator.getDataStores = MockNavigatorDatastore.getDataStores;
@@ -58,6 +62,7 @@ suite('Newsletter Manager >', function() {
     if (realOnLine) {
       Object.defineProperty(navigator, 'onLine', realOnLine);
     }
+    MockL10n.once = mockOnce;
     navigator.mozL10n = realL10n;
     navigator.getDataStores = realDatastores;
   });

@@ -97,8 +97,7 @@ var Identity = (function() {
   };
 })();
 
-// Make sure L10n is ready before init.  Check for existence of
-// navigator.mozL10n in order not to raise errors in test suites.
+// unit tests call init() manually
 if (navigator.mozL10n) {
   navigator.mozL10n.once(Identity.init.bind(Identity));
 }

@@ -192,19 +192,6 @@
     background: #000 no-repeat center top/cover;
   }
 
-  #main-container.emergency-active:before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    background-color: #eaeaea;
-    background-image: url("images/call_screen/picture_emergency.png");
-    background-repeat: no-repeat;
-    background-position: center;
-    height: 100%;
-    width: 100%;
-  }
-
   #actions-container {
     position: absolute;
     bottom: 0;
@@ -487,6 +474,10 @@
     padding: 1rem 0 0 0;
   }
 
+  #calls > section.emergency.additionalInfo .numberWrapper .number {
+    color: #b90000;
+  }
+
   #calls:not(.single-line) > section:not(.additionalInfo) .numberWrapper .number {
     height: 8rem;
     line-height: 8rem;
@@ -505,12 +496,13 @@
     padding: 0;
   }
 
-  #calls > section .additionalContactInfo {
+  #calls > section .additionalContactInfo,
+  #group-call-details-list  > section .additionalContactInfo {
     height: 1.5rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    padding: 0 7rem 2rem 4rem;
+    padding: 0px 0rem 2rem;
     font-size: 1.6rem;
     line-height: 2rem;
     font-style: italic;
@@ -713,6 +705,7 @@
     line-height: 3.5rem;
   }
 
+
   #incoming-container {
     position: absolute;
     bottom: 0;
@@ -847,6 +840,7 @@
   #group-call-details-list .number {
     font-size: 1.7rem !important;
     line-height: 2.4rem;
+    white-space: nowrap;
     display: block;
     overflow: hidden;
     text-overflow: ellipsis;

@@ -38,8 +38,8 @@ var CostControl = (function() {
         });
       } else {
         goOn();
-        return;
       }
+      return;
     }
 
     function setupCostControl(configuration, settings, iccId) {

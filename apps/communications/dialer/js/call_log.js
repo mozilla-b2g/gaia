@@ -23,7 +23,8 @@ var CallLog = {
       '/shared/js/confirm.js',
       '/shared/js/dialer/utils.js',
       '/dialer/js/phone_action_menu.js',
-      '/shared/js/sticky_header.js'
+      '/shared/js/sticky_header.js',
+      '/shared/js/sim_settings_helper.js'
     ];
     var self = this;
 
@@ -660,7 +661,9 @@ var CallLog = {
         KeypadManager.updatePhoneNumber(phoneNumber);
         window.location.hash = '#keyboard-view';
       } else {
-        CallHandler.call(phoneNumber, 0);
+        SimSettingsHelper.getCardIndexFrom('outgoingCall', function(ci) {
+          CallHandler.call(phoneNumber, ci);
+        });
       }
     } else {
       var contactIds = (dataset.contactId) ? dataset.contactId : null;

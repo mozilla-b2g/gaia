@@ -1,35 +1,29 @@
 'use strict';
-/* global CollectionsDatabase */
 /* global Promise */
+/* global eme */
 
 (function(exports) {
 
+  const l10nKey = 'categoryId-';
+
   var _ = navigator.mozL10n.get;
-  var _map = Array.prototype.map;
+  var map = Array.prototype.map;
 
-  var WORLDWIDE_LOCALE = 'en_WW';
-
-  // TODO
-  // translate collections names when device language changes (requires server
-  // side changes)
-  //
-
-  function Suggestions(categories) {
+  function Suggestions() {
     this.el = document.getElementById('collections-select');
     this.el.addEventListener('blur', this);
     this.el.addEventListener('change', this);
     this.hide();
 
-    this.load = function suggestions_load(categories, locale) {
-      var self = this;
-
+    this.load = function suggestions_load(categories) {
       this.clear();
+
+      var deviceLocale = this.toLocaleCode(navigator.mozL10n.language.code);
 
       return new Promise(function done(resolve, reject) {
         this.resolve = resolve;
         this.reject = reject;
 
-        var doTranslate = locale !== WORLDWIDE_LOCALE;
         var frag = document.createDocumentFragment();
         var custom = document.createElement('option');
         custom.value = 'custom';
@@ -37,33 +31,49 @@
         custom.textContent = _('custom');
         frag.appendChild(custom);
 
-        if (doTranslate) {
-          // TODO
-          // see bug 968998
-          // translate and sort categories
-        }
+        // localization. use:
+        // 1. name provided by Mozilla l10n team
+        // 2. else - if suggestion has correct locale, use it
+        // 3. else - ignore the suggestion (do not show in list)
+        var localeCategories = [];
 
-        // filter installed categories
-        CollectionsDatabase.getAllCategories()
-          .then(function filter(installed) {
-            categories.forEach(function each(category) {
-              if (installed.indexOf(category.categoryId) > -1) {
-                return;
-              }
+        categories.forEach(function each(category) {
+          var id = category.categoryId;
 
-              var el = document.createElement('option');
+          var localeName = _(l10nKey + id);
+          if (!localeName) {
+            var categoryLocale = this.toLocaleCode(category.locale);
+            if (categoryLocale === deviceLocale) {
+              localeName = category.query;
+            } else {
+              eme.warn(
+                'suggestion ignored (wrong locale ' + categoryLocale + ')',
+                id, category.query);
+            }
+          }
 
-              el.value = el.textContent = category.query;
-              el.dataset.query = category.query;
-              el.dataset.categoryId = category.categoryId;
+          if (localeName) {
+            localeCategories.push({id: id, name: localeName});
+          }
 
-              frag.appendChild(el);
-            });
+        }, this);
 
-            self.el.appendChild(frag);
-            self.show();
+        // sort suggestions by localized names
+        localeCategories.sort(function sort(a,b) {
+          return a.name > b.name;
+        });
 
-          }, reject);
+        localeCategories.forEach(function each(category) {
+          var el = document.createElement('option');
+
+          el.value = el.textContent = category.name;
+          el.dataset.categoryId = category.id;
+
+          frag.appendChild(el);
+        });
+
+        this.el.appendChild(frag);
+        this.show();
       }.bind(this));
     };
   }
@@ -78,7 +88,7 @@
           this.hide();
 
           if (!customSelected) {
-            var selected = _map.call(this.el.querySelectorAll('option:checked'),
+            var selected = map.call(this.el.querySelectorAll('option:checked'),
               function getId(opt) {
                 return Number(opt.dataset.categoryId);
               });
@@ -114,8 +124,12 @@
     },
     hide: function suggestions_hide() {
       this.el.blur();
+    },
+    toLocaleCode: function toLocaleCode(s) {
+       return s ? s.substr(0, 2) : undefined;
     }
   };
 
   exports.Suggestions = new Suggestions();
+
 })(window);

@@ -1243,4 +1243,7 @@ var StatusBar = {
   }
 };
 
-navigator.mozL10n.once(StatusBar.init.bind(StatusBar));
+// unit tests call init() manually
+if (navigator.mozL10n) {
+  navigator.mozL10n.once(StatusBar.init.bind(StatusBar));
+}

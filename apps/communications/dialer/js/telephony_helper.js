@@ -69,7 +69,9 @@ var TelephonyHelper = (function() {
 
     // Making sure we're not dialing the same number twice
     var alreadyDialed = telephony.calls.some(function callIterator(call) {
-      return (call.number == sanitizedNumber);
+      var number = call.id ? call.id.number : call.number;
+
+      return (number == sanitizedNumber);
     });
     if (alreadyDialed) {
       return;

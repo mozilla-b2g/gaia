@@ -47,6 +47,7 @@ var ContactsTag = (function() {
       tagLink.textContent = options[option].value;
       tagLink.setAttribute('data-l10n-id', options[option].type);
       tagLink.setAttribute('data-value', options[option].type);
+      tagLink.setAttribute('role', 'option');
 
       tagLink.addEventListener('click', function(event) {
         var tag = event.target;
@@ -59,6 +60,7 @@ var ContactsTag = (function() {
       }
 
       var tagItem = document.createElement('li');
+      tagItem.setAttribute('role', 'presentation');
       tagItem.appendChild(tagLink);
       target.appendChild(tagItem);
     }
@@ -80,8 +82,10 @@ var ContactsTag = (function() {
 
     if (selectedTag) {
       selectedTag.removeAttribute('class');
+      selectedTag.removeAttribute('aria-selected');
     }
     tag.className = 'icon icon-selected';
+    tag.setAttribute('aria-selected', true);
     selectedTag = tag;
   };
 

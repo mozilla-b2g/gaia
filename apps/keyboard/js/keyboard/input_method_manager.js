@@ -182,6 +182,11 @@ InputMethodGlue.prototype.setUpperCase = function(upperCase, upperCaseLocked) {
 InputMethodGlue.prototype.resetUpperCase = function() {
   this.app.resetUpperCase();
 };
+
+InputMethodGlue.prototype.isCapitalized = function() {
+  return this.app.isCapitalized();
+};
+
 InputMethodGlue.prototype.replaceSurroundingText = function(text, offset,
                                                             length) {
   return this.app.replaceSurroundingText(text, offset, length);

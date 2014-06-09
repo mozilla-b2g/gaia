@@ -34,10 +34,12 @@ suite('controllers/preview-gallery', function() {
     this.app = sinon.createStubInstance(this.App);
     this.app.camera = sinon.createStubInstance(this.Camera);
     this.app.settings = sinon.createStubInstance(this.Settings);
-    this.app.settings = sinon.createStubInstance(this.Settings);
     this.app.activity = {};
     this.app.views = {
       controls: sinon.createStubInstance(this.ControlsView)
+    };
+    this.app.settings.previewGallery = {
+      get: sinon.spy()
     };
 
     // Fake dialog calls the
@@ -64,10 +66,16 @@ suite('controllers/preview-gallery', function() {
         get: function() {},
         translate: function() {}
       };
-      if (!navigator.mozL10n) { navigator.mozL10n = mozL10n; }
-      window.MozActivity = function() {};
-      sinon.stub(window, 'MozActivity');
+      if (!navigator.mozL10n) {
+        navigator.mozL10n = mozL10n;
+      }
       sinon.stub(navigator.mozL10n, 'get');
+
+      var MozActivity = function() {};
+      if (!window.MozActivity) {
+        window.MozActivity = MozActivity;
+      }
+      sinon.stub(window, 'MozActivity');
 
       this.previewGalleryController.storage = {
         deleteImage: sinon.spy(),
@@ -75,10 +83,25 @@ suite('controllers/preview-gallery', function() {
         on: sinon.spy()
       };
 
+      this.previewGalleryController.settings = {
+        activity: {
+          get: sinon.spy()
+        },
+        previewGallery: {
+          get: sinon.spy()
+        }
+      };
+
+      this.previewGalleryController.resizeImageAndSave =
+        function(options, done) {
+          done(options.blob);
+        };
+
+      this.clock = sinon.useFakeTimers();
+
       CustomDialog.show = function(title, msg, cancelCb, deleteCb) {
         deleteCb.callback();
       };
-
     });
 
     teardown(function() {
@@ -106,13 +129,14 @@ suite('controllers/preview-gallery', function() {
 
     test('Should shareCurrentItem whose type is image', function() {
       var item = {
-        blob: {},
+        blob: new Blob(['empty-image'], {'type': 'image/jpeg'}),
         filepath: 'root/folder1/folder2/fileName',
         isImage: true
       };
       this.previewGalleryController.items = [item];
       this.previewGalleryController.currentItemIndex = 0;
       this.previewGalleryController.shareCurrentItem();
+
       // Get first argument, of first call
       var arg = window.MozActivity.args[0][0];
 
@@ -133,6 +157,7 @@ suite('controllers/preview-gallery', function() {
       this.previewGalleryController.items = [item];
       this.previewGalleryController.currentItemIndex = 0;
       this.previewGalleryController.shareCurrentItem();
+
       // Get first argument, of first call
       var arg = window.MozActivity.args[0][0];
 
@@ -302,6 +327,14 @@ suite('controllers/preview-gallery', function() {
   suite('PreviewGalleryController#openPreview()', function() {
     setup(function() {
       sinon.stub(this.controller, 'previewItem');
+      this.controller.settings = {
+        activity: {
+          get: sinon.spy()
+        },
+        previewGallery: {
+          get: sinon.spy()
+        }
+      };
       this.controller.openPreview();
     });
 

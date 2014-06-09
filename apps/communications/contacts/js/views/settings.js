@@ -657,7 +657,7 @@ contacts.Settings = (function() {
   };
 
   // Import contacts from SIM card and updates ui
-  var onSimImport = function onSimImport(iccId) {
+  var onSimImport = function onSimImport(iccId, done) {
     var icc = IccHandler.getIccById(iccId);
     if (icc === null) {
       return;
@@ -698,7 +698,7 @@ contacts.Settings = (function() {
       }
     };
 
-    importer.onfinish = function import_finish() {
+    importer.onfinish = function import_finish(numDupsMerged) {
       window.setTimeout(function onfinish_import() {
         resetWait(wakeLock);
         if (importedContacts > 0) {
@@ -712,8 +712,14 @@ contacts.Settings = (function() {
         if (!cancelled) {
           Contacts.showStatus(_('simContacts-imported3', {
             n: importedContacts
+          }),
+          !numDupsMerged ? null : _('contactsMerged', {
+            numDups: numDupsMerged
           }));
         }
+
+        typeof done === 'function' && done();
+
       }, DELAY_FEEDBACK);
 
       importer.onfinish = null;
@@ -804,17 +810,24 @@ contacts.Settings = (function() {
       importer.onimported = imported_contact;
       importer.onerror = import_error;
 
-      importer.process(function import_finish() {
+      importer.process(function import_finish(total, numDupsMerged) {
         window.setTimeout(function onfinish_import() {
           utils.misc.setTimestamp('sd', function() {
             // Once the timestamp is saved, update the list
             updateTimestamps();
             checkNoContacts();
             resetWait(wakeLock);
+
             if (!cancelled) {
-              Contacts.showStatus(_('memoryCardContacts-imported3', {
+              var msg1 = _('memoryCardContacts-imported3', {
                 n: importedContacts
-              }));
+              });
+              var msg2 = !numDupsMerged ? null : _('contactsMerged', {
+                numDups: numDupsMerged
+              });
+
+              Contacts.showStatus(msg1, msg2);
+
               if (typeof cb === 'function') {
                 cb();
               }
@@ -1007,6 +1020,7 @@ contacts.Settings = (function() {
     'cardStateChanged': checkSIMCard,
     'updateTimestamps': updateTimestamps,
     'navigation': navigationHandler,
-    'importFromSDCard': onSdImport
+    'importFromSDCard': onSdImport,
+    'importFromSIMCard': onSimImport
   };
 })();

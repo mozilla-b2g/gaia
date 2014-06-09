@@ -1,10 +1,12 @@
+/* jshint -W083 */
+
 (function(exports) {
   'use strict';
 
   /**
    * Allowable font sizes for header elements.
    */
-  var HEADER_SIZES = [
+  const HEADER_SIZES = [
     16, 17, 18, 19, 20, 21, 22, 23
   ];
 
@@ -22,14 +24,21 @@
 
     /**
      * Grab or create a cached canvas context for a given fontSize/family pair.
+     * @todo Add font-weight as a new dimension for caching.
      *
      * @param {Integer} fontSize The font size of the canvas we want.
      * @param {String} fontFamily The font family of the canvas we want.
+     * @param {String} fontStyle The style of the font (default to italic).
      * @return {CanvasRenderingContext2D} A context with the specified font.
      */
-    _getCachedContext: function(fontSize, fontFamily) {
+    _getCachedContext: function(fontSize, fontFamily, fontStyle) {
+      // Default to italic style since this code is only ever used
+      // by headers right now and header text is always italic.
+      fontStyle = fontStyle || 'italic';
+
       var cache = this._cachedContexts;
-      var ctx = cache[fontSize] ? cache[fontSize][fontFamily] : null;
+      var ctx = cache[fontSize] && cache[fontSize][fontFamily] ?
+                cache[fontSize][fontFamily][fontStyle] : null;
 
       if (!ctx) {
         var canvas = document.createElement('canvas');
@@ -38,13 +47,16 @@
         canvas.setAttribute('height', '1');
 
         ctx = canvas.getContext('2d', { willReadFrequently: true });
-        ctx.font = fontSize + 'px ' + fontFamily;
+        ctx.font = fontStyle + ' ' + fontSize + 'px ' + fontFamily;
 
         // Populate the contexts cache.
         if (!cache[fontSize]) {
           cache[fontSize] = {};
         }
-        cache[fontSize][fontFamily] = ctx;
+        if (!cache[fontSize][fontFamily]) {
+          cache[fontSize][fontFamily] = {};
+        }
+        cache[fontSize][fontFamily][fontStyle] = ctx;
       }
 
       return ctx;
@@ -68,7 +80,7 @@
      */
     _handleTextChanges: function(mutations) {
       for (var i = 0; i < mutations.length; i++) {
-        this.autoResizeElement(mutations[i].target);
+        this._reformatHeaderText(mutations[i].target);
       }
     },
 
@@ -90,10 +102,51 @@
      *
      * @param {HTMLElement} element The element to observer for changes
      */
-    _resizeOnTextChange: function(element) {
+    _observeHeaderChanges: function(element) {
       var observer = this._getTextChangeObserver();
       // Listen for any changes in the child nodes of the header.
       observer.observe(element, { childList: true });
+    },
+
+    /**
+     * Resize and reposition the header text based on string length and
+     * container position.
+     *
+     * @param {HTMLElement} header h1 text inside header to reformat.
+     */
+    _reformatHeaderText: function(header) {
+      // Skip resize logic if header has no content, ie before localization.
+      if (header.textContent.trim() === '') {
+        return;
+      }
+
+      // Reset our centering styles.
+      this.resetCentering(header);
+
+      // Cache the element style properites to avoid reflows.
+      var style = this.getStyleProperties(header);
+
+      // Perform auto-resize and center.
+      style.textWidth = this.autoResizeElement(header, style);
+      this.centerTextToScreen(header, style);
+    },
+
+    /**
+     * Reformat all the headers located inside a DOM node, and add mutation
+     * observer to reformat when any changes are made.
+     *
+     * @param {HTMLElement} domNode
+     */
+    _registerHeadersInSubtree: function(domNode) {
+      var headers = domNode.querySelectorAll('header > h1');
+      for (var i = 0; i < headers.length; i++) {
+        // On some apps wrapping inside a requestAnimationFrame reduces the
+        // number of calls to _reformatHeaderText().
+        window.requestAnimationFrame(function(header) {
+          this._reformatHeaderText(header);
+          this._observeHeaderChanges(header);
+        }.bind(this, headers[i]));
+      }
     },
 
     /**
@@ -102,10 +155,11 @@
      * @param {String} string The string we are measuring.
      * @param {Integer} fontSize The size of the font to measure against.
      * @param {String} fontFamily The font family to measure against.
+     * @param {String} fontStyle The style of the font (default to italic).
      * @return {Integer} The pixel width of the string with the given font.
      */
-    getFontWidth: function(string, fontSize, fontFamily) {
-      var ctx = this._getCachedContext(fontSize, fontFamily);
+    getFontWidth: function(string, fontSize, fontFamily, fontStyle) {
+      var ctx = this._getCachedContext(fontSize, fontFamily, fontStyle);
       return ctx.measureText(string).width;
     },
 
@@ -130,7 +184,11 @@
         i--;
       } while (resultWidth > maxWidth && i >= 0);
 
-      return { fontSize: fontSize, overflow: resultWidth > maxWidth };
+      return {
+        fontSize: fontSize,
+        overflow: resultWidth > maxWidth,
+        textWidth: resultWidth
+      };
     },
 
     /**
@@ -162,8 +220,7 @@
      * @return {Array} An array containing pizels values of allowed sizes.
      */
     getAllowedSizes: function(element) {
-      if (element.tagName === 'H1' && element.parentNode &&
-          element.parentNode.tagName === 'HEADER') {
+      if (element.tagName === 'H1' && element.parentNode.tagName === 'HEADER') {
         return HEADER_SIZES;
       }
       // No allowed sizes for this element, so return empty array.
@@ -171,42 +228,128 @@
     },
 
     /**
-     * Perform auto-resize logic for an element.
+     * Get an element's content width disregarding its box model sizing.
      *
-     * @param {HTMLElement} element The element to perform auto-resize on.
+     * @param {HTMLElement|Object} HTML element, or style object.
+     * @returns {Number} width in pixels of elements content.
      */
-    autoResizeElement: function(element) {
-      var allowedSizes = this.getAllowedSizes(element);
-      if (allowedSizes.length === 0) {
-        return;
+    getContentWidth: function(style) {
+      var width = parseInt(style.width, 10);
+      if (style.boxSizing === 'border-box') {
+        width -= (parseInt(style.paddingRight, 10) +
+          parseInt(style.paddingLeft, 10));
       }
-      var style = window.getComputedStyle(element);
-      var info = this.getMaxFontSizeInfo(element.textContent, allowedSizes,
-                                         style.fontFamily,
-                                         parseInt(style.width));
-      element.style.fontSize = info.fontSize + 'px';
-
-      // If we have resized to less than our max fontSize for this
-      // container, we need to listen for textContent changes so that
-      // we can auto resize to a larger fontSize if space allows it.
-      if (info.fontSize !== allowedSizes[allowedSizes.length - 1]) {
-        this._resizeOnTextChange(element);
-      }
+      return width;
     },
 
     /**
-     * When certain elements overflow, auto resize their fonts
+     * Get an element's style properies.
      *
-     * @param {UIEvent} ext The overflow/underflow event object.
+     * @param {HTMLElement} element The element from which to fetch style.
+     * @return {Object} A dictionary containing element's style properties.
      */
-    handleTextFlowChange: function (evt) {
-      var element = evt.target;
-      // This check should really be in its own function, but as a
-      // performance optimization we will avoid the overhead of any
-      // additional function call by doing this check inline.
-      if (element.tagName === 'H1' && element.parentNode &&
-          element.parentNode.tagName === 'HEADER') {
-        this.autoResizeElement(evt.target);
+    getStyleProperties: function(element) {
+      var style = window.getComputedStyle(element);
+      var contentWidth = this.getContentWidth(style);
+      if (isNaN(contentWidth)) {
+        contentWidth = 0;
+      }
+
+      return {
+        fontFamily: style.fontFamily,
+        contentWidth: contentWidth,
+        paddingRight: parseInt(style.paddingRight, 10),
+        paddingLeft: parseInt(style.paddingLeft, 10),
+        offsetLeft: element.offsetLeft
+      };
+    },
+
+    /**
+     * Auto resize element's font to fit its content width.
+     *
+     * @param {HTMLElement} element The element to perform auto-resize on.
+     * @param {Object} styleOptions Dictionary containing cached style props,
+     *                 to avoid reflows caused by grabbing style properties.
+     * @return {Integer} The pixel width of the resized text.
+     */
+    autoResizeElement: function(element, styleOptions) {
+      var allowedSizes = this.getAllowedSizes(element);
+      if (allowedSizes.length === 0) {
+        return 0;
+      }
+
+      var contentWidth = styleOptions.contentWidth ||
+        this.getContentWidth(element);
+
+      var fontFamily = styleOptions.fontFamily ||
+        getComputedStyle(element).fontFamily;
+
+      var info = this.getMaxFontSizeInfo(
+        element.textContent,
+        allowedSizes,
+        fontFamily,
+        contentWidth
+      );
+
+      element.style.fontSize = info.fontSize + 'px';
+
+      return info.textWidth;
+    },
+
+    /**
+     * Reset the auto-centering styling on an element.
+     *
+     * @param {HTMLElement} element The element to reset.
+     */
+    resetCentering: function(element) {
+      // We need to set the lateral margins to 0 to be able to measure the
+      // element width properly. All previously set values are ignored.
+      element.style.marginLeft = element.style.marginRight = '0';
+    },
+
+    /**
+     * Center an elements text based on screen position rather than container.
+     *
+     * @param {HTMLElement} element The element whose text we want to center.
+     * @param {Object} styleOptions Dictionary containing cached style props,
+     *                 avoids reflows caused by caching style properties.
+     */
+    centerTextToScreen: function(element, styleOptions) {
+      // Calculate the minimum amount of space needed for the header text
+      // to be displayed without overflowing its content box.
+      var minHeaderWidth = styleOptions.textWidth + styleOptions.paddingRight +
+        styleOptions.paddingLeft;
+
+      // Get the amount of space on each side of the header text element.
+      var sideSpaceLeft = styleOptions.offsetLeft;
+      var sideSpaceRight = this.getWindowWidth() - sideSpaceLeft -
+        styleOptions.contentWidth - styleOptions.paddingRight -
+        styleOptions.paddingLeft;
+
+      // If both margins have the same width, the header is already centered.
+      if (sideSpaceLeft === sideSpaceRight) {
+        return;
+      }
+
+      // To center, we need to make sure the space to the left of the header
+      // is the same as the space to the right, so take the largest of the two.
+      var margin = Math.max(sideSpaceLeft, sideSpaceRight);
+
+      // If the minimum amount of space our header needs plus the max margins
+      // fits inside the width of the window, we can center this header.
+      if (minHeaderWidth + (margin * 2) <= this.getWindowWidth()) {
+        element.style.marginLeft = element.style.marginRight = margin + 'px';
+      }
+    },
+
+    _initHeaderFormatting: function() {
+      if (navigator.mozL10n) {
+        // When l10n is ready, register all displayed headers for formatting.
+        navigator.mozL10n.once(function() {
+          this._registerHeadersInSubtree(document.body);
+        }.bind(this));
+      } else {
+        this._registerHeadersInSubtree(document.body);
       }
     },
 
@@ -214,25 +357,29 @@
      * Initialize the FontSizeUtils, add overflow handler and perform
      * auto resize once strings have been localized.
      */
-    init: function () {
-      // Add overflow listener once document body is ready.
+    init: function() {
+      // Listen for lazy loaded DOM to register new headers.
+      window.addEventListener('lazyload', function(evt) {
+        this._registerHeadersInSubtree(evt.detail);
+      }.bind(this));
+
+      // Once document is ready, format any headers already in the DOM.
       if (document.readyState === 'loading') {
         window.addEventListener('DOMContentLoaded', function() {
-          document.body.addEventListener('overflow',
-            this.handleTextFlowChange.bind(this), true);
+          this._initHeaderFormatting();
         }.bind(this));
       } else {
-        document.body.addEventListener('overflow',
-          this.handleTextFlowChange.bind(this), true);
+        this._initHeaderFormatting();
       }
+    },
 
-      // When l10n is ready, resize all currently displayed headers.
-      navigator.mozL10n && navigator.mozL10n.ready(function() {
-        var headers = document.querySelectorAll('header > h1');
-        for (var i = 0; i < headers.length; i++) {
-          this.autoResizeElement(headers[i]);
-        }
-      }.bind(this));
+    /**
+     * Cache and return the width of the inner window.
+     *
+     * @return {Integer} The width of the inner window in pixels.
+     */
+    getWindowWidth: function() {
+      return window.innerWidth;
     }
   };
 

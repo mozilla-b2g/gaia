@@ -9,12 +9,12 @@
   function App() {
     this.scrollable = document.querySelector('.scrollable');
     this.grid = document.getElementById('icons');
-    this.homescreenFocused = true;
 
     window.addEventListener('hashchange', this);
     window.addEventListener('gaiagrid-saveitems', this);
-    window.addEventListener('gaiagrid-collection-open', this);
-    window.addEventListener('gaiagrid-collection-close', this);
+
+    var editModeDone = document.getElementById('exit-edit-mode');
+    editModeDone.addEventListener('click', this.exitEditMode);
   }
 
   App.prototype = {
@@ -63,6 +63,15 @@
     },
 
     /**
+     * Called when we press 'Done' to exit edit mode.
+     * Fires a custom event to use the same path as pressing the home button.
+     */
+    exitEditMode: function(e) {
+      e.preventDefault();
+      window.dispatchEvent(new CustomEvent('hashchange'));
+    },
+
+    /**
      * General event handler.
      */
     handleEvent: function(e) {
@@ -71,21 +80,14 @@
           this.itemStore.save(this.grid.getItems());
           break;
 
-        case 'gaiagrid-collection-open':
-          this.homescreenFocused = false;
-          break;
-
-        case 'gaiagrid-collection-close':
-          this.homescreenFocused = true;
-          break;
-
         case 'hashchange':
           if (this.grid._grid.dragdrop.inEditMode) {
             this.grid._grid.dragdrop.exitEditMode();
             return;
           }
 
-          if (!this.homescreenFocused || document.hidden) {
+          // Bug 1021518 - ignore home button taps on lockscreen
+          if (document.hidden) {
             return;
           }
 

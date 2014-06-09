@@ -24,7 +24,8 @@ var OperatorVariantManager = {
     '/js/customizers/data_ftu_customizer.js',
     '/js/customizers/nfc_customizer.js',
     '/js/customizers/search_customizer.js',
-    '/js/customizers/default_search_customizer.js'
+    '/js/customizers/default_search_customizer.js',
+    '/js/customizers/topsites_customizer.js'
   ],
 
   init: function ovm_init() {

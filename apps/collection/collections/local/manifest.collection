@@ -8,12 +8,5 @@
     "90": "/collections/local/icon_90.png",
     "120": "/collections/local/icon_120.png",
     "135": "/collections/local/icon_135.png"
-  },
-  "backgrounds": {
-    "480": "/collections/local/background_320x480.jpg",
-    "800": "/collections/local/background_480x800.jpg",
-    "854": "/collections/local/background_480x854.jpg",
-    "960": "/collections/local/background_540x960.jpg",
-    "1280": "/collections/local/background_720x1280.jpg"
   }
 }

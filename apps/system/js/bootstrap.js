@@ -127,9 +127,12 @@ window.addEventListener('load', function startup() {
   window.wallpaperManager = new window.WallpaperManager();
   window.wallpaperManager.start();
 
-  navigator.mozL10n.once(function l10n_ready() {
-    window.mediaRecording = new MediaRecording().start();
-  });
+  // unit tests call init() manually
+  if (navigator.mozL10n) {
+    navigator.mozL10n.once(function l10n_ready() {
+      window.mediaRecording = new MediaRecording().start();
+    });
+  }
 
   // We need to be sure to get the focus in order to wake up the screen
   // if the phone goes to sleep before any user interaction.

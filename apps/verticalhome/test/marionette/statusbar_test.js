@@ -35,12 +35,16 @@ marionette('Statusbar', function() {
                'opaque');
       });
 
-      client.apps.switchToApp(Homescreen.URL);
-      actions.flick(body, 200, 200, 200, 300);
-      actions.perform();
-      client.helper.wait(2000); // Waiting for scroll animation
-      client.switchToFrame();
+      // We can't trust our panning physics on B2G desktop using Actions.
+      // The same scroll down may not result in the same upward scroll.
+      // We may be able to use a larger upward scroll, but to be 100% sure we
+      // simply continue flicking until victorious.
       client.waitFor(function() {
+        client.apps.switchToApp(Homescreen.URL);
+        actions.flick(body, 200, 200, 200, 300);
+        actions.perform();
+
+        client.switchToFrame();
         return !home.containsClass(System.Selector.statusbarBackground,
                'opaque');
       });

@@ -383,8 +383,9 @@ var EverythingME = {
     activationIconInput.removeEventListener('blur',
                                             EverythingME.onActivationIconBlur);
 
-    // add evme into the first grid page
-    gridPage.appendChild(page.parentNode.removeChild(page));
+    // add evme into the first grid page, and ensure correct DOM order
+    gridPage.insertBefore(page.parentNode.removeChild(page),
+      gridPage.firstChild);
 
     EvmeFacade.onShow();
 

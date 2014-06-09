@@ -98,8 +98,8 @@
    */
   ActivityWindow.prototype._DEBUG = false;
 
-  ActivityWindow.prototype.openAnimation = 'slideup';
-  ActivityWindow.prototype.closeAnimation = 'slidedown';
+  ActivityWindow.prototype.openAnimation = 'fade-in';
+  ActivityWindow.prototype.closeAnimation = 'fade-out';
 
   /**
    * ActivityWindow's fullscreen state is copying from the caller

@@ -7,4 +7,4 @@ To build Gaia for tablet, just change the current path to the main gaia folder, 
 
 `GAIA_DISTRIBUTION_DIR` is used to specify the target customization folder.
 
-Please refer to the [Customization](https://wiki.mozilla.org/B2G/MarketCustomizations) document to understand how customization works.
+Please refer to the [Market customizations guide](https://developer.mozilla.org/en-US/Firefox_OS/Developing_Firefox_OS/Market_customizations_guide) to understand how customization works.

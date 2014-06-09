@@ -612,4 +612,7 @@ var UpdateManager = {
   }
 };
 
-navigator.mozL10n.once(UpdateManager.init.bind(UpdateManager));
+// unit tests call init() manually
+if (navigator.mozL10n) {
+  navigator.mozL10n.once(UpdateManager.init.bind(UpdateManager));
+}

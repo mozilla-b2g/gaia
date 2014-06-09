@@ -518,6 +518,22 @@ suite('KeyboardManager', function() {
 
       KeyboardManager.hasActiveKeyboard = realActive;
     });
+
+    test('lock event: do nothing if no keyboard', function() {
+      var spy = this.sinon.spy(navigator.mozInputMethod, 'removeFocus');
+      trigger('lock');
+      assert.ok(spy.notCalled);
+    });
+
+    test('lock event: hide keyboard if needed', function() {
+      var realActive = KeyboardManager.hasActiveKeyboard;
+      KeyboardManager.hasActiveKeyboard = true;
+      var spy = this.sinon.spy(navigator.mozInputMethod, 'removeFocus');
+      trigger('lock');
+      sinon.assert.calledOnce(spy);
+
+      KeyboardManager.hasActiveKeyboard = realActive;
+    });
   });
 
   suite('Hide Keyboard', function() {
@@ -705,19 +721,8 @@ suite('KeyboardManager', function() {
       KeyboardManager.keyboardFrameContainer.classList.remove('hide');
       fakeMozbrowserResize(250);
       assert.equal(KeyboardManager.keyboardHeight, 250);
-      sinon.assert.callCount(showKeyboard, 1,
-                                        'showKeyboard should be called');
-    });
-
-    test('keyboard is showing.', function() {
-      KeyboardManager.setKeyboardToShow('text');
-      fakeMozbrowserResize(300);
-      KeyboardManager.keyboardFrameContainer.classList.remove('hide');
-      KeyboardManager.keyboardFrameContainer.dataset.transitionIn = 'true';
-      fakeMozbrowserResize(350);
-      assert.equal(KeyboardManager.keyboardHeight, 350);
-      sinon.assert.callCount(showKeyboard, 1,
-                                        'showKeyboard should be called once');
+      sinon.assert.callCount(showKeyboard, 2,
+                                          'showKeyboard should be called');
     });
   });
 

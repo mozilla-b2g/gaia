@@ -638,8 +638,8 @@ var Contacts = (function() {
     }, SHARED_UTILS);
   };
 
-  var showStatus = function c_showStatus(message) {
-    utils.status.show(message);
+  var showStatus = function c_showStatus(message, additional) {
+    utils.status.show(message, additional);
   };
 
   var showSettings = function showSettings() {

@@ -307,8 +307,14 @@ var CallScreen = {
     this.contactBackground.classList.add('ready');
   },
 
+  /**
+   * This function is kept, although it currently sets the current wallpaper as
+   *  the emergency wallpaper, since it is expected to be needed once UX
+   *  provides the desired emergency image to use. See
+   *   https://bugzilla.mozilla.org/show_bug.cgi?id=993951#c6
+   */
   setEmergencyWallpaper: function cs_setEmergencyWallpaper() {
-    this.mainContainer.classList.add('emergency-active');
+    this.setWallpaper();
   },
 
   insertCall: function cs_insertCall(node) {

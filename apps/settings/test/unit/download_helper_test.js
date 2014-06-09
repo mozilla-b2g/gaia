@@ -180,15 +180,16 @@ suite('DownloadHelper', function() {
 
       var req = DownloadHelper.open(download);
 
+      // We should always attempt to 'open' all content types.
       req.onsuccess = function() {
-        assert.ok(false);
+        assert.ok(true);
+        stubFormatter.restore();
         done();
       };
 
       req.onerror = function(evt) {
-        assert.equal(evt.target.error.code,
-          DownloadHelper.CODE.MIME_TYPE_NOT_SUPPORTED);
-        stubFormatter.restore();
+        assert.ok(false,
+                  'All content types should be openable via third party apps.');
         done();
       };
     });

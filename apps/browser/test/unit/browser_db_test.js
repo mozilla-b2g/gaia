@@ -5,6 +5,32 @@
 var Browser = {
   _doNotCustomize: true,
 
+  getDefaultData: function getDefaultData(callback) {
+
+    var data = {
+      'topSites': [
+        {
+          'title': 'Mozilla',
+          'uri': 'http://mozilla.org'
+        },
+        {
+          'title': 'Firefox OS',
+          'uri': 'http://mozilla.org/firefoxos'
+        }
+      ]
+    };
+
+    // Imitate real getConfigurationData function by creating JSON from our
+    // object and parsing it before returning it.
+    var json = JSON.stringify(data);
+
+    // Select the data from the object.
+    var parsed = JSON.parse(json);
+
+    // Done, notify callback.
+    callback(parsed);
+  },
+
   getConfigurationData: function browser_getDefaultData(variant, callback) {
 
     // For all other tests in the suite, we do _not_ want any customizations.
@@ -102,6 +128,16 @@ suite('BrowserDB', function() {
 
   suite('BrowserDB.operatorVariantCustomization', function() {
     setup(function(done) {
+
+      navigator.mozSettings.createLock()
+               .set({'operatorResources.data.topsites': {
+        'topSites': [
+          {
+            'title': 'Topsite',
+            'uri': 'http://customize.test.mozilla.org/topsite'
+          }
+        ]}});
+
       // For these series of tests, we *do* want customizations to run.
       Browser._doNotCustomize = false;
       // And we want to manually initialize the DB.
@@ -155,6 +191,24 @@ suite('BrowserDB', function() {
           done();
         }
       );
+    });
+
+    test('Operator Variant Customization -- Top sites', function(done) {
+      BrowserDB.getTopSites(20, null, function(places) {
+        assert.equal(places.length, 3);
+
+        assert.equal(places[0].uri,
+                     'http://customize.test.mozilla.org/topsite');
+        assert.equal(places[0].title, 'Topsite');
+
+        assert.equal(places[1].uri, 'http://mozilla.org/firefoxos');
+        assert.equal(places[1].title, 'Firefox OS');
+
+        assert.equal(places[2].uri, 'http://mozilla.org');
+        assert.equal(places[2].title, 'Mozilla');
+
+        done();
+      });
     });
   });
 

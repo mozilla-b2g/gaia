@@ -158,7 +158,12 @@
     }
   });
 
-  navigator.mozL10n.once(function() {
+  // unit tests call init() manually
+  if (navigator.mozL10n) {
+    navigator.mozL10n.once(init);
+  }
+
+  function init() {
     SettingsListener.observe('audio.volume.cemaxvol', 11, function(volume) {
       CEWarningVol = volume;
     });
@@ -171,7 +176,7 @@
           CEAccumulatorTime = value;
         }
       });
-  });
+  }
 
   window.addEventListener('unload', stopAccumulator, false);
 

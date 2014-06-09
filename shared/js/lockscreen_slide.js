@@ -828,7 +828,7 @@
         }).bind(this);
 
         // single-color background
-        draw(this.track.backColor, this.track.backColor);
+        draw(this.track.backColor, 'transparent');
 
         // actual gradient
         var gradientStroke =

@@ -1,6 +1,7 @@
 'use strict';
 /* global BaseCollection */
 /* global Contextmenu */
+/* global Promise */
 
 (function(exports) {
 
@@ -9,7 +10,8 @@
   var grid = document.getElementById('grid');
 
   var elements = {
-    bgimage: document.getElementById('bgimage'),
+    content: document.getElementById('content'),
+    header: document.getElementById('header'),
     close: document.getElementById('close'),
     name: document.getElementById('name')
   };
@@ -36,9 +38,7 @@
 
     var categoryId = collection.categoryId;
     var query = collection.query;
-    var name = collection.name;
 
-    elements.name.textContent = name;
     elements.close.addEventListener('click', function close() {
       activity.postResult('close');
     });
@@ -76,7 +76,7 @@
             src = 'data:' + image.MIMEType + ';base64,' + image.data;
           }
 
-          elements.bgimage.style.backgroundImage = 'url(' + src + ')';
+          elements.content.style.backgroundImage = 'url(' + src + ')';
         } else {
           // TODO show default image?
         }
@@ -86,11 +86,34 @@
 
   navigator.mozSetMessageHandler('activity', function onActivity(activity) {
     if (activity.source.name === 'view-collection') {
+      // set collection name to header
+      elements.name.textContent = activity.source.data.name;
+
+      // set wallpaper behind header
+      getWallpaperImage().then(function(src) {
+        elements.header.style.backgroundImage = 'url(' + src + ')';
+      });
+
       eme.init().then(function ready() {
         HandleView(activity);
       });
     }
   });
+
+  function getWallpaperImage() {
+    return new Promise(function convert(resolve, reject) {
+      var req = navigator.mozSettings.createLock().get('wallpaper.image');
+      req.onsuccess = function image_onsuccess() {
+        var image = req.result['wallpaper.image'];
+        if (image instanceof Blob) {
+          image = URL.createObjectURL(image);
+        }
+
+        resolve(image);
+      };
+      req.onerror = reject;
+    });
+  }
 
   // exporting handler so we can trigger it from testpage.js
   // without mozActivities since we can't debug activities in app manager

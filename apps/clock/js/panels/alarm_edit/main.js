@@ -16,6 +16,7 @@ var constants = require('constants');
 var AlarmEdit = function() {
   Panel.apply(this, arguments);
   this.element.innerHTML = html;
+
   mozL10n.translate(this.element);
   var handleDomEvent = this.handleDomEvent.bind(this);
 
@@ -224,6 +225,13 @@ Utils.extend(AlarmEdit.prototype, {
     }
 
     location.hash = '#alarm-edit-panel';
+
+    // We're appending new elements to DOM so to make sure headers are
+    // properly resized and centered, we emmit a lazyload event.
+    // This will be removed when the gaia-header web component lands.
+    window.dispatchEvent(new CustomEvent('lazyload', {
+      detail: this.element
+    }));
   },
 
   initTimeSelect: function aev_initTimeSelect() {

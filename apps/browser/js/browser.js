@@ -59,7 +59,7 @@ var Browser = {
     this.urlInput.addEventListener('focus', this.urlFocus.bind(this));
     this.urlInput.addEventListener('blur', this.urlBlur.bind(this));
     this.urlInput.addEventListener('mouseup', this.urlMouseUp.bind(this));
-    this.urlInput.addEventListener('keyup',
+    this.urlInput.addEventListener('input',
       this.handleUrlInputKeypress.bind(this));
     this.urlButton.addEventListener('click',
       this.handleUrlFormSubmit.bind(this));
@@ -237,6 +237,28 @@ var Browser = {
      ModalDialog.init();
      Awesomescreen.init();
      AuthenticationDialog.init(false);
+  },
+
+  getDefaultData: function browser_getConfData(callback) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', '/js/inittopsites.json', true);
+
+    xhr.addEventListener('load', (function browser_defaultConfDataListener() {
+      if (!(xhr.status === 200 | xhr.status === 0)) {
+        console.error('Unknown response when getting configuration data.');
+        return;
+      }
+
+      callback(JSON.parse(xhr.responseText));
+
+    }).bind(this), false);
+
+    xhr.onerror = function getDefaultConfDataError() {
+      callback(null);
+      console.error('Error getting configuration data.');
+    };
+
+    xhr.send();
   },
 
   /**
