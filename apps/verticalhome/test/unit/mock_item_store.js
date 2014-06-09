@@ -3,5 +3,11 @@
 function MockItemStore() {}
 
 MockItemStore.prototype = {
-  all: function() {}
+  mNextPosition: 0,
+  all: function() {},
+  getNextPosition: function() {
+    var nextPosition = this.mNextPosition;
+    this.mNextPosition++;
+    return nextPosition;
+  }
 };
