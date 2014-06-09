@@ -17,14 +17,13 @@ suite('Latin suggestions', function() {
 
     imSettings = {
       resetUpperCase: sinon.stub(),
-      sendKey: sinon.stub().returns(
-        new Promise(function(res, rej) { res(); })),
+      sendKey: sinon.stub().returns(Promise.resolve()),
       sendString: sinon.stub(),
       sendCandidates: sinon.stub(),
       setUpperCase: sinon.stub(),
       setLayoutPage: sinon.stub(),
-      replaceSurroundingText: sinon.stub().returns(
-        new Promise(function(res, rej) { res(); }))
+      replaceSurroundingText: sinon.stub().returns(Promise.resolve()),
+      isCapitalized: sinon.stub()
     };
     im.init(imSettings);
 
