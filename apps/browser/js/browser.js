@@ -1119,7 +1119,6 @@ var Browser = {
     var menuData = evt.detail;
     var dialog = document.createElement('section');
     var menu = document.createElement('menu');
-    var list = document.createElement('ul');
     var self = this;
     // SystemTargets are default elements that have contextmenu
     // actions associated
@@ -1161,9 +1160,8 @@ var Browser = {
     evt.preventDefault();
 
     menuItems.forEach(function(menuitem) {
-      var li = document.createElement('li');
-      li.id = menuitem.id;
       var button = this.createButton(menuitem.label, menuitem.icon);
+      button.id = menuitem.id;
 
       button.addEventListener('click', function() {
         document.body.removeChild(dialog);
@@ -1171,22 +1169,20 @@ var Browser = {
         menuitem.callback();
       });
 
-      li.appendChild(button);
-      list.appendChild(li);
+      menu.appendChild(button);
     }, this);
 
-    var cancel = document.createElement('li');
+    var cancel = this.createButton(_('cancel'));
     cancel.id = 'cancel';
-    cancel.appendChild(this.createButton(_('cancel')));
-    list.appendChild(cancel);
+    menu.appendChild(cancel);
 
     cancel.addEventListener('click', function(e) {
       self.contextMenuHasCalled = false;
       document.body.removeChild(dialog);
     });
 
-    menu.classList.add('actions');
-    menu.appendChild(list);
+    menu.setAttribute('type', 'toolbar');
+    dialog.setAttribute('data-type', 'action');
     dialog.setAttribute('role', 'dialog');
     dialog.appendChild(menu);
     document.body.appendChild(dialog);
