@@ -44,15 +44,15 @@
         <h2 data-l10n-id="tones">Tones</h2>
       </header>
       <ul>
-        <li id="ringer" hidden>
+        <li class="ringer" hidden>
           <p data-l10n-id="ringer">Ringer</p>
-          <button id="ring-tone-selection" class="icon icon-view" data-l10n-id="change"></button>
+          <button class="ring-tone-selection icon icon-view" data-l10n-id="change"></button>
         </li>
         <li id="alerts">
           <p data-l10n-id="alerts">Alerts</p>
-          <button id="alert-tone-selection" class="icon icon-view" data-l10n-id="change"></button>
+          <button class="alert-tone-selection icon icon-view" data-l10n-id="change"></button>
         </li>
-        <li id="touch-tone-selector" hidden>
+        <li class="touch-tone-selector" hidden>
           <a data-l10n-id="touch-tones">Audible touch tones</a>
           <span class="button icon icon-dialog">
             <select name="phone.dtmf.type">
@@ -104,7 +104,7 @@
     </div>
 
     <script src="shared/js/omadrm/fl.js"></script>
-    <script src="js/sound.js"></script>
+    <panel data-path="panels/sound/panel"></panel>
 
   </template>
 </element>
