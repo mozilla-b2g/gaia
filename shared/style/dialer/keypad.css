@@ -25,6 +25,7 @@
 }
 
 #phone-number-view-container .phone-number-view-wrapper-input {
+  width: 100%;
   margin-bottom: 4.5rem;
   display: flex;
   align-items: center;
