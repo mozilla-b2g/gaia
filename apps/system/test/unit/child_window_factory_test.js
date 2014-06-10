@@ -57,6 +57,7 @@ suite('system/ChildWindowFactory', function() {
     var app1 = new MockAppWindow(fakeAppConfig1);
     var spy = this.sinon.spy(window, 'AppWindow');
     var cwf = new ChildWindowFactory(app1);
+    this.sinon.stub(app1, 'isActive').returns(true);
     cwf.handleEvent(new CustomEvent('mozbrowseropenwindow',
       {
         detail: fakeWindowOpenDetailSameOrigin
@@ -69,12 +70,37 @@ suite('system/ChildWindowFactory', function() {
     var app1 = new MockAppWindow(fakeAppConfig1);
     var spy = this.sinon.spy(window, 'AppWindow');
     var cwf = new ChildWindowFactory(app1);
+    this.sinon.stub(app1, 'isActive').returns(true);
     cwf.handleEvent(new CustomEvent('mozbrowseropenwindow',
       {
         detail: fakeWindowOpenDetailCrossOrigin
       }));
     assert.isTrue(spy.calledWithNew());
     assert.isUndefined(spy.getCall(0).args[0].previousWindow);
+  });
+
+  test('background app chould not create child window', function() {
+    var app1 = new MockAppWindow(fakeAppConfig1);
+    var spy = this.sinon.spy(window, 'AppWindow');
+    var cwf = new ChildWindowFactory(app1);
+    this.sinon.stub(app1, 'isActive').returns(false);
+    cwf.handleEvent(new CustomEvent('mozbrowseropenwindow',
+      {
+        detail: fakeWindowOpenDetailCrossOrigin
+      }));
+    assert.isFalse(spy.calledWithNew());
+  });
+
+  test('transitioning app chould not create child window', function() {
+    var app1 = new MockAppWindow(fakeAppConfig1);
+    var spy = this.sinon.spy(window, 'AppWindow');
+    var cwf = new ChildWindowFactory(app1);
+    this.sinon.stub(app1, 'isTransitioning').returns(true);
+    cwf.handleEvent(new CustomEvent('mozbrowseropenwindow',
+      {
+        detail: fakeWindowOpenDetailCrossOrigin
+      }));
+    assert.isFalse(spy.calledWithNew());
   });
 
   test('Create ActivityWindow', function() {
