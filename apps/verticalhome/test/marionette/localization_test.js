@@ -28,10 +28,12 @@ marionette('Vertical - Localization', function() {
         'language.current': 'fr'
       });
     });
-    settingsIcon = home.getIconByIdentifier(settingsManifestUrl);
-    assert.equal(
-      settingsIcon.text(),
-      home.localizedAppName('settings', 'fr'));
+
+    // Localization can be async, wait for the content to update
+    client.waitFor(function() {
+      settingsIcon = home.getIconByIdentifier(settingsManifestUrl);
+      return settingsIcon.text() === home.localizedAppName('settings', 'fr');
+    });
   });
 
 });
