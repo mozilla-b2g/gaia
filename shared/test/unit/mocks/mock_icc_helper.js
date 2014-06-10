@@ -14,7 +14,17 @@ var MockIccHelper = {
     this.mEventListeners = {'cardstatechange': [], 'iccinfochange': []};
   },
 
-  mSuiteTeardown: function icch_teardown() {},
+  mSuiteTeardown: function icch_teardown() {
+    // remove listeners added via addEventListener
+    this.mEventListeners = {'cardstatechange': [], 'iccinfochange': []};
+    // as well as those assigned excplicitly to an 'on' + type property, e.g.
+    // IccHelper.oniccinfochange = function handler() {}
+    Object.keys(this).forEach(function(prop) {
+      if (prop.indexOf('on') === 0) {
+        delete this[prop];
+      }
+    }, this);
+  },
 
   mTriggerEventListeners: function icch_triggerEventListeners(type, evt) {
     if (!this.mEventListeners[type]) {
