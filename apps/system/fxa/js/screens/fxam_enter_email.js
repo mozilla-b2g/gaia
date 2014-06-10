@@ -28,6 +28,10 @@ var FxaModuleEnterEmail = (function() {
     done(FxaModuleStates.ENTER_PASSWORD);
   }
 
+  function _loadSignUp(done) {
+    done(FxaModuleStates.SET_PASSWORD);
+  }
+
   function _loadCoppa(done) {
     done(FxaModuleStates.COPPA);
   }
@@ -41,7 +45,7 @@ var FxaModuleEnterEmail = (function() {
   }
 
   var Module = Object.create(FxaModule);
-  Module.init = function init() {
+  Module.init = function init(options) {
     _ = navigator.mozL10n.get;
     localize = navigator.mozL10n.localize;
 
@@ -75,6 +79,8 @@ var FxaModuleEnterEmail = (function() {
     localize(this.fxaPrivacy, 'fxa-pn');
     this.fxaTerms = document.getElementById('fxa-terms');
     localize(this.fxaTerms, 'fxa-tos');
+
+    this.isFTU = !!(options && options.isftu);
 
     // Add listeners
     this.fxaEmailInput.addEventListener(
@@ -147,10 +153,16 @@ var FxaModuleEnterEmail = (function() {
         FxaModuleManager.setParam('email', email);
         if (response && response.registered) {
           _loadSignIn(gotoNextStepCallback);
+        } else if (this.isFTU) {
+          // XXX Skip COPPA verification during FTU: if a child has a mobile
+          // device, we assume a parent/guardian has given it to them, which
+          // implies parental consent. So, we skip to the next step in the
+          // signup flow, the set-password screen. See also bug 1010598.
+          _loadSignUp(gotoNextStepCallback);
         } else {
           _loadCoppa(gotoNextStepCallback);
         }
-      },
+      }.bind(this),
       this.showErrorResponse);
   };
 
