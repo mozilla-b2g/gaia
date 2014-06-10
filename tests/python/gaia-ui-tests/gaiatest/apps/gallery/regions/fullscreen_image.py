@@ -49,7 +49,7 @@ class FullscreenImage(Base):
             action.flick(current_image, current_image_mid_x, current_image_mid_y, current_image_mid_x + current_image_move_x, current_image_mid_y)
 
         action.perform()
-        self.wait_for_element_displayed(*self._current_image_locator)
+        self.wait_for_condition(lambda m: m.find_element(*self._current_image_locator).location['x'] == 0)
 
     def tap_delete_button(self):
         self.marionette.find_element(*self._delete_image_locator).tap()
