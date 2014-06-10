@@ -58,7 +58,7 @@ var Browser = {
     this.urlBar.addEventListener('submit', this.handleUrlFormSubmit.bind(this));
     this.urlInput.addEventListener('focus', this.urlFocus.bind(this));
     this.urlInput.addEventListener('blur', this.urlBlur.bind(this));
-    this.urlInput.addEventListener('mouseup', this.urlMouseUp.bind(this));
+    this.urlInput.addEventListener('touchend', this.urlTouchEnd.bind(this));
     this.urlInput.addEventListener('input',
       this.handleUrlInputKeypress.bind(this));
     this.urlButton.addEventListener('click',
@@ -215,7 +215,7 @@ var Browser = {
        this.followLink.bind(this));
 
     this.tabsSwipeMngr.browser = this;
-     ['mousedown', 'pan', 'tap', 'swipe'].forEach(function(evt) {
+     ['touchstart', 'pan', 'tap', 'swipe'].forEach(function(evt) {
        this.tabsList.addEventListener(evt,
          this.tabsSwipeMngr[evt].bind(this.tabsSwipeMngr));
      }, this);
@@ -225,7 +225,7 @@ var Browser = {
      this.screenSwipeMngr.gestureDetector =
        new GestureDetector(this.mainScreen);
 
-     ['mousedown', 'pan', 'tap', 'swipe'].forEach(function(evt) {
+     ['touchstart', 'pan', 'tap', 'swipe'].forEach(function(evt) {
        this.mainScreen.addEventListener(evt,
          this.screenSwipeMngr[evt].bind(this.screenSwipeMngr));
      }, this);
@@ -929,9 +929,8 @@ var Browser = {
 
   shouldFocus: false,
 
-  urlMouseUp: function browser_urlMouseUp(e) {
+  urlTouchEnd: function browser_urlTouchEnd(e) {
     if (this.shouldFocus) {
-      e.preventDefault();
       this.urlInput.focus();
       this.urlInput.setSelectionRange(0, this.urlInput.value.length);
       this.urlInput.scrollLeft = this.urlInput.scrollWidth;
@@ -1536,8 +1535,8 @@ var Browser = {
     screen: null,
     winWidth: null,
 
-    mousedown: function screenSwipe_mousedown(e) {
-      // The mousedown event can be fired at any time, the other
+    touchstart: function screenSwipe_touchstart(e) {
+      // The touchstart event can be fired at any time, the other
       // events are only fired when tabs screen is active
       if (this.browser.currentScreen !== this.browser.TABS_SCREEN) {
         return;
@@ -1585,11 +1584,12 @@ var Browser = {
     id: null,
     containerWidth: null,
 
-    mousedown: function tabSwipe_mousedown(e) {
+    touchstart: function tabSwipe_touchstart(e) {
       e.preventDefault();
 
-      this.isCloseButton = e.target.nodeName === 'BUTTON';
-      this.tab = this.isCloseButton ? e.target.parentNode : e.target;
+      var target = e.touches[0].target;
+      this.isCloseButton = target.nodeName === 'BUTTON';
+      this.tab = this.isCloseButton ? target.parentNode : target;
       this.id = this.tab.getAttribute('data-id');
       this.containerWidth = this.tab.parentNode.clientWidth;
 
