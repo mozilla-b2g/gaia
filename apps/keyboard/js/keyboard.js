@@ -167,6 +167,10 @@ var layoutLoader = layoutManager.loader;
 // SettingsPromiseManager wraps Settings DB methods into promises.
 var settingsPromiseManager = new SettingsPromiseManager();
 
+// L10nLoader loads l10n.js. We call it's one and only load() method
+// only after we have run everything in the critical cold launch path.
+var l10nLoader = new L10nLoader();
+
 // User settings (in Settings database) are tracked within these modules
 var soundFeedbackSettings;
 var vibrationFeedbackSettings;
@@ -357,6 +361,10 @@ function updateCurrentLayout(name) {
       showKeyboard();
     } else {
       hideKeyboard();
+
+      // Load l10n library here, there is nothing more to do left
+      // in the critical path.
+      l10nLoader.load();
     }
   }, function(error) {
     console.warn('Failed to switch layout for ' + name + '.' +
@@ -1637,6 +1645,9 @@ function switchIMEngine(layoutName, mustRender) {
     if (mustRender || imEngineName !== 'default') {
       renderKeyboard(layoutName);
     }
+
+    // Load l10n library after IMEngine is loaded (if it's not loaded yet).
+    l10nLoader.load();
   }, function() {
     console.warn('Failed to switch imEngine for ' + layoutName + '.' +
       ' It might possible because we were called more than once.');
