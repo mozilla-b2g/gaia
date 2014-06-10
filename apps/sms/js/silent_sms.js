@@ -11,6 +11,11 @@ var SilentSms = (function () {
 
   function init() {
     taskQueue = new TaskRunner();
+    if (!window.navigator.mozSetMessageHandler) {
+      // bailout if we're in Firefox
+      return;
+    }
+
     // Msg from Usage (activation / deactivation)
     window.navigator.mozSetMessageHandler('connection',
       function onConnected(request) {
