@@ -36,8 +36,6 @@ requireApp('system/js/source_view.js');
 requireApp('system/js/storage.js');
 requireApp('system/js/system_dialog_manager.js');
 requireApp('system/js/telephony_settings.js');
-requireApp('system/js/base_ui.js');
-requireApp('system/js/text_selection_dialog.js');
 requireApp('system/js/ttlview.js');
 requireApp('system/js/visibility_manager.js');
 requireApp('system/js/wallpaper_manager.js');
