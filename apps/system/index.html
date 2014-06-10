@@ -1163,56 +1163,66 @@
       </div>
 
       <!-- icc / stk -->
-      <div id="icc-view" data-z-index-level="icc-view">
-        <form role="dialog" class="generic-dialog" data-type="confirm" id="icc-alert">
-          <section>
-            <h1 id="icc-alert-title">STK Message</h1>
-            <p id="icc-alert-msg"></p>
-          </section>
+      <div id="icc-view" class="generic-dialog" data-z-index-level="icc-view" role="dialog">
+        <section role="region" class="skin-organic" id="icc-alert">
+          <header>
+            <h1 id="icc-alert-maintitle">STK Message</h1>
+            <h2 id="icc-alert-subtitle"></h2>
+          </header>
+          <p id="icc-alert-msg"></p>
           <menu>
             <button type="button" data-l10n-id="close" id="icc-alert-btn" class="recommend full">Close</button>
           </menu>
-        </form>
-        <form role="dialog" class="generic-dialog" data-type="confirm" id="icc-confirm">
-          <section>
-            <h1 id="icc-confirm-title">STK Message</h1>
-            <p id="icc-confirm-msg"></p>
-          </section>
-          <menu>
+        </section>
+        <section role="region" class="skin-organic" id="icc-confirm">
+          <header>
+            <a href="#"><span class="icon icon-back" id="icc-confirm-btn_back">back</span></a>
+            <h1 id="icc-confirm-maintitle">STK Query</h1>
+            <h2 id="icc-confirm-subtitle"></h2>
+          </header>
+          <p id="icc-confirm-msg"></p>
+          <menu data-items="2">
             <button type="button" data-l10n-id="close" id="icc-confirm-btn_close">Close</button>
-            <button type="button" data-l10n-id="back" id="icc-confirm-btn_back">Back</button>
             <button type="button" data-l10n-id="ok" id="icc-confirm-btn" class="recommend">OK</button>
           </menu>
-        </form>
-        <form role="dialog" class="generic-dialog" data-type="confirm" id="icc-asyncconfirm">
-          <section>
-            <h1 id="icc-asyncconfirm-title">STK Message</h1>
-            <p id="icc-asyncconfirm-msg"></p>
-          </section>
+        </section>
+        <section role="region" class="skin-organic" id="icc-asyncconfirm">
+          <header>
+            <h1 id="icc-asyncconfirm-maintitle">STK Query</h1>
+            <h2 id="icc-asyncconfirm-subtitle"></h2>
+          </header>
+          <p id="icc-asyncconfirm-msg"></p>
           <menu data-items="2">
             <button type="button" data-l10n-id="no" id="icc-asyncconfirm-btn-no">No</button>
             <button type="button" data-l10n-id="yes" id="icc-asyncconfirm-btn-yes" class="recommend">Yes</button>
           </menu>
-        </form>
-        <form role="dialog" class="generic-dialog" data-type="confirm" id="icc-input">
-          <section>
-            <h1 id="icc-input-title">STK Query</h1>
+        </section>
+        <section role="region" class="skin-organic" id="icc-input">
+          <header>
+            <a href="#">
+                <span class="icon icon-back" id="icc-input-btn_back">back</span>
+            </a>
+            <menu type="toolbar">
+                <button type="button" data-l10n-id="help" id="icc-input-btn_help">Help</button>
+            </menu>
+            <h1 id="icc-input-maintitle">STK Query</h1>
+            <h2 id="icc-input-subtitle"></h2>
+          </header>
+          <form>
             <p id="icc-input-msg"></p>
-            <input id="icc-input-box" required="" type="text">
-          </section>
+            <input id="icc-input-box" required="" type="text"></input>
+          </form>
           <menu>
-              <button type="button" data-l10n-id="help" id="icc-input-btn_help">Help</button>
-              <button type="button" data-l10n-id="close" id="icc-input-btn_close">Close</button>
-              <button type="button" data-l10n-id="back" id="icc-input-btn_back">Back</button>
-              <span class="yesnodisabled">
-                <button type="button" data-l10n-id="ok" id="icc-input-btn" class="recommend">OK</button>
-              </span>
-              <span class="yesnoenabled">
-                <button type="button" data-l10n-id="no" id="icc-input-btn_no">No</button>
-                <button type="button" data-l10n-id="yes" id="icc-input-btn_yes" class="recommend">Yes</button>
-              </span>
+            <button type="button" data-l10n-id="close" id="icc-input-btn_close">Close</button>
+            <span class="yesnodisabled">
+              <button type="button" data-l10n-id="ok" id="icc-input-btn" class="recommend">OK</button>
+            </span>
+            <span class="yesnoenabled">
+              <button type="button" data-l10n-id="no" id="icc-input-btn_no">No</button>
+              <button type="button" data-l10n-id="yes" id="icc-input-btn_yes" class="recommend">Yes</button>
+            </span>
           </menu>
-        </form>
+        </section>
       </div>
 
       <div id="sleep-menu" data-z-index-level="sleep-menu">
