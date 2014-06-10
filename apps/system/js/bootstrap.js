@@ -10,7 +10,7 @@
          MediaRecording, AppWindowFactory, SystemDialogManager,
          applications, Rocketbar, LayoutManager, PermissionManager,
          HomeSearchbar, SoftwareButtonManager, Accessibility,
-         InternetSharing, SleepMenu */
+         TextSelectionDialog, InternetSharing, SleepMenu */
 'use strict';
 
 
@@ -56,6 +56,9 @@ window.addEventListener('load', function startup() {
 
     /** @global */
     window.lockScreenWindowManager = new window.LockScreenWindowManager();
+
+    /** @global */
+    window.textSelectionDialog = new TextSelectionDialog();
   }
 
   function safelyLaunchFTU() {
