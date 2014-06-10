@@ -14,8 +14,9 @@
     var activity = new MozActivity({
       name: 'configure',
       data: {
-        target: 'device',
-        section: 'sound'
+        target: 'device'
+        // No need to specify section here, because we assume settings app
+        // is already launched (caller of this app), and we could go back to it.
       }
     });
   });
