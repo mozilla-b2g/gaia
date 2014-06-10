@@ -1,12 +1,15 @@
-'use strict';
+/* global SettingsListener */
 
 (function(exports) {
+  'use strict';
 
   /**
    * The Developer HUD displays app metrics as an overlay on top of MozApps.
    * @class DeveloperHUD
    */
   function DeveloperHUD() {
+    SettingsListener.observe('devtools.overlay.system',
+                             false, this.toggleSystemHUD.bind(this));
   }
 
   DeveloperHUD.prototype = {
@@ -18,6 +21,15 @@
 
     stop: function() {
       window.removeEventListener('developer-hud-update', this);
+    },
+
+    _showSystemHUD: false,
+    toggleSystemHUD: function(enabled) {
+      if (!enabled) {
+        this.display(window, {});
+      }
+
+      this._showSystemHUD = enabled;
     },
 
     handleEvent: function(e) {
@@ -35,12 +47,20 @@
         return;
       }
 
+      // For regular mozbrowser iframes use the div container.
       var appwindow = target.parentElement;
+
+      // For system messages, directly insert the hud into the #screen
+      // wrapper if needed.
       if (!appwindow) {
-        return;
+        if (target === window && this._showSystemHUD) {
+          appwindow = document.getElementById('screen');
+        } else {
+          return;
+        }
       }
 
-      var overlay = appwindow.querySelector('.developer-hud');
+      var overlay = appwindow.querySelector(':scope > .developer-hud');
 
       if (!overlay) {
         overlay = document.createElement('div');

@@ -13,6 +13,10 @@
   justify-content: flex-end;
 }
 
+#screen > .developer-hud {
+  flex-wrap: wrap;
+}
+
 .developer-hud > .widgets {
   width: 100%;
   height: 30px;

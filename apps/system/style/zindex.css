@@ -24,11 +24,15 @@
   z-index: 2147483647;
 }
 
+/* System developer HUD should be above everything */
+#screen > .developer-hud {
+  z-index: 2147483647;
+}
+
 #screen > *[data-z-index-level="poweroff-splash"] {
   z-index: 65536;
 }
 
-#screen > [data-z-index-level="debug-grid"],
 #screen > [data-z-index-level="debug-ttl"] {
   z-index: 65536;
 }

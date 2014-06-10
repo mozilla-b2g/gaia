@@ -1,12 +1,19 @@
 'use strict';
-/* global DeveloperHUD */
+/* global MocksHelper, DeveloperHUD */
 
+requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 require('/js/devtools/developer_hud.js');
+
+var mocksForDeveloperHUD = new MocksHelper([
+  'SettingsListener'
+]).init();
+
 
 suite('developerHUD', function() {
 
   var subject;
 
+  mocksForDeveloperHUD.attachTestHelpers();
   setup(function() {
     subject = new DeveloperHUD().start();
   });

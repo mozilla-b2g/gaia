@@ -47,6 +47,7 @@
    "deviceinfo.software": "",
    "device.storage.writable.name": "sdcard",
    "devtools.overlay": false,
+   "devtools.overlay.system": false,
    "devtools.eventlooplag.threshold": 100,
    "devtools.remote.wifi.visible": false,
    "devtools.remote.wifi.enabled": false,
