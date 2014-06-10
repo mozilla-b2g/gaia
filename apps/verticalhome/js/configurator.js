@@ -24,12 +24,12 @@ var configurator = (function() {
   function loadFile(file, success, error) {
     try {
       var xhr = new XMLHttpRequest();
-      xhr.overrideMimeType('application/json');
       xhr.open('GET', file, true);
+      xhr.responseType = 'json';
 
       xhr.onload = function _xhrOnLoadFile(evt) {
         try {
-          success(JSON.parse(xhr.responseText));
+          success(xhr.response);
         } catch (e) {
           error && error(e);
         }
@@ -184,6 +184,8 @@ var configurator = (function() {
   };
 
   function load() {
+    conf = {};
+    gaiaGridLayoutReady = false;
     window.addEventListener('gaiagrid-layout-ready', globalHandleEvent);
     loadFile('js/init.json', onLoadInitJSON, onErrorInitJSON);
   }
