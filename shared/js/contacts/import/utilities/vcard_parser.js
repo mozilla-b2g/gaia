@@ -73,6 +73,7 @@ function b64toBlob(b64Data, contentType, sliceSize) {
 var VCFReader = (function _VCFReader() {
   var ReBasic = /^([^:]+):(.+)$/;
   var ReTuple = /([a-zA-Z]+)=(.+)/;
+  var WHITE_SPACE = ' ';
 
   // Default tel type class
   var DEFAULT_PHONE_TYPE = 'other';
@@ -769,7 +770,7 @@ var VCFReader = (function _VCFReader() {
 
       // Ignore beginning whitespace that indicates multiline field.
       if (multiline === true) {
-        if (ch === ' ' || ch === '\t' || ch === '\r' || ch === '\n') {
+        if ((/[\r\t\s\n]/).test(ch)) {
           continue;
         } else {
           //currentLine += '\n'
@@ -786,7 +787,6 @@ var VCFReader = (function _VCFReader() {
           multiline = true;
           continue;
         }
-
         currentLine += ch;
 
         // Continue only if this is not the last char in the string
@@ -795,9 +795,19 @@ var VCFReader = (function _VCFReader() {
         }
       }
 
+      // If the field is a photo, the field could be multiline, to know if the
+      // following line is part of the photo, we must check if the first char
+      // of the following line is a space.
+      var firstCharNextLine = this.contents[i + 2];
+      if ((firstCharNextLine === WHITE_SPACE) && (/[\r\t\s\n]/).test(next) &&
+        (/^PHOTO/i).test(currentLine)) {
+          multiline = true;
+          continue;
+      }
+
       // At this point, we know that ch is a newline, and in the vcard format,
       // if we have a space after a newline, it indicates multiline field.
-      if (next && (next === ' ' || next === '\t')) {
+      if (next && (next === WHITE_SPACE || next === '\t')) {
         multiline = true;
         continue;
       }
