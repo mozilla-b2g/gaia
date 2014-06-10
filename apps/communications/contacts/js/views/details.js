@@ -104,7 +104,9 @@ contacts.Details = (function() {
       contacts.NFC.stopListening();
     }
 
-    getWebrtcClientResources(WebrtcClient.stop);
+    if (WebrtcClient) {
+      getWebrtcClientResources(WebrtcClient.stop);
+    }
     
     if (ActivityHandler.currentlyHandling) {
       ActivityHandler.postCancel();
