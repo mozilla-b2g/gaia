@@ -1,6 +1,6 @@
 /* global MocksHelper, MockL10n, MockNavigatormozSetMessageHandler,
    MockNavigatorSettings, MockBluetoothHelperInstance, MockNavigatormozApps,
-   PairManager, Pairview, PairExpiredDialog */
+   MockMozBluetooth, PairManager, Pairview, PairExpiredDialog */
 'use strict';
 
 require('/shared/test/unit/mocks/mocks_helper.js');
@@ -11,6 +11,7 @@ require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_bluetooth_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_bluetooth.js');
 
 function switchReadOnlyProperty(originObject, propName, targetObj) {
   Object.defineProperty(originObject, propName, {
@@ -33,6 +34,7 @@ suite('Bluetooth app > PairManager ', function() {
   var realSetMessageHandler;
   var realMozSettings;
   var realMozApps;
+  var realMozBluetooth;
 
   mocksForPairManagerHelper.attachTestHelpers();
 
@@ -49,6 +51,9 @@ suite('Bluetooth app > PairManager ', function() {
     realMozApps = navigator.mozApps;
     navigator.mozApps = MockNavigatormozApps;
 
+    realMozBluetooth = navigator.mozBluetooth;
+    switchReadOnlyProperty(navigator, 'mozBluetooth', MockMozBluetooth);
+
     MockNavigatormozSetMessageHandler.mSetup();
 
     requireApp('bluetooth/js/pair_manager.js', done);
@@ -56,6 +61,7 @@ suite('Bluetooth app > PairManager ', function() {
 
   suiteTeardown(function() {
     MockNavigatormozApps.mTeardown();
+    switchReadOnlyProperty(navigator, 'mozBluetooth', realMozBluetooth);
     navigator.mozApps = realMozApps;
     MockNavigatormozSetMessageHandler.mTeardown();
     navigator.mozSettings = realMozSettings;
@@ -70,6 +76,7 @@ suite('Bluetooth app > PairManager ', function() {
       this.sinon.stub(PairManager, 'onBluetoothCancel');
       this.sinon.stub(PairManager, 'bluetoothHelper');
       this.sinon.stub(PairManager, 'showPendingPairing');
+      this.sinon.stub(PairManager, 'onBluetoothDisabled');
       PairManager.init();
     });
 
@@ -125,6 +132,52 @@ suite('Bluetooth app > PairManager ', function() {
       test('showPendingPairing() should be called with arg event while ' +
            'lockscreen.locked settings key value changed ', function() {
         assert.isTrue(PairManager.showPendingPairing.calledWith(false));
+      });
+    });
+
+    suite('mozBluetooth fire ondisabled event > ', function() {
+      test('mozBluetooth.ondisabled should be define with callback ' +
+           'onBluetoothDisabled()', function() {
+        assert.isDefined(navigator.mozBluetooth.ondisabled);
+        navigator.mozBluetooth.ondisabled();
+        assert.isTrue(PairManager.onBluetoothDisabled.called);
+      });
+    });
+
+    suite('bluetooth enabled status change > ', function() {
+      var btEnabledKey = 'bluetooth.enabled';
+      suite('bluetooth enabled changed to be false > ', function() {
+        setup(function() {
+          MockNavigatorSettings.mTriggerObservers(btEnabledKey,
+                                                  {settingValue: false});
+        });
+
+        test('observes settings key "bluetooth.enabled"', function() {
+          assert.equal(MockNavigatorSettings.mObservers[btEnabledKey].length,
+                       1);
+        });
+
+        test('onBluetoothDisabled() should be called while bluetooth.enabled ' +
+             'settings key value changed with false', function() {
+          assert.isTrue(PairManager.onBluetoothDisabled.called);
+        });
+      });
+
+      suite('bluetooth enabled changed to be true > ', function() {
+        setup(function() {
+          MockNavigatorSettings.mTriggerObservers(btEnabledKey,
+                                                  {settingValue: true});
+        });
+
+        test('observes settings key "bluetooth.enabled"', function() {
+          assert.equal(MockNavigatorSettings.mObservers[btEnabledKey].length,
+                       1);
+        });
+
+        test('onBluetoothDisabled() should not be called while bluetooth' +
+             '.enabled settings key value changed with true', function() {
+          assert.isFalse(PairManager.onBluetoothDisabled.called);
+        });
       });
     });
   });
@@ -439,6 +492,26 @@ suite('Bluetooth app > PairManager ', function() {
         assert.isTrue(PairManager.childWindow.close.called);
         assert.equal(PairManager.pendingPairing, null);
         assert.isTrue(PairExpiredDialog.close.called);
+        assert.isTrue(window.close.called);
+    });
+  });
+
+  suite('onBluetoothDisabled > ', function() {
+    setup(function() {
+      this.sinon.stub(Pairview, 'closeInput');
+      PairManager.childWindow = {
+        Pairview: Pairview,
+        close: this.sinon.spy()
+      };
+
+      this.sinon.stub(window, 'close');
+    });
+
+    test('Pairview.closeInput() should be called, childWindow should be close' +
+      'window.close() should be called', function() {
+        PairManager.onBluetoothDisabled();
+        assert.isTrue(PairManager.childWindow.Pairview.closeInput.called);
+        assert.isTrue(PairManager.childWindow.close.called);
         assert.isTrue(window.close.called);
     });
   });
