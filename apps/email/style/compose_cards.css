@@ -69,10 +69,6 @@ input.cmp-addr-text, input.cmp-dot-text {
   max-width: 100%;
 }
 
-input.cmp-bcc-text {
-  font-size: 1.6rem;
-}
-
 input.cmp-subject-text {
   display: table-cell;
   font-size: 1.6rem;
