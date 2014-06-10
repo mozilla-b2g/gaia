@@ -44,7 +44,7 @@ var BatteryManager = {
     }
     window.addEventListener('screenchange', this);
     this._toasterGD = new GestureDetector(this.notification);
-    ['mousedown', 'swipe'].forEach(function(evt) {
+    ['touchstart', 'swipe'].forEach(function(evt) {
       this.notification.addEventListener(evt, this);
     }, this);
 
@@ -90,8 +90,8 @@ var BatteryManager = {
         }
         break;
 
-      case 'mousedown':
-        this.mousedown(evt);
+      case 'touchstart':
+        this.touchstart(evt);
         break;
       case 'swipe':
         this.swipe(evt);
@@ -142,7 +142,7 @@ var BatteryManager = {
   },
 
   // Swipe handling
-  mousedown: function bm_mousedown(evt) {
+  touchstart: function bm_touchstart(evt) {
     evt.preventDefault();
     this._containerWidth = this.overlay.clientWidth;
   },
