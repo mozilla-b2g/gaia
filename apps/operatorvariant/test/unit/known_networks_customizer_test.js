@@ -1,23 +1,27 @@
-/* global requireApp, suite, suiteSetup, suiteTeardown, setup, test, assert,
-   knownNetworksCustomizer */
+/* global knownNetworksCustomizer, MockWindowMozWifiNetwork */
 
 'use strict';
 
 requireApp('operatorvariant/test/unit/mock_navigator_moz_wifi_manager.js');
+requireApp('operatorvariant/test/unit/mock_window_moz_wifi_network.js');
 
 requireApp('operatorvariant/js/customizers/customizer.js');
 requireApp('operatorvariant/js/customizers/known_networks_customizer.js');
 
 suite('Known networks customizer >', function() {
   var realWifiManager;
+  var realWifiNetwork;
 
   suiteSetup(function() {
     realWifiManager = navigator.mozWifiManager;
     navigator.mozWifiManager = window.MockNavigatorMozWifiManager;
+    realWifiNetwork = window.MozWifiNetwork;
+    window.MozWifiNetwork = MockWindowMozWifiNetwork;
   });
 
   suiteTeardown(function() {
     navigator.mozWifiManager = realWifiManager;
+    window.MozWifiNetwork = realWifiNetwork;
     window.MockNavigatorMozWifiManager = null;
   });
 
