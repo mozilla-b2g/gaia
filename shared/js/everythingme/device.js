@@ -62,7 +62,7 @@
     // set async. from settings when calling init()
     this.osVersion = null;
     this.deviceId = null;
-    this.deviceType = null;
+    this.deviceName = null;
 
     this.screen = {
       width: window.screen.width * window.devicePixelRatio,
@@ -92,7 +92,7 @@
           }
 
           this.deviceId = deviceId;
-          this.deviceType = settings['deviceinfo.product_model'];
+          this.deviceName = settings['deviceinfo.product_model'];
           this.osVersion = settings['deviceinfo.os'];
 
           resolve();

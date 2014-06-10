@@ -3,11 +3,36 @@
 
 (function(eme) {
 
-  var OK = 1;
-  var NETWORK_ERROR = 'network error';
+  const OK = 1;
+  const NETWORK_ERROR = 'network error';
 
-  var API_URL = 'https://api.everything.me/partners/1.0/{resource}/';
-  var API_KEY = '79011a035b40ef3d7baeabc8f85b862f';
+  const API_URL = 'https://api.everything.me/partners/1.0/{resource}/';
+  const API_KEY = '79011a035b40ef3d7baeabc8f85b862f';
+
+  var device = eme.device;
+
+  function getCtx() {
+    var lat;
+    var lon;
+    var position = device.position;
+    if (position && position.coords) {
+      lat = position.coords.latitude;
+      lon = position.coords.longitude;
+    }
+
+    return {
+      lc: device.language,
+      tz: device.timezone,
+      v:  device.osVersion,
+      dn: device.deviceName,
+      cr: device.carrier,
+      ll: (lat && lon) ? [lat,lon].join(',') : null,
+      sr: [device.screen.width, device.screen.height].join('x')
+      // TODO hc: home country
+      // TODO ct: connection type - wifi, 2g, 3g, 4g
+    };
+
+  }
 
   /**
    * Make an async httpRequest to resource with given options.
@@ -21,29 +46,19 @@
 
     options = options ? options : {};
 
-    // must send API key
     options.apiKey = API_KEY;
-
-    // device info
-    options.lc = eme.device.lc;
-    options.tz = eme.device.tz;
-    options.osVersion = eme.device.osVersion;
     options.deviceId = eme.device.deviceId;
-    options.deviceType = eme.device.deviceType;
-    options.carrierName = eme.device.carrierName;
 
-    // user location
-    var position = eme.device.position;
-    if (position && position.coords) {
-      var lat = position.coords.latitude;
-      var lon = position.coords.longitude;
-      options.latlon = (lat && lon) ? [lat,lon].join(',') : null;
-    }
+    options.ctx = getCtx();
 
-    for (var k in options) {
-      var v = options[k];
-      if (v !== null && v !== undefined) {
-        payload += k + '=' + encodeURIComponent(options[k]) + '&';
+    for (var opt in options) {
+      var value = options[opt];
+      if (value !== null && value !== undefined) {
+        if (typeof value === 'object') {
+          value = JSON.stringify(value);
+        }
+
+        payload += opt + '=' + encodeURIComponent(value) + '&';
       }
     }
 
