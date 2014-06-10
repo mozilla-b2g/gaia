@@ -1,35 +1,42 @@
-'use strict';
+/* global DeviceStorageHelper */
+/**
+ * Links the root panel list item with AppStorage.
+ */
+define(function(require) {
+  'use strict';
 
-require([
-  'shared/settings_listener'
-], function(exports, SettingsListener) {
-  var Storage = {
+  var SettingsListener = require('shared/settings_listener');
+  var AsyncStorage = require('shared/async_storage');
+  var AppStorage = require('modules/app_storage');
+
+  function Storage() {
+    this._elements = null;
+  }
+
+  Storage.prototype = {
     appStorage: null,
     defaultMediaVolume: null,
     defaultVolumeState: 'available',
 
-    init: function storage_init() {
+    init: function storage_init(elements) {
       var self = this;
+      this._elements = elements;
 
       // ums master switch on root panel
+      this._elements.umsEnabledCheckBox.addEventListener('change', this);
       var umsSettingKey = 'ums.enabled';
-      this.umsEnabledCheckBox = document.getElementById('ums-switch-root');
-      this.umsEnabledInfoBlock = document.getElementById('ums-desc-root');
-      this.umsEnabledCheckBox.addEventListener('change', this);
       SettingsListener.observe(umsSettingKey, false, function(enabled) {
-        self.umsEnabledCheckBox.checked = enabled;
-        self.updateUmsInfo();
+        self._elements.umsEnabledCheckBox.checked = enabled;
+        self.updateUmsDesc();
       });
 
-      // application storage
-      this.appStorage = navigator.getDeviceStorage('apps');
-      this.appStorageDesc = document.getElementById('application-storage-desc');
+      // app storage
+      AppStorage.storage.observe('freeSize',
+        this.updateAppFreeSpace.bind(this));
       this.updateAppFreeSpace();
 
       // media storage
       // Show default media volume state on root panel
-      this.mediaStorageDesc = document.getElementById('media-storage-desc');
-
       var defaultMediaVolumeKey = 'device.storage.writable.name';
       SettingsListener.observe(defaultMediaVolumeKey, 'sdcard',
         function onDefaultMediaVolumeChange(defaultName) {
@@ -51,7 +58,7 @@ require([
           this.updateMediaStorageInfo();
           break;
         case 'change':
-          if (evt.target.id === 'ums-switch-root') {
+          if (evt.target === this._elements.umsEnabledCheckBox) {
             this.umsMasterSettingChanged(evt);
           } else {
             // we are handling storage state changes
@@ -62,11 +69,11 @@ require([
       }
     },
 
-    // ums info
-    updateUmsInfo: function storage_updateUmsInfo() {
+    // ums description
+    updateUmsDesc: function storage_updateUmsDesc() {
       var localize = navigator.mozL10n.localize;
       var key;
-      if (this.umsEnabledCheckBox.checked) {
+      if (this._elements.umsEnabledCheckBox.checked) {
         //TODO list all enabled volume name
         key = 'enabled';
       } else if (this.defaultVolumeState === 'shared') {
@@ -74,56 +81,49 @@ require([
       } else {
         key = 'disabled';
       }
-      localize(this.umsEnabledInfoBlock, key);
+      localize(this._elements.umsEnabledInfoBlock, key);
     },
+
     umsMasterSettingChanged: function storage_umsMasterSettingChanged(evt) {
-      var _ = navigator.mozL10n.get;
       var checkbox = evt.target;
       var cset = {};
       var umsSettingKey = 'ums.enabled';
       var warningKey = 'ums-turn-on-warning';
-      var umsWarningDialog = document.getElementById('turn-on-ums-dialog');
-      var umsConfirmButton = document.getElementById('ums-confirm-option');
-      var umsCancelButton = document.getElementById('ums-cancel-option');
-
       if (checkbox.checked) {
-        window.asyncStorage.getItem(warningKey, function(showed) {
+        AsyncStorage.getItem(warningKey, function(showed) {
           if (!showed) {
-            umsWarningDialog.hidden = false;
+            this._elements.umsWarningDialog.hidden = false;
 
-            umsConfirmButton.onclick = function() {
+            this._elements.umsConfirmButton.onclick = function() {
               cset[umsSettingKey] = true;
               Settings.mozSettings.createLock().set(cset);
 
-              window.asyncStorage.setItem(warningKey, true);
-              umsWarningDialog.hidden = true;
-            };
+              AsyncStorage.setItem(warningKey, true);
+              this._elements.umsWarningDialog.hidden = true;
+            }.bind(this);
 
-            umsCancelButton.onclick = function() {
+            this._elements.umsCancelButton.onclick = function() {
               cset[umsSettingKey] = false;
               Settings.mozSettings.createLock().set(cset);
 
               checkbox.checked = false;
-              umsWarningDialog.hidden = true;
-            };
+              this._elements.umsWarningDialog.hidden = true;
+            }.bind(this);
           } else {
             cset[umsSettingKey] = true;
             Settings.mozSettings.createLock().set(cset);
           }
-        });
+        }.bind(this));
       } else {
         cset[umsSettingKey] = false;
         Settings.mozSettings.createLock().set(cset);
       }
     },
 
-    // Application Storage
+    // App Storage
     updateAppFreeSpace: function storage_updateAppFreeSpace() {
-      var self = this;
-      this.getFreeSpace(this.appStorage, function(freeSpace) {
-        DeviceStorageHelper.showFormatedSize(self.appStorageDesc,
-          'availableSize', freeSpace);
-      });
+      DeviceStorageHelper.showFormatedSize(this._elements.appStorageDesc,
+        'storageSize', AppStorage.storage.freeSize);
     },
 
     // Media Storage
@@ -152,7 +152,7 @@ require([
     updateVolumeState: function storage_updateVolumeState(volume, state) {
       var localize = navigator.mozL10n.localize;
       this.defaultVolumeState = state;
-      this.updateUmsInfo();
+      this.updateUmsDesc();
       switch (state) {
         case 'available':
           this.updateMediaFreeSpace(volume);
@@ -160,12 +160,12 @@ require([
           break;
 
         case 'shared':
-          localize(this.mediaStorageDesc, '');
+          localize(this._elements.mediaStorageDesc, '');
           this.lockMediaStorageMenu(false);
           break;
 
         case 'unavailable':
-          localize(this.mediaStorageDesc, 'no-storage');
+          localize(this._elements.mediaStorageDesc, 'no-storage');
           this.lockMediaStorageMenu(true);
           break;
       }
@@ -174,18 +174,16 @@ require([
     updateMediaFreeSpace: function storage_updateMediaFreeSpace(volume) {
       var self = this;
       this.getFreeSpace(volume, function(freeSpace) {
-        DeviceStorageHelper.showFormatedSize(self.mediaStorageDesc,
+        DeviceStorageHelper.showFormatedSize(self._elements.mediaStorageDesc,
           'availableSize', freeSpace);
       });
     },
 
     lockMediaStorageMenu: function storage_setMediaMenuState(lock) {
-      var mediaStorageSection =
-        document.getElementById('media-storage-section');
       if (lock) {
-        mediaStorageSection.setAttribute('aria-disabled', true);
+        this._elements.mediaStorageSection.setAttribute('aria-disabled', true);
       } else {
-        mediaStorageSection.removeAttribute('aria-disabled');
+        this._elements.mediaStorageSection.removeAttribute('aria-disabled');
       }
     },
 
@@ -208,14 +206,14 @@ require([
 
     getFreeSpace: function storage_getFreeSpace(storage, callback) {
       storage.freeSpace().onsuccess = function(e) {
-        if (callback)
+        if (callback) {
           callback(e.target.result);
+        }
       };
     }
   };
 
-  navigator.mozL10n.once(Storage.init.bind(Storage));
-
-  // XXX - remove this when this file is a real AMD module
-  exports.Storage = Storage;
-}.bind(null, window));
+  return function ctor_root() {
+    return new Storage();
+  };
+});
