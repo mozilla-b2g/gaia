@@ -1422,7 +1422,11 @@
       if (this.config.icon) {
         this._splash = this.config.icon;
       } else {
-        this._splash = this.config.origin + this._splash;
+        // origin might contain a pathname too, so need to parse it to find the
+        // "real origin"
+        var url = this.config.origin.split('/');
+        var origin = url[0] + '//' + url[2];
+        this._splash = origin + this._splash;
       }
       // Start to load the image in background to avoid flickering if possible.
       var img = new Image();
