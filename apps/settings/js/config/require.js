@@ -119,6 +119,13 @@ require.config({
       exclude: [
         'main'
       ]
+    },
+    {
+      name: 'panels/app_storage/panel',
+      exclude: [
+        'main',
+        'modules/mvvm/observable'
+      ]
     }
   ]
 });

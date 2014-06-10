@@ -2,7 +2,6 @@
 
 define(function() {
   function unobserve(_eventHandlers, prop, handler) {
-
     // arguments in reverse order to support .bind(handler) for the
     // unbind from all case
     function removeHandler(handler, prop) {
