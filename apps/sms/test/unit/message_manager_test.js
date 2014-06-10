@@ -3,7 +3,6 @@
         MockNavigatormozMobileMessage,
         MocksHelper,
         MockMessages,
-        MozSmsFilter,
         Settings,
         SMIL,
         Threads
@@ -369,8 +368,7 @@ suite('message_manager.js >', function() {
     setup(function() {
       this.sinon.spy(MockNavigatormozMobileMessage, 'getMessages');
 
-      var filter = new MozSmsFilter();
-      filter.threadId = 1;
+      var filter = { threadId: 1 };
 
       options = {
         filter: filter,

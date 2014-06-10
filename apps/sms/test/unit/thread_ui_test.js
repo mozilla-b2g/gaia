@@ -36,7 +36,6 @@ require('/test/unit/mock_attachment_menu.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 require('/test/unit/mock_utils.js');
 require('/test/unit/mock_navigatormoz_sms.js');
-require('/test/unit/mock_moz_sms_filter.js');
 require('/test/unit/mock_link_helper.js');
 require('/test/unit/mock_moz_activity.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
@@ -77,7 +76,6 @@ var mocksHelperForThreadUI = new MocksHelper([
   'LinkActionHandler',
   'LinkHelper',
   'MozActivity',
-  'MozSmsFilter',
   'ActivityPicker',
   'OptionMenu',
   'Dialog',
