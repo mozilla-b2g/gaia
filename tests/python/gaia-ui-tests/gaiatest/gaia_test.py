@@ -640,11 +640,8 @@ class GaiaDevice(object):
     def __init__(self, marionette, testvars=None):
         self.marionette = marionette
         self.testvars = testvars or {}
-        self.update_checker = FakeUpdateChecker(self.marionette)
         self.lockscreen_atom = os.path.abspath(
             os.path.join(__file__, os.path.pardir, 'atoms', "gaia_lock_screen.js"))
-        self.marionette.import_script(self.lockscreen_atom)
-        self.update_checker.check_updates()
 
     def add_device_manager(self, device_manager):
         self._manager = device_manager
@@ -736,8 +733,6 @@ window.addEventListener('mozbrowserloadend', function loaded(aEvent) {
 });""", script_timeout=timeout * 1000)
             # TODO: Remove this sleep when Bug 924912 is addressed
             time.sleep(5)
-        self.marionette.import_script(self.lockscreen_atom)
-        self.update_checker.check_updates()
 
     def stop_b2g(self):
         if self.marionette.instance:
@@ -757,11 +752,13 @@ window.addEventListener('mozbrowserloadend', function loaded(aEvent) {
         return self.marionette.execute_script('return window.wrappedJSObject.LockScreen.locked')
 
     def lock(self):
+        self.marionette.import_script(self.lockscreen_atom)
         self.marionette.switch_to_frame()
         result = self.marionette.execute_async_script('GaiaLockScreen.lock()')
         assert result, 'Unable to lock screen'
 
     def unlock(self):
+        self.marionette.import_script(self.lockscreen_atom)
         self.marionette.switch_to_frame()
         result = self.marionette.execute_async_script('GaiaLockScreen.unlock()')
         assert result, 'Unable to unlock screen'
@@ -801,6 +798,9 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
             if self.device.is_android_build:
                 self.cleanup_data()
             self.device.start_b2g()
+
+        # Run the fake update checker
+        FakeUpdateChecker(self.marionette).check_updates()
 
         # we need to set the default timeouts because we may have a new session
         if self.marionette.timeout is not None:
