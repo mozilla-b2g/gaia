@@ -4,6 +4,9 @@
 
   const pinchThreshold = Math.round(window.innerWidth / 12);
 
+  // Reset zoom element state after a set time.
+  const zoomHideTime = 400;
+
   function GridZoom(gridView) {
     this.gridView = gridView;
 
@@ -25,7 +28,7 @@
 
     /**
      * Starts listening for touchstart events.
-     * This is what starts listening events to start the drag & drop operation.
+     * This is what starts listening events to start the pinch-to-zoom.
      */
     start: function() {
       window.addEventListener('touchstart', this);
@@ -56,6 +59,7 @@
       this.indicator.classList.remove('active');
       this.arrows.classList.remove('zooming', 'grow', 'shrink');
       this.arrows.style.transform = '';
+      window.dispatchEvent(new CustomEvent('gaiagrid-zoom-finish'));
     },
 
     /**
@@ -64,7 +68,7 @@
     handleEvent: function(e) {
       if (e.type === 'touchend' && this.zoomStartTouches) {
         if (!this.zoomInProgress) {
-          this._resetState();
+          setTimeout(this._resetState.bind(this), zoomHideTime);
         }
 
         this._stopGestureListeners();
@@ -74,6 +78,8 @@
       if (!e.touches || e.touches.length !== 2) {
         return;
       }
+
+      window.dispatchEvent(new CustomEvent('gaiagrid-zoom-begin'));
 
       // Sort touches by ascending pageX position.
       var touches = [e.touches[0], e.touches[1]].sort(function(a, b) {
@@ -134,9 +140,7 @@
                 cols: layout.perRow
               }
             }));
-
-            // Reset zoom element state after a set time.
-            var zoomHideTime = 400;
+            
             setTimeout(this._resetState.bind(this), zoomHideTime);
           }.bind(this);
 
