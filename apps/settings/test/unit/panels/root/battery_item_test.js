@@ -2,7 +2,7 @@
 
 mocha.globals(['MockL10n']);
 
-suite('LanguageItem', function() {
+suite('BatteryItem', function() {
   var realL10n;
   var modules = [
     'unit/mock_l10n',

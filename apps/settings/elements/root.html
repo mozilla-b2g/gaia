@@ -139,18 +139,18 @@
       <ul>
         <li>
           <label class="pack-switch">
-            <input id="ums-switch-root" data-ignore type="checkbox">
-            <small id="ums-desc-root" class="menu-item-desc">Disabled</small>
+            <input class="ums-switch-root" data-ignore type="checkbox">
+            <small class="ums-desc-root menu-item-desc">Disabled</small>
             <span id="menuItem-enableStorage" class="menu-item" data-l10n-id="enableUSBStorage1">USB storage</span>
           </label>
         </li>
         <li>
-          <small id="application-storage-desc" class="menu-item-desc"></small>
-          <a id="menuItem-applicationStorage" class="menu-item" href="#applicationStorage" data-l10n-id="appStorage">Application Storage</a>
+          <small class="application-storage-desc menu-item-desc"></small>
+          <a class="menuItem-applicationStorage menu-item" href="#applicationStorage" data-l10n-id="appStorage">Application Storage</a>
         </li>
-        <li id="media-storage-section">
-          <small id="media-storage-desc" class="menu-item-desc"></small>
-          <a id="menuItem-mediaStorage" class="menu-item" href="#mediaStorage" data-l10n-id="mediaStorage">Media Storage</a>
+        <li class="media-storage-section">
+          <small class="media-storage-desc menu-item-desc"></small>
+          <a class="menuItem-mediaStorage menu-item" href="#mediaStorage" data-l10n-id="mediaStorage">Media Storage</a>
         </li>
       </ul>
 
@@ -188,6 +188,19 @@
       <ul id="icc-entries">
       </ul>
     </div>
+
+    <form role="dialog" data-type="confirm" class="turn-on-ums-dialog" hidden>
+      <section>
+        <h1 data-l10n-id="ums-warning-title">Enable USB storage?</h1>
+        <p data-l10n-id="turn-on-ums-confirm">
+          Turning on Enable USB storage allows another computer or device connected using USB to access files on this phone.
+        </p>
+      </section>
+      <menu>
+        <button data-l10n-id="cancel" class="ums-cancel-option">Cancel</button>
+        <button data-l10n-id="ok" class="ums-confirm-option recommend">OK</button>
+      </menu>
+    </form>
 
     <panel data-path="panels/root/panel"><panel>
 
