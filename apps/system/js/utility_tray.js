@@ -166,6 +166,18 @@ var UtilityTray = {
     this.screenWidth = screenRect.width;
     this.active = true;
     this.startY = touch.pageY;
+    if (!this.screen.classList.contains('utility-tray')) {
+      // If the active app was tracking touches it won't get any more events
+      // because of the pointer-events:none we're adding.
+      // Sending a touchcancel accordingly.
+      var app = AppWindowManager.getActiveApp();
+      if (app) {
+        app.iframe.sendTouchEvent('touchcancel', [touch.identifier],
+                                  [touch.pageX], [touch.pageY],
+                                  [touch.radiusX], [touch.radiusY],
+                                  [touch.rotationAngle], [touch.force], 1);
+      }
+    }
     this.screen.classList.add('utility-tray');
   },
 
