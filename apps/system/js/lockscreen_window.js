@@ -38,6 +38,7 @@
     // and LockScreen.
     this.lockscreen = new window.LockScreen();
     window.lockScreen = this.lockscreen;
+    this.lockscreen.init();
   };
 
   /**
