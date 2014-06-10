@@ -56,6 +56,11 @@
   box-sizing: border-box;
 }
 
+[cols="4"] .icon .title {
+  /* Font size is the same independent on grid configuration */
+  font-size: calc(1.4rem * 1.333);
+}
+
 .divider {
   position: absolute;
   width: 50%;
