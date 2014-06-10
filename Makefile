@@ -483,7 +483,7 @@ export BUILD_CONFIG
 
 define app-makefile-template
 .PHONY: $(1)
-$(1): $(XULRUNNER_BASE_DIRECTORY) keyboard-layouts contacts-import-services $(STAGE_DIR)/settings_stage.json webapp-manifests svoperapps clear-stage-app webapp-shared | $(STAGE_DIR)
+$(1): $(XULRUNNER_BASE_DIRECTORY) pre-app | $(STAGE_DIR)
 	@if [[ ("$(2)" =~ "${BUILD_APP_NAME}") || ("${BUILD_APP_NAME}" == "*") ]]; then \
 	if [ -r "$(2)/Makefile" ]; then \
 		echo "execute Makefile for $(1) app" ; \
@@ -504,7 +504,7 @@ endef
 include build/common.mk
 
 # Generate profile/
-$(PROFILE_FOLDER): preferences post-manifest app-makefiles keyboard-layouts contacts-import-services copy-build-stage-data test-agent-config offline contacts extensions $(XULRUNNER_BASE_DIRECTORY) .git/hooks/pre-commit create-default-data $(PROFILE_FOLDER)/installed-extensions.json
+$(PROFILE_FOLDER): preferences pre-app post-app test-agent-config offline contacts extensions $(XULRUNNER_BASE_DIRECTORY) .git/hooks/pre-commit create-default-data $(PROFILE_FOLDER)/installed-extensions.json
 ifeq ($(BUILD_APP_NAME),*)
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)$(PROFILE_FOLDER)"
 endif
@@ -542,64 +542,29 @@ clear-stage-app:
 		fi; \
 	done
 
-svoperapps: $(XULRUNNER_BASE_DIRECTORY)
-	@$(call run-js-command,svoperapps)
 
 LANG=POSIX # Avoiding sort order differences between OSes
 
-# Generate $(PROFILE_FOLDER)/webapps/
-# We duplicate manifest.webapp to manifest.webapp and manifest.json
-# to accommodate Gecko builds without bug 757613. Should be removed someday.
-#
-# We depend on app-makefiles so that per-app Makefiles could modify the manifest
-# as part of their build step.  None currently do this, and webapp-manifests.js
-# would likely want to change to see if the build directory includes a manifest
-# in that case.  Right now this is just making sure we don't race app-makefiles
-# in case someone does decide to get fancy.
-.PHONY: webapp-manifests
-webapp-manifests: $(XULRUNNER_BASE_DIRECTORY) $(STAGE_DIR)
-	@$(call run-js-command,webapp-manifests)
+.PHONY: pre-app
+pre-app: $(XULRUNNER_BASE_DIRECTORY) $(STAGE_DIR) clear-stage-app
+	@$(call run-js-command,pre-app)
 
-.PHONY: webapp-zip
-# Generate $(PROFILE_FOLDER)/webapps/APP/application.zip
-webapp-zip: webapp-optimize app-makefiles keyboard-layouts $(XULRUNNER_BASE_DIRECTORY)
-ifneq ($(DEBUG),1)
-	@mkdir -p $(PROFILE_FOLDER)/webapps
-	@$(call run-js-command,webapp-zip)
-endif
+.PHONY: post-app
+post-app: app-makefiles pre-app $(XULRUNNER_BASE_DIRECTORY)
+	@$(call run-js-command,post-app)
 
-.PHONY: webapp-shared
-# Copy shared files to stage folders
-webapp-shared: $(XULRUNNER_BASE_DIRECTORY) keyboard-layouts $(STAGE_DIR) clear-stage-app
-	@$(call run-js-command, webapp-shared)
+# Keep old targets just for people/scripts still using it
+.PHONY: post-manifest
+post-manifest: post-app
+
+.PHONY: copy-build-stage-data
+copy-build-stage-data: post-app
 
 .PHONY: webapp-optimize
-# Web app optimization steps (like precompling l10n, concatenating js files, etc..).
-# You need xulrunner ($(XULRUNNER_BASE_DIRECTORY)) to do this, and you need the app
-# to have been built (app-makefiles).
-webapp-optimize: multilocale app-makefiles $(XULRUNNER_BASE_DIRECTORY)
-	@$(call run-js-command,webapp-optimize)
+webapp-optimize: post-app
 
-.PHONY: optimize-clean
-# Remove temporary l10n files created by the webapp-optimize step.  Because
-# webapp-zip wants these files to still be around during the zip stage, depend
-# on webapp-zip so it runs to completion before we start the cleanup.
-optimize-clean: webapp-zip $(XULRUNNER_BASE_DIRECTORY)
-	@$(call run-js-command,optimize-clean)
-
-.PHONY: keyboard-layouts
-# A separate step for shared/ folder to generate its content in build time
-keyboard-layouts: webapp-manifests $(XULRUNNER_BASE_DIRECTORY)
-	@$(call run-js-command,keyboard-layouts)
-
-.PHONY: contacts-import-services
-contacts-import-services: webapp-manifests $(XULRUNNER_BASE_DIRECTORY)
-	@$(call run-js-command,contacts-import-services)
-
-.PHONY: post-manifest
-# Updates hostnames for InterApp Communication APIs.
-post-manifest: app-makefiles $(XULRUNNER_BASE_DIRECTORY)
-	@$(call run-js-command,post-manifest)
+.PHONY: webapp-zip
+webapp-zip: post-app
 
 # Get additional extensions
 $(PROFILE_FOLDER)/installed-extensions.json: build/config/additional-extensions.json $(wildcard .build/config/custom-extensions.json)
@@ -624,7 +589,7 @@ endif
 endif
 
 # Create webapps
-offline: app-makefiles optimize-clean
+offline: app-makefiles post-app
 
 # Create an empty reference workload
 .PHONY: reference-workload-empty
@@ -1051,12 +1016,7 @@ purge:
 	$(ADB) shell rm -r $(MSYS_FIX)/system/b2g/webapps
 	$(ADB) shell 'if test -d $(MSYS_FIX)/persist/svoperapps; then rm -r $(MSYS_FIX)/persist/svoperapps; fi'
 
-$(PROFILE_FOLDER)/settings.json: $(XULRUNNER_BASE_DIRECTORY) profile-dir keyboard-layouts $(STAGE_DIR)/settings_stage.json copy-build-stage-data
-
-$(STAGE_DIR)/settings_stage.json: $(XULRUNNER_BASE_DIRECTORY) keyboard-layouts
-ifeq ($(BUILD_APP_NAME),*)
-	@$(call run-js-command,settings)
-endif
+$(PROFILE_FOLDER)/settings.json: $(XULRUNNER_BASE_DIRECTORY) profile-dir pre-app post-app
 
 # push $(PROFILE_FOLDER)/settings.json and $(PROFILE_FOLDER)/contacts.json (if CONTACTS_PATH defined) to the phone
 install-default-data: $(PROFILE_FOLDER)/settings.json contacts
@@ -1096,15 +1056,6 @@ really-clean: clean
 	test -d .git && cp tools/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit || true
 
 
-# This task will do three things.
-# 1. Copy manifest to profile: generally we got manifest from webapp-manifest.js
-#    unless manifest is generated from Makefile of app. so we will copy
-#    manifest.webapp if it's avaiable in build_stage/ .
-# 2. Copy external app to profile dir.
-# 3. Generate webapps.json from webapps_stage.json and copy to profile dir.
-copy-build-stage-data: app-makefiles post-manifest multilocale $(XULRUNNER_BASE_DIRECTORY)
-	@$(call run-js-command,copy-build-stage-data)
-
 build-test-unit: $(NPM_INSTALLED_PROGRAMS)
 	@$(call run-build-test, $(shell find build/test/unit/*.test.js))
 
@@ -1119,8 +1070,3 @@ docs: $(NPM_INSTALLED_PROGRAMS)
 watch: $(NPM_INSTALLED_PROGRAMS)
 	node build/watcher.js
 
-.PHONY: multilocale
-multilocale: post-manifest app-makefiles webapp-shared $(XULRUNNER_BASE_DIRECTORY)
-ifneq ($(LOCALE_BASEDIR),)
-	@$(call run-js-command,multilocale)
-endif
