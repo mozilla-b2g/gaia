@@ -87,9 +87,9 @@
     };
 
     // observe info that may change
-    mozSettings.addObserver('language.current', function setLocale(e) {
+    window.addEventListener('languagechange', function setLangchange() {
       var current = this.lc;
-      this.lc = e.settingValue || navigator.language || '';
+      this.lc = navigator.language;
       eme.log('lc changed', current, '->', this.lc);
     }.bind(this));
 
@@ -121,7 +121,7 @@
             });
           }
 
-          this.lc = settings['language.current'];
+          this.lc = navigator.language;
           this.tz = getTimezoneOffset();
           this.osVersion = settings['deviceinfo.os'];
           this.deviceId = deviceId;
