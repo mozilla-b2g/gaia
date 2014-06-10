@@ -25,6 +25,11 @@ class Homescreen(Base):
     def tap_search_bar(self):
         search_bar = self.marionette.find_element(*self._search_bar_icon_locator)
         search_bar.tap()
+
+        # TODO These two lines are a workaround for bug 1020974
+        self.marionette.switch_to_frame()
+        self.marionette.find_element('id', 'rocketbar-form').tap()
+
         from gaiatest.apps.homescreen.regions.search_panel import SearchPanel
         return SearchPanel(self.marionette)
 
