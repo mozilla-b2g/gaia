@@ -335,7 +335,13 @@ var VCFReader = (function _VCFReader() {
       }
 
       for (var j = 2; j < adr.value.length; j++) {
-        cur[ADDR_PARTS[j]] = _decodeQP(adr.meta, adr.value[j]);
+        var decoded = _decodeQP(adr.meta, adr.value[j]);
+        // Because of adding empty fields while parsing the vCard
+        // merging contacts sometimes doesn't work as expected
+        // Check Bug 935636 for reference
+        if (decoded !== '') {
+          cur[ADDR_PARTS[j]] = decoded;
+        }
       }
 
       contactObj.adr.push(cur);
