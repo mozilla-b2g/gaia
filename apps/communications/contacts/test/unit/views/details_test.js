@@ -10,10 +10,13 @@
 /* global MockExtFb */
 /* global Mockfb */
 /* global MocksHelper */
+/* global MockUtils */
 /* global MultiSimActionButton */
 /* global Normalizer */
 /* global TelephonyHelper */
 /* global utils */
+/* global MockWebrtcClient */
+/* global ActivityHandler */
 /* export TAG_OPTIONS */
 /* exported SCALE_RATIO */
 /* exported _ */
@@ -27,7 +30,7 @@ require('/shared/js/text_normalizer.js');
 require('/shared/js/contacts/import/utilities/misc.js');
 require('/shared/js/contacts/utilities/dom.js');
 require('/shared/js/contacts/utilities/templates.js');
-require('/shared/js/contacts/utilities/event_listeners.js');
+requireApp('communications/contacts/test/unit/mock_event_listeners.js');
 require('/shared/test/unit/mocks/mock_contact_all_fields.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_multi_sim_action_button.js');
@@ -74,7 +77,9 @@ var _ = function(key) { return key; },
     fbButtons,
     linkButtons,
     realContactsList,
-    mozL10nGetSpy;
+    mozL10nGetSpy,
+    backButton,
+    realListeners;
 
 requireApp('communications/contacts/js/tag_optionsstem.js');
 
@@ -109,6 +114,8 @@ suite('Render contact', function() {
     realOnLine = Object.getOwnPropertyDescriptor(navigator, 'onLine');
     realL10n = navigator.mozL10n;
     realActivityHandler = window.ActivityHandler;
+    realListeners = utils.listeners;
+    utils.listeners = MockUtils.listeners;
     navigator.mozL10n = {
       get: function get(key) {
         return key;
@@ -152,6 +159,7 @@ suite('Render contact', function() {
     dom.innerHTML = MockDetailsDom;
     container = dom.querySelector('#details-list');
     subject = contacts.Details;
+    utils.listeners.dom = dom;
     subject.init(dom);
     contactDetails = dom.querySelector('#contact-detail');
     listContainer = dom.querySelector('#details-list');
@@ -165,6 +173,7 @@ suite('Render contact', function() {
     cover = dom.querySelector('#cover-img');
     detailsInner = dom.querySelector('#contact-detail-inner');
     favoriteMessage = dom.querySelector('#toggle-favorite').children[0];
+    backButton = dom.querySelector('#details-back');
 
     fbButtons = [
       '#profile_button',
@@ -184,6 +193,8 @@ suite('Render contact', function() {
 
     mozL10nGetSpy.restore();
     window.mozL10n = realL10n;
+
+    utils.listeners = realListeners;
 
     if (realOnLine) {
       Object.defineProperty(navigator, 'onLine', realOnLine);
@@ -907,6 +918,21 @@ suite('Render contact', function() {
         error();
         assert.isFalse(contactDetails.classList.contains('calls-disabled'));
       });
+    });
+  });
+
+  suite('> Handle back button', function() {
+    setup(function () {
+      this.sinon.spy(MockWebrtcClient, 'stop');
+      this.sinon.spy(window.ActivityHandler, 'postCancel');
+      this.sinon.spy(Contacts.navigation, 'back');
+    });
+
+    test('> going back from details', function () {
+      backButton.click();
+      sinon.assert.calledOnce(MockWebrtcClient.stop);
+      sinon.assert.notCalled(ActivityHandler.postCancel);
+      sinon.assert.calledOnce(Contacts.navigation.back);
     });
   });
 
