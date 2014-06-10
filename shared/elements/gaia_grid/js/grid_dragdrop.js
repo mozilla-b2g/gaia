@@ -24,9 +24,25 @@
     this.container = gridView.element;
     this.scrollable = this.container.parentNode;
     this.container.addEventListener('contextmenu', this);
+    this.enable();
+    window.addEventListener('gaiagrid-zoom-begin', this.disable.bind(this));
+    window.addEventListener('gaiagrid-zoom-finish', this.enable.bind(this));
   }
 
   DragDrop.prototype = {
+    /**
+     * This enables the drag & drop operation.
+     */
+    enable: function() {
+      this.enabled = true;
+    },
+
+    /**
+     * This will effectively disable drag & drop.
+     */
+    disable: function() {
+      this.enabled = false;
+    },
 
     /**
      * The current touchmove target.
@@ -283,6 +299,10 @@
             break;
 
           case 'contextmenu':
+            if (!this.enabled) {
+              return;
+            }
+
             this.target = e.target;
 
             if (!this.target) {
