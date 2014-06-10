@@ -1,12 +1,15 @@
-'use strict';
+/* global SettingsListener */
 
 (function(exports) {
+  'use strict';
 
   /**
    * The Developer HUD displays app metrics as an overlay on top of MozApps.
    * @class DeveloperHUD
    */
   function DeveloperHUD() {
+    SettingsListener.observe('devtools.overlay.system',
+                             false, this.toggleSystemHUD.bind(this));
   }
 
   DeveloperHUD.prototype = {
@@ -18,6 +21,15 @@
 
     stop: function() {
       window.removeEventListener('developer-hud-update', this);
+    },
+
+    _showSystemHUD: false,
+    toggleSystemHUD: function(enabled) {
+      if (!enabled) {
+        this.display(window, {});
+      }
+
+      this._showSystemHUD = enabled;
     },
 
     handleEvent: function(e) {
@@ -35,12 +47,20 @@
         return;
       }
 
+      // For regular mozbrowser iframes use the div container.
       var appwindow = target.parentElement;
+
+      // For system messages, directly insert the hud into the #screen
+      // wrapper if needed.
       if (!appwindow) {
-        return;
+        if (target === window && this._showSystemHUD) {
+          appwindow = document.getElementById('screen');
+        } else {
+          return;
+        }
       }
 
-      var overlay = appwindow.querySelector('.developer-hud');
+      var overlay = appwindow.querySelector(':scope > .developer-hud');
 
       if (!overlay) {
         overlay = document.createElement('div');
@@ -53,19 +73,61 @@
         return;
       }
 
-      var html = '';
+      var canvas = overlay.querySelector('.widgets');
+      if (!canvas) {
+        canvas = document.createElement('canvas');
+        canvas.classList.add('widgets');
+        canvas.height = 30;
+        overlay.appendChild(canvas);
+      }
 
-      data.metrics.forEach(function(metric) {
-        html += this.widget(metric);
-      }, this);
+      // The width is always set to the size of the screen in case the screen
+      // has been rotated. This does not cause a reflow as long as the width
+      // is the same.
+      canvas.width = window.innerWidth;
 
-      overlay.innerHTML = html;
+      var ctx = canvas.getContext('2d');
+      ctx.font = '18px sans-serif';
+      ctx.textBaseline = 'top';
+
+      ctx.save();
+
+      // Widgets are positioned starting from the right side of the screen.
+      ctx.translate(canvas.width, 0);
+
+      data.metrics.reverse().forEach((function(metric) {
+        var widget = this.widget(metric);
+        if (!widget) {
+          return;
+        }
+
+        // The size of a widget is comprise between 30px and the size of its
+        // content. There is also an additional padding of 5px on each side.
+        var textWidth = ctx.measureText(widget.value).width;
+        var widgetWidth = Math.max(30, textWidth) + (5 * 2);
+
+        // Position the widget relatively to the last position on the left
+        // of the screen.
+        ctx.translate(-widgetWidth, 0);
+
+        // Fill widget background-color.
+        ctx.fillStyle = widget.color;
+        ctx.fillRect(0, 0, widgetWidth, canvas.height);
+
+        // Draw widget text centered both horizontally and vertically.
+        ctx.fillStyle = 'white';
+        ctx.fillText(widget.value,
+                     (widgetWidth - textWidth) / 2,
+                     canvas.height / 4);
+      }).bind(this));
+
+      ctx.restore();
     },
 
     widget: function(metric) {
       var value = metric.value;
       if (!value) {
-        return '';
+        return null;
       }
 
       var color;
@@ -106,8 +168,10 @@
           break;
       }
 
-      return '<div class=widget style="background-color: ' + color + '">' +
-             value + '</div>';
+      return {
+        'color': color,
+        'value': value
+      };
     },
 
     colorHash: function(name) {
