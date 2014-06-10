@@ -441,9 +441,9 @@ var CallHandler = (function callHandler() {
 // Waiting for issue 787444 being fixed
 window.onresize = function(e) {
   if (window.innerHeight < 440) {
-    document.body.classList.add('with-keyboard');
+    NavbarManager.hide();
   } else {
-    document.body.classList.remove('with-keyboard');
+    NavbarManager.show();
   }
 };
 
