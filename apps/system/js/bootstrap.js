@@ -137,6 +137,19 @@ window.addEventListener('load', function startup() {
     });
   }
 
+  SettingsListener.observe(
+    'debug.show-touches.enabled',
+    false,
+    function(enabled) {
+      if (enabled && !window.TouchOverlay) {
+        LazyLoader.load('js/devtools/touch_overlay.js', function() {
+          window.touchOverlay = new TouchOverlay();
+        });
+      }
+    }
+  );
+
+
   // We need to be sure to get the focus in order to wake up the screen
   // if the phone goes to sleep before any user interaction.
   // Apparently it works because no other window has the focus at this point.

@@ -28,7 +28,6 @@
   z-index: 65536;
 }
 
-#screen > [data-z-index-level="debug-grid"],
 #screen > [data-z-index-level="debug-ttl"] {
   z-index: 65536;
 }
@@ -72,6 +71,11 @@
 #screen.cards-view.task-manager > [data-z-index-level="keyboards"],
 #screen.cards-view.task-manager > [data-z-index-level="software-buttons"] {
   z-index: 65538;
+}
+
+/* Touch overlay is shown above the keyboard */
+#screen > [data-z-index-level="touch-overlay"] {
+  z-index: 65539;
 }
 
 #screen > [data-z-index-level="keyboards"] {
