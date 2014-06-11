@@ -12,6 +12,9 @@ suite('app permission list > ', function() {
       appendChild: function(item) {
         this.children.push(item);
       }
+    },
+    mainButton: {
+      hidden: false
     }
   };
 
