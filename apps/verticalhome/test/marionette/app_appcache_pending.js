@@ -6,20 +6,23 @@ var Home2 = require('./lib/home2');
 var System = require('../../../../apps/system/test/marionette/lib/system');
 var AppInstall =
   require('../../../../apps/system/test/marionette/lib/app_install');
-
 var createAppServer = require('./server/parent');
-var iconSrc = require('./lib/icon_src');
 
 marionette('Vertical Home - Hosted app failed icon fetch', function() {
   var client = marionette.client(Home2.clientOptions);
   var server;
   setup(function(done) {
-    var app = __dirname + '/fixtures/template_app';
+    var app = __dirname + '/fixtures/appcache';
     createAppServer(app, client, function(err, _server) {
       server = _server;
       done(err);
     });
   });
+
+  function hasClass(element, className) {
+    var classes = element.getAttribute('className');
+    return classes.indexOf(className) !== -1;
+  }
 
   var subject;
   var system;
@@ -37,13 +40,12 @@ marionette('Vertical Home - Hosted app failed icon fetch', function() {
     server.close(done);
   });
 
-  test('fallback to default icon', function() {
-    var iconURL = server.manifest.icons['128'];
+  test('shows spinner while downloading', function() {
     // correctly install the app...
     client.switchToFrame();
 
-    // ensure the icon fails to download!
-    server.fail(iconURL);
+    // ensure appcache path is delayed
+    server.cork(server.manifest.appcache_path);
     appInstall.install(server.manifestURL);
 
     // switch back to the homescreen
@@ -52,14 +54,19 @@ marionette('Vertical Home - Hosted app failed icon fetch', function() {
 
     var icon = subject.getIcon(server.manifestURL);
 
-    // ensure the default icon is shown
+    client.waitFor(hasClass.bind(this, icon, 'loading'));
+    // let the rest of the app come through
+    server.uncork(server.manifest.appcache_path);
+    // wait until it is no longer loading
     client.waitFor(function() {
-      var src = iconSrc(icon);
-      return src && src.indexOf('default') !== -1;
+      return !hasClass(icon, 'loading');
     });
 
-    // ensure the icon can be launched!
+    // ensure the app launches!
     subject.launchAndSwitchToApp(server.manifestURL);
     assert.equal(client.title(), 'iwrotethis');
   });
 });
+
+
+
