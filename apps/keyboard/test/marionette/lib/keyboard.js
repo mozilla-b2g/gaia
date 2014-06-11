@@ -18,12 +18,22 @@ Keyboard.MANIFEST_URL =  'app://keyboard.gaiamobile.org/manifest.webapp';
 // Selectors for the DOM in built-in keyboard app.
 Keyboard.Selector = Object.freeze({
   imeSwitchingKey: '.keyboard-type-container[data-active] ' +
-    '.keyboard-key[data-keycode="-3"]'
+    '.keyboard-key[data-keycode="-3"]',
+  returnKey: '.keyboard-type-container[data-active] ' +
+    '.keyboard-key[data-l10n-id="returnKey"]',
+  dismissSuggestionsButton: '.keyboard-type-container[data-active] ' +
+    '.dismiss-suggestions-button'
 });
 
 Keyboard.prototype = {
   // getters for DOM elements in keyboard app
   get imeSwitchingKey() {
     return this.client.findElement(Keyboard.Selector.imeSwitchingKey);
+  },
+  get returnKey() {
+    return this.client.findElement(Keyboard.Selector.returnKey);
+  },
+  get dismissSuggestionsButton() {
+    return this.client.findElement(Keyboard.Selector.dismissSuggestionsButton);
   }
 };

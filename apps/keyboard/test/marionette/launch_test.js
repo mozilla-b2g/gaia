@@ -46,6 +46,19 @@ marionette('show Keyboard APP', function() {
     assert.ok(keyboardContainer.displayed());
   });
 
+  test('keys and buttons should be have aria-label set', function() {
+    var returnKey = keyboard.returnKey;
+    client.waitFor(function() {
+      return (returnKey.getAttribute('aria-label') === 'return');
+    });
+
+    var dismissSuggestionsButton = keyboard.dismissSuggestionsButton;
+    client.waitFor(function() {
+      var label = dismissSuggestionsButton.getAttribute('aria-label');
+      return (label === 'Dismiss');
+    });
+  });
+
   test('Touching the status bar should not dismiss keyboard', function() {
     // Click on the status bar
     client.switchToFrame();
