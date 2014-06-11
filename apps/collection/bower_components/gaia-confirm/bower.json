@@ -1,0 +1,25 @@
+{
+  "name": "gaia-confirm",
+  "version": "0.1.0",
+  "homepage": "https://github.com/gaia-components/gaia-confirm",
+  "authors": [
+    "Wilson Page <wilsonpage@me.com>"
+  ],
+  "main": "script.js",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests",
+    "examples",
+    "package.json",
+    "README.md",
+    "LICENSE.md",
+    "karma.conf.js"
+  ],
+  "dependencies": {
+    "gaia-component-utils": "gaia-components/gaia-component-utils"
+  }
+}
