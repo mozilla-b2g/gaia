@@ -747,7 +747,7 @@ b2g: node_modules/.bin/mozilla-download
 		--verbose \
 		--product b2g \
 		--channel prerelease \
-		--branch aurora $@
+		--branch nightly/latest-mozilla-b2g30_v1_4 $@
 
 .PHONY: test-integration
 # $(PROFILE_FOLDER) should be `profile-test` when we do `make test-integration`.
