@@ -154,7 +154,8 @@
         case 'activityterminated':
           this._activities.forEach(function iterator(activity, index) {
             if (activity.instanceID === evt.detail.instanceID) {
-              if (activity.instanceID === this._lastActivity.instanceID) {
+              if (this._lastActivity &&
+                  activity.instanceID === this._lastActivity.instanceID) {
                 this._lastActivity = null;
               }
               if (this._activeActivity &&
@@ -188,7 +189,8 @@
           this.debug('activity: ' + activity.name +
             ' is closing, its caller is ' + activity.activityCaller.name);
           if (activity.activityCaller &&
-              activity.activityCaller instanceof ActivityWindow) {
+              activity.activityCaller instanceof ActivityWindow &&
+              activity.activityCaller.isActive()) {
             this._activeActivity = activity.activityCaller;
           } else if (this._activeActivity &&
               this._activeActivity.instanceID == evt.detail.instanceID) {

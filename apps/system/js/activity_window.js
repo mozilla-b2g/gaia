@@ -149,7 +149,9 @@
 
   ActivityWindow.prototype._transitionHandler =
     function acw__transitionHandler(evt) {
-      evt.stopPropagation();
+      if (evt) {
+        evt.stopPropagation();
+      }
       if (this.element.classList.contains('opening')) {
         this.element.classList.remove('opening');
         this.element.classList.remove('slideup');
@@ -164,7 +166,7 @@
         }
         if (this.openCallback)
           this.openCallback();
-      } else {
+      } else if (this.element.classList.contains('closing')) {
         this.element.classList.remove('closing');
         this.element.classList.remove('slidedown');
         this.element.classList.remove('active');
@@ -197,7 +199,7 @@
         }
         this.debug('request caller to open again');
         if (this.activityCaller instanceof ActivityWindow) {
-          if (evt) {
+          if (evt && this.activityCaller.isActive()) {
             this.activityCaller.open();
           }
         } else if (this.activityCaller instanceof AppWindow) {
@@ -303,6 +305,9 @@
     this.restoreCaller();
     this.element.classList.add('slidedown');
     this.element.classList.add('closing');
+    // Use setTimeout() to guarantee _transitionHandler() gets called in case
+    // the animation is not executed.
+    setTimeout(this._transitionHandler.bind(this));
   };
 
   ActivityWindow.prototype.show = function acw_show() {
