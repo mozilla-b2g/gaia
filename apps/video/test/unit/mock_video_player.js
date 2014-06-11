@@ -57,6 +57,10 @@ MockVideoPlayer.prototype.removeAttribute = function(attr) {
   }
 };
 
+MockVideoPlayer.prototype.fastSeek = function(seekTime) {
+  this.currentTime = seekTime;
+};
+
 MockVideoPlayer.prototype.cloneNode = function() {
   return this;
 };
