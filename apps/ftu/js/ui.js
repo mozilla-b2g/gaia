@@ -109,6 +109,8 @@ var UIManager = {
     'invalid-email-error-dialog'
   ],
 
+  dataConnectionChangedByUsr: false,
+
   init: function ui_init() {
     _ = navigator.mozL10n.get;
 
@@ -342,6 +344,7 @@ var UIManager = {
         break;
       // 3G
       case 'data-connection-switch':
+        this.dataConnectionChangedByUsr = true;
         var status = event.target.checked;
         DataMobile.toggle(status);
         break;
