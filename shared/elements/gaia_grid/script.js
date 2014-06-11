@@ -230,7 +230,7 @@ window.GaiaGrid = (function(win) {
   var template = document.createElement('template');
   template.innerHTML = '<style scoped>' +
     '@import url(' + stylesheet + ');</style>' +
-    '<content select=".icons"></content>';
+    '<content></content>';
 
   // Register and return the constructor
   return document.registerElement('gaia-grid', { prototype: proto });
