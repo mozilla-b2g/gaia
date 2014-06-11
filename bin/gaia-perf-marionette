@@ -15,11 +15,11 @@ fi
 SHARED=$GAIA_DIR/shared/test/integration
 
 # make sure node_modules are 100% up to date
-make node_modules
+make node_modules || exit 1
 
 if [ $MARIONETTE_RUNNER_HOST = "marionette-b2gdesktop-host" ] ; then
   # download b2g-desktop (if its not present)
-  make -C $GAIA_DIR/ b2g
+  make -C $GAIA_DIR/ b2g || exit 1
 fi
 
 if [ $MARIONETTE_RUNNER_HOST = "marionette-b2gdesktop-host" ] ; then
