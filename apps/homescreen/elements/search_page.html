@@ -3,10 +3,10 @@
     <div id="evmeOverlay" class="evmeScope">
       <select id="collections-select" multiple="true"></select>
       <div id="collection">
-        <div class="header">
+        <div class="header" role="heading" aria-level="1">
           <div class="header-content">
-            <h2 class="title"></h2>
-            <b class="close"></b>
+            <h2 role="button" class="title"></h2>
+            <button class="close" data-l10n-id="evme-close"></button>
           </div>
         </div>
         <div class="content">
@@ -53,20 +53,20 @@
             <fieldset>
               <div id="search-q-bg">
                 <input type="text" id="search-q" name="search-q" maxlength="128" autocorrect="off" x-inputmode="verbatim"
-                data-l10n-id="evme-searchbar-default2"/>
+                data-l10n-id="evme-searchbar-default2" aria-describedby="helper-label"/>
               </div>
               <div id="helper-tip"><b></b></div>
             </fieldset>
           </form>
-          <b id="button-clear" data-l10n-id="evme-searchbar-clear"></b>
+          <b role="button" id="button-clear" data-l10n-id="evme-searchbar-clear"></b>
         </div>
         <div id="header" data-opacity-on-swipe="true">
           <div id="helper-header">
             <h1 id="search-title"></h1>
-            <div id="save-search"></div>
+            <div role="button" id="save-search"></div>
             <div id="helper-rapper">
               <div id="helper">
-                <ul></ul>
+                <ul role="listbox"></ul>
               </div>
             </div>
           </div>
