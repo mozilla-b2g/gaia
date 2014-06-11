@@ -53,7 +53,7 @@
       AppWindow[this.instanceID] = this;
     }
 
-    this.launchTime = Date.now();
+    this.createdTime = this.launchTime = Date.now();
 
     return this;
   };
