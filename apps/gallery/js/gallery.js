@@ -162,9 +162,6 @@ function init() {
     cleanupCrop();
   };
 
-  // In crop view, the done button finishes the pick
-  $('crop-done-button').onclick = cropAndEndPick;
-
   // The camera buttons should launch the camera app
   fullscreenButtons.camera.onclick = launchCameraApp;
 
@@ -253,7 +250,8 @@ function initDB() {
       return;
     }
 
-    loader.load('js/metadata_scripts.js', function() {
+    loader.load(['js/metadata_scripts.js',
+                 'shared/js/media/crop_resize_rotate.js'], function() {
       loaded = true;
       metadataParser(file, onsuccess, onerror, bigFile);
     });
@@ -437,6 +435,17 @@ function initThumbnails() {
       // For a pick activity, don't display videos
       if (pendingPick && fileinfo.metadata.video)
         return;
+
+      // Bug 1003036 fixed an issue where explicitly created preview
+      // images could be saved with fractional sizes. We don't do that
+      // anymore, but we still need to clean up existing bad data here.
+      var metadata = fileinfo.metadata;
+      if (metadata &&
+          metadata.preview &&
+          metadata.preview.filename) {
+        metadata.preview.width = Math.floor(metadata.preview.width);
+        metadata.preview.height = Math.floor(metadata.preview.height);
+      }
 
       batch.push(fileinfo);
       if (batch.length >= batchsize) {
@@ -767,8 +776,7 @@ function thumbnailOffscreen(thumbnail) {
 var pendingPick;
 var pickType;
 var pickWidth, pickHeight;
-var pickedFile;
-var cropURL;
+var pickedFileInfo;
 var cropEditor;
 
 function startPick() {
@@ -781,15 +789,13 @@ function startPick() {
   else {
     pickWidth = pickHeight = 0;
   }
-  // We need frame_scripts and ImageEditor for cropping the photo
-  loader.load(['js/frame_scripts.js', 'js/ImageEditor.js'], function() {
-    setView(LAYOUT_MODE.pick);
-  });
+
+  setView(LAYOUT_MODE.pick);
 }
 
 // Called when the user clicks on a thumbnail in pick mode
 function cropPickedImage(fileinfo) {
-  pickedFile = fileinfo;
+  pickedFileInfo = fileinfo;
 
   // Do we actually want to allow the user to crop the image?
   var nocrop = pendingPick.source.data.nocrop;
@@ -804,12 +810,25 @@ function cropPickedImage(fileinfo) {
 
   // Before the picked image is loaded, the done button is disabled
   // to avoid users picking a black/empty image.
-  $('crop-done-button').disabled = true;
-  photodb.getFile(pickedFile.name, function(file) {
-    cropURL = URL.createObjectURL(file);
+  var doneButton = $('crop-done-button');
+  doneButton.disabled = true;
 
-    var previewURL;
-    var previewData = pickedFile.metadata.preview;
+  // We need all of these for cropping the photo:
+  //  - ImageEditor to display the crop overlay.
+  //  - frame_scripts because it has gesture_detector in it.
+  //  - crop_resize_rotate.js scripts for cropResizeRotate().
+  loader.load(['js/frame_scripts.js',
+               'shared/js/media/crop_resize_rotate.js',
+               'js/ImageEditor.js'], gotScripts);
+
+  // When the scripts we need are loaded, load the picked file we need
+  function gotScripts() {
+    photodb.getFile(pickedFileInfo.name, gotFile);
+  }
+
+  // This is called with the file that needs to be cropped
+  function gotFile(pickedFile) {
+    var previewData = pickedFileInfo.metadata.preview;
     if (!previewData) {
       // If there is no preview at all, this is a small image and
       // it is its own preview. Just crop with the full-size image
@@ -821,7 +840,7 @@ function cropPickedImage(fileinfo) {
       var storage = navigator.getDeviceStorage('pictures');
       var getreq = storage.get(previewData.filename);
       getreq.onsuccess = function() {
-        startCrop(URL.createObjectURL(getreq.result));
+        startCrop(getreq.result);
       };
       // If we fail to get the preview file, just use the full-size image
       getreq.onerror = function() {
@@ -831,25 +850,74 @@ function cropPickedImage(fileinfo) {
     else {
       // Otherwise, use the internal EXIF preview.
       // This should be the normal case.
-      startCrop(URL.createObjectURL(file.slice(previewData.start,
-                                               previewData.end,
-                                               'image/jpeg')));
+      startCrop(pickedFile.slice(previewData.start,
+                                 previewData.end,
+                                 'image/jpeg'));
     }
 
-    function startCrop(previewURL) {
-      cropEditor = new ImageEditor(cropURL, $('crop-frame'), {},
-                                   cropEditorReady, previewURL);
+    function startCrop(previewBlob) {
+      // Before the user can crop the image we have to create a
+      // preview of the image at the correct size and orientation
+      // if we do not already have one.
+      var blob, metadata, outputSize, useSpinner;
+
+      if (previewBlob) {
+        // If there is a preview, use it at full size. If we're using
+        // a preview we need to pass the size of the preview, but the
+        // EXIF orientation data from the fullsize image.
+        blob = previewBlob;
+        metadata = {
+          width: previewData.width,
+          height: previewData.height,
+          rotation: pickedFileInfo.metadata.rotation,
+          mirrored: pickedFileInfo.metadata.mirrored
+        };
+        outputSize = null;
+        useSpinner = false;
+      }
+      else {
+        // If there is no preview, use the picked file, but specify a maximum
+        // size so we don't decode at a size larger than needed.
+        blob = pickedFile;
+        metadata = pickedFileInfo.metadata;
+        var windowSize = window.innerWidth * window.innerHeight *
+          window.devicePixelRatio * window.devicePixelRatio;
+        outputSize = Math.min(windowSize,
+                              CONFIG_MAX_PICK_PIXEL_SIZE ||
+                              CONFIG_MAX_IMAGE_PIXEL_SIZE);
+        useSpinner = metadata.width * metadata.height > outputSize;
+      }
+
+      // Make sure the image is rotated correctly so that it appears
+      // right side up in the crop UI. Note that we only display a spinner
+      // here if we have to downsample a large image.
+      if (useSpinner) {
+        showSpinner();
+      }
+      cropResizeRotate(blob, null, outputSize, null, metadata, gotRotatedBlob);
+    }
+
+    function gotRotatedBlob(error, rotatedBlob) {
+      hideSpinner();
+      if (error) {
+        console.error('Error while rotating image:', error);
+        rotatedBlob = pickedFile;
+      }
+      cropEditor = new ImageEditor(rotatedBlob, $('crop-frame'), {},
+                                   cropEditorReady, true);
     }
 
     function cropEditorReady() {
       // Enable the done button so that users can finish picking image.
-      $('crop-done-button').disabled = false;
+      doneButton.onclick = cropAndEndPick;
+      doneButton.disabled = false;
+
       // If the initiating app doesn't want to allow the user to crop
       // the image, we don't display the crop overlay. But we still use
       // this image editor to preview the image.
       if (nocrop) {
         // Set a fake crop region even though we won't display it
-        // so that getCroppedRegionBlob() works.
+        // so that hasBeenCropped() works.
         cropEditor.cropRegion.left = cropEditor.cropRegion.top = 0;
         cropEditor.cropRegion.right = cropEditor.dest.w;
         cropEditor.cropRegion.bottom = cropEditor.dest.h;
@@ -862,44 +930,104 @@ function cropPickedImage(fileinfo) {
       else
         cropEditor.setCropAspectRatio(); // free form cropping
     }
-  });
-}
 
-function cropAndEndPick() {
-  if (Array.isArray(pickType)) {
-    if (pickType.length === 0 ||
-        pickType.indexOf(pickedFile.type) !== -1 ||
-        pickType.indexOf('image/*') !== -1) {
-      pickType = pickedFile.type;
-    }
-    else if (pickType.indexOf('image/png') !== -1) {
-      pickType = 'image/png';
-    }
-    else {
-      pickType = 'image/jpeg';
-    }
-  }
-  else if (pickType === 'image/*') {
-    pickType = pickedFile.type;
-  }
+    function cropAndEndPick() {
+      // First, figure out what kind of image to return to the requesting app.
+      // If the activity request specifically included 'image/jpeg' or
+      // 'image/png', then we'll use that type. Otherwise, if a generic
+      // 'image/*' was requested (or if an unsupported type was requested)
+      // then we use null as the type. This value is passed to
+      // cropResizeRotate() and will leave the image unchanged if possible
+      // or will use jpeg if changes are needed.
+      if (Array.isArray(pickType)) {
+        if (pickType.indexOf(pickedFileInfo.type) !== -1) {
+          pickType = pickedFileInfo.type;
+        }
+        else if (pickType.indexOf('image/jpeg') !== -1) {
+          pickType = 'image/jpeg';
+        }
+        else if (pickType.indexOf('image/png') !== -1) {
+          pickType = 'image/png';
+        }
+        else {
+          pickType = null; // Return unchanged or convert to JPEG
+        }
+      }
+      else if (pickType === 'image/*') {
+        pickType = null;   // Return unchanged or convert to JPEG
+      }
 
-  // If we're not changing the file type or resizing the image and if
-  // we're not cropping, or if the user did not crop, then we can just
-  // use the file as it is.
-  if (pickType === pickedFile.type &&
-      !pickWidth && !pickHeight &&
-      (pendingPick.source.data.nocrop || !cropEditor.hasBeenCropped())) {
-    photodb.getFile(pickedFile.name, endPick);
-  }
-  else {
-    cropEditor.getCroppedRegionBlob(pickType, pickWidth, pickHeight,
-                                    endPick);
+      if (pickType && pickType !== 'image/jpeg' && pickType !== 'image/png')
+        pickType = null;   // Return unchanged or convert to JPEG
+
+      // In order to determine the cropRegion and outputSize arguments to
+      // cropResizeRotate() below we need to know the actual image size.
+      // If the image has EXIF rotation, we need to take that into account.
+      var fullImageWidth, fullImageHeight;
+      var rotation = pickedFileInfo.metadata.rotation || 0;
+      if (rotation === 90 || rotation === 270) {
+        fullImageWidth = pickedFileInfo.metadata.height;
+        fullImageHeight = pickedFileInfo.metadata.width;
+      }
+      else {
+        fullImageWidth = pickedFileInfo.metadata.width;
+        fullImageHeight = pickedFileInfo.metadata.height;
+      }
+
+      var cropRegion;
+
+      if (pendingPick.source.data.nocrop || !cropEditor.hasBeenCropped()) {
+        cropRegion = null;
+      }
+      else {
+        // Get the user's crop region from the crop editor
+        cropRegion = cropEditor.getCropRegion();
+
+        // Scale to match the actual image size
+        cropRegion.left = Math.round(cropRegion.left * fullImageWidth);
+        cropRegion.top = Math.round(cropRegion.top * fullImageHeight);
+        cropRegion.width = Math.round(cropRegion.width * fullImageWidth);
+        cropRegion.height = Math.round(cropRegion.height * fullImageHeight);
+      }
+
+      var outputSize;
+      if (pickWidth && pickHeight) {
+        outputSize = { width: pickWidth, height: pickHeight };
+      }
+      else if (CONFIG_MAX_PICK_PIXEL_SIZE) {
+        outputSize = CONFIG_MAX_PICK_PIXEL_SIZE;
+      }
+      else {
+        outputSize = null;
+      }
+
+      // show spinner if cropResizeRotate will downsample image
+      if (cropRegion !== null ||
+          outputSize !== null ||
+          (pickedFileInfo.metadata !== undefined &&
+           pickedFileInfo.metadata.rotation !== undefined &&
+           pickedFileInfo.metadata.rotation) ||
+          (pickedFileInfo.metadata.mirrored !== undefined &&
+           pickedFileInfo.metadata.mirrored)) {
+        showSpinner();
+      }
+      cropResizeRotate(pickedFile, cropRegion, outputSize, pickType,
+                       pickedFileInfo.metadata,
+                       function(error, blob) {
+                         hideSpinner();
+                         if (error) {
+                           console.error('while resizing image: ' + error);
+                           blob = pickedFile;
+                         }
+                         endPick(blob);
+                       });
+    }
   }
 }
 
 function endPick(blob) {
   pendingPick.postResult({
-    type: pickType,
+    type: blob.type,
     blob: blob
   });
   cleanupPick();
@@ -911,10 +1039,6 @@ function cancelPick() {
 }
 
 function cleanupCrop() {
-  if (cropURL) {
-    URL.revokeObjectURL(cropURL);
-    cropURL = null;
-  }
   if (cropEditor) {
     cropEditor.destroy();
     cropEditor = null;
@@ -924,7 +1048,7 @@ function cleanupCrop() {
 function cleanupPick() {
   cleanupCrop();
   pendingPick = null;
-  pickedFile = null;
+  pickedFileInfo = null;
   setView(LAYOUT_MODE.list);
 }
 
@@ -1119,6 +1243,10 @@ function deleteSelectedItems() {
 }
 
 // Clicking on the share button in select mode shares all selected images
+// Note: when sharing multiple items, we make no attempt to handle EXIF
+// orientation in photos. So on devices (like Tarako) that rely on EXIF
+// orientation in the camera app, we may be leaking images that will not
+// work well on the web.
 function shareSelectedItems() {
   var blobs = selectedFileNames.map(function(name) {
     return selectedFileNamesToBlobs[name];
@@ -1126,7 +1254,11 @@ function shareSelectedItems() {
   share(blobs);
 }
 
-function share(blobs) {
+// Initiate a share activity for all of the Blobs in the blobs array.
+// Usually these blobs are File objects, with names. But when sharing a
+// single image, we sometimes pass an in-memory blob to handle EXIF orientation
+// issues. In that case, use the second name argument for the unnamed blob
+function share(blobs, blobName) {
   if (blobs.length === 0)
     return;
 
@@ -1134,13 +1266,18 @@ function share(blobs) {
 
   // Get the file name (minus path) and type of each blob
   blobs.forEach(function(blob) {
-    // Discard the path, we just want the base name
     var name = blob.name;
+
+    // Special case for blobs that are not File objects
+    if (!name && blobs.length === 1)
+      name = blobName;
+
     // We try to fix Bug 814323 by using
     // current workaround of bluetooth transfer
     // so we will pass both filenames and fullpaths
     // The fullpaths can be removed after Bug 811615 is fixed
     fullpaths.push(name);
+    // Discard the path, we just want the base name
     name = name.substring(name.lastIndexOf('/') + 1);
     names.push(name);
 
@@ -1229,7 +1366,6 @@ function showOverlay(id) {
 // the user from interacting with the UI.
 $('overlay').addEventListener('click', function dummyHandler() {});
 
-
 // Change the thumbnails quality while scrolling using the scrollstart/scrollend
 // events from shared/js/scroll_detector.js.
 window.addEventListener('scrollstart', function onScrollStart(e) {
@@ -1239,3 +1375,11 @@ window.addEventListener('scrollstart', function onScrollStart(e) {
 window.addEventListener('scrollend', function onScrollEnd(e) {
   thumbnails.classList.remove('scrolling');
 });
+
+function showSpinner() {
+  $('spinner').classList.remove('hidden');
+}
+
+function hideSpinner() {
+  $('spinner').classList.add('hidden');
+}
