@@ -324,7 +324,7 @@ var SuggestionBar = {
       var title = self.overlay.querySelector('header');
       LazyL10n.get(function localized(_) {
         title.textContent = _('suggestionMatches', {
-          n: self.countTag.textContent,
+          n: +self.countTag.textContent,
           matchNumber: self._phoneNumber
         });
       });

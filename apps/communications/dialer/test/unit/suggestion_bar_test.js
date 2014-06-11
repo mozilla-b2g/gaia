@@ -30,6 +30,8 @@ suite('suggestion Bar', function() {
 
   mocksHelperForSuggestionBar.attachTestHelpers();
 
+  var mozL10nGet;
+
   suiteSetup(function() {
     window.fb = window.fb || {};
     realFbContacts = window.fb.contacts;
@@ -157,15 +159,17 @@ suite('suggestion Bar', function() {
     subject.overlayCancel =
         document.getElementById('suggestion-overlay-cancel');
     subject.init();
+
+    mozL10nGet = this.sinon.spy(function(id) {
+      switch(id) {
+        case'my-custom-type':
+          return undefined;
+        default:
+          return id;
+      }
+    });
     this.sinon.stub(MockLazyL10n, 'get', function(callback) {
-      callback(function(prop) {
-        switch(prop) {
-          case'my-custom-type':
-            return undefined;
-          default:
-            return prop;
-        }
-      });
+      callback(mozL10nGet);
     });
   });
 
@@ -351,6 +355,7 @@ suite('suggestion Bar', function() {
         MockContacts.mResult = mockResult2;
         subject.update('1111');
 
+        mozL10nGet.reset();
         this.sinon.spy(LazyLoader, 'load');
 
         subject.showOverlay();
@@ -377,6 +382,14 @@ suite('suggestion Bar', function() {
 
       test('should have 2 suggestions', function() {
         assert.equal(suggestions.length, 2);
+      });
+
+      test('should call mozL10n.get with correct arguments ', function() {
+        // showOverlay() calls once and _fillContacts() calls two more times
+        assert.equal(mozL10nGet.callCount, 3);
+        assert.deepEqual(mozL10nGet.getCall(0).args, [
+          'suggestionMatches', { n: 2, matchNumber: '1111' }
+        ]);
       });
 
       test('each match is displayed in the proper order', function() {
