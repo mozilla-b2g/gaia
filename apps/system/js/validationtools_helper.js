@@ -6,10 +6,11 @@
 /**
 * Validation Tools Helper
 *
-* This file is a temporary solution for validationTools app to hack several special events such as
-* hardware-button etc.. The current architecture of gecko only supports reporting those events to
-* system module and no loger dispatching to other gaia apps. Therefore, we have to establish an
-* customized channel base on IAC so as to satisfy the specific function of validationTools.
+* This file is a temporary solution for validationTools app to hack several
+* special events such as hardware-button etc.. The current architecture of
+* gecko only supports reporting those events to system module and no loger
+* dispatching to other gaia apps. Therefore, we should establish an customized
+* channel base on IAC to satisfy the specific function of validationTools.
 *
 */
 
@@ -32,7 +33,7 @@
 
   // Note:to place this file before other system modules so as to ensure
   // we can prevent those modules from receiving and responding the event.
-  var ValidationToolsHelper = function(){
+  var ValidationToolsHelper = function() {
 
     // true: port existes and validationtools app is alive
     // false: validationtools app is dead(no matter what status the port is)
@@ -49,8 +50,8 @@
   ValidationToolsHelper.prototype = {
     debug: function vth_debug() {
       if (DEBUG) {
-        console.log('[ValidationToolsHelper]' + '[' + Date.now() + ']'
-          + Array.prototype.slice.call(arguments).concat().join());
+        console.log('[ValidationToolsHelper]' + '[' + Date.now() + ']' +
+          Array.prototype.slice.call(arguments).concat().join());
       }
     },
 
@@ -105,9 +106,9 @@
         this.detachEvent();
       }
 
-      this.debug('Exit handleIACMessage:' + JSON.stringify(message)
-        + ', _isPortEnable=' + this._isPortEnable
-        + ', _appIdentifier=' + this._appIdentifier);
+      this.debug('Exit handleIACMessage:' + JSON.stringify(message) +
+        ', _isPortEnable=' + this._isPortEnable +
+        ', _appIdentifier=' + this._appIdentifier);
     },
 
     handleHSMessage: function vth_handleHSMessage(message) {
@@ -182,7 +183,8 @@
       }
     },
 
-    _sendMessage: function vth_sendMessage(message, successCallback, errorCallback) {
+    _sendMessage: function vth_sendMessage(message,
+      successCallback, errorCallback) {
       var port;
 
       try {
@@ -195,8 +197,8 @@
         }
       } catch (e) {
         if (typeof errorCallback === 'function') {
-          this.debug('[ notifyError] errorInfo:' + JSON.stringify(e)
-            + '\n message:' + JSON.stringify(message));
+          this.debug('[ notifyError] errorInfo:' + JSON.stringify(e) +
+            '\n message:' + JSON.stringify(message));
           errorCallback(e.message, message);
         }
       }
@@ -210,8 +212,8 @@
     },
 
     notifyError: function vth_notifyError(errorInfo, message) {
-      this.debug('[notifyError] errorInfo:' + JSON.stringify(errorInfo)
-        + '\n message:' + JSON.stringify(message));
+      this.debug('[notifyError] errorInfo:' + JSON.stringify(errorInfo) +
+        '\n message:' + JSON.stringify(message));
       return true;
     }
   };
