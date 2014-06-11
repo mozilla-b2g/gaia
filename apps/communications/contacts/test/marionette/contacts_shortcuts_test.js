@@ -30,7 +30,8 @@ marionette('Contacts shortcuts > touch', function() {
     scrollbar = client.helper.waitForElement(selectors.scrollbar);
   });
 
-  suite('touch on shortcuts', function() {
+  // Disabled bug 1023908
+  suite.skip('touch on shortcuts', function() {
     test('press/release on scrollbar should show/hide shortcut', function() {
       var action = actions.press(scrollbar, 10, 200).perform();
       overlay = client.helper.waitForElement(selectors.overlay);
