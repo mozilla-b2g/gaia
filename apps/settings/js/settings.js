@@ -207,7 +207,6 @@ var Settings = {
         if (!sectionElement || sectionElement.tagName !== 'SECTION') {
           var msg = 'Trying to open an non-existent section: ' + section;
           console.warn(msg);
-          activityRequest.postError(msg);
           return;
         } else if (section === 'root') {
           var filterBy = activityRequest.source.data.filterBy;
