@@ -8,7 +8,9 @@ function startup(data, reason) {
   const Cc = Components.classes;
   const Ci = Components.interfaces;
   const Cu = Components.utils;
+  const Cm = Components.manager.QueryInterface(Ci.nsIComponentRegistrar);
 
+  Cu.import('resource://gre/modules/XPCOMUtils.jsm');
   Cu.import('resource://gre/modules/Services.jsm');
   try {
     // Gecko < 21
@@ -455,6 +457,51 @@ function startup(data, reason) {
     }
   };
 
+  function registerAppProtocol() {
+    let classID = Components.ID('{e3bace70-f074-11e3-ac10-0800200c9a66}');
+    let contract = '@mozilla.org/network/protocol;1?name=app';
+    let instance = null;
+
+    function AppProtocol() {}
+
+    AppProtocol.prototype = {
+      scheme: 'app',
+      classID: classID,
+      QueryInterface: XPCOMUtils.generateQI([Ci.nsIProtocolHandler]),
+      newURI: function(aSpec, aOriginCharset, aBaseURI)
+      {
+        let uri = Cc["@mozilla.org/network/simple-uri;1"].createInstance(Ci.nsIURI);
+        uri.spec = aSpec;
+        return uri;
+      },
+      newChannel: function(aURI)
+      {
+        aURI.scheme = 'http';
+        let ios = Cc["@mozilla.org/network/io-service;1"].getService(Ci.nsIIOService);
+        let uri = ios.newURI(aURI.spec, null, null);
+        let channel = ios.newChannelFromURI(uri).QueryInterface(Ci.nsIHttpChannel);
+        channel.redirectTo(uri);
+        return channel;
+      },
+    };
+
+    let newFactory = {
+      createInstance: function(outer, iid) {
+        if (outer)
+         throw Components.results.NS_ERROR_NO_AGGREGATION;
+        if (instance === null)
+          instance = new AppProtocol();
+        return instance;
+      },
+      lockFactory: function(aLock) {
+         throw Components.results.NS_ERROR_NOT_IMPLEMENTED;
+      },
+      QueryInterface: XPCOMUtils.generateQI([Ci.nsIFactory])
+    };
+    Cm.registerFactory(classID, '', contract, newFactory);
+  }
+
+  registerAppProtocol();
   startupHttpd(GAIA_DIR, GAIA_PORT);
 }
 
