@@ -190,6 +190,23 @@ suite('attachment_test.js', function() {
     });
   });
 
+  test('encodes thumbnail URL', function(done) {
+    this.sinon.spy(window, 'encodeURI');
+    var attachment = new Attachment(testImageBlob, {
+      name: 'Image attachment'
+    });
+    (new Promise(attachment.getThumbnail.bind(attachment))).
+      then(function(thumbnail) {
+        attachment.render(function() {
+          sinon.assert.calledWith(
+            encodeURI,
+            thumbnail.data
+          );
+          done();
+        });
+      }).catch(done);
+  });
+
   suite('preparing thumbnail for various image sizes', function() {
     // Taken from attachment.js
     var MIN_THUMBNAIL_DIMENSION = 80;
