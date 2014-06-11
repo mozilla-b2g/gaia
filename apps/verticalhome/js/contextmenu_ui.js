@@ -17,23 +17,22 @@
 
   ContextMenuUI.prototype = {
     show: function(e) {
-      var idx = this.grid.getNearestItem(
+      // calculate the offset of the click this will account for anything above
+      // the gaia-grid
+      var scrollTop = this.grid.parentNode.scrollTop;
+      var yOffset = scrollTop + this.grid.getBoundingClientRect().y;
+
+      this.closestGridIcon = this.grid.getNearestItem(
         e.pageX,
-        e.pageY + this.grid.parentNode.scrollTop - this.grid.offsetTop
+        e.pageY - yOffset + scrollTop
       );
-
-      console.log(e.pageX, e.pageY, this.grid.parentNode.scrollTop);
-
-      var item = this.grid.getItems()[idx];
-      if (item) {
-        console.log(idx, item.detail.type, item.name, '<< current pos');
-      }
 
       this.dialog.addEventListener('gaiamenu-cancel', this.handleCancel);
       this.dialog.removeAttribute('hidden');
       this.collectionOption.addEventListener('click', this);
       this.wallpaperOption.addEventListener('click', this);
     },
+
 
     hide: function() {
       this.dialog.removeEventListener('gaiamenu-cancel', this.handleCancel);
@@ -69,7 +68,8 @@
             name: 'create-collection',
             data: {
               type: 'folder',
-              maxIconSize: maxIconSize
+              maxIconSize: maxIconSize,
+              position: this.closestGridIcon
             }
           });
 

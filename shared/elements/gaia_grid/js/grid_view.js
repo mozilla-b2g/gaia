@@ -7,24 +7,6 @@
 
 (function(exports) {
 
-  function addMarker(to, x, y, remove) {
-    // HACK CODE
-    var element = document.createElement('div');
-    element.style.border = '1px solid green';
-    element.style.background = 'green';
-    element.style.width = element.style.height = '10px';
-    element.style.position = 'absolute';
-    element.style.transform = 'translate(' + x + 'px, ' + y + 'px)';
-    element.classList.add('icon');
-    to.appendChild(element);
-
-    if (remove) {
-      setTimeout(function() {
-        element.parentNode.removeChild(element);
-      }, 10000);
-    }
-  }
-
   const PREVENT_CLICK_TIMEOUT = 300;
 
   /**
@@ -214,7 +196,6 @@
      * @param {Number} y relative to the screen
      */
     getNearestItem: function(x, y) {
-      addMarker(this.element, x, y, true);
       // Find the icon with the closest X/Y position of the move,
       // XXX: this could be more efficient with a binary search.
       var leastDistance;
@@ -322,7 +303,6 @@
 
         if (idx >= from) {
           item.render([x, y], idx);
-          addMarker(this.element, item.x, item.y, false);
         }
 
         // Increment the x-step by the sizing of the item.
