@@ -11,18 +11,16 @@ suite('controllers/camera', function() {
       'app',
       'controllers/camera',
       'lib/camera/camera',
-      'lib/activity',
       'views/viewfinder',
       'lib/settings',
       'lib/setting',
       'lib/geo-location'
     ], function(
-      App, CameraController, Camera, Activity,
-      ViewfinderView, Settings, Setting, GeoLocation) {
+      App, CameraController, Camera, ViewfinderView,
+      Settings, Setting, GeoLocation) {
       self.CameraController = CameraController.CameraController;
       self.ViewfinderView = ViewfinderView;
       self.GeoLocation = GeoLocation;
-      self.Activity = Activity;
       self.Settings = Settings;
       self.Setting = Setting;
       self.Camera = Camera;
@@ -38,7 +36,7 @@ suite('controllers/camera', function() {
     this.app.geolocation = sinon.createStubInstance(this.GeoLocation);
 
     // Activity
-    this.app.activity = new this.Activity();
+    this.app.activity = {};
 
     // Views
     this.app.views = {

@@ -12,19 +12,17 @@ suite('controllers/viewfinder', function() {
       'views/viewfinder',
       'views/focus',
       'views/faces',
-      'lib/activity',
       'lib/settings',
       'lib/setting'
     ], function(
       App, Camera, ViewfinderController, ViewfinderView,
-      FocusRingView, FacesView, Activity, Settings, Setting) {
+      FocusRingView, FacesView, Settings, Setting) {
       self.ViewfinderController = ViewfinderController.ViewfinderController;
       self.ViewfinderView = ViewfinderView;
       self.FocusRingView = FocusRingView;
       self.FacesView = FacesView;
       self.Settings = Settings;
       self.Setting = Setting;
-      self.Activity = Activity;
       self.Camera = Camera;
       self.App = App;
       done();
@@ -34,7 +32,7 @@ suite('controllers/viewfinder', function() {
   setup(function() {
     this.app = sinon.createStubInstance(this.App);
     this.app.camera = sinon.createStubInstance(this.Camera);
-    this.app.activity = sinon.createStubInstance(this.Activity);
+    this.app.activity = {};
     this.app.settings = sinon.createStubInstance(this.Settings);
     this.app.settings.grid = sinon.createStubInstance(this.Setting);
     this.app.views = {

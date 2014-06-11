@@ -11,14 +11,12 @@ suite('app', function() {
       'lib/camera/camera',
       'vendor/view',
       'lib/geo-location',
-      'lib/activity',
       'lib/setting',
-    ], function(App, Camera, View, GeoLocation, Activity, Setting) {
+    ], function(App, Camera, View, GeoLocation, Setting) {
       self.App = App;
       self.View = View;
       self.Camera = Camera;
       self.Geolocation = GeoLocation;
-      self.Activity = Activity;
       self.Setting = Setting;
       done();
     });
@@ -63,7 +61,7 @@ suite('app', function() {
       win: mocks.win(),
       el: document.createElement('div'),
       geolocation: sinon.createStubInstance(this.Geolocation),
-      activity: new this.Activity(),
+      activity: {},
       camera: sinon.createStubInstance(this.Camera),
       require: sinon.stub(),
       settings: {
@@ -112,9 +110,6 @@ suite('app', function() {
     this.sandbox.stub(options.viewfinder);
     this.sandbox.stub(options.focusRing);
     this.sandbox.stub(options.hud);
-
-    // More complex stubs
-    options.activity.check.callsArg(0);
 
     // Sometimes we have to spy on the prototype,
     // this is because methods get bound and passed

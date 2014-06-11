@@ -404,7 +404,7 @@ Camera.prototype.configure = function() {
   }
 
   function onError() {
-    console.log('Error configuring camera');
+    debug('Error configuring camera');
     self.configured = true;
     self.ready();
   }
