@@ -153,7 +153,7 @@ marionette('Notification.get():', function() {
       }, function(error) {
         marionetteScriptFinished('promise.then error: ' + error);
       });
-    }, [emailTitle, sharedTag]);
+    }, [systemTitle, sharedTag]);
     assert.equal(error, false, 'system domain error: ' + error);
     done();
   });
