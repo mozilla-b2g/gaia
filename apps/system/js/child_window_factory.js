@@ -43,12 +43,8 @@
       var caught = false;
       switch (evt.detail.features) {
         case 'dialog':
-          // Only open popupWindow by app/http/https prefix
-          if (/^(app|http|https):\/\//i.test(evt.detail.url)) {
-            caught = this.createPopupWindow(evt);
-          } else {
-            caught = this.createChildWindow(evt);
-          }
+          // Open PopupWindow
+          caught = this.createPopupWindow(evt);
           break;
         case 'attention':
           // Open attentionWindow
