@@ -18,6 +18,16 @@ env:
   - CI_ACTION=marionette_js PART=1 NBPARTS=3
   - CI_ACTION=marionette_js PART=2 NBPARTS=3
   - CI_ACTION=marionette_js PART=3 NBPARTS=3
+  - CI_ACTION=marionette_js_stable_check TEST_JOB=1
+  - CI_ACTION=marionette_js_stable_check TEST_JOB=2
+  - CI_ACTION=marionette_js_stable_check TEST_JOB=3
+  - CI_ACTION=marionette_js_stable_check TEST_JOB=4
+  - CI_ACTION=marionette_js_stable_check TEST_JOB=5
+  - CI_ACTION=marionette_js_stable_check TEST_JOB=6
+  - CI_ACTION=marionette_js_stable_check TEST_JOB=7
+  - CI_ACTION=marionette_js_stable_check TEST_JOB=8
+  - CI_ACTION=marionette_js_stable_check TEST_JOB=9
+  - CI_ACTION=marionette_js_stable_check TEST_JOB=10
   - CI_ACTION=gaia_ui_tests
   - CI_ACTION=build_tests
   global:
