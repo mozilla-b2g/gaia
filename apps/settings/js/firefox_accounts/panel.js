@@ -149,7 +149,7 @@ var FxaPanel = (function fxa_panel() {
       if (!email) {
         return onFxAccountStateChange(accts);
       }
-      fxaHelper.resendVerificationEmail(email, _onResend.call(null, email),
+      fxaHelper.resendVerificationEmail(email, _onResend.bind(null, email),
                                         onFxAccountError);
     }, onFxAccountError);
   }
