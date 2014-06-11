@@ -1,6 +1,7 @@
 /* global MockMatcher, MockMozContacts, MocksHelper,
 mozContact, VCFReader, require, assert, b64Photo,
-suite, setup, suiteSetup, suiteTeardown, test, MockRest */
+suite, setup, suiteSetup, suiteTeardown, test, MockRest,
+MockAdaptAndMerge */
 
 'use strict';
 
@@ -10,6 +11,8 @@ require('/shared/test/unit/mocks/mock_moz_contact.js');
 require('/shared/js/contacts/import/utilities/vcard_parser.js');
 
 requireApp('communications/contacts/test/unit/mock_contacts_match.js');
+requireApp('communications/contacts/test/unit/' +
+ 'mock_contacts_adapt_and_merge.js');
 requireApp('communications/contacts/test/unit/mock_mozContacts.js');
 requireApp('communications/contacts/test/unit/mock_utils.js');
 requireApp('/shared/test/unit/mocks/mock_moz_contact.js');
@@ -71,7 +74,7 @@ suite('vCard parsing settings', function() {
 
   mocksHelperForVCardParsing.attachTestHelpers();
 
-  var realMozContacts, realMatcher, realUtils, realRest;
+  var realMozContacts, realMatcher, realUtils, realRest, realMerge;
   suite('SD Card import', function() {
     setup(function() {
       navigator.mozContacts.contacts = [];
@@ -98,6 +101,9 @@ suite('vCard parsing settings', function() {
       realMatcher = window.contacts.Matcher;
       window.contacts.Matcher = MockMatcher;
 
+      realMerge = window.contacts.adaptAndMerge;
+      window.contacts.adaptAndMerge = MockAdaptAndMerge;
+
       realUtils = window.utils;
       window.utils = {
         'misc': {
@@ -119,6 +125,7 @@ suite('vCard parsing settings', function() {
     suiteTeardown(function() {
       navigator.mozContacts = realMozContacts;
       window.contacts.Matcher = realMatcher;
+      window.contacts.adaptAndMerge = realMerge;
       window.utils = realUtils;
       window.Rest = realRest;
     });
@@ -595,6 +602,34 @@ suite('vCard parsing settings', function() {
               done();
             });
           };
+        });
+      });
+    });
+
+    test('- vcard parser must return id of matched contact', function(done) {
+      // Force the matcher to find a contact with a known id
+      var matchStub = sinon.stub(window.contacts.Matcher, 'match',
+       function(contact, type, cbs) {
+        cbs.onmatch([]);
+      });
+      var mergeStub = sinon.stub(window.contacts, 'adaptAndMerge',
+       function (contact, matches, cbs) {
+        cbs.success({id: 1});
+      });
+      initializeVCFReader('vcard_21.vcf', function(reader) {
+        reader.onread = stub();
+        reader.onimported = stub();
+        reader.onerror = stub();
+        reader.process(function import_finish(result) {
+          sinon.assert.calledOnce(matchStub);
+          sinon.assert.calledOnce(mergeStub);
+          assert.isNotNull(result);
+          assert.ok(Array.isArray(result));
+          assert.equal(result.length, 1);
+          assert.equal(result[0].id, 1);
+          matchStub.restore();
+          mergeStub.restore();
+          done();
         });
       });
     });

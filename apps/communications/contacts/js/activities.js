@@ -84,16 +84,18 @@ var ActivityHandler = {
         '/shared/js/contacts/import/utilities/import_from_vcard.js',
         '/shared/js/contacts/import/utilities/overlay.js'
       ], function loaded() {
-        utils.importFromVcard(activity.source.data.blob,
-          function imported(numberOfContacts, id) {
-            if (numberOfContacts === 1) {
-              activity.source.data.params = {id: id};
-              self.launch_activity(activity, 'view-contact-details');
-            } else {
-              self.launch_activity(activity, 'view-contact-list');
+        Contacts.loadFacebook(function() {
+          utils.importFromVcard(activity.source.data.blob,
+            function imported(numberOfContacts, id) {
+              if (numberOfContacts === 1) {
+                activity.source.data.params = {id: id};
+                self.launch_activity(activity, 'view-contact-details');
+              } else {
+                self.launch_activity(activity, 'view-contact-list');
+              }
             }
-          }
-        );
+          );
+        });
       });
     } else {
       this._currentActivity.postError('wrong parameters');
