@@ -15,25 +15,19 @@ suite('GridItem', function() {
     document.body.appendChild(this.container);
   });
 
-  test('displayFromImage sets the background size', function(done) {
-    var img = document.createElement('img');
-    img.src = '/style/icons/Blank.png';
-    img.onload = displayImage();
+  test('renderIconFromSrc sets the background size', function(done) {
+    var subject = new GridItem();
+    subject.element = document.createElement('div');
 
-    function displayImage() {
-      var subject = new GridItem();
-      subject.element = document.createElement('div');
+    var original  = subject._displayDecoratedIcon;
+    subject._displayDecoratedIcon = function(blob) {
+      original.call(subject, blob);
+      var backgroundSize = parseInt(this.element.style.backgroundSize, 10);
+      assert.ok(backgroundSize > 0);
+      done();
+    };
 
-      var originalRenderIconFromBlob = subject.renderIconFromBlob;
-      subject.renderIconFromBlob = function(blob) {
-        originalRenderIconFromBlob.call(subject, blob);
-        var backgroundSize = parseInt(this.element.style.backgroundSize, 10);
-        assert.ok(backgroundSize > 0);
-        done();
-      };
-
-      subject.displayFromImage(img);
-    }
+    subject.renderIconFromSrc('/style/icons/Blank.png');
   });
 
 });
