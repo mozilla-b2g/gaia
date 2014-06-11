@@ -10,7 +10,6 @@
     "apps/email/test/marionette/notification_set_interval_test.js",
     "apps/email/test/marionette/reply_imap_email_test.js",
     "apps/email/test/marionette/send_imap_email_test.js",
-    "apps/homescreen/test/marionette/install_bookmark_test.js",
-    "apps/system/test/marionette/notification_get_test.js"
+    "apps/homescreen/test/marionette/install_bookmark_test.js"
   ]
 }
