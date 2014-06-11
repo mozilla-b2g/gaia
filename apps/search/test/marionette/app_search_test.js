@@ -13,25 +13,25 @@ marionette('Search - App search', function() {
     search = new Search(client);
     rocketbar = new Rocketbar(client);
     system.waitForStartup();
+    search.removeGeolocationPermission();
   });
 
-  // Skip test since it fails to handle the geolocation permission dialog
-  // https://bugzilla.mozilla.org/show_bug.cgi?id=1018925
-  test.skip('Search apps from Rocketbar', function() {
+  test('Search apps from Rocketbar', function() {
     rocketbar.focus();
     rocketbar.enterText('calendar');
     search.goToResults();
-    search.checkResult('firstApp', 'Calendar');
+    var calendarIdentifier = 'app://calendar.gaiamobile.org/manifest.webapp';
+    search.checkAppResult(calendarIdentifier, 'Calendar');
     search.goToApp('app://calendar.gaiamobile.org');
   });
 
-  // Skip test since it fails to handle the geolocation permission dialog
-  // https://bugzilla.mozilla.org/show_bug.cgi?id=1018925
-  test.skip('Search for app with entry point', function() {
+  test('Search for app with entry point', function() {
     rocketbar.focus();
     rocketbar.enterText('Phone');
     search.goToResults();
-    search.checkResult('firstApp', 'Phone');
+    var phoneIdentifier =
+      'app://communications.gaiamobile.org/manifest.webapp-dialer';
+    search.checkAppResult(phoneIdentifier, 'Phone');
     search.goToApp('app://communications.gaiamobile.org', 'dialer');
   });
 
