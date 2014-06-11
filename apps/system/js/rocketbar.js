@@ -741,6 +741,11 @@
      */
     handleSubmit: function(e) {
       e.preventDefault();
+
+      if (this.results.classList.contains('hidden')) {
+        this.showResults();
+      }
+
       this._port.postMessage({
         action: 'submit',
         input: this.input.value

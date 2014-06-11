@@ -40,7 +40,8 @@ Rocketbar.prototype = {
     title: '#rocketbar-title',
     input: '#rocketbar-input',
     cancel: '#rocketbar-cancel',
-    backdrop: '#rocketbar-backdrop'
+    backdrop: '#rocketbar-backdrop',
+    results: '#rocketbar-results'
   },
 
   /**
@@ -116,6 +117,10 @@ Rocketbar.prototype = {
 
   get rocketbar() {
     return this.client.findElement(this.selectors.rocketbar);
+  },
+
+  get results() {
+    return this.client.findElement(this.selectors.results);
   },
 
   get screen() {

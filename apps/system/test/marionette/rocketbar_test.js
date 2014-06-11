@@ -52,6 +52,15 @@ marionette('Rocketbar', function() {
     });
   });
 
+  test('show results on submit', function() {
+    rocketbar.waitForLoad();
+    rocketbar.focus();
+    rocketbar.enterText('\uE006');
+    client.waitFor(function() {
+      return rocketbar.results.displayed();
+    });
+  });
+
   // Skip test as it conflicts with master behaviour
   // https://bugzilla.mozilla.org/show_bug.cgi?id=1009855
   test.skip('Navigate to URL', function() {
