@@ -184,6 +184,27 @@
     },
 
     /**
+     * @param {Object} object a single object to update.
+     * @param {Function} callback fires when transaction finishes.
+     */
+    saveItem: function(object, callback) {
+      // intentional use of == meaning null or undefined.
+      if (object.index == null) {
+        console.error('Attempting to save object without `index`');
+        return;
+      }
+
+      newTxn(
+        DB_ITEM_STORE,
+        'readwrite',
+        function(txn, store) {
+          store.put(object);
+        },
+        callback
+      );
+    },
+
+    /**
      * Saves all icons to the database.
      */
     save: function(entries, aNext) {
