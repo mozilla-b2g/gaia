@@ -49,11 +49,10 @@ System.prototype = {
 
     // Wait for the keyboard pop up and switch to it.
     var keyboards = this.keyboards;
+    var classes = keyboards.getAttribute('class');
+    var transitionIn = keyboards.getAttribute('data-transition-in');
 
-    var currentTransform = keyboards.cssProperty('transform');
-    var expectedTransform = 'matrix(1, 0, 0, 1, 0, 0)';
-
-    return (currentTransform === expectedTransform);
+    return ( classes.indexOf('hide') == -1 ) && transitionIn !== 'true';
   },
 
   keyboardFrameHidden: function() {
@@ -61,15 +60,10 @@ System.prototype = {
     client.switchToFrame();
 
     var keyboards = this.keyboards;
+    var classes = keyboards.getAttribute('class');
+    var transitionOut = keyboards.getAttribute('data-transition-out');
 
-    var height = keyboards.scriptWith(function(frame) {
-      return frame.clientHeight;
-    });
-
-    var currentTransform = keyboards.cssProperty('transform');
-    var expectedTransform = 'matrix(1, 0, 0, 1, 0, '+ height +')';
-
-    return (currentTransform === expectedTransform);
+    return ( classes.indexOf('hide') != -1 ) && transitionOut !== 'true';
   },
 
   /**
