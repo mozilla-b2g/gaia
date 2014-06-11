@@ -532,7 +532,7 @@ suite('vCard parsing settings', function() {
         reader.onerror = stub();
 
         reader.process(function import_finish(result) {
-          assert.equal(3, result.length);
+          assert.equal(4, result.length);
           var req = navigator.mozContacts.find();
           req.onsuccess = function() {
             var contact = req.result[0];
@@ -553,7 +553,7 @@ suite('vCard parsing settings', function() {
         reader.onerror = stub();
 
         reader.process(function import_finish(result) {
-          assert.equal(3, result.length);
+          assert.equal(4, result.length);
           var req = navigator.mozContacts.find();
           req.onsuccess = function() {
             var contact = req.result[1];
@@ -574,7 +574,7 @@ suite('vCard parsing settings', function() {
         reader.onerror = stub();
 
         reader.process(function import_finish(result) {
-          assert.equal(3, result.length);
+          assert.equal(4, result.length);
           var req = navigator.mozContacts.find();
           req.onsuccess = function() {
             var contact = req.result[2];
@@ -619,6 +619,27 @@ suite('vCard parsing settings', function() {
           matchStub.restore();
           mergeStub.restore();
           done();
+        });
+      });
+    });
+    test('- vcard 2.1 with embedded photo in multiple lines', function(done) {
+      initializeVCFReader('vcard_21_photo.vcf', function(reader) {
+        reader.onread = stub();
+        reader.onimported = stub();
+        reader.onerror = stub();
+
+        reader.process(function import_finish(result) {
+          assert.equal(4, result.length);
+          var req = navigator.mozContacts.find();
+          req.onsuccess = function() {
+            var contact = req.result[3];
+            toDataUri(contact.photo[0], function(r) {
+              assert.strictEqual(b64Photo,
+               VCFReader.utils.parseDataUri(r.result).value);
+              assert.strictEqual('image/bmp', contact.photo[0].type);
+              done();
+            });
+          };
         });
       });
     });
