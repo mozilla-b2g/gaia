@@ -371,6 +371,10 @@ suite('system/permission manager', function() {
       assert.equal(permissionManager.currentChoices['video-capture'],
         'back');
     });
+
+    test('remember my choice option is checked in app mode', function() {
+      assert.equal(permissionManager.remember.checked, true);
+    });
   });
 
   suite('media capture permission', function() {
@@ -401,6 +405,10 @@ suite('system/permission manager', function() {
 
     test('not show remember my choice option', function() {
       assert.equal(permissionManager.rememberSection.style.display, 'none');
+    });
+
+    test('remember my choice option is unchecked in web mode', function() {
+      assert.equal(permissionManager.remember.checked, false);
     });
   });
 

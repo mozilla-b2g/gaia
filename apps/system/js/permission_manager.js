@@ -301,7 +301,8 @@
      * @param {Object} detail The event detail object.
      */
     handlePermissionPrompt: function pm_handlePermissionPrompt(detail) {
-      if ((this.isAudio || this.isVideo) && !this.isCamSelector) {
+      if ((this.isAudio || this.isVideo) && !detail.isApp &&
+        !this.isCamSelector) {
         // gUM always not remember in web mode
         this.remember.checked = false;
       } else {
