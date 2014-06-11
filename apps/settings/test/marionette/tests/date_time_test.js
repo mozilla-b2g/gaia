@@ -60,6 +60,7 @@ marionette('Date time', function() {
     var UTCTestTime = leadingZero(now.getUTCHours()) + ':12';
     datetimePanel.setClockTime(testTime);
     datetimePanel.findElement('clockTimePicker').getAttribute('value');
+    console.log('time is ' + datetimePanel.getSystemTime());
     assert.notEqual(
       datetimePanel.getSystemTime().indexOf(UTCTestTime), -1);
 
