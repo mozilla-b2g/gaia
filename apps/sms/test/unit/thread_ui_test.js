@@ -4919,6 +4919,7 @@ suite('thread_ui.js >', function() {
             ThreadUI.draft.isEdited = false;
             ThreadUI.back();
 
+            assert.isNull(ThreadUI.draft);
             assert.isFalse(OptionMenu.calledOnce);
             assert.isFalse(showCalled);
           });
@@ -4928,6 +4929,7 @@ suite('thread_ui.js >', function() {
             ThreadUI.draft.isEdited = false;
             ThreadUI.back();
 
+            assert.isNull(ThreadUI.draft);
             assert.isFalse(OptionMenu.calledOnce);
             assert.isFalse(showCalled);
           });
@@ -4938,6 +4940,7 @@ suite('thread_ui.js >', function() {
             ThreadUI.draft.isEdited = false;
             ThreadUI.back();
 
+            assert.isNull(ThreadUI.draft);
             assert.isFalse(OptionMenu.calledOnce);
             assert.isFalse(showCalled);
           });

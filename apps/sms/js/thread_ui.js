@@ -923,8 +923,11 @@ var ThreadUI = global.ThreadUI = {
       if (this.draft && !this.draft.isEdited) {
         // Thread-less drafts are orphaned at this point
         // so they need to be resaved for persistence
+        // Otherwise, clear the draft directly before leaving
         if (!Threads.currentId) {
           this.saveDraft({autoSave: true});
+        } else {
+          this.draft = null;
         }
         leave();
         return;
