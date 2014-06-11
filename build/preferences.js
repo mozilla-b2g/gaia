@@ -23,8 +23,7 @@ PreferencesBuilder.prototype.execute = function(config) {
 };
 
 PreferencesBuilder.prototype.preparePref = function() {
-  this.system = this.config.SYSTEM +
-    (this.config.GAIA_PORT ? this.config.GAIA_PORT : '');
+  this.system = this.config.SYSTEM;
 
   // XXX Please remove 'browser.manifestURL'.
   // After gecko does not need it anymore.
@@ -38,7 +37,7 @@ PreferencesBuilder.prototype.preparePref = function() {
   if (this.system.substring(0, 6) == 'app://') { // B2G bug 773884
       this.system += '/index.html';
   }
-  
+
   // XXX Please remove 'browser.homescreenURL'.
   // After gecko does not need it anymore.
   // follow up bug 1014487

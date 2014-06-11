@@ -63,7 +63,7 @@ function psParser(out) {
 }
 
 function gaiaOriginURL(name, scheme, domain, port) {
-  return scheme + name + '.' + domain + (port ? port : '');
+  return scheme + name + '.' + domain;
 }
 
 function gaiaManifestURL(name, scheme, domain, port) {
