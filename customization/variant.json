@@ -41,7 +41,7 @@
       "keyboard": "mobizilla/mobizilla_keyboard.json",
       "network_type": "mobizilla/mobizilla_network_type.json",
       "known_networks": "mobizilla/mobizilla_known_networks.json",
-      "nfc": "mobizilla/mobizilla_nfc.json",
+      "nfc": true,
       "sms": "mobizilla/mobizilla_sms.json",
       "data_ftu": true,
       "search": "mobizilla/mobizilla_search.json",
