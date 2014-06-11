@@ -31,6 +31,10 @@
   z-index: 3;
 }
 
+.icon:active {
+  opacity: .65;
+}
+
 .icon p {
   pointer-events: none;
   height: 3.2rem;
