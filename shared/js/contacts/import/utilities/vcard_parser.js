@@ -284,6 +284,7 @@ var VCFReader = (function _VCFReader() {
     if (vcardObj.fn && vcardObj.fn.length) {
       var fnMeta = vcardObj.fn[0].meta;
       var fnValue = vcardObj.fn[0].value[0];
+      // For the name field, we want the data as it is
       contactObj.name = [_decodeQP(fnMeta, fnValue)];
     }
 
@@ -294,7 +295,10 @@ var VCFReader = (function _VCFReader() {
       for (var i = 0; i < values.length; i++) {
         var namePart = values[i];
         if (namePart && NAME_PARTS[i]) {
-          contactObj[NAME_PARTS[i]] = [_decodeQP(meta, namePart)];
+          // For the rest of the fields, we want to keep the merged data
+          // separated the same way, in different positions of the array.
+          // see bug 981674
+          contactObj[NAME_PARTS[i]] = _decodeQP(meta, namePart).split(',');
         }
       }
 

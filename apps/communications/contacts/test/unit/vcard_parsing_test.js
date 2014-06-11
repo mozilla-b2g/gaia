@@ -376,6 +376,43 @@ suite('vCard parsing settings', function() {
       });
     });
 
+    test(' - should return a correct JSON object from a merged contact vcard',
+      function(done){
+        initializeVCFReader('vcard_3_merged.vcf', function(reader) {
+
+          reader.onread = stub();
+          reader.onimported = stub();
+          reader.onerror = stub();
+
+          reader.process(function import_finish(result) {
+            assert.strictEqual(1, result.length);
+            assert.strictEqual(1, reader.onread.callCount);
+            assert.strictEqual(1, reader.onimported.callCount);
+            assert.strictEqual(0, reader.onerror.callCount);
+
+            var req = navigator.mozContacts.find();
+            req.onsuccess = function(contacts) {
+              var contact = req.result[0];
+
+              assert.strictEqual('Freddy Mercury', contact.name[0]);
+              assert.strictEqual('Freddy', contact.givenName[0]);
+              assert.strictEqual('Farrokh', contact.givenName[1]);
+              assert.strictEqual('Mercury', contact.familyName[0]);
+              assert.strictEqual('Bulsara', contact.familyName[1]);
+              assert.strictEqual('Queen', contact.org[0]);
+
+              assert.strictEqual('mobile', contact.tel[0].type[0]);
+              assert.strictEqual('(111) 555-1212', contact.tel[0].value);
+              assert.strictEqual('home', contact.tel[1].type[0]);
+              assert.strictEqual('(404) 555-1212', contact.tel[1].value);
+              assert.strictEqual('freddy@queen.com',
+                                  contact.email[0].value);
+              done();
+            };
+          });
+        });
+      });
+
     test('- should return a correct JSON object from weird encoding',
       function(done) {
 
