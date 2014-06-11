@@ -15,7 +15,7 @@ We are using [AMD](http://en.wikipedia.org/wiki/Asynchronous_module_definition) 
 
 ## camera.js
 
-The [camera.js](js/camera.js) module is currently an interface to the camera hardware. It also maintains a degree of state, including things like: current camera (front/back), current flash mode (auto/on/off), current capture mode (camera/video).
+The [camera.js](js/lib/camera/camera.js) module is currently an interface to the camera hardware. It also maintains a degree of state, including things like: current camera (front/back), current flash mode (auto/on/off), current capture mode (camera/video).
 
 Before the refactor, the entire app was inside `camera.js`, so there are still remnants of things that shouldn't belong there:
 
@@ -35,7 +35,7 @@ When we speak of 'views' we are referring to a reusable UI component that makes 
 
 - [Controls](js/views/controls.js)
 - [Viewfinder](js/views/viewfinder.js)
-- [Focus Ring](js/views/focusring.js)
+- [Focus Ring](js/views/focus.js)
 - [Overlay](js/views/overlay.js)
 - [HUD](js/views/hud.js) (heads up display)
 - [Filmstrip](js/filmstrip.js) (legacy)
