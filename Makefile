@@ -144,11 +144,7 @@ LOCAL_DOMAINS?=1
 
 ADB?=adb
 
-ifeq ($(DEBUG),1)
-SCHEME=http://
-else
 SCHEME=app://
-endif
 
 SYSTEM?=$(SCHEME)system.$(GAIA_DOMAIN)
 

@@ -576,13 +576,13 @@ suite('Build Integration tests', function() {
       var installedExtsPath = path.join('profile-debug',
         'installed-extensions.json');
       var expectedSettings = {
-        'homescreen.manifestURL': 'http://verticalhome.gaiamobile.org:8080/manifest.webapp',
-        'rocketbar.searchAppURL': 'http://search.gaiamobile.org:8080/index.html'
+        'homescreen.manifestURL': 'app://verticalhome.gaiamobile.org/manifest.webapp',
+        'rocketbar.searchAppURL': 'app://search.gaiamobile.org/index.html'
       };
       var expectedUserPrefs = {
-        'browser.manifestURL': 'http://system.gaiamobile.org:8080/manifest.webapp',
-        'browser.homescreenURL': 'http://system.gaiamobile.org:8080',
-        'browser.startup.homepage': 'http://system.gaiamobile.org:8080',
+        'browser.manifestURL': 'app://system.gaiamobile.org/manifest.webapp',
+        'browser.homescreenURL': 'app://system.gaiamobile.org/index.html',
+        'browser.startup.homepage': 'app://system.gaiamobile.org/index.html',
         'startup.homepage_welcome_url': '',
         'browser.shell.checkDefaultBrowser': false,
         'devtools.toolbox.host': 'side',
