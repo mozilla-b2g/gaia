@@ -80,7 +80,10 @@
         } else {
           // TODO show default image?
         }
-      }, error)
+      }, function() {
+        // Bug 1023631 - Do not fail when BGImage can't be loaded
+        // TODO show default image?
+      })
       .catch(fail);
   }
 
