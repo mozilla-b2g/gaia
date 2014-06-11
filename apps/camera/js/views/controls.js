@@ -6,8 +6,8 @@ define(function(require, exports, module) {
  */
 
 var debug = require('debug')('view:controls');
-var attach = require('vendor/attach');
-var View = require('vendor/view');
+var attach = require('attach');
+var View = require('view');
 
 /**
  * Exports

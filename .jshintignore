@@ -37,3 +37,4 @@ apps/settings/js/vendor/alameda.js
 apps/findmydevice/js/lib/*
 apps/findmydevice/js/config.js
 apps/system/js/uuid.js
+apps/camera/bower_components/**

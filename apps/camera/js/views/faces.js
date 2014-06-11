@@ -5,8 +5,8 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
-var View = require('vendor/view');
 var FaceView = require('views/face');
+var View = require('view');
 
 /**
  * Exports

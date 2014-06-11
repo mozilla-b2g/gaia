@@ -7,8 +7,8 @@ define(function(require, exports, module) {
 
 var debug = require('debug')('storage');
 var bindAll = require('lib/bind-all');
-var events = require('vendor/evt');
 var dcf = require('lib/dcf');
+var events = require('evt');
 
 /**
  * Locals

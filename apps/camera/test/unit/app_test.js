@@ -9,7 +9,7 @@ suite('app', function() {
     window.req([
       'app',
       'lib/camera/camera',
-      'vendor/view',
+      'view',
       'lib/geo-location',
       'lib/setting',
     ], function(App, Camera, View, GeoLocation, Setting) {

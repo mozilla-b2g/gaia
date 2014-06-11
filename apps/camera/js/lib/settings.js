@@ -8,7 +8,7 @@ define(function(require, exports, module) {
 var SettingAlias = require('./setting-alias');
 var debug = require('debug')('settings');
 var Setting = require('./setting');
-var evt = require('vendor/evt');
+var evt = require('evt');
 
 /**
  * Mixin emitter

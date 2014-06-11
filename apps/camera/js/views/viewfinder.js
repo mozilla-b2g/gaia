@@ -5,10 +5,10 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
-var bind = require('lib/bind');
 var CameraUtils = require('lib/camera-utils');
 var debug = require('debug')('view:viewfinder');
-var View = require('vendor/view');
+var bind = require('lib/bind');
+var View = require('view');
 
 /**
  * Locals
