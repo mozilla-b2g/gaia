@@ -1,4 +1,4 @@
-/* global __dirname, Buffer, process */
+/* global Buffer, process */
 'use strict';
 
 /**
@@ -14,10 +14,6 @@ var mime = require('mime');
 var archiver = require('archiver');
 
 var EventEmitter = require('events').EventEmitter;
-
-var ROOT = __dirname + '/../fixtures/';
-// following slash is required for correct zip manifest paths.
-var APP_ROOT = fsPath.join(ROOT, 'app/');
 
 function readdirRecursive(dir) {
   dir = fsPath.join(dir, '/');
@@ -52,7 +48,7 @@ function decorateHandlerForJSON(method) {
     // if it is not json just skip it
     var type = req.headers['content-type'];
     if (!type || type.indexOf('json') === -1) {
-      return method(req, res);
+      return method.call(this, req, res);
     }
 
     var buffer = '';
@@ -62,8 +58,8 @@ function decorateHandlerForJSON(method) {
 
     req.once('end', function() {
       req.body = JSON.parse(buffer);
-      method(req, res);
-    });
+      method.call(this, req, res);
+    }.bind(this));
   };
 }
 
@@ -74,22 +70,57 @@ function defaultSettings() {
   };
 }
 
-var controller = new EventEmitter();
-var requests = {};
-var routes = {
+/**
+ * @param {String} root directory where content is.@
+ * @param {Object} routes for the app server.
+ * @constructor
+ */
+function AppServer(root, routes) {
+  EventEmitter.call(this);
 
+  // ensure we always have the slash suffix
+  if (root[root.length - 1] !== '/') {
+    root += '/';
+  }
+
+  this.root = root;
+  this.routes = routes;
+  this._settings = {};
+}
+
+AppServer.prototype = {
+  __proto__: EventEmitter.prototype,
+
+  /**
+   * @return {Object} default settings for a given url.
+   */
+  settings: function(url) {
+    return (this._settings[url] = this._settings[url] || defaultSettings());
+  },
+
+  requestHandler: function() {
+    var routes = this.routes;
+    return function(req, res) {
+      var handler = routes[req.url] || routes['*'];
+      // routes are always invoked with the context of the app server.
+      return handler.call(this, req, res);
+    }.bind(this);
+  },
+};
+
+var appServer = new AppServer(process.argv[2], {
   /**
   A 'corked' request will send headers but no body until 'uncork' is used.
   */
   '/settings/cork': decorateHandlerForJSON(function(req, res) {
     var url = req.body;
-    requests[url] = requests[url] || defaultSettings();
-    requests[url].corked = true;
+    var settings = this.settings(url);
+    settings.corked = true;
 
     // issue a cork to the particular endpoint
     var event = 'corked ' + url;
     debug('cork event', event);
-    controller.emit('corked ' + url);
+    this.emit('corked ' + url);
     writeJSON(res, url);
   }),
 
@@ -98,13 +129,12 @@ var routes = {
   */
   '/settings/uncork': decorateHandlerForJSON(function(req, res) {
     var url = req.body;
-    requests[url] = requests[url] || defaultSettings();
-    requests[url].corked = false;
-
+    var settings = this.settings(url);
+    settings.corked = false;
 
     var event = 'uncorked ' + url;
     debug('uncork event', event);
-    controller.emit(event);
+    this.emit(event);
     writeJSON(res, url);
   }),
 
@@ -114,7 +144,7 @@ var routes = {
   */
   '/settings/fail': decorateHandlerForJSON(function(req, res) {
     var url = req.body;
-    var settings = (requests[url] = requests[url] || defaultSettings());
+    var settings = this.settings(url);
 
     // must be corked to ensure we don't send the body
     settings.corked = true;
@@ -128,7 +158,7 @@ var routes = {
   */
   '/settings/unfail': decorateHandlerForJSON(function(req, res) {
     var url = req.body;
-    var settings = (requests[url] = requests[url] || defaultSettings());
+    var settings = this.settings(url);
 
     settings.fail = settings.corked = false;
     writeJSON(res, url);
@@ -136,7 +166,7 @@ var routes = {
 
   '/package.manifest': function(req, res) {
     var port = req.socket.address().port;
-    var json = JSON.parse(fs.readFileSync(ROOT + '/app/manifest.webapp'));
+    var json = JSON.parse(fs.readFileSync(this.root + '/manifest.webapp'));
     json.package_path = 'http://localhost:' + port + '/app.zip';
 
     var body = JSON.stringify(json, null, 2);
@@ -149,26 +179,27 @@ var routes = {
 
   '/app.zip': function(req, res) {
     var url = req.url;
-    var state = requests[url];
+    var settings = this.settings(url);
     // always write the head we need it in all cases
     res.writeHead(200, {
       'Content-Type': 'application/zip'
     });
 
+    var root = this.root;
     function writeZip() {
       // read the entire app directory
-      var files = readdirRecursive(APP_ROOT);
+      var files = readdirRecursive(root);
       var zip = archiver.create('zip');
 
       files.forEach(function(file) {
-        var zipPath = file.replace(APP_ROOT, '');
+        var zipPath = file.replace(root, '');
         zip.append(fs.createReadStream(file), { name: zipPath });
       });
       zip.finalize();
       zip.pipe(res);
     }
 
-    if (state.fail) {
+    if (settings.fail) {
       process.nextTick(function() {
         req.socket.destroy();
       });
@@ -176,10 +207,10 @@ var routes = {
     }
 
     // if we are not corked just write the zip and we are done
-    if (!state.corked) {
+    if (!settings.corked) {
       return writeZip();
     } else {
-      controller.once('uncorked ' + url, writeZip);
+      this.once('uncorked ' + url, writeZip);
     }
   },
 
@@ -188,8 +219,8 @@ var routes = {
   */
   '*': function(req, res) {
     var url = req.url;
-    var state = requests[url];
-    var filePath = fsPath.join(APP_ROOT, url);
+    var settings = this.settings(url);
+    var filePath = fsPath.join(this.root, url);
 
     // XXX: This is not a production quality server don't use sync methods in
     //      in servers in your user facing node code.
@@ -212,31 +243,24 @@ var routes = {
       fs.createReadStream(filePath).pipe(res);
     }
 
-    if (state.fail) {
+    if (settings.fail) {
       process.nextTick(function() {
         req.socket.destroy();
       });
       return;
     }
 
-    if (!state.corked) {
+    if (!settings.corked) {
       // if we are not corked just return the stream
       return writeContent();
     } else {
       // otherwise wait for the uncork
-      controller.once('uncorked ' + url, writeContent);
+      this.once('uncorked ' + url, writeContent);
     }
   }
-
-};
-
-var server = http.createServer(function(req, res) {
-  // each and every request is given base settings
-  requests[req.url] = requests[req.url] || defaultSettings();
-
-  var handler = routes[req.url] || routes['*'];
-  return handler(req, res);
 });
+
+var server = http.createServer(appServer.requestHandler());
 
 server.listen(0, function() {
   process.send({ type: 'started', port: server.address().port });
