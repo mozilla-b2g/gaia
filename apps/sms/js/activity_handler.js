@@ -87,6 +87,10 @@ var ActivityHandler = {
     this.isLocked = true;
 
     var number = activity.source.data.number;
+    if (activity.source.data.email) {
+      number = activity.source.data.email;
+    }
+
     var body = activity.source.data.body;
 
     Contacts.findByPhoneNumber(number, function findContact(results) {
