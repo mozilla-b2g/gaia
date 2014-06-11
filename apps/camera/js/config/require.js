@@ -6,6 +6,9 @@ require.config({
     'getVideoRotation': '../shared/js/media/get_video_rotation',
     'performanceTesting': '../shared/js/performance_testing_helper',
     'jpegMetaDataParser': '../shared/js/media/jpeg_metadata_parser',
+    'downsample': '../shared/js/media/downsample',
+    'getImageSize': '../shared/js/media/image_size',
+    'cropResizeRotate': '../shared/js/media/crop_resize_rotate',
     'format': '../shared/js/format',
     'GestureDetector': '../shared/js/gesture_detector',
     'VideoPlayer': '../shared/js/media/video_player',
@@ -38,6 +41,14 @@ require.config({
     'jpegMetaDataParser': {
       deps: ['BlobView'],
       exports: 'parseJPEGMetadata'
+    },
+    'getImageSize': {
+      deps: ['BlobView', 'jpegMetaDataParser'],
+      exports: 'getImageSize'
+    },
+    'cropResizeRotate': {
+      deps: ['BlobView', 'getImageSize', 'jpegMetaDataParser', 'downsample'],
+      exports: 'cropResizeRotate'
     },
     'GestureDetector': {
       exports: 'GestureDetector'
