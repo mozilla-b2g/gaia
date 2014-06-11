@@ -16,6 +16,31 @@
   // Most used DOM elements
   var dom = {};
 
+  var MSG_MIGRATE_CON = 'migrate';
+  var TXT_MSG = 'migrate';
+
+  function notifyHomescreenApp() {
+    navigator.mozApps.getSelf().onsuccess = function(evt) {
+      var app = evt.target.result;
+      if (app.connect) {
+        app.connect(MSG_MIGRATE_CON).then(function onConnAccepted(ports) {
+          // Get the token data info to attach to message
+          var message = {
+            txt: TXT_MSG
+          };
+          ports.forEach(function(port) {
+            port.postMessage(message);
+          });
+        }, function onConnRejected(reason) {
+          console.error('Cannot notify homescreen: ', reason);
+        });
+      } else {
+        console.error('mozApps does not have a connect method. ' +
+                      'Cannot launch the collection migration process');
+      }
+    };
+  }
+
   function _initProgressBar() {
     dom.tutorialProgressBar.style.width =
       'calc(100% / ' + stepsConfig.steps.length + ')';
@@ -108,6 +133,7 @@
         }
         return;
       }
+      notifyHomescreenApp();
       // Cache DOM elements
       elementIDs.forEach(function(name) {
         dom[Utils.camelCase(name)] = document.getElementById(name);

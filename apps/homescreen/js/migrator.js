@@ -20,9 +20,11 @@
 
       this.migrating = this.iterating = true;
       this.pendingItems = 0;
-      HomeState.getGrid(this.iteratePage.bind(this),
-                        this.onHomeStateSuccess.bind(this),
-                        this.onHomeStateError.bind(this));
+      HomeState.openDB(HomeState.getGrid.bind(undefined,
+                          this.iteratePage.bind(this),
+                          this.onHomeStateSuccess.bind(this),
+                          this.onHomeStateError.bind(this)),
+                          this.onHomeStateError.bind(this));
     },
 
     /**
