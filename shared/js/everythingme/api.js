@@ -133,8 +133,11 @@
         return Request('Search', 'suggestions', options);
       },
       bgimage: function bgimage(options) {
-        options.width = eme.device.screen.width;
-        options.height = eme.device.screen.height;
+        // Some devices contain fractions in dimensions
+        // which the eme api server does not accept
+        // so Math.ceil (http://bugzil.la/1023312)
+        options.width = Math.ceil(eme.device.screen.width);
+        options.height = Math.ceil(eme.device.screen.height);
 
         return Request('Search', 'bgimage', options);
       }
