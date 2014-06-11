@@ -387,6 +387,13 @@
       this.hideInfoLink.removeEventListener('click',
         this.moreInfoHandler);
       this.moreInfo.classList.add('hidden');
+      this.publish('permissiondialoghide');
+    },
+
+    publish: function(eventName, detail) {
+      var event = document.createEvent('CustomEvent');
+      event.initCustomEvent(eventName, true, true, detail);
+      window.dispatchEvent(event);
     },
 
     /**

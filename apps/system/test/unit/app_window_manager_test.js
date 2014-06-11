@@ -139,6 +139,15 @@ suite('system/AppWindowManager', function() {
   }
 
   suite('Handle events', function() {
+    test('When permission dialog is closed, we need to focus the active app',
+      function() {
+        var stubFocus = this.sinon.stub(app1, 'broadcast');
+        AppWindowManager._activeApp = app1;
+        AppWindowManager.handleEvent({
+          type: 'permissiondialoghide'
+        });
+        assert.isTrue(stubFocus.calledWith('focus'));
+      });
     test('If cardview will open, keyboard should be dismissed', function() {
       var stubBlur = this.sinon.stub(app1, 'blur');
       this.sinon.stub(app1, 'getTopMostWindow').returns(app1);

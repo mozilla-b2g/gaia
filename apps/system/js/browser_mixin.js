@@ -125,7 +125,7 @@
     },
 
     focus: function bm_focus() {
-      if (this.browser.element) {
+      if (this.browser && this.browser.element) {
         this.browser.element.focus();
       }
     },
