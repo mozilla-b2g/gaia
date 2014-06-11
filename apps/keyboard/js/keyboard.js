@@ -953,7 +953,7 @@ function hideAlternatives() {
 // Test if an HTML node is a normal key
 function isNormalKey(key) {
   var keyCode = parseInt(key.dataset.keycode);
-  return keyCode || key.dataset.selection || key.dataset.compositekey;
+  return keyCode || key.dataset.selection || key.dataset.compositeKey;
 }
 
 //
@@ -1411,10 +1411,10 @@ function endPress(target, coords, touchId, hasCandidateScrolled) {
 
     // Normal key
   default:
-    if (target.dataset.compositekey) {
+    if (target.dataset.compositeKey) {
       // Keys with this attribute set send more than a single character
       // Like ".com" or "2nd" or (in Catalan) "l·l".
-      var compositeKey = target.dataset.compositekey;
+      var compositeKey = target.dataset.compositeKey;
       for (var i = 0; i < compositeKey.length; i++) {
         inputMethodManager.currentIMEngine.click(compositeKey.charCodeAt(i));
       }

@@ -243,7 +243,7 @@ const IMERender = (function() {
         dataset.push({'key': 'keycode', 'value': code});
         dataset.push({'key': 'keycodeUpper', 'value': upperCode});
         if (key.compositeKey) {
-          dataset.push({'key': 'compositekey', 'value': key.compositeKey});
+          dataset.push({'key': 'compositeKey', 'value': key.compositeKey});
         }
 
         var attributeList = [];
@@ -622,7 +622,7 @@ const IMERender = (function() {
           { 'key': 'keycode', 'value': alt.charCodeAt(0) },
           { 'key': 'keycodeUpper', 'value': alt.toUpperCase().charCodeAt(0) }
         ] :
-        [{'key': 'compositekey', 'value': alt}];
+        [{'key': 'compositeKey', 'value': alt}];
 
       // Make each of these alternative keys 75% as wide as the key that
       // it is an alternative for, but adjust for the relative number of
