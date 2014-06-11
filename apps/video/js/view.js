@@ -430,7 +430,7 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     dom.playHead.classList.add('active');
     dom.playHead.style.left = percent;
     dom.elapsedTime.style.width = percent;
-    dom.player.currentTime = dom.player.duration * pos;
+    dom.player.fastSeek(dom.player.duration * pos);
     dom.elapsedText.textContent = MediaUtils.formatDuration(
       dom.player.currentTime);
   }
