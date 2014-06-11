@@ -16,5 +16,18 @@ var SmsIntegration = {
     } catch (e) {
       console.log('WebActivities unavailable? : ' + e);
     }
+  },
+  sendMms: function si_sendMms(email) {
+    try {
+      new MozActivity({
+        name: 'new',
+        data: {
+          type: 'webmms/mms',
+          email: email
+        }
+      });
+    } catch (e) {
+      console.log('WebActivities unavailable? : ' + e);
+    }
   }
 };

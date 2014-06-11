@@ -459,6 +459,13 @@ var Contacts = (function() {
     }
   };
 
+  var sendMms = function sendMms(email) {
+    if (!ActivityHandler.currentlyHandling ||
+        ActivityHandler.activityName === 'open') {
+      SmsIntegration.sendMms(email);
+    }
+  };
+
   var handleBack = function handleBack(cb) {
     navigation.back(cb);
   };
@@ -946,6 +953,7 @@ var Contacts = (function() {
     'cancel': handleCancel,
     'goToSelectTag': goToSelectTag,
     'sendSms': sendSms,
+    'sendMms': sendMms,
     'navigation': navigation,
     'sendEmailOrPick': sendEmailOrPick,
     'updatePhoto': updatePhoto,
