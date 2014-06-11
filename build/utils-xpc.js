@@ -240,7 +240,7 @@ function getWebapp(app, domain, scheme, port, stageDir) {
     manifest: getJSON(manifest),
     manifestFile: manifest,
     buildManifestFile: manifest,
-    url: scheme + appDomain + (port ? port : ''),
+    url: scheme + appDomain,
     domain: appDomain,
     sourceDirectoryFile: manifestFile.parent,
     buildDirectoryFile: manifestFile.parent,

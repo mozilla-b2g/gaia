@@ -2,7 +2,7 @@
 
 var MockMmiUI = {
 
-  COMMS_APP_ORIGIN: 'http://communications.gaiamobile.org:8080',
+  COMMS_APP_ORIGIN: 'app://communications.gaiamobile.org',
   ready: true,
   _messageReceived: null,
   _sessionEnded: null,
