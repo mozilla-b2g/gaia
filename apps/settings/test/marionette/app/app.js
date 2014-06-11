@@ -19,7 +19,8 @@ var Base = require('./base'),
     DisplayPanel = require('./regions/display'),
     AppStoragePanel = require('./regions/app_storage'),
     MediaStoragePanel = require('./regions/media_storage'),
-    KeyboardPanel = require('./regions/keyboard');
+    KeyboardPanel = require('./regions/keyboard'),
+    MessagePanel = require('./regions/message');
 
 /**
  * Abstraction around settings app
@@ -57,7 +58,8 @@ Settings.Selectors = {
   'displayMenuItem': '#menuItem-display',
   'appStorageMenuItem': '#menuItem-applicationStorage',
   'mediaStorageMenuItem': '#menuItem-mediaStorage',
-  'keyboardMenuItem': '#menuItem-keyboard'
+  'keyboardMenuItem': '#menuItem-keyboard',
+  'messageMenuItem': '#menuItem-messagingSettings'
 };
 
 Settings.prototype = {
@@ -188,6 +190,12 @@ Settings.prototype = {
     return this._keyboardPanel;
   },
 
+  get messagePanel() {
+    this.openPanel('messageMenuItem');
+    this._messagePanel = this._messagePanel || new MessagePanel(this.client);
+    return this._messagePanel;
+  },
+
   set currentLanguage(value) {
     // open the language panel
     var languagePanel = this.languagePanel;
@@ -202,6 +210,12 @@ Settings.prototype = {
     var localParentSelector = parentSelector || 'menuItemsSection';
     var menuItem = this.waitForElement(selector);
     var parentSection = this.waitForElement(localParentSelector);
+
+    // make sure it is enabled first
+    this.client.waitFor(function() {
+      return this.findElement('messageMenuItem').enabled();
+    }.bind(this));
+
     menuItem.tap();
     this.client.waitFor(function() {
       var loc = parentSection.location();
