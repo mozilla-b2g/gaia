@@ -268,7 +268,7 @@ Camera.prototype.requestCamera = function(camera, config) {
   var self = this;
 
   // Indicate 'busy'
-  this.busy();
+  this.busy('requestingCamera');
 
   // If a config was passed we assume
   // the camera has been configured.
@@ -778,7 +778,7 @@ Camera.prototype.takePicture = function(options) {
   }
 
   function takePicture() {
-    self.emit('takingpicture');
+    self.busy('takingPicture');
     self.mozCamera.takePicture(config, onSuccess, onError);
   }
 
@@ -1373,10 +1373,10 @@ Camera.prototype.getSensorAngle = function() {
  *
  * @private
  */
-Camera.prototype.busy = function() {
-  debug('busy');
+Camera.prototype.busy = function(type) {
+  debug('busy %s', type || '');
   this.isBusy = true;
-  this.emit('busy');
+  this.emit('busy', type);
 };
 
 /**

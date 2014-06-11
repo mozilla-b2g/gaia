@@ -47,9 +47,9 @@ CameraController.prototype.bindEvents = function() {
   camera.on('autofocuschanged', app.firer('camera:autofocuschanged'));
   camera.on('focusconfigured',  app.firer('camera:focusconfigured'));
   camera.on('change:focus', app.firer('camera:focusstatechanged'));
-  camera.on('facesdetected', app.firer('camera:facesdetected'));
   camera.on('filesizelimitreached', this.onFileSizeLimitReached);
-  camera.on('takingpicture', app.firer('camera:takingpicture'));
+  camera.on('facesdetected', app.firer('camera:facesdetected'));
+  camera.on('willrecord', app.firer('camera:willrecord'));
   camera.on('change:recording', app.setter('recording'));
   camera.on('newcamera', app.firer('camera:newcamera'));
   camera.on('newimage', app.firer('camera:newimage'));
@@ -59,7 +59,6 @@ CameraController.prototype.bindEvents = function() {
   camera.on('loaded', app.firer('camera:loaded'));
   camera.on('ready', app.firer('camera:ready'));
   camera.on('busy', app.firer('camera:busy'));
-  camera.on('willrecord', app.firer('camera:willrecord'));
 
   // App
   app.on('viewfinder:focuspointchanged', this.onFocusPointChanged);
