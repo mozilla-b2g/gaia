@@ -1,3 +1,4 @@
+/* global __dirname */
 'use strict';
 
 var Home2 = require('./lib/home2');
@@ -13,7 +14,8 @@ marionette('Vertical Home - Hosted app cached icon fetch', function() {
   var client = marionette.client(Home2.clientOptions);
   var server;
   setup(function(done) {
-    createAppServer(client, function(err, _server) {
+    var app = __dirname + '/fixtures/template_app';
+    createAppServer(app, client, function(err, _server) {
       server = _server;
       done(err);
     });

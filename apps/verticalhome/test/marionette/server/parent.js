@@ -20,13 +20,14 @@ function post(client, url, json) {
   }, [url, JSON.stringify(json)]);
 }
 
-function AppServer(marionette, port, proc) {
+function AppServer(root, marionette, port, proc) {
+  this.root = root;
   this.marionette = marionette;
   this.url = 'http://localhost:' + port;
   this.process = proc;
 
   this.manifest = JSON.parse(
-    fs.readFileSync(__dirname + '/../fixtures/app/manifest.webapp', 'utf8')
+    fs.readFileSync(root + '/manifest.webapp', 'utf8')
   );
 }
 
@@ -92,8 +93,15 @@ AppServer.prototype = {
   }
 };
 
-module.exports = function create(client, callback) {
-  var proc = fork(__dirname + '/child.js');
+/**
+ * Create a app server for use in marionette tests.
+ *
+ * @param {String} appRoot path to the root of the app.
+ * @param {Marionette.Client} client for marionette.
+ * @param {Function} callback [Error]
+ */
+module.exports = function create(appRoot, client, callback) {
+  var proc = fork(__dirname + '/child.js', [appRoot]);
 
   proc.once('error', callback);
   proc.on('message', function(msg) {
@@ -101,7 +109,7 @@ module.exports = function create(client, callback) {
       return;
     }
     proc.removeListener('error', callback);
-    callback(null, new AppServer(client, msg.port, proc));
+    callback(null, new AppServer(appRoot, client, msg.port, proc));
   });
 };
 
