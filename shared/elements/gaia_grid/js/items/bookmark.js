@@ -10,8 +10,9 @@
   /**
    * Represents a single bookmark icon on the homepage.
    */
-  function Bookmark(record) {
+  function Bookmark(record, features) {
     this.detail = record;
+    this.features = features || {};
     this.detail.type = TYPE;
   }
 
@@ -91,7 +92,13 @@
         useAsyncPanZoom: true
       };
 
-      window.open(this.detail.url, '_blank', Object.keys(features)
+      var url = this.detail.url;
+      if (this.features.search) {
+        features.searchName = this.name;
+        features.searchUrl = url;
+      }
+
+      window.open(url, '_blank', Object.keys(features)
         .map(function eachFeature(key) {
         return encodeURIComponent(key) + '=' +
           encodeURIComponent(features[key]);
