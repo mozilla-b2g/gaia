@@ -1122,7 +1122,8 @@ var WindowManager = (function() {
     // Instantly blur the frame in order to ensure hiding the keyboard
     var app = runningApps[displayedApp];
     if (app) {
-      if ('contentWindow' in app.iframe &&
+      if (!app.isHomescreen &&
+          'contentWindow' in app.iframe &&
           app.iframe.contentWindow != null) {
         // Bug 845661 - Attention screen does not appears when
         // the url bar input is focused.
