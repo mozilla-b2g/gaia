@@ -10,13 +10,15 @@
 require('/shared/test/unit/mocks/mocks_helper.js');
 require('/shared/test/unit/mocks/mock_settings_url.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
+require('/shared/test/unit/mocks/mock_settings_helper.js');
 require('/shared/test/unit/mocks/mock_audio.js');
 require('/shared/test/unit/mocks/mock_device_storage.js');
 require('/shared/test/unit/mocks/mock_geolocation.js');
 require('/shared/test/unit/mocks/mock_permission_settings.js');
 
 var mocksForFindMyDevice = new MocksHelper([
-  'SettingsListener', 'SettingsURL', 'Audio', 'DeviceStorage', 'Geolocation'
+  'SettingsListener', 'SettingsURL', 'SettingsHelper', 'Audio',
+  'DeviceStorage', 'Geolocation'
 ]).init();
 
 suite('FindMyDevice >', function() {
