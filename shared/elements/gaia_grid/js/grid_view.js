@@ -7,6 +7,24 @@
 
 (function(exports) {
 
+  function addMarker(to, x, y, remove) {
+    // HACK CODE
+    var element = document.createElement('div');
+    element.style.border = '1px solid green';
+    element.style.background = 'green';
+    element.style.width = element.style.height = '10px';
+    element.style.position = 'absolute';
+    element.style.transform = 'translate(' + x + 'px, ' + y + 'px)';
+    element.classList.add('icon');
+    to.appendChild(element);
+
+    if (remove) {
+      setTimeout(function() {
+        element.parentNode.removeChild(element);
+      }, 10000);
+    }
+  }
+
   const PREVENT_CLICK_TIMEOUT = 300;
 
   /**
@@ -190,6 +208,32 @@
     },
 
     /**
+     * Finds nearest item by and returns an index.
+     *
+     * @param {Number} x relative to the screen
+     * @param {Number} y relative to the screen
+     */
+    getNearestItem: function(x, y) {
+      addMarker(this.element, x, y, true);
+      // Find the icon with the closest X/Y position of the move,
+      // XXX: this could be more efficient with a binary search.
+      var leastDistance;
+      var foundIndex;
+      for (var i = 0, iLen = this.items.length; i < iLen; i++) {
+        var item = this.items[i];
+        var distance = Math.sqrt(
+          (x - item.x) * (x - item.x) +
+          (y - item.y) * (y - item.y));
+        if (!leastDistance || distance < leastDistance) {
+          leastDistance = distance;
+          foundIndex = i;
+        }
+      }
+
+      return foundIndex;
+    },
+
+    /**
      * Creates placeholders and injects them into the grid.
      * @param {Array} coordinates [x,y] coordinates on the grid of the first
      * item in grid units.
@@ -207,6 +251,9 @@
         this.items.splice(idx + i, 0, item);
         item.render(itemCoords, idx + i);
       }
+    },
+
+    _getOffset: function() {
     },
 
     /**
@@ -275,6 +322,7 @@
 
         if (idx >= from) {
           item.render([x, y], idx);
+          addMarker(this.element, item.x, item.y, false);
         }
 
         // Increment the x-step by the sizing of the item.

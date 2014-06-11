@@ -16,7 +16,19 @@
   }
 
   ContextMenuUI.prototype = {
-    show: function() {
+    show: function(e) {
+      var idx = this.grid.getNearestItem(
+        e.pageX,
+        e.pageY + this.grid.parentNode.scrollTop - this.grid.offsetTop
+      );
+
+      console.log(e.pageX, e.pageY, this.grid.parentNode.scrollTop);
+
+      var item = this.grid.getItems()[idx];
+      if (item) {
+        console.log(idx, item.detail.type, item.name, '<< current pos');
+      }
+
       this.dialog.addEventListener('gaiamenu-cancel', this.handleCancel);
       this.dialog.removeAttribute('hidden');
       this.collectionOption.addEventListener('click', this);
