@@ -139,7 +139,7 @@
         var ringerToneURL = '/shared/resources/media/ringtones/' +
           'ringer_classic_courier.opus';
         var alarmToneURL = '/shared/resources/media/alarms/' +
-          'ac_classic_clock_alarm.opus';
+          'ac_awake.ogg';
 
         var toneURLs = {
           'content' : mediaToneURL,
