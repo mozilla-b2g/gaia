@@ -1,21 +1,20 @@
 'use strict';
 /* global GridItem */
 /* global UrlHelper */
+/* global Promise */
 
 (function(exports) {
 
   var _ = navigator.mozL10n.get;
-
-  const ICON_PATH_BY_DEFAULT = 'style/images/default_icon.png';
 
   const CONFIRM_DIALOG_ID = 'confirmation-message';
 
   const IDENTIFIER_SEP = '-';
 
   /**
-   * Represents a single app icon on the homepage.
+   * Represents  single app icon on the homepage.
    */
-  function Icon(app, entryPoint) {
+  function Icon(app, entryPoint, details) {
     this.app = app;
     this.entryPoint = entryPoint;
 
@@ -23,7 +22,9 @@
       type: 'app',
       manifestURL: app.manifestURL,
       entryPoint: entryPoint,
-      index: 0
+      index: 0,
+      // XXX: Somewhat ugly hack around the constructor args
+      defaultIconBlob: details && details.defaultIconBlob
     };
   }
 
@@ -55,7 +56,7 @@
     _icon: function() {
       var icons = this.descriptor.icons;
       if (!icons) {
-        return ICON_PATH_BY_DEFAULT;
+        return this.defaultIcon;
       }
 
       // Create a list with the sizes and order it by descending size
@@ -68,7 +69,7 @@
       var length = list.length;
       if (length === 0) {
         // No icons -> icon by default
-        return ICON_PATH_BY_DEFAULT;
+        return this.defaultIcon;
       }
 
       var maxSize = this.grid.layout.gridMaxIconSize; // The goal size
@@ -134,6 +135,35 @@
      */
     isRemovable: function() {
       return this.app.removable;
+    },
+
+    fetchIconBlob: function() {
+      var _super = GridItem.prototype.fetchIconBlob.bind(this);
+      if (!this.app.downloading) {
+        return _super();
+      }
+
+      // show the spinner while the app is downloading!
+      this.element.classList.add('loading');
+      var removeLoading = () => {
+        this.element.classList.remove('loading');
+      };
+
+      // XXX: This is not safe if some upstream consumer wanted to listen to
+      //      these events we just clobbered them.
+      return new Promise((accept, reject) => {
+        this.app.ondownloadsuccess = this.app.ondownloaderror = () => {
+          _super().
+            then(() => {
+              removeLoading();
+              accept();
+            }).
+            catch(() => {
+              removeLoading();
+              reject();
+            });
+        };
+      });
     },
 
     /**

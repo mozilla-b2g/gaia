@@ -238,8 +238,10 @@
         }
       };
 
-      return new Icon(app,
-        entry.entryPoint);
+      return new Icon(app, entry.entryPoint, {
+        // cached icon blob in case of network failures
+        defaultIconBlob: entry.defaultIconBlob
+      });
     },
 
     /**
