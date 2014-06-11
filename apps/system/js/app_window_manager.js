@@ -93,6 +93,11 @@
       while (appNext.nextWindow) {
         appNext = appNext.nextWindow;
       }
+      if (appCurrent && appCurrent.isHomescreen) {
+        appNext.manualOpenedTime = Date.now();
+      } else if (!appNext.manualOpenedTime) {
+        appNext.manualOpenedTime = Date.now();
+      }
 
       this.debug(' current is ' + (appCurrent ? appCurrent.url : 'none') +
                   '; next is ' + (appNext ? appNext.url : 'none'));
@@ -181,7 +186,8 @@
           openAnimation = closeAnimation = 'immediate';
         } else if (switching) {
           // XXX: We should just the ordering by StackManager
-          var nextAppIsNew = appNext.createdTime > appCurrent.createdTime;
+          var nextAppIsNew =
+            appNext.manualOpenedTime > appCurrent.manualOpenedTime;
           openAnimation = nextAppIsNew ? 'invoked' : 'in-from-left';
           closeAnimation = nextAppIsNew ? 'invoking' : 'out-to-right';
         }
