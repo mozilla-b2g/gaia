@@ -162,6 +162,8 @@ const HomeState = (function() {
       }, error);
     },
 
+    openDB: openDB,
+
     saveGrid: function st_saveGrid(pages, success, error) {
       saveTable(GRID_STORE_NAME, pages, success, error);
     },
