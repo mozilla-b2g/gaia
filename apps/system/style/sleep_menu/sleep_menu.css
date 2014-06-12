@@ -1,13 +1,10 @@
 #sleep-menu {
   display: none;
+  position: absolute;
 }
 
 #sleep-menu.visible {
   display: flex;
-}
-
-#sleep-menu-container {
-  
 }
 
 @media (min-width: 768px) {
