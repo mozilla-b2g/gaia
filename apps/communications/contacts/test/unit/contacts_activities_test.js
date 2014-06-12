@@ -1,5 +1,6 @@
-/* globals ActivityHandler, ConfirmDialog, MockContactAllFields, MocksHelper,
-    MockMozL10n */
+/* globals Contacts, ActivityHandler, ConfirmDialog,
+           MockContactAllFields, MocksHelper, MockMozL10n
+ */
 
 'use strict';
 
@@ -32,6 +33,8 @@ suite('Test Activities', function() {
       real_,
       realImport;
 
+  mocksHelperForActivities.attachTestHelpers();
+
   suiteSetup(function() {
     realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockMozL10n;
@@ -54,13 +57,12 @@ suite('Test Activities', function() {
     window.utils.importFromVcard = function(file, callback) {
       callback(this.importedCount, this.importedID);
     };
-    mocksHelperForActivities.suiteSetup();
   });
+
   suiteTeardown(function() {
     navigator.mozL10n = realMozL10n;
     window._ = real_;
     window.utils.importFromVcard = realImport;
-    mocksHelperForActivities.suiteTeardown();
     window.utils.misc.toMozContact.restore();
   });
 
@@ -70,6 +72,8 @@ suite('Test Activities', function() {
       ActivityHandler._launchedAsInlineActivity = false;
       window.utils.importedID = null;
       document.location.hash = '';
+
+      this.sinon.spy(Contacts, 'checkCancelableActivity');
     });
 
     test('New contact', function() {
@@ -120,7 +124,7 @@ suite('Test Activities', function() {
       assert.equal(ActivityHandler._currentActivity, activity);
     });
 
-    test('Import one contact from vcard (open details)', function() {
+    test('Import one contact', function() {
       var activity = {
         source: {
           name: 'import',
@@ -133,11 +137,13 @@ suite('Test Activities', function() {
       window.utils.importedID = '1';
       ActivityHandler.handle(activity);
       assert.equal(ActivityHandler._currentActivity, activity);
-      assert.include(document.location.hash, 'view-contact-details');
-      assert.include(document.location.hash, 'id=1');
+      assert.include(document.location.hash, 'view-contact-details',
+        'showing contact details screen');
+      assert.include(document.location.hash, 'id=1',
+        'with the proper contact id');
     });
 
-    test('Import vcard to open list (multiple contacts)', function() {
+    test('Import multiple contacts', function() {
       var activity = {
         source: {
           name: 'import',
@@ -148,9 +154,14 @@ suite('Test Activities', function() {
       };
       window.utils.importedCount = 2;
       ActivityHandler.handle(activity);
-      assert.equal(ActivityHandler._currentActivity, activity);
-      assert.include(document.location.hash, 'view-contact-list');
-      assert.equal(document.location.hash.indexOf('id'), -1);
+      assert.equal(ActivityHandler._currentActivity, activity,
+        'handling as an activity');
+      assert.include(document.location.hash, 'view-contact-list',
+        'showing list view screen');
+      assert.equal(document.location.hash.indexOf('id'), -1,
+        'no contact id as parameter');
+      assert.isTrue(Contacts.checkCancelableActivity.called,
+        'checks for activity UI specifics');
     });
   });
 

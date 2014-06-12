@@ -28,12 +28,30 @@ var ActivityHandler = {
     return this._currentActivity.source.data.type;
   },
 
+  /* checks first if we are handling an activity, then if it is
+   * of the same type of any of the items from the list provided.
+   * @param list Array with types of activities to be checked
+   */
+  currentActivityIs: function(list) {
+    return this.currentlyHandling && list.indexOf(this.activityName) !== -1;
+  },
+
+  /* checks first if we are handling an activity, then checks that
+   * it is NOT of the same type of any of the items from the list provided.
+   * @param list Array with types of activities to be checked
+   */
+  currentActivityIsNot: function(list) {
+    return this.currentlyHandling && list.indexOf(this.activityName) === -1;
+  },
+
   launch_activity: function ah_launch(activity, action) {
     if (this._launchedAsInlineActivity) {
       return;
     }
 
     this._currentActivity = activity;
+    Contacts.checkCancelableActivity();
+
     var hash = action;
     var param, params = [];
     if (activity.source &&
@@ -48,6 +66,7 @@ var ActivityHandler = {
     }
     document.location.hash = hash;
   },
+
   handle: function ah_handle(activity) {
 
     switch (activity.source.name) {
@@ -71,7 +90,7 @@ var ActivityHandler = {
         this.importContactsFromFile(activity);
         break;
     }
-    Contacts.checkCancelableActivity();
+
   },
 
   importContactsFromFile: function ah_importContactFromVcard(activity) {
