@@ -25,12 +25,18 @@ define(function(require) {
         storage.init(elements);
         root.init();
       },
+      onBeforeShow: function kalp_onBeforeShow() {
+        storage.enabled = true;
+      },
       onShow: function rp_onShow() {
         // XXX: Set data-ready to true to indicate that the first panel is
         //      displayed and we are ready to use animations for the later panel
         //      transitions. This should be moved to startup.js after we handle
         //      inline activities there.
         document.body.dataset.ready = true;
+      },
+      onHide: function kalp_onHide() {
+        storage.enabled = false;
       }
     });
   };

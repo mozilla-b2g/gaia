@@ -11,44 +11,82 @@ define(function(require) {
 
   function Storage() {
     this._elements = null;
+    this._enabled = false;
+    this.appStorage = null;
+    this.defaultMediaVolume = null;
+    this.defaultVolumeState = 'available';
   }
 
   Storage.prototype = {
-    appStorage: null,
-    defaultMediaVolume: null,
-    defaultVolumeState: 'available',
+    /**
+     * The value indicates whether the module is responding. If it is false, the
+     * UI stops reflecting the updates from the root panel context.
+     *
+     * @access public
+     * @type {Boolean}
+     */
+    get enabled() {
+      return this._enabled;
+    },
+
+    set enabled(value) {
+      this._enabled = value;
+      var umsSettingKey = 'ums.enabled';
+      var defaultMediaVolumeKey = 'device.storage.writable.name';
+
+      if (value) { //observe
+        // ums master switch on root panel
+        this._elements.umsEnabledCheckBox.addEventListener('change', this);
+
+        SettingsListener.observe(umsSettingKey, false,
+          this._umsSettingHandler.bind(this));
+
+        // app storage
+        AppStorage.storage.observe('freeSize',
+          this.updateAppFreeSpace.bind(this));
+        this.updateAppFreeSpace();
+
+        // media storage
+        // Show default media volume state on root panel
+        SettingsListener.observe(defaultMediaVolumeKey, 'sdcard',
+          this._mediaVolumeChangeHandler.bind(this));
+
+        window.addEventListener('localized', this);
+      } else { //unobserve
+        this._elements.umsEnabledCheckBox.removeEventListener('change', this);
+
+        SettingsListener.unobserve(umsSettingKey,
+          this._umsSettingHandler.bind(this));
+
+        // app storage
+        AppStorage.storage.unobserve('freeSize',
+          this.updateAppFreeSpace.bind(this));
+
+        // media storage
+        SettingsListener.unobserve(defaultMediaVolumeKey,
+          this._mediaVolumeChangeHandler.bind(this));
+
+        window.removeEventListener('localized', this);
+      }
+    },
+
+    _umsSettingHandler: function storage_umsSettingHandler(enabled) {
+      this._elements.umsEnabledCheckBox.checked = enabled;
+      this.updateUmsDesc();
+    },
+
+    _mediaVolumeChangeHandler:
+      function storage__mediaVolumeChangeHandler(defaultName) {
+      if (this.defaultMediaVolume) {
+        this.defaultMediaVolume.removeEventListener('change', this);
+      }
+      this.defaultMediaVolume = this.getDefaultVolume(defaultName);
+      this.defaultMediaVolume.addEventListener('change', this);
+      this.updateMediaStorageInfo();
+    },
 
     init: function storage_init(elements) {
-      var self = this;
       this._elements = elements;
-
-      // ums master switch on root panel
-      this._elements.umsEnabledCheckBox.addEventListener('change', this);
-      var umsSettingKey = 'ums.enabled';
-      SettingsListener.observe(umsSettingKey, false, function(enabled) {
-        self._elements.umsEnabledCheckBox.checked = enabled;
-        self.updateUmsDesc();
-      });
-
-      // app storage
-      AppStorage.storage.observe('freeSize',
-        this.updateAppFreeSpace.bind(this));
-      this.updateAppFreeSpace();
-
-      // media storage
-      // Show default media volume state on root panel
-      var defaultMediaVolumeKey = 'device.storage.writable.name';
-      SettingsListener.observe(defaultMediaVolumeKey, 'sdcard',
-        function onDefaultMediaVolumeChange(defaultName) {
-          if (self.defaultMediaVolume) {
-            self.defaultMediaVolume.removeEventListener('change', self);
-          }
-          self.defaultMediaVolume = self.getDefaultVolume(defaultName);
-          self.defaultMediaVolume.addEventListener('change', self);
-          self.updateMediaStorageInfo();
-      });
-
-      window.addEventListener('localized', this);
     },
 
     handleEvent: function storage_handleEvent(evt) {
@@ -120,10 +158,10 @@ define(function(require) {
       }
     },
 
-    // App Storage
+    // Application Storage
     updateAppFreeSpace: function storage_updateAppFreeSpace() {
       DeviceStorageHelper.showFormatedSize(this._elements.appStorageDesc,
-        'storageSize', AppStorage.storage.freeSize);
+        'availableSize', AppStorage.storage.freeSize);
     },
 
     // Media Storage
@@ -173,10 +211,10 @@ define(function(require) {
 
     updateMediaFreeSpace: function storage_updateMediaFreeSpace(volume) {
       var self = this;
-      this.getFreeSpace(volume, function(freeSpace) {
+      volume.freeSpace().onsuccess = function(e) {
         DeviceStorageHelper.showFormatedSize(self._elements.mediaStorageDesc,
-          'availableSize', freeSpace);
-      });
+          'availableSize', e.target.result);
+      };
     },
 
     lockMediaStorageMenu: function storage_setMediaMenuState(lock) {
@@ -202,14 +240,6 @@ define(function(require) {
         }
       }
       return volumes[0];
-    },
-
-    getFreeSpace: function storage_getFreeSpace(storage, callback) {
-      storage.freeSpace().onsuccess = function(e) {
-        if (callback) {
-          callback(e.target.result);
-        }
-      };
     }
   };
 
