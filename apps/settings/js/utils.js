@@ -140,7 +140,7 @@ var FileSizeFormatter = (function FileSizeFormatter(fixed) {
     var sizeDecimal = parseFloat(sizeString);
 
     return {
-      size: sizeDecimal.toString(),
+      size: sizeDecimal,
       unit: units[i]
     };
   }
