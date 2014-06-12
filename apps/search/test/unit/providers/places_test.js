@@ -1,4 +1,4 @@
-/* global MockNavigatorDatastore, MockDatastore, Search */
+/* global MockNavigatorDatastore, MockDatastore, Promise, Search */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_navigator_datastore.js');
@@ -7,8 +7,9 @@ requireApp('search/test/unit/mock_search.js');
 requireApp('search/js/providers/provider.js');
 
 suite('search/providers/places', function() {
-  var fakeElement, stubById, subject;
+  var fakeElement, subject;
   var realDatastore;
+  var promiseDone = Promise.resolve({ operation: 'done' });
 
   suiteSetup(function() {
     realDatastore = navigator.getDataStores;
@@ -22,15 +23,14 @@ suite('search/providers/places', function() {
     MockDatastore.sync = function() {
       var cursor = {
         next: function() {
-          cursor.next = function() {};
-          return new window.Promise(function(resolve, reject) {
-            resolve({
-              operation: 'add',
-              data: {
-                url: 'http://mozilla.org',
-                title: 'homepage'
-              }
-            });
+          cursor.next = () => promiseDone;
+
+          return Promise.resolve({
+            operation: 'add',
+            data: {
+              url: 'http://mozilla.org',
+              title: 'homepage'
+            }
           });
         }
       };
@@ -46,17 +46,13 @@ suite('search/providers/places', function() {
   setup(function(done) {
     fakeElement = document.createElement('div');
     fakeElement.style.cssText = 'height: 100px; display: block;';
-    stubById = this.sinon.stub(document, 'getElementById')
+    this.sinon.stub(document, 'getElementById')
                           .returns(fakeElement.cloneNode(true));
     requireApp('search/js/providers/places.js', function() {
       subject = window.Places;
       subject.init();
-      done();
+      promiseDone.then(done.bind(null, null));
     });
-  });
-
-  teardown(function() {
-    stubById.restore();
   });
 
   suite('search', function() {
