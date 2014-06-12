@@ -273,6 +273,7 @@ navigator.mozL10n.once(function bluetoothSettings() {
       disconnectOpt: document.getElementById('disconnect-option'),
       unpairOpt: document.getElementById('unpair-option'),
       confirmDlg: document.getElementById('unpair-device'),
+      unpairCancel: document.getElementById('unpair-device-cancel'),
       confirmOpt: document.getElementById('confirm-option'),
 
       showActions: function showActions() {
@@ -301,11 +302,12 @@ navigator.mozL10n.once(function bluetoothSettings() {
 
       showConfirm: function showConfirm() {
         var self = this;
-        this.confirmDlg.onclick = function() {
+        this.unpairCancel.onclick = function() {
           return self.close();
         };
         this.confirmOpt.onclick = function() {
           setDeviceUnpair(self.device);
+          return self.close();
         };
         this.confirmDlg.hidden = false;
       },
