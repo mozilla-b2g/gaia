@@ -5242,6 +5242,7 @@ suite('thread_ui.js >', function() {
             ThreadUI.draft.isEdited = false;
 
             ThreadUI.back().then(function() {
+              assert.isNull(ThreadUI.draft);
               assert.isFalse(OptionMenu.calledOnce);
               assert.isFalse(showCalled);
             }).then(done, done);
@@ -5254,6 +5255,7 @@ suite('thread_ui.js >', function() {
             ThreadUI.draft.isEdited = false;
 
             ThreadUI.back().then(function() {
+              assert.isNull(ThreadUI.draft);
               assert.isFalse(OptionMenu.calledOnce);
               assert.isFalse(showCalled);
             }).then(done, done);
@@ -5265,6 +5267,7 @@ suite('thread_ui.js >', function() {
             ThreadUI.draft.isEdited = false;
 
             ThreadUI.back().then(function() {
+              assert.isNull(ThreadUI.draft);
               assert.isFalse(OptionMenu.calledOnce);
               assert.isFalse(showCalled);
             }).then(done, done);
