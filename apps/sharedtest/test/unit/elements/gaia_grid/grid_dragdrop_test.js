@@ -73,6 +73,22 @@ suite('GaiaGrid > DragDrop', function() {
     assert.equal(grid.items[1].name, 'first');
   });
 
+  test('cleanup if the touch gesture is canceled', function() {
+    var firstBookmark = document.querySelector('.icon');
+    firstBookmark.dispatchEvent(new CustomEvent('contextmenu',
+      {bubbles: true}));
+    assert.ok(grid.dragdrop.inEditMode);
+    assert.ok(firstBookmark.classList.contains('active'));
+
+    grid.dragdrop.handleEvent({
+      type: 'touchcancel',
+      stopImmediatePropagation: function() {},
+      preventDefault: function() {}
+    });
+
+    assert.isFalse(firstBookmark.classList.contains('active'));
+  });
+
   test('rearrange uses reference of icon for position', function() {
     var subject = grid.dragdrop;
     subject.icon = grid.items[0];

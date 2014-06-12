@@ -264,11 +264,13 @@
     removeDragHandlers: function() {
       this.container.removeEventListener('touchmove', this);
       this.container.removeEventListener('touchend', this);
+      window.removeEventListener('touchcancel', this);
     },
 
     addDragHandlers: function() {
       this.container.addEventListener('touchmove', this);
       this.container.addEventListener('touchend', this);
+      window.addEventListener('touchcancel', this);
     },
 
     /**
@@ -322,6 +324,10 @@
 
             break;
 
+          case 'touchcancel':
+            this.removeDragHandlers();
+            this.finish();
+            break;
           case 'touchend':
             // Ensure the app is not launched
             e.stopImmediatePropagation();
