@@ -174,6 +174,10 @@ if (appMessages.hasPending('alarm')) {
 
 // If still have a cached node, then show it.
 if (cachedNode) {
+  // l10n may not see this as it was injected before l10n.js was loaded,
+  // so let it know it needs to translate it.
+  mozL10n.translate(cachedNode);
+
   // Wire up a card implementation to the cached node.
   if (startCardId) {
     pushStartCard(startCardId);
