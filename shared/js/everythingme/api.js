@@ -9,6 +9,8 @@
   var API_URL = 'https://api.everything.me/partners/1.0/{resource}/';
   var API_KEY = '79011a035b40ef3d7baeabc8f85b862f';
 
+  var ICON_FORMAT = 20;
+
   /**
    * Make an async httpRequest to resource with given options.
    * Returns a promise which will be resolved/reject on success/error
@@ -124,6 +126,9 @@
         if (!!options.query && options.query.length > this.MAX_QUERY_LENGTH) {
           options.query = options.query.substr(0, this.MAX_QUERY_LENGTH);
         }
+
+        options.iconFormat = ICON_FORMAT;
+
         return Request('Apps', 'search', options);
       }
     };

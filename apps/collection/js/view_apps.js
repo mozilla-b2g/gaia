@@ -10,11 +10,10 @@
       offline: document.getElementById('offline'),
       offlineMessage: document.getElementById('offline-message')
     };
-    var requestParams = {
-      query: collection.query,
-      categoryId: collection.categoryId,
-      iconFormat: getIconFormat()
-    };
+
+    var options = collection.categoryId ? {categoryId: collection.categoryId}
+                                        : {query: collection.query};
+
 
     // render pinned apps first
     collection.render(grid);
@@ -40,7 +39,7 @@
     function makeRequest() {
       loading();
 
-      eme.api.Apps.search(requestParams)
+      eme.api.Apps.search(options)
         .then(function success(searchResponse) {
           var results = [];
 
@@ -56,7 +55,8 @@
 
           onResponse();
 
-          grid.clientLeft; // force layout or else grid isn't displayed
+          // XXX force layout or else grid isn't displayed
+          grid.clientLeft;
           collection.webResults = results;
           collection.render(grid);
 
@@ -81,10 +81,6 @@
     function removeListeners() {
       window.removeEventListener('online', makeRequest);
       window.removeEventListener('offline', onOffline);
-    }
-
-    function getIconFormat() {
-      return 20;
     }
   }
 
