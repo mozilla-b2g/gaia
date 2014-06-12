@@ -417,49 +417,61 @@
     return inputSequencePromise;
   }
 
+  function updateInternalState(keycode, repeat) {
+    // First, update our internal state
+    if (keycode === BACKSPACE) {
+      if (selection) {
+        // backspace while a region is selected erases the selection
+        // and leaves the cursor at the selection start
+        inputText = inputText.substring(0, cursor) +
+          inputText.substring(selection);
+        selection = 0;
+      } else if (cursor > 0) {
+        cursor--;
+        inputText = inputText.substring(0, cursor) +
+          inputText.substring(cursor + 1);
+
+        // If we have temporarily disabled auto correction for the current
+        // word and we've just backspaced over the entire word, then we can
+        // re-enabled it again
+        if (correctionDisabled && !wordBeforeCursor())
+          correctionDisabled = false;
+      }
+    } else {
+      if (selection) {
+        inputText =
+          inputText.substring(0, cursor) +
+          String.fromCharCode(keycode) +
+          inputText.substring(selection);
+        selection = 0;
+      } else {
+        inputText =
+          inputText.substring(0, cursor) +
+          String.fromCharCode(keycode) +
+          inputText.substring(cursor);
+      }
+      cursor++;
+    }
+  }
+
   // Handle any key (including backspace) and do the right thing even if
   // there is a selection in the text field. This method does not perform
   // auto-correction or auto-punctuation.
   function handleKey(keycode, repeat) {
-    // Generate the key event
-    return keyboard.sendKey(keycode, repeat).then(function() {
-      // First, update our internal state
-      if (keycode === BACKSPACE) {
-        if (selection) {
-          // backspace while a region is selected erases the selection
-          // and leaves the cursor at the selection start
-          inputText = inputText.substring(0, cursor) +
-            inputText.substring(selection);
-          selection = 0;
-        } else if (cursor > 0) {
-          cursor--;
-          inputText = inputText.substring(0, cursor) +
-            inputText.substring(cursor + 1);
-
-          // If we have temporarily disabled auto correction for the current
-          // word and we've just backspaced over the entire word, then we can
-          // re-enabled it again
-          if (correctionDisabled && !wordBeforeCursor())
-            correctionDisabled = false;
-        }
-      } else {
-        if (selection) {
-          inputText =
-            inputText.substring(0, cursor) +
-            String.fromCharCode(keycode) +
-            inputText.substring(selection);
-          selection = 0;
-        } else {
-          inputText =
-            inputText.substring(0, cursor) +
-            String.fromCharCode(keycode) +
-            inputText.substring(cursor);
-        }
-        cursor++;
-      }
-    }, function() {
-      // sendKey got canceled, keep state the same
-    });
+    var promise = keyboard.sendKey(keycode, repeat);
+    if (promise !== null) {
+      return promise.then(function() {
+        updateInternalState(keycode, repeat);
+      }, function() {
+        // sendKey got canceled, keep state the same
+      });
+    } else {
+      // We didn't get a promise from keyboard.sendKey, so the API must want us
+      // to update our internal state immediately. This happens when content has
+      // no event listeners, in which case there's no way for the event to be
+      // intercepted and/or canceled.
+      updateInternalState(keycode, repeat);
+    }
   }
 
   // Assuming that the word before the cursor is oldWord, send a
