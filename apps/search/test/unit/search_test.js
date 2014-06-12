@@ -454,7 +454,7 @@ suite('search/search', function() {
     });
 
     test('common domain parts filtered out', function() {
-      Search.fuzzyResults = {
+      Search.dedupe.fuzzyResults = {
         'touch': true,
         'mobile': true
       };
@@ -502,6 +502,26 @@ suite('search/search', function() {
       var renderStub = this.sinon.stub(provider, 'render');
       Search.collect(provider, results);
       assert.equal(renderStub.getCall(0).args[0].length, 2);
+    });
+
+    test('exact provider ignores querystring', function() {
+      var results1 = [
+        {dedupeId: 'https://mozilla.org/index.html?ignoreme=true'}
+      ];
+
+      var results2 = [
+        {dedupeId: 'https://mozilla.org/index.html'}
+      ];
+
+      var provider1 = exactProvider();
+      var provider2 = exactProvider();
+
+      var renderStub1 = this.sinon.stub(provider1, 'render');
+      var renderStub2 = this.sinon.stub(provider2, 'render');
+      Search.collect(provider1, results1);
+      Search.collect(provider2, results2);
+      assert.equal(renderStub1.getCall(0).args[0].length, 1);
+      assert.equal(renderStub2.getCall(0).args[0].length, 0);
     });
 
     test('Dont search remote providers when suggestions disabled', function() {
