@@ -94,10 +94,22 @@ Calendar.ns('Views').ViewEvent = (function() {
       this.setContent('location', model.location);
 
       if (this.originalCalendar) {
+        var calendarId = this.originalCalendar.remote.id;
+        var isLocalCalendar = calendarId === Calendar.Provider.Local.calendarId;
+        var calendarName = isLocalCalendar ?
+          navigator.mozL10n.get('calendar-local') :
+          this.originalCalendar.remote.name;
+
         this.setContent(
           'current-calendar',
-          this.originalCalendar.remote.name
+          calendarName
         );
+
+        if (isLocalCalendar) {
+          this.getEl('current-calendar')
+            .querySelector('.content')
+            .setAttribute('data-l10n-id', 'calendar-local');
+        }
       }
 
       var dateSrc = model;
@@ -136,12 +148,10 @@ Calendar.ns('Views').ViewEvent = (function() {
         var alarmDescription = Calendar.Templates.Alarm.description;
 
         for (var i = 0, alarm; alarm = this.event.alarms[i]; i++) {
-          alarmContent += '<div>' +
-            alarmDescription.render({
+          alarmContent += alarmDescription.render({
               trigger: alarm.trigger,
               layout: this.event.isAllDay ? 'allday' : 'standard'
-            }) +
-          '</div>';
+            });
         }
       }
 
