@@ -19,21 +19,21 @@
       <header id="wallpaper-header">
         <h2 data-l10n-id="wallpaper">Wallpaper</h2>
       </header>
-      <div class="wallpaper">
-        <img class="wallpaper-preview" alt="wallpaper preview"/>
-        <button class="wallpaper-button"></button>
+      <div id="wallpaper">
+        <img id="wallpaper-preview" alt="wallpaper preview"/>
+        <button id="wallpaper-button"></button>
       </div>
       <header>
         <h2 id="brightness-heading" data-l10n-id="brightness">Brightness</h2>
       </header>
       <ul>
-        <li class="brightness-auto">
+        <li id="brightness-auto">
           <label class="pack-checkbox">
             <input type="checkbox" name="screen.automatic-brightness">
             <span data-l10n-id="brightness-autoAdjust">Adjust Automatically</span>
           </label>
         </li>
-        <li class="brightness-manual">
+        <li id="brightness-manual">
           <label class="range-icons brightness">
             <input aria-labelledby="brightness-heading" type="range" name="screen.brightness" step="0.01" min="0.1" value="0.5" max="1" />
           </label>
@@ -53,7 +53,9 @@
       </ul>
     </div>
 
-    <panel data-path="panels/display/panel"></panel>
+    <script src="shared/js/omadrm/fl.js"></script>
+    <script src="js/display.js"></script>
+    <script src="js/wallpaper.js"></script>
 
   </template>
 </element>

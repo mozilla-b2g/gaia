@@ -1,4 +1,3 @@
-/* exported ForwardLock */
 /*
  * This file defines a ForwardLock object with functions for locking and
  * unlocking content and for key management for the FirefoxOS implementation
@@ -30,9 +29,9 @@
 
 (function(exports) {
   // Make sure we only run once
-  if (exports.ForwardLock) {
+  if (exports.ForwardLock)
     return;
-  }
+
   const mimeSubtype = 'vnd.mozilla.oma.drm.fl';
   const SECRET_SETTINGS_ID = 'oma.drm.forward_lock.secret.key';
   var secret = null;
@@ -44,9 +43,8 @@
     // View the array buffer as 32-bit words. There may be 1 to 3
     // bytes at the end of the buffer that are not encrypted.
     var words = new Uint32Array(buffer, 0, buffer.byteLength >> 2);
-    for (var i = 0, n = words.length; i < n; i++) {
+    for (var i = 0, n = words.length; i < n; i++)
       words[i] ^= key;
-    }
   }
 
   // Return a blob in .lcka format for specified audio content,
@@ -104,32 +102,28 @@
         header += String.fromCharCode(bytes[i]);
       }
 
-      if (!header.startsWith('LOCKED')) {
+      if (!header.startsWith('LOCKED'))
         return error('Bad magic number');
-      }
-      if (header.substring(6, 9) !== ' 1 ') {
+      if (header.substring(6, 9) !== ' 1 ')
         return error('Unsupported version number');
-      }
-      if (!contentStart) {
+      if (!contentStart)
         return error('No content');
-      }
+
       var eol = header.indexOf('\n');
-      if (eol === -1) {
+      if (eol === -1)
         return error('malformed header');
-      }
+
       var type = unescape(header.substring(9, eol).trim());
 
       var metadata = {};
       var lines = header.substring(eol + 1).split('\n');
-      for (var j = 0; j < lines.length; j++) {
-        var line = lines[j];
-        if (!line) {  // ignore blank line at the end of the key:value pairs
+      for (var i = 0; i < lines.length; i++) {
+        var line = lines[i];
+        if (!line)  // ignore blank line at the end of the key:value pairs
           continue;
-        }
         var [key, value] = line.split(':');
-        if (!key || !value) {
+        if (!key || !value)
           return error('malformed metadata');
-        }
         metadata[unescape(key)] = unescape(value);
       }
 
@@ -254,4 +248,5 @@
     getKey: getKey,
     getOrCreateKey: getOrCreateKey
   };
-}(window));
+
+}(this));

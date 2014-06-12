@@ -16,16 +16,16 @@ function DisplayPanel(client) {
 module.exports = DisplayPanel;
 
 DisplayPanel.Selectors = {
-  'wallpaper': '.wallpaper',
+  'wallpaper': '#wallpaper',
   'lockOrientationCheckbox': '#display input[name="screen.orientation.lock"]',
   'lockOrientationSpan':
     '#display input[name="screen.orientation.lock"] ~ span',
-  'autoBrightnessItem': '.brightness-auto',
+  'autoBrightnessItem': '#brightness-auto',
   'autoBrightnessCheckbox':
     '#display input[name="screen.automatic-brightness"]',
   'autoBrightnessSpan':
     '#display input[name="screen.automatic-brightness"] ~ span',
-  'manualBrightnessItem': '.brightness-manual',
+  'manualBrightnessItem': '#brightness-manual',
   'screenTimeoutSelectorItem': '#screen-timeout',
   'screenTimeoutSelector': '#screen-timeout select'
 };

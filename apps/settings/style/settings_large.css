@@ -10,7 +10,7 @@
   /**
    * wallpaper
    */
-  section[role="region"]#display .wallpaper-button {
+  section[role="region"]#display #wallpaper-button {
     background-position: 95% 24%;
   }
 
@@ -177,11 +177,11 @@
   /**
    * wallpaper
    */
-  section[role="region"]#display .wallpaper {
+  section[role="region"]#display #wallpaper {
     height: 33.5rem;
   }
 
-  section[role="region"]#display .wallpaper-button {
+  section[role="region"]#display #wallpaper-button {
     background-position: right 4rem top 2.5rem;
     /*background-position: 76.5rem 2.5rem;*/
   }
@@ -253,7 +253,7 @@
   /**
    * display
    */
-  ul li.brightness-manual > label input[type="range"] {
+  ul li#brightness-manual > label input[type="range"] {
     display: inline;
     left: 5rem;
     top: calc(50% - 1.5rem);

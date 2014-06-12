@@ -75,9 +75,8 @@ define(function() {
      * setter for them.
      */
     for (var p in obj) {
-      // If p is a function, simply add it to the observable.
+      // XXX: We need to support function in the future. Filter it out for now.
       if (typeof obj[p] === 'function') {
-        _observable[p] = obj[p];
         continue;
       }
 

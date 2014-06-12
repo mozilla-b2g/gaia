@@ -436,13 +436,13 @@ section ul.operate-certificate {
 
 #wallpaper-header { border: none; }
 
-.wallpaper {
+#wallpaper {
   position: relative;
   overflow: hidden;
   height: 17rem;
 }
 
-.wallpaper .wallpaper-button {
+#wallpaper-button {
   background: url(images/wallpaper_edit.png) no-repeat 25rem 11.5rem / 4.5rem;
   position: absolute;
   border: none;
@@ -452,12 +452,11 @@ section ul.operate-certificate {
   left: 0;
   margin: 0;
 }
-
-.wallpaper .wallpaper-button:active {
+#wallpaper-button:active {
   background-image: url(images/wallpaper_edit_pressed.png);
 }
 
-.wallpaper .wallpaper-preview {
+#wallpaper-preview {
   margin-top: -10rem;
   position: absolute;
   width: 100%;
@@ -501,7 +500,7 @@ ul li > label.range-icons.brightness:before {
   right: auto;
 }
 
-li.brightness-manual div {
+#brightness-manual div {
   position: relative;
   top: calc(50% - 1.5rem);
   left: 5rem;
@@ -843,7 +842,7 @@ html[dir="rtl"] ul li > label.range-icons.brightness:before {
   right: 1rem;
 }
 
-html[dir="rtl"] .brightness-manual div {
+html[dir="rtl"] #brightness-manual div {
   left: auto;
   right: 5rem;
 }

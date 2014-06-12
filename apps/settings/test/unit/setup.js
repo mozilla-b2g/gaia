@@ -27,6 +27,9 @@ requireApp('settings/js/vendor/alameda.js', (function() {
       'unit/mock_l10n': {
         exports: 'MockL10n'
       },
+      'unit/mock_moz_apps': {
+        exports: 'MockMozApps'
+      },
       'unit/mock_async_storage': {
         exports: 'MockAsyncStorage'
       },
@@ -42,9 +45,6 @@ requireApp('settings/js/vendor/alameda.js', (function() {
       'unit/mock_xml_http_request': {
         exports: 'MockXmlHttpRequest'
       },
-      'unit/mock_moz_apps': {
-        exports: 'MockMozApps'
-      },
       'shared_mocks/mock_navigator_moz_settings': {
         exports: 'MockNavigatorSettings'
       },
@@ -59,12 +59,6 @@ requireApp('settings/js/vendor/alameda.js', (function() {
       },
       'shared_mocks/mock_manifest_helper': {
         exports: 'MockManifestHelper'
-      },
-      'shared_mocks/mock_moz_activity': {
-        exports: 'MockMozActivity'
-      },
-      'shared_mocks/mock_settings_url': {
-        exports: 'MockSettingsURL'
       }
     },
     modules: [

@@ -1,5 +1,4 @@
 'use strict';
-/* exported MockSettingsURL */
 
 function MockSettingsURL() {
   this._url = null;
@@ -16,7 +15,6 @@ MockSettingsURL.prototype = {
     return this._url;
   },
 
-  mTeardown: function() {
-    this._url = null;
+  mTeardown: function msu_mTeardown() {
   }
 };
