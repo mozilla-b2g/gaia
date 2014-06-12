@@ -148,13 +148,13 @@
       return new Promise((accept, reject) => {
         this.app.ondownloadsuccess = this.app.ondownloaderror = () => {
           _super().
-            then(() => {
+            then((blob) => {
               this.hideDownloading();
-              accept();
+              accept(blob);
             }).
-            catch(() => {
+            catch((e) => {
               this.hideDownloading();
-              reject();
+              reject(e);
             });
         };
       });
