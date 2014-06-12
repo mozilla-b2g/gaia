@@ -1,6 +1,7 @@
 'use strict';
 /* global Contextmenu */
 
+require('/shared/js/l10n.js');
 require('/js/contextmenu.js');
 
 suite('contextmenu > ', function() {
