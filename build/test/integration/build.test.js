@@ -518,6 +518,12 @@ suite('Build Integration tests', function() {
   });
 
   test('make with DEBUG=1', function(done) {
+    // avoid downloading extension from addon website
+    var extConfigPath  = path.join('build', 'config',
+      'additional-extensions.json');
+    fs.renameSync(extConfigPath, extConfigPath + '.bak');
+    fs.writeFileSync(extConfigPath, '{}');
+
     helper.exec('DEBUG=1 make', function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
 
@@ -620,6 +626,9 @@ suite('Build Integration tests', function() {
           helper.checkPrefs(sandbox.userPrefs, expectedUserPrefs);
           // only expect one zip file for marketplace.
           assert.equal(zipCount, 1);
+
+          fs.unlinkSync(extConfigPath);
+          fs.renameSync(extConfigPath + '.bak', extConfigPath);
           done();
         }
       );
