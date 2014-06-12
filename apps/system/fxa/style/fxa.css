@@ -38,6 +38,11 @@ input {
   -moz-user-select: text;
 }
 
+ul {
+  list-style: none;
+  padding: 0;
+}
+
 /* * * * * * * * * * * * * * * * * * * * * * * *
  * Navigation bar based on a flex model
  * * * * * * * * * * * * * * * * * * * * * * * */

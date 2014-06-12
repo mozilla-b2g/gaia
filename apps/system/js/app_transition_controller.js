@@ -248,21 +248,36 @@
       // May have orientation manager to deal with lock orientation request.
       this.app.setOrientation();
 
-      this.app.waitForNextPaint(function() {
-        if (this._transitionState !== 'opened' || !this.app.loaded) {
-          this.app.debug('not loaded so not focusing for now.');
-          return;
+      // Focus will impact loadtime so we have to wait it's loaded.
+      if (!this.app.loaded) {
+        this.app.debug('not loaded so wait for loaded', this.app.loaded);
+        if (!this.loadedHandler) {
+          this.loadedHandler = function() {
+            this.app.element.removeEventListener('_loaded', this.loadedHandler);
+            this.focusApp();
+          }.bind(this);
+          this.app.element.addEventListener('_loaded', this.loadedHandler);
         }
-        // XXX: Remove this after SIMPIN Dialog is refactored.
-        // See https://bugzilla.mozilla.org/show_bug.cgi?id=938979
-        // XXX: Rocketbar losing input focus
-        // See: https://bugzilla.mozilla.org/show_bug.cgi?id=961557
-        if (!SimPinDialog.visible && !rocketbar.shown) {
-          this.app.debug('focusing this app.');
-          this.app.focus();
-        }
-      }.bind(this));
+      } else {
+        this.focusApp();
+      }
     };
+
+  AppTransitionController.prototype.focusApp = function() {
+    if (!this.app) {
+      return;
+    }
+
+    // XXX: Remove this after SIMPIN Dialog is refactored.
+    // See https://bugzilla.mozilla.org/show_bug.cgi?id=938979
+    // XXX: Rocketbar losing input focus
+    // See: https://bugzilla.mozilla.org/show_bug.cgi?id=961557
+    if (this._transitionState == 'opened' &&
+        !SimPinDialog.visible && !rocketbar.active) {
+      this.app.debug('focusing this app.');
+      this.app.focus();
+    }
+  };
 
   AppTransitionController.prototype.requireOpen = function(animation) {
     this.currentAnimation = animation || this.openAnimation;

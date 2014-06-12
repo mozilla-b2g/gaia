@@ -9,7 +9,12 @@ gaia-header {
   z-index: 10;
 }
 
+header {
+  display: flex;
+}
+
 h1 {
+  flex: 1 1 auto;
   font-size: 2.3rem;
   line-height: 5rem;
   white-space: nowrap;
@@ -31,13 +36,6 @@ h1 em {
   font-style: normal;
 }
 
-menu {
-  height: 100%;
-  float: right;
-  padding: 0;
-  margin: 0;
-}
-
 /* Buttons */
 a,
 button {
@@ -45,7 +43,6 @@ button {
   position: relative;
   display: block;
   overflow: hidden;
-  float: left;
   min-width: 5rem;
   width: auto;
   height: 5rem;
@@ -85,7 +82,7 @@ button[disabled] {
 
 /* Hidden */
 [hidden] {
-  display: none;
+  visibility: hidden;
 }
 
 /* Icons */
@@ -108,14 +105,6 @@ button[disabled] {
 /* We would need an attribute to know if we are using rtl,
  * as styles are scoped
  */
-html[dir="rtl"] menu {
-  float: left;
-}
-
-html[dir="rtl"] a,
-html[dir="rtl"] button {
-  float: right;
-}
 
 html[dir="rtl"] [icon="back"] {
   transform: rotate(180deg);
@@ -293,16 +282,16 @@ button:focus {
 ----------------------------------------------------------------- */
 
 [transition] {
-  display: block;
   position: absolute;
   top: 0;
   right: 0;
   left: 0;
+  transition: visibility 0.4s;
 }
 
 [transition="slide"] {
   transform: translateY(0);
-  transition: transform 0.4s ease;
+  transition: transform 0.4s ease, visibility 0.4s;
 }
 
 [transition="slide"][hidden] {
@@ -312,7 +301,7 @@ button:focus {
 [transition="fade"] {
   opacity: 1;
   pointer-events: auto;
-  transition: opacity 0.4s ease;
+  transition: opacity 0.4s ease, visibility 0.4s;
 }
 
 [transition="fade"][hidden] {

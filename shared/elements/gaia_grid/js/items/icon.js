@@ -1,21 +1,16 @@
 'use strict';
 /* global GridItem */
 /* global UrlHelper */
+/* global Promise */
 
 (function(exports) {
-
-  var _ = navigator.mozL10n.get;
-
-  const ICON_PATH_BY_DEFAULT = 'style/images/default_icon.png';
-
-  const CONFIRM_DIALOG_ID = 'confirmation-message';
 
   const IDENTIFIER_SEP = '-';
 
   /**
-   * Represents a single app icon on the homepage.
+   * Represents  single app icon on the homepage.
    */
-  function Icon(app, entryPoint) {
+  function Icon(app, entryPoint, details) {
     this.app = app;
     this.entryPoint = entryPoint;
 
@@ -23,7 +18,9 @@
       type: 'app',
       manifestURL: app.manifestURL,
       entryPoint: entryPoint,
-      index: 0
+      index: 0,
+      // XXX: Somewhat ugly hack around the constructor args
+      defaultIconBlob: details && details.defaultIconBlob
     };
   }
 
@@ -55,7 +52,7 @@
     _icon: function() {
       var icons = this.descriptor.icons;
       if (!icons) {
-        return ICON_PATH_BY_DEFAULT;
+        return this.defaultIcon;
       }
 
       // Create a list with the sizes and order it by descending size
@@ -68,7 +65,7 @@
       var length = list.length;
       if (length === 0) {
         // No icons -> icon by default
-        return ICON_PATH_BY_DEFAULT;
+        return this.defaultIcon;
       }
 
       var maxSize = this.grid.layout.gridMaxIconSize; // The goal size
@@ -136,14 +133,54 @@
       return this.app.removable;
     },
 
+    fetchIconBlob: function() {
+      var _super = GridItem.prototype.fetchIconBlob.bind(this);
+      if (!this.app.downloading) {
+        return _super();
+      }
+
+      // show the spinner while the app is downloading!
+      this.showDownloading();
+      this.app.onprogress = this.showDownloading.bind(this);
+
+      // XXX: This is not safe if some upstream consumer wanted to listen to
+      //      these events we just clobbered them.
+      return new Promise((accept, reject) => {
+        this.app.ondownloadsuccess = this.app.ondownloaderror = () => {
+          _super().
+            then((blob) => {
+              this.hideDownloading();
+              accept(blob);
+            }).
+            catch((e) => {
+              this.hideDownloading();
+              reject(e);
+            });
+        };
+      });
+    },
+
     /**
-     * Launches the application for this icon.
+     * Resolves click action.
      */
     launch: function() {
-      if (this.entryPoint) {
-        this.app.launch(this.entryPoint);
+      var app = this.app;
+      if (app.downloading) {
+        window.dispatchEvent(
+          new CustomEvent('gaiagrid-cancel-download-mozapp', {
+            'detail': this
+          })
+        );
+      } else if (app.downloadAvailable) {
+        window.dispatchEvent(
+          new CustomEvent('gaiagrid-resume-download-mozapp', {
+            'detail': this
+          })
+        );
+      } else if (this.entryPoint) {
+        app.launch(this.entryPoint);
       } else {
-        this.app.launch();
+        app.launch();
       }
     },
 
@@ -151,39 +188,17 @@
      * Uninstalls the application.
      */
     remove: function() {
-      var nameObj = {
-        name: this.name
-      };
+      window.dispatchEvent(new CustomEvent('gaiagrid-uninstall-mozapp', {
+        'detail': this
+      }));
+    },
 
-      var title = document.getElementById(CONFIRM_DIALOG_ID + '-title');
-      title.textContent = _('delete-title', nameObj);
+    showDownloading: function() {
+      this.element.classList.add('loading');
+    },
 
-      var body = document.getElementById(CONFIRM_DIALOG_ID + '-body');
-      body.textContent = _('delete-body', nameObj);
-
-      var dialog = document.getElementById(CONFIRM_DIALOG_ID);
-      var cancelButton = document.getElementById(CONFIRM_DIALOG_ID + '-cancel');
-      var deleteButton = document.getElementById(CONFIRM_DIALOG_ID + '-delete');
-
-      var app = this.app;
-      var handler = {
-        handleEvent: function(e) {
-          if (e.type === 'click' && e.target === deleteButton) {
-            navigator.mozApps.mgmt.uninstall(app);
-          }
-
-          window.removeEventListener('hashchange', handler);
-          cancelButton.removeEventListener('click', handler);
-          deleteButton.removeEventListener('click', handler);
-          dialog.setAttribute('hidden', '');
-        }
-      };
-
-      cancelButton.addEventListener('click', handler);
-      deleteButton.addEventListener('click', handler);
-      window.addEventListener('hashchange', handler);
-
-      dialog.removeAttribute('hidden');
+    hideDownloading: function() {
+      this.element.classList.remove('loading');
     }
   };
 

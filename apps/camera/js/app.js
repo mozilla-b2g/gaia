@@ -1,11 +1,13 @@
 define(function(require, exports, module) {
 'use strict';
 
+// For perf-measurement related utilities
+require('performance-testing-helper');
+
 /**
  * Dependencies
  */
 
-var PerformanceTestingHelper = require('performance-testing-helper');
 var NotificationView = require('views/notification');
 var LoadingView = require('views/loading-screen');
 var ViewfinderView = require('views/viewfinder');
@@ -99,8 +101,19 @@ App.prototype.boot = function() {
   this.bindEvents();
   this.initializeViews();
   this.runControllers();
+
+  // PERFORMANCE EVENT (1): moz-chrome-dom-loaded
+  // Designates that the app's *core* chrome or navigation interface
+  // exists in the DOM and is marked as ready to be displayed.
+  window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
+
+  // PERFORMANCE EVENT (2): moz-chrome-interactive
+  // Designates that the app's *core* chrome or navigation interface
+  // has its events bound and is ready for user interaction.
+  window.dispatchEvent(new CustomEvent('moz-chrome-interactive'));
+
   this.injectViews();
-  this.showLoading();
+
   this.booted = true;
   debug('booted');
 };
@@ -174,8 +187,8 @@ App.prototype.bindEvents = function() {
   // App
   this.once('viewfinder:visible', this.onCriticalPathDone);
   this.once('storage:checked:healthy', this.geolocationWatch);
-  this.on('camera:takingpicture', this.showLoading);
   this.on('camera:ready', this.clearLoading);
+  this.on('camera:busy', this.onCameraBusy);
   this.on('visible', this.onVisible);
   this.on('hidden', this.onHidden);
 
@@ -238,11 +251,23 @@ App.prototype.onClick = function() {
  * @private
  */
 App.prototype.onCriticalPathDone = function() {
+
+  // PERFORMANCE EVENT (3): moz-app-visually-complete
+  // Designates that the app is visually loaded (e.g.: all of the
+  // "above-the-fold" content exists in the DOM and is marked as
+  // ready to be displayed).
+  window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
+
+  // PERFORMANCE EVENT (4): moz-content-interactive
+  // Designates that the app has its events bound for the minimum
+  // set of functionality to allow the user to interact with the
+  // "above-the-fold" content.
+  window.dispatchEvent(new CustomEvent('moz-content-interactive'));
+
   var start = window.performance.timing.domLoading;
   var took = Date.now() - start;
 
   // Indicate critical path is done to help track performance
-  PerformanceTestingHelper.dispatch('startup-path-done');
   console.log('critical-path took %s', took + 'ms');
 
   // Load non-critical modules
@@ -256,6 +281,29 @@ App.prototype.onCriticalPathDone = function() {
 
   this.criticalPathDone = true;
   this.emit('criticalpathdone');
+
+  // PERFORMANCE EVENT (5): moz-app-loaded
+  // Designates that the app is *completely* loaded and all relevant
+  // "below-the-fold" content exists in the DOM, is marked visible,
+  // has its events bound and is ready for user interaction. All
+  // required startup background processing should be complete.
+  window.dispatchEvent(new CustomEvent('moz-app-loaded'));
+};
+
+/**
+ * When the camera indicates it's busy it
+ * sometimes passes a `type` string. When
+ * this type matches one of our keys in the
+ * `loadingScreen` config, we display the
+ * loading screen in the given number
+ * of milliseconds.
+ *
+ * @param  {String} type
+ * @private
+ */
+App.prototype.onCameraBusy = function(type) {
+  var delay = this.settings.loadingScreen.get(type);
+  if (delay) { this.showLoading(delay); }
 };
 
 /**
@@ -346,18 +394,18 @@ App.prototype.l10nGet = function(key) {
  * Shows the loading screen after the
  * number of ms defined in config.js
  *
+ * @param {Number} delay
  * @private
  */
-App.prototype.showLoading = function() {
-  debug('show loading');
-  var ms = this.settings.loadingScreen.get('delay');
+App.prototype.showLoading = function(delay) {
+  debug('show loading delay: %s', delay);
   var self = this;
   clearTimeout(this.loadingTimeout);
   this.loadingTimeout = setTimeout(function() {
     self.views.loading = new self.LoadingView();
     self.views.loading.appendTo(self.el).show();
     debug('loading shown');
-  }, ms);
+  }, delay);
 };
 
 /**

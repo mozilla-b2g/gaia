@@ -1,12 +1,15 @@
 'use strict';
 /* global module */
 
+var System = require('../../../../../apps/system/test/marionette/lib/system');
+
 /**
  * Abstraction around homescreen.
  * @constructor
  */
 function Home2(client) {
   this.client = client;
+  this.system = new System(client);
 }
 
 Home2.clientOptions = {
@@ -34,7 +37,8 @@ Home2.Selectors = {
   editHeaderDone: '#edit-header menu a',
   search: '#search',
   firstIcon: '#icons div.icon:not(.placeholder)',
-  dividers: '#icons div.divider'
+  dividers: '#icons div.divider',
+  contextmenu: '#contextmenu-dialog'
 };
 
 /**
@@ -70,6 +74,40 @@ Home2.prototype = {
   },
 
   /**
+  Tap an app icon and switch to it's application iframe.
+
+  @param {String} manifestURL full manifest url path.
+  */
+  launchAndSwitchToApp: function(manifestURL) {
+    var client = this.client.scope({ searchTimeout: 100 });
+    var frame;
+    client.waitFor(function() {
+      // switch back to the homescreen
+      client.switchToFrame();
+      client.switchToFrame(this.system.getHomescreenIframe());
+
+      // tap the app in the homescreen
+      var newApp = this.getIcon(manifestURL);
+      newApp.click();
+
+      // go to the system app
+      client.switchToFrame();
+
+      // wait for the app to show up
+      try {
+        frame = client.findElement(
+          'iframe[mozapp="' + manifestURL + '"]'
+        );
+      } catch(e) {
+        // try again...
+        return false;
+      }
+      client.switchToFrame(frame);
+      return true;
+    }.bind(this));
+  },
+
+  /**
   Fetch an icon element on the homescreen.
 
   @param {String} manifestURL must be a fully qualified manifest url.
@@ -95,10 +133,10 @@ Home2.prototype = {
    * @param {String} locale
    */
   localizedAppName: function(app, locale) {
-    this.client = this.client.scope({context: 'chrome'});
+    var client = this.client.scope({context: 'chrome'});
 
     var file = 'app://' + app + '.gaiamobile.org/manifest.webapp';
-    var manifest = this.client.executeScript(function(file) {
+    var manifest = client.executeScript(function(file) {
       var xhr = new XMLHttpRequest();
       var data;
       xhr.open('GET', file, false); // Intentional sync
@@ -111,6 +149,26 @@ Home2.prototype = {
 
     var locales = manifest.locales;
     return locales && locales[locale].name;
+  },
+
+  /**
+   * Returns a localized string from a properties file.
+   * @param {String} file to open.
+   * @param {String} key of the string to lookup.
+   */
+  l10n: function(file, key) {
+    var string = this.client.executeScript(function(file, key) {
+      var xhr = new XMLHttpRequest();
+      var data;
+      xhr.open('GET', file, false); // Intentional sync
+      xhr.onload = function(o) {
+        data = JSON.parse(xhr.response);
+      };
+      xhr.send(null);
+      return data;
+    }, [file, key]);
+
+    return string[key];
   },
 
   containsClass: function(selector, clazz) {

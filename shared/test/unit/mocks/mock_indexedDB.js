@@ -8,6 +8,7 @@ function MockIndexedDB() {
   var dbs = [];
   var deletedDbs = [];
   this.options = {};
+  this.storedDataDbs = {};
 
   var self = this;
 
@@ -23,15 +24,24 @@ function MockIndexedDB() {
     }
   });
 
-  var FakeDB = function(name) {
-    var dummyFunction = function() {};
+  var FakeDB = function(name , storedData) {
+    var dummyFunction = function(obj) {
+      return obj;
+    };
+
     this.receivedData = [];
     this.deletedData = [];
-    this.storedData = {};
+    this.storedData = storedData || {};
     this.options = {};
 
+    var objectStore = {
+      createIndex: dummyFunction
+    };
+
     this.objectStoreNames = ['fakeObjStore'];
-    this.createObjectStore = dummyFunction;
+    this.createObjectStore = dummyFunction.bind(undefined,
+                                                objectStore);
+
     this.deleteObjectStore = dummyFunction;
     this.transaction = sinon.stub();
     this.objectStore = sinon.stub();
@@ -40,6 +50,9 @@ function MockIndexedDB() {
     this.delete = dummyFunction;
     this.openCursor = dummyFunction;
     this.close = dummyFunction;
+    this.clear = dummyFunction;
+    this.index = sinon.stub();
+    this.index.returns(this);
 
     this.transaction.returns(this);
     this.objectStore.returns(this);
@@ -51,7 +64,7 @@ function MockIndexedDB() {
     });
 
     sinon.stub(this, 'put', function(data) {
-      self.receivedData.put(data);
+      self.receivedData.push(data);
       return transRequest;
     });
 
@@ -119,7 +132,7 @@ function MockIndexedDB() {
       });
     }
 
-    var db = new FakeDB(name);
+    var db = new FakeDB(name, self.storedDataDbs[name]);
     dbs.push(db);
     var outReq = _getRequest(db, {
       upgradeNeeded: (Array.isArray(self.options.upgradeNeededDbs) &&

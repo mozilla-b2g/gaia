@@ -6,7 +6,6 @@
 
     <script defer src="shared/js/l10n.js"></script>
     <script defer src="shared/js/settings_listener.js"></script>
-    <script defer src="shared/js/mobile_operator.js"></script>
     <script defer src="shared/js/lazy_loader.js"></script>
     <script defer src="shared/js/component_utils.js"></script>
     <script defer src="shared/js/collections_database.js"></script>
@@ -24,7 +23,6 @@
     <script defer src="shared/elements/gaia_grid/js/grid_dragdrop.js"></script>
     <script defer src="shared/elements/gaia_grid/js/grid_zoom.js"></script>
     <script defer src="shared/elements/gaia_grid/script.js"></script>
-    <script defer src="shared/elements/gaia_grid/js/icon_retriever.js"></script>
     <!-- /gaia grid -->
 
     <script defer src="shared/elements/gaia_menu/script.js"></script>
@@ -36,10 +34,13 @@
     <script defer src="js/objects.js"></script>
     <script defer src="js/contextmenu.js"></script>
     <script defer src="js/view_collection.js"></script>
+    <script defer src="js/view_apps.js"></script>
+    <script defer src="js/view_bg.js"></script>
 
     <link rel="stylesheet" href="style/css/base.css">
     <link rel="stylesheet" href="style/css/view.css">
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
+    <link rel="stylesheet" type="text/css" href="shared/style/progress_activity.css">
 
   </head>
   <body>
@@ -49,7 +50,15 @@
     </div>
 
     <div id="content">
-        <gaia-grid id="grid"></gaia-grid>
+        <gaia-grid cols="4" id="grid"></gaia-grid>
+
+        <section role="notification" id="offline">
+            <span id="offline-message"></span>
+        </section>
+
+        <section role="notification" id="loading">
+            <progress></progress>
+        </section>
     </div>
 
     <gaia-menu id="cloud-menu" hidden>

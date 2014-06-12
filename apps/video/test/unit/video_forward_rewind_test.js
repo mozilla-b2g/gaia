@@ -5,7 +5,7 @@
 requireApp('/video/test/unit/mock_video_player.js');
 requireApp('/video/js/forward_rewind_controller.js');
 
-var seekInterval = 5; // Used in forward_rewind_controller.js
+var pause;
 
 suite('Video forward rewind Unit Tests', function() {
 
@@ -14,6 +14,9 @@ suite('Video forward rewind Unit Tests', function() {
   var play;
   var videoToolBar;
   var player;
+  var videoDuration = 50;
+  var pauseSpy;
+  var fakeTimer;
 
   suiteSetup(function() {
     videoToolBar = document.createElement('div');
@@ -24,9 +27,12 @@ suite('Video forward rewind Unit Tests', function() {
     videoToolBar.appendChild(play);
     videoToolBar.appendChild(seekForward);
     player = new MockVideoPlayer();
-    player.setDuration(50);
+    player.setDuration(videoDuration);
     ForwardRewindController.init(player, seekForward,
                                  seekBackward);
+    pauseSpy = sinon.spy();
+    pause = pauseSpy;
+    fakeTimer = sinon.useFakeTimers();
   });
 
   suiteTeardown(function() {
@@ -52,42 +58,86 @@ suite('Video forward rewind Unit Tests', function() {
       button.dispatchEvent(ev);
     };
 
+    setup(function() {
+      pauseSpy.reset();
+    });
+
     test('#Test Playing Video Forward Button Tap Test', function() {
       simulateClick(seekForward);
-      assert.isTrue(player.currentTime === 10);
+      assert.equal(player.currentTime, 10);
     });
 
     test('#Test Playing Video Rewind Button Tap Test', function() {
       simulateClick(seekBackward);
-      assert.isTrue(player.currentTime === 0);
+      assert.equal(player.currentTime, 0);
     });
 
     test('#Test Playing Video Play Button Tap Test', function() {
       simulateClick(play);
       simulateClick(seekForward);
-      assert.isTrue(player.currentTime === 10);
+      assert.equal(player.currentTime, 10);
       simulateClick(seekBackward);
-      assert.isTrue(player.currentTime === 0);
+      assert.equal(player.currentTime, 0);
     });
 
-    test('#Test Playing Video Forward Button Hold Test', function(done) {
+    test('#Test Playing Video Play Button Tap Test, wrap', function() {
+      player.currentTime = videoDuration - 5;
+      simulateClick(play);
+      simulateClick(seekForward);
+      assert.equal(player.currentTime, videoDuration);
+      assert.isTrue(pauseSpy.calledOnce);
+    });
+
+    test('#Test Playing Video Rewind Button Tap Test, wrap', function() {
+      player.currentTime = 5;
+      simulateClick(play);
+      simulateClick(seekBackward);
+      assert.equal(player.currentTime, 0);
+      assert.equal(pauseSpy.callCount, 0);
+    });
+
+    test('#Test Playing Video Forward Button Hold Test', function() {
       var currentTime = player.currentTime;
       simulateContextMenu(seekForward);
-      setTimeout(function() {
-        ForwardRewindController.stopFastSeeking();
-        assert.isTrue(player.currentTime == currentTime + 10);
-        done();
-      }, seekInterval);
+
+      fakeTimer.tick(1500);
+
+      ForwardRewindController.stopFastSeeking();
+      assert.equal(player.currentTime, currentTime + 10);
+      assert.equal(pauseSpy.callCount, 0);
     });
 
-    test('#Test Playing Video Rewind Button Hold Test', function(done) {
-      var currentTime = player.currentTime;
+    test('#Test Playing Video Forward Button Hold Test, wrap', function() {
+      player.currentTime = videoDuration - 5;
+      simulateContextMenu(seekForward);
+
+      fakeTimer.tick(1500);
+
+      ForwardRewindController.stopFastSeeking();
+      assert.equal(player.currentTime, videoDuration);
+      assert.isTrue(pauseSpy.calledOnce);
+    });
+
+    test('#Test Playing Video Rewind Button Hold Test', function() {
+      player.currentTime = 20;
       simulateContextMenu(seekBackward);
-      setTimeout(function() {
-        ForwardRewindController.stopFastSeeking();
-        assert.isTrue(player.currentTime == currentTime - 10);
-        done();
-      }, seekInterval);
+
+      fakeTimer.tick(1500);
+
+      ForwardRewindController.stopFastSeeking();
+      assert.equal(player.currentTime, 10);
+      assert.equal(pauseSpy.callCount, 0);
+    });
+
+    test('#Test Playing Video Rewind Button Hold Test, wrap', function() {
+      player.currentTime = 5;
+      simulateContextMenu(seekBackward);
+
+      fakeTimer.tick(1500);
+
+      ForwardRewindController.stopFastSeeking();
+      assert.equal(player.currentTime, 0);
+      assert.equal(pauseSpy.callCount, 0);
     });
   });
 });

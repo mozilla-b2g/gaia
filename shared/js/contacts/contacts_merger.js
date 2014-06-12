@@ -211,8 +211,11 @@ contacts.Merger = (function() {
         mergedPhoto = [photo];
       }
 
-      populateField(theMatchingContact.adr, mergedContact.adr,
-                                                              DEFAULT_ADR_TYPE);
+      populateField(
+        theMatchingContact.adr,
+        mergedContact.adr,
+        DEFAULT_ADR_TYPE
+      );
 
       populateField(theMatchingContact.url, mergedContact.url);
       populateField(theMatchingContact.note, mergedContact.note);
@@ -300,11 +303,23 @@ contacts.Merger = (function() {
 
   function populateField(source, destination, defaultType) {
     if (Array.isArray(source)) {
-      source.forEach(function(as) {
-        if (defaultType && (!as.type || !as.type[0])) {
-          as.type = [defaultType];
+      // The easiest way to compare two objects is to compare their's
+      // stringified JSON representations as strings. So we create
+      // temporary Array with JSONs of the objects to compare.
+      var stringifiedDestination = destination.map(function(element){
+        return JSON.stringify(element);
+      });
+
+      source.forEach(function(as, index) {
+        // If the source value and destination value is the same we
+        // don't want to merge and will leave contact as it is. This
+        // prevents duplication of the data like in Bug 935636
+        if (stringifiedDestination.indexOf(JSON.stringify(as)) === -1) {
+          if (defaultType && (!as.type || !as.type[0])) {
+            as.type = [defaultType];
+          }
+          destination.push(as);
         }
-        destination.push(as);
       });
     }
   }

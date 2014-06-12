@@ -113,18 +113,6 @@
 
     var request = window.indexedDB.open(DB_NAME, DB_VERSION);
 
-    request.onsuccess = function _onsuccess() {
-      db = request.result;
-
-      if (isEmpty) {
-        self.populate(
-          self.fetch.bind(self, self.synchronize.bind(self)));
-      } else {
-        self.initSources(
-          self.fetch.bind(self, self.synchronize.bind(self)));
-      }
-    };
-
     request.onupgradeneeded = function _onupgradeneeded(event) {
       var db = event.target.result;
 
@@ -141,6 +129,18 @@
           var objectSV = db.createObjectStore(DB_SV_APP_STORE_NAME,
             { keyPath: 'manifestURL' });
           objectSV.createIndex('indexSV', 'indexSV', { unique: true });
+      }
+    };
+
+    request.onsuccess = function _onsuccess() {
+      db = request.result;
+
+      if (isEmpty) {
+        self.populate(
+          self.fetch.bind(self, self.synchronize.bind(self)));
+      } else {
+        self.initSources(
+          self.fetch.bind(self, self.synchronize.bind(self)));
       }
     };
   }
@@ -181,6 +181,27 @@
           aNext();
         }
       });
+    },
+
+    /**
+     * @param {Object} object a single object to update.
+     * @param {Function} callback fires when transaction finishes.
+     */
+    saveItem: function(object, callback) {
+      // intentional use of == meaning null or undefined.
+      if (object.index == null) {
+        console.error('Attempting to save object without `index`');
+        return;
+      }
+
+      newTxn(
+        DB_ITEM_STORE,
+        'readwrite',
+        function(txn, store) {
+          store.put(object);
+        },
+        callback
+      );
     },
 
     /**

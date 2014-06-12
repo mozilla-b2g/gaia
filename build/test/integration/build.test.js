@@ -7,6 +7,9 @@ var AdmZip = require('adm-zip');
 var dive = require('dive');
 var helper = require('./helper');
 
+const MAX_PROFILE_SIZE_MB = 65;
+const MAX_PROFILE_SIZE = MAX_PROFILE_SIZE_MB * 1024 * 1024;
+
 suite('ADB tests', function() {
   suiteSetup(function() {
     rmrf('build/test/integration/result');
@@ -382,7 +385,19 @@ suite('Build Integration tests', function() {
         'gallery', 'js', 'frame_scripts.js');
       assert.ok(fs.existsSync(galleryMetadataScriptPath),
         'frame_scripts.js should exist');
-      done();
+
+      var profileSize = 0;
+      dive(path.join(process.cwd(), 'profile'), {recursive: true},
+        function action(err, file) {
+          profileSize += fs.statSync(file).size;
+        },
+        function complete() {
+          assert(profileSize < MAX_PROFILE_SIZE,
+            'profile size should be less than ' + MAX_PROFILE_SIZE_MB +
+            'MB, current is ' + (profileSize / 1024 / 1024).toFixed(2) + 'MB');
+          done();
+        }
+      );
     });
   });
 
@@ -503,6 +518,12 @@ suite('Build Integration tests', function() {
   });
 
   test('make with DEBUG=1', function(done) {
+    // avoid downloading extension from addon website
+    var extConfigPath  = path.join('build', 'config',
+      'additional-extensions.json');
+    fs.renameSync(extConfigPath, extConfigPath + '.bak');
+    fs.writeFileSync(extConfigPath, '{}');
+
     helper.exec('DEBUG=1 make', function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
 
@@ -605,6 +626,9 @@ suite('Build Integration tests', function() {
           helper.checkPrefs(sandbox.userPrefs, expectedUserPrefs);
           // only expect one zip file for marketplace.
           assert.equal(zipCount, 1);
+
+          fs.unlinkSync(extConfigPath);
+          fs.renameSync(extConfigPath + '.bak', extConfigPath);
           done();
         }
       );

@@ -18,18 +18,21 @@ marionette('Vertical - Search', function() {
     rocketbar = new Rocketbar(client);
     system = new System(client);
     system.waitForStartup();
+
+    search.removeGeolocationPermission();
   });
 
-  // Skip test since it fails to handle the geolocation permission dialog
-  // https://bugzilla.mozilla.org/show_bug.cgi?id=1018925
-  test.skip('Search for app', function() {
+  test('Search for app', function() {
     home.waitForLaunch();
     client.helper.waitForElement(Home2.Selectors.search).tap();
     client.switchToFrame();
 
     rocketbar.enterText('Phone');
     search.goToResults();
-    search.checkResult('firstApp', 'Phone');
+
+    var phoneIdentifier =
+      'app://communications.gaiamobile.org/manifest.webapp-dialer';
+    search.checkAppResult(phoneIdentifier, 'Phone');
     search.goToApp('app://communications.gaiamobile.org', 'dialer');
   });
 

@@ -13,13 +13,6 @@ DataGridProvider.prototype = {
 
   init: function() {
     this.grid = document.getElementById('icons');
-
-    // Hack to force a 4 column layout
-    window.dispatchEvent(new CustomEvent('appzoom', {
-      'detail': {
-        cols: 4
-      }
-    }));
   },
 
   clear: function() {

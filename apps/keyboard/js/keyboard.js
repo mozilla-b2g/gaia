@@ -46,13 +46,13 @@ var inputContext = null;
 // The keyboard app can display different layouts for different languages
 // We sometimes refer to these different layouts as "keyboards", so this single
 // keyboard app can display many different keyboards.  The currently displayed
-// keyboard is specified with setKeyboardName(). That function sets the
+// keyboard is specified with updateCurrentLayout(). That function sets the
 // following variables based on its argument.
 //
 // See keyboard/layouts for layout data.
 //
 // The keyboardName is always the URL hash this page loaded with.
-// setKeyboardName() is called when pages loads, when visibility changes,
+// updateCurrentLayout() is called when pages loads, when visibility changes,
 // and when URL hash changes.
 var keyboardName = null;
 
@@ -158,8 +158,18 @@ var fakeAppObject = {
 var inputMethodManager = new InputMethodManager(fakeAppObject);
 inputMethodManager.start();
 
+// LayoutManager loads and holds layout layouts for us.
+// It also help us ensure there is only one current layout at the time.
+var layoutManager = new LayoutManager();
+layoutManager.start();
+var layoutLoader = layoutManager.loader;
+
 // SettingsPromiseManager wraps Settings DB methods into promises.
 var settingsPromiseManager = new SettingsPromiseManager();
+
+// L10nLoader loads l10n.js. We call it's one and only load() method
+// only after we have run everything in the critical cold launch path.
+var l10nLoader = new L10nLoader();
 
 // User settings (in Settings database) are tracked within these modules
 var soundFeedbackSettings;
@@ -253,11 +263,9 @@ function initKeyboard() {
 
   window.addEventListener('hashchange', function() {
     perfTimer.printTime('hashchange');
-    var inputMethodName = window.location.hash.substring(1);
-    setKeyboardName(inputMethodName, function() {
-      resetKeyboard();
-      showKeyboard();
-    });
+    var layoutName = window.location.hash.substring(1);
+    layoutLoader.getLayoutAsync(layoutName);
+    updateCurrentLayout(layoutName);
   }, false);
 
   // Need to listen to both mozvisibilitychange and oninputcontextchange,
@@ -265,14 +273,14 @@ function initKeyboard() {
   // showKeyboard() when mozHidden is false and we got inputContext
   window.addEventListener('mozvisibilitychange', function visibilityHandler() {
     perfTimer.printTime('mozvisibilitychange');
-    var inputMethodName = window.location.hash.substring(1);
-    setKeyboardName(inputMethodName, function() {
-      if (!document.mozHidden && inputContext) {
-        showKeyboard();
-      } else {
-        hideKeyboard();
-      }
-    });
+    if (document.mozHidden && !inputContext) {
+      hideKeyboard();
+
+      return;
+    }
+
+    var layoutName = window.location.hash.substring(1);
+    updateCurrentLayout(layoutName);
   });
 
   window.navigator.mozInputMethod.oninputcontextchange = function() {
@@ -281,39 +289,37 @@ function initKeyboard() {
     if (inputContext) {
       inputContextGetTextPromise = inputContext.getText();
     }
-    var inputMethodName = window.location.hash.substring(1);
-    setKeyboardName(inputMethodName, function() {
-      if (!document.mozHidden && inputContext) {
-        showKeyboard();
-      } else {
-        hideKeyboard();
-      }
-    });
+    if (document.mozHidden && !inputContext) {
+      hideKeyboard();
+
+      return;
+    }
+
+    var layoutName = window.location.hash.substring(1);
+    updateCurrentLayout(layoutName);
   };
 
   // Initialize the current layout according to
   // the hash this page is loaded with.
-  var inputMethodName = '';
+  var layoutName = '';
   if (window.location.hash !== '') {
-    inputMethodName = window.location.hash.substring(1);
+    layoutName = window.location.hash.substring(1);
+    layoutLoader.getLayoutAsync(layoutName);
   } else {
     console.error('This page should never be loaded without an URL hash.');
+
+    return;
+  }
+
+  // fill inputContextGetTextPromise and inputContext
+  inputContext = navigator.mozInputMethod.inputcontext;
+  if (inputContext) {
+    inputContextGetTextPromise = inputContext.getText();
   }
 
   // Finally, if we are only loaded by keyboard manager when the user
   // have already focused, the keyboard should show right away.
-  inputContext = navigator.mozInputMethod.inputcontext;
-  if (!document.mozHidden && inputContext) {
-    inputContextGetTextPromise = inputContext.getText();
-    perfTimer.printTime(
-      'initKeyboard->setKeyboardName->showKeyboard', 'initKeyboard');
-    // show Keyboard after the input method has been initialized
-    setKeyboardName(inputMethodName, showKeyboard);
-  } else {
-    perfTimer.printTime(
-      'initKeyboard->setKeyboardName', 'initKeyboard');
-    setKeyboardName(inputMethodName);
-  }
+  updateCurrentLayout(layoutName);
 }
 
 function handleKeyboardSound(settings) {
@@ -334,44 +340,36 @@ function deactivateInputMethod() {
   inputMethodManager.switchCurrentIMEngine('default');
 }
 
-function setKeyboardName(name, callback) {
-  perfTimer.printTime('setKeyboardName');
+function updateCurrentLayout(name) {
+  perfTimer.printTime('updateCurrentLayout');
 
-  var keyboard;
-
-  if (name in Keyboards) {
-    setLayout(name);
-  } else {
-    // If we have not already loaded the layout, load it now
-    var layoutFile = 'js/layouts/' + name + '.js';
-    var script = document.createElement('script');
-    script.src = layoutFile;
-    script.onload = function() {
-      setLayout(name);
-    };
-    script.onerror = function() {
-      // If this happens, we have a misconfigured build and the
-      // keyboard manifest does not match the layouts in js/layouts/
-      console.error('Cannot load keyboard layout', layoutFile);
-    };
-    document.head.appendChild(script);
-  }
-
-  function setLayout(name) {
-    perfTimer.printTime('setLayout');
+  layoutManager.switchCurrentLayout(name).then(function() {
+    perfTimer.printTime('updateCurrentLayout:promise resolved');
     keyboardName = name;
-    keyboard = Keyboards[name];
+    keyboard = layoutLoader.getLayout(name);
 
     // Ask the loader to start loading IMEngine
-    var loader = inputMethodManager.loader;
+    var imEngineloader = inputMethodManager.loader;
     var imEngineName = keyboard.imEngine;
-    if (imEngineName && !loader.getInputMethod(imEngineName)) {
-      loader.getInputMethodAsync(imEngineName);
+    if (imEngineName && !imEngineloader.getInputMethod(imEngineName)) {
+      imEngineloader.getInputMethodAsync(imEngineName);
     }
-    if (callback) {
-      callback();
+
+    // Now the that we have the layout ready,
+    // we should either show or hide the keyboard.
+    if (!document.mozHidden && inputContext) {
+      showKeyboard();
+    } else {
+      hideKeyboard();
+
+      // Load l10n library here, there is nothing more to do left
+      // in the critical path.
+      l10nLoader.load();
     }
-  }
+  }, function(error) {
+    console.warn('Failed to switch layout for ' + name + '.' +
+      ' It might possible because we were called more than once.');
+  });
 }
 
 // Support function for render
@@ -469,10 +467,11 @@ function modifyLayout(keyboardName) {
   // Start with this base layout
   var layout;
   if (altLayoutName) {
-    layout = Keyboards[keyboardName][altLayoutName] || Keyboards[altLayoutName];
+    layout = layoutLoader.getLayout(keyboardName)[altLayoutName] ||
+      layoutLoader.getLayout(altLayoutName);
   }
   else {
-    layout = Keyboards[keyboardName];
+    layout = layoutLoader.getLayout(keyboardName);
   }
 
   // Look for the space key in the layout. We're going to insert
@@ -509,8 +508,8 @@ function modifyLayout(keyboardName) {
     // 'layout' holds alternatelayout which doesn't include basicLayoutKey.
     // Check and use 'basicLayoutKey' defined by each keyboard.
     var basicLayoutKey = 'ABC';
-    if (Keyboards[keyboardName]['basicLayoutKey']) {
-      basicLayoutKey = Keyboards[keyboardName]['basicLayoutKey'];
+    if (layoutLoader.getLayout(keyboardName)['basicLayoutKey']) {
+      basicLayoutKey = layoutLoader.getLayout(keyboardName)['basicLayoutKey'];
     }
 
     if (!layout['disableAlternateLayout']) {
@@ -546,8 +545,8 @@ function modifyLayout(keyboardName) {
         className: 'switch-key'
       };
 
-      if ('shortLabel' in Keyboards[keyboardName]) {
-        imeSwitchKey.value = Keyboards[keyboardName].shortLabel;
+      if ('shortLabel' in layoutLoader.getLayout(keyboardName)) {
+        imeSwitchKey.value = layoutLoader.getLayout(keyboardName).shortLabel;
         imeSwitchKey.className += ' alternate-indicator';
       }
 
@@ -653,7 +652,7 @@ function renderKeyboard(keyboardName) {
   // Add meta keys and type-specific keys to the base layout
   currentLayout = modifyLayout(keyboardName);
 
-  var keyboard = Keyboards[keyboardName];
+  var keyboard = layoutLoader.getLayout(keyboardName);
 
   IMERender.ime.classList.remove('full-candidate-panel');
 
@@ -954,7 +953,7 @@ function hideAlternatives() {
 // Test if an HTML node is a normal key
 function isNormalKey(key) {
   var keyCode = parseInt(key.dataset.keycode);
-  return keyCode || key.dataset.selection || key.dataset.compositekey;
+  return keyCode || key.dataset.selection || key.dataset.compositeKey;
 }
 
 //
@@ -1412,10 +1411,10 @@ function endPress(target, coords, touchId, hasCandidateScrolled) {
 
     // Normal key
   default:
-    if (target.dataset.compositekey) {
+    if (target.dataset.compositeKey) {
       // Keys with this attribute set send more than a single character
       // Like ".com" or "2nd" or (in Catalan) "l·l".
-      var compositeKey = target.dataset.compositekey;
+      var compositeKey = target.dataset.compositeKey;
       for (var i = 0; i < compositeKey.length; i++) {
         inputMethodManager.currentIMEngine.click(compositeKey.charCodeAt(i));
       }
@@ -1611,7 +1610,7 @@ function onResize() {
 function switchIMEngine(layoutName, mustRender) {
   perfTimer.printTime('switchIMEngine');
 
-  var layout = Keyboards[layoutName];
+  var layout = layoutLoader.getLayout(layoutName);
   var imEngineName = layout.imEngine || 'default';
 
   // dataPromise resolves to an array of data to be sent to imEngine.activate()
@@ -1646,6 +1645,9 @@ function switchIMEngine(layoutName, mustRender) {
     if (mustRender || imEngineName !== 'default') {
       renderKeyboard(layoutName);
     }
+
+    // Load l10n library after IMEngine is loaded (if it's not loaded yet).
+    l10nLoader.load();
   }, function() {
     console.warn('Failed to switch imEngine for ' + layoutName + '.' +
       ' It might possible because we were called more than once.');
@@ -1725,8 +1727,8 @@ function needsCandidatePanel() {
     return false;
   }
 
-  return !!((Keyboards[keyboardName].autoCorrectLanguage ||
-           Keyboards[keyboardName].needsCandidatePanel) &&
+  return !!((layoutLoader.getLayout(keyboardName).autoCorrectLanguage ||
+           layoutLoader.getLayout(keyboardName).needsCandidatePanel) &&
           (!inputMethodManager.currentIMEngine.displaysCandidates ||
            inputMethodManager.currentIMEngine.displaysCandidates()));
 }

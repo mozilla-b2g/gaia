@@ -1,4 +1,4 @@
-marionette_client==0.7.7
+marionette_client==0.7.9
 mozdevice>=0.34
 moztest>=0.3
 plivo==0.9.6

@@ -120,6 +120,11 @@ class Homescreen(Base):
 
         def tap_icon(self):
             expected_name = self.name
+
+            #TODO remove scroll after Bug 937053 is resolved
+            self.marionette.execute_script(
+                'arguments[0].scrollIntoView(false);', [self.root_element])
+
             self.root_element.tap()
             self.wait_for_condition(lambda m: self.apps.displayed_app.name.lower() == expected_name.lower())
             self.apps.switch_to_displayed_app()

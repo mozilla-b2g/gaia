@@ -997,83 +997,8 @@ var Browser = {
   },
 
   // Saves a media file to device storage.
-  saveMedia: function browser_saveMedia(url, type) {
-    function displayMessage(message) {
-      var status = document.getElementById('save-media-status');
-      status.firstElementChild.textContent = message;
-      status.classList.add('visible');
-      window.setTimeout(function() {
-        status.classList.remove('visible');
-      }, 3000);
-    }
-
-    function storeBlob(blob, name, retryCount) {
-      /*
-       * XXX: Bug 852864 - DeviceStorage addNamed failed with TypeMismatchError
-       * 3gp and ogg types of audio files are returned as blobs of video type.
-       * The workaround here is saving the blob to corresponding storage based
-       * on the type of it instead of the type specified by users. Which allows
-       * users able to save those types of audio files.
-       */
-      var storageTypeMap = {
-        'image': 'pictures',
-        'video': 'videos',
-        'audio': 'music'
-      };
-      var blobType = blob.type.split('/')[0];
-      var storageType = storageTypeMap[blobType];
-      if (!storageType) {
-        displayMessage(_('error-saving-' + type));
-        return;
-      }
-
-      var storage = navigator.getDeviceStorage(storageType);
-      var addreq = storage.addNamed(blob, name);
-
-      addreq.onsuccess = function() {
-        displayMessage(_(type + '-saved'));
-      };
-      addreq.onerror = function() {
-        // Prepend some always changing id and try to store again, but give up
-        // after MAX_SAVING_RETRIES retries.
-        if (addreq.error.name === 'NoModificationAllowedError' &&
-            retryCount !== Browser.MAX_SAVING_RETRIES) {
-          name = Date.now() + '-' + name;
-          storeBlob(blob, name, retryCount + 1);
-        } else {
-          displayMessage(_('error-saving-' + type));
-        }
-      };
-    }
-
-    var xhr = new XMLHttpRequest({mozSystem: true});
-    xhr.open('GET', url, true);
-    xhr.responseType = 'blob';
-    xhr.onload = function browser_mediaDataListener() {
-      if (xhr.status !== 200 || !xhr.response) {
-        displayMessage(_('error-saving-' + type));
-        return;
-      }
-
-      // Save the blob to device storage.
-      // Extract a filename from the URL, and to some sanitizing.
-      var name = url.split('/').reverse()[0].toLowerCase().split(/[&?#]/g)[0]
-                    .replace(/[^a-z0-9\.]/g, '_');
-
-      // If we have no file extension, use the content-type header to
-      // add one.
-      var ext = MimeMapper.guessExtensionFromType(xhr.response.type);
-      if (ext && name.indexOf(ext) === -1) {
-        name += '.' + ext;
-      }
-
-      storeBlob(xhr.response, name, 0);
-    };
-
-    xhr.onerror = function getDefaultDataError() {
-      displayMessage(_('error-saving-' + type));
-    };
-    xhr.send();
+  saveMedia: function browser_saveMedia(url) {
+    this.currentTab.dom.download(url);
   },
 
   // This generates callbacks for context menu targets that have
@@ -1106,7 +1031,7 @@ var Browser = {
         return {
           label: _('save-' + type),
           callback: function() {
-            self.saveMedia(item.data.uri, type);
+            self.saveMedia(item.data.uri);
           }
         };
       default:
@@ -1119,7 +1044,6 @@ var Browser = {
     var menuData = evt.detail;
     var dialog = document.createElement('section');
     var menu = document.createElement('menu');
-    var list = document.createElement('ul');
     var self = this;
     // SystemTargets are default elements that have contextmenu
     // actions associated
@@ -1161,9 +1085,8 @@ var Browser = {
     evt.preventDefault();
 
     menuItems.forEach(function(menuitem) {
-      var li = document.createElement('li');
-      li.id = menuitem.id;
       var button = this.createButton(menuitem.label, menuitem.icon);
+      button.id = menuitem.id;
 
       button.addEventListener('click', function() {
         document.body.removeChild(dialog);
@@ -1171,22 +1094,20 @@ var Browser = {
         menuitem.callback();
       });
 
-      li.appendChild(button);
-      list.appendChild(li);
+      menu.appendChild(button);
     }, this);
 
-    var cancel = document.createElement('li');
+    var cancel = this.createButton(_('cancel'));
     cancel.id = 'cancel';
-    cancel.appendChild(this.createButton(_('cancel')));
-    list.appendChild(cancel);
+    menu.appendChild(cancel);
 
     cancel.addEventListener('click', function(e) {
       self.contextMenuHasCalled = false;
       document.body.removeChild(dialog);
     });
 
-    menu.classList.add('actions');
-    menu.appendChild(list);
+    menu.setAttribute('type', 'toolbar');
+    dialog.setAttribute('data-type', 'action');
     dialog.setAttribute('role', 'dialog');
     dialog.appendChild(menu);
     document.body.appendChild(dialog);

@@ -33,8 +33,11 @@ module.exports = View.extend({
 
   onButtonClick: function(e, el) {
     var name = el.getAttribute('name');
+    var enabled = this.get('data-enabled');
     e.stopPropagation();
-    this.emit('click:' + name, e);
+    if (enabled === 'true') {
+      this.emit('click:' + name, e);
+    }
   },
 
   template: function() {

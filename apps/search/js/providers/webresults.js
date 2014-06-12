@@ -14,6 +14,7 @@
 
     dedupes: true,
     dedupeStrategy: 'fuzzy',
+    remote: true,
 
     renderFullscreen: false,
 
@@ -57,7 +58,9 @@
                 url: app.appUrl,
                 icon: app.icon,
                 clipIcon: true
-              })
+              }, {
+                search: true}
+              )
             });
           }, this);
           collect(results);

@@ -1,4 +1,5 @@
 suite('lib/storage', function() {
+  /*jshint maxlen:false*/
   'use strict';
   var require = window.req;
 
@@ -14,6 +15,7 @@ suite('lib/storage', function() {
 
   setup(function() {
     this.clock = sinon.useFakeTimers();
+    this.sandbox = sinon.sandbox.create();
 
     this.video = {};
     this.video.addEventListener = sinon.spy();
@@ -25,7 +27,7 @@ suite('lib/storage', function() {
 
     // Stub getDeviceStorage
     if (!navigator.getDeviceStorage) { navigator.getDeviceStorage = function() {}; }
-    sinon.stub(navigator, 'getDeviceStorage');
+    this.sandbox.stub(navigator, 'getDeviceStorage');
 
     navigator.getDeviceStorage
       .withArgs('pictures')
@@ -36,7 +38,8 @@ suite('lib/storage', function() {
       .returns(this.video);
 
     var options = {
-      createFilename: sinon.stub().callsArgWith(2, 'filename.file')
+      createFilename: sinon.stub().callsArgWith(2, 'filename.file'),
+      dcf: { init: sinon.spy() }
     };
 
     // The test instance
@@ -47,8 +50,8 @@ suite('lib/storage', function() {
   });
 
   teardown(function() {
-    navigator.getDeviceStorage.restore();
     this.clock.restore();
+    this.sandbox.restore();
   });
 
   suite('Storage()', function() {
@@ -59,8 +62,6 @@ suite('lib/storage', function() {
 
   suite('Storage#addPicture()', function() {
     setup(function() {
-      var self = this;
-
       this.picture.addNamed = sinon.spy(function() { return this.addNamed.req; });
       this.picture.addNamed.req = { result: '/path/to/picture.jpg' };
 

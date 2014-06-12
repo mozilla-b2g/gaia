@@ -14,6 +14,8 @@ var CallLog = {
       return;
     }
 
+    PerformanceTestingHelper.dispatch('start-call-log');
+
     this._initialized = true;
 
     var lazyFiles = [

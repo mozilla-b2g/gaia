@@ -688,4 +688,30 @@ suite('Contacts Merging Tests', function() {
       done();
     }});
   });
+
+  test('Merge duplicated contact', function(done) {
+    var contactToMerge = new MasterContact();
+
+    contacts.Merger.merge(
+      new MasterContact(),
+      [
+        {
+          matchingContact: contactToMerge
+        }
+      ], {
+      success: function(result) {
+        // mozContacts fields that are not filled in main contact will be
+        // filled with 'undefined' what makes no difference for how the app
+        // works, but we cannot just compare (deepEqually) MasterContact to
+        // the result contact.
+        for (var key in contactToMerge) {
+          // Some of the fields are Arrays and we want to be sure they are
+          // equal. deepEqual works as equal for simple literals so it makes
+          // no difference for us here.
+          assert.deepEqual(result[key], contactToMerge[key]);
+        }
+        done();
+      }});
+  });
+
 });
