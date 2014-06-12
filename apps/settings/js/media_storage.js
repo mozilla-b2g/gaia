@@ -363,11 +363,21 @@ var MediaStorage = {
     var settings = Settings.mozSettings;
     this._volumeList.forEach(function(volume, index) {
       var key = 'ums.volume.' + volume.name + '.enabled';
+
+      // This key is introduced for controling if a USB share toggle is visible
+      // because if a storage isn't formatted as vfat, it can't be shared
+      // Since we are not able to detect the format of a storage, use a setting
+      // instead to make it manually configurable.
+      var shareKey = 'ums.volume.' + volume.name + '.mountable';
       Settings.getSettings(function(allSettings) {
         var input = document.querySelector('input[name="' + key + '"]');
-        input.checked = allSettings[key] || false;
-        self.usmEnabledVolume[index] = input.checked;
-        self.updateMasterUmsDesc();
+        if (allSettings[shareKey] === false) {
+          input.parentNode.parentNode.style.display = 'none';
+        } else {
+          input.checked = allSettings[key] || false;
+          self.usmEnabledVolume[index] = input.checked;
+          self.updateMasterUmsDesc();
+        }
       });
       settings.addObserver(key, function(evt) {
         self.usmEnabledVolume[index] = evt.settingValue;
