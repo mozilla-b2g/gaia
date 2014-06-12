@@ -5,13 +5,11 @@ define(function(require) {
   var Root = require('panels/root/root');
   var StorageUSB = require('panels/root/storage_usb');
   var StorageApp = require('panels/root/storage_app');
-  var StorageMedia = require('panels/root/storage_media');
 
   return function ctor_root_panel() {
     var root = Root();
     var storage_usb = StorageUSB();
     var storage_app = StorageApp();
-    var storage_media = StorageMedia();
 
     return SettingsPanel({
       onInit: function rp_onInit(panel) {
@@ -28,13 +26,11 @@ define(function(require) {
 
         storage_usb.init(elements);
         storage_app.init(elements);
-        storage_media.init(elements);
         root.init();
       },
       onBeforeShow: function kalp_onBeforeShow() {
         storage_usb.enabled = true;
         storage_app.enabled = true;
-        storage_media.enabled = true;
       },
       onShow: function rp_onShow() {
         // XXX: Set data-ready to true to indicate that the first panel is
@@ -46,7 +42,6 @@ define(function(require) {
       onHide: function kalp_onHide() {
         storage_usb.enabled = false;
         storage_app.enabled = false;
-        storage_media.enabled = false;
       }
     });
   };
