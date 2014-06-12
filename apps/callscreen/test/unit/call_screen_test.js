@@ -978,4 +978,26 @@ suite('call screen', function() {
       assert.isTrue(bluetoothMenu.classList.contains('display'));
     });
   });
+
+  suite('hidePlaceNewCallButton', function() {
+    test('should toggle no-add-call class', function() {
+      CallScreen.hidePlaceNewCallButton();
+      assert.isTrue(callToolbar.classList.contains('no-add-call'));
+    });
+  });
+
+  suite('showPlaceNewCallButton', function() {
+    test('should not toggle no-add-call class', function() {
+      CallScreen.showPlaceNewCallButton();
+      assert.isFalse(callToolbar.classList.contains('no-add-call'));
+    });
+  });
+
+  suite('cdmaConferenceCall', function() {
+    test('should toggle no-add-call class and hidden group-show', function() {
+      CallScreen.cdmaConferenceCall();
+      assert.isTrue(callToolbar.classList.contains('no-add-call'));
+      assert.isTrue(calls.classList.contains('cdma-conference-call'));
+    });
+  });
 });

@@ -2,7 +2,8 @@
            MockCall, MockCallScreen, MockLazyL10n, MockNavigatormozApps,
            MockNavigatorMozIccManager, MockNavigatormozSetMessageHandler,
            MockNavigatorMozTelephony, MockNavigatorWakeLock, MocksHelper,
-           MockTonePlayer, MockUtils, telephonyAddCall, telephonyAddCdmaCall */
+           MockTonePlayer, MockUtils, telephonyAddCall, telephonyAddCdmaCall,
+           MockNavigatorMozMobileConnections */
 
 'use strict';
 
@@ -25,6 +26,13 @@ require('/shared/test/unit/mocks/dialer/mock_utils.js');
 require(
   '/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js'
 );
+require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
+
+// The CallsHandler binds stuff when evaluated so we load it
+// after the mocks and we don't want it to show up as a leak.
+if (!this.CallsHandler) {
+  this.CallsHandler = null;
+}
 
 var mocksHelperForCallsHandler = new MocksHelper([
   'HandledCall',
@@ -46,6 +54,7 @@ suite('calls handler', function() {
   var realWakeLock;
   var realMozIccManager;
   var realSetMessageHandler;
+  var realMozMobileConnections;
 
   mocksHelperForCallsHandler.attachTestHelpers();
 
@@ -65,6 +74,9 @@ suite('calls handler', function() {
     realSetMessageHandler = navigator.mozSetMessageHandler;
     navigator.mozSetMessageHandler = MockNavigatormozSetMessageHandler;
 
+    realMozMobileConnections = navigator.mozMobileConnections;
+    navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
+
     require('/js/calls_handler.js', done);
   });
 
@@ -75,6 +87,7 @@ suite('calls handler', function() {
     navigator.requestWakeLock = realWakeLock;
     navigator.mozIccManager = realMozIccManager;
     navigator.mozSetMessageHandler = realSetMessageHandler;
+    navigator.mozMobileConnections = realMozMobileConnections;
   });
 
   setup(function() {
@@ -86,6 +99,7 @@ suite('calls handler', function() {
     MockNavigatorMozIccManager.mTeardown();
     MockNavigatorMozTelephony.mTeardown();
     MockNavigatormozSetMessageHandler.mTeardown();
+    MockNavigatorMozMobileConnections.mTeardown();
   });
 
   suite('> telephony.oncallschanged handling', function() {
@@ -96,6 +110,11 @@ suite('calls handler', function() {
       setup(function() {
         mockCall = new MockCall('12334', 'incoming');
         mockHC = telephonyAddCall.call(this, mockCall);
+        var conn1 = new window.MockMobileconnection();
+        conn1.voice = {
+          type: 'edge'
+        };
+        MockNavigatorMozMobileConnections.mAddMobileConnection(conn1, 1);
       });
 
       test('should instanciate a handled call', function() {
@@ -131,6 +150,30 @@ suite('calls handler', function() {
         var toDefaultSpy = this.sinon.spy(MockCallScreen, 'switchToDefaultOut');
         MockNavigatorMozTelephony.mTriggerCallsChanged();
         assert.isTrue(toDefaultSpy.calledOnce);
+      });
+
+      suite('in CDMA Network', function() {
+        test('should not toggle no-add-call in cdma network', function() {
+          MockNavigatorMozMobileConnections[1].voice = {
+            type: 'evdoa'
+          };
+          navigator.mozTelephony.calls.length = 1;
+          navigator.mozTelephony.conferenceGroup.calls.length = 0;
+
+          MockNavigatorMozTelephony.mTriggerCallsChanged();
+          assert.isTrue(MockCallScreen.mShowPlaceNewCallButton);
+        });
+
+        test('should toggle no-add-call in cdma network', function() {
+          MockNavigatorMozMobileConnections[1].voice = {
+            type: 'evdoa'
+          };
+          navigator.mozTelephony.calls.length = 2;
+          navigator.mozTelephony.conferenceGroup.calls.length = 0;
+
+          MockNavigatorMozTelephony.mTriggerCallsChanged();
+          assert.isTrue(MockCallScreen.mHidePlaceNewCallButton);
+        });
       });
     });
 
@@ -1322,6 +1365,86 @@ suite('calls handler', function() {
         this.sinon.stub(CallsHandler, 'switchToDefaultOut');
         CallsHandler.toggleSpeaker();
         assert.isTrue(CallsHandler.switchToDefaultOut.calledOnce);
+      });
+    });
+
+    suite('> CallsHandler.isFirstCallOnCdmaNetwork()', function() {
+      setup(function() {
+        var mockCall = new MockCall('12334', 'incoming', 0);
+        telephonyAddCall.call(this, mockCall);
+      });
+
+      test('radio type is NOT CDMA', function() {
+        MockNavigatorMozMobileConnections[0].voice = {
+          type: 'edge'
+        };
+
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
+
+        assert.isFalse(CallsHandler.isFirstCallOnCdmaNetwork());
+      });
+
+      test('radio type is CDMA', function() {
+        MockNavigatorMozMobileConnections[0].voice = {
+          type: 'evdoa'
+        };
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
+        assert.isTrue(CallsHandler.isFirstCallOnCdmaNetwork());
+
+        MockNavigatorMozMobileConnections[0].voice = {
+          type: 'evdo0'
+        };
+        assert.isTrue(CallsHandler.isFirstCallOnCdmaNetwork());
+
+        MockNavigatorMozMobileConnections[0].voice = {
+          type: 'evdob'
+        };
+        assert.isTrue(CallsHandler.isFirstCallOnCdmaNetwork());
+
+        MockNavigatorMozMobileConnections[0].voice = {
+          type: '1xrtt'
+        };
+        assert.isTrue(CallsHandler.isFirstCallOnCdmaNetwork());
+
+        MockNavigatorMozMobileConnections[0].voice = {
+          type: 'is95a'
+        };
+        assert.isTrue(CallsHandler.isFirstCallOnCdmaNetwork());
+
+        MockNavigatorMozMobileConnections[0].voice = {
+          type: 'is95b'
+        };
+        assert.isTrue(CallsHandler.isFirstCallOnCdmaNetwork());
+      });
+    });
+
+    suite('> CallsHandler.isCdma3WayCall()', function() {
+      setup(function() {
+        var mockCall = new MockCall('12334', 'incoming', 0);
+        telephonyAddCall.call(this, mockCall);
+        MockNavigatorMozMobileConnections[0].voice = {
+          type: 'evdoa'
+        };
+      });
+
+      test('not in 3way call', function() {
+        navigator.mozTelephony.calls.length = 1;
+        navigator.mozTelephony.conferenceGroup.calls.length = 0;
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
+
+        assert.isFalse(CallsHandler.isCdma3WayCall());
+      });
+
+      test('in 3way call', function() {
+        navigator.mozTelephony.calls.length = 2;
+        navigator.mozTelephony.conferenceGroup.calls.length = 0;
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
+        assert.isTrue(CallsHandler.isCdma3WayCall());
+
+        navigator.mozTelephony.calls.length = 1;
+        navigator.mozTelephony.conferenceGroup.calls.length = 1;
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
+        assert.isTrue(CallsHandler.isCdma3WayCall());
       });
     });
   });
