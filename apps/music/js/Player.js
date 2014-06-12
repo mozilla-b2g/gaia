@@ -1015,10 +1015,8 @@ var PlayerView = {
         // Update the metadata when the new track is really loaded
         // when it just started to play, or the duration will be 0 then it will
         // break the duration that the connected A2DP has.
-        if (evt.type === 'durationchange' || this.audio.currentTime === 0) {
+        if (evt.type === 'durationchange' || this.audio.currentTime === 0)
           this.updateRemoteMetadata();
-          StateManager.save();
-        }
 
         // Since we don't always get reliable 'ended' events, see if
         // we've reached the end this way.

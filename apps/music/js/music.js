@@ -182,7 +182,6 @@ function init() {
   };
 
   musicdb.onready = function() {
-    StateManager.checkToRestore();
     // Hide the nocard or pluggedin overlay if it is displayed
     if (currentOverlay === 'nocard' || currentOverlay === 'pluggedin' ||
         currentOverlay === 'upgrade')
@@ -1543,7 +1542,6 @@ var SubListView = {
     this.shuffleButton =
       document.getElementById('views-sublist-controls-shuffle');
 
-    this.info = null;
     this.dataSource = [];
     this.index = 0;
 
@@ -1555,7 +1553,6 @@ var SubListView = {
     if (sublistHandle)
       musicdb.cancelEnumeration(sublistHandle);
 
-    this.info = null;
     this.dataSource = [];
     this.index = 0;
     this.offscreenImage.src = '';
@@ -1596,14 +1593,6 @@ var SubListView = {
   activate: function(option, data, index, keyRange, direction, callback) {
     var targetOption = (option === 'date') ? option : 'metadata.' + option;
     SubListView.clean();
-
-    SubListView.info = {
-      option: option,
-      data: data,
-      index: index,
-      keyRange: keyRange ? keyRange.lower : keyRange,
-      direction: direction
-    };
 
     sublistHandle = musicdb.enumerateAll(targetOption, keyRange, direction,
                                          function lv_enumerateAll(dataArray) {

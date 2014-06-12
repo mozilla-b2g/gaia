@@ -40,10 +40,6 @@ MediaPlaybackWidget.prototype = {
     return MediaAppAgent.playStatus = status;
   },
 
-  set position(position) {
-    return MediaAppAgent.position = position;
-  },
-
   get hidden() {
     return this.container.hidden;
   },
@@ -109,7 +105,6 @@ MediaPlaybackWidget.prototype = {
 
   updatePlaybackStatus: function mp_updatePlaybackStatus(status) {
     this.playStatus = status.playStatus;
-    this.position = status.position;
 
     switch (status.playStatus) {
       case 'PLAYING':
