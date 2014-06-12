@@ -8,21 +8,19 @@ var AppInstall =
   require('../../../../apps/system/test/marionette/lib/app_install');
 var createAppServer = require('./server/parent');
 
-marionette('Vertical Home - Hosted app failed icon fetch', function() {
+var iconAppState = require('./lib/icon_app_state');
+var launchIcon = require('./lib/launch_icon');
+
+marionette('Vertical Home - Packaged App Failed Download', function() {
   var client = marionette.client(Home2.clientOptions);
   var server;
   setup(function(done) {
-    var app = __dirname + '/fixtures/appcache';
+    var app = __dirname + '/fixtures/template_app';
     createAppServer(app, client, function(err, _server) {
       server = _server;
       done(err);
     });
   });
-
-  function hasClass(element, className) {
-    var classes = element.getAttribute('className');
-    return classes.indexOf(className) !== -1;
-  }
 
   var subject;
   var system;
@@ -40,33 +38,32 @@ marionette('Vertical Home - Hosted app failed icon fetch', function() {
     server.close(done);
   });
 
-  test('shows spinner while downloading', function() {
-    // correctly install the app...
+  function expectAppState(icon, state) {
+    client.waitFor(function() {
+      var currentState = iconAppState(icon);
+      return currentState === state;
+    });
+  }
+
+  test('failed state then retry and launch', function() {
     client.switchToFrame();
 
-    // ensure appcache path is delayed
-    server.cork(server.manifest.appcache_path);
-    appInstall.install(server.manifestURL);
+    appInstall.installPackage(server.packageManifestURL);
+    server.fail(server.applicationZipUri);
 
-    // switch back to the homescreen
-    client.switchToFrame();
     client.switchToFrame(system.getHomescreenIframe());
 
-    var icon = subject.getIcon(server.manifestURL);
+    var icon = subject.getIcon(server.packageManifestURL);
+    expectAppState(icon, 'error');
 
-    client.waitFor(hasClass.bind(this, icon, 'loading'));
-    // let the rest of the app come through
-    server.uncork(server.manifest.appcache_path);
-    // wait until it is no longer loading
-    client.waitFor(function() {
-      return !hasClass(icon, 'loading');
-    });
+    server.unfail(server.applicationZipUri);
 
-    // ensure the app launches!
-    subject.launchAndSwitchToApp(server.manifestURL);
+    launchIcon(icon);
+    subject.confirmDialog('resume');
+    expectAppState(icon, 'ready');
+
+    subject.launchAndSwitchToApp(server.packageManifestURL);
     assert.equal(client.title(), 'iwrotethis');
   });
 });
-
-
 
