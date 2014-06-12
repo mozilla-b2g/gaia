@@ -723,7 +723,6 @@ suite('Utils', function() {
 
   });
 
-
   suite('Utils.getResizedImgBlob', function() {
     // a list of files in /test/unit/media/ to test resizing on
     var typeTestData = {
@@ -1058,6 +1057,175 @@ suite('Utils', function() {
           'Notification.get(tag: threadId:closeError): '
         );
       }).then(done, done);
+    });
+  });
+
+  suite('Utils.imageToCanvas', function() {
+    setup(function() {
+      this.sinon.stub(CanvasRenderingContext2D.prototype, 'drawImage');
+    });
+
+    test('correct ratio is used', function() {
+      var imgNode = document.createElement('img'),
+          targetWidth = 100,
+          targetHeight = 200,
+          heightRatio = 2,
+          widthRatio = 3;
+
+      imgNode.width = targetWidth * widthRatio;
+      imgNode.height = targetHeight * heightRatio;
+
+      var canvas = Utils.imageToCanvas(imgNode, targetWidth, targetHeight);
+
+      assert.equal(canvas.width, Math.round(imgNode.width / widthRatio));
+      assert.equal(canvas.height, Math.round(imgNode.height / widthRatio));
+
+      heightRatio = 3;
+      widthRatio = 2;
+
+      imgNode.width = targetWidth * widthRatio;
+      imgNode.height = targetHeight * heightRatio;
+
+      canvas = Utils.imageToCanvas(imgNode, targetWidth, targetHeight);
+
+      assert.equal(canvas.width, Math.round(imgNode.width / heightRatio));
+      assert.equal(canvas.height, Math.round(imgNode.height / heightRatio));
+    });
+
+    test('canvas is drawn with right dimensions', function() {
+      var imgNode = document.createElement('img'),
+          targetWidth = 100,
+          targetHeight = 200,
+          ratio = 2;
+
+      imgNode.width = targetWidth * ratio;
+      imgNode.height = targetHeight * ratio;
+
+      var canvas = Utils.imageToCanvas(imgNode, targetWidth, targetHeight);
+
+      assert.equal(canvas.width, Math.round(imgNode.width / ratio));
+      assert.equal(canvas.height, Math.round(imgNode.height / ratio));
+      sinon.assert.calledWith(
+        CanvasRenderingContext2D.prototype.drawImage,
+        imgNode, 0, 0, canvas.width, canvas.height
+      );
+    });
+  });
+
+  suite('Utils.imageUrlToDataUrl', function() {
+     var getCustomImageDataURL = function(width, height, type) {
+      var canvas = document.createElement('canvas'),
+          context = canvas.getContext('2d');
+
+      canvas.width = width;
+      canvas.height = height;
+
+      context.fillStyle = 'rgb(255, 0, 0)';
+      context.fillRect (0, 0, width, height);
+
+      return canvas.toDataURL(type);
+    };
+
+    test('generates the same image if size is not adjusted', function(done) {
+      var type = 'image/jpeg',
+          actualWidth = 100,
+          actualHeight = 200,
+          imageURL = getCustomImageDataURL(actualWidth, actualHeight, type);
+
+      Utils.imageUrlToDataUrl(imageURL, type).then((result) => {
+        assert.deepEqual(result, {
+          dataUrl: imageURL,
+          width: actualWidth,
+          height: actualHeight
+        });
+      }).then(done, done);
+    });
+
+    test('generates image with the adjusted size', function(done) {
+      var type = 'image/png',
+          actualWidth = 100,
+          actualHeight = 200,
+          scaleFactor = 2,
+          imageURL = getCustomImageDataURL(actualWidth, actualHeight, type);
+
+      Utils.imageUrlToDataUrl(imageURL, type, (width, height) => {
+        return {
+          width: width * scaleFactor,
+          height: height * scaleFactor
+        };
+      }).then((result) => {
+        assert.equal(result.dataUrl.indexOf('data:' + type), 0);
+        assert.equal(result.width, actualWidth * scaleFactor);
+        assert.equal(result.height, actualHeight * scaleFactor);
+      }).then(done, done);
+    });
+
+    test('rejects in case of invalid image URL', function(done) {
+      var invalidImageURL = 'null';
+
+      Utils.imageUrlToDataUrl(invalidImageURL, 'image/png').then(() => {
+        return Promise.reject(new Error('Success callback is not expected!'));
+      }, (e) => {
+        assert.ok(e);
+      }).then(done, done);
+    });
+
+    test('rejects in case of sizeAdjuster fails', function(done) {
+      var type = 'image/png',
+          actualWidth = 100,
+          actualHeight = 200,
+          imageURL = getCustomImageDataURL(actualWidth, actualHeight, type);
+
+      Utils.imageUrlToDataUrl(imageURL, type, () => {
+        throw new Error('Something went wrong!');
+      }).then(
+        () => Promise.reject(new Error('Success callback is not expected!')),
+        (e) => {
+          assert.ok(e);
+        }
+      ).then(done, done);
+    });
+  });
+
+  suite('Utils.Promise', function() {
+    suite('defer()', function() {
+      test('deferred object structure', function() {
+        var deferred = Utils.Promise.defer();
+
+        assert.isNotNull(deferred);
+        assert.isTrue(deferred.promise instanceof Promise);
+        assert.isTrue(typeof deferred.resolve == 'function');
+        assert.isTrue(typeof deferred.reject == 'function');
+      });
+
+      test('resolved promise', function(done) {
+        var deferred = Utils.Promise.defer(),
+            resolveResult = {
+              message: 'Yay!'
+            };
+
+        deferred.promise.then(
+          (result) => {
+            assert.equal(resolveResult, result);
+          },
+          () => Promise.reject(new Error('Fail callback is not expected!'))
+        ).then(done, done);
+
+        deferred.resolve(resolveResult);
+      });
+
+      test('rejected promise', function(done) {
+        var deferred = Utils.Promise.defer(),
+            rejectResult = new Error('Nooo!');
+
+        deferred.promise.then(
+          () => Promise.reject(new Error('Success callback is not expected!')),
+          (result) => {
+            assert.equal(rejectResult, result);
+          }).then(done, done);
+
+        deferred.reject(rejectResult);
+      });
     });
   });
 });
