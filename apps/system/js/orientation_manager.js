@@ -38,6 +38,7 @@
       window.addEventListener('sleepmenuhide', this);
       window.addEventListener('trusteduiclose', this);
       window.addEventListener('shrinking-stop', this);
+      window.addEventListener('shrinking-rejected', this);
     },
 
     handleEvent: function om_handleEvent(evt) {
@@ -58,6 +59,7 @@
           this.publish('reset-orientation');
           break;
         case 'shrinking-stop':
+        case 'shrinking-rejected':
           this.publish('reset-orientation');
           break;
       }
