@@ -528,6 +528,10 @@ var KeypadManager = {
 
     // If user input number more 50 digits, app shouldn't accept.
     if (key != 'delete' && this._phoneNumber.length >= 50) {
+      if (key == this._lastPressedKey && this._dtmfTone) {
+        this._stopDtmfTone();
+        this._lastPressedKey = null;
+      }
       return;
     }
 
