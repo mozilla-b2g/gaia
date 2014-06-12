@@ -39,6 +39,7 @@
       window.addEventListener('trusteduiclose', this);
       window.addEventListener('shrinking-stop', this);
       window.addEventListener('shrinking-rejected', this);
+      window.addEventListener('searchclosing', this);
     },
 
     handleEvent: function om_handleEvent(evt) {
@@ -48,6 +49,7 @@
         case 'sleepmenuhide':
         case 'trusteduiclose':
         case 'will-unlock':
+        case 'searchclosing':
           // We don't need to reset orientation if lockscreen is locked.
           if (window.lockScreen && window.lockScreen.locked) {
             return;
