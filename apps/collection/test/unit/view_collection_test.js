@@ -4,6 +4,7 @@
 /* global Promise */
 
 require('/js/objects.js');
+require('/shared/js/l10n.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
 
 suite('view > ', function() {

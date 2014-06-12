@@ -37,7 +37,8 @@ Home2.Selectors = {
   editHeaderDone: '#edit-header menu a',
   search: '#search',
   firstIcon: '#icons div.icon:not(.placeholder)',
-  dividers: '#icons div.divider'
+  dividers: '#icons div.divider',
+  contextmenu: '#contextmenu-dialog'
 };
 
 /**
@@ -148,6 +149,26 @@ Home2.prototype = {
 
     var locales = manifest.locales;
     return locales && locales[locale].name;
+  },
+
+  /**
+   * Returns a localized string from a properties file.
+   * @param {String} file to open.
+   * @param {String} key of the string to lookup.
+   */
+  l10n: function(file, key) {
+    var string = this.client.executeScript(function(file, key) {
+      var xhr = new XMLHttpRequest();
+      var data;
+      xhr.open('GET', file, false); // Intentional sync
+      xhr.onload = function(o) {
+        data = JSON.parse(xhr.response);
+      };
+      xhr.send(null);
+      return data;
+    }, [file, key]);
+
+    return string[key];
   },
 
   containsClass: function(selector, clazz) {
