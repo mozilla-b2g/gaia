@@ -1,7 +1,11 @@
 'use strict';
-/* global AppWindow, PopupWindow, ActivityWindow */
+/* global AppWindow, PopupWindow, ActivityWindow, SettingsListener */
 
 (function(exports) {
+  var ENABLE_IN_APP_SHEET = false;
+  SettingsListener.observe('in-app-sheet.enabled', false, function(value) {
+    ENABLE_IN_APP_SHEET = value;
+  });
   /**
    * ChildWindowFactory is a submodule of AppWindow,
    * its responsbility is to:
@@ -43,18 +47,20 @@
       var caught = false;
       switch (evt.detail.features) {
         case 'dialog':
-          // Open PopupWindow
           caught = this.createPopupWindow(evt);
           break;
         case 'attention':
           // Open attentionWindow
           if (!this.createAttentionWindow(evt)) {
-            this.createChildWindow();
+            this.createPopupWindow();
           }
           break;
         default:
-          caught = this.createChildWindow(evt);
-          // Open appWindow / browserWindow
+          if (ENABLE_IN_APP_SHEET) {
+            caught = this.createChildWindow(evt);
+          } else {
+            caught = this.createPopupWindow(evt);
+          }
           break;
       }
 
@@ -64,6 +70,11 @@
     };
 
   ChildWindowFactory.prototype.createPopupWindow = function(evt) {
+    if (this.app.frontWindow &&
+        (this.app.frontWindow.isTransitioning() ||
+          this.app.frontWindow.isActive())) {
+      return false;
+    }
     var configObject = {
       url: evt.detail.url,
       name: this.app.name,
@@ -83,6 +94,9 @@
   };
 
   ChildWindowFactory.prototype.createChildWindow = function(evt) {
+    if (!this.app.isActive() || this.app.isTransitioning()) {
+      return false;
+    }
     var configObject = {
       url: evt.detail.url,
       name: this.app.name,
@@ -116,7 +130,6 @@
         top.url == configuration.url) {
       return;
     }
-    console.log(top.url, top.manifestURL);
     var activity = new ActivityWindow(configuration, top);
     activity.open();
   };
