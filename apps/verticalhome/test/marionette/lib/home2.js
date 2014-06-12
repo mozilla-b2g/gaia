@@ -38,7 +38,8 @@ Home2.Selectors = {
   search: '#search',
   firstIcon: '#icons div.icon:not(.placeholder)',
   dividers: '#icons div.divider',
-  contextmenu: '#contextmenu-dialog'
+  contextmenu: '#contextmenu-dialog',
+  confirmMessageOk: '#confirmation-message-ok'
 };
 
 /**
@@ -52,6 +53,19 @@ Home2.prototype = {
 
   get numDividers() {
     return this.client.findElements(Home2.Selectors.dividers).length;
+  },
+
+  /**
+   * Clicks the confirm dialog primary action until it goes away.
+   * The system app may be covering it up with some annoying dialog.
+   */
+  clickConfirm: function() {
+    this.client.waitFor(function() {
+      var confirm = this.client.helper.waitForElement(
+        Home2.Selectors.confirmMessageOk);
+      confirm.click();
+      return !confirm.displayed();
+    }.bind(this));
   },
 
   /**
