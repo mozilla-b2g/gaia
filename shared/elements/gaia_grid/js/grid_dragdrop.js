@@ -123,7 +123,7 @@
       var rearranged = false;
       if (this.rearrangeDelay !== null) {
         clearTimeout(this.rearrangeDelay);
-        if (this.hoverItem.detail.type === 'collection') {
+        if (this.hoverItem && this.hoverItem.detail.type === 'collection') {
           // The user has dropped into a collection
           window.dispatchEvent(new CustomEvent(
             'gaiagrid-add-to-collection',

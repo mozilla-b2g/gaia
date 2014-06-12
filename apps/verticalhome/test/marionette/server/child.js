@@ -101,6 +101,7 @@ AppServer.prototype = {
   requestHandler: function() {
     var routes = this.routes;
     return function(req, res) {
+      debug('request', req.method, req.url);
       var handler = routes[req.url] || routes['*'];
       // routes are always invoked with the context of the app server.
       return handler.call(this, req, res);
@@ -108,7 +109,7 @@ AppServer.prototype = {
   },
 };
 
-var appServer = new AppServer(process.argv[2], {
+var routes = {
   /**
   A 'corked' request will send headers but no body until 'uncork' is used.
   */
@@ -165,9 +166,8 @@ var appServer = new AppServer(process.argv[2], {
   }),
 
   '/package.manifest': function(req, res) {
-    var port = req.socket.address().port;
     var json = JSON.parse(fs.readFileSync(this.root + '/manifest.webapp'));
-    json.package_path = 'http://localhost:' + port + '/app.zip';
+    json.package_path = 'http://' + req.headers.host + '/app.zip';
 
     var body = JSON.stringify(json, null, 2);
     res.writeHead(200, {
@@ -258,10 +258,14 @@ var appServer = new AppServer(process.argv[2], {
       this.once('uncorked ' + url, writeContent);
     }
   }
-});
+};
 
+var port = parseInt((process.argv[3] || 0), 10);
+var appServer = new AppServer(process.argv[2], routes);
 var server = http.createServer(appServer.requestHandler());
 
-server.listen(0, function() {
-  process.send({ type: 'started', port: server.address().port });
+server.listen(port, function() {
+  if (process.send) {
+    process.send({ type: 'started', port: server.address().port });
+  }
 });

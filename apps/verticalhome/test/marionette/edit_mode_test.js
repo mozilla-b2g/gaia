@@ -1,6 +1,5 @@
 'use strict';
 
-var assert = require('assert');
 var Actions = require('marionette-client').Actions;
 
 var Home2 = require('./lib/home2');
@@ -26,15 +25,10 @@ marionette('Vertical - Edit Mode', function() {
   });
 
   test('Exit edit mode using done button', function() {
-    var firstIcon = client.helper.waitForElement(selectors.firstIcon);
-    actions.longPress(firstIcon, 1).perform();
-
-    var header = client.helper.waitForElement(selectors.editHeaderText);
-    assert.ok(header.displayed());
-
+    home.enterEditMode();
+    var header = client.findElement(selectors.editHeaderText);
     var done = client.helper.waitForElement(selectors.editHeaderDone);
     done.click();
-
     client.helper.waitForElementToDisappear(header);
   });
 

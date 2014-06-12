@@ -1,42 +1,36 @@
-.loading:before {
+.icon[data-app-state="loading"]:after {
   content: "";
-  z-index: 30000;
-  background: no-repeat center url('images/loading_spinner.png');
+  background: no-repeat top center url('images/app_install_spinner.png');
   background-size: contain;
+  height: 8.4rem;
   position: absolute;
   top: 0;
   left: 0;
-  height: 8.6rem;
   width: 100%;
   /**
-  keyframe must be defined outside of the web component
+  Keyframe must be defined outside of the web component.
   See bug 1018269
   */
+
   animation: rotate 2.25s linear infinite;
 }
 
-@media (device-width: 480px) {
-  .loading:before {
-    height: 12.8rem;
-  }
+.icon[data-app-state="loading"] {
+  /**
+  We must align this value with the value of [data-app-state]:after height the background size
+  here is overridden at the element level elsewhere which causes the spinner to be aligned too
+  low.
+  */
+  background-size: 8.4rem !important;
+  background-image: url('images/app_installing.png') !important;
 }
 
-@media (device-width: 540px) {
-  .loading:before {
-    height: 14.4rem;
-  }
+.icon[data-app-state="error"] {
+  background-image: url('images/app_install_failed.png') !important;
 }
 
-@media (device-width: 720px) {
-  .loading:before {
-    height: 19.1rem;
-  }
-}
-
-@media (device-width: 1080px) {
-  .loading:before {
-    height: 28.6rem;
-  }
+.icon[data-app-state="paused"] {
+  background-image: url('images/app_install_canceled.png') !important;
 }
 
 .icon {
@@ -151,4 +145,8 @@
   padding: 0 1rem;
   width: auto;
   max-width: 100%;
+}
+
+#confirm-message {
+  z-index: 100;
 }
