@@ -347,6 +347,7 @@ button::-moz-focus-inner {
   transition: opacity 0.5s ease;
   width: 5rem;
   height: 5rem;
+  margin-top: 5rem;
 }
 
 #lockscreen-alt-camera-button {
