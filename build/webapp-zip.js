@@ -91,35 +91,6 @@ WebappZip.prototype.isExcludedFromZip = function(file) {
   return false;
 };
 
-// If config.GAIA_DEV_PIXELS_PER_PX is not 1 and the file is a bitmap let's
-// check if there is a bigger version in the directory. If so let's ignore the
-// file in order to use the bigger version later.
-WebappZip.prototype.getImagePathByResolution = function(file, pathInZip) {
-  var suffix = '@' + this.config.GAIA_DEV_PIXELS_PER_PX + 'x';
-  var matchResult = /@([0-9]+\.?[0-9]*)x/.exec(file.path);
-  if ((this.config.GAIA_DEV_PIXELS_PER_PX === '1' && matchResult) ||
-      (matchResult && matchResult[1] !== this.config.GAIA_DEV_PIXELS_PER_PX)) {
-      return;
-  }
-
-  if (this.config.GAIA_DEV_PIXELS_PER_PX !== '1') {
-    if (matchResult && matchResult[1] === this.config.GAIA_DEV_PIXELS_PER_PX) {
-      // Save the hidpi file to the zip, strip the name to be more generic.
-      pathInZip = pathInZip.replace(suffix, '');
-    } else {
-      // Check if there a hidpi file. If yes, let's ignore this bitmap since
-      // it will be loaded later (or it has already been loaded, depending on
-      // how the OS organize files.
-      var hqfile = utils.getFile(
-        file.path.replace(/(\.[a-z]+$)/, suffix + '$1'));
-      if (hqfile.exists()) {
-        return;
-      }
-    }
-  }
-  return pathInZip;
-};
-
 WebappZip.prototype.addToZip = function(file) {
   if (this.isExcludedFromZip(file)) {
     return;
@@ -129,10 +100,6 @@ WebappZip.prototype.addToZip = function(file) {
     this.buildDir.path.length + 1);
   var compression = this.getCompression(pathInZip);
   pathInZip = pathInZip.replace(/\\/g, '/');
-
-  if ( /\.(png|gif|jpg)$/.test(file.path)) {
-    pathInZip = this.getImagePathByResolution(file, pathInZip);
-  }
 
   if (!pathInZip) {
     return;
