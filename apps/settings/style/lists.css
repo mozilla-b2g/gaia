@@ -184,15 +184,15 @@ ul li > label.pack-checkbox > .ttl-monitor:before {
 }
 
 ul li > label.pack-checkbox > .uss-monitor:before {
-  background-color: navy;
+  background-color: dimgrey;
 }
 
 ul li > label.pack-checkbox > .memory-monitor:before {
-  background-color: slategrey;
+  background-color: lightslategrey;
 }
 
 ul li > label.pack-checkbox > .memory-item:before {
-  background-color: slategrey;
+  background-color: lightslategrey;
   height: 1.2rem;
   width: 1.2rem;
   margin: 0 1rem 0.1rem -0.2rem;
