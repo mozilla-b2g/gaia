@@ -92,11 +92,10 @@ var FxAccountsIACHelper = function FxAccountsIACHelper() {
 
         while (cbs.length) {
           cb = cbs.shift();
-          if (typeof message.data !== 'undefined') {
+          if (!message.error) {
             cb.successCb(message.data);
           } else {
-            var errorType = message.error || 'Unknown';
-            cb.errorCb(errorType);
+            cb.errorCb(message.error);
           }
         }
       }
@@ -214,6 +213,15 @@ var FxAccountsIACHelper = function FxAccountsIACHelper() {
     }, successCb, errorCb);
   };
 
+  var resendVerificationEmail = function resendVerificationEmail(email,
+                                                             successCb,
+                                                             errorCb) {
+    sendMessage({
+      'name': 'resendVerificationEmail',
+      'email': email
+    }, successCb, errorCb);
+  };
+
   // We do an early connection to be able to get the unsolicited events coming
   // from the platform (onlogin, onverifiedlogin, onlogout).
   connect();
@@ -226,6 +234,7 @@ var FxAccountsIACHelper = function FxAccountsIACHelper() {
     'openFlow': openFlow,
     'refreshAuthentication': refreshAuthentication,
     'removeEventListener': removeEventListener,
+    'resendVerificationEmail': resendVerificationEmail,
     'reset': reset
   };
 

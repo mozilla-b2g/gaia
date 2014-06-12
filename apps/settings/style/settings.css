@@ -737,6 +737,10 @@ section[data-dialog] > header:first-child .icon.icon-back {
   padding-top: 1.5rem;
 }
 
+#fxa-unverified .disabled {
+  color: #ccc;
+}
+
 #fxa-unverified-text {
   padding-top: 0.8rem;
   margin-left: 6rem;

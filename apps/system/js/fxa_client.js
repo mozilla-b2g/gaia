@@ -95,6 +95,14 @@ var FxAccountsClient = function FxAccountsClient() {
     }, successCb, errorCb);
   };
 
+  var resendVerificationEmail = function resendVerificationEmail(email,
+                                                       successCb, errorCb) {
+    sendMessage({
+      method: 'resendVerificationEmail',
+      email: email
+    }, successCb, errorCb);
+  };
+
   var signIn = function signIn(email, password, successCb, errorCb) {
     sendMessage({
       method: 'signIn',
@@ -123,6 +131,7 @@ var FxAccountsClient = function FxAccountsClient() {
     'getAccounts': getAccounts,
     'logout': logout,
     'queryAccount': queryAccount,
+    'resendVerificationEmail': resendVerificationEmail,
     'signIn': signIn,
     'signUp': signUp,
     'verificationStatus': verificationStatus

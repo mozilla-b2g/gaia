@@ -60,7 +60,7 @@ suite('system/FxAccountsClient >', function() {
   suite('Init', function() {
     test('Integrity', function() {
       assert.isNotNull(FxAccountsClient);
-      assert.equal(Object.keys(FxAccountsClient).length, 6);
+      assert.equal(Object.keys(FxAccountsClient).length, 7);
     });
 
     test('No event listeners', function() {
@@ -226,5 +226,31 @@ suite('system/FxAccountsClient >', function() {
         password: 'pass'
       });
     });
+
+    suiteTeardown(function() {
+      MockDispatchedEvents = [];
+    });
   });
+
+  suite('resendVerificationEmail', function() {
+    setup(function() {
+      FxAccountsClient.resendVerificationEmail('email', successCb, errorCb);
+    });
+
+    test('Event dispatched to chrome side', function() {
+      assert.equal(MockDispatchedEvents.length, 1);
+      assert.ok(MockEventListener['mozFxAccountsChromeEvent']);
+      assert.ok(MockDispatchedEvents[0].detail.id);
+      assert.ok(MockDispatchedEvents[0].detail.data);
+      assert.deepEqual(MockDispatchedEvents[0].detail.data, {
+        method: 'resendVerificationEmail',
+        email: 'email'
+      });
+    });
+
+    suiteTeardown(function() {
+      MockDispatchedEvents = [];
+    });
+  });
+
 });
