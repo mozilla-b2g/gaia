@@ -92,7 +92,8 @@ System.prototype = {
     client.switchToFrame();
 
     var statusbar = client.findElement('#statusbar');
-    this.actions.flick(statusbar, 100, 0, 100, 300, 500).perform();
+    var chain = this.actions.press(statusbar, 100, 0).moveByOffset(100, 300);
+    chain.release().perform();
 
     var utilityTray = client.findElement('#utility-tray');
     var trayHeight = utilityTray.scriptWith(function(tray) {
