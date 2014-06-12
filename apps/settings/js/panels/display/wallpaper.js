@@ -16,6 +16,7 @@ define(function(require) {
   var ForwardLock = require('shared/omadrm/fl');
   var Observable = require('modules/mvvm/observable');
   var WALLPAPER_KEY = 'wallpaper.image';
+  var WALLPAPER_COLOR_KEY = 'wallpaper.color';
   /**
    * @alias module:display/wallpaper
    * @requires module:modules/mvvm/observable
@@ -30,6 +31,7 @@ define(function(require) {
      */
     _init: function w_init() {
       this.WALLPAPER_KEY = WALLPAPER_KEY;
+      this.WALLPAPER_COLOR_KEY = WALLPAPER_COLOR_KEY;
       this.wallpaperURL = new SettingsURL();
       this._watchWallpaperChange();
     },
@@ -66,7 +68,9 @@ define(function(require) {
         }
       });
       mozActivity.onsuccess = function() {
-        this._onPickSuccess(mozActivity.result.blob, secret);
+        this._onPickSuccess(mozActivity.result.blob,
+                            mozActivity.result.color,
+                            secret);
       }.bind(this);
 
       mozActivity.onerror = this._onPickError;
@@ -78,9 +82,10 @@ define(function(require) {
      * @access private
      * @memberOf wallpaperPrototype
      * @param {String} blob
+     * @param {String} color
      * @param {String} secret
      */
-    _onPickSuccess: function w__on_pick_success(blob, secret) {
+    _onPickSuccess: function w__on_pick_success(blob, color, secret) {
       if (!blob) {
         return;
       }
@@ -92,17 +97,32 @@ define(function(require) {
       } else {
         this._setWallpaper(blob);
       }
+      this._setWallpaperColor(color);
     },
 
     /**
      * Update the value of wallpaper.image from settings.
      *
      * @access private
+     * @param {String} value
      * @memberOf wallpaperPrototype
      */
     _setWallpaper: function w__set_wallpaper(value) {
       var config = {};
       config[this.WALLPAPER_KEY] = value;
+      SettingsListener.getSettingsLock().set(config);
+    },
+
+    /**
+     * Update the value of wallpaper.color from settings.
+     *
+     * @access private
+     * @param {String} color
+     * @memberOf wallpaperPrototype
+     */
+    _setWallpaperColor: function w__set_wallpaperColor(color) {
+      var config = {};
+      config[this.WALLPAPER_COLOR_KEY] = color;
       SettingsListener.getSettingsLock().set(config);
     },
 
