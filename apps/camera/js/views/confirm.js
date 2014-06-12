@@ -48,8 +48,7 @@ module.exports = View.extend({
   },
 
   setupMediaFrame: function() {
-    this.mediaFrame = new MediaFrame(this.els.mediaFrame, true,
-                                     this.maxPreviewSize);
+    this.mediaFrame = new MediaFrame(this.els.mediaFrame);
     addPanAndZoomHandlers(this.mediaFrame);
     window.addEventListener('resize', this.onResize);
     return this;

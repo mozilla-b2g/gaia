@@ -47,10 +47,6 @@ suite('controllers/preview-gallery', function() {
 
     this.app.activity = {};
 
-    this.app.settings.previewGallery = {
-      get: sinon.spy()
-    };
-
     // Our test instance
     this.previewGalleryController = new this.PreviewGalleryController(this.app);
 
@@ -79,22 +75,6 @@ suite('controllers/preview-gallery', function() {
         deleteVideo: sinon.spy(),
         on: sinon.spy()
       };
-
-      this.previewGalleryController.settings = {
-        activity: {
-          get: sinon.spy()
-        },
-        previewGallery: {
-          get: sinon.spy()
-        }
-      };
-
-      this.previewGalleryController.resizeImageAndSave =
-        function(options, done) {
-          done(options.blob);
-        };
-
-      this.clock = sinon.useFakeTimers();
 
       CustomDialog.show = function(title, msg, cancelCb, deleteCb) {
         deleteCb.callback();
@@ -128,14 +108,13 @@ suite('controllers/preview-gallery', function() {
 
     test('Should shareCurrentItem whose type is image', function() {
       var item = {
-        blob: new Blob(['empty-image'], {'type': 'image/jpeg'}),
+        blob: {},
         filepath: 'root/folder1/folder2/fileName',
         isImage: true
       };
       this.previewGalleryController.items = [item];
       this.previewGalleryController.currentItemIndex = 0;
       this.previewGalleryController.shareCurrentItem();
-
       // Get first argument, of first call
       var arg = window.MozActivity.args[0][0];
 
@@ -156,7 +135,6 @@ suite('controllers/preview-gallery', function() {
       this.previewGalleryController.items = [item];
       this.previewGalleryController.currentItemIndex = 0;
       this.previewGalleryController.shareCurrentItem();
-
       // Get first argument, of first call
       var arg = window.MozActivity.args[0][0];
 
@@ -321,14 +299,6 @@ suite('controllers/preview-gallery', function() {
   suite('PreviewGalleryController#openPreview()', function() {
     setup(function() {
       sinon.stub(this.controller, 'previewItem');
-      this.controller.settings = {
-        activity: {
-          get: sinon.spy()
-        },
-        previewGallery: {
-          get: sinon.spy()
-        }
-      };
       this.controller.openPreview();
     });
 
