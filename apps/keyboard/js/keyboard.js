@@ -243,7 +243,6 @@ var correctionsEnabled;
 var clickEnabled;
 var vibrationEnabled;
 var isSoundEnabled;
-
 // data URL for keyboard click sound
 const CLICK_SOUND = './resources/sounds/key.ogg';
 const SPECIAL_SOUND = './resources/sounds/special.ogg';
@@ -862,6 +861,10 @@ function resetUpperCase() {
   }
 }
 
+function isCapitalized() {
+  return (isUpperCase || isUpperCaseLocked);
+}
+
 function setLayoutPage(newpage) {
   if (newpage === layoutPage)
     return;
@@ -892,7 +895,7 @@ function sendDelete(isRepeat) {
   // Pass the isRepeat argument to the input method. It may not want
   // to compute suggestions, for example, if this is just one in a series
   // of repeating events.
-  inputMethod.click(KeyboardEvent.DOM_VK_BACK_SPACE, isRepeat);
+  inputMethod.click(KeyboardEvent.DOM_VK_BACK_SPACE, null, isRepeat);
 }
 
 // Return the upper value for a key object
@@ -1542,7 +1545,8 @@ function endPress(target, coords, touchId, hasCandidateScrolled) {
       }
     }
     else {
-      inputMethod.click(keyCode);
+      inputMethod.click(parseInt(target.dataset.keycode, 10),
+                        parseInt(target.dataset.keycodeUpper, 10));
     }
     break;
   }
@@ -1798,7 +1802,8 @@ function loadIMEngine(name, callback) {
     resetUpperCase: resetUpperCase,
     replaceSurroundingText: replaceSurroundingText,
     getNumberOfCandidatesPerRow:
-      IMERender.getNumberOfCandidatesPerRow.bind(IMERender)
+      IMERender.getNumberOfCandidatesPerRow.bind(IMERender),
+    isCapitalized: isCapitalized
   };
 
   script.addEventListener('load', function IMEngineLoaded() {
