@@ -48,7 +48,6 @@ Resources.prototype.getResources = function(conf) {
   operatorJSON.support_contacts = this.addFile(conf.support_contacts);
   operatorJSON.network_type = this.addFile(conf.network_type);
   operatorJSON.known_networks = this.addFile(conf.known_networks);
-  operatorJSON.nfc = this.addFile(conf.nfc);
   operatorJSON.sms = this.addFile(conf.sms);
   operatorJSON.wallpaper = this.getWallpaperResource(conf.wallpaper);
   operatorJSON.ringtone = this.getRingtoneResource(conf.ringtone);
@@ -58,7 +57,14 @@ Resources.prototype.getResources = function(conf) {
     this.getDefaultSearchResource(conf.default_search);
   operatorJSON.keyboard_settings = this.getKeyboardResource(conf.keyboard);
   operatorJSON.topsites = this.getTopsitesResource(conf.topsites);
-  operatorJSON.data_ftu = conf.data_ftu;
+
+  if ('nfc' in conf) {
+    operatorJSON.nfc = this.getNfcResource(conf.nfc);
+  }
+
+  if ('data_ftu' in conf) {
+    operatorJSON.data_ftu = conf.data_ftu;
+  }
 
   conf['mcc-mnc'].forEach(function(mcc) {
     if (Object.keys(operatorJSON).length !== 0) {
@@ -292,6 +298,15 @@ Resources.prototype.getTopsitesResource = function (topsitesPath) {
 
     return this.createJSON(file.leafName, topsites);
   }
+};
+
+// Create nfc JSON.
+Resources.prototype.getNfcResource = function(nfc) {
+  var content = { isEnabled: nfc,
+                  default: this.settings['nfc.enabled'] };
+
+  var jsonName = 'nfc-' + getHash(JSON.stringify(content)) + '.json';
+  return this.createJSON(jsonName, content);
 };
 
 // OperatorAppBuilder constructor object.
