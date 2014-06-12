@@ -34,8 +34,12 @@ var TelephonyHelper = (function() {
       return;
     }
 
+    var cdmaTypes = ['evdo0', 'evdoa', 'evdob', '1xrtt', 'is95a', 'is95b'];
+    var voiceType = conn.voice ? conn.voice.type : null;
+    var isCdmaConnection = (cdmaTypes.indexOf(voiceType) !== -1);
     var activeCall = telephony.active;
-    if (!activeCall) {
+
+    if (!activeCall || isCdmaConnection) {
       startDial(cardIndex, conn, sanitizedNumber, oncall, onconnected,
                 ondisconnected, onerror);
       return;

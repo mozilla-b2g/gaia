@@ -485,7 +485,7 @@
   }
 
   #calls.switch > section .numberWrapper .number {
-    font-size: 2.3rem;
+    font-size: 2.6rem;
   }
 
   #calls > section.handled-call .fake-number {
@@ -1099,5 +1099,9 @@
     display: none;
     color: #ffffff;
     font-weight: normal;
+  }
+
+  .cdma-conference-call #group-show {
+    display: none;
   }
 }
