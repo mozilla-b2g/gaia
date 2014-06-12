@@ -1,4 +1,4 @@
-/* globals _, ConfirmDialog, Contacts, LazyLoader, utils, ValueSelector */
+/* globals _, ConfirmDialog, Contacts, LazyLoader, utils, ActionMenu */
 /* exported ActivityHandler */
 
 'use strict';
@@ -66,6 +66,7 @@ var ActivityHandler = {
         }
         this._currentActivity = activity;
         Contacts.navigation.home();
+        LazyLoader.load('/contacts/js/action_menu.js');
         break;
       case 'import':
         this.importContactsFromFile(activity);
@@ -149,36 +150,34 @@ var ActivityHandler = {
         break;
       default:
         // if more than one required type of data
-        var prompt1 = new ValueSelector();
-        var data;
+        var prompt1 = new ActionMenu();
+        var itemData;
+        var self = this;
+        var capture = function(itemData) {
+          return function() {
+            if (self.activityDataType == 'webcontacts/tel') {
+                // filter phone from data.tel to take out the rest
+                result = utils.misc.toMozContact(theContact);
+                result.tel = self.filterAddressForActivity(
+                               itemData, result.tel);
+            } else {
+              result[type] = itemData;
+            }
+            prompt1.hide();
+            self.postPickSuccess(result);
+          };
+        };
         for (var i = 0; i < dataSet.length; i++) {
-          data = dataSet[i].value;
+          itemData = dataSet[i].value;
           var carrier = dataSet[i].carrier || '';
-          prompt1.addToList(data + ' ' + carrier, data);
+          prompt1.addToList(itemData + ' ' + carrier, capture(itemData));
         }
-
-        prompt1.onchange = (function onchange(itemData) {
-          if (this.activityDataType == 'webcontacts/tel') {
-            // filter phone from data.tel to take out the rest
-            result = utils.misc.toMozContact(theContact);
-            result.tel =
-              this.filterPhoneNumberForActivity(itemData, result.tel);
-          } else {
-            result[type] = itemData;
-          }
-          prompt1.hide();
-          this.postPickSuccess(result);
-        }).bind(this);
         prompt1.show();
     } // switch
   },
 
-  /*
-   * We only need to return the phone number that user chose from the select
-   * Hence we filter out the rest of the phones from the contact
-   */
-  filterPhoneNumberForActivity:
-  function ah_filterPhoneNumberForActivity(itemData, dataSet) {
+  filterAddressForActivity:
+  function ah_filterAddressForActivity(itemData, dataSet) {
     return dataSet.filter(function isSamePhone(item) {
       return item.value == itemData;
     });
