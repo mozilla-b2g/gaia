@@ -176,6 +176,29 @@ function execute(options) {
     prefs.push(['b2g.adb.timeout', 0]);
   }
 
+  // If we are running on a low-memory device (e.g. Tarako) then we need
+  // some customization here
+  if (config.GAIA_MEMORY_PROFILE === 'low') {
+    // This is a tarako-specific preference The Tarako has a 320x480
+    // screen, so a screenful of decoded images requires exactly
+    // 600kb. Sometimes images will actually be larger than the size they
+    // are displayed at, so let's say 1200kb per screen. So if we want to
+    // allow 12 screens full of these over-sized images before Gecko starts
+    // discarding the image memory, we need to set this pref to 12 * 1200.
+    prefs.push(["image.mem.max_decoded_image_kb", 14400]);
+
+    // With our default FirefoxOS User-Agent string, m.facebook.com sends a
+    // version of their app that is too memory intensive for the Tarako and
+    // we end up unable to reliably use Facebook and pick photos from the
+    // Gallery or Camera apps. In order to get m.facebook.com to send us a
+    // "low-fi" version of their app, we need to send a different UA string.
+    // XXX: we should talk to Facebook about what string to use.
+    // For now, however, we just replace "Mobile" with "Tarako" and that
+    // seems to do the trick.
+    prefs.push(["general.useragent.override.m.facebook.com",
+                "Mozilla/5.0 (Tarako; rv:28.0) Gecko/28.0 Firefox/28.0"]);
+  }
+
   function writePrefs() {
     let userJs = utils.getFile(config.PROFILE_DIR, 'user.js');
     let content = prefs.map(function(entry) {
