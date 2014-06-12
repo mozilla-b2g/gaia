@@ -120,9 +120,13 @@ class Homescreen(Base):
 
         def tap_icon(self):
             expected_name = self.name
+            self.scroll_to_icon()
             self.root_element.tap()
             self.wait_for_condition(lambda m: self.apps.displayed_app.name.lower() == expected_name.lower())
             self.apps.switch_to_displayed_app()
+
+        def scroll_to_icon(self):
+            self.marionette.execute_script("arguments[0].scrollIntoView(false);", [self.root_element])
 
         def tap_delete_app(self):
             """Tap on (x) to delete app"""
