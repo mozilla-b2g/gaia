@@ -20,7 +20,7 @@ marionette('Vertical - Localization', function() {
 
   test('Localization updates icon names', function() {
     var settingsManifestUrl = 'app://settings.gaiamobile.org/manifest.webapp';
-    var settingsIcon = home.getIconByIdentifier(settingsManifestUrl);
+    var settingsIcon = home.getIcon(settingsManifestUrl);
     assert.equal(
       settingsIcon.text(),
       home.localizedAppName('settings', 'en-US'));
@@ -33,7 +33,7 @@ marionette('Vertical - Localization', function() {
 
     // Localization can be async, wait for the content to update
     client.waitFor(function() {
-      settingsIcon = home.getIconByIdentifier(settingsManifestUrl);
+      settingsIcon = home.getIcon(settingsManifestUrl);
       return settingsIcon.text() === home.localizedAppName('settings', 'fr');
     });
   });

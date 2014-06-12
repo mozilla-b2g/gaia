@@ -2,6 +2,8 @@
 /* global module */
 
 var System = require('../../../../../apps/system/test/marionette/lib/system');
+var Actions = require('marionette-client').Actions;
+var getIconId = require('./icon_id');
 
 /**
  * Abstraction around homescreen.
@@ -38,8 +40,7 @@ Home2.Selectors = {
   search: '#search',
   firstIcon: '#icons div.icon:not(.placeholder)',
   dividers: '#icons div.divider',
-  contextmenu: '#contextmenu-dialog',
-  confirmMessageOk: '#confirmation-message-ok'
+  contextmenu: '#contextmenu-dialog'
 };
 
 /**
@@ -56,25 +57,55 @@ Home2.prototype = {
   },
 
   /**
-   * Clicks the confirm dialog primary action until it goes away.
-   * The system app may be covering it up with some annoying dialog.
-   */
-  clickConfirm: function() {
-    this.client.waitFor(function() {
-      var confirm = this.client.helper.waitForElement(
-        Home2.Selectors.confirmMessageOk);
-      confirm.click();
-      return !confirm.displayed();
-    }.bind(this));
+  Fetch a particular type of a gaia-confirm dialog.
+
+  @param {String} type of dialog.
+  */
+  getConfirmDialog: function(type) {
+    var selector = 'gaia-confirm[data-type="' + type + '"]';
+    return this.client.helper.waitForElement(selector);
   },
 
   /**
-   * Gets an icon by identifier.
-   */
-  getIconByIdentifier: function(identifier) {
-    return this.client.helper.waitForElement(
-      '[data-identifier="' + identifier + '"]'
-    );
+  Click confirm on a particular type of confirmation dialog.
+
+  @param {String} type of dialog.
+  */
+  confirmDialog: function(type) {
+    var dialog = this.getConfirmDialog(type);
+    var confirm = dialog.findElement('.confirm');
+
+    // XXX: Hack to use faster polling
+    var quickly = this.client.scope({ searchTimeout: 50 });
+    confirm.client = quickly;
+
+    // tricky logic to ensure the dialog has been removed and clicked
+    this.client.waitFor(function() {
+      try {
+        // click the dialog to dismiss it
+        confirm.click();
+        // ensure it is either hidden or hits the stale element ref
+        return !confirm.displayed();
+      } catch(e) {
+        if (e.type === 'StaleElementReference') {
+          // element was successfully removed
+          return true;
+        }
+        throw e;
+      }
+    });
+  },
+
+  /**
+  Enter edit mode by long pressing the first icon on the grid.
+  */
+  enterEditMode: function() {
+    var actions = new Actions(this.client);
+    var firstIcon =
+      this.client.helper.waitForElement(Home2.Selectors.firstIcon);
+
+    actions.longPress(firstIcon, 1).perform();
+    this.client.helper.waitForElement(Home2.Selectors.editHeaderText);
   },
 
   /**
@@ -124,6 +155,31 @@ Home2.prototype = {
       client.switchToFrame(frame);
       return true;
     }.bind(this));
+  },
+
+  /**
+  Restart the homescreen then refocus on it.
+  */
+  restart: function() {
+    this.client.executeScript(function() {
+      window.close();
+    });
+
+    // initialize our frames again since we killed the iframe
+    this.client.switchToFrame();
+    this.client.switchToFrame(this.system.getHomescreenIframe());
+  },
+
+  /**
+  Find and return every id for all the items on the grid... Each element
+  can be used with `.getIcon` to find the element for a given id.
+
+  @return {Array[String]}
+  */
+  getIconIdentifiers: function() {
+    return this.client.findElements('[data-identifier]').map(function(el) {
+      return getIconId(el);
+    });
   },
 
   /**
