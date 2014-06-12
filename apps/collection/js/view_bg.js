@@ -3,11 +3,14 @@
 
 (function(exports) {
 
-  function ViewBGImage(requestParams) {
+  function ViewBgImage(collection) {
 
     var elements = {
       content: document.getElementById('content')
     };
+
+    var options = collection.categoryId ? {categoryId: collection.categoryId}
+                                        : {query: collection.query};
 
     if (navigator.onLine) {
       onOnline();
@@ -15,23 +18,61 @@
       addListeners();
     }
 
-    function onOnline() {
-      eme.api.Search.bgimage(requestParams)
-        .then(function success(bgResponse) {
-          removeListeners();
+    function getBackground() {
+      var src;
+      var checksum;
 
-          var image = bgResponse.response.image;
+      if (collection.background) {
+        src = collection.background.src;
+        checksum = collection.background.checksum;
+
+        options._checksum = checksum;
+      }
+
+      return eme.api.Search.bgimage(options).then(function success(response) {
+        if (checksum && checksum === response.checksum) {
+          eme.log('background didn\'t change (checksum match)');
+          return collection.background;
+
+        } else {
+          var image = response.response.image;
           if (image) {
-            var src = image.data;
+            src = image.data;
             if (/image\//.test(image.MIMEType)) {  // base64 image data
               src = 'data:' + image.MIMEType + ';base64,' + image.data;
             }
-
-            elements.content.style.backgroundImage = 'url(' + src + ')';
-          } else {
-            // TODO show default image?
           }
-        });
+
+          return {
+            src: src,
+            source: response.response.source,
+            checksum: response.checksum || null
+          };
+        }
+
+      });
+    }
+
+    function onOnline() {
+      getBackground().then(function setBackground(newBackground) {
+        removeListeners();
+
+        // update collection if background changed
+        if (collection.background &&
+            collection.background.checksum !== newBackground.checksum) {
+
+          collection.background = newBackground;
+          collection.save();
+        }
+
+        if (collection.background.src) {
+          elements.content.style.backgroundImage =
+                                      'url(' + collection.background.src + ')';
+        }
+      }, function error(e) {
+        // no background
+        eme.error(e);
+      });
     }
 
     function addListeners() {
@@ -43,6 +84,6 @@
     }
   }
 
-  exports.ViewBGImage = ViewBGImage;
+  exports.ViewBgImage = ViewBgImage;
 
 }(window));
