@@ -3,11 +3,15 @@ define(function(require) {
 
   var SettingsPanel = require('modules/settings_panel');
   var Root = require('panels/root/root');
-  var Storage = require('panels/root/storage');
+  var StorageUSB = require('panels/root/storage_usb');
+  var StorageApp = require('panels/root/storage_app');
+  var StorageMedia = require('panels/root/storage_media');
 
   return function ctor_root_panel() {
     var root = Root();
-    var storage = Storage();
+    var storage_usb = StorageUSB();
+    var storage_app = StorageApp();
+    var storage_media = StorageMedia();
 
     return SettingsPanel({
       onInit: function rp_onInit(panel) {
@@ -22,11 +26,15 @@ define(function(require) {
           mediaStorageSection: panel.querySelector('.media-storage-section')
         };
 
-        storage.init(elements);
+        storage_usb.init(elements);
+        storage_app.init(elements);
+        storage_media.init(elements);
         root.init();
       },
       onBeforeShow: function kalp_onBeforeShow() {
-        storage.enabled = true;
+        storage_usb.enabled = true;
+        storage_app.enabled = true;
+        storage_media.enabled = true;
       },
       onShow: function rp_onShow() {
         // XXX: Set data-ready to true to indicate that the first panel is
@@ -36,7 +44,9 @@ define(function(require) {
         document.body.dataset.ready = true;
       },
       onHide: function kalp_onHide() {
-        storage.enabled = false;
+        storage_usb.enabled = false;
+        storage_app.enabled = false;
+        storage_media.enabled = false;
       }
     });
   };
