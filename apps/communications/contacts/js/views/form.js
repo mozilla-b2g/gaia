@@ -872,6 +872,7 @@ contacts.Form = (function() {
       if (!noTransition) {
         Contacts.cancel();
       }
+      Contacts.setCurrent(contact);
     };
 
     request.onerror = function onerror() {
