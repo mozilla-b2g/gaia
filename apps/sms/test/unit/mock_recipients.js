@@ -82,6 +82,9 @@ MockRecipients.prototype.emit = function(type) {
   return this;
 };
 
+MockRecipients.prototype.checkmessagetype = function() {
+  return this;
+};
 
 MockRecipients.View = function() {};
 

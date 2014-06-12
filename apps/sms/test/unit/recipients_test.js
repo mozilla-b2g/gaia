@@ -1,11 +1,12 @@
 /*global loadBodyHTML, Recipients, MocksHelper, CustomEvent, KeyEvent,
-         MockDialog, Template, MockL10n, Navigation */
+         MockDialog, Template, MockL10n, Navigation, Compose */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_gesture_detector.js');
 
 requireApp('sms/js/recipients.js');
 requireApp('sms/js/utils.js');
+requireApp('sms/js/compose.js');
 
 requireApp('sms/test/unit/mock_dialog.js');
 requireApp('sms/test/unit/mock_utils.js');
@@ -75,7 +76,8 @@ suite('Recipients', function() {
       className: 'recipient',
       isLookupable: false,
       isQuestionable: false,
-      isInvalid: false
+      isInvalid: false,
+      isEmail: false
     };
   });
 
@@ -96,6 +98,7 @@ suite('Recipients', function() {
       assert.ok(Recipients.prototype.on);
       assert.ok(Recipients.prototype.off);
       assert.ok(Recipients.prototype.emit);
+      assert.ok(Recipients.prototype.checkmessagetype);
     });
 
     test('recipients.add() 1 ', function() {
@@ -150,7 +153,6 @@ suite('Recipients', function() {
       recipients.add({ number: 999 });
     });
 
-
     test('recipients.remove(recipient) ', function() {
       var recipient;
 
@@ -180,6 +182,79 @@ suite('Recipients', function() {
 
       recipients.remove(0);
       assert.equal(recipients.length, 0);
+    });
+
+    test('recipients.checkmessagetype() sms-1', function() {
+      var recipient;
+
+      recipients.add({
+        number: '999'
+      });
+
+      assert.equal(recipients.length, 1);
+      assert.equal(Compose.type, 'sms');
+    });
+
+    test('recipients.checkmessagetype() sms-2', function() {
+      var recipient;
+
+      recipients.add({
+        number: '111'
+      });
+      recipients.add({
+        number: 'a@a'
+      });
+      recipients.add({
+        number: '999'
+      });
+      recipients.remove(1);
+
+      assert.equal(recipients.length, 2);
+      assert.equal(Compose.type, 'sms');
+    });
+
+    test('recipients.checkmessagetype() mms-1', function() {
+      var recipient;
+
+      recipients.add({
+        number: 'a@a'
+      });
+
+      assert.equal(recipients.length, 1);
+      assert.equal(Compose.type, 'mms');
+    });
+
+    test('recipients.checkmessagetype() mms-2', function() {
+      var recipient;
+
+      recipients.add({
+        number: '111'
+      });
+      recipients.add({
+        number: 'a@a'
+      });
+
+      assert.equal(recipients.length, 2);
+      assert.equal(Compose.type, 'mms');
+    });
+
+    test('recipients.checkmessagetype() mms-3', function() {
+      var recipient;
+
+      recipients.add({
+        number: '111'
+      });
+      recipients.add({
+        number: 'a@a'
+      });
+
+      recipients.add({
+        number: 'b@b'
+      });
+      recipients.remove(1);
+
+      assert.equal(recipients.length, 2);
+      assert.equal(Compose.type, 'mms');
     });
 
     test('recipients.update(recipient, entry) ', function() {

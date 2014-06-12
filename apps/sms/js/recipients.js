@@ -1,4 +1,4 @@
-/*global Utils, GestureDetector, Dialog, Navigation */
+/*global Utils, GestureDetector, Dialog, Navigation, Compose */
 
 (function(exports) {
   'use strict';
@@ -28,6 +28,7 @@
     this.separator = opts.separator || '';
     this.carrier = opts.carrier || '';
     this.className = 'recipient';
+    this.isEmail = Utils.isEmailAddress(this.number);
 
     // isLookupable
     //  the recipient was accepted by pressing <enter>
@@ -52,7 +53,7 @@
     // is questionable and may be invalid.
     number = this.number[0] === '+' ? this.number.slice(1) : this.number;
 
-    if (Utils.isEmailAddress(this.number)) {
+    if (this.isEmail) {
       this.className += ' email';
     } else if (this.source === 'manual' && !rdigit.test(number)) {
       this.isQuestionable = true;
@@ -252,6 +253,8 @@
       }
     }
 
+    this.checkmessagetype();
+
     return this;
   };
   /**
@@ -355,6 +358,19 @@
 
   Recipients.prototype.visible = function(type, opts) {
     view.get(this).visible(type, opts || {});
+    return this;
+  };
+
+  Recipients.prototype.checkmessagetype = function() {
+    var list = data.get(this);
+
+    for (var i = 0; i < list.length; i++) {
+      if (Utils.isEmailAddress(list[i].number)) {
+        Compose.type = 'mms';
+        return this;
+      }
+    }
+    Compose.type = 'sms';
     return this;
   };
 
