@@ -167,7 +167,6 @@ function updatePowerUI() {
   var enabled = mozFMRadio.enabled;
   if (enabled) {
     PerformanceTestingHelper.dispatch('fm-radio-enabled');
-    PerformanceTestingHelper.dispatch('startup-path-done');
   }
   console.log('Power status: ' + (enabled ? 'on' : 'off'));
   var powerSwitch = $('power-switch');
@@ -706,8 +705,6 @@ var favoritesList = {
 };
 
 function init() {
-  PerformanceTestingHelper.dispatch('start');
-
   frequencyDialer.init();
 
   var seeking = false;
@@ -805,6 +802,7 @@ function init() {
     updateAirplaneModeUI();
   });
 
+  // Load the fav list and enable the FM radio if an antenna is available.
   historyList.init(function hl_ready() {
     if (mozFMRadio.antennaAvailable) {
       // Enable FM immediately
@@ -823,6 +821,13 @@ function init() {
       favoritesList.init();
     }
     updatePowerUI();
+
+    // PERFORMANCE EVENT (5): moz-app-loaded
+    // Designates that the app is *completely* loaded and all relevant
+    // "below-the-fold" content exists in the DOM, is marked visible,
+    // has its events bound and is ready for user interaction. All
+    // required startup background processing should be complete.
+    window.dispatchEvent(new CustomEvent('moz-app-loaded'));
   });
 }
 
@@ -830,6 +835,23 @@ window.addEventListener('load', function(e) {
   AirplaneModeHelper.ready(function() {
     airplaneModeEnabled = AirplaneModeHelper.getStatus() == 'enabled';
     init();
+
+    // PERFORMANCE EVENT (2): moz-chrome-interactive
+    // Designates that the app's *core* chrome or navigation interface
+    // has its events bound and is ready for user interaction.
+    window.dispatchEvent(new CustomEvent('moz-chrome-interactive'));
+
+    // PERFORMANCE EVENT (3): moz-app-visually-complete
+    // Designates that the app is visually loaded (e.g.: all of the
+    // "above-the-fold" content exists in the DOM and is marked as
+    // ready to be displayed).
+    window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
+
+    // PERFORMANCE EVENT (4): moz-content-interactive
+    // Designates that the app has its events bound for the minimum
+    // set of functionality to allow the user to interact with the
+    // "above-the-fold" content.
+    window.dispatchEvent(new CustomEvent('moz-content-interactive'));
   });
 }, false);
 
@@ -837,3 +859,8 @@ window.addEventListener('load', function(e) {
 window.addEventListener('unload', function(e) {
   mozFMRadio.disable();
 }, false);
+
+// PERFORMANCE EVENT (1): moz-chrome-dom-loaded
+// Designates that the app's *core* chrome or navigation interface
+// exists in the DOM and is marked as ready to be displayed.
+window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
