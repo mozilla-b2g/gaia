@@ -1,4 +1,5 @@
 requireLib('provider/abstract.js');
+requireLib('provider/local.js');
 requireLib('template.js');
 requireLib('templates/alarm.js');
 requireElements('calendar/elements/show_event.html');
