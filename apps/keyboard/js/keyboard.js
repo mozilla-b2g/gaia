@@ -1589,6 +1589,8 @@ function hideKeyboard() {
   settingsPromiseManager.set({
     'keyboard.current': undefined
   });
+
+  clearTouchedKeys();
 }
 
 // Resize event handler
@@ -1759,6 +1761,11 @@ function clearTouchedKeys() {
 
   hideAlternatives();
   touchedKeys = {};
+
+  // Reset all the pending actions here.
+  clearTimeout(deleteTimeout);
+  clearInterval(deleteInterval);
+  clearTimeout(menuTimeout);
 }
 
 // Hide the keyboard via input method API
