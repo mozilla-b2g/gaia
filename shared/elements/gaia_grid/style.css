@@ -1,24 +1,27 @@
-.loading:before {
-  /**
-  XXX: Do something less terrible...
-
-  -13% to align the icon above the text of the icon.
-  */
-  margin-top: -13%;
+.loading:after {
   content: "";
-  z-index: 30000;
-  background: no-repeat center url('images/loading_spinner.png');
-  background-size: 6rem;
+  background: no-repeat top center url('images/app_install_spinner@1.png');
+  background-size: 8.4rem;
+  height: 8.4rem;
   position: absolute;
   top: 0;
   left: 0;
-  height: 100%;
   width: 100%;
   /**
   keyframe must be defined outside of the web component
   See bug 1018269
   */
+
   animation: rotate 2.25s linear infinite;
+}
+
+.icon.loading {
+  /**
+  we must align this value with the value of .loading:after height the background size here
+  is overridden at the element level elsewhere which causes the spinner to be aligned too low.
+  */
+  background-size: 8.4rem !important;
+  background-image: url('images/app_installing@1.png')
 }
 
 .icon {
