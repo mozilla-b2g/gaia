@@ -2,7 +2,7 @@
 /* global BaseCollection */
 /* global Contextmenu */
 /* global ViewApps */
-/* global ViewBGImage */
+/* global ViewBgImage */
 /* global Promise */
 /* global eme */
 
@@ -31,7 +31,7 @@
     /* jshint -W031 */
     new Contextmenu(collection);
     new ViewApps(collection);
-    new ViewBGImage(collection);
+    new ViewBgImage(collection);
   }
 
   navigator.mozSetMessageHandler('activity', function onActivity(activity) {

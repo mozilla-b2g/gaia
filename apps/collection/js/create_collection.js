@@ -11,6 +11,28 @@
   var _ = navigator.mozL10n.get;
   var eme = exports.eme;
 
+  function getBackground(collection) {
+    var src;
+    var options = collection.categoryId ? {categoryId: collection.categoryId}
+                                        : {query: collection.query};
+
+    return eme.api.Search.bgimage(options).then(function success(response) {
+      var image = response.response.image;
+      if (image) {
+        src = image.data;
+        if (/image\//.test(image.MIMEType)) {  // base64 image data
+          src = 'data:' + image.MIMEType + ';base64,' + image.data;
+        }
+      }
+
+      return {
+        src: src,
+        source: response.response.source,
+        checksum: response.checksum || null
+      };
+    });
+  }
+
   function HandleCreate(activity) {
 
     var request;
@@ -60,10 +82,10 @@
                   eme.api.Apps.search({query: selected, limit: numAppIcons})
                     .then(function success(response) {
                       var webicons =
-                      response.response.apps.slice(0,numAppIcons).map(
-                        function each(app) {
-                          return app.icon;
-                      });
+                        response.response.apps.slice(0,numAppIcons).map(
+                          function each(app) {
+                            return app.icon;
+                        });
 
                       var collection = new QueryCollection({
                         query: selected,
@@ -81,17 +103,28 @@
                 });
               }
 
+              // congrats! you have the webapps icons!
+              // but you are still not done,
+              // it's time to get the background images
               dataReady.then(function success(collections) {
                 var iconsReady = [];
                 collections.forEach(function doIcon(collection) {
-                  iconsReady.push(collection.renderIcon());
+                  var promise =
+                    getBackground(collection)
+                    .then(function setBackground(bgObject) {
+                      collection.background = bgObject;
+                      return collection.renderIcon();
+                    }, function noBackground() {
+                      return collection.renderIcon();
+                    });
+
+                  iconsReady.push(promise);
                 });
 
                 Promise.all(iconsReady).then(function then() {
-                  // TODO
-                  // 1. store a batch of collections at once. possible?
-                  // 2. we can store to db *before* icons is ready and once
-                  // the homescreen syncs it will update the icons
+                  // TOOD
+                  // better use colleciton.save instead but it calles db.put
+                  // not sure if `put` works for new objects
                   var trxs = collections.map(CollectionsDatabase.add);
                   Promise.all(trxs).then(done, done);
                 }).catch(function _catch(ex) {

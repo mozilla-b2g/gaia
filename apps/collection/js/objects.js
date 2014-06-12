@@ -18,6 +18,10 @@
     // A list of the web results for this collection view
     this.webResults = [];
 
+    // an object containing data about the background image
+    // {src: string, source: string, checksum: string}
+    this.background = props.background || {};
+
     if (window.SearchDedupe) {
       this.dedupe = new SearchDedupe();
     }
@@ -33,14 +37,16 @@
   };
 
   BaseCollection.prototype = {
+    // returns a promise resolved when the db trx is done
     save: function save() {
-      CollectionsDatabase.put({
+      return CollectionsDatabase.put({
         id: this.id,
         name: this.name,
         query: this.query,
         categoryId: this.categoryId,
         webicons: this.webicons,
-        pinned: this.pinned
+        pinned: this.pinned,
+        background: this.background
       });
     },
 
@@ -80,7 +86,7 @@
     renderIcon: function renderIcon() {
       var icon = new CollectionIcon({
         iconSrcs: this.webicons,
-        bgSrc: null  // TODO this.bgURL ...
+        bgSrc: this.background ? this.background.src : null
       });
 
       // return a promise
