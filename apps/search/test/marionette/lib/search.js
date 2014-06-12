@@ -18,8 +18,8 @@ Search.URL = 'app://search.gaiamobile.org';
 
 Search.Selectors = {
   iframe: 'iframe[mozapptype="search"]',
-  firstAppContainer: '#localapps',
-  firstApp: '#localapps div',
+  firstAppContainer: 'gaia-grid',
+  firstApp: 'gaia-grid .icon',
   firstContact: '#contacts div',
   firstContactContainer: '#contacts',
   firstPlace: '#places div .title',
@@ -39,6 +39,20 @@ Search.prototype = {
   },
 
   /**
+   * Checks that we have a result for a given app in the results list.
+
+   */
+  checkAppResult: function(identifier, expected) {
+    var selectors = Search.Selectors;
+    var selector = '.icon[data-identifier="' + identifier + '"]';
+
+    this.client.helper.waitForElement(selectors.firstAppContainer);
+    var result = this.client.helper.waitForElement(selector);
+    assert.equal(expected, result.text());
+    result.click();
+  },
+
+  /**
    * Checks that the text of a selector matches the expected result.
    * Clicks on that result.
    * @param {String} selectorKey from Search.Selectors.
@@ -52,6 +66,21 @@ Search.prototype = {
       .waitForElement(selectors[selectorKey]);
     assert.equal(expected, result.text());
     result.click();
+  },
+
+  /**
+   * Workaround for bug 1022768, where app permissions are not auto ALLOWed
+   * for tests on desktop. If that bug is fixed, this function should be
+   * removed.
+   */
+  removeGeolocationPermission: function() {
+    var client = this.client.scope({ context: 'chrome' });
+    client.executeScript(function(origin) {
+      var mozPerms = navigator.mozPermissionSettings;
+      mozPerms.set(
+        'geolocation', 'deny', origin + '/manifest.webapp', origin, false
+      );
+    }, [Search.URL]);
   },
 
   /**

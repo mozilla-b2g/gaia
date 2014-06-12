@@ -3,11 +3,12 @@
 
 var System = require('../../../system/test/marionette/lib/system');
 var Rocketbar = require('../../../system/test/marionette/lib/rocketbar');
+var Search = require('../../../search/test/marionette/lib/search');
 var Server = require('../../../../shared/test/integration/server');
 
 marionette('Rocketbar', function() {
   var client = marionette.client(Rocketbar.clientOptions);
-  var rocketbar, server, system;
+  var rocketbar, search, server, system;
 
   suiteSetup(function(done) {
     Server.create(__dirname + '/fixtures/', function(err, _server) {
@@ -23,7 +24,9 @@ marionette('Rocketbar', function() {
 
   setup(function() {
     rocketbar = new Rocketbar(client);
+    search = new Search(client);
     system.waitForStartup();
+    search.removeGeolocationPermission();
   });
 
   test('Rocketbar is expanded on homescreen', function() {
@@ -95,9 +98,7 @@ marionette('Rocketbar', function() {
     });
   });
 
-  // Skip test since it fails to handle the geolocation permission dialog
-  // https://bugzilla.mozilla.org/show_bug.cgi?id=1018925
-  test.skip('Cancel Rocketbar with backdrop', function() {
+  test('Cancel Rocketbar with backdrop', function() {
     rocketbar.waitForLoad();
 
     // Check that scrim appears
