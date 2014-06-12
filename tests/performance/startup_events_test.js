@@ -18,6 +18,7 @@ var whitelistedApps = [
 ];
 
 var whitelistedUnifiedApps = [
+  'fm',
   'settings'
 ];
 
