@@ -107,8 +107,8 @@ contacts.Details = (function() {
     if (WebrtcClient) {
       getWebrtcClientResources(WebrtcClient.stop);
     }
-    
-    if (ActivityHandler.currentlyHandling) {
+
+    if (ActivityHandler.currentActivityIsNot(['import'])) {
       ActivityHandler.postCancel();
       Contacts.navigation.home();
     } else {
@@ -251,9 +251,9 @@ contacts.Details = (function() {
 
     renderPhones(contact);
     renderEmails(contact);
-    
+
     renderWebrtcClient(contactData);// Don't share the FB info
-    
+
     renderAddresses(contact);
 
     renderDates(contact);
@@ -513,8 +513,7 @@ contacts.Details = (function() {
   // Check current situation and setup different listener for the button
   function setupPhoneButtonListener(button, number) {
     LazyLoader.load(['/dialer/js/mmi.js'], function() {
-      if (ActivityHandler.currentlyHandling &&
-        ActivityHandler.activityName !== 'open') {
+      if (ActivityHandler.currentActivityIsNot(['open'])) {
         button.addEventListener('click', onPickNumber);
       } else if ((navigator.mozMobileConnection ||
           window.navigator.mozMobileConnections &&
