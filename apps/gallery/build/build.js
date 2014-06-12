@@ -88,6 +88,7 @@ GalleryAppBuilder.prototype.customizeMaximumImageSize = function(options) {
         'var CONFIG_REQUIRED_EXIF_PREVIEW_WIDTH = 0;\n' +
         'var CONFIG_REQUIRED_EXIF_PREVIEW_HEIGHT = 0;\n';
     }
+
     var file = utils.getFile(this.distDir.path, 'js', 'config.js');
     utils.writeContent(file, content);
 };
