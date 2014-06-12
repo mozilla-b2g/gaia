@@ -605,9 +605,8 @@ function optimize_compile(webapp, file, callback) {
       }
 
       // we expect the last locale to be the default one:
-      // set the lang/dir attributes of the current document
-      docElt.dir = mozL10n.language.direction;
-      docElt.lang = mozL10n.language.code;
+      // pretranslate the document and set its lang/dir attributes
+      mozL10n.translate();
 
       // save localized / optimized document
       let newFile = new FileUtils.File(file.path + '.' +
