@@ -79,6 +79,14 @@ var CallScreen = {
     CallsHandler.updateAllPhoneNumberDisplays();
   },
 
+  hidePlaceNewCallButton: function cs_hidePlaceNewCallButton() {
+    this.callToolbar.classList.add('no-add-call');
+  },
+
+  showPlaceNewCallButton: function cs_showPlaceNewCallButton() {
+    this.callToolbar.classList.remove('no-add-call');
+  },
+
   /**
    * When enabled hides the end-and-answer button in call waiting mode and
    * displays only the hold-and-answer one.
@@ -606,6 +614,11 @@ var CallScreen = {
         this.initUnlockerEvents();
       }
     }
+  },
+
+  cdmaConferenceCall: function cs_cdmaConferenceCall() {
+    this.hidePlaceNewCallButton();
+    this.calls.classList.add('cdma-conference-call');
   },
 
   initUnlockerEvents: function cs_initUnlockerEvents() {
