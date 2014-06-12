@@ -236,7 +236,8 @@ span.line-break {
  * the issue.  The user can't interact with the app while the overlay
  * is displayed.
  */
-#overlay {
+#overlay,
+#confirm-dialog {
   /* it takes up the whole screen */
   position: absolute;
   top: 0;

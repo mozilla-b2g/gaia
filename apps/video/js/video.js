@@ -34,6 +34,8 @@ ids.forEach(function createElementRef(name) {
 
 dom.player.mozAudioChannelType = 'content';
 
+function $(id) { return document.getElementById(id); }
+
 var playing = false;
 
 // if this is true then the video tag is showing
@@ -542,10 +544,12 @@ function deleteSelectedItems() {
   if (selectedFileNames.length === 0)
     return;
 
-  var msg = navigator.mozL10n.get('delete-n-items?',
-                                  {n: selectedFileNames.length});
-  if (confirm(msg)) {
-    // XXX
+  Dialogs.confirm({
+    message: navigator.mozL10n.get('delete-n-items?', {n: selectedFileNames.length}),
+    cancelText: navigator.mozL10n.get('cancel'),
+    confirmText: navigator.mozL10n.get('delete'),
+    danger: true
+  }, function() { // onSuccess
     // deleteFile is O(n), so this loop is O(n*n). If used with really large
     // selections, it might have noticably bad performance.  If so, we
     // can write a more efficient deleteFiles() function.
@@ -553,7 +557,7 @@ function deleteSelectedItems() {
       deleteFile(selectedFileNames[i]);
     }
     clearSelection();
-  }
+  });
 }
 
 function deleteFile(filename) {
@@ -576,11 +580,15 @@ function deleteFile(filename) {
 }
 
 function deleteSingleFile(file) {
-  var msg = navigator.mozL10n.get('confirm-delete');
-  if (confirm(msg + ' ' + file)) {
+  Dialogs.confirm({
+    message: navigator.mozL10n.get('delete-video?'),
+    cancelText: navigator.mozL10n.get('cancel'),
+    confirmText: navigator.mozL10n.get('delete'),
+    danger: true
+  }, function() { // onSuccess
     deleteFile(file);
     return true;
-  }
+  });
 
   return false;
 }
