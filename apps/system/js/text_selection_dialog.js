@@ -27,6 +27,8 @@
     }
   };
 
+  TextSelectionDialog.prototype = Object.create(window.BaseUI.prototype);
+
   TextSelectionDialog.prototype.TEXTDIALOG_HEIGHT = 52;
 
   TextSelectionDialog.prototype.TEXTDIALOG_WIDTH = 52;
@@ -42,8 +44,6 @@
   // 22px. So 22px plus 12px which defined in UI spec, we get 34px from
   // the bottom of selected area to utility menu.
   TextSelectionDialog.prototype.DISTANCE_FROM_SELECTEDAREA_TO_MENUTOP = 34;
-
-  TextSelectionDialog.prototype = Object.create(window.BaseUI.prototype);
 
   TextSelectionDialog.prototype.CLASS_NAME = 'TextSelectionDialog';
 
@@ -228,6 +228,7 @@
       if ((posLeft + numOfSelectOptions * selectOptionWidth) > frameWidth) {
         posLeft = frameWidth - numOfSelectOptions * selectOptionWidth;
       }
+
       return {
         top: posTop + (this.app ? 0 : detail.frameOffsetY),
         left: posLeft + (this.app ? 0 : detail.frameOffsetX)
