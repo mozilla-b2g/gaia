@@ -708,9 +708,9 @@ var VCFReader = (function _VCFReader() {
       var matchCbs = {
         onmatch: function(matches) {
           var callbacks = {
-            success: function() {
+            success: function(mergedContact) {
               self.numDupsMerged++;
-              afterSaveFn();
+              afterSave(mergedContact, null);
             },
             error: afterSaveFn
           };
@@ -721,7 +721,6 @@ var VCFReader = (function _VCFReader() {
           VCFReader._save(contact, afterSaveFn);
         }
       };
-
       contacts.Matcher.match(contact, 'passive', matchCbs);
     }
 
