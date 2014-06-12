@@ -35,10 +35,13 @@
     <script defer src="js/objects.js"></script>
     <script defer src="js/contextmenu.js"></script>
     <script defer src="js/view_collection.js"></script>
+    <script defer src="js/view_apps.js"></script>
+    <script defer src="js/view_bg.js"></script>
 
     <link rel="stylesheet" href="style/css/base.css">
     <link rel="stylesheet" href="style/css/view.css">
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
+    <link rel="stylesheet" type="text/css" href="shared/style/progress_activity.css">
 
   </head>
   <body>
@@ -49,6 +52,14 @@
 
     <div id="content">
         <gaia-grid cols="4" id="grid"></gaia-grid>
+
+        <section role="notification" id="offline">
+            <span id="offline-message"></span>
+        </section>
+
+        <section role="notification" id="loading">
+            <progress></progress>
+        </section>
     </div>
 
     <gaia-menu id="cloud-menu" hidden>
