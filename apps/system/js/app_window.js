@@ -623,7 +623,7 @@
      'mozbrowsericonchange', 'mozbrowserasyncscroll',
      '_localized', '_swipein', '_swipeout', '_kill_suspended',
      'popupterminated', 'activityterminated', 'activityclosing',
-     'popupclosing', 'activityopened', '_orientationchange'];
+     'popupclosing', 'activityopened', '_orientationchange', '_focus'];
 
   AppWindow.SUB_COMPONENTS = {
     'transitionController': window.AppTransitionController,
@@ -1893,6 +1893,14 @@
     if (this.contextmenu) {
       this.contextmenu.showDefaultMenu();
     }
+  };
+
+  AppWindow.prototype._handle__focus = function() {
+    var win = this;
+    while (win.frontWindow && win.frontWindow.isActive()) {
+      win = win.frontWindow;
+    }
+    win.focus();
   };
 
   exports.AppWindow = AppWindow;

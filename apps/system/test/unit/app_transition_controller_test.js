@@ -1,4 +1,5 @@
-/* global MocksHelper, MockAppWindow, MockSystem, AppTransitionController */
+/* global MocksHelper, MockAppWindow, MockSystem, AppTransitionController,
+          MockSimPinDialog, MockRocketbar, rocketbar */
 'use strict';
 
 requireApp('system/test/unit/mock_app_window.js');
@@ -6,6 +7,8 @@ requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_layout_manager.js');
 requireApp('system/test/unit/mock_system.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
+requireApp('system/test/unit/mock_sim_pin_dialog.js');
+requireApp('system/test/unit/mock_rocketbar.js');
 
 var mocksForAppTransitionController = new MocksHelper([
   'AppWindow', 'LayoutManager', 'SettingsListener', 'System'
@@ -15,12 +18,16 @@ suite('system/AppTransitionController', function() {
   var stubById;
   mocksForAppTransitionController.attachTestHelpers();
   setup(function(done) {
+    window.SimPinDialog = new MockSimPinDialog();
+    window.rocketbar = new MockRocketbar();
     stubById = this.sinon.stub(document, 'getElementById');
     stubById.returns(document.createElement('div'));
     requireApp('system/js/app_transition_controller.js', done);
   });
 
   teardown(function() {
+    window.SimPinDialog = null;
+    window.rocketbar = null;
     stubById.restore();
   });
 
@@ -157,6 +164,35 @@ suite('system/AppTransitionController', function() {
     app1.element.dispatchEvent(new CustomEvent('_opened'));
     assert.isTrue(stubPublish.called);
     assert.equal(stubPublish.getCall(0).args[1].type, 'w');
+  });
+
+  test('Focus will happen after loaded and opened', function() {
+    var app1 = new MockAppWindow(fakeAppConfig1);
+    var acn1 = new AppTransitionController(app1);
+    var stubFocus = this.sinon.stub(app1, 'focus');
+    app1.loaded = false;
+    acn1.handle_opened();
+    MockSimPinDialog.visible = false;
+    rocketbar.active = false;
+
+    acn1._transitionState = 'opened';
+    app1.element.dispatchEvent(new CustomEvent('_loaded'));
+
+    assert.isTrue(stubFocus.called);
+  });
+
+  test('Focus will happen once next paint', function() {
+    var app1 = new MockAppWindow(fakeAppConfig1);
+    var acn1 = new AppTransitionController(app1);
+    var stubFocus = this.sinon.stub(app1, 'focus');
+    app1.loaded = true;
+    MockSimPinDialog.visible = false;
+    rocketbar.active = false;
+    acn1._transitionState = 'opened';
+
+    acn1.handle_opened();
+
+    assert.isTrue(stubFocus.called);
   });
 
   suite('Opened', function() {
