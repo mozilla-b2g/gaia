@@ -24,6 +24,11 @@ var MockFxAccountsClient = {
     this._triggerCallback(successCb, errorCb);
   },
 
+  resendVerificationEmail: function(successCb, errorCb) {
+    this._call = 'resendVerificationEmail';
+    this._triggerCallback(successCb, errorCb);
+  },
+
   logout: function(successCb, errorCb) {
     this._call = 'logout';
     this._triggerCallback(successCb, errorCb);
