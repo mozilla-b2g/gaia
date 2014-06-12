@@ -66,13 +66,7 @@ marionette('Vertical Home - Hosted app cached icon fetch', function() {
     server.fail(iconURL);
 
     // kill the window
-    client.executeScript(function() {
-      window.close();
-    });
-
-    // initialize our frames again since we killed the iframe
-    client.switchToFrame();
-    client.switchToFrame(system.getHomescreenIframe());
+    subject.restart();
     icon = subject.getIcon(server.manifestURL);
 
     // check for the cached icon...
