@@ -1,6 +1,5 @@
 'use strict';
 /* global Promise */
-/* global MobileOperator */
 
 (function(eme) {
 
@@ -9,7 +8,7 @@
   var mozMobileConnections = navigator.mozMobileConnections;
 
   // geolocation
-  var lastPosition = null;
+  var position = null;
   var positionPromise = null;
 
   const positionTTL = 10 * 60 * 1000;
@@ -19,13 +18,13 @@
   };
 
 
+  // returns a promise always resolved with current position or null
+  // caller should check the resolved value
   function updatePosition() {
     if (positionPromise) {
       return positionPromise;
     }
 
-    // always resolves
-    // caller should check the resolved value is not null
     positionPromise = new Promise(function ready(resolve) {
       // TODO
       // it looks like getCurrentPosition never returns cached position
@@ -36,22 +35,22 @@
       // this does not seem to work on an unagi.
       // for now, we defer the init() until the position request is done.
       geolocation.getCurrentPosition(
-        function success(position) {
+        function success(newPosition) {
           positionPromise = null;
 
-          if (position && position.coords) {
-            eme.log('new position', position.coords.latitude,
-                                    position.coords.longitude,
-                                    position.timestamp);
+          if (newPosition && newPosition.coords) {
+            eme.log('new position', newPosition.coords.latitude,
+                                    newPosition.coords.longitude,
+                                    newPosition.timestamp);
 
-            lastPosition = position;
+            position = newPosition;
           }
-          resolve(lastPosition);
+          resolve(position);
         },
         function error(positionError) {
           positionPromise = null;
           eme.log('position error', positionError.code, positionError.message);
-          resolve(lastPosition);
+          resolve(position);
         },
         geoOptions);
     });
@@ -59,53 +58,24 @@
     return positionPromise;
   }
 
-  function getTimezoneOffset() {
-    return (new Date().getTimezoneOffset() / -60).toString();
-  }
-
-  function getCarrier(mobileConnection) {
-    if (MobileOperator && mobileConnection) {
-      var info = MobileOperator.userFacingInfo(mobileConnection);
-      return info.operator || null;
-    }
-
-    return null;
-  }
-
   function Device() {
-    // device info
-    // set async. when calling init()
-    this.lc = null;
-    this.tz = null;
+    // set async. from settings when calling init()
     this.osVersion = null;
     this.deviceId = null;
-    this.deviceType = null;
-    this.carrierName = null;
+    this.deviceName = null;
+
     this.screen = {
       width: window.screen.width * window.devicePixelRatio,
       height: window.screen.height * window.devicePixelRatio
     };
-
-    // observe info that may change
-    mozSettings.addObserver('language.current', function setLocale(e) {
-      var current = this.lc;
-      this.lc = e.settingValue || navigator.language || '';
-      eme.log('lc changed', current, '->', this.lc);
-    }.bind(this));
-
-    mozSettings.addObserver('time.timezone', function setTimezone(e) {
-      var current = this.tz;
-      this.tz = getTimezoneOffset();
-      eme.log('tz changed', current, '->', this.tz);
-    }.bind(this));
   }
 
   Device.prototype = {
     init: function init() {
-      return Promise.all([this.updateDeviceInfo(), updatePosition()]);
+      return Promise.all([this.readSettings(), updatePosition()]);
     },
 
-    updateDeviceInfo: function updateDeviceInfo() {
+    readSettings: function readSettings() {
       return new Promise(function ready(resolve, reject) {
         var lock = mozSettings.createLock();
         var request = lock.get('*');
@@ -121,12 +91,9 @@
             });
           }
 
-          this.lc = settings['language.current'];
-          this.tz = getTimezoneOffset();
-          this.osVersion = settings['deviceinfo.os'];
           this.deviceId = deviceId;
-          this.deviceType = settings['deviceinfo.product_model'];
-          this.carrierName = getCarrier(this.mobileConnection);
+          this.deviceName = settings['deviceinfo.product_model'];
+          this.osVersion = settings['deviceinfo.os'];
 
           resolve();
         }.bind(this);
@@ -148,23 +115,37 @@
       return 'fxos-' + id;
     },
 
-    get mobileConnection() {
-      if (mozMobileConnections && mozMobileConnections.length) {
-        return mozMobileConnections[0];
+    get language() {
+      return navigator.language;
+    },
+
+    get timezone() {
+      return (new Date().getTimezoneOffset() / -60).toString();
+    },
+
+    get carrier() {
+      var network;
+      var carrier;
+      var connection = mozMobileConnections &&
+                       mozMobileConnections.length && mozMobileConnections[0];
+
+      if (connection && connection.voice) {
+        network = connection.voice.network;
+        carrier = network ? (network.shortName || network.longName) : null;
       }
 
-      return null;
+      return carrier;
     },
 
     // returns last known position
     get position() {
-      if (!lastPosition ||
-          (Date.now() - lastPosition.timestamp > positionTTL)) {
+      if (!position ||
+          (Date.now() - position.timestamp > positionTTL)) {
 
         updatePosition();
       }
 
-      return lastPosition;
+      return position;
     }
   };
 
