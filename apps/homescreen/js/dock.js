@@ -46,7 +46,6 @@ var DockManager = (function() {
             isPanning = true;
             // Since we're panning, the icon we're over shouldn't be active
             IconManager.removeActive();
-            document.body.dataset.transitioning = 'true';
           }
         }
 
@@ -134,14 +133,12 @@ var DockManager = (function() {
     if (dock.getNumIcons() <= maxNumAppInViewPort ||
           dock.getLeft() === 0 || dock.getRight() === windowWidth) {
       // No animation
-      delete document.body.dataset.transitioning;
       return;
     }
 
     dock.moveByWithEffect(scrollX > 0 ? 0 : maxOffsetLeft, duration);
     container.addEventListener('transitionend', function transEnd(e) {
       container.removeEventListener('transitionend', transEnd);
-      delete document.body.dataset.transitioning;
     });
   }
 
@@ -164,19 +161,16 @@ var DockManager = (function() {
     }
 
     // We are going to place the dock in the middle of the screen
-    document.body.dataset.transitioning = 'true';
     var beforeTransform = dock.getTransform();
     dock.moveByWithDuration(maxOffsetLeft / 2, .5);
 
     if (beforeTransform === dock.getTransform()) {
-      delete document.body.dataset.transitioning;
       callback && callback();
       return;
     }
 
     container.addEventListener('transitionend', function transEnd(e) {
       container.removeEventListener('transitionend', transEnd);
-      delete document.body.dataset.transitioning;
       callback && callback();
     });
   }
