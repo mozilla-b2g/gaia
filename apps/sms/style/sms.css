@@ -640,6 +640,11 @@ section[role="region"].new > header:first-child form {
 /*
   Styles related to the layout of the composer
 */
+
+section[role="region"].new .subheader {
+  height: 0;
+}
+
 #messages-to-field {
   position: relative;
 
