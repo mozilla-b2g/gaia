@@ -67,11 +67,21 @@ suite('system/permission manager', function() {
     permissionManager.stop();
   });
 
+  test('dispatch event when hidden', function() {
+    var dispatched = false;
+    window.addEventListener('permissiondialoghide', function onhide() {
+      window.removeEventListener('permissiondialoghide', onhide);
+      dispatched = true;
+    });
+    permissionManager.hidePermissionPrompt();
+    assert.isTrue(dispatched);
+  });
+
   suite('default value', function() {
     test('default values', function() {
       assert.equal(permissionManager.fullscreenRequest, undefined);
       assert.equal(permissionManager.pending, '');
-      assert.equal(permissionManager.nextRequestID, 0);
+      assert.equal(permissionManager.nextRequestID, null);
       assert.equal(permissionManager.currentRequestId, undefined);
       assert.equal(permissionManager.currentOrigin, undefined);
       assert.equal(permissionManager.permissionType, undefined);
