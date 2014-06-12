@@ -527,7 +527,7 @@ body.rb-enabled #statusbar-label {
   width: 1.6rem;
   height: 1.6rem;
   background: url('images/icons.png') no-repeat;
-  background-position: -18.9rem -6rem;
+  background-position: -18.7rem -6rem;
   background-size: 31.4rem 9.6rem;
 }
 
@@ -537,7 +537,7 @@ body.rb-enabled #statusbar-label {
 }
 
 .sb-icon-notification[data-unread="true"]::before {
-  background-position: -16.8rem -6rem;
+  background-position: -16.7rem -6rem;
 }
 
 .sb-icon-notification::after {
