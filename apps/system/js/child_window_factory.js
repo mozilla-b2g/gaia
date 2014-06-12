@@ -83,6 +83,10 @@
   };
 
   ChildWindowFactory.prototype.createChildWindow = function(evt) {
+    if (this.app.isTransitioning() ||
+        !this.app.isActive()) {
+      return false;
+    }
     var configObject = {
       url: evt.detail.url,
       name: this.app.name,
