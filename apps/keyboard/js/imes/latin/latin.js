@@ -517,6 +517,7 @@
     }
     else if (punctuating && cursor >= 2 &&
              isWhiteSpace(inputText[cursor - 1]) &&
+             inputText[cursor - 1].charCodeAt(0) !== KeyEvent.DOM_VK_RETURN &&
              !WORDSEP.test(inputText[cursor - 2]))
     {
       return autoPunctuate(keycode);

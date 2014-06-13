@@ -18,7 +18,7 @@ suite('Latin suggestions', function() {
     imSettings = {
       resetUpperCase: sinon.stub(),
       sendKey: sinon.stub().returns(Promise.resolve()),
-      sendString: sinon.stub(),
+      sendString: sinon.stub().returns(Promise.resolve()),
       sendCandidates: sinon.stub(),
       setUpperCase: sinon.stub(),
       setLayoutPage: sinon.stub(),
@@ -157,6 +157,21 @@ suite('Latin suggestions', function() {
       assert.equal(imSettings.sendKey.args[1][0], KeyEvent.DOM_VK_BACK_SPACE);
       assert.equal(imSettings.sendKey.args[2][0], '.'.charCodeAt(0));
       assert.equal(imSettings.sendKey.args[3][0], ' '.charCodeAt(0));
+      next();
+    });
+  });
+
+  test('New line then dot should not remove newline', function(next) {
+    setState('Hello');
+
+    im.click(KeyEvent.DOM_VK_RETURN).then(function() {
+      return im.click('.'.charCodeAt(0));
+    }).then(function() {
+      sinon.assert.callCount(imSettings.replaceSurroundingText, 0);
+      sinon.assert.callCount(imSettings.sendKey, 2);
+      assert.equal(imSettings.sendKey.args[0][0], KeyEvent.DOM_VK_RETURN);
+      assert.equal(imSettings.sendKey.args[1][0], '.'.charCodeAt(0));
+
       next();
     });
   });
