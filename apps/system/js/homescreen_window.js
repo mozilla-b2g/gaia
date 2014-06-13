@@ -223,5 +223,18 @@
     this.fadeOverlay.classList.remove('hidden');
   };
 
+  HomescreenWindow.prototype._handle_mozbrowserlocationchange = function(evt) {
+    // Bug 1025149 : Terrible hack to prevent the homescreen from navigating to
+    //               other unreachable areas which trigger inescapable
+    //               neterror(s)
+    if (!evt.detail.startsWith(this.origin)) {
+      console.error('error! Homescreen cannot be navigated outside of itself', evt.detail);
+      e.preventDefault();
+      return;
+    }
+
+    AppWindow.prototype._handle_mozbrowserlocationchange.apply(this, arguments);
+  };
+
   exports.HomescreenWindow = HomescreenWindow;
 }(window));
