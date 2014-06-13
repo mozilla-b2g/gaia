@@ -136,7 +136,7 @@ class Keyboard(Base):
 
     @property
     def _current_input_type(self):
-        return self.marionette.execute_script('return window.wrappedJSObject.currentInputType;')
+        return self.marionette.execute_script('return window.wrappedJSObject.fakeAppObject.getBasicInputType();')
 
     @property
     def _layout_page(self):

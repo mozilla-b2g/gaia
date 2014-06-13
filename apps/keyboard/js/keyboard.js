@@ -69,7 +69,6 @@ var currentKey = null;
 var touchEventsPresent = false;
 var touchedKeys = {};
 var touchCount = 0;
-var currentInputType = null;
 var menuLockedArea = null;
 var isKeyboardRendered = false;
 var currentCandidates = [];
@@ -118,8 +117,35 @@ var fakeAppObject = {
   inputContext: null,
 
   getBasicInputType: function() {
-    return this.inputContext ?
-      mapInputType(this.inputContext.inputType) : 'text';
+    if (!this.inputContext) {
+      return 'text';
+    }
+
+    var type = this.inputContext.inputType;
+    switch (type) {
+      // basic types
+      case 'url':
+      case 'tel':
+      case 'email':
+      case 'text':
+        return type;
+
+        break;
+
+      // default fallback and textual types
+      case 'password':
+      case 'search':
+      default:
+        return 'text';
+
+        break;
+
+      case 'number':
+      case 'range': // XXX: should be different from number
+        return 'number';
+
+        break;
+    }
   },
 
   supportsSwitching: function() {
@@ -395,42 +421,17 @@ function isSpecialKeyObj(key) {
   return hasSpecialCode || key.keyCode <= 0;
 }
 
-// Map the input type to another type
-function mapInputType(type) {
-  switch (type) {
-    // basic types
-  case 'url':
-  case 'tel':
-  case 'email':
-  case 'text':
-    return type;
-    break;
-
-    // default fallback and textual types
-  case 'password':
-  case 'search':
-  default:
-    return 'text';
-    break;
-
-  case 'number':
-  case 'range': // XXX: should be different from number
-    return 'number';
-    break;
-  }
-}
-
 //
 // This function takes a keyboard layout, makes a copy of that layout
 // and then modifies it to add meta keys for switching languages and
 // switching to numbers and symbols. It may also add keys (like a
-// ".com" and '@') that are specific to input of currentInputType.
+// ".com" and '@') that are specific to input of basic input type.
 //
 // The return value is the modified layout data structure.
 //
 // Normally, this function modifies the base layout for the specified
 // keyboard name, but it may use a different starting layout depending on
-// currentInputType and layoutPage.
+// basic input type and layoutPage.
 //
 function modifyLayout(keyboardName) {
   // One level copy
@@ -452,6 +453,7 @@ function modifyLayout(keyboardName) {
 
   var altLayoutName;
   var currentInputMode = fakeAppObject.inputContext.inputMode;
+  var currentInputType = fakeAppObject.getBasicInputType();
 
   switch (currentInputType) {
     case 'tel':
@@ -659,7 +661,7 @@ function modifyLayout(keyboardName) {
 //
 // Note that calling this function sets the global variable currentLayout.
 //
-// Also note that currentInputType and layoutPage may both override
+// Also note that basic input type and layoutPage may both override
 // keyboardName to produce a currentLayout that is different than the base
 // layout for keyboardName
 //
@@ -683,7 +685,7 @@ function renderKeyboard(keyboardName) {
   // And draw the layout
   IMERender.draw(currentLayout, {
     uppercase: needsUpperCase,
-    inputType: currentInputType,
+    inputType: fakeAppObject.getBasicInputType(),
     showCandidatePanel: needsCandidatePanel()
   }, function() {
     perfTimer.printTime('IMERender.draw:callback');
@@ -810,6 +812,7 @@ function setMenuTimeout(target, coords, touchId) {
 
     // The telLayout and numberLayout do not show an alternative key
     // menu, instead they send the alternative key and ignore the endPress.
+    var currentInputType = fakeAppObject.getBasicInputType();
     if (currentInputType === 'number' || currentInputType === 'tel') {
 
       // Does the key have an altKey?
@@ -1546,11 +1549,7 @@ function showKeyboard() {
 
   resetKeyboard();
 
-  if (fakeAppObject.inputContext) {
-    currentInputType = mapInputType(fakeAppObject.inputContext.inputType);
-  } else {
-    currentInputType = mapInputType('text');
-
+  if (!fakeAppObject.inputContext) {
     return;
   }
 
