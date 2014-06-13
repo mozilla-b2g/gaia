@@ -13,12 +13,14 @@ var whitelistedApps = [
   'camera',
   'clock',
   'fm',
+  'gallery',
   'settings',
   'sms'
 ];
 
 var whitelistedUnifiedApps = [
   'fm',
+  'gallery',
   'settings'
 ];
 
