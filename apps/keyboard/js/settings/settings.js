@@ -11,8 +11,8 @@
     }
   });
 
-  // Until Haida lands this is how users could go back to Settings app
-  document.getElementById('back').addEventListener('click', function() {
+  function goBack() {
+    this.removeEventListener('click', goBack);
     var activity = new MozActivity({
       name: 'configure',
       data: {
@@ -24,7 +24,10 @@
     setTimeout(function() {
       window.close();
     }, 1000);
-  });
+  }
+
+  // Until Haida lands this is how users could go back to Settings app
+  document.getElementById('back').addEventListener('click', goBack);
 
   /**
    * Gets the settings based on information from the dom
