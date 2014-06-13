@@ -79,6 +79,7 @@
   background-repeat: no-repeat;
   background-size: 6.4rem;
   background-position: 0 50%;
+  word-wrap: break-word;
 }
 
 #permission-more-info-link.hidden {
