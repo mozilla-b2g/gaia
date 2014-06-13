@@ -19,7 +19,7 @@ RootPanel.Selectors = {
   'airplaneModeCheckbox': '#airplaneMode-input',
   'airplaneModeSpan': '#airplaneMode-input ~ span',
   'applicationStorageDesc': '#application-storage-desc',
-  'batteryDesc': '#battery-desc',
+  'batteryDesc': '.battery-desc',
   'bluetoothDesc': '#bluetooth-desc',
   'firefoxAccountDesc': '#fxa-desc',
   'geolocationCheckbox': '#root input[name="geolocation.enabled"]',
