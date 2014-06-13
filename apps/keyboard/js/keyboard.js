@@ -41,8 +41,6 @@ var perfTimer = new PerformanceTimer();
 perfTimer.start();
 perfTimer.printTime('keyboard.js');
 
-var inputContext = null;
-
 // The keyboard app can display different layouts for different languages
 // We sometimes refer to these different layouts as "keyboards", so this single
 // keyboard app can display many different keyboards.  The currently displayed
@@ -121,6 +119,17 @@ var fakeAppObject = {
   settingsPromiseManager: null,
   l10nLoader: null,
 
+  inputContext: null,
+
+  getBasicInputType: function() {
+    return this.inputContext ?
+      mapInputType(this.inputContext.inputType) : 'text';
+  },
+
+  supportsSwitching: function() {
+    return navigator.mozInputMethod.mgmt.supportsSwitching();
+  },
+
   sendCandidates: function kc_glue_sendCandidates(candidates) {
     perfTimer.printTime('glue.sendCandidates');
     currentCandidates = candidates;
@@ -129,12 +138,12 @@ var fakeAppObject = {
   setComposition: function kc_glue_setComposition(symbols, cursor) {
     perfTimer.printTime('glue.setComposition');
     cursor = cursor || symbols.length;
-    inputContext.setComposition(symbols, cursor);
+    this.inputContext.setComposition(symbols, cursor);
   },
   endComposition: function kc_glue_endComposition(text) {
     perfTimer.printTime('glue.endComposition');
     text = text || '';
-    inputContext.endComposition(text);
+    this.inputContext.endComposition(text);
   },
   sendKey: sendKey,
   alterKeyboard: function kc_glue_alterKeyboard(keyboard) {
@@ -271,7 +280,7 @@ function initKeyboard() {
   // showKeyboard() when mozHidden is false and we got inputContext
   window.addEventListener('mozvisibilitychange', function visibilityHandler() {
     perfTimer.printTime('mozvisibilitychange');
-    if (document.mozHidden && !inputContext) {
+    if (document.mozHidden && !fakeAppObject.inputContext) {
       hideKeyboard();
 
       return;
@@ -283,11 +292,11 @@ function initKeyboard() {
 
   window.navigator.mozInputMethod.oninputcontextchange = function() {
     perfTimer.printTime('inputcontextchange');
-    inputContext = navigator.mozInputMethod.inputcontext;
-    if (inputContext) {
-      inputContextGetTextPromise = inputContext.getText();
+    fakeAppObject.inputContext = navigator.mozInputMethod.inputcontext;
+    if (fakeAppObject.inputContext) {
+      inputContextGetTextPromise = fakeAppObject.inputContext.getText();
     }
-    if (document.mozHidden && !inputContext) {
+    if (document.mozHidden && !fakeAppObject.inputContext) {
       hideKeyboard();
 
       return;
@@ -309,10 +318,10 @@ function initKeyboard() {
     return;
   }
 
-  // fill inputContextGetTextPromise and inputContext
-  inputContext = navigator.mozInputMethod.inputcontext;
-  if (inputContext) {
-    inputContextGetTextPromise = inputContext.getText();
+  // fill inputContextGetTextPromise and fakeAppObject.inputContext
+  fakeAppObject.inputContext = navigator.mozInputMethod.inputcontext;
+  if (fakeAppObject.inputContext) {
+    inputContextGetTextPromise = fakeAppObject.inputContext.getText();
   }
 
   // Finally, if we are only loaded by keyboard manager when the user
@@ -355,7 +364,7 @@ function updateCurrentLayout(name) {
 
     // Now the that we have the layout ready,
     // we should either show or hide the keyboard.
-    if (!document.mozHidden && inputContext) {
+    if (!document.mozHidden && fakeAppObject.inputContext) {
       showKeyboard();
     } else {
       hideKeyboard();
@@ -1491,10 +1500,12 @@ function resetKeyboard() {
   isUpperCaseLocked = false;
 }
 
-// This is a wrapper around inputContext.sendKey()
+// This is a wrapper around fakeAppObject.inputContext.sendKey()
 // We use it in the defaultInputMethod and in the interface object
 // we pass to real input methods
 function sendKey(keyCode, isRepeat) {
+  var inputContext = fakeAppObject.inputContext;
+
   switch (keyCode) {
   case KeyEvent.DOM_VK_BACK_SPACE:
     if (inputContext) {
@@ -1516,6 +1527,8 @@ function sendKey(keyCode, isRepeat) {
 }
 
 function replaceSurroundingText(text, offset, length) {
+  var inputContext = fakeAppObject.inputContext;
+
   if (inputContext) {
     return inputContext.replaceSurroundingText(text, offset, length);
   } else {
@@ -1532,13 +1545,13 @@ function showKeyboard() {
   perfTimer.printTime('showKeyboard');
   clearTimeout(hideKeyboardTimeout);
 
-  inputContext = navigator.mozInputMethod.inputcontext;
+  fakeAppObject.inputContext = navigator.mozInputMethod.inputcontext;
 
   resetKeyboard();
 
-  if (inputContext) {
-    currentInputMode = inputContext.inputMode;
-    currentInputType = mapInputType(inputContext.inputType);
+  if (fakeAppObject.inputContext) {
+    currentInputMode = fakeAppObject.inputContext.inputMode;
+    currentInputType = mapInputType(fakeAppObject.inputContext.inputType);
   } else {
     currentInputMode = '';
     currentInputType = mapInputType('text');
@@ -1618,6 +1631,7 @@ function switchIMEngine(layoutName, mustRender) {
     [inputContextGetTextPromise, imEngineSettings.initSettings()])
   .then(function(values) {
     perfTimer.printTime('switchIMEngine:dataPromise resolved');
+    var inputContext = fakeAppObject.inputContext;
 
     // Resolve to this array
     return [
