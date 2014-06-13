@@ -70,7 +70,6 @@ var touchEventsPresent = false;
 var touchedKeys = {};
 var touchCount = 0;
 var currentInputType = null;
-var currentInputMode = null;
 var menuLockedArea = null;
 var isKeyboardRendered = false;
 var currentCandidates = [];
@@ -452,6 +451,7 @@ function modifyLayout(keyboardName) {
   }
 
   var altLayoutName;
+  var currentInputMode = fakeAppObject.inputContext.inputMode;
 
   switch (currentInputType) {
     case 'tel':
@@ -1547,10 +1547,8 @@ function showKeyboard() {
   resetKeyboard();
 
   if (fakeAppObject.inputContext) {
-    currentInputMode = fakeAppObject.inputContext.inputMode;
     currentInputType = mapInputType(fakeAppObject.inputContext.inputType);
   } else {
-    currentInputMode = '';
     currentInputType = mapInputType('text');
 
     return;
@@ -1746,7 +1744,7 @@ function needsCandidatePanel() {
 
 // To determine if we need to show a "all uppercase layout" for Greek SMS
 function isGreekSMS() {
-  return (currentInputMode === '-moz-sms' &&
+  return (fakeAppObject.inputContext.inputMode === '-moz-sms' &&
           keyboardName === 'el');
 }
 
