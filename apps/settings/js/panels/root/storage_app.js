@@ -15,6 +15,7 @@ define(function(require) {
   AppStoragePanel.prototype = {
     init: function app_storage_init(elements) {
       this._elements = elements;
+      this._updateAppFreeSpace = this._updateAppFreeSpace.bind(this);
     },
     /**
      * The value indicates whether the module is responding. If it is false, the
@@ -30,19 +31,17 @@ define(function(require) {
     set enabled(value) {
       this._enabled = value;
       if (value) { //observe
-        AppStorage.storage.observe('freeSize',
-          this.updateAppFreeSpace.bind(this));
-        this.updateAppFreeSpace();
+        AppStorage.storage.observe('freeSize', this._updateAppFreeSpace);
+        this._updateAppFreeSpace();
         window.addEventListener('localized', this);
       } else { //unobserve
-        AppStorage.storage.unobserve('freeSize',
-          this.updateAppFreeSpace.bind(this));
+        AppStorage.storage.unobserve('freeSize', this._updateAppFreeSpace);
         window.removeEventListener('localized', this);
       }
     },
 
     // Application Storage
-    updateAppFreeSpace: function storage_updateAppFreeSpace() {
+    _updateAppFreeSpace: function storage_updateAppFreeSpace() {
       DeviceStorageHelper.showFormatedSize(this._elements.appStorageDesc,
         'availableSize', AppStorage.storage.freeSize);
     },

@@ -13,14 +13,19 @@ define(function(require) {
   function USBStoragePanel() {
     this._elements = null;
     this._enabled = false;
+    this._umsSettingKey = 'ums.enabled';
     // XXX media related attributes
-    this.defaultMediaVolume = null;
-    this.defaultVolumeState = 'available';
+    this._defaultMediaVolume = null;
+    this._defaultVolumeState = 'available';
+    this._defaultMediaVolumeKey = 'device.storage.writable.name';
   }
 
   USBStoragePanel.prototype = {
     init: function storage_init(elements) {
       this._elements = elements;
+      this._umsSettingHandler = this._umsSettingHandler.bind(this);
+      this._mediaVolumeChangeHandler =
+        this._mediaVolumeChangeHandler.bind(this);
     },
     /**
      * The value indicates whether the module is responding. If it is false, the
@@ -35,65 +40,61 @@ define(function(require) {
 
     set enabled(value) {
       this._enabled = value;
-      var umsSettingKey = 'ums.enabled';
-      // XXX media related attribute
-      var defaultMediaVolumeKey = 'device.storage.writable.name';
-
       if (value) { //observe
         // ums master switch on root panel
         this._elements.umsEnabledCheckBox.addEventListener('change', this);
 
-        SettingsListener.observe(umsSettingKey, false,
-          this._umsSettingHandler.bind(this));
+        SettingsListener.observe(this._umsSettingKey, false,
+          this._umsSettingHandler);
 
         // media storage
         // Show default media volume state on root panel
-        SettingsListener.observe(defaultMediaVolumeKey, 'sdcard',
-          this._mediaVolumeChangeHandler.bind(this));
+        SettingsListener.observe(this._defaultMediaVolumeKey, 'sdcard',
+          this._mediaVolumeChangeHandler);
         window.addEventListener('localized', this);
       } else { //unobserve
         this._elements.umsEnabledCheckBox.removeEventListener('change', this);
 
-        SettingsListener.unobserve(umsSettingKey,
-          this._umsSettingHandler.bind(this));
+        SettingsListener.unobserve(this._umsSettingKey,
+          this._umsSettingHandler);
 
         // media storage
-        SettingsListener.unobserve(defaultMediaVolumeKey,
-          this._mediaVolumeChangeHandler.bind(this));
+        SettingsListener.unobserve(this._defaultMediaVolumeKey,
+          this._mediaVolumeChangeHandler);
         window.removeEventListener('localized', this);
       }
     },
 
     _umsSettingHandler: function storage_umsSettingHandler(enabled) {
       this._elements.umsEnabledCheckBox.checked = enabled;
-      this.updateUmsDesc();
+      this._updateUmsDesc();
     },
 
     handleEvent: function storage_handleEvent(evt) {
       switch (evt.type) {
         case 'localized':
-          this.updateMediaStorageInfo();
+          this._updateMediaStorageInfo();
           break;
         case 'change':
           if (evt.target === this._elements.umsEnabledCheckBox) {
-            this.umsMasterSettingChanged(evt);
+            this._umsMasterSettingChanged(evt);
           } else {
             // we are handling storage state changes
             // possible state: available, unavailable, shared
-            this.updateMediaStorageInfo();
+            this._updateMediaStorageInfo();
           }
           break;
       }
     },
 
     // ums description
-    updateUmsDesc: function storage_updateUmsDesc() {
+    _updateUmsDesc: function storage_updateUmsDesc() {
       var localize = navigator.mozL10n.localize;
       var key;
       if (this._elements.umsEnabledCheckBox.checked) {
         //TODO list all enabled volume name
         key = 'enabled';
-      } else if (this.defaultVolumeState === 'shared') {
+      } else if (this._defaultVolumeState === 'shared') {
         key = 'umsUnplugToDisable';
       } else {
         key = 'disabled';
@@ -101,18 +102,18 @@ define(function(require) {
       localize(this._elements.umsEnabledInfoBlock, key);
     },
 
-    umsMasterSettingChanged: function storage_umsMasterSettingChanged(evt) {
+    _umsMasterSettingChanged: function storage_umsMasterSettingChanged(evt) {
       var checkbox = evt.target;
       var cset = {};
-      var umsSettingKey = 'ums.enabled';
       var warningKey = 'ums-turn-on-warning';
+
       if (checkbox.checked) {
         AsyncStorage.getItem(warningKey, function(showed) {
           if (!showed) {
             this._elements.umsWarningDialog.hidden = false;
 
             this._elements.umsConfirmButton.onclick = function() {
-              cset[umsSettingKey] = true;
+              cset[this._umsSettingKey] = true;
               Settings.mozSettings.createLock().set(cset);
 
               AsyncStorage.setItem(warningKey, true);
@@ -120,19 +121,19 @@ define(function(require) {
             }.bind(this);
 
             this._elements.umsCancelButton.onclick = function() {
-              cset[umsSettingKey] = false;
+              cset[this._umsSettingKey] = false;
               Settings.mozSettings.createLock().set(cset);
 
               checkbox.checked = false;
               this._elements.umsWarningDialog.hidden = true;
             }.bind(this);
           } else {
-            cset[umsSettingKey] = true;
+            cset[this._umsSettingKey] = true;
             Settings.mozSettings.createLock().set(cset);
           }
         }.bind(this));
       } else {
-        cset[umsSettingKey] = false;
+        cset[this._umsSettingKey] = false;
         Settings.mozSettings.createLock().set(cset);
       }
     },
@@ -140,60 +141,60 @@ define(function(require) {
     // XXX media related functions
     _mediaVolumeChangeHandler:
       function storage__mediaVolumeChangeHandler(defaultName) {
-      if (this.defaultMediaVolume) {
-        this.defaultMediaVolume.removeEventListener('change', this);
+      if (this._defaultMediaVolume) {
+        this._defaultMediaVolume.removeEventListener('change', this);
       }
-      this.defaultMediaVolume = this.getDefaultVolume(defaultName);
-      this.defaultMediaVolume.addEventListener('change', this);
-      this.updateMediaStorageInfo();
+      this._defaultMediaVolume = this._getDefaultVolume(defaultName);
+      this._defaultMediaVolume.addEventListener('change', this);
+      this._updateMediaStorageInfo();
     },
 
     // Media Storage
-    updateMediaStorageInfo: function storage_updateMediaStorageInfo() {
-      if (!this.defaultMediaVolume) {
+    _updateMediaStorageInfo: function storage_updateMediaStorageInfo() {
+      if (!this._defaultMediaVolume) {
         return;
       }
 
       var self = this;
-      this.defaultMediaVolume.available().onsuccess = function(evt) {
+      this._defaultMediaVolume.available().onsuccess = function(evt) {
         var state = evt.target.result;
         var firstVolume = navigator.getDeviceStorages('sdcard')[0];
         // if the default storage is unavailable, and it's not the
         // internal storage, we show the internal storage status instead.
         if (state === 'unavailable' &&
-            self.defaultMediaVolume.storageName !== firstVolume.storageName) {
+          self._defaultMediaVolume.storageName !== firstVolume.storageName) {
           firstVolume.available().onsuccess = function(e) {
-            self.updateVolumeState(firstVolume, e.target.result);
+            self._updateVolumeState(firstVolume, e.target.result);
           };
         } else {
-          self.updateVolumeState(self.defaultMediaVolume, state);
+          self._updateVolumeState(self._defaultMediaVolume, state);
         }
       };
     },
 
-    updateVolumeState: function storage_updateVolumeState(volume, state) {
+    _updateVolumeState: function storage_updateVolumeState(volume, state) {
       var localize = navigator.mozL10n.localize;
-      this.defaultVolumeState = state;
-      this.updateUmsDesc();
+      this._defaultVolumeState = state;
+      this._updateUmsDesc();
       switch (state) {
         case 'available':
-          this.updateMediaFreeSpace(volume);
-          this.lockMediaStorageMenu(false);
+          this._updateMediaFreeSpace(volume);
+          this._lockMediaStorageMenu(false);
           break;
 
         case 'shared':
           localize(this._elements.mediaStorageDesc, '');
-          this.lockMediaStorageMenu(false);
+          this._lockMediaStorageMenu(false);
           break;
 
         case 'unavailable':
           localize(this._elements.mediaStorageDesc, 'no-storage');
-          this.lockMediaStorageMenu(true);
+          this._lockMediaStorageMenu(true);
           break;
       }
     },
 
-    updateMediaFreeSpace: function storage_updateMediaFreeSpace(volume) {
+    _updateMediaFreeSpace: function storage_updateMediaFreeSpace(volume) {
       var self = this;
       volume.freeSpace().onsuccess = function(e) {
         DeviceStorageHelper.showFormatedSize(self._elements.mediaStorageDesc,
@@ -201,7 +202,7 @@ define(function(require) {
       };
     },
 
-    lockMediaStorageMenu: function storage_setMediaMenuState(lock) {
+    _lockMediaStorageMenu: function storage_setMediaMenuState(lock) {
       if (lock) {
         this._elements.mediaStorageSection.setAttribute('aria-disabled', true);
       } else {
@@ -210,7 +211,7 @@ define(function(require) {
     },
 
     // util function
-    getDefaultVolume: function storage_getDefaultVolume(name) {
+    _getDefaultVolume: function storage_getDefaultVolume(name) {
       // Per API design, all media type return the same volumes.
       // So we use 'sdcard' here for no reason.
       // https://bugzilla.mozilla.org/show_bug.cgi?id=856782#c10
