@@ -121,6 +121,18 @@
         }
         // Editing a bookmark in edit mode
         action = 'edit';
+      } else {
+        // Add a 'launching' class to the icon to style it with CSS.
+        icon.element.classList.add('launching');
+
+        // XXX: We can't have nice things. Remove the launching class after an
+        // arbitrary time to restore the state. We want the icon to return
+        // to it's original state after launching the app, but visibilitychange
+        // will not work because activities do not fire it.
+        var returnTimeout = 500;
+        setTimeout(function stateReturn() {
+          icon.element.classList.remove('launching');
+        }, returnTimeout);
       }
 
       icon[action]();
