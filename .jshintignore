@@ -16,6 +16,7 @@ apps/clock/js/alameda.js
 apps/clock/js/text_builder.js
 shared/js/opensearch.js
 shared/js/utilities.js
+shared/js/uuid.js
 apps/keyboard/js/imes/jspinyin/libpinyin.js
 apps/keyboard/js/imes/jszhuyin/lib/**
 shared/js/setImmediate.js

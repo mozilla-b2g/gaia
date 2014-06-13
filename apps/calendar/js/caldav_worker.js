@@ -7,7 +7,7 @@
  'worker/thread',
  'ext/ical',
  'ext/caldav',
- 'ext/uuid',
+ 'shared/js/uuid',
  'service/ical_recur_expansion',
  'service/caldav'].forEach(function(script) {
    // ?time= is for cache busting in development...
