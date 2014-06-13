@@ -23,6 +23,13 @@
   CollectionSource.prototype = {
 
     /**
+     * Position to insert new collections at.
+     * This is set after a contextmenu event, and collections are inserted
+     * here after the user adds them from a datastore event.
+     */
+    insertPosition: 0,
+
+    /**
      * Synchronizes our local result set with datastre.
      */
     synchronize: function() {
@@ -77,13 +84,13 @@
       }
 
       var collection = new Collection(detail);
-      collection.setPosition(this.store.getNextPosition());
       this.entries.push(collection);
 
       // Manually inject this book mark into the app item list for now.
       // Remove and re-append a divider if the last item is a divider
       var lastDivider = app.grid.getLastIfDivider();
-      app.grid.addIcon(collection.identifier, collection);
+      app.grid.addIcon(collection.identifier, collection,
+        this.insertPosition);
       app.grid.addItem(lastDivider);
 
       app.grid.render();

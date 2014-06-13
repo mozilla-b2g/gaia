@@ -15,10 +15,10 @@
         case 'contextmenu':
           // Prevent the click when the finger is released
           e.preventDefault();
-
           var resources = ['js/contextmenu_ui.js'];
           LazyLoader.load(resources, function loaded() {
-            contextMenuUI.show();
+            // pass the event through for processing
+            contextMenuUI.show(e);
           });
 
           break;

@@ -96,12 +96,19 @@ window.GaiaGrid = (function(win) {
   /**
    * Adds an icon to the grid.
    * Icons need an identifier to for object lookup during event bubbling.
-   * @param {String} identifier
-   * @param {Object} obj
+   * @param {String} identifier A string that uniquely identifies this object.
+   * @param {Object} obj The grid object, should inherit from GridItem.
+   * @param {Object} insertTo The position to insert the item into our list.
    */
-  proto.addIcon = function(identifier, obj) {
+  proto.addIcon = function(identifier, obj, insertTo) {
     this._grid.icons[identifier] = obj;
-    this._grid.items.push(obj);
+
+    // If isnsertTo it is a number, splice.
+    if (!isNaN(parseFloat(insertTo)) && isFinite(insertTo)) {
+      this._grid.items.splice(insertTo, 0, obj);
+    } else {
+      this._grid.items.push(obj);
+    }
   };
 
   /**
@@ -109,6 +116,16 @@ window.GaiaGrid = (function(win) {
    */
   proto.getIcons = function() {
     return this._grid.icons;
+  };
+
+  /**
+   * Finds nearest item by and returns an index.
+   *
+   * @param {Number} x relative to the screen
+   * @param {Number} y relative to the screen
+   */
+  proto.getNearestItem = function(x, y) {
+    return this._grid.getNearestItem(x, y);
   };
 
   /**

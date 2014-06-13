@@ -1,4 +1,5 @@
 'use strict';
+/* global app */
 /* global LazyLoader */
 /* global MozActivity */
 /* global wallpaper */
@@ -16,7 +17,18 @@
   }
 
   ContextMenuUI.prototype = {
-    show: function() {
+    show: function(e) {
+      // calculate the offset of the click this will account for anything above
+      // the gaia-grid
+      var scrollTop = this.grid.parentNode.scrollTop;
+      var yOffset = scrollTop + this.grid.getBoundingClientRect().y;
+
+      var closestGridIcon = this.grid.getNearestItem(
+        e.pageX,
+        e.pageY - yOffset + scrollTop
+      );
+      app.itemStore.collectionSource.insertPosition = closestGridIcon;
+
       this.dialog.addEventListener('gaiamenu-cancel', this.handleCancel);
       this.dialog.removeAttribute('hidden');
       this.collectionOption.addEventListener('click', this);
