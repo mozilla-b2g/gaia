@@ -29,8 +29,8 @@ suite('Sim import >', function() {
   // List of contacts result for the method icc.readContacts
   var mRequestResult = {
     adn: [
-      {id : '572247', tel : [{value : '900900900'}], name : ['Peter']},
-      {id : '572248', tel : [{value : '192192192'}], name : ['Jason']}
+      {id : 'a572247', tel : [{value : '900900900'}], name : ['Peter']},
+      {id : 'b572248', tel : [{value : '192192192'}], name : ['Jason']}
     ],
     sdn: [
       {id : '105721', tel : [{value : '190'}], name : ['Police'] },
@@ -132,6 +132,24 @@ suite('Sim import >', function() {
       done();
     };
 
+    importer.start();
+  });
+  
+  test('Imported Contacts are saved with the iccManager provided id',
+       function(done) {
+    iccManager.adnContacts = [mRequestResult.adn[0]];
+    
+    var realMozContact = window.mozContact;
+    
+    window.mozContact = function(contact) {
+      assert.equal(contact.id, mRequestResult.adn[0].id);
+    };
+    
+    importer.onfinish = function() {
+      window.mozContact = realMozContact;
+      done();
+    };
+    
     importer.start();
   });
 });
