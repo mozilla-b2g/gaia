@@ -1,4 +1,4 @@
-/* global TelephonySettingHelper, getSupportedLanguages */
+/* global TelephonySettingHelper */
 /**
  * The module loads scripts used by the root panel. In the future these scripts
  * must be converted to AMD modules. Implementation details please refer to
@@ -20,19 +20,6 @@ define(function(require) {
   function Root() {}
 
   Root.prototype = {
-    _refreshLocale: function root_refeshLocale() {
-      // display the current locale in the main panel
-      getSupportedLanguages(function displayLang(languages) {
-        document.getElementById('language-desc').textContent =
-          languages[navigator.mozL10n.language.code];
-      });
-    },
-
-    // startup & language switching
-    _initLocale: function root_initLocale() {
-      navigator.mozL10n.ready(this._refreshLocale);
-    },
-
     _initSimItems: function root_initSimItems() {
       // Show proper SIM items.
       if (navigator.mozMobileConnections) {
@@ -82,7 +69,6 @@ define(function(require) {
 
     init: function root_init() {
       this._initSimItems();
-      this._initLocale();
       // Load the necessary scripts after the UI update.
       setTimeout(this._loadScripts);
     }

@@ -29,7 +29,7 @@ class Settings(Base):
     _cell_data_menu_item_locator = (By.ID, 'menuItem-cellularAndData')
     _bluetooth_menu_item_locator = (By.ID, 'menuItem-bluetooth')
     _keyboard_menu_item_locator = (By.ID, "menuItem-keyboard")
-    _language_menu_item_locator = (By.ID, 'menuItem-languageAndRegion')
+    _language_menu_item_locator = (By.CSS_SELECTOR, '.menuItem-languageAndRegion')
     _do_not_track_menu_item_locator = (By.ID, 'menuItem-doNotTrack')
     _media_storage_menu_item_locator = (By.ID, 'menuItem-mediaStorage')
     _screen_lock_menu_item_locator = (By.ID, 'menuItem-screenLock')
