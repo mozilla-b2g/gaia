@@ -294,7 +294,7 @@
       return list.indexOf(n) !== -1;
     }
     function isBetween(n, start, end) {
-      return start <= n && n <= end;
+      return typeof n === typeof start && start <= n && n <= end;
     }
 
     // list of all plural rules methods:
