@@ -5,10 +5,10 @@
       ["apps", "sms"],
       ["apps", "communications", "contacts"]
     ], [
-      ["apps/homescreen/collections", "social"],
-      ["apps/homescreen/collections", "games"],
-      ["apps/homescreen/collections", "music"],
-      ["apps/homescreen/collections", "showbiz"]
+      ["apps/collection/collections", "social"],
+      ["apps/collection/collections", "games"],
+      ["apps/collection/collections", "music"],
+      ["apps/collection/collections", "showbiz"]
     ], [
       ["apps", "camera"],
       ["apps", "gallery"],
