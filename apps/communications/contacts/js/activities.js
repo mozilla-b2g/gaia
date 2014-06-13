@@ -66,7 +66,6 @@ var ActivityHandler = {
         }
         this._currentActivity = activity;
         Contacts.navigation.home();
-        LazyLoader.load('/contacts/js/action_menu.js');
         break;
       case 'import':
         this.importContactsFromFile(activity);
@@ -150,29 +149,31 @@ var ActivityHandler = {
         break;
       default:
         // if more than one required type of data
-        var prompt1 = new ActionMenu();
-        var itemData;
         var self = this;
-        var capture = function(itemData) {
-          return function() {
-            if (self.activityDataType == 'webcontacts/tel') {
+        LazyLoader.load('/contacts/js/action_menu.js', function() {
+          var prompt1 = new ActionMenu();
+          var itemData;
+          var capture = function(itemData) {
+            return function() {
+              if (self.activityDataType == 'webcontacts/tel') {
                 // filter phone from data.tel to take out the rest
                 result = utils.misc.toMozContact(theContact);
                 result.tel = self.filterAddressForActivity(
                                itemData, result.tel);
-            } else {
-              result[type] = itemData;
-            }
-            prompt1.hide();
-            self.postPickSuccess(result);
+              } else {
+                result[type] = itemData;
+              }
+              prompt1.hide();
+              self.postPickSuccess(result);
+            };
           };
-        };
-        for (var i = 0; i < dataSet.length; i++) {
-          itemData = dataSet[i].value;
-          var carrier = dataSet[i].carrier || '';
-          prompt1.addToList(itemData + ' ' + carrier, capture(itemData));
-        }
-        prompt1.show();
+          for (var i = 0; i < dataSet.length; i++) {
+            itemData = dataSet[i].value;
+            var carrier = dataSet[i].carrier || '';
+            prompt1.addToList(itemData + ' ' + carrier, capture(itemData));
+          }
+          prompt1.show();
+        });
     } // switch
   },
 
