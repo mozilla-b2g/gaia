@@ -41,6 +41,8 @@
 
   var ICON_FORMAT = 20;
 
+  var ICON_FORMAT = 20;
+
   /**
    * Make an async httpRequest to resource with given options.
    * Returns a promise which will be resolved/reject on success/error
