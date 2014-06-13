@@ -62,14 +62,6 @@
     passCodeEnabled: false,
 
     /*
-    * Boolean return whether the user is allowed to switch to camera panel
-    * (secure camera) or not. This is used to disable activation of secure
-    * camera when the phone is being unlocked (i.e. unlock transition is
-    * in effect).
-    */
-    _cameraSwitchingEnabled: true,
-
-    /*
     * Four digit Passcode
     * XXX: should come for Settings
     */
@@ -246,7 +238,6 @@
         if (!this.locked) {
           this.switchPanel();
           this.overlay.hidden = true;
-          this._cameraSwitchingEnabled = true;
           this.dispatchEvent('unlock', this.unlockDetail);
           this.unlockDetail = undefined;
         }
@@ -531,10 +522,8 @@
       // If the passcode is enabled and it has a timeout which has passed
       // switch to secure camera
       if (this.passCodeEnabled && this._passCodeTimeoutCheck) {
-        if (this._cameraSwitchingEnabled) {
-          // Go to secure camera panel
-          this.switchPanel('camera');
-        }
+        // Go to secure camera panel
+        this.switchPanel('camera');
         return;
       }
 
@@ -662,9 +651,6 @@
     if (wasAlreadyUnlocked) {
       return;
     }
-    // Disallow activation of secure camera when we're unlocking
-    // The activation will be allowed once unlock is done
-    this._cameraSwitchingEnabled = false;
     this.dispatchEvent('will-unlock', detail);
     this.dispatchEvent('secure-modeoff');
     this.writeSetting(false);
@@ -687,9 +673,6 @@
       if (instant) {
         this.switchPanel();
         this.overlay.hidden = true;
-        // We're unlocking instantly,
-        // So allow switching to secure camera, as of the original state
-        this._cameraSwitchingEnabled = true;
         this.dispatchEvent('unlock', detail);
       } else {
         this.unlockDetail = detail;
