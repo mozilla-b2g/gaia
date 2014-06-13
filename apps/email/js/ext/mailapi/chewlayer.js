@@ -1190,7 +1190,7 @@ function chewStructure(msg) {
     return partInfo.size;
   }
 
-  function chewLeaf(branch) {
+  function chewLeaf(branch, parentMultipartSubtype) {
     var partInfo = branch[0], i,
         filename, disposition;
 
@@ -1220,19 +1220,36 @@ function chewStructure(msg) {
       filename = null;
     }
 
-    // - Start from explicit disposition, make attachment if non-displayable
-    if (partInfo.disposition)
-      disposition = partInfo.disposition.type.toLowerCase();
-    // UNTUNED-HEURISTIC (need test cases)
-    // Parts with content ID's explicitly want to be referenced by the message
-    // and so are inline.  (Although we might do well to check if they actually
-    // are referenced.  This heuristic could be very wrong.)
-    else if (partInfo.id)
-      disposition = 'inline';
-    else if (filename || partInfo.type !== 'text')
+    // Determining disposition:
+
+    // First, check whether an explict one exists
+    if (partInfo.disposition) {
+      // If it exists, keep it the same, except in the case of inline
+      // disposition without a content id.
+      if (partInfo.disposition.type.toLowerCase() == 'inline') {
+        if (partInfo.id) {
+          disposition = 'inline';
+        } else {
+          disposition = 'attachment';
+        }
+      } else if (partInfo.disposition.type.toLowerCase() == 'attachment') {
+        disposition = 'attachment';
+      // This case should never trigger, but it's here for safety's sake
+      } else {
+        disposition = 'inline';
+      }
+    // Inline image attachments that belong to a multipart/related may lack a
+    // disposition but have a content-id.
+    // XXX Ensure 100% correctness in the future by fixing up mis-guesses
+    // during sanitization as part of https://bugzil.la/1024685
+    } else if (parentMultipartSubtype === 'related' && partInfo.id &&
+               partInfo.type === 'image') {
+      disposition = "inline";
+    } else if (filename || partInfo.type !== 'text') {
       disposition = 'attachment';
-    else
+    } else {
       disposition = 'inline';
+    }
 
     // Some clients want us to display things inline that we simply can't
     // display (historically and currently, PDF) or that our usage profile
@@ -1336,8 +1353,9 @@ function chewStructure(msg) {
               break;
             case 'multipart':
               // this is probably HTML with attachments, let's give it a try
-              if (chewMultipart(branch[i]))
+              if (chewMultipart(branch[i])) {
                 return true;
+              }
               break;
             default:
               // no good, keep going
@@ -1348,8 +1366,9 @@ function chewStructure(msg) {
             case 'html':
             case 'plain':
               // (returns true if successfully handled)
-              if (chewLeaf(branch[i]))
+              if (chewLeaf(branch[i]), partInfo.subtype) {
                 return true;
+              }
           }
         }
         // (If we are here, we failed to find a valid choice.)
@@ -1359,10 +1378,11 @@ function chewStructure(msg) {
       case 'signed':
       case 'related':
         for (i = 1; i < branch.length; i++) {
-          if (branch[i].length > 1)
+          if (branch[i].length > 1) {
             chewMultipart(branch[i]);
-          else
-            chewLeaf(branch[i]);
+          } else {
+            chewLeaf(branch[i], partInfo.subtype);
+          }
         }
         return true;
 
@@ -1372,10 +1392,11 @@ function chewStructure(msg) {
     }
   }
 
-  if (msg.structure.length > 1)
+  if (msg.structure.length > 1) {
     chewMultipart(msg.structure);
-  else
+  } else {
     chewLeaf(msg.structure);
+  }
 
   return {
     bodyReps: bodyReps,
