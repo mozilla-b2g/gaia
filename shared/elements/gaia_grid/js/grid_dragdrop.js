@@ -261,6 +261,7 @@
       // Rearrange items
       this.gridView.items.splice(tIndex, 0,
         this.gridView.items.splice(sIndex, 1)[0]);
+      this.gridView.visibilityCalculated = false;
 
       this.gridView.render({from: from, to: to});
     },
