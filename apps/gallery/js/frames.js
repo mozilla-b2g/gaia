@@ -444,6 +444,30 @@ function setupFrameContent(n, frame) {
 var FRAME_BORDER_WIDTH = 3;
 var frameOffset = 0; // how far are the frames swiped side-to-side?
 
+function updateCurrentClassName() {
+  // Add 'current' class to the current img tag in fullscreen view
+  // XXX Bug 1021782
+  var imgCurrent =
+    currentFrame.container.getElementsByClassName('image-view')[0];
+  var imgNext =
+    nextFrame.container.getElementsByClassName('image-view')[0];
+  var imgPrevious =
+    previousFrame.container.getElementsByClassName('image-view')[0];
+
+  if (imgCurrent) {
+    imgCurrent.classList.add('current');
+  }
+
+  if (imgNext) {
+    imgNext.classList.remove('current');
+  }
+
+  if (imgPrevious) {
+    imgPrevious.classList.remove('current');
+  }
+}
+
+
 function setFramesPosition() {
   // XXX for RTL languages we should swap next and previous sides
   var width = window.innerWidth + FRAME_BORDER_WIDTH;
@@ -458,6 +482,7 @@ function setFramesPosition() {
 function resetFramesPosition() {
   frameOffset = 0;
   setFramesPosition();
+  updateCurrentClassName();
 }
 
 // Switch from thumbnail list view to single-picture fullscreen view
