@@ -56,11 +56,6 @@ var inputContext = null;
 // and when URL hash changes.
 var keyboardName = null;
 
-// These are the possible layout page values
-const LAYOUT_PAGE_DEFAULT = 'Default';
-const LAYOUT_PAGE_SYMBOLS_I = 'Symbols_1';
-const LAYOUT_PAGE_SYMBOLS_II = 'Symbols_2';
-
 // Layout page: what set of symbols should the keyboard display?
 var layoutPage = LAYOUT_PAGE_DEFAULT;
 
@@ -110,13 +105,6 @@ var deleteInterval = 0;
 var menuTimeout = 0;
 var hideKeyboardTimeout = 0;
 
-// Special key codes
-const BASIC_LAYOUT = -1;
-const ALTERNATE_LAYOUT = -2;
-const SWITCH_KEYBOARD = -3;
-const TOGGLE_CANDIDATE_PANEL = -4;
-const NO_OP = -5;
-
 const specialCodes = [
   KeyEvent.DOM_VK_BACK_SPACE,
   KeyEvent.DOM_VK_CAPS_LOCK,
@@ -125,9 +113,14 @@ const specialCodes = [
   KeyEvent.DOM_VK_SPACE
 ];
 
-// InputMethodManager is responsible of loading/activating input methods.
-// XXX: For now let's pass a fake app object.
+// XXX: For now let's pass a fake app object,
+// in the future this should be wired to a KeyboardApp instance.
 var fakeAppObject = {
+  inputMethodManager: null,
+  layoutManager: null,
+  settingsPromiseManager: null,
+  l10nLoader: null,
+
   sendCandidates: function kc_glue_sendCandidates(candidates) {
     perfTimer.printTime('glue.sendCandidates');
     currentCandidates = candidates;
@@ -155,21 +148,26 @@ var fakeAppObject = {
   getNumberOfCandidatesPerRow:
     IMERender.getNumberOfCandidatesPerRow.bind(IMERender)
 };
-var inputMethodManager = new InputMethodManager(fakeAppObject);
+
+// InputMethodManager is responsible of loading/activating input methods.
+var inputMethodManager =
+  fakeAppObject.inputMethodManager = new InputMethodManager(fakeAppObject);
 inputMethodManager.start();
 
 // LayoutManager loads and holds layout layouts for us.
 // It also help us ensure there is only one current layout at the time.
-var layoutManager = new LayoutManager();
+var layoutManager =
+  fakeAppObject.layoutManager = new LayoutManager(fakeAppObject);
 layoutManager.start();
 var layoutLoader = layoutManager.loader;
 
 // SettingsPromiseManager wraps Settings DB methods into promises.
-var settingsPromiseManager = new SettingsPromiseManager();
+var settingsPromiseManager =
+  fakeAppObject.settingsPromiseManager = new SettingsPromiseManager();
 
 // L10nLoader loads l10n.js. We call it's one and only load() method
 // only after we have run everything in the critical cold launch path.
-var l10nLoader = new L10nLoader();
+var l10nLoader = fakeAppObject.l10nLoader = new L10nLoader();
 
 // User settings (in Settings database) are tracked within these modules
 var soundFeedbackSettings;
@@ -458,9 +456,9 @@ function modifyLayout(keyboardName) {
       break;
   }
 
-  if (layoutPage === LAYOUT_PAGE_SYMBOLS_I) {
+  if (layoutPage === layoutManager.LAYOUT_PAGE_SYMBOLS_I) {
     altLayoutName = 'alternateLayout';
-  } else if (layoutPage === LAYOUT_PAGE_SYMBOLS_II) {
+  } else if (layoutPage === layoutManager.LAYOUT_PAGE_SYMBOLS_II) {
     altLayoutName = 'symbolLayout';
   }
 
@@ -1307,15 +1305,15 @@ function endPress(target, coords, touchId, hasCandidateScrolled) {
 
   case ALTERNATE_LAYOUT:
     // Switch to numbers+symbols page
-    setLayoutPage(LAYOUT_PAGE_SYMBOLS_I);
+    setLayoutPage(layoutManager.LAYOUT_PAGE_SYMBOLS_I);
     break;
 
   case KeyEvent.DOM_VK_ALT:
     // alternate between pages 1 and 2 of SYMBOLS
-    if (layoutPage === LAYOUT_PAGE_SYMBOLS_I) {
-      setLayoutPage(LAYOUT_PAGE_SYMBOLS_II);
+    if (layoutPage === layoutManager.LAYOUT_PAGE_SYMBOLS_I) {
+      setLayoutPage(layoutManager.LAYOUT_PAGE_SYMBOLS_II);
     } else {
-      setLayoutPage(LAYOUT_PAGE_SYMBOLS_I);
+      setLayoutPage(layoutManager.LAYOUT_PAGE_SYMBOLS_I);
     }
     break;
 
