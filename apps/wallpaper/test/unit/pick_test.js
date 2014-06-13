@@ -21,9 +21,9 @@ suite('wallpaper/pick', function() {
       done(function() {
         var wallpapers = document.getElementById('wallpapers');
         assert.equal(2, wallpapers.children.length);
-        assert.equal('url("resources/320x480/test_1.png")',
+        assert.equal('url("/resources/320x480/thumbnails/test_1.png")',
           wallpapers.children[0].style.backgroundImage);
-        assert.equal('url("resources/320x480/test_2.png")',
+        assert.equal('url("/resources/320x480/thumbnails/test_2.png")',
           wallpapers.children[1].style.backgroundImage);
       });
     });
