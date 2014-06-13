@@ -395,10 +395,6 @@ class Accessibility(object):
             'Accessibility.click.apply(Accessibility, arguments)',
             [element], special_powers=True)
 
-    def wheel(self, element, direction):
-        self.marionette.execute_script('Accessibility.wheel.apply(Accessibility, arguments)', [
-            element, direction])
-
     def get_name(self, element):
         return self.marionette.execute_async_script(
             'return Accessibility.getName.apply(Accessibility, arguments)',
