@@ -1,7 +1,7 @@
 /*global Factory */
 
+require('/shared/js/uuid.js');
 requireApp('calendar/test/unit/provider/mock_stream.js');
-requireApp('calendar/js/ext/uuid.js');
 requireApp('calendar/test/unit/service/helper.js');
 requireLib('ext/ical.js');
 requireLib('ext/caldav.js');
