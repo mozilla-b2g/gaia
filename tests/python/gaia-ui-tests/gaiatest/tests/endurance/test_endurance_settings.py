@@ -31,7 +31,7 @@ class TestEnduranceSettings(GaiaEnduranceTestCase):
                      {"menu_locator": ('id', 'menuItem-applicationStorage'), "screen_locator": ('xpath', '//a[@data-l10n-id="appStorage"]')},
                      {"menu_locator": ('id', 'menuItem-mediaStorage'), "screen_locator": ('id', 'mediaStorage')},
                      {"menu_locator": ('id', 'menuItem-deviceInfo'), "screen_locator": ('css selector', '#about-moreInfo button')},
-                     {"menu_locator": ('id', 'menuItem-battery'), "screen_locator": ('id', 'model-name')},
+                     {"menu_locator": ('css selector', 'menuItem-battery'), "screen_locator": ('id', 'model-name')},
                      {"menu_locator": ('id', 'menuItem-improveBrowserOS'), "screen_locator": ('id', 'improveBrowserOS')},
                      {"menu_locator": ('id', 'menuItem-help'), "screen_locator": ('id', 'help')}
                     ]

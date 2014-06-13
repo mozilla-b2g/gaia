@@ -28,7 +28,7 @@ class Settings(Base):
     _display_menu_item_locator = (By.ID, 'menuItem-display')
     _wifi_menu_item_locator = (By.ID, 'menuItem-wifi')
     _device_info_menu_item_locator = (By.ID, 'menuItem-deviceInfo')
-    _battery_menu_item_locator = (By.ID, 'menuItem-battery')
+    _battery_menu_item_locator = (By.CSS_SELECTOR, '.menuItem-battery')
     _sim_manager_menu_item_locator = (By.ID, 'menuItem-simManager')
 
     def launch(self):

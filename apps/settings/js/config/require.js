@@ -46,7 +46,10 @@ require.config({
     },
     {
       name: 'panels/root/panel',
-      exclude: ['main']
+      exclude: [
+        'main',
+        'modules/battery'
+      ]
     },
     {
       name: 'panels/languages/panel',
