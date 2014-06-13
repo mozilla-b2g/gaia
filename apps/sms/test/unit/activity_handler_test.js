@@ -312,11 +312,14 @@ suite('ActivityHandler', function() {
   suite('sms received', function() {
     var message;
 
-    setup(function() {
+    setup(function(done) {
       message = MockMessages.sms();
+      var checkSilentPromise = Promise.resolve(false);
+
       this.sinon.stub(MockSilentSms, 'checkSilentModeFor')
-            .returns(Promise.resolve(false));
+            .returns(checkSilentPromise);
       MockNavigatormozSetMessageHandler.mTrigger('sms-received', message);
+      checkSilentPromise.then(() => done());
     });
 
     test('request the cpu wake lock', function() {
@@ -503,16 +506,18 @@ suite('ActivityHandler', function() {
   suite('Dual SIM behavior >', function() {
     var message;
 
-    setup(function() {
+    setup(function(done) {
       message = MockMessages.sms({
         iccId: '0'
       });
+      var checkSilentPromise = Promise.resolve(false);
       this.sinon.stub(MockSilentSms, 'checkSilentModeFor')
-        .returns(Promise.resolve(false));
+        .returns(checkSilentPromise);
       this.sinon.stub(Settings, 'hasSeveralSim').returns(true);
       this.sinon.spy(window, 'Notification');
 
       MockNavigatormozSetMessageHandler.mTrigger('sms-received', message);
+      checkSilentPromise.then(() => done());
     });
 
     suite('contact retrieved (after getSelf)', function() {
