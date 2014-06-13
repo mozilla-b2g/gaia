@@ -1,5 +1,8 @@
+var wallpaperPath = '/resources/320x480/';
+var wallpaperThumbnailPath = wallpaperPath + 'thumbnails/';
+
 var Wallpaper = {
-  wallpapersUrl: '/resources/320x480/list.json',
+  wallpapersUrl: wallpaperPath + 'list.json',
 
   init: function wallpaper_init() {
     var self = this;
@@ -29,7 +32,8 @@ var Wallpaper = {
       xhr.response.forEach(function(wallpaper) {
         var div = document.createElement('div');
         div.classList.add('wallpaper');
-        div.style.backgroundImage = 'url(resources/320x480/' + wallpaper + ')';
+        div.style.backgroundImage = 'url(' + wallpaperThumbnailPath +
+                                     wallpaper + ')';
         self.wallpapers.appendChild(div);
       });
       if (cb) {
@@ -48,6 +52,9 @@ var Wallpaper = {
     // Identify the wallpaper
     var backgroundImage = e.target.style.backgroundImage;
     var src = backgroundImage.match(/url\([\"']?([^\s\"']*)[\"']?\)/)[1];
+    // Get the wallpaper file name
+    var array = src.split('/');
+    src = array.length > 1 ? wallpaperPath + array.pop() : '';
     // Ignore clicks that are not on one of the images
     if (src == '')
       return;
