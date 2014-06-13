@@ -51,6 +51,17 @@
     items: [],
 
     /**
+     * Whether item visibility needs to be recalculated after the next
+     * render.
+     */
+    visibilityCalculated: false,
+
+    /**
+     * List of all visible displayed app icons in the homescreen.
+     */
+    visibleIcons: [],
+
+    /**
      * Returns a reference to the gaia-grid element.
      */
     get element() {
@@ -74,6 +85,9 @@
       if (item.identifier) {
         this.icons[item.identifier] = item;
       }
+
+      // Make sure visibility gets recalculated on the next render
+      this.visibilityCalculated = false;
     },
 
     start: function() {
@@ -87,10 +101,13 @@
     },
 
     onScroll: function(e) {
+      this.element.classList.add('scrolling');
       this.element.removeEventListener('click', this.clickIcon);
       clearTimeout(this.preventClickTimeout);
       this.preventClickTimeout = setTimeout(function addClickEvent() {
         this.element.addEventListener('click', this.clickIcon);
+        this.element.classList.remove('scrolling');
+        this.calcVisibility();
       }.bind(this), PREVENT_CLICK_TIMEOUT);
     },
 
@@ -135,6 +152,32 @@
       }
 
       icon[action]();
+    },
+
+    /**
+     * Calculates whether an icon is visible or not and sets a CSS class
+     * accordingly.
+     */
+    calcVisibility: function() {
+      this.visibleIcons.forEach(function(item) {
+        item.element.classList.remove('visible');
+      }, this);
+      this.visibleIcons = [];
+
+      var visibleStart = this.element.parentNode.scrollTop;
+      var visibleEnd = visibleStart + this.element.parentNode.clientHeight;
+      var itemHeight = this.layout.gridItemHeight;
+      this.items.forEach(function(item) {
+        if (item instanceof GaiaGrid.Mozapp) {
+          if (item.element.offsetTop + itemHeight > visibleStart &&
+              item.element.offsetTop < visibleEnd) {
+            item.element.classList.add('visible');
+            this.visibleIcons.push(item);
+          }
+        }
+      }, this);
+
+      this.visibilityCalculated = true;
     },
 
     /**
@@ -330,6 +373,11 @@
 
       // Reset offsetY as stepYAxis changes it and it may be needed elsewhere.
       this.layout.offsetY = 0;
+
+      // Recalculate visibility if necessary
+      if (!this.visibilityCalculated) {
+        this.calcVisibility();
+      }
     }
   };
 
