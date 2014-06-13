@@ -41,7 +41,7 @@ class GaiaTestRunner(BaseMarionetteTestRunner, GaiaTestRunnerMixin, HTMLReportin
     def __init__(self, **kwargs):
         BaseMarionetteTestRunner.__init__(self, **kwargs)
         GaiaTestRunnerMixin.__init__(self, **kwargs)
-        HTMLReportingTestRunnerMixin.__init__(self, name=__name__, version=__version__, **kwargs)
+        HTMLReportingTestRunnerMixin.__init__(self, name='gaiatest-v1.3', version=__version__, **kwargs)
         self.test_handlers = [GaiaTestCase]
 
 
