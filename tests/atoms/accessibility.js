@@ -5,19 +5,20 @@
 'use strict';
 
 var Accessibility = {
-  _getAccessible: function Accessibility__getAccessible(element, callback) {
-    let gAccRetrieval = SpecialPowers.Cc[
-      "@mozilla.org/accessibleRetrieval;1"].getService(
-        SpecialPowers.Ci.nsIAccessibleRetrieval);
-    let attempts = 0;
-    let intervalId = setInterval(function() {
-      let acc = gAccRetrieval.getAccessibleFor(element);
-      if (acc || ++attempts > 10) {
-        clearInterval(intervalId);
+
+  _accRetrieval: SpecialPowers.Cc[
+    "@mozilla.org/accessibleRetrieval;1"].getService(
+      SpecialPowers.Ci.nsIAccessibleRetrieval),
+
+  _getAccessible:
+    function Accessibility__getAccessible(element, callback, once) {
+      let acc = this._accRetrieval.getAccessibleFor(element);
+      if (acc || once) {
         callback(acc);
+      } else {
+        setTimeout(this._getAccessible.bind(this), 10, element, callback);
       }
-    }, 10);
-  },
+    },
 
   _matchState: function Accessibility__matchState(acc, stateName) {
     let stateToMatch = SpecialPowers.wrap(
@@ -33,6 +34,19 @@ var Accessibility = {
       acc.doAction(0);
       marionetteScriptFinished();
     });
+  },
+
+  wheel: function Accessibility_wheel(element, direction) {
+    let horizontal = direction === "left" || direction === "right";
+    let page = (direction === "left" || direction === "up") ? 1 : -1;
+    let event = new window.wrappedJSObject.WheelEvent('wheel', {
+      bubbles: true,
+      cancelable: true,
+      deltaX: horizontal ? page : 0,
+      deltaY: horizontal ? 0 : page,
+      deltaMode: window.wrappedJSObject.WheelEvent.DOM_DELTA_PAGE,
+    });
+    element.wrappedJSObject.dispatchEvent(event);
   },
 
   isDisabled: function Accessibility_isDisabled(element) {
@@ -58,7 +72,7 @@ var Accessibility = {
         return;
       }
       this._matchState(acc, 'STATE_INVISIBLE');
-    });
+    }, true);
   },
 
   getName: function Accessibility_getName(element) {
@@ -69,10 +83,7 @@ var Accessibility = {
 
   getRole: function Accessibility_getRole(element) {
     this._getAccessible(element.wrappedJSObject, (acc) => {
-      let gAccRetrieval = SpecialPowers.Cc[
-        "@mozilla.org/accessibleRetrieval;1"].getService(
-          SpecialPowers.Ci.nsIAccessibleRetrieval);
-      marionetteScriptFinished(gAccRetrieval.getStringRole(acc.role));
+      marionetteScriptFinished(this._accRetrieval.getStringRole(acc.role));
     });
   },
 };
