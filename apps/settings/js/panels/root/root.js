@@ -64,7 +64,6 @@ define(function(require) {
         'shared/js/airplane_mode_helper.js',
         'js/airplane_mode.js',
         'js/battery.js',
-        'js/storage.js',
         'js/try_show_homescreen_section.js',
         'js/security_privacy.js',
         'js/icc_menu.js',
