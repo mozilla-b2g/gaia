@@ -199,19 +199,7 @@
       // Reposition in the icons array if necessary.
       // Find the icon with the closest X/Y position of the move,
       // and insert ours before it.
-      // Todo: this could be more efficient with a binary search.
-      var leastDistance;
-      var foundIndex;
-      for (var i = 0, iLen = this.gridView.items.length; i < iLen; i++) {
-        var item = this.gridView.items[i];
-        var distance = Math.sqrt(
-          (pageX - item.x) * (pageX - item.x) +
-          (pageY - item.y) * (pageY - item.y));
-        if (!leastDistance || distance < leastDistance) {
-          leastDistance = distance;
-          foundIndex = i;
-        }
-      }
+      var foundIndex = this.gridView.getNearestItem(pageX, pageY);
 
       // Insert at the found position
       if (foundIndex !== this.icon.detail.index) {

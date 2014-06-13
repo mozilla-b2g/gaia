@@ -19,6 +19,9 @@ MockApp.prototype = {
       MockApp.mIcons[identifier] = obj;
       MockApp.mItems.push(obj);
     },
+    getNearestItem: function() {
+      return 0;
+    },
     render: function() {}
   }
 };
