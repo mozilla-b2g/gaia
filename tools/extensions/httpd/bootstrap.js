@@ -85,15 +85,16 @@ function startup(data, reason) {
       }
     });
 
+    let commonjs = {
+      GAIA_BUILD_DIR: 'file://' + GAIA_DIR.replace(/\\/g, '/') + '/build/'
+    };
+    // Loading |require| then we can use build scripts of gaia.
+    Services.scriptloader.loadSubScript(commonjs.GAIA_BUILD_DIR +
+      '/xpcshell-commonjs.js', commonjs);
+    utils = commonjs.require('./utils');
+
     if (LOCALE_BASEDIR) {
       let appDirs = GAIA_APPDIRS.split(' ');
-      let commonjs = {
-        GAIA_BUILD_DIR: 'file://' + GAIA_DIR.replace(/\\/g, '/') + '/build/'
-      };
-      // Loading |require| then we can use build scripts of gaia.
-      Services.scriptloader.loadSubScript(commonjs.GAIA_BUILD_DIR +
-        '/xpcshell-commonjs.js', commonjs);
-      utils = commonjs.require('./utils');
       let multilocale = commonjs.require('./multilocale');
       let sharedDir = utils.getFile(GAIA_DIR, 'shared');
       l10nManager = new multilocale.L10nManager(GAIA_DIR,
@@ -124,6 +125,14 @@ function startup(data, reason) {
         new LocalFile(l10nManager.localeBasedir));
     }
 
+    let testAgentBoilerplateDir = utils.getFile(GAIA_DIR, 'dev_apps',
+      'test-agent', 'common', 'test', 'boilerplate');
+    let proxyFile = testAgentBoilerplateDir.clone();
+    let sandboxFile = testAgentBoilerplateDir.clone();
+    proxyFile.append('_proxy.html');
+    sandboxFile.append('_sandbox.html');
+    server.registerFile('/test/unit/_proxy.html', proxyFile);
+    server.registerFile('/test/unit/_sandbox.html', sandboxFile);
 
     server.registerPathHandler('/marionette', MarionetteHandler);
 
