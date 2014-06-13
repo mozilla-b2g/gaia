@@ -408,6 +408,41 @@ var GaiaDataLayer = {
     });
   },
 
+  deleteAllFiles: function(aType, aCallback) {
+    let callback = aCallback || marionetteScriptFinished;
+    let self = this;
+    this.getFiles(aType, function(aFiles) {
+      if (aFiles.length > 0) {
+        let filesLength = aFiles.length;
+        let done = 0;
+        for (let i = 0; i < aFiles.length; i++) {
+          self.deleteFile(aType, aFiles[i], function() {
+            if (++done == filesLength) {
+              callback();
+            }
+          });
+        }
+      }
+      else {
+        console.log('No files to delete');
+        callback();
+      }
+    });
+  },
+
+  deleteFile: function(aType, aFile, aCallback) {
+    let callback = aCallback || marionetteScriptFinished;
+    let storage = navigator.getDeviceStorage(aType);
+    console.log('Deleting file: ' + aFile);
+    let req = storage.delete(aFile);
+    req.onsuccess = function() {
+      callback();
+    };
+    req.onerror = function () {
+      console.warn('Failed to delete file. ' + this.error);
+    };
+  },
+
   getAllPictures: function() {
     this.getFiles('pictures');
   },
