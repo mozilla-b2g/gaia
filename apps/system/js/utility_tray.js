@@ -256,7 +256,9 @@ var UtilityTray = {
   },
 
   _pdIMESwitcherShow: function ut_pdIMESwitcherShow(evt) {
+    if (evt.target.id !== 'rocketbar-input') {
       evt.preventDefault();
+    }
   }
 };
 
