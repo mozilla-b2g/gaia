@@ -1,4 +1,4 @@
-/* global layoutManager, LayoutManager, MockL10n */
+/* global layoutManager, LayoutManager, MockL10n, MockAppWindowManager */
 'use strict';
 
 requireApp('system/test/unit/mock_orientation_manager.js');
@@ -10,10 +10,12 @@ requireApp('system/test/unit/mock_layout_manager.js');
 requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/test/unit/mock_statusbar.js');
 requireApp('system/test/unit/mock_screen_layout.js');
+requireApp('system/test/unit/mock_app_window_manager.js');
 
 var mocksForLockScreenWindow = new window.MocksHelper([
   'OrientationManager', 'Applications', 'SettingsListener',
-  'ManifestHelper', 'ScreenLayout', 'LayoutManager', 'StatusBar'
+  'ManifestHelper', 'ScreenLayout', 'LayoutManager', 'StatusBar',
+  'AppWindowManager'
 ]).init();
 
 suite('system/LockScreenWindow', function() {
@@ -120,5 +122,22 @@ suite('system/LockScreenWindow', function() {
     stubIsActive.returns(true);
     app.resize();
     assert.equal(app.height, layoutManager.height + 20);
+  });
+
+  test('Overlay iframe setVisible', function() {
+    var app = new window.LockScreenWindow();
+    var mockActiveApp = {
+      setVisible: this.sinon.spy()
+    };
+
+    MockAppWindowManager.mActiveApp = mockActiveApp;
+
+    app.iframe.setVisible(true);
+    assert.isTrue(mockActiveApp.setVisible.calledWithExactly(false));
+
+    mockActiveApp.setVisible.reset();
+
+    app.iframe.setVisible(false);
+    assert.isTrue(mockActiveApp.setVisible.calledWithExactly(true));
   });
 });

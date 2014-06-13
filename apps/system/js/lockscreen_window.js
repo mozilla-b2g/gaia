@@ -130,7 +130,13 @@
       // aria-label).
       navigator.mozL10n.translate(dummy);
       var iframe = dummy.firstElementChild;
-      iframe.setVisible = function() {};
+      // put current app into background
+      iframe.setVisible = function(visible) {
+        var activeApp = window.AppWindowManager.getActiveApp();
+        if (activeApp) {
+          activeApp.setVisible(!visible);
+        }
+      };
       // XXX: real iframes would own these methods.
       iframe.addNextPaintListener = function(cb) {
         cb();
