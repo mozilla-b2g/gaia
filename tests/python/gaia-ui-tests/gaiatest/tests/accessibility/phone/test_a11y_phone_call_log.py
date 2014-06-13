@@ -50,16 +50,18 @@ class TestAccessibilityPhoneCallLog(GaiaTestCase):
 
         call_log_first_item = self.marionette.find_elements(
             *call_log._all_calls_list_item_button_locator)[0]
+
+        # This needs to be uncommented once the screen reader can handle long press.
         # Activate a first log item with the screen reader.
-        self.accessibility.click(call_log_first_item)
+        # self.accessibility.click(call_log_first_item)
 
-        # Add contact action menu should be visible to the screen reader.
-        self.assertFalse(self.accessibility.is_hidden(self.marionette.find_element(
-            *self.phone._add_contact_action_menu_locator)))
+        # # Add contact action menu should be visible to the screen reader.
+        # self.assertFalse(self.accessibility.is_hidden(self.marionette.find_element(
+        #     *self.phone._add_contact_action_menu_locator)))
 
-        # Close the add contact action menu with the screen reader.
-        self.accessibility.click(self.marionette.find_element(
-            *self.phone._cancel_action_menu_locator))
+        # # Close the add contact action menu with the screen reader.
+        # self.accessibility.click(self.marionette.find_element(
+        #     *self.phone._cancel_action_menu_locator))
 
         self.accessibility.click(self.marionette.find_element(
             *call_log._call_log_edit_button_locator))
