@@ -37,7 +37,45 @@ marionette('Vertical Home - Hosted app failed icon fetch', function() {
     server.close(done);
   });
 
-  test('fallback to default icon', function() {
+  function hasClass(element, className) {
+    var classes = element.getAttribute('className');
+    return classes.indexOf(className) !== -1;
+  }
+
+  test('shows icon after a restart', function() {
+    // go to the system app
+    client.switchToFrame();
+
+    // don't let the server send the zip archive
+    server.cork(server.applicationZipUri);
+    appInstall.installPackage(server.packageManifestURL);
+
+    // switch back to the homescreen
+    client.switchToFrame(system.getHomescreenIframe());
+
+    var appIcon = subject.getIcon(server.packageManifestURL);
+    // wait until the icon is spinning!
+    client.waitFor(hasClass.bind(this, appIcon, 'loading'));
+
+    // stop the download
+    appIcon.click();
+    subject.clickConfirm();
+
+    // Restart the download
+    server.uncork(server.applicationZipUri);
+    appIcon.click();
+    subject.clickConfirm();
+
+    // wait until we are showing our desired icon
+    var iconURL = server.manifest.icons['128'];
+    client.waitFor(function() {
+      appIcon = subject.getIcon(server.packageManifestURL);
+      var src = iconSrc(appIcon);
+      return src && src.indexOf(iconURL) !== -1;
+    });
+  });
+
+  test('fallback to default icon when icon fails', function() {
     var iconURL = server.manifest.icons['128'];
     // correctly install the app...
     client.switchToFrame();
