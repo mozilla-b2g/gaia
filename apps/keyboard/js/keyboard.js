@@ -54,9 +54,6 @@ perfTimer.printTime('keyboard.js');
 // and when URL hash changes.
 var keyboardName = null;
 
-// Layout page: what set of symbols should the keyboard display?
-var layoutPage = LAYOUT_PAGE_DEFAULT;
-
 // This object is based on the keyboard layout from layout.js, but is
 // modified (see modifyLayout()) to include keys for switching keyboards
 // and layouts, and type specific keys like ".com" for url keyboards.
@@ -149,7 +146,19 @@ var fakeAppObject = {
   alterKeyboard: function kc_glue_alterKeyboard(keyboard) {
     renderKeyboard(keyboard);
   },
-  setLayoutPage: setLayoutPage,
+  setLayoutPage: function setLayoutPage(page) {
+    if (page === this.layoutManager.currentLayoutPage) {
+      return;
+    }
+
+    this.layoutManager.updateLayoutPage(page);
+    renderKeyboard(keyboardName);
+
+    if (inputMethodManager.currentIMEngine.setLayoutPage) {
+      inputMethodManager.currentIMEngine.
+        setLayoutPage(layoutManager.currentLayoutPage);
+    }
+  },
   setUpperCase: setUpperCase,
   resetUpperCase: resetUpperCase,
   isCapitalized: isCapitalized,
@@ -465,9 +474,10 @@ function modifyLayout(keyboardName) {
       break;
   }
 
-  if (layoutPage === layoutManager.LAYOUT_PAGE_SYMBOLS_I) {
+  if (layoutManager.currentLayoutPage === layoutManager.LAYOUT_PAGE_SYMBOLS_I) {
     altLayoutName = 'alternateLayout';
-  } else if (layoutPage === layoutManager.LAYOUT_PAGE_SYMBOLS_II) {
+  } else if (layoutManager.currentLayoutPage ===
+             layoutManager.LAYOUT_PAGE_SYMBOLS_II) {
     altLayoutName = 'symbolLayout';
   }
 
@@ -521,7 +531,7 @@ function modifyLayout(keyboardName) {
 
     if (!layout['disableAlternateLayout']) {
       space.ratio -= 1.5;
-      if (layoutPage === LAYOUT_PAGE_DEFAULT) {
+      if (layoutManager.currentLayoutPage === LAYOUT_PAGE_DEFAULT) {
         row.splice(c, 0, {
           keyCode: ALTERNATE_LAYOUT,
           value: alternateLayoutKey,
@@ -593,7 +603,8 @@ function modifyLayout(keyboardName) {
         }
 
         // Add ',' to 2nd level
-        if (layoutPage !== LAYOUT_PAGE_DEFAULT || !needsSwitchingKey) {
+        if (layoutManager.currentLayoutPage !== LAYOUT_PAGE_DEFAULT ||
+            !needsSwitchingKey) {
           if (overwrites[','] !== false) {
             space.ratio -= 1;
             next++;
@@ -742,27 +753,13 @@ function setUpperCase(upperCase, upperCaseLocked) {
 function resetUpperCase() {
   if (isUpperCase &&
       !isUpperCaseLocked &&
-      layoutPage === LAYOUT_PAGE_DEFAULT) {
+      layoutManager.currentLayoutPage === LAYOUT_PAGE_DEFAULT) {
     setUpperCase(false);
   }
 }
 
 function isCapitalized() {
   return (isUpperCase || isUpperCaseLocked);
-}
-
-function setLayoutPage(newpage) {
-  if (newpage === layoutPage)
-    return;
-
-  // When layout mode changes we have to re-render the keyboard
-  layoutPage = newpage;
-
-  renderKeyboard(keyboardName);
-
-  if (inputMethodManager.currentIMEngine.setLayoutPage) {
-    inputMethodManager.currentIMEngine.setLayoutPage(layoutPage);
-  }
 }
 
 // Inform about a change in the displayed application via mutation observer
@@ -1309,20 +1306,21 @@ function endPress(target, coords, touchId, hasCandidateScrolled) {
 
   case BASIC_LAYOUT:
     // Return to default page
-    setLayoutPage(LAYOUT_PAGE_DEFAULT);
+    fakeAppObject.setLayoutPage(layoutManager.LAYOUT_PAGE_DEFAULT);
     break;
 
   case ALTERNATE_LAYOUT:
     // Switch to numbers+symbols page
-    setLayoutPage(layoutManager.LAYOUT_PAGE_SYMBOLS_I);
+    fakeAppObject.setLayoutPage(layoutManager.LAYOUT_PAGE_SYMBOLS_I);
     break;
 
   case KeyEvent.DOM_VK_ALT:
     // alternate between pages 1 and 2 of SYMBOLS
-    if (layoutPage === layoutManager.LAYOUT_PAGE_SYMBOLS_I) {
-      setLayoutPage(layoutManager.LAYOUT_PAGE_SYMBOLS_II);
+    if (layoutManager.currentLayoutPage ===
+        layoutManager.LAYOUT_PAGE_SYMBOLS_I) {
+      fakeAppObject.setLayoutPage(layoutManager.LAYOUT_PAGE_SYMBOLS_II);
     } else {
-      setLayoutPage(layoutManager.LAYOUT_PAGE_SYMBOLS_I);
+      fakeAppObject.setLayoutPage(layoutManager.LAYOUT_PAGE_SYMBOLS_I);
     }
     break;
 
@@ -1491,9 +1489,8 @@ function showIMEList() {
 
 // Turn to default values
 function resetKeyboard() {
-  // Don't call setLayoutPage because renderKeyboard() should be invoked
-  // separately after this function
-  layoutPage = LAYOUT_PAGE_DEFAULT;
+  layoutManager.updateLayoutPage(layoutManager.LAYOUT_PAGE_DEFAULT);
+
   // Don't call setUpperCase because renderKeyboard() should be invoked
   // separately after this function
   isUpperCase = false;
@@ -1676,7 +1673,7 @@ function switchIMEngine(layoutName, mustRender) {
 // for symbols
 function updateLayoutParams() {
   if (inputMethodManager.currentIMEngine.setLayoutParams &&
-      layoutPage === LAYOUT_PAGE_DEFAULT) {
+      layoutManager.currentLayoutPage === LAYOUT_PAGE_DEFAULT) {
     inputMethodManager.currentIMEngine.setLayoutParams({
       keyboardWidth: IMERender.getWidth(),
       keyboardHeight: getKeyCoordinateY(IMERender.getHeight()),

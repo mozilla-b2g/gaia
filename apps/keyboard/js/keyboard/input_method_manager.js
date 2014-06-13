@@ -173,6 +173,10 @@ InputMethodGlue.prototype.alterKeyboard = function(keyboard) {
 };
 
 InputMethodGlue.prototype.setLayoutPage = function(newpage) {
+  if (newpage !== this.app.layoutManager.LAYOUT_PAGE_DEFAULT) {
+    throw new Error('InputMethodGlue: ' +
+      'imEngine is only allowed to switch to default page');
+  }
   this.app.setLayoutPage(newpage);
 };
 

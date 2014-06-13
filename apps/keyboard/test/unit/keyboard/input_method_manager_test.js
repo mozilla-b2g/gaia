@@ -99,6 +99,9 @@ suite('InputMethodGlue', function() {
   test('setLayoutPage', function() {
     var glue = new InputMethodGlue();
     var app = {
+      layoutManager: {
+        LAYOUT_PAGE_DEFAULT: 'bar'
+      },
       setLayoutPage: this.sinon.stub()
     };
     var name = 'bar';
