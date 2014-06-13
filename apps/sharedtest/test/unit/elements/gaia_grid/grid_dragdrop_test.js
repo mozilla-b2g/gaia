@@ -25,9 +25,9 @@ suite('GaiaGrid > DragDrop', function() {
 
   var stubPage2 = {
     name: 'second',
-    id: 1,
+    id: 2,
     icon: 'no',
-    url: 'http://mozilla.org'
+    url: 'http://mozilla.org/2'
   };
 
   suiteSetup(function() {
@@ -54,6 +54,10 @@ suite('GaiaGrid > DragDrop', function() {
     assert.equal(grid.items[0].name, 'first');
 
     var moveTo = grid.layout.gridItemWidth + 1;
+
+    // XXX: Stub the x/y adjustments, we should probably not depend on this
+    grid.dragdrop.xAdjust = 0;
+    grid.dragdrop.yAdjust = 0;
 
     grid.dragdrop.handleEvent({
       type: 'touchmove',

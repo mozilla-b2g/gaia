@@ -69,11 +69,24 @@
      * If the item is an icon, add it to icons.
      */
     add: function(item) {
-      this.items.push(item);
+      if (!item) {
+        return;
+      }
 
       if (item.identifier) {
+        // If we already have an item with this identifier, exit.
+        // This avoids a potential race condition where we might have duplicate
+        // items with the same identifiers in the grid. This should not happen.
+        if (this.icons[item.identifier]) {
+          console.log('Error, duplicate identifier: ',
+            item.identifier, new Error().stack);
+          return;
+        }
+
         this.icons[item.identifier] = item;
       }
+
+      this.items.push(item);
     },
 
     start: function() {
