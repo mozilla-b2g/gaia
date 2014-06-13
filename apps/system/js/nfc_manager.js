@@ -206,17 +206,18 @@ var NfcManager = {
   },
 
   handleNdefDiscovered:
-    function nm_handleNdefDiscovered(tech, session, records) {
+    function nm_handleNdefDiscovered(msg, tech) {
 
       var self = this;
-      this._debug('handleNdefDiscovered: ' + JSON.stringify(records));
-      var options = this.handleNdefMessage(records);
+      this._debug('handleNdefDiscovered: ' + JSON.stringify(msg.records));
+      var options = this.handleNdefMessage(msg.records);
       if (options === null) {
         this._debug('Unimplemented. Handle Unknown type.');
       } else {
         this._debug('options: ' + JSON.stringify(options));
         options.data.tech = tech;
-        options.data.sessionToken = session;
+        options.data.techList = msg.techList;
+        options.data.sessionToken = msg.sessionToken;
         var a = new MozActivity(options);
         a.onerror = function() {
           self._debug('Firing nfc-ndef-discovered failed');
@@ -225,23 +226,11 @@ var NfcManager = {
   },
 
   /**
-   * Handles P2P messages. Supports NDEF only currently.
-   * @param {string} tech set to 'P2P', TODO: verify if needed
-   * @param {string} sessionToken
-   * @param {Array} records NDEF records
+   * Triggers P2P UI flow which is asking the user to confirm if he wants 
+   * to share data. Handled by ShrinkingUI, which listens for 
+   * check-p2p-registration-for-active-app event.
    */
-  handleP2P: function handleP2P(tech, sessionToken, records) {
-    if (records.length !== 0) {
-       // Incoming P2P message carries a NDEF message. Dispatch
-       // the NDEF message (this might bring another app to the
-       // foreground).
-      this.handleNdefDiscovered(tech, sessionToken, records);
-      return;
-    }
-
-    // Incoming P2P message does not carry an NDEF message.
-
-    // Do P2P UI.
+  triggerP2PUI: function triggerP2PUI() {
     var evt = new CustomEvent('check-p2p-registration-for-active-app', {
       bubbles: true, cancelable: false,
       detail: this
@@ -377,11 +366,17 @@ var NfcManager = {
     // One shot try. Fallback directly to tag.
     switch (tech) {
       case 'P2P':
-        this.handleP2P(tech, msg.sessionToken, msg.records);
+        if (!msg.records.length) {
+          this.triggerP2PUI();
+        } else {
+          // if there are records in the message we've got NDEF messages shared
+          // by other device via P2P, this should be handled as regular NDEF
+          this.handleNdefDiscovered(msg, tech);
+        }
         break;
       case 'NDEF':
       case 'NDEF_WRITEABLE':
-        this.handleNdefDiscovered(tech, msg.sessionToken, msg.records);
+        this.handleNdefDiscovered(msg, tech);
         break;
       case 'NDEF_FORMATABLE':
         // not moving to default for readability 

@@ -225,9 +225,7 @@ suite('Nfc Manager Functions', function() {
       var stub = this.sinon.stub(NfcManager, 'handleNdefDiscovered');
 
       NfcManager.handleTechnologyDiscovered(msg);
-      assert.isTrue(stub
-                    .withArgs(tech, msg.sessionToken, msg.records)
-                    .calledOnce);
+      assert.isTrue(stub.withArgs(msg, tech).calledOnce);
 
       stub.restore();
     };
@@ -303,13 +301,11 @@ suite('Nfc Manager Functions', function() {
     test('message tech [P2P], no records', function() {
       sampleMsg.techList.push('P2P');
 
-      var spyHandleP2P = this.sinon.spy(NfcManager, 'handleP2P');
+      var spyTriggerP2PUI = this.sinon.spy(NfcManager, 'triggerP2PUI');
       var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
 
       NfcManager.handleTechnologyDiscovered(sampleMsg);
-      assert.equal(spyHandleP2P.firstCall.args[0], 'P2P');
-      assert.equal(spyHandleP2P.firstCall.args[1], sampleMsg.sessionToken);
-      assert.equal(spyHandleP2P.firstCall.args[2], sampleMsg.records);
+      assert.isTrue(spyTriggerP2PUI.calledOnce);
       assert.equal(stubDispatchEvent.secondCall.args[0].type,
                    'check-p2p-registration-for-active-app');
     });
@@ -320,12 +316,7 @@ suite('Nfc Manager Functions', function() {
       sampleMsg.techList.push('NDEF');
       sampleMsg.records.push(sampleMimeRecord);
 
-      var spyHandleP2P = this.sinon.spy(NfcManager, 'handleP2P');
-
       execNDEFMessageTest.call(this, sampleMsg, 'P2P');
-      assert.equal(spyHandleP2P.firstCall.args[0], 'P2P');
-      assert.equal(spyHandleP2P.firstCall.args[1], sampleMsg.sessionToken);
-      assert.equal(spyHandleP2P.firstCall.args[2], sampleMsg.records);
     });
 
     test('message tech [NDEF], one URI record', function() {
@@ -387,6 +378,7 @@ suite('Nfc Manager Functions', function() {
                 records: sampleMsg.records,
                 rtd: NDEF.RTD_URI,
                 tech: 'NDEF',
+                techList: sampleMsg.techList,
                 sessionToken: sampleMsg.sessionToken
         }
       }, 'Uri record');
@@ -398,6 +390,7 @@ suite('Nfc Manager Functions', function() {
         data: {
           type: 'empty',
           tech: 'NDEF',
+          techList: sampleMsg.techList,
           records: sampleMsg.records,
           sessionToken: sampleMsg.sessionToken
         }
@@ -412,6 +405,7 @@ suite('Nfc Manager Functions', function() {
           blob: new Blob([NfcUtils.toUTF8(sampleMsg.records.payload)],
                          {'type': 'text/vcard'}),
           tech: 'NDEF',
+          techList: sampleMsg.techList,
           records: sampleMsg.records,
           sessionToken: sampleMsg.sessionToken
         }
@@ -425,6 +419,7 @@ suite('Nfc Manager Functions', function() {
         data: {
           type: 'empty',
           tech: 'NDEF_WRITEABLE',
+          techList: sampleMsg.techList,
           records: sampleMsg.records,
           sessionToken: sampleMsg.sessionToken
         }
