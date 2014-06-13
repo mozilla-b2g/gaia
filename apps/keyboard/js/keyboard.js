@@ -1742,6 +1742,8 @@ function hideKeyboard() {
   navigator.mozSettings.createLock().set({
     'keyboard.current': undefined
   });
+
+  clearTouchedKeys();
 }
 
 // Resize event handler
@@ -1972,6 +1974,11 @@ function clearTouchedKeys() {
 
   hideAlternatives();
   touchedKeys = {};
+
+  // Reset all the pending actions here.
+  clearTimeout(deleteTimeout);
+  clearInterval(deleteInterval);
+  clearTimeout(menuTimeout);
 }
 /*
  * This is a helper to scroll the keyboard layout menu when the touch moves near
