@@ -1,5 +1,5 @@
 'use strict';
-/* global Bookmark */
+/* global GaiaGrid */
 /* global BookmarksDatabase */
 
 (function(exports) {
@@ -32,7 +32,7 @@
 
       for (var i in icons) {
         var icon = icons[i];
-        if (!(icon instanceof Bookmark)) {
+        if (!(icon instanceof GaiaGrid.Bookmark)) {
           continue;
         }
         allAppBookmarks[icon.detail.url] = icon;
@@ -67,7 +67,7 @@
       BookmarksDatabase.getAll().then(function(systemBookmarks) {
         // We are going to iterate over system bookmarks
         Object.keys(systemBookmarks).forEach(function(id) {
-          self.entries.push(new Bookmark(systemBookmarks[id]));
+          self.entries.push(new GaiaGrid.Bookmark(systemBookmarks[id]));
         });
 
         success(self.entries);
@@ -106,7 +106,7 @@
         return;
       }
 
-      var bookmark = new Bookmark(detail);
+      var bookmark = new GaiaGrid.Bookmark(detail);
       bookmark.setPosition(this.store.getNextPosition());
       this.entries.push(bookmark);
 

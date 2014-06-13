@@ -1,7 +1,5 @@
-/* global Divider */
+/* global GaiaGrid */
 /* global GridView */
-/* global Placeholder */
-/* global Icon */
 
 /**
  * The GaiaGrid component is a helper to display grid-like results.
@@ -10,8 +8,6 @@
  */
 window.GaiaGrid = (function(win) {
   'use strict';
-
-  var nonVisualElements = [Placeholder];
 
   // Extend from the HTMLElement prototype
   var proto = Object.create(HTMLElement.prototype);
@@ -147,7 +143,7 @@ window.GaiaGrid = (function(win) {
   proto.getLastIfDivider = function() {
     var items = this._grid.items;
     var lastItem = items[items.length - 1];
-    if (lastItem instanceof Divider) {
+    if (lastItem instanceof GaiaGrid.Divider) {
       var divider = items.pop();
       return divider;
     }
@@ -166,13 +162,15 @@ window.GaiaGrid = (function(win) {
   proto.getIndexLastIcon = function() {
     var items = this._grid.items;
     for (var i = this._grid.items.length - 1; i >= 0; i--) {
-      if ((items[i] instanceof Icon)) {
+      if ((items[i] instanceof GaiaGrid.Icon)) {
         return i;
       }
     }
   };
 
   proto.removeNonVisualElements = function() {
+
+    var nonVisualElements = [GaiaGrid.Placeholder];
 
     function isNonVisual(elem) {
       var retVal = false;

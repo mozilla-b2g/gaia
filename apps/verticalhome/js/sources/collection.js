@@ -1,5 +1,5 @@
 'use strict';
-/* global Collection */
+/* global GaiaGrid */
 /* global CollectionsDatabase */
 
 (function(exports) {
@@ -38,7 +38,7 @@
       CollectionsDatabase.getAll().then(function(systemCollections) {
         // We are going to iterate over system Collections
         Object.keys(systemCollections).forEach(function(id) {
-          self.entries.push(new Collection(systemCollections[id]));
+          self.entries.push(new GaiaGrid.Collection(systemCollections[id]));
         });
 
         success(self.entries);
@@ -76,7 +76,7 @@
         return;
       }
 
-      var collection = new Collection(detail);
+      var collection = new GaiaGrid.Collection(detail);
       collection.setPosition(this.store.getNextPosition());
       this.entries.push(collection);
 
