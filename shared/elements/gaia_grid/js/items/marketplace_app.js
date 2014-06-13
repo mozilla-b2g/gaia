@@ -1,5 +1,5 @@
 'use strict';
-/* global Bookmark */
+/* global GaiaGrid */
 /* global MozActivity */
 /* jshint nonew: false */
 
@@ -17,7 +17,7 @@
 
   MarketPlaceApp.prototype = {
 
-    __proto__: Bookmark.prototype,
+    __proto__: GaiaGrid.Bookmark.prototype,
 
     launch: function() {
       new MozActivity({
@@ -29,6 +29,6 @@
     },
   };
 
-  exports.MarketPlaceApp = MarketPlaceApp;
+  exports.GaiaGrid.MarketPlaceApp = MarketPlaceApp;
 
 }(window));
