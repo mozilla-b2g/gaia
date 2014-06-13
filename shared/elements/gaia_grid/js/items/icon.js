@@ -22,6 +22,11 @@
       // XXX: Somewhat ugly hack around the constructor args
       defaultIconBlob: details && details.defaultIconBlob
     };
+
+    // Re-render on update
+    // XXX: This introduces a potential race condition. GridItem.renderIcon is
+    // not concurrency safe one image may override another without ordering.
+    this.app.ondownloadapplied = GridItem.prototype.renderIcon.bind(this);
   }
 
   Icon.prototype = {
