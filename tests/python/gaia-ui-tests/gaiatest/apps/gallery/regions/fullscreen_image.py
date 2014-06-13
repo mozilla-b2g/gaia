@@ -79,3 +79,8 @@ class FullscreenImage(Base):
     def current_scale(self):
         style = self.marionette.find_element(*self._current_image_locator).get_attribute('style')
         return style.split('scale(')[1].split(') ')[0]
+
+    @property
+    def current_area(self):
+        image_size = self.marionette.find_element(*self._current_image_locator).size
+        return image_size['height']*image_size['width']

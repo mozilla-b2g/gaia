@@ -21,7 +21,7 @@ class TestGalleryCropPhoto(GaiaTestCase):
         gallery.wait_for_files_to_load(1)
 
         image = gallery.tap_first_gallery_item()
-        initial_scale = image.current_scale
+        initial_area = image.current_area
 
         # Tap on Edit button.
         edit_image = image.tap_edit_button()
@@ -37,6 +37,5 @@ class TestGalleryCropPhoto(GaiaTestCase):
 
         image1 = gallery.tap_first_gallery_item()
 
-        # The logic is: scale is inversely proportional with the size(witdh*height) of the image
-        # if initial_scale < image1.current_scale then image > image1
-        self.assertLess(initial_scale, image1.current_scale)
+        self.assertLess(initial_area, image1.current_area,
+                        '%d is not less than %d' % (initial_area, image1.current_area))
