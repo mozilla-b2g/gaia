@@ -13,6 +13,7 @@ Evme.BackgroundImage = new function Evme_BackgroundImage() {
       active = false,
       changeOpacityTransitionCallback = null,
       defaultImage = '',
+      bgImage = null,
       TIMEOUT_BEFORE_REMOVING_OLD_IMAGE = 1500;
 
   this.init = function init(options) {
@@ -27,6 +28,35 @@ Evme.BackgroundImage = new function Evme_BackgroundImage() {
   elementsToFade = Array.prototype.slice.call(elementsToFade, 0);
 
     Evme.EventHandler.trigger(NAME, 'init');
+
+    bgImage = document.querySelector('#bgimage-overlay');
+
+    Evme.$('.close, .img', bgImage, function onElement(el) {
+      el.addEventListener('touchstart', function onTouchStart(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        self._currentFullscreenCallback && self._currentFullscreenCallback();
+      });
+    });
+
+    Evme.$('.rightbutton', bgImage)[0].addEventListener('click',
+      function setWallpaper(e) {
+        e.stopPropagation();
+
+        Evme.EventHandler.trigger(NAME, 'setWallpaper', {
+          'image': currentImage.image
+        });
+      });
+
+    Evme.$('.source', bgImage)[0].addEventListener('click',
+      function openURL() {
+        if (currentImage.source) {
+          Evme.Utils.sendToOS(Evme.Utils.OSMessages.OPEN_URL, {
+            'url': currentImage.source
+          });
+        }
+      });
   };
 
   this.update = function update(oImage, isDefault) {
@@ -104,10 +134,7 @@ Evme.BackgroundImage = new function Evme_BackgroundImage() {
 
   };
 
-  this.showFullScreen = function showFullScreen() {
-    Evme.$remove(elFullScreen);
-    elFullScreen = null;
-
+  this.showFullScreen = function showFullScreen(closeCallback) {
     onElementsToFade(function onElement() {
       this.classList.add('animate');
     });
@@ -117,10 +144,9 @@ Evme.BackgroundImage = new function Evme_BackgroundImage() {
       });
     }, 0);
 
-    elFullScreen =
-      self.getFullscreenElement(currentImage, self.closeFullScreen);
+    closeCallback = closeCallback || self.closeFullScreen;
 
-    elFullScreenParent.appendChild(elFullScreen);
+    elFullScreen = self.getFullscreenElement(currentImage, closeCallback);
 
     window.setTimeout(function onTimeout() {
       elFullScreen.classList.add('ontop');
@@ -132,49 +158,19 @@ Evme.BackgroundImage = new function Evme_BackgroundImage() {
     cbShowFullScreen();
   };
 
-  this.getFullscreenElement = function getFullscreenElement(data, onClose) {
+  this._currentFullscreenCallback;
+  this.getFullscreenElement = function getFullscreenElement(data, cb) {
     !data && (data = currentImage);
 
-    var el = Evme.$create('div', {'id': 'bgimage-overlay'},
-      '<div class="img" style="background-image: url(' + data.image +
-        ')"></div>' +
-      '<div class="content">' +
-        '<b class="rightbutton"></b>' +
-        ((data.query) ? '<h2>' + data.query + '</h2>' : '') +
-        ((data.source) ? '<div class="source"><b ' +
-          Evme.Utils.l10nAttr(NAME, 'source-label') + '></b> <span>' +
-          data.source + '</span></div>' : '') +
-        '<b class="close"></b>' +
-      '</div>');
+    var el = bgImage;
+    el.querySelector('.img').style.backgroundImage = 'url(' + data.image + ')';
+    el.querySelector('h2').textContent = data.query || '';
+    el.querySelector('.source span').textContent = data.source;
 
+    el.classList.toggle('nosource', !data.source);
+    el.classList.toggle('noquery', !data.query);
 
-
-    Evme.$('.close, .img', el, function onElement(el) {
-      el.addEventListener('touchstart', function onTouchStart(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        onClose && onClose();
-      });
-    });
-
-    Evme.$('.rightbutton', el)[0].addEventListener('click',
-      function setWallpaper(e) {
-        e.stopPropagation();
-
-        Evme.EventHandler.trigger(NAME, 'setWallpaper', {
-          'image': data.image
-        });
-      });
-
-    if (data.source) {
-      Evme.$('.source', el)[0].addEventListener('click', function openURL(e) {
-        Evme.Utils.sendToOS(Evme.Utils.OSMessages.OPEN_URL, {
-          'url': data.source
-        });
-      });
-    } else {
-      el.classList.add('nosource');
-    }
+    self._currentFullscreenCallback = cb;
 
     return el;
   };
@@ -183,10 +179,7 @@ Evme.BackgroundImage = new function Evme_BackgroundImage() {
     if (elFullScreen && active) {
       self.cancelFullScreenFade();
       elFullScreen.classList.remove('active');
-
-      window.setTimeout(function onTimeout() {
-        Evme.$remove(elFullScreen);
-      }, 700);
+      elFullScreen.classList.remove('ontop');
 
       e && e.preventDefault();
       cbHideFullScreen();
@@ -267,4 +260,10 @@ Evme.BackgroundImage = new function Evme_BackgroundImage() {
   function cbHideFullScreen() {
     Evme.EventHandler.trigger(NAME, 'hideFullScreen');
   }
+
+  Object.defineProperty(this, 'elFullScreen', {
+    get: function() {
+      return elFullScreen;
+    }
+  });
 }

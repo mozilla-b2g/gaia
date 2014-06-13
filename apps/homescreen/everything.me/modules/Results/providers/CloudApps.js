@@ -8,8 +8,17 @@ Evme.CloudAppResult = function Evme_CloudAppsResult(query) {
   var SHADOW_OFFSET = Icon.prototype.SHADOW_OFFSET_Y,
       SHADOW_BLUR = Icon.prototype.SHADOW_BLUR,
       SHADOW_COLOR = Icon.prototype.SHADOW_COLOR,
-
       self = this;
+
+  // @override
+  this.init = function CloudResult_init() {
+    var res = Evme.Result.prototype.init.apply(this, arguments);
+
+    this.elIcon.setAttribute('height', Evme.Utils.getOSIconSize());
+    this.elIcon.style.marginBottom = '0';
+
+    return res;
+  };
 
   // @override
   // manipulate the icon (clipping, shadow, resize)
@@ -42,8 +51,7 @@ Evme.CloudAppResult = function Evme_CloudAppsResult(query) {
             canvas = self.initIcon(height),
             context = canvas.getContext('2d'),
             canvasHeight = canvas.height,
-            canvasWidth = canvas.width,
-            SHADOW_SIZE = (SHADOW_OFFSET + SHADOW_BLUR);
+            canvasWidth = canvas.width;
 
         // shadow
         context.shadowOffsetX = 0;

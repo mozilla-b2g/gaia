@@ -47,7 +47,6 @@ section,footer,nav,a,img {
   position: absolute;
   top: 0;
   left: 0;
-  overflow: hidden;
 }
 
 button:focus::-moz-focus-inner {

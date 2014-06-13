@@ -12,53 +12,16 @@
     WEBLINK: 'weblink'
   };
 
-  Evme.Result = function Evme_Result() {
-    var NAME = 'Result',
-        self = this,
-        el = null,
+  var NAME = 'Result';
 
+  Evme.Result = function Evme_Result() {
+    var self = this,
         image = new Image();
 
     this.type = 'NOT_SET';
     this.cfg = {};
     this.elIcon = null;
     this.elName = null;
-
-    this.init = function init(cfg) {
-      self.cfg = cfg;
-
-      el = Evme.$create('li', {
-        'id': 'app_' + cfg.id,
-        'data-name': cfg.name
-      }, '<img class="icon" />' +
-         '<img class="name" />');
-
-      this.elIcon = el.querySelector('.icon');
-      this.elName = el.querySelector('.name');
-
-      this.elIcon.setAttribute('aria-label', cfg.name);
-      this.elName.setAttribute('aria-label', cfg.name);
-
-      if ('isOfflineReady' in cfg) {
-        el.dataset.offlineReady = cfg.isOfflineReady;
-      }
-
-      // remove button
-      if (cfg.isRemovable) {
-        var removeButton = document.createElement('span');
-        removeButton.className = 'remove';
-        removeButton.addEventListener('click', cbRemoveClick);
-        removeButton.addEventListener('touchstart', stopPropagation);
-        removeButton.addEventListener('touchend', stopPropagation);
-        el.appendChild(removeButton);
-      }
-
-      el.addEventListener('click', onClick);
-      el.addEventListener('contextmenu', onContextMenu);
-
-      el.dataset.id = this.cfg.id;
-      return el;
-    };
 
     this.drawAppName = function drawAppName() {
       var canvas = document.createElement('canvas'),
@@ -79,8 +42,8 @@
     this.draw = function draw(iconObj) {
       self.cfg.icon = iconObj;
 
-      if (el) {
-        el.setAttribute('data-name', self.cfg.name);
+      if (self.el) {
+        self.el.setAttribute('data-name', self.cfg.name);
 
         self.drawAppName();
 
@@ -105,8 +68,8 @@
      * Used when closing a collection to update its homescreen icon
      */
     this.setIconSrc = function(src) {
-      el.dataset.iconId = this.cfg.id;
-      el.dataset.iconSrc = src;
+      self.el.dataset.iconId = this.cfg.id;
+      self.el.dataset.iconSrc = src;
     };
 
     // @default
@@ -115,13 +78,11 @@
           context = canvas.getContext('2d'),
           width = canvas.width,
           height = canvas.height,
-          // hard coded since it's from page.js, which is a homescreen file
           SHADOW = INSTALLED_APPS_SHADOW_OFFSET;
 
       // account for shadow - pad the canvas from the bottom,
       // and move the name back up
       canvas.height += SHADOW;
-      self.elIcon.style.cssText += '; margin-bottom: ' + -SHADOW + 'px;';
 
       context.drawImage(image,
           (width - image.width) / 2,
@@ -144,20 +105,16 @@
 
     // @default
     this.finalizeIcon = function finalizeIcon(canvas) {
-      var icon = self.elIcon,
-          ratio = window.devicePixelRatio || 1;
+      var icon = self.elIcon;
 
-      icon.addEventListener('load', function onIconLoad() {
-        icon.removeEventListener('load', onIconLoad);
+      var img = new Image();
+      img.addEventListener('load', function load() {
+        img.removeEventListener('load', load);
 
-        // resize to "real" size to handle pixel ratios greater than 1
-        icon.style.width =
-          self.elName.style.width = Evme.Utils.rem(canvas.width / ratio);
-
-        el.dataset.loaded = true;
+        icon.style.backgroundImage = 'url(' + img.src + ')';
+        self.el.dataset.loaded = true;
       });
-
-      icon.src = canvas.toDataURL();
+      img.src = canvas.toDataURL();
     };
 
     // @default
@@ -166,7 +123,7 @@
     };
 
     this.remove = function remove() {
-      Evme.$remove(el);
+      Evme.$remove(self.el);
     };
 
     this.isExternal = function isExternal() {
@@ -174,7 +131,7 @@
     };
 
     this.getElement = function getElement() {
-      return el;
+      return self.el;
     };
 
     this.getId = function getId() {
@@ -196,44 +153,6 @@
     this.getCfg = function getCfg() {
       return self.cfg;
     };
-
-    function onClick(e) {
-      e.stopPropagation();
-
-      Evme.EventHandler.trigger(NAME, 'click', {
-        'app': self,
-        'appId': self.cfg.id,
-        'el': el,
-        'data': self.cfg,
-        'e': e
-      });
-    }
-
-    function onContextMenu(e) {
-      e.stopPropagation();
-      e.preventDefault();
-
-      Evme.EventHandler.trigger(NAME, 'hold', {
-        'evt': e,
-        'app': self,
-        'appId': self.cfg.id,
-        'el': el,
-        'data': self.cfg
-      });
-    }
-
-    // prevent app click from being triggered
-    function stopPropagation(e) {
-      e.stopPropagation();
-    }
-
-    function cbRemoveClick(e) {
-      e.stopPropagation();
-      self.remove();
-      Evme.EventHandler.trigger(NAME, 'remove', {
-        'id': self.cfg.id
-      });
-    }
   };
 
   var SCALE_RATIO = window.devicePixelRatio || 1,
@@ -243,6 +162,89 @@
       TEXT_MARGIN = 6 * SCALE_RATIO,
       APP_NAME_HEIGHT = TEXT_MARGIN + TEXT_HEIGHT +
                         Evme.Utils.APP_NAMES_SHADOW_OFFSET_Y;
+
+  function onClick(e) {
+    e.stopPropagation();
+
+    Evme.EventHandler.trigger(NAME, 'click', {
+      'app': this,
+      'appId': this.cfg.id,
+      'el': this.el,
+      'data': this.cfg,
+      'e': e
+    });
+  }
+
+  function onContextMenu(e) {
+    e.stopPropagation();
+    e.preventDefault();
+
+    Evme.EventHandler.trigger(NAME, 'hold', {
+      'evt': e,
+      'app': this,
+      'appId': this.cfg.id,
+      'el': this.el,
+      'data': this.cfg
+    });
+  }
+
+  // prevent app click from being triggered
+  function stopPropagation(e) {
+    e.stopPropagation();
+  }
+
+  function cbRemoveClick(e) {
+    e.stopPropagation();
+    this.remove();
+    Evme.EventHandler.trigger(NAME, 'remove', {
+      'id': this.cfg.id
+    });
+  }
+
+  Evme.Result.prototype.init = function Result_init(cfg) {
+    this.cfg = cfg;
+
+    var el = this.el = Evme.$create('li', {
+      'id': 'app_' + cfg.id,
+      'data-name': cfg.name
+    }, '<img class="icon" />' +
+       '<img class="name" />');
+
+    this.elIcon = el.querySelector('.icon');
+    this.elName = el.querySelector('.name');
+
+    this.elName.setAttribute('width', TEXT_WIDTH);
+    this.elName.setAttribute('height', APP_NAME_HEIGHT);
+
+    this.elIcon.setAttribute('width', TEXT_WIDTH);
+    this.elIcon.setAttribute('height',
+      Evme.Utils.getOSIconSize() + INSTALLED_APPS_SHADOW_OFFSET);
+
+    this.elIcon.style.marginBottom = (-INSTALLED_APPS_SHADOW_OFFSET) + 'px';
+
+    this.elIcon.setAttribute('aria-label', cfg.name);
+    this.elName.setAttribute('aria-label', cfg.name);
+
+    if ('isOfflineReady' in cfg) {
+      el.dataset.offlineReady = cfg.isOfflineReady;
+    }
+
+    // remove button
+    if (cfg.isRemovable) {
+      var removeButton = document.createElement('span');
+      removeButton.className = 'remove';
+      removeButton.addEventListener('click', cbRemoveClick.bind(this));
+      removeButton.addEventListener('touchstart', stopPropagation.bind(this));
+      removeButton.addEventListener('touchend', stopPropagation.bind(this));
+      el.appendChild(removeButton);
+    }
+
+    el.addEventListener('click', onClick.bind(this));
+    el.addEventListener('contextmenu', onContextMenu.bind(this));
+
+    el.dataset.id = this.cfg.id;
+    return el;
+  };
 
   Evme.Result.prototype.TEXT_WIDTH = TEXT_WIDTH;
   Evme.Result.prototype.TEXT_MARGIN = TEXT_MARGIN;

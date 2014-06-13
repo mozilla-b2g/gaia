@@ -17,6 +17,16 @@
     this.slug = slug;
 
     // @override
+    this.init = function CloudResult_init() {
+      var res = Evme.Result.prototype.init.apply(this, arguments);
+
+      this.elName.setAttribute('height',
+        APP_NAME_HEIGHT + TEXT_MARGIN + DOWNLOAD_LABEL_FONT_SIZE);
+
+      return res;
+    };
+
+    // @override
     this.drawAppName = function drawAppName() {
       var canvas = document.createElement('canvas'),
           context = canvas.getContext('2d'),
