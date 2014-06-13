@@ -703,19 +703,7 @@ suite('system/AppWindowManager', function() {
       this.sinon.stub(homescreenLauncher, 'getHomescreen').returns(app2);
     });
 
-    test('caller is system app, we would go to homescreen', function() {
-      // callee is app7, caller is homescreen
-      injectRunningApps(app7);
-      fakeAppConfig.parentApp = window.location.origin;
-
-      AppWindowManager.linkWindowActivity(fakeAppConfig);
-
-      assert.deepEqual(app2.calleeWindow, app7);
-      assert.deepEqual(app7.callerWindow, app2);
-      assert.isTrue(homescreenLauncher.getHomescreen.called);
-    });
-
-    test('caller is not system app, we would go back to original app',
+    test('Whatever caller is, we would go back to original app',
       function() {
         // callee is app7, caller is app2
         injectRunningApps(app7);

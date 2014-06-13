@@ -56,7 +56,25 @@
       var caught = false;
       switch (evt.detail.features) {
         case 'dialog':
-          caught = this.createPopupWindow(evt);
+          // Only open popupWindow by app/http/https prefix
+          if (/^(app|http|https):\/\//i.test(evt.detail.url)) {
+            caught = this.createPopupWindow(evt);
+          } else {
+            // <a href="" target="_blank"> links should opened outside the
+            // app itself and fire an activity to be opened into a new
+            // browser window.
+            var activity = new window.MozActivity({
+              name: 'view',
+              data: {
+                type: 'url',
+                url: evt.detail.url
+              }
+            });
+            activity.onerror = function() {
+              console.warn('view activity error:', activity.error.name);
+            };
+            caught = true;
+          }
           break;
         case 'attention':
           // Open attentionWindow

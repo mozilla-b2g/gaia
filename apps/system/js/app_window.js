@@ -792,8 +792,11 @@
         var calleeBottom = this.getBottomMostWindow();
         caller.calleeWindow = null;
         this.callerWindow = null;
-        callerBottom.open('in-from-left');
-        calleeBottom.close('out-to-right');
+        // No transition when the callee is caller
+        if (callerBottom !== calleeBottom) {
+          callerBottom.open('in-from-left');
+          calleeBottom.close('out-to-right');
+        }
       }
     };
 
