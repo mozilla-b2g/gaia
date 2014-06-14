@@ -34,7 +34,7 @@
      * on first use
      */
     suggestionNotice: document.getElementById('suggestions-notice-wrapper'),
-    toShowNotice: false,
+    toShowNotice: true,
     changeCount: 0,
 
     init: function() {
