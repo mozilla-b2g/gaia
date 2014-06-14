@@ -351,5 +351,18 @@ suite('system/UtilityTray', function() {
       assert.isTrue(UtilityTray.statusbar.dispatchEvent(fakeEvt));
       assert.isTrue(UtilityTray.overlay.dispatchEvent(fakeEvt));
     });
+
+    test('_pdIMESwitcherShow > Don\'t preventDefault on rocketbar',
+      function() {
+      var evt = {
+        target: {
+          id: 'rocketbar-input'
+        },
+        preventDefault: function() {}
+      };
+      var defaultStub = this.sinon.stub(evt, 'preventDefault');
+      UtilityTray._pdIMESwitcherShow(evt);
+      assert.isTrue(defaultStub.notCalled);
+    });
   });
 });
