@@ -41,24 +41,6 @@ var perfTimer = new PerformanceTimer();
 perfTimer.start();
 perfTimer.printTime('keyboard.js');
 
-// The keyboard app can display different layouts for different languages
-// We sometimes refer to these different layouts as "keyboards", so this single
-// keyboard app can display many different keyboards.  The currently displayed
-// keyboard is specified with updateCurrentLayout(). That function sets the
-// following variables based on its argument.
-//
-// See keyboard/layouts for layout data.
-//
-// The keyboardName is always the URL hash this page loaded with.
-// updateCurrentLayout() is called when pages loads, when visibility changes,
-// and when URL hash changes.
-var keyboardName = null;
-
-// This object is based on the keyboard layout from layout.js, but is
-// modified (see modifyLayout()) to include keys for switching keyboards
-// and layouts, and type specific keys like ".com" for url keyboards.
-var currentLayout = null;
-
 var isWaitingForSecondTap = false;
 var isShowingAlternativesMenu = false;
 var isShowingKeyboardLayoutMenu = false;
@@ -168,8 +150,9 @@ var fakeAppObject = {
     this.inputContext.endComposition(text);
   },
   sendKey: sendKey,
-  alterKeyboard: function kc_glue_alterKeyboard(keyboard) {
-    renderKeyboard(keyboard);
+  setForcedModifiedLayout: function(layoutName) {
+    layoutManager.updateForcedModifiedLayout(layoutName);
+    renderKeyboard();
   },
   setLayoutPage: function setLayoutPage(page) {
     if (page === this.layoutManager.currentLayoutPage) {
@@ -177,7 +160,7 @@ var fakeAppObject = {
     }
 
     this.layoutManager.updateLayoutPage(page);
-    renderKeyboard(keyboardName);
+    renderKeyboard();
 
     if (inputMethodManager.currentIMEngine.setLayoutPage) {
       inputMethodManager.currentIMEngine.
@@ -386,8 +369,6 @@ function updateCurrentLayout(name) {
 
   layoutManager.switchCurrentLayout(name).then(function() {
     perfTimer.printTime('updateCurrentLayout:promise resolved');
-    keyboardName = name;
-    keyboard = layoutLoader.getLayout(name);
 
     // Ask the loader to start loading IMEngine
     var imEngineloader = inputMethodManager.loader;
@@ -421,269 +402,27 @@ function isSpecialKeyObj(key) {
   return hasSpecialCode || key.keyCode <= 0;
 }
 
-//
-// This function takes a keyboard layout, makes a copy of that layout
-// and then modifies it to add meta keys for switching languages and
-// switching to numbers and symbols. It may also add keys (like a
-// ".com" and '@') that are specific to input of basic input type.
-//
-// The return value is the modified layout data structure.
-//
-// Normally, this function modifies the base layout for the specified
-// keyboard name, but it may use a different starting layout depending on
-// basic input type and layoutPage.
-//
-function modifyLayout(keyboardName) {
-  // One level copy
-  function copy(obj) {
-    var newObj = {};
-    for (var prop in obj) if (obj.hasOwnProperty(prop)) {
-      newObj[prop] = obj[prop];
-    }
-    return newObj;
-  }
-
-  // Test if a key has alternatives
-  function hasAlternatives(layout, value) {
-    if (!layout.alt)
-      return false;
-
-    return (value in layout.alt);
-  }
-
-  var altLayoutName;
-  var currentInputMode = fakeAppObject.inputContext.inputMode;
-  var currentInputType = fakeAppObject.getBasicInputType();
-
-  switch (currentInputType) {
-    case 'tel':
-      altLayoutName = 'telLayout';
-      break;
-    case 'number':
-      altLayoutName = currentInputMode === 'digit' ?
-                                           'pinLayout' : 'numberLayout';
-      break;
-    // The matches when type="password", "text", or "search",
-    // see mapInputType() for details
-    case 'text':
-      if (currentInputMode === 'digit') {
-        altLayoutName = 'pinLayout';
-      } else if (currentInputMode === 'numeric') {
-        altLayoutName = 'numberLayout';
-      } else if (isGreekSMS()) {
-        altLayoutName = 'el-sms';
-      }
-      break;
-  }
-
-  if (layoutManager.currentLayoutPage === layoutManager.LAYOUT_PAGE_SYMBOLS_I) {
-    altLayoutName = 'alternateLayout';
-  } else if (layoutManager.currentLayoutPage ===
-             layoutManager.LAYOUT_PAGE_SYMBOLS_II) {
-    altLayoutName = 'symbolLayout';
-  }
-
-  // Start with this base layout
-  var layout;
-  if (altLayoutName) {
-    layout = layoutLoader.getLayout(keyboardName)[altLayoutName] ||
-      layoutLoader.getLayout(altLayoutName);
-  }
-  else {
-    layout = layoutLoader.getLayout(keyboardName);
-  }
-
-  // Look for the space key in the layout. We're going to insert
-  // meta keys before it or after it.
-  var where = false;
-  for (var r = 0, row; !where && (row = layout.keys[r]); r += 1) {
-    for (var c = 0, space; space = layout.keys[r][c]; c += 1) {
-      if (space.keyCode == KeyboardEvent.DOM_VK_SPACE) {
-        where = r;
-        break;
-      }
-    }
-  }
-
-  // if found, add special keys
-  if (where) {
-    // we will perform some alchemy here, so preserve...
-    layout = copy(layout); // the original space row
-    layout.keys = layout.keys.slice(0);
-    row = layout.keys[where] = layout.keys[where].slice(0);
-    space = copy(space);   // and the original space key
-    row[c] = space;
-
-    // Alternate layout key
-    // This gives the author the ability to change the alternate layout
-    // key contents
-    var alternateLayoutKey = '12&';
-    if (layout['alternateLayoutKey']) {
-      alternateLayoutKey = layout['alternateLayoutKey'];
-    }
-
-    // This gives the author the ability to change the basic layout
-    // key contents
-    // 'layout' holds alternatelayout which doesn't include basicLayoutKey.
-    // Check and use 'basicLayoutKey' defined by each keyboard.
-    var basicLayoutKey = 'ABC';
-    if (layoutLoader.getLayout(keyboardName)['basicLayoutKey']) {
-      basicLayoutKey = layoutLoader.getLayout(keyboardName)['basicLayoutKey'];
-    }
-
-    if (!layout['disableAlternateLayout']) {
-      space.ratio -= 1.5;
-      if (layoutManager.currentLayoutPage === LAYOUT_PAGE_DEFAULT) {
-        row.splice(c, 0, {
-          keyCode: ALTERNATE_LAYOUT,
-          value: alternateLayoutKey,
-          ratio: 1.5,
-          ariaLabel: 'alternateLayoutKey',
-          className: 'switch-key'
-        });
-
-      } else {
-        row.splice(c, 0, {
-          keyCode: BASIC_LAYOUT,
-          value: basicLayoutKey,
-          ratio: 1.5,
-          ariaLabel: 'basicLayoutKey'
-        });
-      }
-      c += 1;
-    }
-
-    // switch languages button
-    var supportsSwitching = navigator.mozInputMethod.mgmt.supportsSwitching();
-    var needsSwitchingKey = !layout['hidesSwitchKey'] && supportsSwitching;
-    if (needsSwitchingKey) {
-      var imeSwitchKey = {
-        value: '&#x1f310;',
-        ratio: 1,
-        keyCode: SWITCH_KEYBOARD,
-        className: 'switch-key'
-      };
-
-      if ('shortLabel' in layoutLoader.getLayout(keyboardName)) {
-        imeSwitchKey.value = layoutLoader.getLayout(keyboardName).shortLabel;
-        imeSwitchKey.className += ' alternate-indicator';
-      }
-
-      space.ratio -= 1;
-      row.splice(c, 0, imeSwitchKey);
-      c += 1;
-    }
-
-    // Now modify the layout some more based on the input type
-    var defaultPeriodSymbol = { value: '.', ratio: 1, keyCode: 46 };
-    if (hasAlternatives(layout, '.')) {
-      defaultPeriodSymbol['className'] = 'alternate-indicator';
-    }
-    if (!layout['typeInsensitive']) {
-      switch (currentInputType) {
-        // adds . / and .com
-      case 'url':
-        space.ratio -= 2;
-        row.splice(c, 0, { value: '/', ratio: 1, keyCode: 47 });
-        row.splice(c + 2, 0, defaultPeriodSymbol);
-        break;
-
-        // adds @ and .
-      case 'email':
-        space.ratio -= 2;
-        row.splice(c, 0, { value: '@', ratio: 1, keyCode: 64 });
-        row.splice(c + 2, 0, defaultPeriodSymbol);
-        break;
-
-        // adds . and , to both sides of the space bar
-      case 'text':
-        var overwrites = layout.textLayoutOverwrite || {};
-        var next = c;
-        if (overwrites['.'] !== false) {
-          space.ratio -= 1;
-          next++;
-        }
-
-        // Add ',' to 2nd level
-        if (layoutManager.currentLayoutPage !== LAYOUT_PAGE_DEFAULT ||
-            !needsSwitchingKey) {
-          if (overwrites[','] !== false) {
-            space.ratio -= 1;
-            next++;
-          }
-
-          var commaKey = {value: ',', keyCode: 44, ratio: 1};
-
-          if (overwrites[',']) {
-            commaKey.value = overwrites[','];
-            commaKey.keyCode = overwrites[','].charCodeAt(0);
-            row.splice(c, 0, commaKey);
-          } else if (overwrites[','] !== false) {
-            row.splice(c, 0, commaKey);
-          }
-        }
-
-        if (overwrites['.']) {
-          var periodOverwrite = {
-            value: overwrites['.'],
-            ratio: 1,
-            keyCode: overwrites['.'].charCodeAt(0)
-          };
-          if (hasAlternatives(layout, overwrites['.'])) {
-            periodOverwrite['className'] = 'alternate-indicator';
-          }
-          row.splice(next, 0, periodOverwrite);
-        } else if (overwrites['.'] !== false) {
-          row.splice(next, 0, defaultPeriodSymbol);
-        }
-
-        break;
-      }
-    }
-  } else {
-    console.warn('No space key found. No special keys will be added.');
-  }
-
-  layout.keyboardName = keyboardName;
-  layout.altLayoutName = altLayoutName;
-
-  return layout;
-}
-
-//
 // This function asks render.js to create an HTML layout for the keyboard.
 // The layout is based on the layout in layout.js, but is augmented by
 // modifyLayout() to include keyboard-switching keys and type-specific keys
 // for url and email address input, e.g.
 //
 // This should be called when the keyboard changes or when the layout page
-// changes.
+// changes in order to actually render the layout.
 //
-// Note that calling this function sets the global variable currentLayout.
-//
-// Also note that basic input type and layoutPage may both override
-// keyboardName to produce a currentLayout that is different than the base
-// layout for keyboardName
-//
-function renderKeyboard(keyboardName) {
+function renderKeyboard() {
   perfTimer.printTime('renderKeyboard');
   perfTimer.startTimer('renderKeyboard');
-
-  // Add meta keys and type-specific keys to the base layout
-  currentLayout = modifyLayout(keyboardName);
-
-  var keyboard = layoutLoader.getLayout(keyboardName);
 
   IMERender.ime.classList.remove('full-candidate-panel');
 
   // Rule of thumb: always render uppercase, unless secondLayout has been
   // specified (for e.g. arabic, then depending on shift key)
-  var needsUpperCase = currentLayout.secondLayout ?
-    (isUpperCaseLocked || isUpperCase) :
-    true;
+  var needsUpperCase = layoutManager.currentModifiedLayout.secondLayout ?
+    (isUpperCaseLocked || isUpperCase) : true;
 
   // And draw the layout
-  IMERender.draw(currentLayout, {
+  IMERender.draw(layoutManager.currentModifiedLayout, {
     uppercase: needsUpperCase,
     inputType: fakeAppObject.getBasicInputType(),
     showCandidatePanel: needsCandidatePanel()
@@ -704,7 +443,8 @@ function renderKeyboard(keyboardName) {
 
   // Tell the renderer what input method we're using. This will set a CSS
   // classname that can be used to style the keyboards differently
-  IMERender.setInputMethodName(keyboard.imEngine || 'default');
+  IMERender.setInputMethodName(
+    layoutManager.currentModifiedLayout.imEngine || 'default');
 
   // If needed, empty the candidate panel
   if (inputMethodManager.currentIMEngine.empty) {
@@ -732,8 +472,8 @@ function setUpperCase(upperCase, upperCaseLocked) {
     return;
 
   // When we have secondLayout, we need to force re-render on uppercase switch
-  if (currentLayout.secondLayout) {
-    return renderKeyboard(keyboardName);
+  if (layoutManager.currentModifiedLayout.secondLayout) {
+    return renderKeyboard();
   }
 
   // Otherwise we can just update only the keys we need...
@@ -793,7 +533,7 @@ function getUpperCaseValue(key) {
   if (key.keyCode < 0 || hasSpecialCode || key.compositeKey)
     return key.value;
 
-  var upperCase = currentLayout.upperCase || {};
+  var upperCase = layoutManager.currentModifiedLayout.upperCase || {};
   return upperCase[key.value] || key.value.toUpperCase();
 }
 
@@ -817,8 +557,8 @@ function setMenuTimeout(target, coords, touchId) {
 
       // Does the key have an altKey?
       var r = target.dataset.row, c = target.dataset.column;
-      var keyChar = currentLayout.keys[r][c].value;
-      var altKey = currentLayout.alt[keyChar] || null;
+      var keyChar = layoutManager.currentModifiedLayout.keys[r][c].value;
+      var altKey = layoutManager.currentModifiedLayout.alt[keyChar] || null;
 
       if (!altKey)
         return;
@@ -850,7 +590,7 @@ function showAlternatives(key) {
   var r = key ? key.dataset.row : -1, c = key ? key.dataset.column : -1;
   if (r < 0 || c < 0 || r === undefined || c === undefined)
     return;
-  keyObj = currentLayout.keys[r][c];
+  keyObj = layoutManager.currentModifiedLayout.keys[r][c];
 
   // Handle languages alternatives
   if (keyObj.keyCode === SWITCH_KEYBOARD) {
@@ -865,7 +605,7 @@ function showAlternatives(key) {
   }
 
   // Handle key alternatives
-  altMap = currentLayout.alt || {};
+  altMap = layoutManager.currentModifiedLayout.alt || {};
   value = keyObj.value;
   alternatives = altMap[value] || '';
 
@@ -1556,21 +1296,21 @@ function showKeyboard() {
   // everything.me uses this setting to improve searches,
   // but they really shouldn't.
   settingsPromiseManager.set({
-    'keyboard.current': keyboardName
+    'keyboard.current': layoutManager.currentLayoutName
   });
 
   // If we are already visible,
   // render the keyboard only after IMEngine is loaded.
   if (isKeyboardRendered) {
-    switchIMEngine(keyboardName, true);
+    switchIMEngine(true);
 
     return;
   }
 
   // render the keyboard right away w/o waiting for IMEngine
   // (it will be rendered again after imEngine is loaded)
-  renderKeyboard(keyboardName);
-  switchIMEngine(keyboardName, false);
+  renderKeyboard();
+  switchIMEngine(false);
 }
 
 // Hide keyboard
@@ -1605,7 +1345,7 @@ function onResize() {
     return;
   }
 
-  IMERender.resizeUI(currentLayout);
+  IMERender.resizeUI(layoutManager.currentModifiedLayout);
   updateTargetWindowHeight(); // this case is not captured by the mutation
   // observer so we handle it apart
 
@@ -1614,10 +1354,10 @@ function onResize() {
   updateLayoutParams();
 }
 
-function switchIMEngine(layoutName, mustRender) {
+function switchIMEngine(mustRender) {
   perfTimer.printTime('switchIMEngine');
 
-  var layout = layoutLoader.getLayout(layoutName);
+  var layout = layoutManager.currentModifiedLayout;
   var imEngineName = layout.imEngine || 'default';
 
   // dataPromise resolves to an array of data to be sent to imEngine.activate()
@@ -1651,7 +1391,7 @@ function switchIMEngine(layoutName, mustRender) {
     perfTimer.printTime('switchIMEngine:promise resolved');
     // Render keyboard again to get updated info from imEngine
     if (mustRender || imEngineName !== 'default') {
-      renderKeyboard(layoutName);
+      renderKeyboard();
     }
 
     // Load l10n library after IMEngine is loaded (if it's not loaded yet).
@@ -1735,8 +1475,8 @@ function needsCandidatePanel() {
     return false;
   }
 
-  return !!((layoutLoader.getLayout(keyboardName).autoCorrectLanguage ||
-           layoutLoader.getLayout(keyboardName).needsCandidatePanel) &&
+  return !!((layoutManager.currentLayout.autoCorrectLanguage ||
+           layoutManager.currentLayout.needsCandidatePanel) &&
           (!inputMethodManager.currentIMEngine.displaysCandidates ||
            inputMethodManager.currentIMEngine.displaysCandidates()));
 }
@@ -1744,7 +1484,7 @@ function needsCandidatePanel() {
 // To determine if we need to show a "all uppercase layout" for Greek SMS
 function isGreekSMS() {
   return (fakeAppObject.inputContext.inputMode === '-moz-sms' &&
-          keyboardName === 'el');
+          layoutManager.currentLayoutName === 'el');
 }
 
 // Remove the event listeners on the touched keys and the highlighting.
