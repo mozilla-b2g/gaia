@@ -10,6 +10,7 @@ var GeoLocation = require('lib/geo-location');
 var settingsData = require('config/config');
 var settings = new Settings(settingsData);
 var Camera = require('lib/camera/camera');
+var Pinch = require('lib/pinch');
 var App = require('app');
 
 // Log dom-loaded to keep perf on our radar
@@ -28,6 +29,7 @@ if (settingsData.globals) {
 var app = window.app = new App({
   settings: settings,
   geolocation: new GeoLocation(),
+  Pinch: Pinch,
 
   el: document.body,
   doc: document,
@@ -55,7 +57,7 @@ var app = window.app = new App({
     confirm: 'controllers/confirm',
     battery: 'controllers/battery',
     sounds: 'controllers/sounds',
-    timer: 'controllers/timer',
+    timer: 'controllers/timer'
   }
 });
 

@@ -369,21 +369,6 @@ suite('controllers/camera', function() {
     });
   });
 
-  suite('CameraController#onPreviewGalleryOpened()', function() {
-    test('Should configure zoom and stop focus', function() {
-      this.controller.onPreviewGalleryOpened();
-      assert.ok(this.camera.configureZoom.called);
-      assert.ok(this.camera.stopFocus.called);
-    });
-  });
-
-  suite('CameraController#onPreviewGalleryClosed()', function() {
-    test('Should resume focus', function() {
-      this.controller.onPreviewGalleryClosed();
-      assert.ok(this.camera.resumeFocus.called);
-    });
-  });
-
   suite('CameraController#capture()', function() {
     test('Should not start countdown if now timer setting is set', function() {
       this.app.settings.timer.selected.returns(0);
