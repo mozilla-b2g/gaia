@@ -62,13 +62,12 @@ class Homescreen(Base):
         return ContextMenu(self.marionette)
 
     def move_app_to_position(self, app_position, to_position):
-        app = self.marionette.find_elements(*self._homescreen_all_icons_locator)[app_position]
-        destination = self.marionette.find_elements(*self._homescreen_all_icons_locator)[to_position]
+        app_elements = self.app_elements
 
         Actions(self.marionette).\
-            press(app).\
+            press(app_elements[app_position]).\
             wait(3).\
-            move(destination).\
+            move(app_elements[to_position]).\
             wait(1).\
             release().\
             perform()
@@ -90,10 +89,8 @@ class Homescreen(Base):
         return Collection(self.marionette)
 
     @property
-    def visible_apps(self):
-        # Bug 1020910 - Marionette cannot detect correctly detect icons on vertical homescreen
-        # The icons' order on screen is not represented in the DOM, thus we use the grid
-        apps = self.marionette.execute_script("""
+    def app_elements(self):
+        return self.marionette.execute_script("""
         var gridItems = window.wrappedJSObject.app.grid.getItems();
         var appElements = [];
         for(var i=0; i<gridItems.length; i++){
@@ -102,8 +99,13 @@ class Homescreen(Base):
         }
         return appElements;
         """)
+
+    @property
+    def visible_apps(self):
+        # Bug 1020910 - Marionette cannot detect correctly detect icons on vertical homescreen
+        # The icons' order on screen is not represented in the DOM, thus we use the grid
         return [self.InstalledApp(self.marionette, root_element)
-                for root_element in apps if root_element.is_displayed()]
+                for root_element in self.app_elements if root_element.is_displayed()]
 
     def installed_app(self, app_name):
         for root_el in self.marionette.find_elements(*self._homescreen_all_icons_locator):
