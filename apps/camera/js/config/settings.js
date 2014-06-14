@@ -22,7 +22,7 @@ module.exports = {
     // Flag for determining if the preview should limit the
     // image size to the value of CONFIG_MAX_IMAGE_PIXEL_SIZE
     // (enable for devices with limited memory)
-    limitMaxPreviewSize: false,
+    limitMaxPreviewSize: true,
 
     // Dimensions for thumbnail image (will automatically be
     // multiplied by the devicePixelRatio)
