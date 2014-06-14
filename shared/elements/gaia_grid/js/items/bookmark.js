@@ -82,6 +82,47 @@
     },
 
     /**
+    * it overrides GridItem._decorateIcon
+    */
+    _decorateIcon: function(img) {
+      const MAX_ICON_SIZE = this.grid.layout.gridIconSize *
+        window.devicePixelRatio;
+
+      var shadowCanvas = document.createElement('canvas');
+      var iconWidth;
+      var iconHeight;
+
+      shadowCanvas.width = MAX_ICON_SIZE + (this.CANVAS_PADDING * 2);
+      shadowCanvas.height = MAX_ICON_SIZE + (this.CANVAS_PADDING * 2);
+      var shadowCtx = shadowCanvas.getContext('2d');
+
+      shadowCtx.shadowColor = this.SHADOW_COLOR;
+      shadowCtx.shadowBlur = this.SHADOW_BLUR;
+      shadowCtx.shadowOffsetY = this.SHADOW_OFFSET_Y;
+      shadowCtx.shadowOffsetX = this.SHADOW_OFFSET_X;
+
+      // Draws Shadow and default background circle
+      shadowCtx.beginPath();
+      shadowCtx.arc(shadowCanvas.width / 2,
+                    shadowCanvas.height / 2,
+                    shadowCanvas.height / 2 - this.CANVAS_PADDING,
+                    0, 2 * Math.PI, false);
+      shadowCtx.fillStyle = this.DEFAULT_BACKGROUND_COLOR;
+      shadowCtx.fill();
+
+      // Draws favicon with antinaliasing disabled
+      iconWidth = iconHeight = MAX_ICON_SIZE * 0.55;
+      // Disable smoothing on icon resize
+      shadowCtx.shadowBlur = 0;
+      shadowCtx.shadowOffsetY = 0;
+      shadowCtx.mozImageSmoothingEnabled = false;
+      shadowCtx.drawImage(img, (shadowCanvas.width - iconWidth) / 2,
+                                    (shadowCanvas.height - iconHeight) / 2,
+                                    iconWidth, iconHeight);
+      shadowCanvas.toBlob(this._displayDecoratedIcon.bind(this));
+    },
+
+    /**
      * Launches the bookmark in a browser window.
      */
     launch: function() {
