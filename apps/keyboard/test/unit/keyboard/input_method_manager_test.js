@@ -87,13 +87,13 @@ suite('InputMethodGlue', function() {
   test('alterKeyboard', function() {
     var glue = new InputMethodGlue();
     var app = {
-      alterKeyboard: this.sinon.stub()
+      setForcedModifiedLayout: this.sinon.stub()
     };
     var name = 'bar';
     glue.init(app, 'foo');
     glue.alterKeyboard(name);
 
-    assert.isTrue(app.alterKeyboard.calledWith(name));
+    assert.isTrue(app.setForcedModifiedLayout.calledWith(name));
   });
 
   test('setLayoutPage', function() {

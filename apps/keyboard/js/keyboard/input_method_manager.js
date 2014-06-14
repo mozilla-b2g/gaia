@@ -168,8 +168,10 @@ InputMethodGlue.prototype.sendString = function(str) {
   }
 };
 
-InputMethodGlue.prototype.alterKeyboard = function(keyboard) {
-  this.app.alterKeyboard(keyboard);
+// Set the current rendered layout to a specific named layout
+// XXX deprecated; overwrite alternative/symbol layout instead.
+InputMethodGlue.prototype.alterKeyboard = function(layoutName) {
+  this.app.setForcedModifiedLayout(layoutName);
 };
 
 InputMethodGlue.prototype.setLayoutPage = function(newpage) {
