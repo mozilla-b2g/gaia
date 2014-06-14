@@ -27,6 +27,7 @@ marionette('Vertical - Search', function() {
     client.helper.waitForElement(Home2.Selectors.search).tap();
     client.switchToFrame();
 
+    search.triggerFirstRun(rocketbar);
     rocketbar.enterText('Phone');
     search.goToResults();
 
@@ -40,6 +41,7 @@ marionette('Vertical - Search', function() {
     home.waitForLaunch();
     client.helper.waitForElement(Home2.Selectors.search).tap();
     client.switchToFrame();
+    search.triggerFirstRun(rocketbar);
     rocketbar.enterText('Phone');
     search.goToResults();
 

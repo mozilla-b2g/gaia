@@ -17,6 +17,9 @@ marionette('Search - App search', function() {
   });
 
   test('Search apps from Rocketbar', function() {
+    client.switchToFrame();
+    rocketbar.focus();
+    search.triggerFirstRun(rocketbar);
     rocketbar.focus();
     rocketbar.enterText('calendar');
     search.goToResults();
@@ -26,6 +29,9 @@ marionette('Search - App search', function() {
   });
 
   test('Search for app with entry point', function() {
+    client.switchToFrame();
+    rocketbar.focus();
+    search.triggerFirstRun(rocketbar);
     rocketbar.focus();
     rocketbar.enterText('Phone');
     search.goToResults();
