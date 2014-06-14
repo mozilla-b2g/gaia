@@ -1,3 +1,4 @@
+/* global MocksHelper, MockNavigatorSettings, MockIccHelper, OperatorVariant */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_icc_helper.js');
@@ -41,40 +42,61 @@ suite('operatorVariant set First run state >', function() {
 
   var testCases = [
   {
+  'title': 'Operator Variant set first run type - no previously value, ' +
+           'known mcc-mnc',
   'preValSet': undefined,
-  'expecValSet': false,
-  'cardState': 'unknown',
-  'title': 'Operator Variant set first run type - unkown sim'
+  'cardState': 'ready',
+  'iccInfo': {
+    'mcc': '214',
+    'mnc': '07'
+  },
+  'expecValSet': '214-007'
   },
   {
+  'title': 'Operator Variant set first run type - no previously value, ' +
+           'unknown mcc-mnc',
   'preValSet': undefined,
-  'expecValSet': true,
   'cardState': 'ready',
-  'title': 'Operator Variant set first run type - sim ready'
+  'iccInfo': {},
+  'expecValSet': '000-000'
   },
   {
+  'title': 'Operator Variant first run type - previously value different ' +
+           'of the current one',
+  'preValSet': '333-333',
+  'cardState': 'ready',
+  'iccInfo': {
+    'mcc': '214',
+    'mnc': '07'
+  },
+  'expecValSet': '333-333'
+  },
+  {
+  'title': 'Operator Variant set first run - no previously value, no cardState',
   'preValSet': undefined,
-  'expecValSet': false,
-  'cardState': 'pinRequired',
-  'title': 'Operator Variant set first run type - sim pinRequired'
+  'cardState': undefined,
+  'iccInfo': {
+    'mcc': '214',
+    'mnc': '07'
+  },
+  'expecValSet': '000-000'
   },
   {
-  'preValSet': true,
-  'expecValSet': true,
-  'cardState': 'ready',
-  'title': 'Operator Variant first run type previously set true'
+  'title': 'Operator Variant first run - has previously value, no cardState',
+  'preValSet': '444-444',
+  'cardState': undefined,
+  'iccInfo': {
+    'mcc': '214',
+    'mnc': '07'
   },
-  {
-  'preValSet': false,
-  'expecValSet': false,
-  'cardState': 'ready',
-  'title': 'Operator Variant set first run type previously set false'
+  'expecValSet': '444-444'
   }
   ];
 
   testCases.forEach((function(testCase) {
     test(testCase.title, function(done) {
-      MockIccHelper.mProps['cardState'] = testCase.cardState;
+      MockIccHelper.mProps.cardState = testCase.cardState;
+      MockIccHelper.mProps.iccInfo = testCase.iccInfo;
       changeSettings(KEY_SIM_ON_1ST_RUN, testCase.preValSet);
       OperatorVariant.setSIMOnFirstBootState();
       setTimeout(function() {
