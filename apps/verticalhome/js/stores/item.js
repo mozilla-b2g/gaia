@@ -224,6 +224,7 @@
      * @param {Function} callback A function to call after fetching all items.
      */
     fetch: function(callback) {
+      var cached = {};
       var collected = [];
 
       function iterator(value) {
@@ -238,6 +239,17 @@
       loadTable(DB_SV_APP_STORE_NAME, 'indexSV', iteratorSV.bind(this));
       loadTable(DB_ITEM_STORE, 'index', iterator, finish.bind(this));
 
+      /**
+       * Add to _allItems if the record is unique by comparing the identifier.
+       */
+      function addIfUnique(item) {
+        /* jshint validthis: true */
+        if (!cached[item.identifier]) {
+          cached[item.identifier] = true;
+          this._allItems.push(item);
+        }
+      }
+
       function finish() {
         /* jshint validthis: true */
         // Transforms DB results into item classes
@@ -245,16 +257,16 @@
           var thisItem = collected[i];
           if (thisItem.type === 'app') {
             var itemObj = this.applicationSource.mapToApp(thisItem);
-            this._allItems.push(itemObj);
+            addIfUnique.call(this, itemObj);
           } else if (thisItem.type === 'divider') {
             var divider = new GaiaGrid.Divider(thisItem);
             this._allItems.push(divider);
           } else if (thisItem.type === 'bookmark') {
             var bookmark = new GaiaGrid.Bookmark(thisItem);
-            this._allItems.push(bookmark);
+            addIfUnique.call(this, bookmark);
           } else if (thisItem.type === 'collection') {
             var collection = new GaiaGrid.Collection(thisItem);
-            this._allItems.push(collection);
+            addIfUnique.call(this, collection);
           }
         }
 

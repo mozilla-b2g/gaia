@@ -77,30 +77,6 @@ window.GaiaGrid = (function(win) {
   };
 
   /**
-   * Adds an item to the grid.
-   * Items (only dividers currently) are like icons, but do not need a
-   * mapping to each one for click handling.
-   * @param {String} identifier
-   * @param {Object} obj
-   */
-  proto.addItem = function(item) {
-    if (item) {
-      this._grid.items.push(item);
-    }
-  };
-
-  /**
-   * Adds an icon to the grid.
-   * Icons need an identifier to for object lookup during event bubbling.
-   * @param {String} identifier
-   * @param {Object} obj
-   */
-  proto.addIcon = function(identifier, obj) {
-    this._grid.icons[identifier] = obj;
-    this._grid.items.push(obj);
-  };
-
-  /**
    * Returns a reference of the grid icons.
    */
   proto.getIcons = function() {

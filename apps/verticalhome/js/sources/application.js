@@ -66,7 +66,7 @@
         this.addPreviouslyInstalledSvApp(application.manifestURL);
         app.itemStore.savePrevInstalledSvApp(this.svPreviouslyInstalledApps);
       }
-      app.grid.addItem(lastDivider);
+      app.grid.add(lastDivider);
 
       app.grid.render();
       app.itemStore.save(app.grid.getItems());
@@ -160,7 +160,7 @@
       var appObject = this.mapToApp({
         manifestURL: application.manifestURL
       });
-      app.grid.addIcon(appObject.identifier, appObject);
+      app.grid.add(appObject);
       app.grid.render();
     },
 
@@ -178,7 +178,7 @@
       app.grid.removeItemByIndex(itemIndex);
       app.grid.render();
 
-      if (appObject.element) {
+      if (appObject && appObject.element) {
         appObject.element.parentNode.removeChild(appObject.element);
       }
     },

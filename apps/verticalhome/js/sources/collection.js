@@ -83,8 +83,8 @@
       // Manually inject this book mark into the app item list for now.
       // Remove and re-append a divider if the last item is a divider
       var lastDivider = app.grid.getLastIfDivider();
-      app.grid.addIcon(collection.identifier, collection);
-      app.grid.addItem(lastDivider);
+      app.grid.add(collection);
+      app.grid.add(lastDivider);
 
       app.grid.render();
     },
@@ -102,7 +102,7 @@
       app.grid.removeItemByIndex(itemIndex);
       app.grid.render();
 
-      if (appObject.element) {
+      if (appObject && appObject.element) {
         appObject.element.parentNode.removeChild(appObject.element);
       }
     }
