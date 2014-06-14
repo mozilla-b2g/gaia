@@ -1,4 +1,4 @@
-/*global Template, Utils */
+/*global SharedComponents, Template, Utils */
 
 'use strict';
 
@@ -17,11 +17,11 @@ var FLAVORS = {
    * - number: the phone number
    * - nameHTML: same than name if shouldHighlight is false, otherwise contains
    *   markup with the highlighting
-   * - numberHTML: see nameHTML
+   * - phoneDetailsHTML: phone details label (type, number, carrier), also if
+   *   shouldHighlight is true, then number is wrapped into highlighting markup
    * - photoHTML: result of the "photo" template, if present
    * - type: phone number type information
    * - carrier: phone number carrier information
-   * - separator: the separator between type or carrier and the phone number
    *
    * template "photo" will get the following parameters:
    * - photoURL: the URL of the contact's first photo
@@ -228,6 +228,14 @@ ContactRenderer.prototype = {
         data[key + 'HTML'] = escapedData;
       });
 
+      data.phoneDetailsHTML = SharedComponents.phoneDetails({
+        number: data.numberHTML,
+        type: data.type,
+        carrier: data.carrier
+      }, {
+        safe: ['number']
+      });
+
       // Render contact photo only for specific flavor
       data.photoHTML = renderPhoto && details.photoURL ?
         this.templates.photo.interpolate() : '';
@@ -235,7 +243,7 @@ ContactRenderer.prototype = {
       // Interpolate HTML template with data and inject.
       // Known "safe" HTML values will not be re-sanitized.
       tempDiv.innerHTML = this.templates.main.interpolate(data, {
-        safe: ['nameHTML', 'numberHTML', 'srcAttr', 'photoHTML']
+        safe: ['nameHTML', 'phoneDetailsHTML', 'srcAttr', 'photoHTML']
       });
 
       var element = tempDiv.firstElementChild;

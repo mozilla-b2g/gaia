@@ -1,10 +1,11 @@
 /*global loadBodyHTML, Recipients, MocksHelper, CustomEvent, KeyEvent,
-         MockDialog, Template, MockL10n, Navigation */
+         MockDialog, Template, MockL10n, Navigation, SharedComponents */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_gesture_detector.js');
 
 requireApp('sms/js/recipients.js');
+require('/js/shared_components.js');
 requireApp('sms/js/utils.js');
 
 requireApp('sms/test/unit/mock_dialog.js');
@@ -70,7 +71,6 @@ suite('Recipients', function() {
 
       // Disambiguation 'display' attributes
       type: 'Type',
-      separator: ' | ',
       carrier: 'Carrier',
       className: 'recipient',
       isLookupable: false,
@@ -772,17 +772,44 @@ suite('Recipients', function() {
           //
           // The values MUST be strings.
           recipient = {
-            display: 'Mobile | Telco, 101',
             editable: 'false',
             email: '',
             name: 'Alan Turing',
             number: '101',
+            type: 'Mobile',
+            carrier: 'T-Mobile',
             source: 'contacts'
           };
         });
 
         test('Recipients.View.prompts.remove ', function() {
           assert.ok(Recipients.View.prompts.remove);
+        });
+
+        test('correctly rendered dialog', function() {
+          Recipients.View.prompts.remove(recipient);
+
+          var phoneDetailsNode = document.createElement('div');
+          phoneDetailsNode.innerHTML = SharedComponents.phoneDetails({
+            number: recipient.number,
+            type: recipient.type,
+            carrier: recipient.carrier
+          });
+
+          var dialogParameters = MockDialog.calls[MockDialog.calls.length - 1];
+
+          assert.equal(dialogParameters.title.value, recipient.name);
+          assert.equal(
+            dialogParameters.body.value.outerHTML,
+            phoneDetailsNode.innerHTML
+          );
+
+          assert.equal(dialogParameters.options.cancel.text.l10nId, 'cancel');
+          assert.isDefined(dialogParameters.options.cancel.method);
+
+          assert.equal(dialogParameters.options.confirm.text.l10nId, 'remove');
+          assert.isDefined(dialogParameters.options.confirm.method);
+          assert.equal(dialogParameters.options.confirm.className, 'danger');
         });
 
         test('cancel ', function(done) {
