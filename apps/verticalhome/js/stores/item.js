@@ -1,10 +1,12 @@
 'use strict';
 /* global ApplicationSource */
+/* global Bookmark */
 /* global BookmarkSource */
+/* global Collection */
 /* global CollectionSource */
-/* global configurator */
 /* global dispatchEvent */
-/* global GaiaGrid */
+/* global Divider */
+/* global configurator */
 
 (function(exports) {
 
@@ -48,12 +50,12 @@
       }
       // If we have more sections add a divider
       if (i < iLen - 1) {
-        newEntries.push(new GaiaGrid.Divider());
+        newEntries.push(new Divider());
       }
     }
     // If entries is not empty yet add orderless entries
     if (entries.length > 0) {
-        newEntries.push(new GaiaGrid.Divider());
+        newEntries.push(new Divider());
         newEntries = newEntries.concat(entries);
     }
     for (i = 0, iLen = newEntries.length; i < iLen; i++) {
@@ -247,13 +249,13 @@
             var itemObj = this.applicationSource.mapToApp(thisItem);
             this._allItems.push(itemObj);
           } else if (thisItem.type === 'divider') {
-            var divider = new GaiaGrid.Divider(thisItem);
+            var divider = new Divider(thisItem);
             this._allItems.push(divider);
           } else if (thisItem.type === 'bookmark') {
-            var bookmark = new GaiaGrid.Bookmark(thisItem);
+            var bookmark = new Bookmark(thisItem);
             this._allItems.push(bookmark);
           } else if (thisItem.type === 'collection') {
-            var collection = new GaiaGrid.Collection(thisItem);
+            var collection = new Collection(thisItem);
             this._allItems.push(collection);
           }
         }

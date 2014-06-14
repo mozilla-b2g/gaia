@@ -1,5 +1,5 @@
 'use strict';
-/* global GaiaGrid */
+/* global GridItem */
 /* global MozActivity */
 /* jshint nonew: false */
 
@@ -18,7 +18,7 @@
 
   Bookmark.prototype = {
 
-    __proto__: GaiaGrid.GridItem.prototype,
+    __proto__: GridItem.prototype,
 
     /**
      * Returns the height in pixels of each icon.
@@ -77,7 +77,7 @@
      * This method overrides the GridItem.render function.
      */
     render: function(coordinates, index) {
-      GaiaGrid.GridItem.prototype.render.call(this, coordinates, index);
+      GridItem.prototype.render.call(this, coordinates, index);
       this.element.classList.add('bookmark');
     },
 
@@ -132,6 +132,6 @@
     }
   };
 
-  exports.GaiaGrid.Bookmark = Bookmark;
+  exports.Bookmark = Bookmark;
 
 }(window));

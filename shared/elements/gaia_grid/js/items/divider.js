@@ -1,7 +1,7 @@
 'use strict';
-/* global GaiaGrid */
+/* global GridItem */
 
-(function(exports) {
+(function() {
 
   /**
    * Represents a single divider on the homepage.
@@ -15,7 +15,7 @@
 
   Divider.prototype = {
 
-    __proto__: GaiaGrid.GridItem.prototype,
+    __proto__: GridItem.prototype,
 
     x: 0,
     y: 0,
@@ -63,6 +63,6 @@
     }
   };
 
-  exports.GaiaGrid.Divider = Divider;
+  window.Divider = Divider;
 
-}(window));
+}());

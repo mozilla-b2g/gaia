@@ -1,5 +1,5 @@
 'use strict';
-/* global MocksHelper, Search */
+/* global MocksHelper, MockL10n, Search */
 
 require('/shared/test/unit/mocks/mock_moz_activity.js');
 requireApp('search/test/unit/mock_l10n.js');
@@ -8,15 +8,6 @@ requireApp('search/test/unit/mock_search.js');
 requireApp('search/js/providers/provider.js');
 requireApp('search/js/providers/grid_provider.js');
 
-// Required files for the grid and a marketplaceapp result
-require('/shared/js/l10n.js');
-require('/shared/elements/gaia_grid/js/grid_layout.js');
-require('/shared/elements/gaia_grid/js/grid_view.js');
-require('/shared/elements/gaia_grid/script.js');
-require('/shared/elements/gaia_grid/js/items/grid_item.js');
-require('/shared/elements/gaia_grid/js/items/bookmark.js');
-require('/shared/elements/gaia_grid/js/items/marketplace_app.js');
-
 var mocksForMarketplaceProvider = new MocksHelper([
   'MozActivity'
 ]).init();
@@ -24,7 +15,18 @@ var mocksForMarketplaceProvider = new MocksHelper([
 suite('search/providers/marketplace', function() {
   mocksForMarketplaceProvider.attachTestHelpers();
 
-  var fakeElement, stubById, subject;
+  var fakeElement, stubById, subject, realL10n;
+
+  suiteSetup(function() {
+    window.MarketPlaceApp = function() {};
+    realL10n = navigator.mozL10n;
+    navigator.mozL10n = MockL10n;
+  });
+
+  suiteTeardown(function() {
+    delete window.MarketPlaceApp;
+    navigator.mozL10n = realL10n;
+  });
 
   setup(function(done) {
     fakeElement = document.createElement('div');

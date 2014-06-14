@@ -1,4 +1,4 @@
-/* global eme, Search, DataGridProvider, GaiaGrid */
+/* global eme, Search, DataGridProvider, Bookmark */
 
 (function() {
 
@@ -52,7 +52,7 @@
           response.apps.forEach(function each(app) {
             results.push({
               dedupeId: app.appUrl,
-              data: new GaiaGrid.Bookmark({
+              data: new Bookmark({
                 id: app.id,
                 name: app.name,
                 url: app.appUrl,

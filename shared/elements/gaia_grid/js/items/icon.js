@@ -1,5 +1,5 @@
 'use strict';
-/* global GaiaGrid */
+/* global GridItem */
 /* global UrlHelper */
 /* global Promise */
 
@@ -10,7 +10,7 @@
   /**
    * Represents  single app icon on the homepage.
    */
-  function Mozapp(app, entryPoint, details) {
+  function Icon(app, entryPoint, details) {
     this.app = app;
     this.entryPoint = entryPoint;
 
@@ -26,13 +26,12 @@
     // Re-render on update
     // XXX: This introduces a potential race condition. GridItem.renderIcon is
     // not concurrency safe one image may override another without ordering.
-    this.app.ondownloadapplied =
-      GaiaGrid.GridItem.prototype.renderIcon.bind(this);
+    this.app.ondownloadapplied = GridItem.prototype.renderIcon.bind(this);
   }
 
-  Mozapp.prototype = {
+  Icon.prototype = {
 
-    __proto__: GaiaGrid.GridItem.prototype,
+    __proto__: GridItem.prototype,
 
     /**
      * Returns the height in pixels of each icon.
@@ -74,7 +73,7 @@
         return this.defaultIcon;
       }
 
-      var maxSize = this.grid.layout.gridMaxMozappSize; // The goal size
+      var maxSize = this.grid.layout.gridMaxIconSize; // The goal size
       var accurateSize = list[0]; // The biggest icon available
       for (var i = 0; i < length; i++) {
         var size = list[i];
@@ -102,10 +101,10 @@
      * Returns the icon image path.
      */
     get icon() {
-      var icon = this.accurateMozapp;
+      var icon = this.accurateIcon;
 
       if (!icon) {
-        icon = this.accurateMozapp = this._icon();
+        icon = this.accurateIcon = this._icon();
       }
 
       return icon;
@@ -140,7 +139,7 @@
     },
 
     fetchIconBlob: function() {
-      var _super = GaiaGrid.GridItem.prototype.fetchIconBlob.bind(this);
+      var _super = GridItem.prototype.fetchIconBlob.bind(this);
       if (!this.app.downloading) {
         return _super();
       }
@@ -208,6 +207,6 @@
     }
   };
 
-  exports.GaiaGrid.Mozapp = Mozapp;
+  exports.Icon = Icon;
 
 }(window));

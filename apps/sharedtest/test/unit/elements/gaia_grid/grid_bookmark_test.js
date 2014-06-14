@@ -1,7 +1,6 @@
 'use strict';
-/* global GaiaGrid */
+/* global Bookmark */
 
-require('/shared/elements/gaia_grid/script.js');
 require('/shared/elements/gaia_grid/js/items/grid_item.js');
 require('/shared/elements/gaia_grid/js/items/bookmark.js');
 
@@ -16,7 +15,7 @@ suite('GaiaGrid > Bookmark', function() {
   };
 
   setup(function() {
-    subject = new GaiaGrid.Bookmark(stubPage1);
+    subject = new Bookmark(stubPage1);
   });
 
   test('Bookmark created properly', function() {
@@ -55,7 +54,7 @@ suite('GaiaGrid > Bookmark', function() {
       done();
     });
 
-    subject = new GaiaGrid.Bookmark(stubPage1, {
+    subject = new Bookmark(stubPage1, {
       search: true
     });
     subject.launch();

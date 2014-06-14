@@ -1,5 +1,5 @@
 'use strict';
-/* global GaiaGrid */
+/* global GridItem */
 /* global MozActivity */
 /*jshint nonew: false */
 
@@ -25,7 +25,7 @@
 
   Collection.prototype = {
 
-    __proto__: GaiaGrid.GridItem.prototype,
+    __proto__: GridItem.prototype,
 
     /**
      * Returns the height in pixels of each icon.
@@ -105,6 +105,6 @@
     }
   };
 
-  exports.GaiaGrid.Collection = Collection;
+  exports.Collection = Collection;
 
 }(window));

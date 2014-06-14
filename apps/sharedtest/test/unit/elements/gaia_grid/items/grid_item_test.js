@@ -1,11 +1,11 @@
 'use strict';
-/* global GaiaGrid */
+/* global GridItem */
 
+require('/shared/elements/gaia_grid/js/items/grid_item.js');
 require('/shared/elements/gaia_grid/js/grid_layout.js');
 require('/shared/elements/gaia_grid/js/grid_view.js');
 require('/shared/elements/gaia_grid/js/items/placeholder.js');
 require('/shared/elements/gaia_grid/script.js');
-require('/shared/elements/gaia_grid/js/items/grid_item.js');
 
 suite('GridItem', function() {
 
@@ -16,7 +16,7 @@ suite('GridItem', function() {
   });
 
   test('renderIconFromSrc sets the background size', function(done) {
-    var subject = new GaiaGrid.GridItem();
+    var subject = new GridItem();
     subject.element = document.createElement('div');
 
     var original  = subject._displayDecoratedIcon;

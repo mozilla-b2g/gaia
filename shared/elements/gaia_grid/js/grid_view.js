@@ -1,8 +1,9 @@
 'use strict';
+/* global Divider */
 /* global GridDragDrop */
-/* global GaiaGrid */
 /* global GridLayout */
 /* global GridZoom */
+/* global Placeholder */
 
 (function(exports) {
 
@@ -145,7 +146,7 @@
       var toRemove = [];
 
       this.items.forEach(function(item, idx) {
-        if (item instanceof GaiaGrid.Divider) {
+        if (item instanceof Divider) {
           if (appCount === 0) {
             toRemove.push(idx);
           }
@@ -167,8 +168,8 @@
         return;
       }
       var lastItem = this.items[this.items.length - 1];
-      if (!(lastItem instanceof GaiaGrid.Divider)) {
-        this.items.push(new GaiaGrid.Divider());
+      if (!(lastItem instanceof Divider)) {
+        this.items.push(new Divider());
       }
     },
 
@@ -179,12 +180,12 @@
       var toSplice = [];
       var previousItem;
       this.items.forEach(function(item, idx) {
-        if (item instanceof GaiaGrid.Placeholder) {
+        if (item instanceof Placeholder) {
 
           // If the previous item is a divider, and we are in edit mode
           // we do not remove the placeholder. This is so the section will
           // remain even if the user drags the icon around. Bug 1014982
-          if (previousItem && previousItem instanceof GaiaGrid.Divider &&
+          if (previousItem && previousItem instanceof Divider &&
               this.dragdrop && this.dragdrop.inDragAction) {
             return;
           }
@@ -214,7 +215,7 @@
           coordinates[1]
         ];
 
-        var item = new GaiaGrid.Placeholder();
+        var item = new Placeholder();
         this.items.splice(idx + i, 0, item);
         item.render(itemCoords, idx + i);
       }

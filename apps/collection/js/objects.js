@@ -1,7 +1,8 @@
 'use strict';
 /* global CollectionsDatabase */
 /* global CollectionIcon */
-/* global GaiaGrid */
+/* global Bookmark */
+/* global Divider */
 /* global SearchDedupe */
 
 (function(exports){
@@ -62,7 +63,7 @@
 
       results = this.dedupe.reduce(results, 'fuzzy');
       results.forEach(function render(result) {
-        var icon = new GaiaGrid.Bookmark(result);
+        var icon = new Bookmark(result);
         grid.add(icon);
       });
     },
@@ -77,7 +78,7 @@
         return;
       }
 
-      grid.add(new GaiaGrid.Divider());
+      grid.add(new Divider());
       this.addToGrid(this.webResults, grid);
       grid.render();
     },

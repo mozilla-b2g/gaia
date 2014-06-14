@@ -1,5 +1,7 @@
 'use strict';
-/* global GaiaGrid */
+/* global Bookmark */
+/* global Divider */
+/* global Icon */
 
 var grid = document.getElementById('grid');
 
@@ -8,31 +10,31 @@ var whitePixel = 'data:image/gif;base64,R0lGODlhAQABAIAAAP///' +
   'wAAACwAAAAAAQABAAACAkQBADs=';
 
 var items = [
-  new GaiaGrid.Bookmark({
+  new Bookmark({
     id: 1,
     name: 'Mozilla',
     icon: icon,
     url: 'http://mozilla.org'
   }),
-  new GaiaGrid.Bookmark({
+  new Bookmark({
     id: 2,
     name: 'Two',
     icon: icon,
     url: 'http://2'
   }),
-  new GaiaGrid.Bookmark({
+  new Bookmark({
     id: 3,
     name: 'Three',
     icon: icon,
     url: 'http://3'
   }),
-  new GaiaGrid.Bookmark({
+  new Bookmark({
     id: 4,
     name: 'Four',
     icon: icon,
     url: 'http://4'
   }),
-  new GaiaGrid.Mozapp({
+  new Icon({
     id: 5,
     icon: icon,
     manifest: {
@@ -42,8 +44,8 @@ var items = [
       }
     }
   }),
-  new GaiaGrid.Divider(),
-  new GaiaGrid.Mozapp({
+  new Divider(),
+  new Icon({
     id: 6,
     manifest: {
       name: 'Another Webapp',
