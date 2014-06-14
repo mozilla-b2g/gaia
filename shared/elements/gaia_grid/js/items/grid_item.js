@@ -4,17 +4,10 @@
 
 (function(exports) {
 
-  const SHADOW_BLUR = 1;
-  const SHADOW_OFFSET_Y = 1;
-  const SHADOW_OFFSET_X = 1;
-  const SHADOW_COLOR = 'rgba(0, 0, 0, 0.2)';
-  const UNSCALED_CANVAS_PADDING = 2;
-  const CANVAS_PADDING = UNSCALED_CANVAS_PADDING * devicePixelRatio;
-  const FETCH_XHR_TIMEOUT = 10000;
-
   // event names
   const ICON_BLOB_LOAD_EVENT = 'gaiagrid-iconblobload';
   const ICON_BLOB_ERROR_EVENT = 'gaiagrid-iconbloberror';
+  const FETCH_XHR_TIMEOUT = 10000;
 
   /**
    * XHR wrapper for fetching blobs with timeout logic.
@@ -62,6 +55,16 @@
   }
 
   GridItem.prototype = {
+
+    /**
+     * Constants
+     */
+    SHADOW_BLUR: 1,
+    SHADOW_OFFSET_Y: 1,
+    SHADOW_OFFSET_X: 1,
+    SHADOW_COLOR: 'rgba(0, 0, 0, 0.2)',
+    UNSCALED_CANVAS_PADDING: 2,
+    CANVAS_PADDING: 2 * devicePixelRatio,
 
     x: 0,
     y: 0,
@@ -176,14 +179,14 @@
       const MAX_ICON_SIZE = this.grid.layout.gridIconSize * devicePixelRatio;
 
       var shadowCanvas = document.createElement('canvas');
-      shadowCanvas.width = MAX_ICON_SIZE + (CANVAS_PADDING * 2);
-      shadowCanvas.height = MAX_ICON_SIZE + (CANVAS_PADDING * 2);
+      shadowCanvas.width = MAX_ICON_SIZE + (this.CANVAS_PADDING * 2);
+      shadowCanvas.height = MAX_ICON_SIZE + (this.CANVAS_PADDING * 2);
       var shadowCtx = shadowCanvas.getContext('2d');
 
-      shadowCtx.shadowColor = SHADOW_COLOR;
-      shadowCtx.shadowBlur = SHADOW_BLUR;
-      shadowCtx.shadowOffsetY = SHADOW_OFFSET_Y;
-      shadowCtx.shadowOffsetX = SHADOW_OFFSET_X;
+      shadowCtx.shadowColor = this.SHADOW_COLOR;
+      shadowCtx.shadowBlur = this.SHADOW_BLUR;
+      shadowCtx.shadowOffsetY = this.SHADOW_OFFSET_Y;
+      shadowCtx.shadowOffsetX = this.SHADOW_OFFSET_X;
 
       if (this.detail.clipIcon) {
         // clipping to round the icon
@@ -194,21 +197,23 @@
 
         clipCtx.beginPath();
         clipCtx.arc(clipCanvas.width / 2, clipCanvas.height / 2,
-                    clipCanvas.height / 2 - CANVAS_PADDING, 0, 2 * Math.PI);
+                    clipCanvas.height / 2 - this.CANVAS_PADDING,
+                    0, 2 * Math.PI);
         clipCtx.clip();
 
-        clipCtx.drawImage(img, CANVAS_PADDING, CANVAS_PADDING,
+        clipCtx.drawImage(img, this.CANVAS_PADDING, this.CANVAS_PADDING,
                                MAX_ICON_SIZE, MAX_ICON_SIZE);
 
         var clipImage = new Image();
         clipImage.onload = function clip_onload() {
-          shadowCtx.drawImage(clipImage, CANVAS_PADDING, CANVAS_PADDING,
-                                MAX_ICON_SIZE, MAX_ICON_SIZE);
+          shadowCtx.drawImage(clipImage, this.CANVAS_PADDING,
+                              this.CANVAS_PADDING,
+                              MAX_ICON_SIZE, MAX_ICON_SIZE);
           shadowCanvas.toBlob(this._displayDecoratedIcon.bind(this));
         }.bind(this);
         clipImage.src = clipCanvas.toDataURL();
       } else {
-        shadowCtx.drawImage(img, CANVAS_PADDING, CANVAS_PADDING,
+        shadowCtx.drawImage(img, this.CANVAS_PADDING, this.CANVAS_PADDING,
                       MAX_ICON_SIZE, MAX_ICON_SIZE);
         shadowCanvas.toBlob(this._displayDecoratedIcon.bind(this));
       }
@@ -223,7 +228,7 @@
       this.element.style.height = this.grid.layout.gridItemHeight + 'px';
       this.element.style.backgroundSize =
         ((this.grid.layout.gridIconSize * (1 / this.scale)) +
-        UNSCALED_CANVAS_PADDING) +'px';
+        this.UNSCALED_CANVAS_PADDING) +'px';
       this.element.style.backgroundImage =
         'url(' + URL.createObjectURL(blob) + ')';
     },
