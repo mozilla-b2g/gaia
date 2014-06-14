@@ -93,3 +93,8 @@
 #contacts-view .bb-tabpanel {
   height: calc(100% - 4.5rem);
 }
+
+/* Avoid showing the toolbar line when searching contacts*/
+.with-keyboard .bb-tablist:before {
+  bottom: 0rem;
+}
