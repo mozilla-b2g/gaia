@@ -22,7 +22,7 @@ module.exports = {
     // Flag for determining if the preview should limit the
     // image size to the value of CONFIG_MAX_IMAGE_PIXEL_SIZE
     // (enable for devices with limited memory)
-    limitMaxPreviewSize: false,
+    limitMaxPreviewSize: true,
 
     // Dimensions for thumbnail image (will automatically be
     // multiplied by the devicePixelRatio)
@@ -110,7 +110,7 @@ module.exports = {
     title: 'camera-resolution',
     header: 'camera-resolution-header',
     icon: 'icon-picture-size',
-    maxPixelSize: window.CONFIG_MAX_IMAGE_PIXEL_SIZE,
+    maxPixelSize: window.CONFIG_MAX_SNAPSHOT_PIXEL_SIZE,
     options: [
       // {
       //   key: '2048x1536'
@@ -123,7 +123,7 @@ module.exports = {
     title: 'camera-resolution',
     header: 'camera-resolution-header',
     icon: 'icon-picture-size',
-    maxPixelSize: window.CONFIG_MAX_IMAGE_PIXEL_SIZE,
+    maxPixelSize: window.CONFIG_MAX_SNAPSHOT_PIXEL_SIZE,
     options: [
       // {
       //   key: '2048x1536'
