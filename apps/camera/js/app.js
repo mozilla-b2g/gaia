@@ -17,7 +17,6 @@ var bindAll = require('lib/bind-all');
 var model = require('vendor/model');
 var debug = require('debug')('app');
 var HudView = require('views/hud');
-var Pinch = require('lib/pinch');
 var bind = require('lib/bind');
 
 /**
@@ -58,7 +57,8 @@ function App(options) {
   this.settings = options.settings;
   this.camera = options.camera;
   this.activity = {};
-
+  this.sounds = options.sounds;
+  this.Pinch = options.Pinch;
   //
   // If the system app is opening an attention screen (because
   // of an incoming call or an alarm, e.g.) and if we are
@@ -199,10 +199,6 @@ App.prototype.bindEvents = function() {
   bind(this.win, 'localized', this.firer('localized'));
   bind(this.win, 'beforeunload', this.onBeforeUnload);
   bind(this.el, 'click', this.onClick);
-
-  // Pinch
-  this.pinch = new Pinch(this.el);
-  this.pinch.on('pinchchanged', this.firer('pinchchanged'));
 
   debug('events bound');
 };
