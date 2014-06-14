@@ -18175,8 +18175,8 @@ MailDB.prototype = {
     sendMessage('saveConfig', [config]);
   },
 
-  saveAccountDef: function(config, accountDef, folderInfo) {
-    sendMessage('saveAccountDef', [ config, accountDef, folderInfo ]);
+  saveAccountDef: function(config, accountDef, folderInfo, callback) {
+    sendMessage('saveAccountDef', [ config, accountDef, folderInfo ], callback);
   },
 
   loadHeaderBlock: function(folderId, blockId, callback) {
@@ -20055,8 +20055,8 @@ MailUniverse.prototype = {
       throw savedEx;
   },
 
-  saveAccountDef: function(accountDef, folderInfo) {
-    this._db.saveAccountDef(this.config, accountDef, folderInfo);
+  saveAccountDef: function(accountDef, folderInfo, callback) {
+    this._db.saveAccountDef(this.config, accountDef, folderInfo, callback);
     var account = this.getAccountForAccountId(accountDef.id);
 
     // Make sure syncs are still accurate, since syncInterval
