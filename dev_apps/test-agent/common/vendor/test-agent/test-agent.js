@@ -2970,6 +2970,21 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       worker.testRunner = this._testRunner.bind(this);
     },
 
+    extend: function extend(target) {
+      var result = target || {},
+          objs = Array.slice(arguments, 1);
+
+      return objs.reduce(function(result, obj) {
+        for (var key in obj) {
+          if (obj.hasOwnProperty(key)) {
+            result[key] = obj[key];
+          }
+        }
+
+        return result;
+      }, result);
+    },
+
     getReporter: function getReporter(box) {
       var stream = TestAgent.Mocha.JsonStreamReporter,
           self = this;
@@ -3038,20 +3053,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
           };
         }
 
-        // due to a bug in mocha, iframes added to the DOM are
-        // detected as global leaks in FF 21+, these global ignores
-        // are a workaround. see also:
-        // https://developer.mozilla.org/en-US/docs/Site_Compatibility_for_Firefox_21
-        var globalIgnores = ['0', '1', '2', '3', '4', '5'];
+        var options = self.extend({}, self.setup, {
+          ui: self.ui,
+          timeout: self.timeout,
+          reporter: self.getReporter(box)
+        });
 
         //setup mocha
-        box.mocha.setup({
-          ignoreLeaks: true,
-          globals: globalIgnores,
-          ui: self.ui,
-          reporter: self.getReporter(box),
-          timeout: self.timeout
-        });
+        box.mocha.setup(options);
       });
 
       self._loadTestHelpers(box, function() {
