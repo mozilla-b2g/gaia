@@ -31,10 +31,12 @@
       v:  device.osVersion || undefined,
       dn: device.deviceName || undefined,
       cr: device.carrier || undefined,
+      ct: device.dataConnectionType || undefined,
+      mcc: device.mcc || undefined,
+      mnc: device.mnc || undefined,
       sr: (w && h) ? [w, h].join('x') : undefined,
       ll: (lat && lon) ? [lat,lon].join(',') : undefined
       // TODO hc: home country
-      // TODO ct: connection type - wifi, 2g, 3g, 4g
     };
 
   }
@@ -69,7 +71,7 @@
       }
     }
 
-    eme.log('API request:', url + '?' + payload);
+    eme.log('API request:', decodeURIComponent(url + '?' + payload));
 
     var httpRequest;
     var promise = new Promise(function done(resolve, reject) {
