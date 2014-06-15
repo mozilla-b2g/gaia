@@ -159,10 +159,13 @@
           // Stop refreshing the clock when the screen is turned off.
           this.clock.stop();
         } else {
-          // Lock the orientation to prevent it become landscape,
+          // If it's enabled, which means it's going to lock the screen,
+          // so we lock the orientation to prevent it become landscape,
           // while somebody return to the LockScreen from a landscape app.
-          screen.mozLockOrientation(
-              window.OrientationManager.defaultOrientation);
+          if (this.enabled) {
+            screen.mozLockOrientation(
+                window.OrientationManager.defaultOrientation);
+          }
           var _screenOffInterval = new Date().getTime() - this._screenOffTime;
           if (_screenOffInterval > this.passCodeRequestTimeout * 1000) {
             this._passCodeTimeoutCheck = true;
@@ -702,9 +705,9 @@
     this.mainScreen.classList.add('locked');
     this.overlay.classList.remove('unlocked');
     this.overlay.hidden = false;
-    screen.mozLockOrientation(window.OrientationManager.defaultOrientation);
 
     if (!wasAlreadyLocked) {
+      screen.mozLockOrientation(window.OrientationManager.defaultOrientation);
       if (document.mozFullScreen) {
         document.mozCancelFullScreen();
       }

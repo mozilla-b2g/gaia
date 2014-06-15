@@ -181,6 +181,25 @@ suite('system/LockScreen >', function() {
         stubDispatch.restore();
       });
 
+  test('Handle event: when screen changed (enabled),' +
+      'it should NOT lock the orientation if it\'s disabled',
+      function() {
+        var mockLO = sinon.stub(screen, 'mozLockOrientation');
+        var originalEnabled = subject.enabled;
+        var originalClock = subject.clock;
+        subject.enabled = false;
+        subject.clock = {
+          start: function() {},
+          stop: function() {}
+        };
+        subject.handleEvent({type: 'screenchange',
+          detail: {screenEnabled: true}});
+        assert.isFalse(mockLO.called);
+        mockLO.restore();
+        subject.enabled = originalEnabled;
+        subject.clock = originalClock;
+      });
+
   test('Handle event: when press home,' +
       'would fire event to close all secure apps',
       function() {
@@ -233,6 +252,30 @@ suite('system/LockScreen >', function() {
         'the corresponding creation method was no invoked');
       stubDispatch.restore();
     });
+
+  test('If it performs no locking action, should not lock the orientation',
+    function() {
+      var mockLO = sinon.stub(screen, 'mozLockOrientation');
+      var originalLocked = subject.locked;
+      subject.overlay = domOverlay;
+      subject.locked = true;
+      subject.lock();
+      assert.isFalse(mockLO.called);
+      mockLO.restore();
+      subject.locked = originalLocked;
+  });
+
+  test('But if it does, should lock the orientation',
+    function() {
+      var mockLO = sinon.stub(screen, 'mozLockOrientation');
+      var originalLocked = subject.locked;
+      subject.overlay = domOverlay;
+      subject.locked = false;
+      subject.lock();
+      assert.isTrue(mockLO.called);
+      mockLO.restore();
+      subject.locked = originalLocked;
+  });
 
   // XXX: Test 'Screen off: by proximity sensor'.
 
