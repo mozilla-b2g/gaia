@@ -4,6 +4,7 @@
 
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/elements/gaia_grid/js/grid_dragdrop.js');
+require('/shared/elements/gaia_grid/js/grid_icon_renderer.js');
 require('/shared/elements/gaia_grid/js/grid_layout.js');
 require('/shared/elements/gaia_grid/js/grid_view.js');
 require('/shared/elements/gaia_grid/js/grid_zoom.js');

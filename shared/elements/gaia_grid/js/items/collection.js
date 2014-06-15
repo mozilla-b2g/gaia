@@ -1,5 +1,6 @@
 'use strict';
 /* global GaiaGrid */
+/* global GridIconRenderer */
 /* global MozActivity */
 /*jshint nonew: false */
 
@@ -26,6 +27,8 @@
   Collection.prototype = {
 
     __proto__: GaiaGrid.GridItem.prototype,
+
+    renderer: GridIconRenderer.TYPE.CLIP,
 
     /**
      * Returns the height in pixels of each icon.
