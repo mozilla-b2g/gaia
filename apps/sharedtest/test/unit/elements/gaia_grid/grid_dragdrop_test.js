@@ -73,6 +73,8 @@ suite('GaiaGrid > DragDrop', function() {
       preventDefault: function() {}
     });
 
+    grid.dragdrop.handleEvent({ type: 'transitionend' });
+
     assert.equal(grid.items[0].name, 'second');
     assert.equal(grid.items[1].name, 'first');
   });
@@ -89,6 +91,8 @@ suite('GaiaGrid > DragDrop', function() {
       stopImmediatePropagation: function() {},
       preventDefault: function() {}
     });
+
+    grid.dragdrop.handleEvent({ type: 'transitionend' });
 
     assert.isFalse(firstBookmark.classList.contains('active'));
   });
