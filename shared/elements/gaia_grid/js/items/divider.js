@@ -39,8 +39,8 @@
      */
     render: function(coordinates, index) {
       // Generate the content if we need to
-      if (!this.divider) {
-        var divider = this.divider = document.createElement('div');
+      if (!this.element) {
+        var divider = this.element = document.createElement('div');
         divider.className = 'divider';
 
         var span = document.createElement('span');
@@ -50,15 +50,15 @@
       }
 
       var y = this.grid.layout.offsetY;
-      this.divider.style.transform = 'translate(0 ,' + y + 'px)';
+      this.element.style.transform = 'translate(0 ,' + y + 'px)';
 
       this.detail.index = index;
       this.y = y;
     },
 
     remove: function() {
-      if (this.divider) {
-        this.divider.parentNode.removeChild(this.divider);
+      if (this.element) {
+        this.element.parentNode.removeChild(this.element);
       }
     }
   };
