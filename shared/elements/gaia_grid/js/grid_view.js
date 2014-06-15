@@ -183,6 +183,15 @@
       if (!(lastItem instanceof GaiaGrid.Divider)) {
         this.items.push(new GaiaGrid.Divider());
       }
+
+      // In dragdrop also append a row of placeholders.
+      // These placeholders are used for drop detection as we ignore dividers
+      // and will create a new group when an icon is dropped on them.
+      if (this.dragdrop && this.dragdrop.inEditMode) {
+        var coords = [0, lastItem.y + 2];
+        this.createPlaceholders(coords, this.items.length, this.layout.cols,
+          true);
+      }
     },
 
     /**
@@ -219,8 +228,9 @@
      * item in grid units.
      * @param {Integer} idx The position of the first placeholder.
      * @param {Integer} idx The number of placeholders to create.
+     * @param {Boolean} createsGroup Creates a group on drop during edit mode.
      */
-    createPlaceholders: function(coordinates, idx, count) {
+    createPlaceholders: function(coordinates, idx, count, createsGroup) {
       for (var i = 0; i < count; i++) {
         var itemCoords = [
           coordinates[0] + i,
@@ -228,6 +238,7 @@
         ];
 
         var item = new GaiaGrid.Placeholder();
+        item.createsGroupOnDrop = createsGroup;
         this.items.splice(idx + i, 0, item);
         item.render(itemCoords, idx + i);
       }
