@@ -2668,20 +2668,6 @@ suite('thread_ui.js >', function() {
       sinon.assert.calledWith(updateThreadSpy, undefined, { deleted: true });
     });
 
-    test('waiting screen shown when messages are deleted', function() {
-      this.sinon.spy(WaitingScreen, 'show');
-      doMarkedMessagesDeletion(1);
-      sinon.assert.calledOnce(WaitingScreen.show);
-    });
-
-    test('waiting screen hidden when messages are done deletion', function() {
-      this.sinon.stub(ThreadListUI, 'updateThread').returns(true);
-      this.sinon.spy(WaitingScreen, 'hide');
-      doMarkedMessagesDeletion(1);
-      MessageManager.mTriggerOnSuccess();
-      sinon.assert.calledOnce(WaitingScreen.hide);
-    });
-
     test('deleting all messages deletes the thread', function() {
       this.sinon.spy(Navigation, 'toPanel');
       this.sinon.spy(ThreadListUI, 'removeThread');
@@ -2696,6 +2682,49 @@ suite('thread_ui.js >', function() {
       ThreadUI.deleteUIMessages([], callbackStub);
       MessageManager.mTriggerOnError();
       sinon.assert.calledOnce(callbackStub);
+    });
+
+    suite('waiting screen', function() {
+      var appendAndDeleteMessages = function() {
+        var deleteList = [];
+        for (var i = 1; i <= 100; i++) {
+          deleteList.push(i);
+          ThreadUI.appendMessage({
+            id: i,
+            threadId: 1,
+            timestamp: testMessages[0].timestamp
+          });
+        }
+        doMarkedMessagesDeletion(deleteList);
+      };
+
+      setup(function() {
+        this.sinon.stub(ThreadListUI, 'updateThread').returns(true);
+        this.sinon.spy(WaitingScreen, 'show');
+        this.sinon.spy(WaitingScreen, 'hide');
+      });
+
+      test('waiting screen not shown when <100 messages deleted', function() {
+        doMarkedMessagesDeletion(1);
+        sinon.assert.notCalled(WaitingScreen.show);
+      });
+
+      test('waiting screen shown when >=100 messages deleted', function() {
+        appendAndDeleteMessages();
+        sinon.assert.calledOnce(WaitingScreen.show);
+      });
+
+      test('waiting screen not hidden after done but not shown', function() {
+        doMarkedMessagesDeletion(1);
+        MessageManager.mTriggerOnSuccess();
+        sinon.assert.notCalled(WaitingScreen.hide);
+      });
+
+      test('waiting screen hidden after done and was shown', function() {
+        appendAndDeleteMessages();
+        MessageManager.mTriggerOnSuccess();
+        sinon.assert.calledOnce(WaitingScreen.hide);
+      });
     });
   });
 

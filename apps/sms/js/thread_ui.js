@@ -1891,22 +1891,27 @@ var ThreadUI = global.ThreadUI = {
   delete: function thui_delete() {
     var question = navigator.mozL10n.get('deleteMessages-confirmation');
     if (window.confirm(question)) {
-      WaitingScreen.show();
       var delNumList = [];
       var inputs = ThreadUI.selectedInputs;
       var length = inputs.length;
       for (var i = 0; i < length; i++) {
         delNumList.push(+inputs[i].value);
       }
-      // Complete deletion in DB and in UI
-      MessageManager.deleteMessage(delNumList,
-        function onDeletionDone() {
-          ThreadUI.deleteUIMessages(delNumList, function uiDeletionDone() {
+      // Complete deletion in DB and in UI. Show the waiting screen if we're
+      // deleting 100 or more messages.
+      if (length >= 100) {
+        WaitingScreen.show();
+        MessageManager.deleteMessage(delNumList, function() {
+          ThreadUI.deleteUIMessages(delNumList, function() {
             ThreadUI.cancelEdit();
             WaitingScreen.hide();
           });
-        }
-      );
+        });
+      } else {
+        MessageManager.deleteMessage(delNumList);
+        ThreadUI.deleteUIMessages(delNumList);
+        ThreadUI.cancelEdit();
+      }
     }
   },
 
@@ -2096,11 +2101,8 @@ var ThreadUI = global.ThreadUI = {
             l10nId: 'delete',
             method: function deleteMessage(messageId) {
               // Complete deletion in DB and UI
-              MessageManager.deleteMessage(messageId,
-                function onDeletionDone() {
-                  ThreadUI.deleteUIMessages(messageId);
-                }
-              );
+              MessageManager.deleteMessage(messageId);
+              ThreadUI.deleteUIMessages(messageId);
             },
             params: [messageId]
           }
