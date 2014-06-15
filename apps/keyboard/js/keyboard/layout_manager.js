@@ -203,9 +203,9 @@ LayoutManager.prototype._updateModifiedLayout = function() {
     console.warn('No space key found. No special keys will be added.');
     this.currentModifiedLayout = layout;
     // renderer need these information to cache the DOM tree.
-    layout.keyboardName = this.currentForcedModifiedLayoutName ||
+    layout.layoutName = this.currentForcedModifiedLayoutName ||
       this.currentLayoutName;
-    layout.altLayoutName = alternativeLayoutName;
+    layout.alternativeLayoutName = alternativeLayoutName;
 
     return;
   }
@@ -353,9 +353,9 @@ LayoutManager.prototype._updateModifiedLayout = function() {
   this.currentModifiedLayout = layout;
 
   // renderer need these information to cache the DOM tree.
-  layout.keyboardName = this.currentForcedModifiedLayoutName ||
+  layout.layoutName = this.currentForcedModifiedLayoutName ||
     this.currentLayoutName;
-  layout.altLayoutName = alternativeLayoutName;
+  layout.alternativeLayoutName = alternativeLayoutName;
 };
 
 LayoutManager.prototype._getAlternativeLayoutName = function(basicInputType,
