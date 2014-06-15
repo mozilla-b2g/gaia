@@ -11,6 +11,8 @@ require('/test/unit/mock_configurator.js');
 require('/shared/elements/gaia_grid/script.js');
 require('/shared/elements/gaia_grid/js/items/grid_item.js');
 require('/shared/elements/gaia_grid/js/items/divider.js');
+require('/shared/elements/gaia_grid/js/items/collection.js');
+require('/shared/elements/gaia_grid/js/items/mozapp.js');
 
 // Unit tests for item library
 requireApp('verticalhome/js/stores/item.js');

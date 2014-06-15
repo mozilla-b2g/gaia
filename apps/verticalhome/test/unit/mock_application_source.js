@@ -1,95 +1,42 @@
+/* global GaiaGrid */
 'use strict';
 
-var entries = [
+var apps = [
 {
-  'app': {},
-  'detail': {
-    'type': 'app',
-    'manifestURL': 'app://gallery.gaiamobile.org/manifest.webapp',
-    'index': 0
-  },
-  'accurateIcon': 'app://gallery.gaiamobile.org/style/icons/Gallery_120.png',
-  'persistToDB': true
-}, {
-  'app': {},
-  'detail': {
-    'type': 'app',
-    'manifestURL': 'app://clock.gaiamobile.org/manifest.webapp',
-    'index': 1
-  },
-  'accurateIcon': 'app://clock.gaiamobile.org/style/icons/Clock_120.png',
-  'persistToDB': true
-}, {
-  'app': {},
-  'detail': {
-    'type': 'app',
-    'manifestURL': 'app://keyboard.gaiamobile.org/manifest.webapp',
-    'index': 2
-  },
-  'accurateIcon': 'style/images/default_icon.png',
-  'persistToDB': true
-}, {
-  'app': {},
-  'detail': {
-    'type': 'app',
-    'manifestURL': 'app://camera.gaiamobile.org/manifest.webapp',
-    'index': 3
-  },
-  'accurateIcon': 'app://camera.gaiamobile.org/style/icons/Camera_120.png',
-  'persistToDB': true
-}, {
-  'app': {},
-  'detail': {
-    'type': 'app',
-    'manifestURL': 'app://music.gaiamobile.org/manifest.webapp',
-    'index': 4
-  },
-  'accurateIcon': 'app://music.gaiamobile.org/style/icons/Music_120.png',
-  'persistToDB': true
-}, {
-  'app': {},
-  'detail': {
-    'type': 'app',
-    'manifestURL': 'app://browser.gaiamobile.org/manifest.webapp',
-    'index': 5
-  },
-  'accurateIcon': 'app://browser.gaiamobile.org/icons/Browser_120.png',
-  'persistToDB': true
-}, {
-  'app': {},
-  'detail': {
-    'type': 'app',
-    'manifestURL': 'app://email.gaiamobile.org/manifest.webapp',
-    'index': 6
-  },
-  'accurateIcon': 'app://email.gaiamobile.org/style/icons/Email_120.png',
-  'persistToDB': true
-}, {
-  'app': {},
+  'manifestURL': 'app://gallery.gaiamobile.org/manifest.webapp'
+},{
+  'manifestURL': 'app://clock.gaiamobile.org/manifest.webapp'
+},{
+  'manifestURL': 'app://keyboard.gaiamobile.org/manifest.webapp'
+},{
+  'manifestURL': 'app://camera.gaiamobile.org/manifest.webapp'
+},{
+  'manifestURL': 'app://music.gaiamobile.org/manifest.webapp'
+},{
+  'manifestURL': 'app://browser.gaiamobile.org/manifest.webapp'
+},{
+  'manifestURL': 'app://email.gaiamobile.org/manifest.webapp'
+},{
   'entryPoint': 'contacts',
-  'detail': {
-    'type': 'app',
-    'manifestURL': 'app://communications.gaiamobile.org/manifest.webapp',
-    'entryPoint': 'contacts',
-    'index': 7
-  },
-  'accurateIcon': 'app://communications.gaiamobile.org/style/icons/Cont',
-  'persistToDB': true
-}, {
-  'app': {},
+  'manifestURL': 'app://communications.gaiamobile.org/manifest.webapp'
+},{
   'entryPoint': 'dialer',
-  'detail': {
-    'type': 'app',
-    'manifestURL': 'app://communications.gaiamobile.org/manifest.webapp',
-    'entryPoint': 'dialer',
-    'index': 8
-  },
-  'accurateIcon': 'app://communications.gaiamobile.org/dialer/icons/Dialer.png',
-  'persistToDB': true
-}];
+  'manifestURL': 'app://communications.gaiamobile.org/manifest.webapp'
+}
+];
 
 function MockApplicationSource() {
-  this.entries = entries;
+  this.entries = [];
+  var mozApp;
+  for (var i = 0, iLen = apps.length; i < iLen; i++){
+    if (apps[i].entryPoint) {
+      mozApp = new GaiaGrid.Mozapp(apps[i], apps[i].entryPoint);
+    } else {
+      mozApp = new GaiaGrid.Mozapp(apps[i]);
+    }
+    mozApp.detail.index = i;
+    this.entries.push(mozApp);
+  }
 }
 
 MockApplicationSource.prototype = {
