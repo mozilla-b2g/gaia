@@ -1,5 +1,6 @@
 'use strict';
 /* global GaiaGrid */
+/* global GridIconRenderer */
 /* global MozActivity */
 /* jshint nonew: false */
 
@@ -19,6 +20,12 @@
   Bookmark.prototype = {
 
     __proto__: GaiaGrid.GridItem.prototype,
+
+    /**
+     * Bookmarks use a custom icon renderer because they are likely much
+     * smaller than a standard icon.
+     */
+    renderer: GridIconRenderer.TYPE.FAVICON,
 
     /**
      * Returns the height in pixels of each icon.

@@ -1,4 +1,4 @@
-/* global eme, Search, DataGridProvider, GaiaGrid */
+/* global eme, Search, DataGridProvider, GaiaGrid, GridIconRenderer */
 
 (function() {
 
@@ -57,7 +57,7 @@
                 name: app.name,
                 url: app.appUrl,
                 icon: app.icon,
-                clipIcon: true
+                renderer: GridIconRenderer.TYPE.CLIP
               }, {
                 search: true}
               )
