@@ -218,8 +218,8 @@ suite('LayoutManager', function() {
           'Original layout not touched.');
 
         var expectedModifiedLayout = {
-          keyboardName: 'spaceLayout',
-          altLayoutName: '',
+          layoutName: 'spaceLayout',
+          alternativeLayoutName: '',
           keys: [ [ { value: 'S' } ],
                   [ { keyCode: manager.KEYCODE_ALTERNATE_LAYOUT,
                       value: '12&',
@@ -250,8 +250,8 @@ suite('LayoutManager', function() {
           'Original layout not touched.');
 
         var expectedModifiedLayout = {
-          keyboardName: 'spaceLayout',
-          altLayoutName: '',
+          layoutName: 'spaceLayout',
+          alternativeLayoutName: '',
           keys: [ [ { value: 'S' } ],
                   [ { keyCode: manager.KEYCODE_ALTERNATE_LAYOUT,
                       value: '90+',
@@ -282,14 +282,14 @@ suite('LayoutManager', function() {
           'Original layout not touched.');
 
         var expectedModifiedLayout = {
-          keyboardName: 'spaceLayoutSpecial',
-          altLayoutName: '' };
+          layoutName: 'spaceLayoutSpecial',
+          alternativeLayoutName: '' };
 
         assert.deepEqual(manager.currentModifiedLayout, expectedModifiedLayout);
         assert.equal(manager.currentModifiedLayout.__proto__,
           manager.loader.getLayout('spaceLayoutSpecial'),
           'proto is set correctly for layout.');
-        assert.equal(manager.currentModifiedLayout.keyboardName,
+        assert.equal(manager.currentModifiedLayout.layoutName,
           'spaceLayoutSpecial');
 
         done();
@@ -305,8 +305,8 @@ suite('LayoutManager', function() {
           'Original layout not touched.');
 
         var expectedModifiedLayout = {
-          keyboardName: 'spaceLayout',
-          altLayoutName: 'telLayout' };
+          layoutName: 'spaceLayout',
+          alternativeLayoutName: 'telLayout' };
 
         assert.deepEqual(manager.currentModifiedLayout, expectedModifiedLayout);
         assert.equal(manager.currentModifiedLayout.__proto__,
@@ -327,8 +327,8 @@ suite('LayoutManager', function() {
           'Original layout not touched.');
 
         var expectedModifiedLayout = {
-          keyboardName: 'spaceLayout',
-          altLayoutName: 'pinLayout' };
+          layoutName: 'spaceLayout',
+          alternativeLayoutName: 'pinLayout' };
 
         assert.deepEqual(manager.currentModifiedLayout, expectedModifiedLayout);
         assert.equal(manager.currentModifiedLayout.__proto__,
@@ -349,8 +349,8 @@ suite('LayoutManager', function() {
           'Original layout not touched.');
 
         var expectedModifiedLayout = {
-          keyboardName: 'spaceLayout',
-          altLayoutName: 'pinLayout' };
+          layoutName: 'spaceLayout',
+          alternativeLayoutName: 'pinLayout' };
 
         assert.deepEqual(manager.currentModifiedLayout, expectedModifiedLayout);
         assert.equal(manager.currentModifiedLayout.__proto__,
@@ -370,8 +370,8 @@ suite('LayoutManager', function() {
           'Original layout not touched.');
 
         var expectedModifiedLayout = {
-          keyboardName: 'spaceLayout',
-          altLayoutName: 'numberLayout' };
+          layoutName: 'spaceLayout',
+          alternativeLayoutName: 'numberLayout' };
 
         assert.deepEqual(manager.currentModifiedLayout, expectedModifiedLayout);
         assert.equal(manager.currentModifiedLayout.__proto__,
@@ -392,8 +392,8 @@ suite('LayoutManager', function() {
           'Original layout not touched.');
 
         var expectedModifiedLayout = {
-          keyboardName: 'spaceLayout',
-          altLayoutName: 'numberLayout' };
+          layoutName: 'spaceLayout',
+          alternativeLayoutName: 'numberLayout' };
 
         assert.deepEqual(manager.currentModifiedLayout, expectedModifiedLayout);
         assert.equal(manager.currentModifiedLayout.__proto__,
@@ -417,8 +417,8 @@ suite('LayoutManager', function() {
           'Original layout not touched.');
 
         var expectedModifiedLayout = {
-          keyboardName: 'spaceLayout',
-          altLayoutName: 'spaceLayout-sms' };
+          layoutName: 'spaceLayout',
+          alternativeLayoutName: 'spaceLayout-sms' };
 
         assert.deepEqual(manager.currentModifiedLayout, expectedModifiedLayout);
         assert.equal(manager.currentModifiedLayout.__proto__,
@@ -458,8 +458,8 @@ suite('LayoutManager', function() {
           'Original layout not touched.');
 
         var expectedModifiedLayout = {
-          keyboardName: 'spaceLayout',
-          altLayoutName: 'alternateLayout',
+          layoutName: 'spaceLayout',
+          alternativeLayoutName: 'alternateLayout',
           keys: [ [ { value: 'A' } ],
                   [ { keyCode: manager.KEYCODE_BASIC_LAYOUT,
                       value: 'ABC',
@@ -491,8 +491,8 @@ suite('LayoutManager', function() {
           'Original layout not touched.');
 
         var expectedModifiedLayout = {
-          keyboardName: 'spaceLayout',
-          altLayoutName: 'alternateLayout',
+          layoutName: 'spaceLayout',
+          alternativeLayoutName: 'alternateLayout',
           keys: [ [ { value: 'A' } ],
                   [ { keyCode: manager.KEYCODE_BASIC_LAYOUT,
                       value: 'XYZ',
@@ -525,8 +525,8 @@ suite('LayoutManager', function() {
           'Original layout not touched.');
 
         var expectedModifiedLayout = {
-          keyboardName: 'spaceLayout',
-          altLayoutName: 'alternateLayout' };
+          layoutName: 'spaceLayout',
+          alternativeLayoutName: 'alternateLayout' };
 
         assert.deepEqual(manager.currentModifiedLayout, expectedModifiedLayout);
         assert.equal(manager.currentModifiedLayout.__proto__,
@@ -548,8 +548,8 @@ suite('LayoutManager', function() {
           'Original layout not touched.');
 
         var expectedModifiedLayout = {
-          keyboardName: 'spaceLayout',
-          altLayoutName: 'symbolLayout',
+          layoutName: 'spaceLayout',
+          alternativeLayoutName: 'symbolLayout',
           keys: [ [ { value: 'S' } ],
                   [ { keyCode: manager.KEYCODE_BASIC_LAYOUT,
                       value: 'ABC',
@@ -579,8 +579,8 @@ suite('LayoutManager', function() {
           'Original layout not touched.');
 
         var expectedModifiedLayout = {
-          keyboardName: 'spaceLayout',
-          altLayoutName: '',
+          layoutName: 'spaceLayout',
+          alternativeLayoutName: '',
           keys: [ [ { value: 'S' } ],
                   [ { value: ',', ratio: 1, keyCode: 44 },
                     { ratio: 8 },
@@ -605,8 +605,8 @@ suite('LayoutManager', function() {
           'Original layout not touched.');
 
         var expectedModifiedLayout = {
-          keyboardName: 'spaceLayout',
-          altLayoutName: '',
+          layoutName: 'spaceLayout',
+          alternativeLayoutName: '',
           keys: [ [ { value: 'S' } ],
                   [ { keyCode: manager.KEYCODE_ALTERNATE_LAYOUT,
                       value: '12&',
@@ -640,8 +640,8 @@ suite('LayoutManager', function() {
           'Original layout not touched.');
 
         var expectedModifiedLayout = {
-          keyboardName: 'spaceLayout',
-          altLayoutName: '',
+          layoutName: 'spaceLayout',
+          alternativeLayoutName: '',
           keys: [ [ { value: 'S' } ],
                   [ { keyCode: manager.KEYCODE_ALTERNATE_LAYOUT,
                       value: '12&',
@@ -675,8 +675,8 @@ suite('LayoutManager', function() {
           'Original layout not touched.');
 
         var expectedModifiedLayout = {
-          keyboardName: 'spaceLayout',
-          altLayoutName: '',
+          layoutName: 'spaceLayout',
+          alternativeLayoutName: '',
           keys: [ [ { value: 'S' } ],
                   [ { keyCode: manager.KEYCODE_ALTERNATE_LAYOUT,
                       value: '12&',
@@ -706,8 +706,8 @@ suite('LayoutManager', function() {
           'Original layout not touched.');
 
         var expectedModifiedLayout = {
-          keyboardName: 'spaceLayout',
-          altLayoutName: '',
+          layoutName: 'spaceLayout',
+          alternativeLayoutName: '',
           keys: [ [ { value: 'S' } ],
                   [ { keyCode: manager.KEYCODE_ALTERNATE_LAYOUT,
                       value: '12&',
@@ -737,8 +737,8 @@ suite('LayoutManager', function() {
           'Original layout not touched.');
 
         var expectedModifiedLayout = {
-          keyboardName: 'spaceLayout',
-          altLayoutName: '',
+          layoutName: 'spaceLayout',
+          alternativeLayoutName: '',
           keys: [ [ { value: 'S' } ],
                   [ { keyCode: manager.KEYCODE_ALTERNATE_LAYOUT,
                       value: '12&',
@@ -771,8 +771,8 @@ suite('LayoutManager', function() {
           'Original layout not touched.');
 
         var expectedModifiedLayout = {
-          keyboardName: 'spaceLayout',
-          altLayoutName: '',
+          layoutName: 'spaceLayout',
+          alternativeLayoutName: '',
           keys: [ [ { value: 'S' } ],
                   [ { keyCode: manager.KEYCODE_ALTERNATE_LAYOUT,
                       value: '12&',
@@ -804,8 +804,8 @@ suite('LayoutManager', function() {
           'Original layout not touched.');
 
         var expectedModifiedLayout = {
-          keyboardName: 'spaceLayout',
-          altLayoutName: '',
+          layoutName: 'spaceLayout',
+          alternativeLayoutName: '',
           keys: [ [ { value: 'S' } ],
                   [ { keyCode: manager.KEYCODE_ALTERNATE_LAYOUT,
                       value: '12&',
@@ -838,8 +838,8 @@ suite('LayoutManager', function() {
           'Original layout not touched.');
 
         var expectedModifiedLayout = {
-          keyboardName: 'spaceLayout',
-          altLayoutName: '',
+          layoutName: 'spaceLayout',
+          alternativeLayoutName: '',
           keys: [ [ { value: 'S' } ],
                   [ { keyCode: manager.KEYCODE_ALTERNATE_LAYOUT,
                       value: '12&',
@@ -871,8 +871,8 @@ suite('LayoutManager', function() {
           'Original layout not touched.');
 
         var expectedModifiedLayout = {
-          keyboardName: 'spaceLayout',
-          altLayoutName: '',
+          layoutName: 'spaceLayout',
+          alternativeLayoutName: '',
           keys: [ [ { value: 'S' } ],
                   [ { keyCode: manager.KEYCODE_ALTERNATE_LAYOUT,
                       value: '12&',
@@ -908,8 +908,8 @@ suite('LayoutManager', function() {
           'Original layout not touched.');
 
         var expectedModifiedLayout = {
-          keyboardName: 'spaceLayout',
-          altLayoutName: '',
+          layoutName: 'spaceLayout',
+          alternativeLayoutName: '',
           keys: [ [ { value: 'S' } ],
                   [ { keyCode: manager.KEYCODE_ALTERNATE_LAYOUT,
                       value: '12&',
