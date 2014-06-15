@@ -3,29 +3,62 @@
 /* global Promise */
 
 (function(exports) {
-  var DEBUG = true;
+
+  const mozSettings = navigator.mozSettings;
+
+  const DEBUG = true;
+  const API_URL = 'https://api.everything.me/partners/1.0/{resource}/';
+
   var initPromise = null;
 
   exports.eme = {
+    config: {
+      apiUrl: API_URL
+    },
 
     init: function init() {
-      if (eme.device) {
-        initPromise = eme.device.init().then(function then() {
-          eme.log('init', JSON.stringify(eme.device));
-        });
-      } else {
-        // device is not required when running tests
-        eme.warn('INIT: NO DEVICE');
-        initPromise = Promise.resolve();
-      }
+      initPromise = this.readSettings()
+      .then(
+        function success(settings) {
+          // config overrides
+          if (settings['everythingme.api.url']) {
+            this.config.apiUrl = settings['everythingme.api.url'];
+          }
 
+          // wait for device init
+          return this.device.init(settings);
+        }.bind(this),
+
+        function error(e) {
+          eme.log('fatal error accessing device settings', e);
+        }
+
+      ).catch(function(e) {
+        eme.log('init failed', e);
+      });
+
+      // avoid multiple init calls
       this.init = function noop() {
-        // avoid multiple init calls
         eme.log('init: noop');
         return initPromise;
       };
 
       return initPromise;
+    },
+
+    readSettings: function readSettings() {
+      return new Promise(function ready(resolve, reject) {
+        var lock = mozSettings.createLock();
+        var request = lock.get('*');
+
+        request.onsuccess = function onsuccess() {
+          resolve(request.result);
+        };
+        request.onerror = function onerror() {
+          reject(request.error);
+        };
+
+      }.bind(this));
     },
 
     log: function log() {
