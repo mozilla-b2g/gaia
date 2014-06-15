@@ -25,15 +25,24 @@
 
     var newEntries = [];
     function isEqual(lookFor, compareWith) {
-      if (!lookFor || !lookFor.manifestURL ||
-          !compareWith.detail || !compareWith.detail.manifestURL) {
+      if (!compareWith.detail || !lookFor) {
         return false;
       }
-      if (compareWith.detail.entryPoint) {
-        return lookFor.manifestURL === compareWith.detail.manifestURL &&
-               lookFor.entry_point === compareWith.detail.entryPoint;
-      } else {
-        return lookFor.manifestURL === compareWith.detail.manifestURL;
+      if (compareWith instanceof GaiaGrid.Mozapp) {
+        if (!lookFor.manifestURL || !compareWith.detail.manifestURL) {
+          return false;
+        }
+        if (compareWith.detail.entryPoint) {
+          return lookFor.manifestURL === compareWith.detail.manifestURL &&
+                 lookFor.entry_point === compareWith.detail.entryPoint;
+        } else {
+          return lookFor.manifestURL === compareWith.detail.manifestURL;
+        }
+      } else if (compareWith instanceof GaiaGrid.Collection) {
+        if (!lookFor.id || !compareWith.detail.id) {
+          return false;
+        }
+        return lookFor.id === compareWith.detail.id;
       }
     }
 
