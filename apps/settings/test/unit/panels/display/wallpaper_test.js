@@ -43,12 +43,10 @@ suite('start testing > ', function() {
   setup(function() {
     MockMozActivity.mSetup();
     wallpaper = this.Wallpaper();
-    this.clock = sinon.useFakeTimers();
   });
 
   teardown(function() {
     MockMozActivity.mTeardown();
-    this.clock.restore();
   });
 
   suite('start test wallpaper module > ', function() {
@@ -89,9 +87,8 @@ suite('start testing > ', function() {
       assert.equal(MockMozActivity.calls[0].data.includeLocked, secret);
       assert.deepEqual(MockMozActivity.calls[0].data.type,
         ['wallpaper', 'image/*']);
-
-      // waiting for onsuccess. (50ms is defined in mock_moz_activity.js)
-      this.clock.tick(50);
+      
+      MockMozActivity.mTriggerOnSuccess();
       assert.equal(wallpaper._onPickSuccess.calledOnce, true);
       sinon.assert.calledWith(wallpaper._onPickSuccess, testblob, secret);
 

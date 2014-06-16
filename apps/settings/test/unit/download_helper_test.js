@@ -79,10 +79,12 @@ suite('DownloadHelper', function() {
   suite('Launch', function() {
     setup(function() {
       download = new MockDownload();
+      window.MozActivity.mAutoCallSuccessFlag = true;
     });
 
     teardown(function() {
       download = null;
+      window.MozActivity.mAutoCallSuccessFlag = false;
     });
 
     function getStorage(state) {

@@ -14,7 +14,10 @@ var MockMozActivity = function(info) {
   var data = info.data;
   return {
     set onsuccess(cb) {
-      setTimeout(cb, 50);
+      MockMozActivity.successCallback = cb;
+      if (MockMozActivity.mAutoCallSuccessFlag) {
+        cb();
+      }
     },
     set onerror(cb) {
       MockMozActivity.errorCallback = cb;
@@ -32,6 +35,11 @@ MockMozActivity.mSetup = function() {
   MockMozActivity.calls = [];
   MockMozActivity.instances = [];
   MockMozActivity.successResult = null;
+  MockMozActivity.mAutoCallSuccessFlag = false;
+};
+
+MockMozActivity.mTriggerOnSuccess = function() {
+  MockMozActivity.successCallback();
 };
 
 MockMozActivity.mTriggerOnError = function() {
