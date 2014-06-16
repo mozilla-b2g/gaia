@@ -208,13 +208,13 @@ suite('system/Statusbar', function() {
     });
     test('lock', function() {
       MockLockScreen.locked = true;
-      var evt = new CustomEvent('lock');
+      var evt = new CustomEvent('lockscreen-appopened');
       StatusBar.handleEvent(evt);
       assert.equal(StatusBar.clock.timeoutID, null);
       assert.equal(StatusBar.icons.time.hidden, true);
     });
     test('unlock', function() {
-      var evt = new CustomEvent('unlock');
+      var evt = new CustomEvent('lockscreen-appclosed');
       StatusBar.handleEvent(evt);
       assert.notEqual(StatusBar.clock.timeoutID, null);
       assert.equal(StatusBar.icons.time.hidden, false);

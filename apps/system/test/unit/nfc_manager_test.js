@@ -64,16 +64,19 @@ suite('Nfc Manager Functions', function() {
       assert.isTrue(stubHandleTechLost.calledOnce);
     });
 
-    test('NfcManager listens on screenchange, lock, unlock events', function() {
+    test('NfcManager listens on screenchange, and the locking events',
+    function() {
       var stubHandleEvent = this.sinon.stub(NfcManager, 'handleEvent');
 
-      window.dispatchEvent(new CustomEvent('lock'));
+      window.dispatchEvent(new CustomEvent('lockscreen-appopened'));
       assert.isTrue(stubHandleEvent.calledOnce);
-      assert.equal(stubHandleEvent.getCall(0).args[0].type, 'lock');
+      assert.equal(stubHandleEvent.getCall(0).args[0].type,
+        'lockscreen-appopened');
 
-      window.dispatchEvent(new CustomEvent('unlock'));
+      window.dispatchEvent(new CustomEvent('lockscreen-appclosed'));
       assert.isTrue(stubHandleEvent.calledTwice);
-      assert.equal(stubHandleEvent.getCall(1).args[0].type, 'unlock');
+      assert.equal(stubHandleEvent.getCall(1).args[0].type,
+        'lockscreen-appclosed');
 
       window.dispatchEvent(new CustomEvent('screenchange'));
       assert.isTrue(stubHandleEvent.calledThrice);
@@ -111,7 +114,7 @@ suite('Nfc Manager Functions', function() {
       // screen lock when NFC ON
       NfcManager.hwState = NfcManager.NFC_HW_STATE_ON;
       window.MockLockScreen.lock();
-      NfcManager.handleEvent(new CustomEvent('lock'));
+      NfcManager.handleEvent(new CustomEvent('lockscreen-appopened'));
       assert.isTrue(stubChangeHardwareState.calledOnce);
       assert.equal(stubChangeHardwareState.getCall(0).args[0],
                    NfcManager.NFC_HW_STATE_DISABLE_DISCOVERY);
@@ -123,15 +126,15 @@ suite('Nfc Manager Functions', function() {
 
       // screen unlock
       window.MockLockScreen.unlock();
-      NfcManager.handleEvent(new CustomEvent('unlock'));
+      NfcManager.handleEvent(new CustomEvent('lockscreen-appclosed'));
       assert.isTrue(stubChangeHardwareState.calledTwice);
       assert.equal(stubChangeHardwareState.getCall(1).args[0],
                    NfcManager.NFC_HW_STATE_ENABLE_DISCOVERY);
 
       // NFC off
       NfcManager.hwState = NfcManager.NFC_HW_STATE_OFF;
-      NfcManager.handleEvent(new CustomEvent('lock'));
-      NfcManager.handleEvent(new CustomEvent('unlock'));
+      NfcManager.handleEvent(new CustomEvent('lockscreen-appopened'));
+      NfcManager.handleEvent(new CustomEvent('lockscreen-appclosed'));
       NfcManager.handleEvent(new CustomEvent('screenchange'));
       assert.isTrue(stubChangeHardwareState.calledTwice);
     });

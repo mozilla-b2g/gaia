@@ -82,7 +82,8 @@ var NotificationScreen = {
     this.externalNotificationsCount = 0;
 
     window.addEventListener('utilitytrayshow', this);
-    window.addEventListener('unlock', this.clearLockScreen.bind(this));
+    window.addEventListener('lockscreen-appclosed',
+      this.clearLockScreen.bind(this));
     window.addEventListener('visibilitychange', this);
     window.addEventListener('ftuopen', this);
     window.addEventListener('ftudone', this);
