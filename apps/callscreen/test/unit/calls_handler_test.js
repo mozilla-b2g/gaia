@@ -4,10 +4,11 @@
            MockNavigatormozSetMessageHandler, MockNavigatorMozTelephony,
            MockNavigatorWakeLock, MocksHelper, MockTonePlayer, MockUtils,
            telephonyAddCall, telephonyAddCdmaCall,
-           MockNavigatorMozMobileConnections */
+           MockNavigatorMozMobileConnections, AudioCompetingHelper */
 
 'use strict';
 
+require('/js/audio_competing_helper.js');
 require('/test/unit/mock_call_screen.js');
 require('/test/unit/mock_simple_phone_matcher.js');
 require('/shared/test/unit/mocks/mock_bluetooth_helper.js');
@@ -1774,6 +1775,51 @@ suite('calls handler', function() {
         assert.equal(CallsHandler.activeCallForContactImage.call.id.number,
                      MockNavigatorMozTelephony.active.id.number);
       });
+    });
+  });
+
+  suite('> Audio competing event listening', function() {
+    var gsmcall = null;
+
+    setup(function() {
+      AudioCompetingHelper.init('test');
+      this.sinon.spy(AudioCompetingHelper, 'clearListeners');
+
+      gsmcall = new MockCall('543552', 'connected');
+      telephonyAddCall.call(this, gsmcall);
+
+      CallsHandler.setup();
+    });
+
+    test('should call clearListeners', function() {
+      sinon.assert.called(AudioCompetingHelper.clearListeners);
+    });
+
+    test('should call onMozInterrupBegin', function() {
+      this.sinon.spy(gsmcall, 'hold');
+
+      MockNavigatorMozTelephony.active = gsmcall;
+      AudioCompetingHelper.compete();
+      var evt = new CustomEvent('mozinterruptbegin');
+
+      AudioCompetingHelper.audioContext.dispatchEvent(evt);
+      sinon.assert.called(gsmcall.hold);
+      AudioCompetingHelper.leaveCompetition();
+    });
+
+    test('should call forceAnAudioCompetitionWin', function() {
+      this.sinon.spy(AudioCompetingHelper, 'compete');
+      this.sinon.spy(AudioCompetingHelper, 'leaveCompetition');
+
+      var gsmcall2 = new MockCall('543552', 'connected');
+      telephonyAddCall.call(this, gsmcall2);
+
+      AudioCompetingHelper.compete();
+      var evt = new CustomEvent('mozinterruptbegin');
+
+      AudioCompetingHelper.audioContext.dispatchEvent(evt);
+      sinon.assert.calledOnce(AudioCompetingHelper.leaveCompetition);
+      sinon.assert.calledTwice(AudioCompetingHelper.compete);
     });
   });
 });
