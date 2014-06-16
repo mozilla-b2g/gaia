@@ -50,7 +50,7 @@ Search.prototype = {
     this.client.helper.waitForElement(selectors.firstAppContainer);
     var result = this.client.helper.waitForElement(selector);
     assert.equal(expected, result.text());
-    result.click();
+    return result;
   },
 
   /**
@@ -66,7 +66,7 @@ Search.prototype = {
     var result = this.client.helper
       .waitForElement(selectors[selectorKey]);
     assert.equal(expected, result.text());
-    result.click();
+    return result;
   },
 
   /**

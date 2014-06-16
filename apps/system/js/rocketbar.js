@@ -38,6 +38,7 @@
     this.form = document.getElementById('rocketbar-form');
     this.input = document.getElementById('rocketbar-input');
     this.cancel = document.getElementById('rocketbar-cancel');
+    this.clearBtn = document.getElementById('rocketbar-clear');
     this.results = document.getElementById('rocketbar-results');
     this.backdrop = document.getElementById('rocketbar-backdrop');
     this.overflow = document.getElementById('rocketbar-overflow-button');
@@ -134,7 +135,14 @@
       this.form.classList.remove('hidden');
       this.title.classList.add('hidden');
       this.backdrop.classList.remove('hidden');
-      this.loadSearchApp(callback);
+      this.loadSearchApp((function() {
+        if (this.input.value.length) {
+          this.handleInput();
+        }
+        if (callback) {
+          callback();
+        }
+      }).bind(this));
       this.screen.classList.add('rocketbar-focused');
       window.dispatchEvent(new CustomEvent('rocketbar-overlayopened'));
     },
@@ -189,6 +197,7 @@
       this.input.addEventListener('blur', this);
       this.input.addEventListener('input', this);
       this.cancel.addEventListener('click', this);
+      this.clearBtn.addEventListener('click', this);
       this.overflow.addEventListener('click', this);
       this.form.addEventListener('submit', this);
       this.backdrop.addEventListener('click', this);
@@ -245,6 +254,7 @@
         case 'touchmove':
         case 'touchend':
           if (e.target != this.cancel &&
+              e.target != this.clearBtn &&
               e.target != this.overflow) {
             this.handleTouch(e);
           }
@@ -264,6 +274,8 @@
         case 'click':
           if (e.target == this.cancel) {
             this.handleCancel(e);
+          } else if (e.target == this.clearBtn) {
+            this.clear();
           } else if (e.target == this.overflow) {
             this.handleOverflow(e);
           } else if (e.target == this.backdrop) {
@@ -314,6 +326,7 @@
       this.input.removeEventListener('blur', this);
       this.input.removeEventListener('input', this);
       this.cancel.removeEventListener('click', this);
+      this.clearBtn.removeEventListener('click', this);
       this.overflow.removeEventListener('click', this);
       this.form.removeEventListener('submit', this);
       this.backdrop.removeEventListener('click', this);
@@ -431,6 +444,7 @@
      */
     clear: function() {
       this.input.value = '';
+      this.handleInput();
       this.titleContent.textContent =
         navigator.mozL10n.get('search-or-enter-address');
     },
@@ -494,7 +508,6 @@
      */
     focus: function() {
       this.input.focus();
-      this.input.select();
     },
 
     /**
@@ -697,6 +710,9 @@
      */
     handleInput: function() {
       var input = this.input.value;
+
+      this.rocketbar.classList.toggle('hasText', input.length);
+
       // If the task manager is shown, hide it
       if (this.screen.classList.contains('task-manager')) {
         this.cardView = false;
@@ -718,10 +734,12 @@
         this.showResults();
       }
 
-      this._port.postMessage({
-        action: 'change',
-        input: input
-      });
+      if (this._port) {
+        this._port.postMessage({
+          action: 'change',
+          input: input
+        });
+      }
     },
 
     /**
@@ -729,8 +747,9 @@
      * @memberof Rocketbar.prototype
      */
     handleCancel: function(e) {
+      this.input.value = '';
+      this.handleInput();
       this.deactivate();
-      this.hideResults();
     },
 
     /**
@@ -856,6 +875,7 @@
           break;
         case 'input':
           this.input.value = e.detail.input;
+          this.handleInput();
           break;
         case 'request-screenshot':
           places.screenshotRequested(e.detail.url);
