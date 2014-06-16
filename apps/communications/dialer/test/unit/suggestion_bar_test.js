@@ -1,6 +1,6 @@
 /* globals LazyLoader, MockCallHandler, MockContacts, MockFbContacts,
            MocksHelper, MockLazyL10n, MockNavigatorMozIccManager,
-           SuggestionBar */
+           SuggestionBar, SimSettingsHelper */
 
 'use strict';
 
@@ -13,6 +13,7 @@ require('/shared/test/unit/mocks/mock_fb_data_reader.js');
 require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
 require('/shared/test/unit/mocks/dialer/mock_contacts.js');
 require('/shared/test/unit/mocks/dialer/mock_keypad.js');
+require('/shared/test/unit/mocks/mock_sim_settings_helper.js');
 
 require('/dialer/js/suggestion_bar.js');
 
@@ -21,7 +22,8 @@ var mocksHelperForSuggestionBar = new MocksHelper([
   'LazyL10n',
   'LazyLoader',
   'KeypadManager',
-  'CallHandler'
+  'CallHandler',
+  'SimSettingsHelper'
 ]).init();
 
 suite('suggestion Bar', function() {
@@ -451,9 +453,12 @@ suite('suggestion Bar', function() {
         subject.update('1234');
       });
 
-      test('with one SIM', function() {
-        document.body.querySelector('.js-suggestion-item').click();
-        sinon.assert.calledWith(MockCallHandler.call, '1234567890', 0);
+      [0, 1].forEach(function(ci) {
+        test('with one SIM in slot ' + ci, function() {
+          SimSettingsHelper._defaultCards.outgoingCall = ci;
+          document.body.querySelector('.js-suggestion-item').click();
+          sinon.assert.calledWith(MockCallHandler.call, '1234567890', ci);
+        });
       });
 
       test('with two SIMs', function() {
