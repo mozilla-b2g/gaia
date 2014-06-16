@@ -7,16 +7,13 @@ define(function(require) {
 
   var AppStorage = require('modules/app_storage');
 
-  function AppStoragePanel() {
-    this._elements = null;
+  function AppStorageItem(elements) {
+    this._elements = elements;
     this._enabled = false;
+    this._updateAppFreeSpace = this._updateAppFreeSpace.bind(this);
   }
 
-  AppStoragePanel.prototype = {
-    init: function app_storage_init(elements) {
-      this._elements = elements;
-      this._updateAppFreeSpace = this._updateAppFreeSpace.bind(this);
-    },
+  AppStorageItem.prototype = {
     /**
      * The value indicates whether the module is responding. If it is false, the
      * UI stops reflecting the updates from the root panel context.
@@ -55,7 +52,7 @@ define(function(require) {
     }
   };
 
-  return function ctor_app_storage_panel() {
-    return new AppStoragePanel();
+  return function ctor_app_storage_item(elements) {
+    return new AppStorageItem(elements);
   };
 });

@@ -10,18 +10,17 @@ define(function(require) {
   return function ctor_root_panel() {
     var root = Root();
     var batteryItem;
-
-    var storageUsbItem = StorageUSBItem();
-    var storageAppItem = StorageAppItem();
+    var storageUsbItem;
+    var storageAppItem;
 
     return SettingsPanel({
       onInit: function rp_onInit(panel) {
         root.init();
         batteryItem = BatteryItem(panel.querySelector('.battery-desc'));
-        storageUsbItem.init({
+        storageUsbItem = StorageUSBItem({
           appStorageDesc: panel.querySelector('.application-storage-desc')
         });
-        storageAppItem.init({
+        storageAppItem = StorageAppItem({
           mediaStorageDesc: panel.querySelector('.media-storage-desc'),
           umsEnabledCheckBox: panel.querySelector('.ums-switch-root'),
           umsEnabledInfoBlock: panel.querySelector('.ums-desc-root'),

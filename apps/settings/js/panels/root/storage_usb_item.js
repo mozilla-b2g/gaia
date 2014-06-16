@@ -10,23 +10,20 @@ define(function(require) {
   var SettingsListener = require('shared/settings_listener');
   var AsyncStorage = require('shared/async_storage');
 
-  function USBStoragePanel() {
-    this._elements = null;
+  function USBStorageItem(elements) {
+    this._elements = elements;
     this._enabled = false;
     this._umsSettingKey = 'ums.enabled';
     // XXX media related attributes
     this._defaultMediaVolume = null;
     this._defaultVolumeState = 'available';
     this._defaultMediaVolumeKey = 'device.storage.writable.name';
-  }
-
-  USBStoragePanel.prototype = {
-    init: function storage_init(elements) {
-      this._elements = elements;
-      this._umsSettingHandler = this._umsSettingHandler.bind(this);
+    this._umsSettingHandler = this._umsSettingHandler.bind(this);
       this._mediaVolumeChangeHandler =
         this._mediaVolumeChangeHandler.bind(this);
-    },
+  }
+
+  USBStorageItem.prototype = {
     /**
      * The value indicates whether the module is responding. If it is false, the
      * UI stops reflecting the updates from the root panel context.
@@ -228,7 +225,7 @@ define(function(require) {
     }
   };
 
-  return function ctor_usb_storage_panel() {
-    return new USBStoragePanel();
+  return function ctor_usb_storage_item(elements) {
+    return new USBStorageItem(elements);
   };
 });
