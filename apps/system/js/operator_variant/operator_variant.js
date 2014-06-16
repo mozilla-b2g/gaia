@@ -352,7 +352,7 @@
               break;
           }
 
-          if (Object.keys(item)) {
+          if (Object.keys(item).length) {
             transaction.set(item);
           }
         }
