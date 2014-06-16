@@ -100,13 +100,11 @@ suite('GaiaGrid > DragDrop', function() {
 
   test('rearrange uses reference of icon for position', function() {
     var subject = grid.dragdrop;
+    subject.icon = grid.items[0];
 
-    // Make sure the grid is in the expected state
-    assert.equal(grid.items[0].name, 'second');
-    assert.equal(grid.items[1].name, 'first');
-    assert.equal(grid.items[2].detail.type, 'placeholder');
-
-    subject.rearrange(0, 2);
+    // The current positions are second -> first -> placeholder
+    // Simulate a drop past the placeholder (index 2).
+    subject.rearrange(2);
 
     assert.equal(grid.items[0].name, 'first');
     assert.equal(grid.items[1].name, 'second');

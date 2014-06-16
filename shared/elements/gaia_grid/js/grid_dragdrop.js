@@ -1,5 +1,4 @@
 'use strict';
-/* global GaiaGrid */
 
 (function(exports) {
 
@@ -49,12 +48,6 @@
     inEditMode: false,
 
     /**
-     * Whether or not a divider was crossed when rearranging.
-     * @type {boolean}
-     */
-    rearrangedDivider: false,
-
-    /**
      * Returns the maximum active scale value.
      */
     get maxActiveScale() {
@@ -80,7 +73,6 @@
 
       this.icon.noTransform = true;
       this.rearrangeDelay = null;
-      this.rearrangedDivider = false;
       this.enterEditMode();
       this.container.classList.add('dragging');
       this.target.classList.add('active');
@@ -115,12 +107,7 @@
         clearTimeout(this.rearrangeDelay);
         this.doRearrange.call(this);
       } else {
-        if (this.rearrangedDivider) {
-          this.gridView.render();
-        } else {
-          this.gridView.render({from: this.icon.detail.index,
-                                to: this.icon.detail.index});
-        }
+        this.gridView.render();
       }
 
       // Save icon state if we need to
@@ -213,8 +200,7 @@
       // and insert ours before it.
       // Todo: this could be more efficient with a binary search.
       var leastDistance;
-      var myIndex = this.icon.detail.index;
-      var foundIndex = myIndex;
+      var foundIndex;
       for (var i = 0, iLen = this.gridView.items.length; i < iLen; i++) {
         var item = this.gridView.items[i];
 
@@ -232,10 +218,9 @@
         }
       }
 
-      // Insert at the found position
-      if (foundIndex !== myIndex) {
+      if (foundIndex !== this.icon.detail.index) {
         clearTimeout(this.rearrangeDelay);
-        this.doRearrange = this.rearrange.bind(this, myIndex, foundIndex);
+        this.doRearrange = this.rearrange.bind(this, foundIndex);
         this.rearrangeDelay = setTimeout(this.doRearrange.bind(this),
                                          rearrangeDelay);
       }
@@ -243,31 +228,30 @@
 
     /**
      * Rearranges items in GridView.items
-     * @param {Integer} sIndex The position of the item to rearrange
-     * @param {Integer} tIndex The position to insert the item at.
+     * @param {Integer} insertAt The position to insert our icon at.
      */
-    rearrange: function(sIndex, tIndex) {
+    rearrange: function(tIndex) {
+
+      // We get a reference to the position of this.icon within the items
+      // array. Because placeholders are shifting around while we are dragging,
+      // we can't trust the detail.index attribute. This will be fixed on every
+      // render call though.
+      var sIndex = this.gridView.items.indexOf(this.icon);
+      var toInsert = this.gridView.items.splice(sIndex, 1)[0];
 
       this.rearrangeDelay = null;
       this.dirty = true;
+      this.gridView.items.splice(tIndex, 0, toInsert);
 
-      var [from, to] = sIndex < tIndex ? [sIndex, tIndex] : [tIndex, sIndex];
-
-      // Check if we're dragging past a divider - if so, we need to change to
-      // to draw to the end of the grid, as this can cause every item to shift.
-      for (var i = from; i <= to; i++) {
-        if (this.gridView.items[i] instanceof GaiaGrid.Divider) {
-          to = this.gridView.items.length - 1;
-          this.rearrangedDivider = true;
-          break;
-        }
-      }
-
-      // Rearrange items
-      this.gridView.items.splice(tIndex, 0,
-        this.gridView.items.splice(sIndex, 1)[0]);
-
-      this.gridView.render({from: from, to: to});
+      // Render to/from the selected position. We give a render buffer of 2
+      // rows or so due to divider creation/removal. Otherwise we may
+      // end up not rendering enough depending on the actual drop and have a
+      // stale rendering of the dragged icon.
+      var renderBuffer = this.gridView.layout.cols * 2;
+      this.gridView.render({
+        from: Math.min(tIndex, sIndex) - renderBuffer,
+        to: Math.max(tIndex, sIndex) + renderBuffer
+      });
     },
 
     enterEditMode: function() {
@@ -276,9 +260,6 @@
       document.body.classList.add('edit-mode');
       window.dispatchEvent(new CustomEvent('gaiagrid-editmode-start'));
       document.addEventListener('visibilitychange', this);
-
-      // Render and skip items to make sure placeholders are correctly setup.
-      this.gridView.render({skipItems: true});
     },
 
     exitEditMode: function() {
@@ -288,7 +269,7 @@
       window.dispatchEvent(new CustomEvent('gaiagrid-editmode-end'));
       document.removeEventListener('visibilitychange', this);
       this.removeDragHandlers();
-      this.gridView.render({skipItems: true});
+      this.gridView.removeAllPlaceholders();
 
       if (this.icon) {
         this.icon.element.removeEventListener('transitionend', this);
