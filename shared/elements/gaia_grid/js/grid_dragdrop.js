@@ -24,6 +24,7 @@
     this.gridView = gridView;
     this.container = gridView.element;
     this.scrollable = this.container.parentNode;
+    this.container.addEventListener('touchstart', this);
     this.container.addEventListener('contextmenu', this);
   }
 
@@ -318,8 +319,12 @@
             }
             break;
 
+          case 'touchstart':
+            this.canceled = e.touches.length > 1;
+            break;
+
           case 'contextmenu':
-            if (this.icon) {
+            if (this.icon || this.canceled) {
               return;
             }
 
