@@ -202,6 +202,12 @@
       var foundIndex;
       for (var i = 0, iLen = this.gridView.items.length; i < iLen; i++) {
         var item = this.gridView.items[i];
+
+        // Do not consider dividers for dragdrop.
+        if (item.detail.type === 'divider') {
+          continue;
+        }
+
         var distance = Math.sqrt(
           (pageX - item.x) * (pageX - item.x) +
           (pageY - item.y) * (pageY - item.y));
@@ -211,7 +217,6 @@
         }
       }
 
-      // Insert at the found position
       if (foundIndex !== this.icon.detail.index) {
         clearTimeout(this.rearrangeDelay);
         this.doRearrange = this.rearrange.bind(this, foundIndex);
@@ -236,8 +241,15 @@
       this.rearrangeDelay = null;
       this.dirty = true;
       this.gridView.items.splice(tIndex, 0, toInsert);
+
+      // Render to/from the selected position. We give a render buffer of 2
+      // rows or so due to divider creation/removal. Otherwise we may
+      // end up not rendering enough depending on the actual drop and have a
+      // stale rendering of the dragged icon.
+      var renderBuffer = this.gridView.layout.cols * 2;
       this.gridView.render({
-        from: Math.min(tIndex, sIndex)
+        from: Math.min(tIndex, sIndex) - renderBuffer,
+        to: Math.max(tIndex, sIndex) + renderBuffer
       });
     },
 

@@ -112,7 +112,7 @@
 
       // Manually inject this book mark into the app item list for now.
       // Remove and re-append a divider if the last item is a divider
-      var lastDivider = app.grid.getLastIfDivider();
+      var lastDivider = app.grid.removeUntilDivider();
       app.grid.add(bookmark);
       app.grid.add(lastDivider);
 
