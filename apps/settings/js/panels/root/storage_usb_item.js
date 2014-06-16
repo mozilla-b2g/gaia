@@ -10,9 +10,16 @@ define(function(require) {
   var SettingsListener = require('shared/settings_listener');
   var AsyncStorage = require('shared/async_storage');
 
+  /**
+   * @alias module:panels/root/storage_usb_item
+   * @class USBStorageItem
+   * @param {HTMLElement} element
+                The element displaying the usb and media storage information
+   * @returns {USBStorageItem}
+   */
   function USBStorageItem(elements) {
-    this._elements = elements;
     this._enabled = false;
+    this._elements = elements;
     this._umsSettingKey = 'ums.enabled';
     // XXX media related attributes
     this._defaultMediaVolume = null;
@@ -29,6 +36,7 @@ define(function(require) {
      * UI stops reflecting the updates from the root panel context.
      *
      * @access public
+     * @memberOf USBStorageItem.prototype
      * @type {Boolean}
      */
     get enabled() {

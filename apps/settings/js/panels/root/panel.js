@@ -18,9 +18,6 @@ define(function(require) {
         root.init();
         batteryItem = BatteryItem(panel.querySelector('.battery-desc'));
         storageUsbItem = StorageUSBItem({
-          appStorageDesc: panel.querySelector('.application-storage-desc')
-        });
-        storageAppItem = StorageAppItem({
           mediaStorageDesc: panel.querySelector('.media-storage-desc'),
           umsEnabledCheckBox: panel.querySelector('.ums-switch-root'),
           umsEnabledInfoBlock: panel.querySelector('.ums-desc-root'),
@@ -28,6 +25,9 @@ define(function(require) {
           umsConfirmButton: panel.querySelector('.ums-confirm-option'),
           umsCancelButton: panel.querySelector('.ums-cancel-option'),
           mediaStorageSection: panel.querySelector('.media-storage-section')
+        });
+        storageAppItem = StorageAppItem({
+          appStorageDesc: panel.querySelector('.application-storage-desc')
         });
       },
       onBeforeShow: function rp_onBeforeShow() {

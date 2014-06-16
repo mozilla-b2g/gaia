@@ -7,9 +7,17 @@ define(function(require) {
 
   var AppStorage = require('modules/app_storage');
 
+  /**
+   * @alias module:panels/root/storage_app_item
+   * @class AppStorageItem
+   * @requires module:modules/app_storage
+   * @param {HTMLElement} element
+                          The element displaying the app storage information
+   * @returns {AppStorageItem}
+   */
   function AppStorageItem(elements) {
-    this._elements = elements;
     this._enabled = false;
+    this._elements = elements;
     this._updateAppFreeSpace = this._updateAppFreeSpace.bind(this);
   }
 
@@ -19,6 +27,7 @@ define(function(require) {
      * UI stops reflecting the updates from the root panel context.
      *
      * @access public
+     * @memberOf AppStorageItem.prototype
      * @type {Boolean}
      */
     get enabled() {
