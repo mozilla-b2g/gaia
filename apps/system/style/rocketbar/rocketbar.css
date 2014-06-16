@@ -96,8 +96,26 @@ body:not(.rb-enabled) #rocketbar {
   opacity: 0.4;
 }
 
-#rocketbar-input, #rocketbar-cancel {
+#rocketbar-input {
   flex: auto;
+}
+
+#rocketbar-cancel, #rocketbar-clear {
+  flex: none;
+}
+
+#rocketbar-clear {
+  display: none;
+}
+
+#rocketbar.hasText #rocketbar-clear {
+  display: block;
+}
+
+#rocketbar-clear {
+  border: none;
+  background: url(actionicon_textfield_clear.png) no-repeat center center;
+  width: 4.5rem;
 }
 
 #rocketbar-cancel {

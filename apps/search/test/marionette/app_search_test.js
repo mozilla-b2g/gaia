@@ -24,7 +24,8 @@ marionette('Search - App search', function() {
     rocketbar.enterText('calendar');
     search.goToResults();
     var calendarIdentifier = 'app://calendar.gaiamobile.org/manifest.webapp';
-    search.checkAppResult(calendarIdentifier, 'Calendar');
+    var result = search.checkAppResult(calendarIdentifier, 'Calendar');
+    result.click();
     search.goToApp('app://calendar.gaiamobile.org');
   });
 
@@ -37,7 +38,8 @@ marionette('Search - App search', function() {
     search.goToResults();
     var phoneIdentifier =
       'app://communications.gaiamobile.org/manifest.webapp-dialer';
-    search.checkAppResult(phoneIdentifier, 'Phone');
+    var result = search.checkAppResult(phoneIdentifier, 'Phone');
+    result.click();
     search.goToApp('app://communications.gaiamobile.org', 'dialer');
   });
 
