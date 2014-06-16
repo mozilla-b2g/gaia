@@ -151,17 +151,8 @@ Contacts.prototype = {
 
   waitForFormTransition: function() {
     var selectors = Contacts.Selectors,
-        bodyHeight = this.client.findElement(selectors.body).size().height,
         form = this.client.findElement(selectors.form);
-    var test = function() {
-      var location = form.location();
-      // Since only checking form position could not guarantee
-      // the transition is ended, add z-index checking because
-      // it will be removed after transition.
-      var zIndex = this.getElementStyle(selectors.form, 'zIndex');
-      return location.y >= bodyHeight && !zIndex;
-    };
-    this.client.waitFor(test.bind(this));
+    this.client.helper.waitForElementToDisappear(form);
   },
 
   enterContactDetails: function(details) {
