@@ -171,7 +171,7 @@ var ActivityHandler = {
             itemData = dataSet[i].value;
             var carrier = dataSet[i].carrier || '';
             prompt1.addToList(
-              _('Destination', {destination: itemData, carrier: carrier}),
+              _('pick_destination', {destination: itemData, carrier: carrier}),
               capture(itemData)
             );
           }
