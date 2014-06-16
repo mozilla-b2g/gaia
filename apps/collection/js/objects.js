@@ -73,12 +73,11 @@
 
       this.addToGrid(this.pinned, grid);
 
-      if (!this.webResults.length) {
-        return;
+      if (this.webResults.length) {
+        grid.add(new GaiaGrid.Divider());
+        this.addToGrid(this.webResults, grid);
       }
 
-      grid.add(new GaiaGrid.Divider());
-      this.addToGrid(this.webResults, grid);
       grid.render();
     },
 

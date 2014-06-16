@@ -2,12 +2,24 @@
 /* global BaseCollection */
 /* global HandleView */
 /* global Promise */
+/* global MocksHelper */
 
 require('/js/objects.js');
+require('/test/unit/mock_contextmenu.js');
+require('/test/unit/mock_view_apps.js');
+require('/test/unit/mock_view_bg.js');
 require('/shared/js/l10n.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
 
+var mocksForCollection = new MocksHelper([
+  'Contextmenu',
+  'ViewApps',
+  'ViewBgImage'
+]).init();
+
 suite('view > ', function() {
+  mocksForCollection.attachTestHelpers();
+
   var subject;
   var realSetMessageHandler;
 

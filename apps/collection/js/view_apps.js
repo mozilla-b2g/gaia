@@ -15,17 +15,25 @@
     var options = collection.categoryId ? {categoryId: collection.categoryId}
                                         : {query: collection.query};
 
+    loading();
 
     // render pinned apps first
     collection.render(grid);
 
-    if (navigator.onLine) {
-      makeRequest();
-    } else {
-      onOffline();
-    }
+    eme.init().then(function() {
+      loading(false);
+      queueRequest();
+    });
 
-    addListeners();
+    function queueRequest() {
+      if (navigator.onLine) {
+        makeRequest();
+      } else {
+        onOffline();
+      }
+
+      addListeners();
+    }
 
     function onOffline() {
       loading(false);

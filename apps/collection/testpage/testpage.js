@@ -1,5 +1,4 @@
 'use strict';
-/* global eme */
 /* global HandleCreate */
 /* global HandleView */
 
@@ -31,8 +30,6 @@
   document.getElementById('view-collection').addEventListener('click',
     function() {
       activity.source.name = 'view-collection';
-      eme.init().then(function() {
-        HandleView(activity);
-      });
+      HandleView(activity);
     });
 })();
