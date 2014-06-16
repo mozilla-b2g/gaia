@@ -106,7 +106,9 @@ suite('controllers/controls', function() {
     });
 
     test('Should disable the controls when the camera is busy', function() {
-      assert.isTrue(this.app.on.calledWith('camera:busy', this.view.disable));
+      // Call the callback and check the view was disabled
+      this.app.on.withArgs('camera:busy').args[0][1]();
+      sinon.assert.called(this.view.disable);
     });
 
     test('Should restore the controls when the camera is \'ready\'', function() {
