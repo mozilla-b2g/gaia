@@ -110,7 +110,7 @@ module.exports = {
     title: 'camera-resolution',
     header: 'camera-resolution-header',
     icon: 'icon-picture-size',
-    maxPixelSize: window.CONFIG_MAX_IMAGE_PIXEL_SIZE,
+    maxPixelSize: window.CONFIG_MAX_SNAPSHOT_PIXEL_SIZE,
     options: [
       // {
       //   key: '2048x1536'
@@ -123,7 +123,7 @@ module.exports = {
     title: 'camera-resolution',
     header: 'camera-resolution-header',
     icon: 'icon-picture-size',
-    maxPixelSize: window.CONFIG_MAX_IMAGE_PIXEL_SIZE,
+    maxPixelSize: window.CONFIG_MAX_SNAPSHOT_PIXEL_SIZE,
     options: [
       // {
       //   key: '2048x1536'
