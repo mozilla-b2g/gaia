@@ -3,9 +3,18 @@
 
 (function(eme) {
 
-  var geolocation = navigator.geolocation;
-  var mozSettings = navigator.mozSettings;
-  var mozMobileConnections = navigator.mozMobileConnections;
+  const geolocation = navigator.geolocation;
+  const mozSettings = navigator.mozSettings;
+  const mozWifiManager = navigator.mozWifiManager;
+  const mozMobileConnections = navigator.mozMobileConnections;
+
+  const dataConnectionNames = {
+    'hspa+': 'H+',
+    'lte': '4G', 'ehrpd': '4G',
+    'hsdpa': '3G', 'hsupa': '3G', 'hspa': '3G', 'evdo0': '3G', 'evdoa': '3G',
+    'evdob': '3G', '1xrtt': '3G', 'umts': '3G',
+    'edge': '2G', 'is95a': '2G', 'is95b': '2G', 'gprs': '2G'
+  };
 
   // geolocation
   var position = null;
@@ -123,18 +132,46 @@
       return (new Date().getTimezoneOffset() / -60).toString();
     },
 
-    get carrier() {
-      var network;
-      var carrier;
-      var connection = mozMobileConnections &&
-                       mozMobileConnections.length && mozMobileConnections[0];
+    // mobile connection
+    get connection() {
+      if (!this._connection) {
+        this._connection = mozMobileConnections &&
+            mozMobileConnections.length && mozMobileConnections[0];
+      }
+      return this._connection;
+    },
 
-      if (connection && connection.voice) {
-        network = connection.voice.network;
-        carrier = network ? (network.shortName || network.longName) : null;
+    // voice network
+    get voiceNet() {
+      return (this.connection && this.connection.voice) ?
+              this.connection.voice.network : null;
+    },
+
+    // data connection type
+    get dataConnectionType() {
+      if (mozWifiManager && mozWifiManager.enabled) {
+        return 'wifi';
       }
 
-      return carrier;
+      if (this.connection && this.connection.data) {
+        var type = this.connection.data.type;
+        return dataConnectionNames[type] || type;
+      }
+
+      return null;
+    },
+
+    get carrier() {
+      return this.voiceNet ?
+        (this.voiceNet.shortName || this.voiceNet.longName) : null;
+    },
+
+    get mcc() {
+      return this.voiceNet ? this.voiceNet.mcc : null;
+    },
+
+    get mnc() {
+      return this.voiceNet ? this.voiceNet.mnc : null;
     },
 
     // returns last known position
