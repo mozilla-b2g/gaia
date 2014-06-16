@@ -164,6 +164,9 @@ var Compose = (function() {
 
   function insert(item) {
     var fragment = document.createDocumentFragment();
+    if (!item) {
+      return null;
+    }
 
     // trigger recalc on insert
     state.size = null;
@@ -415,7 +418,7 @@ var Compose = (function() {
         }.bind(this));
         this.ignoreEvents = true;
       } else {
-        this.append(message.body ? message.body : '');
+        this.append(message.body);
         this.focus();
       }
     },
@@ -482,6 +485,9 @@ var Compose = (function() {
      */
     prepend: function(item) {
       var fragment = insert(item);
+      if (!fragment) {
+        return this;
+      }
 
       // If the first element is a <br>, it needs to stay first
       // insert after it but before everyting else
@@ -497,6 +503,9 @@ var Compose = (function() {
 
     append: function(item) {
       var fragment = insert(item);
+      if (!fragment) {
+        return this;
+      }
 
       if (document.activeElement === dom.message) {
         // insert element at caret position
