@@ -41,7 +41,7 @@ function SimContactsImporter(targetIcc) {
 
   function notifyFinish() {
     if (typeof self.onfinish === 'function') {
-      window.setTimeout(self.onfinish, 0);
+      window.setTimeout(self.onfinish, 0, numDupsMerged);
     }
   }
 
