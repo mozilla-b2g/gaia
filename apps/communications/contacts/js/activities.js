@@ -158,7 +158,7 @@ var ActivityHandler = {
               if (self.activityDataType == 'webcontacts/tel') {
                 // filter phone from data.tel to take out the rest
                 result = utils.misc.toMozContact(theContact);
-                result.tel = self.filterAddressForActivity(
+                result.tel = self.filterDestinationForActivity(
                                itemData, result.tel);
               } else {
                 result[type] = itemData;
@@ -170,15 +170,18 @@ var ActivityHandler = {
           for (var i = 0; i < dataSet.length; i++) {
             itemData = dataSet[i].value;
             var carrier = dataSet[i].carrier || '';
-            prompt1.addToList(itemData + ' ' + carrier, capture(itemData));
+            prompt1.addToList(
+              _('Destination', {destination: itemData, carrier: carrier}),
+              capture(itemData)
+            );
           }
           prompt1.show();
         });
     } // switch
   },
 
-  filterAddressForActivity:
-  function ah_filterAddressForActivity(itemData, dataSet) {
+  filterDestinationForActivity:
+  function ah_filterDestinationForActivity(itemData, dataSet) {
     return dataSet.filter(function isSamePhone(item) {
       return item.value == itemData;
     });
