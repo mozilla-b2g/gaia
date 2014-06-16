@@ -901,7 +901,10 @@
 
     // WebAPI testing is using mozbrowserloadend event to know
     // the first app is loaded so we cannot stop the propagation here.
-    if (this.rearWindow) {
+    // When an activity is killed we remove the rearWindow reference first
+    // but we don't want subsequent mozbrowser events to bubble to the
+    // used-to-be-rear-window
+    if (this.rearWindow || this._killed) {
       evt.stopPropagation();
     }
     this.debug(' Handling ' + evt.type + ' event...');
