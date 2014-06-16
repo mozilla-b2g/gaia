@@ -196,6 +196,7 @@ form[role="dialog"][data-type="edit"] > menu {
 
 .edit [data-type="list"] li > a > p {
   transform: translateX(3.5rem);
+  margin-right: 3.5rem;
 }
 
 .edit #threads-container[data-type="list"] aside.pack-end {
