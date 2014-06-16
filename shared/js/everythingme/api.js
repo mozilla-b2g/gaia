@@ -3,11 +3,12 @@
 
 (function(eme) {
 
-  const OK = 1;
   const NETWORK_ERROR = 'network error';
 
   const API_URL = 'https://api.everything.me/partners/1.0/{resource}/';
   const API_KEY = '79011a035b40ef3d7baeabc8f85b862f';
+
+  const ICON_FORMAT = 20;
 
   var device = eme.device;
 
@@ -40,8 +41,6 @@
     };
 
   }
-
-  var ICON_FORMAT = 20;
 
   /**
    * Make an async httpRequest to resource with given options.
@@ -89,7 +88,7 @@
           reject(ex);
         }
 
-        if (response && response.errorCode === OK) {
+        if (response && response.errorCode > 0) {
           resolve(response);
         } else {
           reject(response ?
@@ -163,8 +162,8 @@
         // Some devices contain fractions in dimensions
         // which the eme api server does not accept
         // so Math.ceil (http://bugzil.la/1023312)
-        options.width = Math.ceil(eme.device.screen.width);
-        options.height = Math.ceil(eme.device.screen.height);
+        options.width = Math.ceil(options.width || eme.device.screen.width);
+        options.height = Math.ceil(options.height || eme.device.screen.height);
 
         return Request('Search', 'bgimage', options);
       }

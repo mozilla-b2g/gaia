@@ -9,66 +9,72 @@
       content: document.getElementById('content')
     };
 
-    var options = collection.categoryId ? {categoryId: collection.categoryId}
-                                        : {query: collection.query};
+    // draw stored background
+    if (collection.background) {
+      drawBackground(collection.background);
+    }
 
+    // check for updates
     if (navigator.onLine) {
       onOnline();
     } else {
       addListeners();
     }
 
+    function drawBackground(background) {
+      if (elements.content.style.backgroundImage) {
+        eme.log('drawBackground', 'skipping, reopen to refresh');
+      } else if (background.src) {
+        elements.content.style.backgroundImage = 'url(' + background.src + ')';
+      }
+    }
+
     function getBackground() {
-      var src;
       var checksum;
+      var options = collection.categoryId ? {categoryId: collection.categoryId}
+                                          : {query: collection.query};
 
       if (collection.background) {
-        src = collection.background.src;
         checksum = collection.background.checksum;
 
-        options._checksum = checksum;
+        // when we send _checksum server will not return an image if checksum
+        // was not updated, so check that we really have a background src
+        if (collection.background.src) {
+          options._checksum = checksum;
+        }
       }
 
       return eme.api.Search.bgimage(options).then(function success(response) {
         if (checksum && checksum === response.checksum) {
           eme.log('background didn\'t change (checksum match)');
-          return collection.background;
-
         } else {
+          // update background
+          var src;
           var image = response.response.image;
           if (image) {
             src = image.data;
             if (/image\//.test(image.MIMEType)) {  // base64 image data
               src = 'data:' + image.MIMEType + ';base64,' + image.data;
             }
+
+            var newBackground = {
+              src: src,
+              source: response.response.source,
+              checksum: response.checksum
+            };
+
+            drawBackground(newBackground);
+
+            collection.background = newBackground;
+            collection.save();
           }
-
-          return {
-            src: src,
-            source: response.response.source,
-            checksum: response.checksum || null
-          };
         }
-
       });
     }
 
     function onOnline() {
-      getBackground().then(function setBackground(newBackground) {
+      getBackground().then(function success() {
         removeListeners();
-
-        // update collection if background changed
-        if (collection.background &&
-            collection.background.checksum !== newBackground.checksum) {
-
-          collection.background = newBackground;
-          collection.save();
-        }
-
-        if (collection.background.src) {
-          elements.content.style.backgroundImage =
-                                      'url(' + collection.background.src + ')';
-        }
       }, function error(e) {
         // no background
         eme.error(e);
