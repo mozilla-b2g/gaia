@@ -16,10 +16,10 @@
    * @constructor LockScreenWindowManager
    */
   var LockScreenWindowManager = function() {
-    this.initElements();
-    this.initWindow();
     this.startEventListeners();
     this.startObserveSettings();
+    this.initElements();
+    this.initWindow();
   };
   LockScreenWindowManager.prototype = {
     /**
@@ -40,7 +40,9 @@
       FTUOccurs: false,
       enabled: true,
       unlockDetail: null,
-      instance: null
+      instance: null,
+      active: false,
+      windowCreating: false
     },
 
     /**
@@ -218,11 +220,12 @@
    */
   LockScreenWindowManager.prototype.closeApp =
     function lwm_closeApp(instant) {
-      if (!this.states.enabled) {
+      if (!this.states.enabled && !this.states.active) {
         return;
       }
       this.states.instance.close(instant ? 'immediate': undefined);
       this.elements.screen.classList.remove('locked');
+      this.states.active = false;
     };
 
   /**
@@ -245,6 +248,7 @@
         this.states.instance.open();
       }
       this.elements.screen.classList.add('locked');
+      this.states.active = true;
     };
 
   /**
@@ -295,8 +299,13 @@
    */
   LockScreenWindowManager.prototype.createWindow =
     function lwm_createWindow() {
+      if (this.states.windowCreating) {
+        return false;
+      }
+      this.states.windowCreating = true;
       var app = new window.LockScreenWindow();
       app.open();
+      this.states.windowCreating = false;
     };
 
   /**

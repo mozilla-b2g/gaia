@@ -2,16 +2,12 @@
 
 requireApp('system/js/carrier_info_notifier.js');
 requireApp('system/test/unit/mock_modal_dialog.js');
-requireApp('system/test/unit/mock_lock_screen.js');
+requireApp('system/test/unit/mock_system.js');
 requireApp('system/test/unit/mock_notification_screen.js');
 requireApp('system/test/unit/mock_l10n.js');
 
 if (typeof window.ModalDialog == 'undefined') {
   window.ModalDialog = null;
-}
-
-if (typeof window.lockScreen == 'undefined') {
-  window.lockScreen = null;
 }
 
 if (typeof window.NotificationScreen == 'undefined') {
@@ -21,10 +17,8 @@ if (typeof window.NotificationScreen == 'undefined') {
 suite('carrier info notifier >', function() {
   var subject;
 
-  var originalLocked;
   var realL10n;
   var realModalDialog;
-  var realLockScreen;
   var realNotificationScreen;
   var testData = {
     display: '0',
@@ -45,9 +39,8 @@ suite('carrier info notifier >', function() {
     realModalDialog = window.ModalDialog;
     window.ModalDialog = MockModalDialog;
 
-    window.lockScreen = window.MockLockScreen;
-    originalLocked = window.lockScreen.locked;
-    window.lockScreen.locked = false;
+    window.System = window.MockSystem;
+    window.System.locked = false;
 
     realNotificationScreen = window.NotificationScreen;
     window.NotificationScreen = MockNotificationScreen;
@@ -56,7 +49,7 @@ suite('carrier info notifier >', function() {
 
   test('CDMA record information: Unlocked', function(done) {
     var ptr = 0;
-    MockLockScreen.locked = false;
+    MockSystem.locked = false;
     ModalDialog.mCallback = function(param) {
       assert.equal(param.text, expectedDisplay[ptr]);
       ptr++;
@@ -69,7 +62,8 @@ suite('carrier info notifier >', function() {
 
   test('CDMA record information: locked', function(done) {
     var ptr = 0;
-    window.lockScreen.locked = true;
+    var previousLocked = window.System.locked;
+    window.System.locked = true;
     MockNotificationScreen.mCallback = function(param) {
       assert.equal(param.text, expectedDisplay[ptr]);
       ptr++;
@@ -78,6 +72,7 @@ suite('carrier info notifier >', function() {
       }
     };
     subject.showCDMA(testData);
+    window.System.locked = previousLocked;
   });
 
   suiteTeardown(function() {
@@ -86,7 +81,7 @@ suite('carrier info notifier >', function() {
     window.ModalDialog.mTeardown();
     window.ModalDialog = realModalDialog;
 
-    window.lockScreen.locked = originalLocked;
+    window.System.locked = false;
 
     window.NotificationScreen.mTeardown();
     window.NotificationScreen = realNotificationScreen;
