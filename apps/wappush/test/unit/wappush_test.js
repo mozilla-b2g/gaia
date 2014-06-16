@@ -116,6 +116,10 @@ suite('WAP Push', function() {
       assert.ok(handlers.notification);
       assert.ok(handlers['wappush-received']);
     });
+
+    test('the header is empty', function() {
+      assert.equal(document.getElementById('title').textContent, '');
+    });
   });
 
   suite('unsupported message', function() {
