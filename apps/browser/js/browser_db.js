@@ -11,12 +11,10 @@ var BrowserDB = {
   variantObserver: null,
 
   init: function browserDB_init(callback) {
-    this.db.open(function() {
-      this.initSingleVariant(callback);
-    }.bind(this));
+    this.db.open(callback);
   },
 
-  initSingleVariant: function browserDB_initSingleVariant(callback) {
+  initSingleVariant: function browserDB_initSingleVariant() {
     this.variantObserver = this.handleSingleVariant.bind(this);
     navigator.mozSettings.addObserver('operatorResources.data.topsites',
                                       this.variantObserver);
@@ -25,12 +23,7 @@ var BrowserDB = {
                   .get('operatorResources.data.topsites');
     request.onsuccess = (function() {
       this.handleTopSites(request.result['operatorResources.data.topsites']);
-      callback();
     }.bind(this));
-
-    request.onerror = function() {
-      callback();
-    };
   },
 
   handleSingleVariant: function browserDB_handleSingleVariant(event) {
@@ -41,7 +34,9 @@ var BrowserDB = {
     if (data && Object.keys(data).length !== 0) {
       navigator.mozSettings.removeObserver('operatorResources.data.topsites',
                                            this.variantObserver);
+
       this.populateTopSites(data.topSites, -1);
+
       navigator.mozSettings.createLock()
                .set({'operatorResources.data.topsites': {}});
       return;
@@ -49,11 +44,13 @@ var BrowserDB = {
   },
 
   populateTopSites: function browserDB_populateTopSites(data, frequency) {
+    var index = frequency;
+
     data.forEach(function(topSite) {
       if (!topSite.uri || ! topSite.title)
         return;
-
-      this.addTopSite(topSite.uri, topSite.title, frequency);
+      this.addTopSite(topSite.uri, topSite.title, index);
+      index--;
       if (topSite.iconUri) {
         if (topSite.iconUri instanceof Blob) {
           var reader = new FileReader();
@@ -87,7 +84,7 @@ var BrowserDB = {
 
       // Populate top sites if upgrading from below version 7
       if (upgradeFrom < 7 && data.topSites) {
-        this.populateTopSites(data.topSites, -2);
+        this.populateTopSites(data.topSites, -20);
       }
     }.bind(this));
 
@@ -303,6 +300,10 @@ var BrowserDB = {
     this.db.getPlacesByFrecency(maximum, filter, callback);
   },
 
+  getDefaultTopSites: function browserDB_getDefaultTopSites(callback) {
+    this.db.getDefaultPlaces(callback);
+  },
+
   getHistory: function browserDB_getHistory(callback) {
     // Just get the most recent 20 for now
     this.db.getHistory(20, callback);
@@ -355,9 +356,14 @@ BrowserDB.db = {
 
     request.onsuccess = (function onSuccess(e) {
       this._db = e.target.result;
+
       callback();
-      if (this.upgradeFrom != -1)
+      if (this.upgradeFrom != -1) {
         BrowserDB.populate(this.upgradeFrom);
+      }
+
+      BrowserDB.initSingleVariant();
+
     }).bind(this);
 
     request.onerror = (function onDatabaseError(e) {
@@ -503,6 +509,23 @@ BrowserDB.db = {
         cursor.continue();
       } else {
         callback(history);
+      }
+    };
+  },
+
+  getDefaultPlaces: function db_defaultPlaces(callback) {
+    var topSites = [];
+    var transaction = this._db.transaction('places');
+    var placesStore = transaction.objectStore('places');
+    var frecencyIndex = placesStore.index('frecency');
+    frecencyIndex.openCursor(null, 'prev').onsuccess =
+      function onSuccess(e) {
+      var cursor = e.target.result;
+      if (cursor && cursor.value && cursor.value.frecency < 0) {
+        topSites.push(cursor.value);
+        cursor.continue();
+      } else {
+        callback(topSites);
       }
     };
   },
@@ -770,7 +793,7 @@ BrowserDB.db = {
     var readRequest = objectStore.get(uri);
     readRequest.onsuccess = function onReadSuccess(event) {
       var place = event.target.result;
-      if (!place)
+      if (!place || (place.frecency && place.frecency > frecency))
         return;
 
       place.title = title;
@@ -814,6 +837,9 @@ BrowserDB.db = {
       if (!place.frecency) {
         place.frecency = 1;
       } else {
+        if (place.frecency < 0) {
+          place.frecency = 0;
+        }
         // currently just frequency
         place.frecency++;
       }
