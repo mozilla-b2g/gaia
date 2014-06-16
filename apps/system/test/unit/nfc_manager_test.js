@@ -583,7 +583,7 @@ suite('Nfc Manager Functions', function() {
       assert.isTrue(stubDispatchEvent.calledThrice);
       assert.equal(stubDispatchEvent.getCall(1).args[0].type, 'nfc-tech-lost');
       assert.equal(stubDispatchEvent.getCall(2).args[0].type,
-        'shrinking-rejected');
+        'shrinking-stop');
     });
 
     test('NFC Manager P2P: checkP2PRegistration success', function() {
