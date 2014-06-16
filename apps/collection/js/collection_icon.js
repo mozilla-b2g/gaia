@@ -90,10 +90,6 @@
 
     canvas.height = height;
     canvas.width = width;
-
-    // everything we draw will be cropped inside the rounded icon
-    context.arc(center, center, center, 0, 2 * Math.PI);
-    context.clip();
     context.save();
 
     this.canvas = canvas;

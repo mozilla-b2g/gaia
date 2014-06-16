@@ -1,20 +1,13 @@
 'use strict';
-/* global devicePixelRatio */
+/* global GridIconRenderer */
 /* global Promise */
 
 (function(exports) {
 
-  const SHADOW_BLUR = 1;
-  const SHADOW_OFFSET_Y = 1;
-  const SHADOW_OFFSET_X = 1;
-  const SHADOW_COLOR = 'rgba(0, 0, 0, 0.2)';
-  const UNSCALED_CANVAS_PADDING = 2;
-  const CANVAS_PADDING = UNSCALED_CANVAS_PADDING * devicePixelRatio;
-  const FETCH_XHR_TIMEOUT = 10000;
-
   // event names
   const ICON_BLOB_LOAD_EVENT = 'gaiagrid-iconblobload';
   const ICON_BLOB_ERROR_EVENT = 'gaiagrid-iconbloberror';
+  const FETCH_XHR_TIMEOUT = 10000;
 
   /**
    * XHR wrapper for fetching blobs with timeout logic.
@@ -82,6 +75,14 @@
      * Whether or not this icon will persist to the database.
      */
     persistToDB: true,
+
+    /**
+     * The icon renderer to use. Sub-classes may override this, and individual
+     * objects may as well with a custom detail.renderer property.
+     * Bookmarks use this for example to render both web results from E.me,
+     * and favicons from the web with different styles.
+     */
+    renderer: GridIconRenderer.TYPE.STANDARD,
 
     /**
      * Every grid item has a desired icon (over the network) if we fail to fetch
@@ -173,45 +174,9 @@
      * @param {HTMLImageElement} img An image element to display from.
      */
     _decorateIcon: function(img) {
-      const MAX_ICON_SIZE = this.grid.layout.gridIconSize * devicePixelRatio;
-
-      var shadowCanvas = document.createElement('canvas');
-      shadowCanvas.width = MAX_ICON_SIZE + (CANVAS_PADDING * 2);
-      shadowCanvas.height = MAX_ICON_SIZE + (CANVAS_PADDING * 2);
-      var shadowCtx = shadowCanvas.getContext('2d');
-
-      shadowCtx.shadowColor = SHADOW_COLOR;
-      shadowCtx.shadowBlur = SHADOW_BLUR;
-      shadowCtx.shadowOffsetY = SHADOW_OFFSET_Y;
-      shadowCtx.shadowOffsetX = SHADOW_OFFSET_X;
-
-      if (this.detail.clipIcon) {
-        // clipping to round the icon
-        var clipCanvas = document.createElement('canvas');
-        clipCanvas.width = shadowCanvas.width;
-        clipCanvas.height = shadowCanvas.height;
-        var clipCtx = clipCanvas.getContext('2d');
-
-        clipCtx.beginPath();
-        clipCtx.arc(clipCanvas.width / 2, clipCanvas.height / 2,
-                    clipCanvas.height / 2 - CANVAS_PADDING, 0, 2 * Math.PI);
-        clipCtx.clip();
-
-        clipCtx.drawImage(img, CANVAS_PADDING, CANVAS_PADDING,
-                               MAX_ICON_SIZE, MAX_ICON_SIZE);
-
-        var clipImage = new Image();
-        clipImage.onload = function clip_onload() {
-          shadowCtx.drawImage(clipImage, CANVAS_PADDING, CANVAS_PADDING,
-                                MAX_ICON_SIZE, MAX_ICON_SIZE);
-          shadowCanvas.toBlob(this._displayDecoratedIcon.bind(this));
-        }.bind(this);
-        clipImage.src = clipCanvas.toDataURL();
-      } else {
-        shadowCtx.drawImage(img, CANVAS_PADDING, CANVAS_PADDING,
-                      MAX_ICON_SIZE, MAX_ICON_SIZE);
-        shadowCanvas.toBlob(this._displayDecoratedIcon.bind(this));
-      }
+      var strategy = this.detail.renderer || this.renderer;
+      this.renderer = new GridIconRenderer(this);
+      this.renderer[strategy](img).then(this._displayDecoratedIcon.bind(this));
     },
 
     /**
@@ -223,7 +188,7 @@
       this.element.style.height = this.grid.layout.gridItemHeight + 'px';
       this.element.style.backgroundSize =
         ((this.grid.layout.gridIconSize * (1 / this.scale)) +
-        UNSCALED_CANVAS_PADDING) +'px';
+        this.renderer.unscaledCanvasPadding) +'px';
       this.element.style.backgroundImage =
         'url(' + URL.createObjectURL(blob) + ')';
     },

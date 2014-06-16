@@ -1,5 +1,6 @@
 'use strict';
 /* global GaiaGrid */
+/* global GridIconRenderer */
 /* global MozActivity */
 /* jshint nonew: false */
 
@@ -18,6 +19,8 @@
   MarketPlaceApp.prototype = {
 
     __proto__: GaiaGrid.Bookmark.prototype,
+
+    renderer: GridIconRenderer.TYPE.STANDARD,
 
     launch: function() {
       new MozActivity({
