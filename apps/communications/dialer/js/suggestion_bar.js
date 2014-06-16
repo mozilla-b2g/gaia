@@ -1,5 +1,5 @@
 /* globals CallHandler, Contacts, fb, KeypadManager, LazyL10n, LazyLoader,
-           SimplePhoneMatcher */
+           SimplePhoneMatcher, SimSettingsHelper */
 
 // Suggestion_bar.js will be loaded on init of KeypadManager through
 // lazy loader. So we call its init() directly at the end of file.
@@ -61,7 +61,11 @@ var SuggestionBar = {
     // behavior.
     if (!navigator.mozIccManager ||
         navigator.mozIccManager.iccIds.length < 2) {
-      CallHandler.call(KeypadManager.phoneNumber(), 0);
+      LazyLoader.load('/shared/js/sim_settings_helper.js', function() {
+        SimSettingsHelper.getCardIndexFrom('outgoingCall', function(ci) {
+          CallHandler.call(KeypadManager.phoneNumber(), ci);
+        });
+      });
     } else {
       this.hideOverlay();
     }
