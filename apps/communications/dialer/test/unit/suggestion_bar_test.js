@@ -1,5 +1,5 @@
 /* globals MockCallHandler, MockContacts, MockFbContacts, MocksHelper,
-           MockNavigatorMozIccManager, SuggestionBar */
+           MockNavigatorMozIccManager, SuggestionBar, SimSettingsHelper */
 
 'use strict';
 
@@ -9,6 +9,7 @@ require('/dialer/test/unit/mock_l10n.js');
 require('/dialer/test/unit/mock_lazy_loader.js');
 require('/dialer/test/unit/mock_keypad.js');
 require('/dialer/test/unit/mock_call_handler.js');
+require('/shared/test/unit/mocks/mock_sim_settings_helper.js');
 
 require('/dialer/js/suggestion_bar.js');
 require('/shared/js/simple_phone_matcher.js');
@@ -19,7 +20,8 @@ var mocksHelperForSuggestionBar = new MocksHelper([
   'LazyL10n',
   'LazyLoader',
   'KeypadManager',
-  'CallHandler'
+  'CallHandler',
+  'SimSettingsHelper'
 ]).init();
 
 mocha.globals(['fb']);
@@ -283,6 +285,13 @@ suite('suggestion Bar', function() {
   });
 
   suite('#tap on suggestions list', function() {
+    setup(function() {
+      this.sinon.spy(MockCallHandler, 'call');
+      this.sinon.spy(subject, 'hideOverlay');
+
+      MockContacts.mResult = mockResult1;
+      subject.update('1234');
+    });
     var createSuggestionAndClickOnIt = function() {
       var item = document.createElement('li');
       item.className = 'suggestion-item';
@@ -293,20 +302,20 @@ suite('suggestion Bar', function() {
       triggerEvent(item, 'click');
     };
 
-    test('with one SIM', function() {
-      var callSpy = this.sinon.spy(MockCallHandler, 'call');
-      createSuggestionAndClickOnIt();
-      sinon.assert.calledWith(callSpy, '3434343434', 0);
+    [0, 1].forEach(function(ci) {
+      test('with one SIM in slot ' + ci, function() {
+        SimSettingsHelper._defaultCards.outgoingCall = ci;
+        document.body.querySelector('.suggestion-item').click();
+        sinon.assert.calledWith(MockCallHandler.call, '1234567890', ci);
+      });
     });
 
     test('with two SIMs', function() {
       MockNavigatorMozIccManager.addIcc(1, {});
 
-      var callSpy = this.sinon.spy(MockCallHandler, 'call');
-      var hideOverlaySpy = this.sinon.spy(subject, 'hideOverlay');
       createSuggestionAndClickOnIt();
-      sinon.assert.notCalled(callSpy);
-      sinon.assert.calledOnce(hideOverlaySpy);
+      sinon.assert.notCalled(MockCallHandler.call);
+      sinon.assert.calledOnce(subject.hideOverlay);
     });
   });
 
