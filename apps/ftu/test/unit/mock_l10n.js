@@ -15,6 +15,9 @@ var MockL10n = {
     }
   },
   DateTimeFormat: function () {
+  },
+  ready: function ready(cb) {
+    cb();
   }
 };
 
