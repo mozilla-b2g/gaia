@@ -19,7 +19,8 @@ var Base = require('./base'),
     DisplayPanel = require('./regions/display'),
     AppStoragePanel = require('./regions/app_storage'),
     MediaStoragePanel = require('./regions/media_storage'),
-    KeyboardPanel = require('./regions/keyboard');
+    KeyboardPanel = require('./regions/keyboard'),
+    DatetimePanel = require('./regions/date_time');
 
 /**
  * Abstraction around settings app
@@ -57,7 +58,8 @@ Settings.Selectors = {
   'displayMenuItem': '#menuItem-display',
   'appStorageMenuItem': '#menuItem-applicationStorage',
   'mediaStorageMenuItem': '#menuItem-mediaStorage',
-  'keyboardMenuItem': '#menuItem-keyboard'
+  'keyboardMenuItem': '#menuItem-keyboard',
+  'datetimeMenuItem': '#menuItem-dateAndTime'
 };
 
 Settings.prototype = {
@@ -195,6 +197,12 @@ Settings.prototype = {
     languagePanel.back();
   },
 
+  get datetimePanel() {
+    this.openPanel('datetimeMenuItem');
+    this._datetimePanel = this._datetimePanel ||
+      new DatetimePanel(this.client);
+    return this._datetimePanel;
+  },
   /**
    * @private
    */

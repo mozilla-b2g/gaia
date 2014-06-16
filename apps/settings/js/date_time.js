@@ -73,6 +73,7 @@ navigator.mozL10n.once(function SettingsDateAndTime() {
     }
     // Construct a Date object with date time
     // specified in a ISO 8601 string (YYYY-MM-DDTHH:MM)
+    console.log('_____' + pDate + 'T' + pTime);
     var newDate = new Date(pDate + 'T' + pTime);
     SetTime.set(newDate);
   }
@@ -241,7 +242,7 @@ navigator.mozL10n.once(function SettingsDateAndTime() {
     setTime('time');
     // Clean up the value of picker once we get time set by the user.
     // It will get new time according system time when pop out again.
-    gTimePicker.value = '';
+    // gTimePicker.value = '';
   });
 
   window.addEventListener('moztimechange', function moztimechange() {

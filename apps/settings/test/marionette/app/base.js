@@ -13,7 +13,7 @@ function Base(client, origin, selectors) {
 module.exports = Base;
 
 Base.prototype = {
-
+  URL: 'app://settings.gaiamobile.org',
   /**
    * Launches settings app, switches to frame, and waits for it to be loaded.
    */
