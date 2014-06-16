@@ -118,5 +118,8 @@
 .edit-mode .icon.bookmark .title {
   background-color: rgba(132, 132, 132, 0.7);
   border-radius: 2rem;
-  padding-bottom: .2rem;
+  margin-top: .4rem;
+  padding: 0 1rem;
+  width: auto;
+  max-width: 100%;
 }
