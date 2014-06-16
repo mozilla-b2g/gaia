@@ -767,10 +767,12 @@
       // as window disposition activity.
       if (this.isActive() && this.callerWindow) {
         var caller = this.callerWindow;
+        var callerBottom = caller.getBottomMostWindow();
+        var calleeBottom = this.getBottomMostWindow();
         caller.calleeWindow = null;
         this.callerWindow = null;
-        caller.open('in-from-left');
-        this.close('out-to-right');
+        callerBottom.open('in-from-left');
+        calleeBottom.close('out-to-right');
       }
     };
 
