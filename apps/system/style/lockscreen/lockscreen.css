@@ -254,7 +254,6 @@
 }
 
 .lockscreen-icon {
-  margin-top: 2rem;
   width: 6rem;
   height: 6rem;
 
@@ -317,6 +316,7 @@ button::-moz-focus-inner {
   background-position: 1.1rem center;
   background-repeat: no-repeat;
   background-size: 3rem;
+  margin-top: 1.8rem;
 }
 
 .lockscreen-icon-left, .lockscreen-icon-right {
@@ -334,6 +334,7 @@ button::-moz-focus-inner {
   background-position: 1.85rem center;
   background-repeat: no-repeat;
   background-size: 3rem;
+  margin-top: 2rem;
 }
 
 #lockscreen-alt-camera {
