@@ -1,5 +1,6 @@
 'use strict';
 
 var MockImportIntegration = {
-  checkImport: function() {}
+  checkImport: function() {},
+  init: function() {}
 };

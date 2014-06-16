@@ -1,7 +1,8 @@
 'use strict';
 
 var MockWifiManager = {
-  scan: function() {}
+  scan: function() {},
+  init: function() {}
 };
 
 var MockWifiUI = {
