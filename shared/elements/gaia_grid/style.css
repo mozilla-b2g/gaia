@@ -1,24 +1,42 @@
 .loading:before {
-  /**
-  XXX: Do something less terrible...
-
-  -13% to align the icon above the text of the icon.
-  */
-  margin-top: -13%;
   content: "";
   z-index: 30000;
   background: no-repeat center url('images/loading_spinner.png');
-  background-size: 6rem;
+  background-size: contain;
   position: absolute;
   top: 0;
   left: 0;
-  height: 100%;
+  height: 8.6rem;
   width: 100%;
   /**
   keyframe must be defined outside of the web component
   See bug 1018269
   */
   animation: rotate 2.25s linear infinite;
+}
+
+@media (device-width: 480px) {
+  .loading:before {
+    height: 12.8rem;
+  }
+}
+
+@media (device-width: 540px) {
+  .loading:before {
+    height: 14.4rem;
+  }
+}
+
+@media (device-width: 720px) {
+  .loading:before {
+    height: 19.1rem;
+  }
+}
+
+@media (device-width: 1080px) {
+  .loading:before {
+    height: 28.6rem;
+  }
 }
 
 .icon {
