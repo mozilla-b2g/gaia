@@ -10,7 +10,7 @@ requireApp('communications/contacts/js/activities.js');
 requireApp('communications/contacts/test/unit/mock_l10n.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
-requireApp('communications/contacts/test/unit/mock_value_selector.js');
+requireApp('communications/contacts/test/unit/mock_action_menu.js');
 requireApp('communications/dialer/test/unit/mock_confirm_dialog.js');
 
 if (!window._) {
@@ -230,7 +230,7 @@ suite('Test Activities', function() {
       // As is filtered, we only retrieve one phone number
       assert.equal(result.tel.length, 1);
 
-      // As the mock of value selector is giving us the first option
+      // As the mock of action menu is giving us the first option
       // we ensure that this option is the one filtered as well.
       assert.equal(newContact.tel[0].value, result.tel[0].value);
     });
@@ -248,6 +248,7 @@ suite('Test Activities', function() {
     test('webcontacts/contact, 1 result', function() {
       activity.source.data.type = 'webcontacts/contact';
       ActivityHandler._currentActivity = activity;
+      contact.tel.pop();
       ActivityHandler.dataPickHandler(contact);
       assert.isFalse(ConfirmDialog.showing);
       assert.equal(result.number, contact.tel[0].value);
@@ -287,6 +288,50 @@ suite('Test Activities', function() {
       assert.isFalse(ConfirmDialog.showing);
       // Mock returns always the first option from the select
       assert.equal(result.email, contact.email[0].value);
+    });
+
+    test('webcontacts/select, 0 results', function() {
+      activity.source.data.type = 'webcontacts/select';
+      ActivityHandler._currentActivity = activity;
+      contact.tel = [];
+      contact.email = [];
+      ActivityHandler.dataPickHandler(contact);
+      assert.isTrue(ConfirmDialog.showing);
+      assert.isNull(ConfirmDialog.title);
+      assert.equal(ConfirmDialog.text, window._('no_contact_data'));
+    });
+
+    test('webcontacts/select, 1 results', function() {
+      activity.source.data.type = 'webcontacts/select';
+      ActivityHandler._currentActivity = activity;
+      contact.tel.pop();
+      var newContact = Object.create(contact);
+      ActivityHandler.dataPickHandler(newContact);
+      contact = window.utils.misc.toMozContact(contact);
+      assert.isFalse(ConfirmDialog.showing);
+      assert.equal(JSON.stringify(result.select),
+                   JSON.stringify(contact.tel));
+      assert.equal(JSON.stringify(result.contact),
+                   JSON.stringify(contact));
+    });
+
+    test('webcontacts/select, many results(tel)', function() {
+      activity.source.data.type = 'webcontacts/select';
+      ActivityHandler._currentActivity = activity;
+      var newContact = Object.create(contact);
+      ActivityHandler.dataPickHandler(newContact);
+      assert.isFalse(ConfirmDialog.showing);
+      assert.equal(newContact.tel[0].value, result.select[0].value);
+    });
+
+    test('webcontacts/select, many results(email)', function() {
+      activity.source.data.type = 'webcontacts/select';
+      ActivityHandler._currentActivity = activity;
+      contact.tel = [];
+      var newContact = Object.create(contact);
+      ActivityHandler.dataPickHandler(newContact);
+      assert.isFalse(ConfirmDialog.showing);
+      assert.equal(newContact.email[0].value, result.select[0].value);
     });
   });
 
