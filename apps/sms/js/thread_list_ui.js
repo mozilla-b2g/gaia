@@ -4,7 +4,7 @@
 /*global Template, Utils, Threads, Contacts, Threads,
          WaitingScreen, MozSmsFilter, MessageManager, TimeHeaders,
          Drafts, Thread, ThreadUI, OptionMenu, ActivityPicker,
-         PerformanceTestingHelper, StickyHeader, Navigation */
+         PerformanceTestingHelper, StickyHeader, Navigation, Dialog */
 /*exported ThreadListUI */
 (function(exports) {
 'use strict';
@@ -306,7 +306,6 @@ var ThreadListUI = {
   },
 
   delete: function thlui_delete() {
-    var question = navigator.mozL10n.get('deleteThreads-confirmation2');
     var list, length, id, threadId, filter, count;
 
     function checkDone(threadId) {
@@ -334,7 +333,8 @@ var ThreadListUI = {
       return true;
     }
 
-    if (confirm(question)) {
+    function performDeletion() {
+      /* jshint validthis: true */
       WaitingScreen.show();
 
       list = this.selectedInputs.reduce(function(list, input) {
@@ -382,6 +382,31 @@ var ThreadListUI = {
         });
       }
     }
+
+    var dialog = new Dialog({
+      title: {
+        l10nId: 'messages'
+      },
+      body: {
+        l10nId: 'deleteThreads-confirmation2'
+      },
+      options: {
+        cancel: {
+          text: {
+            l10nId: 'cancel'
+          }
+        },
+        confirm: {
+          text: {
+            l10nId: 'delete'
+          },
+          method: performDeletion.bind(this),
+          className: 'danger'
+        }
+      }
+    });
+
+    dialog.show();
   },
 
   setEmpty: function thlui_setEmpty(empty) {
