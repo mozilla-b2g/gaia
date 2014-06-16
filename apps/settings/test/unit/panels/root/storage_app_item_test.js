@@ -38,9 +38,7 @@ suite('AppStorageItem', function() {
   });
 
   setup(function() {
-    this.subject = this.StorageAppItem({
-      appStorageDesc: document.createElement('div')
-    });
+    this.subject = this.StorageAppItem(document.createElement('div'));
   });
 
   test('when enabled = true', function() {

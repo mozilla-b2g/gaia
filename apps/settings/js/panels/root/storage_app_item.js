@@ -15,9 +15,9 @@ define(function(require) {
                           The element displaying the app storage information
    * @returns {AppStorageItem}
    */
-  function AppStorageItem(elements) {
+  function AppStorageItem(element) {
     this._enabled = false;
-    this._elements = elements;
+    this._element = element;
     this._updateAppFreeSpace = this._updateAppFreeSpace.bind(this);
   }
 
@@ -52,7 +52,7 @@ define(function(require) {
 
     // Application Storage
     _updateAppFreeSpace: function storage_updateAppFreeSpace() {
-      DeviceStorageHelper.showFormatedSize(this._elements.appStorageDesc,
+      DeviceStorageHelper.showFormatedSize(this._element,
         'availableSize', AppStorage.storage.freeSize);
     },
 
@@ -65,7 +65,7 @@ define(function(require) {
     }
   };
 
-  return function ctor_app_storage_item(elements) {
-    return new AppStorageItem(elements);
+  return function ctor_app_storage_item(element) {
+    return new AppStorageItem(element);
   };
 });

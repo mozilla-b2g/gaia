@@ -26,9 +26,8 @@ define(function(require) {
           umsCancelButton: panel.querySelector('.ums-cancel-option'),
           mediaStorageSection: panel.querySelector('.media-storage-section')
         });
-        storageAppItem = StorageAppItem({
-          appStorageDesc: panel.querySelector('.application-storage-desc')
-        });
+        storageAppItem = StorageAppItem(
+          panel.querySelector('.application-storage-desc'));
       },
       onBeforeShow: function rp_onBeforeShow() {
         batteryItem.enabled = true;
