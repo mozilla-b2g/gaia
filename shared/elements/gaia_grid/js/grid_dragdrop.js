@@ -1,4 +1,5 @@
 'use strict';
+/* global GaiaGrid */
 
 (function(exports) {
 
@@ -106,7 +107,8 @@
         clearTimeout(this.rearrangeDelay);
         this.doRearrange.call(this);
       } else {
-        this.gridView.render();
+        this.gridView.render({from: this.icon.detail.index,
+                              to: this.icon.detail.index});
       }
 
       // Save icon state if we need to
@@ -212,9 +214,10 @@
       }
 
       // Insert at the found position
-      if (foundIndex !== this.icon.detail.index) {
+      var myIndex = this.icon.detail.index;
+      if (foundIndex !== myIndex) {
         clearTimeout(this.rearrangeDelay);
-        this.doRearrange = this.rearrange.bind(this, foundIndex);
+        this.doRearrange = this.rearrange.bind(this, myIndex, foundIndex);
         this.rearrangeDelay = setTimeout(this.doRearrange.bind(this),
                                          rearrangeDelay);
       }
@@ -222,23 +225,45 @@
 
     /**
      * Rearranges items in GridView.items
-     * @param {Integer} insertAt The position to insert our icon at.
+     * @param {Integer} sIndex The position of the item to rearrange
+     * @param {Integer} tIndex The position to insert the item at.
      */
-    rearrange: function(tIndex) {
-
-      // We get a reference to the position of this.icon within the items
-      // array. Because placeholders are shifting around while we are dragging,
-      // we can't trust the detail.index attribute. This will be fixed on every
-      // render call though.
-      var sIndex = this.gridView.items.indexOf(this.icon);
-      var toInsert = this.gridView.items.splice(sIndex, 1)[0];
+    rearrange: function(sIndex, tIndex) {
 
       this.rearrangeDelay = null;
       this.dirty = true;
-      this.gridView.items.splice(tIndex, 0, toInsert);
-      this.gridView.render({
-        from: Math.min(tIndex, sIndex)
-      });
+
+      var [from, to] = sIndex < tIndex ? [sIndex, tIndex] : [tIndex, sIndex];
+
+      // Check if we're dragging past a divider - if so, we need to change to
+      // to draw to the next divider, as items won't shift backwards to fill
+      // the space the dragged icon left.
+      var inDivider = false;
+      for (var i = from, iLen = this.gridView.items.length; i < iLen; i++) {
+        var item =  this.gridView.items[i];
+        if (item instanceof GaiaGrid.Divider) {
+          if (inDivider) {
+            to = i;
+            inDivider = false;
+            break;
+          } else {
+            inDivider = true;
+          }
+        }
+        if (!inDivider && i >= to) {
+          break;
+        }
+      }
+      if (inDivider) {
+        to = this.gridView.items.length - 1;
+      }
+
+      // Rearrange items
+      this.gridView.items.splice(tIndex, 0,
+        this.gridView.items.splice(sIndex, 1)[0]);
+      this.gridView.visibilityCalculated = false;
+
+      this.gridView.render({from: from, to: to});
     },
 
     enterEditMode: function() {
