@@ -1,7 +1,7 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/* globals ContactPhotoHelper, Notification, Threads*/
+/* globals ContactPhotoHelper, Notification, Threads, Settings */
 
 (function(exports) {
   'use strict';
@@ -9,6 +9,7 @@
   var rescape = /[.?*+^$[\]\\(){}|-]/g;
   var rparams = /([^?=&]+)(?:=([^&]*))?/g;
   var rnondialablechars = /[^,#+\*\d]/g;
+  var rmail = /[\w-]+@[\w\-]/;
   var downsamplingRefSize = {
     // Estimate average Thumbnail size:
     // 120 X 60 (max pixel) X 3 (full color) / 20 (average jpeg compress ratio)
@@ -265,6 +266,11 @@
       // String comparison starts here
       if (typeof a !== 'string' || typeof b !== 'string') {
         return false;
+      }
+
+      if ((Settings.supportEmailRecipient) && Utils.isEmailAddress(a) &&
+        Utils.isEmailAddress(b)) {
+        return a === b;
       }
 
       if (service && service.normalize) {
@@ -578,15 +584,29 @@
       var carrierSeparator = _('carrier-separator') || ', ';
       var carrier = tel.carrier ? (tel.carrier + carrierSeparator) : '';
       var separator = type || carrier ? (_('thread-separator') || ' | ') : '';
-      var data = {
-        name: title,
-        number: number,
-        type: type,
-        carrier: carrier,
-        separator: separator,
-        nameHTML: '',
-        numberHTML: ''
-      };
+      if(Settings.supportEmailRecipient) {
+        var data = {
+          name: title,
+          number: number,
+          email: number,
+          type: type,
+          carrier: carrier,
+          separator: separator,
+          nameHTML: '',
+          numberHTML: '',
+          emailHTML: ''
+        };
+      } else {
+        var data = {
+          name: title,
+          number: number,
+          type: type,
+          carrier: carrier,
+          separator: separator,
+          nameHTML: '',
+          numberHTML: ''
+        };
+      }
 
       return data;
     },
@@ -604,7 +624,12 @@
         };
       });
     },
-
+    /*
+       TODO: Email Address check.
+     */
+    isEmailAddress: function(email) {
+      return rmail.test(email);
+    },
     /*
       Helper function for removing notifications. It will fetch the notification
       using the current threadId or the parameter if provided, and close them

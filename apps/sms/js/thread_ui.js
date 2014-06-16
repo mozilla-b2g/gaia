@@ -2557,51 +2557,100 @@ var ThreadUI = global.ThreadUI = {
     var last = this.recipientsList.lastElementChild;
     var typed = last && last.textContent.trim();
     var isContact = false;
-    var record, tel, length, number, contact;
-
+    if(Settings.supportEmailRecipient) {
+      var record, length, number, contact, prop;
+    } else {
+      var record, tel, length, number, contact;
+    }
     if (index < 0) {
       index = 0;
     }
 
-    // If there is greater than zero matches,
-    // process the first found contact into
-    // an accepted Recipient.
-    if (contacts && contacts.length) {
-      isInvalid = false;
-      record = contacts[0];
-      length = record.tel.length;
+    if(Settings.supportEmailRecipient) {
+      prop = Utils.isEmailAddress(fValue) ? 'email' : 'tel';
 
-      // Received an exact match with a single tel record
-      if (source.isLookupable && !source.isQuestionable && length === 1) {
-        if (Utils.probablyMatches(record.tel[0].value, fValue)) {
-          isContact = true;
-          number = record.tel[0].value;
-        }
-      } else {
-        // Received an exact match that may have multiple tel records
-        for (var i = 0; i < length; i++) {
-          tel = record.tel[i];
-          if (this.recipients.numbers.indexOf(tel.value) === -1) {
-            number = tel.value;
-            break;
+      // If there is greater than zero matches,
+      // process the first found contact into
+      // an accepted Recipient.
+      if (contacts && contacts.length) {
+        isInvalid = false;
+        record = contacts[0];
+        length = record[prop].length;
+
+        // Received an exact match with a single tel record
+        if (source.isLookupable && !source.isQuestionable && length === 1) {
+          if (Utils.probablyMatches(record[prop][0].value, fValue)) {
+            isContact = true;
+            number = record[prop][0].value;
+          }
+        } else {
+          // Received an exact match that may have multiple tel records
+          for (var i = 0; i < length; i++) {
+            if (this.recipients.numbers.indexOf(record[prop][i].value) === -1) {
+              number = record[prop][i].value;
+              break;
+            }
+          }
+
+          // If number is not undefined, then it's safe to assume
+          // that this number is unique to the recipient list and
+          // can be added as an accepted recipient from the user's
+          // known contacts.
+          //
+          // It _IS_ possible for this to appear to be a duplicate
+          // of an existing accepted recipient: by display name ONLY;
+          // however this case will always have a different number.
+          //
+          if (typeof number !== 'undefined') {
+            isContact = true;
+          } else {
+            // If no number match could be made, then this
+            // contact record is actually inValid.
+            isInvalid = true;
           }
         }
+      }
+    } else {
+      // If there is greater than zero matches,
+      // process the first found contact into
+      // an accepted Recipient.
+      if (contacts && contacts.length) {
+        isInvalid = false;
+        record = contacts[0];
+        length = record.tel.length;
 
-        // If number is not undefined, then it's safe to assume
-        // that this number is unique to the recipient list and
-        // can be added as an accepted recipient from the user's
-        // known contacts.
-        //
-        // It _IS_ possible for this to appear to be a duplicate
-        // of an existing accepted recipient: by display name ONLY;
-        // however this case will always have a different number.
-        //
-        if (typeof number !== 'undefined') {
-          isContact = true;
+        // Received an exact match with a single tel record
+        if (source.isLookupable && !source.isQuestionable && length === 1) {
+          if (Utils.probablyMatches(record.tel[0].value, fValue)) {
+            isContact = true;
+            number = record.tel[0].value;
+          }
         } else {
-          // If no number match could be made, then this
-          // contact record is actually inValid.
-          isInvalid = true;
+          // Received an exact match that may have multiple tel records
+          for (var i = 0; i < length; i++) {
+            tel = record.tel[i];
+            if (this.recipients.numbers.indexOf(tel.value) === -1) {
+              number = tel.value;
+              break;
+            }
+          }
+
+          // If number is not undefined, then it's safe to assume
+          // that this number is unique to the recipient list and
+          // can be added as an accepted recipient from the user's
+          // known contacts.
+          //
+          // It _IS_ possible for this to appear to be a duplicate
+          // of an existing accepted recipient: by display name ONLY;
+          // however this case will always have a different number.
+          //
+          if (typeof number !== 'undefined') {
+            isContact = true;
+          } else {
+            // If no number match could be made, then this
+            // contact record is actually inValid.
+            isInvalid = true;
+          }
         }
       }
     }

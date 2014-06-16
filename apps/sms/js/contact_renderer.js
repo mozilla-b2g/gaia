@@ -1,4 +1,4 @@
-/*global Template, Utils */
+/*global Template, Utils, Settings */
 
 'use strict';
 
@@ -169,96 +169,199 @@ ContactRenderer.prototype = {
     if (!contact) {
       return false;
     }
-
-    // don't render if there is no phone number
-    // TODO: Add email checking support for MMS
-    if (!contact.tel || !contact.tel.length) {
-      return false;
-    }
-
-    // We search on the escaped HTML via a regular expression
-    var escaped = Utils.escapeRegex(Template.escape(input));
-    var escsubs = escaped.split(/\s+/);
-    // Build a list of regexes used for highlighting suggestions
-    var regexps = {
-      name: escsubs.map(function(k) {
-        // String matches occur on the beginning of a "word" to
-        // maintain parity with the contact search algorithm which
-        // only considers left aligned exact matches on words
-        return new RegExp('^' + k, 'gi');
-      }),
-      number: escsubs.map(function(k) {
-        // Match any of the search terms with the number
-        return new RegExp(k, 'ig');
-      })
-    };
-
-    var include = renderPhoto ? { photoURL: true } : null;
-    var tels = contact.tel;
-    var details = Utils.getContactDetails(tels[0].value, contact, include);
-
-    var tempDiv = document.createElement('div');
-
-    tels.forEach(function(current) {
-      // Only render a contact's tel value entry for the _specified_
-      // input value when not rendering all values. If the tel
-      // record value _doesn't_ match, then continue.
-      //
-      if (!renderAll && !Utils.probablyMatches(current.value, input)) {
-        return;
+    if(Settings.supportEmailRecipient) {
+      // don't render if there is no phone number
+      // TODO: Add email checking support for MMS
+      if ((!contact.tel || !contact.tel.length) &&
+          (!contact.email || !contact.email.length)) {
+        return false;
       }
 
-      // If rendering for contact search result suggestions, don't
-      // render contact tel records for values that are already
-      // selected as recipients. This comparison should be safe,
-      // as the value in this.recipients.numbers comes from the same
-      // source that current.value comes from.
-      if (renderAll && skip.indexOf(current.value) > -1) {
-        return;
+      // We search on the escaped HTML via a regular expression
+      var escaped = Utils.escapeRegex(Template.escape(input));
+      var escsubs = escaped.split(/\s+/);
+      // Build a list of regexes used for highlighting suggestions
+      var regexps = {
+        name: escsubs.map(function(k) {
+          // String matches occur on the beginning of a "word" to
+          // maintain parity with the contact search algorithm which
+          // only considers left aligned exact matches on words
+          return new RegExp('^' + k, 'gi');
+        }),
+        number: escsubs.map(function(k) {
+          // Match any of the search terms with the number
+          return new RegExp(k, 'ig');
+        }),
+        email: escsubs.map(function(k) {
+          // Match any of the search terms with the number
+          return new RegExp('^' + k, 'gi');
+        })
+      };
+
+      var include = renderPhoto ? { photoURL: true } : null;
+      var addresses = [];
+
+      if (contact.tel && contact.tel.length) {
+        addresses = addresses.concat(contact.tel);
       }
+      if (contact.email && contact.email.length) {
+        addresses = addresses.concat(contact.email);
+      }
+      var details = Utils.getContactDetails(
+        addresses[0].value, contact, include
+      );
 
-      var data = Utils.getDisplayObject(details.title, current);
+      var tempDiv = document.createElement('div');
 
-      ['name', 'number'].forEach(function(key) {
-        var escapedData = Template.escape(data[key]);
-        if (shouldHighlight) {
-          escapedData = highlight(escapedData, regexps[key]);
+      addresses.forEach(function(current) {
+        // Only render a contact's tel value entry for the _specified_
+        // input value when not rendering all values. If the tel
+        // record value _doesn't_ match, then continue.
+        //
+        if (!renderAll && !Utils.probablyMatches(current.value, input)) {
+          return;
         }
 
-        data[key + 'HTML'] = escapedData;
-      });
+        // If rendering for contact search result suggestions, don't
+        // render contact tel records for values that are already
+        // selected as recipients. This comparison should be safe,
+        // as the value in this.recipients.numbers comes from the same
+        // source that current.value comes from.
+        if (renderAll && skip.indexOf(current.value) > -1) {
+          return;
+        }
 
-      // Render contact photo only for specific flavor
-      if (renderPhoto && details.photoURL) {
-        data.photoHTML = this.templates.photo.interpolate({
-          photoURL: details.photoURL
+        var data = Utils.getDisplayObject(details.title, current);
+
+        ['name', 'number', 'email'].forEach(function(key) {
+          var escapedData = Template.escape(data[key]);
+          if (shouldHighlight) {
+            escapedData = highlight(escapedData, regexps[key]);
+          }
+
+          data[key + 'HTML'] = escapedData;
         });
-        Utils.asyncLoadRevokeURL(details.photoURL);
-      } else {
-        data.photoHTML = '';
+
+        // Render contact photo only for specific flavor
+        if (renderPhoto && details.photoURL) {
+          data.photoHTML = this.templates.photo.interpolate({
+            photoURL: details.photoURL
+          });
+          Utils.asyncLoadRevokeURL(details.photoURL);
+        } else {
+          data.photoHTML = '';
+        }
+
+        // Interpolate HTML template with data and inject.
+        // Known "safe" HTML values will not be re-sanitized.
+        tempDiv.innerHTML = this.templates.main.interpolate(data, {
+          safe: ['nameHTML', 'numberHTML', 'srcAttr', 'photoHTML']
+        });
+
+        var element = tempDiv.firstElementChild;
+        var blockParent = element.querySelector(parentSelector);
+
+        if (blockParent) {
+          blockParent.appendChild(block);
+        }
+
+        // scan for translatable stuff
+        navigator.mozL10n.translate(element);
+
+        target.appendChild(element);
+
+        tempDiv.textContent = '';
+      }, this);
+    } else {
+      // don't render if there is no phone number
+      // TODO: Add email checking support for MMS
+      if (!contact.tel || !contact.tel.length) {
+        return false;
       }
 
-      // Interpolate HTML template with data and inject.
-      // Known "safe" HTML values will not be re-sanitized.
-      tempDiv.innerHTML = this.templates.main.interpolate(data, {
-        safe: ['nameHTML', 'numberHTML', 'srcAttr', 'photoHTML']
-      });
+      // We search on the escaped HTML via a regular expression
+      var escaped = Utils.escapeRegex(Template.escape(input));
+      var escsubs = escaped.split(/\s+/);
+      // Build a list of regexes used for highlighting suggestions
+      var regexps = {
+        name: escsubs.map(function(k) {
+          // String matches occur on the beginning of a "word" to
+          // maintain parity with the contact search algorithm which
+          // only considers left aligned exact matches on words
+          return new RegExp('^' + k, 'gi');
+        }),
+        number: escsubs.map(function(k) {
+          // Match any of the search terms with the number
+          return new RegExp(k, 'ig');
+        })
+      };
 
-      var element = tempDiv.firstElementChild;
-      var blockParent = element.querySelector(parentSelector);
+      var include = renderPhoto ? { photoURL: true } : null;
+      var tels = contact.tel;
+      var details = Utils.getContactDetails(tels[0].value, contact, include);
 
-      if (blockParent) {
-        blockParent.appendChild(block);
-      }
+      var tempDiv = document.createElement('div');
 
-      // scan for translatable stuff
-      navigator.mozL10n.translate(element);
+      tels.forEach(function(current) {
+        // Only render a contact's tel value entry for the _specified_
+        // input value when not rendering all values. If the tel
+        // record value _doesn't_ match, then continue.
+        //
+        if (!renderAll && !Utils.probablyMatches(current.value, input)) {
+          return;
+        }
 
-      target.appendChild(element);
+        // If rendering for contact search result suggestions, don't
+        // render contact tel records for values that are already
+        // selected as recipients. This comparison should be safe,
+        // as the value in this.recipients.numbers comes from the same
+        // source that current.value comes from.
+        if (renderAll && skip.indexOf(current.value) > -1) {
+          return;
+        }
 
-      tempDiv.textContent = '';
-    }, this);
+        var data = Utils.getDisplayObject(details.title, current);
 
+        ['name', 'number'].forEach(function(key) {
+          var escapedData = Template.escape(data[key]);
+          if (shouldHighlight) {
+            escapedData = highlight(escapedData, regexps[key]);
+          }
+
+          data[key + 'HTML'] = escapedData;
+        });
+
+        // Render contact photo only for specific flavor
+        if (renderPhoto && details.photoURL) {
+          data.photoHTML = this.templates.photo.interpolate({
+            photoURL: details.photoURL
+          });
+          Utils.asyncLoadRevokeURL(details.photoURL);
+        } else {
+          data.photoHTML = '';
+        }
+
+        // Interpolate HTML template with data and inject.
+        // Known "safe" HTML values will not be re-sanitized.
+        tempDiv.innerHTML = this.templates.main.interpolate(data, {
+          safe: ['nameHTML', 'numberHTML', 'srcAttr', 'photoHTML']
+        });
+
+        var element = tempDiv.firstElementChild;
+        var blockParent = element.querySelector(parentSelector);
+
+        if (blockParent) {
+          blockParent.appendChild(block);
+        }
+
+        // scan for translatable stuff
+        navigator.mozL10n.translate(element);
+
+        target.appendChild(element);
+
+        tempDiv.textContent = '';
+      }, this);
+    }
     return true;
   }
 };
