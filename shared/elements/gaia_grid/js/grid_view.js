@@ -174,24 +174,21 @@
         removed.remove();
       }, this);
 
-      // There should always be a divider at the end, it's hidden in CSS when
-      // not in edit mode.
       if (skipDivider) {
-        return;
-      }
-      var lastItem = this.items[this.items.length - 1];
-      if (!(lastItem instanceof GaiaGrid.Divider)) {
-        this.items.push(new GaiaGrid.Divider());
+        return null;
       }
 
-      // In dragdrop also append a row of placeholders.
-      // These placeholders are used for drop detection as we ignore dividers
-      // and will create a new group when an icon is dropped on them.
-      if (this.dragdrop && this.dragdrop.inEditMode) {
-        var coords = [0, lastItem.y + 2];
-        this.createPlaceholders(coords, this.items.length, this.layout.cols,
-          true);
+      // There should always be a divider at the end, it's hidden in CSS when
+      // not in edit mode.
+      // Recreate it each time to make sure it's the last element in the DOM,
+      // otherwise the CSS won't apply.
+      if (this.items[this.items.length - 1] instanceof GaiaGrid.Divider) {
+        this.items.splice(this.items.length - 1,1)[0].remove();
       }
+      var lastItem = new GaiaGrid.Divider();
+      this.items.push(lastItem);
+
+      return lastItem;
     },
 
     /**
@@ -250,25 +247,52 @@
      * on the grid.
      * @param {Object} options Options to render with including:
      *  - from {Integer} The index to start rendering from.
+     *  - to {Integer} The index to end rendering at.
      *  - skipDivider {Boolean} Whether or not to skip the divider
+     *  - skipItems {Boolean} Whether to skip rendering items
      */
     render: function(options) {
       var self = this;
       options = options || {};
 
+      // Bounds-check the 'from' and 'to' parameters.
+      var from =
+        Math.max(0, Math.min(this.items.length - 1, options.from || 0));
+      var to =
+        Math.max(0, Math.min(this.items.length - 1,
+          (options.to === 0) ? 0 : options.to || this.items.length - 1));
+      if (to < from) {
+        to = from;
+      }
+
+
+      // Store the from and to indices as items, as removing placeholders/
+      // cleaning will alter indexes.
+      // If either of these items are placeholders/dividers, seek outwards to
+      // the nearest non-placeholder/non-divider, as these items may end up
+      // being removed.
+      var fromItem, toItem;
+      for (; from >= 0; from--) {
+        fromItem = this.items[from];
+        if (!(fromItem instanceof GaiaGrid.Divider) &&
+            !(fromItem instanceof GaiaGrid.Placeholder)) {
+          break;
+        }
+      }
+      for (; to < this.items.length; to++) {
+        toItem = this.items[to];
+        if (!(toItem instanceof GaiaGrid.Divider) &&
+            !(toItem instanceof GaiaGrid.Placeholder)) {
+          break;
+        }
+      }
+
       this.removeAllPlaceholders();
-      this.cleanItems(options.skipDivider);
+      var lastDivider = this.cleanItems(options.skipDivider);
 
-      // Start rendering from one before the drop target. If not,
-      // we may drop over the divider and miss rendering an icon.
-      var from = options.from - 1 || 0;
-
-      // TODO This variable should be an argument of this method. See
-      // https://bugzilla.mozilla.org/show_bug.cgi?id=1010742#c4
-      var to = this.items.length - 1;
-
-      // Reset offset steps
-      this.layout.offsetY = 0;
+      // Reset the from/to indexes until we find it again when iterating over
+      // items below.
+      from = to = this.items.length - 1;
 
       // Grid render coordinates
       var x = 0;
@@ -285,7 +309,12 @@
         y++;
       }
 
-      for (var idx = 0; idx <= to; idx++) {
+      // Reset offset steps
+      this.layout.offsetY = 0;
+
+      // We have to iterate the whole list to make sure placeholders are
+      // correctly setup.
+      for (var idx = 0; idx < this.items.length; idx++) {
         var item = this.items[idx];
 
         // If the item would go over the boundary before rendering,
@@ -308,9 +337,30 @@
           step(lastItem);
         }
 
-        if (idx >= from) {
+        if (item == fromItem) {
+          from = idx;
+        }
+        if (item == toItem) {
+          to = idx;
+        }
+
+        // Always render the last divider to make sure its position is correct
+        if (item == lastDivider && !options.skipDivider) {
+          item.render([x, y], idx);
+
+          // In dragdrop, append a row of placeholders after the last divider.
+          // These placeholders are used for drop detection as we ignore
+          // dividers and will create a new group when an icon is dropped on
+          // them.
+          if (this.dragdrop && this.dragdrop.inEditMode) {
+            var coords = [0, lastDivider.y + 1];
+            this.createPlaceholders(coords, this.items.length, this.layout.cols,
+              true);
+          }
+        } else if (!options.skipItems && idx >= from && idx <= to) {
           item.render([x, y], idx);
         }
+
 
         // Increment the x-step by the sizing of the item.
         // If we go over the current boundary, reset it, and step the y-axis.
