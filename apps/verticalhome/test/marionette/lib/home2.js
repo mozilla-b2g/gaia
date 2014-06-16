@@ -87,6 +87,11 @@ Home2.prototype = {
     });
   },
 
+  focusRocketBar: function() {
+    this.client.helper.waitForElement(Home2.Selectors.search).tap();
+    this.client.switchToFrame();
+  },
+
   /**
   Tap an app icon and switch to it's application iframe.
 

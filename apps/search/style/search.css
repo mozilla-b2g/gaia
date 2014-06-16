@@ -20,6 +20,7 @@ section.suggestions {
 
 section.suggestions ul {
   list-style: none;
+  color: #00AACC;
   white-space: nowrap;
   overflow-x: scroll;
   padding-left: 0;
@@ -35,6 +36,7 @@ section.suggestions ul li {
 section.suggestions ul li+li:before {
   content: "\2022";
   padding-right: 0.7rem;
+  color: #666;
 }
 
 section.suggestions ul li:first-child {
