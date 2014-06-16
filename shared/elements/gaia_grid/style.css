@@ -31,6 +31,10 @@
   z-index: 3;
 }
 
+.icon.launching {
+  opacity: .65;
+}
+
 .icon p {
   pointer-events: none;
   height: 3.2rem;
@@ -44,7 +48,7 @@
   /* Space between icon and title .1rem + .2rem = .3rem as spec says */
   margin-top: .1rem;
   /* We need this rule in order not to hide the drop shadow */
-  padding: 0.2rem 1rem 1rem;
+  padding: 0.2rem 0.2rem 1rem;
   text-shadow: 0.1rem 0.1rem 0.3rem rgba(0, 0, 0, 0.3),
                0.2rem 0.4rem 1rem rgba(0, 0, 0, 0.4);
   font-size: 1.4rem;
@@ -52,8 +56,13 @@
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
-  max-width: 100%;
+  width: calc(100% - 0.4rem);
   box-sizing: border-box;
+}
+
+[cols="4"] .icon .title {
+  /* Font size is the same independent on grid configuration */
+  font-size: calc(1.2rem * 1.333);
 }
 
 .divider {
@@ -109,5 +118,8 @@
 .edit-mode .icon.bookmark .title {
   background-color: rgba(132, 132, 132, 0.7);
   border-radius: 2rem;
-  padding-bottom: .2rem;
+  margin-top: .4rem;
+  padding: 0 1rem;
+  width: auto;
+  max-width: 100%;
 }

@@ -127,31 +127,14 @@ tasks.push(function testWrongKeyword() {
   });
 });
 
-// Test task #2: wrong rules (manifestURLs doesn't match).
-tasks.push(function testWrongRulesManifestURLs() {
-  var rules = {
-    manifestURLs: ["app://test-iac-foo.gaiamobile.org/manifest.webapp"]
-  };
-
-  connectToGetPorts("test", rules, function(accepted, result) {
-    if (accepted) {
-      updateReceivedMsg("receivedStrMsg", "Error! Should reject to connect " +
-                        "because rules.manifestURLs doesn't match.");
-      tasks.finish();
-      return;
-    }
-
-    tasks.next();
-  });
-});
+// Test task #2: wrong rules.
+// TODO Bug 907068 Create a scenario with mismatched rules (minimumAccessLevel,
+// installOrigins) once IAC is allowed to non-certified apps. There's no such
+// scenario for certified apps.
 
 // Test task #3: correct rules.
 tasks.push(function testCorrectRules() {
-  var rules = {
-    manifestURLs: ["app://test-iac-subscriber.gaiamobile.org/manifest.webapp"]
-  };
-
-  connectToGetPorts("test", rules, function(accepted, result) {
+  connectToGetPorts("test", null, function(accepted, result) {
     if (!accepted) {
       updateReceivedMsg("receivedStrMsg", "Error! Should succeed to connect.");
       tasks.finish();
@@ -182,11 +165,7 @@ tasks.push(function testCorrectRules() {
 
 //Test task #4: correct rules (with blob).
 tasks.push(function testCorrectRulesWithBlob() {
-  var rules = {
-    manifestURLs: ["app://test-iac-subscriber.gaiamobile.org/manifest.webapp"]
-  };
-
-  connectToGetPorts("test", rules, function(accepted, result) {
+  connectToGetPorts("test", null, function(accepted, result) {
     if (!accepted) {
       updateReceivedMsg("receivedBlobMsg", "Error! Should succeed to connect.");
       tasks.finish();

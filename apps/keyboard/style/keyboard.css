@@ -470,7 +470,7 @@ bubble above the key when you tap and hold. */
   text-align: center;
   line-height: 2.8rem;
   background: transparent url('images/divider.png') right center no-repeat;
-  background-size: auto 10rem;
+  background-size: auto 4rem;
   border: none;
 }
 

@@ -1,11 +1,8 @@
-body {
-  background: #000000;
-}
 gaia-grid {
   display: block;
-  height: 100%;
   width: 100%;
 }
+
 #header {
   height: 5.4rem;
   line-height: 5.4rem;
@@ -15,6 +12,7 @@ gaia-grid {
   background-position: center -2.4rem; /* to continue wallpaper position from status bar */
   position: relative;
 }
+
 #header:after {
   position: absolute;
   content: ' ';
@@ -25,6 +23,7 @@ gaia-grid {
   right: 0;
   bottom: 0;
 }
+
 #name {
   margin-right: 1rem;
   padding-left: 3rem;
@@ -37,6 +36,7 @@ gaia-grid {
   text-overflow: '';
   -moz-box-sizing: border-box;
 }
+
 #close {
   position: absolute;
   background: transparent url('../images/close.png') no-repeat 50% 50%/1.7rem;
@@ -46,6 +46,7 @@ gaia-grid {
   height: 5.4rem;
   z-index: 1;
 }
+
 #content {
   border-top: 0.1rem solid #555;
   position: fixed;
@@ -58,13 +59,54 @@ gaia-grid {
   background-color: #000000;
   background-size: cover;
 }
+
 #content:after {
   position: fixed;
-  top: 5.4rem;
+  top: 5.5rem; /* making sure not to overlay the top border */
   left: 0;
   width: 100%;
   height: 100%;
   z-index: 0;
   content: " ";
   background-color: rgba(0,0,0,0.4);
+}
+/* making sure content elements don't get overlayed by #content:after */
+#content > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Notifications */
+#content {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+section[role="notification"] {
+  flex: 1 1 auto;
+  align-items: center;
+  color: #fff;
+  font-size: 1.6rem;
+  line-height: 1.8rem;
+  text-align: center;
+  justify-content: center;
+  display: none;
+}
+
+section[role="notification"]#offline {
+  padding: 1.2rem 5rem;
+}
+
+/* Prevent unnecessary cpu usage (bug 922341) */
+section[role="notification"] progress {
+  display: none;
+}
+
+body[data-loading="true"] section[role="notification"] progress {
+  display: inline-block;
+}
+section[role="notification"].show,
+body[data-loading="true"] #content section[role="notification"]#loading{
+  display: flex;
 }

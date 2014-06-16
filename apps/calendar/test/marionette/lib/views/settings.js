@@ -35,11 +35,10 @@ Settings.prototype = {
   toggleCalendar: function(name) {
     name = name || 'Offline calendar';
     this
-      .findElements('.calendars .name')
+      .findElements('.pack-checkbox')
       .filter(function(element) {
         return element.text() === name;
       })[0]
-      .findElement('.pack-checkbox')
       .click();
   }
 };

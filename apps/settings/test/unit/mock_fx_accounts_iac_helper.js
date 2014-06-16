@@ -15,6 +15,10 @@ var MockFxAccountsIACHelper = (function() {
     cb(currentState);
   }
 
+  function resendVerificationEmail(email, cb) {
+    cb();
+  }
+
   function resetListeners() {
     listeners.onlogin = [];
     listeners.onverifiedlogin = [];
@@ -59,6 +63,7 @@ var MockFxAccountsIACHelper = (function() {
 
   return {
     getAccounts: getAccounts,
+    resendVerificationEmail: resendVerificationEmail,
     setCurrentState: setCurrentState,
     getCurrentState: getCurrentState,
     addEventListener: addEventListener,

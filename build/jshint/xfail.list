@@ -258,7 +258,6 @@ apps/keyboard/js/imes/latin/latin.js
 apps/keyboard/js/imes/latin/predictions.js
 apps/keyboard/js/imes/latin/worker.js
 apps/keyboard/js/keyboard.js
-apps/keyboard/js/layout.js
 apps/keyboard/js/render.js
 apps/keyboard/js/settings/settings.js
 apps/keyboard/test/unit/jspinyin_test.js
@@ -285,7 +284,6 @@ apps/settings/js/carrier.js
 apps/settings/js/carrier_iccs.js
 apps/settings/js/connectivity.js
 apps/settings/js/date_time.js
-apps/settings/js/display.js
 apps/settings/js/downloads/download_api_manager.js
 apps/settings/js/downloads/download_item.js
 apps/settings/js/downloads/downloads_list.js
@@ -546,7 +544,6 @@ shared/js/media/remote_controls.js
 shared/js/media/video_player.js
 shared/js/media/video_stats.js
 shared/js/mediadb.js
-shared/js/omadrm/fl.js
 shared/js/operator_variant_helper.js
 shared/js/simple_phone_matcher.js
 shared/js/tag_visibility_monitor.js

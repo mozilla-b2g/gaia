@@ -44,11 +44,12 @@ CameraController.prototype.bindEvents = function() {
   // Relaying camera events means other modules
   // don't have to depend directly on camera
   camera.on('change:videoElapsed', app.firer('camera:recorderTimeUpdate'));
+  camera.on('autofocuschanged', app.firer('camera:autofocuschanged'));
   camera.on('focusconfigured',  app.firer('camera:focusconfigured'));
   camera.on('change:focus', app.firer('camera:focusstatechanged'));
-  camera.on('facesdetected', app.firer('camera:facesdetected'));
   camera.on('filesizelimitreached', this.onFileSizeLimitReached);
-  camera.on('takingpicture', app.firer('camera:takingpicture'));
+  camera.on('facesdetected', app.firer('camera:facesdetected'));
+  camera.on('willrecord', app.firer('camera:willrecord'));
   camera.on('change:recording', app.setter('recording'));
   camera.on('newcamera', app.firer('camera:newcamera'));
   camera.on('newimage', app.firer('camera:newimage'));
@@ -58,11 +59,11 @@ CameraController.prototype.bindEvents = function() {
   camera.on('loaded', app.firer('camera:loaded'));
   camera.on('ready', app.firer('camera:ready'));
   camera.on('busy', app.firer('camera:busy'));
-  camera.on('willrecord', app.firer('camera:willrecord'));
 
   // App
   app.on('viewfinder:focuspointchanged', this.onFocusPointChanged);
   app.on('previewgallery:opened', this.onPreviewGalleryOpened);
+  app.on('previewgallery:closed', this.onPreviewGalleryClosed);
   app.on('change:batteryStatus', this.onBatteryStatusChange);
   app.on('settings:configured', this.onSettingsConfigured);
   app.on('storage:changed', this.onStorageChanged);
@@ -340,11 +341,20 @@ CameraController.prototype.onStorageChanged = function(state) {
 };
 
 /**
- * Resets the camera zoom when the preview gallery
+ * Resets the camera zoom and stops focus when the preview gallery
  * is opened.
  */
 CameraController.prototype.onPreviewGalleryOpened = function() {
   this.camera.configureZoom(this.camera.previewSize());
+  this.camera.stopFocus();
+};
+
+/**
+ * Resumes focus when the preview gallery
+ * is opened.
+ */
+CameraController.prototype.onPreviewGalleryClosed = function() {
+  this.camera.resumeFocus();
 };
 
 /**

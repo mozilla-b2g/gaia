@@ -51,15 +51,6 @@ marionette('toggle calendar', function() {
       test('month view', function() {
         var event = app.monthDay.events[0];
         waitForEventToDisappear(event);
-        // we cannot hide hour since there might be other events from different
-        // calendars that happens at same time (which would also be hidden)
-        // this behavior is better than previous one and will be changed after
-        // we implement the visual refresh (it's a good compromise)
-        var hour = event.closestHour;
-        assert(
-          hour.displayed(),
-          'hour should be displayed on month view'
-        );
       });
 
       test('week view', function() {
@@ -67,8 +58,7 @@ marionette('toggle calendar', function() {
         waitForEventToDisappear(app.week.events[0]);
       });
 
-      // Disabled bug 1007519
-      test.skip('day view', function() {
+      test('day view', function() {
         app.openDayView();
         var event = app.day.events[0];
         waitForEventToDisappear(event);

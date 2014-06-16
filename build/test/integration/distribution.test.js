@@ -91,7 +91,7 @@ suite('Distribution mechanism', function() {
         'keyboard_settings':'/resources/keyboard-88cf36fbc274369ce1c2bea24dffce3017cc6f69.json',
         'network_type':'/resources/mobizilla_network_type.json',
         'known_networks':'/resources/mobizilla_known_networks.json',
-        'nfc':'/resources/mobizilla_nfc.json',
+        'nfc':'/resources/nfc-93c047a6d0389e755cacdbd6bb0986fff0576aee.json',
         'sms':'/resources/mobizilla_sms.json',
         'ringtone':'/resources/ringtone-8261e854cb494bf7f3a2a25510e595931244292a.json',
         'power':'/resources/power-0ccc24f04b44aaadc8962735b5f86eabc5bb71e6.json',
@@ -119,8 +119,8 @@ suite('Distribution mechanism', function() {
       path.join(cusDir, 'mobizilla', 'mobizilla_network_type.json'));
     helper.checkFileInZip(zipPath, 'resources/mobizilla_known_networks.json',
       path.join(cusDir, 'mobizilla', 'mobizilla_known_networks.json'));
-    helper.checkFileInZip(zipPath, 'resources/mobizilla_nfc.json',
-      path.join(cusDir, 'mobizilla', 'mobizilla_nfc.json'));
+    helper.checkFileInZip(zipPath, 'resources/nfc-93c047a6d0389e755cacdbd6bb0986fff0576aee.json',
+      path.join(cusDir, 'mobizilla', 'mobizilla_expected_nfc.json'));
     helper.checkFileInZip(zipPath, 'resources/mobizilla_sms.json',
       path.join(cusDir, 'mobizilla', 'mobizilla_sms.json'));
     helper.checkFileInZip(zipPath, 'resources/ringtone-8261e854cb494bf7f3a2a25510e595931244292a.json',

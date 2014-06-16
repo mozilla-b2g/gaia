@@ -10,16 +10,51 @@
     this.scrollable = document.querySelector('.scrollable');
     this.grid = document.getElementById('icons');
 
+    this.grid.addEventListener('gaiagrid-iconblobload', this);
+    this.grid.addEventListener('gaiagrid-iconbloberror', this);
     window.addEventListener('hashchange', this);
     window.addEventListener('gaiagrid-saveitems', this);
+    window.addEventListener('online', this.retryFailedIcons.bind(this));
 
     var editModeDone = document.getElementById('exit-edit-mode');
     editModeDone.addEventListener('click', this.exitEditMode);
+
+    // some terrible glue to keep track of which icons failed to download
+    // and should be retried when/if we come online again.
+    this._iconsToRetry = [];
   }
 
   App.prototype = {
 
     HIDDEN_ROLES: HIDDEN_ROLES,
+
+    /**
+     * Showing the correct icon is ideal but sometimes not possible if the
+     * network is down (or some other random reason we could not fetch at the
+     * time of installing the icon on the homescreen) so this function handles
+     * triggering the retries of those icon displays.
+     */
+    retryFailedIcons: function() {
+      if (!this._iconsToRetry.length) {
+        return;
+      }
+
+      var icons = this.grid.getIcons();
+      var iconId;
+
+      // shift off items so we don't rerun them if we go online/offline quicky.
+      while ((iconId = this._iconsToRetry.shift())) {
+        var icon = icons[iconId];
+        // icons may be removed so just continue on if they are now missing
+        if (!icon) {
+          continue;
+        }
+
+        // attempt to re-render the icon which also fetches it. If this fails it
+        // will trigger another failure event and eventually end up here again.
+        icon.renderIcon();
+      }
+    },
 
     /**
      * Fetch all icons and render them.
@@ -50,6 +85,7 @@
      */
     onLocalized: function() {
       var items = this.grid.getItems();
+      var titles = [];
       items.forEach(function eachItem(item) {
         if(!item.name) {
           return;
@@ -59,6 +95,18 @@
         // the app. We just need to get it and set the content.
         var element = item.element.querySelector('.title');
         element.textContent = item.name;
+
+        // Bug 1022866 - Workaround for projected content nodes disappearing
+        // We need to hide and 'flash' the the element style.
+        element.style.display = 'none';
+
+        titles.push(element);
+      });
+
+      // Bug 1022866 - Recover from workaround, display titles afer a reflow.
+      document.body.clientTop;
+      titles.forEach(function eachItem(title) {
+        title.style.display = '';
       });
     },
 
@@ -76,6 +124,26 @@
      */
     handleEvent: function(e) {
       switch(e.type) {
+        case 'gaiagrid-iconblobload':
+          var item = e.detail;
+
+          // do not attempt to cache the app:// protocol icons
+          if (item.icon.startsWith('app://')) {
+            return;
+          }
+
+          // XXX: sad naming... e.detail is a gaia grid GridItem interface.
+          this.itemStore.saveItem(item.detail, () => {
+            // test prefix to indicate this is used for testing only.
+            item.element.classList.add('test-icon-cached');
+          });
+          break;
+
+        case 'gaiagrid-iconbloberror':
+          // Attempt to redownload this icon at some point in the future
+          this._iconsToRetry.push(e.detail.identifier);
+          break;
+
         case 'gaiagrid-saveitems':
           this.itemStore.save(this.grid.getItems());
           break;

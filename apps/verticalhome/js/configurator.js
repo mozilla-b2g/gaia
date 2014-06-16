@@ -24,12 +24,12 @@ var configurator = (function() {
   function loadFile(file, success, error) {
     try {
       var xhr = new XMLHttpRequest();
-      xhr.overrideMimeType('application/json');
       xhr.open('GET', file, true);
+      xhr.responseType = 'json';
 
       xhr.onload = function _xhrOnLoadFile(evt) {
         try {
-          success(JSON.parse(xhr.responseText));
+          success(xhr.response);
         } catch (e) {
           error && error(e);
         }
@@ -103,6 +103,8 @@ var configurator = (function() {
           loadedData[mcc_mnc].forEach(function(app) {
             if (app.manifestURL) {
               singleVariantApps[app.manifestURL] = app;
+            } else if (app.id) {
+              singleVariantApps[app.id] = app;
             }
           });
         } else {
@@ -184,6 +186,8 @@ var configurator = (function() {
   };
 
   function load() {
+    conf = {};
+    gaiaGridLayoutReady = false;
     window.addEventListener('gaiagrid-layout-ready', globalHandleEvent);
     loadFile('js/init.json', onLoadInitJSON, onErrorInitJSON);
   }

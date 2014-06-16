@@ -67,11 +67,21 @@ suite('system/permission manager', function() {
     permissionManager.stop();
   });
 
+  test('dispatch event when hidden', function() {
+    var dispatched = false;
+    window.addEventListener('permissiondialoghide', function onhide() {
+      window.removeEventListener('permissiondialoghide', onhide);
+      dispatched = true;
+    });
+    permissionManager.hidePermissionPrompt();
+    assert.isTrue(dispatched);
+  });
+
   suite('default value', function() {
     test('default values', function() {
       assert.equal(permissionManager.fullscreenRequest, undefined);
       assert.equal(permissionManager.pending, '');
-      assert.equal(permissionManager.nextRequestID, 0);
+      assert.equal(permissionManager.nextRequestID, null);
       assert.equal(permissionManager.currentRequestId, undefined);
       assert.equal(permissionManager.currentOrigin, undefined);
       assert.equal(permissionManager.permissionType, undefined);
@@ -371,6 +381,10 @@ suite('system/permission manager', function() {
       assert.equal(permissionManager.currentChoices['video-capture'],
         'back');
     });
+
+    test('remember my choice option is checked in app mode', function() {
+      assert.equal(permissionManager.remember.checked, true);
+    });
   });
 
   suite('media capture permission', function() {
@@ -401,6 +415,10 @@ suite('system/permission manager', function() {
 
     test('not show remember my choice option', function() {
       assert.equal(permissionManager.rememberSection.style.display, 'none');
+    });
+
+    test('remember my choice option is unchecked in web mode', function() {
+      assert.equal(permissionManager.remember.checked, false);
     });
   });
 

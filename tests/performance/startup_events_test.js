@@ -13,11 +13,17 @@ var whitelistedApps = [
   'camera',
   'clock',
   'fm',
+  'gallery',
   'settings',
-  'sms'
+  'sms',
+  'communications/dialer'
 ];
 
 var whitelistedUnifiedApps = [
+  'camera',
+  'communications/dialer',
+  'fm',
+  'gallery',
   'settings'
 ];
 
@@ -44,9 +50,9 @@ marionette('startup event test > ' + appPath + ' >', function() {
   // Do nothing on script timeout. Bug 987383
   client.onScriptTimeout = null;
 
-  var lastEvent = contains(whitelistedUnifiedApps, appPath)
-    ? 'moz-app-loaded'
-    : 'startup-path-done';
+  var lastEvent = contains(whitelistedUnifiedApps, appPath) ?
+    'moz-app-loaded' :
+    'startup-path-done';
 
   var app = new App(client, appPath);
   if (app.skip) {

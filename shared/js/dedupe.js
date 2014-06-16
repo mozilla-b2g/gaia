@@ -76,6 +76,9 @@
 
         // Check if we have already rendered the result
         if (strategy == 'exact') {
+          // Strip any querystrings from the URL
+          dedupeId = dedupeId.replace(/(\?.*)/g, '');
+
           if (this.exactResults[dedupeId]) {
             found = true;
           }

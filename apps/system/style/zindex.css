@@ -24,11 +24,15 @@
   z-index: 2147483647;
 }
 
+/* System developer HUD should be above everything */
+#screen > .developer-hud {
+  z-index: 2147483647;
+}
+
 #screen > *[data-z-index-level="poweroff-splash"] {
   z-index: 65536;
 }
 
-#screen > [data-z-index-level="debug-grid"],
 #screen > [data-z-index-level="debug-ttl"] {
   z-index: 65536;
 }
@@ -103,8 +107,12 @@
   z-index: 16384;
 }
 
-/* Level 4: Activity menu, context menu and value selector */
+/* Level 4: Activity menu, context menu, value selector, and permissions */
 #screen > [data-z-index-level="action-menu"] {
+  z-index: 8192;
+}
+
+#screen > [data-z-index-level="permission-screen"] {
   z-index: 8192;
 }
 
@@ -147,11 +155,6 @@
   z-index: 2048 !important;
 }
 
-/* Permission screen is here because of the lockscreen camera. */
-#screen > [data-z-index-level="permission-screen"] {
-  z-index: 2047;
-}
-
 #screen > [data-z-index-level="lockscreen-camera"] {
   z-index: 2046;
 }
@@ -191,6 +194,10 @@
 #screen > [data-z-index-level="updates-viaDataConnection-dialog"],
 #screen > [data-z-index-level="emergency-callback-dialog"] {
   z-index: 1024;
+}
+
+#screen > [data-z-index-level="ext-selection-dialog"] {
+  z-index: 10;
 }
 
 /* Level 8 */

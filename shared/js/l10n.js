@@ -294,7 +294,7 @@
       return list.indexOf(n) !== -1;
     }
     function isBetween(n, start, end) {
-      return start <= n && n <= end;
+      return typeof n === typeof start && start <= n && n <= end;
     }
 
     // list of all plural rules methods:
@@ -570,8 +570,6 @@
 
 
 
-  var nestedProps = ['style', 'dataset'];
-
   var parsePatterns;
 
   function parse(ctx, source) {
@@ -659,33 +657,15 @@
 
     var nameElements = name.split('.');
 
+    if (nameElements.length > 2) {
+      throw new Error('Error in ID: "' + name + '".' +
+                      ' Nested attributes are not supported.');
+    }
+
     var attr;
     if (nameElements.length > 1) {
-      var attrElements = [];
-      attrElements.push(nameElements.pop());
-      if (nameElements.length > 1) {
-        // Usually the last dot separates an attribute from an id
-        //
-        // In case when there are more than one dot in the id
-        // and the second to last item is "style" or "dataset" then the last two
-        // items are becoming the attribute.
-        //
-        // ex.
-        // id.style.color = foo =>
-        //
-        // id:
-        //   style.color: foo
-        //
-        // id.other.color = foo =>
-        //
-        // id.other:
-        //   color: foo
-        if (nestedProps.indexOf(nameElements[nameElements.length - 1]) !== -1) {
-          attrElements.push(nameElements.pop());
-        }
-      }
-      name = nameElements.join('.');
-      attr = attrElements.reverse().join('.');
+      name = nameElements[0];
+      attr = nameElements[1];
     } else {
       attr = null;
     }
@@ -1521,13 +1501,13 @@
     for (var key in entity.attributes) {
       if (entity.attributes.hasOwnProperty(key)) {
         var attr = entity.attributes[key];
-        var pos = key.indexOf('.');
-        if (pos !== -1) {
-          element[key.substr(0, pos)][key.substr(pos + 1)] = attr;
-        } else if (key === 'ariaLabel') {
+        if (key === 'ariaLabel') {
           element.setAttribute('aria-label', attr);
+        } else if (key === 'innerHTML') {
+          // XXX: to be removed once bug 994357 lands
+          element.innerHTML = attr;
         } else {
-          element[key] = attr;
+          element.setAttribute(key, attr);
         }
       }
     }

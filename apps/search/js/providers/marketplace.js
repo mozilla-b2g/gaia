@@ -1,4 +1,4 @@
-/* global Search, DataGridProvider, MarketPlaceApp */
+/* global Search, DataGridProvider, GaiaGrid */
 
 (function() {
 
@@ -44,7 +44,7 @@
           var app = results[i];
           formatted.push({
             dedupeId: app.manifest_url,
-            data: new MarketPlaceApp({
+            data: new GaiaGrid.MarketPlaceApp({
               id: app.manifest_url,
               name: navigator.mozL10n.get('install-marketplace-title', {
                 title: app.name

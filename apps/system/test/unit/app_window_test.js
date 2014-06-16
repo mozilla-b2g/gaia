@@ -710,6 +710,18 @@ suite('system/AppWindow', function() {
     assert.equal(stubDispatchEvent.getCall(0).args[0].type, '_I-love-you');
   });
 
+  test('Focus should be delivered to front active window', function() {
+    var app1 = new AppWindow(fakeAppConfig1);
+    var app2 = new AppWindow(fakeAppConfig2);
+    var stubFrontFocus = this.sinon.stub(app2, 'focus');
+    app1.frontWindow = app2;
+    this.sinon.stub(app1, 'isActive').returns(true);
+    this.sinon.stub(app2, 'isActive').returns(true);
+    app1.broadcast('focus');
+
+    assert.isTrue(stubFrontFocus.called);
+  });
+
   test('setFrameBackground', function() {
     ScreenLayout.setDefault({
       tiny: true

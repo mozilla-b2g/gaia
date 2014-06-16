@@ -11,21 +11,23 @@ var FindMyDevice = {
 
   init: function fmd_init() {
     var self = this;
+    var loginButton = document.getElementById('findmydevice-login');
 
     loadJSON('/resources/findmydevice.json', function(data) {
       var api = data.api_url;
 
+      // Note: either onready or onerror will always fire immediately.
       navigator.mozId.watch({
         wantIssuer: 'firefox-accounts',
         audience: api,
         onlogin: self._onChangeLoginState.bind(self, true),
         onlogout: self._onChangeLoginState.bind(self, false),
         onready: function fmd_fxa_onready() {
-          var loginButton = document.getElementById('findmydevice-login');
-          loginButton.addEventListener('click', function() {
-            self._interactiveLogin = true;
-            navigator.mozId.request();
-          });
+          loginButton.addEventListener('click', self._onLoginClick.bind(self));
+        },
+        onerror: function fmd_fxa_onerror(err) {
+          loginButton.addEventListener('click', self._onLoginClick.bind(self));
+          console.error(err);
         }
       });
     });
@@ -35,6 +37,17 @@ var FindMyDevice = {
 
     var checkbox = document.querySelector('#findmydevice-enabled input');
     checkbox.addEventListener('change', this._onCheckboxChanged.bind(this));
+  },
+
+  _onLoginClick: function fmd_on_login_click(e) {
+    e.stopPropagation();
+    e.preventDefault();
+    var _ = navigator.mozL10n.get;
+    if (!window.navigator.onLine) {
+      return window.alert(_('findmydevice-enable-network'));
+    }
+    this._interactiveLogin = true;
+    navigator.mozId.request();
   },
 
   _setEnabled: function fmd_set_enabled(value) {

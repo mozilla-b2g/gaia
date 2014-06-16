@@ -75,6 +75,7 @@ Focus.prototype.configureFocusModes = function() {
   if (this.faceDetection) {
     this.startFaceDetection();
   }
+  this.mozCamera.onAutoFocusMoving = this.onAutoFocusMoving;
 };
 
 Focus.prototype.startFaceDetection = function() {
@@ -85,6 +86,9 @@ Focus.prototype.startFaceDetection = function() {
 };
 
 Focus.prototype.stopFaceDetection = function() {
+  // Clear suspenstion timers
+  clearTimeout(this.faceDetectionSuspended);
+  clearTimeout(this.faceDetectionSuspensionTimer);
   if (this.faceDetection) {
     this.mozCamera.stopFaceDetection();
     this.clearFaceDetection();
@@ -113,6 +117,8 @@ Focus.prototype.suspendFaceDetection = function(ms, delay) {
 
 Focus.prototype.stopContinuousFocus = function() {
   var focusMode = this.mozCamera.focusMode;
+  // Clear suspension timers
+  clearTimeout(this.continuousModeTimer);
   if (focusMode === 'continuous-picture' || focusMode === 'continuous-video') {
     this.mode = focusMode;
     this.mozCamera.focusMode = 'auto';
@@ -128,6 +134,16 @@ Focus.prototype.suspendContinuousFocus = function(ms) {
   clearTimeout(this.continuousModeTimer);
   this.stopContinuousFocus();
   this.continuousModeTimer = setTimeout(this.resumeContinuousFocus, ms);
+};
+
+Focus.prototype.onAutoFocusMoving = function(state) {
+  if (state) {
+    this.onAutoFocusChanged(state);
+  }
+};
+
+Focus.prototype.onAutoFocusChanged = function(state) {
+  // NO OP by default
 };
 
 /**
@@ -262,8 +278,14 @@ Focus.prototype.reset = function() {
   this.mozCamera.setMeteringAreas([]);
 };
 
+Focus.prototype.stop = function() {
+  this.stopContinuousFocus();
+  this.stopFaceDetection();
+};
+
 Focus.prototype.resume = function() {
-  this.suspendContinuousFocus(0);
+  this.resumeContinuousFocus();
+  this.startFaceDetection();
 };
 
 /**

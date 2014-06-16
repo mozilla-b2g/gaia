@@ -131,6 +131,9 @@ body:not(.evme-loading):not(.evme-ready) #collection .evme-apps {
         z-index: 20;
         background: rgba(0, 0, 0, .55);
     }
+    .evmeScope #collection .header button {
+      border: none;
+    }
     .evmeScope #collection .header .close {
         background: transparent url('/everything.me/images/imageclose.png') no-repeat 50% 50%/1.7rem;
         position: absolute;

@@ -11,9 +11,6 @@ suite('L10n', function() {
     'delete-n-items[other]     = Delete {{ n }} items?',
     'textcontent-test          = this is text content',
     'prop-test.prop            = this is a property',
-    'dot.prop-test.prop        = this is another property',
-    'dataset-test.dataset.prop = this is a data attribute',
-    'style-test.style.padding  = 10px',
     'euroSign                  = price: 10\\u20ac to 20\\u20ac',
     'leadingSpaces             = \\u0020\\u020\\u20%2F',
     'trailingBackslash         = backslash\\\\',
@@ -127,25 +124,7 @@ suite('L10n', function() {
     test('properties', function() {
       elem.dataset.l10nId = 'prop-test';
       _translate(elem);
-      assert.equal(elem.prop, 'this is a property');
-    });
-
-    test('properties using final period', function() {
-      elem.dataset.l10nId = 'dot.prop-test';
-      _translate(elem);
-      assert.equal(elem.prop, 'this is another property');
-    });
-
-    test('data-* attributes', function() {
-      elem.dataset.l10nId = 'dataset-test';
-      _translate(elem);
-      assert.equal(elem.dataset.prop, 'this is a data attribute');
-    });
-
-    test('style attributes', function() {
-      elem.dataset.l10nId = 'style-test';
-      _translate(elem);
-      assert.equal(elem.style.padding, '10px');
+      assert.equal(elem.getAttribute('prop'), 'this is a property');
     });
 
     test('ARIA labels', function() {
@@ -168,7 +147,7 @@ suite('L10n', function() {
 
     test('properties', function() {
       _localize(elem, 'prop-test');
-      assert.equal(elem.prop, 'this is a property');
+      assert.equal(elem.getAttribute('prop'), 'this is a property');
     });
 
     suite('properties + pluralization', function() {

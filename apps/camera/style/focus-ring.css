@@ -20,7 +20,8 @@
  * mode
  */
 
-.focus[mode="fixed"] {
+.focus[mode="fixed"],
+.focus[state="none"] {
   opacity: 0;
 }
 
@@ -32,6 +33,7 @@
 
 .focus[state="focusing"],
 .focus[state="focused"],
+.focus[state="autofocus"],
 .focus[state="fail"] {
   opacity: 0.8;
 }
@@ -61,17 +63,33 @@
 }
 
 /**
+ * state="autofocus"
+ */
+
+.focus[state="autofocus"] {
+  animation: 0.2s pulse 1 ease-in forwards;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+.focus[state="autofocus"] .focus-ring:before {
+  opacity: 1;
+}
+
+.focus[state="autofocus"] .focus-ring:after {
+  opacity: 0;
+}
+
+/**
  * state="focusing"
  */
 
 .focus[state="focusing"] {
-  animation: 0.35s ring-animation 1 ease-in forwards;
-}
-
-@keyframes ring-animation {
-  0% { transform: rotate(0deg) scale(1); }
-  50% { transform: rotate(60deg) scale(1.1); }
-  100% { transform: rotate(45deg) scale(1); }
+  animation: 0.2s pulse 1 ease-in forwards;
 }
 
 .focus[state="focusing"] .focus-ring:before {
@@ -86,10 +104,6 @@
  * state="focused"
  */
 
-.focus[state="focused"] {
-  transform: rotate(45deg) scale(0.8478);
-  transition-duration: 0.1s;
-}
 
 .focus[state="focused"] .focus-ring{
   color: #afff3d;
@@ -106,11 +120,6 @@
 /**
  * state="fail"
  */
-
-.focus[state="fail"] {
-  transform: rotate(45deg) scale(1);
-  transition-duration: 0.1s;
-}
 
 .focus[state="fail"] .focus-ring{
   color: #ff0000;

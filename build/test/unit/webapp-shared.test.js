@@ -81,7 +81,7 @@ suite('webapp-shared.js', function() {
     };
   });
 
-  suite('setOptions, pickByResolution, pushFileByType, filterSharedUsage, ' +
+  suite('setOptions, pushFileByType, filterSharedUsage, ' +
         'filterHTML, ',
     function() {
     var webappShared;
@@ -120,35 +120,6 @@ suite('webapp-shared.js', function() {
         options.config.GAIA_DIR + '/' + options.config.LOCALES_FILE);
       assert.equal(webappShared.buildDir.path,
         testapp.buildDirectoryFile.path);
-    });
-
-    test('pickByResolution', function () {
-      webappShared.config = {};
-      webappShared.config.GAIA_DEV_PIXELS_PER_PX = '1';
-      var targetPath = 'testTargetPath.png';
-      var notImgPath = 'test.txt';
-
-      assert.equal(webappShared.pickByResolution(notImgPath, targetPath),
-        targetPath, 'not image');
-
-      webappShared.config.GAIA_DEV_PIXELS_PER_PX = '1';
-      var Img2xPath = 'test@2x.png';
-      assert.equal(webappShared.pickByResolution(Img2xPath, targetPath),
-        undefined, 'config is 1x but file is 2x');
-
-      webappShared.config.GAIA_DEV_PIXELS_PER_PX = '2';
-      assert.equal(webappShared.pickByResolution(Img2xPath, targetPath),
-        targetPath, 'config is 2x and file is 2x');
-
-      var Img15xPath = 'test.png';
-      webappShared.config.GAIA_DEV_PIXELS_PER_PX = '1.5';
-      assert.equal(webappShared.pickByResolution(Img15xPath, targetPath),
-        undefined, 'config is 1.5x and file is test.png');
-
-      fileExists = false;
-      assert.equal(webappShared.pickByResolution(Img15xPath, targetPath),
-        targetPath, 'config is 2x and file is test.png but test@1.5x.png' +
-                    ' does not exist in stage folder');
     });
 
     test('pushFileByType', function () {
@@ -369,7 +340,8 @@ suite('webapp-shared.js', function() {
         sharedFolder: mockUtils.getFile(brandingPath + '.png')
       };
       webappShared.pushResource(brandingPath  + '.png');
-      assert.equal(result[0].path, 'shared/resources/' + brandingPath + '.png');
+      assert.equal(result[0].path, 'shared/resources/' + brandingPath +
+        '@2x.png');
 
       result.length = 0;
       isDirectory = true;

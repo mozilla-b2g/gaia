@@ -142,6 +142,8 @@ var Wallpaper = {
       s = C / (1 - Math.abs(2 * l - 1));
     }
 
+    l *= 0.9;
+
     h = parseInt(h);
     s = parseInt(s * 100) + '%';
     l = parseInt(l * 100) + '%';

@@ -1,4 +1,4 @@
-/* global Search, DataGridProvider, Icon */
+/* global Search, DataGridProvider, GaiaGrid */
 
 (function() {
 
@@ -41,8 +41,8 @@
 
       results.forEach(function eachResult(result) {
         formatted.push({
-          dedupeId: result.manifestURL,
-          data: new Icon(result)
+          dedupeId: result.app.manifestURL,
+          data: new GaiaGrid.Mozapp(result.app, result.entryPoint)
         });
       }, this);
 
@@ -79,7 +79,10 @@
 
         appListing.forEach(function(manifest) {
           if (manifest.name.toLowerCase().indexOf(query.toLowerCase()) != -1) {
-            results.push(app);
+            results.push({
+              app: app,
+              entryPoint: manifest.entryPoint
+            });
           }
         });
       }, this);

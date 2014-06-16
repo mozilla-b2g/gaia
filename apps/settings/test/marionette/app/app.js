@@ -45,7 +45,7 @@ Settings.Selectors = {
   'hotspotPanel': '#hotspot',
   'hotspotSettingsTrigger': '#hotspot-settings-section button',
   'supportMenuItem': '#menuItem-help',
-  'batteryMenuItem': '#menuItem-battery',
+  'batteryMenuItem': '.menuItem-battery',
   'notificationsMenuItem': '#menuItem-notifications',
   'improvePanel': '#menuItem-improveBrowserOS',
   'improveSection': '#improveBrowserOS',

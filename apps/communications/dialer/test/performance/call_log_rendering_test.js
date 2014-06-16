@@ -52,7 +52,7 @@ marionette(mozTestInfo.appPath + ' >', function() {
           app.close();
           throw error;
         } else {
-          performanceHelper.reportRunDurations(runResults);
+          performanceHelper.reportRunDurations(runResults, 'start-call-log');
 
           assert.ok(Object.keys(runResults).length, 'empty results');
           app.close();

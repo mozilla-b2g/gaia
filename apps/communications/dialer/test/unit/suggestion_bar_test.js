@@ -1,6 +1,6 @@
 /* globals LazyLoader, MockCallHandler, MockContacts, MockFbContacts,
            MocksHelper, MockLazyL10n, MockNavigatorMozIccManager,
-           SuggestionBar */
+           SuggestionBar, SimSettingsHelper */
 
 'use strict';
 
@@ -13,6 +13,7 @@ require('/shared/test/unit/mocks/mock_fb_data_reader.js');
 require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
 require('/shared/test/unit/mocks/dialer/mock_contacts.js');
 require('/shared/test/unit/mocks/dialer/mock_keypad.js');
+require('/shared/test/unit/mocks/mock_sim_settings_helper.js');
 
 require('/dialer/js/suggestion_bar.js');
 
@@ -21,7 +22,8 @@ var mocksHelperForSuggestionBar = new MocksHelper([
   'LazyL10n',
   'LazyLoader',
   'KeypadManager',
-  'CallHandler'
+  'CallHandler',
+  'SimSettingsHelper'
 ]).init();
 
 suite('suggestion Bar', function() {
@@ -29,6 +31,8 @@ suite('suggestion Bar', function() {
   var realMozIccManager;
 
   mocksHelperForSuggestionBar.attachTestHelpers();
+
+  var mozL10nGet;
 
   suiteSetup(function() {
     window.fb = window.fb || {};
@@ -157,15 +161,17 @@ suite('suggestion Bar', function() {
     subject.overlayCancel =
         document.getElementById('suggestion-overlay-cancel');
     subject.init();
+
+    mozL10nGet = this.sinon.spy(function(id) {
+      switch(id) {
+        case'my-custom-type':
+          return undefined;
+        default:
+          return id;
+      }
+    });
     this.sinon.stub(MockLazyL10n, 'get', function(callback) {
-      callback(function(prop) {
-        switch(prop) {
-          case'my-custom-type':
-            return undefined;
-          default:
-            return prop;
-        }
-      });
+      callback(mozL10nGet);
     });
   });
 
@@ -351,6 +357,7 @@ suite('suggestion Bar', function() {
         MockContacts.mResult = mockResult2;
         subject.update('1111');
 
+        mozL10nGet.reset();
         this.sinon.spy(LazyLoader, 'load');
 
         subject.showOverlay();
@@ -377,6 +384,14 @@ suite('suggestion Bar', function() {
 
       test('should have 2 suggestions', function() {
         assert.equal(suggestions.length, 2);
+      });
+
+      test('should call mozL10n.get with correct arguments ', function() {
+        // showOverlay() calls once and _fillContacts() calls two more times
+        assert.equal(mozL10nGet.callCount, 3);
+        assert.deepEqual(mozL10nGet.getCall(0).args, [
+          'suggestionMatches', { n: 2, matchNumber: '1111' }
+        ]);
       });
 
       test('each match is displayed in the proper order', function() {
@@ -438,9 +453,12 @@ suite('suggestion Bar', function() {
         subject.update('1234');
       });
 
-      test('with one SIM', function() {
-        document.body.querySelector('.js-suggestion-item').click();
-        sinon.assert.calledWith(MockCallHandler.call, '1234567890', 0);
+      [0, 1].forEach(function(ci) {
+        test('with one SIM in slot ' + ci, function() {
+          SimSettingsHelper._defaultCards.outgoingCall = ci;
+          document.body.querySelector('.js-suggestion-item').click();
+          sinon.assert.calledWith(MockCallHandler.call, '1234567890', ci);
+        });
       });
 
       test('with two SIMs', function() {

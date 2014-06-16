@@ -1,5 +1,5 @@
 'use strict';
-/* global GridItem */
+/* global GaiaGrid */
 /* global MozActivity */
 /*jshint nonew: false */
 
@@ -18,13 +18,14 @@
       categoryId: collection.categoryId,
       query: collection.query,
       icon: collection.icon,
-      pinned: collection.pinned
+      pinned: collection.pinned,
+      defaultIconBlob: collection.defaultIconBlob
     };
   }
 
   Collection.prototype = {
 
-    __proto__: GridItem.prototype,
+    __proto__: GaiaGrid.GridItem.prototype,
 
     /**
      * Returns the height in pixels of each icon.
@@ -46,7 +47,7 @@
      * Returns the icon image path.
      */
     get icon() {
-      return this.detail.icon || 'style/images/default_icon.png';
+      return this.detail.icon || this.defaultIcon;
     },
 
     get identifier() {
@@ -104,6 +105,6 @@
     }
   };
 
-  exports.Collection = Collection;
+  exports.GaiaGrid.Collection = Collection;
 
 }(window));

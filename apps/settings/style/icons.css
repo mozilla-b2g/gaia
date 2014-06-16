@@ -139,7 +139,7 @@ li:active:not([aria-disabled="true"]) .menu-item::before,
   background-position: -9rem -9rem;
 }
 
-#menuItem-battery::before {
+.menuItem-battery::before {
   background-position: -12rem -9rem;
 }
 

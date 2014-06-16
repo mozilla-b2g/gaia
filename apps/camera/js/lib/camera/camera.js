@@ -268,7 +268,7 @@ Camera.prototype.requestCamera = function(camera, config) {
   var self = this;
 
   // Indicate 'busy'
-  this.busy();
+  this.busy('requestingCamera');
 
   // If a config was passed we assume
   // the camera has been configured.
@@ -396,7 +396,7 @@ Camera.prototype.configure = function() {
     debug('configuration success');
     if (!self.mozCamera) { return; }
     self.configureFocus();
-    self.focus.resume();
+    self.resumeFocus();
     self.configured = true;
     self.saveBootConfig();
     self.emit('configured');
@@ -404,7 +404,7 @@ Camera.prototype.configure = function() {
   }
 
   function onError() {
-    console.log('Error configuring camera');
+    debug('Error configuring camera');
     self.configured = true;
     self.ready();
   }
@@ -421,6 +421,11 @@ Camera.prototype.configureFocus = function() {
   }
   this.focus.configure(this.mozCamera, focusMode);
   this.focus.onFacesDetected = this.onFacesDetected;
+  this.focus.onAutoFocusChanged = this.onAutoFocusChanged;
+};
+
+Camera.prototype.onAutoFocusChanged = function() {
+  this.set('focus', 'autofocus');
 };
 
 Camera.prototype.onFacesDetected = function(faces) {
@@ -773,7 +778,7 @@ Camera.prototype.takePicture = function(options) {
   }
 
   function takePicture() {
-    self.emit('takingpicture');
+    self.busy('takingPicture');
     self.mozCamera.takePicture(config, onSuccess, onError);
   }
 
@@ -802,13 +807,11 @@ Camera.prototype.takePicture = function(options) {
   }
 
   function complete() {
-
     // If we are in C-AF mode, we have
     // to call resume() in order to get
     // the camera to resume focusing
     // on what we point it at.
-    self.focus.resume();
-
+    self.resumeFocus();
     self.set('focus', 'none');
     self.ready();
   }
@@ -828,6 +831,14 @@ Camera.prototype.updateFocusArea = function(rect, done) {
       done(error);
     }
   }
+};
+
+Camera.prototype.stopFocus = function() {
+  this.focus.stop();
+};
+
+Camera.prototype.resumeFocus = function() {
+  this.focus.resume();
 };
 
 /**
@@ -1362,10 +1373,10 @@ Camera.prototype.getSensorAngle = function() {
  *
  * @private
  */
-Camera.prototype.busy = function() {
-  debug('busy');
+Camera.prototype.busy = function(type) {
+  debug('busy %s', type || '');
   this.isBusy = true;
-  this.emit('busy');
+  this.emit('busy', type);
 };
 
 /**

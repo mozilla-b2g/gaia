@@ -11,7 +11,7 @@ require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/mock_mobile_operator.js');
 
-require('/apps/system/js/uuid.js');
+require('/shared/js/uuid.js');
 require('/apps/system/js/mock_simslot_manager.js');
 require('/apps/system/js/mock_simslot.js');
 require('/apps/system/js/ftu_ping.js');

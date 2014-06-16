@@ -53,7 +53,7 @@
       AppWindow[this.instanceID] = this;
     }
 
-    this.launchTime = Date.now();
+    this.createdTime = this.launchTime = Date.now();
 
     return this;
   };
@@ -623,14 +623,15 @@
      'mozbrowsericonchange', 'mozbrowserasyncscroll',
      '_localized', '_swipein', '_swipeout', '_kill_suspended',
      'popupterminated', 'activityterminated', 'activityclosing',
-     'popupclosing', 'activityopened', '_orientationchange'];
+     'popupclosing', 'activityopened', '_orientationchange', '_focus'];
 
   AppWindow.SUB_COMPONENTS = {
     'transitionController': window.AppTransitionController,
     'modalDialog': window.AppModalDialog,
     'authDialog': window.AppAuthenticationDialog,
     'contextmenu': window.BrowserContextMenu,
-    'childWindowFactory': window.ChildWindowFactory
+    'childWindowFactory': window.ChildWindowFactory,
+    'textSelectionDialog': window.TextSelectionDialog
   };
 
   /**
@@ -1422,7 +1423,11 @@
       if (this.config.icon) {
         this._splash = this.config.icon;
       } else {
-        this._splash = this.config.origin + this._splash;
+        // origin might contain a pathname too, so need to parse it to find the
+        // "real origin"
+        var url = this.config.origin.split('/');
+        var origin = url[0] + '//' + url[2];
+        this._splash = origin + this._splash;
       }
       // Start to load the image in background to avoid flickering if possible.
       var img = new Image();
@@ -1892,6 +1897,14 @@
     if (this.contextmenu) {
       this.contextmenu.showDefaultMenu();
     }
+  };
+
+  AppWindow.prototype._handle__focus = function() {
+    var win = this;
+    while (win.frontWindow && win.frontWindow.isActive()) {
+      win = win.frontWindow;
+    }
+    win.focus();
   };
 
   exports.AppWindow = AppWindow;

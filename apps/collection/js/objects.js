@@ -1,8 +1,7 @@
 'use strict';
 /* global CollectionsDatabase */
 /* global CollectionIcon */
-/* global Bookmark */
-/* global Divider */
+/* global GaiaGrid */
 /* global SearchDedupe */
 
 (function(exports){
@@ -17,6 +16,10 @@
 
     // A list of the web results for this collection view
     this.webResults = [];
+
+    // an object containing data about the background image
+    // {src: string, source: string, checksum: string}
+    this.background = props.background || {};
 
     if (window.SearchDedupe) {
       this.dedupe = new SearchDedupe();
@@ -33,14 +36,16 @@
   };
 
   BaseCollection.prototype = {
+    // returns a promise resolved when the db trx is done
     save: function save() {
-      CollectionsDatabase.put({
+      return CollectionsDatabase.put({
         id: this.id,
         name: this.name,
         query: this.query,
         categoryId: this.categoryId,
         webicons: this.webicons,
-        pinned: this.pinned
+        pinned: this.pinned,
+        background: this.background
       });
     },
 
@@ -57,7 +62,7 @@
 
       results = this.dedupe.reduce(results, 'fuzzy');
       results.forEach(function render(result) {
-        var icon = new Bookmark(result);
+        var icon = new GaiaGrid.Bookmark(result);
         grid.add(icon);
       });
     },
@@ -72,7 +77,7 @@
         return;
       }
 
-      grid.add(new Divider());
+      grid.add(new GaiaGrid.Divider());
       this.addToGrid(this.webResults, grid);
       grid.render();
     },
@@ -80,7 +85,7 @@
     renderIcon: function renderIcon() {
       var icon = new CollectionIcon({
         iconSrcs: this.webicons,
-        bgSrc: null  // TODO this.bgURL ...
+        bgSrc: this.background ? this.background.src : null
       });
 
       // return a promise

@@ -1,9 +1,9 @@
 #permission-screen {
   position: absolute;
-  top: 2.4rem;
+  top: 0;
   left: 0;
   width: 100%;
-  height: calc(100% - 2.4rem);
+  height: 100%;
   background-color: rgba(0,0,0,0.4);
   -moz-transition: opacity 0.5s ease;
   pointer-events: none;
@@ -34,7 +34,7 @@
 
 @media not all and (-moz-physical-home-button) {
   #screen:not(.software-button-disabled) #permission-screen {
-    height: calc(100% - 2.4rem - 5rem);
+    height: calc(100% - 5rem);
   }
 
   #screen.attention:not(.software-button-disabled) #permission-screen {
@@ -47,7 +47,7 @@
 }
 
 #screen.software-button-enabled #permission-screen {
-  height: calc(100% - 2.4rem - 5rem);
+  height: calc(100% - 5rem);
 }
 
 #screen.software-button-enabled.attention #permission-screen {
@@ -79,6 +79,7 @@
   background-repeat: no-repeat;
   background-size: 6.4rem;
   background-position: 0 50%;
+  word-wrap: break-word;
 }
 
 #permission-more-info-link.hidden {
@@ -146,6 +147,10 @@
   font-size: 1.8rem;
   font-weight: lighter;
   padding: 3rem 0 2rem 1.2rem;
+}
+
+#permission-device-selector.hidden {
+  display: none;
 }
 
 #permission-devices {

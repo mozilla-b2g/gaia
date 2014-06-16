@@ -93,6 +93,10 @@
     },
 
     finish: function(e) {
+      // Remove the dragging property after the icon has transitioned into
+      // place to avoid jank due to animations starting that are disabled
+      // when dragging.
+      this.icon.element.addEventListener('transitionend', this);
       this.currentTouch = null;
 
       this.target.classList.remove('active');
@@ -104,10 +108,6 @@
       } else {
         this.gridView.render();
       }
-
-      // Rearrange can access the item, so null it out only after the
-      // last possible rearrange.
-      this.icon = null;
 
       // Save icon state if we need to
       if (this.dirty) {
@@ -121,8 +121,6 @@
         this.gridView.start();
         window.dispatchEvent(new CustomEvent('gaiagrid-dragdrop-finish'));
       }.bind(this));
-
-      this.container.classList.remove('dragging');
     },
 
     /**
@@ -204,6 +202,12 @@
       var foundIndex;
       for (var i = 0, iLen = this.gridView.items.length; i < iLen; i++) {
         var item = this.gridView.items[i];
+
+        // Do not consider dividers for dragdrop.
+        if (item.detail.type === 'divider') {
+          continue;
+        }
+
         var distance = Math.sqrt(
           (pageX - item.x) * (pageX - item.x) +
           (pageY - item.y) * (pageY - item.y));
@@ -213,7 +217,6 @@
         }
       }
 
-      // Insert at the found position
       if (foundIndex !== this.icon.detail.index) {
         clearTimeout(this.rearrangeDelay);
         this.doRearrange = this.rearrange.bind(this, foundIndex);
@@ -238,8 +241,15 @@
       this.rearrangeDelay = null;
       this.dirty = true;
       this.gridView.items.splice(tIndex, 0, toInsert);
+
+      // Render to/from the selected position. We give a render buffer of 2
+      // rows or so due to divider creation/removal. Otherwise we may
+      // end up not rendering enough depending on the actual drop and have a
+      // stale rendering of the dragged icon.
+      var renderBuffer = this.gridView.layout.cols * 2;
       this.gridView.render({
-        from: Math.min(tIndex, sIndex)
+        from: Math.min(tIndex, sIndex) - renderBuffer,
+        to: Math.max(tIndex, sIndex) + renderBuffer
       });
     },
 
@@ -259,16 +269,23 @@
       document.removeEventListener('visibilitychange', this);
       this.removeDragHandlers();
       this.gridView.removeAllPlaceholders();
+
+      if (this.icon) {
+        this.icon.element.removeEventListener('transitionend', this);
+        this.icon = null;
+      }
     },
 
     removeDragHandlers: function() {
       this.container.removeEventListener('touchmove', this);
       this.container.removeEventListener('touchend', this);
+      window.removeEventListener('touchcancel', this);
     },
 
     addDragHandlers: function() {
       this.container.addEventListener('touchmove', this);
       this.container.addEventListener('touchend', this);
+      window.addEventListener('touchcancel', this);
     },
 
     /**
@@ -283,6 +300,10 @@
             break;
 
           case 'contextmenu':
+            if (this.icon) {
+              return;
+            }
+
             this.target = e.target;
 
             if (!this.target) {
@@ -322,12 +343,27 @@
 
             break;
 
+          case 'touchcancel':
+            this.removeDragHandlers();
+            this.finish();
+            break;
           case 'touchend':
             // Ensure the app is not launched
             e.stopImmediatePropagation();
             e.preventDefault();
             this.removeDragHandlers();
             this.finish(e);
+            break;
+
+          case 'transitionend':
+            if (!this.icon) {
+              return;
+            }
+
+            this.container.classList.remove('dragging');
+            this.icon.element.removeEventListener('transitionend', this);
+            this.icon = null;
+
             break;
         }
     }

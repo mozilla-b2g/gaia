@@ -3,5 +3,12 @@
 /* exported MockL10n */
 
 var MockL10n = {
-  translate: function() {}
+  translate: function() {},
+  get: function(key, obj) {
+    var ret = key;
+    if (obj) {
+      ret += JSON.stringify(obj);
+    }
+    return ret;
+  }
 };

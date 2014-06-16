@@ -47,6 +47,14 @@ suite('system/OrientationManager >', function() {
       assert.isTrue(stubPublish.calledWith('reset-orientation'));
     });
 
+    test('search window close should trigger reset', function() {
+      var stubPublish = this.sinon.stub(OrientationManager, 'publish');
+      OrientationManager.handleEvent({
+        type: 'searchclosing'
+      });
+      assert.isTrue(stubPublish.calledWith('reset-orientation'));
+    });
+
     test('trusteduiclose', function() {
       var stubPublish = this.sinon.stub(OrientationManager, 'publish');
       OrientationManager.handleEvent({
@@ -72,12 +80,17 @@ suite('system/OrientationManager >', function() {
       assert.isFalse(stubPublish.called);
     });
 
-    test('shrinking-stop', function() {
+    test('shrinking-stop and shrinking-rejected', function() {
       var stubPublish = this.sinon.stub(OrientationManager, 'publish');
       OrientationManager.handleEvent({
         type: 'shrinking-stop'
       });
-      assert.isTrue(stubPublish.calledWith('reset-orientation'));
+
+      OrientationManager.handleEvent({
+        type: 'shrinking-rejected'
+      });
+
+      assert.isTrue(stubPublish.alwaysCalledWith('reset-orientation'));
     });
   });
 });

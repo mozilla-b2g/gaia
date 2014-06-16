@@ -1,5 +1,5 @@
 'use strict';
-/* global GridItem */
+/* global GaiaGrid */
 /* global MozActivity */
 /* jshint nonew: false */
 
@@ -10,14 +10,15 @@
   /**
    * Represents a single bookmark icon on the homepage.
    */
-  function Bookmark(record) {
+  function Bookmark(record, features) {
     this.detail = record;
+    this.features = features || {};
     this.detail.type = TYPE;
   }
 
   Bookmark.prototype = {
 
-    __proto__: GridItem.prototype,
+    __proto__: GaiaGrid.GridItem.prototype,
 
     /**
      * Returns the height in pixels of each icon.
@@ -36,7 +37,7 @@
     },
 
     get icon() {
-      return this.detail.icon || 'style/images/default_icon.png';
+      return this.detail.icon || this.defaultIcon;
     },
 
     get identifier() {
@@ -76,7 +77,7 @@
      * This method overrides the GridItem.render function.
      */
     render: function(coordinates, index) {
-      GridItem.prototype.render.call(this, coordinates, index);
+      GaiaGrid.GridItem.prototype.render.call(this, coordinates, index);
       this.element.classList.add('bookmark');
     },
 
@@ -91,7 +92,13 @@
         useAsyncPanZoom: true
       };
 
-      window.open(this.detail.url, '_blank', Object.keys(features)
+      var url = this.detail.url;
+      if (this.features.search) {
+        features.searchName = this.name;
+        features.searchUrl = url;
+      }
+
+      window.open(url, '_blank', Object.keys(features)
         .map(function eachFeature(key) {
         return encodeURIComponent(key) + '=' +
           encodeURIComponent(features[key]);
@@ -125,6 +132,6 @@
     }
   };
 
-  exports.Bookmark = Bookmark;
+  exports.GaiaGrid.Bookmark = Bookmark;
 
 }(window));

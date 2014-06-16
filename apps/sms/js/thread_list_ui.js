@@ -4,7 +4,7 @@
 /*global Template, Utils, Threads, Contacts, Threads,
          WaitingScreen, MozSmsFilter, MessageManager, TimeHeaders,
          Drafts, Thread, ThreadUI, OptionMenu, ActivityPicker,
-         PerformanceTestingHelper, StickyHeader, Navigation */
+         PerformanceTestingHelper, StickyHeader, Navigation, Dialog */
 /*exported ThreadListUI */
 (function(exports) {
 'use strict';
@@ -161,7 +161,7 @@ var ThreadListUI = {
       }
 
       if (src) {
-        Utils.asyncLoadRevokeURL(src);
+        node.dataset.photoUrl = src;
       }
 
       navigator.mozL10n.localize(name, 'thread-header-text', {
@@ -279,6 +279,13 @@ var ThreadListUI = {
   removeThread: function thlui_removeThread(threadId) {
     var li = document.getElementById('thread-' + threadId);
     var parent, draftId;
+    var photoUrl = li && li.dataset.photoUrl;
+
+    // Revoke the contact photo while deletion for avoiding intermittent
+    // photo disappear issue.
+    if (photoUrl) {
+      window.URL.revokeObjectURL(photoUrl);
+    }
 
     if (li) {
       parent = li.parentNode;
@@ -305,8 +312,10 @@ var ThreadListUI = {
     }
   },
 
+  // Since removeThread will revoke list photoUrl at the end of deletion,
+  // please make sure url will also be revoked if new delete api remove threads
+  // without calling removeThread in the future.
   delete: function thlui_delete() {
-    var question = navigator.mozL10n.get('deleteThreads-confirmation2');
     var list, length, id, threadId, filter, count;
 
     function checkDone(threadId) {
@@ -334,7 +343,8 @@ var ThreadListUI = {
       return true;
     }
 
-    if (confirm(question)) {
+    function performDeletion() {
+      /* jshint validthis: true */
       WaitingScreen.show();
 
       list = this.selectedInputs.reduce(function(list, input) {
@@ -382,6 +392,31 @@ var ThreadListUI = {
         });
       }
     }
+
+    var dialog = new Dialog({
+      title: {
+        l10nId: 'messages'
+      },
+      body: {
+        l10nId: 'deleteThreads-confirmation2'
+      },
+      options: {
+        cancel: {
+          text: {
+            l10nId: 'cancel'
+          }
+        },
+        confirm: {
+          text: {
+            l10nId: 'delete'
+          },
+          method: performDeletion.bind(this),
+          className: 'danger'
+        }
+      }
+    });
+
+    dialog.show();
   },
 
   setEmpty: function thlui_setEmpty(empty) {

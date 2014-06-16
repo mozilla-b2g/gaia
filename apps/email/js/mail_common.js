@@ -1273,17 +1273,21 @@ function prettyDate(time, useCompactFormat) {
   };
   var timer = setInterval(updatePrettyDate, 60 * 1000);
 
-  window.addEventListener('message', function visibleAppUpdatePrettyDate(evt) {
-    var data = evt.data;
-    if (!data || (typeof(data) !== 'object') ||
-        !('message' in data) || data.message !== 'visibilitychange')
-      return;
+  function updatePrettyDateOnEvent() {
     clearTimeout(timer);
-    if (!data.hidden) {
-      updatePrettyDate();
-      timer = setInterval(updatePrettyDate, 60 * 1000);
+    updatePrettyDate();
+    timer = setInterval(updatePrettyDate, 60 * 1000);
+  }
+  // When user changes the language, update timestamps.
+  mozL10n.ready(updatePrettyDateOnEvent);
+
+  // On visibility change to not hidden, update timestamps
+  document.addEventListener('visibilitychange', function() {
+    if (document && !document.hidden) {
+      updatePrettyDateOnEvent();
     }
   });
+
 })();
 
 ////////////////////////////////////////////////////////////////////////////////

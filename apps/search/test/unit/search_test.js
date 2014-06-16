@@ -1,16 +1,17 @@
 'use strict';
 /* global MockNavigatormozApps, MockNavigatormozSetMessageHandler,
-          MockMozActivity, Search, MockProvider */
+          MockMozActivity, Search, MockProvider, MockasyncStorage */
 
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
 require('/shared/test/unit/mocks/mock_moz_activity.js');
 require('/shared/js/url_helper.js');
 require('/shared/js/dedupe.js');
+require('/shared/test/unit/mocks/mock_async_storage.js');
 requireApp('search/test/unit/mock_provider.js');
 
-
 suite('search/search', function() {
+  var realAsyncStorage;
   var realMozApps;
   var realMozActivity;
   var realSetMessageHandler;
@@ -25,6 +26,9 @@ suite('search/search', function() {
 
     realMozActivity = window.MozActivity;
     window.MozActivity = MockMozActivity;
+
+    realAsyncStorage = window.asyncStorage;
+    window.asyncStorage = MockasyncStorage;
     
     window.SettingsListener = {
       observe: function() {}
@@ -32,13 +36,20 @@ suite('search/search', function() {
 
     clock = sinon.useFakeTimers();
 
-    requireApp('search/js/search.js', done);
+    requireApp('search/js/search.js', function() {
+      // Bug 1025499 - We need to ensure that the search notice defaults to
+      // true, so it will always show for integration tests.
+      assert.equal(Search.toShowNotice, true);
+      Search.toShowNotice = false;
+      done();
+    });
   });
 
   suiteTeardown(function() {
     navigator.mozSetMessageHandler = realSetMessageHandler;
     navigator.mozApps = realMozApps;
     window.MozActivity = realMozActivity;
+    window.asyncStorage = realAsyncStorage;
     clock.restore();
     delete window.SettingsListener;
   });
@@ -56,7 +67,12 @@ suite('search/search', function() {
 
   suite('init', function() {
     test('will call provider init method', function() {
+
       var initCalled;
+      var fakeElement = document.createElement('div');
+      var confirmStub = this.sinon.stub(document, 'getElementById')
+        .returns(fakeElement);
+
       Search.providers = [{
         init: function() {
           initCalled = true;
@@ -72,6 +88,7 @@ suite('search/search', function() {
       MockNavigatormozApps.mLastConnectionCallback([]);
       assert.ok(initCalled);
       Search.providers = [];
+      confirmStub.restore();
     });
   });
 
@@ -454,7 +471,7 @@ suite('search/search', function() {
     });
 
     test('common domain parts filtered out', function() {
-      Search.fuzzyResults = {
+      Search.dedupe.fuzzyResults = {
         'touch': true,
         'mobile': true
       };
@@ -502,6 +519,26 @@ suite('search/search', function() {
       var renderStub = this.sinon.stub(provider, 'render');
       Search.collect(provider, results);
       assert.equal(renderStub.getCall(0).args[0].length, 2);
+    });
+
+    test('exact provider ignores querystring', function() {
+      var results1 = [
+        {dedupeId: 'https://mozilla.org/index.html?ignoreme=true'}
+      ];
+
+      var results2 = [
+        {dedupeId: 'https://mozilla.org/index.html'}
+      ];
+
+      var provider1 = exactProvider();
+      var provider2 = exactProvider();
+
+      var renderStub1 = this.sinon.stub(provider1, 'render');
+      var renderStub2 = this.sinon.stub(provider2, 'render');
+      Search.collect(provider1, results1);
+      Search.collect(provider2, results2);
+      assert.equal(renderStub1.getCall(0).args[0].length, 1);
+      assert.equal(renderStub2.getCall(0).args[0].length, 0);
     });
 
     test('Dont search remote providers when suggestions disabled', function() {

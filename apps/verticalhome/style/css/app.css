@@ -38,11 +38,6 @@ gaia-grid {
   width: 100%;
 }
 
-body[data-cols="4"] .icon .title {
-  /* Font size is the same independent on grid configuration */
-  font-size: calc(1.4rem * 1.333);
-}
-
 #curtain {
   background: #000;
   opacity: 0.1;
@@ -73,6 +68,10 @@ body[data-cols="4"] .icon .title {
   visibility: visible;
   opacity: 1;
   transition: opacity 0.5s ease-in;
+}
+
+.edit-mode #search {
+  visibility: hidden;
 }
 
 #confirmation-message {

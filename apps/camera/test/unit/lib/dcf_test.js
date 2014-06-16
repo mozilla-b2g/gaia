@@ -19,8 +19,8 @@ suite('Format Timer Unit Tests', function() {
   suite('#createDCFFilename', function() {
 
     setup(function() {
-      var stub = this.sinon.stub(asyncStorage,
-        'getItem');
+      this.sandbox = sinon.sandbox.create();
+      var stub = this.sandbox.stub(asyncStorage, 'getItem');
       subject.init();
       // Trigger the callback
       stub.getCall(0).args[1]({

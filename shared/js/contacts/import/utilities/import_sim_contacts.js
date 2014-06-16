@@ -1,5 +1,5 @@
 /*jshint loopfunc: true */
-/* global LazyLoader, utils, contacts */
+/* global mozContact, LazyLoader, utils, contacts */
 /* exported SimContactsImporter */
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
@@ -191,11 +191,10 @@ function SimContactsImporter(targetIcc) {
 
       item.category = ['sim'];
       item.url = generateIccContactUrl(item.id);
-      delete item.id;
 
       // Item is presumably a mozContact but for some reason if
       // we don't create a new mozContact sometimes the save call fails
-      var contact = utils.misc.toMozContact(item);
+      var contact = item;
 
       var cbs = {
         onmatch: function(results) {
@@ -224,7 +223,7 @@ function SimContactsImporter(targetIcc) {
 
 
   function saveContact(contact) {
-    var req = window.navigator.mozContacts.save(contact);
+    var req = window.navigator.mozContacts.save(new mozContact(contact));
       req.onsuccess = function saveSuccess() {
         continueCb();
       };
