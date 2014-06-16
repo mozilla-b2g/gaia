@@ -2,23 +2,17 @@
 
 window.MockAppsMgmt = {
   getAll: function mam_getAll() {
-    var request = {};
+    var self = this;
 
-    setTimeout((function nextTick() {
-      if (request.onsuccess) {
-        var evt = {
-          target: {
-            result: this.mApps
-          }
-        };
-        request.onsuccess(evt);
-        if (this.mNext) {
-          this.mNext();
+    return {
+      set onsuccess(cb) {
+        this.result = self.mApps;
+        cb({target: this});
+        if (self.mNext) {
+          self.mNext();
         }
       }
-    }).bind(this));
-
-    return request;
+    };
   },
 
   applyDownload: function mam_applyDownload(app) {
