@@ -316,7 +316,7 @@ HomescreenAppBuilder.prototype.updateManifest = function() {
     utils.getJSON(utils.getFile(options.APP_DIR, 'manifest.webapp'));
   manifest.role = 'system';
   // Write content to build_stage
-  utils.writeContent(utils.getFile(options.STAGE_DIR, 'manifest.webapp'),
+  utils.writeContent(utils.getFile(this.stageDir.path, 'manifest.webapp'),
                      JSON.stringify(manifest));
 };
 

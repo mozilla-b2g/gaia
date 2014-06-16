@@ -97,6 +97,13 @@ suite('Build GAIA from differece app list', function() {
       assert.ok(fs.existsSync(initPath),
         'init.json should exist');
 
+      // Homescreen1 should have a role of system
+      var hsHomZip = new AdmZip(path.join(process.cwd(), 'profile',
+        'webapps', 'homescreen.gaiamobile.org', 'application.zip'));
+      var hsHomManifest =
+        JSON.parse(hsHomZip.readAsText(hsHomZip.getEntry('manifest.webapp')));
+      assert.equal(hsHomManifest.role, 'system')
+
       done();
     });
   });
