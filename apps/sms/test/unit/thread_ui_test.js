@@ -7,7 +7,7 @@
          ThreadListUI, ContactRenderer, UIEvent, Drafts, OptionMenu,
          ActivityPicker, KeyEvent, MockNavigatorSettings, MockContactRenderer,
          Draft, MockStickyHeader, MultiSimActionButton, Promise,
-         MockLazyLoader, WaitingScreen, Navigation
+         MockLazyLoader, WaitingScreen, Navigation, MockDialog
 */
 
 'use strict';
@@ -2609,19 +2609,14 @@ suite('thread_ui.js >', function() {
         ids = [ids];
       }
 
-      var confirmSpy = this.sinon.stub(window, 'confirm').returns(true);
-
       var message, checkbox;
       for (var i = 0; i < ids.length; i++) {
         message = container.querySelector('#message-' + ids[i]);
         checkbox = message.querySelector('input[type=checkbox]');
         checkbox.checked = true;
       }
-
       ThreadUI.delete();
-
-      sinon.assert.calledWith(
-        confirmSpy, navigator.mozL10n.get('deleteMessages-confirmation'));
+      MockDialog.triggers.confirm();
     };
 
     setup(function() {
@@ -2635,6 +2630,22 @@ suite('thread_ui.js >', function() {
 
     teardown(function() {
       container.innerHTML = '';
+    });
+
+    test('dialog shows the proper message', function() {
+      doMarkedMessagesDeletion(1);
+      assert.isTrue(MockDialog.prototype.show.called);
+      assert.equal(MockDialog.calls[0].body.l10nId,
+                      'deleteMessages-confirmation');
+      assert.equal(MockDialog.calls[0].options.confirm.text.l10nId,
+                      'delete', 'right text on button');
+      assert.equal(MockDialog.calls[0].options.confirm.className,
+                      'danger','right styling on button');
+    });
+    test('dialog confirmed', function() {
+      doMarkedMessagesDeletion(1);
+      assert.isTrue(MockDialog.triggers.confirm.called);
+      assert.isFalse(MockDialog.triggers.cancel.called);
     });
 
     test('deleting a single message removes it from the DOM', function() {
@@ -3708,7 +3719,7 @@ suite('thread_ui.js >', function() {
         // Dispatch custom event for testing long press
         link.dispatchEvent(contextMenuEvent);
         assert.ok(MockOptionMenu.calls.length, 1);
-      
+
         // Confirm that the menu doesn't contained a "resend-message" option
         assert.isTrue(MockOptionMenu.calls[0].items.every(function(item){
           return item.l10nId !== 'resend-message';

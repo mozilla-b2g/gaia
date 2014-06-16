@@ -6,7 +6,8 @@
          ActivityPicker, ThreadListUI, OptionMenu, Threads, Contacts,
          Attachment, WaitingScreen, MozActivity, LinkActionHandler,
          ActivityHandler, TimeHeaders, ContactRenderer, Draft, Drafts,
-         Thread, MultiSimActionButton, LazyLoader, Navigation, Promise */
+         Thread, MultiSimActionButton, LazyLoader, Navigation, Promise,
+         Dialog */
 /*exported ThreadUI */
 
 (function(global) {
@@ -1889,8 +1890,7 @@ var ThreadUI = global.ThreadUI = {
   },
 
   delete: function thui_delete() {
-    var question = navigator.mozL10n.get('deleteMessages-confirmation');
-    if (window.confirm(question)) {
+    function performDeletion() {
       WaitingScreen.show();
       var delNumList = [];
       var inputs = ThreadUI.selectedInputs;
@@ -1908,6 +1908,31 @@ var ThreadUI = global.ThreadUI = {
         }
       );
     }
+
+    var dialog = new Dialog({
+      title: {
+        l10nId: 'messages'
+      },
+      body: {
+        l10nId: 'deleteMessages-confirmation'
+      },
+      options: {
+        cancel: {
+          text: {
+            l10nId: 'cancel'
+          }
+        },
+        confirm: {
+          text: {
+            l10nId: 'delete'
+          },
+          method: performDeletion,
+          className: 'danger'
+        }
+      }
+    });
+
+    dialog.show();
   },
 
   cancelEdit: function thlui_cancelEdit() {
