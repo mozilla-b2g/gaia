@@ -7,33 +7,37 @@
 
     var grid = document.getElementById('grid');
     var elements = {
+      loading: document.getElementById('loading'),
       offline: document.getElementById('offline'),
-      offlineMessage: document.getElementById('offline-message')
+      offlineMessage: document.getElementById('offline-message'),
+      content: document.getElementById('content')
     };
+    var contentHeight = elements.content.offsetHeight;
 
-    var options = collection.categoryId ? {categoryId: collection.categoryId}
-                                        : {query: collection.query};
-
-
-    // render pinned apps first
-    collection.render(grid);
-
-    if (navigator.onLine) {
-      makeRequest();
+    var options = {
+      limit: 16,
+      first: 0
+    };
+    if (collection.categoryId) {
+      options.categoryId = collection.categoryId;
     } else {
-      onOffline();
+      options.query = collection.query;
     }
 
-    addListeners();
+    // render pinned apps first
+    collection.webResults = [];
+    collection.render(grid);
 
-    function onOffline() {
-      loading(false);
+    queueRequest();
 
-      var msg = navigator.mozL10n.get('offline-webresults', {
-        collectionName: collection.name
-      });
-      elements.offlineMessage.innerHTML = msg;
-      elements.offline.classList.add('show');
+    function queueRequest() {
+      if (navigator.onLine) {
+        makeRequest();
+      } else {
+        onOffline();
+      }
+
+      addListeners();
     }
 
     function makeRequest() {
@@ -42,6 +46,8 @@
       eme.api.Apps.search(options)
         .then(function success(searchResponse) {
           var results = [];
+          var paging = searchResponse.response.paging;
+          var hasMore = paging.first+paging.limit < paging.max;
 
           searchResponse.response.apps.forEach(function each(webapp) {
             results.push({
@@ -55,16 +61,70 @@
 
           onResponse();
 
+          // no results - no rendering
+          if (!results.length) {
+            return;
+          }
+
           // XXX force layout or else grid isn't displayed
           grid.clientLeft;
-          collection.webResults = results;
-          collection.render(grid);
+          collection.webResults = collection.webResults.concat(results);
+          collection.renderWebResults(grid, {
+            newItems: results,
+            firstItems: options.first === 0,
+            from: grid.getItems().length
+          });
+
+          if (hasMore) {
+            // detect scroll reached bottom
+            elements.content.addEventListener('scroll', onScroll);
+            onScroll();
+          }
 
         }, onResponse);
     }
 
+    function onScroll() {
+      var gridHeight = grid.scrollHeight;
+      var scrollTop = elements.content.scrollTop;
+      var bottomVisible = scrollTop > gridHeight - contentHeight;
+
+      console.log(
+        bottomVisible,
+        scrollTop,
+        gridHeight - contentHeight,
+        gridHeight,
+        contentHeight
+      );
+
+      if (bottomVisible) {
+        elements.content.removeEventListener('scroll', onScroll);
+        loadMore();
+      }
+    }
+
+    function onOffline() {
+      loading(false);
+
+      var msg = navigator.mozL10n.get('offline-webresults', {
+        collectionName: collection.name
+      });
+      elements.offlineMessage.innerHTML = msg;
+      elements.offline.classList.add('show');
+    }
+
+    function loadMore() {
+      options.first += options.limit;
+      queueRequest();
+    }
+
     function loading(should) {
-      document.body.dataset.loading = should !== false;
+      if (should !== false) {
+        elements.loading.classList.add('show');
+      } else {
+        elements.loading.classList.remove('show');
+      }
+      elements.loading.classList.remove('showHidden');
       elements.offline.classList.remove('show');
     }
 
