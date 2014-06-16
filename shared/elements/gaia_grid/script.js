@@ -84,6 +84,16 @@ window.GaiaGrid = (function(win) {
   };
 
   /**
+   * Finds nearest item by and returns an index.
+   *
+   * @param {Number} x relative to the screen
+   * @param {Number} y relative to the screen
+   */
+  proto.getNearestItem = function(x, y) {
+    return this._grid.getNearestItem(x, y);
+  };
+
+  /**
    * Returns a copy of the grid items.
    */
   proto.getItems = function() {

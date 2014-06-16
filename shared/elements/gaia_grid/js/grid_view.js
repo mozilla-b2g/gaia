@@ -214,6 +214,31 @@
     },
 
     /**
+     * Finds nearest item by and returns an index.
+     *
+     * @param {Number} x relative to the screen
+     * @param {Number} y relative to the screen
+     */
+    getNearestItem: function(x, y) {
+      // Find the icon with the closest X/Y position of the move,
+      // XXX: this could be more efficient with a binary search.
+      var leastDistance;
+      var foundIndex;
+      for (var i = 0, iLen = this.items.length; i < iLen; i++) {
+        var item = this.items[i];
+        var distance = Math.sqrt(
+          (x - item.x) * (x - item.x) +
+          (y - item.y) * (y - item.y));
+        if (!leastDistance || distance < leastDistance) {
+          leastDistance = distance;
+          foundIndex = i;
+        }
+      }
+
+      return foundIndex;
+    },
+
+    /**
      * Creates placeholders and injects them into the grid.
      * @param {Array} coordinates [x,y] coordinates on the grid of the first
      * item in grid units.
@@ -231,6 +256,9 @@
         this.items.splice(idx + i, 0, item);
         item.render(itemCoords, idx + i);
       }
+    },
+
+    _getOffset: function() {
     },
 
     /**
