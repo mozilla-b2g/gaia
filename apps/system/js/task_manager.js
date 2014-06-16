@@ -938,15 +938,15 @@
     var nextCard = this.nextCard || pseudoCard;
     var prevCardStyle = {
       pointerEvents: 'none',
-      MozTransition: currentCard.CARD_TRANSITION
+      MozTransition: currentCard.MOVE_TRANSITION
     };
     var nextCardStyle = {
       pointerEvents: 'none',
-      MozTransition: currentCard.CARD_TRANSITION
+      MozTransition: currentCard.MOVE_TRANSITION
     };
     var currentCardStyle = {
       pointerEvents: 'auto',
-      MozTransition: currentCard.CARD_TRANSITION
+      MozTransition: currentCard.MOVE_TRANSITION
     };
 
     if (this.deltaX < 0) {
