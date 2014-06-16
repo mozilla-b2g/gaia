@@ -35,7 +35,11 @@ define(function(require) {
     },
 
     set enabled(value) {
-      this._enabled = value;
+      if (this._enabled === value) {
+        return;
+      } else {
+        this._enabled = value;
+      }
       if (value) { //observe
         AppStorage.storage.observe('freeSize', this._updateAppFreeSpace);
         this._updateAppFreeSpace();
@@ -55,7 +59,7 @@ define(function(require) {
     handleEvent: function storage_handleEvent(evt) {
       switch (evt.type) {
         case 'localized':
-          this.updateAppFreeSpace();
+          this._updateAppFreeSpace();
           break;
       }
     }

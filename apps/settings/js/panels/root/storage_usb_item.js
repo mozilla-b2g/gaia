@@ -44,7 +44,11 @@ define(function(require) {
     },
 
     set enabled(value) {
-      this._enabled = value;
+      if (this._enabled === value) {
+        return;
+      } else {
+        this._enabled = value;
+      }
       if (value) { //observe
         // ums master switch on root panel
         this._elements.umsEnabledCheckBox.addEventListener('change', this);
