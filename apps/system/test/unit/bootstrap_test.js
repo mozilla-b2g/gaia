@@ -66,23 +66,22 @@ suite('system/Bootstrap', function() {
   var realDocumentElementDir;
   var realDocumentElementLang;
   var realApplications;
-  var stubById;
-  var stubQuerySelector;
   var fakeElement;
 
   mocksForBootstrap.attachTestHelpers();
 
   setup(function() {
     fakeElement = document.createElement('div');
-    stubById = this.sinon.stub(document, 'getElementById')
-                         .returns(fakeElement.cloneNode(true));
-    stubQuerySelector = this.sinon.stub(document, 'querySelector')
-                         .returns(fakeElement.cloneNode(true));
+    this.sinon.stub(document, 'getElementById')
+      .returns(fakeElement.cloneNode(true));
+    this.sinon.stub(document, 'querySelector')
+      .returns(fakeElement.cloneNode(true));
   });
 
   teardown(function() {
-    stubById.restore();
-    stubQuerySelector.restore();
+    MockNavigatorSettings.mTeardown();
+    MockNavigatormozApps.mTeardown();
+    MockApplications.mTeardown();
   });
 
   suiteSetup(function(done) {
