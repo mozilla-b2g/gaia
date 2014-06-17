@@ -540,6 +540,11 @@ contacts.Form = (function() {
         contacts.Search.removeContact(contact.id);
         contacts.Search.exitSearchMode();
       }
+      // As we jump back to the list, stop listening for NFC and
+      // prevent sharing contacts from the contact list.
+      if ('mozNfc' in navigator && contacts.NFC) {
+        contacts.NFC.stopListening();
+      }
       Contacts.navigation.home();
     };
     var request;
