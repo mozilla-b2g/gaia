@@ -11,7 +11,6 @@ const excludedApps = [
   'communications/facebook', 'communications/gmail', // part of other apps
   'communications/import', 'communications/live', // part of other apps
   'communications', // not an app
-  'costcontrol', // XXX FIXME. Hang for now. See bug 971438
   'email/shared', // not an app
   'template', // XXX not a real thing.
   'system/test/marionette/fullscreen-app', // some test app.
