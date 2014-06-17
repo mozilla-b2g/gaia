@@ -135,11 +135,7 @@ window.GaiaHeader = (function(win) {
   var template = document.createElement('template');
   template.innerHTML = '<header id="header">' +
       '<button id="action-button"></button>' +
-      '<menu id="menu-buttons" type="toolbar">' +
-        '<content id="buttons-content" select="button,a"></content>' +
-      '</menu>' +
-      '<content select="h1,h2,h3,h4"></content>' +
-      '<content id="content"></content>' +
+      '<content select="h1,button,a"></content>' +
     '</header>';
 
   // Register and return the constructor

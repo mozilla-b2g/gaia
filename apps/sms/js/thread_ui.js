@@ -6,7 +6,8 @@
          ActivityPicker, ThreadListUI, OptionMenu, Threads, Contacts,
          Attachment, WaitingScreen, MozActivity, LinkActionHandler,
          ActivityHandler, TimeHeaders, ContactRenderer, Draft, Drafts,
-         Thread, MultiSimActionButton, LazyLoader, Navigation, Promise */
+         Thread, MultiSimActionButton, LazyLoader, Navigation, Promise,
+         Dialog */
 /*exported ThreadUI */
 
 (function(global) {
@@ -62,14 +63,6 @@ var ThreadUI = global.ThreadUI = {
   // when sending an sms to several recipients in activity, we'll exit the
   // activity after this delay after moving to the thread list.
   LEAVE_ACTIVITY_DELAY: 3000,
-
-  // these layouts are used to distinguish between "new message" and "thread"
-  // TODO use a panel-based CSS
-  LAYOUT: {
-    DEFAULT: '',
-    COMPOSER: 'composer',
-    THREAD: 'thread'
-  },
 
   draft: null,
   recipients: null,
@@ -573,7 +566,6 @@ var ThreadUI = global.ThreadUI = {
     // TODO should we implement hooks to Navigation so that Threads could
     // get an event whenever the panel changes?
     Threads.currentId = args.id;
-    this.composerContainer.dataset.composerLayout = this.LAYOUT.THREAD;
 
     return this.updateHeaderData();
   },
@@ -639,7 +631,6 @@ var ThreadUI = global.ThreadUI = {
 
   afterLeave: function thui_afterLeave(args) {
     if (Navigation.isCurrentPanel('thread-list')) {
-      this.composerContainer.dataset.composerLayout = this.LAYOUT.DEFAULT;
       this.container.textContent = '';
       this.cleanFields(true);
       this.recipients.length = 0;
@@ -763,7 +754,6 @@ var ThreadUI = global.ThreadUI = {
     this.updateComposerHeader();
     this.container.textContent = '';
     this.threadMessages.classList.add('new');
-    this.composerContainer.dataset.composerLayout = this.LAYOUT.COMPOSER;
 
     // not strictly necessary but being consistent
     return Promise.resolve();
@@ -1099,8 +1089,11 @@ var ThreadUI = global.ThreadUI = {
       if (this.draft && !this.draft.isEdited) {
         // Thread-less drafts are orphaned at this point
         // so they need to be resaved for persistence
+        // Otherwise, clear the draft directly before leaving
         if (!Threads.currentId) {
           this.saveDraft({autoSave: true});
+        } else {
+          this.draft = null;
         }
         return;
       }
@@ -1897,8 +1890,7 @@ var ThreadUI = global.ThreadUI = {
   },
 
   delete: function thui_delete() {
-    var question = navigator.mozL10n.get('deleteMessages-confirmation');
-    if (window.confirm(question)) {
+    function performDeletion() {
       WaitingScreen.show();
       var delNumList = [];
       var inputs = ThreadUI.selectedInputs;
@@ -1916,6 +1908,31 @@ var ThreadUI = global.ThreadUI = {
         }
       );
     }
+
+    var dialog = new Dialog({
+      title: {
+        l10nId: 'messages'
+      },
+      body: {
+        l10nId: 'deleteMessages-confirmation'
+      },
+      options: {
+        cancel: {
+          text: {
+            l10nId: 'cancel'
+          }
+        },
+        confirm: {
+          text: {
+            l10nId: 'delete'
+          },
+          method: performDeletion,
+          className: 'danger'
+        }
+      }
+    });
+
+    dialog.show();
   },
 
   cancelEdit: function thlui_cancelEdit() {

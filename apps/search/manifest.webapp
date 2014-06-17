@@ -39,5 +39,6 @@
       "access": "readonly",
       "description": "Stores data about browsing history."
     }
-  }
+  },
+  "orientation": "default"
 }

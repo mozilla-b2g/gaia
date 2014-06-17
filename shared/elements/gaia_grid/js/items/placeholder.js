@@ -1,5 +1,5 @@
 'use strict';
-/* global GridItem */
+/* global GaiaGrid */
 
 (function(exports) {
 
@@ -16,14 +16,29 @@
 
   Placeholder.prototype = {
 
-    __proto__: GridItem.prototype,
+    __proto__: GaiaGrid.GridItem.prototype,
 
     /**
      * Returns the height in pixels of each icon.
      */
     get pixelHeight() {
-      return this.grid.layout.gridItemHeight;
+      var itemHeight = this.grid.layout.gridItemHeight;
+
+      // For placeholders which are there for edge group creation, give them
+      // the minimum height necessary to render. The divider will already
+      // have a spacing buffer.
+      if (this.createsGroupOnDrop) {
+        itemHeight = 1;
+      }
+
+      return itemHeight;
     },
+
+    /**
+     * When the placeholder is rendered in the last row, for group creation
+     * purposes, there is special handling required for height.
+     */
+    createsGroupOnDrop: false,
 
     /**
      * Width in grid units for each icon.
@@ -50,9 +65,8 @@
       // Generate an element if we need to
       if (!this.element) {
         var tile = document.createElement('div');
-        //tile.style.backgroundColor = '#ff0000'; // Useful for debugging.
         tile.className = 'icon placeholder';
-        tile.style.height = this.grid.layout.gridItemHeight + 'px';
+        tile.style.height = this.pixelHeight + 'px';
         this.element = tile;
         this.grid.element.appendChild(tile);
       }
@@ -71,6 +85,6 @@
     }
   };
 
-  exports.Placeholder = Placeholder;
+  exports.GaiaGrid.Placeholder = Placeholder;
 
 }(window));

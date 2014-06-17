@@ -2,7 +2,6 @@
   "blacklist": [
     "apps/calendar/test/marionette/alarm_test.js",
     "apps/calendar/test/marionette/caldav_test.js",
-    "apps/calendar/test/marionette/toggle_calendar_test.js",
     "apps/camera/test/marionette/capture_test.js",
     "apps/camera/test/marionette/hud_test.js",
     "apps/camera/test/marionette/settings_test.js",

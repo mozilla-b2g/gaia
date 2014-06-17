@@ -95,7 +95,8 @@
 
   HomescreenWindow.REGISTERED_EVENTS =
     ['_opening', '_localized', 'mozbrowserclose', 'mozbrowsererror',
-      'mozbrowservisibilitychange', 'mozbrowserloadend', '_orientationchange'];
+      'mozbrowservisibilitychange', 'mozbrowserloadend', '_orientationchange',
+      '_focus'];
 
   HomescreenWindow.SUB_COMPONENTS = {
     'transitionController': window.AppTransitionController,

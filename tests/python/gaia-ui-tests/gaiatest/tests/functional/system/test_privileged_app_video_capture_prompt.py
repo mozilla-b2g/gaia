@@ -11,6 +11,7 @@ class TestPrivilegedAppVideoCapturePrompt(GaiaTestCase):
 
     def setUp(self):
         GaiaTestCase.setUp(self)
+        self.apps.set_permission('UI tests - Privileged App', 'video-capture', 'prompt')
 
     def test_video_capture_prompt(self):
         uiTestsPrivileged = UiTestsPivileged(self.marionette)
@@ -30,4 +31,4 @@ class TestPrivilegedAppVideoCapturePrompt(GaiaTestCase):
         permission.tap_to_confirm_permission()
 
         current_permission = self.apps.get_permission('UI tests - Privileged App', 'video-capture')
-        self.assertEqual(current_permission, 'prompt')
+        self.assertEqual(current_permission, 'allow')

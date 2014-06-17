@@ -18,7 +18,11 @@ env:
   - CI_ACTION=marionette_js PART=1 NBPARTS=3
   - CI_ACTION=marionette_js PART=2 NBPARTS=3
   - CI_ACTION=marionette_js PART=3 NBPARTS=3
-  - CI_ACTION=gaia_ui_tests
+  - CI_ACTION=gaia_ui_tests SUITE=unit
+  - CI_ACTION=gaia_ui_tests SUITE=functional THIS_CHUNK=1 TOTAL_CHUNKS=3
+  - CI_ACTION=gaia_ui_tests SUITE=functional THIS_CHUNK=2 TOTAL_CHUNKS=3
+  - CI_ACTION=gaia_ui_tests SUITE=functional THIS_CHUNK=3 TOTAL_CHUNKS=3
+  - CI_ACTION=gaia_ui_tests SUITE=accessibility
   - CI_ACTION=build_tests
   global:
   - ARTIFACTS_S3_BUCKET=mozilla-releng-travis-uploads

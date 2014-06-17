@@ -38,7 +38,7 @@ class Ftu(Base):
 
     # Step Geolocation
     _section_geolocation_locator = (By.ID, 'geolocation')
-    _enable_geolocation_checkbox_locator = (By.ID, 'geolocation-switch')
+    _enable_geolocation_checkbox_locator = (By.CSS_SELECTOR, '#geolocation-switch > label')
 
     # Section Import contacts
     _section_import_contacts_locator = (By.ID, 'import_contacts')
@@ -145,7 +145,7 @@ class Ftu(Base):
         self.wait_for_element_displayed(*self._enable_geolocation_checkbox_locator)
 
         # TODO: Remove y parameter when Bug 932804 is fixed
-        self.marionette.find_element(*self._enable_geolocation_checkbox_locator).tap(y=20)
+        self.marionette.find_element(*self._enable_geolocation_checkbox_locator).tap(y=30)
 
     def tap_next_to_import_contacts_section(self):
         self.tap_next()

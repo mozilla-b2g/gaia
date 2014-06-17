@@ -159,37 +159,6 @@ suite('webapp-zip.js', function() {
     });
   });
 
-  suite('getImagePathByResolution', function() {
-    var webappZip;
-    setup(function() {
-      webappZip = new app.WebappZip();
-    });
-
-    test('getImagePathByResolution', function() {
-      var pathInZip = 'test@2x.png';
-      var file = mockUtils.getFile(pathInZip);
-      webappZip.config = {};
-
-      webappZip.config.GAIA_DEV_PIXELS_PER_PX = '1';
-      assert.equal(webappZip.getImagePathByResolution(file, pathInZip),
-        undefined, 'it should ignore other resolution image if ' +
-        'GAIA_DEV_PIXELS_PER_PX is 1');
-
-      webappZip.config.GAIA_DEV_PIXELS_PER_PX = '2';
-      assert.equal(webappZip.getImagePathByResolution(file, pathInZip),
-        'test.png', 'it should remove @2x if GAIA_DEV_PIXELS_PER_PX is also 2');
-
-      pathInZip = 'test.png';
-      webappZip.config.GAIA_DEV_PIXELS_PER_PX = '2';
-      file = mockUtils.getFile(pathInZip);
-      fileExists = true;
-      var actualPathInZip = webappZip.getImagePathByResolution(file, pathInZip);
-      assert.equal(filePath, 'test@2x.png',
-        'should have correct resolution image');
-      assert.equal(actualPathInZip, undefined);
-    });
-  });
-
   suite('addToZip', function() {
     var webappZip;
     var isExcludedFromZip;
@@ -240,16 +209,6 @@ suite('webapp-zip.js', function() {
       isExcludedFromZip = true;
       assert.equal(webappZip.addToZip(testFile), undefined,
         'file is not hidden, but from excluded list');
-    });
-
-    test('add png file', function() {
-      var testFile = mockUtils.getFile('testBuildDir/testFile.png');
-      // testFile_bestResolution
-      isFile = true;
-      webappZip.addToZip(testFile);
-      assert.equal(testResult.pathInZip, 'testFile.png_bestResolution',
-        'image file name should only left its basename and have correct path' +
-        ' by its the resolution');
     });
 
     test('add localize html file', function() {

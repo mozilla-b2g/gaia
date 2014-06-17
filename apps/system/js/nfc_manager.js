@@ -402,7 +402,7 @@ var NfcManager = {
 
     // Clean up P2P UI events
     window.removeEventListener('shrinking-sent', this);
-    window.dispatchEvent(new CustomEvent('shrinking-rejected'));
+    window.dispatchEvent(new CustomEvent('shrinking-stop'));
   },
 
   // Miscellaneous utility functions to handle formating the JSON for activities

@@ -103,6 +103,8 @@ var configurator = (function() {
           loadedData[mcc_mnc].forEach(function(app) {
             if (app.manifestURL) {
               singleVariantApps[app.manifestURL] = app;
+            } else if (app.id) {
+              singleVariantApps[app.id] = app;
             }
           });
         } else {

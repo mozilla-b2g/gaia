@@ -485,19 +485,19 @@ define app-makefile-template
 .PHONY: $(1)
 $(1): $(XULRUNNER_BASE_DIRECTORY) pre-app | $(STAGE_DIR)
 	@if [[ ("$(2)" =~ "${BUILD_APP_NAME}") || ("${BUILD_APP_NAME}" == "*") ]]; then \
-	if [ -r "$(2)/Makefile" ]; then \
+	if [ -r "$(2)$(SEP)Makefile" ]; then \
 		echo "execute Makefile for $(1) app" ; \
 		STAGE_APP_DIR="../../build_stage/$(1)" make -C "$(2)" ; \
 	else \
 		echo "copy $(1) to build_stage/" ; \
 		cp -LR "$(2)" $(STAGE_DIR) && \
-		if [ -r "$(2)/build/build.js" ]; then \
+		if [ -r "$(2)$(SEP)build$(SEP)build.js" ]; then \
 			echo "execute $(1)/build/build.js"; \
 			export APP_DIR=$(2); \
 			$(call run-js-command,app/build); \
 		fi; \
 	fi && \
-	$(call clean-build-files,$(STAGE_DIR)/$(1)); \
+	$(call clean-build-files,$(STAGE_DIR)$(SEP)$(1)); \
   fi;
 endef
 
@@ -508,10 +508,6 @@ $(PROFILE_FOLDER): preferences pre-app post-app test-agent-config offline contac
 ifeq ($(BUILD_APP_NAME),*)
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)$(PROFILE_FOLDER)"
 endif
-
-.PHONY: test-agent-bootstrap
-test-agent-bootstrap: $(XULRUNNER_BASE_DIRECTORY)
-	@$(call run-js-command,test-agent-bootstrap)
 
 $(STAGE_DIR):
 	mkdir -p $@
@@ -817,7 +813,7 @@ update-common: common-install
 
 # Create the json config file
 # for use with the test agent GUI
-test-agent-config: test-agent-bootstrap
+test-agent-config:
 ifeq ($(BUILD_APP_NAME),*)
 	@rm -f $(TEST_AGENT_CONFIG)
 	@touch $(TEST_AGENT_CONFIG)

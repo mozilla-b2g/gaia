@@ -121,16 +121,27 @@ LayoutLoader.prototype.SOURCE_DIR = './js/layouts/';
 LayoutLoader.prototype.start = function() {
   this._initializedLayouts = {};
   this._layoutsPromises = {};
-  this.initPreloadedLayouts();
+  this.initLayouts();
 };
 
-LayoutLoader.prototype.initPreloadedLayouts = function() {
-  var layoutName;
+LayoutLoader.prototype.initLayouts = function() {
+  // Reset the exposed Keyboards object and collect all layouts
+  // in the original one.
   var Keyboards = exports.Keyboards;
+  exports.Keyboards = {};
+  var layoutName;
   for (layoutName in Keyboards) {
-    this.initLayout(layoutName);
-    this._layoutsPromises[layoutName] =
-      Promise.resolve(this._initializedLayouts[layoutName]);
+    if (this._initializedLayouts[layoutName]) {
+      console.warn('LayoutLoader: ' + layoutName + ' is overwritten.');
+    }
+    this._initializedLayouts[layoutName] = Keyboards[layoutName];
+
+    // Create a promise so that these panels can be loaded async
+    // even if they are not loaded with file of their name.
+    if (!this._layoutsPromises[layoutName]) {
+      this._layoutsPromises[layoutName] =
+        Promise.resolve(this._initializedLayouts[layoutName]);
+    }
   }
 };
 
@@ -148,7 +159,7 @@ LayoutLoader.prototype.getLayoutAsync = function(layoutName) {
   var p = new Promise(function(resolve, reject) {
     var script = document.createElement('script');
     script.onload = function() {
-      this.initLayout(layoutName);
+      this.initLayouts();
       resolve(this._initializedLayouts[layoutName]);
     }.bind(this);
     script.onerror = function() {
@@ -162,18 +173,6 @@ LayoutLoader.prototype.getLayoutAsync = function(layoutName) {
 
   this._layoutsPromises[layoutName] = p;
   return p;
-};
-
-LayoutLoader.prototype.initLayout = function(layoutName) {
-  var Keyboards = exports.Keyboards;
-  if (!(layoutName in Keyboards)) {
-    throw new Error('LayoutLoader: ' + layoutName +
-      ' did not expose itself correctly.');
-  }
-
-  var layout = Keyboards[layoutName];
-  this._initializedLayouts[layoutName] = layout;
-  Keyboards[layoutName] = null;
 };
 
 /**

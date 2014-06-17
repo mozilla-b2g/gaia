@@ -3,3 +3,7 @@ html, body {
   margin: 0;
   font-size: 10px;
 }
+
+body {
+  background: #000000;
+}

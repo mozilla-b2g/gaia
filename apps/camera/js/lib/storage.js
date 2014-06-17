@@ -41,7 +41,8 @@ function Storage(options) {
   this.picture = navigator.getDeviceStorage('pictures');
   this.picture.addEventListener('change', this.onStorageChange);
   this.createFilename = options.createFilename || createFilename; // test hook
-  dcf.init();
+  this.dcf = options.dcf || dcf;
+  this.dcf.init();
   debug('initialized');
 }
 

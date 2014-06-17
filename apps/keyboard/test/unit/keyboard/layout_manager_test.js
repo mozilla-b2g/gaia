@@ -15,6 +15,22 @@ suite('LayoutLoader', function() {
     ]
   };
 
+  var expectedFoo2Layout = {
+    keys: [
+      [
+        { value: 'foo2' }
+      ]
+    ]
+  };
+
+  var expectedFoo3Layout = {
+    keys: [
+      [
+        { value: 'foo3' }
+      ]
+    ]
+  };
+
   suiteSetup(function() {
     realKeyboards = window.Keyboards;
   });
@@ -51,6 +67,7 @@ suite('LayoutLoader', function() {
         ]
       }, 'preloaded loaded');
       assert.equal(layout, loader.getLayout('preloaded'));
+      assert.deepEqual(window.Keyboards, {});
 
       done();
     }, function() {
@@ -73,8 +90,43 @@ suite('LayoutLoader', function() {
       assert.deepEqual(
         loader.getLayout('foo'), expectedFooLayout, 'foo loaded');
       assert.equal(layout, loader.getLayout('foo'));
+      assert.deepEqual(window.Keyboards, {});
 
       done();
+    }, function() {
+      assert.isTrue(false, 'should not reject');
+
+      done();
+    });
+  });
+
+  test('getLayoutAsync (init two layouts)', function(done) {
+    window.Keyboards = {};
+
+    var loader = new LayoutLoader();
+    loader.SOURCE_DIR = './fake-layouts/';
+    loader.start();
+
+    var p = loader.getLayoutAsync('foo2');
+    p.then(function(layout) {
+      assert.isTrue(true, 'loaded');
+      assert.deepEqual(
+        loader.getLayout('foo2'), expectedFoo2Layout, 'foo2 loaded');
+      assert.equal(layout, loader.getLayout('foo2'));
+      assert.deepEqual(window.Keyboards, {});
+
+      assert.deepEqual(
+        loader.getLayout('foo3'), expectedFoo3Layout, 'foo3 loaded');
+      var p2 = loader.getLayoutAsync('foo3');
+      p2.then(function(layout) {
+        assert.equal(layout, loader.getLayout('foo3'));
+
+        done();
+      }, function() {
+        assert.isTrue(false, 'should not reject');
+
+        done();
+      });
     }, function() {
       assert.isTrue(false, 'should not reject');
 

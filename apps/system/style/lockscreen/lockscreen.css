@@ -220,7 +220,7 @@
   line-height: 1;
   margin: -1.4rem 0 0 -0.4rem;
   font-weight: 200;
-  font-size: 7.7rem;
+  font-size: 8.5rem;
 }
 
 #lockscreen-clock-time span { /* optional meridiem */
@@ -254,15 +254,10 @@
 }
 
 .lockscreen-icon {
-  margin-top: 2rem;
   width: 6rem;
   height: 6rem;
 
   pointer-events: none;
-}
-
-.lockscreen-icon-area.dark .lockscreen-icon{
-  opacity: 0.65;
 }
 
 #lockscreen-area-slide {
@@ -317,6 +312,7 @@ button::-moz-focus-inner {
   background-position: 1.1rem center;
   background-repeat: no-repeat;
   background-size: 3rem;
+  margin-top: 1.8rem;
 }
 
 .lockscreen-icon-left, .lockscreen-icon-right {
@@ -334,6 +330,7 @@ button::-moz-focus-inner {
   background-position: 1.85rem center;
   background-repeat: no-repeat;
   background-size: 3rem;
+  margin-top: 2rem;
 }
 
 #lockscreen-alt-camera {
@@ -347,6 +344,7 @@ button::-moz-focus-inner {
   transition: opacity 0.5s ease;
   width: 5rem;
   height: 5rem;
+  margin-top: 5rem;
 }
 
 #lockscreen-alt-camera-button {

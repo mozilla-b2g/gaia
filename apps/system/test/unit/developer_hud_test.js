@@ -157,8 +157,8 @@ suite('developerHUD', function() {
         var referenceValue =
           (Math.round(value * 100) / 100) + ' ' + prefix[i] + 'B';
         var referenceCanvas = getCanvasFor([
-          { 'color': 'navy', 'value': referenceValue },
-          { 'color': 'slategrey', 'value': referenceValue },
+          { 'color': 'dimgrey', 'value': referenceValue },
+          { 'color': 'lightslategrey', 'value': referenceValue },
         ]);
         assert.equal(canvas.toDataURL(),
                      referenceCanvas.toDataURL());

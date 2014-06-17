@@ -13,7 +13,7 @@ class TestPlayWebMVideo(GaiaTestCase):
         GaiaTestCase.setUp(self)
 
         # add video to storage
-        self.push_resource('VID_0001.webm', destination='DCIM/100MZLLA')
+        self.push_resource('VID_0001.webm')
 
     def test_play_webm_video(self):
         """https://moztrap.mozilla.org/manage/case/2478/"""

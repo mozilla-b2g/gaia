@@ -8,8 +8,12 @@ require('/test/unit/mock_bookmark_source.js');
 require('/test/unit/mock_collection_source.js');
 require('/test/unit/mock_configurator.js');
 
+require('/shared/elements/gaia_grid/js/grid_icon_renderer.js');
+require('/shared/elements/gaia_grid/script.js');
 require('/shared/elements/gaia_grid/js/items/grid_item.js');
 require('/shared/elements/gaia_grid/js/items/divider.js');
+require('/shared/elements/gaia_grid/js/items/collection.js');
+require('/shared/elements/gaia_grid/js/items/mozapp.js');
 
 // Unit tests for item library
 requireApp('verticalhome/js/stores/item.js');

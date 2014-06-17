@@ -30,9 +30,10 @@ marionette('Contacts shortcuts > touch', function() {
     scrollbar = client.helper.waitForElement(selectors.scrollbar);
   });
 
+  // Disabled bug 1023908
   suite('touch on shortcuts', function() {
     test('press/release on scrollbar should show/hide shortcut', function() {
-      var action = actions.press(scrollbar, 10, 200).perform();
+      var action = actions.press(scrollbar, 10, 100).perform();
       overlay = client.helper.waitForElement(selectors.overlay);
       assert.equal(overlay.text().length, 1);
       assert.equal(overlayOpacity(), '1');
@@ -66,9 +67,9 @@ marionette('Contacts shortcuts > touch', function() {
 
     test('pressing near the last release position should show valid shortcut',
       function() {
-      actions.press(scrollbar, 10, 200).release().perform();
+      actions.press(scrollbar, 15, 100).release().perform();
 
-      var action = actions.press(scrollbar, 10, 200).perform();
+      var action = actions.press(scrollbar, 15, 100).perform();
       overlay = client.helper.waitForElement(selectors.overlay);
       assert.equal(overlay.text().length, 1);
       action.release().perform();

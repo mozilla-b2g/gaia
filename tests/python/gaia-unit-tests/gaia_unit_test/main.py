@@ -223,11 +223,12 @@ def cli():
         # build a list of tests
         appsdir = os.path.join(os.path.dirname(os.path.abspath(options.profile)), 'apps')
         for root, dirs, files in os.walk(appsdir):
-            for file in files:
+            files.sort()
+            for f in files:
                 # only include tests in a 'unit' directory
                 roots = root.split(os.path.sep)
                 if 'unit' in roots:
-                    full_path = os.path.relpath(os.path.join(root, file), appsdir)
+                    full_path = os.path.relpath(os.path.join(root, f), appsdir)
                     if full_path.endswith('_test.js') and full_path not in disabled:
                         tests.append(full_path)
 

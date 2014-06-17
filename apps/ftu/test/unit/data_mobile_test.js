@@ -1,16 +1,24 @@
 'use strict';
 
+/* global UIManager, DataMobile, MocksHelper */
+
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+requireApp('ftu/test/unit/mock_ui_manager.js');
 requireApp('ftu/js/navigation.js');
 requireApp('ftu/js/data_mobile.js');
 
 suite('mobile data >', function() {
+  var mocksHelperForDataMobile = new MocksHelper([
+      'UIManager'
+  ]).init();
+
   var realSettings,
       settingToggleKey = 'ril.data.enabled',
       settingApnKey = 'ril.data.apnSettings';
   var TINY_TIMEOUT = 30;
 
   suiteSetup(function() {
+    mocksHelperForDataMobile.suiteSetup();
     realSettings = navigator.mozSettings;
     navigator.mozSettings = window.MockNavigatorSettings;
 
@@ -18,6 +26,7 @@ suite('mobile data >', function() {
   });
 
   suiteTeardown(function() {
+    mocksHelperForDataMobile.suiteTeardown();
     navigator.mozSettings = realSettings;
     realSettings = null;
   });
@@ -73,6 +82,24 @@ suite('mobile data >', function() {
     var DATA_SCREEN = 2;
 
     var testCases = [
+      {
+        'title': 'On data screen. ' + KEY + '= true' + ' and ' + KEY_SV +
+                 ' and switch modify by user',
+        'currentStep': DATA_SCREEN,
+        'isModifiedByUser': true,
+        'key': true,
+        'keySV': true,
+        'expectedValue': true
+      },
+      {
+        'title': 'On data screen. ' + KEY + '= false' + ' and ' + KEY_SV +
+                 ' and switch modify by user',
+        'currentStep': DATA_SCREEN,
+        'isModifiedByUser': true,
+        'key': false,
+        'keySV': true,
+        'expectedValue': false
+      },
       {
         'title': 'On data screen. ' + KEY + '= true' + ' and not ' + KEY_SV,
         'currentStep': DATA_SCREEN,
@@ -171,6 +198,7 @@ suite('mobile data >', function() {
     testCases.forEach(function(testCase) {
       test(testCase.title, function(done) {
         Navigation.currentStep = testCase.currentStep;
+        UIManager.dataConnectionChangedByUsr = testCase.isModifiedByUser;
         window.MockNavigatorSettings.mSettings[KEY] = testCase.key;
         window.MockNavigatorSettings.mSettings[KEY_SV] = testCase.keySV;
         DataMobile.getStatus(function() {});

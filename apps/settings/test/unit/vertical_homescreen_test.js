@@ -1,8 +1,9 @@
 'use strict';
 
 /* global verticalPreferences, verticalHomescreen, requireElements,
-          suiteTemplate, MockNavigatorSettings */
+          suiteTemplate, MockNavigatorSettings, MockL10n */
 
+requireApp('settings/test/unit/mock_l10n.js');
 require('/shared/js/homescreens/vertical_preferences.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/js/settings_listener.js');
@@ -10,6 +11,7 @@ requireElements('settings/elements/homescreen.html');
 
 suite('vertical_homescreen.js >', function() {
 
+  var realL10n;
   var numCols = 4;
   var updateStub = null;
   var updateHandler = null;
@@ -25,6 +27,10 @@ suite('vertical_homescreen.js >', function() {
                                 function(type, handler) {
       updateHandler = handler;
     });
+
+    realL10n = navigator.mozL10n;
+    navigator.mozL10n = MockL10n;
+
     realMozSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
   });
@@ -33,6 +39,8 @@ suite('vertical_homescreen.js >', function() {
     document.body.innerHTML = '';
     updateStub.restore();
     navigator.mozSettings = realMozSettings;
+    navigator.mozL10n = realL10n;
+    realL10n = null;
   });
 
   setup(function(done) {

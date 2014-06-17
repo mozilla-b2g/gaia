@@ -39,6 +39,11 @@
       var args = Array.prototype.slice.apply(arguments);
       args.unshift('evme', 'WARNING');
       console.warn.apply(console, args);
+    },
+    error: function error() {
+      var args = Array.prototype.slice.apply(arguments);
+      args.unshift('evme', 'ERROR');
+      console.error.apply(console, args);
     }
 
   };

@@ -115,8 +115,8 @@ suite('conference group handler', function() {
 
       test('should update the group label', function() {
         flush();
-        assert.equal(fakeGroupLabel.textContent, 'conference');
-        assert.deepEqual(MockLazyL10n.keys.conference, {n: 2});
+        assert.equal(fakeGroupLabel.textContent, 'conferenceCall');
+        assert.deepEqual(MockLazyL10n.keys.conferenceCall, {n: 2});
       });
 
       suite('when a new called is merged in the conference', function() {
@@ -133,8 +133,8 @@ suite('conference group handler', function() {
 
         test('should update the group label', function() {
           flush();
-          assert.equal(fakeGroupLabel.textContent, 'conference');
-          assert.deepEqual(MockLazyL10n.keys.conference, {n: 3});
+          assert.equal(fakeGroupLabel.textContent, 'conferenceCall');
+          assert.deepEqual(MockLazyL10n.keys.conferenceCall, {n: 3});
         });
 
         test('should update single line status', function() {
@@ -154,8 +154,8 @@ suite('conference group handler', function() {
 
           test('should update the group label', function() {
             flush();
-            assert.equal(fakeGroupLabel.textContent, 'conference');
-            assert.deepEqual(MockLazyL10n.keys.conference, {n: 2});
+            assert.equal(fakeGroupLabel.textContent, 'conferenceCall');
+            assert.deepEqual(MockLazyL10n.keys.conferenceCall, {n: 2});
           });
         });
 
@@ -170,8 +170,8 @@ suite('conference group handler', function() {
 
           test('should update the group label', function() {
             flush();
-            assert.equal(fakeGroupLabel.textContent, 'conference');
-            assert.deepEqual(MockLazyL10n.keys.conference, {n: 2});
+            assert.equal(fakeGroupLabel.textContent, 'conferenceCall');
+            assert.deepEqual(MockLazyL10n.keys.conferenceCall, {n: 2});
           });
 
           test('should call CallsHandler.checkCalls if two more phones remains',

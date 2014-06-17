@@ -1,5 +1,5 @@
 'use strict';
-/* global Collection */
+/* global GaiaGrid */
 /* global CollectionsDatabase */
 
 (function(exports) {
@@ -38,7 +38,7 @@
       CollectionsDatabase.getAll().then(function(systemCollections) {
         // We are going to iterate over system Collections
         Object.keys(systemCollections).forEach(function(id) {
-          self.entries.push(new Collection(systemCollections[id]));
+          self.entries.push(new GaiaGrid.Collection(systemCollections[id]));
         });
 
         success(self.entries);
@@ -76,15 +76,15 @@
         return;
       }
 
-      var collection = new Collection(detail);
+      var collection = new GaiaGrid.Collection(detail);
       collection.setPosition(this.store.getNextPosition());
       this.entries.push(collection);
 
       // Manually inject this book mark into the app item list for now.
       // Remove and re-append a divider if the last item is a divider
-      var lastDivider = app.grid.getLastIfDivider();
-      app.grid.addIcon(collection.identifier, collection);
-      app.grid.addItem(lastDivider);
+      var lastDivider = app.grid.removeUntilDivider();
+      app.grid.add(collection);
+      app.grid.add(lastDivider);
 
       app.grid.render();
     },
@@ -102,7 +102,7 @@
       app.grid.removeItemByIndex(itemIndex);
       app.grid.render();
 
-      if (appObject.element) {
+      if (appObject && appObject.element) {
         appObject.element.parentNode.removeChild(appObject.element);
       }
     }

@@ -150,3 +150,50 @@ gaia-grid {
 .hidden {
   display: none;
 }
+
+#suggestions-wrapper {
+  display: flex;
+}
+
+#suggestions {
+  flex: 1;
+}
+
+#suggestions-notice-wrapper {
+  background: rgba(45, 45, 45, 0.94);
+  z-index: 100;
+  border-radius: 2px;
+  position: absolute;
+  margin: 1rem 1.5rem 0 1.5rem;
+}
+
+#suggestions-notice-wrapper p {
+  padding: 1.5rem;
+  font-size: 1.6rem;
+  font-style: italic;
+}
+
+#suggestions-notice-confirm {
+  display: block;
+  width: 100%;
+  color: #00AACC;
+  background: none;
+  border: none;
+  border-top: 0.1rem solid rgba(255, 255, 255, 0.05);
+  border-radius: 0;
+  padding: 1rem;
+  font-size: 16px;
+  font-style: italic;
+}
+
+#suggestions-notice-wrapper::before {
+  content: ' ';
+  height: 0;
+  width: 0;
+  position: absolute;
+  border: 9px solid transparent;
+  border-left-color: rgba(45, 45, 45, 0.94);
+  top: -0.9rem;
+  left: 0;
+  z-index: -1;
+}

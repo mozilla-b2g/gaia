@@ -7,6 +7,9 @@ var AdmZip = require('adm-zip');
 var dive = require('dive');
 var helper = require('./helper');
 
+const MAX_PROFILE_SIZE_MB = 65;
+const MAX_PROFILE_SIZE = MAX_PROFILE_SIZE_MB * 1024 * 1024;
+
 suite('ADB tests', function() {
   suiteSetup(function() {
     rmrf('build/test/integration/result');
@@ -50,6 +53,15 @@ suite('Build GAIA from differece app list', function() {
 
       // sms should not exists in Tablet builds
       assert.isFalse(fs.existsSync(zipPath));
+
+      // vertical homescreen and collection should not exists
+      var zipVertHomePath = path.join(process.cwd(), 'profile', 'webapps',
+        'verticalhome.gaiamobile.org', 'application.zip');
+      var zipCollectionPath = path.join(process.cwd(), 'profile', 'webapps',
+        'collection.gaiamobile.org', 'application.zip');
+      assert.isFalse(fs.existsSync(zipVertHomePath));
+      assert.isFalse(fs.existsSync(zipCollectionPath));
+
       done();
     });
   });
@@ -64,6 +76,34 @@ suite('Build GAIA from differece app list', function() {
 
       // sms should not exists in Tablet builds
       assert.ok(fs.existsSync(zipPath));
+
+      // vertical homescreen and collection should exists
+      var zipVertHomePath = path.join(process.cwd(), 'profile', 'webapps',
+        'verticalhome.gaiamobile.org', 'application.zip');
+      var zipCollectionPath = path.join(process.cwd(), 'profile', 'webapps',
+        'collection.gaiamobile.org', 'application.zip');
+      assert.ok(fs.existsSync(zipVertHomePath));
+      assert.ok(fs.existsSync(zipCollectionPath));
+
+      // Check init.json
+      var initPath = path.join(process.cwd(), 'build_stage',
+        'verticalhome', 'js', 'init.json');
+      assert.ok(fs.existsSync(initPath),
+        'init.json should exist');
+
+      // Check pre_installed_collections.json
+      var collectionPath = path.join(process.cwd(), 'build_stage',
+        'collection', 'js', 'pre_installed_collections.json');
+      assert.ok(fs.existsSync(initPath),
+        'init.json should exist');
+
+      // Homescreen1 should have a role of system
+      var hsHomZip = new AdmZip(path.join(process.cwd(), 'profile',
+        'webapps', 'homescreen.gaiamobile.org', 'application.zip'));
+      var hsHomManifest =
+        JSON.parse(hsHomZip.readAsText(hsHomZip.getEntry('manifest.webapp')));
+      assert.equal(hsHomManifest.role, 'system')
+
       done();
     });
   });
@@ -78,6 +118,15 @@ suite('Build GAIA from differece app list', function() {
 
       // homescreen-stingray should not exists in tv builds
       assert.ok(fs.existsSync(zipPath));
+
+      // vertical homescreen and collection should not exists
+      var zipVertHomePath = path.join(process.cwd(), 'profile', 'webapps',
+        'verticalhome.gaiamobile.org', 'application.zip');
+      var zipCollectionPath = path.join(process.cwd(), 'profile', 'webapps',
+        'collection.gaiamobile.org', 'application.zip');
+      assert.isFalse(fs.existsSync(zipVertHomePath));
+      assert.isFalse(fs.existsSync(zipCollectionPath));
+
       done();
     });
   });
@@ -382,7 +431,19 @@ suite('Build Integration tests', function() {
         'gallery', 'js', 'frame_scripts.js');
       assert.ok(fs.existsSync(galleryMetadataScriptPath),
         'frame_scripts.js should exist');
-      done();
+
+      var profileSize = 0;
+      dive(path.join(process.cwd(), 'profile'), {recursive: true},
+        function action(err, file) {
+          profileSize += fs.statSync(file).size;
+        },
+        function complete() {
+          assert(profileSize < MAX_PROFILE_SIZE,
+            'profile size should be less than ' + MAX_PROFILE_SIZE_MB +
+            'MB, current is ' + (profileSize / 1024 / 1024).toFixed(2) + 'MB');
+          done();
+        }
+      );
     });
   });
 
@@ -503,6 +564,12 @@ suite('Build Integration tests', function() {
   });
 
   test('make with DEBUG=1', function(done) {
+    // avoid downloading extension from addon website
+    var extConfigPath  = path.join('build', 'config',
+      'additional-extensions.json');
+    fs.renameSync(extConfigPath, extConfigPath + '.bak');
+    fs.writeFileSync(extConfigPath, '{}');
+
     helper.exec('DEBUG=1 make', function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
 
@@ -605,6 +672,9 @@ suite('Build Integration tests', function() {
           helper.checkPrefs(sandbox.userPrefs, expectedUserPrefs);
           // only expect one zip file for marketplace.
           assert.equal(zipCount, 1);
+
+          fs.unlinkSync(extConfigPath);
+          fs.renameSync(extConfigPath + '.bak', extConfigPath);
           done();
         }
       );

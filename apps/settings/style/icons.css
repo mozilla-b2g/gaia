@@ -139,7 +139,7 @@ li:active:not([aria-disabled="true"]) .menu-item::before,
   background-position: -9rem -9rem;
 }
 
-#menuItem-battery::before {
+.menuItem-battery::before {
   background-position: -12rem -9rem;
 }
 
@@ -181,6 +181,18 @@ li:active:not([aria-disabled="true"]) .menu-item::before,
 
 #menuItem-findmydevice::before {
   background-position: -6rem -18rem;
+}
+
+#suggestions-desc {
+  left: 0;
+}
+
+#menuItem-suggestions {
+  padding-left: 1.5rem;
+}
+
+#menuItem-suggestions::before {
+  background: none;
 }
 
 /******************************************************************************

@@ -1,4 +1,4 @@
-/* global eme, Search, DataGridProvider, Bookmark */
+/* global eme, Search, DataGridProvider, GaiaGrid, GridIconRenderer */
 
 (function() {
 
@@ -14,6 +14,7 @@
 
     dedupes: true,
     dedupeStrategy: 'fuzzy',
+    remote: true,
 
     renderFullscreen: false,
 
@@ -51,13 +52,15 @@
           response.apps.forEach(function each(app) {
             results.push({
               dedupeId: app.appUrl,
-              data: new Bookmark({
+              data: new GaiaGrid.Bookmark({
                 id: app.id,
                 name: app.name,
                 url: app.appUrl,
                 icon: app.icon,
-                clipIcon: true
-              })
+                renderer: GridIconRenderer.TYPE.CLIP
+              }, {
+                search: true}
+              )
             });
           }, this);
           collect(results);

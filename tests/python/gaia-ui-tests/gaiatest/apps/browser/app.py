@@ -143,8 +143,7 @@ class Browser(Base):
     class Tab(PageRegion):
 
         def tap_tab(self):
-            # TODO: Bug 876411 - Click works but tap does not on tabs on browser app
-            self.root_element.click()
+            self.root_element.tap()
 
             # TODO This wait is a workaround until Marionette can correctly interpret the displayed state
             self.wait_for_condition(lambda m: m.execute_script("return window.wrappedJSObject.Browser.currentScreen;") == 'page-screen')

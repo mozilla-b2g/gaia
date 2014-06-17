@@ -119,10 +119,16 @@ var lastFocusedThumbnail = null;
 
 var currentOverlay;  // The id of the current overlay or null if none.
 
+// Have we completed our first scan yet?
+var firstScanDone = false;
+
 // mozL10n.once is the main entry point for the app.
 navigator.mozL10n.once(function showBody() {
   // <body> children are hidden until the UI is translated
   document.body.classList.remove('hidden');
+
+  // Tell performance monitors that our chrome is visible
+  window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
 
   // load frame_script.js for preview mode and show loading background
   if (!isPhone) {
@@ -170,6 +176,9 @@ function init() {
   };
   // Handle resize events
   window.onresize = resizeHandler;
+
+  // Tell performance monitors that our chrome is ready to interact with.
+  window.dispatchEvent(new CustomEvent('moz-chrome-interactive'));
 
   // If we were not invoked by an activity, then start off in thumbnail
   // list mode, and fire up the MediaDB object.
@@ -304,6 +313,13 @@ function initDB() {
     // Hide the scanning indicator
     $('progress').classList.add('hidden');
     $('throbber').classList.remove('throb');
+
+    // If this was the first scan after startup, then tell
+    // performance monitors that the app is finally fully loaded and stable.
+    if (!firstScanDone) {
+      firstScanDone = true;
+      window.dispatchEvent(new CustomEvent('moz-app-loaded'));
+    }
   };
 
   // On devices with internal and external device storage, this handler is
@@ -391,6 +407,7 @@ function initThumbnails() {
   // Temporary arrays to hold enumerated files
   var batch = [];
   var batchsize = PAGE_SIZE;
+  var firstBatchDisplayed = false;
 
   photodb.enumerate('date', null, 'prev', function(fileinfo) {
     if (fileinfo) {
@@ -423,6 +440,13 @@ function initThumbnails() {
   function flush() {
     batch.forEach(thumb);
     batch.length = 0;
+    if (!firstBatchDisplayed) {
+      firstBatchDisplayed = true;
+      // Tell performance monitors that "above the fold" content is displayed
+      // and is ready to interact with.
+      window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
+      window.dispatchEvent(new CustomEvent('moz-content-interactive'));
+    }
   }
 
   function thumb(fileinfo) {
@@ -437,6 +461,13 @@ function initThumbnails() {
     if (files.length === 0) { // If we didn't find anything
       showOverlay('scanning');
     }
+
+    // Send a custom event to performance monitors to note that we're done
+    // enumerating the database at this point. We won't send the final
+    // moz-app-loaded event until we're completely stable and have
+    // finished scanning.
+    PerformanceTestingHelper.dispatch('media-enumerated');
+
     // Now that we've enumerated all the photos and videos we already know
     // about go start looking for new photos and videos.
     photodb.scan();

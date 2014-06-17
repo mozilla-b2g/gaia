@@ -107,8 +107,12 @@
   z-index: 16384;
 }
 
-/* Level 4: Activity menu, context menu and value selector */
+/* Level 4: Activity menu, context menu, value selector, and permissions */
 #screen > [data-z-index-level="action-menu"] {
+  z-index: 8192;
+}
+
+#screen > [data-z-index-level="permission-screen"] {
   z-index: 8192;
 }
 
@@ -149,11 +153,6 @@
 {
   /* Or the .appWindow one would be first adopted.*/
   z-index: 2048 !important;
-}
-
-/* Permission screen is here because of the lockscreen camera. */
-#screen > [data-z-index-level="permission-screen"] {
-  z-index: 2047;
 }
 
 #screen > [data-z-index-level="lockscreen-camera"] {

@@ -154,12 +154,12 @@
           break;
 
         case 'uss':
-          color = 'navy';
+          color = 'dimgrey';
           value = this.formatMemory(value);
           break;
 
         case 'memory':
-          color = 'slategrey';
+          color = 'lightslategrey';
           value = this.formatMemory(value);
           break;
 

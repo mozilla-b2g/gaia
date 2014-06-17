@@ -1,9 +1,11 @@
 'use strict';
 
 requireApp('system/shared/test/unit/mocks/mock_lazy_loader.js');
+requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_lock_screen.js');
 
 var mocksHelperForUtilityTray = new MocksHelper([
+  'AppWindowManager',
   'LazyLoader'
 ]);
 mocksHelperForUtilityTray.init();
@@ -133,6 +135,23 @@ suite('system/UtilityTray', function() {
       test('should be shown by a drag from the top', function() {
         fakeTouches(0, 100);
         assert.equal(UtilityTray.shown, true);
+      });
+
+      test('should send a touchcancel to the active app' +
+           'since the subsequent events will be swallowed', function() {
+        UtilityTray.screen.classList.remove('utility-tray');
+
+        var app = {
+          iframe: {
+            sendTouchEvent: function() {}
+          }
+        };
+        this.sinon.stub(MockAppWindowManager, 'getActiveApp').returns(app);
+        this.sinon.spy(app.iframe, 'sendTouchEvent');
+
+        fakeTouches(0, 100);
+
+        sinon.assert.calledWith(app.iframe.sendTouchEvent, 'touchcancel');
       });
     });
 
@@ -331,6 +350,19 @@ suite('system/UtilityTray', function() {
 
       assert.isTrue(UtilityTray.statusbar.dispatchEvent(fakeEvt));
       assert.isTrue(UtilityTray.overlay.dispatchEvent(fakeEvt));
+    });
+
+    test('_pdIMESwitcherShow > Don\'t preventDefault on rocketbar',
+      function() {
+      var evt = {
+        target: {
+          id: 'rocketbar-input'
+        },
+        preventDefault: function() {}
+      };
+      var defaultStub = this.sinon.stub(evt, 'preventDefault');
+      UtilityTray._pdIMESwitcherShow(evt);
+      assert.isTrue(defaultStub.notCalled);
     });
   });
 });

@@ -7,7 +7,6 @@
 
     <!-- Debug/DUMP method support -->
     <script defer="" src="/shared/js/dump.js"></script>
-    <script defer="" src="/shared/js/settings_url.js"></script>
 
     <!-- Common style -->
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
@@ -85,6 +84,8 @@
     <!--<script defer src="shared/js/screen_layout.js"></script> -->
     <!--<script defer src="shared/js/fxa_iac_client.js"></script> -->
     <!--<script defer src="shared/js/text_normalizer.js"></script> -->
+    <!--<script defer src="shared/js/settings_url.js"></script> -->
+    <!--<script defer src="shared/js/omadrm/fl.js"></script> -->
 
     <!-- all non-#root panels will lazy-load their own scripts -->
     <link rel="import" href="/elements/wifi_status.html">
@@ -125,6 +126,7 @@
     <link rel="import" href="/elements/sound.html">
     <link rel="import" href="/elements/display.html">
     <link rel="import" href="/elements/homescreen.html">
+    <link rel="import" href="/elements/search_suggestions.html">
     <link rel="import" href="/elements/navigation.html">
     <link rel="import" href="/elements/notifications.html">
     <link rel="import" href="/elements/date_time.html">
@@ -270,6 +272,8 @@
     <section is="homescreen" role="region" id="homescreen"></section>
     <!-- Personalization :: Navigation -->
     <section is="navigation" role="region" id="navigation"></section>
+    <!-- Personalization :: Homescreen :: Search Suggestions -->
+    <section is="search-suggestions" role="region" id="search-suggestions"></section>
     <!-- Personalization :: Notifications -->
     <section is="notifications" role="region" id="notifications"></section>
     <!-- Personalization :: Date & Time -->

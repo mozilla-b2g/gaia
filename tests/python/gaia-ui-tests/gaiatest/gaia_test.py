@@ -4,6 +4,8 @@
 
 import json
 import os
+import shutil
+import tempfile
 import time
 
 from marionette import MarionetteTestCase, EnduranceTestCaseMixin, \
@@ -11,9 +13,10 @@ from marionette import MarionetteTestCase, EnduranceTestCaseMixin, \
 from marionette.by import By
 from marionette.errors import NoSuchElementException
 from marionette.errors import StaleElementException
-from marionette.errors import TimeoutException
 from marionette.errors import InvalidResponseException
 from marionette.wait import Wait
+
+from file_manager import GaiaDeviceFileManager, GaiaLocalFileManager
 
 
 class GaiaApp(object):
@@ -415,27 +418,33 @@ class FakeUpdateChecker(object):
         self.marionette.execute_script("GaiaUITests_FakeUpdateChecker();")
         self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
 
+
 class GaiaDevice(object):
 
-    def __init__(self, marionette, testvars=None):
+    def __init__(self, marionette, testvars=None, manager=None):
+        self.manager = manager
         self.marionette = marionette
         self.testvars = testvars or {}
+
+        if self.is_desktop_b2g:
+            self.file_manager = GaiaLocalFileManager(self)
+            # Use a temporary directory for storage
+            self.storage_path = tempfile.mkdtemp()
+            self._set_storage_path()
+        elif self.manager:
+            self.file_manager = GaiaDeviceFileManager(self)
+            # Use the device root for storage
+            self.storage_path = self.manager.deviceRoot
+
         self.lockscreen_atom = os.path.abspath(
             os.path.join(__file__, os.path.pardir, 'atoms', "gaia_lock_screen.js"))
 
-    def add_device_manager(self, device_manager):
-        self._manager = device_manager
-
-    @property
-    def manager(self):
-        if hasattr(self, '_manager') and self._manager:
-            return self._manager
-
-        if not self.is_android_build:
-            raise Exception('Device manager is only available for devices.')
-
-        else:
-            raise Exception('GaiaDevice has no device manager object set.')
+    def _set_storage_path(self):
+        if self.is_desktop_b2g:
+            # Override the storage location for desktop B2G. This will only
+            # work if the B2G instance is running locally.
+            GaiaData(self.marionette).set_char_pref(
+                'device.storage.overrideRootDir', self.storage_path)
 
     @property
     def is_android_build(self):
@@ -475,21 +484,6 @@ class GaiaDevice(object):
             self._has_wifi = self.marionette.execute_script('return window.navigator.mozWifiManager !== undefined')
         return self._has_wifi
 
-    def push_file(self, source, count=1, destination='', progress=None):
-        if not destination.count('.') > 0:
-            destination = '/'.join([destination, source.rpartition(os.path.sep)[-1]])
-        self.manager.mkDirs(destination)
-        self.manager.pushFile(source, destination)
-
-        if count > 1:
-            for i in range(1, count + 1):
-                remote_copy = '_%s.'.join(iter(destination.split('.'))) % i
-                self.manager._checkCmd(['shell', 'dd', 'if=%s' % destination, 'of=%s' % remote_copy])
-                if progress:
-                    progress.update(i)
-
-            self.manager.removeFile(destination)
-
     def restart_b2g(self):
         self.stop_b2g()
         time.sleep(2)
@@ -510,6 +504,9 @@ class GaiaDevice(object):
         locator = (By.CSS_SELECTOR, 'div.appWindow.active.render')
         Wait(marionette=self.marionette, timeout=timeout, ignored_exceptions=NoSuchElementException)\
             .until(lambda m: m.find_element(*locator).is_displayed())
+
+        # Reset the storage path for desktop B2G
+        self._set_storage_path()
 
     @property
     def is_b2g_running(self):
@@ -627,9 +624,15 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
             if self.restart:
                 pass
 
-        self.device = GaiaDevice(self.marionette, self.testvars)
-        if self.device.is_android_build:
-            self.device.add_device_manager(self.get_device_manager())
+        # TODO: Once bug 1019043 is fixed we will be able to just use
+        # self.device_manager instead of guarding for desktop B2G
+        device_manager = None
+        if not self.marionette.session_capabilities['device'] == 'desktop':
+            device_manager = self.device_manager
+        self.device = GaiaDevice(self.marionette,
+                                 manager=device_manager,
+                                 testvars=self.testvars)
+
         if self.restart and (self.device.is_android_build or self.marionette.instance):
             # Restart if it's a device, or we have passed a binary instance with --binary command arg
             self.device.stop_b2g()
@@ -674,8 +677,7 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
         self.data_layer = GaiaData(self.marionette, self.testvars)
         self.accessibility = Accessibility(self.marionette)
 
-        if self.device.is_android_build:
-            self.cleanup_storage()
+        self.cleanup_storage()
 
         if self.restart:
             self.cleanup_gaia(full_reset=False)
@@ -683,26 +685,29 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
             self.cleanup_gaia(full_reset=True)
 
     def cleanup_data(self):
-        self.device.manager.removeDir('/cache/*')
-        self.device.manager.removeDir('/data/b2g/mozilla')
-        self.device.manager.removeDir('/data/local/debug_info_trigger')
-        self.device.manager.removeDir('/data/local/indexedDB')
-        self.device.manager.removeDir('/data/local/OfflineCache')
-        self.device.manager.removeDir('/data/local/permissions.sqlite')
-        self.device.manager.removeDir('/data/local/storage/persistent')
+        self.device.file_manager.remove('/cache/*')
+        self.device.file_manager.remove('/data/b2g/mozilla')
+        self.device.file_manager.remove('/data/local/debug_info_trigger')
+        self.device.file_manager.remove('/data/local/indexedDB')
+        self.device.file_manager.remove('/data/local/OfflineCache')
+        self.device.file_manager.remove('/data/local/permissions.sqlite')
+        self.device.file_manager.remove('/data/local/storage/persistent')
         # remove remembered networks
-        self.device.manager.removeFile('/data/misc/wifi/wpa_supplicant.conf')
+        self.device.file_manager.remove('/data/misc/wifi/wpa_supplicant.conf')
 
     def cleanup_storage(self):
         """Remove all files from the device's storage paths"""
-        # TODO: Remove hard-coded paths once bug 1018079 is resolved
-        for path in ['/mnt/sdcard',
-                     '/mnt/extsdcard',
-                     '/storage/sdcard0',
-                     '/storage/sdcard1']:
-            if self.device.manager.dirExists(path):
-                for item in self.device.manager.listFiles(path):
-                    self.device.manager.removeDir('/'.join([path, item]))
+        storage_paths = [self.device.storage_path]
+        if self.device.is_android_build:
+            # TODO: Remove hard-coded paths once bug 1018079 is resolved
+            storage_paths.extend(['/mnt/sdcard',
+                                  '/mnt/extsdcard',
+                                  '/storage/sdcard0',
+                                  '/storage/sdcard1'])
+        for path in storage_paths:
+            if self.device.file_manager.dir_exists(path):
+                for item in self.device.file_manager.list_items(path):
+                    self.device.file_manager.remove('/'.join([path, item]))
 
     def cleanup_gaia(self, full_reset=True):
         # restore settings from testvars
@@ -790,10 +795,10 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
             else:
                 raise Exception('Unable to connect to local area network')
 
-    def push_resource(self, filename, count=1, destination=''):
+    def push_resource(self, filename, remote_path=None, count=1):
         # push to the test storage space defined by device root
-        self.device.push_file(self.resource(filename), count, '/'.join([
-            self.device.manager.deviceRoot, destination]))
+        self.device.file_manager.push_file(
+            self.resource(filename), remote_path, count)
 
     def resource(self, filename):
         return os.path.abspath(os.path.join(os.path.dirname(__file__), 'resources', filename))
@@ -881,6 +886,8 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
             self.marionette.set_search_timeout(self.marionette.timeout or 10000)
 
     def tearDown(self):
+        if self.device.is_desktop_b2g and self.device.storage_path:
+            shutil.rmtree(self.device.storage_path, ignore_errors=True)
         self.apps = None
         self.data_layer = None
         MarionetteTestCase.tearDown(self)

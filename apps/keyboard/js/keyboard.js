@@ -167,6 +167,10 @@ var layoutLoader = layoutManager.loader;
 // SettingsPromiseManager wraps Settings DB methods into promises.
 var settingsPromiseManager = new SettingsPromiseManager();
 
+// L10nLoader loads l10n.js. We call it's one and only load() method
+// only after we have run everything in the critical cold launch path.
+var l10nLoader = new L10nLoader();
+
 // User settings (in Settings database) are tracked within these modules
 var soundFeedbackSettings;
 var vibrationFeedbackSettings;
@@ -357,6 +361,10 @@ function updateCurrentLayout(name) {
       showKeyboard();
     } else {
       hideKeyboard();
+
+      // Load l10n library here, there is nothing more to do left
+      // in the critical path.
+      l10nLoader.load();
     }
   }, function(error) {
     console.warn('Failed to switch layout for ' + name + '.' +
@@ -945,7 +953,7 @@ function hideAlternatives() {
 // Test if an HTML node is a normal key
 function isNormalKey(key) {
   var keyCode = parseInt(key.dataset.keycode);
-  return keyCode || key.dataset.selection || key.dataset.compositekey;
+  return keyCode || key.dataset.selection || key.dataset.compositeKey;
 }
 
 //
@@ -1403,10 +1411,10 @@ function endPress(target, coords, touchId, hasCandidateScrolled) {
 
     // Normal key
   default:
-    if (target.dataset.compositekey) {
+    if (target.dataset.compositeKey) {
       // Keys with this attribute set send more than a single character
       // Like ".com" or "2nd" or (in Catalan) "l·l".
-      var compositeKey = target.dataset.compositekey;
+      var compositeKey = target.dataset.compositeKey;
       for (var i = 0; i < compositeKey.length; i++) {
         inputMethodManager.currentIMEngine.click(compositeKey.charCodeAt(i));
       }
@@ -1581,6 +1589,8 @@ function hideKeyboard() {
   settingsPromiseManager.set({
     'keyboard.current': undefined
   });
+
+  clearTouchedKeys();
 }
 
 // Resize event handler
@@ -1637,6 +1647,9 @@ function switchIMEngine(layoutName, mustRender) {
     if (mustRender || imEngineName !== 'default') {
       renderKeyboard(layoutName);
     }
+
+    // Load l10n library after IMEngine is loaded (if it's not loaded yet).
+    l10nLoader.load();
   }, function() {
     console.warn('Failed to switch imEngine for ' + layoutName + '.' +
       ' It might possible because we were called more than once.');
@@ -1748,6 +1761,11 @@ function clearTouchedKeys() {
 
   hideAlternatives();
   touchedKeys = {};
+
+  // Reset all the pending actions here.
+  clearTimeout(deleteTimeout);
+  clearInterval(deleteInterval);
+  clearTimeout(menuTimeout);
 }
 
 // Hide the keyboard via input method API

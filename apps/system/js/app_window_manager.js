@@ -177,14 +177,17 @@
           immediateTranstion = true;
         }
 
-        appNext.open(immediateTranstion ? 'immediate' :
-                      ((switching === true) ? 'invoked' : openAnimation));
-        if (appCurrent) {
-          appCurrent.close(immediateTranstion ? 'immediate' :
-            ((switching === true) ? 'invoking' : closeAnimation));
-        } else {
-          this.debug('No current running app!');
+        if (immediateTranstion) {
+          openAnimation = closeAnimation = 'immediate';
+        } else if (switching) {
+          // XXX: We should just the ordering by StackManager
+          var nextAppIsNew = appNext.createdTime > appCurrent.createdTime;
+          openAnimation = nextAppIsNew ? 'invoked' : 'in-from-left';
+          closeAnimation = nextAppIsNew ? 'invoking' : 'out-to-right';
         }
+
+        appNext.open(openAnimation);
+        appCurrent && appCurrent.close(closeAnimation);
       }.bind(this));
     },
 
@@ -239,6 +242,9 @@
       window.addEventListener('system-resize', this);
       window.addEventListener('orientationchange', this);
       window.addEventListener('sheetstransitionstart', this);
+      // XXX: PermissionDialog is shared so we need AppWindowManager
+      // to focus the active app after it's closed.
+      window.addEventListener('permissiondialoghide', this);
 
       this._settingsObserveHandler = {
         // update app name when language setting changes
@@ -314,6 +320,7 @@
       window.removeEventListener('system-resize', this);
       window.removeEventListener('orientationchange', this);
       window.removeEventListener('sheetstransitionstart', this);
+      window.removeEventListener('permissiondialoghide', this);
 
       for (var name in this._settingsObserveHandler) {
         SettingsListener.unobserve(
@@ -329,6 +336,9 @@
       this.debug('handling ' + evt.type);
       var activeApp = this._activeApp;
       switch (evt.type) {
+        case 'permissiondialoghide':
+          activeApp && activeApp.broadcast('focus');
+          break;
         case 'orientationchange':
           this.broadcastMessage(evt.type);
           break;

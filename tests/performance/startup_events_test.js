@@ -12,15 +12,21 @@ var whitelistedApps = [
   'communications/contacts',
   'camera',
   'clock',
+  'email',
   'fm',
+  'gallery',
   'settings',
   'sms',
   'communications/dialer'
 ];
 
 var whitelistedUnifiedApps = [
-  'settings',
-  'communications/dialer'
+  'camera',
+  'communications/dialer',
+  'email',
+  'fm',
+  'gallery',
+  'settings'
 ];
 
 function contains(haystack, needle) {

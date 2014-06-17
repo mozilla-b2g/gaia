@@ -1,9 +1,8 @@
 'use strict';
-/* global Divider */
 /* global GridDragDrop */
+/* global GaiaGrid */
 /* global GridLayout */
 /* global GridZoom */
-/* global Placeholder */
 
 (function(exports) {
 
@@ -70,11 +69,24 @@
      * If the item is an icon, add it to icons.
      */
     add: function(item) {
-      this.items.push(item);
+      if (!item) {
+        return;
+      }
 
       if (item.identifier) {
+        // If we already have an item with this identifier, exit.
+        // This avoids a potential race condition where we might have duplicate
+        // items with the same identifiers in the grid. This should not happen.
+        if (this.icons[item.identifier]) {
+          console.log('Error, duplicate identifier: ',
+            item.identifier, new Error().stack);
+          return;
+        }
+
         this.icons[item.identifier] = item;
       }
+
+      this.items.push(item);
     },
 
     start: function() {
@@ -121,6 +133,18 @@
         }
         // Editing a bookmark in edit mode
         action = 'edit';
+      } else {
+        // Add a 'launching' class to the icon to style it with CSS.
+        icon.element.classList.add('launching');
+
+        // XXX: We can't have nice things. Remove the launching class after an
+        // arbitrary time to restore the state. We want the icon to return
+        // to it's original state after launching the app, but visibilitychange
+        // will not work because activities do not fire it.
+        var returnTimeout = 500;
+        setTimeout(function stateReturn() {
+          icon.element.classList.remove('launching');
+        }, returnTimeout);
       }
 
       icon[action]();
@@ -134,7 +158,7 @@
       var toRemove = [];
 
       this.items.forEach(function(item, idx) {
-        if (item instanceof Divider) {
+        if (item instanceof GaiaGrid.Divider) {
           if (appCount === 0) {
             toRemove.push(idx);
           }
@@ -156,8 +180,17 @@
         return;
       }
       var lastItem = this.items[this.items.length - 1];
-      if (!(lastItem instanceof Divider)) {
-        this.items.push(new Divider());
+      if (!(lastItem instanceof GaiaGrid.Divider)) {
+        this.items.push(new GaiaGrid.Divider());
+      }
+
+      // In dragdrop also append a row of placeholders.
+      // These placeholders are used for drop detection as we ignore dividers
+      // and will create a new group when an icon is dropped on them.
+      if (this.dragdrop && this.dragdrop.inEditMode) {
+        var coords = [0, lastItem.y + 2];
+        this.createPlaceholders(coords, this.items.length, this.layout.cols,
+          true);
       }
     },
 
@@ -168,12 +201,12 @@
       var toSplice = [];
       var previousItem;
       this.items.forEach(function(item, idx) {
-        if (item instanceof Placeholder) {
+        if (item instanceof GaiaGrid.Placeholder) {
 
           // If the previous item is a divider, and we are in edit mode
           // we do not remove the placeholder. This is so the section will
           // remain even if the user drags the icon around. Bug 1014982
-          if (previousItem && previousItem instanceof Divider &&
+          if (previousItem && previousItem instanceof GaiaGrid.Divider &&
               this.dragdrop && this.dragdrop.inDragAction) {
             return;
           }
@@ -195,15 +228,17 @@
      * item in grid units.
      * @param {Integer} idx The position of the first placeholder.
      * @param {Integer} idx The number of placeholders to create.
+     * @param {Boolean} createsGroup Creates a group on drop during edit mode.
      */
-    createPlaceholders: function(coordinates, idx, count) {
+    createPlaceholders: function(coordinates, idx, count, createsGroup) {
       for (var i = 0; i < count; i++) {
         var itemCoords = [
           coordinates[0] + i,
           coordinates[1]
         ];
 
-        var item = new Placeholder();
+        var item = new GaiaGrid.Placeholder();
+        item.createsGroupOnDrop = createsGroup;
         this.items.splice(idx + i, 0, item);
         item.render(itemCoords, idx + i);
       }
