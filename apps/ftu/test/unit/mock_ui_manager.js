@@ -84,8 +84,7 @@ var MockUIManager = {
   sendNewsletter: function(callback) {return callback(true);},
   updateDataConnectionStatus: function(status) {return DataMobile.getStatus();},
   displayOfflineDialog: function() {},
-  hideActivationScreenFromScreenReader: function() {},
-  init: function() {}
+  hideActivationScreenFromScreenReader: function() {}
 };
 
 function toCamelCase(str) {
