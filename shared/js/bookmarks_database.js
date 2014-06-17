@@ -4,7 +4,7 @@
 /* global Promise */
 
 (function(exports) {
-  
+
   var datastore;
 
   // Datastore name declared on the manifest.webapp
