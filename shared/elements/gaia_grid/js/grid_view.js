@@ -121,13 +121,18 @@
 
       var identifier = container.dataset.identifier;
       var icon = this.icons[identifier];
+      var inEditMode = this.dragdrop && this.dragdrop.inEditMode;
 
       if (!icon) {
+        if (e.target.classList.contains('placeholder') && inEditMode) {
+          // Exit from edit mode when user clicks an empty space
+          window.dispatchEvent(new CustomEvent('hashchange'));
+        }
         return;
       }
 
       // We do not allow users to launch icons in edit mode
-      if (action === 'launch' && this.dragdrop && this.dragdrop.inEditMode) {
+      if (action === 'launch' && inEditMode) {
         if (icon.detail.type !== 'bookmark') {
           return;
         }
