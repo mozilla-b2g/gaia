@@ -417,8 +417,15 @@
             this.display(HomescreenLauncher.origin);
           } else {
             // dispatch event to close activity.
-            this.debug('ensure home.');
-            HomescreenLauncher.getHomescreen().ensure(true);
+            var homescreen = HomescreenLauncher.getHomescreen();
+            homescreen.ensure(true);
+
+            Object.keys(this.runningApps).forEach(function(appName) {
+              var app = this.runningApps[appName];
+              if (app !== homescreen && app.isActive()) {
+                app.close('immediate');
+              }
+            }.bind(this));
           }
           break;
 
