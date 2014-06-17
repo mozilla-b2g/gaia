@@ -85,8 +85,13 @@ var ActivityHandler = {
     }
 
     this.isLocked = true;
+    var type = activity.source.data.type;
+    if (type === 'websms/sms' || type === 'websms/number') {
+      var number = activity.source.data.number;
+    } else if (type === 'websms/email') {
+      number = activity.source.data.email;
+    }
 
-    var number = activity.source.data.number;
     var body = activity.source.data.body;
 
     Contacts.findByPhoneNumber(number, function findContact(results) {
