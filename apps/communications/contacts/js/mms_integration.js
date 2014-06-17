@@ -1,16 +1,16 @@
 'use strict';
 /* global MozActivity */
-/* exported SmsIntegration */
+/* exported MmsIntegration */
 /* jshint nonew: false */
 
-var SmsIntegration = {
-  sendSms: function si_sendSms(number) {
+var MmsIntegration = {
+  sendMms: function si_sendMms(email) {
     try {
       new MozActivity({
         name: 'new',
         data: {
-          type: 'websms/number',
-          number: number
+          type: 'websms/email',
+          email: email
         }
       });
     } catch (e) {
