@@ -80,37 +80,22 @@
   }
 
   Device.prototype = {
-    init: function init() {
-      return Promise.all([this.readSettings(), updatePosition()]);
-    },
+    init: function init(settings) {
+      var deviceId = settings['search.deviceId'];
 
-    readSettings: function readSettings() {
-      return new Promise(function ready(resolve, reject) {
-        var lock = mozSettings.createLock();
-        var request = lock.get('*');
+      if (!deviceId) {
+        deviceId = this.generateDeviceId();
+        mozSettings.createLock().set({
+          'search.deviceId': deviceId
+        });
+      }
 
-        request.onsuccess = function onsuccess() {
-          var settings = request.result;
-          var deviceId = settings['search.deviceId'];
+      this.deviceId = deviceId;
+      this.deviceName = settings['deviceinfo.product_model'];
+      this.osVersion = settings['deviceinfo.os'];
 
-          if (!deviceId) {
-            deviceId = this.generateDeviceId();
-            mozSettings.createLock().set({
-              'search.deviceId': deviceId
-            });
-          }
-
-          this.deviceId = deviceId;
-          this.deviceName = settings['deviceinfo.product_model'];
-          this.osVersion = settings['deviceinfo.os'];
-
-          resolve();
-        }.bind(this);
-
-        request.onerror = function onerror() {
-          eme.log('fatal error accessing device settings', request.error);
-          reject();
-        };
+      return updatePosition().then(function log() {
+        eme.log('device init', JSON.stringify(this));
       }.bind(this));
     },
 
