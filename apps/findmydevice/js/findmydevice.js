@@ -30,7 +30,7 @@ var FindMyDevice = {
 
     navigator.mozId.watch({
       wantIssuer: 'firefox-accounts',
-      audience: Config.api_url,
+      audience: Config.audience_url,
       onready: self._onReady.bind(self),
       onlogin: self._onLogin.bind(self),
       onlogout: self._onLogout.bind(self)

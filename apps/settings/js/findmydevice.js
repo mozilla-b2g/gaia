@@ -14,12 +14,12 @@ var FindMyDevice = {
     var loginButton = document.getElementById('findmydevice-login');
 
     loadJSON('/resources/findmydevice.json', function(data) {
-      var api = data.api_url;
+      self._audienceURL = data.audience_url;
 
       // Note: either onready or onerror will always fire immediately.
       navigator.mozId.watch({
         wantIssuer: 'firefox-accounts',
-        audience: api,
+        audience: self._audienceURL,
         onlogin: self._onChangeLoginState.bind(self, true),
         onlogout: self._onChangeLoginState.bind(self, false),
         onready: function fmd_fxa_onready() {
