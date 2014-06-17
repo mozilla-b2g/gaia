@@ -1,4 +1,4 @@
-/* global app, IccHelper */
+/* global app, IccHelper, verticalPreferences */
 /* exported configurator */
 
 'use strict';
@@ -152,6 +152,7 @@ var configurator = (function() {
 
   function onLoadInitJSON(loadedData) {
     conf = loadedData;
+    setup();
     if (!gaiaGridLayoutReady) {
       window.removeEventListener('gaiagrid-layout-ready', globalHandleEvent);
       window.addEventListener('gaiagrid-layout-ready', gridLayoutReady);
@@ -159,6 +160,16 @@ var configurator = (function() {
       app.init();
     }
     loadSingleVariantConf();
+  }
+
+  function setup() {
+    var colsByDefault = conf.preferences['grid.cols'];
+    if (colsByDefault) {
+      verticalPreferences.get('grid.cols').then(function(cols) {
+        // Set the number of cols by default in preference's datastore
+        !cols && verticalPreferences.put('grid.cols', colsByDefault);
+      });
+    }
   }
 
   function onErrorInitJSON(e) {
