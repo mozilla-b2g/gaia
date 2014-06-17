@@ -23,6 +23,8 @@ contacts.Details = (function() {
   var initMargin = 8;
   var DEFAULT_TEL_TYPE = 'other';
   var DEFAULT_EMAIL_TYPE = 'other';
+  var suportSms = true;
+  var suportMms = true;
   var PHONE_TYPE_MAP = {
   'cell' : 'mobile'
   };
@@ -491,9 +493,12 @@ contacts.Details = (function() {
 
       // Add event listeners to the phone template components
       var sendSmsButton = template.querySelector('#send-sms-button-' + tel);
-      sendSmsButton.dataset.tel = telField.value;
-      sendSmsButton.addEventListener('click', onSendSmsClicked);
-
+      if (suportSms) {
+        sendSmsButton.dataset.tel = telField.value;
+        sendSmsButton.addEventListener('click', onSendSmsClicked);
+      } else {
+        sendSmsButton.classList.add('hide');
+      }
       var callOrPickButton = template.querySelector('#call-or-pick-' + tel);
       callOrPickButton.dataset.tel = telField.value;
       setupPhoneButtonListener(callOrPickButton, telField.value);
@@ -573,6 +578,13 @@ contacts.Details = (function() {
       var template = utils.templates.render(emailsTemplate, emailField);
 
       // Add event listeners to the phone template components
+      var sendMmsButton = template.querySelector('#send-mms-button-' + email);
+      if (suportMms) {
+        sendMmsButton.dataset.email = emailField.value;
+        sendMmsButton.addEventListener('click', onSendMmsClicked);
+      } else {
+        sendMmsButton.classList.add('hide');
+      }
       var emailButton = template.querySelector('#email-or-pick-' + email);
       emailButton.dataset.email = emailField.value;
       emailButton.addEventListener('click', onEmailOrPickClick);
@@ -588,6 +600,11 @@ contacts.Details = (function() {
     return false;
   };
 
+  var onSendMmsClicked = function onSendMmsClicked(evt) {
+    var email = evt.target.dataset.email;
+    Contacts.sendMms(email);
+  };
+  
   var renderAddresses = function cd_renderAddresses(contact) {
     if (!contact.adr) {
       return;

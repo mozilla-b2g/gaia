@@ -49,10 +49,11 @@
     "new": {
       "href": "/index.html#activity-new",
       "filters": {
-        "type": "websms/sms",
+        "type": ["websms/sms", "websms/number", "websms/email"],
         "number": {
           "pattern":"[\\w\\s+#*().-]{0,50}"
-        }
+        },
+        "email": {}
        },
       "disposition": "inline",
       "returnValue": true
