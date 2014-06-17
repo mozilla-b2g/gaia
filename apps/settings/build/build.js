@@ -34,8 +34,7 @@ SettingsAppBuilder.prototype.writeFindMyDeviceConfigJSON = function(options) {
   var file = utils.getFile(options.STAGE_APP_DIR,
     'resources', 'findmydevice.json');
   var defaultContent = {
-    'api_url': 'http://fmd.dev.mozaws.net',
-    'api_version': '0'
+    audience_url: 'https://oauth.dev.lcip.org',
   };
 
   var content = utils.getDistributionFileContent('findmydevice',

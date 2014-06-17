@@ -9,7 +9,8 @@ function execute(config) {
   var init = utils.getFile(config.STAGE_APP_DIR, 'js', 'config.js');
   var content = {
     'api_url': 'http://fmd.dev.mozaws.net',
-    'api_version': '0'
+    'api_version': '0',
+    'audience_url': 'https://oauth.dev.lcip.org'
   };
 
   var distDir = config.GAIA_DISTRIBUTION_DIR;
