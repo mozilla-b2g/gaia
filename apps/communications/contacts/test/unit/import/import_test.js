@@ -201,6 +201,40 @@ suite('Import Friends Test Suite', function() {
     MockConnector.listDeviceContacts = listDeviceContacts;
   });
 
+  test('Import UI, Importing then deleting contacts from Outlook/Gmail ' +
+       'returns the correct result', function(done) {
+    groupsList.innerHTML = '';
+    groupsList.appendChild(groupsListChild);
+    var listDeviceContacts = MockConnector.listDeviceContacts;
+    // Simulate contacts already imported from the connector
+    MockConnector.listDeviceContacts = function(callbacks) {
+      callbacks.success([
+        {
+          uid: '1xz'
+        },
+        {
+          uid: '2abc'
+        },
+        {
+          uid: '3cde'
+        }
+      ]);
+    };
+    // Simulate the desktop deletion of all contacts
+    this.sinon.stub(MockConnector, 'listAllContacts',
+      function(access_token, callbacks) {
+        callbacks.success({data: []});
+      }
+    );
+
+    importer.start('mock_token', MockConnector, '*', function() {
+      var friendsMsgElement = document.querySelector('#friends-msg');
+      assert.equal(friendsMsgElement.textContent, 'fbNoFriends');
+      done();
+    });
+    MockConnector.listDeviceContacts = listDeviceContacts;
+  });
+
   test('Import UI with no contacts available to import', function(done) {
     groupsList.innerHTML = '';
     groupsList.appendChild(groupsListChild);
