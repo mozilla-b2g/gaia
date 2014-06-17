@@ -148,6 +148,10 @@ var SimLock = {
     if (lockScreen && lockScreen.locked)
       return false;
 
+    if (SimPinDialog.visible) {
+      return false;
+    }
+
     // FTU has its specific SIM PIN UI
     if (FtuLauncher.isFtuRunning())
       return false;
