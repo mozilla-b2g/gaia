@@ -46,6 +46,10 @@ const JS_AGGREGATION_BLACKLIST = [
   'system'
 ];
 
+const PRETRANSLATION_BLACKLIST = {
+  'keyboard': [ 'index.html' ]
+};
+
 /**
  * whitelist files by app for resource inlining
  */
@@ -604,9 +608,15 @@ function optimize_compile(webapp, file, callback) {
         processedLocales++;
       }
 
-      // we expect the last locale to be the default one:
-      // pretranslate the document and set its lang/dir attributes
-      mozL10n.translate();
+      let appName = webapp.sourceDirectoryName;
+      let fileName = file.leafName;
+      if (!PRETRANSLATION_BLACKLIST[appName] ||
+          (PRETRANSLATION_BLACKLIST[appName].indexOf('*') === -1 &&
+           PRETRANSLATION_BLACKLIST[appName].indexOf(fileName) === -1)) {
+        // we expect the last locale to be the default one:
+        // pretranslate the document and set its lang/dir attributes
+        mozL10n.translate();
+      }
 
       // save localized / optimized document
       let newFile = new FileUtils.File(file.path + '.' +
