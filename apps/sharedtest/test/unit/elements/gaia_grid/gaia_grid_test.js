@@ -69,6 +69,15 @@ suite('GaiaGrid', function() {
       element.removeItemByIndex(0);
       assert.equal(element.getItems().length, itemLength + 2);
     });
+
+    test('clear will dereference item elements', function() {
+      var domEl = document.createElement('div');
+      element.appendChild(domEl);
+      var myObj = {element: domEl};
+      element.add(myObj);
+      element.clear();
+      assert.equal(myObj.element, null);
+    });
   });
 
 });
