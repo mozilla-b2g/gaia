@@ -223,6 +223,24 @@
     },
 
     /**
+     * Clears the grid view of all items.
+     */
+    clear: function() {
+      for (var i = 0, iLen = this.items.length; i < iLen; i++) {
+        var item = this.items[i];
+        if (item.element) {
+          this.element.removeChild(item.element);
+
+          // We must de-reference element explicitly so we can re-use item
+          // objects the next time we call render.
+          item.element = null;
+        }
+      }
+      this.items = [];
+      this.icons = {};
+    },
+
+    /**
      * Creates placeholders and injects them into the grid.
      * @param {Array} coordinates [x,y] coordinates on the grid of the first
      * item in grid units.
