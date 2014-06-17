@@ -71,6 +71,7 @@ const RE_INI = /locales[\/\\].+\.ini$/;
 /**
  * Optimization helpers -- these environment variables are used:
  *   - config.GAIA_INLINE_LOCALES  - embed the minimum l10n data in HTML files
+ *   - config.GAIA_PRETRANSLATE    - pretranslate html into default locale
  *   - config.GAIA_CONCAT_LOCALES  - aggregates l10n files
  *   - config.GAIA_OPTIMIZE        - aggregates JS files
  */
@@ -610,9 +611,10 @@ function optimize_compile(webapp, file, callback) {
 
       let appName = webapp.sourceDirectoryName;
       let fileName = file.leafName;
-      if (!PRETRANSLATION_BLACKLIST[appName] ||
-          (PRETRANSLATION_BLACKLIST[appName].indexOf('*') === -1 &&
-           PRETRANSLATION_BLACKLIST[appName].indexOf(fileName) === -1)) {
+      if (config.GAIA_PRETRANSLATE === '1' &&
+          (!PRETRANSLATION_BLACKLIST[appName] ||
+           (PRETRANSLATION_BLACKLIST[appName].indexOf('*') === -1 &&
+            PRETRANSLATION_BLACKLIST[appName].indexOf(fileName) === -1))) {
         // we expect the last locale to be the default one:
         // pretranslate the document and set its lang/dir attributes
         mozL10n.translate();
