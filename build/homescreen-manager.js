@@ -189,7 +189,8 @@ function customizeHomescreen(config, homescreen) {
         }
         return output;
       }
-    )
+    ),
+    preferences: homescreen.preferences || {}
   };
 
   return content;

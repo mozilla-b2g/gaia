@@ -20,6 +20,7 @@ suite('configurator.js >', function() {
   var requests = [];
 
   var confGridOK = {
+    'preferences': {},
     'prediction': {
       'enabled': true,
       'lookahead': 16
