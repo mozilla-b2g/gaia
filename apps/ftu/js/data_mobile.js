@@ -1,5 +1,6 @@
 /* exported DataMobile */
 /* global Navigation */
+/* global UIManager */
 
 'use strict';
 
@@ -30,7 +31,7 @@ var DataMobile = {
       // if the user has passed the screen very fast this configuration will
       // have no effect
       var svStatus = reqSV.result[self.keySV];
-      if (svStatus !== undefined) {
+      if (svStatus !== undefined && !UIManager.dataConnectionChangedByUsr) {
         self.settings.removeObserver(self.keySV, self.getStatus);
         if (Navigation.currentStep === self.STEP_DATA_3G) {
           self.toggle(svStatus);
