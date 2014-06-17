@@ -758,7 +758,7 @@ var CallsHandler = (function callsHandler() {
 
   function isCdma3WayCall() {
       return isFirstCallOnCdmaNetwork() &&
-            ((telephony.calls.length >= CDMA_CALLS_LIMIT) ||
+            ((telephony.calls.length === CDMA_CALLS_LIMIT) ||
              (telephony.conferenceGroup.calls.length > 0));
   }
 
@@ -804,7 +804,6 @@ var CallsHandler = (function callsHandler() {
       return activeCallForContactImage();
     },
 
-    isCdma3WayCall: isCdma3WayCall,
     isFirstCallOnCdmaNetwork: isFirstCallOnCdmaNetwork
   };
 })();

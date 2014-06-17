@@ -6,7 +6,6 @@ var MockCallsHandler = {
   mActiveCallForContactImage: null,
   mUpdateKeypadEnabledCalled: true,
   mIsFirstCallOnCdmaNetwork: false,
-  mIsCdma3wayCall: false,
 
   updateKeypadEnabled: function() {
     this.mUpdateKeypadEnabledCalled =
@@ -23,9 +22,6 @@ var MockCallsHandler = {
 
   isFirstCallOnCdmaNetwork: function() {
     return this.mIsFirstCallOnCdmaNetwork;
-  },
-  isCdma3WayCall: function(){
-    return this.mIsCdma3wayCall;
   },
 
   toggleCalls: function() {},
@@ -47,6 +43,5 @@ var MockCallsHandler = {
     this.mActiveCallForContactImage = null;
     this.mUpdateKeypadEnabledCalled = true;
     this.mIsFirstCallOnCdmaNetwork = false;
-    this.mIsCdma3wayCall = false;
   }
 };

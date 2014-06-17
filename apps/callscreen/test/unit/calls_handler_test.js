@@ -157,17 +157,6 @@ suite('calls handler', function() {
           MockNavigatorMozTelephony.mTriggerCallsChanged();
           assert.isTrue(MockCallScreen.mShowPlaceNewCallButton);
         });
-
-        test('should toggle no-add-call in cdma network', function() {
-          MockNavigatorMozMobileConnections[1].voice = {
-            type: 'evdoa'
-          };
-          navigator.mozTelephony.calls.length = 2;
-          navigator.mozTelephony.conferenceGroup.calls.length = 0;
-
-          MockNavigatorMozTelephony.mTriggerCallsChanged();
-          assert.isTrue(MockCallScreen.mHidePlaceNewCallButton);
-        });
       });
     });
 
@@ -373,6 +362,17 @@ suite('calls handler', function() {
         CallsHandler.holdAndAnswer();
         assert.isTrue(hideSpy.calledOnce);
         assert.isTrue(holdSpy.calledOnce);
+      });
+
+      test('should toggle no-add-call in cdma network', function() {
+        MockNavigatorMozMobileConnections[1].voice = {
+          type: 'evdoa'
+        };
+        navigator.mozTelephony.calls.length = 2;
+        navigator.mozTelephony.conferenceGroup.calls.length = 0;
+
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
+        assert.isTrue(MockCallScreen.mHidePlaceNewCallButton);
       });
     });
 
@@ -1379,66 +1379,12 @@ suite('calls handler', function() {
       });
 
       test('radio type is CDMA', function() {
-        MockNavigatorMozMobileConnections[0].voice = {
-          type: 'evdoa'
-        };
-        MockNavigatorMozTelephony.mTriggerCallsChanged();
-        assert.isTrue(CallsHandler.isFirstCallOnCdmaNetwork());
-
-        MockNavigatorMozMobileConnections[0].voice = {
-          type: 'evdo0'
-        };
-        assert.isTrue(CallsHandler.isFirstCallOnCdmaNetwork());
-
-        MockNavigatorMozMobileConnections[0].voice = {
-          type: 'evdob'
-        };
-        assert.isTrue(CallsHandler.isFirstCallOnCdmaNetwork());
-
-        MockNavigatorMozMobileConnections[0].voice = {
-          type: '1xrtt'
-        };
-        assert.isTrue(CallsHandler.isFirstCallOnCdmaNetwork());
-
-        MockNavigatorMozMobileConnections[0].voice = {
-          type: 'is95a'
-        };
-        assert.isTrue(CallsHandler.isFirstCallOnCdmaNetwork());
-
-        MockNavigatorMozMobileConnections[0].voice = {
-          type: 'is95b'
-        };
-        assert.isTrue(CallsHandler.isFirstCallOnCdmaNetwork());
-      });
-    });
-
-    suite('> CallsHandler.isCdma3WayCall()', function() {
-      setup(function() {
-        var mockCall = new MockCall('12334', 'incoming', 0);
-        telephonyAddCall.call(this, mockCall);
-        MockNavigatorMozMobileConnections[0].voice = {
-          type: 'evdoa'
-        };
-      });
-
-      test('not in 3way call', function() {
-        navigator.mozTelephony.calls.length = 1;
-        navigator.mozTelephony.conferenceGroup.calls.length = 0;
-        MockNavigatorMozTelephony.mTriggerCallsChanged();
-
-        assert.isFalse(CallsHandler.isCdma3WayCall());
-      });
-
-      test('in 3way call', function() {
-        navigator.mozTelephony.calls.length = 2;
-        navigator.mozTelephony.conferenceGroup.calls.length = 0;
-        MockNavigatorMozTelephony.mTriggerCallsChanged();
-        assert.isTrue(CallsHandler.isCdma3WayCall());
-
-        navigator.mozTelephony.calls.length = 1;
-        navigator.mozTelephony.conferenceGroup.calls.length = 1;
-        MockNavigatorMozTelephony.mTriggerCallsChanged();
-        assert.isTrue(CallsHandler.isCdma3WayCall());
+        ['evdoa', 'evdo0', 'evdob',
+         '1xrtt', 'is95a', 'is95b'].forEach(function(type) {
+          MockNavigatorMozMobileConnections[0].voice = { type: type };
+          MockNavigatorMozTelephony.mTriggerCallsChanged();
+          assert.isTrue(CallsHandler.isFirstCallOnCdmaNetwork());
+        });
       });
     });
   });
