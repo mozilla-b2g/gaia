@@ -1,0 +1,34 @@
+{
+  "name": "gaia-confirm",
+  "version": "0.1.0",
+  "homepage": "https://github.com/gaia-components/gaia-confirm",
+  "authors": [
+    "Wilson Page <wilsonpage@me.com>"
+  ],
+  "main": "script.js",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests",
+    "examples",
+    "package.json",
+    "README.md",
+    "LICENSE.md",
+    "karma.conf.js"
+  ],
+  "dependencies": {
+    "gaia-component-utils": "gaia-components/gaia-component-utils"
+  },
+  "_release": "0.1.0",
+  "_resolution": {
+    "type": "version",
+    "tag": "v0.1.0",
+    "commit": "5a95d40441d538fe0fb3776e9270b9e3326d681b"
+  },
+  "_source": "git://github.com/gaia-components/gaia-confirm.git",
+  "_target": "~0.1.0",
+  "_originalSource": "gaia-components/gaia-confirm"
+}

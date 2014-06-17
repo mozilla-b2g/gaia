@@ -1,0 +1,17 @@
+{
+  "name": "verticalhome",
+  "version": "0.0.0",
+  "homepage": "https://github.com/mozilla-b2g/gaia/tree/master/apps/verticalhome",
+  "main": "index.html",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "gaia-confirm": "gaia-components/gaia-confirm#~0.1.0"
+  }
+}

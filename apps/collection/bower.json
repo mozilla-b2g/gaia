@@ -1,0 +1,18 @@
+{
+  "name": "collection",
+  "version": "0.0.0",
+  "homepage": "https://github.com/wilsonpage/gaia",
+  "authors": [
+    "n"
+  ],
+  "description": "?",
+  "main": "index.html",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
