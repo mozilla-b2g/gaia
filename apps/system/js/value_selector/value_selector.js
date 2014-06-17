@@ -75,6 +75,8 @@ var ValueSelector = {
     window.addEventListener('appopened', this);
     window.addEventListener('appclosing', this);
 
+    window.addEventListener('activityclosing', this);
+
     // invalidate the current date and time picker when language setting changes
     navigator.mozSettings.addObserver('language.current',
       (function language_change(e) {
@@ -148,6 +150,7 @@ var ValueSelector = {
     switch (evt.type) {
       case 'appopened':
       case 'appclosing':
+      case 'activityclosing':
         this.hide();
         break;
 
