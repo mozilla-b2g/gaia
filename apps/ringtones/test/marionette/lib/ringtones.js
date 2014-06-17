@@ -76,6 +76,7 @@ ActionsMenu.prototype = {
         return list[i];
       }
     }
+    return null;
   }
 };
 createElementGetters(
