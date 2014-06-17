@@ -228,6 +228,7 @@ function MessageListCard(domNode, mode, args) {
 
   this.curFolder = null;
   this.isIncomingFolder = true;
+  this._emittedContentEvents = false;
 
   this.usingCachedNode = !!args.cachedNode;
 
@@ -384,6 +385,14 @@ MessageListCard.prototype = {
   _distanceBetweenMessages: 0,
 
   sliceEvents: ['splice', 'change', 'status', 'complete'],
+
+  /**
+   * Inform Cards to not emit startup content events, this card will trigger
+   * them once data from back end has been received and the DOM is up to date
+   * with that data.
+   * @type {Boolean}
+   */
+  skipEmitContentEvents: true,
 
   postInsert: function() {
     this._hideSearchBoxByScrolling();
@@ -830,6 +839,16 @@ MessageListCard.prototype = {
     // so we must do this.)  If our list size is the same, this call is
     // effectively a no-op.
     this.vScroll.updateDataBind(0, [], 0);
+
+
+    // Inform that content is ready. There could actually be a small delay with
+    // vScroll.updateDataBind from rendering the final display, but it is small
+    // enough that it is not worth trying to break apart the design to
+    // accommodate this metrics signal.
+    if (!this._emittedContentEvents) {
+      evt.emit('metrics:contentDone');
+      this._emittedContentEvents = true;
+    }
   },
 
   onNewMail: function(newEmailCount) {

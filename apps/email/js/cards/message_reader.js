@@ -76,6 +76,7 @@ function MessageReaderCard(domNode, mode, args) {
   this._on('msg-envelope-bar', 'click', 'onEnvelopeClick');
   this._on('msg-reader-load-infobar', 'click', 'onLoadBarClick');
 
+  this._emittedContentEvents = false;
   this.disableReply();
 
   this.scrollContainer =
@@ -106,6 +107,14 @@ MessageReaderCard.prototype = {
     REPLY: 8,
     NEW_MESSAGE: 16
   },
+
+  /**
+   * Inform Cards to not emit startup content events, this card will trigger
+   * them once data from back end has been received and the DOM is up to date
+   * with that data.
+   * @type {Boolean}
+   */
+  skipEmitContentEvents: true,
 
   // Method to help bind event listeners to method names, and ensures
   // a header object before activating the method, to protect the buttons
@@ -973,6 +982,13 @@ MessageReaderCard.prototype = {
   enableReply: function() {
     var btn = this.domNode.getElementsByClassName('msg-reply-btn')[0];
     btn.removeAttribute('aria-disabled');
+
+    // Inform that content is ready. Done here because reply is only enabled
+    // once the full body is available.
+    if (!this._emittedContentEvents) {
+      evt.emit('metrics:contentDone');
+      this._emittedContentEvents = true;
+    }
   },
 
   die: function() {

@@ -74,6 +74,7 @@ var appMessages = require('app_messages'),
     activityCallback = null;
 
 require('shared/js/font_size_utils');
+require('metrics');
 require('sync');
 require('wake_locks');
 
