@@ -52,12 +52,12 @@
  * First step. Has no 'Back' action.
  */
 
-#tutorial[data-step="1"] #back-tutorial{
- display: none;
-}
-
-#tutorial[data-step="1"] .recommend{
-  width: 100%;
+/*
+ * We need !important to override Web components,
+ * as we don't have ::content yet (bug 992249).
+ */
+#tutorial[data-step="1"] #back-tutorial {
+ display: none !important;
 }
 
 /*

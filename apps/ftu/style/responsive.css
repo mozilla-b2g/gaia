@@ -4,45 +4,6 @@
 @media (min-width: 768px) {
 
   /*
-   * Generic
-   */
-
-  [role=main] {
-    bottom: 10rem;
-  }
-
-  [role=navigation] {
-    text-align: center;
-    padding: 2rem;
-    height: 6rem;
-  }
-
-  [role=navigation] button {
-    float: none;
-    width: 40rem;
-    margin-right: 2.6rem;
-    font-size: 2.4rem;
-    height: 6rem;
-    line-height: 6rem;
-  }
-
-  [role=navigation] button span {
-    width: 4.5rem;
-  }
-
-  [role=navigation] button.recommend span {
-    left: calc(100% - 4.5rem);
-  }
-
-  [role=navigation].secondary-menu #wifi-join-button {
-    display: inline-block;
-  }
-
-  .forward-only[role=navigation] .recommend {
-    width: 83rem;
-  }
-
-  /*
    * #languages
    */
   #languages {
