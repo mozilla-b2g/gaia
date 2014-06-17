@@ -315,6 +315,23 @@ suite('dialer/keypad', function() {
           this.sinon.clock.tick(1);
           sinon.assert.calledTwice(MockNavigatorMozTelephony.stopTone);
         });
+
+        test('should stop DTMF tone when the max length phoneNumber reached',
+          function() {
+            MockSettingsListener.mCallbacks['phone.dtmf.type']('long');
+
+            for (var index = 0; index < 50; index++) {
+              subject._touchStart('1');
+              this.sinon.clock.tick(200);
+              subject._touchEnd('1');
+            }
+
+            subject._touchStart('1');
+            this.sinon.spy(MockNavigatorMozTelephony, 'stopTone');
+            this.sinon.clock.tick(1000);
+            subject._touchEnd('1');
+            sinon.assert.calledOnce(MockNavigatorMozTelephony.stopTone);
+        });
       });
 
       suite('then during a conference group', function() {
