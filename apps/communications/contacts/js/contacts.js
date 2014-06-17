@@ -616,6 +616,12 @@ var Contacts = (function() {
 
   var setCurrent = function c_setCurrent(contact) {
     currentContact = contact;
+    if ('mozNfc' in navigator && contacts.NFC) {
+      contacts.NFC.startListening(contact);
+    }
+    if (contacts.Details) {
+      contacts.Details.setContact(contact);
+    }
   };
 
   var showOverlay = function c_showOverlay(message, progressClass, textId) {
