@@ -1,11 +1,12 @@
 /*global loadBodyHTML, Recipients, MocksHelper, CustomEvent, KeyEvent,
-         MockDialog, Template, MockL10n, Navigation */
+         MockDialog, Template, MockL10n, Navigation, Settings */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_gesture_detector.js');
 
 requireApp('sms/js/recipients.js');
 requireApp('sms/js/utils.js');
+requireApp('sms/js/settings.js');
 
 requireApp('sms/test/unit/mock_dialog.js');
 requireApp('sms/test/unit/mock_utils.js');
@@ -77,6 +78,9 @@ suite('Recipients', function() {
       isQuestionable: false,
       isInvalid: false
     };
+
+    fixture.isEmail = Settings.supportEmailRecipient &&
+                      Utils.isEmailAddress(this.number);
   });
 
   teardown(function() {

@@ -1,6 +1,6 @@
 /*global MockL10n, Utils, MockContact, FixturePhones, MockContactPhotoHelper,
          MockContacts, MockMozPhoneNumberService, MocksHelper, Notification,
-         MockNotification, Threads, Promise */
+         MockNotification, Threads, Promise, Settings */
 
 'use strict';
 
@@ -12,6 +12,7 @@ require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 requireApp('sms/js/utils.js');
 requireApp('sms/shared/test/unit/mocks/mock_notification.js');
 requireApp('sms/test/unit/mock_threads.js');
+requireApp('sms/js/settings.js');
 
 var MocksHelperForUtilsUnitTest = new MocksHelper([
   'ContactPhotoHelper',
@@ -1205,6 +1206,53 @@ suite('getDisplayObject', function() {
     assert.equal(data.carrier, carrier + ', ');
     assert.equal(data.number, value);
   });
+
+  test('Tel object with title, type and value of email', function() {
+    var type = 'Personal';
+    var myTitle = 'My title';
+    var value = 'a@b.com';
+    var data = Utils.getDisplayObject(myTitle, {
+      'value': value,
+      'type': [type]
+    });
+
+    assert.equal(data.name, myTitle);
+    assert.equal(data.separator, ' | ');
+    assert.equal(data.type, type);
+    assert.equal(data.carrier, '');
+    assert.equal(data.number, value);
+    assert.equal(data.email, value);
+  });
+  test('Tel object with title, NO type and value of email', function() {
+    var myTitle = 'My title';
+    var value = 'a@b.com';
+    var data = Utils.getDisplayObject(myTitle, {
+      'value': value
+    });
+
+    assert.equal(data.name, myTitle);
+    assert.equal(data.separator, '');
+    assert.equal(data.type, '');
+    assert.equal(data.carrier, '');
+    assert.equal(data.number, value);
+    assert.equal(data.email, value);
+  });
+
+  test('Tel object with NO title, type and value of email', function() {
+    var type = 'Personal';
+    var value = 'a@b.com';
+    var data = Utils.getDisplayObject(null, {
+      'value': value,
+      'type': [type]
+    });
+
+    assert.equal(data.name, value);
+    assert.equal(data.separator, ' | ');
+    assert.equal(data.type, type);
+    assert.equal(data.carrier, '');
+    assert.equal(data.number, value);
+    assert.equal(data.email, value);
+  });
 });
 
 suite('getDisplayObject l10n values', function() {
@@ -1347,6 +1395,24 @@ suite('getContactDisplayInfo', function() {
         done();
       }
     );
+  });
+});
+
+suite('isEmailAddress', function() {
+  test('check +348888888888', function() {
+    assert.isFalse(Utils.isEmailAddress('+348888888888'));
+  });
+  test('check a@b.com', function() {
+    assert.isTrue(Utils.isEmailAddress('a@b.com'));
+  });
+  test('check @b.com', function() {
+    assert.isFalse(Utils.isEmailAddress('@b.com'));
+  });
+  test('check abcd@', function() {
+    assert.isFalse(Utils.isEmailAddress('abcd@'));
+  });
+  test('check a@a', function() {
+    assert.isTrue(Utils.isEmailAddress('a@a'));
   });
 });
 
