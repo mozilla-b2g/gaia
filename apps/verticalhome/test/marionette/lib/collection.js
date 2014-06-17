@@ -15,9 +15,23 @@ function Collection(client, server) {
 Collection.URL = 'app://collection.gaiamobile.org';
 
 Collection.Selectors = {
+  cloudMenu: '#cloud-menu',
+  cloudMenuPin: '#pin-cloudapp',
   contextMenuTarget: '#icons',
   menuAddButton: '#create-smart-collection',
-  collectionsSelect: '#collections-select'
+  collectionsSelect: '#collections-select',
+
+  // The first pinned result
+  firstPinnedResult: 'gaia-grid .icon',
+
+  // The first web result when NO pinned items exist
+  firstWebResultNoPinned: 'gaia-grid .icon',
+
+  // The first web result when pinned items exist
+  firstWebResultPinned: 'gaia-grid .divider + .icon',
+
+  allDividers: 'gaia-grid .divider',
+  allIcons: 'gaia-grid .icon'
 };
 
 Collection.prototype = {
@@ -39,6 +53,10 @@ Collection.prototype = {
    * @return {Array} An array of item names.
    */
   selectNew: function(names) {
+    if (!Array.isArray(names)) {
+      names = [names];
+    }
+
     this.client.switchToFrame();
     this.client.apps.switchToApp(Collection.URL);
 
@@ -69,10 +87,33 @@ Collection.prototype = {
     var icons = this.client.findElements('body .icon');
     for (var i = 0, iLen = icons.length; i < iLen; i++) {
       if (icons[i].text() === name) {
-        return true;
+        return icons[i];
       }
     }
     throw new Error('Could not find the collection ' + name);
+  },
+
+  /**
+   * Gets an icon by identifier.
+   */
+  getIconByIdentifier: function(identifier) {
+    return this.client.helper.waitForElement(
+      '[data-identifier="' + identifier + '"]'
+    );
+  },
+
+  /**
+   * Taps on a collection and waits for it to load.
+   * @param {Object} icon The collection icon on the homescreen.
+   */
+  enterCollection: function(icon) {
+    icon.tap();
+
+    this.client.switchToFrame();
+    this.client.apps.switchToApp(Collection.URL);
+
+    this.client.helper.waitForElement(
+      Collection.Selectors.firstWebResultNoPinned);
   }
 };
 
