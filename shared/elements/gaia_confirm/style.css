@@ -58,9 +58,7 @@ p {
   margin: 1rem 0 0;
   padding: 1rem 1.5rem;
   border-top: 0.1rem solid #686868;
-  font-size: 1.5rem;
-  line-height: 1.7rem;
-  color: rgba(255,255,255,0.6);
+  line-height: 3rem;
 }
 
 p img {
