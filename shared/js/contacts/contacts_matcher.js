@@ -232,14 +232,67 @@ contacts.Matcher = (function() {
     };
     matchByTel(aContact, localCbs, options);
   }
-
+  
+  function getSourceSimUrl(aContact) {
+    var out;
+    
+    if (Array.isArray(aContact.category) &&
+      aContact.category.indexOf('sim') !== -1 && Array.isArray(aContact.url)) {
+      for (var j = 0; j < aContact.url.length; j++) {
+        var aUrl = aContact.url[j];
+        if (aUrl.type.indexOf('source') !== -1 &&
+                                          aUrl.type.indexOf('sim') !== -1) {
+          out = aUrl.value;
+        }
+      }
+    }
+    
+    return out;
+  }
+  
   // Implements the silent mode matching
   function doMatchPassive(aContact, callbacks) {
     if (!hasName(aContact)) {
       notifyMismatch(callbacks);
       return;
     }
+    
+    // SIM Contacts are detected and matched accordingly
+    // We try to match by name and then try to see if they correspond to
+    // the same SIM contact. In that case matching is reported
+    var simUrl = getSourceSimUrl(aContact);
+    if (simUrl) {
+      performPassiveMatchForSimContact(simUrl, aContact, callbacks);
+    }
+    else {
+      performPassiveMatch(aContact, callbacks);
+    }
+  }
+  
+  function performPassiveMatchForSimContact(simUrl, aContact, callbacks) {
+    var localCbs = {
+      onmatch: function(results) {
+        Object.keys(results).forEach(function(aResultId) {
+          var matchingContact = results[aResultId].matchingContact;
+          var matchingUrl = getSourceSimUrl(matchingContact);
+          if (matchingUrl && matchingUrl === simUrl) {
+            callbacks.onmatch(results);
+          }
+          else {
+            performPassiveMatch(aContact, callbacks);
+          }
+        });
+      },
+      onmismatch: function() {
+        performPassiveMatch(aContact, callbacks);
+      }
+    };
+    // Matching by name and then see if they have the same SIM contact source
+    matchByName(aContact, localCbs);
+  }
 
+  // Implements the silent mode matching
+  function performPassiveMatch(aContact, callbacks) {
     var matchingsFound = {};
 
     var localCbs = {
