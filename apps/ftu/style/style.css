@@ -1188,6 +1188,7 @@ html[dir="rtl"] [data-type="list"].pack-value-selector li label:not([for]) input
 #firefox_accounts {
   padding: 1rem 1rem 0;
   font-size: 1.5rem;
+  text-align: center;
 }
 
 
