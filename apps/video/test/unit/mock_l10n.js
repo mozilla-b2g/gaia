@@ -24,7 +24,9 @@
       }
       return key;
     },
-    DateTimeFormat: DateTimeFormat
+    DateTimeFormat: DateTimeFormat,
+    once: function once() {
+    }
   };
 
   exports.MockL10n = MockL10n;

@@ -8,12 +8,13 @@ require('/shared/js/l10n.js');
 require('/shared/js/l10n_date.js');
 require('/shared/js/media/media_utils.js');
 require('/shared/test/unit/load_body_html_helper.js');
+require('/shared/test/unit/mocks/mock_screen_layout.js');
 require('/shared/test/unit/mocks/mock_video_stats.js');
-requireApp('/video/js/video.js');
 requireApp('/video/js/video_utils.js');
 requireApp('/video/test/unit/mock_l10n.js');
-requireApp('/video/test/unit/mock_thumbnail_group.js');
+requireApp('/video/test/unit/mock_metadata.js');
 requireApp('/video/test/unit/mock_mediadb.js');
+requireApp('/video/test/unit/mock_thumbnail_group.js');
 requireApp('/video/test/unit/mock_video_player.js');
 requireApp('/video/js/thumbnail_list.js');
 
@@ -28,27 +29,23 @@ function containsClass(element, value) {
   return element.classList.contains(value);
 }
 
+var mocksForVideo = new MocksHelper([
+  'ScreenLayout'
+]);
+
 suite('Video App Unit Tests', function() {
   var nativeMozL10n;
-  suiteSetup(function() {
+  suiteSetup(function(done) {
+
+    mocksForVideo.suiteSetup();
 
     // Create DOM structure
     loadBodyHTML('/index.html');
-    dom.infoView = document.getElementById('info-view');
-    dom.durationText = document.getElementById('duration-text');
-    dom.overlay = document.createElement('overlay');
-    dom.play = document.getElementById('play');
-    dom.videoTitle = document.getElementById('video-title');
-    dom.videoContainer = document.getElementById('video-container');
-    dom.videoControls = document.getElementById('videoControls');
-    dom.elapsedText = document.getElementById('elapsed-text');
-    dom.elapsedTime = document.getElementById('elapsedTime');
-    dom.playHead = document.getElementById('playHead');
-    dom.optionsView = document.getElementById('options-view');
+
     nativeMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
     MediaUtils._ = MockL10n.get;
-
+    requireApp('/video/js/video.js', done);
   });
 
   suiteTeardown(function() {
@@ -56,7 +53,7 @@ suite('Video App Unit Tests', function() {
   });
 
   suite('#Video Info Populate Data', function() {
-    before(function() {
+    suiteSetup(function() {
       currentVideo = {
         metadata: {
           title: 'Small webm',
@@ -94,7 +91,7 @@ suite('Video App Unit Tests', function() {
     });
   });
 
-suite('#Video Action Menu Test', function() {
+  suite('#Video Action Menu Test', function() {
 
     test('#Test show option view', function() {
       showOptionsView();
@@ -363,7 +360,6 @@ suite('#Video Action Menu Test', function() {
     }
 
     suiteSetup(function(done) {
-
       dom.player = new MockVideoPlayer();
 
       playerPlaySpy = sinon.spy(dom.player, 'play');
@@ -420,7 +416,7 @@ suite('#Video Action Menu Test', function() {
 
     setup(function() {
       selectedThumbnail.htmlNode.classList.remove('focused');
-      dom.player.duration = 0;
+      dom.player.setDuration(0);
       dom.player.currentTime = -1;
     });
 
