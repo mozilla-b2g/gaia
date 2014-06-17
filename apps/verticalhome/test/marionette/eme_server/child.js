@@ -54,7 +54,17 @@ EmeServer.prototype = {
 var emeServer = new EmeServer(process.argv[2], {
 
   '/Categories/list': function(req, res) {
-    var json = JSON.parse(fs.readFileSync(this.root + 'list.json'));
+    var json = JSON.parse(fs.readFileSync(this.root + 'categories_list.json'));
+    writeJSON(res, json);
+  },
+
+  '/Apps/search': function(req, res) {
+    var json = JSON.parse(fs.readFileSync(this.root + 'apps_search.json'));
+    writeJSON(res, json);
+  },
+
+  '/Search/bgimage': function(req, res) {
+    var json = JSON.parse(fs.readFileSync(this.root + 'search_bgimage.json'));
     writeJSON(res, json);
   },
 
