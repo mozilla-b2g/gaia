@@ -621,8 +621,11 @@ var DataUsageTab = (function() {
     var sum = 0; var x, y = model.originY;
     var lastX = model.originX, lastY = model.axis.Y.get(sum);
     for (var i = 0, len = samples.length; i < len; i++) {
-
       var sample = samples[i];
+      if (Toolkit.toMidnight(today).getTime() <
+        Toolkit.toMidnight(sample.date).getTime()) {
+          return;
+      }
       if (typeof sample.value === 'undefined') {
         lastX = x = model.axis.X.get(sample.date);
         ctx.moveTo(x, y);
@@ -708,6 +711,10 @@ var DataUsageTab = (function() {
     var lastX = model.originX, lastY = model.axis.Y.get(sum);
     for (var i = 0, len = samples.length; i < len; i++) {
       var sample = samples[i];
+      if (Toolkit.toMidnight(today).getTime() <
+        Toolkit.toMidnight(sample.date).getTime()) {
+          return;
+      }
       if (typeof sample.value === 'undefined') {
         lastX = x = model.axis.X.get(sample.date);
         ctx.moveTo(x, y);
