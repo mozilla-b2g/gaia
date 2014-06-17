@@ -16,7 +16,7 @@ class Homescreen(Base):
     _homescreen_icon_locator = (By.CSS_SELECTOR, 'gaia-grid .icon')
     _homescreen_all_icons_locator = (By.CSS_SELECTOR, 'gaia-grid .icon:not(.placeholder)')
     _edit_mode_locator = (By.CSS_SELECTOR, 'body.edit-mode')
-    _search_bar_icon_locator = (By.CSS_SELECTOR, '#evme-activation-icon input')
+    _search_bar_icon_locator = (By.ID, 'search-input')
     _landing_page_locator = (By.ID, 'icons')
 
     def launch(self):
