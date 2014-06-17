@@ -140,6 +140,12 @@ marionette('Ringtone management', function() {
         // the right data was sent...
         var actionsMenu = container.soundLists[0].sounds[0].openActions();
         actionsMenu.shareButton.tap();
+
+        // Make sure we can't share with ourselves, since that's weird.
+        assert.equal(actionsMenu.shareWith('Ringtones'), null,
+                     'Ringtones app shouldn\'t be in Share menu');
+
+        // Share with the messages app.
         actionsMenu.shareWith('Messages').tap();
       });
     });
