@@ -510,7 +510,7 @@ suite('lib/camera/focus', function() {
       this.mozCamera.autoFocus.callsArgWith(0, 'success');
       this.focus.focus(onFocused);
       assert.ok(this.mozCamera.autoFocus.called);
-      assert.ok(onFocused.calledWith(undefined));
+      assert.ok(onFocused.calledWith('focused'));
       assert.ok(this.focus.focused);
     });
 
@@ -614,11 +614,15 @@ suite('lib/camera/focus', function() {
   suite('Focus#updateFocusArea()', function() {
     setup(function() {
       this.focus.focus = sinon.spy();
+      this.focus.stopContinuousFocus = sinon.spy();
+      this.focus.stopFaceDetection = sinon.spy();
     });
 
     test('it returns without doing anything if touch to focus disabled', function() {
       this.focus.touchFocus = false;
       this.focus.updateFocusArea();
+      assert.ok(!this.focus.stopContinuousFocus.called);
+      assert.ok(!this.focus.stopFaceDetection.called);
       assert.ok(!this.focus.mozCamera.setFocusAreas.called);
       assert.ok(!this.focus.mozCamera.setMeteringAreas.called);
       assert.ok(!this.focus.focus.called);
@@ -627,16 +631,11 @@ suite('lib/camera/focus', function() {
     test('it updates focus area if touch to focus is enabled', function() {
       this.focus.touchFocus = true;
       this.focus.updateFocusArea();
+      assert.ok(this.focus.stopContinuousFocus.called);
+      assert.ok(this.focus.stopFaceDetection.called);
       assert.ok(this.focus.mozCamera.setFocusAreas.called);
       assert.ok(this.focus.mozCamera.setMeteringAreas.called);
       assert.ok(this.focus.focus.called);
-    });
-
-    test('it focus mode is continuous-picture we have to resume continuous focus', function() {
-      this.focus.touchFocus = true;
-      this.focus.mozCamera.focusMode = 'continuous-picture';
-      this.focus.updateFocusArea();
-      assert.ok(this.focus.mozCamera.resumeContinuousFocus.called);
     });
 
   });
