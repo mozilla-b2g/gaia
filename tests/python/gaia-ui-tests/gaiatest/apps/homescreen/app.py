@@ -16,7 +16,7 @@ class Homescreen(Base):
     _homescreen_icon_locator = (By.CSS_SELECTOR, 'gaia-grid .icon')
     _homescreen_all_icons_locator = (By.CSS_SELECTOR, 'gaia-grid .icon:not(.placeholder)')
     _edit_mode_locator = (By.CSS_SELECTOR, 'body.edit-mode')
-    _search_bar_icon_locator = (By.CSS_SELECTOR, '#evme-activation-icon input')
+    _search_bar_icon_locator = (By.ID, 'search-input')
     _landing_page_locator = (By.ID, 'icons')
 
     def launch(self):
@@ -25,6 +25,11 @@ class Homescreen(Base):
     def tap_search_bar(self):
         search_bar = self.marionette.find_element(*self._search_bar_icon_locator)
         search_bar.tap()
+
+        # TODO These two lines are a workaround for bug 1020974
+        self.marionette.switch_to_frame()
+        self.marionette.find_element('id', 'rocketbar-form').tap()
+
         from gaiatest.apps.homescreen.regions.search_panel import SearchPanel
         return SearchPanel(self.marionette)
 
