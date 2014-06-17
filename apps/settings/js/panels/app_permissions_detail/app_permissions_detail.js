@@ -71,21 +71,38 @@ define(function(require) {
         elements.list.innerHTML = '';
       }
 
-      var hasInsetedPermissionSelectOptions = {};
-      table.explicitCertifiedPermissions.forEach(function(perm) {
-        if (hasInsetedPermissionSelectOptions[perm.permission]) {
-          return;
-        }
-        var value = mozPerms.get(perm.explicitPermission, app.manifestURL,
+      table.plainPermissions.forEach(function(perm) {
+        var value = mozPerms.get(perm, app.manifestURL,
           app.origin, false);
-        if (value === 'unknown') {
-          return;
+        if (this._isExplicitPerm(app, perm, value)) {
+          this._insertPermissionSelect(perm, value);
         }
-        hasInsetedPermissionSelectOptions[perm.permission] = true;
-        this._insertPermissionSelect(perm.permission, value);
-      }.bind(this));
+      }, this);
+
+      table.composedPermissions.forEach(function appIterator(perm) {
+        var value = null;
+        var display = table.accessModes.some(function modeIterator(mode) {
+          var composedPerm = perm + '-' + mode;
+          value = mozPerms.get(composedPerm, app.manifestURL, app.origin,
+            false);
+          if (this._isExplicitPerm(app, composedPerm, value)) {
+            return true;
+          }
+          return false;
+        }, this);
+
+        if (display) {
+          this._insertPermissionSelect(perm, value);
+        }
+      }, this);
 
       elements.header.hidden = !elements.list.children.length;
+    },
+
+    _isExplicitPerm: function pd_shouldDisplayPerm(app, perm, value) {
+      var isExplicit = mozPerms.isExplicit(perm, app.manifestURL,
+                                           app.origin, false);
+      return (isExplicit && value !== 'unknown');
     },
 
     /**
