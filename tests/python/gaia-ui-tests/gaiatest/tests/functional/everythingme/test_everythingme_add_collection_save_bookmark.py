@@ -6,23 +6,32 @@ from gaiatest import GaiaTestCase
 from gaiatest.apps.homescreen.app import Homescreen
 
 
-class TestEverythingMeInstallApp(GaiaTestCase):
+class TestEverythingMeAddCollectionSaveBookmark(GaiaTestCase):
 
     def setUp(self):
         GaiaTestCase.setUp(self)
-        # Force disable rocketbar
-        self.data_layer.set_setting('rocketbar.enabled', False)
-        self.apps.set_permission('Homescreen', 'geolocation', 'deny')
+        self.apps.set_permission('Smart Collections', 'geolocation', 'deny')
         self.connect_to_network()
 
-    def test_installing_everything_me_app(self):
+    def test_everythingme_add_collection(self):
         homescreen = Homescreen(self.marionette)
         self.apps.switch_to_displayed_app()
-        homescreen.wait_for_homescreen_to_load()
 
-        self.assertGreater(homescreen.collections_count, 0)
-        collection = homescreen.tap_collection('Social')
-        collection.wait_for_collection_screen_visible()
+        contextmenu = homescreen.open_context_menu()
+        collection_activity = contextmenu.tap_add_collection()
+
+        collection_list = collection_activity.collection_name_list
+        # Choose the second option to avoid 'Custom'
+        collection = collection_list[1]
+
+        collection_activity.select(collection)
+        self.wait_for_condition(lambda m: self.apps.displayed_app.name == homescreen.name)
+        self.apps.switch_to_displayed_app()
+
+        self.assertTrue(homescreen.is_app_installed(collection),
+                        "Collection '%s' not found on Homescreen" % collection)
+
+        collection = homescreen.tap_collection(collection)
 
         app = collection.applications[0]
         app_name = app.name
