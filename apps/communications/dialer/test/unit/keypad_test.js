@@ -252,6 +252,7 @@ suite('dialer/keypad', function() {
     suite('During  a call', function() {
       var mockCall;
       var mockHC;
+      var phoneNumber;
 
       suiteSetup(function() {
         realMozTelephony = navigator.mozTelephony;
@@ -264,7 +265,8 @@ suite('dialer/keypad', function() {
       });
 
       setup(function() {
-        mockCall = new MockCall('12334', 'connected', 0);
+        phoneNumber = '12334';
+        mockCall = new MockCall(phoneNumber, 'connected', 0);
         MockNavigatorMozTelephony.active = mockCall;
         mockHC = telephonyAddCall.call(this, mockCall);
         MockCallsHandler.mActiveCall = mockHC;
@@ -391,6 +393,10 @@ suite('dialer/keypad', function() {
           subject.keyHandler(fakeEvent);
         }
         assert.equal(subject._phoneNumber, digits);
+      });
+
+      test('Should return active call phone number', function() {
+        assert.equal(subject.phoneNumber(), phoneNumber);
       });
     });
 
