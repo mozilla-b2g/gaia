@@ -519,4 +519,33 @@ suite('navigation bar', function() {
       });
     });
   });
+
+  suite('window resize', function() {
+    var stubInnerHeight;
+
+    setup(function() {
+      Object.defineProperty(window, 'innerHeight', {
+        configurable: true,
+        get: function() { return stubInnerHeight; }
+      });
+    });
+
+    teardown(function() {
+      delete window.innerHeight;
+    });
+
+    test('should hide the navbar when the keyboard is displayed', function() {
+      stubInnerHeight = 439;
+      this.sinon.stub(NavbarManager, 'hide');
+      window.onresize();
+      sinon.assert.called(NavbarManager.hide);
+    });
+
+    test('should display the navbar when the keyboard is absent', function() {
+      stubInnerHeight = 441;
+      this.sinon.stub(NavbarManager, 'show');
+      window.onresize();
+      sinon.assert.called(NavbarManager.show);
+    });
+  });
 });
