@@ -37,7 +37,7 @@ var Navigation = window.Navigation = {
   isReady: false,
   panelObjects: window,
 
-  defaultPanel: 'thread-list',
+  defaultPanel: 'datastore-demo',
 
   panels: {
     'thread': {
@@ -64,6 +64,11 @@ var Navigation = window.Navigation = {
       behaviour: 'ReportView',
       wrapperPosition: 'left',
       container: 'thread-messages'
+    },
+    'datastore-demo': {
+      behaviour: 'DatastoreDemoPanel',
+      wrapperPosition: 'left',
+      container: 'thread-list'
     }
   },
 

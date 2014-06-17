@@ -3,6 +3,8 @@
 (function(exports) {
   'use strict';
 
+  // http://mxr.mozilla.org/mozilla-central/source/dom/datastore/DataStore.h
+
   /**
    * Name of the messages data store.
    * @const {string}
@@ -14,9 +16,9 @@
    * @enum {string}
    */
   const CursorOperation = {
-    UPDATE: 'updated',
-    ADD: 'added',
-    REMOVE: 'removed',
+    UPDATE: 'update',
+    ADD: 'add',
+    REMOVE: 'remove',
     CLEAR: 'clear',
     DONE: 'done'
   };
@@ -45,19 +47,17 @@
   /**
    * Default message list filter. Do we need to have default filter?
    */
-  const DEFAULT_MESSAGE_FILTER = {
+ /* const DEFAULT_MESSAGE_FILTER = {
     startDate: null,
     endDate: null,
     numbers: null,
     delivery: DeliveryType.RECEIVED,
     read: null,
     type: null
-  };
+  };*/
 
   var MessagesDatastore = function(mobileMessageManager) {
     this._datastorePromise = null;
-    // Hacky EventTarget approach, just to simplify it for now.
-    this._dispatcher = document.createElement('x-messages-dispatcher');
     this._mobileMessageManager = mobileMessageManager;
 
     // TODO(azasypkin): What should we use for index/cache, IndexDB?
@@ -73,9 +73,9 @@
    */
   MessagesDatastore.prototype.get = function(id) {
     console.log('MessageDatastore.get called for id: %s', id);
-    return this._getDatastore().then(function() {
-      return this._messageCache.get(id);
-    }.bind(this)).catch(function(e) {
+    return this._getDatastore().then(function(datastore) {
+      return datastore.get(id);
+    }).catch(function(e) {
       console.error('Can not get message from datastore: %o', e);
       return Promise.reject(e);
     });
@@ -112,8 +112,37 @@
    */
   MessagesDatastore.prototype.list = function(filter) {
     console.log('MessageDatastore.list called with filter: %o', filter);
-    return this._getDatastore().then(function() {
-      var filter = filter || DEFAULT_MESSAGE_FILTER,
+    return this._getDatastore().then(function(datastore) {
+      return new Promise(function(resolve, reject) {
+        var cursor = datastore.sync(),
+            result = new Map();
+
+        function cursorResolve(task) {
+          switch (task.operation) {
+            case CursorOperation.ADD:
+              result.set(task.data.id, task.data);
+              break;
+
+            case CursorOperation.REMOVE:
+              result.remove(task.data.id);
+              break;
+
+            case CursorOperation.CLEAR:
+              result.clear();
+              break;
+
+            case CursorOperation.DONE:
+              resolve(result);
+              return;
+          }
+
+          cursor.next().then(cursorResolve, reject);
+        }
+
+        cursor.next().then(cursorResolve, reject);
+      });
+
+      /* var filter = filter || DEFAULT_MESSAGE_FILTER,
           messageList = [];
 
       for(var message of this._messageCache.values()) {
@@ -121,10 +150,9 @@
           messageList.push(message);
         }
       }
-
-      return messageList;
-    }.bind(this)).catch(function(e) {
-      console.error('Can not get message list from datastore: %o', e);
+      return messageList;*/
+    }).catch(function(e) {
+      console.error('Could not get message list from datastore: %o', e);
       return Promise.reject(e);
     });
   };
@@ -135,9 +163,9 @@
    */
   MessagesDatastore.prototype.getLength = function() {
     console.log('MessageDatastore.getLength called');
-    return this._getDatastore().then(function() {
-      return this._messageCache.size;
-      }.bind(this)).catch(function(e) {
+    return this._getDatastore().then(function(datastore) {
+      return datastore.getLength();
+     }).catch(function(e) {
       console.error('Can not get length of datastore: %o', e);
       return Promise.reject(e);
     });
@@ -171,8 +199,8 @@
   };
 
   MessagesDatastore.prototype._sync = function(datastore, cache) {
-    var mobileMessageManager = this._mobileMessageManager;
-
+    var mobileMessageManager = this._mobileMessageManager,
+        mobileMessageConverter = this._convertToMessageItem.bind(this);
     return new Promise(function(resolve, reject) {
       datastore.clear();
 
@@ -188,12 +216,7 @@
           // define what structure should be stored in datastore.
           // MessageItem also should be protected from any modifications, so
           // that it can be updated only through datastore.put
-          var messageItem = {
-            id: this.result.id,
-            type: this.result.type,
-            delivery: this.result.delivery,
-            read: this.result.read
-          };
+          var messageItem = mobileMessageConverter(this.result);
 
           datastore.add(messageItem, this.result.id).then(function() {
             cache.set(cursor.result.id, messageItem);
@@ -230,37 +253,27 @@
     // It's a 'private' event subscription, nobody else should listen for it.
     // Probably we can call event handlers directly to get rid of this to
     // improve performance and remove complexity.
-    this.addEventListener(
-      '_' + CursorOperation.ADD,
-      this._onDatastoreItemAdd.bind(this)
-    );
+    this.on('_' + CursorOperation.ADD, this._onDatastoreItemAdd.bind(this));
 
-    this.addEventListener(
+    this.on(
       '_' + CursorOperation.UPDATE,
       this._onDatastoreItemUpdate.bind(this)
     );
 
-    this.addEventListener(
+    this.on(
       '_' + CursorOperation.REMOVE,
       this._onDatastoreItemRemove.bind(this)
     );
 
-    this.addEventListener(
-      '_' + CursorOperation.CLEAR,
-      this._onDatastoreClear.bind(this)
-    );
+    this.on('_' + CursorOperation.CLEAR, this._onDatastoreClear.bind(this));
   };
 
   MessagesDatastore.prototype._onChange = function(e) {
     console.log('MessagesDatastore._onChange: %o', e);
-    this.dispatchEvent(
-      new CustomEvent('_' + e.operation, {
-        detail: {
-          id: e.id,
-          operation: e.operation
-        }
-      })
-    );
+    this.trigger('_' + e.operation, {
+      id: e.id,
+      operation: e.operation
+    });
   };
 
   MessagesDatastore.prototype._onDatastoreItemAdd = function(e) {
@@ -273,7 +286,7 @@
     }).then(function(message) {
       this._messageCache.set(message.id, message);
 
-      this.dispatchEvent(new CustomEvent(e.operation, e.detail));
+      this.trigger(e.operation, e);
     }.bind(this)).catch(function(e) {
       console.error('Error occurred while retrieving new item: %o', e);
     });
@@ -289,7 +302,7 @@
     }).then(function(message) {
       this._messageCache.set(message.id, message);
 
-      this.dispatchEvent(new CustomEvent(e.operation, e.detail));
+      this.trigger(e.operation, e);
     }.bind(this)).catch(function(e) {
       console.error('Error occurred while updating existing item: %o', e);
     });
@@ -302,13 +315,13 @@
     );
     this._messageCache.delete(e.detail.id);
 
-    this.dispatchEvent(new CustomEvent(e.operation, e.detail));
+    this.trigger(e.operation, e);
   };
 
   MessagesDatastore.prototype._onDatastoreClear = function(e) {
     console.log('MessagesDatastore._onDatastoreClear called');
     this._messageCache.clear();
-    this.dispatchEvent(new CustomEvent(e.operation));
+    this.trigger(e.operation);
   };
 
   MessagesDatastore.prototype._isMatch = function(filter, item) {
@@ -338,25 +351,51 @@
     return true;
   };
 
-  MessagesDatastore.prototype.addEventListener = function() {
-    this._dispatcher.addEventListener.apply(
-      this._dispatcher,
-      Array.slice(arguments)
-    );
-  };
+  /**
+   * TEMPORAL
+   * Converts message retrieved from mozMobileMessage to Datastore compatible
+   * message item.
+   * @param mozMobileMessage
+   * @returns
+   */
+  MessagesDatastore.prototype._convertToMessageItem = function(mobileMessage) {
+    // http://mxr.mozilla.org/mozilla-central/source/dom/mobilemessage/
+    // interfaces/nsIDOMMozMmsMessage.idl
+    return {
+      id: +mobileMessage.id,
+      iccId: mobileMessage.iccId,
+      threadId: +mobileMessage.threadId,
 
-  MessagesDatastore.prototype.removeEventListener = function() {
-    this._dispatcher.removeEventListener.apply(
-      this._dispatcher,
-      Array.slice(arguments)
-    );
-  };
+      type: mobileMessage.type,
 
-  MessagesDatastore.prototype.dispatchEvent = function() {
-    this._dispatcher.dispatchEvent.apply(
-      this._dispatcher,
-      Array.slice(arguments)
-    );
+      sender: mobileMessage.sender,
+      receiver: mobileMessage.receiver,
+      // MMS only
+      receivers: mobileMessage.receivers,
+
+      read: mobileMessage.read,
+      // MMS only
+      readReportRequested: mobileMessage.readReportRequested,
+
+      delivery: mobileMessage.delivery,
+      deliveryStatus: mobileMessage.deliveryStatus,
+      // MMS only
+      deliveryInfo: mobileMessage.deliveryInfo,
+      deliveryTimestamp: mobileMessage.deliveryTimestamp,
+
+
+      body: mobileMessage.body,
+
+      // MMS only (subject, smil, attachments)
+      subject: mobileMessage.subject,
+      smil: mobileMessage.smil,
+      attachments: mobileMessage.attachments,
+
+      timestamp: mobileMessage.timestamp,
+      sentTimestamp: mobileMessage.sentTimestamp,
+      // MMS only
+      expiryDate: mobileMessage.expiryDate
+    };
   };
 
   // Expose enums that will be useful for consumers
@@ -368,7 +407,7 @@
     value: Object.seal(MessageType)
   });
 
-  exports.MessagesDataStore = new MessagesDatastore(
+  exports.MessagesDatastore = new MessagesDatastore(
     navigator.mozMobileMessage || window.DesktopMockNavigatormozMobileMessage
   );
 })(window);
