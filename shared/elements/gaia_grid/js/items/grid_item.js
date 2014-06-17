@@ -175,8 +175,9 @@
      */
     _decorateIcon: function(img) {
       var strategy = this.detail.renderer || this.renderer;
-      this.renderer = new GridIconRenderer(this);
-      this.renderer[strategy](img).then(this._displayDecoratedIcon.bind(this));
+      this.rendererInstance = new GridIconRenderer(this);
+      this.rendererInstance[strategy](img).
+        then(this._displayDecoratedIcon.bind(this));
     },
 
     /**
@@ -188,7 +189,7 @@
       this.element.style.height = this.grid.layout.gridItemHeight + 'px';
       this.element.style.backgroundSize =
         ((this.grid.layout.gridIconSize * (1 / this.scale)) +
-        this.renderer.unscaledCanvasPadding) +'px';
+        this.rendererInstance.unscaledCanvasPadding) +'px';
       this.element.style.backgroundImage =
         'url(' + URL.createObjectURL(blob) + ')';
     },
