@@ -337,7 +337,9 @@
 
       // If the minimum amount of space our header needs plus the max margins
       // fits inside the width of the window, we can center this header.
-      if (minHeaderWidth + (margin * 2) <= this.getWindowWidth()) {
+      // We subtract 1 pixels to wrap text like Gecko.
+      // See https://bugzil.la/1026955
+      if (minHeaderWidth + (margin * 2) < this.getWindowWidth() - 1) {
         element.style.marginLeft = element.style.marginRight = margin + 'px';
       }
     },
