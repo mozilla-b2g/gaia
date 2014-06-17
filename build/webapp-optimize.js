@@ -617,7 +617,7 @@ function optimize_compile(webapp, file, callback) {
             PRETRANSLATION_BLACKLIST[appName].indexOf(fileName) === -1))) {
         // we expect the last locale to be the default one:
         // pretranslate the document and set its lang/dir attributes
-        mozL10n.translate();
+        mozL10n.translateDocument();
       }
 
       // save localized / optimized document

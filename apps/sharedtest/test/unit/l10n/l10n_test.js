@@ -1,6 +1,6 @@
 suite('L10n', function() {
   var _;
-  var _translate;
+  var _translateFragment;
   var _localize;
 
   var l10props = [
@@ -51,7 +51,7 @@ suite('L10n', function() {
     };
 
     _ = navigator.mozL10n.get;
-    _translate = navigator.mozL10n.translate;
+    _translateFragment = navigator.mozL10n.translateFragment;
     _localize = navigator.mozL10n.localize;
 
     // en-US has already been loaded in setup.js and l10n.js is smart enough
@@ -109,7 +109,7 @@ suite('L10n', function() {
     });
   });
 
-  suite('translate', function() {
+  suite('translateFragment', function() {
     var elem;
     setup(function() {
       elem = document.createElement('div');
@@ -117,24 +117,24 @@ suite('L10n', function() {
 
     test('text content', function() {
       elem.dataset.l10nId = 'textcontent-test';
-      _translate(elem);
+      _translateFragment(elem);
       assert.equal(elem.textContent, 'this is text content');
     });
 
     test('properties', function() {
       elem.dataset.l10nId = 'prop-test';
-      _translate(elem);
+      _translateFragment(elem);
       assert.equal(elem.getAttribute('prop'), 'this is a property');
     });
 
     test('ARIA labels', function() {
       elem.dataset.l10nId = 'a11y-label';
-      _translate(elem);
+      _translateFragment(elem);
       assert.equal(elem.getAttribute('aria-label'), 'label via ARIA');
     });
   });
 
-  suite('localize', function() {
+  suite('localize + translate', function() {
     var elem;
     setup(function() {
       elem = document.createElement('div');
@@ -142,17 +142,20 @@ suite('L10n', function() {
 
     test('text content', function() {
       _localize(elem, 'textcontent-test');
+      _translateFragment(elem);
       assert.equal(elem.textContent, 'this is text content');
     });
 
     test('properties', function() {
       _localize(elem, 'prop-test');
+      _translateFragment(elem);
       assert.equal(elem.getAttribute('prop'), 'this is a property');
     });
 
     suite('properties + pluralization', function() {
       test('n=0', function() {
         _localize(elem, 'update', { n: 0 });
+        _translateFragment(elem);
         var info = elem.querySelector('strong');
         var span = elem.querySelector('span');
         assert.ok(info);
@@ -162,6 +165,7 @@ suite('L10n', function() {
 
       test('n=1', function() {
         _localize(elem, 'update', { n: 1 });
+        _translateFragment(elem);
         var info = elem.querySelector('strong');
         var span = elem.querySelector('span');
         assert.ok(info);
@@ -171,6 +175,7 @@ suite('L10n', function() {
 
       test('n=2', function() {
         _localize(elem, 'update', { n: 2 });
+        _translateFragment(elem);
         var info = elem.querySelector('strong');
         var span = elem.querySelector('span');
         assert.ok(info);
@@ -182,6 +187,7 @@ suite('L10n', function() {
     test('element with child', function() {
       elem.innerHTML = 'here is a button <button>(foo)</button>';
       _localize(elem, 'textcontent-test');
+      _translateFragment(elem);
       assert.equal(elem.textContent, 'this is text content(foo)');
       assert.ok(elem.querySelector('button'));
     });

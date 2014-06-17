@@ -12,7 +12,7 @@ window.GaiaMenu = (function(win) {
   proto.createdCallback = function () {
     var shadow = this.createShadowRoot();
 
-    navigator.mozL10n.translate(template);
+    navigator.mozL10n.translateFragment(template);
     this._template = template.content.cloneNode(true);
 
     var cancelButton = this._template.querySelector('.gaia-menu-cancel');
@@ -30,7 +30,8 @@ window.GaiaMenu = (function(win) {
   };
 
   proto.localize = function() {
-    navigator.mozL10n.translate(this.shadowRoot.querySelector('button'));
+    navigator.mozL10n.translateFragment(
+      this.shadowRoot.querySelector('button'));
   };
 
   proto.show = function() {

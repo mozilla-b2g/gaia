@@ -339,21 +339,17 @@ function showOverlay(id) {
   }
 
   var title, text;
+  var l10nIds = {'title': id + '-title', 'text': id + '-text'};
   if (id === 'nocard') {
-    title = navigator.mozL10n.get('nocard2-title');
-    text = navigator.mozL10n.get('nocard3-text');
-  } else {
-    title = navigator.mozL10n.get(id + '-title');
-    text = navigator.mozL10n.get(id + '-text');
+    l10nIds.title = 'nocard2-title';
+    l10nIds.text = 'nocard3-text';
   }
 
   var titleElement = document.getElementById('overlay-title');
   var textElement = document.getElementById('overlay-text');
 
-  titleElement.textContent = title;
-  titleElement.dataset.l10nId = id + '-title';
-  textElement.textContent = text;
-  textElement.dataset.l10nId = id + '-text';
+  titleElement.dataset.l10nId = l10nIds.title;
+  textElement.dataset.l10nId = l10nIds.text;
 
   document.getElementById('overlay').classList.remove('hidden');
 }
