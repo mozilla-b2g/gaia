@@ -242,6 +242,7 @@
       // XXX: PermissionDialog is shared so we need AppWindowManager
       // to focus the active app after it's closed.
       window.addEventListener('permissiondialoghide', this);
+      window.addEventListener('appopening', this);
 
       this._settingsObserveHandler = {
         // update app name when language setting changes
@@ -318,6 +319,7 @@
       window.removeEventListener('orientationchange', this);
       window.removeEventListener('sheetstransitionstart', this);
       window.removeEventListener('permissiondialoghide', this);
+      window.removeEventListener('appopening', this);
 
       for (var name in this._settingsObserveHandler) {
         SettingsListener.unobserve(
@@ -388,6 +390,7 @@
           }
           break;
 
+        case 'appopening':
         case 'appopened':
         case 'homescreenopened':
           // Someone else may open the app,
