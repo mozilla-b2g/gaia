@@ -435,12 +435,17 @@ Cards = {
     // See input_areas.js and shared/style/input_areas.css.
     hookupInputAreaResetButtons(domNode);
 
-    // We're appending new elements to DOM so to make sure headers are
-    // properly resized and centered, we emmit a lazyload event.
-    // This will be removed when the gaia-header web component lands.
-    window.dispatchEvent(new CustomEvent('lazyload', {
-      detail: domNode
-    }));
+    // Only do auto font size watching for cards that do not have more
+    // complicated needs, like message_list, which modifies children contents
+    // that are not caught by the font_size_util.
+    if (!cardImpl.callHeaderFontSize) {
+      // We're appending new elements to DOM so to make sure headers are
+      // properly resized and centered, we emit a lazyload event.
+      // This will be removed when the gaia-header web component lands.
+      window.dispatchEvent(new CustomEvent('lazyload', {
+        detail: domNode
+      }));
+    }
 
     if ('postInsert' in cardImpl)
       cardImpl.postInsert();
