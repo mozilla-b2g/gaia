@@ -142,20 +142,20 @@ suite('system/HardwareButtons', function() {
       stubSetTimeout.getCall(0).returnValue);
   });
 
-  test('hold home and press sleep (screen enabled)', function() {
+  test('hold volume-down and press sleep (screen enabled)', function() {
     var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
 
     fireChromeEvent('sleep-button-press');
-    fireChromeEvent('home-button-press');
+    fireChromeEvent('volume-down-button-press');
     fireChromeEvent('sleep-button-release');
-    fireChromeEvent('home-button-release');
+    fireChromeEvent('volume-down-button-release');
 
     assert.isTrue(stubDispatchEvent.calledOnce);
-    assert.isTrue(stubDispatchEvent.calledWith({ type: 'home+sleep',
+    assert.isTrue(stubDispatchEvent.calledWith({ type: 'volumedown+sleep',
                                                  bubbles: false }));
   });
 
-  test('hold home and press sleep (screen disabled)', function() {
+  test('hold volume-down and press sleep (screen disabled)', function() {
     var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
     var stubSetTimeout = this.sinon.stub(window, 'setTimeout');
     stubSetTimeout.returns(Math.floor(Math.random() * 10000));
@@ -163,16 +163,16 @@ suite('system/HardwareButtons', function() {
 
     ScreenManager.screenEnabled = false;
     fireChromeEvent('sleep-button-press');
-    fireChromeEvent('home-button-press');
+    fireChromeEvent('volume-down-button-press');
     fireChromeEvent('sleep-button-release');
-    fireChromeEvent('home-button-release');
+    fireChromeEvent('volume-down-button-release');
 
     assert.isTrue(stubDispatchEvent.calledTwice);
     assert.isTrue(
       stubDispatchEvent.getCall(0).calledWith({ type: 'wake',
                                                 bubbles: false }));
     assert.isTrue(
-      stubDispatchEvent.getCall(1).calledWith({ type: 'home+sleep',
+      stubDispatchEvent.getCall(1).calledWith({ type: 'volumedown+sleep',
                                                 bubbles: false }));
 
     assert.isTrue(stubSetTimeout.calledOnce);
@@ -183,47 +183,47 @@ suite('system/HardwareButtons', function() {
       stubSetTimeout.getCall(0).returnValue);
   });
 
-  test('hold sleep and press home (screen enabled)', function() {
+  test('hold sleep and press volume-down (screen enabled)', function() {
     var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
     var stubSetTimeout = this.sinon.stub(window, 'setTimeout');
     stubSetTimeout.returns(Math.floor(Math.random() * 10000));
     var stubClearTimeout = this.sinon.stub(window, 'clearTimeout');
 
-    fireChromeEvent('home-button-press');
+    fireChromeEvent('volume-down-button-press');
     fireChromeEvent('sleep-button-press');
     fireChromeEvent('sleep-button-release');
-    fireChromeEvent('home-button-release');
+    fireChromeEvent('volume-down-button-release');
 
     assert.isTrue(stubDispatchEvent.calledOnce);
-    assert.isTrue(stubDispatchEvent.calledWith({ type: 'home+sleep',
+    assert.isTrue(stubDispatchEvent.calledWith({ type: 'volumedown+sleep',
                                                  bubbles: false }));
 
     assert.isTrue(stubSetTimeout.calledOnce);
     assert.equal(stubSetTimeout.getCall(0).args[1],
-      hardwareButtons.HOLD_INTERVAL);
+      hardwareButtons.REPEAT_DELAY);
     assert.isTrue(stubClearTimeout.calledOnce);
     assert.equal(stubClearTimeout.getCall(0).args[0],
       stubSetTimeout.getCall(0).returnValue);
   });
 
-  test('hold sleep and press home (screen disabled)', function() {
+  test('hold sleep and press volume-down (screen disabled)', function() {
     var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
     var stubSetTimeout = this.sinon.stub(window, 'setTimeout');
     stubSetTimeout.returns(Math.floor(Math.random() * 10000));
     var stubClearTimeout = this.sinon.stub(window, 'clearTimeout');
 
     ScreenManager.screenEnabled = false;
-    fireChromeEvent('home-button-press');
     fireChromeEvent('sleep-button-press');
+    fireChromeEvent('volume-down-button-press');
+    fireChromeEvent('volume-down-button-release');
     fireChromeEvent('sleep-button-release');
-    fireChromeEvent('home-button-release');
 
     assert.isTrue(stubDispatchEvent.calledTwice);
     assert.isTrue(
       stubDispatchEvent.getCall(0).calledWith({ type: 'wake',
                                                 bubbles: false }));
     assert.isTrue(
-      stubDispatchEvent.getCall(1).calledWith({ type: 'home+sleep',
+      stubDispatchEvent.getCall(1).calledWith({ type: 'volumedown+sleep',
                                                 bubbles: false }));
 
     assert.isTrue(stubSetTimeout.calledOnce);
