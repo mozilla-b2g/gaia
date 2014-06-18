@@ -143,13 +143,13 @@
   margin-top: -0.2rem;
 }
 
-#permission-device-selector {
+#permission-device-title {
   font-size: 1.8rem;
   font-weight: lighter;
   padding: 3rem 0 2rem 1.2rem;
 }
 
-#permission-device-selector.hidden {
+#permission-device-title.hidden {
   display: none;
 }
 
