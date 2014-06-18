@@ -51,6 +51,12 @@
     }
   },
   "default_locale": "en-US",
+  "datastores-access": {
+    "bookmarks_store": {
+      "readonly": true,
+      "description": "Display bookmarks in collections"
+    }
+  },
   "datastores-owned": {
     "collections_store": {
       "access": "readwrite",

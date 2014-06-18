@@ -5,6 +5,7 @@
 /* global ViewBgImage */
 /* global Promise */
 /* global eme */
+/* global NativeInfo */
 
 (function(exports) {
 
@@ -47,7 +48,11 @@
       loading();
 
       eme.init().then(function ready() {
-        HandleView(activity);
+        function _handle() {
+          HandleView(activity);
+        }
+
+        NativeInfo.setup().then(_handle, _handle);
       });
     }
   });

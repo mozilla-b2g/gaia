@@ -89,6 +89,8 @@
   }
 
   function get(id) {
+    // TODO it's not necessary to create a new Promise. instead:
+    // return init().then(...)
     return new Promise(function doGet(resolve, reject) {
       init().then(function onInitialized() {
         datastore.get(id).then(resolve, reject);
