@@ -158,7 +158,7 @@ suite('system/permission manager', function() {
       sendChromeEvent('permission-prompt', 'test');
       permissionManager.handlePermissionPrompt(detail);
 
-      assert.equal(permissionManager.remember.checked, false);
+      assert.equal(permissionManager.elements.remember.checked, false);
       assert.isTrue(permissionManager.requestPermission.called);
     });
 
@@ -167,7 +167,7 @@ suite('system/permission manager', function() {
       detail.remember = true;
       permissionManager.handlePermissionPrompt(detail);
 
-      assert.equal(permissionManager.remember.checked, true);
+      assert.equal(permissionManager.elements.remember.checked, true);
       assert.isTrue(permissionManager.requestPermission.called);
     });
   });
@@ -211,14 +211,14 @@ suite('system/permission manager', function() {
     });
 
     test('handle pending', function() {
-      permissionManager.remember.checked = true;
-      permissionManager.clickHandler({target: permissionManager.yes});
+      permissionManager.elements.remember.checked = true;
+      permissionManager.clickHandler({target: permissionManager.elements.yes});
       assert.equal(permissionManager.pending.length, 1);
     });
 
     test('dismiss same permissions request from same origin', function() {
-      permissionManager.remember.checked = true;
-      permissionManager.clickHandler({target: permissionManager.yes});
+      permissionManager.elements.remember.checked = true;
+      permissionManager.clickHandler({target: permissionManager.elements.yes});
       assert.isTrue(permissionManager.showNextPendingRequest.called);
       assert.isTrue(permissionManager.dispatchResponse.called);
     });
@@ -266,7 +266,8 @@ suite('system/permission manager', function() {
     });
 
     test('not show remember my choice option', function() {
-      assert.equal(permissionManager.rememberSection.style.display, 'none');
+      assert.equal(permissionManager.elements.rememberSection.style.display,
+        'none');
     });
   });
 
@@ -296,7 +297,8 @@ suite('system/permission manager', function() {
     });
 
     test('not show remember my choice option', function() {
-      assert.equal(permissionManager.rememberSection.style.display, 'none');
+      assert.equal(permissionManager.elements.rememberSection.style.display,
+        'none');
     });
   });
 
@@ -324,7 +326,8 @@ suite('system/permission manager', function() {
     });
 
     test('not show remember my choice option', function() {
-      assert.equal(permissionManager.rememberSection.style.display, 'none');
+      assert.equal(permissionManager.elements.rememberSection.style.display,
+        'none');
     });
   });
 
@@ -362,9 +365,10 @@ suite('system/permission manager', function() {
       permissionManager.showPermissionPrompt(1, '', '',
         yescallback, nocallback);
 
-      assert.equal(permissionManager.buttons.dataset.items, 1);
-      assert.equal(permissionManager.rememberSection.style.display, 'none');
-      assert.equal(permissionManager.no.style.display, 'none');
+      assert.equal(permissionManager.elements.buttons.dataset.items, 1);
+      assert.equal(permissionManager.elements.rememberSection.style.display,
+        'none');
+      assert.equal(permissionManager.elements.no.style.display, 'none');
     });
 
     test('permission-prompt', function() {
@@ -383,7 +387,7 @@ suite('system/permission manager', function() {
     });
 
     test('remember my choice option is checked in app mode', function() {
-      assert.equal(permissionManager.remember.checked, true);
+      assert.equal(permissionManager.elements.remember.checked, true);
     });
   });
 
@@ -414,11 +418,12 @@ suite('system/permission manager', function() {
     });
 
     test('not show remember my choice option', function() {
-      assert.equal(permissionManager.rememberSection.style.display, 'none');
+      assert.equal(permissionManager.elements.rememberSection.style.display,
+        'none');
     });
 
     test('remember my choice option is unchecked in web mode', function() {
-      assert.equal(permissionManager.remember.checked, false);
+      assert.equal(permissionManager.elements.remember.checked, false);
     });
   });
 
@@ -447,22 +452,22 @@ suite('system/permission manager', function() {
 
       test('should toggle info when more info is clicked', function() {
         permissionManager.clickHandler({
-          target: permissionManager.moreInfoLink
+          target: permissionManager.elements.moreInfoLink
         });
         assert.isTrue(permissionManager.toggleInfo.called);
         assert.isFalse(permissionManager.hidePermissionPrompt.called);
         assert.isFalse(
-          permissionManager.moreInfoBox.classList.contains('hidden'));
+          permissionManager.elements.moreInfoBox.classList.contains('hidden'));
       });
 
       test('should toggle info when hide info is clicked', function() {
         permissionManager.clickHandler({
-          target: permissionManager.hideInfoLink
+          target: permissionManager.elements.hideInfoLink
         });
         assert.isTrue(permissionManager.toggleInfo.called);
         assert.isFalse(permissionManager.hidePermissionPrompt.called);
         assert.isTrue(
-          permissionManager.moreInfoBox.classList.contains('hidden'));
+          permissionManager.elements.moreInfoBox.classList.contains('hidden'));
       });
   });
 

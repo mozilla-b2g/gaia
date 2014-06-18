@@ -61,7 +61,7 @@
 
     // Loop and add element with camel style name to Modal Dialog attribute.
     this.elementClasses.forEach(function createElementRef(name) {
-      this[toCamelCase(name)] =
+      this.elements[toCamelCase(name)] =
         this.element.querySelector('.' + this.ELEMENT_PREFIX + name);
     }.bind(this));
   };
@@ -74,7 +74,7 @@
     this._fetchElements();
 
     this.onRememberSectionClick = this.onRememberSectionClick.bind(this);
-    this.rememberSection.addEventListener('click',
+    this.elements.rememberSection.addEventListener('click',
       this.onRememberSectionClick);
 
     window.addEventListener('mozChromeEvent', this);
@@ -113,21 +113,21 @@
     this.currentRequestId = null;
 
     this.element = null;
-    this.title = null;
-    this.message = null;
-    this.moreInfo = null;
-    this.moreInfoLink = null;
-    this.moreInfoBox = null;
+    this.elements.title = null;
+    this.elements.message = null;
+    this.elements.moreInfo = null;
+    this.elements.moreInfoLink = null;
+    this.elements.moreInfoBox = null;
 
-    this.remember = null;
-    this.rememberSection.removeEventListener('click',
+    this.elements.remember = null;
+    this.elements.rememberSection.removeEventListener('click',
       this.onRememberSectionClick);
-    this.deviceTitle = null;
-    this.devices = null;
+    this.elements.deviceTitle = null;
+    this.elements.devices = null;
 
-    this.buttons = null;
-    this.yes = null;
-    this.no = null;
+    this.elements.buttons = null;
+    this.elements.yes = null;
+    this.elements.no = null;
 
     window.removeEventListener('mozChromeEvent', this);
     window.removeEventListener('home', this);
@@ -147,18 +147,18 @@
     this.isCamSelector = false;
 
     //handled in showPermissionPrompt
-    if (this.message.classList.contains('hidden')) {
-      this.message.classList.remove('hidden');
+    if (this.elements.message.classList.contains('hidden')) {
+      this.elements.message.classList.remove('hidden');
     }
-    if (!this.moreInfoBox.classList.contains('hidden')) {
-      this.moreInfoBox.classList.add('hidden');
+    if (!this.elements.moreInfoBox.classList.contains('hidden')) {
+      this.elements.moreInfoBox.classList.add('hidden');
     }
-    this.devices.innerHTML = '';
-    if (!this.deviceTitle.classList.contains('hidden')) {
-      this.deviceTitle.classList.add('hidden');
+    this.elements.devices.innerHTML = '';
+    if (!this.elements.deviceTitle.classList.contains('hidden')) {
+      this.elements.deviceTitle.classList.add('hidden');
     }
-    this.buttons.dataset.items = 2;
-    this.no.style.display = 'inline';
+    this.elements.buttons.dataset.items = 2;
+    this.elements.no.style.display = 'inline';
   };
 
   /**
@@ -216,9 +216,9 @@
         if (this.isAudio || this.isVideo) {
           if (!detail.isApp) {
             // Not show remember my choice option in website
-            this.rememberSection.style.display = 'none';
+            this.elements.rememberSection.style.display = 'none';
           } else {
-            this.rememberSection.style.display = 'block';
+            this.elements.rememberSection.style.display = 'block';
           }
 
           // Set default options
@@ -311,9 +311,9 @@
     if ((this.isAudio || this.isVideo) && !detail.isApp &&
       !this.isCamSelector) {
       // gUM always not remember in web mode
-      this.remember.checked = false;
+      this.elements.remember.checked = false;
     } else {
-      this.remember.checked = detail.remember ? true : false;
+      this.elements.remember.checked = detail.remember ? true : false;
     }
 
     var message = '';
@@ -325,17 +325,17 @@
       message = _(permissionID + '-appRequest',
         { 'app': new ManifestHelper(app.manifest).name });
 
-      this.title.innerHTML = _('title-app');
+      this.elements.title.innerHTML = _('title-app');
       if (this.isCamSelector) {
-        this.title.innerHTML = _('title-cam');
+        this.elements.title.innerHTML = _('title-cam');
       }
-      this.deviceTitle.innerHTML = _('perm-camera-selector-appRequest',
+      this.elements.deviceTitle.innerHTML = _('perm-camera-selector-appRequest',
           { 'app': new ManifestHelper(app.manifest).name });
     } else { // Web content
       message = _(permissionID + '-webRequest', { 'site': detail.origin });
 
-      this.title.innerHTML = _('title-web');
-      this.deviceTitle.innerHTML = _('perm-camera-selector-webRequest',
+      this.elements.title.innerHTML = _('title-web');
+      this.elements.deviceTitle.innerHTML = _('perm-camera-selector-webRequest',
           { 'site': detail.origin });
     }
 
@@ -345,11 +345,11 @@
       message, moreInfoText,
       function pm_permYesCB() {
         self.dispatchResponse(detail.id, 'permission-allow',
-          self.remember.checked);
+          self.elements.remember.checked);
       },
       function pm_permNoCB() {
         self.dispatchResponse(detail.id, 'permission-deny',
-          self.remember.checked);
+          self.elements.remember.checked);
     });
   };
 
@@ -385,19 +385,19 @@
   PermissionManager.prototype.hidePermissionPrompt =
     function pm_hidePermissionPrompt() {
     this.element.classList.remove('visible');
-    this.devices.removeEventListener('click', this);
-    this.devices.classList.remove('visible');
+    this.elements.devices.removeEventListener('click', this);
+    this.elements.devices.classList.remove('visible');
     this.currentRequestId = undefined;
     // Cleanup the event handlers.
-    this.yes.removeEventListener('click', this.yesHandler);
-    this.yes.callback = null;
-    this.no.removeEventListener('click', this.noHandler);
-    this.no.callback = null;
-    this.moreInfoLink.removeEventListener('click',
+    this.elements.yes.removeEventListener('click', this.yesHandler);
+    this.elements.yes.callback = null;
+    this.elements.no.removeEventListener('click', this.noHandler);
+    this.elements.no.callback = null;
+    this.elements.moreInfoLink.removeEventListener('click',
       this.moreInfoHandler);
-    this.hideInfoLink.removeEventListener('click',
+    this.elements.hideInfoLink.removeEventListener('click',
       this.moreInfoHandler);
-    this.moreInfo.classList.add('hidden');
+    this.elements.moreInfo.classList.add('hidden');
     // XXX: This is telling AppWindowManager to focus the active app.
     // After we are moving into AppWindow, we need to remove that
     // and call this.app.focus() instead.
@@ -422,11 +422,11 @@
     var request = this.pending.shift();
     // bug 907075 Dismiss continuous same permission request but
     // dispatch mozContentEvent as well if remember is checked
-    if (this.remember.checked) {
+    if (this.elements.remember.checked) {
       if ((this.currentOrigin === request.origin) &&
         (this.permissionType === request.permission)) {
         this.dispatchResponse(request.id, this.responseStatus,
-          this.remember.checked);
+          this.elements.remember.checked);
         return;
       }
     }
@@ -443,12 +443,12 @@
    */
   PermissionManager.prototype.clickHandler = function pm_clickHandler(evt) {
     var callback = null;
-    if (evt.target === this.yes && this.yes.callback) {
-      callback = this.yes.callback;
-    } else if (evt.target === this.no && this.no.callback) {
-      callback = this.no.callback;
-    } else if (evt.target === this.moreInfoLink ||
-               evt.target === this.hideInfoLink) {
+    if (evt.target === this.elements.yes && this.elements.yes.callback) {
+      callback = this.elements.yes.callback;
+    } else if (evt.target === this.elements.no && this.elements.no.callback) {
+      callback = this.elements.no.callback;
+    } else if (evt.target === this.elements.moreInfoLink ||
+               evt.target === this.elements.hideInfoLink) {
       this.toggleInfo();
       return;
     }
@@ -462,9 +462,9 @@
   };
 
   PermissionManager.prototype.toggleInfo = function pm_toggleInfo() {
-    this.moreInfoLink.classList.toggle('hidden');
-    this.hideInfoLink.classList.toggle('hidden');
-    this.moreInfoBox.classList.toggle('hidden');
+    this.elements.moreInfoLink.classList.toggle('hidden');
+    this.elements.hideInfoLink.classList.toggle('hidden');
+    this.elements.moreInfoBox.classList.toggle('hidden');
   };
 
   /**
@@ -509,7 +509,7 @@
     var checked;
 
     // show description
-    this.deviceTitle.classList.remove('hidden');
+    this.elements.deviceTitle.classList.remove('hidden');
     // build device list
     this.currentPermissions['video-capture'].forEach(function(option) {
       // Match currentChoices
@@ -526,11 +526,11 @@
                             checked: checked,
                             label: _('device-' + option)
                           });
-      self.devices.appendChild(item_li);
+      self.elements.devices.appendChild(item_li);
     });
-    this.devices.addEventListener('click',
+    this.elements.devices.addEventListener('click',
       this.optionClickhandler.bind(this));
-    this.devices.classList.add('visible');
+    this.elements.devices.classList.add('visible');
   };
 
   /**
@@ -542,15 +542,17 @@
         id, msg, moreInfoText, yescallback, nocallback) {
     // Note plain text since this may include text from
     // untrusted app manifests, for example.
-    this.message.textContent = msg;
+    this.elements.message.textContent = msg;
     if (moreInfoText) {
       // Show the "More info… " link.
-      this.moreInfo.classList.remove('hidden');
+      this.elements.moreInfo.classList.remove('hidden');
       this.moreInfoHandler = this.clickHandler.bind(this);
       this.hideInfoHandler = this.clickHandler.bind(this);
-      this.moreInfoLink.addEventListener('click', this.moreInfoHandler);
-      this.hideInfoLink.addEventListener('click', this.hideInfoHandler);
-      this.moreInfoBox.textContent = moreInfoText;
+      this.elements.moreInfoLink.addEventListener('click',
+        this.moreInfoHandler);
+      this.elements.hideInfoLink.addEventListener('click',
+        this.hideInfoHandler);
+      this.elements.moreInfoBox.textContent = moreInfoText;
     }
     this.currentRequestId = id;
 
@@ -564,25 +566,25 @@
          this.permissionType === 'geolocation';
 
     var _ = navigator.mozL10n.get;
-    this.yes.textContent =
+    this.elements.yes.textContent =
       isSharedPermission ? _('share-' + this.permissionType) : _('allow');
     this.yesHandler = this.clickHandler.bind(this);
-    this.yes.addEventListener('click', this.yesHandler);
-    this.yes.callback = yescallback;
+    this.elements.yes.addEventListener('click', this.yesHandler);
+    this.elements.yes.callback = yescallback;
 
-    this.no.textContent = isSharedPermission ?
+    this.elements.no.textContent = isSharedPermission ?
         _('dontshare-' + this.permissionType) : _('dontallow');
     this.noHandler = this.clickHandler.bind(this);
-    this.no.addEventListener('click', this.noHandler);
-    this.no.callback = nocallback;
+    this.elements.no.addEventListener('click', this.noHandler);
+    this.elements.no.callback = nocallback;
 
     // customize camera selector dialog
     if (this.isCamSelector) {
-      this.message.classList.add('hidden');
-      this.rememberSection.style.display = 'none';
-      this.buttons.dataset.items = 1;
-      this.no.style.display = 'none';
-      this.yes.textContent = _('ok');
+      this.elements.message.classList.add('hidden');
+      this.elements.rememberSection.style.display = 'none';
+      this.elements.buttons.dataset.items = 1;
+      this.elements.no.style.display = 'none';
+      this.elements.yes.textContent = _('ok');
     }
     // Make the screen visible
     this.element.classList.add('visible');
