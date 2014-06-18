@@ -26,8 +26,7 @@ define(function(require) {
     this._defaultVolumeState = 'available';
     this._defaultMediaVolumeKey = 'device.storage.writable.name';
     this._umsSettingHandler = this._umsSettingHandler.bind(this);
-      this._mediaVolumeChangeHandler =
-        this._mediaVolumeChangeHandler.bind(this);
+    this._mediaVolumeChangeHandler = this._mediaVolumeChangeHandler.bind(this);
   }
 
   USBStorageItem.prototype = {
@@ -149,7 +148,7 @@ define(function(require) {
 
     // XXX media related functions
     _mediaVolumeChangeHandler:
-      function storage__mediaVolumeChangeHandler(defaultName) {
+      function storage_mediaVolumeChangeHandler(defaultName) {
       if (this._defaultMediaVolume) {
         this._defaultMediaVolume.removeEventListener('change', this);
       }

@@ -1,9 +1,7 @@
 'use strict';
 
 suite('AppStorageItem', function() {
-	var modules = [
-    'panels/root/storage_app_item',
-  ];
+  var modules = ['panels/root/storage_app_item'];
 
   var map = {
     '*': {
