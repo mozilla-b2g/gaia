@@ -80,6 +80,15 @@
 
     update: GaiaGrid.GridItem.prototype.updateFromDatastore,
 
+    render: function(coordinates, index) {
+      // Add 'collection' to the class list when the element gets created
+      var setClassName = !this.element;
+      GaiaGrid.GridItem.prototype.render.call(this, coordinates, index);
+      if (setClassName) {
+        this.element.classList.add('collection');
+      }
+    },
+
     /**
      * Collections are always editable.
      */
