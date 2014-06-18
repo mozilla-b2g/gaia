@@ -140,6 +140,42 @@ suite('system/AppWindowManager', function() {
   }
 
   suite('Handle events', function() {
+    test('Active app should be updated once any app is opening.', function() {
+      var stub_updateActiveApp = this.sinon.stub(AppWindowManager,
+        '_updateActiveApp');
+      injectRunningApps(app1, app2);
+      AppWindowManager._activeApp = app1;
+      AppWindowManager.handleEvent({
+        type: 'appopening',
+        detail: app2
+      });
+      assert.isTrue(stub_updateActiveApp.calledWith(app2.instanceID));
+    });
+
+    test('Active app should be updated once any app is opened.', function() {
+      var stub_updateActiveApp = this.sinon.stub(AppWindowManager,
+        '_updateActiveApp');
+      injectRunningApps(app1, app2);
+      AppWindowManager._activeApp = app1;
+      AppWindowManager.handleEvent({
+        type: 'appopened',
+        detail: app2
+      });
+      assert.isTrue(stub_updateActiveApp.calledWith(app2.instanceID));
+    });
+
+    test('Active app should be updated once homescreen is opened.', function() {
+      var stub_updateActiveApp = this.sinon.stub(AppWindowManager,
+        '_updateActiveApp');
+      injectRunningApps(app1, home);
+      AppWindowManager._activeApp = app1;
+      AppWindowManager.handleEvent({
+        type: 'homescreenopened',
+        detail: home
+      });
+      assert.isTrue(stub_updateActiveApp.calledWith(home.instanceID));
+    });
+
     test('When permission dialog is closed, we need to focus the active app',
       function() {
         var stubFocus = this.sinon.stub(app1, 'broadcast');
