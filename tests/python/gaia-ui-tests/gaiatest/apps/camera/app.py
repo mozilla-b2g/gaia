@@ -15,8 +15,7 @@ class Camera(Base):
 
     name = 'Camera'
 
-    _camera_frame_locator = (By.CSS_SELECTOR, 'iframe[src*="camera"][src*="/index.html"]')
-    _body_locator = (By.TAG_NAME, 'body')
+    _secure_camera_frame_locator = (By.CSS_SELECTOR, ".secureAppWindow.active[data-manifest-name='Camera'] iframe")
 
     # Controls View
     _controls_locator = (By.CSS_SELECTOR, '.controls')
@@ -79,6 +78,9 @@ class Camera(Base):
 
     def tap_select_button(self):
         self.marionette.find_element(*self._select_button_locator).tap()
+        # Fall back to app beneath the picker
+        self.wait_for_condition(lambda m: self.apps.displayed_app.name != self.name)
+        self.apps.switch_to_displayed_app()
 
     def tap_switch_source(self):
         self.wait_for_element_displayed(*self._switch_button_locator)
@@ -122,11 +124,12 @@ class Camera(Base):
     def wait_for_flash_disabled(self):
        self.wait_for_flash('off')
 
-    def switch_to_camera_frame(self):
+    def switch_to_secure_camera_frame(self):
+        # Find and switch to secure camera app frame (AppWindowManager hides it)
+        # This is only used when accessing camera in locked phone state
         self.marionette.switch_to_frame()
-        self.wait_for_element_present(*self._camera_frame_locator)
-        camera_frame = self.marionette.find_element(*self._camera_frame_locator)
-        self.marionette.switch_to_frame(camera_frame)
+        secure_camera_frame = self.marionette.find_element(*self._secure_camera_frame_locator)
+        self.marionette.switch_to_frame(secure_camera_frame)
         self.wait_for_capture_ready()
 
     def tap_switch_to_gallery(self):
