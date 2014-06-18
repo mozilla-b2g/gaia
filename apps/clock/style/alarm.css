@@ -281,3 +281,21 @@ input[type=range]:active::-moz-range-thumb {
   background-color: #e51e1e;
   text-align: center;
 }
+
+html[dir=rtl] #alarm-new {
+margin-left: 1.5rem;
+left: 0px;
+}
+html[dir=rtl] #alarms .alarmEnable {
+left: 0;
+}
+html[dir=rtl] #alarms .alarmEnable input[type="checkbox"] + span {
+left: 1.5rem;
+}
+html[dir=rtl] a.alarm-item > .time {
+right: 1.7rem;
+}
+html[dir=rtl] a.alarm-item > .label {
+right: 12.5rem;
+left: 4.5rem;
+}
