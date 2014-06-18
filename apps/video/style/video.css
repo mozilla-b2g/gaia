@@ -513,27 +513,27 @@ header .icon:after {
 
 #elapsed-text {
   width: 3.2rem;
-  margin-left: 2.0rem;
+  margin-left: 0rem;
 }
 
 #duration-text {
   width: 3.2rem;
-  margin-right: 2.0rem;
+  margin-right: 0rem;
 }
 
 /* time slider */
 #timeSlider {
   position: relative;
   /* 12.4rem means width of button 4.4rem + right padding 4rem + left padding 4rem */
-  width: calc(100% - 12.4rem);
+  width: calc(100% - 11rem);
   z-index: 10;
 }
 
 #slider-wrapper {
   width: 100%;
   height: 4.1rem;
-  margin-left: 1.0rem;
-  margin-right: 1.0rem;
+  margin-left: 1.5rem;
+  margin-right: 2.0rem;
 }
 
 #slider-wrapper div {
