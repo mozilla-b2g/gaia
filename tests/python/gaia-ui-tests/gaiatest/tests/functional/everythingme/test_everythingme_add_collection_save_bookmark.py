@@ -37,7 +37,6 @@ class TestEverythingMeAddCollectionSaveBookmark(GaiaTestCase):
         app_name = app.name
         app.long_tap_to_install()
         add_link = app.tap_save_to_home_screen()
-        add_link.switch_to_add_bookmark_frame()
         add_link.tap_add_bookmark_to_home_screen_dialog_button()
 
         # Switch to Home Screen to look for app

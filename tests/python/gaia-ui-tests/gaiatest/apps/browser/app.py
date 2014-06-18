@@ -90,8 +90,6 @@ class Browser(Base):
     def tap_add_bookmark_to_home_screen_choice_button(self):
         self.wait_for_element_displayed(*self._add_bookmark_to_home_screen_choice_locator)
         self.marionette.find_element(*self._add_bookmark_to_home_screen_choice_locator).tap()
-        # TODO: Remove sleep when Bug # 815115 is addressed, or if we can wait for a Javascript condition
-        time.sleep(2)
         return BookmarkMenu(self.marionette)
 
     def wait_for_throbber_not_visible(self, timeout=30):
