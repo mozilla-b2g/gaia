@@ -175,6 +175,16 @@
         var tmplID = 'attachment-' + previewClass + '-tmpl';
         container.classList.add(previewClass);
 
+        var setAttachmentMarkup = function(markup, container, thumbnail) {
+          container.innerHTML = markup;
+
+          var thumbnailNode = container.querySelector('.thumbnail');
+          if (thumbnailNode && thumbnail.data) {
+            thumbnailNode.style.backgroundImage =
+              'url("' + encodeURI(thumbnail.data) + '")';
+          }
+        };
+
         if (this.isDraft) { // <iframe>
           // The attachment's iFrame requires access to the parent document's
           // context so that URIs for Blobs created in the parent may resolve as
@@ -190,7 +200,12 @@
           // append the source when it's appended to the dom and loaded
           container.addEventListener('load', function onload() {
             this.removeEventListener('load', onload);
-            this.contentDocument.documentElement.innerHTML = tmplSrc;
+
+            setAttachmentMarkup(
+              tmplSrc,
+              this.contentDocument.documentElement,
+              thumbnail
+            );
           });
 
           // Attach click listeners and fire the callback when rendering is
@@ -200,7 +215,11 @@
 
           container.src = 'about:blank';
         } else { // <div>
-          container.innerHTML = this.getAttachmentSrc(thumbnail, tmplID);
+          setAttachmentMarkup(
+            this.getAttachmentSrc(thumbnail, tmplID),
+            container,
+            thumbnail
+          );
         }
 
         if (readyCallback) {

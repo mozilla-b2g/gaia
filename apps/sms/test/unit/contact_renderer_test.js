@@ -438,6 +438,9 @@ suite('ContactRenderer', function() {
       var html;
       var blob = testImageBlob;
       this.sinon.stub(MockContactPhotoHelper, 'getThumbnail').returns(blob);
+      this.sinon.spy(Utils, 'asyncLoadRevokeURL');
+      this.sinon.spy(Utils, 'getContactDetails');
+      this.sinon.spy(window, 'encodeURI');
 
       renderer.render({
         contact: contact,
@@ -445,11 +448,9 @@ suite('ContactRenderer', function() {
         target: ul
       });
 
-      sinon.assert.calledWithMatch(Template.prototype.interpolate, {
-        photoURL: sinon.match(/^blob:/)
-      });
+      sinon.assert.calledWith(Template.prototype.interpolate, undefined);
 
-      var photo = 'span data-type="img" style="background-image: url(blob:';
+      var photo = 'data-type="img"';
       sinon.assert.calledWithMatch(Template.prototype.interpolate, {
         carrier: 'XXX, ',
         name: 'Pepito O\'Hare',
@@ -462,8 +463,20 @@ suite('ContactRenderer', function() {
       });
 
       html = ul.firstElementChild.innerHTML;
+      var contactPhotoElement = ul.firstElementChild.querySelector(
+        '.contact-photo'
+      );
 
       assert.ok(html.contains('span'));
+      assert.ok(contactPhotoElement.style.backgroundImage.indexOf('blob:') > 0);
+      sinon.assert.calledWith(
+        encodeURI,
+        Utils.getContactDetails.returnValues[0].photoURL
+      );
+      sinon.assert.calledWith(
+        Utils.asyncLoadRevokeURL,
+        Utils.getContactDetails.returnValues[0].photoURL
+      );
     });
   });
 
