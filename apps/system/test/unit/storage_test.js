@@ -73,7 +73,7 @@ suite('system/Storage', function() {
     test('lock calls setMode', function() {
       var setModeStub = this.sinon.stub(Storage.prototype, 'setMode');
       subject.handleEvent({
-        type: 'lock'
+        type: 'lockscreen-appopened'
       });
       assert.ok(setModeStub.calledWith(2));
     });
@@ -83,7 +83,7 @@ suite('system/Storage', function() {
       subject._mode = 3;
       var setModeStub = this.sinon.stub(Storage.prototype, 'setMode');
       subject.handleEvent({
-        type: 'unlock'
+        type: 'lockscreen-appclosed'
       });
       assert.ok(setModeStub.calledWith(3));
     });
