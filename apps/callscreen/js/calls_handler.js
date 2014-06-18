@@ -289,11 +289,13 @@ var CallsHandler = (function callsHandler() {
     });
   }
 
-  function updateKeypadEnabled() {
+  function updateCallOptionsEnabled() {
     if (telephony.active) {
       CallScreen.enableKeypad();
+      CallScreen.enablePlaceNewCall();
     } else {
       CallScreen.disableKeypad();
+      CallScreen.disablePlaceNewCall();
     }
   }
 
@@ -753,7 +755,7 @@ var CallsHandler = (function callsHandler() {
     toggleCalls: toggleCalls,
     ignore: ignore,
     end: end,
-    updateKeypadEnabled: updateKeypadEnabled,
+    updateCallOptionsEnabled: updateCallOptionsEnabled,
     toggleMute: toggleMute,
     toggleSpeaker: toggleSpeaker,
     unmute: unmute,

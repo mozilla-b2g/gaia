@@ -441,6 +441,7 @@ var CallScreen = {
   render: function cs_render(layout_type) {
     this.screen.dataset.layout = layout_type;
     if (layout_type !== 'connected') {
+      this.disablePlaceNewCall();
       this.disableKeypad();
     }
   },
@@ -482,6 +483,14 @@ var CallScreen = {
     } else {
       this.speakerButton.classList.remove('active-state');
     }
+  },
+
+  enablePlaceNewCall: function cs_enablePlaceNewCall() {
+    this.placeNewCallButton.removeAttribute('disabled');
+  },
+
+  disablePlaceNewCall: function cs_disablePlaceNewCall() {
+    this.placeNewCallButton.setAttribute('disabled', 'disabled');
   },
 
   enableKeypad: function cs_enableKeypad() {
