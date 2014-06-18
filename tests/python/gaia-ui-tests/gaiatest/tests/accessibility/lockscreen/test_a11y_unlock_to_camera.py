@@ -30,5 +30,5 @@ class TestLockScreenAccessibility(GaiaTestCase):
         self.assertFalse(self.accessibility.is_hidden(self.marionette.find_element(
             *camera_locator)))
 
-        camera.switch_to_camera_frame()
+        self.apps.switch_to_displayed_app()
         camera.wait_for_capture_ready()
