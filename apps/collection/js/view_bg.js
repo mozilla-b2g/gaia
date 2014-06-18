@@ -14,11 +14,14 @@
       drawBackground(collection.background);
     }
 
-    // check for updates
-    if (navigator.onLine) {
-      onOnline();
-    } else {
-      addListeners();
+    eme.init().then(queueRequest);
+
+    function queueRequest() {
+      if (navigator.onLine) {
+        onOnline();
+      } else {
+        addListeners();
+      }
     }
 
     function drawBackground(background) {
