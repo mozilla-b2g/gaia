@@ -45,6 +45,9 @@
   };
 
   PermissionManager.prototype._fetchElements = function pm_fetchElements() {
+    this.element = document.getElementById('permission-screen');
+    this.elements = {};
+
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {
         return p1.toUpperCase();
@@ -58,8 +61,8 @@
 
     // Loop and add element with camel style name to Modal Dialog attribute.
     this.elementClasses.forEach(function createElementRef(name) {
-      var qname = this.ELEMENT_PREFIX + name;
-      this[toCamelCase(name)] = document.getElementById(qname);
+      this[toCamelCase(name)] =
+        this.element.querySelector('.' + this.ELEMENT_PREFIX + name);
     }.bind(this));
   };
 
@@ -69,9 +72,6 @@
    */
   PermissionManager.prototype.start = function pm_start() {
     this._fetchElements();
-
-    // Div over in which the permission UI resides.
-    this.overlay = document.getElementById('permission-screen');
 
     this.onRememberSectionClick = this.onRememberSectionClick.bind(this);
     this.rememberSection.addEventListener('click',
@@ -112,7 +112,7 @@
     this.nextRequestID = null;
     this.currentRequestId = null;
 
-    this.overlay = null;
+    this.element = null;
     this.title = null;
     this.message = null;
     this.moreInfo = null;
@@ -211,7 +211,7 @@
             }
           }
         }
-        this.overlay.dataset.type = this.permissionType;
+        this.element.dataset.type = this.permissionType;
 
         if (this.isAudio || this.isVideo) {
           if (!detail.isApp) {
@@ -240,7 +240,7 @@
         this.discardPermissionRequest();
         break;
       case 'fullscreenoriginchange':
-        delete this.overlay.dataset.type;
+        delete this.element.dataset.type;
         this.handleFullscreenOriginChange(detail);
         break;
     }
@@ -384,7 +384,7 @@
    */
   PermissionManager.prototype.hidePermissionPrompt =
     function pm_hidePermissionPrompt() {
-    this.overlay.classList.remove('visible');
+    this.element.classList.remove('visible');
     this.devices.removeEventListener('click', this);
     this.devices.classList.remove('visible');
     this.currentRequestId = undefined;
@@ -585,7 +585,7 @@
       this.yes.textContent = _('ok');
     }
     // Make the screen visible
-    this.overlay.classList.add('visible');
+    this.element.classList.add('visible');
   };
 
   /**

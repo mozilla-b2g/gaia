@@ -95,7 +95,7 @@ suite('system/permission manager', function() {
     });
 
     test('permission-prompt', function() {
-      assert.equal(permissionManager.overlay.dataset.type, 'test');
+      assert.equal(permissionManager.element.dataset.type, 'test');
       assert.isTrue(permissionManager.handlePermissionPrompt.called);
     });
   });
