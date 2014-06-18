@@ -27,24 +27,24 @@ class Phone(Base):
         from gaiatest.apps.phone.regions.keypad import Keypad
         return Keypad(self.marionette)
 
-    def switch_to_contacts(self):
+    def _switch_to_contacts_frame(self):
+        # This is a nested frame and we cannot locate it with AppWindowManager
         self.wait_for_element_present(*self._contacts_frame_locator)
         frame = self.marionette.find_element(*self._contacts_frame_locator)
         self.marionette.switch_to_frame(frame)
-
         from gaiatest.apps.contacts.app import Contacts
         return Contacts(self.marionette)
 
     def tap_contacts(self):
         self.marionette.find_element(*self._contacts_view_locator).tap()
 
-        return self.switch_to_contacts()
+        return self._switch_to_contacts_frame()
 
     def a11y_click_contacts(self):
         self.accessibility.click(self.marionette.find_element(
             *self._contacts_view_locator))
 
-        return self.switch_to_contacts()
+        return self._switch_to_contacts_frame()
 
     @property
     def call_screen(self):

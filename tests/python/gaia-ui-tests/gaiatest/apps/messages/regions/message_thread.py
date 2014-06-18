@@ -10,6 +10,8 @@ from gaiatest.apps.messages.app import Messages
 
 class MessageThread(Base):
 
+    name = 'Messages'
+
     _all_messages_locator = (By.CSS_SELECTOR, '#messages-container li.message')
     _received_message_content_locator = (By.CSS_SELECTOR, "#messages-container li.message.received")
     _back_header_link_locator = (By.ID, 'messages-back-button')

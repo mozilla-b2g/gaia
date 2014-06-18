@@ -43,7 +43,7 @@ class Activities(Base):
     def tap_create_new_contact(self):
         self.marionette.find_element(*self._create_new_contact_button_locator).tap()
 
-        from gaiatest.apps.contacts.app import Contacts
-        contacts = Contacts(self.marionette)
-        contacts.switch_to_contacts_frame()
-        return contacts
+        from gaiatest.apps.contacts.regions.contact_form import NewContact
+        new_contact = NewContact(self.marionette)
+        new_contact.switch_to_new_contact_form()
+        return new_contact

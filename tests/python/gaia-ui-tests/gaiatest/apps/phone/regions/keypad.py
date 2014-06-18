@@ -26,7 +26,8 @@ class Keypad(Phone):
 
     def __init__(self, marionette):
         Phone.__init__(self, marionette)
-        self.switch_to_keypad_frame()
+        self.wait_for_condition(lambda m: self.apps.displayed_app.name == self.name)
+        self.apps.switch_to_displayed_app()
         keypad_toolbar_button = self.marionette.find_element(*self._keypad_toolbar_button_locator)
         self.wait_for_condition(lambda m: 'toolbar-option-selected' in keypad_toolbar_button.get_attribute('class'))
 
@@ -93,14 +94,9 @@ class Keypad(Phone):
         # Entering dialer and expecting a phone number there is js that sets the phone value and enables this button
         self.wait_for_condition(lambda m: m.find_element(*self._add_new_contact_button_locator).is_enabled())
 
-    def switch_to_keypad_frame(self):
-        app = self.apps.displayed_app
-        self.marionette.switch_to_frame(app.frame)
-
 
 class AddNewNumber(Base):
     _create_new_contact_locator = (By.ID, 'create-new-contact-menuitem')
-    _new_contact_frame_locator = (By.CSS_SELECTOR, "iframe[src^='app://communications'][src$='contacts/index.html?new']")
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
@@ -109,10 +105,7 @@ class AddNewNumber(Base):
     def tap_create_new_contact(self):
         self.marionette.find_element(*self._create_new_contact_locator).tap()
 
-        self.marionette.switch_to_frame()
-        self.wait_for_element_present(*self._new_contact_frame_locator)
-        frame = self.marionette.find_element(*self._new_contact_frame_locator)
-        self.marionette.switch_to_frame(frame)
-
         from gaiatest.apps.contacts.regions.contact_form import NewContact
-        return NewContact(self.marionette)
+        new_contact = NewContact(self.marionette)
+        new_contact.switch_to_new_contact_form()
+        return new_contact
