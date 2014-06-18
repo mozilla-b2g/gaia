@@ -40,7 +40,8 @@ class Activities(Base):
         self.wait_for_element_not_displayed(*self._actions_menu_locator)
         from gaiatest.apps.gallery.app import Gallery
         gallery = Gallery(self.marionette)
-        gallery.switch_to_gallery_frame()
+        self.wait_for_condition(lambda m: self.apps.displayed_app.name == gallery.name)
+        self.apps.switch_to_displayed_app()
         return gallery
 
     def tap_camera(self):
