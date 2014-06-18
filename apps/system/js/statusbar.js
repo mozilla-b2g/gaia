@@ -246,7 +246,7 @@ var StatusBar = {
     window.addEventListener('unlock', this);
     window.addEventListener('lockpanelchange', this);
 
-    window.addEventListener('appopened', this);
+    window.addEventListener('appopening', this);
     window.addEventListener('homescreenopened', this.show.bind(this));
 
     // We need to preventDefault on mouse events until
@@ -265,7 +265,7 @@ var StatusBar = {
 
   handleEvent: function sb_handleEvent(evt) {
     switch (evt.type) {
-      case 'appopened':
+      case 'appopening':
         var app = evt.detail;
         if (app.isFullScreen()) {
           this.hide();

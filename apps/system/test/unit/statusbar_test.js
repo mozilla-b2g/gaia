@@ -1343,6 +1343,28 @@ suite('system/Statusbar', function() {
       assert.isTrue(StatusBar.element.classList.contains('invisible'));
     });
 
+    test('the status bar should be hidden when app is opening in fullscreen',
+    function() {
+      this.sinon.stub(app, 'isFullScreen').returns(true);
+      StatusBar.show();
+
+      var evt = new CustomEvent('appopening', { detail: app });
+      StatusBar.handleEvent(evt);
+
+      assert.isTrue(StatusBar.element.classList.contains('invisible'));
+    });
+
+    test('the status bar should show when app is opening not in fullscreen',
+    function() {
+      this.sinon.stub(app, 'isFullScreen').returns(false);
+      StatusBar.show();
+
+      var evt = new CustomEvent('appopening', { detail: app });
+      StatusBar.handleEvent(evt);
+
+      assert.isFalse(StatusBar.element.classList.contains('invisible'));
+    });
+
     suite('Revealing the StatusBar >', function() {
       var transitionEndSpy;
       setup(function() {
