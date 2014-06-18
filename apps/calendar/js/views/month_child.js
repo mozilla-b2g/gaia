@@ -84,9 +84,14 @@
 
     _updateBusyCount: function(busytime, difference) {
       var startDate = busytime.startDate;
+      var endDate = busytime.endDate;
       var dayId = Calc.getDayId(startDate);
-      var count = this._dayToBusyCount[dayId];
-      this._setBusyCount(dayId, count + difference);
+      var daySpan = Calc.daysBetween(startDate, endDate);
+      for(var index = 0; index < daySpan.length; index++) {
+        var dayId = Calc.getDayId(daySpan[index]);
+        var count = this._dayToBusyCount[dayId];
+        this._setBusyCount(dayId, count + difference);
+      }
     },
 
     _setBusyCount: function(dayId, count) {
