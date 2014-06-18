@@ -289,6 +289,79 @@ suite('Test Activities', function() {
       // Mock returns always the first option from the select
       assert.equal(result.email, contact.email[0].value);
     });
+
+    test('webcontacts/select, 0 results', function() {
+      activity.source.data.type = 'webcontacts/select';
+      ActivityHandler._currentActivity = activity;
+      contact.tel = [];
+      contact.email = [];
+      ActivityHandler.dataPickHandler(contact);
+      assert.isTrue(ConfirmDialog.showing);
+      assert.isNull(ConfirmDialog.title);
+      assert.equal(ConfirmDialog.text, window._('no_contact_data'));
+    });
+
+    test('webcontacts/select, 1 results(tel)', function() {
+      window.utils.misc.toMozContact.restore();
+      activity.source.data.type = 'webcontacts/select';
+      ActivityHandler._currentActivity = activity;
+      contact.tel.pop();
+      contact.email = [];
+      var newContact = Object.create(contact);
+      sinon.stub(window.utils.misc, 'toMozContact',
+        function() {return newContact;});
+      ActivityHandler.dataPickHandler(newContact);
+      contact = window.utils.misc.toMozContact(contact);
+      assert.isFalse(ConfirmDialog.showing);
+      assert.equal(JSON.stringify(result.select),
+                   JSON.stringify(contact.tel));
+      assert.equal(JSON.stringify(result.contact),
+                   JSON.stringify(contact));
+    });
+
+    test('webcontacts/select, 1 results(email)', function() {
+      window.utils.misc.toMozContact.restore();
+      activity.source.data.type = 'webcontacts/select';
+      ActivityHandler._currentActivity = activity;
+      contact.tel = [];
+      contact.email.pop();
+      var newContact = Object.create(contact);
+      sinon.stub(window.utils.misc, 'toMozContact',
+        function() {return newContact;});
+      ActivityHandler.dataPickHandler(newContact);
+      contact = window.utils.misc.toMozContact(contact);
+      assert.isFalse(ConfirmDialog.showing);
+      assert.equal(JSON.stringify(result.select),
+                   JSON.stringify(contact.email));
+      assert.equal(JSON.stringify(result.contact),
+                   JSON.stringify(contact));
+    });
+
+    test('webcontacts/select, many results(tel)', function() {
+      window.utils.misc.toMozContact.restore();
+      activity.source.data.type = 'webcontacts/select';
+      ActivityHandler._currentActivity = activity;
+      contact.email = [];
+      var newContact = Object.create(contact);
+      sinon.stub(window.utils.misc, 'toMozContact',
+        function() {return newContact;});
+      ActivityHandler.dataPickHandler(newContact);
+      assert.isFalse(ConfirmDialog.showing);
+      assert.equal(newContact.tel[0].value, result.select[0].value);
+    });
+
+    test('webcontacts/select, many results(email)', function() {
+      window.utils.misc.toMozContact.restore();
+      activity.source.data.type = 'webcontacts/select';
+      ActivityHandler._currentActivity = activity;
+      contact.tel = [];
+      var newContact = Object.create(contact);
+      sinon.stub(window.utils.misc, 'toMozContact',
+        function() {return newContact;});
+      ActivityHandler.dataPickHandler(newContact);
+      assert.isFalse(ConfirmDialog.showing);
+      assert.equal(newContact.email[0].value, result.select[0].value);
+    });
   });
 
 });

@@ -4672,7 +4672,7 @@ suite('thread_ui.js >', function() {
         var activity = MockMozActivity.instances[0];
 
         activity.result = {
-          tel: [{ value: true }]
+          select: [{ value: true }]
         };
 
         MockMozActivity.instances[0].onsuccess();
