@@ -35,6 +35,7 @@
     <script defer src="shared/js/url_helper.js"></script>
     <script defer src="shared/elements/gaia_grid/js/grid_layout.js"></script>
     <script defer src="shared/elements/gaia_grid/js/grid_dragdrop.js"></script>
+    <script defer src="shared/elements/gaia_grid/js/grid_icon_renderer.js"></script>
     <script defer src="shared/elements/gaia_grid/js/grid_view.js"></script>
     <script defer src="shared/elements/gaia_grid/script.js"></script>
     <script defer src="shared/elements/gaia_grid/js/items/grid_item.js"></script>
@@ -57,14 +58,14 @@
   <body>
     <div id="curtain"></div>
 
-    <div class="scrollable">
-      <section id="edit-header" class="skin-dark" role="region">
-        <header>
-          <menu type="toolbar"><a href="#" id="exit-edit-mode">Done</a></menu>
-          <h1 data-l10n-id="edit-mode">Edit</h1>
-        </header>
-      </section>
+    <section id="edit-header" class="skin-dark" role="region">
+      <header>
+        <menu type="toolbar"><a href="#" id="exit-edit-mode">Done</a></menu>
+        <h1 data-l10n-id="edit-mode">Edit</h1>
+      </header>
+    </section>
 
+    <div class="scrollable">
       <div id="search" role="button" aria-labelledby="search-input" aria-haspopup="true">
         <form id="search-form">
           <input id="search-input" type="text" x-inputmode="verbatim" role="presentation"

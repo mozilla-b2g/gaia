@@ -83,11 +83,14 @@
 }
 
 #footer {
-    transition: transform 100ms ease;
+    transition: transform 100ms ease, visibility 100ms ease;
+    visibility: visible;
 }
 .evme-displayed.evme-keyboard-visible #footer,
-.evme-displayed.evme-has-query #footer{
+.evme-displayed.evme-has-query #footer,
+.evme-collection-visible ~ #footer{
     transform: translateY(100%);
+    visibility: hidden;
 }
 
 .evme-loading-from-input #bg-overlay,

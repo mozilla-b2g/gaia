@@ -1,4 +1,5 @@
 {
     'api_url': 'http://fmd.dev.mozaws.net',
-    'api_version': '0'
+    'api_version': '0',
+    'audience_url': 'https://oauth.dev.lcip.org'
 };

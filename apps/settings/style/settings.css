@@ -436,13 +436,13 @@ section ul.operate-certificate {
 
 #wallpaper-header { border: none; }
 
-#wallpaper {
+.wallpaper {
   position: relative;
   overflow: hidden;
   height: 17rem;
 }
 
-#wallpaper-button {
+.wallpaper .wallpaper-button {
   background: url(images/wallpaper_edit.png) no-repeat 25rem 11.5rem / 4.5rem;
   position: absolute;
   border: none;
@@ -452,11 +452,12 @@ section ul.operate-certificate {
   left: 0;
   margin: 0;
 }
-#wallpaper-button:active {
+
+.wallpaper .wallpaper-button:active {
   background-image: url(images/wallpaper_edit_pressed.png);
 }
 
-#wallpaper-preview {
+.wallpaper .wallpaper-preview {
   margin-top: -10rem;
   position: absolute;
   width: 100%;
@@ -500,7 +501,7 @@ ul li > label.range-icons.brightness:before {
   right: auto;
 }
 
-#brightness-manual div {
+li.brightness-manual div {
   position: relative;
   top: calc(50% - 1.5rem);
   left: 5rem;
@@ -725,6 +726,7 @@ section[data-dialog] > header:first-child .icon.icon-back {
 .fxa-logo {
   background-image: url('images/fxa_logo.png');
   background-repeat: no-repeat;
+  background-size: 16.4rem;
   margin: 3rem auto 0;
   width: 17rem;
   height: 19.5rem;
@@ -733,6 +735,7 @@ section[data-dialog] > header:first-child .icon.icon-back {
 #fxa-unverified .description {
   background-image: url('images/fxa_envelope.png');
   background-repeat: no-repeat;
+  background-size: 7rem;
   background-position: 0 1.5rem;
   padding-top: 1.5rem;
 }
@@ -846,7 +849,7 @@ html[dir="rtl"] ul li > label.range-icons.brightness:before {
   right: 1rem;
 }
 
-html[dir="rtl"] #brightness-manual div {
+html[dir="rtl"] .brightness-manual div {
   left: auto;
   right: 5rem;
 }

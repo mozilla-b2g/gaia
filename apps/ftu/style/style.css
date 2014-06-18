@@ -55,81 +55,15 @@ a {
   display: block;
 }
 
-[role=navigation] {
-  white-space: nowrap;
-  margin: 0;
-  padding: 1.5rem;
-  border-top: 0.1rem solid #e7e7e7;
-  background: none;
-  display: block;
-  overflow: hidden;
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 3;
-  height: 3.5rem;
-}
-
-#nav-bar {
-  z-index: 1;
-}
-
-[role=navigation] button {
-  width: calc((100% / 2) - 0.5rem);
-  float: left;
-  margin-right: 1rem;
-  position: relative;
-  text-align: right;
-}
-
-[role=navigation] .recommend {
-  margin-right: 0;
-  text-align: left;
-}
-
-[role=navigation] button span {
-  width: 3rem;
-  height: 100%;
-  left: 0.5rem;
-  position: absolute;
-  pointer-events: none;
-  background: url(images/prev.png) no-repeat center center / 1.1rem;
-}
-
-[role=navigation] button.recommend span {
-  left: auto;
-  right: 0.5rem;
-  background-image: url(images/next.png);
-}
-
-[role=navigation] #wifi-join-button {
-  display:none;
-}
-
-[role=navigation].forward-only .back {
-  display:none;
-}
-
-[role=navigation].forward-only .recommend {
-  width: 100%;
-}
-
-[role=navigation].secondary-menu .forward {
-  display: none;
-}
-
-[role=navigation].secondary-menu #wifi-join-button {
-  display: block;
-}
-
-[role=navigation].back-only .back {
-  width: 100%;
-  margin: 0;
-}
-
-[role=navigation].back-only .recommend {
-  display:none;
+/*
+ * We need !important to override Web components,
+ * as we don't have ::content yet (bug 992249).
+ */
+gaia-buttons.back-only .recommend,
+gaia-buttons:not(.secondary-menu) #wifi-join-button,
+gaia-buttons.secondary-menu .icon-next,
+gaia-buttons.forward-only .icon-previous {
+  display: none !important;
 }
 
 /* Steps state */
@@ -321,10 +255,6 @@ a {
 
 #hidden-wifi-authentication input[type="password"] {
   pointer-events: auto;
-}
-#unlock-sim-screen [role=navigation] button,
-#unlock-sim-screen [role=navigation] .recommend {
-  text-align: center;
 }
 
 /*
@@ -595,14 +525,6 @@ aside.connecting {
   padding: 0 3rem;
   width: calc(100% - 6rem);
   background-size: 17.6rem;
-}
-
-.finish-screen-base [role=navigation],.tutorial-finish-base [role=navigation] {
-  border-top: .1rem solid #697476;
-}
-
-.finish-screen-base [role=navigation] button,.tutorial-finish-base [role=navigation] button {
-  text-align: center;
 }
 
 .step-img-base {
@@ -1188,6 +1110,5 @@ html[dir="rtl"] [data-type="list"].pack-value-selector li label:not([for]) input
 #firefox_accounts {
   padding: 1rem 1rem 0;
   font-size: 1.5rem;
+  text-align: center;
 }
-
-

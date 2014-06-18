@@ -1272,6 +1272,28 @@ suite('system/AppWindow', function() {
       app1.config.url = url;
     });
 
+    suite('kill behavior with events', function() {
+      var app, evt, spyStopPropagation;
+
+      setup(function() {
+        app = new AppWindow(fakeAppConfig1);
+        evt = new CustomEvent('mozbrowserlocationchange',
+          { detail: 'http://fakeURL.changed' });
+        spyStopPropagation = this.sinon.spy(evt, 'stopPropagation');
+      });
+
+      test('no kill', function() {
+        app.handleEvent(evt);
+        assert.isTrue(spyStopPropagation.notCalled);
+      });
+
+      test('under kill', function() {
+        app.kill();
+        app.handleEvent(evt);
+        assert.isTrue(spyStopPropagation.called);
+      });
+    });
+
     test('Scroll event', function() {
       var app4 = new AppWindow(fakeAppConfig4);
       app4.manifest = null;

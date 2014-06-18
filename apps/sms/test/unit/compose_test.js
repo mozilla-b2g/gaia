@@ -293,12 +293,37 @@ suite('compose_test.js', function() {
         assert.equal(count, 1);
       });
 
+      test('Compose.append("")', function() {
+        var stub = sinon.stub();
+        Compose.on('input', stub);
+
+        var original = Compose.getContent();
+        Compose.append('');
+        var final = Compose.getContent();
+
+        sinon.assert.notCalled(stub);
+        assert.deepEqual(final, original);
+      });
+
       test('Message prepend', function() {
         Compose.append('end');
         Compose.prepend('start');
         var txt = Compose.getContent();
         assert.equal(txt[0], 'startend', 'text is inserted at beginning');
       });
+
+      test('Compose.prepend("")', function() {
+        var stub = sinon.stub();
+        Compose.on('input', stub);
+
+        var original = Compose.getContent();
+        Compose.prepend('');
+        var final = Compose.getContent();
+
+        sinon.assert.notCalled(stub);
+        assert.deepEqual(final, original);
+      });
+
       teardown(function() {
         Compose.clear();
       });
@@ -805,14 +830,14 @@ suite('compose_test.js', function() {
         assert.isTrue(message.classList.contains('ignoreEvents'));
         SMIL.parse.yield([{text: testString[0]}, {text: testString[1]}]);
 
-        sinon.assert.calledWith(Compose.append);
+        sinon.assert.called(Compose.append);
         sinon.assert.called(message.focus);
         assert.isFalse(message.classList.contains('ignoreEvents'));
       });
 
       test('empty body', function() {
         Compose.fromMessage({type: 'sms', body: null});
-        sinon.assert.calledWith(Compose.append, '');
+        sinon.assert.calledWith(Compose.append, null);
         sinon.assert.called(message.focus);
       });
     });

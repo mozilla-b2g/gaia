@@ -482,9 +482,15 @@ if (typeof window.importer === 'undefined') {
         }
       });
 
-      friendsMsgElement.textContent = _('fbFriendsFound', {
-        numFriends: myFriends.length - reallyExisting
-      });
+      if (myFriends.length < 1) {
+        friendsMsgElement.textContent = _('fbNoFriends');
+      } else {
+        var newValue = myFriends.length -
+                          Object.keys(existingContactsByUid).length;
+        friendsMsgElement.textContent = _('fbFriendsFound', {
+          numFriends: newValue
+        });
+      }
 
       checkDisabledButtons();
     }

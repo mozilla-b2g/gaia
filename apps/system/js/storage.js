@@ -13,8 +13,8 @@
   function Storage() {
     // Disable ums by default
     this.setMode(this.automounterDisable);
-    window.addEventListener('lock', this);
-    window.addEventListener('unlock', this);
+    window.addEventListener('lockscreen-appopened', this);
+    window.addEventListener('lockscreen-appclosed', this);
 
     SettingsListener.observe(this.umsEnabled, false, function umsChanged(val) {
       this._mode = this.modeFromBool(val);
@@ -102,11 +102,11 @@
      */
     handleEvent: function(e) {
       switch (e.type) {
-        case 'lock':
+        case 'lockscreen-appopened':
           // Setting mode due to screen locked
           this.setMode(this.automounterDisableWhenUnplugged);
           break;
-        case 'unlock':
+        case 'lockscreen-appclosed':
           if (typeof(this._mode) == 'undefined') {
             return;
           }

@@ -242,11 +242,11 @@ var StatusBar = {
     // Listen to 'moztimechange'
     window.addEventListener('moztimechange', this);
 
-    // Listen to 'lock', 'unlock', and 'lockpanelchange' from lockscreen.js in
-    // order to correctly set the visibility of the statusbar clock depending
-    // on the active lockscreen panel
-    window.addEventListener('lock', this);
-    window.addEventListener('unlock', this);
+    // Listen to 'lockscreen-appopened', 'lockscreen-appclosed', and
+    // 'lockpanelchange' in order to correctly set the visibility of
+    // the statusbar clock depending on the active lockscreen panel
+    window.addEventListener('lockscreen-appopened', this);
+    window.addEventListener('lockscreen-appclosed', this);
     window.addEventListener('lockpanelchange', this);
 
     window.addEventListener('appopened', this);
@@ -281,7 +281,7 @@ var StatusBar = {
         this.setActive(evt.detail.screenEnabled);
         break;
 
-      case 'lock':
+      case 'lockscreen-appopened':
         // Hide the clock in the statusbar when screen is locked
         //
         // It seems no need to detect the locked value because
@@ -290,7 +290,7 @@ var StatusBar = {
         this.toggleTimeLabel(false);
         break;
 
-      case 'unlock':
+      case 'lockscreen-appclosed':
         // Display the clock in the statusbar when screen is unlocked
         this.toggleTimeLabel(true);
         break;

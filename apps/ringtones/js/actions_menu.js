@@ -80,6 +80,8 @@ ActionsMenu.prototype = {
         name: 'share',
         data: {
           type: 'audio/*',
+          // Make sure we can't share with ourselves!
+          __bug1015513_hide_from_self__: true,
           number: 1,
           blobs: [blob],
           filenames: [self._tone.name],

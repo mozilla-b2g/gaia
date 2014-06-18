@@ -60,8 +60,8 @@ var NfcManager = {
       'nfc-manager-tech-lost',
       this.handleTechLost.bind(this));
     window.addEventListener('screenchange', this);
-    window.addEventListener('lock', this);
-    window.addEventListener('unlock', this);
+    window.addEventListener('lockscreen-appopened', this);
+    window.addEventListener('lockscreen-appclosed', this);
     var self = this;
     window.SettingsListener.observe('nfc.enabled', false, function(enabled) {
       var state = enabled ?
@@ -124,8 +124,8 @@ var NfcManager = {
   handleEvent: function nm_handleEvent(evt) {
     var state;
     switch (evt.type) {
-      case 'lock': // Fall through
-      case 'unlock':
+      case 'lockscreen-appopened': // Fall through
+      case 'lockscreen-appclosed':
       case 'screenchange':
         if (this.hwState == this.NFC_HW_STATE_OFF) {
           return;
@@ -402,7 +402,7 @@ var NfcManager = {
 
     // Clean up P2P UI events
     window.removeEventListener('shrinking-sent', this);
-    window.dispatchEvent(new CustomEvent('shrinking-rejected'));
+    window.dispatchEvent(new CustomEvent('shrinking-stop'));
   },
 
   // Miscellaneous utility functions to handle formating the JSON for activities

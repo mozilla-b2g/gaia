@@ -1,4 +1,4 @@
-/* globals SimplePhoneMatcher, utils, ContactPhotoHelper */
+/* globals Promise, SimplePhoneMatcher, utils, ContactPhotoHelper */
 
 'use strict';
 
@@ -41,8 +41,25 @@ contacts.Merger = (function() {
   // from an external source not related with the matching algorithm.
   function doMerge(pmasterContact, pmatchingContacts, callbacks) {
     window.setTimeout(function contactsMerge() {
-      mergeAll(pmasterContact, pmatchingContacts, callbacks);
+      mergeAll(pmasterContact, pmatchingContacts, filled, callbacks);
     }, 0);
+  }
+  
+  function doInMemoryMerge(pmasterContact, pmatchingContacts) {
+    return new Promise(function (resolve, reject) {
+      mergeAll(pmasterContact, pmatchingContacts, inMemoryMergeDone, {
+        success: function(masterContact) {
+          resolve(masterContact);
+        },
+        error: function(err) {
+          reject(err);
+        }
+      });
+    });
+  }
+  
+  function inMemoryMergeDone(callbacks, matchingContacts, masterContact) {
+    callbacks.success(masterContact);
   }
 
   function isSimContact(contact) {
@@ -50,7 +67,7 @@ contacts.Merger = (function() {
                                         contact.category.indexOf('sim') !== -1;
   }
 
-  function mergeAll(masterContact, matchingContacts, callbacks) {
+  function mergeAll(masterContact, matchingContacts, onFilled, callbacks) {
     var emailsHash;
     var categoriesHash;
     var telsHash;
@@ -228,32 +245,34 @@ contacts.Merger = (function() {
                             mergedContact.familyName[0] : '')).trim()];
 
     fillMasterContact(masterContact, mergedContact, mergedPhoto,
-    function filled(masterContact) {
-      // Updating the master contact
-      var req = navigator.mozContacts.save(
-        utils.misc.toMozContact(masterContact));
+                      onFilled.bind(null, callbacks, matchingContacts));
+  }
+  
+  function filled(callbacks, matchingContacts, masterContact) {
+    // Updating the master contact
+    var req = navigator.mozContacts.save(
+      utils.misc.toMozContact(masterContact));
 
-      req.onsuccess = function() {
-        // Now for all the matchingContacts they have to be removed
-        matchingContacts.forEach(function(aMatchingContact) {
-          // Only remove those contacts which are already in the DB
-          if (aMatchingContact.matchingContact.id) {
-            var contact = aMatchingContact.matchingContact;
-            navigator.mozContacts.remove(utils.misc.toMozContact(contact));
-          }
-        });
-
-        if (typeof callbacks.success === 'function') {
-          callbacks.success(masterContact);
+    req.onsuccess = function() {
+      // Now for all the matchingContacts they have to be removed
+      matchingContacts.forEach(function(aMatchingContact) {
+        // Only remove those contacts which are already in the DB
+        if (aMatchingContact.matchingContact.id) {
+          var contact = aMatchingContact.matchingContact;
+          navigator.mozContacts.remove(utils.misc.toMozContact(contact));
         }
-      };
+      });
 
-      req.onerror = function() {
-        window.console.error('Error while saving merged Contact: ',
-                             req.error.name);
-        typeof callbacks.error === 'function' && callbacks.error(req.error);
-      };
-    });
+      if (typeof callbacks.success === 'function') {
+        callbacks.success(masterContact);
+      }
+    };
+
+    req.onerror = function() {
+      window.console.error('Error while saving merged Contact: ',
+                           req.error.name);
+      typeof callbacks.error === 'function' && callbacks.error(req.error);
+    };
   }
 
   function isDefined(field) {
@@ -352,7 +371,8 @@ contacts.Merger = (function() {
   }
 
   return {
-    merge: doMerge
+    merge: doMerge,
+    inMemoryMerge: doInMemoryMerge
   };
 
 })();

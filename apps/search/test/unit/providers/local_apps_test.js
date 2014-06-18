@@ -8,6 +8,7 @@ requireApp('search/js/providers/grid_provider.js');
 
 // Required files for the grid and a mozapp result
 require('/shared/js/l10n.js');
+require('/shared/elements/gaia_grid/js/grid_icon_renderer.js');
 require('/shared/elements/gaia_grid/js/grid_layout.js');
 require('/shared/elements/gaia_grid/js/grid_view.js');
 require('/shared/elements/gaia_grid/script.js');

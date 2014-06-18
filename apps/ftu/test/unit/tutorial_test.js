@@ -2,6 +2,7 @@
           MocksHelper, MockL10n */
 'use strict';
 
+require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 requireApp('ftu/test/unit/mock_l10n.js');
 requireApp('ftu/test/unit/mock_screenlayout.js');
 requireApp('ftu/test/unit/mock_finish_screen.js');
@@ -20,19 +21,28 @@ suite('Tutorial >', function() {
   mocksHelperForFTU.attachTestHelpers();
 
   var realL10n;
+  var realMozApps;
 
   suiteSetup(function() {
 
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
 
+    realMozApps = navigator.mozApps;
+    navigator.mozApps = MockNavigatormozApps;
+
     loadBodyHTML('/index.html');
   });
 
   suiteTeardown(function() {
     navigator.mozL10n = realL10n;
+    navigator.mozApps = realMozApps;
     realL10n = null;
     document.body.innerHTML = '';
+  });
+
+  teardown(function() {
+    MockNavigatormozApps.mTeardown();
   });
 
   suite(' lifecycle', function() {
@@ -224,4 +234,13 @@ suite('Tutorial >', function() {
 
   });
 
+  suite('IAC Message >', function() {
+
+    test('will send message', function() {
+      Tutorial.init();
+      MockNavigatormozApps.mTriggerLastRequestSuccess();
+      assert.equal(MockNavigatormozApps.mLastConnectionKeyword,
+                   'migrate');
+    });
+  });
 });

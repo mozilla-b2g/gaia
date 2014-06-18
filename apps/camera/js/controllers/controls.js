@@ -49,9 +49,9 @@ ControlsController.prototype.bindEvents = function() {
   // App
   this.app.on('change:recording', this.onRecordingChange);
   this.app.on('camera:shutter', this.captureHighlightOff);
-  this.app.on('camera:busy', this.view.disable);
   this.app.on('timer:started', this.onTimerStarted);
   this.app.on('newthumbnail', this.onNewThumbnail);
+  this.app.on('camera:busy', this.onCameraBusy);
   this.app.on('timer:cleared', this.restore);
   this.app.on('camera:ready', this.restore);
 
@@ -162,6 +162,10 @@ ControlsController.prototype.onNewThumbnail = function(thumbnailBlob) {
  */
 ControlsController.prototype.onTimerStarted = function() {
   this.captureHighlightOn();
+  this.view.disable();
+};
+
+ControlsController.prototype.onCameraBusy = function() {
   this.view.disable();
 };
 

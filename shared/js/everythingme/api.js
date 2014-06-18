@@ -3,11 +3,10 @@
 
 (function(eme) {
 
-  const OK = 1;
   const NETWORK_ERROR = 'network error';
-
-  const API_URL = 'https://api.everything.me/partners/1.0/{resource}/';
   const API_KEY = '79011a035b40ef3d7baeabc8f85b862f';
+
+  const ICON_FORMAT = 20;
 
   var device = eme.device;
 
@@ -31,15 +30,15 @@
       v:  device.osVersion || undefined,
       dn: device.deviceName || undefined,
       cr: device.carrier || undefined,
+      ct: device.dataConnectionType || undefined,
+      mcc: device.mcc || undefined,
+      mnc: device.mnc || undefined,
       sr: (w && h) ? [w, h].join('x') : undefined,
       ll: (lat && lon) ? [lat,lon].join(',') : undefined
       // TODO hc: home country
-      // TODO ct: connection type - wifi, 2g, 3g, 4g
     };
 
   }
-
-  var ICON_FORMAT = 20;
 
   /**
    * Make an async httpRequest to resource with given options.
@@ -48,7 +47,7 @@
    */
   function Request(service, method, options) {
     var resource = service + '/' + method;
-    var url = API_URL.replace('{resource}', resource);
+    var url = eme.config.apiUrl.replace('{resource}', resource);
     var payload = '';
 
     options = options ? options : {};
@@ -69,11 +68,11 @@
       }
     }
 
-    eme.log('API request:', url + '?' + payload);
+    eme.log('API request:', decodeURIComponent(url + '?' + payload));
 
     var httpRequest;
     var promise = new Promise(function done(resolve, reject) {
-      httpRequest = new XMLHttpRequest();
+      httpRequest = new XMLHttpRequest({mozSystem: true});
       httpRequest.open('POST', url, true);
       httpRequest.setRequestHeader(
         'Content-Type', 'application/x-www-form-urlencoded');
@@ -87,7 +86,7 @@
           reject(ex);
         }
 
-        if (response && response.errorCode === OK) {
+        if (response && response.errorCode > 0) {
           resolve(response);
         } else {
           reject(response ?
@@ -161,8 +160,8 @@
         // Some devices contain fractions in dimensions
         // which the eme api server does not accept
         // so Math.ceil (http://bugzil.la/1023312)
-        options.width = Math.ceil(eme.device.screen.width);
-        options.height = Math.ceil(eme.device.screen.height);
+        options.width = Math.ceil(options.width || eme.device.screen.width);
+        options.height = Math.ceil(options.height || eme.device.screen.height);
 
         return Request('Search', 'bgimage', options);
       }

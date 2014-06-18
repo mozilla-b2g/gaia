@@ -70,6 +70,7 @@ var UIManager = {
     'no-memorycard',
     // Fxa Intro
     'fxa-create-account',
+    'fxa-intro',
     // Wifi
     'networks',
     'wifi-refresh-button',
@@ -108,6 +109,8 @@ var UIManager = {
     'offline-newsletter-error-dialog',
     'invalid-email-error-dialog'
   ],
+
+  dataConnectionChangedByUsr: false,
 
   init: function ui_init() {
     _ = navigator.mozL10n.get;
@@ -342,6 +345,7 @@ var UIManager = {
         break;
       // 3G
       case 'data-connection-switch':
+        this.dataConnectionChangedByUsr = true;
         var status = event.target.checked;
         DataMobile.toggle(status);
         break;
@@ -401,38 +405,45 @@ var UIManager = {
   },
 
   createFirefoxAccount: function ui_createFirefoxAccount() {
-    var fxaDescription = document.getElementById('fxa-intro');
-    var showResponse = function ui_showResponse(response) {
-      if (response && response.done) {
-        // Update the email
-        UIManager.newsletterInput.value = response.email;
-        // Update the string
-        fxaDescription.innerHTML = '';
-        navigator.mozL10n.localize(
-          fxaDescription,
-          'fxa-email-sent',
-          {
-            email: response.email
-          }
-        );
-        // Disable the button
-        UIManager.fxaCreateAccount.disabled = true;
-      }
-    };
-    var showError = function ui_showError(response) {
-      console.error('Create FxA Error: ' + JSON.stringify(response));
-      // Clean fields
-      UIManager.newsletterInput.value = '';
-      // Reset the field
-      navigator.mozL10n.localize(
-        fxaDescription,
-        'fxa-overview'
-      );
-      // Enable the button
-      UIManager.fxaCreateAccount.disabled = false;
-    };
+    FxAccountsIACHelper.openFlow(UIManager.fxaShowResponse,
+      UIManager.fxaShowError);
+  },
 
-    FxAccountsIACHelper.openFlow(showResponse, showError);
+  fxaShowResponse: function ui_fxaShowResponse() {
+    FxAccountsIACHelper.getAccounts(UIManager.fxaGetAccounts,
+      UIManager.fxaShowError);
+  },
+
+  fxaGetAccounts: function ui_fxaGetAccounts(acct) {
+    if (!acct) {
+      return;
+    }
+    // Update the email
+    UIManager.newsletterInput.value = acct.email;
+    // Update the string
+    UIManager.fxaIntro.innerHTML = '';
+    navigator.mozL10n.localize(
+      UIManager.fxaIntro,
+      acct.verified ? 'fxa-signed-in' : 'fxa-email-sent',
+      {
+        email: acct.email
+      }
+    );
+    // Disable the button
+    UIManager.fxaCreateAccount.disabled = true;
+  },
+
+  fxaShowError: function ui_fxaShowError(response) {
+    console.error('Create FxA Error: ' + JSON.stringify(response));
+    // Clean fields
+    UIManager.newsletterInput.value = '';
+    // Reset the field
+    navigator.mozL10n.localize(
+      UIManager.fxaIntro,
+      'fxa-overview'
+    );
+    // Enable the button
+    UIManager.fxaCreateAccount.disabled = false;
   },
 
   displayOfflineDialog: function ui_displayOfflineDialog(href, title) {

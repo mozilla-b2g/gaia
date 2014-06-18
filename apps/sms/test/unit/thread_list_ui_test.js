@@ -1,7 +1,7 @@
 /*global mocha, MocksHelper, loadBodyHTML, MockL10n, ThreadListUI,
          MessageManager, WaitingScreen, Threads, Template, MockMessages,
          MockThreadList, MockTimeHeaders, Draft, Drafts, Thread, ThreadUI,
-         MockOptionMenu, Utils, Contacts, MockContact, Navigation
+         MockOptionMenu, Utils, Contacts, MockContact, Navigation, MockDialog
          */
 
 'use strict';
@@ -24,6 +24,7 @@ requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/test/unit/mock_message_manager.js');
 requireApp('sms/test/unit/mock_messages.js');
 requireApp('sms/test/unit/mock_utils.js');
+requireApp('sms/test/unit/mock_dialog.js');
 requireApp('sms/test/unit/mock_waiting_screen.js');
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 require('/test/unit/thread_list_mockup.js');
@@ -39,6 +40,7 @@ var mocksHelperForThreadListUI = new MocksHelper([
   'Contacts',
   'MessageManager',
   'Utils',
+  'Dialog',
   'WaitingScreen',
   'TimeHeaders',
   'ThreadUI',
@@ -187,16 +189,20 @@ suite('thread_list_ui', function() {
     setup(function() {
       ThreadListUI.container.innerHTML = '<h2 id="header-1"></h2>' +
         '<ul id="list-1"><li id="thread-1"></li>' +
-        '<li id="thread-2"></li></ul>' +
+        '<li id="thread-2" data-photo-url="blob"></li></ul>' +
         '<h2 id="header-2"></h2>' +
         '<ul id="list-2"><li id="thread-3"></li></ul>';
 
       this.sinon.stub(ThreadListUI.sticky, 'refresh');
+      this.sinon.stub(window.URL, 'revokeObjectURL');
     });
 
     suite('remove last thread in header', function() {
       setup(function() {
         ThreadListUI.removeThread(3);
+      });
+      test('no need to revoke if photoUrl not exist', function() {
+        sinon.assert.notCalled(window.URL.revokeObjectURL);
       });
       test('calls StickyHeader.refresh', function() {
         sinon.assert.called(ThreadListUI.sticky.refresh);
@@ -220,6 +226,9 @@ suite('thread_list_ui', function() {
       setup(function() {
         ThreadListUI.removeThread(2);
       });
+      test('need to revoke if photoUrl exist', function() {
+        sinon.assert.called(window.URL.revokeObjectURL);
+      });
       test('no StickyHeader.refresh when not removing a header', function() {
         sinon.assert.notCalled(ThreadListUI.sticky.refresh);
       });
@@ -237,6 +246,7 @@ suite('thread_list_ui', function() {
         assert.ok(ThreadListUI.container.querySelector('#list-1'));
       });
     });
+
     suite('remove all threads', function() {
       setup(function() {
         this.sinon.stub(ThreadListUI, 'setEmpty');
@@ -576,29 +586,29 @@ suite('thread_list_ui', function() {
       }.bind(this));
       this.sinon.stub(MessageManager, 'getMessages');
     });
-    suite('confirm false', function() {
-      setup(function() {
-        this.sinon.stub(window, 'confirm').returns(false);
-        ThreadListUI.delete();
-      });
-      test('called confirm with proper message', function() {
-        assert.deepEqual(window.confirm.args[0],
-          ['deleteThreads-confirmation2']);
-      });
-    });
+
     suite('confirm true', function() {
       setup(function() {
         this.sinon.stub(WaitingScreen, 'show');
         this.sinon.stub(WaitingScreen, 'hide');
-        this.sinon.stub(window, 'confirm').returns(true);
         ThreadListUI.delete();
+        MockDialog.triggers.confirm();
+      });
+      test('called dialog with proper message', function() {
+        assert.isTrue(MockDialog.prototype.show.called);
+        assert.equal(MockDialog.calls[0].body.l10nId,
+                        'deleteThreads-confirmation2');
+        assert.equal(MockDialog.calls[0].options.confirm.text.l10nId,
+                        'delete', 'right text on button');
+        assert.equal(MockDialog.calls[0].options.confirm.className,
+                        'danger', 'right styling on button');
+      });
+      test('dialog confirmed', function() {
+        assert.ok(MockDialog.triggers.confirm.called);
+        assert.isFalse(MockDialog.triggers.cancel.called);
       });
       test('shows WaitingScreen', function() {
         assert.ok(WaitingScreen.show.called);
-      });
-      test('called confirm with proper message', function() {
-        assert.deepEqual(window.confirm.args[0],
-          ['deleteThreads-confirmation2']);
       });
       test('called MessageManager.getMessages twice', function() {
         assert.equal(MessageManager.getMessages.args.length, 2);
@@ -1124,6 +1134,7 @@ suite('thread_list_ui', function() {
       var photo = node.querySelector('span[data-type=img]');
       assert.include(photo.style.backgroundImage, 'blob:');
       assert.isFalse(pictureContainer.classList.contains('empty'));
+      assert.include(node.dataset.photoUrl, 'blob:');
     });
 
 

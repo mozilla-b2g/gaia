@@ -55,6 +55,30 @@ suite('value selector/value selector', function() {
     assert.isTrue(element.hidden);
   });
 
+  test('hide on "appopened" event', function() {
+    ValueSelector.show();
+    assert.isFalse(element.hidden);
+
+    ValueSelector.handleEvent({ type: 'appopened' });
+    assert.isTrue(element.hidden);
+  });
+
+  test('hide on "appclosing" event', function() {
+    ValueSelector.show();
+    assert.isFalse(element.hidden);
+
+    ValueSelector.handleEvent({ type: 'appclosing' });
+    assert.isTrue(element.hidden);
+  });
+
+  test('hide on "activityclosing" event', function() {
+    ValueSelector.show();
+    assert.isFalse(element.hidden);
+
+    ValueSelector.handleEvent({ type: 'activityclosing' });
+    assert.isTrue(element.hidden);
+  });
+
   test('Time Picker (en-US)', function() {
     stubMozl10nGet =
       this.sinon.stub(navigator.mozL10n, 'get').returns('%I:%M %p');

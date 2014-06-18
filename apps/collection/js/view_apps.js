@@ -1,5 +1,6 @@
 'use strict';
 /* global eme */
+/* global GridIconRenderer */
 
 (function(exports) {
 
@@ -49,7 +50,7 @@
               name: webapp.name,
               url: webapp.appUrl,
               icon: webapp.icon,
-              clipIcon: true
+              renderer: GridIconRenderer.TYPE.CLIP
             });
           });
 

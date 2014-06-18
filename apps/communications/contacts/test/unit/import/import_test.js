@@ -201,6 +201,30 @@ suite('Import Friends Test Suite', function() {
     MockConnector.listDeviceContacts = listDeviceContacts;
   });
 
+  test('Import UI with no contacts available to import', function(done) {
+    groupsList.innerHTML = '';
+    groupsList.appendChild(groupsListChild);
+
+    var listAllContacts = MockConnector.listAllContacts;
+
+    MockConnector.listAllContacts = function(access_token, callbacks) {
+      callbacks.success({ data: []});
+    };
+
+    importer.start('mock_token', MockConnector, '*', function() {
+
+      assert.isTrue(document.getElementById('deselect-all').disabled === true);
+      assert.isTrue(document.getElementById('select-all').disabled === false);
+
+      var friendsElement = document.getElementById('friends-msg');
+      assert.isTrue(friendsElement.textContent === 'fbNoFriends');
+
+      done();
+    });
+
+    MockConnector.listAllContacts = listAllContacts;
+  });
+
   suiteTeardown(function() {
     utils.alphaScroll = realAlphaScroll;
     window.ImageLoader = realImageLoader;

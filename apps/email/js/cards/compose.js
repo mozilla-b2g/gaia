@@ -16,6 +16,7 @@ var templateNode = require('tmpl!./compose.html'),
     cmpSendFailedConfirmNode = require('tmpl!./cmp/send_failed_confirm.html'),
     cmpSendingContainerNode = require('tmpl!./cmp/sending_container.html'),
     msgAttachConfirmNode = require('tmpl!./msg/attach_confirm.html'),
+    evt = require('evt'),
     common = require('mail_common'),
     Toaster = common.Toaster,
     model = require('model'),
@@ -160,6 +161,13 @@ function ComposeCard(domNode, mode, args) {
   this.playSoundOnSend = false;
 }
 ComposeCard.prototype = {
+  /**
+   * Inform Cards to not emit startup content events, this card will trigger
+   * them once data from back end has been received and the DOM is up to date
+   * with that data.
+   * @type {Boolean}
+   */
+  skipEmitContentEvents: true,
 
   /**
    * Focus our contenteditable region and position the cursor at the last
@@ -317,6 +325,14 @@ ComposeCard.prototype = {
         'noninteractive',
         /* no click handler because no navigation desired */ null);
       this.htmlIframeNode = ishims.iframe;
+    }
+
+    // There is a bit more possibility of async work done in the iframeShims
+    // internals, but this is close enough and is better than breaking open
+    // the internals of the iframeShims to get the final number.
+    if (!this._emittedContentEvents) {
+      evt.emit('metrics:contentDone');
+      this._emittedContentEvents = true;
     }
   },
 

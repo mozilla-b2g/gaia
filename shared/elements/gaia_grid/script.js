@@ -111,19 +111,25 @@ window.GaiaGrid = (function(win) {
   };
 
   /**
-   * Returns the last item if a divider, otherwise returns null.
-   * This is useful for operations which append to the end of the items array
-   * as we always have a divider at the end of the list, but often want
-   * to add to the last group.
+   * Reoves placeholders from the list until we encounter a divider. Once we
+   * find a divider, we return that item. If we do not find a divider, we
+   * return null. This is useful for operations which append to the end of the
+   * items array as we always have a divider at the end of the list, but often
+   * want to add to the last group.
    */
-  proto.getLastIfDivider = function() {
+  proto.removeUntilDivider = function() {
     var items = this._grid.items;
-    var lastItem = items[items.length - 1];
-    if (lastItem instanceof GaiaGrid.Divider) {
-      var divider = items.pop();
-      return divider;
+    for (var i = items.length - 1; i > 0; i--) {
+      var item = items[i];
+      if (item instanceof GaiaGrid.Placeholder) {
+        items.pop();
+        continue;
+      } else if (item instanceof GaiaGrid.Divider) {
+        return items.pop();
+      } else {
+        return null;
+      }
     }
-    return null;
   };
 
   Object.defineProperty(proto, 'maxIconSize', {
@@ -138,7 +144,7 @@ window.GaiaGrid = (function(win) {
   proto.getIndexLastIcon = function() {
     var items = this._grid.items;
     for (var i = this._grid.items.length - 1; i >= 0; i--) {
-      if ((items[i] instanceof GaiaGrid.Icon)) {
+      if ((items[i] instanceof GaiaGrid.Mozapp)) {
         return i;
       }
     }
