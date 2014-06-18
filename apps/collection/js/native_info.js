@@ -7,6 +7,8 @@
 
 (function(exports) {
 
+  const SETUP_KEY = 'NativeInfo-setup';
+
   var homeIcons;
 
   function onerror(e) {
@@ -100,12 +102,9 @@
       // TODO
     },
 
-    // runs first time user opens a collection
-    // matches all apps and bookmarks against all existing collections
-    // when match found pin app to collection
-    setup: function setup() {
+    doSetup: function doSetup() {
       homeIcons = new HomeIcons();
-      homeIcons.init().then(function success() {
+      return homeIcons.init().then(function success() {
         var manifestURLs = homeIcons.manifestURLs;
         var bookmarkURLs = homeIcons.bookmarkURLs;
         eme.log('NativeInfo found', manifestURLs.length, 'apps');
@@ -116,7 +115,18 @@
       })
       .then(this.getInfo)
       .then(this.addToCollections)
+      .then(function neverAgain() {
+        eme.Cache.add(SETUP_KEY, true);
+      })
       .catch(onerror);
+    },
+
+    // matches all apps and bookmarks against all existing collections
+    // when match found pin app to collection
+    setup: function setup() {
+      return eme.Cache.get(SETUP_KEY).then(function skip() {
+        eme.log('NativeInfo', 'skipping setup');
+      }, this.doSetup.bind(this));
     }
 
   };

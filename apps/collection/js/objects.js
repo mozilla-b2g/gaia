@@ -15,7 +15,7 @@
     // 1. data.id is null for bing results
     // 2. using appUrl allows deduping vs bookmarks
     data.emeId = data.id;
-    data.id = data.appUrl;
+    data.url = data.id = data.appUrl;
 
     data.renderer = GridIconRenderer.TYPE.CLIP;
 
@@ -71,6 +71,13 @@
   };
 
   BaseCollection.prototype = {
+    // get a fresh copy from db
+    refresh: function refresh() {
+      return CollectionsDatabase.get(this.id).then(function create(fresh) {
+        return BaseCollection.create(fresh);
+      });
+    },
+
     // returns a promise resolved when the db trx is done
     save: function save() {
       return CollectionsDatabase.put({

@@ -23,8 +23,15 @@
 
     eme.init()
     .then(() => NativeInfo.setup())
-    .then(function ready() {
+    .then(function refresh() {
+      // pinned apps might have been updated
+      return collection.refresh();
+    })
+    .then(function ready(_collection) {
+      collection = _collection;
+
       loading(false);
+      collection.render(grid);
       queueRequest();
     });
 
