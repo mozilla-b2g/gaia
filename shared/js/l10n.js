@@ -1067,15 +1067,16 @@
       this._emitter.emit('ready');
     }
 
-    this.requestLocales = function requestLocales() {
+    this.requestLocales = function requestLocales(requested, defaultLocale) {
       if (this.isLoading && !this.isReady) {
         throw new L10nError('Context not ready');
       }
 
       this.isLoading = true;
-      var requested = Array.prototype.slice.call(arguments);
 
-      var supported = negotiate(requested.concat('en-US'), requested, 'en-US');
+      var supported = negotiate(requested.concat(defaultLocale),
+                                requested,
+                                defaultLocale);
       freeze.call(this, supported);
     };
 
@@ -1126,19 +1127,13 @@
   }
 
 
+  /* jshint -W104 */
 
   var DEBUG = false;
   var isPretranslated = false;
   var rtlList = ['ar', 'he', 'fa', 'ps', 'qps-plocm', 'ur'];
-  var nodeObserver = false;
-
-  var moConfig = {
-    attributes: true,
-    characterData: false,
-    childList: true,
-    subtree: true,
-    attributeFilter: ['data-l10n-id', 'data-l10n-args']
-  };
+  var manifest = null;
+  var headScanCompleted = false;
 
   // Public API
 
@@ -1150,11 +1145,8 @@
     localize: function localize(element, id, args) {
       return localizeElement.call(navigator.mozL10n, element, id, args);
     },
-    translate: function () {
-      // XXX: Remove after removing obsolete calls. Bugs 992473 and 1020136
-    },
-    translateFragment: function (fragment) {
-      return translateFragment.call(navigator.mozL10n, fragment);
+    translate: function translate(element) {
+      return translateFragment.call(navigator.mozL10n, element);
     },
     ready: function ready(callback) {
       return navigator.mozL10n.ctx.ready(callback);
@@ -1167,7 +1159,7 @@
     },
     language: {
       set code(lang) {
-        navigator.mozL10n.ctx.requestLocales(lang);
+        navigator.mozL10n.ctx.requestLocales([lang], manifest.default_language);
       },
       get code() {
         return navigator.mozL10n.ctx.supportedLocales[0];
@@ -1185,9 +1177,9 @@
         getPluralRule: getPluralRule,
         rePlaceables: rePlaceables,
         getTranslatableChildren:  getTranslatableChildren,
-        translateDocument: translateDocument,
         getL10nAttributes: getL10nAttributes,
-        loadINI: loadINI,
+        onLinkInjected: onLinkInjected,
+        onScriptInjected: onScriptInjected,
         fireLocalizedEvent: fireLocalizedEvent,
         parse: parse,
         compile: compile
@@ -1283,100 +1275,84 @@
         direction: getDirection(locale.id)
       }
     };
-    translateDocument.call(l10n);
-
+    translateFragment.call(l10n);
     // the visible DOM is now pretranslated
     isPretranslated = true;
     return true;
   }
 
   function initResources() {
-    var resLinks = document.head
-                           .querySelectorAll('link[type="application/l10n"]');
-    var iniLinks = [];
-
-    for (var i = 0; i < resLinks.length; i++) {
-      var link = resLinks[i];
-      var url = link.getAttribute('href');
-      var type = url.substr(url.lastIndexOf('.') + 1);
-      if (type === 'ini') {
-        iniLinks.push(url);
+    var nodes = document.head
+                        .querySelectorAll('link[type="application/l10n"],' +
+                                          'script[type="l10n/manifest"]');
+    for (var i = 0; i < nodes.length; i++) {
+      var nodeName = nodes[i].nodeName.toLowerCase();
+      switch (nodeName) {
+        case 'link':
+          onLinkInjected.call(this, nodes[i]);
+          break;
+        case 'script':
+          onScriptInjected.call(this, nodes[i]);
+          break;
       }
-      this.ctx.resLinks.push(url);
     }
 
-    var iniLoads = iniLinks.length;
-    if (iniLoads === 0) {
+    headScanCompleted = true;
+
+    if (manifest) {
       initLocale.call(this);
-      return;
     }
+  }
 
-    function onIniLoaded(err) {
+  function onLinkInjected(node) {
+    var url = node.getAttribute('href');
+    var type = url.substr(url.lastIndexOf('.') + 1);
+    switch (type) {
+      case 'manifest':
+        loadManifest.call(this, url, parseManifest.bind(this));
+        break;
+      case 'properties':
+      case 'json':
+        this.ctx.resLinks.push(url);
+        break;
+    }
+  }
+
+  function onScriptInjected(node) {
+    var type = node.getAttribute('type');
+    if (type === 'l10n/manifest') {
+      parseManifest(JSON.parse(node.textContent));
+    }
+  }
+
+  function loadManifest(url, callback) {
+    io.loadJSON(url, function(err, json) {
       if (err) {
         this.ctx._emitter.emit('error', err);
       }
-      if (--iniLoads === 0) {
-        initLocale.call(this);
-      }
-    }
+      callback(json);
+    });
+  }
 
-    for (i = 0; i < iniLinks.length; i++) {
-      loadINI.call(this, iniLinks[i], onIniLoaded.bind(this));
+  function parseManifest(json) {
+    manifest = json;
+    if (headScanCompleted) {
+      initLocale.call(this);
     }
   }
 
   function initLocale() {
-    this.ctx.requestLocales(navigator.language);
+    this.ctx.requestLocales([navigator.language], manifest.default_language);
     window.addEventListener('languagechange', function l10n_langchange() {
       navigator.mozL10n.language.code = navigator.language;
     });
   }
 
-  function localizeMutations(mutations) {
-    var mutation;
-
-    for (var i = 0; i < mutations.length; i++) {
-      mutation = mutations[i];
-      if (mutation.type === 'childList') {
-        var addedNode;
-
-        for (var j = 0; j < mutation.addedNodes.length; j++) {
-          addedNode = mutation.addedNodes[j];
-
-          if (addedNode.nodeType !== Node.ELEMENT_NODE) {
-            continue;
-          }
-
-          if (addedNode.childElementCount) {
-            translateFragment.call(this, addedNode);
-          } else if (addedNode.hasAttribute('data-l10n-id')) {
-            translateElement.call(this, addedNode);
-          }
-        }
-      }
-
-      if (mutation.type === 'attributes') {
-        translateElement.call(this, mutation.target);
-      }
-    }
-  }
-
-  function onMutations(mutations, self) {
-    self.disconnect();
-    localizeMutations.call(this, mutations);
-    self.observe(document, moConfig);
-  }
-
   function onReady() {
     if (!isPretranslated) {
-      translateDocument.call(this);
+      this.translate();
     }
     isPretranslated = false;
-
-    if (!nodeObserver) {
-      nodeObserver = new MutationObserver(onMutations.bind(this));
-      nodeObserver.observe(document, moConfig);
-    }
 
     fireLocalizedEvent.call(this);
   }
@@ -1394,93 +1370,13 @@
 
   /* jshint -W104 */
 
-  function loadINI(url, callback) {
-    var ctx = this.ctx;
-    io.load(url, function(err, source) {
-      var pos = ctx.resLinks.indexOf(url);
-
-      if (err) {
-        // remove the ini link from resLinks
-        ctx.resLinks.splice(pos, 1);
-        return callback(err);
-      }
-
-      if (!source) {
-        ctx.resLinks.splice(pos, 1);
-        return callback(new Error('Empty file: ' + url));
-      }
-
-      var patterns = parseINI(source, url).resources.map(function(x) {
-        return x.replace('en-US', '{{locale}}');
-      });
-      ctx.resLinks.splice.apply(ctx.resLinks, [pos, 1].concat(patterns));
-      callback();
-    });
-  }
-
-  function relativePath(baseUrl, url) {
-    if (url[0] === '/') {
-      return url;
-    }
-
-    var dirs = baseUrl.split('/')
-      .slice(0, -1)
-      .concat(url.split('/'))
-      .filter(function(path) {
-        return path !== '.';
-      });
-
-    return dirs.join('/');
-  }
-
-  var iniPatterns = {
-    'section': /^\s*\[(.*)\]\s*$/,
-    'import': /^\s*@import\s+url\((.*)\)\s*$/i,
-    'entry': /[\r\n]+/
-  };
-
-  function parseINI(source, iniPath) {
-    var entries = source.split(iniPatterns.entry);
-    var locales = ['en-US'];
-    var genericSection = true;
-    var uris = [];
-    var match;
-
-    for (var i = 0; i < entries.length; i++) {
-      var line = entries[i];
-      // we only care about en-US resources
-      if (genericSection && iniPatterns['import'].test(line)) {
-        match = iniPatterns['import'].exec(line);
-        var uri = relativePath(iniPath, match[1]);
-        uris.push(uri);
-        continue;
-      }
-
-      // but we need the list of all locales in the ini, too
-      if (iniPatterns.section.test(line)) {
-        genericSection = false;
-        match = iniPatterns.section.exec(line);
-        locales.push(match[1]);
-      }
-    }
-    return {
-      locales: locales,
-      resources: uris
-    };
-  }
-
-  /* jshint -W104 */
-
-  function translateDocument() {
-    document.documentElement.lang = this.language.code;
-    document.documentElement.dir = this.language.direction;
-    translateFragment.call(this, document.documentElement);
-  }
-
   function translateFragment(element) {
-    if (element.hasAttribute('data-l10n-id')) {
-      translateElement.call(this, element);
+    if (!element) {
+      element = document.documentElement;
+      document.documentElement.lang = this.language.code;
+      document.documentElement.dir = this.language.direction;
     }
+    translateElement.call(this, element);
 
     var nodes = getTranslatableChildren(element);
     for (var i = 0; i < nodes.length; i++ ) {
@@ -1493,6 +1389,10 @@
   }
 
   function localizeElement(element, id, args) {
+    if (!element) {
+      return;
+    }
+
     if (!id) {
       element.removeAttribute('data-l10n-id');
       element.removeAttribute('data-l10n-args');
@@ -1505,6 +1405,10 @@
       element.setAttribute('data-l10n-args', JSON.stringify(args));
     } else {
       element.removeAttribute('data-l10n-args');
+    }
+
+    if (this.ctx.isReady) {
+      translateElement.call(this, element);
     }
   }
 
@@ -1527,13 +1431,13 @@
     var l10n = getL10nAttributes(element);
 
     if (!l10n.id) {
-      return false;
+      return;
     }
 
     var entity = this.ctx.getEntity(l10n.id, l10n.args);
 
     if (!entity) {
-      return false;
+      return;
     }
 
     if (typeof entity === 'string') {

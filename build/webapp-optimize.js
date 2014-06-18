@@ -422,10 +422,11 @@ function optimize_embedL10nResources(doc, dictionary) {
  *
  * @param {HTMLDocument} doc DOM document of the file.
  * @param {Object} webapp details of current web app.
+ * @param {NSFile} file filename/path of the HTML document.
  * @param {Object} dictionary full, multi-locale dictionary containing all
  *                            strings that are loaded by the HTML document.
  */
-function optimize_concatL10nResources(doc, webapp, dictionary) {
+function optimize_concatL10nResources(doc, webapp, htmlFile, dictionary) {
   if (config.GAIA_CONCAT_LOCALES !== '1')
     return;
 
@@ -435,11 +436,26 @@ function optimize_concatL10nResources(doc, webapp, dictionary) {
     let fetch = false;
     for (let i = 0; i < resources.length; i++) {
       let link = resources[i];
-      link.parentNode.removeChild(link);
-      // if any l10n link does no have the no-fetch
-      // attribute we will embed the locales json link
-      if (!link.hasAttribute('data-no-fetch')) {
-        fetch = true;
+      let url = link.getAttribute('href');
+      let type = url.substr(url.lastIndexOf('.') + 1);
+
+      switch (type) {
+        case 'manifest':
+          link.parentNode.removeChild(link);
+          let manifestScript = doc.createElement('script');
+          manifestScript.type = 'l10n/manifest';
+          let content = optimize_getFileContent(webapp, htmlFile, url); 
+          manifestScript.textContent = content; 
+          parentNode.appendChild(manifestScript);
+          break;
+        case 'properties':
+          link.parentNode.removeChild(link);
+          // if any l10n link does not have the no-fetch
+          // attribute we will embed the locales json link
+          if (!link.hasAttribute('data-no-fetch')) {
+            fetch = true;
+          }
+          break;
       }
     }
     if (fetch) {
@@ -625,7 +641,7 @@ function optimize_compile(webapp, file, callback) {
                                        config.GAIA_DEFAULT_LOCALE);
       optimize_embedHtmlImports(win.document, webapp, newFile);
       optimize_embedL10nResources(win.document, subDict);
-      optimize_concatL10nResources(win.document, webapp, fullDict);
+      optimize_concatL10nResources(win.document, webapp, newFile, fullDict);
       optimize_aggregateJsResources(win.document, webapp, newFile);
       optimize_inlineResources(win.document, webapp, file.path, newFile);
       optimize_serializeHTMLDocument(win.document, newFile);
