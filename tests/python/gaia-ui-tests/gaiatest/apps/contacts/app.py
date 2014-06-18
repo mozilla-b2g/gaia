@@ -18,6 +18,7 @@ class Contacts(Base):
     _settings_button_locator = (By.ID, 'settings-button')
     _favorites_list_locator = (By.ID, 'contacts-list-favorites')
     _contacts_frame_locator = (By.CSS_SELECTOR, 'iframe[src*="contacts"][src*="/index.html"]')
+    _select_all_wrapper_locator = (By.ID, 'select-all-wrapper')
     _select_all_button_locator = (By.CSS_SELECTOR, 'button[data-l10n-id="selectAll"]')
     _export_button_locator = (By.ID, 'select-action')
     _status_message_locator = (By.ID, 'statusMsg')
@@ -84,7 +85,10 @@ class Contacts(Base):
         return SettingsForm(self.marionette)
 
     def tap_select_all(self):
-        self.wait_for_element_displayed(*self._select_all_button_locator)
+        window_height = self.marionette.execute_script('return window.wrappedJSObject.innerHeight')
+        wrapper = self.marionette.find_element(*self._select_all_wrapper_locator)
+        self.wait_for_condition(lambda m: int(wrapper.size['height'] + wrapper.location['y']) == window_height)
+
         self.marionette.find_element(*self._select_all_button_locator).tap()
 
     def tap_export(self):
