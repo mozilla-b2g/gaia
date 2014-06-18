@@ -8,7 +8,7 @@ from gaiatest.apps.base import Base
 
 class GmailLogin(Base):
 
-    _gmail_sign_in_frame_locator = (By.CSS_SELECTOR, '#frame-container > iframe[data-url*="google"]')
+    _gmail_sign_in_frame_locator = (By.CSS_SELECTOR, '.popupWindow.active iframe[data-url*="google"]')
     _email_locator = (By.ID, 'Email')
     _password_locator = (By.ID, 'Passwd')
     _sign_in_locator = (By.ID, 'signIn')
@@ -32,5 +32,8 @@ class GmailLogin(Base):
         self.wait_for_condition(lambda m: grant_access_button.is_enabled())
         self.marionette.execute_script("arguments[0].scrollIntoView(false);", [grant_access_button])
         grant_access_button.tap()
-        from gaiatest.apps.contacts.app import Contacts
-        return Contacts(self.marionette)
+        # Go back to displayed Contacts app before waiting for the picker
+        self.wait_for_condition(lambda m: self.apps.displayed_app.name == 'Contacts')
+        self.apps.switch_to_displayed_app()
+        from gaiatest.apps.contacts.regions.contact_import_picker import ContactImportPicker
+        return ContactImportPicker(self.marionette)
