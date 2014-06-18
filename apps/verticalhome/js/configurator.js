@@ -44,7 +44,7 @@ var configurator = (function() {
     }
   }
 
-  function loadSettingSIMPresent() {
+  function loadSettingSIMPresent(currentMccMnc) {
     var settings = navigator.mozSettings;
     if (!settings) {
       console.log('Settings is not available');
@@ -53,9 +53,9 @@ var configurator = (function() {
     var req = settings.createLock().get('ftu.simPresentOnFirstBoot');
 
     req.onsuccess = function osv_success(e) {
-      simPresentOnFirstBoot =
-          req.result['ftu.simPresentOnFirstBoot'] === undefined ||
-          req.result['ftu.simPresentOnFirstBoot'];
+      var simOnFirstBoot = req.result['ftu.simPresentOnFirstBoot'];
+      simPresentOnFirstBoot = !simOnFirstBoot ||
+          req.result['ftu.simPresentOnFirstBoot'] === currentMccMnc;
     };
 
     req.onerror = function osv_error(e) {
@@ -64,7 +64,6 @@ var configurator = (function() {
   }
 
   function loadSingleVariantConf() {
-    loadSettingSIMPresent();
     if (!IccHelper) {
       console.error('IccHelper isn\'t enabled. SingleVariant configuration' +
                     ' can\'t be loaded');
@@ -98,6 +97,7 @@ var configurator = (function() {
 
     function loadSVConfFileSuccess(loadedData) {
       try {
+        loadSettingSIMPresent(mcc_mnc);
         singleVariantApps = {};
         if (loadedData && loadedData[mcc_mnc]) {
           loadedData[mcc_mnc].forEach(function(app) {

@@ -3,15 +3,8 @@
 'use strict';
 
 var OperatorVariant = (function() {
-  function setIsSIMPresentOnFirstBoot(value) {
-    var result = navigator.mozSettings.createLock().set(
-      { 'ftu.simPresentOnFirstBoot' : value });
 
-    result.onerror = function ov_error() {
-      console.error('An error occurre setting ftu.simPresentOnFirstBoot: ' +
-                    value);
-    };
-  }
+  var NO_SIM = '000-000';
 
 /**
   * If ftu.simPresentOnFirstBoot setting has value do nothing otherwise
@@ -31,13 +24,28 @@ var OperatorVariant = (function() {
   *   'ruimServiceProviderLocked'
   */
   function setSIMOnFirstBootState() {
-    var cardState;
+    var cardValue;
+
+    function normalizeCode(aCode) {
+      var ncode = '' + aCode;
+      while (ncode.length < 3) {
+        ncode = '0' + ncode;
+      }
+      return ncode;
+    }
 
     try {
       if (!IccHelper || !IccHelper.cardState) {
-        cardState = undefined;
+        cardValue = NO_SIM;
       } else {
-        cardState = IccHelper.cardState;
+        var mcc = IccHelper.iccInfo.mcc;
+        var mnc = IccHelper.iccInfo.mnc;
+        if ((mcc !== undefined) && (mcc !== null) &&
+            (mnc !== undefined) && (mnc !== null)) {
+          cardValue = normalizeCode(mcc) + '-' + normalizeCode(mnc);
+        } else {
+          cardValue = NO_SIM;
+        }
       }
 
       var settings = navigator.mozSettings;
@@ -51,9 +59,15 @@ var OperatorVariant = (function() {
       req.onsuccess = function ov_onsuccess() {
         var currentStatus = req.result['ftu.simPresentOnFirstBoot'];
         if (currentStatus === undefined || currentStatus === null) {
-          setIsSIMPresentOnFirstBoot(cardState === 'ready');
+          var result = navigator.mozSettings.createLock().set(
+            { 'ftu.simPresentOnFirstBoot' : cardValue });
+
+          result.onerror = function ov_error() {
+              console.error('An error occurre setting ' +
+                            'ftu.simPresentOnFirstBoot: ' + cardValue);
+          };
         }
-        cardState = null;
+        cardValue = null;
       };
 
       req.onerror = function ov_error() {

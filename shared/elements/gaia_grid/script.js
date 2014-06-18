@@ -139,7 +139,7 @@ window.GaiaGrid = (function(win) {
   proto.getIndexLastIcon = function() {
     var items = this._grid.items;
     for (var i = this._grid.items.length - 1; i >= 0; i--) {
-      if ((items[i] instanceof GaiaGrid.Mozapp)) {
+      if (items[i] instanceof GaiaGrid.Mozapp) {
         return i;
       }
     }
