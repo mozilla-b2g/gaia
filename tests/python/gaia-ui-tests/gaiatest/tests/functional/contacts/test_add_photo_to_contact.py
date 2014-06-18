@@ -48,10 +48,6 @@ class TestContacts(GaiaTestCase):
         image = gallery.tap_first_gallery_item()
         image.tap_crop_done()
 
-        # fall back to the contacts app
-        self.wait_for_condition(lambda m: self.apps.displayed_app.name == contacts_app.name)
-        self.apps.switch_to_displayed_app()
-
         edit_contact.wait_for_image_to_load()
 
         new_picture_style = edit_contact.picture_style
