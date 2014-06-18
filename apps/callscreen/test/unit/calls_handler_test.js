@@ -151,8 +151,6 @@ suite('calls handler', function() {
           MockNavigatorMozMobileConnections[1].voice = {
             type: 'evdoa'
           };
-          navigator.mozTelephony.calls.length = 1;
-          navigator.mozTelephony.conferenceGroup.calls.length = 0;
 
           MockNavigatorMozTelephony.mTriggerCallsChanged();
           assert.isTrue(MockCallScreen.mShowPlaceNewCallButton);
