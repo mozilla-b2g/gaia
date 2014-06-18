@@ -784,6 +784,7 @@ suite('system/Rocketbar', function() {
       'initSearchConnection');
     var hideResultsStub = this.sinon.stub(subject, 'hideResults');
     var collapseStub = this.sinon.stub(subject, 'collapse');
+    var deactivateStub = this.sinon.stub(subject, 'deactivate');
 
     // Input message
     var event = {
@@ -806,6 +807,7 @@ suite('system/Rocketbar', function() {
     subject.handleSearchMessage(event);
     assert.ok(hideResultsStub.calledOnce);
     assert.ok(collapseStub.calledOnce);
+    assert.ok(deactivateStub.calledOnce);
 
     // No _port
     subject._port = null;
