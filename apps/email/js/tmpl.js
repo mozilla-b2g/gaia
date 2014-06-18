@@ -15,7 +15,7 @@ define(['l10n!'], function(mozL10n) {
         var temp = document.createElement('div');
         temp.innerHTML = text;
         var node = temp.children[0];
-        mozL10n.translate(node);
+        mozL10n.translateFragment(node);
         return node;
     },
 

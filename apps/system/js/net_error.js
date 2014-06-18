@@ -72,9 +72,7 @@
   /**
    * Populate element with localized string
    */
-  function localizeElement(el, key, args) {
-    el.textContent = navigator.mozL10n.get(key, args);
-  }
+  var localizeElement = navigator.mozL10n.localize;
 
   /**
    * Parse the neterror information that's sent to us as part of the documentURI

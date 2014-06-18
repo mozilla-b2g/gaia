@@ -16,7 +16,7 @@ navigator.mozL10n.ready(function localized() {
       var doc = iframe.contentDocument;
       doc.documentElement.lang = navigator.mozL10n.language.code;
       doc.documentElement.dir = navigator.mozL10n.language.direction;
-      navigator.mozL10n.translate(doc.body);
+      navigator.mozL10n.translateFragment(doc.body);
     }
   );
 
