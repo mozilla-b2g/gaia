@@ -53,6 +53,15 @@
   opacity: .65;
 }
 
+/* XXX: Override the .remove element  */
+.edit-mode .collection.hovered .remove {
+  background: url(images/add.png) no-repeat;
+}
+
+.edit-mode .collection:not(.active) {
+  transition: transform 0.35s;
+}
+
 .icon p {
   pointer-events: none;
   height: 3.2rem;
@@ -104,6 +113,7 @@
 
 .dragging .icon.active {
   z-index: 4;
+  opacity: 0.65;
 }
 
 .dragging .divider,
