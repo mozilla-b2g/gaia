@@ -65,7 +65,7 @@ var MockUIManager = {
     'wifi-join-button'
   ],
 
-  mSuiteSetup: function muim_mSuiteSetup() {
+  mSetup: function muim_mSuiteSetup() {
     this.domSelectors.forEach(function createElementRef(name) {
       if (name) {
         this[toCamelCase(name)] = document.getElementById(name);
@@ -73,7 +73,7 @@ var MockUIManager = {
     }.bind(this));
   },
 
-  mSuiteTeardown: function muim_mSuiteTeardown() {
+  mTeardown: function muim_mSuiteTeardown() {
     this.domSelectors.forEach(function destroyElementRef(name) {
       if (name) {
         this[toCamelCase(name)] = null;
