@@ -110,7 +110,8 @@ var GaiaDataLayer = {
     };
   },
 
-  getSIMContacts: function(aCallback) {
+  getSIMContacts: function(aType, aCallback) {
+    var type = aType || 'adn';
     var callback = aCallback || marionetteScriptFinished;
     var icc = navigator.mozIccManager;
 
@@ -120,14 +121,14 @@ var GaiaDataLayer = {
     if (icc && icc.iccIds && icc.iccIds[0]) {
       icc = icc.getIccById(icc.iccIds[0]);
     }
-    var req = icc.readContacts('adn');
+    var req = icc.readContacts(type);
     req.onsuccess = function() {
-      console.log('success finding contacts');
+      console.log('success finding ' + type + ' contacts');
       SpecialPowers.removePermission('contacts-read', document);
       callback(req.result);
     };
     req.onerror = function() {
-      console.error('error finding contacts ' + req.error.name);
+      console.error('error finding ' + type + ' contacts ' + req.error.name);
       SpecialPowers.removePermission('contacts-read', document);
       callback([]);
     };
