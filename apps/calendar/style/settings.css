@@ -115,7 +115,7 @@ not actually shown since the top header should be transparent.
 }
 
 #settings .calendars .error label {
-  background: transparent url('icons/accountwarning.png') no-repeat 2rem 0.5rem;
+  background: transparent url('icons/accountwarning.png') no-repeat 2.3rem center / 2rem auto;
   padding-left: 4.5rem;
 }
 
