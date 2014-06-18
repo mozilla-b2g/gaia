@@ -130,7 +130,6 @@ apps/ftu/test/unit/mock_import_services.js
 apps/ftu/test/unit/mock_navigation.html.js
 apps/ftu/test/unit/mock_navigator_contacts.js
 apps/ftu/test/unit/mock_navigator_moz_wifi_manager.js
-apps/ftu/test/unit/mock_operatorVariant.js
 apps/ftu/test/unit/mock_sd_manager.js
 apps/ftu/test/unit/mock_sim_manager.html.js
 apps/ftu/test/unit/mock_sim_manager.js
@@ -139,7 +138,6 @@ apps/ftu/test/unit/mock_utils.js
 apps/ftu/test/unit/mock_wifi_helper.js
 apps/ftu/test/unit/mock_wifi_manager.js
 apps/ftu/test/unit/navigation_test.js
-apps/ftu/test/unit/operatorVariant_test.js
 apps/ftu/test/unit/tutorial_test.js
 apps/ftu/test/unit/wifi_test.js
 apps/gallery/js/ImageEditor.js
