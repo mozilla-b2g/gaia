@@ -48,7 +48,7 @@
       }
 
       for (i in allAppBookmarks) {
-        this.removeIconFromGrid(allAppBookmarks[i].detail);
+        this.removeIconFromGrid(allAppBookmarks[i].detail.url);
       }
 
       for (i = 0; i < toAdd.length; i++) {
