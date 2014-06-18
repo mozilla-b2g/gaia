@@ -43,7 +43,6 @@ perfTimer.printTime('keyboard.js');
 
 var isWaitingForSecondTap = false;
 var isShowingAlternativesMenu = false;
-var isShowingKeyboardLayoutMenu = false;
 var isContinousSpacePressed = false;
 var isUpperCase = false;
 var isUpperCaseLocked = false;
@@ -923,11 +922,6 @@ function movePress(target, coords, touchId) {
     }
   }
 
-  if (isShowingKeyboardLayoutMenu &&
-      target.dataset && target.dataset.keyboard) {
-      KeyboardMenuScroll.scrollKeyboardMenu(target, coords);
-  }
-
   var oldTarget = touchEventsPresent ? touchedKeys[touchId].target : currentKey;
 
   // Do nothing if there are invalid targets, if the user is touching the
@@ -985,7 +979,6 @@ function endPress(target, coords, touchId, hasCandidateScrolled) {
   clearInterval(deleteInterval);
   clearTimeout(menuTimeout);
 
-  var wasShowingKeyboardLayoutMenu = isShowingKeyboardLayoutMenu;
   hideAlternatives();
 
   if (target.classList.contains('dismiss-suggestions-button')) {
@@ -1069,10 +1062,7 @@ function endPress(target, coords, touchId, hasCandidateScrolled) {
 
     // Switch language (keyboard)
   case SWITCH_KEYBOARD:
-    // If the user selected a new keyboard layout or quickly tapped the
-    // switch layouts button then switch to a new keyboard layout
-    if (target.dataset.keyboard || !wasShowingKeyboardLayoutMenu)
-      switchToNextIME();
+    switchToNextIME();
     break;
 
     // Expand / shrink the candidate panel
@@ -1523,72 +1513,3 @@ function dismissKeyboard() {
 
   navigator.mozInputMethod.mgmt.hide();
 }
-
-/*
- * This is a helper to scroll the keyboard layout menu when the touch moves near
- * the edge of the top or bottom of the menu
- *
- */
-var KeyboardMenuScroll = {
-
-  currentCoords: null,
-  scrollTimeout: null,
-
-  reset: function kms_reset() {
-    this.currentCoords = null;
-    clearTimeout(this.scrollTimeout);
-    this.scrollTimeout = null;
-  },
-
-  scrollKeyboardMenu: function kms_scrollKeyboardMenu(target, coords) {
-    var keyboardMenu = target.parentNode;
-    var menuTop = getWindowTop(keyboardMenu);
-    var menuBottom = menuTop + keyboardMenu.offsetHeight;
-
-    var TIMEOUT_FOR_NEXT_SCROLL = 30;
-
-    var scrollThreshold = keyboardMenu.firstElementChild.offsetHeight;
-    var scrollStep = scrollThreshold * 5 / (1000 / TIMEOUT_FOR_NEXT_SCROLL);
-    this.currentCoords = coords;
-
-    function scroll(delta) {
-
-      // Stop the scrolling if the user presses the power button or home button
-      if (document.hidden)
-        return false;
-
-      var origScrollTop = keyboardMenu.scrollTop;
-      keyboardMenu.scrollTop += delta;
-
-      return (origScrollTop != keyboardMenu.scrollTop);
-    }
-
-    function doScroll() {
-      if (!this.currentCoords) {
-        return;
-      }
-
-      var scrolled = false;
-      if (Math.abs(this.currentCoords.pageY - menuTop) < scrollThreshold) {
-        scrolled = scroll(-scrollStep);
-      } else if (Math.abs(this.currentCoords.pageY - menuBottom) <
-                 scrollThreshold) {
-        scrolled = scroll(scrollStep);
-      }
-
-      if (scrolled)
-        this.scrollTimeout = window.setTimeout(doScroll.bind(this),
-                                               TIMEOUT_FOR_NEXT_SCROLL);
-      else
-        this.scrollTimeout = null;
-    }
-
-    if (this.scrollTimeout) {
-      return;
-    }
-
-    // Add a delay so that it will not start scrolling down
-    // when you move upwards from language switching button
-    this.scrollTimeout = window.setTimeout(doScroll.bind(this), 100);
- }
-};
