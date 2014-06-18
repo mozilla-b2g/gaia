@@ -120,7 +120,7 @@ var CallScreen = {
                                     this.hideGroupDetails.bind(this));
 
     this.switchToDeviceButton.addEventListener('click',
-                                    this.switchToDefaultOut.bind(this));
+                                    this.switchToDefaultOut.bind(this, false));
     this.switchToReceiverButton.addEventListener('click',
                                     this.switchToReceiver.bind(this));
     this.switchToSpeakerButton.addEventListener('click',
