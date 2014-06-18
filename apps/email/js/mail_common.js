@@ -533,7 +533,7 @@ Cards = {
   folderSelector: function(callback) {
     var self = this;
 
-    require(['model', 'value_selector'], function(model) {
+    require(['model'], function(model) {
       // XXX: Unified folders will require us to make sure we get the folder
       //      list for the account the message originates from.
       if (!self.folderPrompt) {

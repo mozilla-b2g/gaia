@@ -85,7 +85,6 @@ apps/email/js/query_uri.js
 apps/email/js/sync.js
 apps/email/js/text.js
 apps/email/js/tmpl.js
-apps/email/js/value_selector.js
 apps/email/js/wake_locks.js
 apps/email/test/config.js
 apps/email/test/marionette/activity_create_email_account_complete_test.js
