@@ -151,6 +151,9 @@ body[data-path="/day/"] #view-selector > .day > a:active {
   border-color: transparent transparent transparent #008EAB;
   /* scale is for smooth edges and translate for centering the line */
   transform: scale(0.99) translateY(0.25rem);
+  /* z-index here so that only the arrow goes above the events, we want the
+   * line to be behind the event name and alarm icon */
+  z-index: 15;
 }
 
 .current-time:after {
@@ -159,7 +162,9 @@ body[data-path="/day/"] #view-selector > .day > a:active {
   position: absolute;
   top: 0.6rem;
   height: 0.1rem;
-  background-color: #008EAB;
+  /* we use border-top instead of background-color to avoid rouding issues on
+   * high resolution devices */
+  border-top: 0.1rem solid #008EAB;
 }
 
 /* view loading */
