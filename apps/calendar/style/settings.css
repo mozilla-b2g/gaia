@@ -201,7 +201,7 @@ not actually shown since the top header should be transparent.
   left: 0;
   width: 100%;
   height: 4.5rem;
-  background: url("icons/refresh.png") no-repeat 50% 50%;
+  background: url("icons/refresh.png") no-repeat 50% 50% / 3rem auto;
 }
 
 #settings [role="toolbar"] .sync:active:after {
