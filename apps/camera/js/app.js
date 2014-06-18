@@ -113,6 +113,7 @@ App.prototype.boot = function() {
   window.dispatchEvent(new CustomEvent('moz-chrome-interactive'));
 
   this.injectViews();
+  this.showLoading();
 
   this.booted = true;
   debug('booted');
