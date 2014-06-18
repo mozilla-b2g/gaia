@@ -212,7 +212,8 @@
           this.expandSearch(input);
         // Other search providers show results in the browser
         } else {
-          var url = this.urlTemplate.replace('{searchTerms}', input);
+          var url = this.urlTemplate.replace('{searchTerms}',
+                                             encodeURIComponent(input));
           this.navigate(url);
         }
         return;
