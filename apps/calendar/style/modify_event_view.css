@@ -20,6 +20,10 @@
   margin-bottom: 0;
 }
 
+#modify-event-view .button input {
+  font-size: 1.6rem;
+}
+
 #modify-event-view form ol li {
   margin: 0 0 0.5rem;
 }
