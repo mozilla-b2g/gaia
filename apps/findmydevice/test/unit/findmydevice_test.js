@@ -109,7 +109,7 @@ suite('FindMyDevice >', function() {
       var lock = MockSettingsListener.getSettingsLock().locks.pop();
 
       var ringer = subject._ringer;
-      var channel = ringer.mozAudioChannel;
+      var channel = ringer.mozAudioChannelType;
       assert.equal(channel, 'content', 'use content channel');
       assert.equal(lock['audio.volume.content'], 15, 'volume set to maximum');
       assert.equal(ringer.paused, false, 'must be playing');

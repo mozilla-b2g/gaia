@@ -15,7 +15,7 @@ var Commands = {
 
   init: function fmdc_init() {
     var ringer = this._ringer = new Audio();
-    ringer.mozAudioChannel = 'content';
+    ringer.mozAudioChannelType = 'content';
     ringer.loop = true;
 
     var ringtoneURL = new SettingsURL();

@@ -10,6 +10,7 @@
   },
   "permissions": {
     "alarms": {},
+    "audio-channel-content": {},
     "device-storage:sdcard":{ "access": "readwrite" },
     "device-storage:pictures":{ "access": "readwrite" },
     "device-storage:videos":{ "access": "readwrite" },
