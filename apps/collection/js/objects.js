@@ -254,6 +254,7 @@
 
   exports.BaseCollection = BaseCollection;
   exports.CategoryCollection = CategoryCollection;
+  exports.PinnedHomeIcon = PinnedHomeIcon
   exports.QueryCollection = QueryCollection;
 
 })(window);

@@ -86,3 +86,12 @@ gaia-grid {
 #contextmenu-dialog {
   display: none;
 }
+
+/* Bug 1018269: This has no effect when declared in a scoped style, so we have
+ *              to redeclare it here. This is used by GaiaGrid when editing a
+ *              collection.
+ */
+@keyframes pulse {
+  from { opacity: 1.0; }
+  to { opacity: 0.65; }
+}
