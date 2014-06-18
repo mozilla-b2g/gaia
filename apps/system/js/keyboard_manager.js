@@ -636,9 +636,9 @@ var KeyboardManager = {
     this.switchChangeTimeout = setTimeout(function keyboardLayoutList() {
       var items = [];
       self.keyboardLayouts[showed.type].forEach(function(layout, index) {
-        var label = layout.appName + ' ' + layout.name;
         var item = {
-          label: label,
+          layoutName: layout.name,
+          appName: layout.appName,
           value: index,
           selected: (index === activeLayout)
         };
