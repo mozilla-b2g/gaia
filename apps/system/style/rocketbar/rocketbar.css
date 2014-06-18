@@ -9,10 +9,9 @@
   transform-origin: left top;
 }
 
+/* RTL fixes being tracked in bug 1008013 */
 *[dir=rtl] #rocketbar {
-  left: auto;
-  right: 0;
-  transform-origin: right top;
+  direction: ltr;
 }
 
 #rocketbar.expanded {
