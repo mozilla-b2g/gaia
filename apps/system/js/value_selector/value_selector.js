@@ -13,6 +13,7 @@ var ValueSelector = {
   _currentInputType: null,
   _currentDatetimeValue: '',
   _im: navigator.mozInputMethod,
+  _screen: document.getElementById('screen'),
 
   debug: function(msg) {
     var debugFlag = false;
@@ -236,7 +237,11 @@ var ValueSelector = {
   },
 
   show: function vs_show(detail) {
+    if (!this._element.hidden) {
+      return;
+    }
     this._element.hidden = false;
+    this._screen.classList.add('system-selector');
   },
 
   showPanel: function vs_showPanel(type) {
@@ -250,7 +255,11 @@ var ValueSelector = {
   },
 
   hide: function vs_hide() {
+    if (this._element.hidden) {
+      return;
+    }
     this._element.hidden = true;
+    this._screen.classList.remove('system-selector');
   },
 
   cancel: function vs_cancel() {
