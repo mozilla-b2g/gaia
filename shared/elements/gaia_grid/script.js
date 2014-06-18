@@ -42,16 +42,11 @@ window.GaiaGrid = (function(win) {
     this._grid.add.apply(this._grid, arguments);
   };
 
+  /**
+   * Helper for GridView.prototype.clear
+   */
   proto.clear = function() {
-    this._grid.items = [];
-    this._grid.icons = {};
-    var children = this.childNodes;
-    var i = children.length;
-    while (i--) {
-      if (children[i].nodeName !== 'STYLE') {
-        this.removeChild(children[i]);
-      }
-    }
+    this._grid.clear.apply(this._grid, arguments);
   };
 
   /**
