@@ -17,7 +17,6 @@ class Contacts(Base):
     _new_contact_button_locator = (By.ID, 'add-contact-button')
     _settings_button_locator = (By.ID, 'settings-button')
     _favorites_list_locator = (By.ID, 'contacts-list-favorites')
-    _contacts_frame_locator = (By.CSS_SELECTOR, 'iframe[src*="contacts"][src*="/index.html"]')
     _select_all_wrapper_locator = (By.ID, 'select-all-wrapper')
     _select_all_button_locator = (By.CSS_SELECTOR, 'button[data-l10n-id="selectAll"]')
     _export_button_locator = (By.ID, 'select-action')
@@ -36,14 +35,12 @@ class Contacts(Base):
         self.wait_for_element_displayed(*self._settings_button_locator)
 
     def switch_to_contacts_frame(self):
-        self.marionette.switch_to_frame()
-        contacts_frame = self.wait_for_element_present(*self._contacts_frame_locator)
-        self.marionette.switch_to_frame(contacts_frame)
+        self.wait_for_condition(lambda m: self.apps.displayed_app.name == self.name)
+        self.apps.switch_to_displayed_app()
         Wait(self.marionette, ignored_exceptions=JavascriptException).until(
             lambda m: m.execute_script('return window.wrappedJSObject.Contacts.asyncScriptsLoaded') is True)
 
     def switch_to_select_contacts_frame(self):
-        self.switch_to_contacts_frame()
         self.wait_for_element_displayed(*self._select_contacts_to_import_frame_locator)
         select_contacts = self.marionette.find_element(*self._select_contacts_to_import_frame_locator)
         self.marionette.switch_to_frame(select_contacts)
@@ -64,11 +61,6 @@ class Contacts(Base):
     def wait_for_contacts(self, number_to_wait_for=1):
         self.wait_for_condition(lambda m: len(m.find_elements(*self._contact_locator)) == number_to_wait_for)
 
-    # TODO: Replace this by using apps.displayed_app when bug 951815 is fixed
-    def wait_for_contacts_frame_to_close(self):
-        self.marionette.switch_to_default_content()
-        self.wait_for_element_not_present(*self._contacts_frame_locator)
-
     def contact(self, name):
         for contact in self.contacts:
             if contact.name == name:
@@ -77,7 +69,9 @@ class Contacts(Base):
     def tap_new_contact(self):
         self.marionette.find_element(*self._new_contact_button_locator).tap()
         from gaiatest.apps.contacts.regions.contact_form import NewContact
-        return NewContact(self.marionette)
+        new_contact = NewContact(self.marionette)
+        new_contact.wait_for_new_contact_form_to_load()
+        return new_contact
 
     def tap_settings(self):
         self.marionette.find_element(*self._settings_button_locator).tap()
@@ -116,9 +110,16 @@ class Contacts(Base):
         def full_name(self):
             return self.root_element.find_element(*self._full_name_locator).text
 
-        def tap(self, return_details=True):
+        def tap(self, return_details=True, return_edit=False):
             self.root_element.find_element(*self._name_locator).tap()
 
             if return_details:
                 from gaiatest.apps.contacts.regions.contact_details import ContactDetails
                 return ContactDetails(self.marionette)
+            elif return_edit:
+                from gaiatest.apps.contacts.regions.contact_form import EditContact
+                return EditContact(self.marionette)
+            else:
+                # We are using contacts picker in activity - after choosing, fall back to open app
+                self.wait_for_condition(lambda m: self.apps.displayed_app.name != 'Contacts')
+                self.apps.switch_to_displayed_app()
