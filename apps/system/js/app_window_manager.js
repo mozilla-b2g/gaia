@@ -203,6 +203,7 @@
       window.addEventListener('launchapp', this);
       window.addEventListener('home', this);
       window.addEventListener('appcreated', this);
+      window.addEventListener('appopening', this);
       window.addEventListener('appterminated', this);
       window.addEventListener('ftuskip', this);
       window.addEventListener('appopened', this);
@@ -299,6 +300,7 @@
           this.display();
           break;
 
+        case 'appopening':
         case 'appopened':
         case 'homescreenopened':
           // Someone else may open the app,

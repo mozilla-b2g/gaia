@@ -137,6 +137,42 @@ suite('system/AppWindowManager', function() {
   };
 
   suite('Handle events', function() {
+    test('Active app should be updated on app opening.', function() {
+      injectRunningApps(home, app1, app2);
+      AppWindowManager._activeApp = app1;
+
+      var stub_updateActiveApp = this.sinon.stub(AppWindowManager,
+        '_updateActiveApp');
+      AppWindowManager.handleEvent({ type: 'appopening',
+        detail: app2
+      });
+      assert.isTrue(stub_updateActiveApp.calledWith(app2.origin));
+    });
+
+    test('Active app should be updated on app opened.', function() {
+      injectRunningApps(home, app1, app2);
+      AppWindowManager._activeApp = app1;
+
+      var stub_updateActiveApp = this.sinon.stub(AppWindowManager,
+        '_updateActiveApp');
+      AppWindowManager.handleEvent({ type: 'appopened',
+        detail: app2
+      });
+      assert.isTrue(stub_updateActiveApp.calledWith(app2.origin));
+    });
+
+    test('Active app should be updated on homescreen opened.', function() {
+      injectRunningApps(home, app1, app2);
+      AppWindowManager._activeApp = app1;
+
+      var stub_updateActiveApp = this.sinon.stub(AppWindowManager,
+        '_updateActiveApp');
+      AppWindowManager.handleEvent({ type: 'homescreenopened',
+        detail: home
+      });
+      assert.isTrue(stub_updateActiveApp.calledWith(home.origin));
+    });
+
     test('Home Gesture enabled', function() {
       var stubBroadcastMessage =
         this.sinon.stub(AppWindowManager, 'broadcastMessage');
