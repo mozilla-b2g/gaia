@@ -165,44 +165,35 @@
   };
 
   function initResources(callback) {
-    var resLinks = document.head
-                           .querySelectorAll('link[type="application/l10n"]');
-    var iniLinks = [];
     var containsFetchableLocale = false;
-    var i;
 
-    for (i = 0; i < resLinks.length; i++) {
-      var link = resLinks[i];
-      var url = link.getAttribute('href');
-      var type = url.substr(url.lastIndexOf('.') + 1);
-      if (type === 'ini') {
-        if (!('noFetch' in link.dataset)) {
-          containsFetchableLocale = true;
-        }
-        iniLinks.push(url);
-      }
-      this.ctx.resLinks.push(url);
-    }
+    var nodes = document.head
+                        .querySelectorAll('link[type="application/l10n"],' +
+                                          'script[type="l10n/manifest"]');
 
-    var iniLoads = iniLinks.length;
-    if (iniLoads === 0) {
-      onIniLoaded();
-      return;
-    }
-
-    function onIniLoaded() {
-      if (--iniLoads <= 0) {
-        if (!containsFetchableLocale) {
-          requiresInlineLocale = true;
-          document.documentElement.dataset.noCompleteBug = true;
-        }
-        callback();
+    for (var i = 0; i < nodes.length; i++) {
+      var nodeName = nodes[i].nodeName.toLowerCase();
+      switch (nodeName) {
+        case 'link':
+          if (!('noFetch' in nodes[i].dataset)) {
+            containsFetchableLocale = true;
+          }
+          L10n.onLinkInjected.call(this, nodes[i]);
+          break;
+        case 'script':
+          L10n.onScriptInjected.call(this, nodes[i]);
+          break;
       }
     }
 
-    for (i = 0; i < iniLinks.length; i++) {
-      L10n.loadINI.call(this, iniLinks[i], onIniLoaded);
+    if (!containsFetchableLocale) {
+      requiresInlineLocale = true;
+      document.documentElement.dataset.noCompleteBug = true;
     }
+
+    // at buildtime, resource loading is synchronous, so we don't need to
+    // wait for any resource to be loaded
+    callback();
   }
 
 
@@ -289,8 +280,6 @@
       ast[id] = this.ctx.getEntitySource(id);
     }
   }
-
-  navigator.mozL10n.translateDocument = L10n.translateDocument;
 
   navigator.mozL10n.getDictionary = function getDictionary(defLoc, fragment) {
     var ast = {};

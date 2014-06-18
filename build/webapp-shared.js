@@ -200,16 +200,8 @@ WebappShared.prototype.pushLocale = function(name) {
     throw new Error('Using inexistent shared locale: ' + name + ' from: ' +
                     this.webapp.domain);
   }
-  ini.append(name + '.ini');
-  if (!ini.exists()) {
-    throw new Error('Using inexistent shared locale: ' + name + ' from: ' +
-                    this.webapp.domain);
-  }
   // And the locale folder itself
   this.moveToBuildDir(localeFolder, 'shared/locales/' + name );
-  // Add the .ini file
-  var pathInStage = 'shared/locales/' + name + '.ini';
-  this.moveToBuildDir(ini, pathInStage);
   utils.ls(localeFolder, true).forEach(function(fileInSharedLocales) {
 
     var relativePath =
@@ -301,6 +293,9 @@ WebappShared.prototype.pushFileByType = function(kind, path) {
       break;
     case 'locales':
       var localeName = path.substr(0, path.lastIndexOf('.'));
+      if (localeName.indexOf('{{locale}}') !== -1) {
+        localeName = localeName.substr(0, -11);
+      }
       if (this.used.locales.indexOf(localeName) === -1) {
         this.used.locales.push(localeName);
         this.pushLocale(localeName);
