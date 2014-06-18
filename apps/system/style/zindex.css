@@ -94,7 +94,7 @@
  * there is an active attention screen not minimized in
  * the status bar */
 #screen.attention:not(.active-statusbar) > [data-z-index-level="keyboards"] {
-  z-index: 16384;
+  z-index: 16386;
 }
 
 /* Level 2: Notification toaster */
@@ -103,8 +103,10 @@
 }
 
 /* Level 3: Attention screen */
+/* Attention screens should be the top-most item (along with keyboards) when
+ * shown and not minimized in status bar */
 #screen > [data-z-index-level="attention-screen"] {
-  z-index: 16384;
+  z-index: 16386;
 }
 
 /* Level 4: Activity menu, context menu, value selector, and permissions */
