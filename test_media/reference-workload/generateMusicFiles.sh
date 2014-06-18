@@ -23,13 +23,20 @@ mid3v2 -D ${SCRIPT_DIR}/${SONG_NAME}
 
 # We start with 1 track per album, and increment that up to 10, and then cycle between 5 and 10
 TRACKS_PER_ALBUM=1
-REMOTE_DIR="/sdcard/Music"
+# REMOTE_DIR="/sdcard/Music"
+  REMOTE_DIR=
+  for dir in /sdcard /storage/sdcard0; do
+    if [ -n "$(adb shell "test -d $dir && echo found")" ]; then
+      REMOTE_DIR=$dir
+      break
+    fi
+  done
 
 for i in `seq -f '%04g' 2 $1` ; do
   FILENAME=SONG_$i.mp3
 
   mid3v2 -t "Song ${i}" -a "Artist ${ARTIST}" -A "Album ${ALBUM}" -T "${TRACK}" ${SCRIPT_DIR}/${SONG_NAME}
-  adb push ${SCRIPT_DIR}/${SONG_NAME} ${REMOTE_DIR}/${FILENAME}
+  adb push ${SCRIPT_DIR}/${SONG_NAME} ${REMOTE_DIR}/Music/${FILENAME}
 
   let TRACK=TRACK+1
   if [ ${TRACK} -gt ${TRACKS_PER_ALBUM} ]; then
