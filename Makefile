@@ -259,11 +259,20 @@ XPCSHELLSDK := $(abspath $(XULRUNNER_DIRECTORY)/b2g/xpcshell)
 # The following workaround lets people use firefox builds
 ifdef USE_LOCAL_XULRUNNER_SDK
 
-ifneq (,$(wildcard $(XULRUNNER_DIRECTORY)/bin/xpcshell*))
-XPCSHELLSDK := $(wildcard $(XULRUNNER_DIRECTORY)/bin/xpcshell*)
-ifneq (,$(findstring Darwin,$(SYS))$(findstring MINGW32_,$(SYS)))
-XULRUNNERSDK := LD_LIBRARY_PATH="$(XULRUNNER_DIRECTORY)/bin"
+# Some guesswork to figure out where the xpcshell binary is
+XPCSHELL_GUESS = $(firstword $(wildcard \
+    $(XULRUNNER_DIRECTORY)/B2G.app/Contents/MacOS/xpcshell \
+    $(XULRUNNER_DIRECTORY)/bin/XUL.framework/Versions/Current/xpcshell \
+    $(XULRUNNER_DIRECTORY)/bin/xpcshell* \
+  ))
+ifneq (,$(XPCSHELL_GUESS))
+XPCSHELLSDK := $(abspath $(XPCSHELL_GUESS))
+XULRUNNERSDK := $(wildcard $(XPCSHELLSDK)/run-mozilla.sh)
 endif
+
+# Linux needs to reference the directory containing libxul.so
+ifeq (,$(findstring Darwin,$(SYS))$(findstring MINGW32_,$(SYS)))
+XULRUNNERSDK := LD_LIBRARY_PATH="$(dir $(XPCSHELLSDK))"
 endif
 
 else # Firefox build workaround
@@ -285,7 +294,7 @@ XPCSHELLSDK := $(abspath $(XULRUNNER_DIRECTORY)/b2g/xpcshell.exe)
 # Otherwise, assume linux
 else
 # need this to ensure that libxul is found
-XULRUNNERSDK := LD_LIBRARY_PATH="$(XULRUNNER_DIRECTORY)/b2g"
+XULRUNNERSDK := LD_LIBRARY_PATH="$(dir $(XPCSHELLSDK))"
 B2G_SDK_EXT := tar.bz2
 ifeq ($(ARCH),x86_64)
 B2G_SDK_OS := linux-x86_64
@@ -299,10 +308,7 @@ B2G_SDK_FILE_NAME := b2g-$(B2G_SDK_VERSION).multi.$(B2G_SDK_OS).$(B2G_SDK_EXT)
 B2G_SDK_URL := $(B2G_SDK_URL_BASE)/$(B2G_SDK_FILE_NAME)
 B2G_SDK_URL_FILE := $(XULRUNNER_DIRECTORY)/.b2g.url
 
-# Once bug 1019117 lands, the test package won't be needed any more
-B2G_SDK_TESTS_FILE_NAME := b2g-$(B2G_SDK_VERSION).multi.$(B2G_SDK_OS).tests.zip
-B2G_SDK_TESTS_URL := $(B2G_SDK_URL_BASE)/$(B2G_SDK_TESTS_FILE_NAME)
-B2G_SDK_TESTS_URL_FILE := $(XULRUNNER_DIRECTORY)/.b2gtests.url
+endif # Firefox build workaround
 
 # It's difficult to figure out XULRUNNERSDK in subprocesses; it's complex and
 # some builders may want to override our find logic (ex: TBPL).
