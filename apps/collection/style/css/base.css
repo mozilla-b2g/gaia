@@ -7,3 +7,8 @@ html, body {
 body {
   background: #000000;
 }
+
+/* RTL fixes being tracked in bug 1008013 */
+html[dir="rtl"] {
+  direction: ltr;
+}
