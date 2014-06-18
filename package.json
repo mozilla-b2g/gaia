@@ -29,7 +29,7 @@
     "marionette-device-host": "0.0.2",
     "marionette-file-manager": "0.0.2",
     "marionette-helper": "~0.3.1",
-    "marionette-js-runner": "~0.4.3",
+    "marionette-js-runner": "~0.4.4",
     "marionette-plugin-forms": "0.0.3",
     "marionette-profile-builder": "0.0.3",
     "marionette-settings-api": "~0.1.0",
