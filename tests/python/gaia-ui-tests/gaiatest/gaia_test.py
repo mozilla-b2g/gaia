@@ -110,6 +110,7 @@ class GaiaApps(object):
 
     @property
     def running_apps(self):
+        self.marionette.switch_to_frame()
         apps = self.marionette.execute_script(
             'return GaiaApps.getRunningApps();')
         result = []
