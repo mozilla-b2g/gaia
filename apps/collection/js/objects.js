@@ -67,19 +67,31 @@
       });
     },
 
+    renderWebResults: function renderWebResults(grid, options) {
+      if (options.firstItems) {
+        grid.add(new GaiaGrid.Divider());
+      }
+      this.addToGrid(options.newItems, grid);
+      grid.render({
+        from: options.from,
+        skipDivider: true
+      });
+    },
+
     render: function render(grid) {
       this.dedupe.reset();
       grid.clear();
 
       this.addToGrid(this.pinned, grid);
 
-      if (!this.webResults.length) {
-        return;
+      if (this.webResults.length) {
+        grid.add(new GaiaGrid.Divider());
+        this.addToGrid(this.webResults, grid);
       }
 
-      grid.add(new GaiaGrid.Divider());
-      this.addToGrid(this.webResults, grid);
-      grid.render();
+      grid.render({
+        skipDivider: true
+      });
     },
 
     renderIcon: function renderIcon() {
