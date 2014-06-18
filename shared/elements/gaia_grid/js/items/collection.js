@@ -58,10 +58,7 @@
       return this.detail.id;
     },
 
-    update: function(detail) {
-      this.detail = detail;
-      this.detail.type = 'collection';
-    },
+    update: GaiaGrid.GridItem.prototype.updateFromDatastore,
 
     /**
      * Collections are always editable.

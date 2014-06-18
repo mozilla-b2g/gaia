@@ -355,6 +355,34 @@
       scale = scale || 1;
       this.element.style.transform =
         'translate(' + x + 'px,' + y + 'px) scale(' + scale + ')';
+    },
+
+    /**
+     * Updates an icon on the page from a datastore record.
+     * Used for bookmarks and collections.
+     * @param {Object} record The datastore record.
+     */
+    updateFromDatastore: function(record) {
+      var iconChanged = record.icon !== this.icon;
+      var nameChanged = record.name !== this.name;
+
+      var type = this.detail.type;
+      record.type = type;
+      this.detail = record;
+      var nameEl = this.element.querySelector('.title');
+      if (nameEl && nameChanged) {
+        nameEl.textContent = this.name;
+
+        // Bug 1007743 - Workaround for projected content nodes disappearing
+        document.body.clientTop;
+        this.element.style.display = 'none';
+        document.body.clientTop;
+        this.element.style.display = '';
+      }
+
+      if (iconChanged) {
+        this.renderIcon();
+      }
     }
   };
 
