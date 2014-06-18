@@ -48,8 +48,11 @@
       loading();
 
       eme.init().then(function ready() {
-        HandleView(activity);
-        NativeInfo.setup();
+        function _handle() {
+          HandleView(activity);
+        }
+
+        NativeInfo.setup().then(_handle, _handle);
       });
     }
   });
