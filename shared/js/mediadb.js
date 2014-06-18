@@ -570,19 +570,15 @@ var MediaDB = (function() {
       var clientUpgradeNeeded = (media.version != oldClientVersion) &&
                                 media.updateRecord;
 
-      // checking if we need to enumerate all files. This may improve the
-      // performance of only changing indexes. If client app changes indexes,
-      // they may not need to update records. In this case, we don't need to
-      // enumerate all files.
-      if ((2 != oldDbVersion || 3 != MediaDB.VERSION) && !clientUpgradeNeeded) {
-        return;
-      }
-
       // Part 2: upgrading data
       enumerateOldFiles(store, function doUpgrade(dbfile) {
         // handle mediadb upgrade from 2 to 3
         if (2 == oldDbVersion && 3 == MediaDB.VERSION) {
           upgradeDBVer2to3(store, dbfile);
+        }
+        // handle mediadb upgrade from 3 to 4
+        if (3 == oldDbVersion && 4 == MediaDB.VERSION) {
+          upgradeDBVer3to4(store, dbfile);
         }
         // handle client upgrade
         if (clientUpgradeNeeded) {
@@ -620,6 +616,15 @@ var MediaDB = (function() {
       }
       store.delete(dbfile.name);
       dbfile.name = '/sdcard/' + dbfile.name;
+      store.add(dbfile);
+    }
+
+    function upgradeDBVer3to4(store, dbfile) {
+      var date = new Date();
+      var timezoneOffset = date.getTimezoneOffset();
+
+      store.delete(dbfile.name);
+      dbfile.date = dbfile.date + (timezoneOffset * 60 * 1000);
       store.add(dbfile);
     }
 
@@ -1342,7 +1347,7 @@ var MediaDB = (function() {
   //            to full qualified name(v1.1). We changed the code to handle the
   //            full qualified name and the upgrade from relative path to full
   //            qualified name.
-  MediaDB.VERSION = 3;
+  MediaDB.VERSION = 4;
 
   // These are the values of the state property of a MediaDB object
   // The NOCARD, UNMOUNTED, and CLOSED values are also used as the detail
