@@ -11,6 +11,7 @@
     <script defer src="shared/js/component_utils.js"></script>
     <script defer src="shared/js/bookmarks_database.js"></script>
     <script defer src="shared/js/collections_database.js"></script>
+    <script defer src="/shared/js/font_size_utils.js"></script>
 
     <!-- gaia grid -->
     <script defer src="shared/js/dedupe.js"></script>
@@ -50,33 +51,37 @@
 
   </head>
   <body>
-    <div id="header">
-        <span id="name"></span>
-        <span id="close"></span>
-    </div>
+    <section role="region">
+        <header id="header">
+            <a id="close" href="#">
+                <span class="icon icon-close">close</span>
+            </a>
+            <h1 id="name"></h1>
+        </header>
 
-    <section id="edit-header" class="skin-dark" role="region">
-      <header>
-        <menu type="toolbar"><a href="#" data-l10n-id="edit-done" id="exit-edit-mode">Done</a></menu>
-        <h1 data-l10n-id="edit-mode">Edit</h1>
-      </header>
+        <section id="edit-header" class="skin-dark" role="region">
+          <header>
+            <menu type="toolbar"><a href="#" data-l10n-id="edit-done" id="exit-edit-mode">Done</a></menu>
+            <h1 data-l10n-id="edit-mode">Edit</h1>
+          </header>
+        </section>
+
+        <div id="content">
+            <gaia-grid cols="4" id="grid" dragdrop></gaia-grid>
+
+            <section role="notification" id="offline">
+                <span id="offline-message"></span>
+            </section>
+
+            <section role="notification" id="loading">
+                <progress></progress>
+            </section>
+        </div>
+
+        <gaia-menu id="cloud-menu" hidden>
+            <button data-l10n="add-to-top-of-collection" id="pin-cloudapp">Add to top of collection</button>
+            <button data-l10n="save-to-homescreen" id="bookmark-cloudapp">Save to Homescreen</button>
+        </gaia-menu>
     </section>
-
-    <div id="content">
-        <gaia-grid cols="4" id="grid" dragdrop></gaia-grid>
-
-        <section role="notification" id="offline">
-            <span id="offline-message"></span>
-        </section>
-
-        <section role="notification" id="loading">
-            <progress></progress>
-        </section>
-    </div>
-
-    <gaia-menu id="cloud-menu" hidden>
-        <button data-l10n="add-to-top-of-collection" id="pin-cloudapp">Add to top of collection</button>
-        <button data-l10n="save-to-homescreen" id="bookmark-cloudapp">Save to Homescreen</button>
-    </gaia-menu>
   </body>
 </html>
