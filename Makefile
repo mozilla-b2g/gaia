@@ -739,10 +739,10 @@ ifndef APPS
 	endif
 endif
 
-b2g: node_modules/.bin/mozilla-download
+firefox b2g: node_modules/.bin/mozilla-download
 	./node_modules/.bin/mozilla-download  \
 		--verbose \
-		--product b2g \
+		--product $@ \
 		--channel tinderbox \
 		--branch mozilla-central $@
 
