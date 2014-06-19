@@ -93,14 +93,15 @@
 }
 
 /* Checked status */
+[role="dialog"][data-type="value-selector"] [role="listbox"] li[aria-selected="true"] label {
+  background: transparent url(value_selector/images/icons/checked.png) right 1.2rem top 50% / 2.1rem no-repeat;
+}
+
 [role="dialog"][data-type="value-selector"] [role="listbox"] li[aria-selected="true"] span {
   padding-right: 2.6rem;
   margin-right: 1.2rem;
   color: #00abcd;
-  background: transparent url(value_selector/images/icons/checked.png) no-repeat 100% 50%;
-  background-size: 2rem;
 }
-
 
 /* Menu & buttons setup */
 [role="dialog"][data-type="value-selector"] menu {
