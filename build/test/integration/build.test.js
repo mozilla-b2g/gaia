@@ -290,7 +290,7 @@ suite('Build Integration tests', function() {
       // expected values for prefs and user_prefs
       var expectedUserPrefs = {
         'browser.manifestURL': 'app://system.gaiamobile.org/manifest.webapp',
-        'browser.homescreenURL': 'app://system.gaiamobile.org/index.html',
+        'browser.homescreenURL': 'app://system.gaiamobile.org',
         'network.http.max-connections-per-server': 15,
         'dom.mozInputMethod.enabled': true,
         'ril.debugging.enabled': false,
@@ -500,7 +500,7 @@ suite('Build Integration tests', function() {
         'debugger.remote-mode': 'adb-devtools'
       };
       var expectedUserPrefs = {
-        'browser.startup.homepage': 'app://system.gaiamobile.org/index.html',
+        'browser.startup.homepage': 'app://system.gaiamobile.org',
         'startup.homepage_welcome_url': '',
         'browser.shell.checkDefaultBrowser': false,
         'devtools.toolbox.host': 'side',
