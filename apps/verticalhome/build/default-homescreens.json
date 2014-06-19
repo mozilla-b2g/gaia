@@ -23,8 +23,8 @@
       ["apps", "video"]
     ]
   ],
-  "search_page": {
-    "enabled": true
+  "preferences": {
+    "grid.cols": 3
   },
   "bookmarks": [
     {
