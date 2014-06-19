@@ -343,44 +343,8 @@ suite('Test Contacts Matcher', function() {
       });
     });
 
-    test('Incoming SIM Contact matches with a normal contact', function(done) {
-      var simObj = {
-        id: '678',
-        category: ['sim'],
-        name: ['Juan Ramón del SIM'],
-        givenName: ['Juan Ramón del SIM'],
-        tel: [{
-          type: ['home'],
-          value: '676767671'
-        }]
-      };
-
-      var existingContact = {
-        id: '1B',
-        givenName: ['Juan Ramon'],
-        familyName: ['del SIM'],
-        name: ['Juan Ramón del SIM'],
-        tel: [{
-          type: ['home'],
-          value: '676767671'
-        }],
-        email: [{
-          type: ['personal'],
-          value: 'jj@jj.com'
-        }]
-      };
-
-      MockFindMatcher.setData(existingContact);
-
-      testMatch(simObj, 'passive', null, function() {
-        MockFindMatcher.setData(contact);
-        done();
-      });
-    });
-
-    test('Incoming Contact matches with an existing SIM contact',
-      function(done) {
-        var existingSimContact = {
+    suite('SIM Contacts Matching', function() {
+      var existingSimContact = {
           id: '1B',
           category: ['sim'],
           name: ['Juan Ramón del SIM'],
@@ -395,25 +359,101 @@ suite('Test Contacts Matcher', function() {
           }]
         };
 
-        var incomingContact = {
-          id: '678',
-          givenName: ['Juan Ramon'],
-          familyName: ['del SIM'],
-          name: ['Juan Ramón del SIM'],
-          tel: [{
-            type: ['home'],
-            value: '676767671'
-          }]
-        };
+      var incomingSimContact = {
+        id: '678',
+        category: ['sim'],
+        givenName: ['Juan Ramon'],
+        familyName: ['del SIM'],
+        name: ['Juan Ramón del SIM'],
+        tel: [{
+          type: ['home'],
+          value: '676767671'
+        }]
+      };
+    
+      test('Incoming SIM Contact matches with a normal contact',
+        function(done) {
+          MockFindMatcher.setData(existingSimContact);
+  
+          testMatch(incomingSimContact, 'passive', null, function() {
+            MockFindMatcher.setData(contact);
+            done();
+          });
+      });
 
-        MockFindMatcher.setData(existingSimContact);
+      test('Incoming Contact matches with an existing SIM contact',
+        function(done) {
+          MockFindMatcher.setData(existingSimContact);
+  
+          testMatch(incomingSimContact, 'passive', null, function() {
+            MockFindMatcher.setData(contact);
+            done();
+          });
+      });
+    
+      test('SIM Contact. Matching by name and SIM url', function(done) {
+        var existing = Object.create(existingSimContact);
+        existing.givenName = ['Álvaro'];
+        existing.familyName = ['Fummetta'];
+        existing.name = ['Álvaro Fummetta'];
+        existing.url = [
+          {
+            type: ['sim', 'source'],
+            value: '12345-6789'
+          }
+        ];
+        // Avoiding matching by other criteria
+        existing.tel = null;
+        existing.email = null;
+        
+        var incoming = Object.create(incomingSimContact);
+        incoming.url = existing.url;
+        incoming.name = existing.name;
+        incoming.givenName = existing.givenName;
+        incoming.familyName = existing.familyName;
+        
+        MockFindMatcher.setData(existing);
 
-        testMatch(incomingContact, 'passive', null, function() {
+        testMatch(incoming, 'passive', null, function() {
           MockFindMatcher.setData(contact);
           done();
         });
-      });
-  });
+      }); // Test
+      
+      test('SIM Contact. Matching by name but SIM url different',
+        function(done) {
+          var existing = Object.create(existingSimContact);
+          existing.url = [
+            {
+              type: ['sim', 'source'],
+              value: '12345-6789'
+            }
+          ];
+          // Avoiding matching by other criteria
+          existing.tel = null;
+          existing.email = null;
+          
+          var incoming = Object.create(incomingSimContact);
+          incoming.url = [
+            {
+              type: ['sim', 'source'],
+              value: '6666-9999'
+            }
+          ];
+          incoming.name = existing.name;
+          incoming.givenName = existing.givenName;
+          incoming.familyName = existing.familyName;
+        
+          
+          MockFindMatcher.setData(existing);
+  
+          testMismatch(incoming, 'passive', function() {
+            MockFindMatcher.setData(contact);
+            done();
+          });
+      }); // Test
+    }); // SIM Suite
+  }); // Passive Merge Suite
 
   suite('Test Contacts Matcher. Active Mode', function() {
     suiteSetup(setupSuite);
