@@ -123,6 +123,7 @@
   width: 2.6rem;
   height: 2.6rem;
   background: url(images/remove.png) no-repeat;
+  background-size: 2rem;
 }
 
 .icon .remove {
