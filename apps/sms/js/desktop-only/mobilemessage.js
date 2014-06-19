@@ -274,7 +274,7 @@
     });
   });
 
-  getTestFile('/test/unit/media/contact.vcf', function(contactBlob) {
+  getTestFile('/test/unit/media/contacts.vcf', function(contactBlob) {
     messagesDb.messages.push({
       id: messagesDb.id++,
       threadId: 6,
@@ -284,10 +284,10 @@
       delivery: 'received',
       deliveryInfo: [{deliveryStatus: 'success'}],
       subject: 'Test vard without text content',
-      smil: '<smil><body><par><ref src="contact.vcf"/>' +
+      smil: '<smil><body><par><ref src="contacts.vcf"/>' +
             '</par></body></smil>',
       attachments: [{
-        location: 'contact.vcf',
+        location: 'contacts.vcf',
         content: contactBlob
       }],
       timestamp: now,
@@ -303,14 +303,14 @@
       delivery: 'received',
       deliveryInfo: [{deliveryStatus: 'success'}],
       subject: 'Test vard with text content',
-      smil: '<smil><body><par><ref src="contact.vcf"/>' +
+      smil: '<smil><body><par><ref src="contacts.vcf"/>' +
             '<text src="text1"/></par></body></smil>',
       attachments: [{
         location: 'text1',
         content: new Blob(['This is a vcard'],
             { type: 'text/plain' })
       },{
-        location: 'contact.vcf',
+        location: 'contacts.vcf',
         content: contactBlob
       }],
       timestamp: now,
