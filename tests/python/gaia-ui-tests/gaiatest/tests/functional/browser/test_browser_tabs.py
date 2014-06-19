@@ -2,7 +2,9 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette.by import By
+from marionette import expected
+from marionette import By
+from marionette import Wait
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.browser.app import Browser
@@ -10,21 +12,29 @@ from gaiatest.apps.browser.app import Browser
 
 class TestBrowserTabs(GaiaTestCase):
 
-    _page_title_locator = (By.ID, 'page-title')
-
     def setUp(self):
         GaiaTestCase.setUp(self)
         self.connect_to_network()
 
+        if self.device.is_desktop_b2g or self.data_layer.is_wifi_connected():
+            self.test_data = {
+                'url': self.marionette.absolute_url('rectangles.html'),
+                'locator': (By.ID, 'r1'),
+                'text': 'r1'}
+        else:
+            self.test_data = {
+                'url': 'http://mozqa.com/data/firefox/layout/mozilla.html',
+                'locator': (By.ID, 'page-title'),
+                'text': 'We believe that the internet should be public, open '
+                        'and accessible.'}
+
     def test_browser_tabs(self):
         """ Open a new tab.
-        Using Wifi/LAN
-
         Open Browser.
         Open tab menu.
         Add a new tab.
         Assert that the new tab has opened.
-        Load a website ( http://mozqa.com/data/firefox/layout/mozilla.html)
+        Load a website.
         Switch back to the first tab.
         """
         browser = Browser(self.marionette)
@@ -35,11 +45,11 @@ class TestBrowserTabs(GaiaTestCase):
 
         # Add a new tab and load a website.
         browser.tap_add_new_tab_button()
-        browser.go_to_url('http://mozqa.com/data/firefox/layout/mozilla.html')
+        browser.go_to_url(self.test_data['url'])
         browser.switch_to_content()
-        self.wait_for_element_present(*self._page_title_locator)
-        heading = self.marionette.find_element(*self._page_title_locator)
-        self.assertEqual(heading.text, 'We believe that the internet should be public, open and accessible.')
+        element = Wait(self.marionette).until(
+            expected.element_present(*self.test_data['locator']))
+        self.assertEqual(element.text, self.test_data['text'])
 
         # Assert that the new tab has opened.
         browser.switch_to_chrome()
