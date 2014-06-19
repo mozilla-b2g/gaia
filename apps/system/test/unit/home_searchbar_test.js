@@ -144,7 +144,7 @@ suite('system/HomeSearchbar', function() {
     test('lock', function() {
       var stub = this.sinon.stub(Rocketbar.prototype, 'handleLock');
       subject.handleEvent({
-        type: 'lock',
+        type: 'lockscreen-appopened',
         target: subject.input
       });
       assert.ok(stub.calledOnce);

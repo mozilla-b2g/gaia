@@ -26,7 +26,7 @@ var SimLock = {
     // Display the dialog only after lockscreen is unlocked
     // before the transition.
     // To prevent keyboard being displayed behind it.
-    window.addEventListener('will-unlock', this);
+    window.addEventListener('lockscreen-appclosing', this);
 
     // always monitor card state change
     var self = this;
@@ -96,7 +96,7 @@ var SimLock = {
           this.showIfLocked();
         }
         break;
-      case 'will-unlock':
+      case 'lockscreen-appclosing':
         // Check whether the lock screen was unlocked from the camera or not.
         // If the former is true, the SIM PIN dialog should not displayed after
         // unlock, because the camera will be opened (Bug 849718)

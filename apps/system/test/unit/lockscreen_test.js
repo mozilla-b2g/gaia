@@ -196,12 +196,8 @@ suite('system/LockScreen >', function() {
   test('Handle event: when unlock,' +
       'would fire event to turn secure mode off',
       function() {
-        var app = new MockAppWindow();
-        var spy = this.sinon.stub(app, 'ready');
-        this.sinon.stub(MockAppWindowManager, 'getActiveApp').returns(app);
         var stubDispatch = this.sinon.stub(window, 'dispatchEvent');
         subject.unlock();
-        spy.getCall(0).args[0]();
         assert.isTrue(stubDispatch.calledWithMatch(sinon.match(
               function(e) {
                 return e.type === 'secure-modeoff';
