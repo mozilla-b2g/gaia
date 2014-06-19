@@ -35,10 +35,7 @@ PreferencesBuilder.prototype.preparePref = function() {
                    this.system + '/manifest.webapp';
 
   this.prefs['b2g.neterror.url'] = this.system + '/net_error.html';
-  if (this.system.substring(0, 6) == 'app://') { // B2G bug 773884
-      this.system += '/index.html';
-  }
-  
+
   // XXX Please remove 'browser.homescreenURL'.
   // After gecko does not need it anymore.
   // follow up bug 1014487
