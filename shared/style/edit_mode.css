@@ -220,7 +220,7 @@ form[role="dialog"][data-type="edit"] > menu > button[disabled] {
   color: #4d4d4d;
   text-shadow: none;
   border-color: #4d4d4d;
-  pointer-events: none;
+  pointer-events: auto;
 }
 
 form[role="dialog"][data-type="edit"] menu button:last-child {
