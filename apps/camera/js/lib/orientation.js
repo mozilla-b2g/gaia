@@ -30,7 +30,7 @@ define(function(require, exports, module) {
   }
 
   function lock() {
-    screen.mozLockOrientation('portrait-primary');
+    screen.mozLockOrientation('default');
     listener.start();
   }
 
