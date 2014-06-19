@@ -55,7 +55,8 @@ marionette('month view', function() {
     });
   });
 
-  test('week day headers should only have one letter', function() {
+  // Skip the test because of Bug 1027349.
+  test.skip('week day headers should only have one letter', function() {
     var month = app.month;
     var weekdayHeaders = month.weekdayHeaders;
     assert.deepEqual(weekdayHeaders, ['S', 'M', 'T', 'W', 'T', 'F', 'S']);
