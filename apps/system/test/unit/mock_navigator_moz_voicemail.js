@@ -1,3 +1,5 @@
+/* exported MockNavigatorMozVoicemail */
+
 'use strict';
 
 var MockNavigatorMozVoicemail = {
