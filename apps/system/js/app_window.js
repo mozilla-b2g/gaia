@@ -53,7 +53,7 @@
       AppWindow[this.instanceID] = this;
     }
 
-    this.createdTime = this.launchTime = Date.now();
+    this.launchTime = Date.now();
 
     return this;
   };
@@ -767,10 +767,17 @@
       // as window disposition activity.
       if (this.isActive() && this.callerWindow) {
         var caller = this.callerWindow;
+        var callerBase = caller.getBottomMostWindow();
+        var calleeBase = this.getBottomMostWindow();
+        // XXX: We should just the ordering by StackManager
+        var callerIsNew =
+          callerBase.manualOpenedTime > calleeBase.manualOpenedTime;
+        var openAnimation = callerIsNew ? 'invoked' : 'in-from-left';
+        var closeAnimation = callerIsNew ? 'invoking' : 'out-to-right';
         caller.calleeWindow = null;
         this.callerWindow = null;
-        caller.open('in-from-left');
-        this.close('out-to-right');
+        callerBase.open(openAnimation);
+        calleeBase.close(closeAnimation);
       }
     };
 
