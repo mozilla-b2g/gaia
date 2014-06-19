@@ -53,8 +53,7 @@ var CallsHandler = (function callsHandler() {
     if (acm) {
       acm.addEventListener('headphoneschange', function onheadphoneschange() {
         if (acm.headphones) {
-          // Do not connect bluetooth SCO if headphone is plugged in
-          CallScreen.switchToDefaultOut(true /* do not connect */);
+          CallScreen.switchToDefaultOut();
         }
       });
     }
