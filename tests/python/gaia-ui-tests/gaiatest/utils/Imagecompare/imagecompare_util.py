@@ -2,6 +2,10 @@ import mozdevice
 import os
 import subprocess
 import time
+import pdb
+from marionette.marionette import Actions
+from marionette.marionette import MultiActions
+from marionette.by import By
 
 class ImageCompareUtil():
     def __init__(self, marionette, apps, local_path):
@@ -36,10 +40,13 @@ class ImageCompareUtil():
         self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('home+sleep'));")
         self.apps.switch_to_displayed_app()
         time.sleep(6)  # for the notification overlay to disappear
+        if (frame != None) & (frame != 'root'):
+            self.marionette.switch_to_frame(frame)
         if (browser != None):
             browser.switch_to_content()
-        if (frame != None):
-            self.marionette.switch_to_frame(frame)
+
+        elif (frame == 'root'):
+            self.marionette.switch_to_frame()
 
     #this can be used as an alternative to invoke_screen_capture, if you want to grab the whole buffer.  the dimension may
     #vary depending on the context
@@ -186,8 +193,119 @@ class ImageCompareUtil():
             fullpath = src + "/" + f
             os.system("mv" + " " + fullpath + " " + dst)
 
+
+    #UI action methods
+
+    #scroll - works for gallery and Browser.  Consists of multiple micro-actions, like flick method.
+    #marionette = marionette object
+    #direction = 'LtoR' or 'RtoL' (finger movement direction)
+    #dist = percentage of horizontal distance travel, max is 1.0
+    #release = if set to False, the Action object will be returned so the user can complete the release action
+    @staticmethod
+    def edge_scroll(marionette,frame, direction, dist, release=True):
+
+        dist_travelled = 0
+        time_increment = 0.01
+
+        if direction == 'LtoR':
+            start_x = 0
+        elif direction == 'RtoL':
+            start_x = frame.size['width']
+        if (dist > 1):
+            dist = 1
+        x = dist * frame.size['width']
+        dist_unit = x * time_increment
+
+        action = Actions(marionette)
+        action.press(frame,start_x,frame.size['height']/2)
+
+        while dist_travelled < x:
+            action.move_by_offset(dist_unit, 0)
+            action.wait(time_increment)
+            dist_travelled += dist_unit
+        if release == True:
+            action.release()
+        action.perform()
+        return action
+
+    #pinch method - works for gallery. Bug 1025167 is raised for the Browser pinch method.
+    #Currently only works on Gallery
+    #marionette = marionette object
+    #zoom = 'in' or 'out'
+    #level = level of zoom, 'low' or 'high'
+    @staticmethod
+    def pinch(marionette, locator, zoom, level):
+
+        screen = marionette.find_element(*locator)
+        index_finger = Actions(marionette)
+        thumb = Actions(marionette)
+        pinch = MultiActions(marionette)
+
+        mid_x = screen.size['width'] / 2
+        mid_y = screen.size['height'] / 2
+
+        zoom_factor = 0
+        if level == 'low':
+            zoom_factor = 0.5
+        elif level == 'high':
+            zoom_factor = 1
+
+        if zoom == 'in':
+            init_index_x = mid_x
+            init_index_y = mid_y
+            init_thumb_x = mid_x
+            init_thumb_y = mid_y
+            disp_x = zoom_factor * mid_x
+            disp_y = zoom_factor * mid_y
+        elif zoom == 'out':
+            init_index_x = mid_x/2
+            init_index_y = mid_y/2
+            init_thumb_x = mid_x + mid_x/2
+            init_thumb_y = mid_y + mid_y/2
+            disp_x = -zoom_factor * mid_x/2
+            disp_y = -zoom_factor * mid_y/2
+
+        index_finger.press(screen,init_index_x,init_index_y).wait(0.15).move_by_offset(-disp_x, -disp_y).release()
+        thumb.press(screen,init_thumb_x,init_thumb_y).wait(0.15).move_by_offset(disp_x, disp_y).wait().release()
+        pinch.add(thumb).add(index_finger).perform()
+
+    #scroll - works for gallery and Browser.  Consists of multiple micro-actions, like flick method.
+    #marionette = marionette object
+    #direction = 'up' or 'down' (page location)
+    #level = level of scroll, 'slow' or 'fast'
+    @staticmethod
+    def scroll(marionette, locator, direction, level):
+
+        screen = marionette.find_element(*locator)
+        iter_count = 100
+        mid_x = screen.size['width'] / 2
+        mid_y = screen.size['height'] / 2
+
+        scroll_dir = 0
+        if direction == 'up':
+            scroll_dir = 1
+        elif direction == 'down':
+            scroll_dir = -1
+
+        vector = 0
+        if level == 'slow':
+            vector = 2 * scroll_dir
+        elif level == 'fast':
+            vector = 4 * scroll_dir
+        index_finger = Actions(marionette)
+        index_finger.press(screen,mid_x,mid_y)
+
+        while 0 < iter_count:
+            index_finger.move_by_offset(0, vector)
+            index_finger.wait(0.01)
+            iter_count -= 1
+        index_finger.release()
+        index_finger.perform()
+
     class ImageMismatchError(Exception):
         def __init__(self, pixelcount, target, reference):
             message = '\n %s pixels mismatched between: %s, %s' \
                       % (pixelcount, target, reference)
             Exception.__init__(self, message)
+
+
