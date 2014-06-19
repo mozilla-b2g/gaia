@@ -229,8 +229,14 @@ ContactRenderer.prototype = {
       });
 
       // Render contact photo only for specific flavor
-      data.photoHTML = renderPhoto && details.photoURL ?
-        this.templates.photo.interpolate() : '';
+      if (renderPhoto && details.photoURL) {
+        data.photoHTML = this.templates.photo.interpolate({
+          photoURL: details.photoURL
+        });
+        Utils.asyncLoadRevokeURL(details.photoURL);
+      } else {
+        data.photoHTML = '';
+      }
 
       // Interpolate HTML template with data and inject.
       // Known "safe" HTML values will not be re-sanitized.
@@ -243,14 +249,6 @@ ContactRenderer.prototype = {
 
       if (blockParent) {
         blockParent.appendChild(block);
-      }
-
-      if (data.photoHTML) {
-        var contactPhoto = element.querySelector('.contact-photo');
-        contactPhoto.style.backgroundImage =
-          'url("' + encodeURI(details.photoURL) + '")';
-
-        Utils.asyncLoadRevokeURL(details.photoURL);
       }
 
       // scan for translatable stuff
