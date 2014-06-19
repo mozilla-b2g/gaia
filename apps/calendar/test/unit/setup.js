@@ -233,6 +233,14 @@
     }
   };
 
+  function requireBower() {
+    /* jshint validthis: true */
+    var args = Array.prototype.slice.call(arguments);
+    args[0] = 'calendar/bower_components/' + args[0];
+
+    return requireApp.apply(this, args);
+  }
+
   function requireLib() {
     /*jshint validthis: true */
     var args = Array.prototype.slice.call(arguments);
@@ -250,6 +258,7 @@
   }
 
   window.testSupport = testSupport;
+  window.requireBower = requireBower;
   window.requireLib = requireLib;
   window.requireSupport = requireSupport;
 

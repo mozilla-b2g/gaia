@@ -23,6 +23,7 @@
     "suiteTeardown",
     "require",
     "requireApp",
+    "requireBower",
     "requireCommon",
     "requireElements",
     "requireLib",

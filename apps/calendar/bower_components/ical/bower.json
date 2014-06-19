@@ -1,0 +1,12 @@
+{
+  "name": "ical.js",
+  "version": "0.0.1",
+  "description": "Javascript parser for ics files (rfc 5545)",
+  "homepage": "https://github.com/mozilla-comm/ical.js",
+  "license": "MIT",
+  "main": "ical.js",
+
+  "moduleType": [
+    "globals"
+  ]
+}

@@ -1,8 +1,8 @@
 /*global Factory */
 
-require('/shared/js/uuid.js');
 requireLib('calendar.js');
 requireLib('db.js');
+requireBower('node-uuid/uuid.js');
 requireLib('models/account.js');
 requireLib('models/calendar.js');
 requireLib('models/event.js');

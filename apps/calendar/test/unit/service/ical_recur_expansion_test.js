@@ -1,8 +1,8 @@
 'use strict';
 
 requireApp('calendar/test/unit/helper.js', function() {
-  requireLib('ext/ical.js');
-  requireLib('ext/caldav.js');
+  requireBower('ical/ical.js');
+  requireBower('caldav/caldav.js');
   requireApp('calendar/test/unit/service/helper.js');
   requireLib('service/ical_recur_expansion.js');
 

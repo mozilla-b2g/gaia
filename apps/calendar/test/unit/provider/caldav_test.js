@@ -1,6 +1,6 @@
 /*global Factory */
 
-requireLib('ext/ical.js');
+requireBower('ical/ical.js');
 requireApp('calendar/test/unit/service/helper.js');
 requireApp('calendar/test/unit/provider/mock_stream.js');
 requireLib('models/account.js');
