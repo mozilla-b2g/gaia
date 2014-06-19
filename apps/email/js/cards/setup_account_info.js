@@ -45,6 +45,12 @@ function SetupAccountInfoCard(domNode, mode, args) {
   this.manualConfig.addEventListener('click',
                                      this.onClickManualConfig.bind(this));
 
+  this.usingCachedNode = !!args.cachedNode;
+  
+  if (this.usingCachedNode) {
+    mozL10n.translateFragment(this.domNode);
+  }
+  
   new FormNavigation({
     formElem: domNode.getElementsByTagName('form')[0],
     onLast: this.onNext.bind(this)
