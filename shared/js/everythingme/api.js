@@ -156,7 +156,7 @@
           options.query = options.query.substr(0, this.MAX_QUERY_LENGTH);
         }
 
-        options.iconFormat = ICON_FORMAT;
+      options.iconFormat = ICON_FORMAT;
 
         return Request('Apps', 'search', options);
       }
