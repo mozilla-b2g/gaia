@@ -92,8 +92,8 @@ ViewfinderController.prototype.bindEvents = function() {
   this.app.on('camera:focuschanged', this.focusRing.setState);
   this.app.on('camera:configured', this.onCameraConfigured);
   this.app.on('camera:shutter', this.onShutter);
-  this.app.on('previewgallery:closed', this.startStream);
-  this.app.on('previewgallery:opened', this.stopStream);
+  this.app.on('previewgallery:closed', this.restartCamera);
+  this.app.on('previewgallery:opened', this.stopCamera);
   this.app.on('settings:closed', this.configureGrid);
   this.app.on('settings:opened', this.hideGrid);
   this.app.on('blur', this.stopStream);
@@ -160,6 +160,23 @@ ViewfinderController.prototype.stopStream = function() {
   debug('stream stopped');
 };
 
+// Called when we close the preview gallery
+// XXX: there is probably a better place for this code
+ViewfinderController.prototype.restartCamera = function() {
+  this.camera.load(function() {
+    this.camera.loadStreamInto(this.viewfinder.els.video);
+    debug('stream started');
+  }.bind(this));
+};
+
+// Called when we open the preview gallery
+ViewfinderController.prototype.stopCamera = function() {
+  this.viewfinder.stopStream();
+  this.camera.release(function() {
+    debug('stream stopped and camera hardware released');
+  });
+};
+
 /**
  * Configure the size and postion
  * of the preview video stream.
@@ -210,6 +227,10 @@ ViewfinderController.prototype.onZoomConfigured = function() {
  * @private
  */
 ViewfinderController.prototype.onPinchChanged = function(deltaPinch) {
+  // If we're displaying the preview gallery then we shouldn't even
+  // get this event, but since we do, we really need to ignore it!
+  if (this.app.get('previewGalleryOpen')) { return; }
+
   var zoom = this.viewfinder._zoom * (1 + (deltaPinch / this.sensitivity));
   this.viewfinder.setZoom(zoom);
   this.camera.setZoom(zoom);
