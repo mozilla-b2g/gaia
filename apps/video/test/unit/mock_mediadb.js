@@ -1,6 +1,8 @@
-/*jshint unused: true */
-/*exported MockMediaDB */
+/* jshint unused: true */
+/* exported MockMediaDB, MediaDB */
 'use strict';
+
+var MediaDB;
 
 var MockMediaDB = (function() {
 
@@ -12,7 +14,7 @@ var MockMediaDB = (function() {
     this.READY = 'ready';         // this is available and ready for use
     this.NOCARD = 'nocard';       // Unavailable because there is no sd card
     this.UNMOUNTED = 'unmounted'; // Unavailable because card unmounted
-    this.CLOSED = 'closed';       // Unavailalbe because this has closed
+    this.CLOSED = 'closed';       // Unavailable because closed() was called
   }
 
   MockMediaDB.prototype = {
