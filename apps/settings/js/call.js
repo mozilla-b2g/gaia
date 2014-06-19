@@ -190,14 +190,11 @@ var CallSettings = (function(window, document, undefined) {
     cs_updateFdnStatus();
     cs_updateVoicePrivacyItemState();
     if (!_updatingInProgress) {
-      cs_updateCallerIdPreference(
-        function panelready_updateCallerIdPref() {
-          cs_updateCallerIdItemState(
-            function panelready_updateCallerIdItemState() {
-              cs_updateCallWaitingItemState(
-                function panelready_updateCallWaitingItemState() {
-                  cs_updateCallForwardingSubpanels();
-              });
+      cs_updateCallerIdItemState(
+        function panelready_updateCallerIdItemState() {
+          cs_updateCallWaitingItemState(
+            function panelready_updateCallWaitingItemState() {
+              cs_updateCallForwardingSubpanels();
           });
       });
     }
@@ -619,62 +616,6 @@ var CallSettings = (function(window, document, undefined) {
     }
   }
 
-  function cs_updateCallerIdPreference(callback) {
-    if (typeof callback !== 'function') {
-      callback = function() {};
-    }
-
-    cs_enableTabOnCallerIdItem(false);
-    cs_enableTabOnCallWaitingItem(false);
-    cs_enableTapOnCallForwardingItems(false);
-
-    var req = _mobileConnection.getCallingLineIdRestriction();
-    req.onsuccess = function() {
-      var value = 0; //CLIR_DEFAULT
-
-      // In some legitimates error cases (FdnCheckFailure), the req.result
-      // is undefined. This is fine, we want this, and in this case we will
-      // just display an error message for all the matching requests.
-      if (req.result) {
-        switch (req.result['m']) {
-          case 1: // Permanently provisioned
-          case 3: // Temporary presentation disallowed
-          case 4: // Temporary presentation allowed
-            switch (req.result['n']) {
-              case 1: // CLIR invoked, CLIR_INVOCATION
-              case 2: // CLIR suppressed, CLIR_SUPPRESSION
-              case 0: // Network default, CLIR_DEFAULT
-                value = req.result['n']; //'CLIR_INVOCATION'
-                break;
-              default:
-                value = 0; //CLIR_DEFAULT
-                break;
-            }
-            break;
-          case 0: // Not Provisioned
-          case 2: // Unknown (network error, etc)
-          default:
-            value = 0; //CLIR_DEFAULT
-            break;
-        }
-
-        Settings.getSettings(function(results) {
-          var preferences = results['ril.clirMode'] || [0, 0];
-          var targetIndex = DsdsSettings.getIccCardIndexForCallSettings();
-          preferences[targetIndex] = value;
-          var setReq = _settings.createLock().set({
-            'ril.clirMode': preferences
-          });
-          setReq.onsuccess = callback;
-          setReq.onerror = callback;
-        });
-      } else {
-        callback();
-      }
-    };
-    req.onerror = callback;
-  }
-
   /**
    *
    */
@@ -691,29 +632,66 @@ var CallSettings = (function(window, document, undefined) {
     cs_enableTabOnCallWaitingItem(false);
     cs_enableTapOnCallForwardingItems(false);
 
-    Settings.getSettings(function(results) {
-      var targetIndex = DsdsSettings.getIccCardIndexForCallSettings();
-      var preferences = results['ril.clirMode'];
-      var preference = (preferences && preferences[targetIndex]) || 0;
+    var req = _mobileConnection.getCallingLineIdRestriction();
+    req.onsuccess = req.onerror = function(event) {
       var input = document.getElementById('ril-callerId');
 
-      var value;
-      switch (preference) {
-        case 1: // CLIR invoked
-          value = 'CLIR_INVOCATION';
-          break;
-        case 2: // CLIR suppressed
-          value = 'CLIR_SUPPRESSION';
-          break;
-        case 0: // Network default
-        default:
-          value = 'CLIR_DEFAULT';
-          break;
+      var value = 'CLIR_DEFAULT';
+
+      // In some legitimates error cases (FdnCheckFailure), the req.result is
+      // undefined. This is fine, we want this, and in this case we will just
+      // display an error message for all the matching requests.
+      if (req.result) {
+        switch (req.result['m']) {
+          case 1: // Permanently provisioned
+          case 3: // Temporary presentation disallowed
+          case 4: // Temporary presentation allowed
+            switch (req.result['n']) {
+              case 1: // CLIR invoked
+                value = 'CLIR_INVOCATION';
+                break;
+              case 2: // CLIR suppressed
+                value = 'CLIR_SUPPRESSION';
+                break;
+              case 0: // Network default
+              default:
+                value = 'CLIR_DEFAULT';
+                break;
+            }
+            break;
+          case 0: // Not Provisioned
+          case 2: // Unknown (network error, etc)
+          default:
+            value = 'CLIR_DEFAULT';
+            break;
+        }
       }
+
+      input.value = value;
 
       if (callback) {
         callback(null);
       }
+    };
+  }
+
+  /**
+   *
+   */
+  function cs_initCallerId() {
+    var element = document.getElementById('ril-callerId');
+    // We listen for blur events so that way we set the CLIR mode once the user
+    // clicks on the OK button.
+    element.addEventListener('blur', function(event) {
+      var clirMode = _clirConstantsMapping[element.value];
+      var req = _mobileConnection.setCallingLineIdRestriction(clirMode);
+      req.onsuccess = req.onerror = function() {
+        cs_updateCallerIdItemState(function() {
+          cs_enableTabOnCallerIdItem(true);
+          cs_enableTabOnCallWaitingItem(true);
+          cs_enableTapOnCallForwardingItems(true);
+        });
+      };
     });
   }
 
@@ -727,38 +705,6 @@ var CallSettings = (function(window, document, undefined) {
 
     confirmInput.checked = false;
     alertPanel.hidden = false;
-  }
-
-  /**
-   *
-   */
-  function cs_initCallerId() {
-    var element = document.getElementById('ril-callerId');
-
-    var updateItem = function() {
-      cs_updateCallerIdItemState(function() {
-        cs_enableTabOnCallerIdItem(true);
-        cs_enableTabOnCallWaitingItem(true);
-        cs_enableTapOnCallForwardingItems(true);
-      });
-    };
-
-    var updatePreferenceAndItem =
-      cs_updateCallerIdPreference.bind(null, updateItem);
-
-    // We listen for blur events so that way we set the CLIR mode once the
-    // user clicks on the OK button.
-    element.addEventListener('blur', function(event) {
-      var clirMode = _clirConstantsMapping[element.value];
-      var setReq = _mobileConnection.setCallingLineIdRestriction(clirMode);
-      // If the setting success, system app will sync the value.
-      // If the setting fails, we force sync the value here and update the UI.
-      setReq.onerror = updatePreferenceAndItem;
-    });
-
-    // As system app will sync the value 'ril.clirMode' with the carrier,
-    // the UI update will be triggered by updateItem.
-    navigator.mozSettings.addObserver('ril.clirMode', updateItem);
   }
 
   /**
