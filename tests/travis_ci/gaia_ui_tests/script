@@ -2,7 +2,7 @@
 set -e
 export GAIATEST_ACKNOWLEDGED_RISKS=true
 export GAIATEST_SKIP_WARNING=true
-source tests/travis_ci/venv.sh
+time source tests/travis_ci/venv.sh
 
 root=tests/python/gaia-ui-tests/gaiatest
 b2g=`find b2g -follow -name "b2g-bin" | tail -n 1`
@@ -10,7 +10,7 @@ profile=profile
 gaiatest="python $root/cli.py"
 
 echo "run the tests!"
-$gaiatest --app=b2gdesktop \
+time $gaiatest --app=b2gdesktop \
           --binary=$b2g \
           --profile=$profile \
           --type=b2g \
