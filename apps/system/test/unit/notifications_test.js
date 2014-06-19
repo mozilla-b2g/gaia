@@ -1,7 +1,7 @@
 /* global
   MocksHelper,
   MockStatusBar,
-  NotificationScreen,
+  Notifications,
   MockNavigatorMozChromeNotifications,
   MockNavigatorSettings
  */
@@ -19,7 +19,7 @@ require('/shared/test/unit/mocks/mock_settings_url.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_system.js');
 
-var mocksForNotificationScreen = new MocksHelper([
+var mocksForNotifications = new MocksHelper([
   'StatusBar',
   'GestureDetector',
   'NavigatorMozChromeNotifications',
@@ -31,10 +31,10 @@ var mocksForNotificationScreen = new MocksHelper([
   'System'
 ]).init();
 
-suite('system/NotificationScreen >', function() {
-  var fakeNotifContainer, fakeLockScreenContainer, fakeToaster,
+suite('system/Notifications >', function() {
+  var fakeNotifContainer, fakeToaster,
     fakeButton, fakeNoNotifications, fakeToasterIcon, fakeToasterTitle,
-    fakeToasterDetail, fakeSomeNotifications;
+    fakeToasterDetail, fakeSomeNotifications, subject;
 
   function sendChromeNotificationEvent(detail) {
     var event = new CustomEvent('mozChromeNotificationEvent', {
@@ -44,7 +44,7 @@ suite('system/NotificationScreen >', function() {
     window.dispatchEvent(event);
   }
 
-  mocksForNotificationScreen.attachTestHelpers();
+  mocksForNotifications.attachTestHelpers();
   setup(function() {
     fakeNotifContainer = document.createElement('div');
     fakeNotifContainer.id = 'desktop-notifications-container';
@@ -58,8 +58,6 @@ suite('system/NotificationScreen >', function() {
       return obj;
     }
 
-    fakeLockScreenContainer = createFakeElement('div',
-      'notifications-lockscreen-container');
     fakeToaster = createFakeElement('div', 'notification-toaster');
     fakeSomeNotifications = createFakeElement('span', 'notification-some');
     fakeNoNotifications = createFakeElement('span', 'notification-none');
@@ -70,7 +68,6 @@ suite('system/NotificationScreen >', function() {
 
     document.body.appendChild(fakeNotifContainer);
 
-    document.body.appendChild(fakeLockScreenContainer);
     document.body.appendChild(fakeToaster);
     document.body.appendChild(fakeSomeNotifications);
     document.body.appendChild(fakeNoNotifications);
@@ -79,20 +76,20 @@ suite('system/NotificationScreen >', function() {
     document.body.appendChild(fakeToasterTitle);
     document.body.appendChild(fakeToasterDetail);
 
-    NotificationScreen.init();
+    subject = new Notifications();
+    subject.start();
   });
 
   teardown(function() {
     fakeNotifContainer.parentNode.removeChild(fakeNotifContainer);
-    fakeLockScreenContainer.parentNode.removeChild(fakeLockScreenContainer);
     fakeToaster.parentNode.removeChild(fakeToaster);
     fakeButton.parentNode.removeChild(fakeButton);
   });
 
   suite('chrome events >', function() {
     setup(function() {
-      this.sinon.stub(NotificationScreen, 'addNotification');
-      this.sinon.stub(NotificationScreen, 'removeNotification');
+      this.sinon.stub(subject, 'addNotification');
+      this.sinon.stub(subject, 'removeNotification');
     });
 
     function sendChromeNotificationEvent(detail) {
@@ -109,8 +106,8 @@ suite('system/NotificationScreen >', function() {
         id: 'id-1'
       });
 
-      assert.ok(NotificationScreen.addNotification.called);
-      assert.equal(NotificationScreen.addNotification.args[0][0].id, 'id-1');
+      assert.ok(subject.addNotification.called);
+      assert.equal(subject.addNotification.args[0][0].id, 'id-1');
     });
 
     test('closing a notification', function() {
@@ -118,15 +115,15 @@ suite('system/NotificationScreen >', function() {
         type: 'desktop-notification-close',
         id: 'id-1'
       });
-      assert.ok(NotificationScreen.removeNotification.called);
-      assert.equal(NotificationScreen.removeNotification.args[0][0], 'id-1');
+      assert.ok(subject.removeNotification.called);
+      assert.equal(subject.removeNotification.args[0][0], 'id-1');
     });
   });
 
   suite('updateStatusBarIcon >', function() {
     setup(function() {
       this.sinon.spy(MockStatusBar, 'updateNotification');
-      NotificationScreen.updateStatusBarIcon();
+      subject.updateStatusBarIcon();
     });
 
     test('should update the icon in the status bar', function() {
@@ -137,14 +134,14 @@ suite('system/NotificationScreen >', function() {
     test('external notif should not be able to decrease the global count',
       function() {
 
-      NotificationScreen.decExternalNotifications();
+      subject.decExternalNotifications();
       assert.equal(2, MockStatusBar.notificationsCount);
     });
 
     test('external notif should increase the global count',
       function() {
 
-      NotificationScreen.incExternalNotifications();
+      subject.incExternalNotifications();
       assert.isTrue(MockStatusBar.mNotificationUnread);
       assert.equal(3, MockStatusBar.notificationsCount);
     });
@@ -152,38 +149,38 @@ suite('system/NotificationScreen >', function() {
     test('external notif should decrease the global count',
       function() {
 
-      NotificationScreen.incExternalNotifications();
+      subject.incExternalNotifications();
       MockStatusBar.mNotificationUnread = false;
-      NotificationScreen.decExternalNotifications();
+      subject.decExternalNotifications();
       assert.isFalse(MockStatusBar.mNotificationUnread);
       assert.equal(2, MockStatusBar.notificationsCount);
     });
 
     test('should change the read status', function() {
-      NotificationScreen.updateStatusBarIcon(true);
+      subject.updateStatusBarIcon(true);
       assert.isTrue(MockStatusBar.mNotificationUnread);
     });
 
     test('calling addNotification without icon', function() {
-      var toasterIcon = NotificationScreen.toasterIcon;
+      var toasterIcon = subject.toasterIcon;
       var imgpath = 'http://example.com/test.png';
       var detail = {icon: imgpath, title: 'title', detail: 'detail'};
-      NotificationScreen.addNotification(detail);
+      subject.addNotification(detail);
       assert.equal(imgpath, toasterIcon.src);
       assert.isFalse(toasterIcon.hidden);
       delete detail.icon;
-      NotificationScreen.addNotification(detail);
+      subject.addNotification(detail);
       assert.isTrue(toasterIcon.hidden);
     });
 
     function testNotificationWithDirection(dir) {
-      var toasterTitle = NotificationScreen.toasterTitle;
+      var toasterTitle = subject.toasterTitle;
       var imgpath = 'http://example.com/test.png';
       var detail = {icon: imgpath,
                     title: 'title',
                     detail: 'detail',
                     bidi: dir};
-      NotificationScreen.addNotification(detail);
+      subject.addNotification(detail);
       assert.equal(dir, toasterTitle.dir);
     }
 
@@ -200,33 +197,33 @@ suite('system/NotificationScreen >', function() {
     });
 
     test('calling addNotification without direction', function() {
-      var toasterTitle = NotificationScreen.toasterTitle;
+      var toasterTitle = subject.toasterTitle;
       var imgpath = 'http://example.com/test.png';
       var detail = {icon: imgpath, title: 'title', detail: 'detail'};
-      NotificationScreen.addNotification(detail);
+      subject.addNotification(detail);
       assert.equal('auto', toasterTitle.dir);
     });
 
     test('calling addNotification with language', function() {
-      var toasterTitle = NotificationScreen.toasterTitle;
+      var toasterTitle = subject.toasterTitle;
       var imgpath = 'http://example.com/test.png';
       var detail = {icon: imgpath, title: 'title', lang: 'en'};
-      NotificationScreen.addNotification(detail);
+      subject.addNotification(detail);
       assert.equal('en', toasterTitle.lang);
     });
 
     test('calling addNotification without language', function() {
-      var toasterTitle = NotificationScreen.toasterTitle;
+      var toasterTitle = subject.toasterTitle;
       var imgpath = 'http://example.com/test.png';
       var detail = {icon: imgpath, title: 'title'};
-      NotificationScreen.addNotification(detail);
+      subject.addNotification(detail);
       assert.equal('undefined', toasterTitle.lang);
     });
 
     test('calling addNotification with timestamp', function() {
       var timestamp = 1397802220000;
       var detail = {timestamp: timestamp};
-      NotificationScreen.addNotification(detail);
+      subject.addNotification(detail);
       var timestamps = document.getElementsByClassName('timestamp');
       assert.equal(timestamps.length, 1);
       var ts = timestamps[0].dataset.timestamp;
@@ -240,7 +237,7 @@ suite('system/NotificationScreen >', function() {
       // fromDate == 1397810684000 -- now == 1397810684105
       var now = parseInt(new Date().getTime() / 1000) * 1000;
       var detail = {timestamp: undefined};
-      NotificationScreen.addNotification(detail);
+      subject.addNotification(detail);
       var timestamps = document.getElementsByClassName('timestamp');
       assert.equal(timestamps.length, 1);
       var ts = timestamps[0].dataset.timestamp;
@@ -279,38 +276,27 @@ suite('system/NotificationScreen >', function() {
 
       test('converts timestamp to string', function() {
         var timestamp = new Date();
-        var date = NotificationScreen.prettyDate(timestamp);
+        var date = subject.prettyDate(timestamp);
         assert.isTrue(typeof date === 'string');
       });
 
       test('shows now', function() {
         var timestamp = new Date();
-        var date = NotificationScreen.prettyDate(timestamp);
+        var date = subject.prettyDate(timestamp);
         assert.equal(date, 'now');
       });
 
       test('shows 1m ago', function() {
         var timestamp = new Date(new Date().getTime() - 61*1000);
-        var date = NotificationScreen.prettyDate(timestamp);
+        var date = subject.prettyDate(timestamp);
         assert.equal(date, '1m ago');
       });
-    });
-
-    test('remove lockscreen notifications at the same time', function() {
-      NotificationScreen.addNotification({
-        id: 'id-10000', title: '', message: ''
-      });
-      NotificationScreen.removeNotification('id-10000');
-      assert.equal(
-        null,
-        fakeLockScreenContainer.querySelector(
-          '[data-notification-i-d="id-10000"]'));
     });
   });
 
   suite('differentiating api >', function() {
     test('identifying deprecated API', function() {
-      var node = NotificationScreen.addNotification({
+      var node = subject.addNotification({
         id: 'app-notif-1',
         title: '',
         message: ''
@@ -319,7 +305,7 @@ suite('system/NotificationScreen >', function() {
     });
 
     test('identifying new API', function() {
-      var node = NotificationScreen.addNotification({
+      var node = subject.addNotification({
         id: 'app://notif',
         title: '',
         message: ''
@@ -338,7 +324,7 @@ suite('system/NotificationScreen >', function() {
     };
 
     setup(function() {
-      notificationNode = NotificationScreen.addNotification(details);
+      notificationNode = subject.addNotification(details);
 
       notifClickedStub = sinon.stub();
       contentNotificationEventStub = sinon.stub();
@@ -386,7 +372,7 @@ suite('system/NotificationScreen >', function() {
     };
 
     setup(function() {
-      notificationNode = NotificationScreen.addNotification(details);
+      notificationNode = subject.addNotification(details);
 
       notifClickedStub = sinon.stub();
       contentNotificationEventStub = sinon.stub();
@@ -482,7 +468,7 @@ suite('system/NotificationScreen >', function() {
       function sendNotification() {
         var imgpath = 'http://example.com/test.png';
         var detail = {icon: imgpath, title: 'title', detail: 'detail'};
-        NotificationScreen.addNotification(detail);
+        subject.addNotification(detail);
       }
 
       setup(function() {
@@ -491,23 +477,24 @@ suite('system/NotificationScreen >', function() {
       });
 
       test('isResending is false', function() {
-        assert.isFalse(NotificationScreen.isResending);
+        assert.isFalse(subject.isResending);
       });
 
       test('isResending is switched to true when receiving resend event',
         function() {
-          assert.isFalse(NotificationScreen.isResending);
+          assert.isFalse(subject.isResending);
           window.dispatchEvent(
             new CustomEvent('desktop-notification-resend',
             { detail: { number: 1 } } ));
           this.sinon.clock.tick();
-          assert.isTrue(NotificationScreen.isResending);
+          assert.isTrue(subject.isResending);
         }
       );
 
       test('isResending is switched to false when receiving a notification',
         function() {
-          assert.isTrue(NotificationScreen.isResending);
+          // Since we instance it everytime, it would be default value (false).
+          subject.isResending = true;
           window.dispatchEvent(
             new CustomEvent('desktop-notification-resend',
             { detail: { number: 1 } } ));
@@ -517,13 +504,13 @@ suite('system/NotificationScreen >', function() {
             id: 'id-1'
           });
           this.sinon.clock.tick(1000);
-          assert.isFalse(NotificationScreen.isResending);
+          assert.isFalse(subject.isResending);
         }
       );
 
       test('isResending true blocks vibrate()', function() {
-        NotificationScreen.isResending = true;
-        assert.isTrue(NotificationScreen.isResending);
+        subject.isResending = true;
+        assert.isTrue(subject.isResending);
 
         sendNotification();
         this.sinon.clock.tick(1000);
@@ -531,69 +518,12 @@ suite('system/NotificationScreen >', function() {
       });
 
       test('isResending false allows vibrate()', function() {
-        NotificationScreen.isResending = false;
-        assert.isFalse(NotificationScreen.isResending);
+        subject.isResending = false;
+        assert.isFalse(subject.isResending);
 
         sendNotification();
         this.sinon.clock.tick(1000);
         assert.ok(vibrateSpy.called);
-      });
-    });
-
-    suite('on restart >', function() {
-      var dispatchEventSpy, resendSpy;
-      var setting = 'notifications.resend';
-
-      setup(function() {
-        resendSpy = this.sinon.spy(MockNavigatorMozChromeNotifications,
-          'mozResendAllNotifications');
-        this.sinon.useFakeTimers();
-        dispatchEventSpy = this.sinon.spy(window, 'dispatchEvent');
-      });
-
-      suite('setting is true >', function() {
-        setup(function() {
-          MockNavigatorSettings.mSettings[setting] = true;
-          window.dispatchEvent(new CustomEvent('load'));
-        });
-
-        test('mozResendAllNotifications called', function() {
-          this.sinon.clock.tick();
-          assert.ok(resendSpy.calledOnce);
-        });
-
-        test('desktop-notification-resend sent', function() {
-          this.sinon.clock.tick();
-          var expectedEvent =
-            new CustomEvent('desktop-notification-resend',
-              { detail: { number: 1 } } );
-          assert.ok(dispatchEventSpy.called);
-          assert.equal(
-            dispatchEventSpy.lastCall.args[0].type, expectedEvent.type);
-          assert.equal(
-            dispatchEventSpy.lastCall.args[0].detail.number,
-            expectedEvent.detail.number);
-        });
-      });
-
-      suite('setting is false >', function() {
-        setup(function() {
-          MockNavigatorSettings.mSettings[setting] = false;
-          window.dispatchEvent(new CustomEvent('load'));
-        });
-
-        test('mozResendAllNotifications not called', function() {
-          assert.ok(resendSpy.notCalled);
-        });
-
-        test('desktop-notification-resend not sent', function() {
-          var expectedEvent =
-            new CustomEvent('desktop-notification-resend',
-              { detail: { number: 1 } } );
-          assert.ok(dispatchEventSpy.called);
-          assert.notEqual(
-            dispatchEventSpy.lastCall.args[0].type, expectedEvent.type);
-        });
       });
     });
   });

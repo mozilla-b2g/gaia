@@ -66,6 +66,30 @@ window.addEventListener('load', function startup() {
     window.textSelectionDialog = new TextSelectionDialog();
   }
 
+  function setupNotifications() {
+    if ('mozSettings' in navigator && navigator.mozSettings) {
+      var key = 'notifications.resend';
+      var req = navigator.mozSettings.createLock().get(key);
+      req.onsuccess = function onsuccess() {
+        var resendEnabled = req.result[key] || false;
+        if (!resendEnabled) {
+          return;
+        }
+
+        var resendCallback = (function(number) {
+          window.dispatchEvent(
+            new CustomEvent('desktop-notification-resend',
+              { detail: { number: number } }));
+        }).bind(this);
+
+        if ('mozChromeNotifications' in navigator) {
+          navigator.mozChromeNotifications.
+            mozResendAllNotifications(resendCallback);
+        }
+      };
+    }
+  }
+
   function safelyLaunchFTU() {
     window.addEventListener('homescreen-ready', function onHomescreenReady() {
       window.removeEventListener('homescreen-ready', onHomescreenReady);
@@ -74,6 +98,8 @@ window.addEventListener('load', function startup() {
     /** @global */
     window.homescreenLauncher = new HomescreenLauncher().start();
   }
+
+  setupNotifications();
 
   if (applications.ready) {
     registerGlobalEntries();

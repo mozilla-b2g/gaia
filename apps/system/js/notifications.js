@@ -1,76 +1,81 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+/**
+ * Copyright 2012, Mozilla Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-'use strict';
+/**
+ * This Notifications is for UtilityTray,
+ * which would show notifications on it, and would
+ * control the functions like clearing them.
+ */
+(function(exports) {
+  'use strict';
+  var Notifications = function() {
+    this.TOASTER_TIMEOUT = 5000;
+    this.TRANSITION_SPEED = 1.8;
+    this.TRANSITION_FRACTION = 0.30;
 
-(function appCacheIcons() {
-  // Caching the icon for notification if appCache is in effect
-  var appCache = window.applicationCache;
-  if (!appCache)
-    return;
+    this._notification = null;
+    this._containerWidth = null;
+    this._toasterTimeout = null;
+    this._toasterGD = null;
 
-  var addIcons = function addIcons(app) {
-    if (!app.manifest)
-      return;
-    var icons = app.manifest.icons;
-    if (icons) {
-      Object.keys(icons).forEach(function iconIterator(key) {
-        var url = app.origin + icons[key];
-        appCache.mozAdd(url);
-      });
-    }
+    this.silent = false;
+    this.vibrates = true;
+    this.isResending = false;
+    this.resendReceived = 0;
+    this.resendExpecting = 0;
+
+    this.lockscreenPreview = true;
   };
 
-  var removeIcons = function removeIcons(app) {
-    var icons = app.manifest.icons;
-    if (icons) {
-      Object.keys(icons).forEach(function iconIterator(key) {
-        var url = app.origin + icons[key];
-        appCache.mozRemove(url);
-      });
-    }
-  };
+  Notifications.prototype.start =
+  function ns_start() {
+    window.SettingsListener.observe(
+        'lockscreen.notifications-preview.enabled', true, (value) => {
+      this.lockscreenPreview = value;
+    });
 
-  window.addEventListener('applicationinstall', function bsm_oninstall(evt) {
-    addIcons(evt.detail.application);
-  });
+    window.SettingsListener.observe('audio.volume.notification', 7, (value) => {
+      this.silent = (value === 0);
+    });
 
-  window.addEventListener('applicationuninstall', function bsm_oninstall(evt) {
-    removeIcons(evt.detail.application);
-  });
-}());
+    window.SettingsListener.observe('vibration.enabled', true, (value) => {
+      this.vibrates = value;
+    });
 
-var NotificationScreen = {
-  TOASTER_TIMEOUT: 5000,
-  TRANSITION_SPEED: 1.8,
-  TRANSITION_FRACTION: 0.30,
-
-  _notification: null,
-  _containerWidth: null,
-  _toasterTimeout: null,
-  _toasterGD: null,
-
-  lockscreenPreview: true,
-  silent: false,
-  vibrates: true,
-  isResending: false,
-  resendReceived: 0,
-  resendExpecting: 0,
-
-  init: function ns_init() {
     window.addEventListener('mozChromeNotificationEvent', this);
     this.container =
       document.getElementById('desktop-notifications-container');
-    this.lockScreenContainer =
-      document.getElementById('notifications-lockscreen-container');
+
+    window.addEventListener('notification-add', this);
+    window.addEventListener('notification-remove', this);
+    window.addEventListener('notification-descrease', this);
+    window.addEventListener('notification-increase', this);
+
+    if (window.applicationCache) {
+      this.enableIconCache();
+    }
+
     this.toaster = document.getElementById('notification-toaster');
     this.toasterIcon = document.getElementById('toaster-icon');
     this.toasterTitle = document.getElementById('toaster-title');
     this.toasterDetail = document.getElementById('toaster-detail');
     this.clearAllButton = document.getElementById('notification-clear');
 
-    this._toasterGD = new GestureDetector(this.toaster);
-    ['tap', 'touchstart', 'swipe', 'wheel'].forEach(function(evt) {
+    this._toasterGD = new window.GestureDetector(this.toaster);
+    ['tap', 'mousedown', 'swipe', 'wheel'].forEach(function(evt) {
       this.container.addEventListener(evt, this);
       this.toaster.addEventListener(evt, this);
     }, this);
@@ -82,8 +87,6 @@ var NotificationScreen = {
     this.externalNotificationsCount = 0;
 
     window.addEventListener('utilitytrayshow', this);
-    window.addEventListener('lockscreen-appclosed',
-      this.clearLockScreen.bind(this));
     window.addEventListener('visibilitychange', this);
     window.addEventListener('ftuopen', this);
     window.addEventListener('ftudone', this);
@@ -95,25 +98,78 @@ var NotificationScreen = {
 
     this._sound = 'style/notifications/ringtones/notifier_exclamation.ogg';
 
-    this.ringtoneURL = new SettingsURL();
+    this.ringtoneURL = new window.SettingsURL();
 
     // set up the media playback widget, but only if |MediaPlaybackWidget| is
     // defined (we don't define it in tests)
     if (typeof MediaPlaybackWidget !== 'undefined') {
-      this.mediaPlaybackWidget = new MediaPlaybackWidget(
+      this.mediaPlaybackWidget = new window.MediaPlaybackWidget(
         document.getElementById('media-playback-container'),
         {nowPlayingAction: 'openapp'}
       );
     }
 
-    var self = this;
-    SettingsListener.observe('notification.ringtone', '', function(value) {
-      self._sound = self.ringtoneURL.set(value);
+    window.SettingsListener.observe('notification.ringtone', '', (value) => {
+      this._sound = this.ringtoneURL.set(value);
     });
-  },
+  };
 
-  handleEvent: function ns_handleEvent(evt) {
+  Notifications.prototype.enableIconCache =
+  function ns_enableIconCache() {
+    var appCache = window.applicationCache;
+    var addIcons = function addIcons(app) {
+      if (!app.manifest) {
+        return;
+      }
+      var icons = app.manifest.icons;
+      if (icons) {
+        Object.keys(icons).forEach(function iconIterator(key) {
+          var url = app.origin + icons[key];
+          appCache.mozAdd(url);
+        });
+      }
+    };
+
+    var removeIcons = function removeIcons(app) {
+      var icons = app.manifest.icons;
+      if (icons) {
+        Object.keys(icons).forEach(function iconIterator(key) {
+          var url = app.origin + icons[key];
+          appCache.mozRemove(url);
+        });
+      }
+    };
+
+    window.addEventListener('applicationinstall',
+    function bsm_oninstall(evt) {
+      addIcons(evt.detail.application);
+    });
+
+    window.addEventListener('applicationuninstall',
+    function bsm_oninstall(evt) {
+      removeIcons(evt.detail.application);
+    });
+  };
+
+  Notifications.prototype.handleEvent =
+  function ns_handleEvent(evt) {
     switch (evt.type) {
+      case 'notification-add':
+        var onsuccess = evt.detail.onsuccess;
+        var notification = this.addNotification(evt.detail);
+        if (onsuccess) {
+          onsuccess(notification);
+        }
+        break;
+      case 'notification-remove':
+        this.removeNotification(evt.detail);
+        break;
+      case 'notification-descrease':
+        this.decExternalNotifications();
+        break;
+      case 'notification-increase':
+        this.incExternalNotifications();
+        break;
       case 'mozChromeNotificationEvent':
         var detail = evt.detail;
         switch (detail.type) {
@@ -141,9 +197,10 @@ var NotificationScreen = {
         break;
       case 'wheel':
         this.wheel(evt);
+       /* falls through */
       case 'utilitytrayshow':
         this.updateTimestamps();
-        StatusBar.updateNotificationUnread(false);
+        window.StatusBar.updateNotificationUnread(false);
         break;
       case 'visibilitychange':
         //update timestamps in lockscreen notifications
@@ -164,10 +221,11 @@ var NotificationScreen = {
         }
         break;
     }
-  },
+  };
 
   // TODO: Remove this when we ditch mozNotification (bug 952453)
-  clearDesktopNotifications: function ns_handleAppopen(evt) {
+  Notifications.prototype.clearDesktopNotifications =
+  function ns_handleAppopen(evt) {
     var manifestURL = evt.detail.manifestURL,
         selector = '[data-manifest-u-r-l="' + manifestURL + '"]';
 
@@ -178,20 +236,23 @@ var NotificationScreen = {
         this.closeNotification(nodes[i]);
       }
     }
-  },
+  };
 
   // Swipe handling
-  touchstart: function ns_touchstart(evt) {
+  Notifications.prototype.touchstart =
+  function ns_touchstart(evt) {
     var target = evt.touches[0].target;
-    if (!target.dataset.notificationId)
+    if (!target.dataset.notificationId) {
       return;
+    }
 
     evt.preventDefault();
     this._notification = target;
     this._containerWidth = this.container.clientWidth;
-  },
+  };
 
-  swipe: function ns_swipe(evt) {
+  Notifications.prototype.swipe =
+  function ns_swipe(evt) {
     var detail = evt.detail;
     var distance = detail.start.screenX - detail.end.screenX;
     var fastEnough = Math.abs(detail.vx) > this.TRANSITION_SPEED;
@@ -209,16 +270,18 @@ var NotificationScreen = {
     }
 
     this.swipeCloseNotification();
-  },
+  };
 
-  wheel: function ns_wheel(evt) {
+  Notifications.prototype.wheel =
+  function ns_wheel(evt) {
     if (evt.deltaMode === evt.DOM_DELTA_PAGE && evt.deltaX) {
       this._notification = evt.target;
       this.swipeCloseNotification();
     }
-  },
+  };
 
-  tap: function ns_tap(node) {
+  Notifications.prototype.tap =
+  function ns_tap(node) {
     var notificationId = node.dataset.notificationId;
     var notificationNode = this.container.querySelector(
       '[data-notification-id="' + notificationId + '"]');
@@ -245,22 +308,24 @@ var NotificationScreen = {
     if (node == this.toaster) {
       this.toaster.classList.remove('displayed');
     } else {
-      UtilityTray.hide();
+      window.UtilityTray.hide();
     }
-  },
+  };
 
-  updateTimestamps: function ns_updateTimestamps() {
+  Notifications.prototype.updateTimestamps =
+  function ns_updateTimestamps() {
     var timestamps = document.getElementsByClassName('timestamp');
     for (var i = 0, l = timestamps.length; i < l; i++) {
       timestamps[i].textContent =
         this.prettyDate(new Date(timestamps[i].dataset.timestamp));
     }
-  },
+  };
 
   /**
    * Display a human-readable relative timestamp.
    */
-  prettyDate: function prettyDate(time) {
+  Notifications.prototype.prettyDate =
+  function prettyDate(time) {
     var date;
     if (navigator.mozL10n) {
       date = navigator.mozL10n.DateTimeFormat().fromNow(time, true);
@@ -268,9 +333,10 @@ var NotificationScreen = {
       date = time.toLocaleFormat();
     }
     return date;
-  },
+  };
 
-  updateToaster: function ns_updateToaster(detail, type, dir) {
+  Notifications.prototype.updateToaster =
+  function ns_updateToaster(detail, type, dir) {
     if (detail.icon) {
       this.toasterIcon.src = detail.icon;
       this.toasterIcon.hidden = false;
@@ -287,28 +353,34 @@ var NotificationScreen = {
     this.toasterDetail.textContent = detail.text;
     this.toasterDetail.lang = detail.lang;
     this.toasterDetail.dir = dir;
-  },
+  };
 
-  addNotification: function ns_addNotification(detail) {
-    // LockScreen window may not opened while this singleton got initialized.
-    this.lockScreenContainer = this.lockScreenContainer ||
-      document.getElementById('notifications-lockscreen-container');
+  Notifications.prototype.createNotification =
+  function ns_createNotification(detail) {
+    var icon = null;
     var notificationNode = document.createElement('div');
     notificationNode.className = 'notification';
     notificationNode.setAttribute('role', 'link');
-
     notificationNode.dataset.notificationId = detail.id;
     notificationNode.dataset.obsoleteAPI = 'false';
     if (typeof detail.id === 'string' &&
         detail.id.indexOf('app-notif-') === 0) {
       notificationNode.dataset.obsoleteAPI = 'true';
     }
-    var type = notificationNode.dataset.type = detail.type ||
-                                              'desktop-notification';
+
     notificationNode.dataset.manifestURL = detail.manifestURL || '';
+    notificationNode.dataset.type = detail.type ||
+                                'desktop-notification';
+    notificationNode.dataset.id = detail.id;
+    notificationNode.dataset.bidi = detail.bidi;
+    notificationNode.dataset.manifestURL = detail.manifestURL;
+    notificationNode.dataset.noNoty = detail.noNoty ? true : false;
+    notificationNode.dataset.text = detail.text;
+    notificationNode.dataset.lang = detail.lang;
 
     if (detail.icon) {
-      var icon = document.createElement('img');
+      icon = document.createElement('img');
+      icon.classList.add('icon');
       icon.src = detail.icon;
       icon.setAttribute('role', 'presentation');
       notificationNode.appendChild(icon);
@@ -338,8 +410,29 @@ var NotificationScreen = {
     notificationNode.appendChild(message);
     message.lang = detail.lang;
     message.dir = dir;
+    return notificationNode;
+  };
 
-    var notifSelector = '[data-notification-id="' + detail.id + '"]';
+  Notifications.prototype.addNotification =
+  function ns_addNotification(detail) {
+    var notification = detail;
+    if (!(notification instanceof window.HTMLElement)) {
+      notification = this.createNotification(detail);
+    }
+    var dir = (notification.dataset.bidi === 'ltr' ||
+               notification.dataset.bidi === 'rtl') ?
+          notification.dataset.bidi : 'auto';
+    var manifestURL = notification.dataset.manifestURL;
+    var noNoty = 'true' === notification.dataset.noNoty;
+    var id = notification.dataset.id;
+    var lang = notification.dataset.lang;
+    var type = notification.dataset.type;
+    var text = notification.dataset.text;
+    var time = notification.querySelector('.timestamp');
+    var title = notification.querySelector('.title');
+    var message = notification.querySelector('.detail');
+    var icon = notification.querySelector('.icon');
+    var notifSelector = '[data-notification-id="' + id + '"]';
     var oldNotif = this.container.querySelector(notifSelector);
     if (oldNotif) {
       // The whole node cannot be replaced because CSS animations are re-started
@@ -354,38 +447,46 @@ var NotificationScreen = {
         oldNotif.removeChild(oldIcon);
       }
       oldNotif.dataset.type = type;
-      notificationNode = oldNotif;
+      notification = oldNotif;
     } else {
-      this.container.insertBefore(notificationNode,
+      this.container.insertBefore(notification,
           this.container.firstElementChild);
     }
 
     var event = document.createEvent('CustomEvent');
     event.initCustomEvent('mozContentNotificationEvent', true, true, {
       type: 'desktop-notification-show',
-      id: detail.id
+      id: id
     });
     window.dispatchEvent(event);
 
-    new GestureDetector(notificationNode).startDetecting();
+    new window.GestureDetector(notification).startDetecting();
 
     // We turn the screen on if needed in order to let
     // the user see the notification toaster
     if (typeof(ScreenManager) !== 'undefined' &&
-      !ScreenManager.screenEnabled) {
+      !window.ScreenManager.screenEnabled) {
       // bug 915236: disable turning on the screen for email notifications
-      if (!detail.manifestURL ||
-           detail.manifestURL.indexOf('email.gaiamobile.org') === -1) {
-        ScreenManager.turnScreenOn();
+      if (manifestURL.indexOf('email.gaiamobile.org') === -1) {
+        window.ScreenManager.turnScreenOn();
       }
     }
 
     this.updateStatusBarIcon(true);
 
-    var notify = !('noNotify' in detail);
+    var notify = !noNoty;
     // Notification toaster
     if (notify) {
-      this.updateToaster(detail, type, dir);
+      var toasterDetail = {
+        icon: icon ? icon.src : '',
+        id: id,
+        type: type,
+        title: title ? title.textContent : '',
+        lang: lang,
+        text: text
+      };
+      this.updateToaster(toasterDetail, type, dir);
+
       if (this.lockscreenPreview || !window.System.locked) {
         this.toaster.classList.add('displayed');
         this._toasterGD.startDetecting();
@@ -400,36 +501,6 @@ var NotificationScreen = {
           this._toasterGD.stopDetecting();
         }).bind(this), this.TOASTER_TIMEOUT);
       }
-    }
-
-    // Adding it to the lockscreen if locked and the privacy setting
-    // does not prevent it.
-    if (System.locked && this.lockscreenPreview) {
-      var lockScreenNode = notificationNode.cloneNode(true);
-
-      // First we try and find an existing notification with the same id.
-      // If we have one, we'll replace it. If not, we'll create a new node.
-      var oldLockScreenNode =
-        this.lockScreenContainer.querySelector(notifSelector);
-      if (oldLockScreenNode) {
-        this.lockScreenContainer.replaceChild(
-          lockScreenNode,
-          oldLockScreenNode
-        );
-      }
-      else {
-        this.lockScreenContainer.insertBefore(
-          lockScreenNode,
-          this.lockScreenContainer.firstElementChild
-        );
-      }
-
-      // when we have notifications, show bgcolor from wallpaper
-      // remove the simple gradient at the same time
-      window.lockScreen.maskedBackground.style.backgroundColor =
-        window.lockScreen.maskedBackground.dataset.wallpaperColor;
-
-      window.lockScreen.maskedBackground.classList.remove('blank');
     }
 
     if (notify && !this.isResending) {
@@ -460,10 +531,11 @@ var NotificationScreen = {
     // must be at least one notification now
     this.clearAllButton.disabled = false;
 
-    return notificationNode;
-  },
+    return notification;
+  };
 
-  swipeCloseNotification: function ns_swipeCloseNotification() {
+  Notifications.prototype.swipeCloseNotification =
+  function ns_swipeCloseNotification() {
     var notification = this._notification;
     this._notification = null;
 
@@ -493,9 +565,10 @@ var NotificationScreen = {
     });
 
     notification.classList.add('disappearing');
-  },
+  };
 
-  closeNotification: function ns_closeNotification(notificationNode) {
+  Notifications.prototype.closeNotification =
+  function ns_closeNotification(notificationNode) {
     var notificationId = notificationNode.dataset.notificationId;
     var event = document.createEvent('CustomEvent');
     event.initCustomEvent('mozContentNotificationEvent', true, true, {
@@ -504,21 +577,28 @@ var NotificationScreen = {
     });
     window.dispatchEvent(event);
     this.removeNotification(notificationId);
-  },
+  };
 
-  removeNotification: function ns_removeNotification(notificationId) {
+  Notifications.prototype.removeNotification =
+  function ns_removeNotification(notificationId) {
     var notifSelector = '[data-notification-id="' + notificationId + '"]';
     var notificationNode = this.container.querySelector(notifSelector);
+    var lockScreenNotificationNode = null;
+
+    // ^^
     this.lockScreenContainer = this.lockScreenContainer ||
       document.getElementById('notifications-lockscreen-container');
+
     if (this.lockScreenContainer) {
-      var lockScreenNotificationNode =
+      lockScreenNotificationNode =
         this.lockScreenContainer.querySelector(notifSelector);
     }
 
-    if (notificationNode)
+    if (notificationNode) {
       notificationNode.parentNode.removeChild(notificationNode);
+    }
 
+    // ^^
     if (lockScreenNotificationNode) {
       var lockScreenNotificationParentNode =
         lockScreenNotificationNode.parentNode;
@@ -537,15 +617,18 @@ var NotificationScreen = {
       // no notifications left
       this.clearAllButton.disabled = true;
     }
-  },
+  };
 
-  clearAll: function ns_clearAll() {
+  Notifications.prototype.clearAll =
+  function ns_clearAll() {
     while (this.container.firstElementChild) {
       this.closeNotification(this.container.firstElementChild);
     }
-  },
+  };
 
-  clearLockScreen: function ns_clearLockScreen() {
+  // ^^
+  Notifications.prototype.clearLockScreen =
+  function ns_clearLockScreen() {
     // The LockScreenWindow may not be instantiated yet.
     if (!this.lockScreenContainer) {
       return;
@@ -558,69 +641,35 @@ var NotificationScreen = {
     // and use the simple gradient
     window.lockScreen.maskedBackground.style.backgroundColor = 'transparent';
     window.lockScreen.maskedBackground.classList.add('blank');
-  },
+  };
 
-  updateStatusBarIcon: function ns_updateStatusBarIcon(unread) {
+  Notifications.prototype.updateStatusBarIcon =
+  function ns_updateStatusBarIcon(unread) {
     var nbTotalNotif = this.container.children.length +
       this.externalNotificationsCount;
-    StatusBar.updateNotification(nbTotalNotif);
+    window.StatusBar.updateNotification(nbTotalNotif);
 
-    if (unread)
-      StatusBar.updateNotificationUnread(true);
-  },
+    if (unread) {
+      window.StatusBar.updateNotificationUnread(true);
+    }
+  };
 
-  incExternalNotifications: function ns_incExternalNotifications() {
+  Notifications.prototype.incExternalNotifications =
+  function ns_incExternalNotifications() {
     this.externalNotificationsCount++;
     this.updateStatusBarIcon(true);
-  },
+  };
 
-  decExternalNotifications: function ns_decExternalNotifications() {
+  Notifications.prototype.decExternalNotifications =
+  function ns_decExternalNotifications() {
     this.externalNotificationsCount--;
     if (this.externalNotificationsCount < 0) {
       this.externalNotificationsCount = 0;
     }
     this.updateStatusBarIcon();
-  }
+  };
 
-};
-
-window.addEventListener('load', function() {
-  window.removeEventListener('load', this);
-  if ('mozSettings' in navigator && navigator.mozSettings) {
-    var key = 'notifications.resend';
-    var req = navigator.mozSettings.createLock().get(key);
-    req.onsuccess = function onsuccess() {
-      var resendEnabled = req.result[key] || false;
-      if (!resendEnabled) {
-        return;
-      }
-
-      var resendCallback = (function(number) {
-        window.dispatchEvent(
-          new CustomEvent('desktop-notification-resend',
-            { detail: { number: number } }));
-      }).bind(this);
-
-      if ('mozChromeNotifications' in navigator) {
-        navigator.mozChromeNotifications.
-          mozResendAllNotifications(resendCallback);
-      }
-    };
-  }
-});
-
-NotificationScreen.init();
-
-SettingsListener.observe(
-    'lockscreen.notifications-preview.enabled', true, function(value) {
-
-  NotificationScreen.lockscreenPreview = value;
-});
-
-SettingsListener.observe('audio.volume.notification', 7, function(value) {
-  NotificationScreen.silent = (value == 0);
-});
-
-SettingsListener.observe('vibration.enabled', true, function(value) {
-  NotificationScreen.vibrates = value;
-});
+  exports.Notifications = Notifications;
+  exports.notifications = new Notifications();
+  exports.notifications.start();
+})(window);
