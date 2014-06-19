@@ -6,7 +6,8 @@ mocha.globals(['SettingsListener', 'removeEventListener', 'addEventListener',
       'SoftwareButtonManager', 'AppWindow', 'AppChrome',
       'OrientationManager', 'SettingsListener', 'BrowserFrame',
       'BrowserConfigHelper', 'System', 'LayoutManager',
-      'AppTransitionController', 'AppWindowManager']);
+      'AppTransitionController', 'AppWindowManager',
+      'ActivityWindow']);
 
 requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
@@ -850,6 +851,27 @@ suite('system/AppWindow', function() {
 
       assert.isNull(app1.activityCallee);
       assert.isNull(app2.activityCaller);
+      assert.isTrue(spyOpen.calledWith('in-from-left'));
+      assert.isTrue(spyClose.calledWith('out-to-right'));
+    });
+
+    test('We should open the base window if we are not', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      var app1Base = new AppWindow(fakeAppConfig2);
+      var app2 = new AppWindow(fakeAppConfig2);
+      var spyOpen = this.sinon.spy(app1Base, 'open');
+      var spyClose = this.sinon.spy(app2, 'close');
+      app1.CLASS_NAME = 'ActivityWindow';
+      app1.activityCaller = app1Base;
+
+      var stubIsActive = this.sinon.stub(app2, 'isActive');
+      app1Base.setActivityCallee(app2);
+      stubIsActive.returns(true);
+
+      app2.handleEvent({
+        type: 'mozbrowseractivitydone'
+      });
+
       assert.isTrue(spyOpen.calledWith('in-from-left'));
       assert.isTrue(spyClose.calledWith('out-to-right'));
     });

@@ -163,6 +163,14 @@
     self.dump('======================');
   };
 
+  AppWindow.prototype.getBottomMostWindow = function() {
+    var win = this;
+    while (win.activityCaller && win.CLASS_NAME == 'ActivityWindow') {
+      win = win.activityCaller;
+    }
+    return win;
+  };
+
   /**
    * In order to prevent flashing of unpainted frame/screenshot overlay
    * during switching from one to another,
@@ -638,10 +646,12 @@
           this.activityCaller &&
           this.activityCaller instanceof AppWindow) {
         var caller = this.activityCaller;
+        var callerBottom = caller.getBottomMostWindow();
+        var calleeBottom = this.getBottomMostWindow();
         this.activityCaller.activityCallee = null;
         this.activityCaller = null;
-        caller.open('in-from-left');
-        this.close('out-to-right');
+        callerBottom.open('in-from-left');
+        calleeBottom.close('out-to-right');
       }
     };
 
