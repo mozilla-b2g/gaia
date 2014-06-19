@@ -18,9 +18,30 @@
     eventTypesToListenFor.forEach(function iterateTypes(type) {
       CollectionsDatabase.addEventListener(type, this);
     }, this);
+
+    window.addEventListener('collections-create-begin', this);
+    window.addEventListener('collections-create-return', this);
   }
 
   CollectionSource.prototype = {
+
+    /**
+     * Whether or not we are currently in a create activity.
+     * If we are in a create activity, we buffer all collection create requests
+     * until we have the expected order from the activity.
+     */
+    inCreateActivity: false,
+
+    /**
+     * A list of pending collection IDs that we are going to add in order.
+     */
+    pendingIds: [],
+
+    /**
+     * A list of pending collections to add once we return from the create page.
+     * These are keyed by the colleciton id.
+     */
+    pendingCollections: {},
 
     /**
      * Synchronizes our local result set with datastre.
@@ -60,6 +81,17 @@
           // The 'id' of a Collection is really the url.
           this.removeIconFromGrid(e.target.id);
           break;
+        case 'collections-create-begin':
+          this.inCreateActivity = true;
+          break;
+        case 'collections-create-return':
+          this.inCreateActivity = false;
+          this.pendingIds = this.pendingIds.concat(e.detail.ids);
+          // If we've already received enough items, process.
+          if(this.isPendingFulfilled()) {
+            this.processPending();
+          }
+          break;
       }
     },
 
@@ -73,6 +105,22 @@
       if (existing) {
         existing.update(detail);
         app.grid.render();
+        return;
+      }
+
+      // Add to pending if needed.
+      this.maybeAddToPending(detail);
+
+      // If we are creating more collections, or we are waiting for collections,
+      // wait until we come back from the activity before processing them.
+      if(this.isPendingFulfilled()) {
+        // We are not in the create activity, but have a list of IDs we are
+        // waiting to fill. If we have reached the number of collections we
+        // are expecting, start processing them.
+        this.processPending();
+        return;
+      } else if (this.inCreateActivity || this.pendingIds.length) {
+        // If we have pending Ids and we're not done, return.
         return;
       }
 
@@ -105,8 +153,58 @@
       if (appObject && appObject.element) {
         appObject.element.parentNode.removeChild(appObject.element);
       }
-    }
+    },
 
+    /**
+     * Checks if our pending collections are fulfilled or not.
+     */
+    isPendingFulfilled: function() {
+      if (!this.pendingIds.length) {
+        return false;
+      }
+
+      for (var i = 0; i < this.pendingIds.length; i++) {
+        var id = this.pendingIds[i];
+        if (!this.pendingCollections[id]) {
+          return false;
+        }
+      }
+
+      return !this.inCreateActivity;
+    },
+
+    /**
+     * Adds an item to the pending collections if we're waiting on the id.
+     */
+    maybeAddToPending: function(collection) {
+      if (this.inCreateActivity ||
+          this.pendingIds.indexOf(collection.id) !== -1) {
+        this.pendingCollections[collection.id] = collection;
+      }
+    },
+
+    /**
+     * Processes all pending collections and adds them to the grid. 
+     */
+    processPending: function() {
+      // An ordered array of detail objects.
+      var ordered = [];
+
+      var id;
+      while ((id = this.pendingIds.shift())) {
+        ordered.push(this.pendingCollections[id]);
+        delete this.pendingCollections[id];
+      }
+
+      ordered.forEach(this.addIconToGrid.bind(this));
+      // It is unlikely that we will ever get here, but the if the user managed
+      // to add more smart collections from somewhere else, we may have some in
+      // pendingCollectionsById. Render them.
+      for (var i in this.pendingCollections) {
+        this.addIconToGrid(this.pendingCollections[i]);
+        delete this.pendingCollections[i];
+      }
+    }
   };
 
   exports.CollectionSource = CollectionSource;
