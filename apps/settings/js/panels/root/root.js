@@ -67,7 +67,6 @@ define(function(require) {
         'js/try_show_homescreen_section.js',
         'js/security_privacy.js',
         'js/icc_menu.js',
-        'js/nfc.js',
         'js/dsds_settings.js',
         'js/telephony_settings.js',
         'js/telephony_items_handler.js',

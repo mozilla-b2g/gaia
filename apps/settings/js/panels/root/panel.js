@@ -3,15 +3,18 @@ define(function(require) {
 
   var SettingsPanel = require('modules/settings_panel');
   var Root = require('panels/root/root');
+  var NFCItem = require('panels/root/nfc_item');
   var BatteryItem = require('panels/root/battery_item');
 
   return function ctor_root_panel() {
     var root = Root();
+    var nfcItem;
     var batteryItem;
 
     return SettingsPanel({
       onInit: function rp_onInit(panel) {
         root.init();
+        nfcItem = NFCItem(panel.querySelector('.nfc-settings'));
         batteryItem = BatteryItem(panel.querySelector('.battery-desc'));
       },
       onBeforeShow: function rp_onBeforeShow() {
