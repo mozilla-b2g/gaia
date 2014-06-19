@@ -387,38 +387,40 @@ class Accessibility(object):
         self.marionette.import_script(js)
 
     def is_hidden(self, element):
-        return self.marionette.execute_async_script(
-            'return Accessibility.isHidden.apply(Accessibility, arguments)',
-            [element], special_powers=True)
+        return self._run_async_script('isHidden', [element])
 
     def is_visible(self, element):
-        return self.marionette.execute_async_script(
-            'return Accessibility.isVisible.apply(Accessibility, arguments)',
-            [element], special_powers=True)
+        return self._run_async_script('isVisible', [element])
 
     def is_disabled(self, element):
-        return self.marionette.execute_async_script(
-            'return Accessibility.isDisabled.apply(Accessibility, arguments)',
-            [element], special_powers=True)
+        return self._run_async_script('isDisabled', [element])
 
     def click(self, element):
-        self.marionette.execute_async_script(
-            'Accessibility.click.apply(Accessibility, arguments)',
-            [element], special_powers=True)
+        self._run_async_script('click', [element])
 
     def wheel(self, element, direction):
         self.marionette.execute_script('Accessibility.wheel.apply(Accessibility, arguments)', [
             element, direction])
 
     def get_name(self, element):
-        return self.marionette.execute_async_script(
-            'return Accessibility.getName.apply(Accessibility, arguments)',
-            [element], special_powers=True)
+        return self._run_async_script('getName', [element])
 
     def get_role(self, element):
-        return self.marionette.execute_async_script(
-            'return Accessibility.getRole.apply(Accessibility, arguments)',
-            [element], special_powers=True)
+        return self._run_async_script('getRole', [element])
+
+    def _run_async_script(self, func, args):
+        result = self.marionette.execute_async_script(
+            'return Accessibility.%s.apply(Accessibility, arguments)' % func,
+            args, special_powers=True)
+
+        if not result:
+            return
+
+        if result.has_key('error'):
+            message = 'accessibility.js error: %s' % result['error']
+            raise Exception(message)
+
+        return result.get('result', None)
 
 class FakeUpdateChecker(object):
 
