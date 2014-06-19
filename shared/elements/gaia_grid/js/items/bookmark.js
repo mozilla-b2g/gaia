@@ -51,20 +51,7 @@
       return this.detail.id;
     },
 
-    update: function(record) {
-      this.detail = record;
-      this.detail.type = TYPE;
-      var nameEl = this.element.querySelector('.title');
-      if (nameEl) {
-        nameEl.textContent = this.name;
-
-        // Bug 1007743 - Workaround for projected content nodes disappearing
-        document.body.clientTop;
-        this.element.style.display = 'none';
-        document.body.clientTop;
-        this.element.style.display = '';
-      }
-    },
+    update: GaiaGrid.GridItem.prototype.updateFromDatastore,
 
     /**
      * Bookmarks are always editable.
