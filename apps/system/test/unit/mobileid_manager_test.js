@@ -1,22 +1,40 @@
 'use strict';
 
-/* global MobileIdManager */
+/* global MobileIdManager, MockApplications, MocksHelper */
 
 requireApp('system/js/mobileid_manager.js');
+requireApp('system/test/unit/mock_applications.js');
+
+var mocksForMobileIdManager = new MocksHelper([
+  'Applications'
+]).init();
 
 suite('MobileID Manager', function() {
   const CONTENT_EVENT = 'mozMobileIdContentEvent';
   const UNSOLICITED_EVENT = 'mozMobileIdUnsolContentEvent';
-  
+
   var fakeParams = [1, 2, 3];
-  
+  var realApplications;
+
+  mocksForMobileIdManager.attachTestHelpers();
+
+  suiteSetup(function() {
+    realApplications = window.applications;
+    window.applications = MockApplications;
+  });
+
+  suiteTeardown(function() {
+    window.applications = realApplications;
+    realApplications = null;
+  });
+
   test(' "onpermissionrequest" is opening a Dialog', function(done) {
     this.sinon.stub(MobileIdManager, 'openDialog', function(data) {
       assert.deepEqual(data, fakeParams);
       assert.ok(MobileIdManager.openDialog.calledOnce);
       done();
     });
-   
+
     var chromeEvent = new CustomEvent(
       'mozMobileIdChromeEvent',
       {
@@ -53,6 +71,47 @@ suite('MobileID Manager', function() {
     );
 
     window.dispatchEvent(chromeEvent);
+  });
+
+  test(' canceling the flow should clean up pending content events',
+       function(done) {
+    var appManifest = 'fakeApp';
+    var chromeEventId = 'fakeId';
+
+    MobileIdManager.dialog = {
+      dispatchEvent: function(eventName, data) {
+        MobileIdManager.dialog = null;
+        done();
+      }
+    };
+
+    window.applications.mRegisterMockApp(appManifest);
+
+    this.sinon.stub(MobileIdManager, 'sendContentEvent',
+                    function(eventName, data) {
+      assert.equal(eventName, CONTENT_EVENT);
+      assert.equal(data.error, 'DIALOG_CLOSED_BY_USER');
+      assert.equal(MobileIdManager.chromeEventId, chromeEventId);
+      window.applications.mUnregisterMockApp(appManifest);
+      done();
+    });
+
+    var chromeEvent = new CustomEvent(
+      'mozMobileIdChromeEvent',
+      {
+        detail: {
+          eventName: 'onpermissionrequest',
+          id: chromeEventId,
+          data: {
+            manifestUrl: appManifest
+          }
+        }
+      }
+    );
+
+    window.dispatchEvent(chromeEvent);
+
+    MobileIdManager.cancel(true);
   });
 
   suite(' when receiving info from dialog, is dispatched properly' ,function() {
