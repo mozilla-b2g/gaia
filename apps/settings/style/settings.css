@@ -750,6 +750,18 @@ section[data-dialog] > header:first-child .icon.icon-back {
 }
 
 /******************************************************************************
+* App Permissions
+* 
+* Note: The reason why we need this style is because element.hidden will make
+* the CSS specificity 0,0,1,0 (Yes, it is a pseudo class). And because our BB
+* 's CSS specificity is much higher than this, we have to override it again
+* to make sure it will display as hidden.
+*/
+.clear-bookmarks-app[hidden] {
+  display: none;
+}
+
+/******************************************************************************
  * Toaster
  */
 section[role="status"] {
