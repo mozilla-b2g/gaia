@@ -57,6 +57,27 @@
   opacity: .65;
 }
 
+/* Bug 1018269: This has no effect when this style is in a scoped style and
+ *              needs to be redefined in a top-level style.
+ */
+@keyframes pulse {
+  from { opacity: 1.0; }
+  to { opacity: 0.65; }
+}
+
+.edit-mode .collection.hovered {
+  animation-name: pulse;
+  animation-duration: 0.4s;
+  animation-delay: 0.35s;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+}
+
+.edit-mode .collection {
+  transition: transform 0.35s;
+}
+
 .icon p {
   pointer-events: none;
   height: 3.2rem;
@@ -108,6 +129,7 @@
 
 .dragging .icon.active {
   z-index: 4;
+  opacity: 0.65;
 }
 
 .dragging .divider,

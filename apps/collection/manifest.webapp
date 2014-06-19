@@ -70,6 +70,13 @@
         "manifestURLs": ["app://ftu.gaiamobile.org/manifest.webapp"]
       },
       "handler_path": "/setup.html"
+    },
+    "add-to-collection": {
+      "description": "Pin an application in a collection",
+      "rules": {
+        "manifestURLs": ["app://verticalhome.gaiamobile.org/manifest.webapp"]
+      },
+      "handler_path": "/add_to_collection.html"
     }
   }
 }

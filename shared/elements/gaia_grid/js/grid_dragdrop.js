@@ -2,19 +2,22 @@
 
 (function(exports) {
 
-  const activeScaleAdjust = 0.4;
+  const ACTIVE_SCALE_ADJUST = 0.4;
 
   /* This delay is the time passed once users stop the finger over an icon and
    * the rearrange is performed */
-  const rearrangeDelay = 30;
+  const REARRANGE_DELAY = 30;
 
   /* The page is scrolled via javascript if an icon is being moved, and is
    * within a length of a page edge configured by this value */
-  const edgePageThreshold = 50;
+  const EDGE_PAGE_THRESHOLD = 50;
 
-  const screenHeight = window.innerHeight;
+  /* This delay is the time to wait before rearranging a collection. */
+  const REARRANGE_COLLECTION_DELAY = 1500;
 
-  const scrollStep = Math.round(screenHeight / edgePageThreshold);
+  const SCREEN_HEIGHT = window.innerHeight;
+
+  const scrollStep = Math.round(SCREEN_HEIGHT / EDGE_PAGE_THRESHOLD);
 
   /* The scroll step will be 10 times bigger over the edge */
   const maxScrollStepFactor = 10;
@@ -48,10 +51,21 @@
     inEditMode: false,
 
     /**
+     * The item being hovered over.
+     * @type {GaiaGrid.GridItem}
+     */
+    hoverItem: null,
+
+    /**
+     * A port for IAC to the collections app.
+     */
+    collectionsPort: null,
+
+    /**
      * Returns the maximum active scale value.
      */
     get maxActiveScale() {
-      return 1 + activeScaleAdjust;
+      return 1 + ACTIVE_SCALE_ADJUST;
     },
 
     /**
@@ -72,6 +86,7 @@
       window.dispatchEvent(new CustomEvent('gaiagrid-dragdrop-begin'));
 
       this.icon.noTransform = true;
+      this.hoverItem = null;
       this.rearrangeDelay = null;
       this.enterEditMode();
       this.container.classList.add('dragging');
@@ -90,7 +105,7 @@
       this.icon.transform(
         e.pageX - this.xAdjust,
         e.pageY - this.yAdjust + this.scrollable.scrollTop,
-        this.icon.scale + activeScaleAdjust);
+        this.icon.scale + ACTIVE_SCALE_ADJUST);
     },
 
     finish: function(e) {
@@ -103,10 +118,42 @@
       this.target.classList.remove('active');
       delete this.icon.noTransform;
 
+      var rearranged = false;
       if (this.rearrangeDelay !== null) {
         clearTimeout(this.rearrangeDelay);
-        this.doRearrange.call(this);
-      } else {
+        if (this.hoverItem instanceof GaiaGrid.Collection) {
+          // The user has dropped into a collection
+          var message = {
+            "collection-id": this.hoverItem.detail.id,
+            "application-id": this.icon.detail.manifestURL
+          };
+          if (!this.collectionsPort) {
+            var self = this;
+            navigator.mozApps.getSelf().onsuccess = function(evt) {
+              var app = evt.target.result;
+              if (app.connect) {
+                app.connect('add-to-collection').then(function onConnAccepted(ports) {
+                  console.error('Got port', ports.length);
+                  self.collectionsPort = ports[0];
+                  ports[0].postMessage(message);
+                }, function onConnRejected(reason) {
+                  console.error('Cannot notify collection: ', reason);
+                });
+              } else {
+                console.error ('mozApps does not have a connect method. ' +
+                               'Cannot launch the collection preload process.');
+              }
+            };
+          } else {
+            this.collectionsPort.postMessage(message);
+          }
+        } else {
+          rearranged = true;
+          this.doRearrange.call(this);
+        }
+      }
+
+      if (!rearranged) {
         this.gridView.render();
       }
 
@@ -124,17 +171,30 @@
       }.bind(this));
     },
 
+    finalize: function() {
+      this.container.classList.remove('dragging');
+      if (this.icon) {
+        this.icon.element.removeEventListener('transitionend', this);
+        this.icon = null;
+      }
+      if (this.hoverItem) {
+        this.hoverItem.element.classList.remove('hovered');
+        this.hoverItem = null;
+      }
+    },
+
     /**
      * The closer to edge the faster (bigger step).
      ** Distance 0px -> 10 times faster
      ** Distance 25px -> 5 times faster
-     ** Distance 50px (edgePageThreshold) -> 0 times
+     ** Distance 50px (EDGE_PAGE_THRESHOLD) -> 0 times
      */
     getScrollStep: function(distanceToEdge) {
       var factor = maxScrollStepFactor;
 
       if (distanceToEdge > 0) {
-        factor *= ((edgePageThreshold - distanceToEdge) / edgePageThreshold);
+        factor *= ((EDGE_PAGE_THRESHOLD - distanceToEdge) /
+                   EDGE_PAGE_THRESHOLD);
       }
 
       return Math.round(scrollStep * factor);
@@ -164,9 +224,9 @@
 
       var docScroll = this.scrollable.scrollTop;
       var distanceFromTop = Math.abs(touch.pageY - docScroll);
-      if (distanceFromTop > screenHeight - edgePageThreshold) {
+      if (distanceFromTop > SCREEN_HEIGHT - EDGE_PAGE_THRESHOLD) {
         var maxY = this.maxScroll;
-        var scrollStep = this.getScrollStep(screenHeight - distanceFromTop);
+        var scrollStep = this.getScrollStep(SCREEN_HEIGHT - distanceFromTop);
         // We cannot exceed the maximum scroll value
         if (touch.pageY >= maxY || maxY - touch.pageY < scrollStep) {
           this.isScrolling = false;
@@ -174,7 +234,7 @@
         }
 
         doScroll.call(this, scrollStep);
-      } else if (touch.pageY > 0 && distanceFromTop < edgePageThreshold) {
+      } else if (touch.pageY > 0 && distanceFromTop < EDGE_PAGE_THRESHOLD) {
         doScroll.call(this, 0 - this.getScrollStep(distanceFromTop));
       } else {
         this.isScrolling = false;
@@ -193,14 +253,14 @@
       this.icon.transform(
         pageX,
         pageY,
-        this.icon.scale + activeScaleAdjust);
+        this.icon.scale + ACTIVE_SCALE_ADJUST);
 
       // Reposition in the icons array if necessary.
       // Find the icon with the closest X/Y position of the move,
       // and insert ours before it.
       // Todo: this could be more efficient with a binary search.
-      var leastDistance;
-      var foundIndex;
+      var leastDistance, foundItem;
+      var foundIndex = this.icon.detail.index;
       for (var i = 0, iLen = this.gridView.items.length; i < iLen; i++) {
         var item = this.gridView.items[i];
 
@@ -215,14 +275,29 @@
         if (!leastDistance || distance < leastDistance) {
           leastDistance = distance;
           foundIndex = i;
+          foundItem = item;
         }
       }
 
-      if (foundIndex !== this.icon.detail.index) {
+      // Clear the rearrange delay and hover item if we aren't hovering over
+      // anything.
+      if (this.rearrangeDelay) {
         clearTimeout(this.rearrangeDelay);
+        this.rearrangeDelay = null;
+      }
+      if (this.hoverItem) {
+        this.hoverItem.element.classList.remove('hovered');
+        this.hoverItem = null;
+      }
+
+      if (foundIndex !== this.icon.detail.index) {
+        this.hoverItem = foundItem;
+        this.hoverItem.element.classList.add('hovered');
         this.doRearrange = this.rearrange.bind(this, foundIndex);
-        this.rearrangeDelay = setTimeout(this.doRearrange.bind(this),
-                                         rearrangeDelay);
+        this.rearrangeDelay =
+          setTimeout(this.doRearrange.bind(this),
+            this.hoverItem instanceof GaiaGrid.Collection ?
+              REARRANGE_COLLECTION_DELAY : REARRANGE_DELAY);
       }
     },
 
@@ -263,18 +338,19 @@
     },
 
     exitEditMode: function() {
+      // If we're in the middle of a drag, cancel it.
+      if (this.icon) {
+        this.finish();
+        this.finalize();
+      }
+
       this.inEditMode = false;
       this.container.classList.remove('edit-mode');
       document.body.classList.remove('edit-mode');
       window.dispatchEvent(new CustomEvent('gaiagrid-editmode-end'));
       document.removeEventListener('visibilitychange', this);
       this.removeDragHandlers();
-      this.gridView.removeAllPlaceholders();
-
-      if (this.icon) {
-        this.icon.element.removeEventListener('transitionend', this);
-        this.icon = null;
-      }
+      this.gridView.render({skipItems: true});
     },
 
     removeDragHandlers: function() {
@@ -351,6 +427,7 @@
           case 'touchcancel':
             this.removeDragHandlers();
             this.finish();
+            this.finalize();
             break;
           case 'touchend':
             // Ensure the app is not launched
@@ -361,14 +438,7 @@
             break;
 
           case 'transitionend':
-            if (!this.icon) {
-              return;
-            }
-
-            this.container.classList.remove('dragging');
-            this.icon.element.removeEventListener('transitionend', this);
-            this.icon = null;
-
+            this.finalize();
             break;
         }
     }
