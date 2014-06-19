@@ -70,6 +70,37 @@ marionette('Vertical - Collection', function() {
     });
   });
 
+  test('collection name localization', function() {
+    var collectionName = 'Entertainment';
+    collection.enterCreateScreen();
+    collection.selectNew([collectionName]);
+    client.apps.switchToApp(Home2.URL);
+
+    var collectionIcon =
+      collection.getCollectionByName(collectionName);
+
+
+    // switch to a different locale
+    client.executeScript(function() {
+      navigator.mozSettings.createLock().set({
+        // this is a dynamicly generated locale from english which is perfect
+        // for testing this kind of thing since as long as there is an english
+        // locale this will work.
+        'language.current': 'qps-ploc'
+      });
+    });
+
+    var expected = home.l10n(
+      '/locales-obj/qps-ploc.json',
+      // XXX: harcoded number 376 taken from the fixture
+      'collection-categoryId-376'
+    );
+
+    client.waitFor(function() {
+      return expected === collectionIcon.text();
+    });
+  });
+
   test('pin collection web result', function() {
     collection.enterCreateScreen();
 

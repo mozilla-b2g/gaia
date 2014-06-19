@@ -5,6 +5,9 @@
 /*jshint nonew: false */
 
 (function(exports) {
+  const l10nKey = 'collection-categoryId-';
+
+  var _ = navigator.mozL10n.get;
 
   /**
    * Represents a single collection on the homepage.
@@ -23,6 +26,9 @@
       pinned: collection.pinned,
       defaultIconBlob: collection.defaultIconBlob
     };
+
+    // XXX: One listener per collection may not be ideal.
+    window.addEventListener('localized', this.onLocalize.bind(this));
   }
 
   Collection.prototype = {
@@ -30,6 +36,18 @@
     __proto__: GaiaGrid.GridItem.prototype,
 
     renderer: GridIconRenderer.TYPE.CLIP,
+
+    /**
+    Bug 1026236 l10n does not automatically handle these for us so
+    we handle locale updates ourselves.
+    */
+    onLocalize: function() {
+      if (!this.element) {
+        return;
+      }
+      var nameEl = this.element.querySelector('.title');
+      nameEl.textContent = this.name;
+    },
 
     /**
      * Returns the height in pixels of each icon.
@@ -40,11 +58,13 @@
 
     /**
      * Width in grid units for each icon.
+     * nameEl.textContent = this.name;
      */
     gridWidth: 1,
 
     get name() {
-      return this.detail.name;
+      // first attempt to use the localized name
+      return _(l10nKey + this.detail.categoryId) || this.detail.name;
     },
 
     /**
