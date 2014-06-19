@@ -153,8 +153,8 @@
 
       }, function error(reason) {
         eme.log('create-collection: error', reason);
-        activity.postError(_(reason === 'network error' ?
-                                   'network-error-message' : undefined));
+        activity.postError(reason === 'network error' ?
+                            _('network-error-message') : undefined);
       }).catch(function fail(ex) {
         eme.log('create-collection: failed', ex);
         activity.postError();

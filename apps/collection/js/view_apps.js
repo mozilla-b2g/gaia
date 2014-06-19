@@ -1,6 +1,7 @@
 'use strict';
 /* global eme */
-/* global GridIconRenderer */
+/* global NativeInfo */
+
 
 (function(exports) {
 
@@ -20,8 +21,13 @@
     // render pinned apps first
     collection.render(grid);
 
-    eme.init().then(function() {
+    // refresh since pinned apps might have been updated
+    eme.init()
+    .then(() => NativeInfo.setup())
+    .then(() => collection.refresh())
+    .then(() => {
       loading(false);
+      collection.render(grid);
       queueRequest();
     });
 
@@ -49,24 +55,10 @@
       loading();
 
       eme.api.Apps.search(options)
-        .then(function success(searchResponse) {
-          var results = [];
-
-          searchResponse.response.apps.forEach(function each(webapp) {
-            results.push({
-              id: webapp.id, // e.me app id (int)
-              name: webapp.name,
-              url: webapp.appUrl,
-              icon: webapp.icon,
-              renderer: GridIconRenderer.TYPE.CLIP
-            });
-          });
-
+        .then(function success(response) {
           onResponse();
 
-          // XXX force layout or else grid isn't displayed
-          grid.clientLeft;
-          collection.webResults = results;
+          collection.addWebResults(response.response.apps);
           collection.render(grid);
 
         }, onResponse);

@@ -1,10 +1,39 @@
 'use strict';
+/* global eme */
 /* global CollectionsDatabase */
 /* global CollectionIcon */
 /* global GaiaGrid */
+/* global HomeIcons */
 /* global SearchDedupe */
+/* global GridIconRenderer */
 
 (function(exports){
+
+  // web result created from E.me API data
+  function WebResult(data) {
+    // use appUrl as the webresult identifier because:
+    // 1. data.id is null for bing results
+    // 2. using appUrl allows deduping vs bookmarks
+    data.emeId = data.id;
+    data.url = data.id = data.appUrl;
+
+    data.renderer = GridIconRenderer.TYPE.CLIP;
+
+    return {
+      identifier: data.appUrl,
+      type: 'webResult',
+      data: data
+    };
+  }
+
+  // pinned GaiaGrid.MozApps or GaiaGrid.Bookmark
+  // use same identifiers as in GaiaGrid
+  function PinnedHomeIcon(identifier) {
+    return {
+      identifier: identifier,
+      type: 'homeIcon'
+    };
+  }
 
   function BaseCollection(props) {
     // cf. BaseCollection.save
@@ -24,6 +53,12 @@
     if (window.SearchDedupe) {
       this.dedupe = new SearchDedupe();
     }
+
+    // for rendering pinned homescreen apps/bookmarks
+    if (window.HomeIcons) {
+      this.homeIcons = new HomeIcons();
+      this.homeIcons.init();
+    }
   }
 
   BaseCollection.create = function create(data) {
@@ -36,6 +71,15 @@
   };
 
   BaseCollection.prototype = {
+    // get a fresh copy of editable properties from db
+    // useful when a background task (like NativeInfo) updates the db while
+    // a running process has a collection object reference
+    refresh: function refresh() {
+      return CollectionsDatabase.get(this.id).then(function create(fresh) {
+        this.pinned = fresh.pinned;
+      }.bind(this));
+    },
+
     // returns a promise resolved when the db trx is done
     save: function save() {
       return CollectionsDatabase.put({
@@ -43,28 +87,88 @@
         name: this.name,
         query: this.query,
         categoryId: this.categoryId,
+        cName: this.cName,
         webicons: this.webicons,
         pinned: this.pinned,
         background: this.background
       });
     },
 
-    pin: function pin(icon) {
-      this.pinned.push(icon);
-      this.save();
+    /*
+      pin 1 or more objects to the collection
+      use pin(item) or pin(items) where item is an object with:
+      (string) identifier: manifestURL/bookmarkURL/appUrl
+      (string) type: homeIcon or webResult
+      (object) bookarkDetail: (for web results only)
+     */
+    pin: function pin() {
+      var arg = arguments[0];
+      var items = Array.isArray(arg) ? arg : [arg];
+
+      var newItems = items.filter(this.isNotPinned.bind(this));
+
+      if (newItems.length) {
+        this.pinned = this.pinned.concat(newItems);
+        this.save();
+        eme.log(newItems.length, 'new pinned to', this.name);
+      }
     },
 
-    addToGrid: function(results, grid) {
+    pinHomeIcons: function pinHomeIcons(identifiers) {
+      var items = identifiers.map(function each(identifier) {
+        return new PinnedHomeIcon(identifier);
+      });
+      this.pin(items);
+    },
+
+    pinWebResult: function pinWebResult(data) {
+      this.pin(new WebResult(data));
+    },
+
+    addWebResults: function addWebResult(arrayOfData) {
+      var results = arrayOfData.map(function each(data) {
+        return new WebResult(data);
+      });
+      this.webResults = results;
+    },
+
+    isPinned: function isPinned(item) {
+      return this.pinnedIdentifiers.indexOf(item.identifier) > -1;
+    },
+
+    isNotPinned: function isNotPinned(item) {
+      return !this.isPinned(item);
+    },
+
+    get pinnedIdentifiers() {
+      return this.pinned.map(function each(item) {
+        return item.identifier;
+      });
+    },
+
+    addToGrid: function addToGrid(items, grid) {
       // Add a dedupeId to each result
-      results.forEach(function eachResult(item) {
-        item.dedupeId = item.url;
+      items.forEach(function eachResult(item) {
+        item.dedupeId = item.identifier;
       });
 
-      results = this.dedupe.reduce(results, 'fuzzy');
-      results.forEach(function render(result) {
-        var icon = new GaiaGrid.Bookmark(result);
-        grid.add(icon);
-      });
+      items = this.dedupe.reduce(items, 'fuzzy');
+      items.forEach(function render(item) {
+        if (!item || !item.identifier) {
+          return;
+        }
+
+        var icon;
+        if (item.type === 'homeIcon') {
+          icon = this.homeIcons.get(item.identifier);
+        } else if (item.type === 'webResult') {
+          icon = new GaiaGrid.Bookmark(item.data);
+        }
+
+        if (icon) {
+          grid.add(icon);
+        }
+      }, this);
     },
 
     render: function render(grid) {
@@ -100,6 +204,11 @@
   function CategoryCollection(props) {
     BaseCollection.call(this, props);
     this.categoryId = props.categoryId;
+    // 1. cNames are the only collection identifier we can use for NativeInfo
+    // 2. back to the future!
+    // in vertical-home-next (bug 1024336) we will only support canonicalName
+    // save it to make the future migration easier
+    this.cName = props.cName;
   }
 
   CategoryCollection.prototype = {
@@ -123,6 +232,7 @@
       var collection = new CategoryCollection({
         name: cat.query,
         categoryId: cat.categoryId,
+        cName: cat.canonicalName,
         webicons: cat.appIds.map(getIcon)
       });
 

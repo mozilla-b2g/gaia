@@ -1,8 +1,15 @@
 'use strict';
 /* global HandleCreate */
 /* global HandleView */
+/* global NativeInfo */
+/* global eme */
 
 (function() {
+
+  eme.init().then(function() {
+    NativeInfo.setup();
+  });
+
   var activity = {
     source: {
       data: {
