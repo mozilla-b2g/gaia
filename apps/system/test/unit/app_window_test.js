@@ -1145,6 +1145,27 @@ suite('system/AppWindow', function() {
       assert.isTrue(spyClose.calledWith('out-to-right'));
     });
 
+    test('We should open the base window if we are not', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      var app1Base = new AppWindow(fakeAppConfig2);
+      var app2 = new AppWindow(fakeAppConfig2);
+      var spyOpen = this.sinon.spy(app1Base, 'open');
+      var spyClose = this.sinon.spy(app2, 'close');
+      app1.CLASS_NAME = 'ActivityWindow';
+
+      var stubIsActive = this.sinon.stub(app2, 'isActive');
+      app1Base.calleeWindow = app2;
+      app2.callerWindow = app1Base;
+      stubIsActive.returns(true);
+
+      app2.handleEvent({
+        type: 'mozbrowseractivitydone'
+      });
+
+      assert.isTrue(spyOpen.calledWith('in-from-left'));
+      assert.isTrue(spyClose.calledWith('out-to-right'));
+    });
+
     test('Error event', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       var stubKill = this.sinon.stub(app1, 'kill');
