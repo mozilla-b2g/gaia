@@ -414,6 +414,7 @@ var MediaDB = (function() {
       pendingCreateNotifications: [],  // Array of fileinfo objects
       pendingDeleteNotifications: [],  // Ditto
       pendingNotificationTimer: null,
+      pendingDBFiles: [],
 
       // This property holds the modification date of the newest file we have.
       // We need to know the newest file in order to look for newer ones during
@@ -570,19 +571,15 @@ var MediaDB = (function() {
       var clientUpgradeNeeded = (media.version != oldClientVersion) &&
                                 media.updateRecord;
 
-      // checking if we need to enumerate all files. This may improve the
-      // performance of only changing indexes. If client app changes indexes,
-      // they may not need to update records. In this case, we don't need to
-      // enumerate all files.
-      if ((2 != oldDbVersion || 3 != MediaDB.VERSION) && !clientUpgradeNeeded) {
-        return;
-      }
-
       // Part 2: upgrading data
       enumerateOldFiles(store, function doUpgrade(dbfile) {
         // handle mediadb upgrade from 2 to 3
         if (2 == oldDbVersion && 3 == MediaDB.VERSION) {
           upgradeDBVer2to3(store, dbfile);
+        }
+        // handle mediadb upgrade from 3 to 4
+        if (3 == oldDbVersion && 4 == MediaDB.VERSION) {
+          upgradeDBVer3to4(dbfile);
         }
         // handle client upgrade
         if (clientUpgradeNeeded) {
@@ -621,6 +618,40 @@ var MediaDB = (function() {
       store.delete(dbfile.name);
       dbfile.name = '/sdcard/' + dbfile.name;
       store.add(dbfile);
+    }
+
+    function upgradeDBVer3to4(dbfile) {
+      media.details.pendingDBFiles.push(dbfile);
+    }
+
+    function fixDBVer3to4(callback) {
+      var dbfiles = media.details.pendingDBFiles;
+      var dsfiles = [];
+      var storage = navigator.getDeviceStorage(mediaType);
+      dbfiles.forEach(function(dbfile) {
+        var getRequest = storage.get(dbfile.name);
+        getRequest.onsuccess = function() {
+          var dsfile = getRequest.result;
+          dsfiles.push(dsfile);
+          if (dsfiles.length === dbfiles.length) {
+            updateDate(callback);
+          }
+        };
+      });
+
+      function updateDate(callback) {
+        var store = media.db.transaction('files', 'readwrite')
+          .objectStore('files');
+
+        dbfiles.forEach(function(dbfile, index) {
+          var dsfile = dsfiles[index];
+          store.delete(dbfile.name);
+          dbfile.date = dsfile.lastModifiedDate.getTime();
+          store.add(dbfile);
+        });
+
+        callback();
+      }
     }
 
     function handleClientUpgrade(store, dbfile, oldClientVersion) {
@@ -686,7 +717,13 @@ var MediaDB = (function() {
         details.dsEventListener = changeHandler;
 
         // Move on to the next step
-        sendInitialEvent();
+        if (media.details.pendingDBFiles.length > 0) {
+          fixDBVer3to4(function() {
+            sendInitialEvent();
+          });
+        } else {
+          sendInitialEvent();
+        }
       }
 
       function sendInitialEvent() {
@@ -1342,7 +1379,7 @@ var MediaDB = (function() {
   //            to full qualified name(v1.1). We changed the code to handle the
   //            full qualified name and the upgrade from relative path to full
   //            qualified name.
-  MediaDB.VERSION = 3;
+  MediaDB.VERSION = 4;
 
   // These are the values of the state property of a MediaDB object
   // The NOCARD, UNMOUNTED, and CLOSED values are also used as the detail
