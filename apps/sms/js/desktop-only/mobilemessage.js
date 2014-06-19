@@ -274,7 +274,7 @@
     });
   });
 
-  getTestFile('/test/unit/media/contact.vcf', function(contactBlob) {
+  getTestFile('/test/unit/media/contacts.vcf', function(contactBlob) {
     messagesDb.messages.push({
       id: messagesDb.id++,
       threadId: 6,
