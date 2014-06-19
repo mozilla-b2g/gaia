@@ -52,6 +52,8 @@
         case 'create-smart-collection':
           this.hide();
 
+          window.dispatchEvent(new CustomEvent('collections-create-begin'));
+
           var maxIconSize = this.grid.maxIconSize;
           var activity = new MozActivity({
             name: 'create-collection',
@@ -61,7 +63,16 @@
             }
           });
 
+          activity.onsuccess = function(e) {
+            window.dispatchEvent(new CustomEvent('collections-create-return', {
+              detail: {
+                ids: activity.result
+              }
+            }));
+          };
+
           activity.onerror = function onerror(e) {
+            window.dispatchEvent(new CustomEvent('collections-create-return'));
             if (this.error.name !== 'ActivityCanceled') {
               alert(this.error.name);
             }
