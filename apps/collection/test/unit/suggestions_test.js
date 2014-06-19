@@ -67,8 +67,8 @@ suite('suggestions > ', function() {
 
   test('l10n logic', function(done) {
     // set l10n items
-    navigator.mozL10n.set('categoryId-1', 'fromL10nFile');
-    navigator.mozL10n.set('categoryId-2', 'fromL10nFile');
+    navigator.mozL10n.set('collection-categoryId-1', 'fromL10nFile');
+    navigator.mozL10n.set('collection-categoryId-2', 'fromL10nFile');
 
     var stubCategories = [
       // will be found by l10n, and queries will be overwritten
