@@ -54,17 +54,24 @@
     update: GaiaGrid.GridItem.prototype.updateFromDatastore,
 
     /**
-     * Bookmarks are always editable.
+     * Bookmarks are always editable unless noted otherwise in features.
      */
     isEditable: function() {
-      return true;
+      return this.features && this.features.isEditable !== false;
     },
 
     /**
-     * Bookmarks are always removable.
+     * Bookmarks are always removable unless noted otherwise in features.
      */
     isRemovable: function() {
-      return true;
+      return this.features && this.features.isRemovable !== false;
+    },
+
+    /**
+     * Bookmarks are always draggable unless noted otherwise in features.
+     */
+    isDraggable: function() {
+      return this.features && this.features.isDraggable !== false;
     },
 
     /**

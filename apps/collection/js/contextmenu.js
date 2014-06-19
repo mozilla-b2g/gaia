@@ -4,13 +4,15 @@
 (function(exports) {
 
   function Contextmenu(collection) {
+    this.collection = collection;
+
     this.menu = document.getElementById('cloud-menu');
     this.grid = document.getElementById('grid');
 
     this.bookmarkButton = this.menu.querySelector('#bookmark-cloudapp');
     this.pinButton = this.menu.querySelector('#pin-cloudapp');
 
-    this.grid.addEventListener('contextmenu', this);
+    this.grid.addEventListener('contextmenu', this, true);
 
     /**
      * The current contextmenu target.
@@ -57,6 +59,14 @@
   }
 
   Contextmenu.prototype = {
+    isPinned: function(elem) {
+      var identifier = elem.dataset.identifier;
+
+      return this.collection.isPinned({
+        identifier: identifier
+      });
+    },
+
     /**
      * General event handler.
      */
@@ -67,18 +77,20 @@
               return;
             }
 
-            // prevent click events from firing
-            this.grid.stop();
+            if (!this.isPinned(e.target)) {
+              // prevent click events from firing
+              this.grid.stop();
 
-            e.stopImmediatePropagation();
-            e.preventDefault();
+              e.stopImmediatePropagation();
+              e.preventDefault();
 
-            this.target = e.target;
-            this.menu.show();
+              this.target = e.target;
+              this.menu.show();
 
-            setTimeout(function nextTick() {
-              this.grid.start();
-            }.bind(this));
+              setTimeout(function nextTick() {
+                this.grid.start();
+              }.bind(this));
+            }
 
             break;
       }

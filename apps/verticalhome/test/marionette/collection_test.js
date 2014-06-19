@@ -104,7 +104,7 @@ marionette('Vertical - Collection', function() {
   test('pin collection web result', function() {
     collection.enterCreateScreen();
 
-    // A collection name from the list.json stub
+    // A collection name from the cateories_list.json stub
     var collectionName = 'Around Me';
     collection.selectNew(collectionName);
     client.apps.switchToApp(Home2.URL);
@@ -116,12 +116,9 @@ marionette('Vertical - Collection', function() {
     // Count the number of dividers
     var numDividers = client.findElements(selectors.allDividers).length;
 
-    assert.equal(numDividers, 1, 'there is one divider at the end');
+    assert.equal(numDividers, 0, 'there are no dividers');
 
-    // Pin an application
-    var firstIcon = client.findElement(selectors.firstWebResultNoPinned);
-    actions.longPress(firstIcon, 1).perform();
-    client.helper.waitForElement(selectors.cloudMenuPin).click();
+    collection.pin(selectors.firstWebResultNoPinned);
 
     // Wait until a new section is created.
     client.waitFor(function() {
@@ -139,6 +136,45 @@ marionette('Vertical - Collection', function() {
       'items are on the same x-axis');
     assert.ok(firstWebPosition.y > firstPinnedPosition.y,
       'the web result is below the pinned item');
+  });
+
+  test('edit mode with two pinned objects', function() {
+    collection.enterCreateScreen();
+
+    // A collection name from the cateories_list.json stub
+    var collectionName = 'Around Me';
+    collection.selectNew(collectionName);
+    client.apps.switchToApp(Home2.URL);
+
+    // Enter the created collection.
+    collection.enterCollection(
+      collection.getCollectionByName(collectionName));
+
+    collection.pin(selectors.firstWebResultNoPinned);
+    collection.pin(selectors.firstWebResultPinned);
+
+    // This identifier matches up to an item in categories_list.json
+    var secondIdentifier = 'http://mozilla2.org/firefox';
+    var secondPinned = client.helper.waitForElement(
+      '.icon[data-identifier="' + secondIdentifier + '"]');
+    var secondLocation = secondPinned.location().x;
+
+    var firstPinned = client.helper.waitForElement(
+      selectors.firstPinnedResult);
+
+    actions
+      .press(firstPinned)
+      .wait(1)
+      .move(secondPinned)
+      .wait(1)
+      .release()
+      .wait(1)
+      .perform();
+
+    assert.equal(secondLocation, firstPinned.location().x,
+      'the first icon has moved to the right.');
+    assert.ok(secondPinned.location().x < secondLocation,
+      'the second icon has moved to the left.');
   });
 
 });

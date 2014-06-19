@@ -53,13 +53,19 @@
     },
 
     processBookmark: function(eachBookmark) {
-      var bookmark = new GaiaGrid.Bookmark(eachBookmark);
+      var features = {
+        isEditable: false
+      };
+      var bookmark = new GaiaGrid.Bookmark(eachBookmark, features);
       this.gridItemsByIdentifier[bookmark.identifier] = bookmark;
       this.recordsByBookmarkUrl[eachBookmark.bookmarkURL] = eachBookmark;
     },
 
     processMozApp: function(eachApp) {
       var manifest = eachApp.manifest || eachApp.updateManifest;
+      var features = {
+        isRemovable: true
+      };
 
       if (HIDDEN_ROLES.indexOf(manifest.role) !== -1) {
         return;
@@ -79,10 +85,10 @@
 
       if (manifest.entry_points) {
         for (var i in manifest.entry_points) {
-          eachIcon.call(this, new GaiaGrid.Mozapp(eachApp, i));
+          eachIcon.call(this, new GaiaGrid.Mozapp(eachApp, i, features));
         }
       } else {
-        eachIcon.call(this, new GaiaGrid.Mozapp(eachApp));
+        eachIcon.call(this, new GaiaGrid.Mozapp(eachApp, undefined, features));
       }
     },
 
