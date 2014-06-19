@@ -1,6 +1,6 @@
 'use strict';
 
-/* global SettingsListener, SettingsURL, AttentionScreen, lockScreen */
+/* global SettingsListener, SettingsURL, AttentionScreen, System*/
 /* r=? dialer+system peers for changes in this file. */
 
 (function(exports) {
@@ -197,7 +197,7 @@
     var timestamp = new Date().getTime();
 
     var src = CSORIGIN + 'index.html' + '#' +
-              (lockScreen.locked ? 'locked' : '');
+              (System.locked ? 'locked' : '');
     src = src + '&timestamp=' + timestamp;
     callScreen.src = src;
     callScreen.setVisible(true);
