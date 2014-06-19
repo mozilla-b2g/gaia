@@ -1373,7 +1373,7 @@ suite('calls handler', function() {
       test('should switch sound to default out', function() {
         var toDefaultSpy = this.sinon.spy(MockCallScreen, 'switchToDefaultOut');
         headphonesChange.yield();
-        assert.isTrue(toDefaultSpy.calledOnce);
+        assert.isTrue(toDefaultSpy.calledWithExactly());
       });
     });
 
