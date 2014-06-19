@@ -20,53 +20,24 @@ gaia-grid {
 }
 
 #header {
-  height: 5.4rem;
-  line-height: 5.4rem;
-  color: #ffffff;
-  font-size: 2.25rem;
-  overflow: hidden;
-  background-position: center -2.4rem; /* to continue wallpaper position from status bar */
-  position: relative;
+  background-position: center -2rem; /* to continue wallpaper position from status bar */
 }
 
 #header:after {
   position: absolute;
   content: ' ';
-  z-index: 0;
   background-color: rgba(0,0,0,0.8);
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-}
-
-#name {
-  margin-right: 1rem;
-  padding-left: 3rem;
-  display: block;
-  position: relative;
-  z-index: 1;
-  overflow: hidden;
-  white-space: nowrap;
-  mask: url('../images/app_name_mask.svg#fade_right_mask');
-  text-overflow: '';
-  -moz-box-sizing: border-box;
-}
-
-#close {
-  position: absolute;
-  background: transparent url('../images/close.png') no-repeat 50% 50%/1.7rem;
-  left: 0;
-  top: 0;
-  width: 3rem;
-  height: 5.4rem;
-  z-index: 1;
+  z-index: -1;
 }
 
 #content {
   border-top: 0.1rem solid #555;
   position: fixed;
-  top: 5.4rem;
+  top: 5rem;
   left: 0;
   right: 0;
   bottom: 0;
@@ -78,7 +49,7 @@ gaia-grid {
 
 #content:after {
   position: fixed;
-  top: 5.5rem; /* making sure not to overlay the top border */
+  top: 5.1rem; /* making sure not to overlay the top border */
   left: 0;
   width: 100%;
   height: 100%;
