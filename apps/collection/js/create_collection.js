@@ -135,15 +135,26 @@
                   // better use colleciton.save instead but it calles db.put
                   // not sure if `put` works for new objects
                   var trxs = collections.map(CollectionsDatabase.add);
-                  Promise.all(trxs).then(done, done);
+                  Promise.all(trxs).then(
+                    postResultIds.bind(null, collections), postResultIds);
                 }).catch(function _catch(ex) {
                   eme.log('caught exception', ex);
                   activity.postResult(false);
                 });
               });
 
-              function done() {
-                activity.postResult(true);
+              /**
+               * Return from the activity to the homescreen. Create a list of
+               * collection IDs and post it to the homescreen so it knows what
+               * collections will be created, and positions them accordingly.
+               */
+              function postResultIds(collections) {
+                collections = collections || [];
+
+                // Generate an array of collection IDs.
+                var ids = collections.map(c => c.id);
+
+                activity.postResult(ids);
               }
             },
             function cancel(reason) {
