@@ -1455,17 +1455,6 @@ suite('system/AppWindow', function() {
       assert.isTrue(switchTransitionState.calledWith('closed'));
     });
 
-    test('activity opened event', function() {
-      var app1 = new AppWindow(fakeAppConfig1);
-      var spySetVisible = this.sinon.stub(app1, 'setVisible');
-      var stubIsOOP = this.sinon.stub(app1, 'isOOP');
-      stubIsOOP.returns(false);
-      app1.handleEvent({
-        type: 'activityopened'
-      });
-      assert.isTrue(spySetVisible.calledWith(false, true));
-    });
-
     test('popupclosing event', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       var spyLockOrientation = this.sinon.spy(app1, 'lockOrientation');
@@ -1745,5 +1734,21 @@ suite('system/AppWindow', function() {
       this.sinon.stub(popups2[3], 'isActive').returns(false);
       assert.isTrue(popups2[2].isVisible());
       assert.isFalse(popups2[3].isVisible());
+    });
+
+  test('front window should dispatch events on its element',
+    function() {
+      var popups = openPopups(2);
+      var caught = false;
+      var caughtOnParent = false;
+      popups[1].element.addEventListener('appfake', function() {
+        caught = true;
+      });
+      popups[0].element.addEventListener('appfake', function() {
+        caughtOnParent = true;
+      });
+      popups[1].publish('fake');
+      assert.isTrue(caught);
+      assert.isTrue(caughtOnParent);
     });
 });
