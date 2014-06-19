@@ -96,7 +96,9 @@ var NavbarManager = {
         }
 
         contacts.classList.add('toolbar-option-selected');
-        AccessibilityHelper.setAriaSelected(contacts, tabs);
+        this.ensureResources(function() {
+          AccessibilityHelper.setAriaSelected(contacts, tabs);
+        });
         break;
       case '#keyboard-view':
         checkContactsTab();
