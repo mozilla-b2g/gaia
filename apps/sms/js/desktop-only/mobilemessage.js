@@ -654,6 +654,48 @@
         type: 'sms',
         timestamp: now - 3600000,
         sentTimestamp: now - 3700000
+      },
+      {
+        threadId: 12,
+        receiver: ['06660'],
+        type: 'mms',
+        read: true,
+        delivery: 'sent',
+        deliveryInfo: [{
+          receiver: '052780',
+          deliveryStatus: 'success',
+          deliveryTimestamp: now,
+          readStatus: 'success',
+          readTimestamp: now
+        }],
+        subject: 'Test MMS Image message',
+        smil: '<smil><body><par><text src="text1"/></par>' +
+              '<par><img src="corrupted.jpg"/></par></body></smil>',
+        attachments: [{
+          location: 'text1',
+          content: new Blob(['sent image message'], { type: 'text/plain' })
+        },{
+          location: 'corrupted.jpg',
+          // Corrupt image blob
+          content: new Blob(['corrupted'], {type : 'image/jpg'})
+        }],
+        timestamp: now
+      },
+      {
+        threadId: 12,
+        sender: '06660',
+        type: 'mms',
+        delivery: 'received',
+        deliveryInfo: [{deliveryStatus: 'success'}],
+        subject: 'Test MMS Image message',
+        smil: '<smil><body><par><img src="corrupted.jpg"/>' +
+              '</par></body></smil>',
+        attachments: [{
+          location: 'corrupted.jpg',
+          content: new Blob(['corrupted'], {type : 'image/jpg'})
+        }],
+        timestamp: now,
+        sentTimestamp: now - 100000
       }
     ],
     threads: [
@@ -741,7 +783,14 @@
         lastMessageType: 'sms',
         timestamp: now - 60000,
         unreadCount: 0
-      }
+      },
+      {
+        id: 12,
+        participants: ['06660'],
+        lastMessageType: 'mms',
+        timestamp: now - (60000000 * 10),
+        unreadCount: 0
+      },
     ]
   };
 
