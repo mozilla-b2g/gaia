@@ -224,6 +224,7 @@ function execute(config) {
   if (config.HAIDA) {
     settings['rocketbar.enabled'] = true;
     settings['edgesgesture.enabled'] = true;
+    settings['in-app-sheet.enabled'] = true;
   }
 
   settings['debugger.remote-mode'] = config.REMOTE_DEBUGGER ? 'adb-only'
