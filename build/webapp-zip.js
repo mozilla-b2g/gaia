@@ -49,8 +49,13 @@ WebappZip.prototype.getCompression = function(pathInZip) {
 };
 
 WebappZip.prototype.isExcludedFromZip = function(file) {
-  if (!file || !file.isFile()) {
-    return true;
+  try {
+    if (!file || !file.isFile()) {
+      return true;
+    }
+  } catch (e) {
+    dump('isExcludedFromZip error, file.path: ' + file.path + '\n');
+    throw(e);
   }
   var self = this;
   var excludedFuncs = [
