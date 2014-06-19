@@ -84,7 +84,8 @@
 
       items.forEach(function traveseItems(item) {
         this.menu.innerHTML += itemTemplate.interpolate({
-          layoutName: item.label,
+          layoutName: item.layoutName,
+          appName: item.appName,
           layoutId: item.value.toString(),
           selected: item.selected ? 'true' : 'false'
         });

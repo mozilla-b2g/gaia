@@ -15,11 +15,13 @@ suite('ImeMenu', function() {
   var imeListMockup = [
     {
       value: 0,
-      label: 'Test Layout 1'
+      layoutName: 'Test Layout 1',
+      appName: 'test app 1'
     },
     {
       value: 1,
-      label: 'Test Layout 2',
+      layoutName: 'Test Layout 2',
+      appName: 'test app 1',
       selected: true
     }
   ];
@@ -27,15 +29,18 @@ suite('ImeMenu', function() {
   var newImeListMockup = [
     {
       value: 0,
-      label: 'New Test Layout 1'
+      layoutName: 'New Test Layout 1',
+      appName: 'test app 1'
     },
     {
       value: 1,
-      label: 'New Test Layout 2'
+      layoutName: 'New Test Layout 2',
+      appName: 'test app 1'
     },
     {
       value: 2,
-      label: 'New Test Layout 3',
+      layoutName: 'New Test Layout 3',
+      appName: 'test app 2',
       selected: true
     }
   ];
@@ -47,6 +52,25 @@ suite('ImeMenu', function() {
 
   function getMenu() {
     return screenElement.querySelector('.ime-menu');
+  }
+
+  /*
+   * Check each ime item in the menu matches the data we passed.
+   */
+  function checkImeItems(imeListContainer, imeList) {
+    var i = 0;
+    var layoutNameElement = null;
+    var appNameElement = null;
+
+    for (i = 0; i < imeListContainer.length; i++) {
+      layoutNameElement = imeListContainer[i].querySelector('.item-label');
+      appNameElement = imeListContainer[i].querySelector('.item-note');
+
+      assert.equal(layoutNameElement.textContent,
+                   imeList[i].layoutName);
+
+      assert.equal(appNameElement.textContent, imeList[i].appName);
+    }
   }
 
   suiteSetup(function() {
@@ -106,6 +130,17 @@ suite('ImeMenu', function() {
       menu.stop();
     });
 
+    test(' > check each item in the ime list', function() {
+      var menu = new ImeMenu(imeListMockup, title);
+      menu.start();
+
+      var imeItems = getMenu().querySelectorAll('.ime-menu-list li');
+      assert.equal(imeItems.length, imeListMockup.length);
+      checkImeItems(imeItems, imeListMockup);
+
+      menu.stop();
+    });
+
     test(' > renew ime list', function() {
       // Show menu 1
       var menu = new ImeMenu(imeListMockup, title);
@@ -130,6 +165,9 @@ suite('ImeMenu', function() {
       // Check the selected item is correct
       selectedItem = getMenu().querySelector('li[aria-selected="true"]');
       assert.equal(selectedItem.dataset.id, '2');
+
+      checkImeItems(imeItems, newImeListMockup);
+
       menu2.stop();
     });
 
