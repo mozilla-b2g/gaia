@@ -5,11 +5,15 @@
     item: function() {
       var id = this.h('_id');
       var l10n = '';
+      var name = '';
 
       // hack localize the only default calendar
       if (id && Calendar.Provider.Local.calendarId === id) {
         // localize the default calendar name
         l10n = 'data-l10n-id="calendar-local"';
+        name = navigator.mozL10n.get('calendar-local');
+      } else {
+        name = this.h('name');
       }
 
       return '<li id="calendar-' + id + '" class="calendar-id-' + id + '">' +
@@ -19,7 +23,7 @@
               'value="' + id + '" ' +
               'type="checkbox" ' +
               this.bool('localDisplayed', 'checked') + ' />' +
-            '<span ' + l10n + ' class="name">' + this.h('name') + '</span>' +
+            '<span ' + l10n + ' class="name">' + name + '</span>' +
           '</label>' +
         '</li>';
     }
