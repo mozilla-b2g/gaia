@@ -44,7 +44,7 @@ var Commands = {
   },
 
   deviceHasPasscode: function fmdc_device_has_passcode() {
-    return this._lockscreenEnabled && this.lockscreenPassCodeEnabled;
+    return !!(this._lockscreenEnabled && this._lockscreenPassCodeEnabled);
   },
 
   _setGeolocationPermission:
