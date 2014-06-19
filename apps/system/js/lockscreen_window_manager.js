@@ -47,7 +47,7 @@
      * @memberof LockScreenWindowManager#
      */
     configs: {
-      listens: ['will-unlock',
+      listens: ['lockscreen-request-unlock',
                 'lockscreen-appcreated',
                 'lockscreen-appterminated',
                 'lockscreen-appclose',
@@ -94,13 +94,11 @@
           }
           // Need immediatly unlocking (hide window).
           this.closeApp(true);
-          window.dispatchEvent(
-            new CustomEvent('unlock'));
           break;
         case 'ftudone':
           this.states.FTUOccurs = false;
           break;
-        case 'will-unlock':
+        case 'lockscreen-request-unlock':
           this.states.unlockDetail = evt.detail;
           this.closeApp();
           break;
@@ -113,8 +111,6 @@
           this.unregisterApp(app);
           break;
         case 'lockscreen-appclose':
-          window.dispatchEvent(
-            new CustomEvent('unlock', this.states.unlockDetail));
           this.states.unlockDetail = null;
           break;
         case 'screenchange':

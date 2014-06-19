@@ -34,7 +34,8 @@
     /*
     * Boolean return the status of the lock screen.
     * Must not multate directly - use unlock()/lockIfEnabled()
-    * Listen to 'lock' and 'unlock' event to properly handle status changes
+    * Listen to 'lockscreen-appclosed/opening/opened' events to properly
+    * handle status changes
     */
     _locked: true,
 
@@ -250,7 +251,6 @@
         if (!this.locked) {
           this.switchPanel();
           this.overlay.hidden = true;
-          this.dispatchEvent('unlock', this.unlockDetail);
           this.unlockDetail = undefined;
         }
         break;
@@ -755,7 +755,7 @@
     this.overlay.classList.toggle('no-transition', instant);
 
     var nextPaint = function() {
-      this.dispatchEvent('will-unlock', detail);
+      this.dispatchEvent('lockscreen-request-unlock', detail);
       this.dispatchEvent('secure-modeoff');
       this.overlay.classList.add('unlocked');
 
@@ -764,7 +764,6 @@
       if (instant) {
         this.switchPanel();
         this.overlay.hidden = true;
-        this.dispatchEvent('unlock', detail);
       } else {
         this.unlockDetail = detail;
       }
@@ -796,7 +795,6 @@
 
       // Any changes made to this,
       // also need to be reflected in apps/system/js/storage.js
-      this.dispatchEvent('lock', {detail: this.locked});
       this.dispatchEvent('secure-modeon');
       this.writeSetting(true);
 
