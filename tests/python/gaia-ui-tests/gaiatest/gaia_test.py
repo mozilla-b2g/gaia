@@ -141,7 +141,10 @@ class GaiaData(object):
     @property
     def sim_contacts(self):
         self.marionette.switch_to_frame()
-        return self.marionette.execute_async_script('return GaiaDataLayer.getSIMContacts();', special_powers=True)
+        adn_contacts = self.marionette.execute_async_script('return GaiaDataLayer.getSIMContacts("adn");', special_powers=True)
+        sdn_contacts = self.marionette.execute_async_script('return GaiaDataLayer.getSIMContacts("sdn");', special_powers=True)
+
+        return adn_contacts + sdn_contacts
 
     def insert_contact(self, contact):
         self.marionette.switch_to_frame()
