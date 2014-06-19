@@ -1,3 +1,6 @@
+/* global MocksHelper, MockL10n, MockSIMSlot, MockSIMSlotManager,
+          SimPinDialog */
+
 'use strict';
 
 requireApp('system/test/unit/mock_l10n.js');
@@ -102,34 +105,36 @@ suite('simcard dialog', function() {
 
   suite('error handling', function() {
     test('retry', function() {
-      var stubShowErrorMsg = this.sinon.stub(SimPinDialog, 'showErrorMsg');
+      var stubShowRetryErrorMsg = this.sinon.stub(SimPinDialog,
+        'showRetryErrorMsg');
       SimPinDialog.handleError({
         retryCount: 1,
         lockType: 'pin'
       });
-      assert.isTrue(stubShowErrorMsg.calledWith(1, 'pin'));
+      assert.isTrue(stubShowRetryErrorMsg.calledWith(1, 'pin'));
 
       SimPinDialog.handleError({
         retryCount: 1,
         lockType: 'puk'
       });
-      assert.isTrue(stubShowErrorMsg.calledWith(1, 'puk'));
+      assert.isTrue(stubShowRetryErrorMsg.calledWith(1, 'puk'));
 
       SimPinDialog.handleError({
         retryCount: 1,
         lockType: 'xck'
       });
-      assert.isTrue(stubShowErrorMsg.calledWith(1, 'xck'));
+      assert.isTrue(stubShowRetryErrorMsg.calledWith(1, 'xck'));
     });
 
-    test('showErrorMsg', function() {
+    test('showRetryErrorMsg', function() {
       var stub_ = this.sinon.stub(MockL10n, 'get');
       var count = 0;
       stub_.returns(count++);
-      SimPinDialog.showErrorMsg(1, 'pin');
+      SimPinDialog.showRetryErrorMsg(1, 'pin');
       assert.deepEqual(stub_.getCall(0).args[1], { n: 1 });
-      assert.deepEqual(stub_.getCall(1).args[0], 'pinErrorMsg');
-      assert.deepEqual(stub_.getCall(2).args[0], 'pinLastChanceMsg');
+      assert.deepEqual(stub_.getCall(0).args[0], 'inputCodeRetriesLeft');
+      assert.deepEqual(stub_.getCall(1).args[0], 'pinLastChanceMsg');
+      assert.deepEqual(stub_.getCall(2).args[0], 'pinErrorMsg');
     });
   });
 

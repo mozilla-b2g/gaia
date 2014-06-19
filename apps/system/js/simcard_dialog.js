@@ -71,13 +71,8 @@ var SimPinDialog = {
     });
 
     function checkDialogDone() {
-      if (inputField.value.length >= 4) {
-        self.dialogDone.disabled = false;
-      } else {
-        self.dialogDone.disabled = true;
-      }
+      self.dialogDone.disabled = (inputField.value.length < 4);
     }
-
 
     return inputField;
   },
@@ -110,15 +105,12 @@ var SimPinDialog = {
     switch (lockType) {
       case 'pin':
         this.lockType = lockType;
-        this.errorMsg.hidden = true;
         this.inputFieldControl(true, false, false, false);
         this.pinInput.focus();
         break;
       case 'puk':
         this.lockType = lockType;
-        this.errorMsgHeader.textContent = _('simCardLockedMsg') || '';
-        this.errorMsgBody.textContent = _('enterPukMsg') || '';
-        this.errorMsg.hidden = false;
+        this.showErrorMsg(_('simCardLockedMsg') || '', _('enterPukMsg') || '');
         this.inputFieldControl(false, true, false, true);
         this.pukInput.focus();
         break;
@@ -131,7 +123,6 @@ var SimPinDialog = {
       case 'rcck':
       case 'rspck':
         this.lockType = lockType;
-        this.errorMsg.hidden = true;
         this.inputFieldControl(false, false, true, false);
         this.desc.textContent = _(lockType + 'Code');
         this.xckInput.focus();
@@ -151,7 +142,7 @@ var SimPinDialog = {
 
   handleError: function spl_handleLockError(evt) {
     var retry = (evt.retryCount) ? evt.retryCount : -1;
-    this.showErrorMsg(retry, evt.lockType);
+    this.showRetryErrorMsg(retry, evt.lockType);
     if (retry === -1) {
       this.skip();
       return;
@@ -165,18 +156,25 @@ var SimPinDialog = {
     }
   },
 
-  showErrorMsg: function spl_showErrorMsg(retry, type) {
+  showRetryErrorMsg: function spl_showRetryErrorMsg(retryCount, type) {
     var _ = navigator.mozL10n.get;
-    var l10nArgs = { n: retry };
+    var l10nArgs = { n: retryCount };
 
     this.triesLeftMsg.textContent = _('inputCodeRetriesLeft', l10nArgs);
-    this.errorMsgHeader.textContent = _(type + 'ErrorMsg');
-    if (retry !== 1) {
-      this.errorMsgBody.textContent = _(type + 'AttemptMsg2', l10nArgs);
+    this.triesLeftMsg.hidden = false;
+    var body = '';
+    if (retryCount !== 1) {
+      body = _(type + 'AttemptMsg2', l10nArgs);
     } else {
-      this.errorMsgBody.textContent = _(type + 'LastChanceMsg');
+      body = _(type + 'LastChanceMsg');
     }
 
+    this.showErrorMsg(_(type + 'ErrorMsg'), body);
+  },
+
+  showErrorMsg: function spl_showErrorMsg(header, body) {
+    this.errorMsgHeader.textContent = header;
+    this.errorMsgBody.textContent = body;
     this.errorMsg.hidden = false;
   },
 
@@ -202,12 +200,10 @@ var SimPinDialog = {
     }
 
     if (newPin !== confirmPin) {
-      this.errorMsgHeader.textContent = _('newPinErrorMsg');
-      this.errorMsgBody.textContent = '';
-      this.errorMsg.hidden = false;
+      this.showErrorMsg(_('newPinErrorMsg'), '');
       return;
     }
-    var options = {lockType: 'puk', puk: puk, newPin: newPin };
+    var options = { lockType: 'puk', puk: puk, newPin: newPin };
     this.unlockCardLock(options);
     this.clear();
   },
@@ -218,7 +214,7 @@ var SimPinDialog = {
       return;
     }
 
-    var options = {lockType: this.lockType, pin: xck };
+    var options = { lockType: this.lockType, pin: xck };
     this.unlockCardLock(options);
     this.clear();
   },
@@ -259,6 +255,7 @@ var SimPinDialog = {
 
   clear: function spl_clear() {
     this.errorMsg.hidden = true;
+    this.triesLeftMsg.hidden = true;
     this.pinInput.value = '';
     this.pinInput.blur();
     this.pukInput.value = '';
@@ -303,11 +300,7 @@ var SimPinDialog = {
       this.onclose = onclose;
     }
 
-    if (skipped) {
-      delete this.dialogBack.hidden;
-    } else {
-      this.dialogBack.hidden = true;
-    }
+    this.dialogBack.hidden = !skipped;
   },
 
   requestClose: function spl_requestClose(reason) {
