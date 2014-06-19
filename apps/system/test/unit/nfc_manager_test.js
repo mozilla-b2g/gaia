@@ -197,6 +197,7 @@ suite('Nfc Manager Functions', function() {
     var execInvalidMessageTest = function(msg) {
       var stubVibrate = this.sinon.stub(window.navigator, 'vibrate');
       var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
+      var stubTryHandover = this.sinon.stub(NfcHandoverManager, 'tryHandover');
       var stubFireTag = this.sinon.stub(NfcManager, 'fireTagDiscovered');
       var validMsg = {techList: [], records: []};
 
@@ -209,11 +210,14 @@ suite('Nfc Manager Functions', function() {
       assert.equal(stubDispatchEvent.getCall(0).args[0].type,
                    'nfc-tech-discovered',
                    'when msg ' + msg);
+      assert.isTrue(stubTryHandover.withArgs(validMsg.records, undefined)
+                                   .calledOnce, 'handover, when msg: ' + msg);
       assert.isTrue(stubFireTag.withArgs(validMsg, 'Unknown').calledOnce,
                     'fireTagDiscovered, when msg: ' + msg);
 
       stubVibrate.restore();
       stubDispatchEvent.restore();
+      stubTryHandover.restore();
       stubFireTag.restore();
     };
 
@@ -243,55 +247,6 @@ suite('Nfc Manager Functions', function() {
       execInvalidMessageTest.call(this, {});
       execInvalidMessageTest.call(this, {techList: 'invalid'});
       execInvalidMessageTest.call(this, {techList: []});
-    });
-
-    test('handover messages handling', function() {
-      // simplified pairing record
-      var spr = {
-        tnf: NDEF.TNF_MIME_MEDIA,
-        type: NDEF.MIME_BLUETOOTH_OOB,
-        id: new Uint8Array([1]),
-        payload: new Uint8Array([1])
-      };
-
-      // handover select record
-      var hsr = {
-        tnf: NDEF.TNF_WELL_KNOWN,
-        type: NDEF.RTD_HANDOVER_SELECT,
-        id: new Uint8Array([2]),
-        payload: new Uint8Array([2])
-      };
-
-      // handover request record
-      var hrr = {
-        tnf: NDEF.TNF_WELL_KNOWN,
-        type: NDEF.RTD_HANDOVER_REQUEST,
-        id: new Uint8Array([3]),
-        payload: new Uint8Array([3])
-      };
-
-      sampleMsg.records = [spr, hsr, hrr];
-
-      var stubHandleSPR = this.sinon.stub(NfcHandoverManager,
-                                          'handleSimplifiedPairingRecord');
-      var stubHandleHSR = this.sinon.stub(NfcHandoverManager,
-                                          'handleHandoverSelect');
-      var stubHandleHRR = this.sinon.stub(NfcHandoverManager,
-                                          'handleHandoverRequest');
-
-      NfcManager.handleTechnologyDiscovered(sampleMsg);
-      assert.isTrue(stubHandleSPR.withArgs(sampleMsg.records).calledOnce,
-                    'Simplified Pairing Record');
-
-      sampleMsg.records.shift();
-      NfcManager.handleTechnologyDiscovered(sampleMsg);
-      assert.isTrue(stubHandleHSR.withArgs(sampleMsg.records).calledOnce,
-                    'Handover Select Record');
-
-      sampleMsg.records.shift();
-      NfcManager.handleTechnologyDiscovered(sampleMsg);
-      assert.isTrue(stubHandleHRR.withArgs(sampleMsg.records).calledOnce,
-                    'Handover Request Record');
     });
 
     // triggering of P2P UI

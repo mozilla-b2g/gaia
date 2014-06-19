@@ -156,9 +156,9 @@ suite('Nfc Handover Manager Functions', function() {
       spySendNDEF.restore();
     });
 
-    test('handleHandoverRequest(): sends Hs message to peer', function() {
+    test('_handleHandoverRequest(): sends Hs message to peer', function() {
       var handoverRequest = NDEFUtils.encodeHandoverRequest(mac, cps);
-      NfcHandoverManager.handleHandoverRequest(handoverRequest);
+      NfcHandoverManager._handleHandoverRequest(handoverRequest);
 
       assert.isTrue(spySendNDEF.calledOnce);
 
@@ -173,9 +173,9 @@ suite('Nfc Handover Manager Functions', function() {
       assert.isTrue(NfcHandoverManager.incomingFileTransferInProgress);
     });
 
-    test('handleHandoverSelect() attempts to pair BT devices', function() {
+    test('_handleHandoverSelect() attempts to pair BT devices', function() {
       var handoverSelect = NDEFUtils.encodeHandoverSelect(mac, cps);
-      NfcHandoverManager.handleHandoverSelect(handoverSelect);
+      NfcHandoverManager._handleHandoverSelect(handoverSelect);
 
       assert.isTrue(spyPairing.calledOnce);
       assert.equal(mac, spyPairing.firstCall.args[0]);
@@ -268,7 +268,7 @@ suite('Nfc Handover Manager Functions', function() {
 
       var select = NDEFUtils.encodeHandoverSelect(
         '01:23:45:67:89:AB', NDEF.CPS_ACTIVE);
-      NfcHandoverManager.handleHandoverSelect(select);
+      NfcHandoverManager._handleHandoverSelect(select);
 
       assert.isTrue(spySendFile.calledOnce);
       assert.equal(fileRequest.onsuccess.callCount, 0);
@@ -369,7 +369,7 @@ suite('Nfc Handover Manager Functions', function() {
     var finalizeFileTransfer = function() {
       var hs = NDEFUtils.encodeHandoverSelect('11:22:33:44:55:66',
         NDEF.CPS_ACTIVE);
-      NfcHandoverManager.handleHandoverSelect(hs);
+      NfcHandoverManager._handleHandoverSelect(hs);
       spySendFileViaHandover.firstCall.returnValue.fireSuccess();
     };
 
@@ -428,6 +428,114 @@ suite('Nfc Handover Manager Functions', function() {
       assert.equal(spyBluetoothEnabledObserver.callCount, 2);
       assert.isFalse(spyBluetoothEnabledObserver.getCall(1)
                                                 .args[0].settingValue);
+    });
+  });
+  
+  suite('tryHandover', function() {
+    var session = 'sessionToken';
+
+    // simplified pairing record
+    var spr;
+    // handover select record
+    var hsr;
+    // handover request record
+    var hrr;
+
+    var uriRecord;
+    var mimeRecord;
+
+    var stubHandleSPR;
+    var stubHandleHSR;
+    var stubHandleHRR;
+
+    setup(function() {
+      spr = {
+        tnf: NDEF.TNF_MIME_MEDIA,
+        type: NDEF.MIME_BLUETOOTH_OOB,
+        id: new Uint8Array([1]),
+        payload: new Uint8Array([1])
+      };
+
+      hsr = {
+        tnf: NDEF.TNF_WELL_KNOWN,
+        type: NDEF.RTD_HANDOVER_SELECT,
+        id: new Uint8Array([2]),
+        payload: new Uint8Array([2])
+      };
+
+      hrr = {
+        tnf: NDEF.TNF_WELL_KNOWN,
+        type: NDEF.RTD_HANDOVER_REQUEST,
+        id: new Uint8Array([3]),
+        payload: new Uint8Array([3])
+      };
+
+      uriRecord = {
+        tnf: NDEF.TNF_WELL_KNOWN,
+        type: NDEF.RTD_URI,
+        id: new Uint8Array([4]),
+        payload: new Uint8Array([4])
+      };
+
+      mimeRecord = {
+        tnf: NDEF.TNF_MIME_MEDIA,
+        type: 'text/plain',
+        id: new Uint8Array([5]),
+        payload: new Uint8Array([5])
+      };
+
+      stubHandleSPR = this.sinon.stub(NfcHandoverManager,
+                                      '_handleSimplifiedPairingRecord');
+      stubHandleHSR = this.sinon.stub(NfcHandoverManager,
+                                      '_handleHandoverSelect');
+      stubHandleHRR = this.sinon.stub(NfcHandoverManager,
+                                      '_handleHandoverRequest');
+    });
+
+    teardown(function() {
+      stubHandleSPR.restore();
+      stubHandleHSR.restore();
+      stubHandleHRR.restore();
+    });
+
+    test('simplified pairing record', function() {
+      var result = NfcHandoverManager.tryHandover([spr], session);
+      assert.isTrue(result, 'result');
+      assert.isTrue(stubHandleSPR.withArgs([spr]).calledOnce, 'method');
+    });
+
+    test('handover select record', function() {
+      var result = NfcHandoverManager.tryHandover([hsr], session);
+      assert.isTrue(result, 'result');
+      assert.isTrue(stubHandleHSR.withArgs([hsr]).calledOnce, 'method');
+    });
+
+    test('handover request record', function() {
+      var result = NfcHandoverManager.tryHandover([hrr], session);
+      assert.isTrue(result, 'result');
+      assert.isTrue(stubHandleHRR.withArgs([hrr], session).calledOnce,
+                                           'method');
+    });
+
+    test('regular records', function() {
+      var result = NfcHandoverManager.tryHandover([uriRecord], session);
+      assert.isFalse(result, 'regular URI record');
+
+      result = NfcHandoverManager.tryHandover([mimeRecord], session);
+      assert.isFalse(result, 'regular MIME record');
+    });
+
+    test('multiple handover records, only first handled', function() {
+      var result = NfcHandoverManager.tryHandover([spr, hsr], session);
+      assert.isTrue(result, 'result');
+      assert.isTrue(stubHandleSPR.withArgs([spr, hsr]).calledOnce, 'handled');
+      assert.isFalse(stubHandleHSR.called, 'not handled');
+    });
+
+    test('multiple records, handover record second, not handled', function() {
+      var result = NfcHandoverManager.tryHandover([uriRecord, hsr], session);
+      assert.isFalse(result, 'result');
+      assert.isFalse(stubHandleHSR.called, 'not handled');
     });
   });
 });

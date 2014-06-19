@@ -347,34 +347,11 @@ var NfcManager = {
     window.dispatchEvent(new CustomEvent('nfc-tech-discovered'));
     window.navigator.vibrate([25, 50, 125]);
 
-    if (msg.records.length !== 0) {
-      /* First check for handover messages that
-       * are handled by the handover manager.
-       */
-      var firstRecord = msg.records[0];
-      if ((firstRecord.tnf == NDEF.TNF_MIME_MEDIA) &&
-          NfcUtils.equalArrays(firstRecord.type, NDEF.MIME_BLUETOOTH_OOB)) {
-        this._debug('Handle simplified pairing record');
-        NfcHandoverManager.handleSimplifiedPairingRecord(msg.records);
-        return;
-      }
-      if ((firstRecord.tnf == NDEF.TNF_WELL_KNOWN) &&
-          NfcUtils.equalArrays(firstRecord.type, NDEF.RTD_HANDOVER_SELECT)) {
-        this._debug('Handle Handover Select');
-        NfcHandoverManager.handleHandoverSelect(msg.records);
-        return;
-      }
-      if ((firstRecord.tnf == NDEF.TNF_WELL_KNOWN) &&
-          NfcUtils.equalArrays(firstRecord.type, NDEF.RTD_HANDOVER_REQUEST)) {
-        this._debug('Handle Handover Request');
-        NfcHandoverManager.handleHandoverRequest(msg.records, msg.sessionToken);
-        return;
-      }
+    if (NfcHandoverManager.tryHandover(msg.records, msg.sessionToken)) {
+      return;
     }
 
-    this._debug('msg.techList: ' + msg.techList);
     var tech = this.getPrioritizedTech(msg.techList);
-    // One shot try. Fallback directly to tag.
     switch (tech) {
       case 'P2P':
         if (!msg.records.length) {
