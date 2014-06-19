@@ -20,7 +20,7 @@
       rocketbar: true,
       navigation: false
     };
-      
+
     AppWindow.call(this, configs);
   };
 

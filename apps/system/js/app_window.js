@@ -3,8 +3,9 @@
 'use strict';
 
 (function(exports) {
-  var DEBUG = false;
+  var DEBUG = true;
   var _id = 0;
+  var wildcard = false;
 
   /**
    * AppWindow creates, contains, manages a
@@ -42,6 +43,7 @@
    */
   var AppWindow = function AppWindow(configuration) {
     this.reConfig(configuration);
+    console.log(configuration.url);
     this.render();
     /**
      * This is fired when the app window is instantiated.
@@ -568,6 +570,11 @@
   };
 
   AppWindow.prototype.render = function aw_render() {
+    // console.log('Error '+this.url);
+    // Bug 1009271
+    if (/^(mailto):/i.test(this.url)) {
+      wildcard = true;
+    }
     this._render();
     this._registerEvents();
     this.installSubComponents();
@@ -680,6 +687,9 @@
   AppWindow.prototype.installSubComponents =
     function aw_installSubComponents() {
       this.debug('installing sub components...');
+      if (wildcard) {
+        return;
+      }
       for (var componentName in this.constructor.SUB_COMPONENTS) {
         if (this.constructor.SUB_COMPONENTS[componentName]) {
           this[componentName] =
@@ -695,6 +705,9 @@
 
   AppWindow.prototype.uninstallSubComponents =
     function aw_uninstallSubComponents() {
+      if (wildcard) {
+        return;
+      }
       for (var componentName in this.constructor.prototype.SUB_COMPONENTS) {
         if (this[componentName]) {
           this[componentName].destroy();
