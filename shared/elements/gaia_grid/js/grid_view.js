@@ -108,7 +108,7 @@
         var item = this.items[i];
 
         // Do not consider dividers for dragdrop.
-        if (item.detail.type === 'divider') {
+        if (!item.isDraggable()) {
           continue;
         }
 
@@ -167,7 +167,7 @@
 
       // We do not allow users to launch icons in edit mode
       if (action === 'launch' && inEditMode) {
-        if (icon.detail.type !== 'bookmark') {
+        if (icon.detail.type !== 'bookmark' || !icon.isEditable()) {
           return;
         }
         // Editing a bookmark in edit mode

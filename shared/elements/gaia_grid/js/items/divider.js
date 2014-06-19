@@ -60,6 +60,10 @@
       if (this.element) {
         this.element.parentNode.removeChild(this.element);
       }
+    },
+
+    isDraggable: function() {
+      return false;
     }
   };
 

@@ -10,7 +10,7 @@
 (function(exports){
 
   // web result created from E.me API data
-  function WebResult(data) {
+  function WebResult(data, gridItemFeatures) {
     // use appUrl as the webresult identifier because:
     // 1. data.id is null for bing results
     // 2. using appUrl allows deduping vs bookmarks
@@ -22,7 +22,8 @@
     return {
       identifier: data.appUrl,
       type: 'webResult',
-      data: data
+      data: data,
+      features: gridItemFeatures
     };
   }
 
@@ -76,7 +77,7 @@
     // a running process has a collection object reference
     refresh: function refresh() {
       return CollectionsDatabase.get(this.id).then(function create(fresh) {
-        this.pinned = fresh.pinned;
+        this.pinned = fresh.pinned || [];
       }.bind(this));
     },
 
@@ -125,9 +126,21 @@
       this.pin(new WebResult(data));
     },
 
+    unpin: function unpin(identifier) {
+      var idx = this.pinnedIdentifiers.indexOf(identifier);
+      if (idx !== -1) {
+        this.pinned.splice(idx, 1);
+        eme.log('removed pinned item', identifier);
+        return this.save();
+      }
+    },
+
     addWebResults: function addWebResult(arrayOfData) {
       var results = arrayOfData.map(function each(data) {
-        return new WebResult(data);
+        return new WebResult(data, {
+          isDraggable: false,
+          isRemovable: false
+        });
       });
       this.webResults = results;
     },
@@ -140,10 +153,32 @@
       return !this.isPinned(item);
     },
 
+    setPinned: function setPinned(identifiers) {
+      // reflect the new sorting on this.pinned
+      this.pinned = identifiers
+        // array of all grid items, cut down to pinned only
+        .slice(0, this.pinned.length)
+        .map(function(identifier) {
+          // find index of item in this.pinned
+          var idx = this.pinnedIdentifiers.indexOf(identifier);
+          // return the item
+          return this.pinned[idx];
+        }.bind(this));
+      this.save();
+    },
+
     get pinnedIdentifiers() {
       return this.pinned.map(function each(item) {
         return item.identifier;
       });
+    },
+
+    removeBookmark: function removeBookmark(identifier) {
+      window.dispatchEvent(
+        new CustomEvent('collection-remove-webresult', {
+          detail: { identifier: identifier }
+        })
+      );
     },
 
     addToGrid: function addToGrid(items, grid) {
@@ -162,7 +197,14 @@
         if (item.type === 'homeIcon') {
           icon = this.homeIcons.get(item.identifier);
         } else if (item.type === 'webResult') {
-          icon = new GaiaGrid.Bookmark(item.data);
+          item.features = item.features || {};
+          item.features.isEditable = false;
+          icon = new GaiaGrid.Bookmark(item.data, item.features);
+
+          // override remove method (original sends activity)
+          if (icon.isRemovable) {
+            icon.remove = () => this.removeBookmark(item.identifier);
+          }
         }
 
         if (icon) {
