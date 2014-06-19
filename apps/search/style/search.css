@@ -18,9 +18,11 @@ body, a {
 }
 
 section.suggestions {
-  margin-left: 0.7rem;
+  margin: 0 0.7rem;
   font-size: 16px;
   font-style: italic;
+  overflow: hidden;
+  height: 3.5rem;
 }
 
 section.suggestions ul {
@@ -29,6 +31,7 @@ section.suggestions ul {
   white-space: nowrap;
   overflow-x: scroll;
   padding-left: 0;
+  height: 5rem;
 }
 
 section.suggestions ul li {
