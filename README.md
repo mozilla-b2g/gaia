@@ -170,6 +170,14 @@ To view log out from a test
 make test-integration VERBOSE=1
 ```
 
+#### Running tests in OOP mode
+
+To run tests in OOP mode
+
+```sh
+make test-integration OOP=1
+```
+
 #### Where to find documentation
   - [Node.js](http://nodejs.org)
 

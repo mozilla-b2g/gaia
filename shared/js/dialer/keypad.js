@@ -262,7 +262,9 @@ var KeypadManager = {
   render: function hk_render(layoutType) {
     if (layoutType == 'oncall') {
       if (CallsHandler.activeCall) {
-        this._phoneNumber = CallsHandler.activeCall.call.number;
+        var activeCall = CallsHandler.activeCall.call;
+        this._phoneNumber =
+          activeCall.id ? activeCall.id.number : activeCall.number;
       }
       this._isKeypadClicked = false;
       this.phoneNumberViewContainer.classList.add('keypad-visible');
@@ -531,7 +533,9 @@ var KeypadManager = {
     }
 
     // If user input number more 50 digits, app shouldn't accept.
-    if (key != 'delete' && this._phoneNumber.length >= 50) {
+    // The limit only applies while not on a call - there is no
+    // limit while on a call (bug 917630).
+    if (key != 'delete' && this._phoneNumber.length >= 50 && !this._onCall) {
       return;
     }
 

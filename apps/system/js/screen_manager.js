@@ -294,9 +294,9 @@ var ScreenManager = {
         this._cpuWakeLock = navigator.requestWakeLock('cpu');
         window.addEventListener('userproximity', this);
         break;
-      case 'will-unlock' :
+      case 'lockscreen-appclosing' :
       case 'lockpanelchange' :
-        window.removeEventListener('will-unlock', this);
+        window.removeEventListener('lockscreen-appclosing', this);
         window.removeEventListener('lockpanelchange', this);
         this._setIdleTimeout(this._idleTimeout, false);
         break;
@@ -346,7 +346,7 @@ var ScreenManager = {
       if (self._deviceLightEnabled)
         window.removeEventListener('devicelight', self);
 
-      window.removeEventListener('will-unlock', self);
+      window.removeEventListener('lockscreen-appclosing', self);
       window.removeEventListener('lockpanelchange', self);
       self.screenEnabled = false;
       self._inTransition = false;
@@ -446,7 +446,7 @@ var ScreenManager = {
     // The screen should be turn off with shorter timeout if
     // it was never unlocked.
     } else if (!this._unlocking) {
-      if (window.lockScreen && window.lockScreen.locked) {
+      if (window.System.locked) {
         this._setIdleTimeout(10, true);
         window.addEventListener('will-unlock', this);
         window.addEventListener('lockpanelchange', this);

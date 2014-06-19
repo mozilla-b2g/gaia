@@ -69,8 +69,10 @@ suite('system/TextSelectionDialog', function() {
   };
 
   function verifyClickableOptions(config) {
+    var lastOption;
     for (var item1 in config) {
       if(config[item1]) {
+        lastOption = item1;
         mockDetail['can' + item1] = true;
       } else {
         mockDetail['can' + item1] = false;
@@ -80,18 +82,28 @@ suite('system/TextSelectionDialog', function() {
     fakeTextSelectInAppEvent.detail = mockDetail;
     td.handleEvent(fakeTextSelectInAppEvent);
 
-    assert.equal(td.element.classList.contains('visible'), true,
+    if (lastOption) {
+      assert.equal(td.element.classList.contains('visible'), true,
       'dialog should display');
+    } else {
+      assert.equal(td.element.classList.contains('visible'), false,
+      'dialog should display');
+      return;
+    }
+
     for (var item2 in config) {
       var element = td.elements[item2.toLowerCase()];
       if (config[item2]) {
-        assert.equal(element.style.display,
-          '', 'option of ' + item2 + ' should display');
+        assert.equal(element.classList.contains('hidden'),
+          false, 'option of ' + item2 + ' should display');
       } else {
-        assert.equal(element.style.display,
-          'none', 'option of ' + item2 + ' should be hidden');
+        assert.equal(element.classList.contains('hidden'),
+          true, 'option of ' + item2 + ' should be hidden');
       }
     }
+    assert.equal(
+      td.elements[lastOption.toLowerCase()].classList.contains('last-option'),
+      true, 'last-option class should be added to the last element of array');
   }
 
   function emitMouseDownEvent(ele) {

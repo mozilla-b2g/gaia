@@ -23,7 +23,8 @@ Search.Selectors = {
   firstContact: '#contacts div',
   firstContactContainer: '#contacts',
   firstPlace: '#places div .title',
-  firstPlaceContainer: '#places'
+  firstPlaceContainer: '#places',
+  firstRunConfirm: '#suggestions-notice-confirm'
 };
 
 Search.prototype = {
@@ -49,7 +50,7 @@ Search.prototype = {
     this.client.helper.waitForElement(selectors.firstAppContainer);
     var result = this.client.helper.waitForElement(selector);
     assert.equal(expected, result.text());
-    result.click();
+    return result;
   },
 
   /**
@@ -65,7 +66,7 @@ Search.prototype = {
     var result = this.client.helper
       .waitForElement(selectors[selectorKey]);
     assert.equal(expected, result.text());
-    result.click();
+    return result;
   },
 
   /**
@@ -81,6 +82,20 @@ Search.prototype = {
         'geolocation', 'deny', origin + '/manifest.webapp', origin, false
       );
     }, [Search.URL]);
+  },
+
+  /**
+   * On first run a warning is shown to users on Search app configuration
+   * trigger this notice and confirm it.
+   */
+  triggerFirstRun: function(rocketbar) {
+    rocketbar.enterText('abc');
+    this.goToResults();
+    this.client.helper
+      .waitForElement(Search.Selectors.firstRunConfirm)
+      .click();
+    this.client.switchToFrame();
+    rocketbar.enterText('');
   },
 
   /**

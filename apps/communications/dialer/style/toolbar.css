@@ -12,16 +12,6 @@
   background-image: url("images/dialpad.png");
 }
 
-.with-keyboard #views,
-.with-keyboard .bb-tablist .bb-tabpanel {
-  height: 100% !important;
-}
-
-.with-keyboard .bb-tablist > li > a,
-.with-keyboard .bb-tablist > li:before {
-  display: none;
-}
-
 /* Making lazy loading look nice */
 #contacts-view .bb-tabpanel,
 #recents-view.hidden .bb-tabpanel {
@@ -58,7 +48,6 @@
 /* For showing/hiding navbar */
 #views:before {
   transform: translateX(0);
-  transition: 0.4s transform 0.4s;
 }
 
 #views.hide-toolbar:before {
@@ -68,7 +57,6 @@
 #views > li > .icon {
   transform: translateY(0%);
   z-index: 2;
-  transition: 0.5s transform 0.5s;
 }
 
 #views.hide-toolbar > li {
@@ -87,7 +75,6 @@
 
 #views .bb-tabpanel {
   pointer-events: all;
-  transition: 0s height 0.5s;
 }
 
 #contacts-view .bb-tabpanel {

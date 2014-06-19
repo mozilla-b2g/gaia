@@ -108,6 +108,9 @@ navigator.mozL10n.once(function wifiSelectCertificateFile() {
     };
   }) (document.getElementById('wifi-certificate-files-List'));
 
+  // scan certificate file while init this page first time
+  gSelectCertificateFiles.scan();
+
   // when open dialog to select certificate file page,
   // update the certificate files via device storage
   window.addEventListener('scan-certificate-file', function() {

@@ -1,4 +1,4 @@
-/* global Search, DataGridProvider, Icon */
+/* global Search, DataGridProvider, GaiaGrid */
 
 (function() {
 
@@ -42,7 +42,7 @@
       results.forEach(function eachResult(result) {
         formatted.push({
           dedupeId: result.app.manifestURL,
-          data: new Icon(result.app, result.entryPoint)
+          data: new GaiaGrid.Mozapp(result.app, result.entryPoint)
         });
       }, this);
 

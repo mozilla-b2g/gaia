@@ -97,6 +97,7 @@
   <!-- Components -->
   <script defer src="/shared/js/component_utils.js"></script>
   <script defer src="/shared/elements/gaia_switch/script.js"></script>
+  <script defer src="/shared/elements/gaia_buttons/script.js"></script>
 
   <!--
     <link href="/shared/pages/import/import.html">
@@ -164,7 +165,7 @@
       </section>
     </article>
 
-    <nav role="navigation">
+    <gaia-buttons>
       <button id="skip-pin-button" class="button-left" data-l10n-id="skip">
         Skip
       </button>
@@ -174,7 +175,7 @@
       <button id="unlock-sim-button" class="recommend" data-l10n-id="ok">
         OK
       </button>
-    </nav>
+    </gaia-buttons>
   </section>
 
   <section id="sim-info-screen" role="region" class="skin-organic">
@@ -211,16 +212,10 @@
       </section>
     </article>
 
-    <nav role="navigation">
-      <button id="sim-info-back" class="button-left back" data-l10n-id="navbar-back">
-        Back
-        <span></span>
-      </button>
-      <button id="sim-info-forward" class="recommend forward" data-l10n-id="navbar-next">
-        Next
-        <span></span>
-      </button>
-    </nav>
+    <gaia-buttons>
+      <button id="sim-info-back" class="button-left back" data-l10n-id="navbar-back">Back</button>
+      <button id="sim-info-forward" class="recommend forward" data-l10n-id="navbar-next">Next</button>
+    </gaia-buttons>
   </section>
 
   <section id="activation-screen" role="region" class="skin-organic no-options">
@@ -605,19 +600,11 @@
         </section>
       </section>
     </article>
-    <menu role="navigation" id="nav-bar" class="forward-only">
-      <button id="back" class="button-left back" data-l10n-id="navbar-back">
-        Back
-        <span></span>
-      </button>
-      <button class="recommend forward" id="forward" data-l10n-id="navbar-next">
-        Next
-        <span></span>
-      </button>
-      <button class="recommend" id="wifi-join-button" data-l10n-id="navbar-join">
-        Join
-      </button>
-    </menu>
+    <gaia-buttons id="nav-bar" class="forward-only">
+      <button id="back" class="button-left icon icon-previous" data-l10n-id="navbar-back">Back</button>
+      <button id="forward" class="recommend icon icon-next" data-l10n-id="navbar-next">Next</button>
+      <button id="wifi-join-button" class="recommend" data-l10n-id="navbar-join">Join</button>
+    </gaia-buttons>
   </section>
 
   <section id="finish-screen" class="finish-screen-base" role="region">
@@ -644,14 +631,14 @@
       </div>
 
       </section>
-      <menu role="navigation">
+      <gaia-buttons skin="dark">
         <button id="skip-tutorial-button" class="button-left" data-l10n-id="skip">
           Skip
         </button>
         <button id="lets-go-button" class="recommend" data-l10n-id="startTour">
           Start Tour!
         </button>
-      </menu>
+      </gaia-buttons>
     </section>
   </section>
 
@@ -664,14 +651,14 @@
         Your phone has updated successfully! Start the tour to find out more about the new features.
       </p>
     </section>
-    <menu role="navigation">
+    <gaia-buttons skin="dark">
       <button id="update-skip-tutorial-button" class="button-left" data-l10n-id="skip">
         Skip
       </button>
       <button id="update-lets-go-button" class="recommend" data-l10n-id="startTour">
         Start Tour!
       </button>
-    </menu>
+    </gaia-buttons>
   </section>
 
   <section id="tutorial" role="region" data-step="1">
@@ -688,16 +675,10 @@
         <video class="step-video-base" role="presentation" preload="auto" autoplay hidden loop></video>
       </section>
     </article>
-    <nav role="navigation" id="tutorial-nav-bar">
-      <button id="back-tutorial" class="button-left back" data-l10n-id="navbar-back">
-        Back
-        <span></span>
-      </button>
-      <button id="forward-tutorial" class="recommend forward" data-l10n-id="navbar-next">
-        Next
-        <span></span>
-      </button>
-    </nav>
+    <gaia-buttons id="tutorial-nav-bar" skin="dark">
+      <button id="back-tutorial" class="button-left icon icon-previous" data-l10n-id="navbar-back">Back</button>
+      <button id="forward-tutorial" class="recommend icon icon-next" data-l10n-id="navbar-next">Next</button>
+    </gaia-buttons>
   </section>
   <section id="tutorial-finish-tiny" class="tutorial-finish-base" role="region">
     <section class="content">
@@ -708,7 +689,7 @@
         You're ready to enjoy your new phone ;)
       </h2>
       </section>
-      <menu role="navigation" class="forward-only">
+      <gaia-buttons skin="dark" class="forward-only">
         <button class="recommend" id="tutorialFinished" data-l10n-id="letsGo">
         </button>
       </menu>
@@ -731,9 +712,9 @@
       <p><small data-l10n-id='offline-dialog-text'>Please go back and connect to
         the Internet. You can also view the page later from Settings or by
         entering {{url}} in any browser.</small></p>
-      <menu>
-        <button class='full' data-l10n-id='OK'>OK</button>
-      </menu>
+      <gaia-buttons skin="dark">
+        <button data-l10n-id='OK'>OK</button>
+      </gaia-buttons>
     </section>
   </form>
 
@@ -742,9 +723,9 @@
       <h1 data-l10n-id='offline-newsletter-dialog-title'>You must be connected to the Internet to subscribe to the newsletter.</h1>
       <p><small data-l10n-id='offline-newsletter-dialog-text'>Please go back and connect to
         the Internet.</small></p>
-      <menu>
-        <button class='full' data-l10n-id='OK'>OK</button>
-      </menu>
+      <gaia-buttons skin="dark">
+        <button data-l10n-id='OK'>OK</button>
+      </gaia-buttons>
     </section>
   </form>
 
@@ -752,9 +733,9 @@
     <section>
       <h1 data-l10n-id='invalid-email-dialog-title'>Your email is not valid</h1>
       <p><small data-l10n-id='invalid-email-dialog-text'>Please go back and correct your entry.</small></p>
-      <menu>
-        <button class='full' data-l10n-id='OK'>OK</button>
-      </menu>
+      <gaia-buttons skin="dark">
+        <button data-l10n-id='OK'>OK</button>
+      </gaia-buttons>
     </section>
   </form>
 

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-/* globals dump, lockScreen, CustomEvent, MozActivity,
+/* globals dump, CustomEvent, MozActivity, System,
    NfcHandoverManager, NfcUtils, NDEF, ScreenManager */
 'use strict';
 
@@ -60,12 +60,12 @@ var NfcManager = {
       'nfc-manager-tech-lost',
       this.handleTechLost.bind(this));
     window.addEventListener('screenchange', this);
-    window.addEventListener('lock', this);
-    window.addEventListener('unlock', this);
+    window.addEventListener('lockscreen-appopened', this);
+    window.addEventListener('lockscreen-appclosed', this);
     var self = this;
     window.SettingsListener.observe('nfc.enabled', false, function(enabled) {
       var state = enabled ?
-                    (lockScreen.locked ?
+                    (System.locked ?
                        self.NFC_HW_STATE_DISABLE_DISCOVERY :
                        self.NFC_HW_STATE_ON) :
                     self.NFC_HW_STATE_OFF;
@@ -75,7 +75,7 @@ var NfcManager = {
 
   isScreenUnlockAndEnabled: function nm_isScreenUnlockAndEnabled() {
     // Policy:
-    if (ScreenManager.screenEnabled && lockScreen && !lockScreen.locked) {
+    if (ScreenManager.screenEnabled && !System.locked) {
       return true;
     } else {
       return false;
@@ -124,8 +124,8 @@ var NfcManager = {
   handleEvent: function nm_handleEvent(evt) {
     var state;
     switch (evt.type) {
-      case 'lock': // Fall through
-      case 'unlock':
+      case 'lockscreen-appopened': // Fall through
+      case 'lockscreen-appclosed':
       case 'screenchange':
         if (this.hwState == this.NFC_HW_STATE_OFF) {
           return;
@@ -402,7 +402,7 @@ var NfcManager = {
 
     // Clean up P2P UI events
     window.removeEventListener('shrinking-sent', this);
-    window.dispatchEvent(new CustomEvent('shrinking-rejected'));
+    window.dispatchEvent(new CustomEvent('shrinking-stop'));
   },
 
   // Miscellaneous utility functions to handle formating the JSON for activities

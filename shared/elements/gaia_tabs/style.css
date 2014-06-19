@@ -15,6 +15,7 @@ gaia-tabs {
   padding: 0;
   z-index: 0;
   background: #fff;
+  border-top: 0.1rem solid #e7e7e7;
 }
 
 /**
@@ -24,45 +25,23 @@ gaia-tabs {
 gaia-tabs[position="top"] {
   top: 0;
   bottom: auto;
-}
-
-/** Top Border
- ---------------------------------------------------------*/
-
-gaia-tabs:before {
-  content: "";
-  position: absolute;
-  bottom: 4.5rem;
-  left: 0;
-  width: 100%;
-  height: 0;
-  border-top: 0.1rem solid #e7e7e7;
+  height: 4rem;
+  border-top: none;
+  border-bottom: 0.1rem solid #e7e7e7;
 }
 
 /**
  * [skin="dark"]
  */
 
-gaia-tabs[skin="dark"]:before {
+gaia-tabs[skin="dark"] {
   border-color: rgba(189,189,189, 0.1);
-}
-
-/**
- * [position="top"]
- */
-
-gaia-tabs[position="top"]:before {
-  top: 4.5rem;
-  bottom: auto;
 }
 
 /** Tab
  ---------------------------------------------------------*/
 
-gaia-tabs > a,
-gaia-tabs > li,
-gaia-tabs > div,
-gaia-tabs > button {
+gaia-tabs > * {
   box-sizing: content-box;
   position: relative;
   margin: 0;
@@ -78,16 +57,27 @@ gaia-tabs > button {
   color: inherit;
   background-color: transparent;
   cursor: pointer;
+  list-style: none;
+}
+
+gaia-tabs a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/**
+ * [position="top"]
+ */
+
+gaia-tabs[position="top"] > * {
+  height: 4.1rem;
 }
 
 /**
  * [skin="dark"]
  */
 
-gaia-tabs[skin="dark"] > a,
-gaia-tabs[skin="dark"] > li,
-gaia-tabs[skin="dark"] > div,
-gaia-tabs[skin="dark"] > button {
+gaia-tabs[skin="dark"] > * {
   background-color: #000;
   color: #fff;
 }
@@ -148,4 +138,33 @@ gaia-tabs > .selected:after {
   bottom: 0;
   width: 100%;
   border-bottom: 0.3rem solid #00aacc;
+}
+
+
+/**
+ * [underline="child"]
+ * For this option we need a child element
+ * inside tabs, e.g:
+ * <gaia-tabs>
+ *   <button><span>Text</span></button>
+ * </gaia-tabs>
+ */
+
+gaia-tabs[underline="child"] > .selected:after {
+  display: none;
+}
+
+gaia-tabs[underline="child"] > .selected > :after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  border-bottom: 0.3rem solid #00aacc;
+}
+
+gaia-tabs[underline="child"] > .selected > * {
+  position: relative;
+  display: inline-block;
+  height: 100%;
 }

@@ -509,15 +509,12 @@ suite('system/Rocketbar', function() {
   });
 
   test('handleHome()', function() {
-    var hideResultsStub = this.sinon.stub(subject, 'hideResults');
     var blurStub = this.sinon.stub(subject, 'deactivate');
     subject.input.value = 'value to clear';
     subject.handleHome();
-    assert.ok(hideResultsStub.calledOnce);
     assert.equal(subject.input.value, '');
     assert.equal(subject.titleContent.textContent, 'Search');
     assert.ok(blurStub.calledOnce);
-    hideResultsStub.restore();
     blurStub.restore();
   });
 

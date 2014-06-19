@@ -317,6 +317,13 @@ var GaiaApps = {
   displayedApp: function() {
     let manager = window.wrappedJSObject.AppWindowManager || window.wrappedJSObject.WindowManager;
     let app = ('getActiveApp' in manager) ? manager.getActiveApp() : manager.getCurrentDisplayedApp();
+
+    // If frontWindow is not null then a modal activityWindow containing an app is in focus
+    // (only applicable with AppWindowManager)
+    while (app.frontWindow && app.frontWindow.isActive()) {
+      app = app.frontWindow;
+    }
+
     let origin = app.origin;
     console.log("app with origin '" + origin + "' is displayed");
     let result = {

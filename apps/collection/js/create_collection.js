@@ -11,6 +11,37 @@
   var _ = navigator.mozL10n.get;
   var eme = exports.eme;
 
+  function getBackground(collection, iconSize) {
+    var src;
+    var options = {
+      width: iconSize,
+      height: iconSize
+    };
+
+    if (collection.categoryId) {
+      options.categoryId = collection.categoryId;
+    }
+    else {
+      options.query = collection.query;
+    }
+
+    return eme.api.Search.bgimage(options).then(function success(response) {
+      var image = response.response.image;
+      if (image) {
+        src = image.data;
+        if (/image\//.test(image.MIMEType)) {  // base64 image data
+          src = 'data:' + image.MIMEType + ';base64,' + image.data;
+        }
+      }
+
+      return {
+        src: src,
+        source: response.response.source,
+        checksum: response.checksum || null
+      };
+    });
+  }
+
   function HandleCreate(activity) {
 
     var request;
@@ -60,10 +91,10 @@
                   eme.api.Apps.search({query: selected, limit: numAppIcons})
                     .then(function success(response) {
                       var webicons =
-                      response.response.apps.slice(0,numAppIcons).map(
-                        function each(app) {
-                          return app.icon;
-                      });
+                        response.response.apps.slice(0,numAppIcons).map(
+                          function each(app) {
+                            return app.icon;
+                        });
 
                       var collection = new QueryCollection({
                         query: selected,
@@ -81,27 +112,49 @@
                 });
               }
 
+              // congrats! you have the webapps icons!
+              // but you are still not done,
+              // it's time to get the background images
               dataReady.then(function success(collections) {
                 var iconsReady = [];
                 collections.forEach(function doIcon(collection) {
-                  iconsReady.push(collection.renderIcon());
+                  var promise =
+                    getBackground(collection, maxIconSize)
+                    .then(function setBackground(bgObject) {
+                      collection.background = bgObject;
+                      return collection.renderIcon();
+                    }, function noBackground() {
+                      return collection.renderIcon();
+                    });
+
+                  iconsReady.push(promise);
                 });
 
                 Promise.all(iconsReady).then(function then() {
-                  // TODO
-                  // 1. store a batch of collections at once. possible?
-                  // 2. we can store to db *before* icons is ready and once
-                  // the homescreen syncs it will update the icons
+                  // TOOD
+                  // better use colleciton.save instead but it calles db.put
+                  // not sure if `put` works for new objects
                   var trxs = collections.map(CollectionsDatabase.add);
-                  Promise.all(trxs).then(done, done);
+                  Promise.all(trxs).then(
+                    postResultIds.bind(null, collections), postResultIds);
                 }).catch(function _catch(ex) {
                   eme.log('caught exception', ex);
                   activity.postResult(false);
                 });
               });
 
-              function done() {
-                activity.postResult(true);
+              /**
+               * Return from the activity to the homescreen. Create a list of
+               * collection IDs and post it to the homescreen so it knows what
+               * collections will be created, and positions them accordingly.
+               */
+              function postResultIds(collections) {
+                collections = collections || [];
+
+                // Generate an array of collection IDs.
+                var ids = collections.map(c => c.id);
+
+                activity.postResult(ids);
               }
             },
             function cancel(reason) {
@@ -111,8 +164,8 @@
 
       }, function error(reason) {
         eme.log('create-collection: error', reason);
-        activity.postError(_(reason === 'network error' ?
-                                   'network-error-message' : undefined));
+        activity.postError(reason === 'network error' ?
+                            _('network-error-message') : undefined);
       }).catch(function fail(ex) {
         eme.log('create-collection: failed', ex);
         activity.postError();

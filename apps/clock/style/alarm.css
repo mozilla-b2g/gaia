@@ -279,4 +279,5 @@ input[type=range]:active::-moz-range-thumb {
 #alarm-delete {
   border-radius: 2rem;
   background-color: #e51e1e;
+  text-align: center;
 }

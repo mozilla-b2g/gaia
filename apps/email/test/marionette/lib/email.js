@@ -148,25 +148,9 @@ Email.prototype = {
     return text;
   },
 
-  // Workaround for bug 1022768, where app permissions are not auto ALLOWed
-  // for tests on desktop. If that bug is fixed, this function should be
-  // removed.
-  _acceptContactsPermission: function() {
-    if (!this._hasAcceptedContactsPermissions) {
-      this.client.switchToFrame();
-      this._tapSelector('#permission-yes');
-      this.client.switchToFrame();
-      this.client.apps.switchToApp(Email.EMAIL_ORIGIN);
-      this._hasAcceptedContactsPermissions = true;
-    }
-  },
-
   manualSetupImapEmail: function(server, finalActionName) {
     // setup a IMAP email account
     var email = server.imap.username + '@' + server.imap.hostname;
-
-    // Workaround for bug 1022768, see method definition.
-    this._acceptContactsPermission();
 
     // wait for the setup page is loaded
     this._setupTypeName(server.imap.username);

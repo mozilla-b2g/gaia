@@ -257,19 +257,21 @@
             <span class="size"></span>
           </div>
         </article>
-        <article id="composer-container" class="view-body" data-composer-layout="">
+        <article id="composer-container" class="view-body">
           <div class="flex-composer">
             <div id="composer-messages-container">
               <div id="messages-container" data-type="list" class="article-list">
               </div>
             </div>
             <form id="messages-compose-form" role="search" class="bottom" data-message-type="sms">
-              <button id="messages-send-button" data-l10n-id="send" type="submit">Send</button>
-              <div class="message-complete">
+              <div class="composer-message-complete">
                 <div id="messages-subject-input" contentEditable="true" class="placeholder js-l10n-placeholder" data-max-length="40">
                 </div>
                 <div id="messages-input" contentEditable="true" name="message" x-inputmode="-moz-sms" class="js-l10n-placeholder">
                 </div>
+              </div>
+              <div class='composer-button-container'>
+                <button id="messages-send-button" data-l10n-id="send" type="submit">Send</button>
               </div>
             </form>
           </div>
@@ -471,7 +473,7 @@
         <aside class="pack-end empty">
           <span data-type="img"></span>
         </aside>
-        <p class="name" data-l10n-id="no-recipient">${number}</p>
+        <p class="name">${number}</p>
         <p class="summary">
           <time data-time-update="true" data-time-only="true" data-time="${timestamp}"></time>
           <span class="mms-icon">MMS</span>
@@ -494,9 +496,8 @@
 
     <div id="attachment-nopreview-tmpl" class="hide">
       <!--
-      <div class="attachment">
+      <div class="attachment ${errorClass}">
         <div class="thumbnail-placeholder ${type}-placeholder">
-          <div class="${errorClass}"></div>
         </div>
         <div class="size-indicator" data-l10n-id="${sizeL10nId}" data-l10n-args="${sizeL10nArgs}"></div>
       </div>

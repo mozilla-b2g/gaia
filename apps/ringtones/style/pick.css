@@ -1,0 +1,36 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  font-size: 10px;
+  background-color: #f4f4f4;
+  overflow: hidden;
+}
+
+section[role="region"] {
+  width: 100%;
+  height: 100%;
+}
+
+article {
+  width: 100%;
+  height: calc(100% - 5rem);
+  overflow: auto;
+}
+
+ul[data-type="edit"] {
+  overflow: visible;
+}
+
+li:active:before {
+  /* This makes a highlight slightly *bigger* than the li so that it fills up
+     the whole list item. It causes a reflow, but that's not a big deal here. */
+  position: absolute;
+  left: -1.5rem;
+  width: 100vw;
+  height: 5.9rem; /* Subtract 0.1rem for the bottom border. */
+  background-color: rgba(0, 213, 255, 0.3);
+  z-index: -1;
+  content: '';
+}

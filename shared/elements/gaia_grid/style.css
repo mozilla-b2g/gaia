@@ -1,24 +1,42 @@
 .loading:before {
-  /**
-  XXX: Do something less terrible...
-
-  -13% to align the icon above the text of the icon.
-  */
-  margin-top: -13%;
   content: "";
   z-index: 30000;
   background: no-repeat center url('images/loading_spinner.png');
-  background-size: 6rem;
+  background-size: contain;
   position: absolute;
   top: 0;
   left: 0;
-  height: 100%;
+  height: 8.6rem;
   width: 100%;
   /**
   keyframe must be defined outside of the web component
   See bug 1018269
   */
   animation: rotate 2.25s linear infinite;
+}
+
+@media (device-width: 480px) {
+  .loading:before {
+    height: 12.8rem;
+  }
+}
+
+@media (device-width: 540px) {
+  .loading:before {
+    height: 14.4rem;
+  }
+}
+
+@media (device-width: 720px) {
+  .loading:before {
+    height: 19.1rem;
+  }
+}
+
+@media (device-width: 1080px) {
+  .loading:before {
+    height: 28.6rem;
+  }
 }
 
 .icon {
@@ -29,6 +47,14 @@
   text-align: center;
   background: no-repeat top center;
   z-index: 3;
+}
+
+.dragging .icon {
+  will-change: transform;
+}
+
+.icon.launching {
+  opacity: .65;
 }
 
 .icon p {
@@ -44,7 +70,7 @@
   /* Space between icon and title .1rem + .2rem = .3rem as spec says */
   margin-top: .1rem;
   /* We need this rule in order not to hide the drop shadow */
-  padding: 0.2rem 1rem 1rem;
+  padding: 0.2rem 0.2rem 1rem;
   text-shadow: 0.1rem 0.1rem 0.3rem rgba(0, 0, 0, 0.3),
                0.2rem 0.4rem 1rem rgba(0, 0, 0, 0.4);
   font-size: 1.4rem;
@@ -52,13 +78,13 @@
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
-  max-width: 100%;
+  width: calc(100% - 0.4rem);
   box-sizing: border-box;
 }
 
 [cols="4"] .icon .title {
   /* Font size is the same independent on grid configuration */
-  font-size: calc(1.4rem * 1.333);
+  font-size: calc(1.2rem * 1.333);
 }
 
 .divider {
@@ -101,6 +127,7 @@
   width: 2.6rem;
   height: 2.6rem;
   background: url(images/remove.png) no-repeat;
+  background-size: 2rem;
 }
 
 .icon .remove {
@@ -114,5 +141,8 @@
 .edit-mode .icon.bookmark .title {
   background-color: rgba(132, 132, 132, 0.7);
   border-radius: 2rem;
-  padding-bottom: .2rem;
+  margin-top: .4rem;
+  padding: 0 1rem;
+  width: auto;
+  max-width: 100%;
 }

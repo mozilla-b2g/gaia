@@ -537,6 +537,7 @@ footer {
 
 #fullscreen-view.toolbar-hidden #fullscreen-back-button-tiny {
   opacity: 0;
+  pointer-events: none;
 }
 
 #pick-top {

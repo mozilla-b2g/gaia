@@ -40,6 +40,7 @@ Rocketbar.prototype = {
     title: '#rocketbar-title',
     input: '#rocketbar-input',
     cancel: '#rocketbar-cancel',
+    clear: '#rocketbar-clear',
     backdrop: '#rocketbar-backdrop',
     results: '#rocketbar-results'
   },
@@ -78,6 +79,12 @@ Rocketbar.prototype = {
     input.clear();
     this.client.waitFor(input.displayed.bind(input));
     input.sendKeys(text);
+
+    if (!text.length) {
+      this.client.executeScript(function() {
+        window.wrappedJSObject.rocketbar.handleInput();
+      });
+    }
   },
 
   /**
@@ -137,6 +144,10 @@ Rocketbar.prototype = {
 
   get cancel() {
     return this.client.findElement(this.selectors.cancel);
+  },
+
+  get clear() {
+    return this.client.findElement(this.selectors.clear);
   },
 
   get backdrop() {

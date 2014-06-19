@@ -51,5 +51,8 @@ var MockContacts = {
     if (typeof cb === 'function') {
       cb();
     }
+  },
+  setCurrent: function(ct) {
+    
   }
 };

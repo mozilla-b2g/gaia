@@ -29,7 +29,7 @@
     "marionette-device-host": "0.0.2",
     "marionette-file-manager": "0.0.2",
     "marionette-helper": "~0.3.1",
-    "marionette-js-runner": "~0.4.3",
+    "marionette-js-runner": "~0.4.4",
     "marionette-plugin-forms": "0.0.3",
     "marionette-profile-builder": "0.0.3",
     "marionette-settings-api": "~0.1.0",
@@ -44,7 +44,7 @@
     "q": "~0.9.7",
     "request": "2.33.0",
     "rimraf": "2.2.5",
-    "test-agent": "0.22.17",
+    "test-agent": "0.23.11",
     "travis-project-jobs": "0.0.1",
     "watch": "~0.9.0"
   },

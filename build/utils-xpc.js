@@ -82,16 +82,21 @@ function getFileContent(file) {
 
 // Write content to file, if the file doesn't exist, the it will auto create one
 function writeContent(file, content) {
-  var fileStream = Cc['@mozilla.org/network/file-output-stream;1']
-                     .createInstance(Ci.nsIFileOutputStream);
-  fileStream.init(file, 0x02 | 0x08 | 0x20, 0666, 0);
+  try {
+    var fileStream = Cc['@mozilla.org/network/file-output-stream;1']
+                       .createInstance(Ci.nsIFileOutputStream);
+    fileStream.init(file, 0x02 | 0x08 | 0x20, 0666, 0);
 
-  let converterStream = Cc['@mozilla.org/intl/converter-output-stream;1']
-                          .createInstance(Ci.nsIConverterOutputStream);
+    let converterStream = Cc['@mozilla.org/intl/converter-output-stream;1']
+                            .createInstance(Ci.nsIConverterOutputStream);
 
-  converterStream.init(fileStream, 'utf-8', 0, 0);
-  converterStream.writeString(content);
-  converterStream.close();
+    converterStream.init(fileStream, 'utf-8', 0, 0);
+    converterStream.writeString(content);
+    converterStream.close();
+  } catch (e) {
+    dump('writeContent error, file.path: ' + file.path + '\n');
+    throw(e);
+  }
 }
 
 // Return an nsIFile by joining paths given as arguments
@@ -853,6 +858,15 @@ function createZip() {
   return zip;
 }
 
+function removeFiles(dir, filenames) {
+  filenames.forEach(function(fn) {
+    var file = getFile(dir.path, fn);
+    if (file.exists()) {
+      file.remove(file.isDirectory());
+    }
+  });
+}
+
 exports.Q = Promise;
 exports.ls = ls;
 exports.getFileContent = getFileContent;
@@ -907,4 +921,4 @@ exports.basename = basename;
 exports.addEntryContentWithTime = addEntryContentWithTime;
 exports.getCompression = getCompression;
 exports.existsInAppDirs = existsInAppDirs;
-
+exports.removeFiles = removeFiles;

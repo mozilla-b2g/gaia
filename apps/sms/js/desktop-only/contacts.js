@@ -1,4 +1,4 @@
-/*global Utils */
+/*global Utils, Promise */
 
 'use strict';
 
@@ -15,14 +15,16 @@
 
 *********************************************************** */
 (function(window) {
-  function getAsset(filename, loadCallback) {
-    var req = new XMLHttpRequest();
-    req.open('GET', filename, true);
-    req.responseType = 'blob';
-    req.onload = function() {
-      loadCallback(req.response);
-    };
-    req.send();
+  function getAsset(filename) {
+    return new Promise(function(resolve, reject) {
+      var req = new XMLHttpRequest();
+      req.open('GET', filename, true);
+      req.responseType = 'blob';
+      req.onload = function() {
+        resolve(req.response);
+      };
+      req.send();
+    });
   }
 
   function stringOrBust(aObj) {
@@ -215,6 +217,7 @@
       if (!(this instanceof navigator.mozContacts.find)) {
         return new navigator.mozContacts.find(filter);
       }
+
       var onsuccess, onerror;
 
       this.result = null;
@@ -236,10 +239,10 @@
                 return isMatch(contact, filter);
               });
 
-              setTimeout(function() {
+              readyPromise.then(function() {
                 onsuccess.call(this);
                 onsuccess = null;
-              }.bind(this), 0);
+              }.bind(this));
             }
           }
         },
@@ -249,10 +252,10 @@
             onerror = callback;
             if (callback !== null) {
               if (this.result === null && this.error !== null) {
-                setTimeout(function() {
+                readyPromise.then(function() {
                   onerror.call(this);
                   onerror = null;
-                }.bind(this), 0);
+                }.bind(this));
               }
             }
           }
@@ -389,16 +392,14 @@
     }]
   });
 
-  getAsset('/js/desktop-only/photo-man.jpg', function(blob) {
-    tom.photo = [blob];
-  });
-
-  getAsset('/js/desktop-only/photo-woman.jpg', function(blob) {
-    grace.photo = [blob];
-  });
-
-  getAsset('/js/desktop-only/photo-man-bowtie.jpg', function(blob) {
-    longname.photo = [blob];
+  var readyPromise = Promise.all([
+    getAsset('/js/desktop-only/photo-man.jpg'),
+    getAsset('/js/desktop-only/photo-woman.jpg'),
+    getAsset('/js/desktop-only/photo-man-bowtie.jpg')
+  ]).then(function gotall(blobs) {
+    tom.photo = [blobs[0]];
+    grace.photo = [blobs[1]];
+    longname.photo = [blobs[2]];
   });
 
   ContactsDB.push(grace);

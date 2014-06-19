@@ -10,12 +10,20 @@ class Settings(Base):
 
     name = 'Settings'
 
-    _app_loaded_locator = (By.CSS_SELECTOR, 'body[data-ready="true"]')
     _header_text_locator = (By.CSS_SELECTOR, '#root > header > h1')
     _data_text_locator = (By.ID, 'data-desc')
+    _wifi_text_locator = (By.ID, 'wifi-desc')
+    _battery_text_locator = (By.ID, 'battery-desc')
+    _application_storage_text_locator = (By.ID, 'application-storage-desc')
+    _media_storage_text_locator = (By.ID, 'media-storage-desc')
+    _usb_storage_text_locator = (By.ID, 'ums-desc-root')
+    _screen_lock_text_locator = (By.ID, 'screenLock-desc')
+    _language_text_locator = (By.ID, 'language-desc')
+    _bluetooth_text_locator = (By.ID, 'bluetooth-desc')
+
+    _app_loaded_locator = (By.CSS_SELECTOR, 'body[data-ready="true"]')
     _airplane_switch_locator = (By.XPATH, "//input[@id='airplaneMode-input']/..")
     _airplane_checkbox_locator = (By.ID, "airplaneMode-input")
-    _wifi_text_locator = (By.ID, 'wifi-desc')
     _gps_enabled_locator = (By.XPATH, "//input[@name='geolocation.enabled']")
     _gps_switch_locator = (By.XPATH, "//input[@name='geolocation.enabled']/..")
     _cell_data_menu_item_locator = (By.ID, 'menuItem-cellularAndData')
@@ -28,7 +36,7 @@ class Settings(Base):
     _display_menu_item_locator = (By.ID, 'menuItem-display')
     _wifi_menu_item_locator = (By.ID, 'menuItem-wifi')
     _device_info_menu_item_locator = (By.ID, 'menuItem-deviceInfo')
-    _battery_menu_item_locator = (By.ID, 'menuItem-battery')
+    _battery_menu_item_locator = (By.CSS_SELECTOR, '.menuItem-battery')
     _sim_manager_menu_item_locator = (By.ID, 'menuItem-simManager')
 
     def launch(self):
@@ -72,6 +80,34 @@ class Settings(Base):
     @property
     def wifi_menu_item_description(self):
         return self.marionette.find_element(*self._wifi_text_locator).text
+
+    @property
+    def battery_menu_item_description(self):
+        return self.marionette.find_element(*self._battery_text_locator).text
+
+    @property
+    def application_storage_menu_item_description(self):
+        return self.marionette.find_element(*self._application_storage_text_locator).text
+
+    @property
+    def media_storage_menu_item_description(self):
+        return self.marionette.find_element(*self._media_storage_text_locator).text
+
+    @property
+    def usb_storage_menu_item_description(self):
+        return self.marionette.find_element(*self._usb_storage_text_locator).text
+
+    @property
+    def screen_lock_menu_item_description(self):
+        return self.marionette.find_element(*self._screen_lock_text_locator).text
+
+    @property
+    def language_menu_item_description(self):
+        return self.marionette.find_element(*self._language_text_locator).text
+
+    @property
+    def bluetooth_menu_item_description(self):
+        return self.marionette.find_element(*self._bluetooth_text_locator).text
 
     def open_cell_and_data_settings(self):
         from gaiatest.apps.settings.regions.cell_data import CellData

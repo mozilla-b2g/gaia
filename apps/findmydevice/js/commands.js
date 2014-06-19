@@ -15,7 +15,7 @@ var Commands = {
 
   init: function fmdc_init() {
     var ringer = this._ringer = new Audio();
-    ringer.mozAudioChannel = 'content';
+    ringer.mozAudioChannelType = 'content';
     ringer.loop = true;
 
     var ringtoneURL = new SettingsURL();
@@ -43,7 +43,7 @@ var Commands = {
   },
 
   deviceHasPasscode: function fmdc_device_has_passcode() {
-    return this._lockscreenEnabled && this.lockscreenPassCodeEnabled;
+    return !!(this._lockscreenEnabled && this._lockscreenPassCodeEnabled);
   },
 
   _setGeolocationPermission:

@@ -11,7 +11,7 @@
   width: auto;
   position: absolute;
   background-color: #696b6e;
-  box-shadow: 0.2rem 0.2rem 0.7rem 0.1rem #000000;
+  box-shadow: 0.1rem 0.1rem 0.2rem 0.1rem #3d3d3d;
   display: none;
   border-radius: 0.2rem;
 }
@@ -26,6 +26,11 @@
   display: inline-block;
 }
 
+.appWindow > .textselection-dialog div.hidden,
+#TextSelectionDialogRoot > .textselection-dialog div.hidden {
+  display: none;
+}
+
 .appWindow > .textselection-dialog div:active,
 #TextSelectionDialogRoot > .textselection-dialog div:active {
   background-color: #4e595c;
@@ -38,12 +43,12 @@
   width: 0.1rem;
   height: 4.6rem;
   margin-top: 0.4rem;
-  display: block;
+  display: none;
 }
 
-.appWindow > .textselection-dialog div:first-child:after,
-#TextSelectionDialogRoot > .textselection-dialog div:first-child:after {
-  display: none;
+.appWindow > .textselection-dialog > div:not(.last-option):after,
+#TextSelectionDialogRoot > .textselection-dialog > div:not(.last-option):after {
+  display: block;
 }
 
 .appWindow > .textselection-dialog.visible,

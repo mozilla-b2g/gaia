@@ -29,21 +29,21 @@ const IMERender = (function() {
   var cachedWindowWidth = -1;
 
   const ariaLabelMap = {
-    '⇪': 'upperCaseKey',
-    '⌫': 'backSpaceKey',
-    '&nbsp': 'spaceKey',
-    '↵': 'returnKey',
-    '.': 'periodKey',
-    ',': 'commaKey',
-    ':': 'colonKey',
-    ';': 'semicolonKey',
-    '?': 'questionMarkKey',
-    '!': 'exclamationPointKey',
-    '(': 'leftBracketKey',
-    ')': 'rightBracketKey',
-    '"': 'doubleQuoteKey',
-    '«': 'leftDoubleAngleQuoteKey',
-    '»': 'rightDoubleAngleQuoteKey'
+    '⇪': 'upperCaseKey2',
+    '⌫': 'backSpaceKey2',
+    '&nbsp': 'spaceKey2',
+    '↵': 'returnKey2',
+    '.': 'periodKey2',
+    ',': 'commaKey2',
+    ':': 'colonKey2',
+    ';': 'semicolonKey2',
+    '?': 'questionMarkKey2',
+    '!': 'exclamationPointKey2',
+    '(': 'leftBracketKey2',
+    ')': 'rightBracketKey2',
+    '"': 'doubleQuoteKey2',
+    '«': 'leftDoubleAngleQuoteKey2',
+    '»': 'rightDoubleAngleQuoteKey2'
   };
 
   window.addEventListener('resize', function kr_onresize() {
@@ -119,8 +119,8 @@ const IMERender = (function() {
     var supportsSwitching = 'mozInputMethod' in navigator ?
       navigator.mozInputMethod.mgmt.supportsSwitching() : false;
     var keyboardClass = [
-      layout.keyboardName,
-      layout.altLayoutName,
+      layout.layoutName,
+      layout.alternativeLayoutName,
       ('' + flags.inputType).substr(0, 1),
       ('' + flags.showCandidatePanel).substr(0, 1),
       ('' + flags.uppercase).substr(0, 1),
@@ -134,7 +134,7 @@ const IMERender = (function() {
       container.classList.add('keyboard-type-container');
       container.classList.add(keyboardClass);
       if (layout.specificCssRule) {
-        container.classList.add(layout.keyboardName);
+        container.classList.add(layout.layoutName);
       }
       buildKeyboard(container, flags, layout);
       ime.appendChild(container);
@@ -891,7 +891,7 @@ const IMERender = (function() {
   var candidatePanelCode = function() {
     var candidatePanel = document.createElement('div');
     candidatePanel.setAttribute('role', 'group');
-    candidatePanel.dataset.l10nId = 'wordSuggestions';
+    candidatePanel.dataset.l10nId = 'wordSuggestions2';
     translateElement(candidatePanel);
 
     candidatePanel.classList.add('keyboard-candidate-panel');
@@ -902,7 +902,7 @@ const IMERender = (function() {
     dismissButton.classList.add('dismiss-suggestions-button');
     dismissButton.classList.add('hide');
     dismissButton.setAttribute('role', 'button');
-    dismissButton.dataset.l10nId = 'dismiss';
+    dismissButton.dataset.l10nId = 'dismiss2';
     translateElement(dismissButton);
     candidatePanel.appendChild(dismissButton);
 

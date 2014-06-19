@@ -105,21 +105,6 @@ body {
   overflow: auto;
 }
 
-.top-header {
-  background: -moz-linear-gradient(to top, #ffffff 0, #a3a3a3 0.5rem, #992f21 0.5rem, #992f21 0.6rem, #bb492d 0.6rem, #cc6523 100%);
-  height: 5.2rem;
-  width: 100%;
-  padding: 0;
-  padding-bottom: 0.6rem;
-  z-index: 999;
-}
-.top-header.top-edit-header {
-  background: url("images/ui/dark_header.png") repeat-x scroll left top transparent;
-  background-size: auto 5.2rem;
-  /*background: -moz-linear-gradient(to top, #ffffff 0, #a3a3a3 0.5rem, #888888 0.5rem, #999999 0.6rem, #bbbbbb 0.6rem, #cccccc 100%);
-  background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%,  #cccccc), color-stop(100%, #bbbbbb));*/
-}
-
 .header-label {
   color: white;
   line-height: 5.2rem;
@@ -284,25 +269,58 @@ These folder-depth* styles are here instead of folder_cards.css
 because they are also used by the value_selector for showing
 the list of folders.
 */
+.email-value-selector[role="dialog"][data-type="value-selector"] [role="listbox"] .fld-folder-depth0,
 .fld-folder-depth0 {
   padding-left: 1.5rem;
 }
+.email-value-selector[role="dialog"][data-type="value-selector"] [role="listbox"] .fld-folder-depth1,
 .fld-folder-depth1 {
   padding-left: 3rem;
 }
+.email-value-selector[role="dialog"][data-type="value-selector"] [role="listbox"] .fld-folder-depth2,
 .fld-folder-depth2 {
   padding-left: 4.5rem;
 }
+.email-value-selector[role="dialog"][data-type="value-selector"] [role="listbox"] .fld-folder-depth3,
 .fld-folder-depth3 {
   padding-left: 6rem;
 }
+.email-value-selector[role="dialog"][data-type="value-selector"] [role="listbox"] .fld-folder-depth4,
 .fld-folder-depth4 {
   padding-left: 6.5rem;
 }
+.email-value-selector[role="dialog"][data-type="value-selector"] [role="listbox"] .fld-folder-depth5,
 .fld-folder-depth5 {
   padding-left: 9.5rem;
 }
+.email-value-selector[role="dialog"][data-type="value-selector"] [role="listbox"] .fld-folder-depth6,
 .fld-folder-depth6,
+.email-value-selector[role="dialog"][data-type="value-selector"] [role="listbox"] .fld-folder-depthmax,
 .fld-folder-depthmax {
   padding-left: 11rem;
+}
+
+/* Styles for errors that could appear at any time. */
+.error-card h2 {
+  font-size: 1.6rem;
+  font-weight: 400;
+}
+
+.error-card .scrollregion-below-header {
+  margin: 1rem 2rem;
+}
+
+.error-card .actions {
+  margin-top: 1.5rem;
+  text-align: center;
+}
+
+.error-card .sup-bad-password-account {
+  margin: 1.4rem 0;
+  font-size: 1.4rem;
+}
+
+.card-setup-fix-gmail .sup-gmail-account {
+  text-align: center;
+  font-size: 1.4rem;
 }

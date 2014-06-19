@@ -16,10 +16,8 @@ class Homescreen(Base):
     _homescreen_icon_locator = (By.CSS_SELECTOR, 'gaia-grid .icon')
     _homescreen_all_icons_locator = (By.CSS_SELECTOR, 'gaia-grid .icon:not(.placeholder)')
     _edit_mode_locator = (By.CSS_SELECTOR, 'body.edit-mode')
-    _search_bar_icon_locator = (By.CSS_SELECTOR, '#evme-activation-icon input')
-    _landing_page_locator = (By.ID, 'icongrid')
-    _collections_locator = (By.CSS_SELECTOR, 'li.icon[data-collection-name]')
-    _collection_locator = (By.CSS_SELECTOR, "li.icon[data-collection-name *= '%s']")
+    _search_bar_icon_locator = (By.ID, 'search-input')
+    _landing_page_locator = (By.ID, 'icons')
 
     def launch(self):
         Base.launch(self)
@@ -27,6 +25,11 @@ class Homescreen(Base):
     def tap_search_bar(self):
         search_bar = self.marionette.find_element(*self._search_bar_icon_locator)
         search_bar.tap()
+
+        # TODO These two lines are a workaround for bug 1020974
+        self.marionette.switch_to_frame()
+        self.marionette.find_element('id', 'rocketbar-form').tap()
+
         from gaiatest.apps.homescreen.regions.search_panel import SearchPanel
         return SearchPanel(self.marionette)
 
@@ -77,17 +80,14 @@ class Homescreen(Base):
     def is_edit_mode_active(self):
         return self.is_element_present(*self._edit_mode_locator)
 
-    @property
-    def collections_count(self):
-        return len(self.marionette.find_elements(*self._collections_locator))
-
-    def tap_collection(self, name):
-        el = self.marionette.find_element(self._collection_locator[0],
-                                          self._collection_locator[1] % name)
-        el.tap()
-
-        from gaiatest.apps.homescreen.regions.collections import Collection
-        return Collection(self.marionette)
+    def tap_collection(self, collection_name):
+        for root_el in self.marionette.find_elements(*self._homescreen_all_icons_locator):
+            if root_el.text == collection_name:
+                self.marionette.execute_script(
+                    'arguments[0].scrollIntoView(false);', [root_el])
+                root_el.tap()
+                from gaiatest.apps.homescreen.regions.collections import Collection
+                return Collection(self.marionette)
 
     @property
     def visible_apps(self):

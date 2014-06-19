@@ -125,7 +125,8 @@ var StackManager = {
         var app = e.detail;
         // The system application should never show up in the stack.
         // XXX: This code will be removed when bug 967405 lands.
-        if (app.manifest && app.manifest.role == 'system') {
+        var sysApp = 'system.gaiamobile.org';
+        if (app.manifest && app.manifestURL.contains(sysApp)) {
           return;
         }
 

@@ -266,8 +266,8 @@ body[data-path="/day/"] #view-selector > .day > a:active {
 }
 
 #advanced-settings-view .account-list .error a {
-  background: transparent url('icons/accountwarning.png') no-repeat left;
-  padding-left: 3.5rem;
+  background: transparent url('icons/accountwarning.png') no-repeat left / 2rem auto;
+  padding-left: 2.7rem;
 }
 
 #advanced-settings-view .preset:after {

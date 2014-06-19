@@ -1,6 +1,6 @@
 'use strict';
 
-/* global Promise */
+/* global Promise, uuid */
 
 (function(exports) {
 
@@ -89,6 +89,8 @@
   }
 
   function get(id) {
+    // TODO it's not necessary to create a new Promise. instead:
+    // return init().then(...)
     return new Promise(function doGet(resolve, reject) {
       init().then(function onInitialized() {
         datastore.get(id).then(resolve, reject);
@@ -178,7 +180,8 @@
   function add(data) {
     return new Promise(function doAdd(resolve, reject) {
       init().then(function onInitialized() {
-        var id = data.id || (Date.now() + '');
+        // Generate an ID for the collection if we do not pass one in.
+        var id = data.id || uuid();
         Object.defineProperty(data, 'id', {
           enumerable: true,
           configurable: false,

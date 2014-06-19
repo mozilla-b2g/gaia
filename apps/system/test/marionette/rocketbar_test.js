@@ -98,7 +98,7 @@ marionette('Rocketbar', function() {
     });
   });
 
-  test('Cancel Rocketbar with backdrop', function() {
+  test.skip('Cancel Rocketbar with backdrop', function() {
     rocketbar.waitForLoad();
 
     // Check that scrim appears

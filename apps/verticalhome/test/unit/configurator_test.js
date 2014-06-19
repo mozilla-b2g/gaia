@@ -20,6 +20,7 @@ suite('configurator.js >', function() {
   var requests = [];
 
   var confGridOK = {
+    'preferences': {},
     'prediction': {
       'enabled': true,
       'lookahead': 16
@@ -237,19 +238,24 @@ suite('configurator.js >', function() {
   var testCases = [
   {
     'preValSet': undefined,
+    'currentMccMnc': '214-007',
     'expecValSet': true,
     'title': KEY_SIM_ON_1ST_RUN +
       'setting value is undefined - isSimPresentOnFirstBoot is true'
   }, {
-    'preValSet': false,
+    'preValSet': '000-000',
+    'currentMccMnc': '214-007',
     'expecValSet': false,
     'title': KEY_SIM_ON_1ST_RUN +
-      'setting value is false - isSimPresentOnFirstBoot is false'
+      'setting value different to the current mcc-mnc - ' +
+      'isSimPresentOnFirstBoot is false'
   }, {
-    'preValSet': true,
+    'preValSet': '214-007',
+    'currentMccMnc': '214-007',
     'expecValSet': true,
     'title': KEY_SIM_ON_1ST_RUN +
-      'setting value is true - isSimPresentOnFirstBoot is true'
+      'setting value the same as current mcc-mnc - ' +
+      'isSimPresentOnFirstBoot is true'
   }
   ];
 
@@ -257,7 +263,7 @@ suite('configurator.js >', function() {
     test(testCase.title, function() {
       this.sinon.useFakeTimers();
       MockNavigatorSettings.mSettings[KEY_SIM_ON_1ST_RUN] = testCase.preValSet;
-      configurator.loadSettingSIMPresent();
+      configurator.loadSettingSIMPresent(testCase.currentMccMnc);
       this.sinon.clock.tick();
       assert.equal(configurator.isSimPresentOnFirstBoot,
                    testCase.expecValSet);

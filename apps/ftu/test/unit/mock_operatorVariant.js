@@ -1,3 +1,5 @@
+/* exported MockOperatorVariant */
+
 'use strict';
 
 var MockOperatorVariant = {

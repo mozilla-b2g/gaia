@@ -201,11 +201,11 @@ suite('BrowserDB', function() {
                      'http://customize.test.mozilla.org/topsite');
         assert.equal(places[0].title, 'Topsite');
 
-        assert.equal(places[1].uri, 'http://mozilla.org/firefoxos');
-        assert.equal(places[1].title, 'Firefox OS');
+        assert.equal(places[1].uri, 'http://mozilla.org');
+        assert.equal(places[1].title, 'Mozilla');
 
-        assert.equal(places[2].uri, 'http://mozilla.org');
-        assert.equal(places[2].title, 'Mozilla');
+        assert.equal(places[2].uri, 'http://mozilla.org/firefoxos');
+        assert.equal(places[2].title, 'Firefox OS');
 
         done();
       });
@@ -663,7 +663,6 @@ suite('BrowserDB', function() {
         });
       });
     });
-
   });
 
 });

@@ -17,17 +17,17 @@
 var Widget = (function() {
 
   var costcontrol, activity;
-  function checkSIMStatus(dataSimIcc) {
-
-    var cardState = checkCardState(dataSimIcc.icc);
+  function checkSIMStatus(dataSim) {
+    var dataSimIcc = dataSim.icc;
+    var cardState = checkCardState(dataSimIcc);
 
     if (cardState !== 'ready') {
       debug('SIM not ready:', dataSimIcc.cardState);
       initialized = false;
-      dataSimIcc.oncardstatechange = checkSIMStatus;
+      dataSimIcc.oncardstatechange = checkSIMStatus.bind(null, dataSim);
     // SIM ready
     } else {
-      debug('SIM ready. ICCID:', dataSimIcc.iccId);
+      debug('SIM ready. ICCID:', dataSim.iccId);
       dataSimIcc.oncardstatechange = undefined;
       var SCRIPTS_NEEDED_TO_START = [
         'js/costcontrol.js',

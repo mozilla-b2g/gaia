@@ -56,6 +56,7 @@
       this.input.addEventListener('blur', this);
       this.input.addEventListener('input', this);
       this.cancel.addEventListener('click', this);
+      this.clearBtn.addEventListener('click', this);
       this.form.addEventListener('submit', this);
       this.backdrop.addEventListener('click', this);
 
@@ -97,6 +98,8 @@
         case 'click':
           if (e.target == this.cancel) {
             this.handleCancel(e);
+          } else if (e.target == this.clearBtn) {
+            this.clear();
           } else if (e.target == this.backdrop) {
             this.deactivate();
           }

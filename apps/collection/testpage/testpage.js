@@ -1,9 +1,15 @@
 'use strict';
-/* global eme */
 /* global HandleCreate */
 /* global HandleView */
+/* global NativeInfo */
+/* global eme */
 
 (function() {
+
+  eme.init().then(function() {
+    NativeInfo.setup();
+  });
+
   var activity = {
     source: {
       data: {
@@ -31,8 +37,6 @@
   document.getElementById('view-collection').addEventListener('click',
     function() {
       activity.source.name = 'view-collection';
-      eme.init().then(function() {
-        HandleView(activity);
-      });
+      HandleView(activity);
     });
 })();

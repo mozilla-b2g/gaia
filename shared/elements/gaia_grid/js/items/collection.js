@@ -1,5 +1,6 @@
 'use strict';
-/* global GridItem */
+/* global GaiaGrid */
+/* global GridIconRenderer */
 /* global MozActivity */
 /*jshint nonew: false */
 
@@ -16,6 +17,7 @@
       name: collection.name,
       id: collection.id,
       categoryId: collection.categoryId,
+      cName: collection.cName,
       query: collection.query,
       icon: collection.icon,
       pinned: collection.pinned,
@@ -25,7 +27,9 @@
 
   Collection.prototype = {
 
-    __proto__: GridItem.prototype,
+    __proto__: GaiaGrid.GridItem.prototype,
+
+    renderer: GridIconRenderer.TYPE.CLIP,
 
     /**
      * Returns the height in pixels of each icon.
@@ -54,10 +58,7 @@
       return this.detail.id;
     },
 
-    update: function(detail) {
-      this.detail = detail;
-      this.detail.type = 'collection';
-    },
+    update: GaiaGrid.GridItem.prototype.updateFromDatastore,
 
     /**
      * Collections are always editable.
@@ -105,6 +106,6 @@
     }
   };
 
-  exports.Collection = Collection;
+  exports.GaiaGrid.Collection = Collection;
 
 }(window));

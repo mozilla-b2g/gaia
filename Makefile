@@ -390,6 +390,7 @@ LOCALES_FILE?=shared/resources/languages.json
 GAIA_LOCALE_SRCDIRS=$(GAIA_DIR)$(SEP)shared $(GAIA_APPDIRS)
 GAIA_DEFAULT_LOCALE?=en-US
 GAIA_INLINE_LOCALES?=1
+GAIA_PRETRANSLATE?=1
 GAIA_CONCAT_LOCALES?=1
 
 # This variable is for customizing the keyboard layouts in a build.
@@ -460,6 +461,7 @@ define BUILD_CONFIG
 	"OFFICIAL" : "$(MOZILLA_OFFICIAL)", \
 	"GAIA_DEFAULT_LOCALE" : "$(GAIA_DEFAULT_LOCALE)", \
 	"GAIA_INLINE_LOCALES" : "$(GAIA_INLINE_LOCALES)", \
+	"GAIA_PRETRANSLATE" : "$(GAIA_PRETRANSLATE)", \
 	"GAIA_CONCAT_LOCALES" : "$(GAIA_CONCAT_LOCALES)", \
 	"GAIA_ENGINE" : "xpcshell", \
 	"GAIA_DISTRIBUTION_DIR" : "$(GAIA_DISTRIBUTION_DIR)", \
@@ -485,19 +487,18 @@ define app-makefile-template
 .PHONY: $(1)
 $(1): $(XULRUNNER_BASE_DIRECTORY) pre-app | $(STAGE_DIR)
 	@if [[ ("$(2)" =~ "${BUILD_APP_NAME}") || ("${BUILD_APP_NAME}" == "*") ]]; then \
-	if [ -r "$(2)$(SEP)Makefile" ]; then \
-		echo "execute Makefile for $(1) app" ; \
-		STAGE_APP_DIR="../../build_stage/$(1)" make -C "$(2)" ; \
-	else \
-		echo "copy $(1) to build_stage/" ; \
-		cp -LR "$(2)" $(STAGE_DIR) && \
-		if [ -r "$(2)$(SEP)build$(SEP)build.js" ]; then \
-			echo "execute $(1)/build/build.js"; \
-			export APP_DIR=$(2); \
-			$(call run-js-command,app/build); \
+		if [ -r "$(2)$(SEP)Makefile" ]; then \
+			echo "execute Makefile for $(1) app" ; \
+			STAGE_APP_DIR="../../build_stage/$(1)" make -C "$(2)" ; \
+		else \
+			echo "copy $(1) to build_stage/" ; \
+			cp -LR "$(2)" $(STAGE_DIR) && \
+			if [ -r "$(2)$(SEP)build$(SEP)build.js" ]; then \
+				echo "execute $(1)/build/build.js"; \
+				export APP_DIR=$(2); \
+				$(call run-js-command,app/build); \
+			fi; \
 		fi; \
-	fi && \
-	$(call clean-build-files,$(STAGE_DIR)$(SEP)$(1)); \
   fi;
 endef
 
@@ -508,10 +509,6 @@ $(PROFILE_FOLDER): preferences pre-app post-app test-agent-config offline contac
 ifeq ($(BUILD_APP_NAME),*)
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)$(PROFILE_FOLDER)"
 endif
-
-.PHONY: test-agent-bootstrap
-test-agent-bootstrap: $(XULRUNNER_BASE_DIRECTORY)
-	@$(call run-js-command,test-agent-bootstrap)
 
 $(STAGE_DIR):
 	mkdir -p $@
@@ -531,22 +528,10 @@ $(foreach appdir,$(GAIA_APPDIRS), \
 .PHONY: app-makefiles
 app-makefiles: $(APP_RULES)
 
-.PHONY: clear-stage-app
-clear-stage-app:
-	@for appdir in $(GAIA_APPDIRS); \
-	do \
-		if [[ ("$$appdir" =~ "${BUILD_APP_NAME}") || ("${BUILD_APP_NAME}" == "*") ]]; then \
-			APP="`basename $$appdir`"; \
-			echo "clear $$APP in build_stage" ; \
-			rm -rf $(STAGE_DIR)/$$APP/*; \
-		fi; \
-	done
-
-
 LANG=POSIX # Avoiding sort order differences between OSes
 
 .PHONY: pre-app
-pre-app: $(XULRUNNER_BASE_DIRECTORY) $(STAGE_DIR) clear-stage-app
+pre-app: $(XULRUNNER_BASE_DIRECTORY) $(STAGE_DIR)
 	@$(call run-js-command,pre-app)
 
 .PHONY: post-app
@@ -817,7 +802,7 @@ update-common: common-install
 
 # Create the json config file
 # for use with the test agent GUI
-test-agent-config: test-agent-bootstrap
+test-agent-config:
 ifeq ($(BUILD_APP_NAME),*)
 	@rm -f $(TEST_AGENT_CONFIG)
 	@touch $(TEST_AGENT_CONFIG)

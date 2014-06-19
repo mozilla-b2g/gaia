@@ -1,12 +1,10 @@
 'use strict';
 /* global ApplicationSource */
-/* global Bookmark */
 /* global BookmarkSource */
-/* global Collection */
 /* global CollectionSource */
-/* global dispatchEvent */
-/* global Divider */
 /* global configurator */
+/* global dispatchEvent */
+/* global GaiaGrid */
 
 (function(exports) {
 
@@ -27,15 +25,24 @@
 
     var newEntries = [];
     function isEqual(lookFor, compareWith) {
-      if (!lookFor || !lookFor.manifestURL ||
-          !compareWith.detail || !compareWith.detail.manifestURL) {
+      if (!compareWith.detail || !lookFor) {
         return false;
       }
-      if (compareWith.detail.entryPoint) {
-        return lookFor.manifestURL === compareWith.detail.manifestURL &&
-               lookFor.entry_point === compareWith.detail.entryPoint;
-      } else {
-        return lookFor.manifestURL === compareWith.detail.manifestURL;
+      if (compareWith instanceof GaiaGrid.Mozapp) {
+        if (!lookFor.manifestURL || !compareWith.detail.manifestURL) {
+          return false;
+        }
+        if (compareWith.detail.entryPoint) {
+          return lookFor.manifestURL === compareWith.detail.manifestURL &&
+                 lookFor.entry_point === compareWith.detail.entryPoint;
+        } else {
+          return lookFor.manifestURL === compareWith.detail.manifestURL;
+        }
+      } else if (compareWith instanceof GaiaGrid.Collection) {
+        if (!lookFor.id || !compareWith.detail.id) {
+          return false;
+        }
+        return lookFor.id === compareWith.detail.id;
       }
     }
 
@@ -50,12 +57,12 @@
       }
       // If we have more sections add a divider
       if (i < iLen - 1) {
-        newEntries.push(new Divider());
+        newEntries.push(new GaiaGrid.Divider());
       }
     }
     // If entries is not empty yet add orderless entries
     if (entries.length > 0) {
-        newEntries.push(new Divider());
+        newEntries.push(new GaiaGrid.Divider());
         newEntries = newEntries.concat(entries);
     }
     for (i = 0, iLen = newEntries.length; i < iLen; i++) {
@@ -226,6 +233,7 @@
      * @param {Function} callback A function to call after fetching all items.
      */
     fetch: function(callback) {
+      var cached = {};
       var collected = [];
 
       function iterator(value) {
@@ -240,6 +248,17 @@
       loadTable(DB_SV_APP_STORE_NAME, 'indexSV', iteratorSV.bind(this));
       loadTable(DB_ITEM_STORE, 'index', iterator, finish.bind(this));
 
+      /**
+       * Add to _allItems if the record is unique by comparing the identifier.
+       */
+      function addIfUnique(item) {
+        /* jshint validthis: true */
+        if (!cached[item.identifier]) {
+          cached[item.identifier] = true;
+          this._allItems.push(item);
+        }
+      }
+
       function finish() {
         /* jshint validthis: true */
         // Transforms DB results into item classes
@@ -247,16 +266,16 @@
           var thisItem = collected[i];
           if (thisItem.type === 'app') {
             var itemObj = this.applicationSource.mapToApp(thisItem);
-            this._allItems.push(itemObj);
+            addIfUnique.call(this, itemObj);
           } else if (thisItem.type === 'divider') {
-            var divider = new Divider(thisItem);
+            var divider = new GaiaGrid.Divider(thisItem);
             this._allItems.push(divider);
           } else if (thisItem.type === 'bookmark') {
-            var bookmark = new Bookmark(thisItem);
-            this._allItems.push(bookmark);
+            var bookmark = new GaiaGrid.Bookmark(thisItem);
+            addIfUnique.call(this, bookmark);
           } else if (thisItem.type === 'collection') {
-            var collection = new Collection(thisItem);
-            this._allItems.push(collection);
+            var collection = new GaiaGrid.Collection(thisItem);
+            addIfUnique.call(this, collection);
           }
         }
 

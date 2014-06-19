@@ -9,7 +9,7 @@ from gaiatest.apps.base import Base
 class EmergencyCall(Base):
 
     _emergency_frame_locator = (By.CSS_SELECTOR,
-      'iframe[data-frame-origin="app://emergency-call.gaiamobile.org"]')
+      ".secureAppWindow.active[data-manifest-name='EmergencyCall'] iframe")
     _emergency_dialer_keypad_locator = (By.ID, 'keypad')
 
     def switch_to_emergency_call_frame(self):

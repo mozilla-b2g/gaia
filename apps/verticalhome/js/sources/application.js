@@ -1,5 +1,5 @@
 'use strict';
-/* global Icon, configurator */
+/* global GaiaGrid, configurator */
 
 (function(exports) {
 
@@ -52,7 +52,7 @@
       // There is a last divider that is always in the list, but not rendered
       // unless in edit mode.
       // Remove this divider, append the app, then re-append the divider.
-      var lastDivider = app.grid.getLastIfDivider();
+      var lastDivider = app.grid.removeUntilDivider();
       this.addIconToGrid(application);
       var svApp = configurator.getSingleVariantApp(application.manifestURL);
       var lastElem = app.grid.getIndexLastIcon();
@@ -66,7 +66,7 @@
         this.addPreviouslyInstalledSvApp(application.manifestURL);
         app.itemStore.savePrevInstalledSvApp(this.svPreviouslyInstalledApps);
       }
-      app.grid.addItem(lastDivider);
+      app.grid.add(lastDivider);
 
       app.grid.render();
       app.itemStore.save(app.grid.getItems());
@@ -87,7 +87,7 @@
       for (var i = startPos, iLen = elems.length; i < iLen; i++) {
         var item = elems[i];
         //At the moment SV only configures apps
-        if (item instanceof Icon) {
+        if (item instanceof GaiaGrid.Mozapp) {
           //elems[i].identifier returns manifestURL IDENTIFIER_SEP entry_point
           var svApp = configurator.getSingleVariantApp(elems[i].identifier);
           if (svApp && i > svApp.location) {
@@ -124,7 +124,7 @@
       var appIconsByManifestUrl = {};
       for (var i = 0, iLen = storeItems.length; i < iLen; i++) {
         var item = storeItems[i];
-        if (!(item instanceof Icon)) {
+        if (!(item instanceof GaiaGrid.Mozapp)) {
           continue;
         }
         appIconsByManifestUrl[item.detail.manifestURL] = item;
@@ -160,7 +160,7 @@
       var appObject = this.mapToApp({
         manifestURL: application.manifestURL
       });
-      app.grid.addIcon(appObject.identifier, appObject);
+      app.grid.add(appObject);
       app.grid.render();
     },
 
@@ -178,7 +178,7 @@
       app.grid.removeItemByIndex(itemIndex);
       app.grid.render();
 
-      if (appObject.element) {
+      if (appObject && appObject.element) {
         appObject.element.parentNode.removeChild(appObject.element);
       }
     },
@@ -216,10 +216,10 @@
 
       if (manifest.entry_points) {
         for (var i in manifest.entry_points) {
-          eachIcon.call(this, new Icon(eachApp, i));
+          eachIcon.call(this, new GaiaGrid.Mozapp(eachApp, i));
         }
       } else {
-        eachIcon.call(this, new Icon(eachApp));
+        eachIcon.call(this, new GaiaGrid.Mozapp(eachApp));
       }
     },
 
@@ -238,7 +238,7 @@
         }
       };
 
-      return new Icon(app, entry.entryPoint, {
+      return new GaiaGrid.Mozapp(app, entry.entryPoint, {
         // cached icon blob in case of network failures
         defaultIconBlob: entry.defaultIconBlob
       });

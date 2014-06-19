@@ -2,6 +2,7 @@
 /* global asyncStorage */
 /* global IccHelper */
 /* global InternetSharing */
+/* global AirplaneMode */
 /* global MockIccHelper */
 /* global MockL10n */
 /* global MocksHelper */
@@ -11,11 +12,15 @@ requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp(
   'system/shared/test/unit/mocks/mock_navigator_moz_mobile_connection.js');
 requireApp('system/shared/test/unit/mocks/mock_icc_helper.js');
+requireApp('system/test/unit/mock_modal_dialog.js');
+requireApp('system/test/unit/mock_airplane_mode.js');
 requireApp('system/test/unit/mock_asyncStorage.js');
 requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/js/internet_sharing.js');
 
 var mocksForInternetSharing = new MocksHelper([
+  'AirplaneMode',
+  'ModalDialog',
   'asyncStorage',
   'IccHelper'
 ]).init();
@@ -286,6 +291,28 @@ suite('internet sharing > ', function() {
         changeCardState(state, TEST_ICCID1);
         assertSettingsEquals(testSet);
       });
+    });
+  });
+
+  suite('wifi hotspot', function() {
+    var testSet = [{'key': KEY_WIFI_HOTSPOT, 'result': false}];
+    test('can\'t turn on hotspot when APM is on', function() {
+      AirplaneMode.enabled = true;
+      subject.internetSharingSettingsChangeHanlder({
+        settingName: 'wifi',
+        settingValue: true
+      });
+      assertSettingsEquals(testSet);
+    });
+
+    test('can\'t turn on hotspot when there is no sim (APM is off)',
+      function() {
+        AirplaneMode.enabled = false;
+        subject.internetSharingSettingsChangeHanlder({
+          settingName: 'wifi',
+          settingValue: true
+        });
+        assertSettingsEquals(testSet);
     });
   });
 });

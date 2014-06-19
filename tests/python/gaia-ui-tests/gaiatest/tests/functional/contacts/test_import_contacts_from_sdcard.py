@@ -10,7 +10,7 @@ class TestImportContactsFromSDCard(GaiaTestCase):
 
         # remove existing vcf files from sdcard
         for filename in self.data_layer.sdcard_files('.vcf'):
-            self.device.manager.removeFile(filename)
+            self.device.manager.file_manager.remove_file(filename)
 
         # add .vcf file to SD card
         self.push_resource('gaia061281_test.vcf')

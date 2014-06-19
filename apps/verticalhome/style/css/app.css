@@ -22,6 +22,11 @@ html, body {
   margin: 0;
 }
 
+/* RTL fixes being tracked in bug 1008013 */
+html[dir="rtl"] {
+  direction: ltr;
+}
+
 .scrollable {
   position: absolute;
   top: 0;
@@ -68,6 +73,10 @@ gaia-grid {
   visibility: visible;
   opacity: 1;
   transition: opacity 0.5s ease-in;
+}
+
+.edit-mode #search {
+  visibility: hidden;
 }
 
 #confirmation-message {

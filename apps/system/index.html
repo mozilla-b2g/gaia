@@ -54,6 +54,7 @@
     <link rel="stylesheet" type="text/css" href="style/system/system.css">
     <link rel="stylesheet" type="text/css" href="style/system/keyboard.css">
     <link rel="stylesheet" type="text/css" href="style/sound_manager/sound_manager.css">
+    <link rel="stylesheet" type="text/css" href="style/ime_menu.css">
 
     <!-- Include shared building blocks -->
     <link rel="stylesheet" type="text/css" href="shared/style/confirm.css"/>
@@ -148,7 +149,7 @@
     <script defer src="js/ftu_launcher.js"></script>
 
     <!-- FTU ping -->
-    <script defer src="js/uuid.js"></script>
+    <script defer src="/shared/js/uuid.js"></script>
     <script defer src="js/ftu_ping.js"></script>
 
     <!-- Basket newsletter -->
@@ -479,7 +480,9 @@
             <input id="rocketbar-input" type="text" x-inputmode="verbatim"
               placeholder="Search or enter address" data-l10n-id="search-or-enter-address" value="">
             </input>
-            <button type="button" id="rocketbar-cancel" data-l10n-id="close">Close</button>
+            <button type="button" id="rocketbar-clear"></button>
+            <button type="button" id="rocketbar-cancel"
+                    data-l10n-id="close">Close</button>
           </form>
         </div>
         <!-- Statusbar icons -->
@@ -1153,7 +1156,8 @@
         <!--
         <li role="option" aria-selected="${selected}" data-id="${layoutId}">
           <label role="presentation">
-            <span >${layoutName}</span>
+            <span class="item-label">${layoutName}</span>
+            <span class="item-note">${appName}</span>
           </label>
         </li>
         -->

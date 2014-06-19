@@ -1,4 +1,4 @@
-/* global app, IccHelper */
+/* global app, IccHelper, verticalPreferences */
 /* exported configurator */
 
 'use strict';
@@ -44,7 +44,7 @@ var configurator = (function() {
     }
   }
 
-  function loadSettingSIMPresent() {
+  function loadSettingSIMPresent(currentMccMnc) {
     var settings = navigator.mozSettings;
     if (!settings) {
       console.log('Settings is not available');
@@ -53,9 +53,9 @@ var configurator = (function() {
     var req = settings.createLock().get('ftu.simPresentOnFirstBoot');
 
     req.onsuccess = function osv_success(e) {
-      simPresentOnFirstBoot =
-          req.result['ftu.simPresentOnFirstBoot'] === undefined ||
-          req.result['ftu.simPresentOnFirstBoot'];
+      var simOnFirstBoot = req.result['ftu.simPresentOnFirstBoot'];
+      simPresentOnFirstBoot = !simOnFirstBoot ||
+          req.result['ftu.simPresentOnFirstBoot'] === currentMccMnc;
     };
 
     req.onerror = function osv_error(e) {
@@ -64,7 +64,6 @@ var configurator = (function() {
   }
 
   function loadSingleVariantConf() {
-    loadSettingSIMPresent();
     if (!IccHelper) {
       console.error('IccHelper isn\'t enabled. SingleVariant configuration' +
                     ' can\'t be loaded');
@@ -98,11 +97,14 @@ var configurator = (function() {
 
     function loadSVConfFileSuccess(loadedData) {
       try {
+        loadSettingSIMPresent(mcc_mnc);
         singleVariantApps = {};
         if (loadedData && loadedData[mcc_mnc]) {
           loadedData[mcc_mnc].forEach(function(app) {
             if (app.manifestURL) {
               singleVariantApps[app.manifestURL] = app;
+            } else if (app.id) {
+              singleVariantApps[app.id] = app;
             }
           });
         } else {
@@ -150,6 +152,7 @@ var configurator = (function() {
 
   function onLoadInitJSON(loadedData) {
     conf = loadedData;
+    setup();
     if (!gaiaGridLayoutReady) {
       window.removeEventListener('gaiagrid-layout-ready', globalHandleEvent);
       window.addEventListener('gaiagrid-layout-ready', gridLayoutReady);
@@ -157,6 +160,16 @@ var configurator = (function() {
       app.init();
     }
     loadSingleVariantConf();
+  }
+
+  function setup() {
+    var colsByDefault = conf.preferences['grid.cols'];
+    if (colsByDefault) {
+      verticalPreferences.get('grid.cols').then(function(cols) {
+        // Set the number of cols by default in preference's datastore
+        !cols && verticalPreferences.put('grid.cols', colsByDefault);
+      });
+    }
   }
 
   function onErrorInitJSON(e) {

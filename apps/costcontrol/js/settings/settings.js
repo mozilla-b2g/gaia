@@ -273,6 +273,10 @@ var Settings = (function() {
         var hidePhoneActivity = (mode !== 'POSTPAID');
         var hideBalance = (mode !== 'PREPAID');
         var hideReportsTitle = (mode === 'PREPAID');
+        var textReportsTitle = (mode === 'POSTPAID') ?
+          'phone-and-internet-data-report' : 'internet-data-report';
+
+        reportsTitle.querySelector('h2').textContent = _(textReportsTitle);
 
         balanceLowLimitView.disabled = (mode !== 'PREPAID');
         plantypeSelector.setAttribute('aria-hidden', hidePlantypeSelector);

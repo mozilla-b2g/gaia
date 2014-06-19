@@ -1,6 +1,6 @@
 /* global Card, TaskCard,
           AppWindowManager, sleepMenu, SettingsListener, AttentionScreen,
-          OrientationManager,
+          OrientationManager, System,
           GestureDetector, UtilityTray, StackManager, Event */
 
 'use strict';
@@ -706,8 +706,7 @@
         break;
 
       case 'holdhome':
-        if (this.isShown() ||
-            (window.lockScreen && window.lockScreen.locked)) {
+        if (this.isShown() || System.locked) {
           return;
         }
         sleepMenu.hide();

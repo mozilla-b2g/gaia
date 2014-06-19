@@ -163,6 +163,10 @@ suite('Applications', function() {
     navigator.mozApps = realMozApps;
   });
 
+  teardown(function() {
+    MockNavigatormozApps.mTeardown();
+  });
+
   suite('predefined apps', function() {
     suiteSetup(function() {
       MockAppsMgmt.mApps = [fakeApp1, fakeApp2, fakeApp3, fakeApp4, fakeApp5,

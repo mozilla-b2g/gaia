@@ -259,6 +259,12 @@ var SimManager = (function() {
     }
   },
 
+  /**
+   * A container of event listeners to avoid listening several times to the same
+   * event/object pair.
+   */
+  voiceChangeListeners: [],
+
   updateSIMInfoText: function sm_updateSIMInfoText(icc) {
     var iccNumber = (icc === this.icc0) ? 1 : 2;
     if (icc && icc.isLocked()) {
@@ -267,10 +273,35 @@ var SimManager = (function() {
       UIManager['simNumber' + iccNumber].textContent = '';
     } else {
       UIManager['simInfo' + iccNumber].classList.remove('locked');
-      var carrier = MobileOperator
-                    .userFacingInfo(this.mobConn[iccNumber - 1])
-                    .operator || _('noOperator');
-      UIManager['simCarrier' + iccNumber].textContent = carrier;
+
+      var mobConn = this.mobConn[iccNumber - 1];
+      var operator = MobileOperator
+                    .userFacingInfo(mobConn)
+                    .operator;
+
+      if (!operator && !this.voiceChangeListeners[iccNumber - 1]) {
+        // The operator is not yet populated, let's listen to the `voicechange`
+        // event once and update the UI later.
+        this.voiceChangeListeners[iccNumber - 1] = function(evt) {
+          var operator = MobileOperator
+                        .userFacingInfo(mobConn)
+                        .operator;
+
+          if (operator) {
+            // If we have an operator, we update the UI and stop listening.
+            UIManager['simCarrier' + iccNumber].textContent = operator;
+            mobConn.removeEventListener(
+              'voicechange', this.voiceChangeListeners[iccNumber - 1]);
+            this.voiceChangeListeners[iccNumber - 1] = null;
+          }
+        }.bind(this);
+
+        mobConn.addEventListener(
+          'voicechange', this.voiceChangeListeners[iccNumber - 1]);
+      }
+
+      UIManager['simCarrier' + iccNumber].textContent = operator ||
+        _('noOperator');
       var number = icc.mozIcc.iccInfo.msisdn ||
                    icc.mozIcc.iccInfo.mdn || '';
       if (number) {

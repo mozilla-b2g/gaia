@@ -1,16 +1,17 @@
 'use strict';
-/* global Bookmark */
+/* global GaiaGrid */
 
 require('/shared/elements/gaia_grid/js/grid_dragdrop.js');
+require('/shared/elements/gaia_grid/js/grid_icon_renderer.js');
 require('/shared/elements/gaia_grid/js/grid_layout.js');
 require('/shared/elements/gaia_grid/js/grid_view.js');
 require('/shared/elements/gaia_grid/js/grid_zoom.js');
+require('/shared/elements/gaia_grid/script.js');
 require('/shared/elements/gaia_grid/js/items/grid_item.js');
 require('/shared/elements/gaia_grid/js/items/divider.js');
-require('/shared/elements/gaia_grid/js/items/icon.js');
+require('/shared/elements/gaia_grid/js/items/mozapp.js');
 require('/shared/elements/gaia_grid/js/items/bookmark.js');
 require('/shared/elements/gaia_grid/js/items/placeholder.js');
-require('/shared/elements/gaia_grid/script.js');
 
 suite('GaiaGrid > DragDrop', function() {
   var grid;
@@ -25,9 +26,9 @@ suite('GaiaGrid > DragDrop', function() {
 
   var stubPage2 = {
     name: 'second',
-    id: 1,
+    id: 2,
     icon: 'no',
-    url: 'http://mozilla.org'
+    url: 'http://mozilla.org/2'
   };
 
   suiteSetup(function() {
@@ -40,8 +41,8 @@ suite('GaiaGrid > DragDrop', function() {
     grid = this.container.firstElementChild._grid;
     dragdrop = this.container.firstElementChild._grid;
 
-    grid.add(new Bookmark(stubPage1));
-    grid.add(new Bookmark(stubPage2));
+    grid.add(new GaiaGrid.Bookmark(stubPage1));
+    grid.add(new GaiaGrid.Bookmark(stubPage2));
     grid.render();
   });
 
@@ -54,6 +55,10 @@ suite('GaiaGrid > DragDrop', function() {
     assert.equal(grid.items[0].name, 'first');
 
     var moveTo = grid.layout.gridItemWidth + 1;
+
+    // XXX: Stub the x/y adjustments, we should probably not depend on this
+    grid.dragdrop.xAdjust = 0;
+    grid.dragdrop.yAdjust = 0;
 
     grid.dragdrop.handleEvent({
       type: 'touchmove',
@@ -68,6 +73,8 @@ suite('GaiaGrid > DragDrop', function() {
       stopImmediatePropagation: function() {},
       preventDefault: function() {}
     });
+
+    grid.dragdrop.handleEvent({ type: 'transitionend' });
 
     assert.equal(grid.items[0].name, 'second');
     assert.equal(grid.items[1].name, 'first');
@@ -85,6 +92,8 @@ suite('GaiaGrid > DragDrop', function() {
       stopImmediatePropagation: function() {},
       preventDefault: function() {}
     });
+
+    grid.dragdrop.handleEvent({ type: 'transitionend' });
 
     assert.isFalse(firstBookmark.classList.contains('active'));
   });

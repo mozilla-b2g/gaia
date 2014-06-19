@@ -267,7 +267,7 @@
     var clickOnFrame = iframe.click.bind(iframe);
 
     iframe.removeEventListener('load', iframeLoad);
-    navigator.mozL10n.translate(iframe.contentDocument.body);
+    navigator.mozL10n.translateFragment(iframe.contentDocument.body);
     iframe.contentDocument.addEventListener('click', clickOnFrame);
   }
 

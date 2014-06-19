@@ -32,7 +32,3 @@ define run-node-command
   node --harmony -e \
   "require('./build/$(strip $1).js').execute($(BUILD_CONFIG))"
 endef
-
-define clean-build-files
-  rm -rf "$(1)$(SEP)Makefile" "$(1)$(SEP)build" "$(1)$(SEP)build.txt" "$(1)$(SEP)test" "$(1)$(SEP)README.md"
-endef

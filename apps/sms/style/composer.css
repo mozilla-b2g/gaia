@@ -11,30 +11,60 @@
  */
 
 .flex-composer {
-  position: relative;
-  top: 4rem;
-
-  height: calc(100% - 4rem);
   display: flex;
   flex-direction: column;
 
+  height: 100%;
+  top: 0;
+
   overflow: hidden;
+}
+
+.new .flex-composer {
+  position: relative;
+  top: 5.5rem; /* 5.5rem is the default size of the recipient panel */
+               /* In Bug 1015841 this should be able to change depending on the
+                * recipients panel height
+                * Should the recipients panel be part of the composer ? */
+
+  height: calc(100% - 5.5rem);
 }
 
 #composer-messages-container {
-  flex: 1 0;
-  order: 1;
+  /* We'll set flex-basis with a shrink factor of 0 to do min-height.
+   * formula: flex-basis = a % + b)
+   * a = (gap2 - gap1) / keyboard_height
+   * b = gap2 - (gap2 - gap1) * (buri_height - header) / keyboard_height + subheader + time_header
+   *
+   * with :
+   * gap1 = 4rem
+   *   minimal visible part of a thread when the keyboard is displayed, on buri
+   * gap2 = 8rem
+   *   minimal visible part of a thread when the keyboard is hidden, on a buri
+   * keyboard_height = 26rem
+   *   measured on a buri, standard english keyboard with suggestions
+   * header = 5rem
+   * subheader = 2rem
+   * buri_height = 48rem
+   * time_header = 2rem
+   *
+   * See https://bugzilla.mozilla.org/show_bug.cgi?id=1015867#c12 for more
+   * information
+   */
+  flex: 1 0 calc(15.4% + 5.38rem);
+}
+
+.new #composer-messages-container {
+  flex-basis: 0;
 }
 
 #messages-compose-form {
-  right: 0;
-  bottom: 0;
-  left: 0;
-  height: auto;
-  min-height: 3rem;
+  display: flex;
+  flex-direction: row;
 
-  overflow: hidden;
-  order: 2;
+  min-height: 3rem;
+  height: auto; /* overrides building blocks */
+
   background-color: #fff;
 }
 
@@ -51,12 +81,11 @@ form[role="search"] button[type="submit"] + p > textarea {
  */
 
 #messages-input {
-  position: relative;
+  position: relative; /* to position its generated content */
 
   min-height: 4rem;
   padding: 1.2rem 0.5rem 0.5rem 0;
   box-sizing: border-box;
-  overflow: scroll;
 
   text-align: left;
   font-size: 1.8rem;
@@ -107,7 +136,7 @@ form[role="search"] button[type="submit"]:after {
   font-size: 1.7rem;
   text-align: left;
   color: #0b6262;
-  overflow: scroll;
+  overflow: auto;
 }
 
 #messages-subject-input:after {
@@ -131,31 +160,31 @@ form[role="search"] button[type="submit"]:after {
 
 #messages-container {
   height: 100%;
-  overflow: scroll;
+  overflow: auto;
 }
 
 /*
  * 'message-complete' contains Subject & Body
  */
-.message-complete {
-  width: calc(100% - 7.8rem); /* Need this to keep the button space */
+.composer-message-complete {
+  flex: auto;
   min-height: 4rem;
-  max-height: 12rem;
 
   margin-left: 1.5rem;
-  overflow: scroll;
+  overflow: auto;
 }
 
-/*
- * Send button is fixed to the bottom
- */
+.composer-button-container {
+  display: flex;
+
+  flex: none;
+  flex-direction: column;
+  justify-content: flex-end;
+
+  -moz-user-select: none; /* without this, tapping on the element selects its content */
+}
 
 #messages-send-button {
-  position: fixed;
-  right: 0;
-  bottom: 0;
-  display: none;
-
   overflow: visible;
 }
 
@@ -195,19 +224,4 @@ form[role="search"] button[type="submit"]:after {
   font-size: 1.4rem;
   font-style: normal;
   color: #575757;
-}
-
-
-/*
- * Depending you are, you have a different layout.
- */
-
-[data-composer-layout="composer"] #messages-send-button,
-[data-composer-layout="thread"] #messages-send-button  {
-  display: block;
-}
-
-[data-composer-layout="thread"] .flex-composer {
-  height: 100%;
-  top: 0;
 }

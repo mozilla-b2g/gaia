@@ -1,5 +1,5 @@
 /* global SettingsListener, homescreenLauncher, KeyboardManager,
-          layoutManager, lockScreen, System */
+          layoutManager, System */
 'use strict';
 
 (function(exports) {
@@ -245,6 +245,7 @@
       // XXX: PermissionDialog is shared so we need AppWindowManager
       // to focus the active app after it's closed.
       window.addEventListener('permissiondialoghide', this);
+      window.addEventListener('appopening', this);
 
       this._settingsObserveHandler = {
         // update app name when language setting changes
@@ -321,6 +322,7 @@
       window.removeEventListener('orientationchange', this);
       window.removeEventListener('sheetstransitionstart', this);
       window.removeEventListener('permissiondialoghide', this);
+      window.removeEventListener('appopening', this);
 
       for (var name in this._settingsObserveHandler) {
         SettingsListener.unobserve(
@@ -384,13 +386,14 @@
           // XXX: There's a race between lockscreenWindow and homescreenWindow.
           // If lockscreenWindow is instantiated before homescreenWindow,
           // we should not display the homescreen here.
-          if (!lockScreen.locked) {
+          if (!System.locked) {
             this.display();
           } else {
             homescreenLauncher.getHomescreen().setVisible(false);
           }
           break;
 
+        case 'appopening':
         case 'appopened':
         case 'homescreenopened':
           // Someone else may open the app,

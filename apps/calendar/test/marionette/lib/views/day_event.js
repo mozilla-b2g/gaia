@@ -28,13 +28,5 @@ DayEvent.prototype = {
 
   get iconAlarm() {
     return this.findElement('.icon-alarm');
-  },
-
-  get closestHour() {
-    return this.client.helper.closest(this.element, '.hour');
-  },
-
-  get closestAllDay() {
-    return this.client.helper.closest(this.element, '.hour-allday');
   }
 };

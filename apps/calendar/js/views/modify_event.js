@@ -209,7 +209,14 @@ Calendar.ns('Views').ModifyEvent = (function() {
         var element = this.getEl('calendarId');
 
         option = document.createElement('option');
-        option.text = calendar.remote.name;
+
+        if (id === Calendar.Provider.Local.calendarId) {
+          option.text = navigator.mozL10n.get('calendar-local');
+          option.setAttribute('data-l10n-id', 'calendar-local');
+        } else {
+          option.text = calendar.remote.name;
+        }
+
         option.value = id;
         element.add(option);
 
@@ -642,8 +649,12 @@ Calendar.ns('Views').ModifyEvent = (function() {
     _renderDateTimeLocale: function(type, targetElement, value) {
       // we inject the targetElement to make it easier to test
       var localeFormat = Calendar.App.dateFormat.localeFormat;
-      var format = navigator.mozL10n.get(this.formats[type]);
+      var formatKey = this.formats[type];
+      var format = navigator.mozL10n.get(formatKey);
       targetElement.textContent = localeFormat(value, format);
+      // we need to store the format and date for l10n
+      targetElement.setAttribute('data-l10n-date-format', formatKey);
+      targetElement.dataset.date = value;
     },
 
     _updateDateLocaleOnInput: function(targetElement, e) {

@@ -109,7 +109,7 @@ suite('FindMyDevice >', function() {
       var lock = MockSettingsListener.getSettingsLock().locks.pop();
 
       var ringer = subject._ringer;
-      var channel = ringer.mozAudioChannel;
+      var channel = ringer.mozAudioChannelType;
       assert.equal(channel, 'content', 'use content channel');
       assert.equal(lock['audio.volume.content'], 15, 'volume set to maximum');
       assert.equal(ringer.paused, false, 'must be playing');
@@ -196,6 +196,29 @@ suite('FindMyDevice >', function() {
 
     fakeClock.tick(subject.TRACK_UPDATE_INTERVAL_MS);
   });
+
+  test('Bug 1027325 - correctly check that passcode lock is set', function() {
+    MockSettingsListener.mTriggerCallback('lockscreen.enabled', true);
+    MockSettingsListener.mTriggerCallback('lockscreen.passcode-lock.enabled',
+      '1234');
+    assert.equal(true, subject.deviceHasPasscode());
+  });
+
+  test('Bug 1027325 - correctly check that passcode lock is unset', function() {
+    MockSettingsListener.mTriggerCallback('lockscreen.enabled', false);
+    MockSettingsListener.mTriggerCallback('lockscreen.passcode-lock.enabled',
+      false);
+    assert.equal(false, subject.deviceHasPasscode());
+  });
+
+  test('Bug 1027325 - correctly check that lockscreen is set, but passcode ' +
+       'lock is unset', function() {
+    MockSettingsListener.mTriggerCallback('lockscreen.enabled', true);
+    MockSettingsListener.mTriggerCallback('lockscreen.passcode-lock.enabled',
+      false);
+    assert.equal(false, subject.deviceHasPasscode());
+  });
+
 
   teardown(function() {
     navigator.mozL10n = realL10n;

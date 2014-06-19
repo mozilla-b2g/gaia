@@ -635,13 +635,13 @@ Calendar.ns('Views').DayBased = (function() {
     },
 
     getScrollTop: function() {
-      var scroll = this.element.querySelectorAll('.day-events')[1];
+      var scroll = this.element.querySelectorAll('.day-events-wrapper')[0];
       var scrollTop = scroll.scrollTop;
       return scrollTop;
     },
 
     setScrollTop: function(scrollTop) {
-      var scroll = this.element.querySelectorAll('.day-events')[1];
+      var scroll = this.element.querySelectorAll('.day-events-wrapper')[0];
       scroll.scrollTop = scrollTop;
     }
 

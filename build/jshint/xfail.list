@@ -85,7 +85,6 @@ apps/email/js/query_uri.js
 apps/email/js/sync.js
 apps/email/js/text.js
 apps/email/js/tmpl.js
-apps/email/js/value_selector.js
 apps/email/js/wake_locks.js
 apps/email/test/config.js
 apps/email/test/marionette/activity_create_email_account_complete_test.js
@@ -130,7 +129,6 @@ apps/ftu/test/unit/mock_import_services.js
 apps/ftu/test/unit/mock_navigation.html.js
 apps/ftu/test/unit/mock_navigator_contacts.js
 apps/ftu/test/unit/mock_navigator_moz_wifi_manager.js
-apps/ftu/test/unit/mock_operatorVariant.js
 apps/ftu/test/unit/mock_sd_manager.js
 apps/ftu/test/unit/mock_sim_manager.html.js
 apps/ftu/test/unit/mock_sim_manager.js
@@ -139,7 +137,6 @@ apps/ftu/test/unit/mock_utils.js
 apps/ftu/test/unit/mock_wifi_helper.js
 apps/ftu/test/unit/mock_wifi_manager.js
 apps/ftu/test/unit/navigation_test.js
-apps/ftu/test/unit/operatorVariant_test.js
 apps/ftu/test/unit/tutorial_test.js
 apps/ftu/test/unit/wifi_test.js
 apps/gallery/js/ImageEditor.js
@@ -284,7 +281,6 @@ apps/settings/js/carrier.js
 apps/settings/js/carrier_iccs.js
 apps/settings/js/connectivity.js
 apps/settings/js/date_time.js
-apps/settings/js/display.js
 apps/settings/js/downloads/download_api_manager.js
 apps/settings/js/downloads/download_item.js
 apps/settings/js/downloads/downloads_list.js
@@ -545,7 +541,6 @@ shared/js/media/remote_controls.js
 shared/js/media/video_player.js
 shared/js/media/video_stats.js
 shared/js/mediadb.js
-shared/js/omadrm/fl.js
 shared/js/operator_variant_helper.js
 shared/js/simple_phone_matcher.js
 shared/js/tag_visibility_monitor.js

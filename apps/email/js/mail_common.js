@@ -2,11 +2,12 @@
  * UI infrastructure code and utility code for the gaia email app.
  **/
 /*jshint browser: true */
-/*global define, console */
+/*global define, console, startupCacheEventsSent */
 'use strict';
 define(function(require, exports) {
 
 var Cards, Toaster,
+    evt = require('evt'),
     mozL10n = require('l10n!'),
     toasterNode = require('tmpl!./cards/toaster.html'),
     confirmDialogTemplateNode = require('tmpl!./cards/confirm_dialog.html'),
@@ -173,6 +174,13 @@ Cards = {
    * cleanup, like DOM removal.
    */
   _transitionCount: 0,
+
+  /**
+   * Tracks if startup events have been emitted. The events only need to be
+   * emitted once.
+   * @type {Boolean}
+   */
+  _startupEventsEmitted: false,
 
   /**
    * Is a tray card visible, suggesting that we need to intercept clicks in the
@@ -525,7 +533,7 @@ Cards = {
   folderSelector: function(callback) {
     var self = this;
 
-    require(['model', 'value_selector'], function(model) {
+    require(['model'], function(model) {
       // XXX: Unified folders will require us to make sure we get the folder
       //      list for the account the message originates from.
       if (!self.folderPrompt) {
@@ -843,9 +851,7 @@ Cards = {
       removeClass(beginNode, 'no-anim');
       removeClass(endNode, 'no-anim');
 
-      if (cardInst && cardInst.cardImpl.onCardVisible) {
-        cardInst.cardImpl.onCardVisible();
-      }
+      this._onCardVisible(cardInst);
     }
 
     // Hide toaster while active card index changed:
@@ -914,8 +920,7 @@ Cards = {
         afterTransitionAction();
       }
 
-      if (activeCard.cardImpl.onCardVisible)
-        activeCard.cardImpl.onCardVisible();
+      this._onCardVisible(activeCard);
 
       // If the card has next cards that can be preloaded, load them now.
       // Use of nextCards should be balanced with startup performance.
@@ -929,6 +934,44 @@ Cards = {
           return 'cards/' + id;
         }));
       }
+    }
+  },
+
+  /**
+   * Handles final notification of card visibility in the stack.
+   * @param  {Card} cardInst the card instance.
+   */
+  _onCardVisible: function(cardInst) {
+    if (cardInst.cardImpl.onCardVisible) {
+      cardInst.cardImpl.onCardVisible();
+    }
+    this._emitStartupEvents(cardInst.cardImpl.skipEmitContentEvents);
+  },
+
+  /**
+   * Handles emitting startup events used for performance tracking.
+   * @param  {Boolean} skipEmitContentEvents if content events should be skipped
+   * because the card itself handles it.
+   */
+  _emitStartupEvents: function(skipEmitContentEvents) {
+    if (!this._startupEventsEmitted) {
+      if (startupCacheEventsSent) {
+        // Cache already loaded, so at this point the content shown is wired
+        // to event handlers.
+        window.dispatchEvent(new CustomEvent('moz-content-interactive'));
+      } else {
+        // Cache was not used, so only now is the chrome dom loaded.
+        window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
+      }
+      window.dispatchEvent(new CustomEvent('moz-chrome-interactive'));
+
+      // If a card that has a simple static content DOM, content is complete.
+      // Otherwise, like message_list, need backend data to call complete.
+      if (!skipEmitContentEvents) {
+        evt.emit('metrics:contentDone');
+      }
+
+      this._startupEventsEmitted = true;
     }
   },
 
@@ -1273,17 +1316,21 @@ function prettyDate(time, useCompactFormat) {
   };
   var timer = setInterval(updatePrettyDate, 60 * 1000);
 
-  window.addEventListener('message', function visibleAppUpdatePrettyDate(evt) {
-    var data = evt.data;
-    if (!data || (typeof(data) !== 'object') ||
-        !('message' in data) || data.message !== 'visibilitychange')
-      return;
+  function updatePrettyDateOnEvent() {
     clearTimeout(timer);
-    if (!data.hidden) {
-      updatePrettyDate();
-      timer = setInterval(updatePrettyDate, 60 * 1000);
+    updatePrettyDate();
+    timer = setInterval(updatePrettyDate, 60 * 1000);
+  }
+  // When user changes the language, update timestamps.
+  mozL10n.ready(updatePrettyDateOnEvent);
+
+  // On visibility change to not hidden, update timestamps
+  document.addEventListener('visibilitychange', function() {
+    if (document && !document.hidden) {
+      updatePrettyDateOnEvent();
     }
   });
+
 })();
 
 ////////////////////////////////////////////////////////////////////////////////

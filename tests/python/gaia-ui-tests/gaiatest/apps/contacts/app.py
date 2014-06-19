@@ -18,12 +18,10 @@ class Contacts(Base):
     _settings_button_locator = (By.ID, 'settings-button')
     _favorites_list_locator = (By.ID, 'contacts-list-favorites')
     _contacts_frame_locator = (By.CSS_SELECTOR, 'iframe[src*="contacts"][src*="/index.html"]')
+    _select_all_wrapper_locator = (By.ID, 'select-all-wrapper')
     _select_all_button_locator = (By.CSS_SELECTOR, 'button[data-l10n-id="selectAll"]')
     _export_button_locator = (By.ID, 'select-action')
     _status_message_locator = (By.ID, 'statusMsg')
-    _select_contacts_to_import_frame_locator = (By.ID, 'fb-extensions')
-    _import_locator = (By.ID, 'import-action')
-    _first_contact_locator = (By.CSS_SELECTOR, 'li.block-item label.pack-checkbox')
 
     #  contacts
     _contact_locator = (By.CSS_SELECTOR, 'li.contact-item')
@@ -40,20 +38,6 @@ class Contacts(Base):
         self.marionette.switch_to_frame(contacts_frame)
         Wait(self.marionette, ignored_exceptions=JavascriptException).until(
             lambda m: m.execute_script('return window.wrappedJSObject.Contacts.asyncScriptsLoaded') is True)
-
-    def switch_to_select_contacts_frame(self):
-        self.switch_to_contacts_frame()
-        self.wait_for_element_displayed(*self._select_contacts_to_import_frame_locator)
-        select_contacts = self.marionette.find_element(*self._select_contacts_to_import_frame_locator)
-        self.marionette.switch_to_frame(select_contacts)
-
-    def tap_first_contact(self):
-        self.marionette.find_element(*self._first_contact_locator).tap()
-
-    def tap_import_button(self):
-        self.marionette.find_element(*self._import_locator).tap()
-        from gaiatest.apps.contacts.regions.settings_form import SettingsForm
-        return SettingsForm(self.marionette)
 
     @property
     def contacts(self):
@@ -84,7 +68,10 @@ class Contacts(Base):
         return SettingsForm(self.marionette)
 
     def tap_select_all(self):
-        self.wait_for_element_displayed(*self._select_all_button_locator)
+        window_height = self.marionette.execute_script('return window.wrappedJSObject.innerHeight')
+        wrapper = self.marionette.find_element(*self._select_all_wrapper_locator)
+        self.wait_for_condition(lambda m: int(wrapper.size['height'] + wrapper.location['y']) == window_height)
+
         self.marionette.find_element(*self._select_all_button_locator).tap()
 
     def tap_export(self):

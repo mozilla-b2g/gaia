@@ -46,6 +46,10 @@ const JS_AGGREGATION_BLACKLIST = [
   'system'
 ];
 
+const PRETRANSLATION_BLACKLIST = {
+  'keyboard': [ 'index.html' ]
+};
+
 /**
  * whitelist files by app for resource inlining
  */
@@ -67,6 +71,7 @@ const RE_INI = /locales[\/\\].+\.ini$/;
 /**
  * Optimization helpers -- these environment variables are used:
  *   - config.GAIA_INLINE_LOCALES  - embed the minimum l10n data in HTML files
+ *   - config.GAIA_PRETRANSLATE    - pretranslate html into default locale
  *   - config.GAIA_CONCAT_LOCALES  - aggregates l10n files
  *   - config.GAIA_OPTIMIZE        - aggregates JS files
  */
@@ -604,10 +609,16 @@ function optimize_compile(webapp, file, callback) {
         processedLocales++;
       }
 
-      // we expect the last locale to be the default one:
-      // set the lang/dir attributes of the current document
-      docElt.dir = mozL10n.language.direction;
-      docElt.lang = mozL10n.language.code;
+      let appName = webapp.sourceDirectoryName;
+      let fileName = file.leafName;
+      if (config.GAIA_PRETRANSLATE === '1' &&
+          (!PRETRANSLATION_BLACKLIST[appName] ||
+           (PRETRANSLATION_BLACKLIST[appName].indexOf('*') === -1 &&
+            PRETRANSLATION_BLACKLIST[appName].indexOf(fileName) === -1))) {
+        // we expect the last locale to be the default one:
+        // pretranslate the document and set its lang/dir attributes
+        mozL10n.translateDocument();
+      }
 
       // save localized / optimized document
       let newFile = new FileUtils.File(file.path + '.' +

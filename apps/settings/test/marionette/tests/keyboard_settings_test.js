@@ -24,9 +24,7 @@ marionette('manipulate keyboard settings', function() {
     keyboardApp.goBackToSettingsApp();
 
     // switch back to settings frame and verify
-    client.switchToFrame();
-    client.apps.switchToApp(Settings.ORIGIN);
-
+    settingsApp.switchTo();
     var backButton = keyboardPanel.backButton;
     assert.ok(backButton.displayed());
 

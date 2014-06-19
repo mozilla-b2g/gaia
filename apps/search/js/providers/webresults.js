@@ -1,4 +1,4 @@
-/* global eme, Search, DataGridProvider, Bookmark */
+/* global eme, Search, DataGridProvider, GaiaGrid, GridIconRenderer */
 
 (function() {
 
@@ -52,12 +52,12 @@
           response.apps.forEach(function each(app) {
             results.push({
               dedupeId: app.appUrl,
-              data: new Bookmark({
-                id: app.id,
+              data: new GaiaGrid.Bookmark({
+                id: app.appUrl,
                 name: app.name,
                 url: app.appUrl,
                 icon: app.icon,
-                clipIcon: true
+                renderer: GridIconRenderer.TYPE.CLIP
               }, {
                 search: true}
               )

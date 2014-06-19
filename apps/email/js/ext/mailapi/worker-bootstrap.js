@@ -10046,8 +10046,10 @@ function tokenize(str, options) {
 		return true;
 	};
 	var create = function(token) { currtoken = token; return true; };
-	var parseerror = function() { console.log("Parse error at index " + i + ", processing codepoint 0x" + code.toString(16) + " in state " + state + ".");return true; };
-	var catchfire = function(msg) { console.log("MAJOR SPEC ERROR: " + msg); return true;}
+	// mozmod: disable console.log
+	var parseerror = function() { /* console.log("Parse error at index " + i + ", processing codepoint 0x" + code.toString(16) + " in state " + state + "."); */ return true; };
+	// mozmod: disable console.log
+	var catchfire = function(msg) { /* console.log("MAJOR SPEC ERROR: " + msg); */ return true;}
 	var switchto = function(newstate) {
 		state = newstate;
 		//console.log('Switching to ' + state);
@@ -10748,7 +10750,8 @@ function parse(tokens, initialMode) {
 				mode = rule.fillType;
 			else if(rule.type == 'STYLESHEET')
 				mode = 'top-level'
-			else { console.log("Unknown rule-type while switching to current rule's content mode: ",rule); mode = ''; }
+			// mozmod: disable console.log
+			else { /* console.log("Unknown rule-type while switching to current rule's content mode: ",rule); mode = ''; */ }
 		} else {
 			mode = newmode;
 		}
@@ -10762,7 +10765,8 @@ function parse(tokens, initialMode) {
 		return true;
 	}
 	var parseerror = function(msg) {
-		console.log("Parse error at token " + i + ": " + token + ".\n" + msg);
+		// mozmod: disable console.log
+		//console.log("Parse error at token " + i + ": " + token + ".\n" + msg);
 		return true;
 	}
 	var pop = function() {
@@ -10901,7 +10905,8 @@ function parse(tokens, initialMode) {
 
 		default:
 			// If you hit this, it's because one of the switchto() calls is typo'd.
-			console.log('Unknown parsing mode: ' + mode);
+			// mozmod: disable console.log
+			//console.log('Unknown parsing mode: ' + mode);
 			return;
 		}
 	}
@@ -11272,8 +11277,7 @@ HTMLSanitizer.prototype = {
     for (var i = 0; i < attrs.length; i++) {
       var attr = attrs[i];
       var attrName = attr.name.toLowerCase();
-
-      if (wildAttrs.indexOf(attrName) !== -1 ||
+      if (attr.safe || wildAttrs.indexOf(attrName) !== -1 ||
           (whitelist && whitelist.indexOf(attrName) !== -1)) {
         if (attrName == "style") {
           var attrValue = '';
@@ -11635,7 +11639,8 @@ var HTMLParser = (function(){
           attrs.push({
             name: name,
             value: value,
-            escaped: value.replace(/"/g, '&quot;')
+            escaped: value.replace(/"/g, '&quot;'),
+            safe: false
           });
         });
 
@@ -18175,8 +18180,8 @@ MailDB.prototype = {
     sendMessage('saveConfig', [config]);
   },
 
-  saveAccountDef: function(config, accountDef, folderInfo) {
-    sendMessage('saveAccountDef', [ config, accountDef, folderInfo ]);
+  saveAccountDef: function(config, accountDef, folderInfo, callback) {
+    sendMessage('saveAccountDef', [ config, accountDef, folderInfo ], callback);
   },
 
   loadHeaderBlock: function(folderId, blockId, callback) {
@@ -20055,8 +20060,8 @@ MailUniverse.prototype = {
       throw savedEx;
   },
 
-  saveAccountDef: function(accountDef, folderInfo) {
-    this._db.saveAccountDef(this.config, accountDef, folderInfo);
+  saveAccountDef: function(accountDef, folderInfo, callback) {
+    this._db.saveAccountDef(this.config, accountDef, folderInfo, callback);
     var account = this.getAccountForAccountId(accountDef.id);
 
     // Make sure syncs are still accurate, since syncInterval

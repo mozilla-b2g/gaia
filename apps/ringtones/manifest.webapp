@@ -3,7 +3,6 @@
   "description": "Gaia Ringtone Manager",
   "type": "certified",
   "role": "system",
-  "launch_path": "/manage.html",
   "orientation": "default",
   "developer": {
     "name": "The Gaia Team",
@@ -32,6 +31,7 @@
           "required": true,
           "pattern": "^audio/.*$"
         },
+        "__bug1015513_hide_from_self__": false,
         "number": 1
       },
       "disposition": "inline",
@@ -49,6 +49,16 @@
       "disposition": "inline",
       "returnValue": true,
       "href": "/share.html#activity"
+    },
+    "configure": {
+      "filters": {
+        "target": {
+          "required": true,
+          "pattern": "ringtone"
+        }
+      },
+      "disposition": "inline",
+      "href": "/manage.html"
     }
   },
   "locales": {

@@ -82,7 +82,8 @@ var NotificationScreen = {
     this.externalNotificationsCount = 0;
 
     window.addEventListener('utilitytrayshow', this);
-    window.addEventListener('unlock', this.clearLockScreen.bind(this));
+    window.addEventListener('lockscreen-appclosed',
+      this.clearLockScreen.bind(this));
     window.addEventListener('visibilitychange', this);
     window.addEventListener('ftuopen', this);
     window.addEventListener('ftudone', this);
@@ -383,8 +384,7 @@ var NotificationScreen = {
     // Notification toaster
     if (notify) {
       this.updateToaster(detail, type, dir);
-      if (this.lockscreenPreview || !window.lockScreen ||
-          !window.lockScreen.locked) {
+      if (this.lockscreenPreview || !window.System.locked) {
         this.toaster.classList.add('displayed');
         this._toasterGD.startDetecting();
 
@@ -402,8 +402,7 @@ var NotificationScreen = {
 
     // Adding it to the lockscreen if locked and the privacy setting
     // does not prevent it.
-    if (typeof(window.lockScreen) !== 'undefined' &&
-        window.lockScreen.locked && this.lockscreenPreview) {
+    if (System.locked && this.lockscreenPreview) {
       var lockScreenNode = notificationNode.cloneNode(true);
 
       // First we try and find an existing notification with the same id.
@@ -428,7 +427,7 @@ var NotificationScreen = {
       window.lockScreen.maskedBackground.style.backgroundColor =
         window.lockScreen.maskedBackground.dataset.wallpaperColor;
 
-      window.lockScreen.classList.remove('blank');
+      window.lockScreen.maskedBackground.classList.remove('blank');
     }
 
     if (notify && !this.isResending) {
@@ -526,7 +525,7 @@ var NotificationScreen = {
       if (!lockScreenNotificationNode.parentNode.firstElementChild) {
         window.lockScreen.maskedBackground.style.backgroundColor =
           'transparent';
-        window.lockScreen.classList.add('blank');
+        window.lockScreen.maskedBackground.classList.add('blank');
       }
     }
     this.updateStatusBarIcon();
@@ -555,7 +554,7 @@ var NotificationScreen = {
     // remove the bgcolor from wallpaper,
     // and use the simple gradient
     window.lockScreen.maskedBackground.style.backgroundColor = 'transparent';
-    window.lockScreen.classList.add('blank');
+    window.lockScreen.maskedBackground.classList.add('blank');
   },
 
   updateStatusBarIcon: function ns_updateStatusBarIcon(unread) {

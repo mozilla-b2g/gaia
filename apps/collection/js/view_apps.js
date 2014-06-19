@@ -1,5 +1,7 @@
 'use strict';
 /* global eme */
+/* global NativeInfo */
+
 
 (function(exports) {
 
@@ -10,22 +12,34 @@
       offline: document.getElementById('offline'),
       offlineMessage: document.getElementById('offline-message')
     };
-    var requestParams = {
-      query: collection.query,
-      categoryId: collection.categoryId,
-      iconFormat: getIconFormat()
-    };
+
+    var options = collection.categoryId ? {categoryId: collection.categoryId}
+                                        : {query: collection.query};
+
+    loading();
 
     // render pinned apps first
     collection.render(grid);
 
-    if (navigator.onLine) {
-      makeRequest();
-    } else {
-      onOffline();
-    }
+    // refresh since pinned apps might have been updated
+    eme.init()
+    .then(() => NativeInfo.setup())
+    .then(() => collection.refresh())
+    .then(() => {
+      loading(false);
+      collection.render(grid);
+      queueRequest();
+    });
 
-    addListeners();
+    function queueRequest() {
+      if (navigator.onLine) {
+        makeRequest();
+      } else {
+        onOffline();
+      }
+
+      addListeners();
+    }
 
     function onOffline() {
       loading(false);
@@ -40,24 +54,11 @@
     function makeRequest() {
       loading();
 
-      eme.api.Apps.search(requestParams)
-        .then(function success(searchResponse) {
-          var results = [];
-
-          searchResponse.response.apps.forEach(function each(webapp) {
-            results.push({
-              id: webapp.id, // e.me app id (int)
-              name: webapp.name,
-              url: webapp.appUrl,
-              icon: webapp.icon,
-              clipIcon: true
-            });
-          });
-
+      eme.api.Apps.search(options)
+        .then(function success(response) {
           onResponse();
 
-          grid.clientLeft; // force layout or else grid isn't displayed
-          collection.webResults = results;
+          collection.addWebResults(response.response.apps);
           collection.render(grid);
 
         }, onResponse);
@@ -81,10 +82,6 @@
     function removeListeners() {
       window.removeEventListener('online', makeRequest);
       window.removeEventListener('offline', onOffline);
-    }
-
-    function getIconFormat() {
-      return 20;
     }
   }
 

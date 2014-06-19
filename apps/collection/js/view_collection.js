@@ -2,9 +2,8 @@
 /* global BaseCollection */
 /* global Contextmenu */
 /* global ViewApps */
-/* global ViewBGImage */
+/* global ViewBgImage */
 /* global Promise */
-/* global eme */
 
 (function(exports) {
 
@@ -15,40 +14,35 @@
   };
 
   function HandleView(activity) {
-    var collection = BaseCollection.create(activity.source.data);
+    loading();
 
-    loading(false);
+    // set collection name to header
+    elements.name.textContent = activity.source.data.name;
 
-    var categoryId = collection.categoryId;
-    var query = collection.query;
-    eme.log('view collection', categoryId ? ('categoryId: ' + categoryId)
-                                          : ('query: ' + query));
+    // set wallpaper behind header
+    getWallpaperImage().then(function(src) {
+      elements.header.style.backgroundImage = 'url(' + src + ')';
+    });
 
+    // close button listener
     elements.close.addEventListener('click', function close() {
       activity.postResult('close');
     });
 
+    // create collection object
+    var collection = BaseCollection.create(activity.source.data);
+
+    loading(false);
+
     /* jshint -W031 */
     new Contextmenu(collection);
     new ViewApps(collection);
-    new ViewBGImage(collection);
+    new ViewBgImage(collection);
   }
 
   navigator.mozSetMessageHandler('activity', function onActivity(activity) {
     if (activity.source.name === 'view-collection') {
-      // set collection name to header
-      elements.name.textContent = activity.source.data.name;
-
-      // set wallpaper behind header
-      getWallpaperImage().then(function(src) {
-        elements.header.style.backgroundImage = 'url(' + src + ')';
-      });
-
-      loading();
-
-      eme.init().then(function ready() {
-        HandleView(activity);
-      });
+      HandleView(activity);
     }
   });
 
