@@ -13,6 +13,7 @@
     'prim': 'empty:',
     'settings': 'empty:',
     'shared/bluetooth_helper': 'empty:',
+    'shared/toaster': 'empty:',
     'shared/async_storage': 'empty:',
     'shared/icc_helper': 'empty:',
     'shared/language_list': 'empty:',

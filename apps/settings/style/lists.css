@@ -71,7 +71,8 @@ ul li:not([aria-disabled="true"]) > a[href]:focus {
   color: #222;
 }
 
-ul li[aria-disabled="true"] > a {
+ul li[aria-disabled="true"] > a,
+ul li[aria-disabled="true"] > p {
   color: #797e80;
   opacity: 0.6;
   pointer-events: none;

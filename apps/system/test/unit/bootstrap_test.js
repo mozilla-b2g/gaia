@@ -1,6 +1,7 @@
 'use strict';
 /*global MockNavigatormozApps, MockNavigatorSettings, MocksHelper, MockL10n,
-         MockApplications, Applications, MockNavigatormozSetMessageHandler */
+         MockApplications, Applications, MockNavigatormozSetMessageHandler,
+         MockGetDeviceStorages */
 
 requireApp('system/shared/js/async_storage.js');
 requireApp('system/shared/js/lazy_loader.js');
@@ -12,6 +13,8 @@ requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_url.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
+requireApp('system/shared/test/unit/mocks/mock_navigator_getdevicestorage.js');
+requireApp('system/shared/test/unit/mocks/mock_navigator_getdevicestorages.js');
 
 requireApp('system/js/accessibility.js');
 requireApp('system/js/activities.js');
@@ -22,6 +25,7 @@ requireApp('system/js/app_usage_metrics.js');
 requireApp('system/js/app_window_factory.js');
 requireApp('system/js/devtools/developer_hud.js');
 requireApp('system/js/dialer_agent.js');
+requireApp('system/js/external_storage_monitor.js');
 requireApp('system/js/ftu_launcher.js');
 requireApp('system/js/rocketbar.js');
 requireApp('system/js/home_gesture.js');
@@ -77,6 +81,7 @@ suite('system/Bootstrap', function() {
   var realNavigatormozL10n;
   var realNavigatormozApps;
   var realNavigatormozSetMeesageHandler;
+  var realNavigatorGetDeviceStorages;
   var realDocumentElementDir;
   var realDocumentElementLang;
   var realApplications;
@@ -119,6 +124,9 @@ suite('system/Bootstrap', function() {
     realApplications = window.applications;
     window.applications = MockApplications;
 
+    realNavigatorGetDeviceStorages = navigator.getDeviceStorages;
+    navigator.getDeviceStorages = MockGetDeviceStorages;
+
     requireApp('system/js/bootstrap.js', done);
   });
 
@@ -137,6 +145,10 @@ suite('system/Bootstrap', function() {
 
     window.applications = realApplications;
     realApplications = null;
+
+    navigator.getDeviceStorages = realNavigatorGetDeviceStorages;
+    realNavigatorGetDeviceStorages = null;
+
     document.documentElement.dir = realDocumentElementDir;
     document.documentElement.lang = realDocumentElementLang;
   });

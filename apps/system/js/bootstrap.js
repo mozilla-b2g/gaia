@@ -11,7 +11,8 @@
          applications, Rocketbar, LayoutManager, PermissionManager,
          SoftwareButtonManager, Accessibility, NfcUtils, ShrinkingUI,
          TextSelectionDialog, InternetSharing, SleepMenu, AppUsageMetrics,
-         LockScreenNotifications, LockScreenPasscodeValidator, NfcManager */
+         LockScreenNotifications, LockScreenPasscodeValidator, NfcManager,
+         ExternalStorageMonitor */
 'use strict';
 
 
@@ -121,6 +122,8 @@ window.addEventListener('load', function startup() {
   window.developerHUD.start();
   window.dialerAgent = new DialerAgent();
   window.dialerAgent.start();
+  window.externalStorageMonitor = new ExternalStorageMonitor();
+  window.externalStorageMonitor.start();
   window.homeGesture = new HomeGesture();
   window.homeGesture.start();
   if (!window.homescreenLauncher) {
