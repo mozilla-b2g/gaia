@@ -40,11 +40,22 @@ var CommonjsRunner = function(module) {
     paths['app/'] = Services.io.newFileURI(appBuildDirFile).asciiSpec;
   }
 
+  // we have to do this the convoluted way to avoid
+  // problems where atob/btoa aren't defined
+  let globals = {};
+  if (typeof atob === 'function') {
+    globals.atob = atob;
+  }
+  if (typeof btoa === 'function') {
+    globals.btoa = btoa;
+  }
+
   let loader = Loader.Loader({
     paths: paths,
     modules: {
       'toolkit/loader': Loader
-    }
+    },
+    globals: globals
   });
 
   this.require = Loader.Require(loader, Loader.Module('main', 'gaia://'));
