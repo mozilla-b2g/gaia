@@ -40,7 +40,7 @@ PreferencesBuilder.prototype.preparePref = function() {
   // After gecko does not need it anymore.
   // follow up bug 1014487
   this.prefs['browser.homescreenURL'] = this.system;
-  this.prefs['b2g.system_startup_url'] = this.system;
+  this.prefs['b2g.system_startup_url'] = this.system + '/index.html';
 
   this.domains = [this.config.GAIA_DOMAIN];
   this.config.GAIA_ALLAPPDIRS.split(' ').forEach(function(appdir) {
