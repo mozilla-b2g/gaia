@@ -487,19 +487,18 @@ define app-makefile-template
 .PHONY: $(1)
 $(1): $(XULRUNNER_BASE_DIRECTORY) pre-app | $(STAGE_DIR)
 	@if [[ ("$(2)" =~ "${BUILD_APP_NAME}") || ("${BUILD_APP_NAME}" == "*") ]]; then \
-	if [ -r "$(2)$(SEP)Makefile" ]; then \
-		echo "execute Makefile for $(1) app" ; \
-		STAGE_APP_DIR="../../build_stage/$(1)" make -C "$(2)" ; \
-	else \
-		echo "copy $(1) to build_stage/" ; \
-		cp -LR "$(2)" $(STAGE_DIR) && \
-		if [ -r "$(2)$(SEP)build$(SEP)build.js" ]; then \
-			echo "execute $(1)/build/build.js"; \
-			export APP_DIR=$(2); \
-			$(call run-js-command,app/build); \
+		if [ -r "$(2)$(SEP)Makefile" ]; then \
+			echo "execute Makefile for $(1) app" ; \
+			STAGE_APP_DIR="../../build_stage/$(1)" make -C "$(2)" ; \
+		else \
+			echo "copy $(1) to build_stage/" ; \
+			cp -LR "$(2)" $(STAGE_DIR) && \
+			if [ -r "$(2)$(SEP)build$(SEP)build.js" ]; then \
+				echo "execute $(1)/build/build.js"; \
+				export APP_DIR=$(2); \
+				$(call run-js-command,app/build); \
+			fi; \
 		fi; \
-	fi && \
-	$(call clean-build-files,$(STAGE_DIR)$(SEP)$(1)); \
   fi;
 endef
 
@@ -529,22 +528,10 @@ $(foreach appdir,$(GAIA_APPDIRS), \
 .PHONY: app-makefiles
 app-makefiles: $(APP_RULES)
 
-.PHONY: clear-stage-app
-clear-stage-app:
-	@for appdir in $(GAIA_APPDIRS); \
-	do \
-		if [[ ("$$appdir" =~ "${BUILD_APP_NAME}") || ("${BUILD_APP_NAME}" == "*") ]]; then \
-			APP="`basename $$appdir`"; \
-			echo "clear $$APP in build_stage" ; \
-			rm -rf $(STAGE_DIR)/$$APP/*; \
-		fi; \
-	done
-
-
 LANG=POSIX # Avoiding sort order differences between OSes
 
 .PHONY: pre-app
-pre-app: $(XULRUNNER_BASE_DIRECTORY) $(STAGE_DIR) clear-stage-app
+pre-app: $(XULRUNNER_BASE_DIRECTORY) $(STAGE_DIR)
 	@$(call run-js-command,pre-app)
 
 .PHONY: post-app

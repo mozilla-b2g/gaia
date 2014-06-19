@@ -149,3 +149,4 @@ exports.addEntryContentWithTime = utils.addEntryContentWithTime;
 exports.copyDirTo = utils.copyDirTo;
 exports.existsInAppDirs = utils.existsInAppDirs;
 exports.getCompression = utils.getCompression;
+exports.removeFiles = utils.removeFiles;

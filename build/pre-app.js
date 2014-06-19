@@ -1,6 +1,7 @@
 'use strict';
 
 function execute(options) {
+  require('./clean-stage-app').execute(options);
   require('./svoperapps').execute(options);
 
   // Generate $(PROFILE_FOLDER)/webapps/

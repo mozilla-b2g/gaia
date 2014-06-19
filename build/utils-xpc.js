@@ -853,6 +853,15 @@ function createZip() {
   return zip;
 }
 
+function removeFiles(dir, filenames) {
+  filenames.forEach(function(fn) {
+    var file = getFile(dir.path, fn);
+    if (file.exists()) {
+      file.remove(file.isDirectory());
+    }
+  });
+}
+
 exports.Q = Promise;
 exports.ls = ls;
 exports.getFileContent = getFileContent;
@@ -907,4 +916,4 @@ exports.basename = basename;
 exports.addEntryContentWithTime = addEntryContentWithTime;
 exports.getCompression = getCompression;
 exports.existsInAppDirs = existsInAppDirs;
-
+exports.removeFiles = removeFiles;
