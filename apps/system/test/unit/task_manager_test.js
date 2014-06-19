@@ -825,5 +825,3 @@ suite('system/TaskManager >', function() {
     });
   });
 });
-
-mocha.setup({ignoreLeaks: false});
