@@ -20,7 +20,7 @@ Keyboard.Selector = Object.freeze({
   imeSwitchingKey: '.keyboard-type-container[data-active] ' +
     '.keyboard-key[data-keycode="-3"]',
   returnKey: '.keyboard-type-container[data-active] ' +
-    '.keyboard-key[data-l10n-id="returnKey"]',
+    '.keyboard-key[data-l10n-id="returnKey2"]',
   dismissSuggestionsButton: '.keyboard-type-container[data-active] ' +
     '.dismiss-suggestions-button'
 });
