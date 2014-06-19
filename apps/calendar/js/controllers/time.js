@@ -20,6 +20,7 @@ Calendar.ns('Controllers').Time = (function() {
     this._collection.createIndex('eventId');
 
     this.busytime = app.store('Busytime');
+    this.calendarStore = app.store('Calendar');
   }
 
   Time.prototype = {
@@ -112,7 +113,7 @@ Calendar.ns('Controllers').Time = (function() {
     },
 
     get timespan() {
-      return this._timespan;
+      return this._currentTimespan;
     },
 
     get scale() {
@@ -486,7 +487,10 @@ Calendar.ns('Controllers').Time = (function() {
      * @return {Array} busytimes ordered by start date.
      */
     queryCache: function(timespan) {
-      return this._collection.query(timespan);
+      return this._collection.query(timespan).filter(function(busytime) {
+        // we filter out busytimes from disabled calendars
+        return this.calendarStore.shouldDisplayCalendar(busytime.calendarId);
+      }, this);
     },
 
     /**
