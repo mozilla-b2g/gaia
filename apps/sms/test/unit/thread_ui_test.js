@@ -3493,7 +3493,7 @@ suite('thread_ui.js >', function() {
   });
 
   suite('updateCarrier', function() {
-    var contacts = [], details, number;
+    var contacts = [], details, number, detailsEmail, email;
     var carrierTag;
 
     suiteSetup(function() {
@@ -4159,6 +4159,22 @@ suite('thread_ui.js >', function() {
 
           // The fifth and last item is a "cancel" option
           assert.equal(items[4].l10nId, 'cancel');
+        });
+
+       test('Single unknown (email)', function() {
+
+         Threads.set(1, {
+            participants: ['b@c.com']
+          });
+
+         ThreadUI.headerText.dataset.isContact = false;
+         ThreadUI.headerText.dataset.number = 'b@c.com';
+
+         ThreadUI.onHeaderActivation();
+
+         var calls = MockOptionMenu.calls;
+
+         assert.equal(calls.length, 0);
         });
       });
     });
