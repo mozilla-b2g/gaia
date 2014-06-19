@@ -334,32 +334,21 @@
 
   var manageRingtones = document.getElementById('manage-ringtones-button');
   manageRingtones.onclick = function() {
-    var key = 'ringtones.manifestURL';
-    var req = navigator.mozSettings.createLock().get(key);
-    req.onsuccess = function() {
-      var ringtonesManifestURL = req.result[key];
-
-      // fallback if no settings present
-      if (!ringtonesManifestURL) {
-        ringtonesManifestURL = document.location.protocol +
-          '//ringtones.gaiamobile.org' +
-          (location.port ? (':' + location.port) : '') +
-          '/manifest.webapp';
+    var activity = new MozActivity({
+      name: 'configure',
+      data: {
+        target: 'ringtone'
       }
+    });
 
-      navigator.mozApps.mgmt.getAll().onsuccess = function(evt) {
-        var apps = evt.target.result;
-        var ringtonesApp = apps.find(function(app) {
-          return app.manifestURL === ringtonesManifestURL;
-        });
-
-        if (ringtonesApp) {
-          ringtonesApp.launch();
-        } else {
-          // This should *probably* never happen.
-          alert(_('no-ringtone-app'));
-        }
-      };
+    // We should hopefully never encounter this error, but if we do, it means
+    // we couldn't find the ringtone app. It also has the happy side effect of
+    // quieting jshint about not using the `activity` variable.
+    activity.onerror = function() {
+      console.log(this.error);
+      if (this.error.name === 'NO_PROVIDER') {
+        alert(_('no-ringtone-app'));
+      }
     };
   };
 

@@ -3,36 +3,26 @@
 /* jshint unused:false */
 'use strict';
 
-(function() {
+navigator.mozSetMessageHandler('activity', function(activity) {
   var tonePlayer = new TonePlayer();
 
   // Until Haida lands this is how users could go back to Settings app.
   document.getElementById('back').addEventListener('click', function() {
-    document.addEventListener('visibilitychange', function() {
-      window.close();
-    });
-    var activity = new MozActivity({
-      name: 'configure',
-      data: {
-        target: 'device'
-        // No need to specify section here, because we assume settings app
-        // is already launched (caller of this app), and we could go back to it.
-      }
-    });
+    activity.postResult({});
   });
 
   function addNewTone(customRingtonesList) {
     tonePlayer.stop();
 
-    var activity = new MozActivity({
+    var pickActivity = new MozActivity({
       name: 'pick',
       data: {
         type: 'audio/*'
       }
     });
 
-    activity.onsuccess = function() {
-      var result = activity.result;
+    pickActivity.onsuccess = function() {
+      var result = pickActivity.result;
       var popup = window.open('share.html');
       popup.addEventListener('load', function loaded() {
         popup.removeEventListener('load', loaded);
@@ -125,4 +115,4 @@
       document.querySelector('body').dataset.ready = true;
     });
   });
-})();
+});
