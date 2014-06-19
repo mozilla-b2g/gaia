@@ -217,6 +217,10 @@ function execute(config) {
   // Set the ftu ping URL -- we set this regardless of NOFTU for now
   settings['ftu.pingURL'] = config.FTU_PING_URL;
 
+  // App metrics service settings
+  settings['metrics.url'] = config.METRICS_URL;
+  settings['metrics.enabled'] = config.NOMETRICS === '0';
+
   // Set the rocketbar URL
   settings['rocketbar.searchAppURL'] = utils.gaiaOriginURL('search',
     config.GAIA_SCHEME, config.GAIA_DOMAIN, config.GAIA_PORT) + '/index.html';

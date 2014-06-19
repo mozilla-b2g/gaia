@@ -99,6 +99,7 @@ ifeq ($(SIMULATOR),1)
 DESKTOP=1
 NOFTU=1
 NOFTUPING=1
+NOMETRICS=1
 DEVICE_DEBUG=1
 endif
 
@@ -108,6 +109,8 @@ DESKTOP?=$(DEBUG)
 NOFTU?=0
 # Disable first time ping
 NOFTUPING?=0
+# Disable app metrics service
+NOMETRICS?=0
 # Automatically enable remote debugger
 REMOTE_DEBUGGER?=0
 
@@ -120,10 +123,12 @@ endif
 ifeq ($(DEBUG),1)
 NOFTU=1
 NOFTUPING=1
+NOMETRICS=1
 PROFILE_FOLDER?=profile-debug
 else ifeq ($(DESKTOP),1)
 NOFTU=1
 NOFTUPING=1
+NOMETRICS=1
 PROFILE_FOLDER?=profile-debug
 else ifeq ($(MAKECMDGOALS),test-integration)
 PROFILE_FOLDER?=profile-test
@@ -133,6 +138,10 @@ ifeq ($(NOFTUPING), 0)
 FTU_PING_URL?=https://fxos.telemetry.mozilla.org/submit/telemetry
 else
 $(warning NO_FTU_PING=1)
+endif
+
+ifeq ($(NOMETRICS),0)
+METRICS_URL?=https://fxos.telemetry.mozilla.org/submit/telemetry
 endif
 
 PROFILE_FOLDER?=profile
@@ -477,7 +486,9 @@ define BUILD_CONFIG
 	"KEYBOARD_LAYOUTS_PATH" : "$(KEYBOARD_LAYOUTS_PATH)", \
 	"CONTACTS_IMPORT_SERVICES_PATH" : "$(CONTACTS_IMPORT_SERVICES_PATH)", \
 	"STAGE_DIR" : "$(STAGE_DIR)", \
-	"VARIANT_PATH" : "$(VARIANT_PATH)" \
+	"VARIANT_PATH" : "$(VARIANT_PATH)", \
+	"NOMETRICS": "$(NOMETRICS)", \
+	"METRICS_URL": "$(METRICS_URL)" \
 }
 endef
 
