@@ -67,8 +67,10 @@
     /**
      * Adds an item into the items array.
      * If the item is an icon, add it to icons.
+     * @param {Object} item The grid object, should inherit from GridItem.
+     * @param {Object} insertTo The position to insert the item into our list.
      */
-    add: function(item) {
+    add: function(item, insertTo) {
       if (!item) {
         return;
       }
@@ -86,7 +88,39 @@
         this.icons[item.identifier] = item;
       }
 
-      this.items.push(item);
+      // If isnsertTo it is a number, splice.
+      if (!isNaN(parseFloat(insertTo)) && isFinite(insertTo)) {
+        this.items.splice(insertTo, 0, item);
+      } else {
+        this.items.push(item);
+      }
+    },
+
+    /**
+     * Finds nearest item by and returns an index.
+     * @param {Number} x relative to the screen
+     * @param {Number} y relative to the screen
+     */
+    getNearestItemIndex: function(x, y) {
+      var leastDistance;
+      var foundIndex;
+      for (var i = 0, iLen = this.items.length; i < iLen; i++) {
+        var item = this.items[i];
+
+        // Do not consider dividers for dragdrop.
+        if (item.detail.type === 'divider') {
+          continue;
+        }
+
+        var distance = Math.sqrt(
+          (x - item.x) * (x - item.x) +
+          (y - item.y) * (y - item.y));
+        if (!leastDistance || distance < leastDistance) {
+          leastDistance = distance;
+          foundIndex = i;
+        }
+      }
+      return foundIndex;
     },
 
     start: function() {

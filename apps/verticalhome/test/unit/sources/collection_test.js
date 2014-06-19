@@ -49,10 +49,9 @@ suite('collection.js > ', function() {
       }
     }));
 
-    // Offset divider addition (not removed by app mock)
     assert.equal(MockApp.mItems[0].detail.id, 'fxos');
-    assert.equal(MockApp.mItems[2].detail.id, 'homescreen');
-    assert.equal(MockApp.mItems[4].detail.id, 'rocks');
+    assert.equal(MockApp.mItems[1].detail.id, 'homescreen');
+    assert.equal(MockApp.mItems[2].detail.id, 'rocks');
   });
 
 });

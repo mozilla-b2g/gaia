@@ -19,7 +19,9 @@ MockApp.prototype = {
   },
   grid: {
     add: function(detail) {
-      MockApp.mItems.push(detail);
+      if (detail) {
+        MockApp.mItems.push(detail);
+      }
     },
     removeUntilDivider: function() {},
     removeIconByIdentifier: function(identifier) {
