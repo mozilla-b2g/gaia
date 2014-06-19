@@ -178,25 +178,72 @@ suite('FindMyDevice >', function() {
     MockPermissionSettings.permissions.geolocation = 'deny';
 
     var times = 0;
-    subject.invokeCommand('track', [30, function(retval, position) {
+    var duration = (3 * subject.TRACK_UPDATE_INTERVAL_MS)/ 1000;
+    subject.invokeCommand('track', [duration, function(retval, position) {
       assert.equal(retval, true);
       assert.equal(MockPermissionSettings.permissions.geolocation, 'allow');
       assert.equal(position.coords.latitude, MockGeolocation.latitude);
       assert.equal(position.coords.longitude, MockGeolocation.longitude);
 
       if (times++ === 3) {
-        // stop tracking after a few positions
-        subject.invokeCommand('track', [0, function(retval) {
-          assert.equal(retval, true);
-          assert.deepEqual(MockGeolocation.activeWatches, []);
-          done();
-        }]);
+        assert.notEqual(subject._trackIntervalId, null);
+        assert.notEqual(subject._trackTimeoutId, null);
+        fakeClock.tick(subject.TRACK_UPDATE_INTERVAL_MS);
+        assert.equal(retval, true);
+        assert.equal(subject._trackTimeoutId, null);
+        assert.equal(subject._trackIntervalId, null);
+        done();
       }
 
       fakeClock.tick(subject.TRACK_UPDATE_INTERVAL_MS);
     }]);
 
     fakeClock.tick(subject.TRACK_UPDATE_INTERVAL_MS);
+  });
+
+  test('Track command should update its duration if invoked while running',
+    function(done) {
+      var duration = 10 * subject.TRACK_UPDATE_INTERVAL_MS / 1000;
+
+      var positions = 0;
+      subject.invokeCommand('track', [duration, function(retval, position) {
+        positions++;
+      }]);
+
+      fakeClock.tick(subject.TRACK_UPDATE_INTERVAL_MS);
+
+      duration = (subject.TRACK_UPDATE_INTERVAL_MS - 1000)/ 1000;
+      subject.invokeCommand('track', [duration, function(retval, position) {
+        positions++;
+      }]);
+
+      fakeClock.tick(2 * subject.TRACK_UPDATE_INTERVAL_MS);
+
+      assert.equal(positions, 2);
+      assert.equal(subject._trackTimeoutId, null);
+      assert.equal(subject._trackIntervalId, null);
+      done();
+  });
+
+  test('Track command should stop if duration is zero',
+    function(done) {
+      var duration = 10 * subject.TRACK_UPDATE_INTERVAL_MS / 1000;
+
+      var positions = 0;
+      subject.invokeCommand('track', [duration, function(retval, position) {
+        positions++;
+      }]);
+
+      fakeClock.tick(subject.TRACK_UPDATE_INTERVAL_MS);
+
+      subject.invokeCommand('track', [0, function(retval) {
+        assert.equal(retval, true);
+        fakeClock.tick(2 * subject.TRACK_UPDATE_INTERVAL_MS);
+        assert.equal(positions, 1);
+        assert.equal(subject._trackTimeoutId, null);
+        assert.equal(subject._trackIntervalId, null);
+        done();
+      }]);
   });
 
   test('Bug 1027325 - correctly check that passcode lock is set', function() {
