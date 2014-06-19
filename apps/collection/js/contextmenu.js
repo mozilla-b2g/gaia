@@ -63,6 +63,9 @@
     handleEvent: function(e) {
       switch(e.type) {
           case 'contextmenu':
+            if (!e.target.dataset.identifier) {
+              return;
+            }
 
             // prevent click events from firing
             this.grid.stop();
