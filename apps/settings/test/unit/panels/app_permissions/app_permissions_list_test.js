@@ -1,5 +1,11 @@
 'use strict';
 /* global MockLock, MockMozApps, MockPermissionSettings */
+
+// workaround because a "require" in mock_settings_listener doesn't work
+// properly in a alameda world. If we don't require it here we sometimes hit a,
+// issue in MockLock.set where MockNavigatorSettings is not defined yet.
+require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+
 suite('app permission list > ', function() {
   var PermissionList;
 
