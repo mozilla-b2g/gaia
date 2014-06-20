@@ -376,7 +376,7 @@
     <div id="contact-photo-tmpl" class="hide">
       <!--
       <aside class="pack-end">
-        <span data-type="img" style="background-image: url(${photoURL})"></span>
+        <span class="contact-photo" data-type="img"></span>
       </aside>
       -->
     </div>
@@ -508,7 +508,7 @@
     <div id="attachment-preview-tmpl" class="hide">
       <!--
       <div class="attachment">
-        <div class="thumbnail" style="background-image: url(${imgData})"></div>
+        <div class="thumbnail"></div>
         <div class="size-indicator" data-l10n-id="${sizeL10nId}" data-l10n-args="${sizeL10nArgs}"></div>
       </div>
       <div class="file-name">${fileName}</div>
@@ -521,9 +521,7 @@
         <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
         <meta charset="utf-8">
         <base href="${baseURL}">
-        <style type="text/css">
-          html, body { font-size: 10px; }
-        </style>
+        <link rel="stylesheet" type="text/css" href="style/attachment_draft.css">
         <link rel="stylesheet" type="text/css" href="style/attachment.css">
       </head>
       <body class="attachment-draft ${previewClass}">
