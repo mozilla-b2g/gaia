@@ -78,6 +78,7 @@
         if (!icon.icon) {
           return;
         }
+        icon.isRemovable = () => true;
         this.gridItemsByIdentifier[icon.identifier] = icon;
       }
 
