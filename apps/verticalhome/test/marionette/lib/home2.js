@@ -10,6 +10,18 @@ var System = require('../../../../../apps/system/test/marionette/lib/system');
 function Home2(client) {
   this.client = client;
   this.system = new System(client);
+
+  // For all home2 tests we disable geolocation for smart collections because
+  // there is a nasty bug where we show a prompt on desktop but not a device.
+  // This will go away once bug 1022768 lands.
+  var chromeClient = this.client.scope({ context: 'chrome' });
+  chromeClient.executeScript(function() {
+    var origin = 'app://collection.gaiamobile.org';
+    var mozPerms = navigator.mozPermissionSettings;
+    mozPerms.set(
+      'geolocation', 'deny', origin + '/manifest.webapp', origin, false
+    );
+  });
 }
 
 Home2.clientOptions = {

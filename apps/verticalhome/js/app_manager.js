@@ -120,7 +120,32 @@
           });
           break;
       }
-    }
+    },
+
+    sendEventToCollectionApp: function(eventName, id) {
+      var onAppReady = function(app) {
+        app.connect(eventName).then(
+          function onConnectionAccepted(ports) {
+            ports.forEach(function(port) {
+              port.postMessage({
+                id: id
+              });
+            });
+          }, function onConnectionRejected() {
+            console.error('Cannot connect to collection app');
+          }
+        );
+      };
+
+      if (!this.app) {
+        window.addEventListener('appmanager-ready', function onReady() {
+          window.removeEventListener('appmanager-ready', onReady);
+          onAppReady(this.app);
+        }.bind(this));
+      } else {
+        onAppReady(this.app);
+      }
+    },
   };
 
   exports.appManager = new AppManager();
