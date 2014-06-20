@@ -1,0 +1,22 @@
+{
+  "name": "calendar",
+  "version": "0.0.1",
+  "description": "Firefox OS core calendar app",
+  "homepage": "https://github.com/mozilla-b2g/gaia",
+  "license": "APL",
+
+  "keywords": [
+    "firefox",
+    "os",
+    "calendar",
+    "caldav",
+    "productivity"
+  ],
+
+  "dependencies": {
+    "caldav": "0.0.1",
+    "ical": "0.0.1",
+    "node-uuid": "1.4.1",
+    "page.js": "1.3.7"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "name": "caldav",
+  "version": "0.0.1",
+  "description": "Calendar protocols",
+  "homepage": "https://github.com/mozilla-b2g/caldav",
+  "license": "MPL-2.0",
+  "main": "caldav.js",
+
+  "moduleType": [
+    "globals"
+  ]
+}

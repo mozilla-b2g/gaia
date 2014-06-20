@@ -1,4 +1,5 @@
 .DS_Store
+.bower.json
 *.rej
 *.orig
 *.swp
@@ -6,6 +7,8 @@
 *~
 manifest.appcache
 
+/apps/calendar/bower_components/page.js/examples/
+/apps/calendar/bower_components/page.js/test/
 /apps/calendar/js/presets.js
 /apps/camera/js/config.js
 /apps/gallery/js/config.js

@@ -23,6 +23,7 @@ Calendar.LoadConfig = (function() {
   }
 
   var config = {
+    bowerRoot: '/bower_components/',
     jsRoot: '/js/',
     styleRoot: '/style/',
     sharedJsRoot: '/shared/js/',
@@ -30,6 +31,19 @@ Calendar.LoadConfig = (function() {
     storeRoot: 'store/',
 
     plugins: {
+      bower: function(file, obs, cb) {
+        var name = camelize(file);
+        var existsInPage = Calendar.ns(name, true);
+
+        // already loaded skip
+        if (existsInPage) {
+          Calendar.nextTick(cb);
+          return;
+        }
+
+        file = this.config.bowerRoot + file + '.js';
+        LazyLoader.load([file], cb);
+      },
 
       dom: function(id, obs, cb) {
         var node = document.getElementById(id);
@@ -377,7 +391,9 @@ Calendar.LoadConfig = (function() {
           'provider/local'
         ],
 
-        shared: ['uuid']
+        bower: [
+          'node-uuid/uuid'
+        ]
       },
 
       'EventMutations': {
@@ -385,7 +401,9 @@ Calendar.LoadConfig = (function() {
           'event_mutations'
         ],
 
-        shared: ['uuid']
+        bower: [
+          'node-uuid/uuid'
+        ]
       },
 
       'Provider.Abstract': {
@@ -399,7 +417,9 @@ Calendar.LoadConfig = (function() {
           'provider/caldav_pull_events'
         ],
 
-        shared: ['uuid']
+        bower: [
+          'node-uuid/uuid'
+        ]
       },
 
       'Provider.Caldav': {
