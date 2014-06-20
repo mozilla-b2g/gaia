@@ -22,7 +22,7 @@
      *
      * 'everything.me' is a special case which uses the e.me UI instead.
      */
-    urlTemplate: 'everything.me',
+    urlTemplate: 'https://www.google.com/search?q={searchTerms}',
 
     searchResults: document.getElementById('search-results'),
     newTabPage: document.getElementById('newtab-page'),
