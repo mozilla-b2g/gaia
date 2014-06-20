@@ -793,8 +793,11 @@ suite('system/Rocketbar', function() {
         input: 'http://example.com'
       }
     };
+    var spy = sinon.spy(subject, 'focus');
     subject.handleSearchMessage(event);
     assert.equal(subject.input.value, 'http://example.com');
+    assert.isTrue(spy.called);
+    spy.restore();
 
     // Hide message
     event = {

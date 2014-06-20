@@ -875,6 +875,7 @@
           break;
         case 'input':
           this.input.value = e.detail.input;
+          this.focus();
           this.handleInput();
           break;
         case 'request-screenshot':
