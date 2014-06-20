@@ -366,7 +366,7 @@ suite('calls handler', function() {
         MockNavigatorMozMobileConnections[1].voice = {
           type: 'evdoa'
         };
-        MockNavigatorMozTelephony.calls = [mockCall, "123456789"];
+        MockNavigatorMozTelephony.calls = [mockCall, '123456789'];
         MockNavigatorMozTelephony.mTriggerCallsChanged();
         assert.isTrue(MockCallScreen.mHidePlaceNewCallButton);
       });
