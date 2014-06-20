@@ -3,7 +3,8 @@
 /* global CallHandler, MocksHelper, MockLazyL10n, MockNavigatormozApps,
    MockNavigatorMozIccManager, MockNavigatormozSetMessageHandler,
    NavbarManager, Notification, MockKeypadManager, MockVoicemail,
-   MockCallLog, MockCallLogDBManager, MockNavigatorWakeLock, MmiManager */
+   MockCallLog, MockCallLogDBManager, MockNavigatorWakeLock, MmiManager,
+   LazyLoader, AccessibilityHelper */
 
 require(
   '/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js'
@@ -546,6 +547,46 @@ suite('navigation bar', function() {
       this.sinon.stub(NavbarManager, 'show');
       window.onresize();
       sinon.assert.called(NavbarManager.show);
+    });
+  });
+
+  suite('accessibility helper', function() {
+    var loadSpy;
+    var hash;
+
+    setup(function() {
+      loadSpy = this.sinon.spy(LazyLoader, 'load');
+      this.sinon.spy(AccessibilityHelper, 'setAriaSelected');
+
+      hash = window.location.hash;
+
+      NavbarManager.resourcesLoaded = false;
+    });
+
+    teardown(function() {
+      window.location.hash = hash;
+    });
+
+    ['#call-log-view',
+     '#contacts-view',
+     '#keyboard-view'].forEach(function(view) {
+      test('should load accessibility helper before using it in view ' + view,
+      function(done) {
+        function handleHashChange(event) {
+          window.removeEventListener('hashchange', handleHashChange);
+
+          assert.isTrue(loadSpy.getCall(0).args[0].indexOf(
+            '/shared/js/accessibility_helper.js') !== -1);
+          sinon.assert.callOrder(
+            loadSpy, AccessibilityHelper.setAriaSelected);
+
+          done();
+        }
+
+        window.addEventListener('hashchange', handleHashChange);
+
+        window.location.hash = view;
+      });
     });
   });
 });
