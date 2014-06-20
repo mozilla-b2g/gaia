@@ -187,6 +187,8 @@
       window.addEventListener('homescreenopening', this);
       window.addEventListener('stackchanged', this);
       window.addEventListener('searchcrashed', this);
+      window.addEventListener('permissiondialoghide', this);
+
 
       // Listen for events from Rocketbar
       this.rocketbar.addEventListener('touchstart', this);
@@ -297,6 +299,11 @@
         case 'stackchanged':
           this.handleStackChanged(e);
           break;
+        case 'permissiondialoghide':
+          if (this.active) {
+            this.focus();
+          }
+          break;
       }
     },
 
@@ -316,6 +323,8 @@
       window.removeEventListener('appopened', this);
       window.removeEventListener('homescreenopening', this);
       window.removeEventListener('stackchanged', this);
+      window.removeEventListener('permissiondialoghide', this);
+
 
       // Stop listening for events from Rocketbar
       this.rocketbar.removeEventListener('touchstart', this);
