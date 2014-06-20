@@ -76,6 +76,7 @@ var FxaModuleEnterPassword = (function() {
       _ = navigator.mozL10n.get;
       // Cache DOM elements
       this.importElements(
+        'fxa-hello-user',
         'fxa-user-email',
         'fxa-pw-input',
         'fxa-show-pw',
@@ -124,7 +125,7 @@ var FxaModuleEnterPassword = (function() {
     this.fxaUserEmail.textContent = options.email;
     this.email = options.email;
 
-    navigator.mozL10n.localize(this.fxaUserEmail, 'fxa-hello-user', {
+    navigator.mozL10n.localize(this.fxaHelloUser, 'fxa-hello-user', {
       email: ''
     });
     this.fxaUserEmail.textContent = this.email;
