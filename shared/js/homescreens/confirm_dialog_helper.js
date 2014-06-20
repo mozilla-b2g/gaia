@@ -42,13 +42,20 @@
     },
 
     show: function(parent) {
+      var config = this.config;
       var wrapper = document.createElement('div');
+
+      // only include a cancel button if the config was given...
+      var cancelButton = config.cancel ?
+        '<button class="cancel" type="button"></button>' :
+        '';
+
       wrapper.innerHTML =
           '<gaia-confirm>' +
             '<h1></h1>' +
             '<p></p>' +
             '<gaia-buttons skin="dark">' +
-              '<button class="cancel" type="button"></button>' +
+              cancelButton +
               '<button class="confirm" type="button"></button>' +
             '</gaia-buttons>' +
           '</gaia-confirm>';
@@ -58,7 +65,7 @@
 
       this.element = element;
 
-      element.dataset.type = this.config.type;
+      element.dataset.type = config.type;
       element.addEventListener('confirm', this);
       element.addEventListener('cancel', this);
 
@@ -71,14 +78,18 @@
           cancel = element.querySelector('.cancel'),
           confirm = element.querySelector('.confirm');
 
-      title.textContent = this.config.title;
-      body.textContent = this.config.body;
-      cancel.textContent = this.config.cancel.title;
-      confirm.textContent = this.config.confirm.title;
+      title.textContent = config.title;
+      body.textContent = config.body;
+      confirm.textContent = config.confirm.title;
 
-      if (this.config.confirm.type) {
-        confirm.classList.add(this.config.confirm.type);
+      if (config.cancel) {
+        cancel.textContent = config.cancel.title;
       }
+
+      if (config.confirm.type) {
+        confirm.classList.add(config.confirm.type);
+      }
+
     }
   };
 
