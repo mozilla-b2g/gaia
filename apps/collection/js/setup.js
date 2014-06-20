@@ -69,6 +69,15 @@
       } else {
         var onFinish = this.onFinish.bind(this);
         collections.forEach(function(collection) {
+          if (collection.pinned && collection.pinned.length) {
+            collection.pinned.forEach((appInfo, idx) => {
+              var identifier = appInfo.join('-');
+              collection.pinned[idx] = {
+                identifier: identifier,
+                type: 'homeIcon'
+              };
+            });
+          }
           CollectionsDatabase.add(collection).then(onFinish, onFinish);
         }.bind(this));
       }
