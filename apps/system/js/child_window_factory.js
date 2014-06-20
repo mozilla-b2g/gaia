@@ -1,5 +1,6 @@
 'use strict';
 /* global AppWindow, PopupWindow, ActivityWindow, SettingsListener */
+/* global homeSearchbar */
 
 (function(exports) {
   var ENABLE_IN_APP_SHEET = false;
@@ -130,6 +131,12 @@
         top.url == configuration.url) {
       return;
     }
+
+    // XXX: If search is shown, it has a different app window, so use that
+    if (homeSearchbar.searchWindow && homeSearchbar.searchWindow.isVisible()) {
+      top = homeSearchbar.searchWindow;
+    }
+
     var activity = new ActivityWindow(configuration, top);
     activity.open();
   };
