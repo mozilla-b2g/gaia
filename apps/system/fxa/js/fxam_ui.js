@@ -69,14 +69,27 @@ var FxaModuleUI = {
         }
         this.progress(100 * params.count / this.maxSteps);
 
-        params.onload && params.onload();
+        navigator.mozL10n.once(function() {
+          // NOTE: order matters inside this callback.
+          // params.onload will call the module's init method (fxam_navigation
+          // loadStep method). Since the module might do dynamic localization
+          // as well, we need to do the first translate pass *before* firing
+          // onload.
 
-        if (nextScreen) {
-          this._animate(currentScreen,
-                        nextScreen,
-                        params.back,
-                        params.onanimate);
-        }
+          // translate all children of nextScreen that have data-l10n-id attrs
+          navigator.mozL10n.translate(nextScreen);
+
+          // fire module's init method
+          params.onload && params.onload();
+
+          // animate it into view - TODO unclear how nextScreen could be falsy
+          if (nextScreen) {
+            this._animate(currentScreen,
+                          nextScreen,
+                          params.back,
+                          params.onanimate);
+          }
+        }.bind(this));
       }.bind(this));
     }.bind(this));
   },
