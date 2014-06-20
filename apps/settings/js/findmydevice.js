@@ -51,11 +51,6 @@ var FindMyDevice = {
   },
 
   _setEnabled: function fmd_set_enabled(value) {
-    var _ = navigator.mozL10n.get;
-
-    var desc = document.getElementById('findmydevice-desc');
-    desc.textContent = value ? _('enabled') : _('disabled');
-
     var checkbox = document.querySelector('#findmydevice-enabled input');
     checkbox.checked = value;
     checkbox.disabled = false;
