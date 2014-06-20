@@ -411,6 +411,12 @@
       this.passCodeRequestTimeout = value;
     }).bind(this));
     navigator.mozL10n.ready(this.l10nInit.bind(this));
+
+    // start the clock because screenchange won't trigger when
+    // screen locks just after boot
+    // Clock always uses one Timeouts/Intervals so it's safe in
+    // other scenarios (such as turning on lockscreen after boot in settings)
+    this.clock.start(this.refreshClock.bind(this));
   };
 
   LockScreen.prototype.initUnlockerEvents =
