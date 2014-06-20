@@ -2,6 +2,7 @@
 
   'use strict';
   /* global asyncStorage */
+  /* global Contextmenu */
   /* global Search */
   /* global SearchDedupe */
   /* global SettingsListener */
@@ -93,6 +94,8 @@
       if ('geolocation' in navigator) {
         navigator.geolocation.getCurrentPosition(function(){});
       }
+
+      this.contextmenu = new Contextmenu();
     },
 
     /**

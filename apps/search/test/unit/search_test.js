@@ -7,6 +7,7 @@ require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
 require('/shared/test/unit/mocks/mock_moz_activity.js');
 require('/shared/js/url_helper.js');
 require('/shared/js/dedupe.js');
+require('/js/contextmenu.js');
 require('/shared/test/unit/mocks/mock_async_storage.js');
 requireApp('search/test/unit/mock_provider.js');
 
@@ -18,6 +19,8 @@ suite('search/search', function() {
   var clock;
 
   suiteSetup(function(done) {
+    loadBodyHTML('/index.html');
+
     realSetMessageHandler = navigator.mozSetMessageHandler;
     navigator.mozSetMessageHandler = MockNavigatormozSetMessageHandler;
 
@@ -55,6 +58,7 @@ suite('search/search', function() {
   });
 
   setup(function() {
+
     MockMozActivity.mSetup();
     MockNavigatormozSetMessageHandler.mSetup();
   });
@@ -69,9 +73,6 @@ suite('search/search', function() {
     test('will call provider init method', function() {
 
       var initCalled;
-      var fakeElement = document.createElement('div');
-      var confirmStub = this.sinon.stub(document, 'getElementById')
-        .returns(fakeElement);
 
       Search.providers = [{
         init: function() {
@@ -88,7 +89,6 @@ suite('search/search', function() {
       MockNavigatormozApps.mLastConnectionCallback([]);
       assert.ok(initCalled);
       Search.providers = [];
-      confirmStub.restore();
     });
   });
 
