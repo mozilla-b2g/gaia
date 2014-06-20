@@ -186,7 +186,9 @@ var CarrierSettings = (function(window, document, undefined) {
           return;
         }
         _voiceTypes[index] = newType;
-        cs_updateNetworkTypeLimitedItemsVisibility(newType);
+        if (newType) {
+          cs_updateNetworkTypeLimitedItemsVisibility(newType);
+        }
       });
     });
   }
