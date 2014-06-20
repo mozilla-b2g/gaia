@@ -620,6 +620,8 @@ var MediaDB = (function() {
     }
 
     function upgradeDBVer3to4(store, dbfile) {
+      // The timestamps we saved in v1.3 is local time but utc time(bug 851680),
+      // so here we use the timezone offset to fix the incorrect timestamps.
       var date = new Date();
       var timezoneOffset = date.getTimezoneOffset();
 
