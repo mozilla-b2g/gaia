@@ -38,8 +38,8 @@ requireApp('communications/contacts/test/unit/mock_image_thumbnail.js');
 
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 
-var _ = function(key){ return key; },
-    subject,
+var subject,
+    _,
     realL10n,
     Contacts,
     realFb,
@@ -48,6 +48,37 @@ var _ = function(key){ return key; },
     footer,
     ActivityHandler,
     realMozNfc;
+
+var MOCK_DATE_STRING = 'Jan 1 1970';
+var MOCK_DATE_PLACEHOLDER = 'Date';
+realL10n = navigator.mozL10n;
+navigator.mozL10n = {
+  get: function get(key) {
+    var out = key;
+    
+    switch(key) {
+      case 'dateFormat':
+        out = null;
+      break;
+    
+      case 'dateOutput':
+        out = MOCK_DATE_STRING;
+      break;
+    
+      case 'date-span-placeholder':
+        out = MOCK_DATE_PLACEHOLDER;
+      break;
+    }
+    
+    return out;
+  },
+  DateTimeFormat: function() {
+    this.localeFormat = function(date, format) {
+      return date;
+    };
+  }
+};
+window._ = navigator.mozL10n.get;
 
 requireApp('communications/contacts/js/tag_options.js');
 
@@ -60,19 +91,6 @@ var mocksForm = new MocksHelper([
 suite('Render contact form', function() {
 
   suiteSetup(function() {
-
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = {
-      get: function get(key) {
-        return key;
-      },
-      DateTimeFormat: function() {
-        this.localeFormat = function(date, format) {
-          return date;
-        };
-      }
-    };
-
     realMozNfc = window.navigator.mozNfc;
     window.navigator.mozNfc = MockMozNfc;
 
@@ -144,6 +162,11 @@ suite('Render contact form', function() {
         assertEmpty(element + '-0');
         assert.isTrue(cont.indexOf(element + '-1') == -1);
         assert.isTrue(footer.classList.contains('hide'));
+        if (toCheck[i] === 'date') {
+          // Check that the place holder 'date' appears
+          var spanEle = document.getElementById('date-text_0');
+          assert.equal(spanEle.textContent, 'Date');
+        }
       }
       assertSaveState('disabled');
 
@@ -288,8 +311,9 @@ suite('Render contact form', function() {
       var contentDate = inputDate.valueAsDate;
 
       assert.equal(contentDate.toUTCString(), mockContact.bday.toUTCString());
-      assert.isTrue(inputDate.previousElementSibling.
-                    textContent.trim().length > 0);
+
+      assert.equal(inputDate.previousElementSibling.
+                    textContent.trim(), MOCK_DATE_STRING);
       assert.isFalse(inputDate.previousElementSibling.
                      classList.contains('placeholder'));
     }
@@ -819,7 +843,7 @@ suite('Render contact form', function() {
       navigator.mozContacts = realMozContacts;
     });
 
-    setup(function () {
+    setup(function() {
       this.sinon.spy(contacts.NFC, 'stopListening');
 
       deleteButton.click();
@@ -866,7 +890,7 @@ suite('Render contact form', function() {
     test('> Updating a contact makes it set as global contact', function() {
       var given = document.getElementById('givenName');
       given.value = 'Edited';
-      sinon.stub(contacts.Matcher, 'match', function (contact, mode, cbs) {
+      sinon.stub(contacts.Matcher, 'match', function(contact, mode, cbs) {
         cbs.onmismatch();
       });
       sinon.spy(Contacts, 'setCurrent');
