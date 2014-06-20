@@ -23,6 +23,9 @@
     <script defer src="shared/elements/gaia_grid/js/items/mozapp.js"></script>
     <script defer src="shared/elements/gaia_grid/js/items/placeholder.js"></script>
 
+    <script defer src="shared/js/component_utils.js"></script>
+    <script defer src="shared/elements/gaia_menu/script.js"></script>
+
     <script defer src="shared/js/async_storage.js"></script>
     <script defer src="shared/js/url_helper.js"></script>
     <script defer src="shared/js/utilities.js"></script>
@@ -32,6 +35,7 @@
     <script defer src="shared/js/everythingme/device.js"></script>
     <script defer src="shared/js/everythingme/api.js"></script>
     <script defer src="shared/js/dedupe.js"></script>
+    <script defer src="js/contextmenu.js"></script>
     <script defer src="js/search.js"></script>
     <script defer src="js/providers/provider.js"></script>
     <script defer src="js/providers/grid_provider.js"></script>
@@ -79,6 +83,10 @@
       <h2 id="history-header"><span data-l10n-id="history">HISTORY</span></h2>
       <section id="history" class="local" aria-labelledby="history-header"></section>
     </div>
+
+    <gaia-menu id="contextmenu" hidden>
+      <button id="add-to-homescreen" data-l10n-id="add-to-homescreen" type="button"></button>
+    </gaia-menu>
 
   </body>
 </html>
