@@ -16,6 +16,9 @@ class TestDeleteApp(GaiaTestCase):
     def setUp(self):
         GaiaTestCase.setUp(self)
 
+        # Turn off geolocation prompt for smart collections
+        self.apps.set_permission('Smart Collections', 'geolocation', 'deny')
+
         self.homescreen = Homescreen(self.marionette)
         self.apps.switch_to_displayed_app()
 

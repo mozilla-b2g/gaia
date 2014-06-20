@@ -1,5 +1,5 @@
 'use strict';
-/* global GaiaGrid, configurator */
+/* global GaiaGrid, configurator, appManager */
 
 (function(exports) {
 
@@ -70,6 +70,8 @@
 
       app.grid.render();
       app.itemStore.save(app.grid.getItems());
+
+      appManager.sendEventToCollectionApp('install', application.manifestURL);
     }
 
     /**
@@ -106,8 +108,10 @@
     }.bind(this);
 
     appMgr.onuninstall = function onuninstall(event) {
-      this.removeIconFromGrid(event.application.manifestURL);
+      var application = event.application;
+      this.removeIconFromGrid(application.manifestURL);
       app.itemStore.save(app.grid.getItems());
+      appManager.sendEventToCollectionApp('uninstall', application.manifestURL);
     }.bind(this);
 
   }
