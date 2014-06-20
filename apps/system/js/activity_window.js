@@ -79,6 +79,9 @@
       if (caller.element) {
         this.containerElement = caller.element;
       }
+      if (caller.containerElement) {
+        this.containerElement = caller.containerElement;
+      }
     }
 
     this.publish('creating');

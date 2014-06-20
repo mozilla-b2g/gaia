@@ -62,6 +62,9 @@
 
       // Listen for messages from search app
       window.addEventListener('iac-search-results', this);
+
+      window.addEventListener('activityopening', this);
+      window.addEventListener('activityclosing', this);
     },
 
 
@@ -74,6 +77,12 @@
      */
     handleEvent: function(e) {
       switch(e.type) {
+        case 'activityopening':
+          this.rocketbar.hidden = true;
+          break;
+        case 'activityclosing':
+          this.rocketbar.hidden = false;
+          break;
         case 'apploading':
         case 'appforeground':
         case 'appopened':
