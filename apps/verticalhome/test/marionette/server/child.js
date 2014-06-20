@@ -103,6 +103,16 @@ AppServer.prototype = {
     return function(req, res) {
       debug('request', req.method, req.url);
       var handler = routes[req.url] || routes['*'];
+      var settings = this.settings(req.url);
+
+      // If this url has a http error on it just return without calling the
+      // handler.
+      if (settings.serverError) {
+        res.writeHead(500);
+        res.end();
+        return;
+      }
+
       // routes are always invoked with the context of the app server.
       return handler.call(this, req, res);
     }.bind(this);
@@ -110,6 +120,28 @@ AppServer.prototype = {
 };
 
 var routes = {
+
+  /**
+  All requests to the url will fail (before their handler) with a 500 error and
+  no body.
+  */
+  '/settings/server_error': decorateHandlerForJSON(function(req, res) {
+    var url = req.body;
+    var settings = this.settings(url);
+    settings.serverError = true;
+    writeJSON(res, url);
+  }),
+
+  /**
+  Remove the server error from the given url
+  */
+ '/settings/clear_server_error': decorateHandlerForJSON(function(req, res) {
+    var url = req.body;
+    var settings = this.settings(url);
+    settings.serverError = false;
+    writeJSON(res, url);
+ }),
+
   /**
   A 'corked' request will send headers but no body until 'uncork' is used.
   */

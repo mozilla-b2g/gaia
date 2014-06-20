@@ -17,6 +17,7 @@
 
   var APP_LOADING = 'loading';
   var APP_ERROR = 'error';
+  var APP_UNRECOVERABLE = 'unrecoverable';
   var APP_PAUSED = 'paused';
   var APP_READY = 'ready';
 
@@ -61,6 +62,12 @@
       // Bug 1027491 - work around the fact that downloadError is not cleared
       if (app.installState === 'installed') {
         return APP_READY;
+      }
+
+      // is there is a pending download but we cannot download then this app is
+      // in an unrecoverable state due to some fatal error.
+      if (app.installState === 'pending' && !app.downloadAvailable) {
+        return APP_UNRECOVERABLE;
       }
 
       // Bug 1027347 - downloadError is always present even if there is no error
@@ -211,6 +218,26 @@
       return this.app.removable;
     },
 
+    /**
+    Show a dialog to handle unrecoverable errors.
+    */
+    unrecoverableError: function() {
+      var dialog = new ConfirmDialogHelper({
+        type: 'unrecoverable',
+        title: _('gaia-grid-unrecoverable-error-title'),
+        body: _('gaia-grid-unrecoverable-error-body'),
+        confirm: {
+          title: _('gaia-grid-unrecoverable-error-action'),
+          cb: () =>  {
+            // XXX: this means whoever uses gaia-grid must have the
+            //      webapps-manage permission
+            navigator.mozApps.mgmt.uninstall(this.app);
+          }
+        }
+      });
+      dialog.show(document.body);
+    },
+
     cancel: function() {
       var dialog = new ConfirmDialogHelper({
         type: 'pause',
@@ -275,12 +302,19 @@
     launch: function() {
       var app = this.app;
 
+      // Allow the user to pause a ongoing download.
       if (app.downloading) {
         return this.cancel();
       }
 
+      // If there is a download pending ask to resume it.
       if (app.downloadAvailable) {
         return this.resume();
+      }
+
+      // Let the user cleanup any failed installs that cannot be retried.
+      if (app.installState == 'pending' && !app.downloadAvailable) {
+        return this.unrecoverableError();
       }
 
       if (this.entryPoint) {
