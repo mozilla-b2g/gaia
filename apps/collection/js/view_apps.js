@@ -5,6 +5,13 @@
 
 (function(exports) {
 
+  // number of apps to load
+  const SEARCH_LIMIT = 3 * 16;
+
+  // number of apps to render
+  const BATCH_LIMIT = 4;
+  const BATCH_TIMEOUT = 500;
+
   function ViewApps(collection) {
 
     var grid = document.getElementById('grid');
@@ -16,10 +23,9 @@
     var options = collection.categoryId ? {categoryId: collection.categoryId}
                                         : {query: collection.query};
 
-    loading();
+    options.limit = SEARCH_LIMIT;
 
-    // render pinned apps first
-    collection.render(grid);
+    loading();
 
     // refresh since pinned apps might have been updated
     eme.init()
@@ -27,7 +33,7 @@
     .then(() => collection.refresh())
     .then(() => {
       loading(false);
-      collection.render(grid);
+      collection.renderPinned(grid);
       queueRequest();
     });
 
@@ -58,12 +64,21 @@
         .then(function success(response) {
           onResponse();
 
-          collection.addWebResults(response.response.apps);
-          collection.render(grid);
+          var apps = response.response.apps || [];
+          loadBatch(apps, 0);
 
         }, onResponse);
     }
 
+    function loadBatch(allResults, from) {
+      var to = from + BATCH_LIMIT;
+      var results = allResults.slice(from, to);
+      collection.renderWebResults(results, grid);
+
+      if (from < allResults.length) {
+        setTimeout(loadBatch.bind(null, allResults, to), BATCH_TIMEOUT);
+      }
+    }
     function loading(should) {
       document.body.dataset.loading = should !== false;
       elements.offline.classList.remove('show');

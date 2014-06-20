@@ -129,7 +129,7 @@
       var results = arrayOfData.map(function each(data) {
         return new WebResult(data);
       });
-      this.webResults = results;
+      this.webResults = this.webResults.concat(results);
     },
 
     isPinned: function isPinned(item) {
@@ -183,6 +183,26 @@
       }
 
       grid.render();
+    },
+
+    renderPinned: function renderPinned(grid) {
+      if (this.pinned.length) {
+        this.addToGrid(this.pinned, grid);
+        grid.render();
+      }
+    },
+
+    renderWebResults: function renderWebResults(results, grid) {
+      if (this.webResults.length === 0) {
+        grid.add(new GaiaGrid.Divider());
+      }
+
+      var from = this.webResults.length;
+      this.addWebResults(results);
+
+      var resultsToAdd = this.webResults.slice(from);
+      this.addToGrid(resultsToAdd, grid);
+      grid.render({from: from, skipDivider: true});
     },
 
     renderIcon: function renderIcon() {
