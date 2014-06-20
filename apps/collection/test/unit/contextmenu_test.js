@@ -11,7 +11,10 @@ suite('contextmenu > ', function() {
 
   suiteSetup(function() {
     loadBodyHTML('/view.html');
-    subject = new Contextmenu();
+    var mockCollection = {
+      isPinned: function() {}
+    };
+    subject = new Contextmenu(mockCollection);
   });
 
   setup(function() {

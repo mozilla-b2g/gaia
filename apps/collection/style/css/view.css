@@ -3,6 +3,22 @@ gaia-grid {
   width: 100%;
 }
 
+#edit-header {
+  position: fixed;
+  top: 0;
+  z-index: 4;
+  width: 100%;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.5s ease-in, visibility 0s linear 0.5s;
+}
+
+.edit-mode #edit-header {
+  visibility: visible;
+  opacity: 1;
+  transition: opacity 0.5s ease-in;
+}
+
 #header {
   height: 5.4rem;
   line-height: 5.4rem;
@@ -69,7 +85,14 @@ gaia-grid {
   z-index: 0;
   content: " ";
   background-color: rgba(0,0,0,0.4);
+  transition: background-color 0.5s ease-in;
 }
+
+.edit-mode #content:after {
+  top: 0;
+  background-color: #333333;
+}
+
 /* making sure content elements don't get overlayed by #content:after */
 #content > * {
   position: relative;
@@ -109,4 +132,9 @@ body[data-loading="true"] section[role="notification"] progress {
 section[role="notification"].show,
 body[data-loading="true"] #content section[role="notification"]#loading{
   display: flex;
+}
+
+.edit-mode .icon[data-is-draggable="false"] {
+  pointer-events: none;
+  opacity: 0.2;
 }

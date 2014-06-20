@@ -3,6 +3,7 @@
 /* global Contextmenu */
 /* global ViewApps */
 /* global ViewBgImage */
+/* global ViewEditMode */
 /* global Promise */
 
 (function(exports) {
@@ -38,6 +39,7 @@
     new Contextmenu(collection);
     new ViewApps(collection);
     new ViewBgImage(collection);
+    new ViewEditMode(collection);
   }
 
   navigator.mozSetMessageHandler('activity', function onActivity(activity) {

@@ -84,13 +84,21 @@ Collection.prototype = {
    * @return {Element} The collection icon.
    */
   getCollectionByName: function(name) {
-    var icons = this.client.findElements('body .icon');
-    for (var i = 0, iLen = icons.length; i < iLen; i++) {
-      if (icons[i].text() === name) {
-        return icons[i];
+    var icon;
+    this.client.waitFor(function() {
+      try {
+        var icons = this.client.findElements('body .icon');
+        for (var i = 0, iLen = icons.length; i < iLen; i++) {
+          if (icons[i].text() === name) {
+            icon = icons[i];
+            return true;
+          }
+        }
+      } catch(e) {
+        return false;
       }
-    }
-    throw new Error('Could not find the collection ' + name);
+    }.bind(this));
+    return icon;
   },
 
   /**
@@ -114,6 +122,17 @@ Collection.prototype = {
 
     this.client.helper.waitForElement(
       Collection.Selectors.firstWebResultNoPinned);
+  },
+
+  /**
+   * Pins a result to the top of the collection.
+   * @param {String} selector The selector to find the icon in web results.
+   */
+  pin: function(selector) {
+    var selectors = Collection.Selectors;
+    var firstIcon = this.client.helper.waitForElement(selector);
+    this.actions.longPress(firstIcon, 1).perform();
+    this.client.helper.waitForElement(selectors.cloudMenuPin).click();
   }
 };
 
