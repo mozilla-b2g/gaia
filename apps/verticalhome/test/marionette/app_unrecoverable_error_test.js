@@ -10,8 +10,9 @@ var createAppServer = require('./server/parent');
 
 var iconAppState = require('./lib/icon_app_state');
 var launchIcon = require('./lib/launch_icon');
+var getIconId = require('./lib/icon_id');
 
-marionette('Vertical Home - Packaged App Failed Download', function() {
+marionette('Vertical Home - App unrecoverable error', function() {
   var client = marionette.client(Home2.clientOptions);
   var server;
   setup(function(done) {
@@ -45,25 +46,31 @@ marionette('Vertical Home - Packaged App Failed Download', function() {
     });
   }
 
-  test('failed state then retry and launch', function() {
+  test('remove an app that was in an unrecoverable state', function() {
     client.switchToFrame();
 
-    server.fail(server.applicationZipUri);
+    server.serverError(server.applicationZipUri);
     appInstall.installPackage(server.packageManifestURL);
 
     client.switchToFrame(system.getHomescreenIframe());
 
+    // if the server returns a 500 error the app is assumed to be in an
+    // unrecoverable state.
     var icon = subject.getIcon(server.packageManifestURL);
-    expectAppState(icon, 'error');
+    var iconId = getIconId(icon);
+    expectAppState(icon, 'unrecoverable');
 
-    server.unfail(server.applicationZipUri);
-
+    // agree to uninstall the app
     launchIcon(icon);
-    subject.confirmDialog('resume');
-    expectAppState(icon, 'ready');
+    subject.confirmDialog('unrecoverable');
 
-    subject.launchAndSwitchToApp(server.packageManifestURL);
-    assert.equal(client.title(), 'iwrotethis');
+
+    // ensure the icon disappears
+    client.helper.waitForElementToDisappear(icon);
+    // verify that the app was uninstalled
+    subject.restart();
+
+    var allIconIds = subject.getIconIdentifiers();
+    assert.ok(allIconIds.indexOf(iconId) === -1, 'app was removed');
   });
 });
-

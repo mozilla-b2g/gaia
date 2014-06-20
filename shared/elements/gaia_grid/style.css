@@ -25,6 +25,10 @@
   background-image: url('images/app_installing.png') !important;
 }
 
+.icon[data-app-state="unrecoverable"] {
+  background-image: url('images/app_install_unrecoverable.png') !important;
+}
+
 .icon[data-app-state="error"] {
   background-image: url('images/app_install_failed.png') !important;
 }
