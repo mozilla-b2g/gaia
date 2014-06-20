@@ -1,4 +1,4 @@
-/*global GestureDetector, Dialog, Navigation */
+/*global Utils, GestureDetector, Dialog, Navigation, Settings */
 
 (function(exports) {
   'use strict';
@@ -28,6 +28,8 @@
     this.separator = opts.separator || '';
     this.carrier = opts.carrier || '';
     this.className = 'recipient';
+    this.isEmail = Settings.supportEmailRecipient &&
+                   Utils.isEmailAddress(this.number);
 
     // isLookupable
     //  the recipient was accepted by pressing <enter>
@@ -52,7 +54,9 @@
     // is questionable and may be invalid.
     number = this.number[0] === '+' ? this.number.slice(1) : this.number;
 
-    if (this.source === 'manual' && !rdigit.test(number)) {
+    if (this.isEmail) {
+      this.className += ' email';
+    } else if (this.source === 'manual' && !rdigit.test(number)) {
       this.isQuestionable = true;
     }
 
