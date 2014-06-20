@@ -209,7 +209,7 @@
       }
       window.addEventListener('cardviewbeforeshow', this);
       window.addEventListener('launchapp', this);
-      window.addEventListener('launchactivity', this);
+      document.body.addEventListener('launchactivity', this, true);
       window.addEventListener('home', this);
       window.addEventListener('appcreated', this);
       window.addEventListener('appterminated', this);
