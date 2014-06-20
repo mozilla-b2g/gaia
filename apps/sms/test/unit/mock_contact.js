@@ -33,6 +33,9 @@ function MockContact(name) {
   this.email = [
     {
       'value': 'a@b.com'
+    },
+    {
+      'value': 'a@c.com'
     }
   ];
 

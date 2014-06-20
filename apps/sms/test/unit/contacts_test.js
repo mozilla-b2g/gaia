@@ -1,4 +1,5 @@
-/*global MockContact, Contacts, fb, MockFbReaderUtilsObj, MockSettings, MocksHelper */
+/*global MockContact, Contacts, fb, MockFbReaderUtilsObj,
+         MockSettings, MocksHelper */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_moz_phone_number_service.js');
@@ -11,7 +12,7 @@ require('/test/unit/mock_utils.js');
 
 var mocksHelperForContactsUnitTest = new MocksHelper([
   'Settings',
-  'Utils'  
+  'Utils'
 ]).init();
 
 suite('Contacts', function(done) {

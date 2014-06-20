@@ -472,7 +472,7 @@ suite('ContactRenderer', function() {
     test('Rendered no "email" and No Support EmailRecipient ', function() {
 
       contact.email = null;
-      Settings.supportEmailRecipient = false;
+      MockSettings.supportEmailRecipient = false;
       var result = renderer.render({
         contact: contact,
         input: 'foo',
