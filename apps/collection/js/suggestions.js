@@ -4,7 +4,8 @@
 
 (function(exports) {
 
-  const l10nKey = 'collection-categoryId-';
+  const l10nKey = 'categoryId-';
+
   var _ = navigator.mozL10n.get;
   var map = Array.prototype.map;
 
