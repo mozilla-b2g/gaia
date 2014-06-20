@@ -1,9 +1,0 @@
-{
-  "calendar": {
-    "src": ["apps/calendar/js/**/*.js"],
-    "options": {
-      "destination": "docs/calendar"
-    }
-  }
-}
-
