@@ -51,7 +51,7 @@ Settings.Selectors = {
   'improveSection': '#improveBrowserOS',
   'feedbackPanel': 'button[data-href="#improveBrowserOS-chooseFeedback"]',
   'soundMenuItem': '#menuItem-sound',
-  'languageMenuItem': '#menuItem-languageAndRegion',
+  'languageMenuItem': '.menuItem-languageAndRegion',
   'screenLockMenuItem': '#menuItem-screenLock',
   'appPermissionPanel': '#menuItem-appPermissions',
   'displayMenuItem': '#menuItem-display',

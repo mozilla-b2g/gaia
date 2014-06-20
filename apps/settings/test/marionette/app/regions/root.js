@@ -24,7 +24,7 @@ RootPanel.Selectors = {
   'firefoxAccountDesc': '#fxa-desc',
   'geolocationCheckbox': '#root input[name="geolocation.enabled"]',
   'geolocationSpan': '#root input[name="geolocation.enabled"] ~ span',
-  'languageDesc': '#language-desc',
+  'languageDesc': '.language-desc',
   'mediaStorageDesc': '#media-storage-desc',
   'simManagerItem': '#simCardManager-settings',
   'simSecurityItem': '#simSecurity-settings',

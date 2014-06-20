@@ -1,9 +1,9 @@
 'use strict';
 
 require('/shared/test/unit/load_body_html_helper.js');
-mocha.globals(['MockL10n', 'LazyLoader', 'getSupportedLanguages']);
+mocha.globals(['MockL10n', 'LazyLoader']);
 
-suite('Languages > ', function() {
+suite('Root', function() {
   var realL10n;
   var map = {
     '*': {
@@ -57,7 +57,6 @@ suite('Languages > ', function() {
       fakeTimer = sinon.useFakeTimers();
       root = this.Root();
       sandbox.stub(root, '_initSimItems');
-      sandbox.stub(root, '_initLocale');
       sandbox.stub(root, '_loadScripts');
       root.init();
     });
@@ -71,57 +70,9 @@ suite('Languages > ', function() {
       sinon.assert.called(root._initSimItems);
     });
 
-    test('_initLocale should be called', function() {
-      sinon.assert.called(root._initLocale);
-    });
-
     test('_loadScripts should be called', function() {
       fakeTimer.tick();
       sinon.assert.called(root._loadScripts);
-    });
-  });
-
-  suite('_refreshLocale', function() {
-    var expectedTitle = 'English';
-    var root;
-
-    setup(function() {
-      window.getSupportedLanguages = function(callback) {
-        callback({ 'en-US': expectedTitle });
-      };
-
-      root = this.Root();
-      root._refreshLocale();
-    });
-
-    teardown(function() {
-      window.getSupportedLanguages = null;
-    });
-
-    test('_initSimItems should be called', function() {
-      assert.equal(document.getElementById('language-desc').textContent,
-        expectedTitle);
-    });
-  });
-
-  suite('_initLocale', function() {
-    var sandbox;
-    var root;
-
-    setup(function() {
-      sandbox = sinon.sandbox.create();
-      root = this.Root();
-      sandbox.spy(navigator.mozL10n, 'ready');
-      sandbox.stub(root, '_refreshLocale');
-      root._initLocale();
-    });
-
-    teardown(function() {
-      sandbox.restore();
-    });
-
-    test('should register _refreshLocale on mozL10n.ready', function() {
-      sinon.assert.calledWith(navigator.mozL10n.ready, root._refreshLocale);
     });
   });
 
