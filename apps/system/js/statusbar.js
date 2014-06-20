@@ -724,8 +724,14 @@ var StatusBar = {
           icon.dataset.roaming = data.roaming;
 
           delete icon.dataset.searching;
-        } else if (voice.connected || self.hasActiveCall()) {
+        } else if (voice.connected || self.hasActiveCall() &&
+            navigator.mozTelephony.active.serviceId === index) {
           // "Carrier" / "Carrier (Roaming)"
+          // If voice.connected is false but there is an active call, we should
+          // check whether the service id of that call equals the current index
+          // of the target sim card. If yes, that means the user is making an
+          // emergency call using the target sim card. In such case we should
+          // also display the signal bar as the normal cases.
           icon.dataset.level = Math.ceil(voice.relSignalStrength / 20); // 0-5
           icon.dataset.roaming = voice.roaming;
 
@@ -733,8 +739,8 @@ var StatusBar = {
         } else if (simslot.isLocked()) {
           // SIM locked
           // We check if the sim card is locked after checking hasActiveCall
-          // because we still need to show the siganl bars in this case even
-          // the sim card is locked.
+          // because we still need to show the siganl bars in the case of
+          // making emergency calls when the sim card is locked.
           icon.hidden = true;
         } else {
           // "No Network" / "Emergency Calls Only (REASON)" / trying to connect

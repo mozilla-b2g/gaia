@@ -183,6 +183,17 @@ suite('WiFi > ', function() {
   });
 
   suite('maybeToggleWifi', function() {
+    var realMozAlarms;
+
+    suiteSetup(function() {
+      realMozAlarms = navigator.mozAlarms;
+      navigator.mozAlarms = {};
+    });
+
+    suiteTeardown(function() {
+      navigator.mozAlarms = realMozAlarms;
+    });
+
     test('Test turn wifi back on', function() {
       SettingsListener.mCallbacks['wifi.screen_off_timeout'](100);
       Wifi.wifiDisabledByWakelock = true;
