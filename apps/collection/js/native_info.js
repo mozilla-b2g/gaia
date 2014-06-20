@@ -118,11 +118,25 @@
     },
 
     // on collection install
-    processCollection: function processCollection() {
-      // TODO
+    processCollection: function processCollection(collection) {
+      return this.collectGuids()
+      .then(this.getInfo)
+      .then(function addToCollection(guidsByCname) {
+        // cName for suggested collections or query for custom collections
+        var key = collection.cName || collection.query;
+        var guids = guidsByCname[key] || [];
+
+        if (guids.length) {
+          var identifiers =
+            guids.map(homeIcons.getIdentifier.bind(homeIcons));
+          eme.log('NativeInfo', identifiers);
+          collection.pinHomeIcons(identifiers);
+        }
+      });
     },
 
-    doSetup: function doSetup() {
+    // returns a promise resolved with all guids for all apps and bookmarks
+    collectGuids: function collectGuids() {
       homeIcons = new HomeIcons();
       return homeIcons.init().then(function success() {
         var manifestURLs = homeIcons.manifestURLs;
@@ -132,7 +146,11 @@
 
         // return guid array
         return manifestURLs.concat(bookmarkURLs);
-      })
+      });
+    },
+
+    doSetup: function doSetup() {
+      this.collectGuids()
       .then(this.getInfo)
       .then(this.addToCollections)
       .then(function neverAgain() {
