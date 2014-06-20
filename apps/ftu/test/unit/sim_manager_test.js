@@ -24,7 +24,6 @@ suite('sim mgmt >', function() {
   var realL10n,
       realMozIccManager,
       realMozMobileConnections;
-  var mocksHelper = mocksHelperForSimManager;
   var navigationStub,
       iccId0,
       iccInfo0,
@@ -47,6 +46,8 @@ suite('sim mgmt >', function() {
     getCardLockRetryCountStub.restore();
   };
 
+  mocksHelperForSimManager.attachTestHelpers();
+
   suiteSetup(function() {
     loadBodyHTML('/index.html');
 
@@ -61,8 +62,6 @@ suite('sim mgmt >', function() {
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
 
-    mocksHelper.suiteSetup();
-
     iccId0 = navigator.mozIccManager.iccIds[0];
     iccInfo0 = navigator.mozIccManager.getIccById(iccId0);
   });
@@ -73,13 +72,10 @@ suite('sim mgmt >', function() {
     UIManager.activationScreen.classList.remove('show');
     UIManager.unlockSimScreen.classList.add('show');
 
-    mocksHelper.setup();
     setupRetryCount();
-
   });
 
   teardown(function() {
-    mocksHelper.teardown();
     teardownRetryCount();
   });
 
@@ -94,8 +90,6 @@ suite('sim mgmt >', function() {
 
     navigator.mozL10n = realL10n;
     realL10n = null;
-
-    mocksHelper.suiteTeardown();
   });
 
   test('"Skip" hides the screen', function() {
