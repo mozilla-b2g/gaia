@@ -5,20 +5,37 @@ define(function(require) {
   var Root = require('panels/root/root');
   var NFCItem = require('panels/root/nfc_item');
   var BatteryItem = require('panels/root/battery_item');
+  var StorageUSBItem = require('panels/root/storage_usb_item');
+  var StorageAppItem = require('panels/root/storage_app_item');
 
   return function ctor_root_panel() {
     var root = Root();
     var nfcItem;
     var batteryItem;
+    var storageUsbItem;
+    var storageAppItem;
 
     return SettingsPanel({
       onInit: function rp_onInit(panel) {
         root.init();
         nfcItem = NFCItem(panel.querySelector('.nfc-settings'));
         batteryItem = BatteryItem(panel.querySelector('.battery-desc'));
+        storageUsbItem = StorageUSBItem({
+          mediaStorageDesc: panel.querySelector('.media-storage-desc'),
+          umsEnabledCheckBox: panel.querySelector('.ums-switch-root'),
+          umsEnabledInfoBlock: panel.querySelector('.ums-desc-root'),
+          umsWarningDialog: panel.querySelector('.turn-on-ums-dialog'),
+          umsConfirmButton: panel.querySelector('.ums-confirm-option'),
+          umsCancelButton: panel.querySelector('.ums-cancel-option'),
+          mediaStorageSection: panel.querySelector('.media-storage-section')
+        });
+        storageAppItem = StorageAppItem(
+          panel.querySelector('.application-storage-desc'));
       },
       onBeforeShow: function rp_onBeforeShow() {
         batteryItem.enabled = true;
+        storageUsbItem.enabled = true;
+        storageAppItem.enabled = true;
       },
       onShow: function rp_onShow() {
         // XXX: Set data-ready to true to indicate that the first panel is
@@ -29,6 +46,8 @@ define(function(require) {
       },
       onHide: function rp_onHide() {
         batteryItem.enabled = false;
+        storageUsbItem.enabled = false;
+        storageAppItem.enabled = false;
       }
     });
   };
