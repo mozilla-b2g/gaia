@@ -856,5 +856,14 @@ suite('system/Rocketbar', function() {
     setVisibleStub.calledWith(false);
     setVisibleStub.restore();
   });
+
+  test('focus after geolocation hidden', function() {
+    var focusStub = this.sinon.stub(subject, 'focus');
+    subject.activate();
+    subject.active = true;
+    subject.handleEvent({type: 'permissiondialoghide'});
+    assert.ok(focusStub.calledOnce);
+    focusStub.restore();
+  });
 });
 
