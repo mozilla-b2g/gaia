@@ -93,6 +93,8 @@
       if ('geolocation' in navigator) {
         navigator.geolocation.getCurrentPosition(function(){});
       }
+
+      document.addEventListener('visibilitychange', this);
     },
 
     /**
@@ -313,6 +315,16 @@
         'input': input
       });
       this.expandSearch(input);
+    },
+
+    handleEvent: function(e) {
+      switch(e.type) {
+        case 'visibilitychange':
+          if (document.hidden) {
+            this.close();
+          }
+          break;
+      }
     }
   };
 

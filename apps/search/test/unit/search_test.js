@@ -92,6 +92,23 @@ suite('search/search', function() {
     });
   });
 
+  suite('handleEvent', function() {
+    test('visibilitychange will call close', function() {
+      var closeStub = this.sinon.stub(Search, 'close');
+      Object.defineProperty(document, 'hidden', {
+        configurable: true,
+        get: function() {
+          return true;
+        }
+      });
+
+      Search.handleEvent({
+        type: 'visibilitychange'
+      });
+      assert.ok(closeStub.calledOnce);
+    });
+  });
+
   suite('provider', function() {
     test('increments number of providers', function() {
       function numProviders() {
