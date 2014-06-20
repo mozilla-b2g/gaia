@@ -79,7 +79,8 @@
             var guids = guidsByCname[collection.cName] || [];
 
             if (guids.length) {
-              var identifiers =
+              // identifiers is directly guids when we process an app
+              var identifiers = !homeIcons ? guids :
                guids.map(homeIcons.getIdentifier.bind(homeIcons));
 
               eme.log('NativeInfo', identifiers.length, 'matches for',
@@ -92,9 +93,28 @@
       });
     },
 
+    removeFromCollections: function removeFromCollections(identifier) {
+      if (!identifier) {
+        return Promise.reject();
+      }
+
+      return CollectionsDatabase.getAll().then(function(collections) {
+        // we are going to traverse all the collections on device
+        for (var id in collections) {
+          var collection = BaseCollection.create(collections[id]);
+          collection.unpin(identifier);
+        }
+      });
+    },
+
     // on app install/uninstall
-    processApp: function processApp() {
-      // TODO
+    processApp: function processApp(action, id) {
+      if (action === 'install') {
+        // id should be a guid (manifest or bookmark URL)
+        return this.getInfo([id]).then(this.addToCollections).catch(onerror);
+      } else if (action === 'uninstall') {
+        return this.removeFromCollections(id).catch(onerror);
+      }
     },
 
     // on collection install
