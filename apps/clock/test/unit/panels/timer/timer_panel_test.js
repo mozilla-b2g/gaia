@@ -241,17 +241,17 @@ suite('Timer.Panel', function() {
     test('blur: sound', function() {
       var menu = panel.soundButton.button;
       var sound = panel.nodes.sound;
-      Utils.changeSelectByValue(sound, 'ac_normal_gem_echoes.opus');
+      Utils.changeSelectByValue(sound, 'ac_humming_waves_opus');
       sound.dispatchEvent(
         new CustomEvent('blur')
       );
 
-      assert.equal(menu.textContent, 'ac_normal_gem_echoes_opus');
+      assert.equal(menu.textContent, 'ac_humming_waves_opus');
     });
 
     test('change: sound', function() {
       var sound = panel.nodes.sound;
-      Utils.changeSelectByValue(sound, 'ac_normal_gem_echoes.opus');
+      Utils.changeSelectByValue(sound, 'ac_humming_waves_opus');
       var mockAudio = {
         pause: this.sinon.spy(),
         play: this.sinon.spy(),
@@ -267,13 +267,13 @@ suite('Timer.Panel', function() {
       assert.isTrue(mockAudio.play.called);
       assert.isTrue(mockAudio.loop);
       assert.equal(mockAudio.mozAudioChannelType, 'alarm');
-      var expected = 'shared/resources/media/alarms/ac_normal_gem_echoes.opus';
+      var expected = 'shared/resources/media/alarms/ac_humming_waves_opus';
       assert.equal(mockAudio.src, expected);
     });
 
     test('blur: pause playing alarm', function() {
       var sound = panel.nodes.sound;
-      Utils.changeSelectByValue(sound, 'ac_normal_gem_echoes.opus');
+      Utils.changeSelectByValue(sound, 'ac_humming_waves_opus');
 
       var mockAudio = {
         pause: this.sinon.spy(),

@@ -84,7 +84,7 @@ suite('AlarmsDB Test Suite', function() {
       minute: 43,
       enabled: true,
       repeat: '1010011',
-      sound: 'ac_classic_clock_alarm.opus',
+      sound: 'ac_awake.ogg',
       snooze: 5,
       color: 'Darkorange'
     };
@@ -97,7 +97,7 @@ suite('AlarmsDB Test Suite', function() {
       label: alarmPrefix,
       hour: 15,
       minute: 43,
-      sound: 'ac_classic_clock_alarm.opus',
+      sound: 'ac_awake.ogg',
       snooze: 5,
       color: 'Darkorange'
     };
