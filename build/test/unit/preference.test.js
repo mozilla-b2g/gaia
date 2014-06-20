@@ -313,7 +313,7 @@ suite('preferences.js', function() {
         'browser.manifestURL': 'app://system8000/manifest.webapp',
         'b2g.system_manifest_url': 'app://system8000/manifest.webapp',
         'b2g.neterror.url': 'app://system8000/net_error.html',
-        'browser.homescreenURL': 'app://system8000/index.html',
+        'browser.homescreenURL': 'app://system8000',
         'b2g.system_startup_url': 'app://system8000/index.html',
         'network.http.max-connections-per-server': 15,
         'dom.mozInputMethod.enabled': true,

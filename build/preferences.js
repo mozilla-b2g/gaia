@@ -35,15 +35,12 @@ PreferencesBuilder.prototype.preparePref = function() {
                    this.system + '/manifest.webapp';
 
   this.prefs['b2g.neterror.url'] = this.system + '/net_error.html';
-  if (this.system.substring(0, 6) == 'app://') { // B2G bug 773884
-      this.system += '/index.html';
-  }
-  
+
   // XXX Please remove 'browser.homescreenURL'.
   // After gecko does not need it anymore.
   // follow up bug 1014487
   this.prefs['browser.homescreenURL'] = this.system;
-  this.prefs['b2g.system_startup_url'] = this.system;
+  this.prefs['b2g.system_startup_url'] = this.system + '/index.html';
 
   this.domains = [this.config.GAIA_DOMAIN];
   this.config.GAIA_ALLAPPDIRS.split(' ').forEach(function(appdir) {
