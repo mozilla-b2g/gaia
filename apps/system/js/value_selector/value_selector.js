@@ -13,7 +13,6 @@ var ValueSelector = {
   _currentInputType: null,
   _currentDatetimeValue: '',
   _im: navigator.mozInputMethod,
-  _screen: document.getElementById('screen'),
 
   debug: function(msg) {
     var debugFlag = false;
@@ -75,6 +74,7 @@ var ValueSelector = {
 
     window.addEventListener('appopened', this);
     window.addEventListener('appclosing', this);
+    window.addEventListener('sheetstransitionstart', this);
 
     window.addEventListener('activityclosing', this);
 
@@ -153,6 +153,9 @@ var ValueSelector = {
       case 'appclosing':
       case 'activityclosing':
         this.hide();
+        break;
+      case 'sheetstransitionstart':
+        this.cancel();
         break;
 
       case 'click':
@@ -241,7 +244,6 @@ var ValueSelector = {
       return;
     }
     this._element.hidden = false;
-    this._screen.classList.add('system-selector');
   },
 
   showPanel: function vs_showPanel(type) {
@@ -259,7 +261,6 @@ var ValueSelector = {
       return;
     }
     this._element.hidden = true;
-    this._screen.classList.remove('system-selector');
   },
 
   cancel: function vs_cancel() {
