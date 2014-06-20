@@ -64,7 +64,9 @@
       this.container.classList.add('visible');
 
       // We append to System app (actually to '#screen')
-      document.getElementById('screen').appendChild(this.container);
+      var screen = document.getElementById('screen');
+      screen.appendChild(this.container);
+      screen.classList.add('action-menu');
 
       this.buildMenu(this.listItems);
 
@@ -75,6 +77,7 @@
       window.addEventListener('screenchange', this, true);
       window.addEventListener('home', this);
       window.addEventListener('holdhome', this);
+      window.addEventListener('sheetstransitionstart', this);
 
       if (this.preventFocusChange) {
         this.menu.addEventListener('mousedown', this.preventFocusChange);
@@ -86,12 +89,15 @@
      * @memberof ActionMenu.prototype
      */
     stop: function() {
-      document.getElementById('screen').removeChild(this.container);
+      var screen = document.getElementById('screen');
+      screen.removeChild(this.container);
+      screen.classList.remove('action-menu');
 
       window.removeEventListener('attentionscreenshow', this, true);
       window.removeEventListener('screenchange', this, true);
       window.removeEventListener('home', this);
       window.removeEventListener('holdhome', this);
+      window.removeEventListener('sheetstransitionstart', this);
 
       if (this.preventFocusChange) {
         this.menu.removeEventListener('mousedown', this.preventFocusChange);
@@ -185,6 +191,7 @@
 
         case 'home':
         case 'holdhome':
+        case 'sheetstransitionstart':
           if (!this.visible) {
             return;
           }
