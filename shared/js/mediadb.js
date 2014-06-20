@@ -414,7 +414,7 @@ var MediaDB = (function() {
       pendingCreateNotifications: [],  // Array of fileinfo objects
       pendingDeleteNotifications: [],  // Ditto
       pendingNotificationTimer: null,
-      pendingDBFiles: [],
+      pendingDBFiles: [],  // Array of the dbfiles that needed to be upgraded
 
       // This property holds the modification date of the newest file we have.
       // We need to know the newest file in order to look for newer ones during
@@ -621,25 +621,43 @@ var MediaDB = (function() {
     }
 
     function upgradeDBVer3to4(dbfile) {
+      // We cannot do async operations during an indexedDB transaction, but here
+      // we need to update the timestamps for each record because the timestamps
+      // we saved in v1.3 is local time but utc time(bug 851680), so we push the
+      // dbfiles into the pending array and will get the correct timestamps for
+      // each record after the previous transaction ended.
       media.details.pendingDBFiles.push(dbfile);
     }
 
-    function fixDBVer3to4(callback) {
+    function fixTimestampsForDBVer3to4(callback) {
       var dbfiles = media.details.pendingDBFiles;
       var dsfiles = [];
       var storage = navigator.getDeviceStorage(mediaType);
-      dbfiles.forEach(function(dbfile) {
-        var getRequest = storage.get(dbfile.name);
-        getRequest.onsuccess = function() {
-          var dsfile = getRequest.result;
-          dsfiles.push(dsfile);
-          if (dsfiles.length === dbfiles.length) {
-            updateDate(callback);
-          }
-        };
-      });
 
-      function updateDate(callback) {
+      try {
+        dbfiles.forEach(function(dbfile) {
+          var getRequest = storage.get(dbfile.name);
+          getRequest.onsuccess = function() {
+            var dsfile = getRequest.result;
+            dsfiles.push(dsfile);
+            if (dsfiles.length === dbfiles.length) {
+              updateTimestamps(callback);
+            }
+          };
+          getRequest.onerror = function() {
+            throw Error('MediaDB failed on storage during upgrading from 3to4');
+          };
+        });
+      } catch (e) {
+        // If error, just callback then the full scan should fix the timestamps,
+        // though we will lose all the metadata we kept but we could do
+        // nothing because File.lastModifiedDate.getTime() is a must-have to
+        // fix the timestamps.
+        media.details.pendingDBFiles.length = 0;
+        callback();
+      }
+
+      function updateTimestamps(callback) {
         var store = media.db.transaction('files', 'readwrite')
           .objectStore('files');
 
@@ -718,7 +736,7 @@ var MediaDB = (function() {
 
         // Move on to the next step
         if (media.details.pendingDBFiles.length > 0) {
-          fixDBVer3to4(function() {
+          fixTimestampsForDBVer3to4(function() {
             sendInitialEvent();
           });
         } else {
