@@ -135,8 +135,7 @@ HomescreenAppBuilder.prototype.getIconDescriptorFromApp =
   };
 
   if (manifest.role === 'collection') {
-    origin = utils.gaiaOriginURL('homescreen', config.GAIA_SCHEME,
-    config.GAIA_DOMAIN, config.GAIA_PORT);
+    origin = utils.gaiaOriginURL('homescreen', config.GAIA_DOMAIN);
     manifestURL = origin + '/collections/' + appName + '/manifest.collection';
     descriptor.provider_id = manifest.provider_id;
     descriptor.role = manifest.role;

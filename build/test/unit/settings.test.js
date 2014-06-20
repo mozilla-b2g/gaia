@@ -203,24 +203,20 @@ suite('settings.js', function() {
     });
 
     test('setHomescreenURL with default homescreen', function() {
-      config.GAIA_SCHEME = 'app://';
       config.GAIA_DOMAIN = 'gaiamobile.com';
-      config.GAIA_PORT = ':8080';
       var settings = {};
       var testResult = mockUtils.gaiaManifestURL('verticalhome',
-                    config.GAIA_SCHEME, config.GAIA_DOMAIN, config.GAIA_PORT);
+                    config.GAIA_DOMAIN);
       app.setHomescreenURL(settings, config);
       assert.equal(settings['homescreen.manifestURL'], testResult);
     });
 
     test('setHomescreenURL with customizable', function() {
       config.GAIA_APPDIRS = 'verticalhome system sms';
-      config.GAIA_SCHEME = 'app://';
       config.GAIA_DOMAIN = 'gaiamobile.com';
-      config.GAIA_PORT = ':8080';
       var settings = { 'homescreen.appName': 'verticalhome' };
       var testResult = mockUtils.gaiaManifestURL('verticalhome',
-                    config.GAIA_SCHEME, config.GAIA_DOMAIN, config.GAIA_PORT);
+                    config.GAIA_DOMAIN);
       app.setHomescreenURL(settings, config);
       assert.equal(settings['homescreen.manifestURL'], testResult);
     });
@@ -262,11 +258,10 @@ suite('settings.js', function() {
         assert.deepEqual({
           'debug.console.enabled': true,
           'developer.menu.enabled': true,
-          'homescreen.manifestURL': config.GAIA_SCHEME +
-            'verticalhome.' + config.GAIA_DOMAIN + config.GAIA_PORT +
-            '/manifest.webapp',
-          'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search.' +
-            config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
+          'homescreen.manifestURL': 'app://' +
+            'verticalhome.' + config.GAIA_DOMAIN + '/manifest.webapp',
+          'rocketbar.searchAppURL': 'app://' + 'search.' +
+            config.GAIA_DOMAIN + '/index.html',
           'debugger.remote-mode': 'adb-only',
           'language.current': config.GAIA_DEFAULT_LOCALE,
           'wallpaper.image': undefined,
@@ -292,16 +287,14 @@ suite('settings.js', function() {
       var queue = app.execute(config);
       queue.done(function(result) {
         assert.deepEqual({
-          'homescreen.manifestURL': config.GAIA_SCHEME +
-            'verticalhome.' + config.GAIA_DOMAIN + config.GAIA_PORT +
-            '/manifest.webapp',
-          'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search.' +
-            config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
+          'homescreen.manifestURL': 'app://' +
+            'verticalhome.' + config.GAIA_DOMAIN + '/manifest.webapp',
+          'rocketbar.searchAppURL': 'app://' + 'search.' +
+            config.GAIA_DOMAIN + '/index.html',
           'language.current': config.GAIA_DEFAULT_LOCALE,
           'debugger.remote-mode': 'adb-only',
-          'ftu.manifestURL': config.GAIA_SCHEME +
-            'ftu.' + config.GAIA_DOMAIN + config.GAIA_PORT +
-            '/manifest.webapp',
+          'ftu.manifestURL': 'app://' +
+            'ftu.' + config.GAIA_DOMAIN + '/manifest.webapp',
           'wallpaper.image': undefined,
           'media.ringtone': undefined,
           'alarm.ringtone': undefined,
@@ -325,11 +318,10 @@ suite('settings.js', function() {
       var queue = app.execute(config);
       queue.done(function(result) {
         assert.deepEqual({
-          'homescreen.manifestURL': config.GAIA_SCHEME +
-            'verticalhome.' + config.GAIA_DOMAIN + config.GAIA_PORT +
-            '/manifest.webapp',
-          'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search.' +
-            config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
+          'homescreen.manifestURL': 'app://' +
+            'verticalhome.' + config.GAIA_DOMAIN + '/manifest.webapp',
+          'rocketbar.searchAppURL': 'app://' + 'search.' +
+            config.GAIA_DOMAIN + '/index.html',
           'feedback.url': 'https://input.mozilla.org/api/v1/feedback/',
           'language.current': config.GAIA_DEFAULT_LOCALE,
           'debugger.remote-mode': 'disabled',
@@ -357,11 +349,10 @@ suite('settings.js', function() {
       var queue = app.execute(config);
       queue.done(function(result) {
         assert.deepEqual({
-          'homescreen.manifestURL': config.GAIA_SCHEME +
-            'verticalhome.' + config.GAIA_DOMAIN + config.GAIA_PORT +
-            '/manifest.webapp',
-          'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search.' +
-            config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
+          'homescreen.manifestURL': 'app://' +
+            'verticalhome.' + config.GAIA_DOMAIN + '/manifest.webapp',
+          'rocketbar.searchAppURL': 'app://' + 'search.' +
+            config.GAIA_DOMAIN + '/index.html',
           'language.current': config.GAIA_DEFAULT_LOCALE,
           'debugger.remote-mode': 'adb-devtools',
           'screen.timeout': 0,
