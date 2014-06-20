@@ -883,6 +883,7 @@
         case 'hide':
           this.hideResults();
           this.collapse();
+          this.deactivate();
           break;
       }
     },
