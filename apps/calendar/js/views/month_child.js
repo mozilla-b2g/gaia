@@ -198,12 +198,12 @@
               day = 0;
             }
           }
-          var l10n = 'weekday-' + day + '-short';
+          var l10n = 'weekday-' + day + '-single-char';
 
           name = navigator.mozL10n.get(l10n);
           html += template.weekDaysHeaderDay.render({
-            day: String(day),
-            dayName: name[0]
+            l10n: l10n,
+            dayName: name
           });
         }
 
