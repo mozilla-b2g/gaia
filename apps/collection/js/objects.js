@@ -82,8 +82,9 @@
     },
 
     // returns a promise resolved when the db trx is done
-    save: function save() {
-      return CollectionsDatabase.put({
+    save: function save(method) {
+      method = method || 'put';
+      var toSave = {
         id: this.id,
         name: this.name,
         query: this.query,
@@ -91,7 +92,11 @@
         cName: this.cName,
         webicons: this.webicons,
         pinned: this.pinned,
-        background: this.background
+        background: this.background,
+        icon: this.icon
+      };
+      return CollectionsDatabase[method](toSave).then(() => {
+        this.id = toSave.id;
       });
     },
 
