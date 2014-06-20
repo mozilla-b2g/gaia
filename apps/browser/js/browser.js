@@ -1007,13 +1007,18 @@ var Browser = {
     var nodeName = item.nodeName ? item.nodeName.toUpperCase() : '';
     switch (nodeName) {
       case 'A':
-        return {
-          id: 'open-in-new-tab',
-          label: _('open-in-new-tab'),
-          callback: function() {
-            self.openInNewTab(item.data.uri);
-          }
-        };
+        return [{
+            id: 'open-in-new-tab',
+            label: _('open-in-new-tab'),
+            callback: function() {
+              self.openInNewTab(item.data.uri);
+            }
+          }, {
+            label: _('save-link'),
+            callback: function() {
+              self.saveMedia(item.data.uri);
+            }
+          }];
       case 'IMG':
       case 'VIDEO':
       case 'AUDIO':
@@ -1049,7 +1054,12 @@ var Browser = {
     evt.detail.systemTargets.forEach(function(item) {
       var action = this.generateSystemMenuItem(item);
       if (action) {
-        menuItems.push(action);
+        if (Array.isArray(action)) {
+          menuItems = menuItems.concat(action);
+        }
+        else {
+          menuItems.push(action);
+        }
       }
     }, this);
 
