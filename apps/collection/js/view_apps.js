@@ -1,4 +1,5 @@
 'use strict';
+/* global CollectionIcon */
 /* global eme */
 /* global NativeInfo */
 
@@ -28,6 +29,8 @@
 
     // render pinned apps first
     collection.render(grid);
+
+    CollectionIcon.init(grid.maxIconSize);
 
     // refresh since pinned apps might have been updated
     eme.init()

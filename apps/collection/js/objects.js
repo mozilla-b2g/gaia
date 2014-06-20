@@ -7,7 +7,7 @@
 /* global SearchDedupe */
 /* global GridIconRenderer */
 
-(function(exports){
+(function(exports) {
 
   // web result created from E.me API data
   function WebResult(data, gridItemFeatures) {
@@ -51,6 +51,10 @@
     // {src: string, source: string, checksum: string}
     this.background = props.background || {};
 
+    // save copy of original properties so we can tell when to re-render the
+    // collection icon
+    this.originalProps = props;
+
     if (window.SearchDedupe) {
       this.dedupe = new SearchDedupe();
     }
@@ -81,8 +85,25 @@
       }.bind(this));
     },
 
-    // returns a promise resolved when the db trx is done
+    /**
+     * Updates the CollectionsDatabase record with the current data.
+     * If we need to re-render an icon, we do so before saving.
+     * Returns a promise resolved when the db trx is done.
+     * @param {String} method Method to use for saving. Either add or put.
+     */
     save: function save(method) {
+      if (this.iconDirty) {
+        return this.renderIcon().then(this.write.bind(this, method));
+      } else {
+        return this.write(method);
+      }
+    },
+
+    /**
+     * Writes the current collection to the CollectionsDatabase datastore.
+     * @param {String} method Method to use for saving. Either add or put.
+     */
+    write: function write(method) {
       method = method || 'put';
       var toSave = {
         id: this.id,
@@ -98,6 +119,43 @@
       return CollectionsDatabase[method](toSave).then(() => {
         this.id = toSave.id;
       });
+    },
+
+    /**
+     * Lets us know if we need to re-render the collection. The icon is
+     * re-rendered under these circumstances:
+     * - The first three apps change inside the collection.
+     * - The background image changes.
+     */
+    get iconDirty() {
+      var numAppIcons = CollectionIcon.numAppIcons;
+      var before = this.originalProps;
+      try {
+        // background
+        if (before.background.src !== this.background.src) {
+          this.originalProps.background = this.background;
+          return true;
+        }
+
+        // apps
+        var first = this.pinned.concat(this.webResults).slice(0, numAppIcons);
+        var oldFirst =
+          before.pinned.concat(before.webResults).slice(0, numAppIcons);
+
+        for (var i = 0; i < numAppIcons; i++) {
+          if (first[i].identifier !== oldFirst[i].identifier) {
+            before.pinned = this.pinned;
+            return true;
+          }
+        }
+
+        if (first.length !== before.length) {
+          before.pinned = this.pinned;
+          return true;
+        }
+
+      } catch (e) {}
+      return false;
     },
 
     /*
@@ -148,6 +206,9 @@
         });
       });
       this.webResults = results;
+
+      this.webicons = arrayOfData.slice(0, CollectionIcon.numAppIcons)
+        .map(app => app.icon);
     },
 
     isPinned: function isPinned(item) {
@@ -161,8 +222,8 @@
     setPinned: function setPinned(identifiers) {
       // reflect the new sorting on this.pinned
       this.pinned = identifiers
-        // array of all grid items, cut down to pinned only
-        .slice(0, this.pinned.length)
+      // array of all grid items, cut down to pinned only
+      .slice(0, this.pinned.length)
         .map(function(identifier) {
           // find index of item in this.pinned
           var idx = this.pinnedIdentifiers.indexOf(identifier);
@@ -181,9 +242,32 @@
     removeBookmark: function removeBookmark(identifier) {
       window.dispatchEvent(
         new CustomEvent('collection-remove-webresult', {
-          detail: { identifier: identifier }
+          detail: {
+            identifier: identifier
+          }
         })
       );
+    },
+
+    /**
+     * Turns a stored result into a GaiaGrid grid item.
+     */
+    toGridObject: function(item) {
+      var icon;
+      if (item.type === 'homeIcon') {
+        icon = this.homeIcons.get(item.identifier);
+      } else if (item.type === 'webResult') {
+        item.features = item.features || {};
+        item.features.isEditable = false;
+        icon = new GaiaGrid.Bookmark(item.data, item.features);
+
+        // override remove method (original sends activity)
+        if (icon.isRemovable) {
+          icon.remove = () => this.removeBookmark(item.identifier);
+        }
+      }
+
+      return icon;
     },
 
     addToGrid: function addToGrid(items, grid) {
@@ -198,20 +282,7 @@
           return;
         }
 
-        var icon;
-        if (item.type === 'homeIcon') {
-          icon = this.homeIcons.get(item.identifier);
-        } else if (item.type === 'webResult') {
-          item.features = item.features || {};
-          item.features.isEditable = false;
-          icon = new GaiaGrid.Bookmark(item.data, item.features);
-
-          // override remove method (original sends activity)
-          if (icon.isRemovable) {
-            icon.remove = () => this.removeBookmark(item.identifier);
-          }
-        }
-
+        var icon = this.toGridObject(item);
         if (icon) {
           grid.add(icon);
         }
@@ -233,8 +304,22 @@
     },
 
     renderIcon: function renderIcon() {
+
+      // Build the small icons from pinned, then webicons
+      var numAppIcons = CollectionIcon.numAppIcons;
+      var iconSrcs = this.pinned.slice(0, numAppIcons);
+
+      iconSrcs = iconSrcs.concat(
+        this.webicons.slice(0, numAppIcons - iconSrcs.length));
+
+      for (var i = 0; i < iconSrcs.length; i++) {
+        if (typeof iconSrcs[i] === 'object') {
+          iconSrcs[i] = this.toGridObject(iconSrcs[i]).icon;
+        }
+      }
+
       var icon = new CollectionIcon({
-        iconSrcs: this.webicons,
+        iconSrcs: iconSrcs,
         bgSrc: this.background ? this.background.src : null
       });
 
@@ -263,30 +348,30 @@
   };
 
   CategoryCollection.fromResponse =
-   function cc_fromResponse(categoryIds, responseData) {
+    function cc_fromResponse(categoryIds, responseData) {
 
-    function getIcon(iconId) {
-      return responseData.icons[iconId];
-    }
+      function getIcon(iconId) {
+        return responseData.icons[iconId];
+      }
 
-    var collections = [];
-    var categories = responseData.categories.filter(function _filter(cat) {
-      return categoryIds.indexOf(cat.categoryId) > -1;
-    });
-
-    for (var i = 0, l = categories.length; i < l; i++) {
-      var cat = categories[i];
-      var collection = new CategoryCollection({
-        name: cat.query,
-        categoryId: cat.categoryId,
-        cName: cat.canonicalName,
-        webicons: cat.appIds.map(getIcon)
+      var collections = [];
+      var categories = responseData.categories.filter(function _filter(cat) {
+        return categoryIds.indexOf(cat.categoryId) > -1;
       });
 
-      collections.push(collection);
-    }
+      for (var i = 0, l = categories.length; i < l; i++) {
+        var cat = categories[i];
+        var collection = new CategoryCollection({
+          name: cat.query,
+          categoryId: cat.categoryId,
+          cName: cat.canonicalName,
+          webicons: cat.appIds.map(getIcon)
+        });
 
-    return collections;
+        collections.push(collection);
+      }
+
+      return collections;
   };
 
 
@@ -303,5 +388,6 @@
   exports.CategoryCollection = CategoryCollection;
   exports.PinnedHomeIcon = PinnedHomeIcon;
   exports.QueryCollection = QueryCollection;
+  exports.WebResult = WebResult;
 
 })(window);
