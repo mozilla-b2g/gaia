@@ -23,10 +23,11 @@ function AlarmListPanel(element) {
   this.banner = new Banner('banner-countdown');
 
   AlarmsDB.getAlarmList((err, alarmList) => {
-    if (!alarmList) { return; }
-    for (var i = 0; i < alarmList.length; i++) {
+    for (var i = 0; alarmList && i < alarmList.length; i++) {
       this.addOrUpdateAlarm(alarmList[i]);
     }
+
+    App.alarmListLoaded();
   });
 
   // On startup, update the status bar to show whether or not we have

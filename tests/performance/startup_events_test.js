@@ -9,10 +9,10 @@ var MarionetteHelper = requireGaia('/tests/js-marionette/helper.js');
 var appPath = mozTestInfo.appPath;
 
 var whitelistedApps = [
-  'communications/contacts',
-  'communications/dialer',
   'camera',
   'clock',
+  'communications/contacts',
+  'communications/dialer',
   'email',
   'fm',
   'gallery',
@@ -22,6 +22,7 @@ var whitelistedApps = [
 ];
 
 var whitelistedUnifiedApps = [
+  'clock',
   'communications/dialer',
   'email',
   'fm',
