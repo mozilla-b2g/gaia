@@ -131,8 +131,6 @@ AppUpdatable.prototype.progressCallBack = function() {
  *
  */
 function SystemUpdatable() {
-  var _ = navigator.mozL10n.get;
-  this.name = _('systemUpdate');
   this.nameL10nId = 'systemUpdate';
   this.size = 0;
   this.downloading = false;

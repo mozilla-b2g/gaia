@@ -249,9 +249,10 @@ var UpdateManager = {
 
       var name = document.createElement('div');
       name.classList.add('name');
-      name.textContent = updatable.name;
       if (updatable.nameL10nId) {
-        name.dataset.l10nId = updatable.nameL10nId;
+        _localize(name, updatable.nameL10nId);
+      } else {
+        name.textContent = updatable.name;
       }
       listItem.appendChild(name);
 
