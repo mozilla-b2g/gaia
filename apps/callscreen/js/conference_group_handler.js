@@ -6,7 +6,7 @@
 
 var ConferenceGroupHandler = (function() {
   var groupLine = document.getElementById('group-call');
-  var groupLabel = document.getElementById('group-call-label');
+  var groupLabel = document.getEleemntById('group-call-label');
   var groupDetails = document.getElementById('group-call-details');
   var groupDetailsHeader = groupDetails.querySelector('header');
   // FIXME/bug 1007148: Refactor duration element structure
@@ -23,7 +23,7 @@ var ConferenceGroupHandler = (function() {
   };
 
   var telephony = window.navigator.mozTelephony;
-  if(telephony.hasOwnProperty("conferenceGroup")) {
+  if(telephony.hasOwnProperty('conferenceGroup')) {
     telephony.conferenceGroup.oncallschanged = onCallsChanged;
     telephony.conferenceGroup.onstatechange = onStateChange;
     telephony.conferenceGroup.onerror = onConferenceError;
