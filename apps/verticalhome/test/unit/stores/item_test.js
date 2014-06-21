@@ -2,6 +2,7 @@
 
 /* global MocksHelper, MockIndexedDB, ItemStore, configurator  */
 
+require('/shared/js/l10n.js');
 require('/shared/test/unit/mocks/mock_indexedDB.js');
 require('/test/unit/mock_application_source.js');
 require('/test/unit/mock_bookmark_source.js');
