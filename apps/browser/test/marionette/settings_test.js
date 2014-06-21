@@ -27,13 +27,6 @@ marionette('Settings', function() {
       assert.ok(true, 'Settings is shown');
     });
 
-    test('No search engine choices', function() {
-      client.helper.waitForElement('#settings');
-      var searchEngineSection = client.findElement('#search-engine-section');
-      assert.ok(!searchEngineSection.displayed(),
-        'Search engine choices are not shown');
-    });
-
   });
 
 });
