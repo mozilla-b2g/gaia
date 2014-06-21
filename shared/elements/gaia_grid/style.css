@@ -62,10 +62,6 @@
   background: url(images/add.png) no-repeat;
 }
 
-.edit-mode .collection:not(.active) {
-  transition: transform 0.35s;
-}
-
 .icon p {
   pointer-events: none;
   height: 3.2rem;
@@ -121,8 +117,9 @@
 }
 
 .dragging .divider,
-.dragging .icon:not(.active) {
-  transition: transform 0.35s;
+.dragging .icon:not(.active),
+.dropped {
+  transition: transform 0.5s, opacity 0.5s;
 }
 
 .edit-mode .divider:last-child {

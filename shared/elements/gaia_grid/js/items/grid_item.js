@@ -360,8 +360,12 @@
      * Positions and scales an icon.
      */
     transform: function(x, y, scale) {
+      this.transformElement(this.element, x, y, scale);
+    },
+
+    transformElement: function(element, x, y, scale) {
       scale = scale || 1;
-      this.element.style.transform =
+      element.style.transform =
         'translate(' + x + 'px,' + y + 'px) scale(' + scale + ')';
     },
 
