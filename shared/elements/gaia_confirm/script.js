@@ -20,8 +20,24 @@ window.GaiaConfirm = (function(win) {
     this._template = template.content.cloneNode(true);
 
     shadow.appendChild(this._template);
-
     ComponentUtils.style.call(this, baseurl);
+  };
+
+  proto.attachedCallback = function() {
+    var confirm = this.querySelector('gaia-buttons .confirm');
+    var cancel = this.querySelector('gaia-buttons .cancel');
+
+    if (confirm) {
+      confirm.addEventListener('click', () => {
+        this.dispatchEvent(new CustomEvent('confirm'));
+      });
+    }
+
+    if (cancel) {
+      confirm.addEventListener('click', () => {
+        this.dispatchEvent(new CustomEvent('cancel'));
+      });
+    }
   };
 
   var template = document.createElement('template');
@@ -30,7 +46,8 @@ window.GaiaConfirm = (function(win) {
         '<content select="h1"></content>' +
         '<content select="p"></content>' +
       '</section>' +
-      '<content select="gaia-buttons"></content>' +
+      '<content select="gaia-buttons">' +
+      '</content>' +
     '</form>';
 
   // Register and return the constructor
