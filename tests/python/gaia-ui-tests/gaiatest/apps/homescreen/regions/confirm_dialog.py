@@ -9,7 +9,7 @@ from gaiatest.apps.base import Base
 
 class ConfirmDialog(Base):
 
-    _confirm_button_locator = (By.ID, 'confirmation-message-ok')
+    _confirm_button_locator = (By.CSS_SELECTOR, 'gaia-confirm .confirm')
 
     def tap_confirm(self):
         # TODO add a good wait here when Bug 1008961 is resolved

@@ -9,16 +9,18 @@
     <link rel="stylesheet" href="style/css/app.css">
     <link rel="stylesheet" href="style/css/search.css">
     <link rel="stylesheet" href="style/css/zoom.css">
+    <link rel="stylesheet" href="shared/elements/gaia_grid/style/external.css">
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
     <link rel="resource" type="application/l10n" href="/shared/locales/collection_categories.ini">
+    <link rel="resource" type="application/l10n" href="/shared/locales/gaia_grid.ini">
 
     <script defer src="shared/js/l10n.js"></script>
 
     <!-- Confirm dialog component -->
-    <script src="/shared/js/component_utils.js"></script>
-    <script src="/shared/elements/gaia_buttons/script.js"></script>
-    <script src="/shared/elements/gaia_confirm/script.js"></script>
-    <script src="/shared/elements/gaia_menu/script.js"></script>
+    <script defer src="/shared/js/component_utils.js"></script>
+    <script defer src="/shared/elements/gaia_buttons/script.js"></script>
+    <script defer src="/shared/elements/gaia_confirm/script.js"></script>
+    <script defer src="/shared/elements/gaia_menu/script.js"></script>
 
     <!-- Lazy load for Context Menu -->
     <!-- <script src="js/contextmenu_ui.js"></script> -->
@@ -29,6 +31,7 @@
     <script defer src="js/statusbar.js"></script>
 
     <script defer src="shared/js/homescreens/vertical_preferences.js"></script>
+    <script defer src="shared/js/homescreens/confirm_dialog_helper.js"></script>
     <script defer src="shared/js/bookmarks_database.js"></script>
     <script defer src="shared/js/collections_database.js"></script>
     <script defer src="shared/js/lazy_loader.js"></script>
@@ -83,15 +86,6 @@
       <div class="arrows"></div>
       <div class="indicator"></div>
     </div>
-
-    <gaia-confirm id="confirmation-message" hidden>
-      <h1 id="confirmation-message-title"></h1>
-      <p id="confirmation-message-body"></p>
-      <gaia-buttons skin="dark">
-        <button id="confirmation-message-cancel" type="button"></button>
-        <button id="confirmation-message-ok" type="button"></button>
-      </gaia-buttons>
-    </gaia-confirm>
 
     <gaia-menu id="contextmenu-dialog" hidden>
       <button id="change-wallpaper-action" data-l10n-id="change-wallpaper" type="button"></button>
