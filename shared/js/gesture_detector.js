@@ -164,9 +164,12 @@ var GestureDetector = (function() {
       return;
     }
 
-    var event = this.element.ownerDocument.createEvent('CustomEvent');
-    event.initCustomEvent(type, true, true, detail);
-    this.target.dispatchEvent(event);
+    var tgt = this.target;
+    setTimeout(function(self) {
+      var event = self.element.ownerDocument.createEvent('CustomEvent');
+      event.initCustomEvent(type, true, true, detail);
+      tgt.dispatchEvent(event);
+    }, 0, this);
   };
 
   //
