@@ -149,34 +149,38 @@
     },
 
     _setCallerIdPreference: function(conn, callerIdPreference, callback) {
-      var doSet = function() {
-        if(conn.hasOwnProperty('setCallingLineIdRestriction')) {
-          var setReq = conn.setCallingLineIdRestriction(callerIdPreference);
-          setReq.onsuccess = function set_cid_success() {
-            if (callback) {
+        if(!conn.hasOwnProperty('setCallingLineIdRestriction')) {
+          if (callback) {
               callback();
             }
-          };
-          setReq.onerror = function set_cid_error() {
-            console.error('Error set caller id restriction.');
-            if (callback) {
-              callback();
-            }
-          };
+            return;
         }
-
-        // Waiting for voice connected
-        if (conn.voice && conn.voice.connected) {
-          doSet();
-        } else {
-          conn.addEventListener('voicechange', function onchange() {
-            if (conn.voice && conn.voice.connected) {
-              conn.removeEventListener('voicechange', onchange);
-              doSet();
-            }
-          });
-        }
+        var doSet = function() {
+        var setReq = conn.setCallingLineIdRestriction(callerIdPreference);
+        setReq.onsuccess = function set_cid_success() {
+          if (callback) {
+            callback();
+          }
+        };
+        setReq.onerror = function set_cid_error() {
+          console.error('Error set caller id restriction.');
+          if (callback) {
+            callback();
+          }
+        };
       };
+
+      // Waiting for voice connected
+      if (conn.voice && conn.voice.connected) {
+        doSet();
+      } else {
+        conn.addEventListener('voicechange', function onchange() {
+          if (conn.voice && conn.voice.connected) {
+            conn.removeEventListener('voicechange', onchange);
+            doSet();
+          }
+        });
+      }
     },
 
     /**
