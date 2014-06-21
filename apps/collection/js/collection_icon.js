@@ -100,7 +100,6 @@
 
     // bgSrc: base64 image
     this.bgSrc = config.bgSrc || null;
-
   }
 
   Object.defineProperty(CollectionIcon, 'numAppIcons', {

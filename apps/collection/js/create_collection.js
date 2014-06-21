@@ -96,7 +96,6 @@
                           function each(app) {
                             return app.icon;
                         });
-
                       var collection = new QueryCollection({
                         query: selected,
                         webicons: webicons
@@ -133,11 +132,20 @@
 
                 Promise.all(iconsReady).then(function then() {
                   // Save the collections
-                  var trxs = collections.map(collection => {
-                    return collection.save('add');
-                  });
-                  Promise.all(trxs)
+                  function saveAll(collections) {
+                    var trxs = collections.map(collection => {
+                      return collection.save('add');
+                    });
+                    return trxs;
+                  }
+
+                  // XXX: We currently need to save before we populate info.
+                  Promise.all(saveAll(collections))
                   .then(populateNativeInfo.bind(null, collections))
+                  .then(generateIcons.bind(null, collections))
+                  .then(() => {
+                    return Promise.all(saveAll(collections));
+                  })
                   .then(postResultIds.bind(null, collections), postResultIds);
                 }).catch(function _catch(ex) {
                   eme.log('caught exception', ex);
@@ -151,6 +159,22 @@
                   nativeTasks.push(NativeInfo.processCollection(collection));
                 });
                 return Promise.all(nativeTasks);
+              }
+
+              function generateIcons(collections) {
+                var iconTasks = [];
+                collections.forEach(collection => {
+                  var promise =
+                    getBackground(collection, maxIconSize)
+                    .then(function setBackground(bgObject) {
+                      collection.background = bgObject;
+                      return collection.renderIcon();
+                    }, function noBackground() {
+                      return collection.renderIcon();
+                    });
+                  iconTasks.push(promise);
+                });
+                return Promise.all(iconTasks);
               }
 
               /**
