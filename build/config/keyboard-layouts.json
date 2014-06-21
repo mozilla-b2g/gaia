@@ -24,6 +24,9 @@
     "cy": [
         {"layoutId": "en", "app": ["apps", "keyboard"]}
     ],
+    "da": [
+        {"layoutId": "da", "app": ["apps", "keyboard"]}
+    ],
     "de": [
         {"layoutId": "de", "app": ["apps", "keyboard"]}
     ],
