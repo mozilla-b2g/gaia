@@ -43,7 +43,7 @@
   // the bottom of selected area to utility menu.
   TextSelectionDialog.prototype.DISTANCE_FROM_SELECTEDAREA_TO_MENUTOP = 34;
 
-  TextSelectionDialog.prototype.__proto__ = window.BaseUI.prototype;
+  TextSelectionDialog.prototype = Object.create(window.BaseUI.prototype);
 
   TextSelectionDialog.prototype.CLASS_NAME = 'TextSelectionDialog';
 
