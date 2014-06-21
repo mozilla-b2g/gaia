@@ -71,7 +71,8 @@
       app.grid.render();
       app.itemStore.save(app.grid.getItems());
 
-      appManager.sendEventToCollectionApp('install', application.manifestURL);
+      appManager.sendEventToCollectionApp('install',
+        { id: application.manifestURL });
     }
 
     /**
@@ -111,7 +112,8 @@
       var application = event.application;
       this.removeIconFromGrid(application.manifestURL);
       app.itemStore.save(app.grid.getItems());
-      appManager.sendEventToCollectionApp('uninstall', application.manifestURL);
+      appManager.sendEventToCollectionApp('uninstall',
+        { id: application.manifestURL });
     }.bind(this);
 
   }

@@ -86,14 +86,16 @@
           this.addIconToGrid(e.target);
           app.itemStore.save(app.grid.getItems());
           if (e.type === 'added') {
-            appManager.sendEventToCollectionApp('install', e.target.id);
+            appManager.sendEventToCollectionApp('install',
+              { id: e.target.id });
           }
           break;
         case 'removed':
           // The 'id' of a bookmark is really the url.
           var id = e.target.id;
           this.removeIconFromGrid(id);
-          appManager.sendEventToCollectionApp('uninstall', id);
+          appManager.sendEventToCollectionApp('uninstall',
+            { id: id });
           break;
       }
     },

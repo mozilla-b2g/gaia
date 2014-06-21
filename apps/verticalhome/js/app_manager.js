@@ -52,6 +52,7 @@
     window.addEventListener('gaiagrid-uninstall-mozapp', this);
     window.addEventListener('gaiagrid-cancel-download-mozapp', this);
     window.addEventListener('gaiagrid-resume-download-mozapp', this);
+    window.addEventListener('gaiagrid-add-to-collection', this);
   }
 
   AppManager.prototype = {
@@ -119,17 +120,19 @@
             }
           });
           break;
+
+        case 'gaiagrid-add-to-collection':
+          this.sendEventToCollectionApp('add-to-collection', e.detail);
+          break;
       }
     },
 
-    sendEventToCollectionApp: function(eventName, id) {
+    sendEventToCollectionApp: function(eventName, message) {
       var onAppReady = function(app) {
         app.connect(eventName).then(
           function onConnectionAccepted(ports) {
             ports.forEach(function(port) {
-              port.postMessage({
-                id: id
-              });
+              port.postMessage(message);
             });
           }, function onConnectionRejected() {
             console.error('Cannot connect to collection app');
