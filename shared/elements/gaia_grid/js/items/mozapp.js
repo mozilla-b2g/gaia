@@ -1,11 +1,25 @@
 'use strict';
-/* global GaiaGrid */
-/* global UrlHelper */
-/* global Promise */
+/* global ConfirmDialogHelper, GaiaGrid, UrlHelper */
 
 (function(exports) {
 
   const IDENTIFIER_SEP = '-';
+
+  var _ = navigator.mozL10n.get;
+
+  var MOZAPP_EVENTS = [
+    'downloadsuccess',
+    'downloaderror',
+    'downloadavailable',
+    'downloadapplied',
+    'progress'
+  ];
+
+  var APP_LOADING = 'loading';
+  var APP_ERROR = 'error';
+  var APP_UNRECOVERABLE = 'unrecoverable';
+  var APP_PAUSED = 'paused';
+  var APP_READY = 'ready';
 
   /**
    * Represents  single app icon on the homepage.
@@ -23,16 +37,81 @@
       defaultIconBlob: details && details.defaultIconBlob
     };
 
-    // Re-render on update
-    // XXX: This introduces a potential race condition. GridItem.renderIcon is
-    // not concurrency safe one image may override another without ordering.
-    this.app.ondownloadapplied =
-      GaiaGrid.GridItem.prototype.renderIcon.bind(this);
+    // XXX: Yes this is clobbering all other listeners to the app MozApp
+    //      should be in charge here otherwise the icon will be incorrect.
+    MOZAPP_EVENTS.forEach(function(type) {
+      this.app['on' + type] = this.handleEvent.bind(this);
+    }, this);
+
+    // determine and set the initial state of the app when it is inserted
+    this.setAppState(this._determineState(app));
   }
 
   Mozapp.prototype = {
 
     __proto__: GaiaGrid.GridItem.prototype,
+
+    /**
+    Figure out which state the app is in
+    */
+    _determineState: function(app) {
+      if (app.downloading) {
+        return APP_LOADING;
+      }
+
+      // Bug 1027491 - work around the fact that downloadError is not cleared
+      if (app.installState === 'installed') {
+        return APP_READY;
+      }
+
+      // is there is a pending download but we cannot download then this app is
+      // in an unrecoverable state due to some fatal error.
+      if (app.installState === 'pending' && !app.downloadAvailable) {
+        return APP_UNRECOVERABLE;
+      }
+
+      // Bug 1027347 - downloadError is always present even if there is no error
+      //               so we check both for the error and that the error has a
+      //               name.
+      if (app.downloadError && app.downloadError.name) {
+
+        // if the app was paused while the homescreen was running the
+        // downloaderror event will fire with the DOWNLOAD_CANCELED error.
+        if (app.downloadError.name === 'DOWNLOAD_CANCELED') {
+          return APP_PAUSED;
+        }
+
+        return APP_ERROR;
+      }
+
+      // Note that this logic is correct because app.downloading is caught above
+      // separately.
+      if (app.installState === 'pending') {
+        return APP_PAUSED;
+      }
+
+      return APP_READY;
+    },
+
+    handleEvent: function(event) {
+      switch (event.type) {
+        case 'progress':
+        case 'downloaderror':
+        case 'downloadsuccess':
+          this.setAppState(this._determineState(this.app));
+          break;
+
+        case 'downloadapplied':
+          // Need to set app state here to correctly handle the pause/resume
+          // case
+          this.setAppState(this._determineState(this.app));
+          // XXX: This introduces a potential race condition.
+          // GridItem.renderIcon is not concurrency safe one image may override
+          // another without ordering.
+          this.renderIcon();
+          break;
+      }
+    },
 
     /**
      * Returns the height in pixels of each icon.
@@ -139,31 +218,82 @@
       return this.app.removable;
     },
 
-    fetchIconBlob: function() {
-      var _super = GaiaGrid.GridItem.prototype.fetchIconBlob.bind(this);
-      if (!this.app.downloading) {
-        return _super();
-      }
-
-      // show the spinner while the app is downloading!
-      this.showDownloading();
-      this.app.onprogress = this.showDownloading.bind(this);
-
-      // XXX: This is not safe if some upstream consumer wanted to listen to
-      //      these events we just clobbered them.
-      return new Promise((accept, reject) => {
-        this.app.ondownloadsuccess = this.app.ondownloaderror = () => {
-          _super().
-            then((blob) => {
-              this.hideDownloading();
-              accept(blob);
-            }).
-            catch((e) => {
-              this.hideDownloading();
-              reject(e);
-            });
-        };
+    /**
+    Show a dialog to handle unrecoverable errors.
+    */
+    unrecoverableError: function() {
+      var dialog = new ConfirmDialogHelper({
+        type: 'unrecoverable',
+        title: _('gaia-grid-unrecoverable-error-title'),
+        body: _('gaia-grid-unrecoverable-error-body'),
+        confirm: {
+          title: _('gaia-grid-unrecoverable-error-action'),
+          cb: () =>  {
+            // XXX: this means whoever uses gaia-grid must have the
+            //      webapps-manage permission
+            navigator.mozApps.mgmt.uninstall(this.app);
+          }
+        }
       });
+      dialog.show(document.body);
+    },
+
+    cancel: function() {
+      var dialog = new ConfirmDialogHelper({
+        type: 'pause',
+        title: _('gaia-grid-stop-download-title', { name: this.name }),
+        body: _('gaia-grid-stop-download-body'),
+        cancel: {
+          title: _('gaia-grid-cancel')
+        },
+        confirm: {
+          title: _('gaia-grid-stop-download-action'),
+          type: 'danger',
+          cb: () =>  this.app.cancelDownload()
+        }
+      });
+      dialog.show(document.body);
+    },
+
+    resume: function() {
+      var dialog = new ConfirmDialogHelper({
+        type: 'resume',
+        title: _('gaia-grid-resume-download-title'),
+        body: _('gaia-grid-resume-download-body', { name: this.name }),
+        cancel: {
+          title: _('gaia-grid-cancel')
+        },
+        confirm: {
+          title: _('gaia-grid-resume-download-action'),
+          cb: () => {
+            // enter the loading state optimistically
+            this.setAppState(APP_LOADING);
+            this.app.download();
+          }
+        }
+      });
+      dialog.show(document.body);
+    },
+
+    setAppState: function(state) {
+      this.appState = state;
+
+      if (this.element) {
+        this.element.dataset.appState = state;
+      }
+    },
+
+    render: function() {
+      // If there is no element before we can render we need to update the
+      // app state. Render may also be called to reposition elements.
+      var needsStateSet = !this.element;
+
+      GaiaGrid.GridItem.prototype.render.apply(this, arguments);
+
+      if (needsStateSet) {
+        // ensure the newly rendered item has an app state
+        this.setAppState(this.appState);
+      }
     },
 
     /**
@@ -171,23 +301,28 @@
      */
     launch: function() {
       var app = this.app;
+
+      // allow the user to pause a ongoing download
       if (app.downloading) {
-        window.dispatchEvent(
-          new CustomEvent('gaiagrid-cancel-download-mozapp', {
-            'detail': this
-          })
-        );
-      } else if (app.downloadAvailable) {
-        window.dispatchEvent(
-          new CustomEvent('gaiagrid-resume-download-mozapp', {
-            'detail': this
-          })
-        );
-      } else if (this.entryPoint) {
-        app.launch(this.entryPoint);
-      } else {
-        app.launch();
+        return this.cancel();
       }
+
+      // if there is a download pending ask to resume it
+      if (app.downloadAvailable) {
+        return this.resume();
+      }
+
+      // let the user cleanup any failed installs that cannot be retried
+      if (app.installState == 'pending' && !app.downloadAvailable) {
+        return this.unrecoverableError();
+      }
+
+      if (this.entryPoint) {
+        return app.launch(this.entryPoint);
+      }
+
+      // default action is to launch the app
+      app.launch();
     },
 
     /**
@@ -197,14 +332,6 @@
       window.dispatchEvent(new CustomEvent('gaiagrid-uninstall-mozapp', {
         'detail': this
       }));
-    },
-
-    showDownloading: function() {
-      this.element.classList.add('loading');
-    },
-
-    hideDownloading: function() {
-      this.element.classList.remove('loading');
     }
   };
 

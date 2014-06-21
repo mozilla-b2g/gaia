@@ -34,6 +34,26 @@ function AppServer(root, marionette, port, proc) {
 AppServer.prototype = {
 
   /**
+  Trigger a 500 error for a particular url and return an empty body.
+
+  @param {String} url to fail (/index.html).
+  */
+  serverError: function(url) {
+    return post(this.marionette, this.url + '/settings/server_error', url);
+  },
+
+  /**
+  Clears the server error for a particular url.
+
+  @param {String} url to fail (/index.html).
+  */
+  clearServerError: function(url) {
+    return post(
+      this.marionette, this.url + '/settings/clear_server_error', url
+    );
+  },
+
+  /**
   Indicate to the server that all requests to the given url should be
   given a response with headers but then the socket should be closed shortly
   after that time.
