@@ -163,7 +163,7 @@
             callback();
           }
         };
-      };
+      }
 
       // Waiting for voice connected
       if (conn.voice && conn.voice.connected) {
@@ -176,7 +176,7 @@
           }
         });
       }
-    }
+    };
     },
 
     /**
