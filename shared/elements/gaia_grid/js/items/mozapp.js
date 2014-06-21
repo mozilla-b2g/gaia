@@ -153,7 +153,7 @@
         return this.defaultIcon;
       }
 
-      var maxSize = this.grid.layout.gridMaxMozappSize; // The goal size
+      var maxSize = this.grid.layout.gridMaxIconSize; // The goal size
       var accurateSize = list[0]; // The biggest icon available
       for (var i = 0; i < length; i++) {
         var size = list[i];
