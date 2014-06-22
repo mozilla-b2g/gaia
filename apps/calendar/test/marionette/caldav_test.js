@@ -28,7 +28,11 @@ marionette('configure CalDAV accounts', function() {
     app = new Calendar(client);
     app.launch({ hideSwipeHint: true });
 
-    serverHelper.start(null, function(port) {
+    serverHelper.start(function(error, port) {
+      if (error) {
+        return done(error);
+      }
+
       var accountUrl = 'http://localhost:' + port + '/' + ACCOUNT_USERNAME,
           startDate = new Date(),
           endDate = new Date(),
