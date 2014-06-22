@@ -318,6 +318,9 @@
 
       this.removeAllPlaceholders();
       this.cleanItems(options.skipDivider);
+      if (options.skipItems) {
+        return;
+      }
 
       // Start rendering from one before the drop target. If not,
       // we may drop over the divider and miss rendering an icon.
