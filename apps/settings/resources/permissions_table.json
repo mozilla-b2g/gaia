@@ -55,6 +55,7 @@
     "audio-channel-publicnotification",
     "open-remote-window",
     "audio-capture",
-    "video-capture"
+    "video-capture",
+    "mobileid"
   ]
 }
