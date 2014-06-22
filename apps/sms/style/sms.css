@@ -803,6 +803,7 @@ form[role="dialog"][data-type="action"].contact-prompt > header {
   padding: 0 0 0.7rem;
   margin: 0;
   overflow: hidden;
+  text-overflow: ellipsis;
 
   font-size: 1.5rem;
 }
