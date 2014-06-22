@@ -55,6 +55,13 @@ suite('system/ChildWindowFactory', function() {
     features: 'dialog'
   };
 
+  var fakeWindowOpenHaidaSheet = {
+    url: 'http://fake.com/child2.html',
+    name: '_blank',
+    iframe: document.createElement('iframe'),
+    features: 'mozhaidasheet'
+  };
+
   var fakeActivityDetail = {
     url: 'http://fake.activity/open.html',
     origin: 'http://fake.activity',
@@ -169,6 +176,18 @@ suite('system/ChildWindowFactory', function() {
         detail: fakeWindowOpenDetailCrossOrigin
       }));
     assert.isFalse(spy.calledWithNew());
+  });
+
+  test('Use mozhaidasheet to open inner sheet', function() {
+    var app1 = new MockAppWindow(fakeAppConfig1);
+    var spy = this.sinon.spy(window, 'AppWindow');
+    var cwf = new ChildWindowFactory(app1);
+    this.sinon.stub(app1, 'isActive').returns(true);
+    cwf.handleEvent(new CustomEvent('mozbrowseropenwindow',
+      {
+        detail: fakeWindowOpenHaidaSheet
+      }));
+    assert.isTrue(spy.calledWithNew());
   });
 
   test('Create ActivityWindow', function() {

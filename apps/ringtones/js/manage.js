@@ -33,7 +33,7 @@
 
     activity.onsuccess = function() {
       var result = activity.result;
-      var popup = window.open('share.html');
+      var popup = window.open('share.html', 'share', 'mozhaidasheet');
       popup.addEventListener('load', function loaded() {
         popup.removeEventListener('load', loaded);
         popup.postMessage(result, window.location.origin);
