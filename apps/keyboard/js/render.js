@@ -648,8 +648,24 @@ const IMERender = (function() {
       content.appendChild(
         buildKey(alt, '', width + 'px', dataset, null, attributeList));
     });
+    var allAltKeys = content.children;
+    var numberAllAltKeys = allAltKeys.length;
+    if (numberAllAltKeys > 5 && numberAllAltKeys < 19) {
+      var breakPosition = Math.floor(allAltKeys.length / 2);
+
+      // Fix min-width
+      allAltKeys[breakPosition].style.minWidth = '4.2rem';
+      allAltKeys[breakPosition + 1].style.minWidth = '4.2rem';
+
+      var breakBefore = allAltKeys[breakPosition];
+      content.insertBefore(document.createElement('br'), breakBefore);
+
+    }
+
     menu.innerHTML = '';
     menu.appendChild(content);
+    menu.style.lineHeight = '0rem';
+    menu.style.textAlign = 'left';
 
     // Replace with the container
     _altContainer = document.createElement('div');
@@ -666,6 +682,13 @@ const IMERender = (function() {
       .querySelectorAll('.visual-wrapper > span')[0]
       .appendChild(menu);
     menu.style.display = 'block';
+    if (numberAllAltKeys > 5 && numberAllAltKeys < 19) {
+      menu.style.top = '-12rem';
+      menu.style.height = '12rem';
+    } else {
+      menu.style.top = '-6rem';
+      menu.style.height = '6rem';
+    }
 
     function getWindowLeft(obj) {
       var left;
