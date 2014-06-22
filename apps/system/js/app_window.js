@@ -1116,7 +1116,11 @@
       JSON.stringify(detail));
 
     // Publish external event.
-    window.dispatchEvent(evt);
+    if (this.rearWindow && this.element) {
+      this.element.dispatchEvent(evt);
+    } else {
+      window.dispatchEvent(evt);
+    }
   };
 
   AppWindow.prototype.broadcast = function aw_broadcast(event, detail) {
@@ -1811,22 +1815,6 @@
     var bottomMostWindow = this.getBottomMostWindow();
     return bottomMostWindow.isActive() && this.isActive();
   };
-
-  AppWindow.prototype._handle_activityopened =
-    function aw__handle_activityopened() {
-      // Set page visibility of focused app to false
-      // once inline activity frame's transition is ended.
-      // XXX: We have trouble to make all inline activity
-      // openers being sent to background now,
-      // because of OOM killer may kill them accidently.
-      // See https://bugzilla.mozilla.org/show_bug.cgi?id=914412,
-      // and https://bugzilla.mozilla.org/show_bug.cgi?id=822325.
-      // So we only set browser app(in-process)'s page visibility
-      // to false now to resolve 914412.
-      if (this.CLASS_NAME === 'AppWindow' && !this.isOOP()) {
-        this.setVisible(false, true);
-      }
-    };
 
   /**
    * Make adjustments to display inside the task manager
