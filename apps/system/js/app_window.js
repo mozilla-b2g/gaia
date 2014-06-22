@@ -622,8 +622,8 @@
      'mozbrowsertitlechange', 'mozbrowserlocationchange',
      'mozbrowsericonchange', 'mozbrowserasyncscroll',
      '_localized', '_swipein', '_swipeout', '_kill_suspended',
-     'popupterminated', 'activityterminated', 'activityclosing',
-     'popupclosing', 'activityopened', '_orientationchange', '_focus'];
+     '_orientationchange', '_focus',
+     '_closing', '_terminated', '_opened'];
 
   AppWindow.SUB_COMPONENTS = {
     'transitionController': window.AppTransitionController,
@@ -882,11 +882,11 @@
       return;
     }
     this.constructor.REGISTERED_EVENTS.forEach(function iterator(evt) {
-      this.element.addEventListener(evt, this);
+      this.element.addEventListener(evt, this, true);
     }, this);
     SELF_MANAGED_EVENTS.forEach(function iterator(evt) {
       if (this.constructor.REGISTERED_EVENTS.indexOf(evt) < 0) {
-        this.element.addEventListener(evt, this);
+        this.element.addEventListener(evt, this, true);
       }
     }, this);
   };
@@ -906,8 +906,14 @@
     // When an activity is killed we remove the rearWindow reference first
     // but we don't want subsequent mozbrowser events to bubble to the
     // used-to-be-rear-window
-    if (this.rearWindow || this._killed) {
+    if ((this.rearWindow || this._killed) &&
+        evt.type.startsWith('mozbrowser')) {
       evt.stopPropagation();
+    }
+    if (evt.detail && evt.detail.instanceID &&
+        evt.detail.instanceID == this.instanceID) {
+      // Usually we don't want to catch an event fired from us.
+      return;
     }
     this.debug(' Handling ' + evt.type + ' event...');
     if (this['_handle_' + evt.type]) {
@@ -1104,22 +1110,6 @@
    * @param  {Object} detail Parameters in JSON format.
    */
   AppWindow.prototype.publish = function(event, detail) {
-    // Dispatch internal event before external events.
-    this.broadcast(event, detail);
-    var evt = new CustomEvent(this.eventPrefix + event,
-                {
-                  bubbles: true,
-                  detail: detail || this
-                });
-
-    this.debug(' publishing external event: ' + event +
-      JSON.stringify(detail));
-
-    // Publish external event.
-    window.dispatchEvent(evt);
-  };
-
-  AppWindow.prototype.broadcast = function aw_broadcast(event, detail) {
     // Broadcast internal event.
     if (this.element) {
       var internalEvent = new CustomEvent('_' + event,
@@ -1130,6 +1120,32 @@
 
       this.debug(' publishing internal event: ' + event);
       this.element.dispatchEvent(internalEvent);
+    }
+    var evt = new CustomEvent(this.eventPrefix + event,
+                {
+                  bubbles: true,
+                  detail: detail || this
+                });
+
+    this.debug(' publishing external event: ' + event +
+      JSON.stringify(detail));
+
+    window.dispatchEvent(evt);
+  };
+
+  AppWindow.prototype.broadcast = function aw_broadcast(event, detail) {
+    this.debug(' Handling ' + event + ' event...');
+    var internalEvent = new CustomEvent('_' + event,
+                          {
+                            bubbles: false,
+                            detail: detail || this
+                          });
+
+    this.debug(' publishing internal event: ' + event);
+    this.element.dispatchEvent(internalEvent);
+    if (this['_handle__' + event]) {
+      this.debug(' Handling ' + event + ' event...');
+      this['_handle__' + event]();
     }
   };
 
@@ -1761,11 +1777,7 @@
     return top.browser ? top.browser.element : null;
   };
 
-  AppWindow.prototype._handle_activityterminated = function() {
-    this.frontWindow = null;
-  };
-
-  AppWindow.prototype._handle_popupterminated = function() {
+  AppWindow.prototype._handle__terminated = function() {
     this.frontWindow = null;
   };
 
@@ -1773,7 +1785,7 @@
    * Restore visibility and orientation when the embedded window
    * is closing.
    */
-  AppWindow.prototype._handle_activityclosing = function() {
+  AppWindow.prototype._handle__closing = function() {
     // Do nothing if we are not active or we are being killing.
     if (!this.isVisible() || this._killed) {
       return;
@@ -1812,8 +1824,8 @@
     return bottomMostWindow.isActive() && this.isActive();
   };
 
-  AppWindow.prototype._handle_activityopened =
-    function aw__handle_activityopened() {
+  AppWindow.prototype._handle__opened =
+    function aw__handle__opened() {
       // Set page visibility of focused app to false
       // once inline activity frame's transition is ended.
       // XXX: We have trouble to make all inline activity
