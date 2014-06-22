@@ -41,6 +41,39 @@ marionette('Vertical - Search', function() {
     search.removeGeolocationPermission();
   });
 
+  test('Search notification', function() {
+
+    var searchUrl = server.url('search.html') + '?q={searchTerms}';
+    client.settings.set('search.urlTemplate', searchUrl);
+
+    home.waitForLaunch();
+    home.focusRocketBar();
+
+    var confirmSelector = Search.Selectors.firstRunConfirm;
+    // Notice should not be displayed if we type < 3 characters
+    rocketbar.enterText('ab');
+    rocketbar.enterText('cd');
+    search.goToResults();
+    assert.ok(!client.findElement(confirmSelector).displayed());
+
+    // Notice should be displayed if we show > 3 characters
+    client.switchToFrame();
+    rocketbar.enterText('abc');
+    search.goToResults();
+    assert.ok(client.findElement(confirmSelector).displayed());
+
+    // Notice should be dismissed if we press enter
+    client.switchToFrame();
+    rocketbar.enterText('abc\uE006');
+    client.apps.switchToApp(Browser.URL);
+    client.switchToFrame();
+    home.pressHomeButton();
+    client.apps.switchToApp(Home2.URL);
+    home.focusRocketBar();
+    search.goToResults();
+    assert.ok(!client.findElement(confirmSelector).displayed());
+  });
+
   test('General walkthrough', function() {
 
     var searchUrl = server.url('search.html') + '?q={searchTerms}';

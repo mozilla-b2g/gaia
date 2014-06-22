@@ -873,6 +873,9 @@
         case 'render':
           this.activate(this.focus.bind(this));
           break;
+        case 'focus':
+          this.focus();
+          break;
         case 'input':
           this.input.value = e.detail.input;
           this.focus();

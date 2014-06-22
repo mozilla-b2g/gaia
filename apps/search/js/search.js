@@ -36,7 +36,7 @@
      */
     suggestionNotice: document.getElementById('suggestions-notice-wrapper'),
     toShowNotice: true,
-    changeCount: 0,
+    NOTICE_KEY: 'notice-shown',
 
     init: function() {
 
@@ -135,7 +135,7 @@
       var input = msg.data.input;
       var providers = this.providers;
 
-      this.maybeShowNotice();
+      this.maybeShowNotice(input);
       this.clear();
 
       this.changeTimeout = setTimeout(function doSearch() {
@@ -157,22 +157,24 @@
      */
     initNotice: function() {
 
-      var noticeKey = 'notice-shown';
       var confirm = document.getElementById('suggestions-notice-confirm');
 
-      confirm.addEventListener('click', function() {
-        this.suggestionNotice.hidden = true;
-        this.toShowNotice = false;
-        asyncStorage.setItem(noticeKey, true);
-      }.bind(this));
+      confirm.addEventListener('click', this.discardNotice.bind(this));
 
-      asyncStorage.getItem(noticeKey, function(value) {
+      asyncStorage.getItem(this.NOTICE_KEY, function(value) {
         this.toShowNotice = !value;
       }.bind(this));
     },
 
-    maybeShowNotice: function() {
-      if (this.toShowNotice && ++this.changeCount > 2) {
+    discardNotice: function() {
+      this.suggestionNotice.hidden = true;
+      this.toShowNotice = false;
+      asyncStorage.setItem(this.NOTICE_KEY, true);
+      this._port.postMessage({'action': 'focus'});
+    },
+
+    maybeShowNotice: function(msg) {
+      if (msg.length > 2 && this.toShowNotice) {
         this.suggestionNotice.hidden = false;
       }
     },
@@ -206,6 +208,11 @@
      * Called when the user submits the search form
      */
     submit: function(msg) {
+
+      if (!this.suggestionNotice.hidden) {
+        this.discardNotice();
+      }
+
       var input = msg.data.input;
 
       // Not a valid URL, could be a search term
