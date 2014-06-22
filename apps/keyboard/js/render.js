@@ -613,41 +613,76 @@ const IMERender = (function() {
       key.dataset.compositeKey.length : 1;
 
     // Build a key for each alternative
-    altChars.forEach(function(alt, index) {
-      var dataset = alt.length == 1 ?
-        [
-          { 'key': 'keycode', 'value': alt.charCodeAt(0) },
-          { 'key': 'keycodeUpper', 'value': alt.toUpperCase().charCodeAt(0) }
-        ] :
-        [{'key': 'compositeKey', 'value': alt}];
-
-      // Make each of these alternative keys 75% as wide as the key that
-      // it is an alternative for, but adjust for the relative number of
-      // characters in the original and the alternative
-      var width = 0.75 * key.offsetWidth / keycharwidth * alt.length;
-
-      var attributeList = [];
-
-      if (ariaLabelMap[alt]) {
-        attributeList.push({
-          key: 'data-l10n-id',
-          value: ariaLabelMap[alt]
-        });
+    var numberAltKeys = altChars.length;
+    var numberRows;
+    if (numberAltKeys < 6) {
+      numberRows = 1;
+    } else {
+      if (numberAltKeys < 19) {
+        numberRows = 2;
       } else {
-        attributeList.push({
-          key: 'aria-label',
-          value: alt
-        });
+        numberRows = 3;
       }
+    }
+    var numberCols = Math.ceil(numberAltKeys / numberRows);
+    var alt, index, keyAlternativeClassName;
+    // This loop is need so that alternatives is sorted following the
+    // recommendation, e.g.:
+    //
+    //     #5 #6 #7
+    //     #1 #2 #3 #4
+    for (var i = numberRows - 1; i >= 0; i--) {
+      for (var j = 0; j < numberCols; j++) {
+        index = i * numberCols + j;
+        if (index === altChars.length || j === 0 || j === numberCols) {
+          keyAlternativeClassName = 'alternative-key-on-border';
+        } else {
+          keyAlternativeClassName = '';
+        }
+        if (index < altChars.length) {
+          alt = altChars[index];
+          var dataset = alt.length == 1 ?
+            [
+              { 'key': 'keycode', 'value': alt.charCodeAt(0) },
+              { 'key': 'keycodeUpper',
+                'value': alt.toUpperCase().charCodeAt(0) }
+            ] :
+            [{'key': 'compositeKey', 'value': alt}];
 
-      attributeList.push({
-        key: 'role',
-        value: 'key'
-      });
+          // Make each of these alternative keys 75% as wide as the key that
+          // it is an alternative for, but adjust for the relative number of
+          // characters in the original and the alternative
+          var width = 0.75 * key.offsetWidth / keycharwidth * alt.length;
 
-      content.appendChild(
-        buildKey(alt, '', width + 'px', dataset, null, attributeList));
-    });
+          var attributeList = [];
+
+          if (ariaLabelMap[alt]) {
+            attributeList.push({
+              key: 'data-l10n-id',
+              value: ariaLabelMap[alt]
+            });
+          } else {
+            attributeList.push({
+              key: 'aria-label',
+              value: alt
+            });
+          }
+
+          attributeList.push({
+            key: 'role',
+            value: 'key'
+          });
+
+          content.appendChild(
+            buildKey(alt, keyAlternativeClassName, width + 'px',
+              dataset, null, attributeList));
+        }
+      }
+      if (i > 0) {
+        content.appendChild(document.createElement('br'));
+      }
+    }
+
     menu.innerHTML = '';
     menu.appendChild(content);
 
@@ -666,6 +701,15 @@ const IMERender = (function() {
       .querySelectorAll('.visual-wrapper > span')[0]
       .appendChild(menu);
     menu.style.display = 'block';
+    if (numberRows === 1) {
+      menu.classList.add('kbr-menu-one-rows');
+    } else {
+      if (numberRows == 2) {
+        menu.classList.add('kbr-menu-two-rows');
+      } else {
+        menu.classList.add('kbr-menu-three-rows');
+      }
+    }
 
     function getWindowLeft(obj) {
       var left;
