@@ -40,8 +40,6 @@ class ContactForm(Base):
         element = self.marionette.find_element(*self._family_name_locator)
         element.clear()
         element.send_keys(value)
-        self.keyboard.dismiss()
-        self.switch_to_contacts_frame()
 
     @property
     def phone(self):
@@ -51,8 +49,6 @@ class ContactForm(Base):
         element = self.marionette.find_element(*self._phone_locator)
         element.clear()
         element.send_keys(value)
-        self.keyboard.dismiss()
-        self.switch_to_contacts_frame()
 
     @property
     def email(self):
