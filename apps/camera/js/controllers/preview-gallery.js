@@ -84,7 +84,6 @@ PreviewGalleryController.prototype.openPreview = function() {
   this.view.set('secure-mode', secureMode);
   this.view.open();
 
-  this.app.set('previewGalleryOpen', true);
   this.previewItem();
   this.app.emit('previewgallery:opened');
 };
@@ -104,7 +103,6 @@ PreviewGalleryController.prototype.closePreview = function() {
     this.view = null;
   }
 
-  this.app.set('previewGalleryOpen', false);
   this.app.emit('previewgallery:closed');
 };
 

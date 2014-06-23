@@ -19,6 +19,8 @@ require(['config/require', 'config'], function() {
     var GeoLocation = require('lib/geo-location');
     var Activity = require('lib/activity');
     var Storage = require('lib/storage');
+    var Pinch = require('lib/pinch');
+
     var controllers = {
       hud: require('controllers/hud'),
       controls: require('controllers/controls'),
@@ -64,7 +66,8 @@ require(['config/require', 'config'], function() {
       camera: camera,
       sounds: sounds,
       controllers: controllers,
-      storage: new Storage()
+      storage: new Storage(),
+      Pinch: Pinch
     });
 
     debug('created app');

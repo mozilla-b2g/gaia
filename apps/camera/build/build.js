@@ -26,6 +26,25 @@ CameraAppBuilder.prototype.setOptions = function(options) {
 
 CameraAppBuilder.prototype.customizeMaximumImageSize = function(options) {
   var distDir = options.GAIA_DISTRIBUTION_DIR;
+
+  if (options.GAIA_MEMORY_PROFILE === 'low') {
+    DEFAULT_VALUE.maxImagePixelSize = 2 * 1024 * 1024;
+    DEFAULT_VALUE.maxSnapshotPixelSize = 1600 * 1200; // Tarako camera size
+    // Reduce the size of images returned by pick activities because
+    // we have to rotate many images on Tarako
+    DEFAULT_VALUE.maxPickPixelSize = 800 * 600;
+    // On Tarako devices we can't reliably edit full-size photos.
+    // This setting reduces them to quarter size before editing.
+    // This should make the editor UI more responsive and less prone
+    // to crashing. But it also means that edited photos will be .5
+    // megapixel instead of 2 megapixel
+    DEFAULT_VALUE.maxEditPixelSize = 800 * 600;
+  }
+  else if (options.GAIA_MEMORY_PROFILE === '256') {
+    DEFAULT_VALUE.maxImagePixelSize = 3 * 1024 * 1024;
+  }
+
+
   var customize = JSON.parse(utils.getDistributionFileContent('camera',
                     DEFAULT_VALUE, distDir));
   

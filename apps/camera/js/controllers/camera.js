@@ -46,6 +46,7 @@ CameraController.prototype.bindEvents = function() {
   camera.on('change:videoElapsed', app.firer('camera:recorderTimeUpdate'));
   camera.on('change:capabilities', this.app.setter('capabilities'));
   camera.on('change:focus', this.app.firer('camera:focuschanged'));
+  camera.on('change:previewActive', this.app.firer('camera:previewactive'));
   camera.on('filesizelimitreached', this.onFileSizeLimitReached);
   camera.on('configured', app.firer('camera:configured'));
   camera.on('change:recording', app.setter('recording'));
@@ -64,7 +65,8 @@ CameraController.prototype.bindEvents = function() {
   app.on('blur', this.onBlur);
   app.on('settings:configured', this.onSettingsConfigured);
   app.on('change:batteryStatus', this.onBatteryStatusChange);
-  app.on('previewgallery:opened', this.onPreviewGalleryOpened);
+  app.on('previewgallery:opened', this.shutdownCamera);
+  app.on('previewgallery:closed', this.onGalleryClosed);
   app.on('attentionscreenopened', this.camera.stopRecording);
 
   // Settings
@@ -312,10 +314,7 @@ CameraController.prototype.setFlashMode = function() {
 };
 
 CameraController.prototype.onBlur = function() {
-  this.camera.stopRecording();
-  this.camera.set('previewActive', false);
-  this.camera.set('focus', 'none');
-  this.camera.release();
+  this.shutdownCamera();
   debug('torn down');
 };
 
@@ -367,12 +366,16 @@ CameraController.prototype.onStorageStateChange = function(value) {
   }
 };
 
-/**
- * Resets the camera zoom when the preview gallery
- * is opened.
- */
-CameraController.prototype.onPreviewGalleryOpened = function() {
-  this.camera.configureZoom(this.camera.previewSize());
+CameraController.prototype.shutdownCamera = function() {
+  this.camera.stopRecording();
+  this.camera.set('previewActive', false);
+  this.camera.set('focus', 'none');
+  this.camera.release();
+};
+
+CameraController.prototype.onGalleryClosed = function() {
+  this.app.showLoading();
+  this.camera.load(this.app.clearLoading);
 };
 
 });

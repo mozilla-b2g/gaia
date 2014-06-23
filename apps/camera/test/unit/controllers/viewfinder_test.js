@@ -16,7 +16,7 @@ suite('controllers/viewfinder', function() {
       'lib/setting'
     ], function(
       App, Camera, ViewfinderController, ViewfinderView,
-      FocusRingView, Activity, Settings, Setting) {
+      FocusRingView, Activity, Settings, Setting, Pinch) {
       self.ViewfinderController = ViewfinderController.ViewfinderController;
       self.ViewfinderView = ViewfinderView;
       self.FocusRingView = FocusRingView;
@@ -24,7 +24,7 @@ suite('controllers/viewfinder', function() {
       self.Setting = Setting;
       self.Activity = Activity;
       self.Camera = Camera;
-      self.App = App;
+      self. App = App;
       done();
     });
   });
@@ -39,6 +39,8 @@ suite('controllers/viewfinder', function() {
       viewfinder: sinon.createStubInstance(this.ViewfinderView),
       focusRing: sinon.createStubInstance(this.FocusRingView),
     };
+    this.app.Pinch = sinon.stub();
+    this.app.Pinch.prototype.on = sinon.stub();
 
     // Fake elements
     this.app.views.viewfinder.els = { video: {} };
@@ -66,23 +68,27 @@ suite('controllers/viewfinder', function() {
 
   suite('ViewfinderController()', function() {
     test('Should stop the stream when the PreviewGallery is opened', function() {
-      assert.isTrue(this.app.on.calledWith('previewgallery:opened', this.controller.stopStream));
+      assert.isTrue(this.app.on.calledWith('previewgallery:opened',
+        this.controller.onGalleryOpened));
     });
 
     test('Should start the stream when the PreviewGallery is closed', function() {
-      assert.isTrue(this.app.on.calledWith('previewgallery:closed', this.controller.startStream));
+      assert.isTrue(this.app.on.calledWith('previewgallery:closed',
+        this.controller.onGalleryClosed));
     });
 
-    test('Should stop the stream when on app blur', function() {
-      assert.isTrue(this.app.on.calledWith('blur', this.controller.stopStream));
+    test('Should stop the stream preview is false', function() {
+      assert.isTrue(this.app.on.calledWith('camera:previewactive', this.controller.onPreviewActive));
     });
 
     test('Should hide the grid when the settings menu opened', function() {
-      assert.isTrue(this.app.on.calledWith('settings:opened', this.controller.hideGrid));
+      assert.isTrue(this.app.on.calledWith('settings:opened',
+        this.controller.onSettingsOpened));
     });
 
     test('Should show the grid again when the settings menu is closed', function() {
-      assert.isTrue(this.app.on.calledWith('settings:closed', this.controller.configureGrid));
+      assert.isTrue(this.app.on.calledWith('settings:closed',
+        this.controller.onSettingsClosed));
     });
 
     test('Should flash viewfinder shutter when camera shutter fires', function() {
@@ -111,18 +117,13 @@ suite('controllers/viewfinder', function() {
     });
   });
 
-  suite('ViewfinderController#startStream()', function() {
+  suite('ViewfinderController#loadStream()', function() {
     test('Should load preview stream into viewfinder video element', function() {
       var video = this.viewfinder.els.video;
-      this.controller.startStream();
+      this.controller.loadStream();
       assert.isTrue(this.camera.loadStreamInto.calledWith(video));
     });
 
-    test('Should not `loadStreamInto` if preview-gallery is open', function() {
-      this.app.get.withArgs('previewGalleryOpen').returns(true);
-      this.controller.startStream();
-      assert.isFalse(this.camera.loadStreamInto.called);
-    });
   });
 
   suite('ViewfinderController#configurePreview()', function() {
