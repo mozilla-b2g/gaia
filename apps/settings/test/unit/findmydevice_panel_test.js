@@ -22,7 +22,7 @@ var mocksForFindMyDevice = new MocksHelper([
 suite('Find My Device panel > ', function() {
   var MockMozId, realMozId;
   var realL10n, realLoadJSON, subject;
-  var signinSection, settingsSection, loginButton, checkbox;
+  var signinSection, settingsSection, trackingSection, loginButton, checkbox;
 
   mocksForFindMyDevice.attachTestHelpers();
 
@@ -31,7 +31,9 @@ suite('Find My Device panel > ', function() {
     navigator.mozL10n = {
       once: function(callback) {
         callback();
-      }
+      },
+      localize: function(element, id) {
+      },
     };
 
     realMozId = navigator.mozId;
@@ -77,6 +79,7 @@ suite('Find My Device panel > ', function() {
       // grab pointers to useful elements
       signinSection = document.getElementById('findmydevice-signin');
       settingsSection = document.getElementById('findmydevice-settings');
+      trackingSection = document.getElementById('findmydevice-tracking');
       loginButton = document.getElementById('findmydevice-login');
       checkbox = document.querySelector('#findmydevice-enabled input');
 
@@ -114,6 +117,22 @@ suite('Find My Device panel > ', function() {
     MockMozId.onlogin();
     var nLocks = MockSettingsListener.getSettingsLock().locks.length;
     assert.equal(nLocks, 0, 'set no settings on non-interactive login');
+  });
+
+  test('notify in settings panel when phone is tracked', function() {
+    MockSettingsListener.mCallbacks['findmydevice.enabled'](false);
+    assert.isTrue(trackingSection.hidden);
+    MockSettingsListener.mCallbacks['findmydevice.enabled'](true);
+    assert.isFalse(trackingSection.hidden);
+
+    this.sinon.spy(navigator.mozL10n, 'localize');
+    MockSettingsListener.mCallbacks['findmydevice.tracking'](true);
+    assert.ok(navigator.mozL10n.localize.calledWith(
+        trackingSection, 'findmydevice-active-tracking'));
+    MockSettingsListener.mCallbacks['findmydevice.tracking'](false);
+    assert.ok(navigator.mozL10n.localize.calledWith(
+        trackingSection, 'findmydevice-not-tracking'));
+    navigator.mozL10n.localize.reset();
   });
 
   suiteTeardown(function() {
