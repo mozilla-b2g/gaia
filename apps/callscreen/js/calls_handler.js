@@ -3,9 +3,6 @@
 
 'use strict';
 
-/* globals BluetoothHelper, CallScreen, Contacts, FontSizeManager, HandledCall,
-           KeypadManager, LazyL10n, SimplePhoneMatcher, TonePlayer, Utils */
-
 var CallsHandler = (function callsHandler() {
   // Changing this will probably require markup changes
   var CALLS_LIMIT = 2;
@@ -245,9 +242,6 @@ var CallsHandler = (function callsHandler() {
 
       if (!number) {
         CallScreen.incomingNumber.textContent = _('withheld-number');
-        FontSizeManager.adaptToSpace(
-          FontSizeManager.CALL_WAITING, CallScreen.incomingNumber,
-          CallScreen.fakeIncomingNumber, false, 'end');
         return;
       }
 
@@ -265,13 +259,11 @@ var CallsHandler = (function callsHandler() {
           CallScreen.incomingNumber.textContent = contact.name;
           CallScreen.incomingNumberAdditionalInfo.textContent =
             Utils.getPhoneNumberAdditionalInfo(matchingTel);
-        } else {
-          CallScreen.incomingNumber.textContent = number;
-          CallScreen.incomingNumberAdditionalInfo.textContent = '';
+          return;
         }
-        FontSizeManager.adaptToSpace(
-          FontSizeManager.CALL_WAITING, CallScreen.incomingNumber,
-          CallScreen.fakeIncomingNumber, false, 'end');
+
+        CallScreen.incomingNumber.textContent = number;
+        CallScreen.incomingNumberAdditionalInfo.textContent = '';
       });
     });
 

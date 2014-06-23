@@ -1,11 +1,13 @@
 /* exported KeypadManager */
 
 /* globals CallHandler, CallLogDBManager, CallsHandler, CallScreen,
-           CustomDialog, FontSizeManager, LazyLoader, LazyL10n,
-           MultiSimActionButton, PhoneNumberActionMenu, SimPicker,
-           SettingsListener, TonePlayer */
+           CustomDialog, LazyLoader, LazyL10n, MultiSimActionButton,
+           PhoneNumberActionMenu, SimPicker, SettingsListener, TonePlayer,
+           Utils */
 
 'use strict';
+
+var kFontStep = 4;
 
 // Frequencies coming from http://en.wikipedia.org/wiki/Telephone_keypad
 var gTonesFrequencies = {
@@ -66,6 +68,9 @@ DtmfTone.kShortToneLength = 120;
 
 var KeypadManager = {
 
+  _MAX_FONT_SIZE_DIAL_PAD: 18,
+  _MAX_FONT_SIZE_ON_CALL: 16,
+
   _phoneNumber: '',
   _onCall: false,
 
@@ -76,82 +81,71 @@ var KeypadManager = {
 
   get phoneNumberView() {
     delete this.phoneNumberView;
-    this.phoneNumberView = document.getElementById('phone-number-view');
-    return this.phoneNumberView;
+    return (this.phoneNumberView =
+      document.getElementById('phone-number-view'));
   },
 
   get fakePhoneNumberView() {
     delete this.fakePhoneNumberView;
-    this.fakePhoneNumberView =
-      document.getElementById('fake-phone-number-view');
-    return this.fakePhoneNumberView;
+    return (this.fakePhoneNumberView =
+      document.getElementById('fake-phone-number-view'));
   },
 
   get phoneNumberViewContainer() {
     delete this.phoneNumberViewContainer;
-    this.phoneNumberViewContainer =
-      document.getElementById('phone-number-view-container');
-    return this.phoneNumberViewContainer;
+    return (this.phoneNumberViewContainer =
+      document.getElementById('phone-number-view-container'));
   },
 
   get keypad() {
     delete this.keypad;
-    this.keypad = document.getElementById('keypad');
-    return this.keypad;
+    return (this.keypad = document.getElementById('keypad'));
   },
 
   get callBar() {
     delete this.callBar;
-    this.callBar =
-      document.getElementById('keypad-callbar');
-    return this.callBar;
+    return (this.callBar =
+      document.getElementById('keypad-callbar'));
   },
 
   get hideBar() {
     delete this.hideBar;
-    this.hideBar = document.getElementById('keypad-hidebar');
-    return this.hideBar;
+    return (this.hideBar = document.getElementById('keypad-hidebar'));
   },
 
   get callBarAddContact() {
     delete this.callBarAddContact;
-    this.callBarAddContact =
-      document.getElementById('keypad-callbar-add-contact');
-    return this.callBarAddContact;
+    return (this.callBarAddContact =
+      document.getElementById('keypad-callbar-add-contact'));
   },
 
   get callBarCallAction() {
     delete this.callBarCallAction;
-    this.callBarCallAction =
-      document.getElementById('keypad-callbar-call-action');
-    return this.callBarCallAction;
+    return (this.callBarCallAction =
+      document.getElementById('keypad-callbar-call-action'));
   },
 
   get callBarCancelAction() {
     delete this.callBarCancelAction;
-    this.callBarCancelAction =
-      document.getElementById('keypad-callbar-cancel');
-    return this.callBarCancelAction;
+    return (this.callBarCancelAction =
+      document.getElementById('keypad-callbar-cancel'));
   },
 
   get deleteButton() {
     delete this.deleteButton;
-    this.deleteButton = document.getElementById('keypad-delete');
-    return this.deleteButton;
+    return (this.deleteButton = document.getElementById('keypad-delete'));
   },
 
   get hideBarHangUpAction() {
     delete this.hideBarHangUpAction;
-    this.hideBarHangUpAction =
-      document.getElementById('keypad-hidebar-hang-up-action-wrapper');
-    return this.hideBarHangUpAction;
+    return (this.hideBarHangUpAction =
+      document.getElementById('keypad-hidebar-hang-up-action-wrapper'));
   },
 
   get hideBarHideAction() {
     delete this.hideBarHideAction;
-    this.hideBarHideAction =
-      document.getElementById('keypad-hidebar-hide-keypad-action');
-    return this.hideBarHideAction;
+    return (this.hideBarHideAction =
+      document.getElementById('keypad-hidebar-hide-keypad-action'));
   },
 
   multiSimActionButton: null,
@@ -159,6 +153,20 @@ var KeypadManager = {
   init: function kh_init(oncall) {
 
     this._onCall = !!oncall;
+
+    // Update the minimum phone number phone size.
+    // The UX team states that the minimum font size should be
+    // 10pt. First off, we convert it to px multiplying it 0.226 times,
+    // then we convert it to rem multiplying it a number of times equal
+    // to the font-size property of the body element.
+    var defaultFontSize = window.getComputedStyle(document.body, null)
+                                .getPropertyValue('font-size');
+    this.minFontSize = parseInt(parseInt(defaultFontSize) * 10 * 0.226);
+    this.maxFontSize = this._onCall ?
+      parseInt(parseInt(defaultFontSize) * this._MAX_FONT_SIZE_ON_CALL *
+      0.226) :
+      parseInt(parseInt(defaultFontSize) * this._MAX_FONT_SIZE_DIAL_PAD *
+        0.226);
 
     this.phoneNumberView.value = '';
     this._phoneNumber = '';
@@ -322,6 +330,29 @@ var KeypadManager = {
   hangUpCallFromKeypad: function hk_hangUpCallFromKeypad(event) {
     CallScreen.body.classList.remove('showKeypad');
     CallsHandler.end();
+  },
+
+  formatPhoneNumber: function kh_formatPhoneNumber(ellipsisSide, maxFontSize) {
+    var fakeView = this.fakePhoneNumberView;
+    var view = this.phoneNumberView;
+
+    // We consider the case where the delete button may have
+    // been used to delete the whole phone number.
+    if (view.value === '') {
+      view.style.fontSize = this.maxFontSize;
+      return;
+    }
+
+    var newFontSize;
+    if (maxFontSize) {
+      newFontSize = this.maxFontSize;
+    } else {
+      newFontSize =
+        Utils.getNextFontSize(view, fakeView, this.maxFontSize,
+          this.minFontSize, kFontStep);
+    }
+    view.style.fontSize = newFontSize + 'px';
+    Utils.addEllipsis(view, fakeView, ellipsisSide);
   },
 
   _lastPressedKey: null,
@@ -528,10 +559,10 @@ var KeypadManager = {
   },
 
   updatePhoneNumber: function kh_updatePhoneNumber(number, ellipsisSide,
-    forceMaxFontSize) {
+    maxFontSize) {
     number = this.sanitizePhoneNumber(number);
     this._phoneNumber = number;
-    this._updatePhoneNumberView(ellipsisSide, forceMaxFontSize);
+    this._updatePhoneNumberView(ellipsisSide, maxFontSize);
   },
 
   press: function(value) {
@@ -544,13 +575,13 @@ var KeypadManager = {
   },
 
   _updatePhoneNumberView: function kh_updatePhoneNumberview(ellipsisSide,
-    forceMaxFontSize) {
+    maxFontSize) {
     var phoneNumber = this._phoneNumber;
 
     // If there are digits in the phone number, show the delete button
     // and enable the add contact button
     if (this._onCall) {
-      this.replacePhoneNumber(phoneNumber, ellipsisSide, forceMaxFontSize);
+      this.replacePhoneNumber(phoneNumber, ellipsisSide, maxFontSize);
     } else {
       var visibility;
       if (phoneNumber.length > 0) {
@@ -561,12 +592,11 @@ var KeypadManager = {
         this.callBarAddContact.setAttribute('disabled', 'disabled');
       }
       this.deleteButton.style.visibility = visibility;
+
       this.phoneNumberView.value = phoneNumber;
       this.moveCaretToEnd(this.phoneNumberView);
 
-      FontSizeManager.adaptToSpace(
-        FontSizeManager.DIAL_PAD, this.phoneNumberView,
-        this.fakePhoneNumberView, forceMaxFontSize, ellipsisSide);
+      this.formatPhoneNumber(ellipsisSide, maxFontSize);
     }
 
     if (this.onValueChanged) {
@@ -575,23 +605,21 @@ var KeypadManager = {
   },
 
   replacePhoneNumber:
-    function kh_replacePhoneNumber(phoneNumber, ellipsisSide,
-      forceMaxFontSize) {
+    function kh_replacePhoneNumber(phoneNumber, ellipsisSide, maxFontSize) {
       if (this._onCall && CallsHandler.activeCall) {
         CallsHandler.activeCall.
-          replacePhoneNumber(phoneNumber, ellipsisSide, forceMaxFontSize);
+          replacePhoneNumber(phoneNumber, ellipsisSide, maxFontSize);
       }
   },
 
-  restorePhoneNumber:
-    function kh_restorePhoneNumber() {
+  restorePhoneNumber: function kh_restorePhoneNumber() {
     if (this._onCall && CallsHandler.activeCall) {
       CallsHandler.activeCall.restorePhoneNumber();
     }
   },
 
   replaceAdditionalContactInfo:
-    function kh_replaceAdditionalContactInfo(additionalContactInfo) {
+    function kh_updateAdditionalContactInfo(additionalContactInfo) {
       var call = CallsHandler.activeCall;
       if (this._onCall && call) {
         call.replaceAdditionalContactInfo(additionalContactInfo);

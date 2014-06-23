@@ -1,9 +1,8 @@
-/* globals CallScreen, CallsHandler, FontSizeManager, HandledCall,
-           MockBluetoothHelperInstance, MockCall, MockCallScreen, MockLazyL10n,
-           MockMozL10n, MockNavigatormozApps, MockNavigatorMozIccManager,
-           MockNavigatormozSetMessageHandler, MockNavigatorMozTelephony,
-           MockNavigatorWakeLock, MocksHelper, MockTonePlayer, MockUtils,
-           telephonyAddCall, telephonyAddCdmaCall */
+/* globals CallScreen, CallsHandler, HandledCall, MockBluetoothHelperInstance,
+           MockCall, MockCallScreen, MockLazyL10n, MockNavigatormozApps,
+           MockNavigatorMozIccManager, MockNavigatormozSetMessageHandler,
+           MockNavigatorMozTelephony, MockNavigatorWakeLock, MocksHelper,
+           MockTonePlayer, MockUtils, telephonyAddCall, telephonyAddCdmaCall */
 
 'use strict';
 
@@ -23,8 +22,9 @@ require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
 require('/shared/test/unit/mocks/dialer/mock_contacts.js');
 require('/shared/test/unit/mocks/dialer/mock_tone_player.js');
 require('/shared/test/unit/mocks/dialer/mock_utils.js');
-require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
-require('/shared/test/unit/mocks/dialer/mock_font_size_manager.js');
+require(
+  '/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js'
+);
 
 var mocksHelperForCallsHandler = new MocksHelper([
   'HandledCall',
@@ -37,8 +37,7 @@ var mocksHelperForCallsHandler = new MocksHelper([
   'BluetoothHelper',
   'Utils',
   'Audio',
-  'SimplePhoneMatcher',
-  'FontSizeManager'
+  'SimplePhoneMatcher'
 ]).init();
 
 suite('calls handler', function() {
@@ -47,7 +46,6 @@ suite('calls handler', function() {
   var realWakeLock;
   var realMozIccManager;
   var realSetMessageHandler;
-  var realMozL10n;
 
   mocksHelperForCallsHandler.attachTestHelpers();
 
@@ -67,9 +65,6 @@ suite('calls handler', function() {
     realSetMessageHandler = navigator.mozSetMessageHandler;
     navigator.mozSetMessageHandler = MockNavigatormozSetMessageHandler;
 
-    realMozL10n = navigator.mozL10n;
-    navigator.mozL10n = MockMozL10n;
-
     require('/js/calls_handler.js', done);
   });
 
@@ -80,12 +75,10 @@ suite('calls handler', function() {
     navigator.requestWakeLock = realWakeLock;
     navigator.mozIccManager = realMozIccManager;
     navigator.mozSetMessageHandler = realSetMessageHandler;
-    navigator.mozL10n = realMozL10n;
   });
 
   setup(function() {
     this.sinon.useFakeTimers();
-    this.sinon.spy(FontSizeManager, 'adaptToSpace');
     MockNavigatormozSetMessageHandler.mSetup();
   });
 
@@ -219,15 +212,6 @@ suite('calls handler', function() {
                      extraCall.id.number);
         assert.isTrue(MockUtils.mCalledGetPhoneNumberAdditionalInfo);
         assert.equal(CallScreen.incomingNumberAdditionalInfo.textContent, '');
-      });
-
-      test('should call FontSizeManager.adaptToSpace', function() {
-        MockNavigatorMozTelephony.mTriggerCallsChanged();
-
-        sinon.assert.calledWith(
-          FontSizeManager.adaptToSpace, FontSizeManager.CALL_WAITING,
-          MockCallScreen.incomingNumber, MockCallScreen.fakeIncomingNumber,
-          false, 'end');
       });
 
       suite('DSDS SIM display >', function() {
@@ -375,15 +359,6 @@ suite('calls handler', function() {
         MockNavigatorMozTelephony.mTriggerCallsChanged();
         assert.isTrue(hideSpy.calledOnce);
       });
-
-      test('should call FontSizeManager.adaptToSpace', function() {
-        MockNavigatorMozTelephony.mTriggerCallsChanged();
-
-        sinon.assert.calledWith(
-          FontSizeManager.adaptToSpace, FontSizeManager.CALL_WAITING,
-          MockCallScreen.incomingNumber, MockCallScreen.fakeIncomingNumber,
-          false, 'end');
-      });
     });
 
     suite('> conference call creation', function() {
@@ -411,16 +386,6 @@ suite('calls handler', function() {
 
         assert.isTrue(firstHideSpy.notCalled);
         assert.isTrue(secondHideSpy.notCalled);
-      });
-
-      test('should call FontSizeManager.adaptToSpace', function() {
-        MockNavigatorMozTelephony.mTriggerGroupCallsChanged();
-        MockNavigatorMozTelephony.mTriggerCallsChanged();
-
-        sinon.assert.calledWith(
-          FontSizeManager.adaptToSpace, FontSizeManager.CALL_WAITING,
-          MockCallScreen.incomingNumber, MockCallScreen.fakeIncomingNumber,
-          false, 'end');
       });
     });
 
@@ -458,16 +423,6 @@ suite('calls handler', function() {
         MockNavigatorMozTelephony.mTriggerGroupCallsChanged();
         assert.isTrue(toggleSpy.calledOnce);
       });
-
-      test('should call FontSizeManager.adaptToSpace', function() {
-        MockNavigatorMozTelephony.mTriggerGroupCallsChanged();
-        MockNavigatorMozTelephony.mTriggerCallsChanged();
-
-        sinon.assert.calledWith(
-          FontSizeManager.adaptToSpace, FontSizeManager.CALL_WAITING,
-          MockCallScreen.incomingNumber, MockCallScreen.fakeIncomingNumber,
-          false, 'end');
-      });
     });
 
     suite('> hanging up the second call', function() {
@@ -487,15 +442,6 @@ suite('calls handler', function() {
         this.sinon.spy(firstCall, 'resume');
         MockNavigatorMozTelephony.mTriggerCallsChanged();
         sinon.assert.called(firstCall.resume);
-      });
-
-      test('should call FontSizeManager.adaptToSpace', function() {
-        MockNavigatorMozTelephony.mTriggerCallsChanged();
-
-        sinon.assert.calledWith(
-          FontSizeManager.adaptToSpace, FontSizeManager.CALL_WAITING,
-          MockCallScreen.incomingNumber, MockCallScreen.fakeIncomingNumber,
-          false, 'end');
       });
     });
 
@@ -535,17 +481,9 @@ suite('calls handler', function() {
         MockNavigatorMozTelephony.mTriggerCallsChanged();
         sinon.assert.called(MockNavigatorMozTelephony.conferenceGroup.resume);
       });
-
-      test('should call FontSizeManager.adaptToSpace', function() {
-        MockNavigatorMozTelephony.calls = [];
-        MockNavigatorMozTelephony.mTriggerCallsChanged();
-
-        sinon.assert.calledWith(
-          FontSizeManager.adaptToSpace, FontSizeManager.CALL_WAITING,
-          MockCallScreen.incomingNumber, MockCallScreen.fakeIncomingNumber,
-          false, 'end');
-      });
     });
+
+
   });
 
   suite('> Public methods', function() {

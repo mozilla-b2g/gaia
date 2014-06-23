@@ -1,7 +1,7 @@
-/* globals CallsHandler, FontSizeManager, HandledCall, MockCall, MockCallScreen,
-           MockCallsHandler, MockContactPhotoHelper, MockContacts,
-           MockLazyL10n, MockMozL10n, MockNavigatorMozIccManager,
-           MockNavigatorSettings, MocksHelper, MockUtils, Voicemail */
+/* globals CallsHandler, HandledCall, MockCall, MockCallScreen,
+           MockCallsHandler, MockContactPhotoHelper, MockContacts, MockLazyL10n,
+           MockNavigatorMozIccManager, MockNavigatorSettings, MocksHelper,
+           MockUtils, Voicemail */
 
 'use strict';
 
@@ -15,7 +15,6 @@ require('/shared/test/unit/mocks/dialer/mock_utils.js');
 require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
 require('/shared/test/unit/mocks/dialer/mock_call.js');
 require('/shared/test/unit/mocks/dialer/mock_calls_handler.js');
-require('/shared/test/unit/mocks/dialer/mock_font_size_manager.js');
 
 require('/js/handled_call.js');
 require('/shared/js/dialer/voicemail.js');
@@ -27,13 +26,10 @@ var mocksHelperForHandledCall = new MocksHelper([
   'KeypadManager',
   'Utils',
   'LazyL10n',
-  'ContactPhotoHelper',
-  'FontSizeManager'
+  'ContactPhotoHelper'
 ]).init();
 
 suite('dialer/handled_call', function() {
-  var realMozL10n;
-
   var realNavigatorSettings;
   var realMozIccManager;
 
@@ -50,9 +46,6 @@ suite('dialer/handled_call', function() {
   mocksHelperForHandledCall.attachTestHelpers();
 
   suiteSetup(function() {
-    realMozL10n = navigator.l10n;
-    navigator.mozL10n = MockMozL10n;
-
     realNavigatorSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
 
@@ -96,7 +89,6 @@ suite('dialer/handled_call', function() {
     Voicemail.check.restore();
     navigator.mozSettings = realNavigatorSettings;
     navigator.mozIccManager = realMozIccManager;
-    navigator.mozL10n = realMozL10n;
   });
 
   setup(function() {
@@ -398,8 +390,8 @@ suite('dialer/handled_call', function() {
       test('should remove listener on the call', function() {
         this.sinon.spy(mockCall, 'removeEventListener');
         mockCall._disconnect();
-        sinon.assert.calledWith(
-          mockCall.removeEventListener, 'statechange', subject);
+        sinon.assert.calledWith(mockCall.removeEventListener,
+                                'statechange', subject);
         mockCall.removeEventListener.restore();
       });
 
@@ -661,14 +653,20 @@ suite('dialer/handled_call', function() {
   });
 
   suite('phone number', function() {
-    test('formatPhoneNumber should call the font size manager',
+    test('formatPhoneNumber in status bar mode should reset the fontsize',
     function() {
-      this.sinon.spy(FontSizeManager, 'adaptToSpace');
-      subject.formatPhoneNumber('end');
-      sinon.assert.calledWith(
-        FontSizeManager.adaptToSpace, MockCallScreen.getScenario(),
-        subject.numberNode, subject.node.querySelector('.fake-number'),
-        false, 'end');
+      MockCallScreen.mInStatusBarMode = true;
+      subject.numberNode.style.fontSize = '36px';
+      subject.formatPhoneNumber();
+      assert.equal(subject.numberNode.style.fontSize, '');
+    });
+
+    test('formatPhoneNumber should do nothing if the call was removed',
+    function() {
+      subject.remove();
+      subject.numberNode.style.fontSize = '36px';
+      subject.formatPhoneNumber();
+      assert.equal(subject.numberNode.style.fontSize, '36px');
     });
 
     test('check replace number', function() {
