@@ -1,6 +1,7 @@
 /* global SettingsURL */
 /* global SettingsListener */
 /* global DUMP */
+/* global SettingsHelper */
 
 'use strict';
 
@@ -96,6 +97,7 @@ var Commands = {
       // We actually ignore duration if it's nonzero. If zero, stop
       // tracking.
 
+      SettingsHelper('findmydevice.tracking').set(!!duration);
       if (this._trackIntervalId !== null) {
         if (duration === 0) {
           // stop tracking
