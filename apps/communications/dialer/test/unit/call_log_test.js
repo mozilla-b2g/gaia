@@ -629,6 +629,8 @@ suite('dialer/call_log', function() {
   });
 
   suite('notifications', function() {
+    var notifs;
+    var notificationSpy;
 
     setup(function() {
       var notificationGetStub = function notificationGet() {
@@ -644,21 +646,14 @@ suite('dialer/call_log', function() {
         };
       };
       this.sinon.stub(Notification, 'get', notificationGetStub);
-      this.sinon.spy(MockNotification.prototype, 'close');
+      notifs = Notification.get();
+      notificationSpy =
+        this.sinon.spy(MockNotification.prototype, 'close');
     });
 
-    test('notifications are closed when opening the call log', function() {
-      CallLog._initialized = false;
-      CallLog.init();
-      sinon.assert.callCount(MockNotification.prototype.close, 2);
-    });
-
-    test('notifications should not be closed when keypad becomes visible',
-         function() {
-      window.location.hash = '#keyboard-view';
-      var visibilityEvent = new CustomEvent('visibilitychange');
-      document.dispatchEvent(visibilityEvent);
-      sinon.assert.notCalled(MockNotification.prototype.close);
+    test('call log should close notifications', function() {
+      CallLog.cleanNotifications();
+      sinon.assert.callCount(notificationSpy, 2);
     });
   });
 
@@ -839,7 +834,6 @@ suite('dialer/call_log', function() {
         MockNavigatorMozIccManager.addIcc('12345', {'cardState': 'ready'});
         MockNavigatorMozIccManager.addIcc('3232', {'cardState': 'ready'});
         CallLog.init();
-        window.location.hash = '#call-log-view';
       });
 
       test('should put the dual sim class on the container', function() {

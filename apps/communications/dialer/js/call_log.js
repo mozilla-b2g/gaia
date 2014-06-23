@@ -107,17 +107,13 @@ var CallLog = {
           if (document.hidden) {
             self.pauseHeaders();
           } else {
+            self.becameVisible();
             self.updateHeadersContinuously();
-            if (window.location.hash === '#call-log-view') {
-              self.becameVisible();
-            }
           }
         });
 
         self.sticky = new StickyHeader(self.callLogContainer,
                                        document.getElementById('sticky'));
-
-        self.becameVisible();
       });
     });
 
