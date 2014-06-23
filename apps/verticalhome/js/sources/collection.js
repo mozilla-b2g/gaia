@@ -87,6 +87,8 @@
         case 'removed':
           // The 'id' of a Collection is really the url.
           this.removeIconFromGrid(e.target.id);
+          // Save the layout once a collection has been removed
+          app.itemStore.save(app.grid.getItems());
           break;
         case 'context-menu-open':
           this.insertPosition = e.detail.nearestIndex;
