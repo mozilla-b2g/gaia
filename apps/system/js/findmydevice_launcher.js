@@ -5,6 +5,7 @@
 // XXX keep this in sync with apps/findmydevice/js/findmydevice.js
 const IAC_API_WAKEUP_REASON_ENABLED = 0;
 const IAC_API_WAKEUP_REASON_STALE_REGISTRATION = 1;
+const IAC_API_WAKEUP_REASON_NEW_LOGIN = 2;
 
 function wakeUpFindMyDevice(reason) {
   navigator.mozApps.getSelf().onsuccess = function() {
@@ -32,4 +33,15 @@ navigator.mozSettings.addObserver('geolocation.enabled', function(event) {
 window.addEventListener('will-unlock', function(event) {
   var helper = SettingsHelper('lockscreen.lock-message');
   helper.set('');
+});
+
+window.addEventListener('mozFxAccountsUnsolChromeEvent', function(event) {
+  if (!event || !event.detail) {
+    return;
+  }
+
+  var eventName = event.detail.eventName;
+  if (eventName === 'onlogin' || eventName === 'onverified') {
+    wakeUpFindMyDevice(IAC_API_WAKEUP_REASON_NEW_LOGIN);
+  }
 });

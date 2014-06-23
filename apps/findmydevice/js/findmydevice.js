@@ -10,6 +10,7 @@
 // XXX keep this in sync with apps/system/js/findmydevice_launcher.js
 const IAC_API_WAKEUP_REASON_ENABLED = 0;
 const IAC_API_WAKEUP_REASON_STALE_REGISTRATION = 1;
+const IAC_API_WAKEUP_REASON_NEW_LOGIN = 2;
 
 var FindMyDevice = {
   _state: null,
@@ -27,6 +28,13 @@ var FindMyDevice = {
   _enabledHelper: SettingsHelper('findmydevice.enabled'),
 
   _loggedIn: false,
+
+  // We only allow disabling Find My Device if the same person
+  // who first enabled it is logged in to FxA.
+  // However, note that FMD doesn't store the user's email address,
+  // but rather a client ID that is derived from the FxA assertion
+  // and stored in this._state.clientid.
+  _canDisableHelper: SettingsHelper('findmydevice.can-disable'),
 
   init: function fmd_init() {
     var self = this;
@@ -125,6 +133,14 @@ var FindMyDevice = {
           } else if (reason === IAC_API_WAKEUP_REASON_STALE_REGISTRATION) {
             DUMP('stale registration, re-registering');
             self._registeredHelper.set(false);
+          } else if (reason === IAC_API_WAKEUP_REASON_NEW_LOGIN) {
+            DUMP('new login, updating client id');
+            if (self._loggedIn !== true) {
+              // shouldn't happen, ever
+              throw new Error('Cannot update client id while logged out!');
+            }
+
+            navigator.mozId.request();
           }
 
           return;
@@ -189,6 +205,10 @@ var FindMyDevice = {
   _onLogin: function fmd_on_login(assertion) {
     this._loggedIn = true;
 
+    if (this._registered) {
+      this._fetchClientID(assertion);
+    }
+
     if (!this._enabled || !this._registering) {
       return;
     }
@@ -251,6 +271,8 @@ var FindMyDevice = {
 
   _onLogout: function fmd_fxa_onlogout() {
     this._loggedIn = false;
+    // FIXME need to do this even when FMD is not running!
+    this._canDisableHelper.set(false);
   },
 
   _scheduleAlarm: function fmd_schedule_alarm(mode) {
@@ -290,6 +312,18 @@ var FindMyDevice = {
       this._handleServerError.bind(this));
 
     this._reply = {};
+  },
+
+  _fetchClientID: function fmd_fetch_client_id(assertion) {
+    Requester.post('/validate/', {assert: assertion},
+      this._onClientIDResponse.bind(this),
+      this._scheduleAlarm.bind(this, 'retry')); // FIXME this is wrong!
+  },
+
+  _onClientIDResponse: function fmd_on_client_id(response) {
+    var ok = response.value, clientid = response.clientid;
+    this._canDisableHelper.set(
+      ok === true && clientid === this._state.clientid);
   },
 
   _processCommands: function fmd_process_commands(cmdobj) {
