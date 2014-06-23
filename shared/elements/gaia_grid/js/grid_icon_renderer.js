@@ -24,8 +24,8 @@
 
   IconRenderer.prototype = {
 
-    // Export necessary defines.
-    unscaledCanvasPadding: UNSCALED_CANVAS_PADDING,
+    // Export necessary defines. Left + right padding
+    unscaledCanvasPadding: UNSCALED_CANVAS_PADDING * 2,
 
     /**
      * Returns the max size for an icon based on grid size and pixel ratio.
