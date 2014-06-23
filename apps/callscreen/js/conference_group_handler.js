@@ -1,4 +1,4 @@
-/* globals CallsHandler, CallScreen, LazyL10n */
+/* globals CallsHandler, CallScreen, FontSizeManager, LazyL10n */
 
 /* exported ConferenceGroupHandler */
 
@@ -7,6 +7,7 @@
 var ConferenceGroupHandler = (function() {
   var groupLine = document.getElementById('group-call');
   var groupLabel = document.getElementById('group-call-label');
+  var fakeNumber = groupLine.querySelector('.fake-number');
   var groupDetails = document.getElementById('group-call-details');
   var groupDetailsHeader = groupDetails.querySelector('header');
   // FIXME/bug 1007148: Refactor duration element structure
@@ -67,6 +68,8 @@ var ConferenceGroupHandler = (function() {
     });
     groupLine.classList.add('ended');
     groupLine.classList.remove('held');
+    FontSizeManager.adaptToSpace(CallScreen.getScenario(), groupLabel,
+      fakeNumber, false, 'end');
     CallScreen.stopTicker(groupDuration);
 
     setTimeout(function(evt) {
