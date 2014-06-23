@@ -79,7 +79,7 @@ Icon.prototype = {
    */
   render: function icon_render() {
     /*
-     * <li role="button" aria-label="label" class="icon" data-manifestURL="zzz">
+     * <li role="link" aria-label="label" class="icon" data-manifestURL="zzz">
      *   <div>
      *     <img role="presentation" src="the icon image path"></img>
      *     <span class="label">label</span>
@@ -114,7 +114,7 @@ Icon.prototype = {
     }
 
     var localizedName = this.getName();
-    container.setAttribute('role', 'button');
+    container.setAttribute('role', 'link');
     container.setAttribute('aria-label', localizedName);
 
     // Icon container
