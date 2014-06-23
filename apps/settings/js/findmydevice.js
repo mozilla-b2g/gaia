@@ -36,6 +36,8 @@ var FindMyDevice = {
       this._setTracked.bind(this));
     SettingsListener.observe('findmydevice.enabled', false,
       this._setEnabled.bind(this));
+    SettingsListener.observe('findmydevice.can-disable', true,
+      this._setCanDisable.bind(this));
 
     var checkbox = document.querySelector('#findmydevice-enabled input');
     checkbox.addEventListener('change', this._onCheckboxChanged.bind(this));
@@ -55,7 +57,6 @@ var FindMyDevice = {
   _setEnabled: function fmd_set_enabled(value) {
     var checkbox = document.querySelector('#findmydevice-enabled input');
     checkbox.checked = value;
-    checkbox.disabled = false;
 
     var status = document.getElementById('findmydevice-tracking');
     status.hidden = !value;
@@ -65,6 +66,11 @@ var FindMyDevice = {
     var status = document.getElementById('findmydevice-tracking');
     navigator.mozL10n.localize(status,
       value ?  'findmydevice-active-tracking' : 'findmydevice-not-tracking');
+  },
+
+  _setCanDisable: function fmd_set_can_disable(value) {
+    var checkbox = document.querySelector('#findmydevice-enabled input');
+    checkbox.disabled = !value;
   },
 
   _onChangeLoginState: function fmd_on_change_login_state(loggedIn) {
@@ -86,15 +92,17 @@ var FindMyDevice = {
   },
 
   _onCheckboxChanged: function fmd_on_checkbox_changed() {
-      var checkbox = document.querySelector('#findmydevice-enabled input');
+    var checkbox = document.querySelector('#findmydevice-enabled input');
 
-      SettingsListener.getSettingsLock().set({
-        'findmydevice.enabled': checkbox.checked
-      }).onerror = function() {
-        checkbox.disabled = false;
-      };
+    var result = SettingsListener.getSettingsLock().set({
+      'findmydevice.enabled': checkbox.checked
+    });
 
-      checkbox.disabled = true;
+    result.onerror = result.onsuccess = function() {
+      checkbox.disabled = false;
+    };
+
+    checkbox.disabled = true;
   }
 };
 
