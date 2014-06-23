@@ -8,7 +8,7 @@ echo 'Downloading Firefox'
                  $PWD/firefox
 
 echo 'Downloading & installing node dependencies'
-make common-install
+make update-common
 
 echo 'Downloading xulrunner-sdk and making profile for testing (more than 5 minutes)'
 DEBUG=1 DESKTOP=0 WGET_OPTS=-nv make
