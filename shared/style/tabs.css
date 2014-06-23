@@ -22,6 +22,7 @@
   margin: 0;
   padding: 0;
   pointer-events: none;
+  background-color: #fff;
   z-index: 0;
 }
 
