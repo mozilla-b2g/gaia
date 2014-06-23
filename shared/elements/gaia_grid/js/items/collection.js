@@ -28,7 +28,9 @@
     };
 
     // XXX: One listener per collection may not be ideal.
-    window.addEventListener('localized', this.onLocalize.bind(this));
+    // Bug 1026236 l10n does not automatically handle these for us so
+    // we handle locale updates ourselves.
+    window.addEventListener('localized', this.updateTitle.bind(this));
   }
 
   Collection.prototype = {
@@ -36,18 +38,6 @@
     __proto__: GaiaGrid.GridItem.prototype,
 
     renderer: GridIconRenderer.TYPE.CLIP,
-
-    /**
-    Bug 1026236 l10n does not automatically handle these for us so
-    we handle locale updates ourselves.
-    */
-    onLocalize: function() {
-      if (!this.element) {
-        return;
-      }
-      var nameEl = this.element.querySelector('.title');
-      nameEl.textContent = this.name;
-    },
 
     /**
      * Returns the height in pixels of each icon.
