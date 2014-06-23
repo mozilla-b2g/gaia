@@ -50,6 +50,7 @@
       window.addEventListener('home', this);
       window.addEventListener('appopened', this);
       window.addEventListener('searchcrashed', this);
+      window.addEventListener('visibilitychange', this);
 
       // Listen for events from Rocketbar
       this.input.addEventListener('focus', this);
@@ -106,6 +107,11 @@
           break;
         case 'searchcrashed':
           this.handleSearchCrashed(e);
+          break;
+        case 'visibilitychange':
+          if(document.hidden){
+            this.deactivate();
+          }
           break;
         case 'submit':
           this.handleSubmit(e);
