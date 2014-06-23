@@ -23,7 +23,7 @@ navigator.mozSetMessageHandler('activity', function(activity) {
 
     pickActivity.onsuccess = function() {
       var result = pickActivity.result;
-      var popup = window.open('share.html');
+      var popup = window.open('share.html', 'share', 'mozhaidasheet');
       popup.addEventListener('load', function loaded() {
         popup.removeEventListener('load', loaded);
         popup.postMessage(result, window.location.origin);
