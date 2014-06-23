@@ -17,7 +17,7 @@
   "activities": {
     "view" : {
       "filters": {
-        "type": { "value":"application/vnd.oma.dd+xml", "required":true }
+        "type": { "value":["application/vnd.oma.dd+xml", "application/vnd.oma.drm.message"], "required":true }
       },
       "disposition": "inline",
       "href": "download.html",
