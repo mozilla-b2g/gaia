@@ -1,7 +1,7 @@
 {
   "name": "Showbiz",
   "role": "collection",
-  "categoryId": "376",
+  "categoryId": 376,
   "default_locale": "en-US",
   "icons": {
     "60": "/collections/showbiz/icon.png",

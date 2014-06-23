@@ -65,7 +65,8 @@ CollectionAppBuilder.prototype.execute = function(options) {
         }
       }
     }
-   
+
+    collection.cName = collection.name.toLowerCase();
     delete collection.path;
   });
 
