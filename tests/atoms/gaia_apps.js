@@ -30,7 +30,7 @@ var GaiaApps = {
                 anApp[key] = runningApps[app][key];
             }
         }
-        apps[app.origin] = anApp;
+        apps[runningApps[app]['origin']] = anApp;
     }
     return apps;
   },
