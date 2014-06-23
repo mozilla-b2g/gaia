@@ -45,19 +45,16 @@ suite('value selector/value selector', function() {
   setup(function() {
     ValueSelector.init();
     element = document.getElementById('value-selector');
-    screen = document.getElementById('screen');
   });
 
   test('show', function() {
     ValueSelector.show();
     assert.isFalse(element.hidden);
-    assert.isTrue(screen.classList.contains('system-selector'));
   });
 
   test('hide', function() {
     ValueSelector.hide();
     assert.isTrue(element.hidden);
-    assert.isFalse(screen.classList.contains('system-selector'));
   });
 
   test('hide on "appopened" event', function() {
@@ -82,6 +79,14 @@ suite('value selector/value selector', function() {
 
     ValueSelector.handleEvent({ type: 'activityclosing' });
     assert.isTrue(element.hidden);
+  });
+
+  test('cancel on "sheetstransitionstart" event', function() {
+    ValueSelector.show();
+    this.sinon.stub(ValueSelector, 'cancel');
+
+    ValueSelector.handleEvent({ type: 'sheetstransitionstart' });
+    sinon.assert.calledOnce(ValueSelector.cancel);
   });
 
   test('Time Picker (en-US)', function() {
