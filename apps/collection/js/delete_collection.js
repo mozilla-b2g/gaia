@@ -16,8 +16,12 @@
     });
 
     deleteButton.addEventListener('click', function remove() {
-      activity.postResult(true);
-      CollectionsDatabase.remove(id);
+      deleteButton.removeEventListener('click', remove);
+      CollectionsDatabase.remove(id).then(function onsuccess() {
+        activity.postResult(true);
+      }, function onerror() {
+        activity.postResult(false);
+      });
     });
   }
 
