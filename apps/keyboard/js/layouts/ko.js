@@ -19,8 +19,7 @@ Keyboards.ko = {
     ], [
       { value: 'ㅁ' } , { value: 'ㄴ' } , { value: 'ㅇ' } , { value: 'ㄹ' } ,
       { value: 'ㅎ' } , { value: 'ㅗ' } , { value: 'ㅓ' } , { value: 'ㅏ' } ,
-      { value: 'ㅣ' } ,
-      { value: ':', visible: ['url']}, { value: '_', visible: ['email']}
+      { value: 'ㅣ' }
     ], [
       { value: '⇪', ratio: 1.5, keyCode: KeyEvent.DOM_VK_CAPS_LOCK },
       { value: 'ㅋ' } , { value: 'ㅌ' } , { value: 'ㅊ' } , { value: 'ㅍ' } ,
