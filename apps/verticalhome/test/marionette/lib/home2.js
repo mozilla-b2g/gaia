@@ -51,7 +51,7 @@ Home2.Selectors = {
   editHeaderDone: '#edit-header menu a',
   search: '#search',
   firstIcon: '#icons div.icon:not(.placeholder)',
-  dividers: '#icons div.divider',
+  dividers: '#icons section.divider',
   contextmenu: '#contextmenu-dialog'
 };
 
