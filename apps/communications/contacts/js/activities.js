@@ -28,6 +28,14 @@ var ActivityHandler = {
     return this._currentActivity.source.data.type;
   },
 
+  get activityContactProperties() {
+    if (!this._currentActivity) {
+      return null;
+    }
+
+    return this._currentActivity.source.data.contactProperties;
+  },
+
   launch_activity: function ah_launch(activity, action) {
     if (this._launchedAsInlineActivity) {
       return;
@@ -125,11 +133,15 @@ var ActivityHandler = {
       case 'webcontacts/select':
         type = 'select';
         var data = [];
-        if (theContact.tel && theContact.tel.length) {
-          data = data.concat(theContact.tel);
+        if (this.activityContactProperties.indexOf('tel') !== -1) {
+          if (theContact.tel && theContact.tel.length) {
+            data = data.concat(theContact.tel);
+          }
         }
-        if (theContact.email && theContact.email.length) {
-          data = data.concat(theContact.email);
+        if (this.activityContactProperties.indexOf('email') !== -1) {
+          if (theContact.email && theContact.email.length) {
+            data = data.concat(theContact.email);
+          }
         }
 
         dataSet = data;
@@ -196,7 +208,7 @@ var ActivityHandler = {
               self.postPickSuccess(result);
             };
           };
-          for (var i = 0; i < dataSet.length; i++) {
+          for (var i = 0, var l = dataSet.length; i < l; i++) {
             itemData = dataSet[i].value;
             var carrier = dataSet[i].carrier || '';
             prompt1.addToList(

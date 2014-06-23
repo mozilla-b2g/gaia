@@ -292,6 +292,7 @@ suite('Test Activities', function() {
 
     test('webcontacts/select, 0 results', function() {
       activity.source.data.type = 'webcontacts/select';
+      activity.source.data.contactProperties = ['tel', 'email'];
       ActivityHandler._currentActivity = activity;
       contact.tel = [];
       contact.email = [];
@@ -304,6 +305,7 @@ suite('Test Activities', function() {
     test('webcontacts/select, 1 results(tel)', function() {
       window.utils.misc.toMozContact.restore();
       activity.source.data.type = 'webcontacts/select';
+      activity.source.data.contactProperties = ['tel', 'email'];
       ActivityHandler._currentActivity = activity;
       contact.tel.pop();
       contact.email = [];
@@ -322,6 +324,7 @@ suite('Test Activities', function() {
     test('webcontacts/select, 1 results(email)', function() {
       window.utils.misc.toMozContact.restore();
       activity.source.data.type = 'webcontacts/select';
+      activity.source.data.contactProperties = ['tel', 'email'];
       ActivityHandler._currentActivity = activity;
       contact.tel = [];
       contact.email.pop();
@@ -340,6 +343,7 @@ suite('Test Activities', function() {
     test('webcontacts/select, many results(tel)', function() {
       window.utils.misc.toMozContact.restore();
       activity.source.data.type = 'webcontacts/select';
+      activity.source.data.contactProperties = ['tel', 'email'];
       ActivityHandler._currentActivity = activity;
       contact.email = [];
       var newContact = Object.create(contact);
@@ -353,6 +357,7 @@ suite('Test Activities', function() {
     test('webcontacts/select, many results(email)', function() {
       window.utils.misc.toMozContact.restore();
       activity.source.data.type = 'webcontacts/select';
+      activity.source.data.contactProperties = ['tel', 'email'];
       ActivityHandler._currentActivity = activity;
       contact.tel = [];
       var newContact = Object.create(contact);

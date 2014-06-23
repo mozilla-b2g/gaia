@@ -910,12 +910,23 @@ var ThreadUI = global.ThreadUI = {
     // itself, which causes the keyboard to appear.
     Recipients.View.isFocusable = false;
 
-    var activity = new MozActivity({
-      name: 'pick',
-      data: {
-        type: 'webcontacts/select'
-      }
-    });
+    if (Settings.supportEmailRecipient) {
+      var activity = new MozActivity({
+        name: 'pick',
+        data: {
+          type: 'webcontacts/select',
+          contactProperties: ['tel', 'email']
+        }
+      });
+    } else {
+      var activity = new MozActivity({
+        name: 'pick',
+        data: {
+          type: 'webcontacts/select',
+          contactProperties: ['tel']
+        }
+      });
+    }
 
     activity.onsuccess = (function() {
       if (!activity.result ||
