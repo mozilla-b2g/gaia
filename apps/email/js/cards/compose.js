@@ -810,8 +810,6 @@ ComposeCard.prototype = {
           goBack();
           break;
         case 'cmp-draft-discard':
-          console.log('compose: explicit draft discard on exit');
-          this.composer.abortCompositionDeleteDraft();
           goBack();
           break;
         case 'cmp-draft-cancel':
