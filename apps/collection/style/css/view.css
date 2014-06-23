@@ -6,7 +6,7 @@ gaia-grid {
 #edit-header {
   position: fixed;
   top: 0;
-  z-index: 4;
+  z-index: 11; /* Header BB is 10 */
   width: 100%;
   visibility: hidden;
   opacity: 0;
