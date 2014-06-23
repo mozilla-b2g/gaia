@@ -109,8 +109,8 @@ Home2.prototype = {
   },
 
   /**
-  Enter edit mode by long pressing the first icon on the grid.
-  */
+   * Enter edit mode by long pressing the first icon on the grid.
+   */
   enterEditMode: function() {
     var actions = new Actions(this.client);
     var firstIcon =
@@ -200,9 +200,10 @@ Home2.prototype = {
   @param {String} manifestURL must be a fully qualified manifest url.
   @return {Marionette.Element}
   */
-  getIcon: function(manifestUrl) {
+  getIcon: function(manifestUrl, entryPoint) {
     return this.client.helper.waitForElement(
-      '[data-identifier="' + manifestUrl + '"]'
+      '[data-identifier="' + manifestUrl +
+      (entryPoint ? '-' + entryPoint : '') + '"]'
     );
   },
 
@@ -217,9 +218,15 @@ Home2.prototype = {
   /**
    * Gets a localized application name from a manifest.
    * @param {String} app to open
+   * @param {String} entryPoint to open
    * @param {String} locale
    */
-  localizedAppName: function(app, locale) {
+  localizedAppName: function(app, entryPoint, locale) {
+    if (!locale) {
+      locale = entryPoint;
+      entryPoint = null;
+    }
+
     var client = this.client.scope({context: 'chrome'});
 
     var file = 'app://' + app + '.gaiamobile.org/manifest.webapp';
@@ -234,7 +241,12 @@ Home2.prototype = {
       return data;
     }, [file]);
 
-    var locales = manifest.locales;
+    var locales;
+    if (entryPoint) {
+      locales = manifest.entry_points[entryPoint].locales;
+    } else {
+      locales = manifest.locales;
+    }
     return locales && locales[locale].name;
   },
 
