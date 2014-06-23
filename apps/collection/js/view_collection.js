@@ -14,11 +14,26 @@
     name: document.getElementById('name')
   };
 
+  function getLocalizedName(collection) {
+    // l10n prefix taken from /shared/locales/collection_categories
+    var l10nId = 'collection-categoryId-' + collection.categoryId;
+    return navigator.mozL10n.get(l10nId) || collection.name;
+  }
+
+  function updateTitle(element, collection) {
+    element.textContent = getLocalizedName(collection);
+  }
+
   function HandleView(activity) {
     loading();
 
-    // set collection name to header
-    elements.name.textContent = activity.source.data.name;
+    var data = activity.source.data;
+
+    // XXX: in 2.1 we can use a better approach of just setting the l10n id
+    //      see Bug 992473
+    var l10nUpdateHander = updateTitle.bind(this, elements.name, data);
+    navigator.mozL10n.ready(l10nUpdateHander);
+    window.addEventListener('localized', l10nUpdateHander);
 
     // set wallpaper behind header
     getWallpaperImage().then(function(src) {
@@ -31,7 +46,7 @@
     });
 
     // create collection object
-    var collection = BaseCollection.create(activity.source.data);
+    var collection = BaseCollection.create(data);
 
     loading(false);
 
