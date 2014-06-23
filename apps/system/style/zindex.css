@@ -118,6 +118,11 @@
   z-index: 8192;
 }
 
+/* The edges zones get promoted when an action menu is displayed */
+#screen.action-menu > [data-z-index-level="gesture-panel"] {
+  z-index: 8193;
+}
+
 /* Level 5: Statusbar, Utility-Tray */
 #screen > [data-z-index-level="statusbar"] {
   z-index: 4096;
