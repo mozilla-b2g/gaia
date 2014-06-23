@@ -758,14 +758,20 @@ var StatusBar = {
           // "Carrier" / "Carrier (Roaming)" (EVDO)
           // Show signal strength of data call as EVDO only supports data call.
           this.updateSignalIcon(icon, data);
-        } else if (voice.connected || self.hasActiveCall()) {
+        } else if (voice.connected || self.hasActiveCall() &&
+            navigator.mozTelephony.active.serviceId === index) {
           // "Carrier" / "Carrier (Roaming)"
+          // If voice.connected is false but there is an active call, we should
+          // check whether the service id of that call equals the current index
+          // of the target sim card. If yes, that means the user is making an
+          // emergency call using the target sim card. In such case we should
+          // also display the signal bar as the normal cases.
           this.updateSignalIcon(icon, voice);
         } else if (simslot.isLocked()) {
           // SIM locked
           // We check if the sim card is locked after checking hasActiveCall
-          // because we still need to show the siganl bars in this case even
-          // the sim card is locked.
+          // because we still need to show the siganl bars in the case of
+          // making emergency calls when the sim card is locked.
           icon.hidden = true;
         } else {
           // "No Network" / "Emergency Calls Only (REASON)" / trying to connect
@@ -1047,7 +1053,7 @@ var StatusBar = {
     icon.setAttribute('aria-label', navigator.mozL10n.get(connInfo.roaming ?
       'statusbarSignalRoaming' : 'statusbarSignal', {
         level: icon.dataset.level,
-        operator: connInfo.network.shortName
+        operator: connInfo.network && connInfo.network.shortName
       }
     ));
   },
