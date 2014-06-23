@@ -73,11 +73,11 @@ suite('system/SecureWindowManager', function() {
 
     test('Apps got closed', function() {
       var stubClose = this.sinon.stub(appFake, 'close'),
-          stubKill = this.sinon.stub(appFake, 'kill');
+          stubSoftKill = this.sinon.stub(appFake, 'softKill');
       window.secureWindowManager.handleEvent({type: 'secure-appcreated',
         detail: appFake});
       window.secureWindowManager.handleEvent({type: 'secure-closeapps'});
-      assert.isTrue(stubKill.called,
+      assert.isTrue(stubSoftKill.called,
           'the app was not killed');
 
       // Because the apps would send events to notifiy the requstclose in
@@ -103,7 +103,7 @@ suite('system/SecureWindowManager', function() {
         'the app was still registered in the maanger');
 
       stubClose.restore();
-      stubKill.restore();
+      stubSoftKill.restore();
     });
 
     test('Apps got killed', function() {
