@@ -152,7 +152,7 @@
   display: none;
 }
 
-.edit-mode .icon.bookmark .title {
+.edit-mode .icon.bookmark.editable .title {
   background-color: rgba(132, 132, 132, 0.7);
   border-radius: 2rem;
   margin-top: .4rem;
