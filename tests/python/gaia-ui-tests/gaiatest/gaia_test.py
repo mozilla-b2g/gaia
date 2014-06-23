@@ -729,8 +729,9 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
         # unlock
         self.device.unlock()
 
-        # kill any open apps
-        self.apps.kill_all()
+        # kill FTU app if it's open
+        self.wait_for_condition(lambda m: self.apps.displayed_app.name == 'FTU')
+        self.apps.kill(self.apps.displayed_app)
 
         if full_reset:
             # disable passcode
