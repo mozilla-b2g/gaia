@@ -27,7 +27,6 @@
 
 body:not(.rb-enabled) #statusbar {
   transition: transform 0.2s linear;
-  will-change: transform;
 }
 
 #screen.on-homescreen:not(.utility-tray):not(.attention) #statusbar-background:not(.opaque) {
