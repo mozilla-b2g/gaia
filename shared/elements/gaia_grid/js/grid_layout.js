@@ -122,7 +122,7 @@
       } else if (numCols === maxIconsPerRow) {
         size = windowWidth / iconScaleFactorMaxIconsPerRow;
       }
-      return size;
+      return Math.floor(size);
     },
 
     /**

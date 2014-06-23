@@ -194,9 +194,10 @@
      */
     _displayDecoratedIcon: function(blob) {
       this.element.style.height = this.grid.layout.gridItemHeight + 'px';
+      // icon size + padding for shadows implemented in the icon renderer
       this.element.style.backgroundSize =
         ((this.grid.layout.gridIconSize * (1 / this.scale)) +
-        this.rendererInstance.unscaledCanvasPadding) +'px';
+        this.rendererInstance.unscaledCanvasPadding) + 'px';
       this.element.style.backgroundImage =
         'url(' + URL.createObjectURL(blob) + ')';
     },
@@ -321,8 +322,9 @@
         // This <p> has been added in order to place the title with respect
         // to this container via CSS without touching JS.
         var nameContainerEl = document.createElement('p');
-        nameContainerEl.style.marginTop = (this.grid.layout.gridIconSize *
-                                          (1 / this.scale)) + 'px';
+        nameContainerEl.style.marginTop = ((this.grid.layout.gridIconSize *
+          (1 / this.scale)) +
+          GridIconRenderer.prototype.unscaledCanvasPadding) + 'px';
         tile.appendChild(nameContainerEl);
 
         var nameEl = document.createElement('span');
