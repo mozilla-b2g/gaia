@@ -8,7 +8,8 @@ require('/shared/elements/gaia_grid/js/items/bookmark.js');
 
 suite('GaiaGrid > Bookmark', function() {
 
-  var subject = null;
+  var subject = null,
+      stub = null;
   var stubPage1 = {
     name: 'first',
     id: 1,
@@ -17,7 +18,14 @@ suite('GaiaGrid > Bookmark', function() {
   };
 
   setup(function() {
+    stub = sinon.stub(GaiaGrid.GridItem.prototype, 'render', function() {
+      this.element = document.createElement('div');
+    });
     subject = new GaiaGrid.Bookmark(stubPage1);
+  });
+
+  teardown(function() {
+    stub.restore();
   });
 
   test('Bookmark created properly', function() {
@@ -28,6 +36,17 @@ suite('GaiaGrid > Bookmark', function() {
     assert.isUndefined(subject.bookmarking);
     assert.isTrue(subject.isRemovable());
     assert.isTrue(subject.isEditable());
+    subject.render();
+    assert.isTrue(subject.element.classList.contains('editable'));
+  });
+
+  test('Bookmark is not editable', function() {
+    subject = new GaiaGrid.Bookmark(stubPage1, {
+      isEditable: false
+    });
+    assert.isFalse(subject.isEditable());
+    subject.render();
+    assert.isFalse(subject.element.classList.contains('editable'));
   });
 
   test('Launch bookmark', function(done) {

@@ -80,6 +80,9 @@
     render: function(coordinates, index) {
       GaiaGrid.GridItem.prototype.render.call(this, coordinates, index);
       this.element.classList.add('bookmark');
+      if (this.isEditable()) {
+        this.element.classList.add('editable');
+      }
     },
 
     /**
