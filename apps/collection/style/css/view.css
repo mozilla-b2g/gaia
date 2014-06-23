@@ -1,6 +1,8 @@
 gaia-grid {
   display: block;
   width: 100%;
+  position: relative;
+  z-index: 2;
 }
 
 #edit-header {
@@ -64,12 +66,6 @@ gaia-grid {
   background-color: #333333;
 }
 
-/* making sure content elements don't get overlayed by #content:after */
-#content > * {
-  position: relative;
-  z-index: 1;
-}
-
 /* Notifications */
 #content {
   display: flex;
@@ -86,6 +82,8 @@ section[role="notification"] {
   text-align: center;
   justify-content: center;
   display: none;
+  position: relative;
+  z-index: 1;
 }
 
 section[role="notification"]#offline {
