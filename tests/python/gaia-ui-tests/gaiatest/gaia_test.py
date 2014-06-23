@@ -714,7 +714,7 @@ class GaiaDevice(object):
         if self.is_android_build:
             self.marionette.execute_script("""
 window.addEventListener('mozbrowserloadend', function loaded(aEvent) {
-  if (/ftu|homescreen/.test(aEvent.target.src) {
+  if (/ftu|homescreen/.test(aEvent.target.src)) {
     window.removeEventListener('mozbrowserloadend', loaded);
     window.wrappedJSObject.b2g_ready = true;
   }
