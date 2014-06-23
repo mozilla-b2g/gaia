@@ -22,7 +22,7 @@ var mocksForFindMyDevice = new MocksHelper([
 suite('Find My Device panel > ', function() {
   var MockMozId, realMozId;
   var realL10n, realLoadJSON, subject;
-  var signinSection, settingsSection, loginButton, checkbox;
+  var signinSection, settingsSection, trackingSection, loginButton, checkbox;
 
   mocksForFindMyDevice.attachTestHelpers();
 
@@ -31,7 +31,15 @@ suite('Find My Device panel > ', function() {
     navigator.mozL10n = {
       once: function(callback) {
         callback();
-      }
+      },
+      get: function(value) {
+        if (value=="findmydevice-active-tracking") {
+          return "Your phone is being tracked by another device through the website.";
+        } 
+        else if (value=="findmydevice-not-tracking") {
+          return "No devices are actively tracking your phone through the website.";
+        }
+      },
     };
 
     realMozId = navigator.mozId;
@@ -77,6 +85,7 @@ suite('Find My Device panel > ', function() {
       // grab pointers to useful elements
       signinSection = document.getElementById('findmydevice-signin');
       settingsSection = document.getElementById('findmydevice-settings');
+      trackingSection = document.getElementById('findmydevice-tracking');
       loginButton = document.getElementById('findmydevice-login');
       checkbox = document.querySelector('#findmydevice-enabled input');
 
@@ -114,6 +123,18 @@ suite('Find My Device panel > ', function() {
     MockMozId.onlogin();
     var nLocks = MockSettingsListener.getSettingsLock().locks.length;
     assert.equal(nLocks, 0, 'set no settings on non-interactive login');
+  });
+
+  test('bug 1000173- show icon in settings when phone is tracked', function() {
+    var value = true;
+    MockSettingsListener.mCallbacks['findmydevice.enabled'](false);
+    assert.isTrue(trackingSection.hidden);
+    MockSettingsListener.mCallbacks['findmydevice.enabled'](true);
+    assert.isFalse(trackingSection.hidden);
+    MockSettingsListener.mCallbacks['findmydevice.tracking'](true);
+    assert.equal(trackingSection.textContent, navigator.mozL10n.get('findmydevice-active-tracking'));
+    MockSettingsListener.mCallbacks['findmydevice.tracking'](false);
+    assert.equal(trackingSection.textContent, navigator.mozL10n.get('findmydevice-not-tracking'));
   });
 
   suiteTeardown(function() {

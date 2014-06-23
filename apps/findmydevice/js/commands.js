@@ -1,6 +1,7 @@
 /* global SettingsURL */
 /* global SettingsListener */
 /* global DUMP */
+/* global SettingsHelper */
 
 'use strict';
 
@@ -14,6 +15,10 @@ var Commands = {
   _lockscreenPassCodeEnabled: false,
 
   _geolocationEnabled: false,
+
+  _trackingHelper: SettingsHelper('findmydevice.tracking'),
+
+  _tracking: false,
 
   init: function fmdc_init() {
     var ringer = this._ringer = new Audio();
@@ -88,7 +93,6 @@ var Commands = {
 
     appreq.onerror = errorCallback;
   },
-
   _trackIntervalId: null,
 
   _commands: {
@@ -102,7 +106,7 @@ var Commands = {
           clearInterval(this._trackIntervalId);
           this._trackIntervalId = null;
         }
-
+        this._trackingHelper.set(!!duration);
         reply(true);
         return;
       }

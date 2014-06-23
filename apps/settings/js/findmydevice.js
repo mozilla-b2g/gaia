@@ -32,6 +32,8 @@ var FindMyDevice = {
       });
     });
 
+    SettingsListener.observe('findmydevice.tracking', false,
+      this._setTracked.bind(this));
     SettingsListener.observe('findmydevice.enabled', false,
       this._setEnabled.bind(this));
 
@@ -54,6 +56,15 @@ var FindMyDevice = {
     var checkbox = document.querySelector('#findmydevice-enabled input');
     checkbox.checked = value;
     checkbox.disabled = false;
+
+    var status = document.getElementById('findmydevice-tracking');
+    status.hidden = !value;
+  },
+
+  _setTracked: function fmd_set_tracked(value) {
+    var _ = navigator.mozL10n.get;
+    var status = document.getElementById('findmydevice-tracking');
+    status.textContent = value ? _('findmydevice-active-tracking') : _('findmydevice-not-tracking');
   },
 
   _onChangeLoginState: function fmd_on_change_login_state(loggedIn) {
