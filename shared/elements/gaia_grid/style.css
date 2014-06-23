@@ -136,6 +136,12 @@
   height: 2.6rem;
   background: url(images/remove.png) no-repeat;
   background-size: 2rem;
+  /*
+  Ensure that remove is on top of the icon and has some extra
+  padding so it is easy to click.
+  */
+  z-index: 200;
+  padding: 0.5rem;
 }
 
 .icon .remove {
