@@ -23,7 +23,7 @@
     addToCollection: function(event) {
       CollectionsDatabase.get(event.data.collectionId).then(fresh => {
           fresh.pinned = fresh.pinned.concat(
-            new PinnedHomeIcon(event.data.applicationId));
+            new PinnedHomeIcon(event.data.identifier));
           CollectionsDatabase.put(fresh);
         });
     }

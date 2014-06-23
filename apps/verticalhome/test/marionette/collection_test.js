@@ -177,4 +177,57 @@ marionette('Vertical - Collection', function() {
       'the second icon has moved to the left.');
   });
 
+  test('drag icon (/w entry point) into collection', function() {
+
+    var dialerManifest = 'app://communications.gaiamobile.org/manifest.webapp';
+    var dialerEntryPoint = 'dialer';
+
+    collection.enterCreateScreen();
+
+    // A collection name from the cateories_list.json stub
+    var collectionName = 'Around Me';
+    collection.selectNew(collectionName);
+    client.apps.switchToApp(Home2.URL);
+
+    var collectionIcon;
+
+    // Drag the 'Phone' application into the created collection.
+    // We specifically choose phone because it has an entry point.
+    // Due to the weirdness of scrolling, we need to wait until we see the
+    // + icon on the collection to know whether or not we are successful.
+    client.waitFor(function() {
+      var phoneIcon = home.getIcon(dialerManifest, dialerEntryPoint);
+      collectionIcon = collection.getCollectionByName(collectionName);
+
+      phoneIcon.scriptWith(function(el) {
+        // effectively scroll to the bottom of the screen.
+        el.scrollIntoView(false);
+      });
+
+      actions
+        .press(phoneIcon)
+        .wait(1)
+        .move(collectionIcon)
+        .perform();
+
+      var hasClass = collectionIcon.getAttribute('class')
+        .indexOf('hovered') !== -1;
+      actions
+        .release()
+        .perform();
+
+      return hasClass;
+    });
+
+    // Exit edit mode.
+    var done = client.helper.waitForElement(Home2.Selectors.editHeaderDone);
+    done.click();
+
+    // Enter the created collection.
+    collection.enterCollection(collectionIcon);
+
+    var firstPinnedIcon = client.findElement(selectors.firstPinnedResult);
+    assert.equal(firstPinnedIcon.text(),
+      home.localizedAppName('communications', 'dialer', 'en-US'));
+  });
 });

@@ -129,7 +129,7 @@
             'gaiagrid-add-to-collection',
             { detail: {
               'collectionId': this.hoverItem.detail.id,
-              'applicationId': this.icon.detail.manifestURL
+              'identifier': this.icon.identifier
             }
           }));
         } else {
