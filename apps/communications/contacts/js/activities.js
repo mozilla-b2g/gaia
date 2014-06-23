@@ -208,7 +208,7 @@ var ActivityHandler = {
               self.postPickSuccess(result);
             };
           };
-          for (var i = 0, var l = dataSet.length; i < l; i++) {
+          for (var i = 0, l = dataSet.length; i < l; i++) {
             itemData = dataSet[i].value;
             var carrier = dataSet[i].carrier || '';
             prompt1.addToList(
