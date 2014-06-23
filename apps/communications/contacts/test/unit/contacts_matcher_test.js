@@ -345,19 +345,19 @@ suite('Test Contacts Matcher', function() {
 
     suite('SIM Contacts Matching', function() {
       var existingSimContact = {
-          id: '1B',
-          category: ['sim'],
-          name: ['Juan Ramón del SIM'],
-          givenName: ['Juan Ramón del SIM'],
-          tel: [{
-            type: ['home'],
-            value: '676767671'
-          }],
-          email: [{
-            type: ['personal'],
-            value: 'jj@jj.com'
-          }]
-        };
+        id: '1B',
+        category: ['sim'],
+        name: ['Juan Ramón del SIM'],
+        givenName: ['Juan Ramón del SIM'],
+        tel: [{
+          type: ['home'],
+          value: '676767671'
+        }],
+        email: [{
+          type: ['personal'],
+          value: 'jj@jj.com'
+        }]
+      };
 
       var incomingSimContact = {
         id: '678',
@@ -451,7 +451,54 @@ suite('Test Contacts Matcher', function() {
             MockFindMatcher.setData(contact);
             done();
           });
-      }); // Test
+      });
+      
+      test('SIM Contact. Multiple names matching. Only one by SIM url',
+        function(done) {
+          var existing1 = Object.create(existingSimContact);
+          existing1.url = [
+            {
+              type: ['sim', 'source'],
+              value: '12345-6789'
+            }
+          ];
+          // Avoiding matching by other criteria
+          existing1.tel = null;
+          existing1.email = null;
+          
+          var incoming = Object.create(incomingSimContact);
+          incoming.url = [
+            {
+              type: ['sim', 'source'],
+              value: '6666-9999'
+            }
+          ];
+          incoming.name = existing1.name;
+          incoming.givenName = existing1.givenName;
+          incoming.familyName = existing1.familyName;
+          
+          var existing2 = Object.create(incoming);
+          existing2.id = 'vtrew12';
+          
+          MockFindMatcher.setData(null);
+          MockFindMatcher.setFoundData([existing1, existing2]);
+  
+          var callbacks = {
+            onmatch: function(results) {
+              var resultList = Object.keys(results);
+              assert.equal(resultList.length, 1);
+              assert.equal(results[resultList[0]].matchingContact.id,
+                           existing2.id);
+              MockFindMatcher.setData(contact);
+              MockFindMatcher.setFoundData(null);
+              done();
+            },
+            onmismatch: function() {
+              done('error');
+            }
+          };
+          contacts.Matcher.match(incoming, 'passive', callbacks);
+      });  // Test
     }); // SIM Suite
   }); // Passive Merge Suite
 
