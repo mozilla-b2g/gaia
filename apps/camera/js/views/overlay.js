@@ -5,9 +5,9 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
-var View = require('vendor/view');
 var find = require('lib/find');
 var bind = require('lib/bind');
+var View = require('view');
 
 /**
  * Exports

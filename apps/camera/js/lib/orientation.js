@@ -1,9 +1,8 @@
 define(function(require, exports, module) {
   'use strict';
 
-  var listener = require('vendor/orientation');
-  var body = document.body;
-  var classes = body.classList;
+  var listener = require('device-orientation');
+  var classes = document.body.classList;
   var current = 0;
 
   listener.on('orientation', onOrientationChange);

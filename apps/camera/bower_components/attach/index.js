@@ -13,11 +13,11 @@ var ns = '_attach';
  */
 
 var proto = Element.prototype;
-var matches = proto.matchesSelector ||
-  proto.webkitMatchesSelector ||
-  proto.mozMatchesSelector ||
-  proto.msMatchesSelector ||
-  proto.oMatchesSelector;
+var matches = proto.matchesSelector
+  || proto.webkitMatchesSelector
+  || proto.mozMatchesSelector
+  || proto.msMatchesSelector
+  || proto.oMatchesSelector;
 
 /**
  * Bind an event listener
@@ -36,7 +36,7 @@ var matches = proto.matchesSelector ||
  * @param  {Object}   ctx (optional)
  */
 function attach(root, type, selector, fn, ctx) {
-  if (arguments.length === 1) {
+  if (arguments.length === 2) {
     return attach.many.apply(null, arguments);
   }
 

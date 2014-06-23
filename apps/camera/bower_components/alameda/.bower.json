@@ -1,0 +1,13 @@
+{
+  "name": "alameda",
+  "_cacheHeaders": {
+    "ETag": "\"a8713561f5a2962e7fbe9fc22cf2b237c3bdbf9b\"",
+    "Content-Length": "51022",
+    "Content-Type": "text/plain; charset=utf-8"
+  },
+  "_release": "e-tag:a8713561f",
+  "main": "index.js",
+  "_source": "https://raw.githubusercontent.com/requirejs/alameda/0.2.0/alameda.js",
+  "_target": "*",
+  "_originalSource": "https://raw.githubusercontent.com/requirejs/alameda/0.2.0/alameda.js"
+}

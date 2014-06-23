@@ -1,11 +1,11 @@
-define(function(require, exports, module) {
+(function(define){define(function(require,exports,module){
 'use strict';
 
 /**
  * Dependencies
  */
 
-var events = require('vendor/evt');
+var events = require('evt');
 
 /**
  * Exports
@@ -99,4 +99,6 @@ function mix(a, b) {
   return a;
 }
 
-});
+});})((function(n,w){return typeof define=='function'&&define.amd?
+define:typeof module=='object'?function(c){c(require,exports,module);}:function(c){
+var m={exports:{}},r=function(n){return w[n];};w[n]=c(r,m.exports,m)||m.exports;};})('model',this));

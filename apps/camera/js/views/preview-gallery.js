@@ -7,13 +7,13 @@ define(function(require) {
  */
 
 var debug = require('debug')('view:preview-gallery');
-var bind = require('lib/bind');
-var attach = require('vendor/attach');
-var View = require('vendor/view');
-var orientation = require('lib/orientation');
 var addPanAndZoomHandlers = require('lib/panzoom');
-var MediaFrame = require('MediaFrame');
 var FontSizeUtils = require('FontSizeUtils');
+var orientation = require('lib/orientation');
+var MediaFrame = require('MediaFrame');
+var bind = require('lib/bind');
+var attach = require('attach');
+var View = require('view');
 
 /**
  * Constants

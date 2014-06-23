@@ -8,12 +8,12 @@ define(function(require, exports, module) {
 var CameraUtils = require('lib/camera-utils');
 var getVideoMetaData = require('lib/get-video-meta-data');
 var orientation = require('lib/orientation');
+var Focus = require('lib/camera/focus');
 var debug = require('debug')('camera');
 var debounce = require('lib/debounce');
 var bindAll = require('lib/bind-all');
-var model = require('vendor/model');
 var mix = require('lib/mixin');
-var Focus = require('lib/camera/focus');
+var model = require('model');
 
 /**
  * Mixin `Model` API (inc. events)

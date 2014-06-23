@@ -1,6 +1,6 @@
 
 /**
- * Event
+ * Evt
  *
  * A super lightweight
  * event emitter library.
@@ -28,8 +28,8 @@ var slice = [].slice;
  * @return {Object}
  */
 function Events(obj) {
-  if (!(this instanceof Events)) { return new Events(obj); }
-  if (obj) { return mixin(obj, proto); }
+  if (!(this instanceof Events)) return new Events(obj);
+  if (obj) return mixin(obj, proto);
 }
 
 /**
@@ -46,6 +46,17 @@ proto.on = function(name, cb) {
   return this;
 };
 
+/**
+ * Attach a callback that once
+ * called, detaches itself.
+ *
+ * TODO: Implement `.off()` to work
+ * with `once()` callbacks.
+ *
+ * @param  {String}   name
+ * @param  {Function} cb
+ * @public
+ */
 proto.once = function(name, cb) {
   this.on(name, one);
   function one() {
@@ -124,7 +135,7 @@ proto.firer = function(name) {
  * @return {Object}
  */
 function mixin(a, b) {
-  for (var key in b) { a[key] = b[key]; }
+  for (var key in b) a[key] = b[key];
   return a;
 }
 

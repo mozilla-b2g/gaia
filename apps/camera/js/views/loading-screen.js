@@ -1,7 +1,7 @@
 define(function(require, exports, module) {
 'use strict';
 
-var View = require('vendor/view');
+var View = require('view');
 
 module.exports = View.extend({
   name: 'loading-screen',

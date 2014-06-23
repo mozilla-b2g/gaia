@@ -6,7 +6,7 @@
   insertRequire: ['main'],
   name: 'main',
   include: [
-    'vendor/alameda',
+    '../bower_components/alameda/index',
     'config/require',
   ],
 
