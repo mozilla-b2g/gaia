@@ -27,20 +27,19 @@
       defaultGridRender.call(grid._grid, options);
     };
 
-    // render pinned apps first
-    collection.render(grid);
-
-    CollectionIcon.init(grid.maxIconSize);
-
-    // refresh since pinned apps might have been updated
-    eme.init()
-    .then(() => NativeInfo.setup())
+    // Start by showing pinned apps
+    // Update Collection from db
+    // Render grid for the first time
+    // Go get web results
+    NativeInfo.setup()
     .then(() => collection.refresh())
+    .then(() => collection.render(grid))
     .then(() => {
       loading(false);
-      collection.render(grid);
       queueRequest();
     });
+
+    CollectionIcon.init(grid.maxIconSize);
 
     function queueRequest() {
       if (navigator.onLine) {
@@ -65,14 +64,15 @@
     function makeRequest() {
       loading();
 
-      eme.api.Apps.search(options)
-        .then(function success(response) {
-          onResponse();
+      eme.init()
+      .then(() => eme.api.Apps.search(options))
+      .then(function success(response) {
+        onResponse();
 
-          collection.addWebResults(response.response.apps);
-          collection.render(grid);
+        collection.addWebResults(response.response.apps);
+        collection.renderWebResults(grid);
 
-        }, onOffline);
+      }, onOffline);
     }
 
     function loading(should) {
