@@ -59,6 +59,10 @@ function MockIndexedDB() {
 
     var self = this;
 
+    sinon.stub(this, 'clear', function() {
+      return _getRequest(null, {});
+    });
+
     sinon.stub(this, 'close', function() {
       self.isClosed = true;
     });

@@ -176,18 +176,81 @@
       success(this._allItems);
     },
 
-    saveTable: function(table, objArr, column, checkPersist, aNext) {
-      newTxn(table, 'readwrite', function(txn, store) {
-        store.clear();
-        for (var i = 0, iLen = objArr.length; i < iLen; i++) {
-          if (!checkPersist || (checkPersist && objArr[i].persistToDB)) {
-            store.put(column?objArr[i][column]:objArr[i]);
+    /**
+     * Indicates that we're currently processing a call to saveTable for a
+     * given table.
+     */
+    _processingSave: {},
+
+    /**
+     * A list of pending calls to saveTable. When a new call is executed,
+     * if a save is in process then the new save order will be stored here.
+     */
+    _pendingSaveOrders: {},
+
+    /*
+     * This function process a save order directly (without checking if there's
+     * another save running (so it's unsafe to call from outside). The checking
+     * is done by the saveOrder method.
+     */
+    _processSaveOrder: function(table, objArr, column, checkPersist, aNext) {
+      var self = this;
+      var pendingRequests = objArr.length;
+
+      var decreasePendingElements = function() {
+        if (!--pendingRequests) {
+
+          // If we have stored orders, queue the first now to be executed
+          // after aNext ends
+          var newOrder = self._pendingSaveOrders[table] &&
+                           self._pendingSaveOrders[table].shift();
+          if (newOrder) {
+            newOrder.unshift(self);
+            setTimeout(self._processSaveOrder.bind.apply(self._processSaveOrder,
+                                                         newOrder));
+          } else {
+            delete self._processingSave[table];
+          }
+          if (typeof aNext === 'function') {
+            aNext();
           }
         }
-        if (typeof aNext === 'function') {
-          aNext();
-        }
+      };
+
+      newTxn(table, 'readwrite', function(txn, store) {
+        store.clear().onsuccess = function() {
+          for (var i = 0, iLen = objArr.length; i < iLen; i++) {
+            if (!checkPersist || (checkPersist && objArr[i].persistToDB)) {
+              store.put(column?objArr[i][column]:objArr[i]).onsuccess =
+                decreasePendingElements;
+            } else {
+              // Even if we're not going to save the element we still should
+              // count it towards the number of pending elements.
+              // We can do this synchronously safely too.
+              decreasePendingElements();
+            }
+          }
+        };
       });
+
+    },
+
+    saveTable: function(table, objArr, column, checkPersist, aNext) {
+      var self = this;
+
+      if (self._processingSave[table]) {
+        var saveArgs = Array.slice(arguments);
+
+        if (self._pendingSaveOrders[table]) {
+          self._pendingSaveOrders[table].push(saveArgs);
+        } else {
+          self._pendingSaveOrders[table] = [saveArgs];
+        }
+
+      } else {
+        self._processingSave[table] = true;
+        self._processSaveOrder.apply(self, arguments);
+      }
     },
 
     /**
