@@ -55,6 +55,11 @@
             this.createPopupWindow();
           }
           break;
+        case 'mozhaidasheet':
+          // This feature is for internal usage only
+          // before we have final API to open an inner sheet.
+          caught = this.createChildWindow(evt);
+          break;
         default:
           if (ENABLE_IN_APP_SHEET) {
             caught = this.createChildWindow(evt);
