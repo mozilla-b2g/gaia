@@ -8,7 +8,7 @@ import time
 
 from marionette import MarionetteTestCase, EnduranceTestCaseMixin, B2GTestCaseMixin, \
                        MemoryEnduranceTestCaseMixin
-from marionette.by import By
+from marionette import Wait
 from marionette.errors import NoSuchElementException
 from marionette.errors import ElementNotVisibleException
 from marionette.errors import TimeoutException
@@ -712,13 +712,15 @@ class GaiaDevice(object):
         self.marionette.wait_for_port()
         self.marionette.start_session()
         if self.is_android_build:
-            self.marionette.execute_async_script("""
+            self.marionette.execute_script("""
 window.addEventListener('mozbrowserloadend', function loaded(aEvent) {
-  if (aEvent.target.src.indexOf('ftu') != -1 || aEvent.target.src.indexOf('homescreen') != -1) {
+  if (/ftu|homescreen/.test(aEvent.target.src)) {
     window.removeEventListener('mozbrowserloadend', loaded);
-    marionetteScriptFinished();
+    window.wrappedJSObject.b2g_ready = true;
   }
-});""", script_timeout=timeout * 1000)
+});""", new_sandbox=False)
+            Wait(self.marionette, timeout).until(lambda m: m.execute_script(
+                'return window.wrappedJSObject.b2g_ready;', new_sandbox=False))
             # TODO: Remove this sleep when Bug 924912 is addressed
             time.sleep(5)
         self.marionette.import_script(self.lockscreen_atom)
