@@ -23,8 +23,6 @@
   }
 
   WallpaperManager.prototype = {
-    /** @lends Screenshot */
-
     /**
      * Bootstrap the module, begin listening to wallpaper events
      */
