@@ -41,12 +41,6 @@ suite('Utils', function() {
         if (params) {
           return key + JSON.stringify(params);
         }
-        if (key == 'thread-separator') {
-          return ' | ';
-        }
-        if (key == 'carrier-separator') {
-          return ', ';
-        }
         return key;
     });
   });
@@ -209,8 +203,7 @@ suite('Utils', function() {
         isContact: true,
         title: 'Pepito O\'Hare',
         name: 'Pepito O\'Hare',
-        org: '',
-        carrier: 'Mobile | TEF'
+        org: ''
       });
 
       details = Utils.getContactDetails('12125559999', contact);
@@ -218,8 +211,7 @@ suite('Utils', function() {
         isContact: true,
         title: 'Pepito O\'Hare',
         name: 'Pepito O\'Hare',
-        org: '',
-        carrier: 'Batphone | XXX'
+        org: ''
       });
     });
 
@@ -238,8 +230,7 @@ suite('Utils', function() {
         isContact: true,
         title: 'Pepito O\'Hare',
         name: 'Pepito O\'Hare',
-        org: '',
-        carrier: 'Mobile | TEF'
+        org: ''
       });
     });
 
@@ -254,8 +245,7 @@ suite('Utils', function() {
         isContact: true,
         title: '',
         name: '',
-        org: '',
-        carrier: 'Mobile | TEF'
+        org: ''
       });
 
     });
@@ -274,8 +264,7 @@ suite('Utils', function() {
         isContact: true,
         title: 'Pepito O\'Hare',
         name: 'Pepito O\'Hare',
-        org: '',
-        carrier: 'Mobile | +346578888888'
+        org: ''
       });
 
     });
@@ -312,8 +301,7 @@ suite('Utils', function() {
           isContact: true,
           title: 'Pepito O\'Hare',
           name: 'Pepito O\'Hare',
-          org: '',
-          carrier: ''
+          org: ''
         });
       });
 
@@ -326,8 +314,7 @@ suite('Utils', function() {
           isContact: true,
           title: 'Pepito O\'Hare',
           name: 'Pepito O\'Hare',
-          org: '',
-          carrier: ''
+          org: ''
         });
       });
 
@@ -340,8 +327,7 @@ suite('Utils', function() {
           isContact: true,
           title: 'Pepito O\'Hare',
           name: 'Pepito O\'Hare',
-          org: '',
-          carrier: ''
+          org: ''
         });
       });
 
@@ -354,8 +340,7 @@ suite('Utils', function() {
           isContact: true,
           title: 'Pepito O\'Hare',
           name: 'Pepito O\'Hare',
-          org: '',
-          carrier: 'Batphone | XXX'
+          org: ''
         });
       });
 
@@ -372,8 +357,7 @@ suite('Utils', function() {
           isContact: true,
           title: 'Jane Doozer',
           name: 'Jane Doozer',
-          org: '',
-          carrier: 'Mobile | TEF'
+          org: ''
         });
       });
 
@@ -389,37 +373,25 @@ suite('Utils', function() {
           isContact: true,
           title: 'TEF',
           name: '',
-          org: 'TEF',
-          carrier: 'Mobile | TEF'
+          org: 'TEF'
         });
       });
     });
   });
 
-  suite('Utils.getCarrierTag', function() {
+  suite('Utils.getPhoneDetails', function() {
     /**
-      1. If a phone number has carrier associated with it
-          the output will be:
-
-        type | carrier
-
-      2. If there is no carrier associated with the phone number
-          the output will be:
-
-        type | phonenumber
-
-      3. If for some reason a single contact has two phone numbers with
-          the same type and the same carrier the output will be:
-
-        type | phonenumber
-
-      4. If for some reason a single contact has no name and no carrier,
-          the output will be:
-
-        type
-
-      5. If for some reason a single contact has no name, no type
-          and no carrier, the output will be nothing.
+     * Based on input number tries to extract more phone details like phone
+     * type, full phone number and phone carrier.
+     * 1. If a phone number has carrier associated with it then both "type" and
+     * "carrier" will be returned;
+     *
+     * 2. If there is no carrier associated with the phone number then "type"
+     *  and "phone number" will be returned;
+     *
+     * 3. If for some reason a single contact has two phone numbers with the
+     * same type and the same carrier then "type" and "phone number" will be
+     * returned;
     */
     test('Single with carrier', function() {
       // ie. contact.tel [ ... ]
@@ -427,7 +399,7 @@ suite('Utils', function() {
         {value: '101', type: ['Mobile'], carrier: 'Nynex'}
       ];
 
-      var a = Utils.getCarrierTag('101', tel);
+      var a = Utils.getPhoneDetails('101', tel);
 
       assert.deepEqual(a, {
         type: tel[0].type[0],
@@ -442,7 +414,7 @@ suite('Utils', function() {
         {value: '201', type: ['Mobile'], carrier: null}
       ];
 
-      var a = Utils.getCarrierTag('201', tel);
+      var a = Utils.getPhoneDetails('201', tel);
 
       assert.deepEqual(a, {
         type: tel[0].type[0],
@@ -451,45 +423,19 @@ suite('Utils', function() {
       });
     });
 
-    test('Single no name', function() {
-      // ie. contact.tel [ ... ]
-      var tel = [
-        {value: '201', type: ['Mobile'], carrier: 'Telco'}
-      ];
-
-      var a = Utils.getCarrierTag('201', tel, { name: '' });
-
-      assert.deepEqual(a, {
-        type: tel[0].type[0],
-        carrier: tel[0].carrier,
-        number: null
-      });
-    });
-
-    test('Single no name, no carrier', function() {
-      // ie. contact.tel [ ... ]
-      var tel = [
-        {value: '201', type: ['Mobile'], carrier: null}
-      ];
-
-      var a = Utils.getCarrierTag('201', tel, { name: '' });
-
-      assert.deepEqual(a, {
-        type: tel[0].type[0],
-        carrier: null,
-        number: null
-      });
-    });
-
-    test('Single no name, no carrier, no type', function() {
+    test('No carrier, no type', function() {
       // ie. contact.tel [ ... ]
       var tel = [
         {value: '201', type: [], carrier: null}
       ];
 
-      var a = Utils.getCarrierTag('201', tel, { name: '' });
+      var a = Utils.getPhoneDetails('201', tel);
 
-      assert.isNull(a);
+      assert.deepEqual(a, {
+        type: null,
+        carrier: null,
+        number: tel[0].value
+      });
     });
 
     test('Multi different carrier & type, match both', function() {
@@ -499,8 +445,8 @@ suite('Utils', function() {
         {value: '302', type: ['Home'], carrier: 'MCI'}
       ];
 
-      var a = Utils.getCarrierTag('301', tel);
-      var b = Utils.getCarrierTag('302', tel);
+      var a = Utils.getPhoneDetails('301', tel);
+      var b = Utils.getPhoneDetails('302', tel);
 
       assert.deepEqual(a, {
         type: tel[0].type[0],
@@ -521,7 +467,7 @@ suite('Utils', function() {
         {value: '402', type: ['Home'], carrier: 'MCI'}
       ];
 
-      var a = Utils.getCarrierTag('401', tel);
+      var a = Utils.getPhoneDetails('401', tel);
 
       assert.deepEqual(a, {
         type: tel[0].type[0],
@@ -537,7 +483,7 @@ suite('Utils', function() {
         {value: '502', type: ['Home'], carrier: 'MCI'}
       ];
 
-      var a = Utils.getCarrierTag('502', tel);
+      var a = Utils.getPhoneDetails('502', tel);
 
       assert.deepEqual(a, {
         type: tel[1].type[0],
@@ -553,8 +499,8 @@ suite('Utils', function() {
         {value: '602', type: ['Mobile'], carrier: 'Nynex'}
       ];
 
-      var a = Utils.getCarrierTag('601', tel);
-      var b = Utils.getCarrierTag('602', tel);
+      var a = Utils.getPhoneDetails('601', tel);
+      var b = Utils.getPhoneDetails('602', tel);
 
       assert.deepEqual(a, {
         type: tel[0].type[0],
@@ -575,8 +521,8 @@ suite('Utils', function() {
         {value: '702', type: ['Home'], carrier: 'Nynex'}
       ];
 
-      var a = Utils.getCarrierTag('701', tel);
-      var b = Utils.getCarrierTag('702', tel);
+      var a = Utils.getPhoneDetails('701', tel);
+      var b = Utils.getPhoneDetails('702', tel);
 
       assert.deepEqual(a, {
         type: tel[0].type[0],
@@ -597,8 +543,8 @@ suite('Utils', function() {
         {value: '802', type: ['Mobile'], carrier: 'MCI'}
       ];
 
-      var a = Utils.getCarrierTag('801', tel);
-      var b = Utils.getCarrierTag('802', tel);
+      var a = Utils.getPhoneDetails('801', tel);
+      var b = Utils.getPhoneDetails('802', tel);
 
       assert.deepEqual(a, {
         type: tel[0].type[0],
@@ -619,8 +565,8 @@ suite('Utils', function() {
         {value: '0987654321', type: ['Mobile'], carrier: 'MCI'}
       ];
 
-      var a = Utils.getCarrierTag('+1234567890', tel);
-      var b = Utils.getCarrierTag('+0987654321', tel);
+      var a = Utils.getPhoneDetails('+1234567890', tel);
+      var b = Utils.getPhoneDetails('+0987654321', tel);
 
       assert.deepEqual(a, {
         type: tel[0].type[0],
@@ -641,8 +587,8 @@ suite('Utils', function() {
         {value: '0987654321', type: ['Mobile'], carrier: 'MCI'}
       ];
 
-      var a = Utils.getCarrierTag('+9999999999', tel);
-      var b = Utils.getCarrierTag('+9999999999', tel);
+      var a = Utils.getPhoneDetails('+9999999999', tel);
+      var b = Utils.getPhoneDetails('+9999999999', tel);
 
       assert.isNull(a);
       assert.isNull(b);
@@ -1126,12 +1072,6 @@ suite('getDisplayObject', function() {
         if (params) {
           return key + JSON.stringify(params);
         }
-        if (key == 'thread-separator') {
-          return ' | ';
-        }
-        if (key == 'carrier-separator') {
-          return ', ';
-        }
         return key;
     });
   });
@@ -1152,9 +1092,8 @@ suite('getDisplayObject', function() {
     });
 
     assert.equal(data.name, myTitle);
-    assert.equal(data.separator, ' | ');
     assert.equal(data.type, type);
-    assert.equal(data.carrier, carrier + ', ');
+    assert.equal(data.carrier, carrier);
     assert.equal(data.number, value);
   });
 
@@ -1169,7 +1108,6 @@ suite('getDisplayObject', function() {
     });
 
     assert.equal(data.name, myTitle);
-    assert.equal(data.separator, ' | ');
     assert.equal(data.type, type);
     assert.equal(data.carrier, '');
     assert.equal(data.number, value);
@@ -1183,7 +1121,6 @@ suite('getDisplayObject', function() {
     });
 
     assert.equal(data.name, myTitle);
-    assert.equal(data.separator, '');
     assert.equal(data.type, '');
     assert.equal(data.carrier, '');
     assert.equal(data.number, value);
@@ -1200,61 +1137,8 @@ suite('getDisplayObject', function() {
     });
 
     assert.equal(data.name, value);
-    assert.equal(data.separator, ' | ');
     assert.equal(data.type, type);
-    assert.equal(data.carrier, carrier + ', ');
-    assert.equal(data.number, value);
-  });
-});
-
-suite('getDisplayObject l10n values', function() {
-  var nativeMozL10n;
-
-  setup(function() {
-    nativeMozL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
-  });
-
-  teardown(function() {
-    navigator.mozL10n = nativeMozL10n;
-    nativeMozL10n = null;
-  });
-
-  test('(l10n) Empty separator (l10n)', function() {
-    this.sinon.stub(navigator.mozL10n, 'get').returns('');
-    var type = 'Mobile';
-    var carrier = 'Carrier';
-    var value = 111111;
-    var data = Utils.getDisplayObject(null, {
-      'value': value,
-      'carrier': carrier,
-      'type': [type]
-    });
-
-    assert.equal(data.name, value);
-    assert.equal(data.separator, ' | ');
-    assert.equal(data.type, type);
-    assert.equal(data.carrier, carrier + ', ');
-    assert.equal(data.number, value);
-  });
-
-  test('(l10n) Different separators (l10n)', function() {
-    var l10nStub = this.sinon.stub(navigator.mozL10n, 'get');
-    l10nStub.withArgs('thread-separator').returns(' # ');
-    l10nStub.withArgs('carrier-separator').returns(': ');
-    var type = 'Mobile';
-    var carrier = 'Carrier';
-    var value = 111111;
-    var data = Utils.getDisplayObject(null, {
-      'value': value,
-      'carrier': carrier,
-      'type': [type]
-    });
-
-    assert.equal(data.name, value);
-    assert.equal(data.separator, ' # ');
-    assert.equal(data.type, type);
-    assert.equal(data.carrier, carrier + ': ');
+    assert.equal(data.carrier, carrier);
     assert.equal(data.number, value);
   });
 });

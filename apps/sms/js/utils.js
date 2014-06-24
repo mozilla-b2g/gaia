@@ -80,22 +80,15 @@
     // Please remember to revoke the photoURL after utilizing it.
     getContactDetails:
       function ut_getContactDetails(number, contacts, include) {
-      var _ = navigator.mozL10n.get;
       var details = {};
 
       include = include || {};
 
       function updateDetails(contact) {
-        var name, phone, carrier, i, length, subscriber, org;
+        var name, phone, i, length, subscriber, org;
         name = contact.name[0];
         org = contact.org && contact.org[0];
         length = contact.tel ? contact.tel.length : 0;
-        phone = length && contact.tel[0].value ? contact.tel[0] : {
-          value: '',
-          type: '',
-          carrier: ''
-        };
-        carrier = phone.carrier;
         subscriber = number.length > 7 ? number.substr(-8) : number;
 
         // Check which of the contacts phone number are we using
@@ -103,7 +96,6 @@
           // Based on E.164 (http://en.wikipedia.org/wiki/E.164)
           if (contact.tel[i].value.indexOf(subscriber) !== -1) {
             phone = contact.tel[i];
-            carrier = phone.carrier;
             break;
           }
         }
@@ -119,32 +111,10 @@
           }
         }
 
-        // Carrier logic
-        if (name) {
-          // Check if other phones with same type and carrier
-          // Convert the tel-type to string before tel-type comparison.
-          // TODO : We might need to handle multiple tel type in the future.
-          for (i = 0; i < length; i++) {
-            var telType = contact.tel[i].type && contact.tel[i].type.toString();
-            var phoneType = phone.type && phone.type.toString();
-            if (contact.tel[i].value !== phone.value &&
-                telType === phoneType &&
-                contact.tel[i].carrier === phone.carrier) {
-              carrier = phone.value;
-            }
-          }
-        }
-
         details.name = name;
-        details.carrier = carrier || phone.value || '';
         // We pick the first discovered org name as the phone number's detail
         // org information.
         details.org = details.org || org;
-
-        if (phone.type) {
-          details.carrier =
-            phone.type + (_('thread-separator') || ' | ') + details.carrier;
-        }
       }
 
       // In no contact or contact with empty information cases, we will leave
@@ -192,20 +162,12 @@
      * 3. If for some reason a single contact has two phone numbers with the
      * same type and the same carrier then "type" and "phone number" will be
      * returned;
-     *
-     * 4. If for some reason a single contact has no name and no carrier, only
-     * "type" will be returned;
-     *
-     * 5. If for some reason a single contact has no name, no type and no
-     * carrier, "null" will be returned.
      */
-    getCarrierTag: function ut_getCarrierTag(input, tels, contactDetails) {
+    getPhoneDetails: function ut_getPhoneDetails(input, tels) {
       var length = tels.length;
-      var hasContactDetails = typeof contactDetails !== 'undefined';
       var hasUniqueCarriers = true;
       var hasUniqueTypes = true;
-      var contactName = hasContactDetails ? contactDetails.name : '';
-      var found, tel, type, carrier, number;
+      var found, tel, type, carrier;
 
       for (var i = 0; i < length; i++) {
         tel = tels[i];
@@ -230,17 +192,11 @@
         return null;
       }
 
-      type = (found.type && found.type[0]) || null;
-      carrier = (hasUniqueCarriers || hasUniqueTypes) ? found.carrier : null;
-      // Return number only in case we don't have contact details or contact
-      // doesn't have name defined.
-      number = !hasContactDetails || !!contactName ? found.value : null;
-
-      return type || carrier || number ? {
-        type: type,
-        carrier: carrier,
-        number: number
-      } : null;
+      return {
+        type: (found.type && found.type[0]) || null,
+        carrier: hasUniqueCarriers || hasUniqueTypes ? found.carrier : null,
+        number: found.value
+      };
     },
 
     // Based on "non-dialables" in https://github.com/andreasgal/PhoneNumber.js
@@ -569,26 +525,14 @@
       all the information needed to display data.
     */
     getDisplayObject: function(theTitle, tel) {
-      var _ = navigator.mozL10n.get;
       var number = tel.value;
-      var title = theTitle || number;
       var type = tel.type && tel.type.length ? tel.type[0] : '';
-      // For both carrierSeparator and separator we want to avoid using an
-      // empty string as separator because of a bad l10n file.
-      var carrierSeparator = _('carrier-separator') || ', ';
-      var carrier = tel.carrier ? (tel.carrier + carrierSeparator) : '';
-      var separator = type || carrier ? (_('thread-separator') || ' | ') : '';
-      var data = {
-        name: title,
+      return {
+        name: theTitle || number,
         number: number,
         type: type,
-        carrier: carrier,
-        separator: separator,
-        nameHTML: '',
-        numberHTML: ''
+        carrier: tel.carrier || ''
       };
-
-      return data;
     },
 
     /*

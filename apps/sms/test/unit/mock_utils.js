@@ -23,7 +23,7 @@ var MockUtils = {
   getContactDetails: Utils.getContactDetails,
   getResizedImgBlob: Utils.getResizedImgBlob,
   getDownsamplingSrcUrl: Utils.getDownsamplingSrcUrl,
-  getCarrierTag: Utils.getCarrierTag,
+  getPhoneDetails: Utils.getPhoneDetails,
   removeNonDialables: Utils.removeNonDialables,
   multiRecipientMatch: Utils.multiRecipientMatch,
   probablyMatches: Utils.probablyMatches,
