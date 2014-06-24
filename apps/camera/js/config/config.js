@@ -163,10 +163,12 @@ module.exports = {
   cameras: {
     options: [
       {
-        key: 'back'
+        key: 'back',
+        icon: 'icon-toggle-camera-rear'
       },
       {
-        key: 'front'
+        key: 'front',
+        icon: 'icon-toggle-camera-front'
       }
     ],
     persistent: false
