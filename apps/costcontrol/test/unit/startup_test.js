@@ -1,6 +1,7 @@
 /* global MockCommon, MockCostControl, MockNavigatorMozMobileConnections, Event,
           CostControlApp, Common, MockConfigManager, MockSettingsListener,
-          MockMozNetworkStats, MocksHelper, SimManager, MockNavigatorSettings
+          MockMozNetworkStats, MocksHelper, SimManager, MockNavigatorSettings,
+          AirplaneModeHelper, MockNavigatorMozIccManager
 */
 'use strict';
 
@@ -197,6 +198,12 @@ suite('Application Startup Modes Test Suite >', function() {
     assert.isFalse(dataUsageTab.classList.contains('standalone'));
   }
 
+  function failingRequestDataSIMIccId(onsuccess, onerror) {
+    setTimeout(function() {
+      (typeof onerror === 'function') && onerror();
+    }, 0);
+  }
+
   function setupCardState(icc) {
     window.Common = new MockCommon();
     window.CostControl = new MockCostControl();
@@ -238,6 +245,44 @@ suite('Application Startup Modes Test Suite >', function() {
     assertNonReadyScreen('NonReadyScreen in state: pukRequired', done);
 
     CostControlApp.init();
+  });
+
+  test('SIM is detected after a non detected SIM on a previous start-up',
+    function(done) {
+      loadBodyHTML('/index.html');
+      this.sinon.spy(window.navigator.mozIccManager, 'addEventListener');
+
+      // Force loadDataSimIccId to fail
+      sinon.stub(SimManager, 'requestDataSimIcc', failingRequestDataSIMIccId);
+
+      // airplanemode activated for enable the iccmanager listeners
+      AirplaneModeHelper._status = 'enabled';
+
+      window.addEventListener('viewchanged', function _onalert(evt) {
+        window.removeEventListener('viewchanged', _onalert);
+        sinon.assert.calledWith(window.navigator.mozIccManager.addEventListener,
+                                'iccdetected');
+
+        // Restore the stub method and disabling the airplanemode
+        SimManager.requestDataSimIcc.restore();
+        AirplaneModeHelper._status = 'disabled';
+
+        // Config the app to start (FTE)
+        var applicationMode = 'DATA_USAGE_ONLY';
+        setupCardState({cardState: 'ready'});
+        window.ConfigManager = new MockConfigManager({
+          fakeSettings: { fte: true },
+          applicationMode: applicationMode
+        });
+
+        // Check the app start correctly
+        assertFTEStarted(applicationMode, done);
+
+        // Launch the second start-up
+        MockNavigatorMozIccManager.triggerEventListeners('iccdetected', {});
+      });
+
+      CostControlApp.init();
   });
 
   test(
