@@ -157,18 +157,21 @@
   border-radius: 3rem;
   padding: 0.2rem;
   margin-left: 1.8rem;
-  overflow: hidden;
   visibility: hidden; /* 1 */
   box-sizing: content-box;
 }
 
 /**
- * switchable=true
+ * switchable
  */
 
 .controls.switchable .mode-switch {
   visibility: visible;
 }
+
+/**
+ * recording
+ */
 
 .controls.recording .mode-switch {
   visibility: hidden;
@@ -177,80 +180,98 @@
 /** Mode Icon
  ---------------------------------------------------------*/
 
-.mode-switch .mode-icon {
+.mode-switch_bg-icon {
   position: absolute;
-  width: 2.4rem;
-  right: 1rem;
-  line-height: 3.6rem;
-}
-
-.mode-switch .mode-icon:before {
-  content: "\e602";
+  top: 0px;
+  width: 4rem;
   font-size: 2.1rem;
+  line-height: 4rem;
+  text-align: center;
   color: #C7C7C7;
 }
 
 /**
- * mode=video
+ * first
  */
 
-.controls.mode-video .mode-switch .mode-icon {
-  left: 1.1rem;
+.mode-switch_bg-icon:nth-of-type(1) {
+  left: 0;
 }
-
-.controls.mode-video .mode-switch .mode-icon:before {
-  content: "\e60f";
-}
-
-/** Selected Mode
- ---------------------------------------------------------*/
 
 /**
- * 1. Disabled `will-change` due to performance
- *    issues on Hamachi. Leaving in place so that
- *    we can re-introduce as a later date to improve
- *    frame-rate on more capable devices.
+ * second
  */
 
-.mode-switch .selected-mode {
+.mode-switch_bg-icon:nth-of-type(2) {
+  right: 0;
+}
+
+/** Mode Switch Handle
+ ---------------------------------------------------------*/
+
+.mode-switch_handle {
   position: relative;
   width: 3.6rem;
   height: 3.6rem;
   border-radius: 50%;
   background: #EEE;
-  /*will-change: transform;*/ /* 1 */
-  transition: transform 140ms;
 }
 
 /**
- * mode=video
+ * Expanded touch-area
  */
 
-.controls.mode-video .mode-switch .selected-mode {
-  transform: translateX(4rem);
+.mode-switch_handle:after {
+  content: '';
+  position: absolute;
+  top: -10px; bottom: -10px;
+  left: -10px; right: -10px;
 }
 
-/** Selected Mode Icon
+/** Mode Switch Current Icon
  ---------------------------------------------------------*/
 
-.mode-switch .selected-mode-icon:before {
-  content: "\e60f";
-  display: block;
-  text-align: center;
+.mode-switch_current-icon {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
   font-size: 2.1rem;
   line-height: 3.6rem;
+  text-align: center;
+  /*transition: opacity 300ms;*/
+}
+
+/** Mode Switch Current Icon (camera)
+ ---------------------------------------------------------*/
+
+.mode-switch_current-icon.icon-camera {
   color: #00CAF2;
 }
 
 /**
- * mode=video
+ * mode-picture
  */
 
-.controls.mode-video .mode-switch .selected-mode-icon:before {
-  content: "\e602";
+/*.mode-picture .mode-switch_current-icon.icon-camera {
+  opacity: 1;
+}*/
+
+/** Mode Switch Current Icon (video)
+ ---------------------------------------------------------*/
+
+.mode-switch_current-icon.icon-video {
   color: #D92E2E;
 }
 
+/**
+ * mode-video
+ */
+
+/*.mode-video .mode-switch_current-icon.icon-video {
+  opacity: 1;
+}
+*/
 /** Capture Button
  ---------------------------------------------------------*/
 
