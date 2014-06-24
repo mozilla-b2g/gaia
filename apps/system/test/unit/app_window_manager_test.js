@@ -140,6 +140,15 @@ suite('system/AppWindowManager', function() {
   }
 
   suite('Handle events', function() {
+    test('localized event should be broadcasted.', function() {
+      var stubBroadcastMessage =
+        this.sinon.stub(AppWindowManager, 'broadcastMessage');
+      AppWindowManager.handleEvent({
+        type: 'localized'
+      });
+      assert.ok(stubBroadcastMessage.calledWith('localized'));
+    });
+
     test('Active app should be updated once any app is opening.', function() {
       var stub_updateActiveApp = this.sinon.stub(AppWindowManager,
         '_updateActiveApp');
@@ -726,13 +735,6 @@ suite('system/AppWindowManager', function() {
         this.sinon.stub(AppWindowManager, 'broadcastMessage');
       MockSettingsListener.mCallbacks['app-suspending.enabled'](false);
       assert.ok(stubBroadcastMessage.calledWith('kill_suspended'));
-    });
-
-    test('language.current', function() {
-      var stubBroadcastMessage =
-        this.sinon.stub(AppWindowManager, 'broadcastMessage');
-      MockSettingsListener.mCallbacks['language.current']('chinese');
-      assert.ok(stubBroadcastMessage.calledWith('localized'));
     });
 
     test('continuous-transition.enabled', function() {

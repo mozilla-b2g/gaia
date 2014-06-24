@@ -246,19 +246,9 @@
       // to focus the active app after it's closed.
       window.addEventListener('permissiondialoghide', this);
       window.addEventListener('appopening', this);
+      window.addEventListener('localized', this);
 
       this._settingsObserveHandler = {
-        // update app name when language setting changes
-        'language.current': {
-          defaultValue: null,
-          callback: function(value) {
-            if (!value) {
-              return;
-            }
-            this.broadcastMessage('localized');
-          }.bind(this)
-        },
-
         // continuous transition controlling
         'continuous-transition.enabled': {
           defaultValue: null,
@@ -323,6 +313,7 @@
       window.removeEventListener('sheetstransitionstart', this);
       window.removeEventListener('permissiondialoghide', this);
       window.removeEventListener('appopening', this);
+      window.removeEventListener('localized', this);
 
       for (var name in this._settingsObserveHandler) {
         SettingsListener.unobserve(
@@ -545,6 +536,10 @@
           if (document.mozFullScreen) {
             document.mozCancelFullScreen();
           }
+          break;
+
+        case 'localized':
+          this.broadcastMessage('localized');
           break;
       }
     },
