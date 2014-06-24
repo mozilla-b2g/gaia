@@ -208,6 +208,8 @@ var routes = {
   '/package.manifest': function(req, res) {
     var json = JSON.parse(fs.readFileSync(this.root + '/manifest.webapp'));
     json.package_path = 'http://' + req.headers.host + '/app.zip';
+    // TODO: Remove this once we add the ability to override requests
+    delete json.role;
 
     var body = JSON.stringify(json, null, 2);
     res.writeHead(200, {

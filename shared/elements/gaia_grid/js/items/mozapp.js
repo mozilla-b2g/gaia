@@ -47,9 +47,56 @@
     this.setAppState(this._determineState(app));
   }
 
+  /**
+  `app.manifest.role`s which should not be displayed on the grid.
+  */
+  Mozapp.HIDDEN_ROLES = ['system', 'input', 'homescreen', 'search'];
+
   Mozapp.prototype = {
 
     __proto__: GaiaGrid.GridItem.prototype,
+
+    /**
+    Safely remove this item from the grid and DOM.
+    */
+    _removeSelf: function() {
+      var idx = this.grid.items.indexOf(this);
+
+      // This should never happen but is remotely possible item is not in the
+      // grid.
+      if (idx === -1) {
+        console.error('Attempting to remove self before item has been added!');
+        return;
+      }
+
+      // update the state of the grid and DOM so this item is no longer
+      // referenced.
+      this.grid.items.splice(idx, 1);
+
+      if (this.element) {
+        this.element.parentNode.removeChild(this.element);
+      }
+
+      // ensure we don't end up with empty cruft..
+      this.grid.render({ from: idx - 1 });
+    },
+
+    /**
+    Determine if this application is supposed to be hidden.
+
+    @return Boolean
+    */
+    _isHiddenRole: function() {
+      var manifest = this.app.manifest;
+
+      // don't know what the role is so it is not hidden
+      if (!manifest || !manifest.role) {
+        return null;
+      }
+
+      // if it is in the hidden role list return true
+      return Mozapp.HIDDEN_ROLES.indexOf(manifest.role) !== -1;
+    },
 
     /**
     Figure out which state the app is in
@@ -102,8 +149,15 @@
           break;
 
         case 'downloadapplied':
+          // Ensure that a hidden app has not somehow been added to the grid...
+          if (this._isHiddenRole()) {
+            console.warn('Removing hidden app from the grid', this.name);
+            return this._removeSelf();
+          }
+
           // we may have updated icons so recalculate the correct icon.
           delete this._accurateIcon;
+
           // Need to set app state here to correctly handle the pause/resume
           // case.
           this.setAppState(this._determineState(this.app));
