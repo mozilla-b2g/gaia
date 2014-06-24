@@ -232,12 +232,12 @@
      * @param {Integer} pageY The Y coordinate of the touch.
      */
     positionIcon: function(pageX, pageY) {
-      pageX = pageX - this.xAdjust;
-      pageY = pageY - this.yAdjust;
+      var adjustPageX = pageX - this.xAdjust;
+      var adjustPageY = pageY - this.yAdjust;
 
       this.icon.transform(
-        pageX,
-        pageY,
+        adjustPageX,
+        adjustPageY,
         this.icon.scale + ACTIVE_SCALE_ADJUST);
 
       // Reposition in the icons array if necessary.

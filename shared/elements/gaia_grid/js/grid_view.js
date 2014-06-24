@@ -112,9 +112,12 @@
           continue;
         }
 
+        var itemCenterX = item.x + (this.layout.gridItemWidth / 2);
+        var itemCenterY = item.y + (this.layout.gridItemHeight / 2);
+
         var distance = Math.sqrt(
-          (x - item.x) * (x - item.x) +
-          (y - item.y) * (y - item.y));
+          (x - itemCenterX) * (x - itemCenterX) +
+          (y - itemCenterY) * (y - itemCenterY));
         if (!leastDistance || distance < leastDistance) {
           leastDistance = distance;
           foundIndex = i;
