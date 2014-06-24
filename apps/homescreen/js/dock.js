@@ -9,7 +9,6 @@ var DockManager = (function() {
   var MAX_NUM_ICONS = notTinyLayout ? 8 : 7;
   var maxNumAppInViewPort = notTinyLayout ? 6 : 4, maxOffsetLeft;
 
-  var windowWidth = window.innerWidth;
   var duration = 300;
 
   var initialOffsetLeft, initialOffsetRight, numApps, cellWidth = 0;

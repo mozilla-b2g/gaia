@@ -12,7 +12,7 @@ var GridManager = (function() {
 
   var SAVE_STATE_TIMEOUT = 100;
   var BASE_HEIGHT = 460; // 480 - 20 (status bar height)
-  var DEVICE_HEIGHT = window.innerHeight;
+  var DEVICE_HEIGHT = ScreenHelper.height;
 
   var HIDDEN_ROLES = ['system', 'input', 'homescreen', 'search'];
 
