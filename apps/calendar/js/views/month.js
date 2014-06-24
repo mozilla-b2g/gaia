@@ -55,6 +55,7 @@ Calendar.ns('Views').Month = (function() {
 
       if (el) {
         el.classList.add(this.SELECTED);
+        this._selectedDay = date;
       }
     },
 
@@ -83,7 +84,11 @@ Calendar.ns('Views').Month = (function() {
         case 'selectedDayChange':
           this._selectDay(e.data[0]);
           break;
-
+        case 'calendarVisibilityChange':
+          // we need to mark current day after redraw (happens when user
+          // toggles the calendar visibility)
+          this._selectDay(this._selectedDay);
+          break;
         case 'monthChange':
           this._clearSelectedDay();
           this.changeDate(e.data[0]);

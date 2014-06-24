@@ -27,17 +27,6 @@ marionette('toggle calendar', function() {
     app.closeSettingsView();
   }
 
-  // the UI only gets updated after a few ms (data is persisted asynchronously
-  // and after a delay), so we need to wait "displayed" value to change - will
-  // timeout on test failure
-  function waitForEvent(event) {
-    client.helper.waitForElement(event.element);
-  }
-
-  function waitForEventToDisappear(event) {
-    client.helper.waitForElementToDisappear(event.element);
-  }
-
   suite('> regular event', function() {
     setup(function() {
       app.createEvent({
@@ -49,23 +38,28 @@ marionette('toggle calendar', function() {
 
     suite('disable calendar', function() {
       test('month view', function() {
-        var event = app.monthDay.events[0];
-        waitForEventToDisappear(event);
+        client.waitFor(function() {
+          return app.monthDay.events.length === 0;
+        });
+        assert.equal(app.month.busyDots.length, 0, 'no busy dots');
       });
 
       test('week view', function() {
         app.openWeekView();
-        waitForEventToDisappear(app.week.events[0]);
+        client.waitFor(function() {
+          return app.week.events.length === 0;
+        });
       });
 
       test('day view', function() {
         app.openDayView();
-        var event = app.day.events[0];
-        waitForEventToDisappear(event);
+        client.waitFor(function() {
+          return app.day.events.length === 0;
+        });
 
         // on day view hour can't be hidden otherwise it affects events on other
         // calendars and it also looks weird
-        var hour = event.closestHour;
+        var hour = app.day.currentHour;
         assert(
           hour.displayed(),
           'hour should be displayed on day view'
@@ -81,17 +75,23 @@ marionette('toggle calendar', function() {
       setup(toggleLocalCalendar);
 
       test('month view', function() {
-        waitForEvent(app.monthDay.events[0]);
+        client.waitFor(function() {
+          return app.monthDay.events.length;
+        });
       });
 
       test('week view', function() {
         app.openWeekView();
-        waitForEvent(app.week.events[0]);
+        client.waitFor(function() {
+          return app.week.events.length;
+        });
       });
 
       test('day view', function() {
         app.openDayView();
-        waitForEvent(app.day.events[0]);
+        client.waitFor(function() {
+          return app.day.events.length;
+        });
       });
     });
   });
@@ -108,10 +108,11 @@ marionette('toggle calendar', function() {
 
     test('should not hide all day on day view', function() {
       app.openDayView();
-      var event = app.day.events[0];
-      waitForEventToDisappear(event);
+      client.waitFor(function() {
+        return app.day.events.length === 0;
+      });
       assert.ok(
-        event.closestAllDay.displayed(),
+        app.day.allDay.displayed(),
         'all day should be displayed'
       );
     });

@@ -47,7 +47,6 @@
       var eventClassName = [
         'event',
         'calendar-id-' + calendarId,
-        'calendar-display',
         'calendar-bg-color',
         this.h('classes')
       ].join(' ');

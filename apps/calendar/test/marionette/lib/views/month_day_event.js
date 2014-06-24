@@ -56,15 +56,5 @@ MonthDayEvent.prototype = {
     return this.element.scriptWith(function(element) {
       return element.classList.contains('has-alarms');
     });
-  },
-
-  get closestHour() {
-    return +this.client.helper
-      .closest(this.element, '.hour')
-      .getAttribute('data-hour');
-  },
-
-  get closestAllDay() {
-    return this.client.helper.closest(this.element, '.hour-allday');
   }
 };

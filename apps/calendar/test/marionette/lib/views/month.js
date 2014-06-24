@@ -12,8 +12,16 @@ Month.prototype = {
 
   selector: '#month-view',
 
+  get activeMonth() {
+    return this.findElement('.month.active');
+  },
+
   get currentDay() {
-    return this.findElement('.month.active .present > .day');
+    return this.activeMonth.findElement('.present > .day');
+  },
+
+  get busyDots() {
+    return this.activeMonth.findElements('.icon-dot');
   },
 
   get days() {

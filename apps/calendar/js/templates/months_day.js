@@ -8,7 +8,6 @@
       var sectionClassList = [
         'event',
         'calendar-id-' + calendarId,
-        'calendar-display',
         this.h('classes')
       ].join(' ');
 

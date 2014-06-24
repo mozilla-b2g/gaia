@@ -25,7 +25,6 @@
       var eventClassName = [
         'event',
         'calendar-id-' + this.h('calendarId'),
-        'calendar-display',
         'calendar-bg-color',
         'calendar-border-color'
       ].join(' ');
