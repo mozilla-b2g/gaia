@@ -481,6 +481,12 @@
     if(this._checkGenerateMaskedBackgroundColor()){
       this._generateMaskedBackgroundColor();
     }
+
+    // start the clock because screenchange won't trigger when
+    // screen locks just after boot
+    // Clock always uses one Timeouts/Intervals so it's safe in
+    // other scenarios (such as turning on lockscreen after boot in settings)
+    this.clock.start(this.refreshClock.bind(this));
   };
 
   LockScreen.prototype.initUnlockerEvents =
