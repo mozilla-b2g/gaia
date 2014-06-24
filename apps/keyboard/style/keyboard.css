@@ -232,13 +232,8 @@ button::-moz-focus-inner {
   pointer-events: none;
 }
 
-.keyboard-key.special-key[disabled="true"] > .visual-wrapper {
-  border-color: #535757;
-  background-color:  #585D5D;
-}
-
 .keyboard-key.special-key[disabled="true"] > .visual-wrapper > .key-element {
-  color: #888;
+  color: #677172;
 }
 
 /* Special keys - text */
