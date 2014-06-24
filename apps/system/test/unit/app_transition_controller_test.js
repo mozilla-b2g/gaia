@@ -115,6 +115,28 @@ suite('system/AppTransitionController', function() {
     acn1._transitionState = 'opened';
   });
 
+  test('Complete on _loaded event if we discarded the animationend',
+  function() {
+    var app1 = new MockAppWindow(fakeAppConfig1);
+    var acn1 = new AppTransitionController(app1);
+    var stopStub = this.sinon.stub();
+    acn1._transitionState = 'opening';
+
+    this.sinon.stub(MockSystem, 'isBusyLoading').returns(true);
+    acn1.handleEvent({
+      type: 'animationend',
+      stopPropagation: stopStub
+    });
+    assert.equal(acn1._transitionState, 'opening');
+
+    MockSystem.isBusyLoading.returns(false);
+    acn1.handleEvent({
+      type: '_loaded',
+      stopPropagation: stopStub
+    });
+    assert.equal(acn1._transitionState, 'opened');
+  });
+
   test('Discard animationend event if system is busy', function() {
     this.sinon.stub(MockSystem, 'isBusyLoading').returns(true);
     var app1 = new MockAppWindow(fakeAppConfig1);
@@ -170,13 +192,26 @@ suite('system/AppTransitionController', function() {
     var app1 = new MockAppWindow(fakeAppConfig1);
     var acn1 = new AppTransitionController(app1);
     var stubFocus = this.sinon.stub(app1, 'focus');
+    this.sinon.stub(MockSystem, 'isBusyLoading');
+
     app1.loaded = false;
-    acn1.handle_opened();
+    acn1._transitionState = 'opening';
     MockSimPinDialog.visible = false;
     rocketbar.active = false;
 
-    acn1._transitionState = 'opened';
-    app1.element.dispatchEvent(new CustomEvent('_loaded'));
+    MockSystem.isBusyLoading.returns(true);
+    acn1.handleEvent({
+      type: 'animationend',
+      stopPropagation: function() {}
+    });
+    assert.isFalse(stubFocus.called);
+
+    MockSystem.isBusyLoading.returns(false);
+    acn1.handleEvent({
+      type: '_loaded',
+      stopPropagation: function() {}
+    });
+    acn1.handle_opened();
 
     assert.isTrue(stubFocus.called);
   });
