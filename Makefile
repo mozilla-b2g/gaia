@@ -890,7 +890,7 @@ endif
 endif
 
 lint:
-	NO_XFAIL=1 $(MAKE) -k gjslint hint csslint
+	NO_XFAIL=1 $(MAKE) -k gjslint hint
 
 gjslint: GJSLINT_EXCLUDED_DIRS = $(shell grep '\/\*\*$$' .jshintignore | sed 's/\/\*\*$$//' | paste -s -d, -)
 gjslint: GJSLINT_EXCLUDED_FILES = $(shell egrep -v '(\/\*\*|^\s*)$$' .jshintignore | paste -s -d, -)

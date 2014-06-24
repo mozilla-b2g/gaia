@@ -18,9 +18,12 @@ const domParser = Cc['@mozilla.org/xmlextras/domparser;1']
 let CSSLint = null;
 
 function execute(config) {
+  setupLinters(config.GAIA_DIR);
+
   let gaia = utils.gaia.getInstance(config);
 
-  let files = [];
+  let errorsCount = 0;
+  let warningsCount = 0;
 
   // Starts by parsing the CSS files from apps/
   gaia.webapps.forEach(function getAllFilesFor(webapp) {
@@ -32,32 +35,44 @@ function execute(config) {
       webapp.sourceDirectoryName != config.BUILD_APP_NAME) {
       return;
     }
-    files = files.concat(getCSSFilesFor(webapp.sourceDirectoryFile));
+
+    let files = utils.ls(webapp.sourceDirectoryFile, true, /^(docs|tests?)$/);
+
+    files.forEach(function parseCSSFor(file) {
+      if (/\.css$/.test(file.leafName)) {
+        let messages = parseCSS(file);
+        errorsCount += messages.errors.length;
+        warningsCount += messages.warnings.length;
+      }
+    });
   });
 
   if (config.BUILD_APP_NAME == '*') {
     // And then parse the CSS files from shared/
-    files = files.concat(getCSSFilesFor(gaia.sharedFolder));
+    let files = utils.ls(gaia.sharedFolder, true);
+    files.forEach(function parseCSSFor(file) {
+      if (/\.css$/.test(file.leafName)) {
+        let messages = parseCSS(file);
+        errorsCount += messages.errors.length;
+        warningsCount += messages.warnings.length;
+      }
+    });
   }
 
-  files = files.map(function toRelativePath(path) {
-    return path.slice(config.GAIA_DIR.length + 1);
-  });
-
-  let reportKnownErrorsOrWarnings = false;
-  let quit = require('xpcshell').quit;
-  return quit(lint(config.GAIA_DIR, files.join(' '), reportKnownErrorsOrWarnings));
+  if (errorsCount || warningsCount) {
+    dump('\n' +
+         errorsCount + ' errors and ' +
+         warningsCount + ' warnings' + '\n');
+  }
 }
 
-function lint(root, files, reportKnownErrorsOrWarnings = true) {
+function lint(root, files) {
   const xfailFilePath = 'build/csslint/xfail.list';
 
   let hasNewErrorsOrWarnings = 0;
-  let fileHasNewErrorsOrWarnings = false;
 
   function lessErrorsOrWarnings(filename, type, previous, current) {
     hasNewErrorsOrWarnings = 1;
-    fileHasNewErrorsOrWarnings = true;
 
     dump('You rock! ' + (previous - current) + ' ' + type + ' has been ' +
          'removed from ' + filename + '. Please update ' + xfailFilePath +
@@ -67,7 +82,6 @@ function lint(root, files, reportKnownErrorsOrWarnings = true) {
 
   function moreErrorsOrWarnings(filename, type, previous, current) {
     hasNewErrorsOrWarnings = 1;
-    fileHasNewErrorsOrWarnings = true;
 
     dump(':( ' + (previous - current) + ' ' + type + ' has been added to ' +
          filename + '.\n');
@@ -119,8 +133,6 @@ function lint(root, files, reportKnownErrorsOrWarnings = true) {
 
     // Now lint the css of each files and reports any errors/warnings.
     files.split(/\s/).forEach(function parseCSSFor(filename) {
-      fileHasNewErrorsOrWarnings = false;
-
       let file = utils.getFile(root, filename);
       if (!/^(apps|shared)\//.test(filename)) {
         return;
@@ -144,9 +156,7 @@ function lint(root, files, reportKnownErrorsOrWarnings = true) {
 
       if (!(filename in xfail)) {
         hasNewErrorsOrWarnings = 1;
-        fileHasNewErrorsOrWarnings = true;
         dump(filename + ' has new errors/warnings.\n');
-        printWarningsAndErrors(messages.errors, messages.warnings, file);
         return;
       }
 
@@ -161,10 +171,6 @@ function lint(root, files, reportKnownErrorsOrWarnings = true) {
         moreWarnings(filename, rules.warnings, warningsCount);
       } else if (warningsCount < rules.warnings) {
         lessWarnings(filename, rules.warnings, warningsCount);
-      }
-
-      if (reportKnownErrorsOrWarnings || fileHasNewErrorsOrWarnings) {
-        printWarningsAndErrors(messages.errors, messages.warnings, file);
       }
     });
 
@@ -189,39 +195,6 @@ function setupLinters(root) {
   CSSLint = scope.CSSLint;
 }
 
-function getCSSFilesFor(path) {
-  return utils.listFiles(path, utils.FILE_TYPE_FILE, true, /^(docs|tests?)$/)
-              .filter(function(path) {
-                return path.endsWith('.css');
-              });
-}
-
-function printWarningsAndErrors(errors, warnings, file) {
-  function printMessage(msg) {
-    dump('\t' + msg.message + ' line ' + msg.line + ', col ' + msg.col + ' \n');
-  }
-
-  // If any errors, print them to the console.
-  if (errors.length) {
-    dump('Errors in ' + file.path + '\n');
-
-    for (let i = 0; i < errors.length; i++) {
-      printMessage(errors[i]);
-    }
-  }
-
-  // If any warnings, print them to the console.
-  if (warnings.length) {
-    dump('Warnings in ' + file.path + '\n');
-
-    for (let i = 0; i < warnings.length; i++) {
-      printMessage(warnings[i]);
-    }
-  }
-
-  dump('\n');
-}
-
 function parseCSS(file) {
   let content = utils.getFileContent(file);
 
@@ -229,7 +202,7 @@ function parseCSS(file) {
 
   // If any parserErrors, print them to the console.
   if (parserErrors.length) {
-    dump('Parsing errors in ' + file.path + '\n');
+    dump('\nErrors in ' + file.path + '\n');
 
     for (let i = 0; i < parserErrors.length; i++) {
       let JSWarnRegexp = /\[JavaScript Warning: "(.+)"}\]/;
@@ -242,7 +215,33 @@ function parseCSS(file) {
     }
   }
 
+
   let [errors, warnings] = checkForGoodPractices(content);
+
+  function printMessage(msg) {
+    dump('\t' + msg.message + ' line ' + msg.line + ', col ' + msg.col + ' \n');
+  }
+
+  // If any errors, print them to the console.
+  if (errors.length) {
+    // Do not print the filename again if there were already some parser errors.
+    if (!parserErrors.length) {
+      dump('\nErrors in ' + file.path + '\n');
+    }
+
+    for (let i = 0; i < errors.length; i++) {
+      printMessage(errors[i]);
+    }
+  }
+
+  // If any warnings, print them to the console.
+  if (warnings.length) {
+    dump('\nWarnings in ' + file.path + '\n');
+
+    for (let i = 0; i < warnings.length; i++) {
+      printMessage(warnings[i]);
+    }
+  }
 
   return { errors: parserErrors.concat(errors),  warnings: warnings };
 }

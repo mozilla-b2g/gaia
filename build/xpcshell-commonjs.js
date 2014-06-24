@@ -10,8 +10,6 @@ let { Loader } = Cu.import(loaderURI, {});
 Cu.import('resource://gre/modules/Services.jsm');
 Cu.import("resource://gre/modules/FileUtils.jsm");
 
-let xpcshellScope = this;
-
 var CommonjsRunner = function(module) {
   const GAIA_DIR = env.get('GAIA_DIR');
   const APP_DIR = env.get('APP_DIR');
@@ -41,8 +39,7 @@ var CommonjsRunner = function(module) {
   let loader = Loader.Loader({
     paths: paths,
     modules: {
-      'toolkit/loader': Loader,
-      'xpcshell': {quit: xpcshellScope.quit.bind(xpcshellScope)}
+      'toolkit/loader': Loader
     }
   });
 
