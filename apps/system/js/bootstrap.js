@@ -10,7 +10,7 @@
          MediaRecording, AppWindowFactory, SystemDialogManager,
          applications, Rocketbar, LayoutManager, PermissionManager,
          HomeSearchbar, SoftwareButtonManager, Accessibility,
-         InternetSharing, SleepMenu */
+         InternetSharing, SleepMenu, LockScreenNotifications */
 'use strict';
 
 
@@ -112,6 +112,7 @@ window.addEventListener('load', function startup() {
   window.internetSharing = new InternetSharing();
   window.internetSharing.start();
   window.layoutManager = new LayoutManager().start();
+  window.lockScreenNotifications = new LockScreenNotifications();
   window.permissionManager = new PermissionManager();
   window.permissionManager.start();
   window.places = new Places();
