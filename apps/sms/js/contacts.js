@@ -299,6 +299,43 @@
       });
     },
 
+    findByAddress: function contacts_findByAddress(filterValue, callback) {
+      return this.findBy({
+        filterBy: ['tel', 'email'],
+        filterOp: 'contains',
+        filterValue: filterValue.replace(/\s+/g, '')
+      },
+      function(results, meta) {
+        var contact = results && results.length ? results[0] : null;
+        var criteria = {
+            fields: ['tel', 'email'],
+             terms: [filterValue]
+        };
+        var isExact = false;
+        if (contact) {
+            isExact = isMatch(contact, criteria, filterFns.equality);
+        }
+        if(isExact) {
+            callback([contact]);
+        } else {
+            if(!Utils.isEmailAddress(filterValue)) {
+                fb.getContactByNumber(filterValue, function fbByPhone(contact) {
+                    callback(contact ? [contact] : []);
+                }, function error_fbByPhone(err) { 
+                    if (err.name !== 'DatastoreNotFound') {
+                        console.error('Error while retrieving fb by phone: ', err.name);
+                    }
+                    callback([]);
+                });
+            }else{
+                // TODO: Need to add inplementation of fb.getContactByAddress() 
+                // when getting FbEmailAddress will be supported.
+                callback([]);      
+            }
+        }
+      });
+    },
+
     addUnknown: function addUnknown(number) {
       var index = unknownNumbers.indexOf(number);
       if (index === -1) {

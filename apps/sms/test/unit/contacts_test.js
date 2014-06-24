@@ -560,6 +560,78 @@ suite('Contacts', function(done) {
     });
   });
 
+  suite('Contacts.findByAddress', function() {
+
+    test('removes spaces', function(done) {
+      var mozContacts = navigator.mozContacts;
+
+      Contacts.findByAddress('+33 1 23 45 67 89', function(contacts) {
+        assert.equal(
+          mozContacts.mHistory[0].filter.filterValue, '+33123456789'
+        );
+        done();
+      });
+    });
+
+    test('The mozContacts find() call returned an error', function(done) {
+      Contacts.findByAddress('callonerror', function(contacts) {
+        assert.equal(contacts.length, 0);
+        done();
+      });
+    });
+
+    test('Local number found.', function(done) {
+     Contacts.findByAddress(targetLocalNumber, function(contacts) {
+       assert.equal(contacts.length, 1);
+       assert.isTrue(!contacts[0].isFbContact);
+       assert.equal(contacts[0].name[0], localContactName);
+       done();
+     });
+   });
+
+    test('Local email found.', function(done) {
+      Contacts.findByAddress(targetLocalEmail, function(contacts) {
+        assert.equal(contacts.length, 1);
+        assert.isTrue(!contacts[0].isFbContact);
+        assert.equal(contacts[0].name[0], localContactName);
+        done();
+      });
+    });
+
+    test('Local number not found. FB Number found', function(done) {
+      Contacts.findByAddress(targetFbNumber, function(contacts) {
+        assert.equal(contacts.length, 1);
+        assert.equal(contacts[0].name[0], fbContactName);
+        assert.equal(contacts[0].isFbContact, true);
+        done();
+      });
+    });
+
+    test('Local number not found. FB Number not found either', function(done) {
+      Contacts.findByAddress(notFoundNumber, function(contacts) {
+        assert.equal(contacts.length, 0);
+        done();
+      });
+    });
+
+    test('Local email not found. FB Number not found either', function(done) {
+      Contacts.findByAddress(notFoundEmail, function(contacts) {
+        assert.equal(contacts.length, 0);
+        done();
+      });
+    });
+
+    test('Local number not found. FB returns error', function(done) {
+      fb.inError = true;
+
+      Contacts.findByAddress(targetFbNumber, function(contacts) {
+        assert.equal(contacts.length, 0);
+        delete window.fb.inError;
+        done();
+      });
+    });
+  });
+
   suite('Contacts.addUnknown', function() {
 
     test('For adding an unknown contact', function() {
