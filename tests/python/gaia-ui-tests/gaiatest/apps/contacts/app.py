@@ -24,6 +24,7 @@ class Contacts(Base):
     _select_contacts_to_import_frame_locator = (By.ID, 'fb-extensions')
     _import_locator = (By.ID, 'import-action')
     _first_contact_locator = (By.CSS_SELECTOR, 'li.block-item label.pack-checkbox')
+    _first_phone_number = (By.XPATH, "//form[@id='action-menu']//menu[@id='value-menu']/button[1]")
 
     #  contacts
     _contact_locator = (By.CSS_SELECTOR, 'li.contact-item')
@@ -98,6 +99,9 @@ class Contacts(Base):
     def status_message(self):
         self.wait_for_element_displayed(*self._status_message_locator)
         return self.marionette.find_element(*self._status_message_locator).text
+
+    def tap_first_phone_number(self):
+        self.marionette.find_element(*self._first_phone_number).tap()
 
     class Contact(PageRegion):
 
