@@ -1629,7 +1629,8 @@ function switchIMEngine(layoutName, mustRender) {
         inputmode: inputContext.inputMode,
         selectionStart: inputContext.selectionStart,
         selectionEnd: inputContext.selectionEnd,
-        value: values[0]
+        value: values[0],
+        inputContext: inputContext
       },
       {
         suggest: values[1].suggestionsEnabled && !isGreekSMS(),

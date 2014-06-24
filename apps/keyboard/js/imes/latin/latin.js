@@ -52,7 +52,8 @@
     select: select,
     dismissSuggestions: dismissSuggestions,
     setLayoutParams: setLayoutParams,
-    setLanguage: setLanguage
+    setLanguage: setLanguage,
+    handleEvent: handleEvent
   };
 
   // This is the object that is passed to init().
@@ -129,6 +130,12 @@
    */
   var inputSequencePromise = Promise.resolve();
 
+
+  // Flag to stop updating suggestions for selectionchange when we're going
+  // to do some actions that will cause selectionchange, such as sendKey()
+  // or replaceSurroundingText().
+  var pendingSelectionChange = 0;
+
   // keyboard.js calls this to pass us the interface object we need
   // to communicate with it
   function init(interfaceObject) {
@@ -190,6 +197,10 @@
     capitalizing = punctuating = (inputMode === 'latin-prose');
     suggesting = (options.suggest && inputMode !== 'verbatim');
     correcting = (options.correct && inputMode !== 'verbatim');
+
+    if (state.inputContext) {
+      state.inputContext.addEventListener('selectionchange', this);
+    }
 
     // Reset our state
     lastSpaceTimestamp = 0;
@@ -346,6 +357,9 @@
   function click(keyCode, upperKeyCode, repeat) {
     // Wait for the previous keys have been resolved and then handle the next
     // key.
+
+    pendingSelectionChange++;
+
     var nextKeyPromise = inputSequencePromise.then(function() {
       keyCode = keyboard.isCapitalized() && upperKeyCode ? upperKeyCode :
                                                            keyCode;
@@ -407,9 +421,12 @@
       }
 
       lastSpaceTimestamp = (keyCode === SPACE) ? Date.now() : 0;
+      pendingSelectionChange--;
+
     }, function() {
       // the previous sendKey or replaceSurroundingText has been rejected,
       // No need to update the state.
+      pendingSelectionChange--;
     });
 
     // Need to return the promise, so that the caller could know
@@ -981,6 +998,32 @@
 
     var c = inputText[i];
     return c === '.' || c === '?' || c === '!';
+  }
+
+  function handleEvent(evt) {
+    var type = evt.type;
+    switch (type) {
+      case 'selectionchange':
+      // We would get selectionchange event when the user type each char,
+      // or accept a word suggestion,so don't update suggestions in these
+      // cases.
+      if (cursor === evt.target.selectionStart ||
+          pendingSelectionChange > 0) {
+        return;
+      }
+
+      var newText = evt.target.textBeforeCursor + evt.target.textAfterCursor;
+      inputText = newText;
+      cursor = evt.target.selectionStart;
+      if (evt.target.selectionEnd > evt.target.selectionStart) {
+        selection = evt.target.selectionEnd;
+      } else {
+        selection = 0;
+      }
+
+      updateSuggestions();
+      break;
+    }
   }
 
   if (!('LAYOUT_PAGE_DEFAULT' in window))
