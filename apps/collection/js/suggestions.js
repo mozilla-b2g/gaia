@@ -12,6 +12,7 @@
     this.el = document.getElementById('collections-select');
     this.el.addEventListener('blur', this);
     this.el.addEventListener('change', this);
+    window.addEventListener('visibilitychange', this);
     this.hide();
 
     this.load = function suggestions_load(categories) {
@@ -83,6 +84,12 @@
         this.el.querySelectorAll('option[value="custom"]:checked').length;
 
       switch (e.type) {
+        case 'visibilitychange':
+          if (document.hidden) {
+            window.close();
+          }
+          break;
+
         case 'blur':
           this.hide();
 
