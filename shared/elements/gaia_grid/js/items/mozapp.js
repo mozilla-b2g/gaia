@@ -102,6 +102,8 @@
           break;
 
         case 'downloadapplied':
+          // we may have updated icons so recalculate the correct icon.
+          delete this._accurateIcon;
           // Need to set app state here to correctly handle the pause/resume
           // case.
           this.setAppState(this._determineState(this.app));
@@ -181,10 +183,10 @@
      * Returns the icon image path.
      */
     get icon() {
-      var icon = this.accurateMozapp;
+      var icon = this._accurateIcon;
 
       if (!icon) {
-        icon = this.accurateMozapp = this._icon();
+        icon = this._accurateIcon = this._icon();
       }
 
       return icon;
