@@ -259,6 +259,7 @@
       } else if (item.type === 'webResult') {
         item.features = item.features || {};
         item.features.isEditable = false;
+        item.features.search = true;
         icon = new GaiaGrid.Bookmark(item.data, item.features);
 
         // override remove method (original sends activity)
