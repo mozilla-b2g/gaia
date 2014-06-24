@@ -1,5 +1,5 @@
 /*global ContactRenderer, loadBodyHTML, MockContact, MockL10n, MocksHelper,
-         Utils, Template, MockContactPhotoHelper */
+         Utils, Template, MockContactPhotoHelper, MockSettings */
 
 'use strict';
 
@@ -10,10 +10,12 @@ require('/test/unit/mock_contact.js');
 require('/test/unit/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 require('/js/contact_renderer.js');
+require('/test/unit/mock_settings.js');
 
 var mocksHelperForContactRenderer = new MocksHelper([
   'Utils',
   'ContactPhotoHelper',
+  'Settings'
 ]).init();
 
 suite('ContactRenderer', function() {
@@ -247,7 +249,103 @@ suite('ContactRenderer', function() {
       );
     });
 
+    test('Rendered Contact "email"', function() {
+      MockSettings.supportEmailRecipient = true;
+      var html;
+
+      contact.email[0].type = null;
+
+      renderer.render({
+        contact: contact,
+        input: 'foo',
+        target: ul
+      });
+
+      html = ul.lastElementChild.innerHTML;
+
+      assert.ok(html.contains('a@b.com'));
+    });
+
+    test('Rendered Contact highlighted "email"', function() {
+      MockSettings.supportEmailRecipient = true;
+      var html;
+
+      contact.email[0].type = null;
+
+      renderer.render({
+        contact: contact,
+        input: 'a@b.com',
+        target: ul
+      });
+
+      sinon.assert.calledWithMatch(Template.prototype.interpolate, {
+        carrier: '',
+        name: 'Pepito O\'Hare',
+        nameHTML: 'Pepito O&apos;Hare',
+        number: 'a@b.com',
+        numberHTML: '<span class="highlight">a@b.com</span>',
+        photoHTML: '',
+        separator: '',
+        type: ''
+      });
+
+      html = ul.lastElementChild.innerHTML;
+
+      assert.ok(
+        html.contains('<span class="highlight">a@b.com</span>')
+      );
+    });
+
+    test('Rendered Contact highlighted "name email"', function() {
+      MockSettings.supportEmailRecipient = true;
+      var html;
+
+      renderer.render({
+        contact: contact,
+        input: 'Pepito a@b.com',
+        target: ul
+      });
+
+      html = ul.lastElementChild.innerHTML;
+
+      assert.include(html, '<span class="highlight">Pepito</span>');
+      assert.include(html, '<span class="highlight">a@b.com</span>');
+    });
+
+    test('Rendered Contact "type | email"', function() {
+      var html;
+
+      renderer.render({
+        contact: contact,
+        input: 'foo',
+        target: ul
+      });
+
+      html = ul.lastElementChild.innerHTML;
+
+      assert.isFalse(html.contains(
+      '<span data-l10n-id="Personal">Personal</span> | ' + 'a@b.com'));
+    });
+
+    test('Rendered Contact highlighted "type | email"', function() {
+      var html;
+
+      renderer.render({
+        contact: contact,
+        input: 'a@b.com',
+        target: ul
+      });
+
+      html = ul.lastElementChild.innerHTML;
+
+      assert.isFalse(html.contains(
+        '<span data-l10n-id="Personal">Personal</span> | ' +
+        '<span class="highlight">a@b.com</span>'
+      ));
+    });
+
     test('Rendered Contact w/ multiple: all (isSuggestion)', function() {
+      MockSettings.supportEmailRecipient = false;
       renderer.render({
         contact: contact,
         input: '+12125559999',
@@ -257,7 +355,19 @@ suite('ContactRenderer', function() {
       assert.equal(ul.children.length, 2);
     });
 
+    test('Rendered Contact w/ multiple: all (isSuggestion)', function() {
+      MockSettings.supportEmailRecipient = true;
+      renderer.render({
+        contact: contact,
+        input: '+12125559999',
+        target: ul
+      });
+
+      assert.equal(ul.children.length, 3);
+    });
+
     test('Rendered Contact omit numbers already in recipient list', function() {
+      MockSettings.supportEmailRecipient = false;
       var html;
 
       var skip = ['+346578888888'];
@@ -274,6 +384,46 @@ suite('ContactRenderer', function() {
 
       assert.ok(!html.contains('346578888888'));
       assert.equal(ul.children.length, 1);
+    });
+
+    test('Rendered Contact omit numbers already in recipient list', function() {
+      MockSettings.supportEmailRecipient = true;
+      var html;
+
+      var skip = ['+346578888888'];
+
+      // This contact has two tel entries.
+      renderer.render({
+        contact: contact,
+        input: '+346578888888',
+        target: ul,
+        skip: skip
+      });
+
+      html = ul.innerHTML;
+
+      assert.ok(!html.contains('346578888888'));
+      assert.equal(ul.children.length, 2);
+    });
+
+    test('Rendered Contact omit emails already in recipient list', function() {
+      MockSettings.supportEmailRecipient = true;
+      var html;
+
+      var skip = ['a@b.com'];
+
+      // This contact has three tel entries.
+      renderer.render({
+        contact: contact,
+        input: 'a@b.com',
+        target: ul,
+        skip: skip
+      });
+
+      html = ul.innerHTML;
+
+      assert.ok(!html.contains('a@b.com'));
+      assert.equal(ul.children.length, 2);
     });
 
     test('does not include photo', function() {
@@ -305,6 +455,67 @@ suite('ContactRenderer', function() {
 
       assert.isTrue(!!li.querySelector(selector));
       assert.equal(li.querySelector(selector).lastElementChild, block);
+    });
+
+    test('Rendered no "Tel" and No Support EmailRecipient ', function() {
+
+      contact.tel = null;
+      MockSettings.supportEmailRecipient = false;
+      var result = renderer.render({
+        contact: contact,
+        input: 'foo',
+        target: ul
+      });
+      assert.isFalse(result);
+    });
+
+    test('Rendered no "email" and No Support EmailRecipient ', function() {
+
+      contact.email = null;
+      MockSettings.supportEmailRecipient = false;
+      var result = renderer.render({
+        contact: contact,
+        input: 'foo',
+        target: ul
+      });
+      assert.ok(result);
+    });
+
+    test('Rendered no "Tel" and Support EmailRecipient ', function() {
+
+      contact.tel = null;
+      MockSettings.supportEmailRecipient = true;
+      var result = renderer.render({
+        contact: contact,
+        input: 'foo',
+        target: ul
+      });
+      assert.ok(result);
+    });
+
+    test('Rendered no "email" and Support EmailRecipient ', function() {
+
+      contact.email = null;
+      MockSettings.supportEmailRecipient = true;
+      var result = renderer.render({
+        contact: contact,
+        input: 'foo',
+        target: ul
+      });
+      assert.ok(result);
+    });
+
+    test('Rendered no "Tel"/"email" and Support EmailRecipient ', function() {
+
+      contact.tel = null;
+      contact.email = null;
+      MockSettings.supportEmailRecipient = true;
+      var result = renderer.render({
+        contact: contact,
+        input: 'foo',
+        target: ul
+      });
+      assert.isFalse(result);
     });
   });
 
@@ -559,10 +770,44 @@ suite('ContactRenderer', function() {
       assert.isTrue(isRendered);
     });
 
-    test('no tel number', function() {
+    test('no tel number, has email address', function() {
+      MockSettings.supportEmailRecipient = true;
       var ul = document.createElement('ul');
       var contact = new MockContact();
       contact.tel = null;
+
+      var renderer = ContactRenderer.flavor('suggestion');
+      var isRendered = renderer.render({
+        contact: contact,
+        input: contact.email[0].value,
+        target: ul
+      });
+
+      assert.isTrue(isRendered);
+    });
+
+    test('has tel number, no email address', function() {
+      MockSettings.supportEmailRecipient = true;
+      var ul = document.createElement('ul');
+      var contact = new MockContact();
+      contact.email = null;
+
+      var renderer = ContactRenderer.flavor('suggestion');
+      var isRendered = renderer.render({
+        contact: contact,
+        input: contact.tel[0].value,
+        target: ul
+      });
+
+      assert.isTrue(isRendered);
+    });
+
+    test('no tel number, no email address', function() {
+      MockSettings.supportEmailRecipient = true;
+      var ul = document.createElement('ul');
+      var contact = new MockContact();
+      contact.tel = null;
+      contact.email = null;
 
       var renderer = ContactRenderer.flavor('suggestion');
       var isNotRendered = renderer.render({
