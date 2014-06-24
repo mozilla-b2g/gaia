@@ -127,6 +127,16 @@ window.GaiaGrid = (function(win) {
     }
   };
 
+  /**
+   * Sets an element that should be considered as obscuring the top of the grid
+   * when in edit mode.
+   */
+  proto.setEditHeaderElement = function(element) {
+    if (this._grid.dragdrop) {
+      this._grid.dragdrop.editHeaderElement = element;
+    }
+  };
+
   Object.defineProperty(proto, 'maxIconSize', {
     get: function() {
       return this._grid.layout.gridMaxIconSize;
