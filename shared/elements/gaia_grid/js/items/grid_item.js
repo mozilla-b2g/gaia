@@ -361,9 +361,10 @@
     /**
      * Positions and scales an icon.
      */
-    transform: function(x, y, scale) {
+    transform: function(x, y, scale, element) {
       scale = scale || 1;
-      this.element.style.transform =
+      element = element || this.element;
+      element.style.transform =
         'translate(' + x + 'px,' + y + 'px) scale(' + scale + ')';
     },
 
