@@ -1,6 +1,7 @@
 
 const FILE_TYPE_FILE = 0;
 const FILE_TYPE_DIRECTORY = 1;
+const GAIA_SCHEME = 'app://';
 
 var utils;
 if (isNode()) {
@@ -62,12 +63,12 @@ function psParser(out) {
   return result;
 }
 
-function gaiaOriginURL(name, scheme, domain, port) {
-  return scheme + name + '.' + domain;
+function gaiaOriginURL(name, domain) {
+  return GAIA_SCHEME + name + '.' + domain;
 }
 
-function gaiaManifestURL(name, scheme, domain, port) {
-  return gaiaOriginURL(name, scheme, domain, port) + '/manifest.webapp';
+function gaiaManifestURL(name, domain) {
+  return gaiaOriginURL(name, domain) + '/manifest.webapp';
 }
 
 function getAppStatus(status) {
@@ -118,6 +119,7 @@ exports.generateUUID = utils.generateUUID;
 exports.copyRec = utils.copyRec;
 exports.getAppStatus = getAppStatus;
 exports.createZip = utils.createZip;
+exports.GAIA_SCHEME = GAIA_SCHEME;
 // ===== the following functions support node.js compitable interface.
 exports.FILE_TYPE_FILE = FILE_TYPE_FILE;
 exports.FILE_TYPE_DIRECTORY = FILE_TYPE_DIRECTORY;

@@ -7,9 +7,6 @@ function execute(options) {
   // Filter images by GAIA_DEV_PIXELS_PER_PX.
   require('./image-resolution').execute(options);
 
-  // Updates hostnames for InterApp Communication APIs.
-  require('./post-manifest').execute(options);
-
   if (options.LOCALE_BASEDIR) {
     require('./multilocale').execute(options);
   }
