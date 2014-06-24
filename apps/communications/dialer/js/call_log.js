@@ -865,7 +865,7 @@ var CallLog = {
   _updateContact: function _updateContact(log, phoneNumber, updateDb) {
     var self = this;
     Contacts.findByNumber(phoneNumber,
-                          function(contact, matchingTel) {
+                          function(contact, matchingTel, contactsWithSameTel) {
       if (!contact || !matchingTel) {
         // Remove contact info.
         if (self._contactCache && updateDb) {
@@ -905,7 +905,7 @@ var CallLog = {
       CallLogDBManager.removeGroupContactInfo(contactId, null,
                                               function(result) {
         if (typeof result === 'number' && result > 0) {
-          self.updateContactInfo(log);
+          self._updateContact(log, log.dataset.phoneNumber);
         }
       });
     } else {

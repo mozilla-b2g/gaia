@@ -103,6 +103,7 @@ suite('dialer/call_log_db', function() {
     });
   });
 
+  /*
   suite('Failed insert', function() {
     test('Fail adding a call', function(done) {
       CallLogDBManager.add('invalidcall', function(result) {
@@ -1057,5 +1058,68 @@ suite('dialer/call_log_db', function() {
       done();
     });
   });
+  */
+
+  suite('Outgoing call, different contacts, same number', function() {
+    var contacts = [];
+
+    function addContactWithName(name, callback) {
+      var contactData = {
+        givenName: [name],
+        tel: [{
+          value: numbers[2]
+        }]
+      };
+      var person = new mozContact(contactData);
+      contacts.push(person);
+      var saving = window.Contacts.save(person);
+      saving.onsuccess = function() {
+        callback();
+      };
+      saving.onerror = function(err) {
+        console.error(err);
+        callback();
+      };
+    }
+
+    test('Add contact 1', function(done) {
+      addContactWithName('C1', done);
+    });
+
+    test('Add contact 2', function(done) {
+      addContactWithName('C2', done);
+    });
+
+    test('Delete contact 1', function(done) {
+      window.Contacts.remove(contacts[0]);
+    });
+
+    var call = {
+      number: numbers[2],
+      type: 'outgoing',
+      status: 'connected',
+      date: days[0]
+    };
+
+    test('Add a call, check the name', function(done) {
+      CallLogDBManager.add(call, function(result) {
+        CallLogDBManager.getGroupList(function(groups) {
+          assert.length(groups, 1);
+          assert.equal(typeof group.contact, 'object');
+          assert.equal(group.contact.primaryInfo, 'C2');
+          assert.equal(group.contact.matchingTel.number, group.number);
+          assert.equal(group.contact.matchingTel.number, numbers[2]);
+          done();
+        });
+      });
+    });
+
+    suiteTeardown(function(done) {
+      CallLogDBManager.deleteAll(function() {
+        done();
+      });
+    });
+  });
+
 
 });
