@@ -430,6 +430,10 @@ var NotificationScreen = {
         window.lockScreen.maskedBackground.dataset.wallpaperColor;
 
       window.lockScreen.maskedBackground.classList.remove('blank');
+
+      // check if lockscreen's masks and
+      // 'more notifications' arrow needs to show
+      window.lockScreen.setNotificationMaskArrowVisibility();
     }
 
     if (notify && !this.isResending) {
@@ -529,6 +533,10 @@ var NotificationScreen = {
           'transparent';
         window.lockScreen.maskedBackground.classList.add('blank');
       }
+
+      // check if lockscreen's masks and
+      // 'more notifications' arrow needs to show
+      window.lockScreen.setNotificationMaskArrowVisibility();
     }
     this.updateStatusBarIcon();
 
@@ -557,6 +565,9 @@ var NotificationScreen = {
     // and use the simple gradient
     window.lockScreen.maskedBackground.style.backgroundColor = 'transparent';
     window.lockScreen.maskedBackground.classList.add('blank');
+    // check if lockscreen's masks and
+    // 'more notifications' arrow needs to show
+    window.lockScreen.setNotificationMaskArrowVisibility();
   },
 
   updateStatusBarIcon: function ns_updateStatusBarIcon(unread) {
