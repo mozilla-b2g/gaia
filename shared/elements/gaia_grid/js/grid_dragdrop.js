@@ -63,6 +63,12 @@
      */
     collectionsPort: null,
 
+    /*
+     * An element that's aligned to the top of the grid and should be
+     * considered as obscuring the grid when in edit mode.
+     */
+    editHeaderElement: null,
+
     /**
      * Returns the maximum active scale value.
      */
@@ -256,6 +262,8 @@
 
       var docScroll = this.scrollable.scrollTop;
       var distanceFromTop = Math.abs(touch.pageY - docScroll);
+      var distanceFromHeader = distanceFromTop -
+        (this.editHeaderElement ? this.editHeaderElement.clientHeight : 0);
       if (distanceFromTop > SCREEN_HEIGHT - EDGE_PAGE_THRESHOLD) {
         var maxY = this.maxScroll;
         var scrollStep = this.getScrollStep(SCREEN_HEIGHT - distanceFromTop);
@@ -266,8 +274,8 @@
         }
 
         doScroll.call(this, scrollStep);
-      } else if (touch.pageY > 0 && distanceFromTop < EDGE_PAGE_THRESHOLD) {
-        doScroll.call(this, 0 - this.getScrollStep(distanceFromTop));
+      } else if (touch.pageY > 0 && distanceFromHeader < EDGE_PAGE_THRESHOLD) {
+        doScroll.call(this, 0 - this.getScrollStep(distanceFromHeader));
       } else {
         this.isScrolling = false;
       }
