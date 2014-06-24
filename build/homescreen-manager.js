@@ -124,8 +124,9 @@ function getCollectionMetadata(config, directory, appName, entryPoint) {
   }
   descriptor.pinned = apps;
 
-  var origin = utils.gaiaOriginURL('collection', config.GAIA_DOMAIN);
-
+  var origin = utils.gaiaOriginURL('collection', config.GAIA_SCHEME,
+    config.GAIA_DOMAIN, config.GAIA_PORT);
+ 
   var background = bestMatchingBackground(config, manifest, origin);
   if (background) {
     descriptor.background = background;

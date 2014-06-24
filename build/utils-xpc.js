@@ -208,7 +208,7 @@ function readZipManifest(appDir) {
                   ' app (' + appDir.leafName + ')\n');
 }
 
-function getWebapp(app, domain, stageDir) {
+function getWebapp(app, domain, scheme, port, stageDir) {
   let appDir = getFile(app);
   if (!appDir.exists()) {
     throw new Error(' -*- build/utils.js: file not found (' +
@@ -234,7 +234,7 @@ function getWebapp(app, domain, stageDir) {
     manifest: getJSON(manifest),
     manifestFile: manifest,
     buildManifestFile: manifest,
-    url: utils.GAIA_SCHEME + appDomain,
+    url: scheme + appDomain,
     domain: appDomain,
     sourceDirectoryFile: manifestFile.parent,
     buildDirectoryFile: manifestFile.parent,
@@ -262,10 +262,10 @@ function getWebapp(app, domain, stageDir) {
   return webapp;
 }
 
-function makeWebappsObject(appdirs, domain, stageDir) {
+function makeWebappsObject(appdirs, domain, scheme, port, stageDir) {
   var apps = [];
   appdirs.forEach(function(app) {
-    var webapp = getWebapp(app, domain, stageDir);
+    var webapp = getWebapp(app, domain, scheme, port, stageDir);
     if (webapp) {
       apps.push(webapp);
     }
@@ -305,7 +305,8 @@ var gaia = {
         engine: this.config.GAIA_ENGINE,
         sharedFolder: getFile(this.config.GAIA_DIR, 'shared'),
         webapps: makeWebappsObject(this.config.GAIA_APPDIRS.split(' '),
-          this.config.GAIA_DOMAIN, this.config.STAGE_DIR),
+          this.config.GAIA_DOMAIN, this.config.GAIA_SCHEME,
+          this.config.GAIA_PORT, this.config.STAGE_DIR),
         aggregatePrefix: 'gaia_build_',
         distributionDir: this.config.GAIA_DISTRIBUTION_DIR
       };

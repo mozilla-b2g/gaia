@@ -1,9 +1,8 @@
 'use strict';
 
 var hasRunCommands = {};
-var gaiaOriginURL = function(name, domain) {
-  var GAIA_SCHEME = 'app://';
-  return GAIA_SCHEME + name + '.' + domain;
+var gaiaOriginURL = function(name, scheme, domain, port) {
+  return scheme + name + '.' + domain + (port ? port : '');
 };
 
 exports.Q = require('q');
@@ -58,8 +57,8 @@ exports.getJSON = function() {
 
 exports.gaiaOriginURL = gaiaOriginURL;
 
-exports.gaiaManifestURL = function(name, domain) {
-  return gaiaOriginURL(name, domain) + '/manifest.webapp';
+exports.gaiaManifestURL = function(name, scheme, domain, port) {
+  return gaiaOriginURL(name, scheme, domain, port) + '/manifest.webapp';
 };
 
 exports.log = console.log;

@@ -15,7 +15,7 @@ CommAppBuilder.prototype.setOptions = function(options) {
   this.appDir = utils.getFile(options.APP_DIR);
 
   this.webapp = utils.getWebapp(this.appDir.path, options.GAIA_DOMAIN,
-    options.STAGE_DIR);
+    options.GAIA_SCHEME, options.GAIA_PORT, options.STAGE_DIR);
   this.gaia = utils.gaia.getInstance(options);
 
   this.gaia.stageDir = this.stageDir;

@@ -144,7 +144,9 @@ LOCAL_DOMAINS?=1
 
 ADB?=adb
 
-SYSTEM?=app://system.$(GAIA_DOMAIN)
+SCHEME=app://
+
+SYSTEM?=$(SCHEME)system.$(GAIA_DOMAIN)
 
 BUILD_APP_NAME?=*
 ifneq ($(APP),)
@@ -432,6 +434,7 @@ define BUILD_CONFIG
 	"GAIA_DIR" : "$(GAIA_DIR)", \
 	"PROFILE_DIR" : "$(GAIA_DIR)$(SEP)$(PROFILE_FOLDER)", \
 	"PROFILE_FOLDER" : "$(PROFILE_FOLDER)", \
+	"GAIA_SCHEME" : "$(SCHEME)", \
 	"GAIA_DOMAIN" : "$(GAIA_DOMAIN)", \
 	"DEBUG" : $(DEBUG), \
 	"LOCAL_DOMAINS" : $(LOCAL_DOMAINS), \
