@@ -40,7 +40,9 @@
     render: function(coordinates, index) {
       // Generate the content if we need to
       if (!this.element) {
-        var divider = this.element = document.createElement('div');
+        // Divider is a <section> and the rest of items are <div> containers
+        // in order to hide the last divider via :last-of-type pseudo-class
+        var divider = this.element = document.createElement('section');
         divider.className = 'divider';
 
         var span = document.createElement('span');

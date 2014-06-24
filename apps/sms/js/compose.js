@@ -46,6 +46,7 @@ var Compose = (function() {
 
   var subject = {
     isVisible: false,
+    LINE_HEIGHT: 17,
     toggle: function sub_toggle() {
       if (!this.isVisible) {
         this.show();
@@ -56,7 +57,7 @@ var Compose = (function() {
       return this;
     },
     show: function sub_show() {
-      dom.subject.classList.remove('hide');
+      dom.form.classList.add('subject-input-visible');
       this.isVisible = true;
       dom.subject.focus();
       Compose.updateType();
@@ -64,7 +65,7 @@ var Compose = (function() {
       return this;
     },
     hide: function sub_hide() {
-      dom.subject.classList.add('hide');
+      dom.form.classList.remove('subject-input-visible');
       this.isVisible = false;
       Compose.updateType();
       onContentChanged();
@@ -87,6 +88,14 @@ var Compose = (function() {
         dom.subject.lastChild
       );
       return this;
+    },
+    hasMultipleLines: function() {
+      if (!this.isShowing || this.isEmpty) {
+        return false;
+      }
+      // If subject can fit more than one line then it's considered as
+      // multiline one (currently it can have one or two lines)
+      return dom.subject.clientHeight / this.LINE_HEIGHT >= 2;
     },
     getMaxLength: function sub_getMaxLength() {
       return +dom.subject.dataset.maxLength;
@@ -193,6 +202,9 @@ var Compose = (function() {
       placeholderClass,
       subject.isShowing && isEmptySubject
     );
+
+    // Indicates that subject has multiple lines to change layout accordingly
+    dom.form.classList.toggle('multiline-subject', subject.hasMultipleLines());
 
     // Send button management
     /* The send button should be enabled only in the situations where:

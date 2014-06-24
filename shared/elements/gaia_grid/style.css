@@ -123,7 +123,7 @@
   transition: transform 0.35s;
 }
 
-.edit-mode .divider:last-child {
+.edit-mode .divider:last-of-type {
   visibility: visible;
 }
 
