@@ -484,7 +484,7 @@ suite('Renderer', function() {
         var layout = {
           width: 1,
           keys: [],
-          layoutName: 'ar',
+          keyboardName: 'ar',
           specificCssRule: true
         };
         IMERender.draw(layout);
@@ -495,7 +495,7 @@ suite('Renderer', function() {
         var layout = {
           width: 1,
           keys: [],
-          layoutName: 'ar',
+          keyboardName: 'ar',
           specificCssRule: false
         };
         IMERender.draw(layout);
@@ -608,7 +608,7 @@ suite('Renderer', function() {
         var layout = {
           width: (Math.random() * 8 | 0) + 2,
           keys: [],
-          layoutName: 'test'
+          keyboardName: 'test'
         };
 
         for (var ri = 0; ri < rows.length; ri++) {

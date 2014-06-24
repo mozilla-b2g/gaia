@@ -119,8 +119,8 @@ const IMERender = (function() {
     var supportsSwitching = 'mozInputMethod' in navigator ?
       navigator.mozInputMethod.mgmt.supportsSwitching() : false;
     var keyboardClass = [
-      layout.layoutName,
-      layout.alternativeLayoutName,
+      layout.keyboardName,
+      layout.altLayoutName,
       ('' + flags.inputType).substr(0, 1),
       ('' + flags.showCandidatePanel).substr(0, 1),
       ('' + flags.uppercase).substr(0, 1),
@@ -134,7 +134,7 @@ const IMERender = (function() {
       container.classList.add('keyboard-type-container');
       container.classList.add(keyboardClass);
       if (layout.specificCssRule) {
-        container.classList.add(layout.layoutName);
+        container.classList.add(layout.keyboardName);
       }
       buildKeyboard(container, flags, layout);
       ime.appendChild(container);

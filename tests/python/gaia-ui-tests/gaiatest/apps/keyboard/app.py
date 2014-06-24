@@ -95,7 +95,7 @@ class Keyboard(Base):
                 return key_to_press
 
     # Try to switch to the correct layout. There are 3 keyboard layers:
-    # ABC (layoutPage = 0), 123 (layoutPage = 1) and ALT (layoutPage = 2)
+    # ABC (Default), 123 (Symbols_1) and ALT (Symbols_2)
     def _switch_to_correct_layout(self, val):
         layout_page = self._layout_page
         current_input_type = self._current_input_type
@@ -106,9 +106,9 @@ class Keyboard(Base):
         elif val.isalpha():
             is_upper_case = self._is_upper_case
             # If the key to press isalpha and the keyboard layout is not, go back to Default
-            if not layout_page == 0:
+            if not layout_page == 'Default':
                 self._tap(self._alpha_key)
-                self.wait_for_condition(lambda m: self._layout_page == 0)
+                self.wait_for_condition(lambda m: self._layout_page == 'Default')
             # If the key to press isupper and the keyboard is not (or vice versa) then press shift
             if not val.isupper() == is_upper_case:
                 self._tap(self._upper_case_key)
@@ -117,7 +117,7 @@ class Keyboard(Base):
         else:
             # If it's not space or alpha then it must be in 123 or ALT.
             # It can't be in Default so let's go into 123 and then try to find it
-            if not current_input_type == 'number' and layout_page == 0:
+            if not current_input_type == 'number' and layout_page == 'Default':
                 self._tap(self._numeric_sign_key)
                 self.wait_for_element_displayed(*self._key_locator(self._alpha_key))
             # If it is not present here then it must be in one of the ALT section
@@ -136,11 +136,11 @@ class Keyboard(Base):
 
     @property
     def _current_input_type(self):
-        return self.marionette.execute_script('return window.wrappedJSObject.fakeAppObject.getBasicInputType();')
+        return self.marionette.execute_script('return window.wrappedJSObject.currentInputType;')
 
     @property
     def _layout_page(self):
-        return self.marionette.execute_script('return window.wrappedJSObject.layoutManager.currentLayoutPage;')
+        return self.marionette.execute_script('return window.wrappedJSObject.layoutPage;')
 
     # this is to switch to the frame of keyboard
     def switch_to_keyboard(self):
@@ -178,7 +178,7 @@ class Keyboard(Base):
         # These two tap cases are most important because they cause the keyboard to change state which affects next step
         if val.isspace():
             # Space switches back to Default layout
-            self.wait_for_condition(lambda m: self._layout_page == 0)
+            self.wait_for_condition(lambda m: self._layout_page == 'Default')
         if val.isupper() and is_upper_case and not is_upper_case_locked:
             # Tapping key with shift enabled causes the keyboard to switch back to lower
             self.wait_for_condition(lambda m: not self._is_upper_case)
