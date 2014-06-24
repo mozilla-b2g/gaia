@@ -368,6 +368,18 @@
     },
 
     /**
+    Updates the title of the icon on the grid.
+    */
+    updateTitle: function() {
+      // it is remotely possible that we have not .rendered yet
+      if (!this.element) {
+        return;
+      }
+      var nameEl = this.element.querySelector('.title');
+      nameEl.textContent = this.name;
+    },
+
+    /**
      * Updates an icon on the page from a datastore record.
      * Used for bookmarks and collections.
      * @param {Object} record The datastore record.
@@ -380,9 +392,8 @@
       var lastIcon = this.icon;
       record.type = type;
       this.detail = record;
-      var nameEl = this.element.querySelector('.title');
-      if (nameEl && nameChanged) {
-        nameEl.textContent = this.name;
+      if (nameChanged) {
+        this.updateTitle();
 
         // Bug 1007743 - Workaround for projected content nodes disappearing
         document.body.clientTop;
