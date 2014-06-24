@@ -30,6 +30,7 @@ class TestSmsAddContact(GaiaTestCase):
         contacts_app.wait_for_contacts()
 
         contacts_app.contact(self.contact['givenName']).tap(return_details=False)
+        contacts_app.tap_first_phone_number()
         contacts_app.wait_for_contacts_frame_to_close()
 
         # Now switch to the displayed frame which should be Messages app

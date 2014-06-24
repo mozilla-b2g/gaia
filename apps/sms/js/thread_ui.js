@@ -909,19 +909,31 @@ var ThreadUI = global.ThreadUI = {
     // Ensure that Recipients does not trigger focus on
     // itself, which causes the keyboard to appear.
     Recipients.View.isFocusable = false;
+    var activity;
 
-    var activity = new MozActivity({
-      name: 'pick',
-      data: {
-        type: 'webcontacts/tel'
-      }
-    });
+    if (Settings.supportEmailRecipient) {
+      activity = new MozActivity({
+        name: 'pick',
+        data: {
+          type: 'webcontacts/select',
+          contactProperties: ['tel', 'email']
+        }
+      });
+    } else {
+      activity = new MozActivity({
+        name: 'pick',
+        data: {
+          type: 'webcontacts/select',
+          contactProperties: ['tel']
+        }
+      });
+    }
 
     activity.onsuccess = (function() {
       if (!activity.result ||
-          !activity.result.tel ||
-          !activity.result.tel.length ||
-          !activity.result.tel[0].value) {
+          !activity.result.select ||
+          !activity.result.select.length ||
+          !activity.result.select[0].value) {
         console.error('The pick activity result is invalid.');
         return;
       }
@@ -929,7 +941,7 @@ var ThreadUI = global.ThreadUI = {
       Recipients.View.isFocusable = true;
 
       var data = Utils.basicContact(
-        activity.result.tel[0].value, activity.result
+        activity.result.select[0].value, activity.result.contact
       );
       data.source = 'contacts';
 
