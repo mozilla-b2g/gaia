@@ -7,7 +7,8 @@ define(function() {
         callback();
       }
       return;
-    }
+    },
+    back: function() {}
   };
 
   return MockSettingsService;
