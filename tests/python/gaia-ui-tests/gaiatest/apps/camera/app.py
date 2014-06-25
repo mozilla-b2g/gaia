@@ -5,9 +5,9 @@
 import time
 
 from marionette.by import By
+from marionette.marionette import Actions
 
 from gaiatest.apps.base import Base
-from gaiatest.apps.base import PageRegion
 import gaiatest.apps.gallery.app
 
 
@@ -84,7 +84,10 @@ class Camera(Base):
 
     def tap_switch_source(self):
         self.wait_for_element_displayed(*self._switch_button_locator)
-        self.marionette.find_element(*self._switch_button_locator).tap()
+        switch = self.marionette.find_element(*self._switch_button_locator)
+        # TODO: Use marionette.tap(_switch_button_locator) to switch camera mode
+        Actions(self.marionette).press(switch).move_by_offset(0, 0).release().perform()
+
         self.wait_for_condition(
             lambda m: m.find_element(
                 *self._controls_locator).get_attribute('data-enabled') == 'true')
