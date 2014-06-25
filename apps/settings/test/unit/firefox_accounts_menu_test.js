@@ -86,13 +86,13 @@ suite('firefox accounts menu item > ', function() {
     ]);
   });
 
-  test('show the correct status after onverifiedlogin event', function() {
+  test('show the correct status after onverified event', function() {
     MockFxAccountsIACHelper.setCurrentState({
       email: 'on@verifiedlog.in',
       verified: true
     });
     FxaMenu.init(MockFxAccountsIACHelper);
-    MockFxAccountsIACHelper.fireEvent('onverifiedlogin');
+    MockFxAccountsIACHelper.fireEvent('onverified');
     assert.deepEqual(localizeSpy.args[0], [
       fxaDescEl,
       'fxa-logged-in-text',

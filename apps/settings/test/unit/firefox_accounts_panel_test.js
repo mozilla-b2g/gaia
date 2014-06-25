@@ -122,14 +122,14 @@ suite('firefox accounts panel > ', function() {
     ]);
   });
 
-  test('show the correct panel and email after onverifiedlogin event',
+  test('show the correct panel and email after onverified event',
     function() {
       MockFxAccountsIACHelper.setCurrentState({
         email: 'on@verifiedlog.in',
         verified: true
       });
       FxaPanel.init(MockFxAccountsIACHelper);
-      MockFxAccountsIACHelper.fireEvent('onverifiedlogin');
+      MockFxAccountsIACHelper.fireEvent('onverified');
       assert.isTrue(loggedOutScreen.hidden);
       assert.isTrue(unverifiedScreen.hidden);
       assert.isFalse(loggedInScreen.hidden);

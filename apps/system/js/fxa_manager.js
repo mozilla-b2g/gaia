@@ -164,7 +164,7 @@ var FxAccountsManager = {
         }.bind(this));
         break;
       case 'onlogin':
-      case 'onverifiedlogin':
+      case 'onverified':
       case 'onlogout':
         FxAccountsManager.sendPortMessage({ eventName: message.eventName });
         break;
