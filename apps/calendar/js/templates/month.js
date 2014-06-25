@@ -8,7 +8,6 @@
                 ' busy-length-' + this.h('length') +
                 ' busy-' + this.h('start') +
                 ' calendar-id-' + this.h('calendarId') +
-                ' calendar-display' +
               '">' +
               '&nbsp;' +
             '</span>';

@@ -39,5 +39,9 @@ Day.prototype = {
 
   get currentDisplayHour() {
     return this.currentHour.findElement('.display-hour');
+  },
+
+  get allDay() {
+    return this.activeDay.findElement('.hour-allday');
   }
 };
