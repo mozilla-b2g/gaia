@@ -99,6 +99,29 @@ marionette('Vertical - Collection', function() {
     client.waitFor(function() {
       return expected === collectionIcon.text();
     });
+
+    server.failAll();
+
+    // Now verify the translation inside of the offline message
+    collectionIcon.tap();
+
+    client.switchToFrame();
+    client.apps.switchToApp(Collection.URL);
+
+    var offlineMessage = client.helper.waitForElement(
+          selectors.offlineMessage);
+
+    // Collections named are stubbed in gaia properties. See:
+    // shared/locales/collection_categories/collection_categories.fr.properties
+    assert.ok(offlineMessage.text().indexOf(expected) !== -1);
+
+    server.unfailAll();
+
+    client.executeScript(function() {
+      window.dispatchEvent(new CustomEvent('online'));
+    });
+
+    client.helper.waitForElementToDisappear(offlineMessage);
   });
 
   test('pin collection web result', function() {

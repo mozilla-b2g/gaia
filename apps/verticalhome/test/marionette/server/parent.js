@@ -3,8 +3,8 @@
 var fork = require('child_process').fork;
 
 /**
-issue a POST request via marionette
-*/
+ * Issue a POST request via marionette.
+ */
 function post(client, url, json) {
   // must run in chrome so we can do cross domain xhr
   client = client.scope({ context: 'chrome' });
