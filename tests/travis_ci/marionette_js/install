@@ -1,10 +1,10 @@
 #! /bin/bash -ve
 
 echo "Downloading b2g-desktop"
-make b2g
+time make b2g
 
 # Install virtualenv and radicale on Travis.
-make caldav-server-install
+time make caldav-server-install
 
 echo "Building test profile"
-PROFILE_FOLDER=profile-test make
+time PROFILE_FOLDER=profile-test make
