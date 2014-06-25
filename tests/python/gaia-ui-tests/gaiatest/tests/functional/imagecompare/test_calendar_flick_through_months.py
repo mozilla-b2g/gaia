@@ -20,7 +20,7 @@ class TestCalendar(GaiaTestCase):
 
         current_module = str(sys.modules[__name__])
         self.module_name = current_module[current_module.find("'")+1:current_module.find("' from")]
-        self.graphics = ImageCompareUtil(self.marionette,self.apps, '.')
+        self.graphics = ImageCompareUtil(self.marionette,self.apps, self,'.')
 
 
     def test_calendar_flick_through_months(self):
@@ -56,6 +56,6 @@ class TestCalendar(GaiaTestCase):
 
         # In case the assertion fails this will still kill the call
         # An open call creates problems for future tests
-        self.graphics.execute_image_job(self)
+        self.graphics.execute_image_job()
 
         GaiaTestCase.tearDown(self)

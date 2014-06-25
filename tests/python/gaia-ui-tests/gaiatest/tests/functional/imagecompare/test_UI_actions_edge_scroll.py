@@ -18,7 +18,7 @@ class TestCardsView(GaiaTestCase):
         GaiaTestCase.setUp(self)
         current_module = str(sys.modules[__name__])
         self.module_name = current_module[current_module.find("'")+1:current_module.find("' from")]
-        self.graphics = ImageCompareUtil(self.marionette,self.apps, '.')
+        self.graphics = ImageCompareUtil(self.marionette, self.apps, self, '.')
 
         # Launch the test apps
         for app in self._test_apps:
@@ -37,5 +37,5 @@ class TestCardsView(GaiaTestCase):
         self.wait_for_condition(lambda m: self.apps.displayed_app.name == self._test_apps[0])
 
     def tearDown(self):
-        self.graphics.execute_image_job(self)
+        self.graphics.execute_image_job()
         GaiaTestCase.tearDown(self)
