@@ -61,6 +61,7 @@
         this.element.querySelector('.' + this.ELEMENT_PREFIX + name);
     }, this);
     var cancel = document.createElement('button');
+    cancel.id = 'ctx-cancel-button';
     cancel.dataset.action = 'cancel';
     cancel.dataset.l10nId = 'cancel';
     this.elements.cancel = cancel;
@@ -265,13 +266,15 @@
           type = 'audio';
         }
 
-        return [
-          {
-            id: 'save-' + type,
-            label: _('save-' + type),
-            callback: this.app.browser.element.download.bind(this, uri)
-          }
-        ];
+        return [{
+          id: 'save-' + type,
+          label: _('save-' + type),
+          callback: this.app.browser.element.download.bind(this, uri)
+        }, {
+          id: 'share-' + type,
+          label: _('share-' + type),
+          callback: this.shareUrl.bind(this, uri)
+        }];
 
       default:
         return [];
