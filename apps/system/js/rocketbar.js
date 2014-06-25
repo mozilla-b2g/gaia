@@ -185,7 +185,7 @@
       window.addEventListener('cardviewclosed', this);
       window.addEventListener('cardviewshown', this);
       window.addEventListener('appopened', this);
-      window.addEventListener('homescreenopening', this);
+      window.addEventListener('homescreenopened', this);
       window.addEventListener('stackchanged', this);
       window.addEventListener('searchcrashed', this);
       window.addEventListener('permissiondialoghide', this);
@@ -298,7 +298,7 @@
         case 'ftudone':
           this.handleFTUDone(e);
           break;
-        case 'homescreenopening':
+        case 'homescreenopened':
           this.enterHome(e);
           break;
         case 'stackchanged':
@@ -326,7 +326,7 @@
       window.removeEventListener('cardviewshown', this);
       window.removeEventListener('cardviewclosedhome', this);
       window.removeEventListener('appopened', this);
-      window.removeEventListener('homescreenopening', this);
+      window.removeEventListener('homescreenopened', this);
       window.removeEventListener('stackchanged', this);
       window.removeEventListener('permissiondialoghide', this);
 
