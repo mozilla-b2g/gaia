@@ -1033,7 +1033,7 @@ suite('lib/camera/camera', function() {
     });
 
     test('Should set the focus state to the passed value', function() {
-      this.camera.onAutoFocusChanged();
+      this.camera.onAutoFocusChanged('autofocus');
       assert.ok(this.camera.set.calledWith('focus', 'autofocus'));
     });
   });
