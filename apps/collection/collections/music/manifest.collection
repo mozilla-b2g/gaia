@@ -1,7 +1,7 @@
 {
   "name": "Music",
   "role": "collection",
-  "categoryId": "142",
+  "categoryId": 142,
   "pinned": [
     ["apps", "fm"],
     ["apps", "music"],

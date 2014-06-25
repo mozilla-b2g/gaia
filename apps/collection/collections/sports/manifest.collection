@@ -1,7 +1,7 @@
 {
   "name": "Sports",
   "role": "collection",
-  "categoryId": "260",
+  "categoryId": 260,
   "default_locale": "en-US",
   "icons": {
     "60": "/collections/sports/icon.png",

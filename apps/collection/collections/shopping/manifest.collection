@@ -1,7 +1,7 @@
 {
   "name": "Shopping",
   "role": "collection",
-  "categoryId": "238",
+  "categoryId": 238,
   "default_locale": "en-US",
   "icons": {
     "60": "/collections/shopping/icon.png",
