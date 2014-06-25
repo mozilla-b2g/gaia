@@ -96,6 +96,7 @@ var fakeAppObject = {
   l10nLoader: null,
   userPressManager: null,
   alternativesCharMenuManager: null,
+  feedbackManager: null,
 
   inputContext: null,
 
@@ -219,22 +220,16 @@ var alternativesCharMenuManager =
   new AlternativesCharMenuManager(fakeAppObject);
 alternativesCharMenuManager.start();
 
+var feedbackManager =
+  fakeAppObject.feedbackManager = new FeedbackManager(fakeAppObject);
+feedbackManager.start();
+
 // User settings (in Settings database) are tracked within these modules
-var soundFeedbackSettings;
-var vibrationFeedbackSettings;
 var imEngineSettings;
 
 // We keep this promise in the global scope for the time being,
 // so they can be called as soon as we need it to.
 var inputContextGetTextPromise;
-
-// data URL for keyboard click sound
-const CLICK_SOUND = './resources/sounds/key.ogg';
-const SPECIAL_SOUND = './resources/sounds/special.ogg';
-
-// The audio element used to play the click sound
-var clicker;
-var specialClicker;
 
 // A MutationObserver we use to spy on the renderer module
 var dimensionsObserver;
@@ -256,23 +251,6 @@ setTimeout(function attachResizeListener() {
 function initKeyboard() {
   perfTimer.startTimer('initKeyboard');
   perfTimer.printTime('initKeyboard');
-  // Getting initial settings values asynchronously,
-  // Plus monitor the value when it changes.
-  soundFeedbackSettings = new SoundFeedbackSettings();
-  soundFeedbackSettings.promiseManager = settingsPromiseManager;
-  soundFeedbackSettings.onsettingchange = handleKeyboardSound;
-  soundFeedbackSettings.initSettings().then(
-    handleKeyboardSound,
-    function rejected() {
-      console.warn('Failed to get initial sound settings.');
-    });
-
-  vibrationFeedbackSettings = new VibrationFeedbackSettings();
-  vibrationFeedbackSettings.promiseManager = settingsPromiseManager;
-  var vibrationInitPromise = vibrationFeedbackSettings.initSettings();
-  vibrationInitPromise.catch(function rejected() {
-    console.warn('Failed to get initial vibration settings.');
-  });
 
   imEngineSettings = new IMEngineSettings();
   imEngineSettings.promiseManager = settingsPromiseManager;
@@ -359,17 +337,6 @@ function initKeyboard() {
   // Finally, if we are only loaded by keyboard manager when the user
   // have already focused, the keyboard should show right away.
   updateCurrentLayout(layoutName);
-}
-
-function handleKeyboardSound(settings) {
-  if (settings.clickEnabled &&
-      !!settings.isSoundEnabled) {
-    clicker = new Audio(CLICK_SOUND);
-    specialClicker = new Audio(SPECIAL_SOUND);
-  } else {
-    clicker = null;
-    specialClicker = null;
-  }
 }
 
 function deactivateInputMethod() {
@@ -531,8 +498,7 @@ function updateTargetWindowHeight(hide) {
 
 // Sends a delete code to remove last character
 // The argument specifies whether this is an auto repeat or not.
-// We call triggerFeedback() for the initial press, but we
-// purposefully do not call it again for auto repeating delete.
+// Repeat does not trigger and sound/vibration feedback.
 function sendDelete(isRepeat) {
   // Pass the isRepeat argument to the input method. It may not want
   // to compute suggestions, for example, if this is just one in a series
@@ -669,8 +635,7 @@ function startPress(press, id) {
   var keyCode = getKeyCodeFromTarget(press.target);
 
   // Feedback
-  var isSpecialKey = specialCodes.indexOf(keyCode) >= 0 || keyCode < 0;
-  triggerFeedback(isSpecialKey);
+  feedbackManager.triggerFeedback(press.target);
   IMERender.highlightKey(press.target, {
     isUpperCase: isUpperCase,
     isUpperCaseLocked: isUpperCaseLocked
@@ -1190,32 +1155,6 @@ function updateLayoutParams() {
       keyWidth: IMERender.getKeyWidth(),
       keyHeight: IMERender.getKeyHeight()
     });
-  }
-}
-
-function triggerFeedback(isSpecialKey) {
-  if (vibrationFeedbackSettings.initialized) {
-    var vibrationFeedbackSettingsValues =
-      vibrationFeedbackSettings.getSettingsSync();
-    if (vibrationFeedbackSettingsValues.vibrationEnabled) {
-      try {
-        navigator.vibrate(50);
-      } catch (e) {}
-    }
-  } else {
-    console.warn(
-      'Vibration feedback needed but settings is not available yet.');
-  }
-
-  if (soundFeedbackSettings.initialized) {
-    var soundFeedbackSettingsValues = soundFeedbackSettings.getSettingsSync();
-    if (soundFeedbackSettingsValues.clickEnabled &&
-        !!soundFeedbackSettingsValues.isSoundEnabled) {
-      (isSpecialKey ? specialClicker : clicker).cloneNode(false).play();
-    }
-  } else {
-    console.warn(
-      'Sound feedback needed but settings is not available yet.');
   }
 }
 
