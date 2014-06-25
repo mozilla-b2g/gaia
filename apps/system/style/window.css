@@ -337,15 +337,15 @@
   opacity: 0.8;
 }
 
-.appWindow.homescreen.fadeout > .fade-overlay.hidden {
+.appWindow.homescreen.fadeout .fade-overlay.hidden {
   visibility: hidden;
 }
 
-.appWindow.fadeout > .fade-overlay {
+.appWindow.fadeout .fade-overlay {
   visibility: visible;
 }
 
-.appWindow.homescreen.fadeout > .fade-overlay {
+.appWindow.homescreen.fadeout .fade-overlay {
   opacity: 0.8;
 }
 
