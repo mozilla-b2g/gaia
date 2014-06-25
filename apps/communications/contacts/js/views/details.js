@@ -23,6 +23,7 @@ contacts.Details = (function() {
   var initMargin = 8;
   var DEFAULT_TEL_TYPE = 'other';
   var DEFAULT_EMAIL_TYPE = 'other';
+  var supportMms = true;
   var PHONE_TYPE_MAP = {
   'cell' : 'mobile'
   };
@@ -575,6 +576,13 @@ contacts.Details = (function() {
       var template = utils.templates.render(emailsTemplate, emailField);
 
       // Add event listeners to the phone template components
+      var sendMmsButton = template.querySelector('#send-mms-button-' + email);
+      sendMmsButton.classList.add('hide');
+      if (supportMms) {
+        sendMmsButton.classList.remove('hide');
+        sendMmsButton.dataset.email = emailField.value;
+        sendMmsButton.addEventListener('click', onSendMmsClicked);
+      }
       var emailButton = template.querySelector('#email-or-pick-' + email);
       emailButton.dataset.email = emailField.value;
       emailButton.addEventListener('click', onEmailOrPickClick);
@@ -590,6 +598,11 @@ contacts.Details = (function() {
     return false;
   };
 
+  var onSendMmsClicked = function onSendMmsClicked(evt) {
+    var email = evt.target.dataset.email;
+    Contacts.sendMms(email);
+  };
+  
   var renderAddresses = function cd_renderAddresses(contact) {
     if (!contact.adr) {
       return;
