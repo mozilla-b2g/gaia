@@ -29,6 +29,8 @@
         eme.log('drawBackground', 'skipping, reopen to refresh');
       } else if (background.src) {
         elements.content.style.backgroundImage = 'url(' + background.src + ')';
+        // Bug 1029971 - Workaround the disappearing image.
+        elements.content.style.backgroundColor = 'transparent';
       }
     }
 
