@@ -289,6 +289,21 @@ suite('Test Activities', function() {
       // Mock returns always the first option from the select
       assert.equal(result.email, contact.email[0].value);
     });
+    test('webcontacts/sms', function() {
+      activity.source.data.type = 'webcontacts/sms';
+      ActivityHandler._currentActivity = activity;
+      ActivityHandler.dataPickHandler(contact);
+      assert.isFalse(ConfirmDialog.showing);
+      assert.equal(result.number, contact.tel[0].value);
+    });
+
+    test('webcontacts/mms', function() {
+      activity.source.data.type = 'webcontacts/mms';
+      ActivityHandler._currentActivity = activity;
+      ActivityHandler.dataPickHandler(contact);
+      assert.isFalse(ConfirmDialog.showing);
+      assert.equal(result.email, contact.email[0].value);
+    });
   });
 
 });
