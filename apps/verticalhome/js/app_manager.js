@@ -1,21 +1,53 @@
 /* global ConfirmDialogHelper */
+/* global BookmarksDatabase */
+/* global CollectionsDatabase */
+
 'use strict';
 
 (function(exports) {
 
   function AppManager() {
+    var grid = document.querySelector('gaia-grid');
     var self = this;
     navigator.mozApps.getSelf().onsuccess = function(evt) {
       self.app = evt.target.result;
       window.dispatchEvent(new CustomEvent('appmanager-ready'));
     };
-    window.addEventListener('gaiagrid-uninstall-mozapp', this);
+
     window.addEventListener('gaiagrid-add-to-collection', this);
+    grid.addEventListener('removeitem', this);
   }
 
   AppManager.prototype = {
     get self() {
       return this.app;
+    },
+
+    /**
+    Handles the asyncrhonous removal of items on the grid after the DOM element
+    has been removed.
+    */
+    handleItemRemoval: function(item) {
+      function errorLogger(err) {
+        console.error('Error while trying to remove', item.name, err);
+      }
+
+      switch (item.detail.type) {
+        case 'app':
+          navigator.mozApps.mgmt.uninstall(item.app);
+          break;
+        case 'bookmark':
+          BookmarksDatabase.remove(item.identifier).catch(errorLogger);
+          break;
+        case 'collection':
+          CollectionsDatabase.remove(item.identifier).catch(errorLogger);
+          break;
+        default:
+          console.error(
+            'Cannot handle remove for item type ',
+            item.detail.type
+          );
+      }
     },
 
     /**
@@ -29,7 +61,7 @@
       };
 
       switch(e.type) {
-        case 'gaiagrid-uninstall-mozapp':
+        case 'removeitem':
           var dialog = new ConfirmDialogHelper({
             type: 'remove',
             title: _('delete-title', nameObj),
@@ -40,8 +72,12 @@
             confirm: {
               title: _('delete'),
               type: 'danger',
-              cb: function() {
-                navigator.mozApps.mgmt.uninstall(e.detail.app);
+              cb: () => {
+                // immediately remove item from the grid!
+                e.detail.removeFromGrid();
+
+                // handle the real removal asynchronously
+                this.handleItemRemoval(e.detail);
               }
             }
           });

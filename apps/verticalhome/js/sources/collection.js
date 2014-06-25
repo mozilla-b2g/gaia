@@ -159,15 +159,8 @@
     removeIconFromGrid: function(url) {
       var icons = app.grid.getIcons();
       var appObject = icons[url];
-      app.grid.removeIconByIdentifier(url);
-
-      var items = app.grid.getItems();
-      var itemIndex = items.indexOf(appObject);
-      app.grid.removeItemByIndex(itemIndex);
-      app.grid.render();
-
-      if (appObject && appObject.element) {
-        appObject.element.parentNode.removeChild(appObject.element);
+      if (appObject) {
+        appObject.removeFromGrid();
       }
     },
 

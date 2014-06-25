@@ -110,19 +110,6 @@
     },
 
     /**
-     * Opens a web activity to remove the bookmark.
-     */
-    remove: function() {
-      new MozActivity({
-        name: 'remove-bookmark',
-        data: {
-          type: 'url',
-          url: this.detail.id
-        }
-      });
-    },
-
-    /**
      * Opens a web activity to edit the bookmark.
      */
     edit: function() {
