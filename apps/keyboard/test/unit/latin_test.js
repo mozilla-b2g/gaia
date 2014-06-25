@@ -1,5 +1,7 @@
 'use strict';
 
+/* global Event, InputMethods */
+
 requireApp('keyboard/test/unit/setup_engine.js');
 requireApp('keyboard/js/imes/latin/latin.js');
 
@@ -325,6 +327,143 @@ suite('latin input method capitalization and punctuation', function() {
           assert.equal('b', output);
           next();
         });
+      });
+    });
+  });
+
+  suite('> selectionchange', function() {
+    // Create a element as an event target
+    var inputContext = document.createElement('div');
+
+    var keyboardGlue = Object.create(defaultKeyboardGlue);
+    var _windowWorker;
+    var workers = [];
+
+    function activateIME() {
+      im.activate('en', {
+        type: 'text',
+        inputmode: '',
+        value: '',
+        selectionStart: 0,
+        selectionEnd: 0,
+        inputContext: inputContext
+      },{suggest: true, correct: true});
+    }
+
+    setup(function() {
+      // reset the output state
+      reset();
+
+      inputContext.textBeforeCursor = 'before';
+      inputContext.textAfterCursor = '';
+      inputContext.selectionStart = 0;
+      inputContext.selectionEnd = 0;
+
+      _windowWorker = window.Worker;
+      var worker = window.Worker = function() {
+        //workers.push(this);
+      };
+
+      worker.prototype.postMessage = function() {};
+    });
+
+    teardown(function() {
+      window.Worker = _windowWorker;
+    });
+
+    test('should listen to selectionchange', function() {
+      im.init(keyboardGlue);
+      activateIME();
+
+      var handleEventSpy = sinon.spy(im, 'handleEvent');
+      inputContext.dispatchEvent(new Event('selectionchange'));
+
+      sinon.assert.calledOnce(handleEventSpy);
+    });
+
+    test('wll clear the suggestions if selectionchange', function() {
+      im = InputMethods.latin;
+      keyboardGlue.sendCandidates = sinon.stub();
+      im.init(keyboardGlue);
+
+      activateIME();
+
+      // change the cursor position
+      inputContext.selectionStart = 4;
+      inputContext.selectionEnd = 4;
+      inputContext.dispatchEvent(new Event('selectionchange'));
+
+      // will clear the suggestions since cursor changed
+      sinon.assert.calledTwice(keyboardGlue.sendCandidates);
+    });
+
+    test('Do nothing if selectionchange wth the same cursor', function() {
+      im = InputMethods.latin;
+      keyboardGlue.sendCandidates = sinon.stub();
+      im.init(keyboardGlue);
+
+      activateIME();
+      inputContext.dispatchEvent(new Event('selectionchange'));
+
+      // Do nothing with the same cursor
+      sinon.assert.calledOnce(keyboardGlue.sendCandidates);
+    });
+
+    test('Do nothing if there is pending selection change', function() {
+      im = InputMethods.latin;
+      keyboardGlue.sendCandidates = sinon.stub();
+      im.init(keyboardGlue);
+
+      activateIME();
+
+      im.click('t'.charCodeAt(0));
+
+      // change the cursor position
+      inputContext.selectionStart = 4;
+      inputContext.selectionEnd = 4;
+      inputContext.dispatchEvent(new Event('selectionchange'));
+
+      // Do nothing with the same cursor
+      sinon.assert.calledOnce(keyboardGlue.sendCandidates);
+    });
+
+    test('Continue to listen to selectionchange after pending', function(done) {
+      im = InputMethods.latin;
+      keyboardGlue.sendCandidates = sinon.stub();
+      im.init(keyboardGlue);
+
+      activateIME();
+
+      im.click('t'.charCodeAt(0)).then(function() {
+        inputContext.selectionStart = 4;
+        inputContext.selectionEnd = 4;
+        inputContext.dispatchEvent(new Event('selectionchange'));
+
+        sinon.assert.calledTwice(keyboardGlue.sendCandidates);
+        done();
+      });
+    });
+
+    test('Continue to skip selectionchange if there are still' +
+         ' pending actions', function(done) {
+      im = InputMethods.latin;
+      keyboardGlue.sendCandidates = sinon.stub();
+      im.init(keyboardGlue);
+
+      activateIME();
+
+      im.click('t'.charCodeAt(0)).then(function() {
+        console.log('hi hi');
+        inputContext.selectionStart = 4;
+        inputContext.selectionEnd = 4;
+
+        // send the event after the first key is resolved
+        inputContext.dispatchEvent(new Event('selectionchange'));
+      });
+
+      im.click('o'.charCodeAt(0)).then(function() {
+        sinon.assert.calledOnce(keyboardGlue.sendCandidates);
+        done();
       });
     });
   });
