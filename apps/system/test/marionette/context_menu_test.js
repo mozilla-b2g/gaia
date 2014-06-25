@@ -37,6 +37,19 @@ marionette('Test Context Menu Events', function() {
     client.switchToFrame();
     client.helper.waitForElement('[data-id=open-in-new-tab]');
     client.helper.waitForElement('[data-id=share-link]');
+
+    // Cancel the context menu
+    var cancel = client.helper.waitForElement('#ctx-cancel-button');
+    cancel.click();
+
+    // Long press on an image
+    client.apps.switchToApp(APP_URL);
+    var image = client.helper.waitForElement('#image');
+    actions.longPress(image, 1.5).perform();
+
+    client.switchToFrame();
+    client.helper.waitForElement('[data-id=share-image]');
+
   });
 
 });
