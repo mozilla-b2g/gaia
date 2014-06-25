@@ -98,6 +98,11 @@
     var height = window.layoutManager.height;
     this.containerElement.style.height = height + 'px';
     this.debug('updateHeight: new height = ' + height);
+
+    // Scroll up so as to show simpin input box
+    if (this.instanceID === 'simpin-dialog' && KeyboardManager.getHeight()) {
+      document.activeElement.scrollIntoView(false);
+    }
   };
 
   /**
