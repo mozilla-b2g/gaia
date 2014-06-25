@@ -7,7 +7,9 @@ var AppInstall =
   require('../../../../apps/system/test/marionette/lib/app_install');
 var AppInstall =
   require('../../../../apps/system/test/marionette/lib/app_install');
+
 var createAppServer = require('./server/parent');
+var iconAppState = require('./lib/icon_app_state');
 
 marionette('Vertical Home - Packaged App Pending', function() {
   var client = marionette.client(Home2.clientOptions);
@@ -37,11 +39,6 @@ marionette('Vertical Home - Packaged App Pending', function() {
     server.close(done);
   });
 
-  function hasClass(element, className) {
-    var classes = element.getAttribute('className');
-    return classes.indexOf(className) !== -1;
-  }
-
   test('app loading spinner', function() {
     // go to the system app
     client.switchToFrame();
@@ -55,13 +52,16 @@ marionette('Vertical Home - Packaged App Pending', function() {
 
     var appIcon = subject.getIcon(server.packageManifestURL);
     // wait until the icon is spinning!
-    client.waitFor(hasClass.bind(this, appIcon, 'loading'));
+    client.waitFor(function() {
+      return iconAppState(appIcon) === 'loading';
+    });
+
     // let the rest of the app come through
     server.uncork(server.applicationZipUri);
+
     // wait until it is no longer loading
     client.waitFor(function() {
-      return !hasClass(appIcon, 'loading');
+      return iconAppState(appIcon) !== 'loading';
     });
   });
-
 });

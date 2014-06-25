@@ -58,6 +58,11 @@ var emeServer = new EmeServer(process.argv[2], {
     writeJSON(res, json);
   },
 
+  '/Apps/nativeInfo': function(req, res) {
+    var json = JSON.parse(fs.readFileSync(this.root + 'apps_nativeinfo.json'));
+    writeJSON(res, json);
+  },
+
   '/Apps/search': function(req, res) {
     var json = JSON.parse(fs.readFileSync(this.root + 'apps_search.json'));
     writeJSON(res, json);

@@ -19,6 +19,7 @@
       CollectionsDatabase.addEventListener(type, this);
     }, this);
 
+    window.addEventListener('context-menu-open', this);
     window.addEventListener('collections-create-begin', this);
     window.addEventListener('collections-create-return', this);
   }
@@ -42,6 +43,11 @@
      * These are keyed by the colleciton id.
      */
     pendingCollections: {},
+
+    /**
+     * The position to insert icons at after the next activity.
+     */
+    insertPosition: null,
 
     /**
      * Synchronizes our local result set with datastre.
@@ -75,11 +81,17 @@
         case 'added':
         case 'updated':
           this.addIconToGrid(e.target);
+          app.grid.render();
           app.itemStore.save(app.grid.getItems());
           break;
         case 'removed':
           // The 'id' of a Collection is really the url.
           this.removeIconFromGrid(e.target.id);
+          // Save the layout once a collection has been removed
+          app.itemStore.save(app.grid.getItems());
+          break;
+        case 'context-menu-open':
+          this.insertPosition = e.detail.nearestIndex;
           break;
         case 'collections-create-begin':
           this.inCreateActivity = true;
@@ -128,13 +140,17 @@
       collection.setPosition(this.store.getNextPosition());
       this.entries.push(collection);
 
-      // Manually inject this book mark into the app item list for now.
-      // Remove and re-append a divider if the last item is a divider
-      var lastDivider = app.grid.removeUntilDivider();
-      app.grid.add(collection);
-      app.grid.add(lastDivider);
-
-      app.grid.render();
+      if (this.insertPosition) {
+        // If we are inserting in any index we can just call render
+        // with the index.
+        app.grid.add(collection, this.insertPosition);
+      } else {
+        // Manually inject this book mark into the app item list for now.
+        // Remove and re-append a divider if the last item is a divider
+        var lastDivider = app.grid.removeUntilDivider();
+        app.grid.add(collection);
+        app.grid.add(lastDivider);
+      }
     },
 
     /**
@@ -196,7 +212,17 @@
         delete this.pendingCollections[id];
       }
 
-      ordered.forEach(this.addIconToGrid.bind(this));
+      ordered.forEach(item => {
+        this.addIconToGrid(item);
+
+        // Increment the insertion position as we are inserting in order.
+        this.insertPosition++;
+      });
+
+      // Reset the position as we've now inserted all of our expected
+      // icons from the activity.
+      this.insertPosition = null;
+
       // It is unlikely that we will ever get here, but the if the user managed
       // to add more smart collections from somewhere else, we may have some in
       // pendingCollectionsById. Render them.
@@ -204,6 +230,8 @@
         this.addIconToGrid(this.pendingCollections[i]);
         delete this.pendingCollections[i];
       }
+
+      app.grid.render();
     }
   };
 

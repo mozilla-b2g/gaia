@@ -14,11 +14,11 @@ var ViewfinderView = require('views/viewfinder');
 var orientation = require('lib/orientation');
 var ZoomBarView = require('views/zoom-bar');
 var bindAll = require('lib/bind-all');
-var model = require('vendor/model');
 var debug = require('debug')('app');
 var HudView = require('views/hud');
 var Pinch = require('lib/pinch');
 var bind = require('lib/bind');
+var model = require('model');
 
 /**
  * Exports

@@ -5,8 +5,8 @@ require('shared/js/font_size_utils');
 
 var Tabs = require('tabs');
 var View = require('view');
-var PerformanceTestingHelper = require('shared/js/performance_testing_helper');
 var rAF = mozRequestAnimationFrame || requestAnimationFrame;
+
 /**
  * Global Application event handling and paging
  */
@@ -38,11 +38,21 @@ var App = {
         return panel;
       }.bind(this)
     );
+
+    this.dispatchPerformanceEvent('moz-chrome-dom-loaded');
+
     this.navigate({ hash: '#alarm-panel' }, function() {
       // Dispatch an event to mark when we've finished loading.
-      PerformanceTestingHelper.dispatch('startup-path-done');
-    });
+      // At this point, the navigation is usable, and the primary
+      // alarm list tab has begun loading.
+      this.dispatchPerformanceEvent('moz-chrome-interactive');
+    }.bind(this));
     return this;
+  },
+
+  // Performance testing events. See <https://bugzil.la/996038>.
+  dispatchPerformanceEvent: function(eventType) {
+    window.dispatchEvent(new CustomEvent(eventType));
   },
 
   /**
@@ -67,6 +77,16 @@ var App = {
       panel.instance = View.instance(panel.el, PanelModule);
       callback && callback(panel);
     });
+  },
+
+  alarmListLoaded: function() {
+    // Performance testing events. See <https://bugzil.la/996038>.
+    // At this point, the alarm list has been loaded, and all facets
+    // of Clock are now interactive. The other panels are lazily
+    // loaded when the user switches tabs.
+    this.dispatchPerformanceEvent('moz-app-visually-complete');
+    this.dispatchPerformanceEvent('moz-content-interactive');
+    this.dispatchPerformanceEvent('moz-app-loaded');
   },
 
   /**

@@ -374,18 +374,16 @@ Calendar.LoadConfig = (function() {
         ],
 
         js: [
+          'ext/uuid',
           'provider/local'
-        ],
-
-        shared: ['uuid']
+        ]
       },
 
       'EventMutations': {
         js: [
-          'event_mutations'
-        ],
-
-        shared: ['uuid']
+          'event_mutations',
+          'ext/uuid'
+        ]
       },
 
       'Provider.Abstract': {
@@ -396,10 +394,9 @@ Calendar.LoadConfig = (function() {
 
       'Provider.CaldavPullEvents': {
         js: [
+          'ext/uuid',
           'provider/caldav_pull_events'
-        ],
-
-        shared: ['uuid']
+        ]
       },
 
       'Provider.Caldav': {

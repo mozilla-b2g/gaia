@@ -432,6 +432,11 @@ var Compose = (function() {
       }, Compose);
 
       this.focus();
+
+      // Put the cursor at the end of the message
+      var selection = window.getSelection();
+      selection.selectAllChildren(dom.message);
+      selection.collapseToEnd();
     },
 
     /** Render message (sms or mms)

@@ -21,7 +21,7 @@ class TestEnduranceSettings(GaiaEnduranceTestCase):
                      {"menu_locator": ('id', 'menuItem-display'), "screen_locator": ('css selector', '#display.current')},
                      {"menu_locator": ('id', 'menuItem-notifications'), "screen_locator": ('xpath', '//a[@data-l10n-id="lockscreen-notifications"]')},
                      {"menu_locator": ('id', 'menuItem-dateAndTime'), "screen_locator": ('id', 'dateTime')},
-                     {"menu_locator": ('id', 'menuItem-languageAndRegion'), "screen_locator": ('css selector', '#root > header > h1')},
+                     {"menu_locator": ('css selector', 'menuItem-languageAndRegion'), "screen_locator": ('css selector', '#root > header > h1')},
                      {"menu_locator": ('id', 'menuItem-homescreen'), "screen_locator": ('xpath', '//a[@data-l10n-id="homescreen"]')},
                      {"menu_locator": ('id', 'menuItem-keyboard'), "screen_locator": ('xpath', '//a[@data-l10n-id="vibration"]')},
                      {"menu_locator": ('id', 'menuItem-screenLock'), "screen_locator": ('xpath', '//a[@data-l10n-id="lockScreen"]')},

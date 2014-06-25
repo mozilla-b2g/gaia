@@ -2,6 +2,8 @@
 /* global module */
 
 var System = require('../../../../../apps/system/test/marionette/lib/system');
+var Actions = require('marionette-client').Actions;
+var getIconId = require('./icon_id');
 
 /**
  * Abstraction around homescreen.
@@ -10,6 +12,18 @@ var System = require('../../../../../apps/system/test/marionette/lib/system');
 function Home2(client) {
   this.client = client;
   this.system = new System(client);
+
+  // For all home2 tests we disable geolocation for smart collections because
+  // there is a nasty bug where we show a prompt on desktop but not a device.
+  // This will go away once bug 1022768 lands.
+  var chromeClient = this.client.scope({ context: 'chrome' });
+  chromeClient.executeScript(function() {
+    var origin = 'app://collection.gaiamobile.org';
+    var mozPerms = navigator.mozPermissionSettings;
+    mozPerms.set(
+      'geolocation', 'deny', origin + '/manifest.webapp', origin, false
+    );
+  });
 }
 
 Home2.clientOptions = {
@@ -37,9 +51,8 @@ Home2.Selectors = {
   editHeaderDone: '#edit-header menu a',
   search: '#search',
   firstIcon: '#icons div.icon:not(.placeholder)',
-  dividers: '#icons div.divider',
-  contextmenu: '#contextmenu-dialog',
-  confirmMessageOk: '#confirmation-message-ok'
+  dividers: '#icons section.divider',
+  contextmenu: '#contextmenu-dialog'
 };
 
 /**
@@ -56,25 +69,55 @@ Home2.prototype = {
   },
 
   /**
-   * Clicks the confirm dialog primary action until it goes away.
-   * The system app may be covering it up with some annoying dialog.
-   */
-  clickConfirm: function() {
-    this.client.waitFor(function() {
-      var confirm = this.client.helper.waitForElement(
-        Home2.Selectors.confirmMessageOk);
-      confirm.click();
-      return !confirm.displayed();
-    }.bind(this));
+  Fetch a particular type of a gaia-confirm dialog.
+
+  @param {String} type of dialog.
+  */
+  getConfirmDialog: function(type) {
+    var selector = 'gaia-confirm[data-type="' + type + '"]';
+    return this.client.helper.waitForElement(selector);
   },
 
   /**
-   * Gets an icon by identifier.
+  Click confirm on a particular type of confirmation dialog.
+
+  @param {String} type of dialog.
+  */
+  confirmDialog: function(type) {
+    var dialog = this.getConfirmDialog(type);
+    var confirm = dialog.findElement('.confirm');
+
+    // XXX: Hack to use faster polling
+    var quickly = this.client.scope({ searchTimeout: 50 });
+    confirm.client = quickly;
+
+    // tricky logic to ensure the dialog has been removed and clicked
+    this.client.waitFor(function() {
+      try {
+        // click the dialog to dismiss it
+        confirm.click();
+        // ensure it is either hidden or hits the stale element ref
+        return !confirm.displayed();
+      } catch(e) {
+        if (e.type === 'StaleElementReference') {
+          // element was successfully removed
+          return true;
+        }
+        throw e;
+      }
+    });
+  },
+
+  /**
+   * Enter edit mode by long pressing the first icon on the grid.
    */
-  getIconByIdentifier: function(identifier) {
-    return this.client.helper.waitForElement(
-      '[data-identifier="' + identifier + '"]'
-    );
+  enterEditMode: function() {
+    var actions = new Actions(this.client);
+    var firstIcon =
+      this.client.helper.waitForElement(Home2.Selectors.firstIcon);
+
+    actions.longPress(firstIcon, 1).perform();
+    this.client.helper.waitForElement(Home2.Selectors.editHeaderText);
   },
 
   /**
@@ -127,14 +170,40 @@ Home2.prototype = {
   },
 
   /**
+  Restart the homescreen then refocus on it.
+  */
+  restart: function() {
+    this.client.executeScript(function() {
+      window.close();
+    });
+
+    // initialize our frames again since we killed the iframe
+    this.client.switchToFrame();
+    this.client.switchToFrame(this.system.getHomescreenIframe());
+  },
+
+  /**
+  Find and return every id for all the items on the grid... Each element
+  can be used with `.getIcon` to find the element for a given id.
+
+  @return {Array[String]}
+  */
+  getIconIdentifiers: function() {
+    return this.client.findElements('[data-identifier]').map(function(el) {
+      return getIconId(el);
+    });
+  },
+
+  /**
   Fetch an icon element on the homescreen.
 
   @param {String} manifestURL must be a fully qualified manifest url.
   @return {Marionette.Element}
   */
-  getIcon: function(manifestUrl) {
+  getIcon: function(manifestUrl, entryPoint) {
     return this.client.helper.waitForElement(
-      '[data-identifier="' + manifestUrl + '"]'
+      '[data-identifier="' + manifestUrl +
+      (entryPoint ? '-' + entryPoint : '') + '"]'
     );
   },
 
@@ -149,9 +218,15 @@ Home2.prototype = {
   /**
    * Gets a localized application name from a manifest.
    * @param {String} app to open
+   * @param {String} entryPoint to open
    * @param {String} locale
    */
-  localizedAppName: function(app, locale) {
+  localizedAppName: function(app, entryPoint, locale) {
+    if (!locale) {
+      locale = entryPoint;
+      entryPoint = null;
+    }
+
     var client = this.client.scope({context: 'chrome'});
 
     var file = 'app://' + app + '.gaiamobile.org/manifest.webapp';
@@ -166,7 +241,12 @@ Home2.prototype = {
       return data;
     }, [file]);
 
-    var locales = manifest.locales;
+    var locales;
+    if (entryPoint) {
+      locales = manifest.entry_points[entryPoint].locales;
+    } else {
+      locales = manifest.locales;
+    }
     return locales && locales[locale].name;
   },
 

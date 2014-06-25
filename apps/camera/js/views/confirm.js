@@ -6,10 +6,10 @@ define(function(require, exports, module) {
  */
 
 var addPanAndZoomHandlers = require('lib/panzoom');
-var MediaFrame = require('MediaFrame');
-var View = require('vendor/view');
-var bind = require('lib/bind');
 var orientation = require('lib/orientation');
+var MediaFrame = require('MediaFrame');
+var bind = require('lib/bind');
+var View = require('view');
 
 /**
  * Exports

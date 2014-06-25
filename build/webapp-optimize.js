@@ -104,7 +104,7 @@ function optimize_getFileContent(webapp, htmlFile, relativePath) {
     }
     file.append(name);
     if (utils.isSubjectToBranding(file.path)) {
-      file.append((config.OFFICIAL == 1) ? 'official' : 'unofficial');
+      file.append((config.OFFICIAL === '1') ? 'official' : 'unofficial');
     }
   });
 

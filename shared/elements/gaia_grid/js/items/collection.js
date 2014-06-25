@@ -5,6 +5,9 @@
 /*jshint nonew: false */
 
 (function(exports) {
+  const l10nKey = 'collection-categoryId-';
+
+  var _ = navigator.mozL10n.get;
 
   /**
    * Represents a single collection on the homepage.
@@ -23,6 +26,11 @@
       pinned: collection.pinned,
       defaultIconBlob: collection.defaultIconBlob
     };
+
+    // XXX: One listener per collection may not be ideal.
+    // Bug 1026236 l10n does not automatically handle these for us so
+    // we handle locale updates ourselves.
+    window.addEventListener('localized', this.updateTitle.bind(this));
   }
 
   Collection.prototype = {
@@ -40,11 +48,13 @@
 
     /**
      * Width in grid units for each icon.
+     * nameEl.textContent = this.name;
      */
     gridWidth: 1,
 
     get name() {
-      return this.detail.name;
+      // first attempt to use the localized name
+      return _(l10nKey + this.detail.categoryId) || this.detail.name;
     },
 
     /**
@@ -59,6 +69,15 @@
     },
 
     update: GaiaGrid.GridItem.prototype.updateFromDatastore,
+
+    render: function(coordinates, index) {
+      // Add 'collection' to the class list when the element gets created
+      var setClassName = !this.element;
+      GaiaGrid.GridItem.prototype.render.call(this, coordinates, index);
+      if (setClassName) {
+        this.element.classList.add('collection');
+      }
+    },
 
     /**
      * Collections are always editable.

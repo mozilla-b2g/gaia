@@ -316,5 +316,4 @@ suite('internet sharing > ', function() {
     });
   });
 });
-mocha.setup({ignoreLeaks: false});
 

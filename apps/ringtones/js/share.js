@@ -47,9 +47,9 @@ else {
     }
 
     handleShare(event.data, function(command, details) {
-      if (command === 'save') {
-        event.source.postMessage(details, event.origin);
-      }
+      event.source.postMessage(
+        {command: command, details: details}, event.origin
+      );
       window.close();
     });
   });

@@ -23,7 +23,7 @@ navigator.mozSetMessageHandler('activity', function(activity) {
 
     pickActivity.onsuccess = function() {
       var result = pickActivity.result;
-      var popup = window.open('share.html');
+      var popup = window.open('share.html', 'share', 'mozhaidasheet');
       popup.addEventListener('load', function loaded() {
         popup.removeEventListener('load', loaded);
         popup.postMessage(result, window.location.origin);
@@ -37,10 +37,15 @@ navigator.mozSetMessageHandler('activity', function(activity) {
           return;
         }
 
+        var data = event.data;
+        if (data.command !== 'save') {
+          return;
+        }
+
         // XXX: The child window just sends the DB key for the new ringtone and
         // we have to grab it from our instance of the DB. It'd be nice if we
         // could just listen for changes to the DB and update automatically...
-        window.customRingtones.get(event.data.toneID).then(function(tone) {
+        window.customRingtones.get(data.details.toneID).then(function(tone) {
           customRingtonesList.add(tone);
         });
       });

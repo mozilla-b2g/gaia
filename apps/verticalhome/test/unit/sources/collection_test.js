@@ -2,7 +2,7 @@
 /* global MockApp, App, MocksHelper, loadBodyHTML, CollectionSource */
 
 require('/shared/js/collections_database.js');
-
+require('/shared/js/l10n.js');
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/elements/gaia_grid/js/grid_dragdrop.js');
 require('/shared/elements/gaia_grid/js/grid_icon_renderer.js');
@@ -49,10 +49,9 @@ suite('collection.js > ', function() {
       }
     }));
 
-    // Offset divider addition (not removed by app mock)
     assert.equal(MockApp.mItems[0].detail.id, 'fxos');
-    assert.equal(MockApp.mItems[2].detail.id, 'homescreen');
-    assert.equal(MockApp.mItems[4].detail.id, 'rocks');
+    assert.equal(MockApp.mItems[1].detail.id, 'homescreen');
+    assert.equal(MockApp.mItems[2].detail.id, 'rocks');
   });
 
 });

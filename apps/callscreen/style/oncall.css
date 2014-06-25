@@ -262,19 +262,20 @@
     background-image: url('images/call_screen/actionicon_activecall_speaker_40x80.png');
   }
 
+  .icon-bt {
+    background-image: url('images/call_screen/actionicon_activecall_speaker.png');
+  }
+
   .co-advanced-option.active-state .icon.icon-mute,
-  .co-advanced-option.active-state .icon.icon-speaker  {
+  .co-advanced-option.active-state .icon.icon-speaker,
+  .co-advanced-option.active-state .icon.icon-bt  {
     background-position: 0 -4rem;
   }
 
   .co-advanced-option:active .icon.icon-mute,
-  .co-advanced-option:active .icon.icon-speaker {
-    background-position: 0 0rem;
-  }
-
-
-  .icon-bt {
-    background-image: url('images/call_screen/actionicon_activecall_speaker.png');
+  .co-advanced-option:active .icon.icon-speaker,
+  .co-advanced-option:active .icon.icon-bt {
+    background-position: 0 0;
   }
 
   #callbar {
@@ -285,12 +286,12 @@
   #callbar-hang-up {
     float: left;
     height: 6rem;
-    width: 16rem;
+    width: 50%;
   }
 
   #callbar-answer {
     height: 6rem;
-    width: 16rem;
+    width: 50%;
   }
 
   #callbar-hold {
@@ -502,7 +503,7 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    padding: 0px 0rem 2rem;
+    padding: 0 0 2rem;
     font-size: 1.6rem;
     line-height: 2rem;
     font-style: italic;

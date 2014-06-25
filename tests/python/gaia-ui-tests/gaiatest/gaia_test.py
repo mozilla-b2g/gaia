@@ -389,6 +389,11 @@ class Accessibility(object):
             'return Accessibility.isHidden.apply(Accessibility, arguments)',
             [element], special_powers=True)
 
+    def is_visible(self, element):
+        return self.marionette.execute_async_script(
+            'return Accessibility.isVisible.apply(Accessibility, arguments)',
+            [element], special_powers=True)
+
     def is_disabled(self, element):
         return self.marionette.execute_async_script(
             'return Accessibility.isDisabled.apply(Accessibility, arguments)',
@@ -398,6 +403,10 @@ class Accessibility(object):
         self.marionette.execute_async_script(
             'Accessibility.click.apply(Accessibility, arguments)',
             [element], special_powers=True)
+
+    def wheel(self, element, direction):
+        self.marionette.execute_script('Accessibility.wheel.apply(Accessibility, arguments)', [
+            element, direction])
 
     def get_name(self, element):
         return self.marionette.execute_async_script(
@@ -564,11 +573,11 @@ class GaiaDevice(object):
 
     def touch_home_button(self):
         apps = GaiaApps(self.marionette)
-        if apps.displayed_app.name.lower() != 'vertical':
+        if apps.displayed_app.name.lower() != 'homescreen':
             # touching home button will return to homescreen
             self._dispatch_home_button_event()
             Wait(self.marionette).until(
-                lambda m: apps.displayed_app.name.lower() == 'vertical')
+                lambda m: apps.displayed_app.name.lower() == 'homescreen')
             apps.switch_to_displayed_app()
         else:
             apps.switch_to_displayed_app()

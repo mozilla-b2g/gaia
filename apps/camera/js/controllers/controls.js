@@ -43,7 +43,7 @@ function ControlsController(app) {
  * @private
  */
 ControlsController.prototype.bindEvents = function() {
-  this.app.settings.mode.on('change:selected', this.view.setter('mode'));
+  this.app.settings.mode.on('change:selected', this.view.setMode);
   this.app.settings.mode.on('change:options', this.configureMode);
 
   // App
@@ -56,8 +56,8 @@ ControlsController.prototype.bindEvents = function() {
   this.app.on('camera:ready', this.restore);
 
   // View
+  this.view.on('modechanged', this.onViewModeChanged);
   this.view.on('click:thumbnail', this.app.firer('preview'));
-  this.view.on('click:switch', this.onSwitchButtonClick);
   this.view.on('click:cancel', this.onCancelButtonClick);
   this.view.on('click:capture', this.onCaptureClick);
 
@@ -77,7 +77,7 @@ ControlsController.prototype.configure = function() {
   // be shown if an activity is pending
   // or the application is in 'secure mode'.
   this.view.set('cancel', isCancellable);
-  this.view.set('mode', initialMode);
+  this.view.setMode(initialMode);
 
   // Disable view until camera
   // 'ready' enables it.
@@ -208,9 +208,12 @@ ControlsController.prototype.captureHighlightOff = function() {
  *
  * @private
  */
-ControlsController.prototype.onSwitchButtonClick = function() {
+ControlsController.prototype.onViewModeChanged = function(mode) {
+  debug('view mode changed mode: %s', mode);
+  var setting = this.app.settings.mode;
   this.view.disable();
-  this.app.settings.mode.next();
+  if (mode) { setting.select(mode); }
+  else { setting.next(); }
 };
 
 

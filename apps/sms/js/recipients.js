@@ -1,4 +1,4 @@
-/*global GestureDetector, Dialog, Navigation */
+/*global GestureDetector, Dialog, Navigation, SharedComponents */
 
 (function(exports) {
   'use strict';
@@ -25,7 +25,6 @@
     this.editable = opts.editable || 'true';
     this.source = opts.source || 'manual';
     this.type = opts.type || '';
-    this.separator = opts.separator || '';
     this.carrier = opts.carrier || '';
     this.className = 'recipient';
 
@@ -101,8 +100,7 @@
 
   Recipient.FIELDS = [
     'name', 'number', 'email', 'editable', 'source',
-    'type', 'separator', 'carrier',
-    'isQuestionable', 'isInvalid', 'isLookupable'
+    'type', 'carrier', 'isQuestionable', 'isInvalid', 'isLookupable'
   ];
 
   /**
@@ -1049,20 +1047,15 @@
       };
 
       // build fragment for dialog body
-      var dialogBody = document.createDocumentFragment();
-      if (recipient.type) {
-        var typeElement = document.createElement('span');
-        if (!navigator.mozL10n.get(recipient.type)) {
-          typeElement.textContent = recipient.type;
-        } else {
-          navigator.mozL10n.localize(typeElement, recipient.type);
-        }
-        dialogBody.appendChild(typeElement);
-      }
+      var dialogBody = document.createElement('div');
 
-      dialogBody.appendChild(document.createTextNode(
-        recipient.separator + recipient.carrier + recipient.number
-      ));
+      dialogBody.innerHTML = SharedComponents.phoneDetails({
+        number: recipient.number,
+        type: recipient.type,
+        carrier: recipient.carrier
+      });
+
+      navigator.mozL10n.translate(dialogBody);
 
       // Dialog will have a closure reference to the response
       // object, therefore it's not necessary to pass it around
@@ -1073,7 +1066,7 @@
             value: recipient.name || recipient.number
           },
           body: {
-            value: dialogBody
+            value: dialogBody.firstElementChild
           },
           options: {
             cancel: {

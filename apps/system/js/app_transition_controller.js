@@ -62,6 +62,7 @@
       this.app.element.addEventListener('_closed', this);
       this.app.element.addEventListener('_opentransitionstart', this);
       this.app.element.addEventListener('_closetransitionstart', this);
+      this.app.element.addEventListener('_loaded', this);
       this.app.element.addEventListener('_openingtimeout', this);
       this.app.element.addEventListener('_closingtimeout', this);
       this.app.element.addEventListener('animationend', this);
@@ -78,6 +79,7 @@
     this.app.element.removeEventListener('_closed', this);
     this.app.element.removeEventListener('_opentransitionstart', this);
     this.app.element.removeEventListener('_closetransitionstart', this);
+    this.app.element.removeEventListener('_loaded', this);
     this.app.element.removeEventListener('_openingtimeout', this);
     this.app.element.removeEventListener('_closingtimeout', this);
     this.app.element.removeEventListener('animationend', this);
@@ -85,6 +87,7 @@
   };
 
   AppTransitionController.prototype._transitionState = 'closed';
+  AppTransitionController.prototype._waitingForLoad = false;
   AppTransitionController.prototype.openAnimation = 'enlarge';
   AppTransitionController.prototype.closeAnimation = 'reduce';
   AppTransitionController.prototype.OPENING_TRANSITION_TIMEOUT = 350;
@@ -166,6 +169,7 @@
       }.bind(this),
       System.slowTransition ? this.SLOW_TRANSITION_TIMEOUT :
                               this.OPENING_TRANSITION_TIMEOUT);
+      this._waitingForLoad = false;
       this.app.element.classList.add('transition-opening');
       this.app.element.classList.add(this.getAnimationName('open'));
       this.app.debug(this.app.element.classList);
@@ -247,20 +251,7 @@
       // TODO:
       // May have orientation manager to deal with lock orientation request.
       this.app.setOrientation();
-
-      // Focus will impact loadtime so we have to wait it's loaded.
-      if (!this.app.loaded) {
-        this.app.debug('not loaded so wait for loaded', this.app.loaded);
-        if (!this.loadedHandler) {
-          this.loadedHandler = function() {
-            this.app.element.removeEventListener('_loaded', this.loadedHandler);
-            this.focusApp();
-          }.bind(this);
-          this.app.element.addEventListener('_loaded', this.loadedHandler);
-        }
-      } else {
-        this.focusApp();
-      }
+      this.focusApp();
     };
 
   AppTransitionController.prototype.focusApp = function() {
@@ -349,11 +340,18 @@
         case '_openingtimeout':
           this.changeTransitionState('timeout', evt.type);
           break;
+        case '_loaded':
+          if (this._waitingForLoad) {
+            this._waitingForLoad = false;
+            this.changeTransitionState('complete');
+          }
+          break;
         case 'animationend':
           evt.stopPropagation();
           // We decide to drop this event if system is busy loading
           // the active app or doing some other more important task.
           if (System.isBusyLoading()) {
+            this._waitingForLoad = true;
             if (this.app.isHomescreen && this._transitionState == 'opening') {
               /**
                * focusing the app will have some side effect,

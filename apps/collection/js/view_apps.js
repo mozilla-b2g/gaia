@@ -1,4 +1,5 @@
 'use strict';
+/* global CollectionIcon */
 /* global eme */
 /* global NativeInfo */
 
@@ -18,8 +19,18 @@
 
     loading();
 
+    // XXX: Override the grid render method default options
+    var defaultGridRender = grid._grid.render;
+    grid._grid.render = function(options) {
+      options = options || {};
+      options.skipDivider = true;
+      defaultGridRender.call(grid._grid, options);
+    };
+
     // render pinned apps first
     collection.render(grid);
+
+    CollectionIcon.init(grid.maxIconSize);
 
     // refresh since pinned apps might have been updated
     eme.init()

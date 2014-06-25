@@ -29,8 +29,7 @@ Keyboards.es = {
     ], [
       { value: 'a' }, { value: 's' }, { value: 'd' }, { value: 'f' },
       { value: 'g' } , { value: 'h' }, { value: 'j' }, { value: 'k' },
-      { value: 'l' }, { value: 'ñ', hidden: ['email', 'url'] },
-      { value: ':', visible: ['url'] }, { value: '_', visible: ['email'] }
+      { value: 'l' }, { value: 'ñ' }
     ], [
       { value: '⇪', ratio: 1.5, keyCode: KeyEvent.DOM_VK_CAPS_LOCK },
       { value: 'z' }, { value: 'x' }, { value: 'c' }, { value: 'v' },

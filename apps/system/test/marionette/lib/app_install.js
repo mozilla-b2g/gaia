@@ -93,6 +93,34 @@ AppInstall.prototype = {
   },
 
   /**
+  Updates an installed app by it's manifest url.
+
+  @param {String} manifestURL for the application.
+  */
+  update: function(manifestURL) {
+    // do it in chrome so we don't need to switch contexts...
+    var client = this.client.scope({ context: 'chrome' });
+    return client.executeAsyncScript(function(manifestURL) {
+      navigator.mozApps.mgmt.getAll().onsuccess = function(e) {
+        var list = e.target.result;
+        var app = list.find(function(app) {
+          return app.manifestURL === manifestURL;
+        });
+
+        var req = app.checkForUpdate();
+        req.onsuccess = function() {
+          app.download();
+          marionetteScriptFinished();
+        };
+
+        req.onerror = function() {
+          marionetteScriptFinished();
+        };
+      };
+    }, [manifestURL]);
+  },
+
+  /**
    * Wait for the specified dialog to show up.
    * @param {Marionette.Element} element The dialog element to wait for.
    */

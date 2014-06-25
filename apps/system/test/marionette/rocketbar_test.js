@@ -55,7 +55,11 @@ marionette('Rocketbar', function() {
     });
   });
 
-  test('show results on submit', function() {
+  // Skip test as it conflicts with master behaviour.
+  // We no longer have web results to display, and can't go to the browser
+  // because that will no longer be opened with a MozActivity in 2.1.
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=1009855
+  test.skip('show results on submit', function() {
     rocketbar.waitForLoad();
     rocketbar.focus();
     rocketbar.enterText('\uE006');

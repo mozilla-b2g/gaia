@@ -21,7 +21,6 @@ const Wallpaper = (function() {
 
       a.onsuccess = function onWallpaperSuccess() {
         var blob = a.result.blob;
-        var color = a.result.color;
 
         if (!blob)
           return;
@@ -38,8 +37,7 @@ const Wallpaper = (function() {
 
         function setWallpaper(blob) {
           navigator.mozSettings.createLock().set({
-            'wallpaper.image': blob,
-            'wallpaper.color': color
+            'wallpaper.image': blob
           });
         }
       };

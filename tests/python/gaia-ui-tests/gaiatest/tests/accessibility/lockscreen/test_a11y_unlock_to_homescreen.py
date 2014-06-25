@@ -19,7 +19,7 @@ class TestLockScreenAccessibility(GaiaTestCase):
         lockScreen_window = self.marionette.find_element(*lock_screen._lockscreen_window_locator)
         homescreen_container = self.marionette.find_element(By.ID, 'homescreen')
 
-        self.wait_for_condition(lambda m: not self.accessibility.is_hidden(lockScreen_window))
+        self.wait_for_condition(lambda m: self.accessibility.is_visible(lockScreen_window))
         self.wait_for_condition(lambda m: self.accessibility.is_hidden(homescreen_container))
 
         homescreen = lock_screen.a11y_click_unlock_button()
@@ -27,4 +27,4 @@ class TestLockScreenAccessibility(GaiaTestCase):
         self.assertEquals(self.apps.displayed_app.name, homescreen.name)
 
         self.assertTrue(self.accessibility.is_hidden(lockScreen_window))
-        self.assertFalse(self.accessibility.is_hidden(homescreen_container))
+        self.assertTrue(self.accessibility.is_visible(homescreen_container))

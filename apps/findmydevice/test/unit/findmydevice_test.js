@@ -10,13 +10,15 @@
 require('/shared/test/unit/mocks/mocks_helper.js');
 require('/shared/test/unit/mocks/mock_settings_url.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
+require('/shared/test/unit/mocks/mock_settings_helper.js');
 require('/shared/test/unit/mocks/mock_audio.js');
 require('/shared/test/unit/mocks/mock_device_storage.js');
 require('/shared/test/unit/mocks/mock_geolocation.js');
 require('/shared/test/unit/mocks/mock_permission_settings.js');
 
 var mocksForFindMyDevice = new MocksHelper([
-  'SettingsListener', 'SettingsURL', 'Audio', 'DeviceStorage', 'Geolocation'
+  'SettingsListener', 'SettingsURL', 'SettingsHelper', 'Audio',
+  'DeviceStorage', 'Geolocation'
 ]).init();
 
 suite('FindMyDevice >', function() {
@@ -80,7 +82,7 @@ suite('FindMyDevice >', function() {
   test('Lock command', function(done) {
     var code = '1234', message = 'locked!';
 
-    subject.lock(message, code, function(retval) {
+    subject.invokeCommand('lock', [message, code, function(retval) {
       assert.equal(retval, true);
 
       var lock = MockSettingsListener.getSettingsLock().locks.pop();
@@ -94,7 +96,7 @@ suite('FindMyDevice >', function() {
       }, lock, 'check that the correct settings were set');
 
       done();
-    });
+    }]);
 
     fakeClock.tick();
   });
@@ -105,7 +107,7 @@ suite('FindMyDevice >', function() {
 
     MockSettingsListener.mCallbacks['dialer.ringtone'](ringtone);
 
-    subject.ring(duration, function(retval) {
+    subject.invokeCommand('ring', [duration, function(retval) {
       var lock = MockSettingsListener.getSettingsLock().locks.pop();
 
       var ringer = subject._ringer;
@@ -121,7 +123,7 @@ suite('FindMyDevice >', function() {
       }, duration * 1000);
 
       fakeClock.tick(duration * 1000);
-    });
+    }]);
 
     fakeClock.tick();
   });
@@ -138,7 +140,7 @@ suite('FindMyDevice >', function() {
       return mockGetDeviceStorage(storage);
     };
 
-    subject.erase(function(retval, error) {
+    subject.invokeCommand('erase', [function(retval, error) {
       var instances = MockDeviceStorage.instances;
       for (var i = 0; i < instances.length; i++) {
         // check that we deleted everything on the device storage
@@ -148,7 +150,7 @@ suite('FindMyDevice >', function() {
       assert.equal(navigator.mozPower.factoryResetCalled, true);
       navigator.getDeviceStorage = mockGetDeviceStorage;
       done();
-    });
+    }]);
 
     fakeClock.tick();
   });
@@ -161,12 +163,12 @@ suite('FindMyDevice >', function() {
       return null;
     };
 
-    subject.erase(function(retval, error) {
+    subject.invokeCommand('erase', [function(retval, error) {
       assert.deepEqual(MockDeviceStorage.instances, []);
       assert.equal(navigator.mozPower.factoryResetCalled, true);
       navigator.getDeviceStorage = mockGetDeviceStorage;
       done();
-    });
+    }]);
 
     fakeClock.tick();
   });
@@ -176,7 +178,7 @@ suite('FindMyDevice >', function() {
     MockPermissionSettings.permissions.geolocation = 'deny';
 
     var times = 0;
-    subject.track(30, function(retval, position) {
+    subject.invokeCommand('track', [30, function(retval, position) {
       assert.equal(retval, true);
       assert.equal(MockPermissionSettings.permissions.geolocation, 'allow');
       assert.equal(position.coords.latitude, MockGeolocation.latitude);
@@ -184,15 +186,15 @@ suite('FindMyDevice >', function() {
 
       if (times++ === 3) {
         // stop tracking after a few positions
-        subject.track(0, function(retval) {
+        subject.invokeCommand('track', [0, function(retval) {
           assert.equal(retval, true);
           assert.deepEqual(MockGeolocation.activeWatches, []);
           done();
-        });
+        }]);
       }
 
       fakeClock.tick(subject.TRACK_UPDATE_INTERVAL_MS);
-    });
+    }]);
 
     fakeClock.tick(subject.TRACK_UPDATE_INTERVAL_MS);
   });
@@ -219,6 +221,19 @@ suite('FindMyDevice >', function() {
     assert.equal(false, subject.deviceHasPasscode());
   });
 
+  test('List of accepted commands', function() {
+    MockSettingsListener.mTriggerCallback('geolocation.enabled', true);
+
+    var allCommands = ['track', 'erase', 'ring', 'lock'];
+    var enabledCommands = subject.getEnabledCommands();
+    assert.deepEqual(enabledCommands.sort(), allCommands.sort());
+
+    // track should be disabled when geolocation is disabled
+    MockSettingsListener.mTriggerCallback('geolocation.enabled', false);
+    allCommands = ['erase', 'ring', 'lock'];
+    enabledCommands = subject.getEnabledCommands();
+    assert.deepEqual(enabledCommands.sort(), allCommands.sort());
+  });
 
   teardown(function() {
     navigator.mozL10n = realL10n;

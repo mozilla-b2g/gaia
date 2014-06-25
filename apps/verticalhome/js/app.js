@@ -72,6 +72,8 @@
 
         window.addEventListener('localized', this.onLocalized.bind(this));
       }.bind(this));
+
+      this.grid.setEditHeaderElement(document.getElementById('edit-header'));
     },
 
     start: function() {

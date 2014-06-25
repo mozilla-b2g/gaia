@@ -148,11 +148,6 @@ suite('system/Updatable', function() {
 
   suite('infos', function() {
     suite('name', function() {
-      test('should give a name for system updates', function() {
-        subject = new SystemUpdatable(42);
-        assert.equal('systemUpdate', subject.name);
-      });
-
       test('should give a name for app updates', function() {
         assert.equal('Mock app', subject.name);
       });

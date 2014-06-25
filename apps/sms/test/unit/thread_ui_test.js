@@ -24,6 +24,7 @@ require('/js/drafts.js');
 require('/js/threads.js');
 require('/js/thread_ui.js');
 require('/js/thread_list_ui.js');
+require('/js/shared_components.js');
 require('/js/utils.js');
 
 require('/test/unit/mock_time_headers.js');
@@ -1614,12 +1615,6 @@ suite('thread_ui.js >', function() {
         setup(function() {
           this.sinon.spy(ThreadUI, 'searchContact');
           this.sinon.spy(ThreadUI, 'exactContact');
-
-          // Override generic mozL10n.get for this test
-          var l10nStub = this.sinon.stub(navigator.mozL10n, 'get');
-          l10nStub.withArgs('thread-separator').returns(' | ');
-          l10nStub.withArgs('carrier-separator').returns(', ');
-          l10nStub.returnsArg(0);
         });
 
         test('Triggers assimilation & silent search ', function() {
@@ -1661,11 +1656,8 @@ suite('thread_ui.js >', function() {
               name: 'Jane Doozer',
               number: '+346578888888',
               type: 'Mobile',
-              carrier: 'TEF, ',
-              separator: ' | ',
-              source: 'contacts',
-              nameHTML: '',
-              numberHTML: ''
+              carrier: 'TEF',
+              source: 'contacts'
             })
           );
         });
@@ -1722,11 +1714,8 @@ suite('thread_ui.js >', function() {
               name: 'Jane Doozer',
               number: '+346578888888',
               type: 'Mobile',
-              carrier: 'TEF, ',
-              separator: ' | ',
-              source: 'contacts',
-              nameHTML: '',
-              numberHTML: ''
+              carrier: 'TEF',
+              source: 'contacts'
             })
           );
         });
@@ -3493,13 +3482,12 @@ suite('thread_ui.js >', function() {
   });
 
   suite('updateCarrier', function() {
-    var contacts = [], details, number;
+    var contacts = [], number;
     var carrierTag;
 
     suiteSetup(function() {
       contacts.push(new MockContact());
       number = contacts[0].tel[0].value;
-      details = Utils.getContactDetails(number, contacts);
     });
 
     setup(function() {
@@ -3515,7 +3503,7 @@ suite('thread_ui.js >', function() {
         participants: [number, '123123']
       };
 
-      ThreadUI.updateCarrier(thread, contacts, details);
+      ThreadUI.updateCarrier(thread, contacts);
       assert.isFalse(threadMessages.classList.contains('has-carrier'));
     });
 
@@ -3529,16 +3517,16 @@ suite('thread_ui.js >', function() {
       });
 
       test(' And contacts available', function() {
-        ThreadUI.updateCarrier(thread, contacts, details);
+        ThreadUI.updateCarrier(thread, contacts);
         assert.isTrue(threadMessages.classList.contains('has-carrier'));
       });
 
       test(' And no contacts and any phone details available', function() {
-        ThreadUI.updateCarrier(thread, [], details);
+        ThreadUI.updateCarrier(thread, []);
 
         assert.isFalse(threadMessages.classList.contains('has-carrier'));
-        assert.isFalse(carrierTag.classList.contains('has-phone-type'));
-        assert.isFalse(carrierTag.classList.contains('has-phone-details'));
+        assert.isNull(carrierTag.querySelector('.has-phone-type'));
+        assert.isNull(carrierTag.querySelector('.has-phone-carrier'));
       });
 
       test(' And only phone type is available', function() {
@@ -3547,28 +3535,29 @@ suite('thread_ui.js >', function() {
             value: number,
             type: 'type'
           }]
-        }], {});
+        }]);
 
-        assert.isTrue(carrierTag.classList.contains('has-phone-type'));
-        assert.isFalse(carrierTag.classList.contains('has-phone-details'));
+        assert.ok(carrierTag.querySelector('.has-phone-type'));
+        assert.isNull(carrierTag.querySelector('.has-phone-carrier'));
       });
 
-      test(' And only phone details are available', function() {
+      test(' And only phone carrier is available', function() {
         ThreadUI.updateCarrier(thread, [{
           tel: [{
-            value: number
+            value: number,
+            carrier: 'T-Mobile'
           }]
-        }], details);
+        }]);
 
-        assert.isFalse(carrierTag.classList.contains('has-phone-type'));
-        assert.isTrue(carrierTag.classList.contains('has-phone-details'));
+        assert.isNull(carrierTag.querySelector('.has-phone-type'));
+        assert.ok(carrierTag.querySelector('.has-phone-carrier'));
       });
 
-      test(' And phone type and details are available', function() {
-        ThreadUI.updateCarrier(thread, contacts, details);
+      test(' And phone type and carrier are available', function() {
+        ThreadUI.updateCarrier(thread, contacts);
 
-        assert.isTrue(carrierTag.classList.contains('has-phone-type'));
-        assert.isTrue(carrierTag.classList.contains('has-phone-details'));
+        assert.ok(carrierTag.querySelector('.has-phone-type'));
+        assert.ok(carrierTag.querySelector('.has-phone-carrier'));
       });
     });
   });
@@ -4170,7 +4159,7 @@ suite('thread_ui.js >', function() {
     });
 
     // See: utils_test.js
-    // Utils.getCarrierTag
+    // Utils.getPhoneDetails
     //
     suite('Single participant', function() {
 
@@ -4186,7 +4175,7 @@ suite('thread_ui.js >', function() {
         });
 
         test('Carrier Tag (non empty string)', function(done) {
-          this.sinon.stub(MockUtils, 'getCarrierTag', function() {
+          this.sinon.stub(MockUtils, 'getPhoneDetails', function() {
             return 'non empty string';
           });
 
@@ -4203,7 +4192,7 @@ suite('thread_ui.js >', function() {
         });
 
         test('Carrier Tag (empty string)', function(done) {
-          this.sinon.stub(MockUtils, 'getCarrierTag', function() {
+          this.sinon.stub(MockUtils, 'getPhoneDetails', function() {
             return '';
           });
 
@@ -5729,13 +5718,12 @@ suite('thread_ui.js >', function() {
     function() {
       var contact = new MockContact(),
           number = contact.tel[0].value,
-          contactDetails = Utils.getContactDetails(number, [contact]),
           thread = {
             participants: [number]
           };
       Navigation.isCurrentPanel.withArgs('thread-list').returns(true);
 
-      ThreadUI.updateCarrier(thread, [contact], contactDetails);
+      ThreadUI.updateCarrier(thread, [contact]);
       assert.isTrue(threadMessages.classList.contains('has-carrier'));
 
       ThreadUI.afterLeave();

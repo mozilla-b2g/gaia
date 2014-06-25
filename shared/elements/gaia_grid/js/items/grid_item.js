@@ -129,6 +129,13 @@
     },
 
     /**
+     * Returns true if this item is draggable.
+     */
+    isDraggable: function() {
+      return true;
+    },
+
+    /**
      * Returns true if the icon is hosted at an origin.
      */
     isIconFromOrigin: function() {
@@ -187,9 +194,10 @@
      */
     _displayDecoratedIcon: function(blob) {
       this.element.style.height = this.grid.layout.gridItemHeight + 'px';
+      // icon size + padding for shadows implemented in the icon renderer
       this.element.style.backgroundSize =
         ((this.grid.layout.gridIconSize * (1 / this.scale)) +
-        this.rendererInstance.unscaledCanvasPadding) +'px';
+        this.rendererInstance.unscaledCanvasPadding) + 'px';
       this.element.style.backgroundImage =
         'url(' + URL.createObjectURL(blob) + ')';
     },
@@ -308,13 +316,15 @@
         var tile = document.createElement('div');
         tile.className = 'icon';
         tile.dataset.identifier = this.identifier;
+        tile.dataset.isDraggable = this.isDraggable();
         tile.setAttribute('role', 'link');
 
         // This <p> has been added in order to place the title with respect
         // to this container via CSS without touching JS.
         var nameContainerEl = document.createElement('p');
-        nameContainerEl.style.marginTop = (this.grid.layout.gridIconSize *
-                                          (1 / this.scale)) + 'px';
+        nameContainerEl.style.marginTop = ((this.grid.layout.gridIconSize *
+          (1 / this.scale)) +
+          GridIconRenderer.prototype.unscaledCanvasPadding) + 'px';
         tile.appendChild(nameContainerEl);
 
         var nameEl = document.createElement('span');
@@ -351,10 +361,23 @@
     /**
      * Positions and scales an icon.
      */
-    transform: function(x, y, scale) {
+    transform: function(x, y, scale, element) {
       scale = scale || 1;
-      this.element.style.transform =
+      element = element || this.element;
+      element.style.transform =
         'translate(' + x + 'px,' + y + 'px) scale(' + scale + ')';
+    },
+
+    /**
+    Updates the title of the icon on the grid.
+    */
+    updateTitle: function() {
+      // it is remotely possible that we have not .rendered yet
+      if (!this.element) {
+        return;
+      }
+      var nameEl = this.element.querySelector('.title');
+      nameEl.textContent = this.name;
     },
 
     /**
@@ -367,11 +390,11 @@
       var nameChanged = record.name !== this.name;
 
       var type = this.detail.type;
+      var lastIcon = this.icon;
       record.type = type;
       this.detail = record;
-      var nameEl = this.element.querySelector('.title');
-      if (nameEl && nameChanged) {
-        nameEl.textContent = this.name;
+      if (nameChanged) {
+        this.updateTitle();
 
         // Bug 1007743 - Workaround for projected content nodes disappearing
         document.body.clientTop;
@@ -380,8 +403,10 @@
         this.element.style.display = '';
       }
 
-      if (iconChanged) {
+      if (iconChanged && record.icon) {
         this.renderIcon();
+      } else if (!record.icon) {
+        this.detail.icon = lastIcon;
       }
     }
   };

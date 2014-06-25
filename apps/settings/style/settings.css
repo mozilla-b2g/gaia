@@ -540,6 +540,15 @@ ul li > label.range-icons.volume input {
 }
 
 /******************************************************************************
+ * Accessibility
+ */
+#accessibility ul li > label.range-icons.volume input {
+  opacity: 1;
+  margin: 0px auto;
+  width: calc(100% - 3rem);
+}
+
+/******************************************************************************
  * SIM Toolkit
  */
 

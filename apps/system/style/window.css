@@ -13,7 +13,6 @@
   background-position: center center;
 
   transform: translateX(0);
-  will-change: transform, opacity;
 }
 
 .appWindow > .appWindow {
@@ -647,6 +646,7 @@
   /* in the viewport but not really */
   transform: translateX(-99.9999%);
   opacity: 1;
+  will-change: transform, opacity;
 }
 
 #screen:-moz-full-screen-ancestor > #windows .appWindow.active {

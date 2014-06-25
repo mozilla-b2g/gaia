@@ -793,8 +793,11 @@ suite('system/Rocketbar', function() {
         input: 'http://example.com'
       }
     };
+    var spy = sinon.spy(subject, 'focus');
     subject.handleSearchMessage(event);
     assert.equal(subject.input.value, 'http://example.com');
+    assert.isTrue(spy.called);
+    spy.restore();
 
     // Hide message
     event = {
@@ -852,6 +855,15 @@ suite('system/Rocketbar', function() {
     subject.hideResults();
     setVisibleStub.calledWith(false);
     setVisibleStub.restore();
+  });
+
+  test('focus after geolocation hidden', function() {
+    var focusStub = this.sinon.stub(subject, 'focus');
+    subject.activate();
+    subject.active = true;
+    subject.handleEvent({type: 'permissiondialoghide'});
+    assert.ok(focusStub.calledOnce);
+    focusStub.restore();
   });
 });
 

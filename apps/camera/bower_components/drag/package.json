@@ -1,0 +1,22 @@
+{
+  "name": "drag",
+  "version": "0.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "gaia-test-unit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gaia-components/drag.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/gaia-components/drag/issues"
+  },
+  "homepage": "https://github.com/gaia-components/drag",
+  "dependencies": {
+    "gaia-test": "git://github.com/gaia-components/gaia-test"
+  }
+}

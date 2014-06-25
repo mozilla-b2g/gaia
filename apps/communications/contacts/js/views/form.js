@@ -494,6 +494,9 @@ contacts.Form = (function() {
         dateInput.valueAsDate = currField.value;
         renderDate(currField.value, dateInputText);
       }
+      else {
+        dateInputText.textContent = _('date-span-placeholder');
+      }
 
       dateInput.addEventListener('input',
         onInputDate.bind(null, dateInputText));

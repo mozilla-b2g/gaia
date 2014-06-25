@@ -19,7 +19,7 @@ function isNode() {
 }
 
 function isSubjectToBranding(path) {
-  return /shared[\/\\][a-zA-Z]+[\/\\]branding$/.test(path) ||
+  return /shared[\/\\]?[a-zA-Z]*[\/\\]?branding$/.test(path) ||
          /branding[\/\\]initlogo.png/.test(path);
 }
 

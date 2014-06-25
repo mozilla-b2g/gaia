@@ -6,7 +6,7 @@ define(function(require, exports, module) {
  */
 
 var debug = require('debug')('setting');
-var model = require('vendor/model');
+var model = require('model');
 
 /**
  * Exports

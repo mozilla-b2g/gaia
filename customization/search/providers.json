@@ -1,11 +1,5 @@
 [
   {
-    "title": "EverythingMe",
-    "urlTemplate": "everything.me",
-    "suggestionsUrlTemplate": "everything.me",
-    "iconUrl": "everythingme.ico"
-  },
-  {
     "title": "Google",
     "urlTemplate": "https://www.google.com/search?q={searchTerms}",
     "suggestionsUrlTemplate": "https://www.google.com/complete/search?client=firefox&q={searchTerms}",

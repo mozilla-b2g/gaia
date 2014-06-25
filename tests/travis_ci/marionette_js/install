@@ -5,6 +5,3 @@ make b2g
 
 # Install virtualenv and radicale on Travis.
 make caldav-server-install
-
-echo "Building test profile"
-PROFILE_FOLDER=profile-test make

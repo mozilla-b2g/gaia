@@ -148,7 +148,7 @@ WebappShared.prototype.pushResource = function(path) {
   path.split('/').forEach(function(segment) {
     file.append(segment);
     if (utils.isSubjectToBranding(file.path)) {
-      file.append((this.config.OFFICIAL == 1) ? 'official' : 'unofficial');
+      file.append((this.config.OFFICIAL === '1') ? 'official' : 'unofficial');
     }
   }.bind(this));
 

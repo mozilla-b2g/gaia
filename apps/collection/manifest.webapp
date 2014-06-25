@@ -70,6 +70,27 @@
         "manifestURLs": ["app://ftu.gaiamobile.org/manifest.webapp"]
       },
       "handler_path": "/setup.html"
+    },
+    "install": {
+      "description": "It populates collections with the new app",
+      "rules": {
+        "manifestURLs": ["app://verticalhome.gaiamobile.org/manifest.webapp"]
+      },
+      "handler_path": "/synchronize.html"
+    },
+    "uninstall": {
+      "description": "It deletes the app from collections",
+      "rules": {
+        "manifestURLs": ["app://verticalhome.gaiamobile.org/manifest.webapp"]
+      },
+      "handler_path": "/synchronize.html"
+    },
+    "add-to-collection": {
+      "description": "Pin an application in a collection",
+      "rules": {
+        "manifestURLs": ["app://verticalhome.gaiamobile.org/manifest.webapp"]
+      },
+      "handler_path": "/add_to_collection.html"
     }
   }
 }

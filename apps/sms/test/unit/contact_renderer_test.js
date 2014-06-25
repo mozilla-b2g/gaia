@@ -1,8 +1,9 @@
 /*global ContactRenderer, loadBodyHTML, MockContact, MockL10n, MocksHelper,
-         Utils, Template, MockContactPhotoHelper */
+         Utils, Template, MockContactPhotoHelper, SharedComponents */
 
 'use strict';
 
+require('/js/shared_components.js');
 require('/js/utils.js');
 require('/test/unit/mock_utils.js');
 
@@ -58,12 +59,6 @@ suite('ContactRenderer', function() {
   setup(function() {
     loadBodyHTML('/index.html');
 
-    // Override generic mozL10n.get for this test
-    var l10nStub = this.sinon.stub(navigator.mozL10n, 'get');
-    l10nStub.withArgs('thread-separator').returns(' | ');
-    l10nStub.withArgs('carrier-separator').returns(', ');
-    l10nStub.returnsArg(0);
-
     this.sinon.spy(Template.prototype, 'interpolate');
     ul = document.createElement('ul');
     contact = MockContact();
@@ -84,13 +79,18 @@ suite('ContactRenderer', function() {
       });
 
       sinon.assert.calledWithMatch(Template.prototype.interpolate, {
-        carrier: 'TEF, ',
+        carrier: 'TEF',
         name: 'Pepito O\'Hare',
         nameHTML: 'Pepito O&apos;Hare',
         number: '+346578888888',
-        numberHTML: '+346578888888',
+        phoneDetailsHTML: SharedComponents.phoneDetails(
+          {
+            number: '+346578888888',
+            type: 'Mobile',
+            carrier: 'TEF'
+          }
+        ),
         photoHTML: '',
-        separator: ' | ',
         type: 'Mobile'
       });
 
@@ -147,9 +147,11 @@ suite('ContactRenderer', function() {
         name: 'Pepito O\'Hare',
         nameHTML: 'Pepito O&apos;Hare',
         number: '+346578888888',
-        numberHTML: '+<span class="highlight">346578888888</span>',
+        phoneDetailsHTML: SharedComponents.phoneDetails(
+          { number: '+<span class="highlight">346578888888</span>' },
+          { safe: ['number'] }
+        ),
         photoHTML: '',
-        separator: '',
         type: ''
       });
 
@@ -175,8 +177,8 @@ suite('ContactRenderer', function() {
       assert.include(html, '+<span class="highlight">346578888888</span>');
     });
 
-    test('Rendered Contact "type | number"', function() {
-      var html;
+    test('Rendered Contact with type and number', function() {
+      this.sinon.spy(SharedComponents, 'phoneDetails');
 
       contact.tel[0].carrier = null;
 
@@ -186,14 +188,19 @@ suite('ContactRenderer', function() {
         target: ul
       });
 
-      html = ul.firstElementChild.innerHTML;
-
-      assert.ok(html.contains('<span data-l10n-id="Mobile">Mobile</span> | ' +
-        '+346578888888'));
+      sinon.assert.calledWith(
+        SharedComponents.phoneDetails,
+        {
+          number: contact.tel[0].value,
+          type: contact.tel[0].type[0],
+          carrier: ''
+        },
+        { safe: ['number'] }
+      );
     });
 
-    test('Rendered Contact highlighted "type | number"', function() {
-      var html;
+    test('Rendered Contact with type and highlighted number', function() {
+      this.sinon.spy(SharedComponents, 'phoneDetails');
 
       contact.tel[0].carrier = null;
 
@@ -203,16 +210,19 @@ suite('ContactRenderer', function() {
         target: ul
       });
 
-      html = ul.firstElementChild.innerHTML;
-
-      assert.ok(html.contains(
-        '<span data-l10n-id="Mobile">Mobile</span> | ' +
-        '+<span class="highlight">346578888888</span>'
-      ));
+      sinon.assert.calledWith(
+        SharedComponents.phoneDetails,
+        {
+          number: '+<span class="highlight">346578888888</span>',
+          type: contact.tel[0].type[0],
+          carrier: ''
+        },
+        { safe: ['number'] }
+      );
     });
 
-    test('Rendered Contact "type | carrier, number"', function() {
-      var html;
+    test('Rendered Contact with type, number and carrier', function() {
+      this.sinon.spy(SharedComponents, 'phoneDetails');
 
       renderer.render({
         contact: contact,
@@ -220,16 +230,20 @@ suite('ContactRenderer', function() {
         target: ul
       });
 
-      html = ul.firstElementChild.innerHTML;
-
-      assert.ok(html.contains(
-        '<span data-l10n-id="Mobile">Mobile</span> | ' +
-        'TEF, +346578888888'
-      ));
+      sinon.assert.calledWith(
+        SharedComponents.phoneDetails,
+        {
+          number: contact.tel[0].value,
+          type: contact.tel[0].type[0],
+          carrier: contact.tel[0].carrier
+        },
+        { safe: ['number'] }
+      );
     });
 
-    test('Rendered Contact highlighted "type | carrier, number"', function() {
-      var html;
+    test('Rendered Contact with type, highlighted number and carrier',
+    function() {
+      this.sinon.spy(SharedComponents, 'phoneDetails');
 
       renderer.render({
         contact: contact,
@@ -237,13 +251,14 @@ suite('ContactRenderer', function() {
         target: ul
       });
 
-      html = ul.firstElementChild.innerHTML;
-
-      assert.ok(
-        html.contains(
-          '<span data-l10n-id="Mobile">Mobile</span> | ' +
-          'TEF, +<span class="highlight">346578888888</span>'
-        )
+      sinon.assert.calledWith(
+        SharedComponents.phoneDetails,
+        {
+          number: '+<span class="highlight">346578888888</span>',
+          type: contact.tel[0].type[0],
+          carrier: contact.tel[0].carrier
+        },
+        { safe: ['number'] }
       );
     });
 
@@ -350,9 +365,11 @@ suite('ContactRenderer', function() {
         name: 'unknown',
         nameHTML: 'unknown',
         number: '+346578888888',
-        numberHTML: '+<span class="highlight">346578888888</span>',
+        phoneDetailsHTML: SharedComponents.phoneDetails(
+          { number: '+<span class="highlight">346578888888</span>' },
+          { safe: ['number'] }
+        ),
         photoHTML: '',
-        separator: '',
         type: ''
       });
 
@@ -438,6 +455,9 @@ suite('ContactRenderer', function() {
       var html;
       var blob = testImageBlob;
       this.sinon.stub(MockContactPhotoHelper, 'getThumbnail').returns(blob);
+      this.sinon.spy(Utils, 'asyncLoadRevokeURL');
+      this.sinon.spy(Utils, 'getContactDetails');
+      this.sinon.spy(window, 'encodeURI');
 
       renderer.render({
         contact: contact,
@@ -445,25 +465,41 @@ suite('ContactRenderer', function() {
         target: ul
       });
 
-      sinon.assert.calledWithMatch(Template.prototype.interpolate, {
-        photoURL: sinon.match(/^blob:/)
-      });
+      sinon.assert.calledWith(Template.prototype.interpolate, undefined);
 
-      var photo = 'span data-type="img" style="background-image: url(blob:';
+      var photo = 'data-type="img"';
       sinon.assert.calledWithMatch(Template.prototype.interpolate, {
-        carrier: 'XXX, ',
+        carrier: 'XXX',
         name: 'Pepito O\'Hare',
         nameHTML: 'Pepito O&apos;Hare',
         number: '+12125559999',
-        numberHTML: '+12125559999',
+        phoneDetailsHTML: SharedComponents.phoneDetails(
+          {
+            number: '+12125559999',
+            type: 'B',
+            carrier: 'XXX'
+          },
+          { safe: ['number'] }
+        ),
         photoHTML: sinon.match(photo),
-        separator: ' | ',
         type: 'B'
       });
 
       html = ul.firstElementChild.innerHTML;
+      var contactPhotoElement = ul.firstElementChild.querySelector(
+        '.contact-photo'
+      );
 
       assert.ok(html.contains('span'));
+      assert.ok(contactPhotoElement.style.backgroundImage.indexOf('blob:') > 0);
+      sinon.assert.calledWith(
+        encodeURI,
+        Utils.getContactDetails.returnValues[0].photoURL
+      );
+      sinon.assert.calledWith(
+        Utils.asyncLoadRevokeURL,
+        Utils.getContactDetails.returnValues[0].photoURL
+      );
     });
   });
 

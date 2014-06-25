@@ -5,9 +5,9 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
-var View = require('vendor/view');
-var bind = require('lib/bind');
 var orientation = require('lib/orientation');
+var bind = require('lib/bind');
+var View = require('view');
 
 /**
  * Locals

@@ -22,6 +22,10 @@ gaia-confirm {
   display: flex;
   align-items: center;
   flex-direction: row;
+  /**
+  magic number ideally to place confirm dialogs on top.
+  */
+  z-index: 2147483646;
 }
 
 gaia-confirm[hidden] {

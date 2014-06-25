@@ -50,6 +50,7 @@
       window.addEventListener('home', this);
       window.addEventListener('appopened', this);
       window.addEventListener('searchcrashed', this);
+      window.addEventListener('permissiondialoghide', this);
 
       // Listen for events from Rocketbar
       this.input.addEventListener('focus', this);
@@ -112,6 +113,11 @@
           break;
         case 'iac-search-results':
           this.handleSearchMessage(e);
+          break;
+        case 'permissiondialoghide':
+          if (this.active) {
+            this.focus();
+          }
           break;
       }
     },

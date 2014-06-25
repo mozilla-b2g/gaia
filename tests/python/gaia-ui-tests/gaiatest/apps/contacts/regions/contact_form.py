@@ -40,8 +40,6 @@ class ContactForm(Base):
         element = self.marionette.find_element(*self._family_name_locator)
         element.clear()
         element.send_keys(value)
-        self.keyboard.dismiss()
-        self.switch_to_contacts_frame()
 
     @property
     def phone(self):
@@ -51,8 +49,6 @@ class ContactForm(Base):
         element = self.marionette.find_element(*self._phone_locator)
         element.clear()
         element.send_keys(value)
-        self.keyboard.dismiss()
-        self.switch_to_contacts_frame()
 
     @property
     def email(self):
@@ -185,8 +181,9 @@ class NewContact(ContactForm):
         self.wait_for_condition(lambda m: done.location['y'] == 0)
 
     def tap_done(self, return_contacts=True):
-        # NewContact can be opened as an Activity from other apps. In this scenario we don't return Contacts
         self.marionette.find_element(*self._done_button_locator).tap()
+
+        # NewContact can be opened as an Activity from other apps. In this scenario we don't return Contacts
         if return_contacts:
             self.wait_for_element_not_displayed(*self._done_button_locator)
             from gaiatest.apps.contacts.app import Contacts
@@ -194,3 +191,4 @@ class NewContact(ContactForm):
         else:
             # Bug 947317 Marionette exception after tap closes a frame
             time.sleep(2)
+            self.apps.switch_to_displayed_app()

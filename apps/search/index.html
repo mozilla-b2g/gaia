@@ -4,12 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1.0">
     <link rel="stylesheet" href="style/search.css">
+    <link rel="stylesheet" href="shared/elements/gaia_grid/style/external.css">
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
+    <link rel="resource" type="application/l10n" href="/shared/locales/gaia_grid.ini">
 
     <script defer src="shared/js/l10n.js"></script>
     <script defer src="shared/js/lazy_loader.js"></script>
 
+    <!-- Confirm dialog component -->
+    <script defer src="/shared/js/component_utils.js"></script>
+    <script defer src="/shared/elements/gaia_buttons/script.js"></script>
+    <script defer src="/shared/elements/gaia_confirm/script.js"></script>
+    <script defer src="/shared/elements/gaia_menu/script.js"></script>
+
     <!--- gaia_grid required scripts -->
+    <script defer src="shared/js/homescreens/vertical_preferences.js"></script>
+    <script defer src="shared/js/homescreens/confirm_dialog_helper.js"></script>
     <script defer src="shared/elements/gaia_grid/js/grid_view.js"></script>
     <script defer src="shared/elements/gaia_grid/js/grid_icon_renderer.js"></script>
     <script defer src="shared/elements/gaia_grid/js/grid_layout.js"></script>
@@ -32,6 +42,7 @@
     <script defer src="shared/js/everythingme/device.js"></script>
     <script defer src="shared/js/everythingme/api.js"></script>
     <script defer src="shared/js/dedupe.js"></script>
+    <script defer src="js/contextmenu.js"></script>
     <script defer src="js/search.js"></script>
     <script defer src="js/providers/provider.js"></script>
     <script defer src="js/providers/grid_provider.js"></script>
@@ -79,6 +90,10 @@
       <h2 id="history-header"><span data-l10n-id="history">HISTORY</span></h2>
       <section id="history" class="local" aria-labelledby="history-header"></section>
     </div>
+
+    <gaia-menu id="contextmenu" hidden>
+      <button id="add-to-homescreen" data-l10n-id="add-to-homescreen" type="button"></button>
+    </gaia-menu>
 
   </body>
 </html>

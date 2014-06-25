@@ -1,25 +1,25 @@
 'use strict';
-var Base = require('./base'),
-    RootPanel = require('./regions/root'),
-    BluetoothPanel = require('./regions/bluetooth'),
-    DoNotTrackPanel = require('./regions/do_not_track'),
-    HotspotPanel = require('./regions/hotspot'),
-    HotspotSettingsPanel = require('./regions/hotspot_settings'),
-    SupportPanel = require('./regions/support'),
-    NotificationsPanel = require('./regions/notifications'),
-    ImprovePanel = require('./regions/improve'),
-    BatteryPanel = require('./regions/battery'),
-    FeedbackPanel = require('./regions/feedback'),
-    SoundPanel = require('./regions/sound'),
-    NotificationsPanel = require('./regions/notifications'),
-    LanguagePanel = require('./regions/language'),
-    NotificationsPanel = require('./regions/notifications'),
-    ScreenLockPanel = require('./regions/screen_lock'),
-    AppPermissionPanel = require('./regions/app_permission'),
-    DisplayPanel = require('./regions/display'),
-    AppStoragePanel = require('./regions/app_storage'),
-    MediaStoragePanel = require('./regions/media_storage'),
-    KeyboardPanel = require('./regions/keyboard');
+
+var AppStoragePanel = require('./regions/app_storage');
+var AppPermissionPanel = require('./regions/app_permission');
+var Base = require('./base');
+var BatteryPanel = require('./regions/battery');
+var BluetoothPanel = require('./regions/bluetooth');
+var DisplayPanel = require('./regions/display');
+var DoNotTrackPanel = require('./regions/do_not_track');
+var FeedbackPanel = require('./regions/feedback');
+var HotspotPanel = require('./regions/hotspot');
+var HotspotSettingsPanel = require('./regions/hotspot_settings');
+var ImprovePanel = require('./regions/improve');
+var KeyboardPanel = require('./regions/keyboard');
+var LanguagePanel = require('./regions/language');
+var MediaStoragePanel = require('./regions/media_storage');
+var MessagePanel = require('./regions/message');
+var NotificationsPanel = require('./regions/notifications');
+var RootPanel = require('./regions/root');
+var ScreenLockPanel = require('./regions/screen_lock');
+var SoundPanel = require('./regions/sound');
+var SupportPanel = require('./regions/support');
 
 /**
  * Abstraction around settings app
@@ -51,13 +51,14 @@ Settings.Selectors = {
   'improveSection': '#improveBrowserOS',
   'feedbackPanel': 'button[data-href="#improveBrowserOS-chooseFeedback"]',
   'soundMenuItem': '#menuItem-sound',
-  'languageMenuItem': '#menuItem-languageAndRegion',
+  'languageMenuItem': '.menuItem-languageAndRegion',
   'screenLockMenuItem': '#menuItem-screenLock',
   'appPermissionPanel': '#menuItem-appPermissions',
   'displayMenuItem': '#menuItem-display',
   'appStorageMenuItem': '#menuItem-applicationStorage',
   'mediaStorageMenuItem': '#menuItem-mediaStorage',
-  'keyboardMenuItem': '#menuItem-keyboard'
+  'keyboardMenuItem': '#menuItem-keyboard',
+  'messageMenuItem': '#menuItem-messagingSettings'
 };
 
 Settings.prototype = {
@@ -188,6 +189,12 @@ Settings.prototype = {
     return this._keyboardPanel;
   },
 
+  get messagePanel() {
+    this.openPanel('messageMenuItem');
+    this._messagePanel = this._messagePanel || new MessagePanel(this.client);
+    return this._messagePanel;
+  },
+
   set currentLanguage(value) {
     // open the language panel
     var languagePanel = this.languagePanel;
@@ -202,6 +209,12 @@ Settings.prototype = {
     var localParentSelector = parentSelector || 'menuItemsSection';
     var menuItem = this.waitForElement(selector);
     var parentSection = this.waitForElement(localParentSelector);
+
+    // make sure it is enabled first
+    this.client.waitFor(function() {
+      return this.findElement('messageMenuItem').enabled();
+    }.bind(this));
+
     menuItem.tap();
     this.client.waitFor(function() {
       var loc = parentSection.location();
