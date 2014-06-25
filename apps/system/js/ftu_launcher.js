@@ -52,6 +52,7 @@ var FtuLauncher = {
     // Monitor appopen event
     // to unlock lockscreen if we are running FTU at first time
     window.addEventListener('appopened', this);
+    window.addEventListener('appopen', this);
   },
 
   handleEvent: function fl_init(evt) {
@@ -63,6 +64,18 @@ var FtuLauncher = {
           ftuopenEvt.initCustomEvent('ftuopen',
           /* canBubble */ true, /* cancelable */ false, {});
           window.dispatchEvent(ftuopenEvt);
+        }
+        break;
+
+      case 'appopen':
+        if (evt.detail.origin == this._ftuOrigin) {
+          // Trigger an event to deactivate edge swipe gesture.
+          setTimeout(function() {
+            var ftuopenEvt = document.createEvent('CustomEvent');
+            ftuopenEvt.initCustomEvent('ftuopened',
+              /* canBubble */ true, /* cancelable */ false, {});
+            window.dispatchEvent(ftuopenEvt);
+          });
         }
         break;
 
