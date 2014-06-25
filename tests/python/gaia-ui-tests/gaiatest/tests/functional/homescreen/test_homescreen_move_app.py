@@ -2,6 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from marionette import Wait
+
 from gaiatest import GaiaTestCase
 from gaiatest.apps.homescreen.app import Homescreen
 
@@ -20,6 +22,7 @@ class TestMoveApp(GaiaTestCase):
         https://moztrap.mozilla.org/manage/case/1317/
         """
 
+        Wait(self.marionette, timeout=30).until(lambda m: len(self.homescreen.visible_apps) > 4)
         first_app_before_move = self.homescreen.visible_apps[0].name
 
         # Assert that we are not in edit mode.
