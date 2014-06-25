@@ -31,7 +31,9 @@ Collection.Selectors = {
   firstWebResultPinned: 'gaia-grid .divider + .icon',
 
   allDividers: 'gaia-grid .divider',
-  allIcons: 'gaia-grid .icon'
+  allIcons: 'gaia-grid .icon',
+
+  offlineMessage: '#offline-message'
 };
 
 Collection.prototype = {

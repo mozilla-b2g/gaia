@@ -56,7 +56,7 @@
       loading(false);
 
       var msg = navigator.mozL10n.get('offline-webresults', {
-        collectionName: collection.name
+        collectionName: collection.localizedName
       });
       elements.offlineMessage.innerHTML = msg;
       elements.offline.classList.add('show');
@@ -72,7 +72,7 @@
           collection.addWebResults(response.response.apps);
           collection.render(grid);
 
-        }, onResponse);
+        }, onOffline);
     }
 
     function loading(should) {
