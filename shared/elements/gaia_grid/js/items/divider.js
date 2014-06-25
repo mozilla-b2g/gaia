@@ -23,7 +23,9 @@
     /**
      * Height in pixels of each divider.
      */
-    pixelHeight: 70,
+    get pixelHeight() {
+      return (this.grid.layout.cols > 3) ? 50 : 60;
+    },
 
     /**
      * Width in grid units for each divider.
