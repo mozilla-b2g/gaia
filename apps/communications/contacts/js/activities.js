@@ -166,14 +166,9 @@ var ActivityHandler = {
         break;
       case 1:
         // if one required type of data
-        if (this.activityDataType == 'webcontacts/tel') {
-          result = utils.misc.toMozContact(theContact);
-        } else if (this.activityDataType == 'webcontacts/select') {
-          result.contact = utils.misc.toMozContact(theContact);
-          result.select = result.contact.tel;
-          if (!result.select || !result.select.length) {
-            result.select = result.contact.email;
-          }
+        if (this.activityDataType == 'webcontacts/tel' ||
+            this.activityDataType == 'webcontacts/select') {
+          result = this.pickContactsResult(theContact);
         } else {
           result[type] = dataSet[0].value;
         }
@@ -188,19 +183,9 @@ var ActivityHandler = {
           var itemData;
           var capture = function(itemData) {
             return function() {
-              if (self.activityDataType == 'webcontacts/select') {
-                result.contact = utils.misc.toMozContact(theContact);
-                result.select = self.filterDestinationForActivity(
-                                  itemData, result.contact.tel);
-                if (!result.select || !result.select.length) {
-                  result.select = self.filterDestinationForActivity(
-                                  itemData, result.contact.email);
-                }
-              } else if (self.activityDataType == 'webcontacts/tel') {
-                // filter phone from data.tel to take out the rest
-                result = utils.misc.toMozContact(theContact);
-                result.tel = self.filterDestinationForActivity(
-                               itemData, result.tel);
+              if (self.activityDataType == 'webcontacts/tel' ||
+                  self.activityDataType == 'webcontacts/select') {
+                result = self.pickContactsResult(theContact, itemData);
               } else {
                 result[type] = itemData;
               }
@@ -219,6 +204,41 @@ var ActivityHandler = {
           prompt1.show();
         });
     } // switch
+  },
+
+  pickContactsResult:
+  function ah_pickContactsResult(theContact, itemData) {
+    var pickResult = {};
+    var contact = utils.misc.toMozContact(theContact);
+
+    if (this.activityDataType == 'webcontacts/tel') {
+      pickResult = contact;
+
+      if (itemData) {
+        pickResult.tel = this.filterDestinationForActivity(
+                            itemData, pickResult.tel);
+      }
+    } else if (this.activityDataType == 'webcontacts/select') {
+      pickResult.contact = contact;
+
+      if (!itemData) {
+        pickResult.select = pickResult.contact.tel;
+
+        if (!pickResult.select || !pickResult.select.length) {
+          pickResult.select = pickResult.contact.email;
+        }
+      } else {
+        pickResult.select = this.filterDestinationForActivity(
+                                itemData, pickResult.contact.tel);
+
+        if (!pickResult.select || !pickResult.select.length) {
+          pickResult.select = this.filterDestinationForActivity(
+                                  itemData, pickResult.contact.email);
+        }
+      }
+    }
+
+    return pickResult;
   },
 
   filterDestinationForActivity:
