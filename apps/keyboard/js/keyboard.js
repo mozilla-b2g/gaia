@@ -42,7 +42,7 @@ perfTimer.start();
 perfTimer.printTime('keyboard.js');
 
 var isWaitingForSecondTap = false;
-var alternativesMenuTouchId = undefined;
+var longPressTouchId = undefined;
 var isShowingAlternativesMenu = false;
 var isContinousSpacePressed = false;
 var isUpperCase = false;
@@ -56,8 +56,9 @@ var isKeyboardRendered = false;
 var currentCandidates = [];
 var candidatePanelScrollTimer = null;
 
-// Show accent char menu (if there is one) after ACCENT_CHAR_MENU_TIMEOUT
-const ACCENT_CHAR_MENU_TIMEOUT = 700;
+// Show accent char menu (if there is one) or do other stuff
+// after LONG_PRESS_TIMEOUT
+const LONG_PRESS_TIMEOUT = 700;
 
 // Backspace repeat delay and repeat rate
 const REPEAT_RATE = 75;
@@ -77,7 +78,7 @@ const HIDE_KEYBOARD_TIMEOUT = 500;
 // timeout and interval for delete, they could be cancelled on mouse over
 var deleteTimeout = 0;
 var deleteInterval = 0;
-var menuTimeout = 0;
+var longPressTimeout = 0;
 var hideKeyboardTimeout = 0;
 
 const specialCodes = [
@@ -542,15 +543,15 @@ function getUpperCaseValue(key) {
   return upperCase[key.value] || key.value.toUpperCase();
 }
 
-function setMenuTimeout(press, id) {
+function setLongPressTimeout(press, id) {
   // Only set a timeout to show alternatives if there is one touch.
-  // This avoids paving over menuTimeout with a new timeout id
+  // This avoids paving over longPressTimeout with a new timeout id
   // from a separate touch.
   if (activeTargets.size > 1) {
     return;
   }
 
-  menuTimeout = window.setTimeout(function menuTimeout() {
+  longPressTimeout = window.setTimeout(function longPressTimeout() {
     // Don't try to show the alternatives menu if it's already showing,
     // or if there's more than one touch on the screen.
     if (isShowingAlternativesMenu || activeTargets.size > 1)
@@ -580,19 +581,19 @@ function setMenuTimeout(press, id) {
       return;
     }
 
-    showAlternatives(target);
-    alternativesMenuTouchId = id;
+    handleLongPress(target);
+    longPressTouchId = id;
 
     // If we successfuly showed the alternatives menu, redirect the
     // press over the first key in the menu.
     if (isShowingAlternativesMenu)
       movePress(press, id);
 
-  }, ACCENT_CHAR_MENU_TIMEOUT);
+  }, LONG_PRESS_TIMEOUT);
 }
 
-// Show alternatives for the HTML node key
-function showAlternatives(key) {
+// Show alternatives for the HTML node key, and etc.
+function handleLongPress(key) {
   // Get the key object from layout
   var keyObj;
   var r = key ? key.dataset.row : -1, c = key ? key.dataset.column : -1;
@@ -672,7 +673,7 @@ function hideAlternatives() {
 
   IMERender.hideAlternativesCharMenu();
   isShowingAlternativesMenu = false;
-  alternativesMenuTouchId = undefined;
+  longPressTouchId = undefined;
 }
 
 // Test if an HTML node is a normal key
@@ -706,7 +707,7 @@ function startPress(press, id) {
     isUpperCaseLocked: isUpperCaseLocked
   });
 
-  setMenuTimeout(press, id);
+  setLongPressTimeout(press, id);
 
   // Special keys (such as delete) response when pressing (not releasing)
   // Furthermore, delete key has a repetition behavior
@@ -767,7 +768,7 @@ function movePress(press, id) {
     }
   }
 
-  if (isShowingAlternativesMenu && alternativesMenuTouchId !== id) {
+  if (isShowingAlternativesMenu && longPressTouchId !== id) {
     return;
   }
 
@@ -795,7 +796,7 @@ function movePress(press, id) {
 
   clearTimeout(deleteTimeout);
   clearInterval(deleteInterval);
-  clearTimeout(menuTimeout);
+  clearTimeout(longPressTimeout);
 
   // Hide of alternatives menu if the touch moved out of it
   if (target.parentNode !== IMERender.menu &&
@@ -804,7 +805,7 @@ function movePress(press, id) {
     hideAlternatives();
 
   // Control showing alternatives menu
-  setMenuTimeout(press, id);
+  setLongPressTimeout(press, id);
 }
 
 // The user is releasing a key so the key has been pressed. The meat is here.
@@ -812,13 +813,13 @@ function endPress(press, id) {
   var target = activeTargets.get(id);
   activeTargets.delete(id);
 
-  if (isShowingAlternativesMenu && alternativesMenuTouchId !== id) {
+  if (isShowingAlternativesMenu && longPressTouchId !== id) {
     return;
   }
 
   clearTimeout(deleteTimeout);
   clearInterval(deleteInterval);
-  clearTimeout(menuTimeout);
+  clearTimeout(longPressTimeout);
 
   hideAlternatives();
 
@@ -1334,14 +1335,14 @@ function clearTouchedKeys() {
   // Reset all the pending actions here.
   clearTimeout(deleteTimeout);
   clearInterval(deleteInterval);
-  clearTimeout(menuTimeout);
+  clearTimeout(longPressTimeout);
 }
 
 // Hide the keyboard via input method API
 function dismissKeyboard() {
   clearTimeout(deleteTimeout);
   clearInterval(deleteInterval);
-  clearTimeout(menuTimeout);
+  clearTimeout(longPressTimeout);
 
   navigator.mozInputMethod.mgmt.hide();
 }
