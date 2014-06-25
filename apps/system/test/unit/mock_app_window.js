@@ -68,6 +68,7 @@
     back: function() {},
     reload: function() {},
     isBrowser: function() {},
+    isCertified: function() {},
     navigate: function() {},
     isFullScreen: function() {},
     _changeState: function() {},
