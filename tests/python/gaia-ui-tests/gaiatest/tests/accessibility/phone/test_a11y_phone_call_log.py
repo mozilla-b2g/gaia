@@ -56,7 +56,7 @@ class TestAccessibilityPhoneCallLog(GaiaTestCase):
         # self.accessibility.click(call_log_first_item)
 
         # # Add contact action menu should be visible to the screen reader.
-        # self.assertFalse(self.accessibility.is_hidden(self.marionette.find_element(
+        # self.assertTrue(self.accessibility.is_visible(self.marionette.find_element(
         #     *self.phone._add_contact_action_menu_locator)))
 
         # # Close the add contact action menu with the screen reader.
@@ -74,7 +74,7 @@ class TestAccessibilityPhoneCallLog(GaiaTestCase):
         select = self.marionette.find_element(*call_log._call_log_edit_select_all_button_locator)
 
         # Edit mode is visible to the screen reader.
-        self.assertFalse(self.accessibility.is_hidden(call_log_edit_element))
+        self.assertTrue(self.accessibility.is_visible(call_log_edit_element))
         # Delete button is disabled for the screen reader.
         self.assertTrue(self.accessibility.is_disabled(delete))
         # Deselect all button is disabled for the screen reader.

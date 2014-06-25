@@ -19,7 +19,7 @@ class TestLockScreenAccessibility(GaiaTestCase):
         lockScreen_window = self.marionette.find_element(*lock_screen._lockscreen_window_locator)
         camera_locator = (By.CSS_SELECTOR, '[data-manifest-name="Camera"]')
 
-        self.assertFalse(self.accessibility.is_hidden(lockScreen_window))
+        self.assertTrue(self.accessibility.is_visible(lockScreen_window))
         self.assertFalse(self.is_element_present(*camera_locator))
 
         camera = lock_screen.a11y_click_camera_button()
@@ -27,7 +27,7 @@ class TestLockScreenAccessibility(GaiaTestCase):
         self.assertEquals(self.apps.displayed_app.name, camera.name)
 
         self.assertTrue(self.accessibility.is_hidden(lockScreen_window))
-        self.assertFalse(self.accessibility.is_hidden(self.marionette.find_element(
+        self.assertTrue(self.accessibility.is_visible(self.marionette.find_element(
             *camera_locator)))
 
         self.apps.switch_to_displayed_app()

@@ -23,9 +23,9 @@ class TestSliderVisibilityAccessibility(GaiaTestCase):
         # Both rate and volume sliders should be visible
         self.assertTrue(self.is_element_displayed(
             *accessibility_settings._screen_reader_volume_slider_locator))
-        self.assertFalse(self.accessibility.is_hidden(self.marionette.find_element(
+        self.assertTrue(self.accessibility.is_visible(self.marionette.find_element(
             *accessibility_settings._screen_reader_volume_slider_locator)))
         self.assertTrue(self.is_element_displayed(
             *accessibility_settings._screen_reader_rate_slider_locator))
-        self.assertFalse(self.accessibility.is_hidden(self.marionette.find_element(
+        self.assertTrue(self.accessibility.is_visible(self.marionette.find_element(
             *accessibility_settings._screen_reader_rate_slider_locator)))
