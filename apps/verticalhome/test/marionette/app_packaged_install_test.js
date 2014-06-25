@@ -6,6 +6,7 @@ var Home2 = require('./lib/home2');
 var System = require('../../../../apps/system/test/marionette/lib/system');
 var AppInstall =
   require('../../../../apps/system/test/marionette/lib/app_install');
+var iconAppState = require('./lib/icon_app_state');
 var createAppServer = require('./server/parent');
 
 marionette('Vertical Home - Packaged App Install', function() {
@@ -38,6 +39,15 @@ marionette('Vertical Home - Packaged App Install', function() {
   test('install app', function() {
     client.switchToFrame();
     appInstall.installPackage(server.packageManifestURL);
+
+    client.switchToFrame(system.getHomescreenIframe());
+
+    var appIcon = subject.getIcon(server.packageManifestURL);
+    // ensure the app is ready
+    client.waitFor(function() {
+      return iconAppState(appIcon) === 'ready';
+    });
+
     subject.launchAndSwitchToApp(server.packageManifestURL);
     assert.equal(client.title(), 'iwrotethis');
   });
