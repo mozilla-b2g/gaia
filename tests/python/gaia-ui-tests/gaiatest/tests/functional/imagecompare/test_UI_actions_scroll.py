@@ -19,7 +19,7 @@ class TestUIActions(GaiaTestCase):
         GaiaTestCase.setUp(self)
         current_module = str(sys.modules[__name__])
         self.module_name = current_module[current_module.find("'")+1:current_module.find("' from")]
-        self.graphics = ImageCompareUtil(self.marionette,self.apps, '.')
+        self.graphics = ImageCompareUtil(self.marionette,self.apps, self,'.')
 
         self.data_layer.connect_to_wifi()
 
@@ -38,7 +38,7 @@ class TestUIActions(GaiaTestCase):
 
         # In case the assertion fails this will still kill the call
         # An open call creates problems for future tests
-        self.graphics.execute_image_job(self)
+        self.graphics.execute_image_job()
 
         GaiaTestCase.tearDown(self)
 

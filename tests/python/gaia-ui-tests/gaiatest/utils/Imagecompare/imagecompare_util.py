@@ -6,13 +6,15 @@ from gaiatest import GaiaTestCase
 
 
 class ImageCompareUtil():
-    def __init__(self, marionette, apps, local_path):
+    def __init__(self, marionette, apps, gaiaTC, local_path):
         self.marionette = marionette
         self.apps = apps
+        self.gaiaTC = gaiaTC
         self.temp_dir = 'temporary'
         self.ref_dir = 'refimages'
         self.shots_dir = 'shots'
         self.device_manager = mozdevice.DeviceManagerADB()
+
 
         if not os.path.exists(os.path.join(local_path, self.temp_dir)):
             os.makedirs(os.path.join(local_path, self.temp_dir))
@@ -35,7 +37,10 @@ class ImageCompareUtil():
     def invoke_screen_capture(self,frame=None,browser=None):
         time.sleep(2)
         self.marionette.switch_to_frame()  # switch to root frame (system app)
-        self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('home+sleep'));")
+        if (self.gaiaTC.testvars['post2dot0'] == 'true'):
+            self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('volumedown+sleep'));")
+        else:
+            self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('home+sleep'));")
         self.apps.switch_to_displayed_app()
         time.sleep(6)  # for the notification overlay to disappear
         if (browser != None):
@@ -158,14 +163,14 @@ class ImageCompareUtil():
 
 
     #execute the image job
-    def execute_image_job(self,GaiaTC):
-        if (GaiaTC.testvars['collect_ref_images'] == 'true'):
+    def execute_image_job(self):
+        if (self.gaiaTC.testvars['collect_ref_images'] == 'true'):
             # collect screenshots and save it as ref images
-            self.collect_ref_images(GaiaTC.testvars['screenshot_location'],'.',GaiaTC.module_name)
+            self.collect_ref_images(self.gaiaTC.testvars['screenshot_location'],'.',self.gaiaTC.module_name)
         else:
             # pull the screenshots off the device and compare.
-            self.collect_and_compare('.',GaiaTC.testvars['screenshot_location'] , GaiaTC.module_name,
-                                     GaiaTC.testvars['fuzz_factor'])
+            self.collect_and_compare('.',self.gaiaTC.testvars['screenshot_location'] , self.gaiaTC.module_name,
+                                     self.gaiaTC.testvars['fuzz_factor'])
 
     #sort the files in the path in timestamp order and return as a list
     @staticmethod
