@@ -250,10 +250,10 @@
 }
 
 #day-view .current-time:before {
-  left: 7rem;
+  left: 7.1rem;
 }
 
 #day-view .current-time:after {
-  width: calc(100% - 7rem);
-  left: 7rem;
+  width: calc(100% - 7.1rem);
+  left: 7.1rem;
 }
