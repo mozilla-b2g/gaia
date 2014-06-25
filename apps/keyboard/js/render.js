@@ -665,6 +665,15 @@ const IMERender = (function() {
       .appendChild(menu);
     menu.style.display = 'block';
 
+    function getWindowLeft(obj) {
+      var left;
+      left = obj.offsetLeft;
+      while (!!(obj = obj.offsetParent)) {
+        left += obj.offsetLeft;
+      }
+      return left;
+    }
+
     // Adjust offset when alternatives menu overflows
     var alternativesLeft = getWindowLeft(menu);
     var alternativesRight = alternativesLeft + menu.offsetWidth;

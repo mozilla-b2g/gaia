@@ -43,7 +43,6 @@ perfTimer.printTime('keyboard.js');
 
 var isWaitingForSecondTap = false;
 var longPressTouchId = undefined;
-var isShowingAlternativesMenu = false;
 var isContinousSpacePressed = false;
 var isUpperCase = false;
 var isUpperCaseLocked = false;
@@ -51,7 +50,6 @@ var isUpperCaseLocked = false;
 // and alternative menu, and actual key to commit when touch event ends.
 // It is not necessary the element the finger is currently under.
 var activeTargets = new Map();
-var menuLockedArea = null;
 var isKeyboardRendered = false;
 var currentCandidates = [];
 var candidatePanelScrollTimer = null;
@@ -97,8 +95,14 @@ var fakeAppObject = {
   settingsPromiseManager: null,
   l10nLoader: null,
   userPressManager: null,
+  alternativesCharMenuManager: null,
 
   inputContext: null,
+
+  getMenuContainer: function() {
+    // This is equal to IMERender.menu.
+    return document.getElementById('keyboard-accent-char-menu');
+  },
 
   getContainer: function() {
     // This is equal to IMERender.ime.
@@ -209,6 +213,11 @@ userPressManager.onpressstart = startPress;
 userPressManager.onpressmove = movePress;
 userPressManager.onpressend = endPress;
 userPressManager.start();
+
+var alternativesCharMenuManager =
+  fakeAppObject.alternativesCharMenuManager =
+  new AlternativesCharMenuManager(fakeAppObject);
+alternativesCharMenuManager.start();
 
 // User settings (in Settings database) are tracked within these modules
 var soundFeedbackSettings;
@@ -554,7 +563,7 @@ function setLongPressTimeout(press, id) {
   longPressTimeout = window.setTimeout(function longPressTimeout() {
     // Don't try to show the alternatives menu if it's already showing,
     // or if there's more than one touch on the screen.
-    if (isShowingAlternativesMenu || activeTargets.size > 1)
+    if (alternativesCharMenuManager.isShown || activeTargets.size > 1)
       return;
 
     var target = press.target;
@@ -586,7 +595,7 @@ function setLongPressTimeout(press, id) {
 
     // If we successfuly showed the alternatives menu, redirect the
     // press over the first key in the menu.
-    if (isShowingAlternativesMenu)
+    if (alternativesCharMenuManager.isShown)
       movePress(press, id);
 
   }, LONG_PRESS_TIMEOUT);
@@ -633,47 +642,7 @@ function handleLongPress(key) {
   // Copy the array so render.js can't modify the original.
   alternatives = [].concat(alternatives);
 
-  // Locked limits
-  // TODO: look for [LOCKED_AREA]
-  var top = getWindowTop(key);
-  var bottom = getWindowTop(key) + key.scrollHeight;
-  var keybounds = key.getBoundingClientRect();
-
-  IMERender.showAlternativesCharMenu(key, alternatives);
-  isShowingAlternativesMenu = true;
-
-  // Locked limits
-  // TODO: look for [LOCKED_AREA]
-  menuLockedArea = {
-    top: top,
-    bottom: bottom,
-    left: getWindowLeft(IMERender.menu),
-    right: getWindowLeft(IMERender.menu) + IMERender.menu.scrollWidth
-  };
-  menuLockedArea.width = menuLockedArea.right - menuLockedArea.left;
-
-  // Add some more properties to this locked area object that will help us
-  // redirect touch events to the appropriate alternative key.
-  menuLockedArea.keybounds = keybounds;
-  menuLockedArea.firstAlternative =
-    IMERender.menu.classList.contains('kbr-menu-left') ?
-      IMERender.menu.lastElementChild :
-      IMERender.menu.firstElementChild;
-  menuLockedArea.boxes = [];
-  var children = IMERender.menu.children;
-  for (var i = 0; i < children.length; i++) {
-    menuLockedArea.boxes[i] = children[i].getBoundingClientRect();
-  }
-}
-
-// Hide alternatives.
-function hideAlternatives() {
-  if (!isShowingAlternativesMenu)
-    return;
-
-  IMERender.hideAlternativesCharMenu();
-  isShowingAlternativesMenu = false;
-  longPressTouchId = undefined;
+  alternativesCharMenuManager.show(key, alternatives);
 }
 
 // Test if an HTML node is a normal key
@@ -694,7 +663,7 @@ function startPress(press, id) {
   if (!isNormalKey(press.target))
     return;
 
-  if (isShowingAlternativesMenu)
+  if (alternativesCharMenuManager.isShown)
     return;
 
   var keyCode = getKeyCodeFromTarget(press.target);
@@ -726,49 +695,15 @@ function startPress(press, id) {
   }
 }
 
-function inMenuLockedArea(lockedArea, press) {
-  return (lockedArea &&
-          press.pageY >= lockedArea.top &&
-          press.pageY <= lockedArea.bottom &&
-          press.pageX >= lockedArea.left &&
-          press.pageX <= lockedArea.right);
-}
-
-// [LOCKED_AREA] TODO:
-// This is an agnostic way to improve the usability of the alternatives.
-// It consists into compute an area where the user movement is redirected
-// to the alternative menu keys but I would prefer another alternative
-// with better performance.
 function movePress(press, id) {
   var target = press.target;
   // Control locked zone for menu
-  if (isShowingAlternativesMenu && inMenuLockedArea(menuLockedArea, press)) {
-
-    // If the x coordinate is between the bounds of the original key
-    // then redirect to the first (or last) alternative. This is to
-    // ensure that we always get the first alternative when the menu
-    // first pops up.  Otherwise, loop through the children of the
-    // menu and test each one. Once we have moved away from the
-    // original keybounds we delete them and always loop through the children.
-    if (menuLockedArea.keybounds &&
-        press.pageX >= menuLockedArea.keybounds.left &&
-        press.pageX < menuLockedArea.keybounds.right) {
-      target = menuLockedArea.firstAlternative;
-    }
-    else {
-      menuLockedArea.keybounds = null; // Do it this way from now on.
-      var menuChildren = IMERender.menu.children;
-      for (var i = 0; i < menuChildren.length; i++) {
-        if (press.pageX >= menuLockedArea.boxes[i].left &&
-            press.pageX < menuLockedArea.boxes[i].right) {
-          break;
-        }
-      }
-      target = menuChildren[i];
-    }
+  if (alternativesCharMenuManager.isShown &&
+      alternativesCharMenuManager.isInMenuArea(press)) {
+    target = alternativesCharMenuManager.getMenuTarget(press);
   }
 
-  if (isShowingAlternativesMenu && longPressTouchId !== id) {
+  if (alternativesCharMenuManager.isShown && longPressTouchId !== id) {
     return;
   }
 
@@ -800,9 +735,10 @@ function movePress(press, id) {
 
   // Hide of alternatives menu if the touch moved out of it
   if (target.parentNode !== IMERender.menu &&
-      isShowingAlternativesMenu &&
-      !inMenuLockedArea(menuLockedArea, press))
-    hideAlternatives();
+      !alternativesCharMenuManager.isInMenuArea(press)) {
+    alternativesCharMenuManager.hide();
+    longPressTouchId = undefined;
+  }
 
   // Control showing alternatives menu
   setLongPressTimeout(press, id);
@@ -813,7 +749,7 @@ function endPress(press, id) {
   var target = activeTargets.get(id);
   activeTargets.delete(id);
 
-  if (isShowingAlternativesMenu && longPressTouchId !== id) {
+  if (alternativesCharMenuManager.isShown && longPressTouchId !== id) {
     return;
   }
 
@@ -821,7 +757,8 @@ function endPress(press, id) {
   clearInterval(deleteInterval);
   clearTimeout(longPressTimeout);
 
-  hideAlternatives();
+  alternativesCharMenuManager.hide();
+  longPressTouchId = undefined;
 
   if (target.classList.contains('dismiss-suggestions-button')) {
     if (inputMethodManager.currentIMEngine.dismissSuggestions) {
@@ -1282,25 +1219,6 @@ function triggerFeedback(isSpecialKey) {
   }
 }
 
-// Utility functions
-function getWindowTop(obj) {
-  var top;
-  top = obj.offsetTop;
-  while (!!(obj = obj.offsetParent)) {
-    top += obj.offsetTop;
-  }
-  return top;
-}
-
-function getWindowLeft(obj) {
-  var left;
-  left = obj.offsetLeft;
-  while (!!(obj = obj.offsetParent)) {
-    left += obj.offsetLeft;
-  }
-  return left;
-}
-
 // To determine if the candidate panel for word suggestion is needed
 function needsCandidatePanel() {
   // Disable the word suggestion for Greek SMS layout.
@@ -1330,7 +1248,8 @@ function clearTouchedKeys() {
     IMERender.unHighlightKey(el);
   });
 
-  hideAlternatives();
+  alternativesCharMenuManager.hide();
+  longPressTouchId = undefined;
 
   // Reset all the pending actions here.
   clearTimeout(deleteTimeout);
