@@ -1,7 +1,7 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/* globals ContactPhotoHelper, Notification, Threads*/
+/* globals ContactPhotoHelper, Notification, Promise, Threads*/
 
 (function(exports) {
   'use strict';
@@ -572,6 +572,119 @@
         ).catch(function onError(reason) {
           console.error('Notification.get(tag: ' + targetTag + '): ', reason);
         });
+    },
+
+    /**
+     * Converts image DOM node to canvas respecting image ratio.
+     * @param imageNode Image DOM node to convert.
+     * @param width Target image width.
+     * @param height Target image height.
+     * @returns {Node} Canvas object created from image DOM node.
+     */
+    imageToCanvas: function(imageNode, width, height) {
+      var ratio = Math.max(imageNode.width / width, imageNode.height / height);
+
+      var canvas = document.createElement('canvas');
+      canvas.width = Math.round(imageNode.width / ratio);
+      canvas.height = Math.round(imageNode.height / ratio);
+
+      var context = canvas.getContext('2d', { willReadFrequently: true });
+
+      // Using canvas width and height with correct image proportions
+      context.drawImage(imageNode, 0, 0, canvas.width, canvas.height);
+
+      return canvas;
+    },
+
+    /**
+     * Converts image URL to data URL using specified image mime type. Preferred
+     * image dimensions can be retrieved via optional sizeRetriever delegate,
+     * otherwise actual dimensions will be used.
+     * @param imageURL Image URL to convert.
+     * @param type Image MIME type.
+     * @param sizeAdjuster Optional delegate that accepts actual image width and
+     * height as parameters and should return both these dimensions adjusted
+     * depending on consumer's code needs. These adjusted dimensions then will
+     * be used to generate image data URL.
+     * @returns {Promise.<string>} Promise that will be resolved to Data URL.
+     */
+    imageUrlToDataUrl: function(imageURL, type, sizeAdjuster) {
+      var img = new Image(),
+          deferred = Utils.Promise.defer();
+
+      img.src = imageURL;
+
+      img.onload = function onBlobLoaded() {
+        var adjustedSize = null,
+            canvas = null;
+
+        try {
+          window.URL.revokeObjectURL(img.src);
+
+          adjustedSize = sizeAdjuster ? sizeAdjuster(img.width, img.height) : {
+            width: img.width,
+            height: img.height
+          };
+
+          canvas = Utils.imageToCanvas(
+            img, adjustedSize.width, adjustedSize.height
+          );
+
+          deferred.resolve({
+            width: adjustedSize.width,
+            height: adjustedSize.height,
+            dataUrl: canvas.toDataURL(type)
+          });
+        } catch (e) {
+          deferred.reject(e);
+        } finally {
+          // Freeing up resources occupied by canvas
+          if (canvas) {
+            canvas.width = canvas.height = 0;
+            canvas = null;
+          }
+        }
+      };
+
+      img.onerror = function() {
+        deferred.reject(new Error('The image could not be loaded.'));
+      };
+
+      function cleanup() {
+        img.height = img.width = 0;
+        img = img.src = null;
+      }
+
+      // TODO: it would be helpful to have Utils.Promise.finally for such clean
+      // up cases that don't care whether promise was resolved or rejected.
+      return deferred.promise.then(function(result) {
+        cleanup();
+        return result;
+      }, function(e) {
+        cleanup();
+        return Promise.reject(e);
+      });
+    },
+
+    /**
+     * Promise related utilities
+     */
+    Promise: {
+      /**
+       * Returns object that contains promise and related resolve\reject methods
+       * to avoid wrapping long or complex code into single Promise constructor.
+       * @returns {{promise: Promise, resolve: function, reject: function}}
+       */
+      defer: function() {
+        var deferred = {};
+
+        deferred.promise = new Promise(function(resolve, reject) {
+          deferred.resolve = resolve;
+          deferred.reject = reject;
+        });
+
+        return deferred;
+      }
     }
   };
 
