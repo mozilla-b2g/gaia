@@ -77,14 +77,17 @@ suite('search/providers/contacts', function() {
       assert.ok(stub.calledOnce);
     });
 
-    test('contact is rendered', function() {
-      subject.search('stub content', Search.collect.bind(Search, subject));
-      var contact = subject.container.querySelector('.result');
-      assert.equal(contact.querySelector('.title').innerHTML, 'Pepito A');
-      assert.equal(contact.getAttribute('aria-label'), 'Pepito A');
-      assert.equal(contact.getAttribute('role'), 'link');
-      assert.equal(contact.querySelector('.icon').getAttribute('role'),
-        'presentation');
+    test('contact is rendered', function(done) {
+      subject.search('stub content').then((results) => {
+        Search.collect(subject, results);
+        var contact = subject.container.querySelector('.result');
+        assert.equal(contact.querySelector('.title').innerHTML, 'Pepito A');
+        assert.equal(contact.getAttribute('aria-label'), 'Pepito A');
+        assert.equal(contact.getAttribute('role'), 'link');
+        assert.equal(contact.querySelector('.icon').getAttribute('role'),
+          'presentation');
+        done();
+      });
     });
   });
 

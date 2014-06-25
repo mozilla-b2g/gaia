@@ -1,4 +1,4 @@
-/* global eme, Search, DataGridProvider, GaiaGrid, GridIconRenderer */
+/* global eme, Search, DataGridProvider, GaiaGrid, GridIconRenderer, Promise */
 
 (function() {
 
@@ -29,44 +29,46 @@
      */
     fullscreen: function(query) {
       this.renderFullscreen = true;
-      this.search(query, function onCollect(results) {
+      this.search(query).then((results) => {
         this.render(results);
         this.renderFullscreen = false;
-      }.bind(this));
+      });
     },
 
-    search: function(input, collect) {
-
-      if (!eme.api.Apps) {
-        return;
-      }
-
-      this.request = eme.api.Apps.search({
-        'query': input
-      });
-
-      this.request.then((function resolve(data) {
-        var response = data.response;
-        if (response && response.apps && response.apps.length) {
-          var results = [];
-          response.apps.forEach(function each(app) {
-            results.push({
-              dedupeId: app.appUrl,
-              data: new GaiaGrid.Bookmark({
-                id: app.appUrl,
-                name: app.name,
-                url: app.appUrl,
-                icon: app.icon,
-                renderer: GridIconRenderer.TYPE.CLIP
-              }, {
-                search: true}
-              )
-            });
-          }, this);
-          collect(results);
+    search: function(input) {
+      return new Promise((resolve, reject) => {
+        if (!eme.api.Apps) {
+          reject();
+          return;
         }
-      }).bind(this), function reject(reason) {
-        // handle errors
+
+        this.request = eme.api.Apps.search({
+          'query': input
+        });
+
+        this.request.then((data) => {
+          var response = data.response;
+          if (response && response.apps && response.apps.length) {
+            var results = [];
+            response.apps.forEach(app => {
+              results.push({
+                dedupeId: app.appUrl,
+                data: new GaiaGrid.Bookmark({
+                  id: app.appUrl,
+                  name: app.name,
+                  url: app.appUrl,
+                  icon: app.icon,
+                  renderer: GridIconRenderer.TYPE.CLIP
+                }, {
+                  search: true}
+                )
+              });
+            });
+            resolve(results);
+          }
+        }, (reason) => {
+          reject();
+        });
       });
     }
   };

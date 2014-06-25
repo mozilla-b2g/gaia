@@ -1,6 +1,6 @@
 'use strict';
 /* global MockNavigatormozApps, MockNavigatormozSetMessageHandler,
-          MockMozActivity, Search, MockProvider, MockasyncStorage */
+          MockMozActivity, Search, MockProvider, MockasyncStorage, Promise */
 
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
@@ -136,7 +136,8 @@ suite('search/search', function() {
     });
 
     test('only searches once if called twice rapidly', function() {
-      var stub = this.sinon.stub(Search.providers.Foo, 'search');
+      var stub = this.sinon.stub(Search.providers.Foo, 'search').returns(
+        new Promise(() => {}));
       Search.change({
         data: {
           input: 'a'
@@ -271,7 +272,9 @@ suite('search/search', function() {
         WebResults: {
           clear: function() {},
           abort: function() {},
-          search: function() {},
+          search: function() {
+            return new Promise(() => {});
+          },
           fullscreen: function() {}
         }
       };
@@ -588,13 +591,16 @@ suite('search/search', function() {
       var remoteProvider = new MockProvider('remote');
       remoteProvider.remote = true;
 
-      var remoteStub = this.sinon.stub(remoteProvider, 'search');
-      var localStub = this.sinon.stub(localProvider, 'search');
+      var remoteStub = this.sinon.stub(remoteProvider, 'search')
+        .returns(new Promise(() => {}));
+      var localStub = this.sinon.stub(localProvider, 'search')
+        .returns(new Promise(() => {}));
 
       Search.provider(localProvider);
       Search.provider(remoteProvider);
 
       Search.suggestionsEnabled = false;
+
       Search.change({data: {input: 'test'}});
       clock.tick(1000);
 
@@ -610,8 +616,10 @@ suite('search/search', function() {
       var remoteProvider = new MockProvider('remote');
       remoteProvider.remote = true;
 
-      var remoteStub = this.sinon.stub(remoteProvider, 'search');
-      var localStub = this.sinon.stub(localProvider, 'search');
+      var remoteStub = this.sinon.stub(remoteProvider, 'search')
+        .returns(new Promise(() => {}));
+      var localStub = this.sinon.stub(localProvider, 'search')
+        .returns(new Promise(() => {}));
 
       Search.provider(localProvider);
       Search.provider(remoteProvider);

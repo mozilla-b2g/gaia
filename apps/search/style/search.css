@@ -17,6 +17,17 @@ body, a {
   color: rgba(255, 255, 255, 0.9);
 }
 
+#offline-message {
+  font-size: 1.7rem;
+  font-style: italic;
+  margin: 35% 2rem 0;
+  text-align: center;
+}
+
+#offline-message:empty {
+  display: none;
+}
+
 section.suggestions {
   margin: 0 0.7rem;
   font-size: 16px;
