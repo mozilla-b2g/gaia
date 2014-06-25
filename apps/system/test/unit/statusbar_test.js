@@ -1337,7 +1337,7 @@ suite('system/Statusbar', function() {
       this.sinon.stub(app, 'isFullScreen').returns(true);
       StatusBar.show();
 
-      var evt = new CustomEvent('appopening', { detail: app });
+      var evt = new CustomEvent('appopened', { detail: app });
       StatusBar.handleEvent(evt);
 
       assert.isTrue(StatusBar.element.classList.contains('invisible'));
@@ -1348,7 +1348,7 @@ suite('system/Statusbar', function() {
       this.sinon.stub(app, 'isFullScreen').returns(false);
       StatusBar.show();
 
-      var evt = new CustomEvent('appopening', { detail: app });
+      var evt = new CustomEvent('appopened', { detail: app });
       StatusBar.handleEvent(evt);
 
       assert.isFalse(StatusBar.element.classList.contains('invisible'));
