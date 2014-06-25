@@ -69,7 +69,7 @@ suite('search/providers/marketplace', function() {
     });
 
     test('renders all results', function(done) {
-      subject.search('fake', function(results) {
+      subject.search('fake').then(results => {
         assert.equal(results.length, 2);
         done();
       });

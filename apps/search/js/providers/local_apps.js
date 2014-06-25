@@ -1,4 +1,4 @@
-/* global Search, DataGridProvider, GaiaGrid */
+/* global Search, DataGridProvider, GaiaGrid, Promise */
 
 (function() {
 
@@ -34,19 +34,20 @@
     dedupes: true,
     dedupeStrategy: 'exact',
 
-    search: function(input, collect) {
+    search: function(input) {
+      return new Promise((resolve, reject) => {
+        var results = this.find(input);
+        var formatted = [];
 
-      var results = this.find(input);
-      var formatted = [];
+        results.forEach(function eachResult(result) {
+          formatted.push({
+            dedupeId: result.app.manifestURL,
+            data: new GaiaGrid.Mozapp(result.app, result.entryPoint)
+          });
+        }, this);
 
-      results.forEach(function eachResult(result) {
-        formatted.push({
-          dedupeId: result.app.manifestURL,
-          data: new GaiaGrid.Mozapp(result.app, result.entryPoint)
-        });
-      }, this);
-
-      collect(formatted);
+        resolve(formatted);
+      });
     },
 
     find: function(query) {
