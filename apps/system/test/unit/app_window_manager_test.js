@@ -1,7 +1,6 @@
 /* global AppWindowManager, AppWindow, homescreenLauncher,
           MockAttentionScreen, HomescreenWindow, MocksHelper,
-          MockSettingsListener, MockLockScreen, HomescreenLauncher,
-          layoutManager */
+          MockSettingsListener, MockLockScreen, HomescreenLauncher */
 'use strict';
 
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
@@ -558,78 +557,19 @@ suite('system/AppWindowManager', function() {
       assert.isTrue(stubAppCurrentClose.called);
     });
 
-    test('from app to new app', function() {
+    test('app to app', function() {
       injectRunningApps(app1, app2);
       AppWindowManager._activeApp = app1;
       var stubReady = this.sinon.stub(app2, 'ready');
       var stubAppNextOpen = this.sinon.stub(app2, 'open');
       var stubAppCurrentClose = this.sinon.stub(app1, 'close');
-      app2.createdTime = 2;
-      app1.createdTime = 1;
       AppWindowManager.switchApp(app1, app2, true);
       stubReady.yield();
       assert.isTrue(stubAppNextOpen.called);
       assert.isTrue(stubAppCurrentClose.called);
-
       assert.isTrue(stubAppNextOpen.calledWith('invoked'));
       assert.isTrue(stubAppCurrentClose.calledWith('invoking'));
     });
-
-    test('from app to old app', function() {
-      injectRunningApps(app1, app2);
-      AppWindowManager._activeApp = app2;
-      var stubReady = this.sinon.stub(app1, 'ready');
-      var stubAppNextOpen = this.sinon.stub(app1, 'open');
-      var stubAppCurrentClose = this.sinon.stub(app2, 'close');
-      app2.createdTime = 2;
-      app1.createdTime = 1;
-      AppWindowManager.switchApp(app2, app1, true);
-      stubReady.yield();
-      assert.isTrue(stubAppNextOpen.called);
-      assert.isTrue(stubAppCurrentClose.called);
-
-      assert.isTrue(stubAppNextOpen.calledWith('in-from-left'));
-      assert.isTrue(stubAppCurrentClose.calledWith('out-to-right'));
-    });
-
-    test('should be immediate transition if the new app dimension differs',
-      function() {
-        injectRunningApps(app1, app2);
-        AppWindowManager._activeApp = app1;
-        var stubReady = this.sinon.stub(app2, 'ready');
-        var stubAppNextOpen = this.sinon.stub(app2, 'open');
-        var stubAppCurrentClose = this.sinon.stub(app1, 'close');
-        this.sinon.stub(layoutManager, 'match').returns(false);
-        app2.resized = true;
-
-        AppWindowManager.switchApp(app1, app2, true);
-        stubReady.yield();
-        assert.isTrue(stubAppNextOpen.called);
-        assert.isTrue(stubAppCurrentClose.called);
-
-        assert.isTrue(stubAppNextOpen.calledWith('immediate'));
-        assert.isTrue(stubAppCurrentClose.calledWith('immediate'));
-      });
-
-    test('should be immediate transition' +
-          'if the new app has perpendicular orientation',
-      function() {
-        injectRunningApps(app1, app2);
-        AppWindowManager._activeApp = app1;
-        var stubReady = this.sinon.stub(app2, 'ready');
-        var stubAppNextOpen = this.sinon.stub(app2, 'open');
-        var stubAppCurrentClose = this.sinon.stub(app1, 'close');
-        app2.rotatingDegree = 90;
-
-        AppWindowManager.switchApp(app1, app2, true);
-        stubReady.yield();
-        assert.isTrue(stubAppNextOpen.called);
-        assert.isTrue(stubAppCurrentClose.called);
-
-        assert.isTrue(stubAppNextOpen.calledWith('immediate'));
-        assert.isTrue(stubAppCurrentClose.calledWith('immediate'));
-        app2.rotatingDegree = 0;
-      });
 
     test('close app to cardsview', function() {
       injectRunningApps(app1, home);
