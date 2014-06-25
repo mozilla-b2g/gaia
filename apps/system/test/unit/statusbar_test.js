@@ -441,7 +441,8 @@ suite('system/Statusbar', function() {
             sinon.stub(mockSimSlots[slotIndex], 'isLocked').returns(true);
 
             MockNavigatorMozTelephony.active = {
-              state: 'connected'
+              state: 'connected',
+              serviceId: slotIndex
             };
 
             StatusBar.update.signal.call(StatusBar);
@@ -467,7 +468,8 @@ suite('system/Statusbar', function() {
             sinon.stub(mockSimSlots[slotIndex], 'isLocked').returns(true);
 
             MockNavigatorMozTelephony.active = {
-              state: 'dialing'
+              state: 'dialing',
+              serviceId: slotIndex
             };
 
             StatusBar.update.signal.call(StatusBar);
@@ -495,7 +497,8 @@ suite('system/Statusbar', function() {
             StatusBar.update.signal.call(StatusBar);
 
             var activeCall = {
-              state: 'dialing'
+              state: 'dialing',
+              serviceId: slotIndex
             };
 
             MockNavigatorMozTelephony.active = activeCall;
