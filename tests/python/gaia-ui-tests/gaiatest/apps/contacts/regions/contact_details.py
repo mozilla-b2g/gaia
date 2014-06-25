@@ -43,8 +43,9 @@ class ContactDetails(Base):
         return self.marionette.find_element(*self._contact_image_locator).get_attribute('style')
 
     def tap_phone_number(self):
-        self.wait_for_element_displayed(*self._call_phone_number_button_locator)
-        self.marionette.find_element(*self._call_phone_number_button_locator).tap()
+        call_button = self.marionette.find_element(*self._call_phone_number_button_locator)
+        self.wait_for_condition(lambda m: call_button.is_enabled())
+        call_button.tap()
         from gaiatest.apps.phone.regions.call_screen import CallScreen
         return CallScreen(self.marionette)
 
