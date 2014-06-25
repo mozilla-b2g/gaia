@@ -45,6 +45,7 @@
 
 #event-view .current-calendar,
 #event-view .alarms {
+  position: relative;
   margin-bottom: 1rem;
 }
 
@@ -70,7 +71,7 @@
 
 #event-view .current-calendar .icon-dot {
   position: absolute;
-  left: -0.4rem;
+  left: -2.2rem;
   line-height: 1.8rem;
   font-size: 5rem;
 }
