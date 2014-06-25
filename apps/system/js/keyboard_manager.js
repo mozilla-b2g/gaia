@@ -21,8 +21,8 @@ const TYPE_GROUP_MAPPING = {
   'email': 'email',
   'password': 'text',
   'search': 'text',
+  'number': 'text',
   // number
-  'number': 'number',
   'tel': 'number',
   // option
   'select-one': 'option',

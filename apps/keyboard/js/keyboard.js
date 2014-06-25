@@ -394,11 +394,11 @@ function mapInputType(type) {
     // default fallback and textual types
   case 'password':
   case 'search':
+  case 'number':
   default:
     return 'text';
     break;
 
-  case 'number':
   case 'range': // XXX: should be different from number
     return 'number';
     break;
@@ -1554,6 +1554,11 @@ function showKeyboard() {
     'keyboard.current': keyboardName
   });
 
+  // Form > input(type:number) just use symbol pad with number.
+  if (inputContext.inputType === 'number' && currentInputType === 'text') {
+    // Switch to numbers+symbols page
+    setLayoutPage(LAYOUT_PAGE_SYMBOLS_I);
+  }
   // If we are already visible,
   // render the keyboard only after IMEngine is loaded.
   if (isKeyboardRendered) {
