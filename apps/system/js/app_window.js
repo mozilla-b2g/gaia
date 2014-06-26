@@ -221,6 +221,10 @@
         this._screenshotOverlayState = 'frame';
         this._showFrame();
       } else {
+        if (this.identificationOverlay) {
+          this.identificationOverlay.classList.add('visible');
+        }
+
         var partOfHomescreen = this.getBottomMostWindow().isHomescreen;
         if (screenshotIfInvisible && !partOfHomescreen) {
           this._screenshotOverlayState = 'screenshot';
@@ -561,7 +565,7 @@
 
     // Launched as background: set visibility and overlay screenshot.
     if (this.config.stayBackground) {
-      this.setVisible(false, true /* screenshot */);
+      this.setVisible(false, false /* no screenshot */);
     } else if (this.isHomescreen) {
       // homescreen is launched at background under FTU/lockscreen too.
       this.setVisible(false);
@@ -1040,9 +1044,6 @@
         }
 
         this.screenshotOverlay.classList.add('visible');
-        if (this.identificationOverlay) {
-          this.identificationOverlay.classList.add('visible');
-        }
 
         if (!screenshotBlob) {
           // If no screenshot,
@@ -1068,12 +1069,14 @@
    */
   AppWindow.prototype._hideScreenshotOverlay =
     function aw__hideScreenshotOverlay() {
-      if (this.screenshotOverlay &&
-          this._screenshotOverlayState != 'screenshot' &&
-          this.screenshotOverlay.classList.contains('visible')) {
-        this.screenshotOverlay.classList.remove('visible');
-        this.screenshotOverlay.style.backgroundImage = '';
+      if (!this.screenshotOverlay ||
+          this._screenshotOverlayState == 'screenshot' ||
+          !this.screenshotOverlay.classList.contains('visible')) {
+        return;
       }
+
+      this.screenshotOverlay.classList.remove('visible');
+      this.screenshotOverlay.style.backgroundImage = '';
 
       if (this.identificationOverlay) {
         var overlay = this.identificationOverlay;
