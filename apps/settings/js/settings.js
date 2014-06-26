@@ -2,10 +2,10 @@
 'use strict';
 
 /**
- * Debug note: to test this app in a desktop browser, you'll have to set
- * the `dom.mozSettings.enabled' preference to false in order to avoid an
- * `uncaught exception: 2147500033' message (= 0x80004001).
- */
+* Debug note: to test this app in a desktop browser, you'll have to set
+* the `dom.mozSettings.enabled' preference to false in order to avoid an
+* `uncaught exception: 2147500033' message (= 0x80004001).
+*/
 
 var Settings = {
   get mozSettings() {
@@ -63,7 +63,7 @@ var Settings = {
     // If we're handling an activity and the 'back' button is hit,
     // close the activity if the activity section is different than root panel.
     // XXX this assumes the 'back' button of the activity panel
-    //     points to the root panel.
+    // points to the root panel.
     if (this._currentActivity !== null &&
           (hash === '#home' ||
           (hash === '#root' && Settings._currentActivitySection !== 'root'))) {
@@ -235,9 +235,9 @@ var Settings = {
   },
 
   /**
-   * back button = close dialog || back to the root page
-   * + prevent the [Return] key to validate forms
-   */
+    * back button = close dialog || back to the root page
+    * + prevent the [Return] key to validate forms
+    */
   handleSpecialKeys: function settings_handleSpecialKeys(event) {
     if (Settings.currentPanel != '#root' &&
         event.keyCode === event.DOM_VK_ESCAPE) {

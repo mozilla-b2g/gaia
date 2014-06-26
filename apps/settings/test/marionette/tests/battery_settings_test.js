@@ -14,6 +14,24 @@ marionette('manipulate battery settings', function() {
     batteryPanel = settingsApp.batteryPanel;
   });
 
+  test('Check what is the Battey indicator status', function() {
+    assert.equal(
+      batteryPanel.batteryIndicatorStatus,
+      '0',
+      'Only battery icon is selected'
+    );
+    assert.equal(
+      batteryPanel.batteryIndicatorStatus,
+      '1',
+      'Only battery percentage is selected'
+    );
+    assert.equal(
+      batteryPanel.batteryIndicatorStatus,
+      '2',
+      'Both battery icon and percentage are selected'
+    );
+  });
+
   test('check power save mode initial state', function() {
     assert.ok(
       !batteryPanel.isPowerSavingEnabled,

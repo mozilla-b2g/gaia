@@ -19,7 +19,8 @@ BatteryPanel.Selectors = {
   'powerSaveModeEnabledCheckbox': '#battery input',
   'powerSaveModeEnabledLabel': '#battery label',
   'threshold': 'select[name="powersave.threshold"]',
-  'option': 'option'
+  'option': 'option',
+  'batteryStatusbarIndicator' : '#select-battery-mode'
 };
 
 BatteryPanel.prototype = {
@@ -34,6 +35,11 @@ BatteryPanel.prototype = {
   get isLastOptionSelected() {
     var options = this.findElements('option');
     return options[options.length - 1].getAttribute('checked');
+  },
+
+  get batteryIndicatorStatus(){
+    var select = this.findElement('batteryStatusbarIndicator');
+    return select.selectedIndex;
   },
 
   changeTurnOnPeriod: function() {
