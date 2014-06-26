@@ -586,7 +586,7 @@ function modifyLayout(keyboardName) {
         }
 
         // Add ',' to 2nd level
-        if (layoutPage !== LAYOUT_PAGE_DEFAULT || !needsSwitchingKey) {
+        if (!needsSwitchingKey) {
           if (overwrites[','] !== false) {
             space.ratio -= 1;
             next++;
