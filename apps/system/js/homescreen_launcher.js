@@ -131,7 +131,7 @@
       window.addEventListener('cardviewbeforeclose', this);
       window.addEventListener('shrinking-start', this);
       window.addEventListener('shrinking-stop', this);
-      window.addEventListener('homescreenopening', this);
+      window.addEventListener('homescreenopened', this);
       window.addEventListener('homescreenclosing', this);
       window.addEventListener('software-button-enabled', this);
       window.addEventListener('software-button-disabled', this);
@@ -161,7 +161,7 @@
       window.removeEventListener('cardviewbeforeclose', this);
       window.removeEventListener('shrinking-start', this);
       window.removeEventListener('shrinking-stop', this);
-      window.removeEventListener('homescreenopening', this);
+      window.removeEventListener('homescreenopened', this);
       window.removeEventListener('homescreenclosing', this);
       window.removeEventListener('software-button-enabled', this);
       window.removeEventListener('software-button-disabled', this);
@@ -219,7 +219,7 @@
           // To resume the homescreen after shrinking UI is over.
           this.getHomescreen().showFadeOverlay();
           break;
-        case 'homescreenopening':
+        case 'homescreenopened':
           this._screen.classList.add('on-homescreen');
           break;
         case 'homescreenclosing':

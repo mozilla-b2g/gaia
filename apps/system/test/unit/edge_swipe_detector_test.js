@@ -53,7 +53,7 @@ suite('system/EdgeSwipeDetector >', function() {
   }
 
   function homescreen() {
-    window.dispatchEvent(new Event('homescreenopening'));
+    window.dispatchEvent(new Event('homescreenopened'));
   }
 
   function cardsViewShowCard(position) {

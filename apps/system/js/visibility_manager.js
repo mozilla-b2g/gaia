@@ -28,7 +28,7 @@
       'status-inactive',
       'mozChromeEvent',
       'appclosing',
-      'homescreenopening',
+      'homescreenopened',
       'rocketbar-overlayopened',
       'rocketbar-overlayclosed',
       'utility-tray-overlayopened',
@@ -58,7 +58,7 @@
       // We are actively discard audio channel state when homescreen
       // is opened.
       case 'appclosing':
-      case 'homescreenopening':
+      case 'homescreenopened':
         this._normalAudioChannelActive = false;
         break;
       case 'status-active':
