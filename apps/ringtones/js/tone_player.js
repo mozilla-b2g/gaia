@@ -19,22 +19,22 @@ function TonePlayer() {
   this._source = this._context.createMediaElementSource(this._player);
   this._source.connect(this._context.destination);
 
-  this._player.oncanplay = function() {
+  this._player.addEventListener('loadedmetadata', function() {
     if (this._player.src) { // Null URLs don't need to be validated here.
       this._isValid = true;
       this._player.dispatchEvent(new CustomEvent(
         'validated', { detail: this._isValid }
       ));
     }
-  }.bind(this);
-  this._player.onerror = function() {
+  }.bind(this));
+  this._player.addEventListener('error', function() {
     if (this._player.src) { // Null URLs don't need to be validated here.
       this._isValid = false;
       this._player.dispatchEvent(new CustomEvent(
         'validated', { detail: this._isValid }
       ));
     }
-  }.bind(this);
+  }.bind(this));
 
   window.addEventListener('visibilitychange', function() {
     if (document.hidden) {
