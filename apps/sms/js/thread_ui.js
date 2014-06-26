@@ -2571,7 +2571,7 @@ var ThreadUI = global.ThreadUI = {
     var last = this.recipientsList.lastElementChild;
     var typed = last && last.textContent.trim();
     var isContact = false;
-    var record, length, number, contact, prop;
+    var record, length, number, contact, prop, propValue;
 
     if (index < 0) {
       index = 0;
@@ -2596,8 +2596,9 @@ var ThreadUI = global.ThreadUI = {
       } else {
         // Received an exact match that may have multiple tel records
         for (var i = 0; i < length; i++) {
-          if (this.recipients.numbers.indexOf(record[prop][i].value) === -1) {
-            number = record[prop][i].value;
+          propValue = record[prop][i].value;
+          if (this.recipients.numbers.indexOf(propValue) === -1) {
+            number = propValue;
             break;
           }
         }

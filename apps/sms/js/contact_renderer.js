@@ -195,7 +195,7 @@ ContactRenderer.prototype = {
         return new RegExp(k, 'ig');
       }),
       email: escsubs.map(function(k) {
-        // Match any of the search terms with the number
+        // Match any of the search terms with the email
         return new RegExp('^' + k, 'gi');
       })
     };
