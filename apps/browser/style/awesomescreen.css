@@ -1,5 +1,5 @@
 #awesomescreen-cancel-button {
-  background: url('./images/close.png') center center no-repeat;
+  background: url('./images/close.png') no-repeat 50% 50% / 3rem auto;
   display: none;
   position: absolute;
   right: 0;
@@ -9,8 +9,9 @@
 }
 
 #awesomescreen-cancel-button:active {
-  background: url('./images/close.png') center center no-repeat,
-              url('./images/close-pressed-bg.png') center center no-repeat;
+  background: url('./images/close.png') no-repeat center center,
+              url('./images/close-pressed-bg.png') no-repeat center center;
+  background-size: 3rem auto, auto;
 }
 
 .awesome-screen #awesomescreen-cancel-button {
