@@ -68,7 +68,8 @@ Keyboards.en = {
         { value: '(' }, { value: ')' }
       ], [
         { value: 'ALT', ratio: 1.5, keyCode: KeyEvent.DOM_VK_ALT },
-        { value: '+' }, { value: ':' }, { value: ';' }, { value: '"' },
+        { value: '+', supportsSwitchingValue: ',' },
+        { value: ':' }, { value: ';' }, { value: '"' },
         { value: '\'' }, { value: '?' }, { value: '!' },
         { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
       ], [

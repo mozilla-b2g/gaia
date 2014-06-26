@@ -199,12 +199,17 @@ LayoutManager.prototype._updateModifiedLayout = function() {
   //
   // ... make a copy of the entire keys array,
   layout.keys = [].concat(layout.keys);
-  // ... and point row containing space key object to a new array,
-  var spaceKeyRow = layout.keys[spaceKeyRowCount] =
-    [].concat(layout.keys[spaceKeyRowCount]);
-  // ... the space key object should be point to a new object too.
-  var spaceKeyObject = layout.keys[spaceKeyRowCount][spaceKeyCount] =
-    Object.create(layout.keys[spaceKeyRowCount][spaceKeyCount]);
+  // ... and point all rows/keys to new new array/object too.
+  for (var i = 0; i < layout.keys.length; i++) {
+    layout.keys[i] =
+      [].concat(layout.keys[i]);
+    for (var j = 0; j < layout.keys[i].length; j++) {
+      layout.keys[i][j] =
+        Object.create(layout.keys[i][j]);
+    }
+  }
+  var spaceKeyRow = layout.keys[spaceKeyRowCount];
+  var spaceKeyObject = layout.keys[spaceKeyRowCount][spaceKeyCount];
 
   // Keep the pageSwitchingKey here, because we may need to modify its ratio
   // at the end.
@@ -234,9 +239,28 @@ LayoutManager.prototype._updateModifiedLayout = function() {
     spaceKeyCount++;
   }
 
-  // Insert switch-to-another-layout button
+  // Insert switch-to-another-layout button and change some keys
   var needsSwitchingKey = supportsSwitching && !layout.hidesSwitchKey;
   if (needsSwitchingKey) {
+    // Change keys with supportsSwitching
+    var key, row, c, r = layout.keys.length;
+    while (r--) {
+      row = layout.keys[r];
+      c = row.length;
+      while (c--) {
+        key = row[c];
+        if (key.supportsSwitchingValue) {
+          if (typeof(key.supportsSwitchingValue) === 'string') {
+            key.value = key.supportsSwitchingValue;
+          } else {
+            for (var property in key.supportsSwitchingValue) {
+              key[property] = key.supportsSwitchingValue[property];
+            }
+          }
+        }
+      }
+    }
+
     var imeSwitchKey = {
       value: '&#x1f310;', // U+1F310 GLOBE WITH MERIDIANS
       ratio: 1,
@@ -302,13 +326,12 @@ LayoutManager.prototype._updateModifiedLayout = function() {
         var overwrites = layout.textLayoutOverwrite || {};
 
         // Add comma key if we asked too,
-        // Only add the key at alternative pages or if
+        // Only add the key if
         // we didn't add the switching key.
         // Add comma key in any page if needsCommaKey is
         // set explicitly.
         if (overwrites[','] !== false &&
-            (this.currentLayoutPage !== this.LAYOUT_PAGE_DEFAULT ||
-             !needsSwitchingKey ||
+            (!needsSwitchingKey ||
              layout.needsCommaKey)) {
           var commaKey = {
             value: ',',
