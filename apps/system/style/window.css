@@ -337,6 +337,10 @@
   opacity: 0.8;
 }
 
+#screen.software-button-enabled .appWindow > .fade-overlay {
+  height: calc(100% - 4rem);
+}
+
 .appWindow.homescreen.fadeout > .fade-overlay.hidden {
   visibility: hidden;
 }
