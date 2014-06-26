@@ -213,10 +213,10 @@ suite('system/HomescreenLauncher', function() {
       stubGetHomescreen.restore();
     });
 
-    test('homescreenopened', function() {
+    test('homescreenopening', function() {
       window.homescreenLauncher._screen = document.createElement('div');
       window.homescreenLauncher.handleEvent({
-        type: 'homescreenopened'
+        type: 'homescreenopening'
       });
       assert.ok(window.homescreenLauncher._screen.classList.
         contains('on-homescreen'));
