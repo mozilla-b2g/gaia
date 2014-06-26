@@ -8,5 +8,8 @@ var MockActivities = {
   },
   postCancel: function() {
     
+  },
+  dataPickHandler: function() {
+
   }
 };
