@@ -171,7 +171,7 @@ var UtilityTray = {
       // because of the pointer-events:none we're adding.
       // Sending a touchcancel accordingly.
       var app = AppWindowManager.getActiveApp();
-      if (app) {
+      if (app && app.config && app.config.oop) {
         app.iframe.sendTouchEvent('touchcancel', [touch.identifier],
                                   [touch.pageX], [touch.pageY],
                                   [touch.radiusX], [touch.radiusY],
