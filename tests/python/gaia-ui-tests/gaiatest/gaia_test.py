@@ -40,9 +40,11 @@ class GaiaApps(object):
         self.marionette.import_script(js)
 
     def get_permission(self, app_name, permission_name):
+        self.marionette.switch_to_frame()
         return self.marionette.execute_async_script("return GaiaApps.getPermission('%s', '%s')" % (app_name, permission_name))
 
     def set_permission(self, app_name, permission_name, value):
+        self.marionette.switch_to_frame()
         return self.marionette.execute_async_script("return GaiaApps.setPermission('%s', '%s', '%s')" %
                                                     (app_name, permission_name, value))
 
@@ -92,6 +94,7 @@ class GaiaApps(object):
 
     @property
     def installed_apps(self):
+        self.marionette.switch_to_frame()
         apps = self.marionette.execute_async_script(
             'return GaiaApps.getInstalledApps();')
         result = []
@@ -129,6 +132,7 @@ class GaiaData(object):
         self.marionette.import_script(js)
 
     def set_time(self, date_number):
+        self.marionette.switch_to_frame()
         self.marionette.set_context(self.marionette.CONTEXT_CHROME)
         self.marionette.execute_script("window.navigator.mozTime.set(%s);" % date_number)
         self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
@@ -159,6 +163,7 @@ class GaiaData(object):
         assert result, 'Unable to remove all contacts'
 
     def get_setting(self, name):
+        self.marionette.switch_to_frame()
         return self.marionette.execute_async_script('return GaiaDataLayer.getSetting("%s")' % name, special_powers=True)
 
     @property
@@ -166,8 +171,8 @@ class GaiaData(object):
         return self.get_setting('*')
 
     def set_setting(self, name, value):
-        import json
         value = json.dumps(value)
+        self.marionette.switch_to_frame()
         result = self.marionette.execute_async_script('return GaiaDataLayer.setSetting("%s", %s)' % (name, value), special_powers=True)
         assert result, "Unable to change setting with name '%s' to '%s'" % (name, value)
 
@@ -220,6 +225,7 @@ class GaiaData(object):
 
     @property
     def bluetooth_is_enabled(self):
+        self.marionette.switch_to_frame()
         return self.marionette.execute_script("return window.navigator.mozBluetooth.enabled")
 
     @property
@@ -238,6 +244,7 @@ class GaiaData(object):
 
     @property
     def is_cell_data_connected(self):
+        self.marionette.switch_to_frame()
         # XXX: check bug-926169
         # this is used to keep all tests passing while introducing multi-sim APIs
         return self.marionette.execute_script('var mobileConnection = window.navigator.mozMobileConnection || ' +
@@ -253,6 +260,7 @@ class GaiaData(object):
 
     @property
     def is_wifi_enabled(self):
+        self.marionette.switch_to_frame()
         return self.marionette.execute_script("return window.navigator.mozWifiManager && "
                                               "window.navigator.mozWifiManager.enabled;")
 
@@ -287,25 +295,30 @@ class GaiaData(object):
 
     @property
     def known_networks(self):
+        self.marionette.switch_to_frame()
         known_networks = self.marionette.execute_async_script(
             'return GaiaDataLayer.getKnownNetworks()')
         return [n for n in known_networks if n]
 
     @property
     def active_telephony_state(self):
+        self.marionette.switch_to_frame()
         # Returns the state of only the currently active call or None if no active call
         return self.marionette.execute_script("return GaiaDataLayer.getMozTelephonyState()")
 
     @property
     def is_antenna_available(self):
+        self.marionette.switch_to_frame()
         return self.marionette.execute_script('return window.navigator.mozFMRadio.antennaAvailable')
 
     @property
     def is_fm_radio_enabled(self):
+        self.marionette.switch_to_frame()
         return self.marionette.execute_script('return window.navigator.mozFMRadio.enabled')
 
     @property
     def fm_radio_frequency(self):
+        self.marionette.switch_to_frame()
         return self.marionette.execute_script('return window.navigator.mozFMRadio.frequency')
 
     @property
@@ -329,25 +342,30 @@ class GaiaData(object):
         self.marionette.execute_script('window.wrappedJSObject.RecentsDBManager.deleteAll();')
 
     def kill_active_call(self):
+        self.marionette.switch_to_frame()
         self.marionette.execute_script("var telephony = window.navigator.mozTelephony; " +
                                        "if(telephony.active) telephony.active.hangUp();")
 
     @property
     def music_files(self):
+        self.marionette.switch_to_frame()
         return self.marionette.execute_async_script(
             'return GaiaDataLayer.getAllMusic();')
 
     @property
     def picture_files(self):
+        self.marionette.switch_to_frame()
         return self.marionette.execute_async_script(
             'return GaiaDataLayer.getAllPictures();')
 
     @property
     def video_files(self):
+        self.marionette.switch_to_frame()
         return self.marionette.execute_async_script(
             'return GaiaDataLayer.getAllVideos();')
 
     def sdcard_files(self, extension=''):
+        self.marionette.switch_to_frame()
         files = self.marionette.execute_async_script(
             'return GaiaDataLayer.getAllSDCardFiles();')
         if len(extension):
@@ -355,9 +373,9 @@ class GaiaData(object):
         return files
 
     def send_sms(self, number, message):
-        import json
         number = json.dumps(number)
         message = json.dumps(message)
+        self.marionette.switch_to_frame()
         result = self.marionette.execute_async_script('return GaiaDataLayer.sendSMS(%s, %s)' % (number, message), special_powers=True)
         assert result, 'Unable to send SMS to recipient %s with text %s' % (number, message)
 
