@@ -198,6 +198,7 @@
 #week-view .sticky .event {
   margin-bottom: 0.1rem;
   padding-top: 0;
+  min-height: 2.8rem;
 }
 
 #week-view .sticky .event:last-child {
