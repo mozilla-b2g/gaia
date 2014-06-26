@@ -281,18 +281,6 @@ document.addEventListener('visibilitychange', function onVisibilityChange() {
   }
 }, false);
 
-// Some event modifications during setup do not have full account
-// IDs. This listener catches those modifications and applies
-// them when the data is available.
-evt.on('accountModified', function(accountId, data) {
-  model.latestOnce('acctsSlice', function() {
-    var account = model.getAccount(accountId);
-    if (account) {
-      account.modifyAccount(data);
-    }
-  });
-});
-
 // The add account UI flow is requested.
 evt.on('addAccount', function() {
   Cards.removeAllCards();
