@@ -38,6 +38,9 @@ var pendingPick;
 var SETTINGS_OPTION_KEY = 'settings_option_key';
 var playerSettings;
 
+var chromeInteractive = false;
+var firstScanDone = false;
+
 // Get prepared for the localized strings, these will be used later
 navigator.mozL10n.ready(function onLanguageChange() {
   musicTitle = navigator.mozL10n.get('music');
@@ -57,6 +60,9 @@ navigator.mozL10n.ready(function onLanguageChange() {
 });
 
 navigator.mozL10n.once(function onLocalizationInit() {
+  // Tell performance monitors that our chrome is visible.
+  window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
+
   init();
 
   TitleBar.init();
@@ -99,6 +105,12 @@ navigator.mozL10n.once(function onLocalizationInit() {
   navigator.mozL10n.ready(function() {
     ModeManager.updateTitle();
     TabBar.playlistArray.localize();
+
+    if (!chromeInteractive) {
+      chromeInteractive = true;
+      // Tell performance monitors that our chrome is interactible.
+      window.dispatchEvent(new CustomEvent('moz-chrome-interactive'));
+    }
   });
 
 });
@@ -228,6 +240,13 @@ function init() {
       filesFoundBatch = 0;
       filesDeletedWhileScanning = 0;
       showCurrentView();
+    }
+
+    // If this was the first scan after startup, tell the performance monitors
+    // that we finished loading everything.
+    if (!firstScanDone) {
+      firstScanDone = true;
+      window.dispatchEvent(new CustomEvent('moz-app-loaded'));
     }
   };
 
@@ -419,25 +438,37 @@ function showCurrentView(callback) {
     // every song.
     // * Note that we need to update tiles view every time this happens
     // because it's the top level page and an independent view
-    tilesHandle = musicdb.enumerateAll('metadata.album', null, 'nextunique',
-                                       function(songs) {
-                                         // Add null to the array of songs
-                                         // this is a flag that tells update()
-                                         // to show or hide the 'empty' overlay
-                                         songs.push(null);
-                                         TilesView.clean();
+    tilesHandle = musicdb.enumerateAll(
+      'metadata.album', null, 'nextunique',
+      function(songs) {
+        // Add null to the array of songs
+        // this is a flag that tells update()
+        // to show or hide the 'empty' overlay
+        songs.push(null);
+        TilesView.clean();
 
-                                         knownSongs.length = 0;
-                                         songs.forEach(function(song) {
-                                           TilesView.update(song);
-                                           // Push the song to knownSongs then
-                                           // we can display a correct overlay
-                                           knownSongs.push(song);
-                                         });
+        knownSongs.length = 0;
+        songs.forEach(function(song) {
+          TilesView.update(song);
+          // Push the song to knownSongs then
+          // we can display a correct overlay
+          knownSongs.push(song);
+        });
 
-                                         if (callback)
-                                            callback();
-                                      });
+        // Tell performance monitors that the content is displayed and is ready
+        // to interact with. We won't send the final moz-app-loaded event until
+        // we're completely stable and have finished scanning.
+        //
+        // XXX: Maybe we could emit these events earlier, when we've just
+        // finished the "above the fold" content. That's hard to do on arbitrary
+        // screen resolutions, though.)
+        window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
+        window.dispatchEvent(new CustomEvent('moz-content-interactive'));
+
+        if (callback)
+          callback();
+      }
+    );
   });
 }
 
