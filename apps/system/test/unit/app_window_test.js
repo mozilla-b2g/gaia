@@ -1027,6 +1027,31 @@ suite('system/AppWindow', function() {
       app1.setVisible(false);
       assert.isTrue(stubApp2SetVisible.calledWith(false));
     });
+
+    test('setVisible: homescreen', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      injectFakeMozBrowserAPI(app1.browser.element);
+      app1.screenshotOverlay = document.createElement('div');
+      var stub_hideFrame = this.sinon.stub(app1,
+        '_hideFrame');
+      app1.isHomescreen = true;
+
+      app1.setVisible(false);
+      assert.equal(app1._screenshotOverlayState, 'none');
+      assert.isTrue(stub_hideFrame.called);
+    });
+
+    test('setVisible: homescreen child', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      var app2 = new AppWindow(fakeAppConfig2);
+      app1.frontWindow = app2;
+      app2.rearWindow = app1;
+      app1.isHomescreen = true;
+
+      app1.setVisible(false);
+      assert.equal(app1._screenshotOverlayState, 'none');
+      assert.equal(app2._screenshotOverlayState, 'none');
+    });
   });
 
   suite('setVisibleForScreenReader', function() {

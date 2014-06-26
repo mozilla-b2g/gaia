@@ -221,7 +221,8 @@
         this._screenshotOverlayState = 'frame';
         this._showFrame();
       } else {
-        if (screenshotIfInvisible && !this.isHomescreen) {
+        var partOfHomescreen = this.getBottomMostWindow().isHomescreen;
+        if (screenshotIfInvisible && !partOfHomescreen) {
           this._screenshotOverlayState = 'screenshot';
           this._showScreenshotOverlay();
         } else {
