@@ -1430,6 +1430,9 @@ ActiveSyncFolderConn.prototype = {
     var Type = $AirSyncBase.Enums.Type;
 
     var gotBody = function gotBody(bodyInfo) {
+      if (!bodyInfo)
+        return callback('unknown');
+
       // ActiveSync only stores one body rep, no matter how many body parts the
       // MIME message actually has.
       var bodyRep = bodyInfo.bodyReps[0];
@@ -1473,7 +1476,7 @@ ActiveSyncFolderConn.prototype = {
           return;
         }
 
-        var status, bodyContent,
+        var status, bodyContent, parseError,
             e = new $wbxml.EventParser();
         e.addEventListener([io.ItemOperations, io.Status], function(node) {
           status = node.children[0].textContent;
@@ -1482,7 +1485,13 @@ ActiveSyncFolderConn.prototype = {
                             io.Properties, asb.Body, asb.Data], function(node) {
           bodyContent = node.children[0].textContent;
         });
-        e.run(aResponse);
+
+        try {
+          e.run(aResponse);
+        }
+        catch (ex) {
+          return callback('unknown');
+        }
 
         if (status !== ioEnum.Status.Success)
           return callback('unknown');
