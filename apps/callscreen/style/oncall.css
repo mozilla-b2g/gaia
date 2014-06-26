@@ -562,9 +562,6 @@
   }
 
   #calls.big-duration > section .duration {
-    position: absolute;
-    top: 10rem;
-    left: 0;
     height: 13rem;
     width: 100%;
     background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0));
