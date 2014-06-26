@@ -166,10 +166,6 @@ body {
   background: transparent no-repeat center / 3rem !important;
   margin: 0 calc((100% - 25rem) / 8);
 }
-.bottom-btn.disabled {
-  opacity: 0.3;
-  pointer-events: none;
-}
 
 .popup {
   position: absolute;

@@ -755,7 +755,7 @@ MessageListCard.prototype = {
       mozL10n.get('messages-search-empty') :
       mozL10n.get('messages-folder-empty');
     this.messageEmptyContainer.classList.remove('collapsed');
-    this.toolbar.editBtn.classList.add('disabled');
+    this.toolbar.editBtn.disabled = true;
     this._hideSearchBoxByScrolling();
   },
   /**
@@ -764,7 +764,7 @@ MessageListCard.prototype = {
    */
   hideEmptyLayout: function() {
     this.messageEmptyContainer.classList.add('collapsed');
-    this.toolbar.editBtn.classList.remove('disabled');
+    this.toolbar.editBtn.disabled = false;
   },
 
 
