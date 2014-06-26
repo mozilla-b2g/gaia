@@ -48,6 +48,10 @@ var ConferenceGroupHandler = (function() {
     if (telephony.conferenceGroup.calls.length >= 2) {
       CallsHandler.checkCalls();
     }
+
+    if (CallsHandler.isFirstCallOnCdmaNetwork()) {
+      CallScreen.cdmaConferenceCall();
+    }
   }
 
   function show() {

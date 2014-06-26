@@ -5,6 +5,7 @@ var MockCallsHandler = {
   mActiveCall: null,
   mActiveCallForContactImage: null,
   mUpdateKeypadEnabledCalled: true,
+  mIsFirstCallOnCdmaNetwork: false,
 
   updateKeypadEnabled: function() {
     this.mUpdateKeypadEnabledCalled =
@@ -17,6 +18,10 @@ var MockCallsHandler = {
 
   get activeCallForContactImage() {
     return this.mActiveCallForContactImage;
+  },
+
+  isFirstCallOnCdmaNetwork: function() {
+    return this.mIsFirstCallOnCdmaNetwork;
   },
 
   toggleCalls: function() {},
@@ -37,5 +42,6 @@ var MockCallsHandler = {
     this.mActiveCall = null;
     this.mActiveCallForContactImage = null;
     this.mUpdateKeypadEnabledCalled = true;
+    this.mIsFirstCallOnCdmaNetwork = false;
   }
 };

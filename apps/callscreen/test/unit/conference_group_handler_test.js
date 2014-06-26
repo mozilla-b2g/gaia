@@ -119,6 +119,16 @@ suite('conference group handler', function() {
         assert.deepEqual(MockLazyL10n.keys.conferenceCall, {n: 2});
       });
 
+      test('should update call screen in cdma network', function() {
+        MockCallsHandler.mIsFirstCallOnCdmaNetwork = true;
+        MockCallScreen.mCdmaConferenceCall = false;
+
+        flush();
+        assert.isTrue(MockCallScreen.mCdmaConferenceCall);
+
+        MockCallsHandler.mIsFirstCallOnCdmaNetwork = false;
+      });
+
       suite('when a new called is merged in the conference', function() {
         setup(function() {
           flush();

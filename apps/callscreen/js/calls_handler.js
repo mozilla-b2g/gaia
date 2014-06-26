@@ -6,6 +6,7 @@
 var CallsHandler = (function callsHandler() {
   // Changing this will probably require markup changes
   var CALLS_LIMIT = 2;
+  var CDMA_CALLS_LIMIT = 2;
 
   var handledCalls = [];
 
@@ -110,6 +111,12 @@ var CallsHandler = (function callsHandler() {
 
     if (cdmaCallWaiting()) {
       handleCallWaiting(telephony.calls[0]);
+    } else {
+      if (isCdma3WayCall()) {
+        CallScreen.hidePlaceNewCallButton();
+      } else if (handledCalls.length !== 0) {
+        CallScreen.showPlaceNewCallButton();
+      }
     }
 
     if (handledCalls.length === 0) {
@@ -731,6 +738,29 @@ var CallsHandler = (function callsHandler() {
             (telephony.calls[0].secondNumber || telephony.calls[0].secondId));
   }
 
+  /**
+   * Detects if we're first call on cdma network
+   *
+   * @return {Boolean} Return true if we're first call on cdma network.
+   */
+  function isFirstCallOnCdmaNetwork() {
+    var cdmaTypes = ['evdo0', 'evdoa', 'evdob', '1xrtt', 'is95a', 'is95b'];
+    if (handledCalls.length !== 0) {
+      var ci = handledCalls[0].call.serviceId;
+      var type = window.navigator.mozMobileConnections[ci].voice.type;
+
+      return (cdmaTypes.indexOf(type) !== -1);
+    } else {
+      return false;
+    }
+  }
+
+  function isCdma3WayCall() {
+      return isFirstCallOnCdmaNetwork() &&
+            ((telephony.calls.length === CDMA_CALLS_LIMIT) ||
+             (telephony.conferenceGroup.calls.length > 0));
+  }
+
   function mergeActiveCallWith(call) {
     if (telephony.active == telephony.conferenceGroup) {
       telephony.conferenceGroup.add(call);
@@ -771,6 +801,8 @@ var CallsHandler = (function callsHandler() {
 
     get activeCallForContactImage() {
       return activeCallForContactImage();
-    }
+    },
+
+    isFirstCallOnCdmaNetwork: isFirstCallOnCdmaNetwork
   };
 })();
