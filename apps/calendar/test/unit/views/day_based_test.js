@@ -647,15 +647,22 @@ suiteGroup('Views.DayBased', function() {
 
     assert.include(
       subject.allDayElement.innerHTML,
-      Calendar.Calc.formatHour('allday'),
+      'data-l10n-id="hour-allday"',
       'should have all day'
     );
 
+    var today = new Date();
     for (; hour < 24; hour++) {
       assert.include(
         html,
         Calendar.Calc.formatHour(hour),
         'should have rendered:' + hour
+      );
+      today.setHours(hour, 0, 0, 0);
+      assert.include(
+        html,
+        'data-l10n-date-format="hour-format" data-date="' + today + '"',
+        'should have rendered:' + hour + ' locale data'
       );
     }
   });
