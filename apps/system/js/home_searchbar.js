@@ -87,9 +87,6 @@
         case 'home':
           this.handleHome(e);
           break;
-        case 'lock':
-          this.handleLock(e);
-          break;
         case 'focus':
           this.handleFocus(e);
           break;

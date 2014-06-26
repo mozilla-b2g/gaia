@@ -139,15 +139,6 @@ suite('system/HomeSearchbar', function() {
       assert.ok(stub.calledOnce);
     });
 
-    test('lock', function() {
-      var stub = this.sinon.stub(Rocketbar.prototype, 'handleLock');
-      subject.handleEvent({
-        type: 'lock',
-        target: subject.input
-      });
-      assert.ok(stub.calledOnce);
-    });
-
     test('input', function() {
       var stub = this.sinon.stub(Rocketbar.prototype, 'handleInput');
       subject.handleEvent({
