@@ -46,11 +46,11 @@
   "messages": [],
   "datastores-access": {
     "bookmarks_store": {
-      "readonly": true,
+      "readonly": false,
       "description": "Display bookmarks"
     },
     "collections_store": {
-      "readonly": true,
+      "readonly": false,
       "description": "Display collections"
     }
   },

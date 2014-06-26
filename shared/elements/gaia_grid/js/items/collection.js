@@ -112,16 +112,6 @@
         name: 'update-collection',
         data: this.detail
       });
-    },
-
-    /**
-     * Uninstalls the application.
-     */
-    remove: function() {
-      new MozActivity({
-        name: 'delete-collection',
-        data: this.detail
-      });
     }
   };
 
