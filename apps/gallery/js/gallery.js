@@ -663,7 +663,7 @@ function setView(view) {
       // Clear the selection, if there is one
       Array.forEach(thumbnails.querySelectorAll('.selected.thumbnailImage'),
                     function(elt) { elt.classList.remove('selected'); });
-      if (!isPhone)
+      if (!isPhone)//1020766
         showFile(currentFileIndex);
       break;
     case LAYOUT_MODE.fullscreen:
