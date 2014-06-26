@@ -9,9 +9,10 @@ requireApp('system/test/unit/mock_system.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_sim_pin_dialog.js');
 requireApp('system/test/unit/mock_rocketbar.js');
+requireApp('system/test/unit/mock_metrics.js');
 
 var mocksForAppTransitionController = new MocksHelper([
-  'AppWindow', 'LayoutManager', 'SettingsListener', 'System'
+  'AppWindow', 'LayoutManager', 'SettingsListener', 'System', 'Metrics'
 ]).init();
 
 suite('system/AppTransitionController', function() {

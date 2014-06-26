@@ -1,4 +1,4 @@
-/* global SettingsListener, System, SimPinDialog, rocketbar */
+/* global Metrics, SettingsListener, System, SimPinDialog, rocketbar */
 'use strict';
 
 (function(exports) {
@@ -194,6 +194,7 @@
       if (!this.app || !this.app.element) {
         return;
       }
+      Metrics.appClosing(this.app.config.url);
       this.switchTransitionState('closing');
     };
 
@@ -229,6 +230,7 @@
       this.app.launchTime = Date.now();
       this.app.fadeIn();
       this.app.setVisible(true);
+      Metrics.appOpening(this.app.config.url);
 
       // TODO:
       // May have orientation manager to deal with lock orientation request.

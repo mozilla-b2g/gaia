@@ -122,6 +122,7 @@ var AppInstallManager = {
 
     this.onDownloadStop(app);
     this.onDownloadFinish(app);
+    Metrics.appUninstalled(app.config.url);
   },
 
   handleAppInstallPrompt: function ai_handleInstallPrompt(detail) {
