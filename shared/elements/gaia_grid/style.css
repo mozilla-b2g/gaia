@@ -104,11 +104,6 @@
   height: 0.2rem
 }
 
-.divider:last-of-type {
-  visibility: hidden;
-  padding-bottom: 1.4rem;
-}
-
 .dragging .icon.active {
   z-index: 4;
   opacity: 0.65;
@@ -118,10 +113,6 @@
 .dragging .icon:not(.active),
 .dropped {
   transition: transform 0.5s, opacity 0.5s;
-}
-
-.edit-mode .divider:last-of-type {
-  visibility: visible;
 }
 
 .edit-mode .icon .remove {
