@@ -207,6 +207,7 @@
   display: flex;
   position: relative;
   height: 4rem;
+  background: #fff;
   border-bottom: 0.1rem solid #e7e7e7;
   box-sizing: border-box;
 }
