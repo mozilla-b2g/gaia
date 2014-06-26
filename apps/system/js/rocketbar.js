@@ -180,6 +180,7 @@
       window.addEventListener('applocationchange', this);
       window.addEventListener('appscroll', this);
       window.addEventListener('home', this);
+      window.addEventListener('lock', this);
       window.addEventListener('cardviewclosedhome', this);
       window.addEventListener('cardviewclosed', this);
       window.addEventListener('cardviewshown', this);
@@ -235,6 +236,10 @@
         case 'home':
         case 'cardviewclosedhome':
           this.handleHome(e);
+          break;
+        case 'lock':
+          this.hideResults();
+          this.deactivate();
           break;
         case 'cardviewshown':
           if (this.waitingOnCardViewLaunch) {
@@ -384,6 +389,7 @@
       if (!this.expanded || this.transitioning) {
         return;
       }
+
       this.transitioning = true;
       this.expanded = false;
       this.rocketbar.classList.remove('expanded');
@@ -553,6 +559,16 @@
       // To be removed in bug 999463
       this.body.removeEventListener('keyboardchange',
         this.handleKeyboardChange, true);
+    },
+
+    /**
+     * Handle a lock event.
+     * @memberof Rocketbar.prototype
+     */
+    handleLock: function() {
+      this.hideResults();
+      this.collapse();
+      this.deactivate();
     },
 
     /**
@@ -878,6 +894,7 @@
         this.initSearchConnection();
         return;
       }
+
       switch (e.detail.action) {
         case 'render':
           this.activate(this.focus.bind(this));
