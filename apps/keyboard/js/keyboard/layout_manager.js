@@ -166,6 +166,8 @@ LayoutManager.prototype._updateModifiedLayout = function() {
   } else if (alternativeLayoutName) {
     layout = this.currentLayout[alternativeLayoutName] ||
       this.loader.getLayout(alternativeLayoutName);
+    // inherit the same imEngine name
+    layout.imEngine = this.currentLayout.imEngine;
   } else {
     layout = this.currentLayout;
   }
