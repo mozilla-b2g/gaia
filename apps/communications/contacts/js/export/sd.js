@@ -109,10 +109,10 @@ var ContactsSDExport = function ContactsSDExport() {
 
       getStorage(getFileName(), blob,
         function onStorage(error, storage, finalName) {
-          if (error) {
+          if (error === 0 || error) {
             var reason = error;
             // numeric error means not enough space available
-            if (parseInt(error, 10) > 0) {
+            if (parseInt(error, 10) >= 0) {
               reason = 'noSpace';
             }
             finishCallback({
