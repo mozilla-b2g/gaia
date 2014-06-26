@@ -56,13 +56,14 @@ marionette('interop basic', function() {
 
     suite(provider, function() {
       setup(function() {
+        debug('Inject mozNotification mock.');
+        client.contentScript.inject(sharedPath +
+          '/mock_navigator_moz_notification.js');
+
         debug('Launch calendar.');
         app = new Calendar(client);
         app.launch({ hideSwipeHint: true });
 
-        debug('Inject mozNotification mock.');
-        client.contentScript.inject(
-          sharedPath + '/mock_navigator_moz_notification.js');
         app.setupAccount(setupOptions(provider, config));
 
         app.monthDay.events.forEach(function(event) {

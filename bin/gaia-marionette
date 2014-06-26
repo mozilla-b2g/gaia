@@ -23,7 +23,7 @@ fi
 if [ ! -x "$VIRTUALENV" -o ! -x "$JS_MARIONETTE_ENV" -o ! -x "$(which radicale)" ]; then
   echo -e "The Radicale CalDAV server is not installed in the virtualenv, we will skip the CalDAV tests.\n \
            \rIf you want to run the CalDAV tests, please run |make caldav-server-install| first."
-  CALDAV_RELATED_TESTS="apps/calendar/test/marionette/caldav_test.js"
+  CALDAV_RELATED_TESTS="apps/calendar/test/marionette/caldav_test.js apps/calendar/test/marionette/server_test.js"
   SKIP_TEST_FILES="$SKIP_TEST_FILES $CALDAV_RELATED_TESTS"
 fi
 
