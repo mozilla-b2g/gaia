@@ -217,12 +217,16 @@
   };
 
   BrowserContextMenu.prototype.generateSystemMenuItem = function(item) {
-    switch (item.nodeName) {
+
+    var nodeName = item.nodeName;
+    var uri = item.data.uri;
+
+    switch (nodeName) {
       case 'A':
         return [{
           id: 'open-in-new-tab',
           label: _('open-in-new-tab'),
-          callback: this.openUrl.bind(this, item.data.uri)
+          callback: this.openUrl.bind(this, uri)
         }, {
         // TODO: requires the text description from the link
         // https://bugzilla.mozilla.org/show_bug.cgi?id=1009351
@@ -233,8 +237,30 @@
         // }, {
           id: 'share-link',
           label: _('share-link'),
-          callback: this.shareUrl.bind(this, item.data.uri)
+          callback: this.shareUrl.bind(this, uri)
         }];
+
+      case 'IMG':
+      case 'VIDEO':
+      case 'AUDIO':
+        var typeMap = {
+          'IMG': 'image',
+          'VIDEO': 'video',
+          'AUDIO': 'audio'
+        };
+        var type = typeMap[nodeName];
+        if (nodeName === 'VIDEO' && !item.data.hasVideo) {
+          type = 'audio';
+        }
+
+        return [
+          {
+            id: 'save-' + type,
+            label: _('save-' + type),
+            callback: this.app.browser.element.download.bind(this, uri)
+          }
+        ];
+
       default:
         return [];
     }

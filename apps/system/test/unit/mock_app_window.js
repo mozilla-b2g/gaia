@@ -30,6 +30,7 @@
     get browser() {
       if (!this._iframe) {
         this._iframe = document.createElement('iframe');
+        this._iframe.download = function() {};
       }
       return {
         element: this._iframe

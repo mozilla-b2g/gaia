@@ -56,24 +56,35 @@ suite('system/BrowserContextMenu', function() {
     }
   };
 
-  var fakeSystemContextMenuEvent = {
-    type: 'mozbrowsercontextmenu',
-    defaultPrevented: false,
-    preventDefault: function() {
-      this.defaultPrevented = true;
-    },
-    detail: {
-      contextmenu: {
-        items: []
+  var SYSTEM_TARGET_TYPES = [
+    'A',
+    'IMG',
+    'VIDEO',
+    'AUDIO'
+  ];
+
+  var fakeSystemContextMenuEvents = [];
+
+  SYSTEM_TARGET_TYPES.forEach(function(type) {
+    fakeSystemContextMenuEvents.push({
+      type: 'mozbrowsercontextmenu',
+      defaultPrevented: false,
+      preventDefault: function() {
+        this.defaultPrevented = true;
       },
-      systemTargets: [{
-        nodeName: 'A',
-        data: {
-          uri: 'http://fake.com'
-        }
-      }]
-    }
-  };
+      detail: {
+        contextmenu: {
+          items: []
+        },
+        systemTargets: [{
+          nodeName: type,
+          data: {
+            uri: 'http://fake.com'
+          }
+       }]
+      }
+    });
+  });
 
   var fakeEmptyContextMenuEvent = {
     type: 'mozbrowsercontextmenu',
@@ -158,8 +169,11 @@ suite('system/BrowserContextMenu', function() {
       return true;
     };
 
-    md1.handleEvent(fakeSystemContextMenuEvent);
-    assert.isTrue(fakeSystemContextMenuEvent.defaultPrevented);
+    for (var i = 0; i < fakeSystemContextMenuEvents.length; i++) {
+      var event = fakeSystemContextMenuEvents[i];
+      md1.handleEvent(event);
+      assert.isTrue(event.defaultPrevented);
+    }
   });
 
 
@@ -167,13 +181,16 @@ suite('system/BrowserContextMenu', function() {
     var app1 = new AppWindow(fakeAppConfig1);
     var md1 = new BrowserContextMenu(app1);
 
-    fakeSystemContextMenuEvent.defaultPrevented = false;
     app1.isBrowser = function() {
       return false;
     };
 
-    md1.handleEvent(fakeSystemContextMenuEvent);
-    assert.isFalse(fakeSystemContextMenuEvent.defaultPrevented);
+    for (var i = 0; i < fakeSystemContextMenuEvents.length; i++) {
+      var event = fakeSystemContextMenuEvents[i];
+      event.defaultPrevented = false;
+      md1.handleEvent(event);
+      assert.isFalse(event.defaultPrevented);
+    }
   });
 
 });
