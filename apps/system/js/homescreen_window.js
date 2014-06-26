@@ -16,6 +16,7 @@
     this.setBrowserConfig(manifestURL);
     this.render();
     this.publish('created');
+    this.createdTime = this.launchTime = Date.now();
     return this;
   };
 
@@ -120,6 +121,7 @@
   HomescreenWindow.prototype._handle_mozbrowsererror =
     function hw__handle_mozbrowsererror(evt) {
       if (evt.detail.type == 'fatal') {
+        this.loaded = false;
         this.publish('crashed');
         this.restart();
       }
