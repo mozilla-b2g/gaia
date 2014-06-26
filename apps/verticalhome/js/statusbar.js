@@ -30,18 +30,10 @@
     handleEvent: function(e) {
       switch(e.type) {
         case 'gaiagrid-editmode-start':
-          window.removeEventListener('context-menu-open', this);
-          window.removeEventListener('context-menu-close', this);
-          /* falls through */
-        case 'context-menu-open':
           this.scrollable.removeEventListener('scroll', this);
           this.setAppearance(APPEARANCE.OPAQUE);
           break;
         case 'gaiagrid-editmode-end':
-          window.addEventListener('context-menu-open', this);
-          window.addEventListener('context-menu-close', this);
-          /* falls through */
-        case 'context-menu-close':
           this.scrollable.addEventListener('scroll', this);
           // We still want to toggle the appearance of the scroll bar on exit
           /* falls through */
@@ -62,8 +54,6 @@
           this.scrollable.addEventListener('scroll', this);
           window.addEventListener('gaiagrid-editmode-start', this);
           window.addEventListener('gaiagrid-editmode-end', this);
-          window.addEventListener('context-menu-close', this);
-          window.addEventListener('context-menu-open', this);
           this.setAppearance(APPEARANCE.SEMI_TRANSPARENT);
         }.bind(this), function fail(reason) {
           console.error('Cannot notify changes of appearance: ', reason);
