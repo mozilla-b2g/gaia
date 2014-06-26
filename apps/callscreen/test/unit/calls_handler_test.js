@@ -134,6 +134,12 @@ suite('calls handler', function() {
         assert.isTrue(toggleSpy.calledOnce);
       });
 
+      test('should toggle the showPlaceNewCallButton', function() {
+        this.sinon.spy(MockCallScreen, 'showPlaceNewCallButton');
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
+        sinon.assert.calledOnce(MockCallScreen.showPlaceNewCallButton);
+      });
+
       test('should unmute', function() {
         var unmuteSpy = this.sinon.spy(MockCallScreen, 'unmute');
         MockNavigatorMozTelephony.mTriggerCallsChanged();
@@ -147,13 +153,14 @@ suite('calls handler', function() {
       });
 
       suite('in CDMA Network', function() {
-        test('should not toggle no-add-call in cdma network', function() {
+        test('should not toggle no-add-call in CDMA network', function() {
           MockNavigatorMozMobileConnections[1].voice = {
             type: 'evdoa'
           };
+          this.sinon.spy(MockCallScreen, 'showPlaceNewCallButton');
 
           MockNavigatorMozTelephony.mTriggerCallsChanged();
-          assert.isTrue(MockCallScreen.mShowPlaceNewCallButton);
+          sinon.assert.calledOnce(MockCallScreen.showPlaceNewCallButton);
         });
       });
     });
@@ -367,8 +374,10 @@ suite('calls handler', function() {
           type: 'evdoa'
         };
         MockNavigatorMozTelephony.calls = [mockCall, '123456789'];
+        this.sinon.spy(MockCallScreen, 'hidePlaceNewCallButton');
+
         MockNavigatorMozTelephony.mTriggerCallsChanged();
-        assert.isTrue(MockCallScreen.mHidePlaceNewCallButton);
+        sinon.assert.calledOnce(MockCallScreen.hidePlaceNewCallButton);
       });
     });
 

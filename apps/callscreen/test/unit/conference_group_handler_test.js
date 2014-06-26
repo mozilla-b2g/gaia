@@ -121,12 +121,10 @@ suite('conference group handler', function() {
 
       test('should update call screen in cdma network', function() {
         MockCallsHandler.mIsFirstCallOnCdmaNetwork = true;
-        MockCallScreen.mCdmaConferenceCall = false;
+        this.sinon.spy(MockCallScreen, 'cdmaConferenceCall');
 
         flush();
-        assert.isTrue(MockCallScreen.mCdmaConferenceCall);
-
-        MockCallsHandler.mIsFirstCallOnCdmaNetwork = false;
+        sinon.assert.calledOnce(MockCallScreen.cdmaConferenceCall);
       });
 
       suite('when a new called is merged in the conference', function() {

@@ -165,7 +165,7 @@ suite('telephony helper', function() {
     assert.isNull(mockActive.onheld);
   });
 
-  test('should NOT hold the active line before dialing inCDMA', function() {
+  test('should NOT hold the active line before dialing in CDMA mode', function() {
     MockNavigatorMozMobileConnections[0].voice.type = 'evdoa';
     var dialNumber = '123456';
     var holdStub = this.sinon.stub();
