@@ -15,6 +15,7 @@ var EdgeSwipeDetector = {
     window.addEventListener('appopen', this);
     window.addEventListener('launchapp', this);
     window.addEventListener('cardviewclosed', this);
+    window.addEventListener('ftuopened', this);
 
     ['touchstart', 'touchmove', 'touchend',
      'mousedown', 'mousemove', 'mouseup'].forEach(function(e) {
@@ -75,6 +76,7 @@ var EdgeSwipeDetector = {
         this.lifecycleEnabled = true;
         break;
       case 'homescreenopening':
+      case 'ftuopened':
         this.lifecycleEnabled = false;
         break;
       case 'launchapp':

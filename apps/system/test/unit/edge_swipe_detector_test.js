@@ -56,6 +56,10 @@ suite('system/EdgeSwipeDetector >', function() {
     window.dispatchEvent(new Event('homescreenopening'));
   }
 
+  function ftu() {
+    window.dispatchEvent(new Event('ftuopened'));
+  }
+
   function cardsViewShowCard(position) {
     var cardClosedEvent =
       new CustomEvent('cardviewclosed',
@@ -103,6 +107,20 @@ suite('system/EdgeSwipeDetector >', function() {
       cardsViewShowCard(1);
       assert.isFalse(EdgeSwipeDetector.previous.classList.contains('disabled'));
       assert.isFalse(EdgeSwipeDetector.next.classList.contains('disabled'));
+    });
+  });
+
+  suite('When the FTU is opened', function() {
+    setup(function() {
+      EdgeSwipeDetector.previous.classList.remove('disabled');
+      EdgeSwipeDetector.next.classList.remove('disabled');
+
+      ftu();
+    });
+
+    test('the edges should be disabled', function() {
+      assert.isTrue(EdgeSwipeDetector.previous.classList.contains('disabled'));
+      assert.isTrue(EdgeSwipeDetector.next.classList.contains('disabled'));
     });
   });
 
