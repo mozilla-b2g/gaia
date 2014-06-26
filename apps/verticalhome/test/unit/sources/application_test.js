@@ -1,5 +1,5 @@
 'use strict';
-/* global app, App, ApplicationSource, GaiaGrid, ItemStore */
+/* global App, ApplicationSource, GaiaGrid, ItemStore */
 /* global MocksHelper, MockNavigatormozApps, loadBodyHTML */
 
 require('/shared/js/l10n.js');
@@ -48,7 +48,7 @@ suite('app.js > ', function() {
   });
 
   test('synchronize removes app', function() {
-    var removeStub = this.sinon.stub(app.grid, 'removeItemByIndex');
+    var removeStub = this.sinon.stub(subject, 'removeIconFromGrid');
 
     subject.store._allItems = [
       new GaiaGrid.Mozapp({

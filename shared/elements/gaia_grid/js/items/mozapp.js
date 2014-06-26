@@ -56,30 +56,6 @@
 
     __proto__: GaiaGrid.GridItem.prototype,
 
-    /**
-    Safely remove this item from the grid and DOM.
-    */
-    _removeSelf: function() {
-      var idx = this.grid.items.indexOf(this);
-
-      // This should never happen but is remotely possible item is not in the
-      // grid.
-      if (idx === -1) {
-        console.error('Attempting to remove self before item has been added!');
-        return;
-      }
-
-      // update the state of the grid and DOM so this item is no longer
-      // referenced.
-      this.grid.items.splice(idx, 1);
-
-      if (this.element) {
-        this.element.parentNode.removeChild(this.element);
-      }
-
-      // ensure we don't end up with empty cruft..
-      this.grid.render({ from: idx - 1 });
-    },
 
     /**
     Determine if this application is supposed to be hidden.
@@ -152,7 +128,7 @@
           // Ensure that a hidden app has not somehow been added to the grid...
           if (this._isHiddenRole()) {
             console.warn('Removing hidden app from the grid', this.name);
-            return this._removeSelf();
+            return this.removeFromGrid();
           }
 
           // we may have updated icons so recalculate the correct icon.
@@ -379,15 +355,6 @@
 
       // Default action is to launch the app.
       return app.launch();
-    },
-
-    /**
-     * Uninstalls the application.
-     */
-    remove: function() {
-      window.dispatchEvent(new CustomEvent('gaiagrid-uninstall-mozapp', {
-        'detail': this
-      }));
     }
   };
 
