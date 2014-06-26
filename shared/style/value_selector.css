@@ -103,6 +103,18 @@
   color: #00abcd;
 }
 
+/* Checked status for RTL*/
+html[dir="rtl"] [role="dialog"][data-type="value-selector"] [role="listbox"] li[aria-selected="true"] label {
+  background: transparent url(value_selector/images/icons/checked.png) left 1.2rem top 50% / 2.1rem no-repeat;
+}
+
+html[dir="rtl"] [role="dialog"][data-type="value-selector"] [role="listbox"] li[aria-selected="true"] span {
+  padding-left: 2.6rem;
+  margin-left: 1.2rem;
+  padding-right: 0;
+  color: #00abcd;
+}
+
 /* Menu & buttons setup */
 [role="dialog"][data-type="value-selector"] menu {
   white-space: nowrap;
