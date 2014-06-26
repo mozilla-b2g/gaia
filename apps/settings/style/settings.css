@@ -690,6 +690,7 @@ ul li > label.range-icons.volume input {
 #os-license {
   width: 100%;
   height: calc(100% - 5rem);
+  border: 0;
 }
 
 
