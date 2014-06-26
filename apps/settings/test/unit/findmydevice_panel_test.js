@@ -41,11 +41,13 @@ suite('Find My Device panel > ', function() {
       onlogin: null,
       onlogout: null,
       onready: null,
+      onerror: null,
 
       watch: function(options) {
         this.onlogin = options.onlogin;
         this.onlogout = options.onlogout;
         this.onready = options.onready;
+        this.onerror = options.onerror;
 
         setTimeout(function() {
           options.onready();
@@ -94,6 +96,14 @@ suite('Find My Device panel > ', function() {
     MockMozId.onlogout();
     assert.isFalse(signinSection.hidden);
     assert.isTrue(settingsSection.hidden);
+  });
+
+  test('bug 1030597 - prompt for login if onerror fires', function() {
+    signinSection.hidden = true;
+    settingsSection.hidden = true;
+    MockMozId.onerror();
+    assert.isTrue(settingsSection.hidden);
+    assert.isFalse(signinSection.hidden);
   });
 
   test('show settings when logged in to FxA', function() {
