@@ -9,7 +9,8 @@
     this.publish('created');
   };
 
-  NfcConnectSystemDialog.prototype.__proto__ = window.SystemDialog.prototype;
+  NfcConnectSystemDialog.prototype =
+    Object.create(window.SystemDialog.prototype);
 
   NfcConnectSystemDialog.prototype.customID = 'nfc-connect-dialog';
 
