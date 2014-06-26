@@ -1682,7 +1682,8 @@ function showKeyboard() {
     inputmode: inputContext.inputMode,
     selectionStart: inputContext.selectionStart,
     selectionEnd: inputContext.selectionEnd,
-    value: ''
+    value: '',
+    inputContext: inputContext
   };
 
   // everything.me uses this setting to improve searches,

@@ -4,8 +4,11 @@ requireApp('keyboard/test/unit/setup_engine.js');
 requireApp('keyboard/js/imes/latin/latin.js');
 
 suite('Latin suggestions', function() {
-  var im, workers = [], imSettings;
+  var im, imSettings;
   var _windowWorker;
+  if (!window._workers) {
+    window._workers = [];
+  }
 
   function queue(q, n) {
     q.length ? q.shift()(queue.bind(this, q, n)) : n();
@@ -29,7 +32,9 @@ suite('Latin suggestions', function() {
 
     _windowWorker = window.Worker;
     var worker = window.Worker = function() {
-      workers.push(this);
+      // XXX: on v1.4, we don't run each test in sandbox, so
+      // put it in global in case other tests need to access it.
+      window._workers.push(this);
     };
     worker.prototype.postMessage = function() {};
   });
@@ -54,7 +59,7 @@ suite('Latin suggestions', function() {
   function testPrediction(state, input, suggestions) {
     setState(state);
 
-    workers[0].onmessage({
+    window._workers[0].onmessage({
       data: {
         cmd: 'predictions',
         input: input, // old input
@@ -119,6 +124,7 @@ suite('Latin suggestions', function() {
   test('Should communicate updated text to worker', function(next) {
     setState('');
 
+    var workers = window._workers;
     workers[0].postMessage = sinon.stub();
 
     function clickAndAssert(key, assertion, callback) {
