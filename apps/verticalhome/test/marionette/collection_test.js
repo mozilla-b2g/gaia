@@ -124,6 +124,40 @@ marionette('Vertical - Collection', function() {
     client.helper.waitForElementToDisappear(offlineMessage);
   });
 
+  test('create collection shows message when offline', function() {
+    collection.enterCreateScreen();
+
+    client.switchToFrame();
+    client.apps.switchToApp(Collection.URL);
+
+    var expectedMsg = home.l10n(
+      '/locales-obj/en-US.json',
+      'network-error-message'
+    );
+
+    // This is not quite the same path the user sees during a collection create
+    // but it should still let us test quite a bit. Instead of following the
+    // navigator.isOnline path, we fire an offline event which will also show
+    // the same alert.
+    client.executeScript(function() {
+      setTimeout(function() {
+        window.dispatchEvent(new CustomEvent('offline'));
+      });
+    });
+
+    // Wait for the system alert to be populated with the expected message.
+    // Convert the alert to a RegExp.
+    expectedMsg = new RegExp('.*' + expectedMsg + '.*');
+
+    client.switchToFrame();
+    client.waitFor(function() {
+      var msg = client
+          .findElement('.modal-dialog-alert')
+          .text();
+      return expectedMsg.test(msg);
+    });
+  });
+
   test('pin collection web result', function() {
     collection.enterCreateScreen();
 
