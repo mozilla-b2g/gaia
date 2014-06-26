@@ -539,6 +539,15 @@
     }
 
     this.element.appendChild(this.browser.element);
+
+    // Intentional! The app in the iframe gets two resize events when adding
+    // the element to the page (see bug 1007595). The first one is incorrect,
+    // thus assumptions made (media queries or rendering) can be wrong (see
+    // bug 995886). A sync reflow makes it that there will only be one resize.
+    // Please remove after 1007595 has been fixed.
+    this.browser.element.offsetWidth;
+    // End intentional
+
     this.screenshotOverlay = this.element.querySelector('.screenshot-overlay');
     this.fadeOverlay = this.element.querySelector('.fade-overlay');
 
