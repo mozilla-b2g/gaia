@@ -12,6 +12,7 @@ var AppInstall =
 var createAppServer = require('./server/parent');
 var iconAppState = require('./lib/icon_app_state');
 var iconSrc = require('./lib/icon_src');
+var launchIcon = require('./lib/launch_icon');
 
 marionette('Vertical Home - Packaged App Update', function() {
   var client = marionette.client(Home2.clientOptions);
@@ -47,7 +48,14 @@ marionette('Vertical Home - Packaged App Update', function() {
     server.close(done);
   });
 
-  test('update an installed app', function() {
+  function expectAppState(icon, state) {
+    client.waitFor(function() {
+      var currentState = iconAppState(icon);
+      return currentState === state;
+    });
+  }
+
+  test('resume update', function() {
     var appIcon = subject.getIcon(server.packageManifestURL);
 
     // ensure the app is installed before updating it
@@ -71,23 +79,20 @@ marionette('Vertical Home - Packaged App Update', function() {
       return iconAppState(appIcon) === 'loading';
     });
 
+    // pause the update
+    launchIcon(appIcon);
+    subject.confirmDialog('pause');
+    expectAppState(appIcon, 'paused');
+
+    // resume the update
+    launchIcon(appIcon);
+    subject.confirmDialog('resume');
+    expectAppState(appIcon, 'loading');
+
     // Wait for the download to be complete.
     server.uncork('/app.zip');
     client.waitFor(function() {
       return iconAppState(appIcon) === 'ready';
-    });
-
-    // See bug 826555 for rationale for the title not changing.
-    assert.equal(
-      appIcon.findElement('.title').text(),
-      iconTitle,
-      'app name should not be updated'
-    );
-
-    // Ensure the icon is updated
-    client.waitFor(function() {
-      var src = iconSrc(appIcon);
-      return src.indexOf(server.manifest.icons[128]) !== -1;
     });
 
     // verify the app was really updated
@@ -95,3 +100,4 @@ marionette('Vertical Home - Packaged App Update', function() {
     assert.equal(client.title(), 'updatedwow');
   });
 });
+
