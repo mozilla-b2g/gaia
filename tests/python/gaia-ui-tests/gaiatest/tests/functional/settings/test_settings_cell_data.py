@@ -27,6 +27,7 @@ class TestSettingsCellData(GaiaTestCase):
             # Cell data should not be enabled until we turn it on via the prompt
             self.assertFalse(cell_and_data_settings.is_data_toggle_checked)
             self.assertFalse(self.data_layer.get_setting('ril.data.enabled'), "Cell data was enabled before responding to the prompt")
+            self.apps.switch_to_displayed_app()
             cell_data_prompt.turn_on()
 
         # Wait for cell data to be turned on

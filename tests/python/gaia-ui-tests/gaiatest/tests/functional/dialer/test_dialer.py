@@ -35,6 +35,7 @@ class TestDialer(GaiaTestCase):
         call_screen.wait_for_condition(
             lambda m: self.data_layer.active_telephony_state in active_states,
             timeout=30)
+        self.apps.switch_to_displayed_app()
 
         if len(test_phone_number) <= 12:
             # Check the number displayed is the one we dialed

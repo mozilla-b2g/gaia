@@ -46,6 +46,7 @@ class TestReceiveCall(GaiaTestCase):
         call_screen.wait_for_condition(
             lambda m: self.data_layer.active_telephony_state == 'connected',
             timeout=30)
+        self.apps.switch_to_displayed_app()
 
         call_screen.hang_up()
 
