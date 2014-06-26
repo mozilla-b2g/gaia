@@ -40,9 +40,11 @@ class GaiaApps(object):
         self.marionette.import_script(js)
 
     def get_permission(self, app_name, permission_name):
+        self.marionette.switch_to_frame()
         return self.marionette.execute_async_script("return GaiaApps.getPermission('%s', '%s')" % (app_name, permission_name))
 
     def set_permission(self, app_name, permission_name, value):
+        self.marionette.switch_to_frame()
         return self.marionette.execute_async_script("return GaiaApps.setPermission('%s', '%s', '%s')" %
                                                     (app_name, permission_name, value))
 
