@@ -78,6 +78,9 @@ var MockCallScreen = {
   setEndConferenceCall: function() {
     this.mSetEndConferenceCall = true;
   },
+  cdmaConferenceCall: function() {},
+  hidePlaceNewCallButton: function() {},
+  showPlaceNewCallButton: function() {},
 
   set holdAndAnswerOnly(enabled) {
     this.mHoldAndAnswerOnly = enabled;

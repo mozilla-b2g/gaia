@@ -165,6 +165,25 @@ suite('telephony helper', function() {
     assert.isNull(mockActive.onheld);
   });
 
+  test('should NOT hold the active line before dialing in CDMA mode',
+  function() {
+    MockNavigatorMozMobileConnections[0].voice.type = 'evdoa';
+    var dialNumber = '123456';
+    var holdStub = this.sinon.stub();
+    var mockActive = {
+      number: '1111',
+      state: 'connected',
+      hold: holdStub
+    };
+    MockNavigatorMozTelephony.active = mockActive;
+
+    subject.call(dialNumber, 0);
+    delete MockNavigatorMozTelephony.active;
+    sinon.assert.calledWith(navigator.mozTelephony.dial, dialNumber);
+
+    assert.isFalse(holdStub.calledBefore(navigator.mozTelephony.dial));
+  });
+
   test('should hold the active group call before dialing (if there is one)',
   function() {
     var dialNumber = '123456';
