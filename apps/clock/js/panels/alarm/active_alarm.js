@@ -1,7 +1,6 @@
 define(function(require) {
   'use strict';
 
-  var App = require('app');
   var AlarmsDB = require('alarmsdb');
   var Timer = require('timer');
   var Utils = require('utils');
@@ -160,15 +159,12 @@ define(function(require) {
     close: function(type, alarmId) {
       this.alertWindow.close();
       if (type === 'timer') {
-        App.navigate({ hash: '#timer-panel' });
         Timer.singleton(function(err, timer) {
           if (!err) {
             timer.cancel();
             timer.save();
           }
         });
-      } else if (type === 'alarm') {
-        App.navigate({ hash: '#alarm-panel' });
       }
     }
   };
