@@ -1697,6 +1697,13 @@ var Browser = {
             this.navigate(url);
           }
         }
+
+        // If an url is opened on the browser from an activity,
+        // let's cancel all the ongoing menu.
+        Settings.hide();
+        this.hideBookmarkMenu();
+        this.hideBookmarkEntrySheet();
+
         this.showPageScreen();
         break;
     }
