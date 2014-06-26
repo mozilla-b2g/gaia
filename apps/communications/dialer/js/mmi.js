@@ -31,6 +31,7 @@ var MmiManager = {
     var lazyFiles = ['/shared/js/icc_helper.js',
                      '/shared/js/mobile_operator.js'];
     LazyLoader.load(lazyFiles, function resourcesLoaded() {
+      window.addEventListener('message', self);
       for (var i = 0; i < navigator.mozMobileConnections.length; i++) {
         var conn = navigator.mozMobileConnections[i];
 
