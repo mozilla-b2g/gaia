@@ -6,7 +6,7 @@
 
 /*jshint browser: true */
 /*global define, console, MozActivity, alert */
-define(function(require, exports, module) {
+define(function(require) {
 
 var templateNode = require('tmpl!./compose.html'),
     cmpAttachmentItemNode = require('tmpl!./cmp/attachment_item.html'),
@@ -24,8 +24,7 @@ var templateNode = require('tmpl!./compose.html'),
 
     prettyFileSize = common.prettyFileSize,
     Cards = common.Cards,
-    ConfirmDialog = common.ConfirmDialog,
-    dataIdCounter = 0;
+    ConfirmDialog = common.ConfirmDialog;
 
 /**
  * Max composer attachment size is defined as 5120000 bytes.
@@ -147,14 +146,6 @@ function ComposeCard(domNode, mode, args) {
       this.sentAudioEnabled = e.settingValue;
     }).bind(this));
   }
-
-  // Set up unique data IDs for data-sensitive operations that could be in
-  // progress. These IDs are unique per kind of action, not unique per instance
-  // of a kind of action. However, these IDs are just used to know if a hard
-  // shutdown should be delayed a bit, and are unique enough for those purposes.
-  var dataId = module.id + '-' + (dataIdCounter += 1);
-  this._dataIdSaveDraft = dataId + '-saveDraft';
-  this._dataIdSendEmail = dataId + '-sendEmail';
 }
 ComposeCard.prototype = {
   postInsert: function() {
@@ -297,13 +288,7 @@ ComposeCard.prototype = {
       return;
     }
     this._saveStateToComposer();
-    evt.emit('uiDataOperationStart', this._dataIdSaveDraft);
-    this.composer.saveDraft(function() {
-      evt.emit('uiDataOperationStop', this._dataIdSaveDraft);
-      if (callback) {
-        callback();
-      }
-    }.bind(this));
+    this.composer.saveDraft(callback);
   },
 
   createBubbleNode: function(name, address) {
@@ -679,7 +664,6 @@ ComposeCard.prototype = {
 
     // Initiate the send.
     console.log('compose: initiating send');
-    evt.emit('uiDataOperationStart', this._dataIdSendEmail);
     this.composer.finishCompositionSendMessage(
       function callback(error , badAddress, sentDate) {
         // Card could have been destroyed in the meantime,
@@ -723,7 +707,6 @@ ComposeCard.prototype = {
           self.sentAudio.play();
         }
 
-        evt.emit('uiDataOperationStop', this._dataIdSendEmail);
         activityHandler();
         this._closeCard();
       }.bind(this)
