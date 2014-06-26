@@ -397,7 +397,6 @@
       switch(e.type) {
           case 'visibilitychange':
             if (document.hidden) {
-              this.finish();
               this.exitEditMode();
             }
             break;
