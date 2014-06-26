@@ -32,6 +32,7 @@ var MmiManager = {
                      '/shared/style/input_areas.css',
                      '/shared/js/mobile_operator.js'];
     LazyLoader.load(lazyFiles, function resourcesLoaded() {
+      window.addEventListener('message', self);
       for (var i = 0; i < navigator.mozMobileConnections.length; i++) {
         var conn = navigator.mozMobileConnections[i];
 
