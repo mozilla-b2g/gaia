@@ -70,7 +70,7 @@ var NotificationScreen = {
     this.clearAllButton = document.getElementById('notification-clear');
 
     this._toasterGD = new GestureDetector(this.toaster);
-    ['tap', 'mousedown', 'swipe', 'wheel'].forEach(function(evt) {
+    ['tap', 'touchstart', 'swipe', 'wheel'].forEach(function(evt) {
       this.container.addEventListener(evt, this);
       this.toaster.addEventListener(evt, this);
     }, this);
@@ -133,8 +133,8 @@ var NotificationScreen = {
         var target = evt.target;
         this.tap(target);
         break;
-      case 'mousedown':
-        this.mousedown(evt);
+      case 'touchstart':
+        this.touchstart(evt);
         break;
       case 'swipe':
         this.swipe(evt);
@@ -181,12 +181,13 @@ var NotificationScreen = {
   },
 
   // Swipe handling
-  mousedown: function ns_mousedown(evt) {
-    if (!evt.target.dataset.notificationId)
+  touchstart: function ns_touchstart(evt) {
+    var target = evt.touches[0].target;
+    if (!target.dataset.notificationId)
       return;
 
     evt.preventDefault();
-    this._notification = evt.target;
+    this._notification = target;
     this._containerWidth = this.container.clientWidth;
   },
 
