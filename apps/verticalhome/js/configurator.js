@@ -1,4 +1,4 @@
-/* global app, IccHelper, verticalPreferences */
+/* global app, IccHelper, verticalPreferences, VersionHelper */
 /* exported configurator */
 
 'use strict';
@@ -163,7 +163,8 @@ var configurator = (function() {
   }
 
   function setup() {
-    var colsByDefault = conf.preferences['grid.cols'];
+    var colsByDefault = conf && conf.preferences &&
+                          conf.preferences['grid.cols'] || undefined;
     if (colsByDefault) {
       verticalPreferences.get('grid.cols').then(function(cols) {
         // Set the number of cols by default in preference's datastore
@@ -196,11 +197,38 @@ var configurator = (function() {
     }
   };
 
+  function handlerGridLayout(evt) {
+    switch(evt.type) {
+      case 'updated':
+        if (evt.target.name === 'grid.layout') {
+          verticalPreferences.removeEventListener('updated', handlerGridLayout);
+          onLoadInitJSON(evt.target.value);
+        }
+        break;
+    }
+  }
+
   function load() {
     conf = {};
     gaiaGridLayoutReady = false;
     window.addEventListener('gaiagrid-layout-ready', globalHandleEvent);
-    loadFile('js/init.json', onLoadInitJSON, onErrorInitJSON);
+
+    VersionHelper.getVersionInfo().then(function(verInfo) {
+      if (verInfo.isUpgrade()) {
+        verticalPreferences.get('grid.layout').then(function(grid) {
+          if (!grid) {
+            verticalPreferences.addEventListener('updated', handlerGridLayout);
+          } else {
+            onLoadInitJSON(grid);
+          }
+        });
+      } else {
+        loadFile('js/init.json', onLoadInitJSON, onErrorInitJSON);
+      }
+    }, function(err) {
+      console.error('VersionHelper failed to lookup version settings, ' +
+                    'asumming no version upgrade.\n');
+    });
   }
 
   load();

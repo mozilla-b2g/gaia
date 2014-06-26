@@ -93,6 +93,29 @@
     }
   }
 
+  function removeEventListener(type, callback) {
+    if (!(type in listeners)) {
+      return false;
+    }
+
+    var callbacks = listeners[type];
+    var length = callbacks.length;
+    for (var i = 0; i < length; i++) {
+
+      var thisCallback = callback;
+      if (typeof thisCallback === 'object') {
+        thisCallback = callback.handleEvent;
+      }
+
+      if (callbacks[i] && callbacks[i].method === thisCallback) {
+        callbacks.splice(i, 1);
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   function get(id) {
     return new Promise(function doGet(resolve, reject) {
       init().then(function onInitialized() {
@@ -137,7 +160,18 @@
      *                  the specified type occurs
      *
      */
-    addEventListener: addEventListener
+    addEventListener: addEventListener,
+
+    /*
+     * Method removes the specified listener on the API
+     *
+     * @param{String} A string representing the event type to listen for
+     *
+     * @param{Function} The method that received a notification when an event of
+     *                  the specified type occurs
+     *
+     */
+    removeEventListener: removeEventListener
   };
 
 }(window));
