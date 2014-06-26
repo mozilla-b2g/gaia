@@ -19,7 +19,7 @@
     background-repeat: repeat-x;
     background-size: auto 4rem;
     color: white;
-    font-size: 1.8rem;
+    font-size: 1.7rem;
     padding-left: 1rem;
     padding-right: 2rem;
     height: 40px;
@@ -134,12 +134,9 @@
     background-image: url('images/status_bar/actionicon_activecall_mute_small_active.png');
   }
 
-  .font-light {
-    max-height: 3rem;
-  }
-
   .fake-number {
     position: absolute;
+    left: 4.5rem;
     line-height: 0;
     visibility: hidden;
     white-space: nowrap;
