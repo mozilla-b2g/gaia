@@ -20,8 +20,8 @@
     this._normalAudioChannelActive = false;
     this._deviceLockedTimer = 0;
     this.overlayEvents = [
-      'lockscreen-appopened',
-      'lockscreen-appclosing',
+      'lock',
+      'will-unlock',
       'attentionscreenshow',
       'attentionscreenhide',
       'status-active',
@@ -63,22 +63,18 @@
         break;
       case 'status-active':
       case 'attentionscreenhide':
-        if (window.System.locked) {
+      case 'will-unlock':
+        if (window.lockScreen && window.lockScreen.locked) {
           this.publish('showlockscreenwindow');
           return;
         }
+
         if (!AttentionScreen.isFullyVisible()) {
           this.publish('showwindow', { type: evt.type });
         }
         this._resetDeviceLockedTimer();
         break;
-      case 'lockscreen-appclosing':
-        if (!AttentionScreen.isFullyVisible()) {
-          this.publish('showwindow', { type: evt.type });
-        }
-        this._resetDeviceLockedTimer();
-        break;
-      case 'lockscreen-appopened':
+      case 'lock':
         // If the audio is active, the app should not set non-visible
         // otherwise it will be muted.
         // TODO: Remove this hack.
@@ -114,7 +110,8 @@
           this._resetDeviceLockedTimer();
 
           if (this._normalAudioChannelActive &&
-              evt.detail.channel !== 'normal' && window.System.locked) {
+              evt.detail.channel !== 'normal' &&
+              window.lockScreen && window.lockScreen.locked) {
             this._deviceLockedTimer = setTimeout(function setVisibility() {
               this.publish('hidewindow',
                 { screenshoting: false, type: evt.type });

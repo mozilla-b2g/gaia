@@ -69,15 +69,6 @@
         detail: detail
       });
       window.dispatchEvent(evt);
-    },
-
-    get locked() {
-      // Someone ask this state too early.
-      if ('undefined' === typeof window.lockScreenWindowManager) {
-        return false;
-      } else {
-        return window.lockScreenWindowManager.states.active;
-      }
     }
   };
 }(this));

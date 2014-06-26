@@ -13,14 +13,13 @@ requireApp('system/test/unit/mock_activity.js');
 requireApp('system/test/unit/mock_nfc.js');
 requireApp('system/test/unit/mock_screen_manager.js');
 requireApp('system/test/unit/mock_settingslistener_installer.js');
-requireApp('system/test/unit/mock_system.js');
+requireApp('system/test/unit/mock_lock_screen.js');
 
 var mocksForNfcManager = new MocksHelper([
   'MozActivity',
   'MozNDEFRecord',
   'ScreenManager',
-  'SettingsListener',
-  'System'
+  'SettingsListener'
 ]).init();
 
 var MockMessageHandlers = {};
@@ -31,17 +30,22 @@ function MockMozSetMessageHandler(event, handler) {
 suite('Nfc Manager Functions', function() {
 
   var realMozSetMessageHandler;
+  var realLockScreen;
 
   mocksForNfcManager.attachTestHelpers();
 
   setup(function(done) {
     realMozSetMessageHandler = window.navigator.mozSetMessageHandler;
     window.navigator.mozSetMessageHandler = MockMozSetMessageHandler;
+    realLockScreen = window.lockScreen;
+    window.lockScreen = window.MockLockScreen;
+
     requireApp('system/js/nfc_manager.js', done);
   });
 
   teardown(function() {
     window.navigator.mozSetMessageHandler = realMozSetMessageHandler;
+    window.lockScreen = realLockScreen;
   });
 
   suite('init', function() {
@@ -93,12 +97,12 @@ suite('Nfc Manager Functions', function() {
       assert.equal(stubChangeHardwareState.getCall(1).args[0],
                    NfcManager.NFC_HW_STATE_OFF);
 
-      window.System.locked = true;
+      window.MockLockScreen.lock();
       window.MockSettingsListener.mCallbacks['nfc.enabled'](true);
       assert.isTrue(stubChangeHardwareState.calledThrice);
       assert.equal(stubChangeHardwareState.getCall(2).args[0],
                    NfcManager.NFC_HW_STATE_DISABLE_DISCOVERY);
-      window.System.locked = false;
+      window.MockLockScreen.unlock();
     });
   });
 
@@ -109,7 +113,7 @@ suite('Nfc Manager Functions', function() {
 
       // screen lock when NFC ON
       NfcManager.hwState = NfcManager.NFC_HW_STATE_ON;
-      window.System.locked = true;
+      window.MockLockScreen.lock();
       NfcManager.handleEvent(new CustomEvent('lockscreen-appopened'));
       assert.isTrue(stubChangeHardwareState.calledOnce);
       assert.equal(stubChangeHardwareState.getCall(0).args[0],
@@ -121,7 +125,7 @@ suite('Nfc Manager Functions', function() {
       assert.isTrue(stubChangeHardwareState.calledOnce);
 
       // screen unlock
-      window.System.locked = false;
+      window.MockLockScreen.unlock();
       NfcManager.handleEvent(new CustomEvent('lockscreen-appclosed'));
       assert.isTrue(stubChangeHardwareState.calledTwice);
       assert.equal(stubChangeHardwareState.getCall(1).args[0],

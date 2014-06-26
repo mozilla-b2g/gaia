@@ -6,7 +6,6 @@
 
 requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/test/unit/mock_navigator_moz_power.js');
-requireApp('system/test/unit/mock_system.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/js/logo_loader.js');
 requireApp('system/js/init_logo_handler.js');
@@ -14,7 +13,7 @@ requireApp('system/js/orientation_manager.js');
 requireApp('system/js/sleep_menu.js');
 
 var mocksForSleepMenu = new MocksHelper([
-  'SettingsListener', 'System'
+  'SettingsListener'
 ]).init();
 
 suite('system/SleepMenu', function() {

@@ -384,7 +384,8 @@ var NotificationScreen = {
     // Notification toaster
     if (notify) {
       this.updateToaster(detail, type, dir);
-      if (this.lockscreenPreview || !window.System.locked) {
+      if (this.lockscreenPreview || !window.lockScreen ||
+          !window.lockScreen.locked) {
         this.toaster.classList.add('displayed');
         this._toasterGD.startDetecting();
 
@@ -402,7 +403,8 @@ var NotificationScreen = {
 
     // Adding it to the lockscreen if locked and the privacy setting
     // does not prevent it.
-    if (System.locked && this.lockscreenPreview) {
+    if (typeof(window.lockScreen) !== 'undefined' &&
+        window.lockScreen.locked && this.lockscreenPreview) {
       var lockScreenNode = notificationNode.cloneNode(true);
 
       // First we try and find an existing notification with the same id.
