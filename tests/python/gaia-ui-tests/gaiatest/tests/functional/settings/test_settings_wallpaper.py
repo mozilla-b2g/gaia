@@ -20,6 +20,7 @@ class TestWallpaper(GaiaTestCase):
         display_settings = settings.open_display_settings()
 
         self._default_wallpaper_settings = self.data_layer.get_setting('wallpaper.image')
+        self.apps.switch_to_displayed_app()
 
         # Open activities menu
         activities_menu = display_settings.pick_wallpaper()

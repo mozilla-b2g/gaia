@@ -17,11 +17,11 @@ class TestFtu(GaiaTestCase):
     def setUp(self):
         GaiaTestCase.setUp(self)
 
-        self.ftu = Ftu(self.marionette)
-        self.ftu.launch()
-
         # If mozWifiManager is not initialised an exception may be thrown
         Wait(self.marionette).until(lambda m: self.data_layer.is_wifi_enabled)
+
+        self.ftu = Ftu(self.marionette)
+        self.ftu.launch()
 
     def test_ftu_skip_tour(self):
         """https://moztrap.mozilla.org/manage/case/3876/
@@ -43,6 +43,7 @@ class TestFtu(GaiaTestCase):
         self.wait_for_condition(
             lambda m: self.data_layer.is_cell_data_connected,
             message='Cell data was not connected by FTU app')
+        self.apps.switch_to_displayed_app()
 
         # Tap next
         self.ftu.tap_next_to_wifi_section()
@@ -73,6 +74,7 @@ class TestFtu(GaiaTestCase):
         self.wait_for_condition(
 		        lambda m: not self.data_layer.get_setting('geolocation.enabled'),
 		        message='Geolocation was not disabled by the FTU app')
+        self.apps.switch_to_displayed_app()
         self.ftu.tap_next_to_import_contacts_section()
 
         # Tap import from SIM
