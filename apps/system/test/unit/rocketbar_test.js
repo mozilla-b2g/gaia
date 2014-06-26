@@ -85,7 +85,7 @@ suite('system/Rocketbar', function() {
     assert.ok(windowAddEventListenerStub.calledWith('home'));
     assert.ok(windowAddEventListenerStub.calledWith('cardviewclosedhome'));
     assert.ok(windowAddEventListenerStub.calledWith('appopened'));
-    assert.ok(windowAddEventListenerStub.calledWith('homescreenopening'));
+    assert.ok(windowAddEventListenerStub.calledWith('homescreenopened'));
     assert.ok(windowAddEventListenerStub.calledWith('stackchanged'));
     assert.ok(rocketbarAddEventListenerStub.calledWith('touchstart'));
     assert.ok(rocketbarAddEventListenerStub.calledWith('touchmove'));
@@ -120,7 +120,7 @@ suite('system/Rocketbar', function() {
     assert.ok(windowRemoveEventListenerStub.calledWith('home'));
     assert.ok(windowRemoveEventListenerStub.calledWith('cardviewclosedhome'));
     assert.ok(windowRemoveEventListenerStub.calledWith('appopened'));
-    assert.ok(windowRemoveEventListenerStub.calledWith('homescreenopening'));
+    assert.ok(windowRemoveEventListenerStub.calledWith('homescreenopened'));
     assert.ok(windowRemoveEventListenerStub.calledWith('stackchanged'));
     assert.ok(rocketbarRemoveEventListenerStub.calledWith('touchstart'));
     assert.ok(rocketbarRemoveEventListenerStub.calledWith('touchmove'));
