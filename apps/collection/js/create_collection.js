@@ -45,6 +45,17 @@
 
   function HandleCreate(activity) {
 
+    function onOffline() {
+      alert(navigator.mozL10n.get('network-error-message'));
+      activity.postResult(false);
+    }
+
+    if (!navigator.onLine) {
+      return onOffline();
+    }
+
+    window.addEventListener('offline', onOffline);
+
     var request;
     var loading = document.getElementById('loading');
     var cancel = document.getElementById('cancel');
