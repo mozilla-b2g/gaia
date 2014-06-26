@@ -24,9 +24,11 @@ var ConferenceGroupHandler = (function() {
   };
 
   var telephony = window.navigator.mozTelephony;
-  telephony.conferenceGroup.oncallschanged = onCallsChanged;
-  telephony.conferenceGroup.onstatechange = onStateChange;
-  telephony.conferenceGroup.onerror = onConferenceError;
+  if (telephony.hasOwnProperty('conferenceGroup')) {
+    telephony.conferenceGroup.oncallschanged = onCallsChanged;
+    telephony.conferenceGroup.onstatechange = onStateChange;
+    telephony.conferenceGroup.onerror = onConferenceError;
+  }
 
   function onCallsChanged() {
     var calls = telephony.conferenceGroup.calls;
