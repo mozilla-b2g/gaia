@@ -838,9 +838,17 @@
      * @memberof Rocketbar.prototype
      */
     handleSearchCrashed: function(e) {
-      if (this.searchWindow) {
-        this.searchWindow = null;
+      if (!this._searchWindow) {
+        return;
       }
+
+      this.clear();
+      this.hideResults();
+      this.collapse();
+      this.deactivate();
+
+      this.searchWindow = null;
+      this._port = null;
     },
 
     /**
