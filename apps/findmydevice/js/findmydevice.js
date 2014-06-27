@@ -7,6 +7,10 @@
 
 'use strict';
 
+// XXX keep this in sync with apps/system/js/findmydevice_launcher.js
+const IAC_API_WAKEUP_REASON_ENABLED = 0;
+const IAC_API_WAKEUP_REASON_STALE_REGISTRATION = 1;
+
 var FindMyDevice = {
   _state: null,
 
@@ -109,17 +113,29 @@ var FindMyDevice = {
     });
 
     navigator.mozSetMessageHandler('connection', function(request) {
-      if (request.keyword === 'findmydevice-wakeup') {
-        DUMP('got wake up request');
-        self._contactServerIfEnabled();
-      } else if (request.keyword === 'findmydevice-test') {
-        var port = request.port;
-        port.onmessage = function(event) {
-          DUMP('got request for test command!');
-          event.data.testing = true;
-          self._processCommands(event.data);
-        };
-      }
+      var port = request.port;
+      port.onmessage = function(event) {
+        if (request.keyword === 'findmydevice-wakeup') {
+          DUMP('got wake up request');
+
+          var reason = event.data;
+          if (reason === IAC_API_WAKEUP_REASON_ENABLED) {
+            DUMP('enabled, trying to reach the server');
+            self._contactServerIfEnabled();
+          } else if (reason === IAC_API_WAKEUP_REASON_STALE_REGISTRATION) {
+            DUMP('stale registration, re-registering');
+            self._registeredHelper.set(false);
+          }
+
+          return;
+        }
+
+        if (request.keyword === 'findmydevice-test') {
+            DUMP('got request for test command!');
+            event.data.testing = true;
+            self._processCommands(event.data);
+        }
+      };
     });
   },
 
@@ -211,7 +227,8 @@ var FindMyDevice = {
 
   _requestRegistration: function fmd_request_registration(assertion, endpoint) {
     var obj = {
-      pushurl: endpoint
+      pushurl: endpoint,
+      accepts: Commands.getEnabledCommands()
     };
 
     if (assertion != null) {
@@ -323,7 +340,7 @@ var FindMyDevice = {
         args.push(noop);
       }
 
-      Commands[command].apply(Commands, args);
+      Commands.invokeCommand(command, args);
     }
 
     this._scheduleAlarm('ping');
