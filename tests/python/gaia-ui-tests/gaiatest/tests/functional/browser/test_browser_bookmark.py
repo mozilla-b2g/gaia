@@ -18,7 +18,7 @@ class TestBrowserBookmark(GaiaTestCase):
         self.connect_to_network()
 
         if self.device.is_desktop_b2g or self.data_layer.is_wifi_connected():
-            self.test_url = self.marionette.absolute_url('xhtmlTest.html')
+            self.test_url = self.marionette.absolute_url('mozilla.html')
         else:
             self.test_url = 'http://mozqa.com/data/firefox/layout/mozilla.html'
 
