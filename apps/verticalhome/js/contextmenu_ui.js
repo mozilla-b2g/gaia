@@ -22,8 +22,7 @@
       var scrollTop = this.grid.parentNode.scrollTop;
       var yOffset = scrollTop + this.grid.getBoundingClientRect().y;
 
-      var nearestIndex = this.grid._grid.getNearestItemIndex(
-        e.pageX,
+      var nearestIndex = this.grid._grid.getFreeSlotVerticallyNearest(
         e.pageY - yOffset + scrollTop
       );
 
