@@ -521,11 +521,12 @@ var NotificationScreen = {
       notificationNode.parentNode.removeChild(notificationNode);
 
     if (lockScreenNotificationNode) {
-      lockScreenNotificationNode.parentNode
-        .removeChild(lockScreenNotificationNode);
+      var lockScreenNotificationParentNode =
+        lockScreenNotificationNode.parentNode;
+      lockScreenNotificationParentNode.removeChild(lockScreenNotificationNode);
       // if we don't have any notifications, remove the bgcolor from wallpaper
       // and use the simple gradient
-      if (!lockScreenNotificationNode.parentNode.firstElementChild) {
+      if (!lockScreenNotificationParentNode.firstElementChild) {
         window.lockScreen.maskedBackground.style.backgroundColor =
           'transparent';
         window.lockScreen.maskedBackground.classList.add('blank');
