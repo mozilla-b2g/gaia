@@ -82,8 +82,11 @@ suite('Find My Device panel > ', function() {
       signinSection = document.getElementById('findmydevice-signin');
       settingsSection = document.getElementById('findmydevice-settings');
       trackingSection = document.getElementById('findmydevice-tracking');
-      loginButton = document.getElementById('findmydevice-login');
       checkbox = document.querySelector('#findmydevice-enabled input');
+      loginButton = document.getElementById('findmydevice-login');
+
+      // manually enable the loginButton
+      loginButton.removeAttribute('disabled');
 
       require('/js/findmydevice.js', function() {
         subject = FindMyDevice;
@@ -110,6 +113,26 @@ suite('Find My Device panel > ', function() {
     MockMozId.onlogin();
     assert.isFalse(settingsSection.hidden);
     assert.isTrue(signinSection.hidden);
+  });
+
+  test('ignore clicks when button is disabled', function() {
+    loginButton.disabled = true;
+    var onLoginClickSpy = sinon.spy(FindMyDevice, '_onLoginClick');
+    loginButton.click();
+    sinon.assert.notCalled(onLoginClickSpy);
+    FindMyDevice._onLoginClick.restore();
+  });
+
+  test('enable button after watch fires onready', function() {
+    loginButton.disabled = true;
+    MockMozId.onready();
+    assert.isFalse(!!loginButton.disabled);
+  });
+
+  test('enable button after watch fires onerror', function() {
+    loginButton.disabled = true;
+    MockMozId.onerror();
+    assert.isFalse(!!loginButton.disabled);
   });
 
   test('auto-enable when logging in using the login button', function() {

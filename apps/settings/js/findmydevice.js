@@ -8,33 +8,36 @@ var FindMyDevice = {
   // login process began with the user clicking our login button
   // since in that case we also want to enable Find My Device
   _interactiveLogin: false,
+  _loginButton: null,
 
   init: function fmd_init() {
     var self = this;
-    var loginButton = document.getElementById('findmydevice-login');
+    self._loginButton = document.getElementById('findmydevice-login');
 
     loadJSON('/resources/findmydevice.json', function(data) {
       self._audienceURL = data.audience_url;
 
-      // Note: either onready or onerror will always fire immediately.
       navigator.mozId.watch({
         wantIssuer: 'firefox-accounts',
         audience: self._audienceURL,
         onlogin: self._onChangeLoginState.bind(self, true),
         onlogout: self._onChangeLoginState.bind(self, false),
         onready: function fmd_fxa_onready() {
-          loginButton.addEventListener('click', self._onLoginClick.bind(self));
+          self._loginButton.removeAttribute('disabled');
+          console.log('Find My Device: onready fired');
         },
         onerror: function fmd_fxa_onerror(err) {
-          loginButton.addEventListener('click', self._onLoginClick.bind(self));
           self._togglePanel(false);
-          console.error(err);
+          self._loginButton.removeAttribute('disabled');
+          console.error('Find My Device: onerror fired: ' + err);
         }
       });
     });
 
     SettingsListener.observe('findmydevice.tracking', false,
       this._setTracked.bind(this));
+    self._loginButton.addEventListener('click', self._onLoginClick.bind(self));
+
     SettingsListener.observe('findmydevice.enabled', false,
       this._setEnabled.bind(this));
 
@@ -45,6 +48,9 @@ var FindMyDevice = {
   _onLoginClick: function fmd_on_login_click(e) {
     e.stopPropagation();
     e.preventDefault();
+    if (this._loginButton.disabled) {
+      return;
+    }
     var _ = navigator.mozL10n.get;
     if (!window.navigator.onLine) {
       return window.alert(_('findmydevice-enable-network'));
