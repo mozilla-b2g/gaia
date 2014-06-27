@@ -11,7 +11,6 @@ var AppInstall =
 
 var createAppServer = require('./server/parent');
 var iconAppState = require('./lib/icon_app_state');
-var iconSrc = require('./lib/icon_src');
 
 marionette('Vertical Home - Packaged App Update', function() {
   var client = marionette.client(Home2.clientOptions);
@@ -36,11 +35,6 @@ marionette('Vertical Home - Packaged App Update', function() {
     // wait for the system app to be running
     system.waitForStartup();
 
-    // Launch the homescreen first, then go to the system app.
-    // Make sure we do this before installing an application.
-    subject.waitForLaunch();
-    client.switchToFrame();
-
     // install the app
     appInstall.installPackage(server.packageManifestURL);
 
@@ -60,43 +54,15 @@ marionette('Vertical Home - Packaged App Update', function() {
       return iconAppState(appIcon) === 'ready';
     });
 
-    var iconTitle = appIcon.findElement('.title').text();
-
-    // Cork the zip so we can see the loading spinner.
-    server.cork('/app.zip');
-
     // Update the manifests.
     server.setRoot(__dirname + '/fixtures/template_app_updated');
 
-    // Ensure we have an update.
-    appInstall.update(server.packageManifestURL);
+    // Stage the update
+    appInstall.stageUpdate(server.packageManifestURL);
 
-    // Ensure we see the loading signs...
-    client.waitFor(function() {
-      return iconAppState(appIcon) === 'loading';
-    });
-
-    // Wait for the download to be complete.
-    server.uncork('/app.zip');
-    client.waitFor(function() {
-      return iconAppState(appIcon) === 'ready';
-    });
-
-    // See bug 826555 for rationale for the title not changing.
-    assert.equal(
-      appIcon.findElement('.title').text(),
-      iconTitle,
-      'app name should not be updated'
-    );
-
-    // Ensure the icon is updated
-    client.waitFor(function() {
-      var src = iconSrc(appIcon);
-      return src.indexOf(server.manifest.icons[128]) !== -1;
-    });
-
-    // verify the app was really updated
+    // ensure we can still launch an app in the older version
     subject.launchAndSwitchToApp(server.packageManifestURL);
-    assert.equal(client.title(), 'updatedwow');
+    assert.equal(client.title(), 'iwrotethis');
   });
 });
+
