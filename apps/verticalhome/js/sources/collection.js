@@ -15,16 +15,20 @@
     this.store = store;
     this.entries = [];
 
-    eventTypesToListenFor.forEach(function iterateTypes(type) {
-      CollectionsDatabase.addEventListener(type, this);
-    }, this);
-
-    window.addEventListener('context-menu-open', this);
-    window.addEventListener('collections-create-begin', this);
-    window.addEventListener('collections-create-return', this);
   }
 
   CollectionSource.prototype = {
+
+    _setListeners: function() {
+      eventTypesToListenFor.forEach(function iterateTypes(type) {
+	CollectionsDatabase.addEventListener(type, this);
+      }, this);
+
+      window.addEventListener('context-menu-open', this);
+      window.addEventListener('collections-create-begin', this);
+      window.addEventListener('collections-create-return', this);
+    },
+
 
     /**
      * Whether or not we are currently in a create activity.
@@ -54,6 +58,7 @@
      */
     synchronize: function() {
       // TODO: Synchronize logic.
+      this._setListeners();
     },
 
     /**
@@ -67,6 +72,7 @@
         Object.keys(systemCollections).forEach(function(id) {
           self.entries.push(new GaiaGrid.Collection(systemCollections[id]));
         });
+	self._setListeners();
 
         success(self.entries);
       }, success);
