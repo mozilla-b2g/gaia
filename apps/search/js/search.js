@@ -247,6 +247,8 @@
       for (var i in this.providers) {
         this.providers[i].clear();
       }
+
+      this.contextmenu.hide();
     },
 
     showBlank: function() {
