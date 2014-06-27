@@ -18,7 +18,7 @@
           break;
 
         case 'contextmenu':
-          if (this.canceled) {
+          if (this.canceled || app.grid._grid.dragdrop.inEditMode) {
             return;
           }
 

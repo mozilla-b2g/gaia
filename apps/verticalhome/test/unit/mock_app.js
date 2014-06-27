@@ -36,7 +36,13 @@ MockApp.prototype = {
     getItems: function() {
       return MockApp.mItems;
     },
-    render: function() {}
+    render: function() {},
+
+    _grid: {
+      dragdrop: {
+        inEditMode: false
+      }
+    }
   }
 };
 
