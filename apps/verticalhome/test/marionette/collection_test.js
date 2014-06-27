@@ -183,6 +183,10 @@ marionette('Vertical - Collection', function() {
       return currentDividers === numDividers + 1;
     });
 
+    // Bug 1030704 - Ensure the divider is visible
+    var firstDivider = client.helper.waitForElement(selectors.allDividers);
+    assert.ok(firstDivider.displayed());
+
     // Compare the position of the first pinned icon to the first web result.
     // The pinned icon should be higher than the web result.
     var firstWebPosition = client.findElement(selectors.firstWebResultPinned)
