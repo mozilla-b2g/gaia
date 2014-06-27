@@ -61,7 +61,7 @@ class GaiaApps(object):
     @property
     def displayed_app(self):
         self.marionette.switch_to_frame()
-        result = self.marionette.execute_async_script('return GaiaApps.displayedApp();')
+        result = self.marionette.execute_script('return GaiaApps.getDisplayedApp();')
         return GaiaApp(frame=result.get('frame'),
                        src=result.get('src'),
                        name=result.get('name'),
