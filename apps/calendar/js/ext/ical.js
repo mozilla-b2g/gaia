@@ -3,8 +3,18 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  * Portions Copyright (C) Philipp Kewisch, 2011-2012 */
 
-if (typeof(ICAL) === 'undefined')
-  (typeof(window) !== 'undefined') ? this.ICAL = {} : ICAL = {};
+if (typeof ICAL === 'undefined') {
+  if (typeof exports === 'object') {
+    // CommonJS
+    ICAL = exports;
+  } else if (typeof window !== 'undefined') {
+    // Browser globals
+    this.ICAL = {};
+  } else {
+    // ...?
+    ICAL = {};
+  }
+}
 
 ICAL.foldLength = 75;
 ICAL.newLineChar = '\r\n';
@@ -4350,7 +4360,7 @@ ICAL.TimezoneService = (function() {
   };
 
   var VALID_DAY_NAMES = /^(SU|MO|TU|WE|TH|FR|SA)$/;
-  var VALID_BYDAY_PART = /^([+-])?(5[0-3]|[1-4][0-9]|[1-9])?(SU|MO|TU|WE|TH|FR|SA)$/
+  var VALID_BYDAY_PART = /^([+-])?(5[0-3]|[1-4][0-9]|[1-9])?(SU|MO|TU|WE|TH|FR|SA)$/;
   var ALLOWED_FREQ = ['SECONDLY', 'MINUTELY', 'HOURLY',
                       'DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY'];
 
