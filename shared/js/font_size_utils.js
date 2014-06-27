@@ -140,8 +140,12 @@
     _registerHeadersInSubtree: function(domNode) {
       var headers = domNode.querySelectorAll('header > h1');
       for (var i = 0; i < headers.length; i++) {
-        this._reformatHeaderText(headers[i]);
-        this._observeHeaderChanges(headers[i]);
+        // On some apps wrapping inside a requestAnimationFrame reduces the
+        // number of calls to _reformatHeaderText().
+        window.requestAnimationFrame(function(header) {
+          this._reformatHeaderText(header);
+          this._observeHeaderChanges(header);
+        }.bind(this, headers[i]));
       }
     },
 
