@@ -40,9 +40,9 @@ class TestGallery(GaiaTestCase):
         self.assertIsNotNone(image.current_image_source)
         self.assertTrue(image.is_photo_toolbar_displayed)
 
-        self.graphics.scroll(self.marionette,self._current_image_locator,'left',2)
+        self.graphics.scroll(self.marionette,self._current_image_locator,'left',5)
         self.graphics.invoke_screen_capture()
-        self.graphics.scroll(self.marionette,self._current_image_locator,'left',1)
+        self.graphics.scroll(self.marionette,self._current_image_locator,'left',3)
         self.graphics.invoke_screen_capture()
         pdb.set_trace()
         action = self.graphics.scroll(self.marionette,self._current_image_locator,'right',2,release=False)
