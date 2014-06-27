@@ -16,6 +16,7 @@
 
     this.grid.addEventListener('contextmenu', this);
     this.bookmarkButton.addEventListener('click', this);
+    window.addEventListener('visibilitychange', this);
   }
 
   Contextmenu.prototype = {
@@ -54,15 +55,29 @@
             }
           });
 
-          this.icon = null;
-          this.menu.hide();
+          this.hide();
 
           // XXX Bug 1027374, close search. If we do not the activity window
           // is hidden behind the search window.
           Search.close();
 
           break;
+
+        case 'visibilitychange':
+          if (document.hidden) {
+            this.hide();
+          }
+          break;
       }
+    },
+
+    hide: function() {
+      if (!this.menu || !this.menu.hide) {
+        return;
+      }
+
+      this.icon = null;
+      this.menu.hide();
     }
   };
 
