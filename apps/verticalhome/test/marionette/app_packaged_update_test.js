@@ -36,6 +36,11 @@ marionette('Vertical Home - Packaged App Update', function() {
     // wait for the system app to be running
     system.waitForStartup();
 
+    // Launch the homescreen first, then go to the system app.
+    // Make sure we do this before installing an application.
+    subject.waitForLaunch();
+    client.switchToFrame();
+
     // install the app
     appInstall.installPackage(server.packageManifestURL);
 
