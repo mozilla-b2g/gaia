@@ -36,17 +36,15 @@
   color: #e7e7e7;
 }
 
-/* We have this element to paint the search icon with opacity */
 #search-form::after {
   content: '';
   top: 0;
   left: 0;
-  width: calc(100% - .2rem);
+  width: calc(100% - .8rem);
   height: 100%;
   position: absolute;
   background-image: url('/style/images/search_icon.png');
   background-repeat: no-repeat;
-  background-size: 3rem;
+  background-size: 2rem;
   background-position: center right;
-  opacity: .5;
 }
