@@ -27,6 +27,7 @@ var FindMyDevice = {
         },
         onerror: function fmd_fxa_onerror(err) {
           loginButton.addEventListener('click', self._onLoginClick.bind(self));
+          self._togglePanel(false);
           console.error(err);
         }
       });
@@ -67,14 +68,18 @@ var FindMyDevice = {
       value ?  'findmydevice-active-tracking' : 'findmydevice-not-tracking');
   },
 
-  _onChangeLoginState: function fmd_on_change_login_state(loggedIn) {
-    console.log('settings, logged in: ' + loggedIn);
-
+  _togglePanel: function fmd_toggle_panel(loggedIn) {
     var signin = document.getElementById('findmydevice-signin');
     signin.hidden = loggedIn;
 
     var settings = document.getElementById('findmydevice-settings');
     settings.hidden = !loggedIn;
+  },
+
+  _onChangeLoginState: function fmd_on_change_login_state(loggedIn) {
+    console.log('settings, logged in: ' + loggedIn);
+
+    this._togglePanel(loggedIn);
 
     if (this._interactiveLogin) {
       SettingsListener.getSettingsLock().set({
