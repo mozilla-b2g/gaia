@@ -10,6 +10,7 @@ var AppInstall =
 var createAppServer = require('./server/parent');
 var iconSrc = require('./lib/icon_src');
 var iconAppState = require('./lib/icon_app_state');
+var launchIcon = require('./lib/launch_icon');
 
 marionette('Vertical Home - Hosted app failed icon fetch', function() {
   var client = marionette.client(Home2.clientOptions);
@@ -38,6 +39,13 @@ marionette('Vertical Home - Hosted app failed icon fetch', function() {
     server.close(done);
   });
 
+  function expectAppState(icon, state) {
+    client.waitFor(function() {
+      var currentState = iconAppState(icon);
+      return currentState === state;
+    });
+  }
+
   test('shows icon after a restart', function() {
     // go to the system app
     client.switchToFrame();
@@ -50,21 +58,18 @@ marionette('Vertical Home - Hosted app failed icon fetch', function() {
     client.switchToFrame(system.getHomescreenIframe());
 
     var appIcon = subject.getIcon(server.packageManifestURL);
-    // wait until the icon is spinning!
-    client.waitFor(function() {
-      var state = iconAppState(appIcon);
-      return state === 'loading';
-    });
+    expectAppState(appIcon, 'loading');
 
     // stop the download
-    appIcon.click();
-    subject.confirmDialog('stop');
+    launchIcon(appIcon);
+    subject.confirmDialog('pause');
+    expectAppState(appIcon, 'paused');
 
     // Restart the download
     server.uncork(server.applicationZipUri);
 
     // resume the download from the ui
-    appIcon.click();
+    launchIcon(appIcon);
     subject.confirmDialog('resume');
 
     // wait until we are showing our desired icon
@@ -87,6 +92,7 @@ marionette('Vertical Home - Hosted app failed icon fetch', function() {
 
     // switch back to the homescreen
     client.switchToFrame();
+    client.switchToFrame(system.getHomescreenIframe());
 
     var icon = subject.getIcon(server.manifestURL);
 
