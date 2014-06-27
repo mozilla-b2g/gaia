@@ -37,7 +37,6 @@
     // XXX: Because we still have to create both LockScreenWindow
     // and LockScreen.
     this.lockscreen = new window.LockScreen();
-    window.lockScreen = this.lockscreen;
     this.lockscreen.init();
   };
 

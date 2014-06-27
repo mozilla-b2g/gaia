@@ -45,10 +45,6 @@ var FtuLauncher = {
     // Listen to appterminated event
     window.addEventListener('appterminated', this);
 
-    // Avoid race condition that
-    // lockscreen is locked after FTU inited.
-    window.addEventListener('lock', this);
-
     // Monitor appopen event
     // to unlock lockscreen if we are running FTU at first time
     window.addEventListener('appopened', this);
@@ -99,12 +95,6 @@ var FtuLauncher = {
       case 'appterminated':
         if (evt.detail.origin == this._ftuOrigin) {
           this.close();
-        }
-        break;
-
-      case 'lock':
-        if (this._isRunningFirstTime) {
-          lockScreen.unlock(true);
         }
         break;
     }

@@ -425,12 +425,8 @@ var NotificationScreen = {
         );
       }
 
-      // when we have notifications, show bgcolor from wallpaper
-      // remove the simple gradient at the same time
-      window.lockScreen.maskedBackground.style.backgroundColor =
-        window.lockScreen.maskedBackground.dataset.wallpaperColor;
-
-      window.lockScreen.maskedBackground.classList.remove('blank');
+      window.dispatchEvent(new window.Event(
+        'lockscreen-notification-occur'));
     }
 
     if (notify && !this.isResending) {
@@ -526,9 +522,8 @@ var NotificationScreen = {
       // if we don't have any notifications, remove the bgcolor from wallpaper
       // and use the simple gradient
       if (!lockScreenNotificationNode.parentNode.firstElementChild) {
-        window.lockScreen.maskedBackground.style.backgroundColor =
-          'transparent';
-        window.lockScreen.maskedBackground.classList.add('blank');
+        window.dispatchEvent(new window.Event(
+          'lockscreen-notification-empty'));
       }
     }
     this.updateStatusBarIcon();
