@@ -438,11 +438,13 @@
   #calls.big-duration > section .switch-calls {
     background: rgba(255,255,255,0.85);
     transition: background-color 0.3s linear;
+    overflow: visible;
   }
 
   #calls.big-duration > section .numberWrapper .number {
     height: 3.7rem;
     line-height: 3.7rem;
+    overflow: visible;
   }
 
   #calls > section .numberWrapper .number {
