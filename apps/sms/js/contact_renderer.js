@@ -1,4 +1,4 @@
-/*global SharedComponents, Template, Utils */
+/*global SharedComponents, Template, Utils, Settings */
 
 'use strict';
 
@@ -172,7 +172,10 @@ ContactRenderer.prototype = {
 
     // don't render if there is no phone number
     // TODO: Add email checking support for MMS
-    if (!contact.tel || !contact.tel.length) {
+    var hasTel = contact.tel && contact.tel.length;
+    var hasEmail = contact.email && contact.email.length;
+
+    if (!hasTel && !(Settings.supportEmailRecipient && hasEmail)) {
       return false;
     }
 
@@ -190,16 +193,30 @@ ContactRenderer.prototype = {
       number: escsubs.map(function(k) {
         // Match any of the search terms with the number
         return new RegExp(k, 'ig');
+      }),
+      email: escsubs.map(function(k) {
+        // Match any of the search terms with the email
+        return new RegExp('^' + k, 'gi');
       })
     };
 
     var include = renderPhoto ? { photoURL: true } : null;
-    var tels = contact.tel;
-    var details = Utils.getContactDetails(tels[0].value, contact, include);
+    var addresses = [];
+
+    if (contact.tel && contact.tel.length) {
+      addresses = addresses.concat(contact.tel);
+    }
+    if (Settings.supportEmailRecipient &&
+        contact.email && contact.email.length) {
+      addresses = addresses.concat(contact.email);
+    }
+    var details = Utils.getContactDetails(
+      addresses[0].value, contact, include
+    );
 
     var tempDiv = document.createElement('div');
 
-    tels.forEach(function(current) {
+    addresses.forEach(function(current) {
       // Only render a contact's tel value entry for the _specified_
       // input value when not rendering all values. If the tel
       // record value _doesn't_ match, then continue.
@@ -219,7 +236,12 @@ ContactRenderer.prototype = {
 
       var data = Utils.getDisplayObject(details.title, current);
 
-      ['name', 'number'].forEach(function(key) {
+      var props = ['name', 'number'];
+      if (Settings.supportEmailRecipient) {
+        props.push('email');
+      }
+
+      props.forEach(function(key) {
         var escapedData = Template.escape(data[key]);
         if (shouldHighlight) {
           escapedData = highlight(escapedData, regexps[key]);

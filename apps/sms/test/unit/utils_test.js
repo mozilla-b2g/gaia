@@ -1,6 +1,6 @@
 /*global MockL10n, Utils, MockContact, FixturePhones, MockContactPhotoHelper,
          MockContacts, MockMozPhoneNumberService, MocksHelper, Notification,
-         MockNotification, Threads, Promise */
+         MockNotification, Threads, Promise, MockSettings */
 
 'use strict';
 
@@ -12,11 +12,13 @@ require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 requireApp('sms/js/utils.js');
 requireApp('sms/shared/test/unit/mocks/mock_notification.js');
 requireApp('sms/test/unit/mock_threads.js');
+require('/test/unit/mock_settings.js');
 
 var MocksHelperForUtilsUnitTest = new MocksHelper([
   'ContactPhotoHelper',
   'Notification',
-  'Threads'
+  'Threads',
+  'Settings'
 ]).init();
 
 
@@ -1399,6 +1401,24 @@ suite('getContactDisplayInfo', function() {
         done();
       }
     );
+  });
+});
+
+suite('isEmailAddress', function() {
+  test('check +348888888888', function() {
+    assert.isFalse(Utils.isEmailAddress('+348888888888'));
+  });
+  test('check a@b.com', function() {
+    assert.isTrue(Utils.isEmailAddress('a@b.com'));
+  });
+  test('check @b.com', function() {
+    assert.isFalse(Utils.isEmailAddress('@b.com'));
+  });
+  test('check abcd@', function() {
+    assert.isFalse(Utils.isEmailAddress('abcd@'));
+  });
+  test('check a@a', function() {
+    assert.isTrue(Utils.isEmailAddress('a@a'));
   });
 });
 
