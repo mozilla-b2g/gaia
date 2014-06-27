@@ -1,6 +1,6 @@
 'use strict';
 
-/* global SheetsTransition */
+/* global SheetsTransition, AppWindowManager */
 
 var StackManager = {
   init: function sm_init() {
@@ -16,10 +16,32 @@ var StackManager = {
     if (this.position < 0) {
       return undefined;
     }
+
+    var app = this._currentFromStack();
+
+    // XXX: This code will be removed when bug 967405 lands.
+    // Until then we can get into edge cases where the app currently
+    // displayed is not part of the stack and we don't want to break.
+    if (!app) {
+      app = AppWindowManager.getActiveApp();
+    }
+
+    return app;
+  },
+
+  _currentFromStack: function sm_currentInStack() {
     return this._stack[this.position].getActiveWindow();
   },
+  outOfStack: function sm_outOfStack() {
+    return (this._currentFromStack() !== this.getCurrent());
+  },
+
   getPrev: function sm_getPrev() {
-    var inGroupPrev = this.getCurrent().getActiveWindow().getPrev();
+    if (this.outOfStack()) {
+      return undefined;
+    }
+
+    var inGroupPrev = this._currentFromStack().getPrev();
     if (inGroupPrev) {
       return inGroupPrev;
     }
@@ -30,8 +52,13 @@ var StackManager = {
 
     return undefined;
   },
+
   getNext: function sm_getNext() {
-    var inGroupNext = this.getCurrent().getActiveWindow().getNext();
+    if (this.outOfStack()) {
+      return undefined;
+    }
+
+    var inGroupNext = this._currentFromStack().getNext();
     if (inGroupNext) {
       return inGroupNext;
     }
@@ -123,10 +150,10 @@ var StackManager = {
     switch (e.type) {
       case 'appcreated':
         var app = e.detail;
-        // The system application should never show up in the stack.
+        // Multiple apps use role=system to opt out of being part of
+        // the the card view.
         // XXX: This code will be removed when bug 967405 lands.
-        var sysApp = 'system.gaiamobile.org';
-        if (app.manifest && app.manifestURL.contains(sysApp)) {
+        if (app.manifest && app.manifest.role == 'system') {
           return;
         }
 
