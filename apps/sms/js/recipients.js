@@ -658,7 +658,7 @@
 
     // Once the transition has ended, the set focus to
     // the last child element in the recipients list view
-    view.inner.parentNode.addEventListener('transitionend', function te() {
+    view.outer.addEventListener('transitionend', function te() {
       var last = view.inner.lastElementChild;
       var previous;
 
@@ -675,9 +675,7 @@
         if (opts.refocus) {
           opts.refocus.focus();
         }
-      }
-
-      if (last !== null) {
+      } else if (state.visible === 'multiline' && last !== null) {
         last.scrollIntoView(true);
       }
 
