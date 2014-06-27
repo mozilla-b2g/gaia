@@ -905,6 +905,7 @@ var CallLog = {
       CallLogDBManager.removeGroupContactInfo(contactId, null,
                                               function(result) {
         if (typeof result === 'number' && result > 0) {
+          //self.updateContactInfo(log);
           self._updateContact(log, log.dataset.phoneNumber);
         }
       });
