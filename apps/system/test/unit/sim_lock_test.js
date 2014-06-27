@@ -1,8 +1,10 @@
-/* global SimLock, MocksHelper, SimPinDialog, MockSIMSlotManager */
+/* global SimLock, MockL10n, MocksHelper, SimPinDialog, MockSIMSlotManager */
+/* global preInit */
 'use strict';
 
 requireApp('system/js/mock_simslot_manager.js');
 requireApp('system/test/unit/mock_simcard_dialog.js');
+requireApp('system/test/unit/mock_l10n.js');
 
 var mocksHelperForSimLock = new MocksHelper([
   'SimPinDialog',
@@ -10,11 +12,21 @@ var mocksHelperForSimLock = new MocksHelper([
 ]).init();
 
 suite('SimLock', function() {
+  var realMozL10n;
   mocksHelperForSimLock.attachTestHelpers();
 
   suiteSetup(function(done) {
     // load this later
-    requireApp('system/js/sim_lock.js', done);
+    realMozL10n = navigator.mozL10n;
+    navigator.mozL10n = MockL10n;
+    requireApp('system/js/sim_lock.js', function() {
+      preInit();
+      done();
+    });
+  });
+
+  suiteTeardown(function() {
+    navigator.mozL10n = realMozL10n;
   });
 
   setup(function() {
