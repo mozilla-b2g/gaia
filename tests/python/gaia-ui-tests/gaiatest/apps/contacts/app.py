@@ -22,7 +22,6 @@ class Contacts(Base):
     _select_all_button_locator = (By.CSS_SELECTOR, 'button[data-l10n-id="selectAll"]')
     _export_button_locator = (By.ID, 'select-action')
     _status_message_locator = (By.ID, 'statusMsg')
-    _first_phone_number = (By.XPATH, "//form[@id='action-menu']//menu[@id='value-menu']/button[1]")
 
     #  contacts
     _contact_locator = (By.CSS_SELECTOR, 'li.contact-item')
@@ -86,9 +85,6 @@ class Contacts(Base):
     def status_message(self):
         self.wait_for_element_displayed(*self._status_message_locator)
         return self.marionette.find_element(*self._status_message_locator).text
-
-    def tap_first_phone_number(self):
-        self.marionette.find_element(*self._first_phone_number).tap()
 
     class Contact(PageRegion):
 

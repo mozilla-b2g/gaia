@@ -7,7 +7,7 @@ import time
 from gaiatest import GaiaTestCase
 from gaiatest.apps.messages.app import Messages
 from gaiatest.mocks.mock_contact import MockContact
-
+from gaiatest.apps.contacts.regions.contact_actionmenu import ContactActionMenu
 
 class TestSmsAddContact(GaiaTestCase):
 
@@ -30,7 +30,10 @@ class TestSmsAddContact(GaiaTestCase):
         contacts_app.wait_for_contacts()
 
         contacts_app.contact(self.contact['givenName']).tap(return_details=False)
-        contacts_app.tap_first_phone_number()
+
+        contact_actionmenu = ContactActionMenu(self.marionette)
+        contact_actionmenu.tap_first_phone_number()
+
         contacts_app.wait_for_contacts_frame_to_close()
 
         # Now switch to the displayed frame which should be Messages app
