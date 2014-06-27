@@ -9,6 +9,8 @@ var FindMyDevice = {
   // since in that case we also want to enable Find My Device
   _interactiveLogin: false,
 
+  _isReady: false,
+
   init: function fmd_init() {
     var self = this;
     var loginButton = document.getElementById('findmydevice-login');
@@ -22,14 +24,11 @@ var FindMyDevice = {
         audience: self._audienceURL,
         onlogin: self._onChangeLoginState.bind(self, true),
         onlogout: self._onChangeLoginState.bind(self, false),
-        onready: function fmd_fxa_onready() {
-          loginButton.addEventListener('click', self._onLoginClick.bind(self));
-        },
-        onerror: function fmd_fxa_onerror(err) {
-          loginButton.addEventListener('click', self._onLoginClick.bind(self));
-          console.error(err);
-        }
+        onready: self._onReady.bind(self),
+        onerror: self._onReady.bind(self)
       });
+
+      loginButton.addEventListener('click', self._onLoginClick.bind(self));
     });
 
     SettingsListener.observe('findmydevice.tracking', false,
@@ -41,7 +40,20 @@ var FindMyDevice = {
     checkbox.addEventListener('change', this._onCheckboxChanged.bind(this));
   },
 
+  _onReady: function fmd_on_ready(err) {
+    if (err) {
+      console.error(err);
+    }
+    if (this._isReady) {
+      return;
+    }
+    this._isReady = true;
+  },
+
   _onLoginClick: function fmd_on_login_click(e) {
+    if (!this._isReady) {
+      return;
+    }
     e.stopPropagation();
     e.preventDefault();
     var _ = navigator.mozL10n.get;
