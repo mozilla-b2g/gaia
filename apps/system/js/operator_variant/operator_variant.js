@@ -93,6 +93,10 @@
       return r;
     },
 
+    clone: function ovh_clone(obj) {
+      return JSON.parse(JSON.stringify(obj));
+    },
+
     /**
      * Utility function to merge default apn settings (from apn.json) to
      * existing apn settings.
@@ -105,6 +109,8 @@
      */
     mergeAndKeepCustomApnSettings:
       function ovh_mergeApnSettings(apns, defaultApns) {
+        var defaultApnsCopy = this.clone(defaultApns);
+
         // apns might be undefined, do filtering only if it's an Array
         var existingCustomApns = !Array.isArray(apns) ? [] :
           apns.filter(function(apn) {
@@ -121,7 +127,7 @@
 
         // We only need to set the apns of the types that are not covered by
         // the custom apns.
-        var apnsToBeSet = defaultApns.filter(function(apn) {
+        var apnsToBeSet = defaultApnsCopy.filter(function(apn) {
           // Remove the type that is already covered by the custom apns.
           apn.types = apn.types.filter(function(type) {
             return !typesOfCustomApn.has(type);
@@ -149,24 +155,24 @@
       this._iccSettings.mcc = mcc;
       this._iccSettings.mnc = mnc;
 
-      if (!persistKeyNotSet) {
-        this.retrieveOperatorVariantSettings(
-          this.applyOperatorVariantSettings.bind(this)
-        );
-        this.retrieveWAPUserAgentProfileSettings(
-          this.applyWAPUAProfileUrl.bind(this)
-        );
-      } else {
-        this.retrieveOperatorVariantSettings(
-          (function retrieveOperatorVariantSettingsCb(result) {
-            this.filterApnsByMvnoRules(0, result, [], '', '',
-              (function onFinishCb(filteredApnList) {
-                this.buildApnSettings(filteredApnList);
-            }).bind(this));
-            this.applyVoicemailSettings(result, /*isUpdate*/ true);
-          }).bind(this)
-        );
-      }
+      this.retrieveOperatorVariantSettings(function(result) {
+        this.buildCompleteDefaultApnSettings(result);
+
+        if (!persistKeyNotSet) {
+          this.retrieveOperatorVariantSettings(
+            this.applyOperatorVariantSettings.bind(this)
+          );
+          this.retrieveWAPUserAgentProfileSettings(
+            this.applyWAPUAProfileUrl.bind(this)
+          );
+        } else {
+          this.filterApnsByMvnoRules(0, result, [], '', '',
+            (function onFinishCb(filteredApnList) {
+              this.buildApnSettings(filteredApnList);
+          }).bind(this));
+          this.applyVoicemailSettings(result, /*isUpdate*/ true);
+        }
+      }.bind(this));
 
       this._operatorVariantHelper.applied();
     },
@@ -461,6 +467,59 @@
     },
 
     /**
+     * Helper function to
+     * - Change property mane 'type' by 'types'.
+     * - Change values for 'authtype' property as the ones that gecko expects.
+     */
+    convertApnSettings: function ovh_convertApns(apnSettings) {
+      var that = this;
+      return apnSettings.map(function(apn) {
+        var apnClone = that.clone(apn);
+        if (apnClone.type && Array.isArray(apnClone.type)) {
+          apnClone.types = apnClone.type.map(function(type) {
+            return type;
+          });
+        }
+        delete apnClone.type;
+        if (apnClone.authtype) {
+          apnClone.authtype = AUTH_TYPES[apnClone.authtype] || 'notDefined';
+        }
+        return apnClone;
+      });
+    },
+
+    /**
+     * Build all possible apn settings for the current mcc and mnc codes.
+     *
+     * @param {Array} allApnList The array of settings used for bulding the data
+     *                           call ones.
+     */
+    buildCompleteDefaultApnSettings:
+      function ovh_buildCompleteDefaultApnSettings(allApnList) {
+        var settings = window.navigator.mozSettings;
+        var validApnSettings = allApnList.filter(function(apn) {
+          return apn.type && apn.type.indexOf('operatorvariant') == -1;
+        });
+        validApnSettings = this.convertApnSettings(validApnSettings);
+
+        // Store default apn items to the database.
+        var transaction = settings.createLock();
+        var request = transaction.get('ril.data.default.apns');
+        var mcc = this._iccSettings.mcc;
+        var mnc = this._iccSettings.mnc;
+
+        request.onsuccess = (function() {
+          var result = request.result['ril.data.default.apns'] || {};
+          result[mcc] = result[mcc] || {};
+          result[mcc][mnc] = validApnSettings;
+
+          transaction.set({
+            'ril.data.default.apns': result
+          });
+        }).bind(this);
+    },
+
+    /**
      * Build the data call settings for the new APN setting architecture.
      *
      * @param {Array} allApnList The array of settings used for bulding the data
@@ -492,7 +551,7 @@
         for (var k = 0; k < allApnList.length; k++) {
           if (this.canHandleType(allApnList[k], type)) {
             if (allApnList[k].type.length > 1) {
-              var tmpApn = JSON.parse(JSON.stringify(allApnList[k]));
+              var tmpApn = this.clone(allApnList[k]);
               delete tmpApn.type;
               tmpApn.type = [];
               tmpApn.type.push(type);
@@ -505,25 +564,12 @@
         }
       }
 
-      // Change property mane 'type' by 'types'.
-      // Change values for 'authtype' property as the ones that gecko expects.
-      for (var l = 0; l < tmpApnSettings.length; l++) {
-        var apn = tmpApnSettings[l];
-        apn.types = [];
-        apn.type.forEach(function forEachApnType(type) {
-          apn.types.push(type);
-        });
-        delete apn.type;
-        if (apn.authtype) {
-          apn.authtype = AUTH_TYPES[apn.authtype] || 'notDefined';
-        }
-        apnSettings.push(apn);
-      }
+      apnSettings = this.convertApnSettings(tmpApnSettings);
 
-      // Store settings into the database.
       var settings = window.navigator.mozSettings;
-      var transaction = settings.createLock();
 
+      // Store settings into the database and clear the user selection.
+      var transaction = settings.createLock();
       var request = transaction.get('ril.data.apnSettings');
       request.onsuccess = (function() {
         var result = request.result['ril.data.apnSettings'];
@@ -531,16 +577,19 @@
           result = [[], []];
         }
 
-        // We should respect to the existing custom settings if any. Instead of
-        // overwriting it with "apnSettings" compeletely, we should only
-        // overwrite the apn settings that are not configured by custom settings
-        // by using the result of "mergeAndKeepCustomApnSettings".
+        // We should respect to the existing custom settings if any. Instead
+        // of overwriting it with "apnSettings" compeletely, we should only
+        // overwrite the apn settings that are not configured by custom
+        // settings by using the result of "mergeAndKeepCustomApnSettings".
         var existingApnSettings = result[this._iccCardIndex];
-        var mergedApnSettings =
-          this.mergeAndKeepCustomApnSettings(existingApnSettings, apnSettings);
+        var mergedApnSettings = this.mergeAndKeepCustomApnSettings(
+          existingApnSettings, apnSettings);
 
         result[this._iccCardIndex] = mergedApnSettings;
-        transaction.set({'ril.data.apnSettings': result});
+        transaction.set({
+          'ril.data.apnSettings': result,
+          'apn.selections': null
+        });
       }).bind(this);
     },
 

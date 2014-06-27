@@ -9,6 +9,9 @@ require.config({
     'settings': {
       exports: 'Settings'
     },
+    'shared/apn_helper': {
+      exports: 'ApnHelper'
+    },
     'shared/async_storage': {
       exports: 'asyncStorage'
     },
@@ -39,6 +42,9 @@ require.config({
     'shared/settings_listener': {
       exports: 'SettingsListener'
     },
+    'shared/toaster': {
+      exports: 'Toaster'
+    },
     'shared/tz_select': {
       exports: 'tzSelect'
     },
@@ -58,9 +64,6 @@ require.config({
     'shared/mobile_operator': {
       exports: 'MobileOperator'
     },
-    'shared/toaster': {
-      exports: 'Toaster'
-    },
     'utils': {
       exports: ''
     },
@@ -71,6 +74,14 @@ require.config({
   modules: [
     {
       name: 'main'
+    },
+    {
+      name: 'modules/apn/apn_settings_manager',
+      exclude: [
+        'main',
+        'modules/async_storage',
+        'modules/mvvm/observable'
+      ]
     },
     {
       name: 'panels/root/panel',
