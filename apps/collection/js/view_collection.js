@@ -14,14 +14,8 @@
     name: document.getElementById('name')
   };
 
-  function getLocalizedName(collection) {
-    // l10n prefix taken from /shared/locales/collection_categories
-    var l10nId = 'collection-categoryId-' + collection.categoryId;
-    return navigator.mozL10n.get(l10nId) || collection.name;
-  }
-
   function updateTitle(element, collection) {
-    element.textContent = getLocalizedName(collection);
+    element.textContent = collection.localizedName;
   }
 
   function HandleView(activity) {
@@ -29,9 +23,12 @@
 
     var data = activity.source.data;
 
+    // create collection object
+    var collection = BaseCollection.create(data);
+
     // XXX: in 2.1 we can use a better approach of just setting the l10n id
     //      see Bug 992473
-    var l10nUpdateHander = updateTitle.bind(this, elements.name, data);
+    var l10nUpdateHander = updateTitle.bind(this, elements.name, collection);
     navigator.mozL10n.ready(l10nUpdateHander);
     window.addEventListener('localized', l10nUpdateHander);
 
@@ -44,9 +41,6 @@
     elements.close.addEventListener('click', function close() {
       activity.postResult('close');
     });
-
-    // create collection object
-    var collection = BaseCollection.create(data);
 
     loading(false);
 

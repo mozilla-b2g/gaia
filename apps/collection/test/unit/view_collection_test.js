@@ -56,7 +56,8 @@ suite('view > ', function() {
 
   test('renders a collection', function(done) {
 
-    var renderStub = this.sinon.stub(BaseCollection, 'create');
+    var renderStub = this.sinon.stub(BaseCollection, 'create')
+      .returns({});
 
     navigator.mozSetMessageHandler.mTrigger('activity', {
       source: {

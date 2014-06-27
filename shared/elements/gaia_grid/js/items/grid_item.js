@@ -304,6 +304,41 @@
     },
 
     /**
+    Safely remove this item from the grid and DOM.
+    */
+    removeFromGrid: function() {
+      var idx = this.grid.items.indexOf(this);
+
+      // This should never happen but is remotely possible item is not in the
+      // grid.
+      if (idx === -1) {
+        console.error('Attempting to remove self before item has been added!');
+        return;
+      }
+
+      // update the state of the grid and DOM so this item is no longer
+      // referenced.
+      this.grid.items.splice(idx, 1);
+      delete this.grid.icons[this.identifier];
+
+      if (this.element) {
+        this.element.parentNode.removeChild(this.element);
+      }
+
+      // ensure we don't end up with empty cruft..
+      this.grid.render({ from: idx - 1 });
+    },
+
+    /**
+    Removes item from the dom and dispatches a removeitem event.
+    */
+    remove: function() {
+      this.grid.element.dispatchEvent(new CustomEvent('removeitem', {
+        detail: this
+      }));
+    },
+
+    /**
      * Renders the icon to the container.
      * @param {Array} coordinates Grid coordinates to render to.
      * @param {Number} index The index of the items list of this item.

@@ -1,4 +1,5 @@
-/* globals CallScreen, MockCall, MockCallScreen, MockCallsHandler, MockLazyL10n,
+/* globals CallScreen, FontSizeManager, MockCall, MockCallScreen,
+           MockCallsHandler, MockLazyL10n, MockMozL10n,
            MockNavigatorMozTelephony, MocksHelper, telephonyAddCall */
 
 'use strict';
@@ -9,6 +10,7 @@ require('/shared/test/unit/mocks/dialer/mock_handled_call.js');
 require('/shared/test/unit/mocks/dialer/mock_calls_handler.js');
 require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
 require('/test/unit/mock_call_screen.js');
+require('/shared/test/unit/mocks/dialer/mock_font_size_manager.js');
 
 // The ConferenceGroupHandler binds stuff when evaluated so we load it
 // after the mocks and we don't want it to show up as a leak.
@@ -16,11 +18,13 @@ var mocksHelperForConferenceGroupHandler = new MocksHelper([
   'HandledCall',
   'CallsHandler',
   'LazyL10n',
-  'CallScreen'
+  'CallScreen',
+  'FontSizeManager'
 ]).init();
 
 suite('conference group handler', function() {
   var realMozTelephony;
+  var realMozL10n;
 
   mocksHelperForConferenceGroupHandler.attachTestHelpers();
 
@@ -35,6 +39,9 @@ suite('conference group handler', function() {
   suiteSetup(function(done) {
     realMozTelephony = navigator.mozTelephony;
     navigator.mozTelephony = MockNavigatorMozTelephony;
+
+    realMozL10n = navigator.mozL10n;
+    navigator.mozL10n = MockMozL10n;
 
     fakeDOM = document.createElement('div');
     fakeDOM.innerHTML = '<section id="group-call" hidden>' +
@@ -82,6 +89,7 @@ suite('conference group handler', function() {
   suiteTeardown(function() {
     fakeDOM.parentNode.removeChild(fakeDOM);
     navigator.moztelephony = realMozTelephony;
+    navigator.mozL10n = realMozL10n;
   });
 
   teardown(function() {
@@ -117,6 +125,14 @@ suite('conference group handler', function() {
         flush();
         assert.equal(fakeGroupLabel.textContent, 'conferenceCall');
         assert.deepEqual(MockLazyL10n.keys.conferenceCall, {n: 2});
+      });
+
+      test('should update call screen in CDMA network', function() {
+        MockCallsHandler.mIsFirstCallOnCdmaNetwork = true;
+        this.sinon.spy(MockCallScreen, 'cdmaConferenceCall');
+
+        flush();
+        sinon.assert.calledOnce(MockCallScreen.cdmaConferenceCall);
       });
 
       suite('when a new called is merged in the conference', function() {
@@ -223,6 +239,8 @@ suite('conference group handler', function() {
 
       MockNavigatorMozTelephony.mTriggerGroupCallsChanged();
       MockNavigatorMozTelephony.mTriggerCallsChanged();
+
+      this.sinon.spy(FontSizeManager, 'adaptToSpace');
     });
 
     test('should start timer when connected', function() {
@@ -267,6 +285,20 @@ suite('conference group handler', function() {
       MockNavigatorMozTelephony.mTriggerGroupStateChange();
 
       assert.isTrue(MockCallScreen.mCalledStopTicker);
+    });
+
+    test('should call FontSizeManager.adaptToSpace with the correct parameters',
+         function() {
+      MockCallScreen.mScenario = FontSizeManager.SINGLE_CALL;
+      var view = fakeDOM.querySelector('#group-call-label');
+      var fakeView = fakeDOM.querySelector('.fake-number');
+
+      MockNavigatorMozTelephony.conferenceGroup.state = '';
+      MockNavigatorMozTelephony.mTriggerGroupStateChange();
+
+      sinon.assert.calledWith(
+        FontSizeManager.adaptToSpace, FontSizeManager.SINGLE_CALL, view,
+        fakeView, false, 'end');
     });
 
     test('should add the held class once held', function() {

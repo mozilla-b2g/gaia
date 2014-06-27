@@ -97,7 +97,6 @@ class Keypad(Phone):
 
 class AddNewNumber(Base):
     _create_new_contact_locator = (By.ID, 'create-new-contact-menuitem')
-    _new_contact_frame_locator = (By.CSS_SELECTOR, "iframe[src^='app://communications'][src$='contacts/index.html?new']")
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
@@ -106,10 +105,7 @@ class AddNewNumber(Base):
     def tap_create_new_contact(self):
         self.marionette.find_element(*self._create_new_contact_locator).tap()
 
-        self.marionette.switch_to_frame()
-        self.wait_for_element_present(*self._new_contact_frame_locator)
-        frame = self.marionette.find_element(*self._new_contact_frame_locator)
-        self.marionette.switch_to_frame(frame)
-
         from gaiatest.apps.contacts.regions.contact_form import NewContact
-        return NewContact(self.marionette)
+        new_contact = NewContact(self.marionette)
+        new_contact.switch_to_new_contact_form()
+        return new_contact

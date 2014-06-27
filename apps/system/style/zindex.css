@@ -175,6 +175,7 @@
   z-index: 2044;
 }
 
+#screen > [data-z-index-level="software-buttons"],
 #screen.task-manager > #cards-view[data-z-index-level="cards-view"] {
   z-index: 2044;
 }

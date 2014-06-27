@@ -1,6 +1,6 @@
 /* global Card, TaskCard,
           AppWindowManager, sleepMenu, SettingsListener, AttentionScreen,
-          OrientationManager, System,
+          OrientationManager,
           GestureDetector, UtilityTray, StackManager, Event */
 
 'use strict';
@@ -300,7 +300,8 @@
 
     // If we are currently displaying the homescreen but we have apps in the
     // stack we will display the most recently used application.
-    if (this.currentPosition == -1 && stack.length) {
+    if ((this.currentPosition == -1 || StackManager.outOfStack()) &&
+        stack.length) {
       this.currentPosition = stack.length - 1;
     }
     this.currentDisplayed = this.currentPosition;
@@ -706,7 +707,8 @@
         break;
 
       case 'holdhome':
-        if (this.isShown() || System.locked) {
+        if (this.isShown() ||
+            (window.lockScreen && window.lockScreen.locked)) {
           return;
         }
         sleepMenu.hide();

@@ -130,6 +130,26 @@ suite('Tutorial >', function() {
       }
     });
 
+    test('init despite failure to load media', function(done) {
+      var tutorialWasInitialized = false;
+      MockXMLHttpRequest.mResponse = {
+        'default': {
+          steps: [{
+            video: '/style/images/tutorial/NotThere.mp4',
+            l10nKey: 'tutorial-vertical-scroll-tiny'
+          }]
+        }
+      };
+      window.addEventListener('tutorialinitialized', function() {
+        tutorialWasInitialized = true;
+      });
+      Tutorial.init(null, function() {
+        done(function() {
+          assert.isTrue(tutorialWasInitialized, 'tutorialinitialized fired');
+        });
+      });
+    });
+
   });
 
   suite(' post-init', function() {

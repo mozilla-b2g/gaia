@@ -1,5 +1,5 @@
 {
-  "name": "Sneaky Template",
+  "name": "Template",
   "description": "Web app template",
   "launch_path": "/index.html",
   "developer": {
@@ -20,7 +20,7 @@
       "description": "Web app template"
     },
     "en-US": {
-      "name": "Sneaky Template",
+      "name": "Template",
       "description": "Web app template"
     },
     "es": {

@@ -24,7 +24,8 @@
       getPairedDevices: FFOS_RUNTIME.domRequest([]),
       startDiscovery: FFOS_RUNTIME.domRequest(),
       name: 'I like blue',
-      setName: FFOS_RUNTIME.domRequest()
+      setName: FFOS_RUNTIME.domRequest(),
+      getConnectedDevices: FFOS_RUNTIME.domRequest()
     }),
     isConnected: function() {
       debug('isConnected');

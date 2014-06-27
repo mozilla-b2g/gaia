@@ -3,6 +3,12 @@
 
 (function(exports) {
 
+  var targets = [
+    'homescreen',
+    'app',
+    'activity'
+  ];
+
   /**
    * TTLView measures and displays startup time as measured by "first paint".
    * The load time is displayed in ms next to the type of load event.
@@ -44,10 +50,10 @@
         this.element.style.visibility = 'hidden';
       }
 
-      window.removeEventListener('appwillopen', this);
-      window.removeEventListener('apploadtime', this);
-      window.removeEventListener('activitywillopen', this);
-      window.removeEventListener('activityloadtime', this);
+      targets.forEach(function listen(target) {
+        window.removeEventListener(target + 'opening', this);
+        window.removeEventListener(target + 'loadtime', this);
+      }, this);
     },
 
     /**
@@ -61,12 +67,10 @@
       this.element.style.visibility = 'visible';
 
       // this is fired when the app launching is initialized
-      window.addEventListener('appwillopen', this);
-      window.addEventListener('apploadtime', this);
-
-      // this is to calculate the load time of inline activity
-      window.addEventListener('activitywillopen', this);
-      window.addEventListener('activityloadtime', this);
+      targets.forEach(function listen(target) {
+        window.addEventListener(target + 'opening', this);
+        window.addEventListener(target + 'loadtime', this);
+      }, this);
     },
 
     /**
@@ -91,13 +95,15 @@
      */
     handleEvent: function(evt) {
       switch (evt.type) {
+        case 'homescreenloadtime':
         case 'apploadtime':
         case 'activityloadtime':
           this.updateLoadtime(evt.detail.time, evt.detail.type);
           break;
 
-        case 'appwillopen':
-        case 'activitywillopen':
+        case 'homescreenopening':
+        case 'appopening':
+        case 'activityopening':
           this.resetLoadtime();
           break;
       }

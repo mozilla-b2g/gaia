@@ -145,7 +145,7 @@ var SimLock = {
   },
 
   showIfLocked: function sl_showIfLocked(currentSlotIndex, skipped) {
-    if (System.locked)
+    if (lockScreen && lockScreen.locked)
       return false;
 
     if (SimPinDialog.visible) {
@@ -200,11 +200,16 @@ var SimLock = {
   }
 };
 
-if (SIMSlotManager.ready) {
-  SimLock.init();
-} else {
-  window.addEventListener('simslotready', function ready() {
-    window.removeEventListener('simslotready', ready);
+function preInit() {
+  if (SIMSlotManager.ready) {
     SimLock.init();
-  });
+  } else {
+    window.addEventListener('simslotready', function ready() {
+      window.removeEventListener('simslotready', ready);
+      SimLock.init();
+    });
+  }
 }
+
+// SIMLock will optionally load SIMLock dialog which is blocked by l10n
+navigator.mozL10n.once(preInit);

@@ -192,7 +192,7 @@ function startup(data, reason) {
           // We should end up with urls like:
           //   http://system.gaiamobile.org:8080/manifest.webapp
           //   app://system.gaiamobile.org/manifest.webapp
-          let manifestURL = request.URI.prePath + '/manifest.webapp';
+          let manifestURL = 'app://'+ request.URI.host +'/manifest.webapp';
           let manifest = appsService.getAppByManifestURL(manifestURL);
           if (manifest) {
             let app = manifest.QueryInterface(Ci.mozIApplication);
@@ -292,4 +292,10 @@ function startup(data, reason) {
 
 function shutdown(data, reason) {
   // prevent stdout warnings
+}
+
+function install(data, reason) {
+}
+
+function uninstall(data, reason) {
 }

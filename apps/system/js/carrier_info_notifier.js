@@ -36,7 +36,7 @@ var CarrierInfoNotifier = {
 
     // If we are not inside the lockscreen, show the dialog
     // immediately, dispatch an event to hide
-    if (!window.System.locked) {
+    if (!window.lockScreen || !window.lockScreen.locked) {
       this.dispatchEvent('emergencyalert');
       this.playNotification();
       showDialog();

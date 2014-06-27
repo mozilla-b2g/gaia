@@ -20,7 +20,7 @@
     this.publish('created');
   };
 
-  SimPinSystemDialog.prototype.__proto__ = window.SystemDialog.prototype;
+  SimPinSystemDialog.prototype = Object.create(window.SystemDialog.prototype);
 
   SimPinSystemDialog.prototype.customID = 'simpin-dialog';
 

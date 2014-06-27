@@ -7848,6 +7848,34 @@ FolderStorage.prototype = {
   },
   _refreshSlice: function fs__refreshSlice(slice, checkOpenRecency,
                                            releaseMutex) {
+
+    var doneCallback = function refreshDoneCallback(err, bisectInfo,
+                                                    numMessages) {
+      slice._onAddingHeader = null;
+
+      var reportSyncStatusAs = 'synced';
+      switch (err) {
+      case 'aborted':
+      case 'unknown':
+        reportSyncStatusAs = 'syncfailed';
+        break;
+      }
+
+      releaseMutex();
+      slice.waitingOnData = false;
+      slice.setStatus(reportSyncStatusAs, true, false, false, null,
+                      newEmailCount);
+      return undefined;
+    }.bind(this);
+
+    // If the slice is dead, its startTS and endTS will be set to
+    // null, so there is no range available to refresh. (See Bug 941991.)
+    if (slice.isDead) {
+      console.log('MailSlice: Attempted to refresh a dead slice.');
+      doneCallback('unknown');
+      return;
+    }
+
     slice.waitingOnData = 'refresh';
 
     var startTS = slice.startTS, endTS = slice.endTS,
@@ -7910,26 +7938,6 @@ FolderStorage.prototype = {
     // quantize the start date
     if (startTS)
       startTS = quantizeDate(startTS);
-
-    var doneCallback = function refreshDoneCallback(err, bisectInfo,
-                                                    numMessages) {
-      slice._onAddingHeader = null;
-
-      var reportSyncStatusAs = 'synced';
-      switch (err) {
-        case 'aborted':
-        case 'unknown':
-          reportSyncStatusAs = 'syncfailed';
-          break;
-      }
-
-      releaseMutex();
-      slice.waitingOnData = false;
-      slice.setStatus(reportSyncStatusAs, true, false, false, null,
-                      newEmailCount);
-      return undefined;
-    }.bind(this);
-
 
     // In the initial open case, we support a constant that allows us to
     // fast-path out without bothering the server.

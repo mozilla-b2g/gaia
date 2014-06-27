@@ -49,12 +49,13 @@ var FxaMenu = (function fxa_menu() {
   function onVisibilityChange() {
     if (document.hidden) {
       fxaHelper.removeEventListener('onlogin', refreshStatus);
-      fxaHelper.removeEventListener('onverifiedlogin', refreshStatus);
+      fxaHelper.removeEventListener('onverified', refreshStatus);
       fxaHelper.removeEventListener('onlogout', refreshStatus);
     } else {
       fxaHelper.addEventListener('onlogin', refreshStatus);
-      fxaHelper.addEventListener('onverifiedlogin', refreshStatus);
+      fxaHelper.addEventListener('onverified', refreshStatus);
       fxaHelper.addEventListener('onlogout', refreshStatus);
+      refreshStatus();
     }
   }
 

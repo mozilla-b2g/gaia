@@ -180,11 +180,12 @@
       window.addEventListener('applocationchange', this);
       window.addEventListener('appscroll', this);
       window.addEventListener('home', this);
+      window.addEventListener('lock', this);
       window.addEventListener('cardviewclosedhome', this);
       window.addEventListener('cardviewclosed', this);
       window.addEventListener('cardviewshown', this);
       window.addEventListener('appopened', this);
-      window.addEventListener('homescreenopening', this);
+      window.addEventListener('homescreenopened', this);
       window.addEventListener('stackchanged', this);
       window.addEventListener('searchcrashed', this);
       window.addEventListener('permissiondialoghide', this);
@@ -235,6 +236,10 @@
         case 'home':
         case 'cardviewclosedhome':
           this.handleHome(e);
+          break;
+        case 'lock':
+          this.hideResults();
+          this.deactivate();
           break;
         case 'cardviewshown':
           if (this.waitingOnCardViewLaunch) {
@@ -293,7 +298,7 @@
         case 'ftudone':
           this.handleFTUDone(e);
           break;
-        case 'homescreenopening':
+        case 'homescreenopened':
           this.enterHome(e);
           break;
         case 'stackchanged':
@@ -321,7 +326,7 @@
       window.removeEventListener('cardviewshown', this);
       window.removeEventListener('cardviewclosedhome', this);
       window.removeEventListener('appopened', this);
-      window.removeEventListener('homescreenopening', this);
+      window.removeEventListener('homescreenopened', this);
       window.removeEventListener('stackchanged', this);
       window.removeEventListener('permissiondialoghide', this);
 
@@ -384,6 +389,7 @@
       if (!this.expanded || this.transitioning) {
         return;
       }
+
       this.transitioning = true;
       this.expanded = false;
       this.rocketbar.classList.remove('expanded');
@@ -553,6 +559,16 @@
       // To be removed in bug 999463
       this.body.removeEventListener('keyboardchange',
         this.handleKeyboardChange, true);
+    },
+
+    /**
+     * Handle a lock event.
+     * @memberof Rocketbar.prototype
+     */
+    handleLock: function() {
+      this.hideResults();
+      this.collapse();
+      this.deactivate();
     },
 
     /**
@@ -757,7 +773,7 @@
      */
     handleCancel: function(e) {
       this.input.value = '';
-      this.handleInput();
+      this.hideResults();
       this.deactivate();
     },
 
@@ -822,9 +838,17 @@
      * @memberof Rocketbar.prototype
      */
     handleSearchCrashed: function(e) {
-      if (this.searchWindow) {
-        this.searchWindow = null;
+      if (!this._searchWindow) {
+        return;
       }
+
+      this.clear();
+      this.hideResults();
+      this.collapse();
+      this.deactivate();
+
+      this.searchWindow = null;
+      this._port = null;
     },
 
     /**
@@ -878,6 +902,7 @@
         this.initSearchConnection();
         return;
       }
+
       switch (e.detail.action) {
         case 'render':
           this.activate(this.focus.bind(this));

@@ -1,5 +1,5 @@
 /* global SettingsListener, homescreenLauncher, KeyboardManager,
-          layoutManager, System */
+          layoutManager, lockScreen, System */
 'use strict';
 
 (function(exports) {
@@ -177,17 +177,14 @@
           immediateTranstion = true;
         }
 
-        if (immediateTranstion) {
-          openAnimation = closeAnimation = 'immediate';
-        } else if (switching) {
-          // XXX: We should just the ordering by StackManager
-          var nextAppIsNew = appNext.createdTime > appCurrent.createdTime;
-          openAnimation = nextAppIsNew ? 'invoked' : 'in-from-left';
-          closeAnimation = nextAppIsNew ? 'invoking' : 'out-to-right';
+        appNext.open(immediateTranstion ? 'immediate' :
+                      ((switching === true) ? 'invoked' : openAnimation));
+        if (appCurrent) {
+          appCurrent.close(immediateTranstion ? 'immediate' :
+            ((switching === true) ? 'invoking' : closeAnimation));
+        } else {
+          this.debug('No current running app!');
         }
-
-        appNext.open(openAnimation);
-        appCurrent && appCurrent.close(closeAnimation);
       }.bind(this));
     },
 
@@ -386,7 +383,7 @@
           // XXX: There's a race between lockscreenWindow and homescreenWindow.
           // If lockscreenWindow is instantiated before homescreenWindow,
           // we should not display the homescreen here.
-          if (!System.locked) {
+          if (!lockScreen.locked) {
             this.display();
           } else {
             homescreenLauncher.getHomescreen().setVisible(false);

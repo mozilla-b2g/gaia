@@ -78,11 +78,11 @@
         } else {
           evt.target.removeEventListener('load', onMediaLoadOrError);
         }
+        // Dont block progress on failure to load media
         if (evt.type === 'error') {
-          reject(new Error('Failed to load media: ' + src));
-        } else {
-          resolve(evt);
+          console.log('Failed to load tutorial media: ' + src);
         }
+        resolve(evt);
       }
       function onVideoUnloaded(evt) {
         mediaElement.removeEventListener('emptied', onVideoUnloaded);

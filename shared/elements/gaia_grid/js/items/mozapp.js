@@ -56,30 +56,6 @@
 
     __proto__: GaiaGrid.GridItem.prototype,
 
-    /**
-    Safely remove this item from the grid and DOM.
-    */
-    _removeSelf: function() {
-      var idx = this.grid.items.indexOf(this);
-
-      // This should never happen but is remotely possible item is not in the
-      // grid.
-      if (idx === -1) {
-        console.error('Attempting to remove self before item has been added!');
-        return;
-      }
-
-      // update the state of the grid and DOM so this item is no longer
-      // referenced.
-      this.grid.items.splice(idx, 1);
-
-      if (this.element) {
-        this.element.parentNode.removeChild(this.element);
-      }
-
-      // ensure we don't end up with empty cruft..
-      this.grid.render({ from: idx - 1 });
-    },
 
     /**
     Determine if this application is supposed to be hidden.
@@ -102,19 +78,23 @@
     Figure out which state the app is in
     */
     _determineState: function(app) {
-      if (app.downloading) {
-        return APP_LOADING;
-      }
-
-      // Bug 1027491 - work around the fact that downloadError is not cleared
-      if (app.installState === 'installed') {
-        return APP_READY;
-      }
-
       // is there is a pending download but we cannot download then this app is
       // in an unrecoverable state due to some fatal error.
-      if (app.installState === 'pending' && !app.downloadAvailable) {
+      if (
+        // Must be pending (meaning not launchable)
+        app.installState === 'pending' &&
+        // Without any option for downloading the app
+        !app.downloadAvailable &&
+        // And not be currently applying a download
+        !app.readyToApplyDownload
+      ) {
         return APP_UNRECOVERABLE;
+      }
+
+      // If the app is currently downloading life is good and we should display
+      // loading.
+      if (app.downloading) {
+        return APP_LOADING;
       }
 
       // Bug 1027347 - downloadError is always present even if there is no error
@@ -152,7 +132,7 @@
           // Ensure that a hidden app has not somehow been added to the grid...
           if (this._isHiddenRole()) {
             console.warn('Removing hidden app from the grid', this.name);
-            return this._removeSelf();
+            return this.removeFromGrid();
           }
 
           // we may have updated icons so recalculate the correct icon.
@@ -358,19 +338,14 @@
     launch: function() {
       var app = this.app;
 
-      // Allow the user to pause a ongoing download.
-      if (app.downloading) {
-        return this.cancel();
-      }
-
-      // If there is a download pending ask to resume it.
-      if (app.downloadAvailable) {
-        return this.resume();
-      }
-
-      // Let the user cleanup any failed installs that cannot be retried.
-      if (app.installState == 'pending' && !app.downloadAvailable) {
-        return this.unrecoverableError();
+      switch (this._determineState(app)) {
+        case APP_UNRECOVERABLE:
+          return this.unrecoverableError();
+        case APP_ERROR:
+        case APP_PAUSED:
+          return this.resume();
+        case APP_LOADING:
+          return this.cancel();
       }
 
       if (this.entryPoint) {
@@ -379,15 +354,6 @@
 
       // Default action is to launch the app.
       return app.launch();
-    },
-
-    /**
-     * Uninstalls the application.
-     */
-    remove: function() {
-      window.dispatchEvent(new CustomEvent('gaiagrid-uninstall-mozapp', {
-        'detail': this
-      }));
     }
   };
 

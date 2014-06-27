@@ -70,7 +70,7 @@ var NotificationScreen = {
     this.clearAllButton = document.getElementById('notification-clear');
 
     this._toasterGD = new GestureDetector(this.toaster);
-    ['tap', 'mousedown', 'swipe', 'wheel'].forEach(function(evt) {
+    ['tap', 'touchstart', 'swipe', 'wheel'].forEach(function(evt) {
       this.container.addEventListener(evt, this);
       this.toaster.addEventListener(evt, this);
     }, this);
@@ -133,8 +133,8 @@ var NotificationScreen = {
         var target = evt.target;
         this.tap(target);
         break;
-      case 'mousedown':
-        this.mousedown(evt);
+      case 'touchstart':
+        this.touchstart(evt);
         break;
       case 'swipe':
         this.swipe(evt);
@@ -181,12 +181,13 @@ var NotificationScreen = {
   },
 
   // Swipe handling
-  mousedown: function ns_mousedown(evt) {
-    if (!evt.target.dataset.notificationId)
+  touchstart: function ns_touchstart(evt) {
+    var target = evt.touches[0].target;
+    if (!target.dataset.notificationId)
       return;
 
     evt.preventDefault();
-    this._notification = evt.target;
+    this._notification = target;
     this._containerWidth = this.container.clientWidth;
   },
 
@@ -384,7 +385,8 @@ var NotificationScreen = {
     // Notification toaster
     if (notify) {
       this.updateToaster(detail, type, dir);
-      if (this.lockscreenPreview || !window.System.locked) {
+      if (this.lockscreenPreview || !window.lockScreen ||
+          !window.lockScreen.locked) {
         this.toaster.classList.add('displayed');
         this._toasterGD.startDetecting();
 
@@ -402,7 +404,8 @@ var NotificationScreen = {
 
     // Adding it to the lockscreen if locked and the privacy setting
     // does not prevent it.
-    if (System.locked && this.lockscreenPreview) {
+    if (typeof(window.lockScreen) !== 'undefined' &&
+        window.lockScreen.locked && this.lockscreenPreview) {
       var lockScreenNode = notificationNode.cloneNode(true);
 
       // First we try and find an existing notification with the same id.
@@ -518,11 +521,12 @@ var NotificationScreen = {
       notificationNode.parentNode.removeChild(notificationNode);
 
     if (lockScreenNotificationNode) {
-      lockScreenNotificationNode.parentNode
-        .removeChild(lockScreenNotificationNode);
+      var lockScreenNotificationParentNode =
+        lockScreenNotificationNode.parentNode;
+      lockScreenNotificationParentNode.removeChild(lockScreenNotificationNode);
       // if we don't have any notifications, remove the bgcolor from wallpaper
       // and use the simple gradient
-      if (!lockScreenNotificationNode.parentNode.firstElementChild) {
+      if (!lockScreenNotificationParentNode.firstElementChild) {
         window.lockScreen.maskedBackground.style.backgroundColor =
           'transparent';
         window.lockScreen.maskedBackground.classList.add('blank');

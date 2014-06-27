@@ -51,7 +51,7 @@
         case 'will-unlock':
         case 'searchclosing':
           // We don't need to reset orientation if lockscreen is locked.
-          if (System.locked) {
+          if (window.lockScreen && window.lockScreen.locked) {
             return;
           }
         /**

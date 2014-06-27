@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-/* globals dump, CustomEvent, MozActivity, System,
+/* globals dump, lockScreen, CustomEvent, MozActivity,
    NfcHandoverManager, NfcUtils, NDEF, ScreenManager */
 'use strict';
 
@@ -65,7 +65,7 @@ var NfcManager = {
     var self = this;
     window.SettingsListener.observe('nfc.enabled', false, function(enabled) {
       var state = enabled ?
-                    (System.locked ?
+                    (lockScreen.locked ?
                        self.NFC_HW_STATE_DISABLE_DISCOVERY :
                        self.NFC_HW_STATE_ON) :
                     self.NFC_HW_STATE_OFF;
@@ -75,7 +75,7 @@ var NfcManager = {
 
   isScreenUnlockAndEnabled: function nm_isScreenUnlockAndEnabled() {
     // Policy:
-    if (ScreenManager.screenEnabled && !System.locked) {
+    if (ScreenManager.screenEnabled && lockScreen && !lockScreen.locked) {
       return true;
     } else {
       return false;

@@ -463,7 +463,7 @@ document.addEventListener('visibilitychange', function visibilitychanged() {
     // *immediately*.
     TonePlayer.trashAudio();
     // Just in case stop any dtmf tone
-    if (navigator.mozTelephony) {
+    if (navigator.mozTelephony && navigator.mozTelephony.stopTone) {
       navigator.mozTelephony.stopTone();
     }
   }
