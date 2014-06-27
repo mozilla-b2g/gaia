@@ -88,6 +88,11 @@
 
           Suggestions.load(categories).then(
             function select(selected) {
+              // We can't cancel out of this for the time being.
+              document.querySelector('menu').style.display = 'none';
+              // Display spinner while we're resolving and creating the
+              // collections.
+              loading.style.display = 'inline';
               eme.log('resolved with', selected);
               var dataReady;
 
