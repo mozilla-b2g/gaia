@@ -501,6 +501,29 @@ suite('system/TaskManager >', function() {
         assert.ok(!taskManager.prevCard,
                   'has no prevCard at initial position');
       });
+
+      suite('when the currently displayed app is out of the stack',
+      function() {
+        setup(function() {
+          MockStackManager.mOutOfStack = true;
+          MockStackManager.mStack = [
+            apps['http://sms.gaiamobile.org'],
+            apps['http://game.gaiamobile.org'],
+            apps['http://game2.gaiamobile.org']
+          ];
+          MockStackManager.mCurrent = 1;
+          taskManager.show();
+        });
+
+        teardown(function() {
+          MockStackManager.mOutOfStack = false;
+        });
+
+        test('currentPosition should be the last position in the stack',
+        function() {
+          assert.equal(taskManager.currentPosition, 2);
+        });
+      });
     });
 
     suite('display cardsview via holdhome >', function() {
