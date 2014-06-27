@@ -4,7 +4,7 @@
 (function(exports) {
 
   var elements = {
-    content: document.getElementById('content')
+    content: document.getElementById('content-background-image')
   };
 
   function ViewBgImage(collection) {

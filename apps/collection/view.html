@@ -74,16 +74,20 @@
           </header>
         </section>
 
-        <div id="content">
-            <gaia-grid cols="4" id="grid" dragdrop></gaia-grid>
+        <div id="content-background-image">
+          <div id="content-background-overlay">
+            <div id="content">
+              <gaia-grid cols="4" id="grid" dragdrop></gaia-grid>
 
-            <section role="notification" id="offline">
+              <section role="notification" id="offline">
                 <span id="offline-message"></span>
-            </section>
+              </section>
 
-            <section role="notification" id="loading">
+              <section role="notification" id="loading">
                 <progress></progress>
-            </section>
+              </section>
+            </div>
+          </div>
         </div>
 
         <gaia-menu id="cloud-menu" hidden>
