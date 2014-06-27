@@ -1,16 +1,16 @@
 /* globals CallScreen, FontSizeManager, MockCallsHandler, MockLazyL10n,
            MockHandledCall, MockMozActivity, MockNavigatorMozTelephony,
-           MockNavigatorSettings, MockMozL10n, MocksHelper */
+           MockMozL10n, MocksHelper, MockSettingsListener */
 
 'use strict';
 
-require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 require('/shared/test/unit/mocks/mock_moz_activity.js');
 require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
 require('/shared/test/unit/mocks/dialer/mock_handled_call.js');
 require('/shared/test/unit/mocks/dialer/mock_calls_handler.js');
 require('/shared/test/unit/mocks/dialer/mock_font_size_manager.js');
+require('/shared/test/unit/mocks/mock_settings_listener.js');
 
 var mocksHelperForCallScreen = new MocksHelper([
   'CallsHandler',
@@ -27,6 +27,8 @@ if (!window.CallScreen) {
 
 suite('call screen', function() {
   var realMozTelephony;
+  var realMozL10n;
+  var realSettingsListener;
 
   var screen;
   var container;
@@ -51,13 +53,17 @@ suite('call screen', function() {
   suiteSetup(function() {
     realMozTelephony = navigator.mozTelephony;
     navigator.mozTelephony = MockNavigatorMozTelephony;
-
+    realSettingsListener = window.SettingsListener;
+    window.SettingsListener = MockSettingsListener;
+    realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockMozL10n;
   });
 
   suiteTeardown(function() {
     MockNavigatorMozTelephony.mSuiteTeardown();
     navigator.mozTelephony = realMozTelephony;
+    window.SettingsListener = realSettingsListener;
+    navigator.mozL10n = realMozL10n;
   });
 
   setup(function(done) {
@@ -336,24 +342,15 @@ suite('call screen', function() {
   });
 
   suite('background image setter', function() {
-    var realMozSettings;
     var fakeBlob = new Blob([], {type: 'image/png'});
     var fakeURL = URL.createObjectURL(fakeBlob);
 
     setup(function() {
-      realMozSettings = navigator.mozSettings;
-      navigator.mozSettings = MockNavigatorSettings;
-      MockNavigatorSettings.mSettings['wallpaper.image'] = fakeBlob;
-
       this.sinon.stub(URL, 'createObjectURL').returns(fakeURL);
     });
 
-    teardown(function() {
-      navigator.mozSettings = realMozSettings;
-    });
-
     test('should change background of the main container', function(done) {
-      CallScreen.setWallpaper();
+      MockSettingsListener.mTriggerCallback('wallpaper.image', fakeBlob);
       setTimeout(function() {
         assert.equal(CallScreen.mainContainer.style.backgroundImage,
                      'url("' + fakeURL + '")');
@@ -363,25 +360,14 @@ suite('call screen', function() {
   });
 
   suite('background image setter from string', function() {
-    var realMozSettings;
     var fakeImage =
       'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAMCAgICAgMCAg' +
       'IDAwMDBAYEBAQEBAgGBgUGCQgKCgkICQkKDA8MCgsOCwkJDRENDg8QEBEQCgwSExIQEw8' +
       'QEBD/2wBDAQMDAwQDBAgEBAgQCwkLEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQ' +
       'EBAQEBAQEBAQEBAQEBAQEBAQEBD/wAARC';
 
-    setup(function() {
-      realMozSettings = navigator.mozSettings;
-      navigator.mozSettings = MockNavigatorSettings;
-      MockNavigatorSettings.mSettings['wallpaper.image'] = fakeImage;
-    });
-
-    teardown(function() {
-      navigator.mozSettings = realMozSettings;
-    });
-
     test('should change background of the main container', function(done) {
-      CallScreen.setWallpaper();
+      MockSettingsListener.mTriggerCallback('wallpaper.image', fakeImage);
       setTimeout(function() {
         assert.equal(CallScreen.mainContainer.style.backgroundImage,
                      'url("' + fakeImage + '")');
@@ -403,7 +389,7 @@ suite('call screen', function() {
       var toggleSpy = this.sinon.spy(screen.classList, 'toggle');
       CallScreen.toggle();
       assert.isTrue(toggleSpy.notCalled);
-      CallScreen.setWallpaper();
+      MockSettingsListener.mTriggerCallback('wallpaper.image', new Blob());
 
       setTimeout(function() {
         assert.isTrue(toggleSpy.calledOnce);
@@ -545,23 +531,6 @@ suite('call screen', function() {
         MockCallsHandler.mActiveCallForContactImage = null;
         CallScreen.setCallerContactImage();
         assert.equal(CallScreen.contactBackground.style.backgroundImage, '');
-      });
-    });
-  });
-
-  suite('Emergency Wallpaper setter', function() {
-    test('should change background of the main container', function(done) {
-      var fakeBlob = new Blob([], {type: 'image/png'});
-      var fakeURL = URL.createObjectURL(fakeBlob);
-      navigator.mozSettings = MockNavigatorSettings;
-      MockNavigatorSettings.mSettings['wallpaper.image'] = fakeBlob;
-      this.sinon.stub(URL, 'createObjectURL').returns(fakeURL);
-
-      CallScreen.setEmergencyWallpaper();
-      setTimeout(function() {
-        assert.equal(CallScreen.mainContainer.style.backgroundImage,
-          'url("' + fakeURL + '")');
-        done();
       });
     });
   });

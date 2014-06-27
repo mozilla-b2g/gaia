@@ -1,5 +1,5 @@
 /* globals CallsHandler, FontSizeManager, KeypadManager, LazyL10n,
-           LockScreenSlide, MozActivity */
+           LockScreenSlide, MozActivity, SettingsListener */
 /* jshint nonew: false */
 
 'use strict';
@@ -143,12 +143,12 @@ var CallScreen = {
 
     this.calls.addEventListener('click', CallsHandler.toggleCalls.bind(this));
 
-
-    this.setWallpaper();
-
     window.addEventListener('resize', this.resizeHandler.bind(this));
     window.addEventListener('hashchange', this.hashchangeHandler.bind(this));
     this.hashchangeHandler();
+
+    SettingsListener.observe('wallpaper.image', null,
+                             this._wallpaperImageHandler.bind(this));
 
     this.syncSpeakerEnabled();
   },
@@ -210,24 +210,10 @@ var CallScreen = {
   _toggleWaiting: false,
   _toggleCallback: null,
 
-  setWallpaper: function cs_setWallpaper() {
-    if (!navigator.mozSettings) {
-      this._onWallpaperReady();
-      return;
-    }
-
-    var self = this;
-    var req = navigator.mozSettings.createLock().get('wallpaper.image');
-    req.onsuccess = function cs_wi_onsuccess() {
-      var wallpaperImage = req.result['wallpaper.image'];
-      var isString = (typeof wallpaperImage == 'string');
-      var image =
-        isString ? wallpaperImage : URL.createObjectURL(wallpaperImage);
-      self.mainContainer.style.backgroundImage = 'url(' + image + ')';
-      setTimeout(self._onWallpaperReady.bind(self));
-    };
-
-    req.onerror = this._onWallpaperReady.bind(this);
+  _wallpaperImageHandler: function cs_wallpaperImageHandler(image) {
+    this.mainContainer.style.backgroundImage = 'url(' +
+      (typeof image === 'string' ? image : URL.createObjectURL(image)) + ')';
+    setTimeout(this._onWallpaperReady.bind(this));
   },
 
   _onWallpaperReady: function cs_onWallpaperReady() {
@@ -306,16 +292,6 @@ var CallScreen = {
     var background = blob ? 'url(' + URL.createObjectURL(blob) + ')' : '';
     this.contactBackground.style.backgroundImage = background;
     this.contactBackground.classList.add('ready');
-  },
-
-  /**
-   * This function is kept, although it currently sets the current wallpaper as
-   *  the emergency wallpaper, since it is expected to be needed once UX
-   *  provides the desired emergency image to use. See
-   *   https://bugzilla.mozilla.org/show_bug.cgi?id=993951#c6
-   */
-  setEmergencyWallpaper: function cs_setEmergencyWallpaper() {
-    this.setWallpaper();
   },
 
   insertCall: function cs_insertCall(node) {
