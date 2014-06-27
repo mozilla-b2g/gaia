@@ -209,22 +209,25 @@ class ImageCompareUtil():
     @staticmethod
     def edge_scroll(marionette,frame, direction, dist, release=True):
 
+        start_x = 0
         dist_travelled = 0
         time_increment = 0.01
 
+        if (dist > 1):
+            dist = 1
         if direction == 'LtoR':
             start_x = 0
         elif direction == 'RtoL':
             start_x = frame.size['width']
-        if (dist > 1):
-            dist = 1
-        x = dist * frame.size['width']
-        dist_unit = x * time_increment
+            dist *= -1  #travel opposite direction
+
+        limit = dist * frame.size['width']
+        dist_unit = limit * time_increment
 
         action = Actions(marionette)
-        action.press(frame,start_x,frame.size['height']/2)
+        action.press(frame,start_x,frame.size['height']/2) #press either the left or right edge
 
-        while dist_travelled < x:
+        while abs(dist_travelled) < abs(limit):
             action.move_by_offset(dist_unit, 0)
             action.wait(time_increment)
             dist_travelled += dist_unit
@@ -277,35 +280,39 @@ class ImageCompareUtil():
     #scroll - works for gallery and Browser.  Consists of multiple micro-actions, like flick method.
     #marionette = marionette object
     #direction = 'up' or 'down' (page location)
-    #level = level of scroll, 'slow' or 'fast'
+    #rate = rate of scroll, from 0 to 1
     @staticmethod
-    def scroll(marionette, locator, direction, level):
+    def scroll(marionette, locator, direction, rate, release=True):
 
         screen = marionette.find_element(*locator)
-        iter_count = 100
-        mid_x = screen.size['width'] / 2
-        mid_y = screen.size['height'] / 2
-
-        scroll_dir = 0
-        if direction == 'up':
-            scroll_dir = 1
-        elif direction == 'down':
-            scroll_dir = -1
+        dist_travelled = 0
+        time_increment = 0.01 * rate
 
         vector = 0
-        if level == 'slow':
-            vector = 2 * scroll_dir
-        elif level == 'fast':
-            vector = 4 * scroll_dir
-        index_finger = Actions(marionette)
-        index_finger.press(screen,mid_x,mid_y)
+        # define direction.  Assumption is that scroll is only one of below 4 direction
+        if direction == 'up':
+            vector = -1 * screen.size['height']/2
+        elif direction == 'down':
+            vector = 1 * screen.size['height']/2
+        elif direction == 'right':
+            vector = 1 * screen.size['width']/2
+        elif direction == 'left':
+            vector = -1 * screen.size['width']/2
 
-        while 0 < iter_count:
-            index_finger.move_by_offset(0, vector)
-            index_finger.wait(0.01)
-            iter_count -= 1
-        index_finger.release()
-        index_finger.perform()
+        finger = Actions(marionette)
+        finger.press(screen,screen.size['width'] / 2, screen.size['height'] / 2)
+        while abs(dist_travelled) < abs(vector):
+            if direction == 'up' or direction == 'down':
+                finger.move_by_offset(0, vector * time_increment)
+            elif direction == 'right' or direction == 'left':
+                finger.move_by_offset(vector * time_increment,0)
+            dist_travelled += abs(vector * time_increment)
+            finger.wait(0.01)
+
+        if release == True:
+            finger.release()
+        finger.perform()
+        return finger
 
     class ImageMismatchError(Exception):
         def __init__(self, pixelcount, target, reference):

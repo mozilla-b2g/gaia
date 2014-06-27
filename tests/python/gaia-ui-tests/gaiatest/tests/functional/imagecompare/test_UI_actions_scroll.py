@@ -4,7 +4,6 @@
 
 from gaiatest import GaiaTestCase
 from marionette.marionette import Actions
-from marionette.marionette import MultiActions
 from gaiatest.utils.Imagecompare.imagecompare_util import ImageCompareUtil
 import sys,time
 import pdb

@@ -26,15 +26,17 @@ class TestCardsView(GaiaTestCase):
 
     def test_that_app_can_be_launched_from_cards_view(self):
 
-        displayed_frame = self.apps.displayed_app.frame
-
-        action = self.graphics.edge_scroll(self.marionette,displayed_frame,'LtoR',0.8,False)
+        action = self.graphics.edge_scroll(self.marionette,self.apps.displayed_app.frame, 'LtoR',0.8,False)
         self.graphics.invoke_screen_capture(frame='root')
         action.release()
         action.perform()
         self.graphics.invoke_screen_capture()
+        displayed_frame = self.apps.displayed_app.frame
+        action = self.graphics.edge_scroll(self.marionette,self.apps.displayed_app.frame, 'RtoL',0.8,False)
+        action.release()
+        action.perform()
 
-        self.wait_for_condition(lambda m: self.apps.displayed_app.name == self._test_apps[0])
+        #self.wait_for_condition(lambda m: self.apps.displayed_app.name == self._test_apps[0])
 
     def tearDown(self):
         self.graphics.execute_image_job()
