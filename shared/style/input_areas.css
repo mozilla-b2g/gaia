@@ -302,7 +302,7 @@ form[role="search"] button[type="submit"] {
   border-radius: 0;
   margin: 0;
   position: relative;
-  background: none;
+  background-color: unset;
   font-style: italic;
   overflow: visible;
 }
@@ -315,6 +315,13 @@ form[role="search"] button[type="submit"]:after {
   bottom: 0.7rem;
   width: 0.1rem;
   background: #c7c7c7;
+}
+
+form[role="search"] button[type="submit"].icon {
+  font-size: 0;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 3rem;
 }
 
 form[role="search"] p input + button[type="reset"]{
@@ -341,7 +348,7 @@ form[role="search"].full button[type="submit"] {
 
 form[role="search"] button.icon:active,
 form[role="search"] button[type="submit"]:active {
-  background: #b2f2ff;
+  background-color: #b2f2ff;
   color: #fff;
 }
 

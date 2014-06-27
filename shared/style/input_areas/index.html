@@ -69,6 +69,10 @@
       background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAABaCAYAAACv+ebYAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAASRJREFUeNrsl8ENgjAUhqlhAEfxQDyzgXdOjoCT0ClYg54Nu+gGtcRiAlJ5fQ9CDP+XFJOW+hlo6/uTBADw76hfg9ba0n0cBd//VErp6FlO3FgZDevn9pO50u4iEXPkn/ul4hj54L4lxBT51/hS4odrVUA62b+UOCSvfP+q4rE8KF1DTF5w3JPLio9Gx1T/Yauzen/idGb8Jv13QgEAAAAAyNJi27bitJhlmeYUAhfXcoHYuKY5pU/uJ3OluaTm4sjN3JOiFnsxckN5PTFVJkVuqGsitrw9hRaL7ycvxFhxt7WuE3Lt+1ct6MfyXhq131PmVukkpX+n5RYRhn24IC0iLQIAAABIi2/uRSFOi+e6RlpEWkRaRFpEWkRaRFoEYG+8BBgAvaeWTjgXDaoAAAAASUVORK5CYII=);
     }
 
+    .icon-send {
+      background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAABH0lEQVR42uXXPUtCURjAcTVx09ZsEhx0dInALyCUuTX7Bn4CHR2ckqDJ1SUiCESkbxDRV9BJBxGhIXoZQkHs8T84iV3uuYdz7uDwm/9c7j3neW5ARHxxwOFAv2+DY/gBBQRth1sQDFFGxFY4iT/I1hx1xMyGgTfIjm+0ETcZrkH+sUQXKRPhYywgDtYYIKsb3vUEcekVeQShHb6AKBqiiIhOOIx3iAcz1BFVDwN3EA1fuMGJavgME3xiDfFoiUvnsLM4znGNBjp4xtRFvKcSzmCMD6xsPvGtH+/4CHM/vuqcx3Nc0j3Hj4o31xW0b64Yfv24qysuplPaxHR62RP8QRunpuZxYs8G0rCxgTQhGKFqc+e6RwEhW1umDQf8C7MBVhE+F1rOxMAAAAAASUVORK5CYII=);
+    }
+
   </style>
   <script>
     window.onload = function(){
@@ -209,6 +213,13 @@
 
   <form role="search" class="bottom">
     <button type="submit">Send</button>
+    <p>
+      <textarea>Some text here</textarea>
+    </p>
+  </form>
+
+  <form role="search" class="bottom">
+    <button type="submit" class="icon icon-send">Send</button>
     <p>
       <textarea>Some text here</textarea>
     </p>
