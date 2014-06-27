@@ -13,7 +13,7 @@ const RE_INI_FILE = /locales[\/\\].+\.ini$/;
 const RE_PROPERTIES_FILE = /\.([\w-]+)\.properties$/;
 const MODNAME = 'multilocale';
 
-function L10nManager(gaiaDir, localesFilePath, localeBasedir) {
+function L10nManager(gaiaDir, localesFilePath, localeBasedir, official) {
   function checkArg(arg) {
     return Boolean(arg);
   }
@@ -33,8 +33,8 @@ function L10nManager(gaiaDir, localesFilePath, localeBasedir) {
     }
   });
 
-  [this.locales, this.localeBasedir, this.gaiaDir] =
-    [Object.keys(utils.getJSON(localesFile)), baseDir.path, gaiaDir];
+  [this.locales, this.localeBasedir, this.gaiaDir, this.official] =
+    [Object.keys(utils.getJSON(localesFile)), baseDir.path, gaiaDir, official];
 
 
   /**
@@ -122,6 +122,21 @@ function L10nManager(gaiaDir, localesFilePath, localeBasedir) {
       ini[locale].forEach(function(path) {
         var targetFile = utils.getFile(iniFile.parent.path, path);
         var propFile = getPropertiesFile(webapp, targetFile.path);
+        if (utils.isSubjectToBranding(propFile.parent.path)) {
+          var brandings = {
+            target: { original: targetFile },
+            src: { original: propFile }
+          };
+          for (var key in brandings) {
+            brandings[key].modified = brandings[key].original.parent.clone();
+            brandings[key].modified.append((self.official === '1') ?
+              'official' : 'unofficial');
+            brandings[key].modified.append(brandings[key].original.leafName);
+          }
+          targetFile = brandings.target.modified;
+          propFile = brandings.src.modified;
+        }
+
         if (!propFile.exists()) {
           utils.log(MODNAME, 'Properties file not found: ' + propFile.path);
           return;
@@ -400,7 +415,8 @@ function execute(options) {
   var l10nManager = new L10nManager(
     options.GAIA_DIR,
     options.LOCALES_FILE,
-    localeBasedir);
+    localeBasedir,
+    options.OFFICIAL);
 
   gaia.webapps.forEach(function(webapp) {
     if (utils.isExternalApp(webapp)) {

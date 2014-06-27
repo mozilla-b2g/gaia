@@ -32,7 +32,7 @@ class TestNotificationVisibilityAccessibility(GaiaTestCase):
         self.system.wait_for_notification_toaster_displayed()
 
         # Now the notification toaster should be visible to the screen reader.
-        self.assertFalse(self.accessibility.is_hidden(self.marionette.find_element(
+        self.assertTrue(self.accessibility.is_visible(self.marionette.find_element(
             *self.system._notification_toaster_locator)))
 
         self.system.wait_for_notification_toaster_not_displayed()

@@ -12,11 +12,7 @@ suite('app_manager.js > ', function() {
 
   var realMozApps = null,
       realL10n = null,
-      app = {},
-      titleElement = null,
-      bodyElement = null,
-      cancelButton = null,
-      confirmButton = null;
+      app = {};
 
   suiteSetup(function(done) {
     loadBodyHTML('/index.html');
@@ -37,44 +33,6 @@ suite('app_manager.js > ', function() {
   test('The library was initialized properly', function() {
     MockNavigatormozApps.mTriggerLastRequestSuccess(app);
     assert.equal(appManager.self, app);
-  });
-
-  suite('uninstall app', function() {
-    var subject, dialog;
-    setup(function() {
-      subject = {
-        name: 'hi',
-        app: {}
-      };
-
-      window.dispatchEvent(new CustomEvent('gaiagrid-uninstall-mozapp', {
-        'detail': subject
-      }));
-
-      dialog = document.querySelector('gaia-confirm');
-
-      titleElement = dialog.querySelector('h1');
-      bodyElement = dialog.querySelector('p');
-      cancelButton = dialog.querySelector('.cancel');
-      confirmButton = dialog.querySelector('.confirm');
-    });
-
-    test('Uninstall app', function(done) {
-      assert.isTrue(titleElement.textContent.contains('delete-title{"name":"' +
-                                                       subject.name + '"'));
-      assert.isTrue(bodyElement.textContent.contains('delete-body{"name":"' +
-                                                      subject.name + '"'));
-      assert.equal(cancelButton.textContent, 'cancel');
-      assert.equal(confirmButton.textContent, 'delete');
-      assert.isTrue(confirmButton.classList.contains('danger'));
-
-      var stub = sinon.stub(navigator.mozApps.mgmt, 'uninstall', function(app) {
-        stub.restore();
-        assert.equal(app, subject.app);
-        done();
-      });
-      confirmButton.click();
-    });
   });
 
 });

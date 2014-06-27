@@ -37,7 +37,7 @@
     this.publish('created');
   };
 
-  SystemDialog.prototype.__proto__ = window.BaseUI.prototype;
+  SystemDialog.prototype = Object.create(window.BaseUI.prototype);
 
   SystemDialog.prototype.CLASS_NAME = 'SystemDialog';
 

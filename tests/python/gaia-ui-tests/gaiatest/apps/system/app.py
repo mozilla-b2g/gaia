@@ -13,6 +13,7 @@ class System(Base):
     _status_bar_notification_locator = (By.ID, 'statusbar-notification')
     _geoloc_statusbar_locator = (By.ID, 'statusbar-geolocation')
     _airplane_mode_statusbar_locator = (By.ID, 'statusbar-flight-mode')
+    _utility_tray_locator = (By.ID, 'utility-tray')
 
     _notification_toaster_locator = (By.ID, 'notification-toaster')
     _update_manager_toaster_locator = (By.ID, 'update-manager-toaster')

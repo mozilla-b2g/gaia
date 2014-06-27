@@ -28,7 +28,7 @@
    * @borrows AppWindow.prototype as PopupWindow.prototype
    * @memberof PopupWindow
    */
-  PopupWindow.prototype.__proto__ = AppWindow.prototype;
+  PopupWindow.prototype = Object.create(AppWindow.prototype);
 
   PopupWindow.REGISTERED_EVENTS =
     ['mozbrowserclose', 'mozbrowsererror', 'mozbrowservisibilitychange',

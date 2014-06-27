@@ -44,6 +44,7 @@
       this.collectionOption.removeEventListener('click', this);
       this.wallpaperOption.removeEventListener('click', this);
       this.dialog.setAttribute('hidden', '');
+      window.dispatchEvent(new CustomEvent('context-menu-close'));
     },
 
     _handleCancel: function(e) {

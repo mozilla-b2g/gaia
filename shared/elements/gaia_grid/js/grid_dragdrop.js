@@ -4,6 +4,8 @@
 
   const ACTIVE_SCALE_ADJUST = 0.4;
 
+  const COLLECTION_DROP_SCALE_ADJUST = 0.5;
+
   /* This delay is the time passed once users stop the finger over an icon and
    * the rearrange is performed */
   const REARRANGE_DELAY = 30;
@@ -61,6 +63,12 @@
      */
     collectionsPort: null,
 
+    /*
+     * An element that's aligned to the top of the grid and should be
+     * considered as obscuring the grid when in edit mode.
+     */
+    editHeaderElement: null,
+
     /**
      * Returns the maximum active scale value.
      */
@@ -115,12 +123,6 @@
       this.icon.element.addEventListener('transitionend', this);
       this.currentTouch = null;
 
-      if (this.target) {
-        this.target.classList.remove('active');
-      }
-      delete this.icon.noTransform;
-
-      var rearranged = false;
       if (this.rearrangeDelay !== null) {
         clearTimeout(this.rearrangeDelay);
         if (this.hoverItem && this.hoverItem.detail.type === 'collection') {
@@ -132,15 +134,66 @@
               'identifier': this.icon.identifier
             }
           }));
+
+          // Animate two icons, the original one in its original position,
+          // scaling up, and a second copy from the dropped position
+          // scaling down into the collection.
+
+          // When we set the position, we need to compensate for the transform
+          // center being at the top-left.
+          var scaleAdjustX =
+            ((this.gridView.layout.gridItemWidth * this.icon.scale) -
+             (this.gridView.layout.gridItemWidth *
+              (this.icon.scale - COLLECTION_DROP_SCALE_ADJUST))) / 2;
+          var scaleAdjustY =
+            ((this.gridView.layout.gridItemHeight * this.icon.scale) -
+             (this.gridView.layout.gridItemHeight *
+              (this.icon.scale - COLLECTION_DROP_SCALE_ADJUST))) / 2;
+
+          // Create the clone icon that we'll animate dropping into the
+          // collection
+          var clone = this.icon.element.cloneNode(true);
+          clone.classList.add('dropped');
+          this.icon.element.parentNode.appendChild(clone);
+
+          // Force a reflow on the clone so that the following property changes
+          // cause transitions.
+          clone.clientWidth;
+
+          var destroyOnTransitionEnd = function() {
+            this.parentNode.removeChild(this);
+            this.removeEventListener('transitionend', destroyOnTransitionEnd);
+          }.bind(clone);
+          clone.addEventListener('transitionend', destroyOnTransitionEnd);
+
+          clone.style.opacity = 0;
+          this.icon.transform(
+            this.hoverItem.x + scaleAdjustX,
+            this.hoverItem.y + scaleAdjustY,
+            this.icon.scale - COLLECTION_DROP_SCALE_ADJUST,
+            clone);
+
+          // Now animate the original icon back into its original position.
+          this.icon.transform(this.icon.x + scaleAdjustX,
+                              this.icon.y + scaleAdjustY,
+                              this.icon.scale - COLLECTION_DROP_SCALE_ADJUST);
+
+          // Force a reflow on this icon, otherwise when we remove the active
+          // class, it will transition from its original position instead of
+          // this new position.
+          this.icon.element.clientWidth;
         } else {
-          rearranged = true;
           this.doRearrange.call(this);
         }
       }
 
-      if (!rearranged) {
-        this.gridView.render();
+      // Hand back responsibility to GridItem to render itself.
+      delete this.icon.noTransform;
+      if (this.target) {
+        this.target.classList.remove('active');
       }
+
+      this.gridView.render();
 
       // Save icon state if we need to
       if (this.dirty) {
@@ -209,6 +262,8 @@
 
       var docScroll = this.scrollable.scrollTop;
       var distanceFromTop = Math.abs(touch.pageY - docScroll);
+      var distanceFromHeader = distanceFromTop -
+        (this.editHeaderElement ? this.editHeaderElement.clientHeight : 0);
       if (distanceFromTop > SCREEN_HEIGHT - EDGE_PAGE_THRESHOLD) {
         var maxY = this.maxScroll;
         var scrollStep = this.getScrollStep(SCREEN_HEIGHT - distanceFromTop);
@@ -219,8 +274,8 @@
         }
 
         doScroll.call(this, scrollStep);
-      } else if (touch.pageY > 0 && distanceFromTop < EDGE_PAGE_THRESHOLD) {
-        doScroll.call(this, 0 - this.getScrollStep(distanceFromTop));
+      } else if (touch.pageY > 0 && distanceFromHeader < EDGE_PAGE_THRESHOLD) {
+        doScroll.call(this, 0 - this.getScrollStep(distanceFromHeader));
       } else {
         this.isScrolling = false;
       }

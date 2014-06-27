@@ -304,6 +304,41 @@
     },
 
     /**
+    Safely remove this item from the grid and DOM.
+    */
+    removeFromGrid: function() {
+      var idx = this.grid.items.indexOf(this);
+
+      // This should never happen but is remotely possible item is not in the
+      // grid.
+      if (idx === -1) {
+        console.error('Attempting to remove self before item has been added!');
+        return;
+      }
+
+      // update the state of the grid and DOM so this item is no longer
+      // referenced.
+      this.grid.items.splice(idx, 1);
+      delete this.grid.icons[this.identifier];
+
+      if (this.element) {
+        this.element.parentNode.removeChild(this.element);
+      }
+
+      // ensure we don't end up with empty cruft..
+      this.grid.render({ from: idx - 1 });
+    },
+
+    /**
+    Removes item from the dom and dispatches a removeitem event.
+    */
+    remove: function() {
+      this.grid.element.dispatchEvent(new CustomEvent('removeitem', {
+        detail: this
+      }));
+    },
+
+    /**
      * Renders the icon to the container.
      * @param {Array} coordinates Grid coordinates to render to.
      * @param {Number} index The index of the items list of this item.
@@ -361,10 +396,23 @@
     /**
      * Positions and scales an icon.
      */
-    transform: function(x, y, scale) {
+    transform: function(x, y, scale, element) {
       scale = scale || 1;
-      this.element.style.transform =
+      element = element || this.element;
+      element.style.transform =
         'translate(' + x + 'px,' + y + 'px) scale(' + scale + ')';
+    },
+
+    /**
+    Updates the title of the icon on the grid.
+    */
+    updateTitle: function() {
+      // it is remotely possible that we have not .rendered yet
+      if (!this.element) {
+        return;
+      }
+      var nameEl = this.element.querySelector('.title');
+      nameEl.textContent = this.name;
     },
 
     /**
@@ -380,9 +428,8 @@
       var lastIcon = this.icon;
       record.type = type;
       this.detail = record;
-      var nameEl = this.element.querySelector('.title');
-      if (nameEl && nameChanged) {
-        nameEl.textContent = this.name;
+      if (nameChanged) {
+        this.updateTitle();
 
         // Bug 1007743 - Workaround for projected content nodes disappearing
         document.body.clientTop;

@@ -46,8 +46,14 @@ function getOsType() {
 }
 
 function isExternalApp(webapp) {
-  if (!webapp.metaData ||
-    (webapp.metaData && webapp.metaData.external === false)) {
+  if (webapp.metaData && webapp.metaData.external === undefined) {
+    throw new Error('"external" property in metadata.json is required since ' +
+      'Firefox OS 2.1, please add it into metadata.json and update ' +
+      'preload.py if you use this script to perload your apps. If you ' +
+      'created metadata.json for non-external apps, please set "external" to ' +
+      'false. your metadata.json is in ' + webapp.sourceDirectoryFile.path);
+  }
+  if (!webapp.metaData || webapp.metaData.external === false) {
     return false
   } else {
     return true;
@@ -234,7 +240,7 @@ function getWebapp(app, domain, scheme, port, stageDir) {
     manifest: getJSON(manifest),
     manifestFile: manifest,
     buildManifestFile: manifest,
-    url: scheme + appDomain,
+    url: scheme + appDomain + (port ? port : ''),
     domain: appDomain,
     sourceDirectoryFile: manifestFile.parent,
     buildDirectoryFile: manifestFile.parent,

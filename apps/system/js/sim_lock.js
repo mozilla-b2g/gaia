@@ -145,7 +145,7 @@ var SimLock = {
   },
 
   showIfLocked: function sl_showIfLocked(currentSlotIndex, skipped) {
-    if (System.locked)
+    if (lockScreen && lockScreen.locked)
       return false;
 
     if (SimPinDialog.visible) {

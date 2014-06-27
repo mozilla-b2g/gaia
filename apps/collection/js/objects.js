@@ -76,6 +76,13 @@
   };
 
   BaseCollection.prototype = {
+
+    get localizedName() {
+      // l10n prefix taken from /shared/locales/collection_categories
+      var l10nId = 'collection-categoryId-' + this.categoryId;
+      return navigator.mozL10n.get(l10nId) || this.name;
+    },
+
     // get a fresh copy of editable properties from db
     // useful when a background task (like NativeInfo) updates the db while
     // a running process has a collection object reference
@@ -259,6 +266,7 @@
       } else if (item.type === 'webResult') {
         item.features = item.features || {};
         item.features.isEditable = false;
+        item.features.search = true;
         icon = new GaiaGrid.Bookmark(item.data, item.features);
 
         // override remove method (original sends activity)

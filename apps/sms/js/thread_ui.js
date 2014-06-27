@@ -7,7 +7,7 @@
          Attachment, WaitingScreen, MozActivity, LinkActionHandler,
          ActivityHandler, TimeHeaders, ContactRenderer, Draft, Drafts,
          Thread, MultiSimActionButton, LazyLoader, Navigation, Promise,
-         Dialog */
+         Dialog, SharedComponents */
 /*exported ThreadUI */
 
 (function(global) {
@@ -1340,42 +1340,24 @@ var ThreadUI = global.ThreadUI = {
     return messageContainer;
   },
 
-  updateCarrier: function thui_updateCarrier(thread, contacts, details) {
+  updateCarrier: function thui_updateCarrier(thread, contacts) {
     var carrierTag = document.getElementById('contact-carrier');
     var threadMessages = this.threadMessages;
     var number = thread.participants[0];
-    var carrierDetails;
+    var phoneDetails;
 
     // The carrier banner is meaningless and confusing in
     // group message mode.
     if (thread.participants.length === 1 &&
         (contacts && contacts.length)) {
 
-      carrierDetails = Utils.getCarrierTag(
-        number, contacts[0].tel, details
-      );
+      phoneDetails = Utils.getPhoneDetails(number, contacts[0].tel);
 
-      if (carrierDetails) {
-        var phoneType = carrierTag.querySelector('.phone-type'),
-            phoneDetails = carrierTag.querySelector('.phone-details');
-
-        phoneType.dataset.l10nId = carrierDetails.type;
-        // We need this line for the unknown phone type case, so that we display
-        // phone type instead of empty string if we can't translate it.
-        phoneType.textContent = carrierDetails.type;
-        phoneDetails.textContent = carrierDetails.carrier ||
-          carrierDetails.number;
+      if (phoneDetails) {
+        carrierTag.innerHTML = SharedComponents.phoneDetails(phoneDetails);
 
         navigator.mozL10n.translate(carrierTag);
 
-        carrierTag.classList.toggle(
-          'has-phone-type',
-          !!carrierDetails.type
-        );
-        carrierTag.classList.toggle(
-          'has-phone-details',
-          carrierDetails.carrier || carrierDetails.number
-        );
         threadMessages.classList.add('has-carrier');
       } else {
         threadMessages.classList.remove('has-carrier');
@@ -1432,7 +1414,7 @@ var ThreadUI = global.ThreadUI = {
             n: others
         });
 
-        this.updateCarrier(thread, contacts, details);
+        this.updateCarrier(thread, contacts);
         resolve();
       }.bind(this));
     }.bind(this));

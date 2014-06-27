@@ -7,7 +7,6 @@ import time
 from gaiatest import GaiaTestCase
 from gaiatest.apps.messages.app import Messages
 from gaiatest.mocks.mock_contact import MockContact
-from gaiatest.apps.contacts.regions.contact_form import NewContact
 from gaiatest.apps.contacts.app import Contacts
 
 
@@ -33,10 +32,9 @@ class TestSmsCreateContact(GaiaTestCase):
         activities = self.message_thread.tap_header()
 
         # Create a new contact
-        activities.tap_create_new_contact()
+        new_contact = activities.tap_create_new_contact()
 
         # Populate new contact fields
-        new_contact = NewContact(self.marionette)
         new_contact.type_given_name(self.contact['givenName'])
         new_contact.type_family_name(self.contact['familyName'])
         new_contact.type_email(self.contact['email']['value'])
@@ -47,7 +45,6 @@ class TestSmsCreateContact(GaiaTestCase):
         new_contact.type_comment(self.contact['note'])
         new_contact.tap_done(return_contacts=False)
 
-        self.messages.switch_to_messages_frame()
         self.wait_for_condition(lambda m: self.message_thread.header_text == self.contact['name'])
 
         contacts = Contacts(self.marionette)

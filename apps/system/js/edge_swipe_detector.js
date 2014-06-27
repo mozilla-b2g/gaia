@@ -11,7 +11,7 @@ var EdgeSwipeDetector = {
   _touchForwarder: null,
 
   init: function esd_init() {
-    window.addEventListener('homescreenopening', this);
+    window.addEventListener('homescreenopened', this);
     window.addEventListener('appopen', this);
     window.addEventListener('launchapp', this);
     window.addEventListener('cardviewclosed', this);
@@ -74,7 +74,7 @@ var EdgeSwipeDetector = {
       case 'appopen':
         this.lifecycleEnabled = true;
         break;
-      case 'homescreenopening':
+      case 'homescreenopened':
         this.lifecycleEnabled = false;
         break;
       case 'launchapp':

@@ -77,18 +77,18 @@ suite('controllers/controls', function() {
       assert.isTrue(this.view.set.calledWith('switchable', false));
     });
 
-    test('Should set the mode to the value of the \'mode\' setting', function() {
+    test('It sets the mode to the value of the \'mode\' setting', function() {
 
       // Test 'picture'
       this.app.settings.mode.selected.returns('picture');
       var controller = new this.ControlsController(this.app);
-      assert.ok(this.view.set.calledWith('mode', 'picture'));
+      sinon.assert.calledWith(this.view.setMode, 'picture');
       this.view.set.reset();
 
       // Test 'video'
       this.app.settings.mode.selected.returns('video');
       controller = new this.ControlsController(this.app);
-      assert.ok(this.view.set.calledWith('mode', 'video'));
+      sinon.assert.calledWith(this.view.setMode, 'video');
       this.view.set.reset();
     });
 

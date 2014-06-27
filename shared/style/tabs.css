@@ -22,7 +22,6 @@
   margin: 0;
   padding: 0;
   pointer-events: none;
-  background-color: #fff;
   z-index: 0;
 }
 
@@ -208,6 +207,7 @@
   display: flex;
   position: relative;
   height: 4rem;
+  background: #fff;
   border-bottom: 0.1rem solid #e7e7e7;
   box-sizing: border-box;
 }

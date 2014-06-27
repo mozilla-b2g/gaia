@@ -2,12 +2,11 @@
 
 requireApp('system/shared/test/unit/mocks/mock_lazy_loader.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
-requireApp('system/test/unit/mock_system.js');
+requireApp('system/test/unit/mock_lock_screen.js');
 
 var mocksHelperForUtilityTray = new MocksHelper([
   'AppWindowManager',
-  'LazyLoader',
-  'System'
+  'LazyLoader'
 ]);
 mocksHelperForUtilityTray.init();
 
@@ -46,6 +45,10 @@ suite('system/UtilityTray', function() {
   }
 
   setup(function(done) {
+    window.lockScreen = window.MockLockScreen;
+    originalLocked = window.lockScreen.locked;
+    window.lockScreen.locked = false;
+
     var statusbar = document.createElement('div');
     statusbar.style.cssText = 'height: 100px; display: block;';
 
@@ -82,7 +85,7 @@ suite('system/UtilityTray', function() {
 
   teardown(function() {
     stubById.restore();
-    window.System.locked = false;
+    window.lockScreen.locked = originalLocked;
   });
 
 
@@ -134,13 +137,16 @@ suite('system/UtilityTray', function() {
         assert.equal(UtilityTray.shown, true);
       });
 
-      test('should send a touchcancel to the active app' +
+      test('should send a touchcancel to the oop active app' +
            'since the subsequent events will be swallowed', function() {
         UtilityTray.screen.classList.remove('utility-tray');
 
         var app = {
           iframe: {
             sendTouchEvent: function() {}
+          },
+          config: {
+            oop: true
           }
         };
         this.sinon.stub(MockAppWindowManager, 'getActiveApp').returns(app);
@@ -149,6 +155,26 @@ suite('system/UtilityTray', function() {
         fakeTouches(0, 100);
 
         sinon.assert.calledWith(app.iframe.sendTouchEvent, 'touchcancel');
+      });
+
+      test('should not send a touchcancel to the in-process active app' +
+           'since the subsequent events will be swallowed', function() {
+        UtilityTray.screen.classList.remove('utility-tray');
+
+        var app = {
+          iframe: {
+            sendTouchEvent: function() {}
+          },
+          config: {
+            oop: false
+          }
+        };
+        this.sinon.stub(MockAppWindowManager, 'getActiveApp').returns(app);
+        this.sinon.spy(app.iframe, 'sendTouchEvent');
+
+        fakeTouches(0, 100);
+
+        sinon.assert.notCalled(app.iframe.sendTouchEvent);
       });
     });
 
@@ -256,14 +282,14 @@ suite('system/UtilityTray', function() {
     });
 
     test('onTouchStart is not called if LockScreen is locked', function() {
-      window.System.locked = true;
+      window.lockScreen.locked = true;
       var stub = this.sinon.stub(UtilityTray, 'onTouchStart');
       UtilityTray.statusbarIcons.dispatchEvent(fakeEvt);
       assert.ok(stub.notCalled);
     });
 
     test('onTouchStart is called if LockScreen is not locked', function() {
-      window.System.locked = false;
+      window.lockScreen.locked = false;
       var stub = this.sinon.stub(UtilityTray, 'onTouchStart');
       UtilityTray.statusbarIcons.dispatchEvent(fakeEvt);
       assert.ok(stub.calledOnce);

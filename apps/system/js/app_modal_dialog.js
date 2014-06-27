@@ -31,7 +31,7 @@
     return this;
   };
 
-  AppModalDialog.prototype.__proto__ = window.BaseUI.prototype;
+  AppModalDialog.prototype = Object.create(window.BaseUI.prototype);
 
   AppModalDialog.prototype.CLASS_NAME = 'AppModalDialog';
 

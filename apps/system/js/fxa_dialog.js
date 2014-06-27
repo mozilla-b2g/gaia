@@ -20,7 +20,7 @@
     this.publish('created');
   };
 
-  FxAccountsDialog.prototype.__proto__ = window.SystemDialog.prototype;
+  FxAccountsDialog.prototype = Object.create(window.SystemDialog.prototype);
 
   FxAccountsDialog.prototype.customID = 'fxa-dialog';
 

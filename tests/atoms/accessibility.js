@@ -5,19 +5,20 @@
 'use strict';
 
 var Accessibility = {
-  _getAccessible: function Accessibility__getAccessible(element, callback) {
-    let gAccRetrieval = SpecialPowers.Cc[
-      "@mozilla.org/accessibleRetrieval;1"].getService(
-        SpecialPowers.Ci.nsIAccessibleRetrieval);
-    let attempts = 0;
-    let intervalId = setInterval(function() {
-      let acc = gAccRetrieval.getAccessibleFor(element);
-      if (acc || ++attempts > 10) {
-        clearInterval(intervalId);
+
+  _accRetrieval: SpecialPowers.Cc[
+    "@mozilla.org/accessibleRetrieval;1"].getService(
+      SpecialPowers.Ci.nsIAccessibleRetrieval),
+
+  _getAccessible:
+    function Accessibility__getAccessible(element, callback, once) {
+      let acc = this._accRetrieval.getAccessibleFor(element);
+      if (acc || once) {
         callback(acc);
+      } else {
+        setTimeout(this._getAccessible.bind(this), 10, element, callback);
       }
-    }, 10);
-  },
+    },
 
   _matchState: function Accessibility__matchState(acc, stateName) {
     let stateToMatch = SpecialPowers.wrap(
@@ -25,7 +26,7 @@ var Accessibility = {
     let state = {};
     let extState = {};
     acc.getState(state, extState);
-    marionetteScriptFinished(!!(state.value & stateToMatch));
+    return !!(state.value & stateToMatch);
   },
 
   click: function Accessibility_click(element) {
@@ -35,29 +36,59 @@ var Accessibility = {
     });
   },
 
+  wheel: function Accessibility_wheel(element, direction) {
+    let horizontal = direction === "left" || direction === "right";
+    let page = (direction === "left" || direction === "up") ? 1 : -1;
+    let event = new window.wrappedJSObject.WheelEvent('wheel', {
+      bubbles: true,
+      cancelable: true,
+      deltaX: horizontal ? page : 0,
+      deltaY: horizontal ? 0 : page,
+      deltaMode: window.wrappedJSObject.WheelEvent.DOM_DELTA_PAGE,
+    });
+    element.wrappedJSObject.dispatchEvent(event);
+  },
+
   isDisabled: function Accessibility_isDisabled(element) {
     this._getAccessible(element.wrappedJSObject, (acc) => {
-      this._matchState(acc, 'STATE_UNAVAILABLE');
+      marionetteScriptFinished(this._matchState(acc, 'STATE_UNAVAILABLE'));
     });
+  },
+
+  _isAriaHidden: function Accessibility__isAriaHidden(element) {
+    do {
+      if (JSON.parse(element.getAttribute('aria-hidden'))) {
+        return true;
+      }
+      element = element.parentNode;
+    } while (element && element.getAttribute);
   },
 
   isHidden: function Accessibility_isHidden(element) {
     let elem = element.wrappedJSObject;
-    do {
-      if (JSON.parse(elem.getAttribute('aria-hidden'))) {
-        marionetteScriptFinished(true);
-        return;
-      }
+    if (this._isAriaHidden(elem)) {
+      marionetteScriptFinished(true);
+      return;
+    }
 
-      elem = elem.parentNode;
-    } while (elem && elem.getAttribute);
-
-    this._getAccessible(element.wrappedJSObject, (acc) => {
+    this._getAccessible(elem, (acc) => {
       if (!acc) {
         marionetteScriptFinished(true);
         return;
       }
-      this._matchState(acc, 'STATE_INVISIBLE');
+      marionetteScriptFinished(this._matchState(acc, 'STATE_INVISIBLE'));
+    }, true);
+  },
+
+  isVisible: function Accessibility_isVisible(element) {
+    let elem = element.wrappedJSObject;
+    if (this._isAriaHidden(elem)) {
+      marionetteScriptFinished(false);
+      return;
+    }
+
+    this._getAccessible(elem, (acc) => {
+      marionetteScriptFinished(!this._matchState(acc, 'STATE_INVISIBLE'));
     });
   },
 
@@ -69,10 +100,7 @@ var Accessibility = {
 
   getRole: function Accessibility_getRole(element) {
     this._getAccessible(element.wrappedJSObject, (acc) => {
-      let gAccRetrieval = SpecialPowers.Cc[
-        "@mozilla.org/accessibleRetrieval;1"].getService(
-          SpecialPowers.Ci.nsIAccessibleRetrieval);
-      marionetteScriptFinished(gAccRetrieval.getStringRole(acc.role));
+      marionetteScriptFinished(this._accRetrieval.getStringRole(acc.role));
     });
   },
 };

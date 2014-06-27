@@ -60,10 +60,6 @@
   background: url(images/add.png) no-repeat;
 }
 
-.edit-mode .collection:not(.active) {
-  transition: transform 0.35s;
-}
-
 .icon p {
   pointer-events: none;
   height: 3.2rem;
@@ -108,23 +104,15 @@
   height: 0.2rem
 }
 
-.divider:last-of-type {
-  visibility: hidden;
-  padding-bottom: 1.4rem;
-}
-
 .dragging .icon.active {
   z-index: 4;
   opacity: 0.65;
 }
 
 .dragging .divider,
-.dragging .icon:not(.active) {
-  transition: transform 0.35s;
-}
-
-.edit-mode .divider:last-child {
-  visibility: visible;
+.dragging .icon:not(.active),
+.dropped {
+  transition: transform 0.5s, opacity 0.5s;
 }
 
 .edit-mode .icon .remove {

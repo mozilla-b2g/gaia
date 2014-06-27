@@ -13,8 +13,6 @@ marionette('month view', function() {
       // Do not require the B2G-desktop app window to have focus (as per the
       // system window manager) in order for it to do focus-related things.
       'focusmanager.testmode': true,
-      // We should disable LockScreen in the correct way.
-      'lockscreen.enabled': false
     }
   });
 

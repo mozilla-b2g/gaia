@@ -103,6 +103,7 @@ Focus.prototype.clearFaceDetection = function() {
 
 Focus.prototype.suspendFaceDetection = function(ms, delay) {
   var self = this;
+  delay = delay || 0;
   clearTimeout(this.faceDetectionSuspended);
   clearTimeout(this.faceDetectionSuspensionTimer);
   this.faceDetectionSuspensionTimer = setTimeout(suspendFaceDetection, delay);
@@ -136,9 +137,17 @@ Focus.prototype.suspendContinuousFocus = function(ms) {
   this.continuousModeTimer = setTimeout(this.resumeContinuousFocus, ms);
 };
 
-Focus.prototype.onAutoFocusMoving = function(state) {
-  if (state) {
-    this.onAutoFocusChanged(state);
+Focus.prototype.onAutoFocusMoving = function(moving) {
+  var self = this;
+  if (moving) {
+    this.onAutoFocusChanged('focusing');
+    this.mozCamera.autoFocus(onFocused);
+    return;
+  }
+  function onFocused(state) {
+    state = state ? 'focused' : 'fail';
+    self.onAutoFocusChanged(state);
+    self.mozCamera.resumeContinuousFocus();
   }
 };
 
@@ -203,9 +212,7 @@ Focus.prototype.focusOnLargestFace = function(faces) {
 
   if (!facesAlreadyDetected) {
     this.detectedFaces = detectedFaces;
-    this.suspendFaceDetection(2000, 2000);
     if (!this.faceFocused) {
-      this.stopContinuousFocus();
       // First face in the array is the one we focus on (largest area on image)
       this.updateFocusArea(detectedFaces[0].bounds, focusDone);
     }
@@ -215,6 +222,7 @@ Focus.prototype.focusOnLargestFace = function(faces) {
   function focusDone(error) {
     self.faceFocused = true;
     self.suspendContinuousFocus(4000);
+    self.suspendFaceDetection(2000);
   }
 
 };
@@ -259,7 +267,7 @@ Focus.prototype.focus = function(done) {
   function onFocused(success) {
     if (success) {
       self.focused = true;
-      done();
+      done('focused');
     } else {
       self.focused = false;
       done('failed');
@@ -315,20 +323,15 @@ Focus.prototype.updateFocusArea = function(rect, done) {
     done('touchToFocusNotAvailable');
     return;
   }
-
+  this.stopContinuousFocus();
   this.stopFaceDetection();
   this.mozCamera.setFocusAreas([rect]);
   this.mozCamera.setMeteringAreas([rect]);
-  if (this.mozCamera.focusMode === 'continuous-picture') {
-    this.mozCamera.resumeContinuousFocus();
-  }
   // Disables flash temporarily so it doesn't go off while focusing
   this.mozCamera.flashMode = 'off';
   // Call auto focus to focus on focus area.
   this.focus(focusDone);
   function focusDone(state) {
-    self.startFaceDetection();
-    self.suspendFaceDetection(2000, 0);
     // Restores previous flash mode
     self.mozCamera.flashMode = previousFlashMode;
     done(state);

@@ -1,5 +1,5 @@
-/* globals CallsHandler, KeypadManager, LazyL10n, LockScreenSlide,
-           MozActivity */
+/* globals CallsHandler, FontSizeManager, KeypadManager, LazyL10n,
+           LockScreenSlide, MozActivity */
 /* jshint nonew: false */
 
 'use strict';
@@ -44,6 +44,7 @@ var CallScreen = {
   incomingContainer: document.getElementById('incoming-container'),
   incomingInfo: document.getElementById('incoming-info'),
   incomingNumber: document.getElementById('incoming-number'),
+  fakeIncomingNumber: document.getElementById('fake-incoming-number'),
   incomingSim: document.getElementById('incoming-sim'),
   incomingNumberAdditionalInfo:
     document.getElementById('incoming-number-additional-info'),
@@ -72,10 +73,10 @@ var CallScreen = {
   },
 
   updateCallsDisplay: function cs_updateCallsDisplay() {
-    var enabled =
-      (this.calls.querySelectorAll('section:not([hidden])').length <= 1);
-    this.calls.classList.toggle('single-line', enabled);
-    this.calls.classList.toggle('big-duration', enabled);
+    var visibleCalls =
+      this.calls.querySelectorAll('section:not([hidden])').length;
+    this.calls.classList.toggle('single-line', visibleCalls <= 1);
+    this.calls.classList.toggle('big-duration', visibleCalls <= 1);
     CallsHandler.updateAllPhoneNumberDisplays();
   },
 
@@ -336,10 +337,8 @@ var CallScreen = {
     // If a user has the keypad opened, we want to display the number called
     // while in status bar mode. And restore the digits typed when exiting.
     if (!this.body.classList.contains('showKeypad')) {
-      return;
-    }
-
-    if (this.inStatusBarMode) {
+      this.updateCallsDisplay(this.inStatusBarMode);
+    } else if (this.inStatusBarMode) {
       this._typedNumber = KeypadManager._phoneNumber;
       KeypadManager.restorePhoneNumber();
     } else {
@@ -626,5 +625,18 @@ var CallScreen = {
     window.removeEventListener('lockscreenslide-activate-left', this);
     window.removeEventListener('lockscreenslide-activate-right', this);
     window.removeEventListener('lockscreenslide-unlocking-stop', this);
+  },
+
+  getScenario: function cs_getScenario() {
+    var scenario;
+    if (this.inStatusBarMode) {
+      scenario = FontSizeManager.STATUS_BAR;
+    } else if (this.calls.querySelectorAll(
+      'section:not([hidden])').length > 1) {
+      scenario = FontSizeManager.CALL_WAITING;
+    } else {
+      scenario = FontSizeManager.SINGLE_CALL;
+    }
+    return scenario;
   }
 };

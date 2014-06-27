@@ -1,7 +1,7 @@
 {
   "name": "PDF Viewer",
   "description": "Portable Document Format (PDF) Viewer",
-  "type": "certified",
+  "type": "privileged",
   "role": "system",
   "developer": {
     "name": "The pdf.js Team",
@@ -38,7 +38,6 @@
     }
   },
   "permissions": {
-    "systemXHR":{},
-    "settings":{ "access": "readonly" }
+    "systemXHR":{}
   }
 }

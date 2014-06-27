@@ -1,7 +1,7 @@
 {
   "name": "Social",
   "role": "collection",
-  "categoryId": "289",
+  "categoryId": 289,
   "pinned": [
     ["apps", "communications", "dialer"],
     ["apps", "sms"],

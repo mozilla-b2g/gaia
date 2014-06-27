@@ -5,7 +5,7 @@
 var MockFxAccountsIACHelper = (function() {
   var listeners = {
     'onlogin': [],
-    'onverifiedlogin': [],
+    'onverified': [],
     'onlogout': []
   };
 
@@ -21,7 +21,7 @@ var MockFxAccountsIACHelper = (function() {
 
   function resetListeners() {
     listeners.onlogin = [];
-    listeners.onverifiedlogin = [];
+    listeners.onverified = [];
     listeners.onlogout = [];
   }
 

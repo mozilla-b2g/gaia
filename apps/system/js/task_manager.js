@@ -1,6 +1,6 @@
 /* global Card, TaskCard,
           AppWindowManager, sleepMenu, SettingsListener, AttentionScreen,
-          OrientationManager, System,
+          OrientationManager,
           GestureDetector, UtilityTray, StackManager, Event */
 
 'use strict';
@@ -706,7 +706,8 @@
         break;
 
       case 'holdhome':
-        if (this.isShown() || System.locked) {
+        if (this.isShown() ||
+            (window.lockScreen && window.lockScreen.locked)) {
           return;
         }
         sleepMenu.hide();
@@ -938,15 +939,15 @@
     var nextCard = this.nextCard || pseudoCard;
     var prevCardStyle = {
       pointerEvents: 'none',
-      MozTransition: currentCard.CARD_TRANSITION
+      MozTransition: currentCard.MOVE_TRANSITION
     };
     var nextCardStyle = {
       pointerEvents: 'none',
-      MozTransition: currentCard.CARD_TRANSITION
+      MozTransition: currentCard.MOVE_TRANSITION
     };
     var currentCardStyle = {
       pointerEvents: 'auto',
-      MozTransition: currentCard.CARD_TRANSITION
+      MozTransition: currentCard.MOVE_TRANSITION
     };
 
     if (this.deltaX < 0) {

@@ -162,22 +162,23 @@
 
 #lockscreen-media-container .media-playback-nowplaying > .artist {
   color: #ffffff;
+  font-style: italic;
 }
 
 #lockscreen-media-container .media-playback-controls {
   clear: both;
   width: 100%;
   position: relative;
-  top: -2rem;
+  top: -1.8rem;
 }
 
 #lockscreen-media-container .media-playback-controls > .previous {
-  width: 9.7rem;
+  width: 10.6rem;
   background-image: url("./images/lockscreen-icon-previous.png");
 }
 
 #lockscreen-media-container .media-playback-controls > .play-pause {
-  width: 10.6rem;
+  width: 10.8rem;
   background-image: url("./images/lockscreen-icon-pause.png");
 }
 
@@ -186,7 +187,7 @@
 }
 
 #lockscreen-media-container .media-playback-controls > .next {
-  width: 9.7rem;
+  width: 10.6rem;
   background-image: url("./images/lockscreen-icon-next.png");
 }
 
@@ -194,22 +195,24 @@
   height: 7rem;
 }
 
-#lockscreen-media-container .media-playback-controls.big > button {
-  background-size: auto auto;
-}
 
 #lockscreen-media-container .media-playback-controls.big > .previous {
   background-image: url("./images/lockscreen-icon-big-previous.png");
+  background-size: 2rem 2.2rem;
 }
 
 #lockscreen-media-container .media-playback-controls.big > .play-pause {
   background-image: url("./images/lockscreen-icon-big-pause.png");
+  background-size: 2.4rem 3.2rem;
 }
 
 #lockscreen-media-container .media-playback-controls.big > .play-pause.is-paused {
   background-image: url("./images/lockscreen-icon-big-play.png");
+  background-size: 2.8rem 3.4rem;
+  background-position: 4.1rem center;
 }
 
 #lockscreen-media-container .media-playback-controls.big > .next {
   background-image: url("./images/lockscreen-icon-big-next.png");
+  background-size: 2rem 2.2rem;
 }

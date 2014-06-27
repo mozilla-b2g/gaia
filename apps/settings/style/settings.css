@@ -168,8 +168,12 @@ body[data-filter-by="connectivity"] #root > div [data-category="connectivity"] {
 
 .link-text {
   font-size: 1.4rem;
-  color: #336699;
+  color: #35679A;
   text-decoration: underline;
+}
+
+.link-text:active {
+  background-color: #c1d6e6;
 }
 
 .hint label span {
@@ -544,7 +548,7 @@ ul li > label.range-icons.volume input {
  */
 #accessibility ul li > label.range-icons.volume input {
   opacity: 1;
-  margin: 0px auto;
+  margin: 0 auto;
   width: calc(100% - 3rem);
 }
 
@@ -686,6 +690,7 @@ ul li > label.range-icons.volume input {
 #os-license {
   width: 100%;
   height: calc(100% - 5rem);
+  border: 0;
 }
 
 

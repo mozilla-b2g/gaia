@@ -208,7 +208,7 @@ class GCli(object):
 
     def screenshot(self, args):
         self.marionette.execute_script(
-            "window.wrappedJSObject.dispatchEvent(new Event('volume-down+sleep'));")
+            "window.wrappedJSObject.dispatchEvent(new Event('volumedown+sleep'));")
 
     def send_sms(self, args):
         self.data_layer.send_sms(args.number, args.message)

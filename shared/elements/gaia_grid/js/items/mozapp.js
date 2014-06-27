@@ -47,9 +47,32 @@
     this.setAppState(this._determineState(app));
   }
 
+  /**
+  `app.manifest.role`s which should not be displayed on the grid.
+  */
+  Mozapp.HIDDEN_ROLES = ['system', 'input', 'homescreen', 'search'];
+
   Mozapp.prototype = {
 
     __proto__: GaiaGrid.GridItem.prototype,
+
+
+    /**
+    Determine if this application is supposed to be hidden.
+
+    @return Boolean
+    */
+    _isHiddenRole: function() {
+      var manifest = this.app.manifest;
+
+      // don't know what the role is so it is not hidden
+      if (!manifest || !manifest.role) {
+        return null;
+      }
+
+      // if it is in the hidden role list return true
+      return Mozapp.HIDDEN_ROLES.indexOf(manifest.role) !== -1;
+    },
 
     /**
     Figure out which state the app is in
@@ -102,6 +125,15 @@
           break;
 
         case 'downloadapplied':
+          // Ensure that a hidden app has not somehow been added to the grid...
+          if (this._isHiddenRole()) {
+            console.warn('Removing hidden app from the grid', this.name);
+            return this.removeFromGrid();
+          }
+
+          // we may have updated icons so recalculate the correct icon.
+          delete this._accurateIcon;
+
           // Need to set app state here to correctly handle the pause/resume
           // case.
           this.setAppState(this._determineState(this.app));
@@ -181,10 +213,10 @@
      * Returns the icon image path.
      */
     get icon() {
-      var icon = this.accurateMozapp;
+      var icon = this._accurateIcon;
 
       if (!icon) {
-        icon = this.accurateMozapp = this._icon();
+        icon = this._accurateIcon = this._icon();
       }
 
       return icon;
@@ -323,15 +355,6 @@
 
       // Default action is to launch the app.
       return app.launch();
-    },
-
-    /**
-     * Uninstalls the application.
-     */
-    remove: function() {
-      window.dispatchEvent(new CustomEvent('gaiagrid-uninstall-mozapp', {
-        'detail': this
-      }));
     }
   };
 

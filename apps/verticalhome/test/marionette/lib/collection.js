@@ -31,7 +31,9 @@ Collection.Selectors = {
   firstWebResultPinned: 'gaia-grid .divider + .icon',
 
   allDividers: 'gaia-grid .divider',
-  allIcons: 'gaia-grid .icon'
+  allIcons: 'gaia-grid .icon',
+
+  offlineMessage: '#offline-message'
 };
 
 Collection.prototype = {
@@ -115,6 +117,11 @@ Collection.prototype = {
    * @param {Object} icon The collection icon on the homescreen.
    */
   enterCollection: function(icon) {
+    // Scroll the icon into view
+    icon.scriptWith(function(el) {
+      el.scrollIntoView(false);
+    });
+
     icon.tap();
 
     this.client.switchToFrame();

@@ -107,9 +107,9 @@ AppServer.prototype = {
 
       // If this url has a http error on it just return without calling the
       // handler.
-      if (settings.serverError) {
-        res.writeHead(500);
-        res.end();
+      if (settings.response) {
+        res.writeHead(settings.response.status, settings.response.headers);
+        res.end(settings.response.body);
         return;
       }
 
@@ -122,23 +122,31 @@ AppServer.prototype = {
 var routes = {
 
   /**
-  All requests to the url will fail (before their handler) with a 500 error and
-  no body.
+  Change the root serving directory for this server.
   */
-  '/settings/server_error': decorateHandlerForJSON(function(req, res) {
-    var url = req.body;
-    var settings = this.settings(url);
-    settings.serverError = true;
-    writeJSON(res, url);
+  '/settings/set_root': decorateHandlerForJSON(function(req, res) {
+    this.root = req.body;
+    writeJSON(res, req.body);
   }),
 
   /**
-  Remove the server error from the given url
+  Override or set the response of a particular url.
   */
- '/settings/clear_server_error': decorateHandlerForJSON(function(req, res) {
+  '/settings/set_response': decorateHandlerForJSON(function(req, res) {
+    var options = req.body;
+    var settings = this.settings(options.path);
+
+    settings.response = options;
+    writeJSON(res, options.path);
+  }),
+
+  /**
+  Clear the response override.
+  */
+ '/settings/clear_response': decorateHandlerForJSON(function(req, res) {
     var url = req.body;
     var settings = this.settings(url);
-    settings.serverError = false;
+    delete settings.response;
     writeJSON(res, url);
  }),
 
@@ -200,6 +208,8 @@ var routes = {
   '/package.manifest': function(req, res) {
     var json = JSON.parse(fs.readFileSync(this.root + '/manifest.webapp'));
     json.package_path = 'http://' + req.headers.host + '/app.zip';
+    // TODO: Remove this once we add the ability to override requests
+    delete json.role;
 
     var body = JSON.stringify(json, null, 2);
     res.writeHead(200, {
@@ -224,6 +234,7 @@ var routes = {
       var zip = archiver.create('zip');
 
       files.forEach(function(file) {
+        debug('packaged app zip file', file);
         var zipPath = file.replace(root, '');
         zip.append(fs.createReadStream(file), { name: zipPath });
       });
@@ -264,6 +275,7 @@ var routes = {
 
     var contentType = mime.lookup(filePath);
     var contentLength = fs.statSync(filePath).size;
+    debug('static asset', filePath, contentType, contentLength);
 
     // write out the head
     res.writeHead(200, {

@@ -10,9 +10,10 @@
   function ViewEditMode(collection) {
     this.collection = collection;
 
+    elements.grid.addEventListener('removeitem', this);
+
     window.addEventListener('hashchange', this);
     window.addEventListener('gaiagrid-dragdrop-finish', this);
-    window.addEventListener('gaiagrid-uninstall-mozapp', this);
     window.addEventListener('collection-remove-webresult', this);
 
     elements.done.addEventListener('click', this.exitEditMode);
@@ -56,10 +57,7 @@
           }
           break;
 
-        case 'gaiagrid-uninstall-mozapp':
-          this.unpin(e.detail.detail.manifestURL);
-          break;
-
+        case 'removeitem':
         case 'collection-remove-webresult':
           this.unpin(e.detail.identifier);
           break;

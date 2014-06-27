@@ -149,9 +149,15 @@
 }
 
 #week-view .scroll-content {
+  /* XXX: z-index + position:relative is important for perf (Bug 972675) */
   position: relative;
-  background-color: #FFF;
+  z-index: 0;
   overflow: hidden;
+  /**
+   * set scrollable areas to a solid background color
+   * see bug 968478
+   */
+  background-color: #FFF;
 }
 
 
@@ -159,13 +165,6 @@
   position: relative;
   float: left;
   width: calc(100% - 2.9rem);
-  /**
-   * set scrollable areas to a solid background color
-   * see bug 968478
-   */
-  background-color: #fff;
-  /* XXX: z-index + position:relative is important for perf (Bug 972675) */
-  z-index: 0;
 }
 
 #week-view .weekday .children > section {
@@ -199,6 +198,7 @@
 #week-view .sticky .event {
   margin-bottom: 0.1rem;
   padding-top: 0;
+  min-height: 2.8rem;
 }
 
 #week-view .sticky .event:last-child {
@@ -254,10 +254,10 @@
 }
 
 #week-view .current-time:before {
-  left: 2.9rem;
+  left: 3rem;
 }
 
 #week-view .current-time:after {
-  width: calc(100% - 2.9rem);
-  left: 2.9rem;
+  width: calc(100% - 3rem);
+  left: 3rem;
 }

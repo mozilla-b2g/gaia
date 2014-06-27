@@ -86,7 +86,7 @@
     this.publish('created');
   };
 
-  ActivityWindow.prototype.__proto__ = AppWindow.prototype;
+  ActivityWindow.prototype = Object.create(AppWindow.prototype);
 
   ActivityWindow.prototype.eventPrefix = 'activity';
 

@@ -101,10 +101,10 @@
         this.toggle();
       }
 
-      this.homeButton.addEventListener('mousedown', this);
-      this.homeButton.addEventListener('mouseup', this);
-      this.fullscreenHomeButton.addEventListener('mousedown', this);
-      this.fullscreenHomeButton.addEventListener('mouseup', this);
+      this.homeButton.addEventListener('touchstart', this);
+      this.homeButton.addEventListener('touchend', this);
+      this.fullscreenHomeButton.addEventListener('touchstart', this);
+      this.fullscreenHomeButton.addEventListener('touchend', this);
       window.addEventListener('mozfullscreenchange', this);
       window.addEventListener('homegesture-enabled', this);
       window.addEventListener('homegesture-disabled', this);
@@ -164,10 +164,10 @@
      */
     handleEvent: function(evt) {
       switch (evt.type) {
-        case 'mousedown':
+        case 'touchstart':
           this.publish('home-button-press');
           break;
-        case 'mouseup':
+        case 'touchend':
           this.publish('home-button-release');
           break;
         case 'homegesture-disabled':
