@@ -92,7 +92,7 @@ suite('L10n bindings', function() {
       var elem;
 
       suiteSetup(function() {
-        elem = document.createElement('div');
+        elem = document.createElement('input');
         elem.setAttribute('data-l10n-id', 'input');
       });
 

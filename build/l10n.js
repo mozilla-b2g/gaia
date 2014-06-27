@@ -318,9 +318,9 @@
     var elements = L10n.getTranslatableChildren(fragment);
 
     for (var i = 0; i < elements.length; i++) {
-      var attrs = L10n.getL10nAttributes(elements[i]);
-      var val = this.ctx.getEntitySource(attrs.id);
-      ast[attrs.id] = val;
+      var l10nid = elements[i].getAttribute('data-l10n-id');
+      var val = this.ctx.getEntitySource(l10nid);
+      ast[l10nid] = val;
       walkContent(val, getPlaceables.bind(this, ast));
     }
     flushBuildMessages.call(this, 'in the visible DOM');
