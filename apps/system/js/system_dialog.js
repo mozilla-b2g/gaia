@@ -84,7 +84,10 @@
     this.element = document.getElementById(this.instanceID);
 
     // Required before 2.1 because we don't have L10n MutationObserver yet
-    navigator.mozL10n.translateFragment(this.element);
+    // Keep if'd for tests which don't require mock_l10n
+    if (navigator.mozL10n) {
+      navigator.mozL10n.translateFragment(this.element);
+    }
   };
 
   /**
