@@ -247,6 +247,10 @@ ViewfinderController.prototype.onGalleryOpened = function() {
 };
 
 ViewfinderController.prototype.onGalleryClosed = function() {
+  if (this.app.hidden) {
+    return;
+  }
+
   // Renables events when the gallery closes
   this.viewfinder.enable();
   this.pinch.enable();

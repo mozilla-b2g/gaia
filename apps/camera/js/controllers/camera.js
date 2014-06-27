@@ -374,6 +374,10 @@ CameraController.prototype.shutdownCamera = function() {
 };
 
 CameraController.prototype.onGalleryClosed = function() {
+  if (this.app.hidden) {
+    return;
+  }
+
   this.app.showLoading();
   this.camera.load(this.app.clearLoading);
 };
