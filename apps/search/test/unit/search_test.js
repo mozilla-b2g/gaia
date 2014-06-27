@@ -498,6 +498,48 @@ suite('search/search', function() {
       assert.equal(renderStub2.getCall(0).args[0].length, 1);
     });
 
+    test('bug 1030713 - subdomain dededupe matching', function() {
+      var results1 = [
+        {dedupeId: 'http://translate.google.com'}
+      ];
+
+      var results2 = [
+        {dedupeId: 'http://mail.google.com/tasks'},
+        {dedupeId: 'http://drive.google.com/keep'},
+      ];
+
+      var provider1 = fuzzyProvider();
+      var provider2 = fuzzyProvider();
+
+      var renderStub1 = this.sinon.stub(provider1, 'render');
+      var renderStub2 = this.sinon.stub(provider2, 'render');
+      Search.collect(provider1, results1);
+      Search.collect(provider2, results2);
+      assert.equal(renderStub1.getCall(0).args[0].length, 1);
+      assert.equal(renderStub2.getCall(0).args[0].length, 2);
+    });
+
+    test('bug 1030713 - subdomain dededupe matching with path', function() {
+      var results1 = [
+        {dedupeId: 'http://drive.google.com/keep'}
+      ];
+
+      var results2 = [
+        {dedupeId: 'http://mail.google.com/tasks'},
+        {dedupeId: 'http://translate.google.com'},
+      ];
+
+      var provider1 = fuzzyProvider();
+      var provider2 = fuzzyProvider();
+
+      var renderStub1 = this.sinon.stub(provider1, 'render');
+      var renderStub2 = this.sinon.stub(provider2, 'render');
+      Search.collect(provider1, results1);
+      Search.collect(provider2, results2);
+      assert.equal(renderStub1.getCall(0).args[0].length, 1);
+      assert.equal(renderStub2.getCall(0).args[0].length, 2);
+    });
+
     test('exact provider does not de-dupe against itself', function() {
       var results = [
         {dedupeId: 'https://mozilla.org/index.html'},

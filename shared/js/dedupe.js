@@ -3,6 +3,13 @@
 (function(exports) {
 
   /**
+   * The minimum length that we would consider de-duping fuzzy domain search
+   * segments against. e.g., touch.mozilla.com. We would use 'mozilla' as a
+   * deduplication key, but not 'touch', as that's only 5 characters.
+   */
+  const MIN_SEGMENT_SIGNIFICANT_LENGTH = 6;
+
+  /**
    * SearchDedupe maintains a list of web search results and uses fuzzy dedupe
    * logic to remove what we would consider to be duplicates.
    * This is used in the search app for example to deduplicate locally
@@ -64,12 +71,13 @@
         // We also try to avoid deduping on second level domains by
         // checking the length of the segment.
         // For each part of the host, we add it to the fuzzy lookup table
-        // if it is more than three characters. This algorithm is far
+        // if we consider it to be significant. This algorithm is far
         // from perfect, but it will likely catch 99% of our usecases.
         var hostParts = host.split('.');
         for (var i in hostParts) {
           var part = hostParts[i];
-          if (part.length > 3 && this.dedupeNullList.indexOf(part) === -1) {
+          if (part.length > MIN_SEGMENT_SIGNIFICANT_LENGTH &&
+            this.dedupeNullList.indexOf(part) === -1) {
             fuzzyDedupeIds.push(part);
           }
         }
