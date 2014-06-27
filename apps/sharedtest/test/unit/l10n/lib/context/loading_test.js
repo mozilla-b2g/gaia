@@ -7,7 +7,7 @@ var assert = require('assert') || window.assert;
 if (typeof navigator !== 'undefined') {
   var L10n = navigator.mozL10n._getInternalAPI();
   var Context = L10n.Context;
-  var path = 'http://sharedtest.gaiamobile.org:8080/test/unit/l10n/lib/context';
+  var path = 'app://sharedtest.gaiamobile.org/test/unit/l10n/lib/context';
 } else {
   var Context = process.env.L20N_COV ?
     require('../../../build/cov/lib/l20n/context').Context
