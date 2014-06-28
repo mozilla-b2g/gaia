@@ -3,7 +3,7 @@
   'use strict';
   /* global eme, Provider, Search */
 
-  var ANNOTATION_REGEX = /\[(.+?)\]/g;
+  var ANNOTATION_REGEX = /\[*(.+?)\]*/g;
 
   function deannotate(match, p1) {
     return p1;
