@@ -180,7 +180,6 @@
       window.addEventListener('applocationchange', this);
       window.addEventListener('appscroll', this);
       window.addEventListener('home', this);
-      window.addEventListener('lock', this);
       window.addEventListener('cardviewclosedhome', this);
       window.addEventListener('cardviewclosed', this);
       window.addEventListener('cardviewshown', this);
