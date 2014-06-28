@@ -22,8 +22,16 @@
 
     addToCollection: function(event) {
       CollectionsDatabase.get(event.data.collectionId).then(fresh => {
-          fresh.pinned = fresh.pinned.concat(
-            new PinnedHomeIcon(event.data.identifier));
+          var newPinned = new PinnedHomeIcon(event.data.identifier);
+
+          // Only allow pinning a record once.
+          for (var i = 0, iLen = fresh.pinned.length; i < iLen; i++) {
+              if (fresh.pinned[i].identifier === newPinned.identifier) {
+                return;
+              }
+          }
+
+          fresh.pinned.push(newPinned);
           CollectionsDatabase.put(fresh);
         });
     }
