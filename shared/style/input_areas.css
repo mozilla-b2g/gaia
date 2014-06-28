@@ -79,13 +79,13 @@ form p textarea + button[type="reset"] {
   font-size: 0;
   opacity: 0;
   pointer-events: none;
-  background: url(input_areas/images/clear.svg) no-repeat center / 3rem;
+  background: url(input_areas/images/clear.png) no-repeat 50% 50% / 2.4rem auto;
 }
 
 
 .skin-dark p input + button[type="reset"],
 .skin-dark p textarea + button[type="reset"] {
-  background-image: url(input_areas/images/clear_dark.svg);
+  background-image: url(input_areas/images/clear_dark.png);
 }
 
 /* To avoid colission with BB butons */
