@@ -379,5 +379,4 @@ var SimPinDialog = {
   }
 };
 
-// this injects code into HTML and we need it to be localized
-navigator.mozL10n.once(SimPinDialog.init.bind(SimPinDialog));
+SimPinDialog.init();

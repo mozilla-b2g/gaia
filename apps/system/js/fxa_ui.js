@@ -96,5 +96,4 @@ var FxAccountsUI = {
   }
 };
 
-// this injects code into HTML and we need it to be localized
-navigator.mozL10n.once(FxAccountsUI.init.bind(FxAccountsUI));
+FxAccountsUI.init();

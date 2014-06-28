@@ -37,10 +37,7 @@ suite('simcard dialog', function() {
     stubById = this.sinon.stub(document, 'getElementById');
     stubById.returns(document.createElement('div'));
     MockSIMSlotManager.mInstances = [new MockSIMSlot(null, 0)];
-    requireApp('system/js/simcard_dialog.js', function() {
-      SimPinDialog.init();
-      callback();
-    });
+    requireApp('system/js/simcard_dialog.js', callback);
   });
 
   teardown(function() {

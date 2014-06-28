@@ -196,16 +196,11 @@ var SimLock = {
   }
 };
 
-function preInit() {
-  if (SIMSlotManager.ready) {
+if (SIMSlotManager.ready) {
+  SimLock.init();
+} else {
+  window.addEventListener('simslotready', function ready() {
+    window.removeEventListener('simslotready', ready);
     SimLock.init();
-  } else {
-    window.addEventListener('simslotready', function ready() {
-      window.removeEventListener('simslotready', ready);
-      SimLock.init();
-    });
-  }
+  });
 }
-
-// SIMLock will optionally load SIMLock dialog which is blocked by l10n
-navigator.mozL10n.once(preInit);
