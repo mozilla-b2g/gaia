@@ -48,6 +48,7 @@
       window.addEventListener('appforeground', this);
       window.addEventListener('apptitlechange', this);
       window.addEventListener('home', this);
+      window.addEventListener('lock', this);
       window.addEventListener('appopened', this);
       window.addEventListener('searchcrashed', this);
       window.addEventListener('permissiondialoghide', this);
