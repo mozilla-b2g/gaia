@@ -427,6 +427,18 @@
   margin-bottom: 1.5rem; /* not overlap by menu while keyboard pop */
 }
 
+/*
+ * Because the search input lives in the system app, while the search app
+ * lives into its own window, activities windows attached to the search app
+ * does not cover the whole screen.
+ * In order to cover the whole screen, the activityWindow is positioned to the
+ * top of the screen and expanded to cover the whole screen.
+ */
+.appWindow.searchWindow .activityWindow {
+  height: calc(100% + 7rem);
+  top: -7rem;
+}
+
 .appWindow > .modal-dialog > form.visible {
   visibility: visible;
 }
