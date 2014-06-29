@@ -382,6 +382,22 @@
   visibility: visible;
 }
 
+/*
+ * Because the search input lives in the system app, while the search app
+ * lives into its own search window, the context menu for such an application
+ * does not cover the whole screen.
+ * In order to have it cover the whole screen, the contextmenu which is part of
+ * the app window of the search window, is positioned negatively on the y-axis,
+ * while overflow is authorize for such window.
+ */
+.appWindow.searchWindow .contextmenu {
+  top: -7rem;
+}
+
+.appWindow.searchWindow {
+  overflow: visible;
+}
+
 .appWindow > .modal-dialog.visible,
 .appWindow > .contextmenu.visible,
 .appWindow > .authentication-dialog.visible,

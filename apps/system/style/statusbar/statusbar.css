@@ -6,6 +6,10 @@
   height: 2rem;
 }
 
+#screen.rocketbar-focused .gesture-panel {
+  pointer-events: none;
+}
+
 #statusbar-background {
   width: 100%;
   height: 2.4rem;

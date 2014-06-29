@@ -282,8 +282,6 @@
         this.providers[i].clear();
       }
 
-      this.contextmenu.hide();
-
       var offlineMessage = document.getElementById('offline-message');
       offlineMessage.textContent = '';
     },
