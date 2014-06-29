@@ -837,7 +837,7 @@
      * @memberof Rocketbar.prototype
      */
     handleSearchCrashed: function(e) {
-      if (!this._searchWindow) {
+      if (!this.searchWindow) {
         return;
       }
 
@@ -868,6 +868,10 @@
       this._port = 'pending';
       navigator.mozApps.getSelf().onsuccess = function() {
         var app = this.result;
+        if (!app) {
+          return;
+        }
+
         app.connect('search').then(
           function onConnectionAccepted(ports) {
             ports.forEach(function(port) {

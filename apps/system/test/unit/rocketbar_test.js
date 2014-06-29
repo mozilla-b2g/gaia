@@ -1,6 +1,6 @@
 'use strict';
 /* global Rocketbar, MocksHelper, MockAppWindow, MockAppWindowManager,
-          MockIACPort */
+          MockIACPort, MockSearchWindow */
 
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
@@ -843,8 +843,15 @@ suite('system/Rocketbar', function() {
 
     // Dispatch a crash event.
     window.dispatchEvent(new CustomEvent('searchcrashed'));
+
+    assert.equal(subject.searchWindow, null);
+    assert.equal(subject._port, null);
+
     subject.loadSearchApp();
     assert.ok(spy.calledWithNew);
+
+    assert.ok(subject.searchWindow instanceof MockSearchWindow);
+    assert.equal(subject._port, 'pending');
   });
 
   test('setVisible', function() {
