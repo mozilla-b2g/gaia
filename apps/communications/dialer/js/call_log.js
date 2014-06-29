@@ -1059,12 +1059,15 @@ var CallLog = {
   },
 
   cleanNotifications: function cl_cleanNotifcations() {
-    // On startup of call log, we clear all dialer notification
+    /* On startup of call log, we clear all dialer notification except for USSD
+     * ones as those are closed only when the user taps them. */
     Notification.get()
       .then(
         function onSuccess(notifications) {
           for (var i = 0; i < notifications.length; i++) {
-            notifications[i].close();
+            if (!notifications[i].tag) {
+              notifications[i].close();
+            }
           }
         },
         function onError(reason) {

@@ -297,10 +297,11 @@ suite('navigation bar', function() {
     });
 
     suite('> Receiving a ussd', function() {
-      function triggerSysMsg() {
+      function triggerSysMsg(serviceId, sessionEnded) {
         MockNavigatormozSetMessageHandler.mTrigger('ussd-received', {
           message: 'testing',
-          sessionEnded: true
+          sessionEnded: (sessionEnded !== undefined) ? sessionEnded : true,
+          serviceId: (serviceId !== undefined) ? serviceId : 0
         });
       }
 
@@ -330,7 +331,7 @@ suite('navigation bar', function() {
                                 'testing', true);
       });
 
-      suite('when the app is invisible', function() {
+      suite('when the app is visible', function() {
         setup(function() {
           stubHidden = false;
         });
@@ -352,6 +353,16 @@ suite('navigation bar', function() {
           var wakeLock = MockNavigatorWakeLock.mLastWakeLock;
           assert.equal(wakeLock.topic, 'high-priority');
         });
+
+        test('should send a notification for unsollicited messages',
+          function() {
+            this.sinon.spy(MmiManager, 'sendNotification');
+            triggerSysMsg(0, true);
+            sinon.assert.calledOnce(MmiManager.sendNotification);
+            var wakeLock = MockNavigatorWakeLock.mLastWakeLock;
+            assert.isTrue(wakeLock.released);
+          }
+        );
 
         suite('once the app is visible', function() {
           setup(function() {
