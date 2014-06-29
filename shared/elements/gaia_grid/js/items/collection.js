@@ -97,10 +97,15 @@
      * Launches the application for this icon.
      */
     launch: function() {
-      new MozActivity({
+      this.grid.element.dispatchEvent(new CustomEvent('collection-launch'));
+      var activity = new MozActivity({
         name: 'view-collection',
         data: this.detail
       });
+
+      activity.onsuccess = activity.onerror = () => {
+        this.grid.element.dispatchEvent(new CustomEvent('collection-close'));
+      };
     },
 
 

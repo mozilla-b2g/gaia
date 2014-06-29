@@ -1,5 +1,6 @@
 'use strict';
 
+/* global app */
 /* global appManager */
 
 (function(exports) {
@@ -29,6 +30,10 @@
      */
     handleEvent: function(e) {
       switch(e.type) {
+        case 'collection-launch':
+        case 'collections-create-begin':
+          this.setAppearance(APPEARANCE.OPAQUE);
+          break;
         case 'gaiagrid-editmode-start':
           window.removeEventListener('context-menu-open', this);
           window.removeEventListener('context-menu-close', this);
@@ -45,6 +50,8 @@
           this.scrollable.addEventListener('scroll', this);
           // We still want to toggle the appearance of the scroll bar on exit
           /* falls through */
+        case 'collection-close':
+        case 'collections-create-return':
         case 'scroll':
           var scrollTop = this.scrollable.scrollTop;
           this.setAppearance(scrollTop > this.threshold ? APPEARANCE.OPAQUE :
@@ -59,9 +66,15 @@
           ports.forEach(function(port) {
             this.port = port;
           }.bind(this));
+
+          var grid = app.grid;
           this.scrollable.addEventListener('scroll', this);
-          window.addEventListener('gaiagrid-editmode-start', this);
-          window.addEventListener('gaiagrid-editmode-end', this);
+          grid.addEventListener('collection-launch', this);
+          grid.addEventListener('collection-close', this);
+          grid.addEventListener('editmode-start', this);
+          grid.addEventListener('editmode-end', this);
+          window.addEventListener('collections-create-begin', this);
+          window.addEventListener('collections-create-return', this);
           window.addEventListener('context-menu-close', this);
           window.addEventListener('context-menu-open', this);
           this.setAppearance(APPEARANCE.SEMI_TRANSPARENT);
