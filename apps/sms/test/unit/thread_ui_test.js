@@ -727,12 +727,12 @@ suite('thread_ui.js >', function() {
     });
 
     test('getSegmentInfoForText error hides the counter', function() {
-      sendButton.classList.add('has-counter');
+      input.classList.add('has-counter');
       Compose.append(initialText);
       this.sinon.clock.tick(ThreadUI.UPDATE_DELAY);
       MockNavigatormozMobileMessage.mTriggerSegmentInfoError();
 
-      assert.isFalse(sendButton.classList.contains('has-counter'));
+      assert.isFalse(input.classList.contains('has-counter'));
     });
 
     suite('asynchronous tricky tests >', function() {
@@ -784,7 +784,7 @@ suite('thread_ui.js >', function() {
           segmentInfo2, 0
         );
 
-        var subject = sendButton.dataset.counter;
+        var subject = input.dataset.counter;
         var expected = segmentInfo2.charsAvailableInLastSegment + '/' +
           segmentInfo2.segments;
 
@@ -803,7 +803,7 @@ suite('thread_ui.js >', function() {
           segmentInfo1, 0
         );
 
-        var subject = sendButton.dataset.counter;
+        var subject = input.dataset.counter;
         var expected = segmentInfo1.charsAvailableInLastSegment + '/' +
           segmentInfo1.segments;
 
@@ -815,6 +815,7 @@ suite('thread_ui.js >', function() {
     suite('type changed after the first segment info request >', function() {
       setup(function() {
         Compose.type = 'sms';
+        input.classList.add('has-counter');
 
         ThreadUI.updateCounter();
         this.sinon.clock.tick(ThreadUI.UPDATE_DELAY);
@@ -834,8 +835,8 @@ suite('thread_ui.js >', function() {
         Compose.type = 'sms';
       });
 
-      test('should not change the segment info', function() {
-        assert.ok(sendButton.classList.contains('has-counter'));
+      test('should remove has-counter class if sms became mms', function() {
+        assert.isFalse(input.classList.contains('has-counter'));
       });
     });
 
@@ -850,7 +851,7 @@ suite('thread_ui.js >', function() {
       });
 
       test('no counter is displayed', function() {
-        assert.isFalse(sendButton.classList.contains('has-counter'));
+        assert.isFalse(input.classList.contains('has-counter'));
       });
 
       test('no banner is displayed', function() {
@@ -873,7 +874,7 @@ suite('thread_ui.js >', function() {
       });
 
       test('no counter is displayed', function() {
-        assert.isFalse(sendButton.classList.contains('has-counter'));
+        assert.isFalse(input.classList.contains('has-counter'));
       });
 
       test('no banner is displayed', function() {
@@ -903,7 +904,7 @@ suite('thread_ui.js >', function() {
 
       test('a counter is displayed', function() {
         var expected = availableChars + '/' + segment;
-        assert.equal(sendButton.dataset.counter, expected);
+        assert.equal(input.dataset.counter, expected);
       });
 
       test('no banner is displayed', function() {
@@ -933,7 +934,7 @@ suite('thread_ui.js >', function() {
 
       test('a counter is displayed', function() {
         var expected = availableChars + '/' + segment;
-        assert.equal(sendButton.dataset.counter, expected);
+        assert.equal(input.dataset.counter, expected);
       });
 
       test('no banner is displayed', function() {
@@ -963,7 +964,7 @@ suite('thread_ui.js >', function() {
 
       test('a counter is displayed', function() {
         var expected = availableChars + '/' + segment;
-        assert.equal(sendButton.dataset.counter, expected);
+        assert.equal(input.dataset.counter, expected);
       });
 
       test('no banner is displayed', function() {
@@ -993,7 +994,7 @@ suite('thread_ui.js >', function() {
 
       test('a counter is displayed', function() {
         var expected = availableChars + '/' + segment;
-        assert.equal(sendButton.dataset.counter, expected);
+        assert.equal(input.dataset.counter, expected);
       });
 
       test('the send button should be enabled', function() {
@@ -1228,7 +1229,7 @@ suite('thread_ui.js >', function() {
         // Per discussion, this is being deferred to another bug
         // https://bugzilla.mozilla.org/show_bug.cgi?id=959360
         //
-        // assert.isTrue(sendButton.classList.contains('has-counter'));
+        // assert.isTrue(input.classList.contains('has-counter'));
         assert.equal(Compose.type, 'mms');
 
         // 3. To simulate the user "deleting" the subject,
@@ -1244,7 +1245,7 @@ suite('thread_ui.js >', function() {
         // Per discussion, this is being deferred to another bug
         // https://bugzilla.mozilla.org/show_bug.cgi?id=959360
         //
-        // assert.isFalse(sendButton.classList.contains('has-counter'));
+        // assert.isFalse(input.classList.contains('has-counter'));
         assert.equal(Compose.type, 'sms');
       });
 
@@ -1341,7 +1342,7 @@ suite('thread_ui.js >', function() {
     test('sms to mms and back displays banner', function() {
       // cause a type switch event to happen
       Compose.type = 'mms';
-      assert.isTrue(sendButton.classList.contains('has-counter'));
+      assert.isFalse(input.classList.contains('has-counter'));
       assert.isFalse(convertBanner.classList.contains('hide'),
         'conversion banner is shown for mms');
       assert.equal(composeForm.dataset.messageType, 'mms',
@@ -1365,7 +1366,7 @@ suite('thread_ui.js >', function() {
       this.sinon.clock.tick(ThreadUI.UPDATE_DELAY);
       MockNavigatormozMobileMessage.mTriggerSegmentInfoSuccess();
 
-      assert.isFalse(sendButton.classList.contains('has-counter'));
+      assert.isFalse(input.classList.contains('has-counter'));
       assert.isFalse(convertBanner.classList.contains('hide'),
         'conversion banner is shown for sms');
       assert.equal(composeForm.dataset.messageType, 'sms',
