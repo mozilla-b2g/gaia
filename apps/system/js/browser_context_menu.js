@@ -167,9 +167,14 @@
   };
 
   BrowserContextMenu.prototype.hide = function(evt) {
+    if (!this.element) {
+      return;
+    }
+
     if (evt) {
       evt.preventDefault();
     }
+
     this.element.blur();
     this.element.classList.remove('visible');
     if (this.app) {

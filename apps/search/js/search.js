@@ -284,8 +284,6 @@
 
       var offlineMessage = document.getElementById('offline-message');
       offlineMessage.textContent = '';
-
-      this.contextmenu.hide();
     },
 
     showBlank: function() {

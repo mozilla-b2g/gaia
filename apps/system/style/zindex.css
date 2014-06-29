@@ -184,6 +184,19 @@
   z-index: 2043;
 }
 
+/*
+ * In order to display a context menu on top of the search input
+ * the z-indexes needs to be updated.
+ * The real issue is that the search input is part of the statusbar.
+ */
+#screen.rocketbar-focused > [data-z-index-level="statusbar"] {
+  z-index: 2042;
+}
+
+#screen > [data-z-index-level="rocketbar-backdrop"] {
+  z-index: 2041;
+}
+
 #screen.locked.attention > [data-z-index-level="keyboards"] {
   z-index: 65536;
 }

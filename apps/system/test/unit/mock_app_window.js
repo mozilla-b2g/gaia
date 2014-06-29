@@ -94,7 +94,8 @@
     leaveTaskManager: function() {},
     applyStyle: function() {},
     unapplyStyle: function() {},
-    transform: function() {}
+    transform: function() {},
+    hideContextMenu: function() {}
   };
   MockAppWindow.mTeardown = function() {
     MockAppWindowHelper.mInstances = [];
