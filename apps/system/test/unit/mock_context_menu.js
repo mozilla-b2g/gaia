@@ -5,7 +5,8 @@
 var MockContextMenu = (function() {
 
   return {
-    showDefaultMenu: function() {}
+    showDefaultMenu: function() {},
+    hide: function() {}
   };
 
 })();
