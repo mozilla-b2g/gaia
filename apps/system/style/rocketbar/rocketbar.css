@@ -167,10 +167,16 @@ body:not(.rb-enabled) #rocketbar {
 }
 
 #rocketbar-backdrop-cover {
+  transition: transform 0.5s;
+  transform: translateY(0);
   width: 100%;
   height: 100%;
   background-color: rgba(0, 0, 0, 0.35);
   pointer-events: none;
+}
+
+#rocketbar-backdrop-cover.hidden {
+  transform: translateY(-100%);
 }
 
 #screen.software-button-enabled #rocketbar-results {

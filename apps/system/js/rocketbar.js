@@ -41,6 +41,7 @@
     this.clearBtn = document.getElementById('rocketbar-clear');
     this.results = document.getElementById('rocketbar-results');
     this.backdrop = document.getElementById('rocketbar-backdrop');
+    this.backdropCover = document.getElementById('rocketbar-backdrop-cover');
     this.overflow = document.getElementById('rocketbar-overflow-button');
 
     // Listen for settings changes
@@ -135,6 +136,10 @@
       this.form.classList.remove('hidden');
       this.title.classList.add('hidden');
       this.backdrop.classList.remove('hidden');
+      // We need to recaculate backdrop height before
+      // animating the backgrop cover
+      this.backdrop.clientTop;
+      this.backdropCover.classList.remove('hidden');
       this.loadSearchApp((function() {
         if (this.input.value.length) {
           this.handleInput();
@@ -164,6 +169,7 @@
       this.form.classList.add('hidden');
       this.title.classList.remove('hidden');
       this.backdrop.classList.add('hidden');
+      this.backdropCover.classList.add('hidden');
       this.blur();
       this.screen.classList.remove('rocketbar-focused');
       window.dispatchEvent(new CustomEvent('rocketbar-overlayclosed'));
