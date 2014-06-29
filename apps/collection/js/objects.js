@@ -297,6 +297,19 @@
       }, this);
     },
 
+    renderWebResults: function render(grid) {
+      if (!this.webResults.length) {
+        return;
+      }
+
+      grid.add(new GaiaGrid.Divider());
+      this.addToGrid(this.webResults, grid);
+
+      grid.render({
+        from: this.pinned.length
+      });
+    },
+
     render: function render(grid) {
       this.dedupe.reset();
       grid.clear();

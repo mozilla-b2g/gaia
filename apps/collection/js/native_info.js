@@ -150,7 +150,8 @@
     },
 
     doSetup: function doSetup() {
-      this.collectGuids()
+      eme.init()
+      .then(this.collectGuids)
       .then(this.getInfo)
       .then(this.addToCollections)
       .then(function neverAgain() {
