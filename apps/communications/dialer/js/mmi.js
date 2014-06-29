@@ -257,6 +257,38 @@ var MmiManager = {
     }).bind(this));
   },
 
+  /**
+   * Create a notification/message string by prepending the SIM number if the
+   * phone has more than one SIM card.
+   *
+   * @param {String} text The message text.
+   * @param {Integer} cardIndex The SIM card slot index.
+   * @return {String} Either the original string alone or with the SIM number
+   *         prepended to it.
+   */
+  prependSimNumber: function mm_prependSimNumber(text, cardIndex) {
+    if (window.navigator.mozIccManager &&
+        window.navigator.mozIccManager.iccIds.length > 1) {
+      var simName = this._('sim-number', { n: +cardIndex + 1 });
+
+      text = this._(
+        'mmi-notification-title-with-sim',
+        { sim: simName, title: text }
+      );
+    }
+
+    return text;
+  },
+
+  /**
+   * Handles an MMI/USSD message. Pops up the MMI UI and displays the message.
+   *
+   * @param {String} message An MMI/USSD message.
+   * @param {Boolean} sessionEnded True if this message ends the session, i.e.
+   *        no more MMI messages will be sent in response to this one.
+   * @param {Integer} cardIndex The index of the SIM card on which this message
+   *        was received.
+   */
   handleMMIReceived: function mm_handleMMIReceived(message, sessionEnded,
                                                    cardIndex)
   {
@@ -268,20 +300,8 @@ var MmiManager = {
       }
 
       var conn = navigator.mozMobileConnections[cardIndex || 0];
-      var title = MobileOperator.userFacingInfo(conn).operator;
-
-      /* If the phone has more than one SIM prepend the number of the SIM on
-       * which this message was received */
-      if (window.navigator.mozIccManager &&
-          window.navigator.mozIccManager.iccIds.length > 1) {
-        var simName = this._('sim-number', { n: +cardIndex + 1 });
-
-        title = this._(
-          'mmi-notification-title-with-sim',
-          { sim: simName, title: title }
-        );
-      }
-
+      var title = this.prependSimNumber(
+        MobileOperator.userFacingInfo(conn).operator, cardIndex);
       var data = {
         type: 'mmi-received-ui',
         message: message,
@@ -290,6 +310,44 @@ var MmiManager = {
       };
       window.postMessage(data, this.COMMS_APP_ORIGIN);
     }).bind(this));
+  },
+
+  /**
+   * Sends a notification for the specified message, returns a promise that is
+   * resolved once the operation is finished.
+   *
+   * @param {String} message An MMI/USSD message.
+   * @param {Integer} cardIndex The index of the SIM card on which this message
+   *        was received.
+   * @param {Function} callback An optional callback invoked after the
+   *        notification has been sent.
+   */
+  sendNotification: function mm_sendNotification(message, cardIndex, callback) {
+    var self = this;
+
+    var request = window.navigator.mozApps.getSelf();
+    request.onsuccess = function(evt) {
+      var app = evt.target.result;
+
+      LazyLoader.load('/shared/js/notification_helper.js', function() {
+        var iconURL = NotificationHelper.getIconURI(app, 'dialer');
+        var conn = navigator.mozMobileConnections[cardIndex || 0];
+        var title = self.prependSimNumber(
+          MobileOperator.userFacingInfo(conn).operator, cardIndex);
+        /* XXX: Bug 1033254 - We put the |ussd-message=1| parameter in the
+         * URL string to distinguish this notification from the others. This
+         * should be thorought the application possibly by using the tag
+         * field. */
+        NotificationHelper.send(title, message,
+          iconURL + '?ussdMessage=1&cardIndex=' + cardIndex,
+          function clickCB(evt) {
+            app.launch('dialer');
+            self.handleMMIReceived(message, /* sessionEnded */ true,
+              cardIndex);
+          });
+        callback && callback();
+      });
+    };
   },
 
   isMMI: function mm_isMMI(number) {
