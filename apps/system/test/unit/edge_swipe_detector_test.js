@@ -43,7 +43,8 @@ suite('system/EdgeSwipeDetector >', function() {
     url: 'app://communications.gaiamobile.org/dialer/index.html',
     origin: 'app://communications.gaiamobile.org/',
     manifestURL: 'app://communications.gaiamobile.org/dialer/manifest.webapp',
-    name: 'Dialer'
+    name: 'Dialer',
+    getTopMostWindow: function() {}
   };
 
   function appLaunch(config) {
@@ -357,7 +358,9 @@ suite('system/EdgeSwipeDetector >', function() {
     setup(function() {
       iframe = this.sinon.stub();
 
-      dialer.iframe = iframe;
+      this.sinon.stub(dialer, 'getTopMostWindow').returns({
+        iframe: iframe
+      });
 
       this.sinon.stub(MockStackManager, 'getCurrent').returns(dialer);
 
