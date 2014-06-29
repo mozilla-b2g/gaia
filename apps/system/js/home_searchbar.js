@@ -50,6 +50,7 @@
       window.addEventListener('home', this);
       window.addEventListener('lock', this);
       window.addEventListener('appopened', this);
+      window.addEventListener('launchactivity', this, true);
       window.addEventListener('searchcrashed', this);
       window.addEventListener('permissiondialoghide', this);
 
@@ -108,6 +109,9 @@
           } else if (e.target == this.backdrop) {
             this.deactivate();
           }
+          break;
+        case 'launchactivity':
+          this.handleActivity(e);
           break;
         case 'searchcrashed':
           this.handleSearchCrashed(e);
