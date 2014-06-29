@@ -1681,6 +1681,21 @@ suite('system/AppWindow', function() {
     assert.isTrue(stubCtx.called);
   });
 
+  test('hideContextMenu', function() {
+    var app = new AppWindow(fakeAppConfig1);
+    // Nothing goes wrong if contextmenu is undefined
+    app.showDefaultContextMenu();
+
+    app.contextmenu = MockContextMenu;
+    var stubCtxShow = this.sinon.stub(app.contextmenu, 'showDefaultMenu');
+    app.showDefaultContextMenu();
+    assert.isTrue(stubCtxShow.called);
+
+    var stubCtxHide = this.sinon.stub(app.contextmenu, 'hide');
+    app.hideContextMenu();
+    assert.isTrue(stubCtxHide.called);
+  });
+
   function genFakeConfig(id) {
     return {
       url: 'app://www.fake' + id + '/index.html',

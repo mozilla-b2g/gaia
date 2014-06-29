@@ -443,8 +443,11 @@
     hideResults: function() {
       if (this.searchWindow) {
         this.searchWindow._setVisible(false);
+        this.searchWindow.hideContextMenu();
       }
+
       this.results.classList.add('hidden');
+
       // Send a message to the search app to clear results
       if (this._port) {
         this._port.postMessage({
