@@ -1,6 +1,5 @@
 'use strict';
 /* global MozActivity */
-/* global Search */
 
 (function(exports) {
 
@@ -58,10 +57,7 @@
               icon: this.icon.icon
             }
           });
-
-          // XXX Bug 1027374, close search. If we do not the activity window
-          // is hidden behind the search window.
-          Search.close();
+          this.hide();
           break;
       }
     }

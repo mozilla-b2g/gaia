@@ -188,7 +188,7 @@
       window.addEventListener('stackchanged', this);
       window.addEventListener('searchcrashed', this);
       window.addEventListener('permissiondialoghide', this);
-
+      window.addEventListener('launchactivity', this, true);
 
       // Listen for events from Rocketbar
       this.rocketbar.addEventListener('touchstart', this);
@@ -253,6 +253,9 @@
             this.waitingOnCardViewLaunch = false;
           }
         break;
+        case 'launchactivity':
+          this.handleActivity(e);
+          break;
         case 'searchcrashed':
           this.handleSearchCrashed(e);
           break;
@@ -571,6 +574,18 @@
       this.hideResults();
       this.collapse();
       this.deactivate();
+    },
+
+    /**
+     * Handles activities for the search app.
+    * @memberof Rocketbar.prototype
+     */
+    handleActivity: function(e) {
+      if (e.detail.isActivity && e.detail.inline && this.searchWindow &&
+          this.searchWindow.manifestURL === e.detail.parentApp) {
+        e.stopImmediatePropagation();
+        this.searchWindow.broadcast('launchactivity', e.detail);
+      }
     },
 
     /**

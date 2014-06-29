@@ -832,6 +832,26 @@ suite('system/Rocketbar', function() {
     postMessageStub.restore();
   });
 
+  test('handleActivity()', function() {
+    subject.loadSearchApp();
+
+    var stubDispatchEvent = this.sinon.stub(subject.searchWindow,
+      'broadcast');
+
+    subject.handleEvent({
+      type: 'launchactivity',
+      detail: {
+        isActivity: true,
+        inline: true,
+        parentApp: subject.searchWindow.manifestURL
+      },
+      stopImmediatePropagation: function() {}
+    });
+    assert.isTrue(stubDispatchEvent.called);
+    assert.equal(stubDispatchEvent.getCall(0).args[0], 'launchactivity');
+    assert.equal(stubDispatchEvent.getCall(0).args[1].isActivity, true);
+  });
+
   test('handleSearchCrashed() - calls render after crash', function() {
     subject.start();
 
