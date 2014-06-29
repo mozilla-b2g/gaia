@@ -374,6 +374,7 @@
     var template = setup.template;
     var nodes = [];
     var clone;
+    var outerCss = window.getComputedStyle(outer);
 
     priv.set(this, {
       owner: owner,
@@ -386,16 +387,7 @@
         isTransitioning: false,
         visible: 'singleline'
       },
-      dims: {
-        inner: {
-          height: 0,
-          width: 0
-        },
-        outer: {
-          height: 0,
-          width: 0
-        }
-      }
+      minHeight: parseInt(outerCss.getPropertyValue('min-height'), 10)
     });
 
     clone = inner.cloneNode(true);
@@ -734,17 +726,6 @@
       length = typed.length;
     }
 
-    // Make sure that height of the displayed list is
-    // being tracked. If no previously known height is set,
-    // or it's just zero, update it.
-    if (!view.dims.inner.height) {
-      view.dims.inner.height = view.inner.offsetHeight;
-    }
-
-    if (!view.dims.outer.height) {
-      view.dims.outer.height = view.outer.offsetHeight;
-    }
-
     switch (event.type) {
 
       case 'pan':
@@ -752,12 +733,13 @@
         //
         //  1. The recipients in the list have caused the
         //      container to grow enough to require the
-        //      additional viewable area.
-        //      (>1 visible lines or 1.5x the original size)
+        //      additional viewable area and the view is singleline
+        //      mode originally.
         //  2. The user is "pulling down" the recipient list.
 
         // #1
-        if (view.inner.scrollHeight > (view.dims.inner.height * 1.5)) {
+        if (view.state.visible === 'singleline' &&
+            view.inner.scrollHeight > view.minHeight) {
           // #2
           if (event.detail.absolute.dy > 0) {
             this.visible('multiline');

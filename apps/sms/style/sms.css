@@ -650,21 +650,19 @@ section[role="region"].new .subheader {
   position: relative;
 
   display: none;
+  min-height: 5.5rem;
 
   text-align: left;
   color: black;
   font-size: 1.465rem;
   background-color: #f2f2f2;
+  transition: transform 0.2s ease-in-out 0s;
+  transform: translateY(calc(-100% + 5.5rem));
 }
 
 section[role="region"].new #messages-to-field {
   display: flex;
-  min-height: 5.5rem;
-
   align-items: flex-end;
-
-  transition: transform 0.2s ease-in-out 0s;
-  transform: translateY(calc(-100% + 5.5rem));
 }
 
 
