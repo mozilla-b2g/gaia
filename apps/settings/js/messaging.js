@@ -1,3 +1,5 @@
+/* global IccHelper, SettingsListener */
+
 'use strict';
 
 /**
@@ -23,6 +25,7 @@ var Messaging = (function(window, document, undefined) {
     m_disableItems(false);
     m_initDeliveryReportSettings();
     m_initCellBroadcast();
+    m_initSMSC();
   }
 
   /**
@@ -89,6 +92,25 @@ var Messaging = (function(window, document, undefined) {
     input.addEventListener('change', inputChanged);
     SettingsListener.observe(CBS_KEY, false, cellBroadcastChanged);
   }
+
+  /**
+   * Retrieves the SMSC information
+   */
+   function m_initSMSC() {
+    // TODO: deal with dual SIM situations (see bug 1001285)
+    var request = navigator.mozMobileMessage.getSmscAddress();
+    var wrapper = document.getElementById('menuItem-smsc');
+    var holder = wrapper.querySelector('p');
+    request.onsuccess = function() {
+      // we only want the number, not the rest of details
+      // and, as it is a number, we don't need to use l10n
+      holder.textContent = this.result.split(',')[0].replace(/"/g, '');
+    };
+    request.onerror = function() {
+      navigator.l10n.localize(holder, 'unknownSMSC');
+      console.error('Unable to retrieve SMSC number');
+    };
+   }
 
   /**
    * Disable the items listed in the panel in order to avoid user interaction.
