@@ -33,7 +33,7 @@
 
       for (var i in icons) {
         var icon = icons[i];
-        if (!(icon instanceof GaiaGrid.Bookmark)) {
+        if (icon.detail.type !== 'bookmark') {
           continue;
         }
         allAppBookmarks[icon.detail.url] = icon;

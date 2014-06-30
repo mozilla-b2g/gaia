@@ -60,7 +60,36 @@
      * Synchronizes our local result set with datastre.
      */
     synchronize: function() {
-      // TODO: Synchronize logic.
+      var allCollections = {};
+      var toAdd = [];
+      var icons = app.grid.getIcons();
+
+      for (var i in icons) {
+        var icon = icons[i];
+        if (icon.detail.type !== 'collection') {
+          continue;
+        }
+        allCollections[icon.identifier] = icon;
+      }
+
+      for (var j = 0, jLen = this.entries.length; j < jLen; j++) {
+        var entry = this.entries[j];
+        if (!allCollections[entry.identifier]) {
+          toAdd.push(entry);
+        } else {
+          delete allCollections[entry.identifier];
+        }
+      }
+
+      for (i in allCollections) {
+        this.removeIconFromGrid(allCollections[i].identifier);
+      }
+
+      for (i = 0; i < toAdd.length; i++) {
+        this.addIconToGrid(toAdd[i].detail);
+      }
+
+      app.itemStore.save(app.grid.getItems());
       this._setListeners();
     },
 
