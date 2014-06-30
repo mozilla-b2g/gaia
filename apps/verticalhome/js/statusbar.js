@@ -39,6 +39,7 @@
           window.removeEventListener('context-menu-close', this);
           /* falls through */
         case 'context-menu-open':
+        case 'gaia-confirm-open':
           this.scrollable.removeEventListener('scroll', this);
           this.setAppearance(APPEARANCE.OPAQUE);
           break;
@@ -47,6 +48,7 @@
           window.addEventListener('context-menu-close', this);
           /* falls through */
         case 'context-menu-close':
+        case 'gaia-confirm-close':
           this.scrollable.addEventListener('scroll', this);
           // We still want to toggle the appearance of the scroll bar on exit
           /* falls through */
@@ -77,6 +79,8 @@
           window.addEventListener('collections-create-return', this);
           window.addEventListener('context-menu-close', this);
           window.addEventListener('context-menu-open', this);
+          window.addEventListener('gaia-confirm-open', this);
+          window.addEventListener('gaia-confirm-close', this);
           this.setAppearance(APPEARANCE.SEMI_TRANSPARENT);
         }.bind(this), function fail(reason) {
           console.error('Cannot notify changes of appearance: ', reason);

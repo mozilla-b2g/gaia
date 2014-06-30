@@ -58,6 +58,7 @@
         confirm.classList.add(config.confirm.type);
       }
       parent.appendChild(element);
+      window.dispatchEvent(new CustomEvent('gaia-confirm-open'));
     },
 
     destroy: function() {
@@ -70,6 +71,7 @@
 
       this.element.parentNode.removeChild(this.element);
       this.element = null;
+      window.dispatchEvent(new CustomEvent('gaia-confirm-close'));
     },
 
     handleEvent: function(e) {
