@@ -24,7 +24,7 @@ var ConferenceGroupHandler = (function() {
   };
 
   var telephony = window.navigator.mozTelephony;
-  if (telephony.hasOwnProperty('conferenceGroup')) {
+  if (telephony.conferenceGroup) {
     telephony.conferenceGroup.oncallschanged = onCallsChanged;
     telephony.conferenceGroup.onstatechange = onStateChange;
     telephony.conferenceGroup.onerror = onConferenceError;
