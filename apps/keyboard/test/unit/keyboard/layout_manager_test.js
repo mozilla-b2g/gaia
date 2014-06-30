@@ -150,6 +150,7 @@ suite('LayoutManager', function() {
     var symbolLayout;
     setup(function() {
       spaceLayout = {
+        imEngine: 'test-imEngine',
         keys: [
           [
             { value: 'S' }
@@ -470,6 +471,8 @@ suite('LayoutManager', function() {
                     { value: '.', ratio: 1, keyCode: 46 } ] ] };
 
         assert.deepEqual(manager.currentModifiedLayout, expectedModifiedLayout);
+        assert.equal(manager.currentModifiedLayout.imEngine,
+                     spaceLayout.imEngine);
         assert.equal(manager.currentModifiedLayout.__proto__,
           alternateLayout, 'proto is set correctly for layout.');
         assert.equal(manager.currentModifiedLayout.keys[1][2].__proto__,
