@@ -1,7 +1,7 @@
 'use strict';
 
 /* globals MockDOMRequest, MockNfc, MocksHelper, MozNDEFRecord, NDEF,
-           NfcUtils, NfcManager, MozActivity */
+           NfcUtils, NfcManager, MozActivity, NfcHandoverManager */
 
 require('/shared/test/unit/mocks/mock_moz_ndefrecord.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
@@ -11,15 +11,17 @@ require('/shared/test/unit/mocks/mock_dom_request.js');
 require('/test/unit/mock_screen_manager.js');
 requireApp('system/test/unit/mock_activity.js');
 requireApp('system/test/unit/mock_nfc.js');
+requireApp('system/test/unit/mock_nfc_handover_manager.js');
 requireApp('system/test/unit/mock_screen_manager.js');
-requireApp('system/test/unit/mock_settingslistener_installer.js');
 requireApp('system/test/unit/mock_lock_screen.js');
+requireApp('system/test/unit/mock_bluetooth.js');
 
 var mocksForNfcManager = new MocksHelper([
   'MozActivity',
   'MozNDEFRecord',
   'ScreenManager',
-  'SettingsListener'
+  'SettingsListener',
+  'NfcHandoverManager'
 ]).init();
 
 var MockMessageHandlers = {};
@@ -31,6 +33,7 @@ suite('Nfc Manager Functions', function() {
 
   var realMozSetMessageHandler;
   var realLockScreen;
+  var realMozBluetooth;
 
   mocksForNfcManager.attachTestHelpers();
 
@@ -39,6 +42,8 @@ suite('Nfc Manager Functions', function() {
     window.navigator.mozSetMessageHandler = MockMozSetMessageHandler;
     realLockScreen = window.lockScreen;
     window.lockScreen = window.MockLockScreen;
+    realMozBluetooth = window.navigator.mozBluetooth;
+    window.navigator.mozBluetooth = window.MockBluetooth;
 
     requireApp('system/js/nfc_manager.js', done);
   });
@@ -46,6 +51,7 @@ suite('Nfc Manager Functions', function() {
   teardown(function() {
     window.navigator.mozSetMessageHandler = realMozSetMessageHandler;
     window.lockScreen = realLockScreen;
+    window.mozBluetooth = realMozBluetooth;
   });
 
   suite('init', function() {
@@ -159,6 +165,38 @@ suite('Nfc Manager Functions', function() {
   });
 
   suite('handleTechnologyDiscovered', function() {
+    var sampleMsg;
+    var sampleURIRecord;
+    var sampleMimeRecord;
+
+    setup(function() {
+      sampleMsg = {
+        type: 'techDiscovered',
+        techList: [],
+        records: [],
+        sessionToken: 'sessionToken'
+      };
+
+      // NDEF TNF well know uri unabbreviated
+      sampleURIRecord = {
+        tnf: NDEF.TNF_WELL_KNOWN,
+        type: NDEF.RTD_URI,
+        id: new Uint8Array([1]),
+        payload: NfcUtils.fromUTF8('\u0000http://mozilla.org')
+      };
+
+      sampleMimeRecord = {
+        tnf: NDEF.TNF_MIME_MEDIA,
+        type: NfcUtils.fromUTF8('text/vcard'),
+        id: new Uint8Array([2]),
+        payload: NfcUtils.fromUTF8('BEGIN:VCARD\nVERSION:2.1\nN:J;\nEND:VCARD')
+      };
+
+    });
+
+    // Helper methods, can be called multiple times in testcase, stubs and spies
+    // need to be restored here.
+    // invalid message test helper
     var execInvalidMessageTest = function(msg) {
       var stubVibrate = this.sinon.stub(window.navigator, 'vibrate');
       var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
@@ -182,98 +220,215 @@ suite('Nfc Manager Functions', function() {
       stubFireTag.restore();
     };
 
-    test('wrong message handling', function() {
+    // handleNdefDiscovered test helper
+    var execNDEFMessageTest = function(msg, tech) {
+      var stub = this.sinon.stub(NfcManager, 'handleNdefDiscovered');
+
+      NfcManager.handleTechnologyDiscovered(msg);
+      assert.isTrue(stub
+                    .withArgs(tech, msg.sessionToken, msg.records)
+                    .calledOnce);
+
+      stub.restore();
+    };
+
+    // fireTagDiscovered test helper
+    var execTagDiscoveredTest = function(msg, tech) {
+      var stub = this.sinon.stub(NfcManager, 'fireTagDiscovered');
+
+      NfcManager.handleTechnologyDiscovered(msg);
+      assert.deepEqual(stub.firstCall.args[0], msg);
+      assert.equal(stub.firstCall.args[1], tech);
+
+      stub.restore();
+    };
+
+    test('invalid message handling', function() {
       execInvalidMessageTest.call(this, null);
       execInvalidMessageTest.call(this, {});
       execInvalidMessageTest.call(this, {techList: 'invalid'});
       execInvalidMessageTest.call(this, {techList: []});
     });
 
-    // simple test to verify not breaking the current P2P/Sharing,
-    // it will be extended in Bug 1006375
-    test('proper message handling', function() {
-      var msg = {
-        sessionToken: 'token',
-        techList: ['P2P', 'NDEF'],
-        records: [{ tnf: NDEF.TNF_MIME_MEDIA, payload: new Uint8Array(),
-                    type: NfcUtils.fromUTF8('text/vcard') }]
+    test('handover messages handling', function() {
+      // simplified pairing record
+      var spr = {
+        tnf: NDEF.TNF_MIME_MEDIA,
+        type: NDEF.MIME_BLUETOOTH_OOB,
+        id: new Uint8Array([1]),
+        payload: new Uint8Array([1])
       };
 
-      var stubNdefDiscvrd = this.sinon.stub(NfcManager, 'handleNdefDiscovered');
+      // handover select record
+      var hsr = {
+        tnf: NDEF.TNF_WELL_KNOWN,
+        type: NDEF.RTD_HANDOVER_SELECT,
+        id: new Uint8Array([2]),
+        payload: new Uint8Array([2])
+      };
+
+      // handover request record
+      var hrr = {
+        tnf: NDEF.TNF_WELL_KNOWN,
+        type: NDEF.RTD_HANDOVER_REQUEST,
+        id: new Uint8Array([3]),
+        payload: new Uint8Array([3])
+      };
+
+      sampleMsg.records = [spr, hsr, hrr];
+
+      var stubHandleSPR = this.sinon.stub(NfcHandoverManager,
+                                          'handleSimplifiedPairingRecord');
+      var stubHandleHSR = this.sinon.stub(NfcHandoverManager,
+                                          'handleHandoverSelect');
+      var stubHandleHRR = this.sinon.stub(NfcHandoverManager,
+                                          'handleHandoverRequest');
+
+      NfcManager.handleTechnologyDiscovered(sampleMsg);
+      assert.isTrue(stubHandleSPR.withArgs(sampleMsg.records).calledOnce,
+                    'Simplified Pairing Record');
+
+      sampleMsg.records.shift();
+      NfcManager.handleTechnologyDiscovered(sampleMsg);
+      assert.isTrue(stubHandleHSR.withArgs(sampleMsg.records).calledOnce,
+                    'Handover Select Record');
+
+      sampleMsg.records.shift();
+      NfcManager.handleTechnologyDiscovered(sampleMsg);
+      assert.isTrue(stubHandleHRR.withArgs(sampleMsg.records).calledOnce,
+                    'Handover Request Record');
+    });
+
+    // triggering of P2P UI
+    test('message tech [P2P], no records', function() {
+      sampleMsg.techList.push('P2P');
+
+      var spyHandleP2P = this.sinon.spy(NfcManager, 'handleP2P');
       var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
 
-      NfcManager.handleTechnologyDiscovered(msg);
-      assert.isTrue(stubNdefDiscvrd.withArgs('P2P', 'token', msg.records)
-                                   .calledOnce);
-
-      msg.records.shift();
-      NfcManager.handleTechnologyDiscovered(msg);
-      assert.equal(stubDispatchEvent.getCall(2).args[0].type,
+      NfcManager.handleTechnologyDiscovered(sampleMsg);
+      assert.equal(spyHandleP2P.firstCall.args[0], 'P2P');
+      assert.equal(spyHandleP2P.firstCall.args[1], sampleMsg.sessionToken);
+      assert.equal(spyHandleP2P.firstCall.args[2], sampleMsg.records);
+      assert.equal(stubDispatchEvent.secondCall.args[0].type,
                    'check-p2p-registration-for-active-app');
     });
-    
-    // integration test, will be refactored in Bug 1006375
+
+    // P2P shared NDEF received
+    test('message tech [P2P, NDEF], one record', function() {
+      sampleMsg.techList.push('P2P');
+      sampleMsg.techList.push('NDEF');
+      sampleMsg.records.push(sampleMimeRecord);
+
+      var spyHandleP2P = this.sinon.spy(NfcManager, 'handleP2P');
+
+      execNDEFMessageTest.call(this, sampleMsg, 'P2P');
+      assert.equal(spyHandleP2P.firstCall.args[0], 'P2P');
+      assert.equal(spyHandleP2P.firstCall.args[1], sampleMsg.sessionToken);
+      assert.equal(spyHandleP2P.firstCall.args[2], sampleMsg.records);
+    });
+
+    test('message tech [NDEF], one URI record', function() {
+      sampleMsg.techList.push('NDEF');
+      sampleMsg.records.push(sampleURIRecord);
+
+      execNDEFMessageTest.call(this, sampleMsg, 'NDEF');
+    });
+
+    // NDEF with no records was previosly treated as a special case
+    // right now it is handled regularly in handleNdefDiscovered
+    test('message tech [NDEF], no records', function() {
+      sampleMsg.techList.push('NDEF');
+
+      execNDEFMessageTest.call(this, sampleMsg, 'NDEF');
+    });
+
+    // NDEF_WRITABLE is a flag which informs that it's possible to write
+    // NDEF message on a tag, might have NDEF records
+    test('message tech [NDEF_WRITEABLE]', function() {
+      sampleMsg.techList.push('NDEF_WRITEABLE');
+
+      execNDEFMessageTest.call(this, sampleMsg, 'NDEF_WRITEABLE');
+    });
+
+    test('message tech [NDEF_FORMATABLE]', function() {
+      sampleMsg.techList.push('NDEF_FORMATABLE');
+      sampleMsg.records.push = 'propriatary data';
+
+      execTagDiscoveredTest.call(this, sampleMsg, 'NDEF_FORMATABLE');
+    });
+
+    test('message tech unsupported', function() {
+      sampleMsg.techList.push('FAKE_TECH');
+
+      execTagDiscoveredTest.call(this, sampleMsg, 'FAKE_TECH');
+    });
+
+    // integration test, will be refactored in Bug 1026536
     test('NDEF and empty records activity triggering', function() {
-       var msg = { type: 'techDiscovered', sessionToken: 'token',
-                   techList: ['NDEF', 'NDEF_WRITEABLE'], records: [] };
-      // NDEF TNF well know uri unabbreviated
-      var uri = { tnf: NDEF.TNF_WELL_KNOWN, type: NDEF.RTD_URI,
-                 id: new Uint8Array([1]),
-                 payload: NfcUtils.fromUTF8('\u0000http://mozilla.org') };
       // empty record
       var empty = { tnf: NDEF.TNF_EMPTY };
-      msg.records.push(uri);
-      msg.records.push(empty);
+
+      sampleMsg.techList.push('NDEF');
+      sampleMsg.techList.push('NDEF_WRITEABLE');
+      sampleMsg.records.push(sampleURIRecord);
+      sampleMsg.records.push(empty);
+      sampleMsg.records.push(sampleMimeRecord);
 
       this.sinon.stub(window, 'MozActivity');
 
-      NfcManager.handleTechnologyDiscovered(msg);
-      assert.deepEqual(MozActivity.getCall(0).args[0],
-                       { name: 'nfc-ndef-discovered',
-                         data: { type: 'url', url: 'http://mozilla.org',
-                                 records: msg.records, rtd: NDEF.RTD_URI,
-                                 tech: 'NDEF',
-                                 sessionToken: msg.sessionToken }});
+      NfcManager.handleTechnologyDiscovered(sampleMsg);
 
-      msg.records.shift();
-      NfcManager.handleTechnologyDiscovered(msg);
-      assert.deepEqual(MozActivity.getCall(1).args[0],
-                       { name: 'nfc-ndef-discovered',
-                         data: { type: 'empty', tech: 'NDEF',
-                                 records: msg.records,
-                                 sessionToken: msg.sessionToken }});
+      assert.deepEqual(MozActivity.firstCall.args[0], {
+        name: 'nfc-ndef-discovered',
+        data: {
+                type: 'url',
+                url: 'http://mozilla.org',
+                records: sampleMsg.records,
+                rtd: NDEF.RTD_URI,
+                tech: 'NDEF',
+                sessionToken: sampleMsg.sessionToken
+        }
+      }, 'Uri record');
 
-      msg.records.shift();
-      NfcManager.handleTechnologyDiscovered(msg);
-      assert.deepEqual(MozActivity.getCall(2).args[0],
-                       { name: 'nfc-ndef-discovered',
-                         data: { type: 'empty', tech: 'NDEF',
-                                 records: msg.records,
-                                 sessionToken: msg.sessionToken }});
-    });
+      sampleMsg.records.shift();
+      NfcManager.handleTechnologyDiscovered(sampleMsg);
+      assert.deepEqual(MozActivity.getCall(1).args[0], {
+        name: 'nfc-ndef-discovered',
+        data: {
+          type: 'empty',
+          tech: 'NDEF',
+          records: sampleMsg.records,
+          sessionToken: sampleMsg.sessionToken
+        }
+      },'TNF empty');
 
-    test('NDEF_FORMATABLE and unsupported tech type', function() {
-      var msg = {
-        sessionToken: 'token',
-        techList: ['NDEF_FORMATABLE', 'FAKE_TECH'],
-        records: NfcUtils.fromUTF8('fake data'),
-        type: 'techDiscovered'
-      };
+      sampleMsg.records.shift();
+      NfcManager.handleTechnologyDiscovered(sampleMsg);
+      assert.deepEqual(MozActivity.getCall(2).args[0], {
+        name: 'import',
+        data: {
+          type: 'text/vcard',
+          blob: new Blob([NfcUtils.toUTF8(sampleMsg.records.payload)],
+                         {'type': 'text/vcard'}),
+          tech: 'NDEF',
+          records: sampleMsg.records,
+          sessionToken: sampleMsg.sessionToken
+        }
+      },'mime record');
 
-      var stubTagDiscovered = this.sinon.stub(NfcManager, 'fireTagDiscovered');
-
-      NfcManager.handleTechnologyDiscovered(msg);
-      assert.deepEqual(stubTagDiscovered.getCall(0).args[0], msg,
-                       'NDEF_FORMATABLE msg not passed.');
-      assert.equal(stubTagDiscovered.getCall(0).args[1], 'NDEF_FORMATABLE',
-                   'NDEF_FORMATABLE tech type not passed.');
-
-      msg.techList.shift();
-      NfcManager.handleTechnologyDiscovered(msg);
-      assert.deepEqual(stubTagDiscovered.getCall(1).args[0], msg,
-                       'Unknown tech msg not passed.');
-      assert.equal(stubTagDiscovered.getCall(1).args[1], 'FAKE_TECH',
-                   'Unknown tech type not passed');
+      sampleMsg.records.shift();
+      sampleMsg.techList.shift();
+      NfcManager.handleTechnologyDiscovered(sampleMsg);
+      assert.deepEqual(MozActivity.getCall(3).args[0], {
+        name: 'nfc-ndef-discovered',
+        data: {
+          type: 'empty',
+          tech: 'NDEF_WRITEABLE',
+          records: sampleMsg.records,
+          sessionToken: sampleMsg.sessionToken
+        }
+      }, 'no records');
     });
   });
 
@@ -638,6 +793,7 @@ suite('Nfc Manager Functions', function() {
     var techList1 = ['NDEF_WRITEABLE', 'P2P', 'NDEF', 'NDEF_FORMATABLE'];
     var techList2 = ['NDEF_WRITEABLE', 'NDEF', 'NDEF_FORMATABLE'];
     var techList3 = ['NDEF_WRITEABLE', 'NDEF', 'NFC_ISO_DEP'];
+    var techList4 = [];
 
     test('techList P2P test', function() {
       var tech = NfcManager.getPrioritizedTech(techList1);
@@ -652,6 +808,11 @@ suite('Nfc Manager Functions', function() {
     test('techList Unsupported technology test', function() {
       var tech = NfcManager.getPrioritizedTech(techList3);
       assert.equal(tech, 'NDEF');
+    });
+
+    test('techList empty', function() {
+      var tech = NfcManager.getPrioritizedTech(techList4);
+      assert.equal(tech, 'Unknown');
     });
   });
 
