@@ -1,6 +1,7 @@
 'use strict';
-/* global HomeSearchbar, Rocketbar, MocksHelper */
+/* global HomeSearchbar, Rocketbar, MocksHelper, AttentionScreen */
 
+requireApp('system/test/unit/mock_attention_screen.js');
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_search_window.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
@@ -12,6 +13,7 @@ requireApp('system/js/rocketbar.js');
 var mocksForRocketbar = new MocksHelper([
   'AppWindow',
   'AppWindowManager',
+  'AttentionScreen',
   'SearchWindow',
   'SettingsListener',
   'SettingsURL',
@@ -198,6 +200,55 @@ suite('system/HomeSearchbar', function() {
         type: 'iac-search-results'
       });
       assert.ok(stub.calledOnce);
+    });
+
+    /*
+     * Bug 1021857 - Ensure an incoming attention screen cancels the
+     * current search, or that accessing the search while there is an
+     * an attention screen brings back the attention screen.
+     * All this is a workaround around the current architecture of
+     * the attention screen, the rocketbar and the search window, that
+     * makes it tricky to have both the minimize attention screen and
+     * the rocketbar results working together on the same screen without
+     * ovetrlapping each other.
+     * Those tests can be removed / fixed once there is a better solution.
+     */
+    test('attentionscreenshow', function() {
+      this.sinon.stub(subject._port, 'postMessage');
+      subject.stop();
+      subject.expand();
+
+      var assertStubs = [
+        this.sinon.stub(subject, 'exitHome'),
+        this.sinon.stub(subject, 'hideResults'),
+        this.sinon.stub(subject, 'deactivate')
+      ];
+
+      assert.ok(subject.screen.classList.contains('rocketbar-expanded'));
+      assert.ok(subject.rocketbar.classList.contains('expanded'));
+
+      window.dispatchEvent(new CustomEvent('attentionscreenshow'));
+
+      assert.ok(!subject.screen.classList.contains('rocketbar-expanded'));
+      assert.ok(!subject.rocketbar.classList.contains('expanded'));
+
+      assertStubs.forEach(function(stub) {
+        assert.ok(stub.calledOnce);
+      });
+    });
+
+    test('iac-search-results with attention screen', function() {
+      AttentionScreen.mVisible = true;
+      var maximizeStub = this.sinon.stub(AttentionScreen, 'maximize');
+      var searchStub = this.sinon.stub(Rocketbar.prototype,
+                                       'handleSearchMessage');
+
+      subject.handleEvent({
+        type: 'iac-search-results'
+      });
+
+      assert.isTrue(maximizeStub.calledOnce);
+      assert.isFalse(searchStub.calledOnce);
     });
 
   });
