@@ -448,7 +448,7 @@ var ScreenManager = {
     } else if (!this._unlocking) {
       if (window.lockScreen && window.lockScreen.locked) {
         this._setIdleTimeout(10, true);
-        window.addEventListener('lockscreen-appclosing', this);
+        window.addEventListener('will-unlock', this);
         window.addEventListener('lockpanelchange', this);
       } else {
         this._setIdleTimeout(this._idleTimeout, false);

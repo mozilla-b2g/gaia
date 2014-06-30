@@ -258,7 +258,7 @@
     var cardsView = this.element;
 
     // events to handle
-    window.removeEventListener('lockscreen-appopened', this);
+    window.removeEventListener('lock', this);
     window.removeEventListener('tap', this);
     window.removeEventListener('opencurrentcard', this);
 
@@ -365,7 +365,7 @@
     }, this);
 
     // events to handle while shown
-    window.addEventListener('lockscreen-appopened', this);
+    window.addEventListener('lock', this);
     window.addEventListener('tap', this);
     window.addEventListener('opencurrentcard', this);
 
@@ -686,7 +686,7 @@
         this.goToHomescreen(evt);
         break;
 
-      case 'lockscreen-appopened':
+      case 'lock':
       case 'attentionscreenshow':
         this.attentionScreenApps =
             AttentionScreen.getAttentionScreenOrigins();
