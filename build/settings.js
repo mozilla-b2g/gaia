@@ -168,7 +168,7 @@ function execute(options) {
    'icc.displayTextTimeout': 40000,
    'icc.inputTextTimeout': 40000,
    'icc.toneDefaultTimeout': 5000,
-   'icc.goBackTimeout': 1000,
+   'icc.goBackTimeout': 4000,
    'icc.selectTimeout': 150000,
    'keyboard.vibration': true,
    'keyboard.clicksound': true,
