@@ -91,15 +91,9 @@
     var hasSystemTargets = detail.systemTargets &&
       detail.systemTargets.length > 0;
 
-    // Nothing to show
-    if (!hasSystemTargets && !hasContextMenu) {
-      return;
-    }
-
-    // context menus in certified apps that only have system targets are
-    // currently disabled. https://bugzilla.mozilla.org/show_bug.cgi?id=1010160
-    // is tracking reenabling
-    if (!hasContextMenu && hasSystemTargets && this.app.isCertified()) {
+    // systemTargets are currently disabled for non browsing contexts
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=1010160
+    if (!(hasContextMenu || (hasSystemTargets && this.app.isBrowser()))) {
       return;
     }
 
@@ -123,7 +117,6 @@
     this.elements.list.innerHTML = '';
     items.forEach(function traveseItems(item) {
       var action = document.createElement('button');
-      action.dataset.id = item.id;
       action.dataset.value = item.value;
       action.textContent = item.label;
 

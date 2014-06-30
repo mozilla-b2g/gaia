@@ -181,7 +181,7 @@ suite('system/BrowserContextMenu', function() {
     var app1 = new AppWindow(fakeAppConfig1);
     var md1 = new BrowserContextMenu(app1);
 
-    app1.isCertified = function() {
+    app1.isBrowser = function() {
       return false;
     };
 

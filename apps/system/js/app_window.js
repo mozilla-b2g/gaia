@@ -600,15 +600,6 @@
   };
 
   /**
-   * Check an appWindow contains a certified application
-   *
-   * @return {Boolean} is the current instance a certified application.
-   */
-  AppWindow.prototype.isCertified = function aw_isbrowser() {
-    return this.config.manifest && 'certified' === this.config.manifest.type;
-  };
-
-  /**
    * Try to navigate the current frame to a given url if current instance
    * is a browsing window.
    * @param {String} url The url to navigate to
