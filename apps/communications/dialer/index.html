@@ -29,6 +29,7 @@
     <script defer src="/shared/js/font_size_utils.js"></script>
     <script defer src="/shared/js/lazy_l10n.js"></script>
     <script defer src="/dialer/js/index.js"></script>
+    <script defer src="/dialer/js/activity_handler.js"></script>
 
     <script defer src="/shared/js/dialer/utils.js"></script>
     <script defer src="/shared/js/dialer/tone_player.js"></script>
@@ -80,7 +81,7 @@
     <link rel="resource" type="application/json" href="shared/resources/media/tones/"/>
     -->
 
-    <link rel="import" href="elements/edit-mode.html">
+    <link rel="import" href="elements/selection-mode.html">
     <link rel="import" href="elements/suggestion-item.html">
     <link rel="import" href="elements/suggestion-overlay.html">
     <link rel="import" href="elements/add-contact-action-menu.html">
@@ -94,6 +95,9 @@
         <div id="recents-panel" role="tabpanel" class="bb-tabpanel" aria-labelledby="option-recents">
           <section role="region">
             <header class="view-header regular-header">
+              <button id="cancel-activity" class="hide">
+                <span id="cancel-button" class="icon icon-close">Close</span>
+              </button>
               <menu type="toolbar">
                 <a id="call-log-icon-edit" data-l10n-id="callLogEdit" disabled aria-disabled="true">
                   <span id="call-log-edit-button" class="recents-icon icon icon-edit "></span>
@@ -220,7 +224,7 @@
       </li>
     </section>
 
-    <form is="edit-mode" id="edit-mode" role="dialog" data-l10n-id="callLogEditDialog" data-type="edit" hidden></form>
+    <form is="selection-mode" id="selection-mode" role="dialog" data-type="edit" hidden></form>
 
     <form is="add-contact-action-menu" id="add-contact-action-menu" role="dialog" data-l10n-id="dialerAddContactDialog" data-type="action" hidden></form>
 

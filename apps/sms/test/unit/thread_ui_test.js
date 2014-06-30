@@ -4653,7 +4653,7 @@ suite('thread_ui.js >', function() {
         assert.isFalse(Recipients.View.isFocusable);
       });
 
-      test('true after activity', function() {
+      test('true after activity 1 contact', function() {
         this.sinon.stub(Utils, 'basicContact').returns({});
 
         ThreadUI.requestContact();
@@ -4665,6 +4665,26 @@ suite('thread_ui.js >', function() {
         };
 
         MockMozActivity.instances[0].onsuccess();
+
+        assert.isTrue(Recipients.View.isFocusable);
+      });
+
+      test('true after activity 2 contact', function() {
+        this.sinon.spy(ThreadUI.recipients, 'add');
+        this.sinon.stub(Utils, 'basicContact').returns({});
+
+        ThreadUI.requestContact();
+
+        var activity = MockMozActivity.instances[0];
+
+        activity.result = [
+          { tel: [{ value: true }] },
+          { tel: [{ value: true }] }
+        ];
+
+        MockMozActivity.instances[0].onsuccess();
+
+        sinon.assert.calledTwice(ThreadUI.recipients.add);
 
         assert.isTrue(Recipients.View.isFocusable);
       });

@@ -8,6 +8,7 @@
 require('/dialer/js/call_log.js');
 require('/shared/js/dialer/utils.js');
 
+require('/dialer/test/unit/mock_activity_handler.js');
 require('/dialer/test/unit/mock_call_log_db_manager.js');
 require('/dialer/test/unit/mock_performance_testing_helper.js');
 require('/dialer/test/unit/mock_phone_action_menu.js');
@@ -33,6 +34,7 @@ var mocksHelperForCallLog = new MocksHelper([
   'asyncStorage',
   'CallLogDBManager',
   'AccessibilityHelper',
+  'ActivityHandler',
   'PhoneNumberActionMenu',
   'PerformanceTestingHelper',
   'LazyLoader',
@@ -74,15 +76,17 @@ suite('dialer/call_log', function() {
   setup(function() {
     var mainNodes = [
       'all-filter',
+      'cancel-activity',
       'call-log-container',
-      'call-log-edit-mode',
+      'call-log-selection-mode',
       'call-log-filter',
       'call-log-icon-close',
       'call-log-icon-edit',
       'call-log-view',
       'deselect-all-threads',
       'delete-button',
-      'header-edit-mode-text',
+      'select-button',
+      'header-selection-mode-text',
       'missed-filter',
       'select-all-threads',
       'call-log-upgrading',
@@ -666,12 +670,13 @@ suite('dialer/call_log', function() {
   suite('Edit mode >', function() {
     suite('Entering edit mode', function() {
       setup(function() {
+        CallLog._selectMode = false;
         CallLog.callLogIconEdit.removeAttribute('disabled');
-        CallLog.showEditMode();
+        CallLog.showSelectionMode();
       });
 
       test('should fill the header', function() {
-        assert.equal(CallLog.headerEditModeText.textContent, 'edit');
+        assert.equal(CallLog.headerSelectionModeText.textContent, 'edit');
       });
 
       test('should disable the delete button at first', function() {
@@ -690,7 +695,7 @@ suite('dialer/call_log', function() {
 
       test('should enable the select all button', function() {
         CallLog.selectAllThreads.setAttribute('disabled', 'disabled');
-        CallLog.showEditMode();
+        CallLog.showSelectionMode();
         assert.isNull(CallLog.selectAllThreads.getAttribute('disabled'));
       });
 
@@ -705,8 +710,8 @@ suite('dialer/call_log', function() {
          '<input type="checkbox" checked>' +
          '<input type="checkbox" checked>' +
          '<input type="checkbox" checked>';
-        CallLog.showEditMode();
-        CallLog.hideEditMode();
+        CallLog.showSelectionMode();
+        CallLog.exitSelectionMode();
       });
 
       teardown(function() {
