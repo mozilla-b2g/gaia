@@ -12,7 +12,7 @@ var GridManager = (function() {
 
   var SAVE_STATE_TIMEOUT = 100;
   var BASE_HEIGHT = 460; // 480 - 20 (status bar height)
-  var DEVICE_HEIGHT = window.innerHeight;
+  var DEVICE_HEIGHT = ScreenHelper.height;
 
   var HIDDEN_ROLES = ['system', 'input', 'homescreen', 'search'];
 
@@ -35,12 +35,12 @@ var GridManager = (function() {
 
   var container;
 
-  var windowWidth = window.innerWidth;
-
   // This value is used in order to keep the layers onscreen when they are
   // moved on a panel changes. This prevent the layers to be destroyed and
   // recreated on the next move.
-  var windowWidthMinusOne = windowWidth - 0.001;
+  function getWindowWidthMinusOne() {
+    return ScreenHelper.width - 0.001;
+  }
 
   var swipeThreshold, swipeFriction, tapThreshold;
 
@@ -70,8 +70,8 @@ var GridManager = (function() {
   // Check if there is space for another row of icons
   // For WVGA, 800x480, we also want to show 4 x 5 grid on homescreen
   // the homescreen size would be 770 x 480, and 770/480 ~= 1.6
-  if (DEVICE_HEIGHT - BASE_HEIGHT > BASE_HEIGHT / 5 ||
-      DEVICE_HEIGHT / windowWidth >= 1.6) {
+  if (ScreenHelper.height - BASE_HEIGHT > BASE_HEIGHT / 5 ||
+      ScreenHelper.height / ScreenHelper.width >= 1.6) {
     MAX_ICONS_PER_PAGE += 4;
   }
 
@@ -162,6 +162,7 @@ var GridManager = (function() {
         var prediction = Math.round(x1 + adjustment - startX);
 
         // Make sure we don't return a prediction greater than the screen width
+        var windowWidth = ScreenHelper.width;
         if (prediction >= windowWidth) {
           prediction = windowWidth - 1;
         }
@@ -260,7 +261,7 @@ var GridManager = (function() {
         var refresh;
 
         var previous, next, pan;
-
+        var windowWidthMinusOne = getWindowWidthMinusOne();
         if (currentPage === 0) {
           next = pages[currentPage + 1].container.style;
           refresh = function(e) {
@@ -450,6 +451,7 @@ var GridManager = (function() {
 
     // We are going to prepare pages that are next to current page
     // for panning.
+    var windowWidthMinusOne = getWindowWidthMinusOne();
 
     if (index) {
       var previous = pages[index - 1].container.style;
@@ -505,6 +507,7 @@ var GridManager = (function() {
 
     currentPage = index;
     updatePaginationBar();
+    var windowWidthMinusOne = getWindowWidthMinusOne();
 
     if (previousPage === newPage) {
       if (newPage.container.getBoundingClientRect().left !== 0) {
@@ -1368,7 +1371,7 @@ var GridManager = (function() {
     initUI(options.gridSelector);
 
     tapThreshold = options.tapThreshold;
-    swipeThreshold = windowWidth * options.swipeThreshold;
+    swipeThreshold = ScreenHelper.width * options.swipeThreshold;
     swipeFriction = options.swipeFriction || defaults.swipeFriction; // Not zero
     kPageTransitionDuration = options.swipeTransitionDuration;
 
