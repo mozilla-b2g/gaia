@@ -312,10 +312,16 @@ var ThreadUI = global.ThreadUI = {
     // save a message draft if necessary
     if (document.hidden) {
       // Auto-save draft if the user has entered anything
-      // in the composer.
-      if ((Navigation.isCurrentPanel('composer') ||
-           Navigation.isCurrentPanel('thread')) &&
-          (!Compose.isEmpty() || ThreadUI.recipients.length)) {
+      // in the composer or into To field (for composer panel only).
+      var isAutoSaveRequired = false;
+
+      if (Navigation.isCurrentPanel('composer')) {
+        isAutoSaveRequired = !Compose.isEmpty() || !!ThreadUI.recipients.length;
+      } else if (Navigation.isCurrentPanel('thread')) {
+        isAutoSaveRequired = !Compose.isEmpty();
+      }
+
+      if (isAutoSaveRequired) {
         ThreadUI.saveDraft({preserve: true, autoSave: true});
         Drafts.store();
       }
@@ -633,11 +639,12 @@ var ThreadUI = global.ThreadUI = {
     if (Navigation.isCurrentPanel('thread-list')) {
       this.container.textContent = '';
       this.cleanFields(true);
-      this.recipients.length = 0;
       Threads.currentId = null;
     }
     if (!Navigation.isCurrentPanel('composer')) {
       this.threadMessages.classList.remove('new');
+
+      this.recipients.length = 0;
     }
 
     if (!Navigation.isCurrentPanel('thread')) {

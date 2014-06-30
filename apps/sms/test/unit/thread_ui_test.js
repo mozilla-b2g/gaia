@@ -5050,6 +5050,7 @@ suite('thread_ui.js >', function() {
       test('thread: no message', function() {
         Navigation.isCurrentPanel.withArgs('thread').returns(true);
 
+        ThreadUI.recipients.length = 1;
         isDocumentHidden = true;
 
         ThreadUI.onVisibilityChange();
@@ -5718,11 +5719,30 @@ suite('thread_ui.js >', function() {
       ThreadUI.recipients.add({
         number: '999'
       });
+      threadMessages.classList.add('new');
 
       ThreadUI.afterLeave();
 
       assert.equal(Compose.getContent(), '');
       assert.equal(ThreadUI.recipients.length, 0);
+      assert.isFalse(threadMessages.classList.contains('new'));
+    });
+
+    test('properly clean the composer when moving to thread panel', function() {
+      // This case only happens when user sends new message and then
+      // automatically navigated to the thread panel and composer fields are
+      // cleaned in the sendMessage, so afterLeave isn't supposed to clean it.
+      Navigation.isCurrentPanel.withArgs('thread').returns(true);
+
+      ThreadUI.recipients.add({
+        number: '999'
+      });
+      threadMessages.classList.add('new');
+
+      ThreadUI.afterLeave();
+
+      assert.equal(ThreadUI.recipients.length, 0);
+      assert.isFalse(threadMessages.classList.contains('new'));
     });
 
     test('properly cleans the thread view when moving back to thread list',
