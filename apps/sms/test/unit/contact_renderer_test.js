@@ -301,7 +301,6 @@ suite('ContactRenderer', function() {
         number: 'a@b.com',
         numberHTML: '<span class="highlight">a@b.com</span>',
         photoHTML: '',
-        separator: '',
         type: ''
       });
 
@@ -360,7 +359,8 @@ suite('ContactRenderer', function() {
       ));
     });
 
-    test('Rendered Contact w/ multiple: all (isSuggestion) and No Support EmailRecipient ',
+    test('Rendered Contact w/ multiple: all (isSuggestion) ' +
+         'and No Support EmailRecipient ',
       function() {
       MockSettings.supportEmailRecipient = false;
       renderer.render({
@@ -372,7 +372,8 @@ suite('ContactRenderer', function() {
       assert.equal(ul.children.length, 2);
     });
 
-    test('Rendered Contact w/ multiple: all (isSuggestion) and Support EmailRecipient ',
+    test('Rendered Contact w/ multiple: all (isSuggestion) ' +
+         'and Support EmailRecipient ',
       function() {
       MockSettings.supportEmailRecipient = true;
       renderer.render({
@@ -384,7 +385,8 @@ suite('ContactRenderer', function() {
       assert.equal(ul.children.length, 3);
     });
 
-    test('Rendered Contact omit numbers already in recipient list and No Support EmailRecipient ',
+    test('Rendered Contact omit numbers already in recipient list ' +
+         'and No Support EmailRecipient ',
       function() {
       MockSettings.supportEmailRecipient = false;
       var html;
@@ -405,7 +407,8 @@ suite('ContactRenderer', function() {
       assert.equal(ul.children.length, 1);
     });
 
-    test('Rendered Contact omit numbers already in recipient list and Support EmailRecipient ',
+    test('Rendered Contact omit numbers already in recipient list ' +
+         'and Support EmailRecipient ',
       function() {
       MockSettings.supportEmailRecipient = true;
       var html;
@@ -426,7 +429,8 @@ suite('ContactRenderer', function() {
       assert.equal(ul.children.length, 2);
     });
 
-    test('Rendered Contact omit emails already in recipient list and Support EmailRecipient ',
+    test('Rendered Contact omit emails already in recipient list ' +
+         'and Support EmailRecipient ',
       function() {
       MockSettings.supportEmailRecipient = true;
       var html;

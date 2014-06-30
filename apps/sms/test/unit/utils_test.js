@@ -1311,6 +1311,54 @@ suite('getDisplayObject', function() {
     assert.equal(data.carrier, carrier);
     assert.equal(data.number, value);
   });
+
+  test('Tel object with title, type and value of email', function() {
+    MockSettings.supportEmailRecipient = true;
+    var type = 'Personal';
+    var myTitle = 'My title';
+    var value = 'a@b.com';
+    var data = Utils.getDisplayObject(myTitle, {
+      'value': value,
+      'type': [type]
+    });
+
+    assert.equal(data.name, myTitle);
+    assert.equal(data.type, type);
+    assert.equal(data.carrier, '');
+    assert.equal(data.number, value);
+    assert.equal(data.email, value);
+  });
+
+  test('Tel object with title, NO type and value of email', function() {
+    MockSettings.supportEmailRecipient = true;
+    var myTitle = 'My title';
+    var value = 'a@b.com';
+    var data = Utils.getDisplayObject(myTitle, {
+      'value': value
+    });
+
+    assert.equal(data.name, myTitle);
+    assert.equal(data.type, '');
+    assert.equal(data.carrier, '');
+    assert.equal(data.number, value);
+    assert.equal(data.email, value);
+  });
+
+  test('Tel object with NO title, type and value of email', function() {
+    MockSettings.supportEmailRecipient = true;
+    var type = 'Personal';
+    var value = 'a@b.com';
+    var data = Utils.getDisplayObject(null, {
+      'value': value,
+      'type': [type]
+    });
+
+    assert.equal(data.name, value);
+    assert.equal(data.type, type);
+    assert.equal(data.carrier, '');
+    assert.equal(data.number, value);
+    assert.equal(data.email, value);
+  });
 });
 
 suite('getContactDisplayInfo', function() {
