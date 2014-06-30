@@ -149,26 +149,6 @@ var ThreadUI = global.ThreadUI = {
       'focus', this.toFieldInput.bind(this), true
     );
 
-    // Handlers for send button and avoiding to hide keyboard instead
-    this.sendButton.addEventListener(
-      'mousedown', function mouseDown(event) {
-        event.preventDefault();
-        event.target.classList.add('active');
-      }
-    );
-
-    this.sendButton.addEventListener(
-      'mouseup', function mouseUp(event) {
-        event.target.classList.remove('active');
-      }
-    );
-
-    this.sendButton.addEventListener(
-      'mouseout', function mouseOut(event) {
-        event.target.classList.remove('active');
-      }
-    );
-
     this.sendButton.addEventListener(
       'click', this.onSendClick.bind(this)
     );
