@@ -1591,9 +1591,22 @@ var MediaDB = (function() {
           // 4a: date and size are the same for both: do nothing
           // 4b: file has changed: it is both a deletion and a creation
           if (dsfile.name === dbfile.name) {
+            // In release 1.3 and before files reported local times, and in 1.4
+            // and later they report UTC times. If the user has upgraded from
+            // 1.3 to 1.4 they may have files in the db whose times are in a
+            // local timezone. We want to recognize those files as matching
+            // existing files so we consider two files to have the same time if
+            // they are within +/- 12 hours of each other and if the difference
+            // in times is an exactly multiple of 10 minutes. (This assumes all
+            // world timezones are exact multiples of 10 minutes.)
             var lastModified = dsfile.lastModifiedDate;
-            if ((lastModified && lastModified.getTime() !== dbfile.date) ||
-                dsfile.size !== dbfile.size) {
+            var timeDifference = lastModified.getTime() - dbfile.date;
+            var sameTime = (timeDifference === 0 ||
+              ((Math.abs(timeDifference) <= 12 * 60 * 60 * 1000) &&
+              (timeDifference % 10 * 60 * 1000 === 0)));
+            var sameSize = dsfile.size === dbfile.size;
+
+            if (!sameTime || !sameSize) {
               deleteRecord(media, dbfile.name);
               insertRecord(media, dsfile);
             }
