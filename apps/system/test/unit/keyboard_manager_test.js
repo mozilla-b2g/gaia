@@ -405,7 +405,7 @@ suite('KeyboardManager', function() {
 
     test('lock event: do nothing if no keyboard', function() {
       var spy = this.sinon.spy(navigator.mozInputMethod, 'removeFocus');
-      trigger('lock');
+      trigger('lockscreen-appopened');
       assert.ok(spy.notCalled);
     });
 
@@ -413,7 +413,7 @@ suite('KeyboardManager', function() {
       var realActive = KeyboardManager.hasActiveKeyboard;
       KeyboardManager.hasActiveKeyboard = true;
       var spy = this.sinon.spy(navigator.mozInputMethod, 'removeFocus');
-      trigger('lock');
+      trigger('lockscreen-appopened');
       sinon.assert.calledOnce(spy);
 
       KeyboardManager.hasActiveKeyboard = realActive;
