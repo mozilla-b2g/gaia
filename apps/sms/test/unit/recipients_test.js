@@ -924,7 +924,7 @@ suite('Recipients', function() {
         this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
         Navigation.isCurrentPanel.withArgs('composer').returns(true);
 
-        outer = document.getElementById('messages-recipients-list-container');
+        outer = document.getElementById('messages-to-field');
         inner = document.getElementById('messages-recipients-list');
         target = document.createElement('input');
         visible = Recipients.View.prototype.visible;
@@ -938,13 +938,13 @@ suite('Recipients', function() {
 
         test('singleline ', function() {
           // Assert the last state is multiline
-          assert.equal(visible.args[0][0], 'multiline');
+          sinon.assert.calledWith(visible, 'multiline');
+          visible.reset();
 
           // Next, set back to singleline
           recipients.visible('singleline');
 
-          assert.ok(visible.called);
-          assert.equal(visible.args[1][0], 'singleline');
+          sinon.assert.calledWith(visible, 'singleline');
         });
 
         test('singleline + refocus (with recipients) ', function() {
@@ -954,7 +954,8 @@ suite('Recipients', function() {
           recipients.add(fixture);
 
           // Assert the last state is multiline
-          assert.equal(visible.args[0][0], 'multiline');
+          sinon.assert.calledWith(visible, 'multiline');
+          visible.reset();
 
           recipients.visible('singleline', {
             refocus: target
@@ -967,13 +968,11 @@ suite('Recipients', function() {
           var last = inner.lastElementChild;
 
           assert.ok(target.focus.called);
-          assert.ok(visible.called);
-          assert.equal(visible.args[1][0], 'singleline');
-          assert.deepEqual(visible.args[1][1], {
+          sinon.assert.calledWith(visible, 'singleline', {
             refocus: target
           });
 
-          assert.ok(last.scrollIntoView.called);
+          sinon.assert.notCalled(last.scrollIntoView);
         });
 
         test('singleline + refocus (no recipients) ', function() {
@@ -981,7 +980,8 @@ suite('Recipients', function() {
           target.focus.reset();
 
           // Assert the last state is multiline
-          assert.equal(visible.args[0][0], 'multiline');
+          sinon.assert.calledWith(visible, 'multiline');
+          visible.reset();
 
           recipients.visible('singleline', {
             refocus: target
@@ -992,9 +992,7 @@ suite('Recipients', function() {
           );
 
           assert.ok(target.focus.called);
-          assert.ok(visible.called);
-          assert.equal(visible.args[1][0], 'singleline');
-          assert.deepEqual(visible.args[1][1], {
+          sinon.assert.calledWith(visible, 'singleline', {
             refocus: target
           });
         });
@@ -1007,13 +1005,22 @@ suite('Recipients', function() {
 
         test('multiline ', function() {
           // Assert the last state is singleline
-          assert.equal(visible.args[0][0], 'singleline');
+          sinon.assert.calledWith(visible, 'singleline');
+          visible.reset();
+
+          recipients.add(fixture);
 
           // Next, set back to multiline
           recipients.visible('multiline');
 
-          assert.ok(visible.called);
-          assert.equal(visible.args[1][0], 'multiline');
+          outer.dispatchEvent(
+            new CustomEvent('transitionend')
+          );
+
+          var last = inner.lastElementChild;
+
+          sinon.assert.calledWith(visible, 'multiline');
+          sinon.assert.called(last.scrollIntoView);
         });
       });
     });
