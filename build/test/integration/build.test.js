@@ -573,8 +573,8 @@ suite('Build Integration tests', function() {
     helper.exec('DEBUG=1 make', function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
 
-      var installedExtsPath = path.join('profile-debug',
-        'installed-extensions.json');
+      var installedExtsPath = path.join('build_stage', 'additional-extensions',
+        'downloaded.json');
       var expectedSettings = {
         'homescreen.manifestURL': 'app://verticalhome.gaiamobile.org/manifest.webapp',
         'rocketbar.searchAppURL': 'app://search.gaiamobile.org/index.html'
