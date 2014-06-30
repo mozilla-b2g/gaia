@@ -22,6 +22,9 @@
     window.addEventListener('gaiagrid-dragdrop-begin', this);
     window.addEventListener('gaiagrid-dragdrop-finish', this);
 
+    window.addEventListener('context-menu-open', this);
+    window.addEventListener('context-menu-close', this);
+
     // some terrible glue to keep track of which icons failed to download
     // and should be retried when/if we come online again.
     this._iconsToRetry = [];
@@ -154,11 +157,13 @@
           break;
 
         case 'gaiagrid-dragdrop-begin':
-          // Home button disabled while dragging
+        case 'context-menu-open':
+          // Home button disabled while dragging or the contexmenu is displayed
           window.removeEventListener('hashchange', this);
           break;
 
         case 'gaiagrid-dragdrop-finish':
+        case 'context-menu-close':
           window.addEventListener('hashchange', this);
           break;
 
