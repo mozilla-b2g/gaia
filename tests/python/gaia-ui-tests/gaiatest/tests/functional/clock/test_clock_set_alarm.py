@@ -36,7 +36,7 @@ class TestClockSetAlarm(GaiaTestCase):
         self.assertEqual('Weekdays', new_alarm.alarm_repeat)
 
         # Ensure sound has the default value
-        self.assertEquals(new_alarm.alarm_sound, 'Classic Buzz')
+        self.assertEquals(new_alarm.alarm_sound, 'Awake')
 
         # Set sound
         new_alarm.select_sound('Gem Echoes')

@@ -57,7 +57,7 @@ marionette('Alarm', function() {
       repeat: 'Weekdays'
     };
 
-    assert.equal($('#sound-menu').text(), 'Classic Buzz');
+    assert.equal($('#sound-menu').text(), 'Awake');
     $('#sound-select').val(selectedOptions.sound);
     assert.equal($('#sound-menu').text(), selectedOptions.sound);
 

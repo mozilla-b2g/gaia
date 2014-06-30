@@ -72,7 +72,7 @@ define(function(require, exports, module) {
 
         // Raw Fields
         label: '',
-        sound: 'ac_classic_clock_alarm.opus',
+        sound: 'ac_awake.ogg',
         vibrate: 1,
         snooze: 5,
         color: 'Darkorange'
