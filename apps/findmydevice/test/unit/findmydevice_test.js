@@ -1,7 +1,7 @@
 /* global MocksHelper, MockGeolocation, MockNavigatormozSetMessageHandler,
    MockNavigatorSettings, FindMyDevice,
    IAC_API_WAKEUP_REASON_LOGIN, IAC_API_WAKEUP_REASON_LOGOUT,
-   IAC_API_WAKEUP_REASON_TRY_DISABLE
+   IAC_API_WAKEUP_REASON_TRY_DISABLE, IAC_API_WAKEUP_REASON_ENABLED_CHANGED
 */
 
 'use strict';
@@ -77,7 +77,8 @@ suite('FindMyDevice >', function() {
   });
 
   setup(function(done) {
-    this.sinon.stub(FindMyDevice, '_contactServerIfEnabled');
+    this.sinon.stub(FindMyDevice, '_reportDisabled');
+    this.sinon.stub(FindMyDevice, '_replyAndFetchCommands');
     // XXX(ggp) force re-creation of the SettingsHelper objects
     // used by FMD, since MockSettingsHelper invalidates all objects
     // in its mTeardown.
@@ -99,8 +100,11 @@ suite('FindMyDevice >', function() {
   }
 
   test('fields from coordinates are included in server response', function() {
+    FindMyDevice._registered = true;
+    FindMyDevice._enabled = true;
+
     FindMyDevice._replyCallback('t', true, MockGeolocation.fakePosition);
-    assert.isTrue(FindMyDevice._contactServerIfEnabled.called);
+    sinon.assert.called(FindMyDevice._replyAndFetchCommands);
     assert.deepEqual(FindMyDevice._reply.t, {
       ok: true,
       la: MockGeolocation.fakePosition.coords.latitude,
@@ -111,9 +115,12 @@ suite('FindMyDevice >', function() {
   });
 
   test('error message is included in the server response', function() {
+    FindMyDevice._registered = true;
+    FindMyDevice._enabled = true;
+
     var message = 'error message';
     FindMyDevice._replyCallback('t', false, message);
-    assert.isTrue(FindMyDevice._contactServerIfEnabled.called);
+    sinon.assert.called(FindMyDevice._replyAndFetchCommands);
     assert.equal(FindMyDevice._reply.t.error, message);
   });
 
@@ -211,9 +218,18 @@ suite('FindMyDevice >', function() {
   });
 
   test('contact the server on alarm', function() {
+    this.sinon.stub(FindMyDevice, '_contactServer');
     this.sinon.stub(FindMyDevice, '_refreshClientIDIfRegistered');
     MockNavigatormozSetMessageHandler.mTrigger('alarm');
     sinon.assert.calledWith(FindMyDevice._refreshClientIDIfRegistered, false);
-    sinon.assert.called(FindMyDevice._contactServerIfEnabled);
+    sinon.assert.called(FindMyDevice._contactServer);
+  });
+
+  test('report to the server when disabled', function() {
+    FindMyDevice._registered = true;
+    MockNavigatorSettings.mTriggerObservers('findmydevice.enabled',
+      {settingValue: false});
+    sendWakeUpMessage(IAC_API_WAKEUP_REASON_ENABLED_CHANGED);
+    sinon.assert.called(FindMyDevice._reportDisabled);
   });
 });
