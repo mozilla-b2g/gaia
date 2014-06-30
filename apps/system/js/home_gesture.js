@@ -98,15 +98,15 @@
 
       if (enable) {
         this.publish('homegesture-enabled');
-        window.addEventListener('lockscreen-appclosing', this);
-        window.addEventListener('lockscreen-appopened', this);
+        window.addEventListener('will-unlock', this);
+        window.addEventListener('lock', this);
         window.addEventListener('utilitytrayshow', this);
         window.addEventListener('utilitytrayhide', this);
         this.homeBar.classList.add('visible');
       } else {
         this.publish('homegesture-disabled');
-        window.removeEventListener('lockscreen-appclosing', this);
-        window.removeEventListener('lockscreen-appopened', this);
+        window.removeEventListener('will-unlock', this);
+        window.removeEventListener('lock', this);
         window.removeEventListener('utilitytrayshow', this);
         window.removeEventListener('utilitytrayhide', this);
         this.homeBar.classList.remove('visible');
@@ -143,11 +143,11 @@
           this._moving = false;
           break;
         // hide gesture function when utilitytray/lockscreen display
-        case 'lockscreen-appopened':
+        case 'lock':
         case 'utilitytrayshow':
           this.homeBar.classList.remove('visible');
           break;
-        case 'lockscreen-appclosing':
+        case 'will-unlock':
         case 'utilitytrayhide':
           this.homeBar.classList.add('visible');
           break;

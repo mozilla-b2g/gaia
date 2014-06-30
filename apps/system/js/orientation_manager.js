@@ -32,7 +32,7 @@
           }.bind(this));
       }
 
-      window.addEventListener('lockscreen-appclosing', this);
+      window.addEventListener('will-unlock', this);
       window.addEventListener('attentionscreenhide', this);
       window.addEventListener('status-active', this);
       window.addEventListener('sleepmenuhide', this);
@@ -48,7 +48,7 @@
         case 'status-active':
         case 'sleepmenuhide':
         case 'trusteduiclose':
-        case 'lockscreen-appclosing':
+        case 'will-unlock':
         case 'searchclosing':
           // We don't need to reset orientation if lockscreen is locked.
           if (window.lockScreen && window.lockScreen.locked) {

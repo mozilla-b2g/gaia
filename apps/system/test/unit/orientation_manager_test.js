@@ -63,10 +63,10 @@ suite('system/OrientationManager >', function() {
       assert.isTrue(stubPublish.calledWith('reset-orientation'));
     });
 
-    test('lockscreen-appclosing', function() {
+    test('will-unlock', function() {
       var stubPublish = this.sinon.stub(OrientationManager, 'publish');
       OrientationManager.handleEvent({
-        type: 'lockscreen-appclosing'
+        type: 'will-unlock'
       });
       assert.isTrue(stubPublish.calledWith('reset-orientation'));
     });

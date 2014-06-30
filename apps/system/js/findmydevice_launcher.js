@@ -29,7 +29,7 @@ navigator.mozSettings.addObserver('geolocation.enabled', function(event) {
   wakeUpFindMyDevice(IAC_API_WAKEUP_REASON_STALE_REGISTRATION);
 });
 
-window.addEventListener('lockscreen-appclosing', function(event) {
+window.addEventListener('will-unlock', function(event) {
   var helper = SettingsHelper('lockscreen.lock-message');
   helper.set('');
 });
