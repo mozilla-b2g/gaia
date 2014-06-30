@@ -38,15 +38,31 @@ MockDatastoreObj.prototype = {
       return this._reject();
     }
 
-    var record = this._clone(this._records[dsId]);
+    var self = this;
+
     return new window.Promise(function(resolve, reject) {
-      resolve(record);
+      var dsIds = Array.isArray(dsId) ? dsId : [dsId];
+
+      var results = [];
+
+      dsIds.forEach(function(aId) {
+        var record = self._clone(self._records[aId]);
+        results.push(record);
+      });
+
+      var out = Array.isArray(dsId) ? results : results[0];
+
+      resolve(out);
     });
   },
 
   put: function(obj, dsId) {
     if (this._inError === true) {
       return this._reject();
+    }
+
+    if (dsId === this._nextId) {
+      this._nextId++;
     }
 
     this._records[dsId] = this._clone(obj);
@@ -109,6 +125,8 @@ MockDatastoreObj.prototype = {
     }
 
     this._records = {};
+    this._nextId = 1;
+
     return new window.Promise(function(resolve, reject) {
       resolve();
     });
@@ -125,7 +143,7 @@ var MockDatastore = new MockDatastoreObj();
 
 var MockNavigatorDatastore = {
   _datastores: null,
-  
+
   getDataStores: function() {
     if (MockNavigatorDatastore._notFound === true) {
       return new window.Promise(function(resolve, reject) {

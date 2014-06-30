@@ -104,6 +104,7 @@ suite('Test Contacts Matcher', function() {
 
     realmozContacts = navigator.mozContacts;
     navigator.mozContacts = MockFindMatcher;
+    contacts.Matcher.dataProvider = navigator.mozContacts;
   }
 
   suiteTeardown(function() {
