@@ -738,7 +738,7 @@ suite('dialer/handled_call', function() {
 
   suite('Emergency Call layout', function() {
     setup(function() {
-      MockCallScreen.mSetEmergencyWallpaperCalled = false;
+      MockCallScreen.mSetWallpaperCalled = false;
     });
 
     test('should display emergency number label', function() {
@@ -753,14 +753,14 @@ suite('dialer/handled_call', function() {
       mockCall = new MockCall('112', 'dialing');
       subject = new HandledCall(mockCall);
 
-      assert.isTrue(MockCallScreen.mSetEmergencyWallpaperCalled);
+      assert.isTrue(MockCallScreen.mSetWallpaperCalled);
     });
 
     test('should not display emergency wallpaper for normal calls', function() {
       mockCall = new MockCall('111', 'dialing');
       subject = new HandledCall(mockCall);
 
-      assert.isFalse(MockCallScreen.mSetEmergencyWallpaperCalled);
+      assert.isFalse(MockCallScreen.mSetWallpaperCalled);
     });
   });
 
