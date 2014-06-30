@@ -248,8 +248,8 @@ App.prototype.geolocationWatch = function() {
  * @private
  */
 App.prototype.onVisibilityChange = function() {
-  if (this.doc.hidden) { this.emit('blur'); }
-  else { this.emit('focus'); }
+  this.hidden = this.doc.hidden;
+  this.emit(this.hidden ? 'blur' : 'focus');
 };
 
 /**
