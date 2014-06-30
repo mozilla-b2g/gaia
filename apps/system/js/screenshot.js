@@ -219,6 +219,7 @@
       });
 
       notification.onclick = function() {
+        notification.close();
         if (onClick) {
           onClick();
         }
