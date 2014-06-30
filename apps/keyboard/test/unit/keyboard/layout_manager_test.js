@@ -150,6 +150,7 @@ suite('LayoutManager', function() {
     var symbolLayout;
     setup(function() {
       spaceLayout = {
+        imEngine: 'test-imEngine',
         keys: [
           [
             { value: 'S' }
@@ -283,7 +284,8 @@ suite('LayoutManager', function() {
 
         var expectedModifiedLayout = {
           layoutName: 'spaceLayoutSpecial',
-          alternativeLayoutName: '' };
+          alternativeLayoutName: '',
+          imEngine: 'test-imEngine' };
 
         assert.deepEqual(manager.currentModifiedLayout, expectedModifiedLayout);
         assert.equal(manager.currentModifiedLayout.__proto__,
@@ -291,7 +293,6 @@ suite('LayoutManager', function() {
           'proto is set correctly for layout.');
         assert.equal(manager.currentModifiedLayout.layoutName,
           'spaceLayoutSpecial');
-
         done();
       });
     });
@@ -306,7 +307,8 @@ suite('LayoutManager', function() {
 
         var expectedModifiedLayout = {
           layoutName: 'spaceLayout',
-          alternativeLayoutName: 'telLayout' };
+          alternativeLayoutName: 'telLayout',
+          imEngine: 'test-imEngine' };
 
         assert.deepEqual(manager.currentModifiedLayout, expectedModifiedLayout);
         assert.equal(manager.currentModifiedLayout.__proto__,
@@ -328,7 +330,8 @@ suite('LayoutManager', function() {
 
         var expectedModifiedLayout = {
           layoutName: 'spaceLayout',
-          alternativeLayoutName: 'pinLayout' };
+          alternativeLayoutName: 'pinLayout',
+          imEngine: 'test-imEngine' };
 
         assert.deepEqual(manager.currentModifiedLayout, expectedModifiedLayout);
         assert.equal(manager.currentModifiedLayout.__proto__,
@@ -350,7 +353,8 @@ suite('LayoutManager', function() {
 
         var expectedModifiedLayout = {
           layoutName: 'spaceLayout',
-          alternativeLayoutName: 'pinLayout' };
+          alternativeLayoutName: 'pinLayout',
+          imEngine: 'test-imEngine' };
 
         assert.deepEqual(manager.currentModifiedLayout, expectedModifiedLayout);
         assert.equal(manager.currentModifiedLayout.__proto__,
@@ -371,7 +375,8 @@ suite('LayoutManager', function() {
 
         var expectedModifiedLayout = {
           layoutName: 'spaceLayout',
-          alternativeLayoutName: 'numberLayout' };
+          alternativeLayoutName: 'numberLayout',
+          imEngine: 'test-imEngine' };
 
         assert.deepEqual(manager.currentModifiedLayout, expectedModifiedLayout);
         assert.equal(manager.currentModifiedLayout.__proto__,
@@ -393,7 +398,8 @@ suite('LayoutManager', function() {
 
         var expectedModifiedLayout = {
           layoutName: 'spaceLayout',
-          alternativeLayoutName: 'numberLayout' };
+          alternativeLayoutName: 'numberLayout',
+          imEngine: 'test-imEngine' };
 
         assert.deepEqual(manager.currentModifiedLayout, expectedModifiedLayout);
         assert.equal(manager.currentModifiedLayout.__proto__,
@@ -418,7 +424,8 @@ suite('LayoutManager', function() {
 
         var expectedModifiedLayout = {
           layoutName: 'spaceLayout',
-          alternativeLayoutName: 'spaceLayout-sms' };
+          alternativeLayoutName: 'spaceLayout-sms',
+          imEngine: 'test-imEngine' };
 
         assert.deepEqual(manager.currentModifiedLayout, expectedModifiedLayout);
         assert.equal(manager.currentModifiedLayout.__proto__,
@@ -460,6 +467,7 @@ suite('LayoutManager', function() {
         var expectedModifiedLayout = {
           layoutName: 'spaceLayout',
           alternativeLayoutName: 'alternateLayout',
+          imEngine: 'test-imEngine',
           keys: [ [ { value: 'A' } ],
                   [ { keyCode: manager.KEYCODE_BASIC_LAYOUT,
                       value: 'ABC',
@@ -470,6 +478,8 @@ suite('LayoutManager', function() {
                     { value: '.', ratio: 1, keyCode: 46 } ] ] };
 
         assert.deepEqual(manager.currentModifiedLayout, expectedModifiedLayout);
+        assert.equal(manager.currentModifiedLayout.imEngine,
+                     spaceLayout.imEngine);
         assert.equal(manager.currentModifiedLayout.__proto__,
           alternateLayout, 'proto is set correctly for layout.');
         assert.equal(manager.currentModifiedLayout.keys[1][2].__proto__,
@@ -493,6 +503,7 @@ suite('LayoutManager', function() {
         var expectedModifiedLayout = {
           layoutName: 'spaceLayout',
           alternativeLayoutName: 'alternateLayout',
+          imEngine: 'test-imEngine',
           keys: [ [ { value: 'A' } ],
                   [ { keyCode: manager.KEYCODE_BASIC_LAYOUT,
                       value: 'XYZ',
@@ -526,7 +537,8 @@ suite('LayoutManager', function() {
 
         var expectedModifiedLayout = {
           layoutName: 'spaceLayout',
-          alternativeLayoutName: 'alternateLayout' };
+          alternativeLayoutName: 'alternateLayout',
+          imEngine: 'test-imEngine' };
 
         assert.deepEqual(manager.currentModifiedLayout, expectedModifiedLayout);
         assert.equal(manager.currentModifiedLayout.__proto__,
@@ -550,6 +562,7 @@ suite('LayoutManager', function() {
         var expectedModifiedLayout = {
           layoutName: 'spaceLayout',
           alternativeLayoutName: 'symbolLayout',
+          imEngine: 'test-imEngine',
           keys: [ [ { value: 'S' } ],
                   [ { keyCode: manager.KEYCODE_BASIC_LAYOUT,
                       value: 'ABC',

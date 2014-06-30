@@ -206,6 +206,11 @@ LayoutManager.prototype._updateModifiedLayout = function() {
     layout.layoutName = this.currentForcedModifiedLayoutName ||
       this.currentLayoutName;
     layout.alternativeLayoutName = alternativeLayoutName;
+    // inherit the same imEngine name if it's not set so render will apply the
+    // same style.
+    if (this.currentLayout.imEngine && !layout.imEngine) {
+      layout.imEngine = this.currentLayout.imEngine;
+    }
 
     return;
   }
@@ -356,6 +361,11 @@ LayoutManager.prototype._updateModifiedLayout = function() {
   layout.layoutName = this.currentForcedModifiedLayoutName ||
     this.currentLayoutName;
   layout.alternativeLayoutName = alternativeLayoutName;
+  // inherit the same imEngine name if it's not set so render will apply the
+  // same style.
+  if (this.currentLayout.imEngine && !layout.imEngine) {
+    layout.imEngine = this.currentLayout.imEngine;
+  }
 };
 
 LayoutManager.prototype._getAlternativeLayoutName = function(basicInputType,
