@@ -359,7 +359,7 @@
       this.container.classList.add('edit-mode');
       document.body.classList.add('edit-mode');
       this.gridView.element.dispatchEvent(
-        new CustomEvent('gaiagrid-editmode-start'));
+        new CustomEvent('editmode-start'));
       document.addEventListener('visibilitychange', this);
     },
 
