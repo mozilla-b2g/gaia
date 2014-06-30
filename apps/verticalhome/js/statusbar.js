@@ -34,7 +34,7 @@
         case 'collections-create-begin':
           this.setAppearance(APPEARANCE.OPAQUE);
           break;
-        case 'gaiagrid-editmode-start':
+        case 'editmode-start':
           window.removeEventListener('context-menu-open', this);
           window.removeEventListener('context-menu-close', this);
           /* falls through */
@@ -42,7 +42,7 @@
           this.scrollable.removeEventListener('scroll', this);
           this.setAppearance(APPEARANCE.OPAQUE);
           break;
-        case 'gaiagrid-editmode-end':
+        case 'editmode-end':
           window.addEventListener('context-menu-open', this);
           window.addEventListener('context-menu-close', this);
           /* falls through */
