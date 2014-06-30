@@ -43,6 +43,7 @@ requireApp('system/js/ttlview.js');
 requireApp('system/js/visibility_manager.js');
 requireApp('system/js/wallpaper_manager.js');
 
+requireApp('system/test/unit/mock_airplane_mode.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/test/unit/mock_places.js');
@@ -50,6 +51,7 @@ requireApp('system/test/unit/mock_screen_manager.js');
 requireApp('system/test/unit/mock_task_manager.js');
 
 var mocksForBootstrap = new MocksHelper([
+  'AirplaneMode',
   'Applications',
   'IccHelper',
   'ScreenManager',
