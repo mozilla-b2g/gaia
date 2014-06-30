@@ -14,8 +14,14 @@
       offlineMessage: document.getElementById('offline-message')
     };
 
-    var options = collection.categoryId ? {categoryId: collection.categoryId}
-                                        : {query: collection.query};
+    var options = {
+      limit: 24
+    };
+    if (collection.categoryId) {
+      options.categoryId = collection.categoryId;
+    } else {
+      options.query = collection.query;
+    }
 
     loading();
 
