@@ -7,7 +7,7 @@
          ThreadListUI, ContactRenderer, UIEvent, Drafts, OptionMenu,
          ActivityPicker, KeyEvent, MockNavigatorSettings, MockContactRenderer,
          Draft, MockStickyHeader, MultiSimActionButton, Promise,
-         MockLazyLoader, WaitingScreen, Navigation, MockDialog
+         MockLazyLoader, WaitingScreen, Navigation, MockDialog, MockSettings
 */
 
 'use strict';
@@ -1786,12 +1786,19 @@ suite('thread_ui.js >', function() {
     });
 
     suite('validateContact', function() {
-      var fixture, contacts;
+      var fixture, contacts, fixtureEmail;
 
       setup(function() {
         fixture = {
           name: 'Janet Jones',
           number: '+346578888888',
+          source: 'manual',
+          isInvalid: false
+        };
+
+        fixtureEmail = {
+          name: 'Janet Jones',
+          number: 'a@b.com',
           source: 'manual',
           isInvalid: false
         };
@@ -1834,11 +1841,44 @@ suite('thread_ui.js >', function() {
 
           assert.isTrue(fixture.isInvalid);
         });
+
+        test('[Email]input value has matching record ', function() {
+
+          MockSettings.supportEmailRecipient = true;
+          ThreadUI.validateContact(fixtureEmail, 'a@b.com', contacts);
+
+          sinon.assert.calledOnce(ThreadUI.recipients.remove);
+          sinon.assert.calledWith(ThreadUI.recipients.remove, 0);
+
+          assert.equal(
+            ThreadUI.recipients.add.firstCall.args[0].source, 'contacts'
+          );
+          assert.equal(
+            ThreadUI.recipients.add.firstCall.args[0].number, 'a@b.com'
+          );
+        });
+
+        test('[Email]input value is invalid ', function() {
+          // An actual accepted recipient from contacts
+          fixtureEmail.number = 'foo';
+          fixtureEmail.isQuestionable = true;
+
+          ThreadUI.recipients.add(fixtureEmail);
+          assert.isFalse(fixtureEmail.isInvalid);
+
+          ThreadUI.recipientsList.lastElementChild.textContent = '';
+
+          ThreadUI.validateContact(fixtureEmail, '', []);
+
+          sinon.assert.calledOnce(ThreadUI.recipients.update);
+          sinon.assert.calledWithMatch(ThreadUI.recipients.update,
+                                       1, fixtureEmail);
+
+          assert.isTrue(fixtureEmail.isInvalid);
+        });
       });
 
       suite('Has Recipients', function() {
-
-
         test('input value has matching duplicate record w/ ' +
               'multiple, different tel records (accept) ', function() {
 
@@ -1942,6 +1982,83 @@ suite('thread_ui.js >', function() {
             ThreadUI.recipients.update, 1, fixture
           );
           assert.isTrue(fixture.isInvalid);
+        });
+        test('[Email]input value has multiple matching records, the ' +
+              'first is a duplicate, use next (accept) ', function() {
+
+          MockSettings.supportEmailRecipient = true;
+          contacts = MockContact.list([
+            { givenName: ['Janet'], familyName: ['Jones'] },
+            { givenName: ['Jane'], familyName: ['Johnson'] }
+          ]);
+
+          contacts[0].email = [{value: 'a@b'}];
+          contacts[1].email = [{value: 'a@c'}];
+
+          // An actual accepted recipient from contacts
+          ThreadUI.recipients.add({
+            name: 'Janet Jones',
+            number: 'a@b',
+            source: 'contacts'
+          });
+
+          // The last accepted recipient, manually entered.a
+          ThreadUI.recipients.add({
+            name: 'Jane',
+            number: 'Jane',
+            source: 'manual'
+          });
+
+          ThreadUI.validateContact(fixtureEmail, 'a@b.com', contacts);
+
+          // Called from here, then called again for the
+          // second contact record.
+          sinon.assert.calledTwice(ThreadUI.validateContact);
+
+          sinon.assert.called(ThreadUI.recipients.remove);
+          sinon.assert.called(ThreadUI.recipients.add);
+
+          assert.equal(
+            ThreadUI.recipients.add.lastCall.args[0].source, 'contacts'
+          );
+          assert.equal(
+            ThreadUI.recipients.add.lastCall.args[0].number, 'a@c'
+          );
+          assert.equal(
+            Utils.basicContact.returnValues[0].number, 'a@c'
+          );
+        });
+
+        test('[Email]input value has matching duplicate record w/ ' +
+              'single, same tel record (invalid) ', function() {
+
+          MockSettings.supportEmailRecipient = true;
+          // Get rid of the second tel record to create a "duplicate"
+          contacts[0].email.length = 1;
+
+          // An actual accepted recipient from contacts
+          fixtureEmail.source = 'contacts';
+          ThreadUI.recipients.add(fixtureEmail);
+
+          fixtureEmail.source = 'manual';
+          // The last accepted recipient, manually entered.
+          ThreadUI.recipients.add(fixtureEmail);
+
+          assert.isFalse(fixtureEmail.isInvalid);
+
+          ThreadUI.recipientsList.lastElementChild.textContent = '';
+          ThreadUI.validateContact(fixtureEmail, 'a@b.com', contacts);
+
+          // ThreadUI.recipients.update is called with the updated
+          // source recipient object. This object's isValid property
+          // has been set to true.
+          sinon.assert.calledOnce(
+            ThreadUI.recipients.update
+          );
+          sinon.assert.calledWithMatch(
+            ThreadUI.recipients.update, 1, fixtureEmail
+          );
+          assert.isTrue(fixtureEmail.isInvalid);
         });
       });
     });

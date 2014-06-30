@@ -1,5 +1,6 @@
 /*global loadBodyHTML, Recipients, MocksHelper, CustomEvent, KeyEvent,
-         MockDialog, Template, MockL10n, Navigation, SharedComponents */
+         MockDialog, Template, MockL10n, Navigation, SharedComponents,
+         MockSettings */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_gesture_detector.js');
@@ -12,19 +13,21 @@ requireApp('sms/test/unit/mock_dialog.js');
 requireApp('sms/test/unit/mock_utils.js');
 requireApp('sms/test/unit/mock_l10n.js');
 require('/test/unit/mock_navigation.js');
+require('/test/unit/mock_settings.js');
 
 var mocksHelperForRecipients = new MocksHelper([
   'Dialog',
   'GestureDetector',
   'Utils',
-  'Navigation'
+  'Navigation',
+  'Settings'
 ]);
 
 mocksHelperForRecipients.init();
 
 suite('Recipients', function() {
   var recipients;
-  var fixture;
+  var fixture, fixtureEmail;
   var mocksHelper = mocksHelperForRecipients;
   var realL10n;
   var outerElement;
@@ -78,8 +81,28 @@ suite('Recipients', function() {
       className: 'recipient',
       isLookupable: false,
       isQuestionable: false,
-      isInvalid: false
+      isInvalid: false,
+      isEmail: false
     };
+
+    fixtureEmail = {
+      name: 'foo',
+      number: 'a@b.com',
+      email: 'a@b.com',
+      source: 'none',
+      // Mapped to node attr, not true boolean
+      editable: 'true',
+
+      // Disambiguation 'display' attributes
+      type: 'Type',
+      carrier: 'Carrier',
+      className: 'recipient email',
+      isLookupable: false,
+      isQuestionable: false,
+      isInvalid: false,
+      isEmail: true
+    };
+
   });
 
   teardown(function() {
@@ -153,6 +176,17 @@ suite('Recipients', function() {
       recipients.add({ number: 999 });
     });
 
+    test('recipients.add() email 1 ', function() {
+      MockSettings.supportEmailRecipient = true;
+      var recipient;
+
+      recipients.add(fixtureEmail);
+      recipient = recipients.list[0];
+console.log(fixtureEmail);
+console.log(recipient);
+
+      assert.deepEqual(recipient, fixtureEmail);
+    });
 
     test('recipients.remove(recipient) ', function() {
       var recipient;
@@ -179,6 +213,40 @@ suite('Recipients', function() {
 
     test('recipients.remove(index) ', function() {
       recipients.add(fixture);
+      assert.equal(recipients.length, 1);
+
+      recipients.remove(0);
+      assert.equal(recipients.length, 0);
+    });
+
+    test('recipients.remove(recipient) email ', function() {
+      MockSettings.supportEmailRecipient = true;
+      var recipient;
+
+      recipients.add(fixtureEmail);
+      recipient = recipients.list[0];
+
+      assert.deepEqual(recipient, fixtureEmail);
+      assert.ok(isValid(recipient, 'a@b.com'));
+
+      recipients.remove(recipient);
+      assert.equal(recipients.length, 0);
+
+      assert.ok(recipients.render.calledTwice);
+    });
+
+    test('recipients.remove(nonexistant) email ', function() {
+      MockSettings.supportEmailRecipient = true;
+      recipients.add(fixtureEmail);
+      recipients.remove(null);
+      assert.equal(recipients.length, 1);
+
+      assert.ok(recipients.render.calledOnce);
+    });
+
+    test('recipients.remove(index) email ', function() {
+      MockSettings.supportEmailRecipient = true;
+      recipients.add(fixtureEmail);
       assert.equal(recipients.length, 1);
 
       recipients.remove(0);
