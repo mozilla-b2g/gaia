@@ -333,7 +333,8 @@ keyboard.removeFocus();""")
         keyboards = self.marionette.find_element(*self._keyboards_locator)
         Wait(self.marionette).until(
             lambda m: 'hide' in keyboards.get_attribute('class') and
-            not keyboards.is_displayed(),
+            not keyboards.is_displayed() and
+            int(keyboards.location['y']) == int(keyboards.size['height']),
             message="Keyboard was not dismissed. Debug is_displayed(): %s, class: %s."
                     %(keyboards.is_displayed(), keyboards.get_attribute('class')))
         self.apps.switch_to_displayed_app()
