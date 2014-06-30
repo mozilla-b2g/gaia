@@ -185,11 +185,14 @@ form[role="search"] button[type="submit"]:after {
 }
 
 #messages-send-button {
+  height: 4.5rem;
   overflow: visible;
+  background-image: url(images/icons/actionicon_sms_send_30x90.png);
+  background-position: center -4.5rem;
 }
 
-#messages-send-button.active {
-  background: #008aaa;
+#messages-send-button[disabled] {
+  background-position: center 0;
 }
 
 #messages-input.ignoreEvents {
@@ -201,7 +204,8 @@ form[role="search"] button[type="submit"]:after {
 
   position: absolute;
   left: 0;
-  top: -1.9rem;
+  right: 0;
+  top: -1.5rem;
 
   box-sizing: border-box;
   height: 1.8rem;
@@ -210,7 +214,7 @@ form[role="search"] button[type="submit"]:after {
   color: rgb(133, 133, 133);
   font-weight: normal;
   font-size: 1.4rem;
-  text-align: left;
+  text-align: center;
   line-height: 1.8rem;
 }
 
