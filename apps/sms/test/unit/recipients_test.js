@@ -179,8 +179,6 @@ suite('Recipients', function() {
 
       recipients.add(fixtureEmail);
       recipient = recipients.list[0];
-console.log(fixtureEmail);
-console.log(recipient);
 
       assert.deepEqual(recipient, fixtureEmail);
     });
