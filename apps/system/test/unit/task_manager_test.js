@@ -1,6 +1,6 @@
 /* global MockStackManager, MockNavigatorSettings, MockAppWindowManager,
           TaskManager, Card, TaskCard, AppWindow,
-          MockLockScreen, MockScreenLayout, MocksHelper */
+          MockScreenLayout, MocksHelper */
 'use strict';
 require('/shared/test/unit/mocks/mock_gesture_detector.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
@@ -10,7 +10,7 @@ requireApp('system/test/unit/mock_trusted_ui_manager.js');
 requireApp('system/test/unit/mock_utility_tray.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_app_window.js');
-requireApp('system/test/unit/mock_lock_screen.js');
+requireApp('system/test/unit/mock_system.js');
 requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/test/unit/mock_rocketbar.js');
 requireApp('system/test/unit/mock_sleep_menu.js');
@@ -28,7 +28,8 @@ var mocksForTaskManager = new MocksHelper([
   'sleepMenu',
   'OrientationManager',
   'StackManager',
-  'AppWindow'
+  'AppWindow',
+  'System'
 ]).init();
 
 function waitForEvent(target, name, timeout) {
@@ -292,8 +293,6 @@ suite('system/TaskManager >', function() {
       configurable: true
     });
 
-    originalLockScreen = window.lockScreen;
-    window.lockScreen = MockLockScreen;
     screenNode = document.createElement('div');
     screenNode.id = 'screen';
     cardsView = document.createElement('div');
@@ -308,7 +307,7 @@ suite('system/TaskManager >', function() {
     realScreenLayout = window.ScreenLayout;
     window.ScreenLayout = MockScreenLayout;
     realMozLockOrientation = screen.mozLockOrientation;
-    screen.mozLockOrientation = MockLockScreen.mozLockOrientation;
+    screen.mozLockOrientation = sinon.stub();
 
     realMozSettings = navigator.mozSettings;
     window.navigator.mozSettings = MockNavigatorSettings;

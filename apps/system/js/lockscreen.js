@@ -36,7 +36,7 @@
     * Must not multate directly - use unlock()/lockIfEnabled()
     * Listen to 'lock' and 'unlock' event to properly handle status changes
     */
-    _locked: true,
+    locked: true,
 
     /*
     * Boolean return whether if the lock screen is enabled or not.
