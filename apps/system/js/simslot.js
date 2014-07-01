@@ -53,8 +53,7 @@
                    'sendStkTimerExpiration', 'sendStkEventDownload'];
   SIMSlot.DOM_REQUEST_METHODS = ['getCardLock', 'unlockCardLock', 'setCardLock',
                        'getCardLockRetryCount', 'readContacts',
-                       'updateContact', 'iccOpenChannel', 'iccExchangeAPDU',
-                       'iccCloseChannel'];
+                       'updateContact'];
 
   /**
    * Update the iccObj.
