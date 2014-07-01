@@ -8,6 +8,8 @@ var GaiaLockScreen = {
 
   unlock: function() {
     let lockscreen = window.wrappedJSObject.lockScreen || window.wrappedJSObject.LockScreen;
+    if(!lockscreen || !lockscreen.unlock)
+      marionetteScriptFinished('Unable to unlock screen');
     let setlock = window.wrappedJSObject.SettingsListener.getSettingsLock();
     let obj = {'screen.timeout': 0};
     setlock.set(obj);
@@ -35,6 +37,8 @@ var GaiaLockScreen = {
   lock: function() {
     let lwm = window.wrappedJSObject.lockScreenWindowManager;
     let lockscreen = window.wrappedJSObject.lockScreen || window.wrappedJSObject.LockScreen;
+    if(!lockscreen || !lockscreen.lock)
+      marionetteScriptFinished('Unable to lock screen');
     let setlock = window.wrappedJSObject.SettingsListener.getSettingsLock();
     let obj = {'screen.timeout': 0};
     let waitLock = function() {
