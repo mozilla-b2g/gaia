@@ -938,16 +938,16 @@ contacts.List = (function() {
   };
 
   var toggleNoContactsScreen = function cl_toggleNoContacs(show) {
-    if (show && ActivityHandler.currentlyHandling) {
-      var actName = ActivityHandler.activityName;
-      if (actName == 'pick' || actName == 'update') {
+    if (show) {
+      if (!ActivityHandler.currentlyHandling) {
+        noContacts.classList.remove('hide');
+        return;
+      }
+
+      if (ActivityHandler.currentActivityIs(['pick', 'update'])) {
         showNoContactsAlert();
         return;
       }
-    }
-    if (show && !ActivityHandler.currentlyHandling) {
-      noContacts.classList.remove('hide');
-      return;
     }
     noContacts.classList.add('hide');
   };
