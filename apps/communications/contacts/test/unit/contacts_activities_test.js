@@ -63,7 +63,6 @@ suite('Test Activities', function() {
     navigator.mozL10n = realMozL10n;
     window._ = real_;
     window.utils.importFromVcard = realImport;
-    window.utils.misc.toMozContact.restore();
   });
 
   suite('Activity launching', function() {
@@ -244,6 +243,8 @@ suite('Test Activities', function() {
       // As the mock of action menu is giving us the first option
       // we ensure that this option is the one filtered as well.
       assert.equal(newContact.tel[0].value, result.tel[0].value);
+      // Restore the function
+      window.utils.misc.toMozContact.restore();
     });
 
     test('webcontacts/contact, 0 results', function() {
@@ -272,6 +273,18 @@ suite('Test Activities', function() {
       assert.isFalse(ConfirmDialog.showing);
       // Mock returns always the first option from the select
       assert.equal(result.number, contact.tel[0].value);
+    });
+
+    test('webcontacts/contact, returning a Contact', function() {
+      activity.source.data.type = 'webcontacts/contact';
+      activity.source.data.fullContact = true;
+      ActivityHandler._currentActivity = activity;
+      contact.tel.pop();
+      ActivityHandler.dataPickHandler(contact);
+      assert.isFalse(ConfirmDialog.showing);
+      assert.deepEqual(result.tel, contact.tel);
+      assert.deepEqual(result.email, contact.email);
+      assert.equal(result.id, contact.id);
     });
 
     test('webcontacts/email, 0 results', function() {

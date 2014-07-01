@@ -28,6 +28,14 @@ var ActivityHandler = {
     return this._currentActivity.source.data.type;
   },
 
+  get activityData() {
+    if (!this._currentActivity) {
+      return null;
+    }
+
+    return this._currentActivity.source.data;
+  },
+
   /* checks first if we are handling an activity, then if it is
    * of the same type of any of the items from the list provided.
    * @param list Array with types of activities to be checked
@@ -124,6 +132,16 @@ var ActivityHandler = {
 
   dataPickHandler: function ah_dataPickHandler(theContact) {
     var type, dataSet, noDataStr;
+    var result = {};
+    // Keeping compatibility with previous implementation. If
+    // we want to get the full contact, just pass the parameter
+    // 'fullContact' equal true.
+    if (this.activityDataType === 'webcontacts/contact' &&
+        this.activityData.fullContact === true) {
+      result = utils.misc.toMozContact(theContact);
+      this.postPickSuccess(result);
+      return;
+    }
 
     switch (this.activityDataType) {
       case 'webcontacts/tel':
@@ -145,7 +163,7 @@ var ActivityHandler = {
     var hasData = dataSet && dataSet.length;
     var numOfData = hasData ? dataSet.length : 0;
 
-    var result = {};
+    
     result.name = theContact.name;
     switch (numOfData) {
       case 0:
