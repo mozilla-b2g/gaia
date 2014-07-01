@@ -31,7 +31,7 @@
      * Returns the max size for an icon based on grid size and pixel ratio.
      */
     get _maxSize() {
-      return this._icon.grid.layout.gridIconSize * devicePixelRatio;
+      return this._icon.grid.layout.gridMaxIconSize * devicePixelRatio;
     },
 
     /**
@@ -104,7 +104,7 @@
     favicon: function(img) {
 
       // If we have a decent sized image, we want to clip instead.
-      if (img.width > this._icon.grid.layout.gridIconSize / 2) {
+      if (img.width > this._icon.grid.layout.gridMaxIconSize / 2) {
         return this.clip(img);
       }
 
