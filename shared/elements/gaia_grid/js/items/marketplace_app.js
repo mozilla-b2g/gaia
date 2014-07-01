@@ -22,6 +22,20 @@
 
     renderer: GridIconRenderer.TYPE.STANDARD,
 
+    /**
+     * Returns the icon image path.
+     */
+    get icon() {
+      var icon = this._accurateIcon;
+
+      if (!icon) {
+        icon = this._accurateIcon = this.closestIconFromList(
+          this.detail.icons);
+      }
+
+      return icon;
+    },
+
     launch: function() {
       new MozActivity({
         name: 'marketplace-app',
