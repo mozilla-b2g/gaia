@@ -71,6 +71,10 @@ form[role="dialog"][data-type="edit"] > menu {
   text-align: left;
 }
 
+#main-wrapper.edit [data-type="list"] li a {
+  pointer-events: none;
+}
+
 #threads-container[data-type="list"] .mms-icon {
   display: none;
   margin-left: 0.3rem;
