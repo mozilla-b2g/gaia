@@ -659,6 +659,17 @@ suite('ActivityHandler', function() {
       postResult: sinon.stub()
     };
 
+    var newActivity_email = {
+      source: {
+        name: 'new',
+        data: {
+          number: 'abc@exmple.com',
+          body: 'foo'
+        }
+      },
+      postResult: sinon.stub()
+    };
+
     var newActivity_empty = {
       source: {
         name: 'new',
@@ -784,6 +795,11 @@ suite('ActivityHandler', function() {
         );
       }
     );
+
+    test('new message with emil', function() {
+      MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity_email);
+      assert.isTrue(ActivityHandler.isInActivity());
+    });
 
   });
 
