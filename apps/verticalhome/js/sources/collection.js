@@ -136,7 +136,7 @@
           break;
         case 'collections-create-return':
           this.inCreateActivity = false;
-          this.pendingIds = this.pendingIds.concat(e.detail.ids);
+          this.pendingIds = this.pendingIds.concat(e.detail.ids || []);
           // If we've already received enough items, process.
           if(this.isPendingFulfilled()) {
             this.processPending();
