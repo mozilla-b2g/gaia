@@ -2,10 +2,11 @@
 
 /* global AppUsageMetrics, MockasyncStorage, MockNavigatorSettings */
 
-require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+
 require('/shared/js/settings_listener.js');
 requireApp('system/test/unit/mock_asyncStorage.js');
 requireApp('system/js/app_usage_metrics.js');
+requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 
 /*
  * This test suite has several sub-suites that verify that:
@@ -233,7 +234,7 @@ suite('AppUsageMetrics:', function() {
     });
 
     test('install event', function() {
-      dispatch('applicationinstall', { application: { origin: 'app1' }});
+      dispatch('applicationinstall', { application: { manifestURL: 'app1' }});
       assert.equal(installSpy.callCount, 1);
       assert.ok(installSpy.calledWith('app1'));
       assert.equal(uninstallSpy.callCount, 0);
@@ -242,7 +243,7 @@ suite('AppUsageMetrics:', function() {
     });
 
     test('uninstall event', function() {
-      dispatch('applicationuninstall', { application: { origin: 'app1' }});
+      dispatch('applicationuninstall', { application: { manifestURL: 'app1' }});
       assert.equal(uninstallSpy.callCount, 1);
       assert.ok(uninstallSpy.calledWith('app1'));
       assert.equal(installSpy.callCount, 0);
@@ -251,12 +252,12 @@ suite('AppUsageMetrics:', function() {
     });
 
     test('app transition', function() {
-      dispatch('appopened', { origin: 'app1' });
+      dispatch('appopened', { manifestURL: 'app1' });
       clock.tick(10000);
-      dispatch('appopened', { origin: 'app2' });
+      dispatch('appopened', { manifestURL: 'app2' });
       assert.ok(invocationSpy.lastCall.calledWith('app1', 10000));
       clock.tick(5000);
-      dispatch('appopened', { origin: 'app3' });
+      dispatch('appopened', { manifestURL: 'app3' });
       assert.ok(invocationSpy.lastCall.calledWith('app2', 5000));
       assert.equal(installSpy.callCount, 0);
       assert.equal(uninstallSpy.callCount, 0);
@@ -264,15 +265,15 @@ suite('AppUsageMetrics:', function() {
     });
 
     test('homescreen/app transition', function() {
-      dispatch('homescreenopened', { origin: 'homescreen' });
+      dispatch('homescreenopened', { manifestURL: 'homescreen' });
       clock.tick(1000);
-      dispatch('appopened', { origin: 'app1' });
+      dispatch('appopened', { manifestURL: 'app1' });
       assert.ok(invocationSpy.lastCall.calledWith('homescreen', 1000));
       clock.tick(1000);
-      dispatch('homescreenopened', { origin: 'homescreen' });
+      dispatch('homescreenopened', { manifestURL: 'homescreen' });
       assert.ok(invocationSpy.lastCall.calledWith('app1', 1000));
       clock.tick(1000);
-      dispatch('appopened', { origin: 'app2' });
+      dispatch('appopened', { manifestURL: 'app2' });
       assert.ok(invocationSpy.lastCall.calledWith('homescreen', 1000));
       assert.equal(installSpy.callCount, 0);
       assert.equal(uninstallSpy.callCount, 0);
@@ -280,10 +281,10 @@ suite('AppUsageMetrics:', function() {
     });
 
     test('sleep/wake with lockscreen', function() {
-      dispatch('homescreenopened', { origin: 'homescreen' });
+      dispatch('homescreenopened', { manifestURL: 'homescreen' });
       clock.tick(1000);
 
-      dispatch('lockscreen-appopened', { origin: 'lockscreen'});
+      dispatch('lockscreen-appopened', { manifestURL: 'lockscreen'});
       assert.ok(invocationSpy.lastCall.calledWith('homescreen', 1000));
 
       clock.tick(1);
@@ -302,15 +303,15 @@ suite('AppUsageMetrics:', function() {
       // Wake up, then unlock
       dispatch('screenchange', { screenEnabled: true });
       clock.tick(2000);
-      dispatch('lockscreen-appclosed', { origin: 'lockscreen' });
+      dispatch('lockscreen-appclosed', { manifestURL: 'lockscreen' });
       assert.ok(invocationSpy.lastCall.calledWith('lockscreen', 2000));
 
       // Launch an app, then go back to sleep
       clock.tick(1000);
-      dispatch('appopened', { origin: 'app1' });
+      dispatch('appopened', { manifestURL: 'app1' });
       assert.ok(invocationSpy.lastCall.calledWith('homescreen', 1000));
       clock.tick(1000);
-      dispatch('lockscreen-appopened', { origin: 'lockscreen'});
+      dispatch('lockscreen-appopened', { manifestURL: 'lockscreen'});
       assert.ok(invocationSpy.lastCall.calledWith('app1', 1000));
       dispatch('screenchange', { screenEnabled: false });
       assert.ok(invocationSpy.lastCall.calledWith('lockscreen', 0));
@@ -323,7 +324,7 @@ suite('AppUsageMetrics:', function() {
     // from whatever app we're using
     test('sleep/wake without lockscreen', function() {
       // Start the homescreen, wait a second and sleep
-      dispatch('homescreenopened', { origin: 'homescreen' });
+      dispatch('homescreenopened', { manifestURL: 'homescreen' });
       clock.tick(1000);
       dispatch('screenchange', { screenEnabled: false });
       assert.ok(invocationSpy.lastCall.calledWith('homescreen', 1000));
@@ -335,7 +336,7 @@ suite('AppUsageMetrics:', function() {
       // Wait a second and launch an app. We should record the second
       // of awake time on the homescreen
       clock.tick(1000);
-      dispatch('appopened', { origin: 'app1' });
+      dispatch('appopened', { manifestURL: 'app1' });
       assert.ok(invocationSpy.lastCall.calledWith('homescreen', 1000));
 
       // Sleep after a second
@@ -350,7 +351,7 @@ suite('AppUsageMetrics:', function() {
       // Wait a second and go back to homescreen. We should record the second
       // of awake time on the app
       clock.tick(1000);
-      dispatch('homescreenopened', { origin: 'homescreen' });
+      dispatch('homescreenopened', { manifestURL: 'homescreen' });
       assert.ok(invocationSpy.lastCall.calledWith('app1', 1000));
 
       assert.equal(installSpy.callCount, 0);
@@ -360,12 +361,12 @@ suite('AppUsageMetrics:', function() {
 
     test('activity invocation', function() {
       // Start on the homescreen, and launch an activity
-      dispatch('homescreenopened', { origin: 'homescreen' });
+      dispatch('homescreenopened', { manifestURL: 'homescreen' });
       dispatch('activitycreated', { url: 'app1' });
       assert.ok(activitySpy.firstCall.calledWith('homescreen', 'app1'));
 
       // Launch an app, and then do an activity
-      dispatch('appopened', { origin: 'app2' });
+      dispatch('appopened', { manifestURL: 'app2' });
       dispatch('activitycreated', { url: 'app3' });
       assert.ok(activitySpy.secondCall.calledWith('app2', 'app3'));
 
@@ -394,6 +395,43 @@ suite('AppUsageMetrics:', function() {
     test('getSettings()', function(done) {
       getSettings({x: '3', y: '4', z: '5'}, function(result) {
         done(assert.deepEqual(result, {x: '1', y: '2', z: '5'}));
+      });
+    });
+  });
+
+  suite('settings', function() {
+    var aum, mockSettings;
+    setup(function() {
+      aum = new AppUsageMetrics();
+      mockSettings = MockNavigatorSettings.mSettings;
+    });
+
+    test('ftu.pingURL is used as a base URL by default', function(done) {
+      mockSettings['ftu.pingURL'] = 'foo://bar';
+      aum.startCollecting(function() {
+        assert.equal(AppUsageMetrics.REPORT_URL,
+                     'foo://bar/metrics/FirefoxOS/appusage');
+        done();
+      });
+    });
+
+    test('reportURL overrides ftu.pingURL', function(done) {
+      mockSettings['metrics.appusage.reportURL'] = 'foo://foo';
+      aum.startCollecting(function() {
+        assert.equal(AppUsageMetrics.REPORT_URL, 'foo://foo');
+        done();
+      });
+    });
+
+    test('other settings', function(done) {
+      mockSettings['metrics.appusage.reportInterval'] = 97;
+      mockSettings['metrics.appusage.reportTimeout'] = 98;
+      mockSettings['metrics.appusage.retryInterval'] = 99;
+      aum.startCollecting(function() {
+        assert.equal(AppUsageMetrics.REPORT_INTERVAL, 97);
+        assert.equal(AppUsageMetrics.REPORT_TIMEOUT, 98);
+        assert.equal(AppUsageMetrics.RETRY_INTERVAL, 99);
+        done();
       });
     });
   });
@@ -533,7 +571,7 @@ suite('AppUsageMetrics:', function() {
       clock.tick(AppUsageMetrics.REPORT_INTERVAL + 1);
 
       // Send an event
-      dispatch('homescreenopened', { origin: 'homescreen' });
+      dispatch('homescreenopened', { manifestURL: 'homescreen' });
 
       // Make sure we transmitted
       assert.equal(transmit.callCount, 1);
@@ -547,7 +585,7 @@ suite('AppUsageMetrics:', function() {
       clock.tick(AppUsageMetrics.REPORT_INTERVAL - 1);
 
       // Send an event
-      dispatch('homescreenopened', { origin: 'homescreen' });
+      dispatch('homescreenopened', { manifestURL: 'homescreen' });
 
       // Make sure we did not transmit
       assert.equal(transmit.callCount, 0);
@@ -558,7 +596,7 @@ suite('AppUsageMetrics:', function() {
       clock.tick(AppUsageMetrics.REPORT_INTERVAL + 1);
 
       // Send an event
-      dispatch('homescreenopened', { origin: 'homescreen' });
+      dispatch('homescreenopened', { manifestURL: 'homescreen' });
 
       // Make sure we did not transmit
       assert.equal(transmit.callCount, 0);
@@ -574,7 +612,7 @@ suite('AppUsageMetrics:', function() {
       clock.tick(AppUsageMetrics.REPORT_INTERVAL + 1);
 
       // Send an event
-      dispatch('homescreenopened', { origin: 'homescreen' });
+      dispatch('homescreenopened', { manifestURL: 'homescreen' });
 
       // Make sure we did not transmit
       assert.equal(transmit.callCount, 0);
@@ -590,7 +628,7 @@ suite('AppUsageMetrics:', function() {
       aum.idle = false;
 
       // Send an event
-      dispatch('homescreenopened', { origin: 'homescreen' });
+      dispatch('homescreenopened', { manifestURL: 'homescreen' });
 
       // Make sure we did not transmit
       assert.equal(transmit.callCount, 0);
@@ -658,7 +696,7 @@ suite('AppUsageMetrics:', function() {
       // Make sure we recorded the failure time
       assert.equal(aum.lastFailedTransmission, Date.now());
 
-      // Make sure we've restored the original metrics
+      // Make sure we've restored the manifestURLal metrics
       assert.equal(metrics, aum.metrics);
 
       // We've called transmit once
@@ -668,7 +706,7 @@ suite('AppUsageMetrics:', function() {
       clock.tick(AppUsageMetrics.RETRY_INTERVAL + 1);
 
       // Send an event
-      dispatch('homescreenopened', { origin: 'homescreen' });
+      dispatch('homescreenopened', { manifestURL: 'homescreen' });
 
       // And now we should have called transmit again
       assert.equal(transmit.callCount, 2);
@@ -691,7 +729,7 @@ suite('AppUsageMetrics:', function() {
       clock.tick(AppUsageMetrics.RETRY_INTERVAL);
 
       // Send an event
-      dispatch('homescreenopened', { origin: 'homescreen' });
+      dispatch('homescreenopened', { manifestURL: 'homescreen' });
 
       // Haven't retried yet
       assert.equal(transmit.callCount, 1);
@@ -700,7 +738,7 @@ suite('AppUsageMetrics:', function() {
       clock.tick(1);
 
       // Send an event
-      dispatch('appopened', { origin: 'app1' });
+      dispatch('appopened', { manifestURL: 'app1' });
 
       // Now we've retried
       assert.equal(transmit.callCount, 2);

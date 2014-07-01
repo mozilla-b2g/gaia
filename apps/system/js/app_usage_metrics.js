@@ -97,11 +97,13 @@
   // This default value is the same setting that turns telemetry on and off.
   AUM.TELEMETRY_ENABLED_KEY = 'debug.performance_data.shared';
 
+  // Base URL for sending data reports
+  // Can be overridden with ftu.pingURL setting.
+  AUM.BASE_URL = 'https://fxos.telemetry.mozilla.org/submit/telemetry';
+
   // Where do we send our data reports
   // Can be overridden with metrics.appusage.reportURL setting.
-  AUM.REPORT_URL =
-    'https://fxos.telemetry.mozilla.org/submit/telemetry' +
-    '/metrics/FirefoxOS/appusage';
+  AUM.REPORT_URL = AUM.BASE_URL + '/metrics/FirefoxOS/appusage';
 
   // How often do we try to send the reports
   // Can be overridden with metrics.appusage.reportInterval setting.
@@ -266,14 +268,17 @@
     function getConfigurationSettings() {
       // Settings to query, mapped to default values
       var query = {
-        'metrics.appusage.reportURL': AUM.REPORT_URL,
+        'ftu.pingURL': AUM.BASE_URL,
+        'metrics.appusage.reportURL': null,
         'metrics.appusage.reportInterval': AUM.REPORT_INTERVAL,
         'metrics.appusage.reportTimeout': AUM.REPORT_TIMEOUT,
         'metrics.appusage.retryInterval': AUM.RETRY_INTERVAL
       };
 
       AUM.getSettings(query, function(result) {
-        AUM.REPORT_URL = result['metrics.appusage.reportURL'];
+        AUM.REPORT_URL = result['metrics.appusage.reportURL'] ||
+                         result['ftu.pingURL'] + '/metrics/FirefoxOS/appusage';
+
         AUM.REPORT_INTERVAL = result['metrics.appusage.reportInterval'];
         AUM.REPORT_TIMEOUT = result['metrics.appusage.reportTimeout'];
         AUM.RETRY_INTERVAL = result['metrics.appusage.retryInterval'];
@@ -351,7 +356,7 @@
       // update the currently running app.
       this.metrics.recordInvocation(this.currentApp,
                                     now - this.currentAppStartTime);
-      this.currentApp = e.detail.origin;
+      this.currentApp = e.detail.manifestURL;
       this.currentAppStartTime = now;
       break;
 
@@ -381,7 +386,7 @@
 
       // In version 2.1 we use lockscreen-appopened events and get a real URL
       // In 2.0 and before we just use a locked event and don't get the url
-      this.lockscreenURL = (e.detail && e.detail.origin) || 'lockscreen';
+      this.lockscreenURL = (e.detail && e.detail.manifestURL) || 'lockscreen';
       break;
 
     case UNLOCKED:
@@ -422,11 +427,11 @@
       break;
 
     case INSTALL:
-      this.metrics.recordInstall(e.detail.application.origin);
+      this.metrics.recordInstall(e.detail.application.manifestURL);
       break;
 
     case UNINSTALL:
-      this.metrics.recordUninstall(e.detail.application.origin);
+      this.metrics.recordUninstall(e.detail.application.manifestURL);
       break;
 
     case IDLE:
