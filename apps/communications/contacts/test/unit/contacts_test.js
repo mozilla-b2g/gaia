@@ -1,8 +1,10 @@
 'use strict';
 
-/* global Contacts, MockContactsListObj, MockCookie, MockMozL10n,
-          MockNavigationStack, MocksHelper, MockUtils, MockActivities,
-          MockContactAllFields, contacts */
+/* global Contacts, contacts, ActivityHandler, LazyLoader,
+          MockContactsListObj, MockCookie, MockMozL10n,
+          MockNavigationStack, MockUtils, MocksHelper,
+          MockContactAllFields, MockContactDetails
+*/
 
 requireApp('communications/contacts/test/unit/mock_l10n.js');
 requireApp('communications/contacts/test/unit/mock_contacts_list_obj.js');
@@ -11,13 +13,17 @@ requireApp('communications/contacts/test/unit/mock_datastore_migrator.js');
 requireApp('communications/contacts/test/unit/mock_event_listeners.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
 requireApp('communications/contacts/test/unit/mock_activities.js');
+requireApp('communications/contacts/test/unit/mock_contacts_details.js');
 
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_contact_all_fields.js');
+require('/shared/test/unit/mocks/mock_performance_testing_helper.js');
 
 var mocksForStatusBar = new MocksHelper([
   'DatastoreMigration',
-  'LazyLoader'
+  'LazyLoader',
+  'PerformanceTestingHelper',
+  'ActivityHandler'
 ]).init();
 
 if (!window.navigationStack) {
@@ -29,9 +35,7 @@ if (!window.contacts) {
 if (!window.utils) {
   window.utils = null;
 }
-if (!window.ActivityHandler) {
-  window.ActivityHandler = null;
-}
+
 var globals = ['COMMS_APP_ORIGIN',
                'TAG_OPTIONS',
                '_',
@@ -50,7 +54,6 @@ suite('Contacts', function() {
   var realContacts;
   var realUtils;
   var mockNavigation;
-  var realActivityHandler;
 
   mocksForStatusBar.attachTestHelpers();
 
@@ -63,13 +66,11 @@ suite('Contacts', function() {
     realContacts = window.contacts;
     window.contacts = {};
     window.contacts.List = MockContactsListObj;
+    window.contacts.Details = MockContactDetails;
 
     realUtils = window.utils;
     window.utils = MockUtils;
     window.utils.cookie = MockCookie;
-
-    realActivityHandler = window.ActivityHandler;
-    window.ActivityHandler = MockActivities;
 
     realNavigationStack = window.navigationStack;
     window.navigationStack = MockNavigationStack;
@@ -81,7 +82,6 @@ suite('Contacts', function() {
     navigator.mozL10n = realMozL10n;
     window.contacts = realContacts;
     window.utils = realUtils;
-    window.ActivityHandler = realActivityHandler;
 
     window.navigationStack.restore();
     window.navigationStack = realNavigationStack;
@@ -148,6 +148,232 @@ suite('Contacts', function() {
       assert.isTrue(Array.isArray(argument.email));
       argument.email.forEach(function onEmail(email) {
         assert.isTrue(email.value === 'myfbemail@email.com');
+      });
+    });
+  });
+
+  suite('Controller actions', function() {
+    var navigation;
+    setup(function() {
+      navigation = window.navigationStack.firstCall.thisValue;
+      this.sinon.spy(navigation, 'back');
+      this.sinon.spy(navigation, 'home');
+      this.sinon.spy(window.ActivityHandler, 'postCancel');
+    });
+    test('> go back', function() {
+      Contacts.goBack();
+      sinon.assert.called(navigation.back);
+      navigation.back.restore();
+    });
+    test('> handle cancel with activity', function() {
+      ActivityHandler.currentlyHandling = true;
+
+      Contacts.cancel();
+      sinon.assert.called(window.ActivityHandler.postCancel);
+      sinon.assert.called(navigation.home);
+
+      window.ActivityHandler.currentlyHandling = false;
+    });
+    test('> handle cancel without activity', function() {
+      Contacts.cancel();
+      sinon.assert.called(navigation.back);
+      sinon.assert.notCalled(window.ActivityHandler.postCancel);
+    });
+
+    suite('> CancelableActivity', function() {
+      var settingsButton, cancelButton, addButton, appTitleElement;
+
+      setup(function() {
+        settingsButton = document.getElementById('settings-button');
+        cancelButton = document.getElementById('cancel_activity');
+        addButton = document.getElementById('add-contact-button');
+        appTitleElement = document.getElementById('app-title');
+      });
+
+      test('> handling an activity', function() {
+        window.ActivityHandler.currentlyHandling = true;
+        Contacts.checkCancelableActivity();
+
+        // Settings is hidden
+        assert.isTrue(settingsButton.classList.contains('hide'));
+        // Add contact is hidden
+        assert.isTrue(addButton.classList.contains('hide'));
+        // Cancel is visible
+        assert.isFalse(cancelButton.classList.contains('hide'));
+        // Title shows CONTACTS
+        assert.equal(appTitleElement.textContent, 'contacts');
+
+        window.ActivityHandler.currentlyHandling = false;
+      });
+
+      test('>selecting from the list', function() {
+        window.contacts.List.isSelecting = true;
+
+        Contacts.checkCancelableActivity();
+
+        // Cancel is hidden
+        assert.isTrue(cancelButton.classList.contains('hide'));
+        // Settings is visible
+        assert.isFalse(addButton.classList.contains('hide'));
+        // Add contact is visible
+        assert.isFalse(settingsButton.classList.contains('hide'));
+        // Title shows SELECT
+        assert.equal(appTitleElement.textContent, 'selectContact');
+
+        window.contacts.List.isSelecting = false;
+      });
+    });
+  });
+
+  suite('Select a contact from the list', function() {
+    var theSelectedContact = {
+      'id': '1',
+      'name': ['John']
+    };
+    var navigation;
+    setup(function() {
+      navigation = window.navigationStack.firstCall.thisValue;
+      this.sinon.stub(Contacts, 'view', function(view, cb) {
+        cb();
+      });
+      this.sinon.stub(window.contacts.List, 'getContactById',
+       function(id, cb) {
+        cb(theSelectedContact, null);
+      });
+      this.sinon.spy(ActivityHandler, 'dataPickHandler');
+      this.sinon.spy(contacts.Details, 'render');
+      this.sinon.spy(navigation, 'go');
+    });
+
+    test('> initializing details', function() {
+      Contacts.showContactDetail('1');
+
+      sinon.assert.called(Contacts.view);
+      sinon.assert.called(window.contacts.List.getContactById);
+      sinon.assert.called(contacts.Details.render);
+      sinon.assert.calledWith(navigation.go,
+       'view-contact-details', 'go-deeper');
+      sinon.assert.notCalled(ActivityHandler.dataPickHandler);
+
+    });
+
+    test('> when handling pick activity, don\'t navigate, send result',
+      function() {
+        ActivityHandler.currentlyHandling = true;
+        ActivityHandler.activityName = 'pick';
+        Contacts.showContactDetail('1');
+
+        sinon.assert.called(window.contacts.List.getContactById);
+        sinon.assert.notCalled(contacts.Details.render);
+        sinon.assert.notCalled(navigation.go);
+        sinon.assert.called(ActivityHandler.dataPickHandler);
+
+        ActivityHandler.currentlyHandling = false;
+        ActivityHandler.activityName = 'open';
+      }
+    );
+
+    test('> when handling import activity, navigate as normal',
+      function() {
+        ActivityHandler.currentlyHandling = true;
+        ActivityHandler.activityName = 'import';
+        Contacts.showContactDetail('1');
+
+        sinon.assert.called(window.contacts.List.getContactById);
+        sinon.assert.called(contacts.Details.render);
+        sinon.assert.called(navigation.go);
+        sinon.assert.notCalled(ActivityHandler.dataPickHandler);
+
+        ActivityHandler.currentlyHandling = false;
+        ActivityHandler.activityName = 'open';
+      }
+    );
+  });
+
+  suite('Async scripts loading', function() {
+    var lastParams;
+    setup(function() {
+      this.sinon.spy(window, 'dispatchEvent');
+      this.sinon.stub(LazyLoader, 'load', function(p, cb) {
+        lastParams = p;
+        cb();
+      });
+    });
+    test('> normal load of the scripts', function() {
+      Contacts.onLocalized();
+
+      sinon.assert.called(window.dispatchEvent);
+      assert.isNotNull(navigator.mozContacts.oncontactchange);
+    });
+    test('> loading scripts with nfc enabled', function() {
+      var oldNFC = navigator.mozNfc;
+      navigator.mozNfc = true;
+      Contacts.onLocalized();
+
+      sinon.assert.called(window.dispatchEvent);
+      assert.isNotNull(navigator.mozContacts.oncontactchange);
+      assert.isTrue(lastParams.indexOf('/contacts/js/nfc.js') > -1);
+
+      navigator.mozNfc = oldNFC;
+    });
+    test('> loading scripts while handling an open activity',
+     function() {
+      ActivityHandler.currentlyHandling = true;
+      Contacts.onLocalized();
+
+      sinon.assert.called(window.dispatchEvent);
+      assert.isNull(navigator.mozContacts.oncontactchange);
+
+      ActivityHandler.currentlyHandling = false;
+    });
+  });
+
+  suite('Visibility changes', function() {
+    var navigation;
+    function fireVisibilityChange() {
+      document.dispatchEvent(new CustomEvent('visibilitychange'));
+    }
+    setup(function() {
+      navigation = window.navigationStack.firstCall.thisValue;
+      this.sinon.spy(Contacts, 'checkCancelableActivity');
+      this.sinon.spy(ActivityHandler, 'postCancel');
+      this.sinon.stub(Contacts, 'view', function(view, cb) {
+        cb();
+      });
+    });
+
+    test('> on visibility change: visible', function() {
+      MockMozL10n.realL10nCB();
+      fireVisibilityChange();
+
+      sinon.assert.called(Contacts.checkCancelableActivity);
+      sinon.assert.notCalled(ActivityHandler.postCancel);
+    });
+
+    suite('> going to the background', function() {
+      var realHidden;
+      suiteSetup(function() {
+        realHidden = Object.getOwnPropertyDescriptor(document, 'hidden');
+        Object.defineProperty(document, 'hidden', {
+          configurable: true,
+          get: function() { return true; }
+        });
+      });
+      suiteTeardown(function() {
+        if (realHidden) {
+          Object.defineProperty(document, 'hidden', realHidden);
+        } else {
+          delete document.hidden;
+        }
+      });
+
+      test('> handling an activity, should be cancelled', function() {
+        ActivityHandler.currentlyHandling = true;
+
+        fireVisibilityChange();
+
+        sinon.assert.called(ActivityHandler.postCancel);
+        ActivityHandler.currentlyHandling = false;
       });
     });
   });
