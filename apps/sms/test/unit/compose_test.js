@@ -536,6 +536,22 @@ suite('compose_test.js', function() {
         assert.equal(Compose.getContent(), d1.content.join(''));
       });
 
+      test('Place cursor at the end of the compose field', function() {
+        var mockSelection = {
+          selectAllChildren: function() {},
+          collapseToEnd: function() {}
+        };
+
+        this.sinon.stub(window, 'getSelection').returns(mockSelection);
+        this.sinon.spy(mockSelection, 'selectAllChildren');
+        this.sinon.spy(mockSelection, 'collapseToEnd');
+        Compose.fromDraft(d1);
+
+        sinon.assert.calledOnce(mockSelection.selectAllChildren);
+        sinon.assert.calledWith(mockSelection.selectAllChildren, message);
+        sinon.assert.calledOnce(mockSelection.collapseToEnd);
+      });
+
       test('Draft with subject', function() {
         assert.isFalse(Compose.isSubjectVisible);
         Compose.fromDraft(d1);
