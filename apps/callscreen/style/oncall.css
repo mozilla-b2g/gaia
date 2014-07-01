@@ -972,7 +972,7 @@
   }
 
   #call-screen[data-layout="incoming-locked"] .number {
-    font-weight: lighter;
+    font-weight: 300;
   }
 
   #call-screen[data-layout="incoming-locked"] #calls.big-duration .numberWrapper .number {
