@@ -248,13 +248,9 @@ suite('system/Rocketbar', function() {
   });
 
   test('hideResults()', function() {
-    subject.activate();
-    var stub = this.sinon.stub(subject.searchWindow, 'hideContextMenu');
-
     subject.hideResults();
     assert.ok(subject.results.classList.contains('hidden'));
     assert.ok(MockIACPort.mNumberOfMessages() == 1);
-    sinon.assert.calledOnce(stub);
   });
 
   test('showTaskManager()', function() {

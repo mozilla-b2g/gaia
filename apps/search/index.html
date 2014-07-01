@@ -15,6 +15,8 @@
     <script defer src="/shared/js/component_utils.js"></script>
     <script defer src="/shared/elements/gaia_buttons/script.js"></script>
     <script defer src="/shared/elements/gaia_confirm/script.js"></script>
+    <script defer src="/shared/elements/gaia_menu/script.js"></script>
+
     <!--- gaia_grid required scripts -->
     <script defer src="shared/js/homescreens/vertical_preferences.js"></script>
     <script defer src="shared/js/homescreens/confirm_dialog_helper.js"></script>
@@ -91,9 +93,9 @@
       <section id="history" class="local" aria-labelledby="history-header"></section>
     </div>
 
-    <menu id="contextmenu" hidden>
-      <menuitem id="add-to-homescreen" data-l10n-id="add-to-homescreen" type="button"></menuitem>
-    </menu>
+    <gaia-menu id="contextmenu" hidden>
+      <button id="add-to-homescreen" data-l10n-id="add-to-homescreen" type="button"></button>
+    </gaia-menu>
 
   </body>
 </html>
