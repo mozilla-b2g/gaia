@@ -663,11 +663,16 @@ function setView(view) {
       // Clear the selection, if there is one
       Array.forEach(thumbnails.querySelectorAll('.selected.thumbnailImage'),
                     function(elt) { elt.classList.remove('selected'); });
-      if (!isPhone)
+      // bug#1020766,after deleted last file on large devices,
+      // don't need to showFile().
+      if (!isPhone && currentFileIndex !== -1)
         showFile(currentFileIndex);
       break;
     case LAYOUT_MODE.fullscreen:
-      if (!isPhone && (view === LAYOUT_MODE.list) && !isPortrait) {
+      // bug#1020766,after deleted last file on large devices,
+      // need to clearFrames().
+      if (!isPhone && (view === LAYOUT_MODE.list) && !isPortrait &&
+        currentFileIndex !== -1) {
         // we'll reuse and resize the fullscreen window
         // when go back to thumbnailList mode from fullscreen
         // and also does editView in landscape
@@ -1079,7 +1084,8 @@ function thumbnailClickHandler(evt) {
 function updateFocusThumbnail(n) {
   var previousIndex = currentFileIndex;
   currentFileIndex = n;
-  if (isPhone)
+  // bug#1020766,after deleted last file on large devices,don't need to go on
+  if (isPhone || currentFileIndex === -1)
     return;
 
   // If file is delted on select mode, the currentFileIndex may
