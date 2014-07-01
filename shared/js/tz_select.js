@@ -14,6 +14,10 @@ function tzSelect(regionSelector, citySelector, onchange, onload) {
     xhr.onload = function() {
       callback(xhr.response);
     };
+    xhr.onerror = function() {
+     console.error('Error getting file');
+     callback(xhr.response);
+    };
     xhr.send();
   }
 
@@ -21,7 +25,6 @@ function tzSelect(regionSelector, citySelector, onchange, onload) {
   /**
    * Guess the current timezone from the MCC/MNC tuple
    */
-
   function getDefaultTimezoneID(callback) {
     if (!callback) {
       return;
@@ -30,25 +33,36 @@ function tzSelect(regionSelector, citySelector, onchange, onload) {
     // Worst case scenario: default to New York (which is just as good or
     // bad as anything else -- we used to default to Pago Pago)
     var tzDefault = 'America/New_York';
-
     // retrieve MCC/MNC: use the current network codes when available,
     // default to the SIM codes if necessary.
     var mcc, mnc;
     // XXX: check bug-926169
     // this is used to keep all tests passing while introducing multi-sim APIs
     var conn = navigator.mozMobileConnection ||
-      window.navigator.mozMobileConnections &&
-        window.navigator.mozMobileConnections[0];
-
+               window.navigator.mozMobileConnections &&
+               window.navigator.mozMobileConnections[0];
     if (conn && IccHelper) {
       if (conn.voice && conn.voice.network && conn.voice.network.connected) {
+        // we have connection available, so we use it
         mcc = conn.voice.network.mcc;
         mnc = conn.voice.network.mnc;
       } else if (IccHelper.iccInfo) {
+        // we don't have connection available, we rely on the SIM
         mcc = IccHelper.iccInfo.mcc;
         mnc = IccHelper.iccInfo.mnc;
+        // if SIM is not available, mcc and mnc are null,
+        // so we wait for a future event where we have access to the SIM.
+        if (IccHelper.cardState !== 'ready') {
+          IccHelper.addEventListener('iccinfochange', function simReady() {
+            if (IccHelper.iccInfo.mcc) {
+              IccHelper.removeEventListener('iccinfochange', simReady);
+            }
+            getDefaultTimezoneID(callback);
+          });
+        }
       }
     }
+
     if (!mcc) {
       callback(tzDefault);
       return;
@@ -59,7 +73,7 @@ function tzSelect(regionSelector, citySelector, onchange, onload) {
     loadJSON(APN_TZ_FILE, function(response) {
       if (response) {
         var tz = response[mcc];
-        if (typeof(tz) == 'string') {
+        if (typeof(tz) === 'string') {
           tzDefault = tz;
         } else if (tz && (mnc in tz)) {
           tzDefault = tz[mnc];
@@ -73,12 +87,14 @@ function tzSelect(regionSelector, citySelector, onchange, onload) {
   /**
    * Activate a timezone selector UI
    */
-
   function newTZSelector(onchangeTZ, currentID, alreadyDefined) {
+    // for region, we use whatever is BEFORE the /
     var gRegion = currentID.replace(/\/.*/, '');
+    // for city, we use whatever is AFTER the /
     var gCity = currentID.replace(/.*?\//, '');
     var gTZ = null;
     var loaded = false;
+    var userSelected = false;
 
     function fillSelectElement(selector, options) {
       selector.innerHTML = '';
@@ -106,7 +122,7 @@ function tzSelect(regionSelector, citySelector, onchange, onload) {
         options.push({
           text: _('tzRegion-' + c) || c,
           value: c,
-          selected: (c == gRegion)
+          selected: (c === gRegion)
         });
       }
       fillSelectElement(regionSelector, options);
@@ -121,7 +137,7 @@ function tzSelect(regionSelector, citySelector, onchange, onload) {
         options.push({
           text: list[i].name || list[i].city.replace(/_/g, ' '),
           value: i,
-          selected: (list[i].city == gCity)
+          selected: (list[i].city === gCity)
         });
       }
       fillSelectElement(citySelector, options);
@@ -137,7 +153,7 @@ function tzSelect(regionSelector, citySelector, onchange, onload) {
     }
 
     function setTimezone() {
-      onchangeTZ(getTZInfo());
+      onchangeTZ(getTZInfo(), {'changedByUser': userSelected});
     }
 
     function getTZInfo() {
@@ -154,8 +170,15 @@ function tzSelect(regionSelector, citySelector, onchange, onload) {
       };
     }
 
-    regionSelector.onchange = fillCities;
-    citySelector.onchange = setTimezone;
+    regionSelector.onchange = function() {
+      userSelected = true;
+      fillCities();
+    };
+    citySelector.onchange = function() {
+      userSelected = true;
+      setTimezone();
+    };
+
     loadJSON(TIMEZONE_FILE, function loadTZ(response) {
       gTZ = response;
       fillRegions();
@@ -169,7 +192,6 @@ function tzSelect(regionSelector, citySelector, onchange, onload) {
   /**
    * Monitor time.timezone changes
    */
-
   function newTZObserver() {
     var settings = window.navigator.mozSettings;
     if (!settings) {
@@ -182,12 +204,14 @@ function tzSelect(regionSelector, citySelector, onchange, onload) {
 
     function initSelector(initialValue, alreadyDefined) {
       // initialize the timezone selector with the initial TZ setting
-      newTZSelector(function updateTZ(tz) {
+      newTZSelector(function updateTZ(tz, options) {
         var req = settings.createLock().set({'time.timezone': tz.id});
         if (onchange) {
           req.onsuccess = function updateTZ_callback() {
             // Store the user manually selected timezone separately
-            settings.createLock().set({'time.timezone.user-selected': tz.id});
+            if (options.changedByUser) {
+              settings.createLock().set({'time.timezone.user-selected': tz.id});
+            }
 
             // Wait until the timezone is actually set
             // before calling the callback.
@@ -225,7 +249,6 @@ function tzSelect(regionSelector, citySelector, onchange, onload) {
   /**
    * Startup -- make sure webL10n is ready before using tzSelect()
    */
-
   newTZObserver();
 }
 
