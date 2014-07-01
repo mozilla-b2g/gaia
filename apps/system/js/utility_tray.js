@@ -53,7 +53,7 @@ var UtilityTray = {
     this.overlay.addEventListener('transitionend', this);
 
     if (window.navigator.mozMobileConnections) {
-      LazyLoader.load('js/cost_control.js');
+      window.LazyLoader.load('js/cost_control.js');
     }
   },
 
@@ -98,12 +98,13 @@ var UtilityTray = {
         break;
 
       case 'screenchange':
-        if (this.shown && !evt.detail.screenEnabled)
+        if (this.shown && !evt.detail.screenEnabled) {
           this.hide(true);
+        }
         break;
 
       case 'touchstart':
-        if (lockScreen.locked) {
+        if (window.System.locked) {
           return;
         }
 
@@ -135,8 +136,9 @@ var UtilityTray = {
         evt.stopImmediatePropagation();
         var touch = evt.changedTouches[0];
 
-        if (!this.active)
+        if (!this.active) {
           return;
+        }
 
         this.active = false;
 
@@ -154,8 +156,9 @@ var UtilityTray = {
         break;
 
       case 'transitionend':
-        if (!this.shown)
+        if (!this.shown) {
           this.screen.classList.remove('utility-tray');
+        }
         break;
     }
   },
@@ -205,7 +208,7 @@ var UtilityTray = {
 
   onTouchEnd: function ut_onTouchEnd(touch) {
     // Prevent utility tray shows while the screen got black out.
-    if (window.lockScreen && window.lockScreen.locked) {
+    if (window.System.locked) {
       this.hide(true);
     } else {
       var significant = (Math.abs(this.lastDelta) > (this.screenHeight / 5));
@@ -227,7 +230,7 @@ var UtilityTray = {
 
     // If the transition has not started yet there won't be any transitionend
     // event so let's not wait in order to remove the utility-tray class.
-    if (instant || style.MozTransform == '') {
+    if (instant || style.MozTransform === '') {
       this.screen.classList.remove('utility-tray');
     }
     window.dispatchEvent(new CustomEvent('utility-tray-overlayclosed'));

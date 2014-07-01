@@ -13,15 +13,16 @@ requireApp('system/test/unit/mock_activity.js');
 requireApp('system/test/unit/mock_nfc.js');
 requireApp('system/test/unit/mock_nfc_handover_manager.js');
 requireApp('system/test/unit/mock_screen_manager.js');
-requireApp('system/test/unit/mock_lock_screen.js');
 requireApp('system/test/unit/mock_bluetooth.js');
+requireApp('system/test/unit/mock_system.js');
 
 var mocksForNfcManager = new MocksHelper([
   'MozActivity',
   'MozNDEFRecord',
   'ScreenManager',
   'SettingsListener',
-  'NfcHandoverManager'
+  'NfcHandoverManager',
+  'System'
 ]).init();
 
 var MockMessageHandlers = {};
@@ -32,7 +33,6 @@ function MockMozSetMessageHandler(event, handler) {
 suite('Nfc Manager Functions', function() {
 
   var realMozSetMessageHandler;
-  var realLockScreen;
   var realMozBluetooth;
 
   mocksForNfcManager.attachTestHelpers();
@@ -40,8 +40,6 @@ suite('Nfc Manager Functions', function() {
   setup(function(done) {
     realMozSetMessageHandler = window.navigator.mozSetMessageHandler;
     window.navigator.mozSetMessageHandler = MockMozSetMessageHandler;
-    realLockScreen = window.lockScreen;
-    window.lockScreen = window.MockLockScreen;
     realMozBluetooth = window.navigator.mozBluetooth;
     window.navigator.mozBluetooth = window.MockBluetooth;
 
@@ -50,7 +48,6 @@ suite('Nfc Manager Functions', function() {
 
   teardown(function() {
     window.navigator.mozSetMessageHandler = realMozSetMessageHandler;
-    window.lockScreen = realLockScreen;
     window.mozBluetooth = realMozBluetooth;
   });
 
@@ -103,12 +100,12 @@ suite('Nfc Manager Functions', function() {
       assert.equal(stubChangeHardwareState.getCall(1).args[0],
                    NfcManager.NFC_HW_STATE_OFF);
 
-      window.MockLockScreen.lock();
+      window.System.locked = true;
       window.MockSettingsListener.mCallbacks['nfc.enabled'](true);
       assert.isTrue(stubChangeHardwareState.calledThrice);
       assert.equal(stubChangeHardwareState.getCall(2).args[0],
                    NfcManager.NFC_HW_STATE_DISABLE_DISCOVERY);
-      window.MockLockScreen.unlock();
+      window.System.locked = false;
     });
   });
 
@@ -119,7 +116,7 @@ suite('Nfc Manager Functions', function() {
 
       // screen lock when NFC ON
       NfcManager.hwState = NfcManager.NFC_HW_STATE_ON;
-      window.MockLockScreen.lock();
+      window.System.locked = true;
       NfcManager.handleEvent(new CustomEvent('lockscreen-appopened'));
       assert.isTrue(stubChangeHardwareState.calledOnce);
       assert.equal(stubChangeHardwareState.getCall(0).args[0],
@@ -131,7 +128,7 @@ suite('Nfc Manager Functions', function() {
       assert.isTrue(stubChangeHardwareState.calledOnce);
 
       // screen unlock
-      window.MockLockScreen.unlock();
+      window.System.locked = false;
       NfcManager.handleEvent(new CustomEvent('lockscreen-appclosed'));
       assert.isTrue(stubChangeHardwareState.calledTwice);
       assert.equal(stubChangeHardwareState.getCall(1).args[0],
