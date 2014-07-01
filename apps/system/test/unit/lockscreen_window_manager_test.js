@@ -2,6 +2,7 @@
 'use strict';
 
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
+requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/test/unit/mock_lock_screen.js');
 requireApp('system/test/unit/mock_lockscreen_window.js');
 requireApp('system/js/lockscreen_window_manager.js');
@@ -14,6 +15,7 @@ suite('system/LockScreenWindowManager', function() {
   var stubById;
   var appFake;
   var originalSettingsListener;
+  var originalMozSettings;
 
   mocksForLockScreenWindowManager.attachTestHelpers();
 
@@ -33,6 +35,10 @@ suite('system/LockScreenWindowManager', function() {
         }};
       }
     };
+
+    originalMozSettings = window.navigator.mozSettings;
+    window.navigator.mozSettings = window.MockNavigatorSettings;
+
     // To prevent the original one has been
     // initialized in the bootstrap stage.
     //
@@ -46,6 +52,7 @@ suite('system/LockScreenWindowManager', function() {
     } else {
       window.lockScreenWindowManager = new window.LockScreenWindowManager();
     }
+    window.lockScreenWindowManager.startObserveSettings();
     window.lockScreenWindowManager.elements.screen =
       document.createElement('div');
     // Differs from the existing mock which is expected by other components.
@@ -54,6 +61,8 @@ suite('system/LockScreenWindowManager', function() {
 
   teardown(function() {
     window.SettingsListener = originalSettingsListener;
+    window.navigator.mozSettings = originalMozSettings;
+    window.MockNavigatorSettings.mTeardown();
     stubById.restore();
   });
 
@@ -174,6 +183,16 @@ suite('system/LockScreenWindowManager', function() {
         type: 'showlockscreenwindow'
       });
       assert.isTrue(stubSetVisible.calledWith(true));
+    });
+
+    test('Open the app when asked via lock-immediately setting', function() {
+      window.lockScreenWindowManager.registerApp(appFake);
+      var stubOpen = this.sinon.stub(appFake, 'open');
+      window.MockNavigatorSettings.mTriggerObservers(
+        'lockscreen.lock-immediately', {settingValue: true});
+      assert.isTrue(stubOpen.called,
+        'the manager didn\'t open the app when requested');
+      window.lockScreenWindowManager.unregisterApp(appFake);
     });
   });
 });
