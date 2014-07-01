@@ -7,6 +7,7 @@ require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
 require('/shared/test/unit/mocks/mock_moz_activity.js');
 require('/shared/js/url_helper.js');
 require('/shared/js/dedupe.js');
+require('/shared/js/l10n.js');
 require('/js/contextmenu.js');
 require('/shared/test/unit/mocks/mock_async_storage.js');
 requireApp('search/test/unit/mock_provider.js');
