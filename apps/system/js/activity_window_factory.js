@@ -232,7 +232,8 @@
         case 'activityclosing':
           var activity = evt.detail;
           if (activity.activityCaller &&
-              activity.activityCaller instanceof ActivityWindow) {
+              activity.activityCaller instanceof ActivityWindow &&
+              activity.activityCaller.isActive()) {
             this._activeActivity = activity.activityCaller;
           } else if (this._activeActivity &&
               this._activeActivity.instanceID == evt.detail.instanceID) {
