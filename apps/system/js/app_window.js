@@ -1892,16 +1892,6 @@
     }
   };
 
-  /**
-   * Hide the contextmenu for an AppWindow
-   * @memberOf AppWindow.prototype
-   */
-  AppWindow.prototype.hideContextMenu = function() {
-    if (this.contextmenu) {
-      this.contextmenu.hide();
-    }
-  };
-
   AppWindow.prototype._handle__focus = function() {
     var win = this;
     while (win.frontWindow && win.frontWindow.isActive()) {
