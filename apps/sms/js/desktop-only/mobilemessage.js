@@ -1524,16 +1524,30 @@
   };
 
   MockNavigatormozMobileMessage.getSegmentInfoForText = function(text) {
-    var length = text.length;
-    var segmentLength = 160;
-    var charsUsedInLastSegment = (length % segmentLength);
-    var segments = Math.ceil(length / segmentLength);
-    return {
-      segments: segments,
-      charsAvailableInLastSegment: charsUsedInLastSegment ?
-        segmentLength - charsUsedInLastSegment :
-        0
+    var request = {
+      error: null
     };
+
+    setTimeout(function() {
+      var length = text.length;
+      var segmentLength = 160;
+      var charsUsedInLastSegment = (length % segmentLength);
+      var segments = Math.ceil(length / segmentLength);
+      if (typeof request.onsuccess === 'function') {
+        request.onsuccess.call(request, {
+          target: {
+            result: {
+              segments: segments,
+              charsAvailableInLastSegment: charsUsedInLastSegment ?
+                segmentLength - charsUsedInLastSegment :
+                0
+            }
+          }
+        });
+      }
+    }, simulation.delay());
+
+    return request;
   };
 
 }(window));
