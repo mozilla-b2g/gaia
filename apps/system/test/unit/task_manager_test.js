@@ -501,6 +501,43 @@ suite('system/TaskManager >', function() {
                   'has no prevCard at initial position');
       });
 
+      test('transitions are removed correctly after swiping', function() {
+        var card = taskManager.getCardAtIndex(0);
+        var applyStyleStub = sinon.spy(card, 'applyStyle');
+
+        var undefinedProps =
+          function(value) {
+            for (var key in value) {
+              if (typeof value[key] === 'undefined') {
+                return true;
+              }
+            }
+            return false;
+          };
+
+        // Simulate a drag up that doesn't remove the card
+        var element = card.element;
+        element.dispatchEvent(createTouchEvent('touchstart', element, 0, 500));
+        element.dispatchEvent(createTouchEvent('touchmove', element, 0, 250));
+        element.dispatchEvent(createTouchEvent('touchend', element, 0, 450));
+
+        var callCount = applyStyleStub.callCount;
+        assert.isTrue(callCount > 0,
+                      'card.applyStyle was called at least once');
+        assert.isFalse(applyStyleStub.calledWith(sinon.match(undefinedProps)),
+          'card.applyStyle was not called with undefined properties');
+
+        // Simulate a swipe to the side
+        element.dispatchEvent(createTouchEvent('touchstart', element, 0, 500));
+        element.dispatchEvent(createTouchEvent('touchmove', element, 100, 500));
+        element.dispatchEvent(createTouchEvent('touchend', element, 100, 500));
+
+        assert.isTrue(applyStyleStub.callCount > callCount,
+                      'card.applyStyle was called more times');
+        assert.isFalse(applyStyleStub.calledWith(sinon.match(undefinedProps)),
+          'card.applyStyle was not called with undefined properties');
+      });
+
       suite('when the currently displayed app is out of the stack',
       function() {
         setup(function() {
