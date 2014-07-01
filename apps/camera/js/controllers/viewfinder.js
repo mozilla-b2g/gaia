@@ -107,8 +107,8 @@ ViewfinderController.prototype.bindEvents = function() {
   this.app.on('camera:focusstatechanged', this.views.focus.setFocusState);
   this.app.on('camera:facesdetected', this.onFacesDetected);
   this.app.on('camera:shutter', this.views.viewfinder.shutter);
-  this.app.on('camera:busy', this.views.viewfinder.disable);
-  this.app.on('camera:ready', this.views.viewfinder.enable);
+  this.app.on('camera:busy', this.onCameraBusy);
+  this.app.on('camera:ready', this.onCameraReady);
   this.app.on('previewgallery:closed', this.onPreviewGalleryClosed);
   this.app.on('camera:configured', this.onCameraConfigured);
   this.app.on('previewgallery:opened', this.stopStream);
@@ -136,6 +136,21 @@ ViewfinderController.prototype.onCameraConfigured = function() {
   // https://bugzilla.mozilla.org/show_bug.cgi?id=982230
   if (!this.app.criticalPathDone) { this.show(); }
   else { setTimeout(this.show, 280); }
+};
+
+ViewfinderController.prototype.onCameraBusy = function() {
+  window.clearTimeout(this.cameraReadyTimeout);
+  this.views.viewfinder.disable();
+  this.disabled = true;
+};
+
+ViewfinderController.prototype.onCameraReady = function() {
+  var self = this;
+  window.clearTimeout(this.cameraReadyTimeout);
+  this.cameraReadyTimeout = window.setTimeout(function() {
+    self.views.viewfinder.enable();
+    self.disabled = false;
+  }, 1000);
 };
 
 ViewfinderController.prototype.show = function() {
@@ -288,7 +303,7 @@ ViewfinderController.prototype.onZoomChanged = function(zoom) {
 };
 
 ViewfinderController.prototype.onViewfinderClicked = function(e) {
-  if (!this.touchFocusEnabled) {
+  if (!this.touchFocusEnabled || this.disabled) {
     return;
   }
   var focusPoint = {
