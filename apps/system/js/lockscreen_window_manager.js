@@ -15,12 +15,7 @@
    *
    * @constructor LockScreenWindowManager
    */
-  var LockScreenWindowManager = function() {
-    this.startEventListeners();
-    this.startObserveSettings();
-    this.initElements();
-    this.initWindow();
-  };
+  var LockScreenWindowManager = function() {};
   LockScreenWindowManager.prototype = {
     /**
      * @memberof LockScreenWindowManager#
@@ -57,9 +52,21 @@
                 'ftuopen',
                 'ftudone',
                 'overlaystart',
-                'showlockscreenwindow'
+                'showlockscreenwindow',
+                'home'
                ]
     }
+  };
+
+  /**
+   * To initialize the class instance (register events, observe settings, etc.)
+   */
+  LockScreenWindowManager.prototype.start =
+  function lwm_start() {
+    this.startEventListeners();
+    this.startObserveSettings();
+    this.initElements();
+    this.initWindow();
   };
 
   /**
@@ -136,6 +143,13 @@
               !this.states.FTUOccurs) {
             // The app would be inactive while screen off.
             this.openApp();
+          }
+          break;
+        case 'home':
+          // We assume that this component is started before AppWindowManager
+          // to make this blocking code works.
+          if (this.states.active) {
+            evt.stopImmediatePropagation();
           }
           break;
       }

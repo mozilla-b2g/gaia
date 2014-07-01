@@ -56,6 +56,11 @@ window.addEventListener('load', function startup() {
 
     /** @global */
     window.lockScreenWindowManager = new window.LockScreenWindowManager();
+    window.lockScreenWindowManager.start();
+
+    // To initilaize it after LockScreenWindowManager to block home button
+    // when the screen is locked.
+    window.AppWindowManager.init();
 
     /** @global */
     window.textSelectionDialog = new TextSelectionDialog();
