@@ -109,11 +109,12 @@ Home2.prototype = {
   },
 
   /**
-   * Enter edit mode by long pressing the first icon on the grid.
+   * Enter edit mode by long pressing a given icon, or the first icon on the
+   * grid if not specified.
    */
-  enterEditMode: function() {
+  enterEditMode: function(icon) {
     var actions = new Actions(this.client);
-    var firstIcon =
+    var firstIcon = icon ||
       this.client.helper.waitForElement(Home2.Selectors.firstIcon);
 
     actions.longPress(firstIcon, 1).perform();
