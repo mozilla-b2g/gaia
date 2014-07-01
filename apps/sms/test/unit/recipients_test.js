@@ -2,7 +2,7 @@
          MockDialog, Template, MockL10n */
 'use strict';
 
-require('/shared/test/unit/mocks/mock_gesture_detector.js');
+require('/shared/js/gesture_detector.js');
 
 requireApp('sms/js/recipients.js');
 requireApp('sms/js/utils.js');
@@ -13,7 +13,6 @@ requireApp('sms/test/unit/mock_l10n.js');
 
 var mocksHelperForRecipients = new MocksHelper([
   'Dialog',
-  'GestureDetector',
   'Utils'
 ]);
 
@@ -747,6 +746,81 @@ suite('Recipients', function() {
           view.lastElementChild.dispatchEvent(event);
 
           assert.equal(recipients.numbers[0], '987654');
+        });
+      });
+
+      suite('Pan gesture on recipient view', function() {
+        var outer, inner, visible, options;
+
+        setup(function() {
+          outer = document.getElementById('messages-to-field');
+          inner = document.getElementById('messages-recipients-list');
+          visible = Recipients.View.prototype.visible;
+          options = {
+            detail: {
+              absolute: {
+                dy: 10
+              }
+            }
+          };
+        });
+
+        test('swipe down on singleline, inner height <= min container height',
+         function() {
+          inner.style.height = '10px';
+
+          outer.dispatchEvent(
+            new CustomEvent('pan', options)
+          );
+
+          sinon.assert.notCalled(visible);
+        });
+
+        test('swipe down on singleline, inner height > min container height',
+          function() {
+          inner.style.height = '100px';
+
+          outer.dispatchEvent(
+            new CustomEvent('pan', options)
+          );
+
+          sinon.assert.calledWith(visible, 'multiline');
+        });
+
+        test('swipe down on multiline view', function() {
+          inner.style.height = '100px';
+          recipients.visible('multiline');
+          visible.reset();
+
+          outer.dispatchEvent(
+            new CustomEvent('pan', options)
+          );
+
+          sinon.assert.notCalled(visible);
+        });
+
+        test('swipe up on singleline view', function() {
+          inner.style.height = '10px';
+          options.detail.absolute.dy = -10;
+
+          outer.dispatchEvent(
+            new CustomEvent('pan', options)
+          );
+
+          sinon.assert.notCalled(visible);
+        });
+
+        test('swipe up on multiline view', function() {
+          inner.style.height = '100px';
+          options.detail.absolute.dy = -10;
+          recipients.visible('multiline');
+          visible.reset();
+
+          outer.dispatchEvent(
+            new CustomEvent('pan', options)
+          );
+
+          sinon.assert.notCalled(visible);
         });
       });
     });
