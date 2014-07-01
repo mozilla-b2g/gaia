@@ -408,13 +408,21 @@ function initThumbnails() {
   var batch = [];
   var batchsize = PAGE_SIZE;
   var firstBatchDisplayed = false;
+  var storage = navigator.getDeviceStorage('pictures');
+  var filesEnumerated = 0; // number of files enumerated
+  var filesExistCount = 0; // number of files in photodb existings on device
+  var filesDeletedCount = 0; // number of files in photodb not found on device
+  var enumDone = false; // flag to store if photodb enumerate is complete.
+
+  // Show scanning overlay while enumerating till
+  // first batch is ready to be displayed
+  showOverlay('scanning');
 
   photodb.enumerate('date', null, 'prev', function(fileinfo) {
     if (fileinfo) {
       // For a pick activity, don't display videos
       if (pendingPick && fileinfo.metadata.video)
         return;
-
       // Bug 1003036 fixed an issue where explicitly created preview
       // images could be saved with fractional sizes. We don't do that
       // anymore, but we still need to clean up existing bad data here.
@@ -425,15 +433,48 @@ function initThumbnails() {
         metadata.preview.width = Math.floor(metadata.preview.width);
         metadata.preview.height = Math.floor(metadata.preview.height);
       }
+      // Existence check of a file in first enumeration on app start Bug 864674
+      // Make an async device storage call to get the file and update batch
+      // files array only when device storage call is successful
+      if (fileinfo.name) {
+        filesEnumerated++;
+        var getreq = storage.get(fileinfo.name);
+        getreq.onsuccess = function() {
+          filesExistCount++;
+          // Hide overlay while enumerating when first batch
+          // of thumbnails is ready to be displayed
+          if (files.length === PAGE_SIZE &&
+              currentOverlay === 'scanning') {
+            showOverlay(null);
+          }
+          batch.push(fileinfo);
+          // Check if it's last device storage call
+          if (filesEnumerated === filesExistCount + filesDeletedCount &&
+              enumDone) {
+            done();
+          } else if (batch.length >= batchsize) {
+            flush();
+            batchsize *= 2;
+          }
+        };
 
-      batch.push(fileinfo);
-      if (batch.length >= batchsize) {
-        flush();
-        batchsize *= 2;
+        getreq.onerror = function() {
+          filesDeletedCount++;
+          // Check for last device storage call
+          if (filesEnumerated === filesExistCount + filesDeletedCount &&
+              enumDone) {
+            done();
+          }
+        };
       }
     }
-    else {
+    else if (filesEnumerated === 0) {
+      // Invoke done when there are no records to enumerate
       done();
+    }
+    else {
+      // Update enumeration complete flag to true
+      enumDone = true;
     }
   });
 
@@ -457,6 +498,9 @@ function initThumbnails() {
   }
 
   function done() {
+    if (currentOverlay === 'scanning') {
+      showOverlay(null);
+    }
     flush();
     if (files.length === 0) { // If we didn't find anything
       showOverlay('scanning');
