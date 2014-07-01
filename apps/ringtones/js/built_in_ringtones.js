@@ -92,13 +92,13 @@ window.builtInRingtones = (function() {
       return new Promise(function(resolve, reject) {
         var xhr = new XMLHttpRequest();
         xhr.open('GET', url);
-        // XXX: This assumes that all system tones are ogg files. Maybe map
-        // based on the extension instead?
-        xhr.overrideMimeType('audio/ogg');
         xhr.responseType = 'blob';
         xhr.send();
         xhr.onload = function() {
-          resolve(xhr.response);
+          // Use slice() to strip the "application/xml" MIME type from the Blob,
+          // since it's not XML! (We'll just let consumers infer what the type
+          // really is.)
+          resolve(xhr.response.slice());
         };
         xhr.onerror = function() {
           var err = new Error('Could not read sound file: ' + url +
