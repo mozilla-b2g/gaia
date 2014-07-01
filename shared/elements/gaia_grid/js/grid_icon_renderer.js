@@ -28,10 +28,11 @@
     unscaledCanvasPadding: UNSCALED_CANVAS_PADDING * 2,
 
     /**
-     * Returns the max size for an icon based on grid size and pixel ratio.
+     * Returns the max size for an icon based on grid size which is based on
+     * pixel ratio.
      */
     get _maxSize() {
-      return this._icon.grid.layout.gridIconSize * devicePixelRatio;
+      return this._icon.grid.layout.gridMaxIconSize;
     },
 
     /**
@@ -84,14 +85,16 @@
         clipCtx.drawImage(img, 0, 0,
                                clipCanvas.width, clipCanvas.height);
 
-        var clipImage = new Image();
-        clipImage.onload = () => {
-          shadowCtx.drawImage(clipImage, CANVAS_PADDING,
-                              CANVAS_PADDING,
-                              this._maxSize, this._maxSize);
-          shadowCanvas.toBlob(resolve);
-        };
-        clipImage.src = clipCanvas.toDataURL();
+        clipCanvas.toBlob((blob) => {
+          var clipImage = new Image();
+          clipImage.onload = () => {
+            shadowCtx.drawImage(clipImage, CANVAS_PADDING, CANVAS_PADDING,
+                                this._maxSize, this._maxSize);
+            shadowCanvas.toBlob(resolve);
+            URL.revokeObjectURL(clipImage.src);
+          };
+          clipImage.src = URL.createObjectURL(blob);
+        });
       });
     },
 
