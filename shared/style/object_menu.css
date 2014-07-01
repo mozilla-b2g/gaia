@@ -81,7 +81,7 @@
   list-style: none;
   position: relative;
   font-size: 2.2rem;
-  font-weight: lighter;
+  font-weight: 300;
   color: #fff;
   display: flex;
   justify-content: center;
@@ -125,7 +125,7 @@
   background: none;
   text-align: left;
   font-size: 2.2rem;
-  font-weight: lighter;
+  font-weight: 300;
   padding: 0;
 }
 

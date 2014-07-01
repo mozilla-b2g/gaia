@@ -294,7 +294,7 @@ gaia-buttons.forward-only .icon-previous {
 #SIM_mandatory p {
   margin: 0;
   color: #606060;
-  font-weight: lighter;
+  font-weight: 300;
   padding: 0 1rem 1rem;
   font-size: 2.2rem;
   line-height: 3rem;

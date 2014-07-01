@@ -477,7 +477,7 @@ body.picker-mode #title-player {
   width: 33%;
   height: 0;
   padding-bottom: 33%;
-  font-weight: lighter;
+  font-weight: 300;
   background-color: #303030;
   overflow: hidden;
 }
