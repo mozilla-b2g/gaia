@@ -721,6 +721,11 @@ Do not remove.
   float: left;
 }
 
+.recipient[contenteditable].email {
+  padding-right: 3.8rem;
+  background: white url(images/icons/icon_sms_compose_email.png) calc(100% - 1.5rem) center no-repeat;
+}
+
 /* Disable padding and margin on empty contenteditable recipients when they do
  * not have focus. This allows the Recipients List to intelligently collapse
  * when the final row contains no "assimilated" (i.e. non-contenteditable)
