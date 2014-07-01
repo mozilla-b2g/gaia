@@ -984,21 +984,44 @@ navigator.mozL10n.once(function wifiSettings() {
   // update network state, called only when wifi enabled.
   function updateNetworkState() {
     var networkStatus = gWifiManager.connection.status;
-    var networkProp = gWifiManager.connection.network ?
-        {ssid: gWifiManager.connection.network.ssid} : null;
+    /**
+     * gCurrentNetwork : user activated current network
+     * gWifiManager.connection.network : system activated current network
+     *
+     * Main difference between |gCurrentNetwork| and |gWifiManager.connection.
+     * network| is that we can't tell if network is known while connecting by
+     * |gWifiManager.connectiohn.network.known| because it will always be true.
+     * Instead, we use |gCurrentNetwork| to indicate if current connecting
+     * network is new or known network.
+     *
+     * When system connect to network by user's tap on UI, |gCurrentNetwork|
+     * will point to same network as |gWifiManager.connection.network|.
+     * On the other hand, if system connect to network automatically under
+     * conditions like wifi enable, move into AP's range, or reconnect to
+     * other network after delete current connected network, |gCurrentNetwork|
+     * will be null, while |gWifiManager.connection.network| contains
+     * information about current network.
+     */
+    var currentNetwork = gCurrentNetwork || gWifiManager.connection.network;
+    var networkProp = currentNetwork ? {ssid: currentNetwork.ssid} : null;
 
     // networkStatus has one of the following values:
     // connecting, associated, connected, connectingfailed, disconnected.
-    gNetworkList.display(gCurrentNetwork, networkStatus);
+    gNetworkList.display(currentNetwork, networkStatus);
 
     gWifiInfoBlock.textContent =
         _('fullStatus-' + networkStatus, networkProp);
 
     if (networkStatus === 'connectingfailed' && gCurrentNetwork) {
       settings.createLock().set({'wifi.connect_via_settings': false});
-      // connection has failed, probably an authentication issue...
-      delete(gCurrentNetwork.password);
-      gWifiManager.forget(gCurrentNetwork); // force a new authentication dialog
+      if (gCurrentNetwork.known === false) {
+        // Connection fail on user-activated unknown network, should be wrong
+        // password, delete network and force a new authentication dialog.
+        delete(gCurrentNetwork.password);
+        gWifiManager.forget(gCurrentNetwork);
+      }
+      gCurrentNetwork = null;
+    } else if (networkStatus === 'disconnected') {
       gCurrentNetwork = null;
     }
 
