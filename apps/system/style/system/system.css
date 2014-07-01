@@ -76,26 +76,26 @@ body {
   display: block;
   position: absolute;
   border-radius: 50%;
-  width: 6rem;
-  height: 6rem;
-  margin-left: -3rem;
-  margin-top: -3rem;
+  width: 19vw;
+  height: 19vw;
+  margin-left: -9.5vw;
+  margin-top: -9.5vw;
   left: 50%;
   opacity: 0;
 }
 
 #poweroff-ring-1 {
-  top: 12rem;
+  top: 25%;
   background-color: #e66600;
 }
 
 #poweroff-ring-2 {
-  top: 24rem;
+  top: 50%;
   background-color: #dc4e00;
 }
 
 #poweroff-ring-3 {
-  top: 36rem;
+  top: 75%;
   background-color: #d24500;
 }
 
@@ -107,10 +107,26 @@ body {
   left: 50%;
   margin: auto;
   background-color: black;
-  width: 4rem;
-  height: 4rem;
-  margin-top: -2rem;
-  margin-left: -2rem;
+  width: 12vw;
+  height: 12vw;
+  margin-top: -6vw;
+  margin-left: -6vw;
+}
+
+@media all and (orientation:landscape) {
+  .poweroff-ring {
+    width: 19vh;
+    height: 19vh;
+    margin-left: -9.5vh;
+    margin-top: -9.5vh;
+  }
+
+  .poweroff-ring > span {
+    width: 12vh;
+    height: 12vh;
+    margin-top: -6vh;
+    margin-left: -6vh;
+  }
 }
 
 #poweroff-ring-2 > span {
