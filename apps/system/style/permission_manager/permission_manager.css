@@ -27,7 +27,7 @@
   display: inline-block;
 }
 
-#permission-dialog > div.inner {
+.permission-dialog > div.inner {
   max-height: calc(100% - 5.6rem);
   overflow-y: scroll;
 }
@@ -59,7 +59,7 @@
   height: calc(100% - 5rem);
 }
 
-#permission-title {
+.permission-title {
   padding: 1.2rem;
   font-size: 1.8rem;
   font-weight: normal;
@@ -68,7 +68,7 @@
   border-bottom: 0.1rem solid #686868;
 }
 
-#permission-message {
+.permission-message {
   margin: 0;
   padding-top: 1.2rem;
   padding-bottom: 1.2rem;
@@ -82,41 +82,41 @@
   word-wrap: break-word;
 }
 
-#permission-more-info-link.hidden {
+.permission-more-info-link.hidden {
   display: none;
 }
 
-#permission-hide-info-link.hidden {
+.permission-hide-info-link.hidden {
   display: none;
 }
 
-#permission-more-info {
+.permission-more-info {
   margin-left: 1rem;
   padding-bottom: 1.2rem;
   font-size: 1.8rem;
 }
 
-#permission-more-info.hidden {
+.permission-more-info.hidden {
   display: none;
 }
 
-#permission-more-info a {
+.permission-more-info a {
   color: white;
   outline: none;
 }
 
-#permission-more-info-box {
+.permission-more-info-box {
   margin-top: 1.2rem;
   margin-left: 1.2rem;
   max-height: 13rem; /* XXX: use magic calc(); expression instead */
   overflow-y: scroll;
 }
 
-#permission-more-info-box.hidden {
+.permission-more-info-box.hidden {
   display: none;
 }
 
-#permission-remember-section {
+.permission-remember-section {
   font-size: 1.8rem;
   font-weight: lighter;
   color: #fbfbfb;
@@ -125,53 +125,53 @@
   border-bottom: 0.1rem solid #686868;
 }
 
-#permission-screen[data-type] #permission-remember-section {
+#permission-screen[data-type] .permission-remember-section {
   display: block;
 }
 
-#permission-screen[data-type] #permission-icon {
+#permission-screen[data-type] .permission-icon {
   display: inherit;
 }
 
-#permission-screen[data-type] #permission-message {
+#permission-screen[data-type] .permission-message {
   padding-left: 7rem;
 }
 
-#permission-remember-section label {
+.permission-remember-section label {
   width: 2.8rem;
   height: 2rem;
   margin-top: -0.2rem;
 }
 
-#permission-device-selector {
+.permission-device-title {
   font-size: 1.8rem;
   font-weight: lighter;
   padding: 3rem 0 2rem 1.2rem;
 }
 
-#permission-device-selector.hidden {
+.permission-device-title.hidden {
   display: none;
 }
 
-#permission-devices {
+.permission-devices {
   margin: 0;
   padding: 0;
 }
 
-#permission-devices li.device-cell {
+.permission-devices li.device-cell {
   position: relative;
   list-style-type: none;
 }
 
-#permission-devices li.device-cell > a:active {
+.permission-devices li.device-cell > a:active {
   background-color: rgba(52,140,158, .6);
 }
 
-#permission-devices li.device-cell label:active {
+.permission-devices li.device-cell label:active {
   background-color: transparent;
 }
 
-#permission-devices .deviceEnable {
+.permission-devices .deviceEnable {
   position: absolute;
   top: 0;
   right: 0;
@@ -179,7 +179,7 @@
   height: 100%;
 }
 
-#permission-devices input[type="checkbox"] + span {
+.permission-devices input[type="checkbox"] + span {
   position: absolute;
   top: 0.3rem;
   right: 1.5rem;
@@ -189,23 +189,23 @@
   height: 3.4rem;
 }
 
-#permission-devices input[type="checkbox"]:checked + span {
+.permission-devices input[type="checkbox"]:checked + span {
   border-color: #00acce;
   background: url(images/alarm_on.png) no-repeat center top / 3.4rem;
 }
 
-#permission-devices .device-list > input {
+.permission-devices .device-list > input {
   display: none;
 }
 
-#permission-devices .device-item {
+.permission-devices .device-item {
   padding: 1rem;
   display: block;
   font-weight: lighter;
   font-size: 1.8rem;
 }
 
-#permission-devices .device-item:active {
+.permission-devices .device-item:active {
   background-color: transparent;
 }
 
@@ -213,42 +213,42 @@
   pointer-events: none;
 }
 
-#permission-screen[data-type="geolocation"] #permission-message {
+#permission-screen[data-type="geolocation"] .permission-message {
   background-image: url(images/PermissionsDialogIcons_Geolocation.png);
 }
 
-#permission-screen[data-type="fmradio"] #permission-message {
+#permission-screen[data-type="fmradio"] .permission-message {
   background-image: url(images/PermissionsDialogIcons_FMRadio.png);
 }
 
-#permission-screen[data-type*="camera"] #permission-message {
+#permission-screen[data-type*="camera"] .permission-message {
   background-image: url(images/PermissionsDialogIcons_Camera.png);
 }
 
-#permission-screen[data-type*="wifi"] #permission-message {
+#permission-screen[data-type*="wifi"] .permission-message {
   background-image: url(images/PermissionsDialogIcons_WifiInformation.png);
 }
 
-#permission-screen[data-type="contacts"] #permission-message {
+#permission-screen[data-type="contacts"] .permission-message {
   background-image: url(images/PermissionsDialogIcons_Contacts.png);
 }
 
-#permission-screen[data-type*="device-storage"] #permission-message {
+#permission-screen[data-type*="device-storage"] .permission-message {
   background-image: url(images/PermissionsDialogIcons_DeviceStorage.png);
 }
 
-#permission-screen[data-type="video-capture"] #permission-message {
+#permission-screen[data-type="video-capture"] .permission-message {
   background-image: url(images/PermissionsDialogIcons_VideoRecorder.png);
 }
 
-#permission-screen[data-type="camera-selector"] #permission-message {
+#permission-screen[data-type="camera-selector"] .permission-message {
   background-image: url(images/PermissionsDialogIcons_VideoRecorder.png);
 }
 
-#permission-screen[data-type="audio-capture"] #permission-message {
+#permission-screen[data-type="audio-capture"] .permission-message {
   background-image: url(images/PermissionsDialogIcons_Microphone.png);
 }
 
-#permission-screen[data-type="media-capture"] #permission-message {
+#permission-screen[data-type="media-capture"] .permission-message {
   background-image: url(images/PermissionsDialogIcons_VideoAndMic.png);
 }
