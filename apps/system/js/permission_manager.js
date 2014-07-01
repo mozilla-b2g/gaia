@@ -86,6 +86,12 @@
       this.discardPermissionRequest = this.discardPermissionRequest.bind(this);
       window.addEventListener('home', this.discardPermissionRequest);
       window.addEventListener('holdhome', this.discardPermissionRequest);
+
+      // Ensure that the focus is not stolen by the permission overlay, as
+      // it may appears on top of a <select> element, and just cancel it.
+      this.overlay.addEventListener('mousedown', function onMouseDown(evt) {
+        evt.preventDefault();
+      });
     },
 
     /**
