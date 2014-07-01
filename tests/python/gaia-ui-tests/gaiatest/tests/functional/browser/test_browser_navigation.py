@@ -12,6 +12,7 @@ class TestBrowserNavigation(GaiaTestCase):
 
     _community_link_locator = (By.CSS_SELECTOR, '#community a')
     _community_history_section_locator = (By.ID, 'history')
+    _mozilla_logo_locator = (By.ID, 'mozilla_logo')
 
     def setUp(self):
         GaiaTestCase.setUp(self)
@@ -44,6 +45,7 @@ class TestBrowserNavigation(GaiaTestCase):
         self.verify_community_page()
 
     def verify_home_page(self):
+        self.wait_for_element_displayed(*self._mozilla_logo_locator)
         self.wait_for_element_present(*self._community_link_locator)
         community_link = self.marionette.find_element(*self._community_link_locator)
         self.assertTrue(community_link.is_displayed(), 'The community link was not visible at mozilla.html.')
