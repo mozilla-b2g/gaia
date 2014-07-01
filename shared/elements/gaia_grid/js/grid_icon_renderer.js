@@ -31,7 +31,7 @@
      * Returns the max size for an icon based on grid size and pixel ratio.
      */
     get _maxSize() {
-      return this._icon.grid.layout.gridIconSize * devicePixelRatio;
+      return this._icon.grid.layout.gridMaxIconSize * devicePixelRatio;
     },
 
     /**
@@ -84,14 +84,16 @@
         clipCtx.drawImage(img, 0, 0,
                                clipCanvas.width, clipCanvas.height);
 
-        var clipImage = new Image();
-        clipImage.onload = () => {
-          shadowCtx.drawImage(clipImage, CANVAS_PADDING,
-                              CANVAS_PADDING,
-                              this._maxSize, this._maxSize);
-          shadowCanvas.toBlob(resolve);
-        };
-        clipImage.src = clipCanvas.toDataURL();
+        clipCanvas.toBlob((blob) => {
+          var clipImage = new Image();
+          clipImage.onload = () => {
+            shadowCtx.drawImage(clipImage, CANVAS_PADDING, CANVAS_PADDING,
+                                this._maxSize, this._maxSize);
+            shadowCanvas.toBlob(resolve);
+            URL.revokeObjectURL(clipImage.src);
+          };
+          clipImage.src = URL.createObjectURL(blob);
+        });
       });
     },
 
@@ -104,7 +106,7 @@
     favicon: function(img) {
 
       // If we have a decent sized image, we want to clip instead.
-      if (img.width > this._icon.grid.layout.gridIconSize / 2) {
+      if (img.width > this._icon.grid.layout.gridMaxIconSize / 2) {
         return this.clip(img);
       }
 

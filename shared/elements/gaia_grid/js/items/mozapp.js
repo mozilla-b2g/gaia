@@ -34,7 +34,7 @@
       entryPoint: entryPoint,
       index: 0,
       // XXX: Somewhat ugly hack around the constructor args
-      defaultIconBlob: details && details.defaultIconBlob
+      decoratedIconBlob: details && details.decoratedIconBlob
     };
 
     // Yes this is clobbering all other listeners to the app MozApp
