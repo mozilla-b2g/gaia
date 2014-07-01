@@ -408,6 +408,7 @@ function initThumbnails() {
   var batch = [];
   var batchsize = PAGE_SIZE;
   var firstBatchDisplayed = false;
+  var storage = navigator.getDeviceStorage('pictures');
 
   photodb.enumerate('date', null, 'prev', function(fileinfo) {
     if (fileinfo) {
@@ -426,10 +427,21 @@ function initThumbnails() {
         metadata.preview.height = Math.floor(metadata.preview.height);
       }
 
-      batch.push(fileinfo);
-      if (batch.length >= batchsize) {
-        flush();
-        batchsize *= 2;
+      // Existence check of a file in first enumeration on app start Bug 864674
+      // Make an async device storage call to get the file and update batch
+      // files array only when device storage call is successful
+      if (fileinfo.name) {
+        var getreq = storage.get(fileinfo.name);
+        getreq.onsuccess = function() {
+          batch.push(fileinfo);
+          if (batch.length >= batchsize) {
+            flush();
+            batchsize *= 2;
+          }
+        };
+        getreq.onerror = function() {
+          console.log('Failed to get file from device', fileinfo.name);
+        };
       }
     }
     else {
