@@ -91,17 +91,59 @@ suite('system/LayoutManager >', function() {
     });
   });
 
-  test('height calculation', function() {
-    var H = window.innerHeight;
-    var W = window.innerWidth;
-    var _w = document.documentElement.clientWidth;
-    MockKeyboardManager.mHeight = 100;
-    MockStatusBar.height = 30;
-    MocksoftwareButtonManager.height = 50;
-    layoutManager.keyboardEnabled = true;
-    assert.equal(layoutManager.height, H - 100 - 30 - 50);
-    assert.equal(layoutManager.width, W);
-    assert.equal(layoutManager.clientWidth, _w);
-    assert.isTrue(layoutManager.match(W, H - 100 - 30 - 50));
+  suite('height calculation', function() {
+    var realDPX, stubDPX;
+    var realIH, stubIH;
+    var H, W;
+    setup(function() {
+      stubDPX = 1;
+      realDPX = window.devicePixelRatio;
+
+      stubIH = 545;
+      realIH = window.innerHeight;
+
+      Object.defineProperty(window, 'devicePixelRatio', {
+        configurable: true,
+        get: function() { return stubDPX; }
+      });
+
+      Object.defineProperty(window, 'innerHeight', {
+        configurable: true,
+        get: function() { return stubIH; }
+      });
+
+      H = window.innerHeight;
+      W = window.innerWidth;
+      MockStatusBar.height = 30;
+    });
+
+    teardown(function() {
+      Object.defineProperty(window, 'devicePixelRatio', {
+        configurable: true,
+        get: function() { return realDPX; }
+      });
+
+      Object.defineProperty(window, 'innerHeight', {
+        configurable: true,
+        get: function() { return realIH; }
+      });
+    });
+
+    test('should take into account statusbar, keyboard and home button',
+    function() {
+      var _w = document.documentElement.clientWidth;
+      MockKeyboardManager.mHeight = 100;
+      MocksoftwareButtonManager.height = 50;
+      layoutManager.keyboardEnabled = true;
+      assert.equal(layoutManager.height, H - 100 - 30 - 50);
+      assert.equal(layoutManager.width, W);
+      assert.equal(layoutManager.clientWidth, _w);
+      assert.isTrue(layoutManager.match(W, H - 100 - 30 - 50));
+    });
+
+    test('should return integral values in device pixels', function() {
+      stubDPX = 1.5;
+      assert.equal((layoutManager.height * stubDPX) % 1, 0);
+    });
   });
 });
