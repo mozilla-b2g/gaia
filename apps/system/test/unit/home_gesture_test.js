@@ -114,7 +114,7 @@ suite('enable/disable homegesture', function() {
 
   test('when lockscreen is enabled', function() {
     subject.handleEvent({
-      type: 'lock'
+      type: 'lockscreen-appopened'
     });
     assert.equal(
       subject.homeBar.classList.contains('visible'),
@@ -123,7 +123,7 @@ suite('enable/disable homegesture', function() {
 
   test('when lockscreen is disabled', function() {
     subject.handleEvent({
-      type: 'will-unlock'
+      type: 'lockscreen-appclosing'
     });
     assert.equal(
       subject.homeBar.classList.contains('visible'),

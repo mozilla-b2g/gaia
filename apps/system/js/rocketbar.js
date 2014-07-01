@@ -236,7 +236,7 @@
         case 'cardviewclosedhome':
           this.handleHome(e);
           break;
-        case 'lock':
+        case 'lockscreen-appopened':
           this.hideResults();
           this.deactivate();
           break;

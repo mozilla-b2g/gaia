@@ -48,7 +48,7 @@
       window.addEventListener('appforeground', this);
       window.addEventListener('apptitlechange', this);
       window.addEventListener('home', this);
-      window.addEventListener('lock', this);
+      window.addEventListener('lockscreen-appopened', this);
       window.addEventListener('appopened', this);
       window.addEventListener('launchactivity', this, true);
       window.addEventListener('searchcrashed', this);
@@ -91,7 +91,7 @@
         case 'home':
           this.handleHome(e);
           break;
-        case 'lock':
+        case 'lockscreen-appopened':
           this.handleLock(e);
           break;
         case 'focus':
