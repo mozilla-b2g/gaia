@@ -88,7 +88,7 @@ suite('compose_test.js', function() {
   });
 
   suite('Message Composition', function() {
-    var message, subject, sendButton, attachButton;
+    var message, subject, sendButton, attachButton, form;
 
     setup(function() {
       loadBodyHTML('/index.html');
@@ -97,6 +97,7 @@ suite('compose_test.js', function() {
       subject = document.getElementById('messages-subject-input');
       sendButton = document.getElementById('messages-send-button');
       attachButton = document.getElementById('messages-attach-button');
+      form = document.getElementById('messages-compose-form');
     });
 
     suite('Subject', function() {
@@ -105,13 +106,13 @@ suite('compose_test.js', function() {
       });
 
       test('Toggle field', function() {
-        assert.isTrue(subject.classList.contains('hide'));
+        assert.isFalse(form.classList.contains('subject-input-visible'));
         // Show
         Compose.toggleSubject();
-        assert.isFalse(subject.classList.contains('hide'));
+        assert.isTrue(form.classList.contains('subject-input-visible'));
         // Hide
         Compose.toggleSubject();
-        assert.isTrue(subject.classList.contains('hide'));
+        assert.isFalse(form.classList.contains('subject-input-visible'));
       });
 
       test('Get content from subject field', function() {
@@ -176,6 +177,42 @@ suite('compose_test.js', function() {
           subject.innerHTML = '<br><br><br>foo';
           Compose.toggleSubject();
           assert.isFalse(Compose.isSubjectEmpty());
+        });
+
+        test('> isMultilineSubject:true', function() {
+          subject.innerHTML = '<br>';
+          Compose.toggleSubject();
+
+          assert.isFalse(Compose.isMultilineSubject());
+
+          subject.innerHTML = 'Foo<br>Bar';
+
+          assert.isTrue(Compose.isMultilineSubject());
+        });
+
+        test('> isMultilineSubject:false', function() {
+          subject.textContent = '123456789';
+          Compose.toggleSubject();
+          assert.isFalse(Compose.isMultilineSubject());
+        });
+
+        test('> isMultilineSubject depends on line height', function() {
+          subject.textContent = '123456789';
+          Compose.toggleSubject();
+
+          var subjectLineHeight = Number.parseInt(
+            window.getComputedStyle(subject).lineHeight
+          );
+
+          subject.style.height = (subjectLineHeight * 2) + 'px';
+
+          assert.isTrue(Compose.isMultilineSubject());
+
+          subject.style.height = (subjectLineHeight * 1.5) + 'px';
+          assert.isFalse(Compose.isMultilineSubject());
+
+          subject.style.height = (subjectLineHeight * 3) + 'px';
+          assert.isTrue(Compose.isMultilineSubject());
         });
       });
     });
