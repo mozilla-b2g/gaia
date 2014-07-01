@@ -305,7 +305,7 @@ body.pickView #thumbnails {
   font-size: 0;
   border-radius: 50%;
   border: none;
-  background: rgba(95, 95, 95, 0.3) url(images/back.png) no-repeat 50% 50%;
+  background: rgba(95, 95, 95, 0.3) url(images/back.png) no-repeat 50% 50% / 3rem auto;
   transition: opacity 0.2s linear;
 }
 
