@@ -72,7 +72,8 @@ var EdgeSwipeDetector = {
         this._touchEnd(e);
         break;
       case 'appopen':
-        this.lifecycleEnabled = true;
+        var app = e.detail;
+        this.lifecycleEnabled = (app.origin !== FtuLauncher.getFtuOrigin());
         break;
       case 'homescreenopened':
         this.lifecycleEnabled = false;

@@ -7,13 +7,15 @@ requireApp('system/test/unit/mock_stack_manager.js');
 requireApp('system/test/unit/mock_touch_forwarder.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_homescreen_launcher.js');
+requireApp('system/test/unit/mock_ftu_launcher.js');
 
 var mocksForEdgeSwipeDetector = new MocksHelper([
   'SheetsTransition',
   'StackManager',
   'SettingsListener',
   'TouchForwarder',
-  'HomescreenLauncher'
+  'HomescreenLauncher',
+  'FtuLauncher'
 ]).init();
 
 suite('system/EdgeSwipeDetector >', function() {
@@ -41,10 +43,17 @@ suite('system/EdgeSwipeDetector >', function() {
 
   var dialer = {
     url: 'app://communications.gaiamobile.org/dialer/index.html',
-    origin: 'app://communications.gaiamobile.org/',
+    origin: 'app://communications.gaiamobile.org',
     manifestURL: 'app://communications.gaiamobile.org/dialer/manifest.webapp',
     name: 'Dialer',
     getTopMostWindow: function() {}
+  };
+
+  var ftu = {
+    url: 'app://ftu.gaiamobile.org/index.html',
+    origin: 'app://ftu.gaiamobile.org',
+    manifestURL: 'app://ftu.gaiamobile.org/manifest.webapp',
+    name: 'FTU'
   };
 
   function appLaunch(config) {
@@ -64,9 +73,10 @@ suite('system/EdgeSwipeDetector >', function() {
     window.dispatchEvent(cardClosedEvent);
   }
 
-  function launchTransitionEnd() {
+  function launchTransitionEnd(config) {
     var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent('appopen', true, false, null);
+    config || (config = dialer);
+    evt.initCustomEvent('appopen', true, false, config);
     window.dispatchEvent(evt);
   }
 
@@ -156,6 +166,12 @@ suite('system/EdgeSwipeDetector >', function() {
         var cssNext = EdgeSwipeDetector.next.classList;
         assert.isTrue(cssNext.contains('disabled'));
       });
+    });
+
+    test('the edges should be disabled on the FTU', function() {
+      launchTransitionEnd(ftu);
+      assert.isTrue(EdgeSwipeDetector.previous.classList.contains('disabled'));
+      assert.isTrue(EdgeSwipeDetector.next.classList.contains('disabled'));
     });
   });
 
