@@ -49,10 +49,8 @@ ControlsController.prototype.bindEvents = function() {
   // App
   this.app.on('change:recording', this.onRecordingChange);
   this.app.on('camera:shutter', this.captureHighlightOff);
-  this.app.on('timer:started', this.onTimerStarted);
   this.app.on('newthumbnail', this.onNewThumbnail);
   this.app.on('camera:busy', this.onCameraBusy);
-  this.app.on('timer:cleared', this.restore);
   this.app.on('camera:ready', this.restore);
 
   // View
@@ -60,6 +58,11 @@ ControlsController.prototype.bindEvents = function() {
   this.view.on('click:thumbnail', this.app.firer('preview'));
   this.view.on('click:cancel', this.onCancelButtonClick);
   this.view.on('click:capture', this.onCaptureClick);
+
+  // Timer
+  this.app.on('timer:started', this.onTimerStarted);
+  this.app.on('timer:cleared', this.onTimerStopped);
+  this.app.on('timer:ended', this.onTimerStopped);
 
   debug('events bound');
 };
@@ -156,13 +159,25 @@ ControlsController.prototype.onNewThumbnail = function(thumbnailBlob) {
 /**
  * Forces the capture button to
  * look pressed while the timer is
- * counting down and disables buttons.
+ * counting down and hides controls.
  *
  * @private
  */
 ControlsController.prototype.onTimerStarted = function() {
   this.captureHighlightOn();
-  this.view.disable();
+  this.view.set('timer', 'active');
+};
+
+/**
+ * Forces the capture button to
+ * look unpressed when the timer
+ * stops and shows controls.
+ *
+ * @private
+ */
+ControlsController.prototype.onTimerStopped = function() {
+  this.captureHighlightOff();
+  this.view.set('timer', 'inactive');
 };
 
 ControlsController.prototype.onCameraBusy = function() {
