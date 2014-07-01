@@ -169,6 +169,10 @@
           if (degree === 90 || degree === 270) {
             immediateTranstion = true;
           }
+        } else if (appNext.isHomescreen) {
+          // If there's no active app and next app is homescreen,
+          // open it right away.
+          immediateTranstion = true;
         }
 
         if (appNext.resized &&
