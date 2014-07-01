@@ -13,10 +13,6 @@
 
     this.bookmarkButton = this.menu.querySelector('#add-to-homescreen');
 
-    // Bug 1030248 - Late l10n workaround.
-    // Set the label content to be the same as add-to-homescreen l10n.
-    this.bookmarkButton.label = navigator.mozL10n.get('add-to-homescreen');
-
     this.grid.addEventListener('contextmenu', this);
     this.bookmarkButton.addEventListener('click', this);
   }
