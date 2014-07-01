@@ -92,9 +92,6 @@
     // draw stored background if in full size (as opposed to square icon size)
     if (bg && bg.src && bg.isFullSize) {
       elements.content.style.backgroundImage = 'url(' + bg.src + ')';
-      // Bug 1029971 - Workaround the disappearing image.
-      elements.content.style.backgroundColor = 'transparent';
-
       eme.log('drawBackground', 'drawn');
     } else {
       eme.log('drawBackground', 'not drawn, failed conditions', bg);
