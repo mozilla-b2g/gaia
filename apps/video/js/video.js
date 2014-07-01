@@ -119,7 +119,16 @@ document.addEventListener('visibilitychange', function visibilityChange() {
   }
 });
 
-navigator.mozL10n.once(init);
+navigator.mozL10n.once(function() {
+
+  // Tell performance monitors that our chrome is visible
+  window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
+
+  init();
+
+  // Tell performance monitors that our chrome is ready to interact with.
+  window.dispatchEvent(new CustomEvent('moz-chrome-interactive'));
+});
 
 // we don't need to wait for l10n ready to have correct css layout.
 initLayout();
