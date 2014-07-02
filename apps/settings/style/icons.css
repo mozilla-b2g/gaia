@@ -147,11 +147,11 @@ li:active:not([aria-disabled="true"]) .menu-item::before,
   background-position: -6rem -15rem;
 }
 
-#menuItem-applicationStorage::before {
+.menuItem-applicationStorage::before {
   background-position: 0 -12rem;
 }
 
-#menuItem-mediaStorage::before {
+.menuItem-mediaStorage::before {
   background-position: -3rem -12rem;
 }
 
