@@ -49,11 +49,7 @@ var CaptivePortal = {
     this.notification.addEventListener('tap', this.captiveNotification_onTap);
   },
 
-  handleLoginAbort: function handleLoginAbort(id) {
-    var wifiManager = window.navigator.mozWifiManager;
-    var _ = window.navigator.mozL10n.get;
-    var settings = window.navigator.mozSettings;
-
+  dismissNotification: function dismissNotification(id) {
     if (id === this.eventId) {
       if (this.notification && this.notification.parentNode) {
         if (this.captiveNotification_onTap) {
@@ -72,6 +68,14 @@ var CaptivePortal = {
     }
   },
 
+  handleLoginAbort: function handleLoginAbort(id) {
+    this.dismissNotification(id);
+  },
+
+  handleLoginSuccess: function handleLoginSuccess(id) {
+    this.dismissNotification(id);
+  },
+
   handleEvent: function cp_handleEvent(evt) {
     switch (evt.detail.type) {
       case 'captive-portal-login':
@@ -79,6 +83,8 @@ var CaptivePortal = {
         break;
       case 'captive-portal-login-abort':
         this.handleLoginAbort(evt.detail.id);
+      case 'captive-portal-login-success':
+        this.handleLoginSuccess(evt.detail.id);
         break;
     }
   },
