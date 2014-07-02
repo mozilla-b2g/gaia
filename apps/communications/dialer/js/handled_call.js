@@ -129,13 +129,11 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
 
   var isEmergencyNumber = this.call.emergency;
   if (isEmergencyNumber) {
+    this.node.classList.add('emergency-call');
     LazyL10n.get(function localized(_) {
       node.textContent = _('emergencyNumber');
       self._cachedInfo = _('emergencyNumber');
     });
-
-    // Set Emergency Wallpaper
-    CallScreen.setEmergencyWallpaper();
     return;
   }
 
@@ -230,6 +228,16 @@ HandledCall.prototype.restoreAdditionalContactInfo =
 
 HandledCall.prototype.formatPhoneNumber =
   function hc_formatPhoneNumber(ellipsisSide, maxFontSize) {
+    /**
+     * To solve bug 1017365 the font-size in case of emergency calls is set to
+     *  the minimum one from the beginning and additional invocations of this
+     *  function (due to changes in the state of the call (on hold, ended,
+     *  etc.)) should be ignored.
+     */
+    if (this.node.classList.contains('emergency-call')) {
+      return;
+    }
+
     // In status bar mode, we want a fixed font-size
     if (CallScreen.inStatusBarMode) {
       this.numberNode.style.fontSize = '';

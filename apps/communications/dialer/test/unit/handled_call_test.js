@@ -527,11 +527,16 @@ suite('dialer/handled_call', function() {
     assert.equal(subject.numberNode.textContent, 'switch-calls');
   });
 
-  suite('Emergency Call layout', function() {
-    setup(function() {
-      MockCallScreen.mSetEmergencyWallpaperCalled = false;
-    });
+  test('should not add the emergency-call class for normal calls',
+    function() {
+      mockCall = new MockCall('888', 'dialing');
+      subject = new HandledCall(mockCall);
 
+      assert.ok(!subject.node.classList.contains('emergency-call'));
+    }
+  );
+
+  suite('Emergency Call layout', function() {
     test('should display emergency number label', function() {
       mockCall = new MockCall('112', 'dialing');
       mockCall.emergency = true;
@@ -540,19 +545,22 @@ suite('dialer/handled_call', function() {
       assert.equal(subject.numberNode.textContent, 'emergencyNumber');
     });
 
-    test('should display emergency Wallpaper', function() {
+    test('should set the emergency-call class', function() {
       mockCall = new MockCall('112', 'dialing');
       subject = new HandledCall(mockCall);
 
-      assert.isTrue(MockCallScreen.mSetEmergencyWallpaperCalled);
+      assert.isTrue(subject.node.classList.contains('emergency-call'));
     });
 
-    test('should not display emergency wallpaper for normal calls', function() {
-      mockCall = new MockCall('111', 'dialing');
-      subject = new HandledCall(mockCall);
+    test('should not add the emergency-call class for normal calls after an ' +
+         'emergency one',
+      function() {
+        mockCall = new MockCall('888', 'dialing');
+        subject = new HandledCall(mockCall);
 
-      assert.isFalse(MockCallScreen.mSetEmergencyWallpaperCalled);
-    });
+        assert.ok(!subject.node.classList.contains('emergency-call'));
+      }
+    );
   });
 
   test('should display voicemail label', function() {
