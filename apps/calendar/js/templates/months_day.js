@@ -18,7 +18,8 @@
 
       this.eventTime = function() {
         return this.h('isAllDay') ?
-          '<div class="all-day">All Day</div>' :
+          ('<div class="all-day" data-l10n-id="hour-allday">' +
+          navigator.mozL10n.get('hour-allday') + '</div>') :
           ('<div class="start-time">' + this.h('startTime') + '</div>' +
            '<div class="end-time">' + this.h('endTime') + '</div>');
       };
