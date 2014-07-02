@@ -10,7 +10,6 @@
     "apps/camera/test/marionette/hud_test.js",
     "apps/camera/test/marionette/settings_test.js",
     "apps/camera/test/marionette/zoom_test.js",
-    "apps/clock/test/marionette/alarm_test.js",
     "apps/communications/contacts/test/marionette/form_test.js",
     "apps/email/test/marionette/activity_create_email_account_complete_test.js",
     "apps/email/test/marionette/local_drafts_test.js",

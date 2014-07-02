@@ -138,6 +138,7 @@ marionette('Alarm', function() {
     alarm.create();
     alarm.remove(0);
     alarm.openNewForm();
+console.log('Screenshot: ' + 'data:image/png;base64,' + this.screenshot());
     assert.ok($('.new-alarm-title').displayed());
   });
 
