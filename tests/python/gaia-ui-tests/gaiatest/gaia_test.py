@@ -721,7 +721,8 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
                 self.data_layer.set_char_pref(name, value)
 
         # unlock
-        self.device.unlock()
+        if self.data_layer.get_setting('lockscreen.enabled'):
+            self.device.unlock()
 
         # kill any open apps
         self.apps.kill_all()
