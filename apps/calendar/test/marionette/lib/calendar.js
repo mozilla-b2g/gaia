@@ -167,9 +167,9 @@ Calendar.prototype = {
     return this;
   },
 
-  teardownAccount: function(username) {
+  teardownAccount: function(calendarName, user) {
     this.openAdvancedSettingsView();
-    this.advancedSettings.clickAccount(username);
+    this.advancedSettings.clickAccount(calendarName, user);
     var modifyAccount = this.modifyAccount;
     modifyAccount.waitForDisplay();
     modifyAccount.delete();
