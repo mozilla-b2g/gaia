@@ -19,6 +19,7 @@ Collection.Selectors = {
   cloudMenuPin: '#pin-cloudapp',
   cloudMenuBookmark: '#bookmark-cloudapp',
   contextMenuTarget: '#icons',
+  createScreenReady: 'body[data-test-ready]',
   menuAddButton: '#create-smart-collection',
   collectionsSelect: '#collections-select',
 
@@ -51,6 +52,14 @@ Collection.prototype = {
     this.actions.longPress(container, 1).perform();
 
     this.client.helper.waitForElement(selectors.menuAddButton).click();
+  },
+
+  /**
+   * Activity handling happens async, so in order to know when we are ready
+   * we add a data attribute onto the body.
+   */
+  waitForCreateScreenReady: function() {
+    this.client.helper.waitForElement(Collection.Selectors.createScreenReady);
   },
 
   /**

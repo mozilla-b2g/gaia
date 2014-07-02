@@ -191,6 +191,8 @@
       });
 
     }, activity.postError);
+
+    document.body.dataset.testReady = true;
   }
 
   navigator.mozSetMessageHandler('activity', function onActivity(activity) {
