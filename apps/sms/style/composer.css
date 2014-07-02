@@ -240,15 +240,13 @@ form[role="search"] button[type="submit"]:after {
   box-sizing: border-box;
   position: relative;
 
-  right: 1rem;
   left: 0;
   height: 0;
-  padding: 0 1.5rem;
 
   color: #575757;
   font-size: 0;
   font-weight: normal;
-  text-align: left;
+  text-align: center;
 }
 
 [data-message-type='mms'] #messages-counter-label {
@@ -275,7 +273,8 @@ form[role="search"] button[type="submit"]:after {
   position: absolute;
 
   top: 0;
-  left: 1.5rem;
+  left: 0;
+  width: 100%;
 
   color: #575757;
   font-size: 1.4rem;
