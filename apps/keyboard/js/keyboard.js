@@ -221,7 +221,8 @@ var eventHandlers = {
   'touchstart': onTouchStart,
   'mousedown': onMouseDown,
   'mouseup': onMouseUp,
-  'mousemove': onMouseMove
+  'mousemove': onMouseMove,
+  'contextmenu': onContextMenu
 };
 
 // For tracking "scrolling the full candidate panel".
@@ -888,6 +889,10 @@ function onMouseMove(evt) {
     return;
 
   movePress(evt.target, evt, null);
+}
+
+function onContextMenu(event){
+  event.preventDefault();
 }
 
 // [LOCKED_AREA] TODO:
