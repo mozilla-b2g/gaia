@@ -563,6 +563,11 @@ var ThreadUI = global.ThreadUI = {
     // get an event whenever the panel changes?
     Threads.currentId = args.id;
 
+    var prevPanel = args.meta.prev && args.meta.prev.panel;
+
+    if (prevPanel !== 'group-view' && prevPanel !== 'report-view') {
+      this.initializeRendering();
+    }
     return this.updateHeaderData();
   },
 
@@ -614,6 +619,10 @@ var ThreadUI = global.ThreadUI = {
     }
 
     ThreadListUI.mark(threadId, 'read');
+
+    // nothing urgent, let's do it when the main thread has some time
+    setTimeout(MessageManager.markThreadRead.bind(MessageManager, threadId));
+
     return Utils.closeNotificationsForThread(threadId);
   },
 
@@ -1476,12 +1485,6 @@ var ThreadUI = global.ThreadUI = {
       }
     }).bind(this);
 
-    function onMessagesDone() {
-      setTimeout(
-        MessageManager.markThreadRead.bind(MessageManager, filter.threadId)
-      );
-    }
-
     var onRenderMessage = (function renderMessage(message) {
       if (this._stopRenderingNextStep) {
         // stop the iteration
@@ -1495,8 +1498,10 @@ var ThreadUI = global.ThreadUI = {
       return true;
     }).bind(this);
 
-    // We initialize all params before rendering
-    this.initializeRendering();
+    if (this._stopRenderingNextStep) {
+      // we were already asked to stop rendering, before even starting
+      return;
+    }
 
     var filter = new MozSmsFilter();
     filter.threadId = threadId;
@@ -1506,8 +1511,7 @@ var ThreadUI = global.ThreadUI = {
       each: onRenderMessage,
       filter: filter,
       invert: false,
-      end: onMessagesRendered,
-      done: onMessagesDone
+      end: onMessagesRendered
     };
 
     MessageManager.getMessages(renderingOptions);
