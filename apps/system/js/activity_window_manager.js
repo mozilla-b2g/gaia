@@ -1,3 +1,4 @@
+/* global AppWindowManager */
 'use strict';
 (function(exports) {
   /**
@@ -30,7 +31,11 @@
       }
       this._started = true;
 
-      window.addEventListener('activitycreating', this);
+      this.activityPool = new Map();
+      window.addEventListener('activityopened', this);
+      window.addEventListener('popupopened', this);
+      window.addEventListener('appopened', this);
+      window.addEventListener('activityrequesting', this);
       window.addEventListener('activitycreated', this);
       window.addEventListener('activityterminated', this);
     },
@@ -45,10 +50,21 @@
       }
       this._started = false;
 
-      window.removeEventListener('activitycreating', this);
+      this.activityPool = null;
+      window.removeEventListener('activityopened', this);
+      window.removeEventListener('popupopened', this);
+      window.removeEventListener('appopened', this);
+      window.removeEventListener('activityrequesting', this);
       window.removeEventListener('activitycreated', this);
       window.removeEventListener('activityterminated', this);
     },
+
+    /**
+     * Put all window ID which is involved in an activity here.
+     * XXX: This is a workaround of bug 931339.
+     * @type {Map}
+     */
+    activityPool: null,
 
     /**
      * Activity Config
@@ -62,29 +78,59 @@
 
     handleEvent: function acwf_handleEvent(evt) {
       switch (evt.type) {
-        case 'activitycreating':
-          // XXX: See Bug 931339
-          // Only the first matched manifestURL + pageURL is sent with
-          // system message, so we need to kill the previous opened one
-          // if the second one "equals" the previous.
-          var configuration = evt.detail;
-          this._activities.some(function iterator(activity) {
-            if (activity.manifestURL == configuration.manifestURL &&
-                activity.url == configuration.url &&
-                !activity.isActive()) {
-              activity.kill();
-              return true;
+        // XXX: Workaround of bug 931339.
+        // We are maintaining only one chain of activities here
+        // in this.activityPool.
+        // If the next coming activity request does not belong
+        // to the previous pool,
+        // kill all the background inline activities.
+        case 'popupopened':
+        case 'activityopened':
+        case 'appopened':
+          var app = evt.detail;
+          var parent = app.callerWindow ||
+                        app.bottomWindow ||
+                        app.previousWindow;
+          if (parent && this.activityPool.has(parent.instanceID)) {
+            // We don't really care about the instance context,
+            // so we set the value to a boolean.
+            this.activityPool.set(app.instanceID, true);
+          }
+          break;
+        case 'popupterminated':
+        case 'appterminated':
+          this.activityPool.delete(app.instanceID);
+          break;
+        case 'activityrequesting':
+          // The request may come from the top most window
+          // or the system app, but we don't care here.
+          var caller = AppWindowManager.getActiveApp().getTopMostWindow();
+          if (!this.activityPool.size) {
+            this.activityPool.set(caller.instanceID, true);
+          } else {
+            if (!this.activityPool.has(caller.instanceID)) {
+              // A new request from a new chain,
+              // kill all the background.
+              this._activities.forEach(function iterator(activity, index) {
+                if (!activity.getBottomMostWindow().isActive() ||
+                    !activity.isActive()) {
+                  activity.kill();
+                }
+              }, this);
+              this.activityPool.clear();
+              this.activityPool.set(caller.instanceID, true);
             }
-          });
+          }
           break;
 
         case 'activityterminated':
-          this._activities.forEach(function iterator(activity, index) {
+          this._activities.some(function iterator(activity, index) {
             if (activity.instanceID === evt.detail.instanceID) {
               this._activities.splice(index, 1);
-              return false;
+              return true;
             }
           }, this);
+          this.activityPool.delete(evt.detail.instanceID);
           break;
 
         case 'activitycreated':

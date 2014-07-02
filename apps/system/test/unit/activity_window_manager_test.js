@@ -1,12 +1,14 @@
 'use strict';
 /* global MocksHelper, ActivityWindowManager, ActivityWindow,
-   AppWindow */
+   AppWindow, MockAppWindowManager */
 
+requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_activity_window.js');
+requireApp('system/test/unit/mock_popup_window.js');
 
 var mocksForActivityWindowManager = new MocksHelper([
-  'AppWindow', 'ActivityWindow'
+  'AppWindow', 'ActivityWindow', 'PopupWindow', 'AppWindowManager'
 ]).init();
 
 suite('system/ActivityWindowManager', function() {
@@ -46,6 +48,7 @@ suite('system/ActivityWindowManager', function() {
   };
 
   var activity1, activity2, activity3;
+  var popup1, popup2;
   var app1, app2;
 
   var fakeAppConfig1 = {
@@ -57,6 +60,20 @@ suite('system/ActivityWindowManager', function() {
 
   var fakeAppConfig2 = {
     url: 'app://www.fake2/index.html',
+    manifest: {},
+    manifestURL: 'app://wwww.fake2/ManifestURL',
+    origin: 'app://www.fake2'
+  };
+
+  var fakePopupConfig1 = {
+    url: 'app://www.fake/popup.html',
+    manifest: {},
+    manifestURL: 'app://wwww.fake/ManifestURL',
+    origin: 'app://www.fake'
+  };
+
+  var fakePopupConfig2 = {
+    url: 'app://www.fake2/popup.html',
     manifest: {},
     manifestURL: 'app://wwww.fake2/ManifestURL',
     origin: 'app://www.fake2'
@@ -76,24 +93,13 @@ suite('system/ActivityWindowManager', function() {
       activity3 = new ActivityWindow(fakeActivityConfig3);
       app1 = new AppWindow(fakeAppConfig1);
       app2 = new AppWindow(fakeAppConfig2);
+      popup1 = new ActivityWindow(fakePopupConfig1);
+      popup2 = new ActivityWindow(fakePopupConfig2);
     });
 
     teardown(function() {
       subject.stop();
       subject = null;
-    });
-
-    test('maintain activity: creating and avoid duplicates', function() {
-      subject._activities = [activity1, activity2, activity3];
-      var stubKill = this.sinon.stub(activity1, 'kill');
-      var stubIsActive = this.sinon.stub(activity1, 'isActive');
-      stubIsActive.returns(false);
-      subject.handleEvent({
-        type: 'activitycreating',
-        detail: activity1
-      });
-
-      assert.isTrue(stubKill.called);
     });
 
     test('maintain activity: created', function() {
@@ -118,6 +124,133 @@ suite('system/ActivityWindowManager', function() {
       });
 
       assert.isTrue(subject._activities.length == 2);
+    });
+
+    test('maintain activity pool: push inline activity into chaining',
+      function() {
+        subject.activityPool = new Map([
+          [activity1.instanceID, true],
+          [activity2.instanceID, true],
+          [app1.instanceID, true]
+        ]);
+
+        activity3.bottomWindow = activity2;
+
+        subject.handleEvent({
+          type: 'activityopened',
+          detail: activity3
+        });
+
+        assert.isTrue(subject.activityPool.has(activity3.instanceID));
+      });
+
+    test('maintain activity pool: push inner sheet into chaining', function() {
+      subject.activityPool = new Map([
+        [activity1.instanceID, true],
+        [activity2.instanceID, true],
+        [app1.instanceID, true]
+      ]);
+
+      app2.previousWindow = app1;
+
+      subject.handleEvent({
+        type: 'appopened',
+        detail: app2
+      });
+
+      assert.isTrue(subject.activityPool.has(app2.instanceID));
+    });
+
+    test('maintain activity pool: push popup into chaining', function() {
+      subject.activityPool = new Map([
+        [activity1.instanceID, true],
+        [activity2.instanceID, true],
+        [app1.instanceID, true]
+      ]);
+
+      popup1.bottomWindow = app1;
+
+      subject.handleEvent({
+        type: 'popupopened',
+        detail: popup1
+      });
+
+      assert.isTrue(subject.activityPool.has(popup1.instanceID));
+    });
+
+    test('maintain activity pool: push window activity into chaining',
+      function() {
+        subject.activityPool = new Map([
+          [activity1.instanceID, true],
+          [activity2.instanceID, true],
+          [app1.instanceID, true]
+        ]);
+
+        app2.callerWindow = app1;
+
+        subject.handleEvent({
+          type: 'appopened',
+          detail: app2
+        });
+
+        assert.isTrue(subject.activityPool.has(app2.instanceID));
+      });
+
+    test('maintain activity pool: requesting out of chaining', function() {
+      subject.activityPool = new Map([
+        [activity1.instanceID, true],
+        [activity2.instanceID, true],
+        [app1.instanceID, true]
+      ]);
+
+      this.sinon.stub(MockAppWindowManager, 'getActiveApp').returns(app2);
+      this.sinon.stub(app2, 'getTopMostWindow').returns(app2);
+
+      subject.handleEvent({
+        type: 'activityrequesting'
+      });
+
+      assert.isTrue(subject.activityPool.size == 1);
+      assert.isTrue(subject.activityPool.has(app2.instanceID));
+    });
+
+    test('maintain activity pool: requesting in chaining', function() {
+      subject.activityPool = new Map([
+        [activity1.instanceID, true],
+        [activity2.instanceID, true],
+        [app2.instanceID, true],
+        [app1.instanceID, true]
+      ]);
+
+      console.log(subject.activityPool.size);
+      this.sinon.stub(MockAppWindowManager, 'getActiveApp').returns(app2);
+      this.sinon.stub(app2, 'getTopMostWindow').returns(app2);
+
+      subject.handleEvent({
+        type: 'activityrequesting'
+      });
+
+      assert.isTrue(subject.activityPool.size == 4);
+      assert.isTrue(subject.activityPool.has(app1.instanceID));
+      assert.isTrue(subject.activityPool.has(app2.instanceID));
+      assert.isTrue(subject.activityPool.has(activity1.instanceID));
+      assert.isTrue(subject.activityPool.has(activity2.instanceID));
+    });
+
+    test('maintain activity pool: terminated', function() {
+      subject.activityPool = new Map([
+        [activity1.instanceID, true],
+        [activity2.instanceID, true],
+        [activity3.instanceID, true]
+      ]);
+
+      subject.handleEvent({
+        type: 'activityterminated',
+        detail: activity1
+      });
+
+      assert.isTrue(subject.activityPool.size == 2);
+      assert.isFalse(subject.activityPool.has(activity1.instanceID));
     });
   });
 });
