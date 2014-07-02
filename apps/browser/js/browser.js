@@ -593,10 +593,6 @@ var Browser = {
     AuthenticationDialog.clear(tab.id);
     this.frames.removeChild(tab.dom);
     delete tab.dom;
-    delete tab.screenshot;
-    if (this.currentScreen === this.TABS_SCREEN) {
-      this.showTabScreen();
-    }
   },
 
   handleVisibilityChange: function browser_handleVisibilityChange() {
@@ -1503,9 +1499,7 @@ var Browser = {
     a.appendChild(span);
     li.appendChild(a);
 
-    if (tab.crashed) {
-      preview.classList.add('crashed');
-    } else if (tab.screenshot) {
+    if (tab.screenshot) {
       var objectURL = URL.createObjectURL(tab.screenshot);
       this._tabScreenObjectURLs.push(objectURL);
       preview.style.backgroundImage = 'url(' + objectURL + ')';
