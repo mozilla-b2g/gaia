@@ -11,32 +11,44 @@ define(function(require) {
     this.dbName = dbName;
     this.storeName = storeName;
     this.version = version;
+    console.log('mcav: init AlarmDatabase', dbName, storeName, version);
+    console.log('mcav: ORIGIN', document.domain);
 
     this.withDatabase = new Promise((resolve, reject) => {
       var request = indexedDB.open(this.dbName, this.version);
 
       request.onupgradeneeded = (event) => {
+        console.log('mcav: start onupgradeneeded');
         var db = event.target.result;
         // Ensure the object store exists.
         if (!db.objectStoreNames.contains(this.storeName)) {
+          console.log('mcav: creating object store');
           db.createObjectStore(this.storeName, {
             keyPath: 'id',
             autoIncrement: true
           });
         }
+        console.log('mcav: end onupgradeneeded');
       };
 
-      request.onerror = (() => reject(request.errorCode));
+
+      request.onblocked = request.onerror = (() => reject(request.errorCode));
       request.onsuccess = ((event) => resolve(event.target.result));
     }).then((db) => {
+      console.log('mcav: start .then(db)');
       // Only return when all of the alarms have been upgraded.
       return new Promise((resolve, reject) => {
+        console.log('mcav: calling db.transaction');
         // Go through existing alarms here, and make sure they conform
         // to the latest spec (upgrade old versions, etc.).
         var transaction = db.transaction(this.storeName, 'readwrite');
         var store = transaction.objectStore(this.storeName);
         var cursor = store.openCursor();
+        var loggd;
         cursor.onsuccess = (event) => {
+          if (!loggd) {
+            console.log('mcav: cursor.onsuccess'); loggd=1;
+          }
           var cursor = event.target.result;
           if (cursor) {
             store.put(this.normalizeAlarmRecord(cursor.value));
@@ -48,6 +60,7 @@ define(function(require) {
         transaction.onerror = ((evt) => reject(evt.target.errorCode));
       });
     }).catch(function(err) {
+      console.log('mcav: catch');
       // Explicit err.toString() coercion needed to see a message.
       console.error('AlarmDatabase Fatal Error:', err.toString());
     });
