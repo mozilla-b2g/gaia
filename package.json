@@ -25,7 +25,7 @@
     "marionette-apps": "0.3.7",
     "marionette-client": "1.1.7",
     "marionette-content-script": "0.0.4",
-    "marionette-device-host": "0.0.2",
+    "marionette-device-host": "0.0.3",
     "marionette-file-manager": "0.0.2",
     "marionette-helper": "~0.3.1",
     "marionette-plugin-forms": "0.0.3",
