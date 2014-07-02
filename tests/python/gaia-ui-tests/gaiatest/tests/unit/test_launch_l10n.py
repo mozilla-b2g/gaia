@@ -14,7 +14,7 @@ class TestLaunchL10n(GaiaTestCase):
     test_apps = {'Clock': 'Horloge',
                  'Phone': u'Téléphone'}
 
-    def _test_launch_by_english_name_in_alternate_locale(self):
+    def test_launch_by_english_name_in_alternate_locale(self):
         '''
         Launch apps by English name in a different locale
         '''
