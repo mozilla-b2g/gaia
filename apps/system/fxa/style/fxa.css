@@ -7,7 +7,7 @@ html, body {
   height: 100%;
   margin: 0;
   color: #000;
-  background: white;
+  background: #f4f4f4;
 }
 
 html, body * {
@@ -111,12 +111,15 @@ ul {
  * and lazy load of the views. A view is a set of steps.
  * * * * * * * * * * * * * * * * * * * * * * * */
 
+.bb-steps {
+  margin: 0.5rem 1.5rem;
+}
+
 #step-container {
-  height: calc(100% - 5.3rem - 5rem);
+  height: calc(100% - 6.3rem - 5rem);
   position: relative;
   overflow: hidden;
 }
-
 
 .ff_account,
 .screen {
