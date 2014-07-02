@@ -217,9 +217,9 @@ suite('Nfc Manager Functions', function() {
       stubFireTag.restore();
     };
 
-    // handleNdefDiscovered test helper
+    // fireNDEFDiscovered test helper
     var execNDEFMessageTest = function(msg, tech) {
-      var stub = this.sinon.stub(NfcManager, 'handleNdefDiscovered');
+      var stub = this.sinon.stub(NfcManager, 'fireNDEFDiscovered');
 
       NfcManager.handleTechnologyDiscovered(msg);
       assert.isTrue(stub.withArgs(msg, tech).calledOnce);
@@ -324,7 +324,7 @@ suite('Nfc Manager Functions', function() {
     });
 
     // NDEF with no records was previosly treated as a special case
-    // right now it is handled regularly in handleNdefDiscovered
+    // right now it is handled regularly in fireNDEFDiscovered
     test('message tech [NDEF], no records', function() {
       sampleMsg.techList.push('NDEF');
 
@@ -352,8 +352,7 @@ suite('Nfc Manager Functions', function() {
       execTagDiscoveredTest.call(this, sampleMsg, 'FAKE_TECH');
     });
 
-    // integration test, will be refactored in Bug 1026536
-    test('NDEF and empty records activity triggering', function() {
+    test('activities triggering end 2 end', function() {
       // empty record
       var empty = { tnf: NDEF.TNF_EMPTY };
 
@@ -382,7 +381,7 @@ suite('Nfc Manager Functions', function() {
 
       sampleMsg.records.shift();
       NfcManager.handleTechnologyDiscovered(sampleMsg);
-      assert.deepEqual(MozActivity.getCall(1).args[0], {
+      assert.deepEqual(MozActivity.secondCall.args[0], {
         name: 'nfc-ndef-discovered',
         data: {
           type: 'empty',
@@ -395,7 +394,7 @@ suite('Nfc Manager Functions', function() {
 
       sampleMsg.records.shift();
       NfcManager.handleTechnologyDiscovered(sampleMsg);
-      assert.deepEqual(MozActivity.getCall(2).args[0], {
+      assert.deepEqual(MozActivity.thirdCall.args[0], {
         name: 'import',
         data: {
           type: 'text/vcard',
@@ -411,7 +410,7 @@ suite('Nfc Manager Functions', function() {
       sampleMsg.records.shift();
       sampleMsg.techList.shift();
       NfcManager.handleTechnologyDiscovered(sampleMsg);
-      assert.deepEqual(MozActivity.getCall(3).args[0], {
+      assert.deepEqual(MozActivity.lastCall.args[0], {
         name: 'nfc-ndef-discovered',
         data: {
           type: 'empty',
@@ -423,6 +422,70 @@ suite('Nfc Manager Functions', function() {
       }, 'no records');
     });
   });
+
+  suite('fireNDEFDiscovered', function() {
+    var msg;
+
+    setup(function() {
+      msg = {
+        type: 'techDiscovered',
+        techList: [],
+        records: [],
+        sessionToken: 'sessionToken'
+      };
+    }),
+
+    test('Proper NDEF Message contents', function() {
+      var uriRecord = {
+        tnf: NDEF.TNF_WELL_KNOWN,
+        type: NDEF.RTD_URI,
+        id: new Uint8Array([1]),
+        payload: NfcUtils.fromUTF8('\u0000http://mozilla.org')
+      };
+      msg.records.push(uriRecord);
+      msg.techList.push('NDEF');
+
+      this.sinon.stub(window, 'MozActivity');
+      var spyHandleNdefMessage = this.sinon.spy(NfcManager,
+                                                'handleNdefMessage');
+
+      NfcManager.fireNDEFDiscovered(msg, msg.techList[0]);
+      assert.isTrue(spyHandleNdefMessage.withArgs(msg.records).calledOnce);
+      assert.deepEqual(MozActivity.firstCall.args[0], {
+        name: 'nfc-ndef-discovered',
+        data: {
+                type: 'url',
+                url: 'http://mozilla.org',
+                records: msg.records,
+                rtd: NDEF.RTD_URI,
+                tech: msg.techList[0],
+                techList: msg.techList,
+                sessionToken: msg.sessionToken
+        }
+      });
+    });
+
+    test('Invalid NDEF Message contents', function() {
+      msg.techList.push('NDEF');
+
+      this.sinon.stub(window, 'MozActivity');
+      var stubHandleNdefMessage = this.sinon.stub(NfcManager,
+                                                  'handleNdefMessage',
+                                                  () => null);
+
+      NfcManager.fireNDEFDiscovered(msg, msg.techList[0]);
+      assert.isTrue(stubHandleNdefMessage.withArgs(msg.records).calledOnce);
+      assert.deepEqual(MozActivity.firstCall.args[0], {
+        name: 'nfc-ndef-discovered',
+        data: {
+                type: 'unknown',
+                tech: msg.techList[0],
+                techList: msg.techList,
+                sessionToken: msg.sessionToken
+        }
+      });
+    });
+  }),
 
   suite('fireTagDiscovered', function() {
     var msg = {
