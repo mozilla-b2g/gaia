@@ -73,6 +73,8 @@ suite('UserPressManager', function() {
 
     assert.isTrue(container.addEventListener.calledWith('touchstart', manager));
     assert.isTrue(container.addEventListener.calledWith('mousedown', manager));
+    assert.isTrue(
+      container.addEventListener.calledWith('contextmenu', manager));
   });
 
   test('stop()', function() {
@@ -88,6 +90,24 @@ suite('UserPressManager', function() {
       container.removeEventListener.calledWith('mousemove', manager));
     assert.isTrue(
       container.removeEventListener.calledWith('mouseup', manager));
+    assert.isTrue(
+      container.removeEventListener.calledWith('contextmenu', manager));
+  });
+
+  test('contextmenu event', function() {
+    var manager = new UserPressManager(app);
+    manager.start();
+
+    var el = new MockEventTarget();
+    var contextmenuEvent = {
+      type: 'contextmenu',
+      target: el,
+      preventDefault: this.sinon.stub()
+    };
+
+    container.dispatchEvent(contextmenuEvent);
+
+    assert.isTrue(contextmenuEvent.preventDefault.calledOnce);
   });
 
   suite('single touch', function() {
