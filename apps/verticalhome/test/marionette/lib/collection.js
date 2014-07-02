@@ -15,9 +15,16 @@ function Collection(client, server) {
 Collection.URL = 'app://collection.gaiamobile.org';
 
 Collection.Selectors = {
+
+  bookmarkActivity: '.inline-activity.active > iframe' +
+    '[mozapp="app://bookmark.gaiamobile.org/manifest.webapp"]',
+  bookmarkAddButton: '#add-button',
+
+  close: '#close',
+
   cloudMenu: '#cloud-menu',
-  cloudMenuPin: '#pin-cloudapp',
   cloudMenuBookmark: '#bookmark-cloudapp',
+  cloudMenuPin: '#pin-cloudapp',
   contextMenuTarget: '#icons',
   menuAddButton: '#create-smart-collection',
   collectionsSelect: '#collections-select',
@@ -40,6 +47,31 @@ Collection.Selectors = {
 };
 
 Collection.prototype = {
+
+  /**
+   * Disables the Geolocation prompt.
+   */
+  disableGeolocation: function() {
+    var client = this.client.scope({ context: 'chrome' });
+    client.executeScript(function(origin) {
+      var mozPerms = navigator.mozPermissionSettings;
+      mozPerms.set(
+        'geolocation', 'deny', origin + '/manifest.webapp', origin, false
+      );
+    }, [Collection.URL]);
+  },
+
+  /**
+   * Updates eme server settings to hit the local server URL.
+   */
+  setServerURL: function(server) {
+    var client = this.client.scope({ context: 'chrome' });
+    client.executeScript(function(url) {
+      navigator.mozSettings.createLock().set({
+        'everythingme.api.url': url
+      });
+    }, [server.url + '/{resource}']);
+  },
 
   /**
    * Enters the create collection screen from the homescreen.
@@ -150,7 +182,7 @@ Collection.prototype = {
    * @param {String} selector The selector to find the icon in web results.
    */
   bookmark: function(bookmark, selector) {
-    var iframeSelector = Collection.Selectors.mozbrowser;
+    var selectors = Collection.Selectors;
     var bookmarkSelector = Collection.Selectors.cloudMenuBookmark;
 
     var icons = this.client.helper.waitForElement(selector);
@@ -158,14 +190,10 @@ Collection.prototype = {
     this.client.helper.waitForElement(bookmarkSelector).click();
     this.client.switchToFrame();
 
-    // The mozbrowser selector in bookmarks will match the collection iframe
-    // as well, so wait until there are two and manually switch to the latter.
-    var iframes;
-    this.client.waitFor(function() {
-      iframes = this.client.findElements(iframeSelector);
-      return iframes.length === 2;
-    }.bind(this));
-    this.client.switchToFrame(iframes[1]);
+    this.client.switchToFrame(
+      this.client.helper.waitForElement(
+        selectors.bookmarkActivity)
+    );
 
     bookmark.addButton.click();
   }

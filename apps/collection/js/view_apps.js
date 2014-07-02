@@ -38,6 +38,8 @@
     // Render grid for the first time
     // Go get web results
     NativeInfo.setup()
+    // Ensure homeIcons are initialized
+    .then(() => collection.homeIcons.init())
     .then(() => collection.refresh())
     .then(() => collection.render(grid))
     .then(() => {
