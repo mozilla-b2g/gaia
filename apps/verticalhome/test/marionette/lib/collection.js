@@ -17,6 +17,7 @@ Collection.URL = 'app://collection.gaiamobile.org';
 Collection.Selectors = {
   cloudMenu: '#cloud-menu',
   cloudMenuPin: '#pin-cloudapp',
+  cloudMenuBookmark: '#bookmark-cloudapp',
   contextMenuTarget: '#icons',
   menuAddButton: '#create-smart-collection',
   collectionsSelect: '#collections-select',
@@ -33,7 +34,9 @@ Collection.Selectors = {
   allDividers: 'gaia-grid .divider',
   allIcons: 'gaia-grid .icon',
 
-  offlineMessage: '#offline-message'
+  offlineMessage: '#offline-message',
+
+  mozbrowser: '.inline-activity.active > iframe[mozbrowser]',
 };
 
 Collection.prototype = {
@@ -140,6 +143,31 @@ Collection.prototype = {
     var firstIcon = this.client.helper.waitForElement(selector);
     this.actions.longPress(firstIcon, 1).perform();
     this.client.helper.waitForElement(selectors.cloudMenuPin).click();
+  },
+
+  /**
+   * Bookmarks a result in the home screen.
+   * @param {String} selector The selector to find the icon in web results.
+   */
+  bookmark: function(bookmark, selector) {
+    var iframeSelector = Collection.Selectors.mozbrowser;
+    var bookmarkSelector = Collection.Selectors.cloudMenuBookmark;
+
+    var icons = this.client.helper.waitForElement(selector);
+    this.actions.longPress(icons, 1).perform();
+    this.client.helper.waitForElement(bookmarkSelector).click();
+    this.client.switchToFrame();
+
+    // The mozbrowser selector in bookmarks will match the collection iframe
+    // as well, so wait until there are two and manually switch to the latter.
+    var iframes;
+    this.client.waitFor(function() {
+      iframes = this.client.findElements(iframeSelector);
+      return iframes.length === 2;
+    }.bind(this));
+    this.client.switchToFrame(iframes[1]);
+
+    bookmark.addButton.click();
   }
 };
 
