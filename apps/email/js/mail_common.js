@@ -1101,7 +1101,7 @@ Toaster = {
           if (this.retryCallback)
             this.retryCallback();
           this.hide();
-        } else if (classList.contains('toaster-cancel-btn')) {
+        } else {
           this.hide();
         }
         break;
