@@ -1,6 +1,7 @@
 /* global require, module */
 'use strict';
 
+var assert = require('assert');
 var Actions = require('marionette-client').Actions;
 
 function Music(client, origin) {
@@ -21,7 +22,9 @@ Music.Selector = Object.freeze({
   progressBar: '#player-seek-bar-progress',
   shareButton: '#player-cover-share',
   shareMenu: 'form[data-z-index-level="action-menu"]',
-  pickDoneButton: '#title-done'
+  pickDoneButton: '#title-done',
+  backButton: '#title-back',
+  playerIcon: '#title-player'
 });
 
 Music.prototype = {
@@ -62,6 +65,14 @@ Music.prototype = {
     return this.client.findElement(Music.Selector.pickDoneButton);
   },
 
+  get backButton() {
+    return this.client.findElement(Music.Selector.backButton);
+  },
+
+  get playerIcon() {
+    return this.client.findElement(Music.Selector.playerIcon);
+  },
+
   get isPlaying() {
     return this.playButton.getAttribute('class').indexOf('is-pause') === -1;
   },
@@ -86,6 +97,15 @@ Music.prototype = {
     this.client.helper.waitForElement(this.firstTile);
   },
 
+  // Because bug 862156 so we couldn't get the correct displayed value for the
+  // player icon, instead we use the display property to check the visibility
+  // of the player icon.
+  checkPlayerIconShown: function(shouldBeShown) {
+    var display = this.playerIcon.cssProperty('display');
+    var result = (display !== 'none');
+    assert.equal(shouldBeShown, result);
+  },
+
   switchToSongsView: function() {
     this.songsTab.click();
   },
@@ -96,6 +116,10 @@ Music.prototype = {
 
   tapPlayButton: function() {
     this.actions.tap(this.playButton).perform();
+  },
+
+  tapBackButton: function() {
+    this.actions.tap(this.backButton).perform();
   },
 
   shareWith: function(appName) {

@@ -90,7 +90,7 @@ marionette('Music player tests', function() {
       controls = new FakeControls(client);
     });
 
-    test('Check that progress bar updates when re-shown', function() {
+    test.skip('Check that progress bar updates when re-shown', function() {
       music.launch();
       music.waitForFirstTile();
       music.switchToSongsView();
@@ -110,6 +110,24 @@ marionette('Music player tests', function() {
       music.launch();
       var t1 = music.songProgress;
       assert(t1 - t0 > dt * 0.9, 'Progress bar not updated!');
+    });
+  });
+
+  suite('Player icon tests', function() {
+    test('Check the player icon hides before play some song', function() {
+      music.launch();
+      music.waitForFirstTile();
+      music.checkPlayerIconShown(false);
+    });
+
+    test('Check the player icon displays after play some song', function() {
+      music.launch();
+      music.waitForFirstTile();
+      music.switchToSongsView();
+      music.playFirstSong();
+
+      music.tapBackButton();
+      music.checkPlayerIconShown(true);
     });
   });
 });
