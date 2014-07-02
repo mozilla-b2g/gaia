@@ -13,15 +13,48 @@ branches:
   - master
 env:
   matrix:
-  - CI_ACTION=linters
-  - CI_ACTION=unit-tests-in-firefox
-  - CI_ACTION=marionette_js PART=1 NBPARTS=2
-  - CI_ACTION=marionette_js PART=2 NBPARTS=2
-  - CI_ACTION=gaia_ui_tests SUITE=unit
-  - CI_ACTION=gaia_ui_tests SUITE=functional
-  - CI_ACTION=gaia_ui_tests SUITE=accessibility
-  - CI_ACTION=build_tests
+  - CI_ACTION=marionette_js PART=1 NBPARTS=1 X=1
+  - CI_ACTION=marionette_js PART=1 NBPARTS=1 X=2
+  - CI_ACTION=marionette_js PART=1 NBPARTS=1 X=3
+  - CI_ACTION=marionette_js PART=1 NBPARTS=1 X=4
+  - CI_ACTION=marionette_js PART=1 NBPARTS=1 X=5
+  - CI_ACTION=marionette_js PART=1 NBPARTS=1 X=6
+  - CI_ACTION=marionette_js PART=1 NBPARTS=1 X=7
+  - CI_ACTION=marionette_js PART=1 NBPARTS=1 X=8
+  - CI_ACTION=marionette_js PART=1 NBPARTS=1 X=9
+  - CI_ACTION=marionette_js PART=1 NBPARTS=1 X=10
+  - CI_ACTION=marionette_js PART=1 NBPARTS=1 X=11
+  - CI_ACTION=marionette_js PART=1 NBPARTS=1 X=12
+  - CI_ACTION=marionette_js PART=1 NBPARTS=1 X=13
+  - CI_ACTION=marionette_js PART=1 NBPARTS=1 X=14
+  - CI_ACTION=marionette_js PART=1 NBPARTS=1 X=15
+  - CI_ACTION=marionette_js PART=1 NBPARTS=1 X=16
+  - CI_ACTION=marionette_js PART=1 NBPARTS=1 X=17
+  - CI_ACTION=marionette_js PART=1 NBPARTS=1 X=18
+  - CI_ACTION=marionette_js PART=1 NBPARTS=1 X=19
+  - CI_ACTION=marionette_js PART=1 NBPARTS=1 X=20
+  - CI_ACTION=marionette_js PART=1 NBPARTS=1 X=21
+  - CI_ACTION=marionette_js PART=1 NBPARTS=1 X=22
+  - CI_ACTION=marionette_js PART=1 NBPARTS=1 X=23
+  - CI_ACTION=marionette_js PART=1 NBPARTS=1 X=24
+  - CI_ACTION=marionette_js PART=1 NBPARTS=1 X=25
+  - CI_ACTION=marionette_js PART=1 NBPARTS=1 X=26
+  - CI_ACTION=marionette_js PART=1 NBPARTS=1 X=27
+  - CI_ACTION=marionette_js PART=1 NBPARTS=1 X=28
+  - CI_ACTION=marionette_js PART=1 NBPARTS=1 X=29
+  - CI_ACTION=marionette_js PART=1 NBPARTS=1 X=30
+  - CI_ACTION=marionette_js PART=1 NBPARTS=1 X=31
+  - CI_ACTION=marionette_js PART=1 NBPARTS=1 X=32
+  - CI_ACTION=marionette_js PART=1 NBPARTS=1 X=33
+  - CI_ACTION=marionette_js PART=1 NBPARTS=1 X=34
+  - CI_ACTION=marionette_js PART=1 NBPARTS=1 X=35
+  - CI_ACTION=marionette_js PART=1 NBPARTS=1 X=36
+  - CI_ACTION=marionette_js PART=1 NBPARTS=1 X=37
+  - CI_ACTION=marionette_js PART=1 NBPARTS=1 X=38
+  - CI_ACTION=marionette_js PART=1 NBPARTS=1 X=39
+  - CI_ACTION=marionette_js PART=1 NBPARTS=1 X=40
   global:
+  - APP=verticalhome
   - ARTIFACTS_S3_BUCKET=mozilla-releng-travis-uploads
   - secure: Gf2qm+xhLRTotuIvDD7HrNRmng3/dctGdsgF5P4aEu3nDujfxtZTp4sGirTqIngbfVzh9WkJ9eoT0yaDXtvWkr40Df6vwAUyI3P1x+NBOa2CkLz7U+f9j1yaJ3pJ121+L3o+7eTzJy/mvXHJYXAfa7rxcmjrCHpH5BSm+9/OZ4s=
   - secure: JgNTK2gfJY1UcpXU/j0MFUvB1P7GaQyOVKBT19uwE2xCsO+T00YWnEhDGFZ9CxYDsATQ5EG5cW/eaoqXOpI9QQsR5kEJp1N1rLvKliqtGcm/ocVjWl/dhsG1i+ksJSCm1oDwduEuLFZ7tChrXihiZ2Sn1RAWns0mjZw9+8+tDhU=

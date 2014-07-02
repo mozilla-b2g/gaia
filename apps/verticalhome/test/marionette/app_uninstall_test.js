@@ -2,7 +2,6 @@
 'use strict';
 
 var assert = require('assert');
-var Actions = require('marionette-client').Actions;
 
 var Home2 = require('./lib/home2');
 var System = require('../../../../apps/system/test/marionette/lib/system');
@@ -15,7 +14,7 @@ var getIconId = require('./lib/icon_id');
 marionette('Vertical - App Uninstall', function() {
 
   var client = marionette.client(Home2.clientOptions);
-  var actions, home, system, appInstall;
+  var home, system, appInstall;
   var selectors;
 
   var server;
@@ -31,7 +30,6 @@ marionette('Vertical - App Uninstall', function() {
     selectors = Home2.Selectors;
     appInstall = new AppInstall(client);
 
-    actions = new Actions(client);
     home = new Home2(client);
     system = new System(client);
     system.waitForStartup();
