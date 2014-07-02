@@ -77,7 +77,7 @@ Keyboards.numberLayout = {
 
 Keyboards.pinLayout = {
   width: 3,
-  keyClassName: 'big-key special-key',
+  keyClassName: 'big-key special-key bottom-symbol',
   keys: [
     [ { value: '1'}, { value: '2'}, { value: '3'} ],
     [ { value: '4'}, { value: '5'}, { value: '6'} ],
@@ -89,22 +89,39 @@ Keyboards.pinLayout = {
 
 Keyboards.telLayout = {
   width: 3,
-  keyClassName: 'big-key special-key',
+  keyClassName: 'big-key special-key bottom-symbol',
   keys: [
-    [ { value: '1'}, { value: '2'}, { value: '3'} ],
-    [ { value: '4'}, { value: '5'}, { value: '6'} ],
-    [ { value: '7', altNote: '#'},
-      { value: '8', altNote: '-'},
-      { value: '9', altNote: '*'} ],
-    [ { value: '(', altNote: ')'},
-      { value: '0', altNote: '+'},
-      { value: '⌫', keyCode: KeyEvent.DOM_VK_BACK_SPACE } ]
+      [
+        { value: '1', altNote: '('},
+        { value: '2', altNote: ')'},
+        { value: '3', altNote: '/'}
+      ],
+      [
+        { value: '4', altNote: '-'},
+        { value: '5', altNote: '_'},
+        { value: '6', altNote: ','}
+      ],
+      [
+        { value: '7', altNote: ':'},
+        { value: '8', altNote: '.'},
+        { value: '9', altNote: ';'}],
+      [
+        { value: '*', altNote: '#'},
+        { value: '0', altNote: '+'},
+        { value: '⌫', keyCode: KeyEvent.DOM_VK_BACK_SPACE }
+      ]
   ],
   alt: {
-    '7' : '#',
-    '8' : '-',
-    '9' : '*',
-    '(' : ')',
+    '1' : '(',
+    '2' : ')',
+    '3' : '/',
+    '4' : '-',
+    '5' : '_',
+    '6' : ',',
+    '7' : ':',
+    '8' : '.',
+    '9' : ';',
+    '*' : '#',
     '0' : '+'
   }
 };
