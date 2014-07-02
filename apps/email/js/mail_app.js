@@ -148,22 +148,29 @@ var finalCardStateCallback,
     cachedNode = Cards._cardsNode.children[0],
     startCardId = cachedNode && cachedNode.getAttribute('data-type');
 
-var startCardArgs = {
-  'setup_account_info': [
-    'setup_account_info', 'default', 'immediate',
-    {
-      onPushed: function(impl) {
-        htmlCache.delayedSaveFromNode(impl.domNode.cloneNode(true));
+function getStartCardArgs(id) {
+  // Use a function that returns fresh arrays for each call so that object
+  // in that last array position is fresh for each call and does not have other
+  // properties mixed in to it by multiple reuse of the same object
+  // (bug 1031588).
+  if (id === 'setup_account_info') {
+    return [
+      'setup_account_info', 'default', 'immediate',
+      {
+        onPushed: function(impl) {
+          htmlCache.delayedSaveFromNode(impl.domNode.cloneNode(true));
+        }
       }
-    }
-  ],
-  'message_list': [
-    'message_list', 'nonsearch', 'immediate', {}
-  ]
-};
+    ];
+  } else if (id === 'message_list') {
+    return [
+      'message_list', 'nonsearch', 'immediate', {}
+    ];
+  }
+}
 
 function pushStartCard(id, addedArgs) {
-  var args = startCardArgs[id];
+  var args = getStartCardArgs(id);
   if (!args) {
     throw new Error('Invalid start card: ' + id);
   }
@@ -216,7 +223,7 @@ if (cachedNode) {
 function resetCards(cardId, args) {
   cachedNode = null;
 
-  var startArgs = startCardArgs[cardId],
+  var startArgs = getStartCardArgs(cardId),
       query = [startArgs[0], startArgs[1]];
 
   if (!Cards.hasCard(query)) {
