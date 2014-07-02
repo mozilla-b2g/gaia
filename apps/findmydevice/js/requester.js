@@ -5,6 +5,8 @@
 'use strict';
 
 var Requester = {
+  XHR_TIMEOUT_MS: 60000,
+
   _url: null,
 
   _hawkCredentials: null,
@@ -28,6 +30,7 @@ var Requester = {
 
     var xhr = new XMLHttpRequest({mozSystem: true});
     xhr.open('POST', url);
+    xhr.timeout = this.XHR_TIMEOUT_MS;
     xhr.setRequestHeader('Content-Type', 'application/json');
 
     var hawkHeader = null;
@@ -47,7 +50,7 @@ var Requester = {
       if (hawkHeader !== null) {
         valid = hawk.client.authenticate(
           xhr, this._hawkCredentials, hawkHeader.artifacts,
-          {payload: xhr.response});
+          {payload: xhr.responseText});
       }
 
       if (!valid) {
@@ -57,7 +60,7 @@ var Requester = {
 
       if (xhr.status == 200) {
         DUMP('successful request, response: ' + xhr.response);
-        onsuccess && onsuccess(JSON.parse(xhr.response));
+        onsuccess && onsuccess(JSON.parse(xhr.responseText));
       } else if (xhr.status !== 200) {
         DUMP('request failed with status ' + xhr.status);
         onerror && onerror(xhr);
@@ -67,6 +70,11 @@ var Requester = {
     xhr.onerror = function fmd_xhr_onerror() {
       DUMP('request failed with status ' + xhr.status);
       onerror && onerror(xhr);
+    };
+
+    xhr.ontimeout = function fmd_xhr_ontimeout() {
+      DUMP('server request timed out!');
+      xhr.onerror();
     };
 
     xhr.send(data);
