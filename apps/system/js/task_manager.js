@@ -622,7 +622,7 @@
         this.cardsList.removeChild(element);
         this.closeApp(card);
       } else {
-        card.applyStyle({ MozTransform: undefined });
+        card.applyStyle({ MozTransform: '' });
       }
       this.alignCurrentCard();
 
@@ -967,16 +967,13 @@
     prevCard.applyStyle(prevCardStyle);
 
     var onCardTransitionEnd = function transitionend() {
-      currentCard.element.removeEventListener(onCardTransitionEnd);
-      if (!this.currentCard) {
-        // removeCards method was called immediately without waiting
-        return;
-      }
-      var zeroTransitionStyle = { 'MozTransition' : undefined };
-      (this.prevCard || pseudoCard).applyStyle(zeroTransitionStyle);
-      (this.nextCard || pseudoCard).applyStyle(zeroTransitionStyle);
-      this.currentCard.applyStyle(zeroTransitionStyle);
-    }.bind(this);
+      currentCard.element.removeEventListener('transitionend',
+                                              onCardTransitionEnd);
+      var zeroTransitionStyle = { MozTransition: '' };
+      prevCard.applyStyle(zeroTransitionStyle);
+      nextCard.applyStyle(zeroTransitionStyle);
+      currentCard.applyStyle(zeroTransitionStyle);
+    };
 
     currentCard.element.addEventListener('transitionend', onCardTransitionEnd);
 
