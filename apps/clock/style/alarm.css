@@ -174,7 +174,7 @@ a.alarm-item > .time {
   top: 1.0rem;
   left: 1.7rem;
   font-size: 2.8rem;
-  font-family: 'Fira Sans', sans-serif;
+  font-family: sans-serif;
   font-weight: 300;
   color: #cfe2e5;
 }
@@ -190,7 +190,7 @@ a.alarm-item > .label {
   left: 12.5rem;
   right: 4.5rem;
   top: 2.35rem;
-  font-family: 'Fira Sans', sans-serif;
+  font-family: sans-serif;
   font-weight: normal;
   color: #737D80;
   white-space: nowrap;
@@ -202,7 +202,7 @@ a.alarm-item > .repeat {
   position: absolute;
   top: 4.2rem;
   left: 1.7rem;
-  font-family: 'Fira Sans', sans-serif;
+  font-family: sans-serif;
   font-weight: normal;
   text-overflow: ellipsis;
   color: #A1B0B2;
