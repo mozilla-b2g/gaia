@@ -45,6 +45,7 @@ gaia-grid {
   bottom: 0;
   overflow: scroll;
   padding-top: 2.4rem;
+  -moz-user-select: none;
 }
 
 #content-background-image {
