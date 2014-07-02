@@ -119,36 +119,32 @@ var GaiaApps = {
           let currentEntryPoint = entryPoints[ep];
           let appName = currentEntryPoint.name;
           let launchPath = currentEntryPoint.launch_path;
-
           let locales = currentEntryPoint.locales;
-          if (locales) {
+
+          if (normalizedSearchName === GaiaApps.normalizeName(appName)) {
+            return GaiaApps.sendLocateResponse(callback, app, appName, launchPath, ep);
+          } else if (locales) {
             for (let id in locales) {
               let localisedAppName = locales[id].name;
               if (localisedAppName && normalizedSearchName === GaiaApps.normalizeName(localisedAppName)) {
                 return GaiaApps.sendLocateResponse(callback, app, appName, launchPath, ep);
               }
             }
-          } else {
-            if (normalizedSearchName === GaiaApps.normalizeName(appName)) {
-              return GaiaApps.sendLocateResponse(callback, app, appName, launchPath, ep);
-            }
           }
         }
       } else {
         let appName = app.manifest.name;
         let launchPath = app.manifest.launch_path;
-
         let locales = app.manifest.locales;
-        if (locales) {
+
+        if (normalizedSearchName === GaiaApps.normalizeName(appName)) {
+          return GaiaApps.sendLocateResponse(callback, app, appName, launchPath);
+        } else if (locales) {
           for (let id in locales) {
             let localisedAppName = locales[id].name;
             if (localisedAppName && normalizedSearchName === GaiaApps.normalizeName(localisedAppName)) {
               return GaiaApps.sendLocateResponse(callback, app, appName, launchPath);
             }
-          }
-        } else {
-          if (normalizedSearchName === GaiaApps.normalizeName(appName)) {
-            return GaiaApps.sendLocateResponse(callback, app, appName, launchPath);
           }
         }
       }
