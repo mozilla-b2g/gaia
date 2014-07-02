@@ -392,6 +392,13 @@ body.rb-enabled #statusbar-label {
   background-position: -8rem -6rem;
 }
 
+.sb-icon-tor[data-status="connecting"] {
+  background: url('images/tor-connecting.png') no-repeat;
+}
+.sb-icon-tor[data-status="connected"] {
+  background: url('images/tor-connected.png') no-repeat;
+}
+
 .sb-icon-data-circle {
   background-position: -12rem -8rem;
 }

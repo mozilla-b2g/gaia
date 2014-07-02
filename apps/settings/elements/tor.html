@@ -1,0 +1,35 @@
+<element name="tor" extends="section">
+  <template>
+
+    <header>
+      <a href="#root"><span class="icon icon-back">back</span></a>
+      <h1 data-l10n-id="tor"> Tor </h1>
+    </header>
+
+    <div>
+      <ul>
+        <li>
+          <label class="pack-switch">
+            <input type="checkbox" name="tor.enable">
+            <span data-l10n-id="tor-enable"> Enable Tor </span>
+          </label>
+        </li>
+        <li>
+          <small data-name="tor.status"></small>
+          <span data-l10n-id="tor-status"> Tor status </span>
+        </li>
+        <li>
+          <p>DEBUG</p>
+          <span class="button icon icon-dialog">
+            <select name="tor.status" data-value-type="string">
+              <option value="disconnected" data-l10n-id="tor-disconnected" selected> disconnected </option>
+              <option value="connecting" data-l10n-id="tor-connecting"> connecting </option>
+              <option value="connected" data-l10n-id="tor-connected"> connected </option>
+            </select>
+          </span>
+        </li>
+      </ul>
+    </div>
+
+  </template>
+</element>

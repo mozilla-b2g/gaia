@@ -207,6 +207,8 @@
    "time.clock.automatic-update.enabled": true,
    "time.timezone.automatic-update.enabled": true,
    "time.timezone": null,
+   "tor.enable": false,
+   "tor.status": "disconnected",
    "ums.enabled": false,
    "ums.mode": 0,
    "ums.status": 0,

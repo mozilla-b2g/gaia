@@ -70,7 +70,7 @@ function Clock() {
 var StatusBar = {
   /* all elements that are children nodes of the status bar */
   ELEMENTS: ['notification', 'emergency-cb-notification', 'time', 'connections',
-    'battery', 'wifi', 'data', 'flight-mode', 'network-activity', 'tethering',
+    'battery', 'wifi', 'tor', 'data', 'flight-mode', 'network-activity', 'tethering',
     'alarm', 'bluetooth', 'mute', 'headphones', 'bluetooth-headphones',
     'bluetooth-transferring', 'recording', 'sms', 'geolocation', 'usb', 'label',
     'system-downloads', 'call-forwardings', 'playing', 'nfc'],
@@ -180,6 +180,7 @@ var StatusBar = {
       'tethering.wifi.enabled': ['tethering'],
       'tethering.wifi.connectedClients': ['tethering'],
       'tethering.usb.connectedClients': ['tethering'],
+      'tor.status': ['tor'],
       'audio.volume.notification': ['mute'],
       'alarm.enabled': ['alarm'],
       'vibration.enabled': ['vibration'],
@@ -908,6 +909,14 @@ var StatusBar = {
       if (icon.hidden !== wasHidden) {
         this.update.data.call(this);
       }
+    },
+
+    tor: function sb_updateTor() {
+      var icon = this.icons.tor;
+      var status = this.settingValues['tor.status'];
+
+      icon.dataset.status = status;
+      icon.hidden = status != 'connecting' && status != 'connected';
     },
 
     tethering: function sb_updateTethering() {

@@ -183,6 +183,13 @@ li:active:not([aria-disabled="true"]) .menu-item::before,
   background-position: -6rem -18rem;
 }
 
+li:active:not([aria-disabled="true"]) #menuItem-tor::before,
+#menuItem-tor:focus::before,
+#menuItem-tor::before {
+  background-image: url(images/tor.png);
+  background-size: initial;
+}
+
 #suggestions-desc {
   left: 0;
 }
