@@ -287,6 +287,11 @@ function initKeyboard() {
   window.addEventListener('hashchange', function() {
     perfTimer.printTime('hashchange');
     var layoutName = window.location.hash.substring(1);
+
+    if (fakeAppObject.inputContext && !inputContextGetTextPromise) {
+      inputContextGetTextPromise = fakeAppObject.inputContext.getText();
+    }
+
     layoutLoader.getLayoutAsync(layoutName);
     updateCurrentLayout(layoutName);
   }, false);
@@ -309,7 +314,7 @@ function initKeyboard() {
   window.navigator.mozInputMethod.oninputcontextchange = function() {
     perfTimer.printTime('inputcontextchange');
     fakeAppObject.inputContext = navigator.mozInputMethod.inputcontext;
-    if (fakeAppObject.inputContext) {
+    if (fakeAppObject.inputContext && !inputContextGetTextPromise) {
       inputContextGetTextPromise = fakeAppObject.inputContext.getText();
     }
     if (document.mozHidden && !fakeAppObject.inputContext) {
@@ -1232,6 +1237,8 @@ function switchIMEngine(mustRender) {
     return Promise.reject(error);
   });
 
+  inputContextGetTextPromise = null;
+
   var p = inputMethodManager.switchCurrentIMEngine(imEngineName, dataPromise);
   p.then(function() {
     perfTimer.printTime('switchIMEngine:promise resolved');
@@ -1243,7 +1250,7 @@ function switchIMEngine(mustRender) {
     // Load l10n library after IMEngine is loaded (if it's not loaded yet).
     l10nLoader.load();
   }, function() {
-    console.warn('Failed to switch imEngine for ' + layoutName + '.' +
+    console.warn('Failed to switch imEngine for ' + layout.layoutName + '.' +
       ' It might possible because we were called more than once.');
   });
 }
