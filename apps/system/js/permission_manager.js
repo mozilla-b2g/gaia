@@ -87,6 +87,15 @@
       window.addEventListener('home', this.discardPermissionRequest);
       window.addEventListener('holdhome', this.discardPermissionRequest);
 
+      /* If an application that is currently running needs to get killed for
+       * whatever reason we want to discard it's request for permissions.
+       */
+      window.addEventListener('appterminated', (function(evt) {
+        if (evt.detail.origin == this.currentOrigin) {
+          this.discardPermissionRequest();
+        }
+        }).bind(this));
+
       // Ensure that the focus is not stolen by the permission overlay, as
       // it may appears on top of a <select> element, and just cancel it.
       this.overlay.addEventListener('mousedown', function onMouseDown(evt) {
