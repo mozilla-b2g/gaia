@@ -14,7 +14,7 @@
       }
       this.config = config;
     }
-    this.instanceID = _id++;
+    this.instanceID = 'mock-app-' + _id++;
     this.groupID = this.instanceID;
     MockAppWindowHelper.mInstances.push(this);
     MockAppWindowHelper.mLatest = this;
