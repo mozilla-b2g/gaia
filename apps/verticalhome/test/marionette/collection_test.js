@@ -151,8 +151,8 @@ marionette('Vertical - Collection', function() {
 
     client.switchToFrame();
     client.waitFor(function() {
-      var msg = client
-          .findElement('.modal-dialog-alert')
+      var msg = client.helper
+          .waitForElement('.modal-dialog-alert')
           .text();
       return expectedMsg.test(msg);
     });
