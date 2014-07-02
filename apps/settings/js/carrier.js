@@ -1071,7 +1071,7 @@ var CarrierSettings = (function(window, document, undefined) {
       var input = document.createElement('input');
       input.type = 'radio';
       input.name = currentType + 'Apn';
-      var s = item.carrier + index;
+      var s = (item._id || item.carrier) + index;
       var hashCode = _getHashCode(s);
       input.value = hashCode;
       item.hashCode = hashCode;
@@ -1300,7 +1300,7 @@ var CarrierSettings = (function(window, document, undefined) {
         var apnSelected = false;
         var radioApnItems = apnList.querySelectorAll('input[type="radio"]');
         for (var j = 0; (j < radioApnItems.length) && apn; j++) {
-          var s = apn.carrier + j;
+          var s = (apn._id || apn.carrier) + j;
           var hashCode = apn.hashCode || _getHashCode(s);
           if (radioApnItems[j].value == hashCode) {
             apn.hashCode = apn.hashCode || hashCode;
