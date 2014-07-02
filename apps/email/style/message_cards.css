@@ -374,14 +374,14 @@ reflows. Foreground/background colors should be safe.
 }
 .msg-attachment-view {
   display: none;
-  width: 4.5rem;
+  width: 3.5rem;
   margin-bottom: 0;
   position: absolute;
   top: 0;
-  right: 0;
-  background: none;
+  right: -0.3rem;
   border: 0;
-  color: #00aacc;
+  background: transparent;
+  overflow: hidden;
 }
 
 .msg-attachment-too-large { display: none; }
