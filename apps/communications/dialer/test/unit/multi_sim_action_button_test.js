@@ -339,6 +339,14 @@ suite('multi SIM action button', function() {
                                 {n: expectedCardIndex+1});
       });
 
+      test('has a localized SIM indicator with custom l10n id', function() {
+        var localizeSpy = this.sinon.spy(MockMozL10n, 'localize');
+        simIndication.dataset.l10nId= 'expected';
+        initSubject();
+        sinon.assert.calledWith(localizeSpy, simIndication, 'expected',
+                                {n: expectedCardIndex+1});
+      });
+
       test('indicator changes when settings change', function() {
         var localizeSpy = this.sinon.spy(MockMozL10n, 'localize');
 

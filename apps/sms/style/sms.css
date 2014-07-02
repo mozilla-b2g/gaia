@@ -543,43 +543,6 @@ section[role="region"].new > header:first-child form {
 }
 
 /*
-  DSDS
-*/
-
-.js-sim-indication {
-  position: absolute;
-  top: 0.2rem;
-  left: 0;
-
-  display: none;
-  line-height: 1;
-  width: 100%;
-
-  font-size: 1.3rem;
-  opacity: 0.5;
-}
-
-.has-preferred-sim .js-sim-indication {
-  display: block;
-}
-
-
-.has-preferred-sim #messages-send-button:after {
-  position: absolute;
-  top: 1.2rem;
-  left: 0;
-  right: 0;
-
-  content: '...';
-  display: block;
-  width: 100%;
-
-  color: #b2b2b2;
-  text-align: center;
-  font-size: 1.8rem;
-}
-
-/*
   Loading screen while deleting
 */
 

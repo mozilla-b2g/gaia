@@ -103,9 +103,10 @@ MultiSimActionButton.prototype._updateUI = function() {
       navigator.mozIccManager.iccIds.length > 1) {
     if (this._simIndication) {
       var self = this;
+      var l10nId = this._simIndication.dataset.l10nId || 'sim-picker-button';
       navigator.mozL10n.ready(function() {
         navigator.mozL10n.localize(self._simIndication,
-                                   'sim-picker-button',
+                                   l10nId,
                                    {n: cardIndex+1});
       });
     }
