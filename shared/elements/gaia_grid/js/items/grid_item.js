@@ -1,6 +1,7 @@
 'use strict';
 /* global GridIconRenderer */
 /* global Promise */
+/* global UrlHelper */
 
 (function(exports) {
 
@@ -147,6 +148,53 @@
      */
     setPosition: function(position) {
       this.detail.index = position;
+    },
+
+    /**
+     * Given a list of icons that match a size, return the closest icon to
+     * reduce possible pixelation by picking a wrong size.
+     * @param {Object} choices An object mapping icon size to icon URL.
+     */
+    closestIconFromList: function(choices) {
+      if (!choices) {
+        return this.defaultIcon;
+      }
+
+      // Create a list with the sizes and order it by descending size.
+      var list = Object.keys(choices).map(function(size) {
+        return size;
+      }).sort(function(a, b) {
+        return b - a;
+      });
+
+      var length = list.length;
+      if (length === 0) {
+        // No icons -> return the default icon.
+        return this.defaultIcon;
+      }
+
+      var maxSize = this.grid.layout.gridMaxIconSize; // The goal size
+      var accurateSize = list[0]; // The biggest icon available
+      for (var i = 0; i < length; i++) {
+        var size = list[i];
+
+        if (size < maxSize) {
+          break;
+        }
+
+        accurateSize = size;
+      }
+
+      var icon = choices[accurateSize];
+
+      // Handle relative URLs
+      if (!UrlHelper.hasScheme(icon)) {
+        var a = document.createElement('a');
+        a.href = this.app.origin;
+        icon = a.protocol + '//' + a.host + icon;
+      }
+
+      return icon;
     },
 
     /**
