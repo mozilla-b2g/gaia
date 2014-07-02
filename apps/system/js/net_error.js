@@ -253,6 +253,33 @@
     }
   };
 
+  // Dns error view
+  var DnsErrorAppErrorView = function(error, title, message) {
+    AppErrorView.call(this, error, title, message);
+  };
+
+  DnsErrorAppErrorView.prototype = {
+    __proto__: AppErrorView.prototype,
+
+    populateMessages: function noew_populateMessages() {
+      localizeElement(this.title, this.titleText);
+      localizeElement(this.message, this.messageText, { name: this.error.u });
+    }
+  };
+
+  var DnsErrorFramedErrorView = function(error, title, message) {
+    FramedErrorView.call(this, error, title, message);
+  };
+
+  DnsErrorFramedErrorView.prototype = {
+    __proto__: FramedErrorView.prototype,
+
+    populateMessages: function noew_populateMessages() {
+      localizeElement(this.title, this.titleText);
+      localizeElement(this.message, this.messageText, { name: this.error.u });
+    }
+  };
+
   // Offline view
   var NetOfflineAppErrorView = function(error) {
     AppErrorView.call(this, error);
@@ -333,8 +360,8 @@
       'no-frame': NetOfflineAppErrorView
     },
     dnsNotFound: {
-      'framed': FramedErrorView,
-      'no-frame': ConfirmAppErrorView,
+      'framed': DnsErrorFramedErrorView,
+      'no-frame': DnsErrorAppErrorView,
       'title': 'server-not-found',
       'message': 'server-not-found-error'
     },
