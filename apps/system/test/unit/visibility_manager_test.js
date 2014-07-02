@@ -51,12 +51,13 @@ suite('system/VisibilityManager', function() {
       visibilityManager._normalAudioChannelActive = false;
     });
 
-    test('lockscreen-appclosing', function() {
+    test('lockscreen-request-unlock', function() {
       MockAttentionScreen.mFullyVisible = false;
       var stubPublish = this.sinon.stub(visibilityManager, 'publish');
 
       visibilityManager.handleEvent({
-        type: 'lockscreen-appclosing'
+        type: 'lockscreen-request-unlock',
+        detail: {}
       });
 
       assert.isTrue(stubPublish.calledOnce);
@@ -64,10 +65,25 @@ suite('system/VisibilityManager', function() {
 
       MockAttentionScreen.mFullyVisible = true;
       visibilityManager.handleEvent({
-        type: 'lockscreen-appclosing'
+        type: 'lockscreen-request-unlock',
+        detail: {}
       });
 
       assert.isTrue(stubPublish.calledOnce);
+    });
+
+    test('lockscreen-request-unlock should be ignore if' +
+          ' it is launching camera', function() {
+      var stubPublish = this.sinon.stub(visibilityManager, 'publish');
+
+      visibilityManager.handleEvent({
+        type: 'lockscreen-request-unlock',
+        detail: {
+          activity: true
+        }
+      });
+
+      assert.isFalse(stubPublish.called);
     });
 
     test('attentionscreenshow', function() {
