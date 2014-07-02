@@ -133,6 +133,7 @@ marionette('interop basic', function() {
         assert.ok(
           events.some(function(event) {
             app.monthDay.scrollToEvent(event);
+            debug('Found ' + event.title.trim());
             return event.title.trim() === created.title;
           })
         );
