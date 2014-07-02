@@ -2747,6 +2747,7 @@ suite('thread_ui.js >', function() {
     setup(function() {
       this.sinon.stub(MessageManager, 'getMessages');
       this.sinon.stub(MessageManager, 'markThreadRead');
+      ThreadUI.initializeRendering();
       ThreadUI.renderMessages(1);
     });
 
@@ -2820,6 +2821,36 @@ suite('thread_ui.js >', function() {
 
         sinon.assert.notCalled(HTMLElement.prototype.scrollIntoView);
       });
+    });
+  });
+
+  suite('more complex renderMessages behavior,', function() {
+    var transitionArgs;
+
+    setup(function() {
+      Threads.set(1, {
+        participants: ['999']
+      });
+
+      transitionArgs = {
+        id: 1,
+        meta: {
+          next: { panel: 'thread', args: { id: 1 } },
+          prev: { panel: 'thread-list', args: {} }
+        }
+      };
+    });
+
+    test('renderMessages does not render if we pressed back', function() {
+      this.sinon.stub(MessageManager, 'getMessages');
+      this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
+
+      ThreadUI.beforeEnter(transitionArgs);
+      document.getElementById('messages-back-button').click();
+
+      Navigation.isCurrentPanel.withArgs('thread').returns(true);
+      ThreadUI.afterEnter(transitionArgs);
+      sinon.assert.notCalled(MessageManager.getMessages);
     });
   });
 

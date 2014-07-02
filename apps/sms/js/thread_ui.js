@@ -563,6 +563,11 @@ var ThreadUI = global.ThreadUI = {
     // get an event whenever the panel changes?
     Threads.currentId = args.id;
 
+    var prevPanel = args.meta.prev && args.meta.prev.panel;
+
+    if (prevPanel !== 'group-view' && prevPanel !== 'report-view') {
+      this.initializeRendering();
+    }
     return this.updateHeaderData();
   },
 
@@ -1466,6 +1471,11 @@ var ThreadUI = global.ThreadUI = {
 
   // Method for rendering the list of messages using infinite scroll
   renderMessages: function thui_renderMessages(threadId, callback) {
+    if (this._stopRenderingNextStep) {
+      // we were already asked to stop rendering, before even starting
+      return;
+    }
+
     var onMessagesRendered = (function messagesRendered() {
       if (this.messageIndex < this.CHUNK_SIZE) {
         this.showFirstChunk();
@@ -1494,9 +1504,6 @@ var ThreadUI = global.ThreadUI = {
       }
       return true;
     }).bind(this);
-
-    // We initialize all params before rendering
-    this.initializeRendering();
 
     var filter = new MozSmsFilter();
     filter.threadId = threadId;
