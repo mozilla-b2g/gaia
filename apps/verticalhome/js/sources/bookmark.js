@@ -94,8 +94,6 @@
           // The 'id' of a bookmark is really the url.
           var id = e.target.id;
           this.removeIconFromGrid(id);
-          appManager.sendEventToCollectionApp('uninstall',
-            { id: id });
           break;
       }
     },
