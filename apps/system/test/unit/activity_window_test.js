@@ -117,20 +117,6 @@ suite('system/ActivityWindow', function() {
       assert.isTrue(stubRestoreCaller.called);
     });
 
-    test('handleEvent: activity opened', function() {
-      var activity = new ActivityWindow(fakeConfig, app);
-      var stubIsOOP = this.sinon.stub(app, 'isOOP');
-      var stubSetVisible = this.sinon.stub(app, 'setVisible');
-      var spy = this.sinon.spy();
-      stubIsOOP.returns(false);
-      activity.handleEvent({
-        type: '_opened',
-        stopPropagation: spy
-      });
-      assert.isTrue(spy.called);
-      assert.isTrue(stubSetVisible.calledWith(false, true));
-    });
-
     test('requestOpen', function() {
       var activity = new ActivityWindow(fakeConfig, app);
       var fakeAppConfig = {

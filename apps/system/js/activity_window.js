@@ -187,7 +187,7 @@
   ActivityWindow.REGISTERED_EVENTS =
     ['mozbrowserclose', 'mozbrowsererror', 'mozbrowservisibilitychange',
       'mozbrowserloadend', 'mozbrowseractivitydone', 'mozbrowserloadstart',
-      '_localized', '_opened', '_closing'];
+      '_localized', '_closing'];
 
   ActivityWindow.prototype._handle__closing =
     function acw__handle__closing() {
@@ -327,23 +327,6 @@
       }
     }
   };
-
-  ActivityWindow.prototype._handle__opened =
-    function acw__handle__opened() {
-      var app = this.activityCaller;
-      // Set page visibility of focused app to false
-      // once inline activity frame's transition is ended.
-      // XXX: We have trouble to make all inline activity
-      // openers being sent to background now,
-      // because of OOM killer may kill them accidently.
-      // See https://bugzilla.mozilla.org/show_bug.cgi?id=914412,
-      // and https://bugzilla.mozilla.org/show_bug.cgi?id=822325.
-      // So we only set browser app(in-process)'s page visibility
-      // to false now to resolve 914412.
-      if (app && app instanceof AppWindow && !app.isOOP()) {
-        app.setVisible(false, true);
-      }
-    };
 
   window.ActivityWindow = ActivityWindow;
 
