@@ -90,7 +90,7 @@ marionette('Vertical - Collection Pin Bookmark', function() {
     // Enter the created collection.
     collection.enterCollection(collectionIcon);
 
-    var firstPinnedIcon = client.findElement(selectors.firstPinnedResult);
+    var firstPinnedIcon = collection.firstPinnedResult;
     assert.equal(firstPinnedIcon.getAttribute('data-identifier'),
       bookmarkIdentifier);
   });
