@@ -730,4 +730,5 @@
   };
 
   exports.AppWindowManager = AppWindowManager;
+  AppWindowManager.init();
 }(window));
