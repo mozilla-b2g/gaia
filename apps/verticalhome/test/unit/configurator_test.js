@@ -1,14 +1,17 @@
 'use strict';
 
 /* global configurator, MockNavigatorSettings, IccHelper, App, app,
-   MocksHelper  */
+   MocksHelper, MockVersionHelper, verticalPreferences  */
 
+require('/shared/js/homescreens/vertical_preferences.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_icc_helper.js');
 require('/test/unit/mock_app.js');
+require('/test/unit/mock_version_helper.js');
 
 var mocksHelperForConfigurator = new MocksHelper([
   'App',
+  'VersionHelper',
   'IccHelper'
 ]).init();
 
@@ -270,4 +273,144 @@ suite('configurator.js >', function() {
     });
   });
 
+  suite('migration> ', function() {
+    var evtGridReady;
+    var updateHandler = null;
+    var vpGetStub = null;
+    var vpEvtUpdateStub = null;
+
+    var mGrid_layout = {
+      'grid': [
+        [
+          {
+            'name': 'Phone',
+            'manifestURL': 'app://communications/manifest.webapp',
+            'icon': 'app://communications/icons/Dialer_60.png',
+            'entry_point': 'dialer'
+          },
+          {
+            'name': 'Messages',
+            'manifestURL': 'app://sms/manifest.webapp',
+            'icon': 'app://sms/icons/Sms_60.png'
+          }
+        ],
+        [
+          { 'id': 289, 'role': 'collection' },
+          { 'id': 207, 'role': 'collection' }
+        ],
+        [
+          {
+            'name': 'Contacts',
+            'manifestURL': 'app://communications/manifest.webapp',
+            'icon': 'app://communications/icons/Contacts_60.png',
+            'entry_point': 'contacts'
+          },
+          {
+            'name': 'Settings',
+            'manifestURL': 'app://settings/manifest.webapp',
+            'icon': 'app://settings/icons/Settings_60.png'
+          }
+        ]
+      ]
+    };
+
+    var mGrid_layout2 = {
+      'grid': [
+        [
+          {
+            'name': 'Messages2',
+            'manifestURL': 'app://sms/manifest.webapp',
+            'icon': 'app://sms/icons/Sms_60.png'
+          }
+        ],
+        [
+          { 'id': 200, 'role': 'collection' },
+          { 'id': 100, 'role': 'collection' }
+        ],
+        [
+          {
+            'name': 'Contacts2',
+            'manifestURL': 'app://communications/manifest.webapp',
+            'icon': 'app://communications/icons/Contacts_60.png',
+            'entry_point': 'contacts'
+          }
+        ]
+      ]
+    };
+
+    function dispatchUpdatedEvent(grid) {
+      updateHandler({
+        type: 'updated',
+        target: {
+          name: 'grid.layout',
+          value: grid
+        }
+      });
+    }
+
+    setup(function() {
+      vpGetStub = sinon.stub(verticalPreferences, 'get', function(field) {
+        return {
+          then: function(cb) {
+            cb(mGrid_layout);
+          }
+        };
+      });
+
+      vpEvtUpdateStub = sinon.stub(verticalPreferences, 'addEventListener',
+        function(type, handler) {
+          updateHandler = handler;
+        }
+      );
+
+      MockVersionHelper.mIsUpgrade = true;
+      window.app = new App();
+      evtGridReady = document.createEvent('CustomEvent');
+      evtGridReady.initCustomEvent('gaiagrid-layout-ready', true, false, null);
+
+    });
+
+    teardown(function() {
+      vpGetStub.restore();
+      vpEvtUpdateStub.restore();
+    });
+
+    function assertGridOk(gridTest, gridOk) {
+      assert.notEqual(gridTest, undefined);
+      assert.equal(gridTest.length, gridOk.length);
+      for (var i = 0, iLen = gridOk.length; i < iLen; i++) {
+        assert.equal(gridTest[i].length, gridOk[i].length);
+        for (var j = 0, jLen = gridOk[i].length; j < jLen; j++) {
+          assert.equal(gridTest[i].length, gridOk[i].length);
+          assert.equal(gridTest[i][j].name, gridOk[i][j].name);
+        }
+      }
+    }
+
+    test('Upgrade from old homescreen - grid.layout ready >', function() {
+      assert.isFalse(window.app.mGetInitialized());
+      configurator.load();
+      sinon.assert.callCount(vpEvtUpdateStub, 0);
+      window.dispatchEvent(evtGridReady);
+      assert.isTrue(window.app.mGetInitialized());
+      var grid = configurator.getGrid();
+      assertGridOk(grid, mGrid_layout.grid);
+    });
+
+    test('Upgrade from old homescreen - grid.layout not ready >', function() {
+      assert.isFalse(window.app.mGetInitialized());
+      var gridTest = mGrid_layout;
+      mGrid_layout = undefined;
+      configurator.load();
+      sinon.assert.calledOnce(vpEvtUpdateStub);
+      assert.isFalse(window.app.mGetInitialized());
+      var grid = configurator.getGrid();
+      assert.equal(grid, undefined);
+
+      dispatchUpdatedEvent(mGrid_layout2);
+      grid = configurator.getGrid();
+      assertGridOk(grid, mGrid_layout2.grid);
+      mGrid_layout = gridTest;
+    });
+  });
 });
