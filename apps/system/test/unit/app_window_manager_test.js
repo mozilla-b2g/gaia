@@ -53,7 +53,10 @@ suite('system/AppWindowManager', function() {
     app6 = new AppWindow(fakeAppConfig6Browser);
     app7 = new AppWindow(fakeAppConfig7Activity);
 
-    requireApp('system/js/app_window_manager.js', done);
+    requireApp('system/js/app_window_manager.js', function() {
+      window.AppWindowManager.init();
+      done();
+    });
   });
 
   teardown(function() {

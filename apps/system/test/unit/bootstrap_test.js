@@ -47,6 +47,7 @@ requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/test/unit/mock_places.js');
 requireApp('system/test/unit/mock_screen_manager.js');
 requireApp('system/test/unit/mock_task_manager.js');
+requireApp('system/test/unit/mock_app_window_manager.js');
 
 var mocksForBootstrap = new MocksHelper([
   'Applications',
@@ -56,7 +57,8 @@ var mocksForBootstrap = new MocksHelper([
   'SettingsListener',
   'SettingsURL',
   'TaskManager',
-  'L10n'
+  'L10n',
+  'AppWindowManager'
 ]).init();
 
 suite('system/Bootstrap', function() {

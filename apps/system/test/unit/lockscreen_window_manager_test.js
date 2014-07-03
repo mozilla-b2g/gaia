@@ -46,6 +46,8 @@ suite('system/LockScreenWindowManager', function() {
     } else {
       window.lockScreenWindowManager = new window.LockScreenWindowManager();
     }
+    window.lockScreenWindowManager.elements.screen =
+      document.createElement('div');
     // Differs from the existing mock which is expected by other components.
     window.LockScreen = function() {};
   });
@@ -56,6 +58,20 @@ suite('system/LockScreenWindowManager', function() {
   });
 
   suite('Handle events', function() {
+    test('It should stop home event to propagate', function() {
+      var evt = {
+            type: 'home',
+            stopImmediatePropagation: this.sinon.stub()
+          },
+          originalActive = window.lockScreenWindowManager.states.active;
+      // Need to be active to block the home event.
+      window.lockScreenWindowManager.states.active = true;
+      window.lockScreenWindowManager.handleEvent(evt);
+      assert.ok(evt.stopImmediatePropagation.called,
+        'it didn\'t call the stopImmediatePropagation method');
+      window.lockScreenWindowManager.states.active = originalActive;
+    });
+
     test('App created', function() {
       window.lockScreenWindowManager.handleEvent(
         { type: 'lockscreen-appcreated',
