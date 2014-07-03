@@ -12,11 +12,11 @@ define(function(require) {
     return SettingsPanel({
       onInit: function(panel) {
         media_storage.init({
-          defaultMediaLocation: panel.querySelector('#defaultMediaLocation'),
-          volumeListRootElement: panel.querySelector('#volume-list'),
-          popup: panel.querySelector('#default-location-popup-container'),
-          cancelBtn: panel.querySelector('#default-location-cancel-btn'),
-          changeBtn: panel.querySelector('#default-location-change-btn')
+          defaultMediaLocation: panel.querySelector('.defaultMediaLocation'),
+          volumeListRootElement: panel.querySelector('.volume-list'),
+          popup: panel.querySelector('.default-location-popup-container'),
+          cancelBtn: panel.querySelector('.default-location-cancel-btn'),
+          changeBtn: panel.querySelector('.default-location-change-btn')
         });
       }
     });
