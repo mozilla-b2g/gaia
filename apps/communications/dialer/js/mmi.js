@@ -331,36 +331,39 @@ var MmiManager = {
     var self = this;
 
     return new Promise(function(resolve, reject) {
-      var request = window.navigator.mozApps.getSelf();
-      request.onsuccess = function(evt) {
-        var app = evt.target.result;
+      self.init(function() {
+        var request = window.navigator.mozApps.getSelf();
+        request.onsuccess = function(evt) {
+          var app = evt.target.result;
 
-        LazyLoader.load('/shared/js/notification_helper.js', function() {
-          var iconURL = NotificationHelper.getIconURI(app, 'dialer');
-          var clickCB = function(evt) {
-            evt.target.close();
-            app.launch('dialer');
-            self.handleMMIReceived(message, /* sessionEnded */ true, cardIndex);
-          };
-          var conn = navigator.mozMobileConnections[cardIndex || 0];
-          var title = self.prependSimNumber(
-            MobileOperator.userFacingInfo(conn).operator, cardIndex);
-          /* XXX: Bug 1033254 - We put the |ussd-message=1| parameter in the
-           * URL string to distinguish this notification from the others. This
-           * should be thorought the application possibly by using the tag
-           * field. */
-          var notification = new Notification(title, {
-            body: message,
-            icon: iconURL + '?ussdMessage=1&cardIndex=' + cardIndex,
-            tag: Date.now()
+          LazyLoader.load('/shared/js/notification_helper.js', function() {
+            var iconURL = NotificationHelper.getIconURI(app, 'dialer');
+            var clickCB = function(evt) {
+              evt.target.close();
+              app.launch('dialer');
+              self.handleMMIReceived(message, /* sessionEnded */ true,
+                                     cardIndex);
+            };
+            var conn = navigator.mozMobileConnections[cardIndex || 0];
+            var title = self.prependSimNumber(
+              MobileOperator.userFacingInfo(conn).operator, cardIndex);
+            /* XXX: Bug 1033254 - We put the |ussd-message=1| parameter in the
+             * URL string to distinguish this notification from the others.
+             * This should be thorought the application possibly by using the
+             * tag field. */
+            var notification = new Notification(title, {
+              body: message,
+              icon: iconURL + '?ussdMessage=1&cardIndex=' + cardIndex,
+              tag: Date.now()
+            });
+            notification.addEventListener('click', clickCB);
+            resolve();
           });
-          notification.addEventListener('click', clickCB);
-          resolve();
-        });
-      };
-      request.onerror = function(error) {
-        reject(error);
-      };
+        };
+        request.onerror = function(error) {
+          reject(error);
+        };
+      });
     });
   },
 
