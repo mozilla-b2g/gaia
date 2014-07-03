@@ -1,6 +1,6 @@
 'use strict';
 /* global contacts */
-/* global ActivityHandler */
+/* global MockActivities */
 /* global MockAlphaScroll */
 /* global MockasyncStorage */
 /* global MockCookie */
@@ -63,6 +63,10 @@ if (!window.mozL10n) {
   window.mozL10n = null;
 }
 
+if (!window.ActivityHandler) {
+  window.ActivityHandler = null;
+}
+
 if (!window.ImageLoader) {
   window.ImageLoader = null;
 }
@@ -80,8 +84,7 @@ if (!window.asyncScriptsLoaded) {
 }
 
 var mocksForListView = new MocksHelper([
-  'ContactPhotoHelper',
-  'ActivityHandler'
+  'ContactPhotoHelper'
 ]).init();
 
 suite('Render contacts list', function() {
@@ -99,6 +102,7 @@ suite('Render contacts list', function() {
       realPerformanceTestingHelper,
       realAsyncStorage,
       mockContacts,
+      realActivities,
       realURL,
       groupA,
       groupB,
@@ -388,6 +392,8 @@ suite('Render contacts list', function() {
     realFb = window.fb;
     window.fb = Mockfb;
     window.Contacts.extServices = MockExtFb;
+    realActivities = window.ActivityHandler;
+    window.ActivityHandler = MockActivities;
     realImageLoader = window.ImageLoader;
     window.ImageLoader = MockImageLoader;
     realURL = window.URL || {};
@@ -418,7 +424,8 @@ suite('Render contacts list', function() {
     window.Contacts = realContacts;
     window.fb = realFb;
     window.mozL10n = realL10n;
-    window.ImageLoader = realImageLoader;
+    window.ActivityHandler = realActivities;
+    window.ImageLoader = realActivities;
     window.PerformanceTestingHelper = realPerformanceTestingHelper;
     window.asyncStorage = realAsyncStorage;
     navigator.mozContacts = realMozContacts;
@@ -946,12 +953,12 @@ suite('Render contacts list', function() {
     });
 
     test('checking no contacts when coming from activity', function(done) {
-      ActivityHandler.currentlyHandling = true;
+      MockActivities.currentlyHandling = true;
       doLoad(subject, [], function() {
         assert.isTrue(noContacts.classList.contains('hide'));
         assertNoGroup(groupFav, containerFav);
         assertTotal(0, 0);
-        ActivityHandler.currentlyHandling = false;
+        MockActivities.currentlyHandling = false;
         done();
       });
     });

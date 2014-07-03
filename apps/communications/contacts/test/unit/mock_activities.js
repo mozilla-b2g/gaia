@@ -1,17 +1,12 @@
-/* exported MockActivityHandler */
-
 'use strict';
+/* exported MockActivities */
 
-var MockActivityHandler = {
+var MockActivities = {
   currentlyHandling: false,
   activityName: 'view',
-  currentActivityIs: function(list) {
-    return this.currentlyHandling && list.indexOf(this.activityName) !== -1;
+  postPickSuccess: function(data) {
   },
-  currentActivityIsNot: function(list) {
-    return this.currentlyHandling && list.indexOf(this.activityName) === -1;
-  },
-  postPickSuccess: function(data) {},
-  postCancel: function() {},
-  dataPickHandler: function() {}
+  postCancel: function() {
+    
+  }
 };

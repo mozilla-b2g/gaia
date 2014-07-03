@@ -80,15 +80,11 @@ var Contacts = (function() {
       utils.extractParams(hasParams[1]) : -1;
 
     switch (sectionId) {
-      case 'view-contact-list':
-        initContactsList();
-        showApp();
-        break;
       case 'view-contact-details':
         initContactsList();
         initDetails(function onInitDetails() {
           if (params == -1 || !('id' in params)) {
-            console.error('Param missing');
+            console.log('Param missing');
             return;
           }
           var id = params.id;
@@ -265,22 +261,26 @@ var Contacts = (function() {
   var checkCancelableActivity = function cancelableActivity() {
     // NOTE: Only set textContent below if necessary to avoid repaints at
     //       load time.  For more info see bug 725221.
+
     var text;
     if (ActivityHandler.currentlyHandling) {
       cancelButton.classList.remove('hide');
       addButton.classList.add('hide');
       settingsButton.classList.add('hide');
-    } else {
+
+      text = _('selectContact');
+      if (appTitleElement.textContent !== text) {
+        appTitleElement.textContent = text;
+      }
+    } else if (contactsList && !contactsList.isSelecting) {
       cancelButton.classList.add('hide');
       addButton.classList.remove('hide');
       settingsButton.classList.remove('hide');
-    }
 
-    text = (contactsList && contactsList.isSelecting)?
-          _('selectContact'):_('contacts');
-
-    if (appTitleElement.textContent !== text) {
-      appTitleElement.textContent = text;
+      text = _('contacts');
+      if (appTitleElement.textContent !== text) {
+        appTitleElement.textContent = text;
+      }
     }
   };
 
@@ -296,14 +296,12 @@ var Contacts = (function() {
 
         currentContact = contact;
         currentFbContact = fbContact;
-
-        if (ActivityHandler.currentActivityIsNot(['import'])) {
-          if (ActivityHandler.currentActivityIs(['pick'])) {
+        if (ActivityHandler.currentlyHandling) {
+          if (ActivityHandler.activityName == 'pick') {
             ActivityHandler.dataPickHandler(currentFbContact || currentContact);
           }
           return;
         }
-
         contactsDetails.render(currentContact, currentFbContact);
         if (contacts.Search && contacts.Search.isInSearchMode()) {
           navigation.go('view-contact-details', 'go-deeper-search');
@@ -456,7 +454,7 @@ var Contacts = (function() {
 
   var sendSms = function sendSms(number) {
     if (!ActivityHandler.currentlyHandling ||
-        ActivityHandler.currentActivityIs(['open'])) {
+        ActivityHandler.activityName === 'open') {
       SmsIntegration.sendSms(number);
     }
   };
@@ -516,7 +514,7 @@ var Contacts = (function() {
         }
       });
     } catch (e) {
-      console.error('WebActivities unavailable? : ' + e);
+      console.log('WebActivities unavailable? : ' + e);
     }
   };
 
@@ -725,8 +723,9 @@ var Contacts = (function() {
     }
 
     LazyLoader.load(lazyLoadFiles, function() {
-      if (!ActivityHandler.currentlyHandling ||
-          ActivityHandler.currentActivityIs(['pick', 'update'])) {
+      var handling = ActivityHandler.currentlyHandling;
+      if (!handling || ActivityHandler.activityName === 'pick' ||
+                       ActivityHandler.activityName === 'update') {
         initContactsList();
         checkUrl();
       } else {
@@ -834,7 +833,6 @@ var Contacts = (function() {
         ActivityHandler.postCancel();
         return;
       }
-
       Contacts.checkCancelableActivity();
       if (document.hidden === false &&
                                 navigation.currentView() === 'view-settings') {
