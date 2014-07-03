@@ -7,7 +7,7 @@ requireApp('sms/js/attachment.js');
 requireApp('sms/js/attachment_renderer.js');
 requireApp('sms/js/utils.js');
 
-requireApp('sms/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('sms/test/unit/mock_utils.js');
 
 var MocksHelperForAttachment = new MocksHelper([

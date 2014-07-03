@@ -8,8 +8,9 @@
 */
 'use strict';
 
+require('/shared/test/unit/mocks/mock_l10n.js');
+
 requireApp('sms/test/unit/mock_settings.js');
-requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/js/dialog.js');
 
 var mocksHelperForDialog = new MocksHelper([

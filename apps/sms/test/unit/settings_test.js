@@ -12,7 +12,7 @@
 
 'use strict';
 
-require('/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_mobile_operator.js');
 require('/js/settings.js');
