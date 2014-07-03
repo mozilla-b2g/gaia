@@ -132,10 +132,11 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
     LazyL10n.get(function localized(_) {
       node.textContent = _('emergencyNumber');
       self._cachedInfo = _('emergencyNumber');
+      self.formatPhoneNumber('end');
     });
 
     // Set Emergency Wallpaper
-    CallScreen.setEmergencyWallpaper();
+    CallScreen.setWallpaper();
     return;
   }
 
@@ -158,7 +159,7 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
     callMessageReq.onsuccess = function onCallMessageSuccess() {
       self._iccCallMessage = callMessageReq.result['icc.callmessage'];
       if (self._iccCallMessage) {
-        self.replacePhoneNumber(self._iccCallMessage, 'end', true);
+        self.replacePhoneNumber(self._iccCallMessage, 'end');
         self._cachedInfo = self._iccCallMessage;
         var clearReq = navigator.mozSettings.createLock().set({
           'icc.callmessage': null
@@ -188,7 +189,7 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
           node.textContent = self._cachedInfo;
         });
       }
-      self.formatPhoneNumber('end', true);
+      self.formatPhoneNumber('end');
       self._cachedAdditionalInfo =
         Utils.getPhoneNumberAdditionalInfo(matchingTel);
       self.replaceAdditionalContactInfo(self._cachedAdditionalInfo);
@@ -207,7 +208,7 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
     self._cachedInfo = number;
     node.textContent = self._cachedInfo;
     self.replaceAdditionalContactInfo(self._cachedAdditionalInfo);
-    self.formatPhoneNumber('end', true);
+    self.formatPhoneNumber('end');
   }
 };
 
@@ -260,7 +261,7 @@ HandledCall.prototype.replacePhoneNumber =
 HandledCall.prototype.restorePhoneNumber =
   function hc_restorePhoneNumber() {
     this.numberNode.textContent = this._cachedInfo;
-    this.formatPhoneNumber('end', true);
+    this.formatPhoneNumber('end');
 };
 
 HandledCall.prototype.updateDirection = function hc_updateDirection() {

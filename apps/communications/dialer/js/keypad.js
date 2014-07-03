@@ -146,25 +146,32 @@ var KeypadManager = {
       document.getElementById('keypad-hidebar-hide-keypad-action');
   },
 
+  get defaultFontSize() {
+    this._defaultFontSize = this._defaultFontSize || window.getComputedStyle(
+      document.body, null).getPropertyValue('font-size');
+    return this._defaultFontSize;
+  },
+
+  get minFontSize() {
+    this._minFontSize = this._minFontSize || parseInt(parseInt(
+      this.defaultFontSize) * 10 * 0.226);
+    return this._minFontSize;
+  },
+
+  get maxFontSize() {
+    this._maxFontSize = this._maxFontSize || this._onCall ?
+      parseInt(
+        parseInt(this.defaultFontSize) * this._MAX_FONT_SIZE_ON_CALL * 0.226) :
+      parseInt(
+        parseInt(this.defaultFontSize) * this._MAX_FONT_SIZE_DIAL_PAD * 0.226);
+    return this._maxFontSize;
+  },
+
   multiSimActionButton: null,
 
   init: function kh_init(oncall) {
 
     this._onCall = !!oncall;
-
-    // Update the minimum phone number phone size.
-    // The UX team states that the minimum font size should be
-    // 10pt. First off, we convert it to px multiplying it 0.226 times,
-    // then we convert it to rem multiplying it a number of times equal
-    // to the font-size property of the body element.
-    var defaultFontSize = window.getComputedStyle(document.body, null)
-                                .getPropertyValue('font-size');
-    this.minFontSize = parseInt(parseInt(defaultFontSize) * 10 * 0.226);
-    this.maxFontSize = this._onCall ?
-      parseInt(parseInt(defaultFontSize) * this._MAX_FONT_SIZE_ON_CALL *
-        0.226) :
-      parseInt(parseInt(defaultFontSize) * this._MAX_FONT_SIZE_DIAL_PAD *
-        0.226);
 
     this.phoneNumberView.value = '';
     this._phoneNumber = '';
