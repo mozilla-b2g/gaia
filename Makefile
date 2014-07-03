@@ -743,7 +743,7 @@ ifndef APPS
 endif
 
 b2g: node_modules/.bin/mozilla-download
-	./node_modules/.bin/mozilla-download  \
+	DEBUG=* ./node_modules/.bin/mozilla-download  \
 		--verbose \
 		--product b2g \
 		--channel tinderbox \
