@@ -107,8 +107,13 @@ suite('controllers/controls', function() {
       assert.isTrue(this.app.on.calledWith('camera:ready', this.controller.restore));
     });
 
+    test('Should hide the controls when the timer is started', function() {
+      assert.isTrue(this.app.on.calledWith('timer:started', this.controller.onTimerStarted));
+    });
+
     test('Should restore the controls when the timer is cleared', function() {
-      assert.isTrue(this.app.on.calledWith('timer:cleared', this.controller.restore));
+      assert.isTrue(this.app.on.calledWith('timer:cleared', this.controller.onTimerStopped));
+      assert.isTrue(this.app.on.calledWith('timer:ended', this.controller.onTimerStopped));
     });
 
     test('Should disable the view intitially until camera is ready', function() {
