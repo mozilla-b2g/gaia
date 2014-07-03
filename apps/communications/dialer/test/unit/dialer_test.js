@@ -354,8 +354,7 @@ suite('navigation bar', function() {
           assert.equal(wakeLock.topic, 'high-priority');
         });
 
-        test('should send a notification for unsollicited messages',
-          function() {
+        test('should send a notification for unsolicited messages', function() {
             this.sinon.spy(MmiManager, 'sendNotification');
             triggerSysMsg(0, true);
             sinon.assert.calledOnce(MmiManager.sendNotification);
