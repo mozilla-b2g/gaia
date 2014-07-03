@@ -734,7 +734,7 @@ suite('Build Integration tests', function() {
                 type: 'url',
                 url: {
                   required: true,
-                  pattern: 'https?:.{1,16384}',
+                  pattern: '(https?:|data:).{1,16384}',
                   patternFlags: 'i'
                 }
               }
