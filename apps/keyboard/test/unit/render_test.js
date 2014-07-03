@@ -298,11 +298,7 @@ suite('Renderer', function() {
       ime.appendChild(activeIme);
       IMERender.activeIme = activeIme;
 
-      IMERender.init(function(key) {
-        return key.value.toUpperCase();
-      }, function() {
-        return false; // is special key
-      });
+      IMERender.init();
 
       loadKeyboardStyle(next);
     });
@@ -430,13 +426,12 @@ suite('Renderer', function() {
         ]
       };
 
-      var uppercaseFn = sinon.stub().returns('U');
-      IMERender.init(uppercaseFn, sinon.stub().returns(false));
+      IMERender.init();
       IMERender.draw(layout, { uppercase: true });
 
       var keys = document.querySelectorAll('.keyboard-key .key-element');
-      assert.equal(keys[0].textContent, 'U');
-      assert.equal(keys[1].textContent, 'U');
+      assert.equal(keys[0].textContent, 'A');
+      assert.equal(keys[1].textContent, 'B');
     });
 
     test('No uppercase flag, don\'t uppercase visually', function() {
@@ -447,8 +442,7 @@ suite('Renderer', function() {
         ]
       };
 
-      var uppercaseFn = sinon.stub().returns('U');
-      IMERender.init(uppercaseFn, sinon.stub().returns(false));
+      IMERender.init();
       IMERender.draw(layout, { uppercase: false });
 
       var keys = document.querySelectorAll('.keyboard-key .key-element');

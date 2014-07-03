@@ -78,14 +78,6 @@ var deleteInterval = 0;
 var longPressTimeout = 0;
 var hideKeyboardTimeout = 0;
 
-const specialCodes = [
-  KeyEvent.DOM_VK_BACK_SPACE,
-  KeyEvent.DOM_VK_CAPS_LOCK,
-  KeyEvent.DOM_VK_RETURN,
-  KeyEvent.DOM_VK_ALT,
-  KeyEvent.DOM_VK_SPACE
-];
-
 // XXX: For now let's pass a fake app object,
 // in the future this should be wired to a KeyboardApp instance.
 var fakeAppObject = {
@@ -259,7 +251,7 @@ function initKeyboard() {
   });
 
   // Initialize the rendering module
-  IMERender.init(getUpperCaseValue, isSpecialKeyObj);
+  IMERender.init();
 
   dimensionsObserver = new MutationObserver(function() {
     perfTimer.printTime('dimensionsObserver:callback');
@@ -373,14 +365,6 @@ function updateCurrentLayout(name) {
     console.warn('Failed to switch layout for ' + name + '.' +
       ' It might possible because we were called more than once.');
   });
-}
-
-// Support function for render
-function isSpecialKeyObj(key) {
-  var hasSpecialCode = key.keyCode !== KeyEvent.DOM_VK_SPACE &&
-    key.keyCode &&
-    specialCodes.indexOf(key.keyCode) !== -1;
-  return hasSpecialCode || key.keyCode <= 0;
 }
 
 // This function asks render.js to create an HTML layout for the keyboard.
@@ -507,16 +491,6 @@ function sendDelete(isRepeat) {
                                            isRepeat);
 }
 
-// Return the upper value for a key object
-function getUpperCaseValue(key) {
-  var hasSpecialCode = specialCodes.indexOf(key.keyCode) > -1;
-  if (key.keyCode < 0 || hasSpecialCode || key.compositeKey)
-    return key.value;
-
-  var upperCase = layoutManager.currentModifiedLayout.upperCase || {};
-  return upperCase[key.value] || key.value.toUpperCase();
-}
-
 function setLongPressTimeout(press, id) {
   // Only set a timeout to show alternatives if there is one touch.
   // This avoids paving over longPressTimeout with a new timeout id
@@ -538,8 +512,7 @@ function setLongPressTimeout(press, id) {
     if (currentInputType === 'number' || currentInputType === 'tel') {
 
       // Does the key have an altKey?
-      var r = target.dataset.row, c = target.dataset.column;
-      var keyChar = layoutManager.currentModifiedLayout.keys[r][c].value;
+      var keyChar = target.dataset.lowercaseValue;
       var altKeys = layoutManager.currentModifiedLayout.alt[keyChar] || null;
 
       if (!altKeys)
@@ -566,22 +539,18 @@ function setLongPressTimeout(press, id) {
 }
 
 // Show alternatives for the HTML node key, and etc.
-function handleLongPress(key, touchId) {
+function handleLongPress(target, touchId) {
   // Get the key object from layout
-  var keyObj;
-  var r = key ? key.dataset.row : -1, c = key ? key.dataset.column : -1;
-  if (r < 0 || c < 0 || r === undefined || c === undefined)
-    return;
-  keyObj = layoutManager.currentModifiedLayout.keys[r][c];
+  var keyCode = getKeyCodeFromTarget(target);
 
   // Handle languages alternatives
-  if (keyObj.keyCode === SWITCH_KEYBOARD) {
+  if (keyCode === SWITCH_KEYBOARD) {
     showIMEList();
     return;
   }
 
   // Hide the keyboard
-  if (keyObj.keyCode === KeyEvent.DOM_VK_SPACE) {
+  if (keyCode === KeyEvent.DOM_VK_SPACE) {
     dismissKeyboard();
     return;
   }
@@ -591,13 +560,13 @@ function handleLongPress(key, touchId) {
   var altMap = layoutManager.currentModifiedLayout.alt;
 
   if (isUpperCaseLocked) {
-    alternatives = (altMap[getUpperCaseValue(keyObj)].upperCaseLocked) ?
-      altMap[getUpperCaseValue(keyObj)].upperCaseLocked :
-      altMap[getUpperCaseValue(keyObj)];
+    alternatives = (altMap[target.dataset.uppercaseValue].upperCaseLocked) ?
+      altMap[target.dataset.uppercaseValue].upperCaseLocked :
+      altMap[target.dataset.uppercaseValue];
   } else if (isUpperCase) {
-    alternatives = altMap[getUpperCaseValue(keyObj)];
+    alternatives = altMap[target.dataset.uppercaseValue];
   } else {
-    alternatives = altMap[keyObj.value];
+    alternatives = altMap[target.dataset.lowercaseValue];
   }
 
   if (!alternatives || !alternatives.length) {
@@ -606,7 +575,7 @@ function handleLongPress(key, touchId) {
   // Copy the array so render.js can't modify the original.
   alternatives = [].concat(alternatives);
 
-  alternativesCharMenuManager.show(key, touchId, alternatives);
+  alternativesCharMenuManager.show(target, touchId, alternatives);
 }
 
 // Test if an HTML node is a normal key
