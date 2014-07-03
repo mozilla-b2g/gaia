@@ -93,4 +93,3 @@ define(function(require) {
   instance.enabled = true;
   return instance;
 });
-

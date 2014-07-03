@@ -7,6 +7,8 @@ define(function(require) {
   var Volume = require('panels/media_storage/volume');
   var SettingsCache = require('modules/settings_cache');
 
+  const MEDIA_TYPE = ['music', 'pictures', 'videos', 'sdcard'];
+
   /**
    * The whole purpose of this code is to detect when we're in the state of
    * having the UMS Enabled checkbox unchecked, but the SD-card is still
@@ -17,6 +19,7 @@ define(function(require) {
    */
   var MediaStorage = function() {
     this._elements = {};
+    this._volumeList = [];
     this._documentStorageListener = false;
     this.usmEnabledVolume = {};
     this.umsVolumeShareState = false;
@@ -46,7 +49,7 @@ define(function(require) {
     _initAllVolumeObjects: function ms_initAllVolumeObjects() {
       var volumes = {};
       var totalVolumes = 0;
-      ['music', 'pictures', 'videos', 'sdcard'].forEach(function(type) {
+      MEDIA_TYPE.forEach(function(type) {
         var storages = navigator.getDeviceStorages(type);
         storages.forEach(function(storage) {
           var name = storage.storageName;
