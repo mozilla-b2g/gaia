@@ -1,6 +1,7 @@
-/* globals MockLazyL10n, MockMobileconnection, MockNavigatorMozIccManager,
-           MockNavigatorMozMobileConnections,  MocksHelper, MmiManager,
-           MockMmiUI */
+/* globals MockLazyL10n, MockMobileconnection, MockMobileOperator,
+           MockNavigatormozApps, MockNavigatorMozIccManager,
+           MockNavigatorMozMobileConnections, MocksHelper, MmiManager,
+           MockMmiUI, Notification */
 
 'use strict';
 
@@ -10,9 +11,12 @@ requireApp('communications/dialer/test/unit/mock_lazy_loader.js');
 
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_mobile_operator.js');
-require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
+require('/shared/test/unit/mocks/mock_notification.js');
+require('/shared/test/unit/mocks/mock_notification_helper.js');
+require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
 
 const SUCCESS_MMI_NO_MSG = 'sucess_mmi_no_msg';
 const FAILED_MMI_NO_MSG = 'failed_mmi_no_msg';
@@ -39,10 +43,13 @@ const TINY_TIMEOUT = 5;
 var mocksHelperForMMI = new MocksHelper([
   'LazyL10n',
   'LazyLoader',
-  'MobileOperator'
+  'MobileOperator',
+  'Notification',
+  'NotificationHelper'
 ]).init();
 
 suite('dialer/mmi', function() {
+  var realMozApps;
   var realMozIccManager;
   var realMobileConnections;
   var mobileConn;
@@ -50,6 +57,9 @@ suite('dialer/mmi', function() {
   mocksHelperForMMI.attachTestHelpers();
 
   suiteSetup(function() {
+    realMozApps = navigator.mozApps;
+    navigator.mozApps = MockNavigatormozApps;
+
     realMozIccManager = window.navigator.mozIccManager;
     window.navigator.mozIccManager = MockNavigatorMozIccManager;
 
@@ -202,6 +212,7 @@ suite('dialer/mmi', function() {
   });
 
   suiteTeardown(function() {
+    navigator.mozApps = realMozApps;
     navigator.mozIccManager = realMozIccManager;
     navigator.mozMobileConnections = realMobileConnections;
   });
@@ -336,10 +347,60 @@ suite('dialer/mmi', function() {
     });
   });
 
-  test('Should handle network initiated messages properly', function() {
-    this.sinon.spy(window, 'postMessage');
-    MmiManager.handleMMIReceived(MMI_MSG, false);
-    sinon.assert.calledWithMatch(window.postMessage, {type: 'mmi-received-ui'});
+  suite('Network initiated messages', function() {
+    setup(function() {
+      MockMobileOperator.mOperator = 'fake_carrier';
+      MockNavigatorMozIccManager.addIcc('0', { 'cardState' : 'ready' });
+    });
+
+    test('should handle network initiated messages properly', function() {
+      this.sinon.spy(window, 'postMessage');
+      MmiManager.handleMMIReceived(MMI_MSG, false);
+      sinon.assert.calledWithMatch(window.postMessage,
+        {type: 'mmi-received-ui'});
+    });
+
+    test('the notification is populated correctly for one SIM', function(done) {
+      this.sinon.spy(window, 'Notification');
+      this.sinon.spy(MmiManager, '_');
+
+      var promise = MmiManager.sendNotification(MMI_MSG, 0);
+      MockNavigatormozApps.mTriggerLastRequestSuccess();
+
+      promise.then(function() {
+        sinon.assert.calledOnce(Notification);
+        sinon.assert.calledWithMatch(Notification, 'fake_carrier', {
+          body: MMI_MSG,
+          icon: 'sms/dialer?ussdMessage=1&cardIndex=0'
+        });
+        sinon.assert.notCalled(MmiManager._);
+      }).then(done, done);
+    });
+
+    test('the notification is populated correctly for the second SIM',
+      function(done) {
+        this.sinon.spy(window, 'Notification');
+        this.sinon.spy(MmiManager, '_');
+        MockNavigatorMozIccManager.addIcc('1', { 'cardState' : 'ready' });
+
+        var promise = MmiManager.sendNotification(MMI_MSG, 1);
+        MockNavigatormozApps.mTriggerLastRequestSuccess();
+
+        promise.then(function() {
+          sinon.assert.calledOnce(Notification);
+          sinon.assert.calledWithMatch(Notification,
+            'notification-title-with-sim',
+            {
+              body: MMI_MSG,
+              icon: 'sms/dialer?ussdMessage=1&cardIndex=1'
+            }
+          );
+          sinon.assert.calledTwice(MmiManager._);
+          assert.equal(MockLazyL10n.keys['sim-number'].n, 2);
+          assert.isNotNull(
+            MockLazyL10n.keys['mmi-notification-title-with-sim']);
+        }).then(done, done);
+    });
   });
 
   suite('Mmi received with message and session active', function() {
