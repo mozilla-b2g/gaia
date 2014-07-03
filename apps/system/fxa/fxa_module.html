@@ -39,6 +39,9 @@
     <script defer src="js/fxam_states.js"></script>
     <script defer src="js/fxam_module.js"></script>
 
+    <script defer src="../shared/js/component_utils.js"></script>
+    <script defer src="../shared/elements/gaia_buttons/script.js"></script>
+
   </head>
   <body>
     <section role="region" class="skin-organic">
@@ -60,17 +63,17 @@
         <section id="fxa-refresh-auth" is="fxa-refresh-auth" class="screen fxa-password"></section>
         <section id="fxa-coppa" is="fxa-coppa" class="screen fxa-coppa"></section>
       </article>
-      <nav role="navigation" class="horizontal navigation navigation-single-button" id="fxa-module-navigation">
-        <button id="fxa-module-back" class="left" data-l10n-id="fxa-back">
+      <gaia-buttons class="navigation-single-button" id="fxa-module-navigation">
+        <button id="fxa-module-back" class="icon icon-previous" data-l10n-id="fxa-back">
           Back
         </button>
-         <button id="fxa-module-next" class="recommend right" data-l10n-id="fxa-next">
+         <button id="fxa-module-next" class="recommend icon icon-next" data-l10n-id="fxa-next">
           Next
         </button>
-        <button id="fxa-module-done" class="recommend right" data-l10n-id="fxa-done">
+        <button id="fxa-module-done" class="recommend" data-l10n-id="fxa-done">
           Done
         </button>
-      </nav>
+      </gaia-buttons>
     </section>
     <!-- Progress overlay -->
     <section id="fxa-overlay" role="dialog">

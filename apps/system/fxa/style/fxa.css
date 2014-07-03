@@ -8,6 +8,7 @@ html, body {
   margin: 0;
   color: #000;
   background: #f4f4f4;
+  overflow: hidden;
 }
 
 html, body * {
@@ -19,19 +20,10 @@ html, body * {
 }
 
 section[role="region"] {
-  width: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   height: 100%;
-  margin: 0;
-  position: absolute;
-  z-index: 1;
-}
-
-body {
-  background: url(bg_light.png);
-}
-
-h3 {
-  text-align: left;
 }
 
 input {
@@ -53,55 +45,20 @@ ul {
   align-items: center;
 }
 
-.navigation {
-  position: relative;
-  background: rgba(0,0,0,0.05);
-  border-top: 0.1rem solid #a6a6a6;
-  padding: .5rem;
-  -moz-box-sizing: border-box;
+/*
+ * We need !important to override Web components,
+ * as we don't have ::content yet (bug 992249).
+ */
+gaia-buttons {
+  position: relative !important;
 }
 
-/* Overwrite this property from Building Blocks */
-.navigation button{
-  margin: 0;
-}
-
-.navigation button.left {
-  margin-right: .25rem;
-}
-
-.navigation button.right {
-  margin-left: .25rem;
-}
-
-/* When there is only one option, we remove the margin */
-.navigation-single-button button{
-  margin: 0;
-}
-
-.navigation-single-button button.left {
-  display: none;
-}
-
-.navigation-back-only button {
-  margin: 0;
-}
-
-.navigation-back-only button.right {
-  display: none;
-}
-
+.navigation-single-button #fxa-module-back,
+.navigation-back-only #fxa-module-next,
 .navigation-done #fxa-module-back,
-.navigation-done #fxa-module-next {
-  display: none;
-}
-
-#fxa-module-done {
-  display: none;
-}
-
-.navigation-done #fxa-module-done {
-  display: block;
+.navigation-done #fxa-module-next,
+gaia-buttons:not(.navigation-done) #fxa-module-done {
+  display: none !important;
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * *
@@ -116,23 +73,17 @@ ul {
 }
 
 #step-container {
-  height: calc(100% - 6.3rem - 5rem);
-  position: relative;
-  overflow: hidden;
+  flex: 1;
+  overflow: scroll;
 }
 
 .ff_account,
 .screen {
   font-family: sans-serif;
   font-size: 1.6rem;
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  overflow: scroll;
   display: none;
   padding: 1rem;
   -moz-box-sizing: border-box;
-  text-align: center;
 }
 
 .screen p {
@@ -255,7 +206,7 @@ p.fxa-envelope {
   position: absolute;
   top: 0;
   left: 0;
-  z-index: 2;
+  z-index: 10;
   font-size: 2rem;
   background-color: rgba(200,200,200,0.9);
   flex-direction: column;
