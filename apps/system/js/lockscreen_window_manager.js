@@ -34,7 +34,6 @@
     states: {
       FTUOccurs: false,
       enabled: true,
-      unlockDetail: null,
       instance: null,
       active: false,
       windowCreating: false
@@ -108,20 +107,7 @@
           this.states.FTUOccurs = false;
           break;
         case 'lockscreen-request-unlock':
-          // Only when the background app is ready,
-          // we close the window.
-          var activeApp = window.AppWindowManager ?
-                window.AppWindowManager.getActiveApp() : null,
-              nextPaint = () => {
-                this.states.unlockDetail = evt.detail;
-                this.closeApp();
-              };
-
-          if (!activeApp) {
-            nextPaint();
-          } else {
-            activeApp.ready(nextPaint);
-          }
+          this.responseUnlock(evt.detail);
           break;
         case 'lockscreen-appcreated':
           app = evt.detail;
@@ -132,7 +118,6 @@
           this.unregisterApp(app);
           break;
         case 'lockscreen-appclose':
-          this.states.unlockDetail = null;
           break;
         case 'screenchange':
           // The screenchange may be invoked by proximity sensor,
@@ -352,6 +337,26 @@
         }
         this.openApp();
       };
+    };
+
+  LockScreenWindowManager.prototype.responseUnlock =
+    function lwm_responseUnlock(detail) {
+      // Only when the background app is ready,
+      // we close the window.
+      var activeApp = window.AppWindowManager ?
+            window.AppWindowManager.getActiveApp() : null;
+      if (detail && detail.activity) {
+        // Need to invoke activity
+        var a = new window.MozActivity(detail.activity);
+        a.onerror = function ls_activityError() {
+          console.log('MozActivity: lockscreen invoke activity error.');
+        };
+        this.closeApp();
+      } else if (!activeApp) {
+        this.closeApp();
+      } else {
+        activeApp.ready(this.closeApp.bind(this));
+      }
     };
 
   /** @exports LockScreenWindowManager */

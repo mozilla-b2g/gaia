@@ -1,5 +1,3 @@
-/* global SIMSlotManager */
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 'use strict';
@@ -26,7 +24,10 @@ var SimLock = {
     // Display the dialog only after lockscreen is unlocked
     // before the transition.
     // To prevent keyboard being displayed behind it.
-    window.addEventListener('lockscreen-appclosing', this);
+    //
+    // And we can't listen to 'lockscreen-appclosing' event because
+    // we need to detect if the next app is Camera.
+    window.addEventListener('lockscreen-request-unlock', this);
 
     // always monitor card state change
     var self = this;
@@ -96,11 +97,12 @@ var SimLock = {
           this.showIfLocked();
         }
         break;
-      case 'lockscreen-appclosing':
+      case 'lockscreen-request-unlock':
         // Check whether the lock screen was unlocked from the camera or not.
         // If the former is true, the SIM PIN dialog should not displayed after
         // unlock, because the camera will be opened (Bug 849718)
-        if (evt.detail && evt.detail.areaCamera)
+        if (evt.detail && evt.detail.activity &&
+            'record' === evt.detail.activity.name)
           return;
 
         this.showIfLocked();
