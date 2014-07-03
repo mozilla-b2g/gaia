@@ -275,9 +275,49 @@ suite('calls handler', function() {
         MockNavigatorMozTelephony.mTriggerCallsChanged();
 
         sinon.assert.calledWith(
-          FontSizeManager.adaptToSpace, FontSizeManager.CALL_WAITING,
+          FontSizeManager.adaptToSpace, FontSizeManager.SECOND_INCOMING_CALL,
           MockCallScreen.incomingNumber, MockCallScreen.fakeIncomingNumber,
           false, 'end');
+      });
+
+      test('should call FontSizeManager.adaptToSpace if both calls have ' +
+           'withheld numbers', function() {
+        MockNavigatorMozTelephony.calls = [];
+
+        var firstCall = new MockCall('', 'incoming');
+        extraCall = new MockCall('', 'incoming');
+
+        telephonyAddCall.call(this, firstCall, {trigger: true});
+        extraHC = telephonyAddCall.call(this, extraCall);
+
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
+
+        sinon.assert.calledWith(
+          FontSizeManager.adaptToSpace, FontSizeManager.SECOND_INCOMING_CALL,
+          MockCallScreen.incomingNumber, MockCallScreen.fakeIncomingNumber,
+          false, 'end');
+        assert.equal(
+          MockCallScreen.incomingNumber.textContent, 'withheld-number');
+      });
+
+      test('should call FontSizeManager.adaptToSpace if the second call has ' +
+           'withheld number', function() {
+        MockNavigatorMozTelephony.calls = [];
+
+        var firstCall = new MockCall('543552', 'incoming');
+        extraCall = new MockCall('', 'incoming');
+
+        telephonyAddCall.call(this, firstCall, {trigger: true});
+        extraHC = telephonyAddCall.call(this, extraCall);
+
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
+
+        sinon.assert.calledWith(
+          FontSizeManager.adaptToSpace, FontSizeManager.SECOND_INCOMING_CALL,
+          MockCallScreen.incomingNumber, MockCallScreen.fakeIncomingNumber,
+          false, 'end');
+        assert.equal(MockCallScreen.incomingNumber.textContent,
+          'withheld-number');
       });
 
       suite('screen management', function() {
@@ -459,7 +499,7 @@ suite('calls handler', function() {
         MockNavigatorMozTelephony.mTriggerCallsChanged();
 
         sinon.assert.calledWith(
-          FontSizeManager.adaptToSpace, FontSizeManager.CALL_WAITING,
+          FontSizeManager.adaptToSpace, FontSizeManager.SECOND_INCOMING_CALL,
           MockCallScreen.incomingNumber, MockCallScreen.fakeIncomingNumber,
           false, 'end');
       });
@@ -497,7 +537,7 @@ suite('calls handler', function() {
         MockNavigatorMozTelephony.mTriggerCallsChanged();
 
         sinon.assert.calledWith(
-          FontSizeManager.adaptToSpace, FontSizeManager.CALL_WAITING,
+          FontSizeManager.adaptToSpace, FontSizeManager.SECOND_INCOMING_CALL,
           MockCallScreen.incomingNumber, MockCallScreen.fakeIncomingNumber,
           false, 'end');
       });
@@ -543,7 +583,7 @@ suite('calls handler', function() {
         MockNavigatorMozTelephony.mTriggerCallsChanged();
 
         sinon.assert.calledWith(
-          FontSizeManager.adaptToSpace, FontSizeManager.CALL_WAITING,
+          FontSizeManager.adaptToSpace, FontSizeManager.SECOND_INCOMING_CALL,
           MockCallScreen.incomingNumber, MockCallScreen.fakeIncomingNumber,
           false, 'end');
       });
@@ -572,7 +612,7 @@ suite('calls handler', function() {
         MockNavigatorMozTelephony.mTriggerCallsChanged();
 
         sinon.assert.calledWith(
-          FontSizeManager.adaptToSpace, FontSizeManager.CALL_WAITING,
+          FontSizeManager.adaptToSpace, FontSizeManager.SECOND_INCOMING_CALL,
           MockCallScreen.incomingNumber, MockCallScreen.fakeIncomingNumber,
           false, 'end');
       });
@@ -620,7 +660,7 @@ suite('calls handler', function() {
         MockNavigatorMozTelephony.mTriggerCallsChanged();
 
         sinon.assert.calledWith(
-          FontSizeManager.adaptToSpace, FontSizeManager.CALL_WAITING,
+          FontSizeManager.adaptToSpace, FontSizeManager.SECOND_INCOMING_CALL,
           MockCallScreen.incomingNumber, MockCallScreen.fakeIncomingNumber,
           false, 'end');
       });

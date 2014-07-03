@@ -10,6 +10,7 @@ var MockFontSizeManager = {
   SINGLE_CALL: 1,
   CALL_WAITING: 2,
   STATUS_BAR: 3,
+  SECOND_INCOMING_CALL: 4,
 
   adaptToSpace: function() {}
 };
