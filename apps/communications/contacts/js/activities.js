@@ -141,6 +141,16 @@ var ActivityHandler = {
         dataSet = theContact.email;
         noDataStr = _('no_contact_email');
         break;
+      case 'webcontacts/sms':
+        type = 'number';
+        dataSet = theContact.tel;
+        noDataStr = _('no_contact_phones');
+        break;
+      case 'webcontacts/mms':
+        type = 'email';
+        dataSet = theContact.email;
+        noDataStr = _('no_contact_email');
+        break;
     }
     var hasData = dataSet && dataSet.length;
     var numOfData = hasData ? dataSet.length : 0;
