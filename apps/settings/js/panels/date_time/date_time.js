@@ -4,8 +4,9 @@
 define(function(require) {
   'use strict';
 
-  // var SettingsCache = require('modules/settings_cache');
+  var SettingsCache = require('modules/settings_cache');
   // var SettingsListener = require('shared/settings_listener');
+  // var Observable = require('modules/mvvm/observable');
   var tzSelect = require('shared/tz_select');
 
   var settings = window.navigator.mozSettings;
@@ -15,13 +16,15 @@ define(function(require) {
     this._elements = {};
     this._mozTime = null;
 
-    this.kClockAutoEnabled = 'time.clock.automatic-update.enabled';
-    this.kTimezoneAutoEnabled = 'time.timezone.automatic-update.enabled';
+    this._kClockAutoEnabled = 'time.clock.automatic-update.enabled';
+    this._kTimezoneAutoEnabled = 'time.timezone.automatic-update.enabled';
     this._clockAutoAvailable = false;
     this._timezoneAutoAvailable = false;
     this._updateDateTimeout = null;
     this._updateClockTimeout = null;
     this._timeAutoEnabled = false;
+    // user last time selection
+    this.reqUserTZ = null;
   };
 
   DateTime.prototype = {
@@ -35,16 +38,18 @@ define(function(require) {
       }
 
       var self = this;
-      settings.addObserver(this.kClockAutoEnabled, function(event) {
+      settings.addObserver(this._kClockAutoEnabled, function(event) {
         self.setTimeAutoEnabled(!!event.settingValue);
       });
 
-      var reqClockAutoEnabled =
-        settings.createLock().get(this.kClockAutoEnabled);
-      reqClockAutoEnabled.onsuccess = function clock_getStatusSuccess() {
-        self.setTimeAutoEnabled(
-          reqClockAutoEnabled.result[self.kClockAutoEnabled]);
-      };
+      SettingsCache.getSettings(function(results) {
+        self.reqUserTZ = results['time.timezone.user-selected'];
+
+        self.setTimeAutoEnabled(results[self._kClockAutoEnabled]);
+        self.setClockAutoAvailable(!!results[self.kClockAutoAvailable]);
+        self.setTimezoneAutoAvailable(!!results[self.kTimezoneAutoAvailable]);
+        self.updateTimezone(results['time.timezone']);
+      });
 
       /**
        * Hide automatic time setting if no source available.
@@ -60,29 +65,9 @@ define(function(require) {
         self.setTimezoneAutoAvailable(!!event.settingValue);
       });
 
-      var reqClockAutoAvailable =
-        settings.createLock().get(kClockAutoAvailable);
-      reqClockAutoAvailable.onsuccess = function clock_getStatusSuccess() {
-        self.setClockAutoAvailable(
-          !!reqClockAutoAvailable.result[kClockAutoAvailable]);
-      };
-
-      var reqTimezoneAutoAvailable =
-        settings.createLock().get(kTimezoneAutoAvailable);
-      reqTimezoneAutoAvailable.onsuccess =
-        function timezone_getStatusSuccess() {
-        self.setTimezoneAutoAvailable(
-          !!reqTimezoneAutoAvailable.result[kTimezoneAutoAvailable]);
-      };
-
       settings.addObserver('time.timezone', function(event) {
         self.updateTimezone(event.settingValue);
       });
-
-      var reqTimezone = settings.createLock().get('time.timezone');
-      reqTimezone.onsuccess = function timezone_getStatusSuccess() {
-        self.updateTimezone(reqTimezone.result['time.timezone']);
-      };
 
       this.updateDate();
       this.updateClock();
@@ -150,7 +135,7 @@ define(function(require) {
         !(this._timezoneAutoAvailable && this._timeAutoEnabled);
 
       var cset = {};
-      cset[this.kTimezoneAutoEnabled] = enabled;
+      cset[this._kTimezoneAutoEnabled] = enabled;
       settings.createLock().set(cset);
 
       this.updateUI();
@@ -159,21 +144,18 @@ define(function(require) {
       }
 
       // Reset the timezone to the previous user selected value
-      var reqUserTZ = settings.createLock().get('time.timezone.user-selected');
-      reqUserTZ.onsuccess = function dt_getUserTimezoneSuccess() {
-        var userSelTimezone = reqUserTZ.result['time.timezone.user-selected'];
-        if (userSelTimezone) {
-          settings.createLock().set({'time.timezone': userSelTimezone});
-        }
-      };
+      var userSelTimezone = this.reqUserTZ;
+      if (userSelTimezone) {
+        settings.createLock().set({'time.timezone': userSelTimezone});
+      }
     },
 
     setTimeAutoAvailable: function dt_setTimeAutoAvailable(available) {
       this._elements.timeAutoSwitch.hidden = !available;
       if (!available) { // disable the time auto-update if N/A
         var cset = {};
-        cset[this.kClockAutoEnabled] = false;
-        cset[this.kTimezoneAutoEnabled] = false;
+        cset[this._kClockAutoEnabled] = false;
+        cset[this._kTimezoneAutoEnabled] = false;
         settings.createLock().set(cset);
       }
     },
