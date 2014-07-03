@@ -1,4 +1,3 @@
-/* global tzSelect */
 /**
  * Handle Date and Time panel functionality
  */
@@ -7,6 +6,7 @@ define(function(require) {
 
   var settings = window.navigator.mozSettings;
   var _ = navigator.mozL10n.get;
+  var tzSelect = require('shared/tz_select');
 
   var DateTime = function() {
     this._elements = {};

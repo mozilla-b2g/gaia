@@ -10,17 +10,18 @@
   // If the inquiries to the object are all performed by requirejs, we can
   // remove the path of the object from the following list.
   paths: {
+    'connectivity': 'empty:',
     'prim': 'empty:',
     'settings': 'empty:',
-    'connectivity': 'empty:',
     'shared/async_storage': 'empty:',
     'shared/icc_helper': 'empty:',
     'shared/lazy_loader': 'empty:',
     'shared/manifest_helper': 'empty:',
+    'shared/omadrm/fl': 'empty:',
     'shared/settings_listener': 'empty:',
-    'utils': 'empty:',
     'shared/settings_url': 'empty:',
-    'shared/omadrm/fl': 'empty:'
+    'shared/tz_select': 'empty:',
+    'utils': 'empty:'
   },
 
   findNestedDependencies: true,

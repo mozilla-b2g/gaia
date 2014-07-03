@@ -30,14 +30,17 @@ require.config({
     'shared/screen_layout': {
       exports: 'ScreenLayout'
     },
+    'shared/settings_listener': {
+      exports: 'SettingsListener'
+    },
     'shared/settings_url': {
       exports: 'SettingsURL'
     },
     'shared/omadrm/fl': {
       exports: 'ForwardLock'
     },
-    'shared/settings_listener': {
-      exports: 'SettingsListener'
+    'shared/tz_select': {
+      exports: 'tzSelect'
     },
     'shared/wifi_helper': {
       exports: 'WifiHelper'
@@ -141,6 +144,13 @@ require.config({
       exclude: [
         'main',
         'modules/mvvm/observable'
+      ]
+    },
+    {
+      name: 'panels/date_time/panel',
+      exclude: [
+        'main',
+        'shared/tz_select'
       ]
     }
   ]

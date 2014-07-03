@@ -12,14 +12,14 @@ define(function(require) {
       onInit: function(panel) {
         dateTime.init({
           timeAutoSwitch: panel.querySelector('#time-auto'),
-          timezoneRegion: panel.querySelector('timezone-region'),
-          timezoneCity: panel.querySelector('timezone-city'),
-          datePicker: panel.querySelector('date-picker'),
-          timePicker: panel.querySelector('time-picker'),
-          clockDate: panel.querySelector('clock-date'),
-          clockTime: panel.querySelector('clock-time'),
-          timeZone: panel.querySelector('timezone-raw'),
-          timeZoneValue: panel.querySelector('timezone-value'),
+          timezoneRegion: panel.querySelector('#timezone-region'),
+          timezoneCity: panel.querySelector('#timezone-city'),
+          datePicker: panel.querySelector('#date-picker'),
+          timePicker: panel.querySelector('#time-picker'),
+          clockDate: panel.querySelector('#clock-date'),
+          clockTime: panel.querySelector('#clock-time'),
+          timeZone: panel.querySelector('#timezone-raw'),
+          timeZoneValue: panel.querySelector('#timezone-value')
         });
       }
     });
