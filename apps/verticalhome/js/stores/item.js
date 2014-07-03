@@ -38,7 +38,8 @@
         } else {
           return lookFor.manifestURL === compareWith.detail.manifestURL;
         }
-      } else if (compareWith instanceof GaiaGrid.Collection) {
+      } else if (compareWith instanceof GaiaGrid.Collection ||
+                 compareWith instanceof GaiaGrid.Bookmark) {
         if (!lookFor.id || !compareWith.detail.id) {
           return false;
         }
