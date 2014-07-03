@@ -110,6 +110,9 @@ class Homescreen(Base):
         return [self.InstalledApp(self.marionette, root_element)
                 for root_element in self.app_elements if root_element.is_displayed()]
 
+    def wait_for_number_of_apps(self, number_of_apps=1):
+        self.wait_for_condition(lambda m: len(self.app_elements) >= number_of_apps)
+
     def installed_app(self, app_name):
         for root_el in self.marionette.find_elements(*self._homescreen_all_icons_locator):
             if root_el.text == app_name:
