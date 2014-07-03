@@ -611,18 +611,13 @@
         this.invokeSecureApp('camera');
         return;
       }
-
-      this.unlock(/* instant */ null, /* detail */ { areaCamera: true });
-
-      var a = new window.MozActivity({
+      var activityDetail = {
         name: 'record',
         data: {
           type: 'photos'
         }
-      });
-      a.onerror = function ls_activityError() {
-        console.log('MozActivity: camera launch error.');
       };
+      this.unlock(false, { activity: activityDetail } );
     }).bind(this);
 
     panelOrFullApp();
