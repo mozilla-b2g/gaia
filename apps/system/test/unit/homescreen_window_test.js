@@ -112,9 +112,12 @@ suite('system/HomescreenWindow', function() {
       test('Homescreen is crashed at foreground:' +
           'rerender right away.', function() {
         var stubIsActive = this.sinon.stub(homescreenWindow, 'isActive');
+        var stubUninstallSubComponents =
+          this.sinon.stub(homescreenWindow, 'uninstallSubComponents');
         stubIsActive.returns(true);
         homescreenWindow.restart();
         assert.isTrue(spyKill.called);
+        assert.isTrue(stubUninstallSubComponents.called);
         this.sinon.clock.tick(0);
         assert.isTrue(stubRender.called);
       });
