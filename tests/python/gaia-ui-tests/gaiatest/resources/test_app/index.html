@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MozQA Runtime Test Cases App</title>
+    <script type="text/javascript" src="https://myapps.mozillalabs.com/jsapi/include.js"></script>
+    <script type="text/javascript">
+	  function installApp() {
+	    navigator.mozApps.install("/manifest.webapp")
+	  }
+    </script>
+</head>
+<body>
+    <p id="installapp" onclick="installApp()">Install App</p>
+</body>
+</html>
+

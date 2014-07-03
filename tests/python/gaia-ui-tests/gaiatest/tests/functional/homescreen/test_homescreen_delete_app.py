@@ -27,8 +27,12 @@ class TestDeleteApp(GaiaTestCase):
             self.connect_to_network()
 
             # Install app so we can delete it
-            self.marionette.execute_script(
-                'navigator.mozApps.install("%s")' % self.MANIFEST)
+            if self.device.is_desktop_b2g or self.data_layer.is_wifi_connected():
+                self.marionette.execute_script(
+                    'navigator.mozApps.install("%s")' % self.marionette.absolute_url('test_app/manifest.webapp'))
+            else:
+                self.marionette.execute_script(
+                    'navigator.mozApps.install("%s")' % self.MANIFEST)
 
             # Confirm the installation and wait for the app icon to be present
             confirm_install = ConfirmInstall(self.marionette)

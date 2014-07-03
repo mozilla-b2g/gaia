@@ -1,0 +1,10 @@
+{
+  "version": "1.0",
+  "name": "Mozilla QA WebRT Tester",
+  "description": "An app for running web runtime test cases with native applications",
+  "icons": {
+    "128": "/qalogo.png"
+  },
+  "installs_allowed_from": ["*"],
+  "launch_path": "/index.html"
+}
