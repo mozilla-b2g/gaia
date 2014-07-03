@@ -84,7 +84,8 @@
     "idle":{},
     "storage": {},
     "device-storage:sdcard": { "access": "readcreate" },
-    "phonenumberservice": {}
+    "phonenumberservice": {},
+    "sms":{}
   },
   "orientation": "default",
   "activities": {
