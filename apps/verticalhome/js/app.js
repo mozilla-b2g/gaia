@@ -1,5 +1,5 @@
 'use strict';
-/* global ItemStore */
+/* global ItemStore, LazyLoader */
 
 (function(exports) {
 
@@ -74,6 +74,10 @@
         this.grid.render();
 
         window.addEventListener('localized', this.onLocalized.bind(this));
+        LazyLoader.load(['shared/style/headers.css',
+                         '/shared/js/font_size_utils.js',
+                         'js/contextmenu_handler.js',
+                         '/shared/js/homescreens/confirm_dialog_helper.js']);
       }.bind(this));
 
       this.grid.setEditHeaderElement(document.getElementById('edit-header'));

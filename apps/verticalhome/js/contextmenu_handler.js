@@ -25,7 +25,10 @@
           // Prevent the click when the finger is released
           e.preventDefault();
 
-          var resources = ['js/contextmenu_ui.js'];
+          var resources = ['/shared/js/component_utils.js',
+                           '/shared/elements/gaia_buttons/script.js',
+                           '/shared/elements/gaia_menu/script.js',
+                           'js/contextmenu_ui.js'];
           LazyLoader.load(resources, function loaded() {
             // pass the event through for processing
             contextMenuUI.show(e);
