@@ -33,11 +33,14 @@
     },
 
     collectBookmarkURLs: function collectBookmarkURLs() {
-     return BookmarksDatabase.getAll().then(function success(systemBookmarks) {
-       for (var id in systemBookmarks) {
-        this.processBookmark(systemBookmarks[id]);
-       }
-     }.bind(this));
+     return new Promise((resolve) => {
+        BookmarksDatabase.getAll().then((systemBookmarks) => {
+         for (var id in systemBookmarks) {
+          this.processBookmark(systemBookmarks[id]);
+         }
+         resolve();
+       });
+      });
     },
 
     collectManifestURLs: function collectManifestURLs() {

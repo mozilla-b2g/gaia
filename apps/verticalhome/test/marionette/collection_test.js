@@ -38,22 +38,8 @@ marionette('Vertical - Collection', function() {
     client.apps.launch(Home2.URL);
 
     home.waitForLaunch();
-
-    // Disable Geolocation prompt
-    var chromeClient = client.scope({ context: 'chrome' });
-    chromeClient.executeScript(function(origin) {
-      var mozPerms = navigator.mozPermissionSettings;
-      mozPerms.set(
-        'geolocation', 'deny', origin + '/manifest.webapp', origin, false
-      );
-    }, [Collection.URL]);
-
-    // Update eme server settings
-    chromeClient.executeScript(function(url) {
-      navigator.mozSettings.createLock().set({
-        'everythingme.api.url': url
-      });
-    }, [server.url + '/{resource}']);
+    collection.disableGeolocation();
+    collection.setServerURL(server);
   });
 
   test('create collections', function() {
