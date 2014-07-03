@@ -68,9 +68,13 @@ MockMozContactsObj.prototype = {
     this.contacts.push(ct);
     return {
       set onsuccess(callback) {
-        var self = this;
+        var evt = {
+          target: {
+            result: ct
+          }
+        };
         setTimeout(function() {
-          callback.call(self);
+          callback.call(self, evt);
         }, 10);
       },
       set onerror(callback) {
