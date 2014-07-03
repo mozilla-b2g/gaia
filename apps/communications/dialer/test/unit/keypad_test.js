@@ -8,23 +8,23 @@
 
 'use strict';
 
-require('/dialer/js/keypad.js');
+require('/shared/js/dialer/keypad.js');
 
 require('/dialer/test/unit/mock_lazy_loader.js');
-require('/dialer/test/unit/mock_l10n.js');
-require('/dialer/test/unit/mock_utils.js');
-require('/dialer/test/unit/mock_call.js');
 require('/dialer/test/unit/mock_call_handler.js');
 require('/dialer/test/unit/mock_call_log_db_manager.js');
-require('/dialer/test/unit/mock_calls_handler.js');
-require('/dialer/test/unit/mock_handled_call.js');
-require('/dialer/test/unit/mock_tone_player.js');
 require('/shared/test/unit/mocks/mock_iccmanager.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/test/unit/mocks/mock_sim_picker.js');
 require('/shared/test/unit/mocks/mock_multi_sim_action_button.js');
+require('/shared/test/unit/mocks/dialer/mock_handled_call.js');
+require('/shared/test/unit/mocks/dialer/mock_call.js');
+require('/shared/test/unit/mocks/dialer/mock_calls_handler.js');
+require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
+require('/shared/test/unit/mocks/dialer/mock_utils.js');
+require('/shared/test/unit/mocks/dialer/mock_tone_player.js');
 
 require('/dialer/test/unit/mock_dialer_index.html.js');
 
