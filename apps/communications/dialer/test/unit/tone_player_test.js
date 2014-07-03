@@ -16,13 +16,18 @@ suite('shared/dialer/TonePlayer', function() {
     TonePlayer.trashAudio();
   });
 
+  test('should do nothing before init', function() {
+    TonePlayer.ensureAudio();
+    assert.equal(MockAudioContext.instances.length, 0);
+  });
+
   suite('init', function() {
     test('should instantiate an audio context with the channel', function() {
       TonePlayer.init('telephony');
 
       assert.equal(MockAudioContext.instances.length, 1);
       var ctx = MockAudioContext.instances[0];
-      assert.equal(ctx.channel, 'telephony');
+      assert.equal(ctx.mozAudioChannelType, 'telephony');
     });
   });
 
@@ -37,7 +42,7 @@ suite('shared/dialer/TonePlayer', function() {
 
       assert.equal(MockAudioContext.instances.length, 2);
       var ctx = MockAudioContext.instances[1];
-      assert.equal(ctx.channel, 'telephony');
+      assert.equal(ctx.mozAudioChannelType, 'telephony');
     });
 
     test('should do nothing if we\'re already on the correct channel',
@@ -46,7 +51,7 @@ suite('shared/dialer/TonePlayer', function() {
 
       assert.equal(MockAudioContext.instances.length, 1);
       var ctx = MockAudioContext.instances[0];
-      assert.equal(ctx.channel, 'normal');
+      assert.equal(ctx.mozAudioChannelType, 'normal');
     });
 
     suite('if the audio got trashed since init', function() {
@@ -60,7 +65,7 @@ suite('shared/dialer/TonePlayer', function() {
 
         assert.equal(MockAudioContext.instances.length, 2);
         var ctx = MockAudioContext.instances[1];
-        assert.equal(ctx.channel, 'normal');
+        assert.equal(ctx.mozAudioChannelType, 'normal');
       });
     });
   });
@@ -76,6 +81,13 @@ suite('shared/dialer/TonePlayer', function() {
       assert.equal(MockAudioContext.instances.length, 1);
       var ctx = MockAudioContext.instances[0];
       assert.equal(ctx.mozAudioChannelType, 'normal');
+    });
+
+    test('should remember the channel for the next ensureAudio()', function() {
+      TonePlayer.trashAudio();
+      TonePlayer.ensureAudio();
+      var ctx = MockAudioContext.instances[1];
+      assert.equal(ctx.mozAudioChannelType, 'telephony');
     });
   });
 });

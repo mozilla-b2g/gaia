@@ -36,7 +36,7 @@ MockAudio.prototype.cloneNode = function() {
 
 function MockAudioContext(channel) {
   MockAudioContext.instances.push(this);
-  this.channel = channel;
+  this.mozAudioChannelType = channel;
   this.currentTime = 0;
   this.sampleRate = 0;
   this.destination = null;
