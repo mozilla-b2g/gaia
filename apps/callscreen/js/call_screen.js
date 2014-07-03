@@ -636,13 +636,15 @@ var CallScreen = {
     window.removeEventListener('lockscreenslide-unlocking-stop', this);
   },
 
-  getScenario: function cs_getScenario() {
+  getScenario: function cs_getScenario(phoneNumber) {
     var scenario;
     if (this.inStatusBarMode) {
       scenario = FontSizeManager.STATUS_BAR;
     } else if (this.calls.querySelectorAll(
       'section:not([hidden])').length > 1) {
       scenario = FontSizeManager.CALL_WAITING;
+    } else if (phoneNumber && this.incomingNumber.textContent == phoneNumber) {
+      scenario = FontSizeManager.SECOND_INCOMING_CALL;
     } else {
       scenario = FontSizeManager.SINGLE_CALL;
     }

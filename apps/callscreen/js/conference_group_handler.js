@@ -74,8 +74,8 @@ var ConferenceGroupHandler = (function() {
     });
     groupLine.classList.add('ended');
     groupLine.classList.remove('held');
-    FontSizeManager.adaptToSpace(CallScreen.getScenario(), groupLabel,
-      fakeNumber, false, 'end');
+    FontSizeManager.adaptToSpace(CallScreen.getScenario(groupLabel.textContent),
+      groupLabel, fakeNumber, false, 'end');
     CallScreen.stopTicker(groupDuration);
 
     setTimeout(function(evt) {

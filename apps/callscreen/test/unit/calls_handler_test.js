@@ -257,7 +257,7 @@ suite('calls handler', function() {
         MockNavigatorMozTelephony.mTriggerCallsChanged();
 
         sinon.assert.calledWith(
-          FontSizeManager.adaptToSpace, FontSizeManager.CALL_WAITING,
+          FontSizeManager.adaptToSpace, MockCallScreen.getScenario(),
           MockCallScreen.incomingNumber, MockCallScreen.fakeIncomingNumber,
           false, 'end');
       });
@@ -423,7 +423,7 @@ suite('calls handler', function() {
         MockNavigatorMozTelephony.mTriggerCallsChanged();
 
         sinon.assert.calledWith(
-          FontSizeManager.adaptToSpace, FontSizeManager.CALL_WAITING,
+          FontSizeManager.adaptToSpace, MockCallScreen.getScenario(),
           MockCallScreen.incomingNumber, MockCallScreen.fakeIncomingNumber,
           false, 'end');
       });
@@ -461,7 +461,7 @@ suite('calls handler', function() {
         MockNavigatorMozTelephony.mTriggerCallsChanged();
 
         sinon.assert.calledWith(
-          FontSizeManager.adaptToSpace, FontSizeManager.CALL_WAITING,
+          FontSizeManager.adaptToSpace, MockCallScreen.getScenario(),
           MockCallScreen.incomingNumber, MockCallScreen.fakeIncomingNumber,
           false, 'end');
       });
@@ -507,7 +507,7 @@ suite('calls handler', function() {
         MockNavigatorMozTelephony.mTriggerCallsChanged();
 
         sinon.assert.calledWith(
-          FontSizeManager.adaptToSpace, FontSizeManager.CALL_WAITING,
+          FontSizeManager.adaptToSpace, MockCallScreen.getScenario(),
           MockCallScreen.incomingNumber, MockCallScreen.fakeIncomingNumber,
           false, 'end');
       });
@@ -536,7 +536,7 @@ suite('calls handler', function() {
         MockNavigatorMozTelephony.mTriggerCallsChanged();
 
         sinon.assert.calledWith(
-          FontSizeManager.adaptToSpace, FontSizeManager.CALL_WAITING,
+          FontSizeManager.adaptToSpace, MockCallScreen.getScenario(),
           MockCallScreen.incomingNumber, MockCallScreen.fakeIncomingNumber,
           false, 'end');
       });
@@ -584,7 +584,7 @@ suite('calls handler', function() {
         MockNavigatorMozTelephony.mTriggerCallsChanged();
 
         sinon.assert.calledWith(
-          FontSizeManager.adaptToSpace, FontSizeManager.CALL_WAITING,
+          FontSizeManager.adaptToSpace, MockCallScreen.getScenario(),
           MockCallScreen.incomingNumber, MockCallScreen.fakeIncomingNumber,
           false, 'end');
       });
