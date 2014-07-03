@@ -113,8 +113,6 @@ App.prototype.boot = function() {
   window.dispatchEvent(new CustomEvent('moz-chrome-interactive'));
 
   this.injectViews();
-  this.showLoading();
-
   this.booted = true;
   debug('booted');
 };
@@ -188,8 +186,8 @@ App.prototype.bindEvents = function() {
   // App
   this.once('viewfinder:visible', this.onCriticalPathDone);
   this.once('storage:checked:healthy', this.geolocationWatch);
-  this.on('camera:takingpicture', this.showLoading);
   this.on('camera:ready', this.clearLoading);
+  this.on('camera:busy', this.onCameraBusy);
   this.on('visible', this.onVisible);
   this.on('hidden', this.onHidden);
 
@@ -292,6 +290,22 @@ App.prototype.onCriticalPathDone = function() {
 };
 
 /**
+ * When the camera indicates it's busy it
+ * sometimes passes a `type` string. When
+ * this type matches one of our keys in the
+ * `loadingScreen` config, we display the
+ * loading screen in the given number
+ * of milliseconds.
+ *
+ * @param  {String} type
+ * @private
+ */
+App.prototype.onCameraBusy = function(type) {
+  var delay = this.settings.loadingScreen.get(type);
+  if (delay) { this.showLoading(delay); }
+};
+
+/**
  * Begins watching location if not within
  * a pending activity and the app isn't
  * currently hidden.
@@ -379,18 +393,18 @@ App.prototype.l10nGet = function(key) {
  * Shows the loading screen after the
  * number of ms defined in config.js
  *
+ * @param {Number} delay
  * @private
  */
-App.prototype.showLoading = function() {
-  debug('show loading');
-  var ms = this.settings.loadingScreen.get('delay');
+App.prototype.showLoading = function(delay) {
+  debug('show loading delay: %s', delay);
   var self = this;
   clearTimeout(this.loadingTimeout);
   this.loadingTimeout = setTimeout(function() {
     self.views.loading = new self.LoadingView();
     self.views.loading.appendTo(self.el).show();
     debug('loading shown');
-  }, ms);
+  }, delay);
 };
 
 /**

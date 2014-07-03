@@ -135,7 +135,6 @@ suite('app', function() {
     this.sandbox.spy(this.app, 'once');
     this.sandbox.spy(this.app, 'emit');
     this.sandbox.spy(this.app, 'firer');
-    this.sandbox.spy(this.app, 'showLoading');
   });
 
   teardown(function() {
@@ -219,10 +218,6 @@ suite('app', function() {
     test('Should watch location only once storage confirmed healthy', function() {
       var geolocationWatch = this.app.geolocationWatch;
       assert.ok(this.app.once.calledWith('storage:checked:healthy', geolocationWatch));
-    });
-
-    test('Should show loading screen', function() {
-      sinon.assert.calledOnce(this.app.showLoading);
     });
 
     test('Should clear loading screen when camera is ready', function() {
@@ -367,14 +362,42 @@ suite('app', function() {
     });
   });
 
+  suite('App#onCameraBusy()', function() {
+    setup(function() {
+      this.app.settings.loadingScreen.get
+        .withArgs('takingPicture')
+        .returns(1500);
+
+      this.app.settings.loadingScreen.get
+        .withArgs('requestingCamera')
+        .returns(600);
+
+      sinon.stub(this.app, 'showLoading');
+    });
+
+    test('Should call showLoading if busy type recongnised', function() {
+      this.app.onCameraBusy('takingPicture');
+      sinon.assert.calledWith(this.app.showLoading, 1500);
+      this.app.showLoading.reset();
+
+      this.app.onCameraBusy('requestingCamera');
+      sinon.assert.calledWith(this.app.showLoading, 600);
+      this.app.showLoading.reset();
+    });
+
+    test('Should not show loading screen if busy type not recongnised', function() {
+      this.app.onCameraBusy('unknownType');
+      sinon.assert.notCalled(this.app.showLoading);
+    });
+  });
+
   suite('App#showLoading()', function() {
     setup(function() {
-      this.settings.loadingScreen.get.withArgs('delay').returns(400);
       this.sandbox.spy(window, 'clearTimeout');
     });
 
     test('Should append a loading view to the app element and show', function() {
-      this.app.showLoading();
+      this.app.showLoading(400);
       this.clock.tick(400);
       sinon.assert.calledWith(this.app.views.loading.appendTo, this.app.el);
       sinon.assert.called(this.app.views.loading.show);
@@ -382,9 +405,15 @@ suite('app', function() {
 
     test('Should clear any existing timeouts', function() {
       this.sandbox.stub(window, 'setTimeout').returns('<timeout-id>');
-      this.app.showLoading();
-      this.app.showLoading();
+      this.app.showLoading(400);
+      this.app.showLoading(400);
       sinon.assert.calledWith(window.clearTimeout, '<timeout-id>');
+    });
+
+    test('Should be able to overide default delay', function() {
+      this.sandbox.stub(window, 'setTimeout');
+      this.app.showLoading(3000);
+      assert.equal(window.setTimeout.args[0][1], 3000);
     });
   });
 
