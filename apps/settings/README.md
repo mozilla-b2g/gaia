@@ -22,6 +22,8 @@ The goal is to ensure that each panel loads only the required scripts. This coul
 ### Modules
 We are using [AMD](http://en.wikipedia.org/wiki/Asynchronous_module_definition) modules, loaded using 'Alemeda' (a lighter version of [RequireJS](http://requirejs.org)) and building/optimizing using ['r.js'](http://requirejs.org/docs/optimization.html) (the RequireJS optimizer). We have dependencies on files (`shared/js`)  which aren't AMD modules. For those we use the ['shim'](http://requirejs.org/docs/api.html#config-shim) options in our [`requirejs_config.js`](js/config/require.js)
 
+Module should not aware the existence of any UI elements, it should only expose the general functionalities that used by panels.
+
 A few fundamental modules are listed below:
 
 #### module/settings_service.js
