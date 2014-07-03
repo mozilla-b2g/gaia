@@ -35,6 +35,7 @@
   flex: 1;
   align-items: center;
   -moz-user-select: none;
+  transition: opacity 100ms;
 }
 
 /** Left
@@ -60,6 +61,20 @@
 
 .controls-right {
   justify-content: flex-start;
+}
+
+/**
+ * Timer
+ */
+
+.controls[data-timer="active"] {
+  pointer-events: none;
+}
+
+.controls[data-timer="active"] .controls-left,
+.controls[data-timer="active"] .controls-right {
+  opacity: 0;
+  transition-duration: 300ms;
 }
 
 /** Controls Button
