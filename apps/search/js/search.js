@@ -135,8 +135,8 @@
       var input = msg.data.input;
       var providers = this.providers;
 
-      this.maybeShowNotice(input);
       this.clear();
+      this.maybeShowNotice(input);
 
       var collectionCount = 0;
       var numProviders = Object.keys(this.providers).length;
@@ -208,9 +208,7 @@
     },
 
     maybeShowNotice: function(msg) {
-      if (msg.length > 2 && this.toShowNotice) {
-        this.suggestionNotice.hidden = false;
-      }
+      this.suggestionNotice.hidden = !(msg.length > 2 && this.toShowNotice);
     },
 
     /**
@@ -284,6 +282,8 @@
 
       var offlineMessage = document.getElementById('offline-message');
       offlineMessage.textContent = '';
+
+      this.suggestionNotice.hidden = true;
     },
 
     showBlank: function() {
