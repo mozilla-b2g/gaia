@@ -1,8 +1,11 @@
 'use strict';
 
+/* global require, exports, dump, Services */
+/* exported debug */
+
 const utils = require('./utils');
 
-const { Cc, Ci, Cr, Cu } = require('chrome');
+const { Cc, Ci, Cu } = require('chrome');
 Cu.import('resource://gre/modules/Services.jsm');
 
 function debug(msg) {
