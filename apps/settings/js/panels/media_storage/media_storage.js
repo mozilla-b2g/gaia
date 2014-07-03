@@ -15,17 +15,17 @@ define(function(require) {
    * In this case, the user has to unplug the USB cable in order to actually
    * turn off UMS, and we put some text to that effect on the settings screen.
    */
-  const MEDIA_TYPE = ['music', 'pictures', 'videos', 'sdcard'];
-
   var MediaStorage = function() {
-    this.documentStorageListener = false;
+    this._elements = {};
+    this._documentStorageListener = false;
     this.usmEnabledVolume = {};
     this.umsVolumeShareState = false;
   };
 
   MediaStorage.prototype = {
-    init: function ms_init() {
-      this._volumeList = this.initAllVolumeObjects();
+    init: function ms_init(elements) {
+      this._elements = elements;
+      this._volumeList = this._initAllVolumeObjects();
 
       this.updateListeners();
 
@@ -35,9 +35,7 @@ define(function(require) {
       //TODO: replace by observer
       this.registerUmsListener();
 
-      this.defaultMediaLocation =
-        document.getElementById('defaultMediaLocation');
-      this.defaultMediaLocation.addEventListener('click', this);
+      this._elements.defaultMediaLocation.addEventListener('click', this);
       this.makeDefaultLocationMenu();
 
       window.addEventListener('localized', this);
@@ -45,10 +43,10 @@ define(function(require) {
       this.updateInfo();
     },
 
-    initAllVolumeObjects: function ms_initAllVolumeObjects() {
+    _initAllVolumeObjects: function ms_initAllVolumeObjects() {
       var volumes = {};
       var totalVolumes = 0;
-      MEDIA_TYPE.forEach(function(type) {
+      ['music', 'pictures', 'videos', 'sdcard'].forEach(function(type) {
         var storages = navigator.getDeviceStorages(type);
         storages.forEach(function(storage) {
           var name = storage.storageName;
@@ -62,7 +60,6 @@ define(function(require) {
 
       var volumeList = [];
       var externalIndex = 0;
-      var volumeListRootElement = document.getElementById('volume-list');
       for (var name in volumes) {
         var volume;
         // XXX: This is a heuristic to determine whether a storage is
@@ -74,7 +71,7 @@ define(function(require) {
           volume = new Volume(name, true /* external */, externalIndex++,
                               volumes[name]);
         }
-        volume.createView(volumeListRootElement);
+        volume.createView(this._elements.volumeListRootElement);
         volumeList.push(volume);
       }
       return volumeList;
@@ -125,7 +122,7 @@ define(function(require) {
       var defaultMediaVolumeKey = 'device.storage.writable.name';
       SettingsCache.getSettings(function(result) {
         var defaultName = result[defaultMediaVolumeKey];
-        var selectionMenu = self.defaultMediaLocation;
+        var selectionMenu = self._elements.defaultMediaLocation;
         var selectedIndex = 0;
         self._volumeList.forEach(function(volume, index) {
           var option = document.createElement('option');
@@ -153,20 +150,16 @@ define(function(require) {
 
     changeDefaultStorage: function ms_changeDefaultStorage() {
       //Pop up a confirm window before listing options.
-      var popup = document.getElementById('default-location-popup-container');
-      var cancelBtn = document.getElementById('default-location-cancel-btn');
-      var changeBtn = document.getElementById('default-location-change-btn');
-
-      this.defaultMediaLocation.blur();
+      this._elements.defaultMediaLocation.blur();
       var self = this;
-      popup.hidden = false;
-      cancelBtn.onclick = function() {
-        popup.hidden = true;
+      this._elements.popup.hidden = false;
+      this._elements.cancelBtn.onclick = function() {
+        self._elements.popup.hidden = true;
       };
-      changeBtn.onclick = function() {
-        popup.hidden = true;
+      this._elements.changeBtn.onclick = function() {
+        self._elements.popup.hidden = true;
         setTimeout(function() {
-          self.defaultMediaLocation.focus();
+          self._elements.defaultMediaLocation.focus();
         });
       };
     },
@@ -176,22 +169,22 @@ define(function(require) {
       if (document.hidden) {
         // Settings is being hidden. Unregister our change listener so we won't
         // get notifications whenever files are added in another app.
-        if (this.documentStorageListener) {
+        if (this._documentStorageListener) {
           this._volumeList.forEach(function(volume) {
             // use sdcard storage to represent this volume
             var volumeStorage = volume.storages.sdcard;
             volumeStorage.removeEventListener('change', self);
           });
-          this.documentStorageListener = false;
+          this._documentStorageListener = false;
         }
       } else {
-        if (!this.documentStorageListener) {
+        if (!this._documentStorageListener) {
           this._volumeList.forEach(function(volume) {
             // use sdcard storage to represent this volume
             var volumeStorage = volume.storages.sdcard;
             volumeStorage.addEventListener('change', self);
           });
-          this.documentStorageListener = true;
+          this._documentStorageListener = true;
         }
         if (callback && Settings.currentPanel === '#mediaStorage') {
           callback();
