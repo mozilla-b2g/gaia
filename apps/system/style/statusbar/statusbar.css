@@ -127,7 +127,7 @@ body:not(.rb-enabled) #statusbar-icons > .sb-start {
   float: left;
 }
 
-*[dir=rtl] #statusbar-icons > .sb-start {
+*[dir=rtl] body:not(.rb-enabled) #statusbar-icons > .sb-start {
   float: right;
 }
 
