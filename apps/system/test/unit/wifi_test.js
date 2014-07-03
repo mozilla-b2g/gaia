@@ -75,6 +75,7 @@ suite('WiFi > ', function() {
   var realMozSetMessageHandler;
   var realBattery;
   var realMozPower;
+  var realMozAlarms;
 
   setup(function(done) {
     stubMozSettings = this.sinon.stub(navigator,
@@ -92,6 +93,8 @@ suite('WiFi > ', function() {
     window.SettingsListener = MockSettingsListener;
     realMozSetMessageHandler = navigator.mozSetMessageHandler;
     navigator.mozSetMessageHandler = MockMozSetMessageHandler;
+    realMozAlarms = navigator.mozAlarms;
+    navigator.mozAlarms = {};
 
     realBattery = navigator.battery;
     Object.defineProperty(navigator, 'battery', {
@@ -118,6 +121,7 @@ suite('WiFi > ', function() {
     window.ScreenManager = realScreenManager;
     navigator.mozSetMessageHandler = realMozSetMessageHandler;
     navigator.mozPower = realMozPower;
+    navigator.mozAlarms = realMozAlarms;
   });
 
   suite('Init', function() {
