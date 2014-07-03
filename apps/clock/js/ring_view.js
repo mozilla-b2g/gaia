@@ -93,6 +93,22 @@ RingView.prototype = {
   },
 
   /**
+   * Check onCall status. When it's on call, the alarm should be silent but
+   * vibrate no matter it's set on or off.
+   *
+   * @return {Bollean} the phone is on call or not.
+   */
+  _onCall: function() {
+    var telephony = window.navigator.mozTelephony;
+    if (!telephony) {
+      return false;
+    }
+    return telephony.calls.some(function callIterator(call) {
+        return (call.state == 'connected');
+    });
+  },
+
+  /**
    * Update the display to show the currently active alert. If there
    * are a stack of alerts pending, only the most recent alert is
    * shown, as added to this.alerts by this.addAlert().
@@ -115,12 +131,12 @@ RingView.prototype = {
     // Set the time to display.
     this.time.innerHTML = Utils.getLocalizedTimeHtml(alert.time);
 
-    if (alert.sound) {
+    if (alert.sound && !this._onCall()) {
       this.ringtonePlayer.playRingtone(alert.sound);
     }
 
     // Vibrate if we want to shakey shakey.
-    if (alert.vibrate && ('vibrate' in navigator)) {
+    if ((this._onCall() || alert.vibrate) && ('vibrate' in navigator)) {
       clearInterval(this.vibrateInterval);
       var vibrateOnce = function() {
         navigator.vibrate([1000]);
