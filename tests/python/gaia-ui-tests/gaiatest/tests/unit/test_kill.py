@@ -7,7 +7,6 @@ import time
 from gaiatest import GaiaTestCase
 from gaiatest.apps.clock.app import Clock
 from gaiatest.apps.calendar.app import Calendar
-from gaiatest.apps.homescreen.app import Homescreen
 
 
 class TestKill(GaiaTestCase):
@@ -33,4 +32,4 @@ class TestKill(GaiaTestCase):
         self.check_no_apps_running()
 
     def check_no_apps_running(self):
-        self.assertEqual([a.name for a in self.apps.running_apps], [Homescreen.name])
+        self.assertEqual([a.name for a in self.apps.running_apps()], [])

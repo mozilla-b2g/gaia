@@ -84,9 +84,20 @@ class GaiaApps(object):
         result = self.marionette.execute_async_script("GaiaApps.kill('%s');" % app.origin)
         assert result, "Failed to kill app with name '%s'" % app.name
 
-    def kill_all(self):
+    def kill_all(self, include_system_apps=False):
+        '''Will kill both the FTU and any open apps user apps
+        Args:
+            include_system_apps: Will allow you to kill always-running apps like Homescreen - really dangerous!
+        '''
+        # First we attempt to kill the FTU, we treat it as a user app
+        for app in self.apps.running_apps(include_system_apps=True):
+            if app.origin == 'app://ftu.gaiamobile.org':
+                self.apps.kill(app)
+                break
+
+        include_system_apps = json.dumps(include_system_apps)
         self.marionette.switch_to_frame()
-        self.marionette.execute_async_script("GaiaApps.killAll()")
+        self.marionette.execute_async_script("GaiaApps.killAll(%s);" % include_system_apps)
 
     @property
     def installed_apps(self):
@@ -106,11 +117,17 @@ class GaiaApps(object):
                     name=app['manifest']['name']))
         return result
 
-    @property
-    def running_apps(self):
+    def running_apps(self, include_system_apps=False):
+        '''  Returns a list of running apps
+        Args:
+            include_system_apps: Includes otherwise hidden System apps in the list
+        Returns:
+            A list of GaiaApp representing the running apps.
+        '''
+        include_system_apps = json.dumps(include_system_apps)
         self.marionette.switch_to_frame()
         apps = self.marionette.execute_script(
-            'return GaiaApps.getRunningApps();')
+            "return GaiaApps.getRunningApps(%s);" % include_system_apps)
         result = []
         for app in [a[1] for a in apps.items()]:
             result.append(GaiaApp(origin=app['origin'], name=app['name']))
@@ -726,7 +743,7 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
         if self.data_layer.get_setting('lockscreen.enabled'):
             self.device.unlock()
 
-        # kill any open apps
+        # kill the FTU and any open, user-killable apps
         self.apps.kill_all()
 
         if full_reset:
