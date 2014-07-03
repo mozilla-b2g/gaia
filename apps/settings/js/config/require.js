@@ -39,6 +39,9 @@ require.config({
     'shared/settings_listener': {
       exports: 'SettingsListener'
     },
+    'shared/tz_select': {
+      exports: 'tzSelect'
+    },
     'shared/wifi_helper': {
       exports: 'WifiHelper'
     },
@@ -175,6 +178,13 @@ require.config({
     {
       name: 'panels/wifi_wps/panel',
       exclude: ['main']
+    },
+    {
+      name: 'panels/date_time/panel',
+      exclude: [
+        'main',
+        'modules/mvvm/observable'
+      ]
     }
   ]
 });
