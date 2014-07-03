@@ -41,8 +41,8 @@ marionette('Sim Dialog:', function() {
   test.skip('Input is shown with error', function() {
 
     client.executeScript(loadScripts, [[
-      '../../../../shared/unit/mocks/mock_simslot.js',
-      '../../../../shared/unit/mocks/mock_simslot_manager.js'
+      'js/mock_simslot.js',
+      'js/mock_simslot_manager.js'
     ]]);
 
     client.executeScript(function(path) {

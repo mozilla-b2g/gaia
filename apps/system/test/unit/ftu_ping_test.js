@@ -12,8 +12,8 @@ require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/mock_mobile_operator.js');
 
 require('/shared/js/uuid.js');
-require('/shared/test/unit/mocks/mock_simslot_manager.js');
-require('/shared/test/unit/mocks/mock_simslot.js');
+require('/apps/system/js/mock_simslot_manager.js');
+require('/apps/system/js/mock_simslot.js');
 require('/apps/system/js/ftu_ping.js');
 
 if (!window.asyncStorage) {

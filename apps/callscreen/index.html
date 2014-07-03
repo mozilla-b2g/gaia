@@ -53,20 +53,13 @@
     -->
 
     <!-- incoming call / swiper on locked screen-->
-    <link rel="stylesheet" type="text/css" href="/style/lockscreen.css">
-    <script defer src="/shared/js/settings_listener.js"></script>
-    <script defer src="/shared/js/mobile_operator.js"></script>
+    <link rel="stylesheet" type="text/css" href="/style/swiper.css">
     <script defer src="/shared/js/lockscreen_slide.js"></script>
     <script defer src="/shared/js/screen_layout.js"></script>
-    <script defer src="/shared/js/simslot.js"></script>
-    <script defer src="/shared/js/simslot_manager.js"></script>
-    <script defer src="/shared/js/lockscreen_connection_info_manager.js"></script>
   </head>
   <body>
     <article id="call-screen" data-layout>
       <div id="lockscreen-header">
-        <div id="lockscreen-conn-states">
-        </div>
         <div id="lockscreen-clock-time"></div>
         <div id="lockscreen-date"></div>
       </div>
@@ -132,20 +125,20 @@
       </form>
       <article id="main-container">
         <div id="contact-background"></div>
-        <div id="lockscreen-masked-background" class="blank"></div>
-        <div id="lockscreen-area"></div>
         <div id="actions-container">
           <div id="swiper-wrapper">
+            <!--Slider module related widgets -->
+            <div id="lockscreen-area"></div>
             <div id="lockscreen-icon-container">
               <div id="lockscreen-area-hangup"
-                class="lockscreen-icon-area lockscreen-icon-left dark" role="button"
-                data-l10n-id="hangup-a11y-button" aria-label="Hang Up">
+                   class="lockscreen-icon-area lockscreen-icon-left dark" role="button"
+                   data-l10n-id="hangup-a11y-button">
                 <div class="lockscreen-icon">
                 </div>
               </div>
               <div id="lockscreen-area-pickup"
-                class="lockscreen-icon-area lockscreen-icon-right dark" role="button"
-                data-l10n-id="pickup-a11y-button" aria-label="Pick up">
+                   class="lockscreen-icon-area lockscreen-icon-right dark" role="button"
+                   data-l10n-id="pickup-a11y-button">
                 <div class="lockscreen-icon">
                 </div>
               </div>
@@ -156,6 +149,7 @@
                 </div>
               </div>
             </div>
+
           </div>
           <section id="statusMsg" role="status">
             <p></p>

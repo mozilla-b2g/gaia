@@ -1,10 +1,8 @@
-/* globals MockL10n, MocksHelper, MockSIMSlot, MockSIMSlotManager,
-           SimPinDialog */
 'use strict';
 
 requireApp('system/test/unit/mock_l10n.js');
-requireApp('system//shared/test/unit/mocks/mock_simslot.js');
-requireApp('system//shared/test/unit/mocks/mock_simslot_manager.js');
+requireApp('system/js/mock_simslot.js');
+requireApp('system/js/mock_simslot_manager.js');
 
 var mocksForSIMPINDialog = new MocksHelper([
   'SIMSlotManager'
@@ -25,12 +23,12 @@ suite('simcard dialog', function() {
 
   suiteSetup(function() {
     window.navigator.mozL10n = MockL10n;
-    window.SimPinSystemDialog = MockSimPinSystemDialog;
+    window['SimPinSystemDialog'] = MockSimPinSystemDialog;
   });
 
   suiteTeardown(function() {
     window.navigator.mozL10n = realL10n;
-    window.SimPinSystemDialog = null;
+    window['SimPinSystemDialog'] = null;
   });
 
   setup(function(callback) {
@@ -83,7 +81,7 @@ suite('simcard dialog', function() {
   });
 
   test('unlockPuk', function() {
-    this.sinon.stub(SimPinDialog, 'unlockCardLock');
+    var stubUnlockCardLock = this.sinon.stub(SimPinDialog, 'unlockCardLock');
     var stubClear = this.sinon.stub(SimPinDialog, 'clear');
     SimPinDialog.pukInput.value = '0000';
     SimPinDialog.newPinInput.value = '1111';

@@ -1,5 +1,3 @@
-/* globals SIMSlot */
-/* jshint unused:false */
 'use strict';
 
 suite('SIMSlot', function() {
@@ -10,7 +8,7 @@ suite('SIMSlot', function() {
   });
 
   setup(function(callback) {
-    requireApp('system/shared/js/simslot.js', callback);
+    requireApp('system/js/simslot.js', callback);
   });
 
   teardown(function() {
