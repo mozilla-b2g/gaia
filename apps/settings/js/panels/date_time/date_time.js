@@ -6,6 +6,8 @@ define(function(require) {
 
   var settings = window.navigator.mozSettings;
   var _ = navigator.mozL10n.get;
+  // var SettingsCache = require('modules/settings_cache');
+  // var SettingsListener = require('shared/settings_listener');
   var tzSelect = require('shared/tz_select');
 
   var DateTime = function() {
