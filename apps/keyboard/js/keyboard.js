@@ -42,7 +42,6 @@ perfTimer.start();
 perfTimer.printTime('keyboard.js');
 
 var isWaitingForSecondTap = false;
-var longPressTouchId = undefined;
 var isContinousSpacePressed = false;
 var isUpperCase = false;
 var isUpperCaseLocked = false;
@@ -556,8 +555,7 @@ function setLongPressTimeout(press, id) {
       return;
     }
 
-    handleLongPress(target);
-    longPressTouchId = id;
+    handleLongPress(target, id);
 
     // If we successfuly showed the alternatives menu, redirect the
     // press over the first key in the menu.
@@ -568,7 +566,7 @@ function setLongPressTimeout(press, id) {
 }
 
 // Show alternatives for the HTML node key, and etc.
-function handleLongPress(key) {
+function handleLongPress(key, touchId) {
   // Get the key object from layout
   var keyObj;
   var r = key ? key.dataset.row : -1, c = key ? key.dataset.column : -1;
@@ -608,7 +606,7 @@ function handleLongPress(key) {
   // Copy the array so render.js can't modify the original.
   alternatives = [].concat(alternatives);
 
-  alternativesCharMenuManager.show(key, alternatives);
+  alternativesCharMenuManager.show(key, touchId, alternatives);
 }
 
 // Test if an HTML node is a normal key
@@ -668,7 +666,8 @@ function movePress(press, id) {
     target = alternativesCharMenuManager.getMenuTarget(press);
   }
 
-  if (alternativesCharMenuManager.isShown && longPressTouchId !== id) {
+  if (alternativesCharMenuManager.isShown &&
+      !alternativesCharMenuManager.isMenuTouch(id)) {
     return;
   }
 
@@ -702,7 +701,6 @@ function movePress(press, id) {
   if (target.parentNode !== IMERender.menu &&
       !alternativesCharMenuManager.isInMenuArea(press)) {
     alternativesCharMenuManager.hide();
-    longPressTouchId = undefined;
   }
 
   // Control showing alternatives menu
@@ -714,7 +712,8 @@ function endPress(press, id) {
   var target = activeTargets.get(id);
   activeTargets.delete(id);
 
-  if (alternativesCharMenuManager.isShown && longPressTouchId !== id) {
+  if (alternativesCharMenuManager.isShown &&
+      !alternativesCharMenuManager.isMenuTouch(id)) {
     return;
   }
 
@@ -723,7 +722,6 @@ function endPress(press, id) {
   clearTimeout(longPressTimeout);
 
   alternativesCharMenuManager.hide();
-  longPressTouchId = undefined;
 
   if (target.classList.contains('dismiss-suggestions-button')) {
     if (inputMethodManager.currentIMEngine.dismissSuggestions) {
@@ -1188,7 +1186,6 @@ function clearTouchedKeys() {
   });
 
   alternativesCharMenuManager.hide();
-  longPressTouchId = undefined;
 
   // Reset all the pending actions here.
   clearTimeout(deleteTimeout);

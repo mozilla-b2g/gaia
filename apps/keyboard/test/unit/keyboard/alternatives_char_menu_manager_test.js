@@ -10,6 +10,7 @@ suite('AlternativesCharMenuManager', function() {
   var alternatives;
   var manager;
   var target;
+  var id = 123;
 
   var getFakeElementWithGetBoundingClientRect;
 
@@ -66,12 +67,13 @@ suite('AlternativesCharMenuManager', function() {
 
     assert.equal(manager.isShown, false);
 
-    manager.show(target, alternatives);
+    manager.show(target, id, alternatives);
 
     assert.isTrue(
       window.IMERender.
         showAlternativesCharMenu.calledWith(target, alternatives));
     assert.isTrue(manager.isShown);
+    assert.isTrue(manager.isMenuTouch(id));
   });
 
   teardown(function() {
@@ -84,6 +86,7 @@ suite('AlternativesCharMenuManager', function() {
     manager.hide();
 
     assert.equal(manager.isShown, false);
+    assert.isFalse(manager.isMenuTouch(id));
     assert.isTrue(window.IMERender.hideAlternativesCharMenu.calledOnce);
   });
 
