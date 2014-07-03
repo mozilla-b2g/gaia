@@ -71,6 +71,8 @@ marionette('Vertical Home - Packaged App Update', function() {
     // Ensure we have an update.
     appInstall.update(server.packageManifestURL);
 
+    client.helper.wait(2000);
+    console.log(client.screenshot());
     // Ensure we see the loading signs...
     client.waitFor(function() {
       return iconAppState(appIcon) === 'loading';
