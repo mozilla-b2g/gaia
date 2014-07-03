@@ -2,8 +2,6 @@
 
 'use strict';
 
-// var assert = require('assert');
-
 var Home2 = require('./lib/home2');
 var Rocketbar = require(
   '../../../../apps/system/test/marionette/lib/rocketbar.js');
@@ -48,18 +46,14 @@ marionette('Vertical - Search Terms: URI scheme', function() {
     home.focusRocketBar();
     search.triggerFirstRun(rocketbar);
 
-    // Use a variable to change the search Term in the Rocketbar
-    rocketbar.enterText(searchTerms);
-    // search.goToResults();
+    rocketbar.enterText(searchTerms + '\uE006');
+
+    // Ensure the browser is launched
     client.apps.switchToApp(Browser.URL);
   }
 
   test('Testing URI Scheme - DATA:', function() {
-    searchAndVerifyBrowser(
-      'data:text/html;base64,PGh0bWw+DQo8c2NyaXB0PndpbmRvdy5hbGV' +
-      'ydCgiSGVsbG8gVGhlcmUiKTs8L3NjcmlwdD4NCjwvaHRtbD4=');
-      // the data string is <html><script>window.alert("Hello There");
-      // </script></html>
+    searchAndVerifyBrowser('data:text/html, <html>Hello World</html>');
   });
 
 });
