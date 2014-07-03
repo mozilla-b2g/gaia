@@ -49,6 +49,13 @@ marionette('Vertical - Bookmark Uninstall', function() {
     // select the icon in edit mode and click remove
     var icon = home.getIcon(url);
 
+    // XXX: work around issues where the icon is hidden by other
+    //      status messages on the system app.
+    icon.scriptWith(function(el) {
+      // effectively scroll to the bottom of the screen.
+      el.scrollIntoView(false);
+    });
+
     var remove = icon.findElement('.remove');
     remove.tap();
     home.confirmDialog('remove');
