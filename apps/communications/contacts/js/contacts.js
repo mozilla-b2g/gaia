@@ -9,7 +9,6 @@
 /* global LazyLoader */
 /* global MozActivity */
 /* global navigationStack */
-/* global PerformanceTestingHelper */
 /* global SmsIntegration */
 /* global utils */
 /* global TAG_OPTIONS */
@@ -174,6 +173,7 @@ var Contacts = (function() {
     }
     document.body.classList.remove('hide');
     displayed = true;
+    utils.PerformanceHelper.visuallyComplete();
   };
 
   var addExtrasToContact = function addExtrasToContact(extrasString) {
@@ -219,8 +219,6 @@ var Contacts = (function() {
       }
       checkUrl();
 
-      PerformanceTestingHelper.dispatch('init-finished');
-
       asyncScriptsLoaded = true;
     });
   };
@@ -229,6 +227,7 @@ var Contacts = (function() {
     _ = navigator.mozL10n.get;
     initContainers();
     initEventListeners();
+    utils.PerformanceHelper.chromeInteractive();
     window.addEventListener('hashchange', checkUrl);
 
     // If the migration is not complete
@@ -948,6 +947,11 @@ var Contacts = (function() {
   var updateSelectCountTitle = function updateSelectCountTitle(count) {
     editModeTitleElement.textContent = _('SelectedTxt', {n: count});
   };
+
+  window.addEventListener('DOMContentLoaded', function onLoad() {
+    utils.PerformanceHelper.domLoaded();
+    window.removeEventListener('DOMContentLoaded', onLoad);
+  });
 
   return {
     'goBack' : handleBack,
