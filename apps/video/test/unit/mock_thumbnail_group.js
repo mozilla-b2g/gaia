@@ -4,6 +4,7 @@ MockThumbnailGroup = function(item) {
   dummyNode.textContent = MockThumbnailGroup._GroupID;
   dummyNode.innerHTML = '<div>' + MockThumbnailGroup._GroupID + '</div>';
   dummyNode.htmlNode = dummyNode.firstElementChild;
+  dummyNode.updateTitleText = function() {};
 
   function addItem() {
     counter++;

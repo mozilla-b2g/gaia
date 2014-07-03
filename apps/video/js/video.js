@@ -347,7 +347,7 @@ function handleScreenLayoutChange() {
     if (!thumbnailList) {
       return;
     }
-    thumbnailList.upateAllThumbnailTitle();
+    thumbnailList.updateAllThumbnailTitle();
   } else {
     pendingUpdateTitleText = true;
   }
@@ -371,7 +371,7 @@ function switchLayout(mode) {
   // Update title text when leaving fullscreen mode with pending task.
   if (oldMode === LAYOUT_MODE.fullscreenPlayer && pendingUpdateTitleText) {
     pendingUpdateTitleText = false;
-    thumbnailList.upateAllThumbnailTitle();
+    thumbnailList.updateAllThumbnailTitle();
   }
 }
 
@@ -921,13 +921,9 @@ function setVideoUrl(player, video, callback) {
 }
 
 function scheduleVideoControlsAutoHiding() {
-  // Allow control of timeout, e.g., during unit testing
-  var autoHideMs = (videoControlsAutoHidingMsOverride !== null) ?
-      videoControlsAutoHidingMsOverride : 250;
-
   controlFadeTimeout = setTimeout(function() {
     setControlsVisibility(false);
-  }, autoHideMs);
+  }, 250);
 }
 
 function setNFCSharing(enable) {
@@ -1312,7 +1308,7 @@ function showPickView() {
   // view.
   if (!isPhone && !isPortrait) {
     // update all title text when rotating.
-    thumbnailList.upateAllThumbnailTitle();
+    thumbnailList.updateAllThumbnailTitle();
   }
 }
 
