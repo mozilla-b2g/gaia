@@ -20,6 +20,7 @@ class TestMoveApp(GaiaTestCase):
         https://moztrap.mozilla.org/manage/case/1317/
         """
 
+        self.homescreen.wait_for_number_of_apps(1)
         first_app_before_move = self.homescreen.visible_apps[0].name
 
         # Assert that we are not in edit mode.
