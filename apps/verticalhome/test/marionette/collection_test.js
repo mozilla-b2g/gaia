@@ -137,6 +137,9 @@ marionette('Vertical - Collection', function() {
       'network-error-message'
     );
 
+    // Wait for listeners to be added
+    collection.waitForCreateScreenReady();
+
     // This is not quite the same path the user sees during a collection create
     // but it should still let us test quite a bit. Instead of following the
     // navigator.isOnline path, we fire an offline event which will also show
@@ -153,8 +156,8 @@ marionette('Vertical - Collection', function() {
 
     client.switchToFrame();
     client.waitFor(function() {
-      var msg = client
-          .findElement('.modal-dialog-alert')
+      var msg = client.helper
+          .waitForElement('.modal-dialog-alert')
           .text();
       return expectedMsg.test(msg);
     });
