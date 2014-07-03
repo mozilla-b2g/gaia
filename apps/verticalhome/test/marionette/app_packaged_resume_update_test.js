@@ -73,6 +73,7 @@ marionette('Vertical Home - Packaged App Update', function() {
 
     // Ensure we see the loading signs...
     client.waitFor(function() {
+console.log('ICON STATE IS:', iconAppState(appIcon))
       return iconAppState(appIcon) === 'loading';
     });
 
