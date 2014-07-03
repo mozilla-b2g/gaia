@@ -56,6 +56,8 @@ UserPressManager.prototype.start = function() {
 
   this._container.addEventListener('touchstart', this);
   this._container.addEventListener('mousedown', this);
+
+  this._container.addEventListener('contextmenu', this);
 };
 
 UserPressManager.prototype.stop = function() {
@@ -69,11 +71,18 @@ UserPressManager.prototype.stop = function() {
   this._container.removeEventListener('mousedown', this);
   this._container.removeEventListener('mousemove', this);
   this._container.removeEventListener('mouseup', this);
+
+  this._container.removeEventListener('contextmenu', this);
 };
 
 UserPressManager.prototype.handleEvent = function(evt) {
   var touch, touchId, el, i;
   switch (evt.type) {
+    case 'contextmenu':
+      // Prevent all contextmenu event so no context menu on B2G/Desktop
+      evt.preventDefault();
+      break;
+
     case 'touchstart':
       // Let the world know that we're using touch events and we should
       // not handle any presses from mouse events.
