@@ -581,7 +581,7 @@ ul li > label.range-icons.volume input {
  * Date & Time
  */
 
-#timezone-raw span,
+.timezone-raw span,
 #dateTime ul.disabled p,
 #dateTime ul.disabled a {
   color: #797e80;
@@ -589,15 +589,15 @@ ul li > label.range-icons.volume input {
   pointer-events: none;
 }
 
-#dateTime #timezone.disabled {
+#dateTime .timezone.disabled {
   display: none;
 }
 
-#time-manual span {
+.time-manual span {
   pointer-events: none;
 }
 
-#time-manual input {
+.time-manual input {
   position: absolute;
   width: 100%;
   height: 100%;
