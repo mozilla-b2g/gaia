@@ -5,23 +5,25 @@
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
     <title>FirefoxOS Homescreen</title>
 
-    <link rel="stylesheet" href="shared/style/headers.css">
     <link rel="stylesheet" href="style/css/app.css">
     <link rel="stylesheet" href="style/css/search.css">
-    <link rel="stylesheet" href="style/css/zoom.css">
     <link rel="stylesheet" href="shared/elements/gaia_grid/style/external.css">
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
     <link rel="resource" type="application/l10n" href="/shared/locales/collection_categories.ini">
     <link rel="resource" type="application/l10n" href="/shared/locales/gaia_grid.ini">
 
     <script defer src="shared/js/l10n.js"></script>
-    <script defer src="/shared/js/font_size_utils.js"></script>
+    <!-- Those libraries are loaded after rendering icons -->
+    <!-- <link rel="stylesheet" href="shared/style/headers.css"> -->
+    <!-- <script defer src="/shared/js/font_size_utils.js"></script> -->
+    <!-- <script defer src="shared/js/homescreens/confirm_dialog_helper.js"></script> -->
+    <!-- <script defer src="js/contextmenu_handler.js"></script> -->
 
-    <!-- Confirm dialog component -->
-    <script defer src="/shared/js/component_utils.js"></script>
-    <script defer src="/shared/elements/gaia_buttons/script.js"></script>
-    <script defer src="/shared/elements/gaia_confirm/script.js"></script>
-    <script defer src="/shared/elements/gaia_menu/script.js"></script>
+    <!-- Lazy load for Confirm dialog component -->
+    <!-- <script defer src="/shared/js/component_utils.js"></script> -->
+    <!-- <script defer src="/shared/elements/gaia_buttons/script.js"></script> -->
+    <!-- <script defer src="/shared/elements/gaia_confirm/script.js"></script> -->
+    <!-- <script defer src="/shared/elements/gaia_menu/script.js"></script> -->
 
     <!-- Lazy load for Context Menu -->
     <!-- <script src="js/contextmenu_ui.js"></script> -->
@@ -32,7 +34,6 @@
     <script defer src="js/statusbar.js"></script>
 
     <script defer src="shared/js/homescreens/vertical_preferences.js"></script>
-    <script defer src="shared/js/homescreens/confirm_dialog_helper.js"></script>
     <script defer src="shared/js/bookmarks_database.js"></script>
     <script defer src="shared/js/collections_database.js"></script>
     <script defer src="shared/js/lazy_loader.js"></script>
@@ -47,7 +48,6 @@
     <script defer src="js/app.js"></script>
     <script defer src="js/search.js"></script>
     <script defer src="js/configurator.js"></script>
-    <script defer src="js/contextmenu_handler.js"></script>
 
     <script defer src="shared/elements/gaia_grid/js/grid_layout.js"></script>
     <script defer src="shared/elements/gaia_grid/js/grid_dragdrop.js"></script>
@@ -81,12 +81,6 @@
       </div>
 
       <gaia-grid id="icons" dragdrop></gaia-grid>
-    </div>
-
-    <div id="zoom" hidden>
-      <div class="curtain"></div>
-      <div class="arrows"></div>
-      <div class="indicator"></div>
     </div>
 
     <gaia-menu id="contextmenu-dialog" hidden>
