@@ -62,6 +62,12 @@ marionette('Vertical - Search', function() {
     search.goToResults();
     assert.ok(client.findElement(confirmSelector).displayed());
 
+    // But not displayed if we clear them and type < 3 characters
+    client.switchToFrame();
+    rocketbar.enterText('ab');
+    search.goToResults();
+    assert.ok(!client.findElement(confirmSelector).displayed());
+
     // Notice should be dismissed if we press enter
     client.switchToFrame();
     rocketbar.enterText('abc\uE006');
