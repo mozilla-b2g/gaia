@@ -323,7 +323,7 @@ suite('keyboard >', function() {
 
         this.get = this.sinon.spy(navigator.mozL10n, 'get');
         this.localize = this.sinon.stub(navigator.mozL10n, 'localize');
-        this.openDialog = this.sinon.stub(window, 'openDialog');
+        window.openDialog = this.sinon.stub();
 
         DefaultKeyboardEnabledDialog.show({
           manifest: { name: 'appName' },
@@ -358,7 +358,7 @@ suite('keyboard >', function() {
         ]);
       });
       test('calls openDialog', function() {
-        assert.ok(this.openDialog.calledWith('keyboard-enabled-default'));
+        assert.ok(window.openDialog.calledWith('keyboard-enabled-default'));
       });
     });
   });

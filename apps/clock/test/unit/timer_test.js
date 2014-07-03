@@ -101,7 +101,7 @@ suite('Timer', function() {
 
   suite('commit', function() {
     setup(function() {
-      this.sinon.stub(navigator, 'mozAlarms', new MockMozAlarm());
+      navigator.mozAlarms = new MockMozAlarm();
       this.addSpy = this.sinon.spy(navigator.mozAlarms, 'add');
       this.removeSpy = this.sinon.spy(navigator.mozAlarms, 'remove');
       this.timer = getTimer();
