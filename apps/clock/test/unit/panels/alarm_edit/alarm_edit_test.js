@@ -1,6 +1,9 @@
 'use strict';
 mocha.setup({ globals: ['GestureDetector'] });
 
+/** TEST TEMPORARILY DISABLED, SEE BUG 1033213 ****************************
+
+
 suite('AlarmEditView', function() {
   var Alarm, AlarmEdit, activeAlarm, alarmDatabase,
       alarmListPanel, alarmEdit, panel, mozL10n;
@@ -269,3 +272,5 @@ suite('AlarmEditView', function() {
   });
 
 });
+
+*/
