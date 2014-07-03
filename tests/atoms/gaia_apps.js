@@ -17,9 +17,8 @@ var GaiaApps = {
     }
   },
 
-  getRunningApps: function() {
-    let manager = window.wrappedJSObject.AppWindowManager || window.wrappedJSObject.WindowManager;
-    let runningApps = ('getApps' in manager) ? manager.getApps() : manager.getRunningApps();
+  getRunningApps: function(includeSystemApps) {
+    let runningApps = GaiaApps.getApps(includeSystemApps);
     // Return a simplified version of the runningApps object which can be
     // JSON-serialized.
     let apps = {};
@@ -35,14 +34,14 @@ var GaiaApps = {
     return apps;
   },
 
-  getApps: function() {
-    let manager = window.wrappedJSObject.AppWindowManager || window.wrappedJSObject.WindowManager;
-    let apps = ('getApps' in manager) ? manager.getApps() : manager.getRunningApps();
+  getApps: function(includeSystemApps) {
+    let manager = window.wrappedJSObject.AppWindowManager;
+    let apps = includeSystemApps ? manager.getApps() : window.wrappedJSObject.StackManager.snapshot();
     return apps;
   },
 
   getRunningAppOrigin: function(name) {
-    let apps = GaiaApps.getApps();
+    let apps = GaiaApps.getApps(true);
 
     for (let id in apps) {
       if (apps[id].name == name) {
@@ -55,7 +54,7 @@ var GaiaApps = {
 
   getAppByURL: function(url) {
     // return the app window with the specified URL
-    let apps = GaiaApps.getApps();
+    let apps = GaiaApps.getApps(true);
     for (let id in apps) {
       if (apps[id].url == url) {
         return apps[id];
@@ -174,9 +173,10 @@ var GaiaApps = {
   },
 
   // Returns the number of running apps.
-  numRunningApps: function() {
+  // includeSystemApps defines counting system always-running apps or not
+  numRunningApps: function(includeSystemApps) {
     let count = 0;
-    let apps = GaiaApps.getApps();
+    let apps = GaiaApps.getApps(includeSystemApps);
     for (let id in apps) {
       count++;
     }
@@ -184,7 +184,7 @@ var GaiaApps = {
   },
 
   isRunning: function(origin) {
-    var apps = GaiaApps.getApps();
+    var apps = GaiaApps.getApps(true);
     for (var id in apps) {
       if (apps[id].origin === origin) {
         return true;
@@ -218,17 +218,17 @@ var GaiaApps = {
     }
   },
 
-  // Kills all running apps, except the homescreen.
-  killAll: function() {
+  // Kills all apps
+  // includeSystemApps will allow user-protected apps like Homescreen to be killed,
+  // otherwise, gets all user-killable apps (from Cards View/StackManager)
+  killAll: function(includeSystemApps) {
     let originsToClose = [];
     let that = this;
 
-    let apps = GaiaApps.getApps();
+    let apps = GaiaApps.getApps(includeSystemApps);
     for (let id in apps) {
       let origin = apps[id].origin;
-      if (!/homescreen|verticalhome/.test(origin)) {
-        originsToClose.push(origin);
-      }
+      originsToClose.push(origin);
     }
 
     if (!originsToClose.length) {
@@ -245,7 +245,7 @@ var GaiaApps = {
     // apps are running (since we don't close the homescreen app).
     waitFor(
       function() { marionetteScriptFinished(true); },
-      function() { return that.numRunningApps() <= 1; }
+      function() { return that.numRunningApps(includeSystemApps) <= 1; }
     );
   },
 
