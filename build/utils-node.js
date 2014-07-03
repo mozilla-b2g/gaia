@@ -1,5 +1,7 @@
 'use strict';
 
+/* global require, exports, Buffer */
+
 var utils = require('./utils.js');
 var path = require('path');
 var sh = require('child_process').exec;
@@ -9,13 +11,13 @@ var Q = require('q');
 var os = require('os');
 
 function joinPath() {
-  var src = path.join.apply(this, arguments);
+  var src = path.join.apply(path, arguments);
   console.log(src);
   return src;
 }
 
 function getFile() {
-  var src = path.join.apply(this, arguments);
+  var src = path.join.apply(path, arguments);
   var fileStat;
   try {
     fileStat = fs.statSync(src);
