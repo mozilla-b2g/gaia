@@ -67,8 +67,13 @@
     },
 
     iconBG: {
-      color: 'rgba(255, 255, 255, 0.25)',
-      radius: 20
+      radius: 20,
+      left: {
+        color: 'rgba(255, 255, 255, 0.25)'
+      },
+      right: {
+        color: 'rgba(255, 255, 255, 0.25)'
+      }
     },
 
     slides: {
@@ -147,13 +152,13 @@
 
     colors: {
       left: {
-        touchedColor: '0, 170, 204',
-        touchedColorStop: '178, 229, 239'
+        touchedColor: '255, 255, 255',
+        touchedColorStop: '255, 255, 255'
       },
 
       right: {
-        touchedColor: '0, 170, 204',
-        touchedColorStop: '178, 229, 239'
+        touchedColor: '255, 255, 255',
+        touchedColorStop: '255, 255, 255'
       }
     },
 
@@ -962,7 +967,8 @@
 
           strokeStyle = 'transparent';
 
-          ctx.fillStyle = 'rgba(255, 255, 255, ' + fillAlpha + ')';
+          ctx.fillStyle = 'rgba(' + this.handle.touchedColor + ', ' +
+            fillAlpha + ')';
           ctx.strokeStyle = strokeStyle;
 
           // Start to draw it.
@@ -1066,7 +1072,7 @@
       var canvas = this.canvas;
       var ctx = canvas.getContext('2d');
 
-      ctx.fillStyle = this.iconBG.color;
+      ctx.fillStyle = this.iconBG.left.color;
       ctx.strokeStyle = 'transparent';
 
       ctx.beginPath();
@@ -1076,6 +1082,7 @@
       ctx.closePath();
       ctx.fill();
 
+      ctx.fillStyle = this.iconBG.right.color;
       ctx.beginPath();
       ctx.arc(this.track.to, this.track.y,
               this.iconBG.radius, 0, 2 * Math.PI, false);

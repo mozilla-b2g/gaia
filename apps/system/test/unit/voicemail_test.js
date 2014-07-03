@@ -18,8 +18,8 @@
 requireApp('system/js/voicemail.js');
 requireApp('system/shared/js/settings_helper.js');
 
-requireApp('system/js/mock_simslot.js');
-requireApp('system/js/mock_simslot_manager.js');
+requireApp('system/shared/test/unit/mocks/mock_simslot.js');
+requireApp('system/shared/test/unit/mocks/mock_simslot_manager.js');
 requireApp('system/test/unit/mock_activity.js');
 requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/test/unit/mock_navigator_moz_voicemail.js');
@@ -269,66 +269,86 @@ suite('voicemail notification', function() {
         });
     });
 
-    for (var i = 0; i < 2; i++) {
-      (function(serviceId) {
-        suite('sim count: ' + (i + 1), function() {
-          suiteSetup(function() {
-            // When service id is 2, we test the multi sim case.
-            this.isMultiSIM = (serviceId !== 0);
-            sinon.stub(SIMSlotManager, 'isMultiSIM').returns(this.isMultiSIM);
-          });
+    function serviceIdTests(serviceId) {
+      suite('sim count: ' + (i + 1), function() {
+        suiteSetup(function() {
+          // When service id is 2, we test the multi sim case.
+          this.isMultiSIM = (serviceId !== 0);
+          sinon.stub(SIMSlotManager, 'isMultiSIM').returns(this.isMultiSIM);
+        });
 
-          suiteTeardown(function() {
-            SIMSlotManager.isMultiSIM.restore();
-          });
+        suiteTeardown(function() {
+          SIMSlotManager.isMultiSIM.restore();
+        });
 
-          suite('showNotification should be called with correct parameters',
-            function() {
-              setup(function() {
-                this.voiceNumbers = ['111', '222'];
-                MockNavigatorMozVoicemail.mServiceId = serviceId;
-                MockNavigatorMozVoicemail.mNumbers = this.voiceNumbers;
-                MockNavigatorMozVoicemail.mHasMessages = true;
-                sinon.spy(Voicemail, 'showNotification');
-              });
+        suite('showNotification should be called with correct parameters',
+          function() {
+            setup(function() {
+              this.voiceNumbers = ['111', '222'];
+              MockNavigatorMozVoicemail.mServiceId = serviceId;
+              MockNavigatorMozVoicemail.mNumbers = this.voiceNumbers;
+              MockNavigatorMozVoicemail.mHasMessages = true;
+              sinon.spy(Voicemail, 'showNotification');
+            });
 
-              teardown(function() {
-                Voicemail.showNotification.restore();
-              });
+            teardown(function() {
+              Voicemail.showNotification.restore();
+            });
 
-              test('should/should not display SIM indicator', function() {
-                var baseTitle = 'aaaa';
-                var multiSimTitle =
-                  MockL10n.get('voicemailNotificationMultiSim', {
-                    n: 2,
-                    title: baseTitle
-                  });
+            test('should/should not display SIM indicator', function() {
+              var baseTitle = 'aaaa';
+              var multiSimTitle =
+                MockL10n.get('voicemailNotificationMultiSim', {
+                  n: 2,
+                  title: baseTitle
+                });
 
-                Voicemail.showNotification(
-                  baseTitle, 'bbbb', '1111', serviceId);
+              Voicemail.showNotification(
+                baseTitle, 'bbbb', '1111', serviceId);
 
-                sinon.assert.calledWithNew(notificationSpy);
-                sinon.assert.calledOnce(notificationSpy);
-                assert.equal(notificationSpy.firstCall.args[1].body, 'bbbb');
-                assert.equal(notificationSpy.firstCall.args[1].tag,
-                             'voicemailNotification:' + serviceId);
+              sinon.assert.calledWithNew(notificationSpy);
+              sinon.assert.calledOnce(notificationSpy);
+              assert.equal(notificationSpy.firstCall.args[1].body, 'bbbb');
+              assert.equal(notificationSpy.firstCall.args[1].tag,
+                           'voicemailNotification:' + serviceId);
 
-                if (this.isMultiSIM) {
-                  assert.equal(
-                    notificationSpy.firstCall.args[0], multiSimTitle);
-                } else {
-                  assert.equal(notificationSpy.firstCall.args[0], baseTitle);
-                }
-              });
+              if (this.isMultiSIM) {
+                assert.equal(
+                  notificationSpy.firstCall.args[0], multiSimTitle);
+              } else {
+                assert.equal(notificationSpy.firstCall.args[0], baseTitle);
+              }
+            });
 
-              test('with returnMessage, with voicemail number', function(done) {
+            test('with returnMessage, with voicemail number', function(done) {
+              MockNavigatorMozVoicemail.mTriggerEvent('statuschanged');
+              setTimeout((function() {
+                // display the message count as title
+                var expectedTitle = MockNavigatorMozVoicemail.mMessage;
+                // display the voice mail number as body
+                var expectedText = 'dialNumber{"number":"' +
+                  this.voiceNumbers[serviceId] + '"}';
+
+                sinon.assert.calledWithExactly(Voicemail.showNotification,
+                  expectedTitle, expectedText,
+                  this.voiceNumbers[serviceId], serviceId);
+
+                done();
+              }).bind(this));
+            });
+
+            test('without returnMessage, with voicemail number',
+              function(done) {
+                MockNavigatorMozVoicemail.mMessage = null;
+
                 MockNavigatorMozVoicemail.mTriggerEvent('statuschanged');
                 setTimeout((function() {
                   // display the message count as title
-                  var expectedTitle = MockNavigatorMozVoicemail.mMessage;
+                  var expectedTitle = 'newVoicemails{"n":' +
+                    MockNavigatorMozVoicemail.mMessageCount + '}';
                   // display the voice mail number as body
                   var expectedText = 'dialNumber{"number":"' +
-                    this.voiceNumbers[serviceId] + '"}';
+                    MockNavigatorMozVoicemail.mNumbers[serviceId] + '"}';
 
                   sinon.assert.calledWithExactly(Voicemail.showNotification,
                     expectedTitle, expectedText,
@@ -336,101 +356,83 @@ suite('voicemail notification', function() {
 
                   done();
                 }).bind(this));
-              });
+            });
 
-              test('without returnMessage, with voicemail number',
-                function(done) {
-                  MockNavigatorMozVoicemail.mMessage = null;
-
-                  MockNavigatorMozVoicemail.mTriggerEvent('statuschanged');
-                  setTimeout((function() {
-                    // display the message count as title
-                    var expectedTitle = 'newVoicemails{"n":' +
-                      MockNavigatorMozVoicemail.mMessageCount + '}';
-                    // display the voice mail number as body
-                    var expectedText = 'dialNumber{"number":"' +
-                      MockNavigatorMozVoicemail.mNumbers[serviceId] + '"}';
-
-                    sinon.assert.calledWithExactly(Voicemail.showNotification,
-                      expectedTitle, expectedText,
-                      this.voiceNumbers[serviceId], serviceId);
-
-                    done();
-                  }).bind(this));
-              });
-
-              test('without returnMessage, messageCount is zero',
-                function(done) {
-                  MockNavigatorMozVoicemail.mMessage = null;
-                  MockNavigatorMozVoicemail.mMessageCount = 0;
-
-                  MockNavigatorMozVoicemail.mTriggerEvent('statuschanged');
-                  setTimeout((function() {
-                    // display the unknown message as title
-                    var expectedTitle = 'newVoicemailsUnknown';
-                    // display the voice mail number as body
-                    var expectedText = 'dialNumber{"number":"' +
-                      MockNavigatorMozVoicemail.mNumbers[serviceId] + '"}';
-
-                    sinon.assert.calledWithExactly(Voicemail.showNotification,
-                      expectedTitle, expectedText,
-                      this.voiceNumbers[serviceId], serviceId);
-
-                    done();
-                  }).bind(this));
-              });
-
-              test('without voicemail number', function(done) {
-                MockNavigatorMozVoicemail.mNumbers = [];
+            test('without returnMessage, messageCount is zero',
+              function(done) {
+                MockNavigatorMozVoicemail.mMessage = null;
+                MockNavigatorMozVoicemail.mMessageCount = 0;
 
                 MockNavigatorMozVoicemail.mTriggerEvent('statuschanged');
                 setTimeout((function() {
-                  // display the message as title
-                  var expectedTitle = MockNavigatorMozVoicemail.mMessage;
-                  // display the message as body
-                  var expectedText = MockNavigatorMozVoicemail.mMessage;
+                  // display the unknown message as title
+                  var expectedTitle = 'newVoicemailsUnknown';
+                  // display the voice mail number as body
+                  var expectedText = 'dialNumber{"number":"' +
+                    MockNavigatorMozVoicemail.mNumbers[serviceId] + '"}';
 
                   sinon.assert.calledWithExactly(Voicemail.showNotification,
-                    expectedTitle, expectedText, undefined, serviceId);
+                    expectedTitle, expectedText,
+                    this.voiceNumbers[serviceId], serviceId);
 
                   done();
                 }).bind(this));
+            });
+
+            test('without voicemail number', function(done) {
+              MockNavigatorMozVoicemail.mNumbers = [];
+
+              MockNavigatorMozVoicemail.mTriggerEvent('statuschanged');
+              setTimeout((function() {
+                // display the message as title
+                var expectedTitle = MockNavigatorMozVoicemail.mMessage;
+                // display the message as body
+                var expectedText = MockNavigatorMozVoicemail.mMessage;
+
+                sinon.assert.calledWithExactly(Voicemail.showNotification,
+                  expectedTitle, expectedText, undefined, serviceId);
+
+                done();
+              }).bind(this));
+            });
+
+            suite('value from settings', function() {
+              setup(function() {
+                MockNavigatorMozVoicemail.mNumbers = [];
+                MockSettingsHelper.instances['ril.iccInfo.mbdn'] =
+                  {value: this.voiceNumbers};
               });
 
-              suite('value from settings', function() {
-                setup(function() {
-                  MockNavigatorMozVoicemail.mNumbers = [];
-                  MockSettingsHelper.instances['ril.iccInfo.mbdn'] =
-                    {value: this.voiceNumbers};
-                });
-
-                teardown(function() {
-                  MockNavigatorMozVoicemail.mNumbers = this.voiceNumbers;
-                  MockSettingsHelper.instances['ril.iccInfo.mbdn'] =
-                    {value: undefined};
-                });
-
-                test('without voicemail number, with ril.iccInfo.mbdn',
-                  function(done) {
-                    MockNavigatorMozVoicemail.mTriggerEvent('statuschanged');
-                    setTimeout((function() {
-                      // display the message as title
-                      var expectedTitle = MockNavigatorMozVoicemail.mMessage;
-                      // display the message as body
-                      var expectedText = 'dialNumber{"number":"' +
-                        this.voiceNumbers[serviceId] + '"}';
-
-                      sinon.assert.calledWithExactly(Voicemail.showNotification,
-                        expectedTitle, expectedText,
-                        this.voiceNumbers[serviceId], serviceId);
-
-                      done();
-                    }).bind(this));
-                  });
+              teardown(function() {
+                MockNavigatorMozVoicemail.mNumbers = this.voiceNumbers;
+                MockSettingsHelper.instances['ril.iccInfo.mbdn'] =
+                  {value: undefined};
               });
-          });
+
+              test('without voicemail number, with ril.iccInfo.mbdn',
+                function(done) {
+                  MockNavigatorMozVoicemail.mTriggerEvent('statuschanged');
+                  setTimeout((function() {
+                    // display the message as title
+                    var expectedTitle = MockNavigatorMozVoicemail.mMessage;
+                    // display the message as body
+                    var expectedText = 'dialNumber{"number":"' +
+                      this.voiceNumbers[serviceId] + '"}';
+
+                    sinon.assert.calledWithExactly(Voicemail.showNotification,
+                      expectedTitle, expectedText,
+                      this.voiceNumbers[serviceId], serviceId);
+
+                    done();
+                  }).bind(this));
+                });
+            });
         });
-      })(i);
+      });
+    }
+
+    for (var i = 0; i < 2; i++) {
+      serviceIdTests(i);
     }
   });
 

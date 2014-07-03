@@ -1,5 +1,8 @@
+/* globals MockIccManager, MockNavigatorMozMobileConnections, MocksHelper,
+           MockSIMSlot, SIMSlotManager */
 'use strict';
-requireApp('system/js/mock_simslot.js');
+
+requireApp('system/shared/test/unit/mocks/mock_simslot.js');
 requireApp('system/test/unit/mock_icc_manager.js');
 requireApp('system/test/unit/mock_system.js');
 requireApp('system/shared/test/unit/mocks/' +
@@ -17,7 +20,7 @@ suite('SIMSlotManager', function() {
   setup(function(callback) {
     navigator.mozIccManager = MockIccManager;
     navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
-    requireApp('system/js/simslot_manager.js', callback);
+    requireApp('system/shared/js/simslot_manager.js', callback);
   });
 
   teardown(function() {

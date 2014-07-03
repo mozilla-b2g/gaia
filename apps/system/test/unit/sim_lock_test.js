@@ -2,7 +2,7 @@
 /* global preInit */
 'use strict';
 
-requireApp('system/js/mock_simslot_manager.js');
+requireApp('system/shared/test/unit/mocks/mock_simslot_manager.js');
 requireApp('system/test/unit/mock_simcard_dialog.js');
 requireApp('system/test/unit/mock_l10n.js');
 
