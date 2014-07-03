@@ -32,6 +32,17 @@
   display: none;
 }
 
+/* For search filters, make sure the contents do not line break and overflow
+outside their given areas. This is particularly important for some locales.
+Do not want to set styles on the inner a tags to force ellipsis since it ends
+up with ellipsis in some ways for most languages, even English, where just using
+an overflow hide is enough to allow seeing the whole word in some cases. See
+bug 1033628 for more details. */
+.msg-search-filter {
+  white-space: nowrap;
+  overflow: hidden;
+}
+
 /* When card is slightly shown when folder card is center,
    be sure any inputs do not accept clicks/taps that would
    mess up the transition back to the message list. Also
