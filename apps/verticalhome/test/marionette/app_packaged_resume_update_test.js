@@ -35,8 +35,11 @@ marionette('Vertical Home - Packaged App Update', function() {
 
     // wait for the system app to be running
     system.waitForStartup();
+    client.apps.launch(Home2.URL);
+    subject.waitForLaunch();
 
     // install the app
+    client.switchToFrame();
     appInstall.installPackage(server.packageManifestURL);
 
     // switch to the homescreen
