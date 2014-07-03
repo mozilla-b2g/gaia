@@ -325,29 +325,31 @@ var MmiManager = {
   sendNotification: function mm_sendNotification(message, cardIndex, callback) {
     var self = this;
 
-    var request = window.navigator.mozApps.getSelf();
-    request.onsuccess = function(evt) {
-      var app = evt.target.result;
+    self.init(function() {
+      var request = window.navigator.mozApps.getSelf();
+      request.onsuccess = function(evt) {
+        var app = evt.target.result;
 
-      LazyLoader.load('/shared/js/notification_helper.js', function() {
-        var iconURL = NotificationHelper.getIconURI(app, 'dialer');
-        var conn = navigator.mozMobileConnections[cardIndex || 0];
-        var title = self.prependSimNumber(
-          MobileOperator.userFacingInfo(conn).operator, cardIndex);
-        /* XXX: Bug 1033254 - We put the |ussd-message=1| parameter in the
-         * URL string to distinguish this notification from the others. This
-         * should be thorought the application possibly by using the tag
-         * field. */
-        NotificationHelper.send(title, message,
-          iconURL + '?ussdMessage=1&cardIndex=' + cardIndex,
-          function clickCB(evt) {
-            app.launch('dialer');
-            self.handleMMIReceived(message, /* sessionEnded */ true,
-              cardIndex);
-          });
-        callback && callback();
-      });
-    };
+        LazyLoader.load('/shared/js/notification_helper.js', function() {
+          var iconURL = NotificationHelper.getIconURI(app, 'dialer');
+          var conn = navigator.mozMobileConnections[cardIndex || 0];
+          var title = self.prependSimNumber(
+            MobileOperator.userFacingInfo(conn).operator, cardIndex);
+          /* XXX: Bug 1033254 - We put the |ussd-message=1| parameter in the
+           * URL string to distinguish this notification from the others. This
+           * should be thorought the application possibly by using the tag
+           * field. */
+          NotificationHelper.send(title, message,
+            iconURL + '?ussdMessage=1&cardIndex=' + cardIndex,
+            function clickCB(evt) {
+              app.launch('dialer');
+              self.handleMMIReceived(message, /* sessionEnded */ true,
+                cardIndex);
+            });
+          callback && callback();
+        });
+      };
+    });
   },
 
   isMMI: function mm_isMMI(number) {

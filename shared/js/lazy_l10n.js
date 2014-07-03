@@ -12,12 +12,19 @@
   window.LazyL10n = {
     _inDOM: false,
     _loaded: false,
+    _initializing: false,
+    _pendingCallbacks: [],
 
     get: function ll10n_get(callback) {
       if (this._loaded) {
         callback(navigator.mozL10n.get);
         return;
+      } else if (this._initializing) {
+        this._pendingCallbacks.push(callback);
+        return;
       }
+
+      this._initializing = true;
 
       if (this._inDOM) {
         this._waitForLoadAndDate(callback);
@@ -46,7 +53,11 @@
       document.documentElement.lang = navigator.mozL10n.language.code;
       document.documentElement.dir = navigator.mozL10n.language.direction;
       this._loaded = true;
+      this._initializing = false;
       callback(navigator.mozL10n.get);
+      while (this._pendingCallbacks.length) {
+        this._pendingCallbacks.shift()(navigator.mozL10n.get);
+      }
     }
   };
 
