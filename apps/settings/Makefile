@@ -24,7 +24,11 @@ clean:
 # Generate a text file containing the current changeset of Gaia
 $(STAGE_APP_DIR)/resources/gaia_commit.txt: | $(STAGE_APP_DIR)
 	mkdir -p $(STAGE_APP_DIR)/resources
-ifneq ($(wildcard ${GAIA_DIR}/gaia_commit_override.txt),)
+ifeq ($(REPRODUCIBLE_BUILD),1)
+	# Fake as if we were on very first gaia revision
+	echo "f46aa5aba29008ce8733c92bfd1ddda210fc7c43" > $(STAGE_APP_DIR)/resources/gaia_commit.txt
+	echo "1316221071" >> $(STAGE_APP_DIR)/resources/gaia_commit.txt
+else ifneq ($(wildcard ${GAIA_DIR}/gaia_commit_override.txt),)
 	cp ${GAIA_DIR}/gaia_commit_override.txt $(STAGE_APP_DIR)/resources/gaia_commit.txt
 else ifneq ($(wildcard ${GAIA_DIR}/.git),)
 	git --git-dir=${GAIA_DIR}/.git log -1 --format="%H%n%ct" HEAD > $(STAGE_APP_DIR)/resources/gaia_commit.txt
