@@ -1,0 +1,35 @@
+{
+  "name": "Callscreen",
+  "description": "Gaia Callscreen",
+  "type": "certified",
+  "role": "system",
+  "launch_path": "/index.html",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "permissions": {
+    "telephony":{},
+    "bluetooth":{},
+    "voicemail":{},
+    "contacts":{ "access": "readonly" },
+    "mobileconnection":{},
+    "attention":{},
+    "settings":{ "access": "readwrite" },
+    "time": {},
+    "audio-channel-telephony":{},
+    "idle":{},
+    "storage": {},
+    "device-storage:sdcard": { "access": "readonly" },
+    "phonenumberservice": {}
+  },
+  "messages": [
+    { "bluetooth-dialer-command": "/index.html" },
+    { "headset-button": "/index.html" }
+  ],
+  "orientation": "default",
+  "icons": {
+        "30": "/style/icons/communication_30.png",
+        "45": "/style/icons/communication_45.png"
+  }
+}

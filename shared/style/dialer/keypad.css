@@ -52,7 +52,7 @@ article:not(:target) #keypad-delete {
 #keypad-delete > div {
   width: 3.3rem;
   height: 2.4rem;
-  background: url('images/dialer_icon_delete.png');
+  background: url('keypad/images/dialer_icon_delete.png');
   background-size: 3.3rem;
   background-repeat: no-repeat;
 }
@@ -120,7 +120,7 @@ article:not(:target) #keypad-delete {
 }
 
 .keypad-key:active .voicemail {
-  background-image: url('images/voicemail_.png');
+  background-image: url('keypad/images/voicemail_.png');
 }
 
 .keypad-key * {
@@ -154,12 +154,12 @@ article:not(:target) #keypad-delete {
 }
 
 .voicemail {
-  background-image: url('images/voicemail.png');
+  background-image: url('keypad/images/voicemail.png');
   background-size: 2.2rem;
 }
 
 .asterisk {
-  background-image: url('images/asterisk.png');
+  background-image: url('keypad/images/asterisk.png');
   background-repeat: no-repeat;
   height: 3rem;
   width: 3rem;
@@ -170,7 +170,7 @@ article:not(:target) #keypad-delete {
 }
 
 .sharp {
-  background-image: url('images/sharp.png');
+  background-image: url('keypad/images/sharp.png');
   background-repeat: no-repeat;
   height: 3rem;
   width: 3rem;
@@ -196,7 +196,7 @@ article:not(:target) #keypad-delete {
 #keypad-callbar-add-contact,
 #keypad-callbar-cancel {
   width: 9rem;
-  background: url("images/btn_generic.png") repeat-x;
+  background: url('keypad/images/btn_generic.png') repeat-x;
   background-size: auto 100%;
   border-radius: .2rem;
   margin: 0.8rem 0 0.8rem 0.8rem;
@@ -230,8 +230,8 @@ article:not(:target) #keypad-delete {
   flex-grow: 1;
   align-items: center;
   flex-direction: row-reverse;
-  background-image: url("images/ActionIcon_40x40_pickup.png"),
-                    url("images/btn_pick_up.png");
+  background-image: url('keypad/images/ActionIcon_40x40_pickup.png'),
+                    url('keypad/images/btn_pick_up.png');
   background-color: #4B780A;
   background-repeat: no-repeat, repeat-x;
   background-position: center;
@@ -242,14 +242,14 @@ article:not(:target) #keypad-delete {
 }
 
 #keypad-callbar-call-action:active {
-  background-image: url("images/ActionIcon_40x40_pickup.png");
+  background-image: url('keypad/images/ActionIcon_40x40_pickup.png');
 }
 
 .icon-add-contact {
   margin: auto;
   width: 4rem;
   height: 4.2rem;
-  background-image: url("images/ActionIcon_40x40_addcontact.png");
+  background-image: url('keypad/images/ActionIcon_40x40_addcontact.png');
   background-repeat: no-repeat;
   background-size: 4rem 4rem;
   background-position: center;
@@ -306,7 +306,7 @@ article:not(:target) #keypad-delete {
 }
 
 #keypad-hidebar-hang-up-action {
-  background: url("images/btn_hang_up.png") repeat-x;
+  background: url('keypad/images/btn_hang_up.png') repeat-x;
   background-size: auto 100%;
   opacity: 1.0;
   margin: 1rem .5rem 1.5rem 1.5rem;
@@ -318,7 +318,7 @@ article:not(:target) #keypad-delete {
 
 #keypad-hidebar-hang-up-action > div {
   margin: 0 auto;
-  background-image: url('images/ActionIcon_40x40_hangup.png');
+  background-image: url('keypad/images/ActionIcon_40x40_hangup.png');
   background-repeat: no-repeat;
   background-size: 4rem 4rem;
   background-position: center;
@@ -327,7 +327,7 @@ article:not(:target) #keypad-delete {
 }
 
 #keypad-hidebar-hide-keypad-action {
-  background: url("images/btn_generic.png") repeat-x;
+  background: url('keypad/images/btn_generic.png') repeat-x;
   background-size: auto 100%;
   opacity: 1.0;
   margin: 1rem 1.5rem 1.5rem .5rem;
@@ -339,7 +339,7 @@ article:not(:target) #keypad-delete {
 
 #keypad-hidebar-hide-keypad-action > div {
   margin: -moz-calc((4rem - 3rem)/2) auto;
-  background-image: url('images/ActionIcons_40x40_dismiss_keyboard.png');
+  background-image: url('keypad/images/ActionIcons_40x40_dismiss_keyboard.png');
   background-repeat: no-repeat;
   background-size: 4rem 4rem;
   background-position: center;
@@ -380,7 +380,7 @@ article:not(:target) #keypad-delete {
 }
 
 #suggestion-count.more {
-  background: url(images/icon_arrow_white.png) no-repeat right 0.3rem bottom / 1rem;
+  background: url(keypad/images/icon_arrow_white.png) no-repeat right 0.3rem bottom / 1rem;
 }
 
 #suggestion-bar > .suggestion-item {

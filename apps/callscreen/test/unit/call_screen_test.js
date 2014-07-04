@@ -5,10 +5,9 @@ mocha.globals(['resizeTo']);
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 require('/shared/test/unit/mocks/mock_moz_activity.js');
-
-requireApp('communications/dialer/test/unit/mock_handled_call.js');
-requireApp('communications/dialer/test/unit/mock_calls_handler.js');
-requireApp('communications/dialer/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
+require('/shared/test/unit/mocks/dialer/mock_handled_call.js');
+require('/shared/test/unit/mocks/dialer/mock_calls_handler.js');
 
 // The CallScreen binds stuff when evaluated so we load it
 // after the fake dom and we don't want it to show up as a leak.
@@ -147,7 +146,7 @@ suite('call screen', function() {
       CallScreen.bluetoothMenu = bluetoothMenu;
     }
 
-    requireApp('communications/dialer/js/call_screen.js', done);
+    require('/js/call_screen.js', done);
   });
 
   teardown(function() {
@@ -181,7 +180,7 @@ suite('call screen', function() {
 
       setup(function() {
         oldHash = window.location.hash;
-        window.location.hash = '#locked';
+        window.location.hash = '#locked?timestamp=0';
       });
 
       teardown(function() {
@@ -382,6 +381,10 @@ suite('call screen', function() {
       CallScreen._wallpaperReady = false;
     });
 
+    teardown(function() {
+      CallScreen._transitioning = false;
+    });
+
     test('it should wait for the wallpaper to load', function(done) {
       var toggleSpy = this.sinon.spy(screen.classList, 'toggle');
       CallScreen.toggle();
@@ -452,6 +455,30 @@ suite('call screen', function() {
         test('should call the callback', function(done) {
           setTimeout(function() {
             assert.isTrue(spyCallback.called);
+            done();
+          });
+        });
+      });
+
+      suite('when toggling again in the middle of a transition', function() {
+        var addEventListenerSpy;
+        var spyCallback;
+
+        setup(function() {
+          addEventListenerSpy = this.sinon.spy(screen, 'addEventListener');
+          spyCallback = this.sinon.spy();
+
+          CallScreen.toggle(spyCallback);
+          CallScreen.toggle(spyCallback);
+        });
+
+        test('should not wait for transitionend the second time', function() {
+          assert.isTrue(addEventListenerSpy.calledOnce);
+        });
+
+        test('should call the callback once', function(done) {
+          setTimeout(function() {
+            assert.isTrue(spyCallback.calledOnce);
             done();
           });
         });
