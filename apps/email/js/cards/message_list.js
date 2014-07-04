@@ -231,7 +231,10 @@ function MessageListCard(domNode, mode, args) {
   this._emittedContentEvents = false;
 
   this.usingCachedNode = !!args.cachedNode;
-
+  
+  if (this.usingCachedNode) {
+    mozL10n.translateFragment(this.domNode);
+  }
 
   // Set up the list data source for VScroll
   var listFunc = (function(index) {
