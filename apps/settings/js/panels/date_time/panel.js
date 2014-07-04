@@ -23,6 +23,12 @@ define(function(require) {
           timeManual: panel.querySelector('.time-manual'),
           timezone: panel.querySelector('.timezone'),
         });
+      },
+      onBeforeShow: function() {
+        dateTime.attachListeners();
+      },
+      onHide: function() {
+        dateTime.detachListeners();
       }
     });
   };

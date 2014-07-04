@@ -49,24 +49,6 @@ define(function(require) {
         this.updateTimezone(results[this._kTimezone]);
       }.bind(this));
 
-      SettingsListener.observe(this._kClockAutoEnabled, false, function(event) {
-        this.setTimeAutoEnabled(!!event.settingValue);
-      }.bind(this));
-
-      SettingsListener.observe(this._kClockAutoAvailable, false,
-        function(event) {
-        this.setClockAutoAvailable(!!event.settingValue);
-      }.bind(this));
-
-      SettingsListener.observe(this._kTimezoneAutoAvailable, false,
-        function(event) {
-        this.setTimezoneAutoAvailable(!!event.settingValue);
-      }.bind(this));
-
-      SettingsListener.observe(this._kTimezone, false, function(event) {
-        this.updateTimezone(event.settingValue);
-      }.bind(this));
-
       this.updateDate();
       this.updateClock();
 
@@ -75,25 +57,60 @@ define(function(require) {
       tzSelect(this._elements.timezoneRegion, this._elements.timezoneCity,
         noOp, noOp);
 
-      this._elements.datePicker.addEventListener('input',
-        function datePickerChange() {
-        this.setTime('date');
-        // Clean up the value of picker once we get date set by the user.
-        // It will get new date according system time when pop out again.
-        this._elements.datePicker.value = '';
-      }.bind(this));
+      this.bundleSetTimeAutoEnabled = function(event) {
+        this.setTimeAutoEnabled(!!event.settingValue);
+      }.bind(this);
 
+      this.bundleSetClockAutoAvailable = function(event) {
+        this.setClockAutoAvailable(!!event.settingValue);
+      }.bind(this);
+
+      this.bundleSetTimezoneAutoAvailable = function(event) {
+        this.setTimezoneAutoAvailable(!!event.settingValue);
+      }.bind(this);
+
+      this.bundleUpdateTimezone = function(event) {
+        this.updateTimezone(event.settingValue);
+      }.bind(this);
+    },
+
+    attachListeners: function as_attachListeners() {
+      SettingsListener.observe(this._kClockAutoEnabled, false,
+        this.bundleSetTimeAutoEnabled);
+      SettingsListener.observe(this._kClockAutoAvailable, false,
+        this.bundleSetClockAutoAvailable);
+      SettingsListener.observe(this._kTimezoneAutoAvailable, false,
+        this.bundleSetTimezoneAutoAvailable);
+      SettingsListener.observe(this._kTimezone, false,
+        this.bundleUpdateTimezone);
+
+      this._elements.datePicker.addEventListener('input',
+        this.datePickerChange);
       this._elements.timePicker.addEventListener('input',
-        function timePickerChange() {
-        this.setTime('time');
-        // Clean up the value of picker once we get time set by the user.
-        // It will get new time according system time when pop out again.
-        this._elements.timePicker.value = '';
-      }.bind(this));
+        this.timePickerChange);
 
       window.addEventListener('moztimechange', this);
       window.addEventListener('localized', this);
       document.addEventListener('visibilitychange', this);
+    },
+
+    detachListeners: function as_detachListeners() {
+      SettingsListener.unobserve(this._kClockAutoEnabled,
+        this.bundleSetTimeAutoEnabled);
+      SettingsListener.unobserve(this._kClockAutoAvailable,
+        this.bundleSetClockAutoAvailable);
+      SettingsListener.unobserve(this._kTimezoneAutoAvailable,
+        this.bundleSetTimezoneAutoAvailable);
+      SettingsListener.unobserve(this._kTimezone, this.bundleUpdateTimezone);
+
+      this._elements.datePicker.removeEventListener('input',
+        this.datePickerChange);
+      this._elements.timePicker.removeEventListener('input',
+        this.timePickerChange);
+
+      window.removeEventListener('moztimechange', this);
+      window.removeEventListener('localized', this);
+      document.removeEventListener('visibilitychange', this);
     },
 
     /**
@@ -229,6 +246,20 @@ define(function(require) {
         window.setTimeout(function updateClockTimeout() {
         self.updateClock();
       }, (59 - d.getSeconds()) * 1000);
+    },
+
+    datePickerChange: function dt_datePickerChange() {
+      this.setTime('date');
+      // Clean up the value of picker once we get date set by the user.
+      // It will get new date according system time when pop out again.
+      this._elements.datePicker.value = '';
+    },
+
+    timePickerChange: function dt_timePickerChange() {
+      this.setTime('time');
+      // Clean up the value of picker once we get time set by the user.
+      // It will get new time according system time when pop out again.
+      this._elements.timePicker.value = '';
     },
 
     handleEvent: function dt_handleEvent(evt) {
