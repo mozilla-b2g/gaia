@@ -221,22 +221,26 @@ var ThreadUI = global.ThreadUI = {
     //      select a contact from contact search results
     //      will also jump focus to the message input field
     //
-    //  Currently, there are 3 Assimilations.
+    //  Currently, there are 4 Assimilations.
     //
 
     var assimilate = this.assimilateRecipients.bind(this);
 
-    // Assimilation 1
+    // 1. message input field focused
     this.input.addEventListener(
       'focus', assimilate
     );
-    // Assimilation 1
+    // 2. message input field clicked
     this.input.addEventListener(
       'click', assimilate
     );
-    // Assimilation 2
+    // 3. attachment button clicked
     this.attachButton.addEventListener(
       'click', assimilate
+    );
+    // 4. subject focused
+    this.subjectInput.addEventListener(
+      'focus', assimilate
     );
 
     this.container.addEventListener(
