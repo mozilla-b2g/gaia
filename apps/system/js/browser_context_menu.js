@@ -1,4 +1,4 @@
-/* global MozActivity, AppWindow */
+/* global MozActivity */
 
 (function(window) {
   'use strict';
@@ -191,14 +191,14 @@
   };
 
   BrowserContextMenu.prototype.openUrl = function(url) {
-    // We dont use an activity as that will open the url
-    // in this frame, we want to ensure a new window is opened
-    var app = new AppWindow({
-      oop: true,
-      useAsyncPanZoom: true,
-      url: url
+    /*jshint -W031 */
+    new MozActivity({
+      name: 'view',
+      data: {
+        type: 'url',
+        url: url
+      }
     });
-    app.requestOpen();
   };
 
   BrowserContextMenu.prototype.shareUrl = function(url) {
