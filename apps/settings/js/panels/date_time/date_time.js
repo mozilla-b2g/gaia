@@ -15,14 +15,18 @@ define(function(require) {
   var DateTime = function() {
     this._elements = {};
     this._mozTime = null;
-
+    // keys
     this._kClockAutoEnabled = 'time.clock.automatic-update.enabled';
     this._kTimezoneAutoEnabled = 'time.timezone.automatic-update.enabled';
+    this._kClockAutoAvailable = 'time.clock.automatic-update.available';
+    this._kTimezoneAutoAvailable = 'time.timezone.automatic-update.available';
+    this._kTimezone = 'time.timezone';
+
+    this._timeAutoEnabled = false;
     this._clockAutoAvailable = false;
     this._timezoneAutoAvailable = false;
     this._updateDateTimeout = null;
     this._updateClockTimeout = null;
-    this._timeAutoEnabled = false;
     // user last time selection
     this._userSelTimezone = null;
   };
@@ -39,33 +43,27 @@ define(function(require) {
 
       var self = this;
       SettingsCache.getSettings(function(results) {
-        self._userSelTimezone = results['time.timezone.user-selected'];
+        this._userSelTimezone = results['time.timezone.user-selected'];
 
-        self.setTimeAutoEnabled(results[self._kClockAutoEnabled]);
-        self.setClockAutoAvailable(!!results[self.kClockAutoAvailable]);
-        self.setTimezoneAutoAvailable(!!results[self.kTimezoneAutoAvailable]);
-        self.updateTimezone(results['time.timezone']);
-      });
+        this.setTimeAutoEnabled(results[this._kClockAutoEnabled]);
+        this.setClockAutoAvailable(!!results[this._kClockAutoAvailable]);
+        this.setTimezoneAutoAvailable(!!results[this._kTimezoneAutoAvailable]);
+        this.updateTimezone(results[this._kTimezone]);
+      }.bind(this));
 
       settings.addObserver(this._kClockAutoEnabled, function(event) {
         self.setTimeAutoEnabled(!!event.settingValue);
       });
 
-      /**
-       * Hide automatic time setting if no source available.
-       */
-      var kClockAutoAvailable = 'time.clock.automatic-update.available';
-      var kTimezoneAutoAvailable = 'time.timezone.automatic-update.available';
-
-      settings.addObserver(kClockAutoAvailable, function(event) {
+      settings.addObserver(this._kClockAutoAvailable, function(event) {
         self.setClockAutoAvailable(!!event.settingValue);
       });
 
-      settings.addObserver(kTimezoneAutoAvailable, function(event) {
+      settings.addObserver(this._kTimezoneAutoAvailable, function(event) {
         self.setTimezoneAutoAvailable(!!event.settingValue);
       });
 
-      settings.addObserver('time.timezone', function(event) {
+      settings.addObserver(this._kTimezone, function(event) {
         self.updateTimezone(event.settingValue);
       });
 
@@ -152,6 +150,9 @@ define(function(require) {
       }
     },
 
+    /**
+     * Hide automatic time setting if no source available.
+     */
     setTimeAutoAvailable: function dt_setTimeAutoAvailable(available) {
       this._elements.timeAutoSwitch.hidden = !available;
       if (!available) { // disable the time auto-update if N/A
@@ -251,8 +252,10 @@ define(function(require) {
       this.updateClock();
     },
 
+    /**
+     * Update date and time locale when language is changed
+     */
     _localized: function dt_localized() {
-      // Update date and time locale when language is changed
       var d = new Date();
       var f = new navigator.mozL10n.DateTimeFormat();
       var format = _('shortTimeFormat');
