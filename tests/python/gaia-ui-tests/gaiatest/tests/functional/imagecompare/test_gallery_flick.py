@@ -4,10 +4,9 @@
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.gallery.app import Gallery
-from marionette.marionette import Actions
 from gaiatest.utils.Imagecompare.imagecompare_util import ImageCompareUtil
 import sys
-from marionette.by import By
+from marionette import By
 import pdb
 
 
@@ -19,12 +18,13 @@ class TestGallery(GaiaTestCase):
 
     def setUp(self):
         GaiaTestCase.setUp(self)
+        # Add photos to storage.
+        self.push_resource(self.images, count=self.image_count)
+
         current_module = str(sys.modules[__name__])
         self.module_name = current_module[current_module.find("'")+1:current_module.find("' from")]
         self.graphics = ImageCompareUtil(self.marionette,self.apps, self,'.')
 
-        # Add photos to storage.
-        self.push_resource(self.images, count=self.image_count)
 
     def test_gallery_full_screen_image_flicks(self):
         """https://moztrap.mozilla.org/manage/case/1326/"""
@@ -46,7 +46,7 @@ class TestGallery(GaiaTestCase):
         self.graphics.invoke_screen_capture()
         pdb.set_trace()
         action = self.graphics.scroll(self.marionette,self._current_image_locator,'right',2,release=False)
-        self.graphics.invoke_screen_capture()
+        self.graphics.invoke_screen_capture(frame='root')
         action.release()
         action.perform()
         self.graphics.scroll(self.marionette,self._current_image_locator,'right',1)
