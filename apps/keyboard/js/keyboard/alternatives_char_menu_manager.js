@@ -31,8 +31,12 @@ AlternativesCharMenuManager.prototype.stop = function() {
   this._menuContainer = null;
 };
 
-AlternativesCharMenuManager.prototype.show = function(target, touchId,
-                                                      alternatives) {
+AlternativesCharMenuManager.prototype.show = function(target, touchId) {
+  var alternatives = this._getAlternativesForTarget(target);
+  if (!alternatives) {
+    return;
+  }
+
   // Get the targetRect before menu is shown.
   var targetRect = target.getBoundingClientRect();
 
@@ -58,6 +62,29 @@ AlternativesCharMenuManager.prototype.show = function(target, touchId,
   this._menuAreaBottom = targetRect.bottom;
   // Ensure the target key is entire covered by picking the rightmost value
   this._menuAreaRight = Math.max(targetRect.right, menuRect.right);
+};
+
+AlternativesCharMenuManager.prototype._getAlternativesForTarget =
+function _getAlternativesForTarget(target) {
+  // Handle key alternatives
+  var alternatives;
+  var altMap = this.app.layoutManager.currentModifiedLayout.alt;
+
+  if (this.app.isCapitalizeLocked()) {
+    alternatives = (altMap[target.dataset.uppercaseValue].upperCaseLocked) ?
+      altMap[target.dataset.uppercaseValue].upperCaseLocked :
+      altMap[target.dataset.uppercaseValue];
+  } else if (this.app.isCapitalized()) {
+    alternatives = altMap[target.dataset.uppercaseValue];
+  } else {
+    alternatives = altMap[target.dataset.lowercaseValue];
+  }
+
+  if (!alternatives || !alternatives.length) {
+    return false;
+  }
+  // Copy the array so render.js can't modify the original.
+  return [].concat(alternatives);
 };
 
 AlternativesCharMenuManager.prototype.hide = function() {

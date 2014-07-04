@@ -7,7 +7,6 @@ require('/js/keyboard/alternatives_char_menu_manager.js');
 suite('AlternativesCharMenuManager', function() {
   var app;
   var container;
-  var alternatives;
   var manager;
   var target;
   var id = 123;
@@ -17,7 +16,11 @@ suite('AlternativesCharMenuManager', function() {
   setup(function() {
     getFakeElementWithGetBoundingClientRect = function() {
       return {
-        getBoundingClientRect: this.sinon.stub()
+        getBoundingClientRect: this.sinon.stub(),
+        dataset: {
+          lowercaseValue: 'x',
+          uppercaseValue: 'X'
+        }
       };
     }.bind(this);
 
@@ -46,6 +49,16 @@ suite('AlternativesCharMenuManager', function() {
     app = {
       getMenuContainer: function() {
         return container;
+      },
+      isCapitalizeLocked: function() {
+      },
+      isCapitalized: function() {
+      },
+      layoutManager: {
+        currentModifiedLayout: {
+          alt: {
+          }
+        }
       }
     };
 
@@ -58,22 +71,11 @@ suite('AlternativesCharMenuManager', function() {
       right: 40
     });
 
-    // alternatives to show
-    alternatives = ['a', 'b', 'c', 'd'];
-
     // Show an alternatives chars menu
     manager = new AlternativesCharMenuManager(app);
     manager.start();
 
     assert.equal(manager.isShown, false);
-
-    manager.show(target, id, alternatives);
-
-    assert.isTrue(
-      window.IMERender.
-        showAlternativesCharMenu.calledWith(target, alternatives));
-    assert.isTrue(manager.isShown);
-    assert.isTrue(manager.isMenuTouch(id));
   });
 
   teardown(function() {
@@ -82,140 +84,221 @@ suite('AlternativesCharMenuManager', function() {
     container = null;
   });
 
-  test('hide', function() {
-    manager.hide();
+  test('show (lower case)', function() {
+    this.sinon.stub(app, 'isCapitalized').returns(false);
+    this.sinon.stub(app, 'isCapitalizeLocked').returns(false);
 
-    assert.equal(manager.isShown, false);
+    app.layoutManager.currentModifiedLayout.alt.x =
+      ['a', 'b', 'c', 'd'];
+
+    manager.show(target, id);
+
+    assert.isTrue(window.IMERender.
+      showAlternativesCharMenu.calledWith(target, ['a', 'b', 'c', 'd']));
+    assert.isTrue(app.layoutManager.currentModifiedLayout.alt.x !==
+      window.IMERender.showAlternativesCharMenu.getCall(0).args[1],
+      'A copy of the array should be sent instead of the original one.');
+    assert.isTrue(manager.isShown);
+    assert.isTrue(manager.isMenuTouch(id));
+  });
+
+  test('show (upper case)', function() {
+    this.sinon.stub(app, 'isCapitalized').returns(true);
+    this.sinon.stub(app, 'isCapitalizeLocked').returns(false);
+
+    app.layoutManager.currentModifiedLayout.alt.X =
+      ['A', 'B', 'C', 'D'];
+    app.layoutManager.currentModifiedLayout.alt.X.upperCaseLocked =
+      ['E', 'F', 'G', 'H'];
+
+    manager.show(target, id);
+
+    assert.isTrue(window.IMERender.
+        showAlternativesCharMenu.calledWith(target, ['A', 'B', 'C', 'D']));
+    assert.isTrue(app.layoutManager.currentModifiedLayout.alt.x !==
+      window.IMERender.showAlternativesCharMenu.getCall(0).args[1],
+      'A copy of the array should be sent instead of the original one.');
+    assert.isTrue(manager.isShown);
+    assert.isTrue(manager.isMenuTouch(id));
+  });
+
+  test('show (upper case locked)', function() {
+    this.sinon.stub(app, 'isCapitalized').returns(true);
+    this.sinon.stub(app, 'isCapitalizeLocked').returns(true);
+
+    app.layoutManager.currentModifiedLayout.alt.X =
+      ['A', 'B', 'C', 'D'];
+    app.layoutManager.currentModifiedLayout.alt.X.upperCaseLocked =
+      ['E', 'F', 'G', 'H'];
+
+    manager.show(target, id);
+
+    assert.isTrue(window.IMERender.
+        showAlternativesCharMenu.calledWith(target, ['E', 'F', 'G', 'H']));
+    assert.isTrue(app.layoutManager.currentModifiedLayout.alt.x !==
+      window.IMERender.showAlternativesCharMenu.getCall(0).args[1],
+      'A copy of the array should be sent instead of the original one.');
+    assert.isTrue(manager.isShown);
+    assert.isTrue(manager.isMenuTouch(id));
+  });
+
+  test('show (ignore key w/o alternatives)', function() {
+    this.sinon.stub(app, 'isCapitalized').returns(false);
+    this.sinon.stub(app, 'isCapitalizeLocked').returns(false);
+
+    manager.show(target, id);
+
+    assert.isFalse(window.IMERender.showAlternativesCharMenu.called);
+    assert.isFalse(manager.isShown);
     assert.isFalse(manager.isMenuTouch(id));
-    assert.isTrue(window.IMERender.hideAlternativesCharMenu.calledOnce);
   });
 
-  suite('isInMenuArea', function() {
-    test('above menu', function() {
-      var press = {
-        pageX: 45,
-        pageY: 35
-      };
+  suite('after shown', function() {
+    setup(function() {
+      this.sinon.stub(app, 'isCapitalized').returns(false);
+      this.sinon.stub(app, 'isCapitalizeLocked').returns(false);
 
-      assert.equal(manager.isInMenuArea(press), false);
+      app.layoutManager.currentModifiedLayout.alt.x =
+        ['a', 'b', 'c', 'd'];
+
+      manager.show(target, id);
     });
 
-    test('below key', function() {
-      var press = {
-        pageX: 45,
-        pageY: 70
-      };
+    test('hide', function() {
+      manager.hide();
 
-      assert.equal(manager.isInMenuArea(press), false);
+      assert.equal(manager.isShown, false);
+      assert.isFalse(manager.isMenuTouch(id));
+      assert.isTrue(window.IMERender.hideAlternativesCharMenu.calledOnce);
     });
 
-    test('left of menu', function() {
-      var press = {
-        pageX: 2,
-        pageY: 55
-      };
+    suite('isInMenuArea', function() {
+      test('above menu', function() {
+        var press = {
+          pageX: 45,
+          pageY: 35
+        };
 
-      assert.equal(manager.isInMenuArea(press), false);
+        assert.equal(manager.isInMenuArea(press), false);
+      });
+
+      test('below key', function() {
+        var press = {
+          pageX: 45,
+          pageY: 70
+        };
+
+        assert.equal(manager.isInMenuArea(press), false);
+      });
+
+      test('left of menu', function() {
+        var press = {
+          pageX: 2,
+          pageY: 55
+        };
+
+        assert.equal(manager.isInMenuArea(press), false);
+      });
+
+      test('right of menu', function() {
+        var press = {
+          pageX: 105,
+          pageY: 55
+        };
+
+        assert.equal(manager.isInMenuArea(press), false);
+      });
+
+      test('on top of the menu', function() {
+        var press = {
+          pageX: 45,
+          pageY: 40
+        };
+
+        assert.equal(manager.isInMenuArea(press), false);
+      });
+
+      test('on top of the key', function() {
+        var press = {
+          pageX: 15,
+          pageY: 55
+        };
+
+        assert.equal(manager.isInMenuArea(press), true);
+      });
+
+      test('below menu and beside key', function() {
+        var press = {
+          pageX: 65,
+          pageY: 55
+        };
+
+        assert.equal(manager.isInMenuArea(press), true);
+      });
+
+      test('below menu and above key', function() {
+        var press = {
+          pageX: 65,
+          pageY: 47
+        };
+
+        assert.equal(manager.isInMenuArea(press), true);
+      });
     });
 
-    test('right of menu', function() {
-      var press = {
-        pageX: 105,
-        pageY: 55
-      };
+    suite('getMenuTarget', function() {
+      test('on top of the key', function() {
+        var press = {
+          target: target,
+          pageX: 15,
+          pageY: 55
+        };
 
-      assert.equal(manager.isInMenuArea(press), false);
-    });
+        assert.equal(manager.getMenuTarget(press),
+          container.children[0]);
+      });
 
-    test('on top of the menu', function() {
-      var press = {
-        pageX: 45,
-        pageY: 40
-      };
+      test('under 2nd key', function() {
+        var press = {
+          target: {},
+          pageX: 35,
+          pageY: 55
+        };
 
-      assert.equal(manager.isInMenuArea(press), false);
-    });
+        assert.equal(manager.getMenuTarget(press),
+          container.children[1]);
+      });
 
-    test('on top of the key', function() {
-      var press = {
-        pageX: 15,
-        pageY: 55
-      };
+      test('under 2nd key but haven\'t moved away from target', function() {
+        var press = {
+          target: target,
+          pageX: 35,
+          pageY: 55
+        };
 
-      assert.equal(manager.isInMenuArea(press), true);
-    });
+        assert.equal(manager.getMenuTarget(press),
+          container.children[0]);
+      });
 
-    test('below menu and beside key', function() {
-      var press = {
-        pageX: 65,
-        pageY: 55
-      };
+      test('under 2nd key, had moved away from target', function() {
+        var press = {
+          target: {},
+          pageX: 45,
+          pageY: 55
+        };
 
-      assert.equal(manager.isInMenuArea(press), true);
-    });
+        assert.equal(manager.getMenuTarget(press),
+          container.children[1]);
 
-    test('below menu and above key', function() {
-      var press = {
-        pageX: 65,
-        pageY: 47
-      };
+        var press2 = {
+          target: target,
+          pageX: 35,
+          pageY: 55
+        };
 
-      assert.equal(manager.isInMenuArea(press), true);
-    });
-  });
-
-  suite('getMenuTarget', function() {
-    test('on top of the key', function() {
-      var press = {
-        target: target,
-        pageX: 15,
-        pageY: 55
-      };
-
-      assert.equal(manager.getMenuTarget(press),
-        container.children[0]);
-    });
-
-    test('under 2nd key', function() {
-      var press = {
-        target: {},
-        pageX: 35,
-        pageY: 55
-      };
-
-      assert.equal(manager.getMenuTarget(press),
-        container.children[1]);
-    });
-
-    test('under 2nd key but haven\'t moved away from target', function() {
-      var press = {
-        target: target,
-        pageX: 35,
-        pageY: 55
-      };
-
-      assert.equal(manager.getMenuTarget(press),
-        container.children[0]);
-    });
-
-    test('under 2nd key, had moved away from target', function() {
-      var press = {
-        target: {},
-        pageX: 45,
-        pageY: 55
-      };
-
-      assert.equal(manager.getMenuTarget(press),
-        container.children[1]);
-
-      var press2 = {
-        target: target,
-        pageX: 35,
-        pageY: 55
-      };
-
-      assert.equal(manager.getMenuTarget(press2),
-        container.children[1]);
+        assert.equal(manager.getMenuTarget(press2),
+          container.children[1]);
+      });
     });
   });
 });

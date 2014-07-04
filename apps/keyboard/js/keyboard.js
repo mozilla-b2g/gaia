@@ -172,7 +172,12 @@ var fakeAppObject = {
   },
   setUpperCase: setUpperCase,
   resetUpperCase: resetUpperCase,
-  isCapitalized: isCapitalized,
+  isCapitalized: function isCapitalized() {
+    return (isUpperCase || isUpperCaseLocked);
+  },
+  isCapitalizeLocked: function isCapitalizeLocked() {
+    return isUpperCaseLocked;
+  },
   replaceSurroundingText: replaceSurroundingText,
   getNumberOfCandidatesPerRow:
     IMERender.getNumberOfCandidatesPerRow.bind(IMERender)
@@ -465,10 +470,6 @@ function resetUpperCase() {
   }
 }
 
-function isCapitalized() {
-  return (isUpperCase || isUpperCaseLocked);
-}
-
 // Inform about a change in the displayed application via mutation observer
 // http://hacks.mozilla.org/2012/05/dom-mutationobserver-reacting-to-dom-changes-without-killing-browser-performance/
 function updateTargetWindowHeight(hide) {
@@ -544,27 +545,7 @@ function handleLongPress(target, touchId) {
     return;
   }
 
-  // Handle key alternatives
-  var alternatives;
-  var altMap = layoutManager.currentModifiedLayout.alt;
-
-  if (isUpperCaseLocked) {
-    alternatives = (altMap[target.dataset.uppercaseValue].upperCaseLocked) ?
-      altMap[target.dataset.uppercaseValue].upperCaseLocked :
-      altMap[target.dataset.uppercaseValue];
-  } else if (isUpperCase) {
-    alternatives = altMap[target.dataset.uppercaseValue];
-  } else {
-    alternatives = altMap[target.dataset.lowercaseValue];
-  }
-
-  if (!alternatives || !alternatives.length) {
-    return;
-  }
-  // Copy the array so render.js can't modify the original.
-  alternatives = [].concat(alternatives);
-
-  alternativesCharMenuManager.show(target, touchId, alternatives);
+  alternativesCharMenuManager.show(target, touchId);
 }
 
 // Test if an HTML node is a normal key
