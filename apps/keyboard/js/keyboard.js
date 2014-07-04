@@ -42,6 +42,7 @@ perfTimer.start();
 perfTimer.printTime('keyboard.js');
 
 var isWaitingForSecondTap = false;
+var alternativesMenuTouchId = undefined;
 var isShowingAlternativesMenu = false;
 var isContinousSpacePressed = false;
 var isUpperCase = false;
@@ -580,6 +581,7 @@ function setMenuTimeout(press, id) {
     }
 
     showAlternatives(target);
+    alternativesMenuTouchId = id;
 
     // If we successfuly showed the alternatives menu, redirect the
     // press over the first key in the menu.
@@ -701,6 +703,7 @@ function hideAlternatives() {
 
   IMERender.hideAlternativesCharMenu();
   isShowingAlternativesMenu = false;
+  alternativesMenuTouchId = undefined;
 }
 
 // Test if an HTML node is a normal key
@@ -795,6 +798,10 @@ function movePress(press, id) {
     }
   }
 
+  if (isShowingAlternativesMenu && alternativesMenuTouchId !== id) {
+    return;
+  }
+
   var oldTarget = activeTargets.get(id);
 
   // Do nothing if there are invalid targets, if the user is touching the
@@ -833,14 +840,19 @@ function movePress(press, id) {
 
 // The user is releasing a key so the key has been pressed. The meat is here.
 function endPress(press, id) {
+  var target = activeTargets.get(id);
+  activeTargets.delete(id);
+
+  if (isShowingAlternativesMenu && alternativesMenuTouchId !== id) {
+    return;
+  }
+
   clearTimeout(deleteTimeout);
   clearInterval(deleteInterval);
   clearTimeout(menuTimeout);
 
   hideAlternatives();
 
-  var target = activeTargets.get(id);
-  activeTargets.delete(id);
   if (target.classList.contains('dismiss-suggestions-button')) {
     if (inputMethodManager.currentIMEngine.dismissSuggestions) {
       inputMethodManager.currentIMEngine.dismissSuggestions();
