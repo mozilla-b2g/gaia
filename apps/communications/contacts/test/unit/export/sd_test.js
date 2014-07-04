@@ -137,4 +137,23 @@ suite('Sd export', function() {
       });
     });
   });
+
+  suite('Errors', function() {
+    test('> 0 space left on device', function(done) {
+      sinon.stub(window, 'getStorageIfAvailable',
+       function(type, size, success, error) {
+        error(0);
+      });
+
+      subject.setContactsToExport([c1]);
+
+      subject.doExport(function onFinish(error, exported, msg) {
+        assert.isNotNull(error);
+        assert.equal(error.reason, 'noSpace');
+
+        window.getStorageIfAvailable.restore();
+        done();
+      });
+    });
+  });
 });
