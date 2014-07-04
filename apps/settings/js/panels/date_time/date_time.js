@@ -9,7 +9,6 @@ define(function(require) {
   var tzSelect = require('shared/tz_select');
 
   var settings = window.navigator.mozSettings;
-  var _ = navigator.mozL10n.get;
 
   var DateTime = function() {
     this._elements = {};
@@ -238,6 +237,7 @@ define(function(require) {
     updateClock: function dt_updateClock() {
       var d = new Date();
       var f = new navigator.mozL10n.DateTimeFormat();
+      var _ = navigator.mozL10n.get;
       var format = _('shortTimeFormat');
       this._elements.clockTime.textContent = f.localeFormat(d, format);
 
@@ -289,6 +289,7 @@ define(function(require) {
     _localized: function dt_localized() {
       var d = new Date();
       var f = new navigator.mozL10n.DateTimeFormat();
+      var _ = navigator.mozL10n.get;
       var format = _('shortTimeFormat');
       this._elements.clockDate.textContent = f.localeFormat(d, '%x');
       this._elements.clockTime.textContent = f.localeFormat(d, format);

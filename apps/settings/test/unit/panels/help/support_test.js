@@ -1,4 +1,5 @@
 'use strict';
+
 suite('Help > ', function() {
   var Help;
   var MockLoadJSON, MockSettingsCache;
