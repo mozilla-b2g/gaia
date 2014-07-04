@@ -637,7 +637,7 @@ function movePress(press, id) {
   clearTimeout(longPressTimeout);
 
   // Hide of alternatives menu if the touch moved out of it
-  if (target.parentNode !== IMERender.menu &&
+  if (!alternativesCharMenuManager.isMenuTarget(target) &&
       !alternativesCharMenuManager.isInMenuArea(press)) {
     alternativesCharMenuManager.hide();
   }

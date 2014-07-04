@@ -172,6 +172,24 @@ suite('AlternativesCharMenuManager', function() {
       assert.isTrue(window.IMERender.hideAlternativesCharMenu.calledOnce);
     });
 
+    suite('isMenuTarget', function() {
+      test('true', function() {
+        var target = {
+          parentNode: container
+        };
+
+        assert.isTrue(manager.isMenuTarget(target));
+      });
+
+      test('false', function() {
+        var target = {
+          parentNode: {}
+        };
+
+        assert.isFalse(manager.isMenuTarget(target));
+      });
+    });
+
     suite('isInMenuArea', function() {
       test('above menu', function() {
         var press = {

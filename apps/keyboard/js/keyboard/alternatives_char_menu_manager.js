@@ -109,6 +109,10 @@ AlternativesCharMenuManager.prototype.isMenuTouch = function(touchId) {
   return (this.menuTouchId === touchId);
 };
 
+AlternativesCharMenuManager.prototype.isMenuTarget = function(target) {
+  return (target.parentNode === this._menuContainer);
+};
+
 AlternativesCharMenuManager.prototype.getMenuTarget = function(press) {
   if (!this.isShown) {
     throw new Error('AlternativesCharMenuManager: ' +
