@@ -139,7 +139,7 @@ WebappShared.prototype.copyPage = function(path) {
   if (extension === 'html') {
     this.filterSharedUsage(file);
   }
-}
+};
 
 WebappShared.prototype.pushResource = function(path) {
   let file = this.gaia.sharedFolder.clone();
