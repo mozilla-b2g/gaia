@@ -526,6 +526,15 @@ suite('dialer/handled_call', function() {
     assert.equal(subject.numberNode.textContent, 'switch-calls');
   });
 
+  test('should not add the emergency-call class for normal calls',
+    function() {
+      mockCall = new MockCall('888', 'dialing');
+      subject = new HandledCall(mockCall);
+
+      assert.isFalse(subject.node.classList.contains('emergency-call'));
+    }
+  );
+
   suite('Emergency Call layout', function() {
     setup(function() {
       MockCallScreen.mSetEmergencyWallpaperCalled = false;
@@ -551,6 +560,13 @@ suite('dialer/handled_call', function() {
       subject = new HandledCall(mockCall);
 
       assert.isFalse(MockCallScreen.mSetEmergencyWallpaperCalled);
+    });
+
+    test('should set the emergency-call class for emergency calls', function() {
+      mockCall = new MockCall('112', 'dialing');
+      subject = new HandledCall(mockCall);
+
+      assert.isTrue(subject.node.classList.contains('emergency-call'));
     });
   });
 

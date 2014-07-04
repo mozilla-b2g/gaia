@@ -190,6 +190,14 @@
     width: 100%;
   }
 
+  /**
+   * To solve bug 1017365 the font-size in case of emergency calls is set to the
+   *  minimum one (as set by UX) from the beginning.
+   */
+  section.emergency-call .number {
+    font-size: 2.26rem;
+  }
+
   #actions-container {
     position: absolute;
     bottom: 0;
