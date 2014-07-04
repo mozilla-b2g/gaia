@@ -671,10 +671,15 @@
 
 /* Edges */
 #windows > .appWindow:not(.homescreen):not(.lockScreenWindow) {
-  /* in the viewport but not really */
-  transform: translateX(-99.9999%);
+  /* not in the viewport */
+  transform: translateX(-100%);
   opacity: 1;
   will-change: transform, opacity;
+}
+
+#windows > .appWindow:not(.homescreen):not(.lockScreenWindow).edge-candidate {
+  /* in the viewport but not really */
+  transform: translateX(-99.9999%);
 }
 
 #screen:-moz-full-screen-ancestor > #windows .appWindow.active {
