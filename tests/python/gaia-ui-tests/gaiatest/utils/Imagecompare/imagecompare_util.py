@@ -43,10 +43,9 @@ class ImageCompareUtil():
             self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('volumedown+sleep'));")
         else:
             self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('home+sleep'));")
-        pdb.set_trace()
         self.apps.switch_to_displayed_app()
         time.sleep(6)  # for the notification overlay to disappear
-        if (frame != None) & (frame != 'root'):
+        if (frame != None) and (frame != 'root'):
             self.marionette.switch_to_frame(frame)
         if (browser != None):
             browser.switch_to_content()

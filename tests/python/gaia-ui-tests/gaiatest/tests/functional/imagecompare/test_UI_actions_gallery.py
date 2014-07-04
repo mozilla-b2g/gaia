@@ -25,7 +25,7 @@ class TestUIActions(GaiaTestCase):
 
         #self.data_layer.connect_to_wifi()
         # Add photos to storage.
-        self.push_resource(self.images, self.image_count, 'DCIM/100MZLLA')
+        self.push_resource(self.images, self.image_count)
 
     def test_UI_Actions(self):
         """https://moztrap.mozilla.org/manage/case/2462/"""
