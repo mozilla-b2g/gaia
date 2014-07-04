@@ -24,7 +24,7 @@ define(function(require) {
     this._updateClockTimeout = null;
     this._timeAutoEnabled = false;
     // user last time selection
-    this.reqUserTZ = null;
+    this._userSelTimezone = null;
   };
 
   DateTime.prototype = {
@@ -38,17 +38,17 @@ define(function(require) {
       }
 
       var self = this;
-      settings.addObserver(this._kClockAutoEnabled, function(event) {
-        self.setTimeAutoEnabled(!!event.settingValue);
-      });
-
       SettingsCache.getSettings(function(results) {
-        self.reqUserTZ = results['time.timezone.user-selected'];
+        self._userSelTimezone = results['time.timezone.user-selected'];
 
         self.setTimeAutoEnabled(results[self._kClockAutoEnabled]);
         self.setClockAutoAvailable(!!results[self.kClockAutoAvailable]);
         self.setTimezoneAutoAvailable(!!results[self.kTimezoneAutoAvailable]);
         self.updateTimezone(results['time.timezone']);
+      });
+
+      settings.addObserver(this._kClockAutoEnabled, function(event) {
+        self.setTimeAutoEnabled(!!event.settingValue);
       });
 
       /**
@@ -98,6 +98,9 @@ define(function(require) {
       document.addEventListener('visibilitychange', this);
     },
 
+    /**
+     * Change system time
+     */
     setTime: function dt_setTime(type) {
       var pDate = '';
       var pTime = '';
@@ -131,7 +134,7 @@ define(function(require) {
     setTimeAutoEnabled: function dt_setTimeAutoEnabled(enabled) {
       this._timeAutoEnabled = enabled;
       this._elements.timeAutoSwitch.dataset.state = enabled ? 'auto' : 'manual';
-      this._elements.timeZone.hidden =
+      this._elements.timezoneRaw.hidden =
         !(this._timezoneAutoAvailable && this._timeAutoEnabled);
 
       var cset = {};
@@ -144,9 +147,8 @@ define(function(require) {
       }
 
       // Reset the timezone to the previous user selected value
-      var userSelTimezone = this.reqUserTZ;
-      if (userSelTimezone) {
-        settings.createLock().set({'time.timezone': userSelTimezone});
+      if (this._userSelTimezone) {
+        settings.createLock().set({'time.timezone': this._userSelTimezone});
       }
     },
 
@@ -183,22 +185,22 @@ define(function(require) {
         (this._timezoneAutoAvailable && this._timeAutoEnabled);
       this._elements.timezoneCity.disabled =
         (this._timezoneAutoAvailable && this._timeAutoEnabled);
-      this._elements.timeZone.hidden =
+      this._elements.timezoneRaw.hidden =
         !(this._timezoneAutoAvailable && this._timeAutoEnabled);
 
       if (this._timeAutoEnabled) {
-        document.getElementById('time-manual').classList.add('disabled');
+        this._elements.timeManual.classList.add('disabled');
         if (this._timezoneAutoAvailable) {
-          document.getElementById('timezone').classList.add('disabled');
+          this._elements.timezone.classList.add('disabled');
         }
       } else {
-        document.getElementById('time-manual').classList.remove('disabled');
-        document.getElementById('timezone').classList.remove('disabled');
+        this._elements.timeManual.classList.remove('disabled');
+        this._elements.timezone.classList.remove('disabled');
       }
     },
 
     updateTimezone: function dt_updateTimezone(timezone) {
-      this._elements.timeZoneValue.textContent = timezone;
+      this._elements.timezoneValue.textContent = timezone;
     },
 
     updateDate: function dt_updateDate() {

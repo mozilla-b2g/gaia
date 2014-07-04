@@ -18,8 +18,10 @@ define(function(require) {
           timePicker: panel.querySelector('.time-picker'),
           clockDate: panel.querySelector('.clock-date'),
           clockTime: panel.querySelector('.clock-time'),
-          timeZone: panel.querySelector('.timezone-raw'),
-          timeZoneValue: panel.querySelector('.timezone-value')
+          timezoneRaw: panel.querySelector('.timezone-raw'),
+          timezoneValue: panel.querySelector('.timezone-value'),
+          timeManual: panel.querySelector('.time-manual'),
+          timezone: panel.querySelector('.timezone'),
         });
       }
     });
