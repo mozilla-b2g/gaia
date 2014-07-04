@@ -64,6 +64,10 @@
       case 'status-active':
       case 'attentionscreenhide':
       case 'will-unlock':
+        if (evt.type == 'will-unlock' && evt.detail &&
+            evt.detail.areaCamera) {
+          return;
+        }
         if (window.lockScreen && window.lockScreen.locked) {
           this.publish('showlockscreenwindow');
           return;
