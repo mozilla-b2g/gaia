@@ -1,16 +1,17 @@
 {
-  "name": "Send To Bluetooth Device",
+  "name": "Bluetooth Manager",
   "type": "certified",
   "role": "system",
-  "description": "Gaia Bluetooth Transfer",
+  "launch_path": "/settings.html",
+  "description": "Gaia Bluetooth Manager",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "locales": {
     "en-US": {
-      "name": "Bluetooth Transfer",
-      "description": "Gaia Bluetooth Transfer"
+      "name": "Bluetooth",
+      "description": "Gaia Bluetooth"
     }
   },
   "icons": {
