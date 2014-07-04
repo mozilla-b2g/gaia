@@ -271,6 +271,12 @@ var KeyboardManager = {
   },
 
   resizeKeyboard: function km_resizeKeyboard(evt) {
+    // Ignore mozbrowserresize event while keyboard Frame is transitioning out.
+    var transitionState = this.transitionManager.currentState;
+    if (transitionState === this.transitionManager.STATE_TRANSITION_OUT) {
+      return;
+    }
+
     var height = evt.detail.height;
 
     this._debug('resizeKeyboard: ' + height);
