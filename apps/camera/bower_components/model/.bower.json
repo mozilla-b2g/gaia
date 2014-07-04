@@ -26,6 +26,5 @@
   },
   "_source": "git://github.com/gaia-components/model.git",
   "_target": "~0.1.0",
-  "_originalSource": "gaia-components/model",
-  "_direct": true
+  "_originalSource": "gaia-components/model"
 }

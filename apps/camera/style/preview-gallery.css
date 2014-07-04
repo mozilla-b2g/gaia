@@ -147,14 +147,8 @@ section[role="region"] > header:first-child > a:after {
 
 .preview-back-icon {
   margin-left: -0.1rem;
-  vertical-align: -1.1rem;
 }
 
 .preview-share-icon {
   margin-right: -0.1rem;
-  vertical-align: -0.9rem;
-}
-
-.preview-option-icon {
-  vertical-align: -0.9rem;
 }
