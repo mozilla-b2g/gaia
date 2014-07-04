@@ -331,7 +331,6 @@ var MmiManager = {
             var iconURL = NotificationHelper.getIconURI(app, 'dialer');
             var clickCB = function(evt) {
               evt.target.close();
-              app.launch('dialer');
               self.handleMMIReceived(message, /* sessionEnded */ true,
                                      cardIndex);
             };
