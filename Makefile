@@ -253,8 +253,8 @@ endif
 # some commands for invoking it. But it is platform dependent
 # IMPORTANT: you should generally change the directory name when you change the
 # URL unless you know what you're doing
-XULRUNNER_SDK_URL=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/nightly/2014/03/2014-03-08-03-02-03-mozilla-central/xulrunner-30.0a1.en-US.
-XULRUNNER_BASE_DIRECTORY?=xulrunner-sdk-30
+XULRUNNER_SDK_URL=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/nightly/2014/07/2014-07-04-03-02-08-mozilla-central/xulrunner-33.0a1.en-US.
+XULRUNNER_BASE_DIRECTORY?=xulrunner-sdk-33
 XULRUNNER_DIRECTORY?=$(XULRUNNER_BASE_DIRECTORY)/xulrunner-sdk
 XULRUNNER_URL_FILE=$(XULRUNNER_BASE_DIRECTORY)/.url
 
