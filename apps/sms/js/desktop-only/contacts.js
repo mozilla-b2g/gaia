@@ -184,6 +184,9 @@
     // nested condition a way out of the second and third loop.
     outer:
     for (var field of filter.filterBy) {
+      if (!contact[field]) {
+         continue;
+      }
       for (var value of contact[field]) {
         if (typeof value !== 'string') {
           value = value.value;

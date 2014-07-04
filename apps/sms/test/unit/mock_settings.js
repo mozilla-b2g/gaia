@@ -10,6 +10,7 @@ var MockSettings = {
   maxConcatenatedMessages: 10,
   mmsServiceId: null,
   smsServiceId: null,
+  supportEmailRecipient: false,
   switchMmsSimHandler: function() {},
   isDualSimDevice: function() { return false; },
   hasSeveralSim: function() { return false; },
@@ -22,6 +23,7 @@ var MockSettings = {
     MockSettings.maxConcatenatedMessages = 10;
     MockSettings.mmsServiceId = null;
     MockSettings.smsServiceId = null;
+    MockSettings.supportEmailRecipient = false;
   }
 };
 
