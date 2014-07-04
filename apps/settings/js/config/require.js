@@ -149,8 +149,7 @@ require.config({
     {
       name: 'panels/date_time/panel',
       exclude: [
-        'main',
-        'modules/mvvm/observable'
+        'main'
       ]
     }
   ]

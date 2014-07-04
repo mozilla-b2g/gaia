@@ -5,8 +5,7 @@ define(function(require) {
   'use strict';
 
   var SettingsCache = require('modules/settings_cache');
-  // var SettingsListener = require('shared/settings_listener');
-  // var Observable = require('modules/mvvm/observable');
+  var SettingsListener = require('shared/settings_listener');
   var tzSelect = require('shared/tz_select');
 
   var settings = window.navigator.mozSettings;
@@ -41,7 +40,6 @@ define(function(require) {
         return;
       }
 
-      var self = this;
       SettingsCache.getSettings(function(results) {
         this._userSelTimezone = results['time.timezone.user-selected'];
 
@@ -51,45 +49,47 @@ define(function(require) {
         this.updateTimezone(results[this._kTimezone]);
       }.bind(this));
 
-      settings.addObserver(this._kClockAutoEnabled, function(event) {
-        self.setTimeAutoEnabled(!!event.settingValue);
-      });
+      SettingsListener.observe(this._kClockAutoEnabled, false, function(event) {
+        this.setTimeAutoEnabled(!!event.settingValue);
+      }.bind(this));
 
-      settings.addObserver(this._kClockAutoAvailable, function(event) {
-        self.setClockAutoAvailable(!!event.settingValue);
-      });
+      SettingsListener.observe(this._kClockAutoAvailable, false,
+        function(event) {
+        this.setClockAutoAvailable(!!event.settingValue);
+      }.bind(this));
 
-      settings.addObserver(this._kTimezoneAutoAvailable, function(event) {
-        self.setTimezoneAutoAvailable(!!event.settingValue);
-      });
+      SettingsListener.observe(this._kTimezoneAutoAvailable, false,
+        function(event) {
+        this.setTimezoneAutoAvailable(!!event.settingValue);
+      }.bind(this));
 
-      settings.addObserver(this._kTimezone, function(event) {
-        self.updateTimezone(event.settingValue);
-      });
+      SettingsListener.observe(this._kTimezone, false, function(event) {
+        this.updateTimezone(event.settingValue);
+      }.bind(this));
 
       this.updateDate();
       this.updateClock();
 
       // monitor time.timezone changes, see /shared/js/tz_select.js
       var noOp = function() {};
-      tzSelect(this._elements.timezoneRegion,
-        this._elements.timezoneCity, noOp, noOp);
+      tzSelect(this._elements.timezoneRegion, this._elements.timezoneCity,
+        noOp, noOp);
 
       this._elements.datePicker.addEventListener('input',
         function datePickerChange() {
         this.setTime('date');
         // Clean up the value of picker once we get date set by the user.
         // It will get new date according system time when pop out again.
-        self._elements.datePicker.value = '';
-      });
+        this._elements.datePicker.value = '';
+      }.bind(this));
 
       this._elements.timePicker.addEventListener('input',
         function timePickerChange() {
         this.setTime('time');
         // Clean up the value of picker once we get time set by the user.
         // It will get new time according system time when pop out again.
-        self._elements.timePicker.value = '';
-      });
+        this._elements.timePicker.value = '';
+      }.bind(this));
 
       window.addEventListener('moztimechange', this);
       window.addEventListener('localized', this);
