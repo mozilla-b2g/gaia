@@ -4199,6 +4199,55 @@ suite('thread_ui.js >', function() {
             assert.equal(calls[0].items.length, 4);
             assert.equal(typeof calls[0].complete, 'function');
           });
+
+          test('Known recipient email', function() {
+            MockSettings.supportEmailRecipient = true;
+            this.sinon.spy(ContactRenderer.prototype, 'render');
+
+            Threads.set(1, {
+              participants: ['a@b.com']
+            });
+
+            headerText.dataset.isContact = true;
+            headerText.dataset.number = 'a@b.com';
+
+            ThreadUI.onHeaderActivation();
+
+            var calls = MockOptionMenu.calls;
+
+            assert.equal(calls.length, 1);
+
+            // contacts do not show up in the body
+            assert.isUndefined(calls[0].section);
+
+            // contacts show up in the header
+            sinon.assert.calledWithMatch(ContactRenderer.prototype.render, {
+              target: calls[0].header
+            });
+
+            assert.equal(calls[0].items.length, 3);
+            assert.equal(typeof calls[0].complete, 'function');
+          });
+
+          test('Unknown recipient email', function() {
+            MockSettings.supportEmailRecipient = true;
+
+            Threads.set(1, {
+              participants: ['a@b']
+            });
+
+            headerText.dataset.isContact = false;
+            headerText.dataset.number = 'a@b';
+
+            ThreadUI.onHeaderActivation();
+
+            var calls = MockOptionMenu.calls;
+
+            assert.equal(calls.length, 1);
+            assert.equal(calls[0].header, 'a@b');
+            assert.equal(calls[0].items.length, 4);
+            assert.equal(typeof calls[0].complete, 'function');
+          });
         });
       });
 
