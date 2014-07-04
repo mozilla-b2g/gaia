@@ -407,7 +407,7 @@
         var nameContainerEl = document.createElement('p');
         nameContainerEl.style.marginTop = ((this.grid.layout.gridIconSize *
           (1 / this.scale)) +
-          GridIconRenderer.prototype.unscaledCanvasPadding) + 'px';
+          (GridIconRenderer.prototype.unscaledCanvasPadding / 2)) + 'px';
         tile.appendChild(nameContainerEl);
 
         var nameEl = document.createElement('span');
