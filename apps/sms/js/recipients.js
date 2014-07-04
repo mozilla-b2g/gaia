@@ -1,5 +1,5 @@
 /*global GestureDetector, Dialog, Navigation, SharedComponents, Utils,
-         Settings */
+         Settings, Compose */
 
 (function(exports) {
   'use strict';
@@ -253,6 +253,10 @@
       }
     }
 
+    if (Settings.supportEmailRecipient) {
+      this.checkmessagetype();
+    }
+
     return this;
   };
   /**
@@ -356,6 +360,19 @@
 
   Recipients.prototype.visible = function(type, opts) {
     view.get(this).visible(type, opts || {});
+    return this;
+  };
+
+  Recipients.prototype.checkmessagetype = function() {
+    var list = data.get(this);
+
+    for (var i = 0; i < list.length; i++) {
+      if (Utils.isEmailAddress(list[i].number)) {
+        Compose.type = 'mms';
+        return this;
+      }
+    }
+    Compose.type = 'sms';
     return this;
   };
 
