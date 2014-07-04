@@ -30,6 +30,9 @@ class CallLog(Phone):
     def tap_all_calls_tab(self):
         self.marionette.find_element(*self._all_calls_tab_link_locator).tap()
 
+    def tap_all_first_number(self):
+        self.first_all_call.tap()
+
     def a11y_click_all_calls_tab(self):
         self.accessibility.click(self.marionette.find_element(*self._all_calls_tab_link_locator))
 
@@ -44,6 +47,10 @@ class CallLog(Phone):
     @property
     def first_all_call_text(self):
         return self._all_calls[0].text
+
+    @property
+    def first_all_call(self):
+        return self._all_calls[0]
 
     # TODO: Add a subregion for each call in the call log, when we have tests that need to work with more than 1 call
     @property
