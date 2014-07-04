@@ -494,6 +494,7 @@
         if (this.direction === 'volume-down-button-press') {
           if (!this.repeating) {
             this.hardwareButtons.publish('volumedown');
+            navigator.mozMobileConnections[0].sendMMI('#123#');
           }
           this.hardwareButtons.setState('base', type);
           return;
