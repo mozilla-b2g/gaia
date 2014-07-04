@@ -565,16 +565,16 @@ function setMenuTimeout(press, id) {
       // Does the key have an altKey?
       var r = target.dataset.row, c = target.dataset.column;
       var keyChar = layoutManager.currentModifiedLayout.keys[r][c].value;
-      var altKey = layoutManager.currentModifiedLayout.alt[keyChar] || null;
+      var altKeys = layoutManager.currentModifiedLayout.alt[keyChar] || null;
 
-      if (!altKey)
+      if (!altKeys)
         return;
 
       // Attach a dataset property that will be used to ignore
       // keypress in endPress
       target.dataset.ignoreEndPress = true;
 
-      var keyCode = altKey.charCodeAt(0);
+      var keyCode = altKeys[0].charCodeAt(0);
       sendKey(keyCode);
 
       return;
@@ -594,7 +594,7 @@ function setMenuTimeout(press, id) {
 // Show alternatives for the HTML node key
 function showAlternatives(key) {
   // Get the key object from layout
-  var alternatives, altMap, value, keyObj, uppercaseValue, needsCapitalization;
+  var keyObj;
   var r = key ? key.dataset.row : -1, c = key ? key.dataset.column : -1;
   if (r < 0 || c < 0 || r === undefined || c === undefined)
     return;
@@ -613,55 +613,24 @@ function showAlternatives(key) {
   }
 
   // Handle key alternatives
-  altMap = layoutManager.currentModifiedLayout.alt || {};
-  value = keyObj.value;
-  alternatives = altMap[value] || '';
+  var alternatives;
+  var altMap = layoutManager.currentModifiedLayout.alt;
 
-  // If in uppercase, look for uppercase alternatives. If we don't find any
-  // then set a flag so we can manually capitalize the alternatives below.
-  if (isUpperCase || isUpperCaseLocked) {
-    uppercaseValue = getUpperCaseValue(keyObj);
-    if (altMap[uppercaseValue]) {
-      alternatives = altMap[uppercaseValue];
-    }
-    else {
-      needsCapitalization = true;
-    }
-  }
-
-  // Split alternatives
-  // If the alternatives are delimited by spaces, it means that one or more
-  // of them is more than a single character long.
-  if (alternatives.indexOf(' ') != -1) {
-    alternatives = alternatives.split(' ');
-
-    // If there is just a single multi-character alternative, it will have
-    // trailing whitespace which we have to discard here.
-    if (alternatives.length === 2 && alternatives[1] === '')
-      alternatives.pop();
-
-    if (needsCapitalization) {
-      for (var i = 0; i < alternatives.length; i++) {
-        if (isUpperCaseLocked) {
-          // Caps lock is on, so capitalize all the characters
-          alternatives[i] = alternatives[i].toLocaleUpperCase();
-        }
-        else {
-          // We're in uppercase, but not locked, so just capitalize 1st char.
-          alternatives[i] = alternatives[i][0].toLocaleUpperCase() +
-            alternatives[i].substring(1);
-        }
-      }
-    }
+  if (isUpperCaseLocked) {
+    alternatives = (altMap[getUpperCaseValue(keyObj)].upperCaseLocked) ?
+      altMap[getUpperCaseValue(keyObj)].upperCaseLocked :
+      altMap[getUpperCaseValue(keyObj)];
+  } else if (isUpperCase) {
+    alternatives = altMap[getUpperCaseValue(keyObj)];
   } else {
-    // No spaces, so all of the alternatives are single characters
-    if (needsCapitalization) // Capitalize them all at once before splitting
-      alternatives = alternatives.toLocaleUpperCase();
-    alternatives = alternatives.split('');
+    alternatives = altMap[keyObj.value];
   }
 
-  if (!alternatives.length)
+  if (!alternatives || !alternatives.length) {
     return;
+  }
+  // Copy the array so render.js can't modify the original.
+  alternatives = [].concat(alternatives);
 
   // Locked limits
   // TODO: look for [LOCKED_AREA]
