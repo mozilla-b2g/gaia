@@ -17,6 +17,11 @@ class TestBrowserBookmark(GaiaTestCase):
         GaiaTestCase.setUp(self)
         self.connect_to_network()
 
+        if self.device.is_desktop_b2g or self.data_layer.is_wifi_connected():
+            self.test_url = self.marionette.absolute_url('mozilla.html')
+        else:
+            self.test_url = 'http://mozqa.com/data/firefox/layout/mozilla.html'
+
         curr_time = repr(time.time()).replace('.', '')
         self.bookmark_title = 'gaia%s' % curr_time[10:]
 
@@ -24,7 +29,7 @@ class TestBrowserBookmark(GaiaTestCase):
         browser = Browser(self.marionette)
         browser.launch()
 
-        browser.go_to_url('http://mozqa.com/data/firefox/layout/mozilla.html')
+        browser.go_to_url(self.test_url)
         browser.tap_bookmark_button()
 
         bookmark = browser.tap_add_bookmark_to_home_screen_choice_button()

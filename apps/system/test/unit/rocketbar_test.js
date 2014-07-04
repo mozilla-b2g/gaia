@@ -1,6 +1,6 @@
 'use strict';
 /* global Rocketbar, MocksHelper, MockAppWindow, MockAppWindowManager,
-          MockIACPort */
+          MockIACPort, MockSearchWindow */
 
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
@@ -248,9 +248,13 @@ suite('system/Rocketbar', function() {
   });
 
   test('hideResults()', function() {
+    subject.activate();
+    var stub = this.sinon.stub(subject.searchWindow, 'hideContextMenu');
+
     subject.hideResults();
     assert.ok(subject.results.classList.contains('hidden'));
     assert.ok(MockIACPort.mNumberOfMessages() == 1);
+    sinon.assert.calledOnce(stub);
   });
 
   test('showTaskManager()', function() {
@@ -828,6 +832,26 @@ suite('system/Rocketbar', function() {
     postMessageStub.restore();
   });
 
+  test('handleActivity()', function() {
+    subject.loadSearchApp();
+
+    var stubDispatchEvent = this.sinon.stub(subject.searchWindow,
+      'broadcast');
+
+    subject.handleEvent({
+      type: 'launchactivity',
+      detail: {
+        isActivity: true,
+        inline: true,
+        parentApp: subject.searchWindow.manifestURL
+      },
+      stopImmediatePropagation: function() {}
+    });
+    assert.isTrue(stubDispatchEvent.called);
+    assert.equal(stubDispatchEvent.getCall(0).args[0], 'launchactivity');
+    assert.equal(stubDispatchEvent.getCall(0).args[1].isActivity, true);
+  });
+
   test('handleSearchCrashed() - calls render after crash', function() {
     subject.start();
 
@@ -843,8 +867,15 @@ suite('system/Rocketbar', function() {
 
     // Dispatch a crash event.
     window.dispatchEvent(new CustomEvent('searchcrashed'));
+
+    assert.equal(subject.searchWindow, null);
+    assert.equal(subject._port, null);
+
     subject.loadSearchApp();
     assert.ok(spy.calledWithNew);
+
+    assert.ok(subject.searchWindow instanceof MockSearchWindow);
+    assert.equal(subject._port, 'pending');
   });
 
   test('setVisible', function() {

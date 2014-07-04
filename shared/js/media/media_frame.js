@@ -207,6 +207,7 @@ MediaFrame.prototype._displayImage = function _displayImage(blob, isPreview) {
   this.image = document.createElement('img');
   this.image.style.transformOrigin = 'center center';
   this.image.style.display = 'none';
+  this.image.className = 'image-view';
   this.container.appendChild(this.image);
 
   this.displayingPreview = isPreview;

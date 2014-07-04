@@ -1,5 +1,5 @@
 /* global SettingsListener, homescreenLauncher, KeyboardManager,
-          layoutManager, lockScreen, System */
+          layoutManager, System */
 'use strict';
 
 (function(exports) {
@@ -169,6 +169,10 @@
           if (degree === 90 || degree === 270) {
             immediateTranstion = true;
           }
+        } else if (appNext.isHomescreen) {
+          // If there's no active app and next app is homescreen,
+          // open it right away.
+          immediateTranstion = true;
         }
 
         if (appNext.resized &&
@@ -209,7 +213,7 @@
       }
       window.addEventListener('cardviewbeforeshow', this);
       window.addEventListener('launchapp', this);
-      window.addEventListener('launchactivity', this);
+      document.body.addEventListener('launchactivity', this, true);
       window.addEventListener('home', this);
       window.addEventListener('appcreated', this);
       window.addEventListener('appterminated', this);
@@ -243,19 +247,9 @@
       // to focus the active app after it's closed.
       window.addEventListener('permissiondialoghide', this);
       window.addEventListener('appopening', this);
+      window.addEventListener('localized', this);
 
       this._settingsObserveHandler = {
-        // update app name when language setting changes
-        'language.current': {
-          defaultValue: null,
-          callback: function(value) {
-            if (!value) {
-              return;
-            }
-            this.broadcastMessage('localized');
-          }.bind(this)
-        },
-
         // continuous transition controlling
         'continuous-transition.enabled': {
           defaultValue: null,
@@ -320,6 +314,7 @@
       window.removeEventListener('sheetstransitionstart', this);
       window.removeEventListener('permissiondialoghide', this);
       window.removeEventListener('appopening', this);
+      window.removeEventListener('localized', this);
 
       for (var name in this._settingsObserveHandler) {
         SettingsListener.unobserve(
@@ -383,7 +378,7 @@
           // XXX: There's a race between lockscreenWindow and homescreenWindow.
           // If lockscreenWindow is instantiated before homescreenWindow,
           // we should not display the homescreen here.
-          if (!lockScreen.locked) {
+          if (!System.locked) {
             this.display();
           } else {
             homescreenLauncher.getHomescreen().setVisible(false);
@@ -542,6 +537,10 @@
           if (document.mozFullScreen) {
             document.mozCancelFullScreen();
           }
+          break;
+
+        case 'localized':
+          this.broadcastMessage('localized');
           break;
       }
     },
@@ -731,5 +730,4 @@
   };
 
   exports.AppWindowManager = AppWindowManager;
-  AppWindowManager.init();
 }(window));

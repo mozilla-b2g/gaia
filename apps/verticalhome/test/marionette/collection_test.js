@@ -3,15 +3,16 @@
 
 var assert = require('assert');
 var Actions = require('marionette-client').Actions;
+var Bookmark = require('./lib/bookmark');
 var Collection = require('./lib/collection');
-var Home2 = require('./lib/home2');
 var EmeServer = require('./eme_server/parent');
+var Home2 = require('./lib/home2');
 var System = require('../../../../apps/system/test/marionette/lib/system');
 
 marionette('Vertical - Collection', function() {
 
   var client = marionette.client(Home2.clientOptions);
-  var actions, collection, home, selectors, server, system;
+  var actions, bookmark, collection, home, selectors, server, system;
 
   suiteSetup(function(done) {
     var folder = __dirname + '/fixtures/everythingme';
@@ -27,6 +28,7 @@ marionette('Vertical - Collection', function() {
 
   setup(function() {
     actions = new Actions(client);
+    bookmark = new Bookmark(client, server);
     selectors = Collection.Selectors;
     collection = new Collection(client);
     home = new Home2(client);
@@ -36,22 +38,8 @@ marionette('Vertical - Collection', function() {
     client.apps.launch(Home2.URL);
 
     home.waitForLaunch();
-
-    // Disable Geolocation prompt
-    var chromeClient = client.scope({ context: 'chrome' });
-    chromeClient.executeScript(function(origin) {
-      var mozPerms = navigator.mozPermissionSettings;
-      mozPerms.set(
-        'geolocation', 'deny', origin + '/manifest.webapp', origin, false
-      );
-    }, [Collection.URL]);
-
-    // Update eme server settings
-    chromeClient.executeScript(function(url) {
-      navigator.mozSettings.createLock().set({
-        'everythingme.api.url': url
-      });
-    }, [server.url + '/{resource}']);
+    collection.disableGeolocation();
+    collection.setServerURL(server);
   });
 
   test('create collections', function() {
@@ -135,6 +123,9 @@ marionette('Vertical - Collection', function() {
       'network-error-message'
     );
 
+    // Wait for listeners to be added
+    collection.waitForCreateScreenReady();
+
     // This is not quite the same path the user sees during a collection create
     // but it should still let us test quite a bit. Instead of following the
     // navigator.isOnline path, we fire an offline event which will also show
@@ -151,8 +142,8 @@ marionette('Vertical - Collection', function() {
 
     client.switchToFrame();
     client.waitFor(function() {
-      var msg = client
-          .findElement('.modal-dialog-alert')
+      var msg = client.helper
+          .waitForElement('.modal-dialog-alert')
           .text();
       return expectedMsg.test(msg);
     });
@@ -197,6 +188,67 @@ marionette('Vertical - Collection', function() {
       'items are on the same x-axis');
     assert.ok(firstWebPosition.y > firstPinnedPosition.y,
       'the web result is below the pinned item');
+  });
+
+  test('uninstall pinned collection web result', function() {
+    // Count the number of icons on the home-screen
+    var numIcons = home.numIcons;
+
+    collection.enterCreateScreen();
+
+    // A collection name from the cateories_list.json stub
+    var collectionName = 'Around Me';
+    collection.selectNew(collectionName);
+    client.apps.switchToApp(Home2.URL);
+
+    // Enter the created collection.
+    collection.enterCollection(
+      collection.getCollectionByName(collectionName));
+
+    // Count the number of dividers
+    var numDividers = client.findElements(selectors.allDividers).length;
+
+    // Pin the first icon
+    collection.pin(selectors.firstWebResultNoPinned);
+
+    // Wait until a new section is created for the pinned result
+    client.waitFor(function() {
+      var currentDividers = client.findElements(selectors.allDividers).length;
+      return currentDividers === numDividers + 1;
+    });
+
+    // Bookmark the first unpinned icon
+    collection.bookmark(bookmark, selectors.firstWebResultPinned);
+
+    // Get back to the home screen
+    client.switchToFrame();
+    home.pressHomeButton();
+    client.apps.switchToApp(Home2.URL);
+
+    // Wait until the bookmarked result is added to the home screen.
+    client.waitFor(function() {
+      return numIcons + 2 === home.numIcons;
+    });
+
+    // Uninstall the bookmark from the home-screen
+    var lastIcon = client.findElements(Home2.Selectors.firstIcon).pop();
+    var iconId = lastIcon.getAttribute('data-identifier');
+    lastIcon.scriptWith(function(el) {
+      el.scrollIntoView(false);
+    });
+    home.enterEditMode(lastIcon);
+    var remove = client.helper.waitForElement(lastIcon.findElement('.remove'));
+    remove.click();
+    home.confirmDialog('remove');
+    client.helper.waitForElementToDisappear(lastIcon);
+
+    // Exit edit mode
+    client.helper.waitForElement(Home2.Selectors.editHeaderDone).click();
+
+    // Open the collection again and make sure the pinned icon is still there
+    collection.enterCollection(
+      collection.getCollectionByName(collectionName));
+    collection.getIconByIdentifier(iconId);
   });
 
   test('edit mode with two pinned objects', function() {

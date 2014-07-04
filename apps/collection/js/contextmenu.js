@@ -50,6 +50,9 @@
 
         collection.pinWebResult(icon.detail);
         collection.render(this.grid);
+        collection.renderIcon().then(() => {
+          collection.save();
+        });
       }
 
       this.target = null;

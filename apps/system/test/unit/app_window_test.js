@@ -134,6 +134,14 @@ suite('system/AppWindow', function() {
     }
   };
 
+  var fakeAppConfigCertified = {
+    url: 'app://www.fakecertified/index.html',
+    manifest: {
+      type: 'certified'
+    },
+    origin: 'app://www.fake4'
+  };
+
   test('App created with instanceID', function() {
     var app1 = new AppWindow(fakeAppConfig1);
     var app2 = new AppWindow(fakeAppConfig2);
@@ -1653,6 +1661,13 @@ suite('system/AppWindow', function() {
     assert.isTrue(app2.isBrowser());
   });
 
+  test('isCertified', function() {
+    var app1 = new AppWindow(fakeAppConfig1);
+    var app2 = new AppWindow(fakeAppConfigCertified);
+    assert.isFalse(app1.isCertified());
+    assert.isTrue(app2.isCertified());
+  });
+
   test('navigate', function() {
     var app1 = new AppWindow(fakeAppConfig1);
     var app2 = new AppWindow(fakeAppConfig4);
@@ -1679,6 +1694,21 @@ suite('system/AppWindow', function() {
     var stubCtx = this.sinon.stub(app.contextmenu, 'showDefaultMenu');
     app.showDefaultContextMenu();
     assert.isTrue(stubCtx.called);
+  });
+
+  test('hideContextMenu', function() {
+    var app = new AppWindow(fakeAppConfig1);
+    // Nothing goes wrong if contextmenu is undefined
+    app.showDefaultContextMenu();
+
+    app.contextmenu = MockContextMenu;
+    var stubCtxShow = this.sinon.stub(app.contextmenu, 'showDefaultMenu');
+    app.showDefaultContextMenu();
+    assert.isTrue(stubCtxShow.called);
+
+    var stubCtxHide = this.sinon.stub(app.contextmenu, 'hide');
+    app.hideContextMenu();
+    assert.isTrue(stubCtxHide.called);
   });
 
   function genFakeConfig(id) {

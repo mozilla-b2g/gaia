@@ -35,6 +35,7 @@
     SUSPEND_INTERVAL: 100,
     apps: {},
     current: {
+      instanceID: '',
       manifestURL: '',
       wrapper: null,
       appFrame: null,
@@ -126,7 +127,7 @@
           }
           break;
         case 'homescreenopened':
-          this._switchTo(null);
+          this._switchTo(null, null);
           break;
         case 'appcreated':
           var app = evt.detail;
@@ -134,14 +135,14 @@
           break;
         case 'appterminated':
           if (this._state() &&
-              evt.detail.manifestURL === this.current.manifestURL) {
+              evt.detail.instanceID === this.current.instanceID) {
             this._cleanEffects();
           }
-          this._unregister(evt.detail.manifestURL);
+          this._unregister(evt.detail.instanceID);
           break;
         case 'appopen':
           var config = evt.detail;
-          this._switchTo(config.manifestURL);
+          this._switchTo(config.instanceID, config.manifestURL);
           break;
         case 'shrinking-start':
           this._setup();
@@ -164,12 +165,12 @@
           break;
         case 'check-p2p-registration-for-active-app':
           if (evt.detail && evt.detail.checkP2PRegistration) {
-            evt.detail.checkP2PRegistration(this.currentAppURL);
+            evt.detail.checkP2PRegistration(this.current.manifestURL);
           }
           break;
         case 'dispatch-p2p-user-response-on-active-app':
           if (evt.detail && evt.detail.dispatchP2PUserResponse) {
-            evt.detail.dispatchP2PUserResponse(this.currentAppURL);
+            evt.detail.dispatchP2PUserResponse(this.current.manifestURL);
           }
           break;
       }
@@ -183,18 +184,18 @@
    */
   ShrinkingUI._register =
     (function su_register(app) {
-      this.apps[app.manifestURL] = app;
+      this.apps[app.instanceID] = app;
     }).bind(ShrinkingUI);
 
   /**
    * Unregister an app.
    *
-   * @param {string} |manifestURL| the manifest URL.
+   * @param {string} |instanceID| the instance ID.
    * @this {ShrinkingUI}
    */
   ShrinkingUI._unregister =
-    (function su_unregister(manifestURL) {
-      delete this.apps[manifestURL];
+    (function su_unregister(instanceID) {
+      delete this.apps[instanceID];
     }).bind(ShrinkingUI);
 
   /**
@@ -204,8 +205,9 @@
    * @this {ShrinkingUI}
    */
   ShrinkingUI._switchTo =
-    (function su_switchTo(url) {
-      this.currentAppURL = url;
+    (function su_switchTo(instanceID, manifestURL) {
+      this.current.instanceID = instanceID;
+      this.current.manifestURL = manifestURL;
     }).bind(ShrinkingUI);
 
   /**
@@ -217,7 +219,7 @@
    */
   ShrinkingUI._setup =
     (function su_setup() {
-      var currentWindow = this.apps[this.currentAppURL];
+      var currentWindow = this.apps[this.current.instanceID];
       this.current.appFrame = currentWindow.frame;
       this.current.wrapper = this.current.appFrame.parentNode;
     }).bind(ShrinkingUI);
@@ -236,7 +238,7 @@
 
       var afterTilt = (function() {
         // After it tilted done, turn it to the screenshot mode.
-        var currentWindow = this.apps[this.currentAppURL];
+        var currentWindow = this.apps[this.current.instanceID];
         currentWindow.setVisible(false, true);
       }).bind(this);
 
@@ -274,7 +276,7 @@
       }
       var afterTiltBack = (function() {
         // Turn off the screenshot mode.
-        var currentWindow = this.apps[this.currentAppURL];
+        var currentWindow = this.apps[this.current.instanceID];
         currentWindow.setVisible(true);
         this._cleanEffects();
       }).bind(this);

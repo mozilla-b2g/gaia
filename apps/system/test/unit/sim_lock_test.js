@@ -5,10 +5,12 @@
 requireApp('system/js/mock_simslot_manager.js');
 requireApp('system/test/unit/mock_simcard_dialog.js');
 requireApp('system/test/unit/mock_l10n.js');
+requireApp('system/test/unit/mock_system.js');
 
 var mocksHelperForSimLock = new MocksHelper([
   'SimPinDialog',
-  'SIMSlotManager'
+  'SIMSlotManager',
+  'System'
 ]).init();
 
 suite('SimLock', function() {
@@ -58,6 +60,16 @@ suite('SimLock', function() {
 
     test('no simpin dialog would show up', function() {
       assert.isTrue(SimPinDialog.close.called);
+    });
+  });
+
+  suite('to test events', function() {
+    test('when unlocking request comes, to check if it\'s for Camera',
+    function() {
+      var stubShowIfLocked = this.sinon.stub(SimLock, 'showIfLocked');
+      SimLock.handleEvent('lockscreen-request-unlock');
+      assert.isFalse(stubShowIfLocked.called,
+        'should not show the dialog');
     });
   });
 });

@@ -288,7 +288,7 @@ ViewfinderController.prototype.onZoomChanged = function(zoom) {
 };
 
 ViewfinderController.prototype.onViewfinderClicked = function(e) {
-  if (!this.touchFocusEnabled) {
+  if (!this.touchFocusEnabled || this.app.get('timerActive')) {
     return;
   }
   var focusPoint = {

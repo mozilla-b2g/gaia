@@ -14,6 +14,7 @@ requireApp('system/js/accessibility.js');
 requireApp('system/js/activities.js');
 requireApp('system/js/activity_window_factory.js');
 requireApp('system/js/activity_window_manager.js');
+requireApp('system/js/airplane_mode.js');
 requireApp('system/js/app_window_factory.js');
 requireApp('system/js/devtools/developer_hud.js');
 requireApp('system/js/dialer_agent.js');
@@ -47,6 +48,7 @@ requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/test/unit/mock_places.js');
 requireApp('system/test/unit/mock_screen_manager.js');
 requireApp('system/test/unit/mock_task_manager.js');
+requireApp('system/test/unit/mock_app_window_manager.js');
 
 var mocksForBootstrap = new MocksHelper([
   'Applications',
@@ -56,7 +58,8 @@ var mocksForBootstrap = new MocksHelper([
   'SettingsListener',
   'SettingsURL',
   'TaskManager',
-  'L10n'
+  'L10n',
+  'AppWindowManager'
 ]).init();
 
 suite('system/Bootstrap', function() {

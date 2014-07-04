@@ -3,6 +3,8 @@
 
 /* exported StoreProvisioning */
 
+/* global uuid */
+
 'use strict';
 
 /**
@@ -77,6 +79,11 @@ var StoreProvisioning = (function() {
   function sp_provision(parameters, callback) {
     var existingApns = null;
     var newApns = {};
+
+    // Add an unique id to identify APNs with the same carrier name
+    for (var i = 0; i < parameters.length; i++) {
+      parameters[i]._id = uuid();
+    }
 
     var settings = navigator.mozSettings;
     if (!settings) {

@@ -289,8 +289,6 @@ suite('Build Integration tests', function() {
 
       // expected values for prefs and user_prefs
       var expectedUserPrefs = {
-        'browser.manifestURL': 'app://system.gaiamobile.org/manifest.webapp',
-        'browser.homescreenURL': 'app://system.gaiamobile.org/index.html',
         'network.http.max-connections-per-server': 15,
         'dom.mozInputMethod.enabled': true,
         'ril.debugging.enabled': false,
@@ -573,15 +571,13 @@ suite('Build Integration tests', function() {
     helper.exec('DEBUG=1 make', function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
 
-      var installedExtsPath = path.join('profile-debug',
-        'installed-extensions.json');
+      var installedExtsPath = path.join('build_stage', 'additional-extensions',
+        'downloaded.json');
       var expectedSettings = {
         'homescreen.manifestURL': 'app://verticalhome.gaiamobile.org/manifest.webapp',
         'rocketbar.searchAppURL': 'app://search.gaiamobile.org/index.html'
       };
       var expectedUserPrefs = {
-        'browser.manifestURL': 'app://system.gaiamobile.org/manifest.webapp',
-        'browser.homescreenURL': 'app://system.gaiamobile.org/index.html',
         'browser.startup.homepage': 'app://system.gaiamobile.org/index.html',
         'startup.homepage_welcome_url': '',
         'browser.shell.checkDefaultBrowser': false,
@@ -734,7 +730,7 @@ suite('Build Integration tests', function() {
                 type: 'url',
                 url: {
                   required: true,
-                  pattern: 'https?:.{1,16384}',
+                  pattern: '(https?:|data:).{1,16384}',
                   patternFlags: 'i'
                 }
               }

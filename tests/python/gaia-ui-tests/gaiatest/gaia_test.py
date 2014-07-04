@@ -41,9 +41,11 @@ class GaiaApps(object):
         self.marionette.import_script(js)
 
     def get_permission(self, app_name, permission_name):
+        self.marionette.switch_to_frame()
         return self.marionette.execute_async_script("return GaiaApps.getPermission('%s', '%s')" % (app_name, permission_name))
 
     def set_permission(self, app_name, permission_name, value):
+        self.marionette.switch_to_frame()
         return self.marionette.execute_async_script("return GaiaApps.setPermission('%s', '%s', '%s')" %
                                                     (app_name, permission_name, value))
 
@@ -282,7 +284,6 @@ class GaiaData(object):
 
     def is_wifi_connected(self, network=None):
         network = network or self.testvars.get('wifi')
-        assert network, 'No WiFi network provided'
         self.marionette.switch_to_frame()
         return self.marionette.execute_script("return GaiaDataLayer.isWiFiConnected(%s)" % json.dumps(network))
 
@@ -386,38 +387,40 @@ class Accessibility(object):
         self.marionette.import_script(js)
 
     def is_hidden(self, element):
-        return self.marionette.execute_async_script(
-            'return Accessibility.isHidden.apply(Accessibility, arguments)',
-            [element], special_powers=True)
+        return self._run_async_script('isHidden', [element])
 
     def is_visible(self, element):
-        return self.marionette.execute_async_script(
-            'return Accessibility.isVisible.apply(Accessibility, arguments)',
-            [element], special_powers=True)
+        return self._run_async_script('isVisible', [element])
 
     def is_disabled(self, element):
-        return self.marionette.execute_async_script(
-            'return Accessibility.isDisabled.apply(Accessibility, arguments)',
-            [element], special_powers=True)
+        return self._run_async_script('isDisabled', [element])
 
     def click(self, element):
-        self.marionette.execute_async_script(
-            'Accessibility.click.apply(Accessibility, arguments)',
-            [element], special_powers=True)
+        self._run_async_script('click', [element])
 
     def wheel(self, element, direction):
         self.marionette.execute_script('Accessibility.wheel.apply(Accessibility, arguments)', [
             element, direction])
 
     def get_name(self, element):
-        return self.marionette.execute_async_script(
-            'return Accessibility.getName.apply(Accessibility, arguments)',
-            [element], special_powers=True)
+        return self._run_async_script('getName', [element])
 
     def get_role(self, element):
-        return self.marionette.execute_async_script(
-            'return Accessibility.getRole.apply(Accessibility, arguments)',
-            [element], special_powers=True)
+        return self._run_async_script('getRole', [element])
+
+    def _run_async_script(self, func, args):
+        result = self.marionette.execute_async_script(
+            'return Accessibility.%s.apply(Accessibility, arguments)' % func,
+            args, special_powers=True)
+
+        if not result:
+            return
+
+        if result.has_key('error'):
+            message = 'accessibility.js error: %s' % result['error']
+            raise Exception(message)
+
+        return result.get('result', None)
 
 class FakeUpdateChecker(object):
 
@@ -736,7 +739,8 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
                 self.data_layer.set_char_pref(name, value)
 
         # unlock
-        self.device.unlock()
+        if self.data_layer.get_setting('lockscreen.enabled'):
+            self.device.unlock()
 
         # kill any open apps
         self.apps.kill_all()

@@ -15,9 +15,18 @@ function Collection(client, server) {
 Collection.URL = 'app://collection.gaiamobile.org';
 
 Collection.Selectors = {
+
+  bookmarkActivity: '.inline-activity.active > iframe' +
+    '[mozapp="app://bookmark.gaiamobile.org/manifest.webapp"]',
+  bookmarkAddButton: '#add-button',
+
+  close: '#close',
+
   cloudMenu: '#cloud-menu',
+  cloudMenuBookmark: '#bookmark-cloudapp',
   cloudMenuPin: '#pin-cloudapp',
   contextMenuTarget: '#icons',
+  createScreenReady: 'body[data-test-ready]',
   menuAddButton: '#create-smart-collection',
   collectionsSelect: '#collections-select',
 
@@ -33,10 +42,37 @@ Collection.Selectors = {
   allDividers: 'gaia-grid .divider',
   allIcons: 'gaia-grid .icon',
 
-  offlineMessage: '#offline-message'
+  offlineMessage: '#offline-message',
+
+  mozbrowser: '.inline-activity.active > iframe[mozbrowser]',
 };
 
 Collection.prototype = {
+
+  /**
+   * Disables the Geolocation prompt.
+   */
+  disableGeolocation: function() {
+    var client = this.client.scope({ context: 'chrome' });
+    client.executeScript(function(origin) {
+      var mozPerms = navigator.mozPermissionSettings;
+      mozPerms.set(
+        'geolocation', 'deny', origin + '/manifest.webapp', origin, false
+      );
+    }, [Collection.URL]);
+  },
+
+  /**
+   * Updates eme server settings to hit the local server URL.
+   */
+  setServerURL: function(server) {
+    var client = this.client.scope({ context: 'chrome' });
+    client.executeScript(function(url) {
+      navigator.mozSettings.createLock().set({
+        'everythingme.api.url': url
+      });
+    }, [server.url + '/{resource}']);
+  },
 
   /**
    * Enters the create collection screen from the homescreen.
@@ -48,6 +84,14 @@ Collection.prototype = {
     this.actions.longPress(container, 1).perform();
 
     this.client.helper.waitForElement(selectors.menuAddButton).click();
+  },
+
+  /**
+   * Activity handling happens async, so in order to know when we are ready
+   * we add a data attribute onto the body.
+   */
+  waitForCreateScreenReady: function() {
+    this.client.helper.waitForElement(Collection.Selectors.createScreenReady);
   },
 
   /**
@@ -140,6 +184,27 @@ Collection.prototype = {
     var firstIcon = this.client.helper.waitForElement(selector);
     this.actions.longPress(firstIcon, 1).perform();
     this.client.helper.waitForElement(selectors.cloudMenuPin).click();
+  },
+
+  /**
+   * Bookmarks a result in the home screen.
+   * @param {String} selector The selector to find the icon in web results.
+   */
+  bookmark: function(bookmark, selector) {
+    var selectors = Collection.Selectors;
+    var bookmarkSelector = Collection.Selectors.cloudMenuBookmark;
+
+    var icons = this.client.helper.waitForElement(selector);
+    this.actions.longPress(icons, 1).perform();
+    this.client.helper.waitForElement(bookmarkSelector).click();
+    this.client.switchToFrame();
+
+    this.client.switchToFrame(
+      this.client.helper.waitForElement(
+        selectors.bookmarkActivity)
+    );
+
+    bookmark.addButton.click();
   }
 };
 

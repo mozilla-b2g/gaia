@@ -73,7 +73,7 @@
   padding-top: 1.2rem;
   padding-bottom: 1.2rem;
   font-size: 2.2rem;
-  font-weight: lighter;
+  font-weight: 300;
   font-style: italic;
   color: #dcdcdc;
   background-repeat: no-repeat;
@@ -118,7 +118,7 @@
 
 #permission-remember-section {
   font-size: 1.8rem;
-  font-weight: lighter;
+  font-weight: 300;
   color: #fbfbfb;
   display: none;
   padding: 1.2rem;
@@ -145,7 +145,7 @@
 
 #permission-device-selector {
   font-size: 1.8rem;
-  font-weight: lighter;
+  font-weight: 300;
   padding: 3rem 0 2rem 1.2rem;
 }
 
@@ -201,7 +201,7 @@
 #permission-devices .device-item {
   padding: 1rem;
   display: block;
-  font-weight: lighter;
+  font-weight: 300;
   font-size: 1.8rem;
 }
 

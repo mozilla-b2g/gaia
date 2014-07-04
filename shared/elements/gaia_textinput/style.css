@@ -70,7 +70,7 @@ textarea + button.reset {
   font-size: 0;
   opacity: 0;
   pointer-events: none;
-  background: transparent url(images/clear.png) no-repeat 50% 50% / 1.7rem auto;
+  background: transparent url(images/clear.png) no-repeat 50% 50% / 2.4rem auto;
 }
 
 .skin-dark input + button[type="reset"],

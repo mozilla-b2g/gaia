@@ -600,6 +600,15 @@
   };
 
   /**
+   * Check an appWindow contains a certified application
+   *
+   * @return {Boolean} is the current instance a certified application.
+   */
+  AppWindow.prototype.isCertified = function aw_iscertified() {
+    return this.config.manifest && 'certified' === this.config.manifest.type;
+  };
+
+  /**
    * Try to navigate the current frame to a given url if current instance
    * is a browsing window.
    * @param {String} url The url to navigate to
@@ -1902,6 +1911,16 @@
   AppWindow.prototype.showDefaultContextMenu = function() {
     if (this.contextmenu) {
       this.contextmenu.showDefaultMenu();
+    }
+  };
+
+  /**
+   * Hide the contextmenu for an AppWindow
+   * @memberOf AppWindow.prototype
+   */
+  AppWindow.prototype.hideContextMenu = function() {
+    if (this.contextmenu) {
+      this.contextmenu.hide();
     }
   };
 

@@ -489,7 +489,9 @@
     font-size: 2.6rem;
   }
 
-  #calls > section.handled-call .fake-number, #fake-incoming-number {
+  #calls > section.handled-call .fake-number,
+  #fake-incoming-number,
+  #group-call-details-list > section.handled-call .fake-number {
     position: absolute;
     visibility: hidden;
     white-space: nowrap;
@@ -506,6 +508,9 @@
     padding: 0 0 2rem;
     font-size: 1.6rem;
     line-height: 2rem;
+  }
+
+  #calls > section .additionalContactInfo {
     font-style: italic;
     color: #333;
   }
@@ -557,9 +562,6 @@
   }
 
   #calls.big-duration > section .duration {
-    position: absolute;
-    top: 10rem;
-    left: 0;
     height: 13rem;
     width: 100%;
     background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0));
@@ -967,7 +969,7 @@
   }
 
   #call-screen[data-layout="incoming-locked"] .number {
-    font-weight: lighter;
+    font-weight: 300;
   }
 
   #call-screen[data-layout="incoming-locked"] #calls.big-duration .numberWrapper .number {

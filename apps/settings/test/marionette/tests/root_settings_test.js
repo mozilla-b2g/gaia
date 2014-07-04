@@ -107,7 +107,7 @@ marionette('check root panel settings', function() {
         // There will be confirmation dialog shown at the first time the usb
         // storage is enabled. Add a waitFor for this case.
         client.waitFor(function() {
-          return client.findElement('#turn-on-ums-dialog').displayed();
+          return client.findElement('.turn-on-ums-dialog').displayed();
         });
         rootPanel.tapUsbStorageConfirmButton();
 

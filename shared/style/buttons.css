@@ -249,7 +249,7 @@ select {
   font-size: 1.6rem;
   color: #333;
   margin: 0 0 1rem;
-  padding: 1rem 0 0 1.1rem;
+  padding: 0 0 0 1.1rem;
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
@@ -305,10 +305,6 @@ select:-moz-focusring {
   overflow: hidden;
 }
 
-.skin-dark .button.icon-dialog[aria-disabled="true"] select {
-  color: rgba(255, 255, 255, 0.4);
-}
-
 /******************************************************************************
  * Right-To-Left layout
  */
@@ -346,7 +342,7 @@ html[dir="rtl"] li .button.icon-dialog:before {
 }
 
 html[dir="rtl"] select {
-  padding: 0.8rem 1.2rem 0 0; /* .3rem right space because of italic */
+  padding: 0 1.2rem 0 0; /* .3rem right space because of italic */
   text-align: right;
 }
 
@@ -354,4 +350,5 @@ html[dir="rtl"] select {
 html[dir="rtl"] .button.icon-dialog select {
   left: auto;
   right: 0.3rem; /* .3rem space because of italic */
+  text-indent: 1rem;
 }

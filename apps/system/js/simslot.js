@@ -4,18 +4,6 @@
   var _start = Date.now();
   var DEBUG = false;
 
-  var lockTypes = {
-    'pinRequired': true,
-    'pukRequired': true,
-    'networkLocked': true,
-    'corporateLocked': true,
-    'serviceProviderLocked': true,
-    'network1Locked': true,
-    'network2Locked': true,
-    'hrpdNetworkLocked': true,
-    'ruimCorporateLocked': true,
-    'ruimServiceProviderLocked': true
-  };
   /**
    * SIMSlot is the API wrapper for each mobileConnection,
    * and since one mobileConnection matches one SIM slot,
@@ -55,6 +43,12 @@
                        'getCardLockRetryCount', 'readContacts',
                        'updateContact', 'iccOpenChannel', 'iccExchangeAPDU',
                        'iccCloseChannel'];
+
+  SIMSlot.ABSENT_TYPES = ['permanentBlocked'];
+  SIMSlot.LOCK_TYPES = ['pinRequired', 'pukRequired', 'networkLocked',
+                      'corporateLocked', 'serviceProviderLocked',
+                      'network1Locked', 'network2Locked', 'hrpdNetworkLocked',
+                      'ruimCorporateLocked', 'ruimServiceProviderLocked'];
 
   /**
    * Update the iccObj.
@@ -127,8 +121,10 @@
    * @return {Boolean} Without SIM card or not.
    */
   SIMSlot.prototype.isAbsent = function ss_isAbsent() {
-    return (!this.simCard || this.simCard &&
-      this.simCard.iccInfo && this.simCard.iccInfo.iccid === null);
+    return (!this.simCard ||
+      this.constructor.ABSENT_TYPES.indexOf(this.simCard.cardState) >= 0 ||
+      this.simCard && this.simCard.iccInfo &&
+      this.simCard.iccInfo.iccid === null);
   };
 
   /**
@@ -136,6 +132,6 @@
    * @return {Boolean} SIM card locked or not.
    */
   SIMSlot.prototype.isLocked = function ss_isLocked() {
-    return !!lockTypes[this.simCard.cardState];
+    return this.constructor.LOCK_TYPES.indexOf(this.simCard.cardState) >= 0;
   };
 }(this));

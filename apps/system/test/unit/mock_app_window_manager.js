@@ -43,5 +43,7 @@ var MockAppWindowManager = {
   },
 
   broadcastMessage: function() {
-  }
+  },
+
+  init: function() {}
 };

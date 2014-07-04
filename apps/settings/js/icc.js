@@ -427,6 +427,7 @@
     });
     a.textContent = entry.text;
     a.onclick = entry.onclick;
+    a.href = '#icc';
     li.appendChild(a);
     return li;
   }

@@ -383,12 +383,12 @@ var AttentionScreen = {
     this.mainScreen.classList.add('active-statusbar');
 
     var attentionScreen = this.attentionScreen;
-    attentionScreen.addEventListener('transitionend', (function trWait() {
+    attentionScreen.addEventListener('transitionend', function trWait() {
       attentionScreen.removeEventListener('transitionend', trWait);
 
       // transition completed, entering "status-mode" (40px height iframe)
       attentionScreen.classList.add('status-mode');
-    }).bind(this));
+    });
 
     // The only way to hide attention screen is the home/holdhome event.
     // So we don't fire any origin information here.

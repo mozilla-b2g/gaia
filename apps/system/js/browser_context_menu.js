@@ -61,6 +61,7 @@
         this.element.querySelector('.' + this.ELEMENT_PREFIX + name);
     }, this);
     var cancel = document.createElement('button');
+    cancel.id = 'ctx-cancel-button';
     cancel.dataset.action = 'cancel';
     cancel.dataset.l10nId = 'cancel';
     this.elements.cancel = cancel;
@@ -91,9 +92,15 @@
     var hasSystemTargets = detail.systemTargets &&
       detail.systemTargets.length > 0;
 
-    // systemTargets are currently disabled for non browsing contexts
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=1010160
-    if (!(hasContextMenu || (hasSystemTargets && this.app.isBrowser()))) {
+    // Nothing to show
+    if (!hasSystemTargets && !hasContextMenu) {
+      return;
+    }
+
+    // context menus in certified apps that only have system targets are
+    // currently disabled. https://bugzilla.mozilla.org/show_bug.cgi?id=1010160
+    // is tracking reenabling
+    if (!hasContextMenu && hasSystemTargets && this.app.isCertified()) {
       return;
     }
 
@@ -117,6 +124,7 @@
     this.elements.list.innerHTML = '';
     items.forEach(function traveseItems(item) {
       var action = document.createElement('button');
+      action.dataset.id = item.id;
       action.dataset.value = item.value;
       action.textContent = item.label;
 
@@ -167,9 +175,14 @@
   };
 
   BrowserContextMenu.prototype.hide = function(evt) {
+    if (!this.element) {
+      return;
+    }
+
     if (evt) {
       evt.preventDefault();
     }
+
     this.element.blur();
     this.element.classList.remove('visible');
     if (this.app) {
@@ -253,13 +266,15 @@
           type = 'audio';
         }
 
-        return [
-          {
-            id: 'save-' + type,
-            label: _('save-' + type),
-            callback: this.app.browser.element.download.bind(this, uri)
-          }
-        ];
+        return [{
+          id: 'save-' + type,
+          label: _('save-' + type),
+          callback: this.app.browser.element.download.bind(this, uri)
+        }, {
+          id: 'share-' + type,
+          label: _('share-' + type),
+          callback: this.shareUrl.bind(this, uri)
+        }];
 
       default:
         return [];

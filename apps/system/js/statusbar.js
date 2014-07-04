@@ -1244,8 +1244,7 @@ var StatusBar = {
 
   // To reduce the duplicated code
   isLocked: function() {
-    return 'undefined' !== typeof window.lockScreen &&
-      window.lockScreen.locked;
+    return System.locked;
   }
 };
 

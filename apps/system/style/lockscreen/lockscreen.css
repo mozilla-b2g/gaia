@@ -288,7 +288,7 @@
 
   #lockscreen-header {
     padding-left: 6rem;
-    font-weight: lighter;
+    font-weight: 300;
   }
 
   #lockscreen-date {

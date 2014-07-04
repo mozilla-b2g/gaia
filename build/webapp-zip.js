@@ -3,7 +3,7 @@
  * Additionally, it will also filter images by resolution and some excluded
  * conditions, which should move to other task, bug 1010095.
  */
-/*global require, exports*/
+/* global require, exports, dump */
 'use strict';
 var utils = require('./utils');
 

@@ -358,7 +358,8 @@
       this.inEditMode = true;
       this.container.classList.add('edit-mode');
       document.body.classList.add('edit-mode');
-      window.dispatchEvent(new CustomEvent('gaiagrid-editmode-start'));
+      this.gridView.element.dispatchEvent(
+        new CustomEvent('editmode-start'));
       document.addEventListener('visibilitychange', this);
     },
 
@@ -372,7 +373,7 @@
       this.inEditMode = false;
       this.container.classList.remove('edit-mode');
       document.body.classList.remove('edit-mode');
-      window.dispatchEvent(new CustomEvent('gaiagrid-editmode-end'));
+      this.gridView.element.dispatchEvent(new CustomEvent('editmode-end'));
       document.removeEventListener('visibilitychange', this);
       this.removeDragHandlers();
       this.gridView.render({skipItems: true});
@@ -397,7 +398,6 @@
       switch(e.type) {
           case 'visibilitychange':
             if (document.hidden) {
-              this.finish();
               this.exitEditMode();
             }
             break;

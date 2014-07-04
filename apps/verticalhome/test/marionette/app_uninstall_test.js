@@ -36,10 +36,14 @@ marionette('Vertical - App Uninstall', function() {
     system = new System(client);
     system.waitForStartup();
 
-    // install an app
-    appInstall.install(server.manifestURL);
     client.apps.launch(Home2.URL);
     home.waitForLaunch();
+
+    // install an app
+    client.switchToFrame();
+    appInstall.install(server.manifestURL);
+
+    client.switchToFrame(system.getHomescreenIframe());
     home.enterEditMode();
   });
 

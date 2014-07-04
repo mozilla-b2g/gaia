@@ -180,7 +180,6 @@
       window.addEventListener('applocationchange', this);
       window.addEventListener('appscroll', this);
       window.addEventListener('home', this);
-      window.addEventListener('lock', this);
       window.addEventListener('cardviewclosedhome', this);
       window.addEventListener('cardviewclosed', this);
       window.addEventListener('cardviewshown', this);
@@ -189,7 +188,7 @@
       window.addEventListener('stackchanged', this);
       window.addEventListener('searchcrashed', this);
       window.addEventListener('permissiondialoghide', this);
-
+      window.addEventListener('launchactivity', this, true);
 
       // Listen for events from Rocketbar
       this.rocketbar.addEventListener('touchstart', this);
@@ -237,7 +236,7 @@
         case 'cardviewclosedhome':
           this.handleHome(e);
           break;
-        case 'lock':
+        case 'lockscreen-appopened':
           this.hideResults();
           this.deactivate();
           break;
@@ -254,6 +253,9 @@
             this.waitingOnCardViewLaunch = false;
           }
         break;
+        case 'launchactivity':
+          this.handleActivity(e);
+          break;
         case 'searchcrashed':
           this.handleSearchCrashed(e);
           break;
@@ -444,8 +446,11 @@
     hideResults: function() {
       if (this.searchWindow) {
         this.searchWindow._setVisible(false);
+        this.searchWindow.hideContextMenu();
       }
+
       this.results.classList.add('hidden');
+
       // Send a message to the search app to clear results
       if (this._port) {
         this._port.postMessage({
@@ -569,6 +574,18 @@
       this.hideResults();
       this.collapse();
       this.deactivate();
+    },
+
+    /**
+     * Handles activities for the search app.
+    * @memberof Rocketbar.prototype
+     */
+    handleActivity: function(e) {
+      if (e.detail.isActivity && e.detail.inline && this.searchWindow &&
+          this.searchWindow.manifestURL === e.detail.parentApp) {
+        e.stopImmediatePropagation();
+        this.searchWindow.broadcast('launchactivity', e.detail);
+      }
     },
 
     /**
@@ -838,7 +855,7 @@
      * @memberof Rocketbar.prototype
      */
     handleSearchCrashed: function(e) {
-      if (!this._searchWindow) {
+      if (!this.searchWindow) {
         return;
       }
 
@@ -869,6 +886,10 @@
       this._port = 'pending';
       navigator.mozApps.getSelf().onsuccess = function() {
         var app = this.result;
+        if (!app) {
+          return;
+        }
+
         app.connect('search').then(
           function onConnectionAccepted(ports) {
             ports.forEach(function(port) {

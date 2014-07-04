@@ -145,8 +145,6 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
       self._cachedAdditionalInfo = _('emergencyNumber');
     });
 
-    // Set Emergency Wallpaper
-    CallScreen.setEmergencyWallpaper();
     return;
   }
 

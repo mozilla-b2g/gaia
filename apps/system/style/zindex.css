@@ -94,7 +94,7 @@
  * there is an active attention screen not minimized in
  * the status bar */
 #screen.attention:not(.active-statusbar) > [data-z-index-level="keyboards"] {
-  z-index: 16386;
+  z-index: 16384;
 }
 
 /* Level 2: Notification toaster */
@@ -103,10 +103,8 @@
 }
 
 /* Level 3: Attention screen */
-/* Attention screens should be the top-most item (along with keyboards) when
- * shown and not minimized in status bar */
 #screen > [data-z-index-level="attention-screen"] {
-  z-index: 16386;
+  z-index: 16384;
 }
 
 /* Level 4: Activity menu, context menu, value selector, and permissions */
@@ -182,6 +180,19 @@
 
 #screen > [data-z-index-level="rocketbar-results"] {
   z-index: 2043;
+}
+
+/*
+ * In order to display a context menu on top of the search input
+ * the z-indexes needs to be updated.
+ * The real issue is that the search input is part of the statusbar.
+ */
+#screen.rocketbar-focused > [data-z-index-level="statusbar"] {
+  z-index: 2042;
+}
+
+#screen > [data-z-index-level="rocketbar-backdrop"] {
+  z-index: 2041;
 }
 
 #screen.locked.attention > [data-z-index-level="keyboards"] {

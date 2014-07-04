@@ -5,7 +5,7 @@
   'use strict';
 
   const NUM_DISPLAY = 4;
-  const API = 'https://marketplace.firefox.com/api/v1/apps/search/rocketbar/' +
+  const API = 'https://marketplace.firefox.com/api/v2/apps/search/rocketbar/' +
     '?q={q}' +
     '&limit=' + NUM_DISPLAY +
     '&lang=' + document.documentElement.lang +
@@ -50,7 +50,7 @@
                 name: navigator.mozL10n.get('install-marketplace-title', {
                   title: app.name
                 }),
-                icon: app.icon,
+                icons: app.icons,
                 slug: app.slug
               })
             });

@@ -2,7 +2,7 @@ define(function(require) {
   'use strict';
 
   var App = require('app');
-  var AlarmsDB = require('alarmsdb');
+  var alarmDatabase = require('alarm_database');
   var Timer = require('timer');
   var Utils = require('utils');
   var ChildWindowManager = require('./child_window_manager');
@@ -89,12 +89,7 @@ define(function(require) {
       var date = data.date;
       var type = data.type;
 
-      AlarmsDB.getAlarm(id, (err, alarm) => {
-        if (err) {
-          done();
-          return;
-        }
-
+      alarmDatabase.get(id).then((alarm) => {
         this.popAlert({
           type: 'alarm',
           label: alarm.label,
@@ -104,14 +99,10 @@ define(function(require) {
           id: alarm.id
         });
 
-        if (type === 'normal') {
-          alarm.schedule({
-            type: 'normal',
-            first: false
-          }, alarm.saveCallback(done));
-        } else /* (type === 'snooze') */ {
-          alarm.cancel('snooze');
-          alarm.save(done);
+        if (type === 'normal' && alarm.isRepeating()) {
+          alarm.schedule('normal').then(done);
+        } else {
+          done();
         }
       });
     },
@@ -141,13 +132,8 @@ define(function(require) {
      * @param {string} alarmId The ID of the alarm.
      */
     snoozeAlarm: function(alarmId) {
-      AlarmsDB.getAlarm(alarmId, function(err, alarm) {
-        if (err) {
-          return;
-        }
-        alarm.schedule({
-          type: 'snooze'
-        }, alarm.saveCallback());
+      alarmDatabase.get(alarmId).then((alarm) => {
+        alarm.schedule('snooze');
       });
     },
 

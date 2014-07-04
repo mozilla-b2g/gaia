@@ -20,6 +20,9 @@ var Settings = {
 
   _serviceIds: null,
 
+  // we need to remove this when email functionality is ready.
+  supportEmailRecipient: false,
+
   // We set the default maximum concatenated number of our SMS app to 10
   // based on:
   // https://bugzilla.mozilla.org/show_bug.cgi?id=813686#c0

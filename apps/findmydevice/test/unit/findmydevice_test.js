@@ -1,7 +1,6 @@
 /* global MocksHelper */
 /* global MockPermissionSettings */
 /* global MockSettingsListener */
-/* global MockDeviceStorage */
 /* global MockGeolocation */
 /* global Commands */
 
@@ -128,6 +127,7 @@ suite('FindMyDevice >', function() {
     fakeClock.tick();
   });
 
+  /* TODO re-enable erase tests after fixing the mock: bug 1032617
   test('Erase command', function(done) {
     // Meta-mock the mock getDeviceStorage so it returns null
     // for some storage types
@@ -172,6 +172,7 @@ suite('FindMyDevice >', function() {
 
     fakeClock.tick();
   });
+  */
 
   test('Track command', function(done) {
     // we want to make sure this is set to 'allow'

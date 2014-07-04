@@ -1,6 +1,6 @@
 /* global Card, TaskCard,
           AppWindowManager, sleepMenu, SettingsListener, AttentionScreen,
-          OrientationManager,
+          OrientationManager, System,
           GestureDetector, UtilityTray, StackManager, Event */
 
 'use strict';
@@ -258,7 +258,7 @@
     var cardsView = this.element;
 
     // events to handle
-    window.removeEventListener('lock', this);
+    window.removeEventListener('lockscreen-appopened', this);
     window.removeEventListener('tap', this);
     window.removeEventListener('opencurrentcard', this);
 
@@ -365,7 +365,7 @@
     }, this);
 
     // events to handle while shown
-    window.addEventListener('lock', this);
+    window.addEventListener('lockscreen-appopened', this);
     window.addEventListener('tap', this);
     window.addEventListener('opencurrentcard', this);
 
@@ -622,7 +622,7 @@
         this.cardsList.removeChild(element);
         this.closeApp(card);
       } else {
-        card.applyStyle({ MozTransform: undefined });
+        card.applyStyle({ MozTransform: '' });
       }
       this.alignCurrentCard();
 
@@ -686,7 +686,7 @@
         this.goToHomescreen(evt);
         break;
 
-      case 'lock':
+      case 'lockscreen-appopened':
       case 'attentionscreenshow':
         this.attentionScreenApps =
             AttentionScreen.getAttentionScreenOrigins();
@@ -707,8 +707,7 @@
         break;
 
       case 'holdhome':
-        if (this.isShown() ||
-            (window.lockScreen && window.lockScreen.locked)) {
+        if (this.isShown() || System.locked) {
           return;
         }
         sleepMenu.hide();
@@ -968,16 +967,13 @@
     prevCard.applyStyle(prevCardStyle);
 
     var onCardTransitionEnd = function transitionend() {
-      currentCard.element.removeEventListener(onCardTransitionEnd);
-      if (!this.currentCard) {
-        // removeCards method was called immediately without waiting
-        return;
-      }
-      var zeroTransitionStyle = { 'MozTransition' : undefined };
-      (this.prevCard || pseudoCard).applyStyle(zeroTransitionStyle);
-      (this.nextCard || pseudoCard).applyStyle(zeroTransitionStyle);
-      this.currentCard.applyStyle(zeroTransitionStyle);
-    }.bind(this);
+      currentCard.element.removeEventListener('transitionend',
+                                              onCardTransitionEnd);
+      var zeroTransitionStyle = { MozTransition: '' };
+      prevCard.applyStyle(zeroTransitionStyle);
+      nextCard.applyStyle(zeroTransitionStyle);
+      currentCard.applyStyle(zeroTransitionStyle);
+    };
 
     currentCard.element.addEventListener('transitionend', onCardTransitionEnd);
 

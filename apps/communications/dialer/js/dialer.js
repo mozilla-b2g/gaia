@@ -173,6 +173,24 @@ var CallHandler = (function callHandler() {
   }
 
   /* === Notifications support === */
+
+  /**
+   * Retrieves the parameters from an URL and forms an object with them.
+   *
+   * @param {String} input A string holding the parameters attached to an URL.
+   * @return {Object} An object built using the parameters.
+   */
+  function deserializeParameters(input) {
+    var rparams = /([^?=&]+)(?:=([^&]*))?/g;
+    var parsed = {};
+
+    input.replace(rparams, function($0, $1, $2) {
+      parsed[$1] = decodeURIComponent($2);
+    });
+
+    return parsed;
+  }
+
   function handleNotification(evt) {
     if (!evt.clicked) {
       return;
@@ -185,6 +203,17 @@ var CallHandler = (function callHandler() {
       location.href = evt.imageURL;
       if (location.search.indexOf(FB_SYNC_ERROR_PARAM) !== -1) {
         window.location.hash = '#contacts-view';
+      } else if (location.search.indexOf('ussdMessage') !== -1) {
+        var params = deserializeParameters(evt.imageURL);
+
+        Notification.get({ tag: evt.tag }).then(function(notifications) {
+          for (var i = 0; i < notifications.length; i++) {
+            notifications[i].close();
+          }
+        });
+
+        MmiManager.handleMMIReceived(evt.body, /* sessionEnded */ true,
+                                     params.cardIndex);
       } else {
         window.location.hash = '#call-log-view';
       }
@@ -376,8 +405,39 @@ var CallHandler = (function callHandler() {
     });
   }
 
+  /* === MMI === */
+  function onUssdReceived(evt) {
+    var lock = null;
+    var safetyId;
+
+    function releaseWakeLock() {
+      if (lock) {
+        lock.unlock();
+        lock = null;
+        clearTimeout(safetyId);
+      }
+    }
+
+    if (document.hidden) {
+      lock = navigator.requestWakeLock('high-priority');
+      safetyId = setTimeout(releaseWakeLock, 30000);
+      document.addEventListener('visibilitychange', releaseWakeLock);
+    }
+
+    if (document.hidden && evt.sessionEnded) {
+      /* If the dialer is not visible and the session ends with this message
+       * then this is most likely an unsollicited message. To prevent
+       * interrupting the user we post a notification for it instead of
+       * displaying the dialer UI. */
+      MmiManager.sendNotification(evt.message, evt.serviceId)
+                .then(releaseWakeLock);
+    } else {
+      MmiManager.handleMMIReceived(evt.message, evt.sessionEnded,
+                                   evt.serviceId);
+    }
+  }
+
   function init() {
-    /* === MMI === */
     LazyLoader.load(['/shared/js/mobile_operator.js',
                      '/dialer/js/mmi.js',
                      '/dialer/js/mmi_ui.js',
@@ -394,32 +454,7 @@ var CallHandler = (function callHandler() {
         window.navigator.mozSetMessageHandler('bluetooth-dialer-command',
                                                btCommandHandler);
 
-        window.navigator.mozSetMessageHandler('ussd-received', function(evt) {
-          if (document.hidden) {
-            var request = window.navigator.mozApps.getSelf();
-            request.onsuccess = function() {
-              request.result.launch('dialer');
-            };
-
-            var lock = navigator.requestWakeLock('high-priority');
-            var safetyId = setTimeout(function safetyUnlock() {
-              if (lock) {
-                lock.unlock();
-                lock = null;
-              }
-            }, 30000);
-            document.addEventListener('visibilitychange', function wait() {
-              if (lock) {
-                lock.unlock();
-                lock = null;
-                clearTimeout(safetyId);
-              }
-            });
-          }
-
-          MmiManager.handleMMIReceived(evt.message, evt.sessionEnded,
-                                       evt.serviceId);
-        });
+        window.navigator.mozSetMessageHandler('ussd-received', onUssdReceived);
       }
     });
     LazyLoader.load('/shared/js/settings_listener.js', function() {

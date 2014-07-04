@@ -153,7 +153,7 @@
         return;
       }
       if (config.isActivity && config.inline) {
-        this.publish('launchactivity', config);
+        this.publish('launchactivity', config, document.body);
         return;
       }
 
@@ -179,10 +179,11 @@
      * @param  {Object} detail The data passed when initializing the event.
      * @memberof AppWindowFactory.prototype
      */
-    publish: function awf_publish(event, detail) {
+    publish: function awf_publish(event, detail, scope) {
+      scope = scope || window;
       var evt = document.createEvent('CustomEvent');
       evt.initCustomEvent(event, true, false, detail);
-      window.dispatchEvent(evt);
+      scope.dispatchEvent(evt);
     }
   };
 

@@ -1,4 +1,5 @@
-/*global GestureDetector, Dialog, Navigation, SharedComponents */
+/*global GestureDetector, Dialog, Navigation, SharedComponents, Utils,
+         Settings */
 
 (function(exports) {
   'use strict';
@@ -27,6 +28,8 @@
     this.type = opts.type || '';
     this.carrier = opts.carrier || '';
     this.className = 'recipient';
+    this.isEmail = Settings.supportEmailRecipient &&
+                   Utils.isEmailAddress(this.number);
 
     // isLookupable
     //  the recipient was accepted by pressing <enter>
@@ -51,7 +54,9 @@
     // is questionable and may be invalid.
     number = this.number[0] === '+' ? this.number.slice(1) : this.number;
 
-    if (this.source === 'manual' && !rdigit.test(number)) {
+    if (this.isEmail) {
+      this.className += ' email';
+    } else if (this.source === 'manual' && !rdigit.test(number)) {
       this.isQuestionable = true;
     }
 
@@ -372,6 +377,7 @@
     var template = setup.template;
     var nodes = [];
     var clone;
+    var outerCss = window.getComputedStyle(outer);
 
     priv.set(this, {
       owner: owner,
@@ -384,16 +390,7 @@
         isTransitioning: false,
         visible: 'singleline'
       },
-      dims: {
-        inner: {
-          height: 0,
-          width: 0
-        },
-        outer: {
-          height: 0,
-          width: 0
-        }
-      }
+      minHeight: parseInt(outerCss.getPropertyValue('min-height'), 10)
     });
 
     clone = inner.cloneNode(true);
@@ -658,7 +655,7 @@
 
     // Once the transition has ended, the set focus to
     // the last child element in the recipients list view
-    view.inner.parentNode.addEventListener('transitionend', function te() {
+    view.outer.addEventListener('transitionend', function te() {
       var last = view.inner.lastElementChild;
       var previous;
 
@@ -675,9 +672,7 @@
         if (opts.refocus) {
           opts.refocus.focus();
         }
-      }
-
-      if (last !== null) {
+      } else if (state.visible === 'multiline' && last !== null) {
         last.scrollIntoView(true);
       }
 
@@ -734,17 +729,6 @@
       length = typed.length;
     }
 
-    // Make sure that height of the displayed list is
-    // being tracked. If no previously known height is set,
-    // or it's just zero, update it.
-    if (!view.dims.inner.height) {
-      view.dims.inner.height = view.inner.offsetHeight;
-    }
-
-    if (!view.dims.outer.height) {
-      view.dims.outer.height = view.outer.offsetHeight;
-    }
-
     switch (event.type) {
 
       case 'pan':
@@ -752,12 +736,13 @@
         //
         //  1. The recipients in the list have caused the
         //      container to grow enough to require the
-        //      additional viewable area.
-        //      (>1 visible lines or 1.5x the original size)
+        //      additional viewable area and the view is singleline
+        //      mode originally.
         //  2. The user is "pulling down" the recipient list.
 
         // #1
-        if (view.inner.scrollHeight > (view.dims.inner.height * 1.5)) {
+        if (view.state.visible === 'singleline' &&
+            view.inner.scrollHeight > view.minHeight) {
           // #2
           if (event.detail.absolute.dy > 0) {
             this.visible('multiline');

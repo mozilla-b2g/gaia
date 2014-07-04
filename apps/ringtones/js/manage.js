@@ -6,7 +6,7 @@
 navigator.mozSetMessageHandler('activity', function(activity) {
   var tonePlayer = new TonePlayer();
 
-  // Until Haida lands this is how users could go back to Settings app.
+  // Conclude the activity if the user taps "back".
   document.getElementById('back').addEventListener('click', function() {
     activity.postResult({});
   });
