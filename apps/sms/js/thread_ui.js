@@ -2544,11 +2544,13 @@ var ThreadUI = global.ThreadUI = {
     var last = this.recipientsList.lastElementChild;
     var typed = last && last.textContent.trim();
     var isContact = false;
-    var record, tel, length, number, contact;
+    var record, length, number, contact, prop, propValue;
 
     if (index < 0) {
       index = 0;
     }
+    prop = Settings.supportEmailRecipient &&
+           Utils.isEmailAddress(fValue) ? 'email' : 'tel';
 
     // If there is greater than zero matches,
     // process the first found contact into
@@ -2556,20 +2558,20 @@ var ThreadUI = global.ThreadUI = {
     if (contacts && contacts.length) {
       isInvalid = false;
       record = contacts[0];
-      length = record.tel.length;
+      length = record[prop].length;
 
       // Received an exact match with a single tel record
       if (source.isLookupable && !source.isQuestionable && length === 1) {
-        if (Utils.probablyMatches(record.tel[0].value, fValue)) {
+        if (Utils.probablyMatches(record[prop][0].value, fValue)) {
           isContact = true;
-          number = record.tel[0].value;
+          number = record[prop][0].value;
         }
       } else {
         // Received an exact match that may have multiple tel records
         for (var i = 0; i < length; i++) {
-          tel = record.tel[i];
-          if (this.recipients.numbers.indexOf(tel.value) === -1) {
-            number = tel.value;
+          propValue = record[prop][i].value;
+          if (this.recipients.numbers.indexOf(propValue) === -1) {
+            number = propValue;
             break;
           }
         }
