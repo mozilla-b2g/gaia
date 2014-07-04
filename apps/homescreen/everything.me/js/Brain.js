@@ -152,7 +152,8 @@
   this.Searchbar = new function Searchbar() {
     var self = this,
         timeoutBlur = null,
-        TIMEOUT_BEFORE_RUNNING_BLUR = 50;
+        TIMEOUT_BEFORE_RUNNING_BLUR = 50,
+        TIMEOUT_BEFORE_BLUR_SUGGESTION = 0;
 
     // Searchbar focused. Keyboard shows
     this.focus = function focus(data) {
@@ -176,10 +177,15 @@
       }
 
       var didClickApp = false,
+      didClickHistory = false,
       elClicked = data && data.e && data.e.explicitOriginalTarget;
       if (elClicked) {
         for (var elParent = elClicked.parentNode; elParent;
                                               elParent = elParent.parentNode) {
+          if (elParent.dataset && elParent.dataset.source === 'history') {
+            didClickHistory = true;
+            TIMEOUT_BEFORE_BLUR_SUGGESTION = TIMEOUT_BEFORE_RUNNING_BLUR;
+          }
           if (elParent.classList && elParent.classList.contains('evme-apps')) {
             didClickApp = true;
             break;
@@ -187,11 +193,13 @@
         }
       }
 
-      Evme.Utils.setKeyboardVisibility(false);
-      self.setEmptyClass();
+      window.setTimeout(function delayBlur() {
+        Evme.Utils.setKeyboardVisibility(false);
+        self.setEmptyClass();
+      }, TIMEOUT_BEFORE_BLUR_SUGGESTION);
 
       var searchbarValue = Evme.Searchbar.getValue();
-      if (searchbarValue === '') {
+      if (searchbarValue === '' && !didClickHistory) {
         Evme.Helper.setTitle();
         Evme.Helper.showTitle();
       } else if (didClickApp) {
