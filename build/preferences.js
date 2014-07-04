@@ -25,11 +25,6 @@ PreferencesBuilder.prototype.execute = function(config) {
 PreferencesBuilder.prototype.preparePref = function() {
   this.system = this.config.SYSTEM;
 
-  // XXX Please remove 'browser.manifestURL'.
-  // After gecko does not need it anymore.
-  // follow up bug 1014487
-  this.prefs['browser.manifestURL'] =
-                   this.system + '/manifest.webapp';
   this.prefs['b2g.system_manifest_url'] =
                    this.system + '/manifest.webapp';
 
@@ -38,10 +33,6 @@ PreferencesBuilder.prototype.preparePref = function() {
       this.system += '/index.html';
   }
 
-  // XXX Please remove 'browser.homescreenURL'.
-  // After gecko does not need it anymore.
-  // follow up bug 1014487
-  this.prefs['browser.homescreenURL'] = this.system;
   this.prefs['b2g.system_startup_url'] = this.system;
 
   this.domains = [this.config.GAIA_DOMAIN];

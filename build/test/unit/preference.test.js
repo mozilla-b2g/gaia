@@ -310,10 +310,8 @@ suite('preferences.js', function() {
       preferences.prefs = {};
       preferences.preparePref();
       assert.deepEqual(preferences.prefs, {
-        'browser.manifestURL': 'app://system/manifest.webapp',
         'b2g.system_manifest_url': 'app://system/manifest.webapp',
         'b2g.neterror.url': 'app://system/net_error.html',
-        'browser.homescreenURL': 'app://system/index.html',
         'b2g.system_startup_url': 'app://system/index.html',
         'network.http.max-connections-per-server': 15,
         'dom.mozInputMethod.enabled': true,
