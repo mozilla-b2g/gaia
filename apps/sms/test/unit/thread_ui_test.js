@@ -228,6 +228,9 @@ suite('thread_ui.js >', function() {
       container.innerHTML = '';
     });
     setup(function() {
+      this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
+      Navigation.isCurrentPanel.withArgs('thread').returns(true);
+
       // we don't have CSS so we must force the scroll here
       container.style.overflow = 'scroll';
       container.style.height = '50px';
@@ -260,8 +263,10 @@ suite('thread_ui.js >', function() {
       dispatchScrollEvent(container);
 
       assert.isFalse(ThreadUI.isScrolledManually);
-      assert.ok((container.scrollTop + container.clientHeight) ==
-                container.scrollHeight);
+      assert.equal(
+        container.scrollTop + container.clientHeight,
+        container.scrollHeight
+      );
     });
 
     suite('when a new message is received >', function() {
@@ -2569,6 +2574,72 @@ suite('thread_ui.js >', function() {
       this.sinon.clock.tick();
       assert.ok(MessageManager.markThreadRead.calledWith(1));
     });
+
+    test('infinite rendering test', function() {
+      var chunkSize = ThreadUI.CHUNK_SIZE;
+      var message;
+
+      for (var i = 1; i < chunkSize; i++) {
+        MessageManager.getMessages.yieldTo('each', MockMessages.sms({ id: i }));
+        message = document.getElementById('message-' + i);
+        assert.ok(
+          message.classList.contains('hidden'),
+          'message-' + i + ' should be hidden'
+        );
+      }
+
+      MessageManager.getMessages.yieldTo(
+        'each', MockMessages.sms({ id: i })
+      );
+
+      assert.isNull(
+        container.querySelector('.hidden'),
+        'all previously hidden messages should now be displayed'
+      );
+
+      MessageManager.getMessages.yieldTo(
+        'each', MockMessages.sms({ id: ++i })
+      );
+
+      message = document.getElementById('message-' + i);
+      assert.ok(
+        message.classList.contains('hidden'),
+        'message-' + i + ' should be hidden'
+      );
+    });
+
+    suite('scrolling behavior for first chunk', function() {
+      setup(function() {
+        this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
+        Navigation.isCurrentPanel.withArgs('thread').returns(true);
+
+        this.sinon.stub(HTMLElement.prototype, 'scrollIntoView');
+
+        for (var i = 1; i < ThreadUI.CHUNK_SIZE; i++) {
+          MessageManager.getMessages.yieldTo(
+            'each', MockMessages.sms({ id: i })
+          );
+        }
+      });
+
+      test('should scroll to the end', function() {
+        MessageManager.getMessages.yieldTo(
+          'each', MockMessages.sms({ id: ThreadUI.CHUNK_SIZE })
+        );
+
+        sinon.assert.called(HTMLElement.prototype.scrollIntoView);
+      });
+
+      test('should not scroll to the end if in the wrong panel', function() {
+        Navigation.isCurrentPanel.withArgs('thread').returns(false);
+
+        MessageManager.getMessages.yieldTo(
+          'each', MockMessages.sms({ id: ThreadUI.CHUNK_SIZE })
+        );
+
+        sinon.assert.notCalled(HTMLElement.prototype.scrollIntoView);
+      });
+    });
   });
 
   suite('deleting messages and threads', function() {
@@ -3899,6 +3970,51 @@ suite('thread_ui.js >', function() {
 
       assert.equal(viewSpy.callCount, 1);
       assert.ok(viewSpy.calledWith, { allowSave: true });
+    });
+
+    suite('after rendering a MMS', function() {
+      setup(function() {
+        this.sinon.spy(Attachment.prototype, 'render');
+        this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
+        Navigation.isCurrentPanel.withArgs('thread').returns(true);
+
+        this.sinon.stub(HTMLElement.prototype, 'scrollIntoView');
+
+        // fake content so that there is something to scroll
+        container.innerHTML = ThreadUI.tmpl.message.interpolate({
+          id: '1',
+          bodyHTML: 'test #1'
+        });
+
+        var inputArray = [{
+          name: 'imageTest.jpg',
+          blob: testImageBlob
+        }];
+        ThreadUI.createMmsContent(inputArray);
+      });
+
+      teardown(function() {
+        container.innerHTML = '';
+      });
+
+      test('should scroll when the view is scrolled to the bottom', function() {
+        ThreadUI.isScrolledManually = false;
+        Attachment.prototype.render.yield();
+        sinon.assert.called(HTMLElement.prototype.scrollIntoView);
+      });
+
+      test('should not scroll when the user scrolled up the view', function() {
+        ThreadUI.isScrolledManually = true;
+        Attachment.prototype.render.yield();
+        sinon.assert.notCalled(HTMLElement.prototype.scrollIntoView);
+      });
+
+      test('should not scroll if not in the right panel', function() {
+        Navigation.isCurrentPanel.withArgs('thread').returns(false);
+        ThreadUI.isScrolledManually = false;
+        Attachment.prototype.render.yield();
+        sinon.assert.notCalled(HTMLElement.prototype.scrollIntoView);
+      });
     });
   });
 

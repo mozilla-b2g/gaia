@@ -979,7 +979,9 @@ var ThreadUI = global.ThreadUI = {
   },
 
   scrollViewToBottom: function thui_scrollViewToBottom() {
-    if (!this.isScrolledManually && this.container.lastElementChild) {
+    if (!this.isScrolledManually &&
+        this.container.lastElementChild &&
+        Navigation.isCurrentPanel('thread')) {
       this.container.lastElementChild.scrollIntoView(false);
     }
   },
