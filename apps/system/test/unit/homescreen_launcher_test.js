@@ -234,6 +234,17 @@ suite('system/HomescreenLauncher', function() {
       window.homescreenLauncher._screen = null;
     });
 
+    test('homescreenclosed', function() {
+      window.homescreenLauncher._screen = document.createElement('div');
+      window.homescreenLauncher._screen.classList.add('on-homescreen');
+      window.homescreenLauncher.handleEvent({
+        type: 'homescreenclosed'
+      });
+      assert.ok(!window.homescreenLauncher._screen.classList.
+        contains('on-homescreen'));
+      window.homescreenLauncher._screen = null;
+    });
+
     suite('software-button-*; resize the homescreenwindow', function() {
       var isResizeCalled, stubGetHomescreen;
 

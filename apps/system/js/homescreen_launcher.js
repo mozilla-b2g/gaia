@@ -133,6 +133,7 @@
       window.addEventListener('shrinking-stop', this);
       window.addEventListener('homescreenopened', this);
       window.addEventListener('homescreenclosing', this);
+      window.addEventListener('homescreenclosed', this);
       window.addEventListener('software-button-enabled', this);
       window.addEventListener('software-button-disabled', this);
       return this;
@@ -163,6 +164,7 @@
       window.removeEventListener('shrinking-stop', this);
       window.removeEventListener('homescreenopened', this);
       window.removeEventListener('homescreenclosing', this);
+      window.removeEventListener('homescreenclosed', this);
       window.removeEventListener('software-button-enabled', this);
       window.removeEventListener('software-button-disabled', this);
       this._started = false;
@@ -223,6 +225,7 @@
           this._screen.classList.add('on-homescreen');
           break;
         case 'homescreenclosing':
+        case 'homescreenclosed':
           this._screen.classList.remove('on-homescreen');
           break;
         case 'software-button-enabled':
