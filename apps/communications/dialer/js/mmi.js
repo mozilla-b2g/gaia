@@ -30,6 +30,7 @@ var MmiManager = {
 
     var self = this;
     var lazyFiles = ['/shared/js/icc_helper.js',
+                     '/shared/style/input_areas.css',
                      '/shared/js/mobile_operator.js'];
     LazyLoader.load(lazyFiles, function resourcesLoaded() {
       window.addEventListener('message', self);
