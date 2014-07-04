@@ -1,7 +1,8 @@
 /* global
     Navigation,
     MocksHelper,
-    Promise
+    Promise,
+    TransitionEvent
  */
 
 'use strict';
@@ -213,6 +214,16 @@ suite('navigation >', function() {
       });
 
       test('isCurrentPanel is changed at the right time', function(done) {
+        var slidePromise = {
+          then: function lazyThen(ifResolved /*, ifRejected */) {
+            return Promise.resolve().then(function() {
+              assert.isFalse(Navigation.isCurrentPanel('panel3'));
+              assert.isFalse(Navigation.isCurrentPanel('panel4'));
+            }).then(ifResolved, done);
+          }
+        };
+        Navigation.slide.returns(slidePromise);
+
         var results = [];
 
         Panel3.beforeLeave = function() {
@@ -423,6 +434,58 @@ suite('navigation >', function() {
           Navigation.isCurrentPanel('panel1', { prop2: 'prop1' })
         );
       }).then(done, done);
+    });
+  });
+
+  suite('slide()', function() {
+    var wrapper;
+
+    setup(function() {
+      loadBodyHTML('/index.html');
+      wrapper = document.getElementById('main-wrapper'),
+      Navigation.init();
+    });
+
+    teardown(function() {
+      document.body.innerHTML = '';
+    });
+
+    function transitionendEvent() {
+      return new TransitionEvent('transitionend', {
+        bubbles: true,
+        propertyName: 'transform'
+      });
+    }
+
+    test('does not resolve the promise after 1 transitionend event',
+    function(done) {
+      var afterSlide = sinon.stub();
+      Navigation.slide('left').then(afterSlide);
+
+      wrapper.children[0].dispatchEvent(transitionendEvent());
+
+      Promise.resolve().then(function() {
+        sinon.assert.notCalled(afterSlide);
+      }).then(done, done);
+    });
+
+    test('resolve the promise after 2 transitionend events', function(done) {
+      var afterSlide = sinon.stub();
+      Navigation.slide('left').then(afterSlide).then(done, done);
+
+      wrapper.children[0].dispatchEvent(transitionendEvent());
+      wrapper.children[1].dispatchEvent(transitionendEvent());
+    });
+
+    test('the event listener is correctly removed', function() {
+      this.sinon.spy(wrapper, 'removeEventListener');
+
+      Navigation.slide('left');
+
+      wrapper.children[0].dispatchEvent(transitionendEvent());
+      wrapper.children[1].dispatchEvent(transitionendEvent());
+
+      sinon.assert.calledWith(wrapper.removeEventListener, 'transitionend');
     });
   });
 });
