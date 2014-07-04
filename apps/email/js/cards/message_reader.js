@@ -18,6 +18,7 @@ var MimeMapper,
     iframeShims = require('iframe_shims'),
     Marquee = require('marquee'),
     mozL10n = require('l10n!'),
+    queryURI = require('query_uri'),
 
     Cards = common.Cards,
     Toaster = common.Toaster,
@@ -645,7 +646,37 @@ MessageReaderCard.prototype = {
       { // Confirm
         id: 'msg-browse-ok',
         handler: function() {
-          window.open(linkUrl, '_blank', 'dialog');
+          if (/^mailto:/i.test(linkUrl)) {
+            // Fast path to compose. Works better than an activity, since
+            // "canceling" the activity has freaky consequences: what does it
+            // mean to cancel ourselves? What is the sound of one hand clapping?
+            var data = queryURI(linkUrl);
+            Cards.pushCard('compose', 'default', 'animate', {
+              composerData: {
+                onComposer: function(composer, composeCard) {
+                  // Copy the to, cc, bcc, subject, body to the compose.
+                  // It is OK to do this blind key copy since queryURI
+                  // explicitly only populates expected fields, does not blindly
+                  // accept input from the outside, and the queryURI properties
+                  // match the property names allowed on composer.
+                  Object.keys(data).forEach(function(key) {
+                    composer[key] = data[key];
+                  });
+                }
+              }
+            });
+          } else {
+            // Pop out to what is likely the browser, or the user's preferred
+            // viewer for the URL. This keeps the URL out of our cookie jar/data
+            // space too.
+            new MozActivity({
+              name: 'view',
+              data: {
+                type: 'url',
+                url: linkUrl
+              }
+            });
+          }
         }.bind(this)
       },
       { // Cancel
