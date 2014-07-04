@@ -89,7 +89,8 @@ function SystemDialog(id, options) {
     dialog.hidden = false;
     dialog.classList.add(id);
     SystemScreen.show(screenName);
-    updateHeight();
+    var keyboardHeight = KeyboardManager.getHeight();
+    updateHeight(keyboardHeight);
   }
 
   function hide(reason) {
