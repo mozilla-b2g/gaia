@@ -453,8 +453,11 @@ var ThreadUI = global.ThreadUI = {
       }
     } else {
       isHoldingBackspace = false;
-      // We dont let to add more characters if we reach the maximum
-      if (Compose.isSubjectMaxLength()) {
+      // Input char will be ignored when:
+      // - Reaching the maximum subjuect length. Any char input is not allowed
+      // - Return key(new line) input. Since new line won't work in subject
+      if (Compose.isSubjectMaxLength() ||
+          event.keyCode === event.DOM_VK_RETURN) {
         event.preventDefault();
         event.stopPropagation();
       }

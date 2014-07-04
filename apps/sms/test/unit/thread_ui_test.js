@@ -6,7 +6,7 @@
          MockContacts, ActivityHandler, Recipients, MockMozActivity,
          ThreadListUI, ContactRenderer, UIEvent, Drafts, OptionMenu,
          ActivityPicker, KeyEvent, MockNavigatorSettings, MockContactRenderer,
-         Draft, MockStickyHeader, MultiSimActionButton, Promise,
+         Draft, MockStickyHeader, MultiSimActionButton, Promise, KeyboardEvent,
          MockLazyLoader, WaitingScreen, Navigation, MockDialog
 */
 
@@ -1205,17 +1205,24 @@ suite('thread_ui.js >', function() {
 
 
     suite('Visibility', function() {
-      var event, backspace;
+      var downEvent, upEvent, backspace;
 
-      suiteSetup(function() {
-        event = {
-          keyCode: KeyEvent.DOM_VK_BACK_SPACE,
-          DOM_VK_BACK_SPACE: KeyEvent.DOM_VK_BACK_SPACE
-        };
+      setup(function() {
+        downEvent = new KeyboardEvent('keydown', {
+          bubbles: true,
+          cancelable: true,
+          keyCode: KeyEvent.DOM_VK_BACK_SPACE
+        });
+
+        upEvent = new KeyboardEvent('keyup', {
+          bubbles: true,
+          cancelable: true,
+          keyCode: KeyEvent.DOM_VK_BACK_SPACE
+        });
 
         backspace = function(id) {
-          ThreadUI.onSubjectKeydown(event);
-          ThreadUI.onSubjectKeyup(event);
+          subject.dispatchEvent(downEvent);
+          subject.dispatchEvent(upEvent);
         };
       });
 
@@ -1292,11 +1299,11 @@ suite('thread_ui.js >', function() {
 
         // 3. Simulate holding backspace on the subject field
         for (var i = 0; i < 5; i++) {
-          ThreadUI.onSubjectKeydown(event);
+          subject.dispatchEvent(downEvent);
         }
 
         // 4. This is the "release" from a holding state
-        ThreadUI.onSubjectKeyup(event);
+        subject.dispatchEvent(upEvent);
 
         // 5. Confirm that the state of the compose area not changed.
         assert.isTrue(Compose.isSubjectVisible);
@@ -1318,11 +1325,11 @@ suite('thread_ui.js >', function() {
 
         // 3. Simulate holding backspace on the subject field
         for (var i = 0; i < 5; i++) {
-          ThreadUI.onSubjectKeydown(event);
+          subject.dispatchEvent(downEvent);
         }
 
         // 4. This is the "release" from a holding state
-        ThreadUI.onSubjectKeyup(event);
+        subject.dispatchEvent(upEvent);
 
         // 5. To simulate the user "deleting" the subject,
         // set the value to an empty string.
@@ -1333,6 +1340,24 @@ suite('thread_ui.js >', function() {
 
         // 7. Confirm that the state of the compose area not changed.
         assert.isFalse(Compose.isSubjectVisible);
+      });
+    });
+
+    suite('Return key handling', function() {
+      var event;
+
+      test('Return key should be ignored at key down', function() {
+        event = new KeyboardEvent('keydown', {
+          bubbles: true,
+          cancelable: true,
+          keyCode: KeyEvent.DOM_VK_RETURN
+        });
+        this.sinon.spy(event, 'stopPropagation');
+
+        subject.dispatchEvent(event);
+
+        assert.ok(event.defaultPrevented);
+        sinon.assert.called(event.stopPropagation);
       });
     });
   });
