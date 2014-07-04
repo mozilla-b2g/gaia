@@ -1233,6 +1233,8 @@ suite('Utils', function() {
 });
 
 suite('getDisplayObject', function() {
+  MocksHelperForUtilsUnitTest.attachTestHelpers();
+
   var nativeMozL10n = navigator.mozL10n;
   setup(function() {
     navigator.mozL10n = MockL10n;
@@ -1362,6 +1364,8 @@ suite('getDisplayObject', function() {
 });
 
 suite('getContactDisplayInfo', function() {
+  MocksHelperForUtilsUnitTest.attachTestHelpers();
+
   var nativeMozL10n = navigator.mozL10n;
 
   setup(function() {
