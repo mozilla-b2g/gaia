@@ -1,7 +1,8 @@
 /*global mocha, MocksHelper, loadBodyHTML, MockL10n, ThreadListUI,
          MessageManager, WaitingScreen, Threads, Template, MockMessages,
          MockThreadList, MockTimeHeaders, Draft, Drafts, Thread, ThreadUI,
-         MockOptionMenu, Utils, Contacts, MockContact, Navigation, MockDialog
+         MockOptionMenu, Utils, Contacts, MockContact, Navigation, MockDialog,
+         MockSettings
          */
 
 'use strict';
@@ -34,6 +35,7 @@ requireApp('sms/test/unit/mock_action_menu.js');
 require('/shared/test/unit/mocks/mock_performance_testing_helper.js');
 require('/shared/test/unit/mocks/mock_sticky_header.js');
 require('/test/unit/mock_navigation.js');
+require('/test/unit/mock_settings.js');
 
 var mocksHelperForThreadListUI = new MocksHelper([
   'asyncStorage',
@@ -1103,7 +1105,7 @@ suite('thread_list_ui', function() {
     var node, pictureContainer;
 
     setup(function() {
-      this.sinon.stub(Contacts, 'findByPhoneNumber');
+      this.sinon.stub(Contacts, 'findByAddress');
       var thread = {
         id: 1,
         participants: ['555'],
@@ -1129,7 +1131,7 @@ suite('thread_list_ui', function() {
 
       var contactInfo = MockContact.list();
       contactInfo[0].photo = [new Blob(['test'], { type: 'image/jpeg' })];
-      Contacts.findByPhoneNumber.yield(contactInfo);
+      Contacts.findByAddress.yield(contactInfo);
 
       var photo = node.querySelector('span[data-type=img]');
       assert.include(photo.style.backgroundImage, 'blob:');
@@ -1140,7 +1142,57 @@ suite('thread_list_ui', function() {
 
     test('display correctly a contact without a picture', function() {
       var contactInfo = MockContact.list();
-      Contacts.findByPhoneNumber.yield(contactInfo);
+      Contacts.findByAddress.yield(contactInfo);
+
+      var photo = node.querySelector('span[data-type=img]');
+      assert.isFalse(photo.style.backgroundImage.contains('blob:'));
+      assert.isTrue(pictureContainer.classList.contains('empty'));
+    });
+  });
+
+  suite('[Email]setContact', function() {
+    var node, pictureContainer;
+
+    setup(function() {
+      this.sinon.stub(Contacts, 'findByAddress');
+      var thread = {
+        id: 1,
+        participants: ['a@b.com'],
+        lastMessageType: 'mms',
+        body: 'Hello a@b.com',
+        timestamp: Date.now(),
+        unreadCount: 0
+      };
+
+      Threads.set(1, thread);
+      node = ThreadListUI.createThread(thread);
+      pictureContainer = node.querySelector('.pack-end');
+
+      ThreadListUI.setContact(node);
+    });
+
+    teardown(function() {
+      ThreadListUI.container.textContent = '';
+    });
+
+    test('[Email]display the picture of a contact', function() {
+      MockSettings.supportEmailRecipient = true;
+      pictureContainer.classList.add('empty');
+
+      var contactInfo = MockContact.list();
+      contactInfo[0].photo = [new Blob(['test'], { type: 'image/jpeg' })];
+      Contacts.findByAddress.yield(contactInfo);
+
+      var photo = node.querySelector('span[data-type=img]');
+      assert.include(photo.style.backgroundImage, 'blob:');
+      assert.isFalse(pictureContainer.classList.contains('empty'));
+      assert.include(node.dataset.photoUrl, 'blob:');
+    });
+
+    test('[Email]display correctly a contact without a picture', function() {
+      MockSettings.supportEmailRecipient = true;
+      var contactInfo = MockContact.list();
+      Contacts.findByAddress.yield(contactInfo);
 
       var photo = node.querySelector('span[data-type=img]');
       assert.isFalse(photo.style.backgroundImage.contains('blob:'));

@@ -3608,12 +3608,14 @@ suite('thread_ui.js >', function() {
   });
 
   suite('updateCarrier', function() {
-    var contacts = [], number;
+    var contacts = [], number, email, detailsEmail;
     var carrierTag;
 
     suiteSetup(function() {
       contacts.push(new MockContact());
       number = contacts[0].tel[0].value;
+      email = contacts[0].email[0].value;
+      detailsEmail = Utils.getContactDetails(email, contacts);
     });
 
     setup(function() {
@@ -3684,6 +3686,26 @@ suite('thread_ui.js >', function() {
 
         assert.ok(carrierTag.querySelector('.has-phone-type'));
         assert.ok(carrierTag.querySelector('.has-phone-carrier'));
+      });
+
+      test(' If there is one participant (email) & contacts', function() {
+        MockSettings.supportEmailRecipient = true;
+        var thread = {
+          participants: [email]
+        };
+
+        ThreadUI.updateCarrier(thread, contacts, detailsEmail);
+        assert.isTrue(threadMessages.classList.contains('has-carrier'));
+      });
+
+      test(' If there is one participant (email) & no contacts', function() {
+        MockSettings.supportEmailRecipient = true;
+        var thread = {
+          participants: [email]
+        };
+
+        ThreadUI.updateCarrier(thread, [], detailsEmail);
+        assert.isFalse(threadMessages.classList.contains('has-carrier'));
       });
     });
   });
@@ -4199,6 +4221,55 @@ suite('thread_ui.js >', function() {
             assert.equal(calls[0].items.length, 4);
             assert.equal(typeof calls[0].complete, 'function');
           });
+
+          test('Known recipient email', function() {
+            MockSettings.supportEmailRecipient = true;
+            this.sinon.spy(ContactRenderer.prototype, 'render');
+
+            Threads.set(1, {
+              participants: ['a@b.com']
+            });
+
+            headerText.dataset.isContact = true;
+            headerText.dataset.number = 'a@b.com';
+
+            ThreadUI.onHeaderActivation();
+
+            var calls = MockOptionMenu.calls;
+
+            assert.equal(calls.length, 1);
+
+            // contacts do not show up in the body
+            assert.isUndefined(calls[0].section);
+
+            // contacts show up in the header
+            sinon.assert.calledWithMatch(ContactRenderer.prototype.render, {
+              target: calls[0].header
+            });
+
+            assert.equal(calls[0].items.length, 3);
+            assert.equal(typeof calls[0].complete, 'function');
+          });
+
+          test('Unknown recipient email', function() {
+            MockSettings.supportEmailRecipient = true;
+
+            Threads.set(1, {
+              participants: ['a@b']
+            });
+
+            headerText.dataset.isContact = false;
+            headerText.dataset.number = 'a@b';
+
+            ThreadUI.onHeaderActivation();
+
+            var calls = MockOptionMenu.calls;
+
+            assert.equal(calls.length, 1);
+            assert.equal(calls[0].header, 'a@b');
+            assert.equal(calls[0].items.length, 4);
+            assert.equal(typeof calls[0].complete, 'function');
+          });
         });
       });
 
@@ -4306,7 +4377,7 @@ suite('thread_ui.js >', function() {
           });
 
           this.sinon.stub(
-            MockContacts, 'findByPhoneNumber', function(phone, fn) {
+            MockContacts, 'findByAddress', function(phone, fn) {
 
             fn([new MockContact()]);
 
@@ -4323,7 +4394,7 @@ suite('thread_ui.js >', function() {
           });
 
           this.sinon.stub(
-            MockContacts, 'findByPhoneNumber', function(phone, fn) {
+            MockContacts, 'findByAddress', function(phone, fn) {
 
             fn([new MockContact()]);
 
