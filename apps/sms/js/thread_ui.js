@@ -1324,13 +1324,17 @@ var ThreadUI = global.ThreadUI = {
     var threadMessages = this.threadMessages;
     var number = thread.participants[0];
     var phoneDetails;
+    var address;
 
     // The carrier banner is meaningless and confusing in
     // group message mode.
     if (thread.participants.length === 1 &&
         (contacts && contacts.length)) {
 
-      phoneDetails = Utils.getPhoneDetails(number, contacts[0].tel);
+      address = Settings.supportEmailRecipient && Utils.isEmailAddress(number) ?
+                contacts[0].email : contacts[0].tel;
+
+      phoneDetails = Utils.getPhoneDetails(number, address);
 
       if (phoneDetails) {
         carrierTag.innerHTML = SharedComponents.phoneDetails(phoneDetails);
@@ -1376,7 +1380,7 @@ var ThreadUI = global.ThreadUI = {
     this.headerText.dataset.number = number;
 
     return new Promise(function(resolve, reject) {
-      Contacts.findByPhoneNumber(number, function gotContact(contacts) {
+      Contacts.findByAddress(number, function gotContact(contacts) {
         // For the basic display, we only need the first contact's information
         // e.g. for 3 contacts, the app displays:
         //

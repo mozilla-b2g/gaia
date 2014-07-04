@@ -3608,12 +3608,14 @@ suite('thread_ui.js >', function() {
   });
 
   suite('updateCarrier', function() {
-    var contacts = [], number;
+    var contacts = [], number, email, detailsEmail;
     var carrierTag;
 
     suiteSetup(function() {
       contacts.push(new MockContact());
       number = contacts[0].tel[0].value;
+      email = contacts[0].email[0].value;
+      detailsEmail = Utils.getContactDetails(email, contacts);
     });
 
     setup(function() {
@@ -3684,6 +3686,26 @@ suite('thread_ui.js >', function() {
 
         assert.ok(carrierTag.querySelector('.has-phone-type'));
         assert.ok(carrierTag.querySelector('.has-phone-carrier'));
+      });
+
+      test(' If there is one participant (email) & contacts', function() {
+        MockSettings.supportEmailRecipient = true;
+        var thread = {
+          participants: [email]
+        };
+
+        ThreadUI.updateCarrier(thread, contacts, detailsEmail);
+        assert.isTrue(threadMessages.classList.contains('has-carrier'));
+      });
+
+      test(' If there is one participant (email) & no contacts', function() {
+        MockSettings.supportEmailRecipient = true;
+        var thread = {
+          participants: [email]
+        };
+
+        ThreadUI.updateCarrier(thread, [], detailsEmail);
+        assert.isFalse(threadMessages.classList.contains('has-carrier'));
       });
     });
   });
@@ -4306,7 +4328,7 @@ suite('thread_ui.js >', function() {
           });
 
           this.sinon.stub(
-            MockContacts, 'findByPhoneNumber', function(phone, fn) {
+            MockContacts, 'findByAddress', function(phone, fn) {
 
             fn([new MockContact()]);
 
@@ -4323,7 +4345,7 @@ suite('thread_ui.js >', function() {
           });
 
           this.sinon.stub(
-            MockContacts, 'findByPhoneNumber', function(phone, fn) {
+            MockContacts, 'findByAddress', function(phone, fn) {
 
             fn([new MockContact()]);
 
