@@ -21,7 +21,7 @@
     this._deviceLockedTimer = 0;
     this.overlayEvents = [
       'lockscreen-appopened',
-      'lockscreen-appclosing',
+      'lockscreen-request-unlock',
       'attentionscreenshow',
       'attentionscreenhide',
       'status-active',
@@ -72,7 +72,10 @@
         }
         this._resetDeviceLockedTimer();
         break;
-      case 'lockscreen-appclosing':
+      case 'lockscreen-request-unlock':
+        if (evt.detail && evt.detail.activity) {
+          return;
+        }
         if (!AttentionScreen.isFullyVisible()) {
           this.publish('showwindow', { type: evt.type });
         }
