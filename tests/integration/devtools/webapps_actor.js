@@ -24,6 +24,9 @@ marionette('Dev Tools server', function() {
   setup(function() {
     var system = new System(contentClient);
     system.waitForStartup();
+  });
+
+  test('devtools are turned on', function () {
     var remoteMode = client.settings.get('debugger.remote-mode');
     assert.equal(remoteMode, 'adb-devtools', 'Remote mode setting verified');
   });
@@ -32,12 +35,15 @@ marionette('Dev Tools server', function() {
     // Initalize gecko code and register gecko tests
     // (This is just a workaround to be able to execute assertions
     // from a code executed within gecko)
-    client.executeAsyncScript('' + fs.readFileSync('./tests/integration/devtools/actor_helper.js'));
+    var testPath = './tests/integration/devtools/actor_helper.js';
+    var testSources = fs.readFileSync(testPath, {encoding:'utf8'});
+    client.executeAsyncScript(testSources);
     while(true) {
       // Run next test
       var r = client.executeAsyncScript('nextTest(marionetteScriptFinished);');
-      if (r == 'done')
+      if (r === 'done') {
         break;
+      }
       r.forEach(function (a, j) {
         assert[a[0]].apply(assert, a.slice(1));
       });
