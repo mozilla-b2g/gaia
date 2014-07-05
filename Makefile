@@ -763,6 +763,7 @@ test-integration: clean $(PROFILE_FOLDER) test-integration-test
 .PHONY: test-integration-test
 test-integration-test:
 	./bin/gaia-marionette \
+		--verbose \
 		--host $(MARIONETTE_RUNNER_HOST) \
 		--manifest $(TEST_MANIFEST) \
 		--reporter $(REPORTER)
