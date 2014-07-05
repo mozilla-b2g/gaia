@@ -180,6 +180,11 @@
       if (elClicked) {
         for (var elParent = elClicked.parentNode; elParent;
                                               elParent = elParent.parentNode) {
+          // XXX: Gaia workaround after homescreen becomes in process
+          // Refer to Bug 1019156 for detail discussion
+          if (elParent.dataset && elParent.dataset.source === 'history') {
+            elParent.click();
+          }
           if (elParent.classList && elParent.classList.contains('evme-apps')) {
             didClickApp = true;
             break;
