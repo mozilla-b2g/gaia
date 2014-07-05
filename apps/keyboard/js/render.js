@@ -288,11 +288,18 @@ const IMERender = (function() {
           });
         }
 
+        if (key.longPressValue) {
+          var longPressKeyCode = key.longPressKeyCode ||
+            key.longPressValue.charCodeAt(0);
+          dataset.push({'key': 'longPressValue', 'value': key.longPressValue });
+          dataset.push({'key': 'longPressKeyCode', 'value': longPressKeyCode });
+        }
+
         dataset.push({'key': 'lowercaseValue', 'value': keyChar });
         dataset.push({'key': 'uppercaseValue', 'value': upperCaseKeyChar });
 
         kbRow.appendChild(buildKey(outputChar, className, keyWidth + 'px',
-          dataset, key.altNote, attributeList));
+          dataset, key.longPressValue, attributeList));
       }));
 
       kbRow.dataset.layoutWidth = rowLayoutWidth;

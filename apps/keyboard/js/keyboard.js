@@ -506,26 +506,15 @@ function setLongPressTimeout(press, id) {
       return;
 
     var target = press.target;
-    // The telLayout and numberLayout do not show an alternative key
-    // menu, instead they send the alternative key and ignore the endPress.
-    var currentInputType = fakeAppObject.getBasicInputType();
-    if (currentInputType === 'number' || currentInputType === 'tel') {
 
-      // Does the key have an altKey?
-      var keyChar = target.dataset.lowercaseValue;
-      var altKeys = layoutManager.currentModifiedLayout.alt[keyChar] || null;
-
-      if (!altKeys)
-        return;
-
+    // Does the key have an long press value?
+    if (target.dataset.longPressValue) {
       // Attach a dataset property that will be used to ignore
       // keypress in endPress
       target.dataset.ignoreEndPress = true;
 
-      var keyCode = altKeys[0].charCodeAt(0);
+      var keyCode = parseInt(target.dataset.longPressKeyCode, 10);
       sendKey(keyCode);
-
-      return;
     }
 
     handleLongPress(target, id);
