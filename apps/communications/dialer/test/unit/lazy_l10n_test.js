@@ -132,5 +132,23 @@ suite('LazyL10n', function() {
       window.dispatchEvent(evtObject);
     });
 
+    test('should invoke all callbacks queued up during initialization',
+    function(done) {
+      var foo = this.sinon.stub();
+      var callback = function() {
+        done(function checks() {
+          sinon.assert.calledTwice(foo);
+        });
+      };
+
+      LazyL10n.get(foo);
+      LazyL10n.get(foo);
+      LazyL10n.get(callback);
+
+      var evtObject = document.createEvent('Event');
+      evtObject.initEvent('localized', false, false);
+      window.dispatchEvent(evtObject);
+    });
+
   });
 });
