@@ -176,7 +176,7 @@ suite('Latin suggestions', function() {
     });
   });
 
-  test('dismissSuggestions hides suggestions and inserts space', function() {
+  test('dismissSuggestions hides suggestions', function() {
     im.dismissSuggestions();
 
     // Send candidates should be called once with an empty array
@@ -184,9 +184,8 @@ suite('Latin suggestions', function() {
     sinon.assert.callCount(imSettings.sendCandidates, 1);
     sinon.assert.calledWith(imSettings.sendCandidates, []);
 
-    // Also, a space should be inserted
-    sinon.assert.callCount(imSettings.sendKey, 1);
-    sinon.assert.calledWith(imSettings.sendKey, 32);
+    // Also, a space should not be inserted
+    sinon.assert.callCount(imSettings.sendKey, 0);
   });
 
   suite('handleSuggestions', function() {
