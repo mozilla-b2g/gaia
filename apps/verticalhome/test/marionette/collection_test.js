@@ -166,7 +166,7 @@ marionette('Vertical - Collection', function() {
 
     assert.equal(numDividers, 0, 'there are no dividers');
 
-    collection.pin(selectors.firstWebResultNoPinned);
+    collection.pin(collection.firstWebResult);
 
     // Wait until a new section is created.
     client.waitFor(function() {
@@ -180,9 +180,9 @@ marionette('Vertical - Collection', function() {
 
     // Compare the position of the first pinned icon to the first web result.
     // The pinned icon should be higher than the web result.
-    var firstWebPosition = client.findElement(selectors.firstWebResultPinned)
+    var firstWebPosition = collection.firstWebResult
       .location();
-    var firstPinnedPosition = client.findElement(selectors.firstPinnedResult)
+    var firstPinnedPosition = collection.firstPinnedResult
       .location();
     assert.equal(firstWebPosition.x, firstPinnedPosition.x,
       'items are on the same x-axis');
@@ -209,7 +209,7 @@ marionette('Vertical - Collection', function() {
     var numDividers = client.findElements(selectors.allDividers).length;
 
     // Pin the first icon
-    collection.pin(selectors.firstWebResultNoPinned);
+    collection.pin(collection.firstWebResult);
 
     // Wait until a new section is created for the pinned result
     client.waitFor(function() {
@@ -218,7 +218,7 @@ marionette('Vertical - Collection', function() {
     });
 
     // Bookmark the first unpinned icon
-    collection.bookmark(bookmark, selectors.firstWebResultPinned);
+    collection.bookmark(bookmark, collection.firstWebResult);
 
     // Get back to the home screen
     client.switchToFrame();
@@ -263,8 +263,8 @@ marionette('Vertical - Collection', function() {
     collection.enterCollection(
       collection.getCollectionByName(collectionName));
 
-    collection.pin(selectors.firstWebResultNoPinned);
-    collection.pin(selectors.firstWebResultPinned);
+    collection.pin(collection.firstWebResult);
+    collection.pin(collection.firstWebResult);
 
     // This identifier matches up to an item in categories_list.json
     var secondIdentifier = 'http://mozilla2.org/firefox';
@@ -272,8 +272,7 @@ marionette('Vertical - Collection', function() {
       '.icon[data-identifier="' + secondIdentifier + '"]');
     var secondLocation = secondPinned.location().x;
 
-    var firstPinned = client.helper.waitForElement(
-      selectors.firstPinnedResult);
+    var firstPinned = collection.firstPinnedResult;
 
     actions
       .press(firstPinned)
@@ -332,8 +331,7 @@ marionette('Vertical - Collection', function() {
     // Enter the created collection.
     collection.enterCollection(collectionIcon);
 
-    var firstPinnedIcon = client.findElement(selectors.firstPinnedResult);
-    assert.equal(firstPinnedIcon.text(),
+    assert.equal(collection.firstPinnedResult.text(),
       home.localizedAppName('communications', 'dialer', 'en-US'));
   });
 });
