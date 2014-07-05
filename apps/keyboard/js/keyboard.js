@@ -220,6 +220,9 @@ var feedbackManager =
   fakeAppObject.feedbackManager = new FeedbackManager(fakeAppObject);
 feedbackManager.start();
 
+var visualHighlightManager = new VisualHighlightManager(fakeAppObject);
+visualHighlightManager.start();
+
 // User settings (in Settings database) are tracked within these modules
 var imEngineSettings;
 
@@ -573,10 +576,7 @@ function startPress(press, id) {
 
   // Feedback
   feedbackManager.triggerFeedback(press.target);
-  IMERender.highlightKey(press.target, {
-    isUpperCase: isUpperCase,
-    isUpperCaseLocked: isUpperCaseLocked
-  });
+  visualHighlightManager.show(press.target);
 
   setLongPressTimeout(press, id);
 
@@ -618,16 +618,13 @@ function movePress(press, id) {
     return;
 
   // Update highlight: remove from older
-  IMERender.unHighlightKey(oldTarget);
+  visualHighlightManager.hide(oldTarget);
 
   var keyCode = getKeyCodeFromTarget(target);
 
   // Update highlight: add to the new (Ignore if moving over delete key)
   if (keyCode != KeyEvent.DOM_VK_BACK_SPACE) {
-    IMERender.highlightKey(target, {
-      isUpperCase: isUpperCase,
-      isUpperCaseLocked: isUpperCaseLocked
-    });
+    visualHighlightManager.show(target);
   }
 
   activeTargets.set(id, target);
@@ -687,11 +684,11 @@ function endPress(press, id) {
       }
     }
 
-    IMERender.unHighlightKey(target);
+    visualHighlightManager.hide(target);
     return;
   }
 
-  IMERender.unHighlightKey(target);
+  visualHighlightManager.hide(target);
 
   // The alternate keys of telLayout and numberLayout do not
   // trigger keypress on key release.
@@ -1121,7 +1118,7 @@ function isGreekSMS() {
 // touchend is fired.
 function clearTouchedKeys() {
   activeTargets.forEach(function cleanPress(el, id) {
-    IMERender.unHighlightKey(el);
+    visualHighlightManager.hide(el);
   });
 
   alternativesCharMenuManager.hide();

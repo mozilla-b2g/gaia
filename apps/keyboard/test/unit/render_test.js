@@ -676,10 +676,7 @@ suite('Renderer', function() {
     test('Highlight a key with uppercase', function() {
       var key = document.createElement('div');
 
-      IMERender.highlightKey(key, {
-        isUpperCase: true,
-        isUpperCaseLocked: false
-      });
+      IMERender.highlightKey(key, { showUpperCase: true });
 
       assert.isTrue(key.classList.contains('highlighted'));
       assert.isFalse(key.classList.contains('lowercase'));
@@ -688,25 +685,10 @@ suite('Renderer', function() {
     test('Highlight a key with lowercase', function() {
       var key = document.createElement('div');
 
-      IMERender.highlightKey(key, {
-        isUpperCase: false,
-        isUpperCaseLocked: false
-      });
+      IMERender.highlightKey(key, { showUpperCase: false });
 
       assert.isTrue(key.classList.contains('highlighted'));
       assert.isTrue(key.classList.contains('lowercase'));
-    });
-
-    test('Highlight a key with capslock', function() {
-      var key = document.createElement('div');
-
-      IMERender.highlightKey(key, {
-        isUpperCase: false,
-        isUpperCaseLocked: true
-      });
-
-      assert.isTrue(key.classList.contains('highlighted'));
-      assert.isFalse(key.classList.contains('lowercase'));
     });
   });
 });

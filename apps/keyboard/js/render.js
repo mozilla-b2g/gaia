@@ -328,11 +328,12 @@ const IMERender = (function() {
 
   // Highlight the key according to the case.
   var highlightKey = function kr_updateKeyHighlight(key, options) {
+    options = options || {};
+
     key.classList.add('highlighted');
 
     // Show lowercase pop.
-    if (options &&
-        (!options.isUpperCase && !options.isUpperCaseLocked)) {
+    if (!options.showUpperCase) {
       key.classList.add('lowercase');
     }
   };
