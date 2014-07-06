@@ -101,7 +101,7 @@ marionette('Music player tests', function() {
 
       // We want to wait a few seconds while the music app is in the background.
       controls.launch();
-      client.helper.wait(dt * 1000); // Convert to ms
+      //client.helper.wait(dt * 1000); // Convert to ms
       controls.playPause();
       controls.close();
 
