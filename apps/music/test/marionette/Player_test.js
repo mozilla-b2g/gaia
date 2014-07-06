@@ -109,6 +109,7 @@ marionette('Music player tests', function() {
       // the foreground.
       music.launch();
       var t1 = music.songProgress;
+      console.log('t1: ' + t1 + ', t0: ' + t0);
       assert(t1 - t0 > dt * 0.9, 'Progress bar not updated!');
     });
   });
