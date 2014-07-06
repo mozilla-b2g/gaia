@@ -177,3 +177,9 @@ body.hidden *[data-l10n-id] {
 .hide {
   display: none;
 }
+
+/* RTL View */
+
+html[dir=rtl] #clock-day-date {
+  margin: 2.6rem 1.5rem 0px 0px;
+}
