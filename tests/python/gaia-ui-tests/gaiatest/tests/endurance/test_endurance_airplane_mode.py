@@ -28,7 +28,7 @@ class TestEnduranceAirplaneMode(GaiaEnduranceTestCase):
         self.data_layer.connect_to_wifi(self.testvars['wifi'])
 
     def test_endurance_airplane_mode(self):
-        self.drive(test=self.airplane_mode, app='homescreen')
+        self.drive(test=self.airplane_mode, app='home screen')
 
     def airplane_mode(self):
         # Verify airplane mode icon NOT displayed

@@ -11,7 +11,7 @@ from gaiatest.apps.base import PageRegion
 
 class Homescreen(Base):
 
-    name = 'Homescreen'
+    name = 'Home screen'
 
     _homescreen_icon_locator = (By.CSS_SELECTOR, 'gaia-grid .icon')
     _homescreen_all_icons_locator = (By.CSS_SELECTOR, 'gaia-grid .icon:not(.placeholder)')

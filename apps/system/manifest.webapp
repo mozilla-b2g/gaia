@@ -108,7 +108,7 @@
       }
     },
     "change-appearance-statusbar": {
-      "description": "Homescreens change statusbar appearance",
+      "description": "Home screens change statusbar appearance",
       "rules": {}
     }
   },
