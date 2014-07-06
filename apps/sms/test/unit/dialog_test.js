@@ -349,17 +349,17 @@ suite('Dialog', function() {
       dialog.show();
 
       var opt = dialogSpy.firstCall.args[1];
-      assert.equal(opt.title.l10nId,
-                  'nonActiveSimTitle');
-      assert.equal(opt.body.l10nId,
-                  'nonActiveSimBody');
+      assert.equal(opt.title.l10nId, 'switchSimToRetrieveTitle');
+      assert.equal(opt.body.l10nId, 'switchSimToRetrieveBody');
       assert.deepEqual(opt.body.l10nArgs,
       {
-        active: 'SIM 1',
-        nonactive: 'SIM 2'
+        activeSimId: '1',
+        nonActiveSimId: '2'
       });
-      assert.equal(opt.options.confirm.text.l10nId,
-                  'nonActiveSimConfirm');
+      assert.equal(
+        opt.options.confirm.text.l10nId,
+        'switchSimToRetrieveConfirm'
+      );
       assert.equal(opt.options.confirm.method, handler);
     });
 
@@ -373,17 +373,14 @@ suite('Dialog', function() {
       dialog.show();
 
       var opt = dialogSpy.firstCall.args[1];
-      assert.equal(opt.title.l10nId,
-                  'nonActiveSimToSendTitle');
-      assert.equal(opt.body.l10nId,
-                  'nonActiveSimToSendBody');
+      assert.equal(opt.title.l10nId, 'switchSimToSendTitle');
+      assert.equal(opt.body.l10nId, 'switchSimToSendBody');
       assert.deepEqual(opt.body.l10nArgs,
       {
-        active: 'SIM 1',
-        nonactive: 'SIM 2'
+        activeSimId: '1',
+        nonActiveSimId: '2'
       });
-      assert.equal(opt.options.confirm.text.l10nId,
-                  'nonActiveSimToSendConfirm');
+      assert.equal(opt.options.confirm.text.l10nId, 'switchSimToSendConfirm');
       assert.equal(opt.options.confirm.method, handler);
     });
 
