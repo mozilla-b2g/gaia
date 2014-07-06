@@ -96,7 +96,6 @@ marionette('Music player tests', function() {
       music.switchToSongsView();
       music.playFirstSong();
 
-      var t0 = music.songProgress;
       var dt = 5.0;
 
       // We want to wait a few seconds while the music app is in the background.
@@ -105,11 +104,15 @@ marionette('Music player tests', function() {
       controls.playPause();
       controls.close();
 
+      // Try to get the songProgress when the music is still in the background
+      music.switchToMe({background: true});
+      var t0 = music.songProgress;
+
       // Make sure the progress bar got updated when the music app is brought to
       // the foreground.
       music.launch();
       var t1 = music.songProgress;
-      assert(t1 - t0 > dt * 0.9, 'Progress bar not updated!');
+      assert(t1 - t0 > 0, 'Progress bar not updated!');
     });
   });
 });
