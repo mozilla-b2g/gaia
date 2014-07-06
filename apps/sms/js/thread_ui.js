@@ -7,7 +7,9 @@
          Attachment, WaitingScreen, MozActivity, LinkActionHandler,
          ActivityHandler, TimeHeaders, ContactRenderer, Draft, Drafts,
          Thread, MultiSimActionButton, LazyLoader, Navigation, Promise,
-         Dialog, SharedComponents */
+         Dialog, SharedComponents,
+         Errors
+*/
 /*exported ThreadUI */
 
 (function(global) {
@@ -2420,8 +2422,8 @@ var ThreadUI = global.ThreadUI = {
     this.showMessageError(errorName, opts);
   },
 
-  showMessageError: function thui_showMessageOnError(errorName, opts) {
-    var dialog = new ErrorDialog(errorName, opts);
+  showMessageError: function thui_showMessageOnError(errorCode, opts) {
+    var dialog = new ErrorDialog(Errors.get(errorCode), opts);
     dialog.show();
   },
 
@@ -2489,7 +2491,7 @@ var ThreadUI = global.ThreadUI = {
               this.retrieveMMS.bind(this, messageDOM))
             .catch(function(err) {
                 err && console.error(
-                  'Unexpected error while resending the MMS message', err);
+                  'Unexpected error while retrieving the MMS message', err);
             });
           }.bind(this)
         });
