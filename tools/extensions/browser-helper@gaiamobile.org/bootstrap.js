@@ -16,7 +16,8 @@ function debug(data) {
 function initResponsiveDesign(browserWindow) {
   // Inject custom controls in responsive view
   Cu.import('resource:///modules/devtools/responsivedesign.jsm');
-  ResponsiveUIManager.once('on', function(event, tab, responsive) {
+  ResponsiveUIManager.once('on', function(event, {tab:tab}) {
+    let responsive = tab.__responsiveUI;
     let document = tab.ownerDocument;
 
     browserWindow.shell = {
