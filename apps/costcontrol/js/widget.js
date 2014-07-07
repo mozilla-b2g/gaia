@@ -214,9 +214,8 @@ var Widget = (function() {
   }
 
   // USER INTERFACE
-
   // Reuse fte panel to display errors
-  function _showSimError(status) {
+  function _showSimError(status, updateTextOnly) {
     // Wait to l10n resources are ready
     navigator.mozL10n.ready(function showErrorStatus() {
       var widget = document.getElementById('cost-control');
@@ -224,11 +223,12 @@ var Widget = (function() {
       var leftPanel = document.getElementById('left-panel');
       var rightPanel = document.getElementById('right-panel');
 
-      widget.setAttribute('aria-hidden', false);
-      fte.setAttribute('aria-hidden', false);
-      leftPanel.setAttribute('aria-hidden', true);
-      rightPanel.setAttribute('aria-hidden', true);
-
+      if (!updateTextOnly) {
+        widget.setAttribute('aria-hidden', false);
+        fte.setAttribute('aria-hidden', false);
+        leftPanel.setAttribute('aria-hidden', true);
+        rightPanel.setAttribute('aria-hidden', true);
+      }
       var className = 'widget-' + status;
       document.getElementById('fte-icon').classList.add(className);
       Common.localize(fte.querySelector('p:first-child'), className +
@@ -496,6 +496,9 @@ var Widget = (function() {
         if (state === 'enabled') {
           waitForIccAndCheckSim();
           Widget.showSimError('airplane-mode');
+        } else if (isWaitingForIcc) {
+          var updateTextOnly = true;
+          Widget.showSimError('no-sim2', updateTextOnly);
         }
       }
     );
