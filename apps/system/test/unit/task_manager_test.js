@@ -671,6 +671,38 @@ suite('system/TaskManager >', function() {
       taskManager.isRocketbar = false;
       taskManager.show();
     });
+
+    suite('display empty cardsview >', function() {
+      setup(function(done) {
+        assert.isFalse(taskManager.isShown(), 'taskManager isnt showing yet');
+        waitForEvent(window, 'cardviewshown')
+          .then(function() { done(); }, failOnReject);
+        taskManager.show();
+      });
+
+      test('on touchstart, empty cardsview is closed and back to home screen',
+      function(done) {
+        var events = [];
+        assert.isTrue(cardsView.classList.contains('empty'));
+        assert.isTrue(cardsView.classList.contains('active'));
+        assert.isTrue(taskManager.isShown());
+
+        waitForEvent(window, 'cardviewclosedhome').then(function(){
+          events.push('cardviewclosedhome');
+        }, failOnReject).then(function() {
+          assert.equal(events.length, 1, 'sanity check, only 1 event received');
+          assert.equal(events[0],
+                      'cardviewclosedhome',
+                      'cardviewclosedhome event raised when touch starts');
+          assert.isFalse(cardsView.classList.contains('active'));
+          assert.isFalse(taskManager.isShown());
+          done();
+        }, failOnReject);
+
+        cardsView.dispatchEvent(
+          createTouchEvent('touchstart', cardsView, 100, 100));
+      });
+    });
   });
 
   suite('hide > ', function() {
