@@ -46,6 +46,22 @@ class Wifi(Base):
             password_input.send_keys(password)
             ok_button.tap()
 
+        self._wait_until_connected()
+
+    def connect_to_first_opened_network(self):
+        opened_networks_locator = (By.CSS_SELECTOR, "li aside:not(.secured)")
+        opened_networks_ssid_locator = (opened_networks_locator[0], "%s ~ a" % opened_networks_locator[1])
+
+        self.wait_for_element_present(*opened_networks_locator)
+        first_opened_network = self.marionette.find_elements(*opened_networks_locator)[0]
+        first_opened_network_ssid = self.marionette.find_elements(*opened_networks_ssid_locator)[0]
+
+        first_opened_network.tap()
+        self._wait_until_connected()
+
+        return first_opened_network_ssid.text
+
+    def _wait_until_connected(self):
         timeout = max(self.marionette.timeout and self.marionette.timeout / 1000, 60)
         Wait(self.marionette, timeout, ignored_exceptions=StaleElementException).until(
             lambda m: m.find_element(*self._connected_message_locator).text == "Connected")
