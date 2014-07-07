@@ -15,7 +15,8 @@ var FxaModuleUI = {
       'fxa-module-back',
       'fxa-module-next',
       'fxa-module-navigation',
-      'fxa-module-done'
+      'fxa-module-done',
+      'fxa-progress'
     );
 
     this.fxaModuleClose.addEventListener('click', function() {
@@ -45,6 +46,8 @@ var FxaModuleUI = {
   loadScreen: function(params) {
     var currentScreen = document.querySelector('.current');
     var nextScreen = params.panel;
+    // Set progress width
+    this.fxaProgress.style.width = (100 / this.maxSteps) + '%';
     // Lazy load current panel
     LazyLoader.load(nextScreen, function() {
       // If the panel contains any new script elements,
@@ -67,7 +70,7 @@ var FxaModuleUI = {
             this.fxaModuleNavigation.classList.add('navigation-done');
           }
         }
-        this.progress(100 * params.count / this.maxSteps);
+        this.setProgressBar(params.count);
 
         navigator.mozL10n.once(function() {
           // NOTE: order matters inside this callback.
@@ -130,8 +133,9 @@ var FxaModuleUI = {
     elem.classList.contains('rightToCurrent') ||
     elem.classList.contains('leftToCurrent') || false;
   },
-  progress: function(value) {
-    document.querySelector('#fxa-progress').value = value;
+  setProgressBar: function(value) {
+    this.fxaProgress.value = 100 * value / this.maxSteps;
+    this.fxaProgress.style.transform = 'translateX(' + 100 * (value - 1) + '%)';
   },
   setNextText: function(l10n) {
     this.fxaModuleNext.textContent = l10n;

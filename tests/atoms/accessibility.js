@@ -12,13 +12,25 @@ var Accessibility = {
 
   _getAccessible:
     function Accessibility__getAccessible(element, callback, once) {
+    let attempts = 500;
+    let intervalId = setInterval(() => {
       let acc = this._accRetrieval.getAccessibleFor(element);
-      if (acc || once) {
-        callback(acc);
-      } else {
-        setTimeout(this._getAccessible.bind(this), 10, element, callback);
+      if (acc || --attempts <= 0 || once) {
+        clearInterval(intervalId);
+        if (attempts <= 0) {
+          let tagName = element ? element.tagName : undefined;
+          let elemId = element ? element.id : undefined;
+          console.log('accessibility.js: failed to get accessible for tag="' +
+            tagName + '" id="' + elemId + '"');
+        }
+        try {
+          callback(acc);
+        } catch (e) {
+          marionetteScriptFinished({ error: e.message });
+        }
       }
-    },
+    }, 10);
+  },
 
   _matchState: function Accessibility__matchState(acc, stateName) {
     let stateToMatch = SpecialPowers.wrap(
@@ -51,7 +63,8 @@ var Accessibility = {
 
   isDisabled: function Accessibility_isDisabled(element) {
     this._getAccessible(element.wrappedJSObject, (acc) => {
-      marionetteScriptFinished(this._matchState(acc, 'STATE_UNAVAILABLE'));
+      marionetteScriptFinished(
+        { result: this._matchState(acc, 'STATE_UNAVAILABLE') });
     });
   },
 
@@ -67,40 +80,43 @@ var Accessibility = {
   isHidden: function Accessibility_isHidden(element) {
     let elem = element.wrappedJSObject;
     if (this._isAriaHidden(elem)) {
-      marionetteScriptFinished(true);
+      marionetteScriptFinished({ result: true });
       return;
     }
 
     this._getAccessible(elem, (acc) => {
       if (!acc) {
-        marionetteScriptFinished(true);
+        marionetteScriptFinished({ result: true });
         return;
       }
-      marionetteScriptFinished(this._matchState(acc, 'STATE_INVISIBLE'));
+      marionetteScriptFinished(
+        { result: this._matchState(acc, 'STATE_INVISIBLE') });
     }, true);
   },
 
   isVisible: function Accessibility_isVisible(element) {
     let elem = element.wrappedJSObject;
     if (this._isAriaHidden(elem)) {
-      marionetteScriptFinished(false);
+      marionetteScriptFinished({ result: false });
       return;
     }
 
     this._getAccessible(elem, (acc) => {
-      marionetteScriptFinished(!this._matchState(acc, 'STATE_INVISIBLE'));
+      marionetteScriptFinished(
+        { result: !this._matchState(acc, 'STATE_INVISIBLE') });
     });
   },
 
   getName: function Accessibility_getName(element) {
     this._getAccessible(element.wrappedJSObject, (acc) => {
-      marionetteScriptFinished(acc.name);
+      marionetteScriptFinished({ result: acc.name });
     });
   },
 
   getRole: function Accessibility_getRole(element) {
     this._getAccessible(element.wrappedJSObject, (acc) => {
-      marionetteScriptFinished(this._accRetrieval.getStringRole(acc.role));
+      marionetteScriptFinished(
+        { result: this._accRetrieval.getStringRole(acc.role) });
     });
   },
 };

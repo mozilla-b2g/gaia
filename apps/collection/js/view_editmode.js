@@ -34,7 +34,13 @@
       var collection = this.collection;
       // unpin, then refresh grid
       collection.unpin(itemId)
-        .then(() => collection.render(elements.grid));
+        .then(() => {
+          collection.render(elements.grid);
+
+          collection.renderIcon().then(() => {
+            collection.save();
+          });
+        });
     },
 
     handleEvent: function(e) {

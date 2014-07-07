@@ -174,10 +174,11 @@ var icc_events = {
         break;
       case icc._iccManager.STK_EVENT_TYPE_IDLE_SCREEN_AVAILABLE:
         DUMP('icc_events_register - Idle screen available event');
-        window.addEventListener('lock',
+        window.addEventListener('lockscreen-appopened',
           function register_icc_event_idlescreen() {
             icc_events.handleIdleScreenAvailableEvent(message);
-            window.removeEventListener('lock', register_icc_event_idlescreen);
+            window.removeEventListener('lockscreen-appopened',
+              register_icc_event_idlescreen);
           });
         break;
       case icc._iccManager.STK_EVENT_TYPE_CARD_READER_STATUS:

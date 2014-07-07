@@ -134,6 +134,14 @@ suite('system/AppWindow', function() {
     }
   };
 
+  var fakeAppConfigCertified = {
+    url: 'app://www.fakecertified/index.html',
+    manifest: {
+      type: 'certified'
+    },
+    origin: 'app://www.fake4'
+  };
+
   test('App created with instanceID', function() {
     var app1 = new AppWindow(fakeAppConfig1);
     var app2 = new AppWindow(fakeAppConfig2);
@@ -257,9 +265,9 @@ suite('system/AppWindow', function() {
       visibleSpy = this.sinon.stub(AppWindow.prototype, 'setVisible');
     });
 
-    test('display screenshot for apps launched in background', function() {
+    test('do not screenshot apps launched in background', function() {
       new AppWindow(fakeAppConfigBackground); // jshint ignore:line
-      sinon.assert.calledWith(visibleSpy, false, true);
+      sinon.assert.calledWith(visibleSpy, false, false);
     });
 
     test('homescreen is launched at background', function() {
@@ -610,7 +618,6 @@ suite('system/AppWindow', function() {
       assert.isTrue(stubHideFrame.called);
       stubGetScreenshot.yield('fakeblob');
       assert.isTrue(app1.screenshotOverlay.classList.contains('visible'));
-      assert.isTrue(app1.identificationOverlay.classList.contains('visible'));
       assert.isTrue(stubRequestScreenshotURL.called);
     });
 
@@ -630,6 +637,21 @@ suite('system/AppWindow', function() {
       assert.isFalse(app1.identificationOverlay.classList.contains('visible'));
     });
 
+    test('hideScreenshotOverlay noop when the screenshot is not displayed',
+    function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      // Inject mozBrowser API to app iframe
+      injectFakeMozBrowserAPI(app1.browser.element);
+
+      app1._screenshotOverlayState = 'none';
+      app1.screenshotOverlay.classList.remove('visible');
+      app1.identificationOverlay.classList.add('visible');
+      app1._hideScreenshotOverlay();
+
+      this.sinon.clock.tick(); // We wait for the next tick
+      assert.isTrue(app1.identificationOverlay.classList.contains('visible'));
+    });
+
     test('Request screenshotURL', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       assert.isNull(app1.requestScreenshotURL());
@@ -644,6 +666,14 @@ suite('system/AppWindow', function() {
       assert.isTrue(stubCreateObjectURL.calledWith('fakeBlob'));
       this.sinon.clock.tick(200);
       assert.isTrue(stubRevokeObjectURL.calledWith('fakeURL'));
+    });
+
+    test('Show identification overlay when setVisible(false)', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      // Inject mozBrowser API to app iframe
+      injectFakeMozBrowserAPI(app1.browser.element);
+      app1.setVisible(false);
+      assert.isTrue(app1.identificationOverlay.classList.contains('visible'));
     });
   });
 
@@ -1392,7 +1422,7 @@ suite('system/AppWindow', function() {
       assert.isTrue(spyManifestHelper.calledWithNew());
       assert.isTrue(spyManifestHelper.calledWithExactly(app1.manifest));
       assert.isTrue(stubPublish.calledWithExactly('namechanged'));
-    assert.equal(app1.identificationTitle.textContent, 'Mon Application');
+      assert.equal(app1.identificationTitle.textContent, 'Mon Application');
     });
 
     test('Orientation change event on app', function() {
@@ -1631,6 +1661,13 @@ suite('system/AppWindow', function() {
     assert.isTrue(app2.isBrowser());
   });
 
+  test('isCertified', function() {
+    var app1 = new AppWindow(fakeAppConfig1);
+    var app2 = new AppWindow(fakeAppConfigCertified);
+    assert.isFalse(app1.isCertified());
+    assert.isTrue(app2.isCertified());
+  });
+
   test('navigate', function() {
     var app1 = new AppWindow(fakeAppConfig1);
     var app2 = new AppWindow(fakeAppConfig4);
@@ -1657,6 +1694,21 @@ suite('system/AppWindow', function() {
     var stubCtx = this.sinon.stub(app.contextmenu, 'showDefaultMenu');
     app.showDefaultContextMenu();
     assert.isTrue(stubCtx.called);
+  });
+
+  test('hideContextMenu', function() {
+    var app = new AppWindow(fakeAppConfig1);
+    // Nothing goes wrong if contextmenu is undefined
+    app.showDefaultContextMenu();
+
+    app.contextmenu = MockContextMenu;
+    var stubCtxShow = this.sinon.stub(app.contextmenu, 'showDefaultMenu');
+    app.showDefaultContextMenu();
+    assert.isTrue(stubCtxShow.called);
+
+    var stubCtxHide = this.sinon.stub(app.contextmenu, 'hide');
+    app.hideContextMenu();
+    assert.isTrue(stubCtxHide.called);
   });
 
   function genFakeConfig(id) {

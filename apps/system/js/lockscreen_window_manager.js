@@ -15,12 +15,7 @@
    *
    * @constructor LockScreenWindowManager
    */
-  var LockScreenWindowManager = function() {
-    this.initElements();
-    this.initWindow();
-    this.startEventListeners();
-    this.startObserveSettings();
-  };
+  var LockScreenWindowManager = function() {};
   LockScreenWindowManager.prototype = {
     /**
      * @memberof LockScreenWindowManager#
@@ -39,15 +34,16 @@
     states: {
       FTUOccurs: false,
       enabled: true,
-      unlockDetail: null,
-      instance: null
+      instance: null,
+      active: false,
+      windowCreating: false
     },
 
     /**
      * @memberof LockScreenWindowManager#
      */
     configs: {
-      listens: ['will-unlock',
+      listens: ['lockscreen-request-unlock',
                 'lockscreen-appcreated',
                 'lockscreen-appterminated',
                 'lockscreen-appclose',
@@ -55,9 +51,21 @@
                 'ftuopen',
                 'ftudone',
                 'overlaystart',
-                'showlockscreenwindow'
+                'showlockscreenwindow',
+                'home'
                ]
     }
+  };
+
+  /**
+   * To initialize the class instance (register events, observe settings, etc.)
+   */
+  LockScreenWindowManager.prototype.start =
+  function lwm_start() {
+    this.startEventListeners();
+    this.startObserveSettings();
+    this.initElements();
+    this.initWindow();
   };
 
   /**
@@ -94,15 +102,12 @@
           }
           // Need immediatly unlocking (hide window).
           this.closeApp(true);
-          window.dispatchEvent(
-            new CustomEvent('unlock'));
           break;
         case 'ftudone':
           this.states.FTUOccurs = false;
           break;
-        case 'will-unlock':
-          this.states.unlockDetail = evt.detail;
-          this.closeApp();
+        case 'lockscreen-request-unlock':
+          this.responseUnlock(evt.detail);
           break;
         case 'lockscreen-appcreated':
           app = evt.detail;
@@ -113,9 +118,6 @@
           this.unregisterApp(app);
           break;
         case 'lockscreen-appclose':
-          window.dispatchEvent(
-            new CustomEvent('unlock', this.states.unlockDetail));
-          this.states.unlockDetail = null;
           break;
         case 'screenchange':
           // The screenchange may be invoked by proximity sensor,
@@ -126,6 +128,13 @@
               !this.states.FTUOccurs) {
             // The app would be inactive while screen off.
             this.openApp();
+          }
+          break;
+        case 'home':
+          // We assume that this component is started before AppWindowManager
+          // to make this blocking code works.
+          if (this.states.active) {
+            evt.stopImmediatePropagation();
           }
           break;
       }
@@ -218,11 +227,12 @@
    */
   LockScreenWindowManager.prototype.closeApp =
     function lwm_closeApp(instant) {
-      if (!this.states.enabled) {
+      if (!this.states.enabled && !this.states.active) {
         return;
       }
       this.states.instance.close(instant ? 'immediate': undefined);
       this.elements.screen.classList.remove('locked');
+      this.states.active = false;
     };
 
   /**
@@ -245,6 +255,7 @@
         this.states.instance.open();
       }
       this.elements.screen.classList.add('locked');
+      this.states.active = true;
     };
 
   /**
@@ -295,8 +306,13 @@
    */
   LockScreenWindowManager.prototype.createWindow =
     function lwm_createWindow() {
+      if (this.states.windowCreating) {
+        return false;
+      }
+      this.states.windowCreating = true;
       var app = new window.LockScreenWindow();
       app.open();
+      this.states.windowCreating = false;
     };
 
   /**
@@ -321,6 +337,26 @@
         }
         this.openApp();
       };
+    };
+
+  LockScreenWindowManager.prototype.responseUnlock =
+    function lwm_responseUnlock(detail) {
+      // Only when the background app is ready,
+      // we close the window.
+      var activeApp = window.AppWindowManager ?
+            window.AppWindowManager.getActiveApp() : null;
+      if (detail && detail.activity) {
+        // Need to invoke activity
+        var a = new window.MozActivity(detail.activity);
+        a.onerror = function ls_activityError() {
+          console.log('MozActivity: lockscreen invoke activity error.');
+        };
+        this.closeApp();
+      } else if (!activeApp) {
+        this.closeApp();
+      } else {
+        activeApp.ready(this.closeApp.bind(this));
+      }
     };
 
   /** @exports LockScreenWindowManager */

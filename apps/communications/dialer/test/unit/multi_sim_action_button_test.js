@@ -332,10 +332,18 @@ suite('multi SIM action button', function() {
         assert.isTrue(document.body.classList.contains('has-preferred-sim'));
       });
 
-      test('has a localized SIM indicator', function() {
+      test('has a default localized SIM indicator', function() {
         var localizeSpy = this.sinon.spy(MockMozL10n, 'localize');
         initSubject();
         sinon.assert.calledWith(localizeSpy, simIndication, 'sim-picker-button',
+                                {n: expectedCardIndex+1});
+      });
+
+      test('has a custom localized SIM indicator', function() {
+        var localizeSpy = this.sinon.spy(MockMozL10n, 'localize');
+        simIndication.dataset.l10nId = 'expected';
+        initSubject();
+        sinon.assert.calledWith(localizeSpy, simIndication, 'expected',
                                 {n: expectedCardIndex+1});
       });
 

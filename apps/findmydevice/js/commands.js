@@ -92,19 +92,26 @@ var Commands = {
 
   _trackIntervalId: null,
 
+  _trackTimeoutId: null,
+
   _commands: {
     track: function fmdc_track(duration, reply) {
-      // We actually ignore duration if it's nonzero. If zero, stop
-      // tracking.
+      var self = this;
 
-      SettingsHelper('findmydevice.tracking').set(!!duration);
-      if (this._trackIntervalId !== null) {
-        if (duration === 0) {
-          // stop tracking
-          clearInterval(this._trackIntervalId);
-          this._trackIntervalId = null;
-        }
+      function stop() {
+        clearInterval(self._trackIntervalId);
+        self._trackIntervalId = null;
+        clearInterval(self._trackTimeoutId);
+        self._trackTimeoutId = null;
+        SettingsHelper('findmydevice.tracking').set(false);
+      }
 
+      if (this._trackIntervalId !== null || this._trackTimeoutId !== null) {
+        // already tracking
+        stop();
+      }
+
+      if (duration === 0) {
         reply(true);
         return;
       }
@@ -116,9 +123,12 @@ var Commands = {
 
       // set geolocation permission to true, and start requesting
       // the current position every TRACK_UPDATE_INTERVAL_MS milliseconds
-      var self = this;
       this._setGeolocationPermission(function fmdc_permission_success() {
+        SettingsHelper('findmydevice.tracking').set(true);
         self._trackIntervalId = setInterval(function fmdc_track_interval() {
+          duration = (isNaN(duration) || duration < 0) ? 1 : duration;
+          self._trackTimeoutId = setTimeout(stop, duration * 1000);
+
           navigator.geolocation.getCurrentPosition(
             function fmdc_gcp_success(position) {
               DUMP('updating location to (' +
@@ -138,31 +148,41 @@ var Commands = {
 
     erase: function fmdc_erase(reply) {
       var wiped = 0;
-      var toWipe = ['apps', 'pictures', 'sdcard', 'videos', 'music'];
+      var toWipe = ['apps', 'pictures', 'sdcard', 'videos', 'music', 'crashes'];
 
       function cursor_onsuccess(target, ds) {
         return function() {
-          var file = this.result;
+          var cursor = this;
+          var file = cursor.result;
 
-          if (file) {
-            ds.delete(file.name);
-          }
-
-          if (!this.done) {
-            this.continue();
+          if (!file) {
+            DUMP('enumerating ' + target + ' resulted in a null file?');
+            cursor.continue();
             return;
           }
 
-          DUMP('done wiping ' + target);
-          if (++wiped == toWipe.length) {
-            DUMP('all targets wiped, starting factory reset!');
-            navigator.mozPower.factoryReset();
+          DUMP('deleting: ' + file.name);
 
-            // factoryReset() won't return, unless we're testing,
-            // in which case mozPower is a mock. The reply() below
-            // is thus only used for testing.
-            reply(true);
-          }
+          var request = ds.delete(file.name);
+          request.onsuccess =
+          request.onerror = function fmdc_delete_complete() {
+            DUMP('done deleting ' + file.name);
+            if (!cursor.done) {
+              cursor.continue();
+              return;
+            }
+
+            DUMP('done wiping ' + target);
+            if (++wiped == toWipe.length) {
+              DUMP('all targets wiped, starting factory reset!');
+              navigator.mozPower.factoryReset();
+
+              // factoryReset() won't return, unless we're testing,
+              // in which case mozPower is a mock. The reply() below
+              // is thus only used for testing.
+              reply(true);
+            }
+          };
         };
       }
 

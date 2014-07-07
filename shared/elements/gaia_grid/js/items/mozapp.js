@@ -1,5 +1,5 @@
 'use strict';
-/* global ConfirmDialogHelper, GaiaGrid, UrlHelper */
+/* global ConfirmDialogHelper, GaiaGrid */
 
 (function(exports) {
 
@@ -78,19 +78,23 @@
     Figure out which state the app is in
     */
     _determineState: function(app) {
-      if (app.downloading) {
-        return APP_LOADING;
-      }
-
-      // Bug 1027491 - work around the fact that downloadError is not cleared
-      if (app.installState === 'installed') {
-        return APP_READY;
-      }
-
       // is there is a pending download but we cannot download then this app is
       // in an unrecoverable state due to some fatal error.
-      if (app.installState === 'pending' && !app.downloadAvailable) {
+      if (
+        // Must be pending (meaning not launchable)
+        app.installState === 'pending' &&
+        // Without any option for downloading the app
+        !app.downloadAvailable &&
+        // And not be currently applying a download
+        !app.readyToApplyDownload
+      ) {
         return APP_UNRECOVERABLE;
+      }
+
+      // If the app is currently downloading life is good and we should display
+      // loading.
+      if (app.downloading) {
+        return APP_LOADING;
       }
 
       // Bug 1027347 - downloadError is always present even if there is no error
@@ -166,49 +170,6 @@
       return localized || this.descriptor.name;
     },
 
-    _icon: function() {
-      var icons = this.descriptor.icons;
-      if (!icons) {
-        return this.defaultIcon;
-      }
-
-      // Create a list with the sizes and order it by descending size.
-      var list = Object.keys(icons).map(function(size) {
-        return size;
-      }).sort(function(a, b) {
-        return b - a;
-      });
-
-      var length = list.length;
-      if (length === 0) {
-        // No icons -> icon by default.
-        return this.defaultIcon;
-      }
-
-      var maxSize = this.grid.layout.gridMaxIconSize; // The goal size
-      var accurateSize = list[0]; // The biggest icon available
-      for (var i = 0; i < length; i++) {
-        var size = list[i];
-
-        if (size < maxSize) {
-          break;
-        }
-
-        accurateSize = size;
-      }
-
-      var icon = icons[accurateSize];
-
-      // Handle relative URLs
-      if (!UrlHelper.hasScheme(icon)) {
-        var a = document.createElement('a');
-        a.href = this.app.origin;
-        icon = a.protocol + '//' + a.host + icon;
-      }
-
-      return icon;
-    },
-
     /**
      * Returns the icon image path.
      */
@@ -216,7 +177,8 @@
       var icon = this._accurateIcon;
 
       if (!icon) {
-        icon = this._accurateIcon = this._icon();
+        icon = this._accurateIcon = this.closestIconFromList(
+          this.descriptor.icons);
       }
 
       return icon;
@@ -334,19 +296,14 @@
     launch: function() {
       var app = this.app;
 
-      // Allow the user to pause a ongoing download.
-      if (app.downloading) {
-        return this.cancel();
-      }
-
-      // If there is a download pending ask to resume it.
-      if (app.downloadAvailable) {
-        return this.resume();
-      }
-
-      // Let the user cleanup any failed installs that cannot be retried.
-      if (app.installState == 'pending' && !app.downloadAvailable) {
-        return this.unrecoverableError();
+      switch (this._determineState(app)) {
+        case APP_UNRECOVERABLE:
+          return this.unrecoverableError();
+        case APP_ERROR:
+        case APP_PAUSED:
+          return this.resume();
+        case APP_LOADING:
+          return this.cancel();
       }
 
       if (this.entryPoint) {

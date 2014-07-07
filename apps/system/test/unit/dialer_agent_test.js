@@ -2,7 +2,7 @@
 
 /* global DialerAgent, MocksHelper, MockNavigatorMozTelephony,
           MockSettingsListener, MockSettingsURL, MockAudio,
-          MockAttentionScreen, lockScreen */
+          MockAttentionScreen, System*/
 
 require('/js/dialer_agent.js');
 require('/test/unit/mock_attention_screen.js');
@@ -20,7 +20,7 @@ var mocksForDialerAgent = new MocksHelper([
 
 suite('system/DialerAgent', function() {
   mocksForDialerAgent.attachTestHelpers();
-  var realTelephony, realVibrate, realLockscreen;
+  var realTelephony, realVibrate, realSystem;
 
   var subject;
   var setVisibleSpy;
@@ -47,17 +47,15 @@ suite('system/DialerAgent', function() {
   suiteSetup(function() {
     realTelephony = navigator.mozTelephony;
     navigator.mozTelephony = MockNavigatorMozTelephony;
-
     realVibrate = navigator.vibrate;
-
-    realLockscreen = window.lockScreen;
-    window.lockScreen = {locked: false};
+    realSystem = window.System;
+    window.System = {locked: false};
   });
 
   suiteTeardown(function() {
     navigator.mozTelephony = realTelephony;
     navigator.vibrate = realVibrate;
-    window.lockScreen = realLockscreen;
+    window.System = realSystem;
   });
 
   var CSORIGIN = window.location.origin.replace('system', 'callscreen') + '/';
@@ -194,11 +192,11 @@ suite('system/DialerAgent', function() {
 
       suite('> When the lockscreen is locked', function() {
         setup(function() {
-          lockScreen.locked = true;
+          System.locked = true;
         });
 
         teardown(function() {
-          lockScreen.locked = false;
+          System.locked = false;
         });
 
         test('it should open the call screen on #locked', function() {
@@ -431,11 +429,11 @@ suite('system/DialerAgent', function() {
 
       suite('> When the lockscreen is locked', function() {
         setup(function() {
-          lockScreen.locked = true;
+          System.locked = true;
         });
 
         teardown(function() {
-          lockScreen.locked = false;
+          System.locked = false;
         });
 
         test('it should open the call screen on #locked and force a hashchange',

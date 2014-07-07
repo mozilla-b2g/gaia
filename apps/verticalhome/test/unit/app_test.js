@@ -20,6 +20,8 @@ suite('app.js > ', function() {
 
   mocksHelperForApp.attachTestHelpers();
 
+  var raf;
+
   function initialize() {
     app.scrollable.style.height = '500px';
     app.scrollable.style.overflow = 'auto';
@@ -28,6 +30,7 @@ suite('app.js > ', function() {
   }
 
   setup(function(done) {
+    raf = sinon.stub(window, 'requestAnimationFrame');
     loadBodyHTML('/index.html');
     require('/js/app.js', function() {
       initialize();
@@ -35,13 +38,23 @@ suite('app.js > ', function() {
     });
   });
 
+  teardown(function() {
+    raf.restore();
+  });
+
   test('Scrolls on hashchange', function() {
     var previousScrollTop = app.scrollable.scrollTop = 100;
-    var raf = sinon.stub(window, 'requestAnimationFrame');
     window.dispatchEvent(new CustomEvent('hashchange'));
 
     assert.isTrue(previousScrollTop > app.scrollable.scrollTop);
-    assert.ok(raf.called);
+    assert.isTrue(raf.called);
+  });
+
+  test('No scrolling while context menu is displayed', function() {
+    window.dispatchEvent(new CustomEvent('context-menu-open'));
+    window.dispatchEvent(new CustomEvent('hashchange'));
+    assert.isFalse(raf.called);
+    window.dispatchEvent(new CustomEvent('context-menu-close'));
   });
 
 });

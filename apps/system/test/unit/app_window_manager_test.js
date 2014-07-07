@@ -1,11 +1,10 @@
 /* global AppWindowManager, AppWindow, homescreenLauncher,
           MockAttentionScreen, HomescreenWindow, MocksHelper,
-          MockSettingsListener, MockLockScreen, HomescreenLauncher,
-          layoutManager */
+          MockSettingsListener, System, HomescreenLauncher */
 'use strict';
 
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
-requireApp('system/test/unit/mock_lock_screen.js');
+requireApp('system/test/unit/mock_system.js');
 requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_activity_window.js');
@@ -25,7 +24,7 @@ var mocksForAppWindowManager = new MocksHelper([
   'ActivityWindow',
   'Applications', 'SettingsListener', 'HomescreenLauncher',
   'ManifestHelper', 'KeyboardManager', 'StatusBar', 'SoftwareButtonManager',
-  'HomescreenWindow', 'AppWindow', 'LayoutManager', 'LockScreen'
+  'HomescreenWindow', 'AppWindow', 'LayoutManager', 'System'
 ]).init();
 
 suite('system/AppWindowManager', function() {
@@ -36,7 +35,6 @@ suite('system/AppWindowManager', function() {
     stubById = this.sinon.stub(document, 'getElementById');
     stubById.returns(document.createElement('div'));
 
-    window.lockScreen = MockLockScreen;
     window.layoutManager = new window.LayoutManager();
 
     home = new HomescreenWindow('fakeHome');
@@ -55,12 +53,14 @@ suite('system/AppWindowManager', function() {
     app6 = new AppWindow(fakeAppConfig6Browser);
     app7 = new AppWindow(fakeAppConfig7Activity);
 
-    requireApp('system/js/app_window_manager.js', done);
+    requireApp('system/js/app_window_manager.js', function() {
+      window.AppWindowManager.init();
+      done();
+    });
   });
 
   teardown(function() {
     AppWindowManager.uninit();
-    delete window.lockScreen;
     delete window.layoutManager;
     // MockHelper won't invoke mTeardown() for us
     // since MockHomescreenLauncher is instantiable now
@@ -140,6 +140,15 @@ suite('system/AppWindowManager', function() {
   }
 
   suite('Handle events', function() {
+    test('localized event should be broadcasted.', function() {
+      var stubBroadcastMessage =
+        this.sinon.stub(AppWindowManager, 'broadcastMessage');
+      AppWindowManager.handleEvent({
+        type: 'localized'
+      });
+      assert.ok(stubBroadcastMessage.calledWith('localized'));
+    });
+
     test('Active app should be updated once any app is opening.', function() {
       var stub_updateActiveApp = this.sinon.stub(AppWindowManager,
         '_updateActiveApp');
@@ -266,7 +275,7 @@ suite('system/AppWindowManager', function() {
     });
 
     test('FTU is skipped when lockscreen is active', function() {
-      MockLockScreen.locked = true;
+      System.locked = true;
       injectRunningApps();
       var stubDisplay = this.sinon.stub(AppWindowManager, 'display');
       var stubSetVisible = this.sinon.stub(home, 'setVisible');
@@ -274,6 +283,7 @@ suite('system/AppWindowManager', function() {
       AppWindowManager.handleEvent({ type: 'ftuskip' });
       assert.isFalse(stubDisplay.calledWith());
       assert.isTrue(stubSetVisible.calledWith(false));
+      System.locked = false;
     });
 
     test('System resize', function() {
@@ -558,78 +568,29 @@ suite('system/AppWindowManager', function() {
       assert.isTrue(stubAppCurrentClose.called);
     });
 
-    test('from app to new app', function() {
+    test('lockscreen to home', function() {
+      injectRunningApps(home);
+      AppWindowManager._activeApp = null;
+      var stubReady = this.sinon.stub(home, 'ready');
+      var stubAppNextOpen = this.sinon.stub(home, 'open');
+      AppWindowManager.switchApp(null, home);
+      stubReady.yield();
+      assert.isTrue(stubAppNextOpen.calledWith('immediate'));
+    });
+
+    test('app to app', function() {
       injectRunningApps(app1, app2);
       AppWindowManager._activeApp = app1;
       var stubReady = this.sinon.stub(app2, 'ready');
       var stubAppNextOpen = this.sinon.stub(app2, 'open');
       var stubAppCurrentClose = this.sinon.stub(app1, 'close');
-      app2.createdTime = 2;
-      app1.createdTime = 1;
       AppWindowManager.switchApp(app1, app2, true);
       stubReady.yield();
       assert.isTrue(stubAppNextOpen.called);
       assert.isTrue(stubAppCurrentClose.called);
-
       assert.isTrue(stubAppNextOpen.calledWith('invoked'));
       assert.isTrue(stubAppCurrentClose.calledWith('invoking'));
     });
-
-    test('from app to old app', function() {
-      injectRunningApps(app1, app2);
-      AppWindowManager._activeApp = app2;
-      var stubReady = this.sinon.stub(app1, 'ready');
-      var stubAppNextOpen = this.sinon.stub(app1, 'open');
-      var stubAppCurrentClose = this.sinon.stub(app2, 'close');
-      app2.createdTime = 2;
-      app1.createdTime = 1;
-      AppWindowManager.switchApp(app2, app1, true);
-      stubReady.yield();
-      assert.isTrue(stubAppNextOpen.called);
-      assert.isTrue(stubAppCurrentClose.called);
-
-      assert.isTrue(stubAppNextOpen.calledWith('in-from-left'));
-      assert.isTrue(stubAppCurrentClose.calledWith('out-to-right'));
-    });
-
-    test('should be immediate transition if the new app dimension differs',
-      function() {
-        injectRunningApps(app1, app2);
-        AppWindowManager._activeApp = app1;
-        var stubReady = this.sinon.stub(app2, 'ready');
-        var stubAppNextOpen = this.sinon.stub(app2, 'open');
-        var stubAppCurrentClose = this.sinon.stub(app1, 'close');
-        this.sinon.stub(layoutManager, 'match').returns(false);
-        app2.resized = true;
-
-        AppWindowManager.switchApp(app1, app2, true);
-        stubReady.yield();
-        assert.isTrue(stubAppNextOpen.called);
-        assert.isTrue(stubAppCurrentClose.called);
-
-        assert.isTrue(stubAppNextOpen.calledWith('immediate'));
-        assert.isTrue(stubAppCurrentClose.calledWith('immediate'));
-      });
-
-    test('should be immediate transition' +
-          'if the new app has perpendicular orientation',
-      function() {
-        injectRunningApps(app1, app2);
-        AppWindowManager._activeApp = app1;
-        var stubReady = this.sinon.stub(app2, 'ready');
-        var stubAppNextOpen = this.sinon.stub(app2, 'open');
-        var stubAppCurrentClose = this.sinon.stub(app1, 'close');
-        app2.rotatingDegree = 90;
-
-        AppWindowManager.switchApp(app1, app2, true);
-        stubReady.yield();
-        assert.isTrue(stubAppNextOpen.called);
-        assert.isTrue(stubAppCurrentClose.called);
-
-        assert.isTrue(stubAppNextOpen.calledWith('immediate'));
-        assert.isTrue(stubAppCurrentClose.calledWith('immediate'));
-        app2.rotatingDegree = 0;
-      });
 
     test('close app to cardsview', function() {
       injectRunningApps(app1, home);
@@ -726,13 +687,6 @@ suite('system/AppWindowManager', function() {
         this.sinon.stub(AppWindowManager, 'broadcastMessage');
       MockSettingsListener.mCallbacks['app-suspending.enabled'](false);
       assert.ok(stubBroadcastMessage.calledWith('kill_suspended'));
-    });
-
-    test('language.current', function() {
-      var stubBroadcastMessage =
-        this.sinon.stub(AppWindowManager, 'broadcastMessage');
-      MockSettingsListener.mCallbacks['language.current']('chinese');
-      assert.ok(stubBroadcastMessage.calledWith('localized'));
     });
 
     test('continuous-transition.enabled', function() {

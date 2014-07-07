@@ -135,20 +135,54 @@
       var input = msg.data.input;
       var providers = this.providers;
 
-      this.maybeShowNotice(input);
       this.clear();
+      this.maybeShowNotice(input);
 
-      this.changeTimeout = setTimeout(function doSearch() {
+      var collectionCount = 0;
+      var numProviders = Object.keys(this.providers).length;
+
+      /**
+       * Handles the display for the offline message. Displays the offline
+       * message once we process results for all providers, and if there are no
+       * results. Also called when the device comes online to hide the message.
+       */
+      function maybeShowOffline() {
+        if (navigator.isOnline) {
+          return;
+        }
+
+        var offlineMessage = document.getElementById('offline-message');
+        offlineMessage.textContent = '';
+
+        collectionCount++;
+        if (collectionCount >= numProviders) {
+          offlineMessage.textContent = navigator.mozL10n.get(
+            'offline-webresults', {
+            searchQuery: input
+          });
+        }
+      }
+
+      this.changeTimeout = setTimeout(() => {
         this.dedupe.reset();
 
-        for (var i in providers) {
-          var provider = providers[i];
+        Object.keys(providers).forEach((providerKey) => {
+          var provider = providers[providerKey];
+
           // If suggestions are disabled, only use local providers
           if (this.suggestionsEnabled || !provider.remote) {
-            provider.search(input, this.collect.bind(this, provider));
+            provider.search(input).then((results) => {
+              if (!results.length) {
+                maybeShowOffline();
+              }
+
+              this.collect(provider, results);
+            }, () => {
+              maybeShowOffline();
+            });
           }
-        }
-      }.bind(this), SEARCH_DELAY);
+        });
+      }, SEARCH_DELAY);
     },
 
     /**
@@ -174,9 +208,7 @@
     },
 
     maybeShowNotice: function(msg) {
-      if (msg.length > 2 && this.toShowNotice) {
-        this.suggestionNotice.hidden = false;
-      }
+      this.suggestionNotice.hidden = !(msg.length > 2 && this.toShowNotice);
     },
 
     /**
@@ -247,6 +279,11 @@
       for (var i in this.providers) {
         this.providers[i].clear();
       }
+
+      var offlineMessage = document.getElementById('offline-message');
+      offlineMessage.textContent = '';
+
+      this.suggestionNotice.hidden = true;
     },
 
     showBlank: function() {

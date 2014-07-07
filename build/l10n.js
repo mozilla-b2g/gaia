@@ -318,7 +318,7 @@
     var elements = L10n.getTranslatableChildren(fragment);
 
     for (var i = 0; i < elements.length; i++) {
-      var attrs = L10n.getL10nAttributes(elements[i]);
+      var attrs = this.getAttributes(elements[i]);
       var val = this.ctx.getEntitySource(attrs.id);
       ast[attrs.id] = val;
       walkContent(val, getPlaceables.bind(this, ast));

@@ -1,6 +1,6 @@
 /* global MockStackManager, MockNavigatorSettings, MockAppWindowManager,
           TaskManager, Card, TaskCard, AppWindow,
-          MockLockScreen, MockScreenLayout, MocksHelper */
+          MockScreenLayout, MocksHelper */
 'use strict';
 require('/shared/test/unit/mocks/mock_gesture_detector.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
@@ -10,7 +10,7 @@ requireApp('system/test/unit/mock_trusted_ui_manager.js');
 requireApp('system/test/unit/mock_utility_tray.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_app_window.js');
-requireApp('system/test/unit/mock_lock_screen.js');
+requireApp('system/test/unit/mock_system.js');
 requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/test/unit/mock_rocketbar.js');
 requireApp('system/test/unit/mock_sleep_menu.js');
@@ -28,7 +28,8 @@ var mocksForTaskManager = new MocksHelper([
   'sleepMenu',
   'OrientationManager',
   'StackManager',
-  'AppWindow'
+  'AppWindow',
+  'System'
 ]).init();
 
 function waitForEvent(target, name, timeout) {
@@ -292,8 +293,6 @@ suite('system/TaskManager >', function() {
       configurable: true
     });
 
-    originalLockScreen = window.lockScreen;
-    window.lockScreen = MockLockScreen;
     screenNode = document.createElement('div');
     screenNode.id = 'screen';
     cardsView = document.createElement('div');
@@ -308,7 +307,7 @@ suite('system/TaskManager >', function() {
     realScreenLayout = window.ScreenLayout;
     window.ScreenLayout = MockScreenLayout;
     realMozLockOrientation = screen.mozLockOrientation;
-    screen.mozLockOrientation = MockLockScreen.mozLockOrientation;
+    screen.mozLockOrientation = sinon.stub();
 
     realMozSettings = navigator.mozSettings;
     window.navigator.mozSettings = MockNavigatorSettings;
@@ -500,6 +499,80 @@ suite('system/TaskManager >', function() {
                   'has a truthy nextCard property');
         assert.ok(!taskManager.prevCard,
                   'has no prevCard at initial position');
+      });
+
+      test('transitions are removed correctly after swiping', function() {
+        var card = taskManager.getCardAtIndex(0);
+        var applyStyleStub = sinon.spy(card, 'applyStyle');
+
+        var undefinedProps =
+          function(value) {
+            for (var key in value) {
+              if (typeof value[key] === 'undefined') {
+                return true;
+              }
+            }
+            return false;
+          };
+
+        // Simulate a drag up that doesn't remove the card
+        var element = card.element;
+        element.dispatchEvent(createTouchEvent('touchstart', element, 0, 500));
+        element.dispatchEvent(createTouchEvent('touchmove', element, 0, 250));
+        element.dispatchEvent(createTouchEvent('touchend', element, 0, 450));
+
+        var callCount = applyStyleStub.callCount;
+        assert.isTrue(callCount > 0,
+                      'card.applyStyle was called at least once');
+        assert.isFalse(applyStyleStub.calledWith(sinon.match(undefinedProps)),
+          'card.applyStyle was not called with undefined properties');
+
+        // Simulate a swipe to the side
+        element.dispatchEvent(createTouchEvent('touchstart', element, 0, 500));
+        element.dispatchEvent(createTouchEvent('touchmove', element, 100, 500));
+        element.dispatchEvent(createTouchEvent('touchend', element, 100, 500));
+
+        assert.isTrue(applyStyleStub.callCount > callCount,
+                      'card.applyStyle was called more times');
+        assert.isFalse(applyStyleStub.calledWith(sinon.match(undefinedProps)),
+          'card.applyStyle was not called with undefined properties');
+      });
+
+      test('user can change swipe direction', function() {
+        var currentCard = taskManager.currentCard;
+
+        // Simulate a swipe that goes to one side, then back again
+        var el = currentCard.element;
+        el.dispatchEvent(createTouchEvent('touchstart', el, 200, 500));
+        el.dispatchEvent(createTouchEvent('touchmove', el, 0, 500));
+        el.dispatchEvent(createTouchEvent('touchmove', el, 50, 500));
+        el.dispatchEvent(createTouchEvent('touchend', el, 100, 500));
+
+        assert.isTrue(currentCard == taskManager.currentCard,
+                      'current card remains unchanged');
+      });
+
+      suite('when the currently displayed app is out of the stack',
+      function() {
+        setup(function() {
+          MockStackManager.mOutOfStack = true;
+          MockStackManager.mStack = [
+            apps['http://sms.gaiamobile.org'],
+            apps['http://game.gaiamobile.org'],
+            apps['http://game2.gaiamobile.org']
+          ];
+          MockStackManager.mCurrent = 1;
+          taskManager.show();
+        });
+
+        teardown(function() {
+          MockStackManager.mOutOfStack = false;
+        });
+
+        test('currentPosition should be the last position in the stack',
+        function() {
+          assert.equal(taskManager.currentPosition, 2);
+        });
       });
     });
 

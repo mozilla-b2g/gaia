@@ -21,7 +21,7 @@ class TestEverythingMeLaunchLink(GaiaTestCase):
         search_panel = homescreen.tap_search_bar()
         search_panel.type_into_search_box(search_string)
 
-        search_panel.wait_for_everything_me_results_to_load(4)
+        search_panel.wait_for_everything_me_results_to_load(1)
 
         search_panel.confirm_suggestion_notice()
 

@@ -93,6 +93,26 @@ AppInstall.prototype = {
   },
 
   /**
+  Checks for downloads without applying them.
+  */
+  stageUpdate: function(manifestURL) {
+    // do it in chrome so we don't need to switch contexts...
+    var client = this.client.scope({ context: 'chrome' });
+    return client.executeAsyncScript(function(manifestURL) {
+      navigator.mozApps.mgmt.getAll().onsuccess = function(e) {
+        var list = e.target.result;
+        var app = list.find(function(app) {
+          return app.manifestURL === manifestURL;
+        });
+        var req = app.checkForUpdate();
+        req.onsuccess = req.onerror = function() {
+          marionetteScriptFinished();
+        };
+      };
+    }, [manifestURL]);
+  },
+
+  /**
   Updates an installed app by it's manifest url.
 
   @param {String} manifestURL for the application.

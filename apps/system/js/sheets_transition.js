@@ -6,6 +6,8 @@ var SheetsTransition = {
   _new: null,
 
   init: function st_init() {
+    window.addEventListener('stackchanged', this.stackChanged.bind(this));
+
     SettingsListener.observe('edgesgesture.enabled', false,
                              this._settingUpdate.bind(this));
   },
@@ -115,6 +117,18 @@ var SheetsTransition = {
 
   snapForward: function st_snapForward(speed) {
     this._snapAway(speed, 'outside-edges-left');
+  },
+
+  stackChanged: function st_stackChanged(e) {
+    var sheets = e.detail.sheets;
+    var position = e.detail.position;
+    for (var i = 0; i < sheets.length; i++) {
+      var sheet = sheets[i].element;
+      var candidate = (this._edgesEnabled) && (position !== -1) &&
+                      (i >= (position - 1) && i <= (position + 1));
+
+      sheet.classList.toggle('edge-candidate', candidate);
+    }
   },
 
   _snapAway: function st_snapAway(speed, outClass) {

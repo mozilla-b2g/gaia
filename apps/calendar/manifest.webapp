@@ -13,7 +13,6 @@
   ],
   "permissions": {
     "systemXHR":{},
-    "settings":{ "access": "readonly" },
     "alarms":{},
     "browser": {},
     "storage":{},

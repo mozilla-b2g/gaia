@@ -438,6 +438,24 @@ suite('system/permission manager', function() {
     });
   });
 
+  suite('bug 1013509 Permission Prompt Never Hides',
+   function() {
+    setup(function() {
+      this.sinon.stub(permissionManager, 'discardPermissionRequest');
+      sendMediaEvent('permission-prompt', {'audio-capture': ['']});
+    });
+
+    test('should discard permission request when requester killed', function() {
+      assert.equal(permissionManager.currentOrigin, 'test');
+      assert.equal(permissionManager.permissionType, 'audio-capture');
+      var event = new CustomEvent('appterminated',
+                                  { 'detail': { 'origin': 'test'} });
+      window.dispatchEvent(event);
+
+      assert.isTrue(permissionManager.discardPermissionRequest.called);
+    });
+  });
+
   suite('Toggle more/hide info in permission dialog',
     function() {
       setup(function() {

@@ -55,8 +55,8 @@ Settings.Selectors = {
   'screenLockMenuItem': '#menuItem-screenLock',
   'appPermissionPanel': '#menuItem-appPermissions',
   'displayMenuItem': '#menuItem-display',
-  'appStorageMenuItem': '#menuItem-applicationStorage',
-  'mediaStorageMenuItem': '#menuItem-mediaStorage',
+  'appStorageMenuItem': '.menuItem-applicationStorage',
+  'mediaStorageMenuItem': '.menuItem-mediaStorage',
   'keyboardMenuItem': '#menuItem-keyboard',
   'messageMenuItem': '#menuItem-messagingSettings'
 };

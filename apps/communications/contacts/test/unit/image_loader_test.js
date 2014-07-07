@@ -36,6 +36,10 @@ suite('Image Loader Test Suite >', function() {
       stopSpy = this.sinon.spy(window, 'stop');
     });
 
+    suiteTeardown(function() {
+      imgLoader.destroy();
+    });
+
     function simulateImageCallback(evt) {
       imgLoader.defaultLoad(item);
       imageSpy.lastCall.thisValue.triggerEvent(evt);
@@ -140,10 +144,14 @@ suite('Image Loader Test Suite >', function() {
 
     suiteSetup(function() {
       document.body.innerHTML =
-      '<ol>' +
-        '<li><span data-type="img" data-src="http://www.a.com"></span></li>' +
-      '</ol>';
-      imgLoader = new ImageLoader('ol','li');
+        '<ol>' +
+          '<li><span data-type="img" data-src="http://www.a.com"></span></li>' +
+        '</ol>';
+      imgLoader = new ImageLoader('ol', 'li');
+    });
+
+    suiteTeardown(function() {
+      imgLoader.destroy();
     });
 
     test('resuming calls new Image()', function() {

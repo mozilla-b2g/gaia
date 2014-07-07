@@ -29,9 +29,6 @@ var MockCallScreen = {
   setCallerContactImage: function() {
     this.mSetCallerContactImageCalled = true;
   },
-  setEmergencyWallpaper: function() {
-    this.mSetEmergencyWallpaperCalled = true;
-  },
   mute: function() {
     this.mMuteOn = true;
   },
@@ -78,6 +75,9 @@ var MockCallScreen = {
   setEndConferenceCall: function() {
     this.mSetEndConferenceCall = true;
   },
+  cdmaConferenceCall: function() {},
+  hidePlaceNewCallButton: function() {},
+  showPlaceNewCallButton: function() {},
 
   set holdAndAnswerOnly(enabled) {
     this.mHoldAndAnswerOnly = enabled;
@@ -121,7 +121,6 @@ var MockCallScreen = {
     this.mEnableKeypadCalled = false;
     this.mSyncSpeakerCalled = false;
     this.mSetCallerContactImageCalled = false;
-    this.mSetEmergencyWallpaperCalled = false;
     this.mMuteOn = false;
     this.mSpeakerOn = false;
     this.mLastRenderMode = null;

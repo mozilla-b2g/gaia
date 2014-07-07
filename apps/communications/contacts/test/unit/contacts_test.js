@@ -1,10 +1,11 @@
 'use strict';
 
-/* global Contacts, MockContactsListObj, MockCookie, MockMozL10n,
-          MockNavigationStack, MocksHelper, MockUtils, MockActivities,
-          MockContactAllFields, contacts, ActivityHandler,
-          SmsIntegration, MockContactDetails, MockContactsNfc,
-          MockContactsSearch, LazyLoader, MockContactsSettings */
+/* global Contacts, contacts, ActivityHandler, SmsIntegration, LazyLoader,
+          MockContactsListObj, MockCookie, MockMozL10n,
+          MockNavigationStack, MockUtils, MocksHelper,
+          MockContactAllFields, MockContactDetails, MockContactsNfc,
+          MockContactsSearch, MockContactsSettings
+*/
 
 requireApp('communications/contacts/test/unit/mock_l10n.js');
 requireApp('communications/contacts/test/unit/mock_contacts_list_obj.js');
@@ -27,7 +28,8 @@ var mocksForStatusBar = new MocksHelper([
   'DatastoreMigration',
   'LazyLoader',
   'SmsIntegration',
-  'PerformanceTestingHelper'
+  'PerformanceTestingHelper',
+  'ActivityHandler'
 ]).init();
 
 if (!window.navigationStack) {
@@ -39,9 +41,7 @@ if (!window.contacts) {
 if (!window.utils) {
   window.utils = null;
 }
-if (!window.ActivityHandler) {
-  window.ActivityHandler = null;
-}
+
 var globals = ['COMMS_APP_ORIGIN',
                'TAG_OPTIONS',
                '_',
@@ -60,7 +60,6 @@ suite('Contacts', function() {
   var realContacts;
   var realUtils;
   var mockNavigation;
-  var realActivityHandler;
 
   mocksForStatusBar.attachTestHelpers();
 
@@ -82,9 +81,6 @@ suite('Contacts', function() {
     window.utils = MockUtils;
     window.utils.cookie = MockCookie;
 
-    realActivityHandler = window.ActivityHandler;
-    window.ActivityHandler = MockActivities;
-
     realNavigationStack = window.navigationStack;
     window.navigationStack = MockNavigationStack;
     sinon.spy(window, 'navigationStack');
@@ -95,7 +91,6 @@ suite('Contacts', function() {
     navigator.mozL10n = realMozL10n;
     window.contacts = realContacts;
     window.utils = realUtils;
-    window.ActivityHandler = realActivityHandler;
 
     window.navigationStack.restore();
     window.navigationStack = realNavigationStack;
@@ -240,12 +235,14 @@ suite('Contacts', function() {
         window.ActivityHandler.currentlyHandling = true;
         Contacts.checkCancelableActivity();
 
-        // Settings and add are hidden
+        // Settings is hidden
         assert.isTrue(settingsButton.classList.contains('hide'));
+        // Add contact is hidden
         assert.isTrue(addButton.classList.contains('hide'));
         // Cancel is visible
         assert.isFalse(cancelButton.classList.contains('hide'));
-        assert.equal(appTitleElement.textContent, 'selectContact');
+        // Title shows CONTACTS
+        assert.equal(appTitleElement.textContent, 'contacts');
 
         window.ActivityHandler.currentlyHandling = false;
       });
@@ -257,14 +254,16 @@ suite('Contacts', function() {
 
         // Cancel is hidden
         assert.isTrue(cancelButton.classList.contains('hide'));
-        // Settings is and add are visible
+        // Settings is visible
         assert.isFalse(addButton.classList.contains('hide'));
+        // Add contact is visible
         assert.isFalse(settingsButton.classList.contains('hide'));
+        // Title shows SELECT
+        assert.equal(appTitleElement.textContent, 'selectContact');
 
         window.contacts.List.isSelecting = false;
       });
     });
-
   });
 
   suite('Select a contact from the list', function() {
@@ -330,6 +329,22 @@ suite('Contacts', function() {
       }
     );
 
+    test('> when handling import activity, navigate as normal',
+      function() {
+        ActivityHandler.currentlyHandling = true;
+        ActivityHandler.activityName = 'import';
+        Contacts.showContactDetail('1');
+
+        sinon.assert.called(window.contacts.List.getContactById);
+        sinon.assert.called(contacts.Details.render);
+        sinon.assert.called(navigation.go);
+        sinon.assert.notCalled(ActivityHandler.dataPickHandler);
+
+        ActivityHandler.currentlyHandling = false;
+        ActivityHandler.activityName = 'open';
+      }
+    );
+
     test('> in search navigate deeper from search', function() {
       sinon.stub(contacts.Search, 'isInSearchMode', function() {
         return true;
@@ -345,7 +360,6 @@ suite('Contacts', function() {
 
       contacts.Search.isInSearchMode.restore();
     });
-
   });
 
   suite('Async scripts loading', function() {
@@ -450,5 +464,4 @@ suite('Contacts', function() {
       });
     });
   });
-
 });

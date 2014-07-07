@@ -2,7 +2,7 @@
 /* global contacts */
 /* global LazyLoader */
 /* global MmiManager */
-/* global MockActivities */
+/* global ActivityHandler */
 /* global MockContactAllFields */
 /* global MockContacts */
 /* global MockContactsListObj */
@@ -54,7 +54,6 @@ var _ = function(key) { return key; },
     realL10n,
     realOnLine,
     realFormatDate,
-    realActivityHandler,
     dom,
     contactDetails,
     listContainer,
@@ -85,17 +84,14 @@ requireApp('communications/contacts/js/tag_optionsstem.js');
 
 var SCALE_RATIO = 1;
 
-if (!window.ActivityHandler) {
-  window.ActivityHandler = null;
-}
-
 var mocksHelperForDetailView = new MocksHelper([
   'ContactPhotoHelper',
   'WebrtcClient',
   'LazyLoader',
   'MmiManager',
   'MultiSimActionButton',
-  'TelephonyHelper'
+  'TelephonyHelper',
+  'ActivityHandler'
 ]).init();
 
 suite('Render contact', function() {
@@ -113,7 +109,6 @@ suite('Render contact', function() {
   suiteSetup(function() {
     realOnLine = Object.getOwnPropertyDescriptor(navigator, 'onLine');
     realL10n = navigator.mozL10n;
-    realActivityHandler = window.ActivityHandler;
     realListeners = utils.listeners;
     utils.listeners = MockUtils.listeners;
     navigator.mozL10n = {
@@ -138,8 +133,6 @@ suite('Render contact', function() {
         var normalizedDate = new Date(date.getTime() + offset);
         return normalizedDate.toString();
     };
-
-    window.ActivityHandler = MockActivities;
 
     Object.defineProperty(navigator, 'onLine', {
       configurable: true,
@@ -200,7 +193,6 @@ suite('Render contact', function() {
       Object.defineProperty(navigator, 'onLine', realOnLine);
     }
     utils.misc.formatDate = realFormatDate;
-    window.ActivityHandler = realActivityHandler;
   });
 
   setup(function() {
@@ -827,13 +819,13 @@ suite('Render contact', function() {
     test(' > Not loading MultiSimActionButton when we are on an activity',
          function() {
       this.sinon.stub(MmiManager, 'isMMI').returns(true);
-      MockActivities.currentlyHandling = true;
+      ActivityHandler.currentlyHandling = true;
       subject.render(null, TAG_OPTIONS);
 
       sinon.assert.notCalled(MmiManager.isMMI);
       sinon.assert.neverCalledWith(LazyLoader.load,
        ['/shared/js/multi_sim_action_button.js']);
-      MockActivities.currentlyHandling = false;
+      ActivityHandler.currentlyHandling = false;
     });
 
     test('> Not loading MultiSimActionButton if we have a MMI code',
@@ -930,10 +922,36 @@ suite('Render contact', function() {
 
     test('> going back from details', function () {
       backButton.click();
+
       sinon.assert.calledOnce(MockWebrtcClient.stop);
       sinon.assert.notCalled(ActivityHandler.postCancel);
       sinon.assert.calledOnce(Contacts.navigation.back);
     });
+
+    test('> going back from details during an activity', function () {
+      ActivityHandler.currentlyHandling = true;
+      backButton.click();
+
+      sinon.assert.calledOnce(MockWebrtcClient.stop);
+      sinon.assert.calledOnce(ActivityHandler.postCancel);
+      sinon.assert.notCalled(Contacts.navigation.back);
+
+      ActivityHandler.currentlyHandling = false;
+    });
+
+    test('> going back from details during an IMPORT activity', function () {
+      ActivityHandler.currentlyHandling = true;
+      ActivityHandler.activityName = 'import';
+      backButton.click();
+
+      sinon.assert.calledOnce(MockWebrtcClient.stop);
+      sinon.assert.notCalled(ActivityHandler.postCancel);
+      sinon.assert.calledOnce(Contacts.navigation.back);
+
+      ActivityHandler.currentlyHandling = false;
+      ActivityHandler.activityName = 'view';
+    });
+
   });
 
 });

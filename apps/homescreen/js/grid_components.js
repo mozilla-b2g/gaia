@@ -151,7 +151,8 @@ Collection.prototype = {
         descriptor.webicons = data.extraIconsData;
         descriptor.pinned = data.apps;
       }
-
+      var id = parseInt(descriptor.categoryId);
+      descriptor.id = isNaN(id) ? descriptor.categoryId : id;
       cb(descriptor);
     }.bind(this));
   }

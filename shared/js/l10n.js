@@ -1156,6 +1156,8 @@
     translateFragment: function (fragment) {
       return translateFragment.call(navigator.mozL10n, fragment);
     },
+    setAttributes: setL10nAttributes,
+    getAttributes: getL10nAttributes,
     ready: function ready(callback) {
       return navigator.mozL10n.ctx.ready(callback);
     },
@@ -1186,7 +1188,6 @@
         rePlaceables: rePlaceables,
         getTranslatableChildren:  getTranslatableChildren,
         translateDocument: translateDocument,
-        getL10nAttributes: getL10nAttributes,
         loadINI: loadINI,
         fireLocalizedEvent: fireLocalizedEvent,
         parse: parse,
@@ -1488,6 +1489,20 @@
     }
   }
 
+  function setL10nAttributes(element, id, args) {
+    element.setAttribute('data-l10n-id', id);
+    if (args) {
+      element.setAttribute('data-l10n-args', JSON.stringify(args));
+    }
+  }
+
+  function getL10nAttributes(element) {
+    return {
+      id: element.getAttribute('data-l10n-id'),
+      args: JSON.parse(element.getAttribute('data-l10n-args'))
+    };
+  }
+
   function getTranslatableChildren(element) {
     return element ? element.querySelectorAll('*[data-l10n-id]') : [];
   }
@@ -1507,21 +1522,6 @@
       element.removeAttribute('data-l10n-args');
     }
   }
-
-  function getL10nAttributes(element) {
-    if (!element) {
-      return {};
-    }
-
-    var l10nId = element.getAttribute('data-l10n-id');
-    var l10nArgs = element.getAttribute('data-l10n-args');
-
-    var args = l10nArgs ? JSON.parse(l10nArgs) : null;
-
-    return {id: l10nId, args: args};
-  }
-
-
 
   function translateElement(element) {
     var l10n = getL10nAttributes(element);

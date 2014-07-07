@@ -70,8 +70,7 @@
 
 .icon .title {
   display: inline-block;
-  /* Space between icon and title .1rem + .2rem = .3rem as spec says */
-  margin-top: .1rem;
+  margin-top: -0.2rem;
   /* We need this rule in order not to hide the drop shadow */
   padding: 0.2rem 0.2rem 1rem;
   text-shadow: 0.1rem 0.1rem 0.3rem rgba(0, 0, 0, 0.3),
@@ -88,12 +87,17 @@
 [cols="4"] .icon .title {
   /* Font size is the same independent on grid configuration */
   font-size: calc(1.2rem * 1.333);
+  margin-top: 0.2rem;
 }
 
 .divider {
   position: absolute;
   width: 50%;
-  margin: 2.3rem 25%;
+  margin: 2.3rem 25% 3.5rem 25%;
+}
+
+[cols="4"] .divider {
+  margin: 1.6rem 25% 3.2rem 25%;
 }
 
 .divider span {
@@ -101,7 +105,7 @@
   background: linear-gradient(to bottom, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0.5));
   width: 100%;
   z-index: 2;
-  height: 0.2rem
+  height: 0.2rem;
 }
 
 .dragging .icon.active {

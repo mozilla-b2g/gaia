@@ -136,7 +136,8 @@ suite('Carrier settings', function() {
           apn: 'jazzinternet',
           type: ['default', 'supl'],
           mvno_match_data: 'JAZZTEL',
-          mvno_type: 'spn'
+          mvno_type: 'spn',
+          _id: '566a3284-011a-11e4-aa2a-8b77e4c6317d'
       }];
 
       var apnPanel = document.getElementById('carrier-dataSettings');
@@ -213,5 +214,45 @@ suite('Carrier settings', function() {
           });
       });
     });
+
+    suite('APN with _id coming from wappush', function() {
+      setup(function() {
+
+        apns = [{
+          carrier: 'Movistar',
+          apn: 'telefonica.es',
+          user: 'telefonica',
+          password: 'telefonica',
+          proxy: '10.138.255.133',
+          port: '8080',
+          mmsc: 'http://mms.movistar.com',
+          mmsproxy: '10.138.255.5',
+          mmsport: '8080',
+          authtype: 'pap',
+          types: ['default', 'supl', 'mms'],
+          _id: '6634ed3e-0116-11e4-8bfc-9b5db80418bc'
+        }];
+
+        // Modify settings property like wappush application does, adding
+        // an apn with an external id (uuid). So it can be selected when
+        // there is another apn with the same name/carrier.
+        preferredApnList[0][0] = apns[0];
+        MockNavigatorSettings.mSettings[APNS_KEY] = preferredApnList;
+      });
+
+      test('Select Movistar (last APN in the list)',
+        function(done) {
+          CarrierSettings.updateApnList(apnList.concat(apns), 'data',
+          function onUpdated() {
+            // If the apn has no _id, first apn is selected, so check that
+            // the second one is selected.
+            var selector = 'input[type="radio"]:checked';
+            var input = apnListElement.querySelector(selector);
+            assert.equal(input.value, _getHashCode(apns[0]._id + '2'));
+            done();
+          });
+      });
+    });
+
   });
 });

@@ -294,7 +294,7 @@ gaia-buttons.forward-only .icon-previous {
 #SIM_mandatory p {
   margin: 0;
   color: #606060;
-  font-weight: lighter;
+  font-weight: 300;
   padding: 0 1rem 1rem;
   font-size: 2.2rem;
   line-height: 3rem;
@@ -818,9 +818,10 @@ aside.connecting {
   width: auto;
   height: auto;
   margin: 0 3rem 0 0;
+  padding-right: 3rem;
 }
 
-#welcome_browser #form_share_statistics span:after {
+#form_share_statistics span:after {
   top: 1rem;
   left: 1rem;
 }
@@ -1033,12 +1034,6 @@ i.hack-first-child {
   background: url("images/checked.png") no-repeat right center / 100%;
 }
 
-/* Right to left: position the check mark to the left */
-html[dir="rtl"] [data-type="list"].pack-value-selector li label:not([for]) input + span:after {
-  left: 0;
-  margin-left: auto;
-}
-
 [data-type="list"].pack-value-selector li label:not([for]) input + span + p {
   font-weight: normal;
 }
@@ -1111,4 +1106,25 @@ html[dir="rtl"] [data-type="list"].pack-value-selector li label:not([for]) input
   padding: 1rem 1rem 0;
   font-size: 1.5rem;
   text-align: center;
+}
+
+/*
+  RTL Tweeks
+*/
+
+/* Right to left: position the check mark to the left */
+html[dir="rtl"] [data-type="list"].pack-value-selector li label:not([for]) input + span:after {
+  left: 0;
+  margin-left: auto;
+}
+
+html[dir="rtl"] #welcome_browser #form_share_statistics label {
+  margin-right: 0;
+  margin-left: 3rem;
+  padding-left: 0;
+  padding-right: 3rem;
+}
+
+html[dir="rtl"] #form_share_statistics span:after {
+  right: 1rem;
 }

@@ -34,6 +34,7 @@ suite('collection.js > ', function() {
     };
 
     subject = new CollectionSource(mockStore);
+    subject.synchronize();
   });
 
   test('proper ordering, datastore sync from during activity', function() {

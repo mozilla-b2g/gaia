@@ -1,5 +1,12 @@
+/* global LazyLoader */
+
 (function(exports) {
   'use strict';
+
+  var resources = ['/shared/js/component_utils.js',
+                   '/shared/elements/gaia_buttons/script.js',
+                   '/shared/elements/gaia_confirm/script.js',
+                   '/shared/elements/gaia_menu/script.js'];
   /**
   Generic dialog helper this _depends_ on <gaia-confirm> but is not required
   to be loaded as part of the main gaia-confirm script.
@@ -10,6 +17,10 @@
 
   ConfirmDialogHelper.prototype = {
     show: function(parent) {
+      LazyLoader.load(resources, this._show.bind(this, parent));
+    },
+
+    _show: function(parent) {
       var config = this.config;
       var wrapper = document.createElement('div');
 
@@ -58,6 +69,7 @@
         confirm.classList.add(config.confirm.type);
       }
       parent.appendChild(element);
+      window.dispatchEvent(new CustomEvent('gaia-confirm-open'));
     },
 
     destroy: function() {
@@ -70,6 +82,7 @@
 
       this.element.parentNode.removeChild(this.element);
       this.element = null;
+      window.dispatchEvent(new CustomEvent('gaia-confirm-close'));
     },
 
     handleEvent: function(e) {

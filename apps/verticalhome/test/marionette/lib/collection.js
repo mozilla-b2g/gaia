@@ -15,9 +15,18 @@ function Collection(client, server) {
 Collection.URL = 'app://collection.gaiamobile.org';
 
 Collection.Selectors = {
+
+  bookmarkActivity: '.inline-activity.active > iframe' +
+    '[mozapp="app://bookmark.gaiamobile.org/manifest.webapp"]',
+  bookmarkAddButton: '#add-button',
+
+  close: '#close',
+
   cloudMenu: '#cloud-menu',
+  cloudMenuBookmark: '#bookmark-cloudapp',
   cloudMenuPin: '#pin-cloudapp',
   contextMenuTarget: '#icons',
+  createScreenReady: 'body[data-test-ready]',
   menuAddButton: '#create-smart-collection',
   collectionsSelect: '#collections-select',
 
@@ -27,16 +36,79 @@ Collection.Selectors = {
   // The first web result when NO pinned items exist
   firstWebResultNoPinned: 'gaia-grid .icon',
 
-  // The first web result when pinned items exist
-  firstWebResultPinned: 'gaia-grid .divider + .icon',
-
   allDividers: 'gaia-grid .divider',
   allIcons: 'gaia-grid .icon',
 
-  offlineMessage: '#offline-message'
+  offlineMessage: '#offline-message',
+
+  mozbrowser: '.inline-activity.active > iframe[mozbrowser]',
 };
 
 Collection.prototype = {
+
+  /**
+   * Gets the first web result in the web results section. The web results
+   * section of a collection is before the first divider when pinned icons are
+   * present, otherwise it's the first icon.
+   */
+  get firstWebResult() {
+    var identifier = this.client.executeScript(function() {
+      var doc = window.wrappedJSObject.document;
+      var grid = doc.querySelector('gaia-grid');
+      var items = grid.getItems();
+      var theItem;
+
+      for (var i = 0, iLen = items.length; i < iLen; i++) {
+        if (!theItem) {
+          theItem = items[i];
+        }
+
+        if (items[i].detail.type === 'divider') {
+          theItem = null;
+        }
+      }
+
+      return theItem.identifier;
+    });
+
+    return this.getIconByIdentifier(identifier);
+  },
+
+  /**
+   * Gets the first pinned result of a collection. Assumes that you
+   * actually have pinned objects.
+   * XXX: Consider verifying by classname, or section that we really have
+   * pinned results.
+   */
+  get firstPinnedResult() {
+    return this.client.helper.waitForElement(
+      Collection.Selectors.firstPinnedResult);
+  },
+
+  /**
+   * Disables the Geolocation prompt.
+   */
+  disableGeolocation: function() {
+    var client = this.client.scope({ context: 'chrome' });
+    client.executeScript(function(origin) {
+      var mozPerms = navigator.mozPermissionSettings;
+      mozPerms.set(
+        'geolocation', 'deny', origin + '/manifest.webapp', origin, false
+      );
+    }, [Collection.URL]);
+  },
+
+  /**
+   * Updates eme server settings to hit the local server URL.
+   */
+  setServerURL: function(server) {
+    var client = this.client.scope({ context: 'chrome' });
+    client.executeScript(function(url) {
+      navigator.mozSettings.createLock().set({
+        'everythingme.api.url': url
+      });
+    }, [server.url + '/{resource}']);
+  },
 
   /**
    * Enters the create collection screen from the homescreen.
@@ -48,6 +120,14 @@ Collection.prototype = {
     this.actions.longPress(container, 1).perform();
 
     this.client.helper.waitForElement(selectors.menuAddButton).click();
+  },
+
+  /**
+   * Activity handling happens async, so in order to know when we are ready
+   * we add a data attribute onto the body.
+   */
+  waitForCreateScreenReady: function() {
+    this.client.helper.waitForElement(Collection.Selectors.createScreenReady);
   },
 
   /**
@@ -133,13 +213,33 @@ Collection.prototype = {
 
   /**
    * Pins a result to the top of the collection.
+   * @param {Object} element The web result element to pin.
+   */
+  pin: function(element) {
+    this.actions.longPress(element, 1).perform();
+    this.client.helper.waitForElement(
+      Collection.Selectors.cloudMenuPin).click();
+  },
+
+  /**
+   * Bookmarks a result in the home screen.
    * @param {String} selector The selector to find the icon in web results.
    */
-  pin: function(selector) {
+  bookmark: function(bookmark, selector) {
     var selectors = Collection.Selectors;
-    var firstIcon = this.client.helper.waitForElement(selector);
-    this.actions.longPress(firstIcon, 1).perform();
-    this.client.helper.waitForElement(selectors.cloudMenuPin).click();
+    var bookmarkSelector = Collection.Selectors.cloudMenuBookmark;
+
+    var icons = this.client.helper.waitForElement(selector);
+    this.actions.longPress(icons, 1).perform();
+    this.client.helper.waitForElement(bookmarkSelector).click();
+    this.client.switchToFrame();
+
+    this.client.switchToFrame(
+      this.client.helper.waitForElement(
+        selectors.bookmarkActivity)
+    );
+
+    bookmark.addButton.click();
   }
 };
 

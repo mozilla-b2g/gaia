@@ -1,6 +1,5 @@
 'use strict';
 /* global MozActivity */
-/* global Search */
 
 (function(exports) {
 
@@ -28,9 +27,6 @@
     handleEvent: function(e) {
       switch(e.type) {
         case 'contextmenu':
-          e.stopImmediatePropagation();
-          e.preventDefault();
-
           var identifier = e.target.dataset.identifier;
           var icon = this.grid.getIcon(identifier);
 
@@ -39,9 +35,17 @@
             return;
           }
 
+          // In order to benefit from the system contextmenu in such a way that
+          // it overlaps search bar, let's create a contextmenu attribute on
+          // the fly, and remove it once the event dispatching is done.
+          e.target.setAttribute('contextmenu', 'contextmenu');
+          setTimeout(function() {
+            e.target.removeAttribute('contextmenu');
+          });
+
           this.icon = icon;
-          this.menu.show();
           break;
+
         case 'click':
           /* jshint nonew: false */
           new MozActivity({
@@ -53,14 +57,7 @@
               icon: this.icon.icon
             }
           });
-
-          this.icon = null;
-          this.menu.hide();
-
-          // XXX Bug 1027374, close search. If we do not the activity window
-          // is hidden behind the search window.
-          Search.close();
-
+          this.hide();
           break;
       }
     }

@@ -6,7 +6,7 @@ gaia-grid {
 }
 
 #edit-header {
-  position: fixed;
+  position: absolute;
   top: 0;
   z-index: 11; /* Header BB is 10 */
   width: 100%;
@@ -38,31 +38,39 @@ gaia-grid {
 
 #content {
   border-top: 0.1rem solid #555;
-  position: fixed;
-  top: 5rem;
+  position: absolute;
+  top: 0;
   left: 0;
   right: 0;
   bottom: 0;
   overflow: scroll;
   padding-top: 2.4rem;
-  background-color: #000000;
-  background-size: cover;
+  -moz-user-select: none;
 }
 
-#content:after {
-  position: fixed;
-  top: 5.1rem; /* making sure not to overlay the top border */
+#content-background-image {
+  position: absolute;
+  top: 5rem;
   left: 0;
   width: 100%;
-  height: 100%;
-  z-index: 0;
-  content: " ";
-  background-color: rgba(0,0,0,0.4);
-  transition: background-color 0.5s ease-in;
+  height: calc(100% - 5rem);
+  background-size: cover;
+  overflow: hidden;
 }
 
-.edit-mode #content:after {
+#content-background-overlay {
+  position: absolute;
   top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background-color: rgba(0,0,0,0.4);
+  transition: background-color 0.5s ease-in;
+  overflow: hidden;
+}
+
+
+.edit-mode #content-background-overlay {
   background-color: #333333;
 }
 

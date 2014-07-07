@@ -382,6 +382,22 @@
   visibility: visible;
 }
 
+/*
+ * Because the search input lives in the system app, while the search app
+ * lives into its own search window, the context menu for such an application
+ * does not cover the whole screen.
+ * In order to have it cover the whole screen, the contextmenu which is part of
+ * the app window of the search window, is positioned negatively on the y-axis,
+ * while overflow is authorize for such window.
+ */
+.appWindow.searchWindow .contextmenu {
+  top: -7rem;
+}
+
+.appWindow.searchWindow {
+  overflow: visible;
+}
+
 .appWindow > .modal-dialog.visible,
 .appWindow > .contextmenu.visible,
 .appWindow > .authentication-dialog.visible,
@@ -409,6 +425,18 @@
   background: none;
   -moz-box-sizing: border-box;
   margin-bottom: 1.5rem; /* not overlap by menu while keyboard pop */
+}
+
+/*
+ * Because the search input lives in the system app, while the search app
+ * lives into its own window, activities windows attached to the search app
+ * does not cover the whole screen.
+ * In order to cover the whole screen, the activityWindow is positioned to the
+ * top of the screen and expanded to cover the whole screen.
+ */
+.appWindow.searchWindow .activityWindow {
+  height: calc(100% + 7rem);
+  top: -7rem;
 }
 
 .appWindow > .modal-dialog > form.visible {
@@ -643,10 +671,15 @@
 
 /* Edges */
 #windows > .appWindow:not(.homescreen):not(.lockScreenWindow) {
-  /* in the viewport but not really */
-  transform: translateX(-99.9999%);
+  /* not in the viewport */
+  transform: translateX(-100%);
   opacity: 1;
   will-change: transform, opacity;
+}
+
+#windows > .appWindow:not(.homescreen):not(.lockScreenWindow).edge-candidate {
+  /* in the viewport but not really */
+  transform: translateX(-99.9999%);
 }
 
 #screen:-moz-full-screen-ancestor > #windows .appWindow.active {

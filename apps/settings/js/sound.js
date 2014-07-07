@@ -226,8 +226,11 @@
     // currently-selected tone. Sometimes the name is an l10n ID, and sometimes
     // it is just text.
     SettingsListener.observe(namekey, '', function(tonename) {
-      var name = tonename && tonename.l10nID ? _(tonename.l10nID) : tonename;
+      var l10nID = tonename && tonename.l10nID;
+      var name = l10nID ? _(l10nID) : tonename;
+
       toneType.button.textContent = name || _('change');
+      toneType.button.dataset.l10nId = l10nID || '';
     });
 
     // When the user clicks the button, we launch an activity that lets

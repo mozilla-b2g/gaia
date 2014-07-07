@@ -89,6 +89,7 @@ button::-moz-focus-inner {
   font-size: 0;
   font-family: sans-serif;
   border: none;
+  border-radius: 0;  /* To override the system-default border radius for button element  */
   background: none;
 
   /* Delay hiding the highlighting long enough to make sure the user sees it. */
@@ -252,16 +253,26 @@ button::-moz-focus-inner {
 }
 
 /* Key states */
-/* Active key, used for caps Lock key */
-.keyboard-key.kbr-key-active > .visual-wrapper > .key-element,
+
+/* Active key, used for shift key - uppercase */
+.keyboard-key.kbr-key-active {
+  background-color: #00caf2;
+}
+
+.keyboard-key.kbr-key-active > .visual-wrapper > .key-element {
+ color: #fff;
+ border-right-color: transparent;
+}
+
+/* Caps lock case */
 .keyboard-key.special-key.kbr-key-hold > .visual-wrapper > .key-element {
   color: #00caf2;
 }
 
+/* The underline for caps lock */
 .keyboard-key.kbr-key-hold > .visual-wrapper {
   box-shadow: 0 0.4rem 0 #00caf2;
 }
-
 
 /* Alt menu enabled */
 .keyboard-key.highlighted.kbr-menu-on > .visual-wrapper > .key-element {

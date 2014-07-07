@@ -72,7 +72,8 @@ var EdgeSwipeDetector = {
         this._touchEnd(e);
         break;
       case 'appopen':
-        this.lifecycleEnabled = true;
+        var app = e.detail;
+        this.lifecycleEnabled = (app.origin !== FtuLauncher.getFtuOrigin());
         break;
       case 'homescreenopened':
         this.lifecycleEnabled = false;
@@ -115,7 +116,7 @@ var EdgeSwipeDetector = {
     this._touchStartEvt = e;
     this._startDate = Date.now();
 
-    var iframe = StackManager.getCurrent().iframe;
+    var iframe = StackManager.getCurrent().getTopMostWindow().iframe;
     this._touchForwarder.destination = iframe;
 
     var touch = e.changedTouches[0];

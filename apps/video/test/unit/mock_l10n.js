@@ -24,8 +24,13 @@
       }
       return key;
     },
+
     DateTimeFormat: DateTimeFormat,
+
     once: function once() {
+    },
+
+    ready: function ready() {
     }
   };
 

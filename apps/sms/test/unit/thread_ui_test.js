@@ -6,8 +6,8 @@
          MockContacts, ActivityHandler, Recipients, MockMozActivity,
          ThreadListUI, ContactRenderer, UIEvent, Drafts, OptionMenu,
          ActivityPicker, KeyEvent, MockNavigatorSettings, MockContactRenderer,
-         Draft, MockStickyHeader, MultiSimActionButton, Promise,
-         MockLazyLoader, WaitingScreen, Navigation, MockDialog
+         Draft, MockStickyHeader, MultiSimActionButton, Promise, KeyboardEvent,
+         MockLazyLoader, WaitingScreen, Navigation, MockDialog, MockSettings
 */
 
 'use strict';
@@ -229,6 +229,9 @@ suite('thread_ui.js >', function() {
       container.innerHTML = '';
     });
     setup(function() {
+      this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
+      Navigation.isCurrentPanel.withArgs('thread').returns(true);
+
       // we don't have CSS so we must force the scroll here
       container.style.overflow = 'scroll';
       container.style.height = '50px';
@@ -261,8 +264,10 @@ suite('thread_ui.js >', function() {
       dispatchScrollEvent(container);
 
       assert.isFalse(ThreadUI.isScrolledManually);
-      assert.ok((container.scrollTop + container.clientHeight) ==
-                container.scrollHeight);
+      assert.equal(
+        container.scrollTop + container.clientHeight,
+        container.scrollHeight
+      );
     });
 
     suite('when a new message is received >', function() {
@@ -682,12 +687,14 @@ suite('thread_ui.js >', function() {
   });
 
   suite('updateCounter() >', function() {
-    var banner, convertBanner, shouldEnableSend, form, localize;
+    var banner, convertBanner, shouldEnableSend, form, counterLabel, localize;
 
     setup(function() {
       banner = document.getElementById('messages-max-length-notice');
       convertBanner = document.getElementById('messages-convert-notice');
       form = document.getElementById('messages-compose-form');
+      counterLabel = document.getElementById('messages-counter-label');
+
       localize = this.sinon.spy(navigator.mozL10n, 'localize');
 
       // let any update timeout play so that we don't have false errors
@@ -727,12 +734,12 @@ suite('thread_ui.js >', function() {
     });
 
     test('getSegmentInfoForText error hides the counter', function() {
-      sendButton.classList.add('has-counter');
+      counterLabel.classList.add('has-counter');
       Compose.append(initialText);
       this.sinon.clock.tick(ThreadUI.UPDATE_DELAY);
       MockNavigatormozMobileMessage.mTriggerSegmentInfoError();
 
-      assert.isFalse(sendButton.classList.contains('has-counter'));
+      assert.isFalse(counterLabel.classList.contains('has-counter'));
     });
 
     suite('asynchronous tricky tests >', function() {
@@ -784,7 +791,7 @@ suite('thread_ui.js >', function() {
           segmentInfo2, 0
         );
 
-        var subject = sendButton.dataset.counter;
+        var subject = counterLabel.dataset.counter;
         var expected = segmentInfo2.charsAvailableInLastSegment + '/' +
           segmentInfo2.segments;
 
@@ -803,7 +810,7 @@ suite('thread_ui.js >', function() {
           segmentInfo1, 0
         );
 
-        var subject = sendButton.dataset.counter;
+        var subject = counterLabel.dataset.counter;
         var expected = segmentInfo1.charsAvailableInLastSegment + '/' +
           segmentInfo1.segments;
 
@@ -815,6 +822,7 @@ suite('thread_ui.js >', function() {
     suite('type changed after the first segment info request >', function() {
       setup(function() {
         Compose.type = 'sms';
+        counterLabel.classList.add('has-counter');
 
         ThreadUI.updateCounter();
         this.sinon.clock.tick(ThreadUI.UPDATE_DELAY);
@@ -834,8 +842,8 @@ suite('thread_ui.js >', function() {
         Compose.type = 'sms';
       });
 
-      test('should not change the segment info', function() {
-        assert.ok(sendButton.classList.contains('has-counter'));
+      test('should remove has-counter class if sms became mms', function() {
+        assert.isFalse(counterLabel.classList.contains('has-counter'));
       });
     });
 
@@ -850,7 +858,7 @@ suite('thread_ui.js >', function() {
       });
 
       test('no counter is displayed', function() {
-        assert.isFalse(sendButton.classList.contains('has-counter'));
+        assert.isFalse(counterLabel.classList.contains('has-counter'));
       });
 
       test('no banner is displayed', function() {
@@ -873,7 +881,7 @@ suite('thread_ui.js >', function() {
       });
 
       test('no counter is displayed', function() {
-        assert.isFalse(sendButton.classList.contains('has-counter'));
+        assert.isFalse(counterLabel.classList.contains('has-counter'));
       });
 
       test('no banner is displayed', function() {
@@ -903,7 +911,7 @@ suite('thread_ui.js >', function() {
 
       test('a counter is displayed', function() {
         var expected = availableChars + '/' + segment;
-        assert.equal(sendButton.dataset.counter, expected);
+        assert.equal(counterLabel.dataset.counter, expected);
       });
 
       test('no banner is displayed', function() {
@@ -933,7 +941,7 @@ suite('thread_ui.js >', function() {
 
       test('a counter is displayed', function() {
         var expected = availableChars + '/' + segment;
-        assert.equal(sendButton.dataset.counter, expected);
+        assert.equal(counterLabel.dataset.counter, expected);
       });
 
       test('no banner is displayed', function() {
@@ -963,7 +971,7 @@ suite('thread_ui.js >', function() {
 
       test('a counter is displayed', function() {
         var expected = availableChars + '/' + segment;
-        assert.equal(sendButton.dataset.counter, expected);
+        assert.equal(counterLabel.dataset.counter, expected);
       });
 
       test('no banner is displayed', function() {
@@ -993,7 +1001,7 @@ suite('thread_ui.js >', function() {
 
       test('a counter is displayed', function() {
         var expected = availableChars + '/' + segment;
-        assert.equal(sendButton.dataset.counter, expected);
+        assert.equal(counterLabel.dataset.counter, expected);
       });
 
       test('the send button should be enabled', function() {
@@ -1198,17 +1206,24 @@ suite('thread_ui.js >', function() {
 
 
     suite('Visibility', function() {
-      var event, backspace;
+      var downEvent, upEvent, backspace;
 
-      suiteSetup(function() {
-        event = {
-          keyCode: KeyEvent.DOM_VK_BACK_SPACE,
-          DOM_VK_BACK_SPACE: KeyEvent.DOM_VK_BACK_SPACE
-        };
+      setup(function() {
+        downEvent = new KeyboardEvent('keydown', {
+          bubbles: true,
+          cancelable: true,
+          keyCode: KeyEvent.DOM_VK_BACK_SPACE
+        });
+
+        upEvent = new KeyboardEvent('keyup', {
+          bubbles: true,
+          cancelable: true,
+          keyCode: KeyEvent.DOM_VK_BACK_SPACE
+        });
 
         backspace = function(id) {
-          ThreadUI.onSubjectKeydown(event);
-          ThreadUI.onSubjectKeyup(event);
+          subject.dispatchEvent(downEvent);
+          subject.dispatchEvent(upEvent);
         };
       });
 
@@ -1228,7 +1243,7 @@ suite('thread_ui.js >', function() {
         // Per discussion, this is being deferred to another bug
         // https://bugzilla.mozilla.org/show_bug.cgi?id=959360
         //
-        // assert.isTrue(sendButton.classList.contains('has-counter'));
+        // assert.isTrue(counterLabel.classList.contains('has-counter'));
         assert.equal(Compose.type, 'mms');
 
         // 3. To simulate the user "deleting" the subject,
@@ -1244,7 +1259,7 @@ suite('thread_ui.js >', function() {
         // Per discussion, this is being deferred to another bug
         // https://bugzilla.mozilla.org/show_bug.cgi?id=959360
         //
-        // assert.isFalse(sendButton.classList.contains('has-counter'));
+        // assert.isFalse(counterLabel.classList.contains('has-counter'));
         assert.equal(Compose.type, 'sms');
       });
 
@@ -1285,11 +1300,11 @@ suite('thread_ui.js >', function() {
 
         // 3. Simulate holding backspace on the subject field
         for (var i = 0; i < 5; i++) {
-          ThreadUI.onSubjectKeydown(event);
+          subject.dispatchEvent(downEvent);
         }
 
         // 4. This is the "release" from a holding state
-        ThreadUI.onSubjectKeyup(event);
+        subject.dispatchEvent(upEvent);
 
         // 5. Confirm that the state of the compose area not changed.
         assert.isTrue(Compose.isSubjectVisible);
@@ -1311,11 +1326,11 @@ suite('thread_ui.js >', function() {
 
         // 3. Simulate holding backspace on the subject field
         for (var i = 0; i < 5; i++) {
-          ThreadUI.onSubjectKeydown(event);
+          subject.dispatchEvent(downEvent);
         }
 
         // 4. This is the "release" from a holding state
-        ThreadUI.onSubjectKeyup(event);
+        subject.dispatchEvent(upEvent);
 
         // 5. To simulate the user "deleting" the subject,
         // set the value to an empty string.
@@ -1328,20 +1343,40 @@ suite('thread_ui.js >', function() {
         assert.isFalse(Compose.isSubjectVisible);
       });
     });
+
+    suite('Return key handling', function() {
+      var event;
+
+      test('Return key should be ignored at key down', function() {
+        event = new KeyboardEvent('keydown', {
+          bubbles: true,
+          cancelable: true,
+          keyCode: KeyEvent.DOM_VK_RETURN
+        });
+        this.sinon.spy(event, 'stopPropagation');
+
+        subject.dispatchEvent(event);
+
+        assert.ok(event.defaultPrevented);
+        sinon.assert.called(event.stopPropagation);
+      });
+    });
   });
 
   suite('message type conversion >', function() {
-    var convertBanner, convertBannerText, form, localize;
+    var convertBanner, convertBannerText, form, counterLabel, localize;
     setup(function() {
       convertBanner = document.getElementById('messages-convert-notice');
       convertBannerText = convertBanner.querySelector('p');
       form = document.getElementById('messages-compose-form');
+      counterLabel = document.getElementById('messages-counter-label');
+
       localize = this.sinon.spy(navigator.mozL10n, 'localize');
     });
     test('sms to mms and back displays banner', function() {
       // cause a type switch event to happen
       Compose.type = 'mms';
-      assert.isTrue(sendButton.classList.contains('has-counter'));
+      assert.isFalse(counterLabel.classList.contains('has-counter'));
       assert.isFalse(convertBanner.classList.contains('hide'),
         'conversion banner is shown for mms');
       assert.equal(composeForm.dataset.messageType, 'mms',
@@ -1365,7 +1400,7 @@ suite('thread_ui.js >', function() {
       this.sinon.clock.tick(ThreadUI.UPDATE_DELAY);
       MockNavigatormozMobileMessage.mTriggerSegmentInfoSuccess();
 
-      assert.isFalse(sendButton.classList.contains('has-counter'));
+      assert.isFalse(counterLabel.classList.contains('has-counter'));
       assert.isFalse(convertBanner.classList.contains('hide'),
         'conversion banner is shown for sms');
       assert.equal(composeForm.dataset.messageType, 'sms',
@@ -1786,12 +1821,19 @@ suite('thread_ui.js >', function() {
     });
 
     suite('validateContact', function() {
-      var fixture, contacts;
+      var fixture, contacts, fixtureEmail;
 
       setup(function() {
         fixture = {
           name: 'Janet Jones',
           number: '+346578888888',
+          source: 'manual',
+          isInvalid: false
+        };
+
+        fixtureEmail = {
+          name: 'Janet Jones',
+          number: 'a@b.com',
           source: 'manual',
           isInvalid: false
         };
@@ -1834,11 +1876,47 @@ suite('thread_ui.js >', function() {
 
           assert.isTrue(fixture.isInvalid);
         });
+
+        test('[Email]input value has matching record ', function() {
+
+          MockSettings.supportEmailRecipient = true;
+          ThreadUI.validateContact(fixtureEmail, 'a@b.com', contacts);
+
+          sinon.assert.calledOnce(ThreadUI.recipients.remove);
+          sinon.assert.calledWith(ThreadUI.recipients.remove, 0);
+
+          assert.equal(
+            ThreadUI.recipients.add.firstCall.args[0].source, 'contacts'
+          );
+          assert.equal(
+            ThreadUI.recipients.add.firstCall.args[0].number, 'a@b.com'
+          );
+        });
+
+        test('[Email]input value is invalid ', function() {
+
+          MockSettings.supportEmailRecipient = true;
+
+          // An actual accepted recipient from contacts
+          fixtureEmail.number = 'foo';
+          fixtureEmail.isQuestionable = true;
+
+          ThreadUI.recipients.add(fixtureEmail);
+          assert.isFalse(fixtureEmail.isInvalid);
+
+          ThreadUI.recipientsList.lastElementChild.textContent = '';
+
+          ThreadUI.validateContact(fixtureEmail, '', []);
+
+          sinon.assert.calledOnce(ThreadUI.recipients.update);
+          sinon.assert.calledWithMatch(ThreadUI.recipients.update,
+                                       1, fixtureEmail);
+
+          assert.isTrue(fixtureEmail.isInvalid);
+        });
       });
 
       suite('Has Recipients', function() {
-
-
         test('input value has matching duplicate record w/ ' +
               'multiple, different tel records (accept) ', function() {
 
@@ -1942,6 +2020,84 @@ suite('thread_ui.js >', function() {
             ThreadUI.recipients.update, 1, fixture
           );
           assert.isTrue(fixture.isInvalid);
+        });
+
+        test('[Email]input value has multiple matching records, the ' +
+              'first is a duplicate, use next (accept) ', function() {
+
+          MockSettings.supportEmailRecipient = true;
+          contacts = MockContact.list([
+            { givenName: ['Janet'], familyName: ['Jones'] },
+            { givenName: ['Jane'], familyName: ['Johnson'] }
+          ]);
+
+          contacts[0].email = [{value: 'a@b'}];
+          contacts[1].email = [{value: 'a@c'}];
+
+          // An actual accepted recipient from contacts
+          ThreadUI.recipients.add({
+            name: 'Janet Jones',
+            number: 'a@b',
+            source: 'contacts'
+          });
+
+          // The last accepted recipient, manually entered.a
+          ThreadUI.recipients.add({
+            name: 'Jane',
+            number: 'Jane',
+            source: 'manual'
+          });
+
+          ThreadUI.validateContact(fixtureEmail, 'a@b.com', contacts);
+
+          // Called from here, then called again for the
+          // second contact record.
+          sinon.assert.calledTwice(ThreadUI.validateContact);
+
+          sinon.assert.called(ThreadUI.recipients.remove);
+          sinon.assert.called(ThreadUI.recipients.add);
+
+          assert.equal(
+            ThreadUI.recipients.add.lastCall.args[0].source, 'contacts'
+          );
+          assert.equal(
+            ThreadUI.recipients.add.lastCall.args[0].number, 'a@c'
+          );
+          assert.equal(
+            Utils.basicContact.returnValues[0].number, 'a@c'
+          );
+        });
+
+        test('[Email]input value has matching duplicate record w/ ' +
+              'single, same tel record (invalid) ', function() {
+
+          MockSettings.supportEmailRecipient = true;
+          // Get rid of the second tel record to create a "duplicate"
+          contacts[0].email.length = 1;
+
+          // An actual accepted recipient from contacts
+          fixtureEmail.source = 'contacts';
+          ThreadUI.recipients.add(fixtureEmail);
+
+          fixtureEmail.source = 'manual';
+          // The last accepted recipient, manually entered.
+          ThreadUI.recipients.add(fixtureEmail);
+
+          assert.isFalse(fixtureEmail.isInvalid);
+
+          ThreadUI.recipientsList.lastElementChild.textContent = '';
+          ThreadUI.validateContact(fixtureEmail, 'a@b.com', contacts);
+
+          // ThreadUI.recipients.update is called with the updated
+          // source recipient object. This object's isValid property
+          // has been set to true.
+          sinon.assert.calledOnce(
+            ThreadUI.recipients.update
+          );
+          sinon.assert.calledWithMatch(
+            ThreadUI.recipients.update, 1, fixtureEmail
+          );
+          assert.isTrue(fixtureEmail.isInvalid);
         });
       });
     });
@@ -2552,6 +2708,72 @@ suite('thread_ui.js >', function() {
       MessageManager.getMessages.yieldTo('done');
       this.sinon.clock.tick();
       assert.ok(MessageManager.markThreadRead.calledWith(1));
+    });
+
+    test('infinite rendering test', function() {
+      var chunkSize = ThreadUI.CHUNK_SIZE;
+      var message;
+
+      for (var i = 1; i < chunkSize; i++) {
+        MessageManager.getMessages.yieldTo('each', MockMessages.sms({ id: i }));
+        message = document.getElementById('message-' + i);
+        assert.ok(
+          message.classList.contains('hidden'),
+          'message-' + i + ' should be hidden'
+        );
+      }
+
+      MessageManager.getMessages.yieldTo(
+        'each', MockMessages.sms({ id: i })
+      );
+
+      assert.isNull(
+        container.querySelector('.hidden'),
+        'all previously hidden messages should now be displayed'
+      );
+
+      MessageManager.getMessages.yieldTo(
+        'each', MockMessages.sms({ id: ++i })
+      );
+
+      message = document.getElementById('message-' + i);
+      assert.ok(
+        message.classList.contains('hidden'),
+        'message-' + i + ' should be hidden'
+      );
+    });
+
+    suite('scrolling behavior for first chunk', function() {
+      setup(function() {
+        this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
+        Navigation.isCurrentPanel.withArgs('thread').returns(true);
+
+        this.sinon.stub(HTMLElement.prototype, 'scrollIntoView');
+
+        for (var i = 1; i < ThreadUI.CHUNK_SIZE; i++) {
+          MessageManager.getMessages.yieldTo(
+            'each', MockMessages.sms({ id: i })
+          );
+        }
+      });
+
+      test('should scroll to the end', function() {
+        MessageManager.getMessages.yieldTo(
+          'each', MockMessages.sms({ id: ThreadUI.CHUNK_SIZE })
+        );
+
+        sinon.assert.called(HTMLElement.prototype.scrollIntoView);
+      });
+
+      test('should not scroll to the end if in the wrong panel', function() {
+        Navigation.isCurrentPanel.withArgs('thread').returns(false);
+
+        MessageManager.getMessages.yieldTo(
+          'each', MockMessages.sms({ id: ThreadUI.CHUNK_SIZE })
+        );
+
+        sinon.assert.notCalled(HTMLElement.prototype.scrollIntoView);
+      });
     });
   });
 
@@ -3884,6 +4106,51 @@ suite('thread_ui.js >', function() {
       assert.equal(viewSpy.callCount, 1);
       assert.ok(viewSpy.calledWith, { allowSave: true });
     });
+
+    suite('after rendering a MMS', function() {
+      setup(function() {
+        this.sinon.spy(Attachment.prototype, 'render');
+        this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
+        Navigation.isCurrentPanel.withArgs('thread').returns(true);
+
+        this.sinon.stub(HTMLElement.prototype, 'scrollIntoView');
+
+        // fake content so that there is something to scroll
+        container.innerHTML = ThreadUI.tmpl.message.interpolate({
+          id: '1',
+          bodyHTML: 'test #1'
+        });
+
+        var inputArray = [{
+          name: 'imageTest.jpg',
+          blob: testImageBlob
+        }];
+        ThreadUI.createMmsContent(inputArray);
+      });
+
+      teardown(function() {
+        container.innerHTML = '';
+      });
+
+      test('should scroll when the view is scrolled to the bottom', function() {
+        ThreadUI.isScrolledManually = false;
+        Attachment.prototype.render.yield();
+        sinon.assert.called(HTMLElement.prototype.scrollIntoView);
+      });
+
+      test('should not scroll when the user scrolled up the view', function() {
+        ThreadUI.isScrolledManually = true;
+        Attachment.prototype.render.yield();
+        sinon.assert.notCalled(HTMLElement.prototype.scrollIntoView);
+      });
+
+      test('should not scroll if not in the right panel', function() {
+        Navigation.isCurrentPanel.withArgs('thread').returns(false);
+        ThreadUI.isScrolledManually = false;
+        Attachment.prototype.render.yield();
+        sinon.assert.notCalled(HTMLElement.prototype.scrollIntoView);
+      });
+    });
   });
 
   suite('Header Actions/Display', function() {
@@ -4669,6 +4936,25 @@ suite('thread_ui.js >', function() {
         assert.isTrue(Recipients.View.isFocusable);
       });
     });
+
+    test('pick in the case of Settings.supportEmailRecipient = true',
+    function() {
+      MockSettings.supportEmailRecipient = true;
+      ThreadUI.requestContact();
+
+      assert.equal(MockMozActivity.calls[0].data.contactProperties,
+      'tel,email');
+
+      MockSettings.supportEmailRecipient = false;
+    });
+
+    test('pick in the case of Settings.supportEmailRecipient = false',
+    function() {
+      MockSettings.supportEmailRecipient = false;
+      ThreadUI.requestContact();
+
+      assert.equal(MockMozActivity.calls[0].data.contactProperties, 'tel');
+    });
   });
 
   suite('recipient handling >', function() {
@@ -5039,6 +5325,7 @@ suite('thread_ui.js >', function() {
       test('thread: no message', function() {
         Navigation.isCurrentPanel.withArgs('thread').returns(true);
 
+        ThreadUI.recipients.length = 1;
         isDocumentHidden = true;
 
         ThreadUI.onVisibilityChange();
@@ -5707,11 +5994,30 @@ suite('thread_ui.js >', function() {
       ThreadUI.recipients.add({
         number: '999'
       });
+      threadMessages.classList.add('new');
 
       ThreadUI.afterLeave();
 
       assert.equal(Compose.getContent(), '');
       assert.equal(ThreadUI.recipients.length, 0);
+      assert.isFalse(threadMessages.classList.contains('new'));
+    });
+
+    test('properly clean the composer when moving to thread panel', function() {
+      // This case only happens when user sends new message and then
+      // automatically navigated to the thread panel and composer fields are
+      // cleaned in the sendMessage, so afterLeave isn't supposed to clean it.
+      Navigation.isCurrentPanel.withArgs('thread').returns(true);
+
+      ThreadUI.recipients.add({
+        number: '999'
+      });
+      threadMessages.classList.add('new');
+
+      ThreadUI.afterLeave();
+
+      assert.equal(ThreadUI.recipients.length, 0);
+      assert.isFalse(threadMessages.classList.contains('new'));
     });
 
     test('properly cleans the thread view when moving back to thread list',

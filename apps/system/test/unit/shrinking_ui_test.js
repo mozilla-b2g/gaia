@@ -110,12 +110,14 @@ suite('system/ShrinkingUI', function() {
     var evt = {
       type: 'appterminated',
       detail: {
-        manifestURL: 'app://www.fake.app/maniurl'
+        manifestURL: 'app://www.fake.app/maniurl',
+        instanceID: 'fakeinstance'
       }
     };
 
     var oldCurrentManifestURL = ShrinkingUI.current.manifestURL;
     ShrinkingUI.current.manifestURL = evt.detail.manifestURL;
+    ShrinkingUI.current.instanceID = evt.detail.instanceID;
     var stubCleanEffects = this.sinon.stub(ShrinkingUI, '_cleanEffects');
     var stubState = this.sinon.stub(ShrinkingUI, '_state').returns(true);
     var stubUnregister = this.sinon.stub(ShrinkingUI, '_unregister');
@@ -123,7 +125,7 @@ suite('system/ShrinkingUI', function() {
 
     assert.isTrue(stubState.called);
     assert.isTrue(stubCleanEffects.called);
-    assert.isTrue(stubUnregister.calledWith(evt.detail.manifestURL));
+    assert.isTrue(stubUnregister.calledWith(evt.detail.instanceID));
 
     // test _state() returns false
 
@@ -146,7 +148,7 @@ suite('system/ShrinkingUI', function() {
     stubUnregister.reset();
 
     stubState.returns(true);
-    ShrinkingUI.current.manifestURL = 'RandomString';
+    ShrinkingUI.current.instanceID = 'RandomString';
     ShrinkingUI.handleEvent(evt);
 
     assert.isTrue(stubState.called);
@@ -162,24 +164,26 @@ suite('system/ShrinkingUI', function() {
     var evt = {
       type: 'appopen',
       detail: {
-        manifestURL: 'app://www.fake.app/mfurl'
+        manifestURL: 'app://www.fake.app/mfurl',
+        instanceID: 'instanceID'
       }
     };
     var stubSwitchTo = this.sinon.stub(ShrinkingUI, '_switchTo');
     ShrinkingUI.handleEvent(evt);
-    assert.isTrue(stubSwitchTo.calledWith(evt.detail.manifestURL));
+    assert.isTrue(stubSwitchTo.calledWith(evt.detail.instanceID));
   });
 
   test('Handle "appopen" event', function() {
     var evt = {
       type: 'appopen',
       detail: {
-        manifestURL: 'app://www.fake.app/mfsturl'
+        manifestURL: 'app://www.fake.app/mfsturl',
+        instanceID: 'instanceID'
       }
     };
     var stubSwitchTo = this.sinon.stub(ShrinkingUI, '_switchTo');
     ShrinkingUI.handleEvent(evt);
-    assert.isTrue(stubSwitchTo.calledWith(evt.detail.manifestURL));
+    assert.isTrue(stubSwitchTo.calledWith(evt.detail.instanceID));
   });
 
   test('Handle "shrinking-start" event', function() {
@@ -231,11 +235,9 @@ suite('system/ShrinkingUI', function() {
         checkP2PRegistration: this.sinon.spy()
       }
     };
-    var oldCurrentAppURL = ShrinkingUI.currentAppURL;
-    ShrinkingUI.currentAppURL = 'RandomString';
+    ShrinkingUI.current.manifestURL = 'RandomString';
     ShrinkingUI.handleEvent(evt);
     assert.isTrue(evt.detail.checkP2PRegistration.calledWith('RandomString'));
-    ShrinkingUI.currentAppURL = oldCurrentAppURL;
   });
 
   test('Handle "dispatch-p2p-user-response-on-active-app" event', function() {
@@ -245,33 +247,29 @@ suite('system/ShrinkingUI', function() {
         dispatchP2PUserResponse: this.sinon.spy()
       }
     };
-    var oldCurrentAppURL = ShrinkingUI.currentAppURL;
-    ShrinkingUI.currentAppURL = 'RandomStr2';
+    ShrinkingUI.current.manifestURL = 'RandomStr2';
     ShrinkingUI.handleEvent(evt);
     assert.isTrue(evt.detail.dispatchP2PUserResponse.calledWith('RandomStr2'));
-    ShrinkingUI.currentAppURL = oldCurrentAppURL;
   });
 
   test('Register and unregister app at ShrinkingUI', function() {
     var oldApps = ShrinkingUI.apps;
     var testApp = {
-      manifestURL: 'app://www.fake.app/testmaniurl'
+      manifestURL: 'app://www.fake.app/testmaniurl',
+      instanceID: 'instanceIDofTestApp'
     };
     ShrinkingUI._register(testApp);
-    assert.equal(ShrinkingUI.apps[testApp.manifestURL], testApp);
+    assert.equal(ShrinkingUI.apps[testApp.instanceID], testApp);
 
-    ShrinkingUI._unregister(testApp.manifestURL);
+    ShrinkingUI._unregister(testApp.instanceID);
     assert.isFalse(testApp.manifestURL in ShrinkingUI.apps);
 
     ShrinkingUI.apps = oldApps;
   });
 
   test('ShrinkingUI SwitchTo', function() {
-    var oldURL = ShrinkingUI.currentAppURL;
-    ShrinkingUI._switchTo('someOtherTestURL');
-    assert.equal(ShrinkingUI.currentAppURL, 'someOtherTestURL');
-
-    ShrinkingUI.currentAppURL = oldURL;
+    ShrinkingUI._switchTo('someOtherInstanceID');
+    assert.equal(ShrinkingUI.current.instanceID, 'someOtherInstanceID');
   });
 
   test('Shrinking UI Setup', function() {
@@ -282,9 +280,9 @@ suite('system/ShrinkingUI', function() {
         parentNode: 'dummy1'
       }
     };
-    ShrinkingUI.currentAppURL = 'yetAnotherTestURL';
+    ShrinkingUI.current.instanceID = 'instanceIDofTestApp';
     ShrinkingUI.apps = {
-      'yetAnotherTestURL': testApp
+      'instanceIDofTestApp': testApp
     };
 
     ShrinkingUI._setup();
@@ -317,9 +315,9 @@ suite('system/ShrinkingUI', function() {
       setVisible: this.sinon.spy()
     };
     ShrinkingUI.apps = {
-      'yetAnotherTestURL': testApp
+      'instanceIDofTestApp': testApp
     };
-    ShrinkingUI.currentAppURL = 'yetAnotherTestURL';
+    ShrinkingUI.current.instanceID = 'instanceIDofTestApp';
 
     stubState.returns(false);
     var stubShrinkingTilt =
@@ -409,9 +407,9 @@ suite('system/ShrinkingUI', function() {
       remove: this.sinon.spy()
     };
     ShrinkingUI.apps = {
-      'yetAnotherTestURLForStop': testApp
+      'instanceIDofTestApp': testApp
     };
-    ShrinkingUI.currentAppURL = 'yetAnotherTestURLForStop';
+    ShrinkingUI.current.instanceID = 'instanceIDofTestApp';
     ShrinkingUI.current.tip = fakeTip;
 
     stubState.returns(true);
@@ -591,34 +589,30 @@ suite('system/ShrinkingUI', function() {
   });
 
   test('Shrinking UI ReceivingEffects', function() {
-    var oldStyle = ShrinkingUI.current.appFrame.style;
-
-    var style = {
-      opacity: 'x',
-      transition: 'xx'
-    };
-    ShrinkingUI.current.appFrame.style = style;
+    ShrinkingUI.current.appFrame = document.createElement('div');
 
     var stubShrinkingTilt = this.sinon.stub(ShrinkingUI, '_shrinkingTilt');
     var stubSendingSlideTo = this.sinon.stub(ShrinkingUI, '_sendingSlideTo');
 
     ShrinkingUI._receivingEffects();
 
-    assert.equal(style.opacity, '0');
+    assert.equal(ShrinkingUI.current.appFrame.style.opacity, '0');
     assert.isTrue(stubShrinkingTilt.called);
 
     // call afterTilt
     stubShrinkingTilt.getCall(0).args[0]();
 
-    assert.equal(style.transition, 'transform 0.05s ease');
+    assert.equal(ShrinkingUI.current.appFrame.style.transition,
+      'transform 0.05s ease 0s');
 
     assert.isTrue(stubSendingSlideTo.called);
     assert.isTrue(stubSendingSlideTo.getCall(0).calledWith('TOP'));
 
     // call afterTop
     stubSendingSlideTo.getCall(0).args[1]();
-    assert.equal(style.opacity, '');
-    assert.equal(style.transition, 'transform 0.5s ease');
+    assert.equal(ShrinkingUI.current.appFrame.style.opacity, '');
+    assert.equal(ShrinkingUI.current.appFrame.style.transition,
+      'transform 0.5s ease 0s');
 
     assert.isTrue(stubSendingSlideTo.calledTwice);
     assert.isTrue(stubSendingSlideTo.getCall(1).calledWith('BOTTOM'));
@@ -633,7 +627,6 @@ suite('system/ShrinkingUI', function() {
     assert.isTrue(stubShrinkingTiltBack.calledWith(false, 'dummyCE'));
 
     ShrinkingUI._cleanEffects = oldCleanEffects;
-    ShrinkingUI.current.appFrame.style = oldStyle;
   });
 
   test('Shrinking UI SendingSlideTo, full, with specified Y', function() {
@@ -1056,30 +1049,23 @@ suite('system/ShrinkingUI', function() {
     ShrinkingUI.current = oldCurrent;
   });
 
-  test('Shrinking UI ShrinkingTiltBack, instant = true', function() {
-    var oldStyle = ShrinkingUI.current.appFrame.style;
-
+  test('Shrinking UI ShrinkingTiltBack, instant = true', function(done) {
+    ShrinkingUI.current.appFrame = document.createElement('div');
     var style = {
       transition: 'x',
       transform: 'xx'
     };
-
     ShrinkingUI.current.appFrame.style = style;
-
-    var spyCb = this.sinon.spy();
-
-    ShrinkingUI._shrinkingTiltBack(true, spyCb);
-
-    assert.equal(style.transition, '');
-    assert.equal(style.transform, 'rotateX(0.0deg)');
-
-    assert.isTrue(spyCb.called);
-    ShrinkingUI.current.appFrame.style = oldStyle;
+    ShrinkingUI._shrinkingTiltBack(true, () => {
+      assert.equal(ShrinkingUI.current.appFrame.style.transition, '');
+      assert.equal(ShrinkingUI.current.appFrame.style.transform,
+        'rotateX(0deg)');
+      done();
+    });
   });
 
   test('Shrinking UI ShrinkingTiltBack, instant = false', function() {
     var oldAppFrame = ShrinkingUI.current.appFrame;
-
     var appFrame = {
       addEventListener: this.sinon.spy(),
       removeEventListener: this.sinon.spy(),

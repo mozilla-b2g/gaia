@@ -1,7 +1,7 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/* globals ContactPhotoHelper, Notification, Promise, Threads*/
+/* globals ContactPhotoHelper, Notification, Promise, Threads, Settings */
 
 (function(exports) {
   'use strict';
@@ -9,6 +9,7 @@
   var rescape = /[.?*+^$[\]\\(){}|-]/g;
   var rparams = /([^?=&]+)(?:=([^&]*))?/g;
   var rnondialablechars = /[^,#+\*\d]/g;
+  var rmail = /[\w-]+@[\w\-]/;
   var downsamplingRefSize = {
     // Estimate average Thumbnail size:
     // 120 X 60 (max pixel) X 3 (full color) / 20 (average jpeg compress ratio)
@@ -221,6 +222,12 @@
       // String comparison starts here
       if (typeof a !== 'string' || typeof b !== 'string') {
         return false;
+      }
+
+      if (Settings.supportEmailRecipient &&
+          Utils.isEmailAddress(a) &&
+          Utils.isEmailAddress(b)) {
+        return a === b;
       }
 
       if (service && service.normalize) {
@@ -527,12 +534,18 @@
     getDisplayObject: function(theTitle, tel) {
       var number = tel.value;
       var type = tel.type && tel.type.length ? tel.type[0] : '';
-      return {
+      var data = {
         name: theTitle || number,
         number: number,
         type: type,
         carrier: tel.carrier || ''
-      };
+       };
+
+      if (Settings.supportEmailRecipient) {
+        data.email = number;
+        data.emailHTML = '';
+       }
+      return data;
     },
 
     /*
@@ -548,7 +561,12 @@
         };
       });
     },
-
+    /*
+       TODO: Email Address check.
+     */
+    isEmailAddress: function(email) {
+      return rmail.test(email);
+    },
     /*
       Helper function for removing notifications. It will fetch the notification
       using the current threadId or the parameter if provided, and close them

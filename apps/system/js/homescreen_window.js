@@ -37,7 +37,11 @@
    * @event HomescreenWindow#homescreenopen
    */
   /**
-   * Fired when the homescreen window is cloing.
+   * Fired when the homescreen window is closed.
+   * @event HomescreenWindow#homescreenclosed
+   */
+  /**
+   * Fired when the homescreen window is closing.
    * @event HomescreenWindow#homescreenclosing
    */
   /**

@@ -1,9 +1,9 @@
 (function() {
 
   'use strict';
-  /* global eme, Provider, Search */
+  /* global eme, Promise, Provider, Search */
 
-  var ANNOTATION_REGEX = /\[(.+?)\]/g;
+  var ANNOTATION_REGEX = /\[*(.+?)\]*/g;
 
   function deannotate(match, p1) {
     return p1;
@@ -37,42 +37,47 @@
     },
 
     search: function(input) {
-      this.clear();
-      if (!eme.api.Search) {
-        return;
-      }
-
-      this.request = eme.api.Search.suggestions({
-        'query': input
-      });
-
-      this.request.then((function success(data) {
-        var items = data.response;
-        if (items && items.length) {
-          this.render(input, items);
+      return new Promise((resolve, reject) => {
+        this.clear();
+        if (!eme.api.Search) {
+          reject();
+          return;
         }
-      }).bind(this), function reject(reason) {
-        // handle errors
+
+        this.request = eme.api.Search.suggestions({
+          'query': input
+        });
+
+        this.request.then((data) => {
+          var items = data.response;
+          if (items && items.length) {
+            // The E.me API can return the query as a suggestion
+            // Filter this out
+            var matchingIndex = items.indexOf(input);
+            if (matchingIndex !== -1) {
+              items.splice(matchingIndex, 1);
+            }
+          }
+          resolve(items);
+        }, (reason) => {
+          reject();
+        });
       });
     },
 
-    render: function(input, items) {
+    render: function(items) {
       var ul = document.createElement('ul');
       ul.setAttribute('role', 'listbox');
 
       items.forEach(function each(item) {
         var text = getSuggestionText(item);
-        // The E.me API can return the query as a suggestion
-        // Filter out exact matches
-        if (text !== input) {
-          var li = document.createElement('li');
-          li.dataset.suggestion = li.textContent = text;
-          li.setAttribute('role', 'option');
-          // Can not simply read the text since we also have the bullet
-          // character that the screen reader should avoid.
-          li.setAttribute('aria-label', text);
-          ul.appendChild(li);
-        }
+        var li = document.createElement('li');
+        li.dataset.suggestion = li.textContent = text;
+        li.setAttribute('role', 'option');
+        // Can not simply read the text since we also have the bullet
+        // character that the screen reader should avoid.
+        li.setAttribute('aria-label', text);
+        ul.appendChild(li);
       });
 
       this.clear();

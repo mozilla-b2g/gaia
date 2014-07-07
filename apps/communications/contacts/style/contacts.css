@@ -593,7 +593,7 @@ section[role="region"] > header .icon.icon-settings {
   border-top: 0.1rem solid rgba(96, 96, 96, 0.5);
   color: #606060;
   font-size: 2rem;
-  font-weight: lighter;
+  font-weight: 300;
   margin: 15rem 2rem 0;
 }
 

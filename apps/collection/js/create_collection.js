@@ -1,4 +1,5 @@
 'use strict';
+/* global BaseCollection */
 /* global CategoryCollection */
 /* global CollectionsDatabase */
 /* global CollectionIcon */
@@ -11,37 +12,6 @@
 
   var _ = navigator.mozL10n.get;
   var eme = exports.eme;
-
-  function getBackground(collection, iconSize) {
-    var src;
-    var options = {
-      width: iconSize,
-      height: iconSize
-    };
-
-    if (collection.categoryId) {
-      options.categoryId = collection.categoryId;
-    }
-    else {
-      options.query = collection.query;
-    }
-
-    return eme.api.Search.bgimage(options).then(function success(response) {
-      var image = response.response.image;
-      if (image) {
-        src = image.data;
-        if (/image\//.test(image.MIMEType)) {  // base64 image data
-          src = 'data:' + image.MIMEType + ';base64,' + image.data;
-        }
-      }
-
-      return {
-        src: src,
-        source: response.response.source,
-        checksum: response.checksum || null
-      };
-    });
-  }
 
   function HandleCreate(activity) {
 
@@ -88,6 +58,11 @@
 
           Suggestions.load(categories).then(
             function select(selected) {
+              // We can't cancel out of this for the time being.
+              document.querySelector('menu').style.display = 'none';
+              // Display spinner while we're resolving and creating the
+              // collections.
+              loading.style.display = 'inline';
               eme.log('resolved with', selected);
               var dataReady;
 
@@ -130,7 +105,7 @@
                 var iconsReady = [];
                 collections.forEach(function doIcon(collection) {
                   var promise =
-                    getBackground(collection, maxIconSize)
+                    BaseCollection.getBackground(collection, maxIconSize)
                     .then(function setBackground(bgObject) {
                       collection.background = bgObject;
                       return collection.renderIcon();
@@ -176,7 +151,7 @@
                 var iconTasks = [];
                 collections.forEach(collection => {
                   var promise =
-                    getBackground(collection, maxIconSize)
+                    BaseCollection.getBackground(collection, maxIconSize)
                     .then(function setBackground(bgObject) {
                       collection.background = bgObject;
                       return collection.renderIcon();
@@ -216,6 +191,8 @@
       });
 
     }, activity.postError);
+
+    document.body.dataset.testReady = true;
   }
 
   navigator.mozSetMessageHandler('activity', function onActivity(activity) {

@@ -33,7 +33,7 @@
 
       for (var i in icons) {
         var icon = icons[i];
-        if (!(icon instanceof GaiaGrid.Bookmark)) {
+        if (icon.detail.type !== 'bookmark') {
           continue;
         }
         allAppBookmarks[icon.detail.url] = icon;
@@ -94,8 +94,6 @@
           // The 'id' of a bookmark is really the url.
           var id = e.target.id;
           this.removeIconFromGrid(id);
-          appManager.sendEventToCollectionApp('uninstall',
-            { id: id });
           break;
       }
     },

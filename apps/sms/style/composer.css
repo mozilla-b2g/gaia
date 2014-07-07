@@ -83,30 +83,62 @@ form[role="search"] button[type="submit"] + p > textarea {
 #messages-input {
   position: relative; /* to position its generated content */
 
+  width: 100%;
   min-height: 4rem;
-  padding: 1.2rem 0.5rem 0.5rem 0;
+  max-height: 100%;
+  padding: 1rem 0.5rem 0.8rem 0;
   box-sizing: border-box;
 
+  color: #474747;
   text-align: left;
-  font-size: 1.8rem;
-  line-height: 2rem;
+  font-size: 1.7rem;
+  line-height: 2.1rem;
+  overflow: auto;
 }
 
-/* Border right for message input: the border needs to grow with the content,
- * that's why it's defined in the message input instead of the button. */
-/* Could be revisited in bug 1013296. */
-#messages-input:before {
-  content: "";
+.subject-input-visible #messages-input {
+  max-height: calc(100% - 3rem);
+}
+
+.multiline-subject #messages-input {
+  max-height: calc(100% - 4.5rem);
+}
+
+.message-divider {
   position: absolute;
-  top: 1rem;
+
+  top: 0.7rem;
   right: 0;
-  bottom: 0.6rem;
-
+  bottom: 0.7rem;
   width: 0.1rem;
-  display: block;
+  height: calc(100% - 1.4rem);
 
-  background-color: #eaeae7;
+  background-color: #ccc;
 }
+
+.subject-input-visible .message-divider {
+  top: 3.6rem;
+  height: calc(100% - 4.3rem);
+}
+
+.multiline-subject .message-divider {
+  top: 5.2rem;
+  height: calc(100% - 5.9rem);
+}
+
+#messages-input.placeholder:after {
+  content: attr(data-placeholder);
+  position: absolute;
+
+  top: 1rem;
+  left: 0;
+
+  color: #9b9b9b;
+  font-style: italic;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
 
 /* Overwrite BB because of the previous rule */
 form[role="search"] button[type="submit"]:after {
@@ -114,44 +146,35 @@ form[role="search"] button[type="submit"]:after {
     background: none;
 }
 
-#messages-input.placeholder:after{
-  position: absolute;
-  top: 1.2rem;
-  left: 0;
-  pointer-events: none;
-
-  color: #888;
-}
-
 #messages-subject-input {
+  box-sizing: border-box;
+  display: none;
   position: relative;
 
-  box-sizing: border-box;
-  min-height: 2.5rem;
+  min-height: 3rem;
   max-height: 4.5rem;
-  padding: 0.8rem 0.5rem 0.3rem 0;
-  line-height: 1.7rem;
+  padding: .6rem 0;
   border-bottom: 0.1rem solid #9ef2e7;
 
-  font-size: 1.7rem;
-  text-align: left;
   color: #0b6262;
+  font-size: 1.7rem;
+  line-height: 1.7rem;
+  text-align: left;
   overflow: auto;
+}
+
+.subject-input-visible #messages-subject-input {
+  display: block;
 }
 
 #messages-subject-input:after {
   position: absolute;
-  top: 0.8rem;
+  top: .6rem;
 
-  pointer-events: none;
-  font-style: italic;
-  font-weight: normal;
   color: #00adad;
-}
-
-#messages-input.placeholder:after {
-  content: attr(data-placeholder);
+  font-weight: normal;
   font-style: italic;
+  pointer-events: none;
 }
 
 #messages-subject-input.placeholder:after {
@@ -160,6 +183,7 @@ form[role="search"] button[type="submit"]:after {
 
 #messages-container {
   height: 100%;
+
   overflow: auto;
 }
 
@@ -168,60 +192,146 @@ form[role="search"] button[type="submit"]:after {
  */
 .composer-message-complete {
   flex: auto;
+  position: relative;
   min-height: 4rem;
 
   margin-left: 1.5rem;
-  overflow: auto;
+}
+
+.subject-input-visible .composer-message-complete:before {
+  top: 2.7rem;
+}
+
+.multiline-subject .composer-message-complete:before {
+  top: 4.7rem;
 }
 
 .composer-button-container {
   display: flex;
+  position: relative;
 
   flex: none;
   flex-direction: column;
-  justify-content: flex-end;
+  justify-content: space-between;
 
   -moz-user-select: none; /* without this, tapping on the element selects its content */
 }
 
 #messages-send-button {
+  height: 4.5rem;
   overflow: visible;
+  background-image: url(images/icons/actionicon_sms_send_30x90.png);
+  background-position: center -4.5rem;
 }
 
-#messages-send-button.active {
-  background: #008aaa;
+#messages-send-button:after {
+  display: none
+}
+
+#messages-send-button[disabled] {
+  background-position: center 0;
 }
 
 #messages-input.ignoreEvents {
   pointer-events: none;
 }
 
-#messages-send-button.has-counter:before {
-  content: attr(data-counter);
-
-  position: absolute;
-  left: 0;
-  top: -1.9rem;
-
+#messages-counter-label {
   box-sizing: border-box;
-  height: 1.8rem;
-  padding: 0 0.5rem;
+  position: relative;
 
-  color: rgb(133, 133, 133);
+  left: 0;
+  height: 0;
+
+  color: #575757;
+  font-size: 0;
   font-weight: normal;
-  font-size: 1.4rem;
-  text-align: left;
-  line-height: 1.8rem;
+  text-align: center;
 }
 
-[data-message-type="mms"] #messages-send-button.has-counter:before {
-  content: "MMS";
+[data-message-type='mms'] #messages-counter-label {
+  box-sizing: border-box;
 
-  padding-left: calc(100% - 5rem);
-  margin-top: -1.2rem;
+  height: 3rem;
+  padding-top: .7rem;
+  border-bottom: .1rem solid transparent;
 
-  line-height: 1rem;
+  font-size: 1.4rem;
+}
+
+[data-message-type='mms'].subject-input-visible #messages-counter-label {
+  border-bottom-color: #9ef2e7;
+}
+
+.multiline-subject #messages-counter-label {
+  top: 1.5rem;
+}
+
+.has-counter:after {
+  display: none;
+  content: attr(data-counter);
+  position: absolute;
+
+  top: 0;
+  left: 0;
+  width: 100%;
+
+  color: #575757;
   font-size: 1.4rem;
   font-style: normal;
-  color: #575757;
 }
+
+[data-message-type='sms'] .has-counter:after {
+  display: block;
+}
+
+[data-message-type='sms'].subject-input-visible .has-counter:after {
+  top: 3rem;
+}
+
+/*
+  DSDS
+*/
+
+.sim-indication {
+  position: absolute;
+  top: 0.6rem;
+  right: 1.9rem;
+
+  display: none;
+  line-height: 1;
+
+  color: black;
+  font-size: 1.3rem;
+  font-style: normal;
+  opacity: 0.5;
+}
+
+button[disabled] .sim-indication {
+  color: inherit;
+}
+
+.has-preferred-sim .sim-indication {
+  display: block;
+}
+
+.has-preferred-sim #messages-send-button {
+  height: 4.5rem;
+  padding-top: 0.5rem;
+}
+
+.has-preferred-sim #messages-send-button:before {
+  position: absolute;
+  top: 1.2rem;
+  left: 0;
+  right: 0;
+
+  content: '...';
+  display: block;
+  width: 100%;
+
+  color: #b2b2b2;
+  text-align: center;
+  font-size: 1.8rem;
+}
+

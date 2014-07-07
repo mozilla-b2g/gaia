@@ -568,20 +568,6 @@ suite('dialer/handled_call', function() {
 
       assert.equal(subject.numberNode.textContent, '112');
     });
-
-    test('should display emergency Wallpaper', function() {
-      mockCall = new MockCall('112', 'dialing');
-      subject = new HandledCall(mockCall);
-
-      assert.isTrue(MockCallScreen.mSetEmergencyWallpaperCalled);
-    });
-
-    test('should not display emergency wallpaper for normal calls', function() {
-      mockCall = new MockCall('111', 'dialing');
-      subject = new HandledCall(mockCall);
-
-      assert.isFalse(MockCallScreen.mSetEmergencyWallpaperCalled);
-    });
   });
 
   test('should display voicemail label', function() {

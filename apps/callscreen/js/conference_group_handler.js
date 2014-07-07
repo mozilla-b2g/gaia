@@ -24,7 +24,7 @@ var ConferenceGroupHandler = (function() {
   };
 
   var telephony = window.navigator.mozTelephony;
-  if (telephony.hasOwnProperty('conferenceGroup')) {
+  if (telephony.conferenceGroup) {
     telephony.conferenceGroup.oncallschanged = onCallsChanged;
     telephony.conferenceGroup.onstatechange = onStateChange;
     telephony.conferenceGroup.onerror = onConferenceError;
@@ -50,6 +50,10 @@ var ConferenceGroupHandler = (function() {
     // exiting.
     if (telephony.conferenceGroup.calls.length >= 2) {
       CallsHandler.checkCalls();
+    }
+
+    if (CallsHandler.isFirstCallOnCdmaNetwork()) {
+      CallScreen.cdmaConferenceCall();
     }
   }
 

@@ -76,4 +76,21 @@ suite('contextmenu_ui.js >', function() {
     assertHidden();
   });
 
+  test(' Hide the context menu when the document is hidden', function() {
+    Object.defineProperty(document, 'hidden', {
+      configurable: true,
+      get: function() {
+        return true;
+      }
+    });
+
+    contextMenuUI.show(fakeEvt);
+    contextMenuUI.handleEvent({
+      'type': 'visibilitychange'
+    });
+
+    delete document.hidden;
+    assertHidden();
+  });
+
 });

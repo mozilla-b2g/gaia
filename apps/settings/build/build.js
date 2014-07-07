@@ -1,9 +1,9 @@
 'use strict';
 
-/* global require, exports */
+/* global require, exports, dump */
 var utils = require('utils');
 
-var SettingsAppBuilder = function(options) {
+var SettingsAppBuilder = function() {
 };
 
 SettingsAppBuilder.prototype.RESOURCES_PATH = 'resources';
@@ -65,7 +65,49 @@ SettingsAppBuilder.prototype.overrideSearchProviders = function(options) {
   });
 };
 
+SettingsAppBuilder.prototype.executeRjs = function(options) {
+  var optimize = 'optimize=' +
+    (options.GAIA_OPTIMIZE === '1' ? 'uglify2' : 'none');
+  var configFile = utils.getFile(options.APP_DIR, 'build',
+    'settings.build.jslike');
+  var r = require('r-wrapper').get(options.GAIA_DIR);
+  r.optimize([configFile.path, optimize], function() {
+    dump('require.js optimize ok\n');
+  }, function(err) {
+    dump('require.js optmize failed:\n');
+    dump(err + '\n');
+  });
+};
+
+SettingsAppBuilder.prototype.writeGitCommit = function(options) {
+  var gitDir = utils.getFile(options.GAIA_DIR, '.git');
+  var overrideCommitFile = utils.getFile(options.GAIA_DIR,
+    'gaia_commit_override.txt');
+  var commitFile = utils.getFile(options.STAGE_APP_DIR, 'resources');
+  utils.ensureFolderExists(commitFile);
+
+  commitFile.append('gaia_commit.txt');
+  if (overrideCommitFile.exists()) {
+    if (commitFile.exists()) {
+      commitFile.remove(false);
+    }
+    overrideCommitFile.copyTo(commitFile.parent, commitFile.leafName);
+  } else if(gitDir.exists()) {
+    var sh = new utils.Commander('sh');
+    sh.initPath(utils.getEnvPath());
+
+    sh.run(['-c', 'git --git-dir=' + gitDir.path + ' log -1 ' +
+      '--format="%H%n%ct" HEAD > ' + commitFile.path]);
+  } else {
+    utils.writeContent(commitFile,
+      'Unknown Git commit; build date shown here.\n' +
+      parseInt(Date.now()/1000) + '\n');
+  }
+};
+
 SettingsAppBuilder.prototype.execute = function(options) {
+  this.executeRjs(options);
+  this.writeGitCommit(options);
   this.writeSensorsJSON(options);
   this.writeSupportsJSON(options);
   this.writeFindMyDeviceConfigJSON(options);

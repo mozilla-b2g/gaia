@@ -9,5 +9,6 @@ var MockSystem = {
   publish: function(eventName, detail) {
     var evt = new CustomEvent(eventName, { detail: detail });
     window.dispatchEvent(evt);
-  }
+  },
+  locked: false
 };

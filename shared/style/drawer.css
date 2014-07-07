@@ -199,3 +199,56 @@ section[data-type="sidebar"] > nav > ul > li > a {
   white-space: nowrap;
   overflow: hidden;
 }
+
+/* RTL View */
+
+html[dir="rtl"] section[role="region"]:target {
+  transform: translateX(-80%);
+}
+
+/* Sidebar */
+html[dir="rtl"] section[data-type="sidebar"] {
+  left: auto;
+  right: 0;
+}
+
+/* Sidebar header */
+html[dir="rtl"] section[data-type="sidebar"] > header {
+  background-position: right bottom;
+}
+
+html[dir="rtl"] section[data-type="sidebar"] > header:after {
+  background-position: right top;
+}
+
+html[dir="rtl"] section[data-type="sidebar"] > header h1 {
+  text-align: right;
+  margin: 0 3rem 0 0;
+}
+
+/* Generic set of actions in toolbar */
+html[dir="rtl"] section[data-type="sidebar"] > header menu[type="toolbar"] {
+  float: left;
+}
+
+html[dir="rtl"] section[data-type="sidebar"] > header menu[type="toolbar"] a,
+html[dir="rtl"] section[data-type="sidebar"] > header menu[type="toolbar"] button {
+  float: left;
+}
+
+html[dir="rtl"] section[data-type="sidebar"] > header menu[type="toolbar"] a:last-child,
+html[dir="rtl"] section[data-type="sidebar"] > header menu[type="toolbar"] button:last-child {
+  background-position: right center;
+}
+
+html[dir="rtl"] section[data-type="sidebar"]:after {
+  background-image: url(drawer/images/ui/shadow_rtl.png);
+  background-position: left top;
+  left: 0;
+  right: auto;
+}
+html[dir="rtl"] section[data-type="sidebar"] > nav > h2 {
+  background-position: right top;
+  padding-left: 0.8rem;
+  padding-right: auto;
+}

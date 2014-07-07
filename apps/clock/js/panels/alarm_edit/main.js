@@ -57,10 +57,10 @@ var AlarmEdit = function() {
     }.bind(this)
   });
   this.buttons.repeat = new FormButton(this.selects.repeat, {
-    selectOptions: constants.DAYS,
+    selectOptions: constants.DAYS_STARTING_MONDAY,
     id: 'repeat-menu',
     formatLabel: function(daysOfWeek) {
-      return this.alarm.summarizeDaysOfWeek(daysOfWeek);
+      return Utils.summarizeDaysOfWeek(daysOfWeek);
     }.bind(this)
   });
   this.buttons.sound = new FormButton(this.selects.sound, {
@@ -257,7 +257,7 @@ Utils.extend(AlarmEdit.prototype, {
   },
 
   getSoundSelect: function aev_getSoundSelect() {
-    return this.buttons.sound.value;
+    return this.buttons.sound.value !== '0' && this.buttons.sound.value;
   },
 
   previewSound: function aev_previewSound() {
@@ -295,24 +295,19 @@ Utils.extend(AlarmEdit.prototype, {
     this.alarm.label = this.inputs.name.value;
 
     var time = this.getTimeSelect();
-    this.alarm.time = [time.hour, time.minute];
+    this.alarm.hour = time.hour;
+    this.alarm.minute = time.minute;
     this.alarm.repeat = this.buttons.repeat.value;
     this.alarm.sound = this.getSoundSelect();
     this.alarm.vibrate = this.checkboxes.vibrate.checked;
     this.alarm.snooze = parseInt(this.getSnoozeSelect(), 10);
     AudioManager.setAlarmVolume(this.getAlarmVolumeValue());
 
-    this.alarm.cancel();
-
-    this.alarm.setEnabled(true, function(err, alarm) {
-      if (err) {
-        callback && callback(err, alarm);
-        return;
-      }
+    this.alarm.schedule('normal').then(() => {
       window.dispatchEvent(new CustomEvent('alarm-changed', {
-        detail: { alarm: alarm, showBanner: true }
+        detail: { alarm: this.alarm, showBanner: true }
       }));
-      callback && callback(null, alarm);
+      callback && callback(null, this.alarm);
     });
   },
 
@@ -322,7 +317,7 @@ Utils.extend(AlarmEdit.prototype, {
       return;
     }
 
-    this.alarm.delete(callback);
+    this.alarm.delete().then(callback);
   }
 
 });
