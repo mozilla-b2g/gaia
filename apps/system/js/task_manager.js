@@ -1,5 +1,5 @@
 /* global Card, TaskCard,
-          AppWindowManager, sleepMenu, SettingsListener, AttentionScreen,
+          AppWindowManager, sleepMenu, SettingsListener,
           OrientationManager, System, homescreenLauncher,
           GestureDetector, UtilityTray, StackManager, Event */
 
@@ -19,9 +19,6 @@
   function TaskManager() {
     this.stack = null;
     this.cardsByAppID = {};
-    // Unkillable apps which have attention screen now
-    this.attentionScreenApps = [];
-
     // Listen for settings changes
     this.onTaskStripEnabled = function(value) {
       debug('taskstrip.enabled: '+ value);
@@ -202,8 +199,7 @@
 
   TaskManager.prototype._registerEvents = function() {
     window.addEventListener('home', this);
-    window.addEventListener('attentionscreenshow', this);
-    window.addEventListener('attentionscreenhide', this);
+    window.addEventListener('attentionopened', this);
     window.addEventListener('taskmanagershow', this);
     window.addEventListener('holdhome', this);
 
@@ -218,8 +214,7 @@
 
   TaskManager.prototype._unregisterEvents = function() {
     window.removeEventListener('home', this);
-    window.removeEventListener('attentionscreenshow', this);
-    window.removeEventListener('attentionscreenhide', this);
+    window.removeEventListener('attentionopened', this);
     window.removeEventListener('taskmanagershow', this);
     window.removeEventListener('holdhome', this);
 
@@ -651,7 +646,7 @@
       this.draggingCardUp = false;
       var card = this.getCardForElement(element);
       if (-dy > this.swipeUpThreshold &&
-          this.attentionScreenApps.indexOf(card.app.origin) == -1) {
+          card.app.killable()) {
         // Remove the card from the Task Manager for a smooth transition.
         this.cardsList.removeChild(element);
         this.closeApp(card);
@@ -725,18 +720,11 @@
         break;
 
       case 'lockscreen-appopened':
-      case 'attentionscreenshow':
-        this.attentionScreenApps =
-            AttentionScreen.getAttentionScreenOrigins();
+      case 'attentionopened':
         this.newStackPosition = null;
         this.hide(true);
         // no need to animate while in background
         this.exitToApp(null, 'immediately');
-        break;
-
-      case 'attentionscreenhide':
-        this.attentionScreenApps =
-            AttentionScreen.getAttentionScreenOrigins();
         break;
 
       case 'taskmanagershow':

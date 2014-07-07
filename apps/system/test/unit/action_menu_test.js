@@ -173,12 +173,12 @@ suite('ActionMenu', function() {
   });
 
   suite('events', function() {
-    test('attentionscreenshow hides the action menu', function() {
+    test('attention window will hide the action menu', function() {
       var menu = new ActionMenu(genericActionsMockup, title);
       menu.start();
       this.sinon.spy(menu, 'hide');
       menu.handleEvent({
-        type: 'attentionscreenshow'
+        type: 'attentionopened'
       });
       assert.isTrue(menu.hide.called);
     });

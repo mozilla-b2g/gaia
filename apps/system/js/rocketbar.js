@@ -166,9 +166,9 @@
       window.addEventListener('launchactivity', this, true);
       window.addEventListener('searchterminated', this);
       window.addEventListener('permissiondialoghide', this);
-      window.addEventListener('attentionscreenshow', this);
-      window.addEventListener('status-inactive', this);
       window.addEventListener('global-search-request', this);
+      window.addEventListener('attentionopening', this);
+      window.addEventListener('attentionopened', this);
 
       // Listen for events from Rocketbar
       this.input.addEventListener('focus', this);
@@ -191,11 +191,11 @@
      */
     handleEvent: function(e) {
       switch(e.type) {
+        case 'attentionopening':
+        case 'attentionopened':
         case 'apploading':
         case 'appforeground':
         case 'appopened':
-        case 'attentionscreenshow':
-        case 'status-inactive':
           this.hideResults();
           this.deactivate();
           break;

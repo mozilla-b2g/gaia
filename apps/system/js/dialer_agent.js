@@ -1,6 +1,6 @@
 'use strict';
 
-/* global SettingsListener, SettingsURL, AttentionScreen, System*/
+/* global SettingsListener, SettingsURL, CallscreenWindow, applications */
 /* r=? dialer+system peers for changes in this file. */
 
 (function(exports) {
@@ -11,7 +11,7 @@
    *
    * This simple module keeps the ringtone (blob) around and starts alerting the
    * user as soon as a new incoming call is detected via the mozTelephony API.
-   * And it opens an AttentionScreen with the preloaded callscreen app inside.
+   * And it opens an AttentionWindow with the preloaded callscreen app inside.
    *
    * We also listen for the sleep and volumedown hardware buttons to provide
    * the user with an easy way to stop the ringing.
@@ -26,8 +26,6 @@
    * @requires SettingsURL
    *
    **/
-
-  var CSORIGIN = window.location.origin.replace('system', 'callscreen') + '/';
 
   var DialerAgent = function DialerAgent() {
     var telephony = navigator.mozTelephony;
@@ -50,6 +48,14 @@
     player.mozAudioChannelType = 'ringer';
     player.preload = 'metadata';
     player.loop = true;
+    this.freeCallscreenWindow = this.freeCallscreenWindow.bind(this);
+    this.makeFakeNotification = this.makeFakeNotification.bind(this);
+  };
+
+  DialerAgent.prototype.freeCallscreenWindow = function() {
+    if (this._callscreenWindow) {
+      this._callscreenWindow.free();
+    }
   };
 
   DialerAgent.prototype.start = function da_start() {
@@ -88,15 +94,23 @@
 
     window.addEventListener('sleep', this);
     window.addEventListener('volumedown', this);
+    window.addEventListener('mozmemorypressure', this.freeCallscreenWindow);
 
-    this._callScreen = this._createCallScreen();
-    var callScreen = this._callScreen;
-    callScreen.src = CSORIGIN + 'index.html';
-    callScreen.dataset.preloaded = true;
-    // We need the iframe in the DOM
-    AttentionScreen.attentionScreen.appendChild(callScreen);
+    this._callscreenWindow = new CallscreenWindow();
+    this._callscreenWindow.hide();
 
-    callScreen.setVisible(false);
+    if (applications && applications.ready) {
+      this.makeFakeNotification();
+    } else {
+      window.addEventListener('applicationready', this.makeFakeNotification);
+    }
+
+    return this;
+  };
+
+  DialerAgent.prototype.makeFakeNotification = function() {
+    window.removeEventListener('applicationready', this.makeFakeNotification);
+    this._callscreenWindow && this._callscreenWindow.makeNotification();
   };
 
   DialerAgent.prototype.stop = function da_stop() {
@@ -109,6 +123,7 @@
 
     window.removeEventListener('sleep', this);
     window.removeEventListener('volumedown', this);
+    window.removeEventListener('mozmemorypressure', this.freeCallscreenWindow);
 
     // TODO: should remove the settings listener once the helper
     // allows it.
@@ -126,12 +141,18 @@
     }
 
     var calls = this._telephony.calls;
-    if (calls.length !== 1) {
+    if (calls.length === 0) {
       return;
     }
 
-    if (calls[0].state === 'incoming' || calls[0].state === 'dialing') {
-      this._openCallScreen();
+    var calling = calls.some(function(call) {
+      if (call.state === 'incoming' || call.state === 'dialing') {
+        return true;
+      }
+    });
+
+    if (calling) {
+      this.openCallscreen();
     }
 
     if (this._alerting || calls[0].state !== 'incoming') {
@@ -142,6 +163,7 @@
     var self = this;
 
     self._startAlerting();
+
     incomingCall.addEventListener('statechange', function callStateChange() {
       incomingCall.removeEventListener('statechange', callStateChange);
 
@@ -176,45 +198,10 @@
     window.clearInterval(this._vibrateInterval);
   };
 
-  DialerAgent.prototype._createCallScreen = function da_createCallScreen() {
-    // TODO: use a BrowswerFrame
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=995979
-    var iframe = document.createElement('iframe');
-    iframe.setAttribute('name', 'call_screen');
-    iframe.setAttribute('mozbrowser', 'true');
-    iframe.setAttribute('remote', 'false');
-    iframe.setAttribute('mozapp', CSORIGIN + 'manifest.webapp');
-    iframe.dataset.frameOrigin = CSORIGIN;
-    iframe.dataset.hidden = 'true';
-
-    return iframe;
-  };
-
-  DialerAgent.prototype._openCallScreen = function da_openCallScreen() {
-    var callScreen = this._callScreen;
-    var timestamp = new Date().getTime();
-
-    var src = CSORIGIN + 'index.html' + '#' +
-              (System.locked ? 'locked' : '');
-    src = src + '&timestamp=' + timestamp;
-    callScreen.src = src;
-    callScreen.setVisible(true);
-
-    var asRequest = {
-      target: callScreen,
-      stopPropagation: function() {},
-      detail: {
-        features: 'attention',
-        name: 'call_screen',
-        frameElement: callScreen
-      }
-    };
-    AttentionScreen.open(asRequest);
-  };
-
-  DialerAgent.prototype.showCallScreen = function da_showCallScreen() {
-    if (this._callScreen) {
-      AttentionScreen.show(this._callScreen);
+  DialerAgent.prototype.openCallscreen = function() {
+    if (this._callscreenWindow) {
+      this._callscreenWindow.ensure();
+      this._callscreenWindow.requestOpen();
     }
   };
 

@@ -7,3 +7,6 @@
   border-bottom: 0.1rem black solid;
 }
 
+.notification.attention-notification {
+  background-color: rgba(0, 202, 242, 0.3);
+}
