@@ -26,11 +26,19 @@
     loading();
 
     // XXX: Override the grid render method default options
-    var defaultGridRender = grid._grid.render;
+    var _grid = grid._grid;
+    var defaultGridRender = _grid.render;
     grid._grid.render = function(options) {
       options = options || {};
       options.skipDivider = true;
-      defaultGridRender.call(grid._grid, options);
+      defaultGridRender.call(_grid, options);
+      var items = _grid.items;
+      var offset = 0;
+      if (items.length) {
+        var item = items[items.length - 1];
+        offset = item.y + item.height;
+      }
+      elements.offline.style.marginTop = offset + 'px';
     };
 
     // Start by showing pinned apps
