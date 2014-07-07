@@ -51,6 +51,10 @@ function SystemDialog(id, options) {
                    (keyboardHeight ? keyboardHeight : 0) -
                    StatusBar.height;
       overlay.style.height = height + 'px';
+      // Scroll up so as to show simpin input box
+      if (id === 'simpin-dialog') {
+        document.activeElement.scrollIntoView(false);
+      }
     }
   };
   function handleEvent(evt) {
