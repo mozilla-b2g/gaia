@@ -1331,8 +1331,23 @@ Camera.prototype.getZoom = function() {
 };
 
 Camera.prototype.setZoom = function(zoom) {
-  this.mozCamera.zoom = zoom;
-  this.emit('zoomchanged', zoom);
+  this.zoom = zoom;
+  this.emit('zoomchanged', this.zoom);
+
+  // Stop here if we're already waiting for
+  // `mozCamera.zoom` to be updated.
+  if (this.zoomChangeTimeout) {
+    return;
+  }
+
+  var self = this;
+
+  // Throttle to prevent hammering the Camera API.
+  this.zoomChangeTimeout = window.setTimeout(function() {
+    self.zoomChangeTimeout = null;
+
+    self.mozCamera.zoom = self.zoom;
+  }, 150);
 };
 
 Camera.prototype.getZoomPreviewAdjustment = function() {
