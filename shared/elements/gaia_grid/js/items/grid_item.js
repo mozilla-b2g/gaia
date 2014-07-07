@@ -107,6 +107,10 @@
       return '/shared/elements/gaia_grid/images/default_icon.png';
     },
 
+    get height() {
+      return this.grid.layout.gridItemHeight;
+    },
+
     /**
      * Returns a reference to the current grid.
      * We can currently only have one grid per page.
