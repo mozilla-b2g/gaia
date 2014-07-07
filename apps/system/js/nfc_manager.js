@@ -205,24 +205,35 @@ var NfcManager = {
     return options;
   },
 
-  handleNdefDiscovered:
-    function nm_handleNdefDiscovered(msg, tech) {
+  /**
+   * Fires NDEF related activities to launch other apps to perform
+   * further actions with NDEF Message contents. If the first NDEF record
+   * contains a well know type additional parsing will be done in helper
+   * methods. In general the name of activity will be 'nfc-ndef-discovered',
+   * in some case other names may be used (e.g. 'dial' in case of tel uri)
+   * @param {Object} msg
+   * @param {Array} msg.records - NDEF Message
+   * @param {Array} msg.techList - tech list
+   * @param {string} msg.sessionToken - session token
+   * @param {string} tech - tech from tech list with highest priority
+   */
+  fireNDEFDiscovered: function nm_fireNDEFDiscovered(msg, tech) {
+    this._debug('fireNDEFDiscovered: ' + JSON.stringify(msg));
 
-      var self = this;
-      this._debug('handleNdefDiscovered: ' + JSON.stringify(msg.records));
-      var options = this.handleNdefMessage(msg.records);
-      if (options === null) {
-        this._debug('Unimplemented. Handle Unknown type.');
-      } else {
-        this._debug('options: ' + JSON.stringify(options));
-        options.data.tech = tech;
-        options.data.techList = msg.techList;
-        options.data.sessionToken = msg.sessionToken;
-        var a = new MozActivity(options);
-        a.onerror = function() {
-          self._debug('Firing nfc-ndef-discovered failed');
-        };
-      }
+    var options = this.handleNdefMessage(msg.records);
+    if (options === null) {
+      this._debug('Unimplemented. Handle Unknown type.');
+      options = this.createActivityOptionsWithType('unknown');
+    }
+    options.data.tech = tech;
+    options.data.techList = msg.techList;
+    options.data.sessionToken = msg.sessionToken;
+    this._debug('options: ' + JSON.stringify(options));
+
+    var activity = new MozActivity(options);
+    activity.onerror = () => {
+      this._debug('Firing nfc-ndef-discovered failed');
+    };
   },
 
   /**
@@ -371,12 +382,12 @@ var NfcManager = {
         } else {
           // if there are records in the message we've got NDEF messages shared
           // by other device via P2P, this should be handled as regular NDEF
-          this.handleNdefDiscovered(msg, tech);
+          this.fireNDEFDiscovered(msg, tech);
         }
         break;
       case 'NDEF':
       case 'NDEF_WRITEABLE':
-        this.handleNdefDiscovered(msg, tech);
+        this.fireNDEFDiscovered(msg, tech);
         break;
       case 'NDEF_FORMATABLE':
         // not moving to default for readability 
