@@ -1,5 +1,4 @@
 'use strict';
-/* global __dirname */
 
 var assert = require('assert');
 var Actions = require('marionette-client').Actions;
