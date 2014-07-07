@@ -252,9 +252,6 @@ var StatusBar = {
     window.addEventListener('appopened', this);
     window.addEventListener('homescreenopened', this.show.bind(this));
 
-    window.addEventListener('simpinshow', this);
-    window.addEventListener('simpinclose', this);
-
     // We need to preventDefault on mouse events until
     // https://bugzilla.mozilla.org/show_bug.cgi?id=1005815 lands
     var events = ['touchstart', 'touchmove', 'touchend',
@@ -440,19 +437,7 @@ var StatusBar = {
         break;
 
       case 'iac-change-appearance-statusbar':
-        if (SimPinDialog.visible) {
-          this.setAppearance('opaque');
-        } else {
-          this.setAppearance(evt.detail);
-        }
-        break;
-
-      case 'simpinshow':
-        this.setAppearance('opaque');
-        break;
-
-      case 'simpinclose':
-        this.setAppearance('semi-transparent');
+        this.setAppearance(evt.detail);
         break;
     }
   },
