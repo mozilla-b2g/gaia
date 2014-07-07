@@ -1,9 +1,7 @@
-/* global KeyboardManager, softwareButtonManager, System,
-          AttentionScreen */
+/* global KeyboardManager, softwareButtonManager, System */
 'use strict';
 
 (function(exports) {
-  var DEBUG = false;
   /**
    * LayoutManager gathers all external events which would affect
    * the layout of the windows and redirect the event to AppWindowManager.
@@ -31,13 +29,10 @@
   var LayoutManager = function LayoutManager() {};
 
   LayoutManager.prototype = {
+    DEBUG: false,
+    CLASS_NAME: 'LayoutManager',
     /** @lends LayoutManager */
 
-    /**
-     * Gives the width for the screen.
-     *
-     * @memberOf LayoutManager
-     */
     get clientWidth() {
       if (this._clientWidth) {
         return this._clientWidth;
@@ -55,7 +50,6 @@
     get height() {
       var height = window.innerHeight -
         (this.keyboardEnabled ? KeyboardManager.getHeight() : 0) -
-        AttentionScreen.statusHeight -
         softwareButtonManager.height;
 
       // Normalizing the height so that it always translates to an integral
@@ -103,11 +97,8 @@
      */
     start: function lm_start() {
       window.addEventListener('resize', this);
-      window.addEventListener('status-active', this);
-      window.addEventListener('status-inactive', this);
       window.addEventListener('keyboardchange', this);
       window.addEventListener('keyboardhide', this);
-      window.addEventListener('attentionscreenhide', this);
       window.addEventListener('mozfullscreenchange', this);
       window.addEventListener('software-button-enabled', this);
       window.addEventListener('software-button-disabled', this);
@@ -149,9 +140,9 @@
     },
 
     debug: function lm_debug() {
-      if (DEBUG) {
-        console.log('[LayoutManager]' +
-          '[' + System.currentTime() + ']' +
+      if (this.DEBUG) {
+        console.log('[' + this.CLASS_NAME + ']' +
+          '[' + System.currentTime() + '] ' +
           Array.slice(arguments).concat());
       }
     }

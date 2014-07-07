@@ -264,7 +264,6 @@ var CallScreen = {
     }
 
     var screen = this.screen;
-    screen.classList.toggle('displayed');
 
     // If we toggle the class during the transition we'll loose the
     // transitionend ; and we have no opening transition for incoming locked
@@ -437,7 +436,6 @@ var CallScreen = {
         number: ''
       }
     });
-    window.resizeTo(100, 40);
   },
 
   render: function cs_render(layout_type) {

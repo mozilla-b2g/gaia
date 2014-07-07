@@ -11,6 +11,7 @@ require('/shared/test/unit/mocks/dialer/mock_handled_call.js');
 require('/shared/test/unit/mocks/dialer/mock_calls_handler.js');
 require('/shared/test/unit/mocks/dialer/mock_font_size_manager.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
+require('/shared/js/lockscreen_connection_info_manager.js');
 
 var mocksHelperForCallScreen = new MocksHelper([
   'CallsHandler',
@@ -378,32 +379,14 @@ suite('call screen', function() {
 
   suite('toggling', function() {
     suiteSetup(function() {
-      CallScreen._wallpaperReady = false;
+      CallScreen._wallpaperReady = true;
     });
 
     teardown(function() {
       CallScreen._transitioning = false;
     });
 
-    test('it should wait for the wallpaper to load', function(done) {
-      var toggleSpy = this.sinon.spy(screen.classList, 'toggle');
-      CallScreen.toggle();
-      assert.isTrue(toggleSpy.notCalled);
-      MockSettingsListener.mTriggerCallback('wallpaper.image', new Blob());
-
-      setTimeout(function() {
-        assert.isTrue(toggleSpy.calledOnce);
-        done();
-      });
-    });
-
     suite('once the wallpaper is loaded', function() {
-      test('should toggle the displayed classlist', function() {
-        var toggleSpy = this.sinon.spy(screen.classList, 'toggle');
-        CallScreen.toggle();
-        assert.isTrue(toggleSpy.calledWith('displayed'));
-      });
-
       suite('when a callback is given', function() {
         var addEventListenerSpy;
         var removeEventListenerSpy;
@@ -746,12 +729,6 @@ suite('call screen', function() {
           number: ''
         }
       });
-    });
-
-    test('resizes the call screen in status bar mode', function() {
-      var resizeSpy = this.sinon.spy(window, 'resizeTo');
-      CallScreen.placeNewCall();
-      assert.equal(resizeSpy.firstCall.args[1], 40);
     });
   });
 

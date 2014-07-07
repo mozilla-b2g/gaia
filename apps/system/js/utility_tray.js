@@ -37,7 +37,8 @@ var UtilityTray = {
     window.addEventListener('screenchange', this);
     window.addEventListener('emergencyalert', this);
     window.addEventListener('home', this);
-    window.addEventListener('attentionscreenshow', this);
+    window.addEventListener('attentionopened', this);
+    window.addEventListener('attentionwill-become-active', this);
     window.addEventListener('launchapp', this);
     window.addEventListener('displayapp', this);
     window.addEventListener('appopening', this);
@@ -79,13 +80,16 @@ var UtilityTray = {
     var detail = evt.detail;
 
     switch (evt.type) {
+      case 'attentionopened':
+      case 'attentionwill-become-active':
       case 'home':
         if (this.shown) {
           this.hide();
-          evt.stopImmediatePropagation();
+          if (evt.type == 'home') {
+            evt.stopImmediatePropagation();
+          }
         }
         break;
-      case 'attentionscreenshow':
       case 'emergencyalert':
       case 'displayapp':
       case 'keyboardchanged':
@@ -195,7 +199,6 @@ var UtilityTray = {
         break;
 
       case 'resize':
-        console.log('Window resized');
         this.validateCachedSizes(true);
         break;
     }
