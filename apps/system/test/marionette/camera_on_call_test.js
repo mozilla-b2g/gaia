@@ -29,7 +29,8 @@
 
       // wait for the call
       client.waitFor(function() {
-        return client.findElement('#attention-screen.displayed');
+        return client.findElement(
+          '.attentionWindow[transition-state="opened"]');
       });
 
       client.executeScript(function() {

@@ -35,7 +35,6 @@ suite('system/TaskCard', function() {
 
   mocksForCard.attachTestHelpers();
   var mockManager = {
-    attentionScreenApps: [],
     useAppScreenshotPreviews: true,
     cardsList: document.getElementById('cards-list')
   };

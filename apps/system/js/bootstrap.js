@@ -55,12 +55,19 @@ window.addEventListener('load', function startup() {
       new SystemDialogManager();
 
     /** @global */
+    window.attentionWindowManager = new window.AttentionWindowManager();
+    window.attentionWindowManager.start();
+
+    /** @global */
     window.lockScreenWindowManager = new window.LockScreenWindowManager();
     window.lockScreenWindowManager.start();
 
     // To initilaize it after LockScreenWindowManager to block home button
     // when the screen is locked.
     window.AppWindowManager.init();
+
+    window.layoutManager = new LayoutManager();
+    window.layoutManager.start();
 
     /** @global */
     window.textSelectionDialog = new TextSelectionDialog();
@@ -115,7 +122,6 @@ window.addEventListener('load', function startup() {
   window.homeSearchbar = new HomeSearchbar();
   window.internetSharing = new InternetSharing();
   window.internetSharing.start();
-  window.layoutManager = new LayoutManager().start();
   window.permissionManager = new PermissionManager();
   window.permissionManager.start();
   window.places = new Places();

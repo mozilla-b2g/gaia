@@ -268,7 +268,7 @@ var ScreenManager = {
         // If the _cpuWakeLock is already set we are in a multiple
         // call setup, the user will be notified by a tone.
         if (this._cpuWakeLock) {
-          // In case of user making an extra call, the attention screen
+          // In case of user making an extra call, the attention window
           // may be hidden at top so we need to confirm it's shown again.
           dialerAgent.showCallScreen();
           break;

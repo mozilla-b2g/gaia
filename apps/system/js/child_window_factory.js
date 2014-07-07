@@ -1,5 +1,6 @@
 'use strict';
-/* global AppWindow, PopupWindow, ActivityWindow, SettingsListener */
+/* global AppWindow, PopupWindow, ActivityWindow, SettingsListener,
+          AttentionWindow */
 
 (function(exports) {
   var ENABLE_IN_APP_SHEET = false;
@@ -121,9 +122,28 @@
   };
 
   ChildWindowFactory.prototype.createAttentionWindow = function(evt) {
-    // XXX: AttentionWindow is not implemented yet.
-    // Now AttentionScreen catches this event.
-    return false;
+    if (!this.app || !this.app.hasAttentionPermission()) {
+      return false;
+    }
+
+    // Canceling any full screen web content
+    if (document.mozFullScreen) {
+      document.mozCancelFullScreen();
+    }
+
+    var attentionFrame = evt.detail.frameElement;
+    var attention = new AttentionWindow({
+      iframe: attentionFrame,
+      url: evt.detail.url,
+      name: evt.detail.name,
+      manifestURL: this.app.manifestURL,
+      origin: this.app.origin,
+      parentWindow: this.app
+    });
+
+    this.app.attentionWindow = attention;
+    attention.open();
+    return true;
   };
 
   ChildWindowFactory.prototype.createActivityWindow = function(evt) {

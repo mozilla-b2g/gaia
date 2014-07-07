@@ -29,7 +29,7 @@ var UtilityTray = {
     window.addEventListener('screenchange', this);
     window.addEventListener('emergencyalert', this);
     window.addEventListener('home', this);
-    window.addEventListener('attentionscreenshow', this);
+    window.addEventListener('attentionopening', this);
     window.addEventListener('launchapp', this);
     window.addEventListener('displayapp', this);
     window.addEventListener('appopening', this);
@@ -66,13 +66,13 @@ var UtilityTray = {
     var target = evt.target;
 
     switch (evt.type) {
+      case 'attentionopening':
       case 'home':
         if (this.shown) {
           this.hide();
           evt.stopImmediatePropagation();
         }
         break;
-      case 'attentionscreenshow':
       case 'emergencyalert':
       case 'displayapp':
       case 'keyboardchanged':

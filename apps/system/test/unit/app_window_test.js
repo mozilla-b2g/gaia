@@ -1,5 +1,5 @@
 /* global AppWindow, ScreenLayout, MockOrientationManager,
-      LayoutManager, MocksHelper, MockAttentionScreen, MockContextMenu,
+      LayoutManager, MocksHelper, MockContextMenu,
       AppChrome, ActivityWindow, PopupWindow, layoutManager */
 'use strict';
 
@@ -13,14 +13,13 @@ requireApp('system/test/unit/mock_layout_manager.js');
 requireApp('system/test/unit/mock_app_chrome.js');
 requireApp('system/test/unit/mock_screen_layout.js');
 requireApp('system/test/unit/mock_popup_window.js');
-requireApp('system/test/unit/mock_attention_screen.js');
 requireApp('system/test/unit/mock_activity_window.js');
 requireApp('system/test/unit/mock_statusbar.js');
 
 var mocksForAppWindow = new MocksHelper([
   'OrientationManager', 'Applications', 'SettingsListener',
   'ManifestHelper', 'LayoutManager', 'ActivityWindow',
-  'ScreenLayout', 'AppChrome', 'PopupWindow', 'AttentionScreen',
+  'ScreenLayout', 'AppChrome', 'PopupWindow',
   'StatusBar'
 ]).init();
 
@@ -1534,33 +1533,31 @@ suite('system/AppWindow', function() {
     test('popupclosing event', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       var spyLockOrientation = this.sinon.spy(app1, 'lockOrientation');
-      var spySetVisible = this.sinon.spy(app1, 'setVisible');
+      var spyRequestForeground = this.sinon.spy(app1, 'requestForeground');
       var stubIsActive = this.sinon.stub(app1, 'isActive');
       stubIsActive.returns(true);
-      MockAttentionScreen.mFullyVisible = false;
 
       app1.handleEvent({
         type: 'popupclosing'
       });
 
       assert.isTrue(spyLockOrientation.called);
-      assert.isTrue(spySetVisible.called);
+      assert.isTrue(spyRequestForeground.called);
     });
 
     test('activityclosing event', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       var spyLockOrientation = this.sinon.spy(app1, 'lockOrientation');
-      var spySetVisible = this.sinon.spy(app1, 'setVisible');
+      var spyRequestForeground = this.sinon.spy(app1, 'requestForeground');
       var stubIsActive = this.sinon.stub(app1, 'isActive');
       stubIsActive.returns(true);
-      MockAttentionScreen.mFullyVisible = false;
 
       app1.handleEvent({
         type: 'activityclosing'
       });
 
       assert.isTrue(spyLockOrientation.called);
-      assert.isTrue(spySetVisible.called);
+      assert.isTrue(spyRequestForeground.called);
     });
 
     test('activityclosing event when attention screen is shown', function() {
@@ -1569,7 +1566,6 @@ suite('system/AppWindow', function() {
       var spySetVisible = this.sinon.spy(app1, 'setVisible');
       var stubIsActive = this.sinon.stub(app1, 'isActive');
       stubIsActive.returns(true);
-      MockAttentionScreen.mFullyVisible = true;
 
       app1.handleEvent({
         type: 'activityclosing'

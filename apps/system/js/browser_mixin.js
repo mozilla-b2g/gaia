@@ -82,8 +82,9 @@
 
       if (timeout) {
         timer = window.setTimeout(function() {
-          if (invoked)
+          if (invoked) {
             return;
+          }
           self.debug('getScreenshot timeout!');
           invoked = true;
           callback();
@@ -104,6 +105,7 @@
         self.debug('getScreenshot succeed!');
         if (invoked)
           return;
+        self.debug('get screenshot success!!!!');
         invoked = true;
         if (timer)
           window.clearTimeout(timer);
@@ -149,6 +151,10 @@
     },
 
     _setVisible: function bm__setVisible(visible) {
+      // Do not bring attention window to background.
+      if (this.CLASS_NAME == 'AttentionWindow' && !visible) {
+        return;
+      }
       if (this.browser && this.browser.element &&
           'setVisible' in this.browser.element) {
         this.debug('setVisible on browser element:' + visible);

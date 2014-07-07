@@ -1,5 +1,6 @@
 .appWindow,
-.activityWindow {
+.activityWindow,
+.attentionWindow {
   position: absolute;
   left: 0;
   border: 0;
@@ -28,7 +29,7 @@
   }
 }
 
-.appWindow[transition-state="closed"]:not(.fadeout):not(.homescreen) {
+.appWindow[transition-state="closed"]:not(.fadeout):not(.homescreen):not(.attentionWindow) {
   opacity: 0;
   transform: translateX(0);
 }
@@ -104,8 +105,8 @@
 
 /* app window layout */
 
-#screen.active-statusbar > #windows > .appWindow,
-#screen.active-statusbar > #windows > .appWindow.fullscreen-app {
+#screen.active-attention-bar > #windows > .appWindow:not(.attentionWindow),
+#screen.active-attention-bar > #windows > .appWindow.fullscreen-app {
   top: 4rem;
   height: calc(100% - 4rem);
 }
@@ -246,26 +247,26 @@
 }
 
 /* Prebuild width/height */
-#screen:not(.active-statusbar):not(.software-button-enabled):not(:-moz-full-screen-ancestor) > #windows > .appWindow:not(.fullscreen-app),
+#screen:not(.active-attention-bar):not(.software-button-enabled):not(:-moz-full-screen-ancestor) > #windows > .appWindow:not(.fullscreen-app),
 .appWindow.homescreen {
   top: 2.4rem;
   height: calc(100% - 2.4rem);
   width: 100%;
 }
 
-#screen:not(.active-statusbar):not(.software-button-enabled) > #windows > .appWindow.fullscreen-app {
+#screen:not(.active-attention-bar):not(.software-button-enabled) > #windows > .appWindow.fullscreen-app {
   top: 0;
   height: 100%;
   width: 100%;
 }
 
-#screen.active-statusbar:not(.software-button-enabled):not(:-moz-full-screen-ancestor) > #windows > .appWindow {
+#screen.active-attention-bar:not(.software-button-enabled):not(:-moz-full-screen-ancestor) > #windows > .appWindow:not(.attentionWindow) {
   top: 4rem;
   height: calc(100% - 4rem);
   width: 100%;
 }
 
-#screen.active-statusbar.software-button-enabled:not(:-moz-full-screen-ancestor) > #windows > .appWindow {
+#screen.active-attention-bar.software-button-enabled:not(:-moz-full-screen-ancestor) > #windows > .appWindow:not(.attentionWindow) {
   top: 4rem;
   bottom: 5rem;
   height: calc(100% - 5rem - 4rem);
@@ -279,19 +280,65 @@
   width: 100%;
 }
 
-#screen.software-button-enabled:not(.active-statusbar) > #windows > .appWindow.fullscreen-app {
+#screen.software-button-enabled:not(.active-attention-bar) > #windows > .appWindow.fullscreen-app {
   top: 0;
   bottom: 5rem;
   height: calc(100% - 5rem);
   width: 100%;
 }
 
-#screen.active-statusbar:not(.software-button-enabled) > #windows > .appWindow.fullscreen-app {
+#screen.active-attention-bar:not(.software-button-enabled) > #windows > .appWindow.fullscreen-app {
   top: 4rem;
   bottom: 0;
   height: calc(100% - 4rem);
   width: 100%;
 }
+
+#screen:not(.active-attention-bar):not(.software-button-enabled):not(:-moz-full-screen-ancestor) #windows > .appWindow.attentionWindow[transition-state="closed"] {
+  top: 0;
+  height: 2.4rem;
+  width: 100%;
+}
+
+#screen:not(.active-attention-bar).software-button-enabled > #windows > .appWindow.attentionWindow[transition-state="closed"] {
+  top: 0;
+  height: 2.4rem;
+  width: 100%;
+}
+
+.appWindow.attentionWindow.transition-opening {
+  top: 2.4rem;
+  height: calc(100% - 2.4rem);
+  width: 100%;
+}
+
+.attentionWindow > .attention-bar {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  /* Status bar height * 2 */
+  height: 2.4rem;
+  z-index: 2;
+  display: none;
+}
+
+.attentionWindow[transition-state="closed"] > .attention-bar {
+  display: block;
+}
+
+.attentionWindow[transition-state="initial"] {
+  transform: translateY(calc(-100% - 2.4rem));
+}
+
+.attentionWindow[transition-state="initial"] > iframe {
+  position: absolute;
+  top: auto;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  left: 0;
+}
+
 
 @keyframes closeApp {
   0%   { transform: scale(1.0); opacity: 1;}
@@ -567,12 +614,20 @@
   animation: slideRight 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
-.appWindow.slideup {
-  animation: slideUp 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+.appWindow.slide-from-down {
+  animation: slideFromDown 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
-.appWindow.slidedown {
-  animation: slideDown 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+.appWindow.slide-to-down {
+  animation: slideToDown 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+}
+
+.appWindow.slide-from-up {
+  animation: slideFromUp 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+}
+
+.appWindow.slide-to-up {
+  animation: slideToUp 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 .appWindow.in-from-left {
@@ -612,32 +667,14 @@
   animation: slideDown 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
-@keyframes slideUp {
+@keyframes slideFromDown {
   0%   { transform: translateY(calc(100%)); }
   100% { transform: translateY(0); }
 }
 
-@keyframes slideDown {
+@keyframes slideToDown {
   0%   { transform: translateY(0); }
   100% { transform: translateY(calc(100%)); }
-}
-
-.appWindow.in-from-left {
-  animation: inFromLeft 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
-}
-
-.appWindow.out-to-right {
-  animation: outToRight 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
-}
-
-@keyframes slideUp {
-  0%   { transform: translateY(100%); }
-  100% { transform: translateY(0); }
-}
-
-@keyframes slideDown {
-  0%   { transform: translateY(0); }
-  100% { transform: translateY(100%); }
 }
 
 @keyframes inFromLeft {
@@ -657,8 +694,8 @@
 }
 
 /* Task Manager */
-#screen.task-manager:not(.active-statusbar):not(.software-button-enabled) > #windows > .appWindow.in-task-manager,
-#screen.task-manager:not(.active-statusbar):not(.software-button-enabled):not(:-moz-full-screen-ancestor) > #windows > .appWindow.in-task-manager:not(.fullscreen-app) {
+#screen.task-manager:not(.active-attention-bar):not(.software-button-enabled) > #windows > .appWindow.in-task-manager,
+#screen.task-manager:not(.active-attention-bar):not(.software-button-enabled):not(:-moz-full-screen-ancestor) > #windows > .appWindow.in-task-manager:not(.fullscreen-app) {
   /* XXX sfoster - watch specificify here
      Position values are 1/2 because of scaling */
   top: calc(25% + 2.5rem);
@@ -667,6 +704,16 @@
   transform-origin: 50% 0;
   transform: translateX(99.99%) scale(0.5, 0.5);
   will-change: transform;
+}
+
+@keyframes slideFromUp {
+  0%   { transform: translateY(calc(-100% - 2rem)); }
+  100% { transform: translateY(0); }
+}
+
+@keyframes slideToUp {
+  0%   { transform: translateY(0); }
+  100% { transform: translateY(calc(-100% - 2rem)); }
 }
 
 /* Edges */

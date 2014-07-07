@@ -73,7 +73,7 @@
       this.container.addEventListener('submit', this);
       this.menu.addEventListener('click', this);
 
-      window.addEventListener('attentionscreenshow', this, true);
+      window.addEventListener('attentionopening', this, true);
       window.addEventListener('screenchange', this, true);
       window.addEventListener('home', this);
       window.addEventListener('holdhome', this);
@@ -93,7 +93,7 @@
       screen.removeChild(this.container);
       screen.classList.remove('action-menu');
 
-      window.removeEventListener('attentionscreenshow', this, true);
+      window.removeEventListener('attentionopening', this, true);
       window.removeEventListener('screenchange', this, true);
       window.removeEventListener('home', this);
       window.removeEventListener('holdhome', this);
@@ -200,7 +200,7 @@
           this.oncancel();
           break;
 
-        case 'attentionscreenshow':
+        case 'attentionopening':
           this.hide();
           break;
       }

@@ -1,7 +1,6 @@
 'use strict';
-/* global HomeSearchbar, Rocketbar, MocksHelper, AttentionScreen */
+/* global HomeSearchbar, Rocketbar, MocksHelper */
 
-requireApp('system/test/unit/mock_attention_screen.js');
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_search_window.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
@@ -13,7 +12,6 @@ requireApp('system/js/rocketbar.js');
 var mocksForRocketbar = new MocksHelper([
   'AppWindow',
   'AppWindowManager',
-  'AttentionScreen',
   'SearchWindow',
   'SettingsListener',
   'SettingsURL',
@@ -213,7 +211,7 @@ suite('system/HomeSearchbar', function() {
      * ovetrlapping each other.
      * Those tests can be removed / fixed once there is a better solution.
      */
-    test('attentionscreenshow', function() {
+    test('attentionopening', function() {
       this.sinon.stub(subject._port, 'postMessage');
       subject.stop();
       subject.expand();
@@ -227,7 +225,7 @@ suite('system/HomeSearchbar', function() {
       assert.ok(subject.screen.classList.contains('rocketbar-expanded'));
       assert.ok(subject.rocketbar.classList.contains('expanded'));
 
-      window.dispatchEvent(new CustomEvent('attentionscreenshow'));
+      window.dispatchEvent(new CustomEvent('attentionopening'));
 
       assert.ok(!subject.screen.classList.contains('rocketbar-expanded'));
       assert.ok(!subject.rocketbar.classList.contains('expanded'));
@@ -236,21 +234,6 @@ suite('system/HomeSearchbar', function() {
         assert.ok(stub.calledOnce);
       });
     });
-
-    test('iac-search-results with attention screen', function() {
-      AttentionScreen.mVisible = true;
-      var maximizeStub = this.sinon.stub(AttentionScreen, 'maximize');
-      var searchStub = this.sinon.stub(Rocketbar.prototype,
-                                       'handleSearchMessage');
-
-      subject.handleEvent({
-        type: 'iac-search-results'
-      });
-
-      assert.isTrue(maximizeStub.calledOnce);
-      assert.isFalse(searchStub.calledOnce);
-    });
-
   });
 });
 
