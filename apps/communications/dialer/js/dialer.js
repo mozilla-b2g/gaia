@@ -424,6 +424,7 @@ var CallHandler = (function callHandler() {
       document.addEventListener('visibilitychange', releaseWakeLock);
     }
 
+    // evt.sessionEnded = true;
     if (document.hidden && evt.sessionEnded) {
       /* If the dialer is not visible and the session ends with this message
        * then this is most likely an unsollicited message. To prevent
