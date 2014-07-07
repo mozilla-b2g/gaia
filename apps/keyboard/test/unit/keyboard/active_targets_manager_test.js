@@ -213,7 +213,6 @@ suite('ActiveTargetsManager', function() {
         };
 
         alternativesCharMenuManagerStub.isShown = true;
-        alternativesCharMenuManagerStub.isMenuTouch.withArgs(id0).returns(true);
         alternativesCharMenuManagerStub
           .isInMenuArea.withArgs(press0).returns(true);
         alternativesCharMenuManagerStub.getMenuTarget.returns(altTarget);
@@ -373,11 +372,15 @@ suite('ActiveTargetsManager', function() {
       setup(function() {
         userPressManagerStub.onpressstart(press1, id1);
 
+        assert.isTrue(manager.ontargetcommitted.calledWith(press0.target),
+          'Commit the first press when the second press starts.');
+        assert.isTrue(alternativesCharMenuManagerStub.hide.calledOnce);
+
         assert.isTrue(
           manager.ontargetactivated.calledWith(press1.target));
-        assert.isTrue(window.clearTimeout.calledTwice);
-        assert.isFalse(window.setTimeout.calledTwice,
-          'No long press for second tap.');
+
+        assert.equal(window.clearTimeout.callCount, 3);
+        assert.isTrue(window.setTimeout.calledTwice);
       });
 
       test('press end second press, and first press', function() {
@@ -388,10 +391,10 @@ suite('ActiveTargetsManager', function() {
         };
         userPressManagerStub.onpressend(pressEnd, id1);
 
-        assert.isTrue(alternativesCharMenuManagerStub.hide.calledOnce);
+        assert.isTrue(alternativesCharMenuManagerStub.hide.calledTwice);
         assert.isTrue(
           manager.ontargetcommitted.calledWith(press1.target));
-        assert.equal(window.clearTimeout.callCount, 3);
+        assert.equal(window.clearTimeout.callCount, 4);
 
         var pressEnd2 = {
           target: {
@@ -400,10 +403,10 @@ suite('ActiveTargetsManager', function() {
         };
         userPressManagerStub.onpressend(pressEnd2, id0);
 
-        assert.isTrue(alternativesCharMenuManagerStub.hide.calledTwice);
-        assert.isTrue(
-          manager.ontargetcommitted.calledWith(press0.target));
-        assert.equal(window.clearTimeout.callCount, 4);
+        assert.isTrue(alternativesCharMenuManagerStub.hide.calledTwice,
+          'No additional calls to hide()');
+        assert.isTrue(manager.ontargetcommitted.calledTwice,
+          'No additional calls to ontargetcommitted');
       });
 
       test('press end first press, and second press', function() {
@@ -426,10 +429,10 @@ suite('ActiveTargetsManager', function() {
         };
         userPressManagerStub.onpressend(pressEnd2, id1);
 
-        assert.isTrue(alternativesCharMenuManagerStub.hide.calledTwice);
-        assert.isTrue(
-          manager.ontargetcommitted.calledWith(press1.target));
-        assert.equal(window.clearTimeout.callCount, 4);
+        assert.isTrue(alternativesCharMenuManagerStub.hide.calledTwice,
+          'No additional calls to hide()');
+        assert.isTrue(manager.ontargetcommitted.calledTwice,
+          'No additional calls to ontargetcommitted');
       });
     });
   });

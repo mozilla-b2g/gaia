@@ -82,6 +82,12 @@ ActiveTargetsManager.prototype._handlePressStart = function(press, id) {
     return;
   }
 
+  // All targets before the new touch need to be committed,
+  // according to UX requirement.
+  this.activeTargets.forEach(function(target, id) {
+    this._handlePressEnd(press, id);
+  }, this);
+
   var target = press.target;
   this.activeTargets.set(id, target);
 
