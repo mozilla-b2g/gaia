@@ -365,15 +365,23 @@ suite('WAP Push', function() {
         assert.equal(pin.type, 'text');
     });
 
-    test('Notification is closed', function() {
-      var closeSpy = this.sinon.spy(MockNotification.prototype, 'close');
+    test('Notification not closed until message is fully processed',
+      function() {
+        var closeSpy = this.sinon.spy(MockNotification.prototype, 'close');
+        var retrieveSpy = this.sinon.spy(MockMessageDB, 'retrieve');
 
-      MockNavigatormozSetMessageHandler.mTrigger(
-        'wappush-received',
-        messages.netwpin
-      );
-      WapPushManager.displayWapPushMessage(0);
-      sinon.assert.called(closeSpy);
+        MockNavigatormozSetMessageHandler.mTrigger(
+          'wappush-received',
+          messages.netwpin
+        );
+
+        // Invoke ParsedMessage.load() to be able to yield for it and force
+        // wait in order to get WapPushManager.displayWapPushMessage called
+        // internally
+        ParsedMessage.load(null, function(){}, function(){});
+        retrieveSpy.yield(ParsedMessage.from(messages.userpin, 0));
+
+        sinon.assert.notCalled(closeSpy);
     });
   });
 

@@ -210,8 +210,8 @@ var MessageDB = (function() {
   /**
    * Retrieves a message and passes it to the success callback as its sole
    * parameter. Once retrieved the message is atomically removed from the
-   * database. If the message was not present in the database then the success
-   * callback is invoked with a null message.
+   * database if type is other than CP type. If the message was not present
+   * in the database then the success callback is invoked with a null message.
    *
    * @param {Number} timestamp The timestamp identifiying the message to be
    *        retrieved.
@@ -242,11 +242,27 @@ var MessageDB = (function() {
 
           state.message = message;
 
-          if (message) {
+          if (message.type != 'text/vnd.wap.connectivity-xml') {
             store.delete(message.timestamp);
           }
         }
       };
+    }, error);
+  }
+
+  function mdb_deleteByTimestamp(timestamp, success, error) {
+    mdb_open(function mdb_deleteCallback(db) {
+      var transaction = db.transaction(MESSAGE_STORE_NAME, 'readwrite');
+
+      transaction.oncomplete = function mdb_deleteComplete() {
+        success();
+      };
+      transaction.onerror = function mdb_deleteError(event) {
+        error(event.target.error.name);
+      };
+
+      var store = transaction.objectStore(MESSAGE_STORE_NAME);
+      store.delete(timestamp.toString());
     }, error);
   }
 
@@ -279,6 +295,7 @@ var MessageDB = (function() {
   return {
     put: mdb_put,
     retrieve: mdb_retrieve,
+    deleteByTimestamp: mdb_deleteByTimestamp,
     clear: mdb_clear
   };
 })();

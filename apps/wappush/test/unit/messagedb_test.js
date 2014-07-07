@@ -252,4 +252,41 @@ suite('MessageDB', function() {
         });
     });
   });
+
+  suite('deleting messages', function() {
+    test('delete messages by timestamp', function(done) {
+      MessageDB.put(messages.low, function putSuccess(status_low) {
+        MessageDB.put(messages.medium, function putSuccess(status_medium) {
+          MessageDB.put(messages.high, function putSuccess(status_high) {
+            MessageDB.deleteByTimestamp(messages.medium.timestamp,
+              function deleteSuccess() {
+                MessageDB.deleteByTimestamp(messages.low.timestamp,
+                  function deleteSuccess() {
+                    MessageDB.deleteByTimestamp(messages.high.timestamp,
+                      function deleteSuccess() {
+                        MessageDB.retrieve(messages.low.timestamp,
+                          function retrieveSuccess(lowMessage) {
+                            MessageDB.retrieve(messages.medium.timestamp,
+                              function retrieveSuccess(mediumMessage) {
+                                MessageDB.retrieve(messages.high.timestamp,
+                                  function retrieveSuccess(highMessage) {
+                                    done(function checks() {
+                                      assert.equal(status_low, 'new');
+                                      assert.equal(status_medium, 'new');
+                                      assert.equal(status_high, 'new');
+                                      assert.equal(lowMessage, null);
+                                      assert.equal(mediumMessage, null);
+                                      assert.equal(highMessage, null);
+                                    });
+                                  });
+                              });
+                          });
+                      });
+                  });
+              });
+          });
+        });
+      });
+    });
+  });
 });
