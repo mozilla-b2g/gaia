@@ -1,19 +1,16 @@
 /* global MocksHelper, LayoutManager, MockKeyboardManager,
-          MockAttentionScreen, MocksoftwareButtonManager, MockLockScreen,
-          MockStatusBar */
+          MocksoftwareButtonManager, MockLockScreen */
 'use strict';
 
 requireApp('system/js/layout_manager.js');
 requireApp('system/test/unit/mock_lock_screen.js');
 requireApp('system/test/unit/mock_keyboard_manager.js');
 requireApp('system/test/unit/mock_software_button_manager.js');
-requireApp('system/test/unit/mock_attention_screen.js');
 requireApp('system/test/unit/mock_statusbar.js');
+requireApp('system/test/unit/mock_attention_window_manager.js');
 
 var mocksForLayoutManager = new MocksHelper([
-  'AttentionScreen',
-  'KeyboardManager',
-  'softwareButtonManager',
+  'KeyboardManager', 'softwareButtonManager',
   'LockScreen'
 ]).init();
 
@@ -35,22 +32,6 @@ suite('system/LayoutManager >', function() {
       });
       assert.isTrue(stubPublish.calledWith('system-resize'));
       assert.isTrue(stubPublish.calledWith('orientationchange'));
-    });
-
-    test('status-active', function() {
-      var stubPublish = this.sinon.stub(layoutManager, 'publish');
-      layoutManager.handleEvent({
-        type: 'status-active'
-      });
-      assert.isTrue(stubPublish.calledWith('system-resize'));
-    });
-
-    test('status-inactive', function() {
-      var stubPublish = this.sinon.stub(layoutManager, 'publish');
-      layoutManager.handleEvent({
-        type: 'status-inactive'
-      });
-      assert.isTrue(stubPublish.calledWith('system-resize'));
     });
 
     test('keyboardchange', function() {
@@ -119,7 +100,6 @@ suite('system/LayoutManager >', function() {
 
       H = window.innerHeight;
       W = window.innerWidth;
-      MockAttentionScreen.statusHeight = 30;
     });
 
     teardown(function() {
@@ -140,10 +120,10 @@ suite('system/LayoutManager >', function() {
       MockKeyboardManager.mHeight = 100;
       MocksoftwareButtonManager.height = 50;
       layoutManager.keyboardEnabled = true;
-      assert.equal(layoutManager.height, H - 100 - 30 - 50);
+      assert.equal(layoutManager.height, H - 100 - 50);
       assert.equal(layoutManager.width, W);
       assert.equal(layoutManager.clientWidth, _w);
-      assert.isTrue(layoutManager.match(W, H - 100 - 30 - 50));
+      assert.isTrue(layoutManager.match(W, H - 100 - 50));
     });
 
     test('should return integral values in device pixels', function() {
@@ -159,21 +139,20 @@ suite('system/LayoutManager >', function() {
       W = window.innerWidth;
       _w = document.documentElement.clientWidth;
       MockKeyboardManager.mHeight = 100;
-      MockStatusBar.height = 30;
       MocksoftwareButtonManager.height = 50;
       MocksoftwareButtonManager.width = 50;
     });
 
     test('height calculation with keyboard enabled', () => {
       layoutManager.keyboardEnabled = true;
-      assert.equal(layoutManager.height, H - 100 - 30 - 50);
-      assert.isTrue(layoutManager.match(W - 50, H - 100 - 30 - 50));
+      assert.equal(layoutManager.height, H - 100 - 50);
+      assert.isTrue(layoutManager.match(W - 50, H - 100 - 50));
     });
 
     test('height calculation with keyboard disabled', () => {
       layoutManager.keyboardEnabled = false;
-      assert.equal(layoutManager.height, H - 30 - 50);
-      assert.isTrue(layoutManager.match(W - 50, H - 30 - 50));
+      assert.equal(layoutManager.height, H - 50);
+      assert.isTrue(layoutManager.match(W - 50, H - 50));
     });
 
     test('width calculation', () => {

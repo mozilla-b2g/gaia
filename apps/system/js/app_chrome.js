@@ -3,6 +3,7 @@
 /* global BookmarksDatabase */
 /* global applications */
 /* global SettingsListener */
+/* global System */
 
 'use strict';
 
@@ -240,6 +241,9 @@
         break;
 
       case this.title:
+        if (System && System.locked) {
+          return;
+        }
         window.dispatchEvent(new CustomEvent('global-search-request'));
         break;
 
