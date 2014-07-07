@@ -7,7 +7,8 @@
          ThreadListUI, ContactRenderer, UIEvent, Drafts, OptionMenu,
          ActivityPicker, KeyEvent, MockNavigatorSettings, MockContactRenderer,
          Draft, MockStickyHeader, MultiSimActionButton, Promise, KeyboardEvent,
-         MockLazyLoader, WaitingScreen, Navigation, MockDialog, MockSettings
+         MockLazyLoader, WaitingScreen, Navigation, MockDialog, MockSettings,
+         FocusEvent
 */
 
 'use strict';
@@ -1146,9 +1147,17 @@ suite('thread_ui.js >', function() {
         var node = document.createElement('span');
         node.isPlaceholder = true;
         node.textContent = '999';
-        // Add fake match contact list
-        container.textContent =
-          '<div><h2></h2><ul><li></li>contacts<li></li></ul></div>';
+
+        // fake markup for some contact suggestions
+        container.innerHTML =
+          '<ul class="contact-list">' +
+            '<li>' +
+              '<a class="suggestion">' +
+                '<p class="name">Jean Dupont</p>' +
+                '<p class="number">0123456789</p>' +
+              '</a>' +
+            '</li>' +
+          '</ul>';
 
         this.sinon.spy(ThreadUI.recipients, 'add');
         this.sinon.stub(Navigation, 'isCurrentPanel');
@@ -1164,8 +1173,8 @@ suite('thread_ui.js >', function() {
       });
 
       test('Recipient assimilation is called when focus on subject',
-        function() {
-        subject.dispatchEvent(new CustomEvent('focus'));
+      function() {
+        subject.dispatchEvent(new FocusEvent('focus'));
 
         // recipient added and container is cleared
         sinon.assert.calledWithMatch(ThreadUI.recipients.add, {
