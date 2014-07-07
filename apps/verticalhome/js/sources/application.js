@@ -138,8 +138,10 @@
 
       for (i = 0, iLen = this.entries.length; i < iLen; i++) {
         var entry = this.entries[i];
+        var manifest = entry.updateManifest || entry.manifest;
+
         if (!appIconsByManifestUrl[entry.detail.manifestURL] &&
-            !entry.app.manifest.entry_points) {
+            !manifest.entry_points) {
           toAdd.push(entry);
         } else {
           delete appIconsByManifestUrl[entry.detail.manifestURL];
