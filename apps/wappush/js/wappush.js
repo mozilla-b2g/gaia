@@ -18,7 +18,8 @@
     close: wpm_close,
     displayWapPushMessage: wpm_displayWapPushMessage,
     onVisibilityChange: wpm_onVisibilityChange,
-    setOnCloseCallback: wpm_setOnCloseCallback
+    setOnCloseCallback: wpm_setOnCloseCallback,
+    clearNotifications: wpm_clearNotifications
   };
 
   /** Settings key for enabling/disabling WAP Push messages */
@@ -283,23 +284,12 @@
   function wpm_displayWapPushMessage(timestamp) {
     ParsedMessage.load(timestamp,
       function wpm_loadSuccess(message) {
-        // Retrieve pending notifications and close the matching ones
-        Notification.get({tag: timestamp}).then(
-          function onSuccess(notifications) {
-            for (var i = 0; i < notifications.length; i++) {
-              notifications[i].close();
-            }
-          },
-          function onError(reason) {
-            console.error('Notification.get() promise error: ' + reason);
-          }
-        );
-
         if (message) {
           switch (message.type) {
             case 'text/vnd.wap.si':
             case 'text/vnd.wap.sl':
               SiSlScreenHelper.populateScreen(message);
+              wpm_clearNotifications(timestamp);
               break;
             case 'text/vnd.wap.connectivity-xml':
               CpScreenHelper.populateScreen(message);
@@ -308,10 +298,27 @@
         } else {
           // Notify the user that the message has expired
           SiSlScreenHelper.populateScreen();
+          wpm_clearNotifications(timestamp);
         }
       },
       function wpm_loadError(error) {
         console.log('Could not retrieve the message:' + error + '\n');
+      }
+    );
+  }
+
+  /**
+   * Remove notifications for a given tag
+   */
+  function wpm_clearNotifications(tag) {
+    Notification.get({tag: tag}).then(
+      function onSuccess(notifications) {
+        for (var i = 0; i < notifications.length; i++) {
+          notifications[i].close();
+        }
+      },
+      function onError(reason) {
+        console.error('Notification.get() promise error: ' + reason);
       }
     );
   }
