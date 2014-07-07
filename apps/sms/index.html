@@ -30,6 +30,7 @@
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
     <link rel="resource" type="application/l10n" href="shared/locales/date.ini">
     <link rel="resource" type="application/l10n" href="shared/locales/sim_picker.ini">
+    <link rel="resource" type="application/l10n" href="locales/sms-hacky-2.0.properties">
     <!-- Shared code -->
     <script defer src="shared/js/async_storage.js"></script>
     <script defer src="shared/js/l10n.js"></script>
@@ -273,7 +274,9 @@
               </div>
               <div class="composer-button-container">
                 <span id="messages-counter-label" data-counter="">MMS</span>
-                <button id="messages-send-button" class="icon" aria-label="send" data-l10n-id="send" type="submit"></button>
+                <button id="messages-send-button" class="icon" aria-label="send" data-l10n-id="send" type="submit">
+                  <div class="js-sim-indication sim-indication" data-l10n-id="send-button-sim-indication"></div>
+                </button>
               </div>
             </form>
           </div>
