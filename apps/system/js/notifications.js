@@ -444,15 +444,8 @@ var NotificationScreen = {
         }, 2000);
       }
 
-      if (this.vibrates) {
-        if (document.hidden) {
-          window.addEventListener('visibilitychange', function waitOn() {
-            window.removeEventListener('visibilitychange', waitOn);
-            navigator.vibrate([200, 200, 200, 200]);
-          });
-        } else {
-          navigator.vibrate([200, 200, 200, 200]);
-        }
+      if (this.vibrates && !document.hidden) {
+        navigator.vibrate([200, 200, 200, 200]);
       }
     }
 
