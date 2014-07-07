@@ -7,7 +7,7 @@
     </header>
 
     <div>
-      <ul id="time-auto" data-state="auto" hidden>
+      <ul class="time-auto" data-state="auto" hidden>
         <li>
           <label class="pack-switch">
             <input type="checkbox" name="time.clock.automatic-update.enabled" class="uninit">
@@ -15,47 +15,46 @@
           </label>
         </li>
       </ul>
-      <ul id="time-manual">
+      <ul class="time-manual">
         <li>
           <label>
-            <input type="date" id="date-picker" min="1970-1-1" max="2037-12-31"/>
+            <input type="date" class="date-picker" min="1970-1-1" max="2037-12-31"/>
           </label>
-          <a data-l10n-id="dateMessage">Date <span id="clock-date"></span> </a>
+          <a data-l10n-id="dateMessage">Date <span class="clock-date"></span> </a>
         </li>
         <li>
           <label>
-            <input type="time" id="time-picker" />
+            <input type="time" class="time-picker" />
           </label>
-          <a data-l10n-id="timeMessage">Time <span id="clock-time"></span> </a>
+          <a data-l10n-id="timeMessage">Time <span class="clock-time"></span> </a>
         </li>
       </ul>
 
       <header>
         <h2 data-l10n-id="timezoneMessage">Time zone</h2>
       </header>
-      <ul id="timezone-raw" hidden>
+      <ul class="timezone-raw" hidden>
         <li>
-          <span id="timezone-value"></span>
+          <span class="timezone-value"></span>
         </li>
       </ul>
-      <ul id="timezone">
+      <ul class="timezone">
         <li>
           <p data-l10n-id="tz-region">Region</p>
           <span class="button icon icon-dialog">
-            <select id="timezone-region"></select>
+            <select class="timezone-region"></select>
           </span>
         </li>
         <li>
           <p data-l10n-id="tz-city">City</p>
           <span class="button icon icon-dialog">
-            <select id="timezone-city"></select>
+            <select class="timezone-city"></select>
           </span>
         </li>
       </ul>
     </div>
 
-    <script src="shared/js/tz_select.js"></script>
-    <script src="js/date_time.js"></script>
+    <panel data-path="panels/date_time/panel"><panel>
 
   </template>
 </element>
