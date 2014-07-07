@@ -181,7 +181,7 @@
   ActivityWindow.REGISTERED_EVENTS =
     ['mozbrowserclose', 'mozbrowsererror', 'mozbrowservisibilitychange',
       'mozbrowserloadend', 'mozbrowseractivitydone', 'mozbrowserloadstart',
-      '_localized', '_opened', '_closing', 'acitivityclosing', 'popupclosing'];
+      '_localized'];
 
   ActivityWindow.prototype._handle_mozbrowseractivitydone =
     function aw__handle_mozbrowseractivitydone() {
