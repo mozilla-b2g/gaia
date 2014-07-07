@@ -21,6 +21,7 @@
     document.addEventListener('click', this);
     navigator.mozSetMessageHandler('activity', this.webActivityHandler.bind(this));
     window.addEventListener('message', this);
+    window.addEventListener('resize', this);
   };
 
   App.prototype.handleEvent = function(evt) {
@@ -35,11 +36,22 @@
           break;
       }
       return;
+    } else if (evt.type == 'resize') {
+      if (window.innerHeight < 60) {
+        this.TITLE.textContent = '(attention)' + this.TITLE.textContent;
+        document.body.classList.add('toaster');
+      } else {
+        this.TITLE.textContent = this.TITLE.textContent.replace('(attention)', '');
+        document.body.classList.remove('toaster');
+      }
     }
-    if (evt.target.tagName.toLowerCase() !== 'button') {
+    if (evt.target.tagName && evt.target.tagName.toLowerCase() !== 'button') {
       return;
     }
     var data = evt.target.dataset;
+    if (!data) {
+      return;
+    }
     if (data.activityHandle) {
       if (this.activity) {
         this.activity['post' + data.activityHandle](this.INPUT.value || new Date());

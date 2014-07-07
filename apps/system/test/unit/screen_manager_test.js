@@ -294,16 +294,13 @@ suite('system/ScreenManager', function() {
       setup(function() {
         stubTelephony = {};
         stubCpuWakeLock = {};
-        stubDialerAgent = {};
         stubTurnOn = this.sinon.stub(ScreenManager, 'turnScreenOn');
         stubRemoveListener = this.sinon.stub(window, 'removeEventListener');
 
         stubCpuWakeLock.unlock = this.sinon.stub();
-        stubDialerAgent.showCallScreen = this.sinon.stub();
         ScreenManager._cpuWakeLock = stubCpuWakeLock;
 
         switchProperty(navigator, 'mozTelephony', stubTelephony, reals);
-        switchProperty(window, 'dialerAgent', stubDialerAgent, reals);
       });
 
       teardown(function() {
@@ -316,11 +313,12 @@ suite('system/ScreenManager', function() {
         stubTelephony.conferenceGroup = {calls: []};
         ScreenManager._screenOffBy = 'proximity';
         ScreenManager.handleEvent({'type': 'callschanged'});
+        var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
 
         assert.isTrue(stubTurnOn.called);
         assert.isNull(ScreenManager._cpuWakeLock);
         assert.isTrue(stubCpuWakeLock.unlock.called);
-        assert.isFalse(stubDialerAgent.showCallScreen.called);
+        assert.isFalse(stubDispatchEvent.calledWith('open-callscreen'));
       });
 
       test('screen off', function() {
@@ -332,15 +330,17 @@ suite('system/ScreenManager', function() {
       });
 
       test('with a call', function() {
+        var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
         var stubAddListener = this.sinon.stub();
         stubTelephony.calls = [{'addEventListener': stubAddListener}];
         stubTelephony.conferenceGroup = {calls: []};
         ScreenManager.handleEvent({'type': 'callschanged'});
-        assert.isTrue(stubDialerAgent.showCallScreen.called);
+        assert.isFalse(stubDispatchEvent.calledWith('open-callscreen'));
         assert.isFalse(stubAddListener.called);
       });
 
       test('with a conference call', function() {
+        var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
         var stubAddListener = this.sinon.stub();
         stubTelephony.calls = [];
         stubTelephony.conferenceGroup = {
@@ -348,17 +348,18 @@ suite('system/ScreenManager', function() {
                   {'addEventListener': stubAddListener}]
         };
         ScreenManager.handleEvent({'type': 'callschanged'});
-        assert.isTrue(stubDialerAgent.showCallScreen.called);
+        assert.isFalse(stubDispatchEvent.calledWith('open-callscreen'));
         assert.isFalse(stubAddListener.called);
       });
 
       test('without cpuWakeLock', function() {
+        var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
         var stubAddListener = this.sinon.stub();
         stubTelephony.calls = [{'addEventListener': stubAddListener}];
         stubTelephony.conferenceGroup = {calls: []};
         ScreenManager._cpuWakeLock = null;
         ScreenManager.handleEvent({'type': 'callschanged'});
-        assert.isFalse(stubDialerAgent.showCallScreen.called);
+        assert.isFalse(stubDispatchEvent.calledWith('open-callscreen'));
         assert.isTrue(stubAddListener.called);
       });
     });

@@ -1,5 +1,5 @@
 /* global AppWindowManager, AppWindow, homescreenLauncher,
-          MockAttentionScreen, HomescreenWindow, MocksHelper,
+          HomescreenWindow, MocksHelper,
           MockSettingsListener, System, HomescreenLauncher */
 'use strict';
 
@@ -10,17 +10,15 @@ requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_activity_window.js');
 requireApp('system/test/unit/mock_keyboard_manager.js');
 requireApp('system/test/unit/mock_software_button_manager.js');
-requireApp('system/test/unit/mock_attention_screen.js');
 requireApp('system/test/unit/mock_statusbar.js');
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_layout_manager.js');
 requireApp('system/test/unit/mock_homescreen_window.js');
 requireApp('system/test/unit/mock_homescreen_launcher.js');
-requireApp('system/js/system.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 
 var mocksForAppWindowManager = new MocksHelper([
-  'OrientationManager', 'AttentionScreen',
+  'OrientationManager',
   'ActivityWindow',
   'Applications', 'SettingsListener', 'HomescreenLauncher',
   'ManifestHelper', 'KeyboardManager', 'StatusBar', 'SoftwareButtonManager',
@@ -420,7 +418,6 @@ suite('system/AppWindowManager', function() {
     test('Show top window', function() {
       injectRunningApps(app1);
       AppWindowManager._activeApp = app1;
-      MockAttentionScreen.mFullyVisible = false;
       var stubSetVisible = this.sinon.stub(app1, 'setVisible');
 
       AppWindowManager.handleEvent({
@@ -434,7 +431,6 @@ suite('system/AppWindowManager', function() {
     function() {
       injectRunningApps(app1);
       AppWindowManager._activeApp = app1;
-      MockAttentionScreen.mFullyVisible = false;
       var stubSetVisible = this.sinon.stub(app1, 'setVisible');
       var stubActivity = this.sinon.stub();
       var originalActivity = window.MozActivity;
@@ -461,13 +457,14 @@ suite('system/AppWindowManager', function() {
     test('Hide top window', function() {
       injectRunningApps(app1);
       AppWindowManager._activeApp = app1;
-      var stubSetVisible = this.sinon.stub(app1, 'setVisible');
+      var stubBroadcast = this.sinon.stub(app1, 'broadcast');
 
       AppWindowManager.handleEvent({
-        type: 'hidewindow'
+        type: 'hidewindow',
+        detail: app2
       });
 
-      assert.isTrue(stubSetVisible.calledWith(false));
+      assert.isTrue(stubBroadcast.calledWith('hidewindow', app2));
     });
 
     test('Show for screen reader top window', function() {
@@ -503,7 +500,7 @@ suite('system/AppWindowManager', function() {
       stubIsOOP.returns(false);
       var stubSetVisible = this.sinon.stub(app6, 'setVisible');
 
-      AppWindowManager.handleEvent({ type: 'overlaystart' });
+      AppWindowManager.handleEvent({ type: 'attentionopened' });
       assert.isTrue(stubSetVisible.calledWith(false));
     });
 
@@ -512,7 +509,7 @@ suite('system/AppWindowManager', function() {
       AppWindowManager._activeApp = app1;
       var stubBlur = this.sinon.stub(app1, 'blur');
 
-      AppWindowManager.handleEvent({ type: 'overlaystart' });
+      AppWindowManager.handleEvent({ type: 'attentionopened' });
       assert.isTrue(stubBlur.called);
     });
   });

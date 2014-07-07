@@ -1,5 +1,6 @@
 /* global AppWindow, ScreenLayout, MockOrientationManager,
-      LayoutManager, MocksHelper, MockContextMenu, layoutManager */
+      LayoutManager, MocksHelper, MockContextMenu,
+      layoutManager, MockPermissionSettings */
 'use strict';
 
 requireApp('system/test/unit/mock_orientation_manager.js');
@@ -11,24 +12,30 @@ requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_layout_manager.js');
 requireApp('system/test/unit/mock_app_chrome.js');
 requireApp('system/test/unit/mock_screen_layout.js');
+requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_popup_window.js');
 requireApp('system/test/unit/mock_activity_window.js');
 requireApp('system/test/unit/mock_statusbar.js');
+requireApp('system/shared/test/unit/mocks/mock_permission_settings.js');
 
 var mocksForAppWindow = new MocksHelper([
   'OrientationManager', 'Applications', 'SettingsListener',
-  'ManifestHelper', 'LayoutManager', 'ActivityWindow',
-  'ScreenLayout', 'AppChrome', 'PopupWindow', 'StatusBar'
+  'ManifestHelper', 'LayoutManager', 'ScreenLayout', 'AppChrome'
 ]).init();
 
 suite('system/AppWindow', function() {
   var stubById;
+  var realPermissionSettings;
   mocksForAppWindow.attachTestHelpers();
   setup(function(done) {
     this.sinon.useFakeTimers();
 
     window.layoutManager = new LayoutManager();
     window.layoutManager.start();
+
+    realPermissionSettings = navigator.mozPermissionSettings;
+    navigator.mozPermissionSettings = MockPermissionSettings;
+    MockPermissionSettings.mSetup();
 
     stubById = this.sinon.stub(document, 'getElementById');
     stubById.returns(document.createElement('div'));
@@ -44,6 +51,7 @@ suite('system/AppWindow', function() {
   });
 
   teardown(function() {
+    navigator.mozPermissionSettings = realPermissionSettings;
     delete window.layoutManager;
 
     stubById.restore();
@@ -1206,6 +1214,19 @@ suite('system/AppWindow', function() {
   });
 
   suite('Event handlers', function() {
+    test('Hidewindow event', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      var attention = new AppWindow(fakeAppConfig2);
+      var stubSetVisible = this.sinon.stub(app1, 'setVisible');
+      attention.parentWindow = app1;
+
+      app1.handleEvent({
+        type: '_hidewindow',
+        detail: attention
+      });
+      assert.isFalse(stubSetVisible.called);
+    });
+
     test('ActivityDone event', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       var app2 = new AppWindow(fakeAppConfig2);
@@ -2018,5 +2039,28 @@ suite('system/AppWindow', function() {
       assert.equal(app1.themeColor, '');
       assert.isTrue(stubPublish.calledOnce);
     });
+  });
+
+  test('Should not be killable if it has an attention window', function() {
+    var app1 = new AppWindow(fakeAppConfig1);
+    var attention = new AppWindow(fakeAppConfig1);
+    app1.attentionWindow = attention;
+    assert.isFalse(app1.killable());
+  });
+
+  test('Should not be killable if we are homescreen window', function() {
+    var app1 = new AppWindow(fakeAppConfig1);
+    app1.isHomescreen = true;
+    assert.isFalse(app1.killable());
+  });
+
+  test('Has attention permission', function() {
+    MockPermissionSettings.permissions.attention = 'deny';
+    var app1 = new AppWindow(fakeAppConfig1);
+    assert.isFalse(app1.hasPermission('attention'));
+
+    MockPermissionSettings.permissions.attention = 'allow';
+    var app2 = new AppWindow(fakeAppConfig2);
+    assert.isTrue(app2.hasPermission('attention'));
   });
 });
