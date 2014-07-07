@@ -68,10 +68,16 @@ for app in $APPS; do
   else
     echo ',' >&3
   fi
+  if [ $MARIONETTE_RUNNER_HOST = "marionette-device-host" ] ; then
+    adb shell stop b2g && adb shell start b2g
+  fi
   FILES_PERF=`test -d apps/$app/test/performance && find apps/$app/test/performance -name "*_test.js" -type f`
   # wrap marionette-mocha with gaia's defaults. We also need to alter the paths to
   # xpcshell in available for email fake servers.
   export CURRENT_APP="$app"
+  if [ $MARIONETTE_RUNNER_HOST = "marionette-device-host" ] ; then
+    sleep 5
+  fi
   OUT=`PATH=$XPCSHELL_DIR:$PATH $DIR/../node_modules/.bin/marionette-mocha \
     --timeout 10s \
     --ui tdd \
