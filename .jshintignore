@@ -29,7 +29,6 @@ build/test/integration/build.test.js
 build/test/integration/distribution.test.js
 build/test/integration/helper.js
 build/test/integration/multilocale.test.js
-build/utils-xpc.js
 build/utils.js
 build/watcher.js
 build/webapp-manifests.js
