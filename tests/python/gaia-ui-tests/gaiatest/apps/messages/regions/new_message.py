@@ -24,7 +24,8 @@ class NewMessage(Messages):
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
-        self.switch_to_messages_frame()
+        self.wait_for_condition(lambda m: self.apps.displayed_app.name == self.name)
+        self.apps.switch_to_displayed_app()
         section = self.marionette.find_element(*self._thread_messages_locator)
         self.wait_for_condition(lambda m: section.location['x'] == 0)
 

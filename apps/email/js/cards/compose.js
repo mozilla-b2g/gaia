@@ -6,7 +6,7 @@
 
 /*jshint browser: true */
 /*global define, console, MozActivity, alert */
-define(function(require) {
+define(function(require, exports, module) {
 
 var templateNode = require('tmpl!./compose.html'),
     cmpAttachmentItemNode = require('tmpl!./cmp/attachment_item.html'),
@@ -16,6 +16,7 @@ var templateNode = require('tmpl!./compose.html'),
     cmpSendFailedConfirmNode = require('tmpl!./cmp/send_failed_confirm.html'),
     cmpSendingContainerNode = require('tmpl!./cmp/sending_container.html'),
     msgAttachConfirmNode = require('tmpl!./msg/attach_confirm.html'),
+    evt = require('evt'),
     common = require('mail_common'),
     Toaster = common.Toaster,
     model = require('model'),
@@ -25,7 +26,9 @@ var templateNode = require('tmpl!./compose.html'),
 
     prettyFileSize = common.prettyFileSize,
     Cards = common.Cards,
-    ConfirmDialog = common.ConfirmDialog;
+    ConfirmDialog = common.ConfirmDialog,
+    mimeToClass = common.mimeToClass,
+    dataIdCounter = 0;
 
 /**
  * Max composer attachment size is defined as 5120000 bytes.
@@ -59,6 +62,8 @@ function focusInputAndPositionCursorFromContainerClick(event, input) {
   }
   input.setSelectionRange(cursorPos, cursorPos);
 }
+
+
 
 /**
  * Composer card; wants an initialized message composition object when it is
@@ -152,23 +157,26 @@ function ComposeCard(domNode, mode, args) {
   this._selfClosed = false;
 
   // Sent sound init
-  this.sentAudioKey = 'mail.sent-sound.enabled';
   this.sentAudio = new Audio('/sounds/sent.ogg');
   this.sentAudio.mozAudioChannelType = 'notification';
-  this.sentAudioEnabled = false;
+  this.playSoundOnSend = false;
 
-  if (navigator.mozSettings) {
-    var req = navigator.mozSettings.createLock().get(this.sentAudioKey);
-    req.onsuccess = (function onsuccess() {
-      this.sentAudioEnabled = req.result[this.sentAudioKey];
-    }).bind(this);
-
-    navigator.mozSettings.addObserver(this.sentAudioKey, (function(e) {
-      this.sentAudioEnabled = e.settingValue;
-    }).bind(this));
-  }
+  // Set up unique data IDs for data-sensitive operations that could be in
+  // progress. These IDs are unique per kind of action, not unique per instance
+  // of a kind of action. However, these IDs are just used to know if a hard
+  // shutdown should be delayed a bit, and are unique enough for those purposes.
+  var dataId = module.id + '-' + (dataIdCounter += 1);
+  this._dataIdSaveDraft = dataId + '-saveDraft';
+  this._dataIdSendEmail = dataId + '-sendEmail';
 }
 ComposeCard.prototype = {
+  /**
+   * Inform Cards to not emit startup content events, this card will trigger
+   * them once data from back end has been received and the DOM is up to date
+   * with that data.
+   * @type {Boolean}
+   */
+  skipEmitContentEvents: true,
 
   /**
    * Focus our contenteditable region and position the cursor at the last
@@ -252,23 +260,32 @@ ComposeCard.prototype = {
     // the HTML bit needs us linked into the DOM so the iframe can be
     // linked in, hence this happens in postInsert.
     require(['iframe_shims'], function() {
-      if (this.composer) {
-        this._loadStateFromComposer();
-      } else {
-        var data = this.composerData;
-        model.latestOnce('folder', function(folder) {
-          this.composer = model.api.beginMessageComposition(data.message,
-                                                            folder,
-                                                            data.options,
-                                                            function() {
-            if (data.onComposer) {
-              data.onComposer(this.composer, this);
-            }
 
-            this._loadStateFromComposer();
+      // NOTE: when the compose card changes to allow switching the From account
+      // then this logic will need to change, both the acquisition of the
+      // account pref and the folder to use for the composer. So it is good to
+      // group this logic together, since they both will need to change later.
+      model.latestOnce('account', function(account) {
+        this.playSoundOnSend = !!account.playSoundOnSend;
+
+        if (this.composer) {
+          this._loadStateFromComposer();
+        } else {
+          var data = this.composerData;
+          model.latestOnce('folder', function(folder) {
+            this.composer = model.api.beginMessageComposition(data.message,
+                                                              folder,
+                                                              data.options,
+                                                              function() {
+              if (data.onComposer) {
+                data.onComposer(this.composer, this);
+              }
+
+              this._loadStateFromComposer();
+            }.bind(this));
           }.bind(this));
-        }.bind(this));
-      }
+        }
+      }.bind(this));
     }.bind(this));
   },
 
@@ -317,6 +334,14 @@ ComposeCard.prototype = {
         'noninteractive',
         /* no click handler because no navigation desired */ null);
       this.htmlIframeNode = ishims.iframe;
+    }
+
+    // There is a bit more possibility of async work done in the iframeShims
+    // internals, but this is close enough and is better than breaking open
+    // the internals of the iframeShims to get the final number.
+    if (!this._emittedContentEvents) {
+      evt.emit('metrics:contentDone');
+      this._emittedContentEvents = true;
     }
   },
 
@@ -387,7 +412,13 @@ ComposeCard.prototype = {
       return;
     }
     this._saveStateToComposer();
-    this.composer.saveDraft(callback);
+    evt.emit('uiDataOperationStart', this._dataIdSaveDraft);
+    this.composer.saveDraft(function() {
+      evt.emit('uiDataOperationStop', this._dataIdSaveDraft);
+      if (callback) {
+        callback();
+      }
+    }.bind(this));
   },
 
   createBubbleNode: function(name, address) {
@@ -683,11 +714,13 @@ ComposeCard.prototype = {
 
       for (var i = 0; i < this.composer.attachments.length; i++) {
         var attachment = this.composer.attachments[i];
+
         filenameTemplate.textContent = attachment.name;
         filesizeTemplate.textContent = prettyFileSize(attachment.blob.size);
         var attachmentNode = attTemplate.cloneNode(true);
         attachmentsContainer.appendChild(attachmentNode);
 
+        attachmentNode.classList.add(mimeToClass(attachment.blob.type));
         attachmentNode.getElementsByClassName('cmp-attachment-remove')[0]
           .addEventListener('click',
                             this.onClickRemoveAttachment.bind(
@@ -846,6 +879,7 @@ ComposeCard.prototype = {
 
     // Initiate the send.
     console.log('compose: initiating send');
+    evt.emit('uiDataOperationStart', this._dataIdSendEmail);
     this.composer.finishCompositionSendMessage(
       function callback(error , badAddress, sentDate) {
         // Card could have been destroyed in the meantime,
@@ -887,10 +921,11 @@ ComposeCard.prototype = {
           return;
         }
 
-        if (self.sentAudioEnabled) {
+        if (self.playSoundOnSend) {
           self.sentAudio.play();
         }
 
+        evt.emit('uiDataOperationStop', this._dataIdSendEmail);
         activityHandler();
         this._closeCard();
       }.bind(this)

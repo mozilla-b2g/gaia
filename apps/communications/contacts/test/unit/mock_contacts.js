@@ -13,33 +13,6 @@ var MockContacts = {
   updatePhoto: function(photo, dest) {
     dest.setAttribute('backgroundImage', photo);
   },
-  getTags: function() {
-    return {
-      'phone-type' : [
-        {type: 'mobile', value: 'Mobile'},
-        {type: 'home', value: 'Home'},
-        {type: 'work', value: 'Work'},
-        {type: 'personal', value: 'Personal'},
-        {type: 'faxHome', value: 'FaxHome'},
-        {type: 'faxOffice', value: 'Fax Office'},
-        {type: 'faxOther', value: 'Fax Other'},
-        {type: 'other', value: 'Other'}
-      ],
-      'email-type' : [
-        {type: 'personal', value: 'Personal'},
-        {type: 'home', value: 'Home'},
-        {type: 'work', value: 'Work'}
-      ],
-      'address-type' : [
-        {type: 'home', value: 'Home'},
-        {type: 'work', value: 'Work'}
-      ],
-      'date-type': [
-        {type: 'birthday', value: 'Birthday'},
-        {type: 'anniversary', value: 'Anniversary'}
-      ]
-    };
-  },
   hideOverlay: function() {
   },
   loadFacebook: function(cb) {
@@ -78,5 +51,8 @@ var MockContacts = {
     if (typeof cb === 'function') {
       cb();
     }
+  },
+  setCurrent: function(ct) {
+    
   }
 };

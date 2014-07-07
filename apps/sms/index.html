@@ -21,6 +21,7 @@
     <!-- App styles -->
     <link rel="stylesheet" type="text/css" href="style/common.css">
     <link rel="stylesheet" type="text/css" href="style/sms.css">
+    <link rel="stylesheet" type="text/css" href="style/message.css">
     <link rel="stylesheet" type="text/css" href="style/notification.css">
     <link rel="stylesheet" type="text/css" href="style/report_view.css">
     <link rel="stylesheet" type="text/css" href="style/attachment.css">
@@ -43,15 +44,18 @@
     <script defer src="shared/js/settings_listener.js"></script>
     <script defer src="shared/js/sim_picker.js"></script>
     <script defer src="shared/js/multi_sim_action_button.js"></script>
+    <script defer src="js/shared_components.js"></script>
     <script defer src="js/navigation.js"></script>
     <script defer src="js/dialog.js"></script>
-    <script defer src="js/blacklist.js"></script>
+    <script defer src="js/task_runner.js"></script>
+    <script defer src="js/silent_sms.js"></script>
     <script defer src="js/contacts.js"></script>
     <script defer src="js/drafts.js"></script>
     <script defer src="js/recipients.js"></script>
     <script defer src="js/threads.js"></script>
     <script defer src="js/message_manager.js"></script>
     <script defer src="js/attachment.js"></script>
+    <script defer src="js/attachment_renderer.js"></script>
     <script defer src="js/attachment_menu.js"></script>
     <script defer src="js/thread_list_ui.js"></script>
     <script defer src="js/thread_ui.js"></script>
@@ -74,6 +78,7 @@
     <script defer src="shared/js/fb/fb_data_reader.js"></script>
     <script defer src="shared/js/fb/fb_reader_utils.js"></script>
     <script defer src="shared/js/lazy_loader.js"></script>
+    <script defer src="shared/js/font_size_utils.js"></script>
     <script defer src="shared/js/performance_testing_helper.js"></script>
     <script defer src="shared/js/sticky_header.js"></script>
     <script defer src="js/app.js"></script>
@@ -175,9 +180,7 @@
               </a>
             </menu>
           </section>
-          <div id="contact-carrier" data-l10n-id="carrier-unknown" class="carrier-wrapper">
-            Carrier unknown
-          </div>
+          <div id="contact-carrier" class="carrier-wrapper"></div>
           <!-- Notifications in this container will be rendered on top of the
           Compose field. These notifications should be hidden automatically so
           they do not prevent the user from inputting text. -->
@@ -251,19 +254,25 @@
             <span class="size"></span>
           </div>
         </article>
-        <article id="composer-container" class="view-body" data-composer-layout="">
+        <article id="composer-container" class="view-body">
           <div class="flex-composer">
             <div id="composer-messages-container">
               <div id="messages-container" data-type="list" class="article-list">
               </div>
             </div>
             <form id="messages-compose-form" role="search" class="bottom" data-message-type="sms">
-              <button id="messages-send-button" data-l10n-id="send" type="submit">Send</button>
-              <div class="message-complete">
+              <div class="composer-message-complete">
                 <div id="messages-subject-input" contentEditable="true" class="placeholder js-l10n-placeholder" data-max-length="40">
                 </div>
                 <div id="messages-input" contentEditable="true" name="message" x-inputmode="-moz-sms" class="js-l10n-placeholder">
                 </div>
+                <div class="message-divider"></div>
+              </div>
+              <div class="composer-button-container">
+                <span id="messages-counter-label" data-counter="" data-l10n-id="mms-label">MMS</span>
+                <button id="messages-send-button" class="icon" aria-label="send" data-l10n-id="send" type="submit">
+                  <div class="js-sim-indication sim-indication" data-l10n-id="send-button-sim-indication"></div>
+                </button>
               </div>
             </form>
           </div>
@@ -326,12 +335,10 @@
       <li>
         <a class="suggestion"
           data-number="${number}" data-source="contacts" data-name="${name}"
-          data-type="${type}" data-separator="${separator}" data-carrier="${carrier}">
+          data-type="${type}" data-carrier="${carrier}">
           ${photoHTML}
           <p class="name">${nameHTML}</p>
-          <p class="number">
-            <span data-l10n-id="${type}">${type}</span>${separator}${carrier}${numberHTML}
-          </p>
+          <p class="number">${phoneDetailsHTML}</p>
         </a>
       </li>
       -->
@@ -342,9 +349,9 @@
     <li>
       <a class="suggestion"
         data-number="${number}" data-source="contacts" data-name="${name}"
-        data-type="${type}" data-separator="${separator}" data-carrier="${carrier}">
+        data-type="${type}" data-carrier="${carrier}">
         ${photoHTML}
-        <p class="name">${numberHTML}</p>
+        <p class="name">${phoneDetailsHTML}</p>
         <p class="number">
           <span data-l10n-id="${type}">Unknown Contact</span>
         </p>
@@ -358,9 +365,7 @@
       <div class="contact-header">
         ${photoHTML}
         <p class="name">${name}</p>
-        <p class="details">
-          <span data-l10n-id="${type}">${type}</span>${separator}${carrier}${number}
-        </p>
+        <p class="details">${phoneDetailsHTML}</p>
       </div>
       -->
     </div>
@@ -368,7 +373,7 @@
     <div id="contact-photo-tmpl" class="hide">
       <!--
       <aside class="pack-end">
-        <span data-type="img" style="background-image: url(${photoURL})"></span>
+        <span class="contact-photo" data-type="img"></span>
       </aside>
       -->
     </div>
@@ -421,6 +426,7 @@
       <!--
       <div id="${id}" class="messages-date-group" data-timestamp="${timestamp}">
         <header
+          class="messages-date-group-header"
           data-time-update="${headerTimeUpdate}"
           data-time="${headerTime}"
           data-date-only="${headerDateOnly}">
@@ -437,15 +443,17 @@
         <span></span>
       </label>
       <section class="bubble">
-        <h1 class="subject">
+        <h1 class="message-subject">
           ${subject}
         </h1>
         <div class="message-content">
-          <aside class="pack-end">
+          <aside class="message-status">
             <progress class="${progressIndicatorClassName}"></progress>
           </aside>
-          <p>${bodyHTML}</p>
-          <time data-time-update="true" data-time-only="true" data-time="${timestamp}"></time>
+          <div class="message-body">
+            <p>${bodyHTML}</p>
+            <time data-time-update="true" data-time-only="true" data-time="${timestamp}"></time>
+          </div>
         </div>
       </section>
       -->
@@ -462,10 +470,10 @@
         <aside class="pack-end empty">
           <span data-type="img"></span>
         </aside>
-        <p class="name" data-l10n-id="no-recipient">${number}</p>
+        <p class="name">${number}</p>
         <p class="summary">
           <time data-time-update="true" data-time-only="true" data-time="${timestamp}"></time>
-          <span class="mms-icon">MMS</span>
+          <span class="mms-icon" data-l10n-id="mms-label">MMS</span>
           <span class="body-text">${bodyHTML}</span>
         </p>
       </a>
@@ -477,7 +485,7 @@
       <span class="${className}" x-inputmode="verbatim"
         contenteditable="${editable}"
         data-number="${number}" data-source="${source}" data-name="${name}"
-        data-carrier="${carrier}" data-separator="${separator}" data-type="${type}">
+        data-carrier="${carrier}" data-type="${type}">
         ${name}
       </span>
       -->
@@ -485,9 +493,8 @@
 
     <div id="attachment-nopreview-tmpl" class="hide">
       <!--
-      <div class="attachment">
+      <div class="attachment ${errorClass}">
         <div class="thumbnail-placeholder ${type}-placeholder">
-          <div class="${errorClass}"></div>
         </div>
         <div class="size-indicator" data-l10n-id="${sizeL10nId}" data-l10n-args="${sizeL10nArgs}"></div>
       </div>
@@ -498,7 +505,7 @@
     <div id="attachment-preview-tmpl" class="hide">
       <!--
       <div class="attachment">
-        <div class="thumbnail" style="background-image: url(${imgData})"></div>
+        <div class="thumbnail"></div>
         <div class="size-indicator" data-l10n-id="${sizeL10nId}" data-l10n-args="${sizeL10nArgs}"></div>
       </div>
       <div class="file-name">${fileName}</div>
@@ -511,14 +518,29 @@
         <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
         <meta charset="utf-8">
         <base href="${baseURL}">
-        <style type="text/css">
-          html, body { font-size: 10px; }
-        </style>
+        <link rel="stylesheet" type="text/css" href="style/attachment_draft.css">
         <link rel="stylesheet" type="text/css" href="style/attachment.css">
       </head>
-      <body class="attachment-draft ${previewClass}">
-        ${attachmentHTML}
-      </body>
+      <body class="attachment-draft">${baseHTML}</body>
+      -->
+    </div>
+
+    <!--
+      Please, don't change template markup alignment, it's done this way to
+      remove any whitespace symbols between inline elements.
+    -->
+    <div id="phone-details-tmpl">
+      <!--
+      <span class="phone-details ${hasTypeClass} ${hasCarrierClass}">
+        <span class="phone-type phone-details-item"
+              data-l10n-id="${type}">${type}</span><span
+              class="phone-type-separator phone-details-item"
+              data-l10n-id="phone-type-separator"></span><span
+              class="phone-number phone-details-item">${number}</span><span
+              class="phone-carrier-separator phone-details-item"
+              data-l10n-id="phone-carrier-separator"></span><span
+              class="phone-carrier phone-details-item">${carrier}</span>
+      </span>
       -->
     </div>
 

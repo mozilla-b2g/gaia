@@ -57,13 +57,16 @@ utils.importFromVcard = function(file, callback) {
       importer.onread = import_read;
       importer.onimported = imported_contact;
       importer.onerror = import_error;
-      importer.process(function import_finish(result) {
+      importer.process(function import_finish(result, numDupsMerged) {
         utils.overlay.hide();
         if (!cancelled) {
-          utils.status.show(
-            _('memoryCardContacts-imported3',
-            {n: importedContacts})
-          );
+          var msg1 = _('memoryCardContacts-imported3', {
+            n: importedContacts
+          });
+          var msg2 = !numDupsMerged ? null : _('contactsMerged', {
+            numDups: numDupsMerged
+          });
+          utils.status.show(msg1,msg2);
         }
 
         if (result && result.length) {

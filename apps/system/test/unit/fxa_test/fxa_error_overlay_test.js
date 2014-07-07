@@ -1,6 +1,6 @@
 'use strict';
 
-requireApp('system/fxa/js/utils.js');
+require('/shared/js/utilities.js');
 requireApp('system/fxa/js/fxam_error_overlay.js');
 require('/shared/test/unit/load_body_html_helper.js');
 

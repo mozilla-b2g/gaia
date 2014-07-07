@@ -6,8 +6,8 @@ define(function(require, exports, module) {
  */
 
 var debug = require('debug')('view:setting-options');
-var attach = require('vendor/attach');
-var View = require('vendor/view');
+var attach = require('attach');
+var View = require('view');
 
 /**
  * Exports
@@ -48,7 +48,7 @@ module.exports = View.extend({
     this.el.innerHTML = this.template(data);
     this.els.ul = this.find('.js-list');
 
-    // we need to pass a boolean flag indicating if the 
+    // we need to pass a boolean flag indicating if the
     // options should be localized
     var localizable = data.optionsLocalizable === false ? false : true;
     data.options.forEach(this.renderOption.bind(this, localizable));
@@ -73,7 +73,9 @@ module.exports = View.extend({
 
   template: function(data) {
     return '<div class="inner">' +
-      '<h2 class="settings_title icon-back-arrow js-back">' +
+      '<h2 class="settings_title">' +
+      '<button class="settings-back-btn icon-back-arrow js-back">' +
+      '</button>' +
       this.l10n.get(data.header) + '</h2>' +
       '<div class="settings_items"><ul class="inner js-list"></ul></div>' +
     '</div>';

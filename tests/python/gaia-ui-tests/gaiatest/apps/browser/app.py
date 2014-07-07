@@ -90,8 +90,6 @@ class Browser(Base):
     def tap_add_bookmark_to_home_screen_choice_button(self):
         self.wait_for_element_displayed(*self._add_bookmark_to_home_screen_choice_locator)
         self.marionette.find_element(*self._add_bookmark_to_home_screen_choice_locator).tap()
-        # TODO: Remove sleep when Bug # 815115 is addressed, or if we can wait for a Javascript condition
-        time.sleep(2)
         return BookmarkMenu(self.marionette)
 
     def wait_for_throbber_not_visible(self, timeout=30):
@@ -143,8 +141,7 @@ class Browser(Base):
     class Tab(PageRegion):
 
         def tap_tab(self):
-            # TODO: Bug 876411 - Click works but tap does not on tabs on browser app
-            self.root_element.click()
+            self.root_element.tap()
 
             # TODO This wait is a workaround until Marionette can correctly interpret the displayed state
             self.wait_for_condition(lambda m: m.execute_script("return window.wrappedJSObject.Browser.currentScreen;") == 'page-screen')

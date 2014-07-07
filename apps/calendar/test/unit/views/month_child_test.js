@@ -158,7 +158,7 @@ suiteGroup('Views.MonthChild', function() {
     assert.ok(result);
 
     for (; i < days; i++) {
-      id = 'weekday-' + i + '-short';
+      id = 'weekday-' + i + '-single-char';
 
       assert.include(
         result,

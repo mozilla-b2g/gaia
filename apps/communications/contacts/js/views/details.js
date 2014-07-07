@@ -12,7 +12,9 @@
 /* global Normalizer */
 /* global SCALE_RATIO */
 /* global TelephonyHelper */
+/* global WebrtcClient */
 /* global utils */
+/* global TAG_OPTIONS */
 
 var contacts = window.contacts || {};
 
@@ -42,7 +44,6 @@ contacts.Details = (function() {
       cover,
       favoriteMessage,
       detailsInner,
-      TAG_OPTIONS,
       dom,
       currentSocial,
       _;
@@ -72,6 +73,9 @@ contacts.Details = (function() {
     favoriteMessage = dom.querySelector('#toggle-favorite');
     notesTemplate = dom.querySelector('#note-details-template-\\#i\\#');
 
+    window.addEventListener('online', checkOnline);
+    window.addEventListener('offline', checkOnline);
+
     initPullEffect(cover);
 
     utils.listeners.add({
@@ -81,13 +85,30 @@ contacts.Details = (function() {
     });
   };
 
+  var getWebrtcClientResources = function getWebrtcClientResources(cb) {
+    if (typeof cb !== 'function') {
+      return;
+    }
+    LazyLoader.load(
+      [
+        '/contacts/style/webrtc-client/webrtc_client.css',
+        '/contacts/js/webrtc-client/webrtc_client.js'
+      ],
+      cb
+    );
+  };
+
   var handleDetailsBack = function handleDetailsBack() {
     // disable NFC listeners if NFC is available
     if ('mozNfc' in navigator) {
       contacts.NFC.stopListening();
     }
 
-    if (ActivityHandler.currentlyHandling) {
+    if (WebrtcClient) {
+      getWebrtcClientResources(WebrtcClient.stop);
+    }
+
+    if (ActivityHandler.currentActivityIsNot(['import'])) {
       ActivityHandler.postCancel();
       Contacts.navigation.home();
     } else {
@@ -162,10 +183,9 @@ contacts.Details = (function() {
     cover.addEventListener('touchstart', onTouchStart, true);
   };
 
-  var render = function cd_render(currentContact, tags, fbContactData) {
+  var render = function cd_render(currentContact, fbContactData) {
     contactData = currentContact || contactData;
 
-    TAG_OPTIONS = tags || TAG_OPTIONS;
     isFbContact = fb.isFbContact(contactData);
     isFbLinked = fb.isFbLinked(contactData);
 
@@ -231,6 +251,9 @@ contacts.Details = (function() {
 
     renderPhones(contact);
     renderEmails(contact);
+
+    renderWebrtcClient(contactData);// Don't share the FB info
+
     renderAddresses(contact);
 
     renderDates(contact);
@@ -400,8 +423,9 @@ contacts.Details = (function() {
     listContainer.appendChild(social);
   };
 
-  var checkOnline = function(social) {
-    var socialTemplate = social || currentSocial;
+  var checkOnline = function() {
+    var socialTemplate = document.querySelector(
+                                        ':not([data-template])[data-social]');
 
     if (socialTemplate) {
       if (isFbContact) {
@@ -480,11 +504,16 @@ contacts.Details = (function() {
     }
   };
 
+  var renderWebrtcClient = function renderWebrtcClient(contact) {
+    getWebrtcClientResources(function onLoaded() {
+      WebrtcClient.start(contact);
+    });
+  };
+
   // Check current situation and setup different listener for the button
   function setupPhoneButtonListener(button, number) {
     LazyLoader.load(['/dialer/js/mmi.js'], function() {
-      if (ActivityHandler.currentlyHandling &&
-        ActivityHandler.activityName !== 'open') {
+      if (ActivityHandler.currentActivityIsNot(['open'])) {
         button.addEventListener('click', onPickNumber);
       } else if ((navigator.mozMobileConnection ||
           window.navigator.mozMobileConnections &&
@@ -729,7 +758,6 @@ contacts.Details = (function() {
     'setContact': setContact,
     'toggleFavorite': toggleFavorite,
     'render': render,
-    'onLineChanged': checkOnline,
     'reMark': reMark,
     'defaultTelType' : DEFAULT_TEL_TYPE
   };

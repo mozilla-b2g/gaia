@@ -21,7 +21,6 @@ var templateNode = require('tmpl!./message_list.html'),
     Toaster = common.Toaster,
     ConfirmDialog = common.ConfirmDialog,
     batchAddClass = common.batchAddClass,
-    bindContainerClickAndHold = common.bindContainerClickAndHold,
     bindContainerHandler = common.bindContainerHandler,
     appendMatchItemTo = common.appendMatchItemTo,
     displaySubject = common.displaySubject,
@@ -145,16 +144,11 @@ function MessageListCard(domNode, mode, args) {
 
   this.messagesContainer =
     domNode.getElementsByClassName('msg-messages-container')[0];
+  bindContainerHandler(this.messagesContainer, 'click',
+                       this.onClickMessage.bind(this));
 
   this.messageEmptyContainer =
     domNode.getElementsByClassName('msg-list-empty-container')[0];
-  // - message actions
-  bindContainerClickAndHold(
-    this.messagesContainer,
-    // clicking shows the message reader for a message
-    this.onClickMessage.bind(this),
-    // press-and-hold shows the single-message mutation options
-    this.onHoldMessage.bind(this));
 
   this.scrollContainer =
     domNode.getElementsByClassName('msg-list-scrollouter')[0];
@@ -234,6 +228,7 @@ function MessageListCard(domNode, mode, args) {
 
   this.curFolder = null;
   this.isIncomingFolder = true;
+  this._emittedContentEvents = false;
 
   this.usingCachedNode = !!args.cachedNode;
 
@@ -390,6 +385,14 @@ MessageListCard.prototype = {
   _distanceBetweenMessages: 0,
 
   sliceEvents: ['splice', 'change', 'status', 'complete'],
+
+  /**
+   * Inform Cards to not emit startup content events, this card will trigger
+   * them once data from back end has been received and the DOM is up to date
+   * with that data.
+   * @type {Boolean}
+   */
+  skipEmitContentEvents: true,
 
   postInsert: function() {
     this._hideSearchBoxByScrolling();
@@ -761,7 +764,7 @@ MessageListCard.prototype = {
       mozL10n.get('messages-search-empty') :
       mozL10n.get('messages-folder-empty');
     this.messageEmptyContainer.classList.remove('collapsed');
-    this.toolbar.editBtn.classList.add('disabled');
+    this.toolbar.editBtn.disabled = true;
     this._hideSearchBoxByScrolling();
   },
   /**
@@ -770,7 +773,7 @@ MessageListCard.prototype = {
    */
   hideEmptyLayout: function() {
     this.messageEmptyContainer.classList.add('collapsed');
-    this.toolbar.editBtn.classList.remove('disabled');
+    this.toolbar.editBtn.disabled = false;
   },
 
 
@@ -836,6 +839,16 @@ MessageListCard.prototype = {
     // so we must do this.)  If our list size is the same, this call is
     // effectively a no-op.
     this.vScroll.updateDataBind(0, [], 0);
+
+
+    // Inform that content is ready. There could actually be a small delay with
+    // vScroll.updateDataBind from rendering the final display, but it is small
+    // enough that it is not worth trying to break apart the design to
+    // accommodate this metrics signal.
+    if (!this._emittedContentEvents) {
+      evt.emit('metrics:contentDone');
+      this._emittedContentEvents = true;
+    }
   },
 
   onNewMail: function(newEmailCount) {
@@ -1220,6 +1233,8 @@ MessageListCard.prototype = {
 
     // some things only need to be done once
     var dateNode = msgNode.getElementsByClassName('msg-header-date')[0];
+    var subjectNode = msgNode.getElementsByClassName('msg-header-subject')[0];
+    var snippetNode = msgNode.getElementsByClassName('msg-header-snippet')[0];
     if (firstTime) {
       var listPerson;
       if (this.isIncomingFolder) {
@@ -1255,23 +1270,21 @@ MessageListCard.prototype = {
         msgNode.getElementsByClassName('msg-header-attachments')[0];
       attachmentsNode.classList.toggle('msg-header-attachments-yes',
                                        message.hasAttachments);
+      // snippet needs to be shorter if icon is shown
+      snippetNode.classList.toggle('icon-short', message.hasAttachments);
     }
 
     // snippet
-    msgNode.getElementsByClassName('msg-header-snippet')[0]
-      .textContent = message.snippet;
+    snippetNode.textContent = message.snippet;
 
-    // unread (we use very specific classes directly on the nodes rather than
-    // child selectors for hypothetical speed)
-    var unreadNode =
-      msgNode.getElementsByClassName('msg-header-unread-section')[0];
-    unreadNode.classList.toggle('msg-header-unread-section-unread',
-                                !message.isRead);
-    dateNode.classList.toggle('msg-header-date-unread', !message.isRead);
+    // update styles throughout the node for read vs unread
+    msgNode.classList.toggle('unread', !message.isRead);
 
     // star
     var starNode = msgNode.getElementsByClassName('msg-header-star')[0];
     starNode.classList.toggle('msg-header-star-starred', message.isStarred);
+    // subject needs to give space for star if it is visible
+    subjectNode.classList.toggle('icon-short', message.isStarred);
 
     // edit mode select state
     if (this.editMode) {
@@ -1302,6 +1315,7 @@ MessageListCard.prototype = {
 
     // some things only need to be done once
     var dateNode = msgNode.getElementsByClassName('msg-header-date')[0];
+    var subjectNode = msgNode.getElementsByClassName('msg-header-subject')[0];
     if (firstTime) {
       // author
       var authorNode = msgNode.getElementsByClassName('msg-header-author')[0];
@@ -1321,7 +1335,6 @@ MessageListCard.prototype = {
       dateNode.textContent = prettyDate(message.date);
 
       // subject
-      var subjectNode = msgNode.getElementsByClassName('msg-header-subject')[0];
       if (matches.subject) {
         subjectNode.textContent = '';
         appendMatchItemTo(matches.subject[0], subjectNode);
@@ -1344,6 +1357,8 @@ MessageListCard.prototype = {
         msgNode.getElementsByClassName('msg-header-attachments')[0];
       attachmentsNode.classList.toggle('msg-header-attachments-yes',
                                        message.hasAttachments);
+      // snippet needs to be shorter if icon is shown
+      snippetNode.classList.toggle('icon-short', message.hasAttachments);
     }
 
     // unread (we use very specific classes directly on the nodes rather than
@@ -1357,6 +1372,8 @@ MessageListCard.prototype = {
     // star
     var starNode = msgNode.getElementsByClassName('msg-header-star')[0];
     starNode.classList.toggle('msg-header-star-starred', message.isStarred);
+    // subject needs to give space for star if it is visible
+    subjectNode.classList.toggle('icon-short', message.isStarred);
 
     // edit mode select state
     if (this.editMode) {
@@ -1397,16 +1414,6 @@ MessageListCard.prototype = {
   },
 
   onClickMessage: function(messageNode, event) {
-    // Find the node that has the header info.
-    messageNode = event.originalTarget;
-    while (messageNode && !messageNode.classList.contains('msg-header-item')) {
-      messageNode = messageNode.parentNode;
-    }
-
-    if (!messageNode) {
-      return;
-    }
-
     var header = messageNode.message;
 
     // Skip nodes that are default/placeholder ones.

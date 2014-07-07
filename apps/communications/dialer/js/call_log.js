@@ -14,6 +14,8 @@ var CallLog = {
       return;
     }
 
+    PerformanceTestingHelper.dispatch('start-call-log');
+
     this._initialized = true;
 
     var lazyFiles = [
@@ -23,7 +25,8 @@ var CallLog = {
       '/shared/js/confirm.js',
       '/shared/js/dialer/utils.js',
       '/dialer/js/phone_action_menu.js',
-      '/shared/js/sticky_header.js'
+      '/shared/js/sticky_header.js',
+      '/shared/js/sim_settings_helper.js'
     ];
     var self = this;
 
@@ -104,13 +107,17 @@ var CallLog = {
           if (document.hidden) {
             self.pauseHeaders();
           } else {
-            self.becameVisible();
             self.updateHeadersContinuously();
+            if (window.location.hash === '#call-log-view') {
+              self.becameVisible();
+            }
           }
         });
 
         self.sticky = new StickyHeader(self.callLogContainer,
                                        document.getElementById('sticky'));
+
+        self.becameVisible();
       });
     });
 
@@ -660,7 +667,9 @@ var CallLog = {
         KeypadManager.updatePhoneNumber(phoneNumber);
         window.location.hash = '#keyboard-view';
       } else {
-        CallHandler.call(phoneNumber, 0);
+        SimSettingsHelper.getCardIndexFrom('outgoingCall', function(ci) {
+          CallHandler.call(phoneNumber, ci);
+        });
       }
     } else {
       var contactIds = (dataset.contactId) ? dataset.contactId : null;
@@ -1050,12 +1059,15 @@ var CallLog = {
   },
 
   cleanNotifications: function cl_cleanNotifcations() {
-    // On startup of call log, we clear all dialer notification
+    /* On startup of call log, we clear all dialer notification except for USSD
+     * ones as those are closed only when the user taps them. */
     Notification.get()
       .then(
         function onSuccess(notifications) {
           for (var i = 0; i < notifications.length; i++) {
-            notifications[i].close();
+            if (!notifications[i].tag) {
+              notifications[i].close();
+            }
           }
         },
         function onError(reason) {

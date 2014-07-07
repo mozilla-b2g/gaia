@@ -1,22 +1,24 @@
 define(function(require, exports, module) {
 'use strict';
 
+// For perf-measurement related utilities
+require('performance-testing-helper');
+
 /**
  * Dependencies
  */
 
-var PerformanceTestingHelper = require('performance-testing-helper');
 var NotificationView = require('views/notification');
 var LoadingView = require('views/loading-screen');
 var ViewfinderView = require('views/viewfinder');
 var orientation = require('lib/orientation');
 var ZoomBarView = require('views/zoom-bar');
 var bindAll = require('lib/bind-all');
-var model = require('vendor/model');
 var debug = require('debug')('app');
 var HudView = require('views/hud');
 var Pinch = require('lib/pinch');
 var bind = require('lib/bind');
+var model = require('model');
 
 /**
  * Exports
@@ -42,6 +44,7 @@ model(App.prototype);
  */
 function App(options) {
   debug('initialize');
+  var self = this;
   bindAll(this);
   this.views = {};
   this.el = options.el;
@@ -55,12 +58,40 @@ function App(options) {
   this.settings = options.settings;
   this.camera = options.camera;
   this.activity = {};
+
+  //
+  // If the system app is opening an attention screen (because
+  // of an incoming call or an alarm, e.g.) and if we are
+  // currently recording a video then we need to stop recording
+  // before the ringer or alarm starts sounding. We will be sent
+  // to the background shortly after this and will stop recording
+  // when that happens, but by that time it is too late and we
+  // have already recorded some sound. See bugs 995540 and 1006200.
+  //
+  // XXX We're abusing the settings API here to allow the system app
+  // to broadcast a message to any certified apps that care. There
+  // ought to be a better way, but this is a quick and easy way to
+  // fix a last-minute release blocker.
+  //
+  navigator.mozSettings.addObserver(
+    'private.broadcast.attention_screen_opening',
+    function(event) {
+      // If event.settingValue is true, then an attention screen will
+      // soon appear. If it is false, then the attention screen is
+      // going away.
+      if (event.settingValue) {
+        self.emit('attentionscreenopened');
+      }
+  });
+
   debug('initialized');
 }
 
 /**
- * Runs all the methods
- * to boot the app.
+ * Runs all the methods to boot the app.
+ *
+ * The loading screen is shown until the
+ * camera is 'ready', then it is taken down.
  *
  * @public
  */
@@ -70,9 +101,20 @@ App.prototype.boot = function() {
   this.bindEvents();
   this.initializeViews();
   this.runControllers();
+
+  // PERFORMANCE EVENT (1): moz-chrome-dom-loaded
+  // Designates that the app's *core* chrome or navigation interface
+  // exists in the DOM and is marked as ready to be displayed.
+  window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
+
+  // PERFORMANCE EVENT (2): moz-chrome-interactive
+  // Designates that the app's *core* chrome or navigation interface
+  // has its events bound and is ready for user interaction.
+  window.dispatchEvent(new CustomEvent('moz-chrome-interactive'));
+
   this.injectViews();
+
   this.booted = true;
-  this.showLoading();
   debug('booted');
 };
 
@@ -103,15 +145,7 @@ App.prototype.runControllers = function() {
  * @param  {String} path
  */
 App.prototype.loadController = function(path) {
-  var self = this;
-  this.require([path, 'lib/string-utils'],
-    function(controller, StringUtils) {
-      var name = StringUtils.toCamelCase(
-        StringUtils.lastPathComponent(path));
-
-      self.controllers[name] = controller(self);
-    }
-  );
+  this.require([path], function(controller) { controller(this); }.bind(this));
 };
 
 /**
@@ -153,6 +187,8 @@ App.prototype.bindEvents = function() {
   // App
   this.once('viewfinder:visible', this.onCriticalPathDone);
   this.once('storage:checked:healthy', this.geolocationWatch);
+  this.on('camera:ready', this.clearLoading);
+  this.on('camera:busy', this.onCameraBusy);
   this.on('visible', this.onVisible);
   this.on('hidden', this.onHidden);
 
@@ -215,13 +251,26 @@ App.prototype.onClick = function() {
  * @private
  */
 App.prototype.onCriticalPathDone = function() {
+
+  // PERFORMANCE EVENT (3): moz-app-visually-complete
+  // Designates that the app is visually loaded (e.g.: all of the
+  // "above-the-fold" content exists in the DOM and is marked as
+  // ready to be displayed).
+  window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
+
+  // PERFORMANCE EVENT (4): moz-content-interactive
+  // Designates that the app has its events bound for the minimum
+  // set of functionality to allow the user to interact with the
+  // "above-the-fold" content.
+  window.dispatchEvent(new CustomEvent('moz-content-interactive'));
+
   var start = window.performance.timing.domLoading;
   var took = Date.now() - start;
 
-  PerformanceTestingHelper.dispatch('startup-path-done');
+  // Indicate critical path is done to help track performance
   console.log('critical-path took %s', took + 'ms');
 
-  this.clearLoading();
+  // Load non-critical modules
   this.loadController(this.controllers.previewGallery);
   this.loadController(this.controllers.storage);
   this.loadController(this.controllers.confirm);
@@ -232,6 +281,29 @@ App.prototype.onCriticalPathDone = function() {
 
   this.criticalPathDone = true;
   this.emit('criticalpathdone');
+
+  // PERFORMANCE EVENT (5): moz-app-loaded
+  // Designates that the app is *completely* loaded and all relevant
+  // "below-the-fold" content exists in the DOM, is marked visible,
+  // has its events bound and is ready for user interaction. All
+  // required startup background processing should be complete.
+  window.dispatchEvent(new CustomEvent('moz-app-loaded'));
+};
+
+/**
+ * When the camera indicates it's busy it
+ * sometimes passes a `type` string. When
+ * this type matches one of our keys in the
+ * `loadingScreen` config, we display the
+ * loading screen in the given number
+ * of milliseconds.
+ *
+ * @param  {String} type
+ * @private
+ */
+App.prototype.onCameraBusy = function(type) {
+  var delay = this.settings.loadingScreen.get(type);
+  if (delay) { this.showLoading(delay); }
 };
 
 /**
@@ -322,18 +394,18 @@ App.prototype.l10nGet = function(key) {
  * Shows the loading screen after the
  * number of ms defined in config.js
  *
+ * @param {Number} delay
  * @private
  */
-App.prototype.showLoading = function() {
-  debug('show loading');
-  var ms = this.settings.loadingScreen.get('delay');
+App.prototype.showLoading = function(delay) {
+  debug('show loading delay: %s', delay);
   var self = this;
   clearTimeout(this.loadingTimeout);
   this.loadingTimeout = setTimeout(function() {
     self.views.loading = new self.LoadingView();
     self.views.loading.appendTo(self.el).show();
     debug('loading shown');
-  }, ms);
+  }, delay);
 };
 
 /**
@@ -348,6 +420,7 @@ App.prototype.clearLoading = function() {
   clearTimeout(this.loadingTimeout);
   if (!view) { return; }
   view.hide(view.destroy);
+  this.views.loading = null;
 };
 
 });

@@ -46,6 +46,7 @@ var Compose = (function() {
 
   var subject = {
     isVisible: false,
+    lineHeight: null,
     toggle: function sub_toggle() {
       if (!this.isVisible) {
         this.show();
@@ -56,7 +57,9 @@ var Compose = (function() {
       return this;
     },
     show: function sub_show() {
-      dom.subject.classList.remove('hide');
+      // Adding this class to the form element, as other form elements depend on
+      // visibility of the subject input
+      dom.form.classList.add('subject-input-visible');
       this.isVisible = true;
       dom.subject.focus();
       Compose.updateType();
@@ -64,7 +67,7 @@ var Compose = (function() {
       return this;
     },
     hide: function sub_hide() {
-      dom.subject.classList.add('hide');
+      dom.form.classList.remove('subject-input-visible');
       this.isVisible = false;
       Compose.updateType();
       onContentChanged();
@@ -87,6 +90,24 @@ var Compose = (function() {
         dom.subject.lastChild
       );
       return this;
+    },
+    isMultiline: function sub_isMultuLine() {
+      // We don't check for subject emptiness because of the new line symbols
+      // that aren't respected by isEmpty, see bug 1030160 for details
+      if (!this.isShowing) {
+        return false;
+      }
+      // If subject can fit more than one line then it's considered as
+      // multiline one (currently it can have one or two lines)
+      return dom.subject.clientHeight / this.getLineHeight() >= 2;
+    },
+    getLineHeight: function sub_getLineHeight() {
+      if (!Number.isInteger(this.lineHeight)) {
+        var computedStyle = window.getComputedStyle(dom.subject);
+        // Line-height is not going to change, so cache it
+        this.lineHeight = Number.parseInt(computedStyle.lineHeight, 10);
+      }
+      return this.lineHeight;
     },
     getMaxLength: function sub_getMaxLength() {
       return +dom.subject.dataset.maxLength;
@@ -194,6 +215,9 @@ var Compose = (function() {
       subject.isShowing && isEmptySubject
     );
 
+    // Indicates that subject has multiple lines to change layout accordingly
+    dom.form.classList.toggle('multiline-subject', subject.isMultiline());
+
     // Send button management
     /* The send button should be enabled only in the situations where:
      * - The subject is showing and is not empty (it has text)
@@ -237,6 +261,9 @@ var Compose = (function() {
 
   function insert(item) {
     var fragment = document.createDocumentFragment();
+    if (!item) {
+      return null;
+    }
 
     // trigger recalc on insert
     state.size = null;
@@ -392,6 +419,10 @@ var Compose = (function() {
       return subject.isEmpty;
     },
 
+    isMultilineSubject: function() {
+      return subject.isMultiline();
+    },
+
     toggleSubject: function() {
       subject.toggle();
     },
@@ -429,6 +460,11 @@ var Compose = (function() {
       }, Compose);
 
       this.focus();
+
+      // Put the cursor at the end of the message
+      var selection = window.getSelection();
+      selection.selectAllChildren(dom.message);
+      selection.collapseToEnd();
     },
 
     /** Render message (sms or mms)
@@ -462,7 +498,7 @@ var Compose = (function() {
         }.bind(this));
         this.ignoreEvents = true;
       } else {
-        this.append(message.body ? message.body : '');
+        this.append(message.body);
         this.focus();
       }
     },
@@ -529,6 +565,9 @@ var Compose = (function() {
      */
     prepend: function(item) {
       var fragment = insert(item);
+      if (!fragment) {
+        return this;
+      }
 
       // If the first element is a <br>, it needs to stay first
       // insert after it but before everyting else
@@ -556,6 +595,9 @@ var Compose = (function() {
         onContentChanged({containsImage: containsImage});
       } else {
         var fragment = insert(item);
+        if (!fragment) {
+          return this;
+        }
 
         if (document.activeElement === dom.message) {
           // insert element at caret position

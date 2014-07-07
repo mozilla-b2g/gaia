@@ -1,4 +1,9 @@
 var Wallpaper = {
+  // We're reducing each image to 1/3rd of its original size by displaying
+  // 3 wallpaper images in each row, decoding each image at 3/8ths of the
+  // original size still results in an image that is big enough to fit the
+  // thumbnails since 3/8 > 1/3
+  thumbnailScale: 3 / 8,
   wallpapersUrl: '/resources/list.json',
 
   init: function wallpaper_init() {
@@ -24,12 +29,18 @@ var Wallpaper = {
     xhr.send(null);
 
     var self = this;
+    // Get #-moz-samplesize media fragment to downsample while decoding
+    // so that we can display smaller images without using lot of memory
+    // See Bug 1011460
+    var sampleSize = Downsample.sizeNoMoreThan(this.thumbnailScale);
     xhr.onload = function successGenerateWallpaperList() {
       self.wallpapers.innerHTML = '';
       xhr.response.forEach(function(wallpaper) {
+        var fileName = 'resources/' + wallpaper;
         var div = document.createElement('div');
         div.classList.add('wallpaper');
-        div.style.backgroundImage = 'url(resources/' + wallpaper + ')';
+        div.dataset.filename = fileName;
+        div.style.backgroundImage = 'url(' + fileName + sampleSize + ')';
         self.wallpapers.appendChild(div);
       });
       if (cb) {
@@ -45,9 +56,8 @@ var Wallpaper = {
   },
 
   pickWallpaper: function wallpaper_pickWallpaper(e) {
-    // Identify the wallpaper
-    var backgroundImage = e.target.style.backgroundImage;
-    var src = backgroundImage.match(/url\([\"']?([^\s\"']*)[\"']?\)/)[1];
+    // Get the wallpaper file name
+    var src = e.target.dataset.filename;
     // Ignore clicks that are not on one of the images
     if (src == '')
       return;

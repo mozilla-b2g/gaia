@@ -1,0 +1,117 @@
+gaia-grid {
+  display: block;
+  width: 100%;
+  position: relative;
+  z-index: 2;
+}
+
+#edit-header {
+  position: absolute;
+  top: 0;
+  z-index: 11; /* Header BB is 10 */
+  width: 100%;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.5s ease-in, visibility 0s linear 0.5s;
+}
+
+.edit-mode #edit-header {
+  visibility: visible;
+  opacity: 1;
+  transition: opacity 0.5s ease-in;
+}
+
+#header {
+  background-position: center -2rem; /* to continue wallpaper position from status bar */
+}
+
+#header:after {
+  position: absolute;
+  content: ' ';
+  background-color: rgba(0,0,0,0.8);
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
+}
+
+#content {
+  border-top: 0.1rem solid #555;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: scroll;
+  padding-top: 2.4rem;
+  -moz-user-select: none;
+}
+
+#content-background-image {
+  position: absolute;
+  top: 5rem;
+  left: 0;
+  width: 100%;
+  height: calc(100% - 5rem);
+  background-size: cover;
+  overflow: hidden;
+}
+
+#content-background-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background-color: rgba(0,0,0,0.4);
+  transition: background-color 0.5s ease-in;
+  overflow: hidden;
+}
+
+
+.edit-mode #content-background-overlay {
+  background-color: #333333;
+}
+
+/* Notifications */
+#content {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+section[role="notification"] {
+  flex: 1 1 auto;
+  align-items: center;
+  color: #fff;
+  font-size: 1.6rem;
+  line-height: 1.8rem;
+  text-align: center;
+  justify-content: center;
+  display: none;
+  position: relative;
+  z-index: 1;
+}
+
+section[role="notification"]#offline {
+  padding: 1.2rem 5rem;
+}
+
+/* Prevent unnecessary cpu usage (bug 922341) */
+section[role="notification"] progress {
+  display: none;
+}
+
+body[data-loading="true"] section[role="notification"] progress {
+  display: inline-block;
+}
+section[role="notification"].show,
+body[data-loading="true"] #content section[role="notification"]#loading{
+  display: flex;
+}
+
+.edit-mode .icon[data-is-draggable="false"] {
+  pointer-events: none;
+  opacity: 0.2;
+}

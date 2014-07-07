@@ -105,15 +105,14 @@
 
 /* sidebar styles */
 #week-view .sidebar {
-   min-height: 5rem;
-   width: 2.9rem;
-   color: #707070;
-   text-align: center;
-   text-transform: uppercase;
-   font-size: 1.5rem;
-   border-left: none;
-   border-top: none;
-   float: left;
+  min-height: 5rem;
+  width: 2.9rem;
+  color: #707070;
+  text-align: center;
+  font-size: 1.5rem;
+  border-left: none;
+  border-top: none;
+  float: left;
 
   /**
    * set scrollable areas to a solid background color
@@ -127,7 +126,7 @@
 }
 
 #week-view .sidebar > li {
-  line-height: 1.5;
+  line-height: 1.2;
   width: 3rem;
   padding: 0.2rem;
   float: left;
@@ -137,6 +136,11 @@
   overflow: hidden;
 }
 
+#week-view .display-hour .ampm {
+  display: block;
+  font-size: 1.3rem;
+}
+
 #week-view .scroll {
   height: calc(100% - 7rem);
   overflow-y: scroll;
@@ -144,17 +148,23 @@
   will-change: scroll-position;
 }
 
-#week-view .scroll > .children {
+#week-view .scroll-content {
+  /* XXX: z-index + position:relative is important for perf (Bug 972675) */
   position: relative;
-  float: left;
-  width: calc(100% - 2.9rem);
+  z-index: 0;
+  overflow: hidden;
   /**
    * set scrollable areas to a solid background color
    * see bug 968478
    */
-  background-color: #fff;
-  /* XXX: z-index + position:relative is important for perf (Bug 972675) */
-  z-index: 0;
+  background-color: #FFF;
+}
+
+
+#week-view .scroll-content > .children {
+  position: relative;
+  float: left;
+  width: calc(100% - 2.9rem);
 }
 
 #week-view .weekday .children > section {
@@ -188,6 +198,7 @@
 #week-view .sticky .event {
   margin-bottom: 0.1rem;
   padding-top: 0;
+  min-height: 2.8rem;
 }
 
 #week-view .sticky .event:last-child {
@@ -238,3 +249,15 @@
   transform: translateY(-50%);
 }
 
+#week-view .current-time {
+  text-indent: 0.2rem;
+}
+
+#week-view .current-time:before {
+  left: 3rem;
+}
+
+#week-view .current-time:after {
+  width: calc(100% - 3rem);
+  left: 3rem;
+}

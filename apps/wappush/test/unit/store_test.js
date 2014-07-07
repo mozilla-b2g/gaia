@@ -7,6 +7,7 @@
 
 requireApp('wappush/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('wappush/js/store.js');
+require('/shared/js/uuid.js');
 
 suite('StoreProvisioning >', function() {
   var realSettings;
@@ -39,6 +40,7 @@ suite('StoreProvisioning >', function() {
   suite('StoreProvisioning.provision()', function() {
     setup(function() {
       MockNavigatorSettings.mSettings['ril.data.cp.apns'] = '';
+      MockNavigatorSettings.mSettings['ril.data.apnSettings'] = '';
     });
 
     test('Add APN: Telefonica DEFAULT type', function() {
@@ -53,6 +55,9 @@ suite('StoreProvisioning >', function() {
         function() {
           assert.lengthOf(
           MockNavigatorSettings.mSettings['ril.data.cp.apns']['214']['07'], 1
+          );
+          assert.lengthOf(
+          MockNavigatorSettings.mSettings['ril.data.apnSettings'][0], 1
           );
       });
     });
@@ -83,6 +88,9 @@ suite('StoreProvisioning >', function() {
         function() {
           assert.lengthOf(
           MockNavigatorSettings.mSettings['ril.data.cp.apns']['214']['07'], 2
+          );
+          assert.lengthOf(
+          MockNavigatorSettings.mSettings['ril.data.apnSettings'][0], 2
           );
       });
     });

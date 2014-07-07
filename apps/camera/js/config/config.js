@@ -12,7 +12,7 @@ module.exports = {
 
     // Size of the exif preview embeded in images taken by camera
     CONFIG_REQUIRED_EXIF_PREVIEW_WIDTH: 0,
-    CONFIG_REQUIRED_EXIF_PREVIEW_HEIGHT: 0,
+    CONFIG_REQUIRED_EXIF_PREVIEW_HEIGHT: 0
   },
 
   zoom: {
@@ -41,7 +41,20 @@ module.exports = {
     touchFocus: true,
     // The camera detects faces and tries to focus
     // on them.
-    faceTracking: false
+    faceDetection: true
+  },
+
+  previewGallery: {
+
+    // Flag for determining if the preview should limit the
+    // image size to the value of CONFIG_MAX_IMAGE_PIXEL_SIZE
+    // (enable for devices with limited memory)
+    limitMaxPreviewSize: false,
+
+    // Dimensions for thumbnail image (will automatically be
+    // multiplied by the devicePixelRatio)
+    thumbnailWidth: 54,
+    thumbnailHeight: 54
   },
 
   viewfinder: {
@@ -65,18 +78,23 @@ module.exports = {
     list: [
       {
         name: 'shutter',
-        setting: 'camera.shutter.enabled',
-        url: './resources/sounds/shutter.ogg'
+        url: './resources/sounds/shutter.ogg',
+        setting: 'camera.sound.enabled'
+      },
+      {
+        name: 'timer',
+        url: './resources/sounds/timer.ogg',
+        setting: 'camera.sound.enabled'
       },
       {
         name: 'recordingStart',
         url: './resources/sounds/camcorder_start.opus',
-        setting: 'camera.recordingsound.enabled'
+        setting: 'camera.sound.enabled'
       },
       {
         name: 'recordingEnd',
         url: './resources/sounds/camcorder_end.opus',
-        setting: 'camera.recordingsound.enabled'
+        setting: 'camera.sound.enabled'
       }
     ]
   },
@@ -88,11 +106,26 @@ module.exports = {
     // parameters. The larger the scale factor, the larger
     // the activity `maxPixelSize` icreasing the probability
     // that a larger pictureSize will be chosen for the activity.
-    maxPixelSizeScaleFactor: 2.5
+    maxPixelSizeScaleFactor: 2.5,
+
+    // Reduce the size of images returned by pick activities.
+    // A pick activity can specify its own maximum size. However,
+    // this setting can lower that pixel size limitation even
+    // further. To prevent further limiting the pixel size for
+    // pick activities, set this value to `0`.
+    // (useful for devices with limited memory)
+    maxPickPixelSize: 0,
+
+    // Reduce the size of images returned by share activities.
+    // To prevent resizing images that are shared, set this
+    // value to `0`.
+    // (useful for devices with limited memory)
+    maxSharePixelSize: 0
   },
 
   loadingScreen: {
-    delay: 600
+    takingPicture: 1500,
+    requestingCamera: 600
   },
 
   mode: {
@@ -130,10 +163,12 @@ module.exports = {
   cameras: {
     options: [
       {
-        key: 'back'
+        key: 'back',
+        icon: 'icon-toggle-camera-rear'
       },
       {
-        key: 'front'
+        key: 'front',
+        icon: 'icon-toggle-camera-front'
       }
     ],
     persistent: false
@@ -233,7 +268,7 @@ module.exports = {
   timer: {
     title: 'self-timer',
     header: 'self-timer-header',
-    icon: 'icon-timer',
+    icon: 'icon-self-timer',
     options: [
       {
         key: 'off',
@@ -241,17 +276,17 @@ module.exports = {
         value: 0
       },
       {
-        key: '2secs',
+        key: 'secs2',
         value: 2,
         title: 'self-timer-2-seconds'
       },
       {
-        key: '5secs',
+        key: 'secs5',
         value: 5,
         title: 'self-timer-5-seconds'
       },
       {
-        key: '10secs',
+        key: 'secs10',
         value: 10,
         title: 'self-timer-10-seconds'
       }
@@ -301,7 +336,7 @@ module.exports = {
   grid: {
     title: 'grid',
     header: 'grid-header',
-    icon: 'icon-frame-grid',
+    icon: 'icon-grid',
     options: [
       {
         key: 'off',

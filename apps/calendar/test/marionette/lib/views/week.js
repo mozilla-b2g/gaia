@@ -13,14 +13,31 @@ Week.prototype = {
 
   selector: '#week-view',
 
+  get activeFrame() {
+    return this.findElement('.weekday.active');
+  },
+
   get events() {
-    return this.findElements('.weekday.active .event').map(function(el) {
+    return this.activeFrame.findElements('.event').map(function(el) {
       return new WeekEvent(this.client, el);
     }, this);
   },
 
   get todayDates() {
-    return this.findElements('.weekday.active .sticky-frame > h1.is-today');
+    return this.activeFrame.findElements('.sticky-frame > h1.is-today');
+  },
+
+  get currentTime() {
+    return this.activeFrame.findElement('.current-time');
+  },
+
+  get currentHour() {
+    var now = new Date();
+    return this.activeFrame.findElement('.hour-'+ now.getHours());
+  },
+
+  get currentDisplayHour() {
+    return this.currentHour.findElement('.display-hour');
   }
 };
 

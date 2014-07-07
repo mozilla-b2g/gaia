@@ -52,7 +52,8 @@
     select: select,
     dismissSuggestions: dismissSuggestions,
     setLayoutParams: setLayoutParams,
-    setLanguage: setLanguage
+    setLanguage: setLanguage,
+    handleEvent: handleEvent
   };
 
   // This is the object that is passed to init().
@@ -121,6 +122,20 @@
   // this much more highly weighted than the second suggested word.
   const AUTO_CORRECT_THRESHOLD = 1.30;
 
+  /*
+   * Since inputContext.sendKey is an async fuction that will return a promise,
+   * and we need to update the current state (capitalization, input value)
+   * after the promise is resolved, we need to have an queue for each click,
+   * or the key would be sent with a wrong state.
+   */
+  var inputSequencePromise = Promise.resolve();
+
+
+  // Flag to stop updating suggestions for selectionchange when we're going
+  // to do some actions that will cause selectionchange, such as sendKey()
+  // or replaceSurroundingText().
+  var pendingSelectionChange = 0;
+
   // keyboard.js calls this to pass us the interface object we need
   // to communicate with it
   function init(interfaceObject) {
@@ -182,6 +197,10 @@
     capitalizing = punctuating = (inputMode === 'latin-prose');
     suggesting = (options.suggest && inputMode !== 'verbatim');
     correcting = (options.correct && inputMode !== 'verbatim');
+
+    if (state.inputContext) {
+      state.inputContext.addEventListener('selectionchange', this);
+    }
 
     // Reset our state
     lastSpaceTimestamp = 0;
@@ -335,46 +354,57 @@
    *
    * Update the capitalization state, if we're capitalizing
    */
-  function click(keycode, repeat) {
-    // If the key is anything other than a backspace, forget about any
-    // previous changes that we would otherwise revert.
-    if (keycode !== BACKSPACE) {
-      revertTo = revertFrom = '';
-      justAutoCorrected = false;
-    }
+  function click(keyCode, upperKeyCode, repeat) {
+    // Wait for the previous keys have been resolved and then handle the next
+    // key.
 
-    var handler;
+    pendingSelectionChange++;
 
-    if (selection) {
-      // If there is selected text, don't do anything fancy here.
-      handler = handleKey(keycode);
-    }
-    else {
-      switch (keycode) {
-      case SPACE:        // This list of characters matches the WORDSEP regexp
-      case RETURN:
-      case PERIOD:
-      case QUESTION:
-      case EXCLAMATION:
-      case COMMA:
-      case COLON:
-      case SEMICOLON:
-        // These keys may trigger word or punctuation corrections
-        handler = handleCorrections(keycode);
-        correctionDisabled = false;
-        break;
+    var nextKeyPromise = inputSequencePromise.then(function() {
+      keyCode = keyboard.isCapitalized() && upperKeyCode ? upperKeyCode :
+                                                           keyCode;
 
-      case BACKSPACE:
-        handler = handleBackspace(repeat);
-        break;
-
-      default:
-        handler = handleKey(keycode);
+      // If the key is anything other than a backspace, forget about any
+      // previous changes that we would otherwise revert.
+      if (keyCode !== BACKSPACE) {
+        revertTo = revertFrom = '';
+        justAutoCorrected = false;
       }
-    }
 
-    return handler.then(function() {
-      // If there was a potential auto correction, we either used it in
+      var handler;
+
+      if (selection) {
+        // If there is selected text, don't do anything fancy here.
+        handler = handleKey(keyCode);
+      }
+      else {
+        switch (keyCode) {
+          case SPACE:     // This list of characters matches the WORDSEP regexp
+            case RETURN:
+            case PERIOD:
+            case QUESTION:
+            case EXCLAMATION:
+            case COMMA:
+            case COLON:
+            case SEMICOLON:
+            // These keys may trigger word or punctuation corrections
+            handler = handleCorrections(keyCode);
+          correctionDisabled = false;
+          break;
+
+          case BACKSPACE:
+            handler = handleBackspace(repeat);
+          break;
+
+          default:
+            handler = handleKey(keyCode);
+        }
+      }
+      return handler;
+    });
+
+    // After the next key is resolved, we could update the state here.
+    inputSequencePromise = nextKeyPromise.then(function() {
       // handleCorrections() above or it is now out of date, so clear it
       // so it doesn't get used later
       autoCorrection = null;
@@ -386,12 +416,22 @@
       updateSuggestions(repeat);
 
       // Exit symbol layout mode after space or return key is pressed.
-      if (keycode === SPACE || keycode === RETURN) {
+      if (keyCode === SPACE || keyCode === RETURN) {
         keyboard.setLayoutPage(LAYOUT_PAGE_DEFAULT);
       }
 
-      lastSpaceTimestamp = (keycode === SPACE) ? Date.now() : 0;
+      lastSpaceTimestamp = (keyCode === SPACE) ? Date.now() : 0;
+      pendingSelectionChange--;
+
+    }, function() {
+      // the previous sendKey or replaceSurroundingText has been rejected,
+      // No need to update the state.
+      pendingSelectionChange--;
     });
+
+    // Need to return the promise, so that the caller could know
+    // what to process next.
+    return inputSequencePromise;
   }
 
   // Handle any key (including backspace) and do the right thing even if
@@ -494,6 +534,7 @@
     }
     else if (punctuating && cursor >= 2 &&
              isWhiteSpace(inputText[cursor - 1]) &&
+             inputText[cursor - 1].charCodeAt(0) !== KeyEvent.DOM_VK_RETURN &&
              !WORDSEP.test(inputText[cursor - 2]))
     {
       return autoPunctuate(keycode);
@@ -684,12 +725,6 @@
   function dismissSuggestions() {
     // Clear the list of candidates
     keyboard.sendCandidates([]);
-
-    // Send a space
-    keyboard.sendKey(SPACE);
-    inputText = inputText.substring(0, cursor) + ' ' +
-      inputText.substring(cursor);
-    cursor++;
 
     // Get rid of any autocorrection that is pending and reset the rest
     // of our state, too.
@@ -957,6 +992,32 @@
 
     var c = inputText[i];
     return c === '.' || c === '?' || c === '!';
+  }
+
+  function handleEvent(evt) {
+    var type = evt.type;
+    switch (type) {
+      case 'selectionchange':
+      // We would get selectionchange event when the user type each char,
+      // or accept a word suggestion,so don't update suggestions in these
+      // cases.
+      if (cursor === evt.target.selectionStart ||
+          pendingSelectionChange > 0) {
+        return;
+      }
+
+      var newText = evt.target.textBeforeCursor + evt.target.textAfterCursor;
+      inputText = newText;
+      cursor = evt.target.selectionStart;
+      if (evt.target.selectionEnd > evt.target.selectionStart) {
+        selection = evt.target.selectionEnd;
+      } else {
+        selection = 0;
+      }
+
+      updateSuggestions();
+      break;
+    }
   }
 
   if (!('LAYOUT_PAGE_DEFAULT' in window))

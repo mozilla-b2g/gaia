@@ -6,6 +6,8 @@
 requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/test/unit/mock_system_icc_worker.js');
 requireApp('system/test/unit/mock_ftu_launcher.js');
+requireApp('system/test/unit/mock_statusbar.js');
+requireApp('system/test/unit/mock_keyboard_manager.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
@@ -17,7 +19,9 @@ require('/shared/test/unit/load_body_html_helper.js');
 var mocksForIcc = new MocksHelper([
   'Dump',
   'FtuLauncher',
-  'SystemICCWorker'
+  'SystemICCWorker',
+  'StatusBar',
+  'KeyboardManager'
 ]).init();
 
 suite('STK (icc) >', function() {
@@ -242,10 +246,12 @@ suite('STK (icc) >', function() {
 
     assert.equal(document.getElementById('icc-input-msg').textContent,
       testCmd.command.options.text);
-    assert.equal(document.getElementById('icc-input-btn').textContent, 'OK');
+    assert.equal(document.getElementById('icc-input-btn').textContent, 'ok (' +
+      (testCmd.command.options.maxLength -
+      testCmd.command.options.defaultText.length) + ')');
     assert.equal(document.getElementById('icc-input-btn').disabled, false);
     assert.equal(document.getElementById('icc-input-btn_back').textContent,
-      'Back');
+      'back');
     assert.equal(document.getElementById('icc-input-btn_help').textContent,
       'Help');
   });
@@ -273,26 +279,38 @@ suite('STK (icc) >', function() {
     inputbox.value = '';
     inputbox.dispatchEvent(event);
     assert.equal(button.disabled, true);
+    assert.equal(document.getElementById('icc-input-btn').textContent, 'ok (' +
+      (testCmd.command.options.maxLength - inputbox.value.length) + ')');
 
     inputbox.value = '1';
     inputbox.dispatchEvent(event);
     assert.equal(button.disabled, true);
+    assert.equal(document.getElementById('icc-input-btn').textContent, 'ok (' +
+      (testCmd.command.options.maxLength - inputbox.value.length) + ')');
 
     inputbox.value = '12';
     inputbox.dispatchEvent(event);
     assert.equal(button.disabled, false);
+    assert.equal(document.getElementById('icc-input-btn').textContent, 'ok (' +
+      (testCmd.command.options.maxLength - inputbox.value.length) + ')');
 
     inputbox.value = '123';
     inputbox.dispatchEvent(event);
     assert.equal(button.disabled, false);
+    assert.equal(document.getElementById('icc-input-btn').textContent, 'ok (' +
+      (testCmd.command.options.maxLength - inputbox.value.length) + ')');
 
     inputbox.value = '1234567890';
     inputbox.dispatchEvent(event);
     assert.equal(button.disabled, false);
+    assert.equal(document.getElementById('icc-input-btn').textContent, 'ok (' +
+      (testCmd.command.options.maxLength - inputbox.value.length) + ')');
 
     inputbox.value = '12345678901';
     inputbox.dispatchEvent(event);
     assert.equal(button.disabled, true);
+    assert.equal(document.getElementById('icc-input-btn').textContent, 'ok (' +
+      (testCmd.command.options.maxLength - inputbox.value.length) + ')');
   });
 
   test('launchStkCommand: STK_CMD_GET_INPUT', function(done) {

@@ -1,4 +1,6 @@
 'use strict';
+/* global devicePixelRatio */
+/* global verticalPreferences */
 
 (function(exports) {
 
@@ -12,24 +14,34 @@
   // 320 / 3.8 = 84px | 480 / 3.8 = 126px | 540 / 3.8 = 142px | ...
   const iconScaleFactorMinIconsPerRow = 3.8;
 
-  const distanceBetweenIconsWithMinIconsPerRow = 32;
+  const distanceBetweenIconsWithMinIconsPerRow = 36;
 
-  const distanceBetweenIconsWithMaxIconsPerRow = 44;
+  const distanceBetweenIconsWithMaxIconsPerRow = 36;
 
-  const windowWidth = window.innerWidth;
+  var windowWidth = window.innerWidth;
 
   function GridLayout(gridView) {
     this.gridView = gridView;
-    window.addEventListener('appzoom', this);
+
+    if (window.verticalPreferences) {
+      verticalPreferences.get('grid.cols').then(function(value) {
+        this.cols = value;
+        this.onReady();
+      }.bind(this), this.onReady);
+
+      verticalPreferences.addEventListener('updated', this);
+    } else {
+      this.onReady();
+    }
   }
 
   GridLayout.prototype = {
 
-    perRow: minIconsPerRow,
-
     minIconsPerRow: minIconsPerRow,
 
     maxIconsPerRow: maxIconsPerRow,
+
+    _cols: minIconsPerRow,
 
     _offsetY: 0,
 
@@ -45,12 +57,25 @@
       return this._percent;
     },
 
-    set percent(value) {
+    get cols() {
+      return this._cols;
+    },
+
+    set cols(value) {
+      if (!value || value === this._cols) {
+        return;
+      }
+
+      if (window.verticalPreferences) {
+        verticalPreferences.put('grid.cols', value);
+      }
+
       // Reset the y-offset because we will re-render everything anyway.
       this._offsetY = 0;
 
-      this._percent = value;
-      this.perRow = maxIconsPerRow + minIconsPerRow - maxIconsPerRow * value;
+      this._percent = value == minIconsPerRow ? 1 :
+        minIconsPerRow / maxIconsPerRow;
+      this._cols = value;
     },
 
     /**
@@ -58,7 +83,7 @@
      */
     get gridItemHeight() {
       return this.gridIconSize +
-            (this.perRow === minIconsPerRow ?
+            (this._cols === minIconsPerRow ?
                              distanceBetweenIconsWithMinIconsPerRow :
                              distanceBetweenIconsWithMaxIconsPerRow);
     },
@@ -68,7 +93,7 @@
      * This number changes based on current zoom level.
      */
     get gridItemWidth() {
-      return windowWidth / this.perRow;
+      return windowWidth / this._cols;
     },
 
     /**
@@ -77,8 +102,11 @@
      * applied in dragdrop
      */
     get gridMaxIconSize() {
-      return (windowWidth / iconScaleFactorMinIconsPerRow) *
-              this.gridView.dragdrop.maxActiveScale;
+      var dragdrop = this.gridView.dragdrop;
+      var scaledSize = (windowWidth / iconScaleFactorMinIconsPerRow) *
+              (dragdrop ? dragdrop.maxActiveScale : 1);
+      scaledSize *= devicePixelRatio;
+      return scaledSize;
     },
 
     /**
@@ -86,7 +114,7 @@
      * characteristics.
      */
     get gridIconSize() {
-      var numCols = this.perRow;
+      var numCols = this._cols;
 
       var size = windowWidth / numCols;
       if (numCols === minIconsPerRow) {
@@ -94,8 +122,7 @@
       } else if (numCols === maxIconsPerRow) {
         size = windowWidth / iconScaleFactorMaxIconsPerRow;
       }
-
-      return size;
+      return Math.floor(size);
     },
 
     /**
@@ -123,9 +150,24 @@
      * General event handler.
      */
     handleEvent: function(e) {
-      if (e.type === 'appzoom') {
-        document.body.dataset.cols = this.perRow;
+      switch(e.type) {
+        case 'updated':
+          var prop = e.target;
+          if (prop.name === 'grid.cols') {
+            this.cols = parseInt(prop.value, 10);
+            this.gridView.render();
+          }
+
+          break;
       }
+    },
+
+    calculateSize: function() {
+      windowWidth = window.innerWidth;
+    },
+
+    onReady: function() {
+      window.dispatchEvent(new CustomEvent('gaiagrid-layout-ready'));
     }
   };
 

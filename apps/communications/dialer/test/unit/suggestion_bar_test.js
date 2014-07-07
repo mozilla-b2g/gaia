@@ -1,5 +1,6 @@
-/* globals MockCallHandler, MockContacts, MockFbContacts, MocksHelper,
-           MockLazyL10n, MockNavigatorMozIccManager, SuggestionBar */
+/* globals LazyLoader, MockCallHandler, MockContacts, MockFbContacts,
+           MocksHelper, MockLazyL10n, MockNavigatorMozIccManager,
+           SuggestionBar, SimSettingsHelper */
 
 'use strict';
 
@@ -12,6 +13,7 @@ require('/shared/test/unit/mocks/mock_fb_data_reader.js');
 require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
 require('/shared/test/unit/mocks/dialer/mock_contacts.js');
 require('/shared/test/unit/mocks/dialer/mock_keypad.js');
+require('/shared/test/unit/mocks/mock_sim_settings_helper.js');
 
 require('/dialer/js/suggestion_bar.js');
 
@@ -20,7 +22,8 @@ var mocksHelperForSuggestionBar = new MocksHelper([
   'LazyL10n',
   'LazyLoader',
   'KeypadManager',
-  'CallHandler'
+  'CallHandler',
+  'SimSettingsHelper'
 ]).init();
 
 suite('suggestion Bar', function() {
@@ -28,6 +31,8 @@ suite('suggestion Bar', function() {
   var realMozIccManager;
 
   mocksHelperForSuggestionBar.attachTestHelpers();
+
+  var mozL10nGet;
 
   suiteSetup(function() {
     window.fb = window.fb || {};
@@ -111,6 +116,12 @@ suite('suggestion Bar', function() {
     MockNavigatorMozIccManager.addIcc(0, {});
 
     loadBodyHTML('/dialer/elements/suggestion-item.html');
+    var suggestionItemTemplate =
+      document.body.querySelector('template').innerHTML;
+
+    loadBodyHTML('/dialer/elements/suggestion-overlay.html');
+    var suggestionOverlayTemplate =
+      document.body.querySelector('template').innerHTML;
 
     domSuggestionBar = document.createElement('section');
     domSuggestionBar.id = 'suggestion-bar';
@@ -120,21 +131,27 @@ suite('suggestion Bar', function() {
         'class="js-suggestion-item suggestion-item"></div>';
     document.body.appendChild(domSuggestionBar);
     document.querySelector('.js-suggestion-item').innerHTML =
-      document.body.querySelector('template').innerHTML;
+      suggestionItemTemplate;
+
+    var domSuggestionItem = document.createElement('button');
+    domSuggestionItem.id = 'suggestion-item-template';
+    domSuggestionItem.setAttribute('role', 'button');
+    domSuggestionItem.setAttribute('is', 'suggestion-item');
+    domSuggestionItem.classList.add('js-suggestion-item', 'suggestion-item');
+    domSuggestionItem.hidden = true;
+    document.body.appendChild(domSuggestionItem);
+    domSuggestionItem.innerHTML = suggestionItemTemplate;
+
     domOverlay = document.createElement('form');
     domOverlay.id = 'suggestion-overlay';
-    domOverlay.innerHTML =
-      '<button role="button" is="suggestion-item" ' +
-        ' id="suggestion-item-template" ' +
-        ' class="js-suggestion-item suggestion-item" hidden></button>' +
-      '<header></header>' +
-      '<menu id="suggestion-list">' +
-        '<button id="suggestion-overlay-cancel" ' +
-          'data-l10n-id="cancel">Cancel</button>' +
-      '</menu>';
-    domOverlay.querySelector('.js-suggestion-item').innerHTML =
-      document.body.querySelector('template').innerHTML;
+    domOverlay.setAttribute('is', 'suggestion-overlay');
+    domOverlay.setAttribute('role', 'dialog');
+    domOverlay.dataset.type = 'action';
+    domOverlay.classList.add('overlay');
+    domOverlay.setAttribute('aria-hidden', 'true');
+    domOverlay.innerHTML = suggestionOverlayTemplate;
     document.body.appendChild(domOverlay);
+
     domSuggestionCount = domSuggestionBar.querySelector('#suggestion-count');
 
     subject.overlay = domOverlay;
@@ -144,15 +161,17 @@ suite('suggestion Bar', function() {
     subject.overlayCancel =
         document.getElementById('suggestion-overlay-cancel');
     subject.init();
+
+    mozL10nGet = this.sinon.spy(function(id) {
+      switch(id) {
+        case'my-custom-type':
+          return undefined;
+        default:
+          return id;
+      }
+    });
     this.sinon.stub(MockLazyL10n, 'get', function(callback) {
-      callback(function(prop) {
-        switch(prop) {
-          case'my-custom-type':
-            return undefined;
-          default:
-            return prop;
-        }
-      });
+      callback(mozL10nGet);
     });
   });
 
@@ -338,6 +357,9 @@ suite('suggestion Bar', function() {
         MockContacts.mResult = mockResult2;
         subject.update('1111');
 
+        mozL10nGet.reset();
+        this.sinon.spy(LazyLoader, 'load');
+
         subject.showOverlay();
         suggestions = Array.prototype.filter.call(subject.list.children,
           function(element) {
@@ -345,8 +367,13 @@ suite('suggestion Bar', function() {
           });
       });
 
+      test('should load the overlay', function() {
+        sinon.assert.calledWith(LazyLoader.load, domOverlay);
+      });
+
       test('overlay is displayed', function() {
-        assert.isFalse(subject.overlay.hidden, 'should show suggestion list');
+        assert.equal(subject.overlay.getAttribute('aria-hidden'), 'false');
+        assert.isTrue(subject.overlay.classList.contains('display'));
       });
 
       test('should have a cancel button as the last button', function() {
@@ -357,6 +384,14 @@ suite('suggestion Bar', function() {
 
       test('should have 2 suggestions', function() {
         assert.equal(suggestions.length, 2);
+      });
+
+      test('should call mozL10n.get with correct arguments ', function() {
+        // showOverlay() calls once and _fillContacts() calls two more times
+        assert.equal(mozL10nGet.callCount, 3);
+        assert.deepEqual(mozL10nGet.getCall(0).args, [
+          'suggestionMatches', { n: 2, matchNumber: '1111' }
+        ]);
       });
 
       test('each match is displayed in the proper order', function() {
@@ -384,25 +419,17 @@ suite('suggestion Bar', function() {
                        '1111');
         });
       });
+    });
 
-      suite('#hide overlay', function() {
-        setup(function() {
-          subject.hideOverlay();
-        });
-
-        test('should hide the overlay', function() {
-          assert.isTrue(subject.overlay.hidden);
-        });
-
-        test('should remove all suggestions', function() {
-          suggestions = Array.prototype.filter.call(subject.list.children,
-            function(element) {
-              return element.classList.contains('js-suggestion-item');
-            });
-          assert.equal(suggestions.length, 0);
-        });
+    suite('hide overlay', function() {
+      setup(function() {
+        subject.hideOverlay();
       });
 
+      test('should hide the overlay', function() {
+        assert.equal(subject.overlay.getAttribute('aria-hidden'), 'true');
+        assert.isFalse(subject.overlay.classList.contains('display'));
+      });
     });
 
     test('#show overlay of all numbers of contact', function() {
@@ -426,9 +453,12 @@ suite('suggestion Bar', function() {
         subject.update('1234');
       });
 
-      test('with one SIM', function() {
-        document.body.querySelector('.js-suggestion-item').click();
-        sinon.assert.calledWith(MockCallHandler.call, '1234567890', 0);
+      [0, 1].forEach(function(ci) {
+        test('with one SIM in slot ' + ci, function() {
+          SimSettingsHelper._defaultCards.outgoingCall = ci;
+          document.body.querySelector('.js-suggestion-item').click();
+          sinon.assert.calledWith(MockCallHandler.call, '1234567890', ci);
+        });
       });
 
       test('with two SIMs', function() {

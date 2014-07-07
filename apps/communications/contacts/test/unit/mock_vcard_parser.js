@@ -28,5 +28,5 @@ MockVCFReader.prototype.process = function process(cb) {
       }
     }
   }
-  cb(importedContacts);
+  cb(importedContacts, this.numDuplicated);
 };

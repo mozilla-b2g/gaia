@@ -10,7 +10,8 @@ from gaiatest.apps.base import Base
 
 class ContactForm(Base):
 
-    _contacts_frame_locator = (By.CSS_SELECTOR, 'iframe[src*="contacts"][src*="/index.html"]')
+    name = 'Contacts'
+
     _given_name_locator = (By.ID, 'givenName')
     _family_name_locator = (By.ID, 'familyName')
     _phone_locator = (By.ID, 'number_0')
@@ -40,8 +41,6 @@ class ContactForm(Base):
         element = self.marionette.find_element(*self._family_name_locator)
         element.clear()
         element.send_keys(value)
-        self.keyboard.dismiss()
-        self.switch_to_contacts_frame()
 
     @property
     def phone(self):
@@ -51,8 +50,6 @@ class ContactForm(Base):
         element = self.marionette.find_element(*self._phone_locator)
         element.clear()
         element.send_keys(value)
-        self.keyboard.dismiss()
-        self.switch_to_contacts_frame()
 
     @property
     def email(self):
@@ -121,13 +118,6 @@ class ContactForm(Base):
     def wait_for_image_to_load(self):
         self.wait_for_condition(lambda m: 'background-image' in self.picture_style)
 
-    # TODO: Replace this by using apps.displayed_app when bug 951815 is fixed
-    def switch_to_contacts_frame(self):
-        self.marionette.switch_to_frame()
-        self.wait_for_element_present(*self._contacts_frame_locator)
-        contacts_frame = self.marionette.find_element(*self._contacts_frame_locator)
-        self.marionette.switch_to_frame(contacts_frame)
-
 
 class EditContact(ContactForm):
 
@@ -150,6 +140,10 @@ class EditContact(ContactForm):
             self.wait_for_element_not_displayed(*self._update_locator)
             from gaiatest.apps.contacts.regions.contact_details import ContactDetails
             return ContactDetails(self.marionette)
+        else:
+            # else we drop back to the underlying app
+            self.wait_for_condition(lambda m: self.apps.displayed_app.name != self.name)
+            self.apps.switch_to_displayed_app()
 
     def tap_cancel(self):
         self.marionette.find_element(*self._cancel_locator).tap()
@@ -177,16 +171,26 @@ class EditContact(ContactForm):
 
 class NewContact(ContactForm):
 
+    _src = 'app://communications.gaiamobile.org/contacts/index.html?new'
     _done_button_locator = (By.ID, 'save-button')
 
     def __init__(self, marionette):
         ContactForm.__init__(self, marionette)
+
+    def switch_to_new_contact_form(self):
+        # When NewContact form is called as an ActivityWindow
+        self.wait_for_condition(lambda m: self.apps.displayed_app.src == self._src)
+        self.apps.switch_to_displayed_app()
+        self.wait_for_new_contact_form_to_load()
+
+    def wait_for_new_contact_form_to_load(self):
         done = self.marionette.find_element(*self._done_button_locator)
         self.wait_for_condition(lambda m: done.location['y'] == 0)
 
     def tap_done(self, return_contacts=True):
-        # NewContact can be opened as an Activity from other apps. In this scenario we don't return Contacts
         self.marionette.find_element(*self._done_button_locator).tap()
+
+        # NewContact can be opened as an Activity from other apps. In this scenario we don't return Contacts
         if return_contacts:
             self.wait_for_element_not_displayed(*self._done_button_locator)
             from gaiatest.apps.contacts.app import Contacts
@@ -194,3 +198,5 @@ class NewContact(ContactForm):
         else:
             # Bug 947317 Marionette exception after tap closes a frame
             time.sleep(2)
+            # Fall back to the underlying app
+            self.apps.switch_to_displayed_app()

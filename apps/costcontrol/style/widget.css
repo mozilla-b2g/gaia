@@ -44,7 +44,7 @@ p.meta {
 
 /* Main layout */
 #cost-control {
-  background: url(images/widget/ui/gray-noise-pattern.png) repeat left bottom;
+  background-color: #414449;
   position: relative;
   overflow: hidden;
   height: 4.5rem;
@@ -105,19 +105,12 @@ p.meta {
   background: url(images/widget/ui/glossy-gradient.png) repeat-x left bottom / auto 100%;
 }
 
-.credit {
-  border-right: solid 0.1rem #000;
-}
-
-.data {
-  border-left: solid 0.1rem rgba(255, 255, 255, 0.15);
-}
-
 /* Inner structure */
 .view {
   overflow: hidden;
   height: 100%;
   background: url(images/widget/icons/icon-go.png) no-repeat right -0.3rem center / 3rem;
+  background-color: #414449;
 }
 
 .info {

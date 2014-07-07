@@ -23,9 +23,9 @@ class TestSettingsMediaStorage(GaiaTestCase):
         self.apps.kill(settings.app)
 
         # Push media to the device
-        self.push_resource('VID_0001.3gp', destination='DCIM/100MZLLA')
-        self.push_resource('IMG_0001.jpg', destination='DCIM/100MZLLA')
-        self.push_resource('MUS_0001.mp3', destination='DCIM/100MZLLA')
+        self.push_resource('VID_0001.3gp')
+        self.push_resource('IMG_0001.jpg')
+        self.push_resource('MUS_0001.mp3')
 
         # Access 'Media storage' in Settings
         settings.launch()

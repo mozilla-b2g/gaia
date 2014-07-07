@@ -92,11 +92,18 @@ Calendar.LoadConfig = (function() {
         group: [
           'Views.WeekChild',
           'Views.Day',
+          'Views.CurrentTime',
           'Templates.Week'
         ],
 
         js: [
           'views/week'
+        ]
+      },
+
+      'Views.CurrentTime': {
+        js: [
+          'views/current_time'
         ]
       },
 
@@ -186,6 +193,7 @@ Calendar.LoadConfig = (function() {
         dom: ['event-view'],
 
         js: [
+          'templates/duration_time',
           'templates/alarm',
           'views/view_event'
         ],
@@ -236,7 +244,10 @@ Calendar.LoadConfig = (function() {
       },
 
       'Views.DayChild': {
-        group: ['Views.DayBased'],
+        group: [
+          'Views.DayBased',
+          'Views.CurrentTime'
+        ],
 
         js: [
           'views/day_child'
@@ -370,8 +381,8 @@ Calendar.LoadConfig = (function() {
 
       'EventMutations': {
         js: [
-          'ext/uuid',
-          'event_mutations'
+          'event_mutations',
+          'ext/uuid'
         ]
       },
 

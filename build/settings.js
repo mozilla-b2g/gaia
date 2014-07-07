@@ -32,6 +32,15 @@ function setWallpaper(settings, config) {
   settings['wallpaper.image'] = utils.getFileAsDataURI(wallpaper);
 }
 
+function setTone(settings, config, settingsKey, dir, name) {
+  let tone = utils.resolve(dir + name, config.GAIA_DIR);
+
+  settings[settingsKey] = utils.getFileAsDataURI(tone);
+  settings[settingsKey + '.name'] = {l10nID: name.replace(/\.\w+$/, '')};
+  settings[settingsKey + '.id'] = settings[settingsKey + '.default.id'] =
+    'builtin:' + name.replace(/\.\w+$/, '');
+}
+
 function setMediatone(settings, config) {
   // Grab ac_classic_clock_alarm.opus and convert it into a base64 string
   let mediatone_name = 'shared/resources/media/notifications/' +
@@ -54,22 +63,17 @@ function setAlarmtone(settings, config) {
 
 function setRingtone(settings, config) {
   // Grab ringer_classic_courier.opus and convert it into a base64 string
-  let ringtone_name = 'shared/resources/media/ringtones/' +
-    'ringer_classic_courier.opus';
-  let ringtone = utils.resolve(ringtone_name,
-    config.GAIA_DIR);
-
-  settings['dialer.ringtone'] = utils.getFileAsDataURI(ringtone);
-  settings['dialer.ringtone.name'] = 'Classic Courier';
+  let ringtone_dir = 'shared/resources/media/ringtones/';
+  let ringtone_name = 'ringer_classic_courier.opus';
+  setTone(settings, config, 'dialer.ringtone', ringtone_dir, ringtone_name);
 }
 
 function setNotification(settings, config) {
   // Grab notifier_bell.opus and convert it into a base64 string
-  let notification_name = 'shared/resources/media/notifications/' +
-    'notifier_bell.opus';
-  let notification = utils.resolve(notification_name,
-    config.GAIA_DIR);
-  settings['notification.ringtone'] = utils.getFileAsDataURI(notification);
+  let notification_dir = 'shared/resources/media/notifications/';
+  let notification_name = 'notifier_bell.opus';
+  setTone(settings, config, 'notification.ringtone', notification_dir,
+          notification_name);
 }
 
 /* Setup the default keyboard layouts according to the current language */
@@ -128,6 +132,22 @@ function deviceTypeSettings(settings, config) {
   }
 }
 
+function overrideRingtoneSettings(content, key) {
+  // Override ringtone if ringtone, ringtone name, and ringtone ID properties
+  // are available.
+  if (content[key] && content[key + '.name'] && content[key + '.id']) {
+    content[key + '.default.id'] = content[key + '.id'];
+  } else if (content[key] || content[key + '.name'] || content[key + '.id']) {
+    delete content[key];
+    delete content[key + '.name'];
+    delete content[key + '.id'];
+    delete content[key + '.default.id'];
+    throw new Error('ringtone not overridden because ' + key + ', ' +
+                    key + '.name, or ' + key + '.id not found in custom ' +
+                    '\'settings.json\'. All properties must be set.');
+  }
+}
+
 function overrideSettings(settings, config) {
   // See if any override file exists and eventually override settings
   let override = utils.resolve(config.SETTINGS_PATH,
@@ -135,15 +155,8 @@ function overrideSettings(settings, config) {
   if (override.exists()) {
     let content = utils.getJSON(override);
 
-    // Override ringtone if both ringtone and ringtone name properties are available
-    if (content['dialer.ringtone'] && !content['dialer.ringtone.name'] ||
-        !content['dialer.ringtone'] && content['dialer.ringtone.name']) {
-      delete content['dialer.ringtone'];
-      delete content['dialer.ringtone.name'];
-      throw new Error('ringtone not overrided because dialer.ringtone or ' +
-                      'dialer.ringtone.name not found in custom \'settings.json\'. ' +
-                      'Both properties must be set.');
-    }
+    overrideRingtoneSettings(content, 'dialer.ringtone');
+    overrideRingtoneSettings(content, 'notification.ringtone');
 
     for (let key in content) {
       settings[key] = content[key];
@@ -153,7 +166,7 @@ function overrideSettings(settings, config) {
 
 function setHomescreenURL(settings, config) {
   // 'homescreen' as default value of homescreen.appName
-  let appName = 'homescreen';
+  let appName = 'verticalhome';
 
   if (typeof(settings['homescreen.appName']) !== 'undefined') {
     appName = settings['homescreen.appName'];
@@ -211,6 +224,7 @@ function execute(config) {
   if (config.HAIDA) {
     settings['rocketbar.enabled'] = true;
     settings['edgesgesture.enabled'] = true;
+    settings['in-app-sheet.enabled'] = true;
   }
 
   settings['debugger.remote-mode'] = config.REMOTE_DEBUGGER ? 'adb-only'
@@ -235,8 +249,6 @@ function execute(config) {
 
   setDefaultKeyboardLayouts(config.GAIA_DEFAULT_LOCALE, settings, config);
 
-  // Ensure not quitting xpcshell before all asynchronous code is done
-  utils.processEvents(function(){return {wait : false}});
   var queue = utils.Q.defer();
   queue.resolve();
 

@@ -13,21 +13,33 @@ marionette('Search - App search', function() {
     search = new Search(client);
     rocketbar = new Rocketbar(client);
     system.waitForStartup();
+    search.removeGeolocationPermission();
   });
 
   test('Search apps from Rocketbar', function() {
+    client.switchToFrame();
+    rocketbar.focus();
+    search.triggerFirstRun(rocketbar);
     rocketbar.focus();
     rocketbar.enterText('calendar');
     search.goToResults();
-    search.checkResult('firstApp', 'Calendar');
+    var calendarIdentifier = 'app://calendar.gaiamobile.org/manifest.webapp';
+    var result = search.checkAppResult(calendarIdentifier, 'Calendar');
+    result.click();
     search.goToApp('app://calendar.gaiamobile.org');
   });
 
   test('Search for app with entry point', function() {
+    client.switchToFrame();
+    rocketbar.focus();
+    search.triggerFirstRun(rocketbar);
     rocketbar.focus();
     rocketbar.enterText('Phone');
     search.goToResults();
-    search.checkResult('firstApp', 'Phone');
+    var phoneIdentifier =
+      'app://communications.gaiamobile.org/manifest.webapp-dialer';
+    var result = search.checkAppResult(phoneIdentifier, 'Phone');
+    result.click();
     search.goToApp('app://communications.gaiamobile.org', 'dialer');
   });
 

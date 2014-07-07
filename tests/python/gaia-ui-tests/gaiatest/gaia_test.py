@@ -4,16 +4,20 @@
 
 import json
 import os
+import shutil
+import tempfile
 import time
 
 from marionette import MarionetteTestCase, EnduranceTestCaseMixin, \
     B2GTestCaseMixin, MemoryEnduranceTestCaseMixin
 from marionette.by import By
+from marionette import expected
 from marionette.errors import NoSuchElementException
 from marionette.errors import StaleElementException
-from marionette.errors import TimeoutException
 from marionette.errors import InvalidResponseException
 from marionette.wait import Wait
+
+from file_manager import GaiaDeviceFileManager, GaiaLocalFileManager
 
 
 class GaiaApp(object):
@@ -37,9 +41,11 @@ class GaiaApps(object):
         self.marionette.import_script(js)
 
     def get_permission(self, app_name, permission_name):
+        self.marionette.switch_to_frame()
         return self.marionette.execute_async_script("return GaiaApps.getPermission('%s', '%s')" % (app_name, permission_name))
 
     def set_permission(self, app_name, permission_name, value):
+        self.marionette.switch_to_frame()
         return self.marionette.execute_async_script("return GaiaApps.setPermission('%s', '%s', '%s')" %
                                                     (app_name, permission_name, value))
 
@@ -60,7 +66,7 @@ class GaiaApps(object):
     @property
     def displayed_app(self):
         self.marionette.switch_to_frame()
-        result = self.marionette.execute_async_script('return GaiaApps.displayedApp();')
+        result = self.marionette.execute_script('return GaiaApps.getDisplayedApp();')
         return GaiaApp(frame=result.get('frame'),
                        src=result.get('src'),
                        name=result.get('name'),
@@ -107,6 +113,7 @@ class GaiaApps(object):
 
     @property
     def running_apps(self):
+        self.marionette.switch_to_frame()
         apps = self.marionette.execute_script(
             'return GaiaApps.getRunningApps();')
         result = []
@@ -137,7 +144,10 @@ class GaiaData(object):
     @property
     def sim_contacts(self):
         self.marionette.switch_to_frame()
-        return self.marionette.execute_async_script('return GaiaDataLayer.getSIMContacts();', special_powers=True)
+        adn_contacts = self.marionette.execute_async_script('return GaiaDataLayer.getSIMContacts("adn");', special_powers=True)
+        sdn_contacts = self.marionette.execute_async_script('return GaiaDataLayer.getSIMContacts("sdn");', special_powers=True)
+
+        return adn_contacts + sdn_contacts
 
     def insert_contact(self, contact):
         self.marionette.switch_to_frame()
@@ -167,14 +177,12 @@ class GaiaData(object):
     def _get_pref(self, datatype, name):
         self.marionette.switch_to_frame()
         pref = self.marionette.execute_script("return SpecialPowers.get%sPref('%s');" % (datatype, name), special_powers=True)
-        self.apps.switch_to_displayed_app()
         return pref
 
     def _set_pref(self, datatype, name, value):
         value = json.dumps(value)
         self.marionette.switch_to_frame()
         self.marionette.execute_script("SpecialPowers.set%sPref('%s', %s);" % (datatype, name, value), special_powers=True)
-        self.apps.switch_to_displayed_app()
 
     def get_bool_pref(self, name):
         """Returns the value of a Gecko boolean pref, which is different from a Gaia setting."""
@@ -276,7 +284,6 @@ class GaiaData(object):
 
     def is_wifi_connected(self, network=None):
         network = network or self.testvars.get('wifi')
-        assert network, 'No WiFi network provided'
         self.marionette.switch_to_frame()
         return self.marionette.execute_script("return GaiaDataLayer.isWiFiConnected(%s)" % json.dumps(network))
 
@@ -380,29 +387,40 @@ class Accessibility(object):
         self.marionette.import_script(js)
 
     def is_hidden(self, element):
-        return self.marionette.execute_async_script(
-            'return Accessibility.isHidden.apply(Accessibility, arguments)',
-            [element], special_powers=True)
+        return self._run_async_script('isHidden', [element])
+
+    def is_visible(self, element):
+        return self._run_async_script('isVisible', [element])
 
     def is_disabled(self, element):
-        return self.marionette.execute_async_script(
-            'return Accessibility.isDisabled.apply(Accessibility, arguments)',
-            [element], special_powers=True)
+        return self._run_async_script('isDisabled', [element])
 
     def click(self, element):
-        self.marionette.execute_async_script(
-            'Accessibility.click.apply(Accessibility, arguments)',
-            [element], special_powers=True)
+        self._run_async_script('click', [element])
+
+    def wheel(self, element, direction):
+        self.marionette.execute_script('Accessibility.wheel.apply(Accessibility, arguments)', [
+            element, direction])
 
     def get_name(self, element):
-        return self.marionette.execute_async_script(
-            'return Accessibility.getName.apply(Accessibility, arguments)',
-            [element], special_powers=True)
+        return self._run_async_script('getName', [element])
 
     def get_role(self, element):
-        return self.marionette.execute_async_script(
-            'return Accessibility.getRole.apply(Accessibility, arguments)',
-            [element], special_powers=True)
+        return self._run_async_script('getRole', [element])
+
+    def _run_async_script(self, func, args):
+        result = self.marionette.execute_async_script(
+            'return Accessibility.%s.apply(Accessibility, arguments)' % func,
+            args, special_powers=True)
+
+        if not result:
+            return
+
+        if result.has_key('error'):
+            message = 'accessibility.js error: %s' % result['error']
+            raise Exception(message)
+
+        return result.get('result', None)
 
 class FakeUpdateChecker(object):
 
@@ -417,40 +435,33 @@ class FakeUpdateChecker(object):
         self.marionette.execute_script("GaiaUITests_FakeUpdateChecker();")
         self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
 
+
 class GaiaDevice(object):
 
-    def __init__(self, marionette, testvars=None):
+    def __init__(self, marionette, testvars=None, manager=None):
+        self.manager = manager
         self.marionette = marionette
         self.testvars = testvars or {}
+
+        if self.is_desktop_b2g:
+            self.file_manager = GaiaLocalFileManager(self)
+            # Use a temporary directory for storage
+            self.storage_path = tempfile.mkdtemp()
+            self._set_storage_path()
+        elif self.manager:
+            self.file_manager = GaiaDeviceFileManager(self)
+            # Use the device root for storage
+            self.storage_path = self.manager.deviceRoot
+
         self.lockscreen_atom = os.path.abspath(
             os.path.join(__file__, os.path.pardir, 'atoms', "gaia_lock_screen.js"))
 
-    def add_device_manager(self, device_manager):
-        self._manager = device_manager
-
-    @property
-    def manager(self):
-        if hasattr(self, '_manager') and self._manager:
-            return self._manager
-
-        if not self.is_android_build:
-            raise Exception('Device manager is only available for devices.')
-
-        else:
-            raise Exception('GaiaDevice has no device manager object set.')
-
-    @property
-    def device_root(self):
-        if not hasattr(self, '_device_root'):
-            if self.manager.dirExists('/sdcard'):
-                # it's a hamachi/inari or other single sdcard device
-                self._device_root = '/sdcard/'
-            elif self.manager.dirExists('/storage/sdcard0'):
-                # it's a flame or dual-storage device. Default storage is sdcard0
-                self._device_root = '/storage/sdcard0/'
-            else:
-                raise Exception('Could not find a storage location for the device')
-        return self._device_root
+    def _set_storage_path(self):
+        if self.is_desktop_b2g:
+            # Override the storage location for desktop B2G. This will only
+            # work if the B2G instance is running locally.
+            GaiaData(self.marionette).set_char_pref(
+                'device.storage.overrideRootDir', self.storage_path)
 
     @property
     def is_android_build(self):
@@ -490,21 +501,6 @@ class GaiaDevice(object):
             self._has_wifi = self.marionette.execute_script('return window.navigator.mozWifiManager !== undefined')
         return self._has_wifi
 
-    def push_file(self, source, count=1, destination='', progress=None):
-        if not destination.count('.') > 0:
-            destination = '/'.join([destination, source.rpartition(os.path.sep)[-1]])
-        self.manager.mkDirs(destination)
-        self.manager.pushFile(source, destination)
-
-        if count > 1:
-            for i in range(1, count + 1):
-                remote_copy = '_%s.'.join(iter(destination.split('.'))) % i
-                self.manager._checkCmd(['shell', 'dd', 'if=%s' % destination, 'of=%s' % remote_copy])
-                if progress:
-                    progress.update(i)
-
-            self.manager.removeFile(destination)
-
     def restart_b2g(self):
         self.stop_b2g()
         time.sleep(2)
@@ -521,10 +517,12 @@ class GaiaDevice(object):
         self.marionette.wait_for_port()
         self.marionette.start_session()
 
-        # Wait for the AppWindowManager to have registered the frame as active (loaded)
-        locator = (By.CSS_SELECTOR, 'div.appWindow.active.render')
-        Wait(marionette=self.marionette, timeout=timeout, ignored_exceptions=NoSuchElementException)\
-            .until(lambda m: m.find_element(*locator).is_displayed())
+        # Wait for the homescreen to finish loading
+        Wait(self.marionette, timeout).until(expected.element_present(
+            By.CSS_SELECTOR, '#homescreen[loading-state=false]'))
+
+        # Reset the storage path for desktop B2G
+        self._set_storage_path()
 
     @property
     def is_b2g_running(self):
@@ -586,17 +584,17 @@ class GaiaDevice(object):
             apps.switch_to_displayed_app()
         else:
             apps.switch_to_displayed_app()
-            mode = self.marionette.find_element(By.TAG_NAME, 'body').get_attribute('data-mode')
+            mode = self.marionette.find_element(By.TAG_NAME, 'body').get_attribute('class')
             self._dispatch_home_button_event()
             apps.switch_to_displayed_app()
-            if mode == 'edit':
+            if mode == 'edit-mode':
                 # touching home button will exit edit mode
                 Wait(self.marionette).until(lambda m: m.find_element(
-                    By.TAG_NAME, 'body').get_attribute('data-mode') == 'normal')
+                    By.TAG_NAME, 'body').get_attribute('class') != mode)
             else:
-                # touching home button will move to first page
+                # touching home button inside homescreen will scroll it to the top
                 Wait(self.marionette).until(lambda m: m.execute_script(
-                    'return window.wrappedJSObject.GridManager.pageHelper.getCurrentPageNumber();') == 0)
+                    "return document.querySelector('.scrollable').scrollTop") == 0)
 
     def _dispatch_home_button_event(self):
         self.marionette.switch_to_frame()
@@ -642,9 +640,15 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
             if self.restart:
                 pass
 
-        self.device = GaiaDevice(self.marionette, self.testvars)
-        if self.device.is_android_build:
-            self.device.add_device_manager(self.get_device_manager())
+        # TODO: Once bug 1019043 is fixed we will be able to just use
+        # self.device_manager instead of guarding for desktop B2G
+        device_manager = None
+        if not self.marionette.session_capabilities['device'] == 'desktop':
+            device_manager = self.device_manager
+        self.device = GaiaDevice(self.marionette,
+                                 manager=device_manager,
+                                 testvars=self.testvars)
+
         if self.restart and (self.device.is_android_build or self.marionette.instance):
             # Restart if it's a device, or we have passed a binary instance with --binary command arg
             self.device.stop_b2g()
@@ -689,8 +693,7 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
         self.data_layer = GaiaData(self.marionette, self.testvars)
         self.accessibility = Accessibility(self.marionette)
 
-        if self.device.is_android_build:
-            self.cleanup_sdcard()
+        self.cleanup_storage()
 
         if self.restart:
             self.cleanup_gaia(full_reset=False)
@@ -698,27 +701,31 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
             self.cleanup_gaia(full_reset=True)
 
     def cleanup_data(self):
-        self.device.manager.removeDir('/cache/*')
-        self.device.manager.removeDir('/data/b2g/mozilla')
-        self.device.manager.removeDir('/data/local/debug_info_trigger')
-        self.device.manager.removeDir('/data/local/indexedDB')
-        self.device.manager.removeDir('/data/local/OfflineCache')
-        self.device.manager.removeDir('/data/local/permissions.sqlite')
-        self.device.manager.removeDir('/data/local/storage/persistent')
+        self.device.file_manager.remove('/cache/*')
+        self.device.file_manager.remove('/data/b2g/mozilla')
+        self.device.file_manager.remove('/data/local/debug_info_trigger')
+        self.device.file_manager.remove('/data/local/indexedDB')
+        self.device.file_manager.remove('/data/local/OfflineCache')
+        self.device.file_manager.remove('/data/local/permissions.sqlite')
+        self.device.file_manager.remove('/data/local/storage/persistent')
         # remove remembered networks
-        self.device.manager.removeFile('/data/misc/wifi/wpa_supplicant.conf')
+        self.device.file_manager.remove('/data/misc/wifi/wpa_supplicant.conf')
 
-    def cleanup_sdcard(self):
-        # cleanup files from the device_root
-        for item in self.device.manager.listFiles(self.device.device_root):
-            self.device.manager.removeDir('/'.join([self.device.device_root, item]))
+    def cleanup_storage(self):
+        """Remove all files from the device's storage paths"""
+        storage_paths = [self.device.storage_path]
+        if self.device.is_android_build:
+            # TODO: Remove hard-coded paths once bug 1018079 is resolved
+            storage_paths.extend(['/mnt/sdcard',
+                                  '/mnt/extsdcard',
+                                  '/storage/sdcard0',
+                                  '/storage/sdcard1'])
+        for path in storage_paths:
+            if self.device.file_manager.dir_exists(path):
+                for item in self.device.file_manager.list_items(path):
+                    self.device.file_manager.remove('/'.join([path, item]))
 
     def cleanup_gaia(self, full_reset=True):
-        # remove media
-        if self.device.is_android_build:
-            for filename in self.data_layer.media_files:
-                self.device.manager.removeFile(filename)
-
         # restore settings from testvars
         [self.data_layer.set_setting(name, value) for name, value in self.testvars.get('settings', {}).items()]
 
@@ -732,7 +739,8 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
                 self.data_layer.set_char_pref(name, value)
 
         # unlock
-        self.device.unlock()
+        if self.data_layer.get_setting('lockscreen.enabled'):
+            self.device.unlock()
 
         # kill any open apps
         self.apps.kill_all()
@@ -804,9 +812,10 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
             else:
                 raise Exception('Unable to connect to local area network')
 
-    def push_resource(self, filename, count=1, destination=''):
-        # push to the test storage space defined by device_root
-        self.device.push_file(self.resource(filename), count, '/'.join([self.device.device_root, destination]))
+    def push_resource(self, filename, remote_path=None, count=1):
+        # push to the test storage space defined by device root
+        self.device.file_manager.push_file(
+            self.resource(filename), remote_path, count)
 
     def resource(self, filename):
         return os.path.abspath(os.path.join(os.path.dirname(__file__), 'resources', filename))
@@ -894,6 +903,8 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
             self.marionette.set_search_timeout(self.marionette.timeout or 10000)
 
     def tearDown(self):
+        if self.device.is_desktop_b2g and self.device.storage_path:
+            shutil.rmtree(self.device.storage_path, ignore_errors=True)
         self.apps = None
         self.data_layer = None
         MarionetteTestCase.tearDown(self)

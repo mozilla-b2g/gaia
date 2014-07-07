@@ -19,6 +19,7 @@
     <script defer type="application/javascript" src="/shared/js/lazy_l10n.js"></script>
     <link rel="resource" type="application/l10n" href="/locales/locales.ini">
     <link rel="resource" type="application/l10n" href="/shared/locales/date.ini">
+    <link rel="resource" type="application/l10n" href="/shared/locales/phone_types.ini">
     <!-- Making sure the shared resources will be copy into the zip
     <script type="application/javascript" src="/shared/js/l10n.js"></script>
     <script type="application/javascript" src="/shared/js/l10n_date.js"></script>
@@ -36,6 +37,7 @@
     <script defer type="application/javascript" src="/shared/js/dialer/tone_player.js"></script>
     <script defer type="application/javascript" src="/shared/js/dialer/keypad.js"></script>
     <script defer type="application/javascript" src="/shared/js/dialer/utils.js"></script>
+    <script defer type="application/javascript" src="/shared/js/dialer/font_size_manager.js"></script>
     <script defer type="application/javascript" src="/shared/js/dialer/voicemail.js"></script>
     <script defer type="application/javascript" src="/shared/js/bluetooth_helper.js"></script>
 
@@ -72,7 +74,7 @@
             <div class="number font-light"></div>
           </div>
           <div class="fake-number font-light"></div>
-          <div class="additionalContactInfo"></div>
+          <div class="additionalContactInfo font-light"></div>
           <div class="shadow">
           </div>
           <div class="duration">
@@ -92,7 +94,8 @@
             <div id="group-show"></div>
             <div id="group-call-label" class="number font-light"></div>
           </div>
-          <div id="group-call-summary" class="additionalContactInfo"></div>
+          <div class="fake-number font-light"></div>
+          <div id="group-call-summary" class="additionalContactInfo font-light"></div>
           <div class="duration">
             <span class="font-light"></span>
             <div class="total-duration"></div>
@@ -106,8 +109,8 @@
         <menu>
           <ul id="group-call-details-list">
           </ul>
-          <button id="group-hide" data-l10n-id='hide'>
-            Hide
+          <button id="group-hide" data-l10n-id="close">
+            Close
           </button>
         </menu>
       </form>
@@ -212,7 +215,8 @@
       <section id="incoming-info">
         <div class="incoming-number-info">
           <span id="incoming-number"></span>
-          <span id="incoming-number-additional-info"></span>
+          <span id="fake-incoming-number"></span>
+          <span id="incoming-number-additional-info" class="font-light"></span>
         </div>
         <div id="incoming-sim" class="sim"></div>
         <button id="incoming-ignore" data-l10n-id="ignore">
@@ -236,46 +240,56 @@
           <section id="keypad">
             <div class="keypad-row">
               <div class="keypad-key" role="key" data-value="1" data-voicemail="true">
-                1<em class="keypad-subicon voicemail" data-l10n-id="voiceMailKey"></em>
+                <span>1</span>
+                <em class="keypad-subicon voicemail" data-l10n-id="voiceMailKey"></em>
               </div>
               <div class="keypad-key" role="key" data-value="2">
-                2<em>ABC</em>
+                <span>2</span>
+                <em>ABC</em>
               </div>
               <div class="keypad-key" role="key" data-value="3">
-                3<em>DEF</em>
+                <span>3</span>
+                <em>DEF</em>
               </div>
             </div>
             <div class="keypad-row">
               <div class="keypad-key" role="key" data-value="4">
-                4<em>GHI</em>
+                <span>4</span>
+                <em>GHI</em>
               </div>
               <div class="keypad-key" role="key" data-value="5">
-                5<em>JKL</em>
+                <span>5</span>
+                <em>JKL</em>
               </div>
               <div class="keypad-key" role="key" data-value="6">
-                6<em>MNO</em>
+                <span>6</span>
+                <em>MNO</em>
               </div>
             </div>
             <div class="keypad-row">
               <div class="keypad-key" role="key" data-value="7">
-                7<em>PQRS</em>
+                <span>7</span>
+                <em>PQRS</em>
               </div>
               <div class="keypad-key" role="key" data-value="8">
-                8<em>TUV</em>
+                <span>8</span>
+                <em>TUV</em>
               </div>
               <div class="keypad-key" role="key" data-value="9">
-                9<em>WXYZ</em>
+                <span>9</span>
+                <em>WXYZ</em>
               </div>
             </div>
             <div class="keypad-row">
               <div class="keypad-key keypad-key-centered" role="key" data-value="*" data-l10n-id="asterisk">
-                <div class="asterisk"></div>
+                <div class="asterisk">*</div>
               </div>
               <div class="keypad-key" role="key" data-value="0">
-                0<em class="font-size-plus">+</em>
+                <span>0</span>
+                <em class="font-size-plus">+</em>
               </div>
               <div class="keypad-key keypad-key-centered" role="key" data-type="dial" data-value="#" data-l10n-id="hashSign">
-                <div class="sharp"></div>
+                <div class="sharp">#</div>
               </div>
             </div>
           </section>

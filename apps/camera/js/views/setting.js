@@ -6,8 +6,8 @@ define(function(require, exports, module) {
  */
 
 var debug = require('debug')('view:setting');
-var View = require('vendor/view');
 var bind = require('lib/bind');
+var View = require('view');
 
 /**
  * Exports
@@ -23,6 +23,7 @@ module.exports = View.extend({
     this.model.on('change', this.render);
     this.on('destroy', this.onDestroy);
     this.el.classList.add(this.model.get('icon'));
+    this.el.classList.add('test-' + this.model.get('title') + '-setting');
     bind(this.el, 'click', this.onClick);
   },
 

@@ -3,8 +3,17 @@
 
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 requireApp('search/test/unit/mock_search.js');
-requireApp('search/shared/js/url_helper.js');
 requireApp('search/js/providers/provider.js');
+requireApp('search/js/providers/grid_provider.js');
+
+// Required files for the grid and a mozapp result
+require('/shared/js/l10n.js');
+require('/shared/elements/gaia_grid/js/grid_icon_renderer.js');
+require('/shared/elements/gaia_grid/js/grid_layout.js');
+require('/shared/elements/gaia_grid/js/grid_view.js');
+require('/shared/elements/gaia_grid/script.js');
+require('/shared/elements/gaia_grid/js/items/grid_item.js');
+require('/shared/elements/gaia_grid/js/items/mozapp.js');
 
 suite('search/providers/local_apps', function() {
 
@@ -38,58 +47,28 @@ suite('search/providers/local_apps', function() {
     MockNavigatormozApps.mTeardown();
   });
 
-  suite('click', function() {
-    test('launches the application', function() {
-      var fakeManifestURL = 'http://mozilla.org/manifest.webapp';
-
-      var launchCalled = false;
-      subject.apps = {};
-      subject.apps[fakeManifestURL] = {
-        launch: function() {
-          launchCalled = true;
-        },
-        manifest: {
-          name: 'Mozilla Fake App',
-          icons: {
-            60: 'http://mozilla.org/favicon.ico'
-          }
-        }
-      };
-
-      subject.click({
-        target: {
-          dataset: {
-            manifest: fakeManifestURL
-          }
-        }
-      });
-      assert.ok(launchCalled);
-    });
-  });
-
   suite('search', function() {
-    test('clears results', function() {
-      var stub = this.sinon.stub(subject, 'clear');
-      subject.search('foo', function() {});
-      assert.ok(stub.calledOnce);
-    });
 
-    test('application is rendered', function() {
-      // Add app without icon
-      subject.apps['http://app2.mozilla.org/manifest.webapp'] = {
-        manifest: {
-          name: 'Mozilla Without Icon'
+    test('Search returns correct applications', function(done) {
+
+      subject.apps = {
+        'http://app2.mozilla.org/manifest.webapp': {
+          manifest: {
+            name: 'Mozilla Without Icon'
+          }
+        },
+        'http://fakeapp/manifest.webapp': {
+          manifest: {
+            name: 'Doesnt Match'
+          }
         }
       };
 
-      subject.search('moz', Search.collect.bind(Search, subject));
-      var app = subject.container.querySelector('.result');
-      assert.equal(app.querySelector('.title').innerHTML, 'Mozilla Fake App');
-      assert.equal(app.getAttribute('aria-label'), 'Mozilla Fake App');
-      assert.equal(app.getAttribute('role'), 'link');
-      assert.equal(app.querySelector('.icon').getAttribute('role'),
-        'presentation');
-      assert.equal(app.innerHTML.indexOf('Without Icon'), -1);
+      subject.search('moz').then(results => {
+        assert.equal(results.length, 1);
+        done();
+      });
+
     });
   });
 

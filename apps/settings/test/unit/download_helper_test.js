@@ -20,6 +20,7 @@ require('/shared/test/unit/mocks/mock_download_formatter.js');
 require('/shared/js/download/download_helper.js');
 require('/shared/test/unit/mocks/mock_moz_activity.js');
 require('/shared/test/unit/mocks/mock_navigator_getdevicestorage.js');
+require('/shared/test/unit/mocks/mock_navigator_getdevicestorages.js');
 
 if (!window.MozActivity) {
   window.MozActivity = null;
@@ -32,13 +33,17 @@ suite('DownloadHelper', function() {
     'DownloadFormatter',
     'MozActivity'
   ]);
-  var realL10n, realDeviceStorage, realMozDownloads, download;
+  var realL10n, realDeviceStorage, realMozDownloads, download,
+   realDeviceStorages;
 
   mocksHelperForDownloadHelper.attachTestHelpers();
 
   suiteSetup(function() {
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
+
+    realDeviceStorages = navigator.getDeviceStorages;
+    navigator.getDeviceStorages = MockGetDeviceStorages;
 
     realDeviceStorage = navigator.getDeviceStorage;
     navigator.getDeviceStorage = MockGetDeviceStorage;
@@ -50,6 +55,9 @@ suite('DownloadHelper', function() {
   suiteTeardown(function() {
     navigator.mozL10n = realL10n;
     realL10n = null;
+
+    navigator.getDeviceStorages = realDeviceStorages;
+    realDeviceStorages = null;
 
     navigator.getDeviceStorage = realDeviceStorage;
     realDeviceStorage = null;
@@ -128,9 +136,9 @@ suite('DownloadHelper', function() {
     function checkError(storage, code, done, type) {
       download.state = 'succeeded';
 
-      var stubGetDeviceStorage = sinon.stub(navigator, 'getDeviceStorage',
+      var stubGetDeviceStorages = sinon.stub(navigator, 'getDeviceStorages',
         function() {
-          return storage;
+          return [storage];
         }
       );
 
@@ -143,7 +151,7 @@ suite('DownloadHelper', function() {
 
       req.onerror = function(evt) {
         assert.equal(evt.target.error.code, code);
-        stubGetDeviceStorage.restore();
+        stubGetDeviceStorages.restore();
         done();
       };
     }
@@ -172,15 +180,16 @@ suite('DownloadHelper', function() {
 
       var req = DownloadHelper.open(download);
 
+      // We should always attempt to 'open' all content types.
       req.onsuccess = function() {
-        assert.ok(false);
+        assert.ok(true);
+        stubFormatter.restore();
         done();
       };
 
       req.onerror = function(evt) {
-        assert.equal(evt.target.error.code,
-          DownloadHelper.CODE.MIME_TYPE_NOT_SUPPORTED);
-        stubFormatter.restore();
+        assert.ok(false,
+                  'All content types should be openable via third party apps.');
         done();
       };
     });

@@ -1,0 +1,24 @@
+{
+  "name": "device-orientation",
+  "main": "index.js",
+  "homepage": "https://github.com/gaia-components/device-orientation",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests",
+    "README.md"
+  ],
+  "_release": "70fc8b7d26",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "70fc8b7d263773c02f0260ef9445d5a90cf91234"
+  },
+  "_source": "git://github.com/gaia-components/device-orientation.git",
+  "_target": "*",
+  "_originalSource": "gaia-components/device-orientation",
+  "_direct": true
+}

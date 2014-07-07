@@ -249,9 +249,10 @@ var UpdateManager = {
 
       var name = document.createElement('div');
       name.classList.add('name');
-      name.textContent = updatable.name;
       if (updatable.nameL10nId) {
-        name.dataset.l10nId = updatable.nameL10nId;
+        _localize(name, updatable.nameL10nId);
+      } else {
+        name.textContent = updatable.name;
       }
       listItem.appendChild(name);
 
@@ -612,8 +613,7 @@ var UpdateManager = {
   }
 };
 
-window.addEventListener('localized', function startup(evt) {
-  window.removeEventListener('localized', startup);
-
-  UpdateManager.init();
-});
+// unit tests call init() manually
+if (navigator.mozL10n) {
+  navigator.mozL10n.once(UpdateManager.init.bind(UpdateManager));
+}

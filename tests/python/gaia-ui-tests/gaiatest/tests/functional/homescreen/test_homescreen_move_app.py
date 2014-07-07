@@ -13,7 +13,6 @@ class TestMoveApp(GaiaTestCase):
 
         self.homescreen = Homescreen(self.marionette)
         self.apps.switch_to_displayed_app()
-        self.homescreen.wait_for_homescreen_to_load()
 
     def test_move_app_position(self):
         """Verify the user can move an application around on the homescreen.
@@ -21,17 +20,17 @@ class TestMoveApp(GaiaTestCase):
         https://moztrap.mozilla.org/manage/case/1317/
         """
 
-        # Go to app page
-        self.homescreen.go_to_next_page()
+        self.homescreen.wait_for_number_of_apps(1)
         first_app_before_move = self.homescreen.visible_apps[0].name
 
-        # Activate edit mode
+        # Assert that we are not in edit mode.
         self.assertFalse(self.homescreen.is_edit_mode_active, "Edit mode should not be active")
-        self.homescreen.activate_edit_mode()
-        self.assertTrue(self.homescreen.is_edit_mode_active, "Edit mode should be active")
 
-        # Move first app to position 12
-        self.homescreen.move_app_to_position(0, 12)
+        # Move first app to position 3 (index 2)
+        self.homescreen.move_app_to_position(0, 2)
+
+        # Assert that we are in edit mode.
+        self.assertTrue(self.homescreen.is_edit_mode_active, "Edit mode should be active")
 
         # Exit edit mode
         self.device.touch_home_button()
@@ -40,4 +39,4 @@ class TestMoveApp(GaiaTestCase):
         # Check the app order and that the app on position 12 is the right one
         first_app_after_move = self.homescreen.visible_apps[0].name
         self.assertNotEqual(first_app_before_move, first_app_after_move)
-        self.assertEqual(first_app_before_move, self.homescreen.visible_apps[12].name)
+        self.assertEqual(first_app_before_move, self.homescreen.visible_apps[2].name)

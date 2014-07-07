@@ -1,14 +1,16 @@
 'use strict';
 
 var KeyboardTestApp = require('./lib/keyboard_test_app'),
+    System = require('./lib/system'),
     Keyboard = require('./lib/keyboard'),
     assert = require('assert');
 
 marionette('show Keyboard APP', function() {
-  var apps = {},
-      keyboardTestApp = null,
-      keyboard = null,
-      client = null;
+  var apps = {};
+  var keyboardTestApp = null;
+  var system = null;
+  var keyboard = null;
+  var client = null;
 
   apps[KeyboardTestApp.ORIGIN] = __dirname + '/keyboardtestapp';
 
@@ -21,6 +23,7 @@ marionette('show Keyboard APP', function() {
 
   setup(function() {
     keyboard =  new Keyboard(client);
+    system =  new System(client);
 
     // create a keyboard test app
     keyboardTestApp = new KeyboardTestApp(client);
@@ -28,8 +31,8 @@ marionette('show Keyboard APP', function() {
     keyboardTestApp.textInput.click();
 
     // Wait for the keyboard pop up and switch to it
-    keyboard.waitForDisplayed();
-    keyboard.switchToActiveKeyboardFrame();
+    system.waitForKeyboardFrameDisplayed();
+    system.switchToActiveKeyboardFrame();
   });
 
   test('should show lowercase layout', function() {
@@ -40,8 +43,20 @@ marionette('show Keyboard APP', function() {
     // Please refer to http://bugzil.la/995865.
     var keyboardContainer =
       client.findElement('.keyboard-type-container[data-active]');
-
     assert.ok(keyboardContainer.displayed());
+  });
+
+  test('keys and buttons should be have aria-label set', function() {
+    var returnKey = keyboard.returnKey;
+    client.waitFor(function() {
+      return (returnKey.getAttribute('aria-label') === 'return');
+    });
+
+    var dismissSuggestionsButton = keyboard.dismissSuggestionsButton;
+    client.waitFor(function() {
+      var label = dismissSuggestionsButton.getAttribute('aria-label');
+      return (label === 'Dismiss');
+    });
   });
 
   test('Touching the status bar should not dismiss keyboard', function() {
@@ -52,7 +67,7 @@ marionette('show Keyboard APP', function() {
 
     client.helper.wait(3000);
 
-    keyboard.switchToActiveKeyboardFrame();
+    system.switchToActiveKeyboardFrame();
 
     var keyboardContainer =
       client.findElement('.keyboard-type-container[data-active]');

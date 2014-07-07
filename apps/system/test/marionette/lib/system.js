@@ -10,6 +10,7 @@ System.URL = 'app://system.gaiamobile.org/manifest.webapp';
 
 System.Selector = Object.freeze({
   statusbar: '#statusbar',
+  statusbarBackground: '#statusbar-background',
   topPanel: '#top-panel',
   leftPanel: '#left-panel',
   rightPanel: '#right-panel'
@@ -36,6 +37,10 @@ System.prototype = {
 
   getAppIframe: function(url) {
     return this.client.findElement('iframe[src*="' + url + '"]');
+  },
+
+  getHomescreenIframe: function() {
+    return this.client.findElement('#homescreen iframe');
   },
 
   waitForLaunch: function(url) {

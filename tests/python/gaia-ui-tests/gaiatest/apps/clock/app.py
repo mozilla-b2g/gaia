@@ -17,14 +17,13 @@ class Clock(Base):
     _alarm_view_locator = (By.ID, 'edit-alarm')
     _alarm_create_new_locator = (By.ID, 'alarm-new')
     _all_alarms_locator = (By.CSS_SELECTOR, '#alarms li')
+    _visible_clock_locator = (By.CSS_SELECTOR, '#clock-view .visible')
     _banner_countdown_notification_locator = (By.ID, 'banner-countdown')
 
     def launch(self):
         Base.launch(self)
-        self.wait_for_new_alarm_button()
-        # Desperate attempt to bust the intermittency :(
-        time.sleep(1)
-
+        self.wait_for_element_displayed(*self._visible_clock_locator)
+        self.wait_for_element_displayed(*self._alarm_create_new_locator)
 
     @property
     def alarms(self):
@@ -43,9 +42,6 @@ class Clock(Base):
         # We can't tap to clear the banner as sometimes it taps the underlying alarm changing the UI
         self.wait_for_element_not_displayed(
             *self._banner_countdown_notification_locator)
-
-    def wait_for_new_alarm_button(self):
-        self.wait_for_element_displayed(*self._alarm_create_new_locator)
 
     def tap_new_alarm(self):
         self.wait_for_element_displayed(*self._alarm_create_new_locator)

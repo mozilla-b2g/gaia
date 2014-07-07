@@ -8,47 +8,56 @@ require('/shared/js/l10n.js');
 require('/shared/js/l10n_date.js');
 require('/shared/js/media/media_utils.js');
 require('/shared/test/unit/load_body_html_helper.js');
+require('/shared/test/unit/mocks/mock_screen_layout.js');
 require('/shared/test/unit/mocks/mock_video_stats.js');
-requireApp('/video/js/video.js');
 requireApp('/video/js/video_utils.js');
 requireApp('/video/test/unit/mock_l10n.js');
-requireApp('/video/test/unit/mock_thumbnail_group.js');
+requireApp('/video/test/unit/mock_metadata.js');
 requireApp('/video/test/unit/mock_mediadb.js');
+requireApp('/video/test/unit/mock_thumbnail_group.js');
+requireApp('/video/test/unit/mock_thumbnail_item.js');
 requireApp('/video/test/unit/mock_video_player.js');
 requireApp('/video/js/thumbnail_list.js');
 
-var metadataQueue; // Declare here to avoid pulling in metadata.js
-var MediaDB;       // Declare here to avoid pulling in mediadb.js
-var videodb;       // Used in video.js
-var videoControlsAutoHidingMsOverride = 0; // Used in video.js
+// Declare variables used in video.js that are declared in other
+// javascript files (that we don't want to pull in).
+var videodb;              // Declared in db.js
 var startParsingMetadata; // Declared in metadata.js
-var captureFrame;  // Declared in metadata.js
+var ThumbnailItem;
 
 function containsClass(element, value) {
   return element.classList.contains(value);
 }
 
+var mocksForVideo = new MocksHelper([
+  'ScreenLayout'
+]);
+
+function getAsset(filename, loadCallback) {
+  var req = new XMLHttpRequest();
+  req.open('GET', filename, true);
+  req.responseType = 'blob';
+  req.onload = function() {
+    loadCallback(req.response);
+  };
+  req.send();
+}
+
 suite('Video App Unit Tests', function() {
   var nativeMozL10n;
-  suiteSetup(function() {
+  var videoName = 'video name';
+
+  suiteSetup(function(done) {
+
+    mocksForVideo.suiteSetup();
 
     // Create DOM structure
     loadBodyHTML('/index.html');
-    dom.infoView = document.getElementById('info-view');
-    dom.durationText = document.getElementById('duration-text');
-    dom.overlay = document.createElement('overlay');
-    dom.play = document.getElementById('play');
-    dom.videoTitle = document.getElementById('video-title');
-    dom.videoContainer = document.getElementById('video-container');
-    dom.videoControls = document.getElementById('videoControls');
-    dom.elapsedText = document.getElementById('elapsed-text');
-    dom.elapsedTime = document.getElementById('elapsedTime');
-    dom.playHead = document.getElementById('playHead');
 
     nativeMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
     MediaUtils._ = MockL10n.get;
-
+    requireApp('/video/js/video.js', done);
   });
 
   suiteTeardown(function() {
@@ -56,7 +65,7 @@ suite('Video App Unit Tests', function() {
   });
 
   suite('#Video Info Populate Data', function() {
-    before(function() {
+    suiteSetup(function() {
       currentVideo = {
         metadata: {
           title: 'Small webm',
@@ -91,6 +100,19 @@ suite('Video App Unit Tests', function() {
     test('#Test hide info view', function() {
       hideInfoView();
       assert.isTrue(dom.infoView.classList[0] === 'hidden');
+    });
+  });
+
+  suite('#Video Action Menu Test', function() {
+
+    test('#Test show option view', function() {
+      showOptionsView();
+      assert.isFalse(dom.optionsView.classList[0] === 'hidden');
+    });
+
+    test('#Test hide option view', function() {
+      hideOptionsView();
+      assert.isTrue(dom.optionsView.classList[0] === 'hidden');
     });
   });
 
@@ -307,6 +329,7 @@ suite('Video App Unit Tests', function() {
 
     var playerPlaySpy;
     var playerPauseSpy;
+    var fakeTimer;
 
     function getTitle(autoPlay, enterFullscreen, keepControls, misc) {
       var appendage;
@@ -350,11 +373,12 @@ suite('Video App Unit Tests', function() {
     }
 
     suiteSetup(function(done) {
-
       dom.player = new MockVideoPlayer();
 
       playerPlaySpy = sinon.spy(dom.player, 'play');
       playerPauseSpy = sinon.spy(dom.player, 'pause');
+
+      fakeTimer = sinon.useFakeTimers();
 
       videoDuration = 1.25;
 
@@ -385,15 +409,7 @@ suite('Video App Unit Tests', function() {
       selectedThumbnail =
           thumbnailList.thumbnailMap[selectedVideo.name];
 
-      function getAsset(filename, loadCallback) {
-        var req = new XMLHttpRequest();
-        req.open('GET', filename, true);
-        req.responseType = 'blob';
-        req.onload = function() {
-          loadCallback(req.response);
-        };
-        req.send();
-      }
+      isPhone = true; // setControlsVisibility
 
       getAsset('/test/unit/media/test.webm', function(blob) {
         videodb = new MockMediaDB(blob);
@@ -407,8 +423,9 @@ suite('Video App Unit Tests', function() {
 
     setup(function() {
       selectedThumbnail.htmlNode.classList.remove('focused');
-      dom.player.duration = 0;
+      dom.player.setDuration(0);
       dom.player.currentTime = -1;
+      dom.player.onloadedmetadata = null;
     });
 
     teardown(function() {
@@ -700,7 +717,7 @@ suite('Video App Unit Tests', function() {
     *   that has already been tested fully by the previous
     *   tests.
     */
-    test(getTitle(true, true, false), function(done) {
+    test(getTitle(true, true, false), function() {
 
       currentVideo = null;
       dom.player.setSeeking(false);
@@ -711,8 +728,6 @@ suite('Video App Unit Tests', function() {
       currentLayoutMode = LAYOUT_MODE.list;
       document.body.classList.add(LAYOUT_MODE.list);
 
-      // In order to test 'setControlsVisibility(true)'
-      isPhone = true;
       dom.videoControls.classList.remove('hidden');
 
       showPlayer(selectedVideo,
@@ -730,10 +745,9 @@ suite('Video App Unit Tests', function() {
       assert.isTrue(playerPlaySpy.calledOnce);
       assert.equal(playerPauseSpy.callCount, 0);
 
-      setTimeout(function() {
-        assert.isTrue(containsClass(dom.videoControls, 'hidden'));
-        done();
-      }, 0);
+      fakeTimer.tick(300);
+
+      assert.isTrue(containsClass(dom.videoControls, 'hidden'));
     });
 
     /**
@@ -907,18 +921,11 @@ suite('Video App Unit Tests', function() {
       updatePosterSpy = sinon.spy();
       setWatchedSpy = sinon.spy();
 
-      // We need a mock captureFrame function as opposed to simply
-      // using a spy because the function needs to have an implementation,
-      // it needs to invoke the callback function.
-      captureFrame = function captureFrame(player, metadata, callback) {
-        callback();
-      };
-
       videodb = new MockMediaDB();
       updateMetadataDbSpy = sinon.spy(videodb, 'updateMetadata');
 
       currentVideo = {
-        'name': 'video name'
+        'name': videoName
       };
 
       thumbnailList.addItem(currentVideo);
@@ -982,7 +989,7 @@ suite('Video App Unit Tests', function() {
       dom.player.currentTime = 1;
 
       currentVideo = {
-        'name': 'video name',
+        'name': videoName,
         'metadata': {
           'title': 'video title',
           'watched': true
@@ -1024,7 +1031,7 @@ suite('Video App Unit Tests', function() {
       dom.player.currentTime = 1;
 
       currentVideo = {
-        'name': 'video name',
+        'name': videoName,
         'metadata': {
           'title': 'video title',
           'watched': false
@@ -1067,7 +1074,7 @@ suite('Video App Unit Tests', function() {
       var currentTime = 10;
 
       currentVideo = {
-        'name': 'video name',
+        'name': videoName,
         'metadata': {
           'title': 'video title',
           'watched': false,
@@ -1108,7 +1115,7 @@ suite('Video App Unit Tests', function() {
       // currentVideo.metadata.currentTime
 
       currentVideo = {
-        'name': 'video name'
+        'name': videoName
       };
 
       hidePlayer(true);
@@ -1145,7 +1152,7 @@ suite('Video App Unit Tests', function() {
       dom.player.currentTime = 1;
 
       currentVideo = {
-        'name': 'video name',
+        'name': videoName,
         'metadata': {
           'title': 'video title',
           'watched': false
@@ -1335,6 +1342,203 @@ suite('Video App Unit Tests', function() {
       assert.isFalse(updatePosterSpy.calledOnce);
       assert.isFalse(setWatchedSpy.calledOnce);
       assert.isFalse(updateMetadataDbSpy.calledOnce);
+    });
+  });
+
+  suite('handleScreenLayoutChange flows', function() {
+
+    var updateAllThumbnailTitleSpy;
+    var rescaleSpy;
+    var HAVE_METADATA = 1;
+
+    suiteSetup(function(done) {
+      dom.player = new MockVideoPlayer();
+      ThumbnailItem = MockThumbnailItem;
+
+      MockThumbnailGroup.reset();
+      var dummyContainer = document.createElement('div');
+
+      thumbnailList = new ThumbnailList(MockThumbnailGroup, dummyContainer);
+      thumbnailList.addItem({'name': videoName});
+
+      updateAllThumbnailTitleSpy = sinon.spy(thumbnailList,
+                                             'updateAllThumbnailTitle');
+      rescaleSpy = sinon.spy(VideoUtils, 'fitContainer');
+
+      getAsset('/test/unit/media/test.webm', function(blob) {
+        videodb = new MockMediaDB(blob);
+        done();
+      });
+    });
+
+    teardown(function() {
+      updateAllThumbnailTitleSpy.reset();
+      rescaleSpy.reset();
+    });
+
+    test('#handleScreenLayoutChange: tablet, landscape, everything is waiting',
+        function() {
+
+      // In tablet, the landscape mode will show player and list at the same
+      // time. To keep only one hardware codec be used, we shows loading icon
+      // at the player view before first batch of files scanned and all their
+      // metadata are parsed.
+
+      ScreenLayout.setCurrentLayout('landscape');
+      isPhone = false;
+      firstScanEnded = false;
+      dom.spinnerOverlay.classList.add('hidden'); // stage spinner being hidden
+
+      handleScreenLayoutChange();
+
+      assert.isFalse(containsClass(dom.spinnerOverlay, 'hidden'));
+      assert.isTrue(containsClass(dom.playerView, 'disabled'));
+      assert.equal(ThumbnailItem.titleMaxLines, 2);
+    });
+
+    test('#handleScreenLayoutChange: tablet, landscape, scan has ended',
+        function() {
+      ScreenLayout.setCurrentLayout('landscape');
+      isPhone = false;
+      firstScanEnded = true;
+      processingQueue = false;
+      dom.spinnerOverlay.classList.remove('hidden'); // stage spinner shown
+      dom.playerView.classList.add('disabled'); // stage player view
+
+      handleScreenLayoutChange();
+
+      assert.isTrue(containsClass(dom.spinnerOverlay, 'hidden'));
+      assert.isFalse(containsClass(dom.playerView, 'disabled'));
+      assert.equal(ThumbnailItem.titleMaxLines, 2);
+    });
+
+    test('#handleScreenLayoutChange: tablet rotating to portrait, list view',
+        function() {
+
+      isPhone = false;
+      currentLayoutMode = LAYOUT_MODE.list;
+      ScreenLayout.setCurrentLayout('portrait');
+      playerShowing = true;
+      //
+      // currentVideo without metadata will cause hidePlayer to execute
+      // faster (won't try to update metadata).
+      //
+      currentVideo = {
+        'name': videoName
+      };
+
+      handleScreenLayoutChange();
+
+      assert.isFalse(playerShowing);
+      assert.equal(ThumbnailItem.titleMaxLines, 4);
+    });
+
+    test('#handleScreenLayoutChange: tablet rotating to landscape, list view',
+        function() {
+
+      isPhone = false;
+      currentLayoutMode = LAYOUT_MODE.list;
+      ScreenLayout.setCurrentLayout('landscape');
+      playerShowing = false;
+
+      //
+      // handleScreenLayoutChange invokes showPlayer with 'currentVideo',
+      //
+      currentVideo = {
+        'name': videoName
+      };
+
+      dom.player.onloadedmetadata = null;
+
+      handleScreenLayoutChange();
+      //
+      // showPlayer calls setVideoUrl which sets 'src' of
+      // video element. Except that we're using a mock video
+      // object so onloadedmetadata is not going to be called
+      // automatically -- invoke it manually
+      //
+      dom.player.onloadedmetadata();
+
+      assert.isTrue(playerShowing);
+      assert.equal(ThumbnailItem.titleMaxLines, 2);
+    });
+
+    test('#handleScreenLayoutChange: update thumbnail title text immediately',
+        function() {
+
+      isPhone = true;
+      currentLayoutMode = LAYOUT_MODE.list;
+
+      handleScreenLayoutChange();
+
+      assert.isTrue(updateAllThumbnailTitleSpy.calledOnce);
+    });
+
+    test('#handleScreenLayoutChange: update thumbnail title text later',
+        function() {
+
+      isPhone = true;
+      currentLayoutMode = LAYOUT_MODE.fullscreenPlayer;
+      pendingUpdateTitleText = false;
+
+      handleScreenLayoutChange();
+
+      assert.equal(updateAllThumbnailTitleSpy.callCount, 0);
+      assert.isTrue(pendingUpdateTitleText);
+    });
+
+    test('#handleScreenLayoutChange: update thumbnail title text -- abort',
+        function() {
+
+      isPhone = true;
+      currentLayoutMode = LAYOUT_MODE.list;
+      pendingUpdateTitleText = false;
+      thumbnailList = null;
+
+      handleScreenLayoutChange();
+
+      // Shouldn't have invoked updateAllThumbnailTitle nor
+      // should have set pendingUpdateTitleText
+      assert.equal(updateAllThumbnailTitleSpy.callCount, 0);
+      assert.isFalse(pendingUpdateTitleText);
+    });
+
+    test('#handleScreenLayoutChange: phone, rescale',
+        function() {
+
+      currentVideo = {
+        'name': videoName,
+        'metadata': {
+          'rotation': '90'
+        }
+      };
+      isPhone = true;
+      currentLayoutMode = LAYOUT_MODE.fullscreenPlayer;
+      ScreenLayout.setCurrentLayout('portrait');
+      dom.player.readyState = HAVE_METADATA;
+
+      handleScreenLayoutChange();
+
+      assert.isTrue(rescaleSpy.calledOnce);
+    });
+
+    test('#handleScreenLayoutChange: phone, no rescale',
+        function() {
+
+      currentVideo = {
+        'name': videoName,
+        'metadata': {
+          'rotation': '90'
+        }
+      };
+      isPhone = true;
+      currentLayoutMode = LAYOUT_MODE.fullscreenPlayer;
+      ScreenLayout.setCurrentLayout('portrait');
+      dom.player.readyState = HAVE_NOTHING;
+
+      handleScreenLayoutChange();
+
+      assert.equal(rescaleSpy.callCount, 0);
     });
   });
 });

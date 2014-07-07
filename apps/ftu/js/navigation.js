@@ -118,6 +118,7 @@ var Navigation = {
           if (result) { // sending process ok, we advance
             UIManager.activationScreen.classList.remove('show');
             UIManager.finishScreen.classList.add('show');
+            UIManager.hideActivationScreenFromScreenReader();
           } else { // error on sending, we stay where we are
             self.currentStep--;
           }
@@ -157,7 +158,13 @@ var Navigation = {
       return 1;
     }
 
-    return this.currentStep - (this.skipDataScreen ? 1 : 0);
+    var progressBarPosition = this.currentStep - (this.skipDataScreen ? 1 : 0);
+
+    if (progressBarPosition > this.totalSteps) {
+      return this.totalSteps;
+    }
+
+    return progressBarPosition;
   },
 
   handleEvent: function n_handleEvent(event) {
@@ -245,10 +252,17 @@ var Navigation = {
         break;
     }
 
+    var progressBarState = this.getProgressBarState();
     UIManager.progressBarState.style.width =
       'calc(100% / ' + this.totalSteps + ')';
     UIManager.progressBarState.style.transform =
-      'translateX(' + ((this.getProgressBarState() - 1) * 100) + '%)';
+      'translateX(' + ((progressBarState - 1) * 100) + '%)';
+    UIManager.progressBar.setAttribute('aria-valuetext', _('progressbar', {
+      step: progressBarState,
+      total: this.totalSteps
+    }));
+    UIManager.progressBar.setAttribute('aria-valuemin', 1);
+    UIManager.progressBar.setAttribute('aria-valuemax', this.totalSteps);
 
     // If SIM card is mandatory, we hide the button skip
     if (this.simMandatory) {

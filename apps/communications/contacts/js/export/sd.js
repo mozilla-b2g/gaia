@@ -128,7 +128,7 @@ var ContactsSDExport = function ContactsSDExport() {
             }
             finishCallback({
               'reason': reason
-            }, count, error.message);
+            }, count, true);
             return;
           }
           if (cancelled) {
@@ -142,11 +142,11 @@ var ContactsSDExport = function ContactsSDExport() {
             pendingBatches--;
 
             if (done && (pendingBatches === 0)) {
-              finishCallback(null, count, null);
+              finishCallback(null, count, false);
             }
           };
           request.onerror = function onError(e) {
-            finishCallback({ 'reason': e }, count, e.message);
+            finishCallback({ 'reason': e }, count, true);
           };
         });
     }, function finish() {

@@ -23,6 +23,27 @@ BrowserAppBuilder.prototype.initJSON = function() {
     utils.getDistributionFileContent('browser', defaultJson, this.distDirPath));
 };
 
+BrowserAppBuilder.prototype.initTopsitesJSON = function() {
+  var defaultJSONpath =
+    utils.joinPath(this.appDir.path, 'build', 'topsites.json');
+  var defaultJson = utils.getJSON(utils.getFile(defaultJSONpath));
+
+  defaultJson.topSites.forEach(function(site) {
+    if (site.iconPath) {
+      var file = utils.getFile(this.appDir.path, 'build', site.iconPath);
+      var icon = utils.getFileAsDataURI(file);
+      site.iconUri = icon;
+      delete site.iconPath;
+    }
+  }.bind(this));
+
+  var file =
+    utils.getFile(this.stageDir.path, 'js', 'inittopsites.json');
+  utils.writeContent(file,
+    utils.getDistributionFileContent('topsites', defaultJson,
+                                                 this.distDirPath));
+};
+
 BrowserAppBuilder.prototype.generateManifest = function() {
   var manifest =
     utils.getJSON(utils.getFile(this.appDir.path, 'manifest.webapp'));
@@ -36,6 +57,7 @@ BrowserAppBuilder.prototype.generateManifest = function() {
 BrowserAppBuilder.prototype.execute = function(options) {
   this.setOptions(options);
   this.initJSON();
+  this.initTopsitesJSON();
   if (options.HAIDA) {
     this.generateManifest();
   }

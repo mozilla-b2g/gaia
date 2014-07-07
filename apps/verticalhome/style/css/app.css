@@ -1,0 +1,83 @@
+html {
+  font-size: 10px;
+}
+
+html, body {
+  height: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+/* RTL fixes being tracked in bug 1008013 */
+html[dir="rtl"] {
+  direction: ltr;
+}
+
+.scrollable {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+gaia-grid {
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+
+#curtain {
+  background: #000;
+  opacity: 0.1;
+  height: 100%;
+  width: 100%;
+  position: fixed;
+  top: 0;
+  transition: opacity 0.5s ease-in, background 0s linear 0.5s;
+}
+
+.edit-mode #curtain {
+  background: #333333;
+  opacity: 1;
+  transition: opacity 0.5s ease-in;
+}
+
+#edit-header {
+  position: fixed;
+  top: 0;
+  z-index: 4;
+  width: 100%;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.5s ease-in, visibility 0s linear 0.5s;
+}
+
+.edit-mode #edit-header {
+  visibility: visible;
+  opacity: 1;
+  transition: opacity 0.5s ease-in;
+}
+
+.edit-mode #search {
+  visibility: hidden;
+}
+
+#confirmation-message {
+  z-index: 10;
+}
+
+#contextmenu-dialog {
+  display: none;
+}
+
+.divider:last-of-type {
+  visibility: hidden;
+  padding-bottom: 1.4rem;
+}
+
+.edit-mode .divider:last-of-type {
+  visibility: visible;
+}

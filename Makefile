@@ -78,6 +78,12 @@ PRODUCTION?=0
 DESKTOP_SHIMS?=0
 GAIA_OPTIMIZE?=0
 GAIA_DEV_PIXELS_PER_PX?=1
+
+# Alias
+ifdef GAIA_DPPX
+GAIA_DEV_PIXELS_PER_PX=$(GAIA_DPPX)
+endif
+
 DOGFOOD?=0
 NODE_MODULES_SRC?=modules.tar
 
@@ -144,11 +150,7 @@ LOCAL_DOMAINS?=1
 
 ADB?=adb
 
-ifeq ($(DEBUG),1)
-SCHEME=http://
-else
 SCHEME=app://
-endif
 
 SYSTEM?=$(SCHEME)system.$(GAIA_DOMAIN)
 
@@ -390,10 +392,11 @@ LOCALES_FILE?=shared/resources/languages.json
 GAIA_LOCALE_SRCDIRS=$(GAIA_DIR)$(SEP)shared $(GAIA_APPDIRS)
 GAIA_DEFAULT_LOCALE?=en-US
 GAIA_INLINE_LOCALES?=1
+GAIA_PRETRANSLATE?=1
 GAIA_CONCAT_LOCALES?=1
 
 # This variable is for customizing the keyboard layouts in a build.
-GAIA_KEYBOARD_LAYOUTS?=en,pt-BR,es,de,fr,pl,zh-Hans-Pinyin
+GAIA_KEYBOARD_LAYOUTS?=en,pt-BR,es,de,fr,pl,zh-Hans-Pinyin,en-Dvorak
 
 ifeq ($(SYS),Darwin)
 MD5SUM = md5 -r
@@ -460,11 +463,13 @@ define BUILD_CONFIG
 	"OFFICIAL" : "$(MOZILLA_OFFICIAL)", \
 	"GAIA_DEFAULT_LOCALE" : "$(GAIA_DEFAULT_LOCALE)", \
 	"GAIA_INLINE_LOCALES" : "$(GAIA_INLINE_LOCALES)", \
+	"GAIA_PRETRANSLATE" : "$(GAIA_PRETRANSLATE)", \
 	"GAIA_CONCAT_LOCALES" : "$(GAIA_CONCAT_LOCALES)", \
 	"GAIA_ENGINE" : "xpcshell", \
 	"GAIA_DISTRIBUTION_DIR" : "$(GAIA_DISTRIBUTION_DIR)", \
 	"GAIA_APPDIRS" : "$(GAIA_APPDIRS)", \
 	"GAIA_ALLAPPDIRS" : "$(GAIA_ALLAPPDIRS)", \
+	"GAIA_MEMORY_PROFILE" : "$(GAIA_MEMORY_PROFILE)", \
 	"NOFTU" : "$(NOFTU)", \
 	"REMOTE_DEBUGGER" : "$(REMOTE_DEBUGGER)", \
 	"HAIDA" : $(HAIDA), \
@@ -482,40 +487,39 @@ export BUILD_CONFIG
 
 define app-makefile-template
 .PHONY: $(1)
-$(1): $(XULRUNNER_BASE_DIRECTORY) keyboard-layouts contacts-import-services $(STAGE_DIR)/settings_stage.json webapp-manifests svoperapps clear-stage-app webapp-shared | $(STAGE_DIR)
+$(1): $(XULRUNNER_BASE_DIRECTORY) pre-app | $(STAGE_DIR)
 	@if [[ ("$(2)" =~ "${BUILD_APP_NAME}") || ("${BUILD_APP_NAME}" == "*") ]]; then \
-  	if [ -r "$(2)/Makefile" ]; then \
-  		echo "execute Makefile for $(1) app" ; \
-  		STAGE_APP_DIR="../../build_stage/$(1)" make -C "$(2)" ; \
-  	else \
-  		echo "copy $(1) to build_stage/" ; \
-  		cp -LR "$(2)" $(STAGE_DIR) && \
-  		if [ -r "$(2)/build/build.js" ]; then \
-  			echo "execute $(1)/build/build.js"; \
-  			export APP_DIR=$(2); \
-  			$(call run-js-command,app/build); \
-  		fi; \
-  	fi && \
-  	$(call clean-build-files,$(STAGE_DIR)/$(1)); \
+		if [ -r "$(2)$(SEP)Makefile" ]; then \
+			echo "execute Makefile for $(1) app" ; \
+			STAGE_APP_DIR="../../build_stage/$(1)" make -C "$(2)" ; \
+		else \
+			echo "copy $(1) to build_stage/" ; \
+			cp -LR "$(2)" $(STAGE_DIR) && \
+			if [ -r "$(2)$(SEP)build$(SEP)build.js" ]; then \
+				echo "execute $(1)/build/build.js"; \
+				export APP_DIR=$(2); \
+				$(call run-js-command,app/build); \
+			fi; \
+		fi; \
   fi;
 endef
 
 include build/common.mk
 
 # Generate profile/
-$(PROFILE_FOLDER): preferences post-manifest app-makefiles keyboard-layouts contacts-import-services copy-build-stage-data test-agent-config offline contacts extensions $(XULRUNNER_BASE_DIRECTORY) .git/hooks/pre-commit create-default-data $(PROFILE_FOLDER)/installed-extensions.json
+$(PROFILE_FOLDER): preferences pre-app post-app test-agent-config offline contacts extensions $(XULRUNNER_BASE_DIRECTORY) .git/hooks/pre-commit create-default-data
 ifeq ($(BUILD_APP_NAME),*)
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)$(PROFILE_FOLDER)"
 endif
 
-.PHONY: test-agent-bootstrap
-test-agent-bootstrap: $(XULRUNNER_BASE_DIRECTORY)
-	@$(call run-js-command,test-agent-bootstrap)
-
 $(STAGE_DIR):
 	mkdir -p $@
 
+ifeq (${BUILD_APP_NAME},*)
 APP_RULES := $(foreach appdir,$(GAIA_APPDIRS),$(notdir $(appdir)))
+else
+APP_RULES := ${BUILD_APP_NAME}
+endif
 $(foreach appdir,$(GAIA_APPDIRS), \
 	$(eval $(call app-makefile-template,$(notdir $(appdir)),$(appdir))) \
 )
@@ -526,78 +530,31 @@ $(foreach appdir,$(GAIA_APPDIRS), \
 .PHONY: app-makefiles
 app-makefiles: $(APP_RULES)
 
-.PHONY: clear-stage-app
-clear-stage-app:
-	@for appdir in $(GAIA_APPDIRS); \
-	do \
-		if [[ ("$$appdir" =~ "${BUILD_APP_NAME}") || ("${BUILD_APP_NAME}" == "*") ]]; then \
-			APP="`basename $$appdir`"; \
-			echo "clear $$APP in build_stage" ; \
-			rm -rf $(STAGE_DIR)/$$APP/*; \
-		fi; \
-	done
-
-svoperapps: $(XULRUNNER_BASE_DIRECTORY)
-	@$(call run-js-command,svoperapps)
-
 LANG=POSIX # Avoiding sort order differences between OSes
 
-# Generate $(PROFILE_FOLDER)/webapps/
-# We duplicate manifest.webapp to manifest.webapp and manifest.json
-# to accommodate Gecko builds without bug 757613. Should be removed someday.
-#
-# We depend on app-makefiles so that per-app Makefiles could modify the manifest
-# as part of their build step.  None currently do this, and webapp-manifests.js
-# would likely want to change to see if the build directory includes a manifest
-# in that case.  Right now this is just making sure we don't race app-makefiles
-# in case someone does decide to get fancy.
-.PHONY: webapp-manifests
-webapp-manifests: $(XULRUNNER_BASE_DIRECTORY) $(STAGE_DIR)
-	@$(call run-js-command,webapp-manifests)
+.PHONY: pre-app
+pre-app: $(XULRUNNER_BASE_DIRECTORY) $(STAGE_DIR)
+	@$(call run-js-command,pre-app)
 
-.PHONY: webapp-zip
-# Generate $(PROFILE_FOLDER)/webapps/APP/application.zip
-webapp-zip: webapp-optimize app-makefiles keyboard-layouts $(XULRUNNER_BASE_DIRECTORY)
-ifneq ($(DEBUG),1)
-	@mkdir -p $(PROFILE_FOLDER)/webapps
-	@$(call run-js-command,webapp-zip)
-endif
+.PHONY: post-app
+post-app: app-makefiles pre-app $(XULRUNNER_BASE_DIRECTORY)
+	@$(call run-js-command,post-app)
 
-.PHONY: webapp-shared
-# Copy shared files to stage folders
-webapp-shared: $(XULRUNNER_BASE_DIRECTORY) keyboard-layouts $(STAGE_DIR) clear-stage-app
-	@$(call run-js-command, webapp-shared)
+# Keep old targets just for people/scripts still using it
+.PHONY: post-manifest
+post-manifest: post-app
+
+.PHONY: copy-build-stage-data
+copy-build-stage-data: post-app
 
 .PHONY: webapp-optimize
-# Web app optimization steps (like precompling l10n, concatenating js files, etc..).
-# You need xulrunner ($(XULRUNNER_BASE_DIRECTORY)) to do this, and you need the app
-# to have been built (app-makefiles).
-webapp-optimize: multilocale app-makefiles $(XULRUNNER_BASE_DIRECTORY)
-	@$(call run-js-command,webapp-optimize)
+webapp-optimize: post-app
 
-.PHONY: optimize-clean
-# Remove temporary l10n files created by the webapp-optimize step.  Because
-# webapp-zip wants these files to still be around during the zip stage, depend
-# on webapp-zip so it runs to completion before we start the cleanup.
-optimize-clean: webapp-zip $(XULRUNNER_BASE_DIRECTORY)
-	@$(call run-js-command,optimize-clean)
-
-.PHONY: keyboard-layouts
-# A separate step for shared/ folder to generate its content in build time
-keyboard-layouts: webapp-manifests $(XULRUNNER_BASE_DIRECTORY)
-	@$(call run-js-command,keyboard-layouts)
-
-.PHONY: contacts-import-services
-contacts-import-services: webapp-manifests $(XULRUNNER_BASE_DIRECTORY)
-	@$(call run-js-command,contacts-import-services)
-
-.PHONY: post-manifest
-# Updates hostnames for InterApp Communication APIs.
-post-manifest: app-makefiles $(XULRUNNER_BASE_DIRECTORY)
-	@$(call run-js-command,post-manifest)
+.PHONY: webapp-zip
+webapp-zip: post-app
 
 # Get additional extensions
-$(PROFILE_FOLDER)/installed-extensions.json: build/config/additional-extensions.json $(wildcard .build/config/custom-extensions.json)
+$(STAGE_DIR)/additional-extensions/downloaded.json: build/config/additional-extensions.json $(wildcard .build/config/custom-extensions.json)
 ifeq ($(SIMULATOR),1)
 	# Prevent installing external firefox helper addon for the simulator
 else ifeq ($(DESKTOP),1)
@@ -619,7 +576,7 @@ endif
 endif
 
 # Create webapps
-offline: app-makefiles optimize-clean
+offline: app-makefiles post-app
 
 # Create an empty reference workload
 .PHONY: reference-workload-empty
@@ -720,7 +677,7 @@ endif
 
 # Generate $(PROFILE_FOLDER)/extensions
 EXT_DIR=$(PROFILE_FOLDER)/extensions
-extensions:
+extensions: $(STAGE_DIR)/additional-extensions/downloaded.json
 ifeq ($(BUILD_APP_NAME),*)
 	@rm -rf $(EXT_DIR)
 	@mkdir -p $(EXT_DIR)
@@ -728,6 +685,7 @@ ifeq ($(SIMULATOR),1)
 	cp -r tools/extensions/{activities@gaiamobile.org,activities,alarms@gaiamobile.org,alarms,desktop-helper,desktop-helper@gaiamobile.org} $(EXT_DIR)/
 else ifeq ($(DESKTOP),1)
 	cp -r tools/extensions/* $(EXT_DIR)/
+	cp -r $(STAGE_DIR)/additional-extensions/* $(EXT_DIR)/
 else ifeq ($(DEBUG),1)
 	cp tools/extensions/httpd@gaiamobile.org $(EXT_DIR)/
 	cp -r tools/extensions/httpd $(EXT_DIR)/
@@ -780,12 +738,12 @@ ifndef APPS
 	ifdef APP
 		APPS=$(APP)
 	else
-		APPS=template $(shell find apps -type d -name 'test' | sed -e 's|^apps/||' -e 's|/test$$||' )
+		APPS=template $(shell find apps -type d -name 'test' | sed -e 's|^apps/||' -e 's|/test$$||' | sort )
 	endif
 endif
 
 b2g: node_modules/.bin/mozilla-download
-	./node_modules/.bin/mozilla-download  \
+	DEBUG=* ./node_modules/.bin/mozilla-download  \
 		--verbose \
 		--product b2g \
 		--channel tinderbox \
@@ -818,7 +776,10 @@ caldav-server-install:
 
 .PHONY: test-perf
 test-perf:
-	MOZPERFOUT="$(MOZPERFOUT)" APPS="$(APPS)" MARIONETTE_RUNNER_HOST=$(MARIONETTE_RUNNER_HOST) GAIA_DIR="`pwd`" ./bin/gaia-perf-marionette
+	MOZPERFOUT="$(MOZPERFOUT)" APPS="$(APPS)" \
+	MARIONETTE_RUNNER_HOST=$(MARIONETTE_RUNNER_HOST) GAIA_DIR="`pwd`" \
+	REPORTER=$(REPORTER) \
+	./bin/gaia-perf-marionette
 
 .PHONY: tests
 tests: app-makefiles offline
@@ -844,7 +805,7 @@ update-common: common-install
 
 # Create the json config file
 # for use with the test agent GUI
-test-agent-config: test-agent-bootstrap
+test-agent-config:
 ifeq ($(BUILD_APP_NAME),*)
 	@rm -f $(TEST_AGENT_CONFIG)
 	@touch $(TEST_AGENT_CONFIG)
@@ -926,7 +887,7 @@ ifdef APP
   JSHINTED_PATH = apps/$(APP)
   GJSLINTED_PATH = $(shell grep "^apps/$(APP)" build/jshint/xfail.list | ( while read file ; do test -f "$$file" && echo $$file ; done ) )
 else
-  JSHINTED_PATH = apps shared build/test/unit dev_apps/home2 dev_apps/collection
+  JSHINTED_PATH = apps shared build
   GJSLINTED_PATH = $(shell ( while read file ; do test -f "$$file" && echo $$file ; done ) < build/jshint/xfail.list )
 endif
 endif
@@ -1005,9 +966,9 @@ install-media-samples:
 	$(ADB) shell 'if test -d /sdcard/music; then mv /sdcard/music /sdcard/music.temp; mv /sdcard/music.temp /sdcard/Music; fi'
 	$(ADB) shell 'if test -d /sdcard/videos; then mv /sdcard/videos /sdcard/Movies;	fi'
 
-	$(ADB) push media-samples/DCIM $(MSYS_FIX)/sdcard/DCIM
-	$(ADB) push media-samples/Movies $(MSYS_FIX)/sdcard/Movies
-	$(ADB) push media-samples/Music $(MSYS_FIX)/sdcard/Music
+	$(ADB) push test_media/samples/DCIM $(MSYS_FIX)/sdcard/DCIM
+	$(ADB) push test_media/samples/Movies $(MSYS_FIX)/sdcard/Movies
+	$(ADB) push test_media/samples/Music $(MSYS_FIX)/sdcard/Music
 
 install-test-media:
 	$(ADB) push test_media/Pictures $(MSYS_FIX)/sdcard/DCIM
@@ -1043,12 +1004,7 @@ purge:
 	$(ADB) shell rm -r $(MSYS_FIX)/system/b2g/webapps
 	$(ADB) shell 'if test -d $(MSYS_FIX)/persist/svoperapps; then rm -r $(MSYS_FIX)/persist/svoperapps; fi'
 
-$(PROFILE_FOLDER)/settings.json: $(XULRUNNER_BASE_DIRECTORY) profile-dir keyboard-layouts $(STAGE_DIR)/settings_stage.json copy-build-stage-data
-
-$(STAGE_DIR)/settings_stage.json: $(XULRUNNER_BASE_DIRECTORY) keyboard-layouts
-ifeq ($(BUILD_APP_NAME),*)
-	@$(call run-js-command,settings)
-endif
+$(PROFILE_FOLDER)/settings.json: $(XULRUNNER_BASE_DIRECTORY) profile-dir pre-app post-app
 
 # push $(PROFILE_FOLDER)/settings.json and $(PROFILE_FOLDER)/contacts.json (if CONTACTS_PATH defined) to the phone
 install-default-data: $(PROFILE_FOLDER)/settings.json contacts
@@ -1088,15 +1044,6 @@ really-clean: clean
 	test -d .git && cp tools/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit || true
 
 
-# This task will do three things.
-# 1. Copy manifest to profile: generally we got manifest from webapp-manifest.js
-#    unless manifest is generated from Makefile of app. so we will copy
-#    manifest.webapp if it's avaiable in build_stage/ .
-# 2. Copy external app to profile dir.
-# 3. Generate webapps.json from webapps_stage.json and copy to profile dir.
-copy-build-stage-data: app-makefiles post-manifest multilocale $(XULRUNNER_BASE_DIRECTORY)
-	@$(call run-js-command,copy-build-stage-data)
-
 build-test-unit: $(NPM_INSTALLED_PROGRAMS)
 	@$(call run-build-test, $(shell find build/test/unit/*.test.js))
 
@@ -1111,8 +1058,3 @@ docs: $(NPM_INSTALLED_PROGRAMS)
 watch: $(NPM_INSTALLED_PROGRAMS)
 	node build/watcher.js
 
-.PHONY: multilocale
-multilocale: post-manifest app-makefiles webapp-shared $(XULRUNNER_BASE_DIRECTORY)
-ifneq ($(LOCALE_BASEDIR),)
-	@$(call run-js-command,multilocale)
-endif

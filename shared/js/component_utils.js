@@ -1,12 +1,12 @@
-'use strict';
 
 (function(exports) {
+  'use strict';
 
   /**
    * ComponentUtils is a utility which allows us to use web components earlier
    * than we should be able to by polyfilling and fixing platform deficiencies.
    */
-  var ComponentUtils = {
+  exports.ComponentUtils = {
 
     /**
      * Injects a style.css into both the shadow root and outside the shadow
@@ -14,25 +14,32 @@
      */
     style: function(baseUrl) {
       var style = document.createElement('style');
-      style.setAttribute('scoped', '');
       var url = baseUrl + 'style.css';
-      style.innerHTML = '@import url(' + url + ');';
+      var self = this;
 
+      style.setAttribute('scoped', '');
+      style.innerHTML = '@import url(' + url + ');';
       this.appendChild(style);
 
-      if (!this.shadowRoot) {
-        return;
-      }
+      this.style.visibility = 'hidden';
 
-      // The setTimeout is necessary to avoid missing @import styles
-      // when appending two stylesheets. Bug 1003294.
-      setTimeout(function nextTick() {
-        this.shadowRoot.appendChild(style.cloneNode(true));
-      }.bind(this));
+      // Wait for the stylesheet to load before injecting
+      // it into the shadow-dom. This is to work around
+      // bug 1003294, let's review once landed.
+      style.addEventListener('load', function() {
+
+        // Put a clone of the stylesheet into the shadow-dom.
+        // We have to use two <style> nodes, to work around
+        // the lack of `:host` (bug 992245) and `:content`
+        // (bug 992249) selectors. Once we have those we
+        // can do all our styling from a single style-sheet
+        // within the shadow-dom.
+        if (self.shadowRoot) {
+          self.shadowRoot.appendChild(style.cloneNode(true));
+        }
+
+        self.style.visibility = '';
+      });
     }
-
   };
-
-  exports.ComponentUtils = ComponentUtils;
-
 }(window));

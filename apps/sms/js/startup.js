@@ -4,7 +4,7 @@
 'use strict';
 
 /*global Utils, ActivityHandler, ThreadUI, ThreadListUI, MessageManager,
-         Settings, LazyLoader, TimeHeaders, Information,
+         Settings, LazyLoader, TimeHeaders, Information, SilentSms,
          PerformanceTestingHelper, App, Navigation */
 
 navigator.mozL10n.ready(function localized() {
@@ -16,7 +16,7 @@ navigator.mozL10n.ready(function localized() {
       var doc = iframe.contentDocument;
       doc.documentElement.lang = navigator.mozL10n.language.code;
       doc.documentElement.dir = navigator.mozL10n.language.direction;
-      navigator.mozL10n.translate(doc.body);
+      navigator.mozL10n.translateFragment(doc.body);
     }
   );
 
@@ -63,6 +63,7 @@ window.addEventListener('load', function() {
   function initUIApp() {
     Navigation.init();
     TimeHeaders.init();
+    SilentSms.init();
     ActivityHandler.init();
 
     // Init UI Managers

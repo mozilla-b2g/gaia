@@ -1430,6 +1430,9 @@ ActiveSyncFolderConn.prototype = {
     var Type = $AirSyncBase.Enums.Type;
 
     var gotBody = function gotBody(bodyInfo) {
+      if (!bodyInfo)
+        return callback('unknown');
+
       // ActiveSync only stores one body rep, no matter how many body parts the
       // MIME message actually has.
       var bodyRep = bodyInfo.bodyReps[0];
@@ -1473,7 +1476,7 @@ ActiveSyncFolderConn.prototype = {
           return;
         }
 
-        var status, bodyContent,
+        var status, bodyContent, parseError,
             e = new $wbxml.EventParser();
         e.addEventListener([io.ItemOperations, io.Status], function(node) {
           status = node.children[0].textContent;
@@ -1482,7 +1485,13 @@ ActiveSyncFolderConn.prototype = {
                             io.Properties, asb.Body, asb.Data], function(node) {
           bodyContent = node.children[0].textContent;
         });
-        e.run(aResponse);
+
+        try {
+          e.run(aResponse);
+        }
+        catch (ex) {
+          return callback('unknown');
+        }
 
         if (status !== ioEnum.Status.Success)
           return callback('unknown');
@@ -2582,6 +2591,21 @@ var bsearchForInsert = $util.bsearchForInsert;
 var DEFAULT_TIMEOUT_MS = exports.DEFAULT_TIMEOUT_MS = 30 * 1000;
 
 /**
+ * Randomly create a unique device id so that multiple devices can independently
+ * synchronize without interfering with each other.  Our only goals are to avoid
+ * needlessly providing fingerprintable data and avoid collisions with other
+ * instances of ourself.  We're using Math.random over crypto.getRandomValues
+ * since node does not have the latter right now and predictable values aren't
+ * a concern.
+ *
+ * @return {String} An multi-character ASCII alphanumeric sequence.  (Probably
+     10 or 11 digits.)
+ */
+exports.makeUniqueDeviceId = function() {
+  return Math.random().toString(36).substr(2);
+};
+
+/**
  * Prototype-helper to wrap a method in a call to withConnection.  This exists
  * largely for historical reasons.  All actual lazy-loading happens within
  * withConnection.
@@ -2603,6 +2627,17 @@ function ActiveSyncAccount(universe, accountDef, folderInfos, dbConn,
   this.universe = universe;
   this.id = accountDef.id;
   this.accountDef = accountDef;
+
+  // Transparent upgrade; allocate a device-id if we don't have one.  By doing
+  // this we avoid forcing the user to manually re-create the account.  And the
+  // current migration system would throw away any saved drafts, which is not
+  // desirable.  The common thing in all cases is that we will need to re-sync
+  // the folders.
+  // XXX remove this upgrade logic when we next compel a version upgrade (and do
+  // so safely.)
+  if (!accountDef.connInfo.deviceId) {
+    accountDef.connInfo.deviceId = exports.makeUniqueDeviceId();
+  }
 
   this._db = dbConn;
 
@@ -2699,7 +2734,7 @@ ActiveSyncAccount.prototype = {
 
     if (!this.conn) {
       var accountDef = this.accountDef;
-      this.conn = new $asproto.Connection();
+      this.conn = new $asproto.Connection(accountDef.connInfo.deviceId);
       this._attachLoggerToConnection(this.conn);
       this.conn.open(accountDef.connInfo.server,
                      accountDef.credentials.username,
@@ -2827,6 +2862,7 @@ ActiveSyncAccount.prototype = {
       syncRange: this.accountDef.syncRange,
       syncInterval: this.accountDef.syncInterval,
       notifyOnNew: this.accountDef.notifyOnNew,
+      playSoundOnSend: this.accountDef.playSoundOnSend,
 
       identities: this.identities,
 
@@ -3566,8 +3602,10 @@ exports.configurator = {
         password: userDetails.password,
       };
 
+      var deviceId = $asacct.makeUniqueDeviceId();
+
       var self = this;
-      var conn = new $asproto.Connection();
+      var conn = new $asproto.Connection(deviceId);
       conn.open(domainInfo.incoming.server, credentials.username,
                 credentials.password);
       conn.timeout = $asacct.DEFAULT_TIMEOUT_MS;
@@ -3627,10 +3665,13 @@ exports.configurator = {
           syncInterval: userDetails.syncInterval || 0,
           notifyOnNew: userDetails.hasOwnProperty('notifyOnNew') ?
                        userDetails.notifyOnNew : true,
+          playSoundOnSend: userDetails.hasOwnProperty('playSoundOnSend') ?
+                       userDetails.playSoundOnSend : true,
 
           credentials: credentials,
           connInfo: {
-            server: domainInfo.incoming.server
+            server: domainInfo.incoming.server,
+            deviceId: deviceId
           },
 
           identities: [
@@ -3669,10 +3710,14 @@ exports.configurator = {
       syncInterval: oldAccountDef.syncInterval || 0,
       notifyOnNew: oldAccountDef.hasOwnProperty('notifyOnNew') ?
                    oldAccountDef.notifyOnNew : true,
+      playSoundOnSend: oldAccountDef.hasOwnProperty('playSoundOnSend') ?
+                   oldAccountDef.playSoundOnSend : true,
 
       credentials: credentials,
       connInfo: {
-        server: oldAccountDef.connInfo.server
+        server: oldAccountDef.connInfo.server,
+        deviceId: oldAccountDef.connInfo.deviceId ||
+                  $asacct.makeUniqueDeviceId()
       },
 
       identities: $accountcommon.recreateIdentities(universe, accountId,

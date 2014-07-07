@@ -3,6 +3,8 @@
 
 /* exported StoreProvisioning */
 
+/* global uuid */
+
 'use strict';
 
 /**
@@ -78,6 +80,11 @@ var StoreProvisioning = (function() {
     var existingApns = null;
     var newApns = {};
 
+    // Add an unique id to identify APNs with the same carrier name
+    for (var i = 0; i < parameters.length; i++) {
+      parameters[i]._id = uuid();
+    }
+
     var settings = navigator.mozSettings;
     if (!settings) {
       if (callback) {
@@ -108,9 +115,48 @@ var StoreProvisioning = (function() {
           data[CP_APN_KEY] = existingApns;
         }
         transaction.set(data);
-        if (callback) {
-          callback();
-        }
+
+        // XXX: Bug 947198
+        // We must add support for multi ICC card devices to the OMA CP logic.
+        var iccCardIndex = 0;
+        var request = transaction.get('ril.data.apnSettings');
+        request.onsuccess = function() {
+          var apnSettings = request.result['ril.data.apnSettings'];
+          if (!apnSettings || !Array.isArray(apnSettings)) {
+            apnSettings = [[], []];
+          }
+
+          var apnList = apnSettings[iccCardIndex];
+          parameters.forEach(function(apn) {
+            var apnEnabled =  false;
+            for (var i = 0; i < apnList.length; i++) {
+              if (apnList[i].types[0] === apn.type[0]) {
+                apn.types = apn.type;
+                delete apn.type;
+                apnList[i]  = apn;
+                apnEnabled = true;
+                break;
+              }
+            }
+
+            if (!apnEnabled) {
+              apn.types = apn.type;
+              delete apn.type;
+              apnList.push(apn);
+            }
+          });
+
+          transaction.set({'ril.data.apnSettings': apnSettings});
+          if (callback) {
+            callback();
+          }
+        };
+
+        request.onerror = function onError() {
+          if (callback) {
+            callback();
+          }
+        };
       };
       load.onerror = function onerrorCb() {
         if (callback) {

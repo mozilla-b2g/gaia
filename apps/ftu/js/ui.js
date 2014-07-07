@@ -19,6 +19,7 @@ var UIManager = {
     'progress-bar',
     'progress-bar-state',
     'finish-screen',
+    'update-screen',
     'nav-bar',
     'main-title',
     // Unlock SIM Screen
@@ -69,6 +70,7 @@ var UIManager = {
     'no-memorycard',
     // Fxa Intro
     'fxa-create-account',
+    'fxa-intro',
     // Wifi
     'networks',
     'wifi-refresh-button',
@@ -92,9 +94,11 @@ var UIManager = {
     'data-connection-switch',
     // Geolocation
     'geolocation-switch',
-    // Before Tutorial
+    // Tutorial
     'lets-go-button',
+    'update-lets-go-button',
     'skip-tutorial-button',
+    'update-skip-tutorial-button',
     // Privacy Settings
     'share-performance',
     'offline-error-dialog',
@@ -106,8 +110,13 @@ var UIManager = {
     'invalid-email-error-dialog'
   ],
 
+  dataConnectionChangedByUsr: false,
+
   init: function ui_init() {
     _ = navigator.mozL10n.get;
+
+    // Preload the tutorial config
+    Tutorial.loadConfig();
 
     // Initialization of the DOM selectors
     this.domSelectors.forEach(function createElementRef(name) {
@@ -192,7 +201,7 @@ var UIManager = {
           this.invalidEmailErrorDialog.classList.remove('visible');
         }.bind(this));
 
-    this.skipTutorialButton.addEventListener('click', function() {
+    var skipTutorialAction = function() {
       // Stop Wifi Manager
       WifiManager.finish();
       // For tiny devices
@@ -202,21 +211,46 @@ var UIManager = {
         // for large devices
         FinishScreen.init();
       }
-    });
+    };
 
-    this.letsGoButton.addEventListener('click', function() {
+    var startTutorialAction = function(evt) {
       // Stop Wifi Manager
       WifiManager.finish();
-      UIManager.activationScreen.classList.remove('show');
-      UIManager.finishScreen.classList.remove('show');
-      Tutorial.init();
-    });
+
+      // Tutorial config is probably preloaded by now, but init could be
+      // async if it is still loading
+      Tutorial.init(null, function onTutorialLoaded() {
+        UIManager.activationScreen.classList.remove('show');
+        UIManager.updateScreen.classList.remove('show');
+        UIManager.finishScreen.classList.remove('show');
+      });
+    };
+
+    this.skipTutorialButton.addEventListener('click', skipTutorialAction);
+    this.updateSkipTutorialButton.addEventListener('click', skipTutorialAction);
+
+    this.letsGoButton.addEventListener('click', startTutorialAction);
+    this.updateLetsGoButton.addEventListener('click', startTutorialAction);
 
     // Enable sharing performance data (saving to settings)
     this.sharePerformance.addEventListener('click', this);
     var button = this.offlineErrorDialog.querySelector('button');
     button.addEventListener('click',
                             this.onOfflineDialogButtonClick.bind(this));
+
+    // Handle activation screen visibility.
+    ['confirmdialogshowing',
+     'loadingoverlayshowing',
+     'tutorialinitialized'].forEach(function(event) {
+      window.addEventListener(event,
+        this.hideActivationScreenFromScreenReader.bind(this));
+    }, this);
+
+    ['confirmdialoghiding',
+     'loadingoverlayhiding'].forEach(function(event) {
+      window.addEventListener(event,
+        this.showActivationScreenToScreenReader.bind(this));
+    }, this);
   },
 
   scrollToElement: function ui_scrollToElement(container, element) {
@@ -311,6 +345,7 @@ var UIManager = {
         break;
       // 3G
       case 'data-connection-switch':
+        this.dataConnectionChangedByUsr = true;
         var status = event.target.checked;
         DataMobile.toggle(status);
         break;
@@ -370,38 +405,45 @@ var UIManager = {
   },
 
   createFirefoxAccount: function ui_createFirefoxAccount() {
-    var fxaDescription = document.getElementById('fxa-intro');
-    var showResponse = function ui_showResponse(response) {
-      if (response && response.done) {
-        // Update the email
-        UIManager.newsletterInput.value = response.email;
-        // Update the string
-        fxaDescription.innerHTML = '';
-        navigator.mozL10n.localize(
-          fxaDescription,
-          'fxa-email-sent',
-          {
-            email: response.email
-          }
-        );
-        // Disable the button
-        UIManager.fxaCreateAccount.disabled = true;
-      }
-    };
-    var showError = function ui_showError(response) {
-      console.error('Create FxA Error: ' + JSON.stringify(response));
-      // Clean fields
-      UIManager.newsletterInput.value = '';
-      // Reset the field
-      navigator.mozL10n.localize(
-        fxaDescription,
-        'fxa-overview'
-      );
-      // Enable the button
-      UIManager.fxaCreateAccount.disabled = false;
-    };
+    FxAccountsIACHelper.openFlow(UIManager.fxaShowResponse,
+      UIManager.fxaShowError);
+  },
 
-    FxAccountsIACHelper.openFlow(showResponse, showError);
+  fxaShowResponse: function ui_fxaShowResponse() {
+    FxAccountsIACHelper.getAccounts(UIManager.fxaGetAccounts,
+      UIManager.fxaShowError);
+  },
+
+  fxaGetAccounts: function ui_fxaGetAccounts(acct) {
+    if (!acct) {
+      return;
+    }
+    // Update the email
+    UIManager.newsletterInput.value = acct.email;
+    // Update the string
+    UIManager.fxaIntro.innerHTML = '';
+    navigator.mozL10n.localize(
+      UIManager.fxaIntro,
+      acct.verified ? 'fxa-signed-in' : 'fxa-email-sent',
+      {
+        email: acct.email
+      }
+    );
+    // Disable the button
+    UIManager.fxaCreateAccount.disabled = true;
+  },
+
+  fxaShowError: function ui_fxaShowError(response) {
+    console.error('Create FxA Error: ' + JSON.stringify(response));
+    // Clean fields
+    UIManager.newsletterInput.value = '';
+    // Reset the field
+    navigator.mozL10n.localize(
+      UIManager.fxaIntro,
+      'fxa-overview'
+    );
+    // Enable the button
+    UIManager.fxaCreateAccount.disabled = false;
   },
 
   displayOfflineDialog: function ui_displayOfflineDialog(href, title) {
@@ -409,11 +451,23 @@ var UIManager = {
         text = _('offline-dialog-text', { url: href });
     dialog.querySelector('small').textContent = text;
     dialog.classList.add('visible');
+    this.hideActivationScreenFromScreenReader();
   },
 
   onOfflineDialogButtonClick: function ui_onOfflineDialogButtonClick(e) {
     this.offlineErrorDialog.classList.remove('visible');
+    this.showActivationScreenToScreenReader();
   },
+
+  hideActivationScreenFromScreenReader:
+    function ui_hideActivationScreenFromScreenReader() {
+      this.activationScreen.setAttribute('aria-hidden', true);
+    },
+
+  showActivationScreenToScreenReader:
+    function ui_showActivationScreenToScreenReader() {
+      this.activationScreen.setAttribute('aria-hidden', false);
+    },
 
   setDate: function ui_sd() {
     if (!!this.lock) {

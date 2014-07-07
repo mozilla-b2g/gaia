@@ -1,5 +1,6 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+/* global StatusBar */
 'use strict';
 
 (function(exports) {
@@ -37,6 +38,7 @@
     // and LockScreen.
     this.lockscreen = new window.LockScreen();
     window.lockScreen = this.lockscreen;
+    this.lockscreen.init();
   };
 
   /**
@@ -77,6 +79,8 @@
    */
   LockScreenWindow.prototype.closeAnimation = 'fade-out';
 
+  LockScreenWindow.prototype._DEBUG = false;
+
   /**
    * LockScreenWindow has its own styles.
    *
@@ -84,6 +88,28 @@
    * @memberof LockScreenWindow
    */
   LockScreenWindow.prototype.CLASS_LIST = 'appWindow lockScreenWindow';
+
+  LockScreenWindow.prototype._resize = function aw__resize() {
+    var height, width;
+
+    // We want the lockscreen to go below the StatusBar
+    height = self.layoutManager.height + StatusBar.height;
+    width = self.layoutManager.width;
+
+    this.width = width;
+    this.height = height;
+    this.element.style.width = this.width + 'px';
+    this.element.style.height = this.height + 'px';
+
+    this.resized = true;
+
+    /**
+     * Fired when the app is resized.
+     *
+     * @event LockScreenWindow#lockscreen-appresize
+     */
+    this.publish('resize');
+  };
 
   /**
    * Create LockScreen overlay. This method would exist until
@@ -100,6 +126,9 @@
           dummy = document.createElement('div');
 
       dummy.innerHTML = html;
+      // Need to translate to render some attributes correctly (e.g.
+      // aria-label).
+      navigator.mozL10n.translate(dummy);
       var iframe = dummy.firstElementChild;
       iframe.setVisible = function() {};
       // XXX: real iframes would own these methods.

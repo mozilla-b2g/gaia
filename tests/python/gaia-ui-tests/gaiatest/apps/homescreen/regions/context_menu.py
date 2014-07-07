@@ -10,8 +10,7 @@ from gaiatest.apps.base import Base
 class ContextMenu(Base):
 
     _actions_menu_locator = (By.ID, 'contextmenu-dialog')
-    _add_collection_button_locator = (By.ID, 'contextmenu-dialog-collections-button')
-    _collection_option_locator = (By.CSS_SELECTOR, '#collections-select option')
+    _add_collection_button_locator = (By.ID, 'create-smart-collection')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
@@ -20,8 +19,6 @@ class ContextMenu(Base):
     def tap_add_collection(self):
         self.wait_for_element_displayed(*self._add_collection_button_locator)
         self.marionette.find_element(*self._add_collection_button_locator).tap()
-        self.wait_for_element_displayed(*self._collection_option_locator)
 
-    @property
-    def collection_name_list(self):
-        return [option.text for option in self.marionette.find_elements(*self._collection_option_locator)]
+        from gaiatest.apps.homescreen.regions.collections_activity import CollectionsActivity
+        return CollectionsActivity(self.marionette)

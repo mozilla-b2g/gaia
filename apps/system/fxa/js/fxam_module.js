@@ -1,7 +1,7 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/* global Utils, FxaModuleOverlay, LazyLoader, FxaModuleErrors,
+/* global HtmlHelper, FxaModuleOverlay, LazyLoader, FxaModuleErrors,
    FxaModuleErrorOverlay */
 /* exported FxaModule */
 
@@ -13,6 +13,9 @@ var FxaModule = (function() {
     initialized: false,
     init: function fxam_init() {
       // override this to do initialization
+      // l10n note: this method is called after mozL10n.once has fired. It is
+      // safe to assume strings have loaded and mozL10n.readyState is 'complete'
+      // inside this function and other Module functions.
     },
 
     onNext: function fxam_onNext(gotoNextStepCallback) {
@@ -34,13 +37,21 @@ var FxaModule = (function() {
       var args = [].slice.call(arguments);
       // context to import into is the first argument to importElements
       args.unshift(this);
-      Utils.importElements.apply(null, args);
+      HtmlHelper.importElements.apply(null, args);
     },
 
     showErrorResponse: function fxam_showErrorResponse(response) {
+      // special case: if a network error occurs during FTE,
+      // we show a slightly different error message
+      var resp = response;
+      if (window.location.search.indexOf('isftu') != -1 &&
+          resp == 'OFFLINE_ERROR') {
+        resp = 'CONNECTION_ERROR';
+      }
+
       FxaModuleOverlay.hide();
       LazyLoader.load('js/fxam_errors.js', function() {
-        var config = FxaModuleErrors.responseToParams(response);
+        var config = FxaModuleErrors.responseToParams(resp);
         FxaModuleErrorOverlay.show(config.title, config.message);
       });
     }

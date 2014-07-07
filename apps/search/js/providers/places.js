@@ -1,4 +1,4 @@
-/* globals HtmlHelper, Provider, Search, GoogleLink, SettingsListener */
+/* globals HtmlHelper, Promise, Provider, Search, SettingsListener */
 
 (function(exports) {
 
@@ -247,41 +247,35 @@
 
     click: itemClicked,
 
-    googleLink: new GoogleLink(),
-
     init: function() {
       Provider.prototype.init.apply(this, arguments);
-      this.googleLink.init();
     },
 
-    search: function(filter, collect) {
-      this.clear();
-      var matched = 0;
-      var renderResults = [];
-      for (var url in results) {
-        var result = results[url];
-        if (!(matchesFilter(result.title, filter) ||
-              matchesFilter(result.url, filter))) {
-          continue;
+    search: function(filter) {
+      return new Promise((resolve, reject) => {
+        this.clear();
+        var matched = 0;
+        var renderResults = [];
+        for (var url in results) {
+          var result = results[url];
+          if (!(matchesFilter(result.title, filter) ||
+                matchesFilter(result.url, filter))) {
+            continue;
+          }
+          renderResults.push(formatPlace(result, filter));
+
+          if (++matched >= MAX_AWESOME_RESULTS) {
+            break;
+          }
         }
-        renderResults.push(formatPlace(result, filter));
 
-        if (++matched >= MAX_AWESOME_RESULTS) {
-          break;
-        }
-      }
-
-      if (matched < 3) {
-        this.googleLink.search(filter);
-      }
-
-      collect(renderResults);
+        resolve(renderResults);
+      });
     },
 
 
     clear: function() {
       Provider.prototype.clear.apply(this, arguments);
-      this.googleLink.clear();
     },
 
     /**

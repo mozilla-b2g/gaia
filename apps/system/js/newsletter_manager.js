@@ -96,7 +96,10 @@ var idleObserver = {
   }
 };
 
-// starting when we get a chance
-navigator.mozL10n.once(function loadWhenIdle() {
-  navigator.addIdleObserver(idleObserver);
-});
+// unit tests call start() manually
+if (navigator.mozL10n) {
+  // starting when we get a chance
+  navigator.mozL10n.once(function loadWhenIdle() {
+    navigator.addIdleObserver(idleObserver);
+  });
+}

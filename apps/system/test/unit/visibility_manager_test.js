@@ -1,14 +1,14 @@
-/* globals MocksHelper, MockLockScreen, VisibilityManager,
+/* globals MocksHelper, VisibilityManager,
            MockAttentionScreen */
 'use strict';
 
 requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/test/unit/mock_attention_screen.js');
-requireApp('system/test/unit/mock_lock_screen.js');
+requireApp('system/test/unit/mock_system.js');
 
 var mocksForVisibilityManager = new MocksHelper([
-  'AttentionScreen'
+  'AttentionScreen', 'System'
 ]).init();
 
 suite('system/VisibilityManager', function() {
@@ -16,12 +16,10 @@ suite('system/VisibilityManager', function() {
   var visibilityManager;
   mocksForVisibilityManager.attachTestHelpers();
   setup(function(done) {
-    window.lockScreen = MockLockScreen;
     this.sinon.useFakeTimers();
 
     stubById = this.sinon.stub(document, 'getElementById');
     stubById.returns(document.createElement('div'));
-    requireApp('system/js/system.js');
     requireApp('system/js/visibility_manager.js', function() {
       visibilityManager = new VisibilityManager().start();
       done();
@@ -37,7 +35,7 @@ suite('system/VisibilityManager', function() {
       visibilityManager._normalAudioChannelActive = false;
       var stubPublish = this.sinon.stub(visibilityManager, 'publish');
       visibilityManager.handleEvent({
-        type: 'lock'
+        type: 'lockscreen-appopened'
       });
 
       assert.isTrue(stubPublish.calledOnce);
@@ -45,7 +43,7 @@ suite('system/VisibilityManager', function() {
 
       visibilityManager._normalAudioChannelActive = true;
       visibilityManager.handleEvent({
-        type: 'lock'
+        type: 'lockscreen-appopened'
       });
 
       assert.isTrue(stubPublish.calledOnce);
@@ -53,12 +51,13 @@ suite('system/VisibilityManager', function() {
       visibilityManager._normalAudioChannelActive = false;
     });
 
-    test('will-unlock', function() {
+    test('lockscreen-request-unlock', function() {
       MockAttentionScreen.mFullyVisible = false;
       var stubPublish = this.sinon.stub(visibilityManager, 'publish');
 
       visibilityManager.handleEvent({
-        type: 'will-unlock'
+        type: 'lockscreen-request-unlock',
+        detail: {}
       });
 
       assert.isTrue(stubPublish.calledOnce);
@@ -66,10 +65,25 @@ suite('system/VisibilityManager', function() {
 
       MockAttentionScreen.mFullyVisible = true;
       visibilityManager.handleEvent({
-        type: 'will-unlock'
+        type: 'lockscreen-request-unlock',
+        detail: {}
       });
 
       assert.isTrue(stubPublish.calledOnce);
+    });
+
+    test('lockscreen-request-unlock should be ignore if' +
+          ' it is launching camera', function() {
+      var stubPublish = this.sinon.stub(visibilityManager, 'publish');
+
+      visibilityManager.handleEvent({
+        type: 'lockscreen-request-unlock',
+        detail: {
+          activity: true
+        }
+      });
+
+      assert.isFalse(stubPublish.called);
     });
 
     test('attentionscreenshow', function() {
@@ -89,7 +103,7 @@ suite('system/VisibilityManager', function() {
     });
 
     test('show lockscreen when screen is on.', function() {
-      MockLockScreen.locked = true;
+      window.System.locked = true;
       var stubPublish = this.sinon.stub(visibilityManager, 'publish');
       visibilityManager.handleEvent({
         type: 'attentionscreenhide'

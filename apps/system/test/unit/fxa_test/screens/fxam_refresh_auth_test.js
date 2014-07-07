@@ -4,7 +4,7 @@
 requireApp('/system/test/unit/fxa_test/load_element_helper.js');
 
 // Real code
-requireApp('system/fxa/js/utils.js');
+require('/shared/js/utilities.js');
 requireApp('system/fxa/js/fxam_module.js');
 requireApp('system/fxa/js/fxam_states.js');
 requireApp('system/fxa/js/fxam_manager.js');
@@ -38,6 +38,8 @@ var mocksHelperForRefreshAuthModule = new MocksHelper([
   'FxModuleServerRequest',
   'FxaModuleErrors'
 ]);
+
+mocha.globals(['FxModuleServerRequest', 'FxaModuleErrors']);
 
 suite('Screen: Enter password', function() {
   var realL10n;

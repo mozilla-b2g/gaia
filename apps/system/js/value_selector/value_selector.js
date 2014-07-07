@@ -74,6 +74,9 @@ var ValueSelector = {
 
     window.addEventListener('appopened', this);
     window.addEventListener('appclosing', this);
+    window.addEventListener('sheetstransitionstart', this);
+
+    window.addEventListener('activityclosing', this);
 
     // invalidate the current date and time picker when language setting changes
     navigator.mozSettings.addObserver('language.current',
@@ -148,7 +151,11 @@ var ValueSelector = {
     switch (evt.type) {
       case 'appopened':
       case 'appclosing':
+      case 'activityclosing':
         this.hide();
+        break;
+      case 'sheetstransitionstart':
+        this.cancel();
         break;
 
       case 'click':
@@ -233,6 +240,9 @@ var ValueSelector = {
   },
 
   show: function vs_show(detail) {
+    if (!this._element.hidden) {
+      return;
+    }
     this._element.hidden = false;
   },
 
@@ -247,6 +257,9 @@ var ValueSelector = {
   },
 
   hide: function vs_hide() {
+    if (this._element.hidden) {
+      return;
+    }
     this._element.hidden = true;
   },
 

@@ -1,5 +1,11 @@
 'use strict';
 /* global MockLock, MockMozApps, MockPermissionSettings */
+
+// workaround because a "require" in mock_settings_listener doesn't work
+// properly in a alameda world. If we don't require it here we sometimes hit a,
+// issue in MockLock.set where MockNavigatorSettings is not defined yet.
+require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+
 suite('app permission list > ', function() {
   var PermissionList;
 
@@ -12,6 +18,9 @@ suite('app permission list > ', function() {
       appendChild: function(item) {
         this.children.push(item);
       }
+    },
+    mainButton: {
+      hidden: false
     }
   };
 
@@ -110,7 +119,7 @@ suite('app permission list > ', function() {
         assert.equal(list.querySelector('li:nth-child(2) a').dataset.appIndex,
           1);
         assert.equal(list.querySelector('li:nth-child(2) img').src,
-          'http://settings.gaiamobile.org:8080/test/style/images/default.png',
+          'app://settings.gaiamobile.org/test/style/images/default.png',
           'should show default icon if it is not defined in its manifest');
 
         assert.equal(permissionList._permissionTableHaveProcessed, true);
@@ -138,7 +147,7 @@ suite('app permission list > ', function() {
 
       var list = permissionList._elements.list.children[0];
       assert.equal(list.querySelector('li:nth-child(1) img').src,
-        'http://settings.gaiamobile.org:8080/test/style/images/default.png',
+        'app://settings.gaiamobile.org/test/style/images/default.png',
         'should display info of mock_app1 after we install it');
     });
 
@@ -153,7 +162,7 @@ suite('app permission list > ', function() {
       var list = permissionList._elements.list.children[0];
       assert.equal(list.querySelector('li:nth-child(1) a').dataset.appIndex, 0);
       assert.equal(list.querySelector('li:nth-child(1) img').src,
-        'http://settings.gaiamobile.org:8080/test/style/images/default.png',
+        'app://settings.gaiamobile.org/test/style/images/default.png',
         'should display info of mock_app1 when we remove mock_app2');
     });
   });

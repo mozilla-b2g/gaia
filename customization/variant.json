@@ -26,7 +26,8 @@
       "default_contacts": "mobizilla/mobizilla_contacts.json",
       "ringtone": {
         "path": "mobizilla/mobizilla_ringtone.ogg",
-        "name": "Mobizilla ringtone"
+        "name": "Mobizilla ringtone",
+        "id": "builtin:mobizilla_ringtone"
       },
       "wallpaper": "mobizilla/mobizilla_wallpaper.png",
       "power": {
@@ -40,9 +41,12 @@
       "keyboard": "mobizilla/mobizilla_keyboard.json",
       "network_type": "mobizilla/mobizilla_network_type.json",
       "known_networks": "mobizilla/mobizilla_known_networks.json",
-      "nfc": "mobizilla/mobizilla_nfc.json",
+      "nfc": true,
       "sms": "mobizilla/mobizilla_sms.json",
-      "data_ftu": true
+      "data_ftu": true,
+      "search": "mobizilla/mobizilla_search.json",
+      "default_search": "mobizilla/mobizilla_default_search.json",
+      "topsites": "mobizilla/mobizilla_topsites.json"
     }
   ]
 }

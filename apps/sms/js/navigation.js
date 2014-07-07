@@ -217,6 +217,11 @@ var Navigation = window.Navigation = {
       );
     }
 
+    promise = promise.then(function resetPanel() {
+      // While we're sliding, we aren't in any panel
+      currentPanel = null;
+    });
+
     // sliding
     promise = promise.then(
       this.slide.bind(this, nextPanelInfo.wrapperPosition)
@@ -301,7 +306,7 @@ var Navigation = window.Navigation = {
           return;
         }
 
-        e.target.removeEventListener(e.type, trWait);
+        e.currentTarget.removeEventListener(e.type, trWait);
         resolve();
       });
     });

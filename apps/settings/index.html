@@ -7,7 +7,6 @@
 
     <!-- Debug/DUMP method support -->
     <script defer="" src="/shared/js/dump.js"></script>
-    <script defer="" src="/shared/js/settings_url.js"></script>
 
     <!-- Common style -->
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
@@ -30,6 +29,8 @@
     <link rel="stylesheet" type="text/css" href="style/simcard.css"/>
     <link rel="stylesheet" type="text/css" href="style/updates.css"/>
     <link rel="stylesheet" type="text/css" href="style/downloads.css"/>
+    <script defer="" src="shared/js/component_utils.js"></script>
+    <script defer="" src="shared/elements/gaia_buttons/script.js"></script>
     -->
 
     <!-- Shared resources
@@ -49,6 +50,7 @@
     <link rel="resource" type="application/l10n" href="shared/locales/date.ini">
     <link rel="resource" type="application/l10n" href="shared/locales/permissions.ini">
     <link rel="resource" type="application/l10n" href="shared/locales/tz.ini">
+    <link rel="resource" type="application/l10n" href="shared/locales/sounds.ini">
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
     <script defer="" src="shared/js/l10n.js"></script>
     <script defer="" src="shared/js/l10n_date.js"></script>
@@ -78,9 +80,12 @@
     <!--<script defer src="shared/js/airplane_mode_helper.js"></script> -->
     <!--<script defer src="shared/js/toaster.js"></script> -->
     <!--<script defer src="shared/js/lazy_loader.js"></script> -->
+    <!--<script defer src="shared/js/font_size_utils.js"></script> -->
     <!--<script defer src="shared/js/screen_layout.js"></script> -->
     <!--<script defer src="shared/js/fxa_iac_client.js"></script> -->
     <!--<script defer src="shared/js/text_normalizer.js"></script> -->
+    <!--<script defer src="shared/js/settings_url.js"></script> -->
+    <!--<script defer src="shared/js/omadrm/fl.js"></script> -->
 
     <!-- all non-#root panels will lazy-load their own scripts -->
     <link rel="import" href="/elements/wifi_status.html">
@@ -119,12 +124,15 @@
     <link rel="import" href="/elements/hotspot.html">
     <link rel="import" href="/elements/sound.html">
     <link rel="import" href="/elements/display.html">
+    <link rel="import" href="/elements/homescreen.html">
+    <link rel="import" href="/elements/search_suggestions.html">
+    <link rel="import" href="/elements/navigation.html">
     <link rel="import" href="/elements/notifications.html">
     <link rel="import" href="/elements/date_time.html">
     <link rel="import" href="/elements/languages.html">
     <link rel="import" href="/elements/sim_manager.html">
-    <link rel="import" href="/elements/homescreen_details.html">
-    <link rel="import" href="/elements/homescreen.html">
+    <link rel="import" href="/elements/homescreens_details.html">
+    <link rel="import" href="/elements/homescreens.html">
     <link rel="import" href="/elements/keyboard.html">
     <link rel="import" href="/elements/keyboard_enabled_default.html">
     <link rel="import" href="/elements/keyboard_selection_add_more.html">
@@ -258,6 +266,12 @@
     <section is="sound" role="region" id="sound" data-require-sub-panels="true"></section>
     <!-- Personalization :: Display -->
     <section is="display" role="region" id="display"></section>
+    <!-- Personalization :: Homescreen -->
+    <section is="homescreen" role="region" id="homescreen"></section>
+    <!-- Personalization :: Navigation -->
+    <section is="navigation" role="region" id="navigation"></section>
+    <!-- Personalization :: Homescreen :: Search Suggestions -->
+    <section is="search-suggestions" role="region" id="search-suggestions"></section>
     <!-- Personalization :: Notifications -->
     <section is="notifications" role="region" id="notifications"></section>
     <!-- Personalization :: Date & Time -->
@@ -266,10 +280,10 @@
     <section is="languages" role="region" id="languages"></section>
     <!-- Personalization :: SIM card manager -->
     <section is="sim-manager" role="region" id="sim-manager"></section>
-    <!-- Personalization :: Homescreen :: details -->
-    <section is="homescreen-details" role="region" id="homescreen-details"></section>
-    <!-- Personalization :: Homescreen -->
-    <section is="homescreen" role="region" id="homescreen" data-require-sub-panels="true"></section>
+    <!-- Personalization :: Homescreens :: details -->
+    <section is="homescreens-details" role="region" id="homescreens-details"></section>
+    <!-- Personalization :: Homescreens -->
+    <section is="homescreens" role="region" id="homescreens" data-require-sub-panels="true"></section>
     <!-- Personalization :: Keyboard :: Select Keyboard :: Add More Keyboards -->
     <section is="keyboard-selection-addMore" role="region" id="keyboard-selection-addMore"></section>
     <!-- Personalization :: Keyboard :: Select Keyboard -->
@@ -341,18 +355,6 @@
     <!-- Main List -->
     <section is="root" role="region" id="root"></section>
 
-    <form role="dialog" data-type="confirm" id="turn-on-ums-dialog" hidden>
-      <section>
-        <h1 data-l10n-id="ums-warning-title">Enable USB storage?</h1>
-        <p data-l10n-id="turn-on-ums-confirm">
-            Turning on Enable USB storage allows another computer or device connected using USB to access files on this phone.
-        </p>
-      </section>
-      <menu>
-        <button data-l10n-id="cancel" id="ums-cancel-option">Cancel</button>
-        <button data-l10n-id="ok" id="ums-confirm-option" class="recommend">OK</button>
-      </menu>
-    </form>
     <script src="js/startup.js"></script>
   </body>
 </html>

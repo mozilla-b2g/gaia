@@ -25,10 +25,11 @@ module.exports.ConfirmController = ConfirmController;
  * @param {Object} options
  */
 function ConfirmController(app) {
+  this.app = app;
+  this.settings = app.settings;
   this.activity = app.activity;
   this.camera = app.camera;
   this.container = app.el;
-  this.app = app;
 
   // Allow these dependencies
   // to be injected if need be.
@@ -50,8 +51,15 @@ ConfirmController.prototype.renderView = function() {
     return;
   }
 
+  // Check whether the MediaFrame should limit the pixel size.
+  var maxPreviewSize =
+    this.settings.previewGallery.get('limitMaxPreviewSize') ?
+    window.CONFIG_MAX_IMAGE_PIXEL_SIZE : 0;
+
   this.confirmView = new this.ConfirmView();
+  this.confirmView.maxPreviewSize = maxPreviewSize;
   this.confirmView.render().appendTo(this.container);
+
   this.confirmView.on('click:select', this.onSelectMedia);
   this.confirmView.on('click:retake', this.onRetakeMedia);
 };

@@ -7,8 +7,8 @@ define(function(require, exports, module) {
 
 var debug = require('debug')('storage');
 var bindAll = require('lib/bind-all');
-var events = require('vendor/evt');
 var dcf = require('lib/dcf');
+var events = require('evt');
 
 /**
  * Locals
@@ -41,7 +41,8 @@ function Storage(options) {
   this.picture = navigator.getDeviceStorage('pictures');
   this.picture.addEventListener('change', this.onStorageChange);
   this.createFilename = options.createFilename || createFilename; // test hook
-  dcf.init();
+  this.dcf = options.dcf || dcf;
+  this.dcf.init();
   debug('initialized');
 }
 

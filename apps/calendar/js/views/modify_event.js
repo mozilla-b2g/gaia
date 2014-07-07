@@ -116,6 +116,15 @@ Calendar.ns('Views').ModifyEvent = (function() {
      * Build the initial list of calendar ids.
      */
     onfirstseen: function() {
+      // we need to notify users (specially automation tests) somehow that the
+      // options are still being loaded from DB, this is very important to
+      // avoid race conditions (eg.  trying to set calendar before list is
+      // built) notice that we also add the class to the markup because on some
+      // really rare occasions "onfirstseen" is called after the EventBase
+      // removed the "loading" class from the root element (seen it happen less
+      // than 1% of the time)
+      this.getEl('calendarId').classList.add(self.LOADING);
+
       var calendarStore = this.app.store('Calendar');
       calendarStore.all(function(err, calendars) {
         if (err) {
@@ -128,6 +137,8 @@ Calendar.ns('Views').ModifyEvent = (function() {
 
         function next() {
           if (!--pending) {
+            self.getEl('calendarId').classList.remove(self.LOADING);
+
             if (self.onafteronfirstseen) {
               self.onafteronfirstseen();
             }
@@ -198,7 +209,14 @@ Calendar.ns('Views').ModifyEvent = (function() {
         var element = this.getEl('calendarId');
 
         option = document.createElement('option');
-        option.text = calendar.remote.name;
+
+        if (id === Calendar.Provider.Local.calendarId) {
+          option.text = navigator.mozL10n.get('calendar-local');
+          option.setAttribute('data-l10n-id', 'calendar-local');
+        } else {
+          option.text = calendar.remote.name;
+        }
+
         option.value = id;
         element.add(option);
 
@@ -631,8 +649,12 @@ Calendar.ns('Views').ModifyEvent = (function() {
     _renderDateTimeLocale: function(type, targetElement, value) {
       // we inject the targetElement to make it easier to test
       var localeFormat = Calendar.App.dateFormat.localeFormat;
-      var format = navigator.mozL10n.get(this.formats[type]);
+      var formatKey = this.formats[type];
+      var format = navigator.mozL10n.get(formatKey);
       targetElement.textContent = localeFormat(value, format);
+      // we need to store the format and date for l10n
+      targetElement.setAttribute('data-l10n-date-format', formatKey);
+      targetElement.dataset.date = value;
     },
 
     _updateDateLocaleOnInput: function(targetElement, e) {

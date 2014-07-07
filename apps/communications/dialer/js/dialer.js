@@ -10,7 +10,7 @@ var NavbarManager = {
     this.update();
     var self = this;
     window.addEventListener('hashchange' , function nm_hashChange(event) {
-      // TODO Implement it with building blocks:
+      // FIXME/bug 1026079: Implement it with building blocks:
       // https://github.com/jcarpenter/Gaia-UI-Building-Blocks/blob/master/inprogress/tabs.css
       // https://github.com/jcarpenter/Gaia-UI-Building-Blocks/blob/master/inprogress/tabs.html
       self.update();
@@ -96,7 +96,9 @@ var NavbarManager = {
         }
 
         contacts.classList.add('toolbar-option-selected');
-        AccessibilityHelper.setAriaSelected(contacts, tabs);
+        this.ensureResources(function() {
+          AccessibilityHelper.setAriaSelected(contacts, tabs);
+        });
         break;
       case '#keyboard-view':
         checkContactsTab();
@@ -171,6 +173,24 @@ var CallHandler = (function callHandler() {
   }
 
   /* === Notifications support === */
+
+  /**
+   * Retrieves the parameters from an URL and forms an object with them.
+   *
+   * @param {String} input A string holding the parameters attached to an URL.
+   * @return {Object} An object built using the parameters.
+   */
+  function deserializeParameters(input) {
+    var rparams = /([^?=&]+)(?:=([^&]*))?/g;
+    var parsed = {};
+
+    input.replace(rparams, function($0, $1, $2) {
+      parsed[$1] = decodeURIComponent($2);
+    });
+
+    return parsed;
+  }
+
   function handleNotification(evt) {
     if (!evt.clicked) {
       return;
@@ -183,6 +203,17 @@ var CallHandler = (function callHandler() {
       location.href = evt.imageURL;
       if (location.search.indexOf(FB_SYNC_ERROR_PARAM) !== -1) {
         window.location.hash = '#contacts-view';
+      } else if (location.search.indexOf('ussdMessage') !== -1) {
+        var params = deserializeParameters(evt.imageURL);
+
+        Notification.get({ tag: evt.tag }).then(function(notifications) {
+          for (var i = 0; i < notifications.length; i++) {
+            notifications[i].close();
+          }
+        });
+
+        MmiManager.handleMMIReceived(evt.body, /* sessionEnded */ true,
+                                     params.cardIndex);
       } else {
         window.location.hash = '#call-log-view';
       }
@@ -240,7 +271,7 @@ var CallHandler = (function callHandler() {
 
   function callEnded(data) {
     var highPriorityWakeLock = navigator.requestWakeLock('high-priority');
-    var number = data.number;
+    var number = data.id ? data.id.number : data.number;
     var incoming = data.direction === 'incoming';
 
     NavbarManager.ensureResources(function() {
@@ -374,13 +405,43 @@ var CallHandler = (function callHandler() {
     });
   }
 
+  /* === MMI === */
+  function onUssdReceived(evt) {
+    var lock = null;
+    var safetyId;
+
+    function releaseWakeLock() {
+      if (lock) {
+        lock.unlock();
+        lock = null;
+        clearTimeout(safetyId);
+      }
+    }
+
+    if (document.hidden) {
+      lock = navigator.requestWakeLock('high-priority');
+      safetyId = setTimeout(releaseWakeLock, 30000);
+      document.addEventListener('visibilitychange', releaseWakeLock);
+    }
+
+    if (document.hidden && evt.sessionEnded) {
+      /* If the dialer is not visible and the session ends with this message
+       * then this is most likely an unsollicited message. To prevent
+       * interrupting the user we post a notification for it instead of
+       * displaying the dialer UI. */
+      MmiManager.sendNotification(evt.message, evt.serviceId)
+                .then(releaseWakeLock);
+    } else {
+      MmiManager.handleMMIReceived(evt.message, evt.sessionEnded,
+                                   evt.serviceId);
+    }
+  }
+
   function init() {
-    /* === MMI === */
     LazyLoader.load(['/shared/js/mobile_operator.js',
                      '/dialer/js/mmi.js',
                      '/dialer/js/mmi_ui.js',
                      '/shared/style/headers.css',
-                     '/shared/style/input_areas.css',
                      '/shared/style/progress_activity.css',
                      '/dialer/style/mmi.css'], function() {
 
@@ -393,32 +454,7 @@ var CallHandler = (function callHandler() {
         window.navigator.mozSetMessageHandler('bluetooth-dialer-command',
                                                btCommandHandler);
 
-        window.navigator.mozSetMessageHandler('ussd-received', function(evt) {
-          if (document.hidden) {
-            var request = window.navigator.mozApps.getSelf();
-            request.onsuccess = function() {
-              request.result.launch('dialer');
-            };
-
-            var lock = navigator.requestWakeLock('high-priority');
-            var safetyId = setTimeout(function safetyUnlock() {
-              if (lock) {
-                lock.unlock();
-                lock = null;
-              }
-            }, 30000);
-            document.addEventListener('visibilitychange', function wait() {
-              if (lock) {
-                lock.unlock();
-                lock = null;
-                clearTimeout(safetyId);
-              }
-            });
-          }
-
-          MmiManager.handleMMIReceived(evt.message, evt.sessionEnded,
-                                       evt.serviceId);
-        });
+        window.navigator.mozSetMessageHandler('ussd-received', onUssdReceived);
       }
     });
     LazyLoader.load('/shared/js/settings_listener.js', function() {
@@ -442,14 +478,19 @@ var CallHandler = (function callHandler() {
 // Waiting for issue 787444 being fixed
 window.onresize = function(e) {
   if (window.innerHeight < 440) {
-    document.body.classList.add('with-keyboard');
+    NavbarManager.hide();
   } else {
-    document.body.classList.remove('with-keyboard');
+    NavbarManager.show();
   }
 };
 
 // If the app loses focus, close the audio stream.
 document.addEventListener('visibilitychange', function visibilitychanged() {
+  // Don't bother stopping the tone player if it's not been started
+  if (!TonePlayer) {
+    return;
+  }
+
   if (!document.hidden) {
     TonePlayer.ensureAudio();
   } else {
@@ -457,7 +498,7 @@ document.addEventListener('visibilitychange', function visibilitychanged() {
     // *immediately*.
     TonePlayer.trashAudio();
     // Just in case stop any dtmf tone
-    if (navigator.mozTelephony) {
+    if (navigator.mozTelephony && navigator.mozTelephony.stopTone) {
       navigator.mozTelephony.stopTone();
     }
   }

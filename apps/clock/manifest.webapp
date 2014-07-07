@@ -34,10 +34,11 @@
   },
   "default_locale": "en-US",
   "icons": {
-    "60": "/style/icons/Clock_60.png",
-    "90": "/style/icons/Clock_90.png",
-    "120": "/style/icons/Clock_120.png",
-    "135": "/style/icons/Clock_135.png"
+    "84": "/style/icons/clock_84.png",
+    "126": "/style/icons/clock_126.png",
+    "142": "/style/icons/clock_142.png",
+    "189": "/style/icons/clock_189.png",
+    "284": "/style/icons/clock_284.png"
   },
   "orientation": "default",
   "messages": [

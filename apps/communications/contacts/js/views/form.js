@@ -9,6 +9,7 @@
 /* global MozActivity */
 /* global Normalizer */
 /* global utils */
+/* global TAG_OPTIONS */
 
 var contacts = window.contacts || {};
 
@@ -20,7 +21,7 @@ contacts.Form = (function() {
     'date': 0,
     'note': 0
   };
-  var TAG_OPTIONS;
+
   var currentContact = {};
   var dom,
       contactForm,
@@ -154,7 +155,7 @@ contacts.Form = (function() {
 
   var init = function cf_init(tags, currentDom) {
     dom = currentDom || document;
-    TAG_OPTIONS = tags;
+  
     _ = navigator.mozL10n.get;
     initContainers();
 
@@ -493,6 +494,9 @@ contacts.Form = (function() {
         dateInput.valueAsDate = currField.value;
         renderDate(currField.value, dateInputText);
       }
+      else {
+        dateInputText.textContent = _('date-span-placeholder');
+      }
 
       dateInput.addEventListener('input',
         onInputDate.bind(null, dateInputText));
@@ -538,6 +542,11 @@ contacts.Form = (function() {
         contacts.Search.invalidateCache();
         contacts.Search.removeContact(contact.id);
         contacts.Search.exitSearchMode();
+      }
+      // As we jump back to the list, stop listening for NFC and
+      // prevent sharing contacts from the contact list.
+      if ('mozNfc' in navigator && contacts.NFC) {
+        contacts.NFC.stopListening();
       }
       Contacts.navigation.home();
     };
@@ -871,6 +880,7 @@ contacts.Form = (function() {
       if (!noTransition) {
         Contacts.cancel();
       }
+      Contacts.setCurrent(contact);
     };
 
     request.onerror = function onerror() {
@@ -1109,6 +1119,7 @@ contacts.Form = (function() {
     var removedFields = dom.querySelectorAll('.removed');
     for (var i = 0; i < removedFields.length; i++) {
       removedFields[i].classList.remove(REMOVED_CLASS);
+      removedFields[i].classList.remove(FB_CLASS);
     }
     thumbAction.classList.remove('with-photo');
     var removeButton = thumbAction.querySelector('button');

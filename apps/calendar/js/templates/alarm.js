@@ -30,44 +30,35 @@
 
   var Alarm = Calendar.Template.create({
 
-    /**
-     * Generates a human readable form of an alarm
-     * based on the relative time to that alarm.
-     */
-    description: function() {
+    reminder: function() {
+      var alarmContent = '';
+      var alarms = this.arg('alarms');
+      var isAllDay = this.arg('isAllDay');
 
-      var description = '';
-      var trigger = this.arg('trigger');
-      var _ = navigator.mozL10n.get;
-
-      if (trigger == 'none') {
-        return _('none');
+      var i = 0;
+      var alarm;
+      while ((alarm = alarms[i])) {
+        i++;
+        alarmContent += Calendar.Templates.Alarm.description.render({
+          trigger: alarm.trigger,
+          layout: isAllDay ? 'allday' : 'standard'
+        });
       }
 
-      // Format the display text based on a zero-offset trigger
-      if (this.arg('layout') == 'allday') {
-        var options = layouts.allday;
-        if (options.indexOf(trigger) !== -1) {
-          trigger -= MORNING;
-        }
-      }
-
-      if (trigger === 0) {
-        description = _('alarm-at-event-' + this.arg('layout'));
-      } else {
-        var affix = trigger > 0 ? 'after' : 'before';
-        var parts = Calendar.App.dateFormat.relativeParts(trigger);
-
-        for (var i in parts) {
-          description += _(i + '-' + affix, {value: parts[i]});
-          // For now only display the first time part that we get
-          break;
-        }
-      }
-
-      return description;
+      return alarmContent;
     },
 
+    description: function() {
+      var _ = navigator.mozL10n.get;
+      var l10n = getL10n(this.arg('trigger'), this.arg('layout'));
+
+      return '<div data-l10n-id="' + l10n.id + '"' +
+        ' data-l10n-args=\'' + JSON.stringify(l10n.data) + '\'>' +
+        _(l10n.id, l10n.data) +
+        '</div>';
+    },
+
+    // builds a list of <option>
     options: function() {
       var content = '';
       var selected;
@@ -81,36 +72,60 @@
       var iLen = options.length;
 
       for (; i < iLen; i++) {
-        selected = '';
+        selected = false;
 
-        //trigger option 'selected' by normalizing imported dates
-        if (layout == 'allday') {
-          if (options[i] == (trigger + MORNING)) {
+        // trigger option 'selected' by normalizing imported dates
+        if (layout === 'allday') {
+          if (options[i] === (trigger + MORNING)) {
             trigger += MORNING;
           }
         }
 
-        if (!selected && trigger && options[i] == trigger) {
-          selected = ' selected';
+        if (!selected && trigger && options[i] === trigger) {
+          selected = true;
           foundSelected = true;
         }
 
-        content += '<option value="' + options[i] + '"' + selected + '>' +
-          Calendar.Templates.Alarm.description.render({
-            trigger: options[i],
-            layout: layout
-          }) +
-        '</option>';
+        content += Calendar.Templates.Alarm.option.render({
+          selected: selected,
+          layout: layout,
+          value: options[i]
+        });
       }
 
+      // foundSelected is used in cases where user is editing an event that has
+      // a custom reminder value (X minutes/hours/days before event) and that
+      // is an option that we don't support internally on the calendar app.
+      // we always add a new <option> using the custom value and mark it as
+      // selected.
       if (!foundSelected && /^-?\d+$/.test(trigger)) {
-        content += '<option value="' + trigger + '" selected>' +
-          Calendar.Templates.Alarm.description.render({
-            trigger: trigger,
-            layout: layout
-          }) +
-        '</option>';
+        content += Calendar.Templates.Alarm.option.render({
+          selected: true,
+          layout: layout,
+          value: trigger
+        });
       }
+
+      return content;
+    },
+
+    option: function() {
+      var _ = navigator.mozL10n.get;
+
+      var layout = this.arg('layout');
+      var value = this.arg('value');
+      var selected = this.arg('selected');
+
+      var l10n = getL10n(value, layout);
+
+      var content = [
+        '<option',
+        'value="' + value + '"',
+        (selected ? 'selected' : ''),
+        'data-l10n-id="' + l10n.id + '"',
+        'data-l10n-args=\'' + JSON.stringify(l10n.data) + '\'>',
+        _(l10n.id, l10n.data) + '</option>'
+      ].join(' ');
 
       return content;
     },
@@ -123,6 +138,43 @@
       '</span>';
     }
   });
+
+  function getL10n(trigger, layout) {
+    if (trigger === 'none') {
+      return {
+        id: trigger,
+        data: {}
+      };
+    }
+
+    // Format the display text based on a zero-offset trigger
+    if (layout === 'allday') {
+      var options = layouts.allday;
+      if (options.indexOf(trigger) !== -1) {
+        trigger -= MORNING;
+      }
+    }
+
+    if (trigger === 0) {
+      return {
+        id: 'alarm-at-event-' + layout,
+        data: {}
+      };
+    }
+
+    var affix = trigger > 0 ? 'after' : 'before';
+    var parts = Calendar.App.dateFormat.relativeParts(trigger);
+
+    for (var i in parts) {
+      // we only use the first part (biggest value)
+      return {
+        id: i + '-' + affix,
+        data: {
+          value: parts[i]
+        }
+      };
+    }
+  }
 
   Calendar.ns('Templates').Alarm = Alarm;
 }(this));

@@ -12,6 +12,8 @@ require(['config/require'], function() {
     require('shared/wifi_helper');
     // used by security_privacy.js, messaging.js
     require('shared/icc_helper');
+    // used by all header building blocks
+    require('shared/font_size_utils');
 
     var SettingsService = require('modules/settings_service');
     var PageTransitions = require('modules/page_transitions');
@@ -19,6 +21,36 @@ require(['config/require'], function() {
     var ScreenLayout = require('shared/screen_layout');
     var Settings = require('settings');
     var Connectivity = require('connectivity');
+
+    function isInitialPanel(panel) {
+      var isTabletAndLandscape = Settings.isTabletAndLandscape();
+
+      return (!isTabletAndLandscape && panel === '#root') ||
+        (isTabletAndLandscape && panel === '#wifi');
+    }
+
+    window.addEventListener('panelready', function onPanelReady(e) {
+      if (!isInitialPanel(e.detail.current)) {
+        return;
+      }
+
+      window.removeEventListener('panelready', onPanelReady);
+
+      // The loading of the first panel denotes that we are ready for display
+      // and ready for user interaction
+      window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
+      window.dispatchEvent(new CustomEvent('moz-content-interactive'));
+    }, false);
+
+    window.addEventListener('telephony-settings-loaded',
+      function onTelephonySettingsLoaded() {
+        window.removeEventListener('telephony-settings-loaded',
+          onTelephonySettingsLoaded);
+
+        // The loading of telephony settings is dependent on being idle,
+        // once complete we are safe to declare the settings app as loaded
+        window.dispatchEvent(new CustomEvent('moz-app-loaded'));
+      });
 
     /**
      * In two column layout, the root panel should not be deactivated. We pass
@@ -46,6 +78,12 @@ require(['config/require'], function() {
         window.removeEventListener('load', onload);
         Settings.init(options);
       });
+    }
+
+    // Tell audio channel manager that we want to adjust the notification
+    // channel if the user press the volumeup/volumedown buttons in Settings.
+    if (navigator.mozAudioChannelManager) {
+      navigator.mozAudioChannelManager.volumeControlChannel = 'notification';
     }
   });
 

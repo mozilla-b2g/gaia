@@ -3,7 +3,7 @@
          Threads, Navigation, Promise  */
 /*global MockNavigatormozSetMessageHandler, MockNavigatormozApps,
          MockNavigatorWakeLock, MockOptionMenu,
-         MockMessages, MockL10n,
+         MockMessages, MockL10n, MockSilentSms,
          MockNavigatormozMobileMessage,
          Settings
 */
@@ -22,7 +22,6 @@ requireApp('sms/shared/test/unit/mocks/mock_settings_url.js');
 
 requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/test/unit/mock_attachment.js');
-requireApp('sms/test/unit/mock_black_list.js');
 requireApp('sms/test/unit/mock_compose.js');
 requireApp('sms/test/unit/mock_contacts.js');
 requireApp('sms/test/unit/mock_messages.js');
@@ -33,6 +32,7 @@ requireApp('sms/test/unit/mock_action_menu.js');
 require('/test/unit/mock_settings.js');
 require('/test/unit/mock_notify.js');
 require('/test/unit/mock_navigation.js');
+require('/test/unit/mock_silent_sms.js');
 
 requireApp('sms/js/utils.js');
 requireApp('sms/test/unit/mock_utils.js');
@@ -42,7 +42,6 @@ requireApp('sms/js/activity_handler.js');
 
 var mocksHelperForActivityHandler = new MocksHelper([
   'Attachment',
-  'BlackList',
   'Compose',
   'Contacts',
   'MessageManager',
@@ -52,6 +51,7 @@ var mocksHelperForActivityHandler = new MocksHelper([
   'OptionMenu',
   'Settings',
   'SettingsURL',
+  'SilentSms',
   'Threads',
   'ThreadUI',
   'Utils',
@@ -312,9 +312,14 @@ suite('ActivityHandler', function() {
   suite('sms received', function() {
     var message;
 
-    setup(function() {
+    setup(function(done) {
       message = MockMessages.sms();
+      var checkSilentPromise = Promise.resolve(false);
+
+      this.sinon.stub(MockSilentSms, 'checkSilentModeFor')
+            .returns(checkSilentPromise);
       MockNavigatormozSetMessageHandler.mTrigger('sms-received', message);
+      checkSilentPromise.then(() => done());
     });
 
     test('request the cpu wake lock', function() {
@@ -469,18 +474,50 @@ suite('ActivityHandler', function() {
     });
   });
 
-  suite('Dual SIM behavior >', function() {
+  suite('Silent mode', function() {
     var message;
 
     setup(function() {
+      message = MockMessages.sms();
+      this.sinon.stub(Navigation, 'isCurrentPanel').returns(true);
+    });
+
+    test('sender with Silent Mode enabled - not play ringtone', function(done) {
+      this.sinon.stub(Notify, 'ringtone');
+      var promise = Promise.resolve(true);
+      this.sinon.stub(MockSilentSms, 'checkSilentModeFor').returns(promise);
+      // trigger message
+      MockNavigatormozSetMessageHandler.mTrigger('sms-received', message);
+      promise.then(function() {
+        sinon.assert.notCalled(Notify.ringtone);
+      }).then(done, done);
+    });
+
+    test('sender with Silent Mode disabled - play ringtone', function(done) {
+      this.sinon.stub(Notify, 'ringtone', function _assertionFunction() {
+        done();
+      });
+      var promise = Promise.resolve(false);
+      this.sinon.stub(MockSilentSms, 'checkSilentModeFor').returns(promise);
+      MockNavigatormozSetMessageHandler.mTrigger('sms-received', message);
+    });
+  });
+
+  suite('Dual SIM behavior >', function() {
+    var message;
+
+    setup(function(done) {
       message = MockMessages.sms({
         iccId: '0'
       });
-
+      var checkSilentPromise = Promise.resolve(false);
+      this.sinon.stub(MockSilentSms, 'checkSilentModeFor')
+        .returns(checkSilentPromise);
       this.sinon.stub(Settings, 'hasSeveralSim').returns(true);
       this.sinon.spy(window, 'Notification');
 
       MockNavigatormozSetMessageHandler.mTrigger('sms-received', message);
+      checkSilentPromise.then(() => done());
     });
 
     suite('contact retrieved (after getSelf)', function() {
@@ -559,23 +596,25 @@ suite('ActivityHandler', function() {
     });
 
     suite('receive message when in thread with the same id', function() {
+      var newMessage;
       setup(function() {
-        this.sinon.stub(Notify, 'ringtone');
-        this.sinon.stub(Notify, 'vibrate');
+        this.sinon.stub(MockSilentSms, 'checkSilentModeFor')
+          .returns(Promise.resolve(false));
 
-        var newMessage = MockMessages.sms();
+        newMessage = MockMessages.sms();
 
         this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
         Navigation.isCurrentPanel.withArgs(
           'thread', { id: newMessage.threadId }
         ).returns(true);
-
-        MockNavigatormozSetMessageHandler.mTrigger('sms-received', newMessage);
       });
 
-      test('play ringtone and vibrate even if in correct thread', function() {
-        sinon.assert.called(Notify.ringtone);
-        sinon.assert.called(Notify.vibrate);
+      test('play ringtone and vibrate even if in correct thread',
+           function(done) {
+        this.sinon.stub(Notify, 'ringtone', function _assertionFunction() {
+          done();
+        });
+        MockNavigatormozSetMessageHandler.mTrigger('sms-received', newMessage);
       });
     });
 

@@ -162,6 +162,11 @@ define(function(require) {
 
           this.inited = true;
           this._callEmit('acctsSlice');
+
+          // Once the API/worker has started up and we have received account
+          // data, consider the app fully loaded: we have verified full flow
+          // of data from front to back.
+          evt.emit('metrics:apiDone');
         }).bind(this);
       }.bind(this));
     },

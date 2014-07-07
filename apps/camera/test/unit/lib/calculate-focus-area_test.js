@@ -1,4 +1,4 @@
-suite('lib/picture-sizes/format-picture-sizes', function() {
+suite('lib/calculate-focus-area', function() {
   /*jshint maxlen:false*/
   /*global req*/
   'use strict';

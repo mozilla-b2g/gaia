@@ -21,6 +21,10 @@ form[role="dialog"][data-type="confirm"] p small{
   line-height: 2rem;
 }
 
+form[data-type="confirm"] .phone-details .phone-number {
+  display: inline;
+}
+
 
 /* Override Building Block [Header] styles */
 section[role="region"] > header:first-child .icon.icon-clear {
@@ -71,6 +75,10 @@ form[role="dialog"][data-type="edit"] > menu {
   text-align: left;
 }
 
+#main-wrapper.edit [data-type="list"] li a {
+  pointer-events: none;
+}
+
 #threads-container[data-type="list"] .mms-icon {
   display: none;
   margin-left: 0.3rem;
@@ -109,6 +117,10 @@ form[role="dialog"][data-type="edit"] > menu {
   /* Those style will affect the bagroundImage: -moz-element. */
   background-repeat: no-repeat;
   background-position: 1.5rem 0;
+}
+
+.edit #threads-container[data-type="list"] {
+  height: calc(100% - 12rem);
 }
 
 #threads-container[data-type="list"] header {
@@ -192,6 +204,7 @@ form[role="dialog"][data-type="edit"] > menu {
 
 .edit [data-type="list"] li > a > p {
   transform: translateX(3.5rem);
+  margin-right: 3.5rem;
 }
 
 .edit #threads-container[data-type="list"] aside.pack-end {
@@ -287,11 +300,6 @@ form[role="dialog"][data-type="edit"] > menu {
   transform: translateY(0);
 }
 
-/* Completely hide the Compose form from view when in Edit mode */
-.edit .messages-compose-form {
-  transform: translateY(100%);
-}
-
 .edit form[role="dialog"][data-type="edit"] header {
   transform: translateY(0);
 }
@@ -366,16 +374,65 @@ section[role="region"].new > header:first-child form {
   Messages Style as 'bubbles'
 */
 
-#contact-carrier {
+.carrier-wrapper {
   display: none;
+
+  box-sizing: border-box;
+  height: 2.2rem;
+  padding: 0 1.5rem;
+
+  font-size: 1.4rem;
+  line-height: 2.2rem;
+  text-align: left;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  border-bottom: 0.1rem solid #ebebeb;
+
+  background: rgba(255, 255, 255, 0.95);
+  color: #575757;
 }
 
-section[class="panel has-carrier"] #contact-carrier {
+.carrier-wrapper .phone-carrier {
+  color: #237171;
+}
+
+.has-carrier .carrier-wrapper {
   display: block;
 }
 
-section.has-carrier .article-list header:first-child {
-  margin-top: 2rem;
+#messages-container {
+  background: #fff;
+}
+
+#messages-container .messages-date-group-header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+
+  height: 2.2rem;
+  margin: 0 0 0.6rem;
+
+  font-size: 1.4rem;
+  line-height: 2.2rem;
+  text-transform: uppercase;
+
+  background: rgba(255, 255, 255, 0.85);
+  color: #575757;
+}
+
+/* If has carrier change top position */
+.has-carrier #messages-container .messages-date-group-header {
+  top: 2.2rem;
+}
+
+.has-carrier #messages-container .messages-date-group-header:first-child {
+  margin-top: 2.2rem;
+}
+
+/* TODO: check whether we need this rule */
+#messages-container .messages-date-group-header.hidden {
+  display: none;
 }
 
 .new .article-list {
@@ -385,27 +442,6 @@ section.has-carrier .article-list header:first-child {
 
   background: none repeat scroll 0 0 #fff;
   text-align: left;
-}
-
-.article-list header {
-  margin: 0 0 0.6rem;
-  padding: 1.5rem 0 0 0;
-  border-bottom: none;
-
-  color: #606060;
-  font-size: 1.3rem;
-  min-height: 1.8rem;
-  text-align: left;
-  text-transform: uppercase;
-}
-
-.article-list[data-type="list"] > ul:last-child {
-  padding-bottom: 0.5rem;
-}
-
-.article-list header,
-  .article-list[data-type="list"] .message.incoming .bubble {
-  padding-left: 4rem;
 }
 
 .article-list[data-type="list"] .message {
@@ -421,63 +457,28 @@ section.has-carrier .article-list header:first-child {
 
   transition: none;
 }
-/* remove margin for notice-button class of button */
-.notice-button {
-  margin: 0;
-}
-
-/* hide download button via css on expired messages */
-.message.expired button {
-  display: none;
-}
 
 .article-list[data-type="list"] .message.hidden {
   display: none;
 }
 
-.article-list[data-type="list"] header.hidden {
-  display: none;
-}
-
-/* Set padding bottom to 1 rem because .5rem is added by the line-height,
-   which adds up and gives 1.5rem for the whole visible bottom padding */
-.article-list[data-type="list"] .message .bubble {
-  overflow: visible;
-  box-sizing: border-box;
-  max-width: calc(100% - 4rem);
-  height: 100%;
-  padding: 1.5rem 1.5rem 1rem;
-
-  background: #fff;
-}
-
-/**
- * We're using border-bottom instead of just underline style as line is too
- * close to the text and doesn't look similar to visual spec.
- */
-.message .download {
-  display: block;
-  height: 3.2rem;
-  width: auto;
+.article-list[data-type="list"] .message .bubble p {
   padding: 0;
 
-  background: none;
-  border: none;
-  border-bottom: 1px solid #333;
+  line-height: 2rem;
   font-size: 1.8rem;
+  text-align: left;
+  white-space: pre-wrap;
+  color: #333;
 }
 
-.message .download:active {
-  border-color: #038282;
-  color: #038282;
+.article-list[data-type="list"] .message.no-attachment .bubble p {
+  height: 2.3rem;
 }
 
-.message.pending .download {
-  border-bottom: none;
-}
-
-ul.message-list {
-  background-color: #e4e4e4;
+/* remove margin for notice-button class of button */
+.notice-button {
+  margin: 0;
 }
 
 #messages-container[data-type="list"] .message.mms .bubble img {
@@ -485,185 +486,13 @@ ul.message-list {
   width: auto;
 }
 
-.article-list[data-type="list"] .message .subject {
-  display: none;
-}
-
-.article-list[data-type="list"] .has-subject .bubble {
-  padding-top: 0;
-}
-
-.article-list[data-type="list"] .has-subject .subject {
-  display: block;
-  margin-bottom: 0.5rem;
-  padding-top: 0.9rem; /* 0.9 top + 1.4 line-height + 0.7 bottom = 3.0 */
-  padding-bottom: 0.7rem;
-
-  line-height: 1.4rem;
-  font-size: 1.4rem;
-  font-style: italic;
-  color: #666;
-}
-
-.article-list[data-type="list"] .has-subject.outgoing .subject {
-  /* to extend the background color and bottom border */
-  width: 100%;
-  margin-left: -1.5rem;
-  padding-left: 1.5rem;
-  padding-right: 4rem;
-
-  background: #FAFAFA;
-  border-bottom: 1px solid #EFEEEE;
-  border-radius: 0.3rem 0 0 0;
-}
-
-.article-list[data-type="list"] .has-subject.incoming .subject {
-  /* to extend the background color and bottom border */
-  width: 100%;
-  margin-left: -4rem;
-  padding-left: 4rem;
-  padding-right: 1.5rem;
-
-  background: #F7C584;
-  border-bottom: 1px solid #EFBD7C;
-  border-radius: 0 0.3rem 0 0;
-}
-
-.article-list[data-type="list"] .message.outgoing .bubble {
-  float: right;
-
-  padding-right: 4.1rem;
-  margin-left: 4rem;
-  border-radius: 0.3rem 0 0 0.3rem;
-}
-
-.article-list[data-type="list"] .message.incoming .bubble {
-  float: left;
-
-  border-radius: 0 0.3rem 0.3rem 0;
-
-  background: #FCC987;
-}
-
-.article-list[data-type="list"] .message.sending .bubble {
-  color: #5f5f5f;
-}
-
-.article-list[data-type="list"] .message.error .bubble {
-  border: 0.1rem solid #B90000;
-}
-
-.article-list[data-type="list"] .message.error.outgoing .bubble {
-  border-right-width: 0;
-}
-
-.article-list[data-type="list"] .message .bubble > div.message-content {
-  position: relative;
-}
-
-.article-list[data-type="list"] .message .bubble aside {
-  position: absolute;
-  top: -1.5rem;
-  right: -4.1rem;
-  bottom: -1.5rem;
-  height: auto;
-  z-index: auto;
-  display: none;
-  overflow: hidden;
-  width: 4rem;
-  text-align: center;
-}
-
-.article-list[data-type="list"] .message.incoming .bubble aside {
-  left: -4rem;
-  right: auto;
-  margin: 0 0.5rem 0 0;
-}
-
-.article-list[data-type="list"] .message.has-subject .bubble aside {
-  top: -0.5rem;
-}
-
-.article-list[data-type="list"] .message.error .bubble aside progress,
-.article-list[data-type="list"] .message.delivered .bubble aside progress,
-.article-list[data-type="list"] .message.read .bubble aside progress {
-  display: none;
-}
-
-.article-list[data-type="list"] .message.error .bubble aside {
-  display: block;
-
-  background: url('images/icons/exclamation.png') no-repeat center center;
-  background-size: 3rem;
-}
-
-.article-list[data-type="list"] .message.delivered .bubble aside {
-  display: block;
-
-  background: url('images/icons/deliveredtick.png') no-repeat center center;
-  background-size: 3rem;
-}
-
-.article-list[data-type="list"] .message.read .bubble aside {
-  display: block;
-
-  background: url('images/icons/message_read.png') no-repeat center center;
-  background-size: 3rem;
-}
-
-.article-list[data-type="list"] .message.pending .bubble aside,
-.article-list[data-type="list"] .message.sending .bubble aside {
-  display: block;
-}
-
-.article-list[data-type="list"] .message.pending .bubble aside progress,
-.article-list[data-type="list"] .message.sending .bubble aside progress {
-  display: block;
-  height: 100%;
-  margin: 0 auto;
-}
-
-.edit .article-list[data-type="list"] .message.error .bubble aside,
-.edit .article-list[data-type="list"] .message.pending .bubble aside progress,
-.edit .article-list[data-type="list"] .message.sending .bubble aside progress {
-  display: none;
-}
-
-.article-list[data-type="list"] .message .bubble p {
-  text-align: left;
-  font-size: 1.8rem;
-  line-height: 2.3rem;
-  white-space: pre-wrap;
-  padding: 0;
-}
-
-.article-list[data-type="list"] .message.no-attachment .bubble p {
-  height: 2.3rem;
-}
-
-.article-list[data-type="list"] .message .bubble p a {
-  color: #000;
-  text-decoration: underline;
-}
-
-.article-list[data-type="list"] .message .bubble p a:active {
-  color: #FF4E00;
-}
-
-.bubble time {
-  /* TODO: We might need to remove time element display: block in root.css */
-  display: block;
-
-  color: #000;
-  opacity: 0.7;
-  font-size: 1.4rem;
-  font-style: italic;
-  line-height: 2.3rem;
-}
-
 /*
   Styles for Edit mode in Messages Container
 */
+
+.edit #composer-messages-container {
+  margin-bottom: 4.0rem;
+}
 
 .edit .article-list[data-type="list"] .message {
   border-color: #e7e7e7;
@@ -671,6 +500,16 @@ ul.message-list {
 
 .edit [data-type="list"] .message .bubble {
   pointer-events: none;
+}
+
+/* In edit mode we hide progress bar for all message types and hide background
+   for the incoming messages as checkbox should appear at the same place */
+.edit .message .bubble .message-status progress {
+  display: none;
+}
+
+.edit .message.incoming .bubble .message-status {
+  background: none;
 }
 
 .edit-button {
@@ -689,53 +528,18 @@ ul.message-list {
   pointer-events: none;
 }
 
-/* Add a margin at the end of the last thread or message node to avoid overlay
- * with the edit mode menu */
-.edit .edit-container > :last-child {
+.edit #messages-compose-form {
+  display: none;
+}
+
+.edit #composer-messages-container {
   margin-bottom: 7rem;
 }
 
-
-/*
-  DSDS
-*/
-
-.js-sim-indication {
-  position: absolute;
-  top: 0.2rem;
-  left: 0;
-
-  display: none;
-  line-height: 1;
-  width: 100%;
-
-  font-size: 1.3rem;
-  opacity: 0.5;
-}
-
-.has-preferred-sim .js-sim-indication {
-  display: block;
-}
-
-.has-preferred-sim #messages-send-button {
-  height: 4.5rem;
-  padding-top: 0.5rem;
-
-  /* override BB, first one is separator, second one is background */
-  background-position: left bottom, bottom;
-}
-
-.has-preferred-sim #messages-send-button:after {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-
-  content: '';
-  display: block;
-  width: 100%;
-  height: 1rem;
-
-  background: url(images/long-tap-indicator.png) center no-repeat;
+/* Add a margin at the end of the last thread or message node to avoid overlay
+ * with the edit mode menu */
+.edit .edit-container {
+  padding-bottom: 7rem;
 }
 
 /*
@@ -798,25 +602,28 @@ ul.message-list {
 /*
   Styles related to the layout of the composer
 */
+
+section[role="region"].new .subheader {
+  height: 0;
+}
+
 #messages-to-field {
   position: relative;
 
   display: none;
+  min-height: 5.5rem;
 
   text-align: left;
   color: black;
   font-size: 1.465rem;
   background-color: #f2f2f2;
+  transition: transform 0.2s ease-in-out 0s;
+  transform: translateY(calc(-100% + 5.5rem));
 }
 
 section[role="region"].new #messages-to-field {
   display: flex;
-  min-height: 5.5rem;
-
   align-items: flex-end;
-
-  transition: transform 0.2s ease-in-out 0s;
-  transform: translateY(calc(-100% + 5.5rem));
 }
 
 
@@ -825,21 +632,20 @@ section[role="region"].new #messages-to-field.multiline {
 }
 
 #to-label {
+  flex-shrink: 0;
+
   height: 4rem;
-  width: 3.5rem;
-  min-width: 3.5rem;
+  padding-left: 1.5rem;
   padding-right: 0.7rem;
 
   line-height: 4rem;
   font-weight: 200;
   font-size: 1.465rem;
-  text-align: right;
   color: #000;
 }
 
 #messages-recipients-list-container {
   min-height: 4rem;
-  max-width: 23rem;
   box-sizing: border-box;
 
   flex-grow: 1;
@@ -854,17 +660,16 @@ section[role="region"].new #messages-to-field.multiline {
 /*
 Used by Recipients.View to display multi or single line.
 Do not remove.
-
-generateHeightRule() (in ThreadUI/thread_ui.js) will create:
-#messages-recipients-list.multiline {
-  max-height: {max available height}px;
-}
 */
 #messages-recipients-list.singleline {
   overflow-y: hidden;
 }
 
 #messages-recipients-list.multiline {
+  /* max-height = viewport - header - minimum composer - list margin */
+  max-height: calc(100vh - 5rem - 3.7rem - 0.6rem);
+  margin-bottom: 0.6rem;
+
   overflow-y: scroll;
 }
 
@@ -881,6 +686,11 @@ generateHeightRule() (in ThreadUI/thread_ui.js) will create:
 
   display: block;
   float: left;
+}
+
+.recipient[contenteditable].email {
+  padding-right: 3.8rem;
+  background: white url(images/icons/icon_sms_compose_email.png) calc(100% - 1.5rem) center no-repeat;
 }
 
 /* Disable padding and margin on empty contenteditable recipients when they do
@@ -1001,21 +811,23 @@ section[role="region"].new .article-list[data-type="list"]  li {
 
 .subheader menu {
   position: relative;
+  flex-shrink: 0;
 
   width: 5rem;
   height: 4rem;
 }
 
 /* Elements related to information view */
-section[role="region"].information #messages-options-icon,
-section[role="region"].information #messages-attach-button,
-section[role="region"].information #messages-subheader,
-section[role="region"].information #messages-container,
-section[role="region"].information #messages-compose-form {
+section[role="region"][class$='information'] #messages-options-icon,
+section[role="region"][class$='information'] #messages-attach-button,
+section[role="region"][class$='information'] #messages-subheader,
+section[role="region"][class$='information'] #messages-container,
+section[role="region"][class$='information'] #messages-compose-form {
   display: none;
 }
 
-section[role="region"].information > header:first-child .icon.icon-back {
+/* Override icon style with close one */
+section[role="region"].report-information > header .icon-back {
   background-image: url(/shared/style/headers/images/icons/close.png);
 }
 
@@ -1034,4 +846,18 @@ section[role="region"].information > header:first-child .icon.icon-back {
 
 .request-activity-mode #messages-back-button {
   display: none;
+}
+
+
+/* Phone details label styles */
+.phone-details > .phone-details-item {
+  display: none;
+}
+
+.phone-details.has-phone-type > .phone-type,
+.phone-details.has-phone-type > .phone-type-separator,
+.phone-details > .phone-number,
+.phone-details.has-phone-carrier > .phone-carrier,
+.phone-details.has-phone-carrier > .phone-carrier-separator {
+  display: inline;
 }

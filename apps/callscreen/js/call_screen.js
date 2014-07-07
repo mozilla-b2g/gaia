@@ -1,3 +1,7 @@
+/* globals CallsHandler, FontSizeManager, KeypadManager, LazyL10n,
+           LockScreenSlide, MozActivity, SettingsListener */
+/* jshint nonew: false */
+
 'use strict';
 
 var CallScreen = {
@@ -38,7 +42,9 @@ var CallScreen = {
   hideGroupButton: document.getElementById('group-hide'),
 
   incomingContainer: document.getElementById('incoming-container'),
+  incomingInfo: document.getElementById('incoming-info'),
   incomingNumber: document.getElementById('incoming-number'),
+  fakeIncomingNumber: document.getElementById('fake-incoming-number'),
   incomingSim: document.getElementById('incoming-sim'),
   incomingNumberAdditionalInfo:
     document.getElementById('incoming-number-additional-info'),
@@ -67,11 +73,19 @@ var CallScreen = {
   },
 
   updateCallsDisplay: function cs_updateCallsDisplay() {
-    var enabled =
-      (this.calls.querySelectorAll('section:not([hidden])').length <= 1);
-    this.calls.classList.toggle('single-line', enabled);
-    this.calls.classList.toggle('big-duration', enabled);
+    var visibleCalls =
+      this.calls.querySelectorAll('section:not([hidden])').length;
+    this.calls.classList.toggle('single-line', visibleCalls <= 1);
+    this.calls.classList.toggle('big-duration', visibleCalls <= 1);
     CallsHandler.updateAllPhoneNumberDisplays();
+  },
+
+  hidePlaceNewCallButton: function cs_hidePlaceNewCallButton() {
+    this.callToolbar.classList.add('no-add-call');
+  },
+
+  showPlaceNewCallButton: function cs_showPlaceNewCallButton() {
+    this.callToolbar.classList.remove('no-add-call');
   },
 
   /**
@@ -120,7 +134,7 @@ var CallScreen = {
                                     this.hideGroupDetails.bind(this));
 
     this.switchToDeviceButton.addEventListener('click',
-                                    this.switchToDefaultOut.bind(this));
+                                    this.switchToDefaultOut.bind(this, false));
     this.switchToReceiverButton.addEventListener('click',
                                     this.switchToReceiver.bind(this));
     this.switchToSpeakerButton.addEventListener('click',
@@ -137,12 +151,12 @@ var CallScreen = {
 
     this.calls.addEventListener('click', CallsHandler.toggleCalls.bind(this));
 
-
-    this.setWallpaper();
-
     window.addEventListener('resize', this.resizeHandler.bind(this));
     window.addEventListener('hashchange', this.hashchangeHandler.bind(this));
     this.hashchangeHandler();
+
+    SettingsListener.observe('wallpaper.image', null,
+                             this._wallpaperImageHandler.bind(this));
 
     this.syncSpeakerEnabled();
   },
@@ -169,6 +183,10 @@ var CallScreen = {
           }
         },
 
+        track: {
+          backgroundColor: 'rgba(0, 0, 0, 0.4)'
+        },
+
         colors: {
           left: {
             touchedColor: '255, 0, 0',
@@ -182,13 +200,15 @@ var CallScreen = {
         },
 
         resources: {
-          larrow: '/style/images/larrow.png',
-          rarrow: '/style/images/rarrow.png'
+          larrow: '/style/images/lock_screen/LArrow_Lockscreen.png',
+          rarrow: '/style/images/lock_screen/RArrow_Lockscreen.png'
         },
         handle: {
           autoExpand: {
             sentinelOffset: 80
-          }
+          },
+          backgroundColor: '255, 255, 255',
+          backgroundAlpha: 0.85
         }
       }
     );
@@ -198,24 +218,10 @@ var CallScreen = {
   _toggleWaiting: false,
   _toggleCallback: null,
 
-  setWallpaper: function cs_setWallpaper() {
-    if (!navigator.mozSettings) {
-      this._onWallpaperReady();
-      return;
-    }
-
-    var self = this;
-    var req = navigator.mozSettings.createLock().get('wallpaper.image');
-    req.onsuccess = function cs_wi_onsuccess() {
-      var wallpaperImage = req.result['wallpaper.image'];
-      var isString = (typeof wallpaperImage == 'string');
-      var image =
-        isString ? wallpaperImage : URL.createObjectURL(wallpaperImage);
-      self.mainContainer.style.backgroundImage = 'url(' + image + ')';
-      setTimeout(self._onWallpaperReady.bind(self));
-    };
-
-    req.onerror = this._onWallpaperReady.bind(this);
+  _wallpaperImageHandler: function cs_wallpaperImageHandler(image) {
+    this.mainContainer.style.backgroundImage = 'url(' +
+      (typeof image === 'string' ? image : URL.createObjectURL(image)) + ')';
+    setTimeout(this._onWallpaperReady.bind(this));
   },
 
   _onWallpaperReady: function cs_onWallpaperReady() {
@@ -230,7 +236,6 @@ var CallScreen = {
   _transitioning: false,
   _transitionDone: false,
   _contactBackgroundWaiting: false,
-  _contactImage: null,
 
   toggle: function cs_toggle(callback) {
     // Waiting for the wallpaper to be set before toggling the screen in
@@ -275,34 +280,26 @@ var CallScreen = {
   _onTransitionDone: function cs_onTransitionDone() {
     this._transitionDone = true;
     if (this._contactBackgroundWaiting) {
-      this.setCallerContactImage(this._contactImage);
+      this.setCallerContactImage();
       this._contactBackgroundWaiting = false;
     }
   },
 
-  setCallerContactImage: function cs_setContactImage(blob, force) {
+  setCallerContactImage: function cs_setCallerContactImage() {
     // Waiting for the call screen transition to end before updating
     // the contact image
     if (!this._transitionDone) {
-      this._contactImage = blob;
       this._contactBackgroundWaiting = true;
       return;
     }
 
-    if (this._contactImage == blob && !this._contactBackgroundWaiting) {
-      return;
-    }
-
-    this._contactImage = blob;
+    var activeCallForContactImage = CallsHandler.activeCallForContactImage;
+    var blob = activeCallForContactImage && activeCallForContactImage.photo;
 
     this.contactBackground.classList.remove('ready');
     var background = blob ? 'url(' + URL.createObjectURL(blob) + ')' : '';
     this.contactBackground.style.backgroundImage = background;
     this.contactBackground.classList.add('ready');
-  },
-
-  setEmergencyWallpaper: function cs_setEmergencyWallpaper() {
-    this.mainContainer.classList.add('emergency-active');
   },
 
   insertCall: function cs_insertCall(node) {
@@ -324,10 +321,8 @@ var CallScreen = {
     // If a user has the keypad opened, we want to display the number called
     // while in status bar mode. And restore the digits typed when exiting.
     if (!this.body.classList.contains('showKeypad')) {
-      return;
-    }
-
-    if (this.inStatusBarMode) {
+      this.updateCallsDisplay(this.inStatusBarMode);
+    } else if (this.inStatusBarMode) {
       this._typedNumber = KeypadManager._phoneNumber;
       KeypadManager.restorePhoneNumber();
     } else {
@@ -460,12 +455,8 @@ var CallScreen = {
       this._screenWakeLock.unlock();
       this._screenWakeLock = null;
     }
-    var hc = CallsHandler.activeCall;
-    if (hc) {
-      this.setCallerContactImage(hc.photo);
-    } else {
-      this.setCallerContactImage(null);
-    }
+
+    this.setCallerContactImage();
   },
 
   syncSpeakerEnabled: function cs_syncSpeakerEnabled() {
@@ -501,8 +492,9 @@ var CallScreen = {
   createTicker: function(durationNode) {
     var durationChildNode = durationNode.querySelector('span');
 
-    if (durationNode.dataset.tickerId)
+    if (durationNode.dataset.tickerId) {
       return false;
+    }
 
     durationChildNode.textContent = '00:00';
     durationNode.classList.add('isTimer');
@@ -599,6 +591,11 @@ var CallScreen = {
     }
   },
 
+  cdmaConferenceCall: function cs_cdmaConferenceCall() {
+    this.hidePlaceNewCallButton();
+    this.calls.classList.add('cdma-conference-call');
+  },
+
   initUnlockerEvents: function cs_initUnlockerEvents() {
     window.addEventListener('lockscreenslide-unlocker-initializer', this);
     window.addEventListener('lockscreenslide-near-left', this);
@@ -617,5 +614,18 @@ var CallScreen = {
     window.removeEventListener('lockscreenslide-activate-left', this);
     window.removeEventListener('lockscreenslide-activate-right', this);
     window.removeEventListener('lockscreenslide-unlocking-stop', this);
+  },
+
+  getScenario: function cs_getScenario() {
+    var scenario;
+    if (this.inStatusBarMode) {
+      scenario = FontSizeManager.STATUS_BAR;
+    } else if (this.calls.querySelectorAll(
+      'section:not([hidden])').length > 1) {
+      scenario = FontSizeManager.CALL_WAITING;
+    } else {
+      scenario = FontSizeManager.SINGLE_CALL;
+    }
+    return scenario;
   }
 };

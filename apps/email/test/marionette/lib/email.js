@@ -66,7 +66,7 @@ var Selector = {
   folderListContents: '.card-folder-picker .fld-acct-scrollinner',
   settingsButton: '.fld-nav-toolbar',
   settingsDoneButton: '.card-settings-main [data-l10n-id="settings-done"]',
-  addAccountButton: '.tng-accounts-container .tng-account-add',
+  addAccountButton: '.card-settings-main .tng-account-add',
   accountListButton: '.fld-acct-header',
   accountListContainer: '.fld-accountlist-container',
   settingsMainAccountItems: '.tng-accounts-container .tng-account-item',

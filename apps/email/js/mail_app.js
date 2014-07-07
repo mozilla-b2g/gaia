@@ -51,6 +51,12 @@ if (typeof TestUrlResolver === 'undefined') {
   });
 }
 
+// Tell audio channel manager that we want to adjust the notification
+// channel if the user press the volumeup/volumedown buttons in Email.
+if (navigator.mozAudioChannelManager) {
+  navigator.mozAudioChannelManager.volumeControlChannel = 'notification';
+}
+
 // Named module, so it is the same before and after build, and referenced
 // in the require at the end of this file.
 define('mail_app', function(require, exports, module) {
@@ -67,6 +73,8 @@ var appMessages = require('app_messages'),
     waitingForCreateAccountPrompt = false,
     activityCallback = null;
 
+require('shared/js/font_size_utils');
+require('metrics');
 require('sync');
 require('wake_locks');
 
@@ -140,22 +148,29 @@ var finalCardStateCallback,
     cachedNode = Cards._cardsNode.children[0],
     startCardId = cachedNode && cachedNode.getAttribute('data-type');
 
-var startCardArgs = {
-  'setup_account_info': [
-    'setup_account_info', 'default', 'immediate',
-    {
-      onPushed: function(impl) {
-        htmlCache.delayedSaveFromNode(impl.domNode.cloneNode(true));
+function getStartCardArgs(id) {
+  // Use a function that returns fresh arrays for each call so that object
+  // in that last array position is fresh for each call and does not have other
+  // properties mixed in to it by multiple reuse of the same object
+  // (bug 1031588).
+  if (id === 'setup_account_info') {
+    return [
+      'setup_account_info', 'default', 'immediate',
+      {
+        onPushed: function(impl) {
+          htmlCache.delayedSaveFromNode(impl.domNode.cloneNode(true));
+        }
       }
-    }
-  ],
-  'message_list': [
-    'message_list', 'nonsearch', 'immediate', {}
-  ]
-};
+    ];
+  } else if (id === 'message_list') {
+    return [
+      'message_list', 'nonsearch', 'immediate', {}
+    ];
+  }
+}
 
 function pushStartCard(id, addedArgs) {
-  var args = startCardArgs[id];
+  var args = getStartCardArgs(id);
   if (!args) {
     throw new Error('Invalid start card: ' + id);
   }
@@ -190,6 +205,10 @@ if (appMessages.hasPending('alarm')) {
 
 // If still have a cached node, then show it.
 if (cachedNode) {
+  // l10n may not see this as it was injected before l10n.js was loaded,
+  // so let it know it needs to translate it.
+  mozL10n.translateFragment(cachedNode);
+
   // Wire up a card implementation to the cached node.
   if (startCardId) {
     pushStartCard(startCardId);
@@ -208,7 +227,7 @@ if (cachedNode) {
 function resetCards(cardId, args) {
   cachedNode = null;
 
-  var startArgs = startCardArgs[cardId],
+  var startArgs = getStartCardArgs(cardId),
       query = [startArgs[0], startArgs[1]];
 
   if (!Cards.hasCard(query)) {

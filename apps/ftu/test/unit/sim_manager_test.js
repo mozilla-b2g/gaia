@@ -1,12 +1,12 @@
-/* global UIManager, SimManager, MocksHelper, MockNavigatorMozIccManager,
-          MockNavigatorMozMobileConnections, Navigation, MockL10n */
+/* global UIManager, SimManager, MobileOperator, MocksHelper,
+          MockNavigatorMozIccManager, MockNavigatorMozMobileConnections,
+          Navigation, MockL10n */
 
 'use strict';
 
-require(
-  '/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
-require(
-  '/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
+require('/shared/test/unit/mocks/mock_mobile_operator.js');
 requireApp('ftu/test/unit/mock_ui_manager.js');
 requireApp('ftu/test/unit/mock_l10n.js');
 
@@ -16,14 +16,14 @@ requireApp('ftu/js/navigation.js');
 require('/shared/test/unit/load_body_html_helper.js');
 
 var mocksHelperForSimManager = new MocksHelper([
-  'UIManager'
+  'UIManager',
+  'MobileOperator'
 ]).init();
 
 suite('sim mgmt >', function() {
   var realL10n,
       realMozIccManager,
       realMozMobileConnections;
-  var mocksHelper = mocksHelperForSimManager;
   var navigationStub,
       iccId0,
       iccInfo0,
@@ -46,6 +46,8 @@ suite('sim mgmt >', function() {
     getCardLockRetryCountStub.restore();
   };
 
+  mocksHelperForSimManager.attachTestHelpers();
+
   suiteSetup(function() {
     loadBodyHTML('/index.html');
 
@@ -60,8 +62,6 @@ suite('sim mgmt >', function() {
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
 
-    mocksHelper.suiteSetup();
-
     iccId0 = navigator.mozIccManager.iccIds[0];
     iccInfo0 = navigator.mozIccManager.getIccById(iccId0);
   });
@@ -72,13 +72,10 @@ suite('sim mgmt >', function() {
     UIManager.activationScreen.classList.remove('show');
     UIManager.unlockSimScreen.classList.add('show');
 
-    mocksHelper.setup();
     setupRetryCount();
-
   });
 
   teardown(function() {
-    mocksHelper.teardown();
     teardownRetryCount();
   });
 
@@ -93,8 +90,6 @@ suite('sim mgmt >', function() {
 
     navigator.mozL10n = realL10n;
     realL10n = null;
-
-    mocksHelper.suiteTeardown();
   });
 
   test('"Skip" hides the screen', function() {
@@ -463,6 +458,39 @@ suite('sim mgmt >', function() {
     test('hide sim import section', function() {
       SimManager.skip();
       assert.isFalse(UIManager.simImport.classList.contains('show'));
+    });
+  });
+
+  suite('Operator', function() {
+    setup(function() {
+      iccInfo0.cardState = 'ready';
+      MobileOperator.mOperator = '';
+      SimManager.updateSIMInfoText(SimManager.icc0);
+    });
+
+    test('should read locked state', function() {
+      iccInfo0.cardState = 'pinRequired';
+      SimManager.updateSIMInfoText(SimManager.icc0);
+
+      assert.equal('simPinLocked', UIManager.simCarrier1.textContent);
+    });
+
+    test('should read no operator when unlocked', function() {
+      assert.equal('noOperator', UIManager.simCarrier1.textContent);
+    });
+
+    test('should update the operator on voicechange', function() {
+      MobileOperator.mOperator = 'Fake Operator';
+      MockNavigatorMozMobileConnections[0].triggerEventListeners('voicechange');
+
+      assert.equal('Fake Operator', UIManager.simCarrier1.textContent);
+    });
+
+    test('should have 1 event listener per ICC', function() {
+      SimManager.updateSIMInfoText(SimManager.icc0);
+      SimManager.updateSIMInfoText(SimManager.icc0);
+
+      assert.equal(1, SimManager.voiceChangeListeners.length);
     });
   });
 

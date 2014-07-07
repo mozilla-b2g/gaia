@@ -97,6 +97,13 @@ suite('WiFi > ', function() {
     });
     navigator.mozPower = MockMozPower;
 
+    // Ensure |navigator| has property |mozAlarm| to create sinon stubs.
+    if (!navigator.hasOwnProperty('mozAlarms')) {
+      Object.defineProperty(navigator, 'mozAlarms', {
+        writable: true
+      });
+    }
+
     requireApp('system/js/wifi.js', done);
   });
 

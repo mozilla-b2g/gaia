@@ -6,10 +6,10 @@ define(function(require, exports, module) {
  */
 
 var addPanAndZoomHandlers = require('lib/panzoom');
-var MediaFrame = require('MediaFrame');
-var View = require('vendor/view');
-var bind = require('lib/bind');
 var orientation = require('lib/orientation');
+var MediaFrame = require('MediaFrame');
+var bind = require('lib/bind');
+var View = require('view');
 
 /**
  * Exports
@@ -48,7 +48,8 @@ module.exports = View.extend({
   },
 
   setupMediaFrame: function() {
-    this.mediaFrame = new MediaFrame(this.els.mediaFrame);
+    this.mediaFrame = new MediaFrame(this.els.mediaFrame, true,
+                                     this.maxPreviewSize);
     addPanAndZoomHandlers(this.mediaFrame);
     window.addEventListener('resize', this.onResize);
     return this;

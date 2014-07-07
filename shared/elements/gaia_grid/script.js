@@ -1,4 +1,4 @@
-/* global Divider */
+/* global GaiaGrid */
 /* global GridView */
 
 /**
@@ -43,9 +43,17 @@ window.GaiaGrid = (function(win) {
   };
 
   /**
+   * Helper for GridView.prototype.clear
+   */
+  proto.clear = function() {
+    this._grid.clear.apply(this._grid, arguments);
+  };
+
+  /**
    * Helper for GridView.prototype.render
    */
   proto.render = function() {
+    this._grid.layout.calculateSize();
     this._grid.render.apply(this._grid, arguments);
   };
 
@@ -64,30 +72,6 @@ window.GaiaGrid = (function(win) {
   };
 
   /**
-   * Adds an item to the grid.
-   * Items (only dividers currently) are like icons, but do not need a
-   * mapping to each one for click handling.
-   * @param {String} identifier
-   * @param {Object} obj
-   */
-  proto.addItem = function(item) {
-    if (item) {
-      this._grid.items.push(item);
-    }
-  };
-
-  /**
-   * Adds an icon to the grid.
-   * Icons need an identifier to for object lookup during event bubbling.
-   * @param {String} identifier
-   * @param {Object} obj
-   */
-  proto.addIcon = function(identifier, obj) {
-    this._grid.icons[identifier] = obj;
-    this._grid.items.push(obj);
-  };
-
-  /**
    * Returns a reference of the grid icons.
    */
   proto.getIcons = function() {
@@ -99,6 +83,10 @@ window.GaiaGrid = (function(win) {
    */
   proto.getItems = function() {
     return this._grid.items;
+  };
+
+  proto.getIcon = function(identifier) {
+    return this._grid.icons[identifier];
   };
 
   /**
@@ -118,19 +106,35 @@ window.GaiaGrid = (function(win) {
   };
 
   /**
-   * Returns the last item if a divider, otherwise returns null.
-   * This is useful for operations which append to the end of the items array
-   * as we always have a divider at the end of the list, but often want
-   * to add to the last group.
+   * Reoves placeholders from the list until we encounter a divider. Once we
+   * find a divider, we return that item. If we do not find a divider, we
+   * return null. This is useful for operations which append to the end of the
+   * items array as we always have a divider at the end of the list, but often
+   * want to add to the last group.
    */
-  proto.getLastIfDivider = function() {
+  proto.removeUntilDivider = function() {
     var items = this._grid.items;
-    var lastItem = items[items.length - 1];
-    if (lastItem instanceof Divider) {
-      var divider = items.pop();
-      return divider;
+    for (var i = items.length - 1; i > 0; i--) {
+      var item = items[i];
+      if (item instanceof GaiaGrid.Placeholder) {
+        items.pop();
+        continue;
+      } else if (item instanceof GaiaGrid.Divider) {
+        return items.pop();
+      } else {
+        return null;
+      }
     }
-    return null;
+  };
+
+  /**
+   * Sets an element that should be considered as obscuring the top of the grid
+   * when in edit mode.
+   */
+  proto.setEditHeaderElement = function(element) {
+    if (this._grid.dragdrop) {
+      this._grid.dragdrop.editHeaderElement = element;
+    }
   };
 
   Object.defineProperty(proto, 'maxIconSize', {
@@ -138,6 +142,56 @@ window.GaiaGrid = (function(win) {
       return this._grid.layout.gridMaxIconSize;
     }
   });
+
+  /**
+   * Returns the position of the last item which is not a divider
+   */
+  proto.getIndexLastIcon = function() {
+    var items = this._grid.items;
+    for (var i = this._grid.items.length - 1; i >= 0; i--) {
+      if (items[i] instanceof GaiaGrid.Mozapp) {
+        return i;
+      }
+    }
+  };
+
+  proto.removeNonVisualElements = function() {
+
+    var nonVisualElements = [GaiaGrid.Placeholder];
+
+    function isNonVisual(elem) {
+      var retVal = false;
+      for (var i = 0, iLen = nonVisualElements.length; i < iLen && !retVal;
+           i++) {
+        retVal = elem instanceof nonVisualElements[i];
+      }
+      return retVal;
+    }
+
+    var i = 0 ;
+    var iLen = this._grid.items.length;
+    while (i < iLen) {
+      this._grid.items[i].detail.index = i;
+      if (isNonVisual(this._grid.items[i])) {
+        this._grid.items.splice(i,1);
+        iLen -= 1;
+      } else {
+        i += 1;
+      }
+    }
+  };
+
+  /**
+   * Move item on orig position to dst position
+   * This function only moves elements on the items array, without calling
+   * render.
+   * @param {number} orig Element's position to move
+   * @param {number} orig New position of the item
+   */
+  proto.moveTo = function(orig, dst) {
+    this._grid.items.splice(dst, 0,
+      this._grid.items.splice(orig, 1)[0]);
+  };
 
   /**
    * We clone the scoped stylesheet and append
@@ -161,7 +215,7 @@ window.GaiaGrid = (function(win) {
   var template = document.createElement('template');
   template.innerHTML = '<style scoped>' +
     '@import url(' + stylesheet + ');</style>' +
-    '<content select=".icons"></content>';
+    '<content></content>';
 
   // Register and return the constructor
   return document.registerElement('gaia-grid', { prototype: proto });

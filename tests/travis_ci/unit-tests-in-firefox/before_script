@@ -1,7 +1,7 @@
 #! /bin/bash -v
 
 # not using -e here because we use code failure for other things here.
-RETRY=10
+RETRY=30
 
 function waiting_port {
   for i in $(seq 1 $RETRY); do
@@ -19,5 +19,5 @@ make test-agent-server &
 echo 'Starting Firefox'
 
 FIREFOX=`find firefox -name "firefox" | tail -n 1`
-$FIREFOX -profile `pwd`/profile-debug "http://test-agent.gaiamobile.org:8080" &
+$FIREFOX -profile `pwd`/profile-debug "app://test-agent.gaiamobile.org" &
 waiting_port 8080

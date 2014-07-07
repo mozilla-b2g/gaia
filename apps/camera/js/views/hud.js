@@ -5,8 +5,8 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
-var View = require('vendor/view');
 var bind = require('lib/bind');
+var View = require('view');
 
 /**
  * Exports
@@ -30,12 +30,33 @@ module.exports = View.extend({
   },
 
   setFlashMode: function(mode) {
-    if (!mode) { return; }
+    if (!mode) {
+      return;
+    }
+
     var classes = this.els.flash.classList;
     var oldIcon = this.flashMode && this.flashMode.icon;
-    if (oldIcon) { classes.remove(oldIcon); }
+    if (oldIcon) {
+      classes.remove(oldIcon);
+    }
+
     classes.add(mode.icon);
     this.flashMode = mode;
+  },
+
+  setCamera: function(camera) {
+    if (!camera) {
+      return;
+    }
+
+    var classes = this.els.camera.classList;
+    var oldIcon = this.camera && this.camera.icon;
+    if (oldIcon) {
+      classes.remove(oldIcon);
+    }
+
+    classes.add(camera.icon);
+    this.camera = camera;
   },
 
   onFlashClick: function(event) {
@@ -54,10 +75,10 @@ module.exports = View.extend({
   },
 
   template: function() {
-    return '<div class="hud_btn hud_camera rotates icon-toggle-camera ' +
-    'test-toggle-camera js-camera"></div>' +
-    '<div class="hud_btn hud_flash rotates test-toggle-flash js-flash"></div>' +
-    '<div class="hud_btn hud_settings rotates icon-settings js-settings">' +
+    /*jshint maxlen:false*/
+    return '<div class="hud_btn hud_camera rotates test-camera-toggle js-camera"></div>' +
+    '<div class="hud_btn hud_flash rotates test-flash-button js-flash"></div>' +
+    '<div class="hud_btn hud_settings rotates icon-settings test-settings-toggle js-settings">' +
     '</div>';
   }
 });

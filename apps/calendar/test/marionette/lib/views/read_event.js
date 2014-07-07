@@ -31,6 +31,12 @@ ReadEvent.prototype = {
       });
   },
 
+  get calendarColor() {
+    return this
+      .findElement('.current-calendar > .icon-dot.calendar-text-color')
+      .cssProperty('color');
+  },
+
   get calendar() {
     return this
       .findElement('.current-calendar > .content')
@@ -47,15 +53,9 @@ ReadEvent.prototype = {
     return this.findElement('.description');
   },
 
-  get endDate() {
+  get durationTime() {
     return this
-      .findElement('.end-date > .content')
-      .text();
-  },
-
-  get endTime() {
-    return this
-      .findElement('.end-date > .end-time > .content')
+      .findElement('.duration-time > .content')
       .text();
   },
 
@@ -69,16 +69,8 @@ ReadEvent.prototype = {
     return this.findElement('.location');
   },
 
-  get startDate() {
-    return this
-      .findElement('.start-date > .content')
-      .text();
-  },
-
-  get startTime() {
-    return this
-      .findElement('.start-date > .start-time > .content')
-      .text();
+  get reminders() {
+    return this.findElements('.alarms > .content > div');
   },
 
   get title() {

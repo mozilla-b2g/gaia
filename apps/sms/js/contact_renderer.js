@@ -1,4 +1,4 @@
-/*global Template, Utils */
+/*global SharedComponents, Template, Utils, Settings */
 
 'use strict';
 
@@ -17,11 +17,11 @@ var FLAVORS = {
    * - number: the phone number
    * - nameHTML: same than name if shouldHighlight is false, otherwise contains
    *   markup with the highlighting
-   * - numberHTML: see nameHTML
+   * - phoneDetailsHTML: phone details label (type, number, carrier), also if
+   *   shouldHighlight is true, then number is wrapped into highlighting markup
    * - photoHTML: result of the "photo" template, if present
    * - type: phone number type information
    * - carrier: phone number carrier information
-   * - separator: the separator between type or carrier and the phone number
    *
    * template "photo" will get the following parameters:
    * - photoURL: the URL of the contact's first photo
@@ -172,7 +172,10 @@ ContactRenderer.prototype = {
 
     // don't render if there is no phone number
     // TODO: Add email checking support for MMS
-    if (!contact.tel || !contact.tel.length) {
+    var hasTel = contact.tel && contact.tel.length;
+    var hasEmail = contact.email && contact.email.length;
+
+    if (!hasTel && !(Settings.supportEmailRecipient && hasEmail)) {
       return false;
     }
 
@@ -190,16 +193,30 @@ ContactRenderer.prototype = {
       number: escsubs.map(function(k) {
         // Match any of the search terms with the number
         return new RegExp(k, 'ig');
+      }),
+      email: escsubs.map(function(k) {
+        // Match any of the search terms with the email
+        return new RegExp('^' + k, 'gi');
       })
     };
 
     var include = renderPhoto ? { photoURL: true } : null;
-    var tels = contact.tel;
-    var details = Utils.getContactDetails(tels[0].value, contact, include);
+    var addresses = [];
+
+    if (contact.tel && contact.tel.length) {
+      addresses = addresses.concat(contact.tel);
+    }
+    if (Settings.supportEmailRecipient &&
+        contact.email && contact.email.length) {
+      addresses = addresses.concat(contact.email);
+    }
+    var details = Utils.getContactDetails(
+      addresses[0].value, contact, include
+    );
 
     var tempDiv = document.createElement('div');
 
-    tels.forEach(function(current) {
+    addresses.forEach(function(current) {
       // Only render a contact's tel value entry for the _specified_
       // input value when not rendering all values. If the tel
       // record value _doesn't_ match, then continue.
@@ -219,7 +236,12 @@ ContactRenderer.prototype = {
 
       var data = Utils.getDisplayObject(details.title, current);
 
-      ['name', 'number'].forEach(function(key) {
+      var props = ['name', 'number'];
+      if (Settings.supportEmailRecipient) {
+        props.push('email');
+      }
+
+      props.forEach(function(key) {
         var escapedData = Template.escape(data[key]);
         if (shouldHighlight) {
           escapedData = highlight(escapedData, regexps[key]);
@@ -228,20 +250,22 @@ ContactRenderer.prototype = {
         data[key + 'HTML'] = escapedData;
       });
 
+      data.phoneDetailsHTML = SharedComponents.phoneDetails({
+        number: data.numberHTML,
+        type: data.type,
+        carrier: data.carrier
+      }, {
+        safe: ['number']
+      });
+
       // Render contact photo only for specific flavor
-      if (renderPhoto && details.photoURL) {
-        data.photoHTML = this.templates.photo.interpolate({
-          photoURL: details.photoURL
-        });
-        Utils.asyncLoadRevokeURL(details.photoURL);
-      } else {
-        data.photoHTML = '';
-      }
+      data.photoHTML = renderPhoto && details.photoURL ?
+        this.templates.photo.interpolate() : '';
 
       // Interpolate HTML template with data and inject.
       // Known "safe" HTML values will not be re-sanitized.
       tempDiv.innerHTML = this.templates.main.interpolate(data, {
-        safe: ['nameHTML', 'numberHTML', 'srcAttr', 'photoHTML']
+        safe: ['nameHTML', 'phoneDetailsHTML', 'srcAttr', 'photoHTML']
       });
 
       var element = tempDiv.firstElementChild;
@@ -249,6 +273,14 @@ ContactRenderer.prototype = {
 
       if (blockParent) {
         blockParent.appendChild(block);
+      }
+
+      if (data.photoHTML) {
+        var contactPhoto = element.querySelector('.contact-photo');
+        contactPhoto.style.backgroundImage =
+          'url("' + encodeURI(details.photoURL) + '")';
+
+        Utils.asyncLoadRevokeURL(details.photoURL);
       }
 
       // scan for translatable stuff

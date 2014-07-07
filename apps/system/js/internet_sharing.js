@@ -2,6 +2,7 @@
 /* global asyncStorage */
 /* global IccHelper */
 /* global ModalDialog */
+/* global AirplaneMode */
 
 (function(exports) {
 
@@ -146,15 +147,29 @@
       // link the iccid with current internet state for future restoring.
       var type = (evt.settingName.indexOf('wifi') > -1) ? 'wifi' : 'usb';
       var cardId = (IccHelper.iccInfo && IccHelper.iccInfo.iccid) || 'absent';
-      // wifi hotspot cannot be enabled without sim
-      if ('wifi' === type && 'absent' === cardId && true === evt.settingValue) {
-        var title = _('noSimCard');
-        var buttonText = _('ok');
-        var message = _('noSIMCardInHotspot');
 
-        ModalDialog.alert(title, message, { title: buttonText });
-        settings.createLock().set({'tethering.wifi.enabled': false});
-        return;
+      if ('wifi' === type) {
+        var title;
+        var buttonText;
+        var message;
+
+        if (AirplaneMode.enabled && true === evt.settingValue) {
+          title = _('apmActivated');
+          buttonText = _('ok');
+          message = _('noHopspotWhenAPMisOn');
+
+          ModalDialog.alert(title, message, { title: buttonText });
+          settings.createLock().set({'tethering.wifi.enabled': false});
+          return;
+        } else if ('absent' === cardId && true === evt.settingValue) {
+          title = _('noSimCard');
+          buttonText = _('ok');
+          message = _('noSIMCardInHotspot');
+
+          ModalDialog.alert(title, message, { title: buttonText });
+          settings.createLock().set({'tethering.wifi.enabled': false});
+          return;
+        }
       }
       asyncStorage.setItem('tethering.' + type + '.simstate.card-' + cardId,
                            evt.settingValue);

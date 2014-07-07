@@ -11,7 +11,7 @@ var EdgeSwipeDetector = {
   _touchForwarder: null,
 
   init: function esd_init() {
-    window.addEventListener('homescreenopening', this);
+    window.addEventListener('homescreenopened', this);
     window.addEventListener('appopen', this);
     window.addEventListener('launchapp', this);
     window.addEventListener('cardviewclosed', this);
@@ -33,9 +33,6 @@ var EdgeSwipeDetector = {
 
   settingUpdate: function esd_settingUpdate(enabled) {
     this._settingEnabled = enabled;
-    if (this._lifecycleEnabled && enabled) {
-      this.screen.classList.add('edges');
-    }
     this._updateEnabled();
   },
 
@@ -75,13 +72,10 @@ var EdgeSwipeDetector = {
         this._touchEnd(e);
         break;
       case 'appopen':
-        if (this._settingEnabled) {
-          this.screen.classList.add('edges');
-        }
-        this.lifecycleEnabled = true;
+        var app = e.detail;
+        this.lifecycleEnabled = (app.origin !== FtuLauncher.getFtuOrigin());
         break;
-      case 'homescreenopening':
-        this.screen.classList.remove('edges');
+      case 'homescreenopened':
         this.lifecycleEnabled = false;
         break;
       case 'launchapp':
@@ -122,7 +116,7 @@ var EdgeSwipeDetector = {
     this._touchStartEvt = e;
     this._startDate = Date.now();
 
-    var iframe = StackManager.getCurrent().iframe;
+    var iframe = StackManager.getCurrent().getTopMostWindow().iframe;
     this._touchForwarder.destination = iframe;
 
     var touch = e.changedTouches[0];

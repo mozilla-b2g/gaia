@@ -64,24 +64,6 @@ Calendar.ns('Views').ViewEvent = (function() {
       }
     },
 
-    formatDate: function(date) {
-      return Calendar.App.dateFormat.localeFormat(
-        date,
-        navigator.mozL10n.get('dateTimeFormat_%x')
-      );
-    },
-
-    formatTime: function(time) {
-      if (!time) {
-        return '';
-      }
-
-      return Calendar.App.dateFormat.localeFormat(
-        time,
-        navigator.mozL10n.get('shortTimeFormat')
-      );
-    },
-
     /**
      * Updates the UI to use values from the current model.
      */
@@ -93,10 +75,27 @@ Calendar.ns('Views').ViewEvent = (function() {
       this.setContent('location', model.location);
 
       if (this.originalCalendar) {
+        // Set calendar color.
+        this.element
+          .querySelector('section[data-type="list"]')
+          .className = 'calendar-id-' + model.calendarId;
+
+        var calendarId = this.originalCalendar.remote.id;
+        var isLocalCalendar = calendarId === Calendar.Provider.Local.calendarId;
+        var calendarName = isLocalCalendar ?
+          navigator.mozL10n.get('calendar-local') :
+          this.originalCalendar.remote.name;
+
         this.setContent(
           'current-calendar',
-          this.originalCalendar.remote.name
+          calendarName
         );
+
+        if (isLocalCalendar) {
+          this.getEl('current-calendar')
+            .querySelector('.content')
+            .setAttribute('data-l10n-id', 'calendar-local');
+        }
       }
 
       var dateSrc = model;
@@ -104,45 +103,22 @@ Calendar.ns('Views').ViewEvent = (function() {
         dateSrc = this.busytime;
       }
 
-      var startDate = dateSrc.startDate;
-      var endDate = dateSrc.endDate;
-      var startTime = startDate;
-      var endTime = endDate;
+      var duationTimeContent =
+        Calendar.Templates.DurationTime.durationTime.render(dateSrc);
+      this.setContent('duration-time', duationTimeContent, 'innerHTML');
 
-      // update the allday status of the view
-      if (model.isAllDay) {
-
-        endDate = this.formatEndDate(endDate);
-
-        // Do not display times in the UI for all day events
-        startTime = null;
-        endTime = null;
-      }
-
-      this.setContent('start-date', this.formatDate(startDate));
-
-      this.setContent('end-date', this.formatDate(endDate));
-
-      this.setContent('start-time', this.formatTime(startTime));
-
-      this.setContent('end-time', this.formatTime(endTime));
-
-      // Handle alarm display
       var alarmContent = '';
+      var alarms = this.event.alarms;
+      if (alarms) {
+        this.getEl('alarms')
+          .classList
+          .toggle('multiple', alarms.length > 1);
 
-      if (this.event.alarms && this.event.alarms.length) {
-
-        var alarmDescription = Calendar.Templates.Alarm.description;
-
-        //jshint boss:true
-        for (var i = 0, alarm; alarm = this.event.alarms[i]; i++) {
-          alarmContent += '<div>' +
-            alarmDescription.render({
-              trigger: alarm.trigger,
-              layout: this.event.isAllDay ? 'allday' : 'standard'
-            }) +
-          '</div>';
-        }
+        alarmContent =
+          Calendar.Templates.Alarm.reminder.render({
+            alarms: alarms,
+            isAllDay: this.event.isAllDay,
+          });
       }
 
       this.setContent('alarms', alarmContent, 'innerHTML');

@@ -1,10 +1,9 @@
-/* globals CallHandler, CallLogDBManager, gTonesFrequencies,
-           KeypadManager, MockCall, MockCallsHandler,
-           MockDialerIndexHtml, MockIccManager, MockNavigatorMozTelephony,
-           MockNavigatorSettings, MockSettingsListener, MocksHelper,
-           MockTonePlayer, SimPicker, telephonyAddCall,
-           MockMultiSimActionButtonSingleton, MockMozL10n, CustomDialog,
-           MockMozActivity
+/* globals CallHandler, CallLogDBManager, FontSizeManager, gTonesFrequencies,
+           KeypadManager, MockCall, MockCallsHandler, MockDialerIndexHtml,
+           MockIccManager, MockNavigatorMozTelephony, MockNavigatorSettings,
+           MockSettingsListener, MocksHelper, MockTonePlayer, SimPicker,
+           telephonyAddCall, MockMultiSimActionButtonSingleton, MockMozL10n,
+           CustomDialog, MockMozActivity
 */
 
 'use strict';
@@ -29,7 +28,7 @@ require('/shared/test/unit/mocks/dialer/mock_utils.js');
 require('/shared/test/unit/mocks/dialer/mock_tone_player.js');
 require('/shared/test/unit/mocks/mock_custom_dialog.js');
 require('/shared/test/unit/mocks/mock_moz_activity.js');
-
+require('/shared/test/unit/mocks/dialer/mock_font_size_manager.js');
 require('/dialer/test/unit/mock_dialer_index.html.js');
 
 var mocksHelperForKeypad = new MocksHelper([
@@ -45,7 +44,8 @@ var mocksHelperForKeypad = new MocksHelper([
   'SimPicker',
   'TonePlayer',
   'CustomDialog',
-  'MozActivity'
+  'MozActivity',
+  'FontSizeManager'
 ]).init();
 
 suite('dialer/keypad', function() {
@@ -87,6 +87,7 @@ suite('dialer/keypad', function() {
 
   setup(function() {
     this.sinon.useFakeTimers();
+    this.sinon.spy(FontSizeManager, 'adaptToSpace');
   });
 
   suite('Keypad Manager', function() {
@@ -174,6 +175,36 @@ suite('dialer/keypad', function() {
       assert.equal(subject._phoneNumber, recentCall.number);
     });
 
+    test('Dialer is limited to 50 digits', function() {
+      var digits = '111111111122222222223333333333444444444455555555556';
+      var fakeEvent = {
+        target: {
+          dataset: {
+            value: null
+          }
+        },
+        stopPropagation: function() {},
+        type: null
+      };
+
+      subject._phoneNumber = '';
+      for (var i = 0, end = digits.length; i < end; i++) {
+        fakeEvent.target.dataset.value = digits.charAt(i);
+        fakeEvent.type = 'touchstart';
+        subject.keyHandler(fakeEvent);
+        fakeEvent.type = 'touchend';
+        subject.keyHandler(fakeEvent);
+      }
+      assert.equal(subject._phoneNumber, digits.substring(0, 50));
+    });
+
+    test('FontSizeManager is invoked with the right parameters', function() {
+      subject.updatePhoneNumber('1234567890', 'begin', false);
+      sinon.assert.calledWith(
+        FontSizeManager.adaptToSpace, FontSizeManager.DIAL_PAD,
+        subject.phoneNumberView, subject.fakePhoneNumberView, false, 'begin');
+    });
+
     suite('Audible and DTMF tones when composing numbers', function() {
       suiteSetup(function() {
         realMozTelephony = navigator.mozTelephony;
@@ -229,6 +260,7 @@ suite('dialer/keypad', function() {
     suite('During  a call', function() {
       var mockCall;
       var mockHC;
+      var phoneNumber;
 
       suiteSetup(function() {
         realMozTelephony = navigator.mozTelephony;
@@ -241,7 +273,8 @@ suite('dialer/keypad', function() {
       });
 
       setup(function() {
-        mockCall = new MockCall('12334', 'connected', 0);
+        phoneNumber = '12334';
+        mockCall = new MockCall(phoneNumber, 'connected', 0);
         MockNavigatorMozTelephony.active = mockCall;
         mockHC = telephonyAddCall.call(this, mockCall);
         MockCallsHandler.mActiveCall = mockHC;
@@ -344,6 +377,34 @@ suite('dialer/keypad', function() {
           subject.restoreAdditionalContactInfo();
           assert.ok(true, 'got here');
         });
+      });
+
+      test('Dialer is not limited to 50 digits while on a call', function() {
+        var digits = '11111111112222222222333333333344444444445555555555' +
+          '6666666666';
+        var fakeEvent = {
+          target: {
+            dataset: {
+              value: null
+            }
+          },
+          stopPropagation: function() {},
+          type: null
+        };
+
+        subject._phoneNumber = '';
+        for (var i = 0, end = digits.length; i < end; i++) {
+          fakeEvent.target.dataset.value = digits.charAt(i);
+          fakeEvent.type = 'touchstart';
+          subject.keyHandler(fakeEvent);
+          fakeEvent.type = 'touchend';
+          subject.keyHandler(fakeEvent);
+        }
+        assert.equal(subject._phoneNumber, digits);
+      });
+
+      test('Should return active call phone number', function() {
+        assert.equal(subject.phoneNumber(), phoneNumber);
       });
     });
 

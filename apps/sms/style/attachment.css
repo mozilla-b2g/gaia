@@ -197,13 +197,16 @@
   background-position: right -24rem;
 }
 
-.corrupted {
-  width: 100%;
-  height: 100%;
+.attachment.corrupted .thumbnail-placeholder:after {
+  display: block;
 
-  background-image: url('icons/corrupted.png');
-  background-repeat: no-repeat;
-  background-position: center center;
-  background-size: 82px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+
+  content: '';
+  background: url('icons/corrupted.png') no-repeat center center / 82px;
 }
 

@@ -194,12 +194,11 @@ var icc = {
 
     // Prevents from reloading the system app when
     // the user taps on the Enter key
-    var iccView = document.getElementById('icc-view');
-    if (!iccView) {
+    if (!this.icc_view) {
       return;
     }
 
-    var forms = iccView.getElementsByTagName('form');
+    var forms = this.icc_view.getElementsByTagName('form');
     if (!forms) {
       return;
     }
@@ -240,18 +239,52 @@ var icc = {
     for (var i = 0; i < icc_view_boxes.length; i++) {
       icc_view_boxes[i].classList.remove('visible');
     }
+    window.removeEventListener('keyboardchange', this.keyboardChangedEvent);
+    window.removeEventListener('keyboardhide', this.keyboardChangedEvent);
+  },
+
+  setupView: function icc_setupView(viewId) {
+    viewId.style.marginTop = StatusBar.height + 'px';
+    this.keyboardChangedEvent(viewId);
+    window.addEventListener('keyboardchange',
+      this.keyboardChangedEvent.bind(undefined, viewId, false));
+    window.addEventListener('keyboardhide',
+      this.keyboardChangedEvent.bind(undefined, viewId, true));
+  },
+
+  keyboardChangedEvent: function(viewId, hidden) {
+    var keyboardHeight = 0;
+    if (!hidden) {
+      keyboardHeight = KeyboardManager.getHeight() || 0;
+    }
+    var form = viewId.getElementsByTagName('form');
+    viewId.style.height =
+      (window.innerHeight - keyboardHeight - StatusBar.height) + 'px';
+    if (form && viewId.clientHeight > 0) {
+      var input = viewId.getElementsByTagName('input')[0];
+      var header = viewId.getElementsByTagName('header')[0];
+      var headerSubtitle = viewId.getElementsByTagName('h2')[0];
+      var menu = viewId.getElementsByTagName('menu')[1];
+      form[0].style.height = viewId.clientHeight -
+        (header.clientHeight + headerSubtitle.clientHeight) -
+        menu.clientHeight + 'px';
+      input.scrollIntoView();
+    }
   },
 
   alert: function icc_alert(stkMessage, message) {
     var _ = navigator.mozL10n.get;
     if (!this.icc_alert) {
       this.icc_alert = document.getElementById('icc-alert');
-      this.icc_alert_title = document.getElementById('icc-alert-title');
+      this.icc_alert_maintitle = document.getElementById('icc-alert-maintitle');
+      this.icc_alert_subtitle = document.getElementById('icc-alert-subtitle');
       this.icc_alert_msg = document.getElementById('icc-alert-msg');
       this.icc_alert_btn = document.getElementById('icc-alert-btn');
+      this.setupView(this.icc_alert);
     }
 
-    this.icc_alert_title.textContent = _('icc-message-title', {
+    this.icc_alert_maintitle.textContent = _('icc-message-maintitle');
+    this.icc_alert_subtitle.textContent = _('icc-message-subtitle', {
         'id': this.getSIMNumber(stkMessage.iccId)
       });
 
@@ -272,20 +305,25 @@ var icc = {
     var _ = navigator.mozL10n.get;
     if (!this.icc_confirm) {
       this.icc_confirm = document.getElementById('icc-confirm');
-      this.icc_confirm_title = document.getElementById('icc-confirm-title');
+      this.icc_confirm_maintitle =
+        document.getElementById('icc-confirm-maintitle');
+      this.icc_confirm_subtitle =
+        document.getElementById('icc-confirm-subtitle');
       this.icc_confirm_msg = document.getElementById('icc-confirm-msg');
       this.icc_confirm_btn = document.getElementById('icc-confirm-btn');
       this.icc_confirm_btn_back =
         document.getElementById('icc-confirm-btn_back');
       this.icc_confirm_btn_close =
         document.getElementById('icc-confirm-btn_close');
+      this.setupView(this.icc_confirm);
     }
 
     if (typeof callback != 'function') {
       callback = function() {};
     }
 
-    this.icc_confirm_title.textContent = _('icc-message-title', {
+    this.icc_confirm_maintitle.textContent = _('icc-message-maintitle');
+    this.icc_confirm_subtitle.textContent = _('icc-message-subtitle', {
         'id': this.getSIMNumber(stkMessage.iccId)
       });
 
@@ -332,17 +370,21 @@ var icc = {
     if (!this.icc_asyncconfirm) {
       this.icc_asyncconfirm =
         document.getElementById('icc-asyncconfirm');
-      this.icc_asyncconfirm_title =
-        document.getElementById('icc-asyncconfirm-title');
+      this.icc_asyncconfirm_maintitle =
+        document.getElementById('icc-asyncconfirm-maintitle');
+      this.icc_asyncconfirm_subtitle =
+        document.getElementById('icc-asyncconfirm-subtitle');
       this.icc_asyncconfirm_msg =
         document.getElementById('icc-asyncconfirm-msg');
       this.icc_asyncconfirm_btn_no =
         document.getElementById('icc-asyncconfirm-btn-no');
       this.icc_asyncconfirm_btn_yes =
         document.getElementById('icc-asyncconfirm-btn-yes');
+      this.setupView(this.icc_asyncconfirm);
     }
 
-    this.icc_asyncconfirm_title.textContent = _('icc-message-title', {
+    this.icc_asyncconfirm_maintitle.textContent = _('icc-message-maintitle');
+    this.icc_asyncconfirm_subtitle.textContent = _('icc-message-subtitle', {
         'id': this.getSIMNumber(stkMessage.iccId)
       });
 
@@ -406,6 +448,17 @@ var icc = {
      * @param {Integer} maxLen      Maximum length required of the input.
      */
     function checkInputLengthValid(inputLen, minLen, maxLen) {
+      // Update input counter
+      var charactersLeft = maxLen - inputLen;
+      self.icc_input_btn.textContent = _('ok') + ' (' + charactersLeft + ')';
+      // Input box full feedback
+      if (charactersLeft === 0) {
+        self.icc_input_box.classList.add('full');
+        navigator.vibrate([500]);
+      } else {
+        self.icc_input_box.classList.remove('full');
+      }
+
       return (inputLen >= minLen) && (inputLen <= maxLen);
     }
     function clearInputTimeout() {
@@ -428,7 +481,8 @@ var icc = {
 
     if (!this.icc_input) {
       this.icc_input = document.getElementById('icc-input');
-      this.icc_input_title = document.getElementById('icc-input-title');
+      this.icc_input_maintitle = document.getElementById('icc-input-maintitle');
+      this.icc_input_subtitle = document.getElementById('icc-input-subtitle');
       this.icc_input_msg = document.getElementById('icc-input-msg');
       this.icc_input_box = document.getElementById('icc-input-box');
       this.icc_input_btn = document.getElementById('icc-input-btn');
@@ -437,6 +491,7 @@ var icc = {
       this.icc_input_btn_back = document.getElementById('icc-input-btn_back');
       this.icc_input_btn_close = document.getElementById('icc-input-btn_close');
       this.icc_input_btn_help = document.getElementById('icc-input-btn_help');
+      this.setupView(this.icc_input);
     }
 
     if (typeof callback != 'function') {
@@ -444,7 +499,8 @@ var icc = {
     }
     setInputTimeout();
 
-    this.icc_input_title.textContent = _('icc-inputbox-title', {
+    this.icc_input_maintitle.textContent = _('icc-inputbox-maintitle');
+    this.icc_input_subtitle.textContent = _('icc-inputbox-subtitle', {
         'id': this.getSIMNumber(stkMessage.iccId)
       });
 
@@ -482,9 +538,6 @@ var icc = {
         self.icc_input_btn.disabled = !checkInputLengthValid(
           self.icc_input_box.value.length, options.minLength,
           options.maxLength);
-        if (self.icc_input_box.value.length == options.maxLength) {
-          self.icc_input_btn.focus();
-        }
       };
       this.icc_input_btn.onclick = function() {
         clearInputTimeout();

@@ -57,7 +57,7 @@ var icc_events = {
       if (call.state == 'incoming') {
         self.downloadEvent(message, {
           eventType: icc._iccManager.STK_EVENT_TYPE_MT_CALL,
-          number: call.number,
+          number: call.id ? call.id.number : call.number,
           isIssuedByRemote: outgoing,
           error: null
         });
@@ -65,7 +65,7 @@ var icc_events = {
       call.addEventListener('error', function callError(err) {
         self.downloadEvent(message, {
           eventType: icc._iccManager.STK_EVENT_TYPE_CALL_DISCONNECTED,
-          number: call.number,
+          number: call.id ? call.id.number : call.number,
           error: err
         });
       });
@@ -75,7 +75,7 @@ var icc_events = {
           case 'connected':
             self.downloadEvent(message, {
               eventType: icc._iccManager.STK_EVENT_TYPE_CALL_CONNECTED,
-              number: call.number,
+              number: call.id ? call.id.number : call.number,
               isIssuedByRemote: outgoing
             });
             break;
@@ -83,7 +83,7 @@ var icc_events = {
             call.removeEventListener('statechange', callStateChange);
             self.downloadEvent(message, {
               eventType: icc._iccManager.STK_EVENT_TYPE_CALL_DISCONNECTED,
-              number: call.number,
+              number: call.id ? call.id.number : call.number,
               isIssuedByRemote: outgoing,
               error: null
             });
@@ -174,10 +174,11 @@ var icc_events = {
         break;
       case icc._iccManager.STK_EVENT_TYPE_IDLE_SCREEN_AVAILABLE:
         DUMP('icc_events_register - Idle screen available event');
-        window.addEventListener('lock',
+        window.addEventListener('lockscreen-appopened',
           function register_icc_event_idlescreen() {
             icc_events.handleIdleScreenAvailableEvent(message);
-            window.removeEventListener('lock', register_icc_event_idlescreen);
+            window.removeEventListener('lockscreen-appopened',
+              register_icc_event_idlescreen);
           });
         break;
       case icc._iccManager.STK_EVENT_TYPE_CARD_READER_STATUS:

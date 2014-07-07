@@ -15,10 +15,13 @@ define(function(require) {
     var Settings = require('settings');
 
     var _rootPanelId = null;
-    var _currentPanelId = null;
-    var _currentPanel = null;
+    /**
+     * _currentNavigation caches information of the current panel including id,
+     * element, module, and options.
+     */
+    var _currentNavigation = null;
     var _navigating = false;
-    var _pendingNavigation = null;
+    var _pendingNavigationRequest = null;
 
     var _isTabletAndLandscape = function ss_is_tablet_and_landscape() {
       return ScreenLayout.getCurrentLayout('tabletAndLandscaped');
@@ -55,28 +58,63 @@ define(function(require) {
       }
     };
 
+    var _onVisibilityChange = function ss_onVisibilityChange() {
+      _handleVisibilityChange(!document.hidden);
+    };
+
+    /**
+     * When the app becomes invisible, we should call to beforeHide and hide
+     * functions of the current panel. When the app becomes visible, we should
+     * call to beforeShow and show functions of the current panel with the
+     * cached options.
+     */
+    var _handleVisibilityChange = function ss_onVisibilityChange(visible) {
+      if (!_currentNavigation) {
+        return;
+      }
+
+      var panel = _currentNavigation.panel;
+      var element = _currentNavigation.panelElement;
+      var options = _currentNavigation.options;
+
+      if (!panel) {
+        return;
+      }
+
+      if (visible) {
+        panel.beforeShow(element, options);
+        panel.show(element, options);
+      } else {
+        panel.beforeHide();
+        panel.hide();
+      }
+    };
+
     var _navigate = function ss_navigate(panelId, options, callback) {
       _loadPanel(panelId, function() {
         // We have to make sure l10n is ready before navigations
         navigator.mozL10n.once(function() {
           PanelCache.get(panelId, function(panel) {
             // Check if there is any pending navigation.
-            if (_pendingNavigation) {
+            if (_pendingNavigationRequest) {
               callback();
               return;
             }
 
             var newPanelElement = document.getElementById(panelId);
+            var currentPanelId =
+               _currentNavigation && _currentNavigation.panelId;
             var currentPanelElement =
-              _currentPanelId ? document.getElementById(_currentPanelId) : null;
+              _currentNavigation && _currentNavigation.panelElement;
+            var currentPanel = _currentNavigation && _currentNavigation.panel;
             // Prepare options and calls to the panel object's before
             // show function.
             options = options || {};
 
             panel.beforeShow(newPanelElement, options);
             // We don't deactivate the root panel.
-            if (_currentPanel && _currentPanelId !== _rootPanelId) {
-              _currentPanel.beforeHide();
+            if (currentPanel && currentPanelId !== _rootPanelId) {
+              currentPanel.beforeHide();
             }
 
             // Add a timeout for smoother transition.
@@ -85,12 +123,17 @@ define(function(require) {
                 function transitionCompleted() {
                   panel.show(newPanelElement, options);
                   // We don't deactivate the root panel.
-                  if (_currentPanel && _currentPanelId !== _rootPanelId) {
-                    _currentPanel.hide();
+                  if (currentPanel && currentPanelId !== _rootPanelId) {
+                    currentPanel.hide();
                   }
 
-                  _currentPanelId = panelId;
-                  _currentPanel = panel;
+                  // Update the current navigation object
+                  _currentNavigation = {
+                    panelId: panelId,
+                    panelElement: newPanelElement,
+                    panel: panel,
+                    options: options
+                  };
 
                   // XXX we need to remove this line in the future
                   // to make sure we won't manipulate Settings
@@ -107,10 +150,10 @@ define(function(require) {
     return {
       reset: function ss_reset() {
         _rootPanelId = null;
-        _currentPanelId = null;
-        _currentPanel = null;
+        _currentNavigation = null;
         _navigating = false;
-        _pendingNavigation = null;
+        _pendingNavigationRequest = null;
+        window.removeEventListener('visibilitychange', _onVisibilityChange);
       },
 
       /**
@@ -124,6 +167,7 @@ define(function(require) {
        */
       init: function ss_init(rootPanelId) {
         _rootPanelId = rootPanelId;
+        window.addEventListener('visibilitychange', _onVisibilityChange);
       },
 
       /**
@@ -138,7 +182,7 @@ define(function(require) {
       navigate: function ss_navigate(panelId, options, callback) {
         // Cache the navigation request if it is navigating.
         if (_navigating) {
-          _pendingNavigation = arguments;
+          _pendingNavigationRequest = arguments;
           return;
         }
 
@@ -147,9 +191,9 @@ define(function(require) {
           _navigating = false;
 
           // Navigate to the pending navigation if any.
-          if (_pendingNavigation) {
-            var args = _pendingNavigation;
-            _pendingNavigation = null;
+          if (_pendingNavigationRequest) {
+            var args = _pendingNavigationRequest;
+            _pendingNavigationRequest = null;
             this.navigate.apply(this, args);
           }
 

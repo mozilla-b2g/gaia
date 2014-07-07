@@ -31,9 +31,13 @@ var EverythingME = {
     // pre-evme-load pseudo searchbar
     var activationIcon = document.createElement('div');
     activationIcon.id = 'evme-activation-icon';
+    activationIcon.setAttribute('role', 'button');
+    activationIcon.setAttribute('aria-labelledby',
+      'evme-activation-icon-input');
+    activationIcon.setAttribute('aria-haspopup', 'true');
     activationIcon.innerHTML =
-      '<input type="text" x-inputmode="verbatim"' +
-      ' data-l10n-id="evme-searchbar-default2" />';
+      '<input id="evme-activation-icon-input" type="text" role="presentation"' +
+      ' x-inputmode="verbatim" data-l10n-id="evme-searchbar-default2"/>';
 
     // insert into first page
     gridPage.insertBefore(activationIcon, gridPage.firstChild);
@@ -383,14 +387,17 @@ var EverythingME = {
     activationIconInput.removeEventListener('blur',
                                             EverythingME.onActivationIconBlur);
 
-    // add evme into the first grid page
-    gridPage.appendChild(page.parentNode.removeChild(page));
+    // add evme into the first grid page, and ensure correct DOM order
+    gridPage.insertBefore(page.parentNode.removeChild(page),
+      gridPage.firstChild);
 
     EvmeFacade.onShow();
 
     var e = EverythingME.pendingEvent;
 
-    if (e && evmeInput && e.target === activationIconInput) {
+    if (e && evmeInput && (e.target === activationIconInput ||
+      // Screen reader lands on the activationIcon and not the input itself
+      e.target === activationIcon)) {
       // set the query the user entered before loaded
       if (existingQuery) {
         EvmeFacade.searchFromOutside(existingQuery);

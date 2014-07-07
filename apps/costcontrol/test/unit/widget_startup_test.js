@@ -1,7 +1,7 @@
 /* global MockCommon, MockCostControl, MockNavigatorMozMobileConnections,
           Widget, MockConfigManager, MockNavigatorMozIccManager, MockMozL10n,
-          MockMozNetworkStats, AirplaneModeHelper, MocksHelper, Common,
-          CostControl, Formatting, _
+          MockMozNetworkStats, AirplaneModeHelper, MocksHelper,
+          CostControl, Formatting, _, SimManager
 */
 'use strict';
 
@@ -21,14 +21,14 @@ require('/test/unit/mock_airplane_mode_helper.js');
 require('/shared/js/lazy_loader.js');
 require('/js/views/BalanceView.js');
 require('/js/utils/formatting.js');
+require('/js/sim_manager.js');
 require('/js/widget.js');
 require('/shared/js/airplane_mode_helper.js');
 
 var realMozMobileConnections,
     realMozL10n,
     realMozNetworkStats,
-    realMozIccManager,
-    realCommon;
+    realMozIccManager;
 
 if (!window.navigator.mozNetworkStats) {
   window.navigator.mozNetworkStats = null;
@@ -46,16 +46,13 @@ if (!window.navigator.mozL10n) {
   window.navigator.mozL10n = null;
 }
 
-if (!window.Common) {
-  window.Common = null;
-}
-
 var MocksHelperForUnitTest = new MocksHelper([
   'LazyLoader',
   'AirplaneModeHelper',
   'ConfigManager',
   'CostControl',
-  'SettingsListener'
+  'SettingsListener',
+  'Common'
 ]).init();
 
 suite('Widget Startup Modes Test Suite >', function() {
@@ -65,8 +62,7 @@ suite('Widget Startup Modes Test Suite >', function() {
   var fte, rightPanel, leftPanel;
   suiteSetup(function() {
 
-    realCommon = window.Common;
-    window.Common = new MockCommon();
+    window.Common = new MockCommon({});
 
     realMozMobileConnections = window.navigator.mozMobileConnections;
 
@@ -81,6 +77,7 @@ suite('Widget Startup Modes Test Suite >', function() {
   setup(function() {
     navigator.mozIccManager = window.MockNavigatorMozIccManager;
     window.navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
+    MockNavigatorMozMobileConnections[0] = {  iccId: '12345' };
     navigator.mozNetworkStats = MockMozNetworkStats;
     AirplaneModeHelper._status = 'disabled';
     loadBodyHTML('/widget.html');
@@ -98,14 +95,13 @@ suite('Widget Startup Modes Test Suite >', function() {
   });
 
   suiteTeardown(function() {
-    window.Common = realCommon;
     window.navigator.mozMobileConnections = realMozMobileConnections;
     window.navigator.mozL10n = realMozL10n;
     window.navigator.mozNetworkStats = realMozNetworkStats;
     window.navigator.mozIccManager = realMozIccManager;
   });
 
-  function failingLoadDataSIMIccId(onsuccess, onerror) {
+  function failingRequestDataSIMIccId(onsuccess, onerror) {
     setTimeout(function() {
       (typeof onerror === 'function') && onerror();
     }, 0);
@@ -113,12 +109,12 @@ suite('Widget Startup Modes Test Suite >', function() {
 
   function setupCardState(icc, costControlConfig) {
     window.CostControl = new MockCostControl(costControlConfig);
-    Common.dataSimIcc = icc;
   }
 
-  function setupConfig(applicationMode, ftePending) {
+  function setupConfig(applicationMode, ftePending, configuration) {
     window.ConfigManager = new MockConfigManager({
       fakeSettings: { fte: ftePending},
+      fakeConfiguration: configuration,
       applicationMode: applicationMode
     });
   }
@@ -149,6 +145,16 @@ suite('Widget Startup Modes Test Suite >', function() {
     }
   };
 
+  var resultRequestPrepaid = {
+    status:'success',
+    type:'balance',
+    data: {
+      timestamp: { __date__: '2014-04-14T08:35:16.812Z' },
+      balance: 22.34,
+      currency: '$'
+    }
+  };
+
   var newCostControlRequest = function(requestedData) {
     var requestedInfo = requestedData || {};
     return {
@@ -166,12 +172,19 @@ suite('Widget Startup Modes Test Suite >', function() {
     assert.ok(rightPanel.textContent.trim().contains(dataTag));
   }
 
-  function assertPostpaidLayout(leftDataTag, rightDataTag) {
+  function assertNonDataUseOnlyLayout(leftDataTag, rightDataTag) {
     assert.equal(fte.getAttribute('aria-hidden'), 'true');
     assert.equal(leftPanel.getAttribute('aria-hidden'), 'false');
     assert.equal(rightPanel.getAttribute('aria-hidden'), 'false');
     assert.ok(rightPanel.textContent.trim().contains(rightDataTag));
     assert.ok(leftPanel.textContent.trim().contains(leftDataTag));
+  }
+
+  function assertFTELayout(dataTag) {
+    assert.equal(fte.getAttribute('aria-hidden'), 'false');
+    assert.equal(leftPanel.getAttribute('aria-hidden'), 'true');
+    assert.equal(rightPanel.getAttribute('aria-hidden'), 'true');
+    assert.ok(fte.textContent.trim().contains(dataTag));
   }
 
   var listMandatoryAPIs = [
@@ -195,11 +208,39 @@ suite('Widget Startup Modes Test Suite >', function() {
     }
   );
 
+  test('startup with locked sim', function(done) {
+    this.sinon.stub(Widget, 'showSimError', function(errorId) {
+      done (function() {
+        assert.equal(errorId, 'sim-locked');
+      });
+    });
+
+    this.sinon.stub(SimManager, 'requestDataSimIcc', function(callback) {
+      callback({icc: {cardState: 'pinRequired'} });
+    });
+
+    Widget.init();
+  });
+
+  test('startup without sim', function(done) {
+    this.sinon.stub(Widget, 'showSimError', function(errorId) {
+      done (function() {
+        assert.equal(errorId, 'no-sim2');
+      });
+    });
+
+    this.sinon.stub(SimManager, 'requestDataSimIcc', function(callback) {
+      callback({icc: {} });
+    });
+
+    Widget.init();
+  });
+
   test('Airplane Mode enabled', function(done) {
     var showSimErrorSpy = sinon.spy(Widget, 'showSimError');
 
     // Force loadDataSimIccId to fail
-    sinon.stub(Common, 'loadDataSIMIccId', failingLoadDataSIMIccId);
+    sinon.stub(SimManager, 'requestDataSimIcc', failingRequestDataSIMIccId);
     sinon.stub(MockMozL10n, 'ready', function(callback) {
       callback();
 
@@ -209,7 +250,7 @@ suite('Widget Startup Modes Test Suite >', function() {
       assertErrorMessage('widget-airplane-mode-meta');
 
       // Restore the spy/stub
-      Common.loadDataSIMIccId.restore();
+      SimManager.requestDataSimIcc.restore();
       MockMozL10n.ready.restore();
       showSimErrorSpy.restore();
 
@@ -226,7 +267,7 @@ suite('Widget Startup Modes Test Suite >', function() {
       var showSimErrorSpy = sinon.spy(Widget, 'showSimError');
 
       // Force loadDataSimIccId to fail
-      sinon.stub(Common, 'loadDataSIMIccId', failingLoadDataSIMIccId);
+      sinon.stub(SimManager, 'requestDataSimIcc', failingRequestDataSIMIccId);
 
       sinon.stub(MockMozL10n, 'ready', function(callback) {
         callback();
@@ -237,7 +278,7 @@ suite('Widget Startup Modes Test Suite >', function() {
         assertErrorMessage('widget-airplane-mode-meta');
 
         // Restore the spy/stub
-        Common.loadDataSIMIccId.restore();
+        SimManager.requestDataSimIcc.restore();
         MockMozL10n.ready.restore();
 
         // Send a iccdetected event to restart the widget
@@ -251,22 +292,36 @@ suite('Widget Startup Modes Test Suite >', function() {
         // recover de configuration with the method getInstance
         sinon.stub(CostControl, 'getInstance', function(window, callback) {
           assert.equal(showSimErrorSpy.callCount, 1);
-          assert.equal(Common.dataSimIcc.cardState, 'ready');
-
-          CostControl.getInstance.restore();
-          showSimErrorSpy.restore();
-          done();
+          SimManager.requestDataSimIcc(function (dataSimIcc) {
+            assert.equal(dataSimIcc.icc.cardState, 'ready');
+            CostControl.getInstance.restore();
+            showSimErrorSpy.restore();
+            done();
+          });
         });
 
         // This event is listen on the function waitForIccAndCheckSim of the
-        // widget that calls Common.loadDataSIMIccId(checkSIMStatus); to restart
-        // the widget
+        // widget that calls SimManager.requestDataSIMIcc(checkSIMStatus); to
+        // restart the widget
         MockNavigatorMozIccManager.triggerEventListeners('iccdetected', {});
       }
     );
 
     AirplaneModeHelper._status = 'enabled';
     Widget.init();
+  });
+
+  test('fte start-up', function() {
+
+    setupCardState({cardState: 'ready', iccInfo: true});
+    var ftePending = true;
+    var applicationMode = 'DATA_USAGE_ONLY';
+    setupConfig(applicationMode, ftePending);
+
+    AirplaneModeHelper._status = 'disabled';
+    Widget.init();
+
+    assertFTELayout('widget-nonauthed-sim-heading');
   });
 
   test('normal start-up with DATA_USAGE_ONLY applicationMode', function(done) {
@@ -293,10 +348,12 @@ suite('Widget Startup Modes Test Suite >', function() {
         });
         assertDataUseOnlyLayout(mobileDataText);
 
-        assert.equal(Common.dataSimIcc.cardState, 'ready');
+        SimManager.requestDataSimIcc(function (dataSimIcc) {
+          assert.equal(dataSimIcc.icc.cardState, 'ready');
 
-        showSimErrorSpy.restore();
-        done();
+          showSimErrorSpy.restore();
+          done();
+        });
       }
     });
 
@@ -338,12 +395,15 @@ suite('Widget Startup Modes Test Suite >', function() {
           unit: 'min'
         });
 
-        assertPostpaidLayout(telephonyDataText, mobileDataText);
-        assert.equal(Common.dataSimIcc.cardState, 'ready');
+        assertNonDataUseOnlyLayout(telephonyDataText, mobileDataText);
 
-        showSimErrorSpy.restore();
-        Formatting.formatTime.restore();
-        done();
+        SimManager.requestDataSimIcc(function (dataSimIcc) {
+          assert.equal(dataSimIcc.icc.cardState, 'ready');
+
+          showSimErrorSpy.restore();
+          Formatting.formatTime.restore();
+          done();
+        });
       }
     });
 
@@ -351,6 +411,62 @@ suite('Widget Startup Modes Test Suite >', function() {
     Widget.init();
   });
 
+  test('normal start-up with PREPAID applicationMode', function(done) {
+    var showSimErrorSpy = sinon.spy(Widget, 'showSimError', function() {
+      assert.ok(false);
+    });
+    sinon.stub(Formatting, 'formatTime', function(timestamp, format) {
+      return timestamp;
+    });
+    var fakePrePaidResult = {
+      datausage: requestDataUsageResult,
+      balance: resultRequestPrepaid
+    };
+    var fakeConfiguration = {
+      balance: {
+        minimum_delay: 3 * 60 * 60 * 1000 // 3h
+      },
+      is_free: false,
+      is_roaming_free: false
+    };
+    var costControlConfig  = newCostControlRequest(fakePrePaidResult,
+                                                   {fte: false},
+                                                   fakeConfiguration);
+    setupCardState({cardState: 'ready', iccInfo: true}, costControlConfig);
+    var ftePending = false;
+    var applicationMode = 'PREPAID';
+    setupConfig(applicationMode, ftePending);
 
+    window.addEventListener('hashchange', function _onHashChange(evt) {
+      if (window.location.hash.split('#')[1] === 'updateDone') {
+        window.removeEventListener('hashchange', _onHashChange);
+        var mobileData =
+          Formatting.roundData(fakePrePaidResult.datausage.data.mobile.total);
+        var mobileDataText = _('magnitude', {
+          value: mobileData[0],
+          unit: mobileData[1]
+        });
 
+        var balanceDataText = _('currency', {
+          value: fakePrePaidResult.balance.data.balance,
+          currency: fakePrePaidResult.balance.data.currency
+        });
+        var balanceView = document.getElementById('balance-view');
+        assert.isTrue(balanceView.classList.contains('updating'));
+
+        assertNonDataUseOnlyLayout(balanceDataText, mobileDataText);
+
+        SimManager.requestDataSimIcc(function (dataSimIcc) {
+          assert.equal(dataSimIcc.icc.cardState, 'ready');
+
+          showSimErrorSpy.restore();
+          Formatting.formatTime.restore();
+          done();
+        });
+      }
+    });
+
+    AirplaneModeHelper._status = 'disabled';
+    Widget.init();
+  });
 });

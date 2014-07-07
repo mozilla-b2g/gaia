@@ -1,7 +1,7 @@
 {
   "name": "PDF Viewer",
   "description": "Portable Document Format (PDF) Viewer",
-  "type": "certified",
+  "type": "privileged",
   "role": "system",
   "developer": {
     "name": "The pdf.js Team",
@@ -20,6 +20,14 @@
   },
   "orientation": "default",
   "activities": {
+    "open" : {
+      "filters": {
+        "type": "application/pdf"
+      },
+      "disposition": "window",
+      "href": "/content/web/viewer.html",
+      "returnValue": true
+    },
     "view" : {
       "filters": {
         "type": "application/pdf"
@@ -30,7 +38,6 @@
     }
   },
   "permissions": {
-    "systemXHR":{},
-    "settings":{ "access": "readonly" }
+    "systemXHR":{}
   }
 }

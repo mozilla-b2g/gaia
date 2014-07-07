@@ -13,7 +13,6 @@
   background-position: center center;
 
   transform: translateX(0);
-  will-change: transform, opacity;
 }
 
 .appWindow > .appWindow {
@@ -338,15 +337,15 @@
   opacity: 0.8;
 }
 
-.appWindow.homescreen.fadeout > .fade-overlay.hidden {
+.appWindow.homescreen.fadeout .fade-overlay.hidden {
   visibility: hidden;
 }
 
-.appWindow.fadeout > .fade-overlay {
+.appWindow.fadeout .fade-overlay {
   visibility: visible;
 }
 
-.appWindow.homescreen.fadeout > .fade-overlay {
+.appWindow.homescreen.fadeout .fade-overlay {
   opacity: 0.8;
 }
 
@@ -383,6 +382,22 @@
   visibility: visible;
 }
 
+/*
+ * Because the search input lives in the system app, while the search app
+ * lives into its own search window, the context menu for such an application
+ * does not cover the whole screen.
+ * In order to have it cover the whole screen, the contextmenu which is part of
+ * the app window of the search window, is positioned negatively on the y-axis,
+ * while overflow is authorize for such window.
+ */
+.appWindow.searchWindow .contextmenu {
+  top: -7rem;
+}
+
+.appWindow.searchWindow {
+  overflow: visible;
+}
+
 .appWindow > .modal-dialog.visible,
 .appWindow > .contextmenu.visible,
 .appWindow > .authentication-dialog.visible,
@@ -410,6 +425,18 @@
   background: none;
   -moz-box-sizing: border-box;
   margin-bottom: 1.5rem; /* not overlap by menu while keyboard pop */
+}
+
+/*
+ * Because the search input lives in the system app, while the search app
+ * lives into its own window, activities windows attached to the search app
+ * does not cover the whole screen.
+ * In order to cover the whole screen, the activityWindow is positioned to the
+ * top of the screen and expanded to cover the whole screen.
+ */
+.appWindow.searchWindow .activityWindow {
+  height: calc(100% + 7rem);
+  top: -7rem;
 }
 
 .appWindow > .modal-dialog > form.visible {
@@ -449,8 +476,16 @@
 }
 
 .appWindow.suspended > .identification-overlay,
-#screen.edges .appWindow:not(.active) .identification-overlay.visible {
+.appWindow:not(.active) > .identification-overlay.visible {
   opacity: 1;
+}
+
+/* we don't want to show the overlay at all during the opening
+   transition (from the homescreen and from the cardview) */
+.appWindow.enlarge > .identification-overlay.visible,
+.appWindow.from-cardview > .identification-overlay.visible {
+  opacity: 0 !important;
+  transition: none !important;
 }
 
 .identification-overlay > div {
@@ -635,10 +670,16 @@
 }
 
 /* Edges */
-#screen.edges #windows > .appWindow:not(.homescreen) {
+#windows > .appWindow:not(.homescreen):not(.lockScreenWindow) {
+  /* not in the viewport */
+  transform: translateX(-100%);
+  opacity: 1;
+  will-change: transform, opacity;
+}
+
+#windows > .appWindow:not(.homescreen):not(.lockScreenWindow).edge-candidate {
   /* in the viewport but not really */
   transform: translateX(-99.9999%);
-  opacity: 1;
 }
 
 #screen:-moz-full-screen-ancestor > #windows .appWindow.active {
@@ -647,23 +688,23 @@
   will-change: auto;
 }
 
-#screen.edges .appWindow.will-become-inactive {
+#screen #windows > .appWindow.will-become-inactive {
   opacity: 0;
 }
 
-#screen.edges #windows > .appWindow.active:not(.will-become-inactive):not(.back),
-#screen.edges #windows > .appWindow.will-become-active,
-#screen.edges #windows > .appWindow.inside-edges {
+#screen #windows > .appWindow.active:not(.will-become-inactive):not(.back),
+#screen #windows > .appWindow.will-become-active,
+#screen #windows > .appWindow.inside-edges {
   opacity: 1;
   transform: translateX(0);
 }
 
-#screen.edges #windows > .appWindow.outside-edges-left {
+#screen #windows > .appWindow.outside-edges-left {
   opacity: 1;
   transform: translateX(calc(-100% - 2rem));
 }
 
-#screen.edges #windows > .appWindow.outside-edges-right {
+#screen #windows > .appWindow.outside-edges-right {
   opacity: 1;
   transform: translateX(calc(100% + 2rem));
 }

@@ -1,5 +1,5 @@
 /* global SettingsListener, homescreenLauncher, KeyboardManager,
-          layoutManager, lockScreen, System */
+          layoutManager, System */
 'use strict';
 
 (function(exports) {
@@ -169,6 +169,10 @@
           if (degree === 90 || degree === 270) {
             immediateTranstion = true;
           }
+        } else if (appNext.isHomescreen) {
+          // If there's no active app and next app is homescreen,
+          // open it right away.
+          immediateTranstion = true;
         }
 
         if (appNext.resized &&
@@ -209,7 +213,7 @@
       }
       window.addEventListener('cardviewbeforeshow', this);
       window.addEventListener('launchapp', this);
-      window.addEventListener('launchactivity', this);
+      document.body.addEventListener('launchactivity', this, true);
       window.addEventListener('home', this);
       window.addEventListener('appcreated', this);
       window.addEventListener('appterminated', this);
@@ -237,20 +241,15 @@
       window.addEventListener('homegesture-enabled', this);
       window.addEventListener('homegesture-disabled', this);
       window.addEventListener('system-resize', this);
+      window.addEventListener('orientationchange', this);
       window.addEventListener('sheetstransitionstart', this);
+      // XXX: PermissionDialog is shared so we need AppWindowManager
+      // to focus the active app after it's closed.
+      window.addEventListener('permissiondialoghide', this);
+      window.addEventListener('appopening', this);
+      window.addEventListener('localized', this);
 
       this._settingsObserveHandler = {
-        // update app name when language setting changes
-        'language.current': {
-          defaultValue: null,
-          callback: function(value) {
-            if (!value) {
-              return;
-            }
-            this.broadcastMessage('localized');
-          }.bind(this)
-        },
-
         // continuous transition controlling
         'continuous-transition.enabled': {
           defaultValue: null,
@@ -311,7 +310,11 @@
       window.removeEventListener('homegesture-enabled', this);
       window.removeEventListener('homegesture-disabled', this);
       window.removeEventListener('system-resize', this);
+      window.removeEventListener('orientationchange', this);
       window.removeEventListener('sheetstransitionstart', this);
+      window.removeEventListener('permissiondialoghide', this);
+      window.removeEventListener('appopening', this);
+      window.removeEventListener('localized', this);
 
       for (var name in this._settingsObserveHandler) {
         SettingsListener.unobserve(
@@ -327,6 +330,12 @@
       this.debug('handling ' + evt.type);
       var activeApp = this._activeApp;
       switch (evt.type) {
+        case 'permissiondialoghide':
+          activeApp && activeApp.broadcast('focus');
+          break;
+        case 'orientationchange':
+          this.broadcastMessage(evt.type);
+          break;
         case 'system-resize':
           this.debug(' Resizing...');
           if (activeApp) {
@@ -369,13 +378,14 @@
           // XXX: There's a race between lockscreenWindow and homescreenWindow.
           // If lockscreenWindow is instantiated before homescreenWindow,
           // we should not display the homescreen here.
-          if (!lockScreen.locked) {
+          if (!System.locked) {
             this.display();
           } else {
             homescreenLauncher.getHomescreen().setVisible(false);
           }
           break;
 
+        case 'appopening':
         case 'appopened':
         case 'homescreenopened':
           // Someone else may open the app,
@@ -527,6 +537,10 @@
           if (document.mozFullScreen) {
             document.mozCancelFullScreen();
           }
+          break;
+
+        case 'localized':
+          this.broadcastMessage('localized');
           break;
       }
     },
@@ -716,5 +730,4 @@
   };
 
   exports.AppWindowManager = AppWindowManager;
-  AppWindowManager.init();
 }(window));

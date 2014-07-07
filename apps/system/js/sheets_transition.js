@@ -6,12 +6,15 @@ var SheetsTransition = {
   _new: null,
 
   init: function st_init() {
+    window.addEventListener('stackchanged', this.stackChanged.bind(this));
+
     SettingsListener.observe('edgesgesture.enabled', false,
                              this._settingUpdate.bind(this));
   },
 
   begin: function st_begin(direction) {
     this.transitioning = true;
+    this._cleanupPreviousTransitions();
     // Ask Homescreen App to fade out when sheets begin moving.
     // Homescreen App would fade in next time it's opened automatically.
     var home = homescreenLauncher.getHomescreen();
@@ -116,6 +119,18 @@ var SheetsTransition = {
     this._snapAway(speed, 'outside-edges-left');
   },
 
+  stackChanged: function st_stackChanged(e) {
+    var sheets = e.detail.sheets;
+    var position = e.detail.position;
+    for (var i = 0; i < sheets.length; i++) {
+      var sheet = sheets[i].element;
+      var candidate = (this._edgesEnabled) && (position !== -1) &&
+                      (i >= (position - 1) && i <= (position + 1));
+
+      sheet.classList.toggle('edge-candidate', candidate);
+    }
+  },
+
   _snapAway: function st_snapAway(speed, outClass) {
     if (!this._new) {
       this.snapInPlace();
@@ -164,6 +179,19 @@ var SheetsTransition = {
     }
 
     sheet.style.transition = 'transform ' + ms + 'ms linear';
+  },
+
+  _cleanupPreviousTransitions: function st_cleanUpPreviousTransitions() {
+    var sheets = [this._current, this._new];
+    sheets.forEach(function(sheet) {
+      if (sheet) {
+        sheet.style.transform = '';
+        sheet.classList.remove('inside-edges');
+        sheet.classList.remove('outside-edges-left');
+        sheet.classList.remove('outside-edges-right');
+        sheet.style.transition = '';
+      }
+    });
   },
 
   _edgesEnabled: false,

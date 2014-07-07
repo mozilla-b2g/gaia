@@ -8,16 +8,50 @@ suite('GaiaSwitch', function() {
     this.container = document.createElement('div');
   });
 
-  test('Content is populated', function() {
+  teardown(function() {
+    this.container.parentNode.removeChild(this.container);
+  });
+
+  var subject;
+  setup(function() {
     this.container.innerHTML = '<gaia-confirm>' +
       '<h1>title</h1>' +
       '<p>description</p>' +
       '<gaia-buttons skin="dark">' +
-        '<button>Cancel</button>' +
-        '<button class="recommend">Submit</button>' +
+        '<button class="cancel">Cancel</button>' +
+        '<button class="confirm recommend">Submit</button>' +
       '</gaia-buttons>' +
     '</gaia-confirm>';
 
+    subject = this.container.firstElementChild;
+    // XXX: Currently we must build the entire dom in one go then insert it.
+    document.body.appendChild(this.container);
+  });
+
+  test('Event : confirm', function(done) {
+    this.timeout(100);
+    subject.addEventListener('confirm', function confirm() {
+      subject.removeEventListener('confirm', confirm);
+      done();
+    });
+
+    var confirm = this.container.querySelector('.confirm');
+    confirm.dispatchEvent(new CustomEvent('click'));
+  });
+
+
+  test('Event : cancel', function(done) {
+    this.timeout(100);
+    subject.addEventListener('confirm', function confirm() {
+      subject.removeEventListener('confirm', confirm);
+      done();
+    });
+
+    var confirm = this.container.querySelector('.confirm');
+    confirm.dispatchEvent(new CustomEvent('click'));
+  });
+
+  test('Content is populated', function() {
     var element = this.container.firstElementChild;
 
     // Validate title

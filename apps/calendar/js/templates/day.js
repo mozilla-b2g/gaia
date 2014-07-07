@@ -24,7 +24,7 @@
       return '<section class="' + classes + '" data-hour="' + hour + '">' +
           '<div class="hour-header">' +
             (isAllDay ? '<i class="icon-allday"></i>' : '') +
-            '<span ' + l10n + 'class="display-hour ' + hour + '">' +
+            '<span ' + l10n + 'class="display-hour">' +
               displayHour +
             '</span>' +
           '</div>' +
@@ -47,7 +47,6 @@
       var eventClassName = [
         'event',
         'calendar-id-' + calendarId,
-        'calendar-display',
         'calendar-bg-color',
         this.h('classes')
       ].join(' ');

@@ -11,6 +11,8 @@
     <link rel="resource" type="application/l10n" href="/shared/locales/date.ini">
     <link rel="resource" type="application/l10n" href="/shared/locales/sim_picker.ini">
     <link rel="resource" type="application/l10n" href="/shared/locales/voicemail.ini">
+    <link rel="resource" type="application/l10n" href="/shared/locales/keypad.ini">
+    <link rel="resource" type="application/l10n" href="/shared/locales/phone_types.ini">
 
     <!-- CSS -->
     <link rel="stylesheet" type="text/css" href="/shared/style/animations.css">
@@ -19,18 +21,21 @@
 
     <link rel="stylesheet" type="text/css" href="/shared/style/dialer/keypad.css">
     <link rel="stylesheet" type="text/css" href="/dialer/style/suggestion.css">
+    <link rel="stylesheet" type="text/css" href="/shared/style/dialer/overlay.css">
 
     <link rel="stylesheet" type="text/css" href="/shared/style/tabs.css">
     <link rel="stylesheet" type="text/css" href="/shared/style/sim_picker.css">
 
     <!-- JS -->
     <script defer src="/shared/js/lazy_loader.js"></script>
+    <script defer src="/shared/js/font_size_utils.js"></script>
     <script defer src="/shared/js/lazy_l10n.js"></script>
     <script defer src="/dialer/js/index.js"></script>
 
     <script defer src="/shared/js/dialer/utils.js"></script>
     <script defer src="/shared/js/dialer/tone_player.js"></script>
     <script defer src="/shared/js/dialer/keypad.js"></script>
+    <script defer src="/shared/js/dialer/font_size_manager.js"></script>
 
     <script defer src="/dialer/js/dialer.js"></script>
     <script defer src="/dialer/js/call_log_db.js"></script>
@@ -46,8 +51,8 @@
     <link rel="stylesheet" type="text/css" href="/shared/style/headers.css">
     <link rel="stylesheet" type="text/css" href="/shared/style/switches.css">
     <link rel="stylesheet" type="text/css" href="/shared/style/lists.css">
-    <link rel="stylesheet" type="text/css" href="/shared/style/input_areas.css">
     <link rel="stylesheet" type="text/css" href="/shared/style/progress_activity.css">
+    <link rel="stylesheet" type="text/css" href="/shared/style/input_areas.css">
     <link rel="stylesheet" type="text/css" href="/dialer/style/mmi.css">
     <script defer src="/shared/js/accessibility_helper.js"></script>
     <script defer src="/shared/js/async_storage.js"></script>
@@ -65,6 +70,7 @@
     <script defer src="/shared/js/fb/fb_tel_index.js"></script>
     <script defer src="/shared/js/binary_search.js"></script>
     <script defer src="/shared/js/sticky_header.js"></script>
+    <script defer src="/shared/js/sim_settings_helper.js"></script>
     <script defer src="/shared/js/dialer/voicemail.js"></script>
     <script defer src="/shared/js/dialer/contacts.js"></script>
     <script defer src="/shared/js/custom_dialog.js"></script>
@@ -79,6 +85,7 @@
 
     <link rel="import" href="elements/edit-mode.html">
     <link rel="import" href="elements/suggestion-item.html">
+    <link rel="import" href="elements/suggestion-overlay.html">
     <link rel="import" href="elements/add-contact-action-menu.html">
     <link rel="import" href="elements/confirmation-message.html">
     <link rel="import" href="/shared/elements/sim_picker.html">
@@ -137,7 +144,7 @@
           <div id="phone-number-view-container">
             <div class="phone-number-view-wrapper-input">
               <input id="phone-number-view" type="text" class="phone-number-font font-light" readonly="readonly" data-l10n-id="phoneNumberInput">
-              <div id="fake-phone-number-view"></div>
+              <div id="fake-phone-number-view" class="phone-number-font font-light"></div>
             </div>
             <button id="keypad-delete" class="reset-button" data-value="delete" data-l10n-id="keypadDelete">
             </button>
@@ -146,6 +153,8 @@
             <div role="button" is="suggestion-item" class="js-suggestion-item suggestion-item"></div>
             <div role="button" id="suggestion-count" class="suggestion-count more"></div>
           </section>
+          <button role="button" is="suggestion-item" id="suggestion-item-template" class="js-suggestion-item suggestion-item" hidden></button>
+
           <article id="keyboard-container">
             <section id="keypad">
               <div class="keypad-row">
@@ -222,12 +231,7 @@
 
     <form is="confirmation-message" id="confirmation-message" class="hide no-opacity" role="dialog" data-type="confirm"></form>
 
-    <form id="suggestion-overlay" role="dialog" data-type="action" class="overlay" hidden>
-      <button role="button" is="suggestion-item" id="suggestion-item-template" class="js-suggestion-item suggestion-item" hidden></button>
-      <header></header>
-      <menu id="suggestion-list">
-        <button id="suggestion-overlay-cancel" data-l10n-id="cancel">Cancel</button>
-      </menu>
+    <form is="suggestion-overlay" id="suggestion-overlay" role="dialog" data-type="action" class="overlay" aria-hidden="true">
     </form>
 
     <article id="mmi-screen" role="region" hidden>

@@ -38,14 +38,8 @@ var pendingPick;
 var SETTINGS_OPTION_KEY = 'settings_option_key';
 var playerSettings;
 
-// We get a localized event when the application is launched and when
-// the user switches languages.
-window.addEventListener('localized', function onlocalized() {
-  // Set the 'lang' and 'dir' attributes to <html> when the page is translated
-  document.documentElement.lang = navigator.mozL10n.language.code;
-  document.documentElement.dir = navigator.mozL10n.language.direction;
-
-  // Get prepared for the localized strings, these will be used later
+// Get prepared for the localized strings, these will be used later
+navigator.mozL10n.ready(function onLanguageChange() {
   musicTitle = navigator.mozL10n.get('music');
   playlistTitle = navigator.mozL10n.get('playlists');
   artistTitle = navigator.mozL10n.get('artists');
@@ -60,52 +54,53 @@ window.addEventListener('localized', function onlocalized() {
   recentlyAddedTitle = navigator.mozL10n.get(recentlyAddedTitleL10nId);
   mostPlayedTitle = navigator.mozL10n.get(mostPlayedTitleL10nId);
   leastPlayedTitle = navigator.mozL10n.get(leastPlayedTitleL10nId);
+});
 
-  // The first time we get this event we start running the application.
-  // But don't re-initialize if the user switches languages while we're running.
-  if (!musicdb) {
-    init();
+navigator.mozL10n.once(function onLocalizationInit() {
+  init();
 
-    TitleBar.init();
-    TilesView.init();
-    ListView.init();
-    SubListView.init();
-    SearchView.init();
-    TabBar.init();
+  TitleBar.init();
+  TilesView.init();
+  ListView.init();
+  SubListView.init();
+  SearchView.init();
+  TabBar.init();
 
-    // If the URL contains '#pick', we will handle the pick activity
-    // or just start the Music app from Mix page
-    if (document.URL.indexOf('#pick') !== -1) {
-      navigator.mozSetMessageHandler('activity', function activityHandler(a) {
-        var activityName = a.source.name;
+  // If the URL contains '#pick', we will handle the pick activity
+  // or just start the Music app from Mix page
+  if (document.URL.indexOf('#pick') !== -1) {
+    navigator.mozSetMessageHandler('activity', function activityHandler(a) {
+      var activityName = a.source.name;
 
-        if (activityName === 'pick') {
-          pendingPick = a;
-        }
-      });
+      if (activityName === 'pick') {
+        pendingPick = a;
+      }
+    });
 
-      TabBar.option = 'title';
-      ModeManager.start(MODE_PICKER);
-    } else {
-      TabBar.option = 'mix';
-      ModeManager.start(MODE_TILES);
-
-      // The player options will be used later,
-      // so let's get them first before the player is loaded.
-      asyncStorage.getItem(SETTINGS_OPTION_KEY, function(settings) {
-        playerSettings = settings;
-      });
-
-      // The done button must be removed when we are not in picker mode
-      // because the rules of the header building blocks
-      var doneButton = document.getElementById('title-done');
-      doneButton.parentNode.removeChild(doneButton);
-    }
+    TabBar.option = 'title';
+    ModeManager.start(MODE_PICKER);
   } else {
-    ModeManager.updateTitle();
+    TabBar.option = 'mix';
+    ModeManager.start(MODE_TILES);
+
+    // The player options will be used later,
+    // so let's get them first before the player is loaded.
+    asyncStorage.getItem(SETTINGS_OPTION_KEY, function(settings) {
+      playerSettings = settings;
+    });
+
+    // The done button must be removed when we are not in picker mode
+    // because the rules of the header building blocks
+    var doneButton = document.getElementById('title-done');
+    doneButton.parentNode.removeChild(doneButton);
   }
 
-  TabBar.playlistArray.localize();
+  // Do this now and on each language change in the future
+  navigator.mozL10n.ready(function() {
+    ModeManager.updateTitle();
+    TabBar.playlistArray.localize();
+  });
+
 });
 
 // We use this flag when switching views. We want to hide the scan progress
@@ -344,21 +339,17 @@ function showOverlay(id) {
   }
 
   var title, text;
+  var l10nIds = {'title': id + '-title', 'text': id + '-text'};
   if (id === 'nocard') {
-    title = navigator.mozL10n.get('nocard2-title');
-    text = navigator.mozL10n.get('nocard3-text');
-  } else {
-    title = navigator.mozL10n.get(id + '-title');
-    text = navigator.mozL10n.get(id + '-text');
+    l10nIds.title = 'nocard2-title';
+    l10nIds.text = 'nocard3-text';
   }
 
   var titleElement = document.getElementById('overlay-title');
   var textElement = document.getElementById('overlay-text');
 
-  titleElement.textContent = title;
-  titleElement.dataset.l10nId = id + '-title';
-  textElement.textContent = text;
-  textElement.dataset.l10nId = id + '-text';
+  titleElement.dataset.l10nId = l10nIds.title;
+  textElement.dataset.l10nId = l10nIds.text;
 
   document.getElementById('overlay').classList.remove('hidden');
 }
@@ -684,15 +675,29 @@ var TitleBar = {
 
             break;
           case 'title-done':
-            pendingPick.postResult({
-              type: PlayerView.playingBlob.type,
-              blob: PlayerView.playingBlob,
-              name:
-                PlayerView.dataSource[PlayerView.currentIndex].metadata.title ||
-                ''
+            var currentFileinfo = PlayerView.dataSource[
+              PlayerView.currentIndex
+            ];
+            var playingBlob = PlayerView.playingBlob;
+            getAlbumArtBlob(currentFileinfo, function(err, picture) {
+              var currentMetadata = currentFileinfo.metadata;
+              pendingPick.postResult({
+                type: playingBlob.type,
+                blob: playingBlob,
+                name: currentMetadata.title || '',
+                // We only pass some metadata attributes so we don't share
+                // personal details like # of times played and ratings.
+                metadata: {
+                  title: currentMetadata.title,
+                  artist: currentMetadata.artist,
+                  album: currentMetadata.album,
+                  picture: picture
+                }
+              });
+
+              cleanupPick();
             });
 
-            cleanupPick();
             break;
         }
 

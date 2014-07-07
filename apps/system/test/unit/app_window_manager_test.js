@@ -1,10 +1,10 @@
 /* global AppWindowManager, AppWindow, homescreenLauncher,
           MockAttentionScreen, HomescreenWindow, MocksHelper,
-          MockSettingsListener, MockLockScreen, HomescreenLauncher */
+          MockSettingsListener, System, HomescreenLauncher */
 'use strict';
 
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
-requireApp('system/test/unit/mock_lock_screen.js');
+requireApp('system/test/unit/mock_system.js');
 requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_activity_window.js');
@@ -24,7 +24,7 @@ var mocksForAppWindowManager = new MocksHelper([
   'ActivityWindow',
   'Applications', 'SettingsListener', 'HomescreenLauncher',
   'ManifestHelper', 'KeyboardManager', 'StatusBar', 'SoftwareButtonManager',
-  'HomescreenWindow', 'AppWindow', 'LayoutManager', 'LockScreen'
+  'HomescreenWindow', 'AppWindow', 'LayoutManager', 'System'
 ]).init();
 
 suite('system/AppWindowManager', function() {
@@ -35,7 +35,6 @@ suite('system/AppWindowManager', function() {
     stubById = this.sinon.stub(document, 'getElementById');
     stubById.returns(document.createElement('div'));
 
-    window.lockScreen = MockLockScreen;
     window.layoutManager = new window.LayoutManager();
 
     home = new HomescreenWindow('fakeHome');
@@ -54,12 +53,14 @@ suite('system/AppWindowManager', function() {
     app6 = new AppWindow(fakeAppConfig6Browser);
     app7 = new AppWindow(fakeAppConfig7Activity);
 
-    requireApp('system/js/app_window_manager.js', done);
+    requireApp('system/js/app_window_manager.js', function() {
+      window.AppWindowManager.init();
+      done();
+    });
   });
 
   teardown(function() {
     AppWindowManager.uninit();
-    delete window.lockScreen;
     delete window.layoutManager;
     // MockHelper won't invoke mTeardown() for us
     // since MockHomescreenLauncher is instantiable now
@@ -139,6 +140,61 @@ suite('system/AppWindowManager', function() {
   }
 
   suite('Handle events', function() {
+    test('localized event should be broadcasted.', function() {
+      var stubBroadcastMessage =
+        this.sinon.stub(AppWindowManager, 'broadcastMessage');
+      AppWindowManager.handleEvent({
+        type: 'localized'
+      });
+      assert.ok(stubBroadcastMessage.calledWith('localized'));
+    });
+
+    test('Active app should be updated once any app is opening.', function() {
+      var stub_updateActiveApp = this.sinon.stub(AppWindowManager,
+        '_updateActiveApp');
+      injectRunningApps(app1, app2);
+      AppWindowManager._activeApp = app1;
+      AppWindowManager.handleEvent({
+        type: 'appopening',
+        detail: app2
+      });
+      assert.isTrue(stub_updateActiveApp.calledWith(app2.instanceID));
+    });
+
+    test('Active app should be updated once any app is opened.', function() {
+      var stub_updateActiveApp = this.sinon.stub(AppWindowManager,
+        '_updateActiveApp');
+      injectRunningApps(app1, app2);
+      AppWindowManager._activeApp = app1;
+      AppWindowManager.handleEvent({
+        type: 'appopened',
+        detail: app2
+      });
+      assert.isTrue(stub_updateActiveApp.calledWith(app2.instanceID));
+    });
+
+    test('Active app should be updated once homescreen is opened.', function() {
+      var stub_updateActiveApp = this.sinon.stub(AppWindowManager,
+        '_updateActiveApp');
+      injectRunningApps(app1, home);
+      AppWindowManager._activeApp = app1;
+      AppWindowManager.handleEvent({
+        type: 'homescreenopened',
+        detail: home
+      });
+      assert.isTrue(stub_updateActiveApp.calledWith(home.instanceID));
+    });
+
+    test('When permission dialog is closed, we need to focus the active app',
+      function() {
+        var stubFocus = this.sinon.stub(app1, 'broadcast');
+        AppWindowManager._activeApp = app1;
+        AppWindowManager.handleEvent({
+          type: 'permissiondialoghide'
+        });
+        assert.isTrue(stubFocus.calledWith('focus'));
+      });
+
     test('If cardview will open, keyboard should be dismissed', function() {
       var stubBlur = this.sinon.stub(app1, 'blur');
       this.sinon.stub(app1, 'getTopMostWindow').returns(app1);
@@ -161,6 +217,13 @@ suite('system/AppWindowManager', function() {
         this.sinon.stub(AppWindowManager, 'broadcastMessage');
       AppWindowManager.handleEvent({ type: 'homegesture-disabled' });
       assert.isTrue(stubBroadcastMessage.calledWith('homegesture-disabled'));
+    });
+
+    test('Orientation change', function() {
+      var stubBroadcastMessage =
+        this.sinon.stub(AppWindowManager, 'broadcastMessage');
+      AppWindowManager.handleEvent({ type: 'orientationchange' });
+      assert.isTrue(stubBroadcastMessage.calledWith('orientationchange'));
     });
 
     test('Press home on home displayed', function() {
@@ -212,7 +275,7 @@ suite('system/AppWindowManager', function() {
     });
 
     test('FTU is skipped when lockscreen is active', function() {
-      MockLockScreen.locked = true;
+      System.locked = true;
       injectRunningApps();
       var stubDisplay = this.sinon.stub(AppWindowManager, 'display');
       var stubSetVisible = this.sinon.stub(home, 'setVisible');
@@ -220,6 +283,7 @@ suite('system/AppWindowManager', function() {
       AppWindowManager.handleEvent({ type: 'ftuskip' });
       assert.isFalse(stubDisplay.calledWith());
       assert.isTrue(stubSetVisible.calledWith(false));
+      System.locked = false;
     });
 
     test('System resize', function() {
@@ -504,6 +568,16 @@ suite('system/AppWindowManager', function() {
       assert.isTrue(stubAppCurrentClose.called);
     });
 
+    test('lockscreen to home', function() {
+      injectRunningApps(home);
+      AppWindowManager._activeApp = null;
+      var stubReady = this.sinon.stub(home, 'ready');
+      var stubAppNextOpen = this.sinon.stub(home, 'open');
+      AppWindowManager.switchApp(null, home);
+      stubReady.yield();
+      assert.isTrue(stubAppNextOpen.calledWith('immediate'));
+    });
+
     test('app to app', function() {
       injectRunningApps(app1, app2);
       AppWindowManager._activeApp = app1;
@@ -613,13 +687,6 @@ suite('system/AppWindowManager', function() {
         this.sinon.stub(AppWindowManager, 'broadcastMessage');
       MockSettingsListener.mCallbacks['app-suspending.enabled'](false);
       assert.ok(stubBroadcastMessage.calledWith('kill_suspended'));
-    });
-
-    test('language.current', function() {
-      var stubBroadcastMessage =
-        this.sinon.stub(AppWindowManager, 'broadcastMessage');
-      MockSettingsListener.mCallbacks['language.current']('chinese');
-      assert.ok(stubBroadcastMessage.calledWith('localized'));
     });
 
     test('continuous-transition.enabled', function() {

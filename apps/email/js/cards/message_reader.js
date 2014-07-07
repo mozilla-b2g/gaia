@@ -18,13 +18,15 @@ var MimeMapper,
     iframeShims = require('iframe_shims'),
     Marquee = require('marquee'),
     mozL10n = require('l10n!'),
+    queryURI = require('query_uri'),
 
     Cards = common.Cards,
     Toaster = common.Toaster,
     ConfirmDialog = common.ConfirmDialog,
     displaySubject = common.displaySubject,
     prettyDate = common.prettyDate,
-    prettyFileSize = common.prettyFileSize;
+    prettyFileSize = common.prettyFileSize,
+    mimeToClass = common.mimeToClass;
 var CONTENT_TYPES_TO_CLASS_NAMES = [
     null,
     'msg-body-content',
@@ -75,6 +77,7 @@ function MessageReaderCard(domNode, mode, args) {
   this._on('msg-envelope-bar', 'click', 'onEnvelopeClick');
   this._on('msg-reader-load-infobar', 'click', 'onLoadBarClick');
 
+  this._emittedContentEvents = false;
   this.disableReply();
 
   this.scrollContainer =
@@ -106,6 +109,14 @@ MessageReaderCard.prototype = {
     NEW_MESSAGE: 16
   },
 
+  /**
+   * Inform Cards to not emit startup content events, this card will trigger
+   * them once data from back end has been received and the DOM is up to date
+   * with that data.
+   * @type {Boolean}
+   */
+  skipEmitContentEvents: true,
+
   // Method to help bind event listeners to method names, and ensures
   // a header object before activating the method, to protect the buttons
   // from being activated while the model is still loading.
@@ -125,9 +136,8 @@ MessageReaderCard.prototype = {
     if (!this.header.isRead)
       this.header.setRead(true);
 
-    if (this.hackMutationHeader.isStarred)
-      this.domNode.getElementsByClassName('msg-star-btn')[0].classList
-             .add('msg-btn-active');
+    this.domNode.getElementsByClassName('msg-star-btn')[0].classList
+        .toggle('msg-star-btn-on', this.hackMutationHeader.isStarred);
 
     this.emit('header');
   },
@@ -363,10 +373,8 @@ MessageReaderCard.prototype = {
 
   onToggleStar: function() {
     var button = this.domNode.getElementsByClassName('msg-star-btn')[0];
-    if (!this.hackMutationHeader.isStarred)
-      button.classList.add('msg-btn-active');
-    else
-      button.classList.remove('msg-btn-active');
+    button.classList.toggle('msg-star-btn-on',
+                            !this.hackMutationHeader.isStarred);
 
     this.hackMutationHeader.isStarred = !this.hackMutationHeader.isStarred;
     this.header.setStarred(this.hackMutationHeader.isStarred);
@@ -638,7 +646,37 @@ MessageReaderCard.prototype = {
       { // Confirm
         id: 'msg-browse-ok',
         handler: function() {
-          window.open(linkUrl, '_blank', 'dialog');
+          if (/^mailto:/i.test(linkUrl)) {
+            // Fast path to compose. Works better than an activity, since
+            // "canceling" the activity has freaky consequences: what does it
+            // mean to cancel ourselves? What is the sound of one hand clapping?
+            var data = queryURI(linkUrl);
+            Cards.pushCard('compose', 'default', 'animate', {
+              composerData: {
+                onComposer: function(composer, composeCard) {
+                  // Copy the to, cc, bcc, subject, body to the compose.
+                  // It is OK to do this blind key copy since queryURI
+                  // explicitly only populates expected fields, does not blindly
+                  // accept input from the outside, and the queryURI properties
+                  // match the property names allowed on composer.
+                  Object.keys(data).forEach(function(key) {
+                    composer[key] = data[key];
+                  });
+                }
+              }
+            });
+          } else {
+            // Pop out to what is likely the browser, or the user's preferred
+            // viewer for the URL. This keeps the URL out of our cookie jar/data
+            // space too.
+            new MozActivity({
+              name: 'view',
+              data: {
+                type: 'url',
+                url: linkUrl
+              }
+            });
+          }
         }.bind(this)
       },
       { // Cancel
@@ -919,6 +957,8 @@ MessageReaderCard.prototype = {
 
           var MAX_ATTACHMENT_SIZE = 20 * 1024 * 1024;
           var attachmentDownloadable = true;
+          var mimeClass = mimeToClass(attachment.mimetype ||
+                          MimeMapper.guessTypeFromExtension(extension));
 
           if (attachment.isDownloaded) {
             state = 'downloaded';
@@ -940,6 +980,7 @@ MessageReaderCard.prototype = {
             attachment.sizeEstimateInBytes);
 
           var attachmentNode = attTemplate.cloneNode(true);
+          attachmentNode.classList.add(mimeClass);
           attachmentsContainer.replaceChild(attachmentNode, attNode);
 
           var downloadButton = attachmentNode.getElementsByClassName(
@@ -972,6 +1013,13 @@ MessageReaderCard.prototype = {
   enableReply: function() {
     var btn = this.domNode.getElementsByClassName('msg-reply-btn')[0];
     btn.removeAttribute('aria-disabled');
+
+    // Inform that content is ready. Done here because reply is only enabled
+    // once the full body is available.
+    if (!this._emittedContentEvents) {
+      evt.emit('metrics:contentDone');
+      this._emittedContentEvents = true;
+    }
   },
 
   die: function() {

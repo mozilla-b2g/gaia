@@ -27,48 +27,11 @@ WebappShared.prototype.setOptions = function(options) {
   this.buildDir = this.webapp.buildDirectoryFile;
 };
 
-WebappShared.prototype.pickByResolution = function(originalPath, targetPath) {
-  if (!/\.(png|gif|jpg)$/.test(originalPath)) {
-    return targetPath;
-  }
-  var matchResult = /@([0-9]+\.?[0-9]*)x/.exec(originalPath);
-  if ((this.config.GAIA_DEV_PIXELS_PER_PX === '1' && matchResult) ||
-      (matchResult &&
-        matchResult[1] !== this.config.GAIA_DEV_PIXELS_PER_PX)) {
-    return;
-  }
-
-  if (this.config.GAIA_DEV_PIXELS_PER_PX !== '1') {
-    var suffix = '@' + this.config.GAIA_DEV_PIXELS_PER_PX + 'x';
-    if (matchResult && matchResult[1] ===
-        this.config.GAIA_DEV_PIXELS_PER_PX) {
-      // Save the hidpi file to the build dir,
-      // strip the name to be more generic.
-      return targetPath.replace(suffix, '');
-    } else {
-      // Check if there a hidpi file. If yes, let's ignore this bitmap since
-      // it will be loaded later (or it has already been loaded, depending on
-      // how the OS organize files.
-      var hqfile = utils.getFile(originalPath.
-                         replace(/(\.[a-z]+$)/, suffix + '$1'));
-      if (hqfile.exists()) {
-        return;
-      }
-    }
-  }
-  return targetPath;
-};
-
 WebappShared.prototype.moveToBuildDir = function(file, targetPath) {
   if (file.isHidden()) {
     return;
   }
   var path = file.path;
-
-  targetPath = this.pickByResolution(path, targetPath);
-  if (!targetPath) {
-    return;
-  }
 
   if (!file.exists()) {
     throw new Error('Can\'t add inexistent file to  : ' + path);
@@ -176,7 +139,7 @@ WebappShared.prototype.copyPage = function(path) {
   if (extension === 'html') {
     this.filterSharedUsage(file);
   }
-}
+};
 
 WebappShared.prototype.pushResource = function(path) {
   let file = this.gaia.sharedFolder.clone();
@@ -185,7 +148,7 @@ WebappShared.prototype.pushResource = function(path) {
   path.split('/').forEach(function(segment) {
     file.append(segment);
     if (utils.isSubjectToBranding(file.path)) {
-      file.append((this.config.OFFICIAL == 1) ? 'official' : 'unofficial');
+      file.append((this.config.OFFICIAL === '1') ? 'official' : 'unofficial');
     }
   }.bind(this));
 
@@ -202,10 +165,13 @@ WebappShared.prototype.pushResource = function(path) {
 
   // Add not only file itself but all its hidpi-suffixed versions.
   let fileNameRegexp = new RegExp(
-      '^' + file.leafName.replace(/(\.[a-z]+$)/, '(@.*x)?\\$1') + '$');
+      '^' + file.leafName.replace(/(\.[a-z]+$)/, '((@.*x)?(\\$1))') + '$');
+
   utils.ls(file.parent, false).forEach(function(listFile) {
-    if (fileNameRegexp.test(listFile.leafName)) {
-      var pathInStage = 'shared/resources/' + path;
+    var matches = fileNameRegexp.exec(listFile.leafName);
+    if (matches) {
+      var pathInStage = 'shared/resources/' +
+        path.replace(matches[3], matches[1]);
       this.moveToBuildDir(listFile, pathInStage);
     }
   }.bind(this));

@@ -89,6 +89,7 @@ button::-moz-focus-inner {
   font-size: 0;
   font-family: sans-serif;
   border: none;
+  border-radius: 0;  /* To override the system-default border radius for button element  */
   background: none;
 
   /* Delay hiding the highlighting long enough to make sure the user sees it. */
@@ -232,13 +233,8 @@ button::-moz-focus-inner {
   pointer-events: none;
 }
 
-.keyboard-key.special-key[disabled="true"] > .visual-wrapper {
-  border-color: #535757;
-  background-color:  #585D5D;
-}
-
 .keyboard-key.special-key[disabled="true"] > .visual-wrapper > .key-element {
-  color: #888;
+  color: #677172;
 }
 
 /* Special keys - text */
@@ -257,16 +253,26 @@ button::-moz-focus-inner {
 }
 
 /* Key states */
-/* Active key, used for caps Lock key */
-.keyboard-key.kbr-key-active > .visual-wrapper > .key-element,
+
+/* Active key, used for shift key - uppercase */
+.keyboard-key.kbr-key-active {
+  background-color: #00caf2;
+}
+
+.keyboard-key.kbr-key-active > .visual-wrapper > .key-element {
+ color: #fff;
+ border-right-color: transparent;
+}
+
+/* Caps lock case */
 .keyboard-key.special-key.kbr-key-hold > .visual-wrapper > .key-element {
   color: #00caf2;
 }
 
+/* The underline for caps lock */
 .keyboard-key.kbr-key-hold > .visual-wrapper {
   box-shadow: 0 0.4rem 0 #00caf2;
 }
-
 
 /* Alt menu enabled */
 .keyboard-key.highlighted.kbr-menu-on > .visual-wrapper > .key-element {
@@ -470,7 +476,7 @@ bubble above the key when you tap and hold. */
   text-align: center;
   line-height: 2.8rem;
   background: transparent url('images/divider.png') right center no-repeat;
-  background-size: auto 10rem;
+  background-size: auto 4rem;
   border: none;
 }
 

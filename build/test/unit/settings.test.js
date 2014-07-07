@@ -112,6 +112,12 @@ suite('settings.js', function() {
       app.setRingtone(settings, config);
       assert.equal(settings['dialer.ringtone'], config.GAIA_DIR + '/' +
         ringtoneLink);
+      assert.deepEqual(settings['dialer.ringtone.name'],
+                       {l10nID: 'ringer_classic_courier'});
+      assert.equal(settings['dialer.ringtone.id'],
+                   'builtin:ringer_classic_courier');
+      assert.equal(settings['dialer.ringtone.default.id'],
+                   'builtin:ringer_classic_courier');
     });
 
     test('setNotification', function () {
@@ -126,6 +132,12 @@ suite('settings.js', function() {
       app.setNotification(settings, config);
       assert.equal(settings['notification.ringtone'],
         config.GAIA_DIR + '/' + notificationLink);
+      assert.deepEqual(settings['notification.ringtone.name'],
+                       {l10nID: 'notifier_bell'});
+      assert.equal(settings['notification.ringtone.id'],
+                   'builtin:notifier_bell');
+      assert.equal(settings['notification.ringtone.default.id'],
+                   'builtin:notifier_bell');
     });
 
     test('overrideSettings', function () {
@@ -195,19 +207,19 @@ suite('settings.js', function() {
       config.GAIA_DOMAIN = 'gaiamobile.com';
       config.GAIA_PORT = ':8080';
       var settings = {};
-      var testResult = mockUtils.gaiaManifestURL('homescreen',
+      var testResult = mockUtils.gaiaManifestURL('verticalhome',
                     config.GAIA_SCHEME, config.GAIA_DOMAIN, config.GAIA_PORT);
       app.setHomescreenURL(settings, config);
       assert.equal(settings['homescreen.manifestURL'], testResult);
     });
 
     test('setHomescreenURL with customizable', function() {
-      config.GAIA_APPDIRS = 'home2 system sms';
+      config.GAIA_APPDIRS = 'verticalhome system sms';
       config.GAIA_SCHEME = 'app://';
       config.GAIA_DOMAIN = 'gaiamobile.com';
       config.GAIA_PORT = ':8080';
-      var settings = { 'homescreen.appName': 'home2' };
-      var testResult = mockUtils.gaiaManifestURL('home2',
+      var settings = { 'homescreen.appName': 'verticalhome' };
+      var testResult = mockUtils.gaiaManifestURL('verticalhome',
                     config.GAIA_SCHEME, config.GAIA_DOMAIN, config.GAIA_PORT);
       app.setHomescreenURL(settings, config);
       assert.equal(settings['homescreen.manifestURL'], testResult);
@@ -251,7 +263,7 @@ suite('settings.js', function() {
           'debug.console.enabled': true,
           'developer.menu.enabled': true,
           'homescreen.manifestURL': config.GAIA_SCHEME +
-            'homescreen.' + config.GAIA_DOMAIN + config.GAIA_PORT +
+            'verticalhome.' + config.GAIA_DOMAIN + config.GAIA_PORT +
             '/manifest.webapp',
           'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search.' +
             config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
@@ -260,8 +272,13 @@ suite('settings.js', function() {
           'wallpaper.image': undefined,
           'media.ringtone': undefined,
           'alarm.ringtone': undefined,
-          'dialer.ringtone.name': 'Classic Courier',
+          'dialer.ringtone.name': {l10nID: 'ringer_classic_courier'},
+          'dialer.ringtone.id': 'builtin:ringer_classic_courier',
+          'dialer.ringtone.default.id': 'builtin:ringer_classic_courier',
           'dialer.ringtone': undefined,
+          'notification.ringtone.name': {l10nID: 'notifier_bell'},
+          'notification.ringtone.id': 'builtin:notifier_bell',
+          'notification.ringtone.default.id': 'builtin:notifier_bell',
           'notification.ringtone': undefined,
           'ftu.pingURL': config.FTU_PING_URL },
           result);
@@ -276,7 +293,7 @@ suite('settings.js', function() {
       queue.done(function(result) {
         assert.deepEqual({
           'homescreen.manifestURL': config.GAIA_SCHEME +
-            'homescreen.' + config.GAIA_DOMAIN + config.GAIA_PORT +
+            'verticalhome.' + config.GAIA_DOMAIN + config.GAIA_PORT +
             '/manifest.webapp',
           'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search.' +
             config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
@@ -288,8 +305,13 @@ suite('settings.js', function() {
           'wallpaper.image': undefined,
           'media.ringtone': undefined,
           'alarm.ringtone': undefined,
-          'dialer.ringtone.name': 'Classic Courier',
+          'dialer.ringtone.name': {l10nID: 'ringer_classic_courier'},
+          'dialer.ringtone.id': 'builtin:ringer_classic_courier',
+          'dialer.ringtone.default.id': 'builtin:ringer_classic_courier',
           'dialer.ringtone': undefined,
+          'notification.ringtone.name': {l10nID: 'notifier_bell'},
+          'notification.ringtone.id': 'builtin:notifier_bell',
+          'notification.ringtone.default.id': 'builtin:notifier_bell',
           'notification.ringtone': undefined,
           'ftu.pingURL': config.FTU_PING_URL },
           result);
@@ -304,7 +326,7 @@ suite('settings.js', function() {
       queue.done(function(result) {
         assert.deepEqual({
           'homescreen.manifestURL': config.GAIA_SCHEME +
-            'homescreen.' + config.GAIA_DOMAIN + config.GAIA_PORT +
+            'verticalhome.' + config.GAIA_DOMAIN + config.GAIA_PORT +
             '/manifest.webapp',
           'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search.' +
             config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
@@ -314,8 +336,13 @@ suite('settings.js', function() {
           'wallpaper.image': undefined,
           'media.ringtone': undefined,
           'alarm.ringtone': undefined,
-          'dialer.ringtone.name': 'Classic Courier',
+          'dialer.ringtone.name': {l10nID: 'ringer_classic_courier'},
+          'dialer.ringtone.id': 'builtin:ringer_classic_courier',
+          'dialer.ringtone.default.id': 'builtin:ringer_classic_courier',
           'dialer.ringtone': undefined,
+          'notification.ringtone.name': {l10nID: 'notifier_bell'},
+          'notification.ringtone.id': 'builtin:notifier_bell',
+          'notification.ringtone.default.id': 'builtin:notifier_bell',
           'notification.ringtone': undefined,
           'ftu.pingURL': config.FTU_PING_URL },
           result);
@@ -331,7 +358,7 @@ suite('settings.js', function() {
       queue.done(function(result) {
         assert.deepEqual({
           'homescreen.manifestURL': config.GAIA_SCHEME +
-            'homescreen.' + config.GAIA_DOMAIN + config.GAIA_PORT +
+            'verticalhome.' + config.GAIA_DOMAIN + config.GAIA_PORT +
             '/manifest.webapp',
           'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search.' +
             config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
@@ -343,8 +370,13 @@ suite('settings.js', function() {
           'wallpaper.image': undefined,
           'media.ringtone': undefined,
           'alarm.ringtone': undefined,
-          'dialer.ringtone.name': 'Classic Courier',
+          'dialer.ringtone.name': {l10nID: 'ringer_classic_courier'},
+          'dialer.ringtone.id': 'builtin:ringer_classic_courier',
+          'dialer.ringtone.default.id': 'builtin:ringer_classic_courier',
           'dialer.ringtone': undefined,
+          'notification.ringtone.name': {l10nID: 'notifier_bell'},
+          'notification.ringtone.id': 'builtin:notifier_bell',
+          'notification.ringtone.default.id': 'builtin:notifier_bell',
           'notification.ringtone': undefined,
           'ftu.pingURL': config.FTU_PING_URL },
           result);

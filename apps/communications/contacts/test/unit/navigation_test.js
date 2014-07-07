@@ -8,10 +8,10 @@ requireApp('communications/contacts/js/navigation.js');
 
 suite('contacts/navigation', function() {
 
-  var current, next, navigation, viewContactList, viewContactForm,
-    viewSettings, viewContactDetails, viewScreenshot, viewSelectTag,
-    viewSearch, callbackCounter, callback, animationEndEvent,
-    navigationAssert, initialStateAssert, currentTransition;
+  var navigation, viewContactList, viewContactForm, viewSettings,
+    viewContactDetails, viewScreenshot, viewSelectTag, viewSearch,
+    callbackCounter, callback, homeCallback, animationEndEvent,
+    navigationAssert, initialStateAssert, currentViewAssert;
 
 
   suiteSetup(function() {
@@ -31,8 +31,8 @@ suite('contacts/navigation', function() {
         navigation.transitions[transition][direction][viewType];
       if (navigationClass) {
         assert.equal(view.classList.contains(
-          navigationClass), result, test
-        );
+          navigationClass), result, test + ' wut ' + navigationClass + ' ' +
+          view.id);
       }
     };
     initialStateAssert = function(current, next, transition) {
@@ -48,224 +48,231 @@ suite('contacts/navigation', function() {
       navigationAssert(next, transition, 'backwards', 'next',
         false, 'next view backwards classes once animation ends');
     };
-    callbackCounter = 0;
-    callback = function(done) {
-      switch (currentTransition) {
-        case 'none':
-          done();
-          break;
-        case 'right-left':
-          current = viewSelectTag;
-          next = viewContactList;
-          initialStateAssert(current, next, currentTransition);
-          done();
-          break;
-        case 'popup':
-          current = viewContactList;
-          next = viewContactForm;
-          initialStateAssert(current, next, currentTransition);
-          done();
-          break;
-        case 'go-deeper':
-          current = viewContactDetails;
-          next = viewScreenshot;
-          initialStateAssert(current, next, currentTransition);
-          done();
-          break;
-        case 'go-deeper-search':
-          current = viewContactDetails;
-          next = viewScreenshot;
-          initialStateAssert(current, next, currentTransition);
-          done();
-          break;
-        case 'home':
-          callbackCounter++;
-          switch (callbackCounter) {
-            case 1:
-              // First back callback execution.
-              current = viewSelectTag;
-              next = viewContactForm;
-              initialStateAssert(current, next, 'right-left');
-              current = viewContactForm;
-              next = viewContactDetails;
-              current.dispatchEvent(animationEndEvent);
-              next.dispatchEvent(animationEndEvent);
-              break;
-            case 2:
-              // Second back callback execution.
-              current = viewContactForm;
-              next = viewContactDetails;
-              initialStateAssert(current, next, 'popup');
-              current = viewContactDetails;
-              next = viewContactList;
-              current.dispatchEvent(animationEndEvent);
-              next.dispatchEvent(animationEndEvent);
-              break;
-            case 3:
-              // Third back callback execution.
-              current = viewContactDetails;
-              next = viewContactList;
-              initialStateAssert(current, next, 'go-deeper');
-              callbackCounter = 0;
-              done();
-              break;
-          }
-          break;
+    currentViewAssert = function(previous, current) {
+      var currentViews = document.querySelectorAll('.view.current');
+      assert.equal(currentViews.length, 1, 'more than one |current| view');
+      assert.equal(current, currentViews[0], 'expected ' + current.id +
+        ' to be |current| view, but ' + currentViews[0].id + ' is instead.');
+    };
+    callback = function(done, current, next, transition, realNext) {
+      initialStateAssert(current, next, transition);
+      currentViewAssert(current, realNext || next);
+      if (done) {
+        done();
       }
     };
+    callbackCounter = 0;
+    homeCallback = function(done) {
+      callbackCounter++;
+      switch (callbackCounter) {
+        case 1:
+          // First back callback execution.
+          initialStateAssert(viewSelectTag, viewContactForm, 'right-left');
+          viewContactForm.dispatchEvent(animationEndEvent);
+          viewContactDetails.dispatchEvent(animationEndEvent);
+          break;
+        case 2:
+          // Second back callback execution.
+          initialStateAssert(viewContactForm, viewContactDetails, 'popup');
+          viewContactDetails.dispatchEvent(animationEndEvent);
+          viewContactList.dispatchEvent(animationEndEvent);
+          break;
+        case 3:
+          // Third back callback execution.
+          initialStateAssert(viewContactDetails, viewContactList, 'go-deeper');
+          currentViewAssert(viewContactDetails, viewContactList);
+          callbackCounter = 0;
+          done();
+          break;
+        }
+      };
   });
 
-  test('no forwards animation', function() {
-    currentTransition = 'none';
-    current = viewContactList;
-    next = viewSearch;
-    navigation.go('search-view', currentTransition);
-    assert.isTrue(next.style.zIndex > current.style.zIndex);
+  test('no forwards animation', function(done) {
+    var transition = 'none';
+    navigation.go('search-view', transition,
+      callback.bind(null, done, viewContactList, viewSearch, transition));
+    assert.isTrue(viewSearch.style.zIndex > viewContactList.style.zIndex);
   });
 
   test('no backwards animation', function(done) {
-    currentTransition = 'none';
-    current = viewContactList;
-    next = viewSearch;
-    navigation.go('search-view', currentTransition);
-    navigation.back(callback.bind(null, done));
+    var transition = 'none';
+    navigation.go('search-view', transition,
+      function () {
+        callback(function () {}, viewContactList, viewSearch, transition);
+        navigation.back(callback.bind(null, done, viewSearch,
+          viewContactList, transition));
+      });
   });
 
-  test('right-left forwards animation', function() {
-    currentTransition = 'right-left';
-    current = viewContactList;
-    next = viewSelectTag;
-    navigation.go('view-select-tag', currentTransition);
-
-    navigationAssert(current, currentTransition, 'forwards', 'current',
-      true, 'current view forwards classes');
-
-    navigationAssert(next, currentTransition, 'forwards', 'next',
-      true, 'next view forwards classes');
+  test('right-left forwards animation', function(done) {
+    var transition = 'right-left';
+    navigation.go('view-select-tag', transition,
+      callback.bind(null, done, viewContactList, viewSelectTag, transition));
+    viewContactList.dispatchEvent(animationEndEvent);
+    viewSelectTag.dispatchEvent(animationEndEvent);
   });
 
   test('right-left backwards animation', function(done) {
-    currentTransition = 'right-left';
-    current = viewSelectTag;
-    next = viewContactList;
-    navigation.go('view-select-tag', currentTransition);
-    navigation.back(callback.bind(null, done));
+    var transition = 'right-left';
+    navigation.go('view-select-tag', transition,
+      function () {
+        callback(function () {}, viewContactList, viewSelectTag, transition);
+        navigation.back(callback.bind(null, done, viewSelectTag,
+          viewContactList, transition));
 
-    navigationAssert(current, currentTransition, 'backwards', 'current',
-      true, 'current view backwards classes');
+        navigationAssert(viewSelectTag, transition, 'backwards', 'current',
+          true, 'current view backwards classes');
 
-    navigationAssert(next, currentTransition, 'backwards', 'next',
-      true, 'next view backwards classes');
+        navigationAssert(viewContactList, transition, 'backwards', 'next',
+          true, 'next view backwards classes');
 
-    current.dispatchEvent(animationEndEvent);
-    next.dispatchEvent(animationEndEvent);
+        viewSelectTag.dispatchEvent(animationEndEvent);
+        viewContactList.dispatchEvent(animationEndEvent);
+
+      });
+
+    viewContactList.dispatchEvent(animationEndEvent);
+    viewSelectTag.dispatchEvent(animationEndEvent);
   });
 
-  test('popup forwards animation', function() {
-    currentTransition = 'popup';
-    current = viewContactList;
-    next = viewContactForm;
-    navigation.go('view-contact-form', currentTransition);
+  test('popup forwards animation', function(done) {
+    var transition = 'popup';
+    navigation.go('view-contact-form', transition,
+      callback.bind(null, done, viewContactList, viewContactForm, transition));
 
-    navigationAssert(current, currentTransition, 'forwards', 'current',
+    navigationAssert(viewContactList, transition, 'forwards', 'current',
       true, 'current view forwards classes');
 
-    navigationAssert(next, currentTransition, 'forwards', 'next',
+    navigationAssert(viewContactForm, transition, 'forwards', 'next',
       true, 'next view forwards classes');
+
+    viewContactList.dispatchEvent(animationEndEvent);
+    viewContactForm.dispatchEvent(animationEndEvent);
   });
 
   test('popup backwards animation', function(done) {
-    currentTransition = 'popup';
-    current = viewContactForm;
-    next = viewContactList;
-    navigation.go('view-contact-form', currentTransition);
-    navigation.back(callback.bind(null, done));
+    var transition = 'popup';
+    navigation.go('view-contact-form', transition,
+      function () {
+        callback(function () {}, viewContactList, viewContactForm, transition);
+        navigation.back(callback.bind(null, done, viewContactForm,
+          viewContactList, transition));
 
-    navigationAssert(current, currentTransition, 'backwards', 'current',
-      true, 'current view backwards classes');
+        navigationAssert(viewContactForm, transition, 'backwards', 'current',
+          true, 'current view backwards classes');
 
-    navigationAssert(next, currentTransition, 'backwards', 'next',
-      true, 'next view backwards classes');
+        navigationAssert(viewContactList, transition, 'backwards', 'next',
+          true, 'next view backwards classes');
 
-    current.dispatchEvent(animationEndEvent);
-    next.dispatchEvent(animationEndEvent);
+        viewContactForm.dispatchEvent(animationEndEvent);
+        viewContactList.dispatchEvent(animationEndEvent);
+      });
+
+    viewContactList.dispatchEvent(animationEndEvent);
+    viewContactForm.dispatchEvent(animationEndEvent);
   });
 
-  test('go-deeper forwards animation', function() {
-    currentTransition = 'go-deeper';
-    current = viewScreenshot;
-    next = viewContactDetails;
-    navigation.go('view-contact-details', currentTransition);
+  test('go-deeper forwards animation', function(done) {
+    var transition = 'go-deeper';
+    navigation.go('view-contact-details', transition,
+      callback.bind(null, done, viewScreenshot, viewContactDetails,
+        transition));
 
-    navigationAssert(current, currentTransition, 'forwards', 'current',
+    navigationAssert(viewScreenshot, transition, 'forwards', 'current',
       true, 'current view forwards classes');
 
-    navigationAssert(next, currentTransition, 'forwards', 'next',
+    navigationAssert(viewContactDetails, transition, 'forwards', 'next',
       true, 'next view forwards classes');
+
+    viewScreenshot.dispatchEvent(animationEndEvent);
+    viewContactDetails.dispatchEvent(animationEndEvent);
   });
 
   test('go-deeper backwards animation', function(done) {
-    currentTransition = 'go-deeper';
-    current = viewContactDetails;
-    next = viewScreenshot;
-    navigation.go('view-contact-details', currentTransition);
-    navigation.back(callback.bind(null, done));
+    var transition = 'go-deeper';
+    navigation.go('view-contact-details', transition,
+      function () {
+        callback(function () {}, viewContactList, viewContactDetails,
+          transition);
+        navigation.back(callback.bind(null, done, viewContactDetails,
+          viewScreenshot, transition, viewContactList));
+        navigationAssert(viewContactDetails, transition, 'backwards', 'current',
+          true, 'current view backwards classes');
 
-    navigationAssert(current, currentTransition, 'backwards', 'current',
-      true, 'current view backwards classes');
+        navigationAssert(viewScreenshot, transition, 'backwards', 'next',
+          true, 'next view backwards classes');
 
-    navigationAssert(next, currentTransition, 'backwards', 'next',
-      true, 'next view backwards classes');
+        viewContactDetails.dispatchEvent(animationEndEvent);
+        viewScreenshot.dispatchEvent(animationEndEvent);
+      });
 
-    current.dispatchEvent(animationEndEvent);
-    next.dispatchEvent(animationEndEvent);
+    viewContactList.dispatchEvent(animationEndEvent);
+    viewContactDetails.dispatchEvent(animationEndEvent);
   });
 
-  test('go-deeper-search forwards animation', function() {
-    currentTransition = 'go-deeper-search';
-    current = viewScreenshot;
-    next = viewContactDetails;
-    navigation.go('view-contact-details', currentTransition);
+  test('go-deeper-search forwards animation', function(done) {
+    var transition = 'go-deeper-search';
+    navigation.go('view-contact-details', transition,
+      callback.bind(null, done, viewScreenshot, viewContactDetails,
+        transition));
 
-    navigationAssert(current, currentTransition, 'forwards', 'current',
+    navigationAssert(viewScreenshot, transition, 'forwards', 'current',
       true, 'current view forwards classes');
 
-    navigationAssert(next, currentTransition, 'forwards', 'next',
+    navigationAssert(viewContactDetails, transition, 'forwards', 'next',
       true, 'next view forwards classes');
+
+    viewScreenshot.dispatchEvent(animationEndEvent);
+    viewContactDetails.dispatchEvent(animationEndEvent);
   });
 
   test('go-deeper-search backwards animation', function(done) {
-    currentTransition = 'go-deeper-search';
-    current = viewContactDetails;
-    next = viewScreenshot;
-    navigation.go('view-contact-details', currentTransition);
-    navigation.back(callback.bind(null, done));
+    var transition = 'go-deeper-search';
+    navigation.go('view-contact-details', transition,
+      function () {
+        callback(function () {}, viewScreenshot, viewContactDetails,
+          transition);
+        navigation.back(callback.bind(null, done, viewContactDetails,
+          viewScreenshot, transition, viewContactList));
 
-    navigationAssert(current, currentTransition, 'backwards', 'current',
-      true, 'current view backwards classes');
+        navigationAssert(viewContactDetails, transition, 'backwards', 'current',
+          true, 'current view backwards classes');
 
-    navigationAssert(next, currentTransition, 'backwards', 'next',
-      true, 'next view backwards classes');
+        navigationAssert(viewScreenshot, transition, 'backwards', 'next',
+          true, 'next view backwards classes');
 
-    current.dispatchEvent(animationEndEvent);
-    next.dispatchEvent(animationEndEvent);
+        viewContactDetails.dispatchEvent(animationEndEvent);
+        viewScreenshot.dispatchEvent(animationEndEvent);
+      });
+
+    viewContactList.dispatchEvent(animationEndEvent);
+    viewContactDetails.dispatchEvent(animationEndEvent);
   });
 
   test('undoing animations with home', function(done) {
-    currentTransition = 'home';
-    navigation.go('view-contact-details', 'go-deeper');
-    navigation.go('view-contact-form', 'popup');
-    navigation.go('view-select-tag', 'right-left');
-
-    assert.equal(navigation.stack.length, 4, 'initial stack');
-
-    navigation.home(callback.bind(null, done));
-    assert.equal(navigation.stack.length, 1, 'final stack');
-
-    current = viewSelectTag;
-    next = viewContactForm;
-    current.dispatchEvent(animationEndEvent);
-    next.dispatchEvent(animationEndEvent);
+    navigation.go('view-contact-details', 'go-deeper',
+      function() {
+        callback(null, viewContactList, viewContactDetails, 'go-deeper');
+        navigation.go('view-contact-form', 'popup',
+          function() {
+            callback(null, viewContactDetails, viewContactForm, 'popup');
+            navigation.go('view-select-tag', 'right-left',
+              function() {
+                callback(null, viewContactForm, viewSelectTag, 'right-left');
+                assert.equal(navigation.stack.length, 4, 'initial stack');
+                navigation.home(homeCallback.bind(null, done));
+                viewSelectTag.dispatchEvent(animationEndEvent);
+                viewContactForm.dispatchEvent(animationEndEvent);
+              });
+            viewContactForm.dispatchEvent(animationEndEvent);
+            viewSelectTag.dispatchEvent(animationEndEvent);
+          });
+        viewContactDetails.dispatchEvent(animationEndEvent);
+        viewContactForm.dispatchEvent(animationEndEvent);
+      });
+    viewContactList.dispatchEvent(animationEndEvent);
+    viewContactDetails.dispatchEvent(animationEndEvent);
   });
 
   test('should send hide-navbar to dialer when entering view-contact-form',

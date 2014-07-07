@@ -1,0 +1,14 @@
+{
+  "topSites": [
+    {
+      "title": "Mozilla",
+      "uri": "http://mozilla.org",
+      "iconPath": "mozilla.png"
+    },
+    {
+      "title": "Firefox OS",
+      "uri": "http://mozilla.org/firefoxos",
+      "iconPath": "firefox.png"
+    }
+  ]
+}

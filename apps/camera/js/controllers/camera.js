@@ -44,9 +44,12 @@ CameraController.prototype.bindEvents = function() {
   // Relaying camera events means other modules
   // don't have to depend directly on camera
   camera.on('change:videoElapsed', app.firer('camera:recorderTimeUpdate'));
+  camera.on('autofocuschanged', app.firer('camera:autofocuschanged'));
   camera.on('focusconfigured',  app.firer('camera:focusconfigured'));
   camera.on('change:focus', app.firer('camera:focusstatechanged'));
   camera.on('filesizelimitreached', this.onFileSizeLimitReached);
+  camera.on('facesdetected', app.firer('camera:facesdetected'));
+  camera.on('willrecord', app.firer('camera:willrecord'));
   camera.on('change:recording', app.setter('recording'));
   camera.on('newcamera', app.firer('camera:newcamera'));
   camera.on('newimage', app.firer('camera:newimage'));
@@ -60,6 +63,7 @@ CameraController.prototype.bindEvents = function() {
   // App
   app.on('viewfinder:focuspointchanged', this.onFocusPointChanged);
   app.on('previewgallery:opened', this.onPreviewGalleryOpened);
+  app.on('previewgallery:closed', this.onPreviewGalleryClosed);
   app.on('change:batteryStatus', this.onBatteryStatusChange);
   app.on('settings:configured', this.onSettingsConfigured);
   app.on('storage:changed', this.onStorageChanged);
@@ -68,6 +72,7 @@ CameraController.prototype.bindEvents = function() {
   app.on('visible', this.camera.load);
   app.on('capture', this.capture);
   app.on('hidden', this.onHidden);
+  app.on('attentionscreenopened', this.camera.stopRecording);
 
   // Settings
   settings.recorderProfiles.on('change:selected', this.updateRecorderProfile);
@@ -122,7 +127,7 @@ CameraController.prototype.onSettingsConfigured = function() {
   hardware.onsuccess = function(evt) {
     var device = evt.target.result['deviceinfo.hardware'];
     if (device === 'mako') {
-      
+
       // Nexus 4 needs zoom preview adjustment since the viewfinder preview
       // stream does not automatically reflect the current zoom value.
       self.settings.zoom.set('useZoomPreviewAdjustment', true);
@@ -336,11 +341,20 @@ CameraController.prototype.onStorageChanged = function(state) {
 };
 
 /**
- * Resets the camera zoom when the preview gallery
+ * Resets the camera zoom and stops focus when the preview gallery
  * is opened.
  */
 CameraController.prototype.onPreviewGalleryOpened = function() {
   this.camera.configureZoom(this.camera.previewSize());
+  this.camera.stopFocus();
+};
+
+/**
+ * Resumes focus when the preview gallery
+ * is opened.
+ */
+CameraController.prototype.onPreviewGalleryClosed = function() {
+  this.camera.resumeFocus();
 };
 
 /**

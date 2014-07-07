@@ -29,21 +29,21 @@ const IMERender = (function() {
   var cachedWindowWidth = -1;
 
   const ariaLabelMap = {
-    '⇪': 'upperCaseKey',
-    '⌫': 'backSpaceKey',
-    '&nbsp': 'spaceKey',
-    '↵': 'returnKey',
-    '.': 'periodKey',
-    ',': 'commaKey',
-    ':': 'colonKey',
-    ';': 'semicolonKey',
-    '?': 'questionMarkKey',
-    '!': 'exclamationPointKey',
-    '(': 'leftBracketKey',
-    ')': 'rightBracketKey',
-    '"': 'doubleQuoteKey',
-    '«': 'leftDoubleAngleQuoteKey',
-    '»': 'rightDoubleAngleQuoteKey'
+    '⇪': 'upperCaseKey2',
+    '⌫': 'backSpaceKey2',
+    '&nbsp': 'spaceKey2',
+    '↵': 'returnKey2',
+    '.': 'periodKey2',
+    ',': 'commaKey2',
+    ':': 'colonKey2',
+    ';': 'semicolonKey2',
+    '?': 'questionMarkKey2',
+    '!': 'exclamationPointKey2',
+    '(': 'leftBracketKey2',
+    ')': 'rightBracketKey2',
+    '"': 'doubleQuoteKey2',
+    '«': 'leftDoubleAngleQuoteKey2',
+    '»': 'rightDoubleAngleQuoteKey2'
   };
 
   window.addEventListener('resize', function kr_onresize() {
@@ -119,8 +119,8 @@ const IMERender = (function() {
     var supportsSwitching = 'mozInputMethod' in navigator ?
       navigator.mozInputMethod.mgmt.supportsSwitching() : false;
     var keyboardClass = [
-      layout.keyboardName,
-      layout.altLayoutName,
+      layout.layoutName,
+      layout.alternativeLayoutName,
       ('' + flags.inputType).substr(0, 1),
       ('' + flags.showCandidatePanel).substr(0, 1),
       ('' + flags.uppercase).substr(0, 1),
@@ -134,7 +134,7 @@ const IMERender = (function() {
       container.classList.add('keyboard-type-container');
       container.classList.add(keyboardClass);
       if (layout.specificCssRule) {
-        container.classList.add(layout.keyboardName);
+        container.classList.add(layout.layoutName);
       }
       buildKeyboard(container, flags, layout);
       ime.appendChild(container);
@@ -243,7 +243,7 @@ const IMERender = (function() {
         dataset.push({'key': 'keycode', 'value': code});
         dataset.push({'key': 'keycodeUpper', 'value': upperCode});
         if (key.compositeKey) {
-          dataset.push({'key': 'compositekey', 'value': key.compositeKey});
+          dataset.push({'key': 'compositeKey', 'value': key.compositeKey});
         }
 
         var attributeList = [];
@@ -254,10 +254,22 @@ const IMERender = (function() {
           });
         }
 
+        if (key.ariaLabel || ariaLabelMap[key.value]) {
+          attributeList.push({
+            key: 'data-l10n-id',
+            value: key.ariaLabel || ariaLabelMap[key.value]
+          });
+        } else {
+          attributeList.push({
+            key: 'aria-label',
+            value: key.ariaLabel || key.value
+          });
+        }
+
         dataset.push({'key': 'lowercaseLabel', 'value': keyChar });
 
         kbRow.appendChild(buildKey(outputChar, className, keyWidth + 'px',
-          dataset, key.altNote, attributeList, getAriaLabel(key)));
+          dataset, key.altNote, attributeList));
       }));
 
       kbRow.dataset.layoutWidth = rowLayoutWidth;
@@ -282,13 +294,6 @@ const IMERender = (function() {
     } else {
       container.classList.remove('candidate-panel');
     }
-  };
-
-  var getAriaLabel = function mk_getAriaLabel(key) {
-    var _ = (navigator.mozL10n &&
-             navigator.mozL10n.readyState === 'complete') ?
-      navigator.mozL10n.get : function() { return ''; };
-    return _(key.ariaLabel || ariaLabelMap[key.value] || key.value);
   };
 
   // Highlight the key according to the case.
@@ -617,15 +622,29 @@ const IMERender = (function() {
           { 'key': 'keycode', 'value': alt.charCodeAt(0) },
           { 'key': 'keycodeUpper', 'value': alt.toUpperCase().charCodeAt(0) }
         ] :
-        [{'key': 'compositekey', 'value': alt}];
+        [{'key': 'compositeKey', 'value': alt}];
 
       // Make each of these alternative keys 75% as wide as the key that
       // it is an alternative for, but adjust for the relative number of
       // characters in the original and the alternative
       var width = 0.75 * key.offsetWidth / keycharwidth * alt.length;
 
-      content.appendChild(buildKey(alt, '', width + 'px', dataset, null, null,
-        getAriaLabel(key)));
+      var attributeList = [];
+
+      if (ariaLabelMap[alt]) {
+        attributeList.push({
+          key: 'data-l10n-id',
+          value: ariaLabelMap[alt]
+        });
+      } else {
+        attributeList.push({
+          key: 'aria-label',
+          value: alt
+        });
+      }
+
+      content.appendChild(
+        buildKey(alt, '', width + 'px', dataset, null, attributeList));
     });
     menu.innerHTML = '';
     menu.appendChild(content);
@@ -856,14 +875,25 @@ const IMERender = (function() {
     return pendingSymbolPanel;
   };
 
-  var candidatePanelCode = function() {
-    var _ = (navigator.mozL10n &&
-             navigator.mozL10n.readyState === 'complete') ?
-      navigator.mozL10n.get : function(x) { return x };
+  // Explicit call to mozL10n to translate the generated DOM element
+  // to be removed once bug 992473 lands.
+  var translateElement = function(el) {
+    if (!navigator.mozL10n || navigator.mozL10n.readyState !== 'complete') {
+      // mozL10n is not loaded or ready yet. Our elements in the DOM tree
+      // will automatically be localized by it when it's ready.
+      // Return early here.
+      return;
+    }
 
+    navigator.mozL10n.translate(el);
+  };
+
+  var candidatePanelCode = function() {
     var candidatePanel = document.createElement('div');
     candidatePanel.setAttribute('role', 'group');
-    candidatePanel.setAttribute('aria-label', _('wordSuggestions'));
+    candidatePanel.dataset.l10nId = 'wordSuggestions2';
+    translateElement(candidatePanel);
+
     candidatePanel.classList.add('keyboard-candidate-panel');
     if (inputMethodName)
       candidatePanel.classList.add(inputMethodName);
@@ -872,7 +902,8 @@ const IMERender = (function() {
     dismissButton.classList.add('dismiss-suggestions-button');
     dismissButton.classList.add('hide');
     dismissButton.setAttribute('role', 'button');
-    dismissButton.setAttribute('aria-label', _('dismiss'));
+    dismissButton.dataset.l10nId = 'dismiss2';
+    translateElement(dismissButton);
     candidatePanel.appendChild(dismissButton);
 
     var suggestionContainer = document.createElement('div');
@@ -899,8 +930,7 @@ const IMERender = (function() {
   };
 
   var buildKey = function buildKey(label, className, width, dataset, altNote,
-                                   attributeList, ariaLabel) {
-
+                                   attributeList) {
     var altNoteNode;
     if (altNote) {
       altNoteNode = document.createElement('div');
@@ -910,11 +940,15 @@ const IMERender = (function() {
 
     var contentNode = document.createElement('button');
     contentNode.className = 'keyboard-key ' + className;
-    contentNode.setAttribute('style', 'width: ' + width + ';');
+    contentNode.style.width = width;
 
     if (attributeList) {
       attributeList.forEach(function(attribute) {
         contentNode.setAttribute(attribute.key, attribute.value);
+
+        if (attribute.key === 'data-l10n-id') {
+          translateElement(contentNode);
+        }
       });
     }
 
@@ -929,9 +963,6 @@ const IMERender = (function() {
       // buttons so that their activation is not performed by mistake.
       contentNode.setAttribute('role', 'key');
     }
-
-    // Set aria-label
-    contentNode.setAttribute('aria-label', ariaLabel);
 
     var vWrapperNode = document.createElement('span');
     vWrapperNode.className = 'visual-wrapper';

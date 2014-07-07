@@ -34,7 +34,7 @@ marionette('Music player tests', function() {
 
     client.fileManager.removeAllFiles();
     client.fileManager.add([
-      { type: 'music', filePath: 'media-samples/Music/b2g.ogg' }
+      { type: 'music', filePath: 'test_media/samples/Music/b2g.ogg' }
     ]);
   });
 
@@ -107,7 +107,7 @@ marionette('Music player tests', function() {
 
       // Make sure the progress bar got updated when the music app is brought to
       // the foreground.
-      music.switchToMe();
+      music.launch();
       var t1 = music.songProgress;
       assert(t1 - t0 > dt * 0.9, 'Progress bar not updated!');
     });

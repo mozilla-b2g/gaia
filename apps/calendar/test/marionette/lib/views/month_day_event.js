@@ -30,6 +30,24 @@ MonthDayEvent.prototype = {
       .text();
   },
 
+  get allDay() {
+    return this
+      .findElement('.all-day')
+      .text();
+  },
+
+  get startTime() {
+    return this
+      .findElement('.start-time')
+      .text();
+  },
+
+  get endTime() {
+    return this
+      .findElement('.end-time')
+      .text();
+  },
+
   get iconAlarm() {
     return this.findElement('.icon-alarm');
   },
@@ -38,15 +56,5 @@ MonthDayEvent.prototype = {
     return this.element.scriptWith(function(element) {
       return element.classList.contains('has-alarms');
     });
-  },
-
-  get closestHour() {
-    return +this.client.helper
-      .closest(this.element, '.hour')
-      .getAttribute('data-hour');
-  },
-
-  get closestAllDay() {
-    return this.client.helper.closest(this.element, '.hour-allday');
   }
 };

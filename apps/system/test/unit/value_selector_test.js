@@ -3,7 +3,6 @@
 require('/shared/js/input_parser.js');
 require('/shared/test/unit/load_body_html_helper.js');
 require('/apps/system/js/value_selector/value_picker.js');
-require('/apps/system/js/value_selector/value_selector.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/apps/system/test/unit/mock_l10n.js');
 
@@ -13,10 +12,11 @@ suite('value selector/value selector', function() {
   var realSettings;
   var stubMozl10nGet;
   var element;
+  var screen;
   var timePickerContainer;
   var timeSeparator;
 
-  suiteSetup(function() {
+  suiteSetup(function(done) {
     realSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
 
@@ -31,6 +31,8 @@ suite('value selector/value selector', function() {
 
     realKeyboard = window.navigator.mozInputMethod;
     window.navigator.mozInputMethod = sinon.stub();
+
+    require('/apps/system/js/value_selector/value_selector.js', done);
   });
 
   suiteTeardown(function() {
@@ -53,6 +55,38 @@ suite('value selector/value selector', function() {
   test('hide', function() {
     ValueSelector.hide();
     assert.isTrue(element.hidden);
+  });
+
+  test('hide on "appopened" event', function() {
+    ValueSelector.show();
+    assert.isFalse(element.hidden);
+
+    ValueSelector.handleEvent({ type: 'appopened' });
+    assert.isTrue(element.hidden);
+  });
+
+  test('hide on "appclosing" event', function() {
+    ValueSelector.show();
+    assert.isFalse(element.hidden);
+
+    ValueSelector.handleEvent({ type: 'appclosing' });
+    assert.isTrue(element.hidden);
+  });
+
+  test('hide on "activityclosing" event', function() {
+    ValueSelector.show();
+    assert.isFalse(element.hidden);
+
+    ValueSelector.handleEvent({ type: 'activityclosing' });
+    assert.isTrue(element.hidden);
+  });
+
+  test('cancel on "sheetstransitionstart" event', function() {
+    ValueSelector.show();
+    this.sinon.stub(ValueSelector, 'cancel');
+
+    ValueSelector.handleEvent({ type: 'sheetstransitionstart' });
+    sinon.assert.calledOnce(ValueSelector.cancel);
   });
 
   test('Time Picker (en-US)', function() {

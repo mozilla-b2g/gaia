@@ -79,7 +79,8 @@ void function() {
         elTitle.innerHTML = '<input type="text" ' +
                                     'autocorrect="off" ' +
                                     'x-inputmode="verbatim" />' +
-                            '<b class="done"></b>';
+                            '<button class="done" data-l10n-id="evme-done">' +
+                            '</button>';
 
         elInput = elTitle.querySelector('input');
         elDone = elTitle.querySelector('.done');

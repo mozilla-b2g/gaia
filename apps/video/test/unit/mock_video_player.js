@@ -6,6 +6,7 @@ function MockVideoPlayer() {
   this.readyState = 0;
   this.seeking = false;
   this.duration = 0;
+  this.currentTime = 0;
   this.classList = [];
 }
 
@@ -54,6 +55,10 @@ MockVideoPlayer.prototype.removeAttribute = function(attr) {
       this.classList.splice(index, 1);
     }
   }
+};
+
+MockVideoPlayer.prototype.fastSeek = function(seekTime) {
+  this.currentTime = seekTime;
 };
 
 MockVideoPlayer.prototype.cloneNode = function() {

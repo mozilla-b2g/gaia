@@ -19,7 +19,6 @@
     "storage":{},
     "device-storage:sdcard":{ "access": "readcreate" },
     "systemXHR":{},
-    "settings":{ "access": "readonly" },
     "tcp-socket":{}
   },
   "locales": {
@@ -42,10 +41,11 @@
   },
   "default_locale": "en-US",
   "icons": {
-    "79": "/style/icons/Email_90.png",
-    "60": "/style/icons/Email_60.png",
-    "120": "/style/icons/Email_120.png",
-    "135": "/style/icons/Email_135.png"
+    "84": "/style/icons/email_84.png",
+    "126": "/style/icons/email_126.png",
+    "142": "/style/icons/email_142.png",
+    "189": "/style/icons/email_189.png",
+    "284": "/style/icons/email_284.png"
   },
   "activities": {
     "new": {

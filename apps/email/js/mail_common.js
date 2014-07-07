@@ -2,11 +2,12 @@
  * UI infrastructure code and utility code for the gaia email app.
  **/
 /*jshint browser: true */
-/*global define, console */
+/*global define, console, startupCacheEventsSent */
 'use strict';
 define(function(require, exports) {
 
 var Cards, Toaster,
+    evt = require('evt'),
     mozL10n = require('l10n!'),
     toasterNode = require('tmpl!./cards/toaster.html'),
     confirmDialogTemplateNode = require('tmpl!./cards/confirm_dialog.html'),
@@ -77,42 +78,6 @@ function bindContainerHandler(containerNode, eventName, func) {
     }
     func(node, event);
   }, false);
-}
-
-/**
- * Bind both 'click' and 'contextmenu' (synthetically created by b2g), plus
- * handling click suppression that is currently required because we still
- * see the click event.  We also suppress contextmenu's default event so that
- * we don't trigger the browser's right-click menu when operating in firefox.
- */
-function bindContainerClickAndHold(containerNode, clickFunc, holdFunc) {
-  // Rather than tracking suppressClick ourselves in here, we maintain the
-  // state globally in Cards.  The rationale is that popup menus will be
-  // triggered on contextmenu, which transfers responsibility of the click
-  // event to the popup handling logic.  There is also no chance for multiple
-  // contextmenu events overlapping (that we would consider reasonable).
-  bindContainerHandler(
-    containerNode, 'click',
-    function(node, event) {
-      if (Cards._suppressClick) {
-        Cards._suppressClick = false;
-        return;
-      }
-      clickFunc(node, event);
-    });
-  bindContainerHandler(
-    containerNode, 'contextmenu',
-    function(node, event) {
-      // Always preventDefault, as this terminates processing of the click as a
-      // drag event.
-      event.preventDefault();
-      // suppress the subsequent click if this was actually a left click
-      if (event.button === 0) {
-        Cards._suppressClick = true;
-      }
-
-      return holdFunc(node, event);
-    });
 }
 
 /**
@@ -211,10 +176,12 @@ Cards = {
   _transitionCount: 0,
 
   /**
-   * Annoying logic related to contextmenu event handling; search for the uses
-   * for more info.
+   * Tracks if startup events have been emitted. The events only need to be
+   * emitted once.
+   * @type {Boolean}
    */
-  _suppressClick: false,
+  _startupEventsEmitted: false,
+
   /**
    * Is a tray card visible, suggesting that we need to intercept clicks in the
    * tray region so that we can transition back to the thing visible because of
@@ -247,9 +214,6 @@ Cards = {
     this._containerNode.addEventListener('click',
                                          this._onMaybeIntercept.bind(this),
                                          true);
-    this._containerNode.addEventListener('contextmenu',
-                                         this._onMaybeIntercept.bind(this),
-                                         true);
 
     // XXX be more platform detecty. or just add more events. unless the
     // prefixes are already gone with webkit and opera?
@@ -263,19 +227,14 @@ Cards = {
    * back to the visible thing (which must be to our right currently.)
    */
   _onMaybeIntercept: function(event) {
-    // Contextmenu-derived click suppression wants to gobble an explicitly
-    // expected event, and so takes priority over other types of suppression.
-    if (event.type === 'click' && this._suppressClick) {
-      this._suppressClick = false;
-      event.stopPropagation();
-      return;
-    }
     if (this._eatingEventsUntilNextCard) {
       event.stopPropagation();
+      event.preventDefault();
       return;
     }
     if (this._popupActive) {
       event.stopPropagation();
+      event.preventDefault();
       this._popupActive.close();
       return;
     }
@@ -292,6 +251,7 @@ Cards = {
     // that card.
     if (this._trayActive && cardNode && cardNode.classList.contains('after')) {
       event.stopPropagation();
+      event.preventDefault();
 
       // Look for a card with a data-tray-target attribute
       var targetIndex = -1;
@@ -463,6 +423,13 @@ Cards = {
     // See input_areas.js and shared/style/input_areas.css.
     hookupInputAreaResetButtons(domNode);
 
+    // We're appending new elements to DOM so to make sure headers are
+    // properly resized and centered, we emmit a lazyload event.
+    // This will be removed when the gaia-header web component lands.
+    window.dispatchEvent(new CustomEvent('lazyload', {
+      detail: domNode
+    }));
+
     if ('postInsert' in cardImpl)
       cardImpl.postInsert();
 
@@ -569,7 +536,7 @@ Cards = {
   folderSelector: function(callback) {
     var self = this;
 
-    require(['model', 'value_selector'], function(model) {
+    require(['model'], function(model) {
       // XXX: Unified folders will require us to make sure we get the folder
       //      list for the account the message originates from.
       if (!self.folderPrompt) {
@@ -887,9 +854,7 @@ Cards = {
       removeClass(beginNode, 'no-anim');
       removeClass(endNode, 'no-anim');
 
-      if (cardInst && cardInst.cardImpl.onCardVisible) {
-        cardInst.cardImpl.onCardVisible();
-      }
+      this._onCardVisible(cardInst);
     }
 
     // Hide toaster while active card index changed:
@@ -958,8 +923,7 @@ Cards = {
         afterTransitionAction();
       }
 
-      if (activeCard.cardImpl.onCardVisible)
-        activeCard.cardImpl.onCardVisible();
+      this._onCardVisible(activeCard);
 
       // If the card has next cards that can be preloaded, load them now.
       // Use of nextCards should be balanced with startup performance.
@@ -973,6 +937,44 @@ Cards = {
           return 'cards/' + id;
         }));
       }
+    }
+  },
+
+  /**
+   * Handles final notification of card visibility in the stack.
+   * @param  {Card} cardInst the card instance.
+   */
+  _onCardVisible: function(cardInst) {
+    if (cardInst.cardImpl.onCardVisible) {
+      cardInst.cardImpl.onCardVisible();
+    }
+    this._emitStartupEvents(cardInst.cardImpl.skipEmitContentEvents);
+  },
+
+  /**
+   * Handles emitting startup events used for performance tracking.
+   * @param  {Boolean} skipEmitContentEvents if content events should be skipped
+   * because the card itself handles it.
+   */
+  _emitStartupEvents: function(skipEmitContentEvents) {
+    if (!this._startupEventsEmitted) {
+      if (startupCacheEventsSent) {
+        // Cache already loaded, so at this point the content shown is wired
+        // to event handlers.
+        window.dispatchEvent(new CustomEvent('moz-content-interactive'));
+      } else {
+        // Cache was not used, so only now is the chrome dom loaded.
+        window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
+      }
+      window.dispatchEvent(new CustomEvent('moz-chrome-interactive'));
+
+      // If a card that has a simple static content DOM, content is complete.
+      // Otherwise, like message_list, need backend data to call complete.
+      if (!skipEmitContentEvents) {
+        evt.emit('metrics:contentDone');
+      }
+
+      this._startupEventsEmitted = true;
     }
   },
 
@@ -1317,17 +1319,21 @@ function prettyDate(time, useCompactFormat) {
   };
   var timer = setInterval(updatePrettyDate, 60 * 1000);
 
-  window.addEventListener('message', function visibleAppUpdatePrettyDate(evt) {
-    var data = evt.data;
-    if (!data || (typeof(data) !== 'object') ||
-        !('message' in data) || data.message !== 'visibilitychange')
-      return;
+  function updatePrettyDateOnEvent() {
     clearTimeout(timer);
-    if (!data.hidden) {
-      updatePrettyDate();
-      timer = setInterval(updatePrettyDate, 60 * 1000);
+    updatePrettyDate();
+    timer = setInterval(updatePrettyDate, 60 * 1000);
+  }
+  // When user changes the language, update timestamps.
+  mozL10n.ready(updatePrettyDateOnEvent);
+
+  // On visibility change to not hidden, update timestamps
+  document.addEventListener('visibilitychange', function() {
+    if (document && !document.hidden) {
+      updatePrettyDateOnEvent();
     }
   });
+
 })();
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1432,6 +1438,17 @@ function displaySubject(subjectNode, message) {
   }
 }
 
+/**
+ * Given a mime type, generates a CSS class name that uses just the first part
+ * of the mime type. So, audio/ogg becomes mime-audio.
+ * @param  {String} mimeType
+ * @return {String} a class name usable in CSS.
+ */
+function mimeToClass(mimeType) {
+  mimeType = mimeType || '';
+  return 'mime-' + (mimeType.split('/')[0] || '');
+}
+
 exports.Cards = Cards;
 exports.Toaster = Toaster;
 exports.ConfirmDialog = ConfirmDialog;
@@ -1441,9 +1458,8 @@ exports.prettyFileSize = prettyFileSize;
 exports.addClass = addClass;
 exports.removeClass = removeClass;
 exports.batchAddClass = batchAddClass;
-exports.bindContainerClickAndHold = bindContainerClickAndHold;
 exports.bindContainerHandler = bindContainerHandler;
 exports.appendMatchItemTo = appendMatchItemTo;
-exports.bindContainerHandler = bindContainerHandler;
 exports.displaySubject = displaySubject;
+exports.mimeToClass = mimeToClass;
 });

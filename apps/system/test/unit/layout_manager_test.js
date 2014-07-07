@@ -29,6 +29,7 @@ suite('system/LayoutManager >', function() {
         type: 'resize'
       });
       assert.isTrue(stubPublish.calledWith('system-resize'));
+      assert.isTrue(stubPublish.calledWith('orientationchange'));
     });
 
     test('status-active', function() {
@@ -101,9 +102,6 @@ suite('system/LayoutManager >', function() {
     assert.equal(layoutManager.height, H - 100 - 30 - 50);
     assert.equal(layoutManager.width, W);
     assert.equal(layoutManager.clientWidth, _w);
-    MockLockScreen.locked = false;
     assert.isTrue(layoutManager.match(W, H - 100 - 30 - 50));
-    MockLockScreen.locked = true;
-    assert.equal(layoutManager.height, H);
   });
 });

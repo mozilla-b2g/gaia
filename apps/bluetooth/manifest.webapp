@@ -14,8 +14,10 @@
     }
   },
   "icons": {
-    "60": "/style/icons/60/Bluetooth.png",
-    "120": "/style/icons/Bluetooth.png"
+    "60": "/style/icons/Bluetooth_60.png",
+    "90": "/style/icons/Bluetooth_90.png",
+    "120": "/style/icons/Bluetooth_120.png",
+    "135": "/style/icons/Bluetooth_135.png"
   },
   "orientation": "default",
   "activities": {
@@ -36,6 +38,7 @@
     "attention":{},
     "bluetooth":{},
     "device-storage:sdcard":{ "access": "readonly" },
-    "settings":{ "access": "readwrite" }
+    "settings":{ "access": "readwrite" },
+    "desktop-notification":{}
   }
 }

@@ -1,5 +1,4 @@
-/* global PerformanceTestingHelper, TelephonySettingHelper,
-   getSupportedLanguages */
+/* global PerformanceTestingHelper, TelephonySettingHelper */
 'use strict';
 
 /**
@@ -82,13 +81,7 @@ var Settings = {
     }
 
     this._currentPanel = hash;
-    this.SettingsService.navigate(panelID, null, function() {
-      if (hash === 'about-licensing') {
-        // Workaround for bug 825622, remove when fixed
-        var iframe = document.getElementById('os-license');
-        iframe.src = iframe.dataset.src;
-      }
-    });
+    this.SettingsService.navigate(panelID);
   },
 
   _initialized: false,
@@ -205,6 +198,7 @@ var Settings = {
           // If there isn't a section specified,
           // simply show ourselve without making ourselves a dialog.
           Settings._currentActivity = null;
+          return;
         }
 
         // Validate if the section exists

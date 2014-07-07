@@ -1,3 +1,4 @@
+/* exported SettingsURL */
 'use strict';
 
 // This library helps with managing settings that can either send back

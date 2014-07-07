@@ -3,7 +3,8 @@
 /* global CallHandler, MocksHelper, MockLazyL10n, MockNavigatormozApps,
    MockNavigatorMozIccManager, MockNavigatormozSetMessageHandler,
    NavbarManager, Notification, MockKeypadManager, MockVoicemail,
-   MockCallLog, MockCallLogDBManager, MockNavigatorWakeLock, MmiManager */
+   MockCallLog, MockCallLogDBManager, MockNavigatorWakeLock, MmiManager,
+   LazyLoader, AccessibilityHelper */
 
 require(
   '/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js'
@@ -123,7 +124,7 @@ suite('navigation bar', function() {
         this.sinon.spy(window, 'Notification');
         MockNavigatorMozIccManager.addIcc('12345', {'cardState': 'ready'});
         callEndedData = {
-          number: '123',
+          id: { number: '123' },
           serviceId: 1,
           direction: 'incoming'
         };
@@ -179,7 +180,7 @@ suite('navigation bar', function() {
 
       setup(function() {
         sysMsg = {
-          number: '12345',
+          id: { number: '12345' },
           serviceId: 1,
           emergency: false,
           duration: 1200,
@@ -296,10 +297,11 @@ suite('navigation bar', function() {
     });
 
     suite('> Receiving a ussd', function() {
-      function triggerSysMsg() {
+      function triggerSysMsg(serviceId, sessionEnded) {
         MockNavigatormozSetMessageHandler.mTrigger('ussd-received', {
           message: 'testing',
-          sessionEnded: true
+          sessionEnded: (sessionEnded !== undefined) ? sessionEnded : true,
+          serviceId: (serviceId !== undefined) ? serviceId : 0
         });
       }
 
@@ -329,7 +331,7 @@ suite('navigation bar', function() {
                                 'testing', true);
       });
 
-      suite('when the app is invisible', function() {
+      suite('when the app is visible', function() {
         setup(function() {
           stubHidden = false;
         });
@@ -351,6 +353,15 @@ suite('navigation bar', function() {
           var wakeLock = MockNavigatorWakeLock.mLastWakeLock;
           assert.equal(wakeLock.topic, 'high-priority');
         });
+
+        test('should send a notification for unsolicited messages', function() {
+            this.sinon.spy(MmiManager, 'sendNotification');
+            triggerSysMsg(0, true);
+            sinon.assert.calledOnce(MmiManager.sendNotification);
+            var wakeLock = MockNavigatorWakeLock.mLastWakeLock;
+            assert.isTrue(wakeLock.released);
+          }
+        );
 
         suite('once the app is visible', function() {
           setup(function() {
@@ -516,6 +527,75 @@ suite('navigation bar', function() {
             domContactsIframe.src.contains('/contacts/index.html#home')
           );
         });
+      });
+    });
+  });
+
+  suite('window resize', function() {
+    var stubInnerHeight;
+
+    setup(function() {
+      Object.defineProperty(window, 'innerHeight', {
+        configurable: true,
+        get: function() { return stubInnerHeight; }
+      });
+    });
+
+    teardown(function() {
+      delete window.innerHeight;
+    });
+
+    test('should hide the navbar when the keyboard is displayed', function() {
+      stubInnerHeight = 439;
+      this.sinon.stub(NavbarManager, 'hide');
+      window.onresize();
+      sinon.assert.called(NavbarManager.hide);
+    });
+
+    test('should display the navbar when the keyboard is absent', function() {
+      stubInnerHeight = 441;
+      this.sinon.stub(NavbarManager, 'show');
+      window.onresize();
+      sinon.assert.called(NavbarManager.show);
+    });
+  });
+
+  suite('accessibility helper', function() {
+    var loadSpy;
+    var hash;
+
+    setup(function() {
+      loadSpy = this.sinon.spy(LazyLoader, 'load');
+      this.sinon.spy(AccessibilityHelper, 'setAriaSelected');
+
+      hash = window.location.hash;
+
+      NavbarManager.resourcesLoaded = false;
+    });
+
+    teardown(function() {
+      window.location.hash = hash;
+    });
+
+    ['#call-log-view',
+     '#contacts-view',
+     '#keyboard-view'].forEach(function(view) {
+      test('should load accessibility helper before using it in view ' + view,
+      function(done) {
+        function handleHashChange(event) {
+          window.removeEventListener('hashchange', handleHashChange);
+
+          assert.isTrue(loadSpy.getCall(0).args[0].indexOf(
+            '/shared/js/accessibility_helper.js') !== -1);
+          sinon.assert.callOrder(
+            loadSpy, AccessibilityHelper.setAriaSelected);
+
+          done();
+        }
+
+        window.addEventListener('hashchange', handleHashChange);
+
+        window.location.hash = view;
       });
     });
   });

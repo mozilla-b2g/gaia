@@ -116,6 +116,10 @@ suite('WAP Push', function() {
       assert.ok(handlers.notification);
       assert.ok(handlers['wappush-received']);
     });
+
+    test('the header is empty', function() {
+      assert.equal(document.getElementById('title').textContent, '');
+    });
   });
 
   suite('unsupported message', function() {
@@ -133,7 +137,7 @@ suite('WAP Push', function() {
     });
   });
 
-  suite('receiving and displaying a message', function() {
+  suite('receiving and displaying a SI message', function() {
     // UI elements
     var screen;
     var closeButton;
@@ -216,6 +220,51 @@ suite('WAP Push', function() {
           body: 'check this out http://www.mozilla.org'
         });
       });
+    });
+  });
+
+  suite('receiving and displaying a SL message', function() {
+    // UI elements
+    var screen;
+    var closeButton;
+    var title;
+    var container;
+    var text;
+    var link;
+
+    var message = {
+        sender: '+31641600986',
+        contentType: 'text/vnd.wap.sl',
+        content: '<sl href="http://www.mozilla.org" />',
+        serviceId: 0
+    };
+
+    test('the notification is sent and populated correctly', function() {
+      this.sinon.spy(window, 'Notification');
+      MockNavigatormozSetMessageHandler.mTrigger('wappush-received', message);
+      sinon.assert.calledOnce(Notification);
+      sinon.assert.calledWithMatch(window.Notification, message.sender,
+        { body: 'http://www.mozilla.org' });
+    });
+
+    test('the display is populated with the message contents', function() {
+      closeButton = document.getElementById('close');
+      title = document.getElementById('title');
+      screen = document.getElementById('si-sl-screen');
+      container = screen.querySelector('.container');
+      text = container.querySelector('p');
+      link = container.querySelector('a');
+
+      var retrieveSpy = this.sinon.spy(MockMessageDB, 'retrieve');
+
+      MockNavigatormozSetMessageHandler.mTrigger('wappush-received', message);
+      WapPushManager.displayWapPushMessage(0);
+      retrieveSpy.yield(ParsedMessage.from(message, 0));
+      assert.equal(title.textContent, message.sender);
+      assert.equal(text.textContent, '');
+      assert.equal(link.textContent, 'http://www.mozilla.org');
+      assert.equal(link.dataset.url, 'http://www.mozilla.org');
+      assert.equal(link.href, 'http://www.mozilla.org/');
     });
   });
 

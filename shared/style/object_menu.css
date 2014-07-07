@@ -1,0 +1,260 @@
+/* ----------------------------------
+ * Object menu
+ * ---------------------------------- */
+
+/* Main dialog setup */
+[role="dialog"][data-type="object"] {
+  background:
+    url(object_menu/images/ui/pattern.png) repeat left top,
+    url(object_menu/images/ui/gradient.png) no-repeat left top / 100% 100%;
+  overflow: hidden;
+  position: fixed;
+  z-index: 100;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 0 0 7rem;
+  /**
+   * Using "font-size: 0" to avoid the unwanted visual space (about 3px) created
+   * by white spaces and line breaks in the code between inline-block elements.
+   */
+  font-size: 0;
+  color: #fff;
+}
+
+[role="dialog"][data-type="object"] > header {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  font-size: 1.6rem;
+  background: url(object_menu/images/ui/alpha.png) repeat 0 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  height: 5rem;
+  color: #fff;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  font-weight: normal;
+  padding: 0 3rem;
+  border-bottom: 0.1rem solid #616262;
+}
+
+[role="dialog"][data-type="object"] > header h1 {
+  font-size: 1.6rem;
+  text-align: left;
+  color: #fff;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  display: block;
+  overflow: hidden;
+  margin: 0;
+  font-weight: normal;
+}
+
+/* Specific component code */
+[role="dialog"][data-type="object"] > section {
+  color: #fff;
+  position: absolute;
+  top: 5rem;
+  left: 0;
+  right: 0;
+  bottom: 7rem;
+  font-size: 1.6rem;
+  overflow: scroll;
+}
+
+[role="dialog"][data-type="object"] ul {
+  padding: 0;
+  margin: 0;
+}
+
+[role="dialog"][data-type="object"] ul li {
+  margin: 0 1.5rem;
+  padding: 1rem 1.5rem;
+  min-height: 3.9rem;
+  height: auto;
+  list-style: none;
+  position: relative;
+  font-size: 2.2rem;
+  font-weight: 300;
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  transition: background-color 0.2s ease;
+}
+
+[role="dialog"][data-type="object"] ul li:before {
+  position: absolute;
+  content: "";
+  top: 0;
+  right: -1.5rem;
+  bottom: 0;
+  left: -1.5rem;
+  z-index: -1;
+}
+
+[role="dialog"][data-type="object"] ul li:after {
+  position: absolute;
+  content: "";
+  height: 0.1rem;
+  top: 0;
+  right: 0;
+  left: 0;
+  background-color: #666;
+}
+
+[role="dialog"][data-type="object"] ul li:first-child:after {
+  display: none;
+}
+
+[role="dialog"][data-type="object"] ul li a {
+  color: #fff;
+  text-decoration: none;
+}
+
+[role="dialog"][data-type="object"] ul li button {
+  font-family: sans-serif;
+  color: #fff;
+  border: none;
+  background: none;
+  text-align: left;
+  font-size: 2.2rem;
+  font-weight: 300;
+  padding: 0;
+}
+
+[role="dialog"][data-type="object"] ul li p {
+  outline: none;
+  display: block;
+  margin: 0;
+  color: #fff;
+  font-size: 1.5rem;
+  line-height: 1.8rem;
+  font-weight: normal;
+}
+
+[role="dialog"][data-type="object"] ul li p:first-child {
+  font-size: 1.8rem;
+  font-weight: 500;
+}
+
+[role="dialog"][data-type="object"] ul li p:empty {
+  display: none;
+}
+
+/* Pressed status */
+[role="dialog"][data-type="object"] ul li:active:before {
+  background-color: #00aacc;
+}
+
+[role="dialog"][data-type="object"] ul li:active:after,
+[role="dialog"][data-type="object"] ul li:active + li:after {
+  display: none;
+}
+
+/* Menu & buttons setup */
+[role="dialog"][data-type="object"] menu {
+  white-space: nowrap;
+  margin: 0;
+  padding: 1.5rem;
+  background: #2d2d2d url(confirm/images/ui/pattern.png) repeat left top;
+  display: block;
+  overflow: hidden;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+[role="dialog"][data-type="object"] menu button::-moz-focus-inner {
+  border: none;
+  outline: none;
+  margin-top: -0.2rem; /* To fix line-height bug (697451) */
+}
+
+[role="dialog"][data-type="object"] menu button {
+  font-family: sans-serif;
+  font-style: italic;
+  width: 100%;
+  height: 4rem;
+  margin: 0 0 1rem;
+  padding: 0 1.2rem;
+  box-sizing: border-box;
+  display: inline-block;
+  vertical-align: middle;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  background: #d8d8d8;
+  border: none;
+  border-radius: 2rem;
+  font-weight: normal;
+  font-size: 1.6rem;
+  line-height: 4rem;
+  color: #333;
+  text-align: center;
+  text-shadow: none;
+  text-decoration: none;
+  outline: none;
+}
+
+/* Recommend */
+[role="dialog"][data-type="object"] menu button.recommend {
+  background-color: #00caf2;
+  color: #fff;
+}
+
+/* Danger */
+[role="dialog"][data-type="object"] menu button.danger {
+  background-color: #e51e1e;
+  color: #fff;
+}
+
+/* Pressed */
+[role="dialog"][data-type="object"] menu button:active {
+  background: #00aacc;
+  color: #fff;
+}
+
+/* Disabled */
+[role="dialog"][data-type="object"] > menu > button[disabled] {
+  background-color: #565656;
+  color: rgba(255,255,255,0.4);
+  pointer-events: none;
+}
+
+[role="dialog"][data-type="object"] > menu > button[disabled].recommend {
+  background-color: #006579;
+}
+
+[role="dialog"][data-type="object"] > menu > button[disabled].danger {
+  background-color: #730f0f;
+}
+
+button[disabled]::-moz-selection {
+  -moz-user-select: none;
+}
+
+
+[role="dialog"][data-type="object"] menu button:last-child {
+  margin-left: 1rem;
+}
+
+[role="dialog"][data-type="object"] menu button,
+[role="dialog"][data-type="object"] menu button:first-child {
+  margin: 0;
+}
+
+[role="dialog"][data-type="object"] menu button {
+  width: calc((100% - 1rem) / 2);
+}
+
+[role="dialog"][data-type="object"] menu button.full {
+  width: 100%;
+}

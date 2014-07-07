@@ -13,7 +13,7 @@ class TestPlayOgvVideo(GaiaTestCase):
         GaiaTestCase.setUp(self)
 
         # add video to storage
-        self.push_resource('VID_0001.ogv', destination='DCIM/100MZLLA')
+        self.push_resource('VID_0001.ogv')
 
     def test_play_ogv_video(self):
         """https://moztrap.mozilla.org/manage/case/2478/"""

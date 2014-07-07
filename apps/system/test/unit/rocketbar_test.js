@@ -1,6 +1,6 @@
 'use strict';
 /* global Rocketbar, MocksHelper, MockAppWindow, MockAppWindowManager,
-          MockIACPort */
+          MockIACPort, MockSearchWindow */
 
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
@@ -85,7 +85,7 @@ suite('system/Rocketbar', function() {
     assert.ok(windowAddEventListenerStub.calledWith('home'));
     assert.ok(windowAddEventListenerStub.calledWith('cardviewclosedhome'));
     assert.ok(windowAddEventListenerStub.calledWith('appopened'));
-    assert.ok(windowAddEventListenerStub.calledWith('homescreenopening'));
+    assert.ok(windowAddEventListenerStub.calledWith('homescreenopened'));
     assert.ok(windowAddEventListenerStub.calledWith('stackchanged'));
     assert.ok(rocketbarAddEventListenerStub.calledWith('touchstart'));
     assert.ok(rocketbarAddEventListenerStub.calledWith('touchmove'));
@@ -120,7 +120,7 @@ suite('system/Rocketbar', function() {
     assert.ok(windowRemoveEventListenerStub.calledWith('home'));
     assert.ok(windowRemoveEventListenerStub.calledWith('cardviewclosedhome'));
     assert.ok(windowRemoveEventListenerStub.calledWith('appopened'));
-    assert.ok(windowRemoveEventListenerStub.calledWith('homescreenopening'));
+    assert.ok(windowRemoveEventListenerStub.calledWith('homescreenopened'));
     assert.ok(windowRemoveEventListenerStub.calledWith('stackchanged'));
     assert.ok(rocketbarRemoveEventListenerStub.calledWith('touchstart'));
     assert.ok(rocketbarRemoveEventListenerStub.calledWith('touchmove'));
@@ -248,9 +248,13 @@ suite('system/Rocketbar', function() {
   });
 
   test('hideResults()', function() {
+    subject.activate();
+    var stub = this.sinon.stub(subject.searchWindow, 'hideContextMenu');
+
     subject.hideResults();
     assert.ok(subject.results.classList.contains('hidden'));
     assert.ok(MockIACPort.mNumberOfMessages() == 1);
+    sinon.assert.calledOnce(stub);
   });
 
   test('showTaskManager()', function() {
@@ -509,15 +513,12 @@ suite('system/Rocketbar', function() {
   });
 
   test('handleHome()', function() {
-    var hideResultsStub = this.sinon.stub(subject, 'hideResults');
     var blurStub = this.sinon.stub(subject, 'deactivate');
     subject.input.value = 'value to clear';
     subject.handleHome();
-    assert.ok(hideResultsStub.calledOnce);
     assert.equal(subject.input.value, '');
     assert.equal(subject.titleContent.textContent, 'Search');
     assert.ok(blurStub.calledOnce);
-    hideResultsStub.restore();
     blurStub.restore();
   });
 
@@ -796,8 +797,11 @@ suite('system/Rocketbar', function() {
         input: 'http://example.com'
       }
     };
+    var spy = sinon.spy(subject, 'focus');
     subject.handleSearchMessage(event);
     assert.equal(subject.input.value, 'http://example.com');
+    assert.isTrue(spy.called);
+    spy.restore();
 
     // Hide message
     event = {
@@ -828,6 +832,26 @@ suite('system/Rocketbar', function() {
     postMessageStub.restore();
   });
 
+  test('handleActivity()', function() {
+    subject.loadSearchApp();
+
+    var stubDispatchEvent = this.sinon.stub(subject.searchWindow,
+      'broadcast');
+
+    subject.handleEvent({
+      type: 'launchactivity',
+      detail: {
+        isActivity: true,
+        inline: true,
+        parentApp: subject.searchWindow.manifestURL
+      },
+      stopImmediatePropagation: function() {}
+    });
+    assert.isTrue(stubDispatchEvent.called);
+    assert.equal(stubDispatchEvent.getCall(0).args[0], 'launchactivity');
+    assert.equal(stubDispatchEvent.getCall(0).args[1].isActivity, true);
+  });
+
   test('handleSearchCrashed() - calls render after crash', function() {
     subject.start();
 
@@ -843,8 +867,15 @@ suite('system/Rocketbar', function() {
 
     // Dispatch a crash event.
     window.dispatchEvent(new CustomEvent('searchcrashed'));
+
+    assert.equal(subject.searchWindow, null);
+    assert.equal(subject._port, null);
+
     subject.loadSearchApp();
     assert.ok(spy.calledWithNew);
+
+    assert.ok(subject.searchWindow instanceof MockSearchWindow);
+    assert.equal(subject._port, 'pending');
   });
 
   test('setVisible', function() {
@@ -855,6 +886,15 @@ suite('system/Rocketbar', function() {
     subject.hideResults();
     setVisibleStub.calledWith(false);
     setVisibleStub.restore();
+  });
+
+  test('focus after geolocation hidden', function() {
+    var focusStub = this.sinon.stub(subject, 'focus');
+    subject.activate();
+    subject.active = true;
+    subject.handleEvent({type: 'permissiondialoghide'});
+    assert.ok(focusStub.calledOnce);
+    focusStub.restore();
   });
 });
 

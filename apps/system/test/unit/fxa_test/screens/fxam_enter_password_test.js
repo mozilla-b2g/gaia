@@ -4,7 +4,7 @@
 requireApp('/system/test/unit/fxa_test/load_element_helper.js');
 
 // Real code
-requireApp('system/fxa/js/utils.js');
+require('/shared/js/utilities.js');
 requireApp('system/fxa/js/fxam_module.js');
 requireApp('system/fxa/js/fxam_states.js');
 requireApp('system/fxa/js/fxam_manager.js');
@@ -37,6 +37,12 @@ requireApp('system/fxa/js/screens/fxam_enter_password.js');
 var mocksHelperForEnterPasswordModule = new MocksHelper([
   'LazyLoader',
   'FxaModuleUI',
+  'FxModuleServerRequest',
+  'FxaModuleErrors',
+  'FtuLauncher'
+]);
+
+mocha.globals([
   'FxModuleServerRequest',
   'FxaModuleErrors',
   'FtuLauncher'

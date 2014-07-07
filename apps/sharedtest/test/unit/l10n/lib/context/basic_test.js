@@ -18,7 +18,7 @@ if (typeof navigator !== 'undefined') {
 }
 
 if (typeof navigator !== 'undefined') {
-  var path = 'http://sharedtest.gaiamobile.org:8080/test/unit/l10n/lib/context';
+  var path = 'app://sharedtest.gaiamobile.org/test/unit/l10n/lib/context';
 } else {
   var path = __dirname;
 }

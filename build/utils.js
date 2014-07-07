@@ -19,7 +19,7 @@ function isNode() {
 }
 
 function isSubjectToBranding(path) {
-  return /shared[\/\\][a-zA-Z]+[\/\\]branding$/.test(path) ||
+  return /shared[\/\\]?[a-zA-Z]*[\/\\]?branding$/.test(path) ||
          /branding[\/\\]initlogo.png/.test(path);
 }
 
@@ -63,7 +63,7 @@ function psParser(out) {
 }
 
 function gaiaOriginURL(name, scheme, domain, port) {
-  return scheme + name + '.' + domain + (port ? port : '');
+  return scheme + name + '.' + domain;
 }
 
 function gaiaManifestURL(name, scheme, domain, port) {
@@ -149,3 +149,4 @@ exports.addEntryContentWithTime = utils.addEntryContentWithTime;
 exports.copyDirTo = utils.copyDirTo;
 exports.existsInAppDirs = utils.existsInAppDirs;
 exports.getCompression = utils.getCompression;
+exports.removeFiles = utils.removeFiles;

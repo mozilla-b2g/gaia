@@ -1,4 +1,4 @@
-/* global _, CostControl, ConfigManager, debug, Common, Formatting */
+/* global _, CostControl, ConfigManager, debug, Formatting, SimManager */
 /*
  * The telephony tab is in charge of show telephony and billing cycle
  * information.
@@ -65,14 +65,16 @@ var TelephonyTab = (function() {
 
   function updateUI() {
     var requestObj = { type: 'telephony' };
-    ConfigManager.requestSettings(Common.dataSimIccId,
-                                  function _onSettings(settings) {
-      costcontrol.request(requestObj, function _afterRequest(result) {
-        var telephonyActivity = result.data;
-        debug('Last telephony activity:', telephonyActivity);
-        updateTimePeriod(settings.lastTelephonyReset, null, null, settings);
-        updateCounters(telephonyActivity);
-        updateNextReset(settings.nextReset, null, null, settings);
+    SimManager.requestDataSimIcc(function(dataSimIcc) {
+      ConfigManager.requestSettings(dataSimIcc.iccId,
+                                    function _onSettings(settings) {
+        costcontrol.request(requestObj, function _afterRequest(result) {
+          var telephonyActivity = result.data;
+          debug('Last telephony activity:', telephonyActivity);
+          updateTimePeriod(settings.lastTelephonyReset, null, null, settings);
+          updateCounters(telephonyActivity);
+          updateNextReset(settings.nextReset, null, null, settings);
+        });
       });
     });
   }

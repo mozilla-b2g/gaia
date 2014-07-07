@@ -270,7 +270,7 @@ var ScreenManager = {
         if (this._cpuWakeLock) {
           // In case of user making an extra call, the attention screen
           // may be hidden at top so we need to confirm it's shown again.
-          AttentionScreen.show();
+          dialerAgent.showCallScreen();
           break;
         }
 
@@ -294,9 +294,9 @@ var ScreenManager = {
         this._cpuWakeLock = navigator.requestWakeLock('cpu');
         window.addEventListener('userproximity', this);
         break;
-      case 'will-unlock' :
+      case 'lockscreen-appclosing' :
       case 'lockpanelchange' :
-        window.removeEventListener('will-unlock', this);
+        window.removeEventListener('lockscreen-appclosing', this);
         window.removeEventListener('lockpanelchange', this);
         this._setIdleTimeout(this._idleTimeout, false);
         break;
@@ -346,7 +346,7 @@ var ScreenManager = {
       if (self._deviceLightEnabled)
         window.removeEventListener('devicelight', self);
 
-      window.removeEventListener('will-unlock', self);
+      window.removeEventListener('lockscreen-appclosing', self);
       window.removeEventListener('lockpanelchange', self);
       self.screenEnabled = false;
       self._inTransition = false;
@@ -446,9 +446,9 @@ var ScreenManager = {
     // The screen should be turn off with shorter timeout if
     // it was never unlocked.
     } else if (!this._unlocking) {
-      if (window.lockScreen && window.lockScreen.locked) {
+      if (window.System.locked) {
         this._setIdleTimeout(10, true);
-        window.addEventListener('will-unlock', this);
+        window.addEventListener('lockscreen-appclosing', this);
         window.addEventListener('lockpanelchange', this);
       } else {
         this._setIdleTimeout(this._idleTimeout, false);
@@ -566,8 +566,9 @@ var ScreenManager = {
       self.turnScreenOn(true);
     };
 
+    var finalTimeout = instant ? time * 1000 : (time * 1000) - this._dimNotice;
     this._idleTimerId = window.setIdleTimeout(idleCallback,
-                                              activeCallback, time * 1000);
+                                              activeCallback, finalTimeout);
   },
 
   fireScreenChangeEvent: function scm_fireScreenChangeEvent() {

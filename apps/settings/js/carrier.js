@@ -171,6 +171,37 @@ var CarrierSettings = (function(window, document, undefined) {
         });
       });
     });
+
+    // We need to refresh call setting items as they can be changed in dialer.
+    document.addEventListener('visibilitychange', function() {
+      if (document.hidden) {
+        return;
+      }
+
+      if (Settings.currentPanel === '#carrier-dataSettings') {
+        cs_refreshItems('data');
+      } else if (Settings.currentPanel === '#carrier-mmsSettings') {
+        cs_refreshItems('mms');
+      } else if (Settings.currentPanel === '#carrier-suplSettings') {
+        cs_refreshItems('supl');
+      } else if (Settings.currentPanel === '#carrier-dunSettings') {
+        cs_refreshItems('dun');
+      } else if (Settings.currentPanel === '##carrier-imsSettings') {
+        cs_refreshItems('ims');
+      }
+    });
+  }
+
+  function cs_refreshItems(usage) {
+    _mobileConnections = window.navigator.mozMobileConnections;
+    _mobileConnection = _mobileConnections[
+      DsdsSettings.getIccCardIndexForCellAndDataSettings()
+    ];
+    if (!_mobileConnection) {
+      return;
+    }
+    var networkType = _mobileConnection.data.type;
+    cs_queryApns(cs_updateApnList, usage, networkType);
   }
 
   /**
@@ -186,7 +217,9 @@ var CarrierSettings = (function(window, document, undefined) {
           return;
         }
         _voiceTypes[index] = newType;
-        cs_updateNetworkTypeLimitedItemsVisibility(newType);
+        if (newType) {
+          cs_updateNetworkTypeLimitedItemsVisibility(newType);
+        }
       });
     });
   }
@@ -1038,7 +1071,7 @@ var CarrierSettings = (function(window, document, undefined) {
       var input = document.createElement('input');
       input.type = 'radio';
       input.name = currentType + 'Apn';
-      var s = item.carrier + index;
+      var s = (item._id || item.carrier) + index;
       var hashCode = _getHashCode(s);
       input.value = hashCode;
       item.hashCode = hashCode;
@@ -1267,7 +1300,7 @@ var CarrierSettings = (function(window, document, undefined) {
         var apnSelected = false;
         var radioApnItems = apnList.querySelectorAll('input[type="radio"]');
         for (var j = 0; (j < radioApnItems.length) && apn; j++) {
-          var s = apn.carrier + j;
+          var s = (apn._id || apn.carrier) + j;
           var hashCode = apn.hashCode || _getHashCode(s);
           if (radioApnItems[j].value == hashCode) {
             apn.hashCode = apn.hashCode || hashCode;

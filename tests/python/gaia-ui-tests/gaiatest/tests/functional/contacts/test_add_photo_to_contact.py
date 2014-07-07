@@ -16,7 +16,7 @@ class TestContacts(GaiaTestCase):
         self.data_layer.insert_contact(self.contact)
 
         # add photo to storage
-        self.push_resource('IMG_0001.jpg', destination='DCIM/100MZLLA')
+        self.push_resource('IMG_0001.jpg')
 
     def test_add_photo_from_gallery_to_contact(self):
         """https://moztrap.mozilla.org/manage/case/5551/"""
@@ -47,10 +47,6 @@ class TestContacts(GaiaTestCase):
 
         image = gallery.tap_first_gallery_item()
         image.tap_crop_done()
-
-        # fall back to the contacts app
-        self.wait_for_condition(lambda m: self.apps.displayed_app.name == contacts_app.name)
-        self.apps.switch_to_displayed_app()
 
         edit_contact.wait_for_image_to_load()
 

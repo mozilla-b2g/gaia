@@ -5,10 +5,10 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
-var bind = require('lib/bind');
 var unbind = require('lib/bind').unbind;
 var bindAll = require('lib/bind-all');
-var events = require('vendor/evt');
+var bind = require('lib/bind');
+var events = require('evt');
 
 /**
  * Mixin event emitter

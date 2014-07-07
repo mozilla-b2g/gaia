@@ -3,15 +3,48 @@
 
     <header>
       <a href="#root"><span class="icon icon-back">back</span></a>
-      <h1 data-l10n-id="homescreen-header"> Homescreen </h1>
+      <h1 data-l10n-id="vertical-homescreen-header"> Homescreen </h1>
     </header>
 
     <div>
-      <ul></ul>
+      <section data-type="list">
+        <header>
+          <h2 data-l10n-id="vertical-homescreen-layout">Layout</h2>
+        </header>
+        <ul>
+          <li>
+            <label data-l10n-id="vertical-homescreen-icon-layout">Icon Layout</label>
+            <div class="button icon icon-dialog">
+              <select name="grid.layout.cols">
+                <option value="3" data-l10n-id="vertical-homescreen-three-columns">Three Columns</option>
+                <option value="4" data-l10n-id="vertical-homescreen-four-columns">Four Columns</option>
+              </select>
+            </div>
+          </li>
+        </ul>
+      </section>
+      <section data-type="list">
+        <header>
+          <h2 data-l10n-id="search-header">Search</h2>
+        </header>
+        <ul>
+          <li>
+            <label data-l10n-id="search-engine">Search Engine</label>
+            <div class="button icon icon-dialog">
+              <select name="search.urlTemplate">
+              </select>
+            </div>
+          </li>
+          <li>
+            <small id="suggestions-desc" class="menu-item-desc"></small>
+            <a id="menuItem-suggestions" class="menu-item"
+               href="#search-suggestions"
+               data-l10n-id="search-suggestions-button">Search Suggestions</a>
+          </li>
+        </ul>
+      </section>
     </div>
-
-    <script type="application/javascript" src="shared/js/manifest_helper.js"></script>
-    <script src="js/homescreen.js"></script>
-
+    <script src="shared/js/homescreens/vertical_preferences.js"></script>
+    <script src="js/vertical_homescreen.js"></script>
   </template>
 </element>

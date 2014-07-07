@@ -15,7 +15,6 @@ section[role="region"] > header:first-child {
 section[role="region"] > header:first-child h1 {
   font-size: 2.3rem;
   line-height: 5rem;
-  text-align: left;
   white-space: nowrap;
   text-overflow: ellipsis;
   display: block;
@@ -23,7 +22,7 @@ section[role="region"] > header:first-child h1 {
   margin: 0;
   padding: 0 1rem;
   height: 100%;
-  font-weight: lighter;
+  font-weight: 300;
   font-style: italic;
   text-align: center;
 }
@@ -162,6 +161,11 @@ section[role="region"] > header:first-child button:hover {
   background-color: rgba(0,0,0,0.07);
 }
 
+section[role="region"] > header:first-child a:focus,
+section[role="region"] > header:first-child button:focus {
+  background-color: transparent;
+}
+
 /* ----------------------------------
   Icons
 ---------------------------------- */
@@ -247,6 +251,13 @@ section[role="region"].skin-comms > header:first-child button:hover {
   background-color: rgba(0,0,0,0.1);
 }
 
+.skin-comms section[role="region"] > header:first-child a:focus,
+.skin-comms section[role="region"] > header:first-child button:focus,
+section[role="region"].skin-comms > header:first-child a:focus,
+section[role="region"].skin-comms > header:first-child button:focus {
+  background-color: transparent;
+}
+
 /* -----------------------------------------------------------------
   HEADER SKIN: dark
   .skin-dark will override default values
@@ -273,6 +284,13 @@ section[role="region"].skin-dark > header:first-child button:active,
 section[role="region"].skin-dark > header:first-child a:hover,
 section[role="region"].skin-dark > header:first-child button:hover {
   background-color: rgba(0,0,0,0.4);
+}
+
+.skin-dark section[role="region"] > header:first-child a:focus,
+.skin-dark section[role="region"] > header:first-child button:focus,
+section[role="region"].skin-dark > header:first-child a:focus,
+section[role="region"].skin-dark > header:first-child button:focus {
+  background-color: transparent;
 }
 
 section[role="region"].skin-dark header h2,
@@ -303,6 +321,13 @@ section[role="region"].skin-organic > header:first-child button,
 .skin-organic section[role="region"] > header:first-child a,
 .skin-organic section[role="region"] > header:first-child button {
   color: #00aac5;
+}
+
+section[role="region"].skin-organic > header:first-child a:focus,
+section[role="region"].skin-organic > header:first-child button:focus,
+.skin-organic section[role="region"] > header:first-child a:focus,
+.skin-organic section[role="region"] > header:first-child button:focus {
+  background-color: transparent;
 }
 
 /* ----------------------------------

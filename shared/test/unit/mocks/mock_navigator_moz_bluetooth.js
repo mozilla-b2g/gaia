@@ -36,7 +36,8 @@
 
   window.MockMozBluetooth = {
     getDefaultAdapter: mmb_getDefaultAdapter,
-    triggerOnGetAdapterSuccess: mmb_triggerOnGetAdapterSuccess
+    triggerOnGetAdapterSuccess: mmb_triggerOnGetAdapterSuccess,
+    ondisabled: function mmb_ondisabled() {}
   };
 
   window.MockBTAdapter = MockBTAdapter;

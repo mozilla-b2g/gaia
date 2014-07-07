@@ -22,11 +22,13 @@ var ids = ['thumbnail-list-view', 'thumbnails-bottom', 'thumbnail-list-title',
            'thumbnails-single-info-button', 'info-view', 'info-close-button',
            'player', 'overlay', 'overlay-title', 'overlay-text',
            'overlay-menu', 'overlay-action-button',
-           'video-container', 'videoControls', 'videoBar', 'videoActionBar',
+           'video-container', 'videoControls', 'videoBar', 'videoControlBar',
            'close', 'play', 'playHead', 'timeSlider', 'elapsedTime',
            'video-title', 'duration-text', 'elapsed-text', 'bufferedTime',
            'slider-wrapper', 'throbber', 'delete-video-button',
-           'picker-close', 'picker-title', 'picker-done'];
+           'picker-close', 'picker-title', 'picker-done', 'options',
+           'options-view', 'options-cancel-button', 'seek-backward',
+           'seek-forward'];
 
 ids.forEach(function createElementRef(name) {
   dom[toCamelCase(name)] = document.getElementById(name);
@@ -117,32 +119,31 @@ document.addEventListener('visibilitychange', function visibilityChange() {
   }
 });
 
-window.addEventListener('localized', function initLocale() {
-  document.documentElement.lang = navigator.mozL10n.language.code;
-  document.documentElement.dir = navigator.mozL10n.language.direction;
+navigator.mozL10n.once(function() {
+
+  // Tell performance monitors that our chrome is visible
+  window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
+
+  init();
+
+  // Tell performance monitors that our chrome is ready to interact with.
+  window.dispatchEvent(new CustomEvent('moz-chrome-interactive'));
 });
 
-navigator.mozL10n.ready(function initVideo() {
-  // This function should be called once. According to the implementation of
-  // mozL10n.ready, it may become the event handler of localized. So, we need to
-  // prevent database re-initialize.
-  // XXX: once bug 882592 is fixed, we should remove it and just call init.
-  if (!videodb)
-    init();
+// we don't need to wait for l10n ready to have correct css layout.
+initLayout();
+initThumbnailSize();
 
-  if (!isPhone) {
+if (!isPhone) {
+  navigator.mozL10n.ready(function localizeThumbnailListTitle() {
     // reload the thumbnail list title field for tablet which is the app name.
     var req = navigator.mozApps.getSelf();
     req.onsuccess = function() {
       var manifest = new ManifestHelper(req.result.manifest);
       dom.thumbnailListTitle.textContent = manifest.name;
     };
-  }
-});
-
-// we don't need to wait for l10n ready to have correct css layout.
-initLayout();
-initThumbnailSize();
+  });
+}
 
 function init() {
   thumbnailList = new ThumbnailList(ThumbnailDateGroup, dom.thumbnails);
@@ -162,6 +163,7 @@ function init() {
   }
 
   initPlayerControls();
+  ForwardRewindController.init(dom.player, dom.seekForward, dom.seekBackward);
 
   // We get headphoneschange event when the headphones is plugged or unplugged
   var acm = navigator.mozAudioChannelManager;
@@ -229,6 +231,7 @@ function initPlayerControls() {
 
   // handle video player
   dom.player.addEventListener('timeupdate', timeUpdated);
+  dom.player.addEventListener('seeked', updateVideoControlSlider);
   dom.player.addEventListener('ended', playerEnded);
 
   // handle user tapping events
@@ -236,6 +239,7 @@ function initPlayerControls() {
   dom.play.addEventListener('click', handlePlayButtonClick);
   dom.close.addEventListener('click', handleCloseButtonClick);
   dom.pickerDone.addEventListener('click', postPickResult);
+  dom.options.addEventListener('click', showOptionsView);
 }
 
 function initOptionsButtons() {
@@ -250,6 +254,8 @@ function initOptionsButtons() {
 
   // info buttons
   dom.infoCloseButton.addEventListener('click', hideInfoView);
+  // option button cancel
+  dom.optionsCancelButton.addEventListener('click', hideOptionsView);
   // fullscreen player
   dom.fullscreenButton.addEventListener('click', toggleFullscreenPlayer);
   // fullscreen toolbar
@@ -341,7 +347,7 @@ function handleScreenLayoutChange() {
     if (!thumbnailList) {
       return;
     }
-    thumbnailList.upateAllThumbnailTitle();
+    thumbnailList.updateAllThumbnailTitle();
   } else {
     pendingUpdateTitleText = true;
   }
@@ -365,7 +371,7 @@ function switchLayout(mode) {
   // Update title text when leaving fullscreen mode with pending task.
   if (oldMode === LAYOUT_MODE.fullscreenPlayer && pendingUpdateTitleText) {
     pendingUpdateTitleText = false;
-    thumbnailList.upateAllThumbnailTitle();
+    thumbnailList.updateAllThumbnailTitle();
   }
 }
 
@@ -380,6 +386,7 @@ function handleActivityEvents(a) {
 }
 
 function showInfoView() {
+  hideOptionsView();
   //Get the length of the playing video
   var length = isFinite(currentVideo.metadata.duration) ?
       MediaUtils.formatDuration(currentVideo.metadata.duration) : '';
@@ -444,6 +451,14 @@ function hideSelectView() {
                              false, /* enterFullscreen */
                              true); /* keepControls */
   }
+}
+
+function showOptionsView() {
+  dom.optionsView.classList.remove('hidden');
+}
+
+function hideOptionsView() {
+  dom.optionsView.classList.add('hidden');
 }
 
 function clearSelection() {
@@ -780,6 +795,14 @@ function setControlsVisibility(visible) {
 }
 
 function updateVideoControlSlider() {
+  // We update the slider when we get a 'seeked' event.
+  // Don't do updates while we're seeking because the position we fastSeek()
+  // to probably isn't exactly where we requested and we don't want jerky
+  // updates
+  if (dom.player.seeking) {
+    return;
+  }
+
   var percent = (dom.player.currentTime / dom.player.duration) * 100;
   if (isNaN(percent)) {
     return;
@@ -805,6 +828,7 @@ function setVideoPlaying(playing) {
 }
 
 function deleteCurrentVideo() {
+  hideOptionsView();
   // We need to disable NFC sharing when showing delete confirmation dialog
   setNFCSharing(false);
   // If we're deleting the file shown in the player we've got to
@@ -851,6 +875,7 @@ function postPickResult() {
 }
 
 function shareCurrentVideo() {
+  hideOptionsView();
   videodb.getFile(currentVideo.name, function(blob) {
     share([blob]);
   });
@@ -896,13 +921,9 @@ function setVideoUrl(player, video, callback) {
 }
 
 function scheduleVideoControlsAutoHiding() {
-  // Allow control of timeout, e.g., during unit testing
-  var autoHideMs = (videoControlsAutoHidingMsOverride !== null) ?
-      videoControlsAutoHidingMsOverride : 250;
-
   controlFadeTimeout = setTimeout(function() {
     setControlsVisibility(false);
-  }, autoHideMs);
+  }, 250);
 }
 
 function setNFCSharing(enable) {
@@ -915,7 +936,7 @@ function setNFCSharing(enable) {
     window.navigator.mozNfc.onpeerready = function(event) {
       // The callback function is called when user confirm to share the
       // content, send it with NFC Peer.
-      videodb.getFile(video.name, function(file) {
+      videodb.getFile(currentVideo.name, function(file) {
         navigator.mozNfc.getNFCPeer(event.detail).sendFile(file);
       });
     };
@@ -1085,17 +1106,26 @@ function hidePlayer(updateVideoMetadata, callback) {
 }
 
 function playerEnded() {
+  // Ignore ended events that occur while the user is dragging the slider
   if (dragging) {
     return;
   }
+
   if (endedTimer) {
     clearTimeout(endedTimer);
     endedTimer = null;
   }
 
-  dom.player.currentTime = 0;
-
-  pause();
+  // If we are still playing when this 'ended' event arrives, then the
+  // user played the video all the way to the end, and we skip to the
+  // beginning and pause so it is easy for the user to restart. If we
+  // reach the end because the user fast forwarded or dragged the slider
+  // to the end, then we will have paused the video before we get this
+  // event and in that case we will remain paused at the end of the video.
+  if (playing) {
+    dom.player.currentTime = 0;
+    pause();
+  }
 }
 
 function play() {
@@ -1201,13 +1231,14 @@ function handleSliderTouchMove(event) {
   pos = Math.max(pos, 0);
   pos = Math.min(pos, 1);
 
+  // Update the slider to match the position of the user's finger.
+  // Note, however, that we don't update the displayed time until
+  // we actually get a 'seeked' event.
   var percent = pos * 100 + '%';
   dom.playHead.classList.add('active');
   dom.playHead.style.left = percent;
   dom.elapsedTime.style.width = percent;
-  dom.player.currentTime = dom.player.duration * pos;
-  dom.elapsedText.textContent = MediaUtils.formatDuration(
-    dom.player.currentTime);
+  dom.player.fastSeek(dom.player.duration * pos);
 }
 
 function toCamelCase(str) {
@@ -1277,7 +1308,7 @@ function showPickView() {
   // view.
   if (!isPhone && !isPortrait) {
     // update all title text when rotating.
-    thumbnailList.upateAllThumbnailTitle();
+    thumbnailList.updateAllThumbnailTitle();
   }
 }
 

@@ -32,7 +32,7 @@
     }
   };
 
-  AppChrome.prototype.__proto__ = window.BaseUI.prototype;
+  AppChrome.prototype = Object.create(window.BaseUI.prototype);
 
   AppChrome.prototype.CLASS_NAME = 'AppChrome';
 

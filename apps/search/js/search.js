@@ -1,39 +1,47 @@
 (function() {
 
   'use strict';
-  /* global Search, UrlHelper */
+  /* global asyncStorage */
+  /* global Contextmenu */
+  /* global Search */
+  /* global SearchDedupe */
+  /* global SettingsListener */
+  /* global UrlHelper */
 
   // timeout before notifying providers
   var SEARCH_DELAY = 600;
 
   window.Search = {
+
     _port: null,
 
-    /**
-     * A mapping of search results to be de-duplicated via manifesURL.
-     */
-    exactResults: {},
-
-    /**
-     * A mapping of search results to be de-duplicated by other than
-     * manifestURL. This is our strategy of de-duplicating results from
-     * Everything.me and locally installed apps.
-     */
-    fuzzyResults: {},
-
-    /**
-     * A list of common words that we ignore when de-duping
-     */
-    dedupeNullList: [
-      'mobile', 'touch'
-    ],
-
     providers: {},
+
+    /**
+     * Template to construct search query URL. Set from search.urlTemplate
+     * setting. {searchTerms} is replaced with user provided search terms.
+     *
+     * 'everything.me' is a special case which uses the e.me UI instead.
+     */
+    urlTemplate: 'https://www.google.com/search?q={searchTerms}',
 
     searchResults: document.getElementById('search-results'),
     newTabPage: document.getElementById('newtab-page'),
 
+    suggestionsEnabled: false,
+
+    /**
+     * Used to display a notice on how to configure the search provider
+     * on first use
+     */
+    suggestionNotice: document.getElementById('suggestions-notice-wrapper'),
+    toShowNotice: true,
+    NOTICE_KEY: 'notice-shown',
+
     init: function() {
+
+      this.dedupe = new SearchDedupe();
+
       // Initialize the parent port connection
       var self = this;
       navigator.mozApps.getSelf().onsuccess = function() {
@@ -66,6 +74,28 @@
           self.providers[i].init(self);
         }
       }
+
+      // Listen for changes in default search engine
+      SettingsListener.observe('search.urlTemplate', false, function(value) {
+        if (value) {
+          this.urlTemplate = value;
+        }
+      }.bind(this));
+
+      var enabledKey = 'search.suggestions.enabled';
+      SettingsListener.observe(enabledKey, true, function(enabled) {
+        this.suggestionsEnabled = enabled;
+      }.bind(this));
+
+      this.initNotice();
+
+      // Fire off a dummy geolocation request so the prompt can be responded
+      // to before the user starts typing
+      if ('geolocation' in navigator) {
+        navigator.geolocation.getCurrentPosition(function(){});
+      }
+
+      this.contextmenu = new Contextmenu();
     },
 
     /**
@@ -97,6 +127,7 @@
      * Called when the user changes the search query
      */
     change: function(msg) {
+
       clearTimeout(this.changeTimeout);
 
       this.showSearchResults();
@@ -104,15 +135,80 @@
       var input = msg.data.input;
       var providers = this.providers;
 
-      this.changeTimeout = setTimeout(function doSearch() {
-        this.exactResults = {};
-        this.fuzzyResults = {};
+      this.clear();
+      this.maybeShowNotice(input);
 
-        for (var i in providers) {
-          var provider = providers[i];
-          provider.search(input, this.collect.bind(this, provider));
+      var collectionCount = 0;
+      var numProviders = Object.keys(this.providers).length;
+
+      /**
+       * Handles the display for the offline message. Displays the offline
+       * message once we process results for all providers, and if there are no
+       * results. Also called when the device comes online to hide the message.
+       */
+      function maybeShowOffline() {
+        if (navigator.isOnline) {
+          return;
         }
-      }.bind(this), SEARCH_DELAY);
+
+        var offlineMessage = document.getElementById('offline-message');
+        offlineMessage.textContent = '';
+
+        collectionCount++;
+        if (collectionCount >= numProviders) {
+          offlineMessage.textContent = navigator.mozL10n.get(
+            'offline-webresults', {
+            searchQuery: input
+          });
+        }
+      }
+
+      this.changeTimeout = setTimeout(() => {
+        this.dedupe.reset();
+
+        Object.keys(providers).forEach((providerKey) => {
+          var provider = providers[providerKey];
+
+          // If suggestions are disabled, only use local providers
+          if (this.suggestionsEnabled || !provider.remote) {
+            provider.search(input).then((results) => {
+              if (!results.length) {
+                maybeShowOffline();
+              }
+
+              this.collect(provider, results);
+            }, () => {
+              maybeShowOffline();
+            });
+          }
+        });
+      }, SEARCH_DELAY);
+    },
+
+    /**
+     * Show a notice to the user informaing them of how to configure
+     * search providers, should only be shown once.
+     */
+    initNotice: function() {
+
+      var confirm = document.getElementById('suggestions-notice-confirm');
+
+      confirm.addEventListener('click', this.discardNotice.bind(this));
+
+      asyncStorage.getItem(this.NOTICE_KEY, function(value) {
+        this.toShowNotice = !value;
+      }.bind(this));
+    },
+
+    discardNotice: function() {
+      this.suggestionNotice.hidden = true;
+      this.toShowNotice = false;
+      asyncStorage.setItem(this.NOTICE_KEY, true);
+      this._port.postMessage({'action': 'focus'});
+    },
+
+    maybeShowNotice: function(msg) {
+      this.suggestionNotice.hidden = !(msg.length > 2 && this.toShowNotice);
     },
 
     /**
@@ -122,7 +218,6 @@
     expandSearch: function(query) {
       this.clear();
       this.providers.WebResults.fullscreen(query);
-      this.providers.BGImage.fetchImage(query);
     },
 
     /**
@@ -137,89 +232,32 @@
         return;
       }
 
-      var validResults = [];
-
-      // Cache the matched dedupe IDs.
-      // Providers should not attempt to deduplicate against themselves.
-      // This should perform better and lead to less misses.
-      var exactDedupeIdCache = [];
-      var fuzzyDedupeIdCache = [];
-
-      results.forEach(function eachResult(result) {
-        var found = false;
-        var dedupeId = result.dedupeId.toLowerCase();
-
-        // Get the host of the dedupeId for the fuzzy result case
-        var host;
-        try {
-          host = new URL(dedupeId).host;
-        } catch (e) {
-          host = dedupeId;
-        }
-        var fuzzyDedupeIds = [host, dedupeId];
-
-        // Try to use some simple domain heuristics to find duplicates
-        // E.g, we would want to de-dupe between:
-        // m.site.org and touch.site.org, sub.m.site.org and m.site.org
-        // We also try to avoid deduping on second level domains by
-        // checking the length of the segment.
-        // For each part of the host, we add it to the fuzzy lookup table
-        // if it is more than three characters. This algorithm is far
-        // from perfect, but it will likely catch 99% of our usecases.
-        var hostParts = host.split('.');
-        for (var i in hostParts) {
-          var part = hostParts[i];
-          if (part.length > 3 && this.dedupeNullList.indexOf(part) === -1) {
-            fuzzyDedupeIds.push(part);
-          }
-        }
-
-        // Check if we have already rendered the result
-        if (provider.dedupeStrategy == 'exact') {
-          if (this.exactResults[dedupeId]) {
-            found = true;
-          }
-        } else {
-          // Handle the fuzzy matching case
-          // Try to match against either host or subdomain
-          fuzzyDedupeIds.forEach(function eachFuzzy(eachId) {
-            for (var i in this.fuzzyResults) {
-              if (i.indexOf(eachId) !== -1) {
-                found = true;
-              }
-            }
-          }, this);
-        }
-
-        // At the end of each iteration, cache the dedupe keys.
-        exactDedupeIdCache.push(dedupeId);
-        fuzzyDedupeIdCache = fuzzyDedupeIdCache.concat(fuzzyDedupeIds);
-
-        if (!found) {
-          validResults.push(result);
-        }
-      }, this);
-
-      exactDedupeIdCache.forEach(function eachFuzzy(eachId) {
-        this.exactResults[eachId] = true;
-      }, this);
-
-      fuzzyDedupeIdCache.forEach(function eachFuzzy(eachId) {
-        this.fuzzyResults[eachId] = true;
-      }, this);
-
-      provider.render(validResults);
+      results = this.dedupe.reduce(results, provider.dedupeStrategy);
+      provider.render(results);
     },
 
     /**
      * Called when the user submits the search form
      */
     submit: function(msg) {
+
+      if (!this.suggestionNotice.hidden) {
+        this.discardNotice();
+      }
+
       var input = msg.data.input;
 
       // Not a valid URL, could be a search term
       if (UrlHelper.isNotURL(input)) {
-        this.expandSearch(input);
+        // Special case for everything.me
+        if (this.urlTemplate == 'everything.me') {
+          this.expandSearch(input);
+        // Other search providers show results in the browser
+        } else {
+          var url = this.urlTemplate.replace('{searchTerms}',
+                                             encodeURIComponent(input));
+          this.navigate(url);
+        }
         return;
       }
 
@@ -241,6 +279,11 @@
       for (var i in this.providers) {
         this.providers[i].clear();
       }
+
+      var offlineMessage = document.getElementById('offline-message');
+      offlineMessage.textContent = '';
+
+      this.suggestionNotice.hidden = true;
     },
 
     showBlank: function() {

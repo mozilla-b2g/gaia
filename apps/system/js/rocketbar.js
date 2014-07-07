@@ -38,6 +38,7 @@
     this.form = document.getElementById('rocketbar-form');
     this.input = document.getElementById('rocketbar-input');
     this.cancel = document.getElementById('rocketbar-cancel');
+    this.clearBtn = document.getElementById('rocketbar-clear');
     this.results = document.getElementById('rocketbar-results');
     this.backdrop = document.getElementById('rocketbar-backdrop');
     this.overflow = document.getElementById('rocketbar-overflow-button');
@@ -134,7 +135,14 @@
       this.form.classList.remove('hidden');
       this.title.classList.add('hidden');
       this.backdrop.classList.remove('hidden');
-      this.loadSearchApp(callback);
+      this.loadSearchApp((function() {
+        if (this.input.value.length) {
+          this.handleInput();
+        }
+        if (callback) {
+          callback();
+        }
+      }).bind(this));
       this.screen.classList.add('rocketbar-focused');
       window.dispatchEvent(new CustomEvent('rocketbar-overlayopened'));
     },
@@ -176,9 +184,11 @@
       window.addEventListener('cardviewclosed', this);
       window.addEventListener('cardviewshown', this);
       window.addEventListener('appopened', this);
-      window.addEventListener('homescreenopening', this);
+      window.addEventListener('homescreenopened', this);
       window.addEventListener('stackchanged', this);
       window.addEventListener('searchcrashed', this);
+      window.addEventListener('permissiondialoghide', this);
+      window.addEventListener('launchactivity', this, true);
 
       // Listen for events from Rocketbar
       this.rocketbar.addEventListener('touchstart', this);
@@ -189,6 +199,7 @@
       this.input.addEventListener('blur', this);
       this.input.addEventListener('input', this);
       this.cancel.addEventListener('click', this);
+      this.clearBtn.addEventListener('click', this);
       this.overflow.addEventListener('click', this);
       this.form.addEventListener('submit', this);
       this.backdrop.addEventListener('click', this);
@@ -225,6 +236,10 @@
         case 'cardviewclosedhome':
           this.handleHome(e);
           break;
+        case 'lockscreen-appopened':
+          this.hideResults();
+          this.deactivate();
+          break;
         case 'cardviewshown':
           if (this.waitingOnCardViewLaunch) {
             this.showTaskManager();
@@ -238,6 +253,9 @@
             this.waitingOnCardViewLaunch = false;
           }
         break;
+        case 'launchactivity':
+          this.handleActivity(e);
+          break;
         case 'searchcrashed':
           this.handleSearchCrashed(e);
           break;
@@ -245,6 +263,7 @@
         case 'touchmove':
         case 'touchend':
           if (e.target != this.cancel &&
+              e.target != this.clearBtn &&
               e.target != this.overflow) {
             this.handleTouch(e);
           }
@@ -264,6 +283,8 @@
         case 'click':
           if (e.target == this.cancel) {
             this.handleCancel(e);
+          } else if (e.target == this.clearBtn) {
+            this.clear();
           } else if (e.target == this.overflow) {
             this.handleOverflow(e);
           } else if (e.target == this.backdrop) {
@@ -279,11 +300,16 @@
         case 'ftudone':
           this.handleFTUDone(e);
           break;
-        case 'homescreenopening':
+        case 'homescreenopened':
           this.enterHome(e);
           break;
         case 'stackchanged':
           this.handleStackChanged(e);
+          break;
+        case 'permissiondialoghide':
+          if (this.active) {
+            this.focus();
+          }
           break;
       }
     },
@@ -302,8 +328,10 @@
       window.removeEventListener('cardviewshown', this);
       window.removeEventListener('cardviewclosedhome', this);
       window.removeEventListener('appopened', this);
-      window.removeEventListener('homescreenopening', this);
+      window.removeEventListener('homescreenopened', this);
       window.removeEventListener('stackchanged', this);
+      window.removeEventListener('permissiondialoghide', this);
+
 
       // Stop listening for events from Rocketbar
       this.rocketbar.removeEventListener('touchstart', this);
@@ -314,6 +342,7 @@
       this.input.removeEventListener('blur', this);
       this.input.removeEventListener('input', this);
       this.cancel.removeEventListener('click', this);
+      this.clearBtn.removeEventListener('click', this);
       this.overflow.removeEventListener('click', this);
       this.form.removeEventListener('submit', this);
       this.backdrop.removeEventListener('click', this);
@@ -362,6 +391,7 @@
       if (!this.expanded || this.transitioning) {
         return;
       }
+
       this.transitioning = true;
       this.expanded = false;
       this.rocketbar.classList.remove('expanded');
@@ -416,8 +446,11 @@
     hideResults: function() {
       if (this.searchWindow) {
         this.searchWindow._setVisible(false);
+        this.searchWindow.hideContextMenu();
       }
+
       this.results.classList.add('hidden');
+
       // Send a message to the search app to clear results
       if (this._port) {
         this._port.postMessage({
@@ -431,6 +464,7 @@
      */
     clear: function() {
       this.input.value = '';
+      this.handleInput();
       this.titleContent.textContent =
         navigator.mozL10n.get('search-or-enter-address');
     },
@@ -494,7 +528,6 @@
      */
     focus: function() {
       this.input.focus();
-      this.input.select();
     },
 
     /**
@@ -531,6 +564,28 @@
       // To be removed in bug 999463
       this.body.removeEventListener('keyboardchange',
         this.handleKeyboardChange, true);
+    },
+
+    /**
+     * Handle a lock event.
+     * @memberof Rocketbar.prototype
+     */
+    handleLock: function() {
+      this.hideResults();
+      this.collapse();
+      this.deactivate();
+    },
+
+    /**
+     * Handles activities for the search app.
+    * @memberof Rocketbar.prototype
+     */
+    handleActivity: function(e) {
+      if (e.detail.isActivity && e.detail.inline && this.searchWindow &&
+          this.searchWindow.manifestURL === e.detail.parentApp) {
+        e.stopImmediatePropagation();
+        this.searchWindow.broadcast('launchactivity', e.detail);
+      }
     },
 
     /**
@@ -697,6 +752,9 @@
      */
     handleInput: function() {
       var input = this.input.value;
+
+      this.rocketbar.classList.toggle('hasText', input.length);
+
       // If the task manager is shown, hide it
       if (this.screen.classList.contains('task-manager')) {
         this.cardView = false;
@@ -718,10 +776,12 @@
         this.showResults();
       }
 
-      this._port.postMessage({
-        action: 'change',
-        input: input
-      });
+      if (this._port) {
+        this._port.postMessage({
+          action: 'change',
+          input: input
+        });
+      }
     },
 
     /**
@@ -729,8 +789,9 @@
      * @memberof Rocketbar.prototype
      */
     handleCancel: function(e) {
-      this.deactivate();
+      this.input.value = '';
       this.hideResults();
+      this.deactivate();
     },
 
     /**
@@ -741,6 +802,11 @@
      */
     handleSubmit: function(e) {
       e.preventDefault();
+
+      if (this.results.classList.contains('hidden')) {
+        this.showResults();
+      }
+
       this._port.postMessage({
         action: 'submit',
         input: this.input.value
@@ -789,9 +855,17 @@
      * @memberof Rocketbar.prototype
      */
     handleSearchCrashed: function(e) {
-      if (this.searchWindow) {
-        this.searchWindow = null;
+      if (!this.searchWindow) {
+        return;
       }
+
+      this.clear();
+      this.hideResults();
+      this.collapse();
+      this.deactivate();
+
+      this.searchWindow = null;
+      this._port = null;
     },
 
     /**
@@ -812,6 +886,10 @@
       this._port = 'pending';
       navigator.mozApps.getSelf().onsuccess = function() {
         var app = this.result;
+        if (!app) {
+          return;
+        }
+
         app.connect('search').then(
           function onConnectionAccepted(ports) {
             ports.forEach(function(port) {
@@ -845,12 +923,18 @@
         this.initSearchConnection();
         return;
       }
+
       switch (e.detail.action) {
         case 'render':
           this.activate(this.focus.bind(this));
           break;
+        case 'focus':
+          this.focus();
+          break;
         case 'input':
           this.input.value = e.detail.input;
+          this.focus();
+          this.handleInput();
           break;
         case 'request-screenshot':
           places.screenshotRequested(e.detail.url);
@@ -858,6 +942,7 @@
         case 'hide':
           this.hideResults();
           this.collapse();
+          this.deactivate();
           break;
       }
     },

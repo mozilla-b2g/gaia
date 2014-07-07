@@ -346,6 +346,7 @@ function MailAccount(api, wireRep, acctsSlice) {
   this.syncRange = wireRep.syncRange;
   this.syncInterval = wireRep.syncInterval;
   this.notifyOnNew = wireRep.notifyOnNew;
+  this.playSoundOnSend = wireRep.playSoundOnSend;
 
   /**
    * Is the account currently enabled, as in will we talk to the server?
@@ -409,6 +410,7 @@ MailAccount.prototype = {
     this.problems = wireRep.problems;
     this.syncInterval = wireRep.syncInterval;
     this.notifyOnNew = wireRep.notifyOnNew;
+    this.playSoundOnSend = wireRep.playSoundOnSend;
     this._wireRep.defaultPriority = wireRep.defaultPriority;
   },
 
@@ -4786,7 +4788,7 @@ MailDB.prototype = {
    * so it doesn't get updated.  For coherency reasons it should only be updated
    * using saveAccountFolderStates.
    */
-  saveAccountDef: function(config, accountDef, folderInfo) {
+  saveAccountDef: function(config, accountDef, folderInfo, callback) {
     var trans = this._db.transaction([TBL_CONFIG, TBL_FOLDER_INFO],
                                      'readwrite');
 
@@ -4798,6 +4800,11 @@ MailDB.prototype = {
            .put(folderInfo, accountDef.id);
     }
     trans.onerror = this._fatalError;
+    if (callback) {
+      trans.oncomplete = function() {
+        callback();
+      };
+    }
   },
 
   loadHeaderBlock: function(folderId, blockId, callback) {

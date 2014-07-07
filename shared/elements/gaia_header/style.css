@@ -9,10 +9,14 @@ gaia-header {
   z-index: 10;
 }
 
+header {
+  display: flex;
+}
+
 h1 {
+  flex: 1 1 auto;
   font-size: 2.3rem;
   line-height: 5rem;
-  text-align: left;
   white-space: nowrap;
   text-overflow: ellipsis;
   display: block;
@@ -20,7 +24,7 @@ h1 {
   margin: 0;
   padding: 0 1rem;
   height: 100%;
-  font-weight: lighter;
+  font-weight: 300;
   font-style: italic;
   text-align: center;
 }
@@ -32,13 +36,6 @@ h1 em {
   font-style: normal;
 }
 
-menu {
-  height: 100%;
-  float: right;
-  padding: 0;
-  margin: 0;
-}
-
 /* Buttons */
 a,
 button {
@@ -46,7 +43,6 @@ button {
   position: relative;
   display: block;
   overflow: hidden;
-  float: left;
   min-width: 5rem;
   width: auto;
   height: 5rem;
@@ -86,15 +82,15 @@ button[disabled] {
 
 /* Hidden */
 [hidden] {
-  display: none;
+  visibility: hidden;
 }
 
 /* Icons */
-[data-icon] {
+[icon] {
   font-size: 0;
 }
 
-[data-icon]:before {
+[icon]:before {
   position: absolute;
   content: "";
   width: 3rem;
@@ -109,23 +105,15 @@ button[disabled] {
 /* We would need an attribute to know if we are using rtl,
  * as styles are scoped
  */
-html[dir="rtl"] menu {
-  float: left;
-}
 
-html[dir="rtl"] a,
-html[dir="rtl"] button {
-  float: right;
-}
-
-html[dir="rtl"] [data-icon="back"] {
+html[dir="rtl"] [icon="back"] {
   transform: rotate(180deg);
 }
 
 /* -----------------------------------------------------------------
   HEADER SKIN: default
   Default values in case we are not overriding them using
-  data-skin
+  'skin'
 ----------------------------------------------------------------- */
 
 gaia-header {
@@ -149,48 +137,53 @@ button:hover {
   background-color: rgba(0,0,0,0.07);
 }
 
+a:focus,
+button:focus {
+  background-color: transparent;
+}
+
 /* Icons */
-[data-icon="add"]:before {
+[icon="add"]:before {
   background-image: url(images/icons/add.png);
 }
 
-[data-icon="compose"]:before {
+[icon="compose"]:before {
   background-image: url(images/icons/compose.png);
 }
 
-[data-icon="edit"]:before {
+[icon="edit"]:before {
   background-image: url(images/icons/edit.png);
 }
 
-[data-icon="send"]:before {
+[icon="send"]:before {
   background-image: url(images/icons/send.png);
 }
 
-[data-icon="close"]:before {
+[icon="close"]:before {
   background-image: url(images/icons/close.png);
 }
 
-[data-icon="back"]:before {
+[icon="back"]:before {
   background-image: url(images/icons/back.png);
 }
 
-[data-icon="menu"]:before {
+[icon="menu"]:before {
   background-image: url(images/icons/menu.png);
 }
 
-[data-icon="user"]:before {
+[icon="user"]:before {
   background-image: url(images/icons/user.png);
 }
 
-[data-icon="up"]:before {
+[icon="up"]:before {
   background-image: url(images/icons/up.png);
 }
 
-[data-icon="down"]:before {
+[icon="down"]:before {
   background-image: url(images/icons/down.png);
 }
 
-[data-icon="options"]:before {
+[icon="options"]:before {
   background-image: url(images/icons/options.png);
 }
 
@@ -198,74 +191,89 @@ button:hover {
   HEADER SKIN: comms
 ----------------------------------------------------------------- */
 
-[data-skin="comms"] {
+[skin="comms"] {
   background-color: #00adad;
 }
 
-[data-skin="comms"] a,
-[data-skin="comms"] button {
+[skin="comms"] a,
+[skin="comms"] button {
   color: rgba(0,0,0,0.5);
 }
 
-[data-skin="comms"] a:hover,
-[data-skin="comms"] button:hover,
-[data-skin="comms"] a:active,
-[data-skin="comms"] button:active {
+[skin="comms"] a:hover,
+[skin="comms"] button:hover,
+[skin="comms"] a:active,
+[skin="comms"] button:active {
   background-color: rgba(0,0,0,0.1);
+}
+
+[data-skin="comms"] a:focus,
+[data-skin="comms"] button:focus {
+  background-color: transparent;
 }
 
 /* -----------------------------------------------------------------
   HEADER SKIN: dark
 ----------------------------------------------------------------- */
 
-[data-skin="dark"] {
+[skin="dark"] {
   background-color: #242d33;
 }
 
-[data-skin="dark"] a,
-[data-skin="dark"] button {
+[skin="dark"] a,
+[skin="dark"] button {
   color: #00aac5;
 }
 
-[data-skin="dark"] a:hover,
-[data-skin="dark"] button:hover,
-[data-skin="dark"] a:active,
-[data-skin="dark"] button:active {
+[skin="dark"] a:hover,
+[skin="dark"] button:hover,
+[skin="dark"] a:active,
+[skin="dark"] button:active {
   background-color: rgba(0,0,0,0.4);
+}
+
+[data-skin="dark"] a:focus,
+[data-skin="dark"] button:focus {
+  background-color: transparent;
 }
 
 /* -----------------------------------------------------------------
   HEADER SKIN: organic
 ----------------------------------------------------------------- */
 
-[data-skin="organic"] {
+[skin="organic"] {
   color: #868692;
   background-color: #f4f4f4;
 }
 
-[data-skin="organic"] h1 {
+[skin="organic"] h1 {
   color: #868692;
 }
 
-[data-skin="organic"] a,
-[data-skin="organic"] button {
+[skin="organic"] a,
+[skin="organic"] button {
   color: #00aac5;
 }
 
+[data-skin="organic"] a:focus,
+[data-skin="organic"] button:focus {
+  background-color: transparent;
+}
+
 /* Icons */
-[data-skin="organic"] [data-icon="back"]:before {
+[skin="organic"] [icon="back"]:before {
   background-image: url(images/icons/organic/back.png);
 }
 
-[data-skin="organic"] [data-icon="close"]:before {
+[skin="organic"] [icon="close"]:before {
   background-image: url(images/icons/organic/close.png);
 }
 
-[data-skin="organic"] [data-icon="add"]:before {
+[skin="organic"] [icon="add"]:before {
   background-image: url(images/icons/organic/add.png);
 }
 
-[data-skin="organic"] [data-icon="edit"]:before {
+[skin="organic"] [icon="edit"]:before {
   background-image: url(images/icons/organic/edit.png);
 }
 
@@ -274,16 +282,16 @@ button:hover {
 ----------------------------------------------------------------- */
 
 [transition] {
-  display: block;
   position: absolute;
   top: 0;
   right: 0;
   left: 0;
+  transition: visibility 0.4s;
 }
 
 [transition="slide"] {
   transform: translateY(0);
-  transition: transform 0.4s ease;
+  transition: transform 0.4s ease, visibility 0.4s;
 }
 
 [transition="slide"][hidden] {
@@ -293,7 +301,7 @@ button:hover {
 [transition="fade"] {
   opacity: 1;
   pointer-events: auto;
-  transition: opacity 0.4s ease;
+  transition: opacity 0.4s ease, visibility 0.4s;
 }
 
 [transition="fade"][hidden] {

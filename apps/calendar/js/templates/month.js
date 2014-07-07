@@ -8,7 +8,6 @@
                 ' busy-length-' + this.h('length') +
                 ' busy-' + this.h('start') +
                 ' calendar-id-' + this.h('calendarId') +
-                ' calendar-display' +
               '">' +
               '&nbsp;' +
             '</span>';
@@ -23,7 +22,7 @@
     },
 
     weekDaysHeaderDay: function() {
-      return '<li data-l10n-id="weekday-' + this.h('day') + '-short">' +
+      return '<li data-l10n-id="' + this.h('l10n') + '">' +
           this.h('dayName') +
         '</li>';
     },

@@ -47,7 +47,8 @@
   left: 0;
 }
 
-#attention-screen > iframe[data-hidden] {
+#attention-screen > iframe[data-hidden],
+#attention-screen > iframe:not(.active) {
   visibility: hidden;
   pointer-events: none;
 }

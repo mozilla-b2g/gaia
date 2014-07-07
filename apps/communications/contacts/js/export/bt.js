@@ -126,15 +126,13 @@ var ContactsBTExport = function ContactsBTExport() {
       if (parseInt(error, 10) > 0) {
         reason = 'noSpace';
       }
-      finishCallback({
-        'reason': reason
-      }, 0, error.message);
+      finishCallback({ 'reason': reason }, 0, false);
       return true;
     };
 
     ContactToVcardBlob(contacts, function onContacts(blob) {
       if (cancelled) {
-        finishCallback(null, 0);
+        finishCallback(null, 0, false);
         return;
       }
       _getStorage(_getFileName(), blob,
@@ -142,10 +140,12 @@ var ContactsBTExport = function ContactsBTExport() {
         if (checkError(error)) {
           return;
         }
+
         if (cancelled) {
-            finishCallback(null, 0);
-            return;
+          finishCallback(null, 0, false);
+          return;
         }
+
         utils.overlay.hideMenu();
         _saveToSdcard(storage, filename, blob,
         function onVcardSaved(error, filepath) {
@@ -153,8 +153,7 @@ var ContactsBTExport = function ContactsBTExport() {
             return;
           }
 
-          _getFile(storage, filepath,
-          function onFileRetrieved(error, file) {
+          _getFile(storage, filepath, function onFileRetrieved(error, file) {
             if (checkError(error)) {
               return;
             }
@@ -169,8 +168,9 @@ var ContactsBTExport = function ContactsBTExport() {
                 filepaths: [filepath]
               }
             });
-            a.onsuccess = function() { // Everything went OK
-              finishCallback(null, contacts.length, null); // final callback
+
+            a.onsuccess = function() {
+              finishCallback(null, contacts.length);
             };
 
             a.onerror = function(e) {

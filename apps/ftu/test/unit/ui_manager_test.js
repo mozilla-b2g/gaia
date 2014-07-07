@@ -1,5 +1,5 @@
-/* global MocksHelper, MockL10n, MockMozApps, MockTzSelect,
-          Navigation, UIManager */
+/* global MockFxAccountsIACHelper, MocksHelper, MockL10n, MockMozApps,
+          MockTzSelect, Navigation, UIManager */
 'use strict';
 
 require('/shared/test/unit/load_body_html_helper.js');
@@ -14,6 +14,7 @@ requireApp('ftu/test/unit/mock_time_manager.js');
 requireApp('ftu/test/unit/mock_wifi_manager.js');
 requireApp('ftu/test/unit/mock_tz_select.js');
 requireApp('ftu/test/unit/mock_operatorVariant.js');
+requireApp('ftu/test/unit/mock_fx_accounts_iac_helper.js');
 
 var mocksHelperForUI = new MocksHelper([
   'Tutorial',
@@ -29,6 +30,7 @@ if (!window.tzSelect) {
 suite('UI Manager > ', function() {
   var realL10n,
       realMozApps,
+      realFxAccountsIACHelper,
       realTzSelect;
   var mocksHelper = mocksHelperForUI;
 
@@ -41,6 +43,9 @@ suite('UI Manager > ', function() {
 
     realMozApps = navigator.mozApps;
     navigator.mozApps = MockMozApps;
+
+    realFxAccountsIACHelper = window.FxAccountsIACHelper;
+    window.FxAccountsIACHelper = MockFxAccountsIACHelper;
 
     mocksHelper.suiteSetup();
     loadBodyHTML('/index.html');
@@ -63,6 +68,9 @@ suite('UI Manager > ', function() {
 
     navigator.mozApps = realMozApps;
     realMozApps = null;
+
+    window.FxAccountsIACHelper = realFxAccountsIACHelper;
+    realFxAccountsIACHelper = null;
   });
 
   suite('Date & Time >', function() {
@@ -129,6 +137,47 @@ suite('UI Manager > ', function() {
       test('should format the time', function() {
         assert.isTrue(localeFormatSpy.called);
       });
+    });
+  });
+
+  suite('Firefox Accounts section', function() {
+    var localizeSpy;
+    suiteSetup(function() {
+      Navigation.currentStep = 7;
+      Navigation.manageStep();
+    });
+
+    suiteTeardown(function() {
+      Navigation.currentStep = 1;
+      Navigation.manageStep();
+    });
+
+    setup(function() {
+      localizeSpy = this.sinon.spy(navigator.mozL10n, 'localize');
+    });
+
+    teardown(function() {
+      navigator.mozL10n.localize.restore();
+    });
+
+    test('Show correct success message after verified login', function() {
+      var verifiedAcct = {
+        email: 'foo@bar.com',
+        verified: true
+      };
+      UIManager.fxaGetAccounts(verifiedAcct);
+      assert.isTrue(localizeSpy.calledOnce);
+      assert.equal('fxa-signed-in', localizeSpy.args[0][1]);
+    });
+
+    test('Show correct success message after unverified login', function() {
+      var unverifiedAcct = {
+        email: 'foo@bar.com',
+        verified: false
+      };
+      UIManager.fxaGetAccounts(unverifiedAcct);
+      assert.isTrue(localizeSpy.calledOnce);
+      assert.equal('fxa-email-sent', localizeSpy.args[0][1]);
     });
   });
 

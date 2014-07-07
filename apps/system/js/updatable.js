@@ -131,8 +131,6 @@ AppUpdatable.prototype.progressCallBack = function() {
  *
  */
 function SystemUpdatable() {
-  var _ = navigator.mozL10n.get;
-  this.name = _('systemUpdate');
   this.nameL10nId = 'systemUpdate';
   this.size = 0;
   this.downloading = false;
@@ -216,6 +214,28 @@ SystemUpdatable.prototype.errorCallBack = function() {
 };
 
 SystemUpdatable.prototype.showApplyPrompt = function() {
+  var batteryLevel = window.navigator.battery.level;
+
+  if (batteryLevel < 0.5) {
+    this.showApplyPromptBatteryNok();
+  } else {
+    this.showApplyPromptBatteryOk();
+  }
+};
+
+SystemUpdatable.prototype.showApplyPromptBatteryNok = function() {
+  var _ = navigator.mozL10n.get;
+
+  var ok = {
+    title: _('ok'),
+    callback: this.declineInstall.bind(this)
+  };
+
+  UtilityTray.hide();
+  CustomDialog.show(_('systemUpdateReady'), _('systemUpdateLowBattery'), ok);
+};
+
+SystemUpdatable.prototype.showApplyPromptBatteryOk = function() {
   var _ = navigator.mozL10n.get;
 
   // Update will be completed after restart

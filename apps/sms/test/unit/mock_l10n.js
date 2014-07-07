@@ -24,6 +24,7 @@
       setTimeout(handler);
     },
     translate: function translate(element) {},
+    translateFragment: function translateFragment(element) {},
     localize: function localize(element, id, args) {
       element.textContent = MockL10n.get(id, args);
     },

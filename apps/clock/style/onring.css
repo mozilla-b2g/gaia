@@ -50,20 +50,20 @@ html.ready {
 }
 
 #ring-clock-time {
-  font-weight: lighter;
+  font-weight: 300;
   font-size: 3.13rem;
   line-height: 5.63rem;
   width: 100%;
 }
 
 #ring-clock-time small {
-  font-weight: lighter;
+  font-weight: 300;
   font-size: inherit;
   line-height: 5rem;
 }
 
 #ring-label {
-  font-weight: lighter;
+  font-weight: 300;
   font-size: 2.50rem;
   line-height: 3.25rem;
   text-overflow: ellipsis;
@@ -75,85 +75,20 @@ html.ready {
 }
 
 #footer-button-container {
-  width: 100%;
-  height: 7.19rem;
+  display: flex;
+  padding: 0.5rem;
   left: 0;
   bottom: 0;
+  right: 0;
   background: url(images/attention_button_container.png);
   background-size: 100% 100%;
   border-top: 0.1rem solid rgba(255, 255, 255, 0.1);
   position: absolute;
 }
 
-#ring-button-stop {
-  float: left;
-  display: inline-block;
-  overflow: hidden;
-  -moz-box-sizing: border-box;
-  height: 4.12rem;
-  padding: 0 0.94rem;
-  border: 0.1rem solid #9F9F9F;
-  border-radius: 0.25rem 0.25rem 0.25rem 0.25rem;
-  margin: 1.50rem 0 0 1.56rem;
-
-  background: url("images/ring_button_snooze.png") repeat-x scroll left bottom #FAFAFA;
-  color: #333333;
-  font-weight: 600;
-  font-size: 1.63rem;
-  line-height: 4.06rem;
-  text-align: center;
-  text-decoration: none;
-  text-overflow: ellipsis;
-  text-shadow: 0.1rem 0.1rem 0 rgba(255, 255, 255, 0.3);
-  outline: medium none;
-  vertical-align: middle;
-  white-space: nowrap;
-}
-
-#ring-button-stop:active {
-  background: none repeat scroll 0 0 #008AAA;
-  border-color: #008AAA;
-  color: #333333;
-}
-
-#ring-button-snooze {
-  float: left;
-  display: inline-block;
-  overflow: hidden;
-  -moz-box-sizing: border-box;
-  height: 4.12rem;
-  padding: 0 0.94rem;
-  border: 0.1rem solid #00ACCE;
-  border-radius: 0.25rem 0.25rem 0.25rem 0.25rem;
-  margin: 1.50rem 1.56rem 0 0.94rem;
-
-  background: url("images/ring_button_close.png") repeat-x scroll left bottom #FAFAFA;
-  background-color: #00CAF2;
-  color: #333333;
-  font-weight: 600;
-  font-size: 1.63rem;
-  line-height: 4.06rem;
-  text-align: center;
-  text-decoration: none;
-  text-overflow: ellipsis;
-  text-shadow: 0.1rem 0.1rem 0 rgba(255, 255, 255, 0.3);
-  outline: medium none;
-  vertical-align: middle;
-  white-space: nowrap;
-}
-
-#ring-button-snooze:active {
-  background: none repeat scroll 0 0 #008AAA;
-  border-color: #008AAA;
-  color: #333333;
-}
-
-.ring-display[data-ring-type="alarm"] #footer-button-container .button {
-  width: calc((100% - 4.06rem) / 2);
-}
-
-.ring-display[data-ring-type="timer"] #ring-button-stop {
-  width: calc(100% - (4.06rem * .7666));
+#footer-button-container button {
+  flex: 1;
+  margin: 0.5rem;
 }
 
 .ring-display[data-ring-type="timer"] #ring-button-snooze {

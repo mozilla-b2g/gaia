@@ -1,5 +1,5 @@
 /* globals CallsHandler, CallScreen, Contacts, ContactPhotoHelper,
-           KeypadManager, kFontStep, LazyL10n, Utils, Voicemail */
+           FontSizeManager, LazyL10n, Utils, Voicemail */
 
 'use strict';
 
@@ -40,6 +40,10 @@ function HandledCall(aCall) {
   this.viaSimNode = this.node.querySelector('.sim .via-sim');
   this.simNumberNode = this.node.querySelector('.sim .sim-number');
   this.numberNode = this.node.querySelector('.numberWrapper .number');
+  this.groupCallNumberNode =
+    document.getElementById('group-call-label');
+  this.groupCallFakeNumberNode =
+    document.querySelector('#group-call .fake-number');
   this.additionalInfoNode = this.node.querySelector('.additionalContactInfo');
   this.hangupButton = this.node.querySelector('.hangup-button');
   this.hangupButton.onclick = (function() {
@@ -59,6 +63,7 @@ function HandledCall(aCall) {
     var durationMessage = (this.call.state == 'incoming') ?
                            _('incoming') : _('connecting');
     this.durationChildNode.textContent = durationMessage;
+    this.updateDirection();
 
     if (navigator.mozIccManager.iccIds.length > 1) {
       var n = this.call.serviceId + 1;
@@ -69,8 +74,6 @@ function HandledCall(aCall) {
       this.simNumberNode.hidden = true;
     }
   }).bind(this));
-
-  this.updateDirection();
 
   // Some calls might be already connected
   if (this._initialState === 'connected') {
@@ -105,16 +108,15 @@ HandledCall.prototype.handleEvent = function hc_handle(evt) {
 };
 
 HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
-  var number = this.call.number;
-  var secondNumber = this.call.secondNumber;
+  var number = this.call.id ? this.call.id.number : this.call.number;
   var node = this.numberNode;
   var self = this;
 
-  CallScreen.setCallerContactImage(null);
+  CallScreen.setCallerContactImage();
 
   /* If we have a second call waiting in CDMA mode then we don't know which
    * number is currently active */
-  if (secondNumber) {
+  if (this.call.secondNumber || this.call.secondId) {
     LazyL10n.get(function localized(_) {
       node.textContent = _('switch-calls');
       self._cachedInfo = _('switch-calls');
@@ -135,13 +137,14 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
 
   var isEmergencyNumber = this.call.emergency;
   if (isEmergencyNumber) {
+    this.node.classList.add('emergency');
     LazyL10n.get(function localized(_) {
-      node.textContent = _('emergencyNumber');
-      self._cachedInfo = _('emergencyNumber');
+      self.replacePhoneNumber(number, 'end');
+      self._cachedInfo = number;
+      self.replaceAdditionalContactInfo(_('emergencyNumber'));
+      self._cachedAdditionalInfo = _('emergencyNumber');
     });
 
-    // Set Emergency Wallpaper
-    CallScreen.setEmergencyWallpaper();
     return;
   }
 
@@ -163,7 +166,7 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
     callMessageReq.onsuccess = function onCallMessageSuccess() {
       self._iccCallMessage = callMessageReq.result['icc.callmessage'];
       if (self._iccCallMessage) {
-        self.replacePhoneNumber(self._iccCallMessage, 'end', true);
+        self.replacePhoneNumber(self._iccCallMessage, 'end');
         self._cachedInfo = self._iccCallMessage;
         navigator.mozSettings.createLock().set({'icc.callmessage': null});
       }
@@ -191,14 +194,14 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
           node.textContent = self._cachedInfo;
         });
       }
-      self.formatPhoneNumber('end', true);
+      self.formatPhoneNumber('end');
       self._cachedAdditionalInfo =
         Utils.getPhoneNumberAdditionalInfo(matchingTel);
       self.replaceAdditionalContactInfo(self._cachedAdditionalInfo);
       var photo = ContactPhotoHelper.getFullResolution(contact);
       if (photo) {
         self.photo = photo;
-        CallScreen.setCallerContactImage(photo);
+        CallScreen.setCallerContactImage();
 
         var thumbnail = ContactPhotoHelper.getThumbnail(contact);
         contactCopy.photo = [thumbnail];
@@ -210,7 +213,7 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
     self._cachedInfo = number;
     node.textContent = self._cachedInfo;
     self.replaceAdditionalContactInfo(self._cachedAdditionalInfo);
-    self.formatPhoneNumber('end', true);
+    self.formatPhoneNumber('end');
   }
 };
 
@@ -232,42 +235,26 @@ HandledCall.prototype.restoreAdditionalContactInfo =
 };
 
 HandledCall.prototype.formatPhoneNumber =
-  function hc_formatPhoneNumber(ellipsisSide, maxFontSize) {
+  function hc_formatPhoneNumber(ellipsisSide) {
     if (this._removed) {
       return;
     }
 
-    // In status bar mode, we want a fixed font-size
-    if (CallScreen.inStatusBarMode) {
-      this.numberNode.style.fontSize = '';
-      return;
-    }
-
-    var fakeView = this.node.querySelector('.fake-number');
-    var view = this.numberNode;
-
-    var newFontSize;
-    if (maxFontSize) {
-      newFontSize = KeypadManager.maxFontSize;
-    } else {
-      newFontSize =
-        Utils.getNextFontSize(view, fakeView, KeypadManager.maxFontSize,
-          KeypadManager.minFontSize, kFontStep);
-    }
-    view.style.fontSize = newFontSize + 'px';
-    Utils.addEllipsis(view, fakeView, ellipsisSide);
+    FontSizeManager.adaptToSpace(
+      CallScreen.getScenario(), this.numberNode,
+      this.node.querySelector('.fake-number'), false, ellipsisSide);
 };
 
 HandledCall.prototype.replacePhoneNumber =
-  function hc_replacePhoneNumber(phoneNumber, ellipsisSide, maxFontSize) {
+  function hc_replacePhoneNumber(phoneNumber, ellipsisSide) {
     this.numberNode.textContent = phoneNumber;
-    this.formatPhoneNumber(ellipsisSide, maxFontSize);
+    this.formatPhoneNumber(ellipsisSide);
 };
 
 HandledCall.prototype.restorePhoneNumber =
   function hc_restorePhoneNumber() {
     this.numberNode.textContent = this._cachedInfo;
-    this.formatPhoneNumber('end', true);
+    this.formatPhoneNumber('end');
 };
 
 HandledCall.prototype.updateDirection = function hc_updateDirection() {
@@ -316,9 +303,7 @@ HandledCall.prototype.connected = function hc_connected() {
   CallScreen.enableKeypad();
   CallScreen.syncSpeakerEnabled();
 
-  if (!this.call.group) {
-    CallScreen.setCallerContactImage(this.photo);
-  }
+  CallScreen.setCallerContactImage();
 };
 
 HandledCall.prototype.disconnected = function hc_disconnected() {

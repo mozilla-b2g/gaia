@@ -129,7 +129,7 @@ window.GaiaDrawer = (function(win) {
   // var stylesheet = baseurl + 'style.css';
   var template = document.createElement('template');
   template.innerHTML = '<div class="inner" id="inner">' +
-      '<button class="background" id="background"></button>' +
+      '<div class="background" id="background"></div>' +
       '<div class="content" id="content"><content></content></div>' +
     '</div>';
 

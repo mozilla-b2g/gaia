@@ -13,8 +13,6 @@ var MockCommon = function(config) {
   return {
     COST_CONTROL_APP: 'app://costcontrol.gaiamobile.org',
     allNetworkInterfaces: {},
-    dataSimIccId: null,
-    dataSimIcc: null,
     localize: function (element, label, args) {
       element.textContent = label;
     },
@@ -24,12 +22,21 @@ var MockCommon = function(config) {
     startFTE: function(mode) {
       var iframe = document.getElementById('fte_view');
       iframe.classList.remove('non-ready');
+      if (config && config.activateFTEListener) {
+        window.addEventListener('dataSlotChange', function _onDataSimChange() {
+          window.removeEventListener('dataSlotChange', _onDataSimChange);
+          // Close FTE if change the SimCard for data connections
+          Common.closeFTE();
+        });
+      }
       var event = new CustomEvent('ftestarted', { detail: mode });
       window.dispatchEvent(event);
     },
     closeFTE: function() {
       var iframe = document.getElementById('fte_view');
       iframe.classList.add('non-ready');
+      var event = new CustomEvent('fteClosed');
+      window.dispatchEvent(event);
     },
     startApp: function() {
       var event = new CustomEvent('appstarted');
@@ -44,7 +51,7 @@ var MockCommon = function(config) {
       window.dispatchEvent(event);
       console.log('Alert: ' + msg);
     },
-    getDataSIMInterface: function getDataSIMInterface() {
+    getDataSIMInterface: function getDataSIMInterface(iccId) {
       var dataSimCard = allInterfacesFake[1];
       return dataSimCard;
     },
@@ -52,7 +59,6 @@ var MockCommon = function(config) {
       var wifiInterface = allInterfacesFake[0];
       return wifiInterface;
     },
-    getIccInfo: function() { return;},
     loadNetworkInterfaces: function(onsuccess, onerror) {
       setTimeout(function() {
         Common.allNetworkInterfaces = allInterfacesFake;

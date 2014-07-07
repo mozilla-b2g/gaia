@@ -5,8 +5,8 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
-var View = require('vendor/view');
 var find = require('lib/find');
+var View = require('view');
 
 /**
  * Exports
@@ -28,11 +28,8 @@ module.exports = View.extend({
 
   setFocusState: function(state) {
     this.set('state', state);
-    if (this.fadeOutTimer) {
-      clearTimeout(this.fadeOutTimer);
-    }
-    if (state === 'fail' || state === 'focused') {
-      this.fadeOutTimer = this.fadeOut();
+    if (state !== 'focusing') {
+      this.fadeOut();
     }
   },
 
@@ -41,7 +38,10 @@ module.exports = View.extend({
     this.set('mode', mode);
   },
 
-  changePosition: function(x, y) {
+  setPosition: function(x, y) {
+    if (this.fadeOutTimer) {
+      clearTimeout(this.fadeOutTimer);
+    }
     this.el.style.left = x + 'px';
     this.el.style.top = y + 'px';
   },
@@ -49,14 +49,14 @@ module.exports = View.extend({
   reset: function() {
     this.el.style.left = '50%';
     this.el.style.top = '50%';
-    this.setFocusState('none');
+    this.set('state', 'none');
   },
 
   fadeOut: function() {
     var self = this;
-    setTimeout(hide, this.fadeTime);
+    this.fadeOutTimer = setTimeout(hide, this.fadeTime);
     function hide() {
-      self.setFocusState('none');
+      self.reset();
     }
   },
 

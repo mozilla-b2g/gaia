@@ -8,9 +8,66 @@ var BrowserDB = {
   DEFAULT_ICON_EXPIRATION: 86400000, // One day
   MAX_ICON_SIZE: 102400, // 100kB
   TOP_SITE_SCREENSHOTS: 4, // Number of top sites to keep screenshots for
+  variantObserver: null,
 
   init: function browserDB_init(callback) {
     this.db.open(callback);
+  },
+
+  initSingleVariant: function browserDB_initSingleVariant() {
+    this.variantObserver = this.handleSingleVariant.bind(this);
+    navigator.mozSettings.addObserver('operatorResources.data.topsites',
+                                      this.variantObserver);
+
+    var request = navigator.mozSettings.createLock()
+                  .get('operatorResources.data.topsites');
+    request.onsuccess = (function() {
+      this.handleTopSites(request.result['operatorResources.data.topsites']);
+    }.bind(this));
+  },
+
+  handleSingleVariant: function browserDB_handleSingleVariant(event) {
+    this.handleTopSites(event.settingValue);
+  },
+
+  handleTopSites: function browserDB_handleTopSites(data) {
+    if (data && Object.keys(data).length !== 0) {
+      navigator.mozSettings.removeObserver('operatorResources.data.topsites',
+                                           this.variantObserver);
+
+      this.populateTopSites(data.topSites, -1);
+
+      navigator.mozSettings.createLock()
+               .set({'operatorResources.data.topsites': {}});
+      return;
+    }
+  },
+
+  populateTopSites: function browserDB_populateTopSites(data, frequency) {
+    var index = frequency;
+
+    data.forEach(function(topSite) {
+      if (!topSite.uri || ! topSite.title)
+        return;
+      this.addTopSite(topSite.uri, topSite.title, index);
+      index--;
+      if (topSite.iconUri) {
+        if (topSite.iconUri instanceof Blob) {
+          var reader = new FileReader();
+          reader.onloadend = (function() {
+            topSite.iconUri = reader.result;
+            this.setAndLoadIconForPage(topSite.uri, topSite.iconUri);
+          }.bind(this));
+          reader.onerror = function() {
+            console.error('Unable to read iconUri from blob');
+          };
+          reader.readAsDataURL(topSite.iconUri);
+          return;
+        }
+
+        this.setAndLoadIconForPage(topSite.uri, topSite.iconUri);
+      }
+    }, this);
   },
 
   /**
@@ -20,6 +77,16 @@ var BrowserDB = {
    */
   populate: function browserDB_populate(upgradeFrom, callback) {
     console.log('Populating browser database.');
+
+    Browser.getDefaultData(function(data) {
+      if (!data)
+        return;
+
+      // Populate top sites if upgrading from below version 7
+      if (upgradeFrom < 7 && data.topSites) {
+        this.populateTopSites(data.topSites, -20);
+      }
+    }.bind(this));
 
     SimpleOperatorVariantHelper.getOperatorVariant((function(mcc, mnc) {
       Browser.getConfigurationData({ mcc: mcc, mnc: mnc }, (function(data) {
@@ -222,9 +289,19 @@ var BrowserDB = {
     }).bind(this));
   },
 
+  addTopSite: function browserDB_addTopSite(uri, title, frequency, callback) {
+    this.addPlace(uri, (function() {
+      this.db.initPlaceFrecency(uri, title, frequency, callback);
+    }).bind(this));
+  },
+
   getTopSites: function browserDB_getTopSites(maximum, filter, callback) {
     // Get the top 20 sites
     this.db.getPlacesByFrecency(maximum, filter, callback);
+  },
+
+  getDefaultTopSites: function browserDB_getDefaultTopSites(callback) {
+    this.db.getDefaultPlaces(callback);
   },
 
   getHistory: function browserDB_getHistory(callback) {
@@ -279,9 +356,14 @@ BrowserDB.db = {
 
     request.onsuccess = (function onSuccess(e) {
       this._db = e.target.result;
+
       callback();
-      if (this.upgradeFrom != -1)
+      if (this.upgradeFrom != -1) {
         BrowserDB.populate(this.upgradeFrom);
+      }
+
+      BrowserDB.initSingleVariant();
+
     }).bind(this);
 
     request.onerror = (function onDatabaseError(e) {
@@ -427,6 +509,23 @@ BrowserDB.db = {
         cursor.continue();
       } else {
         callback(history);
+      }
+    };
+  },
+
+  getDefaultPlaces: function db_defaultPlaces(callback) {
+    var topSites = [];
+    var transaction = this._db.transaction('places');
+    var placesStore = transaction.objectStore('places');
+    var frecencyIndex = placesStore.index('frecency');
+    frecencyIndex.openCursor(null, 'prev').onsuccess =
+      function onSuccess(e) {
+      var cursor = e.target.result;
+      if (cursor && cursor.value && cursor.value.frecency < 0) {
+        topSites.push(cursor.value);
+        cursor.continue();
+      } else {
+        callback(topSites);
       }
     };
   },
@@ -680,6 +779,43 @@ BrowserDB.db = {
     };
   },
 
+  initPlaceFrecency: function db_initPlaceFrecency(uri, title,
+                                                   frecency, callback) {
+    // Don't assign frecency to the start page
+    if (uri == this.START_PAGE_URI) {
+      if (callback)
+        callback();
+      return;
+    }
+
+    var transaction = this._db.transaction(['places'], 'readwrite');
+    var objectStore = transaction.objectStore('places');
+    var readRequest = objectStore.get(uri);
+    readRequest.onsuccess = function onReadSuccess(event) {
+      var place = event.target.result;
+      if (!place || (place.frecency && place.frecency > frecency))
+        return;
+
+      place.title = title;
+      place.frecency = frecency;
+
+      var writeRequest = objectStore.put(place);
+      writeRequest.onerror = function onError() {
+        console.log('Error while saving new frecency for ' + uri);
+      };
+
+      writeRequest.onsuccess = function onWriteSuccess() {
+        if (callback)
+          callback();
+      };
+    };
+
+    transaction.onerror = function dbTransactionError(e) {
+      console.log('Transaction error while trying to update place: ' +
+        place.uri);
+    };
+  },
+
   updatePlaceFrecency: function db_updatePlaceFrecency(uri, callback) {
     // Don't assign frecency to the start page
     if (uri == this.START_PAGE_URI) {
@@ -701,6 +837,9 @@ BrowserDB.db = {
       if (!place.frecency) {
         place.frecency = 1;
       } else {
+        if (place.frecency < 0) {
+          place.frecency = 0;
+        }
         // currently just frequency
         place.frecency++;
       }

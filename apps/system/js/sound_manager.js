@@ -158,8 +158,12 @@
     }
   });
 
-  window.addEventListener('localized', function(e) {
+  // unit tests call init() manually
+  if (navigator.mozL10n) {
+    navigator.mozL10n.once(init);
+  }
 
+  function init() {
     SettingsListener.observe('audio.volume.cemaxvol', 11, function(volume) {
       CEWarningVol = volume;
     });
@@ -172,7 +176,7 @@
           CEAccumulatorTime = value;
         }
       });
-  });
+  }
 
   window.addEventListener('unload', stopAccumulator, false);
 
@@ -299,6 +303,10 @@
     CustomDialog.hide();
   });
   window.addEventListener('home', function() {
+    homescreenVisible = true;
+    CustomDialog.hide();
+  });
+  window.addEventListener('homescreenopened', function() {
     homescreenVisible = true;
     CustomDialog.hide();
   });
@@ -460,7 +468,7 @@
           return defaultVolumeControlChannel;
         } else {
           return homescreenVisible ||
-            (window.lockScreen && window.lockScreen.locked) ||
+            (System.locked) ||
             FtuLauncher.isFtuRunning() ? 'notification' : 'content';
         }
     }

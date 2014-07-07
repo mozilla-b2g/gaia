@@ -1,0 +1,63 @@
+{
+  "name": "Homescreen",
+  "description": "Gaia Homescreen",
+  "launch_path": "/index.html",
+  "type": "certified",
+  "role": "homescreen",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "permissions": {
+    "mobileconnection":{},
+    "open-remote-window":{},
+    "storage": {},
+    "webapps-manage": {},
+    "systemXHR": {},
+    "settings":{ "access": "readwrite" }
+  },
+  "default_locale": "en-US",
+  "locales": {
+    "ar": {
+      "name": "الشاشة الرئيسية",
+      "description": "Gaia الشاشة الرئيسية"
+    },
+    "en-US": {
+      "name": "Homescreen",
+      "description": "Gaia Homescreen"
+    },
+    "fr": {
+      "name": "Écran d’accueil",
+      "description": "Écran d’accueil Gaia"
+    },
+    "zh-TW": {
+      "name": "主畫面",
+      "description": "Gaia 主畫面"
+    }
+  },
+  "icons": {
+    "30": "/style/icons/vertical_30.png",
+    "45": "/style/icons/vertical_45.png",
+    "60": "/style/icons/vertical_60.png",
+    "68": "/style/icons/vertical_68.png"
+  },
+  "orientation": "default",
+  "activities": {},
+  "messages": [],
+  "datastores-access": {
+    "bookmarks_store": {
+      "readonly": false,
+      "description": "Display bookmarks"
+    },
+    "collections_store": {
+      "readonly": false,
+      "description": "Display collections"
+    }
+  },
+  "datastores-owned": {
+    "vertical_preferences_store": {
+      "access": "readwrite",
+      "description": "Stores preferences"
+    }
+  }
+}

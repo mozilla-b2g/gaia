@@ -135,7 +135,7 @@ suite('Contacts Exporter', function() {
   setup(function() {
     menuOverlay = document.createElement('form');
     menuOverlay.innerHTML = '<menu>' +
-      '<button data-l10n-id="cancel" id="cancel-overlay">Cancel</button>'+
+      '<button data-l10n-id="cancel" id="cancel-overlay">Cancel</button>' +
       '</menu>';
     document.body.appendChild(menuOverlay);
 

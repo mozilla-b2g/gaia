@@ -20,6 +20,10 @@ window.GaiaTabs = (function(win) {
    * @private
    */
   proto.createdCallback = function() {
+    for (var el = this.firstElementChild; el; el = el.nextElementSibling) {
+      el.setAttribute('role', 'tab');
+    }
+    this.setAttribute('role', 'tablist');
     ComponentUtils.style.call(this, baseurl);
     this.addEventListener('click', this.onClick);
     this.select(this.getAttribute('selected'));

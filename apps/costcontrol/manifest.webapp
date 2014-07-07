@@ -15,7 +15,8 @@
     "networkstats-manage":{},
     "alarms": {},
     "telephony": {},
-    "storage": {}
+    "storage": {},
+    "audio-channel-notification":{}
   },
   "activities": {
     "costcontrol/balance": {
@@ -42,10 +43,11 @@
   },
   "default_locale": "en-US",
   "icons": {
-    "135": "/style/icons/cost-control_135.png",
-    "120": "/style/icons/cost-control_120.png",
-    "90": "/style/icons/cost-control_90.png",
-    "60": "/style/icons/cost-control_60.png"
+  "84": "/style/icons/costcontrol_84.png",
+  "126": "/style/icons/costcontrol_126.png",
+  "142": "/style/icons/costcontrol_142.png",
+  "189": "/style/icons/costcontrol_189.png",
+  "284": "/style/icons/costcontrol_284.png"
   },
   "orientation": "default",
   "messages": [

@@ -49,3 +49,16 @@ a:hover, a:active, a:focus {
 body.hidden *[data-l10n-id] {
   visibility: hidden;
 }
+
+/**
+ * FIXME/bug 1026079: Remove these when tabs are implemented using building
+ * blocks. They are temporary overrides for clipping issues.
+ */
+body .bb-tablist [aria-selected="true"] ~.bb-tabpanel {
+  visibility: hidden;
+}
+
+body .bb-tablist :target .bb-tabpanel {
+  z-index: -1;
+  visibility: visible;
+}

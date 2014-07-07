@@ -123,7 +123,6 @@ var VideoUtils = {
     var baseHeight;
     var currentLine;
     var ellipsisAt;
-    var hasNewEllipsisPoint = true;
     var nameBeforeEllipsis = [];
     var nameBeforeEllipsisString;
     var nameAfterEllipsis = ellipsisIndex ? oldName.slice(-ellipsisIndex) : '';
@@ -145,10 +144,28 @@ var VideoUtils = {
      */
     node.textContent = '.';
     baseHeight = node.clientHeight;
+
+    /*
+     * Determine if the title needs truncating
+     */
+    node.textContent = oldName;
+    var originalTitleHeight = node.clientHeight;
+    var linesForOriginalTitle = (originalTitleHeight / baseHeight);
+    if (linesForOriginalTitle <= maxLine) {
+      /*
+       * Title does not need truncating. Restore UI and return original title
+       */
+      node.style.visibility = realVisibility;
+      node.style.wordBreak = realWordBreak;
+      return oldName;
+    }
+
     node.textContent = '';
 
-    var needEllipsis = oldName.split('').some(function(character, index) {
+    var ellipseIndex;
+    oldName.split('').some(function(character, index) {
 
+      ellipseIndex = index;
       nameBeforeEllipsis.push(character);
       nameBeforeEllipsisString = nameBeforeEllipsis.join('');
 
@@ -168,36 +185,7 @@ var VideoUtils = {
 
       if (hitsNewline(oldHeight, newHeight) && index !== 0) {
 
-        /*
-         * The reason why we have to check twice is because there is a
-         * situation that truncated string is overflowed but there is
-         * still room for original string.
-         *
-         * In this way, we have to memorize the ellipsis index and
-         * slice `nameBeforeEllipsis` to the index in the end.
-         */
-        var testHeight;
-        node.textContent = nameBeforeEllipsisString;
-        testHeight = node.clientHeight;
-
-        if (hitsNewline(oldHeight, testHeight)) {
-
-          /*
-           * We have to make it true again to keep the ellipsisAt
-           * up to date.
-           */
-          hasNewEllipsisPoint = true;
-          currentLine += 1;
-        } else {
-          /*
-           * This is the situation that we still have room, so we have
-           * to keep the ellipsisAt value for later use.
-           */
-          if (hasNewEllipsisPoint) {
-            ellipsisAt = index;
-            hasNewEllipsisPoint = false;
-          }
-        }
+        currentLine += 1;
       }
 
       if (currentLine > maxLine) {
@@ -224,22 +212,18 @@ var VideoUtils = {
          */
         nameBeforeEllipsis.pop();
         node.textContent = '';
-        return true;
-      } else {
+
+        newName = nameBeforeEllipsis.join('').slice(0, ellipseIndex);
+        newName += ellipsisCharacter;
+        newName += nameAfterEllipsis;
+
+        return;
       }
     });
 
     // restore UI
     node.style.visibility = realVisibility;
     node.style.wordBreak = realWordBreak;
-
-    if (!needEllipsis) {
-      newName = oldName;
-    } else {
-      newName += nameBeforeEllipsis.join('').slice(0, ellipsisAt);
-      newName += ellipsisCharacter;
-      newName += nameAfterEllipsis;
-    }
 
     return newName;
   }

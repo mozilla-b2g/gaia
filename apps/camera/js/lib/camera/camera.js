@@ -8,12 +8,12 @@ define(function(require, exports, module) {
 var CameraUtils = require('lib/camera-utils');
 var getVideoMetaData = require('lib/get-video-meta-data');
 var orientation = require('lib/orientation');
+var Focus = require('lib/camera/focus');
 var debug = require('debug')('camera');
 var debounce = require('lib/debounce');
 var bindAll = require('lib/bind-all');
-var model = require('vendor/model');
 var mix = require('lib/mixin');
-var Focus = require('lib/camera/focus');
+var model = require('model');
 
 /**
  * Mixin `Model` API (inc. events)
@@ -185,7 +185,7 @@ Camera.prototype.firstLoad = function() {
   this.mozCameraConfig = config.mozCameraConfig;
 
   // Request the camera, passing in the config.
-  // If this is the first time the caemra app
+  // If this is the first time the camera app
   // has been used `mozCameraConfig` will be undefined.
   this.requestCamera(this.selectedCamera, this.mozCameraConfig);
 
@@ -268,7 +268,7 @@ Camera.prototype.requestCamera = function(camera, config) {
   var self = this;
 
   // Indicate 'busy'
-  this.busy();
+  this.busy('requestingCamera');
 
   // If a config was passed we assume
   // the camera has been configured.
@@ -284,7 +284,8 @@ Camera.prototype.requestCamera = function(camera, config) {
     self.emit('focusconfigured', {
       mode: self.mozCamera.focusMode,
       touchFocus: self.focus.touchFocus,
-      faceTracking: self.focus.faceTracking
+      faceDetection: self.focus.faceDetection,
+      maxDetectedFaces: self.focus.maxDetectedFaces
     });
 
     // If the camera was configured in the
@@ -395,7 +396,7 @@ Camera.prototype.configure = function() {
     debug('configuration success');
     if (!self.mozCamera) { return; }
     self.configureFocus();
-    self.focus.resume();
+    self.resumeFocus();
     self.configured = true;
     self.saveBootConfig();
     self.emit('configured');
@@ -403,7 +404,7 @@ Camera.prototype.configure = function() {
   }
 
   function onError() {
-    console.log('Error configuring camera');
+    debug('Error configuring camera');
     self.configured = true;
     self.ready();
   }
@@ -419,6 +420,16 @@ Camera.prototype.configureFocus = function() {
     focusMode = 'continuous-video';
   }
   this.focus.configure(this.mozCamera, focusMode);
+  this.focus.onFacesDetected = this.onFacesDetected;
+  this.focus.onAutoFocusChanged = this.onAutoFocusChanged;
+};
+
+Camera.prototype.onAutoFocusChanged = function(state) {
+  this.set('focus', state);
+};
+
+Camera.prototype.onFacesDetected = function(faces) {
+  this.emit('facesdetected', faces);
 };
 
 /**
@@ -523,7 +534,7 @@ Camera.prototype.setPictureSize = function(size, options) {
     }
   }
 
-  this.mozCamera.pictureSize = size;
+  this.mozCamera.setPictureSize(size);
   this.pictureSize = size;
   this.setThumbnailSize();
 
@@ -585,9 +596,9 @@ Camera.prototype.getRecorderProfile = function() {
 
 Camera.prototype.setThumbnailSize = function() {
   var sizes = this.mozCamera.capabilities.thumbnailSizes;
-  var pictureSize = this.mozCamera.pictureSize;
+  var pictureSize = this.mozCamera.getPictureSize();
   var picked = this.pickThumbnailSize(sizes, pictureSize);
-  if (picked) { this.mozCamera.thumbnailSize = picked; }
+  if (picked) { this.mozCamera.setThumbnailSize(picked); }
 };
 
 /**
@@ -627,6 +638,9 @@ Camera.prototype.release = function(done) {
   }
 
   this.busy();
+  this.stopRecording();
+  this.focus.stopFaceDetection();
+  this.set('focus', 'none');
   this.mozCamera.release(onSuccess, onError);
   this.releasing = true;
   this.mozCamera = null;
@@ -739,37 +753,40 @@ Camera.prototype.takePicture = function(options) {
     fileFormat: 'jpeg'
   };
 
-  // If position has been
-  // passed in, add it to
-  // the config object.
+  // If position has been passed in,
+  // add it to the config object.
   if (position) {
     config.position = position;
   }
 
+  // Front camera is inverted, so flip rotation
   rotation = selectedCamera === 'front' ? -rotation : rotation;
-  debug('take picture');
-  this.emit('busy');
-  if (this.mozCamera.focusMode === 'auto') {
+
+  // If the camera focus is 'continuous' or 'infinity'
+  // we can take the picture straight away.
+  if (this.focus.getMode() === 'auto') {
     this.set('focus', 'focusing');
     this.focus.focus(onFocused);
   } else {
-    self.mozCamera.takePicture(config, onSuccess, onError);
+    takePicture();
   }
 
-  function onFocused(err) {
-    if (err) {
-      self.set('focus', 'fail');
-    } else {
-      self.set('focus', 'focused');
-    }
+  function onFocused(state) {
+    self.set('focus', state);
+    takePicture();
+  }
+
+  function takePicture() {
+    self.busy('takingPicture');
     self.mozCamera.takePicture(config, onSuccess, onError);
   }
 
   function onError(error) {
     var title = navigator.mozL10n.get('error-saving-title');
     var text = navigator.mozL10n.get('error-saving-text');
-    // if taking a picture fails because there's already
-    // a picture being taken we ignore it
+
+    // if taking a picture fails because there's
+    // already a picture being taken we ignore it.
     if (error === 'TakePictureAlreadyInProgress') {
       complete();
     } else {
@@ -789,9 +806,11 @@ Camera.prototype.takePicture = function(options) {
   }
 
   function complete() {
-    // If we are in C-AF mode, we have to call resume() in
-    // order to get the camera to resume focusing on what we point it at.
-    self.focus.resume();
+    // If we are in C-AF mode, we have
+    // to call resume() in order to get
+    // the camera to resume focusing
+    // on what we point it at.
+    self.resumeFocus();
     self.set('focus', 'none');
     self.ready();
   }
@@ -801,16 +820,20 @@ Camera.prototype.updateFocusArea = function(rect, done) {
   var self = this;
   this.set('focus', 'focusing');
   this.focus.updateFocusArea(rect, focusDone);
-  function focusDone(error) {
-    if (error) {
-      self.set('focus', 'fail');
-    } else {
-      self.set('focus', 'focused');
-    }
+  function focusDone(state) {
+    self.set('focus', state);
     if (done) {
-      done(error);
+      done(state);
     }
   }
+};
+
+Camera.prototype.stopFocus = function() {
+  this.focus.stop();
+};
+
+Camera.prototype.resumeFocus = function() {
+  this.focus.resume();
 };
 
 /**
@@ -876,6 +899,7 @@ Camera.prototype.startRecording = function(options) {
 
     self.createVideoFilepath(function(filepath) {
       video.filepath = filepath;
+      self.emit('willrecord');
       self.mozCamera.startRecording(
         config,
         storage,
@@ -1344,10 +1368,10 @@ Camera.prototype.getSensorAngle = function() {
  *
  * @private
  */
-Camera.prototype.busy = function() {
-  debug('busy');
+Camera.prototype.busy = function(type) {
+  debug('busy %s', type || '');
   this.isBusy = true;
-  this.emit('busy');
+  this.emit('busy', type);
 };
 
 /**

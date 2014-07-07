@@ -12,6 +12,7 @@
 // Import global objects from parent window
 var ConfigManager = window.parent.ConfigManager;
 var CostControl = window.parent.CostControl;
+var SimManager = window.parent.SimManager;
 var Common = window.parent.Common;
 var NetworkUsageAlarm = window.parent.NetworkUsageAlarm;
 
@@ -72,13 +73,16 @@ var Settings = (function() {
       ConfigManager.observe(
         'dataLimit',
         function _onDataLimitChange(value, old, key, settings) {
-          var currentDataInterface = Common.getDataSIMInterface();
-          if (!value) {
-            NetworkUsageAlarm.clearAlarms(currentDataInterface);
-          } else {
-            addNetworkUsageAlarm(currentDataInterface,
-                                 Common.getDataLimit(settings));
-          }
+          SimManager.requestDataSimIcc(function(dataSim) {
+            var iccId = dataSim.iccId;
+            var currentDataInterface = Common.getDataSIMInterface(iccId);
+            if (!value) {
+              NetworkUsageAlarm.clearAlarms(currentDataInterface);
+            } else {
+              addNetworkUsageAlarm(currentDataInterface,
+                                   Common.getDataLimit(settings));
+            }
+          });
         },
         true
       );
@@ -269,6 +273,10 @@ var Settings = (function() {
         var hidePhoneActivity = (mode !== 'POSTPAID');
         var hideBalance = (mode !== 'PREPAID');
         var hideReportsTitle = (mode === 'PREPAID');
+        var textReportsTitle = (mode === 'POSTPAID') ?
+          'phone-and-internet-data-report' : 'internet-data-report';
+
+        reportsTitle.querySelector('h2').textContent = _(textReportsTitle);
 
         balanceLowLimitView.disabled = (mode !== 'PREPAID');
         plantypeSelector.setAttribute('aria-hidden', hidePlantypeSelector);
