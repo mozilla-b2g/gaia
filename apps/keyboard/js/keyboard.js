@@ -575,7 +575,7 @@ function handleTargetMovedIn(target) {
   }
 }
 
-function handleTargetCommitted(target, press) {
+function handleTargetCommitted(target) {
   clearTimeout(deleteTimeout);
   clearInterval(deleteInterval);
 
@@ -589,16 +589,14 @@ function handleTargetCommitted(target, press) {
   // IME candidate selected
   var dataset = target.dataset;
   if (dataset.selection) {
-    if (!press.moved) {
-      IMERender.toggleCandidatePanel(false, true);
+    IMERender.toggleCandidatePanel(false, true);
 
-      if (inputMethodManager.currentIMEngine.select) {
-        // We use dataset.data instead of target.textContent because the
-        // text actually displayed to the user might have an ellipsis in it
-        // to make it fit.
-        inputMethodManager.currentIMEngine
-          .select(target.textContent, dataset.data);
-      }
+    if (inputMethodManager.currentIMEngine.select) {
+      // We use dataset.data instead of target.textContent because the
+      // text actually displayed to the user might have an ellipsis in it
+      // to make it fit.
+      inputMethodManager.currentIMEngine
+        .select(target.textContent, dataset.data);
     }
 
     visualHighlightManager.hide(target);

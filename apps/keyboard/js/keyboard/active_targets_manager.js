@@ -86,7 +86,7 @@ ActiveTargetsManager.prototype._handlePressStart = function(press, id) {
   }
 
   if (typeof this.ontargetactivated === 'function') {
-    this.ontargetactivated(target, press);
+    this.ontargetactivated(target);
   }
 
   clearTimeout(this.longPressTimer);
@@ -136,7 +136,7 @@ ActiveTargetsManager.prototype._handlePressMove = function(press, id) {
   }
 
   if (typeof this.ontargetmovedin === 'function') {
-    this.ontargetmovedin(target, press);
+    this.ontargetmovedin(target);
   }
 
   // Hide of alternatives menu if the touch moved out of it
@@ -161,7 +161,7 @@ ActiveTargetsManager.prototype._handleLongPress = function(press, id) {
   var target = this.activeTargets.get(id);
 
   if (typeof this.ontargetlongpressed === 'function') {
-    this.ontargetlongpressed(target, press);
+    this.ontargetlongpressed(target);
   }
 
   this.alternativesCharMenuManager.show(target, id);
@@ -187,12 +187,19 @@ ActiveTargetsManager.prototype._handlePressEnd = function(press, id) {
   }
 
   this.alternativesCharMenuManager.hide();
+  clearTimeout(this.longPressTimer);
 
-  if (typeof this.ontargetcommitted === 'function') {
-    this.ontargetcommitted(target, press);
+  // selections on candidate panel should not be committed if the
+  // press is moved because the user might simply just want to scroll the panel.
+  if (press.moved && ('selection' in target.dataset)) {
+    this.ontargetcancelled(target);
+
+    return;
   }
 
-  clearTimeout(this.longPressTimer);
+  if (typeof this.ontargetcommitted === 'function') {
+    this.ontargetcommitted(target);
+  }
 };
 
 exports.ActiveTargetsManager = ActiveTargetsManager;

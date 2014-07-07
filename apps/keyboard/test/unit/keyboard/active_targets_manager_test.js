@@ -56,7 +56,8 @@ suite('ActiveTargetsManager', function() {
     var id0 = 0;
     var press0 = {
       target: {
-        textContent: '1'
+        textContent: '1',
+        dataset: {}
       }
     };
 
@@ -66,11 +67,33 @@ suite('ActiveTargetsManager', function() {
       userPressManagerStub.onpressstart(press0, id0);
 
       assert.isTrue(
-        manager.ontargetactivated.calledWith(press0.target, press0));
+        manager.ontargetactivated.calledWith(press0.target));
       assert.isTrue(window.clearTimeout.calledOnce);
       assert.isTrue(window.setTimeout.calledOnce);
       assert.equal(
         window.setTimeout.getCall(0).args[1], manager.LONG_PRESS_TIMEOUT);
+    });
+
+    test('press move (ignore same target), press end', function() {
+      userPressManagerStub.onpressmove(press0, id0);
+
+      assert.isFalse(window.clearTimeout.calledTwice);
+      assert.isFalse(window.setTimeout.calledTwice);
+      assert.isFalse(manager.ontargetmovedout.called);
+      assert.isFalse(manager.ontargetmovedin.called);
+      assert.isFalse(alternativesCharMenuManagerStub.hide.calledTwice);
+
+      var pressEnd = {
+        target: {
+          textContent: 'e'
+        }
+      };
+      userPressManagerStub.onpressend(pressEnd, id0);
+
+      assert.isTrue(alternativesCharMenuManagerStub.hide.calledOnce);
+      assert.isTrue(
+        manager.ontargetcommitted.calledWith(press0.target));
+      assert.isTrue(window.clearTimeout.calledTwice);
     });
 
     test('press end', function() {
@@ -83,7 +106,22 @@ suite('ActiveTargetsManager', function() {
 
       assert.isTrue(alternativesCharMenuManagerStub.hide.calledOnce);
       assert.isTrue(
-        manager.ontargetcommitted.calledWith(press0.target, pressEnd));
+        manager.ontargetcommitted.calledWith(press0.target));
+      assert.isTrue(window.clearTimeout.calledTwice);
+    });
+
+    test('press end (moved press)', function() {
+      var pressEnd = {
+        target: {
+          textContent: 'e'
+        },
+        moved: true
+      };
+      userPressManagerStub.onpressend(pressEnd, id0);
+
+      assert.isTrue(alternativesCharMenuManagerStub.hide.calledOnce);
+      assert.isTrue(
+        manager.ontargetcommitted.calledWith(press0.target));
       assert.isTrue(window.clearTimeout.calledTwice);
     });
 
@@ -146,7 +184,7 @@ suite('ActiveTargetsManager', function() {
         window.setTimeout.getCall(0).args[0].call(window);
 
         assert.isTrue(
-          manager.ontargetlongpressed.calledWith(press0.target, press0));
+          manager.ontargetlongpressed.calledWith(press0.target));
         assert.isTrue(
           alternativesCharMenuManagerStub.show.calledWith(press0.target, id0));
       });
@@ -161,7 +199,7 @@ suite('ActiveTargetsManager', function() {
 
         assert.isTrue(alternativesCharMenuManagerStub.hide.calledOnce);
         assert.isTrue(
-          manager.ontargetcommitted.calledWith(press0.target, pressEnd));
+          manager.ontargetcommitted.calledWith(press0.target));
         assert.isTrue(window.clearTimeout.calledTwice);
       });
     });
@@ -185,11 +223,11 @@ suite('ActiveTargetsManager', function() {
         window.setTimeout.getCall(0).args[0].call(window);
 
         assert.isTrue(
-          manager.ontargetlongpressed.calledWith(press0.target, press0));
+          manager.ontargetlongpressed.calledWith(press0.target));
         assert.isTrue(
-          manager.ontargetmovedout.calledWith(press0.target, press0));
+          manager.ontargetmovedout.calledWith(press0.target));
         assert.isTrue(
-          manager.ontargetmovedin.calledWith(altTarget, press0));
+          manager.ontargetmovedin.calledWith(altTarget));
       });
 
       test('press end', function() {
@@ -202,7 +240,7 @@ suite('ActiveTargetsManager', function() {
 
         assert.isTrue(alternativesCharMenuManagerStub.hide.calledOnce);
         assert.isTrue(
-          manager.ontargetcommitted.calledWith(altTarget, pressEnd));
+          manager.ontargetcommitted.calledWith(altTarget));
         assert.equal(window.clearTimeout.callCount, 3);
       });
 
@@ -251,7 +289,7 @@ suite('ActiveTargetsManager', function() {
 
           assert.isTrue(alternativesCharMenuManagerStub.hide.calledOnce);
           assert.isTrue(
-            manager.ontargetcommitted.calledWith(altTarget, pressEnd));
+            manager.ontargetcommitted.calledWith(altTarget));
           assert.equal(window.clearTimeout.callCount, 3);
         });
       });
@@ -276,9 +314,9 @@ suite('ActiveTargetsManager', function() {
         userPressManagerStub.onpressmove(pressMove, id0);
 
         assert.isTrue(
-          manager.ontargetmovedout.calledWith(oldTarget, pressMove));
+          manager.ontargetmovedout.calledWith(oldTarget));
         assert.isTrue(
-          manager.ontargetmovedin.calledWith(movedTarget, pressMove));
+          manager.ontargetmovedin.calledWith(movedTarget));
         assert.isTrue(alternativesCharMenuManagerStub.hide.calledOnce);
         assert.isTrue(window.clearTimeout.calledTwice);
         assert.isTrue(window.setTimeout.calledTwice);
@@ -294,7 +332,7 @@ suite('ActiveTargetsManager', function() {
 
         assert.isTrue(alternativesCharMenuManagerStub.hide.calledTwice);
         assert.isTrue(
-          manager.ontargetcommitted.calledWith(movedTarget, pressEnd));
+          manager.ontargetcommitted.calledWith(movedTarget));
         assert.equal(window.clearTimeout.callCount, 3);
       });
 
@@ -303,7 +341,7 @@ suite('ActiveTargetsManager', function() {
           window.setTimeout.getCall(1).args[0].call(window);
 
           assert.isTrue(
-            manager.ontargetlongpressed.calledWith(movedTarget, pressMove));
+            manager.ontargetlongpressed.calledWith(movedTarget));
           assert.isTrue(
             alternativesCharMenuManagerStub.show.calledWith(movedTarget, id0));
         });
@@ -318,7 +356,7 @@ suite('ActiveTargetsManager', function() {
 
           assert.isTrue(alternativesCharMenuManagerStub.hide.calledTwice);
           assert.isTrue(
-            manager.ontargetcommitted.calledWith(movedTarget, pressEnd));
+            manager.ontargetcommitted.calledWith(movedTarget));
           assert.equal(window.clearTimeout.callCount, 3);
         });
       });
@@ -336,7 +374,7 @@ suite('ActiveTargetsManager', function() {
         userPressManagerStub.onpressstart(press1, id1);
 
         assert.isTrue(
-          manager.ontargetactivated.calledWith(press1.target, press1));
+          manager.ontargetactivated.calledWith(press1.target));
         assert.isTrue(window.clearTimeout.calledTwice);
         assert.isFalse(window.setTimeout.calledTwice,
           'No long press for second tap.');
@@ -352,7 +390,7 @@ suite('ActiveTargetsManager', function() {
 
         assert.isTrue(alternativesCharMenuManagerStub.hide.calledOnce);
         assert.isTrue(
-          manager.ontargetcommitted.calledWith(press1.target, pressEnd));
+          manager.ontargetcommitted.calledWith(press1.target));
         assert.equal(window.clearTimeout.callCount, 3);
 
         var pressEnd2 = {
@@ -364,7 +402,7 @@ suite('ActiveTargetsManager', function() {
 
         assert.isTrue(alternativesCharMenuManagerStub.hide.calledTwice);
         assert.isTrue(
-          manager.ontargetcommitted.calledWith(press0.target, pressEnd2));
+          manager.ontargetcommitted.calledWith(press0.target));
         assert.equal(window.clearTimeout.callCount, 4);
       });
 
@@ -378,7 +416,7 @@ suite('ActiveTargetsManager', function() {
 
         assert.isTrue(alternativesCharMenuManagerStub.hide.calledOnce);
         assert.isTrue(
-          manager.ontargetcommitted.calledWith(press0.target, pressEnd));
+          manager.ontargetcommitted.calledWith(press0.target));
         assert.equal(window.clearTimeout.callCount, 3);
 
         var pressEnd2 = {
@@ -390,9 +428,60 @@ suite('ActiveTargetsManager', function() {
 
         assert.isTrue(alternativesCharMenuManagerStub.hide.calledTwice);
         assert.isTrue(
-          manager.ontargetcommitted.calledWith(press1.target, pressEnd2));
+          manager.ontargetcommitted.calledWith(press1.target));
         assert.equal(window.clearTimeout.callCount, 4);
       });
+    });
+  });
+
+  suite('start first press (on a selection)', function() {
+    var id0 = 0;
+    var press0 = {
+      target: {
+        textContent: '1',
+        dataset: {
+          selection: 'true'
+        }
+      }
+    };
+
+    setup(function() {
+      alternativesCharMenuManagerStub.isShown = false;
+
+      userPressManagerStub.onpressstart(press0, id0);
+
+      assert.isTrue(
+        manager.ontargetactivated.calledWith(press0.target));
+      assert.isTrue(window.clearTimeout.calledOnce);
+      assert.isTrue(window.setTimeout.calledOnce);
+      assert.equal(
+        window.setTimeout.getCall(0).args[1], manager.LONG_PRESS_TIMEOUT);
+    });
+
+    test('press end', function() {
+      var pressEnd = {
+        target: press0.target
+      };
+      userPressManagerStub.onpressend(pressEnd, id0);
+
+      assert.isTrue(alternativesCharMenuManagerStub.hide.calledOnce);
+      assert.isTrue(
+        manager.ontargetcommitted.calledWith(press0.target));
+      assert.isTrue(window.clearTimeout.calledTwice);
+    });
+
+    test('press end (moved press)', function() {
+      var pressEnd = {
+        target: press0.target,
+        moved: true
+      };
+      userPressManagerStub.onpressend(pressEnd, id0);
+
+      assert.isTrue(alternativesCharMenuManagerStub.hide.calledOnce);
+      assert.isTrue(
+        manager.ontargetcancelled.calledWith(press0.target),
+        'target should be cancelled.');
+      assert.isTrue(window.clearTimeout.calledTwice);
     });
   });
 });
