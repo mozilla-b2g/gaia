@@ -2,7 +2,7 @@
 'use strict';
 
 require('/js/shared_components.js');
-require('/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 
 suite('SharedComponents >', function() {
   var nativeMozL10n = navigator.mozL10n;

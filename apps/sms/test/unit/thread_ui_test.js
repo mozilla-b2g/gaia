@@ -31,7 +31,7 @@ require('/test/unit/mock_time_headers.js');
 require('/test/unit/mock_link_action_handler.js');
 require('/test/unit/mock_attachment.js');
 require('/test/unit/mock_attachment_menu.js');
-require('/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 require('/test/unit/mock_utils.js');
 require('/test/unit/mock_navigatormoz_sms.js');
 require('/test/unit/mock_moz_sms_filter.js');
@@ -2999,7 +2999,6 @@ suite('thread_ui.js >', function() {
         element = document.getElementById('message-' + message.id);
         notDownloadedMessage = element.querySelector('.not-downloaded-message');
         button = element.querySelector('button');
-
       });
       test('element has correct data-message-id', function() {
         assert.equal(element.dataset.messageId, message.id);
@@ -6108,8 +6107,7 @@ suite('thread_ui.js >', function() {
         });
 
         test('updates the header', function() {
-          // the l10n mock adds the key as text content
-          assert.equal(headerText.textContent, 'newMessage');
+          assert.equal(headerText.dataset.l10nId, 'newMessage');
         });
       });
 

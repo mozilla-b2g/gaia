@@ -6,7 +6,7 @@
 
 requireApp('sms/test/unit/mock_contact.js');
 requireApp('sms/test/unit/mock_contacts.js');
-requireApp('sms/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('sms/test/unit/mock_navigator_mozphonenumberservice.js');
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 requireApp('sms/js/utils.js');

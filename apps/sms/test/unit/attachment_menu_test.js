@@ -5,7 +5,7 @@
 requireApp('sms/js/attachment_menu.js');
 
 requireApp('sms/test/unit/mock_attachment.js');
-requireApp('sms/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 
 var MocksHelperForAttachmentMenu = new MocksHelper([
   'Attachment'
