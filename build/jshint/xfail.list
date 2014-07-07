@@ -378,7 +378,6 @@ apps/system/js/sheets_transition.js
 apps/system/js/sim_lock.js
 apps/system/js/simslot.js
 apps/system/js/simslot_manager.js
-apps/system/js/sound_manager.js
 apps/system/js/statusbar.js
 apps/system/js/storage_watcher.js
 apps/system/js/system.js
