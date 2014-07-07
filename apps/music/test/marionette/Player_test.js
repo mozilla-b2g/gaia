@@ -96,12 +96,18 @@ marionette('Music player tests', function() {
       music.switchToSongsView();
       music.playFirstSong();
 
-      var t0 = music.songProgress;
+      var t0 = 0;
       var dt = 5.0;
+
+      // wait for the music to start playing
+      client.waitFor(function() {
+        t0 = music.songProgress;
+        return (t0 !== 0);
+      });
 
       // We want to wait a few seconds while the music app is in the background.
       controls.launch();
-      //client.helper.wait(dt * 1000); // Convert to ms
+      client.helper.wait(dt * 1000); // Convert to ms
       controls.playPause();
       controls.close();
 
