@@ -45,17 +45,9 @@ var isWaitingForSecondTap = false;
 var isContinousSpacePressed = false;
 var isUpperCase = false;
 var isUpperCaseLocked = false;
-// activeTargets keeps the active elements in the view of highlight indication
-// and alternative menu, and actual key to commit when touch event ends.
-// It is not necessary the element the finger is currently under.
-var activeTargets = new Map();
 var isKeyboardRendered = false;
 var currentCandidates = [];
 var candidatePanelScrollTimer = null;
-
-// Show accent char menu (if there is one) or do other stuff
-// after LONG_PRESS_TIMEOUT
-const LONG_PRESS_TIMEOUT = 700;
 
 // Backspace repeat delay and repeat rate
 const REPEAT_RATE = 75;
@@ -75,7 +67,6 @@ const HIDE_KEYBOARD_TIMEOUT = 500;
 // timeout and interval for delete, they could be cancelled on mouse over
 var deleteTimeout = 0;
 var deleteInterval = 0;
-var longPressTimeout = 0;
 var hideKeyboardTimeout = 0;
 
 // XXX: For now let's pass a fake app object,
@@ -85,9 +76,7 @@ var fakeAppObject = {
   layoutManager: null,
   settingsPromiseManager: null,
   l10nLoader: null,
-  userPressManager: null,
-  alternativesCharMenuManager: null,
-  feedbackManager: null,
+  activeTargetsManager: null,
 
   inputContext: null,
 
@@ -203,21 +192,18 @@ var settingsPromiseManager =
 // only after we have run everything in the critical cold launch path.
 var l10nLoader = fakeAppObject.l10nLoader = new L10nLoader();
 
-// UserPressManager handle and respond to touch/mouse events
-var userPressManager =
-  fakeAppObject.userPressManager = new UserPressManager(fakeAppObject);
-userPressManager.onpressstart = startPress;
-userPressManager.onpressmove = movePress;
-userPressManager.onpressend = endPress;
-userPressManager.start();
+// ActiveTargetsManager run these callbacks when keys are interacted.
+var activeTargetsManager =
+  fakeAppObject.activeTargetsManager = new ActiveTargetsManager(fakeAppObject);
+activeTargetsManager.ontargetactivated = handleTargetActivated;
+activeTargetsManager.ontargetlongpressed = handleTargetLongPressed;
+activeTargetsManager.ontargetmovedout = handleTargetMovedOut;
+activeTargetsManager.ontargetmovedin = handleTargetMovedIn;
+activeTargetsManager.ontargetcommitted = handleTargetCommitted;
+activeTargetsManager.ontargetcancelled = handleTargetCancelled;
+activeTargetsManager.start();
 
-var alternativesCharMenuManager =
-  fakeAppObject.alternativesCharMenuManager =
-  new AlternativesCharMenuManager(fakeAppObject);
-alternativesCharMenuManager.start();
-
-var feedbackManager =
-  fakeAppObject.feedbackManager = new FeedbackManager(fakeAppObject);
+var feedbackManager = new FeedbackManager(fakeAppObject);
 feedbackManager.start();
 
 var visualHighlightManager = new VisualHighlightManager(fakeAppObject);
@@ -495,95 +481,29 @@ function sendDelete(isRepeat) {
                                            isRepeat);
 }
 
-function setLongPressTimeout(press, id) {
-  // Only set a timeout to show alternatives if there is one touch.
-  // This avoids paving over longPressTimeout with a new timeout id
-  // from a separate touch.
-  if (activeTargets.size > 1) {
-    return;
-  }
-
-  longPressTimeout = window.setTimeout(function longPressTimeout() {
-    // Don't try to show the alternatives menu if it's already showing,
-    // or if there's more than one touch on the screen.
-    if (alternativesCharMenuManager.isShown || activeTargets.size > 1)
-      return;
-
-    var target = press.target;
-
-    // Does the key have an long press value?
-    if (target.dataset.longPressValue) {
-      // Attach a dataset property that will be used to ignore
-      // keypress in endPress
-      target.dataset.ignoreEndPress = true;
-
-      var keyCode = parseInt(target.dataset.longPressKeyCode, 10);
-      sendKey(keyCode);
-    }
-
-    handleLongPress(target, id);
-
-    // If we successfuly showed the alternatives menu, redirect the
-    // press over the first key in the menu.
-    if (alternativesCharMenuManager.isShown)
-      movePress(press, id);
-
-  }, LONG_PRESS_TIMEOUT);
-}
-
-// Show alternatives for the HTML node key, and etc.
-function handleLongPress(target, touchId) {
-  // Get the key object from layout
-  var keyCode = getKeyCodeFromTarget(target);
-
-  // Handle languages alternatives
-  if (keyCode === SWITCH_KEYBOARD) {
-    showIMEList();
-    return;
-  }
-
-  // Hide the keyboard
-  if (keyCode === KeyEvent.DOM_VK_SPACE) {
-    dismissKeyboard();
-    return;
-  }
-
-  alternativesCharMenuManager.show(target, touchId);
-}
-
-// Test if an HTML node is a normal key
-function isNormalKey(key) {
-  var keyCode = parseInt(key.dataset.keycode);
-  return keyCode || key.dataset.selection || key.dataset.compositeKey;
-}
-
 function getKeyCodeFromTarget(target) {
   return isUpperCase || isUpperCaseLocked ?
     parseInt(target.dataset.keycodeUpper, 10) :
     parseInt(target.dataset.keycode, 10);
 }
 
-function startPress(press, id) {
-  activeTargets.set(id, press.target);
-
-  if (!isNormalKey(press.target))
+function handleTargetActivated(target) {
+  // Ignore non-key targets
+  if (!('keycode' in target.dataset) &&
+      !('selection' in target.dataset) &&
+      !('compositeKey' in target.dataset)) {
     return;
+  }
 
-  if (alternativesCharMenuManager.isShown)
-    return;
-
-  var keyCode = getKeyCodeFromTarget(press.target);
+  var keyCode = getKeyCodeFromTarget(target);
 
   // Feedback
-  feedbackManager.triggerFeedback(press.target);
-  visualHighlightManager.show(press.target);
-
-  setLongPressTimeout(press, id);
+  feedbackManager.triggerFeedback(target);
+  visualHighlightManager.show(target);
 
   // Special keys (such as delete) response when pressing (not releasing)
   // Furthermore, delete key has a repetition behavior
   if (keyCode === KeyEvent.DOM_VK_BACK_SPACE) {
-
     // First repetition, after a delay (with feedback)
     deleteTimeout = window.setTimeout(function() {
       sendDelete(true);
@@ -597,28 +517,55 @@ function startPress(press, id) {
   }
 }
 
-function movePress(press, id) {
-  var target = press.target;
-  // Control locked zone for menu
-  if (alternativesCharMenuManager.isShown &&
-      alternativesCharMenuManager.isInMenuArea(press)) {
-    target = alternativesCharMenuManager.getMenuTarget(press);
-  }
+function handleTargetLongPressed(target) {
+  // Does the key have an long press value?
+  if (target.dataset.longPressValue) {
+    // Attach a dataset property that will be used to ignore
+    // keypress in endPress
+    target.dataset.ignoreEndPress = true;
 
-  if (alternativesCharMenuManager.isShown &&
-      !alternativesCharMenuManager.isMenuTouch(id)) {
+    var keyCode = parseInt(target.dataset.longPressKeyCode, 10);
+    sendKey(keyCode);
+
     return;
   }
 
-  var oldTarget = activeTargets.get(id);
+  var keyCode = getKeyCodeFromTarget(target);
 
-  // Do nothing if there are invalid targets, if the user is touching the
-  // same key, or if the new target is not a normal key.
-  if (!target || !oldTarget || oldTarget == target || !isNormalKey(target))
+  // Handle languages alternatives
+  if (keyCode === SWITCH_KEYBOARD) {
+    showIMEList();
     return;
+  }
 
-  // Update highlight: remove from older
-  visualHighlightManager.hide(oldTarget);
+  // Hide the keyboard
+  if (keyCode === KeyEvent.DOM_VK_SPACE) {
+    dismissKeyboard();
+    return;
+  }
+}
+
+function handleTargetMovedOut(target) {
+  // Ignore non-key targets
+  if (!('keycode' in target.dataset) &&
+      !('selection' in target.dataset) &&
+      !('compositeKey' in target.dataset)) {
+    return;
+  }
+
+  visualHighlightManager.hide(target);
+
+  clearTimeout(deleteTimeout);
+  clearInterval(deleteInterval);
+}
+
+function handleTargetMovedIn(target) {
+  // Ignore non-key targets
+  if (!('keycode' in target.dataset) &&
+      !('selection' in target.dataset) &&
+      !('compositeKey' in target.dataset)) {
+    return;
+  }
 
   var keyCode = getKeyCodeFromTarget(target);
 
@@ -626,38 +573,11 @@ function movePress(press, id) {
   if (keyCode != KeyEvent.DOM_VK_BACK_SPACE) {
     visualHighlightManager.show(target);
   }
-
-  activeTargets.set(id, target);
-
-  clearTimeout(deleteTimeout);
-  clearInterval(deleteInterval);
-  clearTimeout(longPressTimeout);
-
-  // Hide of alternatives menu if the touch moved out of it
-  if (!alternativesCharMenuManager.isMenuTarget(target) &&
-      !alternativesCharMenuManager.isInMenuArea(press)) {
-    alternativesCharMenuManager.hide();
-  }
-
-  // Control showing alternatives menu
-  setLongPressTimeout(press, id);
 }
 
-// The user is releasing a key so the key has been pressed. The meat is here.
-function endPress(press, id) {
-  var target = activeTargets.get(id);
-  activeTargets.delete(id);
-
-  if (alternativesCharMenuManager.isShown &&
-      !alternativesCharMenuManager.isMenuTouch(id)) {
-    return;
-  }
-
+function handleTargetCommitted(target, press) {
   clearTimeout(deleteTimeout);
   clearInterval(deleteInterval);
-  clearTimeout(longPressTimeout);
-
-  alternativesCharMenuManager.hide();
 
   if (target.classList.contains('dismiss-suggestions-button')) {
     if (inputMethodManager.currentIMEngine.dismissSuggestions) {
@@ -665,9 +585,6 @@ function endPress(press, id) {
     }
     return;
   }
-
-  if (!target || !isNormalKey(target))
-    return;
 
   // IME candidate selected
   var dataset = target.dataset;
@@ -844,6 +761,13 @@ function endPress(press, id) {
   }
 }
 
+function handleTargetCancelled(target) {
+  visualHighlightManager.hide(target);
+
+  clearTimeout(deleteTimeout);
+  clearInterval(deleteInterval);
+}
+
 function candidatePanelOnScroll() {
   if (candidatePanelScrollTimer) {
     clearTimeout(candidatePanelScrollTimer);
@@ -893,7 +817,7 @@ function switchToNextIME() {
 }
 
 function showIMEList() {
-  clearTouchedKeys();
+  activeTargetsManager.clearAllTargets();
   var mgmt = navigator.mozInputMethod.mgmt;
   mgmt.showAll();
 }
@@ -1003,7 +927,7 @@ function hideKeyboard() {
     'keyboard.current': undefined
   });
 
-  clearTouchedKeys();
+  activeTargetsManager.clearAllTargets();
 }
 
 // Resize event handler
@@ -1113,27 +1037,9 @@ function isGreekSMS() {
           layoutManager.currentLayoutName === 'el');
 }
 
-// Remove the event listeners on the touched keys and the highlighting.
-// This is because sometimes DOM element is removed before
-// touchend is fired.
-function clearTouchedKeys() {
-  activeTargets.forEach(function cleanPress(el, id) {
-    visualHighlightManager.hide(el);
-  });
-
-  alternativesCharMenuManager.hide();
-
-  // Reset all the pending actions here.
-  clearTimeout(deleteTimeout);
-  clearInterval(deleteInterval);
-  clearTimeout(longPressTimeout);
-}
-
 // Hide the keyboard via input method API
 function dismissKeyboard() {
-  clearTimeout(deleteTimeout);
-  clearInterval(deleteInterval);
-  clearTimeout(longPressTimeout);
+  activeTargetsManager.clearAllTargets();
 
   navigator.mozInputMethod.mgmt.hide();
 }
