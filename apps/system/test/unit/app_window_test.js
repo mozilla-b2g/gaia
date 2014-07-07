@@ -1,6 +1,6 @@
 /* global AppWindow, ScreenLayout, MockOrientationManager,
-      LayoutManager, MocksHelper, MockAttentionScreen, MockContextMenu,
-      AppChrome, ActivityWindow, PopupWindow, layoutManager */
+      LayoutManager, MocksHelper, MockContextMenu,
+      AppChrome, layoutManager */
 'use strict';
 
 requireApp('system/test/unit/mock_orientation_manager.js');
@@ -13,15 +13,13 @@ requireApp('system/test/unit/mock_layout_manager.js');
 requireApp('system/test/unit/mock_app_chrome.js');
 requireApp('system/test/unit/mock_screen_layout.js');
 requireApp('system/test/unit/mock_popup_window.js');
-requireApp('system/test/unit/mock_attention_screen.js');
 requireApp('system/test/unit/mock_activity_window.js');
 requireApp('system/test/unit/mock_statusbar.js');
 
 var mocksForAppWindow = new MocksHelper([
   'OrientationManager', 'Applications', 'SettingsListener',
   'ManifestHelper', 'LayoutManager', 'ActivityWindow',
-  'ScreenLayout', 'AppChrome', 'PopupWindow', 'AttentionScreen',
-  'StatusBar'
+  'ScreenLayout', 'AppChrome', 'PopupWindow', 'StatusBar'
 ]).init();
 
 suite('system/AppWindow', function() {
@@ -1221,6 +1219,20 @@ suite('system/AppWindow', function() {
       assert.isTrue(spyClose.calledWith('out-to-right'));
     });
 
+    test('Destroy should clear rearWindow.', function() {
+      var popups = openPopups(2);
+      popups[1].destroy();
+      assert.isNull(popups[0].frontWindow);
+      assert.isNull(popups[1].rearWindow);
+    });
+
+    test('Destroy should clear previousWindow.', function() {
+      var sheets = openSheets(2);
+      sheets[1].destroy();
+      assert.isNull(sheets[0].nextWindow);
+      assert.isNull(sheets[1].previousWindow);
+    });
+
     test('Error event', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       var stubKill = this.sinon.stub(app1, 'kill');
@@ -1304,8 +1316,6 @@ suite('system/AppWindow', function() {
       assert.isTrue(stubOpenParent.calledWith('in-from-left'));
       assert.isTrue(stubCloseSelf.calledWith('out-to-right'));
       assert.isTrue(stubKillChild.called);
-      assert.isNull(app1.previousWindow);
-      assert.isNull(app1parent.nextWindow);
       assert.isNull(app1.nextWindow);
 
       var stubDestroy = this.sinon.stub(app1, 'destroy');
@@ -1346,28 +1356,6 @@ suite('system/AppWindow', function() {
 
       assert.equal(app1.config.url, 'http://fakeURL.changed');
       app1.config.url = url;
-    });
-
-    suite('kill behavior with events', function() {
-      var app, evt, spyStopPropagation;
-
-      setup(function() {
-        app = new AppWindow(fakeAppConfig1);
-        evt = new CustomEvent('mozbrowserlocationchange',
-          { detail: 'http://fakeURL.changed' });
-        spyStopPropagation = this.sinon.spy(evt, 'stopPropagation');
-      });
-
-      test('no kill', function() {
-        app.handleEvent(evt);
-        assert.isTrue(spyStopPropagation.notCalled);
-      });
-
-      test('under kill', function() {
-        app.kill();
-        app.handleEvent(evt);
-        assert.isTrue(spyStopPropagation.called);
-      });
     });
 
     test('Scroll event', function() {
@@ -1529,76 +1517,6 @@ suite('system/AppWindow', function() {
       });
 
       assert.isTrue(switchTransitionState.calledWith('closed'));
-    });
-
-    test('popupclosing event', function() {
-      var app1 = new AppWindow(fakeAppConfig1);
-      var spyLockOrientation = this.sinon.spy(app1, 'lockOrientation');
-      var spySetVisible = this.sinon.spy(app1, 'setVisible');
-      var stubIsActive = this.sinon.stub(app1, 'isActive');
-      stubIsActive.returns(true);
-      MockAttentionScreen.mFullyVisible = false;
-
-      app1.handleEvent({
-        type: 'popupclosing'
-      });
-
-      assert.isTrue(spyLockOrientation.called);
-      assert.isTrue(spySetVisible.called);
-    });
-
-    test('activityclosing event', function() {
-      var app1 = new AppWindow(fakeAppConfig1);
-      var spyLockOrientation = this.sinon.spy(app1, 'lockOrientation');
-      var spySetVisible = this.sinon.spy(app1, 'setVisible');
-      var stubIsActive = this.sinon.stub(app1, 'isActive');
-      stubIsActive.returns(true);
-      MockAttentionScreen.mFullyVisible = false;
-
-      app1.handleEvent({
-        type: 'activityclosing'
-      });
-
-      assert.isTrue(spyLockOrientation.called);
-      assert.isTrue(spySetVisible.called);
-    });
-
-    test('activityclosing event when attention screen is shown', function() {
-      var app1 = new AppWindow(fakeAppConfig1);
-      var spyLockOrientation = this.sinon.spy(app1, 'lockOrientation');
-      var spySetVisible = this.sinon.spy(app1, 'setVisible');
-      var stubIsActive = this.sinon.stub(app1, 'isActive');
-      stubIsActive.returns(true);
-      MockAttentionScreen.mFullyVisible = true;
-
-      app1.handleEvent({
-        type: 'activityclosing'
-      });
-
-      assert.isTrue(spyLockOrientation.called);
-      assert.isFalse(spySetVisible.called);
-    });
-
-    test('activityterminated event', function() {
-      var app1 = new AppWindow(fakeAppConfig1);
-      var activity = new ActivityWindow({});
-      app1.frontWindow = activity;
-      app1.handleEvent({
-        type: 'activityterminated'
-      });
-
-      assert.isNull(app1.frontWindow);
-    });
-
-    test('popupterminated event', function() {
-      var app1 = new AppWindow(fakeAppConfig1);
-      var popup = new PopupWindow({});
-      app1.frontWindow = popup;
-      app1.handleEvent({
-        type: 'popupterminated'
-      });
-
-      assert.isNull(app1.frontWindow);
     });
   });
 
