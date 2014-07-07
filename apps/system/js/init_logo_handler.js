@@ -194,6 +194,7 @@ var InitLogoHandler = {
           elem.load();
         }
         self.carrierLogo.parentNode.removeChild(self.carrierLogo);
+        delete self.carrierLogo; // Don't entrain the DOM nodes.
 
         self.osLogo.classList.add('hide');
         self.carrierPowerOnElement = null;
@@ -203,6 +204,7 @@ var InitLogoHandler = {
     self.osLogo.addEventListener('transitionend', function transOsLogo() {
       self.osLogo.removeEventListener('transitionend', transOsLogo);
       self.osLogo.parentNode.removeChild(self.osLogo);
+      delete self.osLogo; // Don't entrain the DOM nodes.
       if (callback) {
         callback();
       }
