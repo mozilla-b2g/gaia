@@ -660,8 +660,16 @@ function showAlternatives(key) {
     alternatives = alternatives.split('');
   }
 
-  if (!alternatives.length)
+  if (alternatives.length) {
+    // Add key into alternatives
+    if (isUpperCase || isUpperCaseLocked) {
+      alternatives.unshift(getUpperCaseValue(keyObj));
+    } else {
+      alternatives.unshift(value);
+    }
+  } else {
     return;
+  }
 
   // Locked limits
   // TODO: look for [LOCKED_AREA]
