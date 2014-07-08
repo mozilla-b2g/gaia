@@ -40,7 +40,7 @@ suite('system/AppInstallManager >', function() {
   var realRequestWakeLock;
   var realMozApps;
 
-  var fakeDialog, fakeNotif;
+  var fakeInstallDialog, fakeUninstallDialog, fakeNotif;
   var fakeInstallCancelDialog, fakeDownloadCancelDialog;
   var fakeSetupDialog, fakeImeListDialog, fakeImeListTemplate;
 
@@ -83,13 +83,13 @@ suite('system/AppInstallManager >', function() {
   });
 
   suiteTeardown(function() {
-    AppInstallManager.dialog = null;
-    AppInstallManager.msg = null;
+    AppInstallManager.installDialog = null;
+    AppInstallManager.installMsg = null;
     AppInstallManager.size = null;
     AppInstallManager.authorName = null;
     AppInstallManager.authorUrl = null;
     AppInstallManager.installButton = null;
-    AppInstallManager.cancelButton = null;
+    AppInstallManager.installCancelButton = null;
     AppInstallManager.installCallback = null;
     AppInstallManager.cancelCallback = null;
 
@@ -106,9 +106,9 @@ suite('system/AppInstallManager >', function() {
   });
 
   setup(function() {
-    fakeDialog = document.createElement('form');
-    fakeDialog.id = 'app-install-dialog';
-    fakeDialog.innerHTML = [
+    fakeInstallDialog = document.createElement('form');
+    fakeInstallDialog.id = 'app-install-dialog';
+    fakeInstallDialog.innerHTML = [
       '<section>',
         '<h1 id="app-install-message"></h1>',
         '<table>',
@@ -129,6 +129,20 @@ suite('system/AppInstallManager >', function() {
           ' data-l10n-id="cancel">Cancel</button>',
           '<button id="app-install-install-button" type="submit"' +
           ' data-l10n-id="install">Install</button>',
+        '</menu>',
+      '</section>'
+    ].join('');
+
+    fakeUninstallDialog = document.createElement('form');
+    fakeUninstallDialog.id = 'app-uninstall-dialog';
+    fakeUninstallDialog.innerHTML = [
+      '<section>',
+        '<h1 id="app-uninstall-message"></h1>',
+        '<menu>',
+          '<button id="app-uninstall-cancel-button" type="reset"' +
+          ' data-l10n-id="cancel">Cancel</button>',
+          '<button id="app-uninstall-uninstall-button" type="submit"' +
+          ' data-l10n-id="uninstall">Uninstall</button>',
         '</menu>',
       '</section>'
     ].join('');
@@ -220,7 +234,8 @@ suite('system/AppInstallManager >', function() {
         '-->'
     ].join('');
 
-    document.body.appendChild(fakeDialog);
+    document.body.appendChild(fakeInstallDialog);
+    document.body.appendChild(fakeUninstallDialog);
     document.body.appendChild(fakeInstallCancelDialog);
     document.body.appendChild(fakeDownloadCancelDialog);
     document.body.appendChild(fakeNotif);
@@ -232,7 +247,8 @@ suite('system/AppInstallManager >', function() {
   });
 
   teardown(function() {
-    fakeDialog.parentNode.removeChild(fakeDialog);
+    fakeInstallDialog.parentNode.removeChild(fakeInstallDialog);
+    fakeUninstallDialog.parentNode.removeChild(fakeUninstallDialog);
     fakeInstallCancelDialog.parentNode.removeChild(fakeInstallCancelDialog);
     fakeDownloadCancelDialog.parentNode.removeChild(fakeDownloadCancelDialog);
     fakeNotif.parentNode.removeChild(fakeNotif);
@@ -247,15 +263,15 @@ suite('system/AppInstallManager >', function() {
 
   suite('init >', function() {
     test('should bind dom elements', function() {
-      assert.equal('app-install-dialog', AppInstallManager.dialog.id);
-      assert.equal('app-install-message', AppInstallManager.msg.id);
+      assert.equal('app-install-dialog', AppInstallManager.installDialog.id);
+      assert.equal('app-install-message', AppInstallManager.installMsg.id);
       assert.equal('app-install-size', AppInstallManager.size.id);
       assert.equal('app-install-author-name', AppInstallManager.authorName.id);
       assert.equal('app-install-author-url', AppInstallManager.authorUrl.id);
       assert.equal('app-install-install-button',
         AppInstallManager.installButton.id);
       assert.equal('app-install-cancel-button',
-        AppInstallManager.cancelButton.id);
+        AppInstallManager.installCancelButton.id);
       assert.equal('app-install-cancel-dialog',
         AppInstallManager.installCancelDialog.id);
       assert.equal('app-install-confirm-cancel-button',
@@ -288,7 +304,7 @@ suite('system/AppInstallManager >', function() {
       assert.equal(AppInstallManager.handleInstall.name,
                    AppInstallManager.installButton.onclick.name);
       assert.equal(AppInstallManager.showInstallCancelDialog.name,
-                   AppInstallManager.cancelButton.onclick.name);
+                   AppInstallManager.installCancelButton.onclick.name);
       assert.equal(AppInstallManager.handleInstallCancel.name,
                    AppInstallManager.confirmCancelButton.onclick.name);
       assert.equal(AppInstallManager.hideInstallCancelDialog.name,
@@ -327,11 +343,11 @@ suite('system/AppInstallManager >', function() {
       });
 
       test('should display the dialog', function() {
-        assert.equal('visible', AppInstallManager.dialog.className);
+        assert.equal('visible', AppInstallManager.installDialog.className);
       });
 
       test('should fill the message with app name', function() {
-        assert.equal(AppInstallManager.msg.textContent,
+        assert.equal(AppInstallManager.installMsg.textContent,
           'install-app{"name":"Fake app"}');
       });
 
@@ -353,7 +369,7 @@ suite('system/AppInstallManager >', function() {
 
         AppInstallManager.handleAppInstallPrompt(evt.detail);
 
-        assert.equal(AppInstallManager.msg.textContent,
+        assert.equal(AppInstallManager.installMsg.textContent,
           'install-app{"name":"Fake app"}');
       });
 
@@ -491,7 +507,7 @@ suite('system/AppInstallManager >', function() {
           });
 
           test('should hide the dialog', function() {
-            assert.equal('', AppInstallManager.dialog.className);
+            assert.equal('', AppInstallManager.installDialog.className);
           });
 
           test('should remove the callback', function() {
@@ -507,7 +523,7 @@ suite('system/AppInstallManager >', function() {
           test('should show cancel dialog and hide dialog', function() {
             assert.equal('visible',
               AppInstallManager.installCancelDialog.className);
-            assert.equal('', AppInstallManager.dialog.className);
+            assert.equal('', AppInstallManager.installDialog.className);
           });
         });
 
@@ -518,7 +534,7 @@ suite('system/AppInstallManager >', function() {
 
           test('should hide cancel dialog and show dialog', function() {
             assert.equal('', AppInstallManager.installCancelDialog.className);
-            assert.equal('visible', AppInstallManager.dialog.className);
+            assert.equal('visible', AppInstallManager.installDialog.className);
           });
         });
 
