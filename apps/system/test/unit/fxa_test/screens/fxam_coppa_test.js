@@ -11,6 +11,7 @@ require('/shared/js/utilities.js');
 requireApp('system/fxa/js/fxam_module.js');
 requireApp('system/fxa/js/fxam_states.js');
 requireApp('system/fxa/js/fxam_manager.js');
+requireApp('system/fxa/js/fxam_navigation.js');
 requireApp('system/fxa/js/fxam_overlay.js');
 requireApp('system/fxa/js/fxam_error_overlay.js');
 
@@ -93,27 +94,6 @@ suite('Screen: COPPA', function() {
     test(' > FxaModuleUI called', function(done) {
       assert.isFalse(fxamUIEnableSpy.calledOnce);
       assert.ok(fxamUIIncStepsSpy.calledOnce);
-      done();
-    });
-  });
-
-  suite(' > Second call to init', function() {
-    var fxamUIEnableSpy;
-    var fxamUIIncStepsSpy;
-    setup(function() {
-      fxamUIEnableSpy = this.sinon.spy(FxaModuleUI, 'enableNextButton');
-      fxamUIIncStepsSpy = this.sinon.spy(FxaModuleUI, 'increaseMaxStepsBy');
-      FxaModuleCoppa.init();
-    });
-
-    teardown(function() {
-      fxamUIEnableSpy = null;
-      fxamUIIncStepsSpy = null;
-    });
-
-    test(' > FxaModuleUI should not be called', function(done) {
-      assert.isFalse(fxamUIEnableSpy.calledOnce);
-      assert.isFalse(fxamUIIncStepsSpy.calledOnce);
       done();
     });
   });
