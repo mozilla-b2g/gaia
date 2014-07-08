@@ -173,7 +173,7 @@ var GaiaApps = {
   },
 
   // Returns the number of running apps.
-  // includeSystemApps defines counting system always-running apps or not
+  // if includeSystemApps is true then system always-running apps (eg Homescreen) will be counted
   numRunningApps: function(includeSystemApps) {
     let count = 0;
     let apps = GaiaApps.getApps(includeSystemApps);
@@ -218,14 +218,13 @@ var GaiaApps = {
     }
   },
 
-  // Kills all apps
-  // includeSystemApps will allow user-protected apps like Homescreen to be killed,
-  // otherwise, gets all user-killable apps (from Cards View/StackManager)
-  killAll: function(includeSystemApps) {
+  // Kills all running apps that may be killed by the user, defined as
+  // being accessible by the Cards View/Stack Manager
+  killAll: function() {
     let originsToClose = [];
     let that = this;
 
-    let apps = GaiaApps.getApps(includeSystemApps);
+    let apps = GaiaApps.getApps();
     for (let id in apps) {
       let origin = apps[id].origin;
       originsToClose.push(origin);
@@ -245,7 +244,7 @@ var GaiaApps = {
     // apps are running (since we don't close the homescreen app).
     waitFor(
       function() { marionetteScriptFinished(true); },
-      function() { return that.numRunningApps(includeSystemApps) <= 1; }
+      function() { return that.numRunningApps() <= 1; }
     );
   },
 
