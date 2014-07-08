@@ -723,6 +723,7 @@ function execute(options) {
       if (localeDir.exists() && options.DEBUG !== 1) {
         localeDir.remove(true);
       }
+
       let sharedLocaleDir = webapp.buildDirectoryFile.clone();
       sharedLocaleDir.append('shared');
       sharedLocaleDir.append('locales');
