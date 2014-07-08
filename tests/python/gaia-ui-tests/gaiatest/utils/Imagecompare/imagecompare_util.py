@@ -97,7 +97,11 @@ class ImageCompareUtil():
         h_dimension = dimension[0:dimension.find('x')]
         v_dimension = dimension[dimension.find('x') + 1:]
 
-        cropfactor = int(v_dimension) / 24  # magic number
+        if (v_dimension < h_dimension):  #it is in landscape mode.  But, the status bar has same width!
+            cropfactor = int(h_dimension) / 24
+        else:
+            cropfactor = int(v_dimension) / 24  # magic number
+
         new_v_dimension = int(v_dimension) - cropfactor
 
         subprocess.call(
@@ -120,10 +124,10 @@ class ImageCompareUtil():
         for filename in self.sorted_ls(os.getcwd()):
             print "Copying..." + filename
             if "png" in filename:
-                #rename files to following format: <counter>_<timestamp>_<testname>_<device>.png
+                #rename files to following format: <testname>_<device>_<counter>+<timestamp>.png
                 timestamp = filename[0:filename.find('.png')]
                 newname = module_name + "_" + self.get_device_name().rstrip() + "_" + str(
-                    filecounter) + "_" + timestamp + '.png'
+                    filecounter) + "+" + timestamp + '.png'
                 os.rename(filename, newname)
                 self.crop_images(newname, newname)
                 filecounter += 1
@@ -152,14 +156,15 @@ class ImageCompareUtil():
         shot_path = local_path + "/" + self.shots_dir
         ref_path = local_path + "/" + self.ref_dir
 
-        filelist = self.sorted_ls(shot_path)
-        filecounter = 0
-        for f in filelist:
-            if module_name + "_" + self.get_device_name() + "_" + str(filecounter) in f:
-                ref_file = ref_path + "/" + module_name + "_" + self.get_device_name() + "_" + str(filecounter) + ".png"
+        file_list = self.sorted_ls(shot_path)
+        ref_file_list = self.sorted_ls(ref_path)
+        for f in file_list:
+            ref_name = f[0:f.find("+")] + ".png"
+            if ref_name in ref_file_list:
                 self.sub_image_compare(os.path.join(shot_path, f),
-                                       ref_file, os.path.join(shot_path, f) + "_diff.png", fuzz_value)
-                filecounter += 1
+                                       os.path.join(ref_path,ref_name), os.path.join(shot_path, f[0:f.find(".png")]) + "_diff.png", fuzz_value)
+            else:
+                print ("Ref file not found for: " + f)
 
     #do collect and compare in one shot
     def collect_and_compare(self, local_path, device_path, module_name, fuzz_value):
@@ -282,22 +287,22 @@ class ImageCompareUtil():
     #direction = 'up' or 'down' (page location)
     #rate = rate of scroll, from 0 to 1
     @staticmethod
-    def scroll(marionette, locator, direction, rate, release=True):
+    def scroll(marionette, locator, direction, rate, release=True, distance=-1):
 
         screen = marionette.find_element(*locator)
         dist_travelled = 0
         time_increment = 0.01 * rate
 
-        vector = 0
+        if distance != -1:
+            vector = distance
+        elif direction == 'up' or direction == 'down':
+            vector = screen.size['height']/2
+        elif direction == 'right' or direction == 'left':
+            vector = screen.size['width']/2
+
         # define direction.  Assumption is that scroll is only one of below 4 direction
-        if direction == 'up':
-            vector = -1 * screen.size['height']/2
-        elif direction == 'down':
-            vector = 1 * screen.size['height']/2
-        elif direction == 'right':
-            vector = 1 * screen.size['width']/2
-        elif direction == 'left':
-            vector = -1 * screen.size['width']/2
+        if direction == 'up' or direction == 'left':
+            vector *= -1
 
         finger = Actions(marionette)
         finger.press(screen,screen.size['width'] / 2, screen.size['height'] / 2)
