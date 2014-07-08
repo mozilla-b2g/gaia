@@ -37,8 +37,8 @@ module.exports = function(options, done) {
     }
 
     var storage = new Storage();
-    storage.deletePicture(blob.name);
-    storage.addPicture(resizedBlob, {
+    storage.deleteImage(blob.name);
+    storage.addImage(resizedBlob, {
       filepath: blob.name
     }, function(filepath, absolutePath, fileBlob) {
       done(fileBlob);
