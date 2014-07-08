@@ -57,16 +57,15 @@ navigator.mozSetMessageHandler('activity', function handler(activity) {
     if (selectedSoundURL) {
       var xhr = new XMLHttpRequest();
       xhr.open('GET', selectedSoundURL);
-      // XXX
-      // This assumes that all system tones are ogg files
-      // Maybe map based on the extension instead?
-      xhr.overrideMimeType('audio/ogg');
       xhr.responseType = 'blob';
       xhr.send();
       xhr.onload = function() {
+        // Use slice() to strip the "application/xml" MIME type from the Blob,
+        // since it's not XML! (We'll just let consumers infer what the type
+        // really is.)
         activity.postResult({
           name: selectedSoundName,
-          blob: xhr.response
+          blob: xhr.response.slice()
         });
       };
     }
