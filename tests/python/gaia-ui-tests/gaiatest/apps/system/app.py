@@ -15,6 +15,7 @@ class System(Base):
     _airplane_mode_statusbar_locator = (By.ID, 'statusbar-flight-mode')
     _utility_tray_locator = (By.ID, 'utility-tray')
 
+    _system_banner_locator = (By.CSS_SELECTOR, '.banner.generic-dialog')
     _notification_toaster_locator = (By.ID, 'notification-toaster')
     _update_manager_toaster_locator = (By.ID, 'update-manager-toaster')
 
@@ -30,6 +31,12 @@ class System(Base):
         # TODO Re-enable this when Bug 861874
         # self.wait_for_element_not_displayed(*self._notification_toaster_locator)
         self.wait_for_condition(lambda m: m.find_element(*self._notification_toaster_locator).location['y'] == -50, timeout=timeout)
+
+    def wait_for_system_banner_displayed(self):
+        self.wait_for_element_displayed(*self._system_banner_locator)
+
+    def wait_for_system_banner_not_displayed(self):
+        self.wait_for_element_not_displayed(*self._system_banner_locator)
 
     def open_utility_tray(self):
         # TODO Use actions for this
