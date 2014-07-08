@@ -19,6 +19,7 @@ module.exports = function launchIcon(element) {
   });
 
   element.client.waitFor(function() {
+    console.log('Clicked. Displayed is: ', element.displayed());
     // try to click it
     element.click();
 

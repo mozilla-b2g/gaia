@@ -40,8 +40,10 @@ marionette('Vertical Home - Packaged App Resuming Downloads', function() {
   });
 
   function expectAppState(icon, state) {
+    console.log('Expecting app state of:', state)
     client.waitFor(function() {
       var currentState = iconAppState(icon);
+      console.log('Waiting, current is: :', currentState, ' Displayed: ', icon.displayed());
       return currentState === state;
     });
   }
