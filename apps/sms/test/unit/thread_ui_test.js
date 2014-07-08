@@ -1140,6 +1140,43 @@ suite('thread_ui.js >', function() {
 
   suite('Subject', function() {
 
+    suite('Recipient behavior when interacting with subject', function() {
+      setup(function() {
+        // Add recipient node
+        var node = document.createElement('span');
+        node.isPlaceholder = true;
+        node.textContent = '999';
+        // Add fake match contact list
+        container.textContent =
+          '<div><h2></h2><ul><li></li>contacts<li></li></ul></div>';
+
+        this.sinon.spy(ThreadUI.recipients, 'add');
+        this.sinon.stub(Navigation, 'isCurrentPanel');
+        Navigation.isCurrentPanel.withArgs('composer').returns(true);
+
+        recipientsList.appendChild(node);
+        Compose.toggleSubject();
+      });
+
+      teardown(function() {
+        ThreadUI.recipients.length = 0;
+        ThreadUI.recipients.inputValue = '';
+      });
+
+      test('Recipient assimilation is called when focus on subject',
+        function() {
+        subject.dispatchEvent(new CustomEvent('focus'));
+
+        // recipient added and container is cleared
+        sinon.assert.calledWithMatch(ThreadUI.recipients.add, {
+          name: '999',
+          number: '999',
+          source: 'manual'
+        });
+        assert.equal(container.textContent, '');
+      });
+    });
+
     suite('Max Length banner', function() {
       var banner,
           localize,
