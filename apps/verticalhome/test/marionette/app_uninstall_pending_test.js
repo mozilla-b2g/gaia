@@ -34,16 +34,21 @@ marionette('Vertical - App uninstall while pending', function() {
     actions = new Actions(client);
     home = new Home2(client);
     system = new System(client);
-    system.waitForStartup();
 
     // ensure that the zip file does not get sent
     server.cork(server.applicationZipUri);
 
-    // begin installing a packaged app
-    appInstall.install(server.packageManifestURL);
-
+    // wait for the system app to be running
+    system.waitForStartup();
     client.apps.launch(Home2.URL);
     home.waitForLaunch();
+
+    // install the app
+    client.switchToFrame();
+    appInstall.installPackage(server.packageManifestURL);
+
+    // switch to the homescreen
+    client.switchToFrame(system.getHomescreenIframe());
     home.enterEditMode();
   });
 
