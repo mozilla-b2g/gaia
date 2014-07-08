@@ -249,13 +249,14 @@
         var doSetRadioEnabled = function doSetRadioEnabled(i, enabled) {
           var conn = mobileConnections[i];
           var req = conn.setRadioEnabled(enabled);
-          setCount++;
 
           req.onsuccess = function() {
+            self.setCount++;
             setRadioAfterReqsCalled(enabled);
           };
           req.onerror = function() {
             isError = true;
+            self.setCount++;
             setRadioAfterReqsCalled(enabled);
           };
         };
