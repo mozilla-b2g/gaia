@@ -378,27 +378,6 @@ bubble above the key when you tap and hold. */
   border: none;
 }
 
-/* IMEs */
-.keyboard-pending-symbol-panel {
-  position: absolute;
-  top: -3.5rem;
-  left: 0;
-  height: 3.2rem;
-  line-height: 3.2rem;
-  font-size: 2.4rem;
-  width: auto;
-  padding: 0 0.8rem;
-  background: rgba(245, 245, 245, 0.7);
-  color: rgb(36, 36, 36);
-  border-top: 0.1rem solid #d5d5d5;
-  border-right: 0.1rem solid #d5d5d5;
-  white-space: nowrap;
-}
-
-.keyboard-pending-symbol-panel:empty {
-  display: none;
-}
-
 #keyboard.full-candidate-panel {
   padding-top: 3.4rem;
 }
@@ -544,19 +523,6 @@ bubble above the key when you tap and hold. */
 .keyboard-candidate-panel span[data-active],
 .keyboard-candidate-panel-toggle-button[data-active] {
   background: -moz-linear-gradient(bottom, rgb(191,191,183) 10%, rgb(161,158,153) 90%);
-}
-
-/* Pending panel highlight */
-.keyboard-pending-symbols-highlight-green {
-  background: #33aa33;
-}
-
-.keyboard-pending-symbols-highlight-red {
-  background: #aa3333;
-}
-
-.keyboard-pending-symbols-highlight-blue {
-  background: #3333aa;
 }
 
 /* A note to show on the key to indicate the alternative char */

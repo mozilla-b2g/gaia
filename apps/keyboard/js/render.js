@@ -286,8 +286,6 @@ const IMERender = (function() {
       container.insertBefore(
         candidatePanelToggleButtonCode(), container.firstChild);
       container.insertBefore(candidatePanelCode(), container.firstChild);
-      container.insertBefore(pendingSymbolPanelCode(), container.firstChild);
-      showPendingSymbols('');
       showCandidates([], true);
 
       container.classList.add('candidate-panel');
@@ -311,44 +309,6 @@ const IMERender = (function() {
   var unHighlightKey = function kr_unHighlightKey(key) {
     key.classList.remove('highlighted');
     key.classList.remove('lowercase');
-  };
-
-  // Show pending symbols with highlight (selection) if provided
-  var showPendingSymbols = function km_showPendingSymbols(symbols,
-                                                          highlightStart,
-                                                          highlightEnd,
-                                                          highlightState) {
-    if (!activeIme)
-      return;
-
-    var HIGHLIGHT_COLOR_TABLE = {
-      'red': 'keyboard-pending-symbols-highlight-red',
-      'green': 'keyboard-pending-symbols-highlight-green',
-      'blue': 'keyboard-pending-symbols-highlight-blue'
-    };
-
-    // TODO: Save the element
-    var pendingSymbolPanel =
-      activeIme.querySelector('.keyboard-pending-symbol-panel');
-
-    if (pendingSymbolPanel) {
-
-      if (typeof highlightStart === 'undefined' ||
-        typeof highlightEnd === 'undefined' ||
-        typeof highlightState === 'undefined') {
-        pendingSymbolPanel.textContent = symbols;
-        return;
-      }
-
-      var span = document.createElement('span');
-      span.className = HIGHLIGHT_COLOR_TABLE[highlightState];
-      span.textContent = symbols.slice(highlightStart, highlightEnd);
-
-      pendingSymbolPanel.innerHTML = '';
-      pendingSymbolPanel.appendChild(span);
-      pendingSymbolPanel.appendChild(
-        document.createTextNode(symbols.substr(highlightEnd)));
-    }
   };
 
   var toggleCandidatePanel = function(expand, resetScroll) {
@@ -869,12 +829,6 @@ const IMERender = (function() {
   // to be applied as dataset
   //*
 
-  var pendingSymbolPanelCode = function() {
-    var pendingSymbolPanel = document.createElement('div');
-    pendingSymbolPanel.classList.add('keyboard-pending-symbol-panel');
-    return pendingSymbolPanel;
-  };
-
   // Explicit call to mozL10n to translate the generated DOM element
   // to be removed once bug 992473 lands.
   var translateElement = function(el) {
@@ -1114,7 +1068,6 @@ const IMERender = (function() {
     'setUpperCaseLock': setUpperCaseLock,
     'resizeUI': resizeUI,
     'showCandidates': showCandidates,
-    'showPendingSymbols': showPendingSymbols,
     'getWidth': getWidth,
     'getHeight': getHeight,
     'getKeyArray': getKeyArray,
