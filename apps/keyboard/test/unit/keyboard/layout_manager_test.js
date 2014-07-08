@@ -13,7 +13,9 @@ suite('LayoutManager', function() {
       [
         { value: 'foo' }
       ]
-    ]
+    ],
+    alt: {},
+    upperCase: {}
   };
 
   suiteSetup(function() {

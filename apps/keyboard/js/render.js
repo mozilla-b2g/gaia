@@ -14,7 +14,24 @@
 const IMERender = (function() {
 
   var ime, activeIme, menu;
-  var getUpperCaseValue, isSpecialKey;
+
+  // Return the upper value for a key object
+  var getUpperCaseValue = function getUpperCaseValue(key, layout) {
+    var hasSpecialCode = specialCodes.indexOf(key.keyCode) > -1;
+    if (key.keyCode < 0 || hasSpecialCode || key.compositeKey)
+      return key.value;
+
+    var upperCase = layout.upperCase || {};
+    return upperCase[key.value] || key.value.toUpperCase();
+  };
+
+  // Support function for render
+  var isSpecialKey = function isSpecialKeyObj(key) {
+    var hasSpecialCode = key.keyCode !== KeyEvent.DOM_VK_SPACE &&
+      key.keyCode &&
+      specialCodes.indexOf(key.keyCode) !== -1;
+    return hasSpecialCode || key.keyCode <= 0;
+  };
 
   var _menuKey, _altContainer;
 
@@ -27,6 +44,14 @@ const IMERender = (function() {
 
   var cachedWindowHeight = -1;
   var cachedWindowWidth = -1;
+
+  const specialCodes = [
+    KeyEvent.DOM_VK_BACK_SPACE,
+    KeyEvent.DOM_VK_CAPS_LOCK,
+    KeyEvent.DOM_VK_RETURN,
+    KeyEvent.DOM_VK_ALT,
+    KeyEvent.DOM_VK_SPACE
+  ];
 
   const ariaLabelMap = {
     '⇪': 'upperCaseKey2',
@@ -54,9 +79,7 @@ const IMERender = (function() {
   // Initialize the render. It needs some business logic to determine:
   //   1- The uppercase for a key object
   //   2- When a key is a special key
-  var init = function kr_init(uppercaseFunction, keyTest) {
-    getUpperCaseValue = uppercaseFunction;
-    isSpecialKey = keyTest;
+  var init = function kr_init() {
     ime = document.getElementById('keyboard');
     menu = document.getElementById('keyboard-accent-char-menu');
 
@@ -202,7 +225,7 @@ const IMERender = (function() {
         kbRow.classList.add('keyboard-last-row');
       }
 
-      row.forEach((function buildKeyboardColumns(key, ncolumn) {
+      row.forEach((function buildKeyboardColumns(key) {
         var keyChar = key.value;
 
         // Keys may be hidden if the .hidden property contains the inputType
@@ -214,12 +237,12 @@ const IMERender = (function() {
           return;
 
         // We will always display keys in uppercase, per request from UX.
-        var upperCaseKeyChar = getUpperCaseValue(key);
+        var upperCaseKeyChar = getUpperCaseValue(key, layout);
 
         // Handle override
         var code = key.keyCode || keyChar.charCodeAt(0);
         // Uppercase keycode
-        var upperCode = key.keyCode || getUpperCaseValue(key).charCodeAt(0);
+        var upperCode = key.keyCode || upperCaseKeyChar.charCodeAt(0);
 
         var className = '';
         if (isSpecialKey(key)) {
@@ -238,8 +261,7 @@ const IMERender = (function() {
         var outputChar = flags.uppercase ? upperCaseKeyChar : keyChar;
 
         var keyWidth = placeHolderWidth * ratio;
-        var dataset = [{'key': 'row', 'value': nrow}];
-        dataset.push({'key': 'column', 'value': ncolumn});
+        var dataset = [];
         dataset.push({'key': 'keycode', 'value': code});
         dataset.push({'key': 'keycodeUpper', 'value': upperCode});
         if (key.compositeKey) {
@@ -266,10 +288,18 @@ const IMERender = (function() {
           });
         }
 
-        dataset.push({'key': 'lowercaseLabel', 'value': keyChar });
+        if (key.longPressValue) {
+          var longPressKeyCode = key.longPressKeyCode ||
+            key.longPressValue.charCodeAt(0);
+          dataset.push({'key': 'longPressValue', 'value': key.longPressValue });
+          dataset.push({'key': 'longPressKeyCode', 'value': longPressKeyCode });
+        }
+
+        dataset.push({'key': 'lowercaseValue', 'value': keyChar });
+        dataset.push({'key': 'uppercaseValue', 'value': upperCaseKeyChar });
 
         kbRow.appendChild(buildKey(outputChar, className, keyWidth + 'px',
-          dataset, key.altNote, attributeList));
+          dataset, key.longPressValue, attributeList));
       }));
 
       kbRow.dataset.layoutWidth = rowLayoutWidth;
@@ -296,11 +326,12 @@ const IMERender = (function() {
 
   // Highlight the key according to the case.
   var highlightKey = function kr_updateKeyHighlight(key, options) {
+    options = options || {};
+
     key.classList.add('highlighted');
 
     // Show lowercase pop.
-    if (options &&
-        (!options.isUpperCase && !options.isUpperCaseLocked)) {
+    if (!options.showUpperCase) {
       key.classList.add('lowercase');
     }
   };
@@ -625,6 +656,15 @@ const IMERender = (function() {
       .appendChild(menu);
     menu.style.display = 'block';
 
+    function getWindowLeft(obj) {
+      var left;
+      left = obj.offsetLeft;
+      while (!!(obj = obj.offsetParent)) {
+        left += obj.offsetLeft;
+      }
+      return left;
+    }
+
     // Adjust offset when alternatives menu overflows
     var alternativesLeft = getWindowLeft(menu);
     var alternativesRight = alternativesLeft + menu.offsetWidth;
@@ -936,7 +976,7 @@ const IMERender = (function() {
     vWrapperNode.appendChild(labelNode);
 
     labelNode = document.createElement('span');
-    labelNode.innerHTML = contentNode.dataset.lowercaseLabel;
+    labelNode.innerHTML = contentNode.dataset.lowercaseValue;
     labelNode.className = 'lowercase popup';
     vWrapperNode.appendChild(labelNode);
 
