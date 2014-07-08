@@ -374,7 +374,8 @@ var NotificationScreen = {
     if (typeof(ScreenManager) !== 'undefined' &&
       !ScreenManager.screenEnabled) {
       // bug 915236: disable turning on the screen for email notifications
-      if (detail.manifestURL.indexOf('email.gaiamobile.org') === -1) {
+      if (!detail.manifestURL ||
+           detail.manifestURL.indexOf('email.gaiamobile.org') === -1) {
         ScreenManager.turnScreenOn();
       }
     }
