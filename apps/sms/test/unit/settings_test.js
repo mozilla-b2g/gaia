@@ -233,8 +233,14 @@ suite('Settings >', function() {
       });
 
       test('getSimNameByIccId returns the correct name', function() {
-        assert.equal(Settings.getSimNameByIccId('SIM 1'), 'sim-name{"id":1}');
-        assert.equal(Settings.getSimNameByIccId('SIM 2'), 'sim-name{"id":2}');
+        assert.equal(
+          Settings.getSimNameByIccId('SIM 1'),
+          'sim-id-label{"id":1}'
+        );
+        assert.equal(
+          Settings.getSimNameByIccId('SIM 2'),
+          'sim-id-label{"id":2}'
+        );
         assert.equal(Settings.getSimNameByIccId('SIM 3'), '');
       });
 
