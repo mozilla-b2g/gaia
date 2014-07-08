@@ -2,7 +2,7 @@
  * The module initializes a ListView displaying the installed keyboards.
  * Implementation details please refer to {@link KeyboardCore}.
  *
- * @module keyboard/core
+ * @module keyboard/installed_keyboards
  */
 define(function(require) {
   'use strict';
@@ -10,7 +10,7 @@ define(function(require) {
   var ListView = require('modules/mvvm/list_view');
 
   /**
-   * @alias module:keyboard/core
+   * @alias module:keyboard/installed_keyboards
    * @class KeyboardCore
    * @requires module:modules/mvvm/list_view
    * @param {KeyboardContext} context
