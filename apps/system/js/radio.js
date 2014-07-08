@@ -137,14 +137,15 @@
     _doSetRadioEnabled: function(conn, enabled) {
       var self = this;
       var req = conn.setRadioEnabled(enabled);
-      this._setRadioOpCount++;
 
       req.onsuccess = function() {
+        self._setRadioOpCount++;
         self._setRadioAfterReqsCalled(enabled);
       };
 
       req.onerror = function() {
         self._isSetRadioOpError = true;
+        self._setRadioOpCount++;
         self._setRadioAfterReqsCalled(enabled);
       };
     },
