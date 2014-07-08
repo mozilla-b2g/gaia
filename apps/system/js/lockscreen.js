@@ -326,16 +326,16 @@
         if (evt.detail.type === 'status') {
           switch (evt.detail.data.playStatus) {
             case 'PLAYING':
-              this.notificationsContainer.classList.add('collapsed');
-              break;
             case 'PAUSED':
               this.notificationsContainer.classList.add('collapsed');
+              this.notificationArrow.classList.add('collapsed');
+              this.setNotificationMaskArrowVisibility();
               break;
             case 'STOPPED':
-              this.notificationsContainer.classList.remove('collapsed');
-              break;
             case 'mozinterruptbegin':
               this.notificationsContainer.classList.remove('collapsed');
+              this.notificationArrow.classList.remove('collapsed');
+              this.setNotificationMaskArrowVisibility();
               break;
           }
         }
@@ -343,6 +343,14 @@
       case 'appterminated':
         if (evt.detail.origin === this.mediaPlaybackWidget.origin) {
           this.notificationsContainer.classList.remove('collapsed');
+          this.notificationArrow.classList.remove('collapsed');
+          this.setNotificationMaskArrowVisibility();
+        }
+        break;
+      case 'scroll':
+        if (this.notificationsContainer === evt.target) {
+          this.setNotificationMaskArrowVisibility();
+          break;
         }
         break;
     }
@@ -472,6 +480,8 @@
       '', (function(value) {
       this.setLockMessage(value);
     }).bind(this));
+
+    this.notificationsContainer.addEventListener('scroll', this);
 
     navigator.mozL10n.ready(this.l10nInit.bind(this));
 
@@ -1078,6 +1088,55 @@
   };
 
   /**
+   * The "more notifications" arrow only shows
+   * when the user hasn't scrolled onto the end of the container
+   * And the fade-out gradient masks only shows
+   * when:
+   *  - top: when the user scrolls to bottom
+   *  - bottom: when the user scrolls to top
+   *  - both: when the user scrolls in between
+   * but we need to rule out the situation that
+   * the container isn't actually scrollable
+   */
+  LockScreen.prototype.setNotificationMaskArrowVisibility =
+  function ls_setNotificationMaskArrowVisibility() {
+    // mask
+    if(this.notificationsContainer.clientHeight ===
+       this.notificationsContainer.scrollHeight){
+      // no mask if the container can't be scrolled
+      this.notificationsContainer.classList.remove('masked-top');
+      this.notificationsContainer.classList.remove('masked-bottom');
+      this.notificationsContainer.classList.remove('masked-both');
+    }else{
+      if(this.notificationsContainer.scrollTop +
+       this.notificationsContainer.clientHeight ===
+       this.notificationsContainer.scrollHeight){
+        // user scrolls to bottom -> top mask
+        this.notificationsContainer.classList.remove('masked-bottom');
+        this.notificationsContainer.classList.remove('masked-both');
+        this.notificationsContainer.classList.add('masked-top');
+      }else if(this.notificationsContainer.scrollTop === 0){
+        // user scrolls to top -> bottom mask
+        this.notificationsContainer.classList.remove('masked-top');
+        this.notificationsContainer.classList.remove('masked-both');
+        this.notificationsContainer.classList.add('masked-bottom');
+      }else{
+        // anything in between -> both masks
+        this.notificationsContainer.classList.remove('masked-top');
+        this.notificationsContainer.classList.remove('masked-bottom');
+        this.notificationsContainer.classList.add('masked-both');
+      }
+    }
+    if(this.notificationsContainer.scrollTop +
+       this.notificationsContainer.clientHeight <
+       this.notificationsContainer.scrollHeight){
+      this.notificationArrow.classList.add('visible');
+    }else{
+      this.notificationArrow.classList.remove('visible');
+    }
+  };
+
+  /**
    * To get all elements this component will use.
    * Note we do a name mapping here: DOM variables named like 'passcodePad'
    * are actually corresponding to the lowercases with hyphen one as
@@ -1092,7 +1151,7 @@
         'alt-camera', 'alt-camera-button', 'slide-handle',
         'passcode-pad', 'camera', 'accessibility-camera',
         'accessibility-unlock', 'panel-emergency-call', 'canvas', 'message',
-        'masked-background'];
+        'notification-arrow', 'masked-background'];
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {

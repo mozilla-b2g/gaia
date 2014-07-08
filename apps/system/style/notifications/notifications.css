@@ -193,18 +193,62 @@
 #notifications-lockscreen-container {
   z-index: 1;
   position: absolute;
-  top: 17.2rem;
+  /* desired vertical position is centered in the space
+   * between date and slider
+   * that would be
+   * (100% - 16.3rem (header) - 2.4rem (statusbar)
+   *  - 10rem (slider) - 17.5rem (3xNotifications height)) / 2
+   *  + 16.3rem + 2.4rem
+   */
+  top: calc(50% - 4.4rem);
   left: 0;
   width: 100%;
-  max-height: calc(100% - 29.8rem);
+  max-height: 17.5rem;
   overflow-x: hidden;
   overflow-y: auto;
 
   background-color: transparent;
 }
 
+#notifications-lockscreen-container.masked-top {
+  mask: url('lockscreen_container_mask.svg#fade_mask_top');
+}
+
+#notifications-lockscreen-container.masked-bottom {
+  mask: url('lockscreen_container_mask.svg#fade_mask_bottom');
+}
+
+#notifications-lockscreen-container.masked-both {
+  mask: url('lockscreen_container_mask.svg#fade_mask_both');
+}
+
+/* in collapsed mode (there is a widget)
+ * desired vertical position is centered in the space
+ * between date and widget
+ * for big screen, we allow two notifications,
+ * for small screen, we allow one notification
+ * that would be (for two notifications)
+ * (100% - 16.3rem (header) - 2.4rem (statusbar)
+ *  - 10rem (slider) - 12.6rem (widget)
+ *  - 11.7rem (2xNotifications height)) / 2
+ *  + 16.3rem + 2.4rem
+ */
 #notifications-lockscreen-container.collapsed {
-  max-height: calc(100% - 41rem);
+  top: calc(50% - 7.8rem);
+  max-height: 11.7rem;
+}
+
+@media (max-height:480px) {
+ /* for one notification...
+  * (100% - 16.3rem (header) - 2.4rem (statusbar)
+  *  - 10rem (slider) - 12.6rem (widget)
+  *  - 5.8rem (1xNotifications height)) / 2
+  *  + 16.3rem + 2.4rem
+  */
+  #notifications-lockscreen-container.collapsed {
+    top: calc(50% - 4.85rem);
+    max-height: 5.8rem;
+  }
 }
 
 #notifications-lockscreen-container .notification {
