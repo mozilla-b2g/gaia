@@ -9,9 +9,6 @@ requireApp('system/js/ftu_launcher.js');
 
 suite('launch ftu >', function() {
   var realAsyncStorage, realMozSettings, realFtuPing;
-  var MockFtuPing = {
-    ensurePing: function(){}
-  };
 
   suiteSetup(function() {
     realFtuPing = window.FtuPing;
@@ -19,8 +16,10 @@ suite('launch ftu >', function() {
     realMozSettings = navigator.mozSettings;
     window.asyncStorage = MockasyncStorage;
     navigator.mozSettings = MockNavigatorSettings;
-    window.FtuPing = MockFtuPing;
-
+    window.FtuPing = function() {
+      this.ensurePingCalled = false;
+      this.ensurePing = function() { this.ensurePingCalled = true; };
+    };
   });
 
   suiteTeardown(function() {
@@ -96,6 +95,10 @@ suite('launch ftu >', function() {
         onOutcome('skip');
       });
       FtuLauncher.retrieve();
+    });
+    test('ftu ping is called', function() {
+      FtuLauncher.retrieve();
+      assert.ok(FtuLauncher.getFtuPing().ensurePingCalled);
     });
   });
 

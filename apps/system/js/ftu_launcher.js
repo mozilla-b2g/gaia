@@ -13,6 +13,9 @@ var FtuLauncher = {
   /* The origin of FTU */
   _ftuOrigin: '',
 
+  /* The FTU ping service instance */
+  _ftuPing: null,
+
   /* Store that if FTU is currently running */
   _isRunningFirstTime: false,
 
@@ -24,6 +27,10 @@ var FtuLauncher = {
 
   getFtuOrigin: function fl_getFtuOrigin() {
     return this._ftuOrigin;
+  },
+
+  getFtuPing: function fl_getFtuPing() {
+    return this._ftuPing;
   },
 
   setBypassHome: function fl_setBypassHome(value) {
@@ -168,7 +175,11 @@ var FtuLauncher = {
   // Used by Bootstrap module.
   retrieve: function fl_retrieve() {
     var self = this;
-    FtuPing.ensurePing();
+    if (!this._ftuPing) {
+      this._ftuPing = new FtuPing();
+    }
+
+    this._ftuPing.ensurePing();
 
     // launch FTU when a version upgrade is detected
     VersionHelper.getVersionInfo().then(function(versionInfo) {
