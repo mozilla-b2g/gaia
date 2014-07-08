@@ -1719,4 +1719,109 @@ suite('Video App Unit Tests', function() {
       assert.equal(setControlsVisibilitySpy.callCount, 0);
     });
   });
+
+  /*
+   * updateSelection is called when entering thumbnail selection mode, or
+   * when the selection changes. The function updates the message the top
+   * of the screen and enables or disables the Delete and Share buttons.
+   */
+  suite('updateSelection flows', function() {
+    var videodata = {};
+    var videoBlob;
+
+    suiteSetup(function(done) {
+      videodata = {'name': videoName};
+
+      MockThumbnailGroup.reset();
+      var dummyContainer = document.createElement('div');
+
+      thumbnailList = new ThumbnailList(MockThumbnailGroup, dummyContainer);
+      thumbnailList.addItem({'name': videodata.name});
+
+      getAsset('/test/unit/media/test.webm', function(blob) {
+        videoBlob = blob;
+        videodb = new MockMediaDB(videoBlob);
+        done();
+      });
+    });
+
+    setup(function() {
+      selectedFileNames = [];
+      selectedFileNamesToBlobs = {};
+    });
+
+    test('#updateSelection: toggle thumbnail as selected', function() {
+      var thumbnail = thumbnailList.thumbnailMap[videodata.name];
+      thumbnail.htmlNode.classList.remove('selected'); // not selected
+      updateSelection(videodata);
+      assert.isTrue(thumbnail.htmlNode.classList.contains('selected'),
+                    'thumbnail should contain \'selected\' class');
+    });
+
+    test('#updateSelection: toggle thumbnail as not selected', function() {
+      var thumbnail = thumbnailList.thumbnailMap[videodata.name];
+      thumbnail.htmlNode.classList.add('selected'); // selected
+      updateSelection(videodata);
+      assert.isFalse(thumbnail.htmlNode.classList.contains('selected'),
+                     'thumbnail should not contain \'selected\' class');
+    });
+
+    test('#updateSelection: update (add to) selected filenames', function() {
+      var thumbnail = thumbnailList.thumbnailMap[videodata.name];
+      thumbnail.htmlNode.classList.remove('selected'); // not selected
+      updateSelection(videodata);
+      assert.equal(selectedFileNames.length, 1,
+                   'should be one selected file');
+      assert.equal(selectedFileNames[0], videodata.name,
+                   'name of selected file should be name of videodata');
+      assert.equal(selectedFileNamesToBlobs[videodata.name], videoBlob,
+                   'blob associated with videodata name should be video blob');
+    });
+
+    test('#updateSelection: update (remove) selected filenames', function() {
+      var thumbnail = thumbnailList.thumbnailMap[videodata.name];
+      thumbnail.htmlNode.classList.add('selected'); // selected
+      updateSelection(videodata);
+      assert.equal(selectedFileNames.length, 0,
+                   'shouldnt be any selected files');
+      assert.equal(selectedFileNamesToBlobs[videodata.name], undefined,
+                   'no blob associated with videodata name');
+    });
+
+    /*
+     * IMPORTANT. The following test relies on the output of the
+     * previous test. That is, this test relies on there being
+     * no thumbnail selected; the previous test 'deselected' the
+     * thumbnail that was selected.
+     */
+    test('#updateSelection: update UI, thumbnail is selected', function() {
+      dom.thumbnailsDeleteButton.classList.add('disabled');
+      dom.thumbnailsShareButton.classList.add('disabled');
+
+      updateSelection(videodata);
+      assert.equal(dom.thumbnailsNumberSelected.textContent,
+                   'number-selected2{"n":1}',
+                   'there should be one thumbnail selected');
+      assert.isFalse(containsClass(dom.thumbnailsDeleteButton, 'disabled'),
+                     'thumbnail delete button should be enabled');
+      assert.isFalse(containsClass(dom.thumbnailsShareButton, 'disabled'),
+                     'thumbnail share button should be enabled');
+    });
+
+    /*
+     * IMPORTANT. The following test relies on the output of the
+     * previous test. That is, this test relies on there being
+     * a selected thumbnail, which happens during the previous test.
+     */
+    test('#updateSelection: update UI, no thumbnail is selected', function() {
+      updateSelection(videodata);
+      assert.equal(dom.thumbnailsNumberSelected.textContent,
+                   'number-selected2{"n":0}',
+                   'there shouldnt be any thumbnails selected');
+      assert.isTrue(containsClass(dom.thumbnailsDeleteButton, 'disabled'),
+                    'thumbnail delete button should be disabled');
+      assert.isTrue(containsClass(dom.thumbnailsShareButton, 'disabled'),
+                    'thumbnail share button should be disabled');
+    });
+  });
 });
