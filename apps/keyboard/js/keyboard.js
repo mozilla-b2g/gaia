@@ -565,16 +565,16 @@ function setMenuTimeout(press, id) {
       // Does the key have an altKey?
       var r = target.dataset.row, c = target.dataset.column;
       var keyChar = layoutManager.currentModifiedLayout.keys[r][c].value;
-      var altKey = layoutManager.currentModifiedLayout.alt[keyChar] || null;
+      var altKeys = layoutManager.currentModifiedLayout.alt[keyChar] || null;
 
-      if (!altKey)
+      if (!altKeys)
         return;
 
       // Attach a dataset property that will be used to ignore
       // keypress in endPress
       target.dataset.ignoreEndPress = true;
 
-      var keyCode = altKey.charCodeAt(0);
+      var keyCode = altKeys[0].charCodeAt(0);
       sendKey(keyCode);
 
       return;
