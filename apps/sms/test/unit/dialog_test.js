@@ -386,6 +386,29 @@ suite('Dialog', function() {
                   'nonActiveSimToSendConfirm');
       assert.equal(opt.options.confirm.method, handler);
     });
+
+    test('show unable to download mms error', function() {
+      var dialog = new ErrorDialog('SimNotMatchedError');
+
+      dialog.show();
+
+      sinon.assert.calledWith(dialogSpy, sinon.match.any, {
+        title: {
+          l10nId: 'simNotMatchedErrorTitle'
+        },
+        body: {
+          l10nId: 'simNotMatchedErrorBody',
+          l10nArgs: {}
+        },
+        options: {
+          cancel: {
+            text: {
+              l10nId: 'simNotMatchedErrorBtnOk'
+            }
+          }
+        }
+      });
+    });
   });
 
 });
