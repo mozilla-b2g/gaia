@@ -619,6 +619,10 @@ var ThreadUI = global.ThreadUI = {
     }
 
     ThreadListUI.mark(threadId, 'read');
+
+    // nothing urgent, let's do it when the main thread has some time
+    setTimeout(MessageManager.markThreadRead.bind(MessageManager, threadId));
+
     return Utils.closeNotificationsForThread(threadId);
   },
 
@@ -1471,11 +1475,6 @@ var ThreadUI = global.ThreadUI = {
 
   // Method for rendering the list of messages using infinite scroll
   renderMessages: function thui_renderMessages(threadId, callback) {
-    if (this._stopRenderingNextStep) {
-      // we were already asked to stop rendering, before even starting
-      return;
-    }
-
     var onMessagesRendered = (function messagesRendered() {
       if (this.messageIndex < this.CHUNK_SIZE) {
         this.showFirstChunk();
@@ -1485,12 +1484,6 @@ var ThreadUI = global.ThreadUI = {
         callback();
       }
     }).bind(this);
-
-    function onMessagesDone() {
-      setTimeout(
-        MessageManager.markThreadRead.bind(MessageManager, filter.threadId)
-      );
-    }
 
     var onRenderMessage = (function renderMessage(message) {
       if (this._stopRenderingNextStep) {
@@ -1505,6 +1498,11 @@ var ThreadUI = global.ThreadUI = {
       return true;
     }).bind(this);
 
+    if (this._stopRenderingNextStep) {
+      // we were already asked to stop rendering, before even starting
+      return;
+    }
+
     var filter = new MozSmsFilter();
     filter.threadId = threadId;
 
@@ -1513,8 +1511,7 @@ var ThreadUI = global.ThreadUI = {
       each: onRenderMessage,
       filter: filter,
       invert: false,
-      end: onMessagesRendered,
-      done: onMessagesDone
+      end: onMessagesRendered
     };
 
     MessageManager.getMessages(renderingOptions);

@@ -2746,80 +2746,92 @@ suite('thread_ui.js >', function() {
   suite('renderMessages()', function() {
     setup(function() {
       this.sinon.stub(MessageManager, 'getMessages');
-      this.sinon.stub(MessageManager, 'markThreadRead');
+
       ThreadUI.initializeRendering();
-      ThreadUI.renderMessages(1);
     });
 
-    test('we mark messages as read', function() {
-      MessageManager.getMessages.yieldTo('done');
-      this.sinon.clock.tick();
-      assert.ok(MessageManager.markThreadRead.calledWith(1));
-    });
+    suite('nominal behavior', function() {
+      setup(function() {
+        ThreadUI.renderMessages(1);
+      });
 
-    test('infinite rendering test', function() {
-      var chunkSize = ThreadUI.CHUNK_SIZE;
-      var message;
+      test('infinite rendering test', function() {
+        var chunkSize = ThreadUI.CHUNK_SIZE;
+        var message;
 
-      for (var i = 1; i < chunkSize; i++) {
-        MessageManager.getMessages.yieldTo('each', MockMessages.sms({ id: i }));
+        for (var i = 1; i < chunkSize; i++) {
+          MessageManager.getMessages.yieldTo(
+            'each', MockMessages.sms({ id: i })
+          );
+          message = document.getElementById('message-' + i);
+          assert.ok(
+            message.classList.contains('hidden'),
+            'message-' + i + ' should be hidden'
+          );
+        }
+
+        MessageManager.getMessages.yieldTo(
+          'each', MockMessages.sms({ id: i })
+        );
+
+        assert.isNull(
+          container.querySelector('.hidden'),
+          'all previously hidden messages should now be displayed'
+        );
+
+        MessageManager.getMessages.yieldTo(
+          'each', MockMessages.sms({ id: ++i })
+        );
+
         message = document.getElementById('message-' + i);
         assert.ok(
           message.classList.contains('hidden'),
           'message-' + i + ' should be hidden'
         );
-      }
+      });
 
-      MessageManager.getMessages.yieldTo(
-        'each', MockMessages.sms({ id: i })
-      );
+      suite('scrolling behavior for first chunk', function() {
+        setup(function() {
+          this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
+          Navigation.isCurrentPanel.withArgs('thread').returns(true);
 
-      assert.isNull(
-        container.querySelector('.hidden'),
-        'all previously hidden messages should now be displayed'
-      );
+          this.sinon.stub(HTMLElement.prototype, 'scrollIntoView');
 
-      MessageManager.getMessages.yieldTo(
-        'each', MockMessages.sms({ id: ++i })
-      );
+          for (var i = 1; i < ThreadUI.CHUNK_SIZE; i++) {
+            MessageManager.getMessages.yieldTo(
+              'each', MockMessages.sms({ id: i })
+            );
+          }
+        });
 
-      message = document.getElementById('message-' + i);
-      assert.ok(
-        message.classList.contains('hidden'),
-        'message-' + i + ' should be hidden'
-      );
+        test('should scroll to the end', function() {
+          MessageManager.getMessages.yieldTo(
+            'each', MockMessages.sms({ id: ThreadUI.CHUNK_SIZE })
+          );
+
+          sinon.assert.called(HTMLElement.prototype.scrollIntoView);
+        });
+
+        test('should not scroll to the end if in the wrong panel', function() {
+          Navigation.isCurrentPanel.withArgs('thread').returns(false);
+
+          MessageManager.getMessages.yieldTo(
+            'each', MockMessages.sms({ id: ThreadUI.CHUNK_SIZE })
+          );
+
+          sinon.assert.notCalled(HTMLElement.prototype.scrollIntoView);
+        });
+      });
     });
 
-    suite('scrolling behavior for first chunk', function() {
+    suite('calling stopRendering then renderMessages', function() {
       setup(function() {
-        this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
-        Navigation.isCurrentPanel.withArgs('thread').returns(true);
-
-        this.sinon.stub(HTMLElement.prototype, 'scrollIntoView');
-
-        for (var i = 1; i < ThreadUI.CHUNK_SIZE; i++) {
-          MessageManager.getMessages.yieldTo(
-            'each', MockMessages.sms({ id: i })
-          );
-        }
+        ThreadUI.stopRendering();
+        ThreadUI.renderMessages(1);
       });
 
-      test('should scroll to the end', function() {
-        MessageManager.getMessages.yieldTo(
-          'each', MockMessages.sms({ id: ThreadUI.CHUNK_SIZE })
-        );
-
-        sinon.assert.called(HTMLElement.prototype.scrollIntoView);
-      });
-
-      test('should not scroll to the end if in the wrong panel', function() {
-        Navigation.isCurrentPanel.withArgs('thread').returns(false);
-
-        MessageManager.getMessages.yieldTo(
-          'each', MockMessages.sms({ id: ThreadUI.CHUNK_SIZE })
-        );
-
-        sinon.assert.notCalled(HTMLElement.prototype.scrollIntoView);
+      test('getMessages should not be called', function() {
+        sinon.assert.notCalled(MessageManager.getMessages);
       });
     });
   });
@@ -2833,9 +2845,9 @@ suite('thread_ui.js >', function() {
       });
 
       transitionArgs = {
-        id: 1,
+        id: '1',
         meta: {
-          next: { panel: 'thread', args: { id: 1 } },
+          next: { panel: 'thread', args: { id: '1' } },
           prev: { panel: 'thread-list', args: {} }
         }
       };
@@ -6300,6 +6312,7 @@ suite('thread_ui.js >', function() {
 
       this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
       this.sinon.stub(ThreadListUI, 'mark');
+      this.sinon.stub(MessageManager, 'markThreadRead');
       this.sinon.stub(ThreadUI, 'renderMessages');
       this.sinon.stub(Threads, 'get').returns({});
       this.sinon.stub(Compose, 'fromDraft');
@@ -6341,10 +6354,12 @@ suite('thread_ui.js >', function() {
           .returns(true);
       });
 
-      test('calls ThreadListUI.mark', function() {
+      test('we mark messages as read', function() {
         ThreadUI.afterEnter(transitionArgs);
 
         sinon.assert.calledWith(ThreadListUI.mark, threadId, 'read');
+        this.sinon.clock.tick();
+        sinon.assert.calledWith(MessageManager.markThreadRead, threadId);
       });
 
       test('renders messages', function() {
