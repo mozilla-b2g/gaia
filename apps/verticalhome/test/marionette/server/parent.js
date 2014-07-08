@@ -8,7 +8,7 @@ var fork = require('child_process').fork;
 function post(client, url, json) {
   // must run in chrome so we can do cross domain xhr
   client = client.scope({ context: 'chrome' });
-  return client.executeAsyncScript(function(url, json) {
+  var response = client.executeAsyncScript(function(url, json) {
     var xhr = new XMLHttpRequest();
     xhr.open('POST', url, true);
     xhr.setRequestHeader('Content-Type', 'application/json');
@@ -17,6 +17,8 @@ function post(client, url, json) {
     };
     xhr.send(json);
   }, [url, JSON.stringify(json)]);
+  console.log('Got response: ', response);
+  return response;
 }
 
 function AppServer(root, marionette, port, proc) {
