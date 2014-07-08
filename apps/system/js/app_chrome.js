@@ -75,6 +75,14 @@
     this.element = this.containerElement.querySelector('.chrome');
     this.navigation = this.element.querySelector('.navigation');
     this.rocketbar = this.element.querySelector('.rocketbar');
+
+    // We're appending new elements to DOM so to make sure headers are
+    // properly resized and centered, we emmit a lazyload event.
+    // This will be removed when the gaia-header web component lands.
+    window.dispatchEvent(new CustomEvent('lazyload', {
+      detail: this.rocketbar
+    }));
+
     this.progress = this.element.querySelector('.progress');
     this.openButton = this.element.querySelector('.handler');
     this.bookmarkButton = this.element.querySelector('.bookmark-button');
