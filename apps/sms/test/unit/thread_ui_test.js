@@ -6,8 +6,9 @@
          MockContacts, ActivityHandler, Recipients, MockMozActivity,
          ThreadListUI, ContactRenderer, UIEvent, Drafts, OptionMenu,
          ActivityPicker, KeyEvent, MockNavigatorSettings, MockContactRenderer,
-         Draft, MockStickyHeader, MultiSimActionButton, Promise,
-         MockLazyLoader, WaitingScreen, Navigation, MockDialog, MockSettings
+         Draft, MockStickyHeader, MultiSimActionButton, Promise, KeyboardEvent,
+         MockLazyLoader, WaitingScreen, Navigation, MockDialog, MockSettings,
+         FocusEvent
 */
 
 'use strict';
@@ -31,7 +32,7 @@ require('/test/unit/mock_time_headers.js');
 require('/test/unit/mock_link_action_handler.js');
 require('/test/unit/mock_attachment.js');
 require('/test/unit/mock_attachment_menu.js');
-require('/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 require('/test/unit/mock_utils.js');
 require('/test/unit/mock_navigatormoz_sms.js');
 require('/test/unit/mock_moz_sms_filter.js');
@@ -1140,6 +1141,51 @@ suite('thread_ui.js >', function() {
 
   suite('Subject', function() {
 
+    suite('Recipient behavior when interacting with subject', function() {
+      setup(function() {
+        // Add recipient node
+        var node = document.createElement('span');
+        node.isPlaceholder = true;
+        node.textContent = '999';
+
+        // fake markup for some contact suggestions
+        container.innerHTML =
+          '<ul class="contact-list">' +
+            '<li>' +
+              '<a class="suggestion">' +
+                '<p class="name">Jean Dupont</p>' +
+                '<p class="number">0123456789</p>' +
+              '</a>' +
+            '</li>' +
+          '</ul>';
+
+        this.sinon.spy(ThreadUI.recipients, 'add');
+        this.sinon.stub(Navigation, 'isCurrentPanel');
+        Navigation.isCurrentPanel.withArgs('composer').returns(true);
+
+        recipientsList.appendChild(node);
+        Compose.toggleSubject();
+      });
+
+      teardown(function() {
+        ThreadUI.recipients.length = 0;
+        ThreadUI.recipients.inputValue = '';
+      });
+
+      test('Recipient assimilation is called when focus on subject',
+      function() {
+        subject.dispatchEvent(new FocusEvent('focus'));
+
+        // recipient added and container is cleared
+        sinon.assert.calledWithMatch(ThreadUI.recipients.add, {
+          name: '999',
+          number: '999',
+          source: 'manual'
+        });
+        assert.equal(container.textContent, '');
+      });
+    });
+
     suite('Max Length banner', function() {
       var banner,
           localize,
@@ -1206,17 +1252,24 @@ suite('thread_ui.js >', function() {
 
 
     suite('Visibility', function() {
-      var event, backspace;
+      var downEvent, upEvent, backspace;
 
-      suiteSetup(function() {
-        event = {
-          keyCode: KeyEvent.DOM_VK_BACK_SPACE,
-          DOM_VK_BACK_SPACE: KeyEvent.DOM_VK_BACK_SPACE
-        };
+      setup(function() {
+        downEvent = new KeyboardEvent('keydown', {
+          bubbles: true,
+          cancelable: true,
+          keyCode: KeyEvent.DOM_VK_BACK_SPACE
+        });
+
+        upEvent = new KeyboardEvent('keyup', {
+          bubbles: true,
+          cancelable: true,
+          keyCode: KeyEvent.DOM_VK_BACK_SPACE
+        });
 
         backspace = function(id) {
-          ThreadUI.onSubjectKeydown(event);
-          ThreadUI.onSubjectKeyup(event);
+          subject.dispatchEvent(downEvent);
+          subject.dispatchEvent(upEvent);
         };
       });
 
@@ -1293,11 +1346,11 @@ suite('thread_ui.js >', function() {
 
         // 3. Simulate holding backspace on the subject field
         for (var i = 0; i < 5; i++) {
-          ThreadUI.onSubjectKeydown(event);
+          subject.dispatchEvent(downEvent);
         }
 
         // 4. This is the "release" from a holding state
-        ThreadUI.onSubjectKeyup(event);
+        subject.dispatchEvent(upEvent);
 
         // 5. Confirm that the state of the compose area not changed.
         assert.isTrue(Compose.isSubjectVisible);
@@ -1319,11 +1372,11 @@ suite('thread_ui.js >', function() {
 
         // 3. Simulate holding backspace on the subject field
         for (var i = 0; i < 5; i++) {
-          ThreadUI.onSubjectKeydown(event);
+          subject.dispatchEvent(downEvent);
         }
 
         // 4. This is the "release" from a holding state
-        ThreadUI.onSubjectKeyup(event);
+        subject.dispatchEvent(upEvent);
 
         // 5. To simulate the user "deleting" the subject,
         // set the value to an empty string.
@@ -1334,6 +1387,24 @@ suite('thread_ui.js >', function() {
 
         // 7. Confirm that the state of the compose area not changed.
         assert.isFalse(Compose.isSubjectVisible);
+      });
+    });
+
+    suite('Return key handling', function() {
+      var event;
+
+      test('Return key should be ignored at key down', function() {
+        event = new KeyboardEvent('keydown', {
+          bubbles: true,
+          cancelable: true,
+          keyCode: KeyEvent.DOM_VK_RETURN
+        });
+        this.sinon.spy(event, 'stopPropagation');
+
+        subject.dispatchEvent(event);
+
+        assert.ok(event.defaultPrevented);
+        sinon.assert.called(event.stopPropagation);
       });
     });
   });
@@ -2974,7 +3045,6 @@ suite('thread_ui.js >', function() {
         element = document.getElementById('message-' + message.id);
         notDownloadedMessage = element.querySelector('.not-downloaded-message');
         button = element.querySelector('button');
-
       });
       test('element has correct data-message-id', function() {
         assert.equal(element.dataset.messageId, message.id);
@@ -6083,8 +6153,7 @@ suite('thread_ui.js >', function() {
         });
 
         test('updates the header', function() {
-          // the l10n mock adds the key as text content
-          assert.equal(headerText.textContent, 'newMessage');
+          assert.equal(headerText.dataset.l10nId, 'newMessage');
         });
       });
 

@@ -1,13 +1,11 @@
 'use strict';
 
 /* global verticalPreferences, verticalHomescreen, requireElements,
-          suiteTemplate, MockNavigatorSettings, MockL10n,
-          MockNavigatorMozMobileConnections */
+          suiteTemplate, MockNavigatorSettings, MockL10n */
 
 requireApp('settings/test/unit/mock_l10n.js');
 require('/shared/js/homescreens/vertical_preferences.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
-require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 require('/shared/js/settings_listener.js');
 requireElements('settings/elements/homescreen.html');
 
@@ -19,7 +17,6 @@ suite('vertical_homescreen.js >', function() {
   var updateHandler = null;
   var pref = 'grid.cols';
   var realMozSettings = null;
-  var realMobileConnections = null;
 
   suiteTemplate('homescreen', {
     id: 'homescreen'
@@ -36,15 +33,11 @@ suite('vertical_homescreen.js >', function() {
 
     realMozSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
-
-    realMobileConnections = navigator.mozMobileConnections;
-    navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
   });
 
   suiteTeardown(function() {
     document.body.innerHTML = '';
     updateStub.restore();
-    navigator.mozMobileConnections = realMobileConnections;
     navigator.mozSettings = realMozSettings;
     navigator.mozL10n = realL10n;
     realL10n = null;
@@ -133,11 +126,10 @@ suite('vertical_homescreen.js >', function() {
     setup(function() {
       navigator.mozSettings.mSetup();
       navigator.mozSettings.mSyncRepliesOnly = true;
-      xhr = sinon.useFakeXMLHttpRequest();
-      xhr.onCreate = function (xhr) {
-        xhr.overrideMimeType = function() {};
-        requests.push(xhr);
-      };
+       xhr = sinon.useFakeXMLHttpRequest();
+       xhr.onCreate = function (xhr) {
+         requests.push(xhr);
+       };
     });
 
     teardown(function() {
@@ -191,94 +183,22 @@ suite('vertical_homescreen.js >', function() {
       option.text = 'dummy';
       verticalHomescreen.searchEngineSelect.add(option);
 
-      var data = {
-        'default': [
-          {
-            'title': 'Foo Search',
-            'urlTemplate': 'http://foo.com/?q={searchTerms}'
-          },
-          {
-            'bar': 'Bar Search',
-            'urlTemplate': 'http://bar.com/?q={searchTerms}'
-          }
-        ]
-      };
+      var data = [
+        {
+          'title': 'Foo Search',
+          'urlTemplate': 'http://foo.com/?q={searchTerms}'
+        },
+        {
+          'bar': 'Bar Search',
+          'urlTemplate': 'http://bar.com/?q={searchTerms}'
+        }
+      ];
       verticalHomescreen.generateSearchEngineOptions(data);
       assert.equal(verticalHomescreen.searchEngineSelect.length, 2);
       assert.equal(verticalHomescreen.searchEngineSelect[0].value,
         'http://foo.com/?q={searchTerms}');
       assert.equal(verticalHomescreen.searchEngineSelect[0].text,
         'Foo Search');
-
-      verticalHomescreen.searchEngineSelect = realSearchEngineSelect;
-    });
-
-    test('generateSearchEngineOptions() for unknow mcc/mnc', function() {
-      var realSearchEngineSelect = verticalHomescreen.searchEngineSelect;
-      verticalHomescreen.searchEngineSelect = document.createElement('select');
-      var option = document.createElement('option');
-      option.value = 'dummy';
-      option.text = 'dummy';
-      verticalHomescreen.searchEngineSelect.add(option);
-
-      var data = {
-        'default': [
-        ],
-        'variant': {
-          '000000': {
-            'title': 'Foo Search 000000',
-            'urlTemplate': 'http://foo-000000.com/?q={searchTerms}'
-          }
-        }
-      };
-      verticalHomescreen.generateSearchEngineOptions(data);
-      assert.equal(verticalHomescreen.searchEngineSelect.length, 1);
-      assert.equal(verticalHomescreen.searchEngineSelect[0].value,
-        'http://foo-000000.com/?q={searchTerms}');
-      assert.equal(verticalHomescreen.searchEngineSelect[0].text,
-        'Foo Search 000000');
-
-      verticalHomescreen.searchEngineSelect = realSearchEngineSelect;
-    });
-
-    test('generateSearchEngineOptions() for mcc/mnc == 123456', function() {
-      var realSearchEngineSelect = verticalHomescreen.searchEngineSelect;
-      verticalHomescreen.searchEngineSelect = document.createElement('select');
-      var option = document.createElement('option');
-      option.value = 'dummy';
-      option.text = 'dummy';
-      verticalHomescreen.searchEngineSelect.add(option);
-
-       MockNavigatorMozMobileConnections.mAddMobileConnection();
-
-      var mockConn = MockNavigatorMozMobileConnections[0];
-      mockConn.voice = {
-        network: {
-          mnc: '123',
-          mcc: '456'
-        }
-      };
-
-      var data = {
-        'default': [
-        ],
-        'variant': {
-          '000000': {
-            'title': 'Foo Search 000000',
-            'urlTemplate': 'http://foo-000000.com/?q={searchTerms}'
-          },
-          '123456': {
-            'title': 'Foo Search 123456',
-            'urlTemplate': 'http://foo-123456.com/?q={searchTerms}'
-          }
-        }
-      };
-      verticalHomescreen.generateSearchEngineOptions(data);
-      assert.equal(verticalHomescreen.searchEngineSelect.length, 1);
-      assert.equal(verticalHomescreen.searchEngineSelect[0].value,
-        'http://foo-123456.com/?q={searchTerms}');
-      assert.equal(verticalHomescreen.searchEngineSelect[0].text,
-        'Foo Search 123456');
 
       verticalHomescreen.searchEngineSelect = realSearchEngineSelect;
     });

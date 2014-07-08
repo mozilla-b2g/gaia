@@ -1,4 +1,5 @@
 'use strict';
+/* global GaiaGrid */
 /* global MozActivity */
 
 (function(exports) {
@@ -49,7 +50,34 @@
         var icon = this.grid.getIcon(identifier);
 
         collection.pinWebResult(icon.detail);
-        collection.render(this.grid);
+
+        // The pinned result has slightly different properties.
+        // Set properties and update to not have to do a full re-render.
+        // We specifically override the methods here because the object
+        // maintains a reference to the features object which we don't want
+        // to pollute.
+        icon.isRemovable = () => { return true; };
+        icon.isDraggable = () => { return true; };
+        icon.element.dataset.isDraggable = true;
+
+        // Remove links are not present for web results
+        var removeEl = document.createElement('span');
+        removeEl.className = 'remove';
+        icon.element.appendChild(removeEl);
+
+        // Change the location of the icon in the grid to be after the current
+        // pinned items, then re-render results.
+        this.grid.removeIconByIdentifier(identifier);
+        this.grid.removeItemByIndex(icon.detail.index);
+        this.grid.add(icon, collection.pinned.length - 1);
+
+        // Add a divider if it's our first pinned result.
+        if (collection.pinned.length === 1) {
+          this.grid.add(new GaiaGrid.Divider(), 1);
+        }
+
+        this.grid.render();
+
         collection.renderIcon().then(() => {
           collection.save();
         });

@@ -291,59 +291,49 @@ NfcUtils = {
     return new NfcBuffer(uint8array);
   },
 
-  /*****************************************************************************
-   * encodeNDEF: takes an array of NDEFRecords and returns an Array of octets
-   * representing the binary encoding of the NDEF message according to the NFC
-   * Forum.
-   * @param {MozNDEFRecord}	MozNDEFRecord	Array of NDEF records to encode.
+  /*
+   * Takes an array of NDEFRecords and returns an Array of octets
+   * representing the binary encoding of the NDEF message according
+   * to the NFC Forum.
+   * Note: support for message chunking is not implemented.
+   * @param {Array} ndefRecords Array of NDEF records to encode.
+   * @return {Array} Byte array containing encoded NDEF message.
    */
-  encodeNDEF: function encodeNDEF(ndefMessage) {
-    var b = [];
-    var isFirstRecord = true;
-    for (var j = 0; j < ndefMessage.length; j++) {
-      var record = ndefMessage[j];
+  encodeNDEF: function encodeNDEF(records) {
+    var result = [];
+
+    records.forEach((record, recordIndex) => {
+      record.payload = record.payload || [];
+      record.id = record.id || [];
+      record.type = record.type || [];
+
       var payloadLen = record.payload.length;
       var idLen = record.id.length;
       var typeLen = record.type.length;
-      var firstOctet = 0;
-      var i = 0;
-      if (isFirstRecord) {
-        firstOctet |= NDEF.MB;
+
+      var firstOctet = record.tnf & 0x07;
+      firstOctet |= (recordIndex === 0) ? NDEF.MB : 0;
+      firstOctet |= (recordIndex === records.length - 1) ? NDEF.ME : 0;
+      firstOctet |= (idLen > 0) ? NDEF.IL : 0;
+      firstOctet |= (payloadLen <= 0xFF) ? NDEF.SR : 0;
+
+      result.push(firstOctet);
+      result.push(typeLen);
+
+      for (var p = (payloadLen > 0xFF ? 3 : 0); p >= 0; p -= 1) {
+        result.push((payloadLen >>> (8 * p)) & 0xFF);
       }
-      isFirstRecord = false;
-      if (j == ndefMessage.length - 1) {
-        firstOctet |= NDEF.ME;
-      }
-      firstOctet |= record.tnf & 0x07;
+
       if (idLen > 0) {
-        firstOctet |= NDEF.IL;
+        result.push(idLen);
       }
-      if (payloadLen <= 0xff) {
-        firstOctet |= NDEF.SR;
-      }
-      b.push(firstOctet);
-      b.push(typeLen);
-      b.push(payloadLen & 0xff);
-      if (payloadLen > 0xff) {
-        for (i = 0; i < 3; i++) {
-          payloadLen >>>= 8;
-          b.push(payloadLen & 0xff);
-        }
-      }
-      if (idLen > 0) {
-        b.push(idLen);
-      }
-      for (i = 0; i < record.type.length; i++) {
-        b.push(record.type[i]);
-      }
-      for (i = 0; i < record.id.length; i++) {
-        b.push(record.id[i]);
-      }
-      for (i = 0; i < record.payload.length; i++) {
-        b.push(record.payload[i]);
-      }
-    }
-    return b;
+
+      result.push.apply(result, record.type);
+      result.push.apply(result, record.id);
+      result.push.apply(result, record.payload);
+    });
+
+    return result;
   },
 
   /**

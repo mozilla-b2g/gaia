@@ -208,6 +208,12 @@ var ERRORS = {
     showRecipient: false,
     showDsdsStatus: false,
     hasHandler: false
+  },
+  SimNotMatchedError: {
+    prefix: 'simNotMatchedError',
+    showRecipient: false,
+    showDsdsStatus: false,
+    hasHandler: false
   }
   // The error type below will be represented as "GeneralError" in dialog:
   // 'UnknownError'

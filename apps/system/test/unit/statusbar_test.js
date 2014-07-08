@@ -1,3 +1,8 @@
+/* globals FtuLauncher, MockAppWindowManager, MockL10n, MockMobileOperator,
+           MockNavigatorMozMobileConnections, MockNavigatorMozTelephony,
+           MockSettingsListener, MocksHelper, MockSIMSlot, MockSIMSlotManager,
+           MockSystem, MockTouchForwarder, StatusBar, System */
+
 'use strict';
 
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
@@ -13,6 +18,7 @@ requireApp('system/js/mock_simslot_manager.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_ftu_launcher.js');
 requireApp('system/test/unit/mock_touch_forwarder.js');
+requireApp('system/test/unit/mock_sim_pin_dialog.js');
 
 var mocksForStatusBar = new MocksHelper([
   'FtuLauncher',
@@ -20,7 +26,8 @@ var mocksForStatusBar = new MocksHelper([
   'MobileOperator',
   'SIMSlotManager',
   'AppWindowManager',
-  'TouchForwarder'
+  'TouchForwarder',
+  'SimPinDialog'
 ]).init();
 
 suite('system/Statusbar', function() {
@@ -28,7 +35,6 @@ suite('system/Statusbar', function() {
   var fakeStatusBarNode, fakeTopPanel, fakeStatusBarBackground,
     fakeStatusBarIcons;
   var realMozL10n, realMozMobileConnections, realMozTelephony, fakeIcons = [];
-  var originalLocked;
 
   mocksForStatusBar.attachTestHelpers();
   suiteSetup(function(done) {
@@ -1592,6 +1598,61 @@ suite('system/Statusbar', function() {
       var evt = new CustomEvent('wifi-statuschange');
       StatusBar.handleEvent(evt);
       assert.isTrue(spyUpdateWifi.called);
+    });
+  });
+
+  suite('Appearance', function() {
+    test('set opaque should render properly', function() {
+      StatusBar.setAppearance('opaque');
+      assert.isTrue(StatusBar.background.classList.contains('opaque'));
+    });
+
+    test('set semi-transparent should render properly', function() {
+      StatusBar.setAppearance('semi-transparent');
+      assert.isFalse(StatusBar.background.classList.contains('opaque'));
+    });
+
+    test('simpinshow event should set opaque', function() {
+      StatusBar.handleEvent({type: 'simpinshow'});
+      assert.isTrue(StatusBar.background.classList.contains('opaque'));
+    });
+
+    test('simpinclose event should set semi-transparent', function() {
+      StatusBar.handleEvent({type: 'simpinclose'});
+      assert.isFalse(StatusBar.background.classList.contains('opaque'));
+    });
+
+    suite('iac-change-appearance-statusbar event', function() {
+      test('should keep semi-transparent on SIM unlocked', function() {
+        SimPinDialog.visible = false;
+        StatusBar.handleEvent({
+          type: 'iac-change-appearance-statusbar',
+          detail: 'semi-transparent'
+        });
+
+        assert.isFalse(StatusBar.background.classList.contains('opaque'));
+      });
+
+      test('should keep opaque on SIM unlocked', function() {
+        SimPinDialog.visible = false;
+        StatusBar.handleEvent({
+          type: 'iac-change-appearance-statusbar',
+          detail: 'opaque'
+        });
+
+        assert.isTrue(StatusBar.background.classList.contains('opaque'));
+      });
+
+      test('should set opaque when SIM is locked', function() {
+        StatusBar.background.classList.remove('opaque');
+        SimPinDialog.visible = true;
+        StatusBar.handleEvent({
+          type: 'iac-change-appearance-statusbar',
+          detail: 'semi-transparent'
+        });
+
+        assert.isTrue(StatusBar.background.classList.contains('opaque'));
+      });
     });
   });
 });

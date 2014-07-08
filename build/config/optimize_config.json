@@ -1,0 +1,17 @@
+{
+  "L10N_OPTIMIZATION_BLACKLIST": {
+    "pdfjs": "*"
+  },
+  "JS_AGGREGATION_BLACKLIST": {
+    "system": "*"
+  },
+  "INLINE_GLOBAL_VAR_WHITELIST": {
+    "system": [ "net_error.html" ]
+  },
+  "INLINE_OPTIMIZE_WHITELIST": {
+    "system": [ "net_error.html" ]
+  },
+  "PRETRANSLATION_BLACKLIST": {
+    "keyboard": ["index.html"]
+  }
+}

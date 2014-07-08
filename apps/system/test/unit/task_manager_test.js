@@ -538,6 +538,20 @@ suite('system/TaskManager >', function() {
           'card.applyStyle was not called with undefined properties');
       });
 
+      test('user can change swipe direction', function() {
+        var currentCard = taskManager.currentCard;
+
+        // Simulate a swipe that goes to one side, then back again
+        var el = currentCard.element;
+        el.dispatchEvent(createTouchEvent('touchstart', el, 200, 500));
+        el.dispatchEvent(createTouchEvent('touchmove', el, 0, 500));
+        el.dispatchEvent(createTouchEvent('touchmove', el, 50, 500));
+        el.dispatchEvent(createTouchEvent('touchend', el, 100, 500));
+
+        assert.isTrue(currentCard == taskManager.currentCard,
+                      'current card remains unchanged');
+      });
+
       suite('when the currently displayed app is out of the stack',
       function() {
         setup(function() {

@@ -33,6 +33,8 @@ suite('captive portal > ', function() {
   var timeout = 10;
   var subject;
   var event;
+  var successEvent;
+  var abortEvent;
   var fakeScreenNode;
 
   mocksForCaptivePortal.attachTestHelpers();
@@ -70,14 +72,43 @@ suite('captive portal > ', function() {
   setup(function() {
     event = new MockChromeEvent({
       type: 'captive-portal-login',
-      url: 'http://developer.mozilla.org'
+      url: 'http://developer.mozilla.org',
+      id: 0
     });
+
+    successEvent = new MockChromeEvent({
+      type: 'captive-portal-login-success',
+      url: 'http://developer.mozilla.org',
+      id: 0
+    });
+
+    abortEvent = new MockChromeEvent({
+      type: 'captive-portal-login-abort',
+      url: 'http://developer.mozilla.org',
+      id: 0
+    });
+
     CaptivePortal.init();
   });
 
   test('system/captive portal login', function() {
     CaptivePortal.handleEvent(event);
     assert.ok(MockNotificationScreen.wasMethodCalled['addNotification']);
+  });
+
+  test('system/captive portal login success', function() {
+    CaptivePortal.handleEvent(successEvent);
+    assert.ok(MockNotificationScreen.wasMethodCalled['removeNotification']);
+  });
+
+  test('system/captive portal login again', function() {
+    CaptivePortal.handleEvent(event);
+    assert.ok(MockNotificationScreen.wasMethodCalled['addNotification']);
+  });
+
+  test('system/captive portal login abort', function() {
+    CaptivePortal.handleEvent(abortEvent);
+    assert.ok(MockNotificationScreen.wasMethodCalled['removeNotification']);
   });
 
   test('system/captive portal while FTU running..', function() {

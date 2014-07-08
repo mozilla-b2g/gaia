@@ -2,6 +2,7 @@
 
 requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
+requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 requireApp('system/test/unit/mock_ftu_launcher.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
@@ -50,6 +51,7 @@ suite('system/LockScreen >', function() {
   var realOrientationManager;
   var realFtuLauncher;
   var realSettingsListener;
+  var realMozSettings;
   var domPasscodePad;
   var domEmergencyCallBtn;
   var domOverlay;
@@ -87,6 +89,9 @@ suite('system/LockScreen >', function() {
 
     realSettingsListener = window.SettingsListener;
     window.SettingsListener = window.MockSettingsListener;
+
+    realMozSettings = navigator.mozSettings;
+    navigator.mozSettings = window.MockNavigatorSettings;
 
     subject = new window.LockScreen();
 
@@ -244,6 +249,13 @@ suite('system/LockScreen >', function() {
     assert.equal(subject.message.hidden, true);
   });
 
+  test('Lock when asked via lock-immediately setting', function() {
+    window.MockNavigatorSettings.mTriggerObservers(
+      'lockscreen.lock-immediately', {settingValue: true});
+    assert.isTrue(subject.locked,
+      'it didn\'t lock after the lock-immediately setting got changed');
+  });
+
   // XXX: Test 'Screen off: by proximity sensor'.
 
   teardown(function() {
@@ -253,11 +265,13 @@ suite('system/LockScreen >', function() {
     window.OrientationManager = window.realOrientationManager;
     window.FtuLauncher = realFtuLauncher;
     window.SettingsListener = realSettingsListener;
+    navigator.mozSettings = realMozSettings;
 
     document.body.removeChild(domPasscodePad);
     subject.passcodePad = null;
 
     window.MockSettingsListener.mTeardown();
+    window.MockNavigatorSettings.mTeardown();
     stubById.restore();
   });
 });

@@ -8,8 +8,9 @@
 */
 'use strict';
 
+require('/shared/test/unit/mocks/mock_l10n.js');
+
 requireApp('sms/test/unit/mock_settings.js');
-requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/js/dialog.js');
 
 var mocksHelperForDialog = new MocksHelper([
@@ -384,6 +385,29 @@ suite('Dialog', function() {
       assert.equal(opt.options.confirm.text.l10nId,
                   'nonActiveSimToSendConfirm');
       assert.equal(opt.options.confirm.method, handler);
+    });
+
+    test('show unable to download mms error', function() {
+      var dialog = new ErrorDialog('SimNotMatchedError');
+
+      dialog.show();
+
+      sinon.assert.calledWith(dialogSpy, sinon.match.any, {
+        title: {
+          l10nId: 'simNotMatchedErrorTitle'
+        },
+        body: {
+          l10nId: 'simNotMatchedErrorBody',
+          l10nArgs: {}
+        },
+        options: {
+          cancel: {
+            text: {
+              l10nId: 'simNotMatchedErrorBtnOk'
+            }
+          }
+        }
+      });
     });
   });
 
