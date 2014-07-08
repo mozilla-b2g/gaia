@@ -134,7 +134,7 @@ section.month .selected > .busy-indicator {
   color: white;
 }
 
-section.month .icon-dot {
+section.month .icon-calendar-dot {
   height: 0.4rem;
   line-height: 0.4rem;
   margin: 0 0.2rem;
@@ -142,9 +142,9 @@ section.month .icon-dot {
   width: 0.4rem;
 }
 
-section.month .icon-dot:before {
-  /* 1.6 rem is half of 3.2 rem font */
-  margin-left: calc(50% - 1.6rem);
+section.month .icon-calendar-dot:before {
+  /* center dots */
+  margin-left: calc(50% - 1.8rem);
 }
 
 /* months day view */
@@ -233,13 +233,16 @@ section.month .icon-dot:before {
   border-bottom: none;
 }
 
-#months-day-view .icon-dot {
-  display: block;
-  font-size: 6rem;
-  height: 3rem;
-  left: -1.5rem;
+#months-day-view .icon-calendar-dot {
   position: absolute;
-  top: calc(50% - 3rem);
+  height: 3rem;
+  left: -1.4rem;
+  top: 50%;
+  margin-top: -3rem;
+}
+
+#months-day-view .icon-calendar-dot:before {
+  font-size: 6rem;
 }
 
 #months-day-view .event-time {
@@ -305,14 +308,14 @@ section.month .icon-dot:before {
   width: 100%;
 }
 
-#months-day-view .icon-alarm {
+#months-day-view .icon-calendar-alarm {
   display: none;
 }
 
-#months-day-view .has-alarms .icon-alarm {
+#months-day-view .has-alarms .icon-calendar-alarm {
   display: block;
   height: 6rem;
   line-height: 6rem;
   position: absolute;
-  right: 0.8rem;
+  right: 1rem;
 }
