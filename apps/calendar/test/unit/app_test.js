@@ -214,14 +214,13 @@ suite('app', function() {
   suite('global events', function() {
     var calledWith;
     var realRestart;
-    var realTimeout;
+    var clock;
 
     setup(function() {
       calledWith = 0;
-      realTimeout = subject._mozTimeRefreshTimeout;
       realRestart = Calendar.App.forceRestart;
+      clock = sinon.useFakeTimers();
 
-      subject._mozTimeRefreshTimeout = 1;
       subject.forceRestart = function() {
         calledWith++;
       };
@@ -229,24 +228,20 @@ suite('app', function() {
 
     teardown(function() {
       subject.forceRestart = realRestart;
-      subject._mozTimeRefreshTimeout = realTimeout;
+      clock.restore();
     });
 
-    test('moztimechange', function(done) {
+    test('moztimechange', function() {
       // dispatch multiple times to ensure it only fires callback
       // once...
       window.dispatchEvent(new Event('moztimechange'));
       window.dispatchEvent(new Event('moztimechange'));
 
-      setTimeout(function() {
-        window.dispatchEvent(new Event('moztimechange'));
-      }, 0);
+      clock.tick(10);
+      window.dispatchEvent(new Event('moztimechange'));
 
-      setTimeout(function() {
-        done(function() {
-          assert.equal(calledWith, 1);
-        });
-      }, 100);
+      clock.tick(subject._mozTimeRefreshTimeout + 10);
+      assert.equal(calledWith, 1);
     });
   });
 
