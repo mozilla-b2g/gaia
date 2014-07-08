@@ -328,6 +328,21 @@
       }, this);
     },
 
+    prependItemToGrid: function prependItemToGrid(item, grid) {
+      // Add the app to the beginning of the pinned array
+      this.pinned.unshift(new PinnedHomeIcon(item.identifier));
+
+      grid.add(this.toGridObject(item), 0);
+
+      // Add a divider if it's our first pinned result.
+      if (this.pinned.length === 1) {
+        grid.add(new GaiaGrid.Divider(), 1);
+      }
+
+      grid.render();
+      this.renderIcon();
+    },
+
     renderWebResults: function render(grid) {
       if (!this.webResults.length) {
         return;

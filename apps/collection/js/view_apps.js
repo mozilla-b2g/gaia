@@ -2,7 +2,8 @@
 /* global CollectionIcon */
 /* global eme */
 /* global NativeInfo */
-
+/* global Promise */
+/* global CollectionsDatabase */
 
 (function(exports) {
 
@@ -49,6 +50,7 @@
     // Ensure homeIcons are initialized
     .then(() => collection.homeIcons.init())
     .then(() => collection.refresh())
+    .then(() => listenForAddToCollection())
     .then(() => collection.render(grid))
     .then(() => {
       loading(false);
@@ -56,6 +58,29 @@
     });
 
     CollectionIcon.init(grid.maxIconSize);
+
+    function listenForAddToCollection() {
+      return new Promise(function doListenForAddToCollection(resolve) {
+        CollectionsDatabase.addEventListener('updated', function onUpdate(e) {
+          var data = e.target;
+
+          if (collection.categoryId !== data.categoryId) {
+            // Other collection was updated
+            return;
+          }
+
+          // "add-to-collection" activity puts the icon in the first position
+          var item = data.pinned[0];
+          if (item && !grid.getIcon(item.identifier)) {
+            // The icon is not rendered so this event has been dispatched
+            // because of an "add-to-collection" activity
+            collection.prependItemToGrid(item, grid);
+          }
+        });
+
+        resolve();
+      });
+    }
 
     function queueRequest() {
       if (navigator.onLine) {
