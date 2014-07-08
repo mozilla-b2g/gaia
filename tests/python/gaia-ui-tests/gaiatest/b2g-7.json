@@ -12,11 +12,8 @@
   },
   "imei" : "013498000389040",
   "wifi": {
-    "ssid": "Lindholm",
-    "keyManagement": "WPA-PSK",
-    "psk": "19761122"
-
-  },
+    "ssid": "Mozilla Guest"
+   },
   "settings": {
     "ril.cellbroadcast.disabled": true,
     "time.timezone": "America/Los_Angeles",
@@ -59,8 +56,8 @@
   "settings": {
       "debugger.remote-mode": "adb-devtools"
   },
-  "collect_ref_images": "true",
-  "screenshot_location": "//sdcard//screenshots//",
+  "collect_ref_images": "false",
+  "screenshot_location": "//storage//sdcard0//screenshots//",
   "fuzz_factor": "5",
   "post2dot0": "true"
 }
