@@ -62,16 +62,16 @@ function setAlarmtone(settings, config) {
 }
 
 function setRingtone(settings, config) {
-  // Grab ringer_classic_courier.opus and convert it into a base64 string
+  // Grab ringer_firefox.opus and convert it into a base64 string
   let ringtone_dir = 'shared/resources/media/ringtones/';
-  let ringtone_name = 'ringer_classic_courier.opus';
+  let ringtone_name = 'ringer_firefox.opus';
   setTone(settings, config, 'dialer.ringtone', ringtone_dir, ringtone_name);
 }
 
 function setNotification(settings, config) {
-  // Grab notifier_bell.opus and convert it into a base64 string
+  // Grab notifier_firefox.opus and convert it into a base64 string
   let notification_dir = 'shared/resources/media/notifications/';
-  let notification_name = 'notifier_bell.opus';
+  let notification_name = 'notifier_firefox.opus';
   setTone(settings, config, 'notification.ringtone', notification_dir,
           notification_name);
 }
