@@ -8,12 +8,12 @@ define(function(require, exports, module) {
 var CameraUtils = require('lib/camera-utils');
 var getVideoMetaData = require('lib/get-video-meta-data');
 var orientation = require('lib/orientation');
+var Focus = require('lib/camera/focus');
 var debug = require('debug')('camera');
 var debounce = require('lib/debounce');
 var bindAll = require('lib/bind-all');
-var model = require('vendor/model');
 var mix = require('lib/mixin');
-var Focus = require('lib/camera/focus');
+var model = require('model');
 
 /**
  * Mixin `Model` API (inc. events)
@@ -424,8 +424,8 @@ Camera.prototype.configureFocus = function() {
   this.focus.onAutoFocusChanged = this.onAutoFocusChanged;
 };
 
-Camera.prototype.onAutoFocusChanged = function() {
-  this.set('focus', 'autofocus');
+Camera.prototype.onAutoFocusChanged = function(state) {
+  this.set('focus', state);
 };
 
 Camera.prototype.onFacesDetected = function(faces) {
@@ -771,9 +771,8 @@ Camera.prototype.takePicture = function(options) {
     takePicture();
   }
 
-  function onFocused(err) {
-    var focus = err ? 'fail' : 'focused';
-    self.set('focus', focus);
+  function onFocused(state) {
+    self.set('focus', state);
     takePicture();
   }
 
@@ -821,14 +820,10 @@ Camera.prototype.updateFocusArea = function(rect, done) {
   var self = this;
   this.set('focus', 'focusing');
   this.focus.updateFocusArea(rect, focusDone);
-  function focusDone(error) {
-    if (error) {
-      self.set('focus', 'fail');
-    } else {
-      self.set('focus', 'focused');
-    }
+  function focusDone(state) {
+    self.set('focus', state);
     if (done) {
-      done(error);
+      done(state);
     }
   }
 };
@@ -1336,8 +1331,23 @@ Camera.prototype.getZoom = function() {
 };
 
 Camera.prototype.setZoom = function(zoom) {
-  this.mozCamera.zoom = zoom;
-  this.emit('zoomchanged', zoom);
+  this.zoom = zoom;
+  this.emit('zoomchanged', this.zoom);
+
+  // Stop here if we're already waiting for
+  // `mozCamera.zoom` to be updated.
+  if (this.zoomChangeTimeout) {
+    return;
+  }
+
+  var self = this;
+
+  // Throttle to prevent hammering the Camera API.
+  this.zoomChangeTimeout = window.setTimeout(function() {
+    self.zoomChangeTimeout = null;
+
+    self.mozCamera.zoom = self.zoom;
+  }, 150);
 };
 
 Camera.prototype.getZoomPreviewAdjustment = function() {

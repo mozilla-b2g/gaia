@@ -1,26 +1,34 @@
+/* globals CallScreen, FontSizeManager, MockCallsHandler, MockLazyL10n,
+           MockHandledCall, MockMozActivity, MockNavigatorMozTelephony,
+           MockMozL10n, MocksHelper, MockSettingsListener */
+
 'use strict';
 
-require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 require('/shared/test/unit/mocks/mock_moz_activity.js');
 require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
 require('/shared/test/unit/mocks/dialer/mock_handled_call.js');
 require('/shared/test/unit/mocks/dialer/mock_calls_handler.js');
+require('/shared/test/unit/mocks/dialer/mock_font_size_manager.js');
+require('/shared/test/unit/mocks/mock_settings_listener.js');
 
 var mocksHelperForCallScreen = new MocksHelper([
   'CallsHandler',
   'MozActivity',
-  'LazyL10n'
+  'LazyL10n',
+  'FontSizeManager'
 ]).init();
 
 // The CallScreen binds stuff when evaluated so we load it
 // after the fake dom and we don't want it to show up as a leak.
-if (!this.CallScreen) {
-  this.CallScreen = null;
+if (!window.CallScreen) {
+  window.CallScreen = null;
 }
 
 suite('call screen', function() {
   var realMozTelephony;
+  var realMozL10n;
+  var realSettingsListener;
 
   var screen;
   var container;
@@ -34,7 +42,6 @@ suite('call screen', function() {
   var statusMessage,
       statusMessageText;
   var lockedHeader,
-      lockedClock,
       lockedClockTime,
       lockedDate;
   var incomingContainer;
@@ -46,13 +53,17 @@ suite('call screen', function() {
   suiteSetup(function() {
     realMozTelephony = navigator.mozTelephony;
     navigator.mozTelephony = MockNavigatorMozTelephony;
-
+    realSettingsListener = window.SettingsListener;
+    window.SettingsListener = MockSettingsListener;
+    realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockMozL10n;
   });
 
   suiteTeardown(function() {
     MockNavigatorMozTelephony.mSuiteTeardown();
     navigator.mozTelephony = realMozTelephony;
+    window.SettingsListener = realSettingsListener;
+    navigator.mozL10n = realMozL10n;
   });
 
   setup(function(done) {
@@ -284,6 +295,19 @@ suite('call screen', function() {
         assert.equal(fakeNode.parentNode, CallScreen.calls);
         assert.isTrue(singleLineStub.calledOnce);
       });
+
+      test('should get the right scenario when single call', function() {
+        var fakeNode = document.createElement('section');
+        CallScreen.insertCall(fakeNode);
+        assert.equal(CallScreen.getScenario(), FontSizeManager.SINGLE_CALL);
+      });
+
+      test('should get the right scenario when call waiting', function() {
+        var fakeNode = document.createElement('section');
+        CallScreen.insertCall(fakeNode);
+        CallScreen.insertCall(fakeNode.cloneNode());
+        assert.equal(CallScreen.getScenario(), FontSizeManager.CALL_WAITING);
+      });
     });
 
     suite('removeCall', function() {
@@ -302,7 +326,6 @@ suite('call screen', function() {
 
       test('should remove the node in the groupList',
       function() {
-        var singleLineStub = this.sinon.stub(CallScreen, 'updateCallsDisplay');
         CallScreen.moveToGroup(fakeNode);
         CallScreen.removeCall(fakeNode);
         assert.equal(fakeNode.parentNode, null);
@@ -319,24 +342,15 @@ suite('call screen', function() {
   });
 
   suite('background image setter', function() {
-    var realMozSettings;
     var fakeBlob = new Blob([], {type: 'image/png'});
     var fakeURL = URL.createObjectURL(fakeBlob);
 
     setup(function() {
-      realMozSettings = navigator.mozSettings;
-      navigator.mozSettings = MockNavigatorSettings;
-      MockNavigatorSettings.mSettings['wallpaper.image'] = fakeBlob;
-
       this.sinon.stub(URL, 'createObjectURL').returns(fakeURL);
     });
 
-    teardown(function() {
-      navigator.mozSettings = realMozSettings;
-    });
-
     test('should change background of the main container', function(done) {
-      CallScreen.setWallpaper();
+      MockSettingsListener.mTriggerCallback('wallpaper.image', fakeBlob);
       setTimeout(function() {
         assert.equal(CallScreen.mainContainer.style.backgroundImage,
                      'url("' + fakeURL + '")');
@@ -346,25 +360,14 @@ suite('call screen', function() {
   });
 
   suite('background image setter from string', function() {
-    var realMozSettings;
     var fakeImage =
       'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAMCAgICAgMCAg' +
       'IDAwMDBAYEBAQEBAgGBgUGCQgKCgkICQkKDA8MCgsOCwkJDRENDg8QEBEQCgwSExIQEw8' +
       'QEBD/2wBDAQMDAwQDBAgEBAgQCwkLEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQ' +
       'EBAQEBAQEBAQEBAQEBAQEBAQEBD/wAARC';
 
-    setup(function() {
-      realMozSettings = navigator.mozSettings;
-      navigator.mozSettings = MockNavigatorSettings;
-      MockNavigatorSettings.mSettings['wallpaper.image'] = fakeImage;
-    });
-
-    teardown(function() {
-      navigator.mozSettings = realMozSettings;
-    });
-
     test('should change background of the main container', function(done) {
-      CallScreen.setWallpaper();
+      MockSettingsListener.mTriggerCallback('wallpaper.image', fakeImage);
       setTimeout(function() {
         assert.equal(CallScreen.mainContainer.style.backgroundImage,
                      'url("' + fakeImage + '")');
@@ -386,7 +389,7 @@ suite('call screen', function() {
       var toggleSpy = this.sinon.spy(screen.classList, 'toggle');
       CallScreen.toggle();
       assert.isTrue(toggleSpy.notCalled);
-      CallScreen.setWallpaper();
+      MockSettingsListener.mTriggerCallback('wallpaper.image', new Blob());
 
       setTimeout(function() {
         assert.isTrue(toggleSpy.calledOnce);
@@ -484,7 +487,6 @@ suite('call screen', function() {
   });
 
   suite('contact image setter', function() {
-    var realMozSettings;
     var fakeBlob = new Blob([], {type: 'image/png'});
     var fakeURL = URL.createObjectURL(fakeBlob);
 
@@ -529,24 +531,6 @@ suite('call screen', function() {
         MockCallsHandler.mActiveCallForContactImage = null;
         CallScreen.setCallerContactImage();
         assert.equal(CallScreen.contactBackground.style.backgroundImage, '');
-      });
-    });
-  });
-
-  suite('Emergency Wallpaper setter', function() {
-    test('should change background of the main container', function(done) {
-      var realMozSettings = navigator.mozSettings;
-      var fakeBlob = new Blob([], {type: 'image/png'});
-      var fakeURL = URL.createObjectURL(fakeBlob);
-      navigator.mozSettings = MockNavigatorSettings;
-      MockNavigatorSettings.mSettings['wallpaper.image'] = fakeBlob;
-      this.sinon.stub(URL, 'createObjectURL').returns(fakeURL);
-
-      CallScreen.setEmergencyWallpaper();
-      setTimeout(function() {
-        assert.equal(CallScreen.mainContainer.style.backgroundImage,
-          'url("' + fakeURL + '")');
-        done();
       });
     });
   });
@@ -771,6 +755,14 @@ suite('call screen', function() {
     });
   });
 
+  suite('resizeHandler', function() {
+    test('updateCallsDisplay is called with the right arguments', function() {
+      this.sinon.stub(CallScreen, 'updateCallsDisplay');
+      CallScreen.resizeHandler();
+      sinon.assert.calledWith(CallScreen.updateCallsDisplay, false);
+    });
+  });
+
   suite('hideIncoming', function() {
     var MockWakeLock;
     setup(function() {
@@ -923,7 +915,7 @@ suite('call screen', function() {
 
     test('createTicker should update timer every second', function() {
       this.sinon.clock.tick(1000);
-      assert.deepEqual(MockLazyL10n.keys['callDurationMinutes'], {
+      assert.deepEqual(MockLazyL10n.keys.callDurationMinutes, {
         h: '00',
         m: '00',
         s: '01'
@@ -976,6 +968,28 @@ suite('call screen', function() {
       assert.isFalse(bluetoothMenu.classList.contains('display'));
       CallScreen.toggleBluetoothMenu(true);
       assert.isTrue(bluetoothMenu.classList.contains('display'));
+    });
+  });
+
+  suite('hidePlaceNewCallButton', function() {
+    test('should toggle no-add-call class', function() {
+      CallScreen.hidePlaceNewCallButton();
+      assert.isTrue(callToolbar.classList.contains('no-add-call'));
+    });
+  });
+
+  suite('showPlaceNewCallButton', function() {
+    test('should not toggle no-add-call class', function() {
+      CallScreen.showPlaceNewCallButton();
+      assert.isFalse(callToolbar.classList.contains('no-add-call'));
+    });
+  });
+
+  suite('cdmaConferenceCall', function() {
+    test('should toggle no-add-call class and hidden group-show', function() {
+      CallScreen.cdmaConferenceCall();
+      assert.isTrue(callToolbar.classList.contains('no-add-call'));
+      assert.isTrue(calls.classList.contains('cdma-conference-call'));
     });
   });
 });

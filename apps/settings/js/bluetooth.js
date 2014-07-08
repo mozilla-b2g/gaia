@@ -790,8 +790,10 @@ navigator.mozL10n.once(function bluetoothSettings() {
     }
 
     function startDiscovery() {
-      if (!bluetooth.enabled || !defaultAdapter || discoverTimeout)
+      if (!bluetooth.enabled || !defaultAdapter ||
+          discoverTimeout || document.hidden) {
         return;
+      }
 
       var req = defaultAdapter.startDiscovery();
       req.onsuccess = function bt_discoveryStart() {

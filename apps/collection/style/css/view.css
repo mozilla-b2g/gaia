@@ -1,79 +1,77 @@
 gaia-grid {
   display: block;
   width: 100%;
+  position: relative;
+  z-index: 2;
+}
+
+#edit-header {
+  position: absolute;
+  top: 0;
+  z-index: 11; /* Header BB is 10 */
+  width: 100%;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.5s ease-in, visibility 0s linear 0.5s;
+}
+
+.edit-mode #edit-header {
+  visibility: visible;
+  opacity: 1;
+  transition: opacity 0.5s ease-in;
 }
 
 #header {
-  height: 5.4rem;
-  line-height: 5.4rem;
-  color: #ffffff;
-  font-size: 2.25rem;
-  overflow: hidden;
-  background-position: center -2.4rem; /* to continue wallpaper position from status bar */
-  position: relative;
+  background-position: center -2rem; /* to continue wallpaper position from status bar */
 }
 
 #header:after {
   position: absolute;
   content: ' ';
-  z-index: 0;
   background-color: rgba(0,0,0,0.8);
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-}
-
-#name {
-  margin-right: 1rem;
-  padding-left: 3rem;
-  display: block;
-  position: relative;
-  z-index: 1;
-  overflow: hidden;
-  white-space: nowrap;
-  mask: url('../images/app_name_mask.svg#fade_right_mask');
-  text-overflow: '';
-  -moz-box-sizing: border-box;
-}
-
-#close {
-  position: absolute;
-  background: transparent url('../images/close.png') no-repeat 50% 50%/1.7rem;
-  left: 0;
-  top: 0;
-  width: 3rem;
-  height: 5.4rem;
-  z-index: 1;
+  z-index: -1;
 }
 
 #content {
   border-top: 0.1rem solid #555;
-  position: fixed;
-  top: 5.4rem;
+  position: absolute;
+  top: 0;
   left: 0;
   right: 0;
   bottom: 0;
   overflow: scroll;
   padding-top: 2.4rem;
-  background-color: #000000;
-  background-size: cover;
+  -moz-user-select: none;
 }
 
-#content:after {
-  position: fixed;
-  top: 5.5rem; /* making sure not to overlay the top border */
+#content-background-image {
+  position: absolute;
+  top: 5rem;
   left: 0;
   width: 100%;
-  height: 100%;
-  z-index: 0;
-  content: " ";
-  background-color: rgba(0,0,0,0.4);
+  height: calc(100% - 5rem);
+  background-size: cover;
+  overflow: hidden;
 }
-/* making sure content elements don't get overlayed by #content:after */
-#content > * {
-  position: relative;
-  z-index: 1;
+
+#content-background-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background-color: rgba(0,0,0,0.4);
+  transition: background-color 0.5s ease-in;
+  overflow: hidden;
+}
+
+
+.edit-mode #content-background-overlay {
+  background-color: #333333;
 }
 
 /* Notifications */
@@ -92,6 +90,8 @@ section[role="notification"] {
   text-align: center;
   justify-content: center;
   display: none;
+  position: relative;
+  z-index: 1;
 }
 
 section[role="notification"]#offline {
@@ -109,4 +109,9 @@ body[data-loading="true"] section[role="notification"] progress {
 section[role="notification"].show,
 body[data-loading="true"] #content section[role="notification"]#loading{
   display: flex;
+}
+
+.edit-mode .icon[data-is-draggable="false"] {
+  pointer-events: none;
+  opacity: 0.2;
 }

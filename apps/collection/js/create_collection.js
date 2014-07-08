@@ -1,7 +1,9 @@
 'use strict';
+/* global BaseCollection */
 /* global CategoryCollection */
 /* global CollectionsDatabase */
 /* global CollectionIcon */
+/* global NativeInfo */
 /* global Promise */
 /* global QueryCollection */
 /* global Suggestions */
@@ -11,38 +13,18 @@
   var _ = navigator.mozL10n.get;
   var eme = exports.eme;
 
-  function getBackground(collection, iconSize) {
-    var src;
-    var options = {
-      width: iconSize,
-      height: iconSize
-    };
-
-    if (collection.categoryId) {
-      options.categoryId = collection.categoryId;
-    }
-    else {
-      options.query = collection.query;
-    }
-
-    return eme.api.Search.bgimage(options).then(function success(response) {
-      var image = response.response.image;
-      if (image) {
-        src = image.data;
-        if (/image\//.test(image.MIMEType)) {  // base64 image data
-          src = 'data:' + image.MIMEType + ';base64,' + image.data;
-        }
-      }
-
-      return {
-        src: src,
-        source: response.response.source,
-        checksum: response.checksum || null
-      };
-    });
-  }
-
   function HandleCreate(activity) {
+
+    function onOffline() {
+      alert(navigator.mozL10n.get('network-error-message'));
+      activity.postResult(false);
+    }
+
+    if (!navigator.onLine) {
+      return onOffline();
+    }
+
+    window.addEventListener('offline', onOffline);
 
     var request;
     var loading = document.getElementById('loading');
@@ -76,6 +58,11 @@
 
           Suggestions.load(categories).then(
             function select(selected) {
+              // We can't cancel out of this for the time being.
+              document.querySelector('menu').style.display = 'none';
+              // Display spinner while we're resolving and creating the
+              // collections.
+              loading.style.display = 'inline';
               eme.log('resolved with', selected);
               var dataReady;
 
@@ -95,7 +82,6 @@
                           function each(app) {
                             return app.icon;
                         });
-
                       var collection = new QueryCollection({
                         query: selected,
                         webicons: webicons
@@ -119,7 +105,7 @@
                 var iconsReady = [];
                 collections.forEach(function doIcon(collection) {
                   var promise =
-                    getBackground(collection, maxIconSize)
+                    BaseCollection.getBackground(collection, maxIconSize)
                     .then(function setBackground(bgObject) {
                       collection.background = bgObject;
                       return collection.renderIcon();
@@ -131,19 +117,63 @@
                 });
 
                 Promise.all(iconsReady).then(function then() {
-                  // TOOD
-                  // better use colleciton.save instead but it calles db.put
-                  // not sure if `put` works for new objects
-                  var trxs = collections.map(CollectionsDatabase.add);
-                  Promise.all(trxs).then(done, done);
+                  // Save the collections
+                  function saveAll(collections) {
+                    var trxs = collections.map(collection => {
+                      return collection.save('add');
+                    });
+                    return trxs;
+                  }
+
+                  // XXX: We currently need to save before we populate info.
+                  Promise.all(saveAll(collections))
+                  .then(populateNativeInfo.bind(null, collections))
+                  .then(generateIcons.bind(null, collections))
+                  .then(() => {
+                    return Promise.all(saveAll(collections));
+                  })
+                  .then(postResultIds.bind(null, collections), postResultIds);
                 }).catch(function _catch(ex) {
                   eme.log('caught exception', ex);
                   activity.postResult(false);
                 });
               });
 
-              function done() {
-                activity.postResult(true);
+              function populateNativeInfo(collections) {
+                var nativeTasks = [];
+                collections.forEach(collection => {
+                  nativeTasks.push(NativeInfo.processCollection(collection));
+                });
+                return Promise.all(nativeTasks);
+              }
+
+              function generateIcons(collections) {
+                var iconTasks = [];
+                collections.forEach(collection => {
+                  var promise =
+                    BaseCollection.getBackground(collection, maxIconSize)
+                    .then(function setBackground(bgObject) {
+                      collection.background = bgObject;
+                      return collection.renderIcon();
+                    }, function noBackground() {
+                      return collection.renderIcon();
+                    });
+                  iconTasks.push(promise);
+                });
+                return Promise.all(iconTasks);
+              }
+
+              /**
+               * Return from the activity to the homescreen. Create a list of
+               * collection IDs and post it to the homescreen so it knows what
+               * collections will be created, and positions them accordingly.
+               */
+              function postResultIds(collections) {
+                collections = collections || [];
+                // Generate an array of collection IDs.
+                var ids = collections.map(c => c.id);
+
+                activity.postResult(ids);
               }
             },
             function cancel(reason) {
@@ -153,14 +183,16 @@
 
       }, function error(reason) {
         eme.log('create-collection: error', reason);
-        activity.postError(_(reason === 'network error' ?
-                                   'network-error-message' : undefined));
+        activity.postError(reason === 'network error' ?
+                            _('network-error-message') : undefined);
       }).catch(function fail(ex) {
         eme.log('create-collection: failed', ex);
         activity.postError();
       });
 
     }, activity.postError);
+
+    document.body.dataset.testReady = true;
   }
 
   navigator.mozSetMessageHandler('activity', function onActivity(activity) {

@@ -7,7 +7,7 @@
          Attachment, WaitingScreen, MozActivity, LinkActionHandler,
          ActivityHandler, TimeHeaders, ContactRenderer, Draft, Drafts,
          Thread, MultiSimActionButton, LazyLoader, Navigation, Promise,
-         Dialog */
+         Dialog, SharedComponents */
 /*exported ThreadUI */
 
 (function(global) {
@@ -60,6 +60,9 @@ var ThreadUI = global.ThreadUI = {
   // delay between 2 counter updates while composing a message
   UPDATE_DELAY: 500,
 
+  // Min available chars count that triggers available chars counter
+  MIN_AVAILABLE_CHARS_COUNT: 20,
+
   // when sending an sms to several recipients in activity, we'll exit the
   // activity after this delay after moving to the thread list.
   LEAVE_ACTIVITY_DELAY: 3000,
@@ -96,8 +99,8 @@ var ThreadUI = global.ThreadUI = {
       'attach-button', 'delete-button', 'cancel-button', 'subject-input',
       'new-message-notice', 'options-icon', 'edit-mode', 'edit-form',
       'tel-form', 'header-text', 'max-length-notice', 'convert-notice',
-      'resize-notice', 'dual-sim-information',
-      'new-message-notice', 'subject-max-length-notice'
+      'resize-notice', 'dual-sim-information', 'new-message-notice',
+      'subject-max-length-notice', 'counter-label'
     ].forEach(function(id) {
       this[Utils.camelCase(id)] = document.getElementById('messages-' + id);
     }, this);
@@ -147,26 +150,6 @@ var ThreadUI = global.ThreadUI = {
 
     this.toField.addEventListener(
       'focus', this.toFieldInput.bind(this), true
-    );
-
-    // Handlers for send button and avoiding to hide keyboard instead
-    this.sendButton.addEventListener(
-      'mousedown', function mouseDown(event) {
-        event.preventDefault();
-        event.target.classList.add('active');
-      }
-    );
-
-    this.sendButton.addEventListener(
-      'mouseup', function mouseUp(event) {
-        event.target.classList.remove('active');
-      }
-    );
-
-    this.sendButton.addEventListener(
-      'mouseout', function mouseOut(event) {
-        event.target.classList.remove('active');
-      }
     );
 
     this.sendButton.addEventListener(
@@ -238,22 +221,26 @@ var ThreadUI = global.ThreadUI = {
     //      select a contact from contact search results
     //      will also jump focus to the message input field
     //
-    //  Currently, there are 3 Assimilations.
+    //  Currently, there are 4 Assimilations.
     //
 
     var assimilate = this.assimilateRecipients.bind(this);
 
-    // Assimilation 1
+    // 1. message input field focused
     this.input.addEventListener(
       'focus', assimilate
     );
-    // Assimilation 1
+    // 2. message input field clicked
     this.input.addEventListener(
       'click', assimilate
     );
-    // Assimilation 2
+    // 3. attachment button clicked
     this.attachButton.addEventListener(
       'click', assimilate
+    );
+    // 4. subject focused
+    this.subjectInput.addEventListener(
+      'focus', assimilate
     );
 
     this.container.addEventListener(
@@ -312,10 +299,16 @@ var ThreadUI = global.ThreadUI = {
     // save a message draft if necessary
     if (document.hidden) {
       // Auto-save draft if the user has entered anything
-      // in the composer.
-      if ((Navigation.isCurrentPanel('composer') ||
-           Navigation.isCurrentPanel('thread')) &&
-          (!Compose.isEmpty() || ThreadUI.recipients.length)) {
+      // in the composer or into To field (for composer panel only).
+      var isAutoSaveRequired = false;
+
+      if (Navigation.isCurrentPanel('composer')) {
+        isAutoSaveRequired = !Compose.isEmpty() || !!ThreadUI.recipients.length;
+      } else if (Navigation.isCurrentPanel('thread')) {
+        isAutoSaveRequired = !Compose.isEmpty();
+      }
+
+      if (isAutoSaveRequired) {
         ThreadUI.saveDraft({preserve: true, autoSave: true});
         Drafts.store();
       }
@@ -464,8 +457,11 @@ var ThreadUI = global.ThreadUI = {
       }
     } else {
       isHoldingBackspace = false;
-      // We dont let to add more characters if we reach the maximum
-      if (Compose.isSubjectMaxLength()) {
+      // Input char will be ignored when:
+      // - Reaching the maximum subjuect length. Any char input is not allowed
+      // - Return key(new line) input. Since new line won't work in subject
+      if (Compose.isSubjectMaxLength() ||
+          event.keyCode === event.DOM_VK_RETURN) {
         event.preventDefault();
         event.stopPropagation();
       }
@@ -633,11 +629,12 @@ var ThreadUI = global.ThreadUI = {
     if (Navigation.isCurrentPanel('thread-list')) {
       this.container.textContent = '';
       this.cleanFields(true);
-      this.recipients.length = 0;
       Threads.currentId = null;
     }
     if (!Navigation.isCurrentPanel('composer')) {
       this.threadMessages.classList.remove('new');
+
+      this.recipients.length = 0;
     }
 
     if (!Navigation.isCurrentPanel('thread')) {
@@ -989,7 +986,9 @@ var ThreadUI = global.ThreadUI = {
   },
 
   scrollViewToBottom: function thui_scrollViewToBottom() {
-    if (!this.isScrolledManually && this.container.lastElementChild) {
+    if (!this.isScrolledManually &&
+        this.container.lastElementChild &&
+        Navigation.isCurrentPanel('thread')) {
       this.container.lastElementChild.scrollIntoView(false);
     }
   },
@@ -1203,7 +1202,9 @@ var ThreadUI = global.ThreadUI = {
     var smsInfoRequest = this._mozMobileMessage.getSegmentInfoForText(value);
     smsInfoRequest.onsuccess = (function onSmsInfo(event) {
       if (Compose.type !== 'sms') {
+        // Remove 'has-counter'(as it's supposed to be used for sms only) and
         // bailout if the type changed since the request started
+        this.counterLabel.classList.remove('has-counter');
         return;
       }
 
@@ -1212,18 +1213,19 @@ var ThreadUI = global.ThreadUI = {
       var availableChars = smsInfo.charsAvailableInLastSegment;
 
       // in MMS mode, the counter value isn't used anyway, so we can update this
-      this.sendButton.dataset.counter = availableChars + '/' + segments;
+      this.counterLabel.dataset.counter = availableChars + '/' + segments;
 
       // if we are going to force MMS, this is true anyway, so adding
       // has-counter again doesn't hurt us.
-      var showCounter = (segments && (segments > 1 || availableChars <= 20));
-      this.sendButton.classList.toggle('has-counter', showCounter);
+      var showCounter = (segments && (segments > 1 ||
+        availableChars <= this.MIN_AVAILABLE_CHARS_COUNT));
+      this.counterLabel.classList.toggle('has-counter', showCounter);
 
       var overLimit = segments > kMaxConcatenatedMessages;
       callback(overLimit);
     }).bind(this);
     smsInfoRequest.onerror = (function onSmsInfoError(e) {
-      this.sendButton.classList.remove('has-counter');
+      this.counterLabel.classList.remove('has-counter');
     }).bind(this);
   },
 
@@ -1261,8 +1263,6 @@ var ThreadUI = global.ThreadUI = {
   },
 
   updateCounterForMms: function thui_updateCounterForMms() {
-    // always turn on the counter for mms, it just displays "MMS"
-    this.sendButton.classList.add('has-counter');
     // Counter should be updated when image resizing complete
     if (Compose.isResizing) {
       return false;
@@ -1328,42 +1328,24 @@ var ThreadUI = global.ThreadUI = {
     return messageContainer;
   },
 
-  updateCarrier: function thui_updateCarrier(thread, contacts, details) {
+  updateCarrier: function thui_updateCarrier(thread, contacts) {
     var carrierTag = document.getElementById('contact-carrier');
     var threadMessages = this.threadMessages;
     var number = thread.participants[0];
-    var carrierDetails;
+    var phoneDetails;
 
     // The carrier banner is meaningless and confusing in
     // group message mode.
     if (thread.participants.length === 1 &&
         (contacts && contacts.length)) {
 
-      carrierDetails = Utils.getCarrierTag(
-        number, contacts[0].tel, details
-      );
+      phoneDetails = Utils.getPhoneDetails(number, contacts[0].tel);
 
-      if (carrierDetails) {
-        var phoneType = carrierTag.querySelector('.phone-type'),
-            phoneDetails = carrierTag.querySelector('.phone-details');
-
-        phoneType.dataset.l10nId = carrierDetails.type;
-        // We need this line for the unknown phone type case, so that we display
-        // phone type instead of empty string if we can't translate it.
-        phoneType.textContent = carrierDetails.type;
-        phoneDetails.textContent = carrierDetails.carrier ||
-          carrierDetails.number;
+      if (phoneDetails) {
+        carrierTag.innerHTML = SharedComponents.phoneDetails(phoneDetails);
 
         navigator.mozL10n.translate(carrierTag);
 
-        carrierTag.classList.toggle(
-          'has-phone-type',
-          !!carrierDetails.type
-        );
-        carrierTag.classList.toggle(
-          'has-phone-details',
-          carrierDetails.carrier || carrierDetails.number
-        );
         threadMessages.classList.add('has-carrier');
       } else {
         threadMessages.classList.remove('has-carrier');
@@ -1420,7 +1402,7 @@ var ThreadUI = global.ThreadUI = {
             n: others
         });
 
-        this.updateCarrier(thread, contacts, details);
+        this.updateCarrier(thread, contacts);
         resolve();
       }.bind(this));
     }.bind(this));
@@ -2166,8 +2148,8 @@ var ThreadUI = global.ThreadUI = {
       Compose.clear();
 
       // reset the counter
-      this.sendButton.dataset.counter = '';
-      this.sendButton.classList.remove('has-counter');
+      this.counterLabel.dataset.counter = '';
+      this.counterLabel.classList.remove('has-counter');
     }).bind(this);
 
     // TODO understand this : bug 1009568
@@ -2571,11 +2553,13 @@ var ThreadUI = global.ThreadUI = {
     var last = this.recipientsList.lastElementChild;
     var typed = last && last.textContent.trim();
     var isContact = false;
-    var record, tel, length, number, contact;
+    var record, length, number, contact, prop, propValue;
 
     if (index < 0) {
       index = 0;
     }
+    prop = Settings.supportEmailRecipient &&
+           Utils.isEmailAddress(fValue) ? 'email' : 'tel';
 
     // If there is greater than zero matches,
     // process the first found contact into
@@ -2583,20 +2567,20 @@ var ThreadUI = global.ThreadUI = {
     if (contacts && contacts.length) {
       isInvalid = false;
       record = contacts[0];
-      length = record.tel.length;
+      length = record[prop].length;
 
       // Received an exact match with a single tel record
       if (source.isLookupable && !source.isQuestionable && length === 1) {
-        if (Utils.probablyMatches(record.tel[0].value, fValue)) {
+        if (Utils.probablyMatches(record[prop][0].value, fValue)) {
           isContact = true;
-          number = record.tel[0].value;
+          number = record[prop][0].value;
         }
       } else {
         // Received an exact match that may have multiple tel records
         for (var i = 0; i < length; i++) {
-          tel = record.tel[i];
-          if (this.recipients.numbers.indexOf(tel.value) === -1) {
-            number = tel.value;
+          propValue = record[prop][i].value;
+          if (this.recipients.numbers.indexOf(propValue) === -1) {
+            number = propValue;
             break;
           }
         }

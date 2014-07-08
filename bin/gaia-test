@@ -170,7 +170,7 @@ launch_test_runner_in_firefox() {
   #
   # Launch firefox
   #
-  $FIREFOX --no-remote -profile "$GAIADIR/$PROFILE_FOLDER" http://test-agent.gaiamobile.org:8080/ &
+  $FIREFOX --no-remote -profile "$GAIADIR/$PROFILE_FOLDER" app://test-agent.gaiamobile.org/ &
 }
 
 launch_test_runner_in_b2g() {

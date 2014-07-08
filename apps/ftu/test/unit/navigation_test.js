@@ -22,22 +22,21 @@ requireApp('ftu/test/unit/mock_navigation.html.js');
 
 var _;
 
+var mocksHelperForNavigation = new MocksHelper([
+  'utils',
+  'UIManager',
+  'SimManager',
+  'DataMobile',
+  'OperatorVariant',
+  'IccHelper',
+  'Tutorial',
+  'SdManager',
+  'ImportIntegration',
+  'WifiManager',
+  'WifiUI'
+]).init();
 
 suite('navigation >', function() {
-  var mocksHelperForNavigation = new MocksHelper([
-    'utils',
-    'UIManager',
-    'SimManager',
-    'DataMobile',
-    'OperatorVariant',
-    'IccHelper',
-    'Tutorial',
-    'SdManager',
-    'ImportIntegration',
-    'WifiManager',
-    'WifiUI'
-  ]).init();
-  var mocksHelper = mocksHelperForNavigation;
   var isOnLine = true;
   var realOnLine,
       realL10n,
@@ -54,8 +53,6 @@ suite('navigation >', function() {
   }
 
   suiteSetup(function() {
-    realHTML = document.body.innerHTML;
-    document.body.innerHTML = MockImportNavigationHTML;
 
     realMozMobileConnections = navigator.mozMobileConnections;
     navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
@@ -73,18 +70,9 @@ suite('navigation >', function() {
       set: setNavigatorOnLine
     });
     MockIccHelper.setProperty('cardState', 'ready');
-
-    mocksHelper.suiteSetup();
-
-    Navigation.init();
   });
 
   suiteTeardown(function() {
-    mocksHelper.suiteTeardown();
-
-    document.body.innerHTML = realHTML;
-    realHTML = null;
-
     navigator.mozMobileConnections = realMozMobileConnections;
     realMozMobileConnections = null;
 
@@ -96,6 +84,8 @@ suite('navigation >', function() {
 
     if (realOnLine) {
       Object.defineProperty(navigator, 'onLine', realOnLine);
+    } else {
+      delete navigator.onLine;
     }
   });
 
@@ -105,8 +95,25 @@ suite('navigation >', function() {
     Navigation.manageStep(callback);
   };
 
+
+  setup(function() {
+    realHTML = document.body.innerHTML;
+    document.body.innerHTML = MockImportNavigationHTML;
+  });
+
+  // The mocks need the HTML markup
+  mocksHelperForNavigation.attachTestHelpers();
+
+  // Navigation.init needs the mocks
+  setup(function() {
+    Navigation.init();
+  });
+
   teardown(function() {
+    document.body.innerHTML = realHTML;
+    realHTML = null;
     Navigation.simMandatory = false;
+    window.removeEventListener('hashchange', Navigation);
   });
 
   test('navigates forward', function() {
@@ -179,9 +186,10 @@ suite('navigation >', function() {
     test('languages screen >', function(done) {
       setStepState(1);
       var observer = new MutationObserver(function() {
-        observer.disconnect();
-        assert.equal(UIManager.mainTitle.innerHTML, _('language'));
-        done();
+        done(function() {
+          observer.disconnect();
+          assert.equal(UIManager.mainTitle.innerHTML, _('language'));
+        });
       });
       observer.observe(UIManager.mainTitle, observerConfig);
       assert.equal(Navigation.getProgressBarState(), 1);
@@ -190,9 +198,10 @@ suite('navigation >', function() {
     test('data mobile screen >', function(done) {
       setStepState(2);
       var observer = new MutationObserver(function() {
-        observer.disconnect();
-        assert.equal(UIManager.mainTitle.innerHTML, _('3g'));
-        done();
+        done(function() {
+          observer.disconnect();
+          assert.equal(UIManager.mainTitle.innerHTML, _('3g'));
+        });
       });
       observer.observe(UIManager.mainTitle, observerConfig);
       assert.equal(Navigation.getProgressBarState(), 2);
@@ -201,12 +210,13 @@ suite('navigation >', function() {
     test('wifi screen >', function(done) {
       setStepState(3);
       var observer = new MutationObserver(function() {
-        observer.disconnect();
-        assert.equal(UIManager.mainTitle.innerHTML, _('selectNetwork'));
-        assert.isFalse(UIManager.navBar.classList.contains('secondary-menu'));
-        assert.isFalse(UIManager.activationScreen.classList.contains(
-                       'no-options'));
-        done();
+        done(function() {
+          observer.disconnect();
+          assert.equal(UIManager.mainTitle.innerHTML, _('selectNetwork'));
+          assert.isFalse(UIManager.navBar.classList.contains('secondary-menu'));
+          assert.isFalse(UIManager.activationScreen.classList.contains(
+                        'no-options'));
+        });
       });
       observer.observe(UIManager.mainTitle, observerConfig);
       assert.equal(Navigation.getProgressBarState(), 3);
@@ -215,9 +225,10 @@ suite('navigation >', function() {
     test('date&time screen >', function(done) {
       setStepState(4);
       var observer = new MutationObserver(function() {
-        observer.disconnect();
-        assert.equal(UIManager.mainTitle.innerHTML, _('dateAndTime'));
-        done();
+        done(function() {
+          observer.disconnect();
+          assert.equal(UIManager.mainTitle.innerHTML, _('dateAndTime'));
+        });
       });
       observer.observe(UIManager.mainTitle, observerConfig);
       assert.equal(Navigation.getProgressBarState(), 4);
@@ -226,9 +237,10 @@ suite('navigation >', function() {
     test('geolocation screen >', function(done) {
       setStepState(5);
       var observer = new MutationObserver(function() {
-        observer.disconnect();
-        assert.equal(UIManager.mainTitle.innerHTML, _('geolocation'));
-        done();
+        done(function() {
+          observer.disconnect();
+          assert.equal(UIManager.mainTitle.innerHTML, _('geolocation'));
+        });
       });
       observer.observe(UIManager.mainTitle, observerConfig);
       assert.equal(Navigation.getProgressBarState(), 5);
@@ -237,9 +249,10 @@ suite('navigation >', function() {
     test('import contacts screen >', function(done) {
       setStepState(6);
       var observer = new MutationObserver(function() {
-        observer.disconnect();
-        assert.equal(UIManager.mainTitle.innerHTML, _('importContacts3'));
-        done();
+        done(function() {
+          observer.disconnect();
+          assert.equal(UIManager.mainTitle.innerHTML, _('importContacts3'));
+        });
       });
       observer.observe(UIManager.mainTitle, observerConfig);
       assert.equal(Navigation.getProgressBarState(), 6);
@@ -248,9 +261,10 @@ suite('navigation >', function() {
     test('firefox accounts screen >', function(done) {
       setStepState(7);
       var observer = new MutationObserver(function() {
-        observer.disconnect();
-        assert.equal(UIManager.mainTitle.innerHTML, _('firefox-accounts'));
-        done();
+        done(function() {
+          observer.disconnect();
+          assert.equal(UIManager.mainTitle.innerHTML, _('firefox-accounts'));
+        });
       });
       observer.observe(UIManager.mainTitle, observerConfig);
       assert.equal(Navigation.getProgressBarState(), 7);
@@ -258,15 +272,11 @@ suite('navigation >', function() {
 
     test('welcome screen >', function(done) {
       setStepState(8);
-      var observer = new MutationObserver(function() {
-        observer.disconnect();
-        assert.equal(UIManager.mainTitle.innerHTML, _('aboutBrowser'));
-        var linkRef = document.getElementById('external-link-privacy');
-        assert.equal(linkRef.textContent,
-                     '<a class="external" ' +
-                     'href="https://www.mozilla.org/privacy/firefox-os/">' +
-                     'learn-more-privacy-link</a>');
-        done();
+      var observer = new MutationObserver(function(records) {
+        done(function() {
+          observer.disconnect();
+          assert.equal(UIManager.mainTitle.innerHTML, _('aboutBrowser'));
+        });
       });
       observer.observe(UIManager.mainTitle, observerConfig);
       assert.equal(Navigation.getProgressBarState(), 8);
@@ -275,9 +285,15 @@ suite('navigation >', function() {
     test('privacy screen >', function(done) {
       setStepState(9);
       var observer = new MutationObserver(function() {
-        observer.disconnect();
-        assert.equal(UIManager.mainTitle.innerHTML, _('aboutBrowser'));
-        done();
+        done(function() {
+          observer.disconnect();
+          assert.equal(UIManager.mainTitle.innerHTML, _('aboutBrowser'));
+          var linkRef = document.getElementById('external-link-privacy');
+          assert.equal(linkRef.textContent,
+                       '<a class="external" ' +
+                       'href="https://www.mozilla.org/privacy/firefox-os/">' +
+                       'learn-more-privacy-link</a>');
+        });
       });
       observer.observe(UIManager.mainTitle, observerConfig);
       assert.equal(Navigation.getProgressBarState(), 9);

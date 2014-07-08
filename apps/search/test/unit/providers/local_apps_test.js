@@ -64,7 +64,7 @@ suite('search/providers/local_apps', function() {
         }
       };
 
-      subject.search('moz', function(results) {
+      subject.search('moz').then(results => {
         assert.equal(results.length, 1);
         done();
       });

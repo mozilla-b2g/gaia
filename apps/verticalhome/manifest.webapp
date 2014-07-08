@@ -1,6 +1,6 @@
 {
-  "name": "Vertical",
-  "description": "A vertical homescreen for FirefoxOS.",
+  "name": "Homescreen",
+  "description": "Gaia Homescreen",
   "launch_path": "/index.html",
   "type": "certified",
   "role": "homescreen",
@@ -17,6 +17,24 @@
     "settings":{ "access": "readwrite" }
   },
   "default_locale": "en-US",
+  "locales": {
+    "ar": {
+      "name": "الشاشة الرئيسية",
+      "description": "Gaia الشاشة الرئيسية"
+    },
+    "en-US": {
+      "name": "Homescreen",
+      "description": "Gaia Homescreen"
+    },
+    "fr": {
+      "name": "Écran d’accueil",
+      "description": "Écran d’accueil Gaia"
+    },
+    "zh-TW": {
+      "name": "主畫面",
+      "description": "Gaia 主畫面"
+    }
+  },
   "icons": {
     "30": "/style/icons/vertical_30.png",
     "45": "/style/icons/vertical_45.png",
@@ -28,11 +46,11 @@
   "messages": [],
   "datastores-access": {
     "bookmarks_store": {
-      "readonly": true,
+      "readonly": false,
       "description": "Display bookmarks"
     },
     "collections_store": {
-      "readonly": true,
+      "readonly": false,
       "description": "Display collections"
     }
   },

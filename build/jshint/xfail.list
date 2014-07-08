@@ -17,8 +17,6 @@ apps/browser/test/marionette/share_url_test.js
 apps/browser/test/unit/browser_db_test.js
 apps/callscreen/js/fake-oncall-desktop.js
 apps/callscreen/js/index.js
-apps/callscreen/test/unit/call_screen_test.js
-apps/callscreen/test/unit/mock_call_screen.js
 apps/callscreen/test/unit/mock_mozbluetooth.js
 apps/callscreen/test/unit/mock_simple_phone_matcher.js
 apps/communications/dialer/js/call_log.js
@@ -273,7 +271,6 @@ apps/music/test/unit/remote_controls_test.js
 apps/settings/js/about.js
 apps/settings/js/about_more_info.js
 apps/settings/js/airplane_mode.js
-apps/settings/js/app_storage.js
 apps/settings/js/bluetooth.js
 apps/settings/js/call.js
 apps/settings/js/call_iccs.js
@@ -292,13 +289,11 @@ apps/settings/js/icc.js
 apps/settings/js/icc_menu.js
 apps/settings/js/media_storage.js
 apps/settings/js/messaging.js
-apps/settings/js/nfc.js
 apps/settings/js/security_privacy.js
 apps/settings/js/settings.js
 apps/settings/js/simcard_dialog.js
 apps/settings/js/simcard_fdn.js
 apps/settings/js/simcard_fdn_list.js
-apps/settings/js/storage.js
 apps/settings/js/telephony_items_handler.js
 apps/settings/js/telephony_settings.js
 apps/settings/js/try_show_homescreen_section.js
@@ -395,7 +390,6 @@ apps/system/js/value_selector/date_picker.js
 apps/system/js/value_selector/spin_date_picker.js
 apps/system/js/value_selector/value_picker.js
 apps/system/js/value_selector/value_selector.js
-apps/system/js/voicemail.js
 apps/system/js/wifi.js
 apps/system/test/marionette/fakemusic/js/comms.js
 apps/system/test/marionette/fakemusic/js/fakemusic.js
@@ -467,7 +461,6 @@ apps/system/test/unit/mock_keyboard_manager.js
 apps/system/test/unit/mock_lock_screen.js
 apps/system/test/unit/mock_media_files.js
 apps/system/test/unit/mock_modal_dialog.js
-apps/system/test/unit/mock_navigator_moz_voicemail.js
 apps/system/test/unit/mock_notification_screen.js
 apps/system/test/unit/mock_orientation_manager.js
 apps/system/test/unit/mock_screen_layout.js

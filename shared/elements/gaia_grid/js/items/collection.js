@@ -5,6 +5,9 @@
 /*jshint nonew: false */
 
 (function(exports) {
+  const l10nKey = 'collection-categoryId-';
+
+  var _ = navigator.mozL10n.get;
 
   /**
    * Represents a single collection on the homepage.
@@ -17,11 +20,17 @@
       name: collection.name,
       id: collection.id,
       categoryId: collection.categoryId,
+      cName: collection.cName,
       query: collection.query,
       icon: collection.icon,
       pinned: collection.pinned,
       defaultIconBlob: collection.defaultIconBlob
     };
+
+    // XXX: One listener per collection may not be ideal.
+    // Bug 1026236 l10n does not automatically handle these for us so
+    // we handle locale updates ourselves.
+    window.addEventListener('localized', this.updateTitle.bind(this));
   }
 
   Collection.prototype = {
@@ -39,11 +48,13 @@
 
     /**
      * Width in grid units for each icon.
+     * nameEl.textContent = this.name;
      */
     gridWidth: 1,
 
     get name() {
-      return this.detail.name;
+      // first attempt to use the localized name
+      return _(l10nKey + this.detail.categoryId) || this.detail.name;
     },
 
     /**
@@ -57,9 +68,15 @@
       return this.detail.id;
     },
 
-    update: function(detail) {
-      this.detail = detail;
-      this.detail.type = 'collection';
+    update: GaiaGrid.GridItem.prototype.updateFromDatastore,
+
+    render: function(coordinates, index) {
+      // Add 'collection' to the class list when the element gets created
+      var setClassName = !this.element;
+      GaiaGrid.GridItem.prototype.render.call(this, coordinates, index);
+      if (setClassName) {
+        this.element.classList.add('collection');
+      }
     },
 
     /**
@@ -80,10 +97,15 @@
      * Launches the application for this icon.
      */
     launch: function() {
-      new MozActivity({
+      this.grid.element.dispatchEvent(new CustomEvent('collection-launch'));
+      var activity = new MozActivity({
         name: 'view-collection',
         data: this.detail
       });
+
+      activity.onsuccess = activity.onerror = () => {
+        this.grid.element.dispatchEvent(new CustomEvent('collection-close'));
+      };
     },
 
 
@@ -93,16 +115,6 @@
     edit: function() {
       new MozActivity({
         name: 'update-collection',
-        data: this.detail
-      });
-    },
-
-    /**
-     * Uninstalls the application.
-     */
-    remove: function() {
-      new MozActivity({
-        name: 'delete-collection',
         data: this.detail
       });
     }

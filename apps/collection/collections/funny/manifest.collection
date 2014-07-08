@@ -1,7 +1,7 @@
 {
   "name": "Funny",
   "role": "collection",
-  "categoryId": "277",
+  "categoryId": 277,
   "pinned": [
     ["apps", "video"]
   ],

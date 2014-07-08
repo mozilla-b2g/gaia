@@ -5,6 +5,15 @@
 var MockFindMatcher = {
   find: function(options) {
     this.result = [];
+    
+    if (!this.data && Array.isArray(this.foundData)) {
+      return {
+        result: this.foundData,
+        set onsuccess(cb) {
+          cb();
+        }
+      };
+    }
 
     var value;
 
@@ -91,5 +100,9 @@ var MockFindMatcher = {
 
   setData: function(data) {
     this.data = data;
+  },
+  
+  setFoundData: function(data) {
+    this.foundData = data;
   }
 };

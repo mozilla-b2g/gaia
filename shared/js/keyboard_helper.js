@@ -57,11 +57,6 @@ var MULTI_LAYOUT_MAP = {
 // In order to provide default defaults, we need to know the default keyboard
 var defaultKeyboardManifestURL =
   'app://keyboard.gaiamobile.org/manifest.webapp';
-// support http:// version as well
-if (location.protocol === 'http:') {
-  defaultKeyboardManifestURL =
-    'http://keyboard.gaiamobile.org:8080/manifest.webapp';
-}
 
 // Stores a local copy of whatever is in the settings database
 var currentSettings = {

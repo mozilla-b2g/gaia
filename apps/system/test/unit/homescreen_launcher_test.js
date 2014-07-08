@@ -213,10 +213,10 @@ suite('system/HomescreenLauncher', function() {
       stubGetHomescreen.restore();
     });
 
-    test('homescreenopening', function() {
+    test('homescreenopened', function() {
       window.homescreenLauncher._screen = document.createElement('div');
       window.homescreenLauncher.handleEvent({
-        type: 'homescreenopening'
+        type: 'homescreenopened'
       });
       assert.ok(window.homescreenLauncher._screen.classList.
         contains('on-homescreen'));
@@ -228,6 +228,17 @@ suite('system/HomescreenLauncher', function() {
       window.homescreenLauncher._screen.classList.add('on-homescreen');
       window.homescreenLauncher.handleEvent({
         type: 'homescreenclosing'
+      });
+      assert.ok(!window.homescreenLauncher._screen.classList.
+        contains('on-homescreen'));
+      window.homescreenLauncher._screen = null;
+    });
+
+    test('homescreenclosed', function() {
+      window.homescreenLauncher._screen = document.createElement('div');
+      window.homescreenLauncher._screen.classList.add('on-homescreen');
+      window.homescreenLauncher.handleEvent({
+        type: 'homescreenclosed'
       });
       assert.ok(!window.homescreenLauncher._screen.classList.
         contains('on-homescreen'));

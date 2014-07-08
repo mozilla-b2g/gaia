@@ -28,10 +28,11 @@ if (!navigator.getDeviceStorage) {
 
 // Once we have alemeda (requirejs) we can
 // begin loading in our modules to test.
-requireApp('camera/js/vendor/alameda.js', function() {
+requireApp('camera/bower_components/alameda/index.js', function() {
   window.req = window.requirejs.config({
     baseUrl: '/js',
     paths: {
+      'l10n': '../shared/js/l10n',
       'asyncStorage': '../shared/js/async_storage',
       'getVideoRotation': '../shared/js/media/get_video_rotation',
       'performance-testing-helper': '../shared/js/performance_testing_helper',
@@ -46,7 +47,13 @@ requireApp('camera/js/vendor/alameda.js', function() {
       'BlobView': '../shared/js/blobview',
       'CustomDialog': '../shared/js/custom_dialog',
       'FontSizeUtils': '../shared/js/font_size_utils',
-      'debug': 'vendor/debug'
+      'debug': '../bower_components/debug/index',
+      'attach': '../bower_components/attach/index',
+      'model': '../bower_components/model/index',
+      'view': '../bower_components/view/index',
+      'evt': '../bower_components/evt/index',
+      'drag': '../bower_components/drag/index',
+      'device-orientation': '../bower_components/device-orientation/index'
     },
     shim: {
       'format': {

@@ -1,7 +1,8 @@
 'use strict';
-/* global app, App, ApplicationSource, GaiaGrid, ItemStore */
+/* global App, ApplicationSource, GaiaGrid, ItemStore */
 /* global MocksHelper, MockNavigatormozApps, loadBodyHTML */
 
+require('/shared/js/l10n.js');
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/elements/gaia_grid/js/grid_dragdrop.js');
 require('/shared/elements/gaia_grid/js/grid_icon_renderer.js');
@@ -47,7 +48,7 @@ suite('app.js > ', function() {
   });
 
   test('synchronize removes app', function() {
-    var removeStub = this.sinon.stub(app.grid, 'removeItemByIndex');
+    var removeStub = this.sinon.stub(subject, 'removeIconFromGrid');
 
     subject.store._allItems = [
       new GaiaGrid.Mozapp({

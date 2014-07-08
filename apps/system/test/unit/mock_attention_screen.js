@@ -13,5 +13,6 @@ var MockAttentionScreen = {
   mTeardown: function() {
     this.mVisible = false;
     this.mFullyVisible = false;
-  }
+  },
+  maximize: function() {}
 };

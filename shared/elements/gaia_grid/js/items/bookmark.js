@@ -51,33 +51,27 @@
       return this.detail.id;
     },
 
-    update: function(record) {
-      this.detail = record;
-      this.detail.type = TYPE;
-      var nameEl = this.element.querySelector('.title');
-      if (nameEl) {
-        nameEl.textContent = this.name;
-
-        // Bug 1007743 - Workaround for projected content nodes disappearing
-        document.body.clientTop;
-        this.element.style.display = 'none';
-        document.body.clientTop;
-        this.element.style.display = '';
-      }
-    },
+    update: GaiaGrid.GridItem.prototype.updateFromDatastore,
 
     /**
-     * Bookmarks are always editable.
+     * Bookmarks are always editable unless noted otherwise in features.
      */
     isEditable: function() {
-      return true;
+      return this.features && this.features.isEditable !== false;
     },
 
     /**
-     * Bookmarks are always removable.
+     * Bookmarks are always removable unless noted otherwise in features.
      */
     isRemovable: function() {
-      return true;
+      return this.features && this.features.isRemovable !== false;
+    },
+
+    /**
+     * Bookmarks are always draggable unless noted otherwise in features.
+     */
+    isDraggable: function() {
+      return this.features && this.features.isDraggable !== false;
     },
 
     /**
@@ -86,6 +80,9 @@
     render: function(coordinates, index) {
       GaiaGrid.GridItem.prototype.render.call(this, coordinates, index);
       this.element.classList.add('bookmark');
+      if (this.isEditable()) {
+        this.element.classList.add('editable');
+      }
     },
 
     /**
@@ -110,19 +107,6 @@
         return encodeURIComponent(key) + '=' +
           encodeURIComponent(features[key]);
       }).join(','));
-    },
-
-    /**
-     * Opens a web activity to remove the bookmark.
-     */
-    remove: function() {
-      new MozActivity({
-        name: 'remove-bookmark',
-        data: {
-          type: 'url',
-          url: this.detail.id
-        }
-      });
     },
 
     /**

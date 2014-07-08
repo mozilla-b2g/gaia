@@ -23,6 +23,16 @@
     <script defer src="js/download.js"></script>
   </head>
   <body>
+    <div id="direct-download" hidden>
+      <form role="dialog" data-type="confirm">
+        <section>
+          <h1 data-l10n-id="download-progress-title"></h1>
+          <p style="text-align: center;">
+            <progress id="direct-download-progress" class="pack-activity" value="0"></progress>
+          </p>
+        </section>
+      </form>
+    </div>
     <div id="download-confirmation" hidden>
       <form role="dialog" data-type="confirm">
         <section>

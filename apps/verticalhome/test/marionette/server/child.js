@@ -101,14 +101,55 @@ AppServer.prototype = {
   requestHandler: function() {
     var routes = this.routes;
     return function(req, res) {
+      debug('request', req.method, req.url);
       var handler = routes[req.url] || routes['*'];
+      var settings = this.settings(req.url);
+
+      // If this url has a http error on it just return without calling the
+      // handler.
+      if (settings.response) {
+        res.writeHead(settings.response.status, settings.response.headers);
+        res.end(settings.response.body);
+        return;
+      }
+
       // routes are always invoked with the context of the app server.
       return handler.call(this, req, res);
     }.bind(this);
   },
 };
 
-var appServer = new AppServer(process.argv[2], {
+var routes = {
+
+  /**
+  Change the root serving directory for this server.
+  */
+  '/settings/set_root': decorateHandlerForJSON(function(req, res) {
+    this.root = req.body;
+    writeJSON(res, req.body);
+  }),
+
+  /**
+  Override or set the response of a particular url.
+  */
+  '/settings/set_response': decorateHandlerForJSON(function(req, res) {
+    var options = req.body;
+    var settings = this.settings(options.path);
+
+    settings.response = options;
+    writeJSON(res, options.path);
+  }),
+
+  /**
+  Clear the response override.
+  */
+ '/settings/clear_response': decorateHandlerForJSON(function(req, res) {
+    var url = req.body;
+    var settings = this.settings(url);
+    delete settings.response;
+    writeJSON(res, url);
+ }),
+
   /**
   A 'corked' request will send headers but no body until 'uncork' is used.
   */
@@ -165,9 +206,10 @@ var appServer = new AppServer(process.argv[2], {
   }),
 
   '/package.manifest': function(req, res) {
-    var port = req.socket.address().port;
     var json = JSON.parse(fs.readFileSync(this.root + '/manifest.webapp'));
-    json.package_path = 'http://localhost:' + port + '/app.zip';
+    json.package_path = 'http://' + req.headers.host + '/app.zip';
+    // TODO: Remove this once we add the ability to override requests
+    delete json.role;
 
     var body = JSON.stringify(json, null, 2);
     res.writeHead(200, {
@@ -192,6 +234,7 @@ var appServer = new AppServer(process.argv[2], {
       var zip = archiver.create('zip');
 
       files.forEach(function(file) {
+        debug('packaged app zip file', file);
         var zipPath = file.replace(root, '');
         zip.append(fs.createReadStream(file), { name: zipPath });
       });
@@ -232,6 +275,7 @@ var appServer = new AppServer(process.argv[2], {
 
     var contentType = mime.lookup(filePath);
     var contentLength = fs.statSync(filePath).size;
+    debug('static asset', filePath, contentType, contentLength);
 
     // write out the head
     res.writeHead(200, {
@@ -258,10 +302,14 @@ var appServer = new AppServer(process.argv[2], {
       this.once('uncorked ' + url, writeContent);
     }
   }
-});
+};
 
+var port = parseInt((process.argv[3] || 0), 10);
+var appServer = new AppServer(process.argv[2], routes);
 var server = http.createServer(appServer.requestHandler());
 
-server.listen(0, function() {
-  process.send({ type: 'started', port: server.address().port });
+server.listen(port, function() {
+  if (process.send) {
+    process.send({ type: 'started', port: server.address().port });
+  }
 });

@@ -43,7 +43,7 @@ html[dir="rtl"] #homescreens ul li img {
  */
 
 #homescreen [data-type="list"] li:first-child {
-  border-bottom: none;
+  padding-bottom: 1rem;
 }
 
 #homescreen label {

@@ -7,6 +7,7 @@
 
 requireApp('wappush/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('wappush/js/store.js');
+require('/shared/js/uuid.js');
 
 suite('StoreProvisioning >', function() {
   var realSettings;

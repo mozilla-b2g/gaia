@@ -3,7 +3,6 @@
   "description": "Gaia Ringtone Manager",
   "type": "certified",
   "role": "system",
-  "launch_path": "/manage.html",
   "orientation": "default",
   "developer": {
     "name": "The Gaia Team",
@@ -50,6 +49,16 @@
       "disposition": "inline",
       "returnValue": true,
       "href": "/share.html#activity"
+    },
+    "configure": {
+      "filters": {
+        "target": {
+          "required": true,
+          "pattern": "ringtone"
+        }
+      },
+      "disposition": "inline",
+      "href": "/manage.html"
     }
   },
   "locales": {
@@ -59,9 +68,11 @@
     }
   },
   "icons": {
-    "60": "/style/icons/Ringtones_60.png",
-    "90": "/style/icons/Ringtones_90.png",
-    "120": "/style/icons/Ringtones_120.png"
+    "84": "/style/icons/ringtones_84.png",
+    "126": "/style/icons/ringtones_126.png",
+    "142": "/style/icons/ringtones_142.png",
+    "189": "/style/icons/ringtones_189.png",
+    "284": "/style/icons/ringtones_284.png"
   },
   "default_locale": "en-US"
 }

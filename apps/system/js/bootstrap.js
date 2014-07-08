@@ -10,7 +10,7 @@
          MediaRecording, AppWindowFactory, SystemDialogManager,
          applications, Rocketbar, LayoutManager, PermissionManager,
          HomeSearchbar, SoftwareButtonManager, Accessibility,
-         TextSelectionDialog, InternetSharing, SleepMenu */
+         TextSelectionDialog, InternetSharing, SleepMenu, AppUsageMetrics */
 'use strict';
 
 
@@ -56,6 +56,11 @@ window.addEventListener('load', function startup() {
 
     /** @global */
     window.lockScreenWindowManager = new window.LockScreenWindowManager();
+    window.lockScreenWindowManager.start();
+
+    // To initilaize it after LockScreenWindowManager to block home button
+    // when the screen is locked.
+    window.AppWindowManager.init();
 
     /** @global */
     window.textSelectionDialog = new TextSelectionDialog();
@@ -104,6 +109,7 @@ window.addEventListener('load', function startup() {
   window.activities = new Activities();
   window.accessibility = new Accessibility();
   window.accessibility.start();
+  window.appUsageMetrics = new AppUsageMetrics().start();
   window.developerHUD = new DeveloperHUD().start();
   window.dialerAgent = new DialerAgent().start();
   window.homeGesture = new HomeGesture().start();

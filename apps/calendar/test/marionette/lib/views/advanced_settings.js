@@ -24,20 +24,24 @@ AdvancedSettings.prototype = {
       .click();
   },
 
-  clickAccount: function(username) {
+  clickAccount: function(calendarName, user) {
     var account;
     this
       .findElements('.account-list > li')
       .some(function(element) {
         var text = element.text();
-        if (text.indexOf(username) !== -1) {
+        if (text.indexOf(calendarName) !== -1 ||
+            (user && text.indexOf(user) !== -1)) {
           account = element;
           return true;
         }
       });
 
     if (!account) {
-      throw new Error('Could not find account for user ' + username);
+      throw new Error(
+        'Could not find account for user ' + user +
+        ' or calendar ' + calendarName
+      );
     }
 
     account.click();

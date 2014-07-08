@@ -45,6 +45,7 @@ var items = [
   new GaiaGrid.Divider(),
   new GaiaGrid.Mozapp({
     id: 6,
+    manifestURL: 'app://xfoobar',
     manifest: {
       name: 'Another Webapp',
       icons: {

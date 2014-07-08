@@ -6,7 +6,7 @@
 #timer-time {
   letter-spacing: -0.5rem;
   font-variant-numeric: tabular-nums;
-  font-weight: lighter;
+  font-weight: 300;
   font-size: 8.6rem;
   color: #CFE2E6;
   pointer-events: none;

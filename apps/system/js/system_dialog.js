@@ -37,7 +37,7 @@
     this.publish('created');
   };
 
-  SystemDialog.prototype.__proto__ = window.BaseUI.prototype;
+  SystemDialog.prototype = Object.create(window.BaseUI.prototype);
 
   SystemDialog.prototype.CLASS_NAME = 'SystemDialog';
 
@@ -98,6 +98,10 @@
     var height = window.layoutManager.height;
     this.containerElement.style.height = height + 'px';
     this.debug('updateHeight: new height = ' + height);
+    // Scroll up so as to show simpin input box
+    if (this.instanceID === 'simpin-dialog') {
+      document.activeElement.scrollIntoView(false);
+    }
   };
 
   /**

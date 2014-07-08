@@ -7,7 +7,6 @@ import time
 from gaiatest import GaiaTestCase
 from gaiatest.apps.messages.app import Messages
 from gaiatest.mocks.mock_contact import MockContact
-from gaiatest.apps.contacts.regions.contact_form import EditContact
 from gaiatest.apps.contacts.app import Contacts
 
 
@@ -39,11 +38,9 @@ class TestSmsAddToExistingContact(GaiaTestCase):
 
         contacts = activities.tap_add_to_contact()
         contacts.wait_for_contacts(1)
-        contacts.contacts[0].tap(return_details=False)
+        edit_contact = contacts.contacts[0].tap(return_class='EditContact')
 
-        edit_contact = EditContact(self.marionette)
         edit_contact.tap_update(return_details=False)
-        self.messages.switch_to_messages_frame()
 
         self.wait_for_condition(lambda m: self.message_thread.header_text == self.contact['name'])
 

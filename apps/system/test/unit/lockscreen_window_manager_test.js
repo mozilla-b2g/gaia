@@ -2,9 +2,12 @@
 'use strict';
 
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
+requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/test/unit/mock_lock_screen.js');
 requireApp('system/test/unit/mock_lockscreen_window.js');
 requireApp('system/js/lockscreen_window_manager.js');
+
+mocha.globals(['MozActivity', 'AppWindowManager', 'SettingsListener']);
 
 var mocksForLockScreenWindowManager = new window.MocksHelper([
   'LockScreen', 'LockScreenWindow'
@@ -14,6 +17,9 @@ suite('system/LockScreenWindowManager', function() {
   var stubById;
   var appFake;
   var originalSettingsListener;
+  var originalAppWindowManager;
+  var originalMozActivity;
+  var originalMozSettings;
 
   mocksForLockScreenWindowManager.attachTestHelpers();
 
@@ -23,6 +29,8 @@ suite('system/LockScreenWindowManager', function() {
     appFake = new window.LockScreenWindow();
 
     originalSettingsListener = window.SettingsListener;
+    originalAppWindowManager = window.AppWindowManager;
+    originalMozActivity = window.MozActivity;
     window.SettingsListener = {
       observe: function(name, bool, cb) {},
       getSettingsLock: function() {
@@ -33,6 +41,14 @@ suite('system/LockScreenWindowManager', function() {
         }};
       }
     };
+    window.AppWindowManager = {
+      getActiveApp: function() {}
+    };
+    window.MozActivity = function() {};
+
+    originalMozSettings = window.navigator.mozSettings;
+    window.navigator.mozSettings = window.MockNavigatorSettings;
+
     // To prevent the original one has been
     // initialized in the bootstrap stage.
     //
@@ -46,16 +62,37 @@ suite('system/LockScreenWindowManager', function() {
     } else {
       window.lockScreenWindowManager = new window.LockScreenWindowManager();
     }
+    window.lockScreenWindowManager.startObserveSettings();
+    window.lockScreenWindowManager.elements.screen =
+      document.createElement('div');
     // Differs from the existing mock which is expected by other components.
     window.LockScreen = function() {};
   });
 
   teardown(function() {
     window.SettingsListener = originalSettingsListener;
+    window.MozActivity = originalMozActivity;
+    window.AppWindowManager = originalAppWindowManager;
+    window.navigator.mozSettings = originalMozSettings;
+    window.MockNavigatorSettings.mTeardown();
     stubById.restore();
   });
 
   suite('Handle events', function() {
+    test('It should stop home event to propagate', function() {
+      var evt = {
+            type: 'home',
+            stopImmediatePropagation: this.sinon.stub()
+          },
+          originalActive = window.lockScreenWindowManager.states.active;
+      // Need to be active to block the home event.
+      window.lockScreenWindowManager.states.active = true;
+      window.lockScreenWindowManager.handleEvent(evt);
+      assert.ok(evt.stopImmediatePropagation.called,
+        'it didn\'t call the stopImmediatePropagation method');
+      window.lockScreenWindowManager.states.active = originalActive;
+    });
+
     test('App created', function() {
       window.lockScreenWindowManager.handleEvent(
         { type: 'lockscreen-appcreated',
@@ -158,6 +195,46 @@ suite('system/LockScreenWindowManager', function() {
         type: 'showlockscreenwindow'
       });
       assert.isTrue(stubSetVisible.calledWith(true));
+    });
+
+    test('LockScreen request to unlock without activity detail', function() {
+      var evt = { type: 'lockscreen-request-unlock' },
+          stubCloseApp = this.sinon.stub(window.lockScreenWindowManager,
+            'closeApp');
+      this.sinon.stub(window.AppWindowManager, 'getActiveApp', function() {
+        return null;
+      });
+      window.lockScreenWindowManager.handleEvent(evt);
+      assert.isTrue(stubCloseApp.called,
+        'it did\'t close the window while unlock request arrive');
+    });
+
+    test('LockScreen request to unlock with activity detail', function() {
+      var evt = {
+            type: 'lockscreen-request-unlock',
+            detail: {
+              activity: {
+                name: 'foo',
+                data: {
+                  type: 'photos'
+                }
+              }
+            }
+          },
+          stubMozActivity = this.sinon.stub(window, 'MozActivity');
+      window.lockScreenWindowManager.handleEvent(evt);
+      assert.isTrue(stubMozActivity.called,
+        'it didn\'t construct the activity while the request denote to do it');
+    });
+
+    test('Open the app when asked via lock-immediately setting', function() {
+      window.lockScreenWindowManager.registerApp(appFake);
+      var stubOpen = this.sinon.stub(appFake, 'open');
+      window.MockNavigatorSettings.mTriggerObservers(
+        'lockscreen.lock-immediately', {settingValue: true});
+      assert.isTrue(stubOpen.called,
+        'the manager didn\'t open the app when requested');
+      window.lockScreenWindowManager.unregisterApp(appFake);
     });
   });
 });

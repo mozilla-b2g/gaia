@@ -19,8 +19,8 @@ requireApp('sms/shared/test/unit/mocks/mock_notification_helper.js');
 requireApp('sms/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 requireApp('sms/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('sms/shared/test/unit/mocks/mock_settings_url.js');
+requireApp('sms/shared/test/unit/mocks/mock_l10n.js');
 
-requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/test/unit/mock_attachment.js');
 requireApp('sms/test/unit/mock_compose.js');
 requireApp('sms/test/unit/mock_contacts.js');
@@ -531,7 +531,7 @@ suite('ActivityHandler', function() {
 
       test('prefix the contact name with the SIM information', function() {
         var expected = 'dsds-notification-title-with-sim' +
-         '{"sim":"sim-name-0","sender":"contact"}';
+          '{"sim":"sim-name-0","sender":"contact"}';
         sinon.assert.calledWith(window.Notification, expected);
       });
     });

@@ -143,6 +143,7 @@ Collection.prototype = {
       if (data && data.value) {
         data = data.value;
         descriptor.name = data.name;
+        descriptor.cName = data.name.toLowerCase();
         descriptor.background = data.bg;
         descriptor.categoryId = data.experienceId || descriptor.categoryId;
         descriptor.query = data.query;
@@ -150,7 +151,8 @@ Collection.prototype = {
         descriptor.webicons = data.extraIconsData;
         descriptor.pinned = data.apps;
       }
-
+      var id = parseInt(descriptor.categoryId);
+      descriptor.id = isNaN(id) ? descriptor.categoryId : id;
       cb(descriptor);
     }.bind(this));
   }

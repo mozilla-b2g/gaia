@@ -247,13 +247,16 @@ var icc = {
     viewId.style.marginTop = StatusBar.height + 'px';
     this.keyboardChangedEvent(viewId);
     window.addEventListener('keyboardchange',
-      this.keyboardChangedEvent.bind(undefined, viewId));
+      this.keyboardChangedEvent.bind(undefined, viewId, false));
     window.addEventListener('keyboardhide',
-      this.keyboardChangedEvent.bind(undefined, viewId));
+      this.keyboardChangedEvent.bind(undefined, viewId, true));
   },
 
-  keyboardChangedEvent: function(viewId) {
-    var keyboardHeight = KeyboardManager.getHeight();
+  keyboardChangedEvent: function(viewId, hidden) {
+    var keyboardHeight = 0;
+    if (!hidden) {
+      keyboardHeight = KeyboardManager.getHeight() || 0;
+    }
     var form = viewId.getElementsByTagName('form');
     viewId.style.height =
       (window.innerHeight - keyboardHeight - StatusBar.height) + 'px';
@@ -445,6 +448,17 @@ var icc = {
      * @param {Integer} maxLen      Maximum length required of the input.
      */
     function checkInputLengthValid(inputLen, minLen, maxLen) {
+      // Update input counter
+      var charactersLeft = maxLen - inputLen;
+      self.icc_input_btn.textContent = _('ok') + ' (' + charactersLeft + ')';
+      // Input box full feedback
+      if (charactersLeft === 0) {
+        self.icc_input_box.classList.add('full');
+        navigator.vibrate([500]);
+      } else {
+        self.icc_input_box.classList.remove('full');
+      }
+
       return (inputLen >= minLen) && (inputLen <= maxLen);
     }
     function clearInputTimeout() {
@@ -524,9 +538,6 @@ var icc = {
         self.icc_input_btn.disabled = !checkInputLengthValid(
           self.icc_input_box.value.length, options.minLength,
           options.maxLength);
-        if (self.icc_input_box.value.length == options.maxLength) {
-          self.icc_input_btn.focus();
-        }
       };
       this.icc_input_btn.onclick = function() {
         clearInputTimeout();

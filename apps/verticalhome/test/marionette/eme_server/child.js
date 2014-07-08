@@ -12,6 +12,7 @@ var fsPath = require('path');
 var EventEmitter = require('events').EventEmitter;
 
 function writeJSON(res, object) {
+  object = object || {};
   var json = JSON.stringify(object);
   res.writeHead(200, {
     'Content-Length': Buffer.byteLength(json),
@@ -36,6 +37,7 @@ function EmeServer(root, routes) {
   this.root = root;
   this.routes = routes;
   this._settings = {};
+  this.fail = false;
 }
 
 EmeServer.prototype = {
@@ -44,6 +46,14 @@ EmeServer.prototype = {
   requestHandler: function() {
     var routes = this.routes;
     return function(req, res) {
+      // Fail requests
+      if (req.url.indexOf('/settings') !== 0 && this.fail) {
+        process.nextTick(function() {
+          req.socket.destroy();
+        });
+        return;
+      }
+
       var handler = routes[req.url] || routes['*'];
       // routes are always invoked with the context of the server.
       return handler.call(this, req, res);
@@ -58,6 +68,11 @@ var emeServer = new EmeServer(process.argv[2], {
     writeJSON(res, json);
   },
 
+  '/Apps/nativeInfo': function(req, res) {
+    var json = JSON.parse(fs.readFileSync(this.root + 'apps_nativeinfo.json'));
+    writeJSON(res, json);
+  },
+
   '/Apps/search': function(req, res) {
     var json = JSON.parse(fs.readFileSync(this.root + 'apps_search.json'));
     writeJSON(res, json);
@@ -66,6 +81,16 @@ var emeServer = new EmeServer(process.argv[2], {
   '/Search/bgimage': function(req, res) {
     var json = JSON.parse(fs.readFileSync(this.root + 'search_bgimage.json'));
     writeJSON(res, json);
+  },
+
+  '/settings/failAll': function(req, res) {
+    this.fail = true;
+    writeJSON(res);
+  },
+
+  '/settings/unfailAll': function(req, res) {
+    this.fail = false;
+    writeJSON(res);
   },
 
   /**

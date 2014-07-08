@@ -22,7 +22,7 @@ var mocksForFindMyDevice = new MocksHelper([
 suite('Find My Device panel > ', function() {
   var MockMozId, realMozId;
   var realL10n, realLoadJSON, subject;
-  var signinSection, settingsSection, loginButton, checkbox;
+  var signinSection, settingsSection, trackingSection, loginButton, checkbox;
 
   mocksForFindMyDevice.attachTestHelpers();
 
@@ -31,7 +31,9 @@ suite('Find My Device panel > ', function() {
     navigator.mozL10n = {
       once: function(callback) {
         callback();
-      }
+      },
+      localize: function(element, id) {
+      },
     };
 
     realMozId = navigator.mozId;
@@ -39,11 +41,13 @@ suite('Find My Device panel > ', function() {
       onlogin: null,
       onlogout: null,
       onready: null,
+      onerror: null,
 
       watch: function(options) {
         this.onlogin = options.onlogin;
         this.onlogout = options.onlogout;
         this.onready = options.onready;
+        this.onerror = options.onerror;
 
         setTimeout(function() {
           options.onready();
@@ -77,8 +81,12 @@ suite('Find My Device panel > ', function() {
       // grab pointers to useful elements
       signinSection = document.getElementById('findmydevice-signin');
       settingsSection = document.getElementById('findmydevice-settings');
-      loginButton = document.getElementById('findmydevice-login');
+      trackingSection = document.getElementById('findmydevice-tracking');
       checkbox = document.querySelector('#findmydevice-enabled input');
+      loginButton = document.getElementById('findmydevice-login');
+
+      // manually enable the loginButton
+      loginButton.removeAttribute('disabled');
 
       require('/js/findmydevice.js', function() {
         subject = FindMyDevice;
@@ -93,10 +101,38 @@ suite('Find My Device panel > ', function() {
     assert.isTrue(settingsSection.hidden);
   });
 
+  test('bug 1030597 - prompt for login if onerror fires', function() {
+    signinSection.hidden = true;
+    settingsSection.hidden = true;
+    MockMozId.onerror();
+    assert.isTrue(settingsSection.hidden);
+    assert.isFalse(signinSection.hidden);
+  });
+
   test('show settings when logged in to FxA', function() {
     MockMozId.onlogin();
     assert.isFalse(settingsSection.hidden);
     assert.isTrue(signinSection.hidden);
+  });
+
+  test('ignore clicks when button is disabled', function() {
+    loginButton.disabled = true;
+    var onLoginClickSpy = sinon.spy(FindMyDevice, '_onLoginClick');
+    loginButton.click();
+    sinon.assert.notCalled(onLoginClickSpy);
+    FindMyDevice._onLoginClick.restore();
+  });
+
+  test('enable button after watch fires onready', function() {
+    loginButton.disabled = true;
+    MockMozId.onready();
+    assert.isFalse(!!loginButton.disabled);
+  });
+
+  test('enable button after watch fires onerror', function() {
+    loginButton.disabled = true;
+    MockMozId.onerror();
+    assert.isFalse(!!loginButton.disabled);
   });
 
   test('auto-enable when logging in using the login button', function() {
@@ -114,6 +150,22 @@ suite('Find My Device panel > ', function() {
     MockMozId.onlogin();
     var nLocks = MockSettingsListener.getSettingsLock().locks.length;
     assert.equal(nLocks, 0, 'set no settings on non-interactive login');
+  });
+
+  test('notify in settings panel when phone is tracked', function() {
+    MockSettingsListener.mCallbacks['findmydevice.enabled'](false);
+    assert.isTrue(trackingSection.hidden);
+    MockSettingsListener.mCallbacks['findmydevice.enabled'](true);
+    assert.isFalse(trackingSection.hidden);
+
+    this.sinon.spy(navigator.mozL10n, 'localize');
+    MockSettingsListener.mCallbacks['findmydevice.tracking'](true);
+    assert.ok(navigator.mozL10n.localize.calledWith(
+        trackingSection, 'findmydevice-active-tracking'));
+    MockSettingsListener.mCallbacks['findmydevice.tracking'](false);
+    assert.ok(navigator.mozL10n.localize.calledWith(
+        trackingSection, 'findmydevice-not-tracking'));
+    navigator.mozL10n.localize.reset();
   });
 
   suiteTeardown(function() {

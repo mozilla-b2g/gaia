@@ -8,8 +8,8 @@ define(function(require, exports, module) {
 var OptionsView = require('views/setting-options');
 var debug = require('debug')('view:settings');
 var SettingView = require('views/setting');
-var View = require('vendor/view');
 var bind = require('lib/bind');
+var View = require('view');
 
 /**
  * Exports

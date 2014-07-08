@@ -16,6 +16,7 @@
     this.setBrowserConfig(manifestURL);
     this.render();
     this.publish('created');
+    this.createdTime = this.launchTime = Date.now();
     return this;
   };
 
@@ -36,7 +37,11 @@
    * @event HomescreenWindow#homescreenopen
    */
   /**
-   * Fired when the homescreen window is cloing.
+   * Fired when the homescreen window is closed.
+   * @event HomescreenWindow#homescreenclosed
+   */
+  /**
+   * Fired when the homescreen window is closing.
    * @event HomescreenWindow#homescreenclosing
    */
   /**
@@ -62,7 +67,7 @@
    * @event HomescreenWindow#homescreenbackground
    */
 
-  HomescreenWindow.prototype.__proto__ = AppWindow.prototype;
+  HomescreenWindow.prototype = Object.create(AppWindow.prototype);
 
   HomescreenWindow.prototype._DEBUG = false;
 
@@ -120,6 +125,7 @@
   HomescreenWindow.prototype._handle_mozbrowsererror =
     function hw__handle_mozbrowsererror(evt) {
       if (evt.detail.type == 'fatal') {
+        this.loaded = false;
         this.publish('crashed');
         this.restart();
       }

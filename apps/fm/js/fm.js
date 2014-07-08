@@ -384,7 +384,6 @@ var frequencyDialer = {
 
   _addDialerUnit: function(start, end) {
     var markStart = start - start % this.unit;
-    var html = '';
 
     // At the beginning and end of the dial, some of the notches should be
     // hidden. To do this, we use an absolutely positioned div mask.
@@ -405,35 +404,44 @@ var frequencyDialer = {
       }
     }
 
-    html += '    <div class="dialer-unit-mark-box">';
-    if (startMaskWidth > 0) {
-      html += '<div class="dialer-unit-mark-mask-start" style="width: ' +
-              startMaskWidth + 'px"></div>';
-    }
-    if (endMaskWidth > 0) {
-      html += '<div class="dialer-unit-mark-mask-end" style="width: ' +
-              endMaskWidth + 'px"></div>';
-    }
-    html += '    </div>';
+    var container = document.createElement('div');
+    container.classList.add('dialer-unit-mark-box');
 
-    var width = 'width: ' + (100 / this.unit) + '%';
+    if (startMaskWidth > 0) {
+      var markStart = document.createElement('div');
+      markStart.classList.add('dialer-unit-mark-mask-start');
+      markStart.style.width = startMaskWidth + 'px';
+
+      container.appendChild(markStart);
+    }
+
+    if (endMaskWidth > 0) {
+      var markEnd = document.createElement('div');
+      markEnd.classList.add('dialer-unit-mark-mask-end');
+      markEnd.style.width = endMaskWidth + 'px';
+
+      container.appendChild(markEnd);
+    }
+
+    var width = (100 / this.unit) + '%';
     // Show the frequencies on dialer
     for (var j = 0; j < this.unit; j++) {
       var frequency = Math.floor(markStart) + j;
       var showFloor = frequency >= start && frequency <= end;
-      if (showFloor) {
-        html += '<div class="dialer-unit-floor" style="' + width + '">' +
-          frequency + '</div>';
-      } else {
-        html += '  <div class="dialer-unit-floor hidden-block" style="' +
-          width + '">' + frequency + '</div>';
+
+      var unit = document.createElement('div');
+      unit.classList.add('dialer-unit-floor');
+      if (!showFloor) {
+        unit.classList.add('hidden-block');
       }
+      unit.style.width = width;
+      unit.appendChild(document.createTextNode(frequency));
+      container.appendChild(unit);
     }
 
-    html += '  </div>';
     var unit = document.createElement('div');
     unit.className = 'dialer-unit';
-    unit.innerHTML = html;
+    unit.appendChild(container);
     $('frequency-dialer').appendChild(unit);
   },
 

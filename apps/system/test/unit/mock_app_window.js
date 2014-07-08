@@ -30,6 +30,7 @@
     get browser() {
       if (!this._iframe) {
         this._iframe = document.createElement('iframe');
+        this._iframe.download = function() {};
       }
       return {
         element: this._iframe
@@ -67,6 +68,7 @@
     back: function() {},
     reload: function() {},
     isBrowser: function() {},
+    isCertified: function() {},
     navigate: function() {},
     isFullScreen: function() {},
     _changeState: function() {},
@@ -93,7 +95,8 @@
     leaveTaskManager: function() {},
     applyStyle: function() {},
     unapplyStyle: function() {},
-    transform: function() {}
+    transform: function() {},
+    hideContextMenu: function() {}
   };
   MockAppWindow.mTeardown = function() {
     MockAppWindowHelper.mInstances = [];

@@ -34,9 +34,10 @@
     /*
     * Boolean return the status of the lock screen.
     * Must not multate directly - use unlock()/lockIfEnabled()
-    * Listen to 'lock' and 'unlock' event to properly handle status changes
+    * Listen to 'lockscreen-appclosed/opening/opened' events to properly
+    * handle status changes
     */
-    _locked: true,
+    locked: true,
 
     /*
     * Boolean return whether if the lock screen is enabled or not.
@@ -59,6 +60,21 @@
     * Will be ignored if 'enabled' is set to false.
     */
     passCodeEnabled: false,
+
+    /*
+    * Boolean should regenerate overlay color for notifications background
+    * When this is true, and when we're locking the device, we should
+    * regenerate the overlay color as specified in bug 950884
+    * Instead of doing the color generation in updateBackground,
+    *  by doing this we can reduce critical path of updateBackground,
+    * and perceived performance of selecting wallpaper.
+    */
+    _shouldRegenerateMaskedBackgroundColor: false,
+
+    /*
+    * String url of the background image to regenerate overlay color from
+    */
+    _regenerateMaskedBackgroundColorFrom: undefined,
 
     /*
     * Four digit Passcode
@@ -235,7 +251,6 @@
         if (!this.locked) {
           this.switchPanel();
           this.overlay.hidden = true;
-          this.dispatchEvent('unlock', this.unlockDetail);
           this.unlockDetail = undefined;
         }
         break;
@@ -458,15 +473,32 @@
       this.setLockMessage(value);
     }).bind(this));
 
-    window.SettingsListener.observe('wallpaper.color',
-      'hsla(23, 99%, 55%, 0.7)', (function(value) {
-      this.maskedBackground.dataset.wallpaperColor = value;
-      if (!this.maskedBackground.classList.contains('blank')) {
-        this.maskedBackground.style.backgroundColor = value;
+    // FIXME(ggp) this is currently used by Find My Device
+    // to force locking. Should be replaced by a proper IAC API in
+    // bug 992277. We don't need to use SettingsListener because
+    // we're only interested in changes to the setting, and don't
+    // keep track of its value.
+    navigator.mozSettings.addObserver('lockscreen.lock-immediately',
+      (function(event) {
+      if (event.settingValue === true) {
+        this.lockIfEnabled(true);
       }
     }).bind(this));
 
     navigator.mozL10n.ready(this.l10nInit.bind(this));
+
+    // when lockscreen is just initialized,
+    // it will lock itself (if enabled) before calling updatebackground,
+    // so we need to generate overlay if needed here
+    if(this._checkGenerateMaskedBackgroundColor()){
+      this._generateMaskedBackgroundColor();
+    }
+
+    // start the clock because screenchange won't trigger when
+    // screen locks just after boot
+    // Clock always uses one Timeouts/Intervals so it's safe in
+    // other scenarios (such as turning on lockscreen after boot in settings)
+    this.clock.start(this.refreshClock.bind(this));
   };
 
   LockScreen.prototype.initUnlockerEvents =
@@ -591,18 +623,13 @@
         this.invokeSecureApp('camera');
         return;
       }
-
-      this.unlock(/* instant */ null, /* detail */ { areaCamera: true });
-
-      var a = new window.MozActivity({
+      var activityDetail = {
         name: 'record',
         data: {
           type: 'photos'
         }
-      });
-      a.onerror = function ls_activityError() {
-        console.log('MozActivity: camera launch error.');
       };
+      this.unlock(false, { activity: activityDetail } );
     }).bind(this);
 
     panelOrFullApp();
@@ -708,11 +735,6 @@
 
   LockScreen.prototype.unlock =
   function ls_unlock(instant, detail) {
-    // This file is loaded before the Window Manager in order to intercept
-    // hardware buttons events. As a result AppWindowManager is not defined when
-    // the device is turned on and this file is loaded.
-    var app = window.AppWindowManager ?
-      window.AppWindowManager.getActiveApp() : null;
     var wasAlreadyUnlocked = !this.locked;
     this.locked = false;
 
@@ -733,26 +755,17 @@
     }
 
     this.overlay.classList.toggle('no-transition', instant);
+    this.dispatchEvent('lockscreen-request-unlock', detail);
+    this.dispatchEvent('secure-modeoff');
+    this.overlay.classList.add('unlocked');
 
-    var nextPaint = function() {
-      this.dispatchEvent('will-unlock', detail);
-      this.dispatchEvent('secure-modeoff');
-      this.overlay.classList.add('unlocked');
-
-      // If we don't unlock instantly here,
-      // these are run in transitioned callback.
-      if (instant) {
-        this.switchPanel();
-        this.overlay.hidden = true;
-        this.dispatchEvent('unlock', detail);
-      } else {
-        this.unlockDetail = detail;
-      }
-    }.bind(this);
-    if (app) {
-      app.ready(nextPaint);
+    // If we don't unlock instantly here,
+    // these are run in transitioned callback.
+    if (instant) {
+      this.switchPanel();
+      this.overlay.hidden = true;
     } else {
-      nextPaint();
+      this.unlockDetail = detail;
     }
   };
 
@@ -776,9 +789,12 @@
 
       // Any changes made to this,
       // also need to be reflected in apps/system/js/storage.js
-      this.dispatchEvent('lock', {detail: this.locked});
       this.dispatchEvent('secure-modeon');
       this.writeSetting(true);
+
+      if(this._checkGenerateMaskedBackgroundColor()){
+        this._generateMaskedBackgroundColor();
+      }
     }
   };
 
@@ -966,6 +982,111 @@
     var background = document.getElementById('lockscreen-background'),
         url = 'url(' + value + ')';
     background.style.backgroundImage = url;
+    this._shouldRegenerateMaskedBackgroundColor = true;
+    this._regenerateMaskedBackgroundColorFrom = value;
+  };
+
+  /**
+   * Check if we should regenerate masked background color
+   */
+  LockScreen.prototype._checkGenerateMaskedBackgroundColor =
+  function ls_checkGenerateMaskedBackgroundColor() {
+    // XXX: request animation frame?
+    return (this._shouldRegenerateMaskedBackgroundColor &&
+            this._regenerateMaskedBackgroundColorFrom);
+  };
+
+  /**
+   * Generate a single color from wallpaper
+   * to be used as the background color of Masked Background
+   */
+  LockScreen.prototype._generateMaskedBackgroundColor =
+  function ls_generateMaskedBackgroundColor() {
+    // downsample the image to avoid calculation taking too much time
+    var SAMPLE_IMAGE_SIZE_BASE = 100;
+
+    var img = new Image();
+    img.onload = (function(){
+      var sampleImageWidth;
+      var sampleImageHeight;
+
+      if(img.height > img.width){
+        sampleImageWidth =
+          Math.floor(SAMPLE_IMAGE_SIZE_BASE * window.devicePixelRatio);
+        sampleImageHeight =
+          Math.floor(sampleImageWidth * (img.height / img.width));
+      }else{
+        sampleImageHeight =
+          Math.floor(SAMPLE_IMAGE_SIZE_BASE * window.devicePixelRatio);
+        sampleImageWidth =
+          Math.floor(sampleImageHeight * (img.width / img.height));
+      }
+
+      var canvas = document.createElement('canvas');
+      canvas.width = sampleImageWidth;
+      canvas.height = sampleImageHeight;
+
+      var context = canvas.getContext('2d');
+      context.drawImage(img, 0, 0, sampleImageWidth, sampleImageHeight);
+
+      var data =
+        context.getImageData(0, 0, sampleImageWidth, sampleImageHeight).data;
+      var r = 0, g = 0, b = 0;
+
+      for (var row = 0; row < sampleImageHeight; row++) {
+        for (var col = 0; col < sampleImageWidth; col++) {
+          r += data[((sampleImageWidth * row) + col) * 4];
+          g += data[((sampleImageWidth * row) + col) * 4 + 1];
+          b += data[((sampleImageWidth * row) + col) * 4 + 2];
+        }
+      }
+
+      r = r / (sampleImageWidth * sampleImageHeight) / 255;
+      g = g / (sampleImageWidth * sampleImageHeight) / 255;
+      b = b / (sampleImageWidth * sampleImageHeight) / 255;
+
+      // http://en.wikipedia.org/wiki/HSL_and_HSV#Formal_derivation
+      var M = Math.max(r, g, b);
+      var m = Math.min(r, g, b);
+      var C = M - m;
+      var h, s, l;
+
+      l = 0.5 * (M + m);
+      if (C === 0) {
+        h = s = 0; // no satuaration (monochromatic)
+      } else {
+        switch (M) {
+          case r:
+            h = ((g - b) / C) % 6;
+            break;
+          case g:
+            h = ((b - r) / C) + 2;
+            break;
+          case b:
+            h = ((r - g) / C) + 4;
+            break;
+        }
+        h *= 60;
+        h = (h + 360) % 360;
+        s = C / (1 - Math.abs(2 * l - 1));
+      }
+
+      l *= 0.9;
+
+      h = parseInt(h);
+      s = parseInt(s * 100) + '%';
+      l = parseInt(l * 100) + '%';
+
+      var value = 'hsla(' + h + ', ' + s + ', ' + l + ', 0.7)';
+      this.maskedBackground.dataset.wallpaperColor = value;
+      if (!this.maskedBackground.classList.contains('blank')) {
+        this.maskedBackground.style.backgroundColor = value;
+      }
+    }).bind(this);
+
+    img.src = this._regenerateMaskedBackgroundColorFrom;
+    this._shouldRegenerateMaskedBackgroundColor = false;
+    this._regenerateMaskedBackgroundColorFrom = undefined;
   };
 
   /**

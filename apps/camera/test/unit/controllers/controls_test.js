@@ -77,18 +77,18 @@ suite('controllers/controls', function() {
       assert.isTrue(this.view.set.calledWith('switchable', false));
     });
 
-    test('Should set the mode to the value of the \'mode\' setting', function() {
+    test('It sets the mode to the value of the \'mode\' setting', function() {
 
       // Test 'picture'
       this.app.settings.mode.selected.returns('picture');
       var controller = new this.ControlsController(this.app);
-      assert.ok(this.view.set.calledWith('mode', 'picture'));
+      sinon.assert.calledWith(this.view.setMode, 'picture');
       this.view.set.reset();
 
       // Test 'video'
       this.app.settings.mode.selected.returns('video');
       controller = new this.ControlsController(this.app);
-      assert.ok(this.view.set.calledWith('mode', 'video'));
+      sinon.assert.calledWith(this.view.setMode, 'video');
       this.view.set.reset();
     });
 
@@ -115,8 +115,13 @@ suite('controllers/controls', function() {
       sinon.assert.calledWith(this.app.on, 'camera:ready', this.controller.restore);
     });
 
+    test('Should hide the controls when the timer is started', function() {
+      sinon.assert.calledWith(this.app.on, 'timer:started', this.controller.onTimerStarted);
+    });
+
     test('Should restore the controls when the timer is cleared', function() {
-      sinon.assert.calledWith(this.app.on, 'timer:cleared', this.controller.restore);
+      sinon.assert.calledWith(this.app.on, 'timer:cleared', this.controller.onTimerStopped);
+      sinon.assert.calledWith(this.app.on, 'timer:ended', this.controller.onTimerStopped);
     });
 
     test('Should disable the view intitially until camera is ready', function() {

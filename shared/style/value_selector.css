@@ -52,7 +52,7 @@
   height: auto;
   list-style: none;
   position: relative;
-  font-weight: lighter;
+  font-weight: 300;
   font-size: 2.2rem;
   line-height: 3.9rem;
   color: #fff;
@@ -198,3 +198,13 @@ html[dir="rtl"] #value-selector li[aria-selected="true"] span {
   margin-right: 0;
   background-position: 0 50%;
 }
+
+html[dir="rtl"] [role="dialog"][data-type="value-selector"] [role="listbox"] li[aria-selected="true"] label {
+  background-position: left 1.2rem top 50%;
+}
+
+html[dir="rtl"] [role="dialog"][data-type="value-selector"] [role="listbox"] li[aria-selected="true"] span {
+  padding-left: 2.6rem;
+  padding-right: 0;
+}
+

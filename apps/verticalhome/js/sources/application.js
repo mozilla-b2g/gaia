@@ -1,5 +1,5 @@
 'use strict';
-/* global GaiaGrid, configurator */
+/* global GaiaGrid, configurator, appManager */
 
 (function(exports) {
 
@@ -70,6 +70,9 @@
 
       app.grid.render();
       app.itemStore.save(app.grid.getItems());
+
+      appManager.sendEventToCollectionApp('install',
+        { id: application.manifestURL });
     }
 
     /**
@@ -106,8 +109,11 @@
     }.bind(this);
 
     appMgr.onuninstall = function onuninstall(event) {
-      this.removeIconFromGrid(event.application.manifestURL);
+      var application = event.application;
+      this.removeIconFromGrid(application.manifestURL);
       app.itemStore.save(app.grid.getItems());
+      appManager.sendEventToCollectionApp('uninstall',
+        { id: application.manifestURL });
     }.bind(this);
 
   }
@@ -132,8 +138,10 @@
 
       for (i = 0, iLen = this.entries.length; i < iLen; i++) {
         var entry = this.entries[i];
+        var manifest = entry.updateManifest || entry.manifest;
+
         if (!appIconsByManifestUrl[entry.detail.manifestURL] &&
-            !entry.app.manifest.entry_points) {
+            !manifest.entry_points) {
           toAdd.push(entry);
         } else {
           delete appIconsByManifestUrl[entry.detail.manifestURL];
@@ -171,15 +179,8 @@
     removeIconFromGrid: function(manifestURL) {
       var icons = app.grid.getIcons();
       var appObject = icons[manifestURL];
-      app.grid.removeIconByIdentifier(manifestURL);
-
-      var items = app.grid.getItems();
-      var itemIndex = items.indexOf(appObject);
-      app.grid.removeItemByIndex(itemIndex);
-      app.grid.render();
-
-      if (appObject && appObject.element) {
-        appObject.element.parentNode.removeChild(appObject.element);
+      if (appObject) {
+        appObject.removeFromGrid();
       }
     },
 

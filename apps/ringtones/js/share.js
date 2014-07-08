@@ -39,6 +39,18 @@ if (document.location.hash === '#activity') {
   });
 }
 else {
+  // XXX: If this window was opened from the ringtones manager and we lose
+  // visibility, we need to close the window so that subsequent calls to
+  // window.open actually bring the window to the foreground! This is a
+  // workaround for the fact that the ringtones app is currently has a "system"
+  // role, which means that it doesn't participate in the window manager's
+  // stack. See bug 1030954 for more details.
+  window.addEventListener('visibilitychange', function() {
+    if (document.hidden) {
+      window.close();
+    }
+  });
+
   window.addEventListener('message', function(event) {
     if (event.origin !== window.location.origin) {
       console.error('Couldn\'t recieve message: origins don\'t match',
@@ -47,9 +59,9 @@ else {
     }
 
     handleShare(event.data, function(command, details) {
-      if (command === 'save') {
-        event.source.postMessage(details, event.origin);
-      }
+      event.source.postMessage(
+        {command: command, details: details}, event.origin
+      );
       window.close();
     });
   });

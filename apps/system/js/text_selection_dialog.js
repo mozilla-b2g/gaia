@@ -43,7 +43,7 @@
   // the bottom of selected area to utility menu.
   TextSelectionDialog.prototype.DISTANCE_FROM_SELECTEDAREA_TO_MENUTOP = 34;
 
-  TextSelectionDialog.prototype.__proto__ = window.BaseUI.prototype;
+  TextSelectionDialog.prototype = Object.create(window.BaseUI.prototype);
 
   TextSelectionDialog.prototype.CLASS_NAME = 'TextSelectionDialog';
 
@@ -158,18 +158,26 @@
 
     var numOfSelectOptions = 0;
     var options = ['SelectAll' , 'Paste', 'Cut', 'Copy'];
+
+    // Based on UI spec, we should have dividers ONLY between each select option
+    // So, we use css to put divider in pseudo element and set the last visible
+    // option without it.
+    var lastVisibleOption;
     options.forEach(function(option) {
       if (detail['can' + option]) {
         numOfSelectOptions++;
-        this.elements[option.toLowerCase()].style.display = '';
+        lastVisibleOption = this.elements[option.toLowerCase()];
+        lastVisibleOption.classList.remove('hidden', 'last-option');
       } else {
-        this.elements[option.toLowerCase()].style.display = 'none';
+        this.elements[option.toLowerCase()].classList.add('hidden');
       }
     }, this);
 
     if (numOfSelectOptions === 0) {
       return;
     }
+    // Add last-option class to the last item of options array;
+    lastVisibleOption.classList.add('last-option');
 
     var pos = this.calculateDialogPostion(detail, numOfSelectOptions);
     this.element.style.top = pos.top + 'px';

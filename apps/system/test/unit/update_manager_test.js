@@ -1094,7 +1094,7 @@ suite('system/UpdateManager', function() {
             assert.include(item.textContent, 'required');
 
             var name = item.querySelector('div.name');
-            assert.equal(name.textContent, 'System Update');
+            assert.equal(name.textContent, 'systemUpdate');
             assert.equal(name.dataset.l10nId, 'systemUpdate');
           });
 

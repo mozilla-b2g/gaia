@@ -32,6 +32,10 @@ test/marionette/  => webdriver tests written with the marionette-js-runner frame
 test/unit/        => javascript unit tests run in the browser via test-agent
 ```
 
+#### A note about js/ext
+
+The external libraries versioned in js/ext are populated by [volo](http://volojs.org/) which saves their url, version, git tag, etc in `package.json`. Check out the documentation [here](https://github.com/volojs/volo/tree/master/commands) for help adding, updating, and removing dependencies.
+
 ### Interop Tests
 
 We have a test suite that checks whether or not we're interoperable with a particular calendar server. In order to run the test suite against your favorite server:

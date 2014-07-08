@@ -48,6 +48,7 @@ var SiSlScreenHelper = (function() {
     // invoque when the user click on the close button.
     WapPushManager.setOnCloseCallback(sssh_onClose);
 
+    WapPushManager.enableAcceptButton(false);
     screen.hidden = false;
 
     // Populate the message

@@ -3,16 +3,12 @@
 
 (function(exports) {
 
+  var elements = {
+    content: document.getElementById('content-background-image')
+  };
+
   function ViewBgImage(collection) {
-
-    var elements = {
-      content: document.getElementById('content')
-    };
-
-    // draw stored background
-    if (collection.background) {
-      drawBackground(collection.background);
-    }
+    ViewBgImage.drawBackground(collection.background);
 
     eme.init().then(queueRequest);
 
@@ -21,14 +17,6 @@
         onOnline();
       } else {
         addListeners();
-      }
-    }
-
-    function drawBackground(background) {
-      if (elements.content.style.backgroundImage) {
-        eme.log('drawBackground', 'skipping, reopen to refresh');
-      } else if (background.src) {
-        elements.content.style.backgroundImage = 'url(' + background.src + ')';
       }
     }
 
@@ -49,6 +37,7 @@
 
       return eme.api.Search.bgimage(options).then(function success(response) {
         if (checksum && checksum === response.checksum) {
+          ViewBgImage.drawBackground(collection.background);
           eme.log('background didn\'t change (checksum match)');
         } else {
           // update background
@@ -63,10 +52,11 @@
             var newBackground = {
               src: src,
               source: response.response.source,
-              checksum: response.checksum
+              checksum: response.checksum,
+              isFullSize: true
             };
 
-            drawBackground(newBackground);
+            ViewBgImage.drawBackground(newBackground);
 
             collection.background = newBackground;
             collection.save();
@@ -92,6 +82,21 @@
       window.removeEventListener('online', onOnline);
     }
   }
+
+  ViewBgImage.drawBackground = function drawBackground(bg) {
+    if (elements.content.style.backgroundImage) {
+      eme.log('drawBackground', 'already drawn, skipping');
+      return;
+    }
+
+    // draw stored background if in full size (as opposed to square icon size)
+    if (bg && bg.src && bg.isFullSize) {
+      elements.content.style.backgroundImage = 'url(' + bg.src + ')';
+      eme.log('drawBackground', 'drawn');
+    } else {
+      eme.log('drawBackground', 'not drawn, failed conditions', bg);
+    }
+  };
 
   exports.ViewBgImage = ViewBgImage;
 

@@ -21,6 +21,10 @@ form[role="dialog"][data-type="confirm"] p small{
   line-height: 2rem;
 }
 
+form[data-type="confirm"] .phone-details .phone-number {
+  display: inline;
+}
+
 
 /* Override Building Block [Header] styles */
 section[role="region"] > header:first-child .icon.icon-clear {
@@ -69,6 +73,10 @@ form[role="dialog"][data-type="edit"] > menu {
 [data-type="list"] {
   padding: 0;
   text-align: left;
+}
+
+#main-wrapper.edit [data-type="list"] li a {
+  pointer-events: none;
 }
 
 #threads-container[data-type="list"] .mms-icon {
@@ -366,15 +374,12 @@ section[role="region"].new > header:first-child form {
   Messages Style as 'bubbles'
 */
 
-.carrier-wrapper,
-.carrier-wrapper * {
-  display: none;
-}
-
 .carrier-wrapper {
+  display: none;
+
   box-sizing: border-box;
   height: 2.2rem;
-  padding-left: 1.5rem;
+  padding: 0 1.5rem;
 
   font-size: 1.4rem;
   line-height: 2.2rem;
@@ -388,10 +393,8 @@ section[role="region"].new > header:first-child form {
   color: #575757;
 }
 
-.carrier-wrapper.has-phone-type .phone-type,
-.carrier-wrapper.has-phone-details .phone-details,
-.carrier-wrapper.has-phone-type.has-phone-details .phone-type-separator {
-  display: inline;
+.carrier-wrapper .phone-carrier {
+  color: #237171;
 }
 
 .has-carrier .carrier-wrapper {
@@ -540,48 +543,6 @@ section[role="region"].new > header:first-child form {
 }
 
 /*
-  DSDS
-*/
-
-.js-sim-indication {
-  position: absolute;
-  top: 0.2rem;
-  left: 0;
-
-  display: none;
-  line-height: 1;
-  width: 100%;
-
-  font-size: 1.3rem;
-  opacity: 0.5;
-}
-
-.has-preferred-sim .js-sim-indication {
-  display: block;
-}
-
-.has-preferred-sim #messages-send-button {
-  height: 4.5rem;
-  padding-top: 0.5rem;
-
-  /* override BB, first one is separator, second one is background */
-  background-position: left bottom, bottom;
-}
-
-.has-preferred-sim #messages-send-button:after {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-
-  content: '';
-  display: block;
-  width: 100%;
-  height: 1rem;
-
-  background: url(images/long-tap-indicator.png) center no-repeat;
-}
-
-/*
   Loading screen while deleting
 */
 
@@ -650,21 +611,19 @@ section[role="region"].new .subheader {
   position: relative;
 
   display: none;
+  min-height: 5.5rem;
 
   text-align: left;
   color: black;
   font-size: 1.465rem;
   background-color: #f2f2f2;
+  transition: transform 0.2s ease-in-out 0s;
+  transform: translateY(calc(-100% + 5.5rem));
 }
 
 section[role="region"].new #messages-to-field {
   display: flex;
-  min-height: 5.5rem;
-
   align-items: flex-end;
-
-  transition: transform 0.2s ease-in-out 0s;
-  transform: translateY(calc(-100% + 5.5rem));
 }
 
 
@@ -727,6 +686,11 @@ Do not remove.
 
   display: block;
   float: left;
+}
+
+.recipient[contenteditable].email {
+  padding-right: 3.8rem;
+  background: white url(images/icons/icon_sms_compose_email.png) calc(100% - 1.5rem) center no-repeat;
 }
 
 /* Disable padding and margin on empty contenteditable recipients when they do
@@ -882,4 +846,18 @@ section[role="region"].report-information > header .icon-back {
 
 .request-activity-mode #messages-back-button {
   display: none;
+}
+
+
+/* Phone details label styles */
+.phone-details > .phone-details-item {
+  display: none;
+}
+
+.phone-details.has-phone-type > .phone-type,
+.phone-details.has-phone-type > .phone-type-separator,
+.phone-details > .phone-number,
+.phone-details.has-phone-carrier > .phone-carrier,
+.phone-details.has-phone-carrier > .phone-carrier-separator {
+  display: inline;
 }

@@ -306,6 +306,10 @@
     homescreenVisible = true;
     CustomDialog.hide();
   });
+  window.addEventListener('homescreenopened', function() {
+    homescreenVisible = true;
+    CustomDialog.hide();
+  });
 
   function onCall() {
     if (currentChannel == 'telephony')
@@ -464,7 +468,7 @@
           return defaultVolumeControlChannel;
         } else {
           return homescreenVisible ||
-            (window.lockScreen && window.lockScreen.locked) ||
+            (System.locked) ||
             FtuLauncher.isFtuRunning() ? 'notification' : 'content';
         }
     }

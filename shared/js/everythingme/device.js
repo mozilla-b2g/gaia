@@ -26,6 +26,31 @@
     maximumAge: positionTTL
   };
 
+  /**
+   * Caches geolocation information for use during the next API call.
+   */
+  function cacheGeolocation() {
+    // TODO
+    // it looks like getCurrentPosition never returns cached position
+    // even though we are passing a maximumAge > 0
+    // I would assume that on second launch of the collection app there should
+    // already be a cached location and that a new position request will not
+    // be fired.
+    // this does not seem to work on an unagi.
+    // for now, we defer the init() until the position request is done.
+    geolocation.getCurrentPosition(
+      (newPosition) => {
+        eme.log('updating geolocation cache', newPosition.coords);
+        if (newPosition && newPosition.coords) {
+          position = newPosition;
+        }
+        eme.Cache.add('position', newPosition).then(() => {});
+      },
+      (error) => {
+        eme.log('geolocation error', error.code, error.message);
+      },
+      geoOptions);
+  }
 
   // returns a promise always resolved with current position or null
   // caller should check the resolved value
@@ -35,33 +60,26 @@
     }
 
     positionPromise = new Promise(function ready(resolve) {
-      // TODO
-      // it looks like getCurrentPosition never returns cached position
-      // even though we are passing a maximumAge > 0
-      // I would assume that on second launch of the collection app there should
-      // already be a cached location and that a new position request will not
-      // be fired.
-      // this does not seem to work on an unagi.
-      // for now, we defer the init() until the position request is done.
-      geolocation.getCurrentPosition(
-        function success(newPosition) {
+
+      // Get or set geolocation from the cache.
+      eme.Cache.get('position').then(
+        (newPosition) => {
+          eme.log('got geolocation cache', newPosition.coords);
           positionPromise = null;
-
           if (newPosition && newPosition.coords) {
-            eme.log('new position', newPosition.coords.latitude,
-                                    newPosition.coords.longitude,
-                                    newPosition.timestamp);
-
             position = newPosition;
           }
+          setTimeout(cacheGeolocation);
           resolve(position);
         },
-        function error(positionError) {
+
+        // If we do not have a position, we resolve the geolocation promise
+        // anyway, and request geolocation to store for the next request.
+        () => {
           positionPromise = null;
-          eme.log('position error', positionError.code, positionError.message);
+          setTimeout(cacheGeolocation);
           resolve(position);
-        },
-        geoOptions);
+        });
     });
 
     return positionPromise;

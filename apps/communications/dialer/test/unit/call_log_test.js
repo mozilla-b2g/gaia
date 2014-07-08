@@ -108,6 +108,7 @@ suite('dialer/call_log', function() {
     document.body.appendChild(noResult);
     document.body.classList.remove('recents-edit');
     CallLog.init();
+    window.location.hash = '#call-log-view';
   });
 
   teardown(function() {
@@ -629,8 +630,6 @@ suite('dialer/call_log', function() {
   });
 
   suite('notifications', function() {
-    var notifs;
-    var notificationSpy;
 
     setup(function() {
       var notificationGetStub = function notificationGet() {
@@ -646,14 +645,21 @@ suite('dialer/call_log', function() {
         };
       };
       this.sinon.stub(Notification, 'get', notificationGetStub);
-      notifs = Notification.get();
-      notificationSpy =
-        this.sinon.spy(MockNotification.prototype, 'close');
+      this.sinon.spy(MockNotification.prototype, 'close');
     });
 
-    test('call log should close notifications', function() {
-      CallLog.cleanNotifications();
-      sinon.assert.callCount(notificationSpy, 2);
+    test('notifications are closed when opening the call log', function() {
+      CallLog._initialized = false;
+      CallLog.init();
+      sinon.assert.callCount(MockNotification.prototype.close, 2);
+    });
+
+    test('notifications should not be closed when keypad becomes visible',
+         function() {
+      window.location.hash = '#keyboard-view';
+      var visibilityEvent = new CustomEvent('visibilitychange');
+      document.dispatchEvent(visibilityEvent);
+      sinon.assert.notCalled(MockNotification.prototype.close);
     });
   });
 

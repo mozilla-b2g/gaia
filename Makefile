@@ -78,6 +78,12 @@ PRODUCTION?=0
 DESKTOP_SHIMS?=0
 GAIA_OPTIMIZE?=0
 GAIA_DEV_PIXELS_PER_PX?=1
+
+# Alias
+ifdef GAIA_DPPX
+GAIA_DEV_PIXELS_PER_PX=$(GAIA_DPPX)
+endif
+
 DOGFOOD?=0
 NODE_MODULES_SRC?=modules.tar
 
@@ -110,6 +116,8 @@ NOFTU?=0
 NOFTUPING?=0
 # Automatically enable remote debugger
 REMOTE_DEBUGGER?=0
+# Debug mode for build process
+BUILD_DEBUG?=0
 
 ifeq ($(DEVICE_DEBUG),1)
 REMOTE_DEBUGGER=1
@@ -144,11 +152,7 @@ LOCAL_DOMAINS?=1
 
 ADB?=adb
 
-ifeq ($(DEBUG),1)
-SCHEME=http://
-else
 SCHEME=app://
-endif
 
 SYSTEM?=$(SCHEME)system.$(GAIA_DOMAIN)
 
@@ -505,7 +509,7 @@ endef
 include build/common.mk
 
 # Generate profile/
-$(PROFILE_FOLDER): preferences pre-app post-app test-agent-config offline contacts extensions $(XULRUNNER_BASE_DIRECTORY) .git/hooks/pre-commit create-default-data $(PROFILE_FOLDER)/installed-extensions.json
+$(PROFILE_FOLDER): preferences pre-app post-app test-agent-config offline contacts extensions $(XULRUNNER_BASE_DIRECTORY) .git/hooks/pre-commit create-default-data
 ifeq ($(BUILD_APP_NAME),*)
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)$(PROFILE_FOLDER)"
 endif
@@ -552,7 +556,7 @@ webapp-optimize: post-app
 webapp-zip: post-app
 
 # Get additional extensions
-$(PROFILE_FOLDER)/installed-extensions.json: build/config/additional-extensions.json $(wildcard .build/config/custom-extensions.json)
+$(STAGE_DIR)/additional-extensions/downloaded.json: build/config/additional-extensions.json $(wildcard .build/config/custom-extensions.json)
 ifeq ($(SIMULATOR),1)
 	# Prevent installing external firefox helper addon for the simulator
 else ifeq ($(DESKTOP),1)
@@ -675,7 +679,7 @@ endif
 
 # Generate $(PROFILE_FOLDER)/extensions
 EXT_DIR=$(PROFILE_FOLDER)/extensions
-extensions:
+extensions: $(STAGE_DIR)/additional-extensions/downloaded.json
 ifeq ($(BUILD_APP_NAME),*)
 	@rm -rf $(EXT_DIR)
 	@mkdir -p $(EXT_DIR)
@@ -683,6 +687,7 @@ ifeq ($(SIMULATOR),1)
 	cp -r tools/extensions/{activities@gaiamobile.org,activities,alarms@gaiamobile.org,alarms,desktop-helper,desktop-helper@gaiamobile.org} $(EXT_DIR)/
 else ifeq ($(DESKTOP),1)
 	cp -r tools/extensions/* $(EXT_DIR)/
+	cp -r $(STAGE_DIR)/additional-extensions/* $(EXT_DIR)/
 else ifeq ($(DEBUG),1)
 	cp tools/extensions/httpd@gaiamobile.org $(EXT_DIR)/
 	cp -r tools/extensions/httpd $(EXT_DIR)/
@@ -740,7 +745,7 @@ ifndef APPS
 endif
 
 b2g: node_modules/.bin/mozilla-download
-	./node_modules/.bin/mozilla-download  \
+	DEBUG=* ./node_modules/.bin/mozilla-download  \
 		--verbose \
 		--product b2g \
 		--channel tinderbox \
@@ -884,7 +889,7 @@ ifdef APP
   JSHINTED_PATH = apps/$(APP)
   GJSLINTED_PATH = $(shell grep "^apps/$(APP)" build/jshint/xfail.list | ( while read file ; do test -f "$$file" && echo $$file ; done ) )
 else
-  JSHINTED_PATH = apps shared build/test/unit
+  JSHINTED_PATH = apps shared build
   GJSLINTED_PATH = $(shell ( while read file ; do test -f "$$file" && echo $$file ; done ) < build/jshint/xfail.list )
 endif
 endif
@@ -1054,4 +1059,3 @@ docs: $(NPM_INSTALLED_PROGRAMS)
 .PHONY: watch
 watch: $(NPM_INSTALLED_PROGRAMS)
 	node build/watcher.js
-

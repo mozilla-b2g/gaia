@@ -17,7 +17,7 @@
  *    isSelectMode: returns if ThumbnailList is in selection mode.
  *    setSelectMode: set ThumbnailList as selection mode or not.
  *    reset: clears all the internal data structure.
- *    upateAllThumbnailTitle: update all thuambnail title text.
+ *    updateAllThumbnailTitle: update all thuambnail title text.
  *    findNextFocused: find the next focused item after the file name.
  *           filename: the referenced filename.
  *
@@ -139,7 +139,7 @@ ThumbnailList.prototype.setSelectMode = function(select) {
   }
 };
 
-ThumbnailList.prototype.upateAllThumbnailTitle = function() {
+ThumbnailList.prototype.updateAllThumbnailTitle = function() {
   for (var key in this.thumbnailMap) {
     this.thumbnailMap[key].updateTitleText();
   }

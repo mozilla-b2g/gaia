@@ -405,7 +405,7 @@ suite('KeyboardManager', function() {
 
     test('lock event: do nothing if no keyboard', function() {
       var spy = this.sinon.spy(navigator.mozInputMethod, 'removeFocus');
-      trigger('lock');
+      trigger('lockscreen-appopened');
       assert.ok(spy.notCalled);
     });
 
@@ -413,7 +413,7 @@ suite('KeyboardManager', function() {
       var realActive = KeyboardManager.hasActiveKeyboard;
       KeyboardManager.hasActiveKeyboard = true;
       var spy = this.sinon.spy(navigator.mozInputMethod, 'removeFocus');
-      trigger('lock');
+      trigger('lockscreen-appopened');
       sinon.assert.calledOnce(spy);
 
       KeyboardManager.hasActiveKeyboard = realActive;
@@ -590,6 +590,22 @@ suite('KeyboardManager', function() {
       KeyboardManager.setKeyboardToShow('text');
       fakeMozbrowserResize(200);
       sinon.assert.callCount(handleResize, 1, 'handleResize should be called');
+    });
+
+    test('keyboardFrameContainer is hiding.', function() {
+      // show the keyboar first
+      KeyboardManager.setKeyboardToShow('text');
+      fakeMozbrowserResize(200);
+      dispatchTransitionEvents();
+
+      simulateInputChangeEvent('blur');
+      this.sinon.clock.tick(BLUR_CHANGE_DELAY);
+
+      // fire a resize event again after the keyboard frame is hiding
+      fakeMozbrowserResize(200);
+
+      sinon.assert.callCount(handleResize, 1,
+                             'ignore mozbrowserresize event');
     });
 
     test('Switching keyboard.', function() {

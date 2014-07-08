@@ -19,22 +19,29 @@ function TonePlayer() {
   this._source = this._context.createMediaElementSource(this._player);
   this._source.connect(this._context.destination);
 
-  this._player.oncanplay = function() {
+  this._player.addEventListener('loadedmetadata', function() {
     if (this._player.src) { // Null URLs don't need to be validated here.
       this._isValid = true;
       this._player.dispatchEvent(new CustomEvent(
-        'validated', { detail: self._isValid }
+        'validated', { detail: this._isValid }
       ));
     }
-  }.bind(this);
-  this._player.onerror = function() {
+  }.bind(this));
+  this._player.addEventListener('error', function() {
     if (this._player.src) { // Null URLs don't need to be validated here.
       this._isValid = false;
       this._player.dispatchEvent(new CustomEvent(
-        'validated', { detail: self._isValid }
+        'validated', { detail: this._isValid }
       ));
     }
-  }.bind(this);
+  }.bind(this));
+
+  window.addEventListener('visibilitychange', function() {
+    if (document.hidden) {
+      this.stop();
+      this._setExclusiveMode(false);
+    }
+  }.bind(this));
 }
 
 TonePlayer.prototype = {
@@ -55,9 +62,7 @@ TonePlayer.prototype = {
         this._isValid = undefined;
         this._player.src = tone.url;
         this._player.play();
-        // Set the audio context's channel to "ringer" to stop any background
-        // music from playing once we've started previewing ringtones.
-        this._context.mozAudioChannelType = 'ringer';
+        this._setExclusiveMode(true);
       } else {
         this._isValid = true;
         this._player.removeAttribute('src');
@@ -70,6 +75,7 @@ TonePlayer.prototype = {
       if (this._player.paused || this._player.ended) {
         this._player.currentTime = 0;
         this._player.play();
+        this._setExclusiveMode(true);
       } else {
         this._player.pause();
       }
@@ -106,5 +112,16 @@ TonePlayer.prototype = {
       this.removeEventListener('validated', validated);
       callback(event.detail);
     });
+  },
+
+  /**
+   * Set the audio context's channel to "ringer" to stop any background audio
+   * from playing once we've started previewing ringtones, or reset the channel
+   * to "normal" to let background audio resume.
+   *
+   * @param {Boolean} exclusive true to enable exclusive mode, false otherwise.
+   */
+  _setExclusiveMode: function(exclusive) {
+    this._context.mozAudioChannelType = exclusive ? 'ringer' : 'normal';
   }
 };

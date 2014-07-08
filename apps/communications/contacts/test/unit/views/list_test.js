@@ -1,6 +1,6 @@
 'use strict';
 /* global contacts */
-/* global MockActivities */
+/* global ActivityHandler */
 /* global MockAlphaScroll */
 /* global MockasyncStorage */
 /* global MockCookie */
@@ -63,10 +63,6 @@ if (!window.mozL10n) {
   window.mozL10n = null;
 }
 
-if (!window.ActivityHandler) {
-  window.ActivityHandler = null;
-}
-
 if (!window.ImageLoader) {
   window.ImageLoader = null;
 }
@@ -84,7 +80,8 @@ if (!window.asyncScriptsLoaded) {
 }
 
 var mocksForListView = new MocksHelper([
-  'ContactPhotoHelper'
+  'ContactPhotoHelper',
+  'ActivityHandler'
 ]).init();
 
 suite('Render contacts list', function() {
@@ -102,7 +99,6 @@ suite('Render contacts list', function() {
       realPerformanceTestingHelper,
       realAsyncStorage,
       mockContacts,
-      realActivities,
       realURL,
       groupA,
       groupB,
@@ -112,6 +108,7 @@ suite('Render contacts list', function() {
       groupGreek,
       groupCyrillic,
       groupFav,
+      groupsContainer,
       groupUnd,
       containerA,
       containerB,
@@ -129,7 +126,8 @@ suite('Render contacts list', function() {
       settings,
       searchSection,
       noContacts,
-      realMozContacts;
+      realMozContacts,
+      fastScroll;
 
   function doLoad(list, values, callback) {
     var handler = function() {
@@ -271,12 +269,10 @@ suite('Render contacts list', function() {
     container = document.createElement('div');
     containerSection.appendChild(container);
 
-    var groupsContainer = document.createElement('div');
+    groupsContainer = document.createElement('div');
     groupsContainer.id = 'groups-container';
     groupsContainer.innerHTML += '<section data-type="list" ' +
       'id="groups-list"></section>';
-    groupsContainer.innerHTML += '<nav data-type="scrollbar">';
-    groupsContainer.innerHTML += '<p></p></nav>';
 
     // We need this minimal amount of style for scrolling and the visibility
     // monitor to work correctly.
@@ -292,10 +288,14 @@ suite('Render contacts list', function() {
     noContacts = document.createElement('div');
     noContacts.id = 'no-contacts';
     list = container.querySelector('#groups-list');
+    fastScroll = document.createElement('nav');
+    fastScroll.dataset.type = 'scrollbar';
+    fastScroll.innerHTML = '<p></p>';
 
     document.body.appendChild(loading);
     document.body.appendChild(settings);
     document.body.appendChild(noContacts);
+    document.body.appendChild(fastScroll);
 
     searchSection = document.createElement('section');
     searchSection.id = 'search-view';
@@ -392,8 +392,6 @@ suite('Render contacts list', function() {
     realFb = window.fb;
     window.fb = Mockfb;
     window.Contacts.extServices = MockExtFb;
-    realActivities = window.ActivityHandler;
-    window.ActivityHandler = MockActivities;
     realImageLoader = window.ImageLoader;
     window.ImageLoader = MockImageLoader;
     realURL = window.URL || {};
@@ -424,8 +422,7 @@ suite('Render contacts list', function() {
     window.Contacts = realContacts;
     window.fb = realFb;
     window.mozL10n = realL10n;
-    window.ActivityHandler = realActivities;
-    window.ImageLoader = realActivities;
+    window.ImageLoader = realImageLoader;
     window.PerformanceTestingHelper = realPerformanceTestingHelper;
     window.asyncStorage = realAsyncStorage;
     navigator.mozContacts = realMozContacts;
@@ -820,6 +817,8 @@ suite('Render contacts list', function() {
       subject.remove('2');
       subject.remove('3');
       assert.isFalse(noContacts.classList.contains('hide'));
+      assert.isTrue(fastScroll.classList.contains('hide'));
+      assert.isTrue(groupsContainer.classList.contains('hide'));
       assertNoGroup(groupFav, containerFav);
       assertNoGroup(groupFav, containerFav);
     });
@@ -947,18 +946,20 @@ suite('Render contacts list', function() {
 
         // There are contacts on the list so no contacts should be hidden
         assert.isTrue(noContacts.classList.contains('hide'));
+        assert.isFalse(fastScroll.classList.contains('hide'));
+        assert.isFalse(groupsContainer.classList.contains('hide'));
 
         done();
       });
     });
 
     test('checking no contacts when coming from activity', function(done) {
-      MockActivities.currentlyHandling = true;
+      ActivityHandler.currentlyHandling = true;
       doLoad(subject, [], function() {
         assert.isTrue(noContacts.classList.contains('hide'));
         assertNoGroup(groupFav, containerFav);
         assertTotal(0, 0);
-        MockActivities.currentlyHandling = false;
+        ActivityHandler.currentlyHandling = false;
         done();
       });
     });

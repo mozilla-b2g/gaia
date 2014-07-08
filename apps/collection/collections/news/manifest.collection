@@ -1,7 +1,7 @@
 {
   "name": "News",
   "role": "collection",
-  "categoryId": "245",
+  "categoryId": 245,
   "default_locale": "en-US",
   "icons": {
     "60": "/collections/news/icon.png",

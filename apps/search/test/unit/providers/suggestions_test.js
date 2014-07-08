@@ -50,23 +50,27 @@ suite('search/providers/suggestions', function() {
 
   suite('search', function() {
     function promise() {
-      return new Promise(function done() {});
+      return new Promise(function () {});
     }
 
     setup(function() {
       eme.api = {
         Search: {
           suggestions: function() {
-            return promise();
+            return new Promise(function(resolve) {
+              resolve({});
+            });
           }
         }
       };
     });
 
-    test('clears results', function() {
+    test('clears results', function(done) {
       var stub = this.sinon.stub(subject, 'clear');
-      subject.search();
-      assert.ok(stub.calledOnce);
+      subject.search().then(() => {
+        assert.ok(stub.calledOnce);
+        done();
+      }, done);
     });
 
     test('makes api call', function() {
@@ -79,12 +83,12 @@ suite('search/providers/suggestions', function() {
 
     test('clears if new suggestions', function() {
       var stub = this.sinon.stub(subject, 'clear');
-      subject.render('', []);
+      subject.render([]);
       assert.ok(stub.calledOnce);
     });
 
     test('renders text in result', function() {
-      subject.render('moz', ['[moz]illa']);
+      subject.render(['[moz]illa']);
       var container = subject.container;
       assert.notEqual(container.innerHTML.indexOf('mozilla'), -1);
       assert.equal(container.querySelector('ul').getAttribute('role'),

@@ -74,14 +74,14 @@
   <section id="demo1">
     <div class="info"></div>
     <div class="panes">
-      <div class="pane">Dialer</div>
-      <div class="pane">Call Log</div>
-      <div class="pane">Contacts</div>
+      <div class="pane selected" role="tabpanel" id="demo1_pane1">Dialer</div>
+      <div class="pane" role="tabpanel" id="demo1_pane2">Call Log</div>
+      <div class="pane" role="tabpanel" id="demo1_pane3">Contacts</div>
     </div>
     <gaia-tabs selected="0">
-      <button class="icon-dialer"></button>
-      <button class="icon-call-log"></button>
-      <button class="icon-contacts"></button>
+      <button class="icon-dialer" aria-controls="demo1_pane1"></button>
+      <button class="icon-call-log" aria-controls="demo1_pane2"></button>
+      <button class="icon-contacts" aria-controls="demo1_pane2"></button>
     </gaia-tabs>
     <style>
       #demo1 .panes {
@@ -99,6 +99,12 @@
         border: solid 1px #eee;
         align-items: center;
         justify-content: center;
+        transition: visibility 300ms;
+        visibility: hidden;
+      }
+
+      #demo1 .pane.selected {
+        visibility: visible;
       }
 
       #demo1 .info {
@@ -110,6 +116,8 @@
       var tabs = demo1.querySelector('gaia-tabs');
       var panes = demo1.querySelector('.panes');
       tabs.addEventListener('change', function() {
+        panes.querySelector('.selected').classList.remove('selected');
+        panes.querySelectorAll('.pane')[tabs.selected].classList.add('selected');
         var x = tabs.selected * -33.33;
         panes.style.transform = 'translateX(' + x + '%)';
       });

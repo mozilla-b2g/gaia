@@ -141,6 +141,16 @@
     this.Apps = {
       MAX_QUERY_LENGTH : 128,
 
+      nativeInfo: function nativeInfo(options) {
+        if (options.guids && options.guids.length) {
+          // string together ids like so:
+          // Apps/nativeInfo/?guids=["guid1","guid2","guid3", ...]
+          options.guids = JSON.stringify(options.guids);
+        }
+
+        return Request('Apps', 'nativeInfo', options);
+      },
+
       search: function search(options) {
         if (!!options.query && options.query.length > this.MAX_QUERY_LENGTH) {
           options.query = options.query.substr(0, this.MAX_QUERY_LENGTH);

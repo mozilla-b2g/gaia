@@ -5,8 +5,8 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
-var View = require('vendor/view');
 var find = require('lib/find');
+var View = require('view');
 
 /**
  * Exports
@@ -39,6 +39,9 @@ module.exports = View.extend({
   },
 
   setPosition: function(x, y) {
+    if (this.fadeOutTimer) {
+      clearTimeout(this.fadeOutTimer);
+    }
     this.el.style.left = x + 'px';
     this.el.style.top = y + 'px';
   },
@@ -51,9 +54,6 @@ module.exports = View.extend({
 
   fadeOut: function() {
     var self = this;
-    if (this.fadeOutTimer) {
-      clearTimeout(this.fadeOutTimer);
-    }
     this.fadeOutTimer = setTimeout(hide, this.fadeTime);
     function hide() {
       self.reset();

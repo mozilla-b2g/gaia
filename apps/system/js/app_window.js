@@ -53,7 +53,7 @@
       AppWindow[this.instanceID] = this;
     }
 
-    this.createdTime = this.launchTime = Date.now();
+    this.launchTime = Date.now();
 
     return this;
   };
@@ -221,7 +221,12 @@
         this._screenshotOverlayState = 'frame';
         this._showFrame();
       } else {
-        if (screenshotIfInvisible && !this.isHomescreen) {
+        if (this.identificationOverlay) {
+          this.identificationOverlay.classList.add('visible');
+        }
+
+        var partOfHomescreen = this.getBottomMostWindow().isHomescreen;
+        if (screenshotIfInvisible && !partOfHomescreen) {
           this._screenshotOverlayState = 'screenshot';
           this._showScreenshotOverlay();
         } else {
@@ -539,6 +544,15 @@
     }
 
     this.element.appendChild(this.browser.element);
+
+    // Intentional! The app in the iframe gets two resize events when adding
+    // the element to the page (see bug 1007595). The first one is incorrect,
+    // thus assumptions made (media queries or rendering) can be wrong (see
+    // bug 995886). A sync reflow makes it that there will only be one resize.
+    // Please remove after 1007595 has been fixed.
+    this.browser.element.offsetWidth;
+    // End intentional
+
     this.screenshotOverlay = this.element.querySelector('.screenshot-overlay');
     this.fadeOverlay = this.element.querySelector('.fade-overlay');
 
@@ -551,7 +565,7 @@
 
     // Launched as background: set visibility and overlay screenshot.
     if (this.config.stayBackground) {
-      this.setVisible(false, true /* screenshot */);
+      this.setVisible(false, false /* no screenshot */);
     } else if (this.isHomescreen) {
       // homescreen is launched at background under FTU/lockscreen too.
       this.setVisible(false);
@@ -583,6 +597,15 @@
    */
   AppWindow.prototype.isBrowser = function aw_isbrowser() {
     return !this.manifestURL;
+  };
+
+  /**
+   * Check an appWindow contains a certified application
+   *
+   * @return {Boolean} is the current instance a certified application.
+   */
+  AppWindow.prototype.isCertified = function aw_iscertified() {
+    return this.config.manifest && 'certified' === this.config.manifest.type;
   };
 
   /**
@@ -1030,9 +1053,6 @@
         }
 
         this.screenshotOverlay.classList.add('visible');
-        if (this.identificationOverlay) {
-          this.identificationOverlay.classList.add('visible');
-        }
 
         if (!screenshotBlob) {
           // If no screenshot,
@@ -1058,12 +1078,14 @@
    */
   AppWindow.prototype._hideScreenshotOverlay =
     function aw__hideScreenshotOverlay() {
-      if (this.screenshotOverlay &&
-          this._screenshotOverlayState != 'screenshot' &&
-          this.screenshotOverlay.classList.contains('visible')) {
-        this.screenshotOverlay.classList.remove('visible');
-        this.screenshotOverlay.style.backgroundImage = '';
+      if (!this.screenshotOverlay ||
+          this._screenshotOverlayState == 'screenshot' ||
+          !this.screenshotOverlay.classList.contains('visible')) {
+        return;
       }
+
+      this.screenshotOverlay.classList.remove('visible');
+      this.screenshotOverlay.style.backgroundImage = '';
 
       if (this.identificationOverlay) {
         var overlay = this.identificationOverlay;
@@ -1116,7 +1138,11 @@
       JSON.stringify(detail));
 
     // Publish external event.
-    window.dispatchEvent(evt);
+    if (this.rearWindow && this.element) {
+      this.element.dispatchEvent(evt);
+    } else {
+      window.dispatchEvent(evt);
+    }
   };
 
   AppWindow.prototype.broadcast = function aw_broadcast(event, detail) {
@@ -1812,22 +1838,6 @@
     return bottomMostWindow.isActive() && this.isActive();
   };
 
-  AppWindow.prototype._handle_activityopened =
-    function aw__handle_activityopened() {
-      // Set page visibility of focused app to false
-      // once inline activity frame's transition is ended.
-      // XXX: We have trouble to make all inline activity
-      // openers being sent to background now,
-      // because of OOM killer may kill them accidently.
-      // See https://bugzilla.mozilla.org/show_bug.cgi?id=914412,
-      // and https://bugzilla.mozilla.org/show_bug.cgi?id=822325.
-      // So we only set browser app(in-process)'s page visibility
-      // to false now to resolve 914412.
-      if (this.CLASS_NAME === 'AppWindow' && !this.isOOP()) {
-        this.setVisible(false, true);
-      }
-    };
-
   /**
    * Make adjustments to display inside the task manager
    */
@@ -1901,6 +1911,16 @@
   AppWindow.prototype.showDefaultContextMenu = function() {
     if (this.contextmenu) {
       this.contextmenu.showDefaultMenu();
+    }
+  };
+
+  /**
+   * Hide the contextmenu for an AppWindow
+   * @memberOf AppWindow.prototype
+   */
+  AppWindow.prototype.hideContextMenu = function() {
+    if (this.contextmenu) {
+      this.contextmenu.hide();
     }
   };
 

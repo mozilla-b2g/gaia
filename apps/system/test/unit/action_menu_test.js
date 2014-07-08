@@ -123,6 +123,7 @@ suite('ActionMenu', function() {
       var menu = new ActionMenu(activitiesMockup, title);
       menu.start();
       assert.ok(getMenu().classList.contains('visible'));
+      assert.isTrue(screenElement.classList.contains('action-menu'));
       menu.stop();
     });
 
@@ -136,6 +137,7 @@ suite('ActionMenu', function() {
       assert.ok(stub.calledOnce);
       stub.restore();
       menu.stop();
+      assert.isFalse(screenElement.classList.contains('action-menu'));
     });
 
   });
@@ -200,6 +202,15 @@ suite('ActionMenu', function() {
       assert.isFalse(cancelCBStub.called);
       menu.handleEvent({
         type: 'home'
+      });
+      assert.isTrue(menu.hide.called);
+      assert.isTrue(cancelCBStub.called);
+    });
+    test('sheetstransitionstart event dismisses action menu', function() {
+      assert.isFalse(menu.hide.called);
+      assert.isFalse(cancelCBStub.called);
+      menu.handleEvent({
+        type: 'sheetstransitionstart'
       });
       assert.isTrue(menu.hide.called);
       assert.isTrue(cancelCBStub.called);

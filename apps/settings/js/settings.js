@@ -1,5 +1,4 @@
-/* global PerformanceTestingHelper, TelephonySettingHelper,
-   getSupportedLanguages */
+/* global PerformanceTestingHelper, TelephonySettingHelper */
 'use strict';
 
 /**

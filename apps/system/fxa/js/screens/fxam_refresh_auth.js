@@ -76,8 +76,7 @@ var FxaModuleRefreshAuth = (function() {
       this.importElements(
         'fxa-pw-input-refresh',
         'fxa-show-pw-refresh',
-        'fxa-forgot-password-refresh',
-        'fxa-user-email-refresh'
+        'fxa-forgot-password-refresh'
       );
 
       this.fxaPwInputRefresh.addEventListener('input', (function(event) {
@@ -101,7 +100,6 @@ var FxaModuleRefreshAuth = (function() {
       return;
     }
 
-    this.fxaUserEmailRefresh.textContent = options.email;
     this.email = options.email;
 
     _cleanForm(this.fxaPwInputRefresh, this.fxaShowPwRefresh);

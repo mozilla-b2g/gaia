@@ -1,17 +1,3 @@
-/**
-Bug 1018269 - we need to specify the keyframe outside
-              of the web component...
-*/
-
-@keyframes rotate {
-  from {
-    transform: rotate(1deg)
-  }
-  to {
-    transform: rotate(360deg)
-  }
-}
-
 html {
   font-size: 10px;
 }
@@ -85,4 +71,13 @@ gaia-grid {
 
 #contextmenu-dialog {
   display: none;
+}
+
+.divider:last-of-type {
+  visibility: hidden;
+  padding-bottom: 1.4rem;
+}
+
+.edit-mode .divider:last-of-type {
+  visibility: visible;
 }

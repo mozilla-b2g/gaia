@@ -1,5 +1,5 @@
-/* globals CallsHandler, KeypadManager, LazyL10n, LockScreenSlide,
-           MozActivity */
+/* globals CallsHandler, FontSizeManager, KeypadManager, LazyL10n,
+           LockScreenSlide, MozActivity, SettingsListener */
 /* jshint nonew: false */
 
 'use strict';
@@ -44,6 +44,7 @@ var CallScreen = {
   incomingContainer: document.getElementById('incoming-container'),
   incomingInfo: document.getElementById('incoming-info'),
   incomingNumber: document.getElementById('incoming-number'),
+  fakeIncomingNumber: document.getElementById('fake-incoming-number'),
   incomingSim: document.getElementById('incoming-sim'),
   incomingNumberAdditionalInfo:
     document.getElementById('incoming-number-additional-info'),
@@ -72,11 +73,19 @@ var CallScreen = {
   },
 
   updateCallsDisplay: function cs_updateCallsDisplay() {
-    var enabled =
-      (this.calls.querySelectorAll('section:not([hidden])').length <= 1);
-    this.calls.classList.toggle('single-line', enabled);
-    this.calls.classList.toggle('big-duration', enabled);
+    var visibleCalls =
+      this.calls.querySelectorAll('section:not([hidden])').length;
+    this.calls.classList.toggle('single-line', visibleCalls <= 1);
+    this.calls.classList.toggle('big-duration', visibleCalls <= 1);
     CallsHandler.updateAllPhoneNumberDisplays();
+  },
+
+  hidePlaceNewCallButton: function cs_hidePlaceNewCallButton() {
+    this.callToolbar.classList.add('no-add-call');
+  },
+
+  showPlaceNewCallButton: function cs_showPlaceNewCallButton() {
+    this.callToolbar.classList.remove('no-add-call');
   },
 
   /**
@@ -142,12 +151,12 @@ var CallScreen = {
 
     this.calls.addEventListener('click', CallsHandler.toggleCalls.bind(this));
 
-
-    this.setWallpaper();
-
     window.addEventListener('resize', this.resizeHandler.bind(this));
     window.addEventListener('hashchange', this.hashchangeHandler.bind(this));
     this.hashchangeHandler();
+
+    SettingsListener.observe('wallpaper.image', null,
+                             this._wallpaperImageHandler.bind(this));
 
     this.syncSpeakerEnabled();
   },
@@ -209,24 +218,10 @@ var CallScreen = {
   _toggleWaiting: false,
   _toggleCallback: null,
 
-  setWallpaper: function cs_setWallpaper() {
-    if (!navigator.mozSettings) {
-      this._onWallpaperReady();
-      return;
-    }
-
-    var self = this;
-    var req = navigator.mozSettings.createLock().get('wallpaper.image');
-    req.onsuccess = function cs_wi_onsuccess() {
-      var wallpaperImage = req.result['wallpaper.image'];
-      var isString = (typeof wallpaperImage == 'string');
-      var image =
-        isString ? wallpaperImage : URL.createObjectURL(wallpaperImage);
-      self.mainContainer.style.backgroundImage = 'url(' + image + ')';
-      setTimeout(self._onWallpaperReady.bind(self));
-    };
-
-    req.onerror = this._onWallpaperReady.bind(this);
+  _wallpaperImageHandler: function cs_wallpaperImageHandler(image) {
+    this.mainContainer.style.backgroundImage = 'url(' +
+      (typeof image === 'string' ? image : URL.createObjectURL(image)) + ')';
+    setTimeout(this._onWallpaperReady.bind(this));
   },
 
   _onWallpaperReady: function cs_onWallpaperReady() {
@@ -307,16 +302,6 @@ var CallScreen = {
     this.contactBackground.classList.add('ready');
   },
 
-  /**
-   * This function is kept, although it currently sets the current wallpaper as
-   *  the emergency wallpaper, since it is expected to be needed once UX
-   *  provides the desired emergency image to use. See
-   *   https://bugzilla.mozilla.org/show_bug.cgi?id=993951#c6
-   */
-  setEmergencyWallpaper: function cs_setEmergencyWallpaper() {
-    this.setWallpaper();
-  },
-
   insertCall: function cs_insertCall(node) {
     this.calls.appendChild(node);
     this.updateCallsDisplay();
@@ -336,10 +321,8 @@ var CallScreen = {
     // If a user has the keypad opened, we want to display the number called
     // while in status bar mode. And restore the digits typed when exiting.
     if (!this.body.classList.contains('showKeypad')) {
-      return;
-    }
-
-    if (this.inStatusBarMode) {
+      this.updateCallsDisplay(this.inStatusBarMode);
+    } else if (this.inStatusBarMode) {
       this._typedNumber = KeypadManager._phoneNumber;
       KeypadManager.restorePhoneNumber();
     } else {
@@ -608,6 +591,11 @@ var CallScreen = {
     }
   },
 
+  cdmaConferenceCall: function cs_cdmaConferenceCall() {
+    this.hidePlaceNewCallButton();
+    this.calls.classList.add('cdma-conference-call');
+  },
+
   initUnlockerEvents: function cs_initUnlockerEvents() {
     window.addEventListener('lockscreenslide-unlocker-initializer', this);
     window.addEventListener('lockscreenslide-near-left', this);
@@ -626,5 +614,18 @@ var CallScreen = {
     window.removeEventListener('lockscreenslide-activate-left', this);
     window.removeEventListener('lockscreenslide-activate-right', this);
     window.removeEventListener('lockscreenslide-unlocking-stop', this);
+  },
+
+  getScenario: function cs_getScenario() {
+    var scenario;
+    if (this.inStatusBarMode) {
+      scenario = FontSizeManager.STATUS_BAR;
+    } else if (this.calls.querySelectorAll(
+      'section:not([hidden])').length > 1) {
+      scenario = FontSizeManager.CALL_WAITING;
+    } else {
+      scenario = FontSizeManager.SINGLE_CALL;
+    }
+    return scenario;
   }
 };

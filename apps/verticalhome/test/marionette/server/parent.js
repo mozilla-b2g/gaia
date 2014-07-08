@@ -1,11 +1,10 @@
 'use strict';
 /* global module, __dirname */
 var fork = require('child_process').fork;
-var fs = require('fs');
 
 /**
-issue a POST request via marionette
-*/
+ * Issue a POST request via marionette.
+ */
 function post(client, url, json) {
   // must run in chrome so we can do cross domain xhr
   client = client.scope({ context: 'chrome' });
@@ -25,13 +24,81 @@ function AppServer(root, marionette, port, proc) {
   this.marionette = marionette;
   this.url = 'http://localhost:' + port;
   this.process = proc;
-
-  this.manifest = JSON.parse(
-    fs.readFileSync(root + '/manifest.webapp', 'utf8')
-  );
 }
 
 AppServer.prototype = {
+
+  /**
+  issues a GET request to the server and returns the parsed body.
+  */
+  get: function(uri) {
+    // must run in chrome so we can do cross domain xhr
+    var client = this.marionette.scope({ context: 'chrome' });
+
+    return client.executeAsyncScript(function(url) {
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', url, true);
+      xhr.onload = function() {
+        marionetteScriptFinished(xhr.response);
+      };
+      xhr.send();
+    }, [this.url + uri]);
+  },
+
+  /**
+  Changes the root of the server.
+
+  @param {String} path relative to the file system.
+  */
+  setRoot: function(path) {
+    return post(this.marionette, this.url + '/settings/set_root', path);
+  },
+
+  /**
+  Set the http response of a particular url.
+
+  @param {String} path to set the response of.
+  @param {Number} status code to set.
+  @param {Object} headers to override.
+  @param {String} body of the request.
+  */
+  setResponse: function(path, status, headers, body) {
+    var options = {
+      path: path,
+      status: status,
+      headers: headers || {},
+      body: body
+    };
+
+    return post(this.marionette, this.url + '/settings/set_response', options);
+  },
+
+  /**
+  Clear the response override set by `setResponse`
+  */
+  clearResponse: function(url) {
+    return post(
+      this.marionette, this.url + '/settings/clear_response', url
+    );
+  },
+
+  /**
+  Trigger a 500 error for a particular url and return an empty body.
+
+  @param {String} url to fail (/index.html).
+  */
+  serverError: function(url) {
+    return this.setResponse(url, 500, {}, '');
+  },
+
+  /**
+  Clears the server error for a particular url.
+
+  @param {String} url to fail (/index.html).
+  */
+  clearServerError: function(url) {
+    return this.clearResponse();
+  },
 
   /**
   Indicate to the server that all requests to the given url should be
@@ -75,6 +142,10 @@ AppServer.prototype = {
   close: function(callback) {
     this.process.kill();
     this.process.once('exit', callback.bind(this, null));
+  },
+
+  get manifest() {
+    return JSON.parse(this.get('/manifest.webapp'));
   },
 
   /**

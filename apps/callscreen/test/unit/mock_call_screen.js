@@ -1,4 +1,13 @@
+/* exported MockCallScreen */
+
+'use strict';
+
 var MockCallScreen = {
+  /**
+   * Setting mScenario to a non-valid value taking into consideration the
+   *  possible scenario values as declared in FontSizeManager.
+   */
+  mScenario: -1,
   callEndPromptTime: 2000,
 
   insertCall: function() {},
@@ -19,9 +28,6 @@ var MockCallScreen = {
   },
   setCallerContactImage: function() {
     this.mSetCallerContactImageCalled = true;
-  },
-  setEmergencyWallpaper: function() {
-    this.mSetEmergencyWallpaperCalled = true;
   },
   mute: function() {
     this.mMuteOn = true;
@@ -69,6 +75,9 @@ var MockCallScreen = {
   setEndConferenceCall: function() {
     this.mSetEndConferenceCall = true;
   },
+  cdmaConferenceCall: function() {},
+  hidePlaceNewCallButton: function() {},
+  showPlaceNewCallButton: function() {},
 
   set holdAndAnswerOnly(enabled) {
     this.mHoldAndAnswerOnly = enabled;
@@ -85,12 +94,20 @@ var MockCallScreen = {
   },
   mInStatusBarMode: false,
 
+  getScenario: function() {
+    this.mGetScenarioCalled = true;
+    return this.mScenario;
+  },
+
+  mGetScenarioCalled: false,
+
   // Fake dom
   calls: document.createElement('div'),
   screen: document.createElement('div'),
   incomingContainer: document.createElement('div'),
   incomingInfo: document.createElement('div'),
   incomingNumber: document.createElement('div'),
+  fakeIncomingNumber: document.createElement('div'),
   incomingSim: document.createElement('div'),
   incomingNumberAdditionalInfo: document.createElement('span'),
 
@@ -104,7 +121,6 @@ var MockCallScreen = {
     this.mEnableKeypadCalled = false;
     this.mSyncSpeakerCalled = false;
     this.mSetCallerContactImageCalled = false;
-    this.mSetEmergencyWallpaperCalled = false;
     this.mMuteOn = false;
     this.mSpeakerOn = false;
     this.mLastRenderMode = null;
@@ -119,9 +135,11 @@ var MockCallScreen = {
     this.incomingContainer = document.createElement('div');
     this.incomingInfo = document.createElement('div');
     this.incomingNumber = document.createElement('div');
+    this.fakeIncomingNumber = document.createElement('div');
     this.incomingNumberAdditionalInfo = document.createElement('span');
     this.mGroupDetailsShown = false;
     this.mRemoveCallCalled = false;
     this.mSetEndConferenceCall = false;
+    this.mGetScenarioCalled = false;
   }
 };

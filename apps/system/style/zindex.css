@@ -116,6 +116,11 @@
   z-index: 8192;
 }
 
+/* The edges zones get promoted when an action menu is displayed */
+#screen.action-menu > [data-z-index-level="gesture-panel"] {
+  z-index: 8193;
+}
+
 /* Level 5: Statusbar, Utility-Tray */
 #screen > [data-z-index-level="statusbar"] {
   z-index: 4096;
@@ -168,12 +173,26 @@
   z-index: 2044;
 }
 
+#screen > [data-z-index-level="software-buttons"],
 #screen.task-manager > #cards-view[data-z-index-level="cards-view"] {
   z-index: 2044;
 }
 
 #screen > [data-z-index-level="rocketbar-results"] {
   z-index: 2043;
+}
+
+/*
+ * In order to display a context menu on top of the search input
+ * the z-indexes needs to be updated.
+ * The real issue is that the search input is part of the statusbar.
+ */
+#screen.rocketbar-focused > [data-z-index-level="statusbar"] {
+  z-index: 2042;
+}
+
+#screen > [data-z-index-level="rocketbar-backdrop"] {
+  z-index: 2041;
 }
 
 #screen.locked.attention > [data-z-index-level="keyboards"] {

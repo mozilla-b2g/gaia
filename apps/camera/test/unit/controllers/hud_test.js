@@ -66,9 +66,19 @@ suite('controllers/hud', function() {
 
   suite('HudController()', function() {
     test('Should listen to the following events', function() {
-      assert.ok(this.app.on.calledWith('camera:busy'));
+      assert.ok(this.app.settings.flashModes.on.calledWith('change:selected'));
+      assert.ok(this.app.settings.mode.on.calledWith('change:selected'));
+      assert.ok(this.app.settings.cameras.on.calledWith('change:selected'));
+
+      assert.ok(this.app.on.calledWith('settings:configured'));
       assert.ok(this.app.on.calledWith('camera:ready'));
+      assert.ok(this.app.on.calledWith('camera:busy'));
       assert.ok(this.app.on.calledWith('change:recording'));
+      assert.ok(this.app.on.calledWith('timer:cleared'));
+      assert.ok(this.app.on.calledWith('timer:started'));
+      assert.ok(this.app.on.calledWith('timer:ended'));
+      assert.ok(this.app.on.calledWith('settings:opened'));
+      assert.ok(this.app.on.calledWith('settings:closed'));
     });
 
     test('Should update the flash support once settings are configured', function() {
@@ -159,19 +169,29 @@ suite('controllers/hud', function() {
     });
   });
 
-  suite('HudController#onModeChange()', function() {
+  suite('HudController#updateFlashMode()', function() {
     setup(function() {
-      sinon.spy(this.controller, 'updateFlashMode');
+      this.settings.flashModes = {
+        selected: sinon.spy()
+      };
     });
 
-    test('Should hide the displayed notification when the camera mode changes', function() {
-      this.controller.onModeChange();
-      assert.ok(this.notification.clear.called);
+    test('Should update the flash mode', function() {
+      this.controller.updateFlashMode();
+      assert.ok(this.settings.flashModes.selected.called);
+    });
+  });
+
+  suite('HudController#updateCamera()', function() {
+    setup(function() {
+      this.settings.cameras = {
+        selected: sinon.spy()
+      };
     });
 
-    test('Should update the flashMode', function() {
-      this.controller.onModeChange();
-      sinon.assert.called(this.controller.updateFlashMode);
+    test('Should update the camera', function() {
+      this.controller.updateCamera();
+      assert.ok(this.settings.cameras.selected.called);
     });
   });
 

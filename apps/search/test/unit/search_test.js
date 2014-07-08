@@ -1,12 +1,13 @@
 'use strict';
 /* global MockNavigatormozApps, MockNavigatormozSetMessageHandler,
-          MockMozActivity, Search, MockProvider, MockasyncStorage */
+          MockMozActivity, Search, MockProvider, MockasyncStorage, Promise */
 
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
 require('/shared/test/unit/mocks/mock_moz_activity.js');
 require('/shared/js/url_helper.js');
 require('/shared/js/dedupe.js');
+require('/js/contextmenu.js');
 require('/shared/test/unit/mocks/mock_async_storage.js');
 requireApp('search/test/unit/mock_provider.js');
 
@@ -18,6 +19,8 @@ suite('search/search', function() {
   var clock;
 
   suiteSetup(function(done) {
+    loadBodyHTML('/index.html');
+
     realSetMessageHandler = navigator.mozSetMessageHandler;
     navigator.mozSetMessageHandler = MockNavigatormozSetMessageHandler;
 
@@ -55,6 +58,7 @@ suite('search/search', function() {
   });
 
   setup(function() {
+
     MockMozActivity.mSetup();
     MockNavigatormozSetMessageHandler.mSetup();
   });
@@ -69,9 +73,6 @@ suite('search/search', function() {
     test('will call provider init method', function() {
 
       var initCalled;
-      var fakeElement = document.createElement('div');
-      var confirmStub = this.sinon.stub(document, 'getElementById')
-        .returns(fakeElement);
 
       Search.providers = [{
         init: function() {
@@ -88,7 +89,6 @@ suite('search/search', function() {
       MockNavigatormozApps.mLastConnectionCallback([]);
       assert.ok(initCalled);
       Search.providers = [];
-      confirmStub.restore();
     });
   });
 
@@ -136,7 +136,8 @@ suite('search/search', function() {
     });
 
     test('only searches once if called twice rapidly', function() {
-      var stub = this.sinon.stub(Search.providers.Foo, 'search');
+      var stub = this.sinon.stub(Search.providers.Foo, 'search').returns(
+        new Promise(() => {}));
       Search.change({
         data: {
           input: 'a'
@@ -271,7 +272,9 @@ suite('search/search', function() {
         WebResults: {
           clear: function() {},
           abort: function() {},
-          search: function() {},
+          search: function() {
+            return new Promise(() => {});
+          },
           fullscreen: function() {}
         }
       };
@@ -495,6 +498,48 @@ suite('search/search', function() {
       assert.equal(renderStub2.getCall(0).args[0].length, 1);
     });
 
+    test('bug 1030713 - subdomain dededupe matching', function() {
+      var results1 = [
+        {dedupeId: 'http://translate.google.com'}
+      ];
+
+      var results2 = [
+        {dedupeId: 'http://mail.google.com/tasks'},
+        {dedupeId: 'http://drive.google.com/keep'},
+      ];
+
+      var provider1 = fuzzyProvider();
+      var provider2 = fuzzyProvider();
+
+      var renderStub1 = this.sinon.stub(provider1, 'render');
+      var renderStub2 = this.sinon.stub(provider2, 'render');
+      Search.collect(provider1, results1);
+      Search.collect(provider2, results2);
+      assert.equal(renderStub1.getCall(0).args[0].length, 1);
+      assert.equal(renderStub2.getCall(0).args[0].length, 2);
+    });
+
+    test('bug 1030713 - subdomain dededupe matching with path', function() {
+      var results1 = [
+        {dedupeId: 'http://drive.google.com/keep'}
+      ];
+
+      var results2 = [
+        {dedupeId: 'http://mail.google.com/tasks'},
+        {dedupeId: 'http://translate.google.com'},
+      ];
+
+      var provider1 = fuzzyProvider();
+      var provider2 = fuzzyProvider();
+
+      var renderStub1 = this.sinon.stub(provider1, 'render');
+      var renderStub2 = this.sinon.stub(provider2, 'render');
+      Search.collect(provider1, results1);
+      Search.collect(provider2, results2);
+      assert.equal(renderStub1.getCall(0).args[0].length, 1);
+      assert.equal(renderStub2.getCall(0).args[0].length, 2);
+    });
+
     test('exact provider does not de-dupe against itself', function() {
       var results = [
         {dedupeId: 'https://mozilla.org/index.html'},
@@ -546,13 +591,16 @@ suite('search/search', function() {
       var remoteProvider = new MockProvider('remote');
       remoteProvider.remote = true;
 
-      var remoteStub = this.sinon.stub(remoteProvider, 'search');
-      var localStub = this.sinon.stub(localProvider, 'search');
+      var remoteStub = this.sinon.stub(remoteProvider, 'search')
+        .returns(new Promise(() => {}));
+      var localStub = this.sinon.stub(localProvider, 'search')
+        .returns(new Promise(() => {}));
 
       Search.provider(localProvider);
       Search.provider(remoteProvider);
 
       Search.suggestionsEnabled = false;
+
       Search.change({data: {input: 'test'}});
       clock.tick(1000);
 
@@ -568,8 +616,10 @@ suite('search/search', function() {
       var remoteProvider = new MockProvider('remote');
       remoteProvider.remote = true;
 
-      var remoteStub = this.sinon.stub(remoteProvider, 'search');
-      var localStub = this.sinon.stub(localProvider, 'search');
+      var remoteStub = this.sinon.stub(remoteProvider, 'search')
+        .returns(new Promise(() => {}));
+      var localStub = this.sinon.stub(localProvider, 'search')
+        .returns(new Promise(() => {}));
 
       Search.provider(localProvider);
       Search.provider(remoteProvider);

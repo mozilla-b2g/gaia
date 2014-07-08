@@ -49,6 +49,9 @@ suite('start testing > ', function() {
   teardown(function() {
     MockMozActivity.mTeardown();
     this.clock.restore();
+    // clear the lock so tests that write into settings would not read from
+    // other tests' locks
+    this.mockSettingsListener.getSettingsLock().clear();
   });
 
   suite('start test wallpaper module > ', function() {
@@ -102,7 +105,7 @@ suite('start testing > ', function() {
     test('_onPickSuccess, blob type is mimeSubtype', function() {
       this.sinon.stub(this.mockForwardLock, 'unlockBlob');
       this.mockForwardLock.mSetupMimeSubtype('mimeSubtype');
- 
+
       var testBlob = {
         type: 'test/mimeSubtype'
       };
@@ -121,7 +124,7 @@ suite('start testing > ', function() {
         type: 'test/notMimeSubtype'
       };
       wallpaper._onPickSuccess(testBlob);
-      assert.deepEqual(wallpaper._setWallpaper.args[0][0], testBlob);
+      sinon.assert.calledWith(wallpaper._setWallpaper, testBlob);
     });
 
     test('_setWallpaper', function() {

@@ -168,8 +168,12 @@ body[data-filter-by="connectivity"] #root > div [data-category="connectivity"] {
 
 .link-text {
   font-size: 1.4rem;
-  color: #336699;
+  color: #35679A;
   text-decoration: underline;
+}
+
+.link-text:active {
+  background-color: #c1d6e6;
 }
 
 .hint label span {
@@ -540,6 +544,15 @@ ul li > label.range-icons.volume input {
 }
 
 /******************************************************************************
+ * Accessibility
+ */
+#accessibility ul li > label.range-icons.volume input {
+  opacity: 1;
+  margin: 0 auto;
+  width: calc(100% - 3rem);
+}
+
+/******************************************************************************
  * SIM Toolkit
  */
 
@@ -677,6 +690,7 @@ ul li > label.range-icons.volume input {
 #os-license {
   width: 100%;
   height: calc(100% - 5rem);
+  border: 0;
 }
 
 
@@ -747,6 +761,18 @@ section[data-dialog] > header:first-child .icon.icon-back {
 #fxa-unverified-text {
   padding-top: 0.8rem;
   margin-left: 6rem;
+}
+
+/******************************************************************************
+* App Permissions
+* 
+* Note: The reason why we need this style is because element.hidden will make
+* the CSS specificity 0,0,1,0 (Yes, it is a pseudo class). And because our BB
+* 's CSS specificity is much higher than this, we have to override it again
+* to make sure it will display as hidden.
+*/
+.clear-bookmarks-app[hidden] {
+  display: none;
 }
 
 /******************************************************************************

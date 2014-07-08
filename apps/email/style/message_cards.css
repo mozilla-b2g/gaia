@@ -32,6 +32,17 @@
   display: none;
 }
 
+/* For search filters, make sure the contents do not line break and overflow
+outside their given areas. This is particularly important for some locales.
+Do not want to set styles on the inner a tags to force ellipsis since it ends
+up with ellipsis in some ways for most languages, even English, where just using
+an overflow hide is enough to allow seeing the whole word in some cases. See
+bug 1033628 for more details. */
+.msg-search-filter {
+  white-space: nowrap;
+  overflow: hidden;
+}
+
 /* When card is slightly shown when folder card is center,
    be sure any inputs do not accept clicks/taps that would
    mess up the transition back to the message list. Also
@@ -374,14 +385,14 @@ reflows. Foreground/background colors should be safe.
 }
 .msg-attachment-view {
   display: none;
-  width: 4.5rem;
+  width: 3.5rem;
   margin-bottom: 0;
   position: absolute;
   top: 0;
-  right: 0;
-  background: none;
+  right: -0.3rem;
   border: 0;
-  color: #00aacc;
+  background: transparent;
+  overflow: hidden;
 }
 
 .msg-attachment-too-large { display: none; }
@@ -602,7 +613,7 @@ reflows. Foreground/background colors should be safe.
   margin: 0 auto;
   padding: 1rem 1.5rem;
   color: #010101;
-  font-weight: lighter;
+  font-weight: 300;
   font-size: 2.4rem;
   border-top: 0.1rem solid #bebebe;
 }

@@ -1,6 +1,8 @@
 'use strict';
+/* global CollectionIcon */
 /* global eme */
-/* global GridIconRenderer */
+/* global NativeInfo */
+
 
 (function(exports) {
 
@@ -12,18 +14,48 @@
       offlineMessage: document.getElementById('offline-message')
     };
 
-    var options = collection.categoryId ? {categoryId: collection.categoryId}
-                                        : {query: collection.query};
+    var options = {
+      limit: 24
+    };
+    if (collection.categoryId) {
+      options.categoryId = collection.categoryId;
+    } else {
+      options.query = collection.query;
+    }
 
     loading();
 
-    // render pinned apps first
-    collection.render(grid);
+    // XXX: Override the grid render method default options
+    var _grid = grid._grid;
+    var defaultGridRender = _grid.render;
+    grid._grid.render = function(options) {
+      options = options || {};
+      options.skipDivider = true;
+      defaultGridRender.call(_grid, options);
+      var items = _grid.items;
+      var offset = 0;
+      if (items.length) {
+        var item = items[items.length - 1];
+        offset = item.y + item.pixelHeight;
+      }
+      elements.offline.style.marginTop = offset + 'px';
+    };
 
-    eme.init().then(function() {
+    // Start by showing pinned apps
+    // Update Collection from db
+    // Render grid for the first time
+    // Go get web results
+    NativeInfo.setup()
+    // Ensure homeIcons are initialized
+    .then(() => collection.homeIcons.init())
+    .then(() => collection.refresh())
+    .then(() => collection.render(grid))
+    .then(() => {
       loading(false);
       queueRequest();
     });
+
+    CollectionIcon.init(grid.maxIconSize);
 
     function queueRequest() {
       if (navigator.onLine) {
@@ -39,7 +71,7 @@
       loading(false);
 
       var msg = navigator.mozL10n.get('offline-webresults', {
-        collectionName: collection.name
+        collectionName: collection.localizedName
       });
       elements.offlineMessage.innerHTML = msg;
       elements.offline.classList.add('show');
@@ -48,28 +80,15 @@
     function makeRequest() {
       loading();
 
-      eme.api.Apps.search(options)
-        .then(function success(searchResponse) {
-          var results = [];
+      eme.init()
+      .then(() => eme.api.Apps.search(options))
+      .then(function success(response) {
+        onResponse();
 
-          searchResponse.response.apps.forEach(function each(webapp) {
-            results.push({
-              id: webapp.id, // e.me app id (int)
-              name: webapp.name,
-              url: webapp.appUrl,
-              icon: webapp.icon,
-              renderer: GridIconRenderer.TYPE.CLIP
-            });
-          });
+        collection.addWebResults(response.response.apps);
+        collection.renderWebResults(grid);
 
-          onResponse();
-
-          // XXX force layout or else grid isn't displayed
-          grid.clientLeft;
-          collection.webResults = results;
-          collection.render(grid);
-
-        }, onResponse);
+      }, onOffline);
     }
 
     function loading(should) {

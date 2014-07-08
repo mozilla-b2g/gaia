@@ -90,6 +90,7 @@ suite('vertical_preferences.js >', function() {
 
   test('testing addEventListener for "updated" event >', function(done) {
     verticalPreferences.addEventListener('updated', function onUpdated(event) {
+      verticalPreferences.removeEventListener('updated', onUpdated);
       assert.equal(event.type, 'updated');
       assert.equal(event.target.name, gridCols);
       assert.equal(event.target.value, cols);
@@ -97,5 +98,33 @@ suite('vertical_preferences.js >', function() {
     });
 
     verticalPreferences.put(gridCols, cols);
+  });
+
+  test('testing removeEventListener >', function(done) {
+    var onUpdated = function() {
+      done(new Error('The "updated" listener should NOT be called!!!'));
+    };
+
+    verticalPreferences.addEventListener('updated', onUpdated);
+    var ret = verticalPreferences.removeEventListener('updated', onUpdated);
+    assert.isTrue(ret);
+
+    verticalPreferences.put(gridCols, cols).then(function() {
+      done();
+    });
+  });
+
+  test('testing removeEventListener unknown type >', function() {
+    assert.isFalse(verticalPreferences.removeEventListener('dog', function() {
+      // Do nothing...
+    }));
+  });
+
+  test('testing removeEventListener unknown callback >', function() {
+    assert.isFalse(verticalPreferences.removeEventListener('updated',
+      function() {
+        // Do nothing...
+      }
+    ));
   });
 });

@@ -1,7 +1,7 @@
-/* globals CallsHandler, HandledCall, MockCall, MockCallScreen,
-           MockCallsHandler, MockContactPhotoHelper, MockContacts, MockLazyL10n,
-           MockNavigatorMozIccManager, MockNavigatorSettings, MocksHelper,
-           MockUtils, Voicemail */
+/* globals CallsHandler, FontSizeManager, HandledCall, MockCall, MockCallScreen,
+           MockCallsHandler, MockContactPhotoHelper, MockContacts,
+           MockLazyL10n, MockMozL10n, MockNavigatorMozIccManager,
+           MockNavigatorSettings, MocksHelper, MockUtils, Voicemail */
 
 'use strict';
 
@@ -15,6 +15,7 @@ require('/shared/test/unit/mocks/dialer/mock_utils.js');
 require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
 require('/shared/test/unit/mocks/dialer/mock_call.js');
 require('/shared/test/unit/mocks/dialer/mock_calls_handler.js');
+require('/shared/test/unit/mocks/dialer/mock_font_size_manager.js');
 
 require('/js/handled_call.js');
 require('/shared/js/dialer/voicemail.js');
@@ -26,10 +27,13 @@ var mocksHelperForHandledCall = new MocksHelper([
   'KeypadManager',
   'Utils',
   'LazyL10n',
-  'ContactPhotoHelper'
+  'ContactPhotoHelper',
+  'FontSizeManager'
 ]).init();
 
 suite('dialer/handled_call', function() {
+  var realMozL10n;
+
   var realNavigatorSettings;
   var realMozIccManager;
 
@@ -46,6 +50,9 @@ suite('dialer/handled_call', function() {
   mocksHelperForHandledCall.attachTestHelpers();
 
   suiteSetup(function() {
+    realMozL10n = navigator.l10n;
+    navigator.mozL10n = MockMozL10n;
+
     realNavigatorSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
 
@@ -89,6 +96,7 @@ suite('dialer/handled_call', function() {
     Voicemail.check.restore();
     navigator.mozSettings = realNavigatorSettings;
     navigator.mozIccManager = realMozIccManager;
+    navigator.mozL10n = realMozL10n;
   });
 
   setup(function() {
@@ -390,8 +398,8 @@ suite('dialer/handled_call', function() {
       test('should remove listener on the call', function() {
         this.sinon.spy(mockCall, 'removeEventListener');
         mockCall._disconnect();
-        sinon.assert.calledWith(mockCall.removeEventListener,
-                                'statechange', subject);
+        sinon.assert.calledWith(
+          mockCall.removeEventListener, 'statechange', subject);
         mockCall.removeEventListener.restore();
       });
 
@@ -560,20 +568,6 @@ suite('dialer/handled_call', function() {
 
       assert.equal(subject.numberNode.textContent, '112');
     });
-
-    test('should display emergency Wallpaper', function() {
-      mockCall = new MockCall('112', 'dialing');
-      subject = new HandledCall(mockCall);
-
-      assert.isTrue(MockCallScreen.mSetEmergencyWallpaperCalled);
-    });
-
-    test('should not display emergency wallpaper for normal calls', function() {
-      mockCall = new MockCall('111', 'dialing');
-      subject = new HandledCall(mockCall);
-
-      assert.isFalse(MockCallScreen.mSetEmergencyWallpaperCalled);
-    });
   });
 
   test('should display voicemail label', function() {
@@ -653,20 +647,14 @@ suite('dialer/handled_call', function() {
   });
 
   suite('phone number', function() {
-    test('formatPhoneNumber in status bar mode should reset the fontsize',
+    test('formatPhoneNumber should call the font size manager',
     function() {
-      MockCallScreen.mInStatusBarMode = true;
-      subject.numberNode.style.fontSize = '36px';
-      subject.formatPhoneNumber();
-      assert.equal(subject.numberNode.style.fontSize, '');
-    });
-
-    test('formatPhoneNumber should do nothing if the call was removed',
-    function() {
-      subject.remove();
-      subject.numberNode.style.fontSize = '36px';
-      subject.formatPhoneNumber();
-      assert.equal(subject.numberNode.style.fontSize, '36px');
+      this.sinon.spy(FontSizeManager, 'adaptToSpace');
+      subject.formatPhoneNumber('end');
+      sinon.assert.calledWith(
+        FontSizeManager.adaptToSpace, MockCallScreen.getScenario(),
+        subject.numberNode, subject.node.querySelector('.fake-number'),
+        false, 'end');
     });
 
     test('check replace number', function() {

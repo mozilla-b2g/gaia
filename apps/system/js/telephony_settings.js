@@ -149,6 +149,13 @@
     },
 
     _setCallerIdPreference: function(conn, callerIdPreference, callback) {
+      if (!conn.hasOwnProperty('setCallingLineIdRestriction')) {
+        if (callback) {
+          callback();
+        }
+        return;
+      }
+
       var doSet = function() {
         var setReq = conn.setCallingLineIdRestriction(callerIdPreference);
         setReq.onsuccess = function set_cid_success() {

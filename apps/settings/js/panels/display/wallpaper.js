@@ -98,6 +98,7 @@ define(function(require) {
      * Update the value of wallpaper.image from settings.
      *
      * @access private
+     * @param {String} value
      * @memberOf wallpaperPrototype
      */
     _setWallpaper: function w__set_wallpaper(value) {
