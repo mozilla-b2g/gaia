@@ -4,7 +4,7 @@
 /* Copyright © 2013, Deutsche Telekom, Inc. */
 
 /* globals dump, BluetoothTransfer, NDEFUtils, NfcConnectSystemDialog,
-           NDEF, NfcUtils */
+           NDEF, NfcUtils, NotificationHelper */
 /* exported NfcHandoverManager */
 'use strict';
 
@@ -334,6 +334,20 @@ var NfcHandoverManager = {
   },
 
   /**
+   * Show an error notification when file transfer failed.
+   * @param {String} name Optional file name.
+   * @memberof NfcHandoverManager.prototype
+   */
+  _showFailedNotification: function _showFailedNotification(name) {
+    var _ = navigator.mozL10n.get;
+    var fileName = (name !== undefined) ? name : '';
+    var icon = 'style/bluetooth_transfer/images/icon_bluetooth.png';
+    NotificationHelper.send(_('transferFinished-sentFailed-title'),
+                            fileName,
+                            icon);
+  },
+
+  /**
    * Initiate a file transfer by sending a Handover Request to the
    * remote device.
    * @param {String} session NFC session ID.
@@ -355,10 +369,19 @@ var NfcHandoverManager = {
       var onerror = function() {
         self._dispatchSendFileStatus(1, requestId);
       };
+      var nfcPeer;
+      try {
+        nfcPeer = this.nfc.getNFCPeer(session);
+      } catch (ex) {
+        this._debug('NFC peer went away');
+        onerror();
+        this._showFailedNotification(blob.name);
+        this._restoreBluetoothStatus();
+        return;
+      }
       var job = {session: session, blob: blob, requestId: requestId,
                  onsuccess: onsuccess, onerror: onerror};
       this.sendFileQueue.push(job);
-      var nfcPeer = this.nfc.getNFCPeer(session);
       var cps = this.bluetooth.enabled ? NDEF.CPS_ACTIVE : NDEF.CPS_ACTIVATING;
       var mac = this.defaultAdapter.address;
       var hr = NDEFUtils.encodeHandoverRequest(mac, cps);
@@ -369,6 +392,7 @@ var NfcHandoverManager = {
       req.onerror = function() {
         self._debug('sendNDEF(hr) failed');
         onerror();
+        self._showFailedNotification(blob.name);
         self.sendFileQueue.pop();
         self._restoreBluetoothStatus();
       };
