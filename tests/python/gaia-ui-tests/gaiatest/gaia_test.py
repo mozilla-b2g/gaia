@@ -84,20 +84,16 @@ class GaiaApps(object):
         result = self.marionette.execute_async_script("GaiaApps.kill('%s');" % app.origin)
         assert result, "Failed to kill app with name '%s'" % app.name
 
-    def kill_all(self, include_system_apps=False):
-        '''Will kill both the FTU and any open apps user apps
-        Args:
-            include_system_apps: Will allow you to kill always-running apps like Homescreen - really dangerous!
-        '''
+    def kill_all(self):
         # First we attempt to kill the FTU, we treat it as a user app
-        for app in self.apps.running_apps(include_system_apps=True):
+        for app in self.running_apps(include_system_apps=True):
             if app.origin == 'app://ftu.gaiamobile.org':
-                self.apps.kill(app)
+                self.kill(app)
                 break
 
-        include_system_apps = json.dumps(include_system_apps)
+        # Now kill the user apps
         self.marionette.switch_to_frame()
-        self.marionette.execute_async_script("GaiaApps.killAll(%s);" % include_system_apps)
+        self.marionette.execute_async_script("GaiaApps.killAll();")
 
     @property
     def installed_apps(self):
@@ -122,7 +118,7 @@ class GaiaApps(object):
         Args:
             include_system_apps: Includes otherwise hidden System apps in the list
         Returns:
-            A list of GaiaApp representing the running apps.
+            A list of GaiaApp objects representing the running apps.
         '''
         include_system_apps = json.dumps(include_system_apps)
         self.marionette.switch_to_frame()
