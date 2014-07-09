@@ -183,6 +183,10 @@ li:active:not([aria-disabled="true"]) .menu-item::before,
   background-position: -6rem -18rem;
 }
 
+#menuItem-tor::before {
+  background-position: 0 -21rem;
+}
+
 #suggestions-desc {
   left: 0;
 }
