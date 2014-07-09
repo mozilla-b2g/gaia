@@ -2718,13 +2718,21 @@ var ThreadUI = global.ThreadUI = {
 
     var number = this.headerText.dataset.number;
 
+    var tel, email;
+    if (Settings.supportEmailRecipient && Utils.isEmailAddress(number)) {
+      email = number;
+    } else {
+      tel = number;
+    }
+
     if (this.headerText.dataset.isContact === 'true') {
       this.promptContact({
         number: number
       });
     } else {
       this.prompt({
-        number: number,
+        number: tel,
+        email: email,
         isContact: false
       });
     }
