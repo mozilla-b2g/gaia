@@ -33,20 +33,30 @@ var CaptivePortal = {
       return;
     }
 
-    this.notification = NotificationScreen.addNotification({
-      id: id, title: '', text: message, icon: icon
-    });
-    this.captiveNotification_onTap = function() {
-      self.notification.removeEventListener('tap',
-                                            self.captiveNotification_onTap);
-      self.captiveNotification_onTap = null;
-      NotificationScreen.removeNotification(id);
+    window.dispatchEvent(new window.CustomEvent('notification-add', { detail:
+      { id: id, title: '',
+        text: message,
+        icon: icon,
+        onsuccess: (function onsuccess(notification) {
+          this.notification = notification;
+          this.notification.addEventListener('tap',
+            this.captiveNotification_onTap);
+        }).bind(this)
+      }})
+    );
+
+    this.captiveNotification_onTap = (function() {
+      this.notification.removeEventListener('tap',
+        this.captiveNotification_onTap);
+      this.captiveNotification_onTap = null;
+      window.dispatchEvent(new window.CustomEvent('notification-remove',
+      { detail: id }));
       new MozActivity({
         name: 'view',
         data: { type: 'url', url: url }
       });
-    };
-    this.notification.addEventListener('tap', this.captiveNotification_onTap);
+    }).bind(this);
+
   },
 
   dismissNotification: function dismissNotification(id) {
@@ -57,7 +67,10 @@ var CaptivePortal = {
                                                 this.captiveNotification_onTap);
           this.captiveNotification_onTap = null;
         }
-        NotificationScreen.removeNotification(id);
+
+        window.dispatchEvent(new window.CustomEvent('notification-remove',
+        { detail: id }));
+
         this.notification = null;
       }
 

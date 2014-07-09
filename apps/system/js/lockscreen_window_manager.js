@@ -44,6 +44,7 @@
      */
     configs: {
       listens: ['lockscreen-request-unlock',
+                'lockscreen-request-lock',
                 'lockscreen-appcreated',
                 'lockscreen-appterminated',
                 'lockscreen-appclose',
@@ -69,7 +70,7 @@
   };
 
   /**
-   * @listens will-unlock - means to close remain apps.
+   * @listens lockscreen-appclosing - means to close remain apps.
    * @listens lockscreen-appcreated - when a lockscreen app got created, it
    *                                  would fire this event.
    * @listens lockscreen-appterminated - when a lockscreen app got really
@@ -108,6 +109,9 @@
           break;
         case 'lockscreen-request-unlock':
           this.responseUnlock(evt.detail);
+          break;
+        case 'lockscreen-request-lock':
+          this.openApp();
           break;
         case 'lockscreen-appcreated':
           app = evt.detail;

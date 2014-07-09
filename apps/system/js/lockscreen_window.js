@@ -35,10 +35,13 @@
     AppWindow.call(this, configs);
 
     // XXX: Because we still have to create both LockScreenWindow
-    // and LockScreen.
+    // and LockScreen, LockScreenNotifications, which would be removed
+    // after we made LockScreen as an app at Bug Bug 898348.
     this.lockscreen = new window.LockScreen();
     window.lockScreen = this.lockscreen;
+    this.lockScreenNotifications = new window.LockScreenNotifications();
     this.lockscreen.init();
+    this.lockScreenNotifications.start();
   };
 
   /**

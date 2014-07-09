@@ -480,14 +480,14 @@ var UpdateManager = {
   hideNotificationIfDisplayed: function() {
     if (this.container.classList.contains('displayed')) {
       this.container.classList.remove('displayed');
-      NotificationScreen.decExternalNotifications();
+      window.dispatchEvent(new window.Event('notification-descrease'));
     }
   },
 
   displayNotificationIfHidden: function() {
     if (!this.container.classList.contains('displayed')) {
       this.container.classList.add('displayed');
-      NotificationScreen.incExternalNotifications();
+      window.dispatchEvent(new window.Event('notification-increase'));
     }
   },
 

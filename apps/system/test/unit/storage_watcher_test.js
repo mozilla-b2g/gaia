@@ -9,8 +9,7 @@ requireApp('system/shared/test/unit/mocks/mock_dom_request.js');
 requireApp('system/test/unit/mock_navigator_get_device_storage.js');
 
 var mocksForStorageWatcher = new MocksHelper([
-  'SystemBanner',
-  'NotificationScreen'
+  'SystemBanner'
 ]).init();
 
 suite('system/DeviceStorageWatcher >', function() {
