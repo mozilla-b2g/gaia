@@ -629,12 +629,14 @@
     background-image: url('images/handled_call/actionicon_activecall_paused.png');
     background-position: 0.7rem;
     background-repeat: no-repeat;
+    background-size: 3rem;
   }
 
   #calls:not(.big-duration) > section.ended {
     background-image: url('images/shared/actionicon_activecall_hangup_small.png');
     background-position: 0.7rem;
     background-repeat: no-repeat;
+    background-size: 3rem;
   }
 
   #calls > section.ended .numberWrapper .number,
