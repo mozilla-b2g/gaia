@@ -24,7 +24,6 @@
     "apps/homescreen/test/marionette/update_bookmark_test.js",
     "apps/search/test/marionette/places_search_test.js",
     "apps/settings/test/marionette/tests/app_permission_settings_test.js",
-    "apps/verticalhome/test/marionette/app_packaged_resume_test.js",
-    "apps/music/test/marionette/Player_test.js"
-  ]
+    "apps/verticalhome/test/marionette/app_packaged_resume_test.js"
+    ]
 }
