@@ -37,6 +37,18 @@ suite('bluetooth helper', function() {
     assert.isTrue(MockBTAdapter.toggleCalls.calledTwice);
   });
 
+  test('should fire callback once bluetooth loaded', function(done) {
+    var stubDOMReq = {result: ['profiles']};
+    sandbox.stub(MockBTAdapter, 'getConnectedDevices').returns(stubDOMReq);
+
+    subject.getConnectedDevicesByProfile(subject.HFP, function() {
+      done();
+    });
+
+    MockMozBluetooth.triggerOnGetAdapterSuccess();
+    stubDOMReq.onsuccess();
+  });
+
   suite('public functions and setters', function() {
     setup(function() {
       MockMozBluetooth.triggerOnGetAdapterSuccess();
