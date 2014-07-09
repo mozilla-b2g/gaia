@@ -1,8 +1,9 @@
 'use strict';
 
 /* global BaseCollection */
-/* global CollectionsDatabase */
 /* global CollectionIcon */
+/* global CollectionsDatabase */
+/* global Common */
 /* global eme */
 /* global PinnedHomeIcon */
 
@@ -55,7 +56,7 @@
                 collection.addWebResults(response.response.apps);
               })
               .then(() => {
-                BaseCollection.getBackground(collection, grid.maxIconSize)
+                Common.getBackground(collection, grid.maxIconSize)
                   .then((bgObject) => {
                     collection.background = bgObject;
                     this.pinAndSave(newPinned, collection);

@@ -75,37 +75,6 @@
     return null;
   };
 
-  BaseCollection.getBackground = function getBackground(collection, iconSize) {
-    var src;
-    var options = {
-      width: iconSize,
-      height: iconSize
-    };
-
-    if (collection.categoryId) {
-      options.categoryId = collection.categoryId;
-    }
-    else {
-      options.query = collection.query;
-    }
-
-    return eme.api.Search.bgimage(options).then(function success(response) {
-      var image = response.response.image;
-      if (image) {
-        src = image.data;
-        if (/image\//.test(image.MIMEType)) {  // base64 image data
-          src = 'data:' + image.MIMEType + ';base64,' + image.data;
-        }
-      }
-
-      return {
-        src: src,
-        source: response.response.source,
-        checksum: response.checksum || null
-      };
-    });
-  };
-
   BaseCollection.prototype = {
 
     get localizedName() {
