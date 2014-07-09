@@ -367,7 +367,12 @@ var CallHandler = (function callHandler() {
   /* === Calls === */
   function call(number, cardIndex) {
     if (MmiManager.isMMI(number, cardIndex)) {
-      MmiManager.send(number, cardIndex);
+      if (number === '*#06#') {
+        MmiManager.showImei();
+      } else {
+        MmiManager.send(number, cardIndex);
+      }
+
       // Clearing the code from the dialer screen gives the user immediate
       // feedback.
       KeypadManager.updatePhoneNumber('', 'begin', true);
