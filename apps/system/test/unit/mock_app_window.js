@@ -96,7 +96,9 @@
     applyStyle: function() {},
     unapplyStyle: function() {},
     transform: function() {},
-    hideContextMenu: function() {}
+    hideContextMenu: function() {},
+    lockOrientation: function() {},
+    isVisible: function() {}
   };
   MockAppWindow.mTeardown = function() {
     MockAppWindowHelper.mInstances = [];
