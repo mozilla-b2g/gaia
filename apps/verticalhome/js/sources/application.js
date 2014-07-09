@@ -3,14 +3,6 @@
 
 (function(exports) {
 
-  var appMgr = navigator.mozApps.mgmt;
-  var apps = null;
-
-  appMgr.getAll().onsuccess = function onsuccess(event) {
-    apps = event.target.result;
-    window.dispatchEvent(new CustomEvent('navigator-mozapps-ready'));
-  };
-
   /**
    * ApplicationSource is responsible for populating the iniial application
    * results as well as mapping indexedDB records to app objects for launching.
@@ -35,17 +27,13 @@
 
     addSVEventListener();
 
-    var self = this;
-    function addIcons() {
-      window.removeEventListener('navigator-mozapps-ready', addIcons);
-      for (var i = 0, iLen = apps.length; i < iLen; i++) {
-        self.makeIcons(apps[i]);
-      }
-      apps = null;
-    }
+    var appMgr = navigator.mozApps.mgmt;
 
-    apps ? addIcons() : window.addEventListener('navigator-mozapps-ready',
-                                                 addIcons);
+    appMgr.getAll().onsuccess = function onsuccess(event) {
+      for (var i = 0, iLen = event.target.result.length; i < iLen; i++) {
+        this.makeIcons(event.target.result[i]);
+      }
+    }.bind(this);
 
     /**
      * Adds a new application to the layout when the user installed it
@@ -252,8 +240,8 @@
       };
 
       return new GaiaGrid.Mozapp(app, entry.entryPoint, {
-        // cached decorated icon blob to load faster
-        decoratedIconBlob: entry.decoratedIconBlob
+        // cached icon blob in case of network failures
+        defaultIconBlob: entry.defaultIconBlob
       });
     },
 
