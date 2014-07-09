@@ -2,5 +2,8 @@
 /* exported MockPerformanceTestingHelper */
 
 var MockPerformanceTestingHelper = {
-  dispatch: function() {}
+  el: document.createElement('div'),
+  dispatch: function(name) {
+    this.el.dispatchEvent(new CustomEvent(name));
+  }
 };
