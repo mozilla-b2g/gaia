@@ -430,6 +430,25 @@ var NotificationScreen = {
         window.lockScreen.maskedBackground.dataset.wallpaperColor;
 
       window.lockScreen.maskedBackground.classList.remove('blank');
+
+      // UX specifies that the container should scroll to top
+      /* note two things:
+       * 1. we need to call setNotificationMaskArrowVisibility even
+       *    though we're setting scrollTop, since setting sT doesn't
+       *    necessarily invoke onscroll (if the old container is already
+       *    scrolled to top, we might still need to decide to show
+       *    the arrow)
+       * 2. set scrollTop before calling setNotificationMaskArrowVisibility
+       *    since sT = 0 will hide the mask if it's showing,
+       *    and if we call setNMAV before setting sT,
+       *    under some circumstances setNMAV would decide to show mask,
+       *    only to be negated by st = 0 (waste of energy!).
+       */
+      this.lockScreenContainer.scrollTop = 0;
+
+      // check if lockscreen's masks and
+      // 'more notifications' arrow needs to show
+      window.lockScreen.setNotificationMaskArrowVisibility();
     }
 
     if (notify && !this.isResending) {
@@ -530,6 +549,10 @@ var NotificationScreen = {
           'transparent';
         window.lockScreen.maskedBackground.classList.add('blank');
       }
+
+      // check if lockscreen's masks and
+      // 'more notifications' arrow needs to show
+      window.lockScreen.setNotificationMaskArrowVisibility();
     }
     this.updateStatusBarIcon();
 
@@ -558,6 +581,9 @@ var NotificationScreen = {
     // and use the simple gradient
     window.lockScreen.maskedBackground.style.backgroundColor = 'transparent';
     window.lockScreen.maskedBackground.classList.add('blank');
+    // check if lockscreen's masks and
+    // 'more notifications' arrow needs to show
+    window.lockScreen.setNotificationMaskArrowVisibility();
   },
 
   updateStatusBarIcon: function ns_updateStatusBarIcon(unread) {
