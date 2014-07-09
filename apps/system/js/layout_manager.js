@@ -53,10 +53,19 @@
      * @memberOf LayoutManager
      */
     get height() {
-      return window.innerHeight -
+      var height = window.innerHeight -
         (this.keyboardEnabled ? KeyboardManager.getHeight() : 0) -
         StatusBar.height -
         softwareButtonManager.height;
+
+      // Normalizing the height so that it always translates to an integral
+      // number of device pixels
+      var dpx = window.devicePixelRatio;
+      if ((height * dpx) % 1 !== 0) {
+        height = Math.ceil(height * dpx) / dpx;
+      }
+
+      return height;
     },
 
     /**
