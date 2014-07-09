@@ -3,7 +3,8 @@
 /* global CallHandler, MocksHelper, MockLazyL10n, MockNavigatormozApps,
           MockNavigatorMozIccManager, MockNavigatormozSetMessageHandler,
           NavbarManager, Notification, MockKeypadManager, MockVoicemail,
-          MockCallLog, MockCallLogDBManager, MockNavigatorWakeLock, MmiManager
+          MockCallLog, MockCallLogDBManager, MockNavigatorWakeLock,
+          MockMmiManager, MockSuggestionBar
  */
 
 require(
@@ -14,6 +15,7 @@ requireApp('communications/dialer/test/unit/mock_call_log_db_manager.js');
 requireApp('communications/dialer/test/unit/mock_lazy_loader.js');
 requireApp('communications/dialer/test/unit/mock_voicemail.js');
 require('/dialer/test/unit/mock_mmi_manager.js');
+require('/dialer/test/unit/mock_suggestion_bar.js');
 
 require('/shared/test/unit/mocks/mock_navigator_wake_lock.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
@@ -40,6 +42,7 @@ var mocksHelperForDialer = new MocksHelper([
   'Notification',
   'NotificationHelper',
   'SettingsListener',
+  'SuggestionBar',
   'Utils',
   'TonePlayer',
   'Voicemail'
@@ -294,9 +297,9 @@ suite('navigation bar', function() {
       });
 
       test('should call the MmiManager', function() {
-        this.sinon.spy(MmiManager, 'handleMMIReceived');
+        this.sinon.spy(MockMmiManager, 'handleMMIReceived');
         triggerSysMsg();
-        sinon.assert.calledWith(MmiManager.handleMMIReceived,
+        sinon.assert.calledWith(MockMmiManager.handleMMIReceived,
                                 'testing', true);
       });
 
@@ -324,9 +327,9 @@ suite('navigation bar', function() {
         });
 
         test('should send a notification for unsolicited messages', function() {
-            this.sinon.spy(MmiManager, 'sendNotification');
+            this.sinon.spy(MockMmiManager, 'sendNotification');
             triggerSysMsg(0, true);
-            sinon.assert.calledOnce(MmiManager.sendNotification);
+            sinon.assert.calledOnce(MockMmiManager.sendNotification);
             var wakeLock = MockNavigatorWakeLock.mLastWakeLock;
             assert.isTrue(wakeLock.released);
           }
@@ -356,6 +359,37 @@ suite('navigation bar', function() {
             var wakeLock = MockNavigatorWakeLock.mLastWakeLock;
             assert.isTrue(wakeLock.released);
           });
+        });
+      });
+    });
+
+    suite('> Dialing MMI codes', function() {
+      setup(function (){
+        this.sinon.stub(MockMmiManager, 'isMMI').returns(true);
+        this.sinon.spy(MockMmiManager, 'send');
+        this.sinon.spy(MockKeypadManager, 'updatePhoneNumber');
+        this.sinon.spy(MockSuggestionBar, 'clear');
+      });
+
+      [ 0, 1 ].forEach(function(cardIndex) {
+        test('> Dialing a generic code on SIM ' + cardIndex, function() {
+          var number = '*123#';
+          CallHandler.call(number, cardIndex);
+
+          sinon.assert.calledWith(MockMmiManager.send, number, cardIndex);
+          sinon.assert.calledWithMatch(MockKeypadManager.updatePhoneNumber, '');
+          sinon.assert.calledOnce(MockSuggestionBar.clear);
+        });
+
+        test('> Requesting the IMEI codes on SIM ' + cardIndex, function() {
+          this.sinon.spy(MockMmiManager, 'showImei');
+
+          CallHandler.call('*#06#', cardIndex);
+
+          sinon.assert.calledOnce(MockMmiManager.showImei);
+          sinon.assert.notCalled(MockMmiManager.send);
+          sinon.assert.calledWithMatch(MockKeypadManager.updatePhoneNumber, '');
+          sinon.assert.calledOnce(MockSuggestionBar.clear);
         });
       });
     });
