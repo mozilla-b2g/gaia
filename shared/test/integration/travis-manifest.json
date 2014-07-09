@@ -27,7 +27,6 @@
     "apps/search/test/marionette/places_search_test.js",
     "apps/settings/test/marionette/tests/app_permission_settings_test.js",
     "apps/settings/test/marionette/tests/message_settings_test.js",
-    "apps/settings/test/marionette/tests/airplane_mode_settings_test.js",
-    "apps/music/test/marionette/Player_test.js"
+    "apps/settings/test/marionette/tests/airplane_mode_settings_test.js"
   ]
 }
