@@ -162,16 +162,6 @@ var MmiManager = {
 
         message.result = mmiResult.statusMessage;
         break;
-      case 'scImei':
-        // We always expect the IMEI, so if we got a .onsuccess event
-        // without the IMEI value, we throw an error message.
-        if (mmiResult.statusMessage) {
-          message.result = mmiResult.statusMessage;
-        } else {
-          message.type = 'mmi-error';
-          message.error = this._('GenericFailure');
-        }
-        break;
       case 'scPin':
       case 'scPin2':
       case 'scPuk':
@@ -423,5 +413,73 @@ var MmiManager = {
     }
 
     return 0;
+  },
+
+  /**
+   * Retrieves the IMEI code for the specified SIM card slot.
+   *
+   * @param {Integer} cardIndex The index of the SIM card slot.
+   * @returns {Promise} A promise that resolves to the IMEI code for the slot
+   *          upon successful completion or rejects upon failure.
+   */
+  _getImeiForCard: function mm_getImeiForCard(cardIndex) {
+    return new Promise(function(resolve, reject) {
+      var request = navigator.mozMobileConnections[cardIndex]
+                             .sendMMI('*#06#');
+      request.onsuccess = function mm_onGetImeiSuccess(event) {
+        var result = event.target.result;
+
+        // We always expect the IMEI, so if we got a .onsuccess event
+        // without the IMEI value, we throw an error message.
+        if ((result === null) || (result.serviceCode !== 'scImei') ||
+            (result.statusMessage === null)) {
+          reject(new Error('Could not retrieve the IMEI code for SIM' +
+                           cardIndex));
+        }
+
+        resolve(result.statusMessage);
+      };
+      request.onerror = function mm_onGetImeiError(error) {
+        reject(error);
+      };
+    });
+  },
+
+  /**
+   * Sends the necessary MMI messages to retrieve IMEI codes for all SIM slots
+   * and displays the resulting codes on the screen.
+   *
+   * @returns {Promise} A promise that is resolved when the operation has been
+   *          completed.
+   */
+  showImei: function mm_showImei() {
+    var self = this;
+
+    return new Promise(function(resolve, reject) {
+      self.init(function() {
+        var promises = [];
+
+        for (var i = 0; i < navigator.mozMobileConnections.length; i++) {
+          promises.push(self._getImeiForCard(i));
+        }
+
+        self.openUI();
+
+        Promise.all(promises).then(function(imeis) {
+          window.postMessage({
+            type: 'mmi-success',
+            title: self._('scImei'),
+            result: imeis.join('\n')
+          }, self.COMMS_APP_ORIGIN);
+          resolve();
+        }, function(reason) {
+          window.postMessage({
+            type: 'mmi-error',
+            error: self._('GenericFailure')
+          }, self.COMMS_APP_ORIGIN);
+          reject(reason);
+        });
+      });
+    });
   }
 };
