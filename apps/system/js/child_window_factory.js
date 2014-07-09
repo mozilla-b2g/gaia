@@ -1,6 +1,5 @@
 'use strict';
-/* global AppWindow, PopupWindow, ActivityWindow, SettingsListener,
-          AttentionScreen */
+/* global AppWindow, PopupWindow, ActivityWindow, SettingsListener */
 
 (function(exports) {
   var ENABLE_IN_APP_SHEET = false;
@@ -40,14 +39,6 @@
 
   ChildWindowFactory.prototype.handleEvent =
     function cwf_handleEvent(evt) {
-      // Handle event from child window.
-      if (evt.detail && evt.detail.instanceID &&
-          evt.detail.instanceID !== this.app.instanceID) {
-        if (this['_handle_child_' + evt.type]) {
-          this['_handle_child_' + evt.type](evt);
-        }
-        return;
-      }
       // Skip to wrapperWindowFactory.
       if (this.isHomescreen) {
         // XXX: Launch wrapper window here.
@@ -97,7 +88,6 @@
       rearWindow: this.app
     };
     var childWindow = new PopupWindow(configObject);
-    childWindow.element.addEventListener('_closing', this);
     childWindow.open();
     return true;
   };
@@ -136,20 +126,6 @@
     return false;
   };
 
-  ChildWindowFactory.prototype._handle_child__closing = function(evt) {
-    // Do nothing if we are not active or we are being killing.
-    if (!this.app.isVisible() || this.app._killed) {
-      return;
-    }
-    // XXX: Refine this in attention-window refactor.
-    if (AttentionScreen.isFullyVisible()) {
-      return;
-    }
-
-    this.app.lockOrientation();
-    this.app.setVisible(true);
-  };
-
   ChildWindowFactory.prototype.createActivityWindow = function(evt) {
     var configuration = evt.detail;
     var top = this.app.getTopMostWindow();
@@ -160,7 +136,6 @@
       return;
     }
     var activity = new ActivityWindow(configuration, top);
-    activity.element.addEventListener('_closing', this);
     activity.open();
   };
 
