@@ -293,7 +293,7 @@ var NotificationScreen = {
     this.lockScreenContainer = this.lockScreenContainer ||
       document.getElementById('notifications-lockscreen-container');
     var notificationNode = document.createElement('div');
-    notificationNode.className = 'notification';
+    notificationNode.classList.add('notification');
     notificationNode.setAttribute('role', 'link');
 
     notificationNode.dataset.notificationId = detail.id;
@@ -313,38 +313,45 @@ var NotificationScreen = {
       notificationNode.appendChild(icon);
     }
 
+    var dir = (detail.bidi === 'ltr' ||
+               detail.bidi === 'rtl') ?
+          detail.bidi : 'auto';
+
+    var titleContainer = document.createElement('div');
+    titleContainer.classList.add('title-container');
+    titleContainer.lang = detail.lang;
+    titleContainer.dir = dir;
+
+    var title = document.createElement('div');
+    title.classList.add('title');
+    title.textContent = detail.title;
+    title.lang = detail.lang;
+    title.dir = dir;
+    titleContainer.appendChild(title);
+
     var time = document.createElement('span');
     var timestamp = detail.timestamp ? new Date(detail.timestamp) : new Date();
     time.classList.add('timestamp');
     time.dataset.timestamp = timestamp;
     time.textContent = this.prettyDate(timestamp);
-    notificationNode.appendChild(time);
+    titleContainer.appendChild(time);
 
-    var dir = (detail.bidi === 'ltr' ||
-               detail.bidi === 'rtl') ?
-          detail.bidi : 'auto';
-
-    var title = document.createElement('div');
-    title.classList.add('title');
-    title.textContent = detail.title;
-    notificationNode.appendChild(title);
-    title.lang = detail.lang;
-    title.dir = dir;
+    notificationNode.appendChild(titleContainer);
 
     var message = document.createElement('div');
     message.classList.add('detail');
     message.textContent = detail.text;
-    notificationNode.appendChild(message);
     message.lang = detail.lang;
     message.dir = dir;
+    notificationNode.appendChild(message);
 
     var notifSelector = '[data-notification-id="' + detail.id + '"]';
     var oldNotif = this.container.querySelector(notifSelector);
     if (oldNotif) {
       // The whole node cannot be replaced because CSS animations are re-started
-      oldNotif.replaceChild(title, oldNotif.querySelector('.title'));
+      oldNotif.replaceChild(titleContainer,
+        oldNotif.querySelector('.title-container'));
       oldNotif.replaceChild(message, oldNotif.querySelector('.detail'));
-      oldNotif.replaceChild(time, oldNotif.querySelector('.timestamp'));
       var oldIcon = oldNotif.querySelector('img');
       if (icon) {
         oldIcon ? oldIcon.src = icon.src : oldNotif.insertBefore(icon,
