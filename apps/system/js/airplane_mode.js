@@ -251,12 +251,12 @@
           var req = conn.setRadioEnabled(enabled);
 
           req.onsuccess = function() {
-            self.setCount++;
+            setCount++;
             setRadioAfterReqsCalled(enabled);
           };
           req.onerror = function() {
             isError = true;
-            self.setCount++;
+            setCount++;
             setRadioAfterReqsCalled(enabled);
           };
         };
