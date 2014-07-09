@@ -1,5 +1,14 @@
 /* -*Mode: js; js-indent-level: 2; indent-tabs-mode: nil -**/
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+
+/* global
+   BrowserFrame,
+   EntrySheet,
+   FtuLauncher,
+   Notification,
+   MozActivity
+*/
+
 'use strict';
 
 var CaptivePortal = {
@@ -12,7 +21,6 @@ var CaptivePortal = {
     var wifiManager = window.navigator.mozWifiManager;
     var _ = window.navigator.mozL10n.get;
     var settings = window.navigator.mozSettings;
-    var self = this;
     var icon = window.location.protocol + '//' + window.location.hostname +
       '/style/icons/captivePortal.png';
 
@@ -33,31 +41,41 @@ var CaptivePortal = {
       return;
     }
 
-    this.notification = NotificationScreen.addNotification({
-      id: id, title: '', text: message, icon: icon
-    });
-    this.captiveNotification_onTap = function() {
-      self.notification.removeEventListener('tap',
-                                            self.captiveNotification_onTap);
-      self.captiveNotification_onTap = null;
-      NotificationScreen.removeNotification(id);
-      new MozActivity({
+    var options = {
+      body: message,
+      icon: icon,
+      tag: 'captivePortal:' + networkName
+    };
+
+    this.notification = new Notification('', options);
+    this.captiveNotification_onTap = (function captiveNotification_onTap() {
+      this.notification.removeEventListener('tap',
+                                            this.captiveNotification_onTap);
+      this.captiveNotification_onTap = null;
+      var activity = new MozActivity({
         name: 'view',
         data: { type: 'url', url: url }
       });
-    };
+      activity.onsuccess = function() {
+        this.notification.close();
+        this.notification = null;
+      };
+      activity.onerror = function(e) {
+        console.error('CaptivePortal MozActivity error: ' + e);
+      };
+    }).bind(this);
     this.notification.addEventListener('tap', this.captiveNotification_onTap);
   },
 
   dismissNotification: function dismissNotification(id) {
     if (id === this.eventId) {
-      if (this.notification && this.notification.parentNode) {
+      if (this.notification) {
         if (this.captiveNotification_onTap) {
           this.notification.removeEventListener('tap',
                                                 this.captiveNotification_onTap);
           this.captiveNotification_onTap = null;
         }
-        NotificationScreen.removeNotification(id);
+        this.notification.close();
         this.notification = null;
       }
 
@@ -83,6 +101,7 @@ var CaptivePortal = {
         break;
       case 'captive-portal-login-abort':
         this.handleLoginAbort(evt.detail.id);
+        break;
       case 'captive-portal-login-success':
         this.handleLoginSuccess(evt.detail.id);
         break;
@@ -90,7 +109,6 @@ var CaptivePortal = {
   },
 
   init: function cp_init() {
-    var self = this;
     window.addEventListener('mozChromeEvent', this);
   }
 };
