@@ -1,6 +1,8 @@
 'use strict';
 
 var AboutMoreInfo = {
+  /** MMI control code used for retrieving a phone's IMEI code. */
+  GET_IMEI_COMMAND: '*#06#',
 
   init: function about_init() {
     this.loadImei();
@@ -13,8 +15,9 @@ var AboutMoreInfo = {
 
     var dispDate = document.getElementById('gaia-commit-date');
     var dispHash = document.getElementById('gaia-commit-hash');
-    if (dispHash.textContent)
+    if (dispHash.textContent) {
       return; // `gaia-commit.txt' has already been loaded
+    }
 
     function dateToUTC(d) {
       var arr = [];
@@ -53,27 +56,95 @@ var AboutMoreInfo = {
     req.send();
   },
 
+  /**
+   * Retrieves the IMEI code corresponding with the specified SIM card slot.
+   *
+   * @param {Integer} simSlotIndex The slot whose IMEI code we want to retrieve.
+   * @returns {Promise} A promise that resolves to the IMEI code or rejects
+   *          if an error occurred.
+   */
+  _getImeiCode: function about_getImeiCode(simSlotIndex) {
+    var self = this;
+
+    return new Promise(function(resolve, reject) {
+      var connection = navigator.mozMobileConnections[simSlotIndex];
+      var request = connection.sendMMI(self.GET_IMEI_COMMAND);
+      request.onsuccess = function about_onGetImeiCodeSuccess() {
+        if (!this.result || (this.result.serviceCode !== 'scImei') ||
+            (this.result.statusMessage === null)) {
+          reject(new Error('Could not retrieve the IMEI code for SIM' +
+            simSlotIndex));
+          return;
+        }
+
+        resolve(this.result.statusMessage);
+      };
+      request.onerror = function about_onGetImeiCodeError() {
+        reject(this.error);
+      };
+    });
+  },
+
+  /**
+   * Populate the IMEI information entry with the provided list of IMEI codes.
+   * If the code is not given or if it's empty then the entry will be marked
+   * as unavailable.
+   *
+   * @param {Array} imeis An array of IMEI codes.
+   */
+  _createImeiField: function about_createImeiField(imeis) {
+    var deviceInfoImeis = document.getElementById('deviceInfo-imeis');
+
+    while (deviceInfoImeis.hasChildNodes()) {
+      deviceInfoImeis.removeChild(deviceInfoImeis.lastChild);
+    }
+
+    if (!imeis || imeis.length === 0) {
+      var span = document.createElement('span');
+
+      navigator.mozL10n.localize(span, 'unavailable');
+      deviceInfoImeis.appendChild(span);
+    } else {
+      imeis.forEach(function(imei, index) {
+        var span = document.createElement('span');
+
+        span.textContent = (imeis.length > 1) ?
+          'IMEI ' + (index + 1) + ': ' + imei : imei;
+        span.dataset.slot = index;
+        deviceInfoImeis.appendChild(span);
+      });
+    }
+  },
+
+  /**
+   * Loads all the phone's IMEI code in the corresponding entry.
+   *
+   * @returns {Promise} A promise that is resolved when the container has been
+   *          fully populated.
+   */
   loadImei: function about_loadImei() {
-    var deviceInfoImei = document.getElementById('deviceInfo-imei');
+    var deviceInfoImeis = document.getElementById('deviceInfo-imeis');
     var conns = navigator.mozMobileConnections;
 
     if (!navigator.mozTelephony || !conns) {
-      deviceInfoImei.parentNode.hidden = true;
-      return;
+      deviceInfoImeis.parentNode.hidden = true;
+      return Promise.resolve();
     }
 
-    // update imei, we use the first mobile conneciton.
-    var req = conns[0].sendMMI('*#06#');
-    req.onsuccess = function getIMEI() {
-      if (req.result && req.result.statusMessage) {
-        deviceInfoImei.textContent = req.result.statusMessage;
-      } else {
-        navigator.mozL10n.localize(deviceInfoImei, 'unavailable');
-      }
-    };
-    req.onerror = function() {
-      navigator.mozL10n.localize(deviceInfoImei, 'unavailable');
-    };
+    // Retrieve all IMEI codes.
+    var promises = [];
+
+    for (var i = 0; i < conns.length; i++) {
+      promises.push(this._getImeiCode(i));
+    }
+
+    var self = this;
+
+    return Promise.all(promises).then(function(imeis) {
+      self._createImeiField(imeis);
+    }, function() {
+      self._createImeiField(null);
+    });
   },
 
   loadIccId: function about_loadIccId() {

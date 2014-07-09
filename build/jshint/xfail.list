@@ -265,7 +265,6 @@ apps/music/js/open.js
 apps/music/js/utils.js
 apps/music/test/unit/remote_controls_test.js
 apps/settings/js/about.js
-apps/settings/js/about_more_info.js
 apps/settings/js/airplane_mode.js
 apps/settings/js/bluetooth.js
 apps/settings/js/call.js
