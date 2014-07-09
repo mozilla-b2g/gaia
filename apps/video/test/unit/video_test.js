@@ -1541,4 +1541,182 @@ suite('Video App Unit Tests', function() {
       assert.equal(rescaleSpy.callCount, 0);
     });
   });
+
+  suite('setControlsVisibility flows', function() {
+    var updateVideoControlSliderSpy;
+    var nativeUpdateVideoControlSlider;
+
+    suiteSetup(function() {
+      nativeUpdateVideoControlSlider = updateVideoControlSlider;
+      updateVideoControlSliderSpy = sinon.spy();
+      updateVideoControlSlider = updateVideoControlSliderSpy;
+    });
+
+    suiteTeardown(function() {
+      updateVideoControlSlider = nativeUpdateVideoControlSlider;
+    });
+
+    teardown(function() {
+      updateVideoControlSliderSpy.reset();
+    });
+
+    /**
+     * On tablet in landscape mode, we always shows the video controls in list
+     * layout. Therefore, in this use case setControlsVisibility will update
+     * video controls slider.
+     */
+    test('#setControlsVisibility: tablet in landscape mode, list view',
+        function() {
+      isPhone = false;
+      isPortrait = false;
+      currentLayoutMode = LAYOUT_MODE.list;
+      setControlsVisibility(false);
+      assert.isTrue(updateVideoControlSliderSpy.calledOnce);
+    });
+
+    /**
+     * On tablet in portrait mode, regardless of the view,
+     * setControlsVisibility will show video controls based on the 'visible'
+     * argument. And therefore, setControlsVisibility will update the video
+     * controls slider based on the value of the 'visible' argument.
+     */
+    test('#setControlsVisibility: tablet in portrait mode, show controls',
+        function() {
+      isPhone = false;
+      isPortrait = true;
+      currentLayoutMode = LAYOUT_MODE.list;
+      setControlsVisibility(true);
+      assert.isTrue(updateVideoControlSliderSpy.calledOnce);
+    });
+
+    /**
+     * On tablet in portrait mode, regardless of the view,
+     * setControlsVisibility will show video controls based on the 'visible'
+     * argument. And therefore, setControlsVisibility will update the video
+     * controls slider based on the value of the 'visible' argument.
+     */
+    test('#setControlsVisibility: tablet in portrait mode, dont show controls',
+        function() {
+      isPhone = false;
+      isPortrait = true;
+      currentLayoutMode = LAYOUT_MODE.list;
+      setControlsVisibility(false);
+      assert.equal(updateVideoControlSliderSpy.callCount, 0);
+    });
+
+    /**
+     * On phone, regardless of the view, setControlsVisibility will show
+     * video controls based on the 'visible' argument. And therefore,
+     * setControlsVisibility will update the video controls slider based on
+     * the value of the 'visible' argument.
+     */
+    test('#setControlsVisibility: phone, landscape, list view, show controls',
+        function() {
+      isPhone = true;
+      isPortrait = false;
+      currentLayoutMode = LAYOUT_MODE.list;
+      setControlsVisibility(true);
+      assert.isTrue(updateVideoControlSliderSpy.calledOnce);
+    });
+
+    test('#setControlsVisibility: phone, portrait, list view, show controls',
+        function() {
+      isPhone = true;
+      isPortrait = true;
+      currentLayoutMode = LAYOUT_MODE.list;
+      setControlsVisibility(true);
+      assert.isTrue(updateVideoControlSliderSpy.calledOnce);
+    });
+
+    test('#setControlsVisibility: phone, portrait, fullscreen, show controls',
+        function() {
+      isPhone = true;
+      isPortrait = false;
+      currentLayoutMode = LAYOUT_MODE.fullscreen;
+      setControlsVisibility(true);
+      assert.isTrue(updateVideoControlSliderSpy.calledOnce);
+    });
+
+    test('#setControlsVisibility: phone, landscape, list, no show controls',
+        function() {
+      isPhone = true;
+      isPortrait = false;
+      currentLayoutMode = LAYOUT_MODE.list;
+      setControlsVisibility(false);
+      assert.equal(updateVideoControlSliderSpy.callCount, 0);
+    });
+  });
+
+  suite('toggleVideoControls flows', function() {
+    var clearTimeoutSpy;
+    var setControlsVisibilitySpy;
+    var nativeSetControlsVisibility;
+    var event = {};
+
+    suiteSetup(function() {
+      clearTimeoutSpy = sinon.spy(window, 'clearTimeout');
+      clearTimeout = clearTimeoutSpy;
+      nativeSetControlsVisibility = setControlsVisibility;
+      setControlsVisibilitySpy = sinon.spy();
+      setControlsVisibility = setControlsVisibilitySpy;
+    });
+
+    suiteTeardown(function() {
+      clearTimeoutSpy.restore();
+    });
+
+    teardown(function() {
+      clearTimeoutSpy.reset();
+      setControlsVisibilitySpy.reset();
+    });
+
+    test('#toggleVideoControls: control fade timeout', function() {
+      controlFadeTimeout = 1;
+      toggleVideoControls(event);
+      assert.isTrue(clearTimeoutSpy.calledOnce);
+      assert.equal(controlFadeTimeout, null);
+    });
+
+    test('#toggleVideoControls: no control fade timeout', function() {
+      controlFadeTimeout = null;
+      toggleVideoControls(event);
+      assert.equal(clearTimeoutSpy.callCount, 0);
+      assert.equal(controlFadeTimeout, null);
+    });
+
+    test('#toggleVideoControls: toggle control showing', function() {
+      pendingPick = false;
+      controlShowing = false;
+      toggleVideoControls(event);
+      assert.isTrue(setControlsVisibilitySpy.calledOnce);
+      assert.isTrue(setControlsVisibilitySpy.calledWith(true));
+      assert.isTrue(event.cancelBubble);
+    });
+
+    test('#toggleVideoControls: toggle control not showing, target not vc',
+        function() {
+      pendingPick = false;
+      controlShowing = true;
+      event.originalTarget = 'some target';
+      toggleVideoControls(event);
+      assert.equal(setControlsVisibilitySpy.callCount, 0);
+    });
+
+    test('#toggleVideoControls: toggle control not showing, target vc',
+        function() {
+      pendingPick = false;
+      controlShowing = true;
+      event.originalTarget = dom.videoControls;
+      toggleVideoControls(event);
+      assert.isTrue(setControlsVisibilitySpy.calledOnce);
+      assert.isTrue(setControlsVisibilitySpy.calledWith(false));
+    });
+
+    test('#toggleVideoControls: pending pick, no toggle',
+        function() {
+      pendingPick = true;
+      toggleVideoControls(event);
+      assert.equal(setControlsVisibilitySpy.callCount, 0);
+    });
+  });
 });
