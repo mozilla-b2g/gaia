@@ -67,6 +67,7 @@ SystemAppBuilder.prototype.generateManifest = function() {
 };
 
 SystemAppBuilder.prototype.execute = function(options) {
+  utils.copyToStage(options);
   this.setOptions(options);
   this.initConfigJsons();
   if (options.HAIDA) {

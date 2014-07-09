@@ -5,6 +5,7 @@
 var utils = require('utils');
 
 function execute(config) {
+  utils.copyToStage(config);
   var distDir = config.GAIA_DISTRIBUTION_DIR;
 
   var file = utils.getFile(config.STAGE_APP_DIR, 'js', 'whitelist.json');

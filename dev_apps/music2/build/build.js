@@ -4,6 +4,7 @@
 var utils = require('utils');
 
 exports.execute = function(options) {
+  utils.copyToStage(options);
   var sharedPath = utils.gaia.getInstance(options).sharedFolder.path;
   var paths = [
     [sharedPath, 'js', 'blobview.js'],

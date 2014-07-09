@@ -62,6 +62,7 @@ WallPaperAppBuilder.prototype.copyWallpapers = function() {
 };
 
 WallPaperAppBuilder.prototype.execute = function(options) {
+  utils.copyToStage(options);
   this.setOptions(options);
 
   this.copyWallpapers();

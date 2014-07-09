@@ -14,6 +14,8 @@ let { Loader } = Cu.import(loaderURI, {});
 Cu.import('resource://gre/modules/Services.jsm');
 Cu.import('resource://gre/modules/FileUtils.jsm');
 
+let options = JSON.parse(env.get('BUILD_CONFIG'));
+
 var CommonjsRunner = function(module) {
   const GAIA_DIR = env.get('GAIA_DIR');
   const APP_DIR = env.get('APP_DIR');
@@ -40,6 +42,14 @@ var CommonjsRunner = function(module) {
     paths['app/'] = Services.io.newFileURI(appBuildDirFile).asciiSpec;
   }
 
+  options.GAIA_APPDIRS.split(' ').forEach(function(appDir) {
+    let appDirFile = new FileUtils.File(appDir);
+    let appBuildDirFile = appDirFile.clone();
+    appBuildDirFile.append('build');
+    paths[appDirFile.leafName + '/'] =
+      Services.io.newFileURI(appBuildDirFile).asciiSpec + '/';
+  });
+
   let loader = Loader.Loader({
     paths: paths,
     modules: {
@@ -57,7 +67,6 @@ CommonjsRunner.prototype.run = function() {
   var output = '';
   // Move this code here, to simplify the Makefile...
   try {
-    let options = JSON.parse(env.get('BUILD_CONFIG'));
     // ...and to allow doing easily such thing \o/
     if (this.appDirFile) {
       var stageAppDir = this.gaiaDirFile.clone();

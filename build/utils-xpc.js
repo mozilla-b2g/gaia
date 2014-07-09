@@ -464,6 +464,15 @@ function copyDirTo(path, toParent, name, override) {
   });
 }
 
+function copyToStage(options) {
+  var stageAppDir = getFile(options.STAGE_APP_DIR);
+  var appDir = getFile(options.APP_DIR);
+  if (stageAppDir.exists()) {
+    stageAppDir.remove(true);
+  }
+  copyDirTo(appDir, options.STAGE_DIR, appDir.leafName);
+}
+
 /**
  * create standard XMLHttpRequest object.
  * Note: this function is a wrapper function  for node.js
@@ -891,6 +900,7 @@ exports.mkdirs = mkdirs;
 exports.joinPath = joinPath;
 exports.copyFileTo = copyFileTo;
 exports.copyDirTo = copyDirTo;
+exports.copyToStage = copyToStage;
 exports.createXMLHttpRequest = createXMLHttpRequest;
 exports.downloadJSON = downloadJSON;
 exports.readJSONFromPath = readJSONFromPath;
