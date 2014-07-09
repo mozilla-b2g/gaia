@@ -33,6 +33,7 @@
       for (var i = 0, iLen = event.target.result.length; i < iLen; i++) {
         this.makeIcons(event.target.result[i]);
       }
+      console.log('MozApps DONE!!!');
     }.bind(this);
 
     /**
