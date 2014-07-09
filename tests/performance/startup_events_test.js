@@ -10,6 +10,7 @@ var appPath = mozTestInfo.appPath;
 
 var whitelistedApps = [
   'communications/contacts',
+  'communications/dialer',
   'camera',
   'clock',
   'email',
@@ -17,7 +18,7 @@ var whitelistedApps = [
   'gallery',
   'settings',
   'sms',
-  'communications/dialer'
+  'video'
 ];
 
 var whitelistedUnifiedApps = [
@@ -25,7 +26,8 @@ var whitelistedUnifiedApps = [
   'email',
   'fm',
   'gallery',
-  'settings'
+  'settings',
+  'video'
 ];
 
 function contains(haystack, needle) {
