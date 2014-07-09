@@ -1,5 +1,4 @@
-/* global SettingsListener, AttentionScreen,
-          OrientationManager, StatusBar */
+/* global SettingsListener, OrientationManager, StatusBar */
 'use strict';
 
 (function(exports) {
@@ -429,17 +428,6 @@
       this.destroy();
     }
 
-    // Remove previous -> next reference.
-    if (this.previousWindow) {
-      this.previousWindow.unsetNextWindow();
-      this.previousWindow = null;
-    }
-
-    // Remove rear -> front reference.
-    if (this.rearWindow) {
-      this.rearWindow.unsetFrontWindow();
-      this.rearWindow = null;
-    }
     /**
      * Fired when the instance is terminated.
      * @event AppWindow#appterminated
@@ -465,6 +453,17 @@
      * Fired before the instance id destroyed.
      * @event AppWindow#appwilldestroy
      */
+    // Remove previous -> next reference.
+    if (this.previousWindow) {
+      this.previousWindow.unsetNextWindow();
+      this.previousWindow = null;
+    }
+
+    // Remove rear -> front reference.
+    if (this.rearWindow) {
+      this.rearWindow.unsetFrontWindow();
+      this.rearWindow = null;
+    }
     this.publish('willdestroy');
     this.uninstallSubComponents();
     if (this.element) {
@@ -623,8 +622,7 @@
      'mozbrowsertitlechange', 'mozbrowserlocationchange',
      'mozbrowsericonchange', 'mozbrowserasyncscroll',
      '_localized', '_swipein', '_swipeout', '_kill_suspended',
-     'popupterminated', 'activityterminated', 'activityclosing',
-     'popupclosing', 'activityopened', '_orientationchange', '_focus'];
+     '_orientationchange', '_focus'];
 
   AppWindow.SUB_COMPONENTS = {
     'transitionController': window.AppTransitionController,
@@ -903,10 +901,9 @@
 
     // WebAPI testing is using mozbrowserloadend event to know
     // the first app is loaded so we cannot stop the propagation here.
-    // When an activity is killed we remove the rearWindow reference first
     // but we don't want subsequent mozbrowser events to bubble to the
     // used-to-be-rear-window
-    if (this.rearWindow || this._killed) {
+    if (this.rearWindow && evt.type.startsWith('mozbrowser')) {
       evt.stopPropagation();
     }
     this.debug(' Handling ' + evt.type + ' event...');
@@ -1763,48 +1760,6 @@
   AppWindow.prototype.getFrameForScreenshot = function() {
     var top = this.getTopMostWindow();
     return top.browser ? top.browser.element : null;
-  };
-
-  AppWindow.prototype._handle_activityterminated = function() {
-    this.frontWindow = null;
-  };
-
-  AppWindow.prototype._handle_popupterminated = function() {
-    this.frontWindow = null;
-  };
-
-  /**
-   * Restore visibility and orientation when the embedded window
-   * is closing.
-   */
-  AppWindow.prototype._handle_activityclosing = function() {
-    // Do nothing if we are not active or we are being killing.
-    if (!this.isVisible() || this._killed) {
-      return;
-    }
-
-    this.lockOrientation();
-    // XXX: Refine this in attention-window refactor.
-    if (!AttentionScreen.isFullyVisible()) {
-      this.setVisible(true);
-    }
-  };
-
-  /**
-   * Restore visibility and orientation when the embedded window
-   * is closing.
-   */
-  AppWindow.prototype._handle_popupclosing = function() {
-    // Do nothing if we are not active or we are being killing.
-    if (!this.isVisible() || this._killed) {
-      return;
-    }
-
-    this.lockOrientation();
-    // XXX: Refine this in attention-window refactor.
-    if (!AttentionScreen.isFullyVisible()) {
-      this.setVisible(true);
-    }
   };
 
   /**
