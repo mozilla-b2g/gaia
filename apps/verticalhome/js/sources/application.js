@@ -138,7 +138,7 @@
 
       for (i = 0, iLen = this.entries.length; i < iLen; i++) {
         var entry = this.entries[i];
-        var manifest = entry.updateManifest || entry.manifest;
+        var manifest = entry.app.updateManifest || entry.app.manifest;
 
         if (!appIconsByManifestUrl[entry.detail.manifestURL] &&
             !manifest.entry_points) {
