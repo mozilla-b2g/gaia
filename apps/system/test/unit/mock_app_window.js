@@ -73,6 +73,7 @@
     isFullScreen: function() {},
     _changeState: function() {},
     _setVisible: function() {},
+    _setVisibleForScreenReader: function() {},
     modifyURLatBackground: function() {},
     getFrameForScreenshot: function() { return this.browser.element; },
     getTopMostWindow: function() { return this; },

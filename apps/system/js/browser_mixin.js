@@ -157,6 +157,20 @@
     },
 
     /**
+     * Set aria-hidden attribute on browser's element to handle its screen
+     * reader visibility.
+     * @type {Boolean} visible A flag indicating if the element should be screen
+     * reader visible.
+     */
+    _setVisibleForScreenReader:
+      function bm__setVisibleForScreenReader(visible) {
+        if (this.browser && this.browser.element) {
+          this.debug('aria-hidden on browser element:' + !visible);
+          this.browser.element.setAttribute('aria-hidden', !visible);
+        }
+      },
+
+    /**
      * Fire a DOM Request to detect the history has previous page or not.
      * @param  {Function} callback Called when DOM Request is done.
      */

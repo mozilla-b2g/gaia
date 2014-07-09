@@ -249,6 +249,8 @@
       window.addEventListener('appopening', this);
       window.addEventListener('localized', this);
 
+      window.addEventListener('mozChromeEvent', this);
+
       this._settingsObserveHandler = {
         // continuous transition controlling
         'continuous-transition.enabled': {
@@ -322,6 +324,7 @@
       window.removeEventListener('permissiondialoghide', this);
       window.removeEventListener('appopening', this);
       window.removeEventListener('localized', this);
+      window.removeEventListener('mozChromeEvent', this);
 
       for (var name in this._settingsObserveHandler) {
         SettingsListener.unobserve(
@@ -544,10 +547,21 @@
           if (document.mozFullScreen) {
             document.mozCancelFullScreen();
           }
+          activeApp && activeApp.getTopMostWindow().broadcast(
+            'sheetstransitionstart');
           break;
 
         case 'localized':
           this.broadcastMessage('localized');
+          break;
+
+        case 'mozChromeEvent':
+          if (!activeApp || !evt.detail ||
+            evt.detail.type !== 'inputmethod-contextchange') {
+            return;
+          }
+          activeApp.getTopMostWindow().broadcast('inputmethod-contextchange',
+            evt.detail);
           break;
       }
     },
