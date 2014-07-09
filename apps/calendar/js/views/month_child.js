@@ -102,7 +102,7 @@
         var dayId = Calc.getDayId(date);
         var count = this._dayToBusyCount[dayId];
         this._setBusyCount(dayId, count + difference);
-      },this);
+      }, this);
     },
 
     _setBusyCount: function(dayId, count) {

@@ -382,14 +382,28 @@ suiteGroup('Views.MonthChild', function() {
   });
 
   suite('#_updateBusyCount', function() {
-    var busytime = { startDate: new Date('January 17, 1998') };
-    var dayId = Calendar.Calc.getDayId(busytime.startDate);
+    var busytime = {
+      startDate: new Date('January 17, 1998'),
+      endDate: new Date('January 20, 1998')
+    };
+    var dayIds = [];
     var stub;
 
     setup(function() {
+      var endDate = new Date(busytime.endDate.getTime() - 1000);
       stub = sinon.stub(subject, '_setBusyCount');
       subject._dayToBusyCount = Object.create(null);
-      subject._dayToBusyCount[dayId] = 2;
+
+      Calendar.Calc.daysBetween(
+        busytime.startDate,
+        endDate
+      ).forEach(function(date) {
+        dayIds.push(Calendar.Calc.getDayId(date));
+      });
+
+      dayIds.forEach(function(dayId) {
+        subject._dayToBusyCount[dayId] = 2;
+      });
     });
 
     teardown(function() {
@@ -398,8 +412,10 @@ suiteGroup('Views.MonthChild', function() {
 
     test('should update appropriate day', function() {
       subject._updateBusyCount(busytime, 1);
-      sinon.assert.calledOnce(stub);
-      sinon.assert.calledWith(stub, dayId, 3);
+      sinon.assert.calledThrice(stub);
+      dayIds.forEach(function(dayId, index) {
+        assert.ok(stub.getCall(index).calledWith(dayId, 3));
+      });
     });
   });
 
