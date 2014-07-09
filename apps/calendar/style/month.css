@@ -253,6 +253,12 @@ section.month .icon-dot:before {
   justify-content: center;
 }
 
+#months-day-view .event-time .all-day {
+  white-space: normal;
+  line-height: 1.4;
+  width: 7rem;
+}
+
 #months-day-view .start-time,
 #months-day-view .end-time {
   height: 2.5rem;
