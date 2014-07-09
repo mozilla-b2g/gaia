@@ -39,7 +39,7 @@ class System(Base):
         status_bar_x_center = int(icon_status_bar.size['width'] / 2)
         status_bar_y_center = int(icon_status_bar.size['height'] / 2)
 
-        Actions(self.marionette).flick(icon_status_bar, status_bar_x_center, status_bar_y_center, 0, 1000, 21).perform()
+        Actions(self.marionette).flick(icon_status_bar, status_bar_x_center, status_bar_y_center, 0, 500, 1).perform()
 
         from gaiatest.apps.system.regions.utility_tray import UtilityTray
         return UtilityTray(self.marionette)
