@@ -1,6 +1,6 @@
 'use strict';
 /*global MockNavigatormozApps, MockNavigatorSettings, MocksHelper, MockL10n*/
-/*global MockApplications*/
+/*global MockApplications, Applications*/
 
 requireApp('system/shared/js/async_storage.js');
 requireApp('system/shared/js/screen_layout.js');
@@ -43,7 +43,6 @@ requireApp('system/js/text_selection_dialog.js');
 requireApp('system/js/ttlview.js');
 requireApp('system/js/visibility_manager.js');
 requireApp('system/js/wallpaper_manager.js');
-requireApp('system/js/utility_tray_notifications.js');
 
 requireApp('system/test/unit/mock_airplane_mode.js');
 requireApp('system/test/unit/mock_applications.js');
@@ -52,7 +51,6 @@ requireApp('system/test/unit/mock_places.js');
 requireApp('system/test/unit/mock_screen_manager.js');
 requireApp('system/test/unit/mock_task_manager.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
-requireApp('system/test/unit/mock_navigator_moz_chromenotifications.js');
 
 var mocksForBootstrap = new MocksHelper([
   'AirplaneMode',
@@ -127,6 +125,34 @@ suite('system/Bootstrap', function() {
     document.documentElement.lang = realDocumentElementLang;
   });
 
+  suite('check for updates setting', function() {
+    var setting = 'gaia.system.checkForUpdates';
+    suite('after First Time User setup has been done', function() {
+      setup(function() {
+        MockNavigatorSettings.mSettings[setting] = false;
+        window.dispatchEvent(new CustomEvent('load'));
+        window.dispatchEvent(new CustomEvent('ftudone'));
+      });
+
+      test('should be enabled', function() {
+        assert.isTrue(MockNavigatorSettings.mSettings[setting]);
+      });
+    });
+
+    suite('at boot, if NOFTU is defined (i.e in DEBUG mode)', function() {
+      setup(function() {
+        Applications.ready = true;
+        MockNavigatorSettings.mSettings[setting] = false;
+        window.dispatchEvent(new CustomEvent('load'));
+        window.dispatchEvent(new CustomEvent('ftuskip'));
+      });
+
+      test('should be enabled', function() {
+        assert.isTrue(MockNavigatorSettings.mSettings[setting]);
+      });
+    });
+  });
+
   suite('check for insane devices beeing cancelled', function() {
     function createEvent(type) {
       var evt = new CustomEvent(type, { bubbles: true, cancelable: true });
@@ -150,88 +176,6 @@ suite('system/Bootstrap', function() {
 
     test('touchend should be preventDefaulted', function() {
       assert.ok(window.dispatchEvent(createEvent('touchend')) === false);
-    });
-  });
-  
-  suite('notifications component should send some events', function() {
-    var setting = 'notifications.resend';
-    var originalMozChromeNotifications =
-          window.navigator.mozChromeNotifications;
-    setup(function() {
-      window.navigator.mozChromeNotifications = {
-        'mozResendAllNotifications': function() {}
-      };
-      this.sinon.useFakeTimers();
-      MockNavigatorSettings.mSettings[setting] = true;
-      window.dispatchEvent(new CustomEvent('load'));
-    });
-
-    teardown(function() {
-      window.navigator.mozChromeNotifications =
-        originalMozChromeNotifications;
-    });
-
-    test('mozResendAllNotifications called' +
-         ' and the desktop-notification-resend event has been sent',
-    function() {
-      var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
-      var expectedEvent =
-        new CustomEvent('desktop-notification-resend');
-      var stubMozResendAllNotifications = this.sinon.stub(
-        window.navigator.mozChromeNotifications,
-        'mozResendAllNotifications', function(cb) {
-          cb();
-          assert.isTrue(stubDispatchEvent.calledWithMatch(function(e) {
-            return expectedEvent.type === e.type;
-          }), 'it didn\'t send the event');
-        });
-      this.sinon.clock.tick();
-      assert.ok(stubMozResendAllNotifications.calledOnce,
-        'it didn\'t call to resend all notifications'
-      );
-      window.navigator.mozChromeNotifications =
-        originalMozChromeNotifications;
-    });
-  });
-
-  suite('or if settings is false it should not send', function() {
-    var setting = 'notifications.resend';
-    var originalMozChromeNotifications =
-          window.navigator.mozChromeNotifications;
-    setup(function() {
-      window.navigator.mozChromeNotifications = {
-        'mozResendAllNotifications': function() {}
-      };
-      this.sinon.useFakeTimers();
-      MockNavigatorSettings.mSettings[setting] = false;
-      window.dispatchEvent(new CustomEvent('load'));
-    });
-
-    teardown(function() {
-      window.navigator.mozChromeNotifications =
-        originalMozChromeNotifications;
-    });
-
-    test('mozResendAllNotifications was NOT called' +
-         ' and the desktop-notification-resend event has been sent',
-    function() {
-      var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
-      var expectedEvent =
-        new CustomEvent('desktop-notification-resend');
-      var stubMozResendAllNotifications = this.sinon.stub(
-        window.navigator.mozChromeNotifications,
-        'mozResendAllNotifications', function(cb) {
-          cb();
-          assert.isFalse(stubDispatchEvent.calledWithMatch(function(e) {
-            return expectedEvent.type === e.type;
-          }), 'it did send the event');
-        });
-      this.sinon.clock.tick();
-      assert.equal(stubMozResendAllNotifications.calledOnce, false,
-        'it didn call to resend all notifications'
-      );
-      window.navigator.mozChromeNotifications =
-        originalMozChromeNotifications;
     });
   });
 });

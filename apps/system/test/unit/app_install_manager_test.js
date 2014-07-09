@@ -4,6 +4,7 @@ requireApp('system/test/unit/mock_app.js');
 requireApp('system/test/unit/mock_chrome_event.js');
 requireApp('system/test/unit/mock_statusbar.js');
 requireApp('system/test/unit/mock_system_banner.js');
+requireApp('system/test/unit/mock_notification_screen.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_utility_tray.js');
 requireApp('system/test/unit/mock_modal_dialog.js');
@@ -22,6 +23,7 @@ requireApp('system/js/app_install_manager.js');
 var mocksForAppInstallManager = new MocksHelper([
   'StatusBar',
   'SystemBanner',
+  'NotificationScreen',
   'Applications',
   'UtilityTray',
   'ModalDialog',
@@ -661,28 +663,23 @@ suite('system/AppInstallManager >', function() {
           assert.equal(fakeNotif.childElementCount, 0);
         });
 
-        var stubDispatch;
         suite('on downloadsuccess >', function() {
-          stubDispatch = this.sinon.stub(window, 'dispatchEvent');
           setup(function() {
             // reseting these mocks as we want to test only one call
+            MockNotificationScreen.mTeardown();
             MockStatusBar.mTeardown();
 
             mockApp.mTriggerDownloadSuccess();
           });
 
           test('should not remove a notification', function() {
-            var matcher = function(event) {
-              return 'notification-remove' === event.type;
-            };
-            assert.notOk(stubDispatch.calledWith(matcher));
+            var method = 'decExternalNotifications';
+            assert.isUndefined(MockNotificationScreen.wasMethodCalled[method]);
           });
 
           test('should not remove the download icon', function() {
-            var matcher = function(event) {
-              return 'notification-descrease' === event.type;
-            };
-            assert.notOk(stubDispatch.calledWith(matcher));
+            var method = 'decSystemDownloads';
+            assert.isUndefined(MockStatusBar.wasMethodCalled[method]);
           });
 
           test('should display a confirmation', function() {
@@ -693,19 +690,17 @@ suite('system/AppInstallManager >', function() {
         });
 
         suite('on downloaderror >', function() {
-          var stubDispatch;
           setup(function() {
-            stubDispatch = this.sinon.stub(window, 'dispatchEvent');
             // reseting these mocks as we want to test only one call
+            MockNotificationScreen.mTeardown();
             MockStatusBar.mTeardown();
+
             mockApp.mTriggerDownloadError();
           });
 
           test('should not remove a notification', function() {
-            var matcher = function(event) {
-              return 'notification-remove' === event.type;
-            };
-            assert.notOk(stubDispatch.calledWith(matcher));
+            var method = 'decExternalNotifications';
+            assert.isUndefined(MockNotificationScreen.wasMethodCalled[method]);
           });
 
           test('should not remove the download icon', function() {
@@ -811,22 +806,19 @@ suite('system/AppInstallManager >', function() {
         suiteName += ' >';
 
         suite(suiteName, function() {
-          var stubDispatch;
           setup(function() {
-            stubDispatch = this.sinon.stub(window, 'dispatchEvent');
             // reseting these mocks as we want to test only the following
             // calls
+            MockNotificationScreen.mTeardown();
             MockStatusBar.mTeardown();
 
             mockApp.mTriggerDownloadProgress(NaN);
           });
 
           test('should add a notification', function() {
+            var method = 'incExternalNotifications';
             assert.equal(fakeNotif.childElementCount, 1);
-            var matcher = function(event) {
-              return 'notification-add' === event.type;
-            };
-            assert.ok(stubDispatch.calledWith(matcher));
+            assert.ok(MockNotificationScreen.wasMethodCalled[method]);
           });
 
           test('notification should have a message', function() {
@@ -851,11 +843,9 @@ suite('system/AppInstallManager >', function() {
             });
 
             test('should remove the notif', function() {
+              var method = 'decExternalNotifications';
               assert.equal(fakeNotif.childElementCount, 0);
-              var matcher = function(event) {
-                return 'notification-descrease' === event.type;
-              };
-              assert.ok(stubDispatch.calledWith(matcher));
+              assert.ok(MockNotificationScreen.wasMethodCalled[method]);
             });
 
             test('should release the wifi wake lock', function() {
@@ -915,10 +905,7 @@ suite('system/AppInstallManager >', function() {
             test('should remove the notif', function() {
               var method = 'decExternalNotifications';
               assert.equal(fakeNotif.childElementCount, 0);
-              var matcher = function(event) {
-                return 'notification-descrease' === event.type;
-              };
-              assert.ok(stubDispatch.calledWith(matcher));
+              assert.ok(MockNotificationScreen.wasMethodCalled[method]);
             });
 
             test('should release the wifi wake lock', function() {
@@ -964,21 +951,18 @@ suite('system/AppInstallManager >', function() {
 
       suite('on first progress >', function() {
         var newprogress = 5;
-        var stubDispatch;
+
         setup(function() {
-          stubDispatch = this.sinon.stub(window, 'dispatchEvent');
           // resetting this mock because we want to test only the
           // following call
+          MockNotificationScreen.mTeardown();
           mockApp.mTriggerDownloadProgress(newprogress);
         });
 
         test('should add a notification', function() {
           var method = 'incExternalNotifications';
           assert.equal(fakeNotif.childElementCount, 1);
-          var matcher = function(event) {
-            return 'notification-increase' === event.type;
-          };
-          assert.ok(stubDispatch.calledWith(matcher));
+          assert.ok(MockNotificationScreen.wasMethodCalled[method]);
         });
 
         test('notification should have a message', function() {
@@ -1032,11 +1016,11 @@ suite('system/AppInstallManager >', function() {
 
         suite(suiteName, function() {
           var newprogress = 5;
-          var stubDispatch;
+
           setup(function() {
-            stubDispatch = this.sinon.stub(window, 'dispatchEvent');
             // resetting this mock because we want to test only the
             // following call
+            MockNotificationScreen.mTeardown();
             MockSystemBanner.mTeardown();
             mockApp.mTriggerDownloadProgress(newprogress);
           });
@@ -1044,10 +1028,7 @@ suite('system/AppInstallManager >', function() {
           test('should add a notification', function() {
             var method = 'incExternalNotifications';
             assert.equal(fakeNotif.childElementCount, 1);
-            var matcher = function(event) {
-              return 'notification-increase' === event.type;
-            };
-            assert.ok(stubDispatch.calledWith(matcher));
+            assert.ok(MockNotificationScreen.wasMethodCalled[method]);
           });
 
           test('notification should have a message', function() {
@@ -1081,11 +1062,9 @@ suite('system/AppInstallManager >', function() {
             });
 
             test('should remove the notif', function() {
+              var method = 'decExternalNotifications';
               assert.equal(fakeNotif.childElementCount, 0);
-              var matcher = function(event) {
-                return 'notification-descrease' === event.type;
-              };
-              assert.ok(stubDispatch.calledWith(matcher));
+              assert.ok(MockNotificationScreen.wasMethodCalled[method]);
             });
 
             test('should release the wifi wake lock', function() {
@@ -1142,11 +1121,9 @@ suite('system/AppInstallManager >', function() {
             });
 
             test('should remove the notif', function() {
+              var method = 'decExternalNotifications';
               assert.equal(fakeNotif.childElementCount, 0);
-              var matcher = function(event) {
-                return 'notification-descrease' === event.type;
-              };
-              assert.ok(stubDispatch.calledWith(matcher));
+              assert.ok(MockNotificationScreen.wasMethodCalled[method]);
             });
 
             test('should release the wifi wake lock', function() {
@@ -1201,21 +1178,18 @@ suite('system/AppInstallManager >', function() {
       });
 
       suite('on first progress >', function() {
-        var stubDispatch;
         setup(function() {
-          stubDispatch = this.sinon.stub(window, 'dispatchEvent');
           // resetting this mock because we want to test only the
           // following call
+          MockNotificationScreen.mTeardown();
           MockSystemBanner.mTeardown();
           mockApp.mTriggerDownloadProgress(5);
         });
 
         test('should add a notification', function() {
+          var method = 'incExternalNotifications';
           assert.equal(fakeNotif.childElementCount, 1);
-          var matcher = function(event) {
-            return 'notification-increase' === event.type;
-          };
-          assert.ok(stubDispatch.calledWith(matcher));
+          assert.ok(MockNotificationScreen.wasMethodCalled[method]);
         });
       });
     });
@@ -1285,9 +1259,8 @@ suite('system/AppInstallManager >', function() {
 
   suite('restarting after reboot >', function() {
     var mockApp, installedMockApp;
-    var stubDispatch;
+
     setup(function() {
-      stubDispatch = this.sinon.stub(window, 'dispatchEvent');
       mockApp = new MockApp({
         updateManifest: null,
         installState: 'pending'
@@ -1312,19 +1285,15 @@ suite('system/AppInstallManager >', function() {
 
       var method = 'incExternalNotifications';
       assert.equal(fakeNotif.childElementCount, 1);
-      var matcher = function(event) {
-        return 'notification-increase' === event.type;
-      };
-      assert.ok(stubDispatch.calledWith(matcher));
+      assert.ok(MockNotificationScreen.wasMethodCalled[method]);
     });
 
     test('should not add a notification for the installed app', function() {
       installedMockApp.mTriggerDownloadProgress(50);
+
+      var method = 'incExternalNotifications';
       assert.equal(fakeNotif.childElementCount, 0);
-      var matcher = function(event) {
-        return 'notification-increase' === event.type;
-      };
-      assert.notOk(stubDispatch.calledWith(matcher));
+      assert.isUndefined(MockNotificationScreen.wasMethodCalled[method]);
     });
   });
 

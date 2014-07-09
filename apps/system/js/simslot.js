@@ -1,6 +1,6 @@
 'use strict';
 
-(function(exports) {
+(function(window) {
   var _start = Date.now();
   var DEBUG = false;
 
@@ -17,7 +17,7 @@
    *                         i.e., SIM card.
    * @property {Number} index The slot number of this SIM slot.
    */
-  var SIMSlot = function SIMSlot(conn, index, card) {
+  window.SIMSlot = function SIMSlot(conn, index, card) {
     this.index = index;
     this.conn = conn;
     if (card) {
@@ -134,6 +134,4 @@
   SIMSlot.prototype.isLocked = function ss_isLocked() {
     return this.constructor.LOCK_TYPES.indexOf(this.simCard.cardState) >= 0;
   };
-  /** @global SIMSlot */
-  exports.SIMSlot = SIMSlot;
-})(window);
+}(this));

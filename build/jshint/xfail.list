@@ -367,6 +367,7 @@ apps/system/js/keyboard_manager.js
 apps/system/js/lockscreen_connection_info_manager.js
 apps/system/js/media_playback.js
 apps/system/js/modal_dialog.js
+apps/system/js/notifications.js
 apps/system/js/operator_variant/operator_variant.js
 apps/system/js/operator_variant/operator_variant_iccs.js
 apps/system/js/orientation_manager.js

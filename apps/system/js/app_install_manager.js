@@ -436,7 +436,7 @@ var AppInstallManager = {
     }
 
     appInfo.installNotification = newNode;
-    window.dispatchEvent(new window.CustomEvent('notification-increase'));
+    NotificationScreen.incExternalNotifications();
   },
 
   getNotificationProgressNode: function ai_getNotificationProgressNode(app) {
@@ -488,7 +488,7 @@ var AppInstallManager = {
 
     node.parentNode.removeChild(node);
     delete appInfo.installNotification;
-    window.dispatchEvent(new window.CustomEvent('notification-descrease'));
+    NotificationScreen.decExternalNotifications();
   },
 
   requestWifiLock: function ai_requestWifiLock(app) {

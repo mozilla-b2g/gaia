@@ -48,7 +48,7 @@ var DeviceStorageWatcher = {
     this._lowDeviceStorage = false;
     if (this._container.classList.contains('displayed')) {
       this._container.classList.remove('displayed');
-      window.dispatchEvent(new window.Event('notification-descrease'));
+      NotificationScreen.decExternalNotifications();
     }
   },
 
@@ -56,7 +56,7 @@ var DeviceStorageWatcher = {
     this._lowDeviceStorage = true;
     if (!this._container.classList.contains('displayed')) {
       this._container.classList.add('displayed');
-      window.dispatchEvent(new window.Event('notification-increase'));
+      NotificationScreen.incExternalNotifications();
     }
   },
 

@@ -21,6 +21,7 @@ requireApp('system/test/unit/mock_asyncStorage.js');
 var mocksForUpdateManager = new MocksHelper([
   'StatusBar',
   'SystemBanner',
+  'NotificationScreen',
   'UtilityTray',
   'CustomDialog',
   'SystemUpdatable',
@@ -559,23 +560,17 @@ suite('system/UpdateManager', function() {
       });
 
       suite('notification behavior after addToDownloadsQueue', function() {
-        var stubDispatch;
         setup(function() {
           var css = UpdateManager.container.classList;
-          stubDispatch = this.sinon.stub(window, 'dispatchEvent');
           UpdateManager.addToDownloadsQueue(uAppWithDownloadAvailable);
-        });
-
-        teardown(function() {
-          stubDispatch.restore();
         });
 
         test('should be displayed only once', function() {
           var css = UpdateManager.container.classList;
           assert.isTrue(css.contains('displayed'));
-          assert.isTrue(stubDispatch.calledWithMatch(function(e) {
-            return 'notification-increase' === e.type;
-          }));
+          assert.equal(
+            MockNotificationScreen.wasMethodCalled['incExternalNotifications'],
+            1);
         });
 
         test('should not be displayed again after timeout', function() {
@@ -583,48 +578,38 @@ suite('system/UpdateManager', function() {
 
           var css = UpdateManager.container.classList;
           assert.isTrue(css.contains('displayed'));
-          assert.isTrue(stubDispatch.calledWithMatch(function(e) {
-            return 'notification-increase' === e.type;
-          }));
+          assert.equal(
+            MockNotificationScreen
+              .wasMethodCalled['incExternalNotifications'],
+            1);
         });
       });
 
       suite('notification behavior after addToDownloadsQueue after timeout',
         function() {
-          var stubDispatch;
-
         // context is: uAppWithDownloadAvailable was added to updates queue
-        setup(function() {
-          this.sinon.clock.tick(tinyTimeout);
-          stubDispatch = this.sinon.stub(window, 'dispatchEvent');
-          UpdateManager.addToDownloadsQueue(uAppWithDownloadAvailable);
-        });
+          setup(function() {
+            this.sinon.clock.tick(tinyTimeout);
 
-        teardown(function() {
-          stubDispatch.restore();
-        });
+            UpdateManager.addToDownloadsQueue(uAppWithDownloadAvailable);
+          });
 
         test('should not increment the counter if already displayed',
           function() {
             var css = UpdateManager.container.classList;
             assert.isTrue(css.contains('displayed'));
-            assert.isFalse(stubDispatch.calledWithMatch(function(e) {
-              return 'notification-increase' === e.type;
-            }));
+            assert.equal(
+              MockNotificationScreen
+                .wasMethodCalled['incExternalNotifications'],
+              1);
           });
         });
 
       suite('displaying the container after a timeout', function() {
         // context is: uAppWithDownloadAvailable was added to updates queue
-        var stubDispatch;
         setup(function() {
-          stubDispatch = this.sinon.stub(window, 'dispatchEvent');
           var css = UpdateManager.container.classList;
           assert.isFalse(css.contains('displayed'));
-        });
-
-        teardown(function() {
-          stubDispatch.restore();
         });
 
         test('should display after a timeout', function() {
@@ -632,9 +617,10 @@ suite('system/UpdateManager', function() {
 
           var css = UpdateManager.container.classList;
           assert.isTrue(css.contains('displayed'));
-          assert.isTrue(stubDispatch.calledWithMatch(function(e) {
-            return 'notification-increase' === e.type;
-          }));
+          assert.equal(
+            MockNotificationScreen
+              .wasMethodCalled['incExternalNotifications'],
+            1);
         });
 
         test('should not display if there are no more updates', function() {
@@ -700,23 +686,16 @@ suite('system/UpdateManager', function() {
 
         test('should add a new statusbar notification', function() {
           this.sinon.clock.tick(tinyTimeout);
-          assert.isTrue(stubDispatch.calledWithMatch(function(e) {
-            return 'notification-increase' === e.type;
-          }));
+          var method1 = 'incExternalNotifications';
+          assert.ok(MockNotificationScreen.wasMethodCalled[method1]);
         });
       });
 
       suite('no more updates', function() {
-        var stubDispatch;
         setup(function() {
-          stubDispatch = this.sinon.stub(window, 'dispatchEvent');
           UpdateManager.container.classList.add('displayed');
           UpdateManager.updatesQueue = [uAppWithDownloadAvailable];
           UpdateManager.removeFromUpdatesQueue(uAppWithDownloadAvailable);
-        });
-
-        teardown(function() {
-          stubDispatch.restore();
         });
 
         test('should hide the container', function() {
@@ -725,9 +704,8 @@ suite('system/UpdateManager', function() {
         });
 
         test('should decrease the external notifications count', function() {
-          assert.isTrue(stubDispatch.calledWithMatch(function(e) {
-            return 'notification-descrease' === e.type;
-          }));
+          var method1 = 'decExternalNotifications';
+          assert.ok(MockNotificationScreen.wasMethodCalled[method1]);
         });
       });
     });

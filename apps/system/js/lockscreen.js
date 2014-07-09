@@ -238,19 +238,6 @@
         window.removeEventListener('touchend', this);
         this.overlay.classList.remove('touched');
         break;
-      case 'lockscreen-notification-occur':
-        // when we have notifications, show bgcolor from wallpaper
-        // remove the simple gradient at the same time
-        this.maskedBackground.style.backgroundColor =
-          this.maskedBackground.dataset.wallpaperColor;
-
-        this.maskedBackground.classList.remove('blank');
-        break;
-      case 'lockscreen-notification-empty':
-        this.maskedBackground.style.backgroundColor =
-          'transparent';
-        this.maskedBackground.classList.add('blank');
-        break;
       case 'transitionend':
         if (evt.target !== this.overlay) {
           return;
@@ -424,10 +411,6 @@
     window.addEventListener('holdhome', this, true);
 
     window.addEventListener('ftuopen', this);
-
-    /* to change the notification background color */
-    window.addEventListener('lockscreen-notification-occur', this);
-    window.addEventListener('lockscreen-notification-empty', this);
 
     /* mobile connection state on lock screen */
     if (window.navigator.mozMobileConnections) {

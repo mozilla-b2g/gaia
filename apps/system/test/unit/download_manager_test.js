@@ -4,12 +4,14 @@ require('/shared/test/unit/mocks/mock_lazy_loader.js');
 requireApp('system/test/unit/mock_navigator_moz_download_manager.js');
 requireApp('system/test/unit/mock_download_notification.js');
 requireApp('system/test/unit/mock_download_formatter.js');
+requireApp('system/test/unit/mock_notification_screen.js');
 
 requireApp('system/js/download/download_manager.js');
 
 var mocksForDownloadManager = new MocksHelper([
   'DownloadNotification',
   'DownloadFormatter',
+  'NotificationScreen',
   'LazyLoader'
 ]).init();
 

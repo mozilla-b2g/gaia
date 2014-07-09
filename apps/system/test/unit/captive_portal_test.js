@@ -10,6 +10,7 @@ requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/test/unit/mock_wifi_manager.js');
 requireApp('system/test/unit/mock_activity.js');
+requireApp('system/test/unit/mock_notification_screen.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
 
 requireApp('system/js/browser_frame.js');
@@ -19,6 +20,7 @@ requireApp('system/js/ftu_launcher.js');
 
 var mocksForCaptivePortal = new MocksHelper([
   'SettingsListener',
+  'NotificationScreen',
   'AppWindowManager'
 ]).init();
 
@@ -49,11 +51,6 @@ suite('captive portal > ', function() {
       console.log('Access MozActivity failed, passed realActivity assignment');
     }
     window.MozActivity = MockMozActivity;
-    window.utilityTrayNotifications = {
-      createNotification: function() {
-        return document.createElement('div');
-      }
-    };
 
     fakeScreenNode = document.createElement('div');
     fakeScreenNode.id = 'screen';
@@ -95,69 +92,23 @@ suite('captive portal > ', function() {
   });
 
   test('system/captive portal login', function() {
-    var stubDispatch = this.sinon.stub(window, 'dispatchEvent', function(e) {
-      if ('notification-add' === e.type) {
-        e.detail.onsuccess(document.createElement('div'));
-      }
-    });
     CaptivePortal.handleEvent(event);
-    assert.isTrue(stubDispatch.calledWithMatch(function(e) {
-      return 'notification-add' === e.type;
-    }));
+    assert.ok(MockNotificationScreen.wasMethodCalled['addNotification']);
   });
 
   test('system/captive portal login success', function() {
-    var stubDispatch = this.sinon.stub(window, 'dispatchEvent', function(e) {
-      if ('notification-add' === e.type) {
-        e.detail.onsuccess(document.createElement('div'));
-      }
-    });
-
-    // To satisify the test condition only.
-    var notiParent = document.createElement('div');
-    var notification = document.createElement('div');
-    notiParent.appendChild(notification);
-    CaptivePortal.notification = notification;
     CaptivePortal.handleEvent(successEvent);
-    assert.isTrue(stubDispatch.calledWithMatch(function(e) {
-      return 'notification-remove' === e.type;
-    }));
+    assert.ok(MockNotificationScreen.wasMethodCalled['removeNotification']);
   });
 
   test('system/captive portal login again', function() {
-    var stubDispatch = this.sinon.stub(window, 'dispatchEvent', function(e) {
-      if ('notification-add' === e.type) {
-        e.detail.onsuccess(document.createElement('div'));
-      }
-    });
-
-    // To satisify the test condition only.
-    var notiParent = document.createElement('div');
-    var notification = document.createElement('div');
-    notiParent.appendChild(notification);
-    CaptivePortal.notification = notification;
     CaptivePortal.handleEvent(event);
-    assert.isTrue(stubDispatch.calledWithMatch(function(e) {
-      return 'notification-add' === e.type;
-    }));
+    assert.ok(MockNotificationScreen.wasMethodCalled['addNotification']);
   });
 
   test('system/captive portal login abort', function() {
-    var stubDispatch = this.sinon.stub(window, 'dispatchEvent', function(e) {
-      if ('notification-add' === e.type) {
-        e.detail.onsuccess(document.createElement('div'));
-      }
-    });
-
-    // To satisify the test condition only.
-    var notiParent = document.createElement('div');
-    var notification = document.createElement('div');
-    notiParent.appendChild(notification);
-    CaptivePortal.notification = notification;
     CaptivePortal.handleEvent(abortEvent);
-    assert.isTrue(stubDispatch.calledWithMatch(function(e) {
-      return 'notification-remove' === e.type;
-    }));
+    assert.ok(MockNotificationScreen.wasMethodCalled['removeNotification']);
   });
 
   test('system/captive portal while FTU running..', function() {

@@ -3,10 +3,15 @@
 requireApp('system/js/carrier_info_notifier.js');
 requireApp('system/test/unit/mock_modal_dialog.js');
 requireApp('system/test/unit/mock_system.js');
+requireApp('system/test/unit/mock_notification_screen.js');
 requireApp('system/test/unit/mock_l10n.js');
 
 if (typeof window.ModalDialog == 'undefined') {
   window.ModalDialog = null;
+}
+
+if (typeof window.NotificationScreen == 'undefined') {
+  window.NotificationScreen = null;
 }
 
 suite('carrier info notifier >', function() {
@@ -14,6 +19,7 @@ suite('carrier info notifier >', function() {
 
   var realL10n;
   var realModalDialog;
+  var realNotificationScreen;
   var testData = {
     display: '0',
     extendedDisplay: {
@@ -35,11 +41,10 @@ suite('carrier info notifier >', function() {
 
     window.System = window.MockSystem;
     window.System.locked = false;
-    window.utilityTrayNotifications = {
-      createNotification: function() {
-        return document.createElement('div');
-      }
-    };
+
+    realNotificationScreen = window.NotificationScreen;
+    window.NotificationScreen = MockNotificationScreen;
+
   });
 
   test('CDMA record information: Unlocked', function(done) {
@@ -55,15 +60,18 @@ suite('carrier info notifier >', function() {
     subject.showCDMA(testData);
   });
 
-  test('CDMA record information: locked', function() {
-    var stubDispatch = this.sinon.stub(window, 'dispatchEvent');
+  test('CDMA record information: locked', function(done) {
     var ptr = 0;
     var previousLocked = window.System.locked;
     window.System.locked = true;
+    MockNotificationScreen.mCallback = function(param) {
+      assert.equal(param.text, expectedDisplay[ptr]);
+      ptr++;
+      if (ptr == expectedDisplay.length) {
+        done();
+      }
+    };
     subject.showCDMA(testData);
-    assert.isTrue(stubDispatch.calledWithMatch(function(e) {
-      return 'notification-add' === e.type;
-    }));
     window.System.locked = previousLocked;
   });
 
@@ -74,5 +82,8 @@ suite('carrier info notifier >', function() {
     window.ModalDialog = realModalDialog;
 
     window.System.locked = false;
+
+    window.NotificationScreen.mTeardown();
+    window.NotificationScreen = realNotificationScreen;
   });
 });

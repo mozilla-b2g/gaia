@@ -13,9 +13,7 @@ function DownloadNotification(download) {
   this.state = 'started';
   this.id = DownloadFormatter.getUUID(download);
 
-  window.dispatchEvent(new window.CustomEvent('notification-add', {
-    detail: this._getInfo()
-  }));
+  NotificationScreen.addNotification(this._getInfo());
 
   // We have to listen for state changes
   this.download.onstatechange = this._update.bind(this);
@@ -71,9 +69,7 @@ DownloadNotification.prototype = {
     if (noNotify) {
       info.noNotify = true;
     }
-    window.dispatchEvent(new window.CustomEvent('notification-add', {
-      detail: info
-    }));
+    NotificationScreen.addNotification(info);
     if (this.state === 'succeeded') {
       this._onSucceeded();
     }
@@ -204,9 +200,7 @@ DownloadNotification.prototype = {
    * Closes the notification
    */
   _close: function dn_close() {
-    window.dispatchEvent(new window.CustomEvent('notification-remove', {
-      detail: this.id
-    }));
+    NotificationScreen.removeNotification(this.id);
     this.onClose();
   },
 

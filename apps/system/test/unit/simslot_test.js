@@ -1,7 +1,19 @@
 'use strict';
 
-requireApp('system/js/simslot.js');
 suite('SIMSlot', function() {
+  suiteSetup(function() {
+  });
+
+  suiteTeardown(function() {
+  });
+
+  setup(function(callback) {
+    requireApp('system/js/simslot.js', callback);
+  });
+
+  teardown(function() {
+  });
+
   test('new', function() {
     var created = false;
     window.addEventListener('simslot-created', function() {
