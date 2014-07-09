@@ -457,10 +457,6 @@ function clearSelection() {
   dom.thumbnailsShareButton.classList.add('disabled');
   dom.thumbnailsNumberSelected.textContent =
     navigator.mozL10n.get('number-selected2', { n: 0 });
-
-  // HACK: Aggressive redraw to work around bug 1007743.
-  // When fixed remove these three lines.
-  reflowHack(dom.thumbnailsNumberSelected);
 }
 
 // When we enter thumbnail selection mode, or when the selection changes
@@ -502,7 +498,7 @@ function updateSelection(videodata) {
 
   // HACK: Aggressive redraw to work around bug 1007743.
   // When fixed remove these three lines.
-  reflowHack(dom.thumbnailsNumberSelected);
+  reflowHack(dom.thumbnailsSelectTop);
 
   if (numSelected === 0) {
     dom.thumbnailsDeleteButton.classList.add('disabled');

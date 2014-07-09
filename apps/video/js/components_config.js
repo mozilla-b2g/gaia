@@ -1,0 +1,1 @@
+window.packagesBaseUrl = '/shared/gaia-components/';

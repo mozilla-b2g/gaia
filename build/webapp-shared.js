@@ -16,6 +16,7 @@ WebappShared.prototype.setOptions = function(options) {
     styles: [],          // List of stable style names to copy
     unstable_styles: [], // List of unstable style names to copy
     elements: [],         // List of elements names to copy,
+    'gaia-components': [],
     pages: []            // List of pages to copy
   };
   this.localesFile = utils.resolve(this.config.LOCALES_FILE,
@@ -295,6 +296,43 @@ WebappShared.prototype.pushElements = function(path) {
   }, this);
 };
 
+WebappShared.prototype.pushGaiaComponents = function(path) {
+  var file = this.gaia.sharedFolder.clone();
+  file.append('gaia-components');
+  path.split('/').forEach(function(segment) {
+    file.append(segment);
+  });
+  if (!file.exists()) {
+    throw new Error('Using inexistent shared gaia-components file: ' + path +
+                    ' from: ' + this.webapp.domain);
+  }
+  var pathInStage = 'shared/gaia-components/' + path;
+  this.moveToBuildDir(file, pathInStage);
+
+  // Handle image assets for web components
+  var paths = path.split('/');
+  if (paths.length <= 1) {
+    return;
+  }
+
+  var elementName = String(paths.shift());
+
+  // Copy possible resources from components.
+  var resources = ['style.css', 'images'];
+  resources.forEach(function(resource) {
+    var eachFile = this.gaia.sharedFolder.clone();
+    eachFile.append('gaia-components');
+    eachFile.append(elementName);
+    eachFile.append(resource);
+
+    if (eachFile.exists()) {
+      var stagePath = 'shared/' + eachFile.getRelativeDescriptor(
+        this.gaia.sharedFolder);
+      this.moveToBuildDir(eachFile, stagePath);
+    }
+  }, this);
+};
+
 WebappShared.prototype.pushFileByType = function(kind, path) {
   if (path.match(/@[\d\.]+x\.(png|gif|jpg)$/)) {
     utils.log('WARNNING: You are using hidpi image directly in html.');
@@ -344,6 +382,12 @@ WebappShared.prototype.pushFileByType = function(kind, path) {
       if (this.used.elements.indexOf(path) == -1) {
         this.used.elements.push(path);
         this.pushElements(path);
+      }
+      break;
+    case 'gaia-components':
+      if (this.used['gaia-components'].indexOf(path) == -1) {
+        this.used['gaia-components'].push(path);
+        this.pushGaiaComponents(path);
       }
       break;
   }
