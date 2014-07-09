@@ -248,6 +248,11 @@
      * @param {Blob} blob The image blob to display.
      */
     _displayDecoratedIcon: function(blob, isCachedIcon) {
+      if (!this.element) {
+        // The icon could be removed while it is being decorated
+        return;
+      }
+
       var style = this.element.style;
 
       if (!style.backgroundSize) {
@@ -342,7 +347,7 @@
      */
     _stampElementWithIcon: function(uri) {
       // ensure we don't stamp URI
-      if (uri.startsWith('data:')) {
+      if (!this.element || uri.startsWith('data:')) {
         return;
       }
 
