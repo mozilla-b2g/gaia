@@ -91,10 +91,12 @@ NotificationList.prototype = {
       var id = node.getAttribute('data-notification-id');
       var query = selector + '[data-notification-id="' + id + '"]';
       details.push({
-        title: document.querySelector(query + ' > div').innerHTML,
+        title: document.querySelector(query + ' > .title').innerHTML,
         body: document.querySelector(query + ' > .detail').innerHTML,
-        lang: document.querySelector(query + ' > div').getAttribute('lang'),
-        dir: document.querySelector(query + ' > div').getAttribute('dir'),
+        lang: document.querySelector(query + ' > .title-container')
+          .getAttribute('lang'),
+        dir: document.querySelector(query + ' > .title-container')
+          .getAttribute('dir'),
         manifestURL: node.getAttribute('data-manifest-u-r-l')
       });
     }
