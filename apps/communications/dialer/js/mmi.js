@@ -131,6 +131,8 @@ var MmiManager = {
     }).bind(this);
 
     var mmiResult = evt.target.result;
+
+    var ci = this.cardIndexForConnection(this._conn);
     var message = {};
 
     // We always expect an MMIResult object even for USSD requests.
@@ -147,7 +149,7 @@ var MmiManager = {
     message.type = 'mmi-success';
 
     if (mmiResult.serviceCode) {
-      message.title = this._(mmiResult.serviceCode);
+      message.title = this.prependSimNumber(this._(mmiResult.serviceCode), ci);
     }
 
     var additionalInformation = mmiResult.additionalInformation;
@@ -215,12 +217,13 @@ var MmiManager = {
   notifyError: function mm_notifyError(evt) {
     var mmiError = evt.target.error;
 
+    var ci = this.cardIndexForConnection(this._conn);
     var message = {
       type: 'mmi-error'
     };
 
     if (mmiError.serviceCode) {
-      message.title = this._(mmiError.serviceCode);
+      message.title = this.prependSimNumber(this._(mmiError.serviceCode), ci);
     }
 
     message.error = mmiError.name ?
@@ -296,8 +299,8 @@ var MmiManager = {
       }
 
       var conn = navigator.mozMobileConnections[cardIndex || 0];
-      var title = this.prependSimNumber(
-        MobileOperator.userFacingInfo(conn).operator, cardIndex);
+      var operator = MobileOperator.userFacingInfo(conn).operator;
+      var title = this.prependSimNumber(operator ? operator : '', cardIndex);
       var data = {
         type: 'mmi-received-ui',
         message: message,
@@ -335,8 +338,9 @@ var MmiManager = {
                                      cardIndex);
             };
             var conn = navigator.mozMobileConnections[cardIndex || 0];
-            var title = self.prependSimNumber(
-              MobileOperator.userFacingInfo(conn).operator, cardIndex);
+            var operator = MobileOperator.userFacingInfo(conn).operator;
+            var title = self.prependSimNumber(operator ? operator : '',
+                                              cardIndex);
             /* XXX: Bug 1033254 - We put the |ussd-message=1| parameter in the
              * URL string to distinguish this notification from the others.
              * This should be thorought the application possibly by using the
