@@ -41,7 +41,6 @@ var perfTimer = new PerformanceTimer();
 perfTimer.start();
 perfTimer.printTime('keyboard.js');
 
-var isWaitingForSecondTap = false;
 var isUpperCase = false;
 var isUpperCaseLocked = false;
 var isKeyboardRendered = false;
@@ -54,10 +53,6 @@ const REPEAT_TIMEOUT = 700;
 
 // How long to wait for more focuschange events before processing
 const FOCUS_CHANGE_DELAY = 100;
-
-// Taps the shift key twice within CAPS_LOCK_TIMEOUT
-// to lock the keyboard at upper case state.
-const CAPS_LOCK_TIMEOUT = 450;
 
 // Time we wait after blur to hide the keyboard
 // in case we get a focus event right after
@@ -200,6 +195,7 @@ activeTargetsManager.ontargetmovedout = handleTargetMovedOut;
 activeTargetsManager.ontargetmovedin = handleTargetMovedIn;
 activeTargetsManager.ontargetcommitted = handleTargetCommitted;
 activeTargetsManager.ontargetcancelled = handleTargetCancelled;
+activeTargetsManager.ontargetdoubletapped = handleTargetDoubleTapped;
 activeTargetsManager.start();
 
 var feedbackManager = new FeedbackManager(fakeAppObject);
@@ -571,7 +567,13 @@ function handleTargetMovedIn(target) {
   }
 }
 
-function handleTargetCommitted(target) {
+function handleTargetDoubleTapped(target) {
+  // For now, we simply set a second parameter and delegate actions to
+  // handleTargetCommitted()
+  handleTargetCommitted(target, true);
+}
+
+function handleTargetCommitted(target, isDoubleTap) {
   clearTimeout(deleteTimeout);
   clearInterval(deleteInterval);
 
@@ -709,24 +711,9 @@ function handleTargetCommitted(target) {
     // Shift or caps lock
   case KeyEvent.DOM_VK_CAPS_LOCK:
 
-    // Already waiting for caps lock
-    if (isWaitingForSecondTap) {
-      isWaitingForSecondTap = false;
-
+    if (isDoubleTap) {
       setUpperCase(true, true);
-
-      // Normal behavior: set timeout for second tap and toggle caps
     } else {
-
-      isWaitingForSecondTap = true;
-      window.setTimeout(
-        function() {
-          isWaitingForSecondTap = false;
-        },
-        CAPS_LOCK_TIMEOUT
-      );
-
-      // Toggle caps
       setUpperCase(!isUpperCase, false);
     }
     break;
