@@ -18,7 +18,8 @@ if (typeof navigator !== 'undefined') {
 }
 
 if (typeof navigator !== 'undefined') {
-  var path = 'app://sharedtest.gaiamobile.org/test/unit/l10n/lib/context';
+  var path =
+    'app://sharedtest.gaiamobile.org/test/unit/l10n/lib/context';
 } else {
   var path = __dirname;
 }
@@ -69,5 +70,4 @@ describe('A simple context with one resource', function() {
     var value = ctx.get('unreadMessages', {unread: 3});
     assert.strictEqual(value, '3 unread');
   });
-
 });

@@ -13,7 +13,7 @@
 
     var rv = {};
     for (var key in node) {
-      if (key !== '_index' && node.hasOwnProperty(key)) {
+      if (key !== '_index' && (key in node)) {
         rv[key] = walkContent(node[key], fn);
       }
     }
@@ -228,10 +228,8 @@
       this.ast = {};
     }
     for (var id in ast) {
-      if (ast.hasOwnProperty(id)) {
-        this.ast[id] = ast[id];
-        this.entries[id] = ast[id];
-      }
+      this.ast[id] = ast[id];
+      this.entries[id] = ast[id];
     }
   };
 
