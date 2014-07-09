@@ -15,7 +15,12 @@
   width: 100%;
   padding-bottom: 1rem;
   overflow: hidden;
+  opacity: 0;
   transition: opacity 100ms;
+}
+
+.controls.visible {
+  opacity: 1;
 }
 
 /**
