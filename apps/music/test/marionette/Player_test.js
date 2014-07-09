@@ -96,12 +96,14 @@ marionette('Music player tests', function() {
       music.switchToSongsView();
       music.playFirstSong();
 
-      var t0 = music.songProgress;
-      var dt = 5.0;
+      var t0 = 0;
+      // wait for the music to start playing
+      client.waitFor(function() {
+        t0 = music.songProgress;
+        return (t0 !== 0);
+      });
 
-      // We want to wait a few seconds while the music app is in the background.
       controls.launch();
-      client.helper.wait(dt * 1000); // Convert to ms
       controls.playPause();
       controls.close();
 
@@ -109,7 +111,8 @@ marionette('Music player tests', function() {
       // the foreground.
       music.launch();
       var t1 = music.songProgress;
-      assert(t1 - t0 > dt * 0.9, 'Progress bar not updated!');
+      console.log('t1: ' + t1 + ', t0: ' + t0);
+      assert(t1 - t0 > 0, 'Progress bar not updated!');
     });
   });
 
