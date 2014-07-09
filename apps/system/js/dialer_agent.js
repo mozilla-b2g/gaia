@@ -11,7 +11,7 @@
    *
    * This simple module keeps the ringtone (blob) around and starts alerting the
    * user as soon as a new incoming call is detected via the mozTelephony API.
-   * And it opens an AttentionScreen with the preloaded callscreen app inside.
+   * And it opens an AttentionWindow with the preloaded callscreen app inside.
    *
    * We also listen for the sleep and volumedown hardware buttons to provide
    * the user with an easy way to stop the ringing.
@@ -90,13 +90,14 @@
     window.addEventListener('volumedown', this);
 
     this._callScreen = this._createCallScreen();
-    var callScreen = this._callScreen;
-    callScreen.src = CSORIGIN + 'index.html';
-    callScreen.dataset.preloaded = true;
+    // var callScreen = this._callScreen;
+    // callScreen.src = CSORIGIN + 'index.html';
+    // callScreen.dataset.preloaded = true;
     // We need the iframe in the DOM
-    AttentionScreen.attentionScreen.appendChild(callScreen);
+    // AttentionScreen &&
+    // AttentionScreen.attentionScreen.appendChild(callScreen);
 
-    callScreen.setVisible(false);
+    // callScreen.setVisible(false);
 
     return this;
   };
@@ -199,8 +200,8 @@
     var src = CSORIGIN + 'index.html' + '#' +
               (System.locked ? 'locked' : '');
     src = src + '&timestamp=' + timestamp;
-    callScreen.src = src;
-    callScreen.setVisible(true);
+    // callScreen.src = src;
+    // callScreen.setVisible(true);
 
     var asRequest = {
       target: callScreen,
@@ -211,12 +212,12 @@
         frameElement: callScreen
       }
     };
-    AttentionScreen.open(asRequest);
+    AttentionScreen && AttentionScreen.open(asRequest);
   };
 
   DialerAgent.prototype.showCallScreen = function da_showCallScreen() {
     if (this._callScreen) {
-      AttentionScreen.show(this._callScreen);
+      AttentionScreen && AttentionScreen.show(this._callScreen);
     }
   };
 

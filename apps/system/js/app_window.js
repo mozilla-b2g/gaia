@@ -1,8 +1,8 @@
-/* global SettingsListener, AttentionScreen,
-          OrientationManager, StatusBar */
+/* global SettingsListener, OrientationManager, StatusBar */
 'use strict';
 
 (function(exports) {
+  // Turn on this flag to debug all windows.
   var DEBUG = false;
   var _id = 0;
 
@@ -76,7 +76,7 @@
    * @memberof AppWindow
    */
   AppWindow.prototype.CLASS_LIST = 'appWindow';
-  AppWindow.prototype._DEBUG = false;
+  AppWindow.prototype._DEBUG = true;
 
   /**
    * Generate instanceID of this instance.
@@ -444,6 +444,12 @@
       this.rearWindow.unsetFrontWindow();
       this.rearWindow = null;
     }
+
+    // Remove rear -> front reference.
+    if (this.parentWindow) {
+      this.parentWindow.unsetAttentionWindow();
+      this.parentWindow = null;
+    }
     /**
      * Fired when the instance is terminated.
      * @event AppWindow#appterminated
@@ -646,7 +652,8 @@
      'mozbrowsericonchange', 'mozbrowserasyncscroll',
      '_localized', '_swipein', '_swipeout', '_kill_suspended',
      'popupterminated', 'activityterminated', 'activityclosing',
-     'popupclosing', 'activityopened', '_orientationchange', '_focus'];
+     'popupclosing', 'activityopened', '_orientationchange', '_focus',
+     '_hidewindow'];
 
   AppWindow.SUB_COMPONENTS = {
     'transitionController': window.AppTransitionController,
@@ -719,7 +726,7 @@
   AppWindow.prototype.uninstallSubComponents =
     function aw_uninstallSubComponents() {
       for (var componentName in this.constructor.prototype.SUB_COMPONENTS) {
-        if (this[componentName]) {
+        if (this[componentName] && this[componentName].destroy) {
           this[componentName].destroy();
           this[componentName] = null;
         }
@@ -934,7 +941,6 @@
     }
     this.debug(' Handling ' + evt.type + ' event...');
     if (this['_handle_' + evt.type]) {
-      this.debug(' Handling ' + evt.type + ' event...');
       this['_handle_' + evt.type](evt);
     }
   };
@@ -1422,6 +1428,11 @@
       this.calleeWindow = null;
     };
 
+  AppWindow.prototype.unsetAttentionWindow =
+    function aw_unsetCalleeWindow() {
+      this.attentionWindow = null;
+    };
+
   /**
    * Modify an attribute on this.element
    * @param  {String} type  State type.
@@ -1806,10 +1817,7 @@
     }
 
     this.lockOrientation();
-    // XXX: Refine this in attention-window refactor.
-    if (!AttentionScreen.isFullyVisible()) {
-      this.setVisible(true);
-    }
+    this.requestForeground();
   };
 
   /**
@@ -1823,10 +1831,7 @@
     }
 
     this.lockOrientation();
-    // XXX: Refine this in attention-window refactor.
-    if (!AttentionScreen.isFullyVisible()) {
-      this.setVisible(true);
-    }
+    this.requestForeground();
   };
 
   /**
@@ -1932,5 +1937,64 @@
     win.focus();
   };
 
+  AppWindow.prototype.requestForeground =
+    function aw_requestForeground() {
+      this.publish('requestforeground');
+    };
+
+  /**
+   * If the app has an opened attention window,
+   * we should not kill it.
+   * @return {Boolean} The app is killable or not.
+   */
+  AppWindow.prototype.killable = function() {
+    // This property is updated whenever an attentionWindow
+    // is created or destroyed.
+    if (this.attentionWindow) {
+      return false;
+    } else {
+      return true;
+    }
+  };
+
+  AppWindow.prototype.hasAttentionPermission =
+    function aw_hasAttentionPermission() {
+      if (typeof(this._hasAttentionPermission) !== 'undefined') {
+        return this._hasAttentionPermission;
+      }
+      var mozPerms = navigator.mozPermissionSettings;
+      if (!mozPerms || !this.manifestURL) {
+        return false;
+      }
+
+      var value =
+        mozPerms.get('attention', this.manifestURL, this.origin, false);
+
+      this._hasAttentionPermission = (value === 'allow');
+      return this._hasAttentionPermission;
+    };
+
+  /**
+   * _hidewindow event handler.
+   *
+   * The event occurs when there's a higher priority window
+   * which is not an AppWindow show up.
+   * AppWindowManager will redirect the event to the current
+   * active app.
+   *
+   * If the event is because of attention window coming,
+   * evt.detail will be the instance of the attention window.
+   * If we are the opener of the attention window,
+   * we should not be sent to background due to
+   * @param  {Event} evt The hidewindow event
+   */
+  AppWindow.prototype._handle__hidewindow = function (evt) {
+    var attention = evt.detail;
+    if (attention.parentWindow &&
+        attention.parentWindow.instanceID === this.instanceID) {
+      return;
+    }
+    this.setVisible(false);
+  };
   exports.AppWindow = AppWindow;
 }(window));

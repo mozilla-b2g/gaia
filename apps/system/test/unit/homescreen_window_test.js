@@ -1,22 +1,18 @@
 /* global MocksHelper, HomescreenWindow, MockApplications,
-          HomescreenLauncher, MockAppWindow */
+          MockAppWindow */
 
 'use strict';
 
 requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
-requireApp('system/test/unit/mock_app_window_manager.js');
-requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_applications.js');
-requireApp('system/test/unit/mock_attention_screen.js');
-requireApp('system/test/unit/mock_homescreen_launcher.js');
+requireApp('system/test/unit/mock_app_window.js');
 
 var mocksForHomescreenWindow = new MocksHelper([
   'OrientationManager',
   'Applications', 'SettingsListener',
-  'ManifestHelper', 'AppWindowManager',
-  'HomescreenLauncher'
+  'ManifestHelper',
 ]).init();
 
 suite('system/HomescreenWindow', function() {
@@ -27,7 +23,6 @@ suite('system/HomescreenWindow', function() {
 
   setup(function(done) {
     this.sinon.useFakeTimers();
-    window.homescreenLauncher = new HomescreenLauncher().start();
     stubById = this.sinon.stub(document, 'getElementById');
     stubById.returns(document.createElement('div'));
     requireApp('system/js/system.js');
@@ -42,7 +37,6 @@ suite('system/HomescreenWindow', function() {
   });
 
   teardown(function() {
-    window.homescreenLauncher = undefined;
     stubById.restore();
     window.applications = realApplications;
     realApplications = null;

@@ -194,9 +194,9 @@ suite('system/UtilityTray', function() {
 
 
   // handleEvent
-  suite('handleEvent: attentionscreenshow', function() {
+  suite('handleEvent: attentionopening', function() {
     setup(function() {
-      fakeEvt = createEvent('attentionscreenshow');
+      fakeEvt = createEvent('attentionopening');
       UtilityTray.show();
       UtilityTray.handleEvent(fakeEvt);
     });

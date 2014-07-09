@@ -215,8 +215,8 @@ suite('system/Statusbar', function() {
       assert.notEqual(StatusBar.clock.timeoutID, null);
       assert.equal(StatusBar.icons.time.hidden, false);
     });
-    test('attentionscreen show', function() {
-      var evt = new CustomEvent('attentionscreenshow');
+    test('attention opening', function() {
+      var evt = new CustomEvent('attentionopening');
       StatusBar.handleEvent(evt);
       assert.notEqual(StatusBar.clock.timeoutID, null);
       assert.equal(StatusBar.icons.time.hidden, false);
@@ -224,7 +224,7 @@ suite('system/Statusbar', function() {
     test('attentionsceen hide', function() {
       // Test this when lockscreen is off.
       System.locked = false;
-      var evt = new CustomEvent('attentionscreenhide');
+      var evt = new CustomEvent('attentionclosed');
       StatusBar.handleEvent(evt);
       assert.notEqual(StatusBar.clock.timeoutID, null);
       assert.equal(StatusBar.icons.time.hidden, false);
@@ -1316,23 +1316,23 @@ suite('system/Statusbar', function() {
       assert.isFalse(StatusBar.element.classList.contains('invisible'));
     });
 
-    test('the status bar should show when attentionscreen is showing',
+    test('the status bar should show when attention window is opening',
     function() {
       this.sinon.stub(app, 'isFullScreen').returns(true);
       StatusBar.hide();
 
-      var evt = new CustomEvent('attentionscreenshow');
+      var evt = new CustomEvent('attentionopening');
       StatusBar.handleEvent(evt);
 
       assert.isFalse(StatusBar.element.classList.contains('invisible'));
     });
 
-    test('the status bar should be hidden when attentionscreen is hidden',
+    test('the status bar should be hidden when attention window is closed',
     function() {
       this.sinon.stub(app, 'isFullScreen').returns(true);
       StatusBar.show();
 
-      var evt = new CustomEvent('attentionscreenhide');
+      var evt = new CustomEvent('attentionclosed');
       StatusBar.handleEvent(evt);
 
       assert.isTrue(StatusBar.element.classList.contains('invisible'));
@@ -1558,12 +1558,12 @@ suite('system/Statusbar', function() {
       StatusBar.screen = document.createElement('div');
     });
 
-    test('the status bar should not be hidden when attentionscreen is hidden',
+    test('the status bar should not be hidden when attention window is closed',
     function() {
       this.sinon.stub(app, 'isFullScreen').returns(false);
       StatusBar.show();
 
-      var evt = new CustomEvent('attentionscreenhide');
+      var evt = new CustomEvent('attentionclosed');
       StatusBar.handleEvent(evt);
 
       assert.isFalse(StatusBar.element.classList.contains('invisible'));

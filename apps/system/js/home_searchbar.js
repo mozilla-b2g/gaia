@@ -1,5 +1,5 @@
 'use strict';
-/* global Rocketbar, AttentionScreen */
+/* global Rocketbar */
 
 (function(exports) {
 
@@ -53,7 +53,7 @@
       window.addEventListener('launchactivity', this, true);
       window.addEventListener('searchcrashed', this);
       window.addEventListener('permissiondialoghide', this);
-      window.addEventListener('attentionscreenshow', this);
+      window.addEventListener('attentionopening', this);
 
       // Listen for events from Rocketbar
       this.input.addEventListener('focus', this);
@@ -81,7 +81,7 @@
         case 'apploading':
         case 'appforeground':
         case 'appopened':
-        case 'attentionscreenshow':
+        case 'attentionopening':
           this.rocketbar.classList.remove('expanded');
           this.screen.classList.remove('rocketbar-expanded');
           this.exitHome();
@@ -122,11 +122,7 @@
           this.handleSubmit(e);
           break;
         case 'iac-search-results':
-          if (AttentionScreen.isVisible()) {
-            AttentionScreen.maximize();
-          } else {
-            this.handleSearchMessage(e);
-          }
+          this.handleSearchMessage(e);
           break;
         case 'permissiondialoghide':
           if (this.active) {

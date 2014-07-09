@@ -130,7 +130,6 @@
 
     <!-- Attention Screen -->
     <link rel="stylesheet" type="text/css" href="style/attention_screen.css">
-    <script defer src="js/attention_screen.js"></script>
 
     <!-- Action Menu -->
     <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css">
@@ -332,6 +331,8 @@
     <script defer src="js/activity_window.js"></script>
     <script defer src="js/activity_window_manager.js"></script>
     <script defer src="js/app_window_factory.js"></script>
+    <script defer src="js/attention_window.js"></script>
+    <script defer src="js/attention_window_manager.js"></script>
     <script defer src="js/app_window_manager.js"></script>
     <script defer src="js/secure_window.js"></script>
     <script defer src="js/secure_window_factory.js"></script>
@@ -1051,10 +1052,6 @@
       </div>
             -->
       </div> <!-- end of lockscreen overlay template -->
-
-      <div id="attention-screen" data-z-index-level="attention-screen">
-        <div id="attention-bar"></div>
-      </div>
 
       <div id="update-manager-toaster" data-z-index-level="notification-toaster" aria-live="assertive" aria-atomic="true">
         <div class="icon">

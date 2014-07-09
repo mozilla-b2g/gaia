@@ -1,9 +1,8 @@
 /* global KeyboardManager, softwareButtonManager, StatusBar,
-          System */
+          System, attentionWindowManager */
 'use strict';
 
 (function(exports) {
-  var DEBUG = false;
   /**
    * LayoutManager gathers all external events which would affect
    * the layout of the windows and redirect the event to AppWindowManager.
@@ -31,6 +30,8 @@
   var LayoutManager = function LayoutManager() {};
 
   LayoutManager.prototype = {
+    DEBUG: false,
+    CLASS_NAME: 'LayoutManager',
     /** @lends LayoutManager */
 
     /**
@@ -38,6 +39,14 @@
      *
      * @memberOf LayoutManager
      */
+    get barHeight() {
+      if (!attentionWindowManager) {
+        return 0;
+      }
+      return (attentionWindowManager.isAtBarMode()) ?
+        attentionWindowManager.barHeight() : StatusBar.height;
+    },
+
     get clientWidth() {
       if (this._clientWidth) {
         return this._clientWidth;
@@ -98,11 +107,10 @@
       window.addEventListener('status-inactive', this);
       window.addEventListener('keyboardchange', this);
       window.addEventListener('keyboardhide', this);
-      window.addEventListener('attentionscreenhide', this);
+      window.addEventListener('attentionclosed', this);
       window.addEventListener('mozfullscreenchange', this);
       window.addEventListener('software-button-enabled', this);
       window.addEventListener('software-button-disabled', this);
-      return this;
     },
 
     handleEvent: function lm_handleEvent(evt) {
@@ -141,9 +149,9 @@
     },
 
     debug: function lm_debug() {
-      if (DEBUG) {
-        console.log('[LayoutManager]' +
-          '[' + System.currentTime() + ']' +
+      if (this.DEBUG) {
+        console.log('[' + this.CLASS_NAME + ']' +
+          '[' + System.currentTime() + '] ' +
           Array.slice(arguments).concat());
       }
     }

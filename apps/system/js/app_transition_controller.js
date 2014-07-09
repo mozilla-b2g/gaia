@@ -195,6 +195,11 @@
         return;
       }
       this.switchTransitionState('closing');
+
+      // XXX: Fix me
+      if (this.app.CLASS_NAME !== 'AttentionWindow') {
+        this.app.setVisible(false, true);
+      }
     };
 
   AppTransitionController.prototype.handle_closed =
@@ -204,7 +209,12 @@
       }
 
       this.resetTransition();
-      this.app.setVisible(false, true);
+      // XXX: Fix me
+      if (this.app.CLASS_NAME !== 'AttentionWindow') {
+        this.app.setVisible(false, true);
+      } else {
+        this.app.setVisible(true);
+      }
       this.app.element.classList.remove('active');
     };
 
@@ -228,7 +238,9 @@
       this.app.reviveBrowser();
       this.app.launchTime = Date.now();
       this.app.fadeIn();
-      this.app.setVisible(true);
+      if (this.app.CLASS_NAME !== 'AttentionWindow') {
+        this.app.setVisible(true);
+      }
 
       // TODO:
       // May have orientation manager to deal with lock orientation request.
@@ -314,7 +326,9 @@
         'invoking', 'invoked', 'zoom-in', 'zoom-out', 'fade-in', 'fade-out',
         'transition-opening', 'transition-closing', 'immediate', 'fadeout',
         'slideleft', 'slideright', 'in-from-left', 'out-to-right',
-        'slideup', 'slidedown', 'will-become-active', 'will-become-inactive'];
+        'slidetoup', 'slidetodown', 'will-become-active',
+        'will-become-inactive',
+        'slidefromup', 'slidefromdown'];
 
       classes.forEach(function iterator(cls) {
         this.app.element.classList.remove(cls);

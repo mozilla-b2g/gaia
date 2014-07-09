@@ -96,7 +96,8 @@
     applyStyle: function() {},
     unapplyStyle: function() {},
     transform: function() {},
-    hideContextMenu: function() {}
+    hideContextMenu: function() {},
+    hasAttentionPermission: function() { return false; }
   };
   MockAppWindow.mTeardown = function() {
     MockAppWindowHelper.mInstances = [];
