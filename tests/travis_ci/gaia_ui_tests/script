@@ -18,5 +18,4 @@ $gaiatest --app=b2gdesktop \
           --html-output artifacts/gaia_ui_tests_report.html \
           --this-chunk=${THIS_CHUNK:=1} \
           --total-chunks=${TOTAL_CHUNKS:=1} \
-          --restart $root/tests/functional/persona/test_persona_app.py \
-          --repeat 50
+          --restart $root/tests/$SUITE/manifest.ini
