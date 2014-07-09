@@ -509,6 +509,57 @@ suite('dialer/mmi', function() {
     });
   });
 
+  suite('Retrieving IMEI codes', function() {
+    test('for a single SIM device', function(done) {
+      var imei = '123';
+      var conn = new MockMobileconnection();
+      MockNavigatorMozMobileConnections.mRemoveMobileConnection(0);
+      MockNavigatorMozMobileConnections.mAddMobileConnection(conn, 0);
+      this.sinon.spy(window, 'postMessage');
+
+      MmiManager.showImei(function() {
+        sinon.assert.calledWithMatch(window.postMessage, {
+          type: 'mmi-success',
+          title: 'scImei',
+          result: imei
+        });
+        done();
+      });
+
+      // Trigger the MMI request.
+      conn.mCachedSendMMIReq.onsuccess({
+        target: { result: { serviceCode: 'scImei', statusMessage: 123 } }
+      });
+    });
+
+    test('for a multi-SIM device', function(done) {
+      var imeis = ['123', '456'];
+      var conn1 = new MockMobileconnection();
+      var conn2 = new MockMobileconnection();
+      MockNavigatorMozMobileConnections.mRemoveMobileConnection(0);
+      MockNavigatorMozMobileConnections.mAddMobileConnection(conn1, 0);
+      MockNavigatorMozMobileConnections.mAddMobileConnection(conn2, 1);
+      this.sinon.spy(window, 'postMessage');
+
+      MmiManager.showImei(function() {
+        sinon.assert.calledWithMatch(window.postMessage, {
+          type: 'mmi-success',
+          title: 'scImei',
+          result: imeis.join('\n')
+        });
+        done();
+      });
+
+      // Trigger the MMI requests.
+      conn1.mCachedSendMMIReq.onsuccess({
+        target: { result: { serviceCode: 'scImei', statusMessage: imeis[0] } }
+      });
+      conn2.mCachedSendMMIReq.onsuccess({
+        target: { result: { serviceCode: 'scImei', statusMessage: imeis[1] } }
+      });
+    });
+  });
+
   /** Temporary disable CF tests until Bug 884343 (Use MMIResult for Call
    *   Forwarding related functionality) is done.
 

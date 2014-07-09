@@ -241,22 +241,26 @@ var CallHandler = (function callHandler() {
   /* === Calls === */
   function call(number) {
     if (MmiManager.isMMI(number)) {
-      var connections = navigator.mozMobileConnections;
-      var settings = navigator.mozSettings;
-      if (connections.length === 1) {
-        MmiManager.send(number, 0);
+      if (number === '*#06#') {
+        MmiManager.showImei();
+      } else {
+        var connections = navigator.mozMobileConnections;
+        var settings = navigator.mozSettings;
+        if (connections.length === 1) {
+          MmiManager.send(number, 0);
+        }
+
+        var req = settings.createLock().get('ril.telephony.defaultServiceId');
+
+        req.onsuccess = function getDefaultServiceId() {
+          var id = req.result['ril.telephony.defaultServiceId'] || 0;
+          MmiManager.send(number, id);
+        };
+
+        req.onerror = function getDefaultServiceIdError() {
+          MmiManager.send(number, 0);
+        };
       }
-
-      var req = settings.createLock().get('ril.telephony.defaultServiceId');
-
-      req.onsuccess = function getDefaultServiceId() {
-        var id = req.result['ril.telephony.defaultServiceId'] || 0;
-        MmiManager.send(number, id);
-      };
-
-      req.onerror = function getDefaultServiceIdError() {
-        MmiManager.send(number, 0);
-      };
 
       // Clearing the code from the dialer screen gives the user immediate
       // feedback.

@@ -156,16 +156,6 @@ var MmiManager = {
 
         message.result = mmiResult.statusMessage;
         break;
-      case 'scImei':
-        // We always expect the IMEI, so if we got a .onsuccess event
-        // without the IMEI value, we throw an error message.
-        if (mmiResult.statusMessage) {
-          message.result = mmiResult.statusMessage;
-        } else {
-          message.type = 'mmi-error';
-          message.error = this._('GenericFailure');
-        }
-        break;
       case 'scPin':
       case 'scPin2':
       case 'scPuk':
@@ -391,5 +381,77 @@ var MmiManager = {
     }
 
     return 0;
+  },
+
+  /**
+   * Retrieves the IMEI code for the specified SIM card slot.
+   *
+   * @param {Integer} cardIndex The index of the SIM card slot.
+   * @param {Function} success A callback invoked with the IMEI number passed
+   *        as its sole parameter.
+   * @param {Function} error A callback invoked in case of error.
+   */
+  _getImeiForCard: function mm_getImeiForCard(cardIndex, success, error) {
+    var request = navigator.mozMobileConnections[cardIndex]
+                           .sendMMI('*#06#');
+    request.onsuccess = function mm_onGetImeiSuccess(event) {
+      var result = event.target.result;
+
+      // We always expect the IMEI, so if we got a .onsuccess event
+      // without the IMEI value, we throw an error message.
+      if ((result === null) || (result.serviceCode !== 'scImei') ||
+          (result.statusMessage === null)) {
+        error(new Error('Could not retrieve the IMEI code for SIM' +
+                        cardIndex));
+      }
+
+      success(result.statusMessage);
+    };
+    request.onerror = function mm_onGetImeiError(error) {
+      error(error);
+    };
+  },
+
+  /**
+   * Sends the necessary MMI messages to retrieve IMEI codes for all SIM slots
+   * and displays the resulting codes on the screen.
+   *
+   * @param {Function} success A callback invoked when the function completes
+   *        successfully.
+   * @param {Function} error A callback invoked in case of error.
+   */
+  showImei: function mm_showImei(success, error) {
+    var self = this;
+
+    this.init(function() {
+      var imeis = [];
+      var imeisNum = 0;
+
+      function retrieveImeis(imei) {
+        if (imei) {
+          imeis.push(imei);
+        }
+
+        if (imeisNum < navigator.mozMobileConnections.length) {
+          self._getImeiForCard(imeisNum++, retrieveImeis, function() {
+            window.postMessage({
+              type: 'mmi-error',
+              error: self._('GenericFailure')
+            }, self.COMMS_APP_ORIGIN);
+            error && error(reason);
+          });
+        } else {
+          window.postMessage({
+            type: 'mmi-success',
+            title: self._('scImei'),
+            result: imeis.join('\n')
+          }, self.COMMS_APP_ORIGIN);
+          success && success();
+        }
+      }
+
+      self.openUI();
+      retrieveImeis();
+    });
   }
 };
