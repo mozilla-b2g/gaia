@@ -17,6 +17,7 @@
     "device-storage:music":{ "access": "readwrite" },
     "device-storage:crashes":{ "access": "readwrite" },
     "geolocation":{},
+    "permissions": {},
     "power":{},
     "push": {},
     "settings":{ "access": "readwrite" },
