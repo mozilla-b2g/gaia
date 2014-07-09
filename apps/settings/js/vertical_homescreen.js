@@ -16,16 +16,6 @@ if (!window.verticalHomescreen) {
       // Listen for search engine selection
       this.searchEngineSelect = document.querySelector(
         '[name="search.urlTemplate"]');
-
-      // Show whether the search suggestions are currently enabled
-      var enabledKey = 'search.suggestions.enabled';
-      var enabledDesc = document.getElementById('suggestions-desc');
-
-      SettingsListener.observe(enabledKey, true, function (enabled) {
-        navigator.mozL10n
-          .localize(enabledDesc, enabled ? 'enabled' : 'disabled');
-      });
-
     }
 
     VerticalHomescreen.prototype = {
