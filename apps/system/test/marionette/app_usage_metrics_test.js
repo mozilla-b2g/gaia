@@ -45,11 +45,12 @@ marionette('App Usage Metrics >', function() {
   });
 
   function waitForEvent(name, callback) {
-    client.executeAsyncScript(function() {
-      window.addEventListener(name, function(evt) {
+    client.executeAsyncScript(function(name) {
+      window.addEventListener(name, function listener(evt) {
+        window.removeEventListener(name, listener);
         marionetteScriptFinished();
       });
-    }, callback);
+    }, [name], callback);
   }
 
   var sys, metrics, settings;
@@ -127,13 +128,17 @@ marionette('App Usage Metrics >', function() {
     client.helper.waitForElement(Settings.Selectors.menuItemsSection);
 
     var panel = settings.appPermissionPanel;
-    var apps = panel.appList.filter(function(element) {
+    panel.waitForElement('firstAppEntry');
+
+    var appList = client.findElements('.app-list a');
+    var apps = appList.filter(function(element) {
       return TEMPLATE_NAME === element.text();
     });
     assert.equal(apps.length, 1);
+    apps[0].tap();
 
-    apps[0].click();
-    panel.uninstallButton.click();
+    var uninstallApp = client.helper.waitForElement('.uninstall-app');
+    uninstallApp.click();
     client.switchToFrame();
 
     var confirm = client.helper.waitForElement('.modal-dialog-confirm-ok');
@@ -170,26 +175,30 @@ marionette('App Usage Metrics >', function() {
         window.wrappedJSObject.lockScreen.lock();
       });
 
-      waitForEvent('lockscreen-appopened', checkMetrics);
+      waitForEvent('lock', checkMetrics);
     }
 
     function checkMetrics() {
       assert.equal(metrics.getAppInvocations(MEDIA_MANIFEST), 1);
       assert.ok(metrics.getAppUsageTime(MEDIA_MANIFEST) > 0);
 
-      client.executeScript(function() {
-        window.wrappedJSObject.lockScreen.unlock();
-      });
-
-      client.apps.close(MEDIA_APP);
-      assert.equal(metrics.getAppInvocations(MEDIA_MANIFEST), 2);
-
-      chromeClient.executeScript(function() {
-        navigator.mozSettings.createLock().set({
-          'lockscreen.enabled': false
+      client.executeAsyncScript(function() {
+        window.addEventListener('unlock', function unlock(evt) {
+          window.removeEventListener('unlock', unlock);
+          marionetteScriptFinished();
         });
+        window.wrappedJSObject.lockScreen.unlock();
+      }, function() {
+        client.apps.close(MEDIA_APP);
+        assert.equal(metrics.getAppInvocations(MEDIA_MANIFEST), 2);
+
+        chromeClient.executeScript(function() {
+          navigator.mozSettings.createLock().set({
+            'lockscreen.enabled': false
+          });
+        });
+        done();
       });
-      done();
     }
 
     startTest();

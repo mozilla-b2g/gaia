@@ -37,8 +37,8 @@
   const APPOPENED = 'appopened';
   const HOMESCREEN = 'homescreenopened';
   const ACTIVITY = 'activitycreated';
-  const LOCKED = 'lockscreen-appopened';    // In 2.0, use 'locked'
-  const UNLOCKED = 'lockscreen-appclosed';  // In 2.0, use 'unlocked'
+  const LOCKED = 'lock';
+  const UNLOCKED = 'unlock';
   const SCREENCHANGE = 'screenchange';      // sleep or wake
   const INSTALL = 'applicationinstall';
   const UNINSTALL = 'applicationuninstall';

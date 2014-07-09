@@ -284,7 +284,7 @@ suite('AppUsageMetrics:', function() {
       dispatch('homescreenopened', { manifestURL: 'homescreen' });
       clock.tick(1000);
 
-      dispatch('lockscreen-appopened', { manifestURL: 'lockscreen'});
+      dispatch('lock', { manifestURL: 'lockscreen'});
       assert.ok(invocationSpy.lastCall.calledWith('homescreen', 1000));
 
       clock.tick(1);
@@ -303,7 +303,7 @@ suite('AppUsageMetrics:', function() {
       // Wake up, then unlock
       dispatch('screenchange', { screenEnabled: true });
       clock.tick(2000);
-      dispatch('lockscreen-appclosed', { manifestURL: 'lockscreen' });
+      dispatch('unlock', { manifestURL: 'lockscreen' });
       assert.ok(invocationSpy.lastCall.calledWith('lockscreen', 2000));
 
       // Launch an app, then go back to sleep
@@ -311,7 +311,7 @@ suite('AppUsageMetrics:', function() {
       dispatch('appopened', { manifestURL: 'app1' });
       assert.ok(invocationSpy.lastCall.calledWith('homescreen', 1000));
       clock.tick(1000);
-      dispatch('lockscreen-appopened', { manifestURL: 'lockscreen'});
+      dispatch('lock', { manifestURL: 'lockscreen'});
       assert.ok(invocationSpy.lastCall.calledWith('app1', 1000));
       dispatch('screenchange', { screenEnabled: false });
       assert.ok(invocationSpy.lastCall.calledWith('lockscreen', 0));
