@@ -475,8 +475,8 @@ var NfcHandoverManager = {
         this.sendFileRequest.onerror();
       }
       this.sendFileRequest = null;
-      this.incomingFileTransferInProgress = false;
     }
+    this.incomingFileTransferInProgress = false;
   }
 };
 
