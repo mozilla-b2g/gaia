@@ -18,7 +18,8 @@ var whitelistedApps = [
   'gallery',
   'marketplace.firefox.com',
   'settings',
-  'sms'
+  'sms',
+  'video'
 ];
 
 var whitelistedUnifiedApps = [
@@ -29,7 +30,8 @@ var whitelistedUnifiedApps = [
   'fm',
   'gallery',
   'marketplace.firefox.com',
-  'settings'
+  'settings',
+  'video'
 ];
 
 function contains(haystack, needle) {
