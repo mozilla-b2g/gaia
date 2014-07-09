@@ -42,7 +42,6 @@ perfTimer.start();
 perfTimer.printTime('keyboard.js');
 
 var isWaitingForSecondTap = false;
-var isContinousSpacePressed = false;
 var isUpperCase = false;
 var isUpperCaseLocked = false;
 var isKeyboardRendered = false;
@@ -218,9 +217,6 @@ var inputContextGetTextPromise;
 
 // A MutationObserver we use to spy on the renderer module
 var dimensionsObserver;
-
-// For tracking "scrolling the full candidate panel".
-var touchStartCoordinate;
 
 initKeyboard();
 
@@ -620,11 +616,6 @@ function handleTargetCommitted(target) {
     sendDelete(false);
     return;
   }
-
-  // Reset the flag when a non-space key is pressed,
-  // used in space key double tap handling
-  if (keyCode != KeyEvent.DOM_VK_SPACE)
-    isContinousSpacePressed = false;
 
   var keyStyle = getComputedStyle(target);
   if (keyStyle.display == 'none' || keyStyle.visibility == 'hidden')

@@ -328,7 +328,7 @@ const IMERender = (function() {
       container.insertBefore(
         candidatePanelToggleButtonCode(), container.firstChild);
       container.insertBefore(candidatePanelCode(), container.firstChild);
-      showCandidates([], true);
+      showCandidates([]);
 
       container.classList.add('candidate-panel');
     } else {
@@ -375,7 +375,7 @@ const IMERender = (function() {
 
   // Show candidates
   // Each candidate is a string or an array of two strings
-  var showCandidates = function(candidates, noWindowHeightUpdate) {
+  var showCandidates = function(candidates) {
     if (!activeIme)
       return;
 
