@@ -123,6 +123,32 @@
       return foundIndex;
     },
 
+    /**
+     * Finds free slot vertically nearest.
+     * @param {Number} y relative to the screen
+     */
+    getFreeSlotVerticallyNearest: function(y) {
+      var leastDistanceY;
+      var foundIndex;
+      for (var i = 0, iLen = this.items.length; i < iLen; i++) {
+        var item = this.items[i];
+
+        // Consider only dividers.
+        if (item.detail.type !== 'divider') {
+          continue;
+        }
+
+        var distanceY = y - (item.y + (item.pixelHeight / 2));
+        var absoluteDistanceY = Math.abs(distanceY);
+        if (leastDistanceY && absoluteDistanceY > leastDistanceY) {
+          break;
+        }
+        leastDistanceY = absoluteDistanceY;
+        foundIndex = distanceY <= 0 ? i : i + 1;
+      }
+      return foundIndex;
+    },
+
     start: function() {
       this.element.addEventListener('click', this.clickIcon);
       window.addEventListener('scroll', this.onScroll);
