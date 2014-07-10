@@ -124,17 +124,6 @@ suite('InputMethodGlue', function() {
     assert.isTrue(app.setUpperCase.calledWith(upperCase, uppserCaseLocked));
   });
 
-  test('resetUpperCase', function() {
-    var glue = new InputMethodGlue();
-    var app = {
-      resetUpperCase: this.sinon.stub()
-    };
-    glue.init(app, 'foo');
-    glue.resetUpperCase();
-
-    assert.isTrue(app.resetUpperCase.calledOnce);
-  });
-
   test('replaceSurroundingText', function() {
     var glue = new InputMethodGlue();
     var app = {

@@ -154,7 +154,6 @@ var fakeAppObject = {
     }
   },
   setUpperCase: setUpperCase,
-  resetUpperCase: resetUpperCase,
   isCapitalized: function isCapitalized() {
     return (isUpperCase || isUpperCaseLocked);
   },
@@ -441,14 +440,6 @@ function setUpperCase(upperCase, upperCaseLocked) {
       'BLOCKING setUpperCase:requestAnimationFrame:callback',
       'setUpperCase:requestAnimationFrame:callback');
   });
-}
-
-function resetUpperCase() {
-  if (isUpperCase &&
-      !isUpperCaseLocked &&
-      layoutManager.currentLayoutPage === LAYOUT_PAGE_DEFAULT) {
-    setUpperCase(false);
-  }
 }
 
 // Inform about a change in the displayed application via mutation observer

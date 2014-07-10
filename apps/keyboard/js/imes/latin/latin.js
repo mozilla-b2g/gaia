@@ -882,8 +882,10 @@
   function updateCapitalization() {
     // If either the input mode or the input type is one that doesn't
     // want capitalization, then don't alter the state of the keyboard.
+    // We however want to reset the shift key state triggered by the user,
+    // regardless of the layout page the user is currently on.
     if (!capitalizing) {
-      keyboard.resetUpperCase();
+      keyboard.setUpperCase(false);
       return;
     }
 

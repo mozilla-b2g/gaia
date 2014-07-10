@@ -17,9 +17,6 @@ suite('latin input method capitalization and punctuation', function() {
   var isUpperCase;
 
   var defaultKeyboardGlue = {
-    resetUpperCase: function() {
-      isUpperCase = false;
-    },
     sendKey: sendKey,
     sendCandidates: function(words) {
       // gotSuggestions(words);

@@ -102,11 +102,6 @@
  *        - upperCase: to enable the upper case or not.
  *        - upperCaseLocked: to change the caps lock state.
  *
- *    resetUpperCase():
- *      Allows the IM to reset the upperCase to lowerCase without knowing the
- *      internal states like caps lock and current layout page while keeping
- *      setUpperCase simple as it is.
- *
  *    getNumberOfCandidatesPerRow():
  *      Allow the IM to know how many candidates the Render need in one row so
  *      the IM can reduce search time and run the remaining process when
@@ -184,9 +179,6 @@ InputMethodGlue.prototype.setLayoutPage = function(newpage) {
 
 InputMethodGlue.prototype.setUpperCase = function(upperCase, upperCaseLocked) {
   this.app.setUpperCase(upperCase, upperCaseLocked);
-};
-InputMethodGlue.prototype.resetUpperCase = function() {
-  this.app.resetUpperCase();
 };
 
 InputMethodGlue.prototype.isCapitalized = function() {
