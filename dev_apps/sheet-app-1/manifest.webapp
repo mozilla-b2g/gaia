@@ -72,6 +72,15 @@
       "disposition": "inline",
       "href": "page3f.html",
       "returnValue": true
+    },
+    "view": {
+      "filters": {
+        "type": "url",
+        "url": { "required":true, "pattern":"test:.{1,16384}" },
+        "disposition": "window",
+        "href": "page3e.html",
+        "returnValue": true
+      }
     }
   }
 }

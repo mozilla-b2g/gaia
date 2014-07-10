@@ -1198,6 +1198,27 @@ suite('system/AppWindow', function() {
       assert.isTrue(spyClose.calledWith('out-to-right'));
     });
 
+    test('No transition when the callee is caller', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      var spyOpen = this.sinon.spy(app1, 'open');
+      var spyClose = this.sinon.spy(app1, 'close');
+      var stubIsActive = this.sinon.stub(app1, 'isActive');
+      app1.setCalleeWindow(app1);
+      stubIsActive.returns(true);
+
+      assert.deepEqual(app1.calleeWindow, app1);
+      assert.deepEqual(app1.callerWindow, app1);
+
+      app1.handleEvent({
+        type: 'mozbrowseractivitydone'
+      });
+
+      assert.isNull(app1.calleeWindow);
+      assert.isNull(app1.callerWindow);
+      assert.isFalse(spyOpen.calledWith('in-from-left'));
+      assert.isFalse(spyClose.calledWith('out-to-right'));
+    });
+
     test('We should open the base window if we are not', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       var app1Base = new AppWindow(fakeAppConfig2);
