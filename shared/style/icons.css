@@ -13,6 +13,8 @@
   height: 3rem;
   font-family: 'gaia-icons';
   font-size: 3rem;
+  font-style: normal;
+  font-weight: normal;
 }
 
 .icon-calendar-alarm:before {
@@ -81,13 +83,13 @@
 .icon-browser-back:before {
   content: "\e615";
 }
-.icon-browser-closecancel:before {
+.icon-browser-close:before {
   content: "\e616";
 }
 .icon-browser-crashedtab:before {
   content: "\e617";
 }
-.icon-browser-foward:before {
+.icon-browser-forward:before {
   content: "\e618";
 }
 .icon-browser-moretabs:before {
@@ -111,13 +113,13 @@
 .icon-calendar-eventalarm:before {
   content: "\e61f";
 }
-.icon-calllog-checkboxoff:before {
+.icon-checkboxoff:before {
   content: "\e620";
 }
-.icon-calllog-checkboxon-box:before {
+.icon-checkboxon:before {
   content: "\e621";
 }
-.icon-calllog-checkboxon-checkmark:before {
+.icon-checkboxcheck:before {
   content: "\e622";
 }
 .icon-calllog-expand:before {
@@ -159,7 +161,7 @@
 .icon-clearcancel-cross:before {
   content: "\e62f";
 }
-.icon-closecancel:before {
+.icon-close:before {
   content: "\e630";
 }
 .icon-compose:before {
@@ -300,10 +302,10 @@
 .icon-email-replyall:before {
   content: "\e65e";
 }
-.icon-email-send:before {
+.icon-send:before {
   content: "\e65f";
 }
-.icon-emailsmscalilog-editlist:before {
+.icon-edit:before {
   content: "\e660";
 }
 .icon-fm-favouritedstation:before {
@@ -312,7 +314,7 @@
 .icon-fm-sound:before {
   content: "\e662";
 }
-.icon-foward:before {
+.icon-forward:before {
   content: "\e663";
 }
 .icon-ftu-importgmail:before {
@@ -366,7 +368,7 @@
 .icon-gallery-rotate:before {
   content: "\e674";
 }
-.icon-gerneral-unlock:before {
+.icon-unlock:before {
   content: "\e675";
 }
 .icon-homescreendelete-circle:before {
@@ -444,7 +446,7 @@
 .icon-music-playlist:before {
   content: "\e68e";
 }
-.icon-newadd:before {
+.icon-add:before {
   content: "\e68f";
 }
 .icon-notification-bluetooth:before {
@@ -702,16 +704,16 @@
 .icon-threadnotsent-exclamation:before {
   content: "\e6e4";
 }
-.icon-treadnotsent-circle:before {
+.icon-threadnotsent-circle:before {
   content: "\e6e5";
 }
-.icon-treadsent-check:before {
+.icon-threadsent-check:before {
   content: "\e6e6";
 }
-.icon-treadsent-circle:before {
+.icon-threadsent-circle:before {
   content: "\e6e7";
 }
-.icon-useraccoun-headers:before {
+.icon-user:before {
   content: "\e6e8";
 }
 .icon-utility-airplanemode:before {
