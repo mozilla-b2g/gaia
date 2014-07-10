@@ -67,8 +67,9 @@ gaia-grid {
   left: 0;
   right: 0;
   bottom: 0;
-  overflow: scroll;
   padding-top: 7.3rem;
+  overflow-x: hidden;
+  overflow-y: scroll;
   -moz-user-select: none;
 }
 
@@ -85,19 +86,15 @@ gaia-grid {
 
 /* Notifications */
 #content {
-  display: flex;
-  flex-direction: column;
+  display: block;
   width: 100%;
 }
 
 section[role="notification"] {
-  flex: 1 1 auto;
-  align-items: center;
   color: #fff;
   font-size: 1.6rem;
   line-height: 1.8rem;
   text-align: center;
-  justify-content: center;
   display: none;
   position: relative;
   z-index: 1;
@@ -105,6 +102,12 @@ section[role="notification"] {
 
 section[role="notification"]#offline {
   padding: 1.2rem 5rem;
+}
+
+#content section[role="notification"]#loading {
+  position: absolute;
+  width: 100%;
+  top: calc(50% + 1.45rem); /* 2.9rem is the height of the progress element */
 }
 
 /* Prevent unnecessary cpu usage (bug 922341) */
@@ -117,7 +120,7 @@ body[data-loading="true"] section[role="notification"] progress {
 }
 section[role="notification"].show,
 body[data-loading="true"] #content section[role="notification"]#loading{
-  display: flex;
+  display: block;
 }
 
 .edit-mode .icon[data-is-draggable="false"] {
