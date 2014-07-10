@@ -146,11 +146,11 @@ function init() {
 
   // Clicking on the cancel button goes from thumbnail select mode
   // back to thumbnail list mode
-  $('thumbnails-cancel-button').onclick =
-    setView.bind(null, LAYOUT_MODE.list);
+  $('selected-header').addEventListener('action',
+    setView.bind(null, LAYOUT_MODE.list));
 
   // Clicking on the pick back button cancels the pick activity.
-  $('pick-back-button').onclick = cancelPick;
+  $('pick-header').addEventListener('action', cancelPick);
 
   // In crop view, the back button goes back to pick view
   $('crop-back-button').onclick = function() {
@@ -1162,7 +1162,16 @@ function updateSelection(thumbnail) {
   // Now update the UI based on the number of selected thumbnails
   var numSelected = selectedFileNames.length;
   var msg = navigator.mozL10n.get('number-selected2', { n: numSelected });
-  $('thumbnails-number-selected').textContent = msg;
+  var headerTitle = $('thumbnails-number-selected');
+
+  headerTitle.textContent = msg;
+
+  // HACK: Force an aggresive redraw
+  // to workaround bug 1007743. Remove
+  // these three lines once bug fixed.
+  headerTitle.style.display = 'none';
+  headerTitle.offsetTop;
+  headerTitle.style.display = 'block';
 
   if (numSelected === 0) {
     $('thumbnails-delete-button').classList.add('disabled');
