@@ -750,18 +750,23 @@ $(NPM_INSTALLED_PROGRAMS): package.json node_modules
 
 
 NODE_MODULES_REV=$(shell cat gaia_node_modules.revision)
-$(NODE_MODULES_SRC): gaia_node_modules.revision
-ifeq "$(NODE_MODULES_SRC)" "modules.tar"
+# modules.tar and git-gaia-node-modules are the possible values for
+# $(NODE_MODULES_SRC). See the node_modules target.
+modules.tar: gaia_node_modules.revision
 	-$(DOWNLOAD_CMD) https://github.com/mozilla-b2g/gaia-node-modules/tarball/$(NODE_MODULES_REV) &&\
 	mv $(NODE_MODULES_REV) "$(NODE_MODULES_SRC)"
-else
+
+git-gaia-node-modules: gaia_node_modules.revision
 	if [ ! -d "$(NODE_MODULES_SRC)" ] ; then \
 		git clone "$(NODE_MODULES_GIT_URL)" "$(NODE_MODULES_SRC)" ; \
 	fi
 	(cd "$(NODE_MODULES_SRC)" && git fetch && git reset --hard "$(NODE_MODULES_REV)" )
-endif
 
-node_modules: $(NODE_MODULES_SRC)
+node_modules: gaia_node_modules.revision
+	# Running make without using a dependency ensures that we can run
+	# "make node_modules" with a custom NODE_MODULES_GIT_URL variable, and then
+	# run another target without specifying the variable
+	$(MAKE) $(NODE_MODULES_SRC)
 ifeq "$(NODE_MODULES_SRC)" "modules.tar"
 	$(TAR_WILDCARDS) --strip-components 1 -x -m -f $(NODE_MODULES_SRC) "mozilla-b2g-gaia-node-modules-*/node_modules"
 else
