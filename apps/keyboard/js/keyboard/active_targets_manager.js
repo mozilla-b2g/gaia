@@ -77,13 +77,13 @@ ActiveTargetsManager.prototype.clearAllTargets = function() {
 };
 
 ActiveTargetsManager.prototype._handlePressStart = function(press, id) {
-  var target = press.target;
-  this.activeTargets.set(id, target);
-
   // Ignore new touches if menu is shown
   if (this.alternativesCharMenuManager.isShown) {
     return;
   }
+
+  var target = press.target;
+  this.activeTargets.set(id, target);
 
   if (typeof this.ontargetactivated === 'function') {
     this.ontargetactivated(target);
@@ -110,19 +110,24 @@ ActiveTargetsManager.prototype._handlePressMove = function(press, id) {
     target = this.alternativesCharMenuManager.getMenuTarget(press);
   }
 
-  // Ignore moment of new touches if the menu is shown and
-  // this is not the touch bind to the menu.
-  if (this.alternativesCharMenuManager.isShown &&
-      !this.alternativesCharMenuManager.isMenuTouch(id)) {
-    return;
-  }
-
   // Do nothing if press reports we have moved to empty space.
   if (!target) {
     return;
   }
 
   var oldTarget = this.activeTargets.get(id);
+
+  // Special handling for selection: since selections are scrollable,
+  // if the press is moved, the press is consider ended and should be ignored.
+  if (press.moved && ('selection' in oldTarget.dataset)) {
+    this.activeTargets.delete(id);
+    this.ontargetcancelled(oldTarget);
+
+    this.alternativesCharMenuManager.hide();
+    clearTimeout(this.longPressTimer);
+
+    return;
+  }
 
   // Do nothing if the element is unchanged.
   if (target === oldTarget) {
@@ -164,7 +169,7 @@ ActiveTargetsManager.prototype._handleLongPress = function(press, id) {
     this.ontargetlongpressed(target);
   }
 
-  this.alternativesCharMenuManager.show(target, id);
+  this.alternativesCharMenuManager.show(target);
   // Press is considered "moved" after menu is shown
   if (this.alternativesCharMenuManager.isShown) {
     this._handlePressMove(press, id);
@@ -179,23 +184,8 @@ ActiveTargetsManager.prototype._handlePressEnd = function(press, id) {
   var target = this.activeTargets.get(id);
   this.activeTargets.delete(id);
 
-  // Ignore press end of new touches if the menu is shown and
-  // this is not the touch bind to the menu.
-  if (this.alternativesCharMenuManager.isShown &&
-      !this.alternativesCharMenuManager.isMenuTouch(id)) {
-    return;
-  }
-
   this.alternativesCharMenuManager.hide();
   clearTimeout(this.longPressTimer);
-
-  // selections on candidate panel should not be committed if the
-  // press is moved because the user might simply just want to scroll the panel.
-  if (press.moved && ('selection' in target.dataset)) {
-    this.ontargetcancelled(target);
-
-    return;
-  }
 
   if (typeof this.ontargetcommitted === 'function') {
     this.ontargetcommitted(target);

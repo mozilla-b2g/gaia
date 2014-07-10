@@ -9,7 +9,6 @@ suite('AlternativesCharMenuManager', function() {
   var container;
   var manager;
   var target;
-  var id = 123;
 
   var getFakeElementWithGetBoundingClientRect;
 
@@ -91,7 +90,7 @@ suite('AlternativesCharMenuManager', function() {
     app.layoutManager.currentModifiedLayout.alt.x =
       ['a', 'b', 'c', 'd'];
 
-    manager.show(target, id);
+    manager.show(target);
 
     assert.isTrue(window.IMERender.
       showAlternativesCharMenu.calledWith(target, ['a', 'b', 'c', 'd']));
@@ -99,7 +98,6 @@ suite('AlternativesCharMenuManager', function() {
       window.IMERender.showAlternativesCharMenu.getCall(0).args[1],
       'A copy of the array should be sent instead of the original one.');
     assert.isTrue(manager.isShown);
-    assert.isTrue(manager.isMenuTouch(id));
   });
 
   test('show (upper case)', function() {
@@ -111,7 +109,7 @@ suite('AlternativesCharMenuManager', function() {
     app.layoutManager.currentModifiedLayout.alt.X.upperCaseLocked =
       ['E', 'F', 'G', 'H'];
 
-    manager.show(target, id);
+    manager.show(target);
 
     assert.isTrue(window.IMERender.
         showAlternativesCharMenu.calledWith(target, ['A', 'B', 'C', 'D']));
@@ -119,7 +117,6 @@ suite('AlternativesCharMenuManager', function() {
       window.IMERender.showAlternativesCharMenu.getCall(0).args[1],
       'A copy of the array should be sent instead of the original one.');
     assert.isTrue(manager.isShown);
-    assert.isTrue(manager.isMenuTouch(id));
   });
 
   test('show (upper case locked)', function() {
@@ -131,7 +128,7 @@ suite('AlternativesCharMenuManager', function() {
     app.layoutManager.currentModifiedLayout.alt.X.upperCaseLocked =
       ['E', 'F', 'G', 'H'];
 
-    manager.show(target, id);
+    manager.show(target);
 
     assert.isTrue(window.IMERender.
         showAlternativesCharMenu.calledWith(target, ['E', 'F', 'G', 'H']));
@@ -139,18 +136,16 @@ suite('AlternativesCharMenuManager', function() {
       window.IMERender.showAlternativesCharMenu.getCall(0).args[1],
       'A copy of the array should be sent instead of the original one.');
     assert.isTrue(manager.isShown);
-    assert.isTrue(manager.isMenuTouch(id));
   });
 
   test('show (ignore key w/o alternatives)', function() {
     this.sinon.stub(app, 'isCapitalized').returns(false);
     this.sinon.stub(app, 'isCapitalizeLocked').returns(false);
 
-    manager.show(target, id);
+    manager.show(target);
 
     assert.isFalse(window.IMERender.showAlternativesCharMenu.called);
     assert.isFalse(manager.isShown);
-    assert.isFalse(manager.isMenuTouch(id));
   });
 
   suite('after shown', function() {
@@ -161,14 +156,13 @@ suite('AlternativesCharMenuManager', function() {
       app.layoutManager.currentModifiedLayout.alt.x =
         ['a', 'b', 'c', 'd'];
 
-      manager.show(target, id);
+      manager.show(target);
     });
 
     test('hide', function() {
       manager.hide();
 
       assert.equal(manager.isShown, false);
-      assert.isFalse(manager.isMenuTouch(id));
       assert.isTrue(window.IMERender.hideAlternativesCharMenu.calledOnce);
     });
 

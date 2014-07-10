@@ -186,7 +186,7 @@ suite('ActiveTargetsManager', function() {
         assert.isTrue(
           manager.ontargetlongpressed.calledWith(press0.target));
         assert.isTrue(
-          alternativesCharMenuManagerStub.show.calledWith(press0.target, id0));
+          alternativesCharMenuManagerStub.show.calledWith(press0.target));
       });
 
       test('press end', function() {
@@ -343,7 +343,7 @@ suite('ActiveTargetsManager', function() {
           assert.isTrue(
             manager.ontargetlongpressed.calledWith(movedTarget));
           assert.isTrue(
-            alternativesCharMenuManagerStub.show.calledWith(movedTarget, id0));
+            alternativesCharMenuManagerStub.show.calledWith(movedTarget));
         });
 
         test('press end', function() {
@@ -470,7 +470,13 @@ suite('ActiveTargetsManager', function() {
       assert.isTrue(window.clearTimeout.calledTwice);
     });
 
-    test('press end (moved press)', function() {
+    test('press move and press end (moved press)', function() {
+      var pressMove = {
+        target: press0.target,
+        moved: true
+      };
+      userPressManagerStub.onpressmove(pressMove, id0);
+
       var pressEnd = {
         target: press0.target,
         moved: true
