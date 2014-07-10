@@ -1501,19 +1501,34 @@ var ThreadUI = global.ThreadUI = {
     var filter = new MozSmsFilter();
     filter.threadId = threadId;
 
-    // We call getMessages with callbacks
-    var renderingOptions = {
-      each: onRenderMessage,
-      filter: filter,
-      invert: false,
-      end: onMessagesRendered,
-      done: onMessagesDone
-    };
+    if (navigator.mozSettings) {
+      var today = new Date();
+      var oneday = 24*3600*1000;
+      var onemonth = oneday*7*4;
+      var lastmonth = new Date(today - onemonth);
+      var key = 'sms.limit.last-month';
+      var req = navigator.mozSettings.createLock().get(key);
+      req.onsuccess = function onsuccess() {
+        if (req.result[key]) {
+          filter.startDate = lastmonth;
+          filter.endDate = today;
+        }
 
-    MessageManager.getMessages(renderingOptions);
+        // We call getMessages with callbacks
+        var renderingOptions = {
+          each: onRenderMessage,
+          filter: filter,
+          invert: false,
+          end: onMessagesRendered,
+          done: onMessagesDone
+        };
 
-    // force the next scroll to bottom
-    this.isScrolledManually = false;
+        MessageManager.getMessages(renderingOptions);
+
+        // force the next scroll to bottom
+        this.isScrolledManually = false;
+      };
+    }
   },
 
   // generates the html for not-downloaded messages - pushes class names into
