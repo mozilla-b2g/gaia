@@ -158,6 +158,7 @@
 
       object.sendStkResponse = function() {};
       object.sendStkMenuSelection = function() {};
+      object.updateContact = function() {};
 
       return object;
     },
