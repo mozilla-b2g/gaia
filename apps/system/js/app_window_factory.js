@@ -176,7 +176,7 @@
       if (config.manifest.role === 'search') {
         return;
       }
-      var app = AppWindowManager.getApp(config.origin);
+      var app = AppWindowManager.getApp(config.origin, config.manifestURL);
       if (app) {
         app.reviveBrowser();
       } else if (config.origin !== homescreenLauncher.origin) {

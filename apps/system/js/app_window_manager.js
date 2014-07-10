@@ -42,11 +42,13 @@
     /**
      * Match app origin and get the first matching one.
      * @param  {String} origin The origin to be matched.
+     * @param  {String} [manifestURL] The manifestURL to be matched.
      * @return {AppWindow}        The app window object matched.
      */
-    getApp: function awm_getApp(origin) {
+    getApp: function awm_getApp(origin, manifestURL) {
       for (var id in this._apps) {
-        if (this._apps[id].origin == origin) {
+        if (this._apps[id].origin === origin &&
+            (!manifestURL || this._apps[id].manifestURL === manifestURL)) {
           return this._apps[id];
         }
       }
@@ -54,11 +56,11 @@
     },
 
     /**
-     * Match app origin and get the first matching one.
+     * Get all apps.
      * @return {Object} The running app window references stored
      *                  by its instanceID.
      */
-    getApps: function awm_getApps(origin) {
+    getApps: function awm_getApps() {
       return this._apps;
     },
 
@@ -679,9 +681,10 @@
      * @param {String} origin The origin of the running app window to be killed.
      * @memberOf module:AppWindowManager
      */
-    kill: function awm_kill(origin) {
+    kill: function awm_kill(origin, manifestURL) {
       for (var id in this._apps) {
-        if (this._apps[id].origin === origin) {
+        if (this._apps[id].origin === origin &&
+            (!manifestURL || this._apps[id].manifestURL === manifestURL)) {
           this._apps[id].kill();
         }
       }
