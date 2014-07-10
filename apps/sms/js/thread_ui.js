@@ -668,15 +668,15 @@ var ThreadUI = global.ThreadUI = {
     }
     /**
      * Choose the appropriate contact resolver:
-     *  - if we have a phone number and no contact, rely on findByPhoneNumber
+     *  - if we have a phone number and no contact, rely on findByAddress
      *    to get a contact matching the number;
      *  - if we have a contact object and no phone number, just use a dummy
      *    source that returns the contact.
      */
-    var findByPhoneNumber = Contacts.findByPhoneNumber.bind(Contacts);
+    var findByAddress = Contacts.findByAddress.bind(Contacts);
     var number = activity.number;
     if (activity.contact && !number) {
-      findByPhoneNumber = function dummySource(contact, cb) {
+      findByAddress = function dummySource(contact, cb) {
         cb(activity.contact);
       };
       number = activity.contact.number || activity.contact.tel[0].value;
@@ -685,7 +685,7 @@ var ThreadUI = global.ThreadUI = {
     // Add recipients and fill+focus the Compose area.
     if (activity.contact && number) {
       Utils.getContactDisplayInfo(
-        findByPhoneNumber, number, function onData(data) {
+        findByAddress, number, function onData(data) {
           data.source = 'contacts';
           ThreadUI.recipients.add(data);
           Compose.fromMessage(activity);
@@ -716,7 +716,7 @@ var ThreadUI = global.ThreadUI = {
       // Recipients will exist for draft messages in threads
       // Otherwise find them from draft recipient numbers
       draft.recipients.forEach(function(number) {
-        Contacts.findByPhoneNumber(number, function(records) {
+        Contacts.findByAddress(number, function(records) {
           if (records.length) {
             this.recipients.add(
               Utils.basicContact(number, records[0])
@@ -1333,13 +1333,17 @@ var ThreadUI = global.ThreadUI = {
     var threadMessages = this.threadMessages;
     var number = thread.participants[0];
     var phoneDetails;
+    var address;
 
     // The carrier banner is meaningless and confusing in
     // group message mode.
     if (thread.participants.length === 1 &&
         (contacts && contacts.length)) {
 
-      phoneDetails = Utils.getPhoneDetails(number, contacts[0].tel);
+      address = Settings.supportEmailRecipient && Utils.isEmailAddress(number) ?
+                contacts[0].email : contacts[0].tel;
+
+      phoneDetails = Utils.getPhoneDetails(number, address);
 
       if (phoneDetails) {
         carrierTag.innerHTML = SharedComponents.phoneDetails(phoneDetails);
@@ -1385,7 +1389,7 @@ var ThreadUI = global.ThreadUI = {
     this.headerText.dataset.number = number;
 
     return new Promise(function(resolve, reject) {
-      Contacts.findByPhoneNumber(number, function gotContact(contacts) {
+      Contacts.findByAddress(number, function gotContact(contacts) {
         // For the basic display, we only need the first contact's information
         // e.g. for 3 contacts, the app displays:
         //
@@ -2744,7 +2748,7 @@ var ThreadUI = global.ThreadUI = {
     var inMessage = opts.inMessage || false;
     var number = opts.number || '';
 
-    Contacts.findByPhoneNumber(number, function(results) {
+    Contacts.findByAddress(number, function(results) {
       var isContact = results && results.length;
       var contact = results[0];
       var id;

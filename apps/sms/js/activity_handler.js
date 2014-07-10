@@ -473,7 +473,7 @@ var ActivityHandler = {
           }
         }
 
-        Contacts.findByPhoneNumber(message.sender, function gotContact(
+        Contacts.findByAddress(message.sender, function gotContact(
                                                                 contact) {
           var sender = message.sender;
           if (!contact) {
