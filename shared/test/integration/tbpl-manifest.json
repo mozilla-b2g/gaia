@@ -21,10 +21,12 @@
     "apps/homescreen/test/marionette/remove_bookmark_test.js",
     "apps/homescreen/test/marionette/update_bookmark_test.js",
     "apps/search/test/marionette/places_search_test.js",
+    "apps/settings/test/marionette/tests/airplane_mode_settings_test.js"
     "apps/settings/test/marionette/tests/app_permission_settings_test.js",
     "apps/settings/test/marionette/tests/hotspot_wifi_settings_test.js",
     "apps/system/test/marionette/edges_gesture_test.js",
     "apps/system/test/marionette/notification_get_test.js",
-    "apps/verticalhome/test/marionette/app_packaged_resume_test.js"
+    "apps/verticalhome/test/marionette/app_packaged_resume_test.js",
+    "apps/system/test/marionette/notification_resend_test.js"
   ]
 }
