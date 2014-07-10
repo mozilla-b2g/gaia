@@ -8,7 +8,8 @@
          ActivityPicker, KeyEvent, MockNavigatorSettings, MockContactRenderer,
          Draft, MockStickyHeader, MultiSimActionButton, Promise, KeyboardEvent,
          MockLazyLoader, WaitingScreen, Navigation, MockDialog, MockSettings,
-         FocusEvent
+         FocusEvent,
+         DocumentFragment
 */
 
 'use strict';
@@ -111,6 +112,7 @@ suite('thread_ui.js >', function() {
   var threadMessages;
   var mainWrapper;
   var headerText;
+  var recipientSuggestions;
 
   var realMozL10n;
   var realMozMobileMessage;
@@ -198,6 +200,9 @@ suite('thread_ui.js >', function() {
     threadMessages = document.getElementById('thread-messages');
     mainWrapper = document.getElementById('main-wrapper');
     headerText = document.getElementById('messages-header-text');
+    recipientSuggestions = document.getElementById(
+      'messages-recipient-suggestions'
+    );
 
     this.sinon.useFakeTimers();
 
@@ -322,6 +327,7 @@ suite('thread_ui.js >', function() {
         unknownRenderer = new MockContactRenderer();
         sinon.spy(suggestionRenderer, 'render');
         sinon.spy(unknownRenderer, 'render');
+        this.sinon.spy(ThreadUI, 'toggleRecipientSuggestions');
 
         this.sinon.stub(ContactRenderer, 'flavor').throws();
         ContactRenderer.flavor.withArgs('suggestion')
@@ -358,18 +364,22 @@ suite('thread_ui.js >', function() {
         sinon.assert.calledWithMatch(suggestionRenderer.render, {
           contact: contact,
           input: '999',
-          target: container.querySelector('ul.contact-list')
+          target: sinon.match.instanceOf(DocumentFragment)
         });
 
         sinon.assert.calledWithMatch(unknownRenderer.render, {
           contact: unknown,
-           input: '999',
-           target: container.querySelector('ul.contact-list')
+          input: '999',
+          target: sinon.match.instanceOf(DocumentFragment)
         });
+
+        sinon.assert.calledWith(
+          ThreadUI.toggleRecipientSuggestions,
+          sinon.match.instanceOf(DocumentFragment)
+        );
       });
 
       test('does not display entered recipients', function() {
-
         sinon.assert.calledWithMatch(suggestionRenderer.render, {
             skip: ['888']
         });
@@ -377,6 +387,45 @@ suite('thread_ui.js >', function() {
            skip: ['888']
         });
       });
+    });
+
+    test('toggling suggestions list', function() {
+      var contactList = recipientSuggestions.querySelector('.contact-list');
+      recipientSuggestions.classList.add('hide');
+      contactList.textContent = '';
+
+      var documentFragment = document.createDocumentFragment(),
+          suggestionNode = document.createElement('li');
+      suggestionNode.innerHTML =
+        '<a class="suggestion">' +
+          '<p class="name">Jean Dupont</p>' +
+          '<p class="number">0123456789</p>' +
+        '</a>';
+      documentFragment.appendChild(suggestionNode);
+
+      ThreadUI.toggleRecipientSuggestions(documentFragment);
+
+      assert.isFalse(
+        recipientSuggestions.classList.contains('hide'),
+        'Recipient suggestions should be visible'
+      );
+      assert.equal(
+        contactList.firstElementChild,
+        suggestionNode,
+        'Recipient suggestions should contain correct data'
+      );
+      assert.equal(contactList.childNodes.length, 1);
+
+
+      ThreadUI.toggleRecipientSuggestions();
+
+      assert.isTrue(
+        recipientSuggestions.classList.contains('hide'),
+        'Recipient suggestions should be hidden'
+      );
+      assert.equal(
+        contactList.textContent, '', 'Recipient suggestions should be cleared'
+      );
     });
   });
 
@@ -1149,15 +1198,13 @@ suite('thread_ui.js >', function() {
         node.textContent = '999';
 
         // fake markup for some contact suggestions
-        container.innerHTML =
-          '<ul class="contact-list">' +
-            '<li>' +
-              '<a class="suggestion">' +
-                '<p class="name">Jean Dupont</p>' +
-                '<p class="number">0123456789</p>' +
-              '</a>' +
-            '</li>' +
-          '</ul>';
+        recipientSuggestions.querySelector('.contact-list').innerHTML =
+          '<li>' +
+            '<a class="suggestion">' +
+              '<p class="name">Jean Dupont</p>' +
+              '<p class="number">0123456789</p>' +
+            '</a>' +
+          '</li>';
 
         this.sinon.spy(ThreadUI.recipients, 'add');
         this.sinon.stub(Navigation, 'isCurrentPanel');
@@ -1174,6 +1221,7 @@ suite('thread_ui.js >', function() {
 
       test('Recipient assimilation is called when focus on subject',
       function() {
+        this.sinon.spy(ThreadUI, 'toggleRecipientSuggestions');
         subject.dispatchEvent(new FocusEvent('focus'));
 
         // recipient added and container is cleared
@@ -1182,7 +1230,8 @@ suite('thread_ui.js >', function() {
           number: '999',
           source: 'manual'
         });
-        assert.equal(container.textContent, '');
+
+        sinon.assert.calledWithExactly(ThreadUI.toggleRecipientSuggestions);
       });
     });
 

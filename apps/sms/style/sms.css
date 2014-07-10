@@ -608,6 +608,8 @@ section[role="region"].new .subheader {
 
 #messages-to-field {
   position: relative;
+  /* To be above .article-list's with z-index = 5 */
+  z-index: 6;
 
   display: none;
   min-height: 5.5rem;
@@ -717,15 +719,29 @@ Do not remove.
   background: none;
 }
 
-.article-list[data-type="list"] ul.contact-list {
+#messages-recipient-suggestions {
   position: absolute;
-  width: calc(100% - 3.1rem);
-  z-index: 5;
+  /* 10.5rem (5 rem from app header + 5.5rem from "To" panel heights) */
+  top: 10.5rem;
+
   overflow-y: auto;
+
+  max-height: calc(100% - 10.5rem);
+  width: 100%;
+}
+
+#messages-recipient-suggestions li:first-child {
+  margin-top: 0;
+}
+
+.article-list[data-type="list"] ul.contact-list {
   overflow-x: hidden;
-  max-height: calc(100% - 5rem);
+  overflow-y: auto;
+
+  width: calc(100% - 3.1rem);
   padding: 0 1.5rem;
-  background: white;
+
+  background: #fff;
 }
 
 body[role="application"] form[role="dialog"][data-type="action"] > section:first-child{
