@@ -18,6 +18,7 @@
     <link rel="stylesheet" type="text/css" href="shared/style/progress_activity.css">
     <link rel="stylesheet" type="text/css" href="shared/style/status.css">
     <link rel="stylesheet" type="text/css" href="shared/style/sim_picker.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/tabs.css" >
     <!-- App styles -->
     <link rel="stylesheet" type="text/css" href="style/common.css">
     <link rel="stylesheet" type="text/css" href="style/sms.css">
@@ -96,7 +97,7 @@
               <span class="icon icon-compose"></span>
             </a>
             <a id="threads-options-icon">
-              <span class="icon icon-options"></span>
+              <span class="icon icon-edit"></span>
             </a>
           </menu>
           <h1 data-l10n-id="messages">Messages</h1>
@@ -123,9 +124,17 @@
               <h1 id="threads-edit-mode" data-l10n-id="selectThreads-title">Select</h1>
             </header>
           </section>
-          <menu>
-            <button id="threads-delete-button" data-l10n-id="delete">delete</button>
-          </menu>
+            <!--<button id="threads-delete-button" data-l10n-id="delete">delete</button>-->
+            <div class="bottom-tab" role="region" >
+              <ul class="bb-tablist msg-listedit-action-toolbar collapsed">
+                <li role="presentation">
+                  <button id="threads-delete-button" class="icon msg-delete-btn"></button>
+                </li>
+                <li role="presentation">
+                  <button id="threads-read-button" class="icon msg-read-btn"></button>
+                </li>
+              </ul>
+            </div>
         </form>
 
         <section id="threads-draft-saved-banner" class="hide" role="status">
@@ -284,9 +293,14 @@
               <h1 id="messages-edit-mode" data-l10n-id="deleteMessages-title">Delete Messages</h1>
             </header>
           </section>
-          <menu>
-            <button id="messages-delete-button" data-l10n-id="delete">delete</button>
-          </menu>
+            <!--<button id="messages-delete-button" data-l10n-id="delete">delete</button>-->
+          <div class="bottom-tab" role="region" >
+            <ul class="bb-tablist msg-listedit-action-toolbar collapsed">
+              <li role="presentation">
+                <button id="messages-delete-button" class="icon msg-delete-btn"></button>
+              </li>
+            </ul>
+          </div>
         </form>
       </section>
     </article>
