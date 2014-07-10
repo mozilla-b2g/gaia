@@ -9,27 +9,17 @@ suite('contextmenu.js >', function() {
     id: 'contextmenu-dialog'
   });
 
-  test(' Context Menu dialog displayed ', function(done) {
-    window.addEventListener('contextmenushowed', function showed() {
-      window.removeEventListener('contextmenushowed', showed);
-
-      var dialog = document.getElementById('contextmenu-dialog');
-      assert.isTrue(dialog.classList.contains('visible'));
-      done();
-    });
-
+  test(' Context Menu dialog displayed ', function() {
+    this.sinon.useFakeTimers();
     ContextMenuDialog.show();
+    this.sinon.clock.tick(50);
+    assert.isTrue(document.getElementById('contextmenu-dialog').classList.
+                  contains('show'));
   });
 
-  test(' Context Menu dialog hidden ', function(done) {
-    window.addEventListener('contextmenuhidden', function hidden() {
-      window.removeEventListener('contextmenuhidden', hidden);
-
-      var dialog = document.getElementById('contextmenu-dialog');
-      assert.isFalse(dialog.classList.contains('visible'));
-      done();
-    });
-
+  test(' Context Menu dialog hidden ', function() {
     ContextMenuDialog.hide();
+    assert.isFalse(document.getElementById('contextmenu-dialog').classList.
+                   contains('show'));
   });
 });

@@ -45,11 +45,8 @@ var ContextMenuDialog = (function() {
     collectionsButton.addEventListener('click', addCollection);
     cancelButton.addEventListener('click', hide);
 
-    var classList = dialog.classList;
-    classList.add('visible');
     setTimeout(function animate() {
-      classList.add('show');
-      window.dispatchEvent(new CustomEvent('contextmenushowed'));
+      dialog.classList.add('show');
     }, 50); // Give the opportunity to paint the UI component
   }
 
@@ -60,17 +57,14 @@ var ContextMenuDialog = (function() {
     collectionsButton.removeEventListener('click', addCollection);
     cancelButton.removeEventListener('click', hide);
 
-    var classList = dialog.classList;
     dialog.addEventListener('transitionend', function hidden() {
       dialog.removeEventListener('transitionend', hidden);
-      classList.remove('visible');
       if (typeof cb === 'function') {
         cb();
       }
     });
 
-    classList.remove('show');
-    window.dispatchEvent(new CustomEvent('contextmenuhidden'));
+    dialog.classList.remove('show');
   }
 
   return {
