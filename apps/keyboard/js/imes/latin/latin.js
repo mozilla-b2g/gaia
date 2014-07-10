@@ -885,7 +885,9 @@
     // We however want to reset the shift key state triggered by the user,
     // regardless of the layout page the user is currently on.
     if (!capitalizing) {
-      keyboard.setUpperCase(false);
+      keyboard.setUpperCase({
+        isUpperCase: false
+      });
       return;
     }
 
@@ -905,20 +907,30 @@
     // 5) Otherwise: lowercase
     //
     if (cursor === 0) {
-      keyboard.setUpperCase(true);
+      keyboard.setUpperCase({
+        isUpperCase: true
+      });
     }
     else if (cursor >= 2 &&
              isUpperCase(inputText.substring(cursor - 2, cursor))) {
-      keyboard.setUpperCase(true);
+      keyboard.setUpperCase({
+        isUpperCase: true
+      });
     }
     else if (!isWhiteSpace(inputText.substring(cursor - 1, cursor))) {
-      keyboard.setUpperCase(false);
+      keyboard.setUpperCase({
+        isUpperCase: false
+      });
     }
     else if (atSentenceStart()) {
-      keyboard.setUpperCase(true);
+      keyboard.setUpperCase({
+        isUpperCase: true
+      });
     }
     else {
-      keyboard.setUpperCase(false);
+      keyboard.setUpperCase({
+        isUpperCase: false
+      });
     }
   }
 

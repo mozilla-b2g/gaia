@@ -96,11 +96,11 @@
  *      Allows the IM to switch between default and symbol layouts on the
  *      keyboard. Used by the latin IM.
  *
- *    setUpperCase(upperCase, upperCaseLocked):
+ *    setUpperCase(state):
  *      Allows the IM to switch between uppercase and lowercase layout on the
  *      keyboard. Used by the latin IM.
- *        - upperCase: to enable the upper case or not.
- *        - upperCaseLocked: to change the caps lock state.
+ *        - state.isUpperCase: to enable the upper case or not.
+ *        - state.isUpperCaseLocked: to change the caps lock state.
  *
  *    getNumberOfCandidatesPerRow():
  *      Allow the IM to know how many candidates the Render need in one row so
@@ -177,8 +177,8 @@ InputMethodGlue.prototype.setLayoutPage = function(newpage) {
   this.app.setLayoutPage(newpage);
 };
 
-InputMethodGlue.prototype.setUpperCase = function(upperCase, upperCaseLocked) {
-  this.app.setUpperCase(upperCase, upperCaseLocked);
+InputMethodGlue.prototype.setUpperCase = function(state) {
+  this.app.setUpperCase(state);
 };
 
 InputMethodGlue.prototype.isCapitalized = function() {

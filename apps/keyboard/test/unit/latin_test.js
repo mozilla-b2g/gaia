@@ -21,8 +21,8 @@ suite('latin input method capitalization and punctuation', function() {
     sendCandidates: function(words) {
       // gotSuggestions(words);
     },
-    setUpperCase: function(uc) {
-      isUpperCase = uc;
+    setUpperCase: function(state) {
+      isUpperCase = state.isUpperCase;
     },
     setLayoutPage: function() {
     },

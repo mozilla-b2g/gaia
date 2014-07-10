@@ -406,17 +406,21 @@ function renderKeyboard() {
   perfTimer.printTime('BLOCKING renderKeyboard', 'renderKeyboard');
 }
 
-function setUpperCase(upperCase, upperCaseLocked) {
-  upperCaseLocked = (typeof upperCaseLocked == 'undefined') ?
-                     isUpperCaseLocked : upperCaseLocked;
+function setUpperCase(state) {
+  if (!state) {
+    return;
+  }
+
+  var upperCaseLocked = (typeof state.isUpperCaseLocked == 'undefined') ?
+                     isUpperCaseLocked : state.isUpperCaseLocked;
 
   // Do nothing if the states are not changed
-  if (isUpperCase == upperCase &&
+  if (isUpperCase == state.isUpperCase &&
       isUpperCaseLocked == upperCaseLocked)
     return;
 
   isUpperCaseLocked = upperCaseLocked;
-  isUpperCase = upperCase;
+  isUpperCase = state.isUpperCase;
 
   if (!isKeyboardRendered)
     return;
@@ -703,9 +707,15 @@ function handleTargetCommitted(target, isDoubleTap) {
   case KeyEvent.DOM_VK_CAPS_LOCK:
 
     if (isDoubleTap) {
-      setUpperCase(true, true);
+      setUpperCase({
+        isUpperCase: true,
+        isUpperCaseLocked: true
+      });
     } else {
-      setUpperCase(!isUpperCase, false);
+      setUpperCase({
+        isUpperCase: !isUpperCase,
+        isUpperCaseLocked: false
+      });
     }
     break;
 
