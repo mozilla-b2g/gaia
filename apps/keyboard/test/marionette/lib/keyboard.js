@@ -17,6 +17,7 @@ Keyboard.MANIFEST_URL =  'app://keyboard.gaiamobile.org/manifest.webapp';
 
 // Selectors for the DOM in built-in keyboard app.
 Keyboard.Selector = Object.freeze({
+  currentPanel: '.keyboard-type-container[data-active]',
   imeSwitchingKey: '.keyboard-type-container[data-active] ' +
     '.keyboard-key[data-keycode="-3"]',
   returnKey: '.keyboard-type-container[data-active] ' +
@@ -35,5 +36,9 @@ Keyboard.prototype = {
   },
   get dismissSuggestionsButton() {
     return this.client.findElement(Keyboard.Selector.dismissSuggestionsButton);
+  },
+
+  get currentPanel() {
+    return this.client.findElement(Keyboard.Selector.currentPanel);
   }
 };
