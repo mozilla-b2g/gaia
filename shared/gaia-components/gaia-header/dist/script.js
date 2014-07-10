@@ -383,18 +383,36 @@ proto.createdCallback = function() {
   setTimeout(this.runFontFit.bind(this), 50);
 };
 
+/**
+ * Load in the the component's styles.
+ *
+ * We're working around a few platform bugs
+ * here related to @import in the shadow-dom
+ * stylesheet. When HTML-Imports are ready
+ * we won't have to use @import anymore.
+ *
+ * @private
+ */
 proto.styleHack = function() {
-  var style = this.shadowRoot.querySelector('style');
-  var clone = style.cloneNode(true);
+  var style = document.createElement('style');
   var self = this;
 
-  clone.setAttribute('scoped', '');
+  this.style.visibility = 'hidden';
+  style.innerHTML = '@import url(' + baseUrl + 'style.css);';
+  style.setAttribute('scoped', '');
   this.classList.add('content');
-  this.appendChild(clone);
+  this.appendChild(style);
 
-  clone.onload  = function() {
-    self.stylesLoaded = true;
-  };
+  // There are platform issues around using
+  // @import inside shadow root. Ensuring the
+  // stylesheet has loaded before putting it in
+  // the shadow root seems to work around this.
+  style.addEventListener('load', function() {
+    self.shadowRoot.appendChild(style.cloneNode(true));
+    self.style.visibility = '';
+    self.styled = true;
+    self.dispatchEvent(new CustomEvent('styled'));
+  });
 };
 
 proto.runFontFit = function() {
@@ -483,7 +501,6 @@ proto.onActionButtonClick = function(e) {
 // using HTML Imports (bug 877072).
 var template = document.createElement('template');
 template.innerHTML = [
-  '<style>@import url(' + baseUrl + 'style.css);</style>',
   '<div class="inner">',
     '<button class="action-button"></button>',
     '<content select="h1,h2,h3,h4"></content>',
@@ -491,6 +508,7 @@ template.innerHTML = [
   '</div>'
 ].join('');
 
+// Load the icon-font into the document <head>
 (function loadFont() {
   var href = packagesBaseUrl + 'gaia-icons/style.css';
   var existing = document.querySelector('link[href="' + href + '"]');

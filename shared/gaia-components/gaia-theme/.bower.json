@@ -29,6 +29,5 @@
   },
   "_source": "git://github.com/gaia-components/gaia-theme.git",
   "_target": "master",
-  "_originalSource": "gaia-components/gaia-theme",
-  "_direct": true
+  "_originalSource": "gaia-components/gaia-theme"
 }

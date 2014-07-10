@@ -20,11 +20,11 @@
   "dependencies": {
     "gaia-icons": "gaia-components/gaia-icons"
   },
-  "_release": "65ef7fec2d",
+  "_release": "9cdeb977ad",
   "_resolution": {
     "type": "branch",
     "branch": "master",
-    "commit": "65ef7fec2d6fe8ebe61e3905724c1018fa0bf13d"
+    "commit": "9cdeb977ad69bd5a59557c1a3a7415219ae5a73b"
   },
   "_source": "git://github.com/gaia-components/gaia-header.git",
   "_target": "master",

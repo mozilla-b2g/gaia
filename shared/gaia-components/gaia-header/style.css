@@ -7,6 +7,9 @@ gaia-header {
   display: block;
 }
 
+/** Inner
+ ---------------------------------------------------------*/
+
 .inner {
   display: flex;
   min-height: 50px;
@@ -97,6 +100,7 @@ button,
   text-decoration: none;
   text-align: center;
   background: none;
+  border-radius: 0;
   color: var(--header-button-color, #000);
   font-style: italic;
   transition: var(--button-transition);
@@ -123,6 +127,23 @@ button:active,
 a:focus,
 .content a:focus {
   outline: none;
+}
+
+/** Icon Buttons
+ ---------------------------------------------------------*/
+
+.content a[class*="icon-"],
+.content button[class*="icon-"] {
+  color: var(--header-nav-button-color, #000);
+}
+
+/**
+ * :active
+ */
+
+.content a[class*="icon-"]:active,
+.content button[class*="icon-"]:active {
+  color: var(--header-nav-button-color, #000);
 }
 
 /** Icons
