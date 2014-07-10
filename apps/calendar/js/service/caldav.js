@@ -3,18 +3,6 @@ Calendar.ns('Service').Caldav = (function() {
 
   var debug = Calendar.debug('caldav service');
 
-  /* TODO: ugly hack to enable system XHR fix upstream in Caldav lib */
-  var xhrOpts = {
-    /** system is required for cross domain XHR  */
-    mozSystem: true,
-    /** mozAnon is required to avoid system level popups on 401 status */
-    mozAnon: true,
-    /** enables use of mozilla only streaming api's when available */
-    useMozChunkedText: true
-  };
-
-  Caldav.Xhr.prototype.globalXhrOptions = xhrOpts;
-
   function Service(service) {
     Calendar.Responder.call(this);
 
@@ -23,18 +11,7 @@ Calendar.ns('Service').Caldav = (function() {
   }
 
   Service.prototype = {
-
     __proto__: Calendar.Responder.prototype,
-
-    /**
-     * See: http://tools.ietf.org/html/rfc5545#section-3.7.3
-     */
-    icalProductId: '-//Mozilla//FirefoxOS',
-
-    /**
-     * See: http://tools.ietf.org/html/rfc5545#section-3.7.4
-     */
-    icalVersion: '2.0',
 
     _initEvents: function() {
       var events = [
@@ -59,43 +36,37 @@ Calendar.ns('Service').Caldav = (function() {
       this[e.type].apply(this, e.data);
     },
 
-    /**
-     * Builds an Caldav connection from an account model object.
-     */
     _createConnection: function(account) {
-      var params = Calendar.extend({}, account);
       var preset = Calendar.Presets[account.preset];
 
-      if (
-          preset &&
-          preset.authenticationType &&
-          preset.apiCredentials
-      ) {
-        switch (preset.authenticationType) {
-          case 'oauth2':
-            params.httpHandler = 'oauth2';
+      var xhr;
+      if (preset && preset.authenticationType === 'oauth2') {
+        // oauth2
+        var apiCredentials = preset.apiCredentials;
+        xhr = new dav.transport.OAuth2({
+          authorizationCode: account.oauth.code,
+          clientId: apiCredentials.client_id,
+          clientSecret: apiCredentials.client_secret,
+          redirectUrl: apiCredentials.redirect_uri,
+          tokenUrl: apiCredentials.tokenUrl
+        });
+      } else {
+        // basic auth
+        xhr = new dav.transport.Basic({
+          username: account.user,
+          password: account.password
+        });
+      }
 
-            // shallow copy the apiCredentials on the preset
-            params.apiCredentials =
-              Calendar.extend({}, preset.apiCredentials);
-
-            // the url in this case will always be tokenUrl
-            params.apiCredentials.url =
-              preset.apiCredentials.tokenUrl;
-
-            break;
+      var options = {};
+      if (account.domain) {
+        options.baseUrl = account.domain;
+        if (account.entrypoint) {
+          options.baseUrl += account.entrypoint;
         }
       }
 
-      var connection = new Caldav.Connection(params);
-      return connection;
-    },
-
-    _requestHome: function(connection, url) {
-      return new Caldav.Request.CalendarHome(
-        connection,
-        { url: url }
-      );
+      return new dav.Client(xhr, options);
     },
 
     _requestCalendars: function(connection, url) {
@@ -146,32 +117,21 @@ Calendar.ns('Service').Caldav = (function() {
     },
 
     getAccount: function(account, callback) {
-      var url = account.entrypoint;
-      var connection = this._createConnection(account);
-
-      var request = this._requestHome(connection, url);
-      return request.send(function(err, data) {
-        if (err) {
-          callback(err);
-          return;
-        }
-
+      var client = this._createConnection(account);
+      client.createAccount({
+        accountType: 'caldav',
+        loadCollections: false,
+        server: client.baseUrl  // TODO(gareth): Should be default!
+      })
+      .then(function(value) {
         var result = {};
-
-        if (data.url) {
-          result.calendarHome = data.url;
-        }
-
-        if (connection.oauth) {
-          result.oauth = connection.oauth;
-        }
-
-        if (connection.user) {
-          result.user = connection.user;
-        }
-
-        callback(null, result);
-      });
+        result.calendarHome = value.homeUrl;
+        console.log('Found calendar home: ' + result.calendarHome);
+        // Keep the raw dav library response.
+        result.raw = dav.jsonify(value);
+        console.log('Will store ' + result.raw);
+      })
+      .catch(callback);
     },
 
     _formatCalendar: function(cal) {
