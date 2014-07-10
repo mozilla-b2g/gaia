@@ -678,8 +678,7 @@
     'mozbrowsershowmodalprompt',
     'mozbrowsertitlechange',
     'mozbrowserusernameandpasswordrequired',
-    'mozbrowseropensearch',
-    'mozbrowsertitlechange'
+    'mozbrowseropensearch'
   ];
 
   AppWindow.prototype.openAnimation = 'enlarge';
@@ -832,7 +831,7 @@
       this.title = evt.detail;
       this.publish('titlechange');
 
-      if (this.identificationTitle) {
+      if (this.identificationTitle && !this.manifest) {
         this.identificationTitle.textContent = this.title;
       }
     };

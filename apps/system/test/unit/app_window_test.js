@@ -1425,6 +1425,32 @@ suite('system/AppWindow', function() {
       assert.equal(app1.identificationTitle.textContent, 'Mon Application');
     });
 
+    test('Titilechange event', function() {
+      var app1 = new AppWindow(fakeWrapperConfig);
+      var stubPublish = this.sinon.stub(app1, 'publish');
+
+      app1.handleEvent({
+        type: 'mozbrowsertitlechange',
+        detail: 'newtitile'
+      });
+
+      assert.isTrue(stubPublish.calledWithExactly('titlechange'));
+      assert.equal(
+        app1.identificationTitle.textContent, 'newtitile',
+        'title should be changed since it is not an app'
+      );
+
+      var app2 = new AppWindow(fakeAppConfig1);
+      app2.handleEvent({
+        type: 'mozbrowsertitlechange',
+        detail: 'newtitile'
+      });
+      assert.equal(
+        app2.identificationTitle.textContent, '',
+        'title should not be changed since it is an app'
+      );
+    });
+
     test('Orientation change event on app', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       this.sinon.stub(app1, 'isActive').returns(false);
