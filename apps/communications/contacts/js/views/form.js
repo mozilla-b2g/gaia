@@ -1187,8 +1187,11 @@ contacts.Form = (function() {
 
   var removeFieldIcon = function removeFieldIcon(selector) {
     var delButton = document.createElement('button');
+    var _ = navigator.mozL10n.get;
     delButton.id = IMG_DELETE_ID;
     delButton.className = 'fillflow-row-action';
+    delButton.setAttribute('aria-label', _('removeField.ariaLabel'));
+    delButton.setAttribute('data-l10n-id', 'removeField');
     var delIcon = document.createElement('span');
     delIcon.className = 'icon icon-delete';
     delButton.appendChild(delIcon);
@@ -1212,6 +1215,19 @@ contacts.Form = (function() {
         }
       }
       elem.classList.toggle(REMOVED_CLASS);
+
+      // Update the aria label for acessibility
+      var delButton = event.target;
+
+      // As the user can add and remove fields, the aria-label of the delete
+      // button must change according with the current status (Remove/Undo)
+      if (elem.classList.contains(REMOVED_CLASS)) {
+        delButton.setAttribute('aria-label', _('undo.ariaLabel'));
+        delButton.setAttribute('data-l10n-id', 'undo');
+      } else {
+        delButton.setAttribute('aria-label', _('removeField.ariaLabel'));
+        delButton.setAttribute('data-l10n-id', 'removeField');
+      }
 
       // As the user can add and remove fields he can end up having two date
       // types with the same value and we want to avoid that erroneous case
