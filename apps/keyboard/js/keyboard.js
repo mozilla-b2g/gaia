@@ -41,8 +41,6 @@ var perfTimer = new PerformanceTimer();
 perfTimer.start();
 perfTimer.printTime('keyboard.js');
 
-var isUpperCase = false;
-var isUpperCaseLocked = false;
 var isKeyboardRendered = false;
 var currentCandidates = [];
 var candidatePanelScrollTimer = null;
@@ -71,6 +69,7 @@ var fakeAppObject = {
   settingsPromiseManager: null,
   l10nLoader: null,
   activeTargetsManager: null,
+  upperCaseStateManager: null,
 
   inputContext: null,
 
@@ -153,12 +152,14 @@ var fakeAppObject = {
         setLayoutPage(layoutManager.currentLayoutPage);
     }
   },
-  setUpperCase: setUpperCase,
+  setUpperCase: function setUpperCase(state) {
+    this.upperCaseStateManager.switchUpperCaseState(state);
+  },
   isCapitalized: function isCapitalized() {
-    return (isUpperCase || isUpperCaseLocked);
+    return this.upperCaseStateManager.isUpperCase;
   },
   isCapitalizeLocked: function isCapitalizeLocked() {
-    return isUpperCaseLocked;
+    return this.upperCaseStateManager.isUpperCaseLocked;
   },
   replaceSurroundingText: replaceSurroundingText,
   getNumberOfCandidatesPerRow:
@@ -202,6 +203,11 @@ feedbackManager.start();
 
 var visualHighlightManager = new VisualHighlightManager(fakeAppObject);
 visualHighlightManager.start();
+
+var upperCaseStateManager =
+  fakeAppObject.upperCaseStateManager = new UpperCaseStateManager();
+upperCaseStateManager.onstatechange = handleUpperCaseStateChange;
+upperCaseStateManager.start();
 
 // User settings (in Settings database) are tracked within these modules
 var imEngineSettings;
@@ -369,7 +375,7 @@ function renderKeyboard() {
   // Rule of thumb: always render uppercase, unless secondLayout has been
   // specified (for e.g. arabic, then depending on shift key)
   var needsUpperCase = layoutManager.currentModifiedLayout.secondLayout ?
-    (isUpperCaseLocked || isUpperCase) : true;
+    upperCaseStateManager.isUpperCase : true;
 
   // And draw the layout
   IMERender.draw(layoutManager.currentModifiedLayout, {
@@ -381,7 +387,7 @@ function renderKeyboard() {
     perfTimer.startTimer('IMERender.draw:callback');
     // So there are a couple of things that we want don't want to block
     // on here, so we can do it if resizeUI is fully finished
-    IMERender.setUpperCaseLock(isUpperCaseLocked ? 'locked' : isUpperCase);
+    IMERender.setUpperCaseLock(upperCaseStateManager);
 
     // Tell the input method about the new keyboard layout
     updateLayoutParams();
@@ -406,22 +412,7 @@ function renderKeyboard() {
   perfTimer.printTime('BLOCKING renderKeyboard', 'renderKeyboard');
 }
 
-function setUpperCase(state) {
-  if (!state) {
-    return;
-  }
-
-  var upperCaseLocked = (typeof state.isUpperCaseLocked == 'undefined') ?
-                     isUpperCaseLocked : state.isUpperCaseLocked;
-
-  // Do nothing if the states are not changed
-  if (isUpperCase == state.isUpperCase &&
-      isUpperCaseLocked == upperCaseLocked)
-    return;
-
-  isUpperCaseLocked = upperCaseLocked;
-  isUpperCase = state.isUpperCase;
-
+function handleUpperCaseStateChange() {
   if (!isKeyboardRendered)
     return;
 
@@ -435,7 +426,7 @@ function setUpperCase(state) {
   requestAnimationFrame(function() {
     perfTimer.startTimer('setUpperCase:requestAnimationFrame:callback');
     // And make sure the caps lock key is highlighted correctly
-    IMERender.setUpperCaseLock(isUpperCaseLocked ? 'locked' : isUpperCase);
+    IMERender.setUpperCaseLock(upperCaseStateManager);
 
     //restore the previous candidates
     IMERender.showCandidates(currentCandidates);
@@ -469,7 +460,7 @@ function sendDelete(isRepeat) {
 }
 
 function getKeyCodeFromTarget(target) {
-  return isUpperCase || isUpperCaseLocked ?
+  return upperCaseStateManager.isUpperCase ?
     parseInt(target.dataset.keycodeUpper, 10) :
     parseInt(target.dataset.keycode, 10);
 }
@@ -707,13 +698,13 @@ function handleTargetCommitted(target, isDoubleTap) {
   case KeyEvent.DOM_VK_CAPS_LOCK:
 
     if (isDoubleTap) {
-      setUpperCase({
+      upperCaseStateManager.switchUpperCaseState({
         isUpperCase: true,
         isUpperCaseLocked: true
       });
     } else {
-      setUpperCase({
-        isUpperCase: !isUpperCase,
+      upperCaseStateManager.switchUpperCaseState({
+        isUpperCase: !upperCaseStateManager.isUpperCase,
         isUpperCaseLocked: false
       });
     }
@@ -815,10 +806,7 @@ function showIMEList() {
 function resetKeyboard() {
   layoutManager.updateLayoutPage(layoutManager.LAYOUT_PAGE_DEFAULT);
 
-  // Don't call setUpperCase because renderKeyboard() should be invoked
-  // separately after this function
-  isUpperCase = false;
-  isUpperCaseLocked = false;
+  upperCaseStateManager.reset();
 }
 
 // This is a wrapper around fakeAppObject.inputContext.sendKey()

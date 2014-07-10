@@ -106,10 +106,10 @@ const IMERender = (function() {
     inputMethodName = name;
   };
 
-  // Accepts three values: true / 'locked' / false
-  //   Use 'locked' when caps are locked
-  //   Use true when uppercase is enabled
-  //   Use false when uppercase if disabled
+  // Accepts a state object with two properties.
+  //   Set isUpperCaseLocked to true if locked
+  //   Set isUpperCase to true when uppercase is enabled
+  //   Use false on both of these properties when uppercase is disabled
   var setUpperCaseLock = function kr_setUpperCaseLock(state) {
     var capsLockKey = activeIme.querySelector(
       'button[data-keycode="' + KeyboardEvent.DOM_VK_CAPS_LOCK + '"]'
@@ -118,10 +118,10 @@ const IMERender = (function() {
     if (!capsLockKey)
       return;
 
-    if (state === 'locked') {
+    if (state.isUpperCaseLocked) {
       capsLockKey.classList.remove('kbr-key-active');
       capsLockKey.classList.add('kbr-key-hold');
-    } else if (state) {
+    } else if (state.isUpperCase) {
       capsLockKey.classList.add('kbr-key-active');
       capsLockKey.classList.remove('kbr-key-hold');
     } else {
