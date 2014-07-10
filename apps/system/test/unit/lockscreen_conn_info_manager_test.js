@@ -469,7 +469,9 @@ suite('system/LockScreenConnInfoManager >', function() {
 
         var simIDLine = domConnStateList[0].domConnstateIDLine;
         assert.isFalse(simIDLine.hidden);
-        assert.equal(simIDLine.textContent, 'SIM 1');
+
+        assert.equal(simIDLine.dataset.l10nId, 'lockscreen-sim-id');
+        assert.equal(simIDLine.dataset.l10nArgs, {'n': 1});
       });
 
       test('Should show only one conn state', function() {
@@ -515,8 +517,11 @@ suite('system/LockScreenConnInfoManager >', function() {
         var simIDLine2 = domConnStateList[1].domConnstateIDLine;
         assert.isFalse(simIDLine1.hidden);
         assert.isFalse(simIDLine2.hidden);
-        assert.equal(simIDLine1.textContent, 'SIM 1');
-        assert.equal(simIDLine2.textContent, 'SIM 2');
+
+        assert.equal(simIDLine1.dataset.l10nId, 'lockscreen-sim-id');
+        assert.equal(simIDLine1.dataset.l10nArgs, {'n': 1});
+        assert.equal(simIDLine2.dataset.l10nId, 'lockscreen-sim-id');
+        assert.equal(simIDLine2.dataset.l10nArgs, {'n': 2});
       });
 
       test('Should hide sim IDs if all sim cards are not connected to networks',

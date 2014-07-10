@@ -195,7 +195,7 @@
       // Set sim ID line
       if (SIMSlotManager.isMultiSIM()) {
         simIDLine.hidden = false;
-        simIDLine.textContent = 'SIM ' + (index + 1);
+        lineText(simIDLine, 'lockscreen-sim-id', {n: (index + 1)});
       } else {
         simIDLine.hidden = true;
       }
