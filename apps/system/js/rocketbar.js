@@ -864,6 +864,7 @@
       this.collapse();
       this.deactivate();
 
+      this.searchWindow.destroy();
       this.searchWindow = null;
       this._port = null;
     },
