@@ -286,7 +286,7 @@ ol, ul {
   margin: 0;
 }
 
-.recents-edit #edit-mode {
+.recents-edit #selection-mode {
   display: block;
 }
 

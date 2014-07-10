@@ -919,27 +919,35 @@ var ThreadUI = global.ThreadUI = {
     var activity = new MozActivity({
       name: 'pick',
       data: {
-        type: 'webcontacts/tel'
+        type: 'webcontacts/tel',
+        multipick: 1
       }
     });
 
     activity.onsuccess = (function() {
-      if (!activity.result ||
-          !activity.result.tel ||
-          !activity.result.tel.length ||
-          !activity.result.tel[0].value) {
+      if (!activity.result) {
         console.error('The pick activity result is invalid.');
         return;
       }
 
       Recipients.View.isFocusable = true;
 
-      var data = Utils.basicContact(
-        activity.result.tel[0].value, activity.result
-      );
-      data.source = 'contacts';
+      var contacts = Array.isArray(activity.result) ?
+                     activity.result : [ activity.result ];
+      contacts.forEach(function(contact) {
+        if (!contact.tel ||
+            !contact.tel.length ||
+            !contact.tel[0].value) {
+          console.error('The pick activity result is invalid.');
+          return;
+        }
 
-      this.recipients.add(data);
+        var data = Utils.basicContact(
+          contact.tel[0].value, contact
+        );
+        data.source = 'contacts';
+        this.recipients.add(data);
+      }, this);
     }).bind(this);
 
     activity.onerror = (function(e) {

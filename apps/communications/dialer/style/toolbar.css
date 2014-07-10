@@ -19,7 +19,8 @@
 }
 
 #contacts-view .bb-tabpanel:before,
-#recents-view.hidden .bb-tabpanel:before {
+#recents-view.hidden .bb-tabpanel:before,
+#call-log-view.hidden .bb-tabpanel:before {
   position: absolute;
   left: 0;
   right: 0;
@@ -69,7 +70,8 @@
   transform: translateY(100%);
 }
 
-#views.hide-toolbar #iframe-contacts-container {
+#views.hide-toolbar #iframe-contacts-container,
+#views.hide-toolbar #call-log-frame.select {
   height: 100%;
 }
 
