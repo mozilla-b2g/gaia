@@ -14,12 +14,16 @@ function optimize(options) {
 function copyUserConfig(options) {
   var targetFile = utils.getFile(options.STAGE_APP_DIR, 'js', 'config',
     'config.js');
-  var [parent, filename] = [targetFile.parent.path, targetFile.leafName];
 
   if (options.GAIA_DISTRIBUTION_DIR) {
     var distConfig = utils.getFile(options.GAIA_DISTRIBUTION_DIR,
       'camera-config.js');
-    utils.copyFileTo(distConfig, parent, filename, true);
+    if (distConfig.exists()) {
+      if (targetFile.exists()) {
+        targetFile.remove(false);
+      }
+      distConfig.copyTo(targetFile.parent, targetFile.leafName);
+    }
   }
 }
 
