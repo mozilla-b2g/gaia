@@ -88,9 +88,21 @@ Music.prototype = {
     this.client.helper.waitForElement('body');
   },
 
-  switchToMe: function() {
+  switchToMe: function(options) {
+    options = options || {};
+
     this.client.switchToFrame();
-    this.client.apps.switchToApp(this.origin);
+
+    // Switch to music even when it is in background.
+    // We cannot use switchToApp here, because it will wait
+    // for the app to come to foreground.
+    if (options.background) {
+      var musicFrame = this.client.findElement('iframe[src*="' +
+                                          this.origin + '"]');
+      this.client.switchToFrame(musicFrame);
+    } else {
+      this.client.apps.switchToApp(this.origin);
+    }
   },
 
   waitForFirstTile: function() {
