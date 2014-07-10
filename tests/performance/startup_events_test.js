@@ -10,6 +10,7 @@ var appPath = mozTestInfo.appPath;
 
 var whitelistedApps = [
   'camera',
+  'calendar',
   'clock',
   'communications/contacts',
   'communications/dialer',
@@ -22,6 +23,7 @@ var whitelistedApps = [
 ];
 
 var whitelistedUnifiedApps = [
+  'calendar',
   'clock',
   'communications/dialer',
   'email',

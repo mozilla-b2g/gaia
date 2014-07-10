@@ -279,6 +279,8 @@
         var busytimes = this.controller.queryCache(this.timespan);
         this._updateBusytimes({ added: busytimes });
         this._initEvents();
+        // at this point the month view should be ready
+        Calendar.Performance.monthReady();
       }.bind(this));
 
       this.hasBeenActive = true;

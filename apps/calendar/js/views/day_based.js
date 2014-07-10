@@ -126,8 +126,9 @@ Calendar.ns('Views').DayBased = (function() {
      * Starts the process of loading records for display.
      *
      * @param {Object|Array} busytimes list or single busytime.
+     * @param {Function} [callback] callback
      */
-    _loadRecords: function(busytimes) {
+    _loadRecords: function(busytimes, callback) {
       // we want to fail loudly if nothing is given.
       busytimes = (Array.isArray(busytimes)) ? busytimes : [busytimes];
 
@@ -147,6 +148,8 @@ Calendar.ns('Views').DayBased = (function() {
         list.forEach(function(record) {
           this.add(record.busytime, record.event);
         }, self);
+
+        callback && callback();
       });
     },
 
@@ -510,7 +513,11 @@ Calendar.ns('Views').DayBased = (function() {
       var records = this.controller.queryCache(this.timespan);
 
       if (records && records.length) {
-        this._loadRecords(records);
+        this._loadRecords(records, () => Calendar.Performance.dayBasedReady());
+      } else {
+        // if we don't load records (no events today) we still need to let the
+        // Performance controller know that the DayBased view is ready
+        Calendar.Performance.dayBasedReady();
       }
     },
 
