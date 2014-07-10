@@ -4,7 +4,7 @@
 /* Copyright © 2013, Deutsche Telekom, Inc. */
 
 /* globals dump, BluetoothTransfer, NDEFUtils, NfcConnectSystemDialog,
-           NDEF */
+           NDEF, NfcUtils */
 /* exported NfcHandoverManager */
 'use strict';
 
@@ -448,8 +448,9 @@ var NfcHandoverManager = {
    * @param {Array} ndef NDEF message containing simplified pairing record
    * @memberof NfcHandoverManager.prototype
    */
-  handleSimplifiedPairingRecord: function handleSimplifiedPairingRecord(ndef) {
-    this._debug('handleSimplifiedPairingRecord');
+  _handleSimplifiedPairingRecord:
+  function _handleSimplifiedPairingRecord(ndef) {
+    this._debug('_handleSimplifiedPairingRecord');
     var pairingRecord = ndef[0];
     var btssp = NDEFUtils.parseBluetoothSSP(pairingRecord);
     this._debug('Simplified pairing with: ' + btssp.mac);
@@ -461,8 +462,8 @@ var NfcHandoverManager = {
    * @param {Array} ndef NDEF message containing handover select record
    * @memberof NfcHandoverManager.prototype
    */
-  handleHandoverSelect: function handleHandoverSelect(ndef) {
-    this._debug('handleHandoverSelect');
+  _handleHandoverSelect: function _handleHandoverSelect(ndef) {
+    this._debug('_handleHandoverSelect');
     var btssp = this._getBluetoothSSP(ndef);
     if (btssp == null) {
       return;
@@ -481,10 +482,42 @@ var NfcHandoverManager = {
    * @param {Array} ndef NDEF message containing handover request record
    * @memberof NfcHandoverManager.prototype
    */
-  handleHandoverRequest: function handleHandoverRequest(ndef, session) {
-    this._debug('handleHandoverRequest');
-    this._saveBluetoothStatus();
+  _handleHandoverRequest: function _handleHandoverRequest(ndef, session) {
+    this._debug('_handleHandoverRequest');
+    this.bluetoothWasEnabled = this.bluetooth.enabled;
     this._doAction({callback: this._doHandoverRequest, args: [ndef, session]});
+  },
+
+  /**
+   * Checks if the first record of NDEF message is a handover record.
+   * If yes the NDEF message is handled according to handover record type.
+   * @param {Array} ndefMsg array of NDEF records
+   * @param {string} session session token
+   * @returns {boolean} true if handover record was found and handled, false
+   * if no handover record was found
+   * @memberof NfcHandoverManager.prototype
+   */
+  tryHandover: function(ndefMsg, session) {
+    if (!Array.isArray(ndefMsg) || !ndefMsg.length) {
+      return false;
+    }
+
+    var record = ndefMsg[0];
+    if (record.tnf === NDEF.TNF_WELL_KNOWN) {
+      if (NfcUtils.equalArrays(record.type, NDEF.RTD_HANDOVER_SELECT)) {
+        this._handleHandoverSelect(ndefMsg);
+        return true;
+      } else if (NfcUtils.equalArrays(record.type, NDEF.RTD_HANDOVER_REQUEST)) {
+        this._handleHandoverRequest(ndefMsg, session);
+        return true;
+      }
+    } else if ((record.tnf === NDEF.TNF_MIME_MEDIA) &&
+        NfcUtils.equalArrays(record.type, NDEF.MIME_BLUETOOTH_OOB)) {
+      this._handleSimplifiedPairingRecord(ndefMsg);
+      return true;
+    }
+
+    return false;
   },
 
   /**
