@@ -107,7 +107,16 @@ function editPhoto(n) {
 
     // Set the background for all of the image buttons
     editedPhotoURL = URL.createObjectURL(blob);
-    var backgroundImage = 'url(' + editedPhotoURL + ')';
+
+    // Use #-moz-samplesize media fragment to downsample images
+    // so the resulting images are smaller and fits 5 image buttons
+    // Here we assume image buttons are 50px high
+    var scale = window.innerWidth / 5 * window.devicePixelRatio *
+                window.devicePixelRatio * 50 /
+                (metadata.width * metadata.height);
+    var sampleSize = Downsample.areaNoMoreThan(scale);
+
+    var backgroundImage = 'url(' + editedPhotoURL + sampleSize + ')';
     editBgImageButtons.forEach(function(b) {
       b.style.backgroundImage = backgroundImage;
     });
