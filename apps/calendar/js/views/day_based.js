@@ -147,6 +147,7 @@ Calendar.ns('Views').DayBased = (function() {
         list.forEach(function(record) {
           this.add(record.busytime, record.event);
         }, self);
+				self._scrollToFirstEvent();
       });
     },
 
@@ -364,6 +365,17 @@ Calendar.ns('Views').DayBased = (function() {
         displayHour: Calendar.Calc.formatHour(hour),
         hour: hour.toString()
       });
+    },
+
+    _scrollToFirstEvent: function() {
+      for (item in this.hours.items) {
+        var hour = this.hours.get(item);
+        if (hour && hour.flags.length > 0) {
+          hour.element.scrollIntoView();
+          break;
+        }
+      }
+      return hour;
     },
 
     /** public **/
@@ -614,6 +626,7 @@ Calendar.ns('Views').DayBased = (function() {
       this.element.classList.add(
         this.activeClass
       );
+			this._scrollToFirstEvent();
     },
 
     deactivate: function() {

@@ -227,5 +227,4 @@ suiteGroup('Views.Day', function() {
   test('#onfirstseen', function() {
     assert.equal(subject.onfirstseen, subject.render);
   });
-
 });
