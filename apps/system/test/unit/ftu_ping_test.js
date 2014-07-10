@@ -2,7 +2,7 @@
 
 /* global MockNavigatorSettings, MockasyncStorage, MockXMLHttpRequest,
           MockNavigatorMozMobileConnections, MockNavigatorMozIccManager,
-          MockMobileOperator, MockSIMSlotManager, MockSIMSlot, FtuPing */
+          MockMobileOperator, MockSIMSlotManager, MockSIMSlot */
 
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/apps/system/test/unit/mock_asyncStorage.js');
@@ -29,13 +29,14 @@ if (!window.XMLHttpRequest) {
 }
 
 if (!window.SIMSlotManager) {
-    window.SIMSlotManager = null;
+  window.SIMSlotManager = null;
 }
 
 suite('FtuPing', function() {
   var realMozSettings, realAsyncStorage, realXHR;
   var realMobileConnections, realIccManager;
   var realMobileOperator, realSIMSlotManager;
+  var FtuPing;
 
   suiteSetup(function() {
     realMozSettings = navigator.mozSettings;
@@ -65,6 +66,10 @@ suite('FtuPing', function() {
     window.SIMSlotManager = realSIMSlotManager;
   });
 
+  setup(function() {
+    FtuPing = new window.FtuPing();
+  });
+
   teardown(function() {
     MockNavigatorSettings.mTeardown();
     MockasyncStorage.mTeardown();
@@ -72,7 +77,7 @@ suite('FtuPing', function() {
     MockNavigatorMozMobileConnections.mTeardown();
     MockMobileOperator.mTeardown();
     MockSIMSlotManager.mTeardown();
-    FtuPing.reset();
+    FtuPing = null;
   });
 
   suite('generatePingURL', function() {
