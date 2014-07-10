@@ -1788,15 +1788,11 @@ suite('Video App Unit Tests', function() {
                    'no blob associated with videodata name');
     });
 
-    /*
-     * IMPORTANT. The following test relies on the output of the
-     * previous test. That is, this test relies on there being
-     * no thumbnail selected; the previous test 'deselected' the
-     * thumbnail that was selected.
-     */
     test('#updateSelection: update UI, thumbnail is selected', function() {
       dom.thumbnailsDeleteButton.classList.add('disabled');
       dom.thumbnailsShareButton.classList.add('disabled');
+      var thumbnail = thumbnailList.thumbnailMap[videodata.name];
+      thumbnail.htmlNode.classList.remove('selected'); // not selected
 
       updateSelection(videodata);
       assert.equal(dom.thumbnailsNumberSelected.textContent,
@@ -1808,12 +1804,10 @@ suite('Video App Unit Tests', function() {
                      'thumbnail share button should be enabled');
     });
 
-    /*
-     * IMPORTANT. The following test relies on the output of the
-     * previous test. That is, this test relies on there being
-     * a selected thumbnail, which happens during the previous test.
-     */
     test('#updateSelection: update UI, no thumbnail is selected', function() {
+      var thumbnail = thumbnailList.thumbnailMap[videodata.name];
+      thumbnail.htmlNode.classList.add('selected'); // selected
+
       updateSelection(videodata);
       assert.equal(dom.thumbnailsNumberSelected.textContent,
                    'number-selected2{"n":0}',
@@ -1822,6 +1816,260 @@ suite('Video App Unit Tests', function() {
                     'thumbnail delete button should be disabled');
       assert.isTrue(containsClass(dom.thumbnailsShareButton, 'disabled'),
                     'thumbnail share button should be disabled');
+    });
+  });
+
+  suite('handleSliderTouchStart flows', function() {
+    var handleSliderTouchMoveSpy;
+    var nativeHandleSliderTouchMove;
+    var existingTouchStartEventId = 1;
+    var touchStartIdFromEvent = 10;
+    var event = { 'changedTouches': [{'identifier': touchStartIdFromEvent}] };
+    var playerPauseSpy;
+    var width, height;
+
+    suiteSetup(function() {
+      nativeHandleSliderTouchMove = handleSliderTouchMove;
+      handleSliderTouchMoveSpy = sinon.spy();
+      handleSliderTouchMove = handleSliderTouchMoveSpy;
+      playerPauseSpy = sinon.spy(dom.player, 'pause');
+      width = 50;
+      height = 100;
+    });
+
+    setup(function() {
+      dragging = false;
+      touchStartID = null;
+      handleSliderTouchMoveSpy.reset();
+      playerPauseSpy.reset();
+      dom.sliderWrapper.style.width = width + 'px';
+      dom.sliderWrapper.style.height = height + 'px';
+    });
+
+    teardown(function() {
+      dom.sliderWrapper.style.width = 0 + 'px';
+      dom.sliderWrapper.style.height = 0 + 'px';
+    });
+
+    suiteTeardown(function() {
+      handleSliderTouchMove = nativeHandleSliderTouchMove;
+      playerPauseSpy.restore();
+    });
+
+    test('#handleSliderTouchStart: already have touch start event',
+         function() {
+      // stage data to indicate there has already been a touch start event
+      touchStartID = existingTouchStartEventId;
+
+      handleSliderTouchStart();
+
+      assert.equal(touchStartID, existingTouchStartEventId);
+      assert.equal(handleSliderTouchMoveSpy.callCount, 0);
+      assert.isFalse(dragging);
+      assert.equal(sliderRect, undefined);
+    });
+
+    test('#handleSliderTouchStart: dont know video duration',
+         function() {
+      dom.player.duration = Infinity;
+
+      handleSliderTouchStart(event);
+
+      assert.isTrue(dragging);
+      assert.equal(touchStartID, touchStartIdFromEvent,
+                   'touch start id should come from event');
+      assert.equal(handleSliderTouchMoveSpy.callCount, 0,
+                   'function returns before calling handleSliderTouchMove');
+      assert.equal(sliderRect.width, width);
+      assert.equal(sliderRect.height, height);
+      assert.equal(sliderRect.right, sliderRect.left + width);
+      assert.equal(sliderRect.bottom, sliderRect.top + height);
+    });
+
+    test('#handleSliderTouchStart: paused while dragging',
+         function() {
+      dom.player.duration = 100;
+      dom.player.paused = true;
+
+      handleSliderTouchStart(event);
+
+      assert.isTrue(dragging);
+      assert.equal(touchStartID, touchStartIdFromEvent,
+                   'touch start id should come from event');
+      assert.isTrue(handleSliderTouchMoveSpy.calledOnce,
+                   'handleSliderTouchMove is called once');
+      assert.equal(playerPauseSpy.callCount, 0,
+                   'dom.player.pause is not called');
+      assert.equal(sliderRect.width, width);
+      assert.equal(sliderRect.height, height);
+      assert.equal(sliderRect.right, sliderRect.left + width);
+      assert.equal(sliderRect.bottom, sliderRect.top + height);
+    });
+
+    test('#handleSliderTouchStart: not paused while dragging',
+         function() {
+      dom.player.duration = 100;
+      dom.player.paused = false;
+
+      handleSliderTouchStart(event);
+
+      assert.isTrue(dragging);
+      assert.equal(touchStartID, touchStartIdFromEvent,
+                   'touch start id should come from event');
+      assert.isTrue(handleSliderTouchMoveSpy.calledOnce,
+                   'handleSliderTouchMove is called once');
+      assert.isTrue(playerPauseSpy.calledOnce,
+                   'dom.player.pause is called');
+      assert.equal(sliderRect.width, width);
+      assert.equal(sliderRect.height, height);
+      assert.equal(sliderRect.right, sliderRect.left + width);
+      assert.equal(sliderRect.bottom, sliderRect.top + height);
+    });
+  });
+
+  suite('handleSliderTouchMove flows', function() {
+    var fastSeekSpy;
+
+    var clientX = 110;
+    var touch = {'clientX': clientX};
+    var identifiedTouchSuccess = function(touchStartID) {
+      return touch;
+    };
+
+    var identifiedTouchFailure = function(touchStartID) {
+      return null;
+    };
+
+    var successEvent = { 'changedTouches':
+                         {'identifiedTouch': identifiedTouchSuccess} };
+    var failureEvent = { 'changedTouches':
+                         {'identifiedTouch': identifiedTouchFailure} };
+
+    suiteSetup(function() {
+      fastSeekSpy = sinon.spy(dom.player, 'fastSeek');
+      sliderRect = {'left': 10,
+                    'width': 200};
+    });
+
+    setup(function() {
+      fastSeekSpy.reset();
+      dragging = true;
+      dom.playHead.classList.remove('active');
+    });
+
+    suiteTeardown(function() {
+      fastSeekSpy.restore();
+    });
+
+    test('#handleSliderTouchMove: update the slider', function() {
+
+      handleSliderTouchMove(successEvent);
+
+      assert.isTrue(containsClass(dom.playHead, 'active'));
+      assert.equal(dom.playHead.style.left, '50%');
+      assert.equal(dom.elapsedTime.style.width, '50%');
+      assert.isTrue(fastSeekSpy.calledOnce);
+    });
+
+    test('#handleSliderTouchMove: not dragging', function() {
+      dragging = false;
+
+      handleSliderTouchMove(successEvent);
+
+      assert.isFalse(containsClass(dom.playHead, 'active'));
+      assert.equal(fastSeekSpy.callCount, 0);
+    });
+
+    test('#handleSliderTouchMove: no touch start event', function() {
+      dragging = false;
+
+      handleSliderTouchMove(failureEvent);
+
+      assert.isFalse(containsClass(dom.playHead, 'active'));
+      assert.equal(fastSeekSpy.callCount, 0);
+    });
+  });
+
+  suite('handleSliderTouchEnd flows', function() {
+    var playerPlaySpy;
+    var playerPauseSpy;
+    var existingTouchEventId = 1;
+
+    var identifiedTouchSuccess = function(touchStartID) {
+      return true;
+    };
+
+    var identifiedTouchFailure = function(touchStartID) {
+      return false;
+    };
+
+    var touchEvent = { 'changedTouches':
+                            {'identifiedTouch': identifiedTouchSuccess} };
+    var unrelatedTouchEvent = { 'changedTouches':
+                                {'identifiedTouch': identifiedTouchFailure} };
+
+    suiteSetup(function() {
+      playerPlaySpy = sinon.spy(dom.player, 'play');
+      playerPauseSpy = sinon.spy(dom.player, 'pause');
+    });
+
+    setup(function() {
+      playerPlaySpy.reset();
+      playerPauseSpy.reset();
+      dragging = true;
+      dom.playHead.classList.add('active');
+    });
+
+    suiteTeardown(function() {
+      playerPlaySpy.restore();
+      playerPauseSpy.restore();
+    });
+
+    test('#handleSliderTouchEnd: no touch start event', function() {
+
+      touchStartID = existingTouchEventId;
+
+      handleSliderTouchEnd(unrelatedTouchEvent);
+
+      assert.equal(touchStartID, existingTouchEventId);
+      assert.isTrue(containsClass(dom.playHead, 'active'));
+    });
+
+    test('#handleSliderTouchEnd: not dragging', function() {
+
+      touchStartID = existingTouchEventId;
+      dragging = false;
+
+      handleSliderTouchEnd(touchEvent);
+
+      assert.isNull(touchStartID);
+      assert.isTrue(containsClass(dom.playHead, 'active'));
+    });
+
+    test('#handleSliderTouchEnd: video at end', function() {
+      touchStartID = existingTouchEventId;
+      dragging = true;
+      dom.player.currentTime = dom.player.duration = 10;
+
+      handleSliderTouchEnd(touchEvent);
+
+      assert.isNull(touchStartID);
+      assert.isFalse(containsClass(dom.playHead, 'active'));
+      assert.isTrue(playerPauseSpy.calledOnce);
+    });
+
+    test('#handleSliderTouchEnd: video not at end', function() {
+      touchStartID = existingTouchEventId;
+      dragging = true;
+      dom.player.currentTime = 5;
+      dom.player.duration = 10;
+
+      handleSliderTouchEnd(touchEvent);
+
+      assert.isNull(touchStartID);
+      assert.isFalse(containsClass(dom.playHead, 'active'));
+      assert.equal(playerPauseSpy.callCount, 0);
+      assert.isTrue(playerPlaySpy.calledOnce);
     });
   });
 });
