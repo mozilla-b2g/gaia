@@ -215,7 +215,11 @@ var ScreenManager = {
 
       case 'nfc-tech-discovered':
       case 'nfc-tech-lost':
-        this._reconfigScreenTimeout();
+        if (this._inTransition) {
+          this.turnScreenOn();
+        } else {
+          this._reconfigScreenTimeout();
+        }
         break;
 
       case 'unlocking-start':
