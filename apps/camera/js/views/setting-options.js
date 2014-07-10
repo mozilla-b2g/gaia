@@ -48,6 +48,11 @@ module.exports = View.extend({
     this.el.innerHTML = this.template(data);
     this.els.ul = this.find('.js-list');
     data.options.forEach(this.renderOption);
+
+    // Clean up
+    delete this.template;
+
+    debug('rendered');
     return this;
   },
 
