@@ -9,6 +9,11 @@
       "title": "Firefox OS",
       "uri": "http://mozilla.org/firefoxos",
       "iconPath": "firefox.png"
+    },
+    {
+      "title": "Firefox OS Support",
+      "uri": "http://support.mozilla.org/products/firefox-os",
+      "iconPath": "firefox.png"
     }
   ]
 }
