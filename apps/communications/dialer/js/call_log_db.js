@@ -1291,6 +1291,10 @@ var CallLogDBManager = {
       };
     });
   },
+
+  /**
+   * TODO: document this.
+   */
   invalidateContactsCache: function invalidateContactsCache(callback) {
     var self = this;
     var waitForAsyncCall = 0;

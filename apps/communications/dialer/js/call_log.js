@@ -864,8 +864,70 @@ var CallLog = {
   // correct references to the log DOM element.
   _updateContact: function _updateContact(log, phoneNumber, updateDb) {
     var self = this;
+
+    var options = {
+      filterBy: ['tel'],
+      filterOp: 'match',
+      filterValue: phoneNumber
+    };
+
+    var request = navigator.mozContacts.find(options);
+    request.onsuccess = function findCallback() {
+      var contacts = request.result;
+      if (contacts.length === 0) {
+        // Remove contact info.
+        if (self._contactCache && updateDb) {
+          var group = self._getGroupFromLog(log);
+          if (!group) {
+            return;
+          }
+
+          CallLogDBManager.removeGroupContactInfo(null, group,
+                                                  function(result) {
+            self.updateContactInfo(log);
+          });
+        } else {
+          self.updateContactInfo(log);
+        }
+      }
+      else {
+        // Find original contact from log, if it exists.
+        var contact = contacts.filter(function(c) {
+          c.id == log.dataset.contactId;
+        }).shift();
+
+        // Otherwise use another matching contact, selected in creation order.
+        if (!contact) {
+          contact = contacts.sort(function(a, b) {
+            a.published - b.published;
+          })[0];
+        }
+
+        //var matchingTel = log.dataset.phoneNumber;
+        var matchingTel = {
+          value: phoneNumber
+        };
+
+        // Update contact info.
+        if (self._contactCache && updateDb) {
+          CallLogDBManager.updateGroupContactInfo(contact, matchingTel,
+                                                  function(result) {
+            if (typeof result === 'number' && result > 0) {
+              self.updateContactInfo(log, contact, matchingTel);
+            }
+          });
+        } else {
+          self.updateContactInfo(log, contact, matchingTel);
+        }
+      }
+    };
+    request.onerror = function findError() {
+      // do nothing
+    };
+
+    /*
     Contacts.findByNumber(phoneNumber,
-                          function(contact, matchingTel) {
+                          function(contact, matchingTel, contactsWithSameTel) {
       if (!contact || !matchingTel) {
         // Remove contact info.
         if (self._contactCache && updateDb) {
@@ -895,6 +957,7 @@ var CallLog = {
         }
       }
     });
+    */
   },
 
   _removeContact: function _removeContact(log, contactId, updateDb) {
@@ -905,7 +968,8 @@ var CallLog = {
       CallLogDBManager.removeGroupContactInfo(contactId, null,
                                               function(result) {
         if (typeof result === 'number' && result > 0) {
-          self.updateContactInfo(log);
+          //self.updateContactInfo(log);
+          self._updateContact(log, log.dataset.phoneNumber);
         }
       });
     } else {
