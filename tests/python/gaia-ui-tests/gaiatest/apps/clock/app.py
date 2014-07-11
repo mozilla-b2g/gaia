@@ -54,6 +54,10 @@ class Clock(Base):
         _label_locator = (By.CSS_SELECTOR, '.label')
         _check_box_locator = (By.CSS_SELECTOR, '.input-enable')
         _enable_button_locator = (By.CSS_SELECTOR, '.alarmList.alarmEnable')
+        _time_locator = (By.CSS_SELECTOR, '.time')
+
+        def time(self):
+            return self.root_element.find_element(*self._time_locator).text
 
         @property
         def label(self):
