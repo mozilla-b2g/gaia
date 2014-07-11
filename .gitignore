@@ -8,6 +8,7 @@ manifest.appcache
 
 /apps/calendar/js/presets.js
 /apps/camera/js/config.js
+/apps/camera/js/config/config.js
 /apps/gallery/js/config.js
 /apps/findmydevice/js/config.js
 /apps/homescreen/js/init.json
