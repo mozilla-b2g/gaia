@@ -11,6 +11,7 @@
     this.dialog = document.getElementById('contextmenu-dialog');
     this.collectionOption = document.getElementById('create-smart-collection');
     this.wallpaperOption = document.getElementById('change-wallpaper-action');
+    this.settingsOption = document.getElementById('homescreen-settings-action');
 
     this.handleCancel = this._handleCancel.bind(this);
   }
@@ -37,6 +38,7 @@
       this.dialog.removeAttribute('hidden');
       this.collectionOption.addEventListener('click', this);
       this.wallpaperOption.addEventListener('click', this);
+      this.settingsOption.addEventListener('click', this);
       window.addEventListener('visibilitychange', this);
     },
 
@@ -45,6 +47,7 @@
       this.dialog.setAttribute('hidden', '');
       this.collectionOption.removeEventListener('click', this);
       this.wallpaperOption.removeEventListener('click', this);
+      this.settingsOption.removeEventListener('click', this);
       window.removeEventListener('visibilitychange', this);
 
       window.dispatchEvent(new CustomEvent('context-menu-close'));
@@ -93,6 +96,18 @@
             alert(this.error.name);
           }
         };
+      },
+
+      'homescreen-settings-action': function() {
+        this.hide();
+
+        new MozActivity({
+          name: 'configure',
+          data: {
+            target: 'device',
+            section: 'homescreen'
+          }
+        });
       }
     },
 
