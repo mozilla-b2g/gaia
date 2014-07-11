@@ -186,7 +186,6 @@ var NotificationScreen = {
     if (!target.dataset.notificationId)
       return;
 
-    evt.preventDefault();
     this._notification = target;
     this._containerWidth = this.container.clientWidth;
   },
