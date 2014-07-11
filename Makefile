@@ -245,21 +245,22 @@ SEP_FOR_SED=\\\\
 MSYS_FIX=/
 endif
 
-# The b2g_sdk target arranges to get b2g and test utils downloaded and set up.
+# The b2g_sdk target arranges to get b2g desktop downloaded and set up.
 # This is platform dependent code, so a mite complicated.
 # Note: this used to be just xulrunner, hence the use of that name throughout,
 # but xulrunner doesn't include everything we need
-XULRUNNER_DIRECTORY ?= b2g_sdk
-XULRUNNER_DIRECTORY := $(abspath $(XULRUNNER_DIRECTORY))
-# XULRUNNERSDK used to be run-mozilla.sh, but the test bundle doesn't include that
-XULRUNNERSDK :=
-XPCSHELLSDK := $(abspath $(XULRUNNER_DIRECTORY)/b2g/xpcshell)
 
-# Firefox build workaround
-# The following workaround lets people use firefox builds
+# Configuration for pre-built or already downloaded b2g (or alternative)
 ifdef USE_LOCAL_XULRUNNER_SDK
 
-# Some guesswork to figure out where the xpcshell binary is
+ifndef XULRUNNER_DIRECTORY
+$(error XULRUNNER_DIRECTORY must be set if USE_LOCAL_XULRUNNER_SDK is set)
+endif
+
+# Some guesswork to figure out where the xpcshell binary really is
+# Most of this is to accommodate the variety of setups used
+# by different platforms, build systems and TBPL configurations
+# including Firefox, xulrunner and other builds
 XPCSHELL_GUESS = $(firstword $(wildcard \
     $(XULRUNNER_DIRECTORY)/B2G.app/Contents/MacOS/xpcshell \
     $(XULRUNNER_DIRECTORY)/bin/XUL.framework/Versions/Current/xpcshell \
@@ -270,16 +271,16 @@ XPCSHELLSDK := $(abspath $(XPCSHELL_GUESS))
 XULRUNNERSDK := $(wildcard $(XPCSHELLSDK)/run-mozilla.sh)
 endif
 
-# Linux needs to reference the directory containing libxul.so
-ifeq (,$(findstring Darwin,$(SYS))$(findstring MINGW32_,$(SYS)))
-XULRUNNERSDK := LD_LIBRARY_PATH="$(dir $(XPCSHELLSDK))"
-endif
-
-else # Firefox build workaround
+# Configuration for a downloaded b2g desktop
+else
 
 # Determine the host-dependent bundle to download
 B2G_SDK_VERSION := 34.0a1
 B2G_SDK_DATE := 2014/07/2014-07-31-04-02-03
+
+XULRUNNER_BASE_DIR ?= b2g_sdk
+XULRUNNER_DIRECTORY ?= $(XULRUNNER_BASE_DIR)/$(B2G_SDK_VERSION)-$(notdir $(B2G_SDK_DATE))
+XULRUNNER_DIRECTORY := $(abspath $(XULRUNNER_DIRECTORY))
 
 ifeq ($(SYS),Darwin)
 B2G_SDK_EXT := dmg
@@ -293,14 +294,13 @@ XPCSHELLSDK := $(abspath $(XULRUNNER_DIRECTORY)/b2g/xpcshell.exe)
 
 # Otherwise, assume linux
 else
-# need this to ensure that libxul is found
-XULRUNNERSDK := LD_LIBRARY_PATH="$(dir $(XPCSHELLSDK))"
 B2G_SDK_EXT := tar.bz2
 ifeq ($(ARCH),x86_64)
 B2G_SDK_OS := linux-x86_64
 else
 B2G_SDK_OS := linux-i686
 endif
+XPCSHELLSDK := $(abspath $(XULRUNNER_DIRECTORY)/b2g/xpcshell)
 endif
 
 B2G_SDK_URL_BASE := https://ftp.mozilla.org/pub/mozilla.org/b2g/nightly/$(B2G_SDK_DATE)-mozilla-central
@@ -309,6 +309,12 @@ B2G_SDK_URL := $(B2G_SDK_URL_BASE)/$(B2G_SDK_FILE_NAME)
 B2G_SDK_URL_FILE := $(XULRUNNER_DIRECTORY)/.b2g.url
 
 endif # Firefox build workaround
+
+# XULRUNNERSDK used to be run-mozilla.sh, but some builds don't include it
+# Without that, Linux needs to reference the directory containing libxul.so
+ifeq (,$(XULRUNNERSDK)$(findstring Darwin,$(SYS))$(findstring MINGW32_,$(SYS)))
+XULRUNNERSDK := LD_LIBRARY_PATH="$(dir $(XPCSHELLSDK))"
+endif
 
 # It's difficult to figure out XULRUNNERSDK in subprocesses; it's complex and
 # some builders may want to override our find logic (ex: TBPL).
