@@ -17,6 +17,7 @@
     "voicemail":{},
     "device-storage:music":{ "access": "readwrite" },
     "device-storage:pictures":{ "access": "readwrite" },
+    "device-storage:sdcard":{ "access": "readwrite" },
     "settings":{ "access": "readwrite" },
     "storage":{},
     "camera":{},
@@ -24,7 +25,9 @@
     "desktop-notification":{},
     "idle":{},
     "network-events":{},
-    "embed-apps":{}
+    "embed-apps":{},
+    "audio-channel-content":{},
+    "audio-channel-alarm":{}
   },
   "locales": {
     "en-US": {
