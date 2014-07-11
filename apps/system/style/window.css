@@ -346,7 +346,7 @@
 }
 
 .appWindow.homescreen.fadeout .fade-overlay {
-  opacity: 0.8;
+  opacity: 1;
 }
 
 .appWindow > .touch-blocker {
@@ -472,7 +472,6 @@
 
   opacity: 0;
   transition: opacity 0.2s ease-in;
-  will-change: opacity;
 }
 
 .appWindow.suspended > .identification-overlay,
@@ -674,12 +673,10 @@
   /* not in the viewport */
   transform: translateX(-100%);
   opacity: 1;
-  will-change: transform, opacity;
 }
 
-#windows > .appWindow:not(.homescreen):not(.lockScreenWindow).edge-candidate {
-  /* in the viewport but not really */
-  transform: translateX(-99.9999%);
+#windows > .appWindow:not(.lockScreenWindow):not(.active) {
+  will-change: transform;
 }
 
 #screen:-moz-full-screen-ancestor > #windows .appWindow.active {
