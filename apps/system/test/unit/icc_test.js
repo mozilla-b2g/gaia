@@ -242,7 +242,10 @@ suite('STK (icc) >', function() {
 
     assert.equal(document.getElementById('icc-input-msg').textContent,
       testCmd.command.options.text);
-    assert.equal(document.getElementById('icc-input-btn').textContent, 'OK');
+    assert.equal(document.getElementById('icc-input-btn').textContent, 'ok (' +
+      (testCmd.command.options.maxLength -
+      testCmd.command.options.defaultText.length) + ')');
+
     assert.equal(document.getElementById('icc-input-btn').disabled, false);
     assert.equal(document.getElementById('icc-input-btn_back').textContent,
       'Back');
@@ -273,26 +276,40 @@ suite('STK (icc) >', function() {
     inputbox.value = '';
     inputbox.dispatchEvent(event);
     assert.equal(button.disabled, true);
+    assert.equal(document.getElementById('icc-input-btn').textContent, 'ok (' +
+      (testCmd.command.options.maxLength - inputbox.value.length) + ')');
 
     inputbox.value = '1';
     inputbox.dispatchEvent(event);
     assert.equal(button.disabled, true);
+    assert.equal(document.getElementById('icc-input-btn').textContent, 'ok (' +
+      (testCmd.command.options.maxLength - inputbox.value.length) + ')');
 
     inputbox.value = '12';
     inputbox.dispatchEvent(event);
     assert.equal(button.disabled, false);
+    assert.equal(document.getElementById('icc-input-btn').textContent, 'ok (' +
+      (testCmd.command.options.maxLength - inputbox.value.length) + ')');
+
 
     inputbox.value = '123';
     inputbox.dispatchEvent(event);
     assert.equal(button.disabled, false);
+    assert.equal(document.getElementById('icc-input-btn').textContent, 'ok (' +
+      (testCmd.command.options.maxLength - inputbox.value.length) + ')');
 
     inputbox.value = '1234567890';
     inputbox.dispatchEvent(event);
     assert.equal(button.disabled, false);
+    assert.equal(document.getElementById('icc-input-btn').textContent, 'ok (' +
+      (testCmd.command.options.maxLength - inputbox.value.length) + ')');
+
 
     inputbox.value = '12345678901';
     inputbox.dispatchEvent(event);
     assert.equal(button.disabled, true);
+    assert.equal(document.getElementById('icc-input-btn').textContent, 'ok (' +
+      (testCmd.command.options.maxLength - inputbox.value.length) + ')');
   });
 
   test('launchStkCommand: STK_CMD_GET_INPUT', function(done) {
