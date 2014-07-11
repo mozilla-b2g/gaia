@@ -573,7 +573,7 @@ function handleTargetCommitted(target, isDoubleTap) {
   // IME candidate selected
   var dataset = target.dataset;
   if (dataset.selection) {
-    IMERender.toggleCandidatePanel(false, true);
+    IMERender.toggleCandidatePanel(false);
 
     if (inputMethodManager.currentIMEngine.select) {
       // We use dataset.data instead of target.textContent because the
@@ -651,7 +651,7 @@ function handleTargetCommitted(target, isDoubleTap) {
           candidatePanel.addEventListener('scroll', candidatePanelOnScroll);
         }
 
-        IMERender.toggleCandidatePanel(true, true);
+        IMERender.toggleCandidatePanel(true);
       };
 
       if (candidatePanel.dataset.rowCount == 1) {
@@ -690,7 +690,7 @@ function handleTargetCommitted(target, isDoubleTap) {
         }
       }
 
-      IMERender.toggleCandidatePanel(false, true);
+      IMERender.toggleCandidatePanel(false);
     }
     break;
 

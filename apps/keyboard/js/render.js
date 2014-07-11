@@ -355,12 +355,14 @@ const IMERender = (function() {
     key.classList.remove('lowercase');
   };
 
-  var toggleCandidatePanel = function(expand, resetScroll) {
+  var toggleCandidatePanel = function(expand) {
     var candidatePanel = activeIme.querySelector('.keyboard-candidate-panel');
-    if (resetScroll) {
-      candidatePanel.scrollTop = candidatePanel.scrollLeft = 0;
-    }
+    candidatePanel.scrollTop = candidatePanel.scrollLeft = 0;
 
+    toggleCandidatePanelWithoutResetScroll(expand);
+  };
+
+  var toggleCandidatePanelWithoutResetScroll = function(expand) {
     if (expand) {
       ime.classList.remove('candidate-panel');
       ime.classList.add('full-candidate-panel');
@@ -493,7 +495,7 @@ const IMERender = (function() {
         candidatePanel.innerHTML = '';
 
         candidatePanelToggleButton.style.display = 'none';
-        toggleCandidatePanel(false, false);
+        toggleCandidatePanelWithoutResetScroll(false);
         docFragment = candidatesFragmentCode(1, candidates, true);
         candidatePanel.appendChild(docFragment);
       }
