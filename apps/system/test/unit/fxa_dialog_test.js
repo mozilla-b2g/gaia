@@ -4,6 +4,7 @@
 require('/test/unit/mock_app_window_manager.js');
 require('/test/unit/mock_layout_manager.js');
 require('/test/unit/mock_system_dialog_manager.js');
+require('/test/unit/mock_keyboard_manager.js');
 require('/js/system.js');
 require('/js/base_ui.js');
 require('/js/system_dialog.js');
@@ -12,7 +13,8 @@ require('/js/fxa_dialog.js');
 var mocksForFxAccountsDialog = new MocksHelper([
   'AppWindowManager',
   'LayoutManager',
-  'SystemDialogManager'
+  'SystemDialogManager',
+  'KeyboardManager'
 ]).init();
 
 suite('system/FxAccountsDialog', function() {
