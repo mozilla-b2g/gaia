@@ -119,6 +119,6 @@ suite('system/LockScreenWindow', function() {
     var stubIsActive = this.sinon.stub(app, 'isActive');
     stubIsActive.returns(true);
     app.resize();
-    assert.equal(app.height, layoutManager.height + 20);
+    assert.equal(app.height, layoutManager.height);
   });
 });

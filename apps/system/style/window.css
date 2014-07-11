@@ -1,40 +1,6 @@
-.appWindow,
-.activityWindow {
-  position: absolute;
-  left: 0;
-  border: 0;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-  top: 2.4rem;
-  width: 100%;
-  height: 100%;
-  background-repeat: no-repeat;
-  background-position: center center;
-
-  transform: translateX(0);
-}
-
-.appWindow > .appWindow {
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-}
-
-@media not all and (-moz-physical-home-button) {
-  #screen:not(.software-button-disabled) > #windows > .appWindow {
-    bottom: 5rem;
-  }
-}
-
 .appWindow[transition-state="closed"]:not(.fadeout):not(.homescreen) {
   opacity: 0;
   transform: translateX(0);
-}
-
-#screen.software-button-enabled #windows > .appWindow {
-  bottom: 5rem;
 }
 
 #screen.utility-tray #windows > .appWindow {
@@ -57,39 +23,7 @@
 /* mozbrowser iframe layout */
 
 .appWindow > iframe {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
   border: none;
-}
-
-.appWindow.navigation:not(.rocketbar) > iframe {
-  position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 1rem;
-  width: 100%;
-  height: calc(100% - 1rem);
-}
-
-.appWindow.rocketbar:not(.navigation) > iframe {
-  position: absolute;
-  top: 5rem;
-  left: 0;
-  bottom: 0;
-  width: 100%;
-  height: calc(100% - 5rem);
-}
-
-.appWindow.navigation.rocketbar > iframe {
-  position: absolute;
-  top: 5rem;
-  left: 0;
-  bottom: 1rem;
-  width: 100%;
-  height: calc(100% - 6rem);
 }
 
 .appWindow .throbber.loading {
@@ -100,14 +34,6 @@
 
 .appWindow:not(.homescreen):not(.searchWindow).render > iframe {
   background-color: #fff;
-}
-
-/* app window layout */
-
-#screen.active-statusbar > #windows > .appWindow,
-#screen.active-statusbar > #windows > .appWindow.fullscreen-app {
-  top: 4rem;
-  height: calc(100% - 4rem);
 }
 
 .appWindow.enlarge {
@@ -245,53 +171,6 @@
   animation: closeAppTowardsTaskManager 0.15s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
-/* Prebuild width/height */
-#screen:not(.active-statusbar):not(.software-button-enabled):not(:-moz-full-screen-ancestor) > #windows > .appWindow:not(.fullscreen-app),
-.appWindow.homescreen {
-  top: 2.4rem;
-  height: calc(100% - 2.4rem);
-  width: 100%;
-}
-
-#screen:not(.active-statusbar):not(.software-button-enabled) > #windows > .appWindow.fullscreen-app {
-  top: 0;
-  height: 100%;
-  width: 100%;
-}
-
-#screen.active-statusbar:not(.software-button-enabled):not(:-moz-full-screen-ancestor) > #windows > .appWindow {
-  top: 4rem;
-  height: calc(100% - 4rem);
-  width: 100%;
-}
-
-#screen.active-statusbar.software-button-enabled:not(:-moz-full-screen-ancestor) > #windows > .appWindow {
-  top: 4rem;
-  bottom: 5rem;
-  height: calc(100% - 5rem - 4rem);
-  width: 100%;
-}
-
-#screen.software-button-enabled:not(:-moz-full-screen-ancestor) > #windows > .appWindow {
-  top: 2.4rem;
-  bottom: 5rem;
-  height: calc(100% - 5rem - 2.4rem);
-  width: 100%;
-}
-
-#screen.software-button-enabled:not(.active-statusbar) > #windows > .appWindow.fullscreen-app {
-  top: 0;
-  bottom: 5rem;
-  height: calc(100% - 5rem);
-  width: 100%;
-}
-
-#screen.active-statusbar:not(.software-button-enabled) > #windows > .appWindow.fullscreen-app {
-  top: 4rem;
-  bottom: 0;
-  height: calc(100% - 4rem);
-  width: 100%;
-}
 
 @keyframes closeApp {
   0%   { transform: scale(1.0); opacity: 1;}
@@ -318,22 +197,13 @@
   transition: transform 0.25s cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
-#screen > #windows > .appWindow.fullscreen-app {
-  top: 0;
-}
-
 .appWindow > iframe {
   visibility: visible;
 }
 
 .appWindow > .fade-overlay {
   background-color: black;
-  position: absolute;
   visibility: hidden;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
   opacity: 0.8;
 }
 
@@ -350,11 +220,6 @@
 }
 
 .appWindow > .touch-blocker {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
   visibility: hidden;
   background: transparent;
   pointer-events: all;
@@ -370,28 +235,11 @@
 .appWindow > .modal-dialog,
 .appWindow > .authentication-dialog,
 .authentication-dialog > .authentication-dialog-http {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
   visibility: hidden;
 }
 
 .appWindow > .contextmenu {
   visibility: visible;
-}
-
-/*
- * Because the search input lives in the system app, while the search app
- * lives into its own search window, the context menu for such an application
- * does not cover the whole screen.
- * In order to have it cover the whole screen, the contextmenu which is part of
- * the app window of the search window, is positioned negatively on the y-axis,
- * while overflow is authorize for such window.
- */
-.appWindow.searchWindow .contextmenu {
-  top: -7rem;
 }
 
 .appWindow.searchWindow {
@@ -427,29 +275,23 @@
   margin-bottom: 1.5rem; /* not overlap by menu while keyboard pop */
 }
 
-/*
- * Because the search input lives in the system app, while the search app
- * lives into its own window, activities windows attached to the search app
- * does not cover the whole screen.
- * In order to cover the whole screen, the activityWindow is positioned to the
- * top of the screen and expanded to cover the whole screen.
- */
-.appWindow.searchWindow .activityWindow {
-  height: calc(100% + 7rem);
-  top: -7rem;
-}
-
 .appWindow > .modal-dialog > form.visible {
   visibility: visible;
 }
 
+/****************** Statusbar Overlay ******************/
+.appWindow > .statusbar-overlay {
+  visibility: hidden;
+  background-color: black;
+}
+
+#screen.brandcolor-active .appWindow:not([loading-state=true]) > .statusbar-overlay {
+  visibility: visible;
+}
+
+/****************** Screenshot Overlay ******************/
 .appWindow > .screenshot-overlay {
   visibility: hidden;
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
   pointer-events: none;
 
   /* We need this to resize hi-res screenshot */
@@ -461,11 +303,6 @@
 }
 
 .appWindow > .identification-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
   pointer-events: none;
 
   background: rgba(255, 255, 255, 0.8);
@@ -680,8 +517,6 @@
 }
 
 #screen:-moz-full-screen-ancestor > #windows .appWindow.active {
-  top: 0;
-  height: 100%;
   will-change: auto;
 }
 
@@ -721,16 +556,8 @@
   transform: translateY(2.4rem);
 }
 
-#search.appWindow {
-  top: 0;
-}
-
 #screen.locked.rocketbar-expanded .appWindow.active iframe,
 #screen.on-homescreen.rocketbar-expanded .appWindow.active iframe {
   transform: none;
 }
 
-#screen:-moz-full-screen-ancestor > #windows .appWindow.active iframe {
-  top: 0;
-  height: 100%;
-}

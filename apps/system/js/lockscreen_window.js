@@ -1,6 +1,5 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-/* global StatusBar */
 'use strict';
 
 (function(exports) {
@@ -93,7 +92,7 @@
     var height, width;
 
     // We want the lockscreen to go below the StatusBar
-    height = self.layoutManager.height + StatusBar.height;
+    height = self.layoutManager.height;
     width = self.layoutManager.width;
 
     this.width = width;

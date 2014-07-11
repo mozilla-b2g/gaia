@@ -269,6 +269,13 @@
               this.broadcastMessage('kill_suspended');
             }
           }.bind(this)
+        },
+
+        'app-brandcolor.enabled': {
+          defaultValue: false,
+          callback: function(value) {
+            screenElement.classList.toggle('brandcolor-active', value);
+          }
         }
       };
 
