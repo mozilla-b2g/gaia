@@ -21,7 +21,7 @@ textarea {
   border: 0.1rem solid #ccc;
   border-radius: 0.3rem;
   box-shadow: none; /* override the box-shadow from the system (performance issue) */
-  background: #fff url(input_areas/images/ui/shadow.png) repeat-x;
+  background: url(input_areas/images/ui/shadow.png) repeat-x 0 0 / 0.1rem 0.2rem #fff;
 }
 
 textarea {
@@ -125,7 +125,7 @@ fieldset {
   border: 0.1rem solid rgba(0,0,0,.2);
   font-size: 1.8rem;
   line-height: 1em;
-  background: #fff url(input_areas/images/ui/shadow.png) repeat-x left top;
+  background: url(input_areas/images/ui/shadow.png) repeat-x left top / 0.1rem 0.2rem #fff;
 }
 
 fieldset  + fieldset {
@@ -228,15 +228,16 @@ form[role="search"]:after {
   right: 0;
   left: 0;
   height: 0.4rem;
-  background: url(input_areas/images/ui/shadow-search.png) repeat-x left top;
+  background: url(input_areas/images/ui/shadow-search.png) repeat-x left top / 0.1rem 0.3rem transparent;
   border-top: 0.1rem solid #fff;
 }
 
 form[role="search"].bottom:after {
   content: "";
   position: absolute;
-  top: -0.4rem;
-  background: url(input_areas/images/ui/shadow-invert.png) repeat-x 0 100%;
+  top: -0.3rem;
+  height: 0.2rem;
+  background: url(input_areas/images/ui/shadow-invert.png) repeat-x 0 100% / 0.1rem 0.3rem transparent;
   border-color: transparent;
 }
 form[role="search"].skin-dark:after {
@@ -287,7 +288,7 @@ form[role="search"] button.icon {
   font-size: 0;
   background: url(input_areas/images/ui/separator.png) no-repeat 100% 50%,
               url(input_areas/images/ui/background.png) repeat-x 0 100%;
-  background-size: auto 100%;
+  background-size: 0.2rem 3.7rem, 0.1rem 3.7rem;
   border-radius: 0;
   margin: 0;
   padding: 0;
@@ -320,8 +321,7 @@ form[role="search"] button[type="submit"] {
   font-weight: 500;
   font-size: 1.6rem;
   line-height: 3.7rem;
-  background: url(input_areas/images/ui/separator.png) no-repeat 0 50%;
-  background-size: auto 100%;
+  background: url(input_areas/images/ui/separator.png) no-repeat 0 50% / 0.2rem 3.7rem transparent;
   border-radius: 0;
   width: auto;
   border-radius: 0;
@@ -332,6 +332,7 @@ form[role="search"].bottom button[type="submit"] {
   color: #333;
   background: url(input_areas/images/ui/separator.png) no-repeat 0 50%,
               url(input_areas/images/ui/active.png) repeat-x 0 100%;
+  background-size: 0.2rem 3.7rem;
 }
 
 form[role="search"].skin-dark button[type="submit"] {
@@ -363,6 +364,7 @@ form[role="search"] button[type="submit"][disabled] {
   color: #adadad;
   background: url(input_areas/images/ui/separator.png) no-repeat 0 50%,
               url(input_areas/images/ui/background.png) repeat-x 0 100%;
+  background-size: 0.2rem 3.7rem, 0.1rem 3.7rem;
 }
 
 form button::-moz-focus-inner {
