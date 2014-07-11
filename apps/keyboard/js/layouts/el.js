@@ -61,8 +61,8 @@ Keyboards['el-sms'] = {
       { value: 'Ξ' }, { value: 'Κ', keyCode: 0x4B /* ASCII K */ },
       { value: 'Λ' }, { value: "'"}
     ], [
-      { value: '⇪', ratio: 1.5, keyCode: -5, // special key code for NO_OP
-        disabled: true},
+      { value: '⇪', ratio: 1.5, keyCode: KeyEvent.DOM_VK_CAPS_LOCK,
+        disabled: true },
       { value: 'Ζ', keyCode: 0x5A /* ASCII Z */ },
       { value: 'Χ', keyCode: 0x58 /* ASCII X */ }, { value: 'Ψ' },
       { value: 'Ω' }, { value: 'Β', keyCode: 0x42 /* ASCII B */ },

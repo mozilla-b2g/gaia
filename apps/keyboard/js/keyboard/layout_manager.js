@@ -43,7 +43,6 @@ LayoutManager.prototype.KEYCODE_BASIC_LAYOUT = -1;
 LayoutManager.prototype.KEYCODE_ALTERNATE_LAYOUT = -2;
 LayoutManager.prototype.KEYCODE_SWITCH_KEYBOARD = -3;
 LayoutManager.prototype.KEYCODE_TOGGLE_CANDIDATE_PANEL = -4;
-LayoutManager.prototype.KEYCODE_NO_OP = -5;
 
 LayoutManager.prototype.LAYOUT_PAGE_DEFAULT = 0;
 LayoutManager.prototype.LAYOUT_PAGE_SYMBOLS_I = 1;
@@ -423,7 +422,6 @@ exports.ALTERNATE_LAYOUT = LayoutManager.prototype.KEYCODE_ALTERNATE_LAYOUT;
 exports.SWITCH_KEYBOARD = LayoutManager.prototype.KEYCODE_SWITCH_KEYBOARD;
 exports.TOGGLE_CANDIDATE_PANEL =
   LayoutManager.prototype.KEYCODE_TOGGLE_CANDIDATE_PANEL;
-exports.NO_OP = LayoutManager.prototype.KEYCODE_NO_OP;
 
 // IMEngines rely on this constant to understand the current layout page;
 // We'll set it to non-zero to tell it you are not on the default page.

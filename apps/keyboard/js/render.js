@@ -112,7 +112,8 @@ const IMERender = (function() {
   //   Use false on both of these properties when uppercase is disabled
   var setUpperCaseLock = function kr_setUpperCaseLock(state) {
     var capsLockKey = activeIme.querySelector(
-      'button[data-keycode="' + KeyboardEvent.DOM_VK_CAPS_LOCK + '"]'
+      'button:not([disabled])' +
+      '[data-keycode="' + KeyboardEvent.DOM_VK_CAPS_LOCK + '"]'
     );
 
     if (!capsLockKey)
