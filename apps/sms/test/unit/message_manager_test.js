@@ -24,6 +24,9 @@ require('/test/unit/mock_thread_list_ui.js');
 require('/test/unit/mock_threads.js');
 require('/test/unit/mock_information.js');
 
+require('/js/utils.js');
+require('/test/unit/mock_utils.js');
+
 require('/js/message_manager.js');
 
 var mocksHelperForMessageManager = new MocksHelper([
@@ -34,31 +37,25 @@ var mocksHelperForMessageManager = new MocksHelper([
   'Threads',
   'ThreadListUI',
   'ThreadUI',
-]);
-
-mocksHelperForMessageManager.init();
+  'Utils'
+]).init();
 
 suite('message_manager.js >', function() {
 
-  var mocksHelper = mocksHelperForMessageManager;
+  mocksHelperForMessageManager.attachTestHelpers();
   var realMozMobileMessage;
 
-  suiteSetup(function() {
-    mocksHelper.suiteSetup();
+  setup(function() {
     realMozMobileMessage = MessageManager._mozMobileMessage;
     MessageManager._mozMobileMessage = MockNavigatormozMobileMessage;
-  });
 
-  suiteTeardown(function() {
-    mocksHelper.suiteTeardown();
-    MessageManager._mozMobileMessage = realMozMobileMessage;
-  });
-
-  setup(function() {
     this.sinon.spy(MockNavigatormozMobileMessage, 'send');
     this.sinon.spy(MockNavigatormozMobileMessage, 'sendMMS');
   });
 
+  teardown(function() {
+    MessageManager._mozMobileMessage = realMozMobileMessage;
+  });
 
   suite('on message sent > ', function() {
     setup(function() {
@@ -745,6 +742,53 @@ suite('message_manager.js >', function() {
       });
 
       sinon.assert.notCalled(ThreadListUI.onThreadsDeleted);
+    });
+  });
+
+  suite('getSegmentInfo()', function() {
+    var subject = 'some text';
+
+    test('returns a rejected promise if there is no API', function(done) {
+      MessageManager._mozMobileMessage = undefined;
+
+      MessageManager.getSegmentInfo(subject).then(
+        function() {
+          done(new Error(
+            'getSegmentInfo returned a resolved promise, ' +
+            'but a rejected promise was expected.'
+          ));
+        }, done.bind(null, null)
+      );
+    });
+
+    test('returns a resolved promise with the returned value', function(done) {
+      var expected = {
+        segments: 1,
+        charsAvailableInLastSegment: 20
+      };
+
+      MessageManager.getSegmentInfo(subject).then(
+        function(result) {
+          assert.deepEqual(result, expected);
+        }
+      ).then(done, done);
+
+      MockNavigatormozMobileMessage.mTriggerSegmentInfoSuccess(expected);
+    });
+
+    test('returns a rejected promise if there is an error', function(done) {
+      MessageManager.getSegmentInfo(subject).then(
+        function() {
+          throw new Error(
+            'getSegmentInfo returned a resolved promise, ' +
+            'but a rejected promise was expected.'
+          );
+        }, function(error) {
+          assert.ok(error.name);
+        }
+      ).then(done, done);
+
+      MockNavigatormozMobileMessage.mTriggerSegmentInfoError();
     });
   });
 });
