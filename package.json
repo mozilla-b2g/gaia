@@ -30,7 +30,7 @@
     "marionette-helper": "~0.3.1",
     "marionette-plugin-forms": "0.0.3",
     "marionette-profile-builder": "0.0.3",
-    "marionette-js-runner": "0.5.2",
+    "marionette-js-runner": "0.5.4",
     "marionette-settings-api": "~0.1.0",
     "mocha": "1.20.0",
     "mocha-json-proxy": "~0.0.7",
