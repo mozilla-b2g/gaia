@@ -173,7 +173,7 @@ suite('navigation bar', function() {
 
     suite('> insertion in the call log database', function() {
       var sysMsg;
-      var addSpy;
+      var addStub;
 
       function triggerSysMsg(data) {
         MockNavigatormozSetMessageHandler.mTrigger('telephony-call-ended',
@@ -191,7 +191,7 @@ suite('navigation bar', function() {
       });
 
       setup(function() {
-        addSpy = this.sinon.spy(MockCallLogDBManager, 'add');
+        addStub = this.sinon.stub(MockCallLogDBManager, 'add');
       });
 
       test('should require a high priority wake lock', function() {
@@ -212,12 +212,12 @@ suite('navigation bar', function() {
 
         test('should flag the entry as voicemail if it is', function() {
           MockVoicemail.check.yield(true);
-          sinon.assert.calledWithMatch(addSpy, {voicemail: true});
+          sinon.assert.calledWithMatch(addStub, {voicemail: true});
         });
 
         test('should not flag the entry if it is not', function() {
           MockVoicemail.check.yield(false);
-          sinon.assert.calledWithMatch(addSpy, {voicemail: false});
+          sinon.assert.calledWithMatch(addStub, {voicemail: false});
         });
       });
 
@@ -225,7 +225,7 @@ suite('navigation bar', function() {
         test('should be set to now minus the call duration', function() {
           this.sinon.useFakeTimers(4200);
           triggerSysMsg(sysMsg);
-          sinon.assert.calledWithMatch(addSpy, {date: 3000});
+          sinon.assert.calledWithMatch(addStub, {date: 3000});
         });
       });
 
@@ -233,37 +233,45 @@ suite('navigation bar', function() {
         test('should be incoming for incoming calls', function() {
           sysMsg.direction = 'incoming';
           triggerSysMsg(sysMsg);
-          sinon.assert.calledWithMatch(addSpy, {type: 'incoming'});
+          sinon.assert.calledWithMatch(addStub, {type: 'incoming'});
         });
 
         test('should be alerting for outgoing calls', function() {
           sysMsg.direction = 'outgoing';
           triggerSysMsg(sysMsg);
-          sinon.assert.calledWithMatch(addSpy, {type: 'dialing'});
+          sinon.assert.calledWithMatch(addStub, {type: 'dialing'});
         });
       });
 
       test('should set the phone number', function() {
         triggerSysMsg(sysMsg);
-        sinon.assert.calledWithMatch(addSpy, {number: '12345'});
+        sinon.assert.calledWithMatch(addStub, {number: '12345'});
+      });
+
+      test('should set cdma call waiting number', function() {
+        sysMsg.secondNumber = '23456';
+        triggerSysMsg(sysMsg);
+        sinon.assert.calledWithMatch(addStub, {number: '12345'});
+        addStub.yield();
+        sinon.assert.calledWithMatch(addStub, {number: '23456'});
       });
 
       test('should set the serviceId', function() {
         triggerSysMsg(sysMsg);
-        sinon.assert.calledWithMatch(addSpy, {serviceId: 1});
+        sinon.assert.calledWithMatch(addStub, {serviceId: 1});
       });
 
       suite('> emergency', function() {
         test('should flag the entry as emergency if it is', function() {
           sysMsg.emergency = true;
           triggerSysMsg(sysMsg);
-          sinon.assert.calledWithMatch(addSpy, {emergency: true});
+          sinon.assert.calledWithMatch(addStub, {emergency: true});
         });
 
         test('should not flag the entry if it is not', function() {
           sysMsg.emergency = null;
           triggerSysMsg(sysMsg);
-          sinon.assert.calledWithMatch(addSpy, {emergency: false});
+          sinon.assert.calledWithMatch(addStub, {emergency: false});
         });
       });
 
@@ -271,12 +279,12 @@ suite('navigation bar', function() {
         test('should be connected for incoming connected calls', function() {
           sysMsg.direction = 'incoming';
           triggerSysMsg(sysMsg);
-          sinon.assert.calledWithMatch(addSpy, {status: 'connected'});
+          sinon.assert.calledWithMatch(addStub, {status: 'connected'});
         });
 
         test('should be null otherwise', function() {
           triggerSysMsg(sysMsg);
-          sinon.assert.calledWithMatch(addSpy, {status: null});
+          sinon.assert.calledWithMatch(addStub, {status: null});
         });
       });
 
@@ -286,15 +294,43 @@ suite('navigation bar', function() {
         var appendSpy = this.sinon.spy(MockCallLog, 'appendGroup');
 
         triggerSysMsg(sysMsg);
-        addSpy.yield(fakeGroup);
+        addStub.yield(fakeGroup);
 
         sinon.assert.calledWith(appendSpy, fakeGroup);
       });
 
+      test('should also insert new call waiting group for cdma log view',
+      function() {
+        var fakeGroup = '----uniq----';
+        var fakeGroupCdma = '-----cdma----';
+        var appendSpy = this.sinon.spy(MockCallLog, 'appendGroup');
+        sysMsg.secondNumber = '34567';
+
+        triggerSysMsg(sysMsg);
+        addStub.yield(fakeGroup);
+        assert.equal(MockNavigatorWakeLock.mLastWakeLock.mUnlockCount, 0);
+        addStub.yield(fakeGroupCdma);
+
+        sinon.assert.calledWith(appendSpy, fakeGroup);
+        sinon.assert.calledWith(appendSpy, fakeGroupCdma);
+      });
+
       test('should release the wake lock', function() {
         triggerSysMsg(sysMsg);
+        addStub.yield();
         var wakeLock = MockNavigatorWakeLock.mLastWakeLock;
         assert.isTrue(wakeLock.released);
+      });
+
+      test('should only unlock after cdma call is added',
+      function() {
+        sysMsg.secondNumber = '45678';
+        triggerSysMsg(sysMsg);
+        var wakeLock = MockNavigatorWakeLock.mLastWakeLock;
+        addStub.yield();
+        assert.equal(wakeLock.mUnlockCount, 0);
+        addStub.yield();
+        assert.equal(wakeLock.mUnlockCount, 1);
       });
     });
 
