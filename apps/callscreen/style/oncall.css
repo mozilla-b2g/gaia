@@ -458,14 +458,14 @@
 
   #calls.big-duration > section .numberWrapper .number {
     height: 3.2rem;
-    line-height: 3rem;
+    line-height: 2.5rem;
   }
 
   #calls > section .numberWrapper .number {
     height: 2.5rem;
     padding: 2rem 0 0 0;
     font-size: 2.5rem;
-    line-height: 1.5rem;
+    line-height: 1rem;
     color: black;
     white-space: nowrap;
     overflow: hidden;
