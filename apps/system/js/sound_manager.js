@@ -6,7 +6,7 @@
 (function() {
   window.addEventListener('volumeup', function() {
     if (ScreenManager.screenEnabled || currentChannel !== 'none') {
-      if (Bluetooth.connected && onCall()) {
+      if (Bluetooth.isProfileConnected(Bluetooth.Profiles.SCO) && onCall()) {
         changeVolume(1, 'bt_sco');
       } else if (isHeadsetConnected) {
         headsetVolumeup();
@@ -17,7 +17,7 @@
   });
   window.addEventListener('volumedown', function() {
     if (ScreenManager.screenEnabled || currentChannel !== 'none') {
-      if (Bluetooth.connected && onCall()) {
+      if (Bluetooth.isProfileConnected(Bluetooth.Profiles.SCO) && onCall()) {
         changeVolume(-1, 'bt_sco');
       } else {
         changeVolume(-1);
