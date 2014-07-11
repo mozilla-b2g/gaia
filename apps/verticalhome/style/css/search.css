@@ -48,3 +48,16 @@
   background-size: 2rem;
   background-position: center right;
 }
+
+/* RTL View */
+
+html[dir="rtl"] #search-form::after {
+  background-position: center left;
+  left: .5rem;
+}
+
+html[dir="rtl"] #search-input {
+  margin-left: 0;
+  margin-right: 1.5rem;
+  direction: rtl;
+}
