@@ -7,7 +7,7 @@ requireApp('system/test/unit/mock_download_store.js');
 requireApp('system/test/unit/mock_download_ui.js');
 requireApp('system/test/unit/mock_download_formatter.js');
 requireApp('system/test/unit/mock_download_helper.js');
-requireApp('system/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system/test/unit/mock_notification_screen.js');
 requireApp('system/test/unit/mock_activity.js');
 requireApp('system/test/unit/mock_statusbar.js');

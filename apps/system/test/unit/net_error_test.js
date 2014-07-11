@@ -5,7 +5,7 @@
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
-requireApp('system/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system/test/unit/mock_activity.js');
 window.requireElements('system/elements/net_error_action_menu.html');
 window.requireElements('system/elements/net_error_confirm_dialog.html');

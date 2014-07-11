@@ -1,7 +1,7 @@
 /* global MocksHelper, MockL10n, AppWindow, AppModalDialog */
 'use strict';
 
-requireApp('system/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/test/unit/mock_app_window.js');
 
