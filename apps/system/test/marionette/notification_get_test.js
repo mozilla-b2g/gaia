@@ -1,9 +1,10 @@
 'use strict';
 
+/* globals Notification */
+
 var assert = require('assert');
 
 var CALENDAR_APP = 'app://calendar.gaiamobile.org';
-var CALENDAR_APP_MANIFEST = CALENDAR_APP + '/manifest.webapp';
 
 marionette('Notification.get():', function() {
 
@@ -41,6 +42,7 @@ marionette('Notification.get():', function() {
     var error = client.executeAsyncScript(function() {
       try {
         var title = 'test title';
+        /* jshint unused:false */
         var notification = new Notification(title);
         var promise = Notification.get();
         promise.then(function(notifications) {
@@ -73,6 +75,7 @@ marionette('Notification.get():', function() {
         var options = {
           tag: 'my tag:' + Date.now()
         };
+	/* jshint unused:false */
         var notification = new Notification(title, options);
         var promise = Notification.get({tag: options.tag});
         promise.then(function(notifications) {
@@ -108,20 +111,28 @@ marionette('Notification.get():', function() {
     // switch to email app and send notification
     client.apps.launch(CALENDAR_APP);
     client.apps.switchToApp(CALENDAR_APP);
-    client.executeScript(function(title, tag) {
+    var error = client.executeAsyncScript(function(title, tag) {
       var notification = new Notification(title, {tag: tag});
+      notification.addEventListener('show', function() {
+        marionetteScriptFinished(false);
+      });
     }, [emailTitle, sharedTag]);
+    assert.equal(error, false, 'email notification error: ' + error);
 
     // switch to system app and send system notification
     client.switchToFrame();
-    client.executeScript(function(title, tag) {
+    error = client.executeAsyncScript(function(title, tag) {
       var notification = new Notification(title, {tag: tag});
+      notification.addEventListener('show', function() {
+        marionetteScriptFinished(false);
+      });
     }, [systemTitle, sharedTag]);
+    assert.equal(error, false, 'system notification error: ' + error);
 
     // switch back to email, and fetch notification by tag
     client.apps.launch(CALENDAR_APP);
     client.apps.switchToApp(CALENDAR_APP);
-    var error = client.executeAsyncScript(function(title, tag) {
+    error = client.executeAsyncScript(function(title, tag) {
       var promise = Notification.get({tag: tag});
       promise.then(function(notifications) {
         if (!notifications || notifications.length !== 1) {
@@ -169,9 +180,13 @@ marionette('Notification.get():', function() {
     client.apps.launch(CALENDAR_APP);
     client.apps.switchToApp(CALENDAR_APP);
 
-    client.executeScript(function(title, tag) {
+    var error = client.executeAsyncScript(function(title, tag) {
       var notification = new Notification(title, {tag: tag});
+      notification.addEventListener('show', function() {
+        marionetteScriptFinished(false);
+      });
     }, [title, tag]);
+    assert.equal(error, false, 'sending notification error: ' + error);
 
     client.switchToFrame();
     client.apps.close(CALENDAR_APP);
@@ -179,7 +194,7 @@ marionette('Notification.get():', function() {
     client.apps.launch(CALENDAR_APP);
     client.apps.switchToApp(CALENDAR_APP);
 
-    var error = client.executeAsyncScript(function(title, tag) {
+    error = client.executeAsyncScript(function(title, tag) {
       var promise = Notification.get({tag: tag});
       promise.then(function(notifications) {
         if (!notifications || notifications.length !== 1) {
@@ -201,6 +216,7 @@ marionette('Notification.get():', function() {
 
   test('bug 931307, empty title should not cause crash', function(done) {
     var error = client.executeAsyncScript(function() {
+      /* jshint unused:false */
       var notification = new Notification('');
       var promise = Notification.get();
       promise.then(function() {

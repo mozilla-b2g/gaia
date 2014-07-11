@@ -22,10 +22,13 @@ marionette('Notification events', function() {
     // switch to calendar app and send notification
     client.apps.launch(CALENDAR_APP);
     client.apps.switchToApp(CALENDAR_APP);
-    client.executeScript(function(title) {
-      /*jshint unused:false*/
+    var error = client.executeAsyncScript(function(title) {
       var notification = new Notification(title);
+      notification.addEventListener('show', function() {
+        marionetteScriptFinished(false);
+      });
     }, [notificationTitle]);
+    assert.equal(error, false, 'Error sending notification: ' + error);
 
     // close app
     client.switchToFrame();
@@ -33,7 +36,7 @@ marionette('Notification events', function() {
 
     // switch to system app, make sure we have one notification
     client.switchToFrame();
-    var error = client.executeAsyncScript(function(manifest) {
+    error = client.executeAsyncScript(function(manifest) {
       // get notifications
       var container =
         document.getElementById('desktop-notifications-container');
@@ -81,14 +84,17 @@ marionette('Notification events', function() {
     // switch to calendar app and send notification
     client.apps.launch(CALENDAR_APP);
     client.apps.switchToApp(CALENDAR_APP);
-    client.executeScript(function(title) {
-      /*jshint unused:false*/
+    var error = client.executeAsyncScript(function(title) {
       var notification = new Notification(title);
+      notification.addEventListener('show', function() {
+        marionetteScriptFinished(false);
+      });
     }, [notificationTitle]);
+    assert.equal(error, false, 'Error sending notification: ' + error);
 
     // switch to system app and send desktop-notification-close
     client.switchToFrame();
-    var error = client.executeAsyncScript(function(manifest) {
+    error = client.executeAsyncScript(function(manifest) {
       var container =
         document.getElementById('desktop-notifications-container');
       var selector = '[data-manifest-u-r-l="' + manifest + '"]';
@@ -133,10 +139,13 @@ marionette('Notification events', function() {
     // switch to calendar app and send notification
     client.apps.launch(CALENDAR_APP);
     client.apps.switchToApp(CALENDAR_APP);
-    client.executeScript(function(title) {
-      /*jshint unused:false*/
+    var error = client.executeAsyncScript(function(title) {
       var notification = new Notification(title);
+      notification.addEventListener('show', function() {
+        marionetteScriptFinished(false);
+      });
     }, [notificationTitle]);
+    assert.equal(error, false, 'Error sending notification: ' + error);
 
     // close app
     client.switchToFrame();
@@ -144,7 +153,7 @@ marionette('Notification events', function() {
 
     // switch to system app, remove from tray and trigger resending
     client.switchToFrame();
-    var error = client.executeAsyncScript(function(manifest) {
+    error = client.executeAsyncScript(function(manifest) {
       // first get node from tray
       var container =
         document.getElementById('desktop-notifications-container');
@@ -228,10 +237,13 @@ marionette('Notification events', function() {
     // switch to calendar app and send notification
     client.apps.launch(CALENDAR_APP);
     client.apps.switchToApp(CALENDAR_APP);
-    client.executeScript(function(title) {
-      /*jshint unused:false*/
+    var error = client.executeAsyncScript(function(title) {
       var notification = new Notification(title);
+      notification.addEventListener('show', function() {
+        marionetteScriptFinished(false);
+      });
     }, [notificationTitle]);
+    assert.equal(error, false, 'Error sending notification: ' + error);
 
     // close app
     client.switchToFrame();
@@ -239,7 +251,7 @@ marionette('Notification events', function() {
 
     // switch to system app and trigger resending
     client.switchToFrame();
-    var error = client.executeAsyncScript(function(manifest) {
+    error = client.executeAsyncScript(function(manifest) {
       var container =
         document.getElementById('desktop-notifications-container');
       var selector = '[data-manifest-u-r-l="' + manifest + '"]';
