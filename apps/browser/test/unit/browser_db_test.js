@@ -16,6 +16,10 @@ var Browser = {
         {
           'title': 'Firefox OS',
           'uri': 'http://mozilla.org/firefoxos'
+        },
+        {
+          'title': 'Firefox OS Support',
+          'uri': 'http://support.mozilla.org/products/firefox-os'
         }
       ]
     };
