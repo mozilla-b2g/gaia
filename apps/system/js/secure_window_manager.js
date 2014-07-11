@@ -51,11 +51,10 @@
       killAnimation: 'immediate',
       listens: ['secure-killapps',
                 'secure-closeapps',
-                'secure-modeon',
-                'secure-modeoff',
                 'secure-appcreated',
                 'secure-appterminated',
-                'secure-apprequestclose'
+                'secure-apprequestclose',
+                'home'
                ]
     }
   };
@@ -66,9 +65,6 @@
    * @listens secure-closeapps - means to close remain apps. It's similar to
    *                             the event above, but would show the closing
    *                             animation.
-   * @listens secure-modeon - the system would be in the secure mode by locking
-   *                          or other reasons.
-   * @listens secure-modeoff - the system now is not in the secure mode anymore.
    * @listens secure-appcreated - when a secure app got created, it would fire
    *                              this event.
    * @listens secure-appterminated - when a secure app got really closed, it
@@ -92,12 +88,6 @@
           if (0 !== Object.keys(this.states.runningApps).length) {
             this.softKillApps();
           }
-          break;
-        case 'secure-modeon':
-          this.resume();
-          break;
-        case 'secure-modeoff':
-          this.suspend();
           break;
         case 'secure-appcreated':
           app = evt.detail;
@@ -127,40 +117,12 @@
           app.close(this.states.killMode ?
               this.configs.killAnimation : null);
           break;
+        case 'home':
+          if (0 !== Object.keys(this.states.runningApps).length) {
+            this.softKillApps();
+          }
+          break;
       }
-    };
-
-  /**
-   * Remove event listeners except the resuming (`secure-modeon`)
-   * event.
-   *
-   * @private
-   * @this {SecureWindowManager}
-   * @memberof SecureWindowManager
-   */
-  SecureWindowManager.prototype.suspend =
-    function swm_suspend() {
-      this.suspendEvents();
-
-      // Will suspend all events.
-      // But we also want to leave a single entry to resume.
-      self.addEventListener('secure-modeon', this);
-    };
-
-  /**
-   * Hook event listeners back and don't care the resuming
-   * (`secure-modeon`) event anymore.
-   *
-   * @private
-   * @this {SecureWindowManager}
-   * @memberof SecureWindowManager
-   */
-  SecureWindowManager.prototype.resume =
-    function swm_resume() {
-      this.initEvents();
-
-      // To prevent duplicated init.
-      self.removeEventListener('secure-modeon', this);
     };
 
   /**
@@ -188,20 +150,6 @@
     function swm_initEvents() {
       this.configs.listens.forEach((function _initEvent(type) {
         self.addEventListener(type, this);
-      }).bind(this));
-    };
-
-  /**
-   * Remove listeners of events this manager interested in.
-   *
-   * @private
-   * @this {SecureWindowManager}
-   * @memberof SecureWindowManager
-   */
-  SecureWindowManager.prototype.suspendEvents =
-    function swm_suspendEvents() {
-      this.configs.listens.forEach((function _unbind(ename) {
-        self.removeEventListener(ename, this);
       }).bind(this));
     };
 
