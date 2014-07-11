@@ -1,5 +1,6 @@
 'use strict';
 
+var assert = require('assert');
 var Actions = require('marionette-client').Actions;
 var Bookmark = require('./lib/bookmark');
 var Collection = require('./lib/collection');
@@ -44,7 +45,7 @@ marionette('Vertical - Collection', function() {
     var dialerManifest = 'app://communications.gaiamobile.org/manifest.webapp';
     var dialerEntryPoint = 'dialer';
 
-    collection.enterCreateScreen(1);
+    collection.enterCreateScreen();
 
     // A collection name from the cateories_list.json stub
     var collectionName = 'Around Me';
@@ -56,9 +57,20 @@ marionette('Vertical - Collection', function() {
     var phoneIcon = home.getIcon(dialerManifest, dialerEntryPoint);
     var collectionIcon = collection.getCollectionByName(collectionName);
 
+    var bodyHeight = client.findElement('body').size().height;
+    var iconTop = phoneIcon.scriptWith(function(el) {
+      return el.getBoundingClientRect().top;
+    });
+
     actions
       .press(phoneIcon)
       .wait(1)
+
+      // Move the phone icon to the bottom of the screen to scroll down.
+      .moveByOffset(0, bodyHeight - iconTop)
+      .wait(4)
+
+      // Now drop the icon into the collection
       .move(collectionIcon)
       .release()
       .wait(1)
@@ -71,9 +83,7 @@ marionette('Vertical - Collection', function() {
     // Enter the created collection.
     collection.enterCollection(collectionIcon);
 
-    var expected = home.localizedAppName('communications', 'dialer', 'en-US');
-    client.waitFor(function() {
-      return collection.firstPinnedResult.text() === expected;
-    });
+    assert.equal(collection.firstPinnedResult.text(),
+      home.localizedAppName('communications', 'dialer', 'en-US'));
   });
 });
