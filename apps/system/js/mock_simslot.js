@@ -21,8 +21,7 @@ var MockSIMSlot = function(conn, index) {
   // Inject dom request
   ['getCardLock', 'unlockCardLock', 'setCardLock',
     'getCardLockRetryCount', 'readContacts',
-    'updateContact', 'iccOpenChannel', 'iccExchangeAPDU',
-    'iccCloseChannel'].forEach(function(name) {
+    'updateContact'].forEach(function(name) {
       this[name] = function() {
         return {};
       };
