@@ -15,14 +15,15 @@ var FxaModuleSignupSuccess = (function() {
   Module.init = function init(options) {
     options = options || {};
     this.importElements(
-      'fxa-summary-email',
       'fxa-will-send-email'
     );
 
-    navigator.mozL10n.localize(this.fxaWillSendEmail, 'fxa-will-send-email', {
-      email: ''
-    });
-    this.fxaSummaryEmail.textContent = options.email;
+    var willSendText = navigator.mozL10n.get('fxa-will-send-email');
+    willSendText = willSendText.replace(
+      '{{email}}',
+      '<strong>' + options.email + '</strong>'
+    );
+    this.fxaWillSendEmail.innerHTML = willSendText;
   };
 
   Module.onNext = function onNext(done) {

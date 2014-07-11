@@ -34,6 +34,9 @@ suite('Screen: Signup Success', function() {
   suiteSetup(function(done) {
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
+    var l10nStub = sinon.stub(navigator.mozL10n, 'get');
+    l10nStub.withArgs('fxa-will-send-email')
+      .returns('Will send email to {{email}}');
 
     mocksHelperForSignupSuccess.suiteSetup();
     // Load real HTML
@@ -50,6 +53,7 @@ suite('Screen: Signup Success', function() {
   });
 
   suiteTeardown(function() {
+    navigator.mozL10n.get.restore();
     navigator.mozL10n = realL10n;
     document.body.innerHTML = '';
     mocksHelperForSignupSuccess.suiteTeardown();
@@ -58,10 +62,8 @@ suite('Screen: Signup Success', function() {
 
   suite(' > init ', function() {
     test(' > email shown properly', function() {
-      assert.equal(
-        FxaModuleSignupSuccess.fxaSummaryEmail.textContent,
-        emailTest
-      );
+      var willSendText = FxaModuleSignupSuccess.fxaWillSendEmail.textContent;
+      assert.isTrue(willSendText.indexOf(emailTest) > -1);
     });
 
   });

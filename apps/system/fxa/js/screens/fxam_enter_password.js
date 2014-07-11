@@ -76,8 +76,7 @@ var FxaModuleEnterPassword = (function() {
       _ = navigator.mozL10n.get;
       // Cache DOM elements
       this.importElements(
-        'fxa-hello-user',
-        'fxa-user-email',
+        'fxa-hello-known-user',
         'fxa-pw-input',
         'fxa-show-pw',
         'fxa-forgot-password'
@@ -122,13 +121,14 @@ var FxaModuleEnterPassword = (function() {
     }
 
     this.isFTU = !!(options && options.isftu);
-    this.fxaUserEmail.textContent = options.email;
     this.email = options.email;
 
-    navigator.mozL10n.localize(this.fxaHelloUser, 'fxa-hello-user', {
-      email: ''
-    });
-    this.fxaUserEmail.textContent = this.email;
+    var helloUserText = _('fxa-hello-user');
+    helloUserText = helloUserText.replace(
+      '{{email}}',
+      '<a id="fxa-known-user-email">' + this.email + '</a>'
+    );
+    this.fxaHelloKnownUser.innerHTML = helloUserText;
 
     _cleanForm(
       this.fxaPwInput,
