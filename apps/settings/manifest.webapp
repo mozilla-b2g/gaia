@@ -32,7 +32,8 @@
     "audio-channel-alarm":{},
     "downloads":{},
     "nfc":{ "access": "readonly" },
-    "sms":{}
+    "sms":{},
+    "firefox-accounts": {}
   },
   "activities": {
     "configure": {
