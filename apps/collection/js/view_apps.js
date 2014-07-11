@@ -79,11 +79,22 @@
       var data;
       while ((data = asyncItems.pop())) {
         // "add-to-collection" activity puts the icon in the first position
-        var item = data.pinned[0];
+        var position = 0;
+        var item = data.pinned[position];
         if (item && !grid.getIcon(item.identifier)) {
           // The icon is not rendered so this event has been dispatched
           // because of an "add-to-collection" activity
-          collection.prependItemToGrid(item, grid);
+          collection.addItemToGrid(item, grid, position);
+          return;
+        }
+
+        // "install" connection puts the icon in the last position
+        position = data.pinned.length - 1;
+        item = data.pinned[position];
+        if (item && !grid.getIcon(item.identifier)) {
+          // The icon is not rendered so this event has been dispatched
+          // because of an "install" message was received
+          collection.addItemToGrid(item, grid, position);
         }
       }
     }

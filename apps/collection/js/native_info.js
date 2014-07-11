@@ -73,7 +73,9 @@
 
         // we are going to traverse all the collections on device
         for (var id in collections) {
-          var collection = BaseCollection.create(collections[id]);
+          var collection = collections[id];
+          collection.homeIcons = homeIcons;
+          collection = BaseCollection.create(collection);
 
           if (collection.cName) {
             var guids = guidsByCname[collection.cName] || [];
@@ -111,7 +113,9 @@
     processApp: function processApp(action, id) {
       if (action === 'install') {
         // id should be a guid (manifest or bookmark URL)
-        return this.getInfo([id]).then(this.addToCollections).catch(onerror);
+        homeIcons = new HomeIcons();
+        return homeIcons.init().then(this.getInfo.bind(this, [id]))
+               .then(this.addToCollections).catch(onerror);
       } else if (action === 'uninstall') {
         return this.removeFromCollections(id).catch(onerror);
       }

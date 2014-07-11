@@ -61,7 +61,7 @@
 
     // for rendering pinned homescreen apps/bookmarks
     if (window.HomeIcons) {
-      this.homeIcons = new HomeIcons();
+      this.homeIcons = props.homeIcons || new HomeIcons();
       this.homeIcons.init();
     }
   }
@@ -328,11 +328,10 @@
       }, this);
     },
 
-    prependItemToGrid: function prependItemToGrid(item, grid) {
-      // Add the app to the beginning of the pinned array
-      this.pinned.unshift(new PinnedHomeIcon(item.identifier));
+    addItemToGrid: function prependItemToGrid(item, grid, position) {
+      this.pinned.slice(position, 1, new PinnedHomeIcon(item.identifier));
 
-      grid.add(this.toGridObject(item), 0);
+      grid.add(this.toGridObject(item), position);
 
       // Add a divider if it's our first pinned result.
       if (this.pinned.length === 1) {
