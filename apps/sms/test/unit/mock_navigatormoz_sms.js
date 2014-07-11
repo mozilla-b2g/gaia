@@ -123,7 +123,7 @@ var MockNavigatormozMobileMessage = {
   },
 
   mTriggerSegmentInfoError: function(index) {
-    var evt = { target: {} };
+    var evt = { target: { error: { name: 'SegmentInfoError' } } };
 
     if (this._mSegmentInfoRequests && this._mSegmentInfoRequests.length) {
       if (index === undefined) {

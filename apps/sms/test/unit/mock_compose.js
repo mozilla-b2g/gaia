@@ -12,6 +12,7 @@ var MockCompose = {
   isEmpty: function() {
     return this.mEmpty;
   },
+  isSubjectMaxLength: () => false,
   disable: function(state) {},
   scrollToTarget: function(target) {},
   scrollMessageContent: function() {},
@@ -38,5 +39,8 @@ var MockCompose = {
     this.mEmpty = true;
     this.mSubjectEmpty = true;
     this.mSubjectShowing = false;
+    this.size = null;
+    this.type = 'sms';
+    this.lock = false;
   }
 };
