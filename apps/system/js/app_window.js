@@ -642,7 +642,7 @@
     ['mozbrowserclose', 'mozbrowsererror', 'mozbrowservisibilitychange',
      'mozbrowserloadend', 'mozbrowseractivitydone', 'mozbrowserloadstart',
      'mozbrowsertitlechange', 'mozbrowserlocationchange',
-     'mozbrowsericonchange', 'mozbrowserasyncscroll',
+     'mozbrowsermetachange', 'mozbrowsericonchange', 'mozbrowserasyncscroll',
      '_localized', '_swipein', '_swipeout', '_kill_suspended',
      '_orientationchange', '_focus'];
 
@@ -676,7 +676,8 @@
     'mozbrowsershowmodalprompt',
     'mozbrowsertitlechange',
     'mozbrowserusernameandpasswordrequired',
-    'mozbrowseropensearch'
+    'mozbrowseropensearch',
+    'mozbrowsermetachange'
   ];
 
   AppWindow.prototype.openAnimation = 'enlarge';
@@ -897,6 +898,14 @@
       }
       this.scrollPosition = evt.detail.top;
       this.publish('scroll');
+    };
+
+  AppWindow.prototype._handle_mozbrowsermetachange =
+    function aw__handle_mozbrowsermetachange(evt) {
+      if (evt.detail.name === 'brand-color') {
+        this.brandColor = evt.detail.content;
+        this.publish('brandcolorchange');
+      }
     };
 
   AppWindow.prototype._registerEvents = function aw__registerEvents() {

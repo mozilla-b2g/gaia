@@ -1416,6 +1416,22 @@ suite('system/AppWindow', function() {
       assert.isTrue(stubPublish.calledWith('foreground'));
     });
 
+    test('metachange event (brand-color)', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      var stubPublish = this.sinon.stub(app1, 'publish');
+
+      app1.handleEvent({
+        type: 'mozbrowsermetachange',
+        detail: {
+          name: 'brand-color',
+          content: 'transparent'
+        }
+      });
+
+      assert.equal(app1.brandColor, 'transparent');
+      assert.isTrue(stubPublish.calledOnce);
+    });
+
     test('Localized event', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       var spyManifestHelper = this.sinon.stub(window, 'ManifestHelper');
