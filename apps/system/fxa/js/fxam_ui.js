@@ -42,6 +42,9 @@ var FxaModuleUI = {
   increaseMaxStepsBy: function(inc) {
     this.maxSteps = this.maxSteps + inc;
   },
+  decreaseMaxStepsBy: function(dec) {
+    this.maxSteps = this.maxSteps - dec;
+  },
   loadScreen: function(params) {
     var currentScreen = document.querySelector('.current');
     var nextScreen = params.panel;
