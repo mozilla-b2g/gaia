@@ -57,7 +57,6 @@
               icon: this.icon.icon
             }
           });
-          this.hide();
           break;
       }
     }
