@@ -104,6 +104,7 @@ var SuggestionBar = {
     var self = this;
 
     self.bar.hidden = false;
+    self.bar.setAttribute('aria-hidden', false);
 
     // Create matching index table for reference
     self._allMatched = self._getAllMatched(self._contactList);
@@ -275,6 +276,7 @@ var SuggestionBar = {
     this._setItem(node);
     this._contactList = null;
     this.bar.hidden = true;
+    this.bar.setAttribute('aria-hidden', true);
 
     if (isHardClear) {
       this._phoneNumber = null;
