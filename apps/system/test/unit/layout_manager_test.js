@@ -1,15 +1,17 @@
 /* global MocksHelper, LayoutManager, MockKeyboardManager,
-          MockStatusBar, MocksoftwareButtonManager, MockLockScreen */
+          MockAttentionScreen, MocksoftwareButtonManager, MockLockScreen */
 'use strict';
 
 requireApp('system/js/layout_manager.js');
 requireApp('system/test/unit/mock_lock_screen.js');
 requireApp('system/test/unit/mock_keyboard_manager.js');
 requireApp('system/test/unit/mock_software_button_manager.js');
-requireApp('system/test/unit/mock_statusbar.js');
+requireApp('system/test/unit/mock_attention_screen.js');
 
 var mocksForLayoutManager = new MocksHelper([
-  'KeyboardManager', 'softwareButtonManager', 'StatusBar',
+  'AttentionScreen',
+  'KeyboardManager',
+  'softwareButtonManager',
   'LockScreen'
 ]).init();
 
@@ -114,7 +116,7 @@ suite('system/LayoutManager >', function() {
 
       H = window.innerHeight;
       W = window.innerWidth;
-      MockStatusBar.height = 30;
+      MockAttentionScreen.statusHeight = 30;
     });
 
     teardown(function() {

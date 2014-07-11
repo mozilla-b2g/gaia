@@ -21,6 +21,10 @@
   transform-origin: left top;
 }
 
+#screen.brandcolor-active #statusbar-background {
+  visibility: hidden;
+}
+
 #statusbar {
   position: fixed;
   width: 100%;

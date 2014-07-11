@@ -1534,7 +1534,7 @@ suite('system/AppWindow', function() {
       app1.width = 320;
       app1.height = 480;
       layoutManager.width = 480;
-      layoutManager.height = 300;
+      layoutManager.height = 320;
 
       app1.handleEvent({
         type: '_orientationchange'

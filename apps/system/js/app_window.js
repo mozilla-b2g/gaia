@@ -1,4 +1,4 @@
-/* global SettingsListener, OrientationManager, StatusBar */
+/* global SettingsListener, OrientationManager */
 'use strict';
 
 (function(exports) {
@@ -490,8 +490,8 @@
     return '<div class=" ' + this.CLASS_LIST +
             ' " id="' + this.instanceID +
             '" transition-state="closed">' +
-              '<div class="screenshot-overlay">' +
-              '</div>' +
+              '<div class="screenshot-overlay"></div>' +
+              '<div class="statusbar-overlay"></div>' +
               '<div class="identification-overlay">' +
                 '<div>' +
                   '<div class="icon"></div>' +
@@ -553,6 +553,7 @@
     // End intentional
 
     this.screenshotOverlay = this.element.querySelector('.screenshot-overlay');
+    this.statusbarOverlay = this.element.querySelector('.statusbar-overlay');
     this.fadeOverlay = this.element.querySelector('.fade-overlay');
 
     var overlay = '.identification-overlay';
@@ -753,9 +754,6 @@
     // Resize only the overlays not the app
     var width = self.layoutManager.width;
     var height = self.layoutManager.height + this.calibratedHeight();
-    if (this.isFullScreen()) {
-      height += StatusBar.height;
-    }
 
     this.iframe.style.width = this.width + 'px';
     this.iframe.style.height = this.height + 'px';
@@ -904,6 +902,7 @@
     function aw__handle_mozbrowsermetachange(evt) {
       if (evt.detail.name === 'brand-color') {
         this.brandColor = evt.detail.content;
+        this.statusbarOverlay.style.backgroundColor = this.brandColor;
         this.publish('brandcolorchange');
       }
     };
