@@ -311,7 +311,6 @@ apps/settings/test/unit/download_item_test.js
 apps/settings/test/unit/download_ui_test.js
 apps/settings/test/unit/downloads_list_test.js
 apps/settings/test/unit/hotspot_test.js
-apps/settings/test/unit/messaging_test.js
 apps/settings/test/unit/mock_navigator_settings.js
 apps/settings/test/unit/mock_settings.js
 apps/settings/test/unit/mock_template.js
