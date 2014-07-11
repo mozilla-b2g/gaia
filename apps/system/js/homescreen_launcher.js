@@ -222,7 +222,11 @@
           this.getHomescreen().showFadeOverlay();
           break;
         case 'homescreenopened':
-          this._screen.classList.add('on-homescreen');
+          // Triggering the on-homescreen class is expensive,
+          // so let's delay it a little bit.
+          setTimeout(function() {
+            this._screen.classList.add('on-homescreen');
+          }.bind(this));
           break;
         case 'homescreenclosing':
         case 'homescreenclosed':

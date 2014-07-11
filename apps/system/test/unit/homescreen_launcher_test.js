@@ -18,6 +18,7 @@ suite('system/HomescreenLauncher', function() {
   var homescreen, realApplications;
 
   setup(function() {
+    this.sinon.useFakeTimers();
     realApplications = window.applications;
     window.applications = MockApplications;
   });
@@ -218,6 +219,11 @@ suite('system/HomescreenLauncher', function() {
       window.homescreenLauncher.handleEvent({
         type: 'homescreenopened'
       });
+
+      // The on-homescreen class is expensive, and so it is runned on
+      // the other tick of the event loop.
+      this.sinon.clock.tick(0);
+
       assert.ok(window.homescreenLauncher._screen.classList.
         contains('on-homescreen'));
       window.homescreenLauncher._screen = null;
