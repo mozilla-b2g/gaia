@@ -361,7 +361,6 @@ var FindMyDevice = {
     if (cmd === 't' && ok === true && retval !== undefined) {
       value.la = retval.coords.latitude;
       value.lo = retval.coords.longitude;
-      value.acc = retval.coords.accuracy;
       value.ti = retval.timestamp;
     } else if (ok === false) {
       value.error = retval;
