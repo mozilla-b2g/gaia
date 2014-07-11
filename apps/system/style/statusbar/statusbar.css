@@ -37,7 +37,7 @@ body:not(.rb-enabled) #statusbar {
   transition: transform 0.2s linear;
 }
 
-#screen.on-homescreen:not(.utility-tray):not(.attention) #statusbar-background:not(.opaque) {
+#screen:not(.utility-tray):not(.attention) #statusbar-background:not(.opaque) {
   /* We want to show both the statusbar and homesearch bar at 15% opacity.
      The homescreen has a 5% wallpaper overlay, so 0.1 is needed to match. */
   opacity: 0.1;
@@ -96,8 +96,7 @@ body:not(.rb-enabled) #statusbar {
   white-space: nowrap;
 }
 
-#screen.rocketbar-expanded:not(.on-homescreen):not(.locked) #statusbar-icons,
-#screen.on-homescreen.rocketbar-focused:not(.locked) #statusbar-icons,
+#screen.rocketbar-focused:not(.locked) #statusbar-icons,
 #screen.rocketbar-expanded.cards-view #statusbar-icons,
 #screen.fullscreen-app #statusbar:not(.dragged) #statusbar-icons {
   visibility: hidden;
@@ -109,8 +108,7 @@ body:not(.rb-enabled) #statusbar {
   opacity: 0;
 }
 
-body:not(.rb-enabled) #statusbar-icons,
-body.rb-enabled #statusbar.on-homescreen #statusbar-icons {
+body:not(.rb-enabled) #statusbar-icons {
   width: 100%;
   box-sizing: border-box;
 }
@@ -138,7 +136,6 @@ body:not(.rb-enabled) #statusbar-icons > .sb-start {
 #statusbar-icons > .sb-start-upper {
   visibility: hidden;
   position: absolute;
-  top: -2.4rem;
   left: 0;
 
   -moz-transition: visibility 0.5s ease, -moz-transform 0.5s ease;
@@ -147,18 +144,6 @@ body:not(.rb-enabled) #statusbar-icons > .sb-start {
 *[dir=rtl] #statusbar-icons > .sb-start-upper {
   left: auto;
   right: 0;
-}
-
-body:not(.rb-enabled) .utility-tray #statusbar-icons > .sb-start-upper,
-.utility-tray #statusbar > #statusbar-title,
-#statusbar-title.hidden {
-  visibility: visible;
-  -moz-transform: translateY(2.4rem);
-}
-
-body:not(.rb-enabled) .utility-tray #statusbar-icons > .sb-start {
-  visibility: hidden;
-  -moz-transform: translateY(2.4rem);
 }
 
 #statusbar-label {

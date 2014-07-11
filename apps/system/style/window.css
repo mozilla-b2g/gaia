@@ -546,18 +546,16 @@
   transition-duration: 0.5s;
 }
 
-#screen.locked #windows .appWindow.active iframe,
-#screen.on-homescreen #windows .appWindow.active iframe {
+#screen.locked #windows .appWindow.active iframe {
   transition-property: none;
 }
 
-#screen.rocketbar-expanded:not(.on-homescreen) #windows >
-  .appWindow:not(.fullscreen-app).active iframe {
+#screen.rocketbar-expanded #windows > .appWindow:not(.fullscreen-app).active iframe {
   transform: translateY(2.4rem);
 }
 
 #screen.locked.rocketbar-expanded .appWindow.active iframe,
-#screen.on-homescreen.rocketbar-expanded .appWindow.active iframe {
+#screen.rocketbar-expanded .appWindow.active iframe {
   transform: none;
 }
 
