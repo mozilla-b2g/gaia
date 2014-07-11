@@ -505,7 +505,7 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    padding: 0 0 2rem;
+    padding: 0 4.5rem 2rem 0;
     font-size: 1.6rem;
     line-height: 2rem;
   }
@@ -850,6 +850,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     font-weight: bold;
+    padding-right: 4.5rem;
   }
 
   #group-call-details {
@@ -857,10 +858,12 @@
   }
 
   #group-call-details .hangup-button {
-    float: right;
-    width: 4.5rem;
-    height: 4.5rem;
-    background: url(images/handled_call/actionicon_activecall_hangup.png) no-repeat center center / 4rem;
+    position: absolute;
+    background: url('images/handled_call/actionicon_activecall_hangup.png') no-repeat scroll right 1.8rem center / 4rem auto transparent;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;  
   }
 
   #group-call .fake-number {
