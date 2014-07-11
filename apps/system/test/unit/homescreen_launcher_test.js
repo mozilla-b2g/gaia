@@ -1,5 +1,9 @@
 'use strict';
-
+/* global MocksHelper */
+/* global HomescreenLauncher */
+/* global MockSettingsListener */
+/* global MockApplications */
+/* global MockTrustedUIManager */
 
 requireApp('system/test/unit/mock_homescreen_window.js');
 requireApp('system/test/unit/mock_applications.js');
@@ -15,7 +19,7 @@ var mocksForHomescreenLauncher = new MocksHelper([
 ]).init();
 
 suite('system/HomescreenLauncher', function() {
-  var homescreen, realApplications;
+  var realApplications;
 
   setup(function() {
     realApplications = window.applications;
@@ -47,7 +51,8 @@ suite('system/HomescreenLauncher', function() {
         window.removeEventListener('homescreen-ready', homescreenReady);
         ready = true;
       });
-      window.homescreenLauncher = new HomescreenLauncher().start();
+      window.homescreenLauncher = new HomescreenLauncher();
+      window.homescreenLauncher.start();
       MockSettingsListener.mCallbacks['homescreen.manifestURL']('first.home');
       homescreen = window.homescreenLauncher.getHomescreen();
       assert.isTrue(homescreen.isHomescreen);
@@ -61,7 +66,8 @@ suite('system/HomescreenLauncher', function() {
 
     setup(function() {
       MockApplications.ready = true;
-      window.homescreenLauncher = new HomescreenLauncher().start();
+      window.homescreenLauncher = new HomescreenLauncher();
+      window.homescreenLauncher.start();
     });
 
     teardown(function() {
@@ -130,7 +136,7 @@ suite('system/HomescreenLauncher', function() {
     test('trustedUI hidden', function() {
       MockSettingsListener.mCallbacks['homescreen.manifestURL']('first.home');
       homescreen = window.homescreenLauncher.getHomescreen();
-      var stubToggle = this.sinon.stub(homescreen, 'toggle');
+      this.sinon.stub(homescreen, 'toggle');
       window.homescreenLauncher.handleEvent({
         type: 'trusteduihide'
       });

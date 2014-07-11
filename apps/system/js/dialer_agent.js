@@ -97,8 +97,6 @@
     AttentionScreen.attentionScreen.appendChild(callScreen);
 
     callScreen.setVisible(false);
-
-    return this;
   };
 
   DialerAgent.prototype.stop = function da_stop() {

@@ -120,7 +120,8 @@ suite('system/AppWindowFactory', function() {
 
     stubById = this.sinon.stub(document, 'getElementById');
     stubById.returns(document.createElement('div'));
-    window.homescreenLauncher = new HomescreenLauncher().start();
+    window.homescreenLauncher = new HomescreenLauncher();
+    window.homescreenLauncher.start();
 
     requireApp('system/js/system.js');
     requireApp('system/js/browser_config_helper.js');

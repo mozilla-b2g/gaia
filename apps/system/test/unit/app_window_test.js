@@ -28,7 +28,8 @@ suite('system/AppWindow', function() {
   setup(function(done) {
     this.sinon.useFakeTimers();
 
-    window.layoutManager = new LayoutManager().start();
+    window.layoutManager = new LayoutManager();
+    window.layoutManager.start();
 
     stubById = this.sinon.stub(document, 'getElementById');
     stubById.returns(document.createElement('div'));

@@ -153,9 +153,6 @@
 
     SettingsListener.observe(AUM.TELEMETRY_ENABLED_KEY,
                              false, this.metricsEnabledListener);
-
-    // Return this so we can write |var aum = new AppUsageMetrics().start();|
-    return this;
   };
 
   // This method shuts everything down and is only exposed for unit testing.

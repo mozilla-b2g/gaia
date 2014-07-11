@@ -8,7 +8,7 @@
   /**
    * SoftwareButtonManager manages a home button for devides without
    * physical home buttons. The software home button will display at the bottom
-   * of the screen and is meant to function in the same way as a hardware 
+   * of the screen and is meant to function in the same way as a hardware
    * home button.
    * @class SoftwareButtonManager
    * @requires ScreenLayout
@@ -108,8 +108,6 @@
       window.addEventListener('mozfullscreenchange', this);
       window.addEventListener('homegesture-enabled', this);
       window.addEventListener('homegesture-disabled', this);
-
-      return this;
     },
 
     /**

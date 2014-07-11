@@ -108,18 +108,23 @@ window.addEventListener('load', function startup() {
   window.activities = new Activities();
   window.accessibility = new Accessibility();
   window.accessibility.start();
-  window.appUsageMetrics = new AppUsageMetrics().start();
+  window.appUsageMetrics = new AppUsageMetrics();
+  window.appUsageMetrics.start();
   window.appWindowFactory = new AppWindowFactory();
   window.appWindowFactory.start();
-  window.developerHUD = new DeveloperHUD().start();
-  window.dialerAgent = new DialerAgent().start();
-  window.homeGesture = new HomeGesture().start();
+  window.developerHUD = new DeveloperHUD();
+  window.developerHUD.start();
+  window.dialerAgent = new DialerAgent();
+  window.dialerAgent.start();
+  window.homeGesture = new HomeGesture();
+  window.homeGesture.start();
   window.homescreenLauncher = new HomescreenLauncher();
   window.homeSearchbar = new HomeSearchbar();
   window.internetSharing = new InternetSharing();
   window.internetSharing.start();
   window.lockScreenNotifications = new LockScreenNotifications();
-  window.layoutManager = new LayoutManager().start();
+  window.layoutManager = new LayoutManager();
+  window.layoutManager.start();
   window.permissionManager = new PermissionManager();
   window.permissionManager.start();
   window.places = new Places();
@@ -128,21 +133,24 @@ window.addEventListener('load', function startup() {
   window.rocketbar = new Rocketbar();
   window.sleepMenu = new SleepMenu();
   window.sleepMenu.start();
-  window.softwareButtonManager = new SoftwareButtonManager().start();
+  window.softwareButtonManager = new SoftwareButtonManager();
+  window.softwareButtonManager.start();
   window.sourceView = new SourceView();
   window.taskManager = new TaskManager();
   window.taskManager.start();
   window.telephonySettings = new TelephonySettings();
   window.telephonySettings.start();
   window.ttlView = new TTLView();
-  window.visibilityManager = new VisibilityManager().start();
+  window.visibilityManager = new VisibilityManager();
+  window.visibilityManager.start();
   window.wallpaperManager = new window.WallpaperManager();
   window.wallpaperManager.start();
 
   // unit tests call init() manually
   if (navigator.mozL10n) {
     navigator.mozL10n.once(function l10n_ready() {
-      window.mediaRecording = new MediaRecording().start();
+      window.mediaRecording = new MediaRecording();
+      window.mediaRecording.start();
     });
   }
 

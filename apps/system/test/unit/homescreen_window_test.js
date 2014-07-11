@@ -27,7 +27,8 @@ suite('system/HomescreenWindow', function() {
 
   setup(function(done) {
     this.sinon.useFakeTimers();
-    window.homescreenLauncher = new HomescreenLauncher().start();
+    window.homescreenLauncher = new HomescreenLauncher();
+    window.homescreenLauncher.start();
     stubById = this.sinon.stub(document, 'getElementById');
     stubById.returns(document.createElement('div'));
     requireApp('system/js/system.js');

@@ -21,7 +21,8 @@ suite('system/LayoutManager >', function() {
   var layoutManager;
   setup(function() {
     window.lockScreen = MockLockScreen;
-    layoutManager = new LayoutManager().start();
+    layoutManager = new LayoutManager();
+    layoutManager.start();
   });
 
   suite('handle events', function() {

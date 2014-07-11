@@ -16,7 +16,6 @@
 
     start: function() {
       window.addEventListener('developer-hud-update', this);
-      return this;
     },
 
     stop: function() {

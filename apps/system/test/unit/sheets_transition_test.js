@@ -1,4 +1,9 @@
 'use strict';
+/* global MocksHelper */
+/* global MockHomescreenLauncher */
+/* global MockStackManager */
+/* global SheetsTransition */
+
 requireApp('system/js/sheets_transition.js');
 
 requireApp('system/test/unit/mock_stack_manager.js');
@@ -34,7 +39,8 @@ suite('system/SheetsTransition >', function() {
   var getPrevStub, getNextStub;
 
   setup(function() {
-    window.homescreenLauncher = new MockHomescreenLauncher().start();
+    window.homescreenLauncher = new MockHomescreenLauncher();
+    window.homescreenLauncher.start();
     getPrevStub = this.sinon.stub(MockStackManager, 'getPrev');
     getPrevStub.returns(dialer);
     dialerFrame = document.createElement('div');

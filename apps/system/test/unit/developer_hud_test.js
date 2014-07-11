@@ -15,7 +15,8 @@ suite('developerHUD', function() {
 
   mocksForDeveloperHUD.attachTestHelpers();
   setup(function() {
-    subject = new DeveloperHUD().start();
+    subject = new DeveloperHUD();
+    subject.start();
   });
 
   function updateMetrics(metrics) {

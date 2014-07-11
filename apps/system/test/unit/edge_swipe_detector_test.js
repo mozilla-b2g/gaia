@@ -1,4 +1,12 @@
 'use strict';
+/* global Event */
+/* global MocksHelper */
+/* global HomescreenLauncher */
+/* global EdgeSwipeDetector */
+/* global MockSettingsListener */
+/* global MockStackManager */
+/* global MockSheetsTransition */
+/* global MockTouchForwarder */
 
 requireApp('system/js/edge_swipe_detector.js');
 
@@ -23,7 +31,8 @@ suite('system/EdgeSwipeDetector >', function() {
   var screen;
 
   setup(function() {
-    window.homescreenLauncher = new HomescreenLauncher().start();
+    window.homescreenLauncher = new HomescreenLauncher();
+    window.homescreenLauncher.start();
     // DOM
     EdgeSwipeDetector.previous = document.createElement('div');
     EdgeSwipeDetector.previous.classList.add('gesture-panel');
@@ -295,7 +304,7 @@ suite('system/EdgeSwipeDetector >', function() {
     function swipe(clock, panel, fromX, toX, fromY, toY, duration, noEnd) {
       var events = [];
 
-      var duration = duration || 350;
+      duration = duration || 350;
       events.push(touchStart(panel, [fromX], [fromY]));
 
       var diffX = Math.abs(toX - fromX);
@@ -337,12 +346,12 @@ suite('system/EdgeSwipeDetector >', function() {
 
       var screenWidth = window.innerWidth;
 
-      var duration = duration || 350;
+      duration = duration || 350;
       events.push(touchStart(panel, [0, screenWidth], [toY, toY]));
 
       var delta = Math.abs(toX);
 
-      var x = 0, y = 0;
+      var x = 0;
       var tick = duration / delta;
       for (var i = 0; i < delta; i++) {
         events.push(touchMove(panel, [x, (screenWidth - x)], [toY, toY]));
@@ -498,7 +507,6 @@ suite('system/EdgeSwipeDetector >', function() {
 
       test('it should snap the sheets in place whithout waiting', function() {
         var snapSpy = this.sinon.spy(MockSheetsTransition, 'snapInPlace');
-        var endSpy = this.sinon.spy(MockSheetsTransition, 'end');
         swipe(this.sinon.clock, panel, 3, 7, 20, halfScreen,
               25, true /* no touchend */);
         assert.isTrue(snapSpy.calledOnce);
