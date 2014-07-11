@@ -1,7 +1,11 @@
 /* global MocksHelper, MockAttachment, MockL10n, loadBodyHTML,
          Compose, Attachment, MockMozActivity, Settings, Utils,
-         AttachmentMenu, Draft, document, XMLHttpRequest, Blob, navigator,
-         ThreadUI, SMIL */
+         AttachmentMenu, Draft, XMLHttpRequest, Blob,
+         ThreadUI, SMIL,
+         InputEvent,
+         MessageManager,
+         Promise
+*/
 
 /*jshint strict:false */
 /*jslint node: true */
@@ -14,6 +18,7 @@ requireApp('sms/js/drafts.js');
 
 requireApp('sms/test/unit/mock_attachment.js');
 requireApp('sms/test/unit/mock_attachment_menu.js');
+require('/test/unit/mock_message_manager.js');
 requireApp('sms/test/unit/mock_recipients.js');
 requireApp('sms/test/unit/mock_settings.js');
 requireApp('sms/test/unit/mock_utils.js');
@@ -26,6 +31,7 @@ require('/shared/test/unit/mocks/mock_l10n.js');
 var mocksHelperForCompose = new MocksHelper([
   'asyncStorage',
   'AttachmentMenu',
+  'MessageManager',
   'Settings',
   'Recipients',
   'Utils',
@@ -376,7 +382,7 @@ suite('compose_test.js', function() {
       setup(function() {
         onInput = sinon.stub();
         onType = sinon.spy(captureType);
-        Compose.type = 'sms';
+        Compose.clear();
         Compose.on('input', onInput);
         Compose.on('type', onType);
       });
@@ -398,12 +404,6 @@ suite('compose_test.js', function() {
         assert.ok(onType.called);
         assert.ok(onInput.calledAfter(onType));
         assert.equal(typeWhenEvent, 'mms');
-      });
-
-      test('changing type', function() {
-        Compose.type = 'mms';
-        assert.isFalse(onInput.called);
-        assert.ok(onType.called);
       });
     });
 
@@ -797,7 +797,7 @@ suite('compose_test.js', function() {
 
     suite('Message Type Events', function() {
       var form;
-      var expectType = 'sms';
+      var expectType;
 
       function typeChange(event) {
         assert.equal(Compose.type, expectType);
@@ -848,14 +848,18 @@ suite('compose_test.js', function() {
       });
 
       test('changing type to mms', function() {
-        Compose.type = 'mms';
+        var subjectNode = document.getElementById('messages-subject-input');
+        subjectNode.textContent = 'some subject';
+        Compose.toggleSubject();
 
         assert.isFalse(message.hasAttribute('x-inputmode'));
       });
 
       test('changing type to mms then sms', function() {
-        Compose.type = 'mms';
-        Compose.type = 'sms';
+        var subjectNode = document.getElementById('messages-subject-input');
+        subjectNode.textContent = 'some subject';
+        Compose.toggleSubject();
+        Compose.toggleSubject();
 
         assert.equal(message.getAttribute('x-inputmode'), '-moz-sms');
       });
@@ -1089,6 +1093,146 @@ suite('compose_test.js', function() {
       imageAttachment.mNextRender.click();
       assert.isFalse(AttachmentMenu.open.called,
         'Menu could not be opened while ressizing');
+    });
+  });
+
+  suite('segmentInfo', function() {
+    var initialSegmentInfo = {
+      segments: 0,
+      charsAvailableInLastSegment: 0
+    };
+
+    var segmentInfoPromise, expected;
+    var clock;
+
+    function toggleSubject() {
+      var subjectNode = document.getElementById('messages-subject-input');
+      subjectNode.textContent = 'some subject';
+      Compose.toggleSubject();
+    }
+
+    function setInput(string) {
+      var message = document.getElementById('messages-input');
+      message.textContent = string;
+
+      var event = new InputEvent('input', { bubbles: true, cancelable: true });
+      message.dispatchEvent(event);
+
+      clock.tick(500);
+
+      // some tests use a rejected promise
+      return waitForSegmentinfo();
+    }
+
+    function waitForSegmentinfo() {
+      var resolveFunction;
+      return new Promise(function(resolve, reject) {
+        Compose.on('segmentinfochange', resolve);
+        resolveFunction = resolve;
+      }).then(function() {
+        Compose.off('segmentinfochange', resolveFunction);
+      });
+    }
+
+    setup(function() {
+      this.sinon.stub(MessageManager, 'getSegmentInfo');
+      clock = this.sinon.useFakeTimers();
+
+      expected = {
+        segments: 1,
+        charsAvailableInLastSegment: 20
+      };
+
+      segmentInfoPromise = Promise.resolve(expected);
+      MessageManager.getSegmentInfo.returns(segmentInfoPromise);
+
+      loadBodyHTML('/index.html');
+      Compose.init('messages-compose-form');
+    });
+
+    teardown(function(done) {
+      // some tests use a rejected promise
+      segmentInfoPromise.catch(() => {}).then(function() {
+        Compose.clear();
+        Compose.clearListeners();
+      }).then(done, done);
+    });
+
+    test('updates when input is entered', function(done) {
+      setInput('some text').then(function() {
+        assert.deepEqual(Compose.segmentInfo, expected);
+        assert.equal(Compose.type, 'sms');
+      }).then(done, done);
+    });
+
+    test('updates when subject is removed', function(done) {
+      toggleSubject();
+      setInput('some text').then(function() {
+        assert.equal(Compose.type, 'mms');
+        toggleSubject();
+        assert.deepEqual(Compose.segmentInfo, expected);
+        assert.equal(Compose.type, 'sms');
+      }).then(done, done);
+    });
+
+    test('has the default value if there is an error', function(done) {
+      segmentInfoPromise = Promise.reject(new Error('error'));
+      MessageManager.getSegmentInfo.returns(segmentInfoPromise);
+
+      setInput('some text').then(function() {
+        assert.deepEqual(Compose.segmentInfo, initialSegmentInfo);
+        assert.equal(Compose.type, 'sms');
+      }).then(done, done);
+    });
+
+    test('set type to mms if the text is very long', function(done) {
+      Settings.maxConcatenatedMessages = 10;
+
+      var expected = {
+        segments: 11,
+        charsAvailableInLastSegment: 20
+      };
+      segmentInfoPromise = Promise.resolve(expected);
+      MessageManager.getSegmentInfo.returns(segmentInfoPromise);
+
+      setInput('some text').then(function() {
+        assert.deepEqual(Compose.segmentInfo, expected);
+        assert.equal(Compose.type, 'mms');
+      }).then(done, done);
+    });
+
+    test('set type back to sms if the text is shortened', function(done) {
+      Settings.maxConcatenatedMessages = 10;
+
+      var result1 = {
+        segments: 11,
+        charsAvailableInLastSegment: 20
+      };
+      var result2 = {
+        segments: 10,
+        charsAvailableInLastSegment: 20
+      };
+      segmentInfoPromise = Promise.resolve(result1);
+      MessageManager.getSegmentInfo.returns(segmentInfoPromise);
+
+      setInput('some text').then(function() {
+        segmentInfoPromise = Promise.resolve(result2);
+        MessageManager.getSegmentInfo.returns(segmentInfoPromise);
+        return setInput('some text');
+      }).then(function() {
+        assert.deepEqual(Compose.segmentInfo, result2);
+        assert.equal(Compose.type, 'sms');
+      }).then(done, done);
+    });
+
+    test('returns the empty segmentInfo when text is empty', function(done) {
+      setInput('some text').then(function() {
+        MessageManager.getSegmentInfo.reset();
+        return setInput('');
+      }).then(function() {
+        sinon.assert.notCalled(MessageManager.getSegmentInfo);
+        assert.deepEqual(Compose.segmentInfo, initialSegmentInfo);
+      }).then(done, done);
     });
   });
 });

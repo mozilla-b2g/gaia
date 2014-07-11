@@ -2,7 +2,10 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 /*global Settings, Utils, Attachment, AttachmentMenu, MozActivity, SMIL,
-        ThreadUI */
+        Promise,
+        ThreadUI,
+        MessageManager
+*/
 /*exported Compose */
 
 'use strict';
@@ -13,10 +16,12 @@
  * message content, and message size
  */
 var Compose = (function() {
+  // delay between 2 counter updates while composing a message
+  var UPDATE_DELAY = 500;
+
   var placeholderClass = 'placeholder';
   var attachmentClass = 'attachment-container';
 
-  var slice = Array.prototype.slice;
   var attachments = new WeakMap();
 
   // will be defined in init
@@ -30,7 +35,8 @@ var Compose = (function() {
 
   var handlers = {
     input: [],
-    type: []
+    type: [],
+    segmentinfochange: []
   };
 
   var state = {
@@ -41,7 +47,12 @@ var Compose = (function() {
     resizing: false,
 
     // 'sms' or 'mms'
-    type: 'sms'
+    type: 'sms',
+
+    segmentInfo: {
+      segments: 0,
+      charsAvailableInLastSegment: 0
+    }
   };
 
   var subject = {
@@ -188,9 +199,7 @@ var Compose = (function() {
       return imageAttachmentsHandling();
     }
 
-    var messageHasFrames = !!dom.message.querySelector('iframe');
-    var isEmptyMessage = !dom.message.textContent.length && !messageHasFrames;
-    var isEmptySubject = subject.isEmpty;
+    var isEmptyMessage = !dom.message.textContent.length && !hasAttachment();
 
     if (isEmptyMessage) {
       var brs = dom.message.getElementsByTagName('br');
@@ -212,7 +221,7 @@ var Compose = (function() {
     // Subject placeholder management
     dom.subject.classList.toggle(
       placeholderClass,
-      subject.isShowing && isEmptySubject
+      subject.isShowing && subject.isEmpty
     );
 
     // Indicates that subject has multiple lines to change layout accordingly
@@ -223,18 +232,20 @@ var Compose = (function() {
      * - The subject is showing and is not empty (it has text)
      * - The message is not empty (it has text or attachment)
     */
-    if ((isEmptyMessage && !subject.isShowing) ||
-        (isEmptyMessage && subject.isShowing && isEmptySubject)) {
-      compose.disable(true);
-      state.empty = true;
-    } else {
-      compose.disable(false);
-      state.empty = false;
-    }
+    state.empty = isEmptyMessage && !hasSubject();
 
+    compose.updateSendButton();
     compose.updateType();
 
-    trigger.call(compose, 'input', new CustomEvent('input'));
+    trigger.call(compose, 'input');
+  }
+
+  function hasAttachment() {
+    return !!dom.message.querySelector('iframe');
+  }
+
+  function hasSubject() {
+    return subject.isShowing && !subject.isEmpty;
   }
 
   function composeKeyEvents(e) {
@@ -249,12 +260,12 @@ var Compose = (function() {
   }
 
   function trigger(type) {
+    var event = new CustomEvent(type);
     var fns = handlers[type];
-    var args = slice.call(arguments, 1);
 
     if (fns && fns.length) {
       for (var i = 0; i < fns.length; i++) {
-        fns[i].apply(compose, args);
+        fns[i].call(compose, event);
       }
     }
   }
@@ -346,6 +357,40 @@ var Compose = (function() {
     onContentChanged();
   }
 
+  var segmentInfoTimeout = null;
+  function updateSegmentInfoThrottled() {
+    if (hasAttachment()) {
+      return;
+    }
+
+    if (segmentInfoTimeout === null) {
+      segmentInfoTimeout = setTimeout(updateSegmentInfo, UPDATE_DELAY);
+    }
+  }
+
+  function updateSegmentInfo() {
+    segmentInfoTimeout = null;
+
+    var value = Compose.getText();
+
+    // saving one IPC call when we clear the composer
+    var segmentInfoPromise = value ?
+      MessageManager.getSegmentInfo(value) :
+      Promise.reject();
+
+    segmentInfoPromise.then(
+      function(segmentInfo) {
+        state.segmentInfo = segmentInfo;
+      }, function(error) {
+        state.segmentInfo = {
+          segments: 0,
+          charsAvailableInLastSegment: 0
+        };
+      }
+    ).then(compose.updateType.bind(Compose))
+    .then(trigger.bind(compose, 'segmentinfochange'));
+  }
+
   var compose = {
     init: function composeInit(formId) {
       dom.form = document.getElementById(formId);
@@ -357,6 +402,7 @@ var Compose = (function() {
 
       // update the placeholder, send button and Compose.type
       dom.message.addEventListener('input', onContentChanged);
+      dom.message.addEventListener('input', updateSegmentInfoThrottled);
       dom.subject.addEventListener('input', onContentChanged);
 
       // we need to bind to keydown & keypress because of #870120
@@ -623,9 +669,13 @@ var Compose = (function() {
     clear: function() {
       dom.message.innerHTML = '<br>';
       subject.clear().hide();
-      state.resizing = state.full = false;
+      state.resizing = false;
       state.size = 0;
-      state.empty = true;
+      state.segmentInfo = {
+        segments: 0,
+        charsAvailableInLastSegment: 0
+      };
+      segmentInfoTimeout = null;
       onContentChanged();
       return this;
     },
@@ -636,12 +686,28 @@ var Compose = (function() {
     },
 
     updateType: function() {
-      if ((subject.isShowing && !subject.isEmpty) ||
-          !!dom.message.querySelector('iframe')) {
-        this.type = 'mms';
-      } else {
-        this.type = 'sms';
+      var isTextTooLong =
+        state.segmentInfo.segments > Settings.maxConcatenatedMessages;
+      /* Bug XXXXX: if a recipient is a mail, the type must be MMS
+       * Bug XXXXX: replace ThreadUI by a instanciation-time property
+      var hasEmailRecipient = ThreadUI.recipients.list.some(
+        function(recipient) { return recipient.isEmail; }
+      );
+      */
+
+      /* Note: in the future, we'll maybe want to force 'mms' from the UI */
+      var newType =
+        hasAttachment() || hasSubject() || isTextTooLong ?
+        'mms' : 'sms';
+
+      if (newType !== state.type) {
+        state.type = newType;
+        trigger.call(this, 'type');
       }
+    },
+
+    updateSendButton: function() {
+      this.disable(state.empty);
     },
 
     _onAttachmentRequestError: function c_onAttachmentRequestError(err) {
@@ -765,18 +831,6 @@ var Compose = (function() {
   Object.defineProperty(compose, 'type', {
     get: function composeGetType() {
       return state.type;
-    },
-    set: function composeSetType(value) {
-      // reject invalid types
-      if (!(value === 'sms' || value === 'mms')) {
-        return state.type;
-      }
-      if (value !== state.type) {
-        var event = new CustomEvent('type');
-        state.type = value;
-        trigger.call(this, 'type', event);
-      }
-      return state.type;
     }
   });
 
@@ -793,6 +847,12 @@ var Compose = (function() {
       }
 
       return state.size;
+    }
+  });
+
+  Object.defineProperty(compose, 'segmentInfo', {
+    get: function composeGetSegmentInfo() {
+      return state.segmentInfo;
     }
   });
 

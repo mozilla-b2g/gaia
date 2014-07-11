@@ -57,8 +57,6 @@ var ThreadUI = global.ThreadUI = {
   CONVERTED_MESSAGE_DURATION: 3000,
   IMAGE_RESIZE_DURATION: 3000,
   BANNER_DURATION: 2000,
-  // delay between 2 counter updates while composing a message
-  UPDATE_DELAY: 500,
 
   // Min available chars count that triggers available chars counter
   MIN_AVAILABLE_CHARS_COUNT: 20,
