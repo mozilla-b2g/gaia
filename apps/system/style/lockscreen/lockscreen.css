@@ -141,6 +141,7 @@
  * after the passcode pad got invoked, so we need to hide it here.
  */
 [data-panel="passcode"] #notifications-lockscreen-container,
+[data-panel="passcode"] #lockscreen-notification-arrow,
 [data-panel="passcode"] #lockscreen-media-container,
 [data-panel="passcode"] #lockscreen-icon-container {
   visibility: hidden;
@@ -169,7 +170,7 @@
   left: 0;
   width: 100%;
   -moz-box-sizing: border-box;
-  padding: 2rem 2.4rem 4.4rem;
+  padding: 2rem 2.4rem 0;
   color: #fff;
   transition: transform 0.2s ease, opacity 0.2s ease;
   opacity: 1;
@@ -239,7 +240,7 @@
 
 #lockscreen-area {
   position: absolute;
-  height: 11.2rem;
+  height: 8.6rem;
   left: 0;
   right: 0;
   bottom: 0;
@@ -678,4 +679,178 @@ button::-moz-focus-inner {
   font-size: 1.4rem;
   font-weight: 700;
   color: black;
+}
+
+/* notifications */
+
+/* in "normal" mode (there is no widget)
+ * desired vertical position is centered in the space
+ * between date and slider
+ * for big screen, we allow four notifications,
+ * for small screen, we allow three notification
+ * that would be (for four notifications)
+ * (100% - 16.3rem (header) - 2.4rem (statusbar)
+ *  - 10rem (slider) - 24.6rem (4xNotifications height + 1.2rem for showing the 5th)) / 2
+ *  + 16.3rem + 2.4rem
+ */
+
+#notifications-lockscreen-container {
+  z-index: 1;
+  position: absolute;
+  top: calc(50% - 7.95rem);
+  left: 0;
+  width: 100%;
+  max-height: 24.6rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  background-color: transparent;
+}
+
+/* in collapsed mode (there is a widget)
+ * desired vertical position is manually adjusted for big screen,
+ *  and for big screen we allow two notifications
+ * for small screen, we allow one notification and it is
+ * vertically centered between date and music player widget
+ */
+#notifications-lockscreen-container.collapsed {
+  top: calc(50% - 9.6rem);
+  max-height: 11.7rem;
+}
+
+#notifications-lockscreen-container.masked-top {
+  mask: url('lockscreen_container_mask.svg#solid_mask_top');
+}
+
+#notifications-lockscreen-container.masked-both {
+  mask: url('lockscreen_container_mask.svg#fade_mask_both');
+}
+
+@media (max-height:480px) {
+ /* small screen, normal mode: for three notifications...
+  * (100% - 16.3rem (header) - 2.4rem (statusbar)
+  *  - 10rem (slider) - 18.7rem (3xNotifications height + showing the 4th)) / 2
+  *  + 16.3rem + 2.4rem
+  */
+
+  #notifications-lockscreen-container {
+    top: calc(50% - 5rem);
+    max-height: 18.7rem;
+  }
+
+ /* small screen, collapsed mode: for one notification...
+  * manally adjusted; 1x Notification is 5.8rem
+  * UX specifies in bug 1023500 that the container should not be scrollable
+  * (so there is no mask either)
+  */
+  #notifications-lockscreen-container.collapsed {
+    top: calc(50% - 5rem);
+    max-height: 5.8rem;
+    overflow-y: hidden;
+  }
+
+  #notifications-lockscreen-container.collapsed.masked-top,
+  #notifications-lockscreen-container.collapsed.masked-both {
+    mask: none;
+  }
+}
+
+#notifications-lockscreen-container .notification {
+  background-color: transparent;
+  border-top: none;
+  border-bottom: 0.1rem solid rgba(255, 255, 255, 0.3);
+  height: 4.8rem;
+  width: calc(100% - 5.2rem);
+  margin-left: 2.4rem;
+  margin-right: 2.4rem;
+}
+
+#notifications-lockscreen-container .notification:first-child {
+  border-top: none;
+}
+
+#notifications-lockscreen-container .notification:last-child {
+  border-bottom: none;
+}
+
+#notifications-lockscreen-container .notification > div {
+  width: calc(100% - 3.6rem);
+  margin-left: 3.6rem;
+  color: #ffffff;
+}
+
+#notifications-lockscreen-container .notification > div:first-of-type {
+  width: calc(100% - 9.4rem);
+  font-size: 1.4rem;
+}
+
+#notifications-lockscreen-container .notification > div.detail {
+  margin-top: 0.2rem;
+}
+
+#notifications-lockscreen-container .notification > .timestamp {
+  position: absolute;
+  top: 0.1rem;
+  right: 0;
+  margin-top: 0;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 1.4rem;
+  font-style: italic;
+  font-weight: 400;
+  overflow: hidden;
+}
+
+#notifications-lockscreen-container .notification > img {
+  margin-top: 0.8rem;
+  margin-left: 0;
+  width: 2.4rem;
+  height: 2.4rem;
+}
+
+#lockscreen-notification-arrow {
+  width: calc(100% - 5.2rem);
+  height: 1.6rem;
+  background-image: url('./images/lockscreen_notification_arrow.png');
+  background-repeat: no-repeat;
+  background-position: calc(50% + 0.25rem) center;
+  border-top: 0.1rem solid rgba(255, 255, 255, 0.3);
+
+  position: absolute;
+  left: 0;
+  z-index: 1;
+  background-size: 1.6rem 1.6rem;
+  margin: 0 2.4rem;
+
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+#lockscreen-notification-arrow.visible {
+  opacity: 1;
+}
+
+/* please see how we calculate top and max-height of
+ * #notifications-lockscreen-container to place the arrow's top.
+ * the last offset in calc is to make sure hairlines align together,
+ * and is empirical values.
+ */
+#lockscreen-notification-arrow {
+  top: calc(50% - 7.95rem + 24.6rem - 1.2rem);
+}
+
+#lockscreen-notification-arrow.collapsed {
+  /* manullay adjusted */
+  top: calc(50% - 9.6rem + 11.7rem - 0.05rem);
+}
+
+@media (max-height:480px) {
+  #lockscreen-notification-arrow {
+    top: calc(50% - 5rem + 18.7rem - 1.1rem);
+  }
+
+  #lockscreen-notification-arrow.collapsed {
+    /* UX specifies in bug 1023500 that the notifications
+       container should not be scrollable with collapsed */
+    display: none;
+  }
 }
