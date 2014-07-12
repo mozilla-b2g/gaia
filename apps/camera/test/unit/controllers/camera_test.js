@@ -450,4 +450,28 @@ suite('controllers/camera', function() {
       assert.isTrue(this.camera.stopRecording.called);
     });
   });
+
+  suite('CameraController#onGalleryClosed()', function() {
+    test('It loads the camera', function() {
+      this.controller.onGalleryClosed();
+      sinon.assert.called(this.camera.load);
+    });
+
+    test('It shows the loading screen', function() {
+      this.controller.onGalleryClosed();
+      sinon.assert.called(this.app.showLoading);
+    });
+
+    test('It clears loading after the camera has loaded', function() {
+      this.controller.onGalleryClosed();
+      this.camera.load.args[0][0]();
+      sinon.assert.called(this.app.clearLoading);
+    });
+
+    test('It doesn\'t load the camera if the app is hidden', function() {
+      this.app.hidden = true;
+      this.controller.onGalleryClosed();
+      sinon.assert.notCalled(this.camera.load);
+    });
+  });
 });
