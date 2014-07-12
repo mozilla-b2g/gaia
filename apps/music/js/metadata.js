@@ -675,6 +675,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
           data.advance(size - 8);
         }
       }
+      metadataCallback(metadata);
     }
 
     function findChildAtom(data, atom) {
