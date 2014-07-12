@@ -125,6 +125,8 @@ App.prototype.boot = function() {
  */
 App.prototype.runControllers = function() {
   debug('run controllers');
+  this.controllers.overlay(this);
+  this.controllers.battery(this);
   this.controllers.settings(this);
   this.controllers.activity(this);
   this.controllers.camera(this);
@@ -132,7 +134,6 @@ App.prototype.runControllers = function() {
   this.controllers.recordingTimer(this);
   this.controllers.indicators(this);
   this.controllers.controls(this);
-  this.controllers.overlay(this);
   this.controllers.hud(this);
   this.controllers.zoomBar(this);
   debug('controllers run');
@@ -266,13 +267,12 @@ App.prototype.onCriticalPathDone = function() {
   console.log('critical-path took %s', took + 'ms');
 
   // Load non-critical modules
+  this.loadL10n();
   this.loadController(this.controllers.previewGallery);
   this.loadController(this.controllers.storage);
   this.loadController(this.controllers.confirm);
-  this.loadController(this.controllers.battery);
   this.loadController(this.controllers.sounds);
   this.loadController(this.controllers.timer);
-  this.loadL10n();
 
   this.criticalPathDone = true;
   this.emit('criticalpathdone');
