@@ -39,7 +39,6 @@
           window.removeEventListener('context-menu-close', this);
           /* falls through */
         case 'context-menu-open':
-        case 'gaia-confirm-open':
           this.scrollable.removeEventListener('scroll', this);
           this.setAppearance(APPEARANCE.OPAQUE);
           break;
@@ -47,18 +46,7 @@
           window.addEventListener('context-menu-open', this);
           window.addEventListener('context-menu-close', this);
           /* falls through */
-        case 'visibilitychange':
-          // If the document is not hidden, set appearance based on scroll top.
-          if (document.hidden) {
-            break;
-          }
-          var value = this.scrollable.scrollTop > this.threshold ?
-                      APPEARANCE.OPAQUE : APPEARANCE.SEMI_TRANSPARENT;
-          this.appearance = value;
-          this.port.postMessage(value);
-          break;
         case 'context-menu-close':
-        case 'gaia-confirm-close':
           this.scrollable.addEventListener('scroll', this);
           // We still want to toggle the appearance of the scroll bar on exit
           /* falls through */
@@ -68,6 +56,16 @@
           var scrollTop = this.scrollable.scrollTop;
           this.setAppearance(scrollTop > this.threshold ? APPEARANCE.OPAQUE :
                                          APPEARANCE.SEMI_TRANSPARENT);
+          break;
+        case 'visibilitychange':
+          // If the document is not hidden, set appearance based on scroll top.
+          if (document.hidden) {
+            break;
+          }
+          var value = this.scrollable.scrollTop > this.threshold ?
+                      APPEARANCE.OPAQUE : APPEARANCE.SEMI_TRANSPARENT;
+          this.appearance = value;
+          this.port.postMessage(value);
           break;
       }
     },
@@ -89,8 +87,6 @@
           window.addEventListener('collections-create-return', this);
           window.addEventListener('context-menu-close', this);
           window.addEventListener('context-menu-open', this);
-          window.addEventListener('gaia-confirm-open', this);
-          window.addEventListener('gaia-confirm-close', this);
           window.addEventListener('visibilitychange', this);
           this.setAppearance(APPEARANCE.SEMI_TRANSPARENT);
         }.bind(this), function fail(reason) {
