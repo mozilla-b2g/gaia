@@ -73,6 +73,7 @@ function NetSocket(port, host, crypto) {
     onopen: this._onconnect.bind(this),
     onerror: this._onerror.bind(this),
     ondata: this._ondata.bind(this),
+    onprogress: this._onprogress.bind(this),
     onclose: this._onclose.bind(this)
   };
   var routerInfo = routerMaker.register(function(data) {
@@ -155,6 +156,9 @@ NetSocket.prototype._onerror = function(err) {
 NetSocket.prototype._ondata = function(data) {
   var buffer = Buffer(data);
   this.emit('data', buffer);
+};
+NetSocket.prototype._onprogress = function() {
+  this.emit('progress');
 };
 NetSocket.prototype._onclose = function() {
   this.emit('close');
