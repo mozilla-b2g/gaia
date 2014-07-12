@@ -37,7 +37,6 @@ return View.extend({
 
   render: function() {
     this.el.innerHTML = this.template();
-    this.els.previewControl = this.find('.js-preview');
     this.els.frameContainer = this.find('.js-frame-container');
     this.els.mediaFrame = this.find('.js-media-frame');
     this.els.countText = this.find('.js-count-text');
@@ -46,11 +45,19 @@ return View.extend({
     // Update localization strings
     navigator.mozL10n.translate(this.el);
 
-    // MediaFrame has a GestureDetector that can emit 'tap' events
+    // Configure the MediaFrame component
+    this.configure();
+
+    // Clean up
+    delete this.template;
+
+    debug('rendered');
+    return this.bindEvents();
+  },
+
+  bindEvents: function() {
     bind(this.el, 'tap', this.onTap);
     attach.on(this.els.previewMenu, 'click', '.js-btn', this.onButtonClick);
-
-    this.configure();
     return this;
   },
 
