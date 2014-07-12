@@ -90,3 +90,17 @@
     transform: translateX(100%);
   }
 }
+
+/* RTL View */
+html[dir=rtl] .slide-in-left {
+  animation-name: slide-in-right;
+}
+html[dir=rtl] .slide-in-right {
+  animation-name: slide-in-left;
+}
+html[dir=rtl] .slide-out-left {
+  animation-name: slide-out-right;
+}
+html[dir=rtl] .slide-out-right {
+  animation-name: slide-out-left;
+}
