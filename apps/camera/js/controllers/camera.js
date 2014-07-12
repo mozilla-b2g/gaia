@@ -355,7 +355,20 @@ CameraController.prototype.shutdownCamera = function() {
   this.camera.release();
 };
 
+/**
+ * As the camera is shutdown when the
+ * preview gallery is opened, we must
+ * reload it when it is closed.
+ *
+ * Although if the app is has been minimised
+ * we do not want to reload the camera as
+ * the hardware must be released when the
+ * app is not visible.
+ *
+ * @private
+ */
 CameraController.prototype.onGalleryClosed = function() {
+  if (this.app.hidden) { return; }
   this.app.showLoading();
   this.camera.load(this.app.clearLoading);
 };
