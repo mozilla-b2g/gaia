@@ -34,7 +34,7 @@ var ThreadListUI = {
     // TODO: https://bugzilla.mozilla.org/show_bug.cgi?id=854413
     [
       'container', 'no-messages',
-      'check-uncheck-all-button',
+      'check-uncheck-all-button', 'read-unread-button',
       'delete-button', 'cancel-button',
       'options-icon', 'edit-mode', 'edit-form', 'draft-saved-banner'
     ].forEach(function(id) {
@@ -52,6 +52,10 @@ var ThreadListUI = {
     );
 
     this.checkUncheckAllButton.addEventListener(
+      'click', this.toggleCheckedAll.bind(this)
+    );
+
+    this.readUnreadButton.addEventListener(
       'click', this.toggleCheckedAll.bind(this)
     );
 
@@ -241,6 +245,30 @@ var ThreadListUI = {
     } else {
       this.deleteButton.disabled = true;
       navigator.mozL10n.localize(this.editMode, 'selectThreads-title');
+    }
+
+    // to transition between read and unread icon
+    var unreadThreads = this.container.querySelectorAll('.unread');
+    var unreadselectedThreads = 0;
+    var length = unreadThreads.length;
+
+    for (var i = 0; i < length; i++) {
+      if(unreadThreads[i].querySelector('input[type=checkbox]:checked')) {
+        unreadselectedThreads++;
+      }
+    }
+    document.getElementById('threads-read-unread-button').className = 'icon msg-mark-read-btn';
+    if (selected) {
+      if (selected === unreadselectedThreads) {
+        this.readUnreadButton.disabled = false;
+      } else if (unreadselectedThreads === 0) {
+        document.getElementById('threads-read-unread-button').className = 'icon msg-mark-unread-btn';
+        this.readUnreadButton.disabled = false;
+      } else {
+        this.readUnreadButton.disabled = false;
+      }
+    } else {
+        this.readUnreadButton.disabled = true;
     }
   },
 

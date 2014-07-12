@@ -93,8 +93,12 @@ small {
   background-image: url("images/icons/delete.png");
 }
 
-.bb-tablist .msg-read-btn {
+.bb-tablist .msg-mark-read-btn {
   background-image: url("images/icons/Ico_in_markasread_30x30.png");
+}
+
+.bb-tablist .msg-mark-unread-btn {
+  background-image: url("images/icons/Ico_in_markasunread_30x30.png");
 }
 
 /* Header Icon */
