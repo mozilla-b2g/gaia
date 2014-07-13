@@ -145,72 +145,86 @@ LayoutLoader.prototype.initLayouts = function() {
 // This function go through the 'alt' property of the layout and normalize
 // our existing mixed notation into arrays, so others won't have to do it again.
 LayoutLoader.prototype._normalizeAlternatives = function(layoutName) {
-  var layout = this.getLayout(layoutName);
-
-  var alt = layout.alt = layout.alt || {};
-  var upperCase = layout.upperCase = layout.upperCase || {};
-  var keys = Object.keys(alt);
-  keys.forEach(function(key) {
-    var alternatives = alt[key];
-
-    // Split alternatives
-    // If the alternatives are delimited by spaces, it means that one or more
-    // of them is more than a single character long.
-    if (!Array.isArray(alternatives)) {
-      if (alternatives.indexOf(' ') !== -1) {
-        alternatives = alternatives.split(' ');
-
-        // If there is just a single multi-character alternative, it will have
-        // trailing whitespace which we have to discard here.
-        if (alternatives.length === 2 && alternatives[1] === '') {
-          alternatives.pop();
-        }
-      } else {
-        // No spaces, so all of the alternatives are single characters
-        alternatives = alternatives.split('');
-      }
+  var mainLayout = this.getLayout(layoutName);
+  var layouts = [mainLayout];
+  // We need to process not only the layout but it's "sub-layout".
+  // Sub-layouts are getting loaded by their alternative layout name,
+  // so trying to match every possible returned value of
+  // layoutManager._getAlternativeLayoutName() is sufferent here.
+  var subLayoutNames = ['alternateLayout', 'symbolLayout', 'telLayout',
+    'pinLayout', 'numberLayout', layoutName + '-sms'];
+  subLayoutNames.forEach(function(name) {
+    if (name in mainLayout) {
+      layouts.push(mainLayout[name]);
     }
+  });
 
-    alt[key] = alternatives;
+  layouts.forEach(function(layout) {
+    var alt = layout.alt = layout.alt || {};
+    var upperCase = layout.upperCase = layout.upperCase || {};
+    var keys = Object.keys(alt);
+    keys.forEach(function(key) {
+      var alternatives = alt[key];
 
-    var upperCaseKey = upperCase[key] || key.toUpperCase();
-    if (!alt[upperCaseKey]) {
-      var needDifferentUpperCaseLockedAlternatives = false;
-      // Creating an array for upper case too.
-      // XXX: The original code does not respect layout.upperCase here.
-      alt[upperCaseKey] = alternatives.map(function(key) {
-        if (key.length === 1) {
-          return key.toUpperCase();
+      // Split alternatives
+      // If the alternatives are delimited by spaces, it means that one or more
+      // of them is more than a single character long.
+      if (!Array.isArray(alternatives)) {
+        if (alternatives.indexOf(' ') !== -1) {
+          alternatives = alternatives.split(' ');
+
+          // If there is just a single multi-character alternative, it will have
+          // trailing whitespace which we have to discard here.
+          if (alternatives.length === 2 && alternatives[1] === '') {
+            alternatives.pop();
+          }
+        } else {
+          // No spaces, so all of the alternatives are single characters
+          alternatives = alternatives.split('');
         }
+      }
 
-        // The 'l·l' key in the Catalan layout needs to be
-        // 'L·l' in upper case mode and 'L·L' in upper case locked mode.
-        // (see http://bugzil.la/896363#c19)
-        // If that happens we will create a different array for
-        // upper case locked mode.
+      alt[key] = alternatives;
 
-        // Last chance for figuring out if we need a different list of
-        // alternatives; if key.substr(1) has no upper case form,
-        // (e.g. R$ key) we should be able to skip this.
-        needDifferentUpperCaseLockedAlternatives =
-          needDifferentUpperCaseLockedAlternatives ||
-          (key.substr(1).toUpperCase() !== key.substr(1));
+      var upperCaseKey = upperCase[key] || key.toUpperCase();
+      if (!alt[upperCaseKey]) {
+        var needDifferentUpperCaseLockedAlternatives = false;
+        // Creating an array for upper case too.
+        // XXX: The original code does not respect layout.upperCase here.
+        alt[upperCaseKey] = alternatives.map(function(key) {
+          if (key.length === 1) {
+            return key.toUpperCase();
+          }
 
-        // We only capitalize the first character of the key in
-        // the normalization here.
-        return key[0].toUpperCase() + key.substr(1);
-      });
+          // The 'l·l' key in the Catalan layout needs to be
+          // 'L·l' in upper case mode and 'L·L' in upper case locked mode.
+          // (see http://bugzil.la/896363#c19)
+          // If that happens we will create a different array for
+          // upper case locked mode.
 
-      // If we really need an special upper case locked alternatives,
-      // do it here and attach that as a property of the
-      // alt[upperCaseKey] array/object. Noted that this property of the array
-      // cannot be represented in JSON so it's not visible in JSON.stringify().
-      if (needDifferentUpperCaseLockedAlternatives) {
-        alt[upperCaseKey].upperCaseLocked = alternatives.map(function(key) {
-          return key.toUpperCase();
+          // Last chance for figuring out if we need a different list of
+          // alternatives; if key.substr(1) has no upper case form,
+          // (e.g. R$ key) we should be able to skip this.
+          needDifferentUpperCaseLockedAlternatives =
+            needDifferentUpperCaseLockedAlternatives ||
+            (key.substr(1).toUpperCase() !== key.substr(1));
+
+          // We only capitalize the first character of the key in
+          // the normalization here.
+          return key[0].toUpperCase() + key.substr(1);
         });
+
+        // If we really need an special upper case locked alternatives,
+        // do it here and attach that as a property of the
+        // alt[upperCaseKey] array/object. Noted that this property of the array
+        // can't be represented in JSON so it's not visible in JSON.stringify().
+        if (needDifferentUpperCaseLockedAlternatives) {
+          alt[upperCaseKey].upperCaseLocked = alternatives.map(function(key) {
+            return key.toUpperCase();
+          });
+        }
       }
-    }
+    }, this);
   }, this);
 };
 
