@@ -614,12 +614,15 @@ const IMERender = (function() {
 
     // Build a key for each alternative
     altChars.forEach(function(alt, index) {
-      var dataset = alt.length == 1 ?
-        [
-          { 'key': 'keycode', 'value': alt.charCodeAt(0) },
-          { 'key': 'keycodeUpper', 'value': alt.toUpperCase().charCodeAt(0) }
-        ] :
-        [{'key': 'compositeKey', 'value': alt}];
+      var dataset;
+      if (alt.compositeKey) {
+        dataset = [{ 'key': 'compositeKey', 'value': alt.compositeKey }];
+      } else {
+        dataset = [
+           { 'key': 'keycode', 'value': alt.value.charCodeAt(0) },
+           { 'key': 'keycodeUpper',
+             'value': alt.value.toUpperCase().charCodeAt(0) }];
+      }
 
       // Make each of these alternative keys 75% as wide as the key that
       // it is an alternative for, but adjust for the relative number of
@@ -646,7 +649,7 @@ const IMERender = (function() {
       });
 
       content.appendChild(
-        buildKey(alt, '', width + 'px', dataset, null, attributeList));
+        buildKey(alt.value, '', width + 'px', dataset, null, attributeList));
     });
     var allAltKeys = content.children;
     var numberAllAltKeys = allAltKeys.length;
