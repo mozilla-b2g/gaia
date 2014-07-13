@@ -9,19 +9,22 @@ var Keyboards = {};
 
 Keyboards.alternateLayout = {
   alt: {
-    '1': ['¹'],
-    '2': ['²'],
-    '3': ['³'],
-    '4': ['⁴'],
-    '5': ['⁵'],
-    '6': ['⁶'],
-    '7': ['⁷'],
-    '8': ['⁸'],
-    '9': ['⁹'],
-    '0': ['⁰º'],
-    '$': ['¥', '€', '£', 'R$', '¢', '₠'],
-    '?': ['¿'],
-    '!': ['¡']
+    '1': [ { value: '¹' } ],
+    '2': [ { value: '²' } ],
+    '3': [ { value: '³' } ],
+    '4': [ { value: '⁴' } ],
+    '5': [ { value: '⁵' } ],
+    '6': [ { value: '⁶' } ],
+    '7': [ { value: '⁷' } ],
+    '8': [ { value: '⁸' } ],
+    '9': [ { value: '⁹' } ],
+    '0': [ { value: '⁰' }, { value: 'º' } ],
+    '$': [
+      { value: '¥'} , { value: '€' }, { value: '£' },
+      { value: 'R$', compositeKey: 'R$' }, { value: '¢' }, { value: '₠' }
+    ],
+    '?': [ { value: '¿' } ],
+    '!': [ { value: '¡' } ]
   },
   keys: [
     [
@@ -193,6 +196,15 @@ LayoutLoader.prototype._normalizeAlternatives = function(layoutName) {
           // No spaces, so all of the alternatives are single characters
           alternatives = alternatives.split('');
         }
+
+        for (var i = 0; i < alternatives.length; i++) {
+          if (alternatives[i].length > 1) {
+            alternatives[i] = { value: alternatives[i],
+              compositeKey: alternatives[i] };
+          } else {
+            alternatives[i] = { value: alternatives[i] };
+          }
+        }
       }
 
       alt[key] = alternatives;
@@ -203,8 +215,8 @@ LayoutLoader.prototype._normalizeAlternatives = function(layoutName) {
         // Creating an array for upper case too.
         // XXX: The original code does not respect layout.upperCase here.
         alt[upperCaseKey] = alternatives.map(function(key) {
-          if (key.length === 1) {
-            return key.toUpperCase();
+          if (key.value.length === 1) {
+            return { 'value': key.value.toUpperCase() };
           }
 
           // The 'l·l' key in the Catalan layout needs to be
@@ -218,11 +230,12 @@ LayoutLoader.prototype._normalizeAlternatives = function(layoutName) {
           // (e.g. R$ key) we should be able to skip this.
           needDifferentUpperCaseLockedAlternatives =
             needDifferentUpperCaseLockedAlternatives ||
-            (key.substr(1).toUpperCase() !== key.substr(1));
+            (key.value.substr(1).toUpperCase() !== key.value.substr(1));
 
           // We only capitalize the first character of the key in
           // the normalization here.
-          return key[0].toUpperCase() + key.substr(1);
+          var compositeKey = key.value[0].toUpperCase() + key.value.substr(1);
+          return { 'value': compositeKey, 'compositeKey': compositeKey };
         });
 
         // If we really need an special upper case locked alternatives,
@@ -231,7 +244,8 @@ LayoutLoader.prototype._normalizeAlternatives = function(layoutName) {
         // can't be represented in JSON so it's not visible in JSON.stringify().
         if (needDifferentUpperCaseLockedAlternatives) {
           alt[upperCaseKey].upperCaseLocked = alternatives.map(function(key) {
-            return key.toUpperCase();
+            var compositeKey = key.value.toUpperCase();
+            return { 'value': compositeKey, 'compositeKey': compositeKey };
           });
         }
       }
