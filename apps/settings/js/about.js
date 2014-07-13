@@ -83,8 +83,12 @@ var About = {
       var span = document.createElement('span');
       var msisdn = iccInfo.msisdn || iccInfo.mdn;
       if (msisdn) {
-        span.textContent = multiSim ?
-          'SIM ' + (index + 1) + ': ' + msisdn : msisdn;
+        if (multiSim) {
+          navigator.mozL10n.localize(span,
+            'phoneNumber-sim', { index: index + 1, number: msisdn });
+        } else {
+          span.textContent = msisdn;
+        }
       } else {
         if (multiSim) {
           navigator.mozL10n.localize(span,

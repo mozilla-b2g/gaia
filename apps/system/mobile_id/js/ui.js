@@ -383,6 +383,7 @@
       );
     },
     render: function ui_render(identifications) {
+      var _ = navigator.mozL10n.get;
       var optionsFragment = document.createDocumentFragment();
 
       if (!identifications || !identifications.length) {
@@ -413,7 +414,7 @@
         name.textContent =
           identifications[i].msisdn ||
           identifications[i].operator ||
-          'SIM ' + (+identifications[i].serviceId + 1);
+          _('simId', { id: (identifications[i].serviceId + 1) });
 
         radio.name = 'msisdn-option';
         radio.type = 'radio';

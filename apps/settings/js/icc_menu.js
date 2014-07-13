@@ -52,6 +52,7 @@
     var lock = settings.createLock();
 
     function showStkEntries(menu) {
+      var _ = navigator.mozL10n.get;
       DUMP('STK cached menu: ', menu);
       if (!menu || typeof menu !== 'object' || Object.keys(menu).length == 0) {
         DUMP('No STK available - exit');
@@ -71,10 +72,9 @@
           ' (' + menu[SIMNumber].iccId + ') - ', menu[SIMNumber].entries);
 
         var li = document.createElement('li');
-        // XXX this line requires a better l10n support, see bug 968853
         if (Object.keys(menu).length > 1) {
           var small = document.createElement('small');
-          small.textContent = 'SIM ' + SIMNumber;
+          small.textContent = _('sim' + SIMNumber);
           small.classList.add('menu-item-desc');
           li.appendChild(small);
         }
