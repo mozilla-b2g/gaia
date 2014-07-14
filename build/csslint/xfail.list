@@ -25,7 +25,7 @@ apps/communications/contacts/style/contacts.css 0 5
 apps/communications/contacts/style/status.css 0 1
 apps/communications/contacts/style/matching_contacts.css 0 3
 apps/communications/contacts/style/search.css 0 3
-apps/communications/contacts/style/app.css 1 7
+apps/communications/contacts/style/app.css 0 6
 apps/communications/contacts/style/import.css 0 4
 apps/calendar/style/ui.css 0 2
 apps/calendar/style/month.css 0 6
