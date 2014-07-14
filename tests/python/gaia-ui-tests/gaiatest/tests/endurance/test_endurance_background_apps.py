@@ -38,7 +38,7 @@ class TestEnduranceBackgroundApps(GaiaEnduranceTestCase):
     def background_apps(self):
         # Verify each app is running
         self.marionette.switch_to_frame()
-        running_apps = [a.name.lower() for a in self.apps.running_apps]
+        running_apps = [a.name.lower() for a in self.apps.running_apps()]
 
         for expected_app in self.app_list:
             self.assertTrue(expected_app in running_apps, '%s app should be running!' % expected_app)
