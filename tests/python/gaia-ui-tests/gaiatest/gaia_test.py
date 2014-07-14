@@ -357,6 +357,7 @@ class GaiaData(object):
         return files
 
     def send_sms(self, number, message):
+        self.marionette.switch_to_frame()
         import json
         number = json.dumps(number)
         message = json.dumps(message)
