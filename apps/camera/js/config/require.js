@@ -22,7 +22,8 @@ require.config({
     'view': '../bower_components/view/index',
     'evt': '../bower_components/evt/index',
     'drag': '../bower_components/drag/index',
-    'device-orientation': '../bower_components/device-orientation/index'
+    'device-orientation': '../bower_components/device-orientation/index',
+    'gaia-header': '../bower_components/gaia-header/dist/script'
   },
   shim: {
     'format': {
@@ -62,9 +63,6 @@ require.config({
     },
     'CustomDialog': {
       exports: 'CustomDialog'
-    },
-    'FontSizeUtils': {
-      exports: 'FontSizeUtils'
     }
   }
 });

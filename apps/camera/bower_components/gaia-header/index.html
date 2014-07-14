@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Header Demo</title>
+  <meta name="description" content="Demo app for Custom Element based headers">
+  <style type="text/css">
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-size: 17px;
+      background-color: #efefef;
+      font-family: sans-serif;
+    }
+    body {
+      background: none;
+    }
+    gaia-header {
+      margin-bottom: 15px;
+    }
+    #message {
+      font-size: 2rem;
+      margin: 1.5rem 3rem;
+    }
+
+    [class*="icon-"]:before {
+      font-size: 28px
+    }
+  </style>
+  <script>
+    window.GAIA_HEADER_BASE_URL = './';
+  </script>
+  <script src="dist/script.js"></script>
+</head>
+
+<body>
+  <gaia-header action="back">
+    <h1>Action 'back'</h1>
+  </gaia-header>
+
+  <gaia-header action="menu">
+    <h1>Action 'menu'</h1>
+  </gaia-header>
+
+  <gaia-header action="close">
+    <h1>Action 'close'</h1>
+  </gaia-header>
+
+  <gaia-header id="header">
+    <button>Custom Back Button</button>
+    <h1 id="title">Customised</h1>
+    <button id="done8" class="icon-preview-options"></button>
+    <button id="edit8" class="icon-preview-share"></button>
+    <button>Done</button>
+  </gaia-header>
+
+  <div id="message"></div>
+
+  <p><em>The is a bug that breaks shadow-dom layout when the `textContent` of a projected-content node is changed. Use the buttons below to break the layout of the last header. If the element is reflowed (by showing and hiding) its layout is fixed.</em></p>
+
+  <button id="breakit">Break it</button>
+  <button id="fixit">Fix it</button>
+
+  <script>
+  var els = document.querySelectorAll('gaia-header');
+  [].forEach.call(els, function(el, i) {
+    el.addEventListener('action', function(e) {
+      var num = i + 1;
+      message.textContent = 'header (' + num + ') action (' + e.detail.type + ')';
+    });
+  });
+
+  breakit.addEventListener('click', function(e) {
+    title.textContent = 'I\'m broken :(';
+  });
+
+  fixit.addEventListener('click', function(e) {
+    title.textContent = 'Forcing reflow fixes me :\'(';
+    header.style.display = 'none';
+    var reflow = header.offsetTop;
+    header.style.display = '';
+  });
+  </script>
+</body>
+</html>

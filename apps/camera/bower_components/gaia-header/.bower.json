@@ -1,0 +1,33 @@
+{
+  "name": "gaia-header",
+  "version": "0.2.1",
+  "homepage": "https://github.com/gaia-components/gaia-header",
+  "authors": [
+    "Wilson Page <wilsonpage@me.com>"
+  ],
+  "main": "script.js",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests",
+    "karma.conf.js",
+    "package.json",
+    "README.md",
+    "examples"
+  ],
+  "dependencies": {
+    "gaia-icons": "gaia-components/gaia-icons#0.2.0"
+  },
+  "_release": "0.2.1",
+  "_resolution": {
+    "type": "version",
+    "tag": "v0.2.1",
+    "commit": "187d6cbc8bd037eb39087d90aa2b05349172eeb4"
+  },
+  "_source": "git://github.com/gaia-components/gaia-header.git",
+  "_target": "~0.2.1",
+  "_originalSource": "gaia-components/gaia-header"
+}
