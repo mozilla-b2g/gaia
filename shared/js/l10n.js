@@ -1475,7 +1475,11 @@
 
   function translateDocument() {
     document.documentElement.lang = this.language.code;
-    document.documentElement.dir = this.language.direction;
+
+    if (document.documentElement.dataset.l10nIgnoreDir !== 'true') {
+      document.documentElement.dir = this.language.direction;
+    }
+
     translateFragment.call(this, document.documentElement);
   }
 
