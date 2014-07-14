@@ -44,10 +44,13 @@
     this.name = props.name || '';
     this.icon = props.icon || null;
     this.pinned = props.pinned || [];
-    this.webicons = props.webicons || [];
 
     // A list of the web results for this collection view
     this.webResults = [];
+
+    // list of base64 icon data for webResults from E.me api
+    // these icons are NOT ROUNDED
+    this.webicons = props.webicons || [];
 
     // an object containing data about the background image
     // {blob: blob, source: string, checksum: string}
