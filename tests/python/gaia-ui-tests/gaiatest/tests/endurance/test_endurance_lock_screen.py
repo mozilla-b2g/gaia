@@ -19,7 +19,7 @@ class TestEnduranceLockScreen(GaiaEnduranceTestCase):
         GaiaEnduranceTestCase.setUp(self)
 
     def test_endurance_lock_screen(self):
-        self.drive(test=self.lock_screen, app='homescreen')
+        self.drive(test=self.lock_screen, app='home screen')
 
     def lock_screen(self):
         # Verify screen is unlocked
