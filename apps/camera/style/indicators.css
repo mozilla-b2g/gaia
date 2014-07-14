@@ -67,11 +67,19 @@
   display: none;
 }
 
+/** Indication Geolocation
+ ---------------------------------------------------------*/
+
+.indicator_geolocation {
+  font-size: 1.3rem;
+}
+
 /** Indicator Timer
  ---------------------------------------------------------*/
 
 .indicators .indicator_timer {
   display: block;
+  font-size: 1.7rem;
 }
 
 /** Indicator Battery

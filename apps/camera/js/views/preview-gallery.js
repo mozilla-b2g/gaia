@@ -91,9 +91,9 @@ return View.extend({
       '<div class="preview-menu js-preview-menu">' +
         '<gaia-header class="js-header" action="back" skin="dark">' +
           '<h1 data-l10n-id="preview">Preview</h1>' +
-          '<button class="preview-share-icon icon-preview-share js-share"' +
+          '<button class="preview-share-icon icon-share js-share"' +
             'name="share"></button>' +
-          '<button class="preview-option-icon icon-preview-options ' +
+          '<button class="preview-option-icon icon-more ' +
             'js-options" name="options" ></button>' +
         '</gaia-header>' +
       '</div>' +

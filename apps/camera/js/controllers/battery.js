@@ -57,11 +57,11 @@ BatteryController.prototype.notifications = {
   },
   verylow: {
     text: 'battery-verylow-text',
-    className: 'icon-battery-verylow'
+    className: 'icon-battery-very-low'
   },
   critical: {
     text: 'battery-critical-text',
-    className: 'icon-battery-verylow',
+    className: 'icon-battery-very-low',
     persistent: true
   }
 };
