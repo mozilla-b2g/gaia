@@ -1,6 +1,6 @@
 'use strict';
 /* global AppWindow, PopupWindow, ActivityWindow, SettingsListener,
-          AttentionScreen */
+          AttentionScreen, MozActivity */
 
 (function(exports) {
   var ENABLE_IN_APP_SHEET = false;
@@ -10,7 +10,7 @@
   /**
    * ChildWindowFactory is a submodule of AppWindow,
    * its responsbility is to:
-   * 
+   *
    * (1) deal with window.open request
    *     from mozbrowser iframe to open a proper new window.
    * (2) deal with launchactivity request to open activity window.
@@ -53,6 +53,14 @@
         // XXX: Launch wrapper window here.
         return;
       }
+
+      // <a href="" target="_blank"> should never be part of the app
+      if (evt.detail.name == '_blank') {
+        this.launchActivity(evt);
+        evt.stopPropagation();
+        return;
+      }
+
       var caught = false;
       switch (evt.detail.features) {
         case 'dialog':
@@ -60,20 +68,7 @@
           if (/^(app|http|https):\/\//i.test(evt.detail.url)) {
             caught = this.createPopupWindow(evt);
           } else {
-            // <a href="" target="_blank"> links should opened outside the
-            // app itself and fire an activity to be opened into a new
-            // browser window.
-            var activity = new window.MozActivity({
-              name: 'view',
-              data: {
-                type: 'url',
-                url: evt.detail.url
-              }
-            });
-            activity.onerror = function() {
-              console.warn('view activity error:', activity.error.name);
-            };
-            caught = true;
+            caught = this.launchActivity(evt);
           }
           break;
         case 'attention':
@@ -180,6 +175,21 @@
     var activity = new ActivityWindow(configuration, top);
     activity.element.addEventListener('_closing', this);
     activity.open();
+  };
+
+  ChildWindowFactory.prototype.launchActivity = function(evt) {
+    var activity = new MozActivity({
+      name: 'view',
+      data: {
+        type: 'url',
+        url: evt.detail.url
+      }
+    });
+    activity.onerror = function() {
+      console.warn('view activity error:', activity.error.name);
+    };
+
+    return true;
   };
 
   exports.ChildWindowFactory = ChildWindowFactory;
