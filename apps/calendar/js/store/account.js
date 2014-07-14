@@ -3,6 +3,14 @@
 
   function Account() {
     Calendar.Store.Abstract.apply(this, arguments);
+
+    Calendar.denodeifyAll(this, [
+      'verifyAndPersist',
+      'sync',
+      'markWithError',
+      'syncableAccounts',
+      'availablePresets'
+    ]);
   }
 
   Account.prototype = {
