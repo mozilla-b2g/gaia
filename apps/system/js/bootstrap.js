@@ -38,8 +38,6 @@ window.addEventListener('load', function startup() {
    */
   function registerGlobalEntries() {
     /** @global */
-    window.appWindowFactory = new AppWindowFactory();
-    window.appWindowFactory.start();
     window.activityWindowManager = new ActivityWindowManager();
     window.activityWindowManager.start();
     /** @global */
@@ -73,7 +71,7 @@ window.addEventListener('load', function startup() {
       FtuLauncher.retrieve();
     });
     /** @global */
-    window.homescreenLauncher = new HomescreenLauncher().start();
+    window.homescreenLauncher.start();
   }
 
   if (applications.ready) {
@@ -111,9 +109,12 @@ window.addEventListener('load', function startup() {
   window.accessibility = new Accessibility();
   window.accessibility.start();
   window.appUsageMetrics = new AppUsageMetrics().start();
+  window.appWindowFactory = new AppWindowFactory();
+  window.appWindowFactory.start();
   window.developerHUD = new DeveloperHUD().start();
   window.dialerAgent = new DialerAgent().start();
   window.homeGesture = new HomeGesture().start();
+  window.homescreenLauncher = new HomescreenLauncher();
   window.homeSearchbar = new HomeSearchbar();
   window.internetSharing = new InternetSharing();
   window.internetSharing.start();
