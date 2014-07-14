@@ -13,16 +13,6 @@ html[dir="rtl"] {
   direction: ltr;
 }
 
-.scrollable {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  width: 100%;
-  overflow-x: hidden;
-  overflow-y: auto;
-}
-
 gaia-grid {
   display: block;
   height: 100%;

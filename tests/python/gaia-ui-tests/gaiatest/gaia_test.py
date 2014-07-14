@@ -653,7 +653,7 @@ class GaiaDevice(object):
             else:
                 # touching home button inside homescreen will scroll it to the top
                 Wait(self.marionette).until(lambda m: m.execute_script(
-                    "return document.querySelector('.scrollable').scrollTop") == 0)
+                    "return window.wrappedJSObject.scrollY") == 0)
 
     def _dispatch_home_button_event(self):
         self.marionette.switch_to_frame()
