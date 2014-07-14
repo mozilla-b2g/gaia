@@ -21,7 +21,6 @@ module.exports.CameraController = CameraController;
  * @param {App} app
  */
 function CameraController(app) {
-  debug('initializing');
   bindAll(this);
   this.app = app;
   this.camera = app.camera;

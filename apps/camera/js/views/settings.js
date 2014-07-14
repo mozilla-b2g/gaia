@@ -5,8 +5,8 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
-var OptionsView = require('views/setting-options');
 var debug = require('debug')('view:settings');
+var OptionsView = require('views/setting-options');
 var SettingView = require('views/setting');
 var View = require('vendor/view');
 var bind = require('lib/bind');
@@ -56,9 +56,17 @@ module.exports = View.extend({
     this.els.items = this.find('.js-items');
     this.els.pane2 = this.find('.js-pane-2');
     this.els.close = this.find('.js-close');
-    bind(this.els.close, 'click', this.firer('click:close'));
     this.items.forEach(this.addItem);
+
+    // Clean up
+    delete this.template;
+
     debug('rendered');
+    return this.bindEvents();
+  },
+
+  bindEvents: function() {
+    bind(this.els.close, 'click', this.firer('click:close'));
     return this;
   },
 

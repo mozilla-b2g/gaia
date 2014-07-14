@@ -5,9 +5,9 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
+var debug = require('debug')('view:viewfinder');
 var bind = require('lib/bind');
 var CameraUtils = require('lib/camera-utils');
-var debug = require('debug')('view:viewfinder');
 var View = require('vendor/view');
 
 /**
@@ -31,19 +31,26 @@ module.exports = View.extend({
 
   initialize: function() {
     this.render();
-
-    bind(this.el, 'click', this.onClick);
-    bind(this.el, 'animationend', this.onShutterEnd);
-
     this.getSize();
   },
 
   render: function() {
     this.el.innerHTML = this.template();
-    // Find elements
     this.els.frame = this.find('.js-frame');
     this.els.video = this.find('.js-video');
     this.els.videoContainer = this.find('.js-video-container');
+
+    // Clean up
+    delete this.template;
+
+    debug('rendered');
+    return this.bindEvents();
+  },
+
+  bindEvents: function() {
+    bind(this.el, 'click', this.onClick);
+    bind(this.el, 'animationend', this.onShutterEnd);
+    return this;
   },
 
   /**

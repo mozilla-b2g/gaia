@@ -5,8 +5,8 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
+var debug = require('debug')('view:overlay');
 var View = require('vendor/view');
-var find = require('lib/find');
 var bind = require('lib/bind');
 
 /**
@@ -17,24 +17,31 @@ module.exports = View.extend({
   className: 'overlay',
 
   initialize: function(options) {
-    this.model = options.data;
     this.data('type', options.type);
     this.data('closable', options.closable);
-    this.render();
+    this.render(options.data);
   },
 
-  render: function() {
+  render: function(data) {
 
     // Inject HTML
-    this.el.innerHTML = this.template(this.model);
+    this.el.innerHTML = this.template(data);
 
     // Pick out elements
     this.els.buttons = {
-      close: find('.js-close-btn', this.el)
+      close: this.find('.js-close-btn')
     };
 
-    // Attach event listeners
+    // Clean up
+    delete this.template;
+
+    debug('rendered');
+    return this.bindEvents();
+  },
+
+  bindEvents: function() {
     bind(this.els.buttons.close, 'click', this.onButtonClick);
+    return this;
   },
 
   template: function(data) {

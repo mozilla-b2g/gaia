@@ -22,7 +22,6 @@ module.exports.OverlayController = OverlayController;
  * @param {App} app
  */
 function OverlayController(app) {
-  debug('initializing');
   bindAll(this);
   this.app = app;
   this.activity = app.activity;

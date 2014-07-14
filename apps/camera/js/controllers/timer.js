@@ -33,6 +33,7 @@ function TimerController(app) {
   this.view = app.views.timer || new TimerView();
   this.view.appendTo(app.el);
   this.bindEvents();
+  debug('initialized');
 }
 
 /**

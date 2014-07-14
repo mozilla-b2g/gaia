@@ -1,7 +1,7 @@
 define(function(require) {
   'use strict';
 
-  var StringUtils = function StringUtils() {};
+  var StringUtils = {};
 
   StringUtils.toCamelCase = function(str) {
 
@@ -21,10 +21,6 @@ define(function(require) {
   StringUtils.lastPathComponent = function(path) {
     var pathComponents = path.split('/');
     return pathComponents[pathComponents.length - 1];
-  };
-
-  StringUtils.prototype = {
-    constructor: StringUtils
   };
 
   return StringUtils;

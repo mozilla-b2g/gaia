@@ -19,8 +19,9 @@ var domLoaded = timing.domComplete - timing.domLoading;
 console.log('domloaded in %s', domLoaded + 'ms');
 
 // Create globals specified in the config file
+var key;
 if (settingsData.globals) {
-  for (var key in settingsData.globals) {
+  for (key in settingsData.globals) {
     window[key] = settingsData.globals[key];
   }
 }
@@ -67,5 +68,10 @@ var app = window.app = new App({
 app.camera.load();
 app.settings.fetch();
 app.boot();
+
+// Clean up
+for (key in settingsData) {
+  delete settingsData[key];
+}
 
 });

@@ -45,7 +45,6 @@ requireApp('camera/js/vendor/alameda.js', function() {
       'MediaFrame': '../shared/js/media/media_frame',
       'BlobView': '../shared/js/blobview',
       'CustomDialog': '../shared/js/custom_dialog',
-      'FontSizeUtils': '../shared/js/font_size_utils',
       'debug': 'vendor/debug'
     },
     shim: {
@@ -85,9 +84,6 @@ requireApp('camera/js/vendor/alameda.js', function() {
       },
       'CustomDialog': {
         exports: 'CustomDialog'
-      },
-      'FontSizeUtils': {
-        exports: 'FontSizeUtils'
       }
     }
   });

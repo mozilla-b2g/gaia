@@ -21,7 +21,6 @@ module.exports.IndicatorsController = IndicatorsController;
  * @param {Object} options
  */
 function IndicatorsController(app) {
-  debug('initializing');
   this.app = app;
   this.settings = app.settings;
   this.onSettingsConfigured = this.onSettingsConfigured.bind(this);

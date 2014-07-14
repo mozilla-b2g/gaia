@@ -25,10 +25,17 @@ module.exports = View.extend({
     this.el.innerHTML = this.template();
     this.els.thumbnail = this.find('.js-thumbnail');
 
-    // Bind events
+    // Clean up
+    delete this.template;
+    
+    debug('rendered');
+    return this.bindEvents();
+  },
+
+  bindEvents: function() {
     attach.on(this.el, 'click', '.js-btn', this.onButtonClick);
     attach.on(this.el, 'click', '.js-switch', this.onButtonClick);
-    debug('rendered');
+    return this;
   },
 
   onButtonClick: function(e, el) {

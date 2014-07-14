@@ -20,7 +20,6 @@ module.exports.ZoomBarController = ZoomBarController;
  * @param {App} app
  */
 function ZoomBarController(app) {
-  debug('initializing');
   bindAll(this);
   this.app = app;
   this.camera = app.camera;

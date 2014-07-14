@@ -104,8 +104,9 @@ define(function(require, exports, module) {
    * @param  {String} query
    * @return { Element | null}
    */
-  View.prototype.find = function(query) {
-    return this.el.querySelector(query);
+  View.prototype.find = function(query, el) {
+    el = el || this.el;
+    return el.querySelector(query);
   };
 
   /**
@@ -230,10 +231,6 @@ define(function(require, exports, module) {
     if (!noRemove) this.remove();
     this.fire('destroy');
     this.el = null;
-  };
-
-  View.prototype.toString = function() {
-    return '[object View]';
   };
 
   // Overwrite as required

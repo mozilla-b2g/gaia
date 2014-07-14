@@ -52,6 +52,11 @@ module.exports = View.extend({
     // options should be localized
     var localizable = data.optionsLocalizable === false ? false : true;
     data.options.forEach(this.renderOption.bind(this, localizable));
+
+    // Clean up
+    delete this.template;
+
+    debug('rendered');
     return this;
   },
 

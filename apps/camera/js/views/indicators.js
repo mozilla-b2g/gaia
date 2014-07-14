@@ -5,6 +5,7 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
+var debug = require('debug')('view:indicators');
 var View = require('vendor/view');
 
 /**
@@ -21,6 +22,12 @@ module.exports = View.extend({
 
   render: function() {
     this.el.innerHTML = this.template();
+
+    // Clean up
+    delete this.demplate;
+
+    debug('rendered');
+    return this;
   },
 
   template: function() {

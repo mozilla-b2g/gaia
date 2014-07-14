@@ -26,7 +26,6 @@ module.exports.ControlsController = ControlsController;
  * @param {App} app
  */
 function ControlsController(app) {
-  debug('initializing');
   bindAll(this);
   this.app = app;
   this.activity = app.activity;
