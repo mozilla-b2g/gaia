@@ -3,6 +3,10 @@ Calendar.ns('Store').IcalComponent = (function() {
 
   function IcalComponent() {
     Calendar.Store.Abstract.apply(this, arguments);
+
+    Calendar.Promise.denodeifyAll(this, [
+      'findRecurrences'
+    ]);
   }
 
   IcalComponent.prototype = {
