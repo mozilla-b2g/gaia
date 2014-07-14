@@ -1266,7 +1266,7 @@ function displaySubject(subjectNode, message) {
     subjectNode.classList.remove('msg-no-subject');
   }
   else {
-    subjectNode.textContent = mozL10n.get('message-no-subject');
+    mozL10n.setAttributes(subjectNode, 'message-no-subject');
     subjectNode.classList.add('msg-no-subject');
   }
 }
