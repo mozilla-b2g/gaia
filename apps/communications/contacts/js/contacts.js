@@ -276,8 +276,8 @@ var Contacts = (function() {
       settingsButton.classList.remove('hide');
     }
 
-    text = (contactsList && contactsList.isSelecting)?
-          _('selectContact'):_('contacts');
+    text = (contactsList && contactsList.isSelecting) ?
+          _('selectContact') : _('contacts');
 
     if (appTitleElement.textContent !== text) {
       appTitleElement.textContent = text;
@@ -839,6 +839,7 @@ var Contacts = (function() {
       if (document.hidden === false &&
                                 navigation.currentView() === 'view-settings') {
         Contacts.view('Settings', function viewLoaded() {
+          contacts.Settings.updateSimCardLocale();
           contacts.Settings.updateTimestamps();
         });
       }

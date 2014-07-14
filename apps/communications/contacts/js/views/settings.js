@@ -1002,6 +1002,43 @@ contacts.Settings = (function() {
     });
   };
 
+  var updateSimCardLocale = function updateSimCardLocale() {
+    var statuses = IccHandler.getStatus();
+    statuses.forEach(function onStatus(status, index, array) {
+      var importSimOption =
+        document.getElementById('import-sim-option-' + status.iccId);
+      var exportSimOption =
+        document.getElementById('export-sim-option-' + status.iccId);
+      if (status.cardState !== 'ready' && status.cardState !== 'illegal') {
+        return;
+      }
+      var optionButton = importSimOption.firstElementChild;
+      if (statuses.length > 1) {
+        optionButton.textContent = _('simNumber', {'number': index + 1});
+        if (status.icc.iccInfo && status.icc.iccInfo.msisdn) {
+          optionButton.textContent = _('simNumber1', {'number': index + 1,
+            'msisdn': status.icc.iccInfo.msisdn});
+        }
+      } else {
+        optionButton.textContent = _('simCard');
+      }
+      var pTime = document.createElement('p');
+      pTime.appendChild(document.createElement('span'));
+      pTime.appendChild(document.createElement('time'));
+      optionButton.appendChild(pTime);
+      optionButton = exportSimOption.firstElementChild;
+      if (statuses.length > 1) {
+        optionButton.textContent = _('simNumber', {'number': index + 1});
+        if (status.icc.iccInfo && status.icc.iccInfo.msisdn) {
+          optionButton.textContent = _('simNumber1', {'number': index + 1,
+            'msisdn': status.icc.iccInfo.msisdn});
+        }
+      } else {
+        optionButton.textContent = _('simCard');
+      }
+    });
+  };
+
   var refresh = function refresh() {
     getData();
     checkOnline();
@@ -1019,6 +1056,7 @@ contacts.Settings = (function() {
     'refresh': refresh,
     'cardStateChanged': checkSIMCard,
     'updateTimestamps': updateTimestamps,
+    'updateSimCardLocale': updateSimCardLocale,
     'navigation': navigationHandler,
     'importFromSDCard': onSdImport,
     'importFromSIMCard': onSimImport
