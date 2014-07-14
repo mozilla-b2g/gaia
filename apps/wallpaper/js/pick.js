@@ -19,7 +19,37 @@ var Wallpaper = {
 
     this.cancelButton = document.getElementById('cancel');
     this.wallpapers = document.getElementById('wallpapers');
-    this.generateWallpaperList();
+
+    // Find out how much memory this device has and set thumbnailScale to 1 / 4
+    // for low-memory large screen devices. See Bug 1035492. Note that
+    // navigator.getFeature requires the "feature-detection" permission
+    // so we only run this code if the client app has that permission.
+    //
+    if (navigator.getFeature) {
+      navigator.getFeature('hardware.memory').then(
+        function resolve(mem) {
+          if (!mem) {
+            self.thumbnailScale = 3 / 8;
+          }
+          else if (mem <= 300 &&
+                   (window.screen.width *
+                    window.devicePixelRatio *
+                    window.screen.height *
+                    window.devicePixelRatio >= 480 * 800)) {
+            self.thumbnailScale = 1 / 4;
+          }
+          self.generateWallpaperList();
+        },
+        function reject(err) {
+          // If pending promise gets rejected, generate
+          // wallpaper list with default thumbnailScale.
+          self.generateWallpaperList();
+        }
+      );
+    }
+    else {
+      this.generateWallpaperList();
+    }
   },
 
   generateWallpaperList: function wallpaper_generateWallpaperList(cb) {
