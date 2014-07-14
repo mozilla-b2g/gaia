@@ -533,7 +533,9 @@ Cards = {
     return result;
   },
 
-  folderSelector: function(callback) {
+  // Filter is an optional paramater. It is a function that returns
+  // true if the folder passed to it should be included in the selector
+  folderSelector: function(callback, filter) {
     var self = this;
 
     require(['model'], function(model) {
@@ -548,15 +550,17 @@ Cards = {
         var folders = foldersSlice.items;
         for (var i = 0; i < folders.length; i++) {
           var folder = folders[i];
-          self.folderPrompt.addToList(folder.name, folder.depth,
-            folder.selectable,
-            function(folder) {
-              return function() {
-                self.folderPrompt.hide();
-                callback(folder);
-              };
-            }(folder));
 
+          if (folder.neededForHeirarchy || !filter || filter(folder)) {
+            self.folderPrompt.addToList(folder.name, folder.depth,
+              folder.selectable,
+              function(folder) {
+                return function() {
+                  self.folderPrompt.hide();
+                  callback(folder);
+                };
+              }(folder));
+          }
         }
         self.folderPrompt.show();
       });
