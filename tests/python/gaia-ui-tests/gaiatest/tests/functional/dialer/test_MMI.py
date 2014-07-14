@@ -21,4 +21,5 @@ class TestMMI(GaiaTestCase):
         phone.keypad.dial_phone_number(IMEI_CODE)
 
         attention_screen = AttentionScreen(self.marionette)
-        self.assertEqual(attention_screen.message, self.testvars['imei'])
+        # Only the first IMEI is displayed
+        self.assertEqual(attention_screen.message, self.testvars['imei'][0])
