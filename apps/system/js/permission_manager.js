@@ -449,8 +449,10 @@
       var callback = null;
       if (evt.target === this.yes && this.yes.callback) {
         callback = this.yes.callback;
+        this.responseStatus = 'permission-allow';
       } else if (evt.target === this.no && this.no.callback) {
         callback = this.no.callback;
+        this.responseStatus = 'permission-deny';
       } else if (evt.target === this.moreInfoLink ||
                  evt.target === this.hideInfoLink) {
         this.toggleInfo();
