@@ -895,20 +895,26 @@ function getThumbnailURL(fileinfo, callback) {
     return;
   }
 
-  // Otherwise, see if we've saved a blob in asyncStorage
-  asyncStorage.getItem(key, function(blob) {
-    if (blob) {
-      // If we get a blob, save the URL locally and return the url.
-      var url = URL.createObjectURL(blob);
-      thumbnailCache[key] = url;
-      callback(url);
-      return;
-    }
-    else {
-      // Otherwise, create the thumbnail image
-      createAndCacheThumbnail();
-    }
-  });
+  getThumbnailFromAsyncStorage(key, true);
+
+  function getThumbnailFromAsyncStorage(key, createIfNotFound) {
+    // Otherwise, see if we've saved a blob in asyncStorage
+    asyncStorage.getItem(key, function(blob) {
+      if (blob) {
+        // If we get a blob, save the URL locally and return the url.
+        var url = URL.createObjectURL(blob);
+        thumbnailCache[key] = url;
+        callback(url);
+      }
+      else if (createIfNotFound) {
+        // Otherwise, create the thumbnail image
+        createAndCacheThumbnail();
+      }
+      else {
+        callback(null);
+      }
+    });
+  }
 
   function createAndCacheThumbnail() {
     if (fileinfo.blob) {       // this can happen for the open activity
@@ -942,7 +948,7 @@ function getThumbnailURL(fileinfo, callback) {
         var canvas = document.createElement('canvas');
         canvas.width = THUMBNAIL_WIDTH;
         canvas.height = THUMBNAIL_HEIGHT;
-        var context = canvas.getContext('2d');
+        var context = canvas.getContext('2d', { willReadFrequently: true });
         var scalex = canvas.width / offscreenImage.width;
         var scaley = canvas.height / offscreenImage.height;
 
@@ -953,7 +959,8 @@ function getThumbnailURL(fileinfo, callback) {
         if (scale >= 1) {
           offscreenImage.removeAttribute('src');
           cacheThumbnail(key, embedded, embeddedURL);
-          callback(embeddedURL);
+          URL.revokeObjectURL(embeddedURL);
+          getThumbnailFromAsyncStorage(key, false);
           return;
         }
 
@@ -973,9 +980,12 @@ function getThumbnailURL(fileinfo, callback) {
         URL.revokeObjectURL(embeddedURL);
 
         canvas.toBlob(function(blob) {
+          context = null;
+          canvas.width = canvas.height = 0;
+          canvas = null;
           var url = URL.createObjectURL(blob);
           cacheThumbnail(key, blob, url);
-          callback(url);
+          getThumbnailFromAsyncStorage(key, false);
         }, 'image/jpeg');
       };
     }

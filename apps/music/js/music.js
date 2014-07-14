@@ -411,34 +411,38 @@ function showCurrentView(callback) {
     if (ModeManager.currentMode === MODE_LIST && TabBar.option !== 'playlist')
       showListView();
 
-    // Enumerate existing song entries in the database
-    // List them all, and sort them in ascending order by album.
-    // Use enumerateAll() here so that we get all the results we want
-    // and then pass them synchronously to the update() functions.
-    // If we do it asynchronously, then we'll get one redraw for
-    // every song.
-    // * Note that we need to update tiles view every time this happens
-    // because it's the top level page and an independent view
-    tilesHandle = musicdb.enumerateAll('metadata.album', null, 'nextunique',
-                                       function(songs) {
-                                         // Add null to the array of songs
-                                         // this is a flag that tells update()
-                                         // to show or hide the 'empty' overlay
-                                         songs.push(null);
-                                         TilesView.clean();
-
-                                         knownSongs.length = 0;
-                                         songs.forEach(function(song) {
-                                           TilesView.update(song);
-                                           // Push the song to knownSongs then
-                                           // we can display a correct overlay
-                                           knownSongs.push(song);
-                                         });
-
-                                         if (callback)
-                                            callback();
-                                      });
+    TilesView.activate(callback);
   });
+}
+
+/**
+ * visibilityMargin is the extra visibile area size. The smaller value brings
+ * the lower memory consumption and lower fps.
+ *
+ * It is the area above of window and below of window. If we use 240 as this
+ * value, we may have 240 + window.innerHeight + 240 as its visible area.
+ * For sub-tile cases, we can have (240 + 480 + 240) / (320 * .33) = 9 rows. A
+ * screen may have 4.5 rows.
+ *
+ * For list view cases, we can have (240 + 480 + 240) / 60 = 16 rows. A screen
+ * may have 8 rows.
+ *
+ */
+var visibilityMargin = Math.max(window.innerWidth, window.innerHeight) * 3 / 4;
+var minimumScrollDelta = 1;
+
+// monitorChildVisibility() calls this when a thumbnail comes onscreen
+function thumbnailOnscreen(thumbnail) {
+  if (thumbnail.dataset.backgroundImage) {
+    thumbnail.style.backgroundImage = thumbnail.dataset.backgroundImage;
+  }
+}
+
+// monitorChildVisibility() calls this when a thumbnail goes offscreen
+function thumbnailOffscreen(thumbnail) {
+  if (thumbnail.dataset.backgroundImage) {
+    thumbnail.style.backgroundImage = null;
+  }
 }
 
 // This Application has five modes: TILES, SEARCH, LIST, SUBLIST, and PLAYER
@@ -708,6 +712,12 @@ var TilesView = {
     this.view.addEventListener('input', this);
     this.view.addEventListener('touchend', this);
     this.searchInput.addEventListener('focus', this);
+    monitorTagVisibility(this.view, 'li',
+                     visibilityMargin,    // extra space top and bottom
+                     minimumScrollDelta,  // min scroll before we do work
+                     thumbnailOnscreen,   // set background image
+                     thumbnailOffscreen); // remove background image
+
   },
 
   clean: function tv_clean() {
@@ -727,6 +737,36 @@ var TilesView = {
     // XXX: we probably want to animate this...
     if (this.view.scrollTop < this.searchBox.offsetHeight)
       this.view.scrollTop = this.searchBox.offsetHeight;
+  },
+
+  activate: function tv_activate(callback) {
+    // Enumerate existing song entries in the database
+    // List them all, and sort them in ascending order by album.
+    // Use enumerateAll() here so that we get all the results we want
+    // and then pass them synchronously to the update() functions.
+    // If we do it asynchronously, then we'll get one redraw for
+    // every song.
+    // * Note that we need to update tiles view every time this happens
+    // because it's the top level page and an independent view
+    tilesHandle = musicdb.enumerateAll('metadata.album', null, 'nextunique',
+                                       function(songs) {
+                                         // Add null to the array of songs
+                                         // this is a flag that tells update()
+                                         // to show or hide the 'empty' overlay
+                                         songs.push(null);
+                                         TilesView.clean();
+
+                                         knownSongs.length = 0;
+                                         songs.forEach(function(song) {
+                                           TilesView.update(song);
+                                           // Push the song to knownSongs then
+                                           // we can display a correct overlay
+                                           knownSongs.push(song);
+                                         });
+
+                                         if (callback)
+                                            callback();
+                                      });
   },
 
   update: function tv_update(result) {
@@ -749,7 +789,9 @@ var TilesView = {
 
     this.dataSource.push(result);
 
-    var tile = document.createElement('div');
+    // For visibility monitor, we should use all monitored element with the same
+    // element name, li.
+    var tile = document.createElement('li');
     tile.className = 'tile';
 
     var container = document.createElement('div');
@@ -794,7 +836,7 @@ var TilesView = {
 
     var setTileBackgroundClosure = function(url) {
       url = url || generateDefaultThumbnailURL(result.metadata);
-      tile.style.backgroundImage = 'url(' + url + ')';
+      tile.dataset.backgroundImage = 'url(' + url + ')';
     };
 
     if (this.index <= NUM_INITIALLY_VISIBLE_TILES) {
@@ -856,6 +898,8 @@ var TilesView = {
             ModeManager.pop();
           }
           this.hideSearch();
+          // clear search result for reducing memory consumption
+          SearchView.clearSearch();
           evt.preventDefault();
         } else if (target.dataset.index) {
           var handler;
@@ -984,7 +1028,7 @@ function createListElement(option, data, index, highlight) {
       // and gecko can render the elements faster as well.
       var setBackground = function(url) {
         url = url || generateDefaultThumbnailURL(data.metadata);
-        li.style.backgroundImage = 'url(' + url + ')';
+        li.dataset.backgroundImage = 'url(' + url + ')';
       };
 
       getThumbnailURL(data, setBackground);
@@ -1102,6 +1146,11 @@ var ListView = {
     this.view.addEventListener('touchend', this);
     this.view.addEventListener('scroll', this);
     this.searchInput.addEventListener('focus', this);
+    monitorTagVisibility(this.view, 'li',
+                 visibilityMargin,    // extra space top and bottom
+                 minimumScrollDelta,  // min scroll before we do work
+                 thumbnailOnscreen,   // set background image
+                 thumbnailOffscreen); // remove background image
   },
 
   clean: function lv_clean() {
@@ -1437,6 +1486,8 @@ var ListView = {
             ModeManager.pop();
           }
           this.hideSearch();
+          // clear search result for reducing memory consumption
+          SearchView.clearSearch();
           evt.preventDefault();
         } else {
           var option = target.dataset.option;
@@ -1721,6 +1772,11 @@ var SearchView = {
     this.searchHandles = { artist: null, album: null, title: null };
 
     this.view.addEventListener('click', this);
+    monitorTagVisibility(this.view, 'li',
+                         visibilityMargin,    // extra space top and bottom
+                         minimumScrollDelta,  // min scroll before we do work
+                         thumbnailOnscreen,   // set background image
+                         thumbnailOffscreen); // remove background image
   },
 
   search: function sv_search(query) {
@@ -1905,12 +1961,21 @@ var TabBar = {
             // the album on TilesView to play, just cancel the enumeration
             // because we will start a new one and it can be responsive.
             ListView.cancelEnumeration();
+            // Clean the ListView and SubListView to release the memory used by
+            // background image.
+            ListView.clean();
+            SubListView.clean();
 
             ModeManager.start(MODE_TILES);
+            TilesView.activate();
             TilesView.hideSearch();
 
             break;
           case 'tabs-playlists':
+            // Clean the TilesView and SubListView to release the memory used by
+            // background image.
+            TilesView.clean();
+            SubListView.clean();
             ModeManager.start(MODE_LIST);
             ListView.activate();
 
@@ -1922,6 +1987,10 @@ var TabBar = {
           case 'tabs-artists':
           case 'tabs-albums':
           case 'tabs-songs':
+            // Clean the TilesView and SubListView to release the memory used by
+            // background image.
+            TilesView.clean();
+            SubListView.clean();
             var info = {
               key: 'metadata.' + this.option,
               range: null,
