@@ -28,7 +28,6 @@ apps/communications/dialer/test/marionette/lib/dialer.js
 apps/communications/dialer/test/marionette/navigation_test.js
 apps/communications/dialer/test/unit/call_log_db_test.js
 apps/communications/dialer/test/unit/mock_call_handler.js
-apps/communications/dialer/test/unit/mock_call_log_db_manager.js
 apps/communications/dialer/test/unit/mock_confirm_dialog.js
 apps/communications/dialer/test/unit/mock_dialer_index.html.js
 apps/communications/dialer/test/unit/mock_icc_helper.js
@@ -79,12 +78,9 @@ apps/email/js/message_list_topbar.js
 apps/email/js/mix.js
 apps/email/js/model.js
 apps/email/js/query_string.js
-apps/email/js/query_uri.js
 apps/email/js/sync.js
 apps/email/js/text.js
 apps/email/js/tmpl.js
-apps/email/js/value_selector.js
-apps/email/js/wake_locks.js
 apps/email/test/config.js
 apps/email/test/marionette/activity_create_email_account_complete_test.js
 apps/email/test/marionette/lib/debug.js
@@ -304,7 +300,6 @@ apps/settings/js/telephony_items_handler.js
 apps/settings/js/telephony_settings.js
 apps/settings/js/try_show_homescreen_section.js
 apps/settings/js/utils.js
-apps/settings/js/wallpaper.js
 apps/settings/js/wifi.js
 apps/settings/js/wifi_select_certificate_file.js
 apps/settings/test/marionette/app/regions/feedback.js
