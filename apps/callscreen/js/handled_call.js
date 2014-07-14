@@ -92,7 +92,7 @@ HandledCall.prototype.handleEvent = function hc_handle(evt) {
   switch (evt.call.state) {
     case 'dialing':
     case 'alerting':
-      CallsHandler.updateKeypadEnabled();
+      CallsHandler.updateCallOptionsEnabled();
       break;
     case 'connected':
       CallScreen.render('connected');
@@ -102,7 +102,7 @@ HandledCall.prototype.handleEvent = function hc_handle(evt) {
       this.disconnected();
       break;
     case 'held':
-      CallsHandler.updateKeypadEnabled();
+      CallsHandler.updateCallOptionsEnabled();
       this.node.classList.add('held');
       break;
   }
