@@ -81,6 +81,7 @@ apps/email/js/query_string.js
 apps/email/js/sync.js
 apps/email/js/text.js
 apps/email/js/tmpl.js
+apps/email/js/value_selector.js
 apps/email/test/config.js
 apps/email/test/marionette/activity_create_email_account_complete_test.js
 apps/email/test/marionette/lib/debug.js
@@ -300,6 +301,7 @@ apps/settings/js/telephony_items_handler.js
 apps/settings/js/telephony_settings.js
 apps/settings/js/try_show_homescreen_section.js
 apps/settings/js/utils.js
+apps/settings/js/wallpaper.js
 apps/settings/js/wifi.js
 apps/settings/js/wifi_select_certificate_file.js
 apps/settings/test/marionette/app/regions/feedback.js
