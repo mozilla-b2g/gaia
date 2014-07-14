@@ -178,7 +178,7 @@
   },
 
   "icons": {
-        "30": "/style/icons/communication_30.png",
-        "45": "/style/icons/communication_45.png"
+        "30": "/style/icons/communications_30.png",
+        "45": "/style/icons/communications_45.png"
   }
 }
