@@ -12,11 +12,37 @@ var BluetoothHelper = function() {
 
   var _bluetooth = window.navigator.mozBluetooth;
   var _isReady = false;
+  var _isLoading = false;
   var _callbacks = [];
 
   var _adapter = null;
 
+  var _setup = function() {
+    if (_isReady || _isLoading) {
+      return;
+    }
+
+    _isLoading = true;
+
+    var req = _bluetooth.getDefaultAdapter();
+    req.onsuccess = function() {
+      _isReady = true;
+      _adapter = req.result;
+
+      _callbacks.forEach(function(callback) {
+        callback();
+      });
+    };
+
+    req.onerror = function() {
+      // We can do nothing without default adapter.
+      _isLoading = false;
+    };
+  };
+
   var _ready = function(callback) {
+    _setup();
+
     if (!callback || !_bluetooth) {
       return;
     }
@@ -43,22 +69,7 @@ var BluetoothHelper = function() {
     };
   };
 
-  if (_bluetooth) {
-    var req = _bluetooth.getDefaultAdapter();
-    req.onsuccess = function() {
-      _isReady = true;
-      _adapter = req.result;
-
-      _callbacks.forEach(function(callback) {
-        callback();
-      });
-    };
-
-    req.onerror = function() {
-      // We can do nothing without default adapter.
-      console.log('BluetoothHelper(): connot get default adapter!!!');
-    };
-  }
+  _setup();
 
   return {
     profiles: profiles,

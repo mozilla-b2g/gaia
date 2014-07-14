@@ -11,6 +11,8 @@ window.addEventListener('load', function callSetup(evt) {
 
 // Don't keep an audio channel open when the callscreen is not displayed
 document.addEventListener('visibilitychange', function visibilitychanged() {
+  CallsHandler.setup();
+
   if (document.hidden) {
     TonePlayer.trashAudio();
   } else {
