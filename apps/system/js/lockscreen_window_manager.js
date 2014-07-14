@@ -347,14 +347,7 @@
       // we close the window.
       var activeApp = window.AppWindowManager ?
             window.AppWindowManager.getActiveApp() : null;
-      if (detail && detail.activity) {
-        // Need to invoke activity
-        var a = new window.MozActivity(detail.activity);
-        a.onerror = function ls_activityError() {
-          console.log('MozActivity: lockscreen invoke activity error.');
-        };
-        this.closeApp();
-      } else if (!activeApp) {
+      if (!activeApp) {
         this.closeApp();
       } else {
         activeApp.ready(this.closeApp.bind(this));
