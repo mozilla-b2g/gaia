@@ -42,6 +42,7 @@ suite('Find My Device panel > ', function() {
       onlogout: null,
       onready: null,
       onerror: null,
+      oncancel: null,
 
       watch: function(options) {
         this.onlogin = options.onlogin;
@@ -54,8 +55,8 @@ suite('Find My Device panel > ', function() {
         });
       },
 
-      request: function() {
-        // noop
+      request: function(options) {
+        this.oncancel = options.oncancel;
       },
     };
 
@@ -166,6 +167,19 @@ suite('Find My Device panel > ', function() {
     assert.ok(navigator.mozL10n.localize.calledWith(
         trackingSection, 'findmydevice-not-tracking'));
     navigator.mozL10n.localize.reset();
+  });
+
+  test('prevent accidental auto-enable on FxA sign-in', function() {
+    MockMozId.onlogout();
+    loginButton.click();
+    assert.equal(true, window.FindMyDevice._interactiveLogin,
+      'ensure _interactiveLogin is true after login button is clicked');
+    MockMozId.oncancel();
+    assert.equal(false, window.FindMyDevice._interactiveLogin,
+      'ensure _interactiveLogin is false after FxA cancel');
+    MockMozId.onlogin();
+    assert.equal(0, MockSettingsListener.getSettingsLock().locks.length,
+      'ensure findmydevice.enabled was not set automatically on FxA login');
   });
 
   suiteTeardown(function() {

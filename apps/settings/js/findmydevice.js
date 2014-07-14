@@ -27,6 +27,7 @@ var FindMyDevice = {
           console.log('Find My Device: onready fired');
         },
         onerror: function fmd_fxa_onerror(err) {
+          self._interactiveLogin = false;
           self._togglePanel(false);
           self._loginButton.removeAttribute('disabled');
           console.error('Find My Device: onerror fired: ' + err);
@@ -56,7 +57,13 @@ var FindMyDevice = {
       return window.alert(_('findmydevice-enable-network'));
     }
     this._interactiveLogin = true;
-    navigator.mozId.request();
+    var self = this;
+    navigator.mozId.request({
+      oncancel: function fmd_fxa_oncancel() {
+        self._interactiveLogin = false;
+        console.log('Find My Device: oncancel fired');
+      }
+    });
   },
 
   _setEnabled: function fmd_set_enabled(value) {
