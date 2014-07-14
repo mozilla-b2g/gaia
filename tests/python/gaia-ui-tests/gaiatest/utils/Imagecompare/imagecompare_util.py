@@ -159,12 +159,13 @@ class ImageCompareUtil():
         file_list = self.sorted_ls(shot_path)
         ref_file_list = self.sorted_ls(ref_path)
         for f in file_list:
-            ref_name = f[0:f.find("+")] + ".png"
-            if ref_name in ref_file_list:
-                self.sub_image_compare(os.path.join(shot_path, f),
-                                       os.path.join(ref_path,ref_name), os.path.join(shot_path, f[0:f.find(".png")]) + "_diff.png", fuzz_value)
-            else:
-                print ("Ref file not found for: " + f)
+            if module_name + "_" + self.get_device_name() in f:
+                ref_name = f[0:f.find("+")] + ".png"
+                if ref_name in ref_file_list:
+                    self.sub_image_compare(os.path.join(shot_path, f),
+                                           os.path.join(ref_path,ref_name), os.path.join(shot_path, f[0:f.find(".png")]) + "_diff.png", fuzz_value)
+                else:
+                    print ("Ref file not found for: " + f)
 
     #do collect and compare in one shot
     def collect_and_compare(self, local_path, device_path, module_name, fuzz_value):

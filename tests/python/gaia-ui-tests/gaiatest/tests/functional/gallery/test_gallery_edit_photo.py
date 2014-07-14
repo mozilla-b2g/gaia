@@ -5,7 +5,7 @@
 from marionette.by import By
 from gaiatest import GaiaTestCase
 from gaiatest.apps.gallery.app import Gallery
-
+import pdb
 
 class TestGalleryEditPhoto(GaiaTestCase):
 
@@ -27,7 +27,7 @@ class TestGalleryEditPhoto(GaiaTestCase):
         self.assertTrue(gallery.gallery_items_number > 0)
 
         image = gallery.tap_first_gallery_item()
-
+        pdb.set_trace()
         # Tap on Edit button.
         edit_image = image.tap_edit_button()
 
