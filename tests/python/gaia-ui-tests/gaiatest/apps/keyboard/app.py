@@ -13,10 +13,13 @@ from gaiatest.apps.base import Base
 class Keyboard(Base):
     '''
     There are two underlying strategies in this class;
-    * send() method which uses logic to traverse the keyboard to type the string sent to it.
-        Send should be used in tests where the layout of the keyboard is not tested and only string input is important
-    * tap_x() or anything not send() methods which do not use logic to change keyboard panels.
-        Tap should be used where the keyboard is expected to open with that key visible
+
+    * send() method which uses logic to traverse the keyboard to type the
+      string sent to it. Send should be used in tests where the layout of the
+      keyboard is not tested and only string input is important
+    * tap_x() or anything not send() methods which do not use logic to change
+      keyboard panels. Tap should be used where the keyboard is expected to
+      open with that key visible
 
     The methods in this class employ a lot of aggressive frame switching to the keyboard and back to the
     displayed app because it predominantly acts as a utility class and thus it works best when the main focus
