@@ -1,5 +1,5 @@
 /* globals CallsHandler, CallScreen, Contacts, ContactPhotoHelper,
-           FontSizeManager, LazyL10n, Utils, Voicemail */
+           FontSizeManager, LazyL10n, Utils, Voicemail, AudioCompetingHelper */
 
 'use strict';
 
@@ -94,13 +94,22 @@ HandledCall.prototype.handleEvent = function hc_handle(evt) {
       CallsHandler.updateKeypadEnabled();
       break;
     case 'connected':
+      // The dialer agent in the system app plays and stops the ringtone once
+      // the call state changes. If we play silence right after the ringtone
+      // stops then a mozinterrupbegin event is fired. This is a race condition
+      // we could easily avoid with a 1-second-timeout fix.
+      window.setTimeout(function onTimeout() {
+        AudioCompetingHelper.compete();
+      }, 1000);
       CallScreen.render('connected');
       this.connected();
       break;
     case 'disconnected':
+      AudioCompetingHelper.leaveCompetition();
       this.disconnected();
       break;
     case 'held':
+      AudioCompetingHelper.leaveCompetition();
       CallsHandler.updateKeypadEnabled();
       this.node.classList.add('held');
       break;
