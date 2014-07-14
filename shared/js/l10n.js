@@ -712,7 +712,10 @@
       this.value = node;
     } else {
       // it's either a hash or it has attrs, or both
-      for (var key in node) {
+      var keys = Object.keys(node);
+
+      /* jshint -W084 */
+      for (var i = 0, key; key = keys[i]; i++) {
         if (key[0] !== '_') {
           if (!this.attributes) {
             this.attributes = Object.create(null);
@@ -947,9 +950,11 @@
   };
 
   Locale.prototype.addAST = function(ast) {
-    /* jshint -W089 */
-    for (var id in ast) {
-      this.entries[id] = ast[id];
+    var keys = Object.keys(ast);
+
+    /* jshint -W084 */
+    for (var i = 0, key; key = keys[i]; i++) {
+      this.entries[key] = ast[key];
     }
   };
 
