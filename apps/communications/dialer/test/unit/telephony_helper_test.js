@@ -112,6 +112,19 @@ suite('telephony helper', function() {
 
     teardown(function() {
       MockIccHelper.mCardState = initialState;
+      document.dispatchEvent(new CustomEvent('visibilitychange'));
+    });
+
+    test('should display the connecting message', function() {
+      subject.call('112', 0);
+      sinon.assert.calledWith(spyConfirmShow, 'connecting ...', '');
+    });
+
+    test('should hide the connecting message', function() {
+      subject.call('112', 0);
+      var spyConfirmHide = this.sinon.spy(ConfirmDialog, 'hide');
+      document.dispatchEvent(new CustomEvent('visibilitychange'));
+      sinon.assert.calledOnce(spyConfirmHide);
     });
 
     suite('when there is no sim card', function() {

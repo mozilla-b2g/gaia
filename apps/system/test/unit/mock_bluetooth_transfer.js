@@ -6,13 +6,22 @@
 (function(exports) {
 
   var MockBluetoothTransfer = {
-    sendFile: function() {
+    sendFileQueueEmpty: true,
+    sendFileViaHandover: function(mac, blob) {
       var req = new MockDOMRequest();
+      var details = {received: false,
+                     success: true,
+                     viaHandover: true};
+
       req.onsuccess = function() {
-        NfcHandoverManager.transferComplete(true);
+        NfcHandoverManager.transferComplete(details);
       };
 
       return req;
+    },
+
+    get isSendFileQueueEmpty() {
+      return MockBluetoothTransfer.sendFileQueueEmpty;
     }
   };
 

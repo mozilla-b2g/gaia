@@ -6,7 +6,7 @@
 (function(exports) {
 
   // event names
-  const ICON_BLOB_LOAD_EVENT = 'gaiagrid-iconblobload';
+  const ICON_BLOB_DECORATED_EVENT = 'iconblobdecorated';
   const ICON_BLOB_ERROR_EVENT = 'gaiagrid-iconbloberror';
   const FETCH_XHR_TIMEOUT = 10000;
 
@@ -76,6 +76,13 @@
      * Whether or not this icon will persist to the database.
      */
     persistToDB: true,
+
+    /**
+     * Whether or not this item has a cached icon or not.
+     */
+    get hasCachedIcon() {
+      return this.detail && this.detail.decoratedIconBlob;
+    },
 
     /**
      * The icon renderer to use. Sub-classes may override this, and individual
@@ -240,14 +247,88 @@
      *
      * @param {Blob} blob The image blob to display.
      */
-    _displayDecoratedIcon: function(blob) {
-      this.element.style.height = this.grid.layout.gridItemHeight + 'px';
-      // icon size + padding for shadows implemented in the icon renderer
-      this.element.style.backgroundSize =
-        ((this.grid.layout.gridIconSize * (1 / this.scale)) +
-        this.rendererInstance.unscaledCanvasPadding) + 'px';
-      this.element.style.backgroundImage =
-        'url(' + URL.createObjectURL(blob) + ')';
+    _displayDecoratedIcon: function(blob, isCachedIcon) {
+      if (!this.element) {
+        // The icon could be removed while it is being decorated
+        return;
+      }
+
+      var style = this.element.style;
+
+      if (!style.backgroundSize) {
+        style.height = this.grid.layout.gridItemHeight + 'px';
+        // icon size + padding for shadows implemented in the icon renderer
+        style.backgroundSize =
+          ((this.grid.layout.gridIconSize * (1 / this.scale)) +
+          GridIconRenderer.prototype.unscaledCanvasPadding) + 'px';
+      }
+
+      if (isCachedIcon) {
+        var url = URL.createObjectURL(blob);
+        style.backgroundImage = 'url(' + url + ')';
+        this.element.dataset.backgroundImage = url;
+        var img = new Image();
+        img.onload = img.onerror = () => {
+          this.grid.element.dispatchEvent(
+            new CustomEvent('cached-icon-rendered')
+          );
+        };
+        img.src = url;
+        return;
+      }
+
+      this._compareBlobs(blob, this.detail.decoratedIconBlob).
+      then((equal) => {
+        if (equal) {
+          return;
+        }
+
+        style.backgroundImage = 'url(' + URL.createObjectURL(blob) + ')';
+        this.detail.decoratedIconBlob = blob;
+        this.grid.element.dispatchEvent(
+          new CustomEvent(ICON_BLOB_DECORATED_EVENT, {
+            detail: this
+          })
+        );
+        var bgImg = this.element.dataset.backgroundImage;
+        bgImg && URL.revokeObjectURL(bgImg);
+      });
+    },
+
+    /**
+     * It compares two blobs.
+     */
+    _compareBlobs: function(blob1, blob2) {
+      return new Promise(function(resolve) {
+        if (!blob1 || !blob2 || blob1.type !== blob2.type ||
+           blob1.size !== blob2.size) {
+          resolve(false);
+          return;
+        }
+
+        // We skip the first bytes that typically are headers
+        var startBytes = 127;
+        var bytesHash = 16;
+        var reader = new FileReader();
+
+        reader.onloadend = function() {
+          var result1 = reader.result;
+
+          reader = new FileReader();
+
+          reader.onloadend = reader.onerror = function() {
+            resolve(result1 === reader.result);
+          };
+
+          reader.readAsDataURL(blob2.slice(startBytes, startBytes + bytesHash));
+        };
+
+        reader.onerror = function() {
+          resolve(false);
+        };
+
+        reader.readAsDataURL(blob1.slice(startBytes, startBytes + bytesHash));
+      });
     },
 
     /**
@@ -266,7 +347,7 @@
      */
     _stampElementWithIcon: function(uri) {
       // ensure we don't stamp URI
-      if (uri.startsWith('data:')) {
+      if (!this.element || uri.startsWith('data:')) {
         return;
       }
 
@@ -286,10 +367,26 @@
     XXX: This method is not concurrency safe one image may override another
          without ordering.
     */
-    renderIcon: function() {
+    renderIcon: function(renderCachedIcon) {
       var icon = this.icon;
       this.iconState = 'pending';
 
+      if (renderCachedIcon && this.hasCachedIcon) {
+        // Display cached icons before trying to get icons again.
+        this._displayDecoratedIcon(this.detail.decoratedIconBlob, true);
+        var resolveIcon = () => {
+          this.grid.element.removeEventListener('cached-icons-rendered',
+                                                 resolveIcon);
+          this.doRenderIcon(icon);
+        };
+        this.grid.element.addEventListener('cached-icons-rendered',
+                                            resolveIcon);
+      } else {
+        this.doRenderIcon(icon);
+      }
+    },
+
+    doRenderIcon: function(icon) {
       // fast path if the icon is not from an origin display it outright
       if (!this.isIconFromOrigin()) {
         // XXX: Should we convert data uri(s) to blobs?
@@ -310,13 +407,11 @@
       var blobNotFound = () => {
         this.iconState = 'error';
 
-        if (this.detail.defaultIconBlob) {
-          // no stamp for saved blobs
-          this.renderIconFromBlob(this.detail.defaultIconBlob);
-          this._stampElementWithIcon('blobcache');
-        } else {
+        if (!this.hasCachedIcon) {
           this.renderIconFromSrc(this.defaultIcon);
           this._stampElementWithIcon(this.defaultIcon);
+        } else {
+          this._stampElementWithIcon('blobcache');
         }
 
         eventTarget.dispatchEvent(
@@ -336,14 +431,7 @@
 
           this.renderIconFromBlob(blob);
           this.iconState = 'success';
-          this.detail.defaultIconBlob = blob;
           this._stampElementWithIcon(icon);
-
-          eventTarget.dispatchEvent(
-            new CustomEvent(ICON_BLOB_LOAD_EVENT, {
-              detail: this
-            })
-          );
         }).
         catch((err) => {
           console.error('Error fetching icon', err);
@@ -423,7 +511,7 @@
         }
 
         this.element = tile;
-        this.renderIcon();
+        this.renderIcon(true);
         this.grid.element.appendChild(tile);
       }
 

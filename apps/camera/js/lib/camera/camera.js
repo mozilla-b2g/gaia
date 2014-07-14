@@ -647,16 +647,16 @@ Camera.prototype.release = function(done) {
 
   function onSuccess() {
     debug('successfully released');
-    self.releasing = false;
     self.ready();
     self.emit('released');
+    self.releasing = false;
     done();
   }
 
   function onError(err) {
     debug('failed to release hardware');
-    self.releasing = false;
     self.ready();
+    self.releasing = false;
     done(err);
   }
 };

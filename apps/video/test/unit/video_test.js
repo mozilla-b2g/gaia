@@ -1541,4 +1541,287 @@ suite('Video App Unit Tests', function() {
       assert.equal(rescaleSpy.callCount, 0);
     });
   });
+
+  suite('setControlsVisibility flows', function() {
+    var updateVideoControlSliderSpy;
+    var nativeUpdateVideoControlSlider;
+
+    suiteSetup(function() {
+      nativeUpdateVideoControlSlider = updateVideoControlSlider;
+      updateVideoControlSliderSpy = sinon.spy();
+      updateVideoControlSlider = updateVideoControlSliderSpy;
+    });
+
+    suiteTeardown(function() {
+      updateVideoControlSlider = nativeUpdateVideoControlSlider;
+    });
+
+    teardown(function() {
+      updateVideoControlSliderSpy.reset();
+    });
+
+    /**
+     * On tablet in landscape mode, we always shows the video controls in list
+     * layout. Therefore, in this use case setControlsVisibility will update
+     * video controls slider.
+     */
+    test('#setControlsVisibility: tablet in landscape mode, list view',
+        function() {
+      isPhone = false;
+      isPortrait = false;
+      currentLayoutMode = LAYOUT_MODE.list;
+      setControlsVisibility(false);
+      assert.isTrue(updateVideoControlSliderSpy.calledOnce);
+    });
+
+    /**
+     * On tablet in portrait mode, regardless of the view,
+     * setControlsVisibility will show video controls based on the 'visible'
+     * argument. And therefore, setControlsVisibility will update the video
+     * controls slider based on the value of the 'visible' argument.
+     */
+    test('#setControlsVisibility: tablet in portrait mode, show controls',
+        function() {
+      isPhone = false;
+      isPortrait = true;
+      currentLayoutMode = LAYOUT_MODE.list;
+      setControlsVisibility(true);
+      assert.isTrue(updateVideoControlSliderSpy.calledOnce);
+    });
+
+    /**
+     * On tablet in portrait mode, regardless of the view,
+     * setControlsVisibility will show video controls based on the 'visible'
+     * argument. And therefore, setControlsVisibility will update the video
+     * controls slider based on the value of the 'visible' argument.
+     */
+    test('#setControlsVisibility: tablet in portrait mode, dont show controls',
+        function() {
+      isPhone = false;
+      isPortrait = true;
+      currentLayoutMode = LAYOUT_MODE.list;
+      setControlsVisibility(false);
+      assert.equal(updateVideoControlSliderSpy.callCount, 0);
+    });
+
+    /**
+     * On phone, regardless of the view, setControlsVisibility will show
+     * video controls based on the 'visible' argument. And therefore,
+     * setControlsVisibility will update the video controls slider based on
+     * the value of the 'visible' argument.
+     */
+    test('#setControlsVisibility: phone, landscape, list view, show controls',
+        function() {
+      isPhone = true;
+      isPortrait = false;
+      currentLayoutMode = LAYOUT_MODE.list;
+      setControlsVisibility(true);
+      assert.isTrue(updateVideoControlSliderSpy.calledOnce);
+    });
+
+    test('#setControlsVisibility: phone, portrait, list view, show controls',
+        function() {
+      isPhone = true;
+      isPortrait = true;
+      currentLayoutMode = LAYOUT_MODE.list;
+      setControlsVisibility(true);
+      assert.isTrue(updateVideoControlSliderSpy.calledOnce);
+    });
+
+    test('#setControlsVisibility: phone, portrait, fullscreen, show controls',
+        function() {
+      isPhone = true;
+      isPortrait = false;
+      currentLayoutMode = LAYOUT_MODE.fullscreen;
+      setControlsVisibility(true);
+      assert.isTrue(updateVideoControlSliderSpy.calledOnce);
+    });
+
+    test('#setControlsVisibility: phone, landscape, list, no show controls',
+        function() {
+      isPhone = true;
+      isPortrait = false;
+      currentLayoutMode = LAYOUT_MODE.list;
+      setControlsVisibility(false);
+      assert.equal(updateVideoControlSliderSpy.callCount, 0);
+    });
+  });
+
+  suite('toggleVideoControls flows', function() {
+    var clearTimeoutSpy;
+    var setControlsVisibilitySpy;
+    var nativeSetControlsVisibility;
+    var event = {};
+
+    suiteSetup(function() {
+      clearTimeoutSpy = sinon.spy(window, 'clearTimeout');
+      clearTimeout = clearTimeoutSpy;
+      nativeSetControlsVisibility = setControlsVisibility;
+      setControlsVisibilitySpy = sinon.spy();
+      setControlsVisibility = setControlsVisibilitySpy;
+    });
+
+    suiteTeardown(function() {
+      clearTimeoutSpy.restore();
+    });
+
+    teardown(function() {
+      clearTimeoutSpy.reset();
+      setControlsVisibilitySpy.reset();
+    });
+
+    test('#toggleVideoControls: control fade timeout', function() {
+      controlFadeTimeout = 1;
+      toggleVideoControls(event);
+      assert.isTrue(clearTimeoutSpy.calledOnce);
+      assert.equal(controlFadeTimeout, null);
+    });
+
+    test('#toggleVideoControls: no control fade timeout', function() {
+      controlFadeTimeout = null;
+      toggleVideoControls(event);
+      assert.equal(clearTimeoutSpy.callCount, 0);
+      assert.equal(controlFadeTimeout, null);
+    });
+
+    test('#toggleVideoControls: toggle control showing', function() {
+      pendingPick = false;
+      controlShowing = false;
+      toggleVideoControls(event);
+      assert.isTrue(setControlsVisibilitySpy.calledOnce);
+      assert.isTrue(setControlsVisibilitySpy.calledWith(true));
+      assert.isTrue(event.cancelBubble);
+    });
+
+    test('#toggleVideoControls: toggle control not showing, target not vc',
+        function() {
+      pendingPick = false;
+      controlShowing = true;
+      event.originalTarget = 'some target';
+      toggleVideoControls(event);
+      assert.equal(setControlsVisibilitySpy.callCount, 0);
+    });
+
+    test('#toggleVideoControls: toggle control not showing, target vc',
+        function() {
+      pendingPick = false;
+      controlShowing = true;
+      event.originalTarget = dom.videoControls;
+      toggleVideoControls(event);
+      assert.isTrue(setControlsVisibilitySpy.calledOnce);
+      assert.isTrue(setControlsVisibilitySpy.calledWith(false));
+    });
+
+    test('#toggleVideoControls: pending pick, no toggle',
+        function() {
+      pendingPick = true;
+      toggleVideoControls(event);
+      assert.equal(setControlsVisibilitySpy.callCount, 0);
+    });
+  });
+
+  /*
+   * updateSelection is called when entering thumbnail selection mode, or
+   * when the selection changes. The function updates the message the top
+   * of the screen and enables or disables the Delete and Share buttons.
+   */
+  suite('updateSelection flows', function() {
+    var videodata = {};
+    var videoBlob;
+
+    suiteSetup(function(done) {
+      videodata = {'name': videoName};
+
+      MockThumbnailGroup.reset();
+      var dummyContainer = document.createElement('div');
+
+      thumbnailList = new ThumbnailList(MockThumbnailGroup, dummyContainer);
+      thumbnailList.addItem({'name': videodata.name});
+
+      getAsset('/test/unit/media/test.webm', function(blob) {
+        videoBlob = blob;
+        videodb = new MockMediaDB(videoBlob);
+        done();
+      });
+    });
+
+    setup(function() {
+      selectedFileNames = [];
+      selectedFileNamesToBlobs = {};
+    });
+
+    test('#updateSelection: toggle thumbnail as selected', function() {
+      var thumbnail = thumbnailList.thumbnailMap[videodata.name];
+      thumbnail.htmlNode.classList.remove('selected'); // not selected
+      updateSelection(videodata);
+      assert.isTrue(thumbnail.htmlNode.classList.contains('selected'),
+                    'thumbnail should contain \'selected\' class');
+    });
+
+    test('#updateSelection: toggle thumbnail as not selected', function() {
+      var thumbnail = thumbnailList.thumbnailMap[videodata.name];
+      thumbnail.htmlNode.classList.add('selected'); // selected
+      updateSelection(videodata);
+      assert.isFalse(thumbnail.htmlNode.classList.contains('selected'),
+                     'thumbnail should not contain \'selected\' class');
+    });
+
+    test('#updateSelection: update (add to) selected filenames', function() {
+      var thumbnail = thumbnailList.thumbnailMap[videodata.name];
+      thumbnail.htmlNode.classList.remove('selected'); // not selected
+      updateSelection(videodata);
+      assert.equal(selectedFileNames.length, 1,
+                   'should be one selected file');
+      assert.equal(selectedFileNames[0], videodata.name,
+                   'name of selected file should be name of videodata');
+      assert.equal(selectedFileNamesToBlobs[videodata.name], videoBlob,
+                   'blob associated with videodata name should be video blob');
+    });
+
+    test('#updateSelection: update (remove) selected filenames', function() {
+      var thumbnail = thumbnailList.thumbnailMap[videodata.name];
+      thumbnail.htmlNode.classList.add('selected'); // selected
+      updateSelection(videodata);
+      assert.equal(selectedFileNames.length, 0,
+                   'shouldnt be any selected files');
+      assert.equal(selectedFileNamesToBlobs[videodata.name], undefined,
+                   'no blob associated with videodata name');
+    });
+
+    /*
+     * IMPORTANT. The following test relies on the output of the
+     * previous test. That is, this test relies on there being
+     * no thumbnail selected; the previous test 'deselected' the
+     * thumbnail that was selected.
+     */
+    test('#updateSelection: update UI, thumbnail is selected', function() {
+      dom.thumbnailsDeleteButton.classList.add('disabled');
+      dom.thumbnailsShareButton.classList.add('disabled');
+
+      updateSelection(videodata);
+      assert.equal(dom.thumbnailsNumberSelected.textContent,
+                   'number-selected2{"n":1}',
+                   'there should be one thumbnail selected');
+      assert.isFalse(containsClass(dom.thumbnailsDeleteButton, 'disabled'),
+                     'thumbnail delete button should be enabled');
+      assert.isFalse(containsClass(dom.thumbnailsShareButton, 'disabled'),
+                     'thumbnail share button should be enabled');
+    });
+
+    /*
+     * IMPORTANT. The following test relies on the output of the
+     * previous test. That is, this test relies on there being
+     * a selected thumbnail, which happens during the previous test.
+     */
+    test('#updateSelection: update UI, no thumbnail is selected', function() {
+      updateSelection(videodata);
+      assert.equal(dom.thumbnailsNumberSelected.textContent,
+                   'number-selected2{"n":0}',
+                   'there shouldnt be any thumbnails selected');
+      assert.isTrue(containsClass(dom.thumbnailsDeleteButton, 'disabled'),
+                    'thumbnail delete button should be disabled');
+      assert.isTrue(containsClass(dom.thumbnailsShareButton, 'disabled'),
+                    'thumbnail share button should be disabled');
+    });
+  });
 });

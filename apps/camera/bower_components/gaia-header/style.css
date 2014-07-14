@@ -1,0 +1,164 @@
+
+/**
+ * Gaia Header
+ */
+
+gaia-header {
+  display: block;
+}
+
+/** Inner
+ ---------------------------------------------------------*/
+
+.inner {
+  display: flex;
+  min-height: 50px;
+  background: var(--header-background, #fff);
+}
+
+/** Action Button
+ ---------------------------------------------------------*/
+
+/**
+ * 1. Hidden by default
+ */
+
+.action-button {
+  display: none; /* 1 */
+  align-items: center;
+  min-width: 50px;
+  font-size: 40px;
+  border: none;
+  color: var(--header-nav-button-color, #000);
+}
+
+/**
+ * .action-supported
+ *
+ * 1. For icon vertical-alignment
+ */
+
+.action-supported .action-button {
+  display: flex; /* 1 */
+}
+
+/**
+ * :active
+ */
+
+.action-button:active {
+  color: var(--header-nav-button-color-active, #fff);
+}
+
+/** Action Button Icon
+ ---------------------------------------------------------*/
+
+/**
+ * 1. To enable vertical alignment.
+ */
+
+.action-button:before {
+  display: block;
+}
+
+
+/** Title
+ ---------------------------------------------------------*/
+
+.content h1 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  margin: 0;
+  padding: 0 16px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  text-align: center;
+  font-weight: 300;
+  font-style: italic;
+  font-size: 24px;
+  color: var(--header-title-color, #000);
+}
+
+/** Buttons
+ ---------------------------------------------------------*/
+
+a,
+button,
+.content a,
+.content button {
+  display: block;
+  border: none;
+  width: auto;
+  height: auto;
+  margin: 0;
+  padding: 0;
+  font-size: 14px;
+  min-width: 50px;
+  text-decoration: none;
+  text-align: center;
+  background: none;
+  border-radius: 0;
+  color: var(--header-button-color, #000);
+  font-style: italic;
+  transition: var(--button-transition);
+  transition-delay: var(--button-transition-delay);
+}
+
+/**
+ * :active
+ */
+
+a:active,
+button:active,
+.content a:active,
+.content button:active {
+  background: var(--header-button-background, #000);
+  color: var(--header-button-color-active, #fff);
+  transition: none;
+}
+
+/**
+ * :focus
+ */
+
+a:focus,
+.content a:focus {
+  outline: none;
+}
+
+/** Icon Buttons
+ ---------------------------------------------------------*/
+
+/**
+ * Icons are a different color to text
+ */
+
+.content [class*="icon-"] {
+  color: var(--header-nav-button-color, #000);
+}
+
+/**
+ * :active
+ */
+
+.content [class*="icon-"]:active {
+  color: var(--header-nav-button-color-active, #fff);
+}
+
+/** Icons
+ ---------------------------------------------------------*/
+
+[class^="icon-"]:before,
+[class*="icon-"]:before {
+  font-family: "gaia-icons";
+  font-weight: normal;
+  font-style: normal;
+  text-rendering: optimizeLegibility;
+}
+
+.icon-back:before { content: 'back'; }
+.icon-menu:before { content: 'menu'; }
+.icon-close:before { content: 'close'; }

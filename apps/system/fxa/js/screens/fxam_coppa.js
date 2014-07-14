@@ -9,7 +9,7 @@
  * error.
  */
 
-/* global FxaModuleUI, FxaModule, FxaModuleStates */
+/* global FxaModuleUI, FxaModule, FxaModuleStates, FxaModuleNavigation */
 /* exported FxaModuleCoppa */
 
 var FxaModuleCoppa = (function() {
@@ -32,14 +32,15 @@ var FxaModuleCoppa = (function() {
 
     _enableNext(this.fxaAgeSelect.value);
 
+    // If COPPA is part of the sign up flow, then we need to add a step to the
+    // progress bar. Don't increment if the user is moving backwards, though.
+    if (!FxaModuleNavigation.backAnim) {
+      FxaModuleUI.increaseMaxStepsBy(1);
+    }
+
     if (this.initialized) {
       return;
     }
-
-    // By default, the sign in flow has 3 steps. If the login flow turns into a
-    // a sign up one, we need to increment the number of steps in one because
-    // of the introduction of the COPPA screen.
-    FxaModuleUI.increaseMaxStepsBy(1);
 
     this.fxaAgeSelect.addEventListener('change', (function onSelectChange(e) {
       _enableNext(this.fxaAgeSelect.value);
@@ -56,6 +57,10 @@ var FxaModuleCoppa = (function() {
       return;
     }
     gotoNextStepCallback(FxaModuleStates.SET_PASSWORD);
+  };
+
+  Module.onBack = function onBack() {
+    FxaModuleUI.decreaseMaxStepsBy(1);
   };
 
   return Module;

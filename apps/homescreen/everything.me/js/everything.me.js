@@ -41,6 +41,9 @@ var EverythingME = {
 
     // insert into first page
     gridPage.insertBefore(activationIcon, gridPage.firstChild);
+    // Capture clicks on the gridPage and handle everything.me's searchbar's and
+    // helper's visibility.
+    gridPage.addEventListener('click', gridClicked);
 
     // Append appropriate placeholder translation to pseudo searchbar
     navigator.mozL10n.ready(function loadSearchbarValue() {
@@ -104,6 +107,12 @@ var EverythingME = {
       } else {
         loadCollectionAssets();
       }
+    }
+
+    function gridClicked(e) {
+      window.dispatchEvent(new CustomEvent('gridclicked', {
+        detail: { data: e }
+      }));
     }
 
     function loadCollectionAssets() {

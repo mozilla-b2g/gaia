@@ -144,9 +144,6 @@ body:not(.evme-loading):not(.evme-ready) #collection .evme-apps {
         cursor: pointer;
         z-index: 100;
     }
-    .evmeScope #collection.renaming .header .close {
-      pointer-events: none;
-    }
     .evmeScope #collection .header .done {
         background: transparent url('/everything.me/images/done_icon.png') no-repeat 1.7rem 50%/3rem;
         position: absolute;

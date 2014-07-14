@@ -12,10 +12,19 @@
 
     // XXX Remove in https://bugzil.la/1020137
     localize: function(element, id, args) {
-      element.setAttribute('data-l10n-id', id);
+      if (id) {
+        element.setAttribute('data-l10n-id', id);
+      } else {
+        element.removeAttribute('data-l10n-id');
+        element.removeAttribute('data-l10n-args');
+        element.textContent = '';
+      }
       if (args) {
         element.setAttribute('data-l10n-args', JSON.stringify(args));
+      } else {
+        element.removeAttribute('data-l10n-args');
       }
+      element.textContent = id + (args ? JSON.stringify(args) : '');
     },
 
     setAttributes: function(element, id, args) {
@@ -45,7 +54,17 @@
       direction: 'ltr'
     },
 
-    DateTimeFormat: function() {}
+    DateTimeFormat: function() {
+      // Support navigator.mozL10n.DateTimeFormat() without new the object.
+      if (!this.localeFormat) {
+        var localeFormat = function mockLocaleFormat(time, strFormat) {
+          return '' + time;
+        };
+        return {
+          localeFormat: localeFormat
+        };
+      }
+    }
   };
 
   // Defining methods on the prototype allows to spy on them in tests

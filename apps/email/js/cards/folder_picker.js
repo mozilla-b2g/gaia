@@ -9,7 +9,6 @@ var templateNode = require('tmpl!./folder_picker.html'),
     common = require('mail_common'),
     model = require('model'),
     evt = require('evt'),
-    mozL10n = require('l10n!'),
     Cards = common.Cards,
     bindContainerHandler = common.bindContainerHandler,
     addClass = common.addClass,
@@ -94,8 +93,6 @@ FolderPickerCard.prototype = {
         this.curAccount = account;
 
         // - DOM!
-        this.updateSelfDom();
-
         // update header
         this.domNode
             .getElementsByClassName('fld-acct-header-account-label')[0]
@@ -288,13 +285,6 @@ FolderPickerCard.prototype = {
       self.updateFolderDom(folder, true);
       foldersContainer.insertBefore(folderNode, insertBuddy);
     });
-  },
-
-  updateSelfDom: function(isAccount) {
-    var str = isAccount ? mozL10n.get('settings-account-section') :
-      this.curAccount.name;
-    this.domNode.getElementsByClassName('fld-acct-header-account-label')[0]
-      .textContent = str;
   },
 
   updateFolderDom: function(folder, firstTime) {

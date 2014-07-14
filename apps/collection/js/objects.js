@@ -61,7 +61,7 @@
 
     // for rendering pinned homescreen apps/bookmarks
     if (window.HomeIcons) {
-      this.homeIcons = new HomeIcons();
+      this.homeIcons = props.homeIcons || new HomeIcons();
       this.homeIcons.init();
     }
   }
@@ -73,37 +73,6 @@
       return new QueryCollection(data);
     }
     return null;
-  };
-
-  BaseCollection.getBackground = function getBackground(collection, iconSize) {
-    var src;
-    var options = {
-      width: iconSize,
-      height: iconSize
-    };
-
-    if (collection.categoryId) {
-      options.categoryId = collection.categoryId;
-    }
-    else {
-      options.query = collection.query;
-    }
-
-    return eme.api.Search.bgimage(options).then(function success(response) {
-      var image = response.response.image;
-      if (image) {
-        src = image.data;
-        if (/image\//.test(image.MIMEType)) {  // base64 image data
-          src = 'data:' + image.MIMEType + ';base64,' + image.data;
-        }
-      }
-
-      return {
-        src: src,
-        source: response.response.source,
-        checksum: response.checksum || null
-      };
-    });
   };
 
   BaseCollection.prototype = {
@@ -326,6 +295,20 @@
           grid.add(icon);
         }
       }, this);
+    },
+
+    addItemToGrid: function prependItemToGrid(item, grid, position) {
+      this.pinned.slice(position, 1, new PinnedHomeIcon(item.identifier));
+
+      grid.add(this.toGridObject(item), position);
+
+      // Add a divider if it's our first pinned result.
+      if (this.pinned.length === 1) {
+        grid.add(new GaiaGrid.Divider(), 1);
+      }
+
+      grid.render();
+      this.renderIcon();
     },
 
     renderWebResults: function render(grid) {

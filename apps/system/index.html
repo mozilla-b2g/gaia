@@ -45,8 +45,8 @@
     -->
 
     <!-- SIMSlot -->
-    <script type="text/javascript" defer src="js/simslot.js"></script>
-    <script type="text/javascript" defer src="js/simslot_manager.js"></script>
+    <script type="text/javascript" defer src="shared/js/simslot.js"></script>
+    <script type="text/javascript" defer src="shared/js/simslot_manager.js"></script>
     <script type="text/javascript" defer src="js/sim_settings_helper.js"></script>
 
 
@@ -176,7 +176,7 @@
     <!-- LockScreen -->
     <link rel="stylesheet" type="text/css" href="style/lockscreen/lockscreen.css">
     <script defer src="/shared/js/lockscreen_slide.js"></script>
-    <script defer src="js/lockscreen_connection_info_manager.js"></script>
+    <script defer src="/shared/js/lockscreen_connection_info_manager.js"></script>
     <script defer src="js/lockscreen.js"></script>
 
     <!-- Airplane Mode -->
@@ -312,6 +312,7 @@
     <!-- Windows -->
     <!-- Any module that wants to intercept the Home button and prevent the -->
     <!-- homescreen from being displayed must come before this script. -->
+    <link rel="stylesheet" type="text/css" href="style/window_layout.css">
     <link rel="stylesheet" type="text/css" href="style/window.css">
     <script defer src="js/base_ui.js"></script>
     <script defer src="js/browser_context_menu.js"></script>
@@ -423,10 +424,10 @@
           </div>
           <button type="button" id="rocketbar-overflow-button"></button>
           <form id="rocketbar-form" class="hidden">
-            <input id="rocketbar-input" type="text" x-inputmode="verbatim"
+            <input id="rocketbar-input" type="text" x-inputmode="verbatim" dir="auto"
               placeholder="Search or enter address" data-l10n-id="search-or-enter-address" value="">
             </input>
-            <button type="button" id="rocketbar-clear"></button>
+            <button type="button" id="rocketbar-clear" data-l10n-id="clear" aria-label="Clear"></button>
             <button type="button" id="rocketbar-cancel"
                     data-l10n-id="close">Close</button>
           </form>
@@ -1163,7 +1164,7 @@
           </header>
           <form>
             <p id="icc-input-msg"></p>
-            <input id="icc-input-box" required="" type="text"></input>
+            <input id="icc-input-box" required="" type="text" dir="auto"></input>
           </form>
           <menu>
             <button type="button" data-l10n-id="close" id="icc-input-btn_close">Close</button>

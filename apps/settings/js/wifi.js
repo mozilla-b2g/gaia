@@ -721,7 +721,8 @@ navigator.mozL10n.once(function wifiSettings() {
   // load the imported certificates into select options
   function loadImportedCertificateOptions(select) {
     // reset the option to be <option value="none">--</option> only
-    for (var i = 0; i < select.options.length - 1; i++) {
+    var originLengthOfOptions = select.options.length;
+    for (var i = 0; i < originLengthOfOptions - 1; i++) {
       select.remove(1);
     }
 

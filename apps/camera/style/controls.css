@@ -15,7 +15,12 @@
   width: 100%;
   padding-bottom: 1rem;
   overflow: hidden;
+  opacity: 0;
   transition: opacity 100ms;
+}
+
+.controls.visible {
+  opacity: 1;
 }
 
 /**
@@ -366,7 +371,6 @@
   line-height: 10.2rem;
   text-align: center;
   color: #81ACB6;
-  content: "\e60f";
 }
 
 /**
@@ -391,7 +395,7 @@
  */
 
 .controls.mode-video .capture-button .center:before {
-  content: '';
+  content: "";
   top: calc(50% - 1rem);
   left: calc(50% - 1rem);
   width: 2.001rem; /* 1 */

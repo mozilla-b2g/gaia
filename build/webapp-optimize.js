@@ -5,7 +5,7 @@
  * 1. Inline embeded html from <link rel="import" href="test.html" name="name">
  *    into html and commented (<!--CONTENT-->).
  * 2. Embed l10n resource in script tag to html.
- * 3. Concat l10n resource to json files and put them as link and attach to 
+ * 3. Concat l10n resource to json files and put them as link and attach to
  *    html.
  * 4. Aggregate and uglify all JS files used in html to one JS file.
  * 5. Optimize inline JS/CSS content.
@@ -15,7 +15,7 @@ var utils = require('./utils');
 var jsmin = require('./jsmin');
 /**
  * HTMLOptimizer will optimize all the resources of HTML, including javascripts,
- * 
+ *
  */
 var HTMLOptimizer = function(options) {
   this.htmlFile = options.htmlFile;
@@ -96,6 +96,7 @@ HTMLOptimizer.prototype._optimize = function() {
 
 
   this.embedHtmlImports();
+  this.optimizeDeviceTypeCSS();
 
   var jsAggregationBlacklist = this.optimizeConfig.JS_AGGREGATION_BLACKLIST;
   if (this.config.GAIA_OPTIMIZE === '1' &&
@@ -109,7 +110,7 @@ HTMLOptimizer.prototype._optimize = function() {
   var globalVarWhiltelist = this.optimizeConfig.INLINE_GLOBAL_VAR_WHITELIST;
   if (globalVarWhiltelist[this.webapp.sourceDirectoryName] &&
        globalVarWhiltelist[this.webapp.sourceDirectoryName]
-         .indexOf(this.htmlFile.leafName) !== -1){
+         .indexOf(this.htmlFile.leafName) !== -1) {
     this.embededGlobals();
   }
 
@@ -174,9 +175,9 @@ HTMLOptimizer.prototype._proceedLocales = function() {
  * *** index.html ***
  * <link rel="import" href="test.html">
  * <section is="test"></section>
- * 
+ *
  * ---- after -----
- * *** index.html *** 
+ * *** index.html ***
  * <section><!--SOMETHING--></section>
  *
  * Note: one link can have multiple elements, but one lement can only have one
@@ -477,6 +478,19 @@ HTMLOptimizer.prototype.inlineCSSResources = function() {
     oldStyle.parentNode.insertBefore(newStyle, oldStyle);
     oldStyle.parentNode.removeChild(oldStyle);
   }, this);
+};
+
+/**
+ * Removes stylesheets that are not relevant for the current device
+ */
+HTMLOptimizer.prototype.optimizeDeviceTypeCSS = function() {
+  var doc = this.win.document;
+  let links = doc.querySelectorAll('link[data-device-type]');
+  Array.prototype.forEach.call(links, function(el) {
+    if (el.dataset.deviceType !== this.config.GAIA_DEVICE_TYPE) {
+      el.parentNode.removeChild(el);
+    }
+  }.bind(this));
 };
 
 /**

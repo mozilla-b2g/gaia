@@ -1,6 +1,6 @@
 /* global AppWindow, ScreenLayout, MockOrientationManager,
-      LayoutManager, MocksHelper, MockAttentionScreen, MockContextMenu,
-      AppChrome, ActivityWindow, PopupWindow, layoutManager */
+      LayoutManager, MocksHelper, MockContextMenu,
+      AppChrome, layoutManager */
 'use strict';
 
 requireApp('system/test/unit/mock_orientation_manager.js');
@@ -13,15 +13,13 @@ requireApp('system/test/unit/mock_layout_manager.js');
 requireApp('system/test/unit/mock_app_chrome.js');
 requireApp('system/test/unit/mock_screen_layout.js');
 requireApp('system/test/unit/mock_popup_window.js');
-requireApp('system/test/unit/mock_attention_screen.js');
 requireApp('system/test/unit/mock_activity_window.js');
 requireApp('system/test/unit/mock_statusbar.js');
 
 var mocksForAppWindow = new MocksHelper([
   'OrientationManager', 'Applications', 'SettingsListener',
   'ManifestHelper', 'LayoutManager', 'ActivityWindow',
-  'ScreenLayout', 'AppChrome', 'PopupWindow', 'AttentionScreen',
-  'StatusBar'
+  'ScreenLayout', 'AppChrome', 'PopupWindow', 'StatusBar'
 ]).init();
 
 suite('system/AppWindow', function() {
@@ -1200,6 +1198,27 @@ suite('system/AppWindow', function() {
       assert.isTrue(spyClose.calledWith('out-to-right'));
     });
 
+    test('No transition when the callee is caller', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      var spyOpen = this.sinon.spy(app1, 'open');
+      var spyClose = this.sinon.spy(app1, 'close');
+      var stubIsActive = this.sinon.stub(app1, 'isActive');
+      app1.setCalleeWindow(app1);
+      stubIsActive.returns(true);
+
+      assert.deepEqual(app1.calleeWindow, app1);
+      assert.deepEqual(app1.callerWindow, app1);
+
+      app1.handleEvent({
+        type: 'mozbrowseractivitydone'
+      });
+
+      assert.isNull(app1.calleeWindow);
+      assert.isNull(app1.callerWindow);
+      assert.isFalse(spyOpen.calledWith('in-from-left'));
+      assert.isFalse(spyClose.calledWith('out-to-right'));
+    });
+
     test('We should open the base window if we are not', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       var app1Base = new AppWindow(fakeAppConfig2);
@@ -1219,6 +1238,20 @@ suite('system/AppWindow', function() {
 
       assert.isTrue(spyOpen.calledWith('in-from-left'));
       assert.isTrue(spyClose.calledWith('out-to-right'));
+    });
+
+    test('Destroy should clear rearWindow.', function() {
+      var popups = openPopups(2);
+      popups[1].destroy();
+      assert.isNull(popups[0].frontWindow);
+      assert.isNull(popups[1].rearWindow);
+    });
+
+    test('Destroy should clear previousWindow.', function() {
+      var sheets = openSheets(2);
+      sheets[1].destroy();
+      assert.isNull(sheets[0].nextWindow);
+      assert.isNull(sheets[1].previousWindow);
     });
 
     test('Error event', function() {
@@ -1304,8 +1337,6 @@ suite('system/AppWindow', function() {
       assert.isTrue(stubOpenParent.calledWith('in-from-left'));
       assert.isTrue(stubCloseSelf.calledWith('out-to-right'));
       assert.isTrue(stubKillChild.called);
-      assert.isNull(app1.previousWindow);
-      assert.isNull(app1parent.nextWindow);
       assert.isNull(app1.nextWindow);
 
       var stubDestroy = this.sinon.stub(app1, 'destroy');
@@ -1348,28 +1379,6 @@ suite('system/AppWindow', function() {
       app1.config.url = url;
     });
 
-    suite('kill behavior with events', function() {
-      var app, evt, spyStopPropagation;
-
-      setup(function() {
-        app = new AppWindow(fakeAppConfig1);
-        evt = new CustomEvent('mozbrowserlocationchange',
-          { detail: 'http://fakeURL.changed' });
-        spyStopPropagation = this.sinon.spy(evt, 'stopPropagation');
-      });
-
-      test('no kill', function() {
-        app.handleEvent(evt);
-        assert.isTrue(spyStopPropagation.notCalled);
-      });
-
-      test('under kill', function() {
-        app.kill();
-        app.handleEvent(evt);
-        assert.isTrue(spyStopPropagation.called);
-      });
-    });
-
     test('Scroll event', function() {
       var app4 = new AppWindow(fakeAppConfig4);
       app4.manifest = null;
@@ -1407,6 +1416,22 @@ suite('system/AppWindow', function() {
       assert.isTrue(stubPublish.calledWith('foreground'));
     });
 
+    test('metachange event (brand-color)', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      var stubPublish = this.sinon.stub(app1, 'publish');
+
+      app1.handleEvent({
+        type: 'mozbrowsermetachange',
+        detail: {
+          name: 'brand-color',
+          content: 'transparent'
+        }
+      });
+
+      assert.equal(app1.brandColor, 'transparent');
+      assert.isTrue(stubPublish.calledOnce);
+    });
+
     test('Localized event', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       var spyManifestHelper = this.sinon.stub(window, 'ManifestHelper');
@@ -1423,6 +1448,32 @@ suite('system/AppWindow', function() {
       assert.isTrue(spyManifestHelper.calledWithExactly(app1.manifest));
       assert.isTrue(stubPublish.calledWithExactly('namechanged'));
       assert.equal(app1.identificationTitle.textContent, 'Mon Application');
+    });
+
+    test('Titilechange event', function() {
+      var app1 = new AppWindow(fakeWrapperConfig);
+      var stubPublish = this.sinon.stub(app1, 'publish');
+
+      app1.handleEvent({
+        type: 'mozbrowsertitlechange',
+        detail: 'newtitile'
+      });
+
+      assert.isTrue(stubPublish.calledWithExactly('titlechange'));
+      assert.equal(
+        app1.identificationTitle.textContent, 'newtitile',
+        'title should be changed since it is not an app'
+      );
+
+      var app2 = new AppWindow(fakeAppConfig1);
+      app2.handleEvent({
+        type: 'mozbrowsertitlechange',
+        detail: 'newtitile'
+      });
+      assert.equal(
+        app2.identificationTitle.textContent, '',
+        'title should not be changed since it is an app'
+      );
     });
 
     test('Orientation change event on app', function() {
@@ -1483,7 +1534,7 @@ suite('system/AppWindow', function() {
       app1.width = 320;
       app1.height = 480;
       layoutManager.width = 480;
-      layoutManager.height = 300;
+      layoutManager.height = 320;
 
       app1.handleEvent({
         type: '_orientationchange'
@@ -1529,76 +1580,6 @@ suite('system/AppWindow', function() {
       });
 
       assert.isTrue(switchTransitionState.calledWith('closed'));
-    });
-
-    test('popupclosing event', function() {
-      var app1 = new AppWindow(fakeAppConfig1);
-      var spyLockOrientation = this.sinon.spy(app1, 'lockOrientation');
-      var spySetVisible = this.sinon.spy(app1, 'setVisible');
-      var stubIsActive = this.sinon.stub(app1, 'isActive');
-      stubIsActive.returns(true);
-      MockAttentionScreen.mFullyVisible = false;
-
-      app1.handleEvent({
-        type: 'popupclosing'
-      });
-
-      assert.isTrue(spyLockOrientation.called);
-      assert.isTrue(spySetVisible.called);
-    });
-
-    test('activityclosing event', function() {
-      var app1 = new AppWindow(fakeAppConfig1);
-      var spyLockOrientation = this.sinon.spy(app1, 'lockOrientation');
-      var spySetVisible = this.sinon.spy(app1, 'setVisible');
-      var stubIsActive = this.sinon.stub(app1, 'isActive');
-      stubIsActive.returns(true);
-      MockAttentionScreen.mFullyVisible = false;
-
-      app1.handleEvent({
-        type: 'activityclosing'
-      });
-
-      assert.isTrue(spyLockOrientation.called);
-      assert.isTrue(spySetVisible.called);
-    });
-
-    test('activityclosing event when attention screen is shown', function() {
-      var app1 = new AppWindow(fakeAppConfig1);
-      var spyLockOrientation = this.sinon.spy(app1, 'lockOrientation');
-      var spySetVisible = this.sinon.spy(app1, 'setVisible');
-      var stubIsActive = this.sinon.stub(app1, 'isActive');
-      stubIsActive.returns(true);
-      MockAttentionScreen.mFullyVisible = true;
-
-      app1.handleEvent({
-        type: 'activityclosing'
-      });
-
-      assert.isTrue(spyLockOrientation.called);
-      assert.isFalse(spySetVisible.called);
-    });
-
-    test('activityterminated event', function() {
-      var app1 = new AppWindow(fakeAppConfig1);
-      var activity = new ActivityWindow({});
-      app1.frontWindow = activity;
-      app1.handleEvent({
-        type: 'activityterminated'
-      });
-
-      assert.isNull(app1.frontWindow);
-    });
-
-    test('popupterminated event', function() {
-      var app1 = new AppWindow(fakeAppConfig1);
-      var popup = new PopupWindow({});
-      app1.frontWindow = popup;
-      app1.handleEvent({
-        type: 'popupterminated'
-      });
-
-      assert.isNull(app1.frontWindow);
     });
   });
 

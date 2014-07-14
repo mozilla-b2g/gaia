@@ -2746,80 +2746,123 @@ suite('thread_ui.js >', function() {
   suite('renderMessages()', function() {
     setup(function() {
       this.sinon.stub(MessageManager, 'getMessages');
-      this.sinon.stub(MessageManager, 'markThreadRead');
-      ThreadUI.renderMessages(1);
+
+      ThreadUI.initializeRendering();
     });
 
-    test('we mark messages as read', function() {
-      MessageManager.getMessages.yieldTo('done');
-      this.sinon.clock.tick();
-      assert.ok(MessageManager.markThreadRead.calledWith(1));
-    });
+    suite('nominal behavior', function() {
+      setup(function() {
+        ThreadUI.renderMessages(1);
+      });
 
-    test('infinite rendering test', function() {
-      var chunkSize = ThreadUI.CHUNK_SIZE;
-      var message;
+      test('infinite rendering test', function() {
+        var chunkSize = ThreadUI.CHUNK_SIZE;
+        var message;
 
-      for (var i = 1; i < chunkSize; i++) {
-        MessageManager.getMessages.yieldTo('each', MockMessages.sms({ id: i }));
+        for (var i = 1; i < chunkSize; i++) {
+          MessageManager.getMessages.yieldTo(
+            'each', MockMessages.sms({ id: i })
+          );
+          message = document.getElementById('message-' + i);
+          assert.ok(
+            message.classList.contains('hidden'),
+            'message-' + i + ' should be hidden'
+          );
+        }
+
+        MessageManager.getMessages.yieldTo(
+          'each', MockMessages.sms({ id: i })
+        );
+
+        assert.isNull(
+          container.querySelector('.hidden'),
+          'all previously hidden messages should now be displayed'
+        );
+
+        MessageManager.getMessages.yieldTo(
+          'each', MockMessages.sms({ id: ++i })
+        );
+
         message = document.getElementById('message-' + i);
         assert.ok(
           message.classList.contains('hidden'),
           'message-' + i + ' should be hidden'
         );
-      }
+      });
 
-      MessageManager.getMessages.yieldTo(
-        'each', MockMessages.sms({ id: i })
-      );
+      suite('scrolling behavior for first chunk', function() {
+        setup(function() {
+          this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
+          Navigation.isCurrentPanel.withArgs('thread').returns(true);
 
-      assert.isNull(
-        container.querySelector('.hidden'),
-        'all previously hidden messages should now be displayed'
-      );
+          this.sinon.stub(HTMLElement.prototype, 'scrollIntoView');
 
-      MessageManager.getMessages.yieldTo(
-        'each', MockMessages.sms({ id: ++i })
-      );
+          for (var i = 1; i < ThreadUI.CHUNK_SIZE; i++) {
+            MessageManager.getMessages.yieldTo(
+              'each', MockMessages.sms({ id: i })
+            );
+          }
+        });
 
-      message = document.getElementById('message-' + i);
-      assert.ok(
-        message.classList.contains('hidden'),
-        'message-' + i + ' should be hidden'
-      );
+        test('should scroll to the end', function() {
+          MessageManager.getMessages.yieldTo(
+            'each', MockMessages.sms({ id: ThreadUI.CHUNK_SIZE })
+          );
+
+          sinon.assert.called(HTMLElement.prototype.scrollIntoView);
+        });
+
+        test('should not scroll to the end if in the wrong panel', function() {
+          Navigation.isCurrentPanel.withArgs('thread').returns(false);
+
+          MessageManager.getMessages.yieldTo(
+            'each', MockMessages.sms({ id: ThreadUI.CHUNK_SIZE })
+          );
+
+          sinon.assert.notCalled(HTMLElement.prototype.scrollIntoView);
+        });
+      });
     });
 
-    suite('scrolling behavior for first chunk', function() {
+    suite('calling stopRendering then renderMessages', function() {
       setup(function() {
-        this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
-        Navigation.isCurrentPanel.withArgs('thread').returns(true);
+        ThreadUI.stopRendering();
+        ThreadUI.renderMessages(1);
+      });
 
-        this.sinon.stub(HTMLElement.prototype, 'scrollIntoView');
+      test('getMessages should not be called', function() {
+        sinon.assert.notCalled(MessageManager.getMessages);
+      });
+    });
+  });
 
-        for (var i = 1; i < ThreadUI.CHUNK_SIZE; i++) {
-          MessageManager.getMessages.yieldTo(
-            'each', MockMessages.sms({ id: i })
-          );
+  suite('more complex renderMessages behavior,', function() {
+    var transitionArgs;
+
+    setup(function() {
+      Threads.set(1, {
+        participants: ['999']
+      });
+
+      transitionArgs = {
+        id: '1',
+        meta: {
+          next: { panel: 'thread', args: { id: '1' } },
+          prev: { panel: 'thread-list', args: {} }
         }
-      });
+      };
+    });
 
-      test('should scroll to the end', function() {
-        MessageManager.getMessages.yieldTo(
-          'each', MockMessages.sms({ id: ThreadUI.CHUNK_SIZE })
-        );
+    test('renderMessages does not render if we pressed back', function() {
+      this.sinon.stub(MessageManager, 'getMessages');
+      this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
 
-        sinon.assert.called(HTMLElement.prototype.scrollIntoView);
-      });
+      ThreadUI.beforeEnter(transitionArgs);
+      document.getElementById('messages-back-button').click();
 
-      test('should not scroll to the end if in the wrong panel', function() {
-        Navigation.isCurrentPanel.withArgs('thread').returns(false);
-
-        MessageManager.getMessages.yieldTo(
-          'each', MockMessages.sms({ id: ThreadUI.CHUNK_SIZE })
-        );
-
-        sinon.assert.notCalled(HTMLElement.prototype.scrollIntoView);
-      });
+      Navigation.isCurrentPanel.withArgs('thread').returns(true);
+      ThreadUI.afterEnter(transitionArgs);
+      sinon.assert.notCalled(MessageManager.getMessages);
     });
   });
 
@@ -4382,6 +4425,55 @@ suite('thread_ui.js >', function() {
 
             assert.equal(calls.length, 1);
             assert.equal(calls[0].header, '777');
+            assert.equal(calls[0].items.length, 4);
+            assert.equal(typeof calls[0].complete, 'function');
+          });
+
+          test('Known recipient email', function() {
+            MockSettings.supportEmailRecipient = true;
+            this.sinon.spy(ContactRenderer.prototype, 'render');
+
+            Threads.set(1, {
+              participants: ['a@b.com']
+            });
+
+            headerText.dataset.isContact = true;
+            headerText.dataset.number = 'a@b.com';
+
+            ThreadUI.onHeaderActivation();
+
+            var calls = MockOptionMenu.calls;
+
+            assert.equal(calls.length, 1);
+
+            // contacts do not show up in the body
+            assert.isUndefined(calls[0].section);
+
+            // contacts show up in the header
+            sinon.assert.calledWithMatch(ContactRenderer.prototype.render, {
+              target: calls[0].header
+            });
+
+            assert.equal(calls[0].items.length, 3);
+            assert.equal(typeof calls[0].complete, 'function');
+          });
+
+          test('Unknown recipient email', function() {
+            MockSettings.supportEmailRecipient = true;
+
+            Threads.set(1, {
+              participants: ['a@b']
+            });
+
+            headerText.dataset.isContact = false;
+            headerText.dataset.number = 'a@b';
+
+            ThreadUI.onHeaderActivation();
+
+            var calls = MockOptionMenu.calls;
+
+            assert.equal(calls.length, 1);
+            assert.equal(calls[0].header, 'a@b');
             assert.equal(calls[0].items.length, 4);
             assert.equal(typeof calls[0].complete, 'function');
           });
@@ -6220,6 +6312,7 @@ suite('thread_ui.js >', function() {
 
       this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
       this.sinon.stub(ThreadListUI, 'mark');
+      this.sinon.stub(MessageManager, 'markThreadRead');
       this.sinon.stub(ThreadUI, 'renderMessages');
       this.sinon.stub(Threads, 'get').returns({});
       this.sinon.stub(Compose, 'fromDraft');
@@ -6261,10 +6354,12 @@ suite('thread_ui.js >', function() {
           .returns(true);
       });
 
-      test('calls ThreadListUI.mark', function() {
+      test('we mark messages as read', function() {
         ThreadUI.afterEnter(transitionArgs);
 
         sinon.assert.calledWith(ThreadListUI.mark, threadId, 'read');
+        this.sinon.clock.tick();
+        sinon.assert.calledWith(MessageManager.markThreadRead, threadId);
       });
 
       test('renders messages', function() {

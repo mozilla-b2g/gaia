@@ -3,7 +3,7 @@
 /* global MocksHelper, MockNavigatorMozIccManager, MockSystemICC, icc_worker,
           MockNotifications */
 
-requireApp('system/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system/test/unit/mock_system_icc.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/mock_notification.js');

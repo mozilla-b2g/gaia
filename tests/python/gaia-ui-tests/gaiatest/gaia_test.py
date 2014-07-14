@@ -90,8 +90,15 @@ class GaiaApps(object):
         assert result, "Failed to kill app with name '%s'" % app.name
 
     def kill_all(self):
+        # First we attempt to kill the FTU, we treat it as a user app
+        for app in self.running_apps(include_system_apps=True):
+            if app.origin == 'app://ftu.gaiamobile.org':
+                self.kill(app)
+                break
+
+        # Now kill the user apps
         self.marionette.switch_to_frame()
-        self.marionette.execute_async_script("GaiaApps.killAll()")
+        self.marionette.execute_async_script("GaiaApps.killAll();")
 
     @property
     def installed_apps(self):
@@ -111,11 +118,17 @@ class GaiaApps(object):
                     name=app['manifest']['name']))
         return result
 
-    @property
-    def running_apps(self):
+    def running_apps(self, include_system_apps=False):
+        '''  Returns a list of running apps
+        Args:
+            include_system_apps: Includes otherwise hidden System apps in the list
+        Returns:
+            A list of GaiaApp objects representing the running apps.
+        '''
+        include_system_apps = json.dumps(include_system_apps)
         self.marionette.switch_to_frame()
         apps = self.marionette.execute_script(
-            'return GaiaApps.getRunningApps();')
+            "return GaiaApps.getRunningApps(%s);" % include_system_apps)
         result = []
         for app in [a[1] for a in apps.items()]:
             result.append(GaiaApp(origin=app['origin'], name=app['name']))
@@ -576,11 +589,11 @@ class GaiaDevice(object):
 
     def touch_home_button(self):
         apps = GaiaApps(self.marionette)
-        if apps.displayed_app.name.lower() != 'homescreen':
+        if apps.displayed_app.name.lower() != 'home screen':
             # touching home button will return to homescreen
             self._dispatch_home_button_event()
             Wait(self.marionette).until(
-                lambda m: apps.displayed_app.name.lower() == 'homescreen')
+                lambda m: apps.displayed_app.name.lower() == 'home screen')
             apps.switch_to_displayed_app()
         else:
             apps.switch_to_displayed_app()
@@ -742,7 +755,7 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
         if self.data_layer.get_setting('lockscreen.enabled'):
             self.device.unlock()
 
-        # kill any open apps
+        # kill the FTU and any open, user-killable apps
         self.apps.kill_all()
 
         if full_reset:

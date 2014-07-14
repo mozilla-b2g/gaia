@@ -1,0 +1,202 @@
+/*****************************************************************************\
+| Window Layout
+|
+| By default all windows are positioned at coordinates:
+| {
+|   top: 0;
+|   bottom: 0;
+|   width: 100%;
+|   height: 100%;
+| }
+|
+| As a result, windows covered 100% of the screen.
+| It is tempting to use right: 0; and bottom: 0; to automatically adjust the
+| height of elements, but because windows contains some iframes, which are
+| replaced element it does not work as expected as the width/height needs to
+| be added as css rules for iframes.
+| This would be doable once bug 527585 is resolved, by using:
+|   iframe {
+|     width: -moz-available; (already works)
+|     height: -moz-available; (bug 527585)
+|   }
+|
+| The window position/geometry is usually static, but some System app changes
+| may affect those.
+| The list here try to cover all the possible cases:
+|   * Minimized Attention Screen
+|     When an attention screen is minimized using the 'home' button, it change
+|     from a full window to a 40px wide window covering the top of the screen.
+|     The statusbar is covered, as well as the top rendering part of the
+|     window.
+|
+|   * Software home button
+|     The software home button is managed by the system app, and covers the
+|     bottom part of the screen.
+|
+|   * Navigation toolbar
+|     Some apps and the system browser use a navigation helper at rendered
+|     outside the app window.
+|
+\*****************************************************************************/
+
+.appWindow,
+.activityWindow,
+.popupWindow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+
+  overflow: hidden;
+
+  border: 0;
+  margin: 0;
+  padding: 0;
+
+  background-repeat: no-repeat;
+  background-position: center center;
+  transform: translateX(0);
+}
+
+#screen.active-statusbar #windows > .appWindow {
+  top: 4rem;
+  height: calc(100% - 4rem);
+}
+
+#screen.software-button-enabled #windows > .appWindow {
+  height: calc(100% - 5rem);
+}
+
+#screen.software-button-enabled.active-statusbar #windows > .appWindow {
+  height: calc(100% - 5rem - 4rem);
+}
+
+@media not all and (-moz-physical-home-button) {
+  #screen:not(.software-button-disabled) #windows > .appWindow {
+    height: calc(100% - 5rem);
+  }
+
+  #screen:not(.software-button-disabled).active-statusbar #windows > .appWindow {
+    height: calc(100% - 5rem - 4rem);
+  }
+}
+
+/*****************************************************************************\
+| Childs Layout
+\*****************************************************************************/
+
+/* Regular windows */
+
+.appWindow > div,
+.appWindow > iframe {
+  position: absolute;
+  top: 2.4rem;
+  left: 0;
+  width: 100%;
+  height: calc(100% - 2.4rem);
+}
+
+.appWindow.navigation > iframe {
+  height: calc(100% - 2.4rem - 1rem);
+}
+
+.appWindow > .statusbar-overlay,
+.appWindow > .fade-overlay,
+.appWindow > .identification-overlay {
+  top: 0;
+}
+
+.appWindow > .statusbar-overlay {
+  height: 2.4rem;
+}
+
+.appWindow > .fade-overlay,
+.appWindow > .identification-overlay {
+  height: 100%;
+}
+
+/* Regular windows + active status bar */
+#screen.active-statusbar #windows .appWindow > div,
+#screen.active-statusbar #windows .appWindow > iframe {
+  top: 0;
+  height: 100%;
+}
+
+#screen.active-statusbar #windows .appWindow > .statusbar-overlay {
+  height: 0;
+}
+
+/* Fullscreen windows */
+
+#screen:-moz-full-screen-ancestor .appWindow > div,
+#screen:-moz-full-screen-ancestor .appWindow > iframe,
+.appWindow.fullscreen-app > div,
+.appWindow.fullscreen-app > iframe {
+  top: 0;
+  height: 100%;
+}
+
+#screen:-moz-full-screen-ancestor .appWindow.navigation > iframe,
+.appWindow.fullscreen-app.navigation > iframe {
+  height: calc(100% - 1rem);
+}
+
+#screen:-moz-full-screen-ancestor .appWindow > .statusbar-overlay,
+.appWindow.fullscreen-app > .statusbar-overlay {
+  height: 0;
+}
+
+/* Nested Windows */
+.appWindow > .appWindow {
+  top: 0;
+  height: 100%;
+}
+
+/*****************************************************************************\
+| Rocketbar Layout
+\*****************************************************************************/
+
+.appWindow.rocketbar:not(.navigation) > iframe {
+  top: calc(5rem + 2.4rem);
+  height: calc(100% - 2.4rem);
+}
+
+.appWindow.rocketbar.navigation > iframe {
+  top: calc(5rem + 2.4rem);
+  height: calc(100% - 2.4rem - 1rem);
+}
+
+/*****************************************************************************\
+| Search Window Layout
+\*****************************************************************************/
+
+/*
+ * Because the search input lives in the system app, while the search app
+ * lives into its own search window, the context menu for such an application
+ * does not cover the whole screen.
+ * In order to have it cover the whole screen, the contextmenu which is part of
+ * the app window of the search window, is positioned negatively on the y-axis,
+ * while overflow is authorize for such window.
+ */
+.appWindow.searchWindow .contextmenu {
+  top: -7rem;
+}
+
+/*
+ * Because the search input lives in the system app, while the search app
+ * lives into its own window, activities windows attached to the search app
+ * does not cover the whole screen.
+ * In order to cover the whole screen, the activityWindow is positioned to the
+ * top of the screen and expanded to cover the whole screen.
+ */
+.appWindow.searchWindow .activityWindow,
+.appWindow.searchWindow .popupWindow {
+  height: calc(100% + 7rem);
+  top: -7rem;
+}
+
+.appWindow.searchWindow > .statusbar-overlay {
+  height: 0;
+}
+

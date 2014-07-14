@@ -23,14 +23,11 @@ class System(Base):
         self.wait_for_element_displayed(*self._status_bar_locator)
 
     def wait_for_notification_toaster_displayed(self, timeout=10, message=None):
-        # TODO Re-enable this when Bug 861874
-        # self.wait_for_element_displayed(*self._notification_toaster_locator)
+        self.wait_for_element_displayed(*self._notification_toaster_locator)
         self.wait_for_condition(lambda m: m.find_element(*self._notification_toaster_locator).location['y'] == 0, timeout=timeout, message=message)
 
     def wait_for_notification_toaster_not_displayed(self, timeout=10):
-        # TODO Re-enable this when Bug 861874
-        # self.wait_for_element_not_displayed(*self._notification_toaster_locator)
-        self.wait_for_condition(lambda m: m.find_element(*self._notification_toaster_locator).location['y'] == -50, timeout=timeout)
+        self.wait_for_element_not_displayed(*self._notification_toaster_locator)
 
     def wait_for_system_banner_displayed(self):
         self.wait_for_element_displayed(*self._system_banner_locator)

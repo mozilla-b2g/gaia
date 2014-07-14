@@ -36,7 +36,7 @@ var TonePlayer = {
   },
 
   ensureAudio: function tp_ensureAudio() {
-    if (this._audioContext) {
+    if (this._audioContext || !this._channel) {
       return;
     }
 
@@ -49,7 +49,6 @@ var TonePlayer = {
       this._audioContext.mozAudioChannelType = 'normal';
     }
     this._audioContext = null;
-    this._channel = null;
   },
 
   /**
@@ -237,7 +236,8 @@ var TonePlayer = {
 
   _channel: null,
   setChannel: function tp_setChannel(channel) {
-    if (!channel || this._channel === channel) {
+    var ctx = this._audioContext;
+    if (!channel || (ctx && ctx.mozAudioChannelType === channel)) {
       return;
     }
 

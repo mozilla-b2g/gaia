@@ -25,6 +25,7 @@ class GmailLogin(Base):
         self.marionette.find_element(*self._email_locator).send_keys(user)
         self.marionette.find_element(*self._password_locator).tap()
         self.marionette.find_element(*self._password_locator).send_keys(passwd)
+        self.keyboard.dismiss()
         self.marionette.find_element(*self._sign_in_locator).tap()
 
     def tap_grant_access(self):

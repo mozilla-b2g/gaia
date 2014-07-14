@@ -3,6 +3,7 @@
 'use strict';
 
 var assert = require('assert') || window.assert;
+var PropertiesParser, propertiesParser;
 
 var reVowels = /[AEIOUaeiou]/;
 
@@ -24,6 +25,8 @@ describe('walkContent', function() {
     if (typeof navigator !== 'undefined') {
       require('/build/l10n.js', function() {
         L10n = navigator.mozL10n._getInternalAPI();
+        PropertiesParser = L10n.PropertiesParser;
+        propertiesParser = new PropertiesParser();
         done();
       });
     } else {
@@ -31,14 +34,18 @@ describe('walkContent', function() {
       L10n.walkContent = process.env.L20N_COV ?
         require('../../build/cov/lib/l20n/util').walkContent
         : require('../../lib/l20n/util').walkContent;
-      L10n.parse = require('../../lib/l20n/parser').parse;
+
+      PropertiesParser = process.env.L20N_COV ?
+        require('../../build/cov/lib/l20n/parser').PropertiesParser
+        : require('../../lib/l20n/format/properties/parser').PropertiesParser;
+      propertiesParser = new PropertiesParser();
       done();
     }
   });
 
 
   beforeEach(function() {
-    ast = L10n.parse(null, source);
+    ast = propertiesParser.parse(null, source);
   });
 
   describe('simple strings and attributes', function(){

@@ -225,5 +225,145 @@ define(function(require) {
       });
     };
 
+
+    // Background Send Notifications
+
+    var BACKGROUND_SEND_NOTIFICATION_ID = 'backgroundSendFailed';
+    var sentAudio = null; // Lazy-loaded when first needed
+
+    /**
+     * The API passes through background send notifications with the
+     * following data (see the "sendOutboxMessages" job and/or
+     * `mailapi/jobs/outbox.js`):
+     *
+     * @param {int} accountId
+     * @param {string} suid
+     *   SUID of the message
+     * @param {string} state
+     *   'pending', 'syncing', 'success', or 'error'
+     * @param {string} err
+     *   (if applicable, otherwise null)
+     * @param {array} badAddresses
+     *   (if applicable)
+     * @param {int} sendFailures
+     *   Count of the number of times the message failed to send.
+     * @param {Boolean} emitNotifications
+     *   True if this message is being sent as a direct result of
+     *   the user sending a message from the compose window. False
+     *   otherwise, as in when the user "refreshes" the outbox.
+     * @param {Boolean} willSendMore
+     *   True if we will send a subsequent message from the outbox
+     *   immediately after sending this message.
+     *
+     * Additionally, this function appends the following to that
+     * structured data:
+     *
+     * @param {string} localizedDescription Notification text.
+     *
+     * If the application is in the foreground, we notify the user on
+     * both success and failure. If the application is in the
+     * background, we only post a system notifiaction on failure.
+     */
+    api.onbackgroundsendstatus = function(data) {
+      console.log('outbox: Message', data.suid, 'status =', JSON.stringify({
+        state: data.state,
+        err: data.err,
+        sendFailures: data.sendFailures,
+        emitNotifications: data.emitNotifications
+      }));
+
+      // Grab an appropriate localized string here. This description
+      // may be displayed in a number of different places, so it's
+      // cleaner to do the localization here.
+
+      var descId;
+      switch (data.state) {
+      case 'pending': descId = 'background-send-pending'; break;
+      case 'sending': descId = 'background-send-sending'; break;
+      case 'success': descId = 'background-send-success'; break;
+      case 'error':
+        if ((data.badAddresses && data.badAddresses.length) ||
+            data.err === 'bad-recipient') {
+          descId = 'background-send-error-recipients';
+        } else {
+          descId = 'background-send-error';
+        }
+        break;
+      case 'syncDone':
+        // We will not display any notification for a 'syncDone'
+        // message, except to stop refresh icons from spinning. No
+        // need to attempt to populate a description.
+        break;
+      default:
+        console.error('No state description for background send state "' +
+                      data.state + '"');
+        return;
+      }
+
+      data.localizedDescription = mozL10n.get(descId);
+
+      // If the message sent successfuly, and we're sending this as a
+      // side-effect of the user hitting "send" on the compose screen,
+      // (i.e. emitNotifications is true), we may need to play a sound.
+      if (data.state === 'success') {
+        // Grab an up-to-date reading of the "play sound on send"
+        // preference to decide if we're going to play a sound or not.
+        model.latestOnce('acctsSlice', function() {
+          var account = model.getAccount(data.accountId);
+          if (!account) {
+            console.error('Invalid account ID', data.accountId,
+                          'for a background send notification.');
+            return;
+          }
+
+          // If email is in the background, we should still be able to
+          // play audio due to having the 'audio-channel-notification'
+          // permission (unless higher priority audio is playing).
+
+          // TODO: As of June 2014, this behavior is still in limbo;
+          // see the following links for relevant discussion. We may
+          // need to follow up to ensure we get the behavior we want
+          // (which is to play a sound when possible, even if we're in
+          // the background).
+          //   Thread on dev-gaia: http://goo.gl/l6REZy
+          //   AUDIO_COMPETING bugs: https://bugzil.la/911238
+          if (account.playSoundOnSend) {
+            if (!sentAudio) {
+              sentAudio = new Audio('/sounds/sent.ogg');
+              sentAudio.mozAudioChannelType = 'notification';
+            }
+            sentAudio.play();
+          }
+        }.bind(this));
+      }
+
+      // If we are in the foreground, notify through the model, which
+      // will display an in-app toast notification when appropriate.
+      if (!document.hidden) {
+        model.notifyBackgroundSendStatus(data);
+      }
+      // Otherwise, notify with a system notification in the case of
+      // an error. By design, we don't use system-level notifications
+      // to notify the user on success, lest they get inundated with
+      // notifications.
+      else if (data.state === 'error' && data.emitNotifications) {
+        appSelf.latest('self', function(app) {
+          var iconUrl = notificationHelper.getIconURI(app);
+          var dataString = fromObject({
+            type: 'message_reader',
+            folderType: 'outbox',
+            accountId: data.accountId,
+            messageSuid: data.suid
+          });
+
+          sendNotification(
+            BACKGROUND_SEND_NOTIFICATION_ID,
+            mozL10n.get('background-send-error-title'),
+            data.localizedDescription,
+            iconUrl + '#' + dataString
+          );
+        });
+      }
+    };
   });
 });

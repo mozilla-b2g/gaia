@@ -178,7 +178,7 @@ var Settings = {
       return '';
     }
 
-    var simName = navigator.mozL10n.get('sim-name', { id: index + 1 });
+    var simName = navigator.mozL10n.get('sim-id-label', { id: index + 1 });
     return simName;
   },
 

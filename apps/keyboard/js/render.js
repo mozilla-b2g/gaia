@@ -244,11 +244,24 @@ const IMERender = (function() {
         // Uppercase keycode
         var upperCode = key.keyCode || upperCaseKeyChar.charCodeAt(0);
 
+        var attributeList = [];
         var className = '';
+
         if (isSpecialKey(key)) {
           className = 'special-key';
-        } else if (layout.keyClassName) {
-          className = layout.keyClassName;
+        } else {
+          // The 'key' role tells an assistive technology that these buttons
+          // are used for composing text or numbers, and should be easier to
+          // activate than usual buttons. We keep special keys, like backspace,
+          // as buttons so that their activation is not performed by mistake.
+          attributeList.push({
+            key: 'role',
+            value: 'key'
+          });
+
+          if (layout.keyClassName) {
+            className = layout.keyClassName;
+          }
         }
 
         if (key.className) {
@@ -268,7 +281,6 @@ const IMERender = (function() {
           dataset.push({'key': 'compositeKey', 'value': key.compositeKey});
         }
 
-        var attributeList = [];
         if (key.disabled) {
           attributeList.push({
             key: 'disabled',
@@ -634,6 +646,11 @@ const IMERender = (function() {
         });
       }
 
+      attributeList.push({
+        key: 'role',
+        value: 'key'
+      });
+
       content.appendChild(
         buildKey(alt, '', width + 'px', dataset, null, attributeList));
     });
@@ -949,14 +966,6 @@ const IMERender = (function() {
     dataset.forEach(function(data) {
       contentNode.dataset[data.key] = data.value;
     });
-
-    if (!contentNode.classList.contains('special-key')) {
-      // The 'key' role tells an assistive technology that these buttons
-      // are used for composing text or numbers, and should be easier to
-      // activate than usual buttons. We keep special keys, like backsapce, as
-      // buttons so that their activation is not performed by mistake.
-      contentNode.setAttribute('role', 'key');
-    }
 
     var vWrapperNode = document.createElement('span');
     vWrapperNode.className = 'visual-wrapper';

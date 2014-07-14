@@ -269,6 +269,13 @@
               this.broadcastMessage('kill_suspended');
             }
           }.bind(this)
+        },
+
+        'app-brandcolor.enabled': {
+          defaultValue: false,
+          callback: function(value) {
+            screenElement.classList.toggle('brandcolor-active', value);
+          }
         }
       };
 
@@ -629,16 +636,7 @@
     linkWindowActivity: function awm_linkWindowActivity(config) {
       var caller;
       var callee = this.getApp(config.origin);
-      var origin = window.location.origin;
-
-      // if caller is system app, we would change the caller to homescreen
-      // so that we won't go back to the wrong place
-      if (config.parentApp && config.parentApp.match(origin)) {
-        caller = homescreenLauncher.getHomescreen(true);
-      } else {
-        caller = this._activeApp.getTopMostWindow();
-      }
-
+      caller = this._activeApp.getTopMostWindow();
       callee.callerWindow = caller;
       caller.calleeWindow = callee;
     },

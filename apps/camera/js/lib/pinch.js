@@ -48,8 +48,16 @@ Pinch.prototype.detach = function() {
   this.el = null;
 };
 
+Pinch.prototype.enable = function() {
+  this.disabled = false;
+};
+
+Pinch.prototype.disable = function() {
+  this.disabled = true;
+};
+
 Pinch.prototype.onTouchStart = function(evt) {
-  if (evt.touches.length !== 2) {
+  if (evt.touches.length !== 2 || this.disabled) {
     return;
   }
 
@@ -60,7 +68,7 @@ Pinch.prototype.onTouchStart = function(evt) {
 };
 
 Pinch.prototype.onTouchMove = function(evt) {
-  if (!this.isPinching) {
+  if (!this.isPinching || this.disabled) {
     return;
   }
 
@@ -75,7 +83,7 @@ Pinch.prototype.onTouchMove = function(evt) {
 };
 
 Pinch.prototype.onTouchEnd = function(evt) {
-  if (!this.isPinching) {
+  if (!this.isPinching || this.disabled) {
     return;
   }
 
