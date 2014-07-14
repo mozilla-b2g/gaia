@@ -669,6 +669,10 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
               }
             }
           }
+          else {
+            // There is no enough information for us to identify the MP4
+            throw 'Not enough metadata in MP4 container!';
+          }
           data.index = nextindex;
         }
         else {
