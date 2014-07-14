@@ -33,7 +33,7 @@ marionette('Closing statusbar via home button >', function() {
 
   function getScrollTop() {
     return client.executeScript(function() {
-      return document.querySelector('.scrollable').scrollTop;
+      return window.scrollY;
     });
   }
 
