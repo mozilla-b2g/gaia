@@ -528,9 +528,11 @@ MessageListCard.prototype = {
   selectedMessagesUpdated: function() {
     var headerNode =
       this.domNode.getElementsByClassName('msg-listedit-header-label')[0];
-    headerNode.textContent =
-      mozL10n.get('message-multiedit-header',
-                  { n: this.selectedMessages.length });
+    mozL10n.setAttributes(headerNode, 'message-multiedit-header',
+                      { n: this.selectedMessages.length });
+
+    var starBtn = this.domNode.getElementsByClassName('msg-star-btn')[0],
+        readBtn = this.domNode.getElementsByClassName('msg-mark-read-btn')[0];
 
     // Enabling/disabling rules (not UX-signed-off):  Our bias is that people
     // want to star messages and mark messages unread (since it they naturally
@@ -800,9 +802,9 @@ MessageListCard.prototype = {
 
     this._clearCachedMessages();
 
-    text.textContent = this.mode == 'search' ?
-      mozL10n.get('messages-search-empty') :
-      mozL10n.get('messages-folder-empty');
+    var str = this.mode == 'search' ? 'messages-search-empty' :
+                                      'messages-folder-empty';
+    mozL10n.setAttributes(text, str);
     this.messageEmptyContainer.classList.remove('collapsed');
 
     this.toolbar.editBtn.disabled = true;
@@ -1789,8 +1791,8 @@ MessageListCard.prototype = {
 
     var dialog = deleteConfirmMsgNode.cloneNode(true);
     var content = dialog.getElementsByTagName('p')[0];
-    content.textContent = mozL10n.get('message-multiedit-delete-confirm',
-                                      { n: this.selectedMessages.length });
+    mozL10n.setAttributes(content, 'message-multiedit-delete-confirm',
+                              { n: this.selectedMessages.length });
     ConfirmDialog.show(dialog,
       { // Confirm
         id: 'msg-delete-ok',
