@@ -291,7 +291,7 @@ module.exports = {
   hdr: {
     title: 'hdr',
     header: 'hdr-header',
-    icon: 'icon-hdr-menu',
+    icon: 'icon-hdr-boxed',
     disabled: false,
     options: [
       {
@@ -330,7 +330,7 @@ module.exports = {
   grid: {
     title: 'grid',
     header: 'grid-header',
-    icon: 'icon-grid',
+    icon: 'icon-grid-circular',
     options: [
       {
         key: 'off',

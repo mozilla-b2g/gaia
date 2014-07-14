@@ -1,6 +1,6 @@
 {
   "name": "gaia-header",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "homepage": "https://github.com/gaia-components/gaia-header",
   "authors": [
     "Wilson Page <wilsonpage@me.com>"
@@ -13,21 +13,21 @@
     "bower_components",
     "test",
     "tests",
+    "index.html",
     "karma.conf.js",
     "package.json",
-    "README.md",
-    "examples"
+    "README.md"
   ],
   "dependencies": {
-    "gaia-icons": "gaia-components/gaia-icons#0.2.0"
+    "gaia-icons": "gaia-components/gaia-icons#0.2.1"
   },
-  "_release": "0.2.1",
+  "_release": "0.2.2",
   "_resolution": {
     "type": "version",
-    "tag": "v0.2.1",
-    "commit": "187d6cbc8bd037eb39087d90aa2b05349172eeb4"
+    "tag": "v0.2.2",
+    "commit": "527097512f39866881035c7952794ee8bf6e2502"
   },
   "_source": "git://github.com/gaia-components/gaia-header.git",
-  "_target": "~0.2.1",
+  "_target": "~0.2.2",
   "_originalSource": "gaia-components/gaia-header"
 }
