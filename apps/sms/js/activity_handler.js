@@ -473,8 +473,7 @@ var ActivityHandler = {
           }
         }
 
-        Contacts.findByPhoneNumber(message.sender, function gotContact(
-                                                                contact) {
+        Contacts.findByAddress(message.sender, function gotContact(contact) {
           var sender = message.sender;
           if (!contact) {
             console.error('We got a null contact for sender:', sender);

@@ -143,7 +143,7 @@ var ThreadListUI = {
       return;
     }
 
-    Contacts.findByPhoneNumber(number, function gotContact(contacts) {
+    Contacts.findByAddress(number, function gotContact(contacts) {
       var name = node.getElementsByClassName('name')[0];
       var photo = node.querySelector('span[data-type=img]');
       var title, src, details;
