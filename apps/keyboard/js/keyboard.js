@@ -42,8 +42,6 @@ perfTimer.start();
 perfTimer.printTime('keyboard.js');
 
 var isKeyboardRendered = false;
-var currentCandidates = [];
-var candidatePanelScrollTimer = null;
 
 // Backspace repeat delay and repeat rate
 const REPEAT_RATE = 75;
@@ -70,6 +68,7 @@ var fakeAppObject = {
   l10nLoader: null,
   activeTargetsManager: null,
   upperCaseStateManager: null,
+  candidatePanelManager: null,
 
   inputContext: null,
 
@@ -121,8 +120,7 @@ var fakeAppObject = {
 
   sendCandidates: function kc_glue_sendCandidates(candidates) {
     perfTimer.printTime('glue.sendCandidates');
-    currentCandidates = candidates;
-    IMERender.showCandidates(candidates);
+    candidatePanelManager.updateCandidates(candidates);
   },
   setComposition: function kc_glue_setComposition(symbols, cursor) {
     perfTimer.printTime('glue.setComposition');
@@ -203,6 +201,11 @@ feedbackManager.start();
 
 var visualHighlightManager = new VisualHighlightManager(fakeAppObject);
 visualHighlightManager.start();
+
+var candidatePanelManager =
+  fakeAppObject.candidatePanelManager =
+  new CandidatePanelManager(fakeAppObject);
+candidatePanelManager.start();
 
 var upperCaseStateManager =
   fakeAppObject.upperCaseStateManager = new UpperCaseStateManager();
@@ -392,7 +395,7 @@ function renderKeyboard() {
     // Tell the input method about the new keyboard layout
     updateLayoutParams();
 
-    IMERender.showCandidates(currentCandidates);
+    candidatePanelManager.showCandidates();
     perfTimer.printTime(
       'BLOCKING IMERender.draw:callback', 'IMERender.draw:callback');
   });
@@ -429,7 +432,7 @@ function handleUpperCaseStateChange() {
     IMERender.setUpperCaseLock(upperCaseStateManager);
 
     //restore the previous candidates
-    IMERender.showCandidates(currentCandidates);
+    candidatePanelManager.showCandidates();
 
     perfTimer.printTime(
       'BLOCKING setUpperCase:requestAnimationFrame:callback',
@@ -573,7 +576,7 @@ function handleTargetCommitted(target, isDoubleTap) {
   // IME candidate selected
   var dataset = target.dataset;
   if (dataset.selection) {
-    IMERender.toggleCandidatePanel(false);
+    candidatePanelManager.hideFullPanel();
 
     if (inputMethodManager.currentIMEngine.select) {
       // We use dataset.data instead of target.textContent because the
@@ -639,59 +642,8 @@ function handleTargetCommitted(target, isDoubleTap) {
 
     // Expand / shrink the candidate panel
   case TOGGLE_CANDIDATE_PANEL:
-    var candidatePanel = IMERender.candidatePanel;
+    candidatePanelManager.toggleFullPanel();
 
-    if (IMERender.ime.classList.contains('candidate-panel')) {
-      var doToggleCandidatePanel = function doToggleCandidatePanel() {
-        if (candidatePanel.dataset.truncated) {
-          if (candidatePanelScrollTimer) {
-            clearTimeout(candidatePanelScrollTimer);
-            candidatePanelScrollTimer = null;
-          }
-          candidatePanel.addEventListener('scroll', candidatePanelOnScroll);
-        }
-
-        IMERender.toggleCandidatePanel(true);
-      };
-
-      if (candidatePanel.dataset.rowCount == 1) {
-        var firstPageRows = 11;
-        var numberOfCandidatesPerRow = IMERender.getNumberOfCandidatesPerRow();
-        var candidateIndicator =
-          parseInt(candidatePanel.dataset.candidateIndicator);
-
-        if (inputMethodManager.currentIMEngine.getMoreCandidates) {
-          inputMethodManager.currentIMEngine.getMoreCandidates(
-            candidateIndicator,
-            firstPageRows * numberOfCandidatesPerRow + 1,
-            function getMoreCandidatesCallbackOnToggle(list) {
-              if (candidatePanel.dataset.rowCount == 1) {
-                IMERender.showMoreCandidates(firstPageRows, list);
-                doToggleCandidatePanel();
-              }
-            }
-          );
-        } else {
-          var list = currentCandidates.slice(candidateIndicator,
-            candidateIndicator + firstPageRows * numberOfCandidatesPerRow + 1);
-
-          IMERender.showMoreCandidates(firstPageRows, list);
-          doToggleCandidatePanel();
-        }
-      } else {
-        doToggleCandidatePanel();
-      }
-    } else {
-      if (inputMethodManager.currentIMEngine.getMoreCandidates) {
-        candidatePanel.removeEventListener('scroll', candidatePanelOnScroll);
-        if (candidatePanelScrollTimer) {
-          clearTimeout(candidatePanelScrollTimer);
-          candidatePanelScrollTimer = null;
-        }
-      }
-
-      IMERender.toggleCandidatePanel(false);
-    }
     break;
 
     // Shift or caps lock
@@ -746,38 +698,6 @@ function handleTargetCancelled(target) {
 
   clearTimeout(deleteTimeout);
   clearInterval(deleteInterval);
-}
-
-function candidatePanelOnScroll() {
-  if (candidatePanelScrollTimer) {
-    clearTimeout(candidatePanelScrollTimer);
-    candidatePanelScrollTimer = null;
-  }
-
-  if (this.scrollTop != 0 &&
-      this.scrollHeight - this.clientHeight - this.scrollTop < 5) {
-
-    candidatePanelScrollTimer = setTimeout(function() {
-      var pageRows = 12;
-      var numberOfCandidatesPerRow = IMERender.getNumberOfCandidatesPerRow();
-      var candidatePanel = IMERender.candidatePanel;
-      var candidateIndicator =
-        parseInt(candidatePanel.dataset.candidateIndicator);
-
-      if (inputMethodManager.currentIMEngine.getMoreCandidates) {
-        inputMethodManager.currentIMEngine.getMoreCandidates(
-          candidateIndicator,
-          pageRows * numberOfCandidatesPerRow + 1,
-          IMERender.showMoreCandidates.bind(IMERender, pageRows)
-        );
-      } else {
-        var list = currentCandidates.slice(candidateIndicator,
-          candidateIndicator + pageRows * numberOfCandidatesPerRow + 1);
-
-        IMERender.showMoreCandidates(pageRows, list);
-      }
-    }, 200);
-  }
 }
 
 function getKeyCoordinateY(y) {
