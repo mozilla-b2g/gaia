@@ -18,6 +18,7 @@ suite('NFC Utils', function() {
 
   var string1;
   var uint8array1;
+  var urlU8a; // Uint8Array
 
   setup(function() {
     string1 = 'StringTestString ABCDEFGHIJKLMNOPQRSTUVWXYZ ą嗨è©';
@@ -33,12 +34,17 @@ suite('NFC Utils', function() {
                                   0x20,
                                   0xC4, 0x85, 0xE5, 0x97, 0xA8, 0xC3,
                                   0xA8, 0xC2, 0xA9]);
-  });
 
-  test('equalArrays', function() {
-    assert.isTrue(NfcUtils.equalArrays(NfcUtils.fromUTF8(string1),
-                                       uint8array1));
-    assert.isFalse(NfcUtils.equalArrays(null, null));
+    // SR = 1, TNF = 0x01 (NFC Forum Well Known Type),
+    // One record only: ME=1, MB=1
+    urlU8a = new Uint8Array([0xd1, // TNF and header
+                             0x01, // Record type length
+                             0x0c, // payload length
+                             0x55, // 'U',  NDEF.RTD_URI type
+                             0x03, // NDEF.URIS[0x03] = 'http://';
+                             0x6d, 0x6f, 0x7a, 0x69, 0x6c, 0x6c, 0x61,
+                             0x2e,
+                             0x6f, 0x72, 0x67]); // mozilla.org
   });
 
   test('transitive', function() {
@@ -64,6 +70,27 @@ suite('NFC Utils', function() {
     assert.equal(bu2, true);
     assert.equal(nullObj, null);
     assert.equal(nullStr, null);
+  });
+
+  suite('equalArrays', function() {
+    test('Accepts null arguments', function() {
+      assert.isFalse(NfcUtils.equalArrays());
+      assert.isFalse(NfcUtils.equalArrays(null));
+      assert.isFalse(NfcUtils.equalArrays(null, null));
+      assert.isFalse(NfcUtils.equalArrays(undefined, null));
+    });
+
+    test('Accepts non-array objects', function() {
+      assert.isFalse(NfcUtils.equalArrays({}, [1]));
+    });
+
+    test('Compares arrays', function() {
+      assert.isFalse(NfcUtils.equalArrays([1, 2, 3], [1, 3, 2]));
+      assert.isFalse(NfcUtils.equalArrays([1, 2, 3], [1]));
+
+      assert.isTrue(NfcUtils.equalArrays([1, 2, 3], [1, 2, 3]));
+      assert.isTrue(NfcUtils.equalArrays([1, 2, 3], new Uint8Array([1, 2, 3])));
+    });
   });
 
   suite('String <> byte conversions', function() {
@@ -104,9 +131,8 @@ suite('NFC Utils', function() {
     });
   });
 
-  suite('NDEF Conversions', function() {
+  suite('encodeNDEF', function() {
     var urlNDEF; // MozNDEFRecord
-    var urlU8a; // Uint8Array
 
     setup(function() {
       var tnf     = NDEF.TNF_WELL_KNOWN;
@@ -117,21 +143,9 @@ suite('NFC Utils', function() {
                                    '\u0003mozilla.org'));
 
       urlNDEF = new MozNDEFRecord(tnf, type, id, payload);
-
-      // SR = 1, TNF = 0x01 (NFC Forum Well Known Type),
-      // One record only: ME=1, MB=1
-      urlU8a = new Uint8Array([0xd1, // TNF and header
-                               0x01, // Record type length
-                               0x0c, // payload length
-                               0x55, // 'U',  NDEF.RTD_URI type
-                               0x03, // NDEF.URIS[0x03] = 'http://';
-                               0x6d, 0x6f, 0x7a, 0x69, 0x6c, 0x6c, 0x61,
-                               0x2e,
-                               0x6f, 0x72, 0x67]); // mozilla.org
-
     });
 
-    test('encodeNDEF Subrecord', function() {
+    test('Subrecord', function() {
       var encodedNdefU8a = NfcUtils.encodeNDEF([urlNDEF]);
       // MozNDEFRecord is abstract, and does not contain some extra bits in the
       // header for NDEF payload subrecords:
@@ -142,7 +156,7 @@ suite('NFC Utils', function() {
       assert.equal(equals1, true);
     });
 
-    test('encodeNDEF short record', function() {
+    test('Short record', function() {
       var ndefMsg = new Uint8Array([0xd1, 0x01, 0x11, 0x55, 0x04, 0x77, 0x69,
                                    0x6b, 0x69, 0x2e, 0x6d, 0x6f, 0x7a, 0x69,
                                     0x6c, 0x6c, 0x61, 0x2e, 0x6f, 0x72, 0x67]);
@@ -160,7 +174,7 @@ suite('NFC Utils', function() {
       assert.deepEqual(result, ndefMsg);
     });
 
-    test('encodeNDEF long record', function() {
+    test('Long record', function() {
       // Excerpt from Wikipedia about Mozilla Foundation, UTF-16 encoded.
       var payloadArray =
         [0x85, 0x70, 0x6c, 0x5f, 0x70, 0x6c, 0xff, 0xfe, 0x46, 0x00, 0x75,
@@ -217,14 +231,14 @@ suite('NFC Utils', function() {
       assert.deepEqual(result, ndefMsg);
     });
 
-    test('encodeNDEF no type, no paylod, no id', function() {
+    test('No type, no paylod, no id', function() {
       var ndefMsg = new Uint8Array([0xd0, 0x00, 0x00]);
 
       var result = NfcUtils.encodeNDEF([new MozNDEFRecord(NDEF.TNF_EMPTY)]);
       assert.deepEqual(result, ndefMsg);
     });
 
-    test('encodeNDEF multiple records', function() {
+    test('Multiple records', function() {
       var ndefMsg = new Uint8Array([0x91, 0x01, 0x11, 0x55, 0x04, 0x77, 0x69,
                                     0x6b, 0x69, 0x2e, 0x6d, 0x6f, 0x7a, 0x69,
                                     0x6c, 0x6c, 0x61, 0x2e, 0x6f, 0x72, 0x67,
@@ -250,22 +264,175 @@ suite('NFC Utils', function() {
       var result = NfcUtils.encodeNDEF([rec1, rec2]);
       assert.deepEqual(result, ndefMsg);
     });
+  });
 
-    test('parseNDEF Subrecord', function() {
+  suite('parseNDEF', function() {
+    var msg1;
+
+    setup(function() {
+      // These record payloads aren't valid, but that's fine because
+      // NDEF doesn't care about the payload.
+      msg1 = [
+        // TNF = 1; MB | SR bits; type=[0x55]; payload length = 3
+        0x91, 0x01, 0x03, 0x55, 0x03, 0x6D, 0x6F,
+        // TNF = 3; SR bit; type=[0xAA, 0xBB]; payload length = 5
+        0x13, 0x02, 0x05, 0xAA, 0xBB, 0x02, 0xAD, 0x8F, 0x71, 0x96,
+        // TNF = 4; ME | SR bits; type=[0x55]; payload length = 7
+        0x54, 0x01, 0x07, 0x55, 0xFF, 0x12, 0x9A, 0xA7, 0x11, 0xDC, 0xA8];
+    });
+
+    test('Subrecord', function() {
       var buf = new NfcBuffer(urlU8a);
       var ndefrecords = NfcUtils.parseNDEF(buf);
       var equal;
+
       // There is only one record here:
       assert.equal(ndefrecords[0].tnf, NDEF.TNF_WELL_KNOWN);
       equal = NfcUtils.equalArrays(ndefrecords[0].type, NDEF.RTD_URI);
-      assert.equal(equal, true);
+      assert.equal(equal, true, 'type');
 
       equal = NfcUtils.equalArrays(ndefrecords[0].id, new Uint8Array());
-      assert.equal(equal, true);
+      assert.equal(equal, true, 'id');
 
       equal = NfcUtils.equalArrays(ndefrecords[0].payload,
                                  NfcUtils.fromUTF8('\u0003mozilla.org'));
-      assert.equal(equal, true);
+      assert.equal(equal, true, 'payload');
+    });
+
+    test('Returns null when first record has no MB bit set',
+      function() {
+        msg1[0] ^= 128;
+        var parsed = NfcUtils.parseNDEF(new NfcBuffer(new Uint8Array(msg1)));
+        assert.isNull(parsed);
+    });
+
+    test('Returns null when last record has no ME bit set',
+      function() {
+        msg1[17] ^= 64;
+        var parsed = NfcUtils.parseNDEF(new NfcBuffer(new Uint8Array(msg1)));
+        assert.isNull(parsed);
+    });
+
+    test('Returns null when not only last record has ME bit set',
+      function() {
+
+        msg1[7] ^= 64;
+        var parsed = NfcUtils.parseNDEF(new NfcBuffer(new Uint8Array(msg1)));
+        assert.isNull(parsed);
+    });
+
+    test('Returns null when no record has ME bit set', function() {
+      msg1[17] ^= 64;
+      var parsed = NfcUtils.parseNDEF(new NfcBuffer(new Uint8Array(msg1)));
+      assert.isNull(parsed);
+    });
+
+    test('Returns null if MB is set for record other than first',
+      function() {
+
+        msg1[7] ^= 128;
+        var parsed = NfcUtils.parseNDEF(new NfcBuffer(new Uint8Array(msg1)));
+        assert.isNull(parsed);
+    });
+
+    test('Returns null if CF is set (not supported)',
+      function() {
+
+        msg1[0] ^= 32;
+        var parsed = NfcUtils.parseNDEF(new NfcBuffer(new Uint8Array(msg1)));
+        assert.isNull(parsed);
+    });
+
+    test('Decodes multi record messages', function() {
+      var parsed = NfcUtils.parseNDEF(new NfcBuffer(new Uint8Array(msg1)));
+      assert.isNotNull(parsed);
+      assert.equal(parsed.length, 3);
+
+      assert.equal(parsed[0].tnf, 1);
+      assert.equal(parsed[1].tnf, 3);
+      assert.equal(parsed[2].tnf, 4);
+
+      assert.deepEqual(parsed[0].type, [0x55], 'type 0');
+      assert.deepEqual(parsed[1].type, [0xAA, 0xBB], 'type 1');
+      assert.deepEqual(parsed[2].type, [0x55], 'type 2');
+
+      assert.deepEqual(parsed[0].payload,
+        [0x03, 0x6D, 0x6F], 'payload 0');
+      assert.deepEqual(parsed[1].payload,
+        [0x02, 0xAD, 0x8F, 0x71, 0x96], 'payload 1');
+      assert.deepEqual(parsed[2].payload,
+        [0xFF, 0x12, 0x9A, 0xA7, 0x11, 0xDC, 0xA8], 'payload 2');
+    });
+  });
+
+  suite('parseNDEFRecord', function() {
+    var record;
+
+    setup(function() {
+      // URI record, "http://mozilla.com"
+      record = [0xD1, 0x01, 0x0C, 0x55,
+                0x03, 0x6D, 0x6F, 0x7A,
+                0x69, 0x6C, 0x6C, 0x61,
+                0x2E, 0x6F, 0x72, 0x67];
+    });
+
+    test('Supports records with ID', function() {
+      // URI record, "http://mozilla.com"
+      // id = [0x01, 0x02, 0x03, 0x04]
+      var record = [0xD9, 0x01, 0x0C, 0x04,
+                    0x55, 0x01, 0x02, 0x03,
+                    0x04, 0x03, 0x6D, 0x6F,
+                    0x7A, 0x69, 0x6C, 0x6C,
+                    0x61, 0x2E, 0x6F, 0x72,
+                    0x67];
+      var parsed = NfcUtils._parseNDEFRecord(new NfcBuffer(record));
+      assert.isNotNull(parsed);
+      assert.deepEqual(parsed.id, [0x01, 0x02, 0x03, 0x04]);
+    });
+
+    test('Supports records without ID', function() {
+      var parsed = NfcUtils._parseNDEFRecord(new NfcBuffer(record));
+      assert.isNotNull(parsed);
+      assert.deepEqual(parsed.id, []);
+    });
+
+    test('Supports long records (no SR bit set)', function() {
+      var record = [0xC1, 0x01, 0x00, 0x00, 0x01, 0x1C, 0x55];
+      var payload = new Array(284);
+      for (var i = 0; i < payload.length; i += 1) {
+        payload[i] = 7;
+      }
+      record = record.concat(payload);
+
+      var parsed = NfcUtils._parseNDEFRecord(new NfcBuffer(record));
+      assert.isNotNull(parsed);
+      assert.deepEqual(parsed.payload, payload);
+    });
+
+    test('Decodes TNF', function() {
+      var parsed = NfcUtils._parseNDEFRecord(new NfcBuffer(record));
+      assert.isNotNull(parsed);
+      assert.equal(parsed.tnf, 1);
+
+      record[0] ^= 1;
+      record[0] |= 5;
+      parsed = NfcUtils._parseNDEFRecord(new NfcBuffer(record));
+      assert.isNotNull(parsed);
+      assert.equal(parsed.tnf, 5);
+    });
+
+    test('Decodes type', function() {
+      var parsed = NfcUtils._parseNDEFRecord(new NfcBuffer(record));
+      assert.isNotNull(parsed);
+      assert.deepEqual(parsed.type, [0x55]);
+    });
+
+    test('Decodes payload', function() {
+      var parsed = NfcUtils._parseNDEFRecord(new NfcBuffer(record));
+      assert.isNotNull(parsed);
+      assert.deepEqual(parsed.payload, [0x03, 0x6D, 0x6F, 0x7A, 0x69,
+                                        0x6C, 0x6C, 0x61, 0x2E, 0x6F,
+                                        0x72, 0x67]);
     });
   });
 
@@ -341,6 +508,15 @@ suite('NfcBuffer', function() {
     assert.equal(6, buf.getOctet());
     buf.skip(0);
     assert.equal(7, buf.getOctet());
+  });
+
+  test('peek()', function() {
+    assert.equal(buf.peek(), 0);
+    assert.equal(buf.peek(), 0);
+    assert.equal(buf.peek(), 0);
+    buf.getOctet();
+    assert.equal(buf.peek(), 1);
+    assert.equal(buf.peek(), 1);
   });
 
   test('len is required', function() {
