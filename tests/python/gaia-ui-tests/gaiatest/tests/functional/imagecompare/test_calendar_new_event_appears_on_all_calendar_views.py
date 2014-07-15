@@ -51,18 +51,11 @@ class TestCalendar(GaiaTestCase):
 
         # switch to the week display
         calendar.tap_week_display_button()
-        event_link = self.marionette.find_element(*self._week_event_link_locator)
-        # TODO: remove the explicit scroll once bug 833370 is fixed
-        self.marionette.execute_script("arguments[0].scrollIntoView(true);", [event_link])
-
         self.assertIn(event_title, calendar.displayed_events_in_week_view(event_start_date_time))
         self.graphics.invoke_screen_capture()
 
         # switch to the day display
         calendar.tap_day_display_button()
-        event_link = self.marionette.find_element(*self._day_event_link_locator)
-        # TODO: remove the explicit scroll once bug 833370 is fixed
-        self.marionette.execute_script("arguments[0].scrollIntoView(true);", [event_link])
         self.assertIn(event_title, calendar.displayed_events_in_day_view(event_start_date_time))
         self.assertIn(event_location, calendar.displayed_events_in_day_view(event_start_date_time))
         self.graphics.invoke_screen_capture()
