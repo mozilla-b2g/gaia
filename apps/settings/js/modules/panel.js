@@ -54,7 +54,7 @@ define(function() {
         }
         _initialized = true;
 
-        _onInit(panel, initOptions);
+        return _onInit(panel, initOptions);
       },
 
       /**
@@ -81,7 +81,7 @@ define(function() {
       show: function(panel, showOptions) {
         // Initialize at the first call to show if necessary.
         this.init(panel, showOptions);
-        _onShow(panel, showOptions);
+        return _onShow(panel, showOptions);
       },
 
       /**
@@ -90,7 +90,7 @@ define(function() {
        * @alias module:Panel#hide
        */
       hide: function() {
-        _onHide();
+        return _onHide();
       },
 
       /**
@@ -103,7 +103,7 @@ define(function() {
       beforeShow: function(panel, beforeShowOptions) {
         // Initialize at the first call to beforeShow.
         this.init(panel, beforeShowOptions);
-        _onBeforeShow(panel, beforeShowOptions);
+        return _onBeforeShow(panel, beforeShowOptions);
       },
 
       /**
@@ -114,7 +114,7 @@ define(function() {
        * @param {Object} beforeShowOptions
        */
       beforeHide: function() {
-        _onBeforeHide();
+        return _onBeforeHide();
       }
     };
   };

@@ -20,9 +20,17 @@ define(function(require) {
         _batteryLevelText = rootElement.querySelector('#battery-level *');
       },
       onBeforeShow: function bp_onBeforeShow(rootElement) {
-        Battery.observe('level', _refreshText);
-        Battery.observe('state', _refreshText);
-        _refreshText();
+        var promise = new Promise(function(resolve, reject) {
+          Battery.observe('level', _refreshText);
+          Battery.observe('state', _refreshText);
+          _refreshText();
+
+          setTimeout(function() {
+            resolve();
+          }, 5000);
+        });
+
+        return promise;
       },
       onBeforeHide: function bp_onBeforeHide() {
         Battery.unobserve(_refreshText);

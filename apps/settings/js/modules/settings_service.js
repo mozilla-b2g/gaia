@@ -111,35 +111,43 @@ define(function(require) {
             // show function.
             options = options || {};
 
-            panel.beforeShow(newPanelElement, options);
-            // We don't deactivate the root panel.
-            if (currentPanel && currentPanelId !== _rootPanelId) {
-              currentPanel.beforeHide();
+            var onBeforeShow = panel.beforeShow(newPanelElement, options);
+            if (!(onBeforeShow instanceof Promise)) {
+              onBeforeShow = new Promise(function(resolve, reject) {
+                resolve();
+              });
             }
 
-            // Add a timeout for smoother transition.
-            setTimeout(function doTransition() {
-              _transit(currentPanelElement, newPanelElement,
-                function transitionCompleted() {
-                  panel.show(newPanelElement, options);
-                  // We don't deactivate the root panel.
-                  if (currentPanel && currentPanelId !== _rootPanelId) {
-                    currentPanel.hide();
-                  }
+            onBeforeShow.then(function() {
+              // We don't deactivate the root panel.
+              if (currentPanel && currentPanelId !== _rootPanelId) {
+                currentPanel.beforeHide();
+              }
 
-                  // Update the current navigation object
-                  _currentNavigation = {
-                    panelId: panelId,
-                    panelElement: newPanelElement,
-                    panel: panel,
-                    options: options
-                  };
+              // Add a timeout for smoother transition.
+              setTimeout(function doTransition() {
+                _transit(currentPanelElement, newPanelElement,
+                  function transitionCompleted() {
+                    panel.show(newPanelElement, options);
+                    // We don't deactivate the root panel.
+                    if (currentPanel && currentPanelId !== _rootPanelId) {
+                      currentPanel.hide();
+                    }
 
-                  // XXX we need to remove this line in the future
-                  // to make sure we won't manipulate Settings
-                  // directly
-                  Settings._currentPanel = '#' + panelId;
-                  callback();
+                    // Update the current navigation object
+                    _currentNavigation = {
+                      panelId: panelId,
+                      panelElement: newPanelElement,
+                      panel: panel,
+                      options: options
+                    };
+
+                    // XXX we need to remove this line in the future
+                    // to make sure we won't manipulate Settings
+                    // directly
+                    Settings._currentPanel = '#' + panelId;
+                    callback();
+                });
               });
             });
           });
