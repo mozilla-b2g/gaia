@@ -27,9 +27,8 @@ function SettingsAccountServerCard(domNode, mode, args) {
   domNode.getElementsByClassName('tng-account-save')[0]
     .addEventListener('click', this.onBack.bind(this), false);
 
-  mozL10n.setAttributes(
-    domNode.getElementsByClassName('tng-account-server-label')[0],
-    'settings-' + this.server.type + '-label');
+  domNode.getElementsByClassName('tng-account-server-label')[0]
+    .textContent = mozL10n.get('settings-' + this.server.type + '-label');
 
   var hostnameNodeInput =
     this.domNode.getElementsByClassName('tng-server-hostname-input')[0];
