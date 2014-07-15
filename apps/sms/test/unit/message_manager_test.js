@@ -23,6 +23,7 @@ require('/test/unit/mock_thread_list_ui.js');
 require('/test/unit/mock_threads.js');
 require('/test/unit/mock_information.js');
 
+require('/js/event_dispatcher.js');
 require('/js/message_manager.js');
 
 var mocksHelperForMessageManager = new MocksHelper([
@@ -722,6 +723,105 @@ suite('message_manager.js >', function() {
         this.mockEvent.message);
       sinon.assert.calledWith(ReportView.onReadSuccess,
         this.mockEvent.message);
+    });
+  });
+
+  suite('onDeleted', function() {
+    setup(function() {
+      MessageManager.offAll('threadsDeleted');
+      MessageManager.offAll('messagesDeleted');
+    });
+
+    test('does not dispatch neither "threadsDeleted" nor "messagesDeleted"',
+    function() {
+      var unexpectedHandler1 = sinon.stub(),
+          unexpectedHandler2 = sinon.stub();
+
+      MessageManager.on('threadsDeleted', unexpectedHandler1);
+      MessageManager.on('messagesDeleted', unexpectedHandler2);
+
+      MessageManager.onDeleted({});
+      MessageManager.onDeleted({
+        deletedThreadIds: null
+      });
+      MessageManager.onDeleted({
+        deletedThreadIds: []
+      });
+      MessageManager.onDeleted({
+        deletedMessageIds: null
+      });
+      MessageManager.onDeleted({
+        deletedMessageIds: []
+      });
+      MessageManager.onDeleted({
+        deletedThreadIds: null,
+        deletedMessageIds: null
+      });
+      MessageManager.onDeleted({
+        deletedThreadIds: [],
+        deletedMessageIds: []
+      });
+
+      sinon.assert.notCalled(unexpectedHandler1);
+      sinon.assert.notCalled(unexpectedHandler2);
+    });
+
+    test('dispatches "threadsDeleted" only', function() {
+      var expectedHandler = sinon.stub(),
+          unexpectedHandler = sinon.stub();
+
+      MessageManager.on('threadsDeleted', expectedHandler);
+      MessageManager.on('messagesDeleted', unexpectedHandler);
+      MessageManager.onDeleted({
+        deletedThreadIds : [1, 2],
+        deletedMessageIds: []
+      });
+
+      sinon.assert.calledOnce(expectedHandler);
+      sinon.assert.calledWith(expectedHandler, {
+        ids: [1, 2]
+      });
+      sinon.assert.notCalled(unexpectedHandler);
+    });
+
+    test('dispatches "messagesDeleted" only', function() {
+      var expectedHandler = sinon.stub(),
+          unexpectedHandler = sinon.stub();
+
+      MessageManager.on('threadsDeleted', unexpectedHandler);
+      MessageManager.on('messagesDeleted', expectedHandler);
+      MessageManager.onDeleted({
+        deletedThreadIds : [],
+        deletedMessageIds: [3, 4]
+      });
+
+      sinon.assert.calledOnce(expectedHandler);
+      sinon.assert.calledWith(expectedHandler, {
+        ids: [3, 4]
+      });
+      sinon.assert.notCalled(unexpectedHandler);
+    });
+
+    test('dispatches both "messagesDeleted" and "threadsDeleted"', function() {
+      var expectedHandler1 = sinon.stub(),
+          expectedHandler2 = sinon.stub();
+
+      MessageManager.on('threadsDeleted', expectedHandler1);
+      MessageManager.on('messagesDeleted', expectedHandler2);
+      MessageManager.onDeleted({
+        deletedThreadIds : [1, 2],
+        deletedMessageIds: [3, 4]
+      });
+
+      sinon.assert.calledOnce(expectedHandler1);
+      sinon.assert.calledOnce(expectedHandler2);
+      sinon.assert.calledWith(expectedHandler1, {
+        ids: [1, 2]
+      });
+      sinon.assert.calledWith(expectedHandler2, {
+        ids: [3, 4]
+      });
+      sinon.assert.callOrder(expectedHandler1, expectedHandler2);
     });
   });
 });

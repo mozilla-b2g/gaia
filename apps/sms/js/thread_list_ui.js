@@ -4,7 +4,8 @@
 /*global Template, Utils, Threads, Contacts, Threads,
          WaitingScreen, MozSmsFilter, MessageManager, TimeHeaders,
          Drafts, Thread, ThreadUI, OptionMenu, ActivityPicker,
-         PerformanceTestingHelper, StickyHeader, Navigation, Dialog */
+         PerformanceTestingHelper, StickyHeader, Navigation, Dialog,
+         Set */
 /*exported ThreadListUI */
 (function(exports) {
 'use strict';
@@ -25,6 +26,9 @@ var ThreadListUI = {
 
   // Set to |true| when in edit mode
   inEditMode: false,
+
+  // List of the thread ids scheduled for deletion via Edit mode
+  threadIdsToDelete: null,
 
   init: function thlui_init() {
     this.tmpl = {
@@ -89,6 +93,8 @@ var ThreadListUI = {
 
     this.sticky =
       new StickyHeader(this.container, document.getElementById('sticky'));
+
+    MessageManager.on('threadsDeleted', this.onThreadsDeleted.bind(this));
   },
 
   beforeLeave: function thlui_beforeLeave() {
@@ -316,81 +322,63 @@ var ThreadListUI = {
   // please make sure url will also be revoked if new delete api remove threads
   // without calling removeThread in the future.
   delete: function thlui_delete() {
-    var list, length, id, threadId, filter, count;
-
-    function checkDone(threadId) {
-      /* jshint validthis: true */
-      // Threads.delete will handle deleting
-      // any Draft objects associated with the
-      // specified threadId.
-      Threads.delete(threadId);
-
-      // Cleanup the DOM
-      this.removeThread(threadId);
-
-      // Remove notification if exist
-      Utils.closeNotificationsForThread(threadId);
-
-      if (--count === 0) {
-        this.cancelEdit();
-        Drafts.store();
-        WaitingScreen.hide();
-      }
-    }
-
-    function deleteMessage(message) {
-      MessageManager.deleteMessage(message.id);
-      return true;
-    }
-
     function performDeletion() {
       /* jshint validthis: true */
       WaitingScreen.show();
 
-      list = this.selectedInputs.reduce(function(list, input) {
+      var threadsAndDrafts = this.selectedInputs.reduce(function(list, input) {
+        // Coerce the threadId back to a number MozSmsFilter and all other
+        // platform APIs expect this value to be a number.
         list[input.dataset.mode].push(+input.value);
         return list;
       }, { drafts: [], threads: [] });
 
-      if (list.drafts.length) {
-        length = list.drafts.length;
-
-        for (var i = 0; i < length; i++) {
-          id = list.drafts[i];
+      if (threadsAndDrafts.drafts.length) {
+        threadsAndDrafts.drafts.forEach(function(id) {
           Drafts.delete(Drafts.get(id));
           this.removeThread(id);
-        }
+        }, this);
 
         Drafts.store();
 
-        // In cases where no threads are being deleted,
-        // reset and restore the UI from edit mode and
-        // exit immediately.
-        if (list.threads.length === 0) {
+        // In cases where no threads are being deleted, reset and restore the UI
+        // from edit mode and exit immediately.
+        if (!threadsAndDrafts.threads.length) {
           this.cancelEdit();
           WaitingScreen.hide();
           return;
         }
       }
 
-      count = list.threads.length;
+      this.threadIdsToDelete = new Set(threadsAndDrafts.threads);
 
-      // Remove and coerce the threadId back to a number
-      // MozSmsFilter and all other platform APIs
-      // expect this value to be a number.
-      while ((threadId = +list.threads.pop())) {
-
+      this.threadIdsToDelete.forEach(function(threadId) {
         // Filter and request all messages with this threadId
-        filter = new MozSmsFilter();
+        var filter = new MozSmsFilter(),
+            messageIdsToDelete = [];
+
         filter.threadId = threadId;
 
         MessageManager.getMessages({
           filter: filter,
           invert: true,
-          each: deleteMessage,
-          end: checkDone.bind(this, threadId)
+          each: onThreadMessageRetrieved.bind(messageIdsToDelete),
+          end: onAllThreadMessagesRetrieved.bind(messageIdsToDelete)
         });
+      });
+    }
+
+    function onAllThreadMessagesRetrieved() {
+      /* jshint validthis: true */
+      if (this.length) {
+        MessageManager.deleteMessage(this);
       }
+    }
+
+    function onThreadMessageRetrieved(message) {
+      /* jshint validthis: true */
+      this.push(message.id);
+      return true;
     }
 
     var dialog = new Dialog({
@@ -707,6 +695,33 @@ var ThreadListUI = {
 
   onMessageReceived: function thlui_onMessageReceived(message) {
     this.updateThread(message, { unread: true });
+  },
+
+  onThreadsDeleted: function thlui_onThreadDeleted(e) {
+    e.ids.forEach(function(threadId) {
+      // Threads.delete will handle deleting
+      // any Draft objects associated with the
+      // specified threadId.
+      Threads.delete(threadId);
+
+      // Cleanup the DOM
+      this.removeThread(threadId);
+
+      // Remove notification if exist
+      Utils.closeNotificationsForThread(threadId);
+
+      if (this.inEditMode) {
+        this.threadIdsToDelete.delete(threadId);
+
+        if (!this.threadIdsToDelete.size) {
+          this.threadIdsToDelete = null;
+
+          this.cancelEdit();
+          Drafts.store();
+          WaitingScreen.hide();
+        }
+      }
+    }, this);
   },
 
   /**
