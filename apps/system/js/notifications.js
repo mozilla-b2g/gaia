@@ -503,12 +503,6 @@ var NotificationScreen = {
 
   closeNotification: function ns_closeNotification(notificationNode) {
     var notificationId = notificationNode.dataset.notificationId;
-    var event = document.createEvent('CustomEvent');
-    event.initCustomEvent('mozContentNotificationEvent', true, true, {
-      type: 'desktop-notification-close',
-      id: notificationId
-    });
-    window.dispatchEvent(event);
     this.removeNotification(notificationId);
   },
 
@@ -522,8 +516,16 @@ var NotificationScreen = {
         this.lockScreenContainer.querySelector(notifSelector);
     }
 
-    if (notificationNode)
+    if (notificationNode) {
       notificationNode.parentNode.removeChild(notificationNode);
+    }
+
+    var event = document.createEvent('CustomEvent');
+    event.initCustomEvent('mozContentNotificationEvent', true, true, {
+      type: 'desktop-notification-close',
+      id: notificationId
+    });
+    window.dispatchEvent(event);
 
     if (lockScreenNotificationNode) {
       var lockScreenNotificationParentNode =
