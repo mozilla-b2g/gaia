@@ -100,11 +100,16 @@
         return Promise.reject();
       }
 
+      function unpinFromCollection(collection) {
+        collection.homeIcons.init().then(function() {
+          collection.unpin(identifier);
+        });
+      }
+
       return CollectionsDatabase.getAll().then(function(collections) {
         // we are going to traverse all the collections on device
         for (var id in collections) {
-          var collection = BaseCollection.create(collections[id]);
-          collection.unpin(identifier);
+          unpinFromCollection(BaseCollection.create(collections[id]));
         }
       });
     },
