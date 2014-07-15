@@ -58,6 +58,11 @@ marionette('creating events', function() {
       endDate: startDateNextDay,
       reminders: ['5 minutes before'],
       verifyMonthView: function() {
+        var month = app.month;
+        assert.lengthOf(month.squareDots(month.daySquares[7]), 1);
+        assert.lengthOf(month.squareDots(month.daySquares[8]), 1);
+        assert.equal(month.busyDots.length, 2, '2 busy dots');
+
         var event = app.monthDay.events[0];
         assert.equal(event.startTime, '12:34 PM', 'start time');
         assert.equal(event.endTime, '12:34 PM', 'end time');
@@ -109,8 +114,15 @@ marionette('creating events', function() {
       endDate: startDateNextDay,
       reminders: ['On day of event'],
       verifyMonthView: function() {
-        var event = app.monthDay.events[0];
-        assert.equal(event.allDay, 'All Day', 'event hour');
+        var month = app.month;
+        assert.lengthOf(month.squareDots(month.daySquares[7]), 1);
+        assert.lengthOf(month.squareDots(month.daySquares[8]), 1);
+        assert.equal(month.busyDots.length, 2, '2 busy dots');
+        assert.equal(
+          app.monthDay.events[0].allDay,
+          'All Day',
+          'event hour'
+        );
       },
       verifyReadEventView: function() {
         var readEvent = app.readEvent;
