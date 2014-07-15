@@ -1,3 +1,4 @@
+/* global KeyboardManager */
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 'use strict';
@@ -100,11 +101,14 @@
   /**
    * Update dialog height via LayoutManager
    */
-  SystemDialog.prototype.updateHeight = function sd_updateHeight() {
-    var height = window.layoutManager.height;
-    this.containerElement.style.height = height + 'px';
-    this.debug('updateHeight: new height = ' + height);
-  };
+  SystemDialog.prototype.updateHeight =
+    function sd_updateHeight(keyboardHeight) {
+      var height = window.layoutManager.height;
+      keyboardHeight = keyboardHeight ? keyboardHeight : 0;
+      this.containerElement.style.height = (height - keyboardHeight) + 'px';
+      this.debug('updateHeight: new height = ' + (height - keyboardHeight));
+      }
+    };
 
   /**
    * Publish 'show' event for activate the dialog
@@ -113,7 +117,8 @@
     this.element.hidden = false;
     this.element.classList.add(this.customID);
     this.onShow();
-    this.updateHeight();
+    var keyboardHeight = KeyboardManager.getHeight();
+    this.updateHeight(keyboardHeight);
     this.publish('show');
   };
 
