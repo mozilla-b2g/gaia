@@ -3,6 +3,7 @@
 'use strict';
 
 (function(exports) {
+
   /*
    * SimSettingsHelper is a helper to provide semantic ways set / get
    * mozSettings. It is used by SimCardManager.
@@ -11,7 +12,26 @@
     EMPTY_OPTION_TEXT: '--',
     EMPTY_OPTION_VALUE: '-2',
     ALWAYS_ASK_OPTION_VALUE: '-1',
-
+    _callbacks: {
+      outgoingCall: [],
+      outgoingMessages: [],
+      outgoingData: []
+    },
+    observe: function(serviceName, callback) {
+      var serviceCallbacks = this._callbacks[serviceName];
+      if (serviceCallbacks) {
+        serviceCallbacks.push(callback);
+      }
+    },
+    unobserve: function(serviceName, callback) {
+      var serviceCallbacks = this._callbacks[serviceName];
+      if (serviceCallbacks) {
+        var index = serviceCallbacks.indexOf(callback);
+        if (index > -1) {
+          serviceCallbacks.splice(index, 1);
+        }
+      }
+    },
     getCardIndexFrom: function(serviceName, callback) {
       // _get(), _onWhichCard() and _getFromSettingsDB() are internal methods
       // and should be used together, so I wrap them inside this method
@@ -112,9 +132,33 @@
         }
       };
       getReq.onerror = done;
+    },
+    _addSettingsObservers: function() {
+      var self = this;
+
+      navigator.mozSettings.addObserver('ril.telephony.defaultServiceId',
+        function(event) {
+          self._callbacks.outgoingCall.forEach(function(cb) {
+            cb(event.settingValue);
+          });
+      });
+      navigator.mozSettings.addObserver('ril.sms.defaultServiceId',
+        function(event) {
+          self._callbacks.outgoingMessages.forEach(function(cb) {
+            cb(event.settingValue);
+          });
+      });
+      navigator.mozSettings.addObserver('ril.data.defaultServiceId',
+        function(event) {
+          self._callbacks.outgoingData.forEach(function(cb) {
+            cb(event.settingValue);
+          });
+      });
     }
   };
 
-  exports.SimSettingsHelper = SimSettingsHelper;
+  // add obsersvers
+  SimSettingsHelper._addSettingsObservers();
 
+  exports.SimSettingsHelper = SimSettingsHelper;
 })(window);
