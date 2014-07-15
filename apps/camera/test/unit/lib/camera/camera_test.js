@@ -1021,9 +1021,13 @@ suite('lib/camera/camera', function() {
       sinon.stub(this.camera, 'set');
     });
 
-    test('Should set the focus state to the passed value', function() {
-      this.camera.onAutoFocusChanged();
-      assert.ok(this.camera.set.calledWith('focus', 'autofocus'));
+    test('Should set the focus state to the focusing value', function() {
+      this.camera.onAutoFocusChanged(true);
+      assert.ok(this.camera.set.calledWith('focus', 'focusing'));
+    });
+    test('Should set the focus state to the focused value', function() {
+      this.camera.onAutoFocusChanged(false);
+      assert.ok(this.camera.set.calledWith('focus', 'focused'));
     });
   });
 

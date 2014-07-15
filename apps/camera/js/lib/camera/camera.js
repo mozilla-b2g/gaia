@@ -424,8 +424,19 @@ Camera.prototype.configureFocus = function() {
   this.focus.onAutoFocusChanged = this.onAutoFocusChanged;
 };
 
-Camera.prototype.onAutoFocusChanged = function() {
-  this.set('focus', 'autofocus');
+Camera.prototype.onAutoFocusChanged = function(state) {
+  //this.set('focus', 'autofocus');
+  //MADAI Implementation  for showing UI feedback
+  // for continues Focus
+  var isVideo = this.mode === 'video';
+  if (isVideo) { return; }
+  this.emit('autofocuschanged');
+  if (state) {
+    this.set('focus','focusing');
+  } else {
+    this.set('focus','focused');
+    this.focus.suspendContinuousFocus(3000);
+  }
 };
 
 Camera.prototype.onFacesDetected = function(faces) {

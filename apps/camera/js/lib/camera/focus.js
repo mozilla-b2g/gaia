@@ -137,9 +137,7 @@ Focus.prototype.suspendContinuousFocus = function(ms) {
 };
 
 Focus.prototype.onAutoFocusMoving = function(state) {
-  if (state) {
     this.onAutoFocusChanged(state);
-  }
 };
 
 Focus.prototype.onAutoFocusChanged = function(state) {

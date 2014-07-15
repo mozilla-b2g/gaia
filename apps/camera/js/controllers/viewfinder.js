@@ -103,7 +103,6 @@ ViewfinderController.prototype.bindEvents = function() {
 
   this.camera.on('zoomchanged', this.onZoomChanged);
   this.camera.on('zoomconfigured', this.onZoomConfigured);
-  this.app.on('camera:autofocuschanged', this.views.focus.showAutoFocusRing);
   this.app.on('camera:focusconfigured', this.onFocusConfigured);
   this.app.on('camera:focusstatechanged', this.views.focus.setFocusState);
   this.app.on('camera:facesdetected', this.onFacesDetected);
