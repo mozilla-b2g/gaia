@@ -37,6 +37,8 @@
         case 'editmode-start':
           window.removeEventListener('context-menu-open', this);
           window.removeEventListener('context-menu-close', this);
+          window.removeEventListener('gaia-confirm-open', this);
+          window.removeEventListener('gaia-confirm-close', this);
           /* falls through */
         case 'context-menu-open':
         case 'gaia-confirm-open':
@@ -46,17 +48,9 @@
         case 'editmode-end':
           window.addEventListener('context-menu-open', this);
           window.addEventListener('context-menu-close', this);
+          window.addEventListener('gaia-confirm-open', this);
+          window.addEventListener('gaia-confirm-close', this);
           /* falls through */
-        case 'visibilitychange':
-          // If the document is not hidden, set appearance based on scroll top.
-          if (document.hidden) {
-            break;
-          }
-          var value = this.scrollable.scrollTop > this.threshold ?
-                      APPEARANCE.OPAQUE : APPEARANCE.SEMI_TRANSPARENT;
-          this.appearance = value;
-          this.port.postMessage(value);
-          break;
         case 'context-menu-close':
         case 'gaia-confirm-close':
           this.scrollable.addEventListener('scroll', this);
@@ -65,9 +59,17 @@
         case 'collection-close':
         case 'collections-create-return':
         case 'scroll':
-          var scrollTop = this.scrollable.scrollTop;
-          this.setAppearance(scrollTop > this.threshold ? APPEARANCE.OPAQUE :
-                                         APPEARANCE.SEMI_TRANSPARENT);
+          this.setAppearance(this.calculateAppearance());
+          break;
+        case 'visibilitychange':
+          // If the document is not hidden, set appearance based on scroll top.
+          if (document.hidden) {
+            break;
+          }
+          // Note: we always want to set statusbar transparency on
+          // visibilitychange, so we remove the cached appearance value.
+          this.appearance = null;
+          this.setAppearance(this.calculateAppearance());
           break;
       }
     },
@@ -97,6 +99,14 @@
           console.error('Cannot notify changes of appearance: ', reason);
         }
       );
+    },
+
+    /**
+     * Calculate the appearance of the status bar based on scroll state.
+     */
+    calculateAppearance: function() {
+      return this.scrollable.scrollTop > this.threshold ?
+        APPEARANCE.OPAQUE : APPEARANCE.SEMI_TRANSPARENT;
     },
 
     setAppearance: function(value) {
