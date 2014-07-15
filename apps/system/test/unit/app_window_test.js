@@ -1635,6 +1635,49 @@ suite('system/AppWindow', function() {
     assert.deepEqual(app1.nextWindow, childNew);
   });
 
+  suite('isActive', function() {
+    var testApp;
+    setup(function() {
+      testApp = new AppWindow(fakeAppConfig1);
+    });
+
+    test('dom is removed', function() {
+      testApp.element = null;
+      assert.isFalse(testApp.isActive());
+    });
+
+    test('app is in queue to show', function() {
+      testApp.element.classList.add('will-become-active');
+      assert.isTrue(testApp.isActive());
+    });
+
+    test('app doesnot have transitionController', function() {
+      testApp.transitionController = null;
+      assert.isFalse(testApp.isActive());
+    });
+
+    test('app doesnot is in opened state', function() {
+      testApp.transitionController = {
+        '_transitionState': 'opened'
+      };
+      assert.isTrue(testApp.isActive());
+    });
+
+    test('app doesnot is in opening state', function() {
+      testApp.transitionController = {
+        '_transitionState': 'opening'
+      };
+      assert.isTrue(testApp.isActive());
+    });
+
+    test('app doesnot is in closing state', function() {
+      testApp.transitionController = {
+        '_transitionState': 'closing'
+      };
+      assert.isFalse(testApp.isActive());
+    });
+  });
+
   test('isBrowser', function() {
     var app1 = new AppWindow(fakeAppConfig1);
     var app2 = new AppWindow(fakeAppConfig4);
@@ -1664,6 +1707,25 @@ suite('system/AppWindow', function() {
     app2.frontWindow = popup;
     app2.navigate(url);
     assert.isNull(app2.frontWindow);
+  });
+
+  suite('fadeOut', function() {
+    var app1;
+    setup(function() {
+      app1 = new AppWindow(fakeAppConfig1);
+    });
+
+    test('app is active', function() {
+      this.sinon.stub(app1, 'isActive', function() {return true;});
+      app1.fadeOut();
+      assert.isFalse(app1.element.classList.contains('fadeout'));
+    });
+
+    test('app not active', function() {
+      this.sinon.stub(app1, 'isActive', function() {return false;});
+      app1.fadeOut();
+      assert.isTrue(app1.element.classList.contains('fadeout'));
+    });
   });
 
   test('showDefaultContextMenu', function() {
