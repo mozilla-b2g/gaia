@@ -27,6 +27,9 @@ suite('system/SecureWindowManager', function() {
     stubById.returns(document.createElement('div'));
     appFake = new window.SecureWindow(configFake);
     window.secureWindowManager = new window.SecureWindowManager();
+    // To prevent the original one has been
+    // initialized in the bootstrap stage.
+    window.secureWindowManager.suspendEvents();
   });
 
   teardown(function() {
@@ -141,17 +144,23 @@ suite('system/SecureWindowManager', function() {
       stubKill.restore();
     });
 
-    test('Pressing home', function() {
-      var evt = {
-        type: 'home'
-      };
-      var stubSoftKillApps = this.sinon.stub(window.secureWindowManager,
-        'softKillApps');
-      window.secureWindowManager.registerApp(appFake);
-      window.secureWindowManager.handleEvent(evt);
+    test('Suspend the secure mode', function() {
+      window.secureWindowManager.handleEvent({type: 'secure-modeoff'});
+      window.dispatchEvent(new CustomEvent('secure-appcreated',
+          {detail: appFake}));
+      assert.isNull(
+        window.secureWindowManager.states.activeApp,
+        'the app was got activated in off mode');
+    });
 
-      assert.isTrue(stubSoftKillApps.called,
-          'should shut down secure apps after pressing home');
+    test('Resume the secure mode', function() {
+      window.secureWindowManager.handleEvent({type: 'secure-modeoff'});
+      window.dispatchEvent(new CustomEvent('secure-modeon'));
+      window.dispatchEvent(new CustomEvent('secure-appcreated',
+          {detail: appFake}));
+      assert.isNotNull(
+        window.secureWindowManager.states.activeApp,
+        'the app was not got activated when the secure mode is on by event');
     });
   });
 });
