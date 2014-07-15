@@ -91,7 +91,8 @@ NotificationList.prototype = {
       var id = node.getAttribute('data-notification-id');
       var query = selector + '[data-notification-id="' + id + '"]';
       details.push({
-        title: document.querySelector(query + ' > .title').innerHTML,
+        title: document.querySelector(query + ' > .title-container .title')
+          .innerHTML,
         body: document.querySelector(query + ' > .detail').innerHTML,
         lang: document.querySelector(query + ' > .title-container')
           .getAttribute('lang'),
