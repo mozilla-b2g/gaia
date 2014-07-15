@@ -106,6 +106,9 @@ class Contacts(Base):
                 self.apps.switch_to_displayed_app()
                 from gaiatest.apps.contacts.regions.contact_form import EditContact
                 return EditContact(self.marionette)
+            elif return_class == 'ContactActionMenu':
+                from gaiatest.apps.contacts.regions.contact_actionmenu import ContactActionMenu
+                return ContactActionMenu(self.marionette)
             else:
                 # We are using contacts picker in activity - after choosing, fall back to open app
                 self.wait_for_condition(lambda m: self.apps.displayed_app.name != Contacts.name)

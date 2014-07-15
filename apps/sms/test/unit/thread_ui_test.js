@@ -5065,13 +5065,32 @@ suite('thread_ui.js >', function() {
         var activity = MockMozActivity.instances[0];
 
         activity.result = {
-          tel: [{ value: true }]
+          select: [{ value: true }]
         };
 
         MockMozActivity.instances[0].onsuccess();
 
         assert.isTrue(Recipients.View.isFocusable);
       });
+    });
+
+    test('pick in the case of Settings.supportEmailRecipient = true',
+    function() {
+      MockSettings.supportEmailRecipient = true;
+      ThreadUI.requestContact();
+
+      assert.equal(MockMozActivity.calls[0].data.contactProperties,
+      'tel,email');
+
+      MockSettings.supportEmailRecipient = false;
+    });
+
+    test('pick in the case of Settings.supportEmailRecipient = false',
+    function() {
+      MockSettings.supportEmailRecipient = false;
+      ThreadUI.requestContact();
+
+      assert.equal(MockMozActivity.calls[0].data.contactProperties, 'tel');
     });
   });
 

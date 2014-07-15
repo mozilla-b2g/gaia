@@ -30,7 +30,8 @@ class TestSmsAddContact(GaiaTestCase):
         contacts_app.wait_for_contacts()
 
         # After tap, don't return a class; fall back to the displayed frame which should be Messages app
-        contacts_app.contact(self.contact['givenName']).tap(return_class=None)
+        contact_actionmenu = contacts_app.contact(self.contact['givenName']).tap(return_class='ContactActionMenu')
+        contact_actionmenu.tap_first_phone_number()
 
         self.assertIn(self.contact['givenName'], new_message.first_recipient_name)
         self.assertEquals(self.contact['tel']['value'], new_message.first_recipient_number_attribute)
