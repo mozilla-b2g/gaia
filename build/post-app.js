@@ -4,8 +4,8 @@
 function execute(options) {
   require('./clean-build-files').execute(options);
 
-  // Filter images by GAIA_DEV_PIXELS_PER_PX.
-  require('./image-resolution').execute(options);
+  // Filter images/video by GAIA_DEV_PIXELS_PER_PX.
+  require('./media-resolution').execute(options);
 
   // Updates hostnames for InterApp Communication APIs.
   require('./post-manifest').execute(options);
