@@ -17,7 +17,7 @@ class TestLockScreenAccessibility(GaiaTestCase):
     def test_a11y_unlock_to_homescreen(self):
         lock_screen = LockScreen(self.marionette)
         lockScreen_window = self.marionette.find_element(*lock_screen._lockscreen_window_locator)
-        homescreen_container = self.marionette.find_element(By.ID, 'home screen')
+        homescreen_container = self.marionette.find_element(By.ID, 'homescreen')
 
         self.wait_for_condition(lambda m: self.accessibility.is_visible(lockScreen_window))
         self.wait_for_condition(lambda m: self.accessibility.is_hidden(homescreen_container))
