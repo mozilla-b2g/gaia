@@ -72,20 +72,6 @@ suite('system/VisibilityManager', function() {
       assert.isTrue(stubPublish.calledOnce);
     });
 
-    test('will-unlock should be ignore if' +
-          ' it is launching camera', function() {
-      var stubPublish = this.sinon.stub(visibilityManager, 'publish');
-
-      visibilityManager.handleEvent({
-        type: 'will-unlock',
-        detail: {
-          areaCamera: true
-        }
-      });
-
-      assert.isFalse(stubPublish.called);
-    });
-
     test('attentionscreenshow', function() {
       var stubPublish = this.sinon.stub(visibilityManager, 'publish');
       visibilityManager.handleEvent({
