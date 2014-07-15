@@ -552,14 +552,14 @@ suite('system/bluetooth_transfer', function() {
       });
     });
 
-    suite('sendFile, transfer, and progress', function() {
-      test('sendFile', function() {
+    suite('sendFile', function() {
+      test('sendFileViaHandover', function() {
         var spySendFile =
           this.sinon.spy(MockBluetooth.defaultAdapter, 'sendFile');
         var stubOnFilesSending =
           this.sinon.stub(BluetoothTransfer, 'onFilesSending');
         var stubSetTimeout = this.sinon.stub(window, 'setTimeout');
-        BluetoothTransfer.sendFile(
+        BluetoothTransfer.sendFileViaHandover(
           'AA:BB:CC:00:11:55',
           'blahblahblah\0xa0\0xa0blahblahblah'
         );
@@ -578,7 +578,7 @@ suite('system/bluetooth_transfer', function() {
 
         var stubGetAdapater =
           this.sinon.stub(MockBluetooth, 'getAdapter').returns(null);
-        BluetoothTransfer.sendFile(
+        BluetoothTransfer.sendFileViaHandover(
           'AA:BB:CC:00:11:66',
           'blahblahblah\0xa0\0xa0blahblahblahblah'
         );
@@ -695,6 +695,82 @@ suite('system/bluetooth_transfer', function() {
         assert.isFalse(spyStopSendingFile.called);
 
         MockCustomDialog.mTeardown();
+      });
+    });
+
+    suite('isSendFileQueueEmpty', function() {
+      test('True if queue is empty', function() {
+        assert.isTrue(BluetoothTransfer.isSendFileQueueEmpty);
+      });
+
+      test('False is queue is not empty', function() {
+        BluetoothTransfer._sendingFilesQueue.push(1);
+        assert.isFalse(BluetoothTransfer.isSendFileQueueEmpty);
+        BluetoothTransfer._sendingFilesQueue.splice(0);
+      });
+    });
+
+    suite('NfcHandoverManager interactions', function() {
+      var stubTransferComplete;
+      var stubRemoveProgress;
+      var stubSummarizeSentFilesReport;
+
+      var transferEvt;
+
+      setup(function() {
+        stubTransferComplete = this.sinon.stub(MockNfcHandoverManager,
+          'transferComplete');
+
+        // In this suite, we care about NfcHandoverManager.transferComplete()
+        // only.
+        stubRemoveProgress = this.sinon.stub(BluetoothTransfer,
+          'removeProgress');
+        stubSummarizeSentFilesReport = this.sinon.stub(BluetoothTransfer,
+          'summarizeSentFilesReport');
+
+        transferEvt = {
+          detail: {
+            transferInfo: {
+              success: true,
+              received: false
+            }
+          }
+        };
+      });
+
+      teardown(function() {
+        stubTransferComplete.restore();
+        stubRemoveProgress.restore();
+        stubSummarizeSentFilesReport.restore();
+      });
+
+      test('transferComplete() called for NFC originated transfer',
+        function() {
+
+        BluetoothTransfer.onTransferComplete(transferEvt);
+
+        assert.equal(stubTransferComplete.callCount, 1);
+        assert.deepEqual(stubTransferComplete.firstCall.args[0], {
+          viaHandover: false,
+          success: true,
+          received: false
+        });
+      });
+
+      test('transferComplete() called for non-NFC originated transfer',
+        function() {
+
+        BluetoothTransfer._sendingFilesQueue.push({
+          viaHandover: true
+        });
+        BluetoothTransfer.onTransferComplete(transferEvt);
+
+        assert.equal(stubTransferComplete.callCount, 1);
+        assert.deepEqual(stubTransferComplete.firstCall.args[0], {
+          viaHandover: true,
+          success: true,
+          received: false
+        });
       });
     });
   });
