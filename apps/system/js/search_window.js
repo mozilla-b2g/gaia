@@ -32,13 +32,21 @@
 
     CLASS_LIST: 'appWindow searchWindow',
 
-    openAnimation: 'zoom-out',
+    openAnimation: 'immediate',
 
-    closeAnimation: 'zoom-in',
+    closeAnimation: 'immediate',
 
     eventPrefix: 'search',
 
     containerElement: document.getElementById('rocketbar-results'),
+
+    // We don't need to wait.
+    // Kill process will call requestclose to let manager decide
+    // if we want to wait the background needs repaint,
+    // but we don't need it right now.
+    requestClose: function() {
+      this.close();
+    },
 
     /**
      * Construct browser config object by manifestURL.
