@@ -27,6 +27,6 @@ DayEvent.prototype = {
   },
 
   get iconAlarm() {
-    return this.findElement('.icon-alarm');
+    return this.findElement('.icon-calendar-alarm');
   }
 };

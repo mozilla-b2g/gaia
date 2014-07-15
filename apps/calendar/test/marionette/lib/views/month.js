@@ -21,7 +21,7 @@ Month.prototype = {
   },
 
   get busyDots() {
-    return this.activeMonth.findElements('.icon-dot');
+    return this.activeMonth.findElements('.icon-calendar-dot');
   },
 
   get days() {
@@ -45,6 +45,6 @@ Month.prototype = {
   },
 
   squareDots: function(square) {
-    return square.findElements('.icon-dot');
+    return square.findElements('.icon-calendar-dot');
   }
 };
