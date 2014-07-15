@@ -28,9 +28,9 @@ class TestUIActions(GaiaTestCase):
 
         browser.go_to_url('http://mozilla.org/firefoxos')
         time.sleep(10)
-        self.graphics.scroll(self.marionette,browser._main_screen_locator,'down','fast')
+        self.graphics.scroll(self.marionette,browser._main_screen_locator,'down',7)
         self.graphics.invoke_screen_capture()
-        self.graphics.scroll(self.marionette,browser._main_screen_locator,'up','slow')
+        self.graphics.scroll(self.marionette,browser._main_screen_locator,'up',3)
         self.graphics.invoke_screen_capture()
 
     def tearDown(self):
