@@ -6,6 +6,7 @@ define(function(require, exports, module) {
  */
 
 var CameraUtils = require('lib/camera-utils');
+var Storage = require('lib/storage');
 var getVideoMetaData = require('lib/get-video-meta-data');
 var orientation = require('lib/orientation');
 var Focus = require('lib/camera/focus');
@@ -66,11 +67,14 @@ function Camera(options) {
 
   // Video config
   this.video = {
-    storage: navigator.getDeviceStorage('videos'),
+    deviceStorage: new Storage(),
     filepath: null,
     minSpace: this.recordSpaceMin,
     spacePadding : this.recordSpacePadding
   };
+  Object.defineProperty(this.video, 'storage', { get: function() {
+    return this.deviceStorage.video;
+  }});
 
   this.focus = new Focus(options.focus);
 
