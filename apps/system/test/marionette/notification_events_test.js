@@ -133,6 +133,19 @@ marionette('Notification events', function() {
     done();
   });
 
+  test('closing notification invokes close handler', function() {
+    client.apps.launch(CALENDAR_APP);
+    client.apps.switchToApp(CALENDAR_APP);
+    // Note: this will timeout on failure
+    client.executeAsyncScript(function() {
+      var notification = new Notification('Title');
+      notification.addEventListener('close', function() {
+        marionetteScriptFinished();
+      });
+      notification.close();
+    });
+  });
+
   test('click event on resent notification starts application', function(done) {
     var notificationTitle = 'Title:' + Date.now();
 
