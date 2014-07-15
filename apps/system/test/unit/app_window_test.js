@@ -1099,6 +1099,23 @@ suite('system/AppWindow', function() {
     });
   });
 
+  suite('_setVisibleForScreenReader', function() {
+    test('_setVisibleForScreenReader: false', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      injectFakeMozBrowserAPI(app1.browser.element);
+
+      app1._setVisibleForScreenReader(false);
+      assert.equal(app1.browser.element.getAttribute('aria-hidden'), 'true');
+    });
+    test('_setVisibleForScreenReader: true', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      injectFakeMozBrowserAPI(app1.browser.element);
+
+      app1._setVisibleForScreenReader(true);
+      assert.equal(app1.browser.element.getAttribute('aria-hidden'), 'false');
+    });
+  });
+
   suite('apply and unapplyStyle', function() {
     test('applyStyle', function() {
       var app = new AppWindow(fakeAppConfig1);

@@ -12,8 +12,9 @@ from gaiatest.apps.base import Base
 
 class TimePicker(Base):
 
-    _time_picker_locator = (By.ID, 'time-picker')
-    _done_button_locator = (By.CSS_SELECTOR, '#time-picker-buttons > button.value-selector-confirm')
+    _time_picker_locator = (By.CLASS_NAME, 'value-selector-time-picker')
+    _done_button_locator = (By.CSS_SELECTOR,
+                            '.value-selector-time-picker-buttons > button.value-selector-confirm')
 
     _hour_picker_locator = (By.CSS_SELECTOR, '.value-picker-hours > div')
     _minutes_picker_locator = (By.CSS_SELECTOR, '.value-picker-minutes > div')

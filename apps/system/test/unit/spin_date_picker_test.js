@@ -30,11 +30,11 @@ suite('value selector/spin date picker', function() {
         appendChild(document.createElement('div'));
     };
 
-    stubById = this.sinon.stub(document, 'getElementById')
-                   .returns(new mock_obj());
+    stubById = this.sinon.stub(document, 'getElementsByClassName')
+                   .returns([new mock_obj()]);
 
-    var DateContainer =
-      document.getElementById('spin-date-picker');
+    var DateContainer = document.getElementsByClassName(
+      'value-selector-spin-date-picker')[0];
     subject = new SpinDatePicker(DateContainer);
   });
 
