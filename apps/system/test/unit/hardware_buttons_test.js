@@ -1,11 +1,14 @@
 'use strict';
 
-/* global HardwareButtons, MocksHelper, ScreenManager */
+/* global HardwareButtons, MocksHelper, ScreenManager, MockSettingsListener */
 
-requireApp('system/js/hardware_buttons.js');
 requireApp('system/test/unit/mock_screen_manager.js');
+requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 
-var mocksForHardwareButtons = new MocksHelper(['ScreenManager']).init();
+var mocksForHardwareButtons = new MocksHelper([
+  'SettingsListener',
+  'ScreenManager'
+]).init();
 
 suite('system/HardwareButtons', function() {
   mocksForHardwareButtons.attachTestHelpers();
@@ -30,6 +33,10 @@ suite('system/HardwareButtons', function() {
     //realDispatchEvent.call(window, evt);
     hardwareButtons.handleEvent(evt);
   };
+
+  suiteSetup(function(done) {
+    requireApp('system/js/hardware_buttons.js', done);
+  });
 
   setup(function() {
     /**
@@ -97,6 +104,16 @@ suite('system/HardwareButtons', function() {
     assert.isTrue(stubClearTimeout.calledOnce);
     assert.equal(stubClearTimeout.getCall(0).args[0],
       stubSetTimeout.getCall(0).returnValue);
+  });
+
+  test('press and release home (soft home enabled)', function() {
+    var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
+    MockSettingsListener.mCallbacks['software-button.enabled'](true);
+
+    fireChromeEvent('home-button-press');
+    fireChromeEvent('home-button-release');
+
+    assert.isTrue(stubDispatchEvent.notCalled);
   });
 
   test('press and release sleep (screen enabled)', function() {
