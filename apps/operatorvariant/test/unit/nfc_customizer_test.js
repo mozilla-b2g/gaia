@@ -42,6 +42,15 @@ suite('NFC customizer >', function() {
       expectedValue: true
     },
     {
+      title: 'set true value. user disabled > ',
+      inputValue: {
+        'isEnabled': true,
+        'default': null
+      },
+      currentValue: false,
+      expectedValue: false
+    },
+    {
       title: 'set false value. It has changed previously > ',
       inputValue: {
         'isEnabled': false,
