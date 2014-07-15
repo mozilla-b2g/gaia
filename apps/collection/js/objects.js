@@ -297,8 +297,8 @@
       }, this);
     },
 
-    addItemToGrid: function prependItemToGrid(item, grid, position) {
-      this.pinned.slice(position, 1, new PinnedHomeIcon(item.identifier));
+    addItemToGrid: function addItemToGrid(item, grid, position) {
+      this.pinned.splice(position, 1, new PinnedHomeIcon(item.identifier));
 
       grid.add(this.toGridObject(item), position);
 
