@@ -34,6 +34,7 @@ suite('system/SearchWindow', function() {
     stubById = this.sinon.stub(document, 'getElementById')
                           .returns(fakeElement.cloneNode(true));
 
+    requireApp('system/js/system.js');
     requireApp('system/js/browser_config_helper.js');
     requireApp('system/js/app_window.js');
     requireApp('system/js/search_window.js', done);
@@ -66,4 +67,10 @@ suite('system/SearchWindow', function() {
     assert.equal(searchWindow.searchAppURL, 'app://mozilla.org/');
   });
 
+  test('request close should close directly', function() {
+    var searchWindow = new SearchWindow();
+    var stubClose = this.sinon.stub(searchWindow, 'close');
+    searchWindow.requestClose();
+    assert.isTrue(stubClose.called);
+  });
 });
