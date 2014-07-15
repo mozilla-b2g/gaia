@@ -26,6 +26,7 @@ var MockThreadListUI = {
   insertThreadContainer: function() {},
   onMessageSending: function() {},
   onMessageReceived: function() {},
+  onThreadsDeleted: function() {},
   appendThread: function() {},
   createThreadContainer: function() {},
   updateContactsInfo: function() {},

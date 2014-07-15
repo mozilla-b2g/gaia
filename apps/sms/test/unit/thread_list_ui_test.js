@@ -673,6 +673,28 @@ suite('thread_list_ui', function() {
         });
       });
     });
+
+    test('onThreadsDeleted', function() {
+      var threadIds = [3, 4, 5];
+      this.sinon.stub(Threads, 'has', (id) => threadIds.indexOf(id) >= 0);
+
+      threadIds.forEach(function(threadId) {
+        var thread = Thread.create(MockMessages.sms({
+          threadId: threadId,
+          timestamp: +(new Date())
+        }));
+
+        ThreadListUI.appendThread(thread);
+
+        assert.ok(document.getElementById('thread-' + threadId));
+      });
+
+      ThreadListUI.onThreadsDeleted([3, 4, 6]);
+
+      assert.ok(!document.getElementById('thread-3'));
+      assert.ok(!document.getElementById('thread-4'));
+      assert.ok(document.getElementById('thread-5'));
+    });
   });
 
   suite('createThread', function() {
