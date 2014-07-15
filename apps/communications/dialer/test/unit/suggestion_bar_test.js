@@ -346,6 +346,37 @@ suite('suggestion Bar', function() {
         assert.equal(domSuggestionBar.getAttribute('aria-hidden'), 'true');
     });
 
+    test('#update suggestions by contact data - 50 local data - 0 FB data',
+      function() {
+        var enteredNumber = '1234';
+        cloneMockContactResults(50);
+        subject.update(enteredNumber);
+
+        assert.isFalse(domSuggestionBar.hidden, 'should show suggestionBar');
+        assert.equal(domSuggestionBar.getAttribute('aria-hidden'), 'false');
+    });
+
+    test('#update suggestions by contact data - 51 local data - 0 FB data',
+      function() {
+        var enteredNumber = '1234';
+        cloneMockContactResults(51);
+        subject.update(enteredNumber);
+
+        assert.isTrue(domSuggestionBar.hidden, 'should hide suggestionBar');
+        assert.equal(domSuggestionBar.getAttribute('aria-hidden'), 'true');
+    });
+
+    test('#update suggestions by contact data - 50 local data - 1 FB data',
+      function() {
+        var enteredNumber = '1234';
+        cloneMockContactResults(50);
+        MockFbContacts.mResult = mockResultFb.slice(0, 1);
+        subject.update(enteredNumber);
+
+        assert.isTrue(domSuggestionBar.hidden, 'should hide suggestionBar');
+        assert.equal(domSuggestionBar.getAttribute('aria-hidden'), 'true');
+    });
+
     suite('#clear suggestions', function() {
       setup(function() {
         var enteredNumber = '1234';
