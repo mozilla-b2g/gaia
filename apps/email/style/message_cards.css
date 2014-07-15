@@ -605,7 +605,7 @@ reflows. Foreground/background colors should be safe.
   background-image: url("images/icons/forward.png");
 }
 
-pp.bb-tablist .msg-reply-btn {
+.bb-tablist .msg-reply-btn {
   background-image: url("images/icons/reply.png");
 }
 
