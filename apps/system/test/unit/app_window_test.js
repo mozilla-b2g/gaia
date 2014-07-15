@@ -1101,4 +1101,61 @@ suite('system/AppWindow', function() {
     assert.isTrue(stub_setFrameBackgroundWithScreenshot.called);
     assert.isTrue(stubPublish.calledWith('suspended'));
   });
+
+  suite('isActive', function() {
+    var testApp;
+    setup(function() {
+      testApp = new AppWindow(fakeAppConfig1);
+    });
+
+    test('dom is removed', function() {
+      testApp.element = null;
+      assert.isFalse(testApp.isActive());
+    });
+
+    test('app doesnot have transitionController', function() {
+      testApp.transitionController = null;
+      assert.isFalse(testApp.isActive());
+    });
+
+    test('app doesnot is in opened state', function() {
+      testApp.transitionController = {
+        '_transitionState': 'opened'
+      };
+      assert.isTrue(testApp.isActive());
+    });
+
+    test('app doesnot is in opening state', function() {
+      testApp.transitionController = {
+        '_transitionState': 'opening'
+      };
+      assert.isTrue(testApp.isActive());
+    });
+
+    test('app doesnot is in closing state', function() {
+      testApp.transitionController = {
+        '_transitionState': 'closing'
+      };
+      assert.isFalse(testApp.isActive());
+    });
+  });
+
+  suite('fadeOut', function() {
+    var app1;
+    setup(function() {
+      app1 = new AppWindow(fakeAppConfig1);
+    });
+
+    test('app is active', function() {
+      this.sinon.stub(app1, 'isActive', function() {return true;});
+      app1.fadeOut();
+      assert.isFalse(app1.element.classList.contains('fadeout'));
+    });
+
+    test('app not active', function() {
+      this.sinon.stub(app1, 'isActive', function() {return false;});
+      app1.fadeOut();
+      assert.isTrue(app1.element.classList.contains('fadeout'));
+    });
+  });
 });
