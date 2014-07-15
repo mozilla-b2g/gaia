@@ -5,7 +5,7 @@
    "app-transition.enabled": true,
    "app.cards_view.screenshots.enabled": true,
    "app-suspending.enabled": false,
-   "app-brandcolor.enabled": false,
+   "app-themecolor.enabled": false,
    "app.launch_path.blacklist": [],
    "app.reportCrashes": "ask",
    "app.update.channel": "",
