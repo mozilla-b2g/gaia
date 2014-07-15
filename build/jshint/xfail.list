@@ -342,7 +342,6 @@ apps/system/js/bluetooth_transfer.js
 apps/system/js/browser_config_helper.js
 apps/system/js/browser_frame.js
 apps/system/js/browser_mixin.js
-apps/system/js/captive_portal.js
 apps/system/js/carrier_info_notifier.js
 apps/system/js/cell_broadcast_system.js
 apps/system/js/crash_reporter.js
@@ -396,7 +395,6 @@ apps/system/test/unit/app_install_manager_test.js
 apps/system/test/unit/battery_manager_test.js
 apps/system/test/unit/bluetooth_transfer_test.js
 apps/system/test/unit/browser_frame_test.js
-apps/system/test/unit/captive_portal_test.js
 apps/system/test/unit/carrier_info_notifier_test.js
 apps/system/test/unit/date_picker_test.js
 apps/system/test/unit/download_manager_test.js
