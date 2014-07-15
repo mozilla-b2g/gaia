@@ -235,6 +235,9 @@ var TonePlayer = {
   },
 
   _channel: null,
+  getChannel: function() {
+    return this._channel;
+  },
   setChannel: function tp_setChannel(channel) {
     var ctx = this._audioContext;
     if (!channel || (ctx && ctx.mozAudioChannelType === channel)) {
