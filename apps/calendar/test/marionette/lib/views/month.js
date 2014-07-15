@@ -25,7 +25,7 @@ Month.prototype = {
   },
 
   get days() {
-    return this.findElements('.day');
+    return this.activeMonth.findElements('.day');
   },
 
   get weekdayHeaders() {
@@ -41,7 +41,7 @@ Month.prototype = {
   },
 
   get todaySquare() {
-    return this.findElement('.month.active .present');
+    return this.activeMonth.findElement('.present');
   },
 
   squareDots: function(square) {
