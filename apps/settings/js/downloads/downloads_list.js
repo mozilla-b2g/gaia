@@ -429,6 +429,9 @@
           oncomplete
         );
 
+        // Display "No downloads" if list is empty
+        _checkEmptyList();
+
         // Update method added
         DownloadApiManager.setOnDownloadHandler(_newDownload);
 
