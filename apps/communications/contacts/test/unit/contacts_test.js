@@ -17,6 +17,7 @@ requireApp('communications/contacts/test/unit/mock_activities.js');
 requireApp('communications/contacts/test/unit/mock_sms_integration.js');
 requireApp('communications/contacts/test/unit/mock_contacts_details.js');
 requireApp('communications/contacts/test/unit/mock_contacts_nfc.js');
+requireApp('communications/contacts/test/unit/mock_contacts_form.js');
 requireApp('communications/contacts/test/unit/mock_contacts_search.js');
 requireApp('communications/contacts/test/unit/mock_contacts_settings.js');
 
@@ -71,6 +72,7 @@ suite('Contacts', function() {
     window.contacts = {};
     window.contacts.List = MockContactsListObj;
     window.contacts.Details = MockContactDetails;
+    window.contacts.Form = MockContactsForm;
     window.contacts.NFC = MockContactsNfc;
     window.contacts.Search = MockContactsSearch;
     window.contacts.Settings = MockContactsSettings;
@@ -462,6 +464,48 @@ suite('Contacts', function() {
 
         sinon.assert.called(ActivityHandler.postCancel);
         ActivityHandler.currentlyHandling = false;
+      });
+    });
+  });
+
+  suite('> init settings twice', function() {
+    var load, view, settingsInit, detailsInit;
+    suiteSetup(function(done) {
+
+      requireApp('communications/contacts/js/contacts.js', done);
+    });
+    setup(function() {
+      this.sinon.stub(LazyLoader, 'load', function(p, cb) {
+        cb();
+      });
+      this.sinon.stub(Contacts, 'view', function(view, cb) {
+        cb();
+      });
+      this.sinon.stub(contacts.Settings, 'init', function() {});
+      this.sinon.stub(contacts.Details, 'init', function() {});
+    });
+
+    test('> initializing settings twice', function(done) {
+      Contacts.initSettings(function() {
+        Contacts.initSettings(function() {
+          done();
+        });
+      });
+    });
+
+    test('> initializing details twice', function(done) {
+      Contacts.initDetails(function() {
+        Contacts.initDetails(function() {
+          done();
+        });
+      });
+    });
+
+    test('> initializing form twice', function(done) {
+      Contacts.initForm(function() {
+        Contacts.initForm(function() {
+          done();
+        });
       });
     });
   });

@@ -48,9 +48,6 @@ var Contacts = (function() {
       editModeTitleElement,
       asyncScriptsLoaded = false;
 
-  var settingsReady = false;
-  var detailsReady = false;
-  var formReady = false;
   var displayed = false;
 
   var currentContact = {},
@@ -61,6 +58,21 @@ var Contacts = (function() {
   var contactsForm;
 
   var customTag, customTagReset, tagDone, tagCancel, lazyLoadedTagsDom = false;
+
+  // Executes a function once. It wraps the original function and returns
+  // a function with a `called` property that's true if the function has been
+  // already called, and a `value` property with the cached return value.
+  function once(fn) {
+    var f = function() {
+      if (f.called) { return f.value; }
+
+      f.called = true;
+      f.value = fn.apply(this, arguments);
+      return f.value;
+    };
+    f.called = false;
+    return f;
+  }
 
   // Shows the edit form for the current contact being in an update activity
   // It receives an array of two elements with the facebook data && values
@@ -219,7 +231,6 @@ var Contacts = (function() {
       }
       checkUrl();
 
-      asyncScriptsLoaded = true;
     });
   };
 
@@ -537,14 +548,18 @@ var Contacts = (function() {
     }
   };
 
-  var initForm = function c_initForm(callback) {
-    if (formReady) {
-      callback();
-    } else {
-      initDetails(function onDetails() {
+  /**
+   * It lazy-loads all the dependencies for contact form once, and returns
+   * a function that will always properly open the settings panel.
+   *
+   * @return {Function} Function that executes a given callback when the
+   * settings panel is loaded.
+   */
+  var initForm = (function(callback) {
+    var formReady = false;
+    var onDetails = once(function onDetails(callback) {
         LazyLoader.load([
-          '/shared/js/contacts/utilities/image_thumbnail.js'],
-        function() {
+        '/shared/js/contacts/utilities/image_thumbnail.js'], function() {
           Contacts.view('Form', function viewLoaded() {
             formReady = true;
             contactsForm = contacts.Form;
@@ -553,14 +568,25 @@ var Contacts = (function() {
           });
         });
       });
-    }
-  };
 
-  var initSettings = function c_initSettings(callback) {
-    if (settingsReady) {
-      callback();
-    } else {
-      Contacts.view('Settings', function viewLoaded() {
+    return function c_initForm(callback) {
+      if (formReady) {
+        return callback();
+      }
+      initDetails(function() { onDetails(callback); });
+    };
+  })();
+
+  /**
+   * It lazy-loads all the dependencies for contacts settings once, and returns
+   * a function that will always properly open the settings panel.
+   *
+   * @return {Function} Function that executes a given callback when the
+   * settings panel is loaded.
+   */
+  var initSettings = (function() {
+    var settingsReady = false;
+    var viewLoaded = once(function viewLoaded(callback) {
         LazyLoader.load(['/contacts/js/utilities/sim_dom_generator.js',
           '/contacts/js/utilities/icc_handler.js'], function() {
           settingsReady = true;
@@ -568,14 +594,25 @@ var Contacts = (function() {
           callback();
         });
       });
-    }
-  };
 
-  var initDetails = function c_initDetails(callback) {
-    if (detailsReady) {
-      callback();
-    } else {
-      Contacts.view('Details', function viewLoaded() {
+    return function(callback) {
+      if (settingsReady) {
+        return callback();
+      }
+      Contacts.view('Settings', function() { viewLoaded(callback); });
+    };
+  })();
+
+  /**
+   * It lazy-loads all the dependencies for contact details once, and returns
+   * a function that will always properly open the settings panel.
+   *
+   * @return {Function} Function that executes a given callback when the
+   * settings panel is loaded.
+   */
+  var initDetails = (function(callback) {
+    var detailsReady = false;
+    var viewLoaded = once(function viewLoaded(callback) {
         var simPickerNode = document.getElementById('sim-picker');
         LazyLoader.load([simPickerNode], function() {
           navigator.mozL10n.translate(simPickerNode);
@@ -585,8 +622,14 @@ var Contacts = (function() {
           callback();
         });
       });
-    }
-  };
+
+    return function c_initDetails(callback) {
+      if (detailsReady) {
+        return callback();
+      }
+      Contacts.view('Details', function() { viewLoaded(callback); });
+    };
+  })();
 
   var showForm = function c_showForm(edit, contact) {
     currentContact = contact || currentContact;
@@ -979,6 +1022,9 @@ var Contacts = (function() {
     'view': loadView,
     'utility': loadUtility,
     'updateSelectCountTitle': updateSelectCountTitle,
+    'initSettings': initSettings,
+    'initDetails': initDetails,
+    'initForm': initForm,
     get asyncScriptsLoaded() {
       return asyncScriptsLoaded;
     },
