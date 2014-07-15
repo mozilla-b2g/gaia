@@ -76,7 +76,7 @@ class LockScreen(Base):
 
 class Notification(PageRegion):
     _body_locator = (By.CSS_SELECTOR, 'div.detail')
-    _title_locator = (By.CSS_SELECTOR, 'div')
+    _title_locator = (By.CSS_SELECTOR, 'div.title')
 
     @property
     def is_visible(self):
