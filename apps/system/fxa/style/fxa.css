@@ -291,3 +291,11 @@ a.disabled {
   background: transparent;
   font-size: 1.7rem;
 }
+
+html[dir="rtl"] .screen p {
+  text-align: right;
+}
+
+html[dir="rtl"] h3 {
+  text-align: right;
+}
