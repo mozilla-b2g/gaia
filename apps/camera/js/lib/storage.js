@@ -37,12 +37,12 @@ function Storage(options) {
   bindAll(this);
   this.maxFileSize = 0;
   options = options || {};
-  this.video = navigator.getDeviceStorage('videos');
-  this.picture = navigator.getDeviceStorage('pictures');
-  this.picture.addEventListener('change', this.onStorageChange);
+  this.updateStorage();
   this.createFilename = options.createFilename || createFilename; // test hook
   this.dcf = options.dcf || dcf;
   this.dcf.init();
+  navigator.mozSettings.addObserver('device.storage.writable.name',
+                                    this.onDefaultStorageVolumeChange);
   debug('initialized');
 }
 
@@ -135,6 +135,18 @@ Storage.prototype.createVideoFilepath = function(done) {
   });
 };
 
+Storage.prototype.updateStorage = function() {
+  // If we had a previous ds for pictures, let's remove the observer
+  // we had set as well before fetching new ds.
+  if (this.picture) {
+    this.picture.removeEventListener('change', this.onStorageChange);
+  }
+
+  this.video = navigator.getDeviceStorage('videos');
+  this.picture = navigator.getDeviceStorage('pictures');
+  this.picture.addEventListener('change', this.onStorageChange);
+};
+
 Storage.prototype.onStorageChange = function(e) {
   debug('state change: %s', e.reason);
   var value = e.reason;
@@ -151,6 +163,11 @@ Storage.prototype.onStorageChange = function(e) {
   // Check storage
   // has spare capacity
   this.check();
+};
+
+Storage.prototype.onDefaultStorageVolumeChange = function(setting) {
+  debug('default storage volume change: %s', setting.settingValue);
+  this.updateStorage();
 };
 
 Storage.prototype.checkFilepath = function(filepath) {
