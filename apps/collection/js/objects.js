@@ -139,7 +139,8 @@
       var before = this.originalProps;
       try {
         // background
-        if (before.background.src !== this.background.src) {
+        if ((before.background && before.background.src) !==
+            (this.background && this.background.src)) {
           this.originalProps.background = this.background;
           return true;
         }
@@ -149,16 +150,17 @@
         var oldFirst =
           before.pinned.concat(before.webResults).slice(0, numAppIcons);
 
+        if (first.length !== oldFirst.length) {
+          before.pinned = this.pinned;
+          return true;
+        }
+
         for (var i = 0; i < numAppIcons; i++) {
-          if (first[i].identifier !== oldFirst[i].identifier) {
+          if ((first[i] && first[i].identifier) !==
+              (oldFirst[i] && oldFirst[i].identifier)) {
             before.pinned = this.pinned;
             return true;
           }
-        }
-
-        if (first.length !== before.length) {
-          before.pinned = this.pinned;
-          return true;
         }
 
       } catch (e) {}
