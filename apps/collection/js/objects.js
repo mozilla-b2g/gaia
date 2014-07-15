@@ -373,15 +373,17 @@
 
       // Build the small icons from pinned, then webicons
       var numAppIcons = CollectionIcon.numAppIcons;
-      var iconSrcs = this.pinned.slice(0, numAppIcons);
+      var iconSrcs = this.pinned.slice(0, numAppIcons)
+                         .map((item) => this.toGridObject(item).icon);
 
-      iconSrcs = iconSrcs.concat(
-        this.webicons.slice(0, numAppIcons - iconSrcs.length));
+      if (iconSrcs.length < numAppIcons) {
+        var moreIcons =
+          this.webicons
+          // bug 1028674: deupde
+          .filter((webicon) => iconSrcs.indexOf(webicon) === -1)
+          .slice(0, numAppIcons - iconSrcs.length);
 
-      for (var i = 0; i < iconSrcs.length; i++) {
-        if (typeof iconSrcs[i] === 'object') {
-          iconSrcs[i] = this.toGridObject(iconSrcs[i]).icon;
-        }
+        iconSrcs = iconSrcs.concat(moreIcons);
       }
 
       var icon = new CollectionIcon({
