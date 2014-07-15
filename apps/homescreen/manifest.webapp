@@ -1,6 +1,6 @@
 {
-  "name": "Home screen",
-  "description": "Gaia home screen",
+  "name": "Homescreen",
+  "description": "Gaia Homescreen",
   "launch_path": "/index.html#root",
   "type": "certified",
   "role": "homescreen",
@@ -24,8 +24,8 @@
       "description": "Gaia الشاشة الرئيسية"
     },
     "en-US": {
-      "name": "Home screen",
-      "description": "Gaia home screen"
+      "name": "Homescreen",
+      "description": "Gaia Homescreen"
     },
     "fr": {
       "name": "Écran d’accueil",

@@ -25,7 +25,7 @@ class LockScreen(Base):
 
     def unlock(self):
 
-        self._slide_to_unlock('home screen')
+        self._slide_to_unlock('homescreen')
         return Homescreen(self.marionette)
 
     def unlock_to_camera(self):
@@ -35,7 +35,7 @@ class LockScreen(Base):
 
     def unlock_to_passcode_pad(self):
         self.wait_for_element_displayed(*self._lockscreen_handle_locator)
-        self._slide_to_unlock('home screen')
+        self._slide_to_unlock('homescreen')
         self.wait_for_element_displayed(*self._lockscreen_passcode_panel_locator)
         return PasscodePad(self.marionette)
 
@@ -76,7 +76,7 @@ class LockScreen(Base):
 
 class Notification(PageRegion):
     _body_locator = (By.CSS_SELECTOR, 'div.detail')
-    _title_locator = (By.CSS_SELECTOR, 'div')
+    _title_locator = (By.CSS_SELECTOR, 'div.title')
 
     @property
     def is_visible(self):

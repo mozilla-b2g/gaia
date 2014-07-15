@@ -74,7 +74,7 @@ class Base(object):
 
     def find_select_item(self, match_string):
         _list_item_locator = (
-            By.XPATH, "id('value-selector-container')/descendant::li[descendant::span[.='%s']]" %
+            By.XPATH, "//section[contains(@class,'value-selector-container')]/descendant::li[descendant::span[.='%s']]" %
             match_string)
         # have to go back to top level to get the B2G select box wrapper
         self.marionette.switch_to_frame()

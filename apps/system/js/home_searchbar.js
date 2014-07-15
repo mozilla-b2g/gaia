@@ -51,7 +51,7 @@
       window.addEventListener('lockscreen-appopened', this);
       window.addEventListener('appopened', this);
       window.addEventListener('launchactivity', this, true);
-      window.addEventListener('searchcrashed', this);
+      window.addEventListener('searchterminated', this);
       window.addEventListener('permissiondialoghide', this);
       window.addEventListener('attentionscreenshow', this);
 
@@ -115,8 +115,8 @@
         case 'launchactivity':
           this.handleActivity(e);
           break;
-        case 'searchcrashed':
-          this.handleSearchCrashed(e);
+        case 'searchterminated':
+          this.handleSearchTerminated(e);
           break;
         case 'submit':
           this.handleSubmit(e);

@@ -112,7 +112,8 @@ MessageListTopbar.prototype = {
     }
 
     if (this._el !== null) {
-      mozL10n.setAttributes(this._el, 'new-emails', { n: this._newEmailCount });
+      this._el.textContent =
+          mozL10n.get('new-emails', { n: this._newEmailCount });
     }
   },
 

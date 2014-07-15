@@ -14,6 +14,7 @@ Cu.import('resource://gre/modules/Promise.jsm');
 Cu.import('resource://gre/modules/reflect.jsm');
 
 var utils = require('./utils.js');
+var subprocess = require('sdk/system/child_process/subprocess');
 /**
  * Returns an array of nsIFile's for a given directory
  *
@@ -716,6 +717,30 @@ function Commander(cmd) {
         ' ' + args.join(' '));
     }
     callback && callback();
+  };
+
+  /**
+   * This function use subprocess module to run command. We can capture stdout
+   * throught it.
+   *
+   * @param {Array} args Arrays of command. ex: ['adb', 'b2g-ps'].
+   * @param {Object} options Callback for stdin, stdout, stderr and done.
+   *
+   * XXXX: Since method "runWithSubprocess" cannot be executed in Promise yet,
+   *       we need to keep original method "run" for push-to-device.js (nodejs
+   *       support). We'll file another bug for migration things.
+   */
+  this.runWithSubprocess = function(args, options) {
+    log('cmd', command + ' ' + args.join(' '));
+    var p = subprocess.call({
+      command: _file,
+      arguments: args,
+      stdin: (options && options.stdin) || function(){},
+      stdout: (options && options.stdout) || function(){},
+      stderr: (options && options.stderr) || function(){},
+      done: (options && options.done) || function(){},
+    });
+    p.wait();
   };
 }
 

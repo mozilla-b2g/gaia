@@ -46,7 +46,7 @@ var NfcManager = {
       if (optObject) {
         output += JSON.stringify(optObject);
       }
-      dump(output);
+      dump(output + '\n');
     }
   },
 
@@ -153,20 +153,36 @@ var NfcManager = {
    * Parses NDEF message and returns options object which is used to create
    * MozActivity. It checks the first NDEF record and basing on tnf value
    * passes the record for further parsing of paylod and type to helper methods.
-   * If first record is valid, options object will contain the whole NDEF 
+   * If first record is valid, options object will contain the whole NDEF
    * message, so the app can access other records and handle them appropriately.
    * TODO: together with helper methods should be moved to different file
    * TODO: more appropriate name needed
    * @param {Array} NDEF message - an array of NDEF records
    * @returns {Object} options - object used to construct MozActivity
-   * @returns {Array} options.data.records - NDEF message 
+   * @returns {Array} options.data.records - NDEF message
    */
   handleNdefMessage: function nm_handleNdefMessage(ndefMsg) {
     var options = null;
 
-    var record = (ndefMsg.length !== 0) ? ndefMsg[0] : { tnf: NDEF.TNF_EMPTY };
-    this._debug('RECORD: ' + JSON.stringify(record));
+    var record = ndefMsg[0] || { tnf: NDEF.TNF_EMPTY };
 
+    var smartPoster = ndefMsg.filter(function isSmartPoster(r) {
+      return NfcUtils.equalArrays(r.type, NDEF.RTD_SMART_POSTER);
+    })[0];
+
+    // NFCForum-SmartPoster_RTD_1.0, 3.4:
+    // If an NDEF message contains one or multiple URI [URI] records
+    // in addition to the Smart Poster record at the top level (i.e.,
+    // not nested), the Smart Poster record overrides them. The NDEF
+    // application MUST use only the Smart Poster record.
+    if (record.tnf === NDEF.TNF_WELL_KNOWN &&
+        NfcUtils.equalArrays(record.type, NDEF.RTD_URI) &&
+        smartPoster) {
+
+      record = smartPoster;
+    }
+
+    this._debug('RECORD: ' + JSON.stringify(record));
     switch (+record.tnf) {
       case NDEF.TNF_EMPTY:
         options = this.createActivityOptionsWithType('empty');
@@ -411,9 +427,7 @@ var NfcManager = {
     } else if (NfcUtils.equalArrays(record.type, NDEF.RTD_URI)) {
       return this.formatURIRecord(record);
     } else if (NfcUtils.equalArrays(record.type, NDEF.RTD_SMART_POSTER)) {
-      // Smartposters can be multipart NDEF messages.
-      // The meaning and actions are application dependent.
-      return this.createActivityOptionsWithType('smartposter');
+      return this.formatSmartPosterRecords(record);
     } else {
       this._debug('Unknown record type: ' + JSON.stringify(record));
     }
@@ -483,6 +497,61 @@ var NfcManager = {
       options = this.createActivityOptionsWithType('uri');
       options.data.rtd = record.type;
       options.data.uri = uri;
+    }
+
+    return options;
+  },
+
+  formatSmartPosterRecords: function nm_formatSmartPosterRecords(smartposter) {
+    this._debug('formatSmartPosterRecords');
+
+    // Smart poster contains embedded records in it's payload.
+    var buffer = NfcUtils.createBuffer(smartposter.payload);
+    var records = NfcUtils.parseNDEF(buffer);
+
+    // First, decode URI. It's treated specially, because it's the only
+    // mandatory record in a smart poster.
+    var URIRecords = records.filter(function (record) {
+      return NfcUtils.equalArrays(record.type, NDEF.RTD_URI);
+    });
+
+    if (URIRecords.length !== 1) {
+      this._debug('Invalid smart poster message. Should contain exactly ' +
+        'one URI record, but contains ' + URIRecords.length);
+      return null;
+    }
+
+    var options = this.formatURIRecord(URIRecords[0]);
+    var data = options.data;
+
+    // Now decode all other records and attach their data
+    // to URI options.
+    for (var r = 0; r < records.length; r += 1) {
+      var record = records[r];
+      var typeStr = NfcUtils.toUTF8(record.type);
+
+      if (NfcUtils.equalArrays(record.type, NDEF.RTD_TEXT)) {
+        data.text = data.text || {};
+
+        var textData = this.formatTextRecord(record).data;
+
+        if (data.text[textData.language]) {
+          // According to NFCForum-SmartPoster_RTD_1.0 3.3.2,
+          // there MUST NOT be two or more records with
+          // the same language identifier.
+          return null;
+        }
+
+        data.text[textData.language] = textData.text;
+      } else if ('act' === typeStr) {
+        data.action = record.payload[0];
+      } else if (NDEF.TNF_MIME_MEDIA === record.tnf) {
+        data.icons = data.icons || [];
+        data.icons.push({
+          type: NfcUtils.toUTF8(record.type),
+          bytes: record.payload
+        });
+      }
     }
 
     return options;

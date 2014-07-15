@@ -28,11 +28,21 @@ define(function(require) {
     };
 
     var _transit = function ss_transit(oldPanel, newPanel, callback) {
-      if (_isTabletAndLandscape()) {
-        PageTransitions.twoColumn(oldPanel, newPanel, callback);
-      } else {
-        PageTransitions.oneColumn(oldPanel, newPanel, callback);
-      }
+      var promise = new Promise(function(resolve) {
+        var wrappedCallback = function() {
+          if (typeof callback === 'function') {
+            callback();
+          }
+          resolve();
+        };
+
+        if (_isTabletAndLandscape()) {
+          PageTransitions.twoColumn(oldPanel, newPanel, wrappedCallback);
+        } else {
+          PageTransitions.oneColumn(oldPanel, newPanel, wrappedCallback);
+        }
+      });
+      return promise;
     };
 
     var _loadPanel = function ss_loadPanel(panelId, callback) {
@@ -111,36 +121,58 @@ define(function(require) {
             // show function.
             options = options || {};
 
-            panel.beforeShow(newPanelElement, options);
-            // We don't deactivate the root panel.
-            if (currentPanel && currentPanelId !== _rootPanelId) {
-              currentPanel.beforeHide();
-            }
-
-            // Add a timeout for smoother transition.
-            setTimeout(function doTransition() {
-              _transit(currentPanelElement, newPanelElement,
-                function transitionCompleted() {
-                  panel.show(newPanelElement, options);
-                  // We don't deactivate the root panel.
-                  if (currentPanel && currentPanelId !== _rootPanelId) {
-                    currentPanel.hide();
-                  }
-
-                  // Update the current navigation object
-                  _currentNavigation = {
-                    panelId: panelId,
-                    panelElement: newPanelElement,
-                    panel: panel,
-                    options: options
-                  };
-
-                  // XXX we need to remove this line in the future
-                  // to make sure we won't manipulate Settings
-                  // directly
-                  Settings._currentPanel = '#' + panelId;
-                  callback();
+            // 0. start the chain
+            Promise.resolve()
+            // 1. beforeHide previous panel
+            .then(function() {
+              // We don't deactivate the root panel.
+              if (currentPanel && currentPanelId !== _rootPanelId) {
+                return currentPanel.beforeHide();
+              }
+            })
+            // 2. beforeShow next panel
+            .then(function() {
+              return panel.beforeShow(newPanelElement, options);
+            })
+            // 3. add a timeout for smoother transition.
+            .then(function() {
+              var promise = new Promise(function(resolve) {
+                setTimeout(function timeout() {
+                  resolve();
+                });
               });
+              return promise;
+            })
+            // 4. do the transition
+            .then(function() {
+              return _transit(currentPanelElement, newPanelElement);
+            })
+            // 5. hide previous panel
+            .then(function() {
+              // We don't deactivate the root panel.
+              if (currentPanel && currentPanelId !== _rootPanelId) {
+                return currentPanel.hide();
+              }
+            })
+            // 6. show next panel
+            .then(function() {
+              return panel.show(newPanelElement, options);
+            })
+            // 7. keep information
+            .then(function() {
+              // Update the current navigation object
+              _currentNavigation = {
+                panelId: panelId,
+                panelElement: newPanelElement,
+                panel: panel,
+                options: options
+              };
+
+              // XXX we need to remove this line in the future
+              // to make sure we won't manipulate Settings
+              // directly
+              Settings._currentPanel = '#' + panelId;
+              callback();
             });
           });
         });

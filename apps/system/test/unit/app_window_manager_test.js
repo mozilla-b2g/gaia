@@ -193,6 +193,22 @@ suite('system/AppWindowManager', function() {
       assert.isTrue(stub_updateActiveApp.calledWith(home.instanceID));
     });
 
+    test('Topmost app should be notified about inputmethod-contextchange ' +
+      'mozChromeEvent', function() {
+        var stubInputMethodContextChange = this.sinon.stub(app1, 'broadcast');
+        var detail = {
+          type: 'inputmethod-contextchange'
+        };
+        this.sinon.stub(app1, 'getTopMostWindow').returns(app1);
+        AppWindowManager._activeApp = app1;
+        AppWindowManager.handleEvent({
+          type: 'mozChromeEvent',
+          detail: detail
+        });
+        assert.isTrue(stubInputMethodContextChange.calledWith(
+          'inputmethod-contextchange', detail));
+      });
+
     test('When permission dialog is closed, we need to focus the active app',
       function() {
         var stubFocus = this.sinon.stub(app1, 'broadcast');

@@ -82,7 +82,6 @@
 #notification-bar button {
   float: right;
   margin-right: 1.5rem;
-  width: 30%;
   height: 3rem;
   padding: 0;
   border: 0;
@@ -141,12 +140,12 @@ div:not(#notifications-lockscreen-container) > .notification:after{
   pointer-events: none;
 }
 
-.notification > div:first-of-type {
-  width: calc(100% - 12rem);
+.notification > div.title-container {
   margin-top: 1rem;
   font-size: 1.5rem;
   font-weight: 500;
   color: #fff;
+  display: flex;
 }
 
 .notification > div {
@@ -161,14 +160,13 @@ div:not(#notifications-lockscreen-container) > .notification:after{
   white-space: nowrap;
 }
 
-.notification > .timestamp {
-  position: absolute;
+.notification > div.title-container .timestamp {
+  flex: initial;
   top: -.2rem;
   right: 1.5rem;
   color: #52B6CC;
-  margin-top: 1.3rem;
   padding: 0;
-  display: inline;
+  max-width: 6.5rem;
   font-size: 1.2rem;
   font-weight: bold;
   line-height: 1.6rem;
@@ -184,6 +182,14 @@ div:not(#notifications-lockscreen-container) > .notification:after{
   height: 3rem;
   margin: 1.5rem 1rem;
   pointer-events: none;
+}
+
+.notification > div.title-container .title {
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  margin-right: .5rem;
 }
 
 .notification.disappearing,
@@ -239,7 +245,6 @@ div:not(#notifications-lockscreen-container) > .notification:after{
 }
 
 #notifications-lockscreen-container .notification > div:first-of-type {
-  width: calc(100% - 9.6rem);
   font-size: 1.4rem;
 }
 
@@ -247,8 +252,7 @@ div:not(#notifications-lockscreen-container) > .notification:after{
   margin-top: 0.2rem;
 }
 
-#notifications-lockscreen-container .notification > .timestamp {
-  position: absolute;
+#notifications-lockscreen-container .notification > div.title-container .timestamp {
   top: 0.1rem;
   right: 0;
   margin-top: 0;
@@ -307,7 +311,12 @@ html[dir="rtl"] .notification > div {
   text-align: right;
 }
 
-html[dir="rtl"] .notification > .timestamp {
+html[dir="rtl"] .notification > div.title-container .title {
+  margin-right: 0;
+  margin-left: .5rem;
+}
+
+html[dir="rtl"] .notification > div.title-container .timestamp {
   left: 1.5rem;
   right: auto;
 }
@@ -321,7 +330,7 @@ html[dir="rtl"] #notifications-lockscreen-container .notification > div {
   margin-right: 3.6rem;
 }
 
-html[dir="rtl"] #notifications-lockscreen-container .notification > .timestamp {
+html[dir="rtl"] #notifications-lockscreen-container .notification > div.title-container .timestamp {
   left: 0;
   right: auto;
 }

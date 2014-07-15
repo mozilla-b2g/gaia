@@ -16,7 +16,7 @@ module.exports = SystemApp;
 
 SystemApp.Selectors = {
   'actionMenu': 'form[data-z-index-level="action-menu"]',
-  'valueSelector': '#value-selector',
+  'valueSelector': '.value-selector',
   'confirmOkButton': '.appWindow.active .modal-dialog-confirm-ok'
 };
 

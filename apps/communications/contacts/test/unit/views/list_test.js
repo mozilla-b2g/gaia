@@ -11,7 +11,6 @@
 /* global Mockfb */
 /* global MockImageLoader */
 /* global MockMozContacts */
-/* global MockPerformanceTestingHelper */
 /* global MockURL */
 /* global MocksHelper */
 /* global MockNavigationStack */
@@ -37,7 +36,7 @@ requireApp('communications/contacts/test/unit/mock_extfb.js');
 requireApp('communications/contacts/test/unit/mock_activities.js');
 requireApp('communications/contacts/test/unit/mock_utils.js');
 requireApp('communications/contacts/test/unit/mock_mozContacts.js');
-require('/shared/test/unit/mocks/mock_performance_testing_helper.js');
+requireApp('communications/contacts/js/utilities/performance_helper.js');
 
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 
@@ -67,10 +66,6 @@ if (!window.ImageLoader) {
   window.ImageLoader = null;
 }
 
-if (!window.PerformanceTestingHelper) {
-  window.PerformanceTestingHelper = null;
-}
-
 if (!window.asyncStorage) {
   window.asyncStorage = null;
 }
@@ -96,7 +91,6 @@ suite('Render contacts list', function() {
       realContacts,
       realFb,
       realImageLoader,
-      realPerformanceTestingHelper,
       realAsyncStorage,
       mockContacts,
       realURL,
@@ -395,8 +389,6 @@ suite('Render contacts list', function() {
     realImageLoader = window.ImageLoader;
     window.ImageLoader = MockImageLoader;
     realURL = window.URL || {};
-    realPerformanceTestingHelper = window.PerformanceTestingHelper;
-    window.PerformanceTestingHelper = MockPerformanceTestingHelper;
     window.URL = MockURL;
     window.utils = window.utils || {};
     window.utils.alphaScroll = MockAlphaScroll;
@@ -423,7 +415,6 @@ suite('Render contacts list', function() {
     window.fb = realFb;
     window.mozL10n = realL10n;
     window.ImageLoader = realImageLoader;
-    window.PerformanceTestingHelper = realPerformanceTestingHelper;
     window.asyncStorage = realAsyncStorage;
     navigator.mozContacts = realMozContacts;
     mocksForListView.suiteTeardown();
@@ -473,6 +464,11 @@ suite('Render contacts list', function() {
       window.fb.isEnabled = false;
     });
 
+    setup(function() {
+      this.sinon.spy(window.utils.PerformanceHelper, 'contentInteractive');
+      this.sinon.spy(window.utils.PerformanceHelper, 'loadEnd');
+    });
+
     test('first time', function() {
       mockContacts = new MockContactsList();
       subject.load(mockContacts);
@@ -487,6 +483,9 @@ suite('Render contacts list', function() {
       assertNoGroup(groupD, containerD);
       assertNoGroup(groupGreek, containerGreek);
       assertNoGroup(groupCyrillic, containerCyrillic);
+      sinon.assert.calledOnce(
+        window.utils.PerformanceHelper.contentInteractive);
+      sinon.assert.calledOnce(window.utils.PerformanceHelper.loadEnd);
     });
 
     test('adding one at the beginning', function() {

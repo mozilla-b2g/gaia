@@ -42,10 +42,13 @@
     this.name = props.name || '';
     this.icon = props.icon || null;
     this.pinned = props.pinned || [];
-    this.webicons = props.webicons || [];
 
     // A list of the web results for this collection view
     this.webResults = [];
+
+    // list of base64 icon data for webResults from E.me api
+    // these icons are NOT ROUNDED
+    this.webicons = props.webicons || [];
 
     // an object containing data about the background image
     // {src: string, source: string, checksum: string}
@@ -342,15 +345,17 @@
 
       // Build the small icons from pinned, then webicons
       var numAppIcons = CollectionIcon.numAppIcons;
-      var iconSrcs = this.pinned.slice(0, numAppIcons);
+      var iconSrcs = this.pinned.slice(0, numAppIcons)
+                         .map((item) => this.toGridObject(item).icon);
 
-      iconSrcs = iconSrcs.concat(
-        this.webicons.slice(0, numAppIcons - iconSrcs.length));
+      if (iconSrcs.length < numAppIcons) {
+        var moreIcons =
+          this.webicons
+          // bug 1028674: deupde
+          .filter((webicon) => iconSrcs.indexOf(webicon) === -1)
+          .slice(0, numAppIcons - iconSrcs.length);
 
-      for (var i = 0; i < iconSrcs.length; i++) {
-        if (typeof iconSrcs[i] === 'object') {
-          iconSrcs[i] = this.toGridObject(iconSrcs[i]).icon;
-        }
+        iconSrcs = iconSrcs.concat(moreIcons);
       }
 
       var icon = new CollectionIcon({

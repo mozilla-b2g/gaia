@@ -8,7 +8,6 @@
 /* global LazyLoader */
 /* global monitorTagVisibility */
 /* global Normalizer */
-/* global PerformanceTestingHelper */
 /* global utils */
 
 var contacts = window.contacts || {};
@@ -648,7 +647,8 @@ contacts.List = (function() {
     }
 
     notifiedAboveTheFold = true;
-    PerformanceTestingHelper.dispatch('above-the-fold-ready');
+    // Replacing the old 'above-the-fold-ready' message
+    utils.PerformanceHelper.contentInteractive();
 
     // Don't bother loading the monitor until we have rendered our
     // first screen of contacts.  This avoids the overhead of
@@ -767,7 +767,8 @@ contacts.List = (function() {
     // if the notification has already happened.
     notifyAboveTheFold();
 
-    PerformanceTestingHelper.dispatch('startup-path-done');
+    // Replacing old message 'startup-path-done'
+    utils.PerformanceHelper.loadEnd();
     fb.init(function contacts_init() {
       if (fb.isEnabled) {
         Contacts.loadFacebook(NOP_FUNCTION);
