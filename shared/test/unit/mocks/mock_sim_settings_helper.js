@@ -30,5 +30,7 @@ var MockSimSettingsHelper = {
   setServiceOnCard: function() { },
   set: function() { },
   on: function() { },
-  setToSettingsDB: function() { }
+  setToSettingsDB: function() { },
+  observe: function() { },
+  unobserve: function() { }
 };
