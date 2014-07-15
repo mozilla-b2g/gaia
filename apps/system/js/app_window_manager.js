@@ -85,7 +85,7 @@
         homescreenLauncher.getHomescreen(true);
 
       if (!appNext) {
-        console.warn('no next app.');
+        this.debug('no next app.');
         return;
       }
 
@@ -99,7 +99,7 @@
 
       if (appCurrent && appCurrent.instanceID == appNext.instanceID) {
         // Do nothing.
-        console.warn('the app has been displayed.');
+        this.debug('the app has been displayed.');
         return;
       }
 
@@ -684,7 +684,7 @@
     _updateActiveApp: function awm__changeActiveApp(instanceID) {
       this._activeApp = this._apps[instanceID];
       if (!this._activeApp) {
-        console.warn('no active app alive: ', instanceID);
+        this.debug('no active app alive: ' + instanceID);
       }
       if (this._activeApp && this._activeApp.isFullScreen()) {
         screenElement.classList.add('fullscreen-app');
