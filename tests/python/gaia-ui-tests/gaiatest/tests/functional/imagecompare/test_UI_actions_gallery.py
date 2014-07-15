@@ -23,9 +23,8 @@ class TestUIActions(GaiaTestCase):
         self.module_name = current_module[current_module.find("'")+1:current_module.find("' from")]
         self.graphics = ImageCompareUtil(self.marionette,self.apps, self, '.')
 
-        #self.data_layer.connect_to_wifi()
         # Add photos to storage.
-        self.push_resource(self.images, self.image_count)
+        self.push_resource(self.images, count=self.image_count)
 
     def test_UI_Actions(self):
         """https://moztrap.mozilla.org/manage/case/2462/"""
