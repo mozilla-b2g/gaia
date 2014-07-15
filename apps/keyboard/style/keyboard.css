@@ -92,8 +92,6 @@ button::-moz-focus-inner {
   border-radius: 0;  /* To override the system-default border radius for button element  */
   background: none;
 
-  /* Delay hiding the highlighting long enough to make sure the user sees it. */
-  transition: background-color 0s ease-in 0.01s;
 }
 
 /* Visible keys */
@@ -119,9 +117,6 @@ button::-moz-focus-inner {
   text-align: center;
   border-right: 0.1rem solid #525b5e;
   border-left: 0.1rem solid transparent;
-
-  /* Delay hiding the highlighting long enough to make sure the user sees it. */
-  transition: color 0s ease-in 0.01s;
 }
 
 .popup {
@@ -141,15 +136,9 @@ button::-moz-focus-inner {
   text-align: center;
 }
 
-.keyboard-key:not(.special-key) > .visual-wrapper > .popup {
-  /* Delay hiding the bubble long enough to make sure the user sees it. */
-  transition: visibility 0s ease-in 0.01s;
-}
 
 .keyboard-key.highlighted {
   background-color: #4a5255;
-
-  transition-delay: 0s;
 }
 
 .keyboard-key:last-child > .visual-wrapper > .key-element {
@@ -158,8 +147,6 @@ button::-moz-focus-inner {
 
 .keyboard-key.highlighted > .visual-wrapper > .key-element {
   color: #00caf2;
-
-  transition-delay: 0s;
 }
 
 /* Show the bubble text when the button is highlighted. */
@@ -168,9 +155,6 @@ button::-moz-focus-inner {
   visibility: visible;
 }
 
-.keyboard-key:not(.special-key).highlighted > .visual-wrapper > .popup {
-  transition-delay: 0s;
-}
 
 /* Special rules for lowercase and uppercase popups */
 
