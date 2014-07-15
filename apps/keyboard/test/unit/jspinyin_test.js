@@ -177,12 +177,11 @@ suite('jspinyin', function() {
   });
 
   test('activate', function(done) {
-    this.sinon.spy(glue, 'alterKeyboard');
     this.sinon.stub(jspinyin, '_start', function() {
       done(function() {
         assert.equal(jspinyin._keypressQueue[0], KeyEvent.DOM_VK_RETURN);
         assert.isNull(jspinyin._uninitTimer);
-        assert.isTrue(glue.alterKeyboard.calledWith('zh-Hans-Pinyin'));
+        assert.equal(jspinyin._keyboard, 'zh-Hans-Pinyin');
         jspinyin._resetKeypressQueue();
       });
     });
@@ -198,7 +197,6 @@ suite('jspinyin', function() {
   });
 
   test('activate twice', function() {
-    this.sinon.spy(glue, 'alterKeyboard');
     this.sinon.stub(jspinyin, '_start');
 
     mockIndexedDB({
@@ -209,7 +207,7 @@ suite('jspinyin', function() {
         }, 0);
 
         jspinyin.activate('zh-Hans', { type: 'textarea' }, {});
-        assert.isTrue(glue.alterKeyboard.calledWith('zh-Hans-Pinyin'));
+        assert.equal(jspinyin._keyboard, 'zh-Hans-Pinyin');
       }
     });
   });
