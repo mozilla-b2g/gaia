@@ -106,6 +106,7 @@
   HomescreenWindow.SUB_COMPONENTS = {
     'transitionController': window.AppTransitionController,
     'modalDialog': window.AppModalDialog,
+    'permissionDialog': window.AppPermissionDialog,
     'authDialog': window.AppAuthenticationDialog,
     'childWindowFactory': window.ChildWindowFactory
   };

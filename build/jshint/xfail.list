@@ -334,6 +334,7 @@ apps/sharedtest/test/unit/wifi_helper_test.js
 apps/system/js/airplane_mode.js
 apps/system/js/app_install_manager.js
 apps/system/js/app_modal_dialog.js
+apps/system/js/app_permission_dialog.js
 apps/system/js/attention_screen.js
 apps/system/js/base_ui.js
 apps/system/js/battery_manager.js

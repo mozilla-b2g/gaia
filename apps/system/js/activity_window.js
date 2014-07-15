@@ -174,6 +174,7 @@
   ActivityWindow.SUB_COMPONENTS = {
     'transitionController': window.AppTransitionController,
     'modalDialog': window.AppModalDialog,
+    'permissionDialog': window.AppPermissionDialog,
     'authDialog': window.AppAuthenticationDialog,
     'contextmenu': window.BrowserContextMenu,
     'childWindowFactory': window.ChildWindowFactory
