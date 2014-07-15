@@ -109,6 +109,24 @@
       type="default,supl,mms"
   />
 
+  <apn carrier="Truphone"
+      mcc="204"
+      mnc="04"
+      apn="truphone.com"
+      type="default,supl"
+      mvno_match_data="204043914"
+      mvno_type="imsi"
+  />
+
+  <apn carrier="Truphone"
+      mcc="204"
+      mnc="04"
+      apn="truphone.com"
+      type="default,supl"
+      mvno_match_data="20404794"
+      mvno_type="imsi"
+  />
+
   <apn carrier="Vodafone NL"
       mcc="204"
       mnc="04"
@@ -1180,6 +1198,13 @@
       mmsproxy="37.132.0.10"
       mmsport="8080"
       type="mms"
+  />
+
+  <apn carrier="Truphone"
+      mcc="214"
+      mnc="27"
+      apn="truphone.com"
+      type="default,supl"
   />
 
   <apn carrier="Telenor MMS"
@@ -2562,6 +2587,13 @@
       mmsport="8080"
       authtype="1"
       type="mms"
+  />
+
+  <apn carrier="Truphone"
+      mcc="234"
+      mnc="25"
+      apn="truphone.com"
+      type="default,supl"
   />
 
   <apn carrier="Jersey Telecom"
@@ -4142,6 +4174,13 @@
       type="mms"
   />
 
+  <apn carrier="Truphone"
+      mcc="260"
+      mnc="33"
+      apn="truphone.com"
+      type="default,supl"
+  />
+
   <apn carrier="Telekom Internet"
       mcc="262"
       mnc="01"
@@ -4217,6 +4256,8 @@
       mmsproxy="82.113.100.5"
       mmsport="8080"
       type="default,supl,mms"
+      mvno_match_data="2620739"
+      mvno_type="imsi"
   />
 
   <apn carrier="o2 Internet Prepaid"
@@ -4227,6 +4268,15 @@
       mmsproxy="82.113.100.6"
       mmsport="8080"
       type="default,supl,mms"
+      mvno_match_data="2620749"
+      mvno_type="imsi"
+  />
+
+  <apn carrier="Truphone"
+      mcc="262"
+      mnc="42"
+      apn="truphone.com"
+      type="default,supl"
   />
 
   <apn carrier="Vodafone Net2"
@@ -5698,6 +5748,21 @@
       mvno_type="gid"
   />
 
+  <apn carrier="Truphone"
+      mcc="310"
+      mnc="30"
+      apn="truphone.com"
+      type="default,supl"
+  />
+
+
+  <apn carrier="Truphone"
+      mcc="310"
+      mnc="300"
+      apn="truphone.com"
+      type="default,supl"
+  />
+
   <apn carrier="T-Mobile US 310"
       mcc="310"
       mnc="310"
@@ -5763,8 +5828,8 @@
   <apn carrier="ATT Phone"
       mcc="310"
       mnc="410"
-      apn="phone"
-      type="default,mms,supl,fota"
+      apn="nxtgenphone"
+      type="default,mms,supl,fota,hipri"
       mmsc="http://mmsc.mobile.att.net"
       mmsproxy="proxy.mobile.att.net"
       mmsport="80"
@@ -13636,11 +13701,27 @@
       type="mms"
   />
 
-  <apn carrier="ZainHURI - SNPT"
+  <apn carrier="ZAIN-GPRS"
       mcc="418"
       mnc="30"
-      apn="default"
+      apn="internet"
+      user="atheer"
+      password="atheer"
+      authtype="1"
       type="default,supl"
+  />
+
+  <apn carrier="Zain-MMS"
+      mcc="418"
+      mnc="30"
+      apn="MMS"
+      user="atheer"
+      password="atheer"
+      authtype="1"
+      mmsc="http://mms:8002/"
+      mmsproxy="172.29.11.12"
+      mmsport="8080"
+      type="mms"
   />
 
   <apn carrier="Korek 9595"
@@ -15144,6 +15225,13 @@
       type="default,supl,mms"
   />
 
+  <apn carrier="Truphone"
+      mcc="454"
+      mnc="08"
+      apn="truphone.com"
+      type="default,supl"
+  />
+
   <apn carrier="one2free"
       mcc="454"
       mnc="10"
@@ -15941,6 +16029,15 @@
       mmsproxy="61.88.190.10"
       mmsport="8070"
       type="mms"
+  />
+
+  <apn carrier="Truphone"
+      mcc="505"
+      mnc="02"
+      apn="truphone.com"
+      type="default,supl"
+      mvno_match_data="50502100"
+      mvno_type="imsi"
   />
 
   <apn carrier="Virgin Internet"
