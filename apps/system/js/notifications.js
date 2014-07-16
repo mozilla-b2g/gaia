@@ -430,12 +430,26 @@ var NotificationScreen = {
         );
       }
 
-      // when we have notifications, show bgcolor from wallpaper
-      // remove the simple gradient at the same time
-      window.lockScreen.maskedBackground.style.backgroundColor =
-        window.lockScreen.maskedBackground.dataset.wallpaperColor;
+      window.lockScreenNotifications.showColoredMaskBG();
 
-      window.lockScreen.maskedBackground.classList.remove('blank');
+      // UX specifies that the container should scroll to top
+      /* note two things:
+       * 1. we need to call adjustContainerVisualHints even
+       *    though we're setting scrollTop, since setting sT doesn't
+       *    necessarily invoke onscroll (if the old container is already
+       *    scrolled to top, we might still need to decide to show
+       *    the arrow)
+       * 2. set scrollTop before calling adjustContainerVisualHints
+       *    since sT = 0 will hide the mask if it's showing,
+       *    and if we call aCVH before setting sT,
+       *    under some circumstances aCVH would decide to show mask,
+       *    only to be negated by st = 0 (waste of energy!).
+       */
+      window.lockScreenNotifications.scrollToTop();
+
+      // check if lockscreen notifications visual
+      // hints (masks & arrow) need to show
+      window.lockScreenNotifications.adjustContainerVisualHints();
     }
 
     if (notify && !this.isResending) {
@@ -531,13 +545,15 @@ var NotificationScreen = {
       var lockScreenNotificationParentNode =
         lockScreenNotificationNode.parentNode;
       lockScreenNotificationParentNode.removeChild(lockScreenNotificationNode);
-      // if we don't have any notifications, remove the bgcolor from wallpaper
-      // and use the simple gradient
+      // if we don't have any notifications,
+      // use the no-notifications masked background for lockscreen
       if (!lockScreenNotificationParentNode.firstElementChild) {
-        window.lockScreen.maskedBackground.style.backgroundColor =
-          'transparent';
-        window.lockScreen.maskedBackground.classList.add('blank');
+        window.lockScreenNotifications.hideColoredMaskBG();
       }
+
+      // check if lockscreen notifications visual
+      // hints (masks & arrow) need to show
+      window.lockScreenNotifications.adjustContainerVisualHints();
     }
     this.updateStatusBarIcon();
 
@@ -562,10 +578,12 @@ var NotificationScreen = {
       var element = this.lockScreenContainer.firstElementChild;
       this.lockScreenContainer.removeChild(element);
     }
-    // remove the bgcolor from wallpaper,
-    // and use the simple gradient
-    window.lockScreen.maskedBackground.style.backgroundColor = 'transparent';
-    window.lockScreen.maskedBackground.classList.add('blank');
+
+    // remove the "have notifications" masked background from lockscreen
+    window.lockScreenNotifications.hideColoredMaskBG();
+    // check if lockscreen notifications visual
+    // hints (masks & arrow) need to show
+    window.lockScreenNotifications.adjustContainerVisualHints();
   },
 
   updateStatusBarIcon: function ns_updateStatusBarIcon(unread) {

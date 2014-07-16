@@ -27,6 +27,7 @@ requireApp('system/js/homescreen_launcher.js');
 requireApp('system/js/internet_sharing.js');
 requireApp('system/js/layout_manager.js');
 requireApp('system/js/lockscreen_window_manager.js');
+requireApp('system/js/lockscreen_notifications.js');
 requireApp('system/js/media_recording.js');
 requireApp('system/js/permission_manager.js');
 requireApp('system/js/remote_debugger.js');
