@@ -25,7 +25,12 @@
  * the MediaFrame will just move the photo within itself, if it can, and
  * return 0.
  *
- * Much of the code in this file used to be part of the PhotoState class.
+ * MediaFrame uses the #-moz-samplesize media fragment (via the downsample.js
+ * module) to downsample large jpeg images while decoding them when necessary.
+ * You can specify a maximum image decode size (in megapixels) when invoking
+ * the constructor. The MediaFrame code also includes a runtime check for
+ * the amount of RAM available on the device, and may limit the image decode
+ * size on low-memory devices.
  */
 function MediaFrame(container, includeVideo, maxImageSize) {
   if (typeof container === 'string')
@@ -47,6 +52,55 @@ function MediaFrame(container, includeVideo, maxImageSize) {
   var self = this;
 }
 
+MediaFrame.computeMaxImageDecodeSize = function(mem) {
+  if (!mem) {
+    return 0;
+  }
+  else if (mem < 256) {  // This is a Tarako-class device ultra low-end device.
+    return 2 * 1024 * 1024;   // 2 megapixels
+  }
+  else if (mem < 512) {  // This is a low-end 256mb device
+    // Normally we can handle 3mp images on devices like this, but if
+    // this device has a big screen and low memory (like a memory
+    // throttled Flame) then it needs something smaller than 3mp.
+    var screensize = screen.width * window.devicePixelRatio *
+      screen.height * window.devicePixelRatio;
+    if (mem < 325 && screensize > 480 * 800) {
+      return 2.5 * 1024 * 1024;  // 2.5mp megapixels for throttled Flame
+    }
+
+    return 3 * 1024 * 1024;      // 3 megapixels otherwise
+  }
+  else if (mem < 1024) { // A mid-range 512mb device
+    return 5 * 1024 * 1024;   // 5 megapixels
+  }
+  else {                 // A high-end device with 1 gigabyte or more of memory
+    // Allow 8 megapixels of image decode size per gigabyte of memory
+    return (mem / 1024) * 8 * 1024 * 1024;
+  }
+};
+
+//
+// Find out how much memory this device has because we may need to limit image
+// decode size on low-end devices.  Note that navigator.getFeature requires
+// the "feature-detection" permission (at least for now) so we only run this
+// code if the client app has that permission.
+//
+if (navigator.getFeature) {
+  MediaFrame.pendingPromise = navigator.getFeature('hardware.memory');
+  MediaFrame.pendingPromise.then(
+    function resolve(mem) {
+      delete MediaFrame.pendingPromise;
+      MediaFrame.maxImageDecodeSize = MediaFrame.computeMaxImageDecodeSize(mem);
+    },
+    function reject(err) {
+      // This should never happen!
+      delete MediaFrame.pendingPromise;
+      MediaFrame.maxImageDecodeSize = 0;
+    }
+  );
+}
+
 MediaFrame.prototype.displayImage = function displayImage(blob,
                                                           width,
                                                           height,
@@ -54,6 +108,15 @@ MediaFrame.prototype.displayImage = function displayImage(blob,
                                                           rotation,
                                                           mirrored)
 {
+  // If we are still querying the device memory, wait for that query to
+  // complete and then try again.
+  if (MediaFrame.pendingPromise) {
+    MediaFrame.pendingPromise.then(function resolve() {
+      displayImage(blob, width, height, preview, rotation, mirrored);
+    });
+    return;
+  }
+
   var self = this;
   this.clear();  // Reset everything
   // Remember what we're displaying
@@ -154,11 +217,19 @@ MediaFrame.prototype.displayImage = function displayImage(blob,
       // We're not using #-moz-samplesize at all
       return Downsample.NONE;
     }
-    if (!self.maximumImageSize || width * height <= self.maximumImageSize) {
+
+    // Determine the maximum size we will decode the image at, based on
+    // device memory and the maximum size passed to the constructor.
+    var max = MediaFrame.maxImageDecodeSize || 0;
+    if (self.maximumImageSize && (max === 0 || self.maximumImageSize < max)) {
+      max = self.maximumImageSize;
+    }
+
+    if (!max || width * height <= max) {
       return Downsample.NONE;
     }
 
-    return Downsample.areaAtLeast(self.maximumImageSize / (width * height));
+    return Downsample.areaAtLeast(max / (width * height));
   }
 
   function computePreviewSampleSize(blob, width, height) {
