@@ -664,9 +664,8 @@ var StatusBar = {
       var icon = this.icons.emergencyCalls;
       var conns = navigator.mozMobileConnections[0].voice;
 
-      if(!conns)
+      if (!conns)
         return;
-      
       icon.hidden = !conns.emergencyCallsOnly;
     },
 
