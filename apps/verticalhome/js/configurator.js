@@ -12,7 +12,7 @@ var configurator = (function() {
   // Globar configuration
   var conf = {};
 
-  // Path of the single variant configuration file
+  // Path of the single variant configuration file.
   var SINGLE_VARIANT_CONF_FILE = 'js/singlevariantconf.json';
 
   // Keeps the list of single variant apps, indexed by manifestURL
