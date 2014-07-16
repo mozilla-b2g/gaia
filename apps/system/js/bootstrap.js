@@ -10,7 +10,7 @@
          MediaRecording, AppWindowFactory, SystemDialogManager,
          applications, Rocketbar, LayoutManager, PermissionManager,
          HomeSearchbar, SoftwareButtonManager, Accessibility,
-         InternetSharing, SleepMenu */
+         InternetSharing, SleepMenu, AppUsageMetrics */
 'use strict';
 
 
@@ -105,6 +105,7 @@ window.addEventListener('load', function startup() {
   window.activities = new Activities();
   window.accessibility = new Accessibility();
   window.accessibility.start();
+  window.appUsageMetrics = new AppUsageMetrics().start();
   window.developerHUD = new DeveloperHUD().start();
   window.dialerAgent = new DialerAgent().start();
   window.homeGesture = new HomeGesture().start();
