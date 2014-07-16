@@ -225,15 +225,14 @@ var UtilityTray = {
     var alreadyHidden = !this.shown;
     var style = this.overlay.style;
     style.MozTransition = instant ? '' : '-moz-transform 0.2s linear';
+    style.MozTransform = '';
+    this.shown = false;
 
     // If the transition has not started yet there won't be any transitionend
     // event so let's not wait in order to remove the utility-tray class.
     if (instant || style.MozTransform === '') {
       this.screen.classList.remove('utility-tray');
     }
-
-    style.MozTransform = '';
-    this.shown = false;
     window.dispatchEvent(new CustomEvent('utility-tray-overlayclosed'));
 
     if (!alreadyHidden) {
