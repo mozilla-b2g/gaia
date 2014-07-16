@@ -1,4 +1,4 @@
-Calendar.ns('Views').MonthsDay = (function() {
+define(function() {
   'use strict';
 
   var Parent = Calendar.Views.DayChild,
@@ -137,5 +137,6 @@ Calendar.ns('Views').MonthsDay = (function() {
 
   MonthsDay.prototype.onfirstseen = MonthsDay.prototype.render;
 
+  Calendar.ns('Views').MonthsDay = MonthsDay;
   return MonthsDay;
-}());
+});

@@ -1,4 +1,4 @@
-Calendar.ns('Views').ViewEvent = (function() {
+define(function() {
   'use strict';
 
   function ViewEvent(options) {
@@ -133,6 +133,7 @@ Calendar.ns('Views').ViewEvent = (function() {
 
   };
 
+  Calendar.ns('Views').ViewEvent = ViewEvent;
   return ViewEvent;
 
-}());
+});

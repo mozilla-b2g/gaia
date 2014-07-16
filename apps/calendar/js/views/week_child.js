@@ -1,4 +1,4 @@
-Calendar.ns('Views').WeekChild = (function() {
+define(function() {
   'use strict';
 
   var template = Calendar.Templates.Week;
@@ -77,6 +77,7 @@ Calendar.ns('Views').WeekChild = (function() {
 
   };
 
+  Calendar.ns('Views').WeekChild = Week;
   return Week;
 
-}(this));
+});

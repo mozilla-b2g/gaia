@@ -1,4 +1,4 @@
-Calendar.ns('Utils').URI = (function() {
+define(function() {
   'use strict';
 
   var URI = {
@@ -57,6 +57,7 @@ Calendar.ns('Utils').URI = (function() {
     }
   };
 
+  Calendar.ns('Utils').URI = URI;
   return URI;
 
-}());
+});

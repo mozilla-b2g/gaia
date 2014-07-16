@@ -1,5 +1,5 @@
 /* global GestureDetector */
-Calendar.ns('Views').TimeParent = (function() {
+define(function() {
   'use strict';
 
   var XSWIPE_OFFSET = window.innerWidth / 10;
@@ -249,7 +249,8 @@ Calendar.ns('Views').TimeParent = (function() {
     }
   };
 
+  Calendar.ns('Views').TimeParent = TimeParent;
   return TimeParent;
 
 
-}());
+});

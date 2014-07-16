@@ -1,6 +1,6 @@
 /*jshint loopfunc: true */
 
-(function(window) {
+define(function() {
   'use strict';
 
   var COPY_METHODS = ['start', 'stop', 'show'];
@@ -173,5 +173,6 @@
   };
 
   Calendar.Router = Router;
+  return Router;
 
-}(this));
+});

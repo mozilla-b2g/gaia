@@ -1,4 +1,4 @@
-(function(window) {
+define(function() {
   'use strict';
 
   var Month = Calendar.Template.create({
@@ -44,5 +44,6 @@
   });
 
   Calendar.ns('Templates').Month = Month;
+  return Month;
 
-}(this));
+});

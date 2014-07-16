@@ -1,4 +1,4 @@
-Calendar.ns('Store').IcalComponent = (function() {
+define(function() {
   'use strict';
 
   function IcalComponent() {
@@ -54,6 +54,7 @@ Calendar.ns('Store').IcalComponent = (function() {
     }
   };
 
+  Calendar.ns('Store').IcalComponent = IcalComponent;
   return IcalComponent;
-}());
+});
 

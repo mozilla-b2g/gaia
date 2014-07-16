@@ -1,4 +1,4 @@
-Calendar.ns('Models').Account = (function() {
+define(function() {
   'use strict';
 
   function Account(options) {
@@ -121,6 +121,7 @@ Calendar.ns('Models').Account = (function() {
   };
 
 
+  Calendar.ns('Models').Account = Account;
   return Account;
 
-}(this));
+});

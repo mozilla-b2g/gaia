@@ -18,12 +18,8 @@
 // DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
-(function(window) {
+define(function() {
   'use strict';
-
-  if (typeof(window.Calendar) === 'undefined') {
-    window.Calendar = {};
-  }
 
   var exports = window.Calendar;
 
@@ -351,4 +347,5 @@
     return Object.prototype.toString.call(o);
   }
 
-}(this));
+  return exports;
+});

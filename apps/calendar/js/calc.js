@@ -1,4 +1,4 @@
-Calendar.Calc = (function() {
+define(function() {
   'use strict';
 
   const SECOND = 1000;
@@ -649,6 +649,7 @@ Calendar.Calc = (function() {
     }
   });
 
+  Calendar.Calc = Calc;
   return Calc;
 
-}());
+});

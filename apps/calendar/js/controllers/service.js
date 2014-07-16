@@ -1,4 +1,4 @@
-Calendar.ns('Controllers').Service = (function() {
+define(function() {
   'use strict';
 
   function Service() {
@@ -17,5 +17,6 @@ Calendar.ns('Controllers').Service = (function() {
 
   };
 
+  Calendar.ns('Controllers').Service = Service;
   return Service;
-}());
+});

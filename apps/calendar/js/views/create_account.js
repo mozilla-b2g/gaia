@@ -1,4 +1,4 @@
-(function(window) {
+define(function() {
   'use strict';
 
   var template = Calendar.Templates.Account;
@@ -89,5 +89,6 @@
 
   CreateAccount.prototype.onfirstseen = CreateAccount.prototype.render;
   Calendar.ns('Views').CreateAccount = CreateAccount;
+  return CreateAccount;
 
-}(this));
+});

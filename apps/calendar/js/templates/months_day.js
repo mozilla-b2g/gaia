@@ -1,4 +1,4 @@
-(function(window) {
+define(function() {
   'use strict';
 
   var MonthsDay = Calendar.Template.create({
@@ -55,4 +55,5 @@
   MonthsDay.hourEventsSelector = '.events';
 
   Calendar.ns('Templates').MonthsDay = MonthsDay;
-}(this));
+  return MonthsDay;
+});

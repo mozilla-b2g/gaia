@@ -1,6 +1,6 @@
 /*jshint loopfunc: true */
 
-(function(window) {
+define(function() {
   'use strict';
 
   var idb = window.indexedDB;
@@ -464,5 +464,6 @@
   };
 
   Calendar.Db = Db;
+  return Db;
 
-}(this));
+});

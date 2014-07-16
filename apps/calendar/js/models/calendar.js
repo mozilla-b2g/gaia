@@ -1,4 +1,4 @@
-Calendar.ns('Models').Calendar = (function() {
+define(function() {
   'use strict';
 
   function Cal(options) {
@@ -149,6 +149,7 @@ Calendar.ns('Models').Calendar = (function() {
 
   };
 
+  Calendar.ns('Models').Calendar = Cal;
   return Cal;
 
-}(this));
+});

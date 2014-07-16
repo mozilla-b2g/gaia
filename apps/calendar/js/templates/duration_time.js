@@ -1,4 +1,4 @@
-(function(window) {
+define(function() {
   'use strict';
 
   var _ = navigator.mozL10n.get;
@@ -47,4 +47,5 @@
   }
 
   Calendar.ns('Templates').DurationTime = DurationTime;
-}(this));
+  return DurationTime;
+});

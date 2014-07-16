@@ -1,4 +1,4 @@
-(function(window) {
+define(function() {
   'use strict';
 
   var Week = Calendar.Template.create({
@@ -52,5 +52,6 @@
 
   Week.eventSelector = '.event';
   Calendar.ns('Templates').Week = Week;
-}(this));
+  return Week;
+});
 

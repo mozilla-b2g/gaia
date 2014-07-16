@@ -1,4 +1,4 @@
-Calendar.ns('Service').Caldav = (function() {
+define(function() {
   'use strict';
 
   var debug = Calendar.debug('caldav service');
@@ -1056,6 +1056,7 @@ Calendar.ns('Service').Caldav = (function() {
 
   };
 
+  Calendar.ns('Service').Caldav = Service;
   return Service;
 
-}());
+});

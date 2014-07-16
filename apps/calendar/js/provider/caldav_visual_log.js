@@ -1,4 +1,4 @@
-Calendar.ns('Provider').CaldavVisualLog = (function() {
+define(function() {
   'use strict';
 
   var Calc = Calendar.Calc;
@@ -69,5 +69,6 @@ Calendar.ns('Provider').CaldavVisualLog = (function() {
 
   };
 
+  Calendar.ns('Provider').CaldavVisualLog = EventLogger;
   return EventLogger;
-}());
+});

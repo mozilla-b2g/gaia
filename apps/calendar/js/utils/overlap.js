@@ -286,7 +286,7 @@ Calendar.ConflictSpan = (function() {
 /**
  * Conflict manager
  */
-Calendar.ns('Utils').Overlap = (function() {
+define(function() {
   'use strict';
 
   function Overlap() {
@@ -415,5 +415,6 @@ Calendar.ns('Utils').Overlap = (function() {
 
   };
 
+  Calendar.ns('Utils').Overlap = Overlap;
   return Overlap;
-}());
+});

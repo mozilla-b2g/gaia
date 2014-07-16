@@ -1,4 +1,4 @@
-(function(window) {
+define(function() {
   'use strict';
 
   function Account() {
@@ -378,5 +378,6 @@
   };
 
   Calendar.ns('Store').Account = Account;
+  return Account;
 
-}(this));
+});

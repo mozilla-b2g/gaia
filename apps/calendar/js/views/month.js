@@ -1,4 +1,4 @@
-Calendar.ns('Views').Month = (function() {
+define(function() {
   'use strict';
 
   var Calc = Calendar.Calc;
@@ -141,6 +141,7 @@ Calendar.ns('Views').Month = (function() {
 
   Month.prototype.onfirstseen = Month.prototype.render;
 
+  Calendar.ns('Views').Month = Month;
   return Month;
 
-}(this));
+});

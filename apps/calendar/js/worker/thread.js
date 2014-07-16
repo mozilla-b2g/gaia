@@ -1,9 +1,5 @@
+define(function() {
 'use strict';
-
-if (typeof(Calendar) === 'undefined') {
-  /*global Calendar:true */
-  Calendar = {};
-}
 
 /*jshint -W040 */
 if (typeof(window) === 'undefined') {
@@ -144,3 +140,6 @@ Calendar.Thread.prototype = {
   }
 
 };
+
+return Calendar.Thread;
+});

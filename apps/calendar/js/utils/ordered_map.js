@@ -1,4 +1,4 @@
-Calendar.ns('Utils').OrderedMap = (function() {
+define(function() {
   'use strict';
 
   function OrderedMap(list, compare) {
@@ -101,5 +101,6 @@ Calendar.ns('Utils').OrderedMap = (function() {
     }
   };
 
+  Calendar.ns('Utils').OrderedMap = OrderedMap;
   return OrderedMap;
-}());
+});

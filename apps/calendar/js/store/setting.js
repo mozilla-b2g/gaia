@@ -1,4 +1,4 @@
-Calendar.ns('Store').Setting = (function() {
+define(function() {
   'use strict';
 
   function Setting() {
@@ -128,6 +128,7 @@ Calendar.ns('Store').Setting = (function() {
 
   };
 
+  Calendar.ns('Store').Setting = Setting;
   return Setting;
 
-}());
+});

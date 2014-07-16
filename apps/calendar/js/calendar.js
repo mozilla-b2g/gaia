@@ -1,4 +1,4 @@
-(function(window) {
+define(function() {
   'use strict';
 
   const NEXT_TICK = 'calendar-next-tick';
@@ -7,7 +7,7 @@
 
   var hasOwnProperty = Object.prototype.hasOwnProperty;
 
-  window.Calendar = {
+  var exports = {
 
     ERROR: 'error',
     ACTIVE: 'active',
@@ -187,6 +187,7 @@
     }
   });
 
+  window.Calendar = exports;
+  return exports;
 
-}(this));
-
+});

@@ -1,4 +1,4 @@
-Calendar.ns('Provider').Caldav = (function() {
+define(function() {
   'use strict';
 
   var CALDAV_ERROR_MAP = {
@@ -700,6 +700,7 @@ Calendar.ns('Provider').Caldav = (function() {
 
   };
 
+  Calendar.ns('Provider').Caldav = CaldavProvider;
   return CaldavProvider;
 
-}());
+});

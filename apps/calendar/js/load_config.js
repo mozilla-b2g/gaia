@@ -1,4 +1,4 @@
-Calendar.LoadConfig = (function() {
+define(function() {
   'use strict';
 
   var SNAKE = /(_|\/)([a-zA-Z])/g;
@@ -470,5 +470,6 @@ Calendar.LoadConfig = (function() {
     }
   };
 
+  Calendar.LoadConfig = config;
   return config;
-}());
+});

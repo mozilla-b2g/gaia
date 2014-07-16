@@ -1,4 +1,4 @@
-Calendar.Performance = (function(window) {
+define(function(window) {
   'use strict';
 
   // this is just a helper for the performance testing events. we created this
@@ -122,5 +122,6 @@ Calendar.Performance = (function(window) {
     },
   };
 
+  Calendar.Performance = Performance;
   return Performance;
-}(this));
+});

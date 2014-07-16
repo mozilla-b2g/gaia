@@ -1,4 +1,4 @@
-Calendar.ns('Controllers').RecurringEvents = (function() {
+define(function() {
   'use strict';
 
   var debug = Calendar.debug('expand events');
@@ -233,7 +233,8 @@ Calendar.ns('Controllers').RecurringEvents = (function() {
     }
   };
 
+  Calendar.ns('Controllers').RecurringEvents = RecurringEvents;
   return RecurringEvents;
 
-}());
+});
 

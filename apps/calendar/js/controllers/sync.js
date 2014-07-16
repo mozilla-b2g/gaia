@@ -1,4 +1,4 @@
-Calendar.ns('Controllers').Sync = (function() {
+define(function() {
   'use strict';
 
   /**
@@ -166,5 +166,6 @@ Calendar.ns('Controllers').Sync = (function() {
     }
   };
 
+  Calendar.ns('Controllers').Sync = Sync;
   return Sync;
-}());
+});

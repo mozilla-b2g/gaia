@@ -1,4 +1,4 @@
-Calendar.ns('Worker').Manager = (function(global) {
+define(function(global) {
   'use strict';
 
   const IDLE_CLEANUP_TIME = 5000;
@@ -263,6 +263,7 @@ Calendar.ns('Worker').Manager = (function(global) {
     }
   };
 
+  Calendar.ns('Worker').Manager = Manager;
   return Manager;
 
-}(this));
+});

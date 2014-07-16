@@ -1,5 +1,7 @@
-Calendar.App = (function(window) {
+define(function(require) {
   'use strict';
+
+  var Calendar = require('./calendar');
 
   function PendingManager() {
     this.objects = [];
@@ -562,6 +564,7 @@ Calendar.App = (function(window) {
     App.init();
   });
 
+  Calendar.App = App;
   return App;
 
-}(this));
+});

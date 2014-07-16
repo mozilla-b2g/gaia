@@ -43,7 +43,7 @@
  *
  * TODO: Implement self-balancing and real tree mutations.
  */
-Calendar.IntervalTree = (function() {
+define(function() {
   'use strict';
   /**
    * Internal function to add an item
@@ -586,6 +586,7 @@ Calendar.IntervalTree = (function() {
 
   };
 
+  Calendar.IntervalTree = IntervalTree;
   return IntervalTree;
 
-}());
+});

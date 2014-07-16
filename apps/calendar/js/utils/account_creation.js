@@ -1,4 +1,4 @@
-Calendar.ns('Utils').AccountCreation = (function() {
+define(function() {
   'use strict';
 
   /**
@@ -93,5 +93,6 @@ Calendar.ns('Utils').AccountCreation = (function() {
     }
   };
 
+  Calendar.ns('Utils').AccountCreation = AccountCreation;
   return AccountCreation;
-}());
+});

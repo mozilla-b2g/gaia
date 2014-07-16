@@ -1,4 +1,4 @@
-Calendar.ns('Views').Week = (function() {
+define(function() {
   'use strict';
 
   var Parent = Calendar.Views.Day;
@@ -326,6 +326,7 @@ Calendar.ns('Views').Week = (function() {
 
   Week.prototype.onfirstseen = Week.prototype.render;
 
+  Calendar.ns('Views').Week = Week;
   return Week;
 
-}());
+});

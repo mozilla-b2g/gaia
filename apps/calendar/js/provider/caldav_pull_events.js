@@ -1,5 +1,5 @@
 /* global uuid */
-Calendar.ns('Provider').CaldavPullEvents = (function() {
+define(function() {
   'use strict';
 
   var Calc = Calendar.Calc;
@@ -399,6 +399,7 @@ Calendar.ns('Provider').CaldavPullEvents = (function() {
 
   };
 
+  Calendar.ns('Provider').CaldavPullEvents = PullEvents;
   return PullEvents;
 
-}());
+});

@@ -1,4 +1,4 @@
-Calendar.OAuthWindow = (function() {
+define(function() {
   'use strict';
 
   /**
@@ -170,5 +170,6 @@ Calendar.OAuthWindow = (function() {
     }
   };
 
+  Calendar.OAuthWindow = OAuthWindow;
   return OAuthWindow;
-}());
+});

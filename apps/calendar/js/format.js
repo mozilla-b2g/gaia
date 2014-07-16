@@ -1,14 +1,9 @@
-(function(window) {
+define(function() {
   'use strict';
 
   var FORMAT_REGEX = /%([0-9])?s/g;
 
-  if (typeof(Calendar) === 'undefined') {
-    /*global Calendar:true */
-    Calendar = {};
-  }
-
-  Calendar.format = function() {
+  function format() {
     var i = 0,
         str,
         args = Array.prototype.slice.call(arguments),
@@ -22,6 +17,9 @@
     });
 
     return result;
-  };
+  }
 
-}(this));
+  Calendar.format = format;
+  return format;
+
+});

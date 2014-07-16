@@ -1,4 +1,4 @@
-Calendar.Error = (function(window) {
+define(function() {
   'use strict';
 
   /**
@@ -33,6 +33,7 @@ Calendar.Error = (function(window) {
   Base.InvalidServer = errorFactory('invalid-server', 'internal-server-error');
   Base.ServerFailure = errorFactory('server-failure', 'internal-server-error');
 
+  Calendar.Error = Base;
   return Base;
 
-}(this));
+});

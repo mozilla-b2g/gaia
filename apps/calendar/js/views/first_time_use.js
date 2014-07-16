@@ -1,4 +1,4 @@
-Calendar.ns('Views').FirstTimeUse = (function() {
+define(function() {
   'use strict';
 
   /**
@@ -126,6 +126,7 @@ Calendar.ns('Views').FirstTimeUse = (function() {
     }
   };
 
+  Calendar.ns('Views').FirstTimeUse = FirstTimeUse;
   return FirstTimeUse;
 
-}());
+});

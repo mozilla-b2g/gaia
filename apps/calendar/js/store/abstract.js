@@ -1,4 +1,4 @@
-(function(window) {
+define(function() {
   'use strict';
 
   var NUMERIC = /^([0-9]+)$/;
@@ -379,5 +379,6 @@
   };
 
   Calendar.ns('Store').Abstract = Abstract;
+  return Abstract;
 
-}(this));
+});

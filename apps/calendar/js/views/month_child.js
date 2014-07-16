@@ -1,4 +1,4 @@
-(function(window) {
+define(function() {
   'use strict';
 
   var Calc = Calendar.Calc,
@@ -330,4 +330,5 @@
   };
 
   Calendar.ns('Views').MonthChild = Child;
-}(this));
+  return Child;
+});

@@ -1,4 +1,4 @@
-(function(window) {
+define(function() {
   'use strict';
 
   var POSSIBLE_HTML = /[&<>"'`]/;
@@ -113,4 +113,5 @@
   Template.create = create;
   Calendar.Template = Template;
 
-}(this));
+  return Template;
+});

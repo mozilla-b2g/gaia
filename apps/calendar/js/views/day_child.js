@@ -1,4 +1,4 @@
-Calendar.ns('Views').DayChild = (function() {
+define(function() {
   'use strict';
 
   var template = Calendar.Templates.Day;
@@ -76,6 +76,7 @@ Calendar.ns('Views').DayChild = (function() {
     }
   };
 
+  Calendar.ns('Views').DayChild = Day;
   return Day;
 
-}(this));
+});

@@ -1,4 +1,4 @@
-Calendar.ns('Provider').Abstract = (function() {
+define(function() {
   'use strict';
 
   function Abstract(options) {
@@ -143,6 +143,7 @@ Calendar.ns('Provider').Abstract = (function() {
 
   };
 
+  Calendar.ns('Provider').Abstract = Abstract;
   return Abstract;
 
-}());
+});

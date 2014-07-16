@@ -1,4 +1,4 @@
-Calendar.TimeObserver = (function() {
+define(function() {
   'use strict';
 
   function TimeObserver() {
@@ -132,6 +132,7 @@ Calendar.TimeObserver = (function() {
     }
   };
 
+  Calendar.TimeObserver = TimeObserver;
   return TimeObserver;
 
-}());
+});

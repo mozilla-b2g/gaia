@@ -1,4 +1,4 @@
-Calendar.ns('Store').Busytime = (function() {
+define(function() {
   'use strict';
 
   /**
@@ -162,6 +162,7 @@ Calendar.ns('Store').Busytime = (function() {
 
   };
 
+  Calendar.ns('Store').Busytime = Busytime;
   return Busytime;
 
-}(this));
+});

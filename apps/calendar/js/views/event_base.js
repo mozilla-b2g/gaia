@@ -1,4 +1,4 @@
-Calendar.ns('Views').EventBase = (function() {
+define(function() {
   'use strict';
 
   function EventBase(options) {
@@ -321,6 +321,7 @@ Calendar.ns('Views').EventBase = (function() {
 
   };
 
+  Calendar.ns('Views').EventBase = EventBase;
   return EventBase;
 
-}());
+});

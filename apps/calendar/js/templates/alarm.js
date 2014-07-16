@@ -1,4 +1,4 @@
-(function(window) {
+define(function() {
   'use strict';
 
   var MINUTE = 60;
@@ -177,4 +177,5 @@
   }
 
   Calendar.ns('Templates').Alarm = Alarm;
-}(this));
+  return Alarm;
+});

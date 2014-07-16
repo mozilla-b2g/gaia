@@ -1,4 +1,4 @@
-Calendar.ns('Store').Alarm = (function() {
+define(function() {
   'use strict';
 
   var Calc = Calendar.Calc;
@@ -296,6 +296,7 @@ Calendar.ns('Store').Alarm = (function() {
 
   };
 
+  Calendar.ns('Store').Alarm = Alarm;
   return Alarm;
 
-}());
+});

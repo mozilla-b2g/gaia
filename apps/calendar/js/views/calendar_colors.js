@@ -1,4 +1,4 @@
-Calendar.ns('Views').CalendarColors = (function() {
+define(function() {
   'use strict';
 
   function Colors() {
@@ -217,6 +217,7 @@ Calendar.ns('Views').CalendarColors = (function() {
 
   };
 
+  Calendar.ns('Views').CalendarColors = Colors;
   return Colors;
 
-}());
+});

@@ -1,4 +1,4 @@
-Calendar.QueryString = (function() {
+define(function() {
   'use strict';
 
   // Copyright Joyent, Inc. and other Node contributors.
@@ -219,5 +219,6 @@ Calendar.QueryString = (function() {
     return obj;
   };
 
+  Calendar.QueryString = QueryString;
   return QueryString;
-}());
+});

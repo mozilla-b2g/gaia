@@ -41,7 +41,7 @@
  *
  *
  */
-Calendar.EventMutations = (function() {
+define(function() {
   'use strict';
 
   var Calc = Calendar.Calc;
@@ -168,7 +168,7 @@ Calendar.EventMutations = (function() {
     }
   };
 
-  return {
+  var exports = {
     create: function createMutation(option) {
       return new Create(option);
     },
@@ -178,4 +178,7 @@ Calendar.EventMutations = (function() {
     }
   };
 
-}());
+  Calendar.EventMutations = exports;
+  return exports;
+
+});

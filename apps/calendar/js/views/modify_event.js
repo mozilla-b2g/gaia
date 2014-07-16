@@ -1,4 +1,4 @@
-Calendar.ns('Views').ModifyEvent = (function() {
+define(function() {
   'use strict';
 
   function ModifyEvent(options) {
@@ -768,6 +768,7 @@ Calendar.ns('Views').ModifyEvent = (function() {
     TITLE: 'title'
   };
 
+  Calendar.ns('Views').ModifyEvent = ModifyEvent;
   return ModifyEvent;
 
-}());
+});

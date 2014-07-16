@@ -1,4 +1,4 @@
-Calendar.ns('Views').DayBased = (function() {
+define(function() {
   'use strict';
 
   var Calc = Calendar.Calc;
@@ -654,6 +654,7 @@ Calendar.ns('Views').DayBased = (function() {
 
   };
 
+  Calendar.ns('Views').DayBased = DayBased;
   return DayBased;
 
-}());
+});

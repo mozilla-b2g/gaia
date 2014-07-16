@@ -1,4 +1,4 @@
-Calendar.ns('Controllers').Time = (function() {
+define(function() {
   'use strict';
 
   function compareStart(a, b) {
@@ -765,6 +765,7 @@ Calendar.ns('Controllers').Time = (function() {
 
   Calendar.TimeObserver.enhance(Time.prototype);
 
+  Calendar.ns('Controllers').Time = Time;
   return Time;
 
-}());
+});

@@ -1,4 +1,4 @@
-(function(window) {
+define(function() {
   'use strict';
 
   var Day = Calendar.Template.create({
@@ -79,4 +79,5 @@
   Day.hourEventsSelector = '.events';
 
   Calendar.ns('Templates').Day = Day;
-}(this));
+  return Day;
+});

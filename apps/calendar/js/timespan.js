@@ -1,4 +1,4 @@
-Calendar.Timespan = (function() {
+define(function() {
   'use strict';
 
   function Timespan(startDate, endDate) {
@@ -131,6 +131,7 @@ Calendar.Timespan = (function() {
 
   };
 
+  Calendar.Timespan = Timespan;
   return Timespan;
 
-}());
+});

@@ -1,4 +1,4 @@
-Calendar.ns('Models').Event = (function() {
+define(function() {
   'use strict';
 
   /**
@@ -262,6 +262,7 @@ Calendar.ns('Models').Event = (function() {
 
   };
 
+  Calendar.ns('Models').Event = Event;
   return Event;
 
-}());
+});

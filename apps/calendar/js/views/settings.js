@@ -1,5 +1,4 @@
-/*global Calendar */
-(function(window) {
+define(function() {
   'use strict';
 
   var CALENDAR_PREFIX = 'calendar-';
@@ -374,6 +373,7 @@
 
   Settings.prototype.onfirstseen = Settings.prototype.render;
   Calendar.ns('Views').Settings = Settings;
+  return Settings;
 
-}(this));
+});
 

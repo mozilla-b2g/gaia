@@ -1,5 +1,5 @@
 /* global uuid */
-Calendar.ns('Provider').Local = (function() {
+define(function() {
   'use strict';
 
   var LOCAL_CALENDAR_ID = 'local-first';
@@ -126,6 +126,7 @@ Calendar.ns('Provider').Local = (function() {
 
   };
 
+  Calendar.ns('Provider').Local = Local;
   return Local;
 
-}());
+});

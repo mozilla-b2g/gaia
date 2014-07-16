@@ -1,4 +1,4 @@
-Calendar.ns('Views').Day = (function() {
+define(function() {
   'use strict';
 
   var Parent = Calendar.Views.TimeParent;
@@ -107,6 +107,7 @@ Calendar.ns('Views').Day = (function() {
 
   Day.prototype.onfirstseen = Day.prototype.render;
 
+  Calendar.ns('Views').Day = Day;
   return Day;
 
-}());
+});

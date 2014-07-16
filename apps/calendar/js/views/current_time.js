@@ -1,4 +1,4 @@
-Calendar.ns('Views').CurrentTime = (function() {
+define(function() {
   'use strict';
 
   function CurrentTime(options) {
@@ -162,6 +162,7 @@ Calendar.ns('Views').CurrentTime = (function() {
 
   };
 
+  Calendar.ns('Views').CurrentTime = CurrentTime;
   return CurrentTime;
 
-}());
+});

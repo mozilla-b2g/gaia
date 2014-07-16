@@ -1,4 +1,4 @@
-Calendar.ns('Controllers').Alarm = (function() {
+define(function() {
   'use strict';
 
   var debug = Calendar.debug('alarm controller');
@@ -318,6 +318,7 @@ Calendar.ns('Controllers').Alarm = (function() {
     }
   };
 
+  Calendar.ns('Controllers').Alarm = Alarm;
   return Alarm;
 
-}());
+});

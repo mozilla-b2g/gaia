@@ -5,6 +5,7 @@
     "Buffer",
     "Caldav",
     "Calendar",
+    "define",
     "ICAL",
     "IDBKeyRange",
     "InputParser",

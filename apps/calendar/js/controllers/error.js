@@ -1,4 +1,4 @@
-Calendar.ns('Controllers').Error = (function() {
+define(function() {
   'use strict';
 
   /**
@@ -80,6 +80,7 @@ Calendar.ns('Controllers').Error = (function() {
     }
   };
 
+  Calendar.ns('Controllers').Error = ErrorController;
   return ErrorController;
 
-}());
+});

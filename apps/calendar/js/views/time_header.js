@@ -1,5 +1,4 @@
-/* globals Calendar */
-Calendar.ns('Views').TimeHeader = (function() {
+define(function() {
   'use strict';
 
   var SETTINGS = /settings/;
@@ -148,5 +147,6 @@ Calendar.ns('Views').TimeHeader = (function() {
     }
   };
 
+  Calendar.ns('Views').TimeHeader = TimeHeader;
   return TimeHeader;
-}());
+});

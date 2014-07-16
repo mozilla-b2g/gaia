@@ -14,7 +14,7 @@
  *
  *
  */
-Calendar.Notification = (function() {
+define(function() {
   'use strict';
 
   // Due to a bug in the platform, multiple requests to
@@ -94,8 +94,10 @@ Calendar.Notification = (function() {
     });
   }
 
-  return {
+  var exports = {
     send: sendNotification
   };
+  Calendar.Notification = exports;
+  return exports;
 
-}());
+});

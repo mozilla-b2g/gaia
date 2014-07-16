@@ -1,24 +1,20 @@
 //this code is from test-agent might use native dom events
 //or something else in the future to replace this.
-(function(exports) {
+define(function() {
   'use strict';
-
-  if (typeof(exports.Calendar) === 'undefined') {
-    exports.Calendar = {};
-  }
 
   /**
    * Constructor
    *
    * @param {Object} list of events to add onto responder.
    */
-  var Responder = exports.Calendar.Responder = function Responder(events) {
+  function Responder(events) {
     this._$events = Object.create(null);
 
     if (typeof(events) !== 'undefined') {
       this.addEventListener(events);
     }
-  };
+  }
 
   /**
    * Stringifies request to websocket
@@ -202,8 +198,9 @@
   };
 
   Responder.prototype.on = Responder.prototype.addEventListener;
-}(
-  (typeof(module) === 'undefined') ? this : module.exports
-));
+
+  Calendar.Responder = Responder;
+  return Responder;
+});
 
 

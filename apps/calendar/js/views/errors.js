@@ -1,4 +1,4 @@
-Calendar.ns('Views').Errors = (function() {
+define(function() {
   'use strict';
 
   function Errors() {
@@ -23,5 +23,6 @@ Calendar.ns('Views').Errors = (function() {
     }
   };
 
+  Calendar.ns('Views').Errors = Errors;
   return Errors;
-}());
+});

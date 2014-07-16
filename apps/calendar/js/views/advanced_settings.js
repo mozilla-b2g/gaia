@@ -1,4 +1,4 @@
-(function(window) {
+define(function() {
   'use strict';
 
   var ACCOUNT_PREFIX = 'account-';
@@ -243,5 +243,6 @@
 
   AdvancedSettings.prototype.onfirstseen = AdvancedSettings.prototype.render;
   Calendar.ns('Views').AdvancedSettings = AdvancedSettings;
+  return AdvancedSettings;
 
-}(this));
+});

@@ -1,6 +1,6 @@
+define(function() {
 'use strict';
-
-Calendar.ns('Service').IcalRecurExpansion = {
+var exports = {
 
   /**
    * Maximum iterations must be > 0 && < Infinity.
@@ -98,3 +98,7 @@ Calendar.ns('Service').IcalRecurExpansion = {
     } while (!this._isDone(current, sent, max));
   }
 };
+
+Calendar.ns('Service').IcalRecurExpansion = exports;
+return exports;
+});

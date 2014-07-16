@@ -1,4 +1,4 @@
-Calendar.ns('Views').ModifyAccount = (function() {
+define(function() {
   'use strict';
 
   var DEFAULT_AUTH_TYPE = 'basic';
@@ -409,6 +409,7 @@ Calendar.ns('Views').ModifyAccount = (function() {
     }
   };
 
+  Calendar.ns('Views').ModifyAccount = ModifyAccount;
   return ModifyAccount;
 
-}());
+});

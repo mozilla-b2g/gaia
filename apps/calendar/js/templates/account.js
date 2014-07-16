@@ -1,4 +1,4 @@
-(function(window) {
+define(function() {
   'use strict';
 
   var Account = Calendar.Template.create({
@@ -29,5 +29,6 @@
   });
 
   Calendar.ns('Templates').Account = Account;
+  return Account;
 
-}(this));
+});

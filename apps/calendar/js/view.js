@@ -1,4 +1,4 @@
-(function(window) {
+define(function() {
   'use strict';
 
   var DEFAULT_ERROR_ID = 'error-default';
@@ -246,5 +246,5 @@
   };
 
   Calendar.View = View;
-
-}(this));
+  return View;
+});
