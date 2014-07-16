@@ -993,6 +993,8 @@
 
   AppWindow.prototype.queueShow = function aw_queueShow() {
     this.element.classList.add('will-become-active');
+    // bug 1033921: notify current app changed
+    this.publish('will-become-active');
   };
 
   AppWindow.prototype.cancelQueuedShow = function aw_cancelQueuedShow() {
@@ -1001,6 +1003,7 @@
 
   AppWindow.prototype.queueHide = function aw_queueHide() {
     this.element.classList.add('will-become-inactive');
+    this.publish('will-become-inactive');
   };
 
   /**
