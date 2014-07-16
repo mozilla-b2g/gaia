@@ -8,10 +8,9 @@
   var hasOwnProperty = Object.prototype.hasOwnProperty;
 
   window.Calendar = {
-
     ERROR: 'error',
     ACTIVE: 'active',
-    DEBUG: false,
+    DEBUG: true,
 
     extend: function(target, input) {
       for (var key in input) {
@@ -186,7 +185,4 @@
       }
     }
   });
-
-
 }(this));
-

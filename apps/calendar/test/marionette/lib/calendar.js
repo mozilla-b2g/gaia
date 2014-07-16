@@ -40,11 +40,11 @@ Calendar.prototype = {
     client.apps.switchToApp(Calendar.ORIGIN);
 
     // Wait for the document body to know we're really 'launched'.
-    this.client.helper.waitForElement('body');
+    client.helper.waitForElement('body');
 
     if (opts) {
       if (opts.hideSwipeHint) {
-        this.client.helper
+        client.helper
           .waitForElement('#hint-swipe-to-navigate')
           .click();
       }

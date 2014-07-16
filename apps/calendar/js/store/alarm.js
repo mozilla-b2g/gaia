@@ -127,7 +127,7 @@ Calendar.ns('Store').Alarm = (function() {
       }
 
       // XXX: sad we need to use Calendar.App here...
-      var controller = Calendar.App.alarmController;
+      var controller = Calendar.App.notificationsController;
 
       function addAlarm(data) {
         var date = Calc.dateFromTransport(data.trigger);
@@ -135,7 +135,7 @@ Calendar.ns('Store').Alarm = (function() {
         // if trigger is in the past we need to send
         // the data directly to the controller not to mozAlarms.
         if (date < new Date()) {
-          return controller.handleAlarm(data);
+          return controller.onAlarm(data);
         }
 
         pending++;
