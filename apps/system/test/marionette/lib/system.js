@@ -11,9 +11,11 @@ System.URL = 'app://system.gaiamobile.org/manifest.webapp';
 System.Selector = Object.freeze({
   statusbar: '#statusbar',
   statusbarBackground: '#statusbar-background',
+  statusbarLabel: '#statusbar-label',
   topPanel: '#top-panel',
   leftPanel: '#left-panel',
-  rightPanel: '#right-panel'
+  rightPanel: '#right-panel',
+  utilityTray: '#utility-tray'
 });
 
 System.prototype = {
@@ -21,6 +23,14 @@ System.prototype = {
 
   get statusbar() {
     return this.client.findElement(System.Selector.statusbar);
+  },
+
+  get statusbarLabel() {
+    return this.client.findElement(System.Selector.statusbarLabel);
+  },
+
+  get utilityTray() {
+    return this.client.findElement(System.Selector.utilityTray);
   },
 
   get topPanel() {
