@@ -37,12 +37,11 @@ function Storage(options) {
   bindAll(this);
   this.maxFileSize = 0;
   options = options || {};
-  this.video = navigator.getDeviceStorage('videos');
-  this.picture = navigator.getDeviceStorage('pictures');
-  this.picture.addEventListener('change', this.onStorageChange);
   this.createFilename = options.createFilename || createFilename; // test hook
   this.dcf = options.dcf || dcf;
   this.dcf.init();
+  navigator.mozSettings.addObserver('device.storage.writable.name',
+                                    this.onStorageVolumeChanged);
   debug('initialized');
 }
 
@@ -151,6 +150,50 @@ Storage.prototype.onStorageChange = function(e) {
   // Check storage
   // has spare capacity
   this.check();
+};
+
+Storage.prototype.configure = function(storageVolumeName) {
+  var i;
+  var videosStorages;
+  var picturesStorages;
+  // If we had a previous ds for pictures, let's remove the observer
+  // we had set as well before fetching new ds.
+  if (this.picture) {
+    this.picture.removeEventListener('change', this.onStorageChange);
+  }
+  if (!storageVolumeName) {
+    this.video = navigator.getDeviceStorage('videos');
+    this.picture = navigator.getDeviceStorage('pictures');
+  } else { // We select the volumes with the passed name
+    videosStorages = navigator.getDeviceStorages('videos');
+    this.video = videosStorages[0];
+    for (i = 0; i < videosStorages.length; ++i) {
+      if (videosStorages[i].storageName === storageVolumeName) {
+        this.video = videosStorages[i];
+        break;
+      }
+    }
+
+    picturesStorages = navigator.getDeviceStorages('pictures');
+    this.picture = picturesStorages[0];
+    for (i = 0; i < picturesStorages.length; ++i) {
+      if (picturesStorages[i].storageName === storageVolumeName) {
+        this.picture = picturesStorages[i];
+        break;
+      }
+    }
+  }
+
+  this.picture.addEventListener('change', this.onStorageChange);
+  this.emit('volumechanged',{
+    video: this.video,
+    picture: this.picture
+  });
+};
+
+Storage.prototype.onStorageVolumeChanged = function(setting) {
+  debug('default storage volume change: %s', setting.settingValue);
+  this.configure(setting.settingValue);
 };
 
 Storage.prototype.checkFilepath = function(filepath) {

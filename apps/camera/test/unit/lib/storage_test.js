@@ -23,6 +23,7 @@ suite('lib/storage', function() {
 
     this.picture = {};
     this.picture.addEventListener = sinon.spy();
+    this.picture.removeEventListener = sinon.spy();
     this.picture.delete = sinon.stub().returns(this.picture);
 
     // Stub getDeviceStorage
@@ -37,6 +38,17 @@ suite('lib/storage', function() {
       .withArgs('videos')
       .returns(this.video);
 
+    // Stub getDeviceStorages
+    if (!navigator.getDeviceStorages) { navigator.getDeviceStorages = function() {}; }
+    this.sandbox.stub(navigator, 'getDeviceStorages')
+      .withArgs('pictures').returns([this.picture])
+      .withArgs('videos').returns([this.video]);
+
+    // Stub mozSettings
+    navigator.mozSettings = {
+      addObserver: sinon.stub()
+    };
+
     var options = {
       createFilename: sinon.stub().callsArgWith(2, 'filename.file'),
       dcf: { init: sinon.spy() }
@@ -44,6 +56,7 @@ suite('lib/storage', function() {
 
     // The test instance
     this.storage = new this.Storage(options);
+    this.storage.configure();
 
     // For convenience
     this.createFilename = options.createFilename;
@@ -56,7 +69,9 @@ suite('lib/storage', function() {
 
   suite('Storage()', function() {
     test('Should listen for change events', function() {
+      this.storage.configure();
       assert.isTrue(this.picture.addEventListener.calledWith('change'));
+      assert.isTrue(navigator.mozSettings.addObserver.called);
     });
   });
 

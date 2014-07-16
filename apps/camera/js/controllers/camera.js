@@ -68,6 +68,7 @@ CameraController.prototype.bindEvents = function() {
   app.on('previewgallery:opened', this.shutdownCamera);
   app.on('previewgallery:closed', this.onGalleryClosed);
   app.on('storage:changed', this.onStorageChanged);
+  app.on('storage:volumechanged', this.onStorageVolumeChanged);
   app.on('activity:pick', this.onPickActivity);
   app.on('timer:ended', this.capture);
   app.on('visible', this.camera.load);
@@ -339,6 +340,16 @@ CameraController.prototype.onBatteryStatusChange = function(status) {
  */
 CameraController.prototype.onStorageChanged = function(state) {
   if (state === 'shared') { this.camera.stopRecording(); }
+};
+
+/**
+ * For instance, when the storage volume changes from to internal memory
+ * to the SD Card
+ *
+ * @private
+ */
+CameraController.prototype.onStorageVolumeChanged = function(storage) {
+  this.camera.setVideoStorage(storage.video);
 };
 
 /**
