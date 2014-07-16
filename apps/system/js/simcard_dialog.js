@@ -294,7 +294,10 @@ var SimPinDialog = {
 
     window.dispatchEvent(new CustomEvent('simpinshow'));
 
-    this.simPinSystemDialog.show();
+    if (this.simPinSystemDialog) {
+      this.simPinSystemDialog.show();
+    }
+
     this._visible = true;
     this.lockType = 'pin';
     this.handleCardState();
@@ -323,7 +326,11 @@ var SimPinDialog = {
     window.dispatchEvent(new CustomEvent('simpinclose', {
       detail: this
     }));
-    this.simPinSystemDialog.hide(reason);
+
+    if (this.simPinSystemDialog) {
+      this.simPinSystemDialog.hide(reason);
+    }
+
     this._visible = false;
   },
 
@@ -379,4 +386,5 @@ var SimPinDialog = {
   }
 };
 
-SimPinDialog.init();
+// this injects code into HTML and we need it to be localized
+navigator.mozL10n.once(SimPinDialog.init.bind(SimPinDialog));

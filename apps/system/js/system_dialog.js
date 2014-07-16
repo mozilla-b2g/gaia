@@ -78,9 +78,15 @@
   SystemDialog.prototype.render = function sd_render() {
     this.generateID();
     this.containerElement.insertAdjacentHTML('beforeend', this.view());
+
     this._fetchElements();
     this._registerEvents();
     this.element = document.getElementById(this.instanceID);
+
+    // Required before 2.1 because we don't have L10n MutationObserver yet
+    if (navigator.mozL10n && navigator.mozL10n.translateFragment) {
+      navigator.mozL10n.translateFragment(this.element);
+    }
   };
 
   /**
