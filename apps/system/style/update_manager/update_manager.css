@@ -1,6 +1,5 @@
 #update-manager-container {
   display: none;
-  overflow: hidden;
 }
 
 #update-manager-container.displayed {
@@ -9,45 +8,43 @@
 
 #update-manager-container > .activity {
   display: none;
-  float: left;
-  width: 3.2rem;
-  height: 3rem;
-  margin: 1.4rem 1rem;
   background-image: url(images/loader.png);
   background-position: center center;
   background-repeat: no-repeat;
-  background-size: 3.1rem;
+  background-size: 2.4rem;
   animation: 0.9s fn-rotate infinite linear;
 }
 
-#update-manager-container.downloading > .activity {
+#update-manager-container.downloading > .icon.activity {
   display: block;
-}
-
-#update-manager-container > .icon {
-  float: left;
-  display: block;
-  width: 2.4rem;
-  height: 2.4rem;
-  margin: 1.8rem 1rem;
-}
-
-#update-manager-container > .icon,
-#update-manager-toaster > .icon {
-  background-image: url('images/iconindicator_download_24x24.png');
-  background-size: 2.4rem;
 }
 
 #update-manager-container.downloading > .icon {
   display: none;
 }
 
+#update-manager-container > .title-container {
+  margin: 1.4rem 0 0 3.7rem;
+}
+
+#update-manager-container > .title-container > span {
+  display: block;
+  color: #858585;
+  font-size: 1.4rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Toaster */
 #update-manager-toaster > .icon {
   float: left;
   display: block;
   width: 2.4rem;
   height: 2.4rem;
   margin: 1.3rem;
+  background-image: url(images/iconindicator_download_24x24.png);
+  background-size: 2.4rem;
 }
 
 #update-manager-toaster > .message {
@@ -61,24 +58,6 @@
   line-height: 2.8rem;
 }
 
-#update-manager-container > .message {
-  margin: 1rem 0 0 5rem;
-  width: calc(100% - 5.5rem);
-  font-size: 1.5rem;
-  font-weight: 500;
-  line-height: 1.9rem;
-  color: #FFFFFF;
-}
-
-#update-manager-container > .message > span {
-  display: block;
-  color: #bfbfbf;
-  font-size: 1.4rem;
-  line-height: 1.9rem;
-  font-weight: 400;
-  text-overflow: ellipsis;
-}
-
 #update-manager-toaster > .message > span {
   display: none;
 }
@@ -90,7 +69,7 @@
   width: 100%;
   height: 5rem;
   overflow: hidden;
-  background-image: url('images/grey-noise-bg.png');
+  background-image: url(images/grey-noise-bg.png);
   background-repeat: repeat-x;
   background-size: auto 100%;
   -moz-box-sizing: border-box;
@@ -154,7 +133,6 @@
 }
 
 #updates-download-dialog label {
-  display: inline-block;
   height: 5rem;
   float: right;
   color: #ebebeb;
