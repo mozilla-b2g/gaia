@@ -53,5 +53,4 @@ class TestLaunchApp(GaiaTestCase):
 
         # Click icon and wait for h1 element displayed
         self.homescreen.installed_app(self.APP_NAME).tap_icon()
-        self.wait_for_element_displayed(*self._header_locator, timeout=20)
         self.assertEqual(self.marionette.find_element(*self._header_locator).text, self.TITLE)
