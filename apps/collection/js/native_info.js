@@ -4,6 +4,8 @@
 /* global BaseCollection */
 /* global HomeIcons */
 /* global Promise */
+/* global CollectionIcon */
+/* global Common */
 
 (function(exports) {
 
@@ -11,8 +13,38 @@
 
   var homeIcons;
 
+  // Icon generation requirements.
+  var grid = document.getElementById('grid');
+  CollectionIcon.init(grid.maxIconSize);
+
   function onerror(e) {
     eme.error('NativeInfo error', e.name || e.message || e);
+  }
+
+  function fetchCollection(collection) {
+    if (collection.webicons.length) {
+      return Promise.resolve();
+    }
+
+    return new Promise(function(resolve) {
+      var options = collection.categoryId ?
+                    {categoryId: collection.categoryId} :
+                    {query: collection.query};
+      eme.init()
+      .then(() => eme.api.Apps.search(options))
+      .then((response) => {
+        collection.addWebResults(response.response.apps);
+      })
+      .then(() => {
+        Common.getBackground(collection, grid.maxIconSize)
+          .then((bgObject) => {
+            collection.background = bgObject;
+            resolve();
+          });
+      })
+      // We have to continue although fetching failed
+      .catch(resolve);
+    });
   }
 
   // Provides information about native apps in order to match them against
@@ -88,7 +120,8 @@
               eme.log('NativeInfo', identifiers.length, 'matches for',
                collection.cName, JSON.stringify(identifiers));
 
-              collection.pinHomeIcons(identifiers);
+              fetchCollection(collection)
+              .then(collection.pinHomeIcons.bind(collection, identifiers));
             }
           }
         }

@@ -1,15 +1,9 @@
 'use strict';
-/* global CollectionIcon */
 /* global NativeInfo */
 
 (function(exports) {
 
   function Synchronizer() {
-
-    // Icon generation requirements.
-    var grid = document.getElementById('grid');
-    CollectionIcon.init(grid.maxIconSize);
-
     navigator.mozSetMessageHandler('connection', this.onConnection.bind(this));
   }
 
