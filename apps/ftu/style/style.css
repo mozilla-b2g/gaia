@@ -727,8 +727,7 @@ aside.connecting {
 }
 
 #import_contacts li button.icon {
-  padding-left: 3rem;
-  text-indent: 1rem;
+  padding-left: 4rem;
 }
 
 #import_contacts li button.icon:before {

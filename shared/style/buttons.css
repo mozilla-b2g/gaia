@@ -120,8 +120,7 @@ button[disabled]::-moz-selection,
 
 li button,
 li [role="button"],
-li .button,
-select {
+li .button {
   position: relative;
   text-align: left;
   border: 0.1rem solid #c7c7c7;
@@ -129,6 +128,13 @@ select {
   margin: 0 0 1rem;
   overflow: hidden;
   border-radius: 0;
+  display: flex;
+  height: auto;
+  min-height: 4rem;
+  text-overflow: initial;
+  white-space: normal;
+  line-height: 2rem;
+  padding: 1rem 1.2rem;
 }
 
 /* Press */
@@ -149,7 +155,7 @@ li .button[aria-disabled="true"] {
 li button.icon,
 li [role="button"].icon,
 li .button.icon {
-  padding-right: 3rem;
+  padding-right: 4rem;
 }
 
 li button.icon:before,
@@ -177,13 +183,21 @@ li [role="button"].icon-view:before {
   right: 0;
 }
 
+/* Getting more space for text, as icon is shorter */
+li button.icon-dialog,
+li [role="button"].icon-dialog,
+li .button.icon-dialog {
+  padding-right: 3rem;
+}
+
 li button.icon-dialog:before,
 li [role="button"].icon-dialog:before,
 li .button.icon-dialog:before {
   width: 0;
   height: 0;
-  top: 3.5rem;
+  top: auto;
   right: 0.8rem;
+  bottom: 0.5rem;
   border-top: 0.7rem solid transparent;
   border-bottom: 0.7rem solid transparent;
   border-left: 0.7rem solid #00aac5;
@@ -254,6 +268,8 @@ select {
   white-space: nowrap;
   overflow: hidden;
   height: 4rem;
+  border: 0.1rem solid #c7c7c7;
+  background: rgba(0,0,0,0.05);
 }
 
 .skin-dark select {
@@ -280,7 +296,7 @@ select:-moz-focusring {
   width: calc(100% + 3rem);
   height: 100%;
   margin: 0;
-  padding: 0;
+  padding: 0 5rem 0 0;
   text-indent: 0;
   font-weight: 400;
   font-size: 1.7rem;
@@ -318,12 +334,13 @@ html[dir="rtl"] li .button {
 html[dir="rtl"] li button.icon,
 html[dir="rtl"] li .icon[role="button"],
 html[dir="rtl"] li .button.icon {
-  padding: 0 1.3rem 0 3rem;
+  padding: 1rem 1.3rem 1rem 4rem;
 }
 
-html[dir="rtl"] li button.icon-view,
-html[dir="rtl"] li .icon-view[role="button"] {
-  padding: 0 2.8rem;
+html[dir="rtl"] li button.icon-dialog,
+html[dir="rtl"] li [role="button"].icon-dialog,
+html[dir="rtl"] li .button.icon-dialog {
+  padding-left: 3rem;
 }
 
 html[dir="rtl"] li button.icon-view:before,
@@ -351,4 +368,5 @@ html[dir="rtl"] .button.icon-dialog select {
   left: auto;
   right: 0.3rem; /* .3rem space because of italic */
   text-indent: 1rem;
+  padding: 0 0 0 4rem;
 }
