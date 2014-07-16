@@ -25,6 +25,27 @@
 
   Common.prototype = {
 
+    b64toBlob: function b64toBlob(b64) {
+      return new Promise((resolve, reject) => {
+        var img = new Image();
+
+        img.onload = function onload() {
+          var canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+
+          var ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+          canvas.toBlob(resolve);
+        };
+
+        img.onerror = reject;
+
+        img.src = b64;
+      });
+    },
+
     chooseBackgroundRatio: chooseBackgroundRatio,
 
     // TODO
@@ -45,18 +66,14 @@
         xhr.onload = function onload() {
           if (xhr.status === 200) {
             var blob = new Blob([xhr.response], {type: 'image/jpg'});
-            var reader = new FileReader();
+            eme.log('getMozBackground', 'success', url);
 
-            reader.onload = function onloadend() {
-              eme.log('getMozBackground', 'success', url);
-              resolve({
-                src: reader.result,
-                source: url,
-                checksum: 'mozilla'  // TODO: generate checksum from image data
-              });
-            };
+            resolve({
+              blob: blob,
+              source: url,
+              checksum: 'mozilla'  // TODO: generate checksum from image data
+            });
 
-            reader.readAsDataURL(blob);
           } else {
             reject('xhr.status ' + xhr.status);
           }
@@ -72,7 +89,6 @@
     },
 
     getEmeBackground: function getEmeBackground(collection, size) {
-      var src;
       var checksum;
 
       var options = {
@@ -91,32 +107,37 @@
         checksum = collection.background.checksum;
 
         // when we send _checksum server will not return an image if checksum
-        // was not updated, so check that we really have a background src
-        if (collection.background.src) {
+        // was not updated, so check that we really have background data
+        if (collection.background.blob) {
           options._checksum = checksum;
         }
       }
 
-      return eme.api.Search.bgimage(options).then(function success(response) {
-        if (checksum && checksum === response.checksum) {
-          eme.log('background didn\'t change (checksum match)');
-          return collection.background;
-        } else {
-          var image = response.response.image;
-          if (image) {
-            src = image.data;
-            if (/image\//.test(image.MIMEType)) {  // base64 image data
-              src = 'data:' + image.MIMEType + ';base64,' + image.data;
+      return eme.api.Search.bgimage(options)
+        .then((response) => {
+          if (checksum && checksum === response.checksum) {
+            eme.log('background didn\'t change (checksum match)');
+            return collection.background;
+          } else {
+            var b64;
+            var image = response.response.image;
+            if (image) {
+              b64 = image.data;
+              if (/image\//.test(image.MIMEType)) {  // base64 image data
+                b64 = 'data:' + image.MIMEType + ';base64,' + image.data;
+              }
             }
-          }
 
-          return {
-            src: src,
-            source: response.response.source,
-            checksum: response.checksum || null
-          };
-        }
-      });
+            return this.b64toBlob(b64).then(function toBg(blob) {
+
+              return {
+                blob: blob,
+                source: response.response.source,
+                checksum: response.checksum || null
+              };
+            });
+          }
+        });
     },
 
 
