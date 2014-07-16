@@ -17,7 +17,7 @@
  */
 
 /* globals dump, CustomEvent, MozActivity, System,
-   NfcHandoverManager, NfcUtils, NfcBuffer, NDEF, ScreenManager */
+   NfcHandoverManager, NfcUtils, NDEF, ScreenManager */
 'use strict';
 
 var NfcManager = {
@@ -150,78 +150,6 @@ var NfcManager = {
   },
 
   /**
-   * Parses NDEF message and returns options object which is used to create
-   * MozActivity. It checks the first NDEF record and basing on tnf value
-   * passes the record for further parsing of paylod and type to helper methods.
-   * If first record is valid, options object will contain the whole NDEF
-   * message, so the app can access other records and handle them appropriately.
-   * TODO: together with helper methods should be moved to different file
-   * TODO: more appropriate name needed
-   * @param {Array} NDEF message - an array of NDEF records
-   * @returns {Object} options - object used to construct MozActivity
-   * @returns {Array} options.data.records - NDEF message
-   */
-  handleNdefMessage: function nm_handleNdefMessage(ndefMsg) {
-    var options = null;
-
-    var record = ndefMsg[0] || { tnf: NDEF.TNF_EMPTY };
-
-    var smartPoster = ndefMsg.filter(function isSmartPoster(r) {
-      return NfcUtils.equalArrays(r.type, NDEF.RTD_SMART_POSTER);
-    })[0];
-
-    // NFCForum-SmartPoster_RTD_1.0, 3.4:
-    // If an NDEF message contains one or multiple URI [URI] records
-    // in addition to the Smart Poster record at the top level (i.e.,
-    // not nested), the Smart Poster record overrides them. The NDEF
-    // application MUST use only the Smart Poster record.
-    if (record.tnf === NDEF.TNF_WELL_KNOWN &&
-        NfcUtils.equalArrays(record.type, NDEF.RTD_URI) &&
-        smartPoster) {
-
-      record = smartPoster;
-    }
-
-    this._debug('RECORD: ' + JSON.stringify(record));
-    switch (+record.tnf) {
-      case NDEF.TNF_EMPTY:
-        options = this.createActivityOptionsWithType('empty');
-        break;
-      case NDEF.TNF_WELL_KNOWN:
-        options = this.formatWellKnownRecord(record);
-        break;
-      case NDEF.TNF_MIME_MEDIA:
-        options = this.formatMimeMedia(record);
-        break;
-      case NDEF.TNF_ABSOLUTE_URI:
-      case NDEF.TNF_EXTERNAL_TYPE:
-        // Absolute URI and External payload handling is application specific,
-        // in terms of creating activity they should be handled alike
-        var type = NfcUtils.toUTF8(record.type);
-        options = this.createActivityOptionsWithType(type);
-        break;
-      case NDEF.TNF_UNKNOWN:
-      case NDEF.TNF_RESERVED:
-        options = this.createDefaultActivityOptions();
-        break;
-      case NDEF.TNF_UNCHANGED:
-        break;
-    }
-
-    if (options === null) {
-      this._debug('XX Found no NDEF message actions. XX');
-      // we're handling here also tnf unchanged, not adding record payload
-      // as ndef record is malformed/unxpected, this is a workaround
-      // until Bug 1007724 will land
-      options = this.createDefaultActivityOptions();
-    } else {
-      options.data.records = ndefMsg;
-    }
-
-    return options;
-  },
-
-  /**
    * Fires NDEF related activities to launch other apps to perform
    * further actions with NDEF Message contents. If the first NDEF record
    * contains a well know type additional parsing will be done in helper
@@ -235,21 +163,102 @@ var NfcManager = {
    */
   fireNDEFDiscovered: function nm_fireNDEFDiscovered(msg, tech) {
     this._debug('fireNDEFDiscovered: ' + JSON.stringify(msg));
+    var smartPoster = this.getSmartPoster(msg.records);
+    var record = smartPoster || msg.records[0] || { tnf: NDEF.TNF_EMPTY };
 
-    var options = this.handleNdefMessage(msg.records);
-    if (options === null) {
-      this._debug('Unimplemented. Handle Unknown type.');
-      options = this.createActivityOptionsWithType('unknown');
-    }
+    var data = NDEF.payload.decode(record.tnf, record.type, record.payload);
+    var options = this.createNDEFActivityOptions(data);
     options.data.tech = tech;
     options.data.techList = msg.techList;
     options.data.sessionToken = msg.sessionToken;
-    this._debug('options: ' + JSON.stringify(options));
 
+    if (data !== null) {
+      options.data.records = msg.records;
+    }
+
+    this._debug('options: ' + JSON.stringify(options));
     var activity = new MozActivity(options);
     activity.onerror = () => {
       this._debug('Firing nfc-ndef-discovered failed');
     };
+  },
+
+  /**
+   * Retrieves Smart Poster record from NDEF records array following
+   * the rule outlined in NFCForum-SmartPoster_RTD_1.0, 3.4:
+   * "If an NDEF message contains one or multiple URI [URI] records
+   * in addition to the Smart Poster record at the top level (i.e.,
+   * not nested), the Smart Poster record overrides them. The NDEF
+   * application MUST use only the Smart Poster record."
+   * @param {Array} records - array of NDEF records
+   * @returns {Object} record - SmartPostr record or null
+   */
+  getSmartPoster: function getSmartPoster(records) {
+    if (!Array.isArray(records) || !records.length) {
+      return null;
+    }
+
+    var smartPosters = records.filter(function isSmartPoster(r) {
+      return NfcUtils.equalArrays(r.type, NDEF.RTD_SMART_POSTER);
+    });
+
+    if (records[0].tnf === NDEF.TNF_WELL_KNOWN &&
+        NfcUtils.equalArrays(records[0].type, NDEF.RTD_URI) &&
+        smartPosters.length) {
+      return smartPosters[0];
+    }
+    return null;
+  },
+
+  /**
+   * Basing on decoded payload from first record of NDEF message prepares
+   * activity options object which will be used to launch MozActivity
+   * @param {Object} paylod - decoded payload of first record from NDEF message
+   * @returns {Object} options - object used to construct MozActivity
+   */
+  createNDEFActivityOptions: function nm_createNDEFActivityOptions(payload) {
+    var options = { name: 'nfc-ndef-discovered', data: {}};
+    if (payload === null) {
+      return options;
+    }
+
+    if (payload.type === 'uri') {
+      if (payload.uri.indexOf('tel:') === 0) {
+        // dial a number
+        options.name = 'dial';
+        options.data.type = 'webtelephony/number';
+        options.data.number = payload.uri.substring(4);
+        options.data.uri = payload.uri;
+      } else if (payload.uri.indexOf('mailto:') === 0) {
+        // create new mail
+        options.name = 'new';
+        options.data.type = 'mail';
+        options.data.url = payload.uri;
+      } else if (payload.uri.indexOf('http://') === 0 ||
+                 payload.uri.indexOf('https://') === 0) {
+        // launch browser
+        options.data.type = 'url';
+        options.data.url = payload.uri;
+      } else {
+        options.data = payload;
+      }
+    } else if (payload.type === 'smartposter' &&
+      (payload.uri.indexOf('http://') === 0 ||
+       payload.uri.indexOf('https://') === 0)) {
+      // smartposter adaptation for browser handling
+      options.data = payload;
+      options.data.type = 'url';
+      options.data.url = payload.uri;
+      delete options.data.uri;
+    } else if (payload.type === 'text/vcard') {
+      // contact import
+      options.name = 'import';
+      options.data = payload;
+    } else {
+      options.data = payload;
+    }
+
+    return options;
   },
 
   /**
@@ -402,186 +411,6 @@ var NfcManager = {
     // Clean up P2P UI events
     window.removeEventListener('shrinking-sent', this);
     window.dispatchEvent(new CustomEvent('shrinking-stop'));
-  },
-
-  // Miscellaneous utility functions to handle formating the JSON for activities
-
-  isTypeMatch: function nm_isTypeMatch(type, stringTypeArray) {
-    var strType = NfcUtils.toUTF8(type);
-    if (stringTypeArray && stringTypeArray.length) {
-      for (var i = 0; i < stringTypeArray.length; i++) {
-        if (strType === stringTypeArray[i]) {
-          this._debug('Found a type match.');
-          return true;
-        }
-      }
-    }
-    this._debug('Did not find a match.');
-    return false;
-  },
-
-  formatWellKnownRecord: function nm_formatWellKnownRecord(record) {
-    this._debug('HandleWellKnowRecord');
-    if (NfcUtils.equalArrays(record.type, NDEF.RTD_TEXT)) {
-      return this.formatTextRecord(record);
-    } else if (NfcUtils.equalArrays(record.type, NDEF.RTD_URI)) {
-      return this.formatURIRecord(record);
-    } else if (NfcUtils.equalArrays(record.type, NDEF.RTD_SMART_POSTER)) {
-      return this.formatSmartPosterRecords(record);
-    } else {
-      this._debug('Unknown record type: ' + JSON.stringify(record));
-    }
-    return null;
-  },
-
-  formatTextRecord: function nm_formatTextRecord(record) {
-    var status = record.payload[0];
-    var langLen = status & NDEF.RTD_TEXT_IANA_LENGTH;
-    var language = NfcUtils.toUTF8(
-                     record.payload.subarray(1, langLen + 1));
-    var encoding = (status & NDEF.RTD_TEXT_ENCODING) !== 0 ? 1 : 0;
-    var text;
-    var encodingString;
-    if (encoding === NDEF.RTD_TEXT_UTF8) {
-      text = NfcUtils.toUTF8(record.payload.subarray(langLen + 1));
-      encodingString = 'UTF-8';
-    } else if (encoding === NDEF.RTD_TEXT_UTF16) {
-      text = NfcUtils.UTF16BytesToStr(record.payload.subarray(langLen + 1));
-      encodingString = 'UTF-16';
-    }
-
-    var options = this.createActivityOptionsWithType('text');
-    options.data.rtd = record.type;
-    options.data.text = text;
-    options.data.language = language;
-    options.data.encoding = encodingString;
-    return options;
-  },
-
-  formatURIRecord: function nm_formatURIRecord(record) {
-    var prefix = NDEF.URIS[record.payload[0]];
-    if (prefix === undefined) {
-      this._debug('Handle NDEF URI: identifier not known.');
-      return null;
-    }
-
-    var options,
-        suffix = NfcUtils.toUTF8(record.payload.subarray(1)),
-        uri = prefix + suffix;
-
-    this._debug('Handle NDEF URI: ' + uri);
-
-    if (uri.indexOf('tel:') === 0) {
-      options = {
-        name: 'dial',
-        data: {
-          type: 'webtelephony/number',
-          number: suffix,
-          uri: uri
-        }
-      };
-    } else if (uri.indexOf('mailto:') === 0) {
-      options = {
-        name: 'new',
-        data: {
-          type: 'mail',
-          url: uri
-        }
-      };
-    } else if (uri.indexOf('http://') === 0 ||
-               uri.indexOf('https://') === 0) {
-      options = this.createActivityOptionsWithType('url');
-      options.data.rtd = record.type;
-      options.data.url = uri;
-    } else {
-      options = this.createActivityOptionsWithType('uri');
-      options.data.rtd = record.type;
-      options.data.uri = uri;
-    }
-
-    return options;
-  },
-
-  formatSmartPosterRecords: function nm_formatSmartPosterRecords(smartposter) {
-    this._debug('formatSmartPosterRecords');
-
-    // Smart poster contains embedded records in it's payload.
-    var buffer = new NfcBuffer(smartposter.payload);
-    var records = NfcUtils.parseNDEF(buffer);
-
-    // First, decode URI. It's treated specially, because it's the only
-    // mandatory record in a smart poster.
-    var URIRecords = records.filter(function (record) {
-      return NfcUtils.equalArrays(record.type, NDEF.RTD_URI);
-    });
-
-    if (URIRecords.length !== 1) {
-      this._debug('Invalid smart poster message. Should contain exactly ' +
-        'one URI record, but contains ' + URIRecords.length);
-      return null;
-    }
-
-    var options = this.formatURIRecord(URIRecords[0]);
-    var data = options.data;
-
-    // Now decode all other records and attach their data
-    // to URI options.
-    for (var r = 0; r < records.length; r += 1) {
-      var record = records[r];
-      var typeStr = NfcUtils.toUTF8(record.type);
-
-      if (NfcUtils.equalArrays(record.type, NDEF.RTD_TEXT)) {
-        data.text = data.text || {};
-
-        var textData = this.formatTextRecord(record).data;
-
-        if (data.text[textData.language]) {
-          // According to NFCForum-SmartPoster_RTD_1.0 3.3.2,
-          // there MUST NOT be two or more records with
-          // the same language identifier.
-          return null;
-        }
-
-        data.text[textData.language] = textData.text;
-      } else if ('act' === typeStr) {
-        data.action = record.payload[0];
-      } else if (NDEF.TNF_MIME_MEDIA === record.tnf) {
-        data.icons = data.icons || [];
-        data.icons.push({
-          type: NfcUtils.toUTF8(record.type),
-          bytes: record.payload
-        });
-      }
-    }
-
-    return options;
-  },
-
-  formatMimeMedia: function nm_formatMimeMedia(record) {
-    this._debug('HandleMimeMedia');
-    if (this.isTypeMatch(record.type,
-                         ['text/vcard', 'text/x-vCard', 'text/x-vcard'])) {
-      return this.formatVCardRecord(record);
-    } else {
-      return this.createActivityOptionsWithType(NfcUtils.toUTF8(record.type));
-    }
-  },
-
-  formatVCardRecord: function nm_formatVCardRecord(record) {
-    var vcardBlob = new Blob([NfcUtils.toUTF8(record.payload)],
-                             {'type': 'text/vcard'});
-    return { name: 'import', data: { type: 'text/vcard', blob: vcardBlob }};
-  },
-
-  createActivityOptionsWithType:
-  function nm_createActivityOptionsWithType(type) {
-    var options = this.createDefaultActivityOptions();
-    options.data.type = type;
-    return options;
-  },
-
-  createDefaultActivityOptions: function nm_createDefaultActivityOptions() {
-    return { name: 'nfc-ndef-discovered', data: {}};
   }
 };
 NfcManager.init();

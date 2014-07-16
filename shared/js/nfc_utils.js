@@ -74,6 +74,9 @@ const NDEF = {
     this.MIME_BLUETOOTH_OOB =
       NfcUtils.fromUTF8('application/vnd.bluetooth.ep.oob');
 
+    this.MIME_VCARD_STR_ARR =
+      ['text/vcard', 'text/x-vCard', 'text/x-vcard'];
+
     this.SMARTPOSTER_ACTION = NfcUtils.fromUTF8('act');
 
     this.URIS[0x00] = '';
@@ -112,6 +115,173 @@ const NDEF = {
     this.URIS[0x21] = 'urn:epc:raw:';
     this.URIS[0x22] = 'urn:epc:';
     this.URIS[0x23] = 'urn:nfc:';
+  },
+
+  payload: {
+    /**
+     * Decodes NDEF record payload
+     * @see NFCForum-TS-NDEF_1.0
+     * @param {Uint8Array} tnf - record TNF
+     * @param {Uint8Array} type - record type
+     * @param {Uint8Array} payload - record payload
+     * @returns {Object} data - decoded payload or null if invalid
+     */
+    decode: function decode(tnf, type, payload) {
+      var decodedPayload = { type: 'empty' };
+
+      switch (tnf) {
+        case NDEF.TNF_WELL_KNOWN:
+          decodedPayload = this.decodeWellKnown(type, payload);
+          break;
+        case NDEF.TNF_MIME_MEDIA:
+          decodedPayload = this.decodeMIME(type, payload);
+          break;
+        case NDEF.TNF_ABSOLUTE_URI:
+        case NDEF.TNF_EXTERNAL_TYPE:
+          decodedPayload = { type: NfcUtils.toUTF8(type) };
+          break;
+        case NDEF.TNF_UNKNOWN:
+        case NDEF.TNF_RESERVED:
+          decodedPayload = {};
+          break;
+        case NDEF.TNF_UNCHANGED:
+          decodedPayload = null;
+          break;
+      }
+      return decodedPayload;
+    },
+
+    /**
+     * Decodes TNF Well Know NDEF record payload
+     * @see NFCForum-TS-NDEF_1.0
+     * @param {Uint8Array} type - record type
+     * @param {Uint8Array} payload - record payload
+     * @returns {Object} data - decoded payload or null if invalid
+     */
+    decodeWellKnown: function decodeWellKnown(type, payload) {
+      if (NfcUtils.equalArrays(type, NDEF.RTD_TEXT)) {
+        return this.decodeText(payload);
+      } else if (NfcUtils.equalArrays(type, NDEF.RTD_URI)) {
+        return this.decodeURI(payload);
+      } else if (NfcUtils.equalArrays(type, NDEF.RTD_SMART_POSTER)) {
+        return this.decodeSmartPoster(payload);
+      }
+
+      return null;
+    },
+
+    /**
+     * Decodes TNF Well Known RTD Text NDEF record payload
+     * @see NFCForum-TS-RTD_Text_1.0
+     * @param {Uint8Array} payload - record payload
+     * @returns {Object} data - decoded payload
+     */
+    decodeText: function decodeText(payload) {
+      var decoded = { type: 'text' };
+
+      var langLen = payload[0] & NDEF.RTD_TEXT_IANA_LENGTH;
+      decoded.language = NfcUtils.toUTF8(payload.subarray(1, langLen + 1));
+
+      var encoding = (payload[0] & NDEF.RTD_TEXT_ENCODING) !== 0 ? 1 : 0;
+      if (encoding === NDEF.RTD_TEXT_UTF8) {
+        decoded.text = NfcUtils.toUTF8(payload.subarray(langLen + 1));
+        decoded.encoding = 'UTF-8';
+      } else if (encoding === NDEF.RTD_TEXT_UTF16) {
+        decoded.text = NfcUtils.UTF16BytesToStr(payload.subarray(langLen + 1));
+        decoded.encoding = 'UTF-16';
+      }
+
+      return decoded;
+    },
+
+    /**
+     * Decodes TNF Well Known RTD URI NDEF record payload
+     * @see NFCForum-TS-RTD_URI_1.0
+     * @param {Uint8Array} payload - record payload
+     * @returns {Object} data - decoded payload or null if invalid
+     */
+    decodeURI: function decodeURI(payload) {
+      var prefix = NDEF.URIS[payload[0]];
+      if (prefix === undefined) {
+        return null;
+      }
+
+      var suffix = NfcUtils.toUTF8(payload.subarray(1));
+      return { type: 'uri', uri: prefix + suffix };
+    },
+
+    /**
+     * Decodes TNF Well Known RTD Smart Poster NDEF record payload
+     * @see NFCForum-SmartPoster_RTD_1.0
+     * @param {Uint8Array} payload - record payload
+     * @returns {Object} data - decoded payload
+     */
+    decodeSmartPoster: function decodeSmartPoster(payload) {
+      var buffer = new NfcBuffer(payload);
+      var records = NfcUtils.parseNDEF(buffer);
+
+      // First, decode URI. It's treated specially, because it's the only
+      // mandatory record in a smart poster.
+      var URIRecords = records.filter(function(record) {
+        return NfcUtils.equalArrays(record.type, NDEF.RTD_URI);
+      });
+
+      if (URIRecords.length !== 1) {
+        return null;
+      }
+
+      var uriPoster = {
+        type: 'smartposter',
+        uri: NDEF.payload.decodeURI(URIRecords[0].payload).uri
+      };
+
+      // Now decode all other records and attach their data to poster.
+      return records.reduce((poster, record) => {
+        var typeStr = NfcUtils.toUTF8(record.type);
+
+        if (NfcUtils.equalArrays(record.type, NDEF.RTD_TEXT)) {
+          poster.text = poster.text || {};
+
+          var textData = NDEF.payload.decodeText(record.payload);
+
+          if (poster.text[textData.language]) {
+            // According to NFCForum-SmartPoster_RTD_1.0 3.3.2,
+            // there MUST NOT be two or more records with
+            // the same language identifier.
+            return null;
+          }
+
+          poster.text[textData.language] = textData.text;
+        } else if ('act' === typeStr) {
+          poster.action = record.payload[0];
+        } else if (NDEF.TNF_MIME_MEDIA === record.tnf) {
+          poster.icons = poster.icons || [];
+          poster.icons.push({
+            type: NfcUtils.toUTF8(record.type),
+            bytes: record.payload
+          });
+        }
+        return poster;
+      }, uriPoster);
+    },
+
+    /**
+     * Decodes TNF MIME Media NDEF Record payload
+     * @see NFCForum-TS-NDEF_1.0
+     * @param {Uint8Array} type - record mime-type
+     * @returns {Object} data - decoded payload
+     */
+    decodeMIME: function docodeMIME(type, payload) {
+      var typeStr = (typeof type === 'string') ? type : NfcUtils.toUTF8(type);
+      if (NDEF.MIME_VCARD_STR_ARR.indexOf(typeStr) !== -1) {
+        return {
+          type: 'text/vcard',
+          blob: new Blob([NfcUtils.toUTF8(payload)], {type: 'text/vcard'})
+        };
+      }
+
+      return { type: typeStr };
+    }
   }
 };
 
