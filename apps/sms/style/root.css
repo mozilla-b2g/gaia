@@ -80,6 +80,32 @@ small {
   color: #999;
 }
 
+/* Tabs */
+.bb-tablist:before {
+  bottom: 7rem !important;
+}
+
+.bb-tablist > li {
+  height: 5.5rem !important;
+}
+
+.bb-tablist .msg-delete-btn {
+  background-image: url("images/icons/delete.png");
+}
+
+.bb-tablist .msg-mark-read-btn {
+  background-image: url("images/icons/Ico_in_markasread_30x30.png");
+}
+
+.bb-tablist .msg-mark-unread-btn {
+  background-image: url("images/icons/Ico_in_markasunread_30x30.png");
+}
+
+/* Header Icon */
+section[role="region"] > header:first-child .icon-options {
+  background-image: url(/../shared/style/headers/images/icons/options.png);
+}
+
 /* Links */
 a {
   text-decoration: none;
