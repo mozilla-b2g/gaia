@@ -718,10 +718,10 @@ suite('system/AppWindowManager', function() {
       assert.isTrue(AppWindowManager.continuousTransition);
     });
 
-    test('app-brandcolor.enabled', function() {
-      MockSettingsListener.mCallbacks['app-brandcolor.enabled'](true);
+    test('app-themecolor.enabled', function() {
+      MockSettingsListener.mCallbacks['app-themecolor.enabled'](true);
 
-      assert.isTrue(screenElement.classList.contains('brandcolor-active'));
+      assert.isTrue(screenElement.classList.contains('themecolor-active'));
     });
   });
 

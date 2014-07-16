@@ -905,11 +905,22 @@
 
   AppWindow.prototype._handle_mozbrowsermetachange =
     function aw__handle_mozbrowsermetachange(evt) {
-      if (evt.detail.name === 'brand-color') {
-        this.brandColor = evt.detail.content;
-        this.statusbarOverlay.style.backgroundColor = this.brandColor;
-        this.publish('brandcolorchange');
+      var detail = evt.detail;
+      if (detail.name !== 'theme-color' || !detail.type) {
+        return;
       }
+
+      // If the theme-color meta is removed, let's reset the color.
+      var color = '';
+
+      // Otherwise, set it to the color that has been asked.
+      if (detail.type !== 'removed') {
+        color = detail.content;
+      }
+      this.themeColor = color;
+      this.statusbarOverlay.style.backgroundColor = color;
+
+      this.publish('themecolorchange');
     };
 
   AppWindow.prototype._registerEvents = function aw__registerEvents() {
