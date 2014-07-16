@@ -41,6 +41,10 @@ MockFbContactsObj.prototype = {
 
   getByPhone: function(number) {
     return this._getRequest();
+  },
+
+  mTeardown: function() {
+    this.mResult = [];
   }
 };
 
