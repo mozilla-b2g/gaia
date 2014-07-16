@@ -365,7 +365,7 @@ function deleteFile(path, recursive) {
 
 /**
  *
- * Returns an array of file name's for a given directory
+ * Returns an array of file for a given directory
  *
  * @param  {string} path       directory to read.
  * @param  {int}    type       FILE_TYPE_FILE for files,
@@ -373,10 +373,10 @@ function deleteFile(path, recursive) {
  * @param  {boolean} recursive set to true in order to walk recursively.
  * @param  {RegExp}  exclude   optional filter to exclude file/directories.
  *
- * @returns {Array}   list of string which contains all files' full path.
+ * @returns {Array}   list of string which contains all files.
  * Note: this function is a wrapper function  for node.js
  */
-function listFiles(path, type, recursive, exclude) {
+function doListFiles(path, type, recursive, exclude) {
   var file = (typeof path === 'string' ? getFile(path) : path);
   if (!file.isDirectory()) {
     throw new Error('the path is not a directory.');
@@ -388,11 +388,55 @@ function listFiles(path, type, recursive, exclude) {
   var results = [];
   files.forEach(function(file) {
     if (file[detectFunc]()) {
-      results.push(file.path);
+      results.push(file);
     }
   });
 
   return results;
+}
+
+/**
+ *
+ * Returns an array of files' full path for a given directory
+ *
+ * @param  {string} path       directory to read.
+ * @param  {int}    type       FILE_TYPE_FILE for files,
+ *                             FILE_TYPE_DIRECTORY for directories
+ * @param  {boolean} recursive set to true in order to walk recursively.
+ * @param  {RegExp}  exclude   optional filter to exclude file/directories.
+ *
+ * @returns {Array}   list of string which contains all files' full path.
+ */
+function listFiles(path, type, recursive, exclude) {
+  var result = doListFiles(path, type, recursive, exclude);
+
+  result.forEach(function(file, idx) {
+    result[idx] = file.path;
+  });
+
+  return result;
+}
+
+/**
+ *
+ * Returns an array of files' name for a given directory
+ *
+ * @param  {string} path       directory to read.
+ * @param  {int}    type       FILE_TYPE_FILE for files,
+ *                             FILE_TYPE_DIRECTORY for directories
+ * @param  {boolean} recursive set to true in order to walk recursively.
+ * @param  {RegExp}  exclude   optional filter to exclude file/directories.
+ *
+ * @returns {Array}   list of string which contains all files' name.
+ */
+function listFileNames(path, type, recursive, exclude) {
+  var result = doListFiles(path, type, recursive, exclude);
+
+  result.forEach(function(file, idx) {
+    result[idx] = file.leafName;
+  });
+
+  return result;
 }
 
 /**
@@ -911,6 +955,7 @@ exports.scriptParser = Reflect.parse;
 // ===== the following functions support node.js compitable interface.
 exports.deleteFile = deleteFile;
 exports.listFiles = listFiles;
+exports.listFileNames = listFileNames;
 exports.fileExists = fileExists;
 exports.mkdirs = mkdirs;
 exports.joinPath = joinPath;
