@@ -159,33 +159,57 @@ suite('webapp-zip.js', function() {
     });
   });
 
-  suite('getImagePathByResolution', function() {
+  suite('getMediaPathByResolution', function() {
     var webappZip;
     setup(function() {
       webappZip = new app.WebappZip();
     });
 
-    test('getImagePathByResolution', function() {
+    test('getMediaPathByResolution', function() {
       var pathInZip = 'test@2x.png';
       var file = mockUtils.getFile(pathInZip);
       webappZip.config = {};
 
       webappZip.config.GAIA_DEV_PIXELS_PER_PX = '1';
-      assert.equal(webappZip.getImagePathByResolution(file, pathInZip),
+      assert.equal(webappZip.getMediaPathByResolution(file, pathInZip),
         undefined, 'it should ignore other resolution image if ' +
         'GAIA_DEV_PIXELS_PER_PX is 1');
 
       webappZip.config.GAIA_DEV_PIXELS_PER_PX = '2';
-      assert.equal(webappZip.getImagePathByResolution(file, pathInZip),
+      assert.equal(webappZip.getMediaPathByResolution(file, pathInZip),
         'test.png', 'it should remove @2x if GAIA_DEV_PIXELS_PER_PX is also 2');
 
       pathInZip = 'test.png';
       webappZip.config.GAIA_DEV_PIXELS_PER_PX = '2';
       file = mockUtils.getFile(pathInZip);
       fileExists = true;
-      var actualPathInZip = webappZip.getImagePathByResolution(file, pathInZip);
+      var actualPathInZip = webappZip.getMediaPathByResolution(file, pathInZip);
       assert.equal(filePath, 'test@2x.png',
         'should have correct resolution image');
+      assert.equal(actualPathInZip, undefined);
+    });
+
+    test('getMediaPathByResolution video', function() {
+      var pathInZip = 'test@2x.mp4';
+      var file = mockUtils.getFile(pathInZip);
+      webappZip.config = {};
+
+      webappZip.config.GAIA_DEV_PIXELS_PER_PX = '1';
+      assert.equal(webappZip.getMediaPathByResolution(file, pathInZip),
+        undefined, 'it should ignore other resolution video if ' +
+        'GAIA_DEV_PIXELS_PER_PX is 1');
+
+      webappZip.config.GAIA_DEV_PIXELS_PER_PX = '2';
+      assert.equal(webappZip.getMediaPathByResolution(file, pathInZip),
+        'test.mp4', 'it should remove @2x if GAIA_DEV_PIXELS_PER_PX is also 2');
+
+      pathInZip = 'test.mp4';
+      webappZip.config.GAIA_DEV_PIXELS_PER_PX = '2';
+      file = mockUtils.getFile(pathInZip);
+      fileExists = true;
+      var actualPathInZip = webappZip.getMediaPathByResolution(file, pathInZip);
+      assert.equal(filePath, 'test@2x.mp4',
+        'should have correct resolution video');
       assert.equal(actualPathInZip, undefined);
     });
   });
@@ -208,7 +232,7 @@ suite('webapp-zip.js', function() {
       };
       webappZip = new app.WebappZip();
       webappZip.buildDir = mockUtils.getFile('testBuildDir');
-      webappZip.getImagePathByResolution = function(file, pathInZip) {
+      webappZip.getMediaPathByResolution = function(file, pathInZip) {
         return pathInZip + '_bestResolution';
       };
       webappZip.isExcludedFromZip = function() {

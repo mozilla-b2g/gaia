@@ -91,10 +91,10 @@ WebappZip.prototype.isExcludedFromZip = function(file) {
   return false;
 };
 
-// If config.GAIA_DEV_PIXELS_PER_PX is not 1 and the file is a bitmap let's
+// If config.GAIA_DEV_PIXELS_PER_PX is not 1 & the file is a bitmap/video let's
 // check if there is a bigger version in the directory. If so let's ignore the
 // file in order to use the bigger version later.
-WebappZip.prototype.getImagePathByResolution = function(file, pathInZip) {
+WebappZip.prototype.getMediaPathByResolution = function(file, pathInZip) {
   var suffix = '@' + this.config.GAIA_DEV_PIXELS_PER_PX + 'x';
   var matchResult = /@([0-9]+\.?[0-9]*)x/.exec(file.path);
   if ((this.config.GAIA_DEV_PIXELS_PER_PX === '1' && matchResult) ||
@@ -111,7 +111,7 @@ WebappZip.prototype.getImagePathByResolution = function(file, pathInZip) {
       // it will be loaded later (or it has already been loaded, depending on
       // how the OS organize files.
       var hqfile = utils.getFile(
-        file.path.replace(/(\.[a-z]+$)/, suffix + '$1'));
+        file.path.replace(/(\.[a-z0-9]+$)/, suffix + '$1'));
       if (hqfile.exists()) {
         return;
       }
@@ -130,8 +130,8 @@ WebappZip.prototype.addToZip = function(file) {
   var compression = this.getCompression(pathInZip);
   pathInZip = pathInZip.replace(/\\/g, '/');
 
-  if ( /\.(png|gif|jpg)$/.test(file.path)) {
-    pathInZip = this.getImagePathByResolution(file, pathInZip);
+  if ( /\.(png|gif|jpg|webm|mp4|m4v|ogg|ogv)$/.test(file.path)) {
+    pathInZip = this.getMediaPathByResolution(file, pathInZip);
   }
 
   if (!pathInZip) {
@@ -190,7 +190,17 @@ WebappZip.prototype.execute = function(options) {
 
   this.setOptions(options);
 
-  var files = utils.ls(this.buildDir, true);
+  // sort listing by path to ensure hidpi files are processed *after* the
+  // corresponding 1x file
+  var files = utils.ls(this.buildDir, true).sort(function(a, b) {
+    if(a.path < b.path) {
+      return -1;
+    }
+    if(a.path > b.path) {
+      return 1;
+    }
+    return 0;
+  });
   files.forEach(this.addToZip.bind(this));
 
   this.closeZip();
