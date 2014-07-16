@@ -77,7 +77,6 @@
                0.2rem 0.4rem 1rem rgba(0, 0, 0, 0.4);
   font-size: 1.4rem;
   color: #fff;
-  white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
   width: calc(100% - 0.4rem);
