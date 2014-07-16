@@ -37,11 +37,6 @@ suite('lib/storage', function() {
       .withArgs('videos')
       .returns(this.video);
 
-    // Stub mozSettings
-    navigator.mozSettings = {
-      addObserver: sinon.stub()
-    };
-
     var options = {
       createFilename: sinon.stub().callsArgWith(2, 'filename.file'),
       dcf: { init: sinon.spy() }
@@ -62,7 +57,6 @@ suite('lib/storage', function() {
   suite('Storage()', function() {
     test('Should listen for change events', function() {
       assert.isTrue(this.picture.addEventListener.calledWith('change'));
-      assert.isTrue(navigator.mozSettings.addObserver.called);
     });
   });
 
