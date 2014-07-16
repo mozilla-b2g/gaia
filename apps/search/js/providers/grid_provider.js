@@ -23,8 +23,6 @@ DataGridProvider.prototype = {
     results.forEach(function(config, index) {
       this.grid.add(config.data);
     }, this);
-    this.grid.render({
-      skipDivider: true
-    });
+    this.grid.render();
   }
 };

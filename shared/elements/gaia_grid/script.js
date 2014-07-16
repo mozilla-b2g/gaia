@@ -106,28 +106,6 @@ window.GaiaGrid = (function(win) {
   };
 
   /**
-   * Reoves placeholders from the list until we encounter a divider. Once we
-   * find a divider, we return that item. If we do not find a divider, we
-   * return null. This is useful for operations which append to the end of the
-   * items array as we always have a divider at the end of the list, but often
-   * want to add to the last group.
-   */
-  proto.removeUntilDivider = function() {
-    var items = this._grid.items;
-    for (var i = items.length - 1; i > 0; i--) {
-      var item = items[i];
-      if (item instanceof GaiaGrid.Placeholder) {
-        items.pop();
-        continue;
-      } else if (item instanceof GaiaGrid.Divider) {
-        return items.pop();
-      } else {
-        return null;
-      }
-    }
-  };
-
-  /**
    * Sets an element that should be considered as obscuring the top of the grid
    * when in edit mode.
    */

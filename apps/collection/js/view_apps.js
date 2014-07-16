@@ -47,7 +47,6 @@
     var defaultGridRender = _grid.render;
     grid._grid.render = function(options) {
       options = options || {};
-      options.skipDivider = true;
       defaultGridRender.call(_grid, options);
       var items = _grid.items;
       var offset = 0;

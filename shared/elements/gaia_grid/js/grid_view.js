@@ -195,10 +195,9 @@
     /**
      * Scrubs the list of items, removing empty sections.
      */
-    cleanItems: function(skipDivider) {
+    cleanItems: function() {
       var appCount = 0;
       var toRemove = [];
-
       this.items.forEach(function(item, idx) {
         if (item instanceof GaiaGrid.Divider) {
           if (appCount === 0) {
@@ -216,23 +215,20 @@
         removed.remove();
       }, this);
 
-      // There should always be a divider at the end, it's hidden in CSS when
-      // not in edit mode.
-      if (skipDivider) {
-        return;
-      }
-      var lastItem = this.items[this.items.length - 1];
-      if (!(lastItem instanceof GaiaGrid.Divider)) {
-        this.items.push(new GaiaGrid.Divider());
-      }
-
-      // In dragdrop also append a row of placeholders.
+      // In dragdrop append a divider and row of placeholders.
       // These placeholders are used for drop detection as we ignore dividers
       // and will create a new group when an icon is dropped on them.
+      var lastItem = this.items[this.items.length - 1];
       if (this.dragdrop && this.dragdrop.inEditMode) {
+        if (lastItem.detail.type !== 'divider') {
+          this.items.push(new GaiaGrid.Divider());
+        }
+
         var coords = [0, lastItem.y + 2];
         this.createPlaceholders(coords, this.items.length, this.layout.cols,
           true);
+      } else if(lastItem.detail.type === 'divider') {
+        lastItem.removeFromGrid();
       }
     },
 
@@ -258,7 +254,6 @@
 
         previousItem = item;
       }, this);
-
       toSplice.reverse().forEach(function(idx) {
         this.items.splice(idx, 1)[0].remove();
       }, this);
@@ -310,14 +305,13 @@
      * on the grid.
      * @param {Object} options Options to render with including:
      *  - from {Integer} The index to start rendering from.
-     *  - skipDivider {Boolean} Whether or not to skip the divider
      */
     render: function(options) {
       var self = this;
       options = options || {};
 
       this.removeAllPlaceholders();
-      this.cleanItems(options.skipDivider);
+      this.cleanItems();
 
       // Start rendering from one before the drop target. If not,
       // we may drop over the divider and miss rendering an icon.

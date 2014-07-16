@@ -61,10 +61,6 @@
         return;
       }
 
-      // There is a last divider that is always in the list, but not rendered
-      // unless in edit mode.
-      // Remove this divider, append the app, then re-append the divider.
-      var lastDivider = app.grid.removeUntilDivider();
       this.addIconToGrid(application);
       var svApp = configurator.getSingleVariantApp(application.manifestURL);
       var lastElem = app.grid.getIndexLastIcon();
@@ -78,7 +74,6 @@
         this.addPreviouslyInstalledSvApp(application.manifestURL);
         app.itemStore.savePrevInstalledSvApp(this.svPreviouslyInstalledApps);
       }
-      app.grid.add(lastDivider);
 
       app.grid.render();
       app.itemStore.save(app.grid.getItems());
@@ -169,6 +164,7 @@
         this.addIconToGrid(newApp.app);
       }, this);
 
+      app.grid.render();
       app.itemStore.save(app.grid.getItems());
     },
 
@@ -181,7 +177,6 @@
         manifestURL: application.manifestURL
       });
       app.grid.add(appObject);
-      app.grid.render();
     },
 
     /**
