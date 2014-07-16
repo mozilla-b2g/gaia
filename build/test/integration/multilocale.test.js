@@ -26,6 +26,18 @@ suite('multilocale Integration tests', function() {
           '/archive/tip.tar.gz';
         var dl = download(url, dir, {extract: true, strip: 1});
         dl.once('close', function() {
+          if (locale === 'en-US') {
+            var manifestPath = path.join(dir, 'apps', 'settings',
+              'manifest.properties');
+            var systemTranslation = fs.readFileSync(manifestPath,
+              {encoding: 'utf-8'});
+            // bug 1007485: we shouldn't translate en-US even if
+            // LOCALES_BASEDIR/en-US exists, so change "Gaia Settings" to
+            // "Gaea Settings" in en-US and assume it shouldn't be translated to
+            // "Gaea Settings".
+            fs.writeFileSync(manifestPath,
+              systemTranslation.replace('Gaia Settings', 'Gaea Settings'));
+          }
           callback();
         });
       };
@@ -67,6 +79,9 @@ suite('multilocale Integration tests', function() {
       }
 
       assert.deepEqual(JSON.parse(zip.readAsText(langPathInZip)), localesFileObj);
+      var manifest =
+        JSON.parse(zip.readAsText(zip.getEntry('manifest.webapp')));
+      assert.equal(manifest.locales['en-US'].description, 'Gaia Settings');
       done();
     });
   }

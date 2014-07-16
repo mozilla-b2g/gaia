@@ -39,17 +39,17 @@ ol.link-list li:only-child a {
   border-bottom: 0;
 }
 
-#today .icon-today {
+#today .icon-calendar-today {
   font-size: 1.4rem;
   line-height: 4.6rem;
 }
 
-#today .icon-today:before {
+#today .icon-calendar-today:before {
   position: absolute;
-  width: 100%;
-  display: block;
   font-size: 3rem;
-  line-height: 4.5rem;
+  line-height: 4.2rem;
+  left: 50%;
+  transform: translateX(-52%);
 }
 
 #view-selector > .today {
@@ -339,4 +339,24 @@ section[role="status"].active {
 /* Hide on initial render to prevent flashing */
 #settings {
   visibility: hidden;
+}
+
+/* these settings avoid conflicts with the shared icons */
+.gaia-icon {
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+}
+
+/* these icons uses a 32px base grid so we need to adjust the font size
+ * (shared font uses a 3rem base font-size) */
+.icon-calendar-allday:before,
+.icon-calendar-alarm:before,
+.icon-calendar-bullet:before,
+.icon-calendar-dot:before,
+.icon-calendar-today:before,
+.icon-calendar-eventalarm:before {
+  font-size: 3.2rem;
 }

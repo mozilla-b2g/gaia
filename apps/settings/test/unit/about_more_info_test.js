@@ -105,11 +105,11 @@ suite('about >', function() {
   });
 
   suite('loadImei >', function() {
-    var deviceInfoImei;
+    var deviceInfoImeis;
     var sandbox = sinon.sandbox.create();
 
     setup(function() {
-      deviceInfoImei = document.getElementById('deviceInfo-imei');
+      deviceInfoImeis = document.getElementById('deviceInfo-imeis');
     });
 
     teardown(function() {
@@ -117,25 +117,28 @@ suite('about >', function() {
     });
 
     test('the list item should be hidden when mozMobileConnections is ' +
-      'unavailable', function() {
+      'unavailable', function(done) {
         navigator.mozMobileConnections = null;
-        AboutMoreInfo.loadImei();
-        assert.isTrue(deviceInfoImei.parentNode.hidden);
-        navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
+        AboutMoreInfo.loadImei().then(function() {
+          assert.isTrue(deviceInfoImeis.parentNode.hidden);
+          navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
+        }).then(done, done);
     });
 
     test('the list item should be hidden when mozTelephony is unavalilable',
-      function() {
+      function(done) {
         navigator.mozTelephony = null;
-        AboutMoreInfo.loadImei();
-        assert.isTrue(deviceInfoImei.parentNode.hidden);
-        navigator.mozTelephony = MockNavigatorMozTelephony;
+        AboutMoreInfo.loadImei().then(function() {
+          assert.isTrue(deviceInfoImeis.parentNode.hidden);
+          navigator.mozTelephony = MockNavigatorMozTelephony;
+        }).then(done, done);
     });
 
-    test('should show correct value when with getting imei successfully',
-      function() {
+    test('should show correct value when getting an IMEI successfully',
+      function(done) {
         var req = {
           result: {
+            serviceCode: 'scImei',
             statusMessage: 'fakeImei'
           }
         };
@@ -143,40 +146,85 @@ suite('about >', function() {
           function() {
             return req;
         });
-        AboutMoreInfo.loadImei();
+        var promise = AboutMoreInfo.loadImei();
         req.onsuccess();
 
-        assert.equal(deviceInfoImei.textContent, 'fakeImei');
+        promise.then(function() {
+          var span = deviceInfoImeis.querySelector('span');
+          assert.equal(span.textContent, 'fakeImei');
+          assert.equal(span.dataset.slot, 0);
+        }).then(done, done);
     });
 
     test('should show correct value when without correct result',
-      function() {
+      function(done) {
         sandbox.spy(MockL10n, 'localize');
         var req = {};
         sandbox.stub(MockNavigatorMozMobileConnections[0], 'sendMMI',
           function() {
             return req;
         });
-        AboutMoreInfo.loadImei();
+        var promise = AboutMoreInfo.loadImei();
         req.onsuccess();
 
-        sinon.assert.calledWith(MockL10n.localize, deviceInfoImei,
-          'unavailable');
+        promise.then(function() {
+          var span = deviceInfoImeis.querySelector('span');
+          sinon.assert.calledWith(MockL10n.localize, span, 'unavailable');
+        }).then(done, done);
     });
 
     test('should show correct value when with getting imei failed',
-      function() {
+      function(done) {
         sandbox.spy(MockL10n, 'localize');
         var req = {};
         sandbox.stub(MockNavigatorMozMobileConnections[0], 'sendMMI',
           function() {
             return req;
         });
-        AboutMoreInfo.loadImei();
+        var promise = AboutMoreInfo.loadImei();
         req.onerror();
 
-        sinon.assert.calledWith(MockL10n.localize, deviceInfoImei,
-          'unavailable');
+        promise.then(function() {
+          var span = deviceInfoImeis.querySelector('span');
+          sinon.assert.calledWith(MockL10n.localize, span, 'unavailable');
+        }).then(done, done);
+    });
+
+    suite('multiple sim', function() {
+      setup(function() {
+        MockNavigatorMozMobileConnections.mAddMobileConnection();
+      });
+
+      test('should show multiple IMEI codes', function(done) {
+        var reqs = [{
+          result: {
+            serviceCode: 'scImei',
+            statusMessage: 'fakeImei1'
+          }
+        }, {
+          result: {
+            serviceCode: 'scImei',
+            statusMessage: 'fakeImei2'
+          }
+        }];
+
+        reqs.forEach(function(val, index) {
+          sandbox.stub(MockNavigatorMozMobileConnections[index], 'sendMMI',
+            function() { return val; });
+        });
+
+        var promise = AboutMoreInfo.loadImei();
+        reqs.forEach(function(req) { req.onsuccess(); });
+
+        promise.then(function() {
+          var spans = deviceInfoImeis.querySelectorAll('span');
+          reqs.forEach(function(reqs, index) {
+            assert.equal(spans[index].textContent,
+              'IMEI ' + (index + 1) + ': fakeImei' + (index + 1));
+            assert.equal(spans[index].dataset.slot, index);
+          });
+        }).then(done, done);
+      });
     });
   });
 });

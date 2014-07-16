@@ -428,7 +428,7 @@ suite('app', function() {
     suiteSetup(function() {
       container = document.createElement('div');
       container.innerHTML = '<a id="today" href="#today">' +
-        '<span class="icon-today"></span></a>';
+        '<span class="icon-calendar-today"></span></a>';
       document.body.appendChild(container);
     });
 
@@ -436,10 +436,10 @@ suite('app', function() {
       container.parentNode.removeChild(container);
     });
 
-    test('show current date on the .icon-today span', function() {
+    test('show current date on the .icon-calendar-today span', function() {
       subject._showTodayDate();
       assert.equal(
-        document.querySelector('#today .icon-today').innerHTML,
+        document.querySelector('#today .icon-calendar-today').innerHTML,
         new Date().getDate()
       );
     });
@@ -455,7 +455,7 @@ suite('app', function() {
 
       container = document.createElement('div');
       container.innerHTML = '<a id="today" href="#today">' +
-        '<span class="icon-today">7</span></a>';
+        '<span class="icon-calendar-today">7</span></a>';
       document.body.appendChild(container);
     });
 
@@ -464,11 +464,11 @@ suite('app', function() {
       clock.restore();
     });
 
-    test('Update the date on the .icon-today span after midnight', function() {
+    test('Update the date on the today span after midnight', function() {
       subject._syncTodayDate();
       clock.tick(1500);
       assert.equal(
-        document.querySelector('#today .icon-today').innerHTML,
+        document.querySelector('#today .icon-calendar-today').innerHTML,
         8
       );
     });

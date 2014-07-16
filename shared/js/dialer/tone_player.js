@@ -71,8 +71,8 @@ var TonePlayer = {
 
     oscNode.type = 'sine';
     oscNode.frequency.value = 1000; // Whatever
-    oscNode.start(0);
-    oscNode.stop(0.005);
+    oscNode.start(this._audioContext.currentTime);
+    oscNode.stop(this._audioContext.currentTime + 0.025);
     oscNode.connect(gainNode);
 
     setTimeout(callback);
@@ -172,7 +172,10 @@ var TonePlayer = {
     if (shortPress) {
       this._playSample(frequencies);
     } else {
-      this._startAt(frequencies, 0, shortPress ? kShortPressDuration : 0);
+      this.dummySound((function() {
+        this._startAt(frequencies, this._audioContext.currentTime + 0.050,
+                      shortPress ? kShortPressDuration : 0);
+      }).bind(this));
     }
   },
 

@@ -31,8 +31,15 @@ function notifyCollection() {
 
 var AppManager = {
 
-  init: function init() {
+  init: function init(isUpgrade) {
     this.isInitialized = true;
+
+    UIManager.init();
+    Navigation.init();
+
+    if(isUpgrade) {
+      return;
+    }
 
     // Send message to populate preinstalled collections
     notifyCollection();
@@ -41,9 +48,8 @@ var AppManager = {
     WifiManager.init();
     ImportIntegration.init();
     TimeManager.init();
-    UIManager.init();
-    Navigation.init();
     DataMobile.init();
+
     var kSplashTimeout = 700;
     // Retrieve mobile connection if available
     // this is used to keep all tests passing while introducing multi-sim APIs
@@ -85,7 +91,7 @@ navigator.mozL10n.ready(function showBody() {
   ]).then(function() {
 
     if (!AppManager.isInitialized) {
-      AppManager.init();
+      AppManager.init(versionInfo.isUpgrade());
     }
 
     if (versionInfo.isUpgrade()) {

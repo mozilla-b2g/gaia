@@ -273,10 +273,10 @@
           }.bind(this)
         },
 
-        'app-brandcolor.enabled': {
+        'app-themecolor.enabled': {
           defaultValue: false,
           callback: function(value) {
-            screenElement.classList.toggle('brandcolor-active', value);
+            screenElement.classList.toggle('themecolor-active', value);
           }
         }
       };

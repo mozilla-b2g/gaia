@@ -1433,22 +1433,6 @@ suite('system/AppWindow', function() {
       assert.isTrue(stubPublish.calledWith('foreground'));
     });
 
-    test('metachange event (brand-color)', function() {
-      var app1 = new AppWindow(fakeAppConfig1);
-      var stubPublish = this.sinon.stub(app1, 'publish');
-
-      app1.handleEvent({
-        type: 'mozbrowsermetachange',
-        detail: {
-          name: 'brand-color',
-          content: 'transparent'
-        }
-      });
-
-      assert.equal(app1.brandColor, 'transparent');
-      assert.isTrue(stubPublish.calledOnce);
-    });
-
     test('Localized event', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       var spyManifestHelper = this.sinon.stub(window, 'ManifestHelper');
@@ -1909,4 +1893,73 @@ suite('system/AppWindow', function() {
       assert.isTrue(caught);
       assert.isTrue(caughtOnParent);
     });
+
+  suite('Theme Color', function() {
+    test('(No type)', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      var stubPublish = this.sinon.stub(app1, 'publish');
+
+      app1.handleEvent({
+        type: 'mozbrowsermetachange',
+        detail: {
+          name: 'theme-color',
+          content: 'transparent'
+        }
+      });
+
+      assert.isFalse(!!app1.themeColor);
+      assert.isFalse(stubPublish.calledOnce);
+    });
+
+    test('Added', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      var stubPublish = this.sinon.stub(app1, 'publish');
+
+      app1.handleEvent({
+        type: 'mozbrowsermetachange',
+        detail: {
+          name: 'theme-color',
+          content: 'transparent',
+          type: 'added'
+        }
+      });
+
+      assert.equal(app1.themeColor, 'transparent');
+      assert.isTrue(stubPublish.calledOnce);
+    });
+
+    test('Changed', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      var stubPublish = this.sinon.stub(app1, 'publish');
+
+      app1.handleEvent({
+        type: 'mozbrowsermetachange',
+        detail: {
+          name: 'theme-color',
+          content: 'pink',
+          type: 'changed'
+        }
+      });
+
+      assert.equal(app1.themeColor, 'pink');
+      assert.isTrue(stubPublish.calledOnce);
+    });
+
+    test('Removed', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      var stubPublish = this.sinon.stub(app1, 'publish');
+
+      app1.handleEvent({
+        type: 'mozbrowsermetachange',
+        detail: {
+          name: 'theme-color',
+          content: 'pink',
+          type: 'removed'
+        }
+      });
+
+      assert.equal(app1.themeColor, '');
+      assert.isTrue(stubPublish.calledOnce);
+    });
+  });
 });

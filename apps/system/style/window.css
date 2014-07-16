@@ -285,7 +285,7 @@
   background-color: black;
 }
 
-#screen.brandcolor-active .appWindow:not([loading-state=true]) > .statusbar-overlay {
+#screen.themecolor-active .appWindow:not([loading-state=true]) > .statusbar-overlay {
   visibility: visible;
 }
 
