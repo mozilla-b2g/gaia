@@ -74,7 +74,7 @@ CameraController.prototype.bindEvents = function() {
   app.on('capture', this.capture);
   app.on('hidden', this.onHidden);
   app.on('attentionscreenopened', this.camera.stopRecording);
-
+  app.on('focus:cancelTouchFocus', this.onCancelTouchFocus);
   // Settings
   settings.recorderProfiles.on('change:selected', this.updateRecorderProfile);
   settings.pictureSizes.on('change:selected', this.updatePictureSize);
@@ -374,6 +374,10 @@ CameraController.prototype.onGalleryClosed = function() {
 
   this.app.showLoading();
   this.camera.load(this.app.clearLoading);
+};
+
+CameraController.prototype.onCancelTouchFocus = function() {
+  this.camera.cancelTouchFocus();
 };
 
 });

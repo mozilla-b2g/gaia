@@ -269,7 +269,7 @@ suite('lib/camera/focus', function() {
 
     test('should not call onAutoFocusChanged', function() {
       this.focus.onAutoFocusMoving(false);
-      assert.ok(!this.focus.onAutoFocusChanged.called);
+      assert.ok(this.focus.onAutoFocusChanged.called);
     });
   });
 
@@ -440,7 +440,7 @@ suite('lib/camera/focus', function() {
       }]);
       assert.ok(this.focus.detectedFaces[0].id === 1);
       assert.ok(!this.focus.suspendFaceDetection.called);
-      assert.ok(!this.focus.stopContinuousFocus.called);
+      assert.ok(this.focus.stopContinuousFocus.called);
       assert.ok(!this.focus.updateFocusArea.called);
       assert.ok(this.focus.onFacesDetected.called);
     });

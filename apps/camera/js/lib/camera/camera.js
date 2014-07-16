@@ -422,10 +422,26 @@ Camera.prototype.configureFocus = function() {
   this.focus.configure(this.mozCamera, focusMode);
   this.focus.onFacesDetected = this.onFacesDetected;
   this.focus.onAutoFocusChanged = this.onAutoFocusChanged;
+  this.focus.onFaceFocusChanges = this.onFaceFocusChanges;
 };
 
-Camera.prototype.onAutoFocusChanged = function() {
-  this.set('focus', 'autofocus');
+Camera.prototype.onFaceFocusChanges = function(state) {
+  this.set('focus',state);
+};
+
+Camera.prototype.onAutoFocusChanged = function(state) {
+  //this.set('focus', 'autofocus');
+  //MADAI Implementation  for showing UI feedback
+  // for continues Focus
+  var isVideo = this.mode === 'video';
+  if (isVideo) { return; }
+  this.emit('autofocuschanged');
+  if (state) {
+    this.set('focus','focusing');
+  } else {
+    this.set('focus','focused');
+    this.focus.suspendContinuousFocus(3000);
+  }
 };
 
 Camera.prototype.onFacesDetected = function(faces) {
@@ -1404,6 +1420,11 @@ Camera.prototype.ready = function() {
   debug('ready');
   this.isBusy = false;
   this.emit('ready');
+};
+
+Camera.prototype.cancelTouchFocus = function() {
+  this.set('focus', 'none');
+  this.focus.resumeContinuousFocus();
 };
 
 });

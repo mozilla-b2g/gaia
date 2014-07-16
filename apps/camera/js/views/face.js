@@ -31,8 +31,13 @@ module.exports = View.extend({
   setDiameter: function(diameter) {
     this.el.style.width = diameter + 'px';
     this.el.style.height = diameter + 'px';
-  }
+  },
 
+  setLargestFace: function(isLargestFace) {
+    if (isLargestFace) {
+      this.el.classList.add('main-face');
+    }
+  }
 });
 
 });
