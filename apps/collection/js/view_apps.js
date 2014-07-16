@@ -1,8 +1,9 @@
 'use strict';
 /* global CollectionIcon */
-/* global eme */
-/* global NativeInfo */
 /* global CollectionsDatabase */
+/* global eme */
+/* global HomeIcons */
+/* global NativeInfo */
 
 (function(exports) {
 
@@ -61,9 +62,8 @@
     // Update Collection from db
     // Render grid for the first time
     // Go get web results
-    NativeInfo.setup()
-    // Ensure homeIcons are initialized
-    .then(() => collection.homeIcons.init())
+    HomeIcons.init()
+    .then(() => NativeInfo.setup())
     .then(() => collection.refresh())
     .then(() => collection.render(grid))
     .then(() => {

@@ -61,12 +61,6 @@
     if (window.SearchDedupe) {
       this.dedupe = new SearchDedupe();
     }
-
-    // for rendering pinned homescreen apps/bookmarks
-    if (window.HomeIcons) {
-      this.homeIcons = props.homeIcons || new HomeIcons();
-      this.homeIcons.init();
-    }
   }
 
   BaseCollection.create = function create(data) {
@@ -203,8 +197,8 @@
       var idx = this.pinnedIdentifiers.indexOf(identifier);
       if (idx !== -1) {
         this.pinned.splice(idx, 1);
-        eme.log('removed pinned item', identifier);
-        return this.save();
+        return this.save()
+               .then(() => eme.log('removed pinned item', identifier));
       }
     },
 
@@ -265,7 +259,11 @@
     toGridObject: function(item) {
       var icon;
       if (item.type === 'homeIcon') {
-        icon = this.homeIcons.get(item.identifier);
+        if (!HomeIcons.ready) {
+          eme.warn('HomeIcons not ready, pinned apps may not render properly');
+        }
+
+        icon = HomeIcons.get(item.identifier);
       } else if (item.type === 'webResult') {
         item.features = item.features || {};
         item.features.isEditable = false;
