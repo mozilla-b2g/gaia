@@ -226,5 +226,9 @@
     );
   };
 
+  ParsedMessage.delete = function pm_delete(timestamp, success, error) {
+    MessageDB.deleteByTimestamp(timestamp, success, error);
+  };
+
   exports.ParsedMessage = ParsedMessage;
 })(window);
