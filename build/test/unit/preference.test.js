@@ -21,11 +21,25 @@ suite('preferences.js', function() {
       }
     };
     mockUtils.getFile = function(src, path) {
-      return src + path;
+      return {
+        path: src + path,
+        exists: function() {
+          return true;
+        },
+        clone: function() {
+          return {
+            append: function() {},
+            exists: function() { return true; }
+          };
+        },
+      };
+    };
+    mockUtils.getFileContent = function(file) {
+      return file.path;
     };
     mockUtils.writeContent = function(file, content) {
       fileContent = {
-        file: file,
+        file: file.path,
         content: content
       };
       return fileContent;
@@ -57,7 +71,7 @@ suite('preferences.js', function() {
     };
   });
 
-  suite('setConfig, execute, writePref, setPrefs', function() {
+  suite('setConfig, execute, writePref, setPrefs, appendPrefFile', function() {
     var config;
     setup(function() {
       preferences = new app.PreferencesBuilder();
@@ -72,6 +86,34 @@ suite('preferences.js', function() {
       assert.deepEqual(preferences.config, config);
       assert.deepEqual(preferences.prefs, {});
       assert.deepEqual(preferences.gaia, config);
+      assert.deepEqual(preferences.extenedPrefFiles,
+        ['custom-prefs.js', 'gps-prefs.js', 'payment-prefs.js'],
+        'extenedPrefFiles should contain three *-prefs.js');
+    });
+
+    test('setConfig with DEBUG=1', function () {
+      config.DEBUG = 1;
+      preferences.setConfig(config);
+      assert.ok(preferences.extenedPrefFiles.indexOf('debug-prefs.js') !== -1,
+        'extenedPrefFiles should contain debug-prefs.js');
+    });
+
+    test('setConfig with GAIA_APP_TARGET=engineering', function () {
+      config.GAIA_APP_TARGET = 'engineering';
+      preferences.setConfig(config);
+      assert.ok(
+        preferences.extenedPrefFiles.indexOf('payment-dev-prefs.js') !== -1,
+        'extenedPrefFiles should contain payment-dev-prefs.js'
+      );
+    });
+
+    test('setConfig with GAIA_APP_TARGET=dogfood', function () {
+      config.GAIA_APP_TARGET = 'dogfood';
+      preferences.setConfig(config);
+      assert.ok(
+        preferences.extenedPrefFiles.indexOf('dogfood-prefs.js') !== -1,
+        'extenedPrefFiles should contain dogfood-prefs.js'
+      );
     });
 
     test('execute', function () {
@@ -121,6 +163,38 @@ suite('preferences.js', function() {
           type: 'int'
         }
       });
+    });
+
+    test('appendPrefFile', function() {
+      var userJsPath = 'profile/user.js';
+      var prefsList = ['prefs-a', 'prefs-b', 'prefs-c'];
+      var exists = function() { return true; };
+      var destFile = {
+        path: userJsPath,
+        exists: exists
+      };
+      var srcDir = {
+        path: 'build/config',
+        exists: exists,
+        clone: function() {
+          var path = 'build/config';
+          return {
+            path: path,
+            exists: exists,
+            append: function(filename) {
+              this.path += '/' + filename;
+            }
+          };
+        }
+      };
+      var expectedFileContent = userJsPath + prefsList.map(function(fname) {
+        return srcDir.path + '/' + fname;
+      }).join('\n');
+
+      app.appendPrefFile(destFile, srcDir, prefsList);
+      assert.equal(fileContent.content, expectedFileContent,
+        'contents of profile/user.js and build/config/prefs-[abc] should be ' +
+        'concat into profile/user.js.');
     });
 
     teardown(function() {
