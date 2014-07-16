@@ -6,6 +6,10 @@
       ["apps", "sms"],
       ["external-apps", "marketplace.firefox.com"]
     ], [
+      ["apps/collection/collections", "social"],
+      ["apps/collection/collections", "games"],
+      ["apps/collection/collections", "music"]
+    ], [
       ["apps", "gallery"],
       ["apps", "fm"],
       ["apps", "settings"]
