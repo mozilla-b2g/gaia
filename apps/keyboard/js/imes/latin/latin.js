@@ -130,11 +130,11 @@
    */
   var inputSequencePromise = Promise.resolve();
 
-
   // Flag to stop updating suggestions for selectionchange when we're going
   // to do some actions that will cause selectionchange, such as sendKey()
   // or replaceSurroundingText().
   var pendingSelectionChange = 0;
+  var inputContext = null;
 
   // keyboard.js calls this to pass us the interface object we need
   // to communicate with it
@@ -199,7 +199,8 @@
     correcting = (options.correct && inputMode !== 'verbatim');
 
     if (state.inputContext) {
-      state.inputContext.addEventListener('selectionchange', this);
+      inputContext = state.inputContext;
+      inputContext.addEventListener('selectionchange', this);
     }
 
     // Reset our state
@@ -230,6 +231,10 @@
   }
 
   function deactivate() {
+    if (inputContext) {
+      inputContext.removeEventListener('selectionchange', this);
+    }
+
     if (!worker || idleTimer)
       return;
     idleTimer = setTimeout(terminateWorker, workerTimeout);
