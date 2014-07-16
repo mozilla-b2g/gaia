@@ -80,6 +80,7 @@
                   descriptor.url,
             role: type
           });
+          console.debug('Migrated to datastore', JSON.stringify(descriptor));
           database.add(descriptor).then(onItemMigrated, onItemMigrated);
         });
       }.bind(this));
