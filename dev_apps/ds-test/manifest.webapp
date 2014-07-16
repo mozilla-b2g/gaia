@@ -15,6 +15,7 @@
     "device-storage:music":{ "access": "readwrite" },
     "device-storage:pictures":{ "access": "readwrite" },
     "device-storage:videos":{ "access": "readwrite" },
+    "settings":{ "access": "readonly" },
     "webapps-manage":{}
   },
   "activities": {
