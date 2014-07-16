@@ -246,6 +246,8 @@ var NotificationScreen = {
     } else {
       UtilityTray.hide();
     }
+
+    delete this._notification;
   },
 
   updateTimestamps: function ns_updateTimestamps() {
