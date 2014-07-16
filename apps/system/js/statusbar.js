@@ -668,7 +668,6 @@ var StatusBar = {
         return;
       
       icon.hidden = !conns.emergencyCallsOnly;
-    
     },
 
     bluetoothProfiles: function sv_updateBluetoothProfiles() {
