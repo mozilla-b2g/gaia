@@ -23,7 +23,7 @@
 
       return '<section class="' + classes + '" data-hour="' + hour + '">' +
           '<div class="hour-header">' +
-            (isAllDay ? '<i class="gaia-icon icon-calendar-allday"></i>' : '') +
+            (isAllDay ? '<i class="icon-allday"></i>' : '') +
             '<span ' + l10n + 'class="display-hour">' +
               displayHour +
             '</span>' +
@@ -54,12 +54,8 @@
       var containerClassName = 'container calendar-border-color ' +
         'calendar-id-' + calendarId;
 
-      var alarm = '';
-
       if (hasAlarm) {
         containerClassName += ' has-alarm';
-        alarm = '<i class="gaia-icon icon-calendar-alarm ' +
-          'calendar-text-color"></i>';
       }
 
       return '<section class="' + eventClassName + '" ' +
@@ -70,7 +66,7 @@
               this.h('location') +
             '</span>' +
           '</div>' +
-          alarm +
+          (hasAlarm ? '<i class="icon-alarm calendar-text-color"></i>' : '') +
         '</section>';
     }
   });

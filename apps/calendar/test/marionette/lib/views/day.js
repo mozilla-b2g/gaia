@@ -25,7 +25,7 @@ Day.prototype = {
   },
 
   get allDayIcon() {
-    return this.activeDay.findElement('.hour-allday .icon-calendar-allday');
+    return this.activeDay.findElement('.hour-allday .icon-allday');
   },
 
   get currentTime() {

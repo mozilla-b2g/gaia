@@ -39,7 +39,9 @@
 
     frame: function() {
       return '<section class="sticky">' +
-          '<span class="all-day gaia-icon icon-calendar-allday"></span>' +
+          '<span class="all-day icon-allday">' +
+            this.l10n('', 'hour-allday') +
+          '</span>' +
         '</section>' +
         '<div class="scroll">' +
           '<div class="scroll-content">' +

@@ -135,10 +135,11 @@ not actually shown since the top header should be transparent.
   border-bottom: 0.1rem solid #dfdfdf;
 }
 
-#settings .calendars .icon-calendar-dot:before {
+#settings .calendars .icon-dot {
+  position: absolute;
   font-size: 5rem;
   line-height: 5rem;
-  margin-left: -1rem;
+  text-indent: -1rem;
 }
 
 #settings > menu {

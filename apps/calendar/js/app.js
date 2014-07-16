@@ -393,7 +393,7 @@ Calendar.App = (function(window) {
     },
 
     _showTodayDate: function() {
-      document.querySelector('#today .icon-calendar-today').innerHTML =
+      document.querySelector('#today .icon-today').innerHTML =
         new Date().getDate();
     },
 

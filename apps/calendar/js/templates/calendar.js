@@ -17,8 +17,7 @@
       }
 
       return '<li id="calendar-' + id + '" class="calendar-id-' + id + '">' +
-          '<div class="gaia-icon icon-calendar-dot calendar-text-color">' +
-          '</div>' +
+          '<div class="icon-dot calendar-text-color"></div>' +
           '<label class="pack-checkbox">' +
             '<input ' +
               'value="' + id + '" ' +

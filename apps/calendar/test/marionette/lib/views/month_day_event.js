@@ -49,7 +49,7 @@ MonthDayEvent.prototype = {
   },
 
   get iconAlarm() {
-    return this.findElement('.icon-calendar-alarm');
+    return this.findElement('.icon-alarm');
   },
 
   hasAlarms: function() {
