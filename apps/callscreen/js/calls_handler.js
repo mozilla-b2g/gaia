@@ -1,6 +1,6 @@
 /* globals BluetoothHelper, CallScreen, Contacts, HandledCall, KeypadManager,
            LazyL10n, SimplePhoneMatcher, TonePlayer, Utils,
-           AudioCompetingHelper */
+           AudioCompetingHelper, fb, LazyLoader */
 
 'use strict';
 
@@ -270,21 +270,7 @@ var CallsHandler = (function callsHandler() {
         CallScreen.incomingSim.hidden = true;
       }
 
-      Contacts.findByNumber(number,
-                            function lookupContact(contact, matchingTel) {
-        if (contact && contact.name) {
-          CallScreen.incomingInfo.classList.add('additionalInfo');
-          CallScreen.incomingNumber.textContent = contact.name;
-          CallScreen.incomingNumberAdditionalInfo.textContent =
-            Utils.getPhoneNumberAdditionalInfo(matchingTel);
-        } else {
-          CallScreen.incomingNumber.textContent = number;
-          CallScreen.incomingNumberAdditionalInfo.textContent = '';
-        }
-        FontSizeManager.adaptToSpace(
-          FontSizeManager.CALL_WAITING, CallScreen.incomingNumber,
-          CallScreen.fakeIncomingNumber, false, 'end');
-      });
+      Contacts.findByNumber(number, preLookupContact);
     });
 
     if (cdmaCallWaiting()) {
@@ -293,6 +279,47 @@ var CallsHandler = (function callsHandler() {
 
     CallScreen.showIncoming();
     playWaitingTone(call);
+  }
+
+  function lookupContact(number, contact, matchingTel) {
+    if (contact && contact.name) {
+      CallScreen.incomingInfo.classList.add('additionalInfo');
+      CallScreen.incomingNumber.textContent = contact.name;
+      CallScreen.incomingNumberAdditionalInfo.textContent =
+        Utils.getPhoneNumberAdditionalInfo(matchingTel);
+    } else {
+      CallScreen.incomingNumber.textContent = number;
+      CallScreen.incomingNumberAdditionalInfo.textContent = '';
+    }
+    FontSizeManager.adaptToSpace(
+      FontSizeManager.CALL_WAITING, CallScreen.incomingNumber,
+      CallScreen.fakeIncomingNumber, false, 'end');
+  }
+
+  function preLookupContact(number, contact, matchingTel) {
+    if (contact) {
+      lookupContact(number, contact, matchingTel);
+      return;
+    }
+
+    LazyLoader.load([
+      'shared/js/fb/fb_request.js',
+      'shared/js/fb/fb_data_reader.js',
+      'shared/js/fb/fb_reader_utils.js'
+    ], function loaded() {
+        fb.getContactByNumber(number, function success(fbContact) {
+          if (fbContact) {
+            lookupContact(number, fbContact, number);
+          }
+          else {
+            lookupContact(number, contact, matchingTel);
+          }
+        }, function error (err) {
+          console.error('Error while looking for FB Contact Info: ',
+                        err && err.name);
+          lookupContact(number, contact, matchingTel);
+        });
+      });
   }
 
   /* === Call Screen === */

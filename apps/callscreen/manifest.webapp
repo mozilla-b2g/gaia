@@ -27,6 +27,12 @@
     { "bluetooth-dialer-command": "/index.html" },
     { "headset-button": "/index.html" }
   ],
+  "datastores-access": {
+    "Gaia_Facebook_Friends": {
+      "readonly": true,
+      "description": "Facebook Friends"
+    }
+  },
   "orientation": "default",
   "icons": {
     "84": "/style/icons/dialer_84.png",

@@ -1,5 +1,6 @@
 /* globals CallsHandler, CallScreen, Contacts, ContactPhotoHelper,
-           FontSizeManager, LazyL10n, Utils, Voicemail, AudioCompetingHelper */
+           FontSizeManager, LazyL10n, Utils, Voicemail, AudioCompetingHelper,
+           fb, LazyLoader */
 
 'use strict';
 
@@ -165,10 +166,38 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
         self._cachedInfo = _('voiceMail');
       });
     } else {
-      Contacts.findByNumber(number, lookupContact);
-      checkICCMessage();
+        Contacts.findByNumber(number, preLookupContact.bind(null, number));
+        checkICCMessage();
     }
   });
+
+  function preLookupContact(number, contact, matchingTel,
+                            contactsWithSameNumber) {
+    if (!contact) {
+      LazyLoader.load([
+        '/shared/js/fb/fb_request.js',
+        '/shared/js/fb/fb_data_reader.js',
+        'shared/js/fb/fb_reader_utils.js'
+      ], function loaded() {
+          fb.getContactByNumber(number, function success(fbContact) {
+            if (fbContact) {
+              lookupContact(fbContact, number, []);
+            }
+            else {
+              lookupContact(contact, matchingTel, contactsWithSameNumber);
+            }
+          }, function error (err) {
+              console.error('Error while looking for FB Contact Info: ',
+                            err && err.name);
+              lookupContact(contact, matchingTel, contactsWithSameNumber);
+          });
+      });
+
+      return;
+    }
+
+    lookupContact(contact, matchingTel, contactsWithSameNumber);
+  }
 
   function checkICCMessage() {
     var callMessageReq = navigator.mozSettings.createLock().
