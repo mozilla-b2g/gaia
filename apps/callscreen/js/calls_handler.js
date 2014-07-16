@@ -80,6 +80,7 @@ var CallsHandler = (function callsHandler() {
   /* === Handled calls === */
   var highPriorityWakeLock = null;
   function onCallsChanged() {
+    console.log('onCallsChanged');
     // Acquire or release the high-priority wake lock, as necessary.  This
     // (mostly) prevents this process from being killed while we're on a call.
     if (!highPriorityWakeLock && telephony.calls.length > 0) {
@@ -89,10 +90,14 @@ var CallsHandler = (function callsHandler() {
       highPriorityWakeLock.unlock();
       highPriorityWakeLock = null;
     }
+    updatePlaceNewCallEnabled();
 
     // Adding any new calls to handledCalls
     telephony.calls.forEach(function callIterator(call) {
       var alreadyAdded = handledCalls.some(function hcIterator(hc) {
+        console.log('onCallsChanged2');
+
+        updatePlaceNewCallEnabled();
         return (hc.call == call);
       });
 
@@ -308,11 +313,11 @@ var CallsHandler = (function callsHandler() {
     });
   }
 
-  function updateKeypadEnabled() {
-    if (telephony.active) {
-      CallScreen.enableKeypad();
+  function updatePlaceNewCallEnabled() {
+    if (telephony.active.state == 'connected') {
+      CallScreen.enablePlaceNewCall();
     } else {
-      CallScreen.disableKeypad();
+      CallScreen.disablePlaceNewCall();
     }
   }
 
@@ -823,7 +828,6 @@ var CallsHandler = (function callsHandler() {
     toggleCalls: toggleCalls,
     ignore: ignore,
     end: end,
-    updateKeypadEnabled: updateKeypadEnabled,
     toggleMute: toggleMute,
     toggleSpeaker: toggleSpeaker,
     unmute: unmute,
