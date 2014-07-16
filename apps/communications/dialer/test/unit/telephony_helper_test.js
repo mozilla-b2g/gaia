@@ -345,6 +345,19 @@ suite('telephony helper', function() {
         }).then(done, done);
       });
 
+      test('Busy tone should be played in telephony channel', function(done) {
+        var playSpy = this.sinon.spy(MockTonePlayer, 'playSequence');
+        var setChannelSpy = this.sinon.spy(MockTonePlayer, 'setChannel');
+        var setTelephonySpy = setChannelSpy.withArgs('telephony');
+        var setNormalSpy = setChannelSpy.withArgs('normal');
+        subject.call('123', 0);
+        mockPromise.then(function() {
+          mockCall.onerror(createCallError('BusyError'));
+          assert.isTrue(setTelephonySpy.calledBefore(playSpy));
+          assert.isTrue(setNormalSpy.calledAfter(playSpy));
+        }).then(done, done);
+      });
+
       test('should handle FDNBlockedError', function(done) {
         subject.call('123', 0);
         mockPromise.then(function() {

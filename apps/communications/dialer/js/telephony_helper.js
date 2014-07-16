@@ -60,7 +60,10 @@ var TelephonyHelper = (function() {
                     [480, 620, 500], [0, 0, 500],
                     [480, 620, 500], [0, 0, 500],
                     [480, 620, 500], [0, 0, 500]];
+    
+    TonePlayer.setChannel('telephony');
     TonePlayer.playSequence(sequence);
+    TonePlayer.setChannel('normal');
   }
 
   function startDial(cardIndex, conn, sanitizedNumber, oncall, onconnected,
