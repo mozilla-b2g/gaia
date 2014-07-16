@@ -98,13 +98,10 @@
 
     /**
      * Returns the maximum size in pixels for an icon image. It is the size when
-     * the grid is displayed with the minimum number of columns plus the scale
-     * applied in dragdrop
+     * the grid is displayed with the minimum number of columns per row.
      */
     get gridMaxIconSize() {
-      var dragdrop = this.gridView.dragdrop;
-      var scaledSize = (windowWidth / iconScaleFactorMinIconsPerRow) *
-              (dragdrop ? dragdrop.maxActiveScale : 1);
+      var scaledSize = (windowWidth / iconScaleFactorMinIconsPerRow);
       scaledSize *= devicePixelRatio;
       return scaledSize;
     },
