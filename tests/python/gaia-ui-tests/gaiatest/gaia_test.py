@@ -7,6 +7,7 @@ import os
 import shutil
 import tempfile
 import time
+import warnings
 
 from marionette import MarionetteTestCase, EnduranceTestCaseMixin, \
     B2GTestCaseMixin, MemoryEnduranceTestCaseMixin
@@ -481,49 +482,60 @@ class FakeUpdateChecker(object):
 
 
 class GaiaDevice(object):
+    """Device manager for a Gaia instance"""
 
-    def __init__(self, marionette, testvars=None, manager=None):
-        self.manager = manager
+    def __init__(self, marionette, testvars=None):
         self.marionette = marionette
         self.testvars = testvars or {}
+        self.manager = None
 
-        if self.is_desktop_b2g:
+        if self.marionette.runner and self.marionette.runner.device:
+            self.manager = self.marionette.runner.device.dm
+
+        if self.manager:
+            self.file_manager = GaiaDeviceFileManager(self)
+            # Use the device root for storage
+            self.storage_path = self.manager.deviceRoot
+        else:
             self.file_manager = GaiaLocalFileManager(self)
             # Use a temporary directory for storage
             self.storage_path = tempfile.mkdtemp()
             self._set_storage_path()
-        elif self.manager:
-            self.file_manager = GaiaDeviceFileManager(self)
-            # Use the device root for storage
-            self.storage_path = self.manager.deviceRoot
 
         self.lockscreen_atom = os.path.abspath(
             os.path.join(__file__, os.path.pardir, 'atoms', "gaia_lock_screen.js"))
 
     def _set_storage_path(self):
-        if self.is_desktop_b2g:
+        if self.is_desktop_b2g and self.marionette.session:
             # Override the storage location for desktop B2G. This will only
-            # work if the B2G instance is running locally.
+            # work if we have a Marionette session and the B2G instance is
+            # running locally.
             GaiaData(self.marionette).set_char_pref(
                 'device.storage.overrideRootDir', self.storage_path)
 
     @property
     def is_android_build(self):
-        if self.testvars.get('is_android_build') is None:
-            self.testvars['is_android_build'] = 'android' in self.marionette.session_capabilities['platformName'].lower()
-        return self.testvars['is_android_build']
+        """**deprecated** Return true if the target is Android."""
+        warnings.warn('This property has been deprecated and will be removed '
+                      'in a future version. Please use is_emulator or '
+                      'is_device to determine if target is Android.',
+                      DeprecationWarning)
+        return bool(self.manager)
 
     @property
     def is_emulator(self):
-        if not hasattr(self, '_is_emulator'):
-            self._is_emulator = self.marionette.session_capabilities['device'] == 'qemu'
-        return self._is_emulator
+        """Return true if the target is an emulator."""
+        return bool(self.marionette.emulator)
 
     @property
     def is_desktop_b2g(self):
-        if self.testvars.get('is_desktop_b2g') is None:
-            self.testvars['is_desktop_b2g'] = self.marionette.session_capabilities['device'] == 'desktop'
-        return self.testvars['is_desktop_b2g']
+        """Return true if the target is desktop B2G."""
+        return not self.manager
+
+    @property
+    def is_device(self):
+        """Return true if the target is a physical device."""
+        return bool(not self.is_emulator and self.manager)
 
     @property
     def is_online(self):
@@ -547,22 +559,30 @@ class GaiaDevice(object):
         self.start_b2g()
 
     def start_b2g(self, timeout=120):
-        if self.marionette.instance:
-            # launch the gecko instance attached to marionette
+        """Start B2G on the target or launch desktop B2G."""
+        if self.is_desktop_b2g and not self.marionette.instance:
+            raise Exception('Unable to start independent B2G desktop instances')
+        elif self.marionette.instance:
+            runner = self.marionette.instance.runner
             self.marionette.instance.start()
-        elif self.is_android_build:
-            self.manager.shellCheckOutput(['start', 'b2g'])
         else:
-            raise Exception('Unable to start B2G')
+            runner = self.marionette.runner
+            runner.start()
+
+        if self.is_device or self.is_emulator:
+            self.marionette.port = runner.device.setup_port_forwarding(
+                self.marionette.remote_port)
+            self.marionette.client.port = self.marionette.port
+
         self.marionette.wait_for_port()
         self.marionette.start_session()
-
         self.wait_for_b2g_ready(timeout)
 
         # Reset the storage path for desktop B2G
         self._set_storage_path()
 
     def wait_for_b2g_ready(self, timeout=120):
+        """Wait for B2G to be ready for interaction."""
         # Wait for the homescreen to finish loading
         Wait(self.marionette, timeout).until(expected.element_present(
             By.CSS_SELECTOR, '#homescreen[loading-state=false]'))
@@ -576,21 +596,14 @@ class GaiaDevice(object):
             pass
         self.marionette.set_search_timeout(self.marionette.timeout or 10000)
 
-    @property
-    def is_b2g_running(self):
-        return 'b2g' in self.manager.shellCheckOutput(['toolbox', 'ps'])
-
     def stop_b2g(self, timeout=5):
-        if self.marionette.instance:
-            # close the gecko instance attached to marionette
+        """Stop B2G on the target or shutdown desktop B2G."""
+        if self.is_desktop_b2g and not self.marionette.instance:
+            Exception('Unable to stop independent B2G desktop instances')
+        elif self.marionette.instance:
             self.marionette.instance.close()
-        elif self.is_android_build:
-            self.manager.shellCheckOutput(['stop', 'b2g'])
-            Wait(self.marionette, timeout=timeout).until(
-                lambda m: not self.is_b2g_running,
-                message='b2g failed to stop.')
         else:
-            raise Exception('Unable to stop B2G')
+            self.marionette.runner.cleanup()
         self.marionette.client.close()
         self.marionette.session = None
         self.marionette.window = None
@@ -617,7 +630,8 @@ class GaiaDevice(object):
             };""", script_args=[n_times])
 
     def turn_screen_off(self):
-        self.marionette.execute_script("window.wrappedJSObject.ScreenManager.turnScreenOff(true)")
+        self.marionette.switch_to_frame()
+        self.marionette.execute_script('window.wrappedJSObject.ScreenManager.turnScreenOff(true);')
 
     def turn_screen_on(self):
         self.marionette.execute_script("window.wrappedJSObject.ScreenManager.turnScreenOn(true)")
@@ -711,6 +725,7 @@ class GaiaDevice(object):
     def screen_orientation(self):
         return self.marionette.execute_script('return window.screen.mozOrientation')
 
+
 class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
     def __init__(self, *args, **kwargs):
         self.restart = kwargs.pop('restart', False)
@@ -724,14 +739,12 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
             if self.restart:
                 pass
 
-        self.device = GaiaDevice(self.marionette,
-                                 manager=self.device_manager,
-                                 testvars=self.testvars)
+        self.device = GaiaDevice(self.marionette, testvars=self.testvars)
 
-        if self.restart and (self.device.is_android_build or self.marionette.instance):
+        if self.restart and (self.device.manager or self.marionette.instance):
             # Restart if it's a device, or we have passed a binary instance with --binary command arg
             self.device.stop_b2g()
-            if self.device.is_android_build:
+            if self.device.manager:
                 self.cleanup_data()
             self.device.start_b2g()
 
@@ -781,7 +794,6 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
 
     def cleanup_data(self):
         self.device.file_manager.remove('/cache/*')
-        self.device.file_manager.remove('/data/b2g/mozilla')
         self.device.file_manager.remove('/data/local/debug_info_trigger')
         self.device.file_manager.remove('/data/local/indexedDB')
         self.device.file_manager.remove('/data/local/OfflineCache')
@@ -794,7 +806,11 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
     def cleanup_storage(self):
         """Remove all files from the device's storage paths"""
         storage_paths = [self.device.storage_path]
-        if self.device.is_android_build:
+        excluded_paths = []
+        if self.marionette.runner and self.marionette.runner.device:
+            excluded_paths.extend(
+                self.marionette.runner.device.remote_profiles)
+        if self.device.is_emulator or self.device.is_device:
             # TODO: Remove hard-coded paths once bug 1018079 is resolved
             storage_paths.extend(['/mnt/sdcard',
                                   '/mnt/extsdcard',
@@ -804,7 +820,9 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
         for path in storage_paths:
             if self.device.file_manager.dir_exists(path):
                 for item in self.device.file_manager.list_items(path):
-                    self.device.file_manager.remove('/'.join([path, item]))
+                    target = '/'.join([path, item])
+                    if target not in excluded_paths:
+                        self.device.file_manager.remove(target)
 
     def cleanup_gaia(self, full_reset=True):
         # unlock

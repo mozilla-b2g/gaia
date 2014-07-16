@@ -38,6 +38,12 @@ class GaiaTestResult(MarionetteTestResult, HTMLReportingTestResultMixin):
         MarionetteTestResult.__init__(self, *args, **kwargs)
         HTMLReportingTestResultMixin.__init__(self, *args, **kwargs)
 
+    def stopTest(self, *args, **kwargs):
+        MarionetteTestResult.stopTest(self, *args, **kwargs)
+        if self.marionette.check_for_crash():
+            # override the abort on crash because we have crash recovery
+            self.shouldStop = False
+
 
 class GaiaTextTestRunner(MarionetteTextTestRunner):
 
@@ -50,6 +56,8 @@ class GaiaTestRunner(BaseMarionetteTestRunner, GaiaTestRunnerMixin,
     textrunnerclass = GaiaTextTestRunner
 
     def __init__(self, **kwargs):
+        # if no app is specified, assume b2g
+        kwargs['app'] = kwargs.get('app') or 'b2g'
         # if no server root is specified, use the packaged resources
         if not kwargs.get('server_root'):
             kwargs['server_root'] = os.path.abspath(os.path.join(
@@ -60,7 +68,7 @@ class GaiaTestRunner(BaseMarionetteTestRunner, GaiaTestRunnerMixin,
             marionette = test._marionette_weakref()
 
             # In the event we're gathering debug without starting a session, skip marionette commands
-            if marionette.session is not None:
+            if marionette.session is not None and not marionette.check_for_crash():
                 try:
                     marionette.switch_to_frame()
                     rv['settings'] = json.dumps(marionette.execute_async_script("""
