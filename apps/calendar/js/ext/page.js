@@ -95,8 +95,7 @@
     if (false !== options.popstate) window.addEventListener('popstate', onpopstate, false);
     if (false !== options.click) window.addEventListener('click', onclick, false);
     if (!dispatch) return;
-    var url = location.pathname + location.search + location.hash;
-    page.replace(url, null, true, dispatch);
+    page.replace(location.pathname + location.search, null, true, dispatch);
   };
 
   /**
@@ -116,14 +115,13 @@
    *
    * @param {String} path
    * @param {Object} state
-   * @param {Boolean} dispatch
    * @return {Context}
    * @api public
    */
 
-  page.show = function(path, state, dispatch){
+  page.show = function(path, state){
     var ctx = new Context(path, state);
-    if (false !== dispatch) page.dispatch(ctx);
+    page.dispatch(ctx);
     if (!ctx.unhandled) ctx.pushState();
     return ctx;
   };
@@ -175,8 +173,7 @@
    */
 
   function unhandled(ctx) {
-    var current = window.location.pathname + window.location.search;
-    if (current == ctx.canonicalPath) return;
+    if (window.location.pathname + window.location.search == ctx.canonicalPath) return;
     page.stop();
     ctx.unhandled = true;
     window.location = ctx.canonicalPath;
@@ -194,24 +191,14 @@
   function Context(path, state) {
     if ('/' == path[0] && 0 != path.indexOf(base)) path = base + path;
     var i = path.indexOf('?');
-
     this.canonicalPath = path;
     this.path = path.replace(base, '') || '/';
-
     this.title = document.title;
     this.state = state || {};
     this.state.path = path;
     this.querystring = ~i ? path.slice(i + 1) : '';
     this.pathname = ~i ? path.slice(0, i) : path;
     this.params = [];
-
-    // fragment
-    this.hash = '';
-    if (!~this.path.indexOf('#')) return;
-    var parts = this.path.split('#');
-    this.path = parts[0];
-    this.hash = parts[1] || '';
-    this.querystring = this.querystring.split('#')[0];
   }
 
   /**
@@ -284,7 +271,7 @@
     return function(ctx, next){
       if (self.match(ctx.path, ctx.params)) return fn(ctx, next);
       next();
-    };
+    }
   };
 
   /**
@@ -302,7 +289,7 @@
       , qsIndex = path.indexOf('?')
       , pathname = ~qsIndex ? path.slice(0, qsIndex) : path
       , m = this.regexp.exec(pathname);
-
+  
     if (!m) return false;
 
     for (var i = 1, len = m.length; i < len; ++i) {
@@ -347,6 +334,7 @@
     path = path
       .concat(strict ? '' : '/?')
       .replace(/\/\(/g, '(?:/')
+      .replace(/\+/g, '__plus__')
       .replace(/(\/)?(\.)?:(\w+)(?:(\(.*?\)))?(\?)?/g, function(_, slash, format, key, capture, optional){
         keys.push({ name: key, optional: !! optional });
         slash = slash || '';
@@ -358,9 +346,10 @@
           + (optional || '');
       })
       .replace(/([\/.])/g, '\\$1')
+      .replace(/__plus__/g, '(.+)')
       .replace(/\*/g, '(.*)');
     return new RegExp('^' + path + '$', sensitive ? '' : 'i');
-  }
+  };
 
   /**
    * Handle "populate" events.
@@ -379,33 +368,17 @@
 
   function onclick(e) {
     if (1 != which(e)) return;
-    if (e.metaKey || e.ctrlKey || e.shiftKey) return;
     if (e.defaultPrevented) return;
-
-    // ensure link
     var el = e.target;
     while (el && 'A' != el.nodeName) el = el.parentNode;
     if (!el || 'A' != el.nodeName) return;
-
-    // ensure non-hash for the same path
-    var link = el.getAttribute('href');
-    if (el.pathname == location.pathname && (el.hash || '#' == link)) return;
-
-    // check target
-    if (el.target) return;
-
-    // x-origin
-    if (!sameOrigin(el.href)) return;
-
-    // rebuild path
-    var path = el.pathname + el.search + (el.hash || '');
-
-    // same page
-    var orig = path + el.hash;
-
+    var href = el.href;
+    var path = el.pathname + el.search;
+    if (el.hash || '#' == el.getAttribute('href')) return;
+    if (!sameOrigin(href)) return;
+    var orig = path;
     path = path.replace(base, '');
     if (base && orig == path) return;
-
     e.preventDefault();
     page.show(orig);
   }
