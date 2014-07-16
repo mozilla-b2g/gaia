@@ -43,8 +43,9 @@ suite('IMESwitcher', function() {
     );
     assert.equal(imeSwitcher._notificationTitle, 'msgElem');
     assert.equal(imeSwitcher._notificationTip, 'tipElem');
-    assert.equal(notificationContainer.querySelector.args[0][0], '.message');
-    assert.equal(notificationContainer.querySelector.args[1][0], '.tip');
+    assert.equal(notificationContainer.querySelector.args[0][0],
+      '.title-container');
+    assert.equal(notificationContainer.querySelector.args[1][0], '.detail');
 
     assert.isTrue(
       notificationContainer.addEventListener.calledWith(

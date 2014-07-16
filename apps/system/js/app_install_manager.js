@@ -498,7 +498,8 @@ var AppInstallManager = {
 
     var newNotif =
       '<div class="fake-notification" role="link">' +
-        '<div class="message"></div>' +
+        '<div data-icon="rocket" class="alert"></div>' +
+        '<div class="title-container"></div>' +
         '<progress></progress>' +
       '</div>';
 
@@ -514,7 +515,7 @@ var AppInstallManager = {
       appName: new ManifestHelper(manifest).name
     });
 
-    newNode.querySelector('.message').textContent = message;
+    newNode.querySelector('.title-container').textContent = message;
 
     var progressNode = newNode.querySelector('progress');
     if (app.updateManifest && app.updateManifest.size) {

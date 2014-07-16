@@ -341,16 +341,15 @@ var BluetoothTransfer = {
       (evt.received == true) ?
       _('bluetooth-receiving-progress') : _('bluetooth-sending-progress');
     var content =
-      '<img src="style/bluetooth_transfer/images/transfer.png" ' +
-      'role="presentation" /><div class="bluetooth-transfer-progress">' +
-      transferMode + '</div>' +
+      '<div data-icon="bluetooth-transfer-circle"></div>' +
+      '<div class="title-container">' + transferMode + '</div>' +
       // XXX: Bug 804533 - [Bluetooth]
       // Need sending/receiving icon for Bluetooth file transfer
       '<progress value="0" max="1"></progress>';
 
     var transferTask = document.createElement('div');
     transferTask.id = 'bluetooth-transfer-status';
-    transferTask.className = 'notification';
+    transferTask.className = 'fake-notification';
     transferTask.setAttribute('data-id', address);
     transferTask.setAttribute('role', 'link');
     transferTask.innerHTML = content;
