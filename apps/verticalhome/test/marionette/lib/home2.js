@@ -275,6 +275,16 @@ Home2.prototype = {
     return this.client.executeScript(function(selector, clazz) {
       return document.querySelector(selector).classList.contains(clazz);
     }, [selector, clazz]);
+  },
+
+  /**
+   * Waits for the system banner to go away and switches back to the homescreen
+   */
+  waitForSystemBanner: function() {
+    this.client.switchToFrame();
+    var banner = this.client.findElement('.banner.generic-dialog');
+    this.client.helper.waitForElementToDisappear(banner);
+    this.client.switchToFrame(this.system.getHomescreenIframe());
   }
 };
 
