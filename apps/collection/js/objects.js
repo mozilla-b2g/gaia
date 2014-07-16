@@ -48,7 +48,7 @@
     this.webResults = [];
 
     // an object containing data about the background image
-    // {src: string, source: string, checksum: string}
+    // {blob: blob, source: string, checksum: string}
     this.background = props.background || {};
 
     // save copy of original properties so we can tell when to re-render the
@@ -139,7 +139,7 @@
       var before = this.originalProps;
       try {
         // background
-        if (before.background.src !== this.background.src) {
+        if (before.background.blob !== this.background.blob) {
           this.originalProps.background = this.background;
           return true;
         }
@@ -357,7 +357,8 @@
 
       var icon = new CollectionIcon({
         iconSrcs: iconSrcs,
-        bgSrc: this.background ? this.background.src : null
+        bgSrc: this.background ? URL.createObjectURL(this.background.blob)
+                               : null
       });
 
       // return a promise
