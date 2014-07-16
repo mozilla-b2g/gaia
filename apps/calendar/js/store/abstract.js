@@ -12,6 +12,15 @@
     this.db = db;
     this._cached = Object.create(null);
     Calendar.Responder.call(this);
+
+    Calendar.Promise.denodeifyAll(this, [
+      'persist',
+      'all',
+      'removeByIndex',
+      'get',
+      'remove',
+      'count'
+    ]);
   }
 
   Abstract.prototype = {

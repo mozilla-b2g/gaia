@@ -3,6 +3,13 @@
 
   function Events() {
     Calendar.Store.Abstract.apply(this, arguments);
+
+    Calendar.Promise.denodeifyAll(this, [
+      'providerFor',
+      'findByIds',
+      'ownersOf',
+      'eventsForCalendar'
+    ]);
   }
 
   Events.prototype = {

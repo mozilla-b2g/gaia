@@ -3,6 +3,10 @@ Calendar.ns('Store').Setting = (function() {
 
   function Setting() {
     Calendar.Store.Abstract.apply(this, arguments);
+    Calendar.Promise.denodeifyAll(this, [
+      'getValue',
+      'set'
+    ]);
   }
 
   Setting.prototype = {
