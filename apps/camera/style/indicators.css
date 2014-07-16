@@ -40,6 +40,7 @@
   height: 1.8rem;
   width: 1.8rem;
   font-size: 18px;
+  line-height: 1;
   margin-bottom: 1.2rem;
   border-radius: 4px;
   text-align: center;
@@ -66,11 +67,19 @@
   display: none;
 }
 
+/** Indication Geolocation
+ ---------------------------------------------------------*/
+
+.indicator_geolocation {
+  font-size: 1.3rem;
+}
+
 /** Indicator Timer
  ---------------------------------------------------------*/
 
 .indicators .indicator_timer {
   display: block;
+  font-size: 1.7rem;
 }
 
 /** Indicator Battery
@@ -118,21 +127,13 @@
 }
 
 /**
- * battery=low
- */
-
-.indicators[battery='low'] .indicator_battery:before {
-  content: "\e619";
-}
-
-/**
  * battery=verylow,
  * battery=critical
  */
 
 .indicators[battery='verylow'] .indicator_battery:before,
 .indicators[battery='critical'] .indicator_battery:before {
-  content: "\e61a";
+  content: "battery-verylow";
 }
 
 /**

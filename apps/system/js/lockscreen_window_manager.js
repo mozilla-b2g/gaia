@@ -173,19 +173,21 @@
         }
       };
 
-      // FIXME(ggp) this is currently used by Find My Device
-      // to force locking. Should be replaced by a proper
-      // IAC API in the future.
-      var lockListener = (val) => {
-        if (true === val) {
+      // FIXME(ggp) this is currently used by Find My Device to force locking.
+      // Should be replaced by a proper IAC API in bug 992277.
+      var lockListener = (event) => {
+        if (true === event.settingValue) {
           this.openApp();
         }
       };
 
       window.SettingsListener.observe('lockscreen.enabled',
           true, enabledListener);
-      window.SettingsListener.observe('lockscreen.lock-immediately',
-          false, lockListener);
+
+      // We are only interested in changes to the setting, rather
+      // than its value, so just observe it instead of using SettingsListener
+      navigator.mozSettings.addObserver('lockscreen.lock-immediately',
+          lockListener);
     };
 
   /**

@@ -8,8 +8,9 @@
 */
 'use strict';
 
+require('/shared/test/unit/mocks/mock_l10n.js');
+
 requireApp('sms/test/unit/mock_settings.js');
-requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/js/dialog.js');
 
 var mocksHelperForDialog = new MocksHelper([
@@ -348,17 +349,17 @@ suite('Dialog', function() {
       dialog.show();
 
       var opt = dialogSpy.firstCall.args[1];
-      assert.equal(opt.title.l10nId,
-                  'nonActiveSimTitle');
-      assert.equal(opt.body.l10nId,
-                  'nonActiveSimBody');
+      assert.equal(opt.title.l10nId, 'switchSimToRetrieveTitle');
+      assert.equal(opt.body.l10nId, 'switchSimToRetrieveBody');
       assert.deepEqual(opt.body.l10nArgs,
       {
-        active: 'SIM 1',
-        nonactive: 'SIM 2'
+        activeSimId: '1',
+        nonActiveSimId: '2'
       });
-      assert.equal(opt.options.confirm.text.l10nId,
-                  'nonActiveSimConfirm');
+      assert.equal(
+        opt.options.confirm.text.l10nId,
+        'switchSimToRetrieveConfirm'
+      );
       assert.equal(opt.options.confirm.method, handler);
     });
 
@@ -372,18 +373,38 @@ suite('Dialog', function() {
       dialog.show();
 
       var opt = dialogSpy.firstCall.args[1];
-      assert.equal(opt.title.l10nId,
-                  'nonActiveSimToSendTitle');
-      assert.equal(opt.body.l10nId,
-                  'nonActiveSimToSendBody');
+      assert.equal(opt.title.l10nId, 'switchSimToSendTitle');
+      assert.equal(opt.body.l10nId, 'switchSimToSendBody');
       assert.deepEqual(opt.body.l10nArgs,
       {
-        active: 'SIM 1',
-        nonactive: 'SIM 2'
+        activeSimId: '1',
+        nonActiveSimId: '2'
       });
-      assert.equal(opt.options.confirm.text.l10nId,
-                  'nonActiveSimToSendConfirm');
+      assert.equal(opt.options.confirm.text.l10nId, 'switchSimToSendConfirm');
       assert.equal(opt.options.confirm.method, handler);
+    });
+
+    test('show unable to download mms error', function() {
+      var dialog = new ErrorDialog('SimNotMatchedError');
+
+      dialog.show();
+
+      sinon.assert.calledWith(dialogSpy, sinon.match.any, {
+        title: {
+          l10nId: 'simNotMatchedErrorTitle'
+        },
+        body: {
+          l10nId: 'simNotMatchedErrorBody',
+          l10nArgs: {}
+        },
+        options: {
+          cancel: {
+            text: {
+              l10nId: 'simNotMatchedErrorBtnOk'
+            }
+          }
+        }
+      });
     });
   });
 

@@ -1,12 +1,13 @@
 
 /**
- * Shared
+ * External
  */
 
+@import url("../bower_components/gaia-icons/style.css");
+@import url("../bower_components/gaia-theme/style.css");
 @import url("../shared/style/confirm.css");
 @import url("../shared/style/buttons.css");
 @import url("../shared/style/action_menu.css");
-@import url("../shared/style/headers.css");
 @import url("../shared/style/progress_activity.css");
 
 /**
@@ -14,7 +15,6 @@
  */
 
 @import url("app.css");
-@import url("icons.css");
 @import url("viewfinder.css");
 @import url("focus-ring.css");
 @import url("face.css");

@@ -44,14 +44,18 @@ marionette('mozChromeNotifications:', function() {
     // switch to calendar app and send notification
     client.apps.launch(CALENDAR_APP);
     client.apps.switchToApp(CALENDAR_APP);
-    client.executeScript(function(title) {
+    var error = client.executeAsyncScript(function(title) {
       var notification = new Notification('Title');
+      notification.addEventListener('close', function() {
+        marionetteScriptFinished(false);
+      });
       notification.close();
     });
+    assert.equal(error, false, 'Error on sending notification: ' + error);
 
     // switch to system app and trigger resending
     client.switchToFrame();
-    var error = client.executeAsyncScript(function() {
+    error = client.executeAsyncScript(function() {
       var resendCb = (function(number) {
         if (number !== 0) {
           marionetteScriptFinished('Should have resent nothing');
@@ -72,14 +76,17 @@ marionette('mozChromeNotifications:', function() {
     // switch to calendar app and send notification
     client.apps.launch(CALENDAR_APP);
     client.apps.switchToApp(CALENDAR_APP);
-    client.executeScript(function(title) {
-      /*jshint unused:false*/
+    var error = client.executeAsyncScript(function(title) {
       var notification = new Notification(title);
+      notification.addEventListener('show', function() {
+        marionetteScriptFinished(false);
+      });
     }, [notificationTitle]);
+    assert.equal(error, false, 'Error on sending notification: ' + error);
 
     // switch to system app and trigger resending
     client.switchToFrame();
-    var error = client.executeAsyncScript(function() {
+    error = client.executeAsyncScript(function() {
       var resendCb = (function(number) {
         if (number !== 1) {
           marionetteScriptFinished(
@@ -101,15 +108,20 @@ marionette('mozChromeNotifications:', function() {
     // switch to calendar app and send notification
     client.apps.launch(CALENDAR_APP);
     client.apps.switchToApp(CALENDAR_APP);
-    client.executeScript(function(title) {
-      /*jshint unused:false*/
+    var error = client.executeAsyncScript(function(title) {
       var notification1 = new Notification(title + '--1');
-      var notification2 = new Notification(title + '--2');
+      notification1.addEventListener('show', function() {
+        var notification2 = new Notification(title + '--2');
+        notification2.addEventListener('show', function() {
+          marionetteScriptFinished(false);
+	});
+      });
     }, [notificationTitle]);
+    assert.equal(error, false, 'Error on sending notification: ' + error);
 
     // switch to system app and trigger resending
     client.switchToFrame();
-    var error = client.executeAsyncScript(function() {
+    error = client.executeAsyncScript(function() {
       var resendCb = (function(number) {
         if (number !== 2) {
           marionetteScriptFinished(
@@ -131,16 +143,21 @@ marionette('mozChromeNotifications:', function() {
     // switch to calendar app and send notification
     client.apps.launch(CALENDAR_APP);
     client.apps.switchToApp(CALENDAR_APP);
-    client.executeScript(function(title) {
-      /*jshint unused:false*/
+    var error = client.executeAsyncScript(function(title) {
       var notification1 = new Notification(title + '--1');
-      var notification2 = new Notification(title + '--2');
-      notification1.close();
+      notification1.addEventListener('show', function() {
+        notification1.close();
+        var notification2 = new Notification(title + '--2');
+        notification2.addEventListener('show', function() {
+          marionetteScriptFinished(false);
+	});
+      });
     }, [notificationTitle]);
+    assert.equal(error, false, 'Error on sending notification: ' + error);
 
     // switch to system app and trigger resending
     client.switchToFrame();
-    var error = client.executeAsyncScript(function() {
+    error = client.executeAsyncScript(function() {
       var resendCb = (function(number) {
         if (number !== 1) {
           marionetteScriptFinished(
@@ -162,14 +179,17 @@ marionette('mozChromeNotifications:', function() {
     // switch to calendar app and send notification
     client.apps.launch(CALENDAR_APP);
     client.apps.switchToApp(CALENDAR_APP);
-    client.executeScript(function(title) {
-      /*jshint unused:false*/
+    var error = client.executeAsyncScript(function(title) {
       var notification = new Notification(title);
+      notification.addEventListener('show', function() {
+        marionetteScriptFinished(false);
+      });
     }, [notificationTitle]);
+    assert.equal(error, false, 'Error sending notification: ' + error);
 
     // switch to system app and remove from tray
     client.switchToFrame();
-    var error = client.executeAsyncScript(function(manifest) {
+    error = client.executeAsyncScript(function(manifest) {
       var container =
         document.getElementById('desktop-notifications-container');
       var selector = '[data-manifest-u-r-l="' + manifest + '"]';

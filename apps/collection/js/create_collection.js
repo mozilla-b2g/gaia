@@ -1,8 +1,8 @@
 'use strict';
-/* global BaseCollection */
 /* global CategoryCollection */
-/* global CollectionsDatabase */
 /* global CollectionIcon */
+/* global CollectionsDatabase */
+/* global Common */
 /* global NativeInfo */
 /* global Promise */
 /* global QueryCollection */
@@ -105,7 +105,7 @@
                 var iconsReady = [];
                 collections.forEach(function doIcon(collection) {
                   var promise =
-                    BaseCollection.getBackground(collection, maxIconSize)
+                    Common.getBackground(collection, maxIconSize)
                     .then(function setBackground(bgObject) {
                       collection.background = bgObject;
                       return collection.renderIcon();
@@ -151,7 +151,7 @@
                 var iconTasks = [];
                 collections.forEach(collection => {
                   var promise =
-                    BaseCollection.getBackground(collection, maxIconSize)
+                    Common.getBackground(collection, maxIconSize)
                     .then(function setBackground(bgObject) {
                       collection.background = bgObject;
                       return collection.renderIcon();

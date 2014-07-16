@@ -11,7 +11,7 @@ requireApp('sms/js/utils.js');
 
 requireApp('sms/test/unit/mock_dialog.js');
 requireApp('sms/test/unit/mock_utils.js');
-requireApp('sms/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 require('/test/unit/mock_navigation.js');
 require('/test/unit/mock_settings.js');
 

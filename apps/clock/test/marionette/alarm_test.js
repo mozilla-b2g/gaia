@@ -192,6 +192,11 @@ marionette('Alarm', function() {
       }
     });
 
+    // The alarm must disable itself since it is not repeating.
+    $.client.waitFor(function() {
+      return !alarm.list[0].enabled;
+    }.bind(this));
+
     // Make sure we can see the analog clock again.
     $('#analog-clock').waitToAppear();
   });

@@ -30,6 +30,7 @@ class Homescreen(Base):
         import time
         time.sleep(1)
         self.marionette.switch_to_frame()
+        time.sleep(1)
         self.marionette.find_element('id', 'rocketbar-form').tap()
 
         from gaiatest.apps.homescreen.regions.search_panel import SearchPanel

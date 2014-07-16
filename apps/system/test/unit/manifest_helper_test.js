@@ -2,7 +2,7 @@
 'use strict';
 /* global ManifestHelper, MockL10n */
 
-requireApp('/system/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system/shared/js/manifest_helper.js');
 
 suite('ManifestHelper', function() {

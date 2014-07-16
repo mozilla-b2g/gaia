@@ -55,6 +55,20 @@ class GaiaTestRunner(BaseMarionetteTestRunner, GaiaTestRunnerMixin,
                                               version=__version__, **kwargs)
         self.test_handlers = [GaiaTestCase]
 
+    def start_httpd(self, need_external_ip):
+        super(GaiaTestRunner, self).start_httpd(need_external_ip)
+        self.httpd.urlhandlers.append({
+            'method': 'GET',
+            'path': '.*\.webapp',
+            'function': self.webapp_handler})
+
+    def webapp_handler(self, request):
+        with open(os.path.join(self.server_root, request.path[1:]), 'r') as f:
+            data = f.read()
+        return (200, {
+            'Content-type': 'application/x-web-app-manifest+json',
+            'Content-Length': len(data)}, data)
+
 
 def main():
     cli(runner_class=GaiaTestRunner, parser_class=GaiaTestOptions)

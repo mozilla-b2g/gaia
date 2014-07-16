@@ -4,8 +4,8 @@
 
 'use strict';
 
-requireApp('system/js/mock_simslot.js');
-requireApp('system/js/mock_simslot_manager.js');
+requireApp('system/shared/test/unit/mocks/mock_simslot.js');
+requireApp('system/shared/test/unit/mocks/mock_simslot_manager.js');
 requireApp('system/test/unit/mock_asyncStorage.js');
 requireApp(
   'system/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');

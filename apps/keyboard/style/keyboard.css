@@ -54,7 +54,7 @@ button::-moz-focus-inner {
 }
 
 .row2 {
-  background-color: #566061;
+  background-color: #566063;
 }
 
 .row3 {
@@ -378,27 +378,6 @@ bubble above the key when you tap and hold. */
   border: none;
 }
 
-/* IMEs */
-.keyboard-pending-symbol-panel {
-  position: absolute;
-  top: -3.5rem;
-  left: 0;
-  height: 3.2rem;
-  line-height: 3.2rem;
-  font-size: 2.4rem;
-  width: auto;
-  padding: 0 0.8rem;
-  background: rgba(245, 245, 245, 0.7);
-  color: rgb(36, 36, 36);
-  border-top: 0.1rem solid #d5d5d5;
-  border-right: 0.1rem solid #d5d5d5;
-  white-space: nowrap;
-}
-
-.keyboard-pending-symbol-panel:empty {
-  display: none;
-}
-
 #keyboard.full-candidate-panel {
   padding-top: 3.4rem;
 }
@@ -546,24 +525,10 @@ bubble above the key when you tap and hold. */
   background: -moz-linear-gradient(bottom, rgb(191,191,183) 10%, rgb(161,158,153) 90%);
 }
 
-/* Pending panel highlight */
-.keyboard-pending-symbols-highlight-green {
-  background: #33aa33;
-}
-
-.keyboard-pending-symbols-highlight-red {
-  background: #aa3333;
-}
-
-.keyboard-pending-symbols-highlight-blue {
-  background: #3333aa;
-}
-
 /* A note to show on the key to indicate the alternative char */
 .alt-note {
   position: absolute;
   top: 0.5rem;
-  right: 0.5rem;
   color: #a6a6a6;
   font: 1.6rem/1.6rem "Keyboard Symbols", sans-serif;
 }
@@ -573,7 +538,7 @@ bubble above the key when you tap and hold. */
 }
 
 .keyboard-key.big-key > .visual-wrapper .key-element {
-  font-size: 3rem;
+  font-size: 3.2rem;
   font-weight: normal;
   color: #fff;
 }
@@ -581,8 +546,11 @@ bubble above the key when you tap and hold. */
 .keyboard-key.big-key .visual-wrapper .alt-note {
     width: 100%;
     text-align: center;
-    margin-top: 1.5rem;
     text-indent: 4rem;
+    font-size: 1.6rem;
+    top: 0.2rem;
+    padding-left: 1rem;
+    color: #a6a6a6;
 }
 
 .keyboard-key.big-key.highlighted .alt-note {
@@ -742,8 +710,74 @@ bubble above the key when you tap and hold. */
   right: 0;
 }
 
+/* With symbols on the bottom */
+.keyboard-key.bottom-symbol > .visual-wrapper:after {
+  content: '';
+  display: block;
+  bottom: 0;
+  position: absolute;
+  width: 100%;
+  text-align: center;
+  font-size: 1.2rem;
+  color: #a6a6a6;
+  margin-bottom: -0.3rem;
+}
+
+.keyboard-key.bottom-symbol[data-keycode="50"] > .visual-wrapper:after {
+  content: 'ABC';
+}
+
+.keyboard-key.bottom-symbol[data-keycode="51"] > .visual-wrapper:after {
+  content: 'DEF';
+}
+
+.keyboard-key.bottom-symbol[data-keycode="52"] > .visual-wrapper:after {
+  content: 'GHI';
+}
+
+.keyboard-key.bottom-symbol[data-keycode="53"] > .visual-wrapper:after {
+  content: 'JKL';
+}
+
+.keyboard-key.bottom-symbol[data-keycode="54"] > .visual-wrapper:after {
+  content: 'MNO';
+}
+
+.keyboard-key.bottom-symbol[data-keycode="55"] > .visual-wrapper:after {
+  content: 'PQRS';
+}
+
+.keyboard-key.bottom-symbol[data-keycode="56"] > .visual-wrapper:after {
+  content: 'TUV';
+}
+
+.keyboard-key.bottom-symbol[data-keycode="57"] > .visual-wrapper:after {
+  content: 'WXYZ';
+}
+
+/* All keys except 0 should be move up to 2px. */
+.keyboard-key.bottom-symbol:not([data-keycode="48"]) > .visual-wrapper > .key-element {
+  top: -0.2rem;
+}
+
+/* We need to put '*' in the middle, so its top is set top 8px. */
+.keyboard-key.bottom-symbol > .visual-wrapper > .key-element[data-label="*"] {
+  top: 0.8rem;
+}
+
+/* Based on UI spec, [Backspace] is put in middle and 16px size. */
+.keyboard-key.bottom-symbol[data-keycode="8"] > .visual-wrapper > .key-element {
+  top: 0;
+  font-size: 1.6rem;
+}
+
+/* Based on UI spec, alt-note '+' is set bigger. */
+.keyboard-key.bottom-symbol[data-keycode="48"] > .visual-wrapper > .alt-note {
+  font-size: 1.8rem;
+}
+
 @media (orientation:portrait) {
-  .special-key > .visual-wrapper > span[data-label="அஆஇ"] {
+  .special-key > .visual-wrapper > .key-element[data-label="அஆஇ"] {
     font-size: 1.1rem;
   }
 
@@ -779,7 +813,7 @@ bubble above the key when you tap and hold. */
 
 @media (orientation:landscape) {
   #keyboard.landscape .special-key > .visual-wrapper >
-    span[data-label="அஆஇ"] {
+    .key-element[data-label="அஆஇ"] {
     font-size: 1.7rem;
   }
 

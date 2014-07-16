@@ -145,14 +145,15 @@ Calendar.App = (function(window) {
       this._providers = Object.create(null);
       this._views = Object.create(null);
       this._routeViewFn = Object.create(null);
-      this._pendingManger = new PendingManager();
+      this._pendingManager = new PendingManager();
 
       var self = this;
-      this._pendingManger.oncomplete = function onpending() {
+      this._pendingManager.oncomplete = function onpending() {
         document.body.classList.remove(self.pendingClass);
+        Calendar.Performance.pendingReady();
       };
 
-      this._pendingManger.onpending = function oncomplete() {
+      this._pendingManager.onpending = function oncomplete() {
         document.body.classList.add(self.pendingClass);
       };
 
@@ -207,11 +208,11 @@ Calendar.App = (function(window) {
      * @param {Object} object to observe.
      */
     observePendingObject: function(object) {
-      this._pendingManger.register(object);
+      this._pendingManager.register(object);
     },
 
     isPending: function() {
-      return this._pendingManger.isPending();
+      return this._pendingManager.isPending();
     },
 
     loadObject: function initializeLoadObject(name, callback) {
@@ -312,6 +313,11 @@ Calendar.App = (function(window) {
 
       this.router.start();
 
+      // at this point the tabs should be interactive and the router ready to
+      // handle the path changes (meaning the user can start interacting with
+      // the app)
+      Calendar.Performance.chromeInteractive();
+
       var pathname = window.location.pathname;
       // default view
       if (pathname === '/index.html' || pathname === '/') {
@@ -368,6 +374,11 @@ Calendar.App = (function(window) {
       });
 
       document.body.classList.remove('loading');
+
+      // at this point we remove the .loading class and user will see the main
+      // app frame
+      Calendar.Performance.domLoaded();
+
       this._routes();
 
        //lazy load recurring event expander so as not to impact initial load.
@@ -393,7 +404,7 @@ Calendar.App = (function(window) {
     },
 
     _showTodayDate: function() {
-      document.querySelector('#today .icon-today').innerHTML =
+      document.querySelector('#today .icon-calendar-today').innerHTML =
         new Date().getDate();
     },
 

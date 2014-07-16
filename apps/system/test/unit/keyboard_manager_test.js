@@ -592,6 +592,22 @@ suite('KeyboardManager', function() {
       sinon.assert.callCount(handleResize, 1, 'handleResize should be called');
     });
 
+    test('keyboardFrameContainer is hiding.', function() {
+      // show the keyboar first
+      KeyboardManager.setKeyboardToShow('text');
+      fakeMozbrowserResize(200);
+      dispatchTransitionEvents();
+
+      simulateInputChangeEvent('blur');
+      this.sinon.clock.tick(BLUR_CHANGE_DELAY);
+
+      // fire a resize event again after the keyboard frame is hiding
+      fakeMozbrowserResize(200);
+
+      sinon.assert.callCount(handleResize, 1,
+                             'ignore mozbrowserresize event');
+    });
+
     test('Switching keyboard.', function() {
       KeyboardManager.setKeyboardToShow('text');
       fakeMozbrowserResize(200);

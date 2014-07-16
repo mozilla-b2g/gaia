@@ -12,7 +12,9 @@ suite('LayoutLoader', function() {
       [
         { value: 'foo' }
       ]
-    ]
+    ],
+    alt: {},
+    upperCase: {}
   };
 
   var expectedFoo2Layout = {
@@ -20,7 +22,9 @@ suite('LayoutLoader', function() {
       [
         { value: 'foo2' }
       ]
-    ]
+    ],
+    alt: {},
+    upperCase: {}
   };
 
   var expectedFoo3Layout = {
@@ -28,7 +32,9 @@ suite('LayoutLoader', function() {
       [
         { value: 'foo3' }
       ]
-    ]
+    ],
+    alt: {},
+    upperCase: {}
   };
 
   suiteSetup(function() {
@@ -64,7 +70,9 @@ suite('LayoutLoader', function() {
           [
             { value: 'preloaded' }
           ]
-        ]
+        ],
+        alt: {},
+        upperCase: {}
       }, 'preloaded loaded');
       assert.equal(layout, loader.getLayout('preloaded'));
 
@@ -202,6 +210,289 @@ suite('LayoutLoader', function() {
       assert.isTrue(true, 'loaded');
       assert.deepEqual(
         loader.getLayout('foo'), expectedFooLayout, 'foo loaded');
+
+      done();
+    }, function() {
+      assert.isTrue(false, 'should not reject');
+
+      done();
+    });
+  });
+
+  test('normalize alt menu (single char keys)', function(done) {
+    window.Keyboards = {
+      'preloaded': {
+        keys: [
+          [
+            { value: 'preloaded' }
+          ]
+        ],
+        alt: {
+          'a': 'áàâäåãāæ'
+        }
+      }
+    };
+
+    var loader = new LayoutLoader();
+    loader.start();
+
+    assert.equal(!!window.Keyboards.preloaded, false, 'original removed');
+    assert.isTrue(!!loader.getLayout('preloaded'), 'preloaded loaded');
+
+    var p = loader.getLayoutAsync('preloaded');
+    p.then(function(layout) {
+      assert.isTrue(true, 'loaded');
+      assert.deepEqual(loader.getLayout('preloaded'), {
+        keys: [
+          [
+            { value: 'preloaded' }
+          ]
+        ],
+        alt: { 'a': [ 'á', 'à', 'â', 'ä', 'å', 'ã', 'ā', 'æ' ],
+               'A': [ 'Á', 'À', 'Â', 'Ä', 'Å', 'Ã', 'Ā', 'Æ' ] },
+        upperCase: {}
+      }, 'preloaded loaded');
+      assert.equal(layout, loader.getLayout('preloaded'));
+
+      done();
+    }, function() {
+      assert.isTrue(false, 'should not reject');
+
+      done();
+    });
+  });
+
+  test('normalize alt menu of sub-layout alternateLayout', function(done) {
+    window.Keyboards = {
+      'preloaded': {
+        keys: [
+          [
+            { value: 'preloaded' }
+          ]
+        ],
+        alternateLayout: {
+          keys: [
+            [
+              { value: 'preloaded-alternateLayout' }
+            ]
+          ],
+          alt: {
+            'a': 'áàâäåãāæ'
+          }
+        }
+      }
+    };
+
+    var loader = new LayoutLoader();
+    loader.start();
+
+    assert.equal(!!window.Keyboards.preloaded, false, 'original removed');
+    assert.isTrue(!!loader.getLayout('preloaded'), 'preloaded loaded');
+
+    var p = loader.getLayoutAsync('preloaded');
+    p.then(function(layout) {
+      assert.isTrue(true, 'loaded');
+      assert.deepEqual(loader.getLayout('preloaded'), {
+        keys: [
+          [
+            { value: 'preloaded' }
+          ]
+        ],
+        alternateLayout: {
+          keys: [
+            [
+              { value: 'preloaded-alternateLayout' }
+            ]
+          ],
+          alt: { 'a': [ 'á', 'à', 'â', 'ä', 'å', 'ã', 'ā', 'æ' ],
+                 'A': [ 'Á', 'À', 'Â', 'Ä', 'Å', 'Ã', 'Ā', 'Æ' ] },
+          upperCase: {}
+        },
+        alt: {},
+        upperCase: {}
+      }, 'preloaded loaded');
+      assert.equal(layout, loader.getLayout('preloaded'));
+
+      done();
+    }, function() {
+      assert.isTrue(false, 'should not reject');
+
+      done();
+    });
+  });
+
+  test('normalize alt menu (with multi-char keys)', function(done) {
+    window.Keyboards = {
+      'preloaded': {
+        keys: [
+          [
+            { value: 'preloaded' }
+          ]
+        ],
+        alt: {
+          'a': 'á à â A$'
+        }
+      }
+    };
+
+    var loader = new LayoutLoader();
+    loader.start();
+
+    assert.equal(!!window.Keyboards.preloaded, false, 'original removed');
+    assert.isTrue(!!loader.getLayout('preloaded'), 'preloaded loaded');
+
+    var p = loader.getLayoutAsync('preloaded');
+    p.then(function(layout) {
+      assert.isTrue(true, 'loaded');
+      assert.deepEqual(loader.getLayout('preloaded'), {
+        keys: [
+          [
+            { value: 'preloaded' }
+          ]
+        ],
+        alt: { 'a': [ 'á', 'à', 'â', 'A$' ],
+               'A': [ 'Á', 'À', 'Â', 'A$' ] },
+        upperCase: {}
+      }, 'preloaded loaded');
+      assert.equal(layout, loader.getLayout('preloaded'));
+
+      done();
+    }, function() {
+      assert.isTrue(false, 'should not reject');
+
+      done();
+    });
+  });
+
+  test('normalize alt menu (with one multi-char keys)', function(done) {
+    window.Keyboards = {
+      'preloaded': {
+        keys: [
+          [
+            { value: 'preloaded' }
+          ]
+        ],
+        alt: {
+          'a': 'A$ '
+        }
+      }
+    };
+
+    var loader = new LayoutLoader();
+    loader.start();
+
+    assert.equal(!!window.Keyboards.preloaded, false, 'original removed');
+    assert.isTrue(!!loader.getLayout('preloaded'), 'preloaded loaded');
+
+    var p = loader.getLayoutAsync('preloaded');
+    p.then(function(layout) {
+      assert.isTrue(true, 'loaded');
+      assert.deepEqual(loader.getLayout('preloaded'), {
+        keys: [
+          [
+            { value: 'preloaded' }
+          ]
+        ],
+        alt: { 'a': [ 'A$' ],
+               'A': [ 'A$' ] },
+        upperCase: {}
+      }, 'preloaded loaded');
+      assert.equal(layout, loader.getLayout('preloaded'));
+
+      done();
+    }, function() {
+      assert.isTrue(false, 'should not reject');
+
+      done();
+    });
+  });
+
+  test('normalize alt menu (with Turkish \'i\' key)', function(done) {
+    window.Keyboards = {
+      'preloaded': {
+        keys: [
+          [
+            { value: 'preloaded' }
+          ]
+        ],
+        alt: {
+          'i': 'ß'
+        },
+        upperCase: {
+          'i': 'İ'
+        }
+      }
+    };
+
+    var loader = new LayoutLoader();
+    loader.start();
+
+    assert.equal(!!window.Keyboards.preloaded, false, 'original removed');
+    assert.isTrue(!!loader.getLayout('preloaded'), 'preloaded loaded');
+
+    var p = loader.getLayoutAsync('preloaded');
+    p.then(function(layout) {
+      assert.isTrue(true, 'loaded');
+      assert.deepEqual(loader.getLayout('preloaded'), {
+        keys: [
+          [
+            { value: 'preloaded' }
+          ]
+        ],
+        alt: { 'i': [ 'ß' ],
+               'İ': [ 'ß' ] },
+        upperCase: {
+          'i': 'İ'
+        }
+      }, 'preloaded loaded');
+      assert.equal(layout, loader.getLayout('preloaded'));
+
+      done();
+    }, function() {
+      assert.isTrue(false, 'should not reject');
+
+      done();
+    });
+  });
+
+  test('normalize alt menu (with Catalan \'l·l\' key)', function(done) {
+    window.Keyboards = {
+      'preloaded': {
+        keys: [
+          [
+            { value: 'preloaded' }
+          ]
+        ],
+        alt: {
+          'l': 'l·l ł £'
+        }
+      }
+    };
+
+    var loader = new LayoutLoader();
+    loader.start();
+
+    assert.equal(!!window.Keyboards.preloaded, false, 'original removed');
+    assert.isTrue(!!loader.getLayout('preloaded'), 'preloaded loaded');
+
+    var expectedLayout = {
+        keys: [
+          [
+            { value: 'preloaded' }
+          ]
+        ],
+        alt: { 'l': [ 'l·l', 'ł', '£' ],
+               'L': [ 'L·l', 'Ł', '£' ] },
+        upperCase: {}
+    };
+    expectedLayout.alt.L.upperCaseLocked = [ 'L·L', 'Ł', '£' ];
+
+    var p = loader.getLayoutAsync('preloaded');
+    p.then(function(layout) {
+      assert.isTrue(true, 'loaded');
+      assert.deepEqual(loader.getLayout('preloaded'), expectedLayout,
+        'preloaded loaded');
+      assert.equal(layout, loader.getLayout('preloaded'));
 
       done();
     }, function() {

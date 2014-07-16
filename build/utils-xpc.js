@@ -1,6 +1,6 @@
 'use strict';
 
-/* global require, Services, dump, FileUtils, exports, OS, Promise */
+/* global require, Services, dump, FileUtils, exports, OS, Promise, Reflect */
 /* jshint -W079, -W118 */
 
 const { Cc, Ci, Cr, Cu, CC } = require('chrome');
@@ -11,8 +11,10 @@ Cu.import('resource://gre/modules/FileUtils.jsm');
 Cu.import('resource://gre/modules/Services.jsm');
 Cu.import('resource://gre/modules/osfile.jsm');
 Cu.import('resource://gre/modules/Promise.jsm');
+Cu.import('resource://gre/modules/reflect.jsm');
 
 var utils = require('./utils.js');
+var subprocess = require('sdk/system/child_process/subprocess');
 /**
  * Returns an array of nsIFile's for a given directory
  *
@@ -716,6 +718,30 @@ function Commander(cmd) {
     }
     callback && callback();
   };
+
+  /**
+   * This function use subprocess module to run command. We can capture stdout
+   * throught it.
+   *
+   * @param {Array} args Arrays of command. ex: ['adb', 'b2g-ps'].
+   * @param {Object} options Callback for stdin, stdout, stderr and done.
+   *
+   * XXXX: Since method "runWithSubprocess" cannot be executed in Promise yet,
+   *       we need to keep original method "run" for push-to-device.js (nodejs
+   *       support). We'll file another bug for migration things.
+   */
+  this.runWithSubprocess = function(args, options) {
+    log('cmd', command + ' ' + args.join(' '));
+    var p = subprocess.call({
+      command: _file,
+      arguments: args,
+      stdin: (options && options.stdin) || function(){},
+      stdout: (options && options.stdout) || function(){},
+      stderr: (options && options.stderr) || function(){},
+      done: (options && options.done) || function(){},
+    });
+    p.wait();
+  };
 }
 
 function getEnv(name) {
@@ -838,6 +864,21 @@ function removeFiles(dir, filenames) {
     }
   });
 }
+var scriptLoader = {
+  scripts: {},
+  load: function(path, exportObj) {
+    try {
+      if (this.scripts[path]) {
+        return;
+      }
+      Services.scriptloader.loadSubScript(path, exportObj);
+      this.scripts[path] = true;
+    } catch(e) {
+      delete this.scripts[path];
+      throw 'cannot load script from ' + path;
+    }
+  }
+};
 
 exports.Q = Promise;
 exports.ls = ls;
@@ -865,6 +906,8 @@ exports.getOsType = getOsType;
 exports.generateUUID = generateUUID;
 exports.copyRec = copyRec;
 exports.createZip = createZip;
+exports.scriptLoader = scriptLoader;
+exports.scriptParser = Reflect.parse;
 // ===== the following functions support node.js compitable interface.
 exports.deleteFile = deleteFile;
 exports.listFiles = listFiles;

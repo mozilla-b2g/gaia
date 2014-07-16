@@ -56,12 +56,21 @@
 /** Preview Menu
  ---------------------------------------------------------*/
 
+/**
+ * 1. Sits on-top of frame-container.
+ */
+
 .preview-menu {
+  position: relative; /* 1 */
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
   transition: visibility 0.3s ease-in-out, opacity 0.3s ease-in-out;
 }
+
+/**
+ * visible
+ */
 
 .preview-menu.visible {
   opacity: 1;
@@ -69,10 +78,17 @@
   pointer-events: auto;
 }
 
+/**
+ * secure-mode
+ */
+
 .preview-gallery[secure-mode=true] .preview-share-icon,
 .preview-gallery[secure-mode=true] .preview-option-icon {
   display: none;
 }
+
+/** Count Text
+ ---------------------------------------------------------*/
 
 .count-text {
   position: absolute;
@@ -138,23 +154,22 @@ section[role="region"] > header:first-child > a:after {
 /**
   Button icon styles
  */
-.preview-menu button > span {
-  color: #ffffff;
-  font-size: 3.0rem;
+
+/**
+ * 1. !important required to override
+ *    specificity of scoped stylesheet.
+ */
+
+.preview-menu button {
+  font-size: 3.0rem !important; /* 1 */
   text-align: center;
   text-shadow: none;
 }
 
-.preview-back-icon {
-  margin-left: -0.1rem;
-  vertical-align: -1.1rem;
-}
+/**
+ * 1. Allow flexbox to vertically center.
+ */
 
-.preview-share-icon {
-  margin-right: -0.1rem;
-  vertical-align: -0.9rem;
-}
-
-.preview-option-icon {
-  vertical-align: -0.9rem;
+.preview-menu button:before {
+  display: block; /* 1 */
 }

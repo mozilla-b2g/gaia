@@ -7,7 +7,6 @@ require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_iccmanager.js');
 require('/shared/js/text_normalizer.js');
 require('/shared/js/simple_phone_matcher.js');
-require('/shared/js/contacts/contacts_matcher.js');
 require('/shared/js/contacts/contacts_merger.js');
 require('/shared/js/contacts/utilities/image_thumbnail.js');
 require('/shared/js/contacts/merger_adapter.js');
@@ -39,9 +38,10 @@ suite('Sim import >', function() {
     ]
   };
 
-  suiteSetup(function() {
+  suiteSetup(function(done) {
     realMozContacts = navigator.mozContacts;
     navigator.mozContacts = MockMozContacts;
+    require('/shared/js/contacts/contacts_matcher.js', done);
   });
 
   setup(function() {

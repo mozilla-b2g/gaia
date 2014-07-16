@@ -1,5 +1,6 @@
 'use strict';
 
+var assert = require('assert');
 var Homescreen = require('./lib/home2');
 var Actions = require('marionette-client').Actions;
 var System = require('../../../../apps/system/test/marionette/lib/system');
@@ -34,6 +35,20 @@ marionette('Statusbar', function() {
         return home.containsClass(System.Selector.statusbarBackground,
                'opaque');
       });
+
+      // Launch an app to make sure the statusbar turns opaque.
+      client.apps.switchToApp(Homescreen.URL);
+      var settingsOrigin = 'app://settings.gaiamobile.org';
+      var icon = home.getIcon(settingsOrigin + '/manifest.webapp');
+      icon.tap();
+      client.switchToFrame();
+      client.waitFor(function() {
+        return home.containsClass(System.Selector.statusbarBackground,
+               'opaque');
+      });
+      client.apps.close(settingsOrigin);
+      assert.ok(home.containsClass(System.Selector.statusbarBackground,
+               'opaque'));
 
       // We can't trust our panning physics on B2G desktop using Actions.
       // The same scroll down may not result in the same upward scroll.

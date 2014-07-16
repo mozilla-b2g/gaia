@@ -1541,4 +1541,535 @@ suite('Video App Unit Tests', function() {
       assert.equal(rescaleSpy.callCount, 0);
     });
   });
+
+  suite('setControlsVisibility flows', function() {
+    var updateVideoControlSliderSpy;
+    var nativeUpdateVideoControlSlider;
+
+    suiteSetup(function() {
+      nativeUpdateVideoControlSlider = updateVideoControlSlider;
+      updateVideoControlSliderSpy = sinon.spy();
+      updateVideoControlSlider = updateVideoControlSliderSpy;
+    });
+
+    suiteTeardown(function() {
+      updateVideoControlSlider = nativeUpdateVideoControlSlider;
+    });
+
+    teardown(function() {
+      updateVideoControlSliderSpy.reset();
+    });
+
+    /**
+     * On tablet in landscape mode, we always shows the video controls in list
+     * layout. Therefore, in this use case setControlsVisibility will update
+     * video controls slider.
+     */
+    test('#setControlsVisibility: tablet in landscape mode, list view',
+        function() {
+      isPhone = false;
+      isPortrait = false;
+      currentLayoutMode = LAYOUT_MODE.list;
+      setControlsVisibility(false);
+      assert.isTrue(updateVideoControlSliderSpy.calledOnce);
+    });
+
+    /**
+     * On tablet in portrait mode, regardless of the view,
+     * setControlsVisibility will show video controls based on the 'visible'
+     * argument. And therefore, setControlsVisibility will update the video
+     * controls slider based on the value of the 'visible' argument.
+     */
+    test('#setControlsVisibility: tablet in portrait mode, show controls',
+        function() {
+      isPhone = false;
+      isPortrait = true;
+      currentLayoutMode = LAYOUT_MODE.list;
+      setControlsVisibility(true);
+      assert.isTrue(updateVideoControlSliderSpy.calledOnce);
+    });
+
+    /**
+     * On tablet in portrait mode, regardless of the view,
+     * setControlsVisibility will show video controls based on the 'visible'
+     * argument. And therefore, setControlsVisibility will update the video
+     * controls slider based on the value of the 'visible' argument.
+     */
+    test('#setControlsVisibility: tablet in portrait mode, dont show controls',
+        function() {
+      isPhone = false;
+      isPortrait = true;
+      currentLayoutMode = LAYOUT_MODE.list;
+      setControlsVisibility(false);
+      assert.equal(updateVideoControlSliderSpy.callCount, 0);
+    });
+
+    /**
+     * On phone, regardless of the view, setControlsVisibility will show
+     * video controls based on the 'visible' argument. And therefore,
+     * setControlsVisibility will update the video controls slider based on
+     * the value of the 'visible' argument.
+     */
+    test('#setControlsVisibility: phone, landscape, list view, show controls',
+        function() {
+      isPhone = true;
+      isPortrait = false;
+      currentLayoutMode = LAYOUT_MODE.list;
+      setControlsVisibility(true);
+      assert.isTrue(updateVideoControlSliderSpy.calledOnce);
+    });
+
+    test('#setControlsVisibility: phone, portrait, list view, show controls',
+        function() {
+      isPhone = true;
+      isPortrait = true;
+      currentLayoutMode = LAYOUT_MODE.list;
+      setControlsVisibility(true);
+      assert.isTrue(updateVideoControlSliderSpy.calledOnce);
+    });
+
+    test('#setControlsVisibility: phone, portrait, fullscreen, show controls',
+        function() {
+      isPhone = true;
+      isPortrait = false;
+      currentLayoutMode = LAYOUT_MODE.fullscreen;
+      setControlsVisibility(true);
+      assert.isTrue(updateVideoControlSliderSpy.calledOnce);
+    });
+
+    test('#setControlsVisibility: phone, landscape, list, no show controls',
+        function() {
+      isPhone = true;
+      isPortrait = false;
+      currentLayoutMode = LAYOUT_MODE.list;
+      setControlsVisibility(false);
+      assert.equal(updateVideoControlSliderSpy.callCount, 0);
+    });
+  });
+
+  suite('toggleVideoControls flows', function() {
+    var clearTimeoutSpy;
+    var setControlsVisibilitySpy;
+    var nativeSetControlsVisibility;
+    var event = {};
+
+    suiteSetup(function() {
+      clearTimeoutSpy = sinon.spy(window, 'clearTimeout');
+      clearTimeout = clearTimeoutSpy;
+      nativeSetControlsVisibility = setControlsVisibility;
+      setControlsVisibilitySpy = sinon.spy();
+      setControlsVisibility = setControlsVisibilitySpy;
+    });
+
+    suiteTeardown(function() {
+      clearTimeoutSpy.restore();
+    });
+
+    teardown(function() {
+      clearTimeoutSpy.reset();
+      setControlsVisibilitySpy.reset();
+    });
+
+    test('#toggleVideoControls: control fade timeout', function() {
+      controlFadeTimeout = 1;
+      toggleVideoControls(event);
+      assert.isTrue(clearTimeoutSpy.calledOnce);
+      assert.equal(controlFadeTimeout, null);
+    });
+
+    test('#toggleVideoControls: no control fade timeout', function() {
+      controlFadeTimeout = null;
+      toggleVideoControls(event);
+      assert.equal(clearTimeoutSpy.callCount, 0);
+      assert.equal(controlFadeTimeout, null);
+    });
+
+    test('#toggleVideoControls: toggle control showing', function() {
+      pendingPick = false;
+      controlShowing = false;
+      toggleVideoControls(event);
+      assert.isTrue(setControlsVisibilitySpy.calledOnce);
+      assert.isTrue(setControlsVisibilitySpy.calledWith(true));
+      assert.isTrue(event.cancelBubble);
+    });
+
+    test('#toggleVideoControls: toggle control not showing, target not vc',
+        function() {
+      pendingPick = false;
+      controlShowing = true;
+      event.originalTarget = 'some target';
+      toggleVideoControls(event);
+      assert.equal(setControlsVisibilitySpy.callCount, 0);
+    });
+
+    test('#toggleVideoControls: toggle control not showing, target vc',
+        function() {
+      pendingPick = false;
+      controlShowing = true;
+      event.originalTarget = dom.videoControls;
+      toggleVideoControls(event);
+      assert.isTrue(setControlsVisibilitySpy.calledOnce);
+      assert.isTrue(setControlsVisibilitySpy.calledWith(false));
+    });
+
+    test('#toggleVideoControls: pending pick, no toggle',
+        function() {
+      pendingPick = true;
+      toggleVideoControls(event);
+      assert.equal(setControlsVisibilitySpy.callCount, 0);
+    });
+  });
+
+  /*
+   * updateSelection is called when entering thumbnail selection mode, or
+   * when the selection changes. The function updates the message the top
+   * of the screen and enables or disables the Delete and Share buttons.
+   */
+  suite('updateSelection flows', function() {
+    var videodata = {};
+    var videoBlob;
+
+    suiteSetup(function(done) {
+      videodata = {'name': videoName};
+
+      MockThumbnailGroup.reset();
+      var dummyContainer = document.createElement('div');
+
+      thumbnailList = new ThumbnailList(MockThumbnailGroup, dummyContainer);
+      thumbnailList.addItem({'name': videodata.name});
+
+      getAsset('/test/unit/media/test.webm', function(blob) {
+        videoBlob = blob;
+        videodb = new MockMediaDB(videoBlob);
+        done();
+      });
+    });
+
+    setup(function() {
+      selectedFileNames = [];
+      selectedFileNamesToBlobs = {};
+    });
+
+    test('#updateSelection: toggle thumbnail as selected', function() {
+      var thumbnail = thumbnailList.thumbnailMap[videodata.name];
+      thumbnail.htmlNode.classList.remove('selected'); // not selected
+      updateSelection(videodata);
+      assert.isTrue(thumbnail.htmlNode.classList.contains('selected'),
+                    'thumbnail should contain \'selected\' class');
+    });
+
+    test('#updateSelection: toggle thumbnail as not selected', function() {
+      var thumbnail = thumbnailList.thumbnailMap[videodata.name];
+      thumbnail.htmlNode.classList.add('selected'); // selected
+      updateSelection(videodata);
+      assert.isFalse(thumbnail.htmlNode.classList.contains('selected'),
+                     'thumbnail should not contain \'selected\' class');
+    });
+
+    test('#updateSelection: update (add to) selected filenames', function() {
+      var thumbnail = thumbnailList.thumbnailMap[videodata.name];
+      thumbnail.htmlNode.classList.remove('selected'); // not selected
+      updateSelection(videodata);
+      assert.equal(selectedFileNames.length, 1,
+                   'should be one selected file');
+      assert.equal(selectedFileNames[0], videodata.name,
+                   'name of selected file should be name of videodata');
+      assert.equal(selectedFileNamesToBlobs[videodata.name], videoBlob,
+                   'blob associated with videodata name should be video blob');
+    });
+
+    test('#updateSelection: update (remove) selected filenames', function() {
+      var thumbnail = thumbnailList.thumbnailMap[videodata.name];
+      thumbnail.htmlNode.classList.add('selected'); // selected
+      updateSelection(videodata);
+      assert.equal(selectedFileNames.length, 0,
+                   'shouldnt be any selected files');
+      assert.equal(selectedFileNamesToBlobs[videodata.name], undefined,
+                   'no blob associated with videodata name');
+    });
+
+    test('#updateSelection: update UI, thumbnail is selected', function() {
+      dom.thumbnailsDeleteButton.classList.add('disabled');
+      dom.thumbnailsShareButton.classList.add('disabled');
+      var thumbnail = thumbnailList.thumbnailMap[videodata.name];
+      thumbnail.htmlNode.classList.remove('selected'); // not selected
+
+      updateSelection(videodata);
+      assert.equal(dom.thumbnailsNumberSelected.textContent,
+                   'number-selected2{"n":1}',
+                   'there should be one thumbnail selected');
+      assert.isFalse(containsClass(dom.thumbnailsDeleteButton, 'disabled'),
+                     'thumbnail delete button should be enabled');
+      assert.isFalse(containsClass(dom.thumbnailsShareButton, 'disabled'),
+                     'thumbnail share button should be enabled');
+    });
+
+    test('#updateSelection: update UI, no thumbnail is selected', function() {
+      var thumbnail = thumbnailList.thumbnailMap[videodata.name];
+      thumbnail.htmlNode.classList.add('selected'); // selected
+
+      updateSelection(videodata);
+      assert.equal(dom.thumbnailsNumberSelected.textContent,
+                   'number-selected2{"n":0}',
+                   'there shouldnt be any thumbnails selected');
+      assert.isTrue(containsClass(dom.thumbnailsDeleteButton, 'disabled'),
+                    'thumbnail delete button should be disabled');
+      assert.isTrue(containsClass(dom.thumbnailsShareButton, 'disabled'),
+                    'thumbnail share button should be disabled');
+    });
+  });
+
+  suite('handleSliderTouchStart flows', function() {
+    var handleSliderTouchMoveSpy;
+    var nativeHandleSliderTouchMove;
+    var existingTouchStartEventId = 1;
+    var touchStartIdFromEvent = 10;
+    var event = { 'changedTouches': [{'identifier': touchStartIdFromEvent}] };
+    var playerPauseSpy;
+    var width, height;
+
+    suiteSetup(function() {
+      nativeHandleSliderTouchMove = handleSliderTouchMove;
+      handleSliderTouchMoveSpy = sinon.spy();
+      handleSliderTouchMove = handleSliderTouchMoveSpy;
+      playerPauseSpy = sinon.spy(dom.player, 'pause');
+      width = 50;
+      height = 100;
+    });
+
+    setup(function() {
+      dragging = false;
+      touchStartID = null;
+      handleSliderTouchMoveSpy.reset();
+      playerPauseSpy.reset();
+      dom.sliderWrapper.style.width = width + 'px';
+      dom.sliderWrapper.style.height = height + 'px';
+    });
+
+    teardown(function() {
+      dom.sliderWrapper.style.width = 0 + 'px';
+      dom.sliderWrapper.style.height = 0 + 'px';
+    });
+
+    suiteTeardown(function() {
+      handleSliderTouchMove = nativeHandleSliderTouchMove;
+      playerPauseSpy.restore();
+    });
+
+    test('#handleSliderTouchStart: already have touch start event',
+         function() {
+      // stage data to indicate there has already been a touch start event
+      touchStartID = existingTouchStartEventId;
+
+      handleSliderTouchStart();
+
+      assert.equal(touchStartID, existingTouchStartEventId);
+      assert.equal(handleSliderTouchMoveSpy.callCount, 0);
+      assert.isFalse(dragging);
+      assert.equal(sliderRect, undefined);
+    });
+
+    test('#handleSliderTouchStart: dont know video duration',
+         function() {
+      dom.player.duration = Infinity;
+
+      handleSliderTouchStart(event);
+
+      assert.isTrue(dragging);
+      assert.equal(touchStartID, touchStartIdFromEvent,
+                   'touch start id should come from event');
+      assert.equal(handleSliderTouchMoveSpy.callCount, 0,
+                   'function returns before calling handleSliderTouchMove');
+      assert.equal(sliderRect.width, width);
+      assert.equal(sliderRect.height, height);
+      assert.equal(sliderRect.right, sliderRect.left + width);
+      assert.equal(sliderRect.bottom, sliderRect.top + height);
+    });
+
+    test('#handleSliderTouchStart: paused while dragging',
+         function() {
+      dom.player.duration = 100;
+      dom.player.paused = true;
+
+      handleSliderTouchStart(event);
+
+      assert.isTrue(dragging);
+      assert.equal(touchStartID, touchStartIdFromEvent,
+                   'touch start id should come from event');
+      assert.isTrue(handleSliderTouchMoveSpy.calledOnce,
+                   'handleSliderTouchMove is called once');
+      assert.equal(playerPauseSpy.callCount, 0,
+                   'dom.player.pause is not called');
+      assert.equal(sliderRect.width, width);
+      assert.equal(sliderRect.height, height);
+      assert.equal(sliderRect.right, sliderRect.left + width);
+      assert.equal(sliderRect.bottom, sliderRect.top + height);
+    });
+
+    test('#handleSliderTouchStart: not paused while dragging',
+         function() {
+      dom.player.duration = 100;
+      dom.player.paused = false;
+
+      handleSliderTouchStart(event);
+
+      assert.isTrue(dragging);
+      assert.equal(touchStartID, touchStartIdFromEvent,
+                   'touch start id should come from event');
+      assert.isTrue(handleSliderTouchMoveSpy.calledOnce,
+                   'handleSliderTouchMove is called once');
+      assert.isTrue(playerPauseSpy.calledOnce,
+                   'dom.player.pause is called');
+      assert.equal(sliderRect.width, width);
+      assert.equal(sliderRect.height, height);
+      assert.equal(sliderRect.right, sliderRect.left + width);
+      assert.equal(sliderRect.bottom, sliderRect.top + height);
+    });
+  });
+
+  suite('handleSliderTouchMove flows', function() {
+    var fastSeekSpy;
+
+    var clientX = 110;
+    var touch = {'clientX': clientX};
+    var identifiedTouchSuccess = function(touchStartID) {
+      return touch;
+    };
+
+    var identifiedTouchFailure = function(touchStartID) {
+      return null;
+    };
+
+    var successEvent = { 'changedTouches':
+                         {'identifiedTouch': identifiedTouchSuccess} };
+    var failureEvent = { 'changedTouches':
+                         {'identifiedTouch': identifiedTouchFailure} };
+
+    suiteSetup(function() {
+      fastSeekSpy = sinon.spy(dom.player, 'fastSeek');
+      sliderRect = {'left': 10,
+                    'width': 200};
+    });
+
+    setup(function() {
+      fastSeekSpy.reset();
+      dragging = true;
+      dom.playHead.classList.remove('active');
+    });
+
+    suiteTeardown(function() {
+      fastSeekSpy.restore();
+    });
+
+    test('#handleSliderTouchMove: update the slider', function() {
+
+      handleSliderTouchMove(successEvent);
+
+      assert.isTrue(containsClass(dom.playHead, 'active'));
+      assert.equal(dom.playHead.style.left, '50%');
+      assert.equal(dom.elapsedTime.style.width, '50%');
+      assert.isTrue(fastSeekSpy.calledOnce);
+    });
+
+    test('#handleSliderTouchMove: not dragging', function() {
+      dragging = false;
+
+      handleSliderTouchMove(successEvent);
+
+      assert.isFalse(containsClass(dom.playHead, 'active'));
+      assert.equal(fastSeekSpy.callCount, 0);
+    });
+
+    test('#handleSliderTouchMove: no touch start event', function() {
+      dragging = false;
+
+      handleSliderTouchMove(failureEvent);
+
+      assert.isFalse(containsClass(dom.playHead, 'active'));
+      assert.equal(fastSeekSpy.callCount, 0);
+    });
+  });
+
+  suite('handleSliderTouchEnd flows', function() {
+    var playerPlaySpy;
+    var playerPauseSpy;
+    var existingTouchEventId = 1;
+
+    var identifiedTouchSuccess = function(touchStartID) {
+      return true;
+    };
+
+    var identifiedTouchFailure = function(touchStartID) {
+      return false;
+    };
+
+    var touchEvent = { 'changedTouches':
+                            {'identifiedTouch': identifiedTouchSuccess} };
+    var unrelatedTouchEvent = { 'changedTouches':
+                                {'identifiedTouch': identifiedTouchFailure} };
+
+    suiteSetup(function() {
+      playerPlaySpy = sinon.spy(dom.player, 'play');
+      playerPauseSpy = sinon.spy(dom.player, 'pause');
+    });
+
+    setup(function() {
+      playerPlaySpy.reset();
+      playerPauseSpy.reset();
+      dragging = true;
+      dom.playHead.classList.add('active');
+    });
+
+    suiteTeardown(function() {
+      playerPlaySpy.restore();
+      playerPauseSpy.restore();
+    });
+
+    test('#handleSliderTouchEnd: no touch start event', function() {
+
+      touchStartID = existingTouchEventId;
+
+      handleSliderTouchEnd(unrelatedTouchEvent);
+
+      assert.equal(touchStartID, existingTouchEventId);
+      assert.isTrue(containsClass(dom.playHead, 'active'));
+    });
+
+    test('#handleSliderTouchEnd: not dragging', function() {
+
+      touchStartID = existingTouchEventId;
+      dragging = false;
+
+      handleSliderTouchEnd(touchEvent);
+
+      assert.isNull(touchStartID);
+      assert.isTrue(containsClass(dom.playHead, 'active'));
+    });
+
+    test('#handleSliderTouchEnd: video at end', function() {
+      touchStartID = existingTouchEventId;
+      dragging = true;
+      dom.player.currentTime = dom.player.duration = 10;
+
+      handleSliderTouchEnd(touchEvent);
+
+      assert.isNull(touchStartID);
+      assert.isFalse(containsClass(dom.playHead, 'active'));
+      assert.isTrue(playerPauseSpy.calledOnce);
+    });
+
+    test('#handleSliderTouchEnd: video not at end', function() {
+      touchStartID = existingTouchEventId;
+      dragging = true;
+      dom.player.currentTime = 5;
+      dom.player.duration = 10;
+
+      handleSliderTouchEnd(touchEvent);
+
+      assert.isNull(touchStartID);
+      assert.isFalse(containsClass(dom.playHead, 'active'));
+      assert.equal(playerPauseSpy.callCount, 0);
+      assert.isTrue(playerPlaySpy.calledOnce);
+    });
+  });
 });

@@ -46,6 +46,7 @@ OverlayController.prototype.bindEvents = function() {
  * @param  {String} value  ['nospace'|'shared'|'unavailable'|'available']
  */
 OverlayController.prototype.onStorageChanged = function(state) {
+  var self = this;
   debug('storage changed: \'%s\'', state);
 
   if (this.storageOverlay) {
@@ -54,7 +55,11 @@ OverlayController.prototype.onStorageChanged = function(state) {
   }
 
   if (state !== 'available') {
-    this.storageOverlay = this.createOverlay(state);
+    this.createOverlay(state, onOverlayCreated);
+  }
+
+  function onOverlayCreated(overlay) {
+    self.storageOverlay = overlay;
   }
 };
 
@@ -66,6 +71,7 @@ OverlayController.prototype.onStorageChanged = function(state) {
  * @param  {String} status  ['shutdown'|'critical'|'verylow'|'low']
  */
 OverlayController.prototype.onBatteryChanged = function(state) {
+  var self = this;
   debug('battery state change: \'%s\'', state);
 
   if (this.batteryOverlay) {
@@ -74,31 +80,53 @@ OverlayController.prototype.onBatteryChanged = function(state) {
   }
 
   if (state === 'shutdown') {
-    this.batteryOverlay = this.createOverlay(state);
+    this.createOverlay(state, onOverlayCreated);
+  }
+
+  function onOverlayCreated(overlay) {
+    self.batteryOverlay = overlay;
   }
 };
 
-OverlayController.prototype.createOverlay = function(type) {
-  var data = this.getOverlayData(type);
+OverlayController.prototype.createOverlay = function(type, callback) {
+  var data;
   var self = this;
-
-  if (!data) { return; }
-
   var isClosable = this.activity.pick;
-  var overlay = new Overlay({
+  var overlay;
+
+  if (!this.app.localized()) {
+    this.app.showLoading();
+    this.app.on('localized', onLocalized);
+    return;
+  }
+
+  function onLocalized() {
+    self.createOverlay(type, callback);
+  }
+
+  data = this.getOverlayData(type);
+
+  if (!data) {
+    if (callback) {
+      callback(null);
+    }
+    return;
+  }
+
+  overlay = new Overlay({
     type: type,
     closable: isClosable,
     data: data
-  });
-
-  overlay
-    .appendTo(document.body)
+  }).appendTo(document.body)
     .on('click:close-btn', function() {
       self.app.emit('activitycanceled');
     });
 
   debug('inserted \'%s\' overlay', type);
-  return overlay;
+
+  if (callback) {
+    callback(overlay);
+  }
 };
 
 /**

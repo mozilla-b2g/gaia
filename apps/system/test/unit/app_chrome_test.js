@@ -2,7 +2,7 @@
           MockModalDialog */
 'use strict';
 
-requireApp('system/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_popup_window.js');
 requireApp('system/test/unit/mock_modal_dialog.js');

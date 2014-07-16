@@ -180,13 +180,13 @@ var ERRORS = {
     hasHandler: false
   },
   NonActiveSimCardToSendError: {
-    prefix: 'nonActiveSimToSend',
+    prefix: 'switchSimToSend',
     showRecipient: false,
     showDsdsStatus: true,
     hasHandler: true
   },
   NonActiveSimCardError: {
-    prefix: 'nonActiveSim',
+    prefix: 'switchSimToRetrieve',
     showRecipient: false,
     showDsdsStatus: true,
     hasHandler: true
@@ -205,6 +205,12 @@ var ERRORS = {
   },
   InvalidAddressError: {
     prefix: 'sendInvalidAddressError',
+    showRecipient: false,
+    showDsdsStatus: false,
+    hasHandler: false
+  },
+  SimNotMatchedError: {
+    prefix: 'simNotMatchedError',
     showRecipient: false,
     showDsdsStatus: false,
     hasHandler: false
@@ -243,14 +249,14 @@ function errorParamsGenerator(actions, opts) {
       switch (mmsServiceId) {
         case 0:
           messageBodyParams = {
-            active: 'SIM 1',
-            nonactive: 'SIM 2'
+            activeSimId: '1',
+            nonActiveSimId: '2'
           };
           break;
         case 1:
           messageBodyParams = {
-            active: 'SIM 2',
-            nonactive: 'SIM 1'
+            activeSimId: '2',
+            nonActiveSimId: '1'
           };
           break;
         default:

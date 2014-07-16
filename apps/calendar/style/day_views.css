@@ -101,10 +101,12 @@
   padding-right: 3rem;
 }
 
-.day-events .icon-alarm {
+.day-events .icon-calendar-alarm {
   position: absolute;
   top: 0.2rem;
   right: 0;
+  width: 3rem;
+  height: 3rem;
 }
 
 .day-events .event-title {
@@ -140,7 +142,6 @@
 .day-events .event.partial-hour .container,
 .hour-allday .event .container {
   padding-top: 0.4rem;
-  overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -184,14 +185,14 @@
   visibility: hidden;
 }
 
-.day-events .event.partial-hour-micro .icon-alarm,
-.day-events .event.partial-hour-tiny .icon-alarm {
+.day-events .event.partial-hour-micro .icon-calendar-alarm,
+.day-events .event.partial-hour-tiny .icon-calendar-alarm {
   /* hide icon since we don't have enough space for it and using a different
    * size looks weird (not consistent) */
   display: none;
 }
 
-.day-events .event.partial-hour-small .icon-alarm {
+.day-events .event.partial-hour-small .icon-calendar-alarm {
   top: 50%;
   transform: translateY(-50%);
 }
@@ -239,7 +240,7 @@
   will-change: scroll-position;
 }
 
-#day-view .icon-allday:before {
+#day-view .icon-calendar-allday:before {
   position: relative;
   top: 0.4rem;
   left: 0.4rem;

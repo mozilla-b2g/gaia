@@ -60,7 +60,7 @@ var CostControl = (function() {
     ConfigManager.requestAll(setupCostControl);
   }
 
-  var mobileMessageManager, statistics;
+  var mobileMessageManager, statistics, isSendingBalanceRequest = false;
   function loadAPIs() {
     if ('mozMobileMessage' in window.navigator) {
       mobileMessageManager = window.navigator.mozMobileMessage;
@@ -129,11 +129,13 @@ var CostControl = (function() {
           return;
         }
 
+        // TODO To avoid concurrence problems, the best solution would be to
+        // implement a request queue instead of the isSendingBalanceRequest lock
         // Check in-progress
         var isWaiting = settings.waitingForBalance !== null;
         var timeout = Toolkit.checkEnoughDelay(BALANCE_TIMEOUT,
                                                settings.lastBalanceRequest);
-        if (isWaiting && !timeout) {
+        if ((isWaiting && !timeout) || isSendingBalanceRequest) {
           result.status = 'in_progress';
           result.data = settings.lastBalance;
           if (callback) {
@@ -141,6 +143,7 @@ var CostControl = (function() {
           }
           return;
         }
+        isSendingBalanceRequest = true;
 
         // Dispatch
         LazyLoader.load('js/iac_manager.js', function() {
@@ -303,6 +306,7 @@ var CostControl = (function() {
               'lastBalanceRequest': new Date()
             },
             function _onSet() {
+              isSendingBalanceRequest = false;
               result.status = 'success';
               if (callback) {
                 callback(result);
@@ -312,16 +316,25 @@ var CostControl = (function() {
         };
 
         newAlarm.onerror = function _alarmFailedToSet(evt) {
-          debug('Failed to set timeout for balance request!');
-          result.status = 'error';
-          result.details = 'timeout_fail';
-          if (callback) {
-            callback(result);
-          }
+          ConfigManager.setOption(
+            {
+              'lastBalanceRequest': new Date()
+            },
+            function _onSet() {
+              isSendingBalanceRequest = false;
+              debug('Failed to set timeout for balance request!');
+              result.status = 'error';
+              result.details = 'timeout_fail';
+              if (callback) {
+                callback(result);
+              }
+            }
+          );
         };
       };
 
       newSMS.onerror = function _onError() {
+        isSendingBalanceRequest = false;
         debug('Request SMS failed! But returning stored balance.');
         IACManager.broadcastEndOfSMSQuery('balance').then(function(msg) {
           debug('After IAC broadcast ask for ending - balance');

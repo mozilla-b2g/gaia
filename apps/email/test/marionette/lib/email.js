@@ -49,6 +49,7 @@ var Selector = {
   composeBackButton: '.card-compose .cmp-back-btn',
   composeDraftDiscard: '#cmp-draft-discard',
   composeDraftSave: '#cmp-draft-save',
+  composeErrorMessage: '.card-compose .cmp-error-message',
   refreshButton: '.card.center .msg-refresh-btn',
   messageHeaderItem:
   '.msg-messages-container .msg-header-item',
@@ -76,6 +77,9 @@ var Selector = {
   notifyEmailCheckbox: '.tng-notify-mail-label',
   accountSettingsBackButton: '.card-settings-account .tng-back-btn',
   localDraftsItem: '.fld-folders-container a[data-type=localdrafts]',
+  outboxItem: '.fld-folders-container a[data-type=outbox]',
+  outboxItemSyncIcon: '.msg-header-syncing-section',
+  msgLastSync: '.msg-last-synced-value',
   toaster: 'section[role="status"]'
 };
 
@@ -146,6 +150,18 @@ Email.prototype = {
       this.client.helper.waitForElement(Selector.composeEmailContainer);
     var text = container.text();
     return text;
+  },
+
+  getComposeErrorMessage: function() {
+    return this.client.helper
+      .waitForElement(Selector.composeErrorMessage)
+      .text();
+  },
+
+  getLastSyncText: function() {
+    return this.client.helper
+      .waitForElement(Selector.msgLastSync)
+      .text();
   },
 
   manualSetupImapEmail: function(server, finalActionName) {
@@ -228,6 +244,24 @@ Email.prototype = {
     // clicking that transitions us back to the message list; wait for us
     // to get there.
     this._waitForTransitionEnd('message_list');
+  },
+
+  tapOutboxItem: function() {
+    this._waitForElementNoTransition(Selector.outboxItem).tap();
+    this._waitForTransitionEnd('message_list');
+  },
+
+  getOutboxItemSyncIconForIndex: function(index) {
+    var header = this.getHeaderAtIndex(index);
+    var iconEl = header.findElement(Selector.outboxItemSyncIcon);
+    var className = iconEl.getAttribute('className');
+    if (/-syncing$/.test(className)) {
+      return 'syncing';
+    } else if (/-error$/.test(className)) {
+      return 'error';
+    } else {
+      return '';
+    }
   },
 
   switchAccount: function(number) {
@@ -481,6 +515,10 @@ Email.prototype = {
       this._waitForTransitionEnd(cardId);
       return true;
     }.bind(this));
+  },
+
+  getMessageCount: function() {
+    return this.client.findElements(Selector.messageHeaderItem).length;
   },
 
   getEmailBySubject: function(subject) {

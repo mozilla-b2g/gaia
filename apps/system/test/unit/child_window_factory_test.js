@@ -1,15 +1,19 @@
 'use strict';
 /* global MocksHelper, MockAppWindow, ChildWindowFactory,
-          MockActivityWindow, MockPopupWindow, MockSettingsListener */
+          MockActivityWindow, MockPopupWindow, MockSettingsListener,
+          MockAttentionScreen */
 /* jshint nonew: false */
 
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_popup_window.js');
 requireApp('system/test/unit/mock_activity_window.js');
+requireApp('system/test/unit/mock_attention_screen.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
+requireApp('system/test/unit/mock_activity.js');
 
 var mocksForChildWindowFactory = new MocksHelper([
-  'AppWindow', 'ActivityWindow', 'PopupWindow', 'SettingsListener'
+  'MozActivity', 'AppWindow', 'ActivityWindow', 'PopupWindow',
+  'AttentionScreen', 'SettingsListener'
 ]).init();
 
 suite('system/ChildWindowFactory', function() {
@@ -36,30 +40,44 @@ suite('system/ChildWindowFactory', function() {
 
   var fakeWindowOpenDetailSameOrigin = {
     url: 'app://www.fake/child.html',
-    name: '_blank',
+    name: 'same',
     iframe: document.createElement('iframe'),
     features: ''
   };
 
   var fakeWindowOpenDetailCrossOrigin = {
     url: 'http://fake.com/child.html',
+    name: 'other',
+    iframe: document.createElement('iframe'),
+    features: ''
+  };
+
+  var fakeWindowOpenBlank = {
+    url: 'http://blank.com/index.html',
     name: '_blank',
     iframe: document.createElement('iframe'),
     features: ''
   };
 
+
   var fakeWindowOpenPopup = {
     url: 'http://fake.com/child2.html',
-    name: '_blank',
+    name: '',
     iframe: document.createElement('iframe'),
     features: 'dialog'
   };
 
   var fakeWindowOpenHaidaSheet = {
     url: 'http://fake.com/child2.html',
-    name: '_blank',
+    name: 'haida',
     iframe: document.createElement('iframe'),
     features: 'mozhaidasheet'
+  };
+
+  var fakeWindowOpenEmail = {
+    url: 'mailto:demo@mozilla.com',
+    name: '',
+    features: 'dialog'
   };
 
   var fakeActivityDetail = {
@@ -190,6 +208,44 @@ suite('system/ChildWindowFactory', function() {
     assert.isTrue(spy.calledWithNew());
   });
 
+  test('Open email sheets', function() {
+    var app1 = new MockAppWindow(fakeAppConfig1);
+    var activitySpy = this.sinon.spy(window, 'MozActivity');
+    var cwf = new ChildWindowFactory(app1);
+    var expectedActivity = {
+      name: 'view',
+      data: {
+        type: 'url',
+        url: 'mailto:demo@mozilla.com'
+      }
+    };
+    cwf.handleEvent(new CustomEvent('mozbrowseropenwindow',
+      {
+        detail: fakeWindowOpenEmail
+      }));
+    assert.isTrue(activitySpy.calledWithNew());
+    sinon.assert.calledWith(activitySpy, expectedActivity);
+  });
+
+  test('Target _blank support', function() {
+    var app1 = new MockAppWindow(fakeAppConfig1);
+    var activitySpy = this.sinon.spy(window, 'MozActivity');
+    var cwf = new ChildWindowFactory(app1);
+    var expectedActivity = {
+      name: 'view',
+      data: {
+        type: 'url',
+        url: 'http://blank.com/index.html'
+      }
+    };
+    cwf.handleEvent(new CustomEvent('mozbrowseropenwindow',
+      {
+        detail: fakeWindowOpenBlank
+      }));
+    assert.isTrue(activitySpy.calledWithNew());
+    sinon.assert.calledWith(activitySpy, expectedActivity);
+  });
+
   test('Create ActivityWindow', function() {
     var app1 = new MockAppWindow(fakeAppConfig1);
     var spy = this.sinon.spy(window, 'ActivityWindow');
@@ -214,4 +270,48 @@ suite('system/ChildWindowFactory', function() {
       }));
       assert.isFalse(spy.calledWithNew());
     });
+
+  test('closing of popup should resume visibility and orientation', function() {
+    var app1 = new MockAppWindow(fakeAppConfig1);
+    var spy = this.sinon.spy(window, 'PopupWindow');
+    var cwf = new ChildWindowFactory(app1);
+    this.sinon.stub(app1, 'isActive').returns(true);
+    this.sinon.stub(app1, 'isVisible').returns(true);
+    cwf.handleEvent(new CustomEvent('mozbrowseropenwindow',
+      {
+        detail: fakeWindowOpenPopup
+      }));
+    var stubLockOrientation = this.sinon.stub(app1, 'lockOrientation');
+    var stubVisible = this.sinon.stub(app1, 'setVisible');
+    MockAttentionScreen.mFullyVisible = false;
+    spy.getCall(0).returnValue.element
+        .dispatchEvent(new CustomEvent('_closing', {
+          detail: spy.getCall(0).returnValue
+        }));
+        console.log(spy.getCall(0).returnValue);
+    assert.isTrue(stubVisible.calledWith(true));
+    assert.isTrue(stubLockOrientation.called);
+  });
+
+  test('closing of popup should not resume visibility and orientation' +
+        ' if attention screen is fully opened', function() {
+    var app1 = new MockAppWindow(fakeAppConfig1);
+    var spy = this.sinon.spy(window, 'PopupWindow');
+    var cwf = new ChildWindowFactory(app1);
+    this.sinon.stub(app1, 'isActive').returns(true);
+    this.sinon.stub(app1, 'isVisible').returns(true);
+    cwf.handleEvent(new CustomEvent('mozbrowseropenwindow',
+      {
+        detail: fakeWindowOpenPopup
+      }));
+    var stubLockOrientation = this.sinon.stub(app1, 'lockOrientation');
+    var stubVisible = this.sinon.stub(app1, 'setVisible');
+    MockAttentionScreen.mFullyVisible = true;
+    spy.getCall(0).returnValue.element
+        .dispatchEvent(new CustomEvent('_closing', {
+          detail: spy.getCall(0).returnValue
+        }));
+    assert.isFalse(stubVisible.calledWith(true));
+    assert.isFalse(stubLockOrientation.called);
+  });
 });

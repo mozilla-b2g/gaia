@@ -248,6 +248,10 @@
         //   label: _('add-link-to-home-screen'),
         //   callback: this.bookmarkUrl.bind(this, [item.data.uri])
         // }, {
+          id: 'save-link',
+          label: _('save-link'),
+          callback: this.app.browser.element.download.bind(this, uri)
+        }, {
           id: 'share-link',
           label: _('share-link'),
           callback: this.shareUrl.bind(this, uri)

@@ -21,11 +21,11 @@ Month.prototype = {
   },
 
   get busyDots() {
-    return this.activeMonth.findElements('.icon-dot');
+    return this.activeMonth.findElements('.icon-calendar-dot');
   },
 
   get days() {
-    return this.findElements('.day');
+    return this.activeMonth.findElements('.day');
   },
 
   get weekdayHeaders() {
@@ -41,10 +41,10 @@ Month.prototype = {
   },
 
   get todaySquare() {
-    return this.findElement('.month.active .present');
+    return this.activeMonth.findElement('.present');
   },
 
   squareDots: function(square) {
-    return square.findElements('.icon-dot');
+    return square.findElements('.icon-calendar-dot');
   }
 };

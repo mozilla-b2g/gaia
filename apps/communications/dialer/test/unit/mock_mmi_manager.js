@@ -29,6 +29,9 @@ var MockMmiManager = {
   },
   handleEvent: function(evt) {
 
+  },
+  showImei: function() {
+
   }
 };
 

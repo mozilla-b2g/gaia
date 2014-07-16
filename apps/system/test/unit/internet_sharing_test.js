@@ -15,7 +15,7 @@ requireApp('system/shared/test/unit/mocks/mock_icc_helper.js');
 requireApp('system/test/unit/mock_modal_dialog.js');
 requireApp('system/test/unit/mock_airplane_mode.js');
 requireApp('system/test/unit/mock_asyncStorage.js');
-requireApp('system/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system/js/internet_sharing.js');
 
 var mocksForInternetSharing = new MocksHelper([
@@ -316,4 +316,3 @@ suite('internet sharing > ', function() {
     });
   });
 });
-

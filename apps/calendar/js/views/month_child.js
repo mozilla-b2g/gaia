@@ -83,10 +83,26 @@
     },
 
     _updateBusyCount: function(busytime, difference) {
-      var startDate = busytime.startDate;
-      var dayId = Calc.getDayId(startDate);
-      var count = this._dayToBusyCount[dayId];
-      this._setBusyCount(dayId, count + difference);
+      var endDate = busytime.endDate;
+      var dates = [];
+      // Use the last second of previous day as the base for endDate
+      // (e.g., 1991-09-14T23:59:59 insteads of 1991-09-15T00:00:00).
+      if (endDate.getHours() === 0 &&
+          endDate.getMinutes() === 0 &&
+          endDate.getSeconds() === 0) {
+        endDate = new Date(endDate.getTime() - 1000);
+      }
+
+      dates = Calc.daysBetween(
+        busytime.startDate,
+        endDate
+      );
+
+      dates.forEach(function(date) {
+        var dayId = Calc.getDayId(date);
+        var count = this._dayToBusyCount[dayId];
+        this._setBusyCount(dayId, count + difference);
+      }, this);
     },
 
     _setBusyCount: function(dayId, count) {
@@ -109,7 +125,7 @@
         var dot;
         for (; i < difference; i++) {
           dot = document.createElement('div');
-          dot.className = 'icon-dot';
+          dot.className = 'gaia-icon icon-calendar-dot';
           element.appendChild(dot);
         }
 
@@ -263,6 +279,8 @@
         var busytimes = this.controller.queryCache(this.timespan);
         this._updateBusytimes({ added: busytimes });
         this._initEvents();
+        // at this point the month view should be ready
+        Calendar.Performance.monthReady();
       }.bind(this));
 
       this.hasBeenActive = true;

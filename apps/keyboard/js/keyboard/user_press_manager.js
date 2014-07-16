@@ -35,6 +35,11 @@ var UserPressManager = function(app) {
   // Use a ECMAScript 6 Map object so we won't cast touch.identifier to string.
   // http://mdn.io/map
   this.presses = new Map();
+  // Count the # of touchstart events on a element, we need this to ensure
+  // we didn't remove the event listeners prematurely.
+  // This is a WeakMap because we obviously don't care about
+  // elements already GC'd.
+  this.touchstartCounts = new WeakMap();
 
   this.app = app;
 };
@@ -76,7 +81,7 @@ UserPressManager.prototype.stop = function() {
 };
 
 UserPressManager.prototype.handleEvent = function(evt) {
-  var touch, touchId, el, i;
+  var touch, touchId, el, i, touchstartCount;
   switch (evt.type) {
     case 'contextmenu':
       // Prevent all contextmenu event so no context menu on B2G/Desktop
@@ -88,19 +93,23 @@ UserPressManager.prototype.handleEvent = function(evt) {
       // not handle any presses from mouse events.
       this._ignoreMouseEvents = true;
 
+      touchstartCount = this.touchstartCounts.get(evt.target) || 0;
+      touchstartCount++;
+      this.touchstartCounts.set(evt.target, touchstartCount);
+
+      // Add touchmove and touchend listeners directly to the element so that
+      // we will always hear these events, even if the element is removed from
+      // the DOM and thus no longer the grandchild of the container.
+      // This can happen when the keyboard switches cases, as well as when we
+      // show the alternate characters menu for a key.
+      evt.target.addEventListener('touchmove', this);
+      evt.target.addEventListener('touchend', this);
+      evt.target.addEventListener('touchcancel', this);
+
       for (i = 0; i < evt.changedTouches.length; i++) {
         touch = evt.changedTouches[i];
         touchId = touch.identifier;
         el = touch.target;
-
-        // Add touchmove and touchend listeners directly to the element so that
-        // we will always hear these events, even if the element is removed from
-        // the DOM and thus no longer the grandchild of the container.
-        // This can happen when the keyboard switches cases, as well as when we
-        // show the alternate characters menu for a key.
-        el.addEventListener('touchmove', this);
-        el.addEventListener('touchend', this);
-        el.addEventListener('touchcancel', this);
 
         this._handleNewPress(el, touch, touchId);
       }
@@ -123,10 +132,18 @@ UserPressManager.prototype.handleEvent = function(evt) {
 
     case 'touchend': /* fall through */
     case 'touchcancel':
-      // Since this is the last event, remove event listeners here.
-      evt.target.removeEventListener('touchmove', this);
-      evt.target.removeEventListener('touchend', this);
-      evt.target.removeEventListener('touchcancel', this);
+      touchstartCount = this.touchstartCounts.get(evt.target);
+      touchstartCount--;
+      if (touchstartCount) {
+        this.touchstartCounts.set(evt.target, touchstartCount);
+      } else {
+        // Since this is the last event, remove event listeners here.
+        evt.target.removeEventListener('touchmove', this);
+        evt.target.removeEventListener('touchend', this);
+        evt.target.removeEventListener('touchcancel', this);
+
+        this.touchstartCounts.delete(evt.target);
+      }
 
       // Quietly escape if we are already stopped.
       if (!this._started) {

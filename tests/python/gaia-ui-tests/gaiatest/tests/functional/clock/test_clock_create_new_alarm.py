@@ -49,20 +49,22 @@ class TestClockCreateNewAlarm(GaiaTestCase):
         self.assertEqual(len(alarms), 1)
         self.assertEqual(alarms[0].label, alarm_label_text)
 
+        alarm_time = self.clock.alarms[0].time()
         # Tap to Edit alarm
         edit_alarm = alarms[0].tap()
 
-        # TODO: change alarm time after Bug 946130 is fixed
-        # edit_alarm.tap_time()
-        # self.marionette.switch_to_frame()
-        # edit_alarm.spin_hour()
-        # edit_alarm.spin_minute()
-        # edit_alarm.spin_hour24()
+        time_picker = edit_alarm.tap_time()
+
+        time_picker.spin_hour()
+        time_picker.spin_minute()
+        time_picker.spin_hour24()
+
+        time_picker.tap_done()
 
         edit_alarm.tap_done()
         self.clock.dismiss_banner()
 
-        # TODO: assert that alarm time has changed after Bug 946130 is fixed
+        self.assertNotEqual(self.clock.alarms[0].time, alarm_time)
 
         # turn off the alarm
         self.clock.alarms[0].tap_checkbox()

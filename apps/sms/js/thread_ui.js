@@ -221,22 +221,26 @@ var ThreadUI = global.ThreadUI = {
     //      select a contact from contact search results
     //      will also jump focus to the message input field
     //
-    //  Currently, there are 3 Assimilations.
+    //  Currently, there are 4 Assimilations.
     //
 
     var assimilate = this.assimilateRecipients.bind(this);
 
-    // Assimilation 1
+    // 1. message input field focused
     this.input.addEventListener(
       'focus', assimilate
     );
-    // Assimilation 1
+    // 2. message input field clicked
     this.input.addEventListener(
       'click', assimilate
     );
-    // Assimilation 2
+    // 3. attachment button clicked
     this.attachButton.addEventListener(
       'click', assimilate
+    );
+    // 4. subject focused
+    this.subjectInput.addEventListener(
+      'focus', assimilate
     );
 
     this.container.addEventListener(
@@ -559,6 +563,11 @@ var ThreadUI = global.ThreadUI = {
     // get an event whenever the panel changes?
     Threads.currentId = args.id;
 
+    var prevPanel = args.meta.prev && args.meta.prev.panel;
+
+    if (prevPanel !== 'group-view' && prevPanel !== 'report-view') {
+      this.initializeRendering();
+    }
     return this.updateHeaderData();
   },
 
@@ -610,6 +619,10 @@ var ThreadUI = global.ThreadUI = {
     }
 
     ThreadListUI.mark(threadId, 'read');
+
+    // nothing urgent, let's do it when the main thread has some time
+    setTimeout(MessageManager.markThreadRead.bind(MessageManager, threadId));
+
     return Utils.closeNotificationsForThread(threadId);
   },
 
@@ -1472,12 +1485,6 @@ var ThreadUI = global.ThreadUI = {
       }
     }).bind(this);
 
-    function onMessagesDone() {
-      setTimeout(
-        MessageManager.markThreadRead.bind(MessageManager, filter.threadId)
-      );
-    }
-
     var onRenderMessage = (function renderMessage(message) {
       if (this._stopRenderingNextStep) {
         // stop the iteration
@@ -1491,8 +1498,10 @@ var ThreadUI = global.ThreadUI = {
       return true;
     }).bind(this);
 
-    // We initialize all params before rendering
-    this.initializeRendering();
+    if (this._stopRenderingNextStep) {
+      // we were already asked to stop rendering, before even starting
+      return;
+    }
 
     var filter = new MozSmsFilter();
     filter.threadId = threadId;
@@ -1502,8 +1511,7 @@ var ThreadUI = global.ThreadUI = {
       each: onRenderMessage,
       filter: filter,
       invert: false,
-      end: onMessagesRendered,
-      done: onMessagesDone
+      end: onMessagesRendered
     };
 
     MessageManager.getMessages(renderingOptions);
@@ -2714,13 +2722,21 @@ var ThreadUI = global.ThreadUI = {
 
     var number = this.headerText.dataset.number;
 
+    var tel, email;
+    if (Settings.supportEmailRecipient && Utils.isEmailAddress(number)) {
+      email = number;
+    } else {
+      tel = number;
+    }
+
     if (this.headerText.dataset.isContact === 'true') {
       this.promptContact({
         number: number
       });
     } else {
       this.prompt({
-        number: number,
+        number: tel,
+        email: email,
         isContact: false
       });
     }

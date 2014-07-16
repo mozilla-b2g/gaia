@@ -338,18 +338,24 @@ suite('controllers/preview-gallery', function() {
       this.controller.openPreview();
     });
 
-    test('Should set `previewGalleryOpen` to `true` on app', function() {
-      assert.isTrue(this.app.set.calledWith('previewGalleryOpen', true));
+    test('Should call previewItem', function() {
+      assert.isTrue(this.controller.previewItem.called);
     });
   });
 
   suite('PreviewGalleryController#closePreview()', function() {
     setup(function() {
+      this.controller.view = new this.PreviewGalleryView();
+      this.previewGalleryView = this.controller.view;
+      this.controller.view.close = sinon.spy();
+      this.controller.view.destroy = sinon.spy();
       this.controller.closePreview();
     });
 
     test('Should set `previewGalleryOpen` to `false` on app', function() {
-      assert.isTrue(this.app.set.calledWith('previewGalleryOpen', false));
+      assert.isTrue(this.previewGalleryView.close.called);
+      assert.isTrue(this.previewGalleryView.destroy.called);
+      assert.isTrue(this.controller.view === null);
     });
   });
 

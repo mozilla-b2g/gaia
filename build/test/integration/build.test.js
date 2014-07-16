@@ -748,6 +748,16 @@ suite('Build Integration tests', function() {
     );
   });
 
+  test('make with GAIA_OPTIMIZE=1 BUILD_DEBUG=1',
+    function(done) {
+    helper.exec('GAIA_OPTIMIZE=1 BUILD_DEBUG=1 make',
+      function(error, stdout, stderr) {
+        helper.checkError(error, stdout, stderr);
+        done();
+      }
+    );
+  });
+
   test('make with GAIA_DEV_PIXELS_PER_PX=1.5', function(done) {
     helper.exec('GAIA_DEV_PIXELS_PER_PX=1.5 APP=system make ',
       function(error, stdout, stderr) {

@@ -33,6 +33,11 @@
       }
 
       eventCallbacks[type] = eventCallbacks[type] || [];
+      // the same handler should not be added twice.
+      if (eventCallbacks[type].indexOf(handler) !== -1) {
+        return;
+      }
+
       eventCallbacks[type].push(handler);
     };
 

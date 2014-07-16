@@ -167,12 +167,14 @@
             '" id="activity-window-' + _id++ + '">' +
             '<div class="screenshot-overlay"></div>' +
             '<div class="fade-overlay"></div>' +
+            '<div class="statusbar-overlay"></div>' +
             '</div>';
   };
 
   ActivityWindow.SUB_COMPONENTS = {
     'transitionController': window.AppTransitionController,
     'modalDialog': window.AppModalDialog,
+    'valueSelector': window.ValueSelector,
     'authDialog': window.AppAuthenticationDialog,
     'contextmenu': window.BrowserContextMenu,
     'childWindowFactory': window.ChildWindowFactory
@@ -181,7 +183,7 @@
   ActivityWindow.REGISTERED_EVENTS =
     ['mozbrowserclose', 'mozbrowsererror', 'mozbrowservisibilitychange',
       'mozbrowserloadend', 'mozbrowseractivitydone', 'mozbrowserloadstart',
-      '_localized', '_opened', '_closing', 'acitivityclosing', 'popupclosing'];
+      '_localized'];
 
   ActivityWindow.prototype._handle_mozbrowseractivitydone =
     function aw__handle_mozbrowseractivitydone() {

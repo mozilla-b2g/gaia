@@ -103,18 +103,6 @@
   color: #00abcd;
 }
 
-/* Checked status for RTL*/
-html[dir="rtl"] [role="dialog"][data-type="value-selector"] [role="listbox"] li[aria-selected="true"] label {
-  background: transparent url(value_selector/images/icons/checked.png) left 1.2rem top 50% / 2.1rem no-repeat;
-}
-
-html[dir="rtl"] [role="dialog"][data-type="value-selector"] [role="listbox"] li[aria-selected="true"] span {
-  padding-left: 2.6rem;
-  margin-left: 1.2rem;
-  padding-right: 0;
-  color: #00abcd;
-}
-
 /* Menu & buttons setup */
 [role="dialog"][data-type="value-selector"] menu {
   white-space: nowrap;
@@ -202,11 +190,21 @@ button[disabled]::-moz-selection {
 }
 
 /* Right to left tweaks */
-html[dir="rtl"] #value-selector li input:checked + span,
-html[dir="rtl"] #value-selector li[aria-selected="true"] span {
+html[dir="rtl"] .value-selector li input:checked + span,
+html[dir="rtl"] .value-selector li[aria-selected="true"] span {
   padding-left: 2.6rem;
   padding-right: 1.5rem;
   margin-left: 1.2rem;
   margin-right: 0;
   background-position: 0 50%;
 }
+
+html[dir="rtl"] [role="dialog"][data-type="value-selector"] [role="listbox"] li[aria-selected="true"] label {
+  background-position: left 1.2rem top 50%;
+}
+
+html[dir="rtl"] [role="dialog"][data-type="value-selector"] [role="listbox"] li[aria-selected="true"] span {
+  padding-left: 2.6rem;
+  padding-right: 0;
+}
+

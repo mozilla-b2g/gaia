@@ -3,7 +3,7 @@
 
 requireApp('system/test/unit/mock_apps_mgmt.js');
 requireApp('system/test/unit/mock_app.js');
-requireApp('system/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system/js/applications.js');
 
 suite('applications test', function() {
@@ -48,7 +48,7 @@ suite('applications test', function() {
     teardown(function() {
       clock.restore();
     });
-    
+
     test('webapps-registry-ready is "no" applications.ready should be false',
                                                                     function() {
       testApplications.start();

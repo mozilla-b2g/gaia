@@ -42,10 +42,13 @@
     this.name = props.name || '';
     this.icon = props.icon || null;
     this.pinned = props.pinned || [];
-    this.webicons = props.webicons || [];
 
     // A list of the web results for this collection view
     this.webResults = [];
+
+    // list of base64 icon data for webResults from E.me api
+    // these icons are NOT ROUNDED
+    this.webicons = props.webicons || [];
 
     // an object containing data about the background image
     // {src: string, source: string, checksum: string}
@@ -61,7 +64,7 @@
 
     // for rendering pinned homescreen apps/bookmarks
     if (window.HomeIcons) {
-      this.homeIcons = new HomeIcons();
+      this.homeIcons = props.homeIcons || new HomeIcons();
       this.homeIcons.init();
     }
   }
@@ -73,37 +76,6 @@
       return new QueryCollection(data);
     }
     return null;
-  };
-
-  BaseCollection.getBackground = function getBackground(collection, iconSize) {
-    var src;
-    var options = {
-      width: iconSize,
-      height: iconSize
-    };
-
-    if (collection.categoryId) {
-      options.categoryId = collection.categoryId;
-    }
-    else {
-      options.query = collection.query;
-    }
-
-    return eme.api.Search.bgimage(options).then(function success(response) {
-      var image = response.response.image;
-      if (image) {
-        src = image.data;
-        if (/image\//.test(image.MIMEType)) {  // base64 image data
-          src = 'data:' + image.MIMEType + ';base64,' + image.data;
-        }
-      }
-
-      return {
-        src: src,
-        source: response.response.source,
-        checksum: response.checksum || null
-      };
-    });
   };
 
   BaseCollection.prototype = {
@@ -328,6 +300,20 @@
       }, this);
     },
 
+    addItemToGrid: function addItemToGrid(item, grid, position) {
+      this.pinned.splice(position, 1, new PinnedHomeIcon(item.identifier));
+
+      grid.add(this.toGridObject(item), position);
+
+      // Add a divider if it's our first pinned result.
+      if (this.pinned.length === 1) {
+        grid.add(new GaiaGrid.Divider(), 1);
+      }
+
+      grid.render();
+      this.renderIcon();
+    },
+
     renderWebResults: function render(grid) {
       if (!this.webResults.length) {
         return;
@@ -359,15 +345,17 @@
 
       // Build the small icons from pinned, then webicons
       var numAppIcons = CollectionIcon.numAppIcons;
-      var iconSrcs = this.pinned.slice(0, numAppIcons);
+      var iconSrcs = this.pinned.slice(0, numAppIcons)
+                         .map((item) => this.toGridObject(item).icon);
 
-      iconSrcs = iconSrcs.concat(
-        this.webicons.slice(0, numAppIcons - iconSrcs.length));
+      if (iconSrcs.length < numAppIcons) {
+        var moreIcons =
+          this.webicons
+          // bug 1028674: deupde
+          .filter((webicon) => iconSrcs.indexOf(webicon) === -1)
+          .slice(0, numAppIcons - iconSrcs.length);
 
-      for (var i = 0; i < iconSrcs.length; i++) {
-        if (typeof iconSrcs[i] === 'object') {
-          iconSrcs[i] = this.toGridObject(iconSrcs[i]).icon;
-        }
+        iconSrcs = iconSrcs.concat(moreIcons);
       }
 
       var icon = new CollectionIcon({

@@ -106,6 +106,7 @@
   HomescreenWindow.SUB_COMPONENTS = {
     'transitionController': window.AppTransitionController,
     'modalDialog': window.AppModalDialog,
+    'valueSelector': window.ValueSelector,
     'authDialog': window.AppAuthenticationDialog,
     'childWindowFactory': window.ChildWindowFactory
   };
@@ -166,6 +167,7 @@
   HomescreenWindow.prototype.view = function hw_view() {
     return '<div class="appWindow homescreen" id="homescreen">' +
               '<div class="fade-overlay"></div>' +
+              '<div class="statusbar-overlay"></div>' +
            '</div>';
   };
 

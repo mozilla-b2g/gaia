@@ -226,3 +226,10 @@ section[role="region"] .cmp-attachment-btn .icon.icon-attachment {
   text-align: center;
 }
 
+.cmp-error-message {
+  background-color: black;
+  color: #fff;
+  padding: 0.8rem;
+  font-size: 120%;
+  text-align: center;
+}
