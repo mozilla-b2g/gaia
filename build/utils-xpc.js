@@ -241,11 +241,16 @@ function getWebapp(app, domain, scheme, port, stageDir) {
   }
 
   let manifest = manifestFile.exists() ? manifestFile : updateFile;
+  let manifestJSON = getJSON(manifest);
 
   // Use the folder name as the the domain name
   let appDomain = appDir.leafName + '.' + domain;
+  if (manifestJSON.origin) {
+    appDomain = utils.getNewURI(manifestJSON.origin).host;
+  }
+
   let webapp = {
-    manifest: getJSON(manifest),
+    manifest: manifestJSON,
     manifestFile: manifest,
     buildManifestFile: manifest,
     url: scheme + appDomain,
