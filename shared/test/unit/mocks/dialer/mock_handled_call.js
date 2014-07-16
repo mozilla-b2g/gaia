@@ -1,4 +1,4 @@
-/* globals MockNavigatorMozTelephony, HandledCall */
+/* globals HandledCall, MockNavigatorMozTelephony */
 /* exported telephonyAddCall, telephonyAddCdmaCall */
 
 'use strict';

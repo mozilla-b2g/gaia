@@ -111,6 +111,7 @@ suite('dialer/handled_call', function() {
     this.sinon.stub(MockContactPhotoHelper,
                     'getThumbnail').returns(photoThumbnail);
     this.sinon.useFakeTimers(Date.now());
+    this.sinon.spy(MockCallsHandler, 'updatePlaceNewCall');
 
     mockCall = new MockCall(String(phoneNumber), 'dialing');
     subject = new HandledCall(mockCall);
@@ -141,7 +142,13 @@ suite('dialer/handled_call', function() {
     });
 
     test('call event listener', function() {
-      assert.isTrue(mockCall._eventListeners.statechange.length > 0);
+      assert.equal(mockCall._eventListeners.statechange.length, 2);
+    });
+
+    test('CallsHandler.updatePlaceNewCall added as call state listener',
+      function() {
+      subject.call.mChangeState();
+      sinon.assert.calledOnce(MockCallsHandler.updatePlaceNewCall);
     });
 
     suite('node', function() {
@@ -211,7 +218,6 @@ suite('dialer/handled_call', function() {
       mockCall = new MockCall(String(phoneNumber), 'connected');
       subject = new HandledCall(mockCall);
 
-      assert.isTrue(MockCallScreen.mEnableKeypadCalled);
       assert.isFalse(subject.node.hidden);
       assert.isTrue(subject.node.classList.contains('ongoing'));
     });
@@ -273,32 +279,6 @@ suite('dialer/handled_call', function() {
     });
   });
 
-  suite('while dialing', function() {
-    var updateKeypadSpy;
-
-    setup(function() {
-      updateKeypadSpy = this.sinon.spy(MockCallsHandler, 'updateKeypadEnabled');
-      mockCall.mChangeState('dialing');
-    });
-
-    test('should check if we can enable the keypad', function() {
-      assert.isTrue(updateKeypadSpy.calledOnce);
-    });
-  });
-
-  suite('while alerting', function() {
-    var updateKeypadSpy;
-
-    setup(function() {
-      updateKeypadSpy = this.sinon.spy(MockCallsHandler, 'updateKeypadEnabled');
-      mockCall.mChangeState('alerting');
-    });
-
-    test('should check if we can enable the keypad', function() {
-      assert.isTrue(updateKeypadSpy.calledOnce);
-    });
-  });
-
   suite('on connect', function() {
     setup(function() {
       this.sinon.spy(AudioCompetingHelper, 'compete');
@@ -315,10 +295,6 @@ suite('dialer/handled_call', function() {
 
     test('start the timer', function() {
       assert.isTrue(MockCallScreen.mCalledCreateTicker);
-    });
-
-    test('keypad enabled', function() {
-      assert.isTrue(MockCallScreen.mEnableKeypadCalled);
     });
 
     test('sync speaker', function() {
@@ -498,10 +474,6 @@ suite('dialer/handled_call', function() {
       mockCall._hold();
     });
 
-    test('disable keypad', function() {
-      assert.equal(MockCallsHandler.mUpdateKeypadEnabledCalled, false);
-    });
-
     test('add the css class', function() {
       assert.isTrue(subject.node.classList.contains('held'));
     });
@@ -523,10 +495,6 @@ suite('dialer/handled_call', function() {
 
     test('remove the css class', function() {
       assert.isFalse(subject.node.classList.contains('held'));
-    });
-
-    test('enable keypad', function() {
-      assert.isTrue(MockCallScreen.mEnableKeypadCalled);
     });
 
     test('sync speaker', function() {

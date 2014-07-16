@@ -111,6 +111,8 @@ suite('calls handler', function() {
 
       setup(function() {
         mockCall = new MockCall('12334', 'incoming');
+        mockCall.addEventListener(
+          'statechange', CallsHandler.updatePlaceNewCall);
         mockHC = telephonyAddCall.call(this, mockCall);
         var conn1 = new window.MockMobileconnection();
         conn1.voice = {
@@ -158,6 +160,12 @@ suite('calls handler', function() {
         var toDefaultSpy = this.sinon.spy(MockCallScreen, 'switchToDefaultOut');
         MockNavigatorMozTelephony.mTriggerCallsChanged();
         assert.isTrue(toDefaultSpy.calledOnce);
+      });
+
+      test('should disable the place new call button', function() {
+        this.sinon.spy(MockCallScreen, 'disablePlaceNewCall');
+        mockCall.mChangeState('dialing');
+        sinon.assert.calledOnce(MockCallScreen.disablePlaceNewCall);
       });
 
       suite('screen management', function() {
@@ -219,6 +227,8 @@ suite('calls handler', function() {
       setup(function() {
         var firstCall = new MockCall('543552', 'incoming');
         extraCall = new MockCall('12334', 'incoming');
+        extraCall.addEventListener(
+          'statechange', CallsHandler.updatePlaceNewCall);
 
         telephonyAddCall.call(this, firstCall, {trigger: true});
         extraHC = telephonyAddCall.call(this, extraCall);
@@ -318,6 +328,12 @@ suite('calls handler', function() {
           false, 'end');
         assert.equal(MockCallScreen.incomingNumber.textContent,
           'withheld-number');
+      });
+
+      test('should disable the place new call button', function() {
+        this.sinon.spy(MockCallScreen, 'disablePlaceNewCall');
+        extraCall.mChangeState('alerting');
+        sinon.assert.calledOnce(MockCallScreen.disablePlaceNewCall);
       });
 
       suite('screen management', function() {
@@ -673,6 +689,8 @@ suite('calls handler', function() {
 
       setup(function() {
         mockCall = new MockCall('12334', 'incoming');
+        mockCall.addEventListener(
+          'statechange', CallsHandler.updatePlaceNewCall);
         telephonyAddCall.call(this, mockCall, {trigger: true});
       });
 
@@ -687,6 +705,12 @@ suite('calls handler', function() {
         CallsHandler.answer();
         assert.isTrue(renderSpy.calledWith('connected'));
       });
+
+      test('should enable the place new call button', function() {
+        this.sinon.spy(MockCallScreen, 'enablePlaceNewCall');
+        CallsHandler.answer();
+        sinon.assert.calledOnce(MockCallScreen.enablePlaceNewCall);
+      });
     });
 
     suite('> CallsHandler.end()', function() {
@@ -695,6 +719,8 @@ suite('calls handler', function() {
 
         setup(function() {
           mockCall = new MockCall('543552', 'incoming');
+          mockCall.addEventListener(
+            'statechange', CallsHandler.updatePlaceNewCall);
           telephonyAddCall.call(this, mockCall, {trigger: true});
           MockNavigatorMozTelephony.active = mockCall;
         });
@@ -703,6 +729,12 @@ suite('calls handler', function() {
           var hangUpSpy = this.sinon.spy(mockCall, 'hangUp');
           CallsHandler.end();
           assert.isTrue(hangUpSpy.calledOnce);
+        });
+
+        test('should enable the place new call button', function() {
+          this.sinon.spy(MockCallScreen, 'enablePlaceNewCall');
+          CallsHandler.end();
+          sinon.assert.calledOnce(MockCallScreen.enablePlaceNewCall);
         });
       });
 
@@ -745,6 +777,8 @@ suite('calls handler', function() {
         setup(function() {
           firstCall = new MockCall('543552', 'incoming');
           secondCall = new MockCall('12334', 'incoming');
+          secondCall.addEventListener(
+            'statechange', CallsHandler.updatePlaceNewCall);
 
           telephonyAddCall.call(this, firstCall, {trigger: true});
           telephonyAddCall.call(this, secondCall, {trigger: true});
@@ -762,6 +796,12 @@ suite('calls handler', function() {
           CallsHandler.end();
           assert.isTrue(hangUpSpy.notCalled);
         });
+
+        test('should enable the place new call button', function() {
+          this.sinon.spy(MockCallScreen, 'enablePlaceNewCall');
+          CallsHandler.end();
+          sinon.assert.calledOnce(MockCallScreen.enablePlaceNewCall);
+        });
       });
 
       suite('> refusing an incoming call', function() {
@@ -769,6 +809,8 @@ suite('calls handler', function() {
 
         setup(function() {
           mockCall = new MockCall('543552', 'incoming');
+          mockCall.addEventListener(
+            'statechange', CallsHandler.updatePlaceNewCall);
 
           telephonyAddCall.call(this, mockCall, {trigger: true});
         });
@@ -777,6 +819,12 @@ suite('calls handler', function() {
           var hangUpSpy = this.sinon.spy(mockCall, 'hangUp');
           CallsHandler.end();
           assert.isTrue(hangUpSpy.calledOnce);
+        });
+
+        test('should enable the place new call button', function() {
+          this.sinon.spy(MockCallScreen, 'enablePlaceNewCall');
+          CallsHandler.end();
+          sinon.assert.calledOnce(MockCallScreen.enablePlaceNewCall);
         });
       });
     });
@@ -810,6 +858,8 @@ suite('calls handler', function() {
           setup(function() {
             connectedCall = new MockCall('543552', 'connected');
             incomingCall = new MockCall('12334', 'incoming');
+            incomingCall.addEventListener(
+              'statechange', CallsHandler.updatePlaceNewCall);
 
             telephonyAddCall.call(this, connectedCall, {trigger: true});
             MockNavigatorMozTelephony.active = connectedCall;
@@ -826,6 +876,12 @@ suite('calls handler', function() {
             var hideSpy = this.sinon.spy(MockCallScreen, 'hideIncoming');
             CallsHandler.holdAndAnswer();
             assert.isTrue(hideSpy.calledOnce);
+          });
+
+          test('should disable the place new call button', function() {
+            this.sinon.spy(MockCallScreen, 'disablePlaceNewCall');
+            incomingCall.mChangeState('dialing');
+            sinon.assert.calledOnce(MockCallScreen.disablePlaceNewCall);
           });
       });
 
