@@ -97,6 +97,12 @@
   height: calc(100% - 2.4rem);
 }
 
+.appWindow.searchWindow > div,
+.appWindow.searchWindow > iframe {
+  top: 0;
+  height: 100%;
+}
+
 .appWindow.navigation > iframe {
   height: calc(100% - 2.4rem - 1rem);
 }
@@ -192,8 +198,8 @@
  */
 .appWindow.searchWindow .activityWindow,
 .appWindow.searchWindow .popupWindow {
-  height: calc(100% + 7rem);
-  top: -7rem;
+  height: calc(100% + 7rem + 2.4rem);
+  top: calc(-7rem - 2.4rem);
 }
 
 .appWindow.searchWindow > .statusbar-overlay {

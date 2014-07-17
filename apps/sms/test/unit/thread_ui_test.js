@@ -8,7 +8,8 @@
          ActivityPicker, KeyEvent, MockNavigatorSettings, MockContactRenderer,
          Draft, MockStickyHeader, MultiSimActionButton, Promise, KeyboardEvent,
          MockLazyLoader, WaitingScreen, Navigation, MockDialog, MockSettings,
-         FocusEvent
+         FocusEvent,
+         DocumentFragment
 */
 
 'use strict';
@@ -111,6 +112,7 @@ suite('thread_ui.js >', function() {
   var threadMessages;
   var mainWrapper;
   var headerText;
+  var recipientSuggestions;
 
   var realMozL10n;
   var realMozMobileMessage;
@@ -198,6 +200,9 @@ suite('thread_ui.js >', function() {
     threadMessages = document.getElementById('thread-messages');
     mainWrapper = document.getElementById('main-wrapper');
     headerText = document.getElementById('messages-header-text');
+    recipientSuggestions = document.getElementById(
+      'messages-recipient-suggestions'
+    );
 
     this.sinon.useFakeTimers();
 
@@ -322,6 +327,7 @@ suite('thread_ui.js >', function() {
         unknownRenderer = new MockContactRenderer();
         sinon.spy(suggestionRenderer, 'render');
         sinon.spy(unknownRenderer, 'render');
+        this.sinon.spy(ThreadUI, 'toggleRecipientSuggestions');
 
         this.sinon.stub(ContactRenderer, 'flavor').throws();
         ContactRenderer.flavor.withArgs('suggestion')
@@ -358,18 +364,22 @@ suite('thread_ui.js >', function() {
         sinon.assert.calledWithMatch(suggestionRenderer.render, {
           contact: contact,
           input: '999',
-          target: container.querySelector('ul.contact-list')
+          target: sinon.match.instanceOf(DocumentFragment)
         });
 
         sinon.assert.calledWithMatch(unknownRenderer.render, {
           contact: unknown,
-           input: '999',
-           target: container.querySelector('ul.contact-list')
+          input: '999',
+          target: sinon.match.instanceOf(DocumentFragment)
         });
+
+        sinon.assert.calledWith(
+          ThreadUI.toggleRecipientSuggestions,
+          sinon.match.instanceOf(DocumentFragment)
+        );
       });
 
       test('does not display entered recipients', function() {
-
         sinon.assert.calledWithMatch(suggestionRenderer.render, {
             skip: ['888']
         });
@@ -377,6 +387,45 @@ suite('thread_ui.js >', function() {
            skip: ['888']
         });
       });
+    });
+
+    test('toggling suggestions list', function() {
+      var contactList = recipientSuggestions.querySelector('.contact-list');
+      recipientSuggestions.classList.add('hide');
+      contactList.textContent = '';
+
+      var documentFragment = document.createDocumentFragment(),
+          suggestionNode = document.createElement('li');
+      suggestionNode.innerHTML =
+        '<a class="suggestion">' +
+          '<p class="name">Jean Dupont</p>' +
+          '<p class="number">0123456789</p>' +
+        '</a>';
+      documentFragment.appendChild(suggestionNode);
+
+      ThreadUI.toggleRecipientSuggestions(documentFragment);
+
+      assert.isFalse(
+        recipientSuggestions.classList.contains('hide'),
+        'Recipient suggestions should be visible'
+      );
+      assert.equal(
+        contactList.firstElementChild,
+        suggestionNode,
+        'Recipient suggestions should contain correct data'
+      );
+      assert.equal(contactList.childNodes.length, 1);
+
+
+      ThreadUI.toggleRecipientSuggestions();
+
+      assert.isTrue(
+        recipientSuggestions.classList.contains('hide'),
+        'Recipient suggestions should be hidden'
+      );
+      assert.equal(
+        contactList.textContent, '', 'Recipient suggestions should be cleared'
+      );
     });
   });
 
@@ -1149,15 +1198,13 @@ suite('thread_ui.js >', function() {
         node.textContent = '999';
 
         // fake markup for some contact suggestions
-        container.innerHTML =
-          '<ul class="contact-list">' +
-            '<li>' +
-              '<a class="suggestion">' +
-                '<p class="name">Jean Dupont</p>' +
-                '<p class="number">0123456789</p>' +
-              '</a>' +
-            '</li>' +
-          '</ul>';
+        recipientSuggestions.querySelector('.contact-list').innerHTML =
+          '<li>' +
+            '<a class="suggestion">' +
+              '<p class="name">Jean Dupont</p>' +
+              '<p class="number">0123456789</p>' +
+            '</a>' +
+          '</li>';
 
         this.sinon.spy(ThreadUI.recipients, 'add');
         this.sinon.stub(Navigation, 'isCurrentPanel');
@@ -1174,6 +1221,7 @@ suite('thread_ui.js >', function() {
 
       test('Recipient assimilation is called when focus on subject',
       function() {
+        this.sinon.spy(ThreadUI, 'toggleRecipientSuggestions');
         subject.dispatchEvent(new FocusEvent('focus'));
 
         // recipient added and container is cleared
@@ -1182,7 +1230,8 @@ suite('thread_ui.js >', function() {
           number: '999',
           source: 'manual'
         });
-        assert.equal(container.textContent, '');
+
+        sinon.assert.calledWithExactly(ThreadUI.toggleRecipientSuggestions);
       });
     });
 
@@ -3792,12 +3841,14 @@ suite('thread_ui.js >', function() {
   });
 
   suite('updateCarrier', function() {
-    var contacts = [], number;
+    var contacts = [], number, email, detailsEmail;
     var carrierTag;
 
     suiteSetup(function() {
       contacts.push(new MockContact());
       number = contacts[0].tel[0].value;
+      email = contacts[0].email[0].value;
+      detailsEmail = Utils.getContactDetails(email, contacts);
     });
 
     setup(function() {
@@ -3868,6 +3919,26 @@ suite('thread_ui.js >', function() {
 
         assert.ok(carrierTag.querySelector('.has-phone-type'));
         assert.ok(carrierTag.querySelector('.has-phone-carrier'));
+      });
+
+      test(' If there is one participant (email) & contacts', function() {
+        MockSettings.supportEmailRecipient = true;
+        var thread = {
+          participants: [email]
+        };
+
+        ThreadUI.updateCarrier(thread, contacts, detailsEmail);
+        assert.isTrue(threadMessages.classList.contains('has-carrier'));
+      });
+
+      test(' If there is one participant (email) & no contacts', function() {
+        MockSettings.supportEmailRecipient = true;
+        var thread = {
+          participants: [email]
+        };
+
+        ThreadUI.updateCarrier(thread, [], detailsEmail);
+        assert.isFalse(threadMessages.classList.contains('has-carrier'));
       });
     });
   });
@@ -4584,7 +4655,7 @@ suite('thread_ui.js >', function() {
           });
 
           this.sinon.stub(
-            MockContacts, 'findByPhoneNumber', function(phone, fn) {
+            MockContacts, 'findByAddress', function(phone, fn) {
 
             fn([new MockContact()]);
 
@@ -4601,7 +4672,7 @@ suite('thread_ui.js >', function() {
           });
 
           this.sinon.stub(
-            MockContacts, 'findByPhoneNumber', function(phone, fn) {
+            MockContacts, 'findByAddress', function(phone, fn) {
 
             fn([new MockContact()]);
 
@@ -5065,13 +5136,32 @@ suite('thread_ui.js >', function() {
         var activity = MockMozActivity.instances[0];
 
         activity.result = {
-          tel: [{ value: true }]
+          select: [{ value: true }]
         };
 
         MockMozActivity.instances[0].onsuccess();
 
         assert.isTrue(Recipients.View.isFocusable);
       });
+    });
+
+    test('pick in the case of Settings.supportEmailRecipient = true',
+    function() {
+      MockSettings.supportEmailRecipient = true;
+      ThreadUI.requestContact();
+
+      var requestedProps = MockMozActivity.calls[0].data.contactProperties;
+      assert.include(requestedProps, 'tel');
+      assert.include(requestedProps, 'email');
+    });
+
+    test('pick in the case of Settings.supportEmailRecipient = false',
+    function() {
+      MockSettings.supportEmailRecipient = false;
+      ThreadUI.requestContact();
+
+      var requestedProps = MockMozActivity.calls[0].data.contactProperties;
+      assert.include(requestedProps, 'tel');
     });
   });
 

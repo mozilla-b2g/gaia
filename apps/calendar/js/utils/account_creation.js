@@ -19,8 +19,11 @@ Calendar.ns('Utils').AccountCreation = (function() {
    */
   function AccountCreation(app) {
     this.app = app || Calendar.App;
-
     Calendar.Responder.call(this);
+
+    Calendar.Promise.denodeifyAll(this, [
+      'send'
+    ]);
   }
 
   AccountCreation.prototype = {

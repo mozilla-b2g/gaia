@@ -3,6 +3,8 @@
 /* global HtmlImports */
 /* global FindMyDevice */
 /* global MockSettingsListener */
+/* global MockSettingsHelper */
+/* global IAC_API_WAKEUP_REASON_TRY_DISABLE */
 
 'use strict';
 
@@ -14,9 +16,11 @@ require('/shared/js/html_imports.js');
 
 require('/shared/test/unit/mocks/mocks_helper.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
+require('/shared/test/unit/mocks/mock_settings_helper.js');
+require('/shared/js/findmydevice_iac_api.js');
 
 var mocksForFindMyDevice = new MocksHelper([
-  'SettingsListener'
+  'SettingsListener', 'SettingsHelper'
 ]).init();
 
 suite('Find My Device panel > ', function() {
@@ -136,15 +140,29 @@ suite('Find My Device panel > ', function() {
     assert.isFalse(!!loginButton.disabled);
   });
 
-  test('auto-enable when logging in using the login button', function() {
+  test('auto-enable if not registered when logging in using the login button',
+  function(done) {
+    MockSettingsHelper('findmydevice.registered').set(false);
+
     MockMozId.onlogout();
     loginButton.click();
     MockMozId.onlogin();
 
-    var lock = MockSettingsListener.getSettingsLock().locks.pop();
-    assert.deepEqual({
-      'findmydevice.enabled': true
-    }, lock, 'check whether findmydevice.enabled was set automatically');
+    MockSettingsHelper('findmydevice.enabled').get(function(enabled) {
+      assert.isTrue(enabled);
+      done();
+    });
+  });
+
+  test('don\'t auto-enable if registered when logging in with the login button',
+  function() {
+    MockSettingsHelper('findmydevice.registered').set(true);
+
+    MockMozId.onlogout();
+    loginButton.click();
+    MockMozId.onlogin();
+
+    assert.isUndefined(MockSettingsHelper.instances['findmydevice.enabled']);
   });
 
   test('bug 997310 - don\'t disable on non-interactive login', function() {
@@ -180,6 +198,24 @@ suite('Find My Device panel > ', function() {
     MockMozId.onlogin();
     assert.equal(0, MockSettingsListener.getSettingsLock().locks.length,
       'ensure findmydevice.enabled was not set automatically on FxA login');
+  });
+
+  test('disallow changes when findmydevice.can-disable is false', function() {
+    MockSettingsListener.mCallbacks['findmydevice.can-disable'](false);
+    assert.isTrue(checkbox.disabled,
+      'checkbox is not disabled while findmydevice.can-disable is false');
+    MockSettingsListener.mCallbacks['findmydevice.can-disable'](true);
+    assert.isFalse(checkbox.disabled,
+      'checkbox is disabled while findmydevice.can-disable is true');
+  });
+
+  test('wake up find my device upon a disable attempt', function() {
+    this.sinon.stub(window, 'wakeUpFindMyDevice');
+    checkbox.checked = true;
+    checkbox.click();
+    assert.ok(window.wakeUpFindMyDevice.calledWith(
+        IAC_API_WAKEUP_REASON_TRY_DISABLE));
+    window.wakeUpFindMyDevice.reset();
   });
 
   suiteTeardown(function() {

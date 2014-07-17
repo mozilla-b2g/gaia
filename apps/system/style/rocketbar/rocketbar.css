@@ -177,12 +177,6 @@ body:not(.rb-enabled) #rocketbar {
   height: calc(100% - 9.8rem);
 }
 
-#rocketbar-results iframe {
-  border: 0;
-  width: 100%;
-  height: 100%;
-}
-
 #rocketbar-results.hidden, #rocketbar-results iframe.hidden,
 #rocketbar-backdrop.hidden {
   display: none;

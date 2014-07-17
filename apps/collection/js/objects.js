@@ -51,7 +51,7 @@
     this.webicons = props.webicons || [];
 
     // an object containing data about the background image
-    // {src: string, source: string, checksum: string}
+    // {blob: blob, source: string, checksum: string}
     this.background = props.background || {};
 
     // save copy of original properties so we can tell when to re-render the
@@ -60,12 +60,6 @@
 
     if (window.SearchDedupe) {
       this.dedupe = new SearchDedupe();
-    }
-
-    // for rendering pinned homescreen apps/bookmarks
-    if (window.HomeIcons) {
-      this.homeIcons = props.homeIcons || new HomeIcons();
-      this.homeIcons.init();
     }
   }
 
@@ -142,7 +136,7 @@
       var before = this.originalProps;
       try {
         // background
-        if (before.background.src !== this.background.src) {
+        if (before.background.blob !== this.background.blob) {
           this.originalProps.background = this.background;
           return true;
         }
@@ -203,8 +197,8 @@
       var idx = this.pinnedIdentifiers.indexOf(identifier);
       if (idx !== -1) {
         this.pinned.splice(idx, 1);
-        eme.log('removed pinned item', identifier);
-        return this.save();
+        return this.save()
+               .then(() => eme.log('removed pinned item', identifier));
       }
     },
 
@@ -265,7 +259,11 @@
     toGridObject: function(item) {
       var icon;
       if (item.type === 'homeIcon') {
-        icon = this.homeIcons.get(item.identifier);
+        if (!HomeIcons.ready) {
+          eme.warn('HomeIcons not ready, pinned apps may not render properly');
+        }
+
+        icon = HomeIcons.get(item.identifier);
       } else if (item.type === 'webResult') {
         item.features = item.features || {};
         item.features.isEditable = false;
@@ -360,7 +358,8 @@
 
       var icon = new CollectionIcon({
         iconSrcs: iconSrcs,
-        bgSrc: this.background ? this.background.src : null
+        bgSrc: this.background ? URL.createObjectURL(this.background.blob)
+                               : null
       });
 
       // return a promise

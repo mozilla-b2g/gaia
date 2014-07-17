@@ -180,7 +180,9 @@
       var appObject = this.mapToApp({
         manifestURL: application.manifestURL
       });
+      var lastDivider = app.grid.removeUntilDivider();
       app.grid.add(appObject);
+      app.grid.add(lastDivider);
       app.grid.render();
     },
 

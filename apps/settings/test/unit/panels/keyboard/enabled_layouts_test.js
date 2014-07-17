@@ -2,7 +2,7 @@
 
 suite('KeyboardEnabledLayoutsCore', function() {
   var map = {
-    'panels/keyboard_enabled_layouts/core': {
+    'panels/keyboard/enabled_layouts': {
       'modules/settings_service': 'unit/mock_settings_service',
       'modules/mvvm/list_view': 'unit/mock_list_view'
     }
@@ -17,7 +17,7 @@ suite('KeyboardEnabledLayoutsCore', function() {
     testRequire([
       'unit/mock_keyboard_context',
       'unit/mock_list_view',
-      'panels/keyboard_enabled_layouts/core'
+      'panels/keyboard/enabled_layouts'
     ], map, function(MockKeyboardContext, MockListView,
       KeyboardEnabledLayoutsCore) {
         this.MockKeyboardContext = MockKeyboardContext;

@@ -31,6 +31,7 @@
     "apps/settings/test/marionette/tests/message_settings_test.js",
     "apps/settings/test/marionette/tests/airplane_mode_settings_test.js",
     "apps/system/test/marionette/notification_resend_test.js",
-    "apps/verticalhome/test/marionette/app_hosted_use_cached_icon_test.js"
+    "apps/verticalhome/test/marionette/app_hosted_use_cached_icon_test.js",
+    "apps/verticalhome/test/marionette/bookmark_uninstall_test.js"
   ]
 }

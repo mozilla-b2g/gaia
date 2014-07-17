@@ -59,9 +59,11 @@
     }
 
     // draw stored background if in full size (as opposed to square icon size)
-    if (bg && bg.src && bg.isFullSize) {
-      elements.content.style.backgroundImage = 'url(' + bg.src + ')';
-      eme.log('drawBackground', 'drawn');
+    if (bg && bg.blob && bg.isFullSize) {
+      var url = URL.createObjectURL(bg.blob);
+      elements.content.style.backgroundImage = 'url(' + url + ')';
+      eme.log('drawBackground', 'drawn', url);
+
     } else {
       eme.log('drawBackground', 'not drawn, failed conditions', bg);
     }

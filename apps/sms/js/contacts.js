@@ -2,7 +2,7 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 (function(exports) {
   'use strict';
-  /*global fb, Settings */
+  /*global fb, Settings, Utils */
   var unknownNumbers = [];
 
   var filterFns = {
@@ -304,6 +304,22 @@
           callback(results);
         });
       });
+    },
+
+    findByAddress: function contacts_findByAddress(fValue, callback) {
+      if (Settings.supportEmailRecipient && Utils.isEmailAddress(fValue)) {
+        this.findExactByEmail(fValue, callback);
+      } else {
+        this.findByPhoneNumber(fValue, callback);
+      }
+    },
+
+    findExactByEmail: function contacts_findExactByEmail(fValue, callback) {
+      return this.findBy({
+        filterBy: ['email'],
+        filterOp: 'equals',
+        filterValue: fValue
+      }, callback);
     },
 
     addUnknown: function addUnknown(number) {

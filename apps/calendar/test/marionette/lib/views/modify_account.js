@@ -38,6 +38,16 @@ ModifyAccount.prototype = {
     this
       .findElement('.delete-record')
       .click();
+
+    this.client.waitFor(function() {
+      var confirm = this.findElement('.delete-confirm');
+      if (!confirm.displayed()) {
+        return false;
+      }
+
+      confirm.click();
+      return true;
+    }.bind(this));
   },
 
   /**

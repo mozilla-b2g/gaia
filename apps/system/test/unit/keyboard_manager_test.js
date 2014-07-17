@@ -1,6 +1,6 @@
 /*global
   KeyboardManager, sinon, KeyboardHelper, MockKeyboardHelper,
-  MocksHelper, TransitionEvent, MockNavigatorSettings */
+  MocksHelper, TransitionEvent, MockNavigatorSettings, Applications */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
@@ -113,6 +113,20 @@ suite('KeyboardManager', function() {
     setupHTML();
 
     KeyboardManager.init();
+
+    window.applications = Applications;
+    window.applications.mRegisterMockApp({
+      manifestURL: 'app://keyboard.gaiamobile.org/manifest.webapp',
+      manifest: {
+        type: 'certified'
+      }
+    });
+    Applications.mRegisterMockApp({
+      manifestURL: 'app://keyboard-test.gaiamobile.org/manifest.webapp',
+      manifest: {
+        type: 'certified'
+      }
+    });
   });
 
   suite('Switching keyboard focus', function() {

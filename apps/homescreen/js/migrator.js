@@ -19,14 +19,23 @@
         return;
       }
 
-      this.grid = [];
-      this.migrating = this.iterating = true;
-      this.pendingItems = 0;
-      HomeState.openDB(HomeState.getGrid.bind(undefined,
-                          this.iteratePage.bind(this),
-                          this.onHomeStateSuccess.bind(this),
-                          this.onHomeStateError.bind(this)),
-                          this.onHomeStateError.bind(this));
+      this.migrating = true;
+
+      verticalPreferences.get('grid.layout').then((gridLayout) => {
+        if (gridLayout) {
+          // Migration was performed
+          return;
+        }
+
+        this.grid = [];
+        this.iterating = true;
+        this.pendingItems = 0;
+        HomeState.openDB(HomeState.getGrid.bind(undefined,
+                         this.iteratePage.bind(this),
+                         this.onHomeStateSuccess.bind(this),
+                         this.onHomeStateError.bind(this)),
+                         this.onHomeStateError.bind(this));
+      });
     },
 
     /**
@@ -80,6 +89,7 @@
                   descriptor.url,
             role: type
           });
+          console.debug('Migrated to datastore', JSON.stringify(descriptor));
           database.add(descriptor).then(onItemMigrated, onItemMigrated);
         });
       }.bind(this));

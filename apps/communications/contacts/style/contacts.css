@@ -461,7 +461,7 @@ section[role="region"] > header .icon.icon-settings {
 
 /* Extending BB buttons Icons at left side*/
 #view-settings [data-type="list"] li button.icon {
-  padding: 0 1rem 0 4rem;
+  padding: 1.2rem 1.3rem 1.2rem 4rem;
 }
 
 #view-settings [data-type="list"] li button.icon:before {
@@ -474,7 +474,7 @@ section[role="region"] > header .icon.icon-settings {
 }
 
 #import-settings [data-type="list"] li button.icon {
-  padding: 0 1rem 0 4rem;
+  padding: 1rem 1.3rem 1rem 4rem;
 }
 
 #import-settings [data-type="list"] li button.icon:before {

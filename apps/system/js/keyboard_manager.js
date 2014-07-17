@@ -93,6 +93,7 @@ var KeyboardManager = {
   },
   hasActiveKeyboard: false,
   isOutOfProcessEnabled: false,
+  isOutOfProcessEnabledForCertifiedApp: false,
 
   init: function km_init() {
     // generate typeTable
@@ -108,6 +109,12 @@ var KeyboardManager = {
     SettingsListener.observe('keyboard.3rd-party-app.enabled', true,
       function(value) {
         this.isOutOfProcessEnabled = value;
+      }.bind(this));
+
+    // Optionally, certified app can stay inproc in memory constrainted config
+    SettingsListener.observe('keyboard.oop-certified-apps', false,
+      function(value) {
+        this.isOutOfProcessEnabledForCertifiedApp = value;
       }.bind(this));
 
     this.keyboardFrameContainer = document.getElementById('keyboards');
@@ -412,7 +419,15 @@ var KeyboardManager = {
     keyboard.setAttribute('mozpasspointerevents', 'true');
     keyboard.setAttribute('mozapp', layout.manifestURL);
 
-    if (this.isOutOfProcessEnabled) {
+    var manifest =
+      window.applications.getByManifestURL(layout.manifestURL).manifest;
+    var isCertifiedApp = (manifest.type === 'certified');
+
+    // oop is always enabled for non-certified app,
+    // and optionally enabled to certified apps if
+    // isOutOfProcessEnabledForCertifiedApp is set to true.
+    if (this.isOutOfProcessEnabled &&
+        (!isCertifiedApp || this.isOutOfProcessEnabledForCertifiedApp)) {
       console.log('=== Enable keyboard: ' + layout.origin + ' run as OOP ===');
       keyboard.setAttribute('remote', 'true');
       keyboard.setAttribute('ignoreuserfocus', 'true');

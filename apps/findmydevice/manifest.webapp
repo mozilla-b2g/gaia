@@ -40,7 +40,8 @@
       "description": "Wake up Find My Device from the System app",
       "rules": {
         "manifestURLs": [
-          "app://system.gaiamobile.org/manifest.webapp"
+          "app://system.gaiamobile.org/manifest.webapp",
+          "app://settings.gaiamobile.org/manifest.webapp"
         ]
       }
     },

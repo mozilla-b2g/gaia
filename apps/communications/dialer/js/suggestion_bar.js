@@ -9,7 +9,7 @@
 var SuggestionBar = {
   MIN_DIGIT_TO_SHOW: 3,
   SKIP_FOR_COUNTRYCODE: 2,
-  MAX_ITEMS: 10,
+  MAX_ITEMS: 50,
 
   _phoneNumber: null,
   _contactList: null,
@@ -113,6 +113,8 @@ var SuggestionBar = {
     var contact = self._contactList[0];
     var firstMatch = self._allMatched.allMatches[0][0];
 
+    var shouldHideSuggestionBar = false;
+
     // In a multi-SIM setup, tapping on a suggestion in the settings bar doesn't
     // place a call, it just fills in the phone number. In this case, we should
     // hide the suggestions bar to not confuse the user into thinking that
@@ -121,17 +123,25 @@ var SuggestionBar = {
         contact.tel[firstMatch].value == self._phoneNumber &&
         navigator.mozIccManager &&
         navigator.mozIccManager.iccIds.length > 1) {
-        self.bar.hidden = true;
-        self.bar.setAttribute('aria-hidden', true);
+      shouldHideSuggestionBar = true;
+    }
+
+    // Don't show any suggestions if we have too many. The user should narrow it
+    // down further by entering more digits.
+    if (totalMatchNum > self.MAX_ITEMS) {
+      shouldHideSuggestionBar = true;
+    }
+
+    if (shouldHideSuggestionBar) {
+      self.clear();
       return 0;
     }
 
-    self.countTag.textContent =
-      (totalMatchNum < self.MAX_ITEMS) ?
-      totalMatchNum : (self.MAX_ITEMS + '+');
+    self.countTag.textContent = totalMatchNum;
 
-    self.countTag.hidden = (totalMatchNum <= 1);
-    self.countTag.classList.toggle('more', (totalMatchNum > 1));
+    var hasMoreThanOneMatch = (totalMatchNum > 1);
+    self.countTag.hidden = !hasMoreThanOneMatch;
+    self.countTag.classList.toggle('more', hasMoreThanOneMatch);
 
     var node = self.barSuggestionItem;
     self._fillContacts(contact, firstMatch, node);
@@ -163,7 +173,7 @@ var SuggestionBar = {
     var totalMatchNum = 0;
 
     if (Array.isArray(contacts) && contacts.length > 0) {
-      self._contactList = contacts.slice(0, self.MAX_ITEMS);
+      self._contactList = contacts;
       totalMatchNum = self._renderBar();
       self._hasMatchingLocalContacts = true;
     }
@@ -178,7 +188,7 @@ var SuggestionBar = {
       self._contactList = null;
     }
 
-    if (totalMatchNum >= self.MAX_ITEMS) {
+    if (totalMatchNum > self.MAX_ITEMS) {
       self._hasMatchingFbContacts = false;
       return;
     }
@@ -213,16 +223,13 @@ var SuggestionBar = {
     }
 
     this._hasMatchingFbContacts = true;
-    this._contactList = this._contactList || [];
-    var toBeAdded = contacts.slice(0, this.MAX_ITEMS -
-                                     this._contactList.length);
-    this._contactList = this._contactList.concat(toBeAdded);
+    this._contactList = (this._contactList || []).concat(contacts);
     this._renderBar();
   },
 
   _updateByContacts: function sb_updateByContacts() {
     // A search is both launched on mozContacts and on Facebook DS
-    Contacts.findListByNumber(this._phoneNumber, this.MAX_ITEMS,
+    Contacts.findListByNumber(this._phoneNumber, this.MAX_ITEMS + 1,
                               this._searchCallback.bind(this));
   },
 
@@ -327,7 +334,6 @@ var SuggestionBar = {
     LazyLoader.load(this.overlay, function() {
       self._initOverlay();
       self._clearOverlay();
-      var maxItems = Math.min(self._contactList.length, self.MAX_ITEMS);
       var title = self.overlay.querySelector('header');
       LazyL10n.get(function localized(_) {
         title.textContent = _('suggestionMatches', {
@@ -335,7 +341,7 @@ var SuggestionBar = {
           matchNumber: self._phoneNumber
         });
       });
-      for (var i = 0; i < maxItems; i++) {
+      for (var i = 0; i < self._contactList.length; i++) {
         for (var j = 0; j < self._allMatched.allMatches[i].length; j++) {
           var node = self._createItem();
           self._fillContacts(self._contactList[i],

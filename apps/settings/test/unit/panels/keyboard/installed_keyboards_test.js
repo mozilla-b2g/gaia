@@ -2,7 +2,7 @@
 
 suite('KeyboardCore', function() {
   var map = {
-    'panels/keyboard/core': {
+    'panels/keyboard/installed_keyboards': {
       'modules/mvvm/list_view': 'unit/mock_list_view'
     }
   };
@@ -16,7 +16,7 @@ suite('KeyboardCore', function() {
     testRequire([
       'unit/mock_keyboard_context',
       'unit/mock_list_view',
-      'panels/keyboard/core'
+      'panels/keyboard/installed_keyboards'
     ], map, function(MockKeyboardContext, MockListView, KeyboardCore) {
       this.MockKeyboardContext = MockKeyboardContext;
       this.MockListView = MockListView;

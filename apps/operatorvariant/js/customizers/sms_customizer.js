@@ -32,29 +32,12 @@ var SmsCustomizer = (function() {
     if (!maxConcatFloor) {
       console.error('Incorrect value for max concatenated message:' +
                     smsParams.smsMaxConcat);
+      return;
     }
 
-    var opSizeFloor = getPosInteger(smsParams.mmsSizeLimitation);
-    // Zero is wrong value too.
-    if (!opSizeFloor) {
-      console.error('Incorrect value for MMS message size:' +
-                    smsParams.mmsSizeLimitation);
-    }
-
-    var settingsValue = {};
-    const SMS_MAX_CONCAT = 'operatorResource.sms.maxConcat';
-    const MMS_SIZE_LIMIT = 'dom.mms.operatorSizeLimitation';
-
-    if (maxConcatFloor != null) {
-      settingsValue[SMS_MAX_CONCAT] = maxConcatFloor;
-    }
-    if (opSizeFloor != null) {
-      settingsValue[MMS_SIZE_LIMIT] = opSizeFloor;
-    }
-
-    if (Object.keys(settingsValue).length > 0) {
-      settings.createLock().set(settingsValue);
-    }
+    settings.createLock().set({
+      'operatorResource.sms.maxConcat': maxConcatFloor
+    });
   };
 });
 
