@@ -1,7 +1,8 @@
 Keyboards.ta = {
   label: 'Tamil',
   shortLabel: 'Ta',
-  imEngine: 'india',
+  imEngine: 'latin',
+  autoCorrectLanguage: 'ta',
   menuLabel: 'தமிழ்',
   secondLayout: true,
   basicLayoutKey: 'அஆஇ',
