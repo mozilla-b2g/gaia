@@ -2753,10 +2753,10 @@ var ThreadUI = global.ThreadUI = {
     var number = opts.number || '';
     var tel, email;
 
-    if (Settings.supportEmailRecipient && Utils.isEmailAddress(opts.number)) {
-      email = opts.number || '';
+    if (Settings.supportEmailRecipient && Utils.isEmailAddress(number)) {
+      email = number || '';
     } else {
-      tel = opts.number || '';
+      tel = number || '';
     }
 
     Contacts.findByAddress(number, function(results) {
