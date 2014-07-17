@@ -1,5 +1,9 @@
-define(function() {
+define(function(require) {
   'use strict';
+
+  var Responder = require('responder');
+  var CalendarError = require('error');
+  var nextTick = require('calendar').nextTick;
 
   /**
    * Global error handler / default handling for errors.
@@ -7,14 +11,14 @@ define(function() {
    * @param {Calendar.App} app current application.
    */
   function ErrorController(app) {
-    Calendar.Responder.call(this);
+    Responder.call(this);
 
     this.app = app;
     this._handlers = Object.create(null);
   }
 
   ErrorController.prototype = {
-    __proto__: Calendar.Responder.prototype,
+    __proto__: Responder.prototype,
 
     /**
      * URL in which account errors are dispatched to.
@@ -31,8 +35,8 @@ define(function() {
      */
     dispatch: function(error) {
       if (
-        error instanceof Calendar.Error.Authentication ||
-        error instanceof Calendar.Error.InvalidServer
+        error instanceof CalendarError.Authentication ||
+        error instanceof CalendarError.InvalidServer
       ) {
         this.handleAuthenticate(error.detail.account);
       }
@@ -53,7 +57,7 @@ define(function() {
 
       // only trigger notification the first time there is an error.
       if (!account.error || account.error.count !== 1) {
-        return Calendar.nextTick(callback);
+        return nextTick(callback);
       }
 
       var lock = navigator.requestWakeLock('cpu');
@@ -66,8 +70,8 @@ define(function() {
 
       var url = this.accountErrorUrl + account._id;
 
-      this.app.loadObject('Notification', function() {
-        Calendar.Notification.send(
+      require(['notification'], function(notification) {
+        notification.send(
           title,
           description,
           url,
@@ -80,7 +84,6 @@ define(function() {
     }
   };
 
-  Calendar.ns('Controllers').Error = ErrorController;
   return ErrorController;
 
 });

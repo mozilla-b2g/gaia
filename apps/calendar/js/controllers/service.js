@@ -1,12 +1,14 @@
-define(function() {
+define(function(require) {
   'use strict';
 
+  var Parent = require('worker/manager');
+
   function Service() {
-    Calendar.Worker.Manager.call(this);
+    Parent.call(this);
   }
 
   Service.prototype = {
-    __proto__: Calendar.Worker.Manager.prototype,
+    __proto__: Parent.prototype,
 
     /**
      * Load and initializer workers.
@@ -17,6 +19,5 @@ define(function() {
 
   };
 
-  Calendar.ns('Controllers').Service = Service;
   return Service;
 });

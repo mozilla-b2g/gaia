@@ -1,16 +1,18 @@
-define(function() {
+define(function(require) {
   'use strict';
 
-  var debug = Calendar.debug('expand events');
+  var Responder = require('responder');
+  var debug = require('calendar').debug('expand events');
+  var nextTick = require('calendar').nextTick;
 
   function RecurringEvents(app) {
     this.app = app;
     this.accounts = app.store('Account');
-    Calendar.Responder.call(this);
+    Responder.call(this);
   }
 
   RecurringEvents.prototype = {
-    __proto__: Calendar.Responder.prototype,
+    __proto__: Responder.prototype,
 
     startEvent: 'expandStart',
     completeEvent: 'expandComplete',
@@ -137,7 +139,7 @@ define(function() {
           } else {
             tries++;
             // attempt another expand without stack.
-            Calendar.nextTick(attemptCompleteExpand);
+            nextTick(attemptCompleteExpand);
           }
         });
       }
@@ -220,20 +222,19 @@ define(function() {
           if (provider && provider.canExpandRecurringEvents) {
             this._expandProvider(expandDate, provider, next);
           } else {
-            Calendar.nextTick(next);
+            nextTick(next);
           }
         }
 
         // if there are no accounts we need to fire the callback.
         if (!pending) {
-          Calendar.nextTick(callback);
+          nextTick(callback);
         }
 
       }.bind(this));
     }
   };
 
-  Calendar.ns('Controllers').RecurringEvents = RecurringEvents;
   return RecurringEvents;
 
 });

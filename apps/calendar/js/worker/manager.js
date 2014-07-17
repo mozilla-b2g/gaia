@@ -1,5 +1,8 @@
-define(function(global) {
+define(function(require) {
   'use strict';
+
+  var global = this;
+  var Responder = require('responder');
 
   const IDLE_CLEANUP_TIME = 5000;
 
@@ -17,7 +20,7 @@ define(function(global) {
   function Manager() {
     this._lastId = 0;
 
-    Calendar.Responder.call(this);
+    Responder.call(this);
 
     this.roles = Object.create(null);
     this.workers = [];
@@ -27,7 +30,7 @@ define(function(global) {
 
     Worker: Worker,
 
-    __proto__: Calendar.Responder.prototype,
+    __proto__: Responder.prototype,
 
     _onLog: function(e) {
       console.log(
@@ -228,7 +231,7 @@ define(function(global) {
 
     stream: function(role /*, args...*/) {
       var args = Array.prototype.slice.call(arguments, 1);
-      var stream = new Calendar.Responder();
+      var stream = new Responder();
       var self = this;
 
       var data = {
@@ -263,7 +266,6 @@ define(function(global) {
     }
   };
 
-  Calendar.ns('Worker').Manager = Manager;
   return Manager;
 
 });

@@ -33,7 +33,6 @@ define(function() {
   Base.InvalidServer = errorFactory('invalid-server', 'internal-server-error');
   Base.ServerFailure = errorFactory('server-failure', 'internal-server-error');
 
-  Calendar.Error = Base;
   return Base;
 
 });

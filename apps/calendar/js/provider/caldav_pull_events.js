@@ -1,9 +1,10 @@
-/* global uuid */
-define(function() {
+define(function(require) {
   'use strict';
 
-  var Calc = Calendar.Calc;
-  var debug = Calendar.debug('pull events');
+  var App = require('app');
+  var Calc = require('calc');
+  var debug = require('calendar').debug('pull events');
+  var uuid = require('ext/uuid');
 
   /**
    * Event synchronization class for caldav provider.
@@ -36,7 +37,7 @@ define(function() {
    *      });
    *    });
    *
-   * @param {Calendar.Responder} stream event emitter usually
+   * @param {Responder} stream event emitter usually
    *                                    a service stream.
    * @param {Object} options options for instance (see above).
    */
@@ -56,7 +57,7 @@ define(function() {
     if (options.app) {
       this.app = options.app;
     } else {
-      this.app = Calendar.App;
+      this.app = App;
     }
 
     stream.on('event', this);
@@ -399,7 +400,6 @@ define(function() {
 
   };
 
-  Calendar.ns('Provider').CaldavPullEvents = PullEvents;
   return PullEvents;
 
 });

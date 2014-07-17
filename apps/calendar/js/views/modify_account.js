@@ -1,5 +1,13 @@
-define(function() {
+define(function(require) {
   'use strict';
+
+  var calendar = require('calendar');
+  var AccountCreation = require('utils/account_creation');
+  var AccountModel = require('models/account');
+  var Presets = require('calendar').Presets;
+  var URI = require('utils/uri');
+  var View = require('view');
+  var OAuthWindow = require('oauth_window');
 
   var DEFAULT_AUTH_TYPE = 'basic';
   var OAUTH_AUTH_CREDENTIALS = [
@@ -10,13 +18,13 @@ define(function() {
   ];
 
   function ModifyAccount(options) {
-    Calendar.View.apply(this, arguments);
+    View.apply(this, arguments);
 
     this.deleteRecord = this.deleteRecord.bind(this);
     this.cancel = this.cancel.bind(this);
     this.displayOAuth2 = this.displayOAuth2.bind(this);
 
-    this.accountHandler = new Calendar.Utils.AccountCreation(
+    this.accountHandler = new AccountCreation(
       this.app
     );
 
@@ -27,7 +35,7 @@ define(function() {
   }
 
   ModifyAccount.prototype = {
-    __proto__: Calendar.View.prototype,
+    __proto__: View.prototype,
 
     _changeToken: 0,
 
@@ -131,8 +139,8 @@ define(function() {
         var value = field.value;
         if (name === 'fullUrl') {
           // Prepend a scheme if url has neither port nor scheme
-          var port = Calendar.Utils.URI.getPort(value);
-          var scheme = Calendar.Utils.URI.getScheme(value);
+          var port = URI.getPort(value);
+          var scheme = URI.getScheme(value);
           if (!port && !scheme) {
             value = 'https://' + value;
           }
@@ -210,14 +218,12 @@ define(function() {
       }
 
       var self = this;
-      this.oauth2Window.classList.add(Calendar.View.ACTIVE);
+      this.oauth2Window.classList.add(View.ACTIVE);
 
       navigator.mozApps.getSelf().onsuccess = function(e) {
         var app = e.target.result;
         app.clearBrowserData().onsuccess = function() {
-          return Calendar.App.loadObject(
-            'OAuthWindow', self._redirectToOAuthFlow.bind(self)
-          );
+          require(['oauth_window'], self._redirectToOAuthFlow.bind(self));
         };
       };
     },
@@ -226,8 +232,8 @@ define(function() {
      * @param {String} preset name of value in Calendar.Presets.
      */
     _createModel: function(preset, callback) {
-      var settings = Calendar.Presets[preset];
-      var model = new Calendar.Models.Account(
+      var settings = Presets[preset];
+      var model = new AccountModel(
         settings.options
       );
 
@@ -255,7 +261,7 @@ define(function() {
         }
       });
 
-      var oauth = this._oauthDialog = new Calendar.OAuthWindow(
+      var oauth = this._oauthDialog = new OAuthWindow(
         this.oauth2Window,
         apiCredentials.authorizationUrl,
         params
@@ -308,7 +314,7 @@ define(function() {
       list.add('auth-' + this.authenticationType);
 
       if (this.model.error) {
-        list.add(Calendar.ERROR);
+        list.add(calendar.ERROR);
       }
 
       if (this.authenticationType === 'oauth2') {
@@ -338,7 +344,7 @@ define(function() {
       list.remove('preset-' + this.model.preset);
       list.remove('provider-' + this.model.providerType);
       list.remove('auth-' + this.authenticationType);
-      list.remove(Calendar.ERROR);
+      list.remove(calendar.ERROR);
 
       this.fields.user.disabled = false;
       this.saveButton.disabled = false;
@@ -368,7 +374,7 @@ define(function() {
 
       var self = this;
       function displayModel(err, model) {
-        self.preset = Calendar.Presets[model.preset];
+        self.preset = Presets[model.preset];
 
         // race condition another dispatch has queued
         // while we where waiting for an async event.
@@ -400,7 +406,7 @@ define(function() {
     },
 
     oninactive: function() {
-      Calendar.View.prototype.oninactive.apply(this, arguments);
+      View.prototype.oninactive.apply(this, arguments);
 
       if (this._oauthDialog) {
         this._oauthDialog.close();
@@ -409,7 +415,6 @@ define(function() {
     }
   };
 
-  Calendar.ns('Views').ModifyAccount = ModifyAccount;
   return ModifyAccount;
 
 });

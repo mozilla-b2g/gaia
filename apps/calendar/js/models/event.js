@@ -1,5 +1,8 @@
-define(function() {
+define(function(require) {
   'use strict';
+
+  var calc = require('calc');
+  var probablyParseInt = require('calendar').probablyParseInt;
 
   /**
    * Creates a wrapper around a event instance from the db
@@ -18,13 +21,13 @@ define(function() {
     var remote = this.remote = this.data.remote;
 
     if ('start' in remote && !('startDate' in remote)) {
-      remote.startDate = Calendar.Calc.dateFromTransport(
+      remote.startDate = calc.dateFromTransport(
         remote.start
       );
     }
 
     if ('end' in remote && !('endDate' in remote)) {
-      remote.endDate = Calendar.Calc.dateFromTransport(
+      remote.endDate = calc.dateFromTransport(
         remote.end
       );
     }
@@ -40,8 +43,8 @@ define(function() {
     // set the value in resetToDefaults (or prior)
     if (
         typeof(this._isAllDay) === 'undefined' &&
-        Calendar.Calc.isOnlyDate(start) &&
-        Calendar.Calc.isOnlyDate(end)
+        calc.isOnlyDate(start) &&
+        calc.isOnlyDate(end)
     ) {
       // mostly to handle the case before the time
       // where we actually managed isAllDay as a setter.
@@ -99,7 +102,7 @@ define(function() {
         date.setMilliseconds(0);
       }
 
-      this.remote[field] = Calendar.Calc.dateToTransport(
+      this.remote[field] = calc.dateToTransport(
         date,
         null, // TODO allow setting tzid
         allDay
@@ -153,7 +156,7 @@ define(function() {
 
     set calendarId(value) {
       if (value && typeof(value) !== 'number') {
-        value = Calendar.probablyParseInt(value);
+        value = probablyParseInt(value);
       }
 
       this.data.calendarId = value;
@@ -262,7 +265,6 @@ define(function() {
 
   };
 
-  Calendar.ns('Models').Event = Event;
   return Event;
 
 });

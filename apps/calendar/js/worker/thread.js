@@ -1,29 +1,32 @@
-define(function() {
+define(function(require) {
 'use strict';
+
+var Responder = require('responder');
+var format = require('calendar').format;
 
 /*jshint -W040 */
 if (typeof(window) === 'undefined') {
   this.window = this;
 }
 
-Calendar.Thread = function Thread(worker) {
-  Calendar.Responder.call(this);
+function Thread(worker) {
+  Responder.call(this);
   this.worker = worker;
   this.roles = {};
 
   this._initEvents();
-};
+}
 
-Calendar.Thread.prototype = {
+Thread.prototype = {
 
-  __proto__: Calendar.Responder.prototype,
+  __proto__: Responder.prototype,
 
   send: function() {
     this.worker.postMessage(Array.prototype.slice.call(arguments));
   },
 
   addRole: function(name) {
-    this.roles[name] = new Calendar.Responder();
+    this.roles[name] = new Responder();
   },
 
   _remoteEmitter: function(id) {
@@ -130,7 +133,7 @@ Calendar.Thread.prototype = {
         var event = {
           stack: parts,
           name: name,
-          message: Calendar.format.apply(this, arguments)
+          message: format.apply(this, arguments)
         };
 
         postMessage(['log', event]);
@@ -141,5 +144,5 @@ Calendar.Thread.prototype = {
 
 };
 
-return Calendar.Thread;
+return Thread;
 });

@@ -199,8 +199,5 @@ define(function() {
 
   Responder.prototype.on = Responder.prototype.addEventListener;
 
-  Calendar.Responder = Responder;
   return Responder;
 });
-
-

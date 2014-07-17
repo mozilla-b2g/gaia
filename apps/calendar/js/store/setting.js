@@ -1,12 +1,15 @@
-define(function() {
+define(function(require) {
   'use strict';
 
+  var Parent = require('./abstract');
+  var nextTick = require('calendar').nextTick;
+
   function Setting() {
-    Calendar.Store.Abstract.apply(this, arguments);
+    Parent.apply(this, arguments);
   }
 
   Setting.prototype = {
-    __proto__: Calendar.Store.Abstract.prototype,
+    __proto__: Parent.prototype,
 
     _store: 'settings',
 
@@ -48,7 +51,7 @@ define(function() {
       var self = this;
 
       if (key in this._cached) {
-        Calendar.nextTick(function handleCached() {
+        nextTick(function handleCached() {
           callback(null, self._cached[key].value);
         });
 
@@ -128,7 +131,6 @@ define(function() {
 
   };
 
-  Calendar.ns('Store').Setting = Setting;
   return Setting;
 
 });

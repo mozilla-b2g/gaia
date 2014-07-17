@@ -1,7 +1,24 @@
 /*jshint loopfunc: true */
 
-define(function() {
+define(function(require) {
   'use strict';
+
+  var calendar = require('calendar');
+  var nextTick = calendar.nextTick;
+  var probablyParseInt = calendar.probablyParseInt;
+  var presets = calendar.Presets;
+  var AccountModel = require('models/account');
+  var LocalProvider = require('provider/local');
+  var Responder = require('responder');
+  var Store = {
+    'Alarm': require('store/alarm'),
+    'Busytime': require('store/busytime'),
+    'Calendar': require('store/calendar'),
+    'Event': require('store/event'),
+    'IcalComponent': require('store/ical_component'),
+    'Settings': require('store/settings')
+  };
+  var uuid = require('ext/uuid');
 
   var idb = window.indexedDB;
   const VERSION = 15;
@@ -22,14 +39,14 @@ define(function() {
     this.name = name;
     this._stores = Object.create(null);
 
-    Calendar.Responder.call(this);
+    Responder.call(this);
 
     this._upgradeOperations = [];
   }
 
   Db.prototype = {
 
-    __proto__: Calendar.Responder.prototype,
+    __proto__: Responder.prototype,
 
     /**
      * Database connection
@@ -39,7 +56,7 @@ define(function() {
     getStore: function(name) {
       if (!(name in this._stores)) {
         try {
-          this._stores[name] = new Calendar.Store[name](this);
+          this._stores[name] = new Store[name](this);
         } catch (e) {
           console.log('Failed to load store', name, e.stack);
         }
@@ -55,7 +72,7 @@ define(function() {
         if (self.oldVersion < 8) {
           self._setupDefaults(callback);
         } else {
-          Calendar.nextTick(callback);
+          nextTick(callback);
         }
       }
 
@@ -314,7 +331,7 @@ define(function() {
       var calendarIds = Object.keys(badCalendarIdToEventIds);
       calendarIds.forEach(function(calendarId) {
         //Bug 887698 cases for calendarIds of types strings or integers
-        calendarId = Calendar.probablyParseInt(calendarId);
+        calendarId = probablyParseInt(calendarId);
         var eventIds = badCalendarIdToEventIds[calendarId];
         var calendars = trans.objectStore(store.calendars);
         calendars.get(calendarId).onsuccess = (function(evt) {
@@ -424,8 +441,8 @@ define(function() {
         });
       }
 
-      var account = new Calendar.Models.Account(
-        Calendar.Presets.local.options
+      var account = new AccountModel(
+        presets.local.options
       );
 
       account.preset = 'local';
@@ -433,9 +450,9 @@ define(function() {
       account._id = uuid();
 
       var calendar = {
-        _id: Calendar.Provider.Local.calendarId,
+        _id: LocalProvider.calendarId,
         accountId: account._id,
-        remote: Calendar.Provider.Local.defaultCalendar()
+        remote: LocalProvider.defaultCalendar()
       };
 
       accountStore.persist(account, trans);
@@ -463,7 +480,6 @@ define(function() {
 
   };
 
-  Calendar.Db = Db;
   return Db;
 
 });

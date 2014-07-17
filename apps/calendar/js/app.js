@@ -1,7 +1,19 @@
 define(function(require) {
   'use strict';
 
-  var Calendar = require('./calendar');
+  var nextTick = require('calendar').nextTick;
+  var Db = require('db');
+  var AlarmController = require('./controllers/alarm');
+  var ErrorController = require('./controllers/error');
+  var ServiceController = require('./controllers/service');
+  var SyncController = require('./controllers/sync');
+  var TimeController = require('./controllers/time');
+  var performance = require('performance');
+  var Router = require('router');
+  var Provider = {
+    'Caldav': require('provider/caldav'),
+    'Local': require('provider/local')
+  };
 
   function PendingManager() {
     this.objects = [];
@@ -106,7 +118,7 @@ define(function(require) {
       var format = navigator.mozL10n.get(formatKey);
 
       if (date) {
-        element.textContent = Calendar.App.dateFormat.localeFormat(
+        element.textContent = App.dateFormat.localeFormat(
           new Date(date),
           format
         );
@@ -152,18 +164,18 @@ define(function(require) {
       var self = this;
       this._pendingManager.oncomplete = function onpending() {
         document.body.classList.remove(self.pendingClass);
-        Calendar.Performance.pendingReady();
+        performance.pendingReady();
       };
 
       this._pendingManager.onpending = function oncomplete() {
         document.body.classList.add(self.pendingClass);
       };
 
-      this.timeController = new Calendar.Controllers.Time(this);
-      this.syncController = new Calendar.Controllers.Sync(this);
-      this.serviceController = new Calendar.Controllers.Service(this);
-      this.alarmController = new Calendar.Controllers.Alarm(this);
-      this.errorController = new Calendar.Controllers.Error(this);
+      this.timeController = new TimeController(this);
+      this.syncController = new SyncController(this);
+      this.serviceController = new ServiceController(this);
+      this.alarmController = new AlarmController(this);
+      this.errorController = new ErrorController(this);
 
       // observe sync events
       this.observePendingObject(this.syncController);
@@ -215,43 +227,6 @@ define(function(require) {
 
     isPending: function() {
       return this._pendingManager.isPending();
-    },
-
-    loadObject: function initializeLoadObject(name, callback) {
-
-      function loadObject(name, callback) {
-        /*jshint validthis:true */
-        this._loader.load('group', name, callback);
-      }
-
-      if (!this._pendingObjects) {
-        this._pendingObjects = [[name, callback]];
-      } else {
-        this._pendingObjects.push([name, callback]);
-        return;
-      }
-
-      // Loading NotAnd and the load config is not really needed
-      // for the initial load so we lazily load them the first time we
-      // need to load a file...
-      var self = this;
-
-      function next() {
-        // initialize loader
-        NotAmd.nextTick = Calendar.nextTick;
-        self._loader = NotAmd(Calendar.LoadConfig);
-        self.loadObject = loadObject;
-
-        // begin processing existing requests
-        self._pendingObjects.forEach(function(pair) {
-          // ['ObjectName', function() { ... }]
-          loadObject.call(self, pair[0], pair[1]);
-        });
-
-        delete self._pendingObjects;
-      }
-
-      LazyLoader.load(['/js/ext/notamd.js', '/js/load_config.js'], next);
     },
 
     /**
@@ -318,7 +293,7 @@ define(function(require) {
       // at this point the tabs should be interactive and the router ready to
       // handle the path changes (meaning the user can start interacting with
       // the app)
-      Calendar.Performance.chromeInteractive();
+      performance.chromeInteractive();
 
       var pathname = window.location.pathname;
       // default view
@@ -379,14 +354,13 @@ define(function(require) {
 
       // at this point we remove the .loading class and user will see the main
       // app frame
-      Calendar.Performance.domLoaded();
+      performance.domLoaded();
 
       this._routes();
 
        //lazy load recurring event expander so as not to impact initial load.
-      this.loadObject('Controllers.RecurringEvents', function() {
-        self.recurringEventsController =
-          new Calendar.Controllers.RecurringEvents(self);
+      require(['controllers/recurring_events'], function(RecurringEvents) {
+        self.recurringEventsController = new RecurringEvents(self);
 
         self.observePendingObject(
           self.recurringEventsController
@@ -440,8 +414,8 @@ define(function(require) {
 
       if (!this.db) {
         this.configure(
-          new Calendar.Db('b2g-calendar'),
-          new Calendar.Router(page)
+          new Db('b2g-calendar'),
+          new Router(page, App)
         );
       }
 
@@ -462,18 +436,12 @@ define(function(require) {
      */
     provider: function(name) {
       if (!(name in this._providers)) {
-        this._providers[name] = new Calendar.Provider[name]({
+        this._providers[name] = new Provider[name]({
           app: this
         });
       }
 
       return this._providers[name];
-    },
-
-    _initView: function(name) {
-      this._views[name] = new Calendar.Views[name]({
-        app: this
-      });
     },
 
     /**
@@ -487,12 +455,13 @@ define(function(require) {
      * have the view cached.
      *
      *    // for example if you have
-     *    // a calendar view Foo
+     *    // a calendar view FooBar
      *
-     *    Calendar.Views.Foo = Klass;
+     *    // views returns a constructor function
+     *    var FooBar = require('views/foo_bar');
      *
-     *    app.view('Foo', function(view) {
-     *      (view instanceof Calendar.Views.Foo) === true
+     *    app.view('FooBar', function(view) {
+     *      (view instanceof FooBar) === true
      *    });
      *
      * @param {String} name view name.
@@ -503,27 +472,32 @@ define(function(require) {
 
       if (!(name in this._views)) {
 
-        if (name in Calendar.Views) {
-          this._initView(name);
+        require([this._viewNameToModuleId(name)], function(View) {
+          self._views[name] = new View({
+            app: this
+          });
 
           if (cb) {
             cb.call(self, self._views[name]);
           }
-        } else {
-          this.loadObject('Views.' + name, function() {
-            self._initView(name);
-
-            if (cb) {
-              cb.call(self, self._views[name]);
-            }
-          });
-        }
+        });
 
       } else if (cb) {
-        Calendar.nextTick(function() {
+        nextTick(function() {
           cb.call(self, self._views[name]);
         });
       }
+    },
+
+    _viewNameToModuleId: function(name) {
+      var id = name
+        .replace(/^./, function(firstChar) {
+          return firstChar.toLowerCase();
+        })
+        .replace(/[A-Z]/g, function(wordStart) {
+          return '_' + wordStart.toLowerCase();
+        });
+      return 'views/' + id;
     },
 
     /**
@@ -531,7 +505,7 @@ define(function(require) {
      * referencing a object store.
      *
      * @param {String} name store name. (e.g events).
-     * @return {Calendar.Store.Abstact} store.
+     * @return {Store.Abstact} store.
      */
     store: function(name) {
       return this.db.getStore(name);
@@ -564,7 +538,6 @@ define(function(require) {
     App.init();
   });
 
-  Calendar.App = App;
   return App;
 
 });

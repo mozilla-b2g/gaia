@@ -1,5 +1,8 @@
-define(function() {
+define(function(require) {
   'use strict';
+
+  var Responder = require('responder');
+  var nextTick = require('calendar').nextTick;
 
   var NUMERIC = /^([0-9]+)$/;
 
@@ -11,11 +14,11 @@ define(function() {
   function Abstract(db) {
     this.db = db;
     this._cached = Object.create(null);
-    Calendar.Responder.call(this);
+    Responder.call(this);
   }
 
   Abstract.prototype = {
-    __proto__: Calendar.Responder.prototype,
+    __proto__: Responder.prototype,
 
     _store: null,
 
@@ -138,7 +141,7 @@ define(function() {
 
     _allCached: function(callback) {
       var list = this._cached;
-      Calendar.nextTick(function() {
+      nextTick(function() {
         callback(null, list);
       });
     },
@@ -378,7 +381,6 @@ define(function() {
     }
   };
 
-  Calendar.ns('Store').Abstract = Abstract;
   return Abstract;
 
 });

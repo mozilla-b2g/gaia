@@ -1,5 +1,18 @@
-define(function() {
+define(function(require) {
   'use strict';
+
+  var Parent = require('./abstract');
+  var calc = require('calc');
+  var CalendarError = require('error');
+  var CaldavPullEventsProvider = require('./caldav_pull_events');
+  var EventMutations = require('event_mutations');
+  /**
+   * The local provider contains most of the logic
+   * of the database persistence so we reuse those bits
+   * and wrap them with the CalDAV specific logic.
+   */
+  var Local = require('./local').prototype;
+  var nextTick = require('calendar').nextTick;
 
   var CALDAV_ERROR_MAP = {
     'caldav-authentication': 'Authentication',
@@ -10,23 +23,16 @@ define(function() {
   function mapError(error, detail) {
     var calError = CALDAV_ERROR_MAP[error.name];
     if (!calError) {
-      calError = new Calendar.Error(error.name, detail);
+      calError = new CalendarError(error.name, detail);
     } else {
-      calError = new Calendar.Error[calError](detail);
+      calError = new CalendarError[calError](detail);
     }
 
     return calError;
   }
 
-  /**
-   * The local provider contains most of the logic
-   * of the database persistence so we reuse those bits
-   * and wrap them with the CalDAV specific logic.
-   */
-  var Local = Calendar.Provider.Local.prototype;
-
   function CaldavProvider() {
-    Calendar.Provider.Abstract.apply(this, arguments);
+    Parent.apply(this, arguments);
 
     this.service = this.app.serviceController;
     this.accounts = this.app.store('Account');
@@ -36,7 +42,7 @@ define(function() {
   }
 
   CaldavProvider.prototype = {
-    __proto__: Calendar.Provider.Abstract.prototype,
+    __proto__: Parent.prototype,
     role: 'caldav',
     useUrl: true,
     useCredentials: true,
@@ -73,8 +79,8 @@ define(function() {
       // when we receive a permanent error we should mark the account with an
       // error.
       if (
-        calendarErr instanceof Calendar.Error.Authentication ||
-        calendarErr instanceof Calendar.Error.InvalidServer
+        calendarErr instanceof CalendarError.Authentication ||
+        calendarErr instanceof CalendarError.InvalidServer
       ) {
         // there must always be an account
         if (detail.account) {
@@ -142,7 +148,7 @@ define(function() {
     eventCapabilities: function(event, callback) {
       if (event.remote.isRecurring) {
         // XXX: for now recurring events cannot be edited
-        Calendar.nextTick(function() {
+        nextTick(function() {
           callback(null, {
             canUpdate: false,
             canDelete: false,
@@ -239,7 +245,7 @@ define(function() {
       var startDate;
       // calculate the first date we want to sync
       if (!calendar.firstEventSyncDate) {
-        startDate = Calendar.Calc.createDay(new Date());
+        startDate = calc.createDay(new Date());
 
         // will be persisted if sync is successful (clone is required)
         calendar.firstEventSyncDate = new Date(
@@ -265,7 +271,7 @@ define(function() {
         options
       );
 
-      var pull = new Calendar.Provider.CaldavPullEvents(stream, {
+      var pull = new CaldavPullEventsProvider(stream, {
         account: account,
         calendar: calendar
       });
@@ -359,7 +365,7 @@ define(function() {
       // or we have matching tokens
       if ((calendar.lastEventSyncToken &&
            calendar.lastEventSyncToken === calendar.remote.syncToken)) {
-        Calendar.nextTick(callback);
+        nextTick(callback);
         return;
       }
 
@@ -417,7 +423,7 @@ define(function() {
         var pullGroups = [];
         var pending = 0;
         var options = {
-          maxDate: Calendar.Calc.dateToTransport(maxDate)
+          maxDate: calc.dateToTransport(maxDate)
         };
 
         function next(err, pull) {
@@ -473,7 +479,7 @@ define(function() {
           options
         );
 
-        var pull = new Calendar.Provider.CaldavPullEvents(
+        var pull = new CaldavPullEventsProvider(
           stream,
           {
             account: account,
@@ -547,7 +553,7 @@ define(function() {
         delete remote.icalComponent;
         event.remote = remote;
 
-        var create = Calendar.EventMutations.create({
+        var create = EventMutations.create({
           event: event,
           icalComponent: component
         });
@@ -626,7 +632,7 @@ define(function() {
         delete remote.icalComponent;
         event.remote = remote;
 
-        var update = Calendar.EventMutations.update({
+        var update = EventMutations.update({
           event: event,
           icalComponent: component
         });
@@ -700,7 +706,6 @@ define(function() {
 
   };
 
-  Calendar.ns('Provider').Caldav = CaldavProvider;
   return CaldavProvider;
 
 });

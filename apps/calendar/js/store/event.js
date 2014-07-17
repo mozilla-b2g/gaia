@@ -1,12 +1,17 @@
-define(function() {
+define(function(require) {
   'use strict';
 
+  var app = require('app');
+  var Parent = require('./abstract');
+  var calc = require('calc');
+  var CalendarStore = require('./calendar');
+
   function Events() {
-    Calendar.Store.Abstract.apply(this, arguments);
+    Parent.apply(this, arguments);
   }
 
   Events.prototype = {
-    __proto__: Calendar.Store.Abstract.prototype,
+    __proto__: Parent.prototype,
     _store: 'events',
     _dependentStores: ['events', 'busytimes', 'alarms', 'icalComponents'],
 
@@ -15,14 +20,14 @@ define(function() {
     _removeFromCache: function() {},
 
     _createModel: function(input, id) {
-      var _super = Calendar.Store.Abstract.prototype._createModel;
+      var _super = Parent.prototype._createModel;
       var model = _super.apply(this, arguments);
 
-      model.remote.startDate = Calendar.Calc.dateFromTransport(
+      model.remote.startDate = calc.dateFromTransport(
         model.remote.start
       );
 
-      model.remote.endDate = Calendar.Calc.dateFromTransport(
+      model.remote.endDate = calc.dateFromTransport(
         model.remote.end
       );
 
@@ -59,7 +64,7 @@ define(function() {
      */
     providerFor: function(event, callback) {
       this.ownersOf(event, function(err, owners) {
-        callback(null, Calendar.App.provider(
+        callback(null, app.provider(
           owners.account.providerType
         ));
       });
@@ -118,7 +123,7 @@ define(function() {
      * @param {Object} event must contain .calendarId.
      * @param {Function} callback [err, { ... }].
      */
-    ownersOf: Calendar.Store.Calendar.prototype.ownersOf,
+    ownersOf: CalendarStore.prototype.ownersOf,
     /**
      * Loads all events for given calendarId
      * and returns results. Does not cache.
@@ -145,7 +150,6 @@ define(function() {
 
   };
 
-  Calendar.ns('Store').Event = Events;
   return Events;
 
 });

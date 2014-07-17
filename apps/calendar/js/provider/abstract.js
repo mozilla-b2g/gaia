@@ -1,5 +1,7 @@
-define(function() {
+define(function(require) {
   'use strict';
+
+  var nextTick = require('calendar').nextTick;
 
   function Abstract(options) {
     var key;
@@ -132,7 +134,7 @@ define(function() {
     eventCapabilities: function(event, callback) {
       var caps = this.calendarCapabilities();
 
-      Calendar.nextTick(function() {
+      nextTick(function() {
         callback(null, {
           canCreate: caps.canCreateEvent,
           canUpdate: caps.canUpdateEvent,
@@ -143,7 +145,6 @@ define(function() {
 
   };
 
-  Calendar.ns('Provider').Abstract = Abstract;
   return Abstract;
 
 });

@@ -1,11 +1,14 @@
 /* global uuid */
-define(function() {
+define(function(require) {
   'use strict';
+
+  var Parent = require('./abstract');
+  var EventMutations = require('event_mutations');
 
   var LOCAL_CALENDAR_ID = 'local-first';
 
   function Local() {
-    Calendar.Provider.Abstract.apply(this, arguments);
+    Parent.apply(this, arguments);
 
     this.events = this.app.store('Event');
     this.busytimes = this.app.store('Busytime');
@@ -43,7 +46,7 @@ define(function() {
   };
 
   Local.prototype = {
-    __proto__: Calendar.Provider.Abstract.prototype,
+    __proto__: Parent.prototype,
 
     canExpandRecurringEvents: false,
 
@@ -76,7 +79,7 @@ define(function() {
         event.remote.id = uuid();
       }
 
-      var create = new Calendar.EventMutations.create({
+      var create = new EventMutations.create({
         event: event
       });
 
@@ -109,7 +112,7 @@ define(function() {
         busytime = null;
       }
 
-      var update = Calendar.EventMutations.update({
+      var update = EventMutations.update({
         event: event
       });
 
@@ -126,7 +129,6 @@ define(function() {
 
   };
 
-  Calendar.ns('Provider').Local = Local;
   return Local;
 
 });

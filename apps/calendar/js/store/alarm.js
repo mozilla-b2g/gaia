@@ -1,11 +1,11 @@
-define(function() {
+define(function(require) {
   'use strict';
 
-  var Calc = Calendar.Calc;
-
-  var _super = Calendar.Store.Abstract.prototype;
-
-  var debug = Calendar.debug('alarm store');
+  var app = require('app');
+  var Parent = require('./abstract');
+  var _super = Parent.prototype;
+  var calc = require('calc');
+  var debug = require('calendar').debug('alarm store');
 
   /**
    * The alarm store can be thought of as a big queue.
@@ -17,7 +17,7 @@ define(function() {
    * from the queue (this object store) and added (via mozAlarms).
    */
   function Alarm() {
-    Calendar.Store.Abstract.apply(this, arguments);
+    Parent.apply(this, arguments);
     this._processQueue = this._processQueue.bind(this);
   }
 
@@ -91,11 +91,11 @@ define(function() {
      */
     _moveAlarms: function(now, requiresAlarm, callback) {
       // use transport dates so we can handle timezones & floating time.
-      var time = Calc.dateToTransport(now);
+      var time = calc.dateToTransport(now);
       var utc = time.utc;
 
       // keep adding events until we are beyond this time.
-      var minimum = utc + (this._alarmAddThresholdHours * Calc.HOUR);
+      var minimum = utc + (this._alarmAddThresholdHours * calc.HOUR);
 
       // queue logic
       var pending = 0;
@@ -122,10 +122,10 @@ define(function() {
       }
 
       // XXX: sad we need to use Calendar.App here...
-      var controller = Calendar.App.alarmController;
+      var controller = app.alarmController;
 
       function addAlarm(data) {
-        var date = Calc.dateFromTransport(data.trigger);
+        var date = calc.dateFromTransport(data.trigger);
 
         // if trigger is in the past we need to send
         // the data directly to the controller not to mozAlarms.
@@ -139,7 +139,7 @@ define(function() {
         // by default we use absolute time
         var type = 'honorTimezone';
 
-        if (data.trigger.tzid === Calc.FLOATING) {
+        if (data.trigger.tzid === calc.FLOATING) {
           type = 'ignoreTimezone';
         }
 
@@ -296,7 +296,6 @@ define(function() {
 
   };
 
-  Calendar.ns('Store').Alarm = Alarm;
   return Alarm;
 
 });

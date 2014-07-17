@@ -1,5 +1,8 @@
-define(function() {
+define(function(require) {
   'use strict';
+
+  var app = require('app');
+  var Responder = require('responder');
 
   /**
    * Private helper for choosing how to dispatch errors.
@@ -11,7 +14,7 @@ define(function() {
       return callback(err);
     }
 
-    Calendar.App.errorController.dispatch(err);
+    app.errorController.dispatch(err);
   }
 
   /**
@@ -26,11 +29,11 @@ define(function() {
     this.app = app;
     this.pending = 0;
 
-    Calendar.Responder.call(this);
+    Responder.call(this);
   }
 
   Sync.prototype = {
-    __proto__: Calendar.Responder.prototype,
+    __proto__: Responder.prototype,
 
     startEvent: 'syncStart',
     completeEvent: 'syncComplete',
@@ -166,6 +169,5 @@ define(function() {
     }
   };
 
-  Calendar.ns('Controllers').Sync = Sync;
   return Sync;
 });

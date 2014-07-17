@@ -219,6 +219,5 @@ define(function() {
     return obj;
   };
 
-  Calendar.QueryString = QueryString;
   return QueryString;
 });

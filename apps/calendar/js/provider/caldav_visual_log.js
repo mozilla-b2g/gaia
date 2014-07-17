@@ -1,7 +1,7 @@
-define(function() {
+define(function(require) {
   'use strict';
 
-  var Calc = Calendar.Calc;
+  var calc = require('calc');
 
   /**
    * This is a more crude version of what asuth does in email.
@@ -41,8 +41,8 @@ define(function() {
       var format = [
         'add event: (' + event.id + ')',
         'title:' + event.title,
-        'start:' + (Calc.dateFromTransport(event.start)).toString(),
-        'end:' + (Calc.dateFromTransport(event.end)).toString(),
+        'start:' + (calc.dateFromTransport(event.start)).toString(),
+        'end:' + (calc.dateFromTransport(event.end)).toString(),
         'isException:' + event.isException
       ];
 
@@ -59,8 +59,8 @@ define(function() {
 
       var format = [
         title,
-        'start:' + (Calc.dateFromTransport(busy.start)).toString(),
-        'end:' + (Calc.dateFromTransport(busy.end)).toString(),
+        'start:' + (calc.dateFromTransport(busy.start)).toString(),
+        'end:' + (calc.dateFromTransport(busy.end)).toString(),
         'isException:' + busy.isException
       ];
 
@@ -69,6 +69,5 @@ define(function() {
 
   };
 
-  Calendar.ns('Provider').CaldavVisualLog = EventLogger;
   return EventLogger;
 });

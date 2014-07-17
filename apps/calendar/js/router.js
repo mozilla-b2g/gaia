@@ -5,11 +5,13 @@ define(function() {
 
   var COPY_METHODS = ['start', 'stop', 'show'];
 
-  function Router(page) {
+  function Router(page, app) {
     var i = 0;
     var len = COPY_METHODS.length;
 
     this.page = page;
+    // we inject the app to avoid circular dependencies
+    this.app = app;
     this._activeObjects = [];
 
     for (; i < len; i++) {
@@ -108,7 +110,7 @@ define(function() {
 
         /*jshint loopfunc: true */
         for (i = 0; i < numViews; i++) {
-          Calendar.App.view(views[i], function(view) {
+          self.app.view(views[i], function(view) {
             viewObjs.push(view);
             len--;
 
@@ -172,7 +174,6 @@ define(function() {
     }
   };
 
-  Calendar.Router = Router;
   return Router;
 
 });

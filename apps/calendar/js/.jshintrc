@@ -4,18 +4,14 @@
     "AccessibilityHelper",
     "Buffer",
     "Caldav",
-    "Calendar",
     "define",
     "ICAL",
     "IDBKeyRange",
     "InputParser",
-    "LazyLoader",
-    "NotAmd",
     "NotificationHelper",
     "dump",
     "module",
     "page",
-    "postMessage",
-    "uuid"
+    "postMessage"
   ]
 }

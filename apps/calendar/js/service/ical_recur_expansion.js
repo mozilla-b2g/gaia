@@ -99,6 +99,5 @@ var exports = {
   }
 };
 
-Calendar.ns('Service').IcalRecurExpansion = exports;
 return exports;
 });

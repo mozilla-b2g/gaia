@@ -1,5 +1,7 @@
-define(function() {
+define(function(require) {
   'use strict';
+
+  var Responder = require('responder');
 
   /**
    * Helper class to create accounts.
@@ -18,13 +20,13 @@ define(function() {
    * @param {Calendar.App} app instance of app.
    */
   function AccountCreation(app) {
-    this.app = app || Calendar.App;
+    this.app = app || require('app');
 
-    Calendar.Responder.call(this);
+    Responder.call(this);
   }
 
   AccountCreation.prototype = {
-    __proto__: Calendar.Responder.prototype,
+    __proto__: Responder.prototype,
 
     /**
      * Sends a request to create an account.
@@ -93,6 +95,5 @@ define(function() {
     }
   };
 
-  Calendar.ns('Utils').AccountCreation = AccountCreation;
   return AccountCreation;
 });

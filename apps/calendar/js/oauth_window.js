@@ -1,5 +1,8 @@
-define(function() {
+define(function(require) {
   'use strict';
+
+  var View = require('view');
+  var queryString = require('querystring');
 
   /**
    * Creates a oAuth dialog given a set of parameters.
@@ -44,15 +47,15 @@ define(function() {
 
     this._element = container;
 
-    Calendar.View.call(this);
-    this.target = server + '?' + Calendar.QueryString.stringify(params);
+    View.call(this);
+    this.target = server + '?' + queryString.stringify(params);
 
     this._handleUserTriggeredClose =
       this._handleUserTriggeredClose.bind(this);
   }
 
   OAuthWindow.prototype = {
-    __proto__: Calendar.View.prototype,
+    __proto__: View.prototype,
 
     get element() {
       return this._element;
@@ -89,7 +92,7 @@ define(function() {
         // find query string
         var queryStringIdx = url.indexOf('?');
         if (queryStringIdx !== -1) {
-          params = Calendar.QueryString.parse(url.slice(queryStringIdx + 1));
+          params = queryString.parse(url.slice(queryStringIdx + 1));
         }
 
         this.oncomplete(params || {});
@@ -128,7 +131,7 @@ define(function() {
       }
 
       // add the active class
-      this.element.classList.add(Calendar.View.ACTIVE);
+      this.element.classList.add(View.ACTIVE);
 
       // handle cancel events
       this.browerCancelButton.addEventListener(
@@ -160,7 +163,7 @@ define(function() {
         'click', this._handleUserTriggeredClose
       );
 
-      this.element.classList.remove(Calendar.View.ACTIVE);
+      this.element.classList.remove(View.ACTIVE);
 
       this.browserFrame.parentNode.removeChild(
         this.browserFrame
@@ -170,6 +173,5 @@ define(function() {
     }
   };
 
-  Calendar.OAuthWindow = OAuthWindow;
   return OAuthWindow;
 });

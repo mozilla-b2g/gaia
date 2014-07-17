@@ -1,8 +1,13 @@
-define(function() {
+define(function(require) {
   'use strict';
 
+  var app = require('app');
+  var Parent = require('./abstract');
+  var CalendarModel = require('models/calendar');
+  var LocalProvider = require('provider/local');
+
   function Store() {
-    Calendar.Store.Abstract.apply(this, arguments);
+    Parent.apply(this, arguments);
     this._usedColors = [];
   }
 
@@ -34,7 +39,7 @@ define(function() {
   };
 
   Store.prototype = {
-    __proto__: Calendar.Store.Abstract.prototype,
+    __proto__: Parent.prototype,
 
     _store: 'calendars',
 
@@ -43,11 +48,11 @@ define(function() {
       'alarms', 'icalComponents'
     ],
 
-    _parseId: Calendar.Store.Abstract.prototype.probablyParseInt,
+    _parseId: Parent.prototype.probablyParseInt,
 
     _createModel: function(obj, id) {
-      if (!(obj instanceof Calendar.Models.Calendar)) {
-        obj = new Calendar.Models.Calendar(obj);
+      if (!(obj instanceof CalendarModel)) {
+        obj = new CalendarModel(obj);
       }
 
       if (typeof(id) !== 'undefined') {
@@ -70,7 +75,7 @@ define(function() {
      *
      *
      * @param {Object} calendar model.
-     * @param {Calendar.Error} error for given calendar.
+     * @param {CalendarError} error for given calendar.
      * @param {IDBTransaction} transaction optional.
      * @param {Function} callback fired when model is saved [err, id, model].
      */
@@ -110,14 +115,14 @@ define(function() {
         }.bind(this);
       }
 
-      Calendar.Store.Abstract.prototype.persist.call(
+      Parent.prototype.persist.call(
         this, calendar, trans, cb
       );
     },
 
     remove: function(id, trans, callback) {
       this._removeCalendarColorFromCache(id);
-      Calendar.Store.Abstract.prototype.remove.apply(this, arguments);
+      Parent.prototype.remove.apply(this, arguments);
     },
 
     _updateCalendarColor: function(calendar) {
@@ -147,7 +152,7 @@ define(function() {
 
     _setCalendarColor: function(calendar) {
       // local calendar should always use the same color
-      if (calendar._id === Calendar.Provider.Local.calendarId) {
+      if (calendar._id === LocalProvider.calendarId) {
         calendar.color = Store.LOCAL_COLOR;
         return;
       }
@@ -241,7 +246,7 @@ define(function() {
      *       inside of providers.
      */
     sync: function(account, calendar, callback) {
-      var provider = Calendar.App.provider(
+      var provider = app.provider(
         account.providerType
       );
       provider.syncEvents(account, calendar, callback);
@@ -250,7 +255,7 @@ define(function() {
     /**
      * Shortcut to find provider for calendar.
      *
-     * @param {Calendar.Models.Calendar} calendar input calendar.
+     * @param {CalendarModel} calendar input calendar.
      * @param {Function} callback [err, provider].
      */
     providerFor: function(calendar, callback) {
@@ -261,7 +266,7 @@ define(function() {
 
         callback(
           null,
-          Calendar.App.provider(owners.account.providerType)
+          app.provider(owners.account.providerType)
         );
       });
     },
@@ -281,7 +286,7 @@ define(function() {
       var accountStore = this.db.getStore('Account');
 
       // case 1. given a calendar
-      if (objectOrId instanceof Calendar.Models.Calendar) {
+      if (objectOrId instanceof CalendarModel) {
         result.calendar = objectOrId;
         accountStore.get(objectOrId.accountId, fetchAccount);
         return;
@@ -317,7 +322,6 @@ define(function() {
     }
   };
 
-  Calendar.ns('Store').Calendar = Store;
   return Store;
 
 });

@@ -1,12 +1,15 @@
-define(function() {
+define(function(require) {
   'use strict';
 
+  var Parent = require('./abstract');
+  var calc = require('calc');
+
   function IcalComponent() {
-    Calendar.Store.Abstract.apply(this, arguments);
+    Parent.apply(this, arguments);
   }
 
   IcalComponent.prototype = {
-    __proto__: Calendar.Store.Abstract.prototype,
+    __proto__: Parent.prototype,
 
     _store: 'icalComponents',
 
@@ -37,7 +40,7 @@ define(function() {
         callback(event.target.error.name);
       };
 
-      var time = Calendar.Calc.dateToTransport(
+      var time = calc.dateToTransport(
         maxDate
       );
 
@@ -54,7 +57,6 @@ define(function() {
     }
   };
 
-  Calendar.ns('Store').IcalComponent = IcalComponent;
   return IcalComponent;
 });
 

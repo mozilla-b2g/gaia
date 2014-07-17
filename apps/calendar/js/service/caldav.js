@@ -1,7 +1,13 @@
-define(function() {
+define(function(require) {
   'use strict';
 
-  var debug = Calendar.debug('caldav service');
+  var calendar = require('calendar');
+  var debug = calendar.debug('caldav service');
+  var extend = calendar.extend;
+  var Presets = calendar.Presets;
+  var Responder = require('responder');
+  var IcalRecurExpansion = require('./ical_recur_expansion');
+  var uuid = require('ext/uuid');
 
   /* TODO: ugly hack to enable system XHR fix upstream in Caldav lib */
   var xhrOpts = {
@@ -16,7 +22,7 @@ define(function() {
   Caldav.Xhr.prototype.globalXhrOptions = xhrOpts;
 
   function Service(service) {
-    Calendar.Responder.call(this);
+    Responder.call(this);
 
     this.service = service;
     this._initEvents();
@@ -24,7 +30,7 @@ define(function() {
 
   Service.prototype = {
 
-    __proto__: Calendar.Responder.prototype,
+    __proto__: Responder.prototype,
 
     /**
      * See: http://tools.ietf.org/html/rfc5545#section-3.7.3
@@ -63,8 +69,8 @@ define(function() {
      * Builds an Caldav connection from an account model object.
      */
     _createConnection: function(account) {
-      var params = Calendar.extend({}, account);
-      var preset = Calendar.Presets[account.preset];
+      var params = extend({}, account);
+      var preset = Presets[account.preset];
 
       if (
           preset &&
@@ -77,7 +83,7 @@ define(function() {
 
             // shallow copy the apiCredentials on the preset
             params.apiCredentials =
-              Calendar.extend({}, preset.apiCredentials);
+              extend({}, preset.apiCredentials);
 
             // the url in this case will always be tokenUrl
             params.apiCredentials.url =
@@ -529,7 +535,7 @@ define(function() {
      *    ]
      *
      * @param {Array[icalComponent]} components list of icalComponents.
-     * @param {Calendar.Responder} stream to emit events.
+     * @param {Responder} stream to emit events.
      * @param {Object} options list of options.
      * @param {Object} options.maxDate maximum date to expand to.
      * @param {Function} callback only sends an error if fatal.
@@ -626,7 +632,7 @@ define(function() {
           return;
         }
 
-        var iter = Calendar.Service.IcalRecurExpansion.forEach(
+        var iter = IcalRecurExpansion.forEach(
           event,
           options.iterator,
           occuranceHandler,
@@ -638,7 +644,7 @@ define(function() {
           var details = event.getOccurrenceDetails(next);
           var inFuture = details.endDate.compare(now);
 
-          if (Calendar.DEBUG) {
+          if (calendar.DEBUG) {
             debug('alarm time',
                   event.summary,
                   'will add ' + String(inFuture),
@@ -698,7 +704,7 @@ define(function() {
      *
      * @param {String} url location of event.
      * @param {Object} response caldav response object.
-     * @param {Calendar.Responder} responder event emitter.
+     * @param {Responder} responder event emitter.
      * @param {Function} callback node style callback fired after event parsing.
      */
     _handleCaldavEvent: function(url, response, stream, callback) {
@@ -1056,7 +1062,6 @@ define(function() {
 
   };
 
-  Calendar.ns('Service').Caldav = Service;
   return Service;
 
 });

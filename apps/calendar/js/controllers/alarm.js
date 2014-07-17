@@ -1,7 +1,12 @@
-define(function() {
+define(function(require) {
   'use strict';
 
-  var debug = Calendar.debug('alarm controller');
+  var calendar = require('calendar');
+  var calc = require('calc');
+  var debug = calendar.debug('alarm controller');
+  var dateFormat = require('app').dateFormat;
+  var nextTick = calendar.nextTick;
+  var EventModel = require('models/event');
 
   function Alarm(app) {
     this.app = app;
@@ -113,10 +118,10 @@ define(function() {
     _sendAlarmNotification: function(alarm, event, busytime, callback) {
       var now = new Date();
 
-      event = new Calendar.Models.Event(event);
+      event = new EventModel(event);
 
-      var begins = Calendar.Calc.dateFromTransport(busytime.start);
-      var distance = Calendar.App.dateFormat.fromNow(begins);
+      var begins = calc.dateFromTransport(busytime.start);
+      var distance = dateFormat.fromNow(begins);
 
       // TODO: verify this is all we need to handle.
       var type = (begins > now) ?
@@ -134,8 +139,8 @@ define(function() {
 
       debug('send notification', title, description);
 
-      Calendar.App.loadObject('Notification', function() {
-        Calendar.Notification.send(title, description, url, callback);
+      require(['notification'], function(notification) {
+        notification.send(title, description, url, callback);
       });
     },
 
@@ -173,7 +178,7 @@ define(function() {
     _dispatchAlarm: function(alarm, trans, callback) {
       // a valid busytimeId will never be zero so ! is safe.
       if (!alarm._id || !alarm.busytimeId || !alarm.eventId) {
-        return Calendar.nextTick(callback);
+        return nextTick(callback);
       }
 
       var now = new Date();
@@ -202,10 +207,10 @@ define(function() {
         // when no associated records can be found.
         if (!dbAlarm || !event || !busytime) {
           debug('failed to load records', dbAlarm, event, busytime);
-          return Calendar.nextTick(callback);
+          return nextTick(callback);
         }
 
-        var endDate = Calendar.Calc.dateFromTransport(busytime.end);
+        var endDate = calc.dateFromTransport(busytime.end);
         debug('trigger?', endDate, now);
 
         // if event has not ended yet we can send an alarm
@@ -318,7 +323,6 @@ define(function() {
     }
   };
 
-  Calendar.ns('Controllers').Alarm = Alarm;
   return Alarm;
 
 });

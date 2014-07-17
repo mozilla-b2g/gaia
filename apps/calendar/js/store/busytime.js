@@ -1,25 +1,30 @@
-define(function() {
+define(function(require) {
   'use strict';
+
+  var Parent = require('./abstract');
+  var calendar = require('calendar');
+  var calc = require('calc');
+  var TimeObserver = require('time_observer');
 
   /**
    * Objects saved in the busytime store:
    *
    *    {
    *      _id: (uuid),
-   *      start: Calendar.Calc.dateToTransport(x),
-   *      end: Calendar.Calc.dateToTransport(x),
+   *      start: calc.dateToTransport(x),
+   *      end: calc.dateToTransport(x),
    *      eventId: eventId,
    *      calendarId: calendarId
    *    }
    *
    */
   function Busytime() {
-    Calendar.Store.Abstract.apply(this, arguments);
+    Parent.apply(this, arguments);
     this._setupCache();
   }
 
   Busytime.prototype = {
-    __proto__: Calendar.Store.Abstract.prototype,
+    __proto__: Parent.prototype,
 
     _store: 'busytimes',
 
@@ -27,7 +32,7 @@ define(function() {
 
     _setupCache: function() {
       // reset time observers
-      Calendar.TimeObserver.call(this);
+      TimeObserver.call(this);
 
       this._byEventId = Object.create(null);
     },
@@ -37,14 +42,14 @@ define(function() {
     },
 
     initRecord: function(input, id) {
-      var _super = Calendar.Store.Abstract.prototype._createModel;
+      var _super = Parent.prototype._createModel;
       var model = _super.apply(this, arguments);
 
-      model.startDate = Calendar.Calc.dateFromTransport(
+      model.startDate = calc.dateFromTransport(
         model.start
       );
 
-      model.endDate = Calendar.Calc.dateFromTransport(
+      model.endDate = calc.dateFromTransport(
         model.end
       );
 
@@ -95,7 +100,7 @@ define(function() {
       var a = aObj.start.utc;
       var b = bObj.start.utc;
 
-      return Calendar.compare(a, b);
+      return calendar.compare(a, b);
     },
 
     /**
@@ -113,11 +118,11 @@ define(function() {
       var trans = this.db.transaction(this._store);
       var store = trans.objectStore(this._store);
 
-      var startPoint = Calendar.Calc.dateToTransport(
+      var startPoint = calc.dateToTransport(
         new Date(span.start)
       );
 
-      var endPoint = Calendar.Calc.dateToTransport(
+      var endPoint = calc.dateToTransport(
         new Date(span.end)
       );
 
@@ -136,7 +141,7 @@ define(function() {
 
         // attempt to find a start time that occurs
         // after the end time of the span
-        var idx = Calendar.binsearch.insert(
+        var idx = calendar.binsearch.insert(
           data,
           { start: { utc: endPoint.utc + 1 } },
           self._startCompare
@@ -162,7 +167,6 @@ define(function() {
 
   };
 
-  Calendar.ns('Store').Busytime = Busytime;
   return Busytime;
 
 });

@@ -149,7 +149,6 @@ define(function() {
 
   };
 
-  Calendar.ns('Models').Calendar = Cal;
   return Cal;
 
 });

@@ -1,14 +1,20 @@
-define(function() {
+define(function(require) {
   'use strict';
 
+  var calendar = require('calendar');
+  var calc = require('calc');
+  var IntervalTree = require('interval_tree');
+  var Responder = require('responder');
+  var TimeObserver = require('time_observer');
+
   function compareStart(a, b) {
-    return Calendar.compare(a.start, b.start);
+    return calendar.compare(a.start, b.start);
   }
 
   function Time(app) {
     this.app = app;
-    Calendar.Responder.call(this);
-    Calendar.TimeObserver.call(this);
+    Responder.call(this);
+    TimeObserver.call(this);
 
     this._timeCache = Object.create(null);
 
@@ -16,7 +22,7 @@ define(function() {
     this._eventsCache = Object.create(null);
 
     this._timespans = [];
-    this._collection = new Calendar.IntervalTree();
+    this._collection = new IntervalTree();
     this._collection.createIndex('eventId');
 
     this.busytime = app.store('Busytime');
@@ -24,7 +30,7 @@ define(function() {
   }
 
   Time.prototype = {
-    __proto__: Calendar.Responder.prototype,
+    __proto__: Responder.prototype,
 
     /**
      * Current position in time.
@@ -135,7 +141,7 @@ define(function() {
     set selectedDay(value) {
       var day = this._selectedDay;
       this._mostRecentDayType = 'selectedDay';
-      if (!day || !Calendar.Calc.isSameDate(day, value)) {
+      if (!day || !calc.isSameDate(day, value)) {
         this._selectedDay = value;
         this.emit('selectedDayChange', value, day);
       }
@@ -178,7 +184,7 @@ define(function() {
     _updateCache: function(type, value) {
       var old = this._timeCache[type];
 
-      if (!old || !Calendar.Calc.isSameDate(value, old)) {
+      if (!old || !calc.isSameDate(value, old)) {
         this._timeCache[type] = value;
         this.emit(type + 'Change', value, old);
       }
@@ -206,7 +212,7 @@ define(function() {
       var max = this._maxTimespans;
 
       if (len > max) {
-        var idx = Calendar.binsearch.find(
+        var idx = calendar.binsearch.find(
           spans,
           this._currentTimespan,
           compareStart
@@ -302,7 +308,7 @@ define(function() {
       // so if we find another span with the
       // same start time it should cover
       // the same span.
-      var idx = Calendar.binsearch.find(
+      var idx = calendar.binsearch.find(
         spans,
         span,
         compareStart
@@ -315,7 +321,7 @@ define(function() {
       }
 
       // find best position for new span
-      idx = Calendar.binsearch.insert(
+      idx = calendar.binsearch.insert(
         spans,
         span,
         compareStart
@@ -380,7 +386,7 @@ define(function() {
      *                                        of timespan.
      */
     _loadAroundSpan: function(date, presentSpan) {
-      var getSpan = Calendar.Calc.spanOfMonth;
+      var getSpan = calc.spanOfMonth;
 
       var pastSpan = getSpan(new Date(
         date.getFullYear(),
@@ -413,10 +419,10 @@ define(function() {
      * the same timespan will be generated.
      */
     _loadMonthSpan: function(date) {
-      var spanOfMonth = Calendar.Calc.spanOfMonth;
+      var spanOfMonth = calc.spanOfMonth;
       this._currentTimespan = spanOfMonth(date);
 
-      var currentIdx = Calendar.binsearch.find(
+      var currentIdx = calendar.binsearch.find(
         this._timespans,
         this._currentTimespan,
         compareStart
@@ -763,9 +769,8 @@ define(function() {
 
   };
 
-  Calendar.TimeObserver.enhance(Time.prototype);
+  TimeObserver.enhance(Time.prototype);
 
-  Calendar.ns('Controllers').Time = Time;
   return Time;
 
 });

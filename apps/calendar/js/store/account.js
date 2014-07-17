@@ -1,21 +1,27 @@
-define(function() {
+define(function(require) {
   'use strict';
 
+  var app = require('app');
+  var Parent = require('./abstract');
+  var AccountModel = require('models/account');
+  var extend = require('calendar').extend;
+  var nextTick = require('calendar').nextTick;
+
   function Account() {
-    Calendar.Store.Abstract.apply(this, arguments);
+    Parent.apply(this, arguments);
   }
 
   Account.prototype = {
-    __proto__: Calendar.Store.Abstract.prototype,
+    __proto__: Parent.prototype,
 
     _store: 'accounts',
 
-    _parseId: Calendar.Store.Abstract.prototype.probablyParseInt,
+    _parseId: Parent.prototype.probablyParseInt,
 
     /**
      * Checks if a given account is a duplicate of another.
      *
-     * @param {Calendar.Model.Account} model to check.
+     * @param {AccountModel} model to check.
      * @param {Function} callback [err].
      */
     _validateModel: function(model, callback) {
@@ -49,7 +55,7 @@ define(function() {
 
     verifyAndPersist: function(model, callback) {
       var self = this;
-      var provider = Calendar.App.provider(
+      var provider = app.provider(
         model.providerType
       );
 
@@ -66,7 +72,7 @@ define(function() {
         model.calendarHome = data.calendarHome;
 
         // server may override properties on demand.
-        Calendar.extend(model, data);
+        extend(model, data);
 
         self._validateModel(model, function(err) {
           if (err) {
@@ -107,7 +113,7 @@ define(function() {
      *
      * TODO: Deprecate this method in favor of new provider API's.
      *
-     * @param {Calendar.Models.Account} account sync target.
+     * @param {AccountModel} account sync target.
      * @param {Function} callback node style.
      */
     sync: function(account, callback) {
@@ -116,7 +122,7 @@ define(function() {
       //is purged.
 
       var self = this;
-      var provider = Calendar.App.provider(account.providerType);
+      var provider = app.provider(account.providerType);
       var calendarStore = this.db.getStore('Calendar');
 
       var persist = [];
@@ -212,8 +218,8 @@ define(function() {
     },
 
     _createModel: function(obj, id) {
-      if (!(obj instanceof Calendar.Models.Account)) {
-        obj = new Calendar.Models.Account(obj);
+      if (!(obj instanceof AccountModel)) {
+        obj = new AccountModel(obj);
       }
 
       if (typeof(id) !== 'undefined') {
@@ -233,7 +239,7 @@ define(function() {
      *
      *
      * @param {Object} account model.
-     * @param {Calendar.Error} error to mark model with.
+     * @param {CalendarError} error to mark model with.
      * @param {IDBTransaction} [trans] optional transaction.
      * @param {Function} [callback] optional called with [err, model].
      */
@@ -308,7 +314,7 @@ define(function() {
         var results = [];
         for (var key in list) {
           var account = list[key];
-          var provider = Calendar.App.provider(account.providerType);
+          var provider = app.provider(account.providerType);
           if (provider.canSync) {
             results.push(account);
           }
@@ -353,7 +359,7 @@ define(function() {
       }
 
       if (!hasSingleUses) {
-        return Calendar.nextTick(function() {
+        return nextTick(function() {
           callback(null, results);
         });
       }
@@ -377,7 +383,6 @@ define(function() {
     }
   };
 
-  Calendar.ns('Store').Account = Account;
   return Account;
 
 });

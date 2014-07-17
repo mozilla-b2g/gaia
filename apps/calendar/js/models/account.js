@@ -121,7 +121,6 @@ define(function() {
   };
 
 
-  Calendar.ns('Models').Account = Account;
   return Account;
 
 });
