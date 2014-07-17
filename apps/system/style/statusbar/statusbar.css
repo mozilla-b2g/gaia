@@ -103,7 +103,8 @@ body:not(.rb-enabled) #statusbar {
 
 #screen.rocketbar-focused:not(.locked) #statusbar-icons,
 #screen.rocketbar-expanded.cards-view #statusbar-icons,
-#screen:not(.locked).fullscreen-app #statusbar:not(.dragged) #statusbar-icons {
+#screen:not(.locked).fullscreen-app #statusbar:not(.dragged) #statusbar-icons,
+#screen.rocketbar-expanded:not(.locked) #statusbar-icons {
   visibility: hidden;
   opacity: 0;
 }
