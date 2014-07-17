@@ -3,6 +3,12 @@
 'use strict';
 
 var OperatorVariantManager = {
+  // Settings 'ftu.simPresentOnFirstBoot' only had false value if the user
+  // powered the phone on without SIM
+  // In other case we would have true or undefined depending on what process was
+  // executed first, so our variable is true by default.
+  simPresentOnFirstBoot: true,
+
   // This file is created during the BUILD process
   CUSTOMIZATION_FILE: '/resources/customization.json',
 
@@ -29,14 +35,30 @@ var OperatorVariantManager = {
   ],
 
   init: function ovm_init() {
-    window.navigator.mozSetMessageHandler('first-run-with-sim', msg => {
-      this.mcc_mnc = this.getMccMnc(msg.mcc, msg.mnc);
-      if (this.mcc_mnc) {
-        // Load the variant customizers and the variant JSON file.
-        LazyLoader.load(
-          this.CUSTOMIZERS,
-          this.loadVariantAndCustomize.bind(this)
-        );
+    window.navigator.mozSetMessageHandler('first-run-with-sim', (msg) => {
+      var self = this;
+      self.mcc_mnc = self.getMccMnc(msg.mcc, msg.mnc);
+      if (self.mcc_mnc) {
+        var settings = navigator.mozSettings;
+        if (!settings) {
+          console.log('Settings is not available');
+          return;
+        }
+        var req = settings.createLock().get('ftu.simPresentOnFirstBoot');
+
+        req.onsuccess = function osv_success(e) {
+          var simOnFirstBoot = req.result['ftu.simPresentOnFirstBoot'];
+          self.simPresentOnFirstBoot = !simOnFirstBoot ||
+              req.result['ftu.simPresentOnFirstBoot'] === self.mcc_mnc;
+          LazyLoader.load(
+            self.CUSTOMIZERS,
+            self.loadVariantAndCustomize.bind(self)
+          );
+        };
+
+        req.onerror = function osv_error(e) {
+          console.error('Error retrieving ftu.simPresentOnFirstBoot. ' + e);
+        };
       }
     });
   },
@@ -96,7 +118,8 @@ var OperatorVariantManager = {
         var customizationEvent = new CustomEvent('customization', {
           detail: {
             setting: setting,
-            value: customizationSettings[setting]
+            value: customizationSettings[setting],
+            simPresentOnFirstBoot: this.simPresentOnFirstBoot
           }
         });
         scheduleEvent(customizationEvent);
