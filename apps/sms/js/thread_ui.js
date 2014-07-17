@@ -380,9 +380,11 @@ var ThreadUI = global.ThreadUI = {
       return;
     }
 
-    this.sentAudioKey = 'message.sent-sound.enabled';
     this.sentAudio = new Audio('/sounds/sent.opus');
     this.sentAudio.mozAudioChannelType = 'notification';
+
+    // TODO move sentAudioEnabled management to Settings
+    this.sentAudioKey = 'message.sent-sound.enabled';
     this.sentAudioEnabled = false;
 
     // navigator.mozSettings may not be defined in all environments
@@ -1186,8 +1188,6 @@ var ThreadUI = global.ThreadUI = {
   },
 
   enableSend: function thui_enableSend() {
-    this.initSentAudio();
-
     // should disable if we have no message input
     var disableSendMessage = Compose.isEmpty() || Compose.isResizing;
     var messageNotLong = this.updateCounter();
@@ -2206,6 +2206,7 @@ var ThreadUI = global.ThreadUI = {
       cardIndex = 0;
     }
 
+    this.initSentAudio();
     this.sendMessage({ serviceId: cardIndex });
   },
 

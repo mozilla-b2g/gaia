@@ -4775,6 +4775,17 @@ suite('thread_ui.js >', function() {
       ThreadUI.simSelectedCallback(undefined, '' + serviceId);
     }
 
+    function assertSentAudioLoaded() {
+      assert.isTrue(
+        ThreadUI.sentAudio.src.endsWith('/sounds/sent.opus'),
+        'sentAudio properly loaded'
+      );
+      assert.equal(
+        ThreadUI.sentAudio.mozAudioChannelType, 'notification',
+        'sentAudio uses the right audio channel'
+      );
+    }
+
     setup(function() {
       this.sinon.stub(MessageManager, 'sendSMS');
       this.sinon.stub(MessageManager, 'sendMMS');
@@ -4804,6 +4815,7 @@ suite('thread_ui.js >', function() {
       Compose.append(body);
 
       clickButton();
+      assertSentAudioLoaded();
 
       sinon.assert.calledWithMatch(MessageManager.sendSMS, {
         recipients: [recipient],
@@ -5229,18 +5241,6 @@ suite('thread_ui.js >', function() {
       });
 
       testPickButtonEnabled();
-    });
-  });
-
-  suite('initSentAudio', function() {
-    test('calling function does not throw uncaught exception ', function() {
-      assert.doesNotThrow(ThreadUI.initSentAudio);
-    });
-
-    test('correctly creates the audio element', function() {
-      ThreadUI.initSentAudio();
-      assert.isTrue(ThreadUI.sentAudio.src.endsWith('/sounds/sent.opus'));
-      assert.equal(ThreadUI.sentAudio.mozAudioChannelType, 'notification');
     });
   });
 
