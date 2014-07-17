@@ -905,11 +905,23 @@ suite('system/Rocketbar', function() {
     focusStub.restore();
   });
 
-
   test('Dont clear input when search app crashes', function() {
     subject.input.value = 'value to not clear';
     window.dispatchEvent(new CustomEvent('searchterminated'));
     assert.equal(subject.input.value, 'value to not clear');
+  });
+
+  test('focus on render after a tick', function() {
+    this.sinon.useFakeTimers();
+    var focusStub = this.sinon.stub(subject, 'focus');
+
+    subject.activate();
+    subject.active = true;
+    subject.handleSearchMessage({detail: {action: 'render'}});
+
+    sinon.assert.notCalled(focusStub);
+    this.sinon.clock.tick(1);
+    sinon.assert.calledOnce(focusStub);
   });
 });
 

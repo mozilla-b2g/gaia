@@ -925,7 +925,7 @@
 
       switch (e.detail.action) {
         case 'render':
-          this.activate(this.focus.bind(this));
+          this.activate(setTimeout.bind(null, this.focus.bind(this)));
           break;
         case 'focus':
           this.focus();
