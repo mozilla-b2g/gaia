@@ -86,28 +86,36 @@ var ActivityHandler = {
 
     this.isLocked = true;
 
-    var number = activity.source.data.number;
+    var type = activity.source.data.type;
+    var target, results;
+
+    if (Settings.supportEmailRecipient && type === 'websms/email') {
+      target = activity.source.data.email;
+      results = Contacts.findByAddress.bind(target);
+    } else {
+      target = activity.source.data.number;
+      results = Contacts.findByPhoneNumber.bind(target);
+    }
+
     var body = activity.source.data.body;
 
-    Contacts.findByPhoneNumber(number, function findContact(results) {
-      var record, name, contact;
+    var record, name, contact;
 
-      // Bug 867948: results null is a legitimate case
-      if (results && results.length) {
-        record = results[0];
-        name = record.name.length && record.name[0];
-        contact = {
-          number: number,
-          name: name,
-          source: 'contacts'
-        };
-      }
+    // Bug 867948: results null is a legitimate case
+    if (results && results.length) {
+      record = results[0];
+      name = record.name.length && record.name[0];
+      contact = {
+        number: target,
+        name: name,
+        source: 'contacts'
+      };
+    }
 
-      ActivityHandler.toView({
-        body: body,
-        number: number,
-        contact: contact || null
-      });
+    ActivityHandler.toView({
+      body: body,
+      number: target,
+      contact: contact || null
     });
   },
 
