@@ -553,6 +553,7 @@ span[role="button"].icon-arrow.icon-arrow-right {
   top: 0;
   width: auto;
   height: auto;
+  padding-top: 0;
 }
 
 .fillflow-row-action span[role="button"] {
@@ -683,7 +684,7 @@ form[role="dialog"].no-overlay button {
 
 .has-preferred-sim .icon-call:before {
   width: 9.5rem;
-  background-size: 3rem;  
+  background-size: 3rem;
 }
 
 .js-sim-indication {
