@@ -20,8 +20,9 @@ class TestSettingsDeviceInfo(GaiaTestCase):
 
         # open more info panel and check that fields are populated
         more_info = device_info.tap_more_info()
-        for item in ('os_version', 'hardware_revision', 'mac_address', 'imei',
+        for item in ('os_version', 'hardware_revision', 'mac_address', 'imei1', 'imei2',
                      'iccid', 'platform_version', 'build_id', 'update_channel',
                      'git_commit_timestamp', 'git_commit_hash'):
             self.assertTrue(len(getattr(more_info, item)) > 0)
-        self.assertEqual(more_info.imei, self.testvars['imei'][0])
+        self.assertEqual(more_info.imei1, self.testvars['imei'][0])
+        self.assertEqual(more_info.imei2, self.testvars['imei'][1])
