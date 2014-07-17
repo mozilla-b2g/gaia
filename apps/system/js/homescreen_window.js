@@ -159,11 +159,6 @@
     }
   };
 
-  HomescreenWindow.prototype.kill = function hw_kill() {
-    this.destroy();
-    this.publish('terminated');
-  };
-
   HomescreenWindow.prototype.view = function hw_view() {
     return '<div class="appWindow homescreen" id="homescreen">' +
               '<div class="fade-overlay"></div>' +
