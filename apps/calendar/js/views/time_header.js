@@ -2,8 +2,6 @@ define(function(require) {
   'use strict';
 
   var Parent = require('view');
-  var app = require('app');
-  var router = app.router;
 
   var SETTINGS = /settings/;
 
@@ -12,13 +10,14 @@ define(function(require) {
     this.controller = this.app.timeController;
     this.controller.on('scaleChange', this);
 
+    var app = this.app;
     this.settings.addEventListener('click', function settingsClick(e) {
       e.stopPropagation();
       var path = window.location.pathname;
       if (SETTINGS.test(path)) {
         app.resetState();
       } else {
-        router.show('/settings/');
+        app.router.show('/settings/');
       }
     });
   }

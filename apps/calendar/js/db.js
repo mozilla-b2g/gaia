@@ -14,7 +14,7 @@ define(function(require) {
     'Calendar': require('store/calendar'),
     'Event': require('store/event'),
     'IcalComponent': require('store/ical_component'),
-    'Settings': require('store/settings')
+    'Setting': require('store/setting')
   };
   var uuid = require('ext/uuid');
 
