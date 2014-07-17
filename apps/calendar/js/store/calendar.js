@@ -1,10 +1,10 @@
 define(function(require) {
   'use strict';
 
-  var app = require('app');
   var Parent = require('./abstract');
   var CalendarModel = require('models/calendar');
   var LocalProvider = require('provider/local');
+  var providerFactory = require('provider/factory');
 
   function Store() {
     Parent.apply(this, arguments);
@@ -243,10 +243,10 @@ define(function(require) {
      * Sync remote and local events for a calendar.
      *
      * TODO: Deprecate use of this function in favor of a sync methods
-     *       inside of providers.
+     *       inside of providerFactory.
      */
     sync: function(account, calendar, callback) {
-      var provider = app.provider(
+      var provider = providerFactory.get(
         account.providerType
       );
       provider.syncEvents(account, calendar, callback);
@@ -266,7 +266,7 @@ define(function(require) {
 
         callback(
           null,
-          app.provider(owners.account.providerType)
+          providerFactory.get(owners.account.providerType)
         );
       });
     },

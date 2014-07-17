@@ -1,12 +1,15 @@
 define(function(require) {
   'use strict';
 
-  var calc = require('calc');
-
   function Timespan(startDate, endDate) {
     this.start = startDate.valueOf();
     this.end = endDate.valueOf();
   }
+
+  /**
+   * injected later to avoid circular dependency (calc.js depends on Timespan)
+   */
+  Timespan.calc = null;
 
   Timespan.prototype = {
 
@@ -20,7 +23,7 @@ define(function(require) {
       var start = new Date(this.start);
       var end = new Date(this.end);
 
-      return calc.daysBetween(
+      return Timespan.calc.daysBetween(
         start,
         end
       );

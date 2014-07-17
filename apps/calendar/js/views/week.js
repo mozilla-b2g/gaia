@@ -6,7 +6,7 @@ define(function(require) {
   var Timespan = require('timespan');
   var CurrentTime = require('./current_time');
   var View = require('view');
-  var dateFormat = require('app').dateFormat;
+  var dateFormat = require('utils/dateFormat');
   var WeekChild = require('./week_child');
   var calc = require('calc');
 

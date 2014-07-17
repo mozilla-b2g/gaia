@@ -41,12 +41,16 @@
  *
  *
  */
-define(function(require) {
+define(function(require, exports) {
   'use strict';
 
   var calc = require('calc');
   var uuid = require('ext/uuid');
-  var app = require('app');
+
+  /**
+   * used to inject the app instance and avoid circular dependencies
+   */
+  exports.app = null;
 
   /**
    * Create a single instance busytime for the given event object.
@@ -76,6 +80,9 @@ define(function(require) {
   Create.prototype = {
 
     commit: function(callback) {
+      // avoid circular dependency
+      var app = exports.app;
+
       var alarmStore = app.store('Alarm');
       var eventStore = app.store('Event');
       var busytimeStore = app.store('Busytime');
@@ -153,7 +160,7 @@ define(function(require) {
 
   Update.prototype = {
     commit: function(callback) {
-      var busytimeStore = app.store('Busytime');
+      var busytimeStore = exports.app.store('Busytime');
 
       var self = this;
 
@@ -170,16 +177,12 @@ define(function(require) {
     }
   };
 
-  var exports = {
-    create: function createMutation(option) {
-      return new Create(option);
-    },
-
-    update: function updateMutation(option) {
-      return new Update(option);
-    }
+  exports.create = function createMutation(option) {
+    return new Create(option);
   };
 
-  return exports;
+  exports.update = function updateMutation(option) {
+    return new Update(option);
+  };
 
 });

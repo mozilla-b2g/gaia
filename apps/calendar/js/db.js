@@ -8,15 +8,8 @@ define(function(require) {
   var AccountModel = require('models/account');
   var LocalProvider = require('provider/local');
   var Responder = require('responder');
-  var Store = {
-    'Alarm': require('store/alarm'),
-    'Busytime': require('store/busytime'),
-    'Calendar': require('store/calendar'),
-    'Event': require('store/event'),
-    'IcalComponent': require('store/ical_component'),
-    'Setting': require('store/setting')
-  };
   var uuid = require('ext/uuid');
+  var storeFactory = require('store/factory');
 
   var idb = window.indexedDB;
   const VERSION = 15;
@@ -35,7 +28,6 @@ define(function(require) {
 
   function Db(name) {
     this.name = name;
-    this._stores = Object.create(null);
 
     Responder.call(this);
 
@@ -52,15 +44,7 @@ define(function(require) {
     connection: null,
 
     getStore: function(name) {
-      if (!(name in this._stores)) {
-        try {
-          this._stores[name] = new Store[name](this);
-        } catch (e) {
-          console.log('Failed to load store', name, e.stack);
-        }
-      }
-
-      return this._stores[name];
+      return storeFactory.get(name);
     },
 
     load: function(callback) {

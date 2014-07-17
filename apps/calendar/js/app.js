@@ -19,11 +19,13 @@ define(function(require, exports) {
   var TimeController = require('./controllers/time');
   var performance = require('performance');
   var Router = require('router');
-  var Provider = {
-    'Caldav': require('provider/caldav'),
-    'Local': require('provider/local')
-  };
+  var providerFactory = require('provider/factory');
   var page = require('ext/page');
+  var dateFormat = require('utils/dateFormat');
+
+  // XXX: avoids circular dependency!!
+  var SingletonFactory = require('utils/singleton_factory');
+  var EventMutations = require('event_mutations');
 
   function PendingManager() {
     this.objects = [];
@@ -128,7 +130,7 @@ define(function(require, exports) {
       var format = navigator.mozL10n.get(formatKey);
 
       if (date) {
-        element.textContent = exports.dateFormat.localeFormat(
+        element.textContent = dateFormat.localeFormat(
           new Date(date),
           format
         );
@@ -165,7 +167,10 @@ define(function(require, exports) {
     this.db = db;
     this.router = router;
 
-    this._providers = Object.create(null);
+    // XXX: avoid circular dependencies
+    SingletonFactory.db = db;
+    SingletonFactory.app = EventMutations.app = this;
+
     this._views = Object.create(null);
     this._routeViewFn = Object.create(null);
     this._pendingManager = new PendingManager();
@@ -336,8 +341,6 @@ define(function(require, exports) {
       }
     });
 
-    this.dateFormat = navigator.mozL10n.DateTimeFormat();
-
     // re-localize dates on screen
     this.observeDateLocalization();
 
@@ -348,6 +351,8 @@ define(function(require, exports) {
     // alarms are added to the database we manage them
     // transparently. Defaults to off for tests.
     this.store('Alarm').autoQueue = true;
+    // we inject the controller to avoid circular dependencies
+    this.store('Alarm').controller = this.alarmController;
 
     this.timeController.move(new Date());
 
@@ -444,13 +449,7 @@ define(function(require, exports) {
    * Initializes a provider.
    */
   exports.provider = function(name) {
-    if (!(name in this._providers)) {
-      this._providers[name] = new Provider[name]({
-        app: this
-      });
-    }
-
-    return this._providers[name];
+    return providerFactory.get(name);
   };
 
   /**
@@ -483,7 +482,7 @@ define(function(require, exports) {
 
       require([this._viewNameToModuleId(name)], function(View) {
         self._views[name] = new View({
-          app: this
+          app: self
         });
 
         if (cb) {

@@ -4,7 +4,7 @@ define(function(require) {
   var calendar = require('calendar');
   var calc = require('calc');
   var debug = calendar.debug('alarm controller');
-  var dateFormat = require('app').dateFormat;
+  var dateFormat = require('utils/dateFormat');
   var nextTick = calendar.nextTick;
   var EventModel = require('models/event');
 

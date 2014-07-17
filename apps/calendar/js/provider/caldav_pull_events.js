@@ -1,7 +1,6 @@
 define(function(require) {
   'use strict';
 
-  var App = require('app');
   var Calc = require('calc');
   var debug = require('calendar').debug('pull events');
   var uuid = require('ext/uuid');
@@ -54,11 +53,7 @@ define(function(require) {
       throw new Error('.account option must be given');
     }
 
-    if (options.app) {
-      this.app = options.app;
-    } else {
-      this.app = App;
-    }
+    this.app = options.app;
 
     stream.on('event', this);
     stream.on('component', this);

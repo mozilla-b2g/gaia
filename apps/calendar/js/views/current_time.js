@@ -3,7 +3,7 @@ define(function(require) {
 
   var View = require('view');
   var calc = require('calc');
-  var dateFormat = require('app').dateFormat;
+  var dateFormat = require('utils/dateFormat');
 
   function CurrentTime(options) {
     this._container = options.container;

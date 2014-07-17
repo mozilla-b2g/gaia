@@ -2,7 +2,7 @@ define(function(require) {
   'use strict';
 
   var Template = require('template');
-  var dateFormat = require('app').dateFormat;
+  var dateFormat = require('utils/dateFormat');
 
   var MINUTE = 60;
   var HOUR = 3600;

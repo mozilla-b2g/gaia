@@ -6,7 +6,7 @@ define(function(require) {
   var nextTick = require('calendar').nextTick;
   var LocalProvider = require('provider/local');
   var QueryString = require('querystring');
-  var dateFormat = require('app').dateFormat;
+  var dateFormat = require('utils/dateFormat');
 
   function ModifyEvent(options) {
     this.deleteRecord = this.deleteRecord.bind(this);

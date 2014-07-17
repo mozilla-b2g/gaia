@@ -1,7 +1,6 @@
 define(function(require) {
   'use strict';
 
-  var app = require('app');
   var Parent = require('./abstract');
   var _super = Parent.prototype;
   var calc = require('calc');
@@ -23,6 +22,11 @@ define(function(require) {
 
   Alarm.prototype = {
     __proto__: _super,
+
+    /**
+     * controller should be injected to avoid circular dependencies
+     */
+    controller: null,
 
     _store: 'alarms',
 
@@ -121,8 +125,7 @@ define(function(require) {
         }
       }
 
-      // XXX: sad we need to use Calendar.App here...
-      var controller = app.alarmController;
+      var controller = this.controller;
 
       function addAlarm(data) {
         var date = calc.dateFromTransport(data.trigger);

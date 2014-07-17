@@ -4,7 +4,7 @@ define(function(require) {
   var template = require('templates/day');
   var Parent = require('./day_based');
   var CurrentTime = require('./current_time');
-  var dateFormat = require('app').dateFormat;
+  var dateFormat = require('utils/dateFormat');
 
   function Day(options) {
     Parent.apply(this, arguments);

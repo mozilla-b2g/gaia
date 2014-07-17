@@ -1,10 +1,10 @@
 define(function(require) {
   'use strict';
 
-  var app = require('app');
   var Parent = require('./abstract');
   var calc = require('calc');
   var CalendarStore = require('./calendar');
+  var providerFactory = require('provider/factory');
 
   function Events() {
     Parent.apply(this, arguments);
@@ -64,7 +64,7 @@ define(function(require) {
      */
     providerFor: function(event, callback) {
       this.ownersOf(event, function(err, owners) {
-        callback(null, app.provider(
+        callback(null, providerFactory.get(
           owners.account.providerType
         ));
       });

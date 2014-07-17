@@ -1,7 +1,6 @@
 define(function(require) {
   'use strict';
 
-  var app = require('app');
   var Responder = require('responder');
 
   /**
@@ -9,11 +8,12 @@ define(function(require) {
    * When given a callback the callback will be called otherwise the error
    * controller will be invoked.
    */
-  function handleError(err, callback) {
+  function handleError(app, err, callback) {
     if (callback) {
       return callback(err);
     }
 
+    // we pass app as argument to avoid circular dependency
     app.errorController.dispatch(err);
   }
 
@@ -108,7 +108,7 @@ define(function(require) {
       this._incrementPending();
       store.sync(account, calendar, function(err) {
         self._resolvePending();
-        handleError(err, callback);
+        handleError(self.app, err, callback);
       });
     },
 
@@ -134,7 +134,7 @@ define(function(require) {
       accountStore.sync(account, function(err) {
         if (err) {
           self._resolvePending();
-          return handleError(err, callback);
+          return handleError(self.app, err, callback);
         }
 
         var pending = 0;
@@ -151,7 +151,7 @@ define(function(require) {
         function fetchCalendars(err, calendars) {
           if (err) {
             self._resolvePending();
-            return handleError(err, callback);
+            return handleError(self.app, err, callback);
           }
 
           for (var key in calendars) {

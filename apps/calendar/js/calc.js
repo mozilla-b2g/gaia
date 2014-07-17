@@ -1,9 +1,11 @@
 define(function(require, exports) {
   'use strict';
 
-  var dateFormat = require('app').dateFormat;
+  var dateFormat = require('utils/dateFormat');
   var defaultCompare = require('calendar').compare;
   var Timespan = require('timespan');
+  // avoid circular dependency
+  Timespan.calc = exports;
 
   const SECOND = 1000;
   const MINUTE = (SECOND * 60);

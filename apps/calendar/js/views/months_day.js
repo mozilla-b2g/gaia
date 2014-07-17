@@ -3,7 +3,7 @@ define(function(require) {
 
   var Parent = require('./day_child');
   var template = require('templates.months_day');
-  var dateFormat = require('app').dateFormat;
+  var dateFormat = require('utils/dateFormat');
   var router = require('app').router;
   var calc = require('calc');
 

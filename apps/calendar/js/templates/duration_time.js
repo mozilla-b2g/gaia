@@ -3,7 +3,7 @@ define(function(require) {
 
   var Template = require('template');
   var calc = require('calc');
-  var dateFormat = require('app').dateFormat;
+  var dateFormat = require('utils/dateFormat');
   var _ = navigator.mozL10n.get;
 
   var DurationTime = Template.create({
