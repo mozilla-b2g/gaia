@@ -541,7 +541,7 @@
   transform: translateX(calc(100% + 2rem));
 }
 
-#windows .appWindow.active iframe {
+/*#windows .appWindow.active iframe {
   transition-property: transform;
   transition-duration: 0.5s;
 }
@@ -557,5 +557,22 @@
 #screen.locked.rocketbar-expanded .appWindow.active iframe,
 #screen.rocketbar-expanded .appWindow.active iframe {
   transform: none;
+}*/
+
+/*#screen #windows > .appWindow:not(.fullscreen-app).active {
+  height: 100%;
 }
 
+#screen.rocketbar-expanded #windows >
+  .appWindow:not(.fullscreen-app).active {
+  height: calc(100%    
+}*/
+
+
+#windows .appWindow.active {
+  overflow: scroll;  
+}
+
+#windows .appWindow.active iframe {
+  margin-top: 2.4rem;
+}

@@ -531,6 +531,9 @@
     }
     this.element = document.getElementById(this.instanceID);
 
+    // For expand/collapse Rocketbar on scroll
+    this.element.scrollgrab = true;
+
     // For gaiauitest usage.
     this.element.dataset.manifestName = this.manifest ? this.manifest.name : '';
 
@@ -647,7 +650,7 @@
     ['mozbrowserclose', 'mozbrowsererror', 'mozbrowservisibilitychange',
      'mozbrowserloadend', 'mozbrowseractivitydone', 'mozbrowserloadstart',
      'mozbrowsertitlechange', 'mozbrowserlocationchange',
-     'mozbrowsermetachange', 'mozbrowsericonchange', 'mozbrowserasyncscroll',
+     'mozbrowsermetachange', 'mozbrowsericonchange',
      '_localized', '_swipein', '_swipeout', '_kill_suspended',
      '_orientationchange', '_focus'];
 
@@ -669,7 +672,6 @@
    * @type {Array}
    */
   var SELF_MANAGED_EVENTS = [
-    'mozbrowserasyncscroll',
     'mozbrowserclose',
     'mozbrowsercontextmenu',
     'mozbrowsererror',
@@ -716,7 +718,7 @@
       if (this.config.chrome &&
           (this.config.chrome.navigation ||
            this.config.chrome.rocketbar)) {
-        this.appChrome = new self.AppChrome(this);
+        //this.appChrome = new self.AppChrome(this);
       }
     };
 
@@ -894,14 +896,11 @@
       this.publish('iconchange');
     };
 
-  AppWindow.prototype._handle_mozbrowserasyncscroll =
-    function aw__handle_mozbrowserasyncscroll(evt) {
-      if (this.manifest) {
-        return;
-      }
-      this.scrollPosition = evt.detail.top;
+  AppWindow.prototype._handle_scroll =
+    function aw__handle_scroll(evt) {
+      this.scrollPosition = this.element.scrollTop;
       this.publish('scroll');
-    };
+  };
 
   AppWindow.prototype._handle_mozbrowsermetachange =
     function aw__handle_mozbrowsermetachange(evt) {
@@ -936,6 +935,7 @@
         this.element.addEventListener(evt, this);
       }
     }, this);
+    this.element.addEventListener('scroll', this._handle_scroll.bind(this));
   };
 
   /**
