@@ -25,6 +25,7 @@ suite('migrator.js >', function() {
       bdAddStub = null,
       cdAddStub = null,
       vpPutStub = null,
+      vpGetStub = null,
       bookmarks = [],
       collections = [],
       layout = null,
@@ -45,12 +46,20 @@ suite('migrator.js >', function() {
     navigator.mozSetMessageHandler = MockNavigatormozSetMessageHandler;
     MockNavigatormozSetMessageHandler.mSetup();
     requireApp('homescreen/js/migrator.js', done);
+    vpGetStub = sinon.stub(verticalPreferences, 'get', function(id) {
+      return {
+        then: function(resolve) {
+          resolve();
+        }
+      };
+    });
   });
 
   suiteTeardown(function() {
     window.asyncStorage = realAsyncStorage;
     MockNavigatormozSetMessageHandler.mTeardown();
     navigator.mozSetMessageHandler = realSetMessageHandler;
+    vpGetStub.restore();
   });
 
   setup(function() {
