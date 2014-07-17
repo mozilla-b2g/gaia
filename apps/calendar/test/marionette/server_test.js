@@ -6,8 +6,11 @@ var Calendar = require('./lib/calendar'),
     assert = require('chai').assert,
     debug = require('debug')('marionette:server_test');
 
+// Passing DEBUG=marionette:server_test to ./bin/gaia-marionette is busted?
+debug = console.log;
+
 var sharedPath = __dirname + '/../../../../shared/test/integration',
-    calendarName = 'firefox-os';
+    calendarName = 'Calendar';
 
 marionette('interop basic', function() {
   var app, server;
@@ -49,8 +52,9 @@ marionette('interop basic', function() {
 
     app.setupAccount({
       accountType: 'caldav',
-      user: calendarName,
-      fullUrl: 'http://127.0.0.1:' + server.port + '/' + calendarName
+      user: '<FILL IN>@mozilla.com',
+      password: '*** FILL IN ***',
+      fullUrl: 'https://mail.mozilla.com'
     });
 
     app.monthDay.events.forEach(function(event) {
@@ -91,7 +95,7 @@ marionette('interop basic', function() {
 
     teardown(function() {
       debug('Delete account from calendar app.');
-      app.teardownAccount(calendarName);
+      app.teardownAccount(calendarName, '<FILL IN>@mozilla.com');
     });
 
 
