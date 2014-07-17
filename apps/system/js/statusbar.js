@@ -172,7 +172,7 @@ var StatusBar = {
 
     var settings = {
       'ril.radio.disabled': ['signal', 'data'],
-      'airplaneMode.enabled': ['flightMode'],
+      'airplaneMode.status': ['flightMode'],
       'ril.data.enabled': ['data'],
       'wifi.enabled': ['wifi'],
       'bluetooth.enabled': ['bluetooth'],
@@ -731,14 +731,14 @@ var StatusBar = {
     },
 
     flightMode: function sb_flightMode() {
-      var self = this;
-      var flightModeIcon = self.icons.flightMode;
-      if (self.settingValues['airplaneMode.enabled']) {
-        // "Airplane Mode"
+      var flightModeIcon = this.icons.flightMode;
+      var status = this.settingValues['airplaneMode.status'];
+
+      if (status === 'enabled') {
         flightModeIcon.hidden = false;
-        return;
+      } else if (status === 'disabled') {
+        flightModeIcon.hidden = true;
       }
-      flightModeIcon.hidden = true;
     },
 
     signal: function sb_updateSignal() {
