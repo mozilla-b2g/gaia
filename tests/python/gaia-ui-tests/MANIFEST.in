@@ -1,4 +1,5 @@
+recursive-include gaiatest/atoms *.js
+recursive-include gaiatest/resources *.*
 exclude MANIFEST.in
 include requirements.txt
 exclude gaiatest/tests
-exclude gaiatest/resources/*
