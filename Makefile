@@ -884,7 +884,7 @@ endif
 # Utils                                                                       #
 ###############################################################################
 
-.PHONY: lint gjslint hint csslint
+.PHONY: lint gjslint hint csslint csplint
 
 # Lint apps
 ## only gjslint files from build/jshint-xfail.list - files not yet safe to jshint
@@ -927,6 +927,9 @@ hint: node_modules/.bin/jshint
 
 csslint: $(XULRUNNER_BASE_DIRECTORY)
 	@$(call run-js-command,csslint)
+
+csplint: $(XULRUNNER_BASE_DIRECTORY)
+	@$(call run-js-command,csplint)
 
 # Erase all the indexedDB databases on the phone, so apps have to rebuild them.
 delete-databases:
