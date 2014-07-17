@@ -531,12 +531,15 @@ class GaiaDevice(object):
         self.marionette.wait_for_port()
         self.marionette.start_session()
 
-        # Wait for the homescreen to finish loading
-        Wait(self.marionette, timeout).until(expected.element_present(
-            By.CSS_SELECTOR, '#homescreen[loading-state=false]'))
+        self.wait_for_b2g_ready(timeout)
 
         # Reset the storage path for desktop B2G
         self._set_storage_path()
+
+    def wait_for_b2g_ready(self, timeout):
+        # Wait for the homescreen to finish loading
+        Wait(self.marionette, timeout).until(expected.element_present(
+            By.CSS_SELECTOR, '#homescreen[loading-state=false]'))
 
     @property
     def is_b2g_running(self):
