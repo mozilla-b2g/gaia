@@ -1395,13 +1395,13 @@ ImageEditor.prototype.autoEnhancement = function() {
 
   if (this.edits.rgbMinMaxValues == ImageProcessor.default_enhancement) {
     if (this.autoEnhanceValues) {
-      statusLabel.textContent = navigator.mozL10n.get('enhance-on');
+      statusLabel.setAttribute('data-l10n-id', 'enhance-on');
       enhanceButton.classList.add('on');
       this.edits.rgbMinMaxValues = this.autoEnhanceValues;
     }
   } else {
     this.edits.rgbMinMaxValues = ImageProcessor.default_enhancement;
-    statusLabel.textContent = navigator.mozL10n.get('enhance-off');
+    statusLabel.setAttribute('data-l10n-id', 'enhance-off');
     enhanceButton.classList.remove('on');
   }
   //Apply the effect or restore the preview without it.

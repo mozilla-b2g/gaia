@@ -127,18 +127,18 @@ nextFrame.container.addEventListener('transitionend', removeTransition);
 function deleteSingleItem() {
   var msg;
   if (files[currentFileIndex].metadata.video) {
-    msg = navigator.mozL10n.get('delete-video?');
+    msg = 'delete-video?';
   }
   else {
-    msg = navigator.mozL10n.get('delete-photo?');
+    msg = 'delete-photo?';
   }
   // We need to disable NFC sharing when showing delete confirmation dialog
   setNFCSharing(false);
 
   Dialogs.confirm({
-    message: msg,
-    cancelText: navigator.mozL10n.get('cancel'),
-    confirmText: navigator.mozL10n.get('delete'),
+    messageId: msg,
+    cancelId: 'cancel',
+    confirmId: 'delete',
     danger: true
   }, function() { // onSuccess
     // disable delete and share button to prevent operations while delete item
