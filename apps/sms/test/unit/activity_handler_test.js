@@ -310,144 +310,22 @@ suite('ActivityHandler', function() {
   });
 
   suite('sms received', function() {
-    var message;
+    var message, checkSilentPromise;
 
-    setup(function(done) {
+    setup(function() {
       message = MockMessages.sms();
-      var checkSilentPromise = Promise.resolve(false);
+      checkSilentPromise = Promise.resolve(false);
 
       this.sinon.stub(MockSilentSms, 'checkSilentModeFor')
             .returns(checkSilentPromise);
-      MockNavigatormozSetMessageHandler.mTrigger('sms-received', message);
-      checkSilentPromise.then(() => done());
     });
 
     test('request the cpu wake lock', function() {
+      MockNavigatormozSetMessageHandler.mTrigger('sms-received', message);
+
       var wakeLock = MockNavigatorWakeLock.mLastWakeLock;
       assert.ok(wakeLock);
       assert.equal(wakeLock.topic, 'cpu');
-    });
-
-    suite('contact retrieved (after getSelf)', function() {
-      var contactName = '<&>'; // testing potentially unsafe characters
-      var sendSpy;
-      setup(function() {
-        sendSpy = this.sinon.spy(window, 'Notification');
-        this.sinon.stub(Contacts, 'findByPhoneNumber')
-          .yields([{name: [contactName]}]);
-
-        MockNavigatormozApps.mTriggerLastRequestSuccess();
-      });
-
-      test('passes contact name in plain text', function() {
-        sinon.assert.called(sendSpy);
-        var notification = sendSpy.firstCall.thisValue;
-        assert.equal(notification.title, contactName);
-      });
-    });
-
-    suite('contact without name (after getSelf)', function() {
-      var phoneNumber = '+1111111111';
-      var sendSpy;
-
-      setup(function() {
-        sendSpy = this.sinon.spy(window, 'Notification');
-        message.sender = phoneNumber;
-        this.sinon.stub(Contacts, 'findByPhoneNumber')
-          .yields([{
-            name: [''],
-            tel: {'value': phoneNumber}
-          }]);
-        MockNavigatormozApps.mTriggerLastRequestSuccess();
-      });
-
-      test('phone in notification title when contact without name', function() {
-        sinon.assert.called(sendSpy);
-        var notification = sendSpy.firstCall.thisValue;
-        assert.equal(notification.title, phoneNumber);
-      });
-    });
-
-    suite('after getSelf', function() {
-      var sendSpy;
-      setup(function() {
-        sendSpy = this.sinon.spy(window, 'Notification');
-        MockNavigatormozApps.mTriggerLastRequestSuccess();
-      });
-
-      test('a notification is sent', function() {
-        sinon.assert.called(sendSpy);
-        var notification = sendSpy.firstCall.thisValue;
-        assert.equal(notification.body, message.body);
-        var expectedicon = 'sms?threadId=' + message.threadId + '&number=' +
-          message.sender + '&id=' + message.id;
-        assert.equal(notification.icon, expectedicon);
-      });
-
-      test('the lock is released', function() {
-        assert.ok(MockNavigatorWakeLock.mLastWakeLock.released);
-      });
-
-      suite('click on the notification', function() {
-        setup(function() {
-          var notification = sendSpy.firstCall.thisValue;
-          assert.ok(notification.mEvents.click);
-          this.sinon.stub(ActivityHandler, 'handleMessageNotification');
-          notification.mEvents.click();
-        });
-
-        test('launches the app', function() {
-          assert.ok(MockNavigatormozApps.mAppWasLaunched);
-        });
-      });
-    });
-
-    suite('Close notification', function() {
-      var closeSpy;
-      var isDocumentHidden;
-
-      suiteSetup(function(){
-        Object.defineProperty(document, 'hidden', {
-          configurable: true,
-          get: function() {
-            return isDocumentHidden;
-          }
-        });
-      });
-
-      suiteTeardown(function(){
-        delete document.hidden;
-      });
-
-      setup(function() {
-        closeSpy = this.sinon.spy(Notification.prototype, 'close');
-        this.sinon.stub(document, 'addEventListener');
-      });
-
-      test('thread view already visible', function() {
-        isDocumentHidden = false;
-        this.sinon.stub(Threads, 'currentId', message.threadId);
-        MockNavigatormozApps.mTriggerLastRequestSuccess();
-        sinon.assert.notCalled(document.addEventListener);
-        sinon.assert.notCalled(closeSpy);
-      });
-
-      test('Not in target thread view', function() {
-        isDocumentHidden = true;
-        MockNavigatormozApps.mTriggerLastRequestSuccess();
-        sinon.assert.notCalled(document.addEventListener);
-        sinon.assert.notCalled(closeSpy);
-      });
-
-      test('In target thread view and view is hidden', function() {
-        isDocumentHidden = true;
-        this.sinon.stub(Threads, 'currentId', message.threadId);
-        MockNavigatormozApps.mTriggerLastRequestSuccess();
-        sinon.assert.called(document.addEventListener);
-        sinon.assert.notCalled(closeSpy);
-        document.addEventListener.yield();
-        sinon.assert.called(closeSpy);
-      });
     });
 
     suite('receive class-0 message', function() {
@@ -470,6 +348,83 @@ suite('ActivityHandler', function() {
       test('vibrate', function() {
         var spied = Notify.vibrate;
         assert.ok(spied.called);
+      });
+    });
+
+    suite('received sms message', function() {
+      setup(function(done) {
+        this.sinon.stub(ActivityHandler, 'dispatchNotification');
+        MockNavigatormozSetMessageHandler.mTrigger('sms-received', message);
+        checkSilentPromise.then(() => done());
+      });
+
+      test('dispatch sms notification', function() {
+        sinon.assert.calledWith(ActivityHandler.dispatchNotification, {
+          message: message,
+          releaseWakeLock: sinon.match.any
+        });
+      });
+    });
+
+    suite('received mms message', function() {
+      setup(function() {
+        this.sinon.stub(ActivityHandler, 'dispatchNotification');
+      });
+
+      test('dispatch notification when delivery success', function(done) {
+        message = MockMessages.mms({
+          deliveryInfo: [{deliveryStatus: 'success'}]
+        });
+        MockNavigatormozSetMessageHandler.mTrigger('sms-received', message);
+
+        checkSilentPromise.then(function() {
+          sinon.assert.calledWith(ActivityHandler.dispatchNotification, {
+            message: message,
+            releaseWakeLock: sinon.match.any,
+            needManualRetrieve: false
+          });
+        }).then(done, done);
+      });
+
+      test('dispatch notification when delivery error', function(done) {
+        message = MockMessages.mms({
+          deliveryInfo: [{deliveryStatus: 'error'}]
+        });
+        MockNavigatormozSetMessageHandler.mTrigger('sms-received', message);
+
+        checkSilentPromise.then(function() {
+          sinon.assert.calledWith(ActivityHandler.dispatchNotification, {
+            message: message,
+            releaseWakeLock: sinon.match.any,
+            needManualRetrieve: true
+          });
+        }).then(done, done);
+      });
+
+      test('dispatch notification when not-downloaded', function(done) {
+        message = MockMessages.mms({
+          deliveryInfo: [{deliveryStatus: 'not-downloaded'}]
+        });
+        MockNavigatormozSetMessageHandler.mTrigger('sms-received', message);
+
+        checkSilentPromise.then(function() {
+          sinon.assert.calledWith(ActivityHandler.dispatchNotification, {
+            message: message,
+            releaseWakeLock: sinon.match.any,
+            needManualRetrieve: true
+          });
+        }).then(done, done);
+      });
+
+      test('Do not dispatch notification when pending', function(done) {
+        message = MockMessages.mms({
+          deliveryInfo: [{deliveryStatus: 'pending'}]
+        });
+        MockNavigatormozSetMessageHandler.mTrigger('sms-received', message);
+
+        checkSilentPromise.then(function() {
+          sinon.assert.notCalled(ActivityHandler.dispatchNotification);
+        }).then(done, done);
       });
     });
   });
@@ -503,56 +458,307 @@ suite('ActivityHandler', function() {
     });
   });
 
-  suite('Dual SIM behavior >', function() {
+  suite('get phone number', function() {
     var message;
 
-    setup(function(done) {
-      message = MockMessages.sms({
-        iccId: '0'
-      });
-      var checkSilentPromise = Promise.resolve(false);
-      this.sinon.stub(MockSilentSms, 'checkSilentModeFor')
-        .returns(checkSilentPromise);
-      this.sinon.stub(Settings, 'hasSeveralSim').returns(true);
-      this.sinon.spy(window, 'Notification');
+    test('received message', function() {
+      message = MockMessages.sms();
+      assert.equal(message.sender, ActivityHandler.getPhoneNumber(message));
+    });
 
-      MockNavigatormozSetMessageHandler.mTrigger('sms-received', message);
-      checkSilentPromise.then(() => done());
+    test('not downloaded message', function() {
+      message = MockMessages.mms({ delivery: 'not-downloaded' });
+      assert.equal(message.sender, ActivityHandler.getPhoneNumber(message));
+    });
+
+    test('sms delivery status return', function() {
+      message = MockMessages.sms({ delivery: 'sent'});
+      assert.equal(message.receiver, ActivityHandler.getPhoneNumber(message));
+    });
+
+    test('mms delivery status return(single receiver)', function() {
+      message = MockMessages.mms({ delivery: 'sent'});
+      assert.equal(message.deliveryInfo[0].receiver,
+        ActivityHandler.getPhoneNumber(message));
+    });
+
+    test('mms delivery success return(multiple receiver)', function() {
+      message = MockMessages.mms({
+        delivery: 'sent',
+        deliveryInfo: [{
+          receiver: 'receiver1',
+          deliveryStatus: 'success',
+          deliveryTimestamp: 1000000
+        },
+        {
+          receiver: 'receiver2',
+          deliveryStatus: 'success',
+          deliveryTimestamp: 1200000
+        }]
+      });
+      assert.equal(message.deliveryInfo[1].receiver,
+        ActivityHandler.getPhoneNumber(message, {delivered: true}));
+    });
+
+    test('mms read success return(multiple receiver)', function() {
+      message = MockMessages.mms({
+        delivery: 'sent',
+        deliveryInfo: [{
+          receiver: 'receiver1',
+          readStatus: 'not-applicable',
+          deliveryStatus: 'success',
+          deliveryTimestamp: 1200000
+        },
+        {
+          receiver: 'receiver2',
+          readStatus: 'success',
+          readTimestamp: 1000000
+        }]
+      });
+      assert.equal(message.deliveryInfo[1].receiver,
+        ActivityHandler.getPhoneNumber(message, {read: true}));
+    });
+  });
+
+  suite('sms delivery success', function() {
+    var message;
+
+    setup(function() {
+      message = MockMessages.sms();
+      this.sinon.stub(ActivityHandler, 'dispatchNotification');
+      this.sinon.spy(ActivityHandler, 'wakeLockSetup');
+
+      MockNavigatormozSetMessageHandler.mTrigger('sms-delivery-success',
+        message);
+    });
+
+    test('request the cpu wake lock', function() {
+      var wakeLock = MockNavigatorWakeLock.mLastWakeLock;
+      assert.ok(wakeLock);
+      assert.equal(wakeLock.topic, 'cpu');
+    });
+
+    test('dispatchNotification called with correct options', function() {
+      sinon.assert.calledWith(ActivityHandler.dispatchNotification, {
+        message: message,
+        releaseWakeLock: sinon.match.any,
+        delivered: true
+      });
+    });
+  });
+
+  suite('sms read success', function() {
+    var message;
+
+    setup(function() {
+      message = MockMessages.mms();
+      this.sinon.stub(ActivityHandler, 'dispatchNotification');
+      this.sinon.spy(ActivityHandler, 'wakeLockSetup');
+
+      MockNavigatormozSetMessageHandler.mTrigger('sms-read-success', message);
+    });
+
+    test('request the cpu wake lock', function() {
+      var wakeLock = MockNavigatorWakeLock.mLastWakeLock;
+      assert.ok(wakeLock);
+      assert.equal(wakeLock.topic, 'cpu');
+    });
+
+    test('dispatchNotification called with correct options', function() {
+      sinon.assert.calledWith(ActivityHandler.dispatchNotification, {
+        message: message,
+        releaseWakeLock: sinon.match.any,
+        read: true
+      });
+    });
+  });
+
+  suite('dispatch notification', function() {
+    var message, options;
+
+    setup(function() {
+      message = MockMessages.sms();
+      options = {
+        message: message,
+        releaseWakeLock: sinon.stub(),
+        needManualRetrieve: false
+      };
     });
 
     suite('contact retrieved (after getSelf)', function() {
-      var contactName = 'contact';
+      var contactName = '<&>'; // testing potentially unsafe characters
+      var sendSpy;
       setup(function() {
+        sendSpy = this.sinon.spy(window, 'Notification');
         this.sinon.stub(Contacts, 'findByPhoneNumber')
           .yields([{name: [contactName]}]);
 
+        ActivityHandler.dispatchNotification(options);
         MockNavigatormozApps.mTriggerLastRequestSuccess();
       });
 
-      test('prefix the contact name with the SIM information', function() {
-        var expected = 'dsds-notification-title-with-sim' +
-          '{"sim":"sim-name-0","sender":"contact"}';
-        sinon.assert.calledWith(window.Notification, expected);
+      test('passes contact name in plain text', function() {
+        sinon.assert.called(sendSpy);
+        var notification = sendSpy.firstCall.thisValue;
+        assert.equal(notification.title, contactName);
       });
     });
 
     suite('contact without name (after getSelf)', function() {
       var phoneNumber = '+1111111111';
+      var sendSpy;
 
       setup(function() {
+        sendSpy = this.sinon.spy(window, 'Notification');
         message.sender = phoneNumber;
         this.sinon.stub(Contacts, 'findByPhoneNumber')
           .yields([{
             name: [''],
-            tel: {value: phoneNumber}
+            tel: {'value': phoneNumber}
           }]);
+
+        ActivityHandler.dispatchNotification(options);
         MockNavigatormozApps.mTriggerLastRequestSuccess();
       });
 
       test('phone in notification title when contact without name', function() {
-        var expected = 'dsds-notification-title-with-sim' +
-          '{"sim":"sim-name-0","sender":"+1111111111"}';
-        sinon.assert.calledWith(window.Notification, expected);
+        sinon.assert.called(sendSpy);
+        var notification = sendSpy.firstCall.thisValue;
+        assert.equal(notification.title, phoneNumber);
+      });
+    });
+
+    suite('after getSelf', function() {
+      var sendSpy;
+
+      setup(function() {
+        sendSpy = this.sinon.spy(window, 'Notification');
+
+        ActivityHandler.dispatchNotification(options);
+        MockNavigatormozApps.mTriggerLastRequestSuccess();
+      });
+
+      test('a notification is sent', function() {
+        sinon.assert.called(sendSpy);
+        var notification = sendSpy.firstCall.thisValue;
+        assert.equal(notification.body, message.body);
+        var expectedicon = 'sms?threadId=' + message.threadId + '&number=' +
+          message.sender + '&id=' + message.id;
+        assert.equal(notification.icon, expectedicon);
+      });
+
+      test('the lock is released', function() {
+        sinon.assert.called(options.releaseWakeLock);
+      });
+
+      suite('click on the notification', function() {
+        setup(function() {
+          var notification = sendSpy.firstCall.thisValue;
+          assert.ok(notification.mEvents.click);
+          this.sinon.stub(ActivityHandler, 'handleMessageNotification');
+          notification.mEvents.click();
+        });
+
+        test('launches the app', function() {
+          assert.ok(MockNavigatormozApps.mAppWasLaunched);
+        });
+      });
+    });
+
+    suite('Dual SIM behavior >', function() {
+
+      setup(function() {
+        message.iccId = '0';
+        this.sinon.stub(Settings, 'hasSeveralSim').returns(true);
+        this.sinon.spy(window, 'Notification');
+      });
+
+      suite('contact retrieved (after getSelf)', function() {
+        var contactName = 'contact';
+        setup(function() {
+          this.sinon.stub(Contacts, 'findByPhoneNumber')
+            .yields([{name: [contactName]}]);
+
+          ActivityHandler.dispatchNotification(options);
+          MockNavigatormozApps.mTriggerLastRequestSuccess();
+        });
+
+        test('prefix the contact name with the SIM information', function() {
+          var expected = 'dsds-notification-title-with-sim' +
+            '{"sim":"sim-name-0","sender":"contact"}';
+          sinon.assert.calledWith(window.Notification, expected);
+        });
+      });
+
+      suite('contact without name (after getSelf)', function() {
+        var phoneNumber = '+1111111111';
+
+        setup(function() {
+          message.sender = phoneNumber;
+          this.sinon.stub(Contacts, 'findByPhoneNumber')
+            .yields([{
+              name: [''],
+              tel: {value: phoneNumber}
+            }]);
+
+          ActivityHandler.dispatchNotification(options);
+          MockNavigatormozApps.mTriggerLastRequestSuccess();
+        });
+
+        test('phone number in title when contact without name', function() {
+          var expected = 'dsds-notification-title-with-sim' +
+            '{"sim":"sim-name-0","sender":"+1111111111"}';
+          sinon.assert.calledWith(window.Notification, expected);
+        });
+      });
+    });
+
+    suite('Close notification', function() {
+      var closeSpy;
+      var isDocumentHidden;
+
+      suiteSetup(function(){
+        Object.defineProperty(document, 'hidden', {
+          configurable: true,
+          get: function() {
+            return isDocumentHidden;
+          }
+        });
+      });
+
+      suiteTeardown(function(){
+        delete document.hidden;
+      });
+
+      setup(function() {
+        closeSpy = this.sinon.spy(Notification.prototype, 'close');
+        this.sinon.stub(document, 'addEventListener');
+        ActivityHandler.dispatchNotification(options);
+      });
+
+      test('thread view already visible', function() {
+        isDocumentHidden = false;
+        this.sinon.stub(Threads, 'currentId', message.threadId);
+        MockNavigatormozApps.mTriggerLastRequestSuccess();
+        sinon.assert.notCalled(document.addEventListener);
+        sinon.assert.notCalled(closeSpy);
+      });
+
+      test('Not in target thread view', function() {
+        isDocumentHidden = true;
+        MockNavigatormozApps.mTriggerLastRequestSuccess();
+        sinon.assert.notCalled(document.addEventListener);
+        sinon.assert.notCalled(closeSpy);
+      });
+
+      test('In target thread view and view is hidden', function() {
+        isDocumentHidden = true;
+        this.sinon.stub(Threads, 'currentId', message.threadId);
+        MockNavigatormozApps.mTriggerLastRequestSuccess();
+        sinon.assert.called(document.addEventListener);
+        sinon.assert.notCalled(closeSpy);
+        document.addEventListener.yield();
+        sinon.assert.called(closeSpy);
       });
     });
   });

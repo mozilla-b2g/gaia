@@ -11,5 +11,7 @@ var MockActivityHandler = {
   triggerNewMessage: function() {},
   toView: function() {},
   onSmsReceived: function() {},
+  onSmsDeliverySuccess: function() {},
+  onSmsReadSuccess: function() {},
   onNotification: function() {}
 };

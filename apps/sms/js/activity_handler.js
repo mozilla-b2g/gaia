@@ -6,6 +6,7 @@
          ThreadUI, Notification, Settings, Navigation */
 /*exported ActivityHandler */
 
+(function(exports) {
 'use strict';
 
 /**
@@ -18,6 +19,42 @@ const ActivityDataType = {
   VIDEO: 'video/*',
   URL: 'url'
 };
+
+function getTitleFromMms(opts, callback) {
+  // If message is not downloaded notification, we need to apply
+  // specific text in notification title;
+  // If subject exist, we display subject first;
+  // If the message only has text content, display text context;
+  // If there is no subject nor text content, display
+  // 'mms message' in the field.
+  var needManualRetrieve = opts.needManualRetrieve;
+  var message = opts.message;
+
+  if (needManualRetrieve) {
+    setTimeout(function notDownloadedCb() {
+      callback(navigator.mozL10n.get('notDownloaded-title'));
+    });
+  }
+  else if (message.subject) {
+    setTimeout(function subjectCb() {
+      callback(message.subject);
+    });
+  } else {
+    SMIL.parse(message, function slideCb(slideArray) {
+      var text, slidesLength = slideArray.length;
+      for (var i = 0; i < slidesLength; i++) {
+        if (!slideArray[i].text) {
+          continue;
+        }
+
+        text = slideArray[i].text;
+        break;
+      }
+      text = text ? text : navigator.mozL10n.get('mms-message');
+      callback(text);
+    });
+  }
+}
 
 var ActivityHandler = {
   // CSS class applied to the body element when app requested via activity
@@ -42,12 +79,19 @@ var ActivityHandler = {
     );
 
     // We want to register the handler only when we're on the launch path
-    if (!window.location.hash.length) {
-      window.navigator.mozSetMessageHandler('sms-received',
-        this.onSmsReceived.bind(this));
+    if (window.location.hash.length) {
+      return;
+    }
 
-      window.navigator.mozSetMessageHandler('notification',
-        this.onNotification.bind(this));
+    var messageHandlers = {
+      'sms-received': this.onSmsReceived.bind(this),
+      'sms-delivery-success': this.onSmsDeliverySuccess.bind(this),
+      'sms-read-success': this.onSmsReadSuccess.bind(this),
+      'notification': this.onNotification.bind(this)
+    };
+
+    for (var key in messageHandlers) {
+      window.navigator.mozSetMessageHandler(key, messageHandlers[key]);
     }
   },
 
@@ -323,19 +367,7 @@ var ActivityHandler = {
     });
   },
 
-  /* === Incoming SMS support === */
-
-  onSmsReceived: function ah_onSmsReceived(message) {
-    var _ = navigator.mozL10n.get;
-
-    // Acquire the cpu wake lock when we receive an SMS.  This raises the
-    // priority of this process above vanilla background apps, making it less
-    // likely to be killed on OOM.  It also prevents the device from going to
-    // sleep before the user is notified of the new message.
-    //
-    // We'll release it once we display a notification to the user.  We also
-    // release the lock after 30s, in case we never run the notification code
-    // for some reason.
+  wakeLockSetup: function ah_wakeLockSetup() {
     var wakeLock = navigator.requestWakeLock('cpu');
     var wakeLockReleased = false;
     var timeoutID = null;
@@ -349,11 +381,117 @@ var ActivityHandler = {
         wakeLock.unlock();
       }
     }
-    timeoutID = setTimeout(releaseWakeLock, 30 * 1000);
 
-    var number = message.sender;
+    timeoutID = setTimeout(releaseWakeLock, 30 * 1000);
+    return releaseWakeLock;
+  },
+
+  dispatchNotification: function ah_dispatchNotification(options) {
+    var _ = navigator.mozL10n.get;
+    var message = options.message;
+    var releaseWakeLock = options.releaseWakeLock;
     var threadId = message.threadId;
     var id = message.id;
+    var number = this.getPhoneNumber(message, options);
+
+    // The SMS app is already displayed
+    if (!document.hidden) {
+      if (Navigation.isCurrentPanel('thread', { id: threadId })) {
+        Notify.ringtone();
+        Notify.vibrate();
+        releaseWakeLock();
+        return;
+      }
+    }
+
+    navigator.mozApps.getSelf().onsuccess = function(evt) {
+      var app = evt.target.result;
+      var iconURL = NotificationHelper.getIconURI(app);
+
+      // Stashing the number at the end of the icon URL to make sure
+      // we get it back even via system message
+      iconURL += '?';
+      iconURL += [
+        'threadId=' + threadId,
+        'number=' + encodeURIComponent(number),
+        'id=' + id
+      ].join('&');
+
+      function goToMessage() {
+        app.launch();
+        ActivityHandler.handleMessageNotification(message);
+      }
+
+      function continueWithNotification(sender, body) {
+        var title = sender;
+        if (Settings.hasSeveralSim() && message.iccId) {
+          var simName = Settings.getSimNameByIccId(message.iccId);
+          title = _(
+            'dsds-notification-title-with-sim',
+            { sim: simName, sender: sender }
+          );
+        }
+
+        var opts = {
+          icon: iconURL,
+          body: body,
+          tag: 'threadId:' + threadId
+        };
+
+        var notification = new Notification(title, opts);
+        notification.addEventListener('click', goToMessage);
+        releaseWakeLock();
+
+        // Close notification if we are already in thread view and view become
+        // visible.
+        if (document.hidden && threadId === Threads.currentId) {
+          document.addEventListener('visibilitychange',
+            function onVisible() {
+              document.removeEventListener('visibilitychange', onVisible);
+              notification.close();
+          });
+        }
+      }
+
+      Contacts.findByPhoneNumber(number, function gotContact(contact) {
+        var name = number;
+        if (!contact) {
+          console.error('We got a null contact for number:', number);
+        } else if (contact.length && contact[0].name &&
+          contact[0].name.length && contact[0].name[0]) {
+          name = contact[0].name[0];
+        }
+
+        if (options.delivered) {
+          // delivery success notification
+          continueWithNotification(_('message-received-by'), name);
+        } else if (options.read) {
+          // read success notification
+          continueWithNotification(_('message-read-by'), name);
+        } else if (message.type === 'sms') {
+          // sms received notification
+          continueWithNotification(name, message.body);
+        } else {
+          // mms received notification
+          getTitleFromMms(options, function textCallback(text) {
+            continueWithNotification(name, text);
+          });
+        }
+      });
+    };
+  },
+  /* === Incoming SMS support === */
+
+  onSmsReceived: function ah_onSmsReceived(message) {
+    // Acquire the cpu wake lock when we receive an SMS.  This raises the
+    // priority of this process above vanilla background apps, making it less
+    // likely to be killed on OOM.  It also prevents the device from going to
+    // sleep before the user is notified of the new message.
+    //
+    // We'll release it once we display a notification to the user.  We also
+    // release the lock after 30s, in case we never run the notification code
+    // for some reason.
+    var releaseWakeLock = this.wakeLockSetup();
 
     // Class 0 handler:
     if (message.messageClass === 'class-0') {
@@ -373,125 +511,11 @@ var ActivityHandler = {
           app.launch();
           Notify.ringtone();
           Notify.vibrate();
-          alert(number + '\n' + message.body);
+          alert(message.sender + '\n' + message.body);
           releaseWakeLock();
         });
       };
       return;
-    }
-
-    function dispatchNotification(needManualRetrieve) {
-      // The SMS app is already displayed
-      if (!document.hidden) {
-        if (Navigation.isCurrentPanel('thread', { id: threadId })) {
-          Notify.ringtone();
-          Notify.vibrate();
-          releaseWakeLock();
-          return;
-        }
-      }
-
-      navigator.mozApps.getSelf().onsuccess = function(evt) {
-        var app = evt.target.result;
-        var iconURL = NotificationHelper.getIconURI(app);
-
-        // Stashing the number at the end of the icon URL to make sure
-        // we get it back even via system message
-        iconURL += '?';
-        iconURL += [
-          'threadId=' + threadId,
-          'number=' + encodeURIComponent(number),
-          'id=' + id
-        ].join('&');
-
-        function goToMessage() {
-          app.launch();
-          ActivityHandler.handleMessageNotification(message);
-        }
-
-        function continueWithNotification(sender, body) {
-          var title = sender;
-          if (Settings.hasSeveralSim() && message.iccId) {
-            var simName = Settings.getSimNameByIccId(message.iccId);
-            title = _(
-              'dsds-notification-title-with-sim',
-              { sim: simName, sender: sender }
-            );
-          }
-
-          var options = {
-            icon: iconURL,
-            body: body,
-            tag: 'threadId:' + threadId
-          };
-
-          var notification = new Notification(title, options);
-          notification.addEventListener('click', goToMessage);
-          releaseWakeLock();
-
-          // Close notification if we are already in thread view and view become
-          // visible.
-          if (document.hidden && threadId === Threads.currentId) {
-            document.addEventListener('visibilitychange',
-              function onVisible() {
-                document.removeEventListener('visibilitychange', onVisible);
-                notification.close();
-            });
-          }
-        }
-
-        function getTitleFromMms(callback) {
-          // If message is not downloaded notification, we need to apply
-          // specific text in notification title;
-          // If subject exist, we display subject first;
-          // If the message only has text content, display text context;
-          // If there is no subject nor text content, display
-          // 'mms message' in the field.
-          if (needManualRetrieve) {
-            setTimeout(function notDownloadedCb() {
-              callback(_('notDownloaded-title'));
-            });
-          }
-          else if (message.subject) {
-            setTimeout(function subjectCb() {
-              callback(message.subject);
-            });
-          } else {
-            SMIL.parse(message, function slideCb(slideArray) {
-              var text, slidesLength = slideArray.length;
-              for (var i = 0; i < slidesLength; i++) {
-                if (!slideArray[i].text) {
-                  continue;
-                }
-
-                text = slideArray[i].text;
-                break;
-              }
-              text = text ? text : _('mms-message');
-              callback(text);
-            });
-          }
-        }
-
-        Contacts.findByPhoneNumber(message.sender, function gotContact(
-                                                                contact) {
-          var sender = message.sender;
-          if (!contact) {
-            console.error('We got a null contact for sender:', sender);
-          } else if (contact.length && contact[0].name &&
-            contact[0].name.length && contact[0].name[0]) {
-            sender = contact[0].name[0];
-          }
-
-          if (message.type === 'sms') {
-            continueWithNotification(sender, message.body);
-          } else { // mms
-            getTitleFromMms(function textCallback(text) {
-              continueWithNotification(sender, text);
-            });
-          }
-        });
-      };
     }
 
     function handleNotification(isSilent) {
@@ -504,9 +528,12 @@ var ActivityHandler = {
         // Please ref mxr for all the possible delivery status:
         // http://mxr.mozilla.org/mozilla-central/source/dom/mms/src/ril/
         // MmsService.js#62
-        if (message.type === 'sms') {
-          dispatchNotification();
-        } else {
+        var opts = {
+          message: message,
+          releaseWakeLock: releaseWakeLock
+        };
+
+        if (message.type === 'mms') {
           // Here we can only have one sender, so deliveryInfo[0].deliveryStatus
           // => message status from sender.
           var status = message.deliveryInfo[0].deliveryStatus;
@@ -516,11 +543,67 @@ var ActivityHandler = {
 
           // If the delivery status is manual/rejected/error, we need to apply
           // specific text to notify user that message is not downloaded.
-          dispatchNotification(status !== 'success');
+          opts.needManualRetrieve = status !== 'success';
         }
+        /*jshint validthis:true */
+        this.dispatchNotification(opts);
       }
     }
-    SilentSms.checkSilentModeFor(message.sender).then(handleNotification);
+    SilentSms.checkSilentModeFor(message.sender).then(
+      handleNotification.bind(this));
+  },
+
+  onSmsDeliverySuccess: function ah_onSmsDeliverySuccess(message) {
+    var releaseWakeLock = this.wakeLockSetup();
+    var opts = {
+      message: message,
+      releaseWakeLock: releaseWakeLock,
+      delivered: true
+    };
+
+    this.dispatchNotification(opts);
+  },
+
+  onSmsReadSuccess: function ah_onSmsReadSuccess(message) {
+    var releaseWakeLock = this.wakeLockSetup();
+    var opts = {
+      message: message,
+      releaseWakeLock: releaseWakeLock,
+      read: true
+    };
+
+    this.dispatchNotification(opts);
+  },
+
+  getPhoneNumber: function ah_getPhoneNumber(message, option) {
+    // Incoming message
+    var delivery = message.delivery;
+    if (delivery === 'received' || delivery === 'not-downloaded') {
+      return message.sender;
+    }
+
+    // Outgoing  message (delivery/read status return)
+    var number;
+    if (!message.deliveryInfo) { // sms
+      number = message.receiver;
+    } else if (message.deliveryInfo.length === 1) { // mms with single receiver
+      number = message.receivers[0];
+    } else if (option && (option.delivered || option.read)) {
+      var latestInfo;
+      var type = option.delivered ? 'delivery' : 'read';
+      var status = type + 'Status';
+      var timestamp = type + 'Timestamp';
+
+      message.deliveryInfo.forEach(function(info) {
+        if (info[status] === 'success') {
+          if (!latestInfo || (latestInfo[timestamp] < info[timestamp])) {
+            latestInfo = info;
+          }
+        }
+      });
+      number = (latestInfo && latestInfo.receiver) ? latestInfo.receiver : null;
+    }
+    return number;
   },
 
   onNotification: function ah_onNotificationClick(message) {
@@ -555,3 +638,7 @@ var ActivityHandler = {
     };
   }
 };
+
+exports.ActivityHandler = ActivityHandler;
+
+}(window));

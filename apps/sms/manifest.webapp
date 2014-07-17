@@ -72,6 +72,8 @@
   "messages": [
      { "alarm": "/index.html" },
      { "sms-received": "/index.html" },
+     { "sms-delivery-success": "/index.html" },
+     { "sms-read-success": "/index.html" },
      { "notification": "/index.html" }
   ],
   "connections": {
