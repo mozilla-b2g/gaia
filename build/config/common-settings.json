@@ -95,6 +95,7 @@
    "keyboard.current": null,
    "keyboard.ftu.enabled": false,
    "keyboard.3rd-party-app.enabled": true,
+   "keyboard.oop-certified-apps": false,
    "keyboard.launch-on-boot": true,
    "language.current": "en-US",
    "layers.draw-borders": false,
