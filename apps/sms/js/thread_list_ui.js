@@ -530,7 +530,10 @@ var ThreadListUI = {
 
       this.appendThread(thread);
       if (--firstPanelCount === 0) {
-        PerformanceTestingHelper.dispatch('above-the-fold-ready');
+        // dispatch visually-complete and content-interactive when rendered
+        // threads could fill up the top of the visiable area
+        window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
+        window.dispatchEvent(new CustomEvent('moz-content-interactive'));
       }
     }
 
@@ -541,7 +544,12 @@ var ThreadListUI = {
        * this is done to prevent races between renering threads and drafts. */
       this.finalizeRendering(!(hasThreads || Drafts.size));
 
-      PerformanceTestingHelper.dispatch('startup-path-done');
+      if (firstPanelCount > 0) {
+        // dispatch visually-complete and content-interactive when rendering
+        // ended but threads could not fill up the top of the visiable area
+        window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
+        window.dispatchEvent(new CustomEvent('moz-content-interactive'));
+      }
     }
 
     var renderingOptions = {
