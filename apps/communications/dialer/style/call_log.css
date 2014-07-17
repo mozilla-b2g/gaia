@@ -20,26 +20,6 @@ form[role="dialog"][data-type="edit"] > menu {
   background: #fff;
 }
 
-#sticky {
-  position: absolute;
-
-  /* The sticky element is positioned at the beginning of the list. */
-  top: 0;
-
-  /* The width is not 100% so the scrollbar is visible. */
-  width: calc(100% - 1.5rem);
-
-  /* The height needs to be kept in sync with the header height. */
-  height: 3.1rem;
-
-  /* The sticky element needs to be above the list. */
-  z-index: 2;
-
-  /* Those style will affect the bagroundImage: -moz-element. */
-  background-repeat: no-repeat;
-  background-position: 1.5rem 0;
-}
-
 #call-log-container[data-type="list"] header {
   background: #fff;
 }
@@ -50,7 +30,10 @@ form[role="dialog"][data-type="edit"] > menu {
 }
 
 #call-log-container[data-type="list"] header {
-  margin: 0 1.5rem;
+  padding: 0 3rem;
+  position: sticky;
+  top: 0;
+  z-index: 2;
 }
 
 #call-log-container[data-type="list"] ol {
