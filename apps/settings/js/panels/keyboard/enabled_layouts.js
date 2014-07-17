@@ -2,7 +2,7 @@
  * The module initializes a ListView displaying all enabled layouts.
  * Implementation details please refer to {@link KeyboardEnabledLayoutsCore}.
  *
- * @module keyboard_enabled_layouts/core
+ * @module keyboard/enabled_layouts
  */
 define(function(require) {
   'use strict';
@@ -10,7 +10,7 @@ define(function(require) {
   var ListView = require('modules/mvvm/list_view');
 
   /**
-   * @alias module:keyboard_enabled_layouts/core
+   * @alias module:keyboard/enabled_layouts
    * @class KeyboardEnabledLayoutsCore
    * @requires module:modules/mvvm/list_view
    * @param {KeyboardContext} context
