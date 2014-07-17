@@ -87,35 +87,42 @@ SettingsAppBuilder.prototype.writeGitCommit = function(options) {
   utils.ensureFolderExists(commitFile);
 
   commitFile.append('gaia_commit.txt');
-  if (overrideCommitFile.exists()) {
-    utils.copyFileTo(overrideCommitFile, commitFile.parent.path,
-      commitFile.leafName, true);
-  } else if(gitDir.exists()) {
-    var git = new utils.Commander('git');
-    var stderr, stdout;
-    var args = [
-      '--git-dir=' + gitDir.path,
-      'log', '-1',
-      '--format=%H%n%ct',
-      'HEAD'];
-    var cmdOptions = {
-      stdout: function(data) {
-        stdout = data;
-      },
-      stderr: function(data) {
-        stderr = data;
-      },
-      done: function(data) {
-        if (data.exitCode !== 0) {
-          throw new Error('stderr: \n' + stderr + '\nstdout: ' + stdout);
-        } else {
-          utils.writeContent(commitFile, stdout);
+
+  try {
+    if (overrideCommitFile.exists()) {
+      utils.copyFileTo(overrideCommitFile, commitFile.parent.path,
+        commitFile.leafName, true);
+    } else if(gitDir.exists()) {
+      var git = new utils.Commander('git');
+      var stderr, stdout;
+      var args = [
+        '--git-dir=' + gitDir.path,
+        'log', '-1',
+        '--format=%H%n%ct',
+        'HEAD'];
+      var cmdOptions = {
+        stdout: function(data) {
+          stdout = data;
+        },
+        stderr: function(data) {
+          stderr = data;
+        },
+        done: function(data) {
+          if (data.exitCode !== 0) {
+            throw new Error('exit value of git command is not zero: \n' +
+              'stderr: \n' + stderr + '\nstdout: ' + stdout);
+          } else {
+            utils.writeContent(commitFile, stdout);
+          }
         }
-      }
-    };
-    git.initPath(utils.getEnvPath());
-    git.runWithSubprocess(args, cmdOptions);
-  } else {
+      };
+      git.initPath(utils.getEnvPath());
+      git.runWithSubprocess(args, cmdOptions);
+    } else {
+      throw new Error('.git directory not found');
+    }
+  } catch (e) {
+    dump('cannot get git commit hash: ' + e.message + '\n');
     utils.writeContent(commitFile,
       'Unknown Git commit; build date shown here.\n' +
       parseInt(Date.now()/1000) + '\n');
