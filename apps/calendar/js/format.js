@@ -19,7 +19,6 @@ define(function() {
     return result;
   }
 
-  Calendar.format = format;
   return format;
 
 });

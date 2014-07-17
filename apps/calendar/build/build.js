@@ -67,9 +67,9 @@ function execute(config) {
     }
   };
 
-  utils.writeContent(init, 'Calendar.Presets = ' +
+  utils.writeContent(init, 'define(function(require, exports){exports = ' +
                utils.getDistributionFileContent('calendar', content, distDir) +
-               ';');
+               ';});');
 }
 
 exports.execute = execute;

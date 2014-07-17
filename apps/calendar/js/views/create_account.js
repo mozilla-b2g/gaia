@@ -3,7 +3,7 @@ define(function(require) {
 
   var Parent = require('view');
   var template = require('templates/account');
-  var presets = require('calendar').Presets;
+  var presets = require('presets');
 
   function CreateAccount(options) {
     Parent.apply(this, arguments);

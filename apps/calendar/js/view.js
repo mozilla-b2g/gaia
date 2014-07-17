@@ -245,6 +245,5 @@ define(function() {
     onfirstseen: function() {}
   };
 
-  Calendar.View = View;
   return View;
 });

@@ -14,8 +14,10 @@
  *
  *
  */
-define(function() {
+define(function(require, exports) {
   'use strict';
+
+  var calendarApp = require('app');
 
   // Due to a bug in the platform, multiple requests to
   // mozApps.getSelf() will fail if fired in close succession.
@@ -64,7 +66,7 @@ define(function() {
 
   function launchApp(url) {
     getApp(function(err, app) {
-      Calendar.App.go(url);
+      calendarApp.go(url);
       if (app) {
         app.launch();
       }
@@ -94,10 +96,6 @@ define(function() {
     });
   }
 
-  var exports = {
-    send: sendNotification
-  };
-  Calendar.Notification = exports;
-  return exports;
+  exports.send = sendNotification;
 
 });

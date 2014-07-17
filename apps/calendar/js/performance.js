@@ -1,4 +1,4 @@
-define(function(window) {
+define(function() {
   'use strict';
 
   // this is just a helper for the performance testing events. we created this
@@ -6,7 +6,7 @@ define(function(window) {
   // conditions and the app contains way too many async operations during
   // startup and no simple way to listen to these events.
 
-  var Performance = {
+  var performance = {
     _isDayBaseInteractive: false,
     _isMonthReady: false,
     _isVisuallyActive: false,
@@ -122,6 +122,5 @@ define(function(window) {
     },
   };
 
-  Calendar.Performance = Performance;
-  return Performance;
+  return performance;
 });

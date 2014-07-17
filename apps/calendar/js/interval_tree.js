@@ -43,8 +43,12 @@
  *
  * TODO: Implement self-balancing and real tree mutations.
  */
-define(function() {
+define(function(require) {
   'use strict';
+
+  var binsearch = require('calendar').binsearch;
+  var defaultCompare = require('calendar').compare;
+
   /**
    * Internal function to add an item
    * to an array via binary search insert.
@@ -53,10 +57,10 @@ define(function() {
    * @private
    */
   function addOrdered(item, array) {
-    var idx = Calendar.binsearch.insert(
+    var idx = binsearch.insert(
       array,
       item,
-      Calendar.compare
+      defaultCompare
     );
 
     array.splice(idx, 0, item);
@@ -72,11 +76,11 @@ define(function() {
   const END = '_endDateMS';
 
   function compareObjectStart(a, b) {
-    return Calendar.compare(a[START], b[START]);
+    return defaultCompare(a[START], b[START]);
   }
 
   function compareObjectEnd(a, b) {
-    return Calendar.compare(a[END], b[END]);
+    return defaultCompare(a[END], b[END]);
   }
 
   IntervalTree.compareObjectStart = compareObjectStart;
@@ -322,7 +326,7 @@ define(function() {
         return;
       }
 
-      var idx = Calendar.binsearch.insert(
+      var idx = binsearch.insert(
         this.items,
         item,
         compareObjectStart
@@ -343,7 +347,7 @@ define(function() {
     indexOf: function(item) {
       var query = {};
       query[START] = item[START];
-      var idx = Calendar.binsearch.find(
+      var idx = binsearch.find(
         this.items,
         query,
         compareObjectStart
@@ -446,7 +450,7 @@ define(function() {
       var query = {};
       query[START] = start;
 
-      var idx = Calendar.binsearch.insert(
+      var idx = binsearch.insert(
         this.items,
         query,
         compareObjectStart
@@ -502,7 +506,7 @@ define(function() {
       // on or before end.
       var endQuery = {};
       endQuery[END] = end;
-      var idx = Calendar.binsearch.insert(
+      var idx = binsearch.insert(
         items,
         endQuery,
         compareObjectEnd
@@ -586,7 +590,6 @@ define(function() {
 
   };
 
-  Calendar.IntervalTree = IntervalTree;
   return IntervalTree;
 
 });

@@ -1,5 +1,7 @@
-define(function() {
+define(function(require) {
   'use strict';
+
+  var Timespan = require('timespan');
 
   function TimeObserver() {
     this._timeObservers = [];
@@ -44,7 +46,7 @@ define(function() {
      *                                   EventTarget pattern.
      */
     observeTime: function(timespan, callback) {
-      if (!(timespan instanceof Calendar.Timespan)) {
+      if (!(timespan instanceof Timespan)) {
         throw new Error(
           'must pass an instance of Calendar.Timespan as first argument'
         );
@@ -132,7 +134,6 @@ define(function() {
     }
   };
 
-  Calendar.TimeObserver = TimeObserver;
   return TimeObserver;
 
 });

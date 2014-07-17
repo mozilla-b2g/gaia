@@ -41,10 +41,12 @@
  *
  *
  */
-define(function() {
+define(function(require) {
   'use strict';
 
-  var Calc = Calendar.Calc;
+  var calc = require('calc');
+  var uuid = require('ext/uuid');
+  var app = require('app');
 
   /**
    * Create a single instance busytime for the given event object.
@@ -74,12 +76,12 @@ define(function() {
   Create.prototype = {
 
     commit: function(callback) {
-      var alarmStore = Calendar.App.store('Alarm');
-      var eventStore = Calendar.App.store('Event');
-      var busytimeStore = Calendar.App.store('Busytime');
-      var componentStore = Calendar.App.store('IcalComponent');
+      var alarmStore = app.store('Alarm');
+      var eventStore = app.store('Event');
+      var busytimeStore = app.store('Busytime');
+      var componentStore = app.store('IcalComponent');
 
-      var controller = Calendar.App.timeController;
+      var controller = app.timeController;
 
       var trans = eventStore.db.transaction(
         eventStore._dependentStores,
@@ -133,7 +135,7 @@ define(function() {
             busytimeId: this.busytime._id
           };
 
-          var alarmDate = Calc.dateFromTransport(this.busytime.end).valueOf();
+          var alarmDate = calc.dateFromTransport(this.busytime.end).valueOf();
           if (alarmDate < now) {
             continue;
           }
@@ -151,7 +153,7 @@ define(function() {
 
   Update.prototype = {
     commit: function(callback) {
-      var busytimeStore = Calendar.App.store('Busytime');
+      var busytimeStore = app.store('Busytime');
 
       var self = this;
 
@@ -178,7 +180,6 @@ define(function() {
     }
   };
 
-  Calendar.EventMutations = exports;
   return exports;
 
 });

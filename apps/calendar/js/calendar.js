@@ -75,7 +75,7 @@ define(function() {
 
     debug: function(name) {
       return function() {
-        if (!Calendar.DEBUG) {
+        if (!exports.DEBUG) {
           return;
         }
 
@@ -187,7 +187,6 @@ define(function() {
     }
   });
 
-  window.Calendar = exports;
   return exports;
 
 });

@@ -1,12 +1,10 @@
-/*jshint loopfunc: true */
-
 define(function(require) {
   'use strict';
 
   var calendar = require('calendar');
   var nextTick = calendar.nextTick;
   var probablyParseInt = calendar.probablyParseInt;
-  var presets = calendar.Presets;
+  var presets = require('presets');
   var AccountModel = require('models/account');
   var LocalProvider = require('provider/local');
   var Responder = require('responder');
@@ -117,7 +115,7 @@ define(function(require) {
         // if we have pending upgrade operations
         if (self._upgradeOperations.length) {
           var pending = self._upgradeOperations.length;
-
+          /*jshint loopfunc: true */
           var operation;
           while ((operation = self._upgradeOperations.shift())) {
             operation.call(self, function next() {
@@ -127,6 +125,7 @@ define(function(require) {
               }
             });
           }
+          /*jshint loopfunc: false */
         } else {
           callback(null, self);
           self.emit('open', self);

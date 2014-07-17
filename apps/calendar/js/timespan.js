@@ -1,5 +1,7 @@
-define(function() {
+define(function(require) {
   'use strict';
+
+  var calc = require('calc');
 
   function Timespan(startDate, endDate) {
     this.start = startDate.valueOf();
@@ -18,7 +20,7 @@ define(function() {
       var start = new Date(this.start);
       var end = new Date(this.end);
 
-      return Calendar.Calc.daysBetween(
+      return calc.daysBetween(
         start,
         end
       );
@@ -62,7 +64,7 @@ define(function() {
         newEnd = ourStart - 1;
       }
 
-      return new Calendar.Timespan(
+      return new Timespan(
         newStart,
         newEnd
       );
@@ -131,7 +133,6 @@ define(function() {
 
   };
 
-  Calendar.Timespan = Timespan;
   return Timespan;
 
 });

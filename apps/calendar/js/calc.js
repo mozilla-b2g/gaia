@@ -1,5 +1,9 @@
-define(function() {
+define(function(require) {
   'use strict';
+
+  var dateFormat = require('app').dateFormat;
+  var defaultCompare = require('calendar').compare;
+  var Timespan = require('timespan');
 
   const SECOND = 1000;
   const MINUTE = (SECOND * 60);
@@ -58,7 +62,7 @@ define(function() {
 
       Calc._hourDate.setHours(hour);
 
-      var result = Calendar.App.dateFormat.localeFormat(
+      var result = dateFormat.localeFormat(
         Calc._hourDate,
         format
       );
@@ -123,7 +127,7 @@ define(function() {
         return 1;
       }
 
-      return Calendar.compare(a, b);
+      return defaultCompare(a, b);
     },
 
     /**
@@ -244,7 +248,7 @@ define(function() {
       var end = Calc.createDay(date);
       end.setDate(end.getDate() + 1);
 
-      return new Calendar.Timespan(
+      return new Timespan(
         date,
         end
       );
@@ -274,7 +278,7 @@ define(function() {
       endDay.setMilliseconds(-1);
       endDay = Calc.getWeekEndDate(endDay);
 
-      return new Calendar.Timespan(
+      return new Timespan(
         startDay,
         endDay
       );
@@ -313,7 +317,7 @@ define(function() {
       );
 
       if (zone && zone === Calc.FLOATING) {
-        return Calendar.Calc.getUTC(date);
+        return Calc.getUTC(date);
       }
 
       return date;
@@ -361,7 +365,7 @@ define(function() {
       if (isDate || tzid && tzid === Calc.FLOATING) {
         result.utc = utc;
         result.offset = 0;
-        result.tzid = Calendar.Calc.FLOATING;
+        result.tzid = Calc.FLOATING;
       } else {
         var localUtc = date.valueOf();
         var offset = utc - localUtc;
@@ -649,7 +653,6 @@ define(function() {
     }
   });
 
-  Calendar.Calc = Calc;
   return Calc;
 
 });

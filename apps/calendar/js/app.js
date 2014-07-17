@@ -14,6 +14,7 @@ define(function(require) {
     'Caldav': require('provider/caldav'),
     'Local': require('provider/local')
   };
+  var page = require('ext/page');
 
   function PendingManager() {
     this.objects = [];

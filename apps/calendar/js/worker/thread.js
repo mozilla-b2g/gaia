@@ -2,7 +2,7 @@ define(function(require) {
 'use strict';
 
 var Responder = require('responder');
-var format = require('calendar').format;
+var format = require('format');
 
 /*jshint -W040 */
 if (typeof(window) === 'undefined') {
