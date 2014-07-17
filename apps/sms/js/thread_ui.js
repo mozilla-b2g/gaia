@@ -79,6 +79,11 @@ var ThreadUI = global.ThreadUI = {
     update: null,
     subjectLengthNotice: null
   },
+
+  handlers: {
+    'recipientschange': []
+  },
+
   multiSimActionButton: null,
   init: function thui_init() {
     var templateIds = [
@@ -285,6 +290,7 @@ var ThreadUI = global.ThreadUI = {
       return tmpls;
     }, {});
 
+    this.initHandlers();
     this.initRecipients();
 
     this.multiSimActionButton = null;
@@ -317,6 +323,34 @@ var ThreadUI = global.ThreadUI = {
     }
   },
 
+  initHandlers: function thui_initHandlers() {
+    for (var name in this.handlers) {
+      this.handlers[name].length = 0;
+    }
+  },
+
+  on: function thui_on(name, handler) {
+    var handlers = this.handlers[name];
+    if (!handlers) {
+      throw new Error('ThreadUI does not emit event ' + name);
+    }
+
+    handlers.push(handler);
+  },
+
+  emit: function thui_emit(name) {
+    var handlers = this.handlers[name];
+    if (!handlers) {
+      throw new Error('ThreadUI does not emit event ' + name);
+    }
+
+    var event = new CustomEvent(name);
+
+    handlers.forEach(function(func) {
+      func(event);
+    });
+  },
+
   // Initialize Recipients list and Recipients.View (DOM)
   initRecipients: function thui_initRecipients() {
     var recipientsChanged = (function recipientsChanged(length, record) {
@@ -338,6 +372,9 @@ var ThreadUI = global.ThreadUI = {
         );
       }
 
+      // Clean search result after recipient count change.
+      this.container.textContent = '';
+
       // The isOk flag will prevent "questionable" recipient entries from
       //
       //    - Updating the header
@@ -352,6 +389,8 @@ var ThreadUI = global.ThreadUI = {
         this.updateComposerHeader();
         // check for enable send whenever recipients change
         this.enableSend();
+
+        this.emit('recipientschange');
       }
 
       // Clean search result after recipient count change.

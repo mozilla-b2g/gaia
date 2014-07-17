@@ -16,11 +16,6 @@
 
 mocha.setup({ globals: ['alert'] });
 
-// For Desktop testing
-if (!navigator.mozContacts) {
-  require('/js/desktop_contact_mock.js');
-}
-
 require('/js/compose.js');
 require('/js/drafts.js');
 require('/js/threads.js');
@@ -5167,11 +5162,19 @@ suite('thread_ui.js >', function() {
 
   suite('recipient handling >', function() {
     var localize;
+    var onRecipientsChange;
+
     setup(function() {
       this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
       Navigation.isCurrentPanel.withArgs('composer').returns(true);
 
+      // Please, auto-answering stub, don't interfere with my test
+      this.sinon.stub(Contacts, 'findExact');
+
       localize = this.sinon.spy(navigator.mozL10n, 'localize');
+
+      onRecipientsChange = sinon.stub();
+      ThreadUI.on('recipientschange', onRecipientsChange);
     });
 
     function testPickButtonEnabled() {
@@ -5187,9 +5190,11 @@ suite('thread_ui.js >', function() {
       });
 
       test('header is correct', function() {
-        assert.deepEqual(localize.args[0], [
-          headerText, 'newMessage'
-        ]);
+        sinon.assert.calledWith(localize, headerText, 'newMessage');
+      });
+
+      test('no event is sent', function() {
+        sinon.assert.notCalled(onRecipientsChange);
       });
 
       testPickButtonEnabled();
@@ -5203,9 +5208,11 @@ suite('thread_ui.js >', function() {
       });
 
       test('header is correct', function() {
-        assert.deepEqual(localize.args[0], [
-          headerText, 'recipient', {n: 1}
-        ]);
+        sinon.assert.calledWith(localize, headerText, 'recipient', {n: 1});
+      });
+
+      test('One event `recipientschange` is sent', function() {
+        sinon.assert.calledOnce(onRecipientsChange);
       });
 
       testPickButtonEnabled();
@@ -5222,13 +5229,34 @@ suite('thread_ui.js >', function() {
       });
 
       test('header is correct', function() {
-        assert.ok(localize.calledTwice);
-        assert.deepEqual(localize.args[1], [
-          headerText, 'recipient', {n: 2}
-        ]);
+        sinon.assert.calledTwice(localize);
+        sinon.assert.calledWith(
+          localize, headerText, 'recipient', {n: 2}
+        );
+      });
+
+      test('Two events `recipientschange` are sent', function() {
+        sinon.assert.calledTwice(onRecipientsChange);
       });
 
       testPickButtonEnabled();
+    });
+
+    suite('add one questionable recipient', function() {
+      setup(function() {
+        ThreadUI.recipients.add({
+          number: 'foo',
+          isQuestionable: true
+        });
+      });
+
+      test('header is correct', function() {
+        sinon.assert.notCalled(localize);
+      });
+
+      test('No event `recipientschange` is sent', function() {
+        sinon.assert.notCalled(onRecipientsChange);
+      });
     });
   });
 
