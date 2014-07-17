@@ -125,7 +125,7 @@ suite('enable/disable homegesture', function() {
 
   test('when lockscreen is disabled', function() {
     subject.handleEvent({
-      type: 'lockscreen-appclosing'
+      type: 'lockscreen-appclose'
     });
     assert.equal(
       subject.homeBar.classList.contains('visible'),
