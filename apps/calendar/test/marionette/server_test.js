@@ -92,6 +92,9 @@ marionette('interop basic', function() {
     teardown(function() {
       debug('Delete account from calendar app.');
       app.teardownAccount(calendarName);
+      // Now make sure that the account was actually deleted (see bug 1036753)
+      var synced = getCalendars(app);
+      assert.notInclude(synced, calendarName, 'calendar should be deleted');
     });
 
 
@@ -115,10 +118,7 @@ marionette('interop basic', function() {
 
 
     test('should get calendar', function() {
-      debug('Reading list of calendars from settings view.');
-      app.openSettingsView();
-      var synced = app.settings.calendars();
-      app.closeSettingsView();
+      var synced = getCalendars(app);
       assert.include(synced, calendarName, calendarName + ' should be synced');
     });
 
@@ -234,3 +234,11 @@ marionette('interop basic', function() {
     });
   });
 });
+
+function getCalendars(app) {
+  debug('Reading list of calendars from settings view.');
+  app.openSettingsView();
+  var synced = app.settings.calendars();
+  app.closeSettingsView();
+  return synced;
+}
