@@ -31,6 +31,7 @@ suite(' Customizer > ', function() {
 
     setup(function() {
       customizer = new Customizer(eventName, resourceType);
+      customizer.set = function () {};
       resourceLoaderSpy.reset();
     });
 
@@ -47,16 +48,20 @@ suite(' Customizer > ', function() {
       // Init for adding the listener
       customizer.init();
       // Check that listener is working as expected
-      var customizationEvent = new CustomEvent('customization', {
+      var eventContent = {
         detail: {
           setting: eventName,
-          value: resourcePath
+          value: resourcePath,
+          simPresentOnFirstBoot: 'A Random Value'
         }
-      });
+      };
+      var customizationEvent = new CustomEvent('customization', eventContent);
       // Once we dispatch the event, handler should
       // manage this properly
       window.dispatchEvent(customizationEvent);
       assert.isTrue(resourceLoaderSpy.calledOnce);
+      assert.equal(customizer.simPresentOnFirstBoot,
+                eventContent.detail.simPresentOnFirstBoot);
       // A new event should not be handled, because
       // we are removing the listener when the event
       // is handled.
@@ -67,6 +72,14 @@ suite(' Customizer > ', function() {
 
   suite(' set > ', function() {
     test(' resource available ', function(done) {
+      var eventContent = {
+        detail: {
+          setting: eventName,
+          value: resourcePath,
+          simPresentOnFirstBoot: 'a value'
+        }
+      };
+
       var onerror = function() {
         assert.ok(false, 'Resource not loaded properly');
         done();
@@ -74,24 +87,31 @@ suite(' Customizer > ', function() {
       var customizerSuccessful =
         new Customizer(eventName, resourceType, onerror);
       customizerSuccessful.set = function() {
+        assert.equal(customizerSuccessful.simPresentOnFirstBoot,
+                  eventContent.detail.simPresentOnFirstBoot);
         done();
       };
       // Init for adding the listener
       customizerSuccessful.init();
       // Check that listener is working as expected
-      var customizationEvent = new CustomEvent('customization', {
-        detail: {
-          setting: eventName,
-          value: resourcePath
-        }
-      });
+      var customizationEvent = new CustomEvent('customization', eventContent);
       // Once we dispatch the event, handler should
       // manage this properly
       window.dispatchEvent(customizationEvent);
     });
 
     test(' resource unavailable ', function(done) {
+      var eventContent = {
+        detail: {
+          setting: eventName,
+          value: 'wrong/path/file.jpg',
+          simPresentOnFirstBoot: 'Another value'
+        }
+      };
+
       var customizerError = new Customizer(eventName, resourceType, function() {
+        assert.equal(customizerError.simPresentOnFirstBoot,
+                  eventContent.detail.simPresentOnFirstBoot);
         done();
       });
       customizerError.set = function() {
@@ -101,12 +121,7 @@ suite(' Customizer > ', function() {
       // Init for adding the listener
       customizerError.init();
       // Check that listener is working as expected
-      var customizationEvent = new CustomEvent('customization', {
-        detail: {
-          setting: eventName,
-          value: 'wrong/path/file.jpg'
-        }
-      });
+      var customizationEvent = new CustomEvent('customization', eventContent);
       // Once we dispatch the event, handler should
       // manage this properly
       window.dispatchEvent(customizationEvent);
