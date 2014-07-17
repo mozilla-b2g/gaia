@@ -15,7 +15,6 @@ require.config({
     'MediaFrame': '../shared/js/media/media_frame',
     'BlobView': '../shared/js/blobview',
     'CustomDialog': '../shared/js/custom_dialog',
-    'FontSizeUtils': '../shared/js/font_size_utils',
     'debug': '../bower_components/debug/index',
     'attach': '../bower_components/attach/index',
     'model': '../bower_components/model/index',

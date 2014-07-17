@@ -25,7 +25,6 @@ module.exports.SettingsController = SettingsController;
  * @param {App} app
  */
 function SettingsController(app) {
-  debug('initializing');
   bindAll(this);
   this.app = app;
   this.settings = app.settings;

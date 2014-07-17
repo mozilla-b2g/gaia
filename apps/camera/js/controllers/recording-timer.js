@@ -23,7 +23,6 @@ module.exports.RecordingTimerController = RecordingTimerController;
  * @param {App} app
  */
 function RecordingTimerController(app) {
-  debug('initializing');
   this.onRecordingChange = this.onRecordingChange.bind(this);
   this.view = app.view || new RecordingTimerView();
   this.app = app;

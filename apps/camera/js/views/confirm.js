@@ -5,6 +5,7 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
+var debug = require('debug')('view:confirm');
 var addPanAndZoomHandlers = require('lib/panzoom');
 var orientation = require('lib/orientation');
 var MediaFrame = require('MediaFrame');
@@ -35,15 +36,23 @@ module.exports = View.extend({
     this.els.retake = this.find('.js-retake');
     this.els.select = this.find('.js-select');
 
-    // Events
-    bind(this.els.retake, 'click', this.onButtonClick);
-    bind(this.els.select, 'click', this.onButtonClick);
-
     // Disable buttons on this view by default
     // until an image/video is displayed
     this.disableButtons();
 
+    // Initialize the MediaFrame component
     this.setupMediaFrame();
+
+    // Clean up
+    delete this.template;
+
+    debug('rendered');
+    return this.bindEvents();
+  },
+
+  bindEvents: function() {
+    bind(this.els.retake, 'click', this.onButtonClick);
+    bind(this.els.select, 'click', this.onButtonClick);
     return this;
   },
 

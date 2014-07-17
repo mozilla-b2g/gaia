@@ -25,7 +25,6 @@ module.exports.ViewfinderController = ViewfinderController;
  * @param {App} app
  */
 function ViewfinderController(app) {
-  debug('initializing');
   bindAll(this);
   this.app = app;
   this.views = {};
