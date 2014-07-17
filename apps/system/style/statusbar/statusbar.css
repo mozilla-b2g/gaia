@@ -80,17 +80,17 @@ body:not(.rb-enabled) #statusbar {
 
 #statusbar-icons > * {
   float: right;
-  margin: 0 0.2rem 0 0.3rem;
+  margin: 0.4rem 0.2rem 0.4rem 0.3rem;
 }
 
 #statusbar-icons {
   position: absolute;
   width: calc(50% - 0.8rem);
-  height: 2rem;
+  height: 2.4rem;
   margin: 0;
   top: 0;
   right: 0;
-  padding: 0.4rem 0.8rem;
+  padding: 0 0.8rem;
   transition: opacity 0.3s;
   overflow: hidden;
   white-space: nowrap;
@@ -161,7 +161,6 @@ body:not(.rb-enabled) .utility-tray #statusbar-icons > .sb-start {
 #statusbar-label {
   position: relative;
   margin-left: 0.8rem;
-  padding-top: 0.4rem;
   color: #ffffff;
   font-size: 1.5rem;
   font-weight: 400;
@@ -194,7 +193,7 @@ body.rb-enabled #statusbar-label {
 #statusbar-connections > * {
   float: right;
   pointer-events: none;
-  margin: 0 0.2rem;
+  margin: 0.4rem 0.2rem;
 }
 
 #statusbar-connections .statusbar-data:not(.sb-icon-data-circle) {
@@ -264,7 +263,7 @@ body.rb-enabled #statusbar-label {
 #statusbar-call-forwardings > * {
   float: right;
   pointer-events: none;
-  margin: 0 0.6rem;
+  margin: 0.4rem 0.6rem;
 }
 
 #statusbar-call-forwardings .sb-icon-call-forwarding {
