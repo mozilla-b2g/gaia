@@ -1,12 +1,15 @@
-define(function() {
+define(function(require) {
   'use strict';
 
-  var Day = Calendar.Template.create({
+  var Template = require('template');
+  var calc = require('calc');
+
+  var Day = Template.create({
     hour: function() {
       var hour = this.h('hour');
       var l10n = '';
       var displayHour;
-      var isAllDay = hour === Calendar.Calc.ALLDAY;
+      var isAllDay = hour === calc.ALLDAY;
 
       if (isAllDay) {
         l10n = ' data-l10n-id="hour-allday" ';
@@ -78,6 +81,5 @@ define(function() {
   Day.eventSelector = '.event';
   Day.hourEventsSelector = '.events';
 
-  Calendar.ns('Templates').Day = Day;
   return Day;
 });

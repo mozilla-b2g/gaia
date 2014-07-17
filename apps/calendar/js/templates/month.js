@@ -1,7 +1,9 @@
-define(function() {
+define(function(require) {
   'use strict';
 
-  var Month = Calendar.Template.create({
+  var Template = require('template');
+
+  var Month = Template.create({
     busy: function() {
       return '<span class="' +
                 'busytime-' + this.h('_id') +
@@ -43,7 +45,6 @@ define(function() {
     }
   });
 
-  Calendar.ns('Templates').Month = Month;
   return Month;
 
 });

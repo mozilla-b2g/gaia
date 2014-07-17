@@ -1,14 +1,17 @@
-define(function() {
+define(function(require) {
   'use strict';
 
-  var Cal = Calendar.Template.create({
+  var Template = require('template');
+  var LocalProvider = require('provider/local');
+
+  var Cal = Template.create({
     item: function() {
       var id = this.h('_id');
       var l10n = '';
       var name = '';
 
       // hack localize the only default calendar
-      if (id && Calendar.Provider.Local.calendarId === id) {
+      if (id && LocalProvider.calendarId === id) {
         // localize the default calendar name
         l10n = 'data-l10n-id="calendar-local"';
         name = navigator.mozL10n.get('calendar-local');
@@ -30,8 +33,6 @@ define(function() {
     }
   });
 
-  Calendar.ns('Templates').Calendar = Cal;
   return Cal;
 
 });
-

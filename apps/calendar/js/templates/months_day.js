@@ -1,7 +1,9 @@
-define(function() {
+define(function(require) {
   'use strict';
 
-  var MonthsDay = Calendar.Template.create({
+  var Template = require('template');
+
+  var MonthsDay = Template.create({
     event: function() {
       var calendarId = this.h('calendarId');
 
@@ -54,6 +56,5 @@ define(function() {
   MonthsDay.eventSelector = '.event';
   MonthsDay.hourEventsSelector = '.events';
 
-  Calendar.ns('Templates').MonthsDay = MonthsDay;
   return MonthsDay;
 });

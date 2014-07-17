@@ -1,7 +1,9 @@
-define(function() {
+define(function(require) {
   'use strict';
 
-  var Week = Calendar.Template.create({
+  var Template = require('template');
+
+  var Week = Template.create({
     header: function() {
       return '<h1>' + this.h('title') + '</h1>';
     },
@@ -51,7 +53,7 @@ define(function() {
   });
 
   Week.eventSelector = '.event';
-  Calendar.ns('Templates').Week = Week;
+
   return Week;
 });
 

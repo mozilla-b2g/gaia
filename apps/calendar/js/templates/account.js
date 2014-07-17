@@ -1,7 +1,9 @@
-define(function() {
+define(function(require) {
   'use strict';
 
-  var Account = Calendar.Template.create({
+  var Template = require('template');
+
+  var Account = Template.create({
     provider: function() {
       return '<li class="' + this.h('name') + '">' +
           '<a ' +
@@ -28,7 +30,6 @@ define(function() {
     }
   });
 
-  Calendar.ns('Templates').Account = Account;
   return Account;
 
 });

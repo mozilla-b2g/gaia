@@ -1,9 +1,12 @@
-define(function() {
+define(function(require) {
   'use strict';
 
+  var Template = require('template');
+  var calc = require('calc');
+  var dateFormat = require('app').dateFormat;
   var _ = navigator.mozL10n.get;
 
-  var DurationTime = Calendar.Template.create({
+  var DurationTime = Template.create({
     durationTime: function() {
       var format = '';
       var startDate = this.arg('startDate');
@@ -14,11 +17,11 @@ define(function() {
         // Use the last second of previous day as the base for endDate
         // (e.g., 1991-09-14T23:59:59 insteads of 1991-09-15T00:00:00).
         endDate = new Date(endDate - 1000);
-        format = Calendar.Calc.isSameDate(startDate, endDate) ?
+        format = calc.isSameDate(startDate, endDate) ?
           'one-all-day-duration' :
           'multiple-all-day-duration';
       } else {
-        format = Calendar.Calc.isSameDate(startDate, endDate) ?
+        format = calc.isSameDate(startDate, endDate) ?
           'one-day-duration' :
           'multiple-day-duration';
       }
@@ -33,19 +36,18 @@ define(function() {
   });
 
   function formatDate(date) {
-    return Calendar.App.dateFormat.localeFormat(
+    return dateFormat.localeFormat(
       date,
       _('longDateFormat')
     );
   }
 
   function formatTime(time) {
-    return Calendar.App.dateFormat.localeFormat(
+    return dateFormat.localeFormat(
       time,
       _('shortTimeFormat')
     );
   }
 
-  Calendar.ns('Templates').DurationTime = DurationTime;
   return DurationTime;
 });

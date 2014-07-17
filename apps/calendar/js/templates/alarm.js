@@ -1,5 +1,8 @@
-define(function() {
+define(function(require) {
   'use strict';
+
+  var Template = require('template');
+  var dateFormat = require('app').dateFormat;
 
   var MINUTE = 60;
   var HOUR = 3600;
@@ -28,7 +31,7 @@ define(function() {
     ]
   };
 
-  var Alarm = Calendar.Template.create({
+  var Alarm = Template.create({
 
     reminder: function() {
       var alarmContent = '';
@@ -39,7 +42,7 @@ define(function() {
       var alarm;
       while ((alarm = alarms[i])) {
         i++;
-        alarmContent += Calendar.Templates.Alarm.description.render({
+        alarmContent += Alarm.description.render({
           trigger: alarm.trigger,
           layout: isAllDay ? 'allday' : 'standard'
         });
@@ -86,7 +89,7 @@ define(function() {
           foundSelected = true;
         }
 
-        content += Calendar.Templates.Alarm.option.render({
+        content += Alarm.option.render({
           selected: selected,
           layout: layout,
           value: options[i]
@@ -99,7 +102,7 @@ define(function() {
       // we always add a new <option> using the custom value and mark it as
       // selected.
       if (!foundSelected && /^-?\d+$/.test(trigger)) {
-        content += Calendar.Templates.Alarm.option.render({
+        content += Alarm.option.render({
           selected: true,
           layout: layout,
           value: trigger
@@ -133,7 +136,7 @@ define(function() {
     picker: function() {
       return '<span class="button icon icon-dialog">' +
         '<select name="alarm[]">' +
-          Calendar.Templates.Alarm.options.render(this.data) +
+          Alarm.options.render(this.data) +
         '</select>' +
       '</span>';
     }
@@ -163,7 +166,7 @@ define(function() {
     }
 
     var affix = trigger > 0 ? 'after' : 'before';
-    var parts = Calendar.App.dateFormat.relativeParts(trigger);
+    var parts = dateFormat.relativeParts(trigger);
 
     for (var i in parts) {
       // we only use the first part (biggest value)
@@ -176,6 +179,5 @@ define(function() {
     }
   }
 
-  Calendar.ns('Templates').Alarm = Alarm;
   return Alarm;
 });

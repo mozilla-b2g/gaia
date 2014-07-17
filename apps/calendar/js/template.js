@@ -111,7 +111,6 @@ define(function() {
 
 
   Template.create = create;
-  Calendar.Template = Template;
 
   return Template;
 });
