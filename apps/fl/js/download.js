@@ -112,7 +112,7 @@ function view(activity) {
 
   function askSongOrRingtone(aCallback) {
     showDialog({
-      message: _('ringtone-or-song-query'),
+      message: _('ringtone-or-song-question'),
       okText: _('ringtone-response'),
       cancelText: _('song-response'),
       okCallback: aCallback.bind(undefined, RINGTONE),
