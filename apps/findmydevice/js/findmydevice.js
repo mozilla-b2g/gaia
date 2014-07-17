@@ -4,59 +4,76 @@
 /* global Commands */
 /* global Config */
 /* global DUMP */
+/* global IAC_API_WAKEUP_REASON_ENABLED */
+/* global IAC_API_WAKEUP_REASON_LOGIN */
+/* global IAC_API_WAKEUP_REASON_LOGOUT */
+/* global IAC_API_WAKEUP_REASON_STALE_REGISTRATION */
+/* global IAC_API_WAKEUP_REASON_TRY_DISABLE */
 
 'use strict';
-
-// XXX keep this in sync with apps/system/js/findmydevice_launcher.js
-const IAC_API_WAKEUP_REASON_ENABLED = 0;
-const IAC_API_WAKEUP_REASON_STALE_REGISTRATION = 1;
 
 var FindMyDevice = {
   _state: null,
 
   _registering: false,
 
+  _refreshingClientID: false,
+
   _reply: {},
 
   _registered: false,
 
-  _registeredHelper: SettingsHelper('findmydevice.registered'),
+  _registeredHelper: null,
 
   _enabled: false,
 
-  _enabledHelper: SettingsHelper('findmydevice.enabled'),
+  _enabledHelper: null,
 
   _loggedIn: false,
 
+  _currentClientID: '',
+
+  _currentClientIDHelper: null,
+
+  _canDisable: false,
+
+  _canDisableHelper: null,
+
+  _disableAttempt: false,
+
   init: function fmd_init() {
     var self = this;
-    var settings = navigator.mozSettings;
 
     navigator.mozId.watch({
       wantIssuer: 'firefox-accounts',
       audience: Config.audience_url,
       onready: self._onReady.bind(self),
       onlogin: self._onLogin.bind(self),
-      onlogout: self._onLogout.bind(self)
+      onlogout: self._onLogout.bind(self),
+      onerror: self._onFxAError.bind(self)
     });
 
-    settings.addObserver('findmydevice.registered', function(event) {
-      self._registered = event.settingValue;
+    this._observeSettings();
+  },
 
-      if (self._registered === false) {
-        self._contactServerIfEnabled();
-      } else {
-        self._loadState(self._contactServerIfEnabled.bind(self));
-      }
-    });
+  _observeSettings: function fmd_observe_settings() {
+    var settings = navigator.mozSettings;
 
-    settings.addObserver('findmydevice.enabled', function(event) {
-      self._enabled = event.settingValue;
+    settings.addObserver('findmydevice.registered',
+      this._onRegisteredChanged.bind(this));
+    settings.addObserver('findmydevice.enabled',
+      this._onEnabledChanged.bind(this));
+    settings.addObserver('findmydevice.current-clientid',
+      this._onClientIDChanged.bind(this));
 
-      // No need to contact the server here if we've been enabled,
-      // since that means we'll get a wake up request from the System
-      // app
-    });
+    // We only allow disabling Find My Device if the same person
+    // who first enabled it is logged in to FxA, and in that case
+    // 'findmydevice.can-disable' is true.
+    // However, note that FMD doesn't store the user's email address,
+    // but rather a client ID that is derived from the FxA assertion
+    // and stored in this._state.clientid.
+    settings.addObserver('findmydevice.can-disable',
+      this._onCanDisableChanged.bind(this));
   },
 
   _onReady: function fmd_fxa_onready() {
@@ -79,52 +96,74 @@ var FindMyDevice = {
   },
 
   _initSettings: function fmd_init_settings(callback) {
-    var self = this;
+    // for each setting we're interested in, create a SettingsHelper,
+    // cache its initial value in a property (e.g., _enabled), and
+    // store the SettingsHelper as another property (e.g., _enabledHelper).
+    var settingsToProperties = {
+      // setting name : property name for cached value
+      'findmydevice.enabled': '_enabled',
+      'findmydevice.registered': '_registered',
+      'findmydevice.current-clientid': '_currentClientID',
+      'findmydevice.can-disable': '_canDisable'
+    };
+    var settings = Object.keys(settingsToProperties);
 
-    this._registeredHelper.get(function fmd_get_registered(value) {
-      self._registered = value;
-      loadEnabledSetting();
-    });
-
-    function loadEnabledSetting() {
-      self._enabledHelper.get(function fmd_get_enabled(value) {
-        self._enabled = value;
-        callback && callback();
-      });
-    }
+    var loaded = 0;
+    var totalSettings = Object.keys(settingsToProperties).length;
+    settings.forEach(function(s) {
+      var prop = settingsToProperties[s];
+      var helper = this[prop + 'Helper'] = SettingsHelper(s);
+      helper.get((function(value) {
+        this[prop] = value;
+        if (++loaded === totalSettings) {
+          callback && callback();
+        }
+      }).bind(this));
+    }, this);
   },
 
   _initMessageHandlers: function fmd_init_message_handlers() {
-    var self = this;
-
-    navigator.mozSetMessageHandler('push', function(message) {
+    navigator.mozSetMessageHandler('push', (function(message) {
       DUMP('findmydevice got push notification!');
-      self._contactServerIfEnabled();
-    });
+      this._contactServerIfEnabled();
+    }).bind(this));
 
-    navigator.mozSetMessageHandler('push-register', function(message) {
+    navigator.mozSetMessageHandler('push-register', (function(message) {
       DUMP('findmydevice lost push endpoint, re-registering');
-      self._registeredHelper.set(false);
-    });
+      this._registeredHelper.set(false);
+    }).bind(this));
 
-    navigator.mozSetMessageHandler('alarm', function(alarm) {
+    navigator.mozSetMessageHandler('alarm', (function(alarm) {
       DUMP('findmydevice alarm!');
-      self._contactServerIfEnabled();
-    });
+      this._contactServerIfEnabled();
+      this._refreshClientIDIfRegistered(false);
+    }).bind(this));
 
-    navigator.mozSetMessageHandler('connection', function(request) {
+    navigator.mozSetMessageHandler('connection', (function(request) {
       var port = request.port;
-      port.onmessage = function(event) {
+      port.onmessage = (function(event) {
         if (request.keyword === 'findmydevice-wakeup') {
           DUMP('got wake up request');
 
           var reason = event.data;
           if (reason === IAC_API_WAKEUP_REASON_ENABLED) {
             DUMP('enabled, trying to reach the server');
-            self._contactServerIfEnabled();
+            this._contactServerIfEnabled();
           } else if (reason === IAC_API_WAKEUP_REASON_STALE_REGISTRATION) {
             DUMP('stale registration, re-registering');
-            self._registeredHelper.set(false);
+            this._registeredHelper.set(false);
+          } else if (reason === IAC_API_WAKEUP_REASON_LOGIN) {
+            DUMP('new login, invalidating client id');
+            this._loggedIn = true;
+            this._currentClientIDHelper.set('');
+          } else if (reason === IAC_API_WAKEUP_REASON_LOGOUT) {
+            DUMP('logout, invalidating client id');
+            this._loggedIn = false;
+            this._currentClientIDHelper.set('');
+          } else if (reason === IAC_API_WAKEUP_REASON_TRY_DISABLE) {
+            DUMP('refreshing client id and attempting to disable');
+            this._disableAttempt = true;
+            this._refreshClientIDIfRegistered(true);
           }
 
           return;
@@ -133,10 +172,10 @@ var FindMyDevice = {
         if (request.keyword === 'findmydevice-test') {
             DUMP('got request for test command!');
             event.data.testing = true;
-            self._processCommands(event.data);
+            this._processCommands(event.data);
         }
-      };
-    });
+      }).bind(this);
+    }).bind(this));
   },
 
   _contactServerIfEnabled: function fmd_contact_server() {
@@ -174,6 +213,7 @@ var FindMyDevice = {
         // out while we slept before this attempt), but it's a very unlikely
         // corner case. For now, just give up if this happens, but we still
         // need to notify the user somehow (bug 1013423).
+        this._registering = false;
         return;
       }
 
@@ -187,7 +227,21 @@ var FindMyDevice = {
   },
 
   _onLogin: function fmd_on_login(assertion) {
+    DUMP('logged in to FxA');
+
+    // XXX(ggp) When initializing, we'll process FxA's automatic invocation
+    // of onlogin/onlogout before any IAC message, so use these calls to
+    // initialize _loggedIn. However, when FMD is already running, there's
+    // no guaranteee that onlogin/onlogout will fire before the IAC handler,
+    // so we have dedicated IAC messages (IAC_API_WAKEUP_REASON_LOGIN and
+    // IAC_API_WAKEUP_REASON_LOGOUT) to cover login state changes, and we
+    // use the handlers for these messages to update _loggedIn.
     this._loggedIn = true;
+
+    if (this._refreshingClientID) {
+      DUMP('resuming client id refresh');
+      this._fetchClientID(assertion);
+    }
 
     if (!this._enabled || !this._registering) {
       return;
@@ -250,7 +304,31 @@ var FindMyDevice = {
   },
 
   _onLogout: function fmd_fxa_onlogout() {
+    DUMP('logged out of FxA');
     this._loggedIn = false;
+  },
+
+  _onFxAError: function fmd_on_error(error) {
+    DUMP('FxA error: ' + error);
+
+    if (this._refreshingClientID) {
+      this._cancelClientIDRefresh();
+    }
+
+    this._scheduleAlarm('retry');
+  },
+
+  _cancelClientIDRefresh: function fmd_cancel_clientid_refresh() {
+    this._disableAttempt = false;
+    this._refreshingClientID = false;
+
+    // If we've been woken up by the Settings app because of a disable
+    // attempt, it expects us to change these two settings at the end
+    // of the operation, so set them to their current values if we're
+    // canceling to make sure the state in the Settings is updated
+    // properly.
+    this._enabledHelper.set(this._enabled);
+    this._currentClientIDHelper.set(this._currentClientID);
   },
 
   _scheduleAlarm: function fmd_schedule_alarm(mode) {
@@ -290,6 +368,95 @@ var FindMyDevice = {
       this._handleServerError.bind(this));
 
     this._reply = {};
+  },
+
+  _onRegisteredChanged: function fmd_registered_changed(event) {
+    this._registered = event.settingValue;
+    DUMP('registered: ' + this._registered);
+
+    if (!this._registered) {
+      this._contactServerIfEnabled();
+    } else {
+      this._loadState((function() {
+        this._contactServerIfEnabled();
+        this._currentClientIDHelper.set(this._state.clientid);
+      }).bind(this));
+    }
+  },
+
+  _onEnabledChanged: function fmd_enabled_changed(event) {
+    // No need to contact the server here if we've been enabled,
+    // since that means we'll get a wake up request from the System
+    // app
+    this._enabled = event.settingValue;
+    DUMP('enabled: ' + this._enabled);
+  },
+
+  _onClientIDChanged: function fmd_client_id_changed(event) {
+    this._currentClientID = event.settingValue;
+    DUMP('current id set to: ', this._currentClientID);
+
+    if (this._loggedIn && this._currentClientID === '') {
+      this._refreshClientIDIfRegistered(false);
+    } else {
+      this._canDisableHelper.set(
+        this._loggedIn &&
+        this._state && (this._currentClientID === this._state.clientid));
+    }
+  },
+
+  _onCanDisableChanged: function fmd_can_disable_changed(event) {
+    if (event.settingValue === true && this._disableAttempt) {
+      this._enabledHelper.set(false);
+    }
+
+    this._disableAttempt = false;
+  },
+
+  _refreshClientIDIfRegistered: function fmd_refresh_client_id(forceReauth) {
+    DUMP('refreshing client id if registered and logged in: ',
+      {registered: this._registered, loggedIn: this._loggedIn});
+
+    if (!this._registered || !this._loggedIn) {
+      return;
+    }
+
+    DUMP('requesting assertion to refresh client id, forceReauth: ' +
+         forceReauth);
+
+    this._refreshingClientID = true;
+    var mozIdRequestOptions = {};
+    if (forceReauth) {
+      mozIdRequestOptions.refreshAuthentication = 0;
+      mozIdRequestOptions.oncancel = this._cancelClientIDRefresh.bind(this);
+    }
+
+    navigator.mozId.request(mozIdRequestOptions);
+  },
+
+  _fetchClientID: function fmd_fetch_client_id(assertion) {
+    Requester.post('/validate/', {assert: assertion},
+      this._onClientIDResponse.bind(this),
+      this._onClientIDServerError.bind(this));
+    this._refreshingClientID = false;
+  },
+
+  _onClientIDResponse: function fmd_on_client_id(response) {
+    DUMP('got clientid reponse: ', response);
+
+    if (response.valid) {
+      this._currentClientIDHelper.set(response.uid);
+      return;
+    }
+
+    DUMP('failed to verify assertion for client id!');
+    this._scheduleAlarm('retry');
+  },
+
+  _onClientIDServerError: function fmd_on_client_id_error(err) {
+    DUMP('failed to fetch client id with status: ' + err.status);
+    this._scheduleAlarm('retry');
+    this._disableAttempt = false;
   },
 
   _processCommands: function fmd_process_commands(cmdobj) {
