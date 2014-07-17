@@ -43,10 +43,6 @@ perfTimer.printTime('keyboard.js');
 
 var isKeyboardRendered = false;
 
-// Backspace repeat delay and repeat rate
-const REPEAT_RATE = 75;
-const REPEAT_TIMEOUT = 700;
-
 // How long to wait for more focuschange events before processing
 const FOCUS_CHANGE_DELAY = 100;
 
@@ -54,9 +50,6 @@ const FOCUS_CHANGE_DELAY = 100;
 // in case we get a focus event right after
 const HIDE_KEYBOARD_TIMEOUT = 500;
 
-// timeout and interval for delete, they could be cancelled on mouse over
-var deleteTimeout = 0;
-var deleteInterval = 0;
 var hideKeyboardTimeout = 0;
 
 // XXX: For now let's pass a fake app object,
@@ -66,7 +59,9 @@ var fakeAppObject = {
   layoutManager: null,
   settingsPromiseManager: null,
   l10nLoader: null,
-  activeTargetsManager: null,
+  feedbackManager: null,
+  visualHighlightManager: null,
+  targetHandlersManager: null,
   upperCaseStateManager: null,
   candidatePanelManager: null,
 
@@ -184,22 +179,17 @@ var settingsPromiseManager =
 // only after we have run everything in the critical cold launch path.
 var l10nLoader = fakeAppObject.l10nLoader = new L10nLoader();
 
-// ActiveTargetsManager run these callbacks when keys are interacted.
-var activeTargetsManager =
-  fakeAppObject.activeTargetsManager = new ActiveTargetsManager(fakeAppObject);
-activeTargetsManager.ontargetactivated = handleTargetActivated;
-activeTargetsManager.ontargetlongpressed = handleTargetLongPressed;
-activeTargetsManager.ontargetmovedout = handleTargetMovedOut;
-activeTargetsManager.ontargetmovedin = handleTargetMovedIn;
-activeTargetsManager.ontargetcommitted = handleTargetCommitted;
-activeTargetsManager.ontargetcancelled = handleTargetCancelled;
-activeTargetsManager.ontargetdoubletapped = handleTargetDoubleTapped;
-activeTargetsManager.start();
+// targetHandlersManager handles key targets when they are being interacted.
+var targetHandlersManager = fakeAppObject.targetHandlersManager =
+  new TargetHandlersManager(fakeAppObject);
+targetHandlersManager.start();
 
-var feedbackManager = new FeedbackManager(fakeAppObject);
+var feedbackManager = fakeAppObject.feedbackManager =
+  new FeedbackManager(fakeAppObject);
 feedbackManager.start();
 
-var visualHighlightManager = new VisualHighlightManager(fakeAppObject);
+var visualHighlightManager = fakeAppObject.visualHighlightManager =
+  new VisualHighlightManager(fakeAppObject);
 visualHighlightManager.start();
 
 var candidatePanelManager =
@@ -450,256 +440,6 @@ function updateTargetWindowHeight(hide) {
   window.resizeTo(imeWidth, imeHeight);
 }
 
-// Sends a delete code to remove last character
-// The argument specifies whether this is an auto repeat or not.
-// Repeat does not trigger and sound/vibration feedback.
-function sendDelete(isRepeat) {
-  // Pass the isRepeat argument to the input method. It may not want
-  // to compute suggestions, for example, if this is just one in a series
-  // of repeating events.
-  inputMethodManager.currentIMEngine.click(KeyboardEvent.DOM_VK_BACK_SPACE,
-                                           null,
-                                           isRepeat);
-}
-
-function getKeyCodeFromTarget(target) {
-  return upperCaseStateManager.isUpperCase ?
-    parseInt(target.dataset.keycodeUpper, 10) :
-    parseInt(target.dataset.keycode, 10);
-}
-
-function handleTargetActivated(target) {
-  // Ignore non-key targets
-  if (!('keycode' in target.dataset) &&
-      !('selection' in target.dataset) &&
-      !('compositeKey' in target.dataset)) {
-    return;
-  }
-
-  var keyCode = getKeyCodeFromTarget(target);
-
-  // Feedback
-  feedbackManager.triggerFeedback(target);
-  visualHighlightManager.show(target);
-
-  // Special keys (such as delete) response when pressing (not releasing)
-  // Furthermore, delete key has a repetition behavior
-  if (keyCode === KeyEvent.DOM_VK_BACK_SPACE) {
-    // First repetition, after a delay (with feedback)
-    deleteTimeout = window.setTimeout(function() {
-      sendDelete(true);
-
-      // Second, after shorter delay (with feedback too)
-      deleteInterval = setInterval(function() {
-        sendDelete(true);
-      }, REPEAT_RATE);
-
-    }, REPEAT_TIMEOUT);
-  }
-}
-
-function handleTargetLongPressed(target) {
-  // Does the key have an long press value?
-  if (target.dataset.longPressValue) {
-    // Attach a dataset property that will be used to ignore
-    // keypress in endPress
-    target.dataset.ignoreEndPress = true;
-
-    var keyCode = parseInt(target.dataset.longPressKeyCode, 10);
-    sendKey(keyCode);
-
-    return;
-  }
-
-  var keyCode = getKeyCodeFromTarget(target);
-
-  // Handle languages alternatives
-  if (keyCode === SWITCH_KEYBOARD) {
-    showIMEList();
-    return;
-  }
-
-  // Hide the keyboard
-  if (keyCode === KeyEvent.DOM_VK_SPACE) {
-    dismissKeyboard();
-    return;
-  }
-}
-
-function handleTargetMovedOut(target) {
-  // Ignore non-key targets
-  if (!('keycode' in target.dataset) &&
-      !('selection' in target.dataset) &&
-      !('compositeKey' in target.dataset)) {
-    return;
-  }
-
-  visualHighlightManager.hide(target);
-
-  clearTimeout(deleteTimeout);
-  clearInterval(deleteInterval);
-}
-
-function handleTargetMovedIn(target) {
-  // Ignore non-key targets
-  if (!('keycode' in target.dataset) &&
-      !('selection' in target.dataset) &&
-      !('compositeKey' in target.dataset)) {
-    return;
-  }
-
-  var keyCode = getKeyCodeFromTarget(target);
-
-  // Update highlight: add to the new (Ignore if moving over delete key)
-  if (keyCode != KeyEvent.DOM_VK_BACK_SPACE) {
-    visualHighlightManager.show(target);
-  }
-}
-
-function handleTargetDoubleTapped(target) {
-  // For now, we simply set a second parameter and delegate actions to
-  // handleTargetCommitted()
-  handleTargetCommitted(target, true);
-}
-
-function handleTargetCommitted(target, isDoubleTap) {
-  clearTimeout(deleteTimeout);
-  clearInterval(deleteInterval);
-
-  if (target.classList.contains('dismiss-suggestions-button')) {
-    if (inputMethodManager.currentIMEngine.dismissSuggestions) {
-      inputMethodManager.currentIMEngine.dismissSuggestions();
-    }
-    return;
-  }
-
-  // IME candidate selected
-  var dataset = target.dataset;
-  if (dataset.selection) {
-    candidatePanelManager.hideFullPanel();
-
-    if (inputMethodManager.currentIMEngine.select) {
-      // We use dataset.data instead of target.textContent because the
-      // text actually displayed to the user might have an ellipsis in it
-      // to make it fit.
-      inputMethodManager.currentIMEngine
-        .select(target.textContent, dataset.data);
-    }
-
-    visualHighlightManager.hide(target);
-    return;
-  }
-
-  visualHighlightManager.hide(target);
-
-  // The alternate keys of telLayout and numberLayout do not
-  // trigger keypress on key release.
-  if (target.dataset.ignoreEndPress) {
-    delete target.dataset.ignoreEndPress;
-    return;
-  }
-
-  var keyCode = getKeyCodeFromTarget(target);
-
-  // Delete is a special key, it reacts when pressed not released
-  if (keyCode == KeyEvent.DOM_VK_BACK_SPACE) {
-    // The backspace key pressing is regarded as non-repetitive behavior.
-    sendDelete(false);
-    return;
-  }
-
-  var keyStyle = getComputedStyle(target);
-  if (keyStyle.display == 'none' || keyStyle.visibility == 'hidden')
-    return;
-
-  // Handle normal key
-  switch (keyCode) {
-
-  case BASIC_LAYOUT:
-    // Return to default page
-    fakeAppObject.setLayoutPage(layoutManager.LAYOUT_PAGE_DEFAULT);
-    break;
-
-  case ALTERNATE_LAYOUT:
-    // Switch to numbers+symbols page
-    fakeAppObject.setLayoutPage(layoutManager.LAYOUT_PAGE_SYMBOLS_I);
-    break;
-
-  case KeyEvent.DOM_VK_ALT:
-    // alternate between pages 1 and 2 of SYMBOLS
-    if (layoutManager.currentLayoutPage ===
-        layoutManager.LAYOUT_PAGE_SYMBOLS_I) {
-      fakeAppObject.setLayoutPage(layoutManager.LAYOUT_PAGE_SYMBOLS_II);
-    } else {
-      fakeAppObject.setLayoutPage(layoutManager.LAYOUT_PAGE_SYMBOLS_I);
-    }
-    break;
-
-    // Switch language (keyboard)
-  case SWITCH_KEYBOARD:
-    switchToNextIME();
-    break;
-
-    // Expand / shrink the candidate panel
-  case TOGGLE_CANDIDATE_PANEL:
-    candidatePanelManager.toggleFullPanel();
-
-    break;
-
-    // Shift or caps lock
-  case KeyEvent.DOM_VK_CAPS_LOCK:
-
-    if (isDoubleTap) {
-      upperCaseStateManager.switchUpperCaseState({
-        isUpperCase: true,
-        isUpperCaseLocked: true
-      });
-    } else {
-      upperCaseStateManager.switchUpperCaseState({
-        isUpperCase: !upperCaseStateManager.isUpperCase,
-        isUpperCaseLocked: false
-      });
-    }
-    break;
-
-    // Normal key
-  default:
-    if (target.dataset.compositeKey) {
-      // Keys with this attribute set send more than a single character
-      // Like ".com" or "2nd" or (in Catalan) "l·l".
-      var compositeKey = target.dataset.compositeKey;
-      for (var i = 0; i < compositeKey.length; i++) {
-        inputMethodManager.currentIMEngine.click(compositeKey.charCodeAt(i));
-      }
-    }
-    else {
-      /*
-       * XXX: A hack to send both keycode and uppercase keycode to latin IME,
-       * since latin IME would maintain a promise queue for each key, and
-       * send correct keycode based on the current capitalization state.
-       * See bug 1013570 and bug 987809 for details.
-       * This hack should be removed and the state/input queue should be
-       * maintained in keyboard.js.
-       */
-      if (layoutManager.currentModifiedLayout.imEngine == 'latin') {
-        inputMethodManager.currentIMEngine.click(
-          parseInt(target.dataset.keycode, 10),
-          parseInt(target.dataset.keycodeUpper, 10));
-      } else {
-        inputMethodManager.currentIMEngine.click(keyCode);
-      }
-    }
-    break;
-  }
-}
-
-function handleTargetCancelled(target) {
-  visualHighlightManager.hide(target);
-
-  clearTimeout(deleteTimeout);
-  clearInterval(deleteInterval);
-}
-
 function getKeyCoordinateY(y) {
   var candidatePanel = IMERender.candidatePanel;
 
@@ -708,18 +448,6 @@ function getKeyCoordinateY(y) {
     yBias = candidatePanel.clientHeight;
 
   return y - yBias;
-}
-
-function switchToNextIME() {
-  deactivateInputMethod();
-  var mgmt = navigator.mozInputMethod.mgmt;
-  mgmt.next();
-}
-
-function showIMEList() {
-  activeTargetsManager.clearAllTargets();
-  var mgmt = navigator.mozInputMethod.mgmt;
-  mgmt.showAll();
 }
 
 // Turn to default values
@@ -824,7 +552,7 @@ function hideKeyboard() {
     'keyboard.current': undefined
   });
 
-  activeTargetsManager.clearAllTargets();
+  targetHandlersManager.activeTargetsManager.clearAllTargets();
 }
 
 // Resize event handler
@@ -932,11 +660,4 @@ function needsCandidatePanel() {
 function isGreekSMS() {
   return (fakeAppObject.inputContext.inputMode === '-moz-sms' &&
           layoutManager.currentLayoutName === 'el');
-}
-
-// Hide the keyboard via input method API
-function dismissKeyboard() {
-  activeTargetsManager.clearAllTargets();
-
-  navigator.mozInputMethod.mgmt.hide();
 }
