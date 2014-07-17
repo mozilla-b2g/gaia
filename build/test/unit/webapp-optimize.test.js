@@ -108,8 +108,6 @@ suite('webapp-optimize.js', function() {
       });
     };
 
-    mockDictionary = ['en-test'];
-
     mockUtils.writeContent = function(file, content) {
       writeFileContent = content;
       writeFile = file;
@@ -218,10 +216,9 @@ suite('webapp-optimize.js', function() {
             code: 'testlangcode',
             direction: 'testleft'
           },
-          getDictionary: function(locale) {
+          getDictionary: function() {
             return function(docElt) {
               return {
-                locale: locale,
                 doc: docElt
               };
             };
@@ -302,15 +299,15 @@ suite('webapp-optimize.js', function() {
       var buildDirectoryFile = mockUtils.getFile('build_stage');
       webappOptimize.webapp = {
         buildDirectoryFile: buildDirectoryFile,
-        dictionary: mockDictionary
+        dictionary: {'en-test': { testId: 'testIdContent'}}
       };
       fileChildren[buildDirectoryFile.leafName + '/locales-obj'] = [
-        mockUtils.getFile(mockDictionary[0] + '.json')
+        mockUtils.getFile('en-test.json')
       ];
       webappOptimize.writeDictionaries();
-      assert.equal(writeFileContent, JSON.stringify(mockDictionary[0]),
+      assert.equal(writeFileContent, '{"testId":"testIdContent"}',
         'should write locale content');
-      assert.equal(writeFile.leafName, 'build_stage/locales-obj/0.json',
+      assert.equal(writeFile.leafName, 'build_stage/locales-obj/en-test.json',
         'should write locale content to this path');
       assert.deepEqual(removedFilePath,
         ['en-test.json', 'build_stage/locales', 'build_stage/shared/locales'],
@@ -338,8 +335,8 @@ suite('webapp-optimize.js', function() {
         },
         locales: ['en-test']
       });
-      assert.deepEqual(webappOptimize.webapp.dictionary, {'en-test': {}},
-        'should copy locales to webapp');
+      assert.deepEqual(webappOptimize.webapp.dictionary, {},
+        'should create an empty dictionary for webapp');
       assert.equal(webappOptimize.numOfFiles, 2,
         'should have two file left');
       assert.equal(processFiles[0].leafName, 'test.html',
@@ -357,12 +354,12 @@ suite('webapp-optimize.js', function() {
       htmlOptimizer = new app.HTMLOptimizer({
         htmlFile: htmlFile,
         webapp: {
-          dictionary: {'test-en': {}},
+          dictionary: {'en-test': {}},
           buildDirectoryFile: mockUtils.getFile('build_stage')
         },
         config: mockConfig,
         win: mockWin,
-        locales: ['test-en'],
+        locales: ['en-test'],
         optimizeConfig: mockoptimizeConfig,
         callback: function(files) {
           doneFiles = files;
@@ -398,8 +395,8 @@ suite('webapp-optimize.js', function() {
       mockWin.document.documentElement = {};
       htmlOptimizer._proceedLocales();
       assert.deepEqual(htmlOptimizer.fullDict,
-        {'test-en': {'test-id': 'testIdContent'}});
-      assert.equal(htmlOptimizer.webapp.dictionary['test-en']['test-id'],
+        {'en-test': {'test-id': 'testIdContent'}});
+      assert.equal(htmlOptimizer.webapp.dictionary['en-test']['test-id'],
         'testIdContent');
     });
 
