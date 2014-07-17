@@ -91,7 +91,6 @@ var ThreadUI = global.ThreadUI = {
       'date-group'
     ];
 
-    Compose.init('messages-compose-form');
     AttachmentMenu.init('attachment-options-menu');
 
     // Fields with 'messages' label
@@ -291,6 +290,8 @@ var ThreadUI = global.ThreadUI = {
     this.initHandlers();
     this.initRecipients();
 
+    Compose.init('messages-compose-form');
+
     this.multiSimActionButton = null;
 
     this.timeouts.update = null;
@@ -385,8 +386,6 @@ var ThreadUI = global.ThreadUI = {
       if (isOk) {
         // update composer header whenever recipients change
         this.updateComposerHeader();
-        // check for enable send whenever recipients change
-        this.enableSend();
 
         this.emit('recipientschange');
       }
@@ -464,8 +463,6 @@ var ThreadUI = global.ThreadUI = {
   },
 
   messageComposerInputHandler: function thui_messageInputHandler(event) {
-    this.enableSend();
-
     if (Compose.type === 'sms') {
       return;
     }
@@ -1024,8 +1021,6 @@ var ThreadUI = global.ThreadUI = {
     } else {
       navigator.mozL10n.localize(this.headerText, 'newMessage');
     }
-    // Check if we need to enable send button.
-    this.enableSend();
   },
 
   // scroll position is considered as "manual" if the view is not completely
@@ -1225,38 +1220,6 @@ var ThreadUI = global.ThreadUI = {
       };
       new OptionMenu(options).show();
     }.bind(this));
-  },
-
-  enableSend: function thui_enableSend() {
-    // should disable if we have no message input
-    var disableSendMessage = Compose.isEmpty() || Compose.isResizing;
-    var messageNotLong = this.updateCounter();
-    var recipientsValue = this.recipients.inputValue;
-    var hasRecipients = false;
-
-    // Set hasRecipients to true based on the following conditions:
-    //
-    //  1. There is a valid recipients object
-    //  2. One of the following is true:
-    //      - The recipients object contains at least 1 valid recipient
-    //        - OR -
-    //      - There is >=1 character typed and the value is a finite number
-    //
-    if (this.recipients &&
-        (this.recipients.numbers.length ||
-          (recipientsValue && isFinite(recipientsValue)))) {
-
-      hasRecipients = true;
-    }
-
-    // should disable if the message is too long
-    disableSendMessage = disableSendMessage || !messageNotLong;
-
-    // should disable if we have no recipients in the "new thread" view
-    disableSendMessage = disableSendMessage ||
-      (Navigation.isCurrentPanel('composer') && !hasRecipients);
-
-    this.sendButton.disabled = disableSendMessage;
   },
 
   // asynchronously updates the counter for sms segments when in text only mode
@@ -2216,8 +2179,6 @@ var ThreadUI = global.ThreadUI = {
     // reset the counter
     this.counterLabel.dataset.counter = '';
     this.counterLabel.classList.remove('has-counter');
-
-    this.enableSend();
   },
 
   onSendClick: function thui_onSendClick() {
@@ -2577,7 +2538,7 @@ var ThreadUI = global.ThreadUI = {
       this.searchContact(typed, this.listContacts.bind(this));
     }
 
-    this.enableSend();
+    this.emit('recipientschange');
   },
 
   exactContact: function thui_searchContact(fValue, handler) {

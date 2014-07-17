@@ -32,6 +32,7 @@ var MockThreadUI = {
       template: new Template('messages-recipient-tmpl')
     });
   },
+  on: function() {},
   initSentAudio: function() {},
   getAllInputs: function() {},
   getSelectedInputs: function() {},
@@ -48,7 +49,6 @@ var MockThreadUI = {
   updateInputMaxHeight: function() {},
   back: function() {},
   isKeyboardDisplayed: function() {},
-  enableSend: function() {},
   updateSmsSegmentLimit: function() {},
   updateCounter: function() {},
   updateCounterForMms: function() {},

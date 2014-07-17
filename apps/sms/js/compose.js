@@ -2,9 +2,10 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 /*global Settings, Utils, Attachment, AttachmentMenu, MozActivity, SMIL,
+        MessageManager,
+        Navigation,
         Promise,
-        ThreadUI,
-        MessageManager
+        ThreadUI
 */
 /*exported Compose */
 
@@ -423,6 +424,11 @@ var Compose = (function() {
 
       this.on('type', this.onTypeChange);
 
+      /* Bug 1040144: replace ThreadUI direct invocation by a instanciation-time
+       * property */
+      ThreadUI.on('recipientschange', this.updateSendButton.bind(this));
+      // Bug 1026384: call updateType as well when the recipients change
+
       return this;
     },
 
@@ -688,8 +694,9 @@ var Compose = (function() {
     updateType: function() {
       var isTextTooLong =
         state.segmentInfo.segments > Settings.maxConcatenatedMessages;
-      /* Bug XXXXX: if a recipient is a mail, the type must be MMS
-       * Bug XXXXX: replace ThreadUI by a instanciation-time property
+      /* Bug 1026384: if a recipient is a mail, the type must be MMS
+       * Bug 1040144: replace ThreadUI direct invocation by a instanciation-time
+       * property
       var hasEmailRecipient = ThreadUI.recipients.list.some(
         function(recipient) { return recipient.isEmail; }
       );
@@ -707,7 +714,39 @@ var Compose = (function() {
     },
 
     updateSendButton: function() {
-      this.disable(state.empty);
+      // should disable if we have no message input
+      var disableSendMessage = state.empty || state.resizing;
+      var messageNotLong = compose.size <= Settings.mmsSizeLimitation;
+
+      /* Bug 1040144: replace ThreadUI direct invocation by a instanciation-time
+       * property */
+      var recipients = ThreadUI.recipients;
+      var recipientsValue = recipients.inputValue;
+      var hasRecipients = false;
+
+      // Set hasRecipients to true based on the following conditions:
+      //
+      //  1. There is a valid recipients object
+      //  2. One of the following is true:
+      //      - The recipients object contains at least 1 valid recipient
+      //        - OR -
+      //      - There is >=1 character typed and the value is a finite number
+      //
+      if (recipients &&
+          (recipients.numbers.length ||
+            (recipientsValue && isFinite(recipientsValue)))) {
+
+        hasRecipients = true;
+      }
+
+      // should disable if the message is too long
+      disableSendMessage = disableSendMessage || !messageNotLong;
+
+      // should disable if we have no recipients in the "new thread" view
+      disableSendMessage = disableSendMessage ||
+        (Navigation.isCurrentPanel('composer') && !hasRecipients);
+
+      this.disable(disableSendMessage);
     },
 
     _onAttachmentRequestError: function c_onAttachmentRequestError(err) {

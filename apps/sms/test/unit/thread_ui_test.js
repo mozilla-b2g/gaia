@@ -5258,6 +5258,24 @@ suite('thread_ui.js >', function() {
         sinon.assert.notCalled(onRecipientsChange);
       });
     });
+
+    suite('edit a recipient', function() {
+      setup(function() {
+        var placeholder = document.createElement('span');
+        placeholder.setAttribute('contenteditable', 'true');
+        placeholder.isPlaceholder = true;
+        placeholder.textContent = '999';
+        recipientsList.appendChild(placeholder);
+
+        ThreadUI.recipients.inputValue = '999';
+
+        placeholder.dispatchEvent(new CustomEvent('input', { bubbles: true }));
+      });
+
+      test('An event `recipientschange` is sent', function() {
+        sinon.assert.calledOnce(onRecipientsChange);
+      });
+    });
   });
 
   suite('saveDraft() > ', function() {
