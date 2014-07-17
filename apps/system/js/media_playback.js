@@ -18,7 +18,7 @@ function MediaPlaybackWidget(container, options) {
   window.addEventListener('iac-mediacomms', this.handleMessage.bind(this));
   // When SCO status changes, we need to adjust the ui of the playback controls
   window.addEventListener(
-    'bluetoothprofileconnectionchange', this.handleSCOChange.bind(this)
+    'bluetoothprofileconnectionchange', this.handleBluetoothChange.bind(this)
   );
 
   if (options && options.nowPlayingAction === 'openapp')
@@ -59,12 +59,18 @@ MediaPlaybackWidget.prototype = {
     }
   },
 
-  handleSCOChange: function mpw_handleSCOChange(event) {
+  handleBluetoothChange: function mpw_handleBluetoothChange(event) {
     var name = event.detail.name;
     var connected = event.detail.connected;
 
-    if (name === Bluetooth.Profiles.SCO)
+    if (name === Bluetooth.Profiles.SCO) {
       this.container.classList.toggle('disabled', connected);
+    } else if (name === Bluetooth.Profiles.A2DP) {
+      var port = IACHandler.getPort('mediacomms');
+      if (port) {
+        port.postMessage({bluetooth: {a2dp: connected}});
+      }
+    }
   },
 
   updateAppInfo: function mpw_updateAppInfo(info) {

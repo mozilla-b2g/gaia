@@ -171,7 +171,7 @@ MediaRemoteControls.prototype._setupBluetooth = function(callback) {
   // A2DP is connected: update the status to the bluetooth device.
   // A2DP is disconnected: pause the player like the headphone is unplugged.
   function a2dpConnectionHandler(event) {
-    var isConnected = self._isA2DPConnected = event.status;
+    var isConnected = event.status;
     if (isConnected && self._commandListeners['updatemetadata'].length > 0)
       self._commandHandler(REMOTE_CONTROLS.UPDATE_METADATA);
     else
@@ -213,7 +213,10 @@ MediaRemoteControls.prototype._setupIAC = function() {
       self._ports = ports;
       self._ports.forEach(function(port) {
         port.onmessage = function(event) {
-          self._commandHandler(event.data.command);
+          if (event.data.bluetooth)
+            self._isA2DPConnected = event.data.bluetooth.a2dp.connected;
+          else
+            self._commandHandler(event.data.command);
         };
 
         self._queuedMessages.forEach(function(message) {
@@ -233,7 +236,7 @@ MediaRemoteControls.prototype._setupWired = function() {
 
   function onheadphoneschange() {
     if (!acm.headphones && !this._isA2DPConnected) {
-      // Send pause command if no a2dp connection is conneccted.
+      // Send pause command if no a2dp connection is connected.
       this._commandHandler(AVRCP.PAUSE_PRESS);
     }
   }
