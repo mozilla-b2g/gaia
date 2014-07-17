@@ -440,8 +440,8 @@ suite('Build Integration tests', function() {
           assert.ok(fs.existsSync(installedExtsPath));
           helper.checkSettings(settings, expectedSettings);
           helper.checkPrefs(sandbox.userPrefs, expectedUserPrefs);
-          // only expect one zip file for marketplace.
-          assert.equal(zipCount, 1);
+          assert.equal(zipCount, 3, 'we should have three zip files in ' +
+            'profile-debug directory');
           done();
         }
       );
