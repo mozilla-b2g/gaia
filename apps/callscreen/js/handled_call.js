@@ -92,8 +92,6 @@ HandledCall.prototype.handleEvent = function hc_handle(evt) {
   switch (evt.call.state) {
     case 'dialing':
     case 'alerting':
-      CallsHandler.updateKeypadEnabled();
-      break;
     case 'connected':
       // The dialer agent in the system app plays and stops the ringtone once
       // the call state changes. If we play silence right after the ringtone
@@ -310,7 +308,6 @@ HandledCall.prototype.connected = function hc_connected() {
 
   this.updateDirection();
   CallScreen.createTicker(this.durationNode);
-  CallScreen.enableKeypad();
   CallScreen.syncSpeakerEnabled();
 
   CallScreen.setCallerContactImage();

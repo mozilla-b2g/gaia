@@ -441,13 +441,6 @@ var CallScreen = {
     window.resizeTo(100, 40);
   },
 
-  render: function cs_render(layout_type) {
-    this.screen.dataset.layout = layout_type;
-    if (layout_type !== 'connected') {
-      this.disableKeypad();
-    }
-  },
-
   showClock: function cs_showClock(now) {
     LazyL10n.get(function localized(_) {
       var f = new navigator.mozL10n.DateTimeFormat();
@@ -487,12 +480,12 @@ var CallScreen = {
     }
   },
 
-  enableKeypad: function cs_enableKeypad() {
-    this.keypadButton.removeAttribute('disabled');
+  enablePlaceNewCall: function cs_enablePlaceNewCall() {
+    this.placeNewCallButton.removeAttribute('disabled');
   },
 
-  disableKeypad: function cs_disableKeypad() {
-    this.keypadButton.setAttribute('disabled', 'disabled');
+  disablePlaceNewCall: function cs_disablePlaceNewCall() {
+    this.placeNewCallButton.setAttribute('disabled', 'disabled');
   },
 
   showGroupDetails: function cs_showGroupDetails(evt) {
