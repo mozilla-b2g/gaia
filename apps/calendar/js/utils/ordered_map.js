@@ -1,9 +1,13 @@
-define(function() {
+define(function(require) {
   'use strict';
+
+  var calendar = require('calendar');
+  var binsearch = calendar.binsearch;
+  var defaultCompare = calendar.compare;
 
   function OrderedMap(list, compare) {
     if (typeof(compare) === 'undefined') {
-      compare = Calendar.compare;
+      compare = defaultCompare;
     }
 
     this.compare = function(a, b) {
@@ -24,7 +28,7 @@ define(function() {
     },
 
     insertIndexOf: function(value) {
-      return Calendar.binsearch.insert(
+      return binsearch.insert(
         this.items,
         [value],
         this.compare
@@ -48,7 +52,7 @@ define(function() {
     },
 
     indexOf: function(value) {
-      return Calendar.binsearch.find(
+      return binsearch.find(
         this.items,
         [value],
         this.compare
@@ -58,7 +62,7 @@ define(function() {
     set: function(key, value) {
       var arr = [key, value];
 
-      var idx = Calendar.binsearch.insert(
+      var idx = binsearch.insert(
         this.items,
         arr,
         this.compare
@@ -101,6 +105,5 @@ define(function() {
     }
   };
 
-  Calendar.ns('Utils').OrderedMap = OrderedMap;
   return OrderedMap;
 });

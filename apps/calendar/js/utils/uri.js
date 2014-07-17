@@ -57,7 +57,6 @@ define(function() {
     }
   };
 
-  Calendar.ns('Utils').URI = URI;
   return URI;
 
 });
