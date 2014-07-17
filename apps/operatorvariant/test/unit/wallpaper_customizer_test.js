@@ -58,15 +58,15 @@ suite('WallpaperCustomizer >', function() {
   var userValue = 'data:application/object;base64,userValue';
   var defaultValue = 'data:application/object;base64,defaultValue';
 
-  test('No previously modified. Set ', function() {
+  test('First run with valid SIM. Set ', function() {
     var settings = navigator.mozSettings.mSettings;
-    settings[WALLPAPER_SETTING] = defaultValue;
 
     var inputParam = {
       uri: '/test/unit/resources/wallpaper.png',
       default: defaultValue
     };
 
+    wallpaperCustomizer.simPresentOnFirstBoot = true;
     wallpaperCustomizer.set(inputParam);
 
     sendResponseText(configuredValue);
@@ -81,7 +81,7 @@ suite('WallpaperCustomizer >', function() {
                        WALLPAPER_SETTING + ' has a incorrect value');
   });
 
-  test('Previously modified. Not set ', function() {
+  test('Previous run withot SIM. Not set ', function() {
     var settings = navigator.mozSettings.mSettings;
     settings[WALLPAPER_SETTING] = userValue;
 
@@ -90,11 +90,11 @@ suite('WallpaperCustomizer >', function() {
       default: defaultValue
     };
 
+    wallpaperCustomizer.simPresentOnFirstBoot = false;
     wallpaperCustomizer.set(inputParam);
 
     sendResponseText(configuredValue);
     this.sinon.clock.tick(TINY_TIMEOUT);
-
 
     sinon.assert.notCalled(resourcesSpy);
 
