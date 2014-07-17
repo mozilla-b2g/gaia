@@ -203,7 +203,7 @@ var ActivityHandler = {
     request.onsuccess = function onsuccess() {
       if (!Compose.isEmpty()) {
         if (window.confirm(navigator.mozL10n.get('discard-new-message'))) {
-          ThreadUI.cleanFields(true);
+          ThreadUI.cleanFields();
         } else {
           return;
         }

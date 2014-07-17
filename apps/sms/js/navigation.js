@@ -78,18 +78,10 @@ var Navigation = window.Navigation = {
    * must be an object. It returns whether the current panel is the first
    * argument, and for each property of the second argument, whether its value
    * is equal to the value for the current panel's arguments' same property.
-   *
-   * Called with 1 argument that is an object, it must have 2 properties panel
-   * and args, which have the same meaning as the 2-argument call.
    */
   isCurrentPanel: function n_isCurrentPanel(panel, args) {
     if (!currentPanel || !panel) {
       return false;
-    }
-
-    if (typeof panel === 'object') {
-      args = panel.args;
-      panel = panel.panel;
     }
 
     if (panel !== currentPanel.panel) {
@@ -109,14 +101,6 @@ var Navigation = window.Navigation = {
     }
 
     return true;
-  },
-
-  /*
-   * Returns the currentPanel object, with 2
-   * properties: panel, args.
-   */
-  getCurrentPanel: function n_getCurrentPanel() {
-    return currentPanel;
   },
 
   /**
