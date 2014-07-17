@@ -35,14 +35,34 @@ events(Storage.prototype);
  */
 function Storage(options) {
   bindAll(this);
+
+  // Getters for picture and video. These are required because Settings does
+  // not commit new values before calling listeners. This normally causes the
+  // Device Storage API to return the old default storage when called from the
+  // listener. Instead, we will set _picture and _video to null and update only
+  // in the getter.
+  this._picture = null;
+  this._video = null;
+
+  Object.defineProperty(this, 'picture', { get: function() {
+    // updateStorage will only update if necessary.
+    this.updateStorage();
+    return this._picture;
+  }});
+
+  Object.defineProperty(this, 'video', { get: function() {
+    // updateStorage will only update if necessary.
+    this.updateStorage();
+    return this._video;
+  }});
+
   this.maxFileSize = 0;
   options = options || {};
-  this.video = navigator.getDeviceStorage('videos');
-  this.picture = navigator.getDeviceStorage('pictures');
-  this.picture.addEventListener('change', this.onStorageChange);
   this.createFilename = options.createFilename || createFilename; // test hook
   this.dcf = options.dcf || dcf;
   this.dcf.init();
+  navigator.mozSettings.addObserver('device.storage.writable.name',
+                                    this.onDefaultStorageVolumeChange);
   debug('initialized');
 }
 
@@ -135,6 +155,18 @@ Storage.prototype.createVideoFilepath = function(done) {
   });
 };
 
+Storage.prototype.updateStorage = function() {
+  // Update the storage, if necessary.
+  if (!this._picture) {
+    this._picture = navigator.getDeviceStorage('pictures');
+    // Track changes.
+    this._picture.addEventListener('change', this.onStorageChange);
+  }
+  if (!this._video) {
+    this._video = navigator.getDeviceStorage('videos');
+  }
+};
+
 Storage.prototype.onStorageChange = function(e) {
   debug('state change: %s', e.reason);
   var value = e.reason;
@@ -151,6 +183,17 @@ Storage.prototype.onStorageChange = function(e) {
   // Check storage
   // has spare capacity
   this.check();
+};
+
+Storage.prototype.onDefaultStorageVolumeChange = function(setting) {
+  debug('default storage volume change: %s', setting.settingValue);
+  // Clear our previous listener if we should.
+  if (this._picture) {
+    this._picture.removeEventListener('change', this.onStorageChange);
+  }
+  // Next time anyone tries to get these values they will be updated.
+  this._picture = null;
+  this._video = null;
 };
 
 Storage.prototype.checkFilepath = function(filepath) {
