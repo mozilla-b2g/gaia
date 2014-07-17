@@ -100,7 +100,7 @@ var ThreadUI = global.ThreadUI = {
       'new-message-notice', 'options-icon', 'edit-mode', 'edit-form',
       'tel-form', 'header-text', 'max-length-notice', 'convert-notice',
       'resize-notice', 'dual-sim-information', 'new-message-notice',
-      'subject-max-length-notice', 'counter-label'
+      'subject-max-length-notice', 'counter-label', 'recipient-suggestions'
     ].forEach(function(id) {
       this[Utils.camelCase(id)] = document.getElementById('messages-' + id);
     }, this);
@@ -274,6 +274,11 @@ var ThreadUI = global.ThreadUI = {
       this.updateHeaderData.bind(this)
     );
 
+    this.recipientSuggestions.addEventListener(
+      'click',
+      this.onRecipientSuggestionClick.bind(this)
+    );
+
     this.tmpl = templateIds.reduce(function(tmpls, name) {
       tmpls[Utils.camelCase(name)] =
         Template('messages-' + name + '-tmpl');
@@ -353,8 +358,7 @@ var ThreadUI = global.ThreadUI = {
       }
 
       // Clean search result after recipient count change.
-      this.container.textContent = '';
-
+      this.toggleRecipientSuggestions();
     }).bind(this);
 
     if (this.recipients) {
@@ -371,7 +375,7 @@ var ThreadUI = global.ThreadUI = {
       this.recipients.on('add', recipientsChanged);
       this.recipients.on('remove', recipientsChanged);
     }
-    this.container.textContent = '';
+    this.toggleRecipientSuggestions();
   },
 
   initSentAudio: function thui_initSentAudio() {
@@ -644,6 +648,8 @@ var ThreadUI = global.ThreadUI = {
       this.threadMessages.classList.remove('new');
 
       this.recipients.length = 0;
+
+      this.toggleRecipientSuggestions();
     }
 
     if (!Navigation.isCurrentPanel('thread')) {
@@ -867,6 +873,20 @@ var ThreadUI = global.ThreadUI = {
     event.preventDefault();
     this.hideNewMessageNotice();
     this.forceScrollViewToBottom();
+  },
+
+  /**
+   * Fires once user clicks on any recipient in the suggestions list.
+   */
+  onRecipientSuggestionClick: function(event) {
+    event.stopPropagation();
+    event.preventDefault();
+
+    // Since the "dataset" DOMStringMap property is essentially
+    // just an object of properties that exactly match the properties
+    // used for recipients, push the whole dataset object into
+    // the current recipients list as a new entry.
+    this.recipients.add(event.target.dataset).focus();
   },
 
   // Message composer type changed:
@@ -1766,10 +1786,6 @@ var ThreadUI = global.ThreadUI = {
     this.checkInputs();
   },
 
-  clear: function thui_clear() {
-    this.initRecipients();
-  },
-
   toggleCheckedAll: function thui_select(value) {
     var inputs = this.container.querySelectorAll(
       'input[type="checkbox"]' +
@@ -2518,7 +2534,7 @@ var ThreadUI = global.ThreadUI = {
 
   toFieldKeypress: function(event) {
     if (event.keyCode === 13 || event.keyCode === event.DOM_VK_ENTER) {
-      this.container.textContent = '';
+      this.toggleRecipientSuggestions();
     }
   },
 
@@ -2544,7 +2560,7 @@ var ThreadUI = global.ThreadUI = {
       // character in the recipient input field,
       // eg. type "a", then delete it.
       // Always remove the the existing results.
-      this.container.textContent = '';
+      this.toggleRecipientSuggestions();
       return;
     }
 
@@ -2661,30 +2677,13 @@ var ThreadUI = global.ThreadUI = {
       return;
     }
 
-    this.container.textContent = '';
+    this.toggleRecipientSuggestions();
     if (!contacts || !contacts.length) {
       return;
     }
 
     // There are contacts that match the input.
-
-    // TODO Modify in Bug 861227 in order to create a standalone element
-    var ul = document.createElement('ul');
-    ul.classList.add('contact-list');
-    ul.addEventListener('click', function ulHandler(event) {
-      event.stopPropagation();
-      event.preventDefault();
-      // Since the "dataset" DOMStringMap property is essentially
-      // just an object of properties that exactly match the properties
-      // used for recipients, push the whole dataset object into
-      // the current recipients list as a new entry.
-      this.recipients.add(
-        event.target.dataset
-      ).focus();
-
-      // Clean up the event listener
-      ul.removeEventListener('click', ulHandler);
-    }.bind(this));
+    var suggestionList = document.createDocumentFragment();
 
     // Render each contact in the contacts results
     var renderer = ContactRenderer.flavor('suggestion');
@@ -2694,7 +2693,7 @@ var ThreadUI = global.ThreadUI = {
       var rendererArg = {
         contact: contact,
         input: fValue,
-        target: ul,
+        target: suggestionList,
         skip: this.recipients.numbers
       };
       if (contact.source != 'unknown') {
@@ -2705,7 +2704,7 @@ var ThreadUI = global.ThreadUI = {
       }
     }, this);
 
-    this.container.appendChild(ul);
+    this.toggleRecipientSuggestions(suggestionList);
   },
 
   onHeaderActivation: function thui_onHeaderActivation() {
@@ -3008,6 +3007,24 @@ var ThreadUI = global.ThreadUI = {
     // auto save operation
     if (!opts || (opts && !opts.autoSave)) {
       ThreadListUI.onDraftSaved();
+    }
+  },
+
+  /**
+   * Shows recipient suggestions if available, otherwise removes it from the DOM
+   * and hides suggestions container.
+   * @param {DocumentFragment} suggestions DocumentFragment node that contains
+   * recipient suggestion to display.
+   */
+  toggleRecipientSuggestions: function(suggestions) {
+    var contactList = this.recipientSuggestions.querySelector('.contact-list');
+
+    this.recipientSuggestions.classList.toggle('hide', !suggestions);
+
+    if (!suggestions) {
+      contactList.textContent = '';
+    } else {
+      contactList.appendChild(suggestions);
     }
   }
 };
