@@ -289,7 +289,7 @@ var Contacts = (function() {
     initDetails(function onDetailsReady() {
       contactsList.getContactById(id, function findCb(contact, fbContact) {
 
-        // Enable NFC listening is available
+        //Enable NFC listening is available
         if ('mozNfc' in navigator) {
           contacts.NFC.startListening(contact);
         }
@@ -543,9 +543,12 @@ var Contacts = (function() {
       callback();
     } else {
       initDetails(function onDetails() {
-        LazyLoader.load([
-          '/shared/js/contacts/utilities/image_thumbnail.js'],
-        function() {
+        var files = ['/shared/js/contacts/utilities/image_thumbnail.js'];
+        if ('mozNfc' in navigator) {
+          files.push('/contacts/js/nfc.js');
+        }
+
+        LazyLoader.load(files, function() {
           Contacts.view('Form', function viewLoaded() {
             formReady = true;
             contactsForm = contacts.Form;
@@ -563,6 +566,7 @@ var Contacts = (function() {
     } else {
       Contacts.view('Settings', function viewLoaded() {
         LazyLoader.load(['/contacts/js/utilities/sim_dom_generator.js',
+          '/shared/style/edit_mode.css',
           '/contacts/js/utilities/icc_handler.js'], function() {
           settingsReady = true;
           contacts.Settings.init();
@@ -578,12 +582,24 @@ var Contacts = (function() {
     } else {
       Contacts.view('Details', function viewLoaded() {
         var simPickerNode = document.getElementById('sim-picker');
-        LazyLoader.load([simPickerNode], function() {
-          navigator.mozL10n.translate(simPickerNode);
-          detailsReady = true;
-          contactsDetails = contacts.Details;
-          contactsDetails.init();
-          callback();
+        LazyLoader.load(['/shared/style/sim_picker.css',
+            '/shared/style/action_menu.css'], function() {
+          var files = [simPickerNode,
+            '/dialer/js/telephony_helper.js',
+            '/shared/js/contacts/utilities/templates.js'
+          ];
+
+          if ('mozNfc' in navigator) {
+            files.push('/contacts/js/nfc.js');
+          }
+
+          LazyLoader.load(files, function() {
+            navigator.mozL10n.translate(simPickerNode);
+            detailsReady = true;
+            contactsDetails = contacts.Details;
+            contactsDetails.init();
+            callback();
+          });
         });
       });
     }
@@ -718,11 +734,6 @@ var Contacts = (function() {
       SHARED_UTILS_PATH + '/' + 'status.js',
       '/shared/js/contacts/utilities/dom.js'
     ];
-
-    // Lazyload nfc.js if NFC is available
-    if ('mozNfc' in navigator) {
-      lazyLoadFiles.push('/contacts/js/nfc.js');
-    }
 
     LazyLoader.load(lazyLoadFiles, function() {
       if (!ActivityHandler.currentlyHandling ||
