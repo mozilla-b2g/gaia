@@ -27,8 +27,8 @@ function StorageController(app) {
   this.camera = app.camera;
   this.settings = app.settings;
   this.storage = app.storage || new Storage();
-  this.configure();
   this.bindEvents();
+  this.configure();
   debug('initialized');
 }
 
@@ -44,6 +44,7 @@ function StorageController(app) {
  * @private
  */
 StorageController.prototype.configure = function() {
+  this.storage.configure();
   this.camera.createVideoFilepath = this.storage.createVideoFilepath;
   this.updateMaxFileSize();
 };
@@ -66,6 +67,7 @@ StorageController.prototype.bindEvents = function() {
   this.app.on('visible', this.storage.check);
 
   // Storage
+  this.storage.on('volumechanged', this.app.firer('storage:volumechanged'));
   this.storage.on('itemdeleted', this.app.firer('storage:itemdeleted'));
   this.storage.on('changed', this.onChanged);
   this.storage.on('checked', this.onChecked);
