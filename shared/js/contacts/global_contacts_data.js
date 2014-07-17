@@ -389,7 +389,7 @@ var GlobalContacts = (function GCDSOps() {
 
   // This function is used to find a corresponding target element on the index
   // Allowing us to remove it when it is no longer necessary
-  // The matching must correspond to the same GCDS id, owner and DS UID 
+  // The matching must correspond to the same GCDS id, owner and DS UID
   function fnIndex(target, element) {
     return target.id && element.id === target.id &&
             element.owner === target.owner && element.uid === target.uid;
@@ -531,71 +531,97 @@ var GlobalContacts = (function GCDSOps() {
     });
   }
 
+  /**
+   *  Returns just an entry on GCDS
+   *
+   */
+   var getEntry = function getEntry(globalDsId) {
+    return getDatastore().then(function success(store) {
+      return store.get(globalDsId);
+    });
+  };
+
+  /**
+   *  Returns all the data (merged contact) corresponding
+   *  to the GCDS entry
+   *
+   */
+  var getData = function getData(globalDsId) {
+    return getEntry(globalDsId).then(function success(entry) {
+      return MultiContact.getData({
+        id: globalDsId,
+        entryData: entry
+      });
+    });
+  };
+
   var findBy = function findBy(field, strToFind) {
     if (!field || !strToFind || !field.trim() || !strToFind.trim()) {
       return Promise.resolve([]);
     }
 
-    return new Promise(function(resolve, reject) {
-      getDatastore().then(function success(store) {
-        var contactIds;
+    return getDatastore().then(function success(store) {
+      var contactIds;
 
-        switch (field) {
-          case 'tel':
-            var variants = SimplePhoneMatcher.generateVariants(strToFind);
-            contactIds = [];
-            variants.forEach(function(aVariant) {
-              var ids = index.byTel[aVariant];
+      switch (field) {
+        case 'tel':
+          var variants = SimplePhoneMatcher.generateVariants(strToFind);
+          contactIds = [];
+          variants.forEach(function(aVariant) {
+            var ids = index.byTel[aVariant];
 
-              if (Array.isArray(ids)) {
-                ids.forEach(function(aId) {
-                  if (contactIds.indexOf(aId) === -1) {
-                    contactIds.push(aId);
-                  }
-                });
-              }
-            });
-          break;
+            if (Array.isArray(ids)) {
+              ids.forEach(function(aId) {
+                if (contactIds.indexOf(aId) === -1) {
+                  contactIds.push(aId);
+                }
+              });
+            }
+          });
+        break;
 
-          case 'email':
-            contactIds = index.byEmail[strToFind];
-          break;
+        case 'email':
+          contactIds = index.byEmail[strToFind];
+        break;
 
-          case 'name':
-          case 'givenName':
-          case 'familyName':
-            var indexEntry = index[FIELD_INDEX[field]];
-            var strNormalized = normalizeName(strToFind);
-            contactIds = indexEntry[strNormalized];
-          break;
+        case 'name':
+        case 'givenName':
+        case 'familyName':
+          var indexEntry = index[FIELD_INDEX[field]];
+          var strNormalized = normalizeName(strToFind);
+          contactIds = indexEntry[strNormalized];
+        break;
+      }
+
+      if (!Array.isArray(contactIds) || contactIds.length === 0) {
+        return Promise.resolve([]);
+      }
+
+      var onlyContactIds = [];
+      contactIds.forEach(function(aVal) {
+        if (onlyContactIds.indexOf(aVal) === -1) {
+          onlyContactIds.push(aVal.id);
         }
+      });
 
-        if (!Array.isArray(contactIds) || contactIds.length === 0) {
-          resolve([]);
-          return null;
-        }
-
-        var onlyContactIds = [];
-        contactIds.forEach(function(aVal) {
-          if (onlyContactIds.indexOf(aVal) === -1) {
-            onlyContactIds.push(aVal.id);
-          }
-        });
-
-        return getContactData(onlyContactIds);
-      }, reject).then(resolve, reject);
+      return getContactData(onlyContactIds);
     });
   };
 
   function getContactData(contactIds) {
     return new Promise(function(resolve, reject) {
-      store.get(contactIds).then(function success(entries) {
+      // store.get for the moment does not support array of ids but
+      // a variable number of arguments. Probably bug 1038661 will fix that
+      store.get.apply(store, contactIds).then(function success(entries) {
+        if (contactIds.length === 1) {
+          entries = [entries];
+        }
         var operations = [];
         entries.forEach(function(aEntry, i) {
-          operations.push(MultiContact.getData([{
+          operations.push(MultiContact.getData({
             id: contactIds[i],
             entryData: aEntry
-          }]));
+          }));
         });
         return Promise.all(operations);
       }, reject).then(resolve, reject);
@@ -638,6 +664,8 @@ var GlobalContacts = (function GCDSOps() {
     remove: remove,
     flush: flush,
     clear: clear,
+    getEntry: getEntry,
+    getData: getData,
     get revisionId() {
       return store.revisionId;
     },
