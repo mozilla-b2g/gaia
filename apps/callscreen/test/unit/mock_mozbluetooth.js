@@ -12,6 +12,8 @@ var MockBTAdapter = {
 };
 
 var MockMozBluetooth = {
+  _mEventListeners: [],
+
   _mAdapterRequest: {
     result: MockBTAdapter
   },
@@ -25,5 +27,20 @@ var MockMozBluetooth = {
     if (this._mAdapterRequest.onsuccess) {
       this._mAdapterRequest.onsuccess();
     }
+  },
+
+  addEventListener: function mmb_addEventListener(type, callback) {
+    this._mEventListeners.push({
+      type: type,
+      callback: callback
+    });
+  },
+
+  triggerEventListeners: function mmb_triggerEventListeners(type) {
+    this._mEventListeners.forEach(function(eventListener) {
+      if (eventListener.type === type) {
+        eventListener.callback();
+      }
+    });
   }
 };

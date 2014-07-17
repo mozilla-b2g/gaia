@@ -33,6 +33,14 @@ suite('bluetooth helper', function() {
     assert.isTrue(toggleCallsSpy.calledTwice);
   });
 
+  ['enabled', 'adapteradded'].forEach(function(evtName) {
+    test('should get adapter once ' + evtName, function() {
+      this.sinon.spy(MockMozBluetooth, 'getDefaultAdapter');
+      MockMozBluetooth.triggerEventListeners(evtName);
+      assert.isTrue(MockMozBluetooth.getDefaultAdapter.called);
+    });
+  });
+
   suite('public functions and setters', function() {
     setup(function() {
       MockMozBluetooth.triggerOnGetAdapterSuccess();
