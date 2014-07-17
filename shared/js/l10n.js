@@ -1245,7 +1245,7 @@
 
 
     if (isPretranslated) {
-      waitFor('interactive', function() {
+      waitFor('complete', function() {
         window.setTimeout(initResources.bind(navigator.mozL10n));
       });
     } else {
@@ -1261,7 +1261,7 @@
   function pretranslate() {
     /* jshint -W068 */
     if (inlineLocalization.call(this)) {
-      waitFor('interactive', (function() {
+      waitFor('complete', (function() {
         window.setTimeout(initResources.bind(this));
       }).bind(this));
     } else {
