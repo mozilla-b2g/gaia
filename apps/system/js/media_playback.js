@@ -69,6 +69,8 @@ MediaPlaybackWidget.prototype = {
       var port = IACHandler.getPort('mediacomms');
       if (port) {
         port.postMessage({bluetooth: {a2dp: connected}});
+      } else {
+        console.log('send a2dp status later');
       }
     }
   },
@@ -124,6 +126,12 @@ MediaPlaybackWidget.prototype = {
       case 'mozinterruptbegin':
         this.hidden = true;
         break;
+    }
+
+    var port = IACHandler.getPort('mediacomms');
+    if (port) {
+      var isConnected = Bluetooth.isProfileConnected(Bluetooth.Profiles.A2DP);
+      port.postMessage({bluetooth: {a2dp: isConnected}});
     }
   },
 

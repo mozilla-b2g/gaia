@@ -213,10 +213,11 @@ MediaRemoteControls.prototype._setupIAC = function() {
       self._ports = ports;
       self._ports.forEach(function(port) {
         port.onmessage = function(event) {
-          if (event.data.bluetooth)
-            self._isA2DPConnected = event.data.bluetooth.a2dp.connected;
-          else
+          if (event.data.bluetooth) {
+            self._isA2DPConnected = event.data.bluetooth.a2dp;
+          } else {
             self._commandHandler(event.data.command);
+          }
         };
 
         self._queuedMessages.forEach(function(message) {
