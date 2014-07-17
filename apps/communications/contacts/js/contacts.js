@@ -10,6 +10,7 @@
 /* global MozActivity */
 /* global navigationStack */
 /* global SmsIntegration */
+/* global MmsIntegration */
 /* global utils */
 /* global TAG_OPTIONS */
 
@@ -460,6 +461,13 @@ var Contacts = (function() {
     }
   };
 
+  var sendMms = function sendMms(email) {
+    if (!ActivityHandler.currentlyHandling ||
+        ActivityHandler.activityName === 'open') {
+      MmsIntegration.sendMms(email);
+    }
+  };
+
   var handleBack = function handleBack(cb) {
     navigation.back(cb);
   };
@@ -712,6 +720,7 @@ var Contacts = (function() {
       '/shared/js/text_normalizer.js',
       '/dialer/js/telephony_helper.js',
       '/contacts/js/sms_integration.js',
+      '/contacts/js/mms_integration.js',
       SHARED_UTILS_PATH + '/' + 'sdcard.js',
       SHARED_UTILS_PATH + '/' + 'vcard_parser.js',
       SHARED_UTILS_PATH + '/' + 'status.js',
@@ -958,6 +967,7 @@ var Contacts = (function() {
     'cancel': handleCancel,
     'goToSelectTag': goToSelectTag,
     'sendSms': sendSms,
+    'sendMms': sendMms,
     'navigation': navigation,
     'sendEmailOrPick': sendEmailOrPick,
     'updatePhoto': updatePhoto,
