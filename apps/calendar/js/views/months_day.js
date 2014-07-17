@@ -1,8 +1,11 @@
-define(function() {
+define(function(require) {
   'use strict';
 
-  var Parent = Calendar.Views.DayChild,
-      template = Calendar.Templates.MonthsDay;
+  var Parent = require('./day_child');
+  var template = require('templates.months_day');
+  var dateFormat = require('app').dateFormat;
+  var router = require('app').router;
+  var calc = require('calc');
 
   function MonthsDay() {
     Parent.apply(this, arguments);
@@ -42,7 +45,7 @@ define(function() {
 
     changeDate: function(date) {
       Parent.prototype.changeDate.apply(this, arguments);
-      this.currentDate.innerHTML = Calendar.App.dateFormat.localeFormat(
+      this.currentDate.innerHTML = dateFormat.localeFormat(
         date,
         navigator.mozL10n.get('months-day-view-header-format')
       );
@@ -58,7 +61,7 @@ define(function() {
       this.controller.on('selectedDayChange', this);
       this.app.store('Calendar').on('calendarVisibilityChange', this);
       this.delegate(this.events, 'click', '[data-id]', function(e, target) {
-        Calendar.App.router.show('/event/show/' + target.dataset.id + '/');
+        router.show('/event/show/' + target.dataset.id + '/');
       });
     },
 
@@ -87,11 +90,11 @@ define(function() {
         title: event.remote.title,
         location: event.remote.location,
         attendees: attendees,
-        startTime: Calendar.App.dateFormat.localeFormat(
+        startTime: dateFormat.localeFormat(
           busytime.startDate, navigator.mozL10n.get('shortTimeFormat')),
-        endTime: Calendar.App.dateFormat.localeFormat(
+        endTime: dateFormat.localeFormat(
           busytime.endDate, navigator.mozL10n.get('shortTimeFormat')),
-        isAllDay: hour === Calendar.Calc.ALLDAY
+        isAllDay: hour === calc.ALLDAY
       });
     },
 
@@ -130,13 +133,12 @@ define(function() {
 
     render: function() {
       this._initEvents();
-      var date = Calendar.Calc.createDay(new Date());
+      var date = calc.createDay(new Date());
       this.changeDate(date);
     }
   };
 
   MonthsDay.prototype.onfirstseen = MonthsDay.prototype.render;
 
-  Calendar.ns('Views').MonthsDay = MonthsDay;
   return MonthsDay;
 });

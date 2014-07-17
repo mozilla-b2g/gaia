@@ -1,14 +1,21 @@
-define(function() {
+define(function(require) {
   'use strict';
+
+  var EventBase = require('./event_base');
+  var AlarmTemplate = require('templates/alarm');
+  var nextTick = require('calendar').nextTick;
+  var LocalProvider = require('provider/local');
+  var QueryString = require('querystring');
+  var dateFormat = require('app').dateFormat;
 
   function ModifyEvent(options) {
     this.deleteRecord = this.deleteRecord.bind(this);
     this._toggleAllDay = this._toggleAllDay.bind(this);
-    Calendar.Views.EventBase.apply(this, arguments);
+    EventBase.apply(this, arguments);
   }
 
   ModifyEvent.prototype = {
-    __proto__: Calendar.Views.EventBase.prototype,
+    __proto__: EventBase.prototype,
 
     ERROR_PREFIX: 'event-error-',
 
@@ -31,7 +38,7 @@ define(function() {
     uiSelector: '[name="%"]',
 
     _initEvents: function() {
-      Calendar.Views.EventBase.prototype._initEvents.apply(this, arguments);
+      EventBase.prototype._initEvents.apply(this, arguments);
 
       var calendars = this.app.store('Calendar');
 
@@ -82,7 +89,7 @@ define(function() {
      * Called when any alarm is changed
      */
     _changeAlarm: function(e) {
-      var template = Calendar.Templates.Alarm;
+      var template = AlarmTemplate;
       if (e.target.value == 'none') {
         var parent = e.target.parentNode;
         parent.parentNode.removeChild(parent);
@@ -200,7 +207,7 @@ define(function() {
 
         if (!caps.canCreateEvent) {
           if (callback) {
-            Calendar.nextTick(callback);
+            nextTick(callback);
           }
           return;
         }
@@ -210,7 +217,7 @@ define(function() {
 
         option = document.createElement('option');
 
-        if (id === Calendar.Provider.Local.calendarId) {
+        if (id === LocalProvider.calendarId) {
           option.text = navigator.mozL10n.get('calendar-local');
           option.setAttribute('data-l10n-id', 'calendar-local');
         } else {
@@ -221,7 +228,7 @@ define(function() {
         element.add(option);
 
         if (callback) {
-          Calendar.nextTick(callback);
+          nextTick(callback);
         }
 
         if (this.onaddcalendar) {
@@ -520,7 +527,7 @@ define(function() {
      */
     showErrors: function() {
       this.enablePrimary();
-      Calendar.Views.EventBase.prototype.showErrors.apply(this, arguments);
+      EventBase.prototype.showErrors.apply(this, arguments);
     },
 
     /**
@@ -541,7 +548,7 @@ define(function() {
 
       var field, value;
       // Parse the urlparams.
-      var params = Calendar.QueryString.parse(search);
+      var params = QueryString.parse(search);
       for (field in params) {
         value = params[field];
         switch (field) {
@@ -648,7 +655,7 @@ define(function() {
 
     _renderDateTimeLocale: function(type, targetElement, value) {
       // we inject the targetElement to make it easier to test
-      var localeFormat = Calendar.App.dateFormat.localeFormat;
+      var localeFormat = dateFormat.localeFormat;
       var formatKey = this.formats[type];
       var format = navigator.mozL10n.get(formatKey);
       targetElement.textContent = localeFormat(value, format);
@@ -677,7 +684,7 @@ define(function() {
      * Called on render or when toggling an all-day event
      */
     updateAlarms: function(isAllDay, callback) {
-      var template = Calendar.Templates.Alarm;
+      var template = AlarmTemplate;
       var alarms = [];
 
       // Used to make sure we don't duplicate alarms
@@ -748,7 +755,7 @@ define(function() {
     },
 
     oninactive: function() {
-      Calendar.Views.EventBase.prototype.oninactive.apply(this, arguments);
+      EventBase.prototype.oninactive.apply(this, arguments);
       this.reset();
     }
 
@@ -768,7 +775,6 @@ define(function() {
     TITLE: 'title'
   };
 
-  Calendar.ns('Views').ModifyEvent = ModifyEvent;
   return ModifyEvent;
 
 });

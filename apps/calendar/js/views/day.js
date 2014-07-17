@@ -1,7 +1,9 @@
-define(function() {
+define(function(require) {
   'use strict';
 
-  var Parent = Calendar.Views.TimeParent;
+  var Parent = require('views/time_parent');
+  var DayChild = require('views/day_child');
+  var router = require('app').router;
 
   function Day() {
     Parent.apply(this, arguments);
@@ -14,7 +16,7 @@ define(function() {
 
     scale: 'day',
 
-    childClass: Calendar.Views.DayChild,
+    childClass: DayChild,
 
     selectors: {
       element: '#day-view'
@@ -26,7 +28,7 @@ define(function() {
       var delegateParent = this.delegateParent || this.frameContainer;
       this.delegate(
         delegateParent, 'click', '[data-id]', function(e, target) {
-          Calendar.App.router.show('/event/show/' + target.dataset.id + '/');
+          router.show('/event/show/' + target.dataset.id + '/');
         }
       );
     },
@@ -107,7 +109,6 @@ define(function() {
 
   Day.prototype.onfirstseen = Day.prototype.render;
 
-  Calendar.ns('Views').Day = Day;
   return Day;
 
 });

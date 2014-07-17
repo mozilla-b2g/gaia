@@ -1,8 +1,14 @@
-define(function() {
+define(function(require) {
   'use strict';
 
-  var Parent = Calendar.Views.Day;
-  var template = Calendar.Templates.Week;
+  var Parent = require('./day');
+  var template = require('templates/week');
+  var Timespan = require('timespan');
+  var CurrentTime = require('./current_time');
+  var View = require('view');
+  var dateFormat = require('app').dateFormat;
+  var WeekChild = require('./week_child');
+  var calc = require('calc');
 
   /**
    * Create a 'frame' of a parent view.
@@ -25,7 +31,7 @@ define(function() {
     var lastSpan = children[children.length - 1].timespan;
 
     // join the duration of timespans
-    this.timespan = new Calendar.Timespan(
+    this.timespan = new Timespan(
       firstSpan.start,
       lastSpan.end
     );
@@ -43,7 +49,7 @@ define(function() {
     this.element.querySelector('.sticky').appendChild(stickyList);
     this._appendSidebarHours();
 
-    this._currentTime = new Calendar.Views.CurrentTime({
+    this._currentTime = new CurrentTime({
       container: this.element.querySelector('.scroll-content'),
       sticky: this.element.querySelector('.sticky'),
       timespan: this.timespan
@@ -80,7 +86,7 @@ define(function() {
       // we need to add the active class before caling activate in the child
       // elements because they might need to get access to element style
       this.element.classList.add(
-        Calendar.View.ACTIVE
+        View.ACTIVE
       );
       this._childMethod('activate');
     },
@@ -91,7 +97,7 @@ define(function() {
     deactivate: function() {
       this._childMethod('deactivate');
       this.element.classList.remove(
-        Calendar.View.ACTIVE
+        View.ACTIVE
       );
     },
 
@@ -149,7 +155,7 @@ define(function() {
       var format = navigator.mozL10n.get('hour-format')
         .replace(/\s*%p\s*/, '<span class="ampm">%p</span>');
 
-      var result = Calendar.App.dateFormat.localeFormat(date, format);
+      var result = dateFormat.localeFormat(date, format);
 
       // remove leading zero
       result = result.replace(/^0/, '');
@@ -165,7 +171,7 @@ define(function() {
   Week.prototype = {
     __proto__: Parent.prototype,
 
-    childClass: Calendar.Views.WeekChild,
+    childClass: WeekChild,
 
     // Needed for proper TimeHeader data
     scale: 'week',
@@ -210,14 +216,14 @@ define(function() {
      * @return {Object} see above.
      */
     weekDetails: function(date) {
-      var day = Calendar.Calc.dayOfWeek(date);
+      var day = calc.dayOfWeek(date);
 
-      var start = Calendar.Calc.getWeekStartDate(date);
+      var start = calc.getWeekStartDate(date);
       var end = new Date(start.valueOf());
 
       end.setDate(
         // -1 otherwise we end up with an extra day 1 + 7 === 8
-        (start.getDate() - 1) + Calendar.Calc.daysInWeek()
+        (start.getDate() - 1) + calc.daysInWeek()
       );
 
       // day is zero based so 3 rather then 4
@@ -302,7 +308,7 @@ define(function() {
         stickyFrame.classList.add('sticky-frame');
         stickyList.appendChild(stickyFrame);
 
-        children.push(new Calendar.Views.WeekChild({
+        children.push(new WeekChild({
           date: date,
           app: this.app,
           stickyFrame: stickyFrame
@@ -326,7 +332,6 @@ define(function() {
 
   Week.prototype.onfirstseen = Week.prototype.render;
 
-  Calendar.ns('Views').Week = Week;
   return Week;
 
 });

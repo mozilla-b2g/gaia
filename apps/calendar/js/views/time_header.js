@@ -1,10 +1,14 @@
-define(function() {
+define(function(require) {
   'use strict';
+
+  var Parent = require('view');
+  var app = require('app');
+  var router = app.router;
 
   var SETTINGS = /settings/;
 
   function TimeHeader() {
-    Calendar.View.apply(this, arguments);
+    Parent.apply(this, arguments);
     this.controller = this.app.timeController;
     this.controller.on('scaleChange', this);
 
@@ -12,15 +16,15 @@ define(function() {
       e.stopPropagation();
       var path = window.location.pathname;
       if (SETTINGS.test(path)) {
-        Calendar.App.resetState();
+        app.resetState();
       } else {
-        Calendar.App.router.show('/settings/');
+        router.show('/settings/');
       }
     });
   }
 
   TimeHeader.prototype = {
-    __proto__: Calendar.View.prototype,
+    __proto__: Parent.prototype,
 
     selectors: {
       element: '#time-header',
@@ -147,6 +151,5 @@ define(function() {
     }
   };
 
-  Calendar.ns('Views').TimeHeader = TimeHeader;
   return TimeHeader;
 });

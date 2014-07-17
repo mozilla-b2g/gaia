@@ -1,6 +1,9 @@
 /* global GestureDetector */
-define(function() {
+define(function(require) {
   'use strict';
+
+  var Parent = require('view');
+  var OrderedMap = require('utils/ordered_map');
 
   var XSWIPE_OFFSET = window.innerWidth / 10;
 
@@ -17,13 +20,13 @@ define(function() {
    * removing them from the dom.
    */
   function TimeParent() {
-    Calendar.View.apply(this, arguments);
-    this.frames = new Calendar.Utils.OrderedMap();
+    Parent.apply(this, arguments);
+    this.frames = new OrderedMap();
     this._initEvents();
   }
 
   TimeParent.prototype = {
-    __proto__: Calendar.View.prototype,
+    __proto__: Parent.prototype,
 
     /**
      * Maximum number of child elements to keep
@@ -239,7 +242,7 @@ define(function() {
     },
 
     onactive: function() {
-      Calendar.View.prototype.onactive.apply(
+      Parent.prototype.onactive.apply(
         this, arguments
       );
 
@@ -249,8 +252,6 @@ define(function() {
     }
   };
 
-  Calendar.ns('Views').TimeParent = TimeParent;
   return TimeParent;
-
 
 });

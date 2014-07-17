@@ -1,5 +1,9 @@
-define(function() {
+define(function(require) {
   'use strict';
+
+  var Parent = require('view');
+  var app = require('app');
+  var CalendarModel = require('models/calendar');
 
   function Colors() {
     this.colorMap = Object.create(null);
@@ -17,11 +21,11 @@ define(function() {
   }
 
   Colors.prototype = {
-    __proto__: Calendar.View.prototype,
+    __proto__: Parent.prototype,
 
     _initEvents: function() {
       // handle changes in calendar
-      var store = Calendar.App.store('Calendar');
+      var store = app.store('Calendar');
       store.on('persist', this);
       store.on('remove', this);
     },
@@ -40,7 +44,7 @@ define(function() {
     },
 
     render: function() {
-      var calendarStore = Calendar.App.store('Calendar');
+      var calendarStore = app.store('Calendar');
 
       calendarStore.all(function(err, calendars) {
         if (err) {
@@ -70,7 +74,7 @@ define(function() {
      */
     getId: function(item) {
       var id;
-      if (item instanceof Calendar.Models.Calendar) {
+      if (item instanceof CalendarModel) {
         id = item._id;
       } else {
         id = item;
@@ -217,7 +221,6 @@ define(function() {
 
   };
 
-  Calendar.ns('Views').CalendarColors = Colors;
   return Colors;
 
 });

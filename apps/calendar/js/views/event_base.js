@@ -1,8 +1,12 @@
-define(function() {
+define(function(require) {
   'use strict';
 
+  var View = require('view');
+  var EventModel = require('models/event');
+  var nextTick = require('calendar').nextTick;
+
   function EventBase(options) {
-    Calendar.View.apply(this, arguments);
+    View.apply(this, arguments);
 
     this.store = this.app.store('Event');
 
@@ -15,7 +19,7 @@ define(function() {
   }
 
   EventBase.prototype = {
-    __proto__: Calendar.View.prototype,
+    __proto__: View.prototype,
 
     READONLY: 'readonly',
     CREATE: 'create',
@@ -119,7 +123,7 @@ define(function() {
       var classList = this.element.classList;
       classList.add(this.LOADING);
 
-      this.event = new Calendar.Models.Event(event);
+      this.event = new EventModel(event);
       this.busytime = busytime;
 
       var changeToken = ++this._changeToken;
@@ -232,7 +236,7 @@ define(function() {
         now.setMilliseconds(0);
       }
 
-      var model = new Calendar.Models.Event();
+      var model = new EventModel();
       model.startDate = time;
 
       var end = new Date(time.valueOf());
@@ -259,7 +263,7 @@ define(function() {
     },
 
     oninactive: function() {
-      Calendar.View.prototype.oninactive.apply(this, arguments);
+      View.prototype.oninactive.apply(this, arguments);
     },
 
     /**
@@ -311,7 +315,7 @@ define(function() {
         this.event = this._createModel(controller.mostRecentDay);
         this._updateUI();
 
-        Calendar.nextTick(completeDispatch);
+        nextTick(completeDispatch);
       }
 
       this.primaryButton.removeAttribute('aria-disabled');
@@ -321,7 +325,6 @@ define(function() {
 
   };
 
-  Calendar.ns('Views').EventBase = EventBase;
   return EventBase;
 
 });

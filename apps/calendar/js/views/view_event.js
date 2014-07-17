@@ -1,12 +1,17 @@
-define(function() {
+define(function(require) {
   'use strict';
 
+  var Parent = require('./event_base');
+  var AlarmTemplate = require('templates/alarm');
+  var DurationTimeTemplate = require('templates/duration_time');
+  var LocalProvider = require('provider/local');
+
   function ViewEvent(options) {
-    Calendar.Views.EventBase.apply(this, arguments);
+    Parent.apply(this, arguments);
   }
 
   ViewEvent.prototype = {
-    __proto__: Calendar.Views.EventBase.prototype,
+    __proto__: Parent.prototype,
 
     DEFAULT_VIEW: '/month/',
 
@@ -17,7 +22,7 @@ define(function() {
     },
 
     _initEvents: function() {
-      Calendar.Views.EventBase.prototype._initEvents.apply(this, arguments);
+      Parent.prototype._initEvents.apply(this, arguments);
     },
 
     /**
@@ -81,7 +86,7 @@ define(function() {
           .className = 'calendar-id-' + model.calendarId;
 
         var calendarId = this.originalCalendar.remote.id;
-        var isLocalCalendar = calendarId === Calendar.Provider.Local.calendarId;
+        var isLocalCalendar = calendarId === LocalProvider.calendarId;
         var calendarName = isLocalCalendar ?
           navigator.mozL10n.get('calendar-local') :
           this.originalCalendar.remote.name;
@@ -104,7 +109,7 @@ define(function() {
       }
 
       var duationTimeContent =
-        Calendar.Templates.DurationTime.durationTime.render(dateSrc);
+        DurationTimeTemplate.durationTime.render(dateSrc);
       this.setContent('duration-time', duationTimeContent, 'innerHTML');
 
       var alarmContent = '';
@@ -115,7 +120,7 @@ define(function() {
           .toggle('multiple', alarms.length > 1);
 
         alarmContent =
-          Calendar.Templates.Alarm.reminder.render({
+          AlarmTemplate.reminder.render({
             alarms: alarms,
             isAllDay: this.event.isAllDay,
           });
@@ -127,13 +132,12 @@ define(function() {
     },
 
     oninactive: function() {
-      Calendar.Views.EventBase.prototype.oninactive.apply(this, arguments);
+      Parent.prototype.oninactive.apply(this, arguments);
       this._markReadonly(false);
     }
 
   };
 
-  Calendar.ns('Views').ViewEvent = ViewEvent;
   return ViewEvent;
 
 });

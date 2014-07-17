@@ -1,21 +1,22 @@
-define(function() {
+define(function(require) {
   'use strict';
 
-  var template = Calendar.Templates.Account;
+  var Parent = require('view');
+  var template = require('templates/account');
+  var presets = require('calendar').Presets;
 
   function CreateAccount(options) {
-    Calendar.View.apply(this, arguments);
+    Parent.apply(this, arguments);
     this.cancel = this.cancel.bind(this);
     this._initEvents();
   }
 
   CreateAccount.prototype = {
-    __proto__: Calendar.View.prototype,
+    __proto__: Parent.prototype,
 
     _changeToken: 0,
 
-    presets: Calendar.Presets,
-
+    presets: presets,
 
     selectors: {
       element: '#create-account-view',
@@ -88,7 +89,7 @@ define(function() {
   };
 
   CreateAccount.prototype.onfirstseen = CreateAccount.prototype.render;
-  Calendar.ns('Views').CreateAccount = CreateAccount;
+
   return CreateAccount;
 
 });

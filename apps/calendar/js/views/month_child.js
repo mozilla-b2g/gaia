@@ -1,9 +1,12 @@
-define(function() {
+define(function(require) {
   'use strict';
 
-  var Calc = Calendar.Calc,
-      debug = Calendar.debug('month child'),
-      template = Calendar.Templates.Month;
+  var View = require('view');
+  var calc = require('calc');
+  var debug = require('calendar').debug('month child');
+  var nextTick = require('calendar').nextTick;
+  var template = require('templates/month');
+  var performance = require('performance');
 
   // horrible hack to clear cache when we re-localize
   window.addEventListener('localized', function clearHeaderCache() {
@@ -11,18 +14,18 @@ define(function() {
   });
 
   function Child() {
-    Calendar.View.apply(this, arguments);
+    View.apply(this, arguments);
 
     this.id = this.date.valueOf();
     this.controller = this.app.timeController;
 
     this._days = Object.create(null);
     this._dayToBusyCount = Object.create(null);
-    this.timespan = Calc.spanOfMonth(this.date);
+    this.timespan = calc.spanOfMonth(this.date);
   }
 
   Child.prototype = {
-    __proto__: Calendar.View.prototype,
+    __proto__: View.prototype,
 
     ACTIVE: 'active',
 
@@ -40,7 +43,7 @@ define(function() {
 
     _dayId: function(date) {
       if (date instanceof Date) {
-        date = Calc.getDayId(date);
+        date = calc.getDayId(date);
       }
 
       return 'month-view-' + this.id + '-' + date;
@@ -93,13 +96,13 @@ define(function() {
         endDate = new Date(endDate.getTime() - 1000);
       }
 
-      dates = Calc.daysBetween(
+      dates = calc.daysBetween(
         busytime.startDate,
         endDate
       );
 
       dates.forEach(function(date) {
-        var dayId = Calc.getDayId(date);
+        var dayId = calc.getDayId(date);
         var count = this._dayToBusyCount[dayId];
         this._setBusyCount(dayId, count + difference);
       }, this);
@@ -158,8 +161,8 @@ define(function() {
      * @param {Date} date representing a date.
      */
     _renderDay: function _renderDay(date) {
-      var id = Calc.getDayId(date);
-      var state = Calc.relativeState(
+      var id = calc.getDayId(date);
+      var state = calc.relativeState(
         date,
         this.date
       );
@@ -205,7 +208,7 @@ define(function() {
         for (; i < days; i++) {
           var day = i;
           // localization updates this value
-          if (Calendar.Calc.startsOnMonday) {
+          if (calc.startsOnMonday) {
             // 0 is monday which is 1 in l10n (based on js engine's getDay)
             day += 1;
 
@@ -240,7 +243,7 @@ define(function() {
       var week = 0;
       var slice;
       var days = this.timespan.daysBetween();
-      var daysInWeek = Calc.daysInWeek();
+      var daysInWeek = calc.daysInWeek();
       var numberOfWeeks = days.length / daysInWeek;
       var html = '';
 
@@ -275,12 +278,12 @@ define(function() {
         return;
       }
 
-      Calendar.nextTick(function() {
+      nextTick(function() {
         var busytimes = this.controller.queryCache(this.timespan);
         this._updateBusytimes({ added: busytimes });
         this._initEvents();
         // at this point the month view should be ready
-        Calendar.Performance.monthReady();
+        performance.monthReady();
       }.bind(this));
 
       this.hasBeenActive = true;
@@ -329,6 +332,5 @@ define(function() {
     setScrollTop: function(scrollTop) {}
   };
 
-  Calendar.ns('Views').MonthChild = Child;
   return Child;
 });

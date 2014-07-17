@@ -1,11 +1,12 @@
-define(function() {
+define(function(require) {
   'use strict';
 
-  var template = Calendar.Templates.Week;
-  var _super = Calendar.Views.DayBased.prototype;
+  var template = require('templates/week');
+  var Parent = require('./day_based');
+  var _super = Parent.prototype;
 
   function Week(options) {
-    Calendar.Views.DayBased.apply(this, arguments);
+    Parent.apply(this, arguments);
     this.hourEventsSelector = null;
 
     this.allDayElement = document.createElement('section');
@@ -13,7 +14,7 @@ define(function() {
   }
 
   Week.prototype = {
-    __proto__: Calendar.Views.DayBased.prototype,
+    __proto__: Parent.prototype,
 
     classType: 'week-events',
 
@@ -77,7 +78,6 @@ define(function() {
 
   };
 
-  Calendar.ns('Views').WeekChild = Week;
   return Week;
 
 });

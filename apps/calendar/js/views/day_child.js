@@ -1,8 +1,10 @@
-define(function() {
+define(function(require) {
   'use strict';
 
-  var template = Calendar.Templates.Day;
-  var Parent = Calendar.Views.DayBased;
+  var template = require('templates/day');
+  var Parent = require('./day_based');
+  var CurrentTime = require('./current_time');
+  var dateFormat = require('app').dateFormat;
 
   function Day(options) {
     Parent.apply(this, arguments);
@@ -20,7 +22,7 @@ define(function() {
 
       var container = this.element
         .querySelector('.day-events-wrapper > .day-events');
-      this._currentTime = new Calendar.Views.CurrentTime({
+      this._currentTime = new CurrentTime({
         container: container,
         timespan: this.timespan
       });
@@ -60,9 +62,9 @@ define(function() {
         title: event.remote.title,
         location: event.remote.location,
         attendees: attendees,
-        startTime: Calendar.App.dateFormat.localeFormat(
+        startTime: dateFormat.localeFormat(
           busytime.startDate, navigator.mozL10n.get('shortTimeFormat')),
-        endTime: Calendar.App.dateFormat.localeFormat(
+        endTime: dateFormat.localeFormat(
           busytime.endDate, navigator.mozL10n.get('shortTimeFormat'))
       });
     },
@@ -76,7 +78,6 @@ define(function() {
     }
   };
 
-  Calendar.ns('Views').DayChild = Day;
   return Day;
 
 });

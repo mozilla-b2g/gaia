@@ -1,8 +1,9 @@
-define(function() {
+define(function(require) {
   'use strict';
 
-  var Calc = Calendar.Calc;
-  var Parent = Calendar.Views.TimeParent;
+  var Parent = require('./time_parent');
+  var MonthChild = require('./month_child');
+  var calc = require('calc');
 
   /**
    * Creates an instance of a month.
@@ -21,7 +22,7 @@ define(function() {
       selectedDay: 'li.selected'
     },
 
-    childClass: Calendar.Views.MonthChild,
+    childClass: MonthChild,
 
     SELECTED: 'selected',
 
@@ -48,7 +49,7 @@ define(function() {
       var el, id;
       this._clearSelectedDay();
 
-      id = Calc.getDayId(date);
+      id = calc.getDayId(date);
       id = this.currentFrame._dayId(id);
 
       el = document.getElementById(id);
@@ -75,7 +76,7 @@ define(function() {
 
       switch (e.type) {
         case 'click':
-          var date = Calc.dateFromId(target.dataset.date);
+          var date = calc.dateFromId(target.dataset.date);
           this.controller.selectedDay = date;
           break;
         case 'dbltap':
@@ -97,7 +98,7 @@ define(function() {
     },
 
     _createChild: function(time) {
-      return new Calendar.Views.MonthChild({
+      return new MonthChild({
         app: this.app,
         date: time
       });
@@ -141,7 +142,6 @@ define(function() {
 
   Month.prototype.onfirstseen = Month.prototype.render;
 
-  Calendar.ns('Views').Month = Month;
   return Month;
 
 });

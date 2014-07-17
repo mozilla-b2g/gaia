@@ -1,13 +1,16 @@
-define(function() {
+define(function(require) {
   'use strict';
 
   var CALENDAR_PREFIX = 'calendar-';
 
-  var template = Calendar.Templates.Calendar;
-  var _super = Calendar.View.prototype;
+  var template = require('templates/calendar');
+  var View = require('view');
+  var _super = View.prototype;
+  var router = require('app').router;
+  var ERROR = require('calendar').ERROR;
 
   function Settings(options) {
-    Calendar.View.apply(this, arguments);
+    View.apply(this, arguments);
 
     this._hideSettings = this._hideSettings.bind(this);
     this._onDrawerTransitionEnd = this._onDrawerTransitionEnd.bind(this);
@@ -94,7 +97,7 @@ define(function() {
     _observeUI: function() {
       this.advancedSettingsButton.addEventListener('click', function(e) {
         e.stopPropagation();
-        Calendar.App.router.show('/advanced-settings/');
+        router.show('/advanced-settings/');
       });
 
       this.syncButton.addEventListener('click', this._onSyncClick.bind(this));
@@ -183,12 +186,12 @@ define(function() {
       var el = document.getElementById(this.idForModel(CALENDAR_PREFIX, id));
       var check = el.querySelector('input[type="checkbox"]');
 
-      if (el.classList.contains(Calendar.ERROR) && !model.error) {
-        el.classList.remove(Calendar.ERROR);
+      if (el.classList.contains(ERROR) && !model.error) {
+        el.classList.remove(ERROR);
       }
 
       if (model.error) {
-        el.classList.add(Calendar.ERROR);
+        el.classList.add(ERROR);
       }
 
       el.querySelector(this.selectors.calendarName).textContent = model.name;
@@ -209,7 +212,7 @@ define(function() {
           idx
         ];
 
-        el.classList.add(Calendar.ERROR);
+        el.classList.add(ERROR);
       }
 
       this._setCalendarContainerSize();
@@ -372,7 +375,7 @@ define(function() {
   };
 
   Settings.prototype.onfirstseen = Settings.prototype.render;
-  Calendar.ns('Views').Settings = Settings;
+
   return Settings;
 
 });

@@ -1,17 +1,22 @@
-define(function() {
+define(function(require) {
   'use strict';
 
+  var Parent = require('view');
+  var template = require('templates/account');
+  var AlarmTemplate = require('templates/alarm');
+  var router = require('app').router;
+  var ERROR = require('calendar').ERROR;
+
   var ACCOUNT_PREFIX = 'account-';
-  var template = Calendar.Templates.Account;
 
   function AdvancedSettings(options) {
-    Calendar.View.apply(this, arguments);
+    Parent.apply(this, arguments);
 
     this._initEvents();
   }
 
   AdvancedSettings.prototype = {
-    __proto__: Calendar.View.prototype,
+    __proto__: Parent.prototype,
 
     selectors: {
       element: '#advanced-settings-view',
@@ -130,7 +135,7 @@ define(function() {
     onCreateAccount: function(event) {
       event.stopPropagation();
       event.preventDefault();
-      Calendar.App.router.show(event.target.getAttribute('href'));
+      router.show(event.target.getAttribute('href'));
     },
 
     _addAccount: function(id, model) {
@@ -143,7 +148,7 @@ define(function() {
       this.accountList.insertAdjacentHTML('beforeend', item);
 
       if (model.error) {
-        this.accountList.children[idx].classList.add(Calendar.ERROR);
+        this.accountList.children[idx].classList.add(ERROR);
       }
     },
 
@@ -158,12 +163,12 @@ define(function() {
         );
       }
 
-      if (el.classList.contains(Calendar.ERROR) && !model.error) {
-        el.classList.remove(Calendar.ERROR);
+      if (el.classList.contains(ERROR) && !model.error) {
+        el.classList.remove(ERROR);
       }
 
       if (model.error) {
-        el.classList.add(Calendar.ERROR);
+        el.classList.add(ERROR);
       }
     },
 
@@ -217,7 +222,7 @@ define(function() {
           }
 
           // Render the select box
-          var template = Calendar.Templates.Alarm;
+          var template = AlarmTemplate;
           var select = document.createElement('select');
           select.name = type + 'AlarmDefault';
           select.innerHTML = template.options.render({
@@ -242,7 +247,7 @@ define(function() {
   };
 
   AdvancedSettings.prototype.onfirstseen = AdvancedSettings.prototype.render;
-  Calendar.ns('Views').AdvancedSettings = AdvancedSettings;
+
   return AdvancedSettings;
 
 });

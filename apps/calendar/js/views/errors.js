@@ -1,13 +1,15 @@
-define(function() {
+define(function(require) {
   'use strict';
 
+  var View = require('view');
+
   function Errors() {
-    Calendar.View.apply(this, arguments);
+    View.apply(this, arguments);
     this.app.syncController.on('offline', this);
   }
 
   Errors.prototype = {
-    __proto__: Calendar.View.prototype,
+    __proto__: View.prototype,
 
     selectors: {
       status: '*[role="application"] > section[role="status"]',
@@ -23,6 +25,5 @@ define(function() {
     }
   };
 
-  Calendar.ns('Views').Errors = Errors;
   return Errors;
 });

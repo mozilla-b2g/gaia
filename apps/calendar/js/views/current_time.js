@@ -1,5 +1,9 @@
-define(function() {
+define(function(require) {
   'use strict';
+
+  var View = require('view');
+  var calc = require('calc');
+  var dateFormat = require('app').dateFormat;
 
   function CurrentTime(options) {
     this._container = options.container;
@@ -26,7 +30,7 @@ define(function() {
       }
 
       this._create();
-      this.element.classList.add(Calendar.View.ACTIVE);
+      this.element.classList.add(View.ACTIVE);
       this._tick();
     },
 
@@ -46,7 +50,7 @@ define(function() {
     deactivate: function() {
       this._clearInterval();
       if (this.element) {
-        this.element.classList.remove(Calendar.View.ACTIVE);
+        this.element.classList.remove(View.ACTIVE);
       }
     },
 
@@ -89,7 +93,7 @@ define(function() {
     _render: function() {
       var now = new Date();
 
-      this.element.textContent = Calendar.App.dateFormat.localeFormat(
+      this.element.textContent = dateFormat.localeFormat(
         now,
         navigator.mozL10n.get('current-time')
       );
@@ -139,7 +143,7 @@ define(function() {
         return;
       }
 
-      var day = Calendar.Calc.createDay(date);
+      var day = calc.createDay(date);
       var selector = '.sticky-frame[data-date="' + day +'"] h1';
       var header = this._sticky.querySelector(selector);
 
@@ -162,7 +166,6 @@ define(function() {
 
   };
 
-  Calendar.ns('Views').CurrentTime = CurrentTime;
   return CurrentTime;
 
 });
