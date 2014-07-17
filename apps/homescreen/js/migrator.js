@@ -55,8 +55,12 @@
           database = BookmarksDatabase;
         }
 
+        var record = {
+          role: type
+        };
+
         if (!database) {
-          var record = {
+          record = {
             name: icon.name,
             manifestURL: icon.manifestURL,
             icon: icon.icon
@@ -70,16 +74,15 @@
           return;
         }
 
+        icon.record = record;
+        section.push(icon.record);
+
         ++this.pendingItems;
         // We are going to propagate the bookmark/collection to datastore
         GridItemsFactory.create(icon).getDescriptor(function(descriptor) {
-          section.push({
-            // categoryId for collections and url for bookmarks
-            id: descriptor.categoryId !== undefined ?
-                  descriptor.id :
-                  descriptor.url,
-            role: type
-          });
+          // categoryId for collections and url for bookmarks
+          icon.record.id = descriptor.categoryId !== undefined ? descriptor.id :
+                                                                 descriptor.url;
           console.debug('Migrated to datastore', JSON.stringify(descriptor));
           database.add(descriptor).then(onItemMigrated, onItemMigrated);
         });
