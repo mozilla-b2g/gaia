@@ -134,8 +134,10 @@
 
   // Preventing the RocketBar implementation from triggering a background
   // scale change before getting stuck because of the lack of transitionend.
-  HomeSearchbar.prototype.enterHome = function() {
-  };
+  HomeSearchbar.prototype.enterHome = function() {};
+
+  // Prevent the rocketbar input from being manually shown
+  HomeSearchbar.prototype.show = function() { };
 
   exports.HomeSearchbar = HomeSearchbar;
 

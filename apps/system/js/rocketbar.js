@@ -124,6 +124,7 @@
      * @memberof Rocketbar.prototype
      */
     activate: function(callback) {
+      this.show();
       if (this.active) {
         if (callback) {
           callback();
@@ -167,6 +168,9 @@
       this.blur();
       this.screen.classList.remove('rocketbar-focused');
       window.dispatchEvent(new CustomEvent('rocketbar-overlayclosed'));
+      if (this.onHomescreen) {
+        this.enterHome();
+      }
     },
 
     /**
@@ -362,6 +366,11 @@
         'manifest.webapp' : '';
     },
 
+    setInput: function(input) {
+      this.input.value = input;
+      this.rocketbar.classList.toggle('hasText', input.length);
+    },
+
     /**
      * Put Rocketbar in expanded state.
      * @memberof Rocketbar.prototype
@@ -401,11 +410,21 @@
       this.deactivate();
     },
 
+
+    show: function() {
+      this.rocketbar.style.display = 'block';
+    },
+
+    hide: function() {
+      this.rocketbar.style.display = 'none';
+    },
+
     /**
      * Put Rocketbar into homescreen state.
      * @memberof Rocketbar.prototype
      */
     enterHome: function() {
+      this.hide();
       if (this.onHomescreen) {
         return;
       }
@@ -422,6 +441,7 @@
      * @memberof Rocketbar.prototype
      */
     exitHome: function() {
+      this.show();
       if (!this.onHomescreen) {
         return;
       }
@@ -463,8 +483,7 @@
      * Reset the Rocketbar to its initial empty state.
      */
     clear: function() {
-      this.input.value = '';
-      this.handleInput();
+      this.setInput('');
       this.titleContent.textContent =
         navigator.mozL10n.get('search-or-enter-address');
     },
@@ -656,9 +675,9 @@
     */
     handleLocationChange: function(e) {
       if (e.detail.config.url && !e.detail.manifestURL) {
-        this.input.value = e.detail.config.url;
+        this.setInput(e.detail.config.url);
       } else {
-        this.input.value = '';
+        this.setInput('');
       }
       this.titleContent.textContent = '';
       this.updateSearchIndex();
@@ -789,7 +808,7 @@
      * @memberof Rocketbar.prototype
      */
     handleCancel: function(e) {
-      this.input.value = '';
+      this.setInput('');
       this.hideResults();
       this.deactivate();
     },
@@ -931,7 +950,7 @@
           this.focus();
           break;
         case 'input':
-          this.input.value = e.detail.input;
+          this.setInput(e.detail.input);
           this.focus();
           this.handleInput();
           break;
