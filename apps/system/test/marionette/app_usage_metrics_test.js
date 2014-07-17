@@ -134,10 +134,9 @@ marionette('App Usage Metrics >', function() {
 
     apps[0].click();
     panel.uninstallButton.click();
-    client.switchToFrame();
+    appInstall.confirmUninstallDialog();
 
-    var confirm = client.helper.waitForElement('.modal-dialog-confirm-ok');
-    confirm.click();
+    client.switchToFrame();
 
     // Wait for the app to be uninstalled and the list item is gone.
     client.helper.waitForElementToDisappear(apps[0]);

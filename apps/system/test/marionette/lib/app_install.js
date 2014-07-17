@@ -24,7 +24,9 @@ AppInstall.Selector = Object.freeze({
   // Ime Layout selection menu
   imeDialog: '#ime-layout-dialog',
   imeLayoutOption: '#ime-list li',
-  imeConfirmButton: '#ime-confirm-button'
+  imeConfirmButton: '#ime-confirm-button',
+  // Uninstall confirmation dialog
+  uninstallButton: 'app-uninstall-uninstall-button'
 });
 
 AppInstall.prototype = {
@@ -103,7 +105,42 @@ AppInstall.prototype = {
       window.wrappedJSObject.navigator.mozApps.mgmt.uninstall({
         manifestURL: url
       });
+      var focussed = window.wrappedJSObject.document.activeElement;
+      if (focussed) {
+        focussed.blur();
+      }
     }, [manifestURL]);
+  },
+
+  confirmUninstallDialog: function() {
+    this.client.switchToFrame();
+
+    var confirm =
+      this.client.helper.waitForElement(AppInstall.Selector.uninstallButton);
+
+    if (!confirm) {
+      return false;
+    }
+
+    // XXX: Hack to use faster polling
+    var quickly = this.client.scope({ searchTimeout: 50 });
+    confirm.client = quickly;
+
+    // tricky logic to ensure the dialog has been removed and clicked
+    this.client.waitFor(function() {
+      try {
+        // click the dialog to dismiss it
+        confirm.click();
+        // ensure it is either hidden or hits the stale element ref
+        return !confirm.displayed();
+      } catch(e) {
+        if (e.type === 'StaleElementReference') {
+          // element was successfully removed
+          return true;
+        }
+        throw e;
+      }
+    });
   },
 
   /**

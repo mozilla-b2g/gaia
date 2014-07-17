@@ -2,6 +2,9 @@
 var Settings = require('../app/app');
 var assert = require('assert');
 var SystemApp = require('../app/system_app');
+var AppInstall =
+  require('../../../../../apps/system/test/marionette/lib/app_install');
+
 
 marionette('Uninstall an ime app', function() {
   var IME_TEST_APP_ORIGIN = 'app://imetestapp.gaiamobile.org';
@@ -17,11 +20,13 @@ marionette('Uninstall an ime app', function() {
 
   var systemApp;
   var settingsApp;
+  var appInstall;
   var appPermissionPanel;
 
   setup(function() {
     systemApp = new SystemApp(client);
     settingsApp = new Settings(client);
+    appInstall = new AppInstall(client);
 
     settingsApp.launch();
     appPermissionPanel = settingsApp.appPermissionPanel;
@@ -43,7 +48,7 @@ marionette('Uninstall an ime app', function() {
     appPermissionPanel.uninstallButton.click();
 
     // confirm to uninstall
-    systemApp.confirmOk();
+    appInstall.confirmUninstallDialog();
 
     // Switch back to settings app
     settingsApp.switchTo();
