@@ -69,6 +69,14 @@ var NfcHandoverManager = {
   sendFileQueue: [],
 
   /**
+   * Set whenever a timeout is defined while waiting for an outstanding handover
+   * response.
+   * @type {Object}
+   * @memberof NfcHandoverManager.prototype
+   */
+  responseTimeout: null,
+
+  /**
    * Set to true during a file transfer that was initiated by another device.
    * @type {boolean}
    * @memberof NfcHandoverManager.prototype
@@ -284,6 +292,49 @@ var NfcHandoverManager = {
   },
 
   /**
+   * Show an error notification when file transfer failed.
+   * @param {String} name Optional file name.
+   * @memberof NfcHandoverManager.prototype
+   */
+  _showFailedNotification: function _showFailedNotification(title, name) {
+    var _ = navigator.mozL10n.get;
+    var fileName = (name !== undefined) ? name : '';
+    var icon = 'style/bluetooth_transfer/images/icon_bluetooth.png';
+    NotificationHelper.send(_(title),
+                            fileName,
+                            icon);
+  },
+
+  /**
+   * This function will be called after a timeout when we did not receive the
+   * Hs record within three seconds. At this point we cancel the file transfer.
+   * @memberof NfcHandoverManager.prototype
+   */
+  _cancelSendFileTransfer: function _cancelSendFileTransfer() {
+    this._debug('_cancelSendFileTransfer');
+    this.responseTimeout = null;
+    var job = this.sendFileQueue.pop();
+    job.onerror();
+    this._showFailedNotification('transferFinished-sentFailed-title',
+                                 job.blob.name);
+    this._restoreBluetoothStatus();
+  },
+
+  /**
+   * This function will be called after a timeout when we did not receive
+   * the Hs record within three seconds. At this point we cancel the file
+   * transfer.
+   * @memberof NfcHandoverManager.prototype
+   */
+  _cancelIncomingFileTransfer: function _cancelIncomingFileTransfer() {
+    this._debug('_cancelIncomingFileTransfer');
+    this.responseTimeout = null;
+    this.incomingFileTransferInProgress = false;
+    this._showFailedNotification('transferFinished-receivedFailed-title');
+    this._restoreBluetoothStatus();
+  },
+
+  /**
    * Performs bluetooth file transfer if this.sendFileRequest exists
    * to other device
    * @param {string} mac MAC address of the other device
@@ -317,7 +368,16 @@ var NfcHandoverManager = {
       return;
     }
 
-    var nfcPeer = this.nfc.getNFCPeer(session);
+    var nfcPeer;
+    try {
+      nfcPeer = this.nfc.getNFCPeer(session);
+    } catch (ex) {
+      this._debug('NFC peer went away during doHandoverRequest');
+      this._showFailedNotification('transferFinished-receivedFailed-title');
+      this._restoreBluetoothStatus();
+      return;
+    }
+
     var cps = this.bluetooth.enabled ? NDEF.CPS_ACTIVE : NDEF.CPS_ACTIVATING;
     var mac = this.defaultAdapter.address;
     var hs = NDEFUtils.encodeHandoverSelect(mac, cps);
@@ -326,25 +386,12 @@ var NfcHandoverManager = {
     req.onsuccess = function() {
       self._debug('sendNDEF(hs) succeeded');
       self.incomingFileTransferInProgress = true;
+      self.responseTimeout = setTimeout(self._cancelIncomingFileTransfer, 3000);
     };
     req.onerror = function() {
       self._debug('sendNDEF(hs) failed');
       self._restoreBluetoothStatus();
     };
-  },
-
-  /**
-   * Show an error notification when file transfer failed.
-   * @param {String} name Optional file name.
-   * @memberof NfcHandoverManager.prototype
-   */
-  _showFailedNotification: function _showFailedNotification(name) {
-    var _ = navigator.mozL10n.get;
-    var fileName = (name !== undefined) ? name : '';
-    var icon = 'style/bluetooth_transfer/images/icon_bluetooth.png';
-    NotificationHelper.send(_('transferFinished-sentFailed-title'),
-                            fileName,
-                            icon);
   },
 
   /**
@@ -373,9 +420,10 @@ var NfcHandoverManager = {
       try {
         nfcPeer = this.nfc.getNFCPeer(session);
       } catch (ex) {
-        this._debug('NFC peer went away');
+        this._debug('NFC peer went away during initiateFileTransfer');
         onerror();
-        this._showFailedNotification(blob.name);
+        this._showFailedNotification('transferFinished-sentFailed-title',
+                                     blob.name);
         this._restoreBluetoothStatus();
         return;
       }
@@ -388,11 +436,13 @@ var NfcHandoverManager = {
       var req = nfcPeer.sendNDEF(hr);
       req.onsuccess = function() {
         self._debug('sendNDEF(hr) succeeded');
+        self.responseTimeout = setTimeout(self._cancelSendFileTransfer, 3000);
       };
       req.onerror = function() {
         self._debug('sendNDEF(hr) failed');
         onerror();
-        self._showFailedNotification(blob.name);
+        self._showFailedNotification('transferFinished-sentFailed-title',
+                                     blob.name);
         self.sendFileQueue.pop();
         self._restoreBluetoothStatus();
       };
@@ -434,6 +484,19 @@ var NfcHandoverManager = {
     req.onerror = function() {
       self._debug('Cannot get paired devices from adapter.');
     };
+  },
+
+  /**
+   * Clears timeout that handles the case an outstanding handover message
+   * has not been received within a certain timeframe.
+   * @memberof NfcHandoverManager.prototype
+   */
+  _clearTimeout: function _clearTimeout() {
+    if (this.responseTimeout != null) {
+      // Clear the timeout that handles error
+      clearTimeout(this.responseTimeout);
+      this.responseTimeout = null;
+    }
   },
 
   /**
@@ -488,6 +551,7 @@ var NfcHandoverManager = {
    */
   _handleHandoverSelect: function _handleHandoverSelect(ndef) {
     this._debug('_handleHandoverSelect');
+    this._clearTimeout();
     var btssp = this._getBluetoothSSP(ndef);
     if (btssp == null) {
       return;
@@ -566,6 +630,14 @@ var NfcHandoverManager = {
   isHandoverInProgress: function isHandoverInProgress() {
     return (this.sendFileQueue.length !== 0) ||
            (this.incomingFileTransferInProgress === true);
+  },
+
+  /**
+   * BluetoothTransfer notifies us that a file transfer has started.
+   * @memberof NfcHandoverManager.prototype
+   */
+  transferStarted: function transferStarted() {
+    this._clearTimeout();
   },
 
   /**
