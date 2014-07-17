@@ -237,7 +237,7 @@ li button.activity > b {
   position: absolute;
   left: 1.5rem;
   right: 3rem;
-  top: 0;
+  top: 1rem;
   bottom: 0;
 }
 
@@ -332,6 +332,10 @@ li button.activity > b {
 .item-media.pull-right {
   margin-left: 1rem;
   margin-right: 0;
+}
+
+.item-media.pull-right button {
+  padding-right: 3rem;
 }
 
 .item-body {
