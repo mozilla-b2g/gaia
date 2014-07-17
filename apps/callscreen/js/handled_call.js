@@ -1,5 +1,6 @@
 /* globals CallsHandler, CallScreen, Contacts, ContactPhotoHelper,
-           FontSizeManager, LazyL10n, Utils, Voicemail, AudioCompetingHelper */
+           FontSizeManager, LazyL10n, Utils, Voicemail, TonePlayer,
+           AudioCompetingHelper */
 
 'use strict';
 
@@ -325,6 +326,11 @@ HandledCall.prototype.disconnected = function hc_disconnected() {
     });
     self._leftGroup = false;
   }
+  
+  var tpChannel = TonePlayer.getChannel();
+  TonePlayer.setChannel('telephony');
+  TonePlayer.playSequence([[480, 620, 250]]);
+  TonePlayer.setChannel(tpChannel);
 
   this.remove();
 };
@@ -342,3 +348,4 @@ HandledCall.prototype.hide = function hc_hide() {
   }
   CallScreen.updateCallsDisplay();
 };
+

@@ -16,6 +16,7 @@ require('/shared/test/unit/mocks/dialer/mock_utils.js');
 require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
 require('/shared/test/unit/mocks/dialer/mock_call.js');
 require('/shared/test/unit/mocks/dialer/mock_calls_handler.js');
+require('/shared/test/unit/mocks/dialer/mock_tone_player.js');
 require('/shared/test/unit/mocks/dialer/mock_font_size_manager.js');
 
 require('/js/audio_competing_helper.js');
@@ -26,6 +27,7 @@ var mocksHelperForHandledCall = new MocksHelper([
   'Contacts',
   'CallScreen',
   'CallsHandler',
+  'TonePlayer',
   'KeypadManager',
   'Utils',
   'LazyL10n',
