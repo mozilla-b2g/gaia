@@ -8,7 +8,6 @@ apps/camera/js/vendor/**
 apps/camera/test/**
 apps/system/camera/**
 build/r.js
-build/additional-extensions.js
 build/config/gps-prefs.js
 build/config/payment-dev-prefs.js
 build/config/payment-prefs.js
@@ -29,7 +28,6 @@ build/test/integration/build.test.js
 build/test/integration/distribution.test.js
 build/test/integration/helper.js
 build/test/integration/multilocale.test.js
-build/utils-xpc.js
 build/utils.js
 build/watcher.js
 build/webapp-manifests.js

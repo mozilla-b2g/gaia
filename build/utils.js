@@ -87,6 +87,27 @@ function getAppStatus(status) {
   return appStatus;
 }
 
+function cloneJSON(obj) {
+  var result = null;
+  try {
+    result = JSON.parse(JSON.stringify(obj));
+  } catch (e) {
+    throw new Error('Its type is not supported JSON format.');
+  }
+  return result;
+}
+
+// Compare contents of two js scripts.
+function jsComparator(jsa, jsb) {
+  try {
+    var jsaPrsed = JSON.stringify(utils.scriptParser(jsa, {loc: 0}));
+    var jsbPrsed = JSON.stringify(utils.scriptParser(jsb, {loc: 0}));
+    return jsaPrsed === jsbPrsed;
+  } catch (e) {
+    throw e;
+  }
+}
+
 exports.Q = utils.Q;
 exports.isSubjectToBranding = isSubjectToBranding;
 exports.ls = utils.ls;
@@ -118,6 +139,8 @@ exports.generateUUID = utils.generateUUID;
 exports.copyRec = utils.copyRec;
 exports.getAppStatus = getAppStatus;
 exports.createZip = utils.createZip;
+exports.scriptLoader = utils.scriptLoader;
+exports.scriptParser = utils.scriptParser;
 // ===== the following functions support node.js compitable interface.
 exports.FILE_TYPE_FILE = FILE_TYPE_FILE;
 exports.FILE_TYPE_DIRECTORY = FILE_TYPE_DIRECTORY;
@@ -150,3 +173,5 @@ exports.copyDirTo = utils.copyDirTo;
 exports.existsInAppDirs = utils.existsInAppDirs;
 exports.getCompression = utils.getCompression;
 exports.removeFiles = utils.removeFiles;
+exports.cloneJSON = cloneJSON;
+exports.jsComparator = jsComparator;

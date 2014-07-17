@@ -13,7 +13,7 @@
 
     var rv = {};
     for (var key in node) {
-      if (key !== '_index' && node.hasOwnProperty(key)) {
+      if (key !== '_index' && (key in node)) {
         rv[key] = walkContent(node[key], fn);
       }
     }
@@ -227,11 +227,13 @@
     if (!this.ast) {
       this.ast = {};
     }
-    for (var id in ast) {
-      if (ast.hasOwnProperty(id)) {
-        this.ast[id] = ast[id];
-        this.entries[id] = ast[id];
-      }
+
+    var keys = Object.keys(ast);
+
+    /* jshint -W084 */
+    for (var i = 0, key; key = keys[i]; i++) {
+      this.entries[key] = ast[key];
+      this.ast[key] = ast[key];
     }
   };
 

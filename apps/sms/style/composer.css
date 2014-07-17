@@ -218,10 +218,10 @@ form[role="search"] button[type="submit"]:after {
 }
 
 #messages-send-button {
-  height: 4.5rem;
+  height: 4rem;
   overflow: visible;
-  background-image: url(images/icons/actionicon_sms_send_30x90.png);
-  background-position: center -4.5rem;
+  background: #fff url(images/icons/actionicon_sms_send_30x30.png)
+              no-repeat center center / 3rem;
 }
 
 #messages-send-button:after {
@@ -229,7 +229,8 @@ form[role="search"] button[type="submit"]:after {
 }
 
 #messages-send-button[disabled] {
-  background-position: center 0;
+  background-blend-mode: luminosity;
+  opacity: 0.625;
 }
 
 #messages-input.ignoreEvents {
@@ -295,7 +296,7 @@ form[role="search"] button[type="submit"]:after {
 
 .sim-indication {
   position: absolute;
-  top: 0.6rem;
+  top: 0.3rem;
   right: 1.9rem;
 
   display: none;
@@ -315,14 +316,9 @@ button[disabled] .sim-indication {
   display: block;
 }
 
-.has-preferred-sim #messages-send-button {
-  height: 4.5rem;
-  padding-top: 0.5rem;
-}
-
 .has-preferred-sim #messages-send-button:before {
   position: absolute;
-  top: 1.2rem;
+  top: 1rem;
   left: 0;
   right: 0;
 

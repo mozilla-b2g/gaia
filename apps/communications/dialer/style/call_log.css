@@ -177,7 +177,7 @@ ol, ul {
   background-image: url('images/CallLog_30x30_missed-first-sim.png');
 }
 [data-type="list"].dual-sim .missed-call.highlighted aside.icon.icon-missed.second-sim {
-  background-image: url('images/CallLog_30x30_missed-first-sim.png');
+  background-image: url('images/CallLog_30x30_missed-second-sim.png');
 }
 
 .log-item * {

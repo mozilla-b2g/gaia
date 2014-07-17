@@ -9,7 +9,7 @@ require('/test/unit/mock_utils.js');
 require('/test/unit/mock_thread_ui.js');
 require('/test/unit/mock_threads.js');
 require('/test/unit/mock_contact.js');
-require('/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 require('/test/unit/mock_contact.js');
 require('/test/unit/mock_contacts.js');
 require('/test/unit/mock_messages.js');

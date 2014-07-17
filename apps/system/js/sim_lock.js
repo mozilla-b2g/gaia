@@ -57,7 +57,11 @@ var SimLock = {
   handleEvent: function sl_handleEvent(evt) {
     switch (evt.type) {
       case 'ftuopen':
-        SimPinDialog.close();
+        VersionHelper.getVersionInfo().then(function(info) {
+          if (!info.isUpgrade()) {
+            SimPinDialog.close();
+          }
+        });
         break;
       case 'simpinback':
         var index = evt.detail._currentSlot.index;
@@ -155,8 +159,13 @@ var SimLock = {
     }
 
     // FTU has its specific SIM PIN UI
-    if (FtuLauncher.isFtuRunning())
-      return false;
+    if (FtuLauncher.isFtuRunning()) {
+      VersionHelper.getVersionInfo().then(function(info) {
+        if (!info.isUpgrade()) {
+          SimPinDialog.close();
+        }
+      });
+    }
 
     if (this._duringCall) {
       this._showPrevented = true;

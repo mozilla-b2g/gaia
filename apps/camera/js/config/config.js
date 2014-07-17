@@ -7,8 +7,8 @@ module.exports = {
   // shared/js/media/media_frame.js
   globals : {
     // The maximum picture size that camera is allowed to take
-    CONFIG_MAX_IMAGE_PIXEL_SIZE: 5242880,
-    CONFIG_MAX_SNAPSHOT_PIXEL_SIZE: 5242880,
+    CONFIG_MAX_IMAGE_PIXEL_SIZE: 5242880, // 5MP
+    CONFIG_MAX_SNAPSHOT_PIXEL_SIZE: 5242880, // 5MP
 
     // Size of the exif preview embeded in images taken by camera
     CONFIG_REQUIRED_EXIF_PREVIEW_WIDTH: 0,
@@ -45,12 +45,6 @@ module.exports = {
   },
 
   previewGallery: {
-
-    // Flag for determining if the preview should limit the
-    // image size to the value of CONFIG_MAX_IMAGE_PIXEL_SIZE
-    // (enable for devices with limited memory)
-    limitMaxPreviewSize: false,
-
     // Dimensions for thumbnail image (will automatically be
     // multiplied by the devicePixelRatio)
     thumbnailWidth: 54,
@@ -297,7 +291,7 @@ module.exports = {
   hdr: {
     title: 'hdr',
     header: 'hdr-header',
-    icon: 'icon-hdr-menu',
+    icon: 'icon-hdr-boxed',
     disabled: false,
     options: [
       {
@@ -336,7 +330,7 @@ module.exports = {
   grid: {
     title: 'grid',
     header: 'grid-header',
-    icon: 'icon-grid',
+    icon: 'icon-grid-circular',
     options: [
       {
         key: 'off',

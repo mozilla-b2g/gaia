@@ -101,11 +101,18 @@ marionette('Edges gesture >', function() {
     var panel = sys.leftPanel;
     reflowHelper.startTracking(System.URL);
 
-    edgeSwipeToApp(panel, 0, halfWidth, calendar, sms);
-    edgeSwipeToApp(panel, 0, halfWidth, sms, settings);
+    var doubleFlick = actions.flick(panel, 0, halfHeight, halfWidth,
+                                    halfHeight, 100);
+    doubleFlick.flick(panel, 0, halfHeight, halfWidth,
+                      halfHeight, 100).perform();
+    client.waitFor(function() {
+      return !calendar.displayed() && settings.displayed();
+    });
 
     var count = reflowHelper.getCount();
-    assert.equal(count, 0, 'we got ' + count + ' reflows instead of 0');
+    // Changing the will-change property causes a reflow
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=974125
+    assert.equal(count, 2, 'we got ' + count + ' reflows instead of 2');
     reflowHelper.stopTracking();
 
     assert(true, 'swiped to settings without any reflow');

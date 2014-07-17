@@ -345,6 +345,17 @@
         y++;
       }
 
+      var pendingCachedIcons = 0;
+      var onCachedIconRendered = () => {
+        if (--pendingCachedIcons <= 0) {
+          this.element.removeEventListener('cached-icon-rendered',
+                                            onCachedIconRendered);
+          this.element.dispatchEvent(new CustomEvent('cached-icons-rendered'));
+        }
+      };
+      this.element.addEventListener('cached-icon-rendered',
+                                     onCachedIconRendered);
+
       for (var idx = 0; idx <= to; idx++) {
         var item = this.items[idx];
 
@@ -369,6 +380,7 @@
         }
 
         if (idx >= from) {
+          item.hasCachedIcon && ++pendingCachedIcons;
           item.render([x, y], idx);
         }
 
@@ -381,6 +393,7 @@
       }
 
       this.element.setAttribute('cols', this.layout.cols);
+      pendingCachedIcons === 0 && onCachedIconRendered();
     }
   };
 

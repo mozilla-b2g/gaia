@@ -42,13 +42,16 @@
     this.name = props.name || '';
     this.icon = props.icon || null;
     this.pinned = props.pinned || [];
-    this.webicons = props.webicons || [];
 
     // A list of the web results for this collection view
     this.webResults = [];
 
+    // list of base64 icon data for webResults from E.me api
+    // these icons are NOT ROUNDED
+    this.webicons = props.webicons || [];
+
     // an object containing data about the background image
-    // {src: string, source: string, checksum: string}
+    // {blob: blob, source: string, checksum: string}
     this.background = props.background || {};
 
     // save copy of original properties so we can tell when to re-render the
@@ -57,12 +60,6 @@
 
     if (window.SearchDedupe) {
       this.dedupe = new SearchDedupe();
-    }
-
-    // for rendering pinned homescreen apps/bookmarks
-    if (window.HomeIcons) {
-      this.homeIcons = new HomeIcons();
-      this.homeIcons.init();
     }
   }
 
@@ -73,37 +70,6 @@
       return new QueryCollection(data);
     }
     return null;
-  };
-
-  BaseCollection.getBackground = function getBackground(collection, iconSize) {
-    var src;
-    var options = {
-      width: iconSize,
-      height: iconSize
-    };
-
-    if (collection.categoryId) {
-      options.categoryId = collection.categoryId;
-    }
-    else {
-      options.query = collection.query;
-    }
-
-    return eme.api.Search.bgimage(options).then(function success(response) {
-      var image = response.response.image;
-      if (image) {
-        src = image.data;
-        if (/image\//.test(image.MIMEType)) {  // base64 image data
-          src = 'data:' + image.MIMEType + ';base64,' + image.data;
-        }
-      }
-
-      return {
-        src: src,
-        source: response.response.source,
-        checksum: response.checksum || null
-      };
-    });
   };
 
   BaseCollection.prototype = {
@@ -170,7 +136,7 @@
       var before = this.originalProps;
       try {
         // background
-        if (before.background.src !== this.background.src) {
+        if (before.background.blob !== this.background.blob) {
           this.originalProps.background = this.background;
           return true;
         }
@@ -231,8 +197,8 @@
       var idx = this.pinnedIdentifiers.indexOf(identifier);
       if (idx !== -1) {
         this.pinned.splice(idx, 1);
-        eme.log('removed pinned item', identifier);
-        return this.save();
+        return this.save()
+               .then(() => eme.log('removed pinned item', identifier));
       }
     },
 
@@ -293,7 +259,11 @@
     toGridObject: function(item) {
       var icon;
       if (item.type === 'homeIcon') {
-        icon = this.homeIcons.get(item.identifier);
+        if (!HomeIcons.ready) {
+          eme.warn('HomeIcons not ready, pinned apps may not render properly');
+        }
+
+        icon = HomeIcons.get(item.identifier);
       } else if (item.type === 'webResult') {
         item.features = item.features || {};
         item.features.isEditable = false;
@@ -328,6 +298,20 @@
       }, this);
     },
 
+    addItemToGrid: function addItemToGrid(item, grid, position) {
+      this.pinned.splice(position, 1, new PinnedHomeIcon(item.identifier));
+
+      grid.add(this.toGridObject(item), position);
+
+      // Add a divider if it's our first pinned result.
+      if (this.pinned.length === 1) {
+        grid.add(new GaiaGrid.Divider(), 1);
+      }
+
+      grid.render();
+      this.renderIcon();
+    },
+
     renderWebResults: function render(grid) {
       if (!this.webResults.length) {
         return;
@@ -359,20 +343,23 @@
 
       // Build the small icons from pinned, then webicons
       var numAppIcons = CollectionIcon.numAppIcons;
-      var iconSrcs = this.pinned.slice(0, numAppIcons);
+      var iconSrcs = this.pinned.slice(0, numAppIcons)
+                         .map((item) => this.toGridObject(item).icon);
 
-      iconSrcs = iconSrcs.concat(
-        this.webicons.slice(0, numAppIcons - iconSrcs.length));
+      if (iconSrcs.length < numAppIcons) {
+        var moreIcons =
+          this.webicons
+          // bug 1028674: deupde
+          .filter((webicon) => iconSrcs.indexOf(webicon) === -1)
+          .slice(0, numAppIcons - iconSrcs.length);
 
-      for (var i = 0; i < iconSrcs.length; i++) {
-        if (typeof iconSrcs[i] === 'object') {
-          iconSrcs[i] = this.toGridObject(iconSrcs[i]).icon;
-        }
+        iconSrcs = iconSrcs.concat(moreIcons);
       }
 
       var icon = new CollectionIcon({
         iconSrcs: iconSrcs,
-        bgSrc: this.background ? this.background.src : null
+        bgSrc: this.background ? URL.createObjectURL(this.background.blob)
+                               : null
       });
 
       // return a promise

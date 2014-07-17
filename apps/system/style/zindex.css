@@ -249,7 +249,7 @@
 }
 
 #screen > [data-z-index-level="app"] > .appWindow.active:not(.homescreen),
-#screen:not(.on-homescreen) > [data-z-index-level="app"] > .appWindow:not(.homescreen):not(.lockScreenWindow),
+#screen > [data-z-index-level="app"] > .appWindow:not(.homescreen):not(.lockScreenWindow),
 #screen > [data-z-index-level="app"] > .appWindow.will-become-active {
   z-index: 6;
 }

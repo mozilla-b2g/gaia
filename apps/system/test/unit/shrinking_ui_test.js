@@ -173,9 +173,9 @@ suite('system/ShrinkingUI', function() {
     assert.isTrue(stubSwitchTo.calledWith(evt.detail.instanceID));
   });
 
-  test('Handle "appopen" event', function() {
+  test('Handle "appwill-become-active" event', function() {
     var evt = {
-      type: 'appopen',
+      type: 'appwill-become-active',
       detail: {
         manifestURL: 'app://www.fake.app/mfsturl',
         instanceID: 'instanceID'

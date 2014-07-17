@@ -12,7 +12,7 @@
 
 'use strict';
 
-require('/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_mobile_operator.js');
 require('/js/settings.js');
@@ -233,8 +233,14 @@ suite('Settings >', function() {
       });
 
       test('getSimNameByIccId returns the correct name', function() {
-        assert.equal(Settings.getSimNameByIccId('SIM 1'), 'sim-name{"id":1}');
-        assert.equal(Settings.getSimNameByIccId('SIM 2'), 'sim-name{"id":2}');
+        assert.equal(
+          Settings.getSimNameByIccId('SIM 1'),
+          'sim-id-label{"id":1}'
+        );
+        assert.equal(
+          Settings.getSimNameByIccId('SIM 2'),
+          'sim-id-label{"id":2}'
+        );
         assert.equal(Settings.getSimNameByIccId('SIM 3'), '');
       });
 

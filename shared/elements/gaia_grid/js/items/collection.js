@@ -24,7 +24,7 @@
       query: collection.query,
       icon: collection.icon,
       pinned: collection.pinned,
-      defaultIconBlob: collection.defaultIconBlob
+      decoratedIconBlob: collection.decoratedIconBlob
     };
 
     // XXX: One listener per collection may not be ideal.

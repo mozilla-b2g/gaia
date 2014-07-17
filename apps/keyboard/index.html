@@ -6,12 +6,16 @@
   <title data-l10n-id="title">Keyboard</title>
   <script defer type="text/javascript" src="js/keyboard/l10n_loader.js"></script>
   <script defer type="text/javascript" src="js/keyboard/user_press_manager.js"></script>
+  <script defer type="text/javascript" src="js/keyboard/alternatives_char_menu_manager.js"></script>
+  <script defer type="text/javascript" src="js/keyboard/visual_highlight_manager.js"></script>
+  <script defer type="text/javascript" src="js/keyboard/active_targets_manager.js"></script>
   <script defer type="text/javascript" src="js/keyboard/layout_loader.js"></script>
   <script defer type="text/javascript" src="js/keyboard/layout_manager.js"></script>
   <script defer type="text/javascript" src="js/render.js"></script>
   <script defer type="text/javascript" src="js/keyboard/performance_timer.js"></script>
   <script defer type="text/javascript" src="js/keyboard/input_method_manager.js"></script>
   <script defer type="text/javascript" src="js/keyboard/settings.js"></script>
+  <script defer type="text/javascript" src="js/keyboard/feedback_manager.js"></script>
   <script defer type="text/javascript" src="js/keyboard.js"></script>
 
   <!-- Shared code -->
@@ -26,7 +30,9 @@
 
   <link rel="stylesheet" type="text/css" href="style/keyboard.css" />
 </head>
-<body>
+
+<!-- The keyboard itself should be "ltr", to override the attribute set at documentElement by l10n.js -->
+<body dir="ltr">
   <div id="keyboard" data-hidden="true">
     <span id="keyboard-accent-char-menu-out">
       <span id="keyboard-accent-char-menu"></span>

@@ -138,14 +138,6 @@ suite('WAP Push', function() {
   });
 
   suite('receiving and displaying a SI message', function() {
-    // UI elements
-    var screen;
-    var closeButton;
-    var title;
-    var container;
-    var text;
-    var link;
-
     var message = {
       sender: '+31641600986',
       contentType: 'text/vnd.wap.si',
@@ -170,18 +162,20 @@ suite('WAP Push', function() {
     });
 
     test('the display is populated with the message contents', function() {
-      closeButton = document.getElementById('close');
-      title = document.getElementById('title');
-      screen = document.getElementById('si-sl-screen');
-      container = screen.querySelector('.container');
-      text = container.querySelector('p');
-      link = container.querySelector('a');
+      var acceptButton = document.getElementById('accept');
+      var title = document.getElementById('title');
+      var screen = document.getElementById('si-sl-screen');
+      var container = screen.querySelector('.container');
+      var text = container.querySelector('p');
+      var link = container.querySelector('a');
 
       var retrieveSpy = this.sinon.spy(MockMessageDB, 'retrieve');
 
       MockNavigatormozSetMessageHandler.mTrigger('wappush-received', message);
       WapPushManager.displayWapPushMessage(0);
       retrieveSpy.yield(ParsedMessage.from(message, 0));
+      assert.isTrue(acceptButton.classList.contains('hidden'),
+        'the accept button should be hidden');
       assert.equal(title.textContent, message.sender);
       assert.equal(text.textContent, 'check this out');
       assert.equal(link.textContent, 'http://www.mozilla.org');
@@ -224,14 +218,6 @@ suite('WAP Push', function() {
   });
 
   suite('receiving and displaying a SL message', function() {
-    // UI elements
-    var screen;
-    var closeButton;
-    var title;
-    var container;
-    var text;
-    var link;
-
     var message = {
         sender: '+31641600986',
         contentType: 'text/vnd.wap.sl',
@@ -248,18 +234,20 @@ suite('WAP Push', function() {
     });
 
     test('the display is populated with the message contents', function() {
-      closeButton = document.getElementById('close');
-      title = document.getElementById('title');
-      screen = document.getElementById('si-sl-screen');
-      container = screen.querySelector('.container');
-      text = container.querySelector('p');
-      link = container.querySelector('a');
+      var acceptButton = document.getElementById('accept');
+      var title = document.getElementById('title');
+      var screen = document.getElementById('si-sl-screen');
+      var container = screen.querySelector('.container');
+      var text = container.querySelector('p');
+      var link = container.querySelector('a');
 
       var retrieveSpy = this.sinon.spy(MockMessageDB, 'retrieve');
 
       MockNavigatormozSetMessageHandler.mTrigger('wappush-received', message);
       WapPushManager.displayWapPushMessage(0);
       retrieveSpy.yield(ParsedMessage.from(message, 0));
+      assert.isTrue(acceptButton.classList.contains('hidden'),
+        'the accept button should be hidden');
       assert.equal(title.textContent, message.sender);
       assert.equal(text.textContent, '');
       assert.equal(link.textContent, 'http://www.mozilla.org');
@@ -298,13 +286,6 @@ suite('WAP Push', function() {
       }
     };
 
-     // UI elements
-    var screen;
-    var closeButton;
-    var title;
-    var acceptButton;
-    var pin;
-
     test('the notification is sent', function() {
       this.sinon.spy(window, 'Notification');
       MockNavigatormozSetMessageHandler.mTrigger(
@@ -325,11 +306,10 @@ suite('WAP Push', function() {
 
     test('the display is populated with the NETWPIN message contents',
       function() {
-        closeButton = document.getElementById('close');
-        title = document.getElementById('title');
-        screen = document.getElementById('cp-screen');
-        acceptButton = document.getElementById('accept');
-        pin = screen.querySelector('input');
+        var title = document.getElementById('title');
+        var screen = document.getElementById('cp-screen');
+        var acceptButton = document.getElementById('accept');
+        var pin = screen.querySelector('input');
 
         var retrieveSpy = this.sinon.spy(MockMessageDB, 'retrieve');
 
@@ -340,17 +320,17 @@ suite('WAP Push', function() {
         WapPushManager.displayWapPushMessage(0);
         retrieveSpy.yield(ParsedMessage.from(messages.netwpin, 0));
         assert.equal(title.textContent, messages.netwpin.sender);
-        assert.equal(acceptButton.hidden, false);
+        assert.isFalse(acceptButton.classList.contains('hidden'),
+          'the accept button should be visible');
         assert.equal(pin.type, 'hidden');
     });
 
     test('the display is populated with the USERPIN message contents',
       function() {
-        closeButton = document.getElementById('close');
-        title = document.getElementById('title');
-        screen = document.getElementById('cp-screen');
-        acceptButton = document.getElementById('accept');
-        pin = screen.querySelector('input');
+        var title = document.getElementById('title');
+        var screen = document.getElementById('cp-screen');
+        var acceptButton = document.getElementById('accept');
+        var pin = screen.querySelector('input');
 
         var retrieveSpy = this.sinon.spy(MockMessageDB, 'retrieve');
 
@@ -361,19 +341,28 @@ suite('WAP Push', function() {
         WapPushManager.displayWapPushMessage(0);
         retrieveSpy.yield(ParsedMessage.from(messages.userpin, 0));
         assert.equal(title.textContent, messages.netwpin.sender);
-        assert.equal(acceptButton.hidden, false);
+        assert.isFalse(acceptButton.classList.contains('hidden'),
+          'the accept button should be visible');
         assert.equal(pin.type, 'text');
     });
 
-    test('Notification is closed', function() {
-      var closeSpy = this.sinon.spy(MockNotification.prototype, 'close');
+    test('Notification not closed until message is fully processed',
+      function() {
+        var closeSpy = this.sinon.spy(MockNotification.prototype, 'close');
+        var retrieveSpy = this.sinon.spy(MockMessageDB, 'retrieve');
 
-      MockNavigatormozSetMessageHandler.mTrigger(
-        'wappush-received',
-        messages.netwpin
-      );
-      WapPushManager.displayWapPushMessage(0);
-      sinon.assert.called(closeSpy);
+        MockNavigatormozSetMessageHandler.mTrigger(
+          'wappush-received',
+          messages.netwpin
+        );
+
+        // Invoke ParsedMessage.load() to be able to yield for it and force
+        // wait in order to get WapPushManager.displayWapPushMessage called
+        // internally
+        ParsedMessage.load(null, function(){}, function(){});
+        retrieveSpy.yield(ParsedMessage.from(messages.userpin, 0));
+
+        sinon.assert.notCalled(closeSpy);
     });
   });
 
@@ -414,21 +403,16 @@ suite('WAP Push', function() {
       }
     };
 
-    // UI elements
-    var screen;
-    var container;
-    var text;
-
     setup(function() {
       this.sinon.stub(MockMessageDB, 'put');
       this.sinon.stub(MockMessageDB, 'retrieve');
-
-      screen = document.getElementById('si-sl-screen');
-      container = screen.querySelector('.container');
-      text = container.querySelector('p');
     });
 
     test('the old message is expired', function() {
+      var screen = document.getElementById('si-sl-screen');
+      var container = screen.querySelector('.container');
+      var text = container.querySelector('p');
+
       MockNavigatormozSetMessageHandler.mTrigger('wappush-received',
                                                  messages.oldest);
       MockMessageDB.put.yield('new');
@@ -449,6 +433,10 @@ suite('WAP Push', function() {
     });
 
     test('the current message is displayed', function() {
+      var screen = document.getElementById('si-sl-screen');
+      var container = screen.querySelector('.container');
+      var text = container.querySelector('p');
+
       WapPushManager.displayWapPushMessage(0);
       MockMessageDB.retrieve.yield(ParsedMessage.from(messages.current, 0));
       assert.equal(text.textContent, 'current message');

@@ -178,9 +178,9 @@ suite('system/HomeSearchbar', function() {
     });
 
     test('searchcrashed', function() {
-      var stub = this.sinon.stub(Rocketbar.prototype, 'handleSearchCrashed');
+      var stub = this.sinon.stub(Rocketbar.prototype, 'handleSearchTerminated');
       subject.handleEvent({
-        type: 'searchcrashed'
+        type: 'searchterminated'
       });
       assert.ok(stub.calledOnce);
     });

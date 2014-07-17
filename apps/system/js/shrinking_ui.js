@@ -86,6 +86,7 @@
       window.addEventListener('appcreated', this);
       window.addEventListener('appterminated', this);
       window.addEventListener('appopen', this);
+      window.addEventListener('appwill-become-active', this);
       window.addEventListener('shrinking-start', this);
       window.addEventListener('shrinking-stop', this);
       window.addEventListener('shrinking-receiving', this);
@@ -108,6 +109,7 @@
         case 'appcreated':
         case 'appterminated':
         case 'appopen':
+        case 'appwill-become-active':
           if (!evt.detail || !evt.detail.manifestURL) {
             return;
           }
@@ -141,6 +143,7 @@
           this._unregister(evt.detail.instanceID);
           break;
         case 'appopen':
+        case 'appwill-become-active':
           var config = evt.detail;
           this._switchTo(config.instanceID, config.manifestURL);
           break;

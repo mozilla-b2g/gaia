@@ -16,6 +16,11 @@ Calendar.ns('Store').Busytime = (function() {
   function Busytime() {
     Calendar.Store.Abstract.apply(this, arguments);
     this._setupCache();
+
+    Calendar.Promise.denodeifyAll(this, [
+      'removeEvent',
+      'loadSpan'
+    ]);
   }
 
   Busytime.prototype = {

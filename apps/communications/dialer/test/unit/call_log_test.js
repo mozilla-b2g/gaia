@@ -1,7 +1,7 @@
 'use strict';
 
-/* global CallHandler, CallLog, CallLogDBManager, KeypadManager, MockImage,
-          MockMozL10n, MockNavigatorMozIccManager, MockNotification,
+/* global CallHandler, CallLog, CallLogDBManager, Contacts, KeypadManager,
+          MockImage, MockMozL10n, MockNavigatorMozIccManager, MockNotification,
           MocksHelper, MockSimSettingsHelper, Notification,
           PhoneNumberActionMenu */
 
@@ -28,10 +28,12 @@ require('/shared/test/unit/mocks/dialer/mock_keypad.js');
 require('/shared/test/unit/mocks/mock_notification.js');
 require('/shared/test/unit/mocks/mock_image.js');
 require('/shared/test/unit/mocks/mock_sim_settings_helper.js');
+require('/shared/test/unit/mocks/dialer/mock_contacts.js');
 
 var mocksHelperForCallLog = new MocksHelper([
   'asyncStorage',
   'CallLogDBManager',
+  'Contacts',
   'AccessibilityHelper',
   'PhoneNumberActionMenu',
   'PerformanceTestingHelper',
@@ -112,6 +114,7 @@ suite('dialer/call_log', function() {
   });
 
   teardown(function() {
+    CallLogDBManager.deleteAll(CallLog.render.bind(CallLog));
     noResult.parentNode.removeChild(noResult);
     CallLog._initialized = false;
     MockNavigatorMozIccManager.mTeardown();
@@ -496,13 +499,6 @@ suite('dialer/call_log', function() {
       renderSeveralDaysSpy = this.sinon.spy(CallLog, 'renderSeveralDays');
     });
 
-    teardown(function(done) {
-      CallLogDBManager.deleteAll(function() {
-        CallLog.render();
-        setTimeout(done);
-      });
-    });
-
     test('Below first render threshold same day', function(done) {
       appendAndCheckGroupDOM(5, 1, function() {
         sinon.assert.callCount(renderSeveralDaysSpy, 1);
@@ -670,6 +666,10 @@ suite('dialer/call_log', function() {
         CallLog.showEditMode();
       });
 
+      teardown(function() {
+        CallLog.hideEditMode();
+      });
+
       test('should fill the header', function() {
         assert.equal(CallLog.headerEditModeText.textContent, 'edit');
       });
@@ -705,11 +705,9 @@ suite('dialer/call_log', function() {
          '<input type="checkbox" checked>' +
          '<input type="checkbox" checked>' +
          '<input type="checkbox" checked>';
+        CallLog.callLogIconEdit.removeAttribute('disabled');
         CallLog.showEditMode();
         CallLog.hideEditMode();
-      });
-
-      teardown(function() {
       });
 
       test('should put the body out of recents-edit mode', function() {
@@ -858,6 +856,88 @@ suite('dialer/call_log', function() {
 
       test('long pressing the entry should show action menu',
            longPressShouldShowActionMenu);
+    });
+  });
+
+  suite('oncontactchange', function() {
+    suite('contact removed', function() {
+      var allLogs;
+
+      setup(function() {
+        // Insert two groups with same contact
+        var grp = JSON.parse(JSON.stringify(incomingGroup));
+        grp.id = 1;
+        grp.date = 1;
+        CallLogDBManager.add(grp);
+
+        grp = JSON.parse(JSON.stringify(incomingGroup));
+        grp.id = 2;
+        grp.date = 2;
+        CallLogDBManager.add(grp);
+
+        CallLog.render();
+
+        this.sinon.stub(Contacts, 'findByNumber');
+
+        var contactEvent = {
+          reason: 'remove',
+          contactID: incomingGroup.contact.id
+        };
+        navigator.mozContacts.oncontactchange(contactEvent);
+
+        allLogs = document.body.getElementsByClassName('log-item');
+      });
+
+      suite('no new matching contact', function() {
+        setup(function() {
+          Contacts.findByNumber.yield();
+        });
+
+        test('all groups have no contact-id', function() {
+          for (var log of allLogs) {
+            assert.isUndefined(log.dataset.contactId);
+          }
+        });
+
+        test('all groups display the number', function() {
+          for (var log of allLogs) {
+            var primaryInfo = log.querySelector('.primary-info');
+            assert.equal(primaryInfo.textContent, incomingGroup.number);
+          }
+        });
+      });
+
+      suite('find new matching contacts', function() {
+        var newContact;
+        var matchingTel;
+
+        setup(function() {
+          matchingTel = {
+            value: '111222333',
+            type: 'Mobile',
+            carrier: 'Telefonica'
+          };
+          newContact = {
+            id: '2131245135413',
+            name: 'other contact',
+            matchingTel: matchingTel
+          };
+          Contacts.findByNumber.yield(newContact, matchingTel);
+        });
+
+        test('all groups have the new contact-id', function() {
+          for (var log of allLogs) {
+            assert.equal(log.dataset.contactId, newContact.id);
+          }
+        });
+
+        test('all groups have the new contact name', function() {
+          for (var log of allLogs) {
+            var primaryInfo = log.querySelector('.primary-info');
+            assert.equal(primaryInfo.textContent, newContact.name);
+          }
+        });
+      });
     });
   });
 });

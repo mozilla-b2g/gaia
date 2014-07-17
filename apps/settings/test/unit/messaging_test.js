@@ -1,11 +1,16 @@
+/* global Messaging,
+          MocksHelper, MockIccHelper, MockL10n,
+          MockNavigatorSettings, MockNavigatormozMobileMessage
+*/
+
 'use strict';
 
-requireApp('settings/shared/test/unit/mocks/mock_icc_helper.js');
-requireApp('settings/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+require('/shared/test/unit/mocks/mock_icc_helper.js');
+require('/shared/test/unit/mocks/mock_settings_listener.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 
+requireApp('settings/test/unit/mock_navigator_moz_mobile_message.js');
 requireApp('settings/test/unit/mock_l10n.js');
-
-requireApp('settings/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('settings/js/messaging.js');
 
 var mocksForMessaging = new MocksHelper([
@@ -14,8 +19,9 @@ var mocksForMessaging = new MocksHelper([
 ]).init();
 
 suite('Messaging settings', function() {
-  var realMozSettings;
-  var realMozL10n;
+  var realMozL10n,
+      realMozSettings,
+      realMozMobileMessage;
   var elementIds;
 
   mocksForMessaging.attachTestHelpers();
@@ -25,6 +31,9 @@ suite('Messaging settings', function() {
 
     realMozSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
+
+    realMozMobileMessage = navigator.mozMobileMessage;
+    navigator.mozMobileMessage = MockNavigatormozMobileMessage;
 
     var messagingNodes =
       '<div>' +
@@ -72,6 +81,12 @@ suite('Messaging settings', function() {
             '</label>' +
           '</li>' +
         '</ul>' +
+        '<ul>' +
+          '<li id="menuItem-smsc" aria-disabled="true" class="hint">' +
+            '<a data-l10n-id="messagingSMSC">SMSC</a>' +
+            '<p class="explanation">Unknown</p>' +
+          '</li>' +
+        '</ul>' +
       '</div>';
 
     // Insert the nodes just inside the body, after its last child.
@@ -81,6 +96,7 @@ suite('Messaging settings', function() {
   suiteTeardown(function() {
     navigator.mozL10n = realMozL10n;
     navigator.mozSettings = realMozSettings;
+    navigator.mozMobileMessage = realMozMobileMessage;
   });
 
   setup(function() {
@@ -412,6 +428,20 @@ suite('Messaging settings', function() {
         }
         assert.isTrue(input.disabled);
       });
+    });
+  });
+
+  suite('> SMSC', function() {
+    var fakeNumber;
+
+    setup(function() {
+      fakeNumber = MockNavigatormozMobileMessage.SMSC;
+      Messaging.init();
+    });
+
+    test('display server number', function() {
+      var display = document.getElementById('menuItem-smsc').querySelector('p');
+      assert.equal(display.textContent, fakeNumber);
     });
   });
 });

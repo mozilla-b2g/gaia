@@ -570,132 +570,130 @@
 
 
 
-  var parsePatterns;
+  function PropertiesParser() {
+    var parsePatterns = {
+      comment: /^\s*#|^\s*$/,
+      entity: /^([^=\s]+)\s*=\s*(.+)$/,
+      multiline: /[^\\]\\$/,
+      macro: /\{\[\s*(\w+)\(([^\)]*)\)\s*\]\}/i,
+      unicode: /\\u([0-9a-fA-F]{1,4})/g,
+      entries: /[\r\n]+/,
+      controlChars: /\\([\\\n\r\t\b\f\{\}\"\'])/g
+    };
 
-  function parse(ctx, source) {
-    var ast = {};
+    this.parse = function (ctx, source) {
+      var ast = Object.create(null);
 
-    if (!parsePatterns) {
-      parsePatterns = {
-        comment: /^\s*#|^\s*$/,
-        entity: /^([^=\s]+)\s*=\s*(.+)$/,
-        multiline: /[^\\]\\$/,
-        macro: /\{\[\s*(\w+)\(([^\)]*)\)\s*\]\}/i,
-        unicode: /\\u([0-9a-fA-F]{1,4})/g,
-        entries: /[\r\n]+/,
-        controlChars: /\\([\\\n\r\t\b\f\{\}\"\'])/g
-      };
-    }
+      var entries = source.split(parsePatterns.entries);
+      for (var i = 0; i < entries.length; i++) {
+        var line = entries[i];
 
-    var entries = source.split(parsePatterns.entries);
-    for (var i = 0; i < entries.length; i++) {
-      var line = entries[i];
+        if (parsePatterns.comment.test(line)) {
+          continue;
+        }
 
-      if (parsePatterns.comment.test(line)) {
-        continue;
-      }
+        while (parsePatterns.multiline.test(line) && i < entries.length) {
+          line = line.slice(0, -1) + entries[++i].trim();
+        }
 
-      while (parsePatterns.multiline.test(line) && i < entries.length) {
-        line = line.slice(0, -1) + entries[++i].trim();
-      }
-
-      var entityMatch = line.match(parsePatterns.entity);
-      if (entityMatch) {
-        try {
-          parseEntity(entityMatch[1], entityMatch[2], ast);
-        } catch (e) {
-          if (ctx) {
-            ctx._emitter.emit('error', e);
-          } else {
-            throw e;
+        var entityMatch = line.match(parsePatterns.entity);
+        if (entityMatch) {
+          try {
+            parseEntity(entityMatch[1], entityMatch[2], ast);
+          } catch (e) {
+            if (ctx) {
+              ctx._emitter.emit('error', e);
+            } else {
+              throw e;
+            }
           }
         }
       }
-    }
-    return ast;
-  }
+      return ast;
+    };
 
-  function setEntityValue(id, attr, key, value, ast) {
-    var obj = ast;
-    var prop = id;
+    function setEntityValue(id, attr, key, value, ast) {
+      var obj = ast;
+      var prop = id;
 
-    if (attr) {
-      if (!(id in obj)) {
-        obj[id] = {};
+      if (attr) {
+        if (!(id in obj)) {
+          obj[id] = {};
+        }
+        if (typeof(obj[id]) === 'string') {
+          obj[id] = {'_': obj[id]};
+        }
+        obj = obj[id];
+        prop = attr;
       }
-      if (typeof(obj[id]) === 'string') {
-        obj[id] = {'_': obj[id]};
+
+      if (!key) {
+        obj[prop] = value;
+        return;
       }
-      obj = obj[id];
-      prop = attr;
+
+      if (!(prop in obj)) {
+        obj[prop] = {'_': {}};
+      } else if (typeof(obj[prop]) === 'string') {
+        obj[prop] = {'_index': parseMacro(obj[prop]), '_': {}};
+      }
+      obj[prop]._[key] = value;
     }
 
-    if (!key) {
-      obj[prop] = value;
-      return;
+    function parseEntity(id, value, ast) {
+      var name, key;
+
+      var pos = id.indexOf('[');
+      if (pos !== -1) {
+        name = id.substr(0, pos);
+        key = id.substring(pos + 1, id.length - 1);
+      } else {
+        name = id;
+        key = null;
+      }
+
+      var nameElements = name.split('.');
+
+      if (nameElements.length > 2) {
+        throw new Error('Error in ID: "' + name + '".' +
+            ' Nested attributes are not supported.');
+      }
+
+      var attr;
+      if (nameElements.length > 1) {
+        name = nameElements[0];
+        attr = nameElements[1];
+      } else {
+        attr = null;
+      }
+
+      setEntityValue(name, attr, key, unescapeString(value), ast);
     }
 
-    if (!(prop in obj)) {
-      obj[prop] = {'_': {}};
-    } else if (typeof(obj[prop]) === 'string') {
-      obj[prop] = {'_index': parseMacro(obj[prop]), '_': {}};
-    }
-    obj[prop]._[key] = value;
-  }
-
-  function parseEntity(id, value, ast) {
-    var name, key;
-
-    var pos = id.indexOf('[');
-    if (pos !== -1) {
-      name = id.substr(0, pos);
-      key = id.substring(pos + 1, id.length - 1);
-    } else {
-      name = id;
-      key = null;
+    function unescapeControlCharacters(str) {
+      return str.replace(parsePatterns.controlChars, '$1');
     }
 
-    var nameElements = name.split('.');
-
-    if (nameElements.length > 2) {
-      throw new Error('Error in ID: "' + name + '".' +
-                      ' Nested attributes are not supported.');
+    function unescapeUnicode(str) {
+      return str.replace(parsePatterns.unicode, function(match, token) {
+        return unescape('%u' + '0000'.slice(token.length) + token);
+      });
     }
 
-    var attr;
-    if (nameElements.length > 1) {
-      name = nameElements[0];
-      attr = nameElements[1];
-    } else {
-      attr = null;
+    function unescapeString(str) {
+      if (str.lastIndexOf('\\') !== -1) {
+        str = unescapeControlCharacters(str);
+      }
+      return unescapeUnicode(str);
     }
 
-    setEntityValue(name, attr, key, unescapeString(value), ast);
-  }
-
-  function unescapeControlCharacters(str) {
-    return str.replace(parsePatterns.controlChars, '$1');
-  }
-
-  function unescapeUnicode(str) {
-    return str.replace(parsePatterns.unicode, function(match, token) {
-      return unescape('%u' + '0000'.slice(token.length) + token);
-    });
-  }
-
-  function unescapeString(str) {
-    if (str.lastIndexOf('\\') !== -1) {
-      str = unescapeControlCharacters(str);
+    function parseMacro(str) {
+      var match = str.match(parsePatterns.macro);
+      if (!match) {
+        throw new L10nError('Malformed macro');
+      }
+      return [match[1], match[2]];
     }
-    return unescapeUnicode(str);
-  }
-
-  function parseMacro(str) {
-    var match = str.match(parsePatterns.macro);
-    if (!match) {
-      throw new L10nError('Malformed macro');
-    }
-    return [match[1], match[2]];
   }
 
 
@@ -714,10 +712,13 @@
       this.value = node;
     } else {
       // it's either a hash or it has attrs, or both
-      for (var key in node) {
-        if (node.hasOwnProperty(key) && key[0] !== '_') {
+      var keys = Object.keys(node);
+
+      /* jshint -W084 */
+      for (var i = 0, key; key = keys[i]; i++) {
+        if (key[0] !== '_') {
           if (!this.attributes) {
-            this.attributes = {};
+            this.attributes = Object.create(null);
           }
           this.attributes[key] = new Entity(this.id + '.' + key, node[key],
                                             env);
@@ -760,13 +761,12 @@
 
     var entity = {
       value: this.toString(ctxdata),
-      attributes: {}
+      attributes: Object.create(null)
     };
 
     for (var key in this.attributes) {
-      if (this.attributes.hasOwnProperty(key)) {
-        entity.attributes[key] = this.attributes[key].toString(ctxdata);
-      }
+      /* jshint -W089 */
+      entity.attributes[key] = this.attributes[key].toString(ctxdata);
     }
 
     return entity;
@@ -779,7 +779,9 @@
       return ctxdata[id];
     }
 
-    if (env.hasOwnProperty(id)) {
+    // XXX: special case for Node.js where still:
+    // '__proto__' in Object.create(null) => true
+    if (id in env && id !== '__proto__') {
       if (!(env[id] instanceof Entity)) {
         env[id] = new Entity(id, env[id], env);
       }
@@ -853,24 +855,24 @@
   }
 
   function compile(env, ast) {
-    env = env || {};
+    /* jshint -W089 */
+    env = env || Object.create(null);
     for (var id in ast) {
-      if (ast.hasOwnProperty(id)) {
-        env[id] = new Entity(id, ast[id], env);
-      }
+      env[id] = new Entity(id, ast[id], env);
     }
     return env;
   }
 
 
 
+  var propertiesParser = null;
+
   function Locale(id, ctx) {
     this.id = id;
     this.ctx = ctx;
     this.isReady = false;
-    this.entries = {
-      __plural: getPluralRule(id)
-    };
+    this.entries = Object.create(null);
+    this.entries.__plural = getPluralRule(id);
   }
 
   Locale.prototype.getEntry = function L_getEntry(id) {
@@ -878,7 +880,7 @@
 
     var entries = this.entries;
 
-    if (!entries.hasOwnProperty(id)) {
+    if (!(id in entries)) {
       return undefined;
     }
 
@@ -922,7 +924,10 @@
 
     function onPropLoaded(err, source) {
       if (!err && source) {
-        var ast = parse(ctx, source);
+        if (!propertiesParser) {
+          propertiesParser = new PropertiesParser();
+        }
+        var ast = propertiesParser.parse(ctx, source);
         self.addAST(ast);
       }
       onL10nLoaded(err);
@@ -945,10 +950,11 @@
   };
 
   Locale.prototype.addAST = function(ast) {
-    for (var id in ast) {
-      if (ast.hasOwnProperty(id)) {
-        this.entries[id] = ast[id];
-      }
+    var keys = Object.keys(ast);
+
+    /* jshint -W084 */
+    for (var i = 0, key; key = keys[i]; i++) {
+      this.entries[key] = ast[key];
     }
   };
 
@@ -1190,7 +1196,7 @@
         translateDocument: translateDocument,
         loadINI: loadINI,
         fireLocalizedEvent: fireLocalizedEvent,
-        parse: parse,
+        PropertiesParser: PropertiesParser,
         compile: compile
       };
     }
@@ -1546,16 +1552,14 @@
     }
 
     for (var key in entity.attributes) {
-      if (entity.attributes.hasOwnProperty(key)) {
-        var attr = entity.attributes[key];
-        if (key === 'ariaLabel') {
-          element.setAttribute('aria-label', attr);
-        } else if (key === 'innerHTML') {
-          // XXX: to be removed once bug 994357 lands
-          element.innerHTML = attr;
-        } else {
-          element.setAttribute(key, attr);
-        }
+      var attr = entity.attributes[key];
+      if (key === 'ariaLabel') {
+        element.setAttribute('aria-label', attr);
+      } else if (key === 'innerHTML') {
+        // XXX: to be removed once bug 994357 lands
+        element.innerHTML = attr;
+      } else {
+        element.setAttribute(key, attr);
       }
     }
 

@@ -66,12 +66,14 @@ marionette('manipulate sound settings', function() {
 
   test('check default ringtone name', function() {
     var ringtone_name = soundPanel.selectedRingtone;
-    assert.equal(ringtone_name, 'Classic Courier');
+    assert.ok(ringtone_name === 'Firefox OS' ||
+              ringtone_name === 'B2G OS');
   });
 
   test('check default alert tone name', function() {
     var alerttone_name = soundPanel.selectedAlertTone;
-    assert.equal(alerttone_name, 'Bell');
+    assert.ok(alerttone_name === 'Firefox OS' ||
+              alerttone_name === 'B2G OS');
   });
 
   /* Other sounds */

@@ -15,6 +15,7 @@
   var initPromise;
 
   function HomeIcons() {
+    this.ready = false;
     this.gridItemsByIdentifier = {};
     this.recordsByManifestUrl = {};
     this.recordsByBookmarkUrl = {};
@@ -22,8 +23,9 @@
 
   HomeIcons.prototype = {
     init: function init() {
-      initPromise = Promise.all([this.collectBookmarkURLs(),
-                                 this.collectManifestURLs()]);
+      initPromise =
+        Promise.all([this.collectBookmarkURLs(), this.collectManifestURLs()])
+               .then(() => this.ready = true);
 
       this.init = function noop() {
         return initPromise;
@@ -116,6 +118,6 @@
 
   };
 
-  exports.HomeIcons = HomeIcons;
+  exports.HomeIcons = new HomeIcons();
 
 }(window));

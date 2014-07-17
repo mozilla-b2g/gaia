@@ -106,7 +106,7 @@ module.exports = View.extend({
     '<div class="pane pane-2">' +
       '<div class="inner js-pane-2"></div>' +
     '</div>' +
-    '<div class="settings_close icon-settings js-close"></div>';
+    '<div class="settings_close icon-menu js-close"></div>';
   }
 });
 

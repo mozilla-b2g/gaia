@@ -20,6 +20,8 @@
     this._normalAudioChannelActive = false;
     this._deviceLockedTimer = 0;
     this.overlayEvents = [
+      'cardviewshown',
+      'cardviewclosed',
       'lockscreen-appopened',
       'lockscreen-request-unlock',
       'attentionscreenshow',
@@ -59,6 +61,9 @@
       // is opened.
       case 'appclosing':
       case 'homescreenopened':
+        if (window.taskManager.isShown()) {
+          this.publish('hidewindowforscreenreader');
+        }
         this._normalAudioChannelActive = false;
         break;
       case 'status-active':
@@ -106,10 +111,12 @@
         break;
       case 'rocketbar-overlayopened':
       case 'utility-tray-overlayopened':
+      case 'cardviewshown':
         this.publish('hidewindowforscreenreader');
         break;
       case 'rocketbar-overlayclosed':
       case 'utility-tray-overlayclosed':
+      case 'cardviewclosed':
         this.publish('showwindowforscreenreader');
         break;
       case 'mozChromeEvent':

@@ -24,6 +24,7 @@
    * @class AppWindowFactory
    */
   function AppWindowFactory() {
+    this.preHandleEvent = this.preHandleEvent.bind(this);
   }
 
   AppWindowFactory.prototype = {
@@ -45,24 +46,13 @@
       }
       this._started = true;
 
-      /**
-       * Wait for applicationready event to do the following work.
-       *
-       * @listens webapps-launch
-       */
-      if (applications.ready) {
-        window.addEventListener('webapps-launch', this);
-        window.addEventListener('webapps-close', this);
-        window.addEventListener('open-app', this);
-      } else {
-        var self = this;
-        window.addEventListener('applicationready', function appReady(e) {
-          window.removeEventListener('applicationready', appReady);
-          window.addEventListener('webapps-launch', self);
-          window.addEventListener('webapps-close', self);
-          window.addEventListener('open-app', self);
-        });
-      }
+      window.addEventListener('webapps-launch', this.preHandleEvent);
+      window.addEventListener('webapps-close', this.preHandleEvent);
+      window.addEventListener('open-app', this.preHandleEvent);
+      window.addEventListener('applicationready', (function appReady(e) {
+        window.removeEventListener('applicationready', appReady);
+        this._handlePendingEvents();
+      }).bind(this));
     },
 
     /**
@@ -75,9 +65,33 @@
       }
       this._started = false;
 
-      window.removeEventListener('webapps-launch', this);
-      window.removeEventListener('webapps-close', this);
-      window.removeEventListener('open-app', this);
+      window.removeEventListener('webapps-launch', this.preHandleEvent);
+      window.removeEventListener('webapps-close', this.preHandleEvent);
+      window.removeEventListener('open-app', this.preHandleEvent);
+    },
+
+    /**
+     * Queue events until AppWindowFactory is ready to handle them.
+     */
+    _queueEvents: [],
+
+    _queuePendingEvent: function(evt) {
+      this._queueEvents.push(evt);
+    },
+
+    _handlePendingEvents: function() {
+      this._queueEvents.forEach((function(evt) {
+        this.handleEvent(evt);
+      }).bind(this));
+      this._queueEvents = [];
+    },
+
+    preHandleEvent: function(evt) {
+      if (applications.ready) {
+        this.handleEvent(evt);
+      } else {
+        this._queuePendingEvent(evt);
+      }
     },
 
     handleEvent: function awf_handleEvent(evt) {

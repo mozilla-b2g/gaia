@@ -2,7 +2,7 @@
 
 requireApp('system/shared/test/unit/mocks/mock_lazy_loader.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
-requireApp('system/test/unit/mock_system.js');
+require('/shared/test/unit/mocks/mock_system.js');
 
 var mocksHelperForUtilityTray = new MocksHelper([
   'AppWindowManager',

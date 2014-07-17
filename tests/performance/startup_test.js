@@ -73,6 +73,9 @@ marionette('startup test > ' + mozTestInfo.appPath + ' >', function() {
       return element.time;
     });
 
+    // results is an Array of values, one per run.
+    assert.ok(results.length == mozTestInfo.runs, 'missing runs');
+
     PerformanceHelper.reportDuration(results);
     PerformanceHelper.reportMemory(memStats);
 

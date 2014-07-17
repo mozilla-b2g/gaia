@@ -30,14 +30,14 @@
 @media (min-resolution: 1.5dppx) {
   #software-home-button,
   #fullscreen-software-home-button {
-    background: transparent url(/shared/resources/branding/browser_84.png) no-repeat center center / 4rem;
+    background: transparent url(/shared/resources/branding/browser_84.png) no-repeat center center / 3.6rem;
   }
 }
 
 @media (min-resolution: 2dppx) {
   #software-home-button,
   #fullscreen-software-home-button {
-    background: transparent url(/shared/resources/branding/browser_126.png) no-repeat center center / 4rem;
+    background: transparent url(/shared/resources/branding/browser_126.png) no-repeat center center / 3.6rem;
   }
 }
 

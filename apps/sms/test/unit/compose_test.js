@@ -12,7 +12,6 @@ requireApp('sms/js/compose.js');
 requireApp('sms/js/utils.js');
 requireApp('sms/js/drafts.js');
 
-requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/test/unit/mock_attachment.js');
 requireApp('sms/test/unit/mock_attachment_menu.js');
 requireApp('sms/test/unit/mock_recipients.js');
@@ -22,6 +21,7 @@ requireApp('sms/test/unit/mock_moz_activity.js');
 requireApp('sms/test/unit/mock_thread_ui.js');
 require('/test/unit/mock_smil.js');
 require('/shared/test/unit/mocks/mock_async_storage.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 
 var mocksHelperForCompose = new MocksHelper([
   'asyncStorage',

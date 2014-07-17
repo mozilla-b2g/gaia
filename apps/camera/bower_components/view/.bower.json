@@ -26,6 +26,5 @@
   },
   "_source": "git://github.com/gaia-components/view.git",
   "_target": "~0.1.1",
-  "_originalSource": "gaia-components/view",
-  "_direct": true
+  "_originalSource": "gaia-components/view"
 }

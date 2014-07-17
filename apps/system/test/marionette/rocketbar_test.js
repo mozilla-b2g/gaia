@@ -29,21 +29,6 @@ marionette('Rocketbar', function() {
     search.removeGeolocationPermission();
   });
 
-  test('Rocketbar is expanded on homescreen', function() {
-    // Check that Rocketbar is expanded
-    var element = rocketbar.rocketbar;
-    var screen = rocketbar.screen;
-    client.waitFor(function() {
-      var rocketbarClass = element.getAttribute('class');
-      return rocketbarClass.indexOf('expanded') != -1;
-    });
-    // Check that Rocketbar is in the home state
-    client.waitFor(function() {
-      var screenClass = screen.getAttribute('class');
-      return screenClass.indexOf('on-homescreen') != -1;
-    });
-  });
-
   test('Focus', function() {
     rocketbar.waitForLoad();
     var screen = rocketbar.screen;

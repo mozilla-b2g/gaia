@@ -16,9 +16,9 @@
     "device-storage:videos":{ "access": "readwrite" },
     "device-storage:music":{ "access": "readwrite" },
     "device-storage:crashes":{ "access": "readwrite" },
-    "device-storage:apps":{ "access": "readonly" },
+    "firefox-accounts": {},
     "geolocation":{},
-    "permissions":{},
+    "permissions": {},
     "power":{},
     "push": {},
     "settings":{ "access": "readwrite" },
@@ -40,7 +40,8 @@
       "description": "Wake up Find My Device from the System app",
       "rules": {
         "manifestURLs": [
-          "app://system.gaiamobile.org/manifest.webapp"
+          "app://system.gaiamobile.org/manifest.webapp",
+          "app://settings.gaiamobile.org/manifest.webapp"
         ]
       }
     },

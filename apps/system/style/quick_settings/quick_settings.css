@@ -77,49 +77,49 @@
   display: none;
 }
 #quick-settings-data[data-network="undefined"]  {
-  background-position: 15px 0;
+  background-position: center 0;
 }
 #quick-settings-data[data-network="2G"]  {
-  background-position: 15px -30px;
+  background-position: center -30px;
 }
 #quick-settings-data[data-enabled][data-network="2G"] {
-  background-position: 15px -60px;
+  background-position: center -60px;
 }
 #quick-settings-data[data-network="3G"] {
-  background-position: 15px -90px;
+  background-position: center -90px;
 }
 #quick-settings-data[data-enabled][data-network="3G"] {
-  background-position: 15px -120px;
+  background-position: center -120px;
 }
 #quick-settings-data[data-network="4G"] {
-  background-position: 15px -150px;
+  background-position: center -150px;
 }
 #quick-settings-data[data-enabled][data-network="4G"] {
-  background-position: 15px -180px;
+  background-position: center -180px;
 }
 #quick-settings-data[data-network="E"] {
-  background-position: 15px -210px;
+  background-position: center -210px;
 }
 #quick-settings-data[data-enabled][data-network="E"] {
-  background-position: 15px -240px;
+  background-position: center -240px;
 }
 #quick-settings-data[data-network="H"] {
-  background-position: 15px -270px;
+  background-position: center -270px;
 }
 #quick-settings-data[data-enabled][data-network="H"] {
-  background-position: 15px -300px;
+  background-position: center -300px;
 }
 #quick-settings-data[data-network="H+"] {
-  background-position: 15px -330px;
+  background-position: center -330px;
 }
 #quick-settings-data[data-enabled][data-network="H+"] {
-  background-position: 15px -360px;
+  background-position: center -360px;
 }
 #quick-settings-data[data-network="O"] {
-  background-position: 15px -390px;
+  background-position: center -390px;
 }
 #quick-settings-data[data-enabled][data-network="O"] {
-  background-position: 15px -420px;
+  background-position: center -420px;
 }
 #quick-settings-bluetooth {
   background-image: url(images/bluetooth-off.png);

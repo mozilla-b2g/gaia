@@ -40,6 +40,7 @@ class TestBrowserBookmark(GaiaTestCase):
         self.device.touch_home_button()
 
         homescreen = Homescreen(self.marionette)
+        homescreen.wait_for_app_icon_present(self.bookmark_title)
         self._bookmark_added = homescreen.is_app_installed(self.bookmark_title)
 
         self.assertTrue(self._bookmark_added, 'The bookmark %s was not found to be installed on the home screen.' % self.bookmark_title)

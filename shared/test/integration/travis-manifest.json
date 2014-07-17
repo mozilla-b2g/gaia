@@ -24,10 +24,14 @@
     "apps/homescreen/test/marionette/install_bookmark_test.js",
     "apps/homescreen/test/marionette/remove_bookmark_test.js",
     "apps/homescreen/test/marionette/update_bookmark_test.js",
+    "apps/ringtones/test/marionette/manage_test.js",
+    "apps/search/test/marionette/app_search_test.js",
     "apps/search/test/marionette/places_search_test.js",
     "apps/settings/test/marionette/tests/app_permission_settings_test.js",
     "apps/settings/test/marionette/tests/message_settings_test.js",
     "apps/settings/test/marionette/tests/airplane_mode_settings_test.js",
-    "apps/music/test/marionette/Player_test.js"
+    "apps/system/test/marionette/notification_resend_test.js",
+    "apps/verticalhome/test/marionette/app_hosted_use_cached_icon_test.js",
+    "apps/verticalhome/test/marionette/bookmark_uninstall_test.js"
   ]
 }

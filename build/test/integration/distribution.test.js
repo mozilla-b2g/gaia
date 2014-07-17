@@ -262,7 +262,10 @@ suite('Distribution mechanism', function() {
     assert.equal(config.grid[0][1].entry_point, 'dialer');
     assert.equal(config.grid[0][2].name, 'Messages');
     assert.equal(config.grid[0][3].name, 'Marketplace');
-    assert.equal(config.grid[1][0].name, 'Gallery');
+    assert.equal(config.grid[1][0].name, 'Social');
+    assert.equal(config.grid[1][1].name, 'Games');
+    assert.equal(config.grid[1][2].name, 'Music');
+    assert.equal(config.grid[2][0].name, 'Gallery');
 
     assert.isTrue(fs.existsSync(path.join(process.cwd(), 'profile',
       'svoperapps', 'Twitter')),

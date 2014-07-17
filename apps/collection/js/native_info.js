@@ -9,8 +9,6 @@
 
   const SETUP_KEY = 'NativeInfo-setup';
 
-  var homeIcons;
-
   function onerror(e) {
     eme.error('NativeInfo error', e.name || e.message || e);
   }
@@ -73,15 +71,14 @@
 
         // we are going to traverse all the collections on device
         for (var id in collections) {
-          var collection = BaseCollection.create(collections[id]);
+          var collection = collections[id];
+          collection = BaseCollection.create(collection);
 
           if (collection.cName) {
             var guids = guidsByCname[collection.cName] || [];
 
             if (guids.length) {
-              // identifiers is directly guids when we process an app
-              var identifiers = !homeIcons ? guids :
-               guids.map(homeIcons.getIdentifier.bind(homeIcons));
+              var identifiers = guids;
 
               eme.log('NativeInfo', identifiers.length, 'matches for',
                collection.cName, JSON.stringify(identifiers));
@@ -108,39 +105,43 @@
     },
 
     // on app install/uninstall
+    // id should be a guid (manifest or bookmark URL)
     processApp: function processApp(action, id) {
       if (action === 'install') {
-        // id should be a guid (manifest or bookmark URL)
-        return this.getInfo([id]).then(this.addToCollections).catch(onerror);
+        return HomeIcons.init()
+               .then(() => this.getInfo([id]))
+               .then(this.addToCollections)
+               .catch(onerror);
+
       } else if (action === 'uninstall') {
-        return this.removeFromCollections(id).catch(onerror);
+        return HomeIcons.init()
+               .then(() => this.removeFromCollections(id))
+               .catch(onerror);
       }
     },
 
     // on collection install
     processCollection: function processCollection(collection) {
       return this.collectGuids()
-      .then(this.getInfo)
-      .then(function addToCollection(guidsByCname) {
-        // cName for suggested collections or query for custom collections
-        var key = collection.cName || collection.query;
-        var guids = guidsByCname[key] || [];
+        .then(this.getInfo)
+        .then(function addToCollection(guidsByCname) {
+          // cName for suggested collections or query for custom collections
+          var key = collection.cName || collection.query;
+          var guids = guidsByCname[key] || [];
 
-        if (guids.length) {
-          var identifiers =
-            guids.map(homeIcons.getIdentifier.bind(homeIcons));
-          eme.log('NativeInfo', identifiers);
-          collection.pinHomeIcons(identifiers);
-        }
-      });
+          if (guids.length) {
+            var identifiers = guids;
+            eme.log('NativeInfo', identifiers);
+            collection.pinHomeIcons(identifiers);
+          }
+        });
     },
 
     // returns a promise resolved with all guids for all apps and bookmarks
     collectGuids: function collectGuids() {
-      homeIcons = new HomeIcons();
-      return homeIcons.init().then(function success() {
-        var manifestURLs = homeIcons.manifestURLs;
-        var bookmarkURLs = homeIcons.bookmarkURLs;
+      return HomeIcons.init().then(function success() {
+        var manifestURLs = HomeIcons.manifestURLs;
+        var bookmarkURLs = HomeIcons.bookmarkURLs;
         eme.log('NativeInfo found', manifestURLs.length, 'apps');
         eme.log('NativeInfo found', bookmarkURLs.length, 'bookmarks');
 

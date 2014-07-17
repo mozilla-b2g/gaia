@@ -38,6 +38,7 @@ function ViewfinderController(app) {
   this.views.focus.appendTo(this.views.viewfinder.el);
   this.views.faces = new FacesView();
   this.views.faces.appendTo(this.views.viewfinder.el);
+  this.pinch = new app.Pinch(app.el);
   this.bindEvents();
   this.configure();
   debug('initialized');
@@ -109,13 +110,15 @@ ViewfinderController.prototype.bindEvents = function() {
   this.app.on('camera:shutter', this.views.viewfinder.shutter);
   this.app.on('camera:busy', this.views.viewfinder.disable);
   this.app.on('camera:ready', this.views.viewfinder.enable);
-  this.app.on('previewgallery:closed', this.onPreviewGalleryClosed);
   this.app.on('camera:configured', this.onCameraConfigured);
-  this.app.on('previewgallery:opened', this.stopStream);
-  this.app.on('settings:closed', this.configureGrid);
-  this.app.on('settings:opened', this.hideGrid);
+  this.app.on('previewgallery:opened', this.onGalleryOpened);
+  this.app.on('previewgallery:closed', this.onGalleryClosed);
+  this.app.on('camera:previewactive', this.onPreviewActive);
+  this.app.on('settings:closed', this.onSettingsClosed);
+  this.app.on('settings:opened', this.onSettingsOpened);
   this.app.on('hidden', this.stopStream);
-  this.app.on('pinchchanged', this.onPinchChanged);
+
+  this.pinch.on('pinchchanged', this.onPinchChanged);
 };
 
 /**
@@ -126,7 +129,7 @@ ViewfinderController.prototype.bindEvents = function() {
  */
 ViewfinderController.prototype.onCameraConfigured = function() {
   debug('configuring');
-  this.startStream();
+  this.loadStream();
   this.configurePreview();
 
   // BUG: We have to use a 300ms timeout here
@@ -172,17 +175,6 @@ ViewfinderController.prototype.onFacesDetected = function(faces) {
 };
 
 /**
- * Starts the stream, only if
- * the app is currently visible.
- *
- * @private
- */
-ViewfinderController.prototype.onPreviewGalleryClosed = function() {
-  if (this.app.hidden) { return; }
-  this.startStream();
-};
-
-/**
  * Start the viewfinder stream flowing
  * with the current camera configuration.
  *
@@ -195,8 +187,7 @@ ViewfinderController.prototype.onPreviewGalleryClosed = function() {
  *
  * @private
  */
-ViewfinderController.prototype.startStream = function() {
-  if (this.app.get('previewGalleryOpen')) { return; }
+ViewfinderController.prototype.loadStream = function() {
   this.camera.loadStreamInto(this.views.viewfinder.els.video);
   debug('stream started');
 };
@@ -302,6 +293,44 @@ ViewfinderController.prototype.onViewfinderClicked = function(e) {
     this.views.viewfinder.el.clientHeight);
   this.views.focus.setPosition(focusPoint.x, focusPoint.y);
   this.app.emit('viewfinder:focuspointchanged', focusPoint);
+};
+
+ViewfinderController.prototype.onSettingsOpened = function() {
+  this.hideGrid();
+  this.pinch.disable();
+};
+
+ViewfinderController.prototype.onSettingsClosed = function() {
+  this.configureGrid();
+  this.pinch.enable();
+};
+
+/**
+ * Disables the viewfinder stream
+ * and pinch events.
+ *
+ * @private
+ */
+ViewfinderController.prototype.onGalleryOpened = function() {
+  this.views.viewfinder.disable();
+  this.pinch.disable();
+};
+
+/**
+ * Enables the viewfinder stream
+ * and pinch events.
+ *
+ * @private
+ */
+ViewfinderController.prototype.onGalleryClosed = function() {
+  this.views.viewfinder.enable();
+  this.pinch.enable();
+};
+
+ViewfinderController.prototype.onPreviewActive = function(active) {
+  if (!active) {
+    this.stopStream();
+  }
 };
 
 });

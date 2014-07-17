@@ -36,9 +36,6 @@ Collection.Selectors = {
   // The first web result when NO pinned items exist
   firstWebResultNoPinned: 'gaia-grid .icon',
 
-  // The first web result when pinned items exist
-  firstWebResultPinned: 'gaia-grid .divider + .icon',
-
   allDividers: 'gaia-grid .divider',
   allIcons: 'gaia-grid .icon',
 
@@ -48,6 +45,45 @@ Collection.Selectors = {
 };
 
 Collection.prototype = {
+
+  /**
+   * Gets the first web result in the web results section. The web results
+   * section of a collection is before the first divider when pinned icons are
+   * present, otherwise it's the first icon.
+   */
+  get firstWebResult() {
+    var identifier = this.client.executeScript(function() {
+      var doc = window.wrappedJSObject.document;
+      var grid = doc.querySelector('gaia-grid');
+      var items = grid.getItems();
+      var theItem;
+
+      for (var i = 0, iLen = items.length; i < iLen; i++) {
+        if (!theItem) {
+          theItem = items[i];
+        }
+
+        if (items[i].detail.type === 'divider') {
+          theItem = null;
+        }
+      }
+
+      return theItem.identifier;
+    });
+
+    return this.getIconByIdentifier(identifier);
+  },
+
+  /**
+   * Gets the first pinned result of a collection. Assumes that you
+   * actually have pinned objects.
+   * XXX: Consider verifying by classname, or section that we really have
+   * pinned results.
+   */
+  get firstPinnedResult() {
+    return this.client.helper.waitForElement(
+      Collection.Selectors.firstPinnedResult);
+  },
 
   /**
    * Disables the Geolocation prompt.
@@ -76,12 +112,22 @@ Collection.prototype = {
 
   /**
    * Enters the create collection screen from the homescreen.
+   * @param {Integer} position The desired position to create the collection.
    */
-  enterCreateScreen: function() {
+  enterCreateScreen: function(position) {
     var selectors = Collection.Selectors;
     var container = this.client.helper.waitForElement(
       selectors.contextMenuTarget);
     this.actions.longPress(container, 1).perform();
+
+    if (position !== undefined) {
+      // Manually override the collection insertion position.
+      // This is to simplify dragdrop logic into the collection.
+      this.client.executeScript(function(position) {
+        window.wrappedJSObject.app.itemStore.collectionSource.insertPosition =
+          position;
+      }, [position]);
+    }
 
     this.client.helper.waitForElement(selectors.menuAddButton).click();
   },
@@ -177,13 +223,12 @@ Collection.prototype = {
 
   /**
    * Pins a result to the top of the collection.
-   * @param {String} selector The selector to find the icon in web results.
+   * @param {Object} element The web result element to pin.
    */
-  pin: function(selector) {
-    var selectors = Collection.Selectors;
-    var firstIcon = this.client.helper.waitForElement(selector);
-    this.actions.longPress(firstIcon, 1).perform();
-    this.client.helper.waitForElement(selectors.cloudMenuPin).click();
+  pin: function(element) {
+    this.actions.longPress(element, 1).perform();
+    this.client.helper.waitForElement(
+      Collection.Selectors.cloudMenuPin).click();
   },
 
   /**

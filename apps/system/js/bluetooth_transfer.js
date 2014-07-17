@@ -277,10 +277,15 @@ var BluetoothTransfer = {
     };
   },
 
-  sendFile: function bt_sendFile(mac, blob) {
+  get isSendFileQueueEmpty() {
+    return this._sendingFilesQueue.length === 0;
+  },
+
+  sendFileViaHandover: function bt_sendFileViaHandover(mac, blob) {
     var adapter = Bluetooth.getAdapter();
     if (adapter != null) {
       var sendingFilesSchedule = {
+        viaHandover: true,
         numberOfFiles: 1,
         numSuccessful: 0,
         numUnsuccessful: 0
@@ -418,10 +423,6 @@ var BluetoothTransfer = {
 
   onTransferComplete: function bt_onTransferComplete(evt) {
     var transferInfo = evt.detail.transferInfo;
-    if (NfcHandoverManager.isHandoverInProgress()) {
-      // Inform NfcHandoverManager that the transfer completed
-      NfcHandoverManager.transferComplete(transferInfo.success);
-    }
     var _ = navigator.mozL10n.get;
     // Remove transferring progress
     this.removeProgress(transferInfo);
@@ -453,8 +454,19 @@ var BluetoothTransfer = {
       }
     }
 
+    var viaHandover = false;
+    if (this._sendingFilesQueue.length > 0) {
+      viaHandover = this._sendingFilesQueue[0].viaHandover || false;
+    }
+
     // Have a report notification for sending multiple files.
     this.summarizeSentFilesReport(transferInfo);
+
+    // Inform NfcHandoverManager that the transfer completed
+    var details = {received: transferInfo.received,
+                   success: transferInfo.success,
+                   viaHandover: viaHandover};
+    NfcHandoverManager.transferComplete(details);
   },
 
   summarizeSentFilesReport: function bt_summarizeSentFilesReport(transferInfo) {

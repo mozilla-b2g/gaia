@@ -2,9 +2,8 @@
 (function(exports) {
 
   var MockNfcHandoverManager = {
-    handleSimplifiedPairingRecord: function(ndef) {},
-    handleHandoverSelect: function(ndef) {},
-    handleHandoverRequest: function(ndef, session) {},
+    tryHandover: function(ndefMsg, session) { return false; },
+    transferComplete: function(details) {},
     isHandoverInProgress: function() { return undefined; }
   };
 

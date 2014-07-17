@@ -102,11 +102,11 @@ a abbr {
 }
 
 /* Icons */
-span[role="button"] {
+span.icon {
   font-style: normal;
 }
 
-span[role="button"] + b, span[role="button"] + span {
+span.icon + b, span.icon + span {
   vertical-align: middle;
 }
 
@@ -201,19 +201,17 @@ menu, nav, section, video, audio, canvas, progress, meter, time {
 
 /* Rewritting from buttons.css */
 section[role="region"] > header:first-child button,
-section[role="region"] > header:first-child a[role="button"] {
+section[role="region"] > header:first-child a {
   white-space: normal;
 }
 
 /* Buttons inside list redefinition */
-li button span,
-li a[role="button"] span {
+li button span {
   font-size: 0;
 }
 
 /* Extending components */
-li button.activity > b em ,
-li a[role="button"].activity > b em{
+li button.activity > b em {
   color: #727272;
   font-style: normal;
 }
@@ -230,8 +228,7 @@ li a[role="button"].activity > b em{
   margin-left: 1.5rem;
 }
 
-li button.activity > b ,
-li a[role="button"].activity > b{
+li button.activity > b {
   font-weight: normal;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -240,7 +237,7 @@ li a[role="button"].activity > b{
   position: absolute;
   left: 1.5rem;
   right: 3rem;
-  top: 0;
+  top: 1rem;
   bottom: 0;
 }
 
@@ -337,6 +334,10 @@ li a[role="button"].activity > b{
   margin-right: 0;
 }
 
+.item-media.pull-right button {
+  padding-right: 3rem;
+}
+
 .item-body {
   display: table;
 }
@@ -370,51 +371,21 @@ li a[role="button"].activity > b{
 
 /* ICONS */
 
-span[role="button"] {
+span.icon {
   font-size: 0;
   background: transparent no-repeat center center;
   background-size: 100% auto;
   display: inline-block;
 }
 
-span[role="button"].icon-finish {
-  background-color: rgba(0, 0, 0, 0.5);
-}
-
-/* selection list */
-span[role="button"].icon-selected {
-  background-color: rgba(0, 0, 0, 0.5);
-}
-
-/* tabs */
-span[role="button"].icon-profile {
-  background-color: rgba(255, 255, 255, 0.5)
-}
-
-/* navigation */
-span[role="button"].icon-log {
-  background-color: rgba(255, 255, 255, 0.5);
-}
-
-span[role="button"].icon-contacts {
-  background-color: rgba(255, 255, 255, 0.5);
-}
-
-span[role="button"].icon-messages {
-  background-color: rgba(255, 255, 255, 0.5);
-}
-
-span[role="button"].icon-grid {
-  background-color: rgba(255, 255, 255, 0.5);
-}
-
 /* GENERIC BUTTONS */
-span[role="button"].icon-delete {
+span.icon.icon-delete {
   background-image: url(/contacts/style/gphx/bitmap/default/forms/delete.png);
   background-size: 3rem;
+  width: 3rem;
 }
 
-span[role="button"].icon-addimage {
+span.icon.icon-addimage {
   background-image: url(/contacts/style/gphx/bitmap/default/forms/add.png);
   background-size: 3rem;
   width: 3rem;
@@ -436,7 +407,7 @@ li button.icon-email:before {
   background-image: url(/contacts/style/gphx/bitmap/default/buttons/mail.png);
 }
 
-span[role="button"].icon-address {
+span.icon.icon-address {
   background-image: url(/contacts/style/gphx/bitmap/default/buttons/location.png);
 }
 
@@ -468,45 +439,11 @@ li button.icon-find-and-merge:before {
   background-size: 3rem;
 }
 
-
-/* arrows */
-span[role="button"].icon-arrow {
-  border: solid 0.4rem transparent;
-  width: 0;
-  height: 0;
-}
-
-span[role="button"].icon-arrow.icon-arrow-top {
-  margin-top: -0.4rem;
-  border-bottom-color: #333;
-}
-
-span[role="button"].icon-arrow.icon-arrow-bottom {
-  margin-top: 0.4rem;
-  border-top-color: #333;
-}
-
-span[role="button"].icon-arrow.icon-arrow-left {
-  margin-right: 0.4rem;
-  border-right-color: #333;
-}
-
-span[role="button"].icon-arrow.icon-arrow-right {
-  margin-left: 0.4rem;
-  border-left-color: #333;
-}
-
 /* Block type (long text) */
 .action-block {
   height: auto;
   min-height: 4rem;
   word-wrap: normal;
-}
-.action-block span[role="button"] {
-  float: left;
-  display: inline;
-  background-size: 3rem;
-  display: none; /* Hide unused button */
 }
 .action-block b {
   display: block;
@@ -553,9 +490,10 @@ span[role="button"].icon-arrow.icon-arrow-right {
   top: 0;
   width: auto;
   height: auto;
+  padding-top: 0;
 }
 
-.fillflow-row-action span[role="button"] {
+.fillflow-row-action span.icon {
   border: none;
   margin: 0;
   height: 3.8rem;
@@ -619,6 +557,13 @@ span[role="button"].icon-arrow.icon-arrow-right {
   display: block;
 }
 
+.fillflow-media #photo-button {
+  width: 100%;
+  height: 100%;
+  background: none;
+  margin: inherit;
+  line-height: inherit;
+}
 
 .fillflow-media img {
   width: 100%;
@@ -683,7 +628,7 @@ form[role="dialog"].no-overlay button {
 
 .has-preferred-sim .icon-call:before {
   width: 9.5rem;
-  background-size: 3rem;  
+  background-size: 3rem;
 }
 
 .js-sim-indication {

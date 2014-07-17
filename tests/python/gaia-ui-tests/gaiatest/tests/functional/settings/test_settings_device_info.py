@@ -24,4 +24,4 @@ class TestSettingsDeviceInfo(GaiaTestCase):
                      'iccid', 'platform_version', 'build_id', 'update_channel',
                      'git_commit_timestamp', 'git_commit_hash'):
             self.assertTrue(len(getattr(more_info, item)) > 0)
-        self.assertEqual(more_info.imei, self.testvars['imei'])
+        self.assertEqual(more_info.imei, self.testvars['imei'][0])

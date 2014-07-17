@@ -16,7 +16,6 @@ var ZoomBarView = require('views/zoom-bar');
 var bindAll = require('lib/bind-all');
 var debug = require('debug')('app');
 var HudView = require('views/hud');
-var Pinch = require('lib/pinch');
 var bind = require('lib/bind');
 var model = require('model');
 
@@ -58,7 +57,8 @@ function App(options) {
   this.settings = options.settings;
   this.camera = options.camera;
   this.activity = {};
-
+  this.sounds = options.sounds;
+  this.Pinch = options.Pinch;
   //
   // If the system app is opening an attention screen (because
   // of an incoming call or an alarm, e.g.) and if we are
@@ -126,6 +126,8 @@ App.prototype.boot = function() {
  */
 App.prototype.runControllers = function() {
   debug('run controllers');
+  this.controllers.overlay(this);
+  this.controllers.battery(this);
   this.controllers.settings(this);
   this.controllers.activity(this);
   this.controllers.camera(this);
@@ -133,7 +135,6 @@ App.prototype.runControllers = function() {
   this.controllers.recordingTimer(this);
   this.controllers.indicators(this);
   this.controllers.controls(this);
-  this.controllers.overlay(this);
   this.controllers.hud(this);
   this.controllers.zoomBar(this);
   debug('controllers run');
@@ -201,10 +202,6 @@ App.prototype.bindEvents = function() {
   bind(this.win, 'beforeunload', this.onBeforeUnload);
   bind(this.el, 'click', this.onClick);
 
-  // Pinch
-  this.pinch = new Pinch(this.el);
-  this.pinch.on('pinchchanged', this.firer('pinchchanged'));
-
   debug('events bound');
 };
 
@@ -271,13 +268,12 @@ App.prototype.onCriticalPathDone = function() {
   console.log('critical-path took %s', took + 'ms');
 
   // Load non-critical modules
+  this.loadL10n();
   this.loadController(this.controllers.previewGallery);
   this.loadController(this.controllers.storage);
   this.loadController(this.controllers.confirm);
-  this.loadController(this.controllers.battery);
   this.loadController(this.controllers.sounds);
   this.loadController(this.controllers.timer);
-  this.loadL10n();
 
   this.criticalPathDone = true;
   this.emit('criticalpathdone');

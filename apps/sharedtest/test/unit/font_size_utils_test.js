@@ -130,16 +130,17 @@ suite('shared/js/text_utils.js', function() {
   }
 
   function setupNonHeaderElement() {
-    var parent = document.createElement('div');
-    var element = document.createElement('h1');
+    var headerText = document.createElement('h1');
+    var header = document.createElement('div');
 
-    parent.appendChild(element);
+    header.appendChild(headerText);
 
-    element.style.overflow = 'hidden';
-    element.style.textOverflow = 'ellipsis';
-    element.style.width = kContainerWidth + 'px';
-    element.style.fontFamily = kDefaultFace;
-    return element;
+    header.style.width = kContainerWidth + 'px';
+
+    headerText.style.overflow = 'hidden';
+    headerText.style.textOverflow = 'ellipsis';
+    headerText.style.fontFamily = kDefaultFace;
+    return headerText;
   }
 
   function getMaxHeaderFontSize() {
@@ -157,6 +158,11 @@ suite('shared/js/text_utils.js', function() {
     window.dispatchEvent(new CustomEvent('lazyload', {
       detail: element
     }));
+  }
+
+  // Returns true if a text is wrapped.
+  function isWrapped(element) {
+    return element.clientWidth < element.scrollWidth;
   }
 
   setup(function() {
@@ -391,9 +397,15 @@ suite('shared/js/text_utils.js', function() {
       el.style.fontSize = fontSizeBefore;
 
       el.textContent = setupSmallString(fontSizeBefore);
+
+      document.body.appendChild(el.parentNode);
       FontSizeUtils.autoResizeElement(el);
 
       assert.equal(fontSizeBefore, getComputedStyle(el).fontSize);
+      assert.isFalse(isWrapped(el));
+
+      // Clean up.
+      document.body.removeChild(el.parentNode);
     });
 
     test('Should not resize a medium header title', function() {
@@ -402,9 +414,15 @@ suite('shared/js/text_utils.js', function() {
       el.style.fontSize = fontSizeBefore;
 
       el.textContent = setupMediumString(parseInt(fontSizeBefore));
+
+      document.body.appendChild(el.parentNode);
       FontSizeUtils.autoResizeElement(el);
 
       assert.equal(fontSizeBefore, getComputedStyle(el).fontSize);
+      assert.isFalse(isWrapped(el));
+
+      // Clean up.
+      document.body.removeChild(el.parentNode);
     });
 
     test('Should not resize a barely overflowing header title', function() {
@@ -413,20 +431,15 @@ suite('shared/js/text_utils.js', function() {
       el.style.fontSize = fontSizeBefore;
 
       el.textContent = setupMediumPlusString(parseInt(fontSizeBefore));
+
+      document.body.appendChild(el.parentNode);
       FontSizeUtils.autoResizeElement(el);
 
       assert.equal(fontSizeBefore, getComputedStyle(el).fontSize);
-    });
+      assert.isTrue(isWrapped(el));
 
-    test('Should not resize a barely overflowing header title', function() {
-      var el = setupNonHeaderElement();
-      var fontSizeBefore = '50px';
-      el.style.fontSize = fontSizeBefore;
-
-      el.textContent = setupMediumPlusString(parseInt(fontSizeBefore));
-      FontSizeUtils.autoResizeElement(el);
-
-      assert.equal(fontSizeBefore, getComputedStyle(el).fontSize);
+      // Clean up.
+      document.body.removeChild(el.parentNode);
     });
 
     test('Should not resize to minimum a very long header title', function() {
@@ -435,9 +448,15 @@ suite('shared/js/text_utils.js', function() {
       el.style.fontSize = fontSizeBefore;
 
       el.textContent = setupLargeString(parseInt(fontSizeBefore));
+
+      document.body.appendChild(el.parentNode);
       FontSizeUtils.autoResizeElement(el);
 
       assert.equal(fontSizeBefore, getComputedStyle(el).fontSize);
+      assert.isTrue(isWrapped(el));
+
+      // Clean up.
+      document.body.removeChild(el.parentNode);
     });
   });
 

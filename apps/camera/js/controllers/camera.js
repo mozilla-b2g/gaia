@@ -43,6 +43,7 @@ CameraController.prototype.bindEvents = function() {
 
   // Relaying camera events means other modules
   // don't have to depend directly on camera
+  camera.on('change:previewActive', this.app.firer('camera:previewactive'));
   camera.on('change:videoElapsed', app.firer('camera:recorderTimeUpdate'));
   camera.on('autofocuschanged', app.firer('camera:autofocuschanged'));
   camera.on('focusconfigured',  app.firer('camera:focusconfigured'));
@@ -62,11 +63,12 @@ CameraController.prototype.bindEvents = function() {
 
   // App
   app.on('viewfinder:focuspointchanged', this.onFocusPointChanged);
-  app.on('previewgallery:opened', this.onPreviewGalleryOpened);
-  app.on('previewgallery:closed', this.onPreviewGalleryClosed);
   app.on('change:batteryStatus', this.onBatteryStatusChange);
   app.on('settings:configured', this.onSettingsConfigured);
+  app.on('previewgallery:opened', this.shutdownCamera);
+  app.on('previewgallery:closed', this.onGalleryClosed);
   app.on('storage:changed', this.onStorageChanged);
+  app.on('storage:volumechanged', this.onStorageVolumeChanged);
   app.on('activity:pick', this.onPickActivity);
   app.on('timer:ended', this.capture);
   app.on('visible', this.camera.load);
@@ -341,20 +343,13 @@ CameraController.prototype.onStorageChanged = function(state) {
 };
 
 /**
- * Resets the camera zoom and stops focus when the preview gallery
- * is opened.
+ * For instance, when the storage volume changes from to internal memory
+ * to the SD Card
+ *
+ * @private
  */
-CameraController.prototype.onPreviewGalleryOpened = function() {
-  this.camera.configureZoom(this.camera.previewSize());
-  this.camera.stopFocus();
-};
-
-/**
- * Resumes focus when the preview gallery
- * is opened.
- */
-CameraController.prototype.onPreviewGalleryClosed = function() {
-  this.camera.resumeFocus();
+CameraController.prototype.onStorageVolumeChanged = function(storage) {
+  this.camera.setVideoStorage(storage.video);
 };
 
 /**
@@ -362,6 +357,34 @@ CameraController.prototype.onPreviewGalleryClosed = function() {
  */
 CameraController.prototype.onFocusPointChanged = function(focusPoint) {
   this.camera.updateFocusArea(focusPoint.area);
+};
+
+CameraController.prototype.shutdownCamera = function() {
+  this.camera.stopRecording();
+  this.camera.set('previewActive', false);
+  this.camera.set('focus', 'none');
+  this.camera.release();
+};
+
+/**
+ * As the camera is shutdown when the
+ * preview gallery is opened, we must
+ * reload it when it is closed.
+ *
+ * Although if the app is has been minimised
+ * we do not want to reload the camera as
+ * the hardware must be released when the
+ * app is not visible.
+ *
+ * @private
+ */
+CameraController.prototype.onGalleryClosed = function() {
+  if (this.app.hidden) {
+    return;
+  }
+
+  this.app.showLoading();
+  this.camera.load(this.app.clearLoading);
 };
 
 });

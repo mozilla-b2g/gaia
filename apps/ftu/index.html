@@ -273,11 +273,11 @@
           <form data-type="list">
             <ul>
               <li class="hidden">
-                <input type="text" id="wifi_ssid" value=""></input>
+                <input type="text" id="wifi_ssid" value="" dir="auto"></input>
               </li>
               <li>
                 <label id="label_wifi_user" for="wifi_user" data-l10n-id="identity">User</label>
-                <input type="text" id="wifi_user" data-l10n-id="identityInput" placeholder="User" x-inputmode="verbatim"></input>
+                <input type="text" id="wifi_user" data-l10n-id="identityInput" placeholder="User" x-inputmode="verbatim" dir="auto"></input>
               </li>
               <li>
                 <label for="wifi_password" data-l10n-id="password">Password</label>
@@ -299,7 +299,7 @@
                 <label id="label_wifi_ssid" for="hidden-wifi-ssid" data-l10n-id="ssid-name">
                   SSID Network Name
                 </label>
-                <input type="text" name="wifi_ssid" id="hidden-wifi-ssid"/>
+                <input type="text" name="wifi_ssid" id="hidden-wifi-ssid" dir="auto"/>
               </li>
               <li>
                 <label id="label_wifi_security" for="hidden-wifi-security" data-l10n-id="security">
@@ -318,7 +318,7 @@
                 <label id="label_wifi_identity" for="hidden-wifi-identity" data-l10n-id="identity">
                   Identity
                 </label>
-                <input type="text" name="wifi_identity" id="hidden-wifi-identity"/>
+                <input type="text" name="wifi_identity" id="hidden-wifi-identity" dir="auto"/>
               </li>
               <li>
                 <label id="label_hidden_wifi_password" for="hidden-wifi-password" data-l10n-id="password">
@@ -532,10 +532,11 @@
         </article>
       </section>
       <section role="region" id="sharing-performance-data">
-        <p data-l10n-id='telemetry-sends'>
+        <p data-l10n-id='telemetry-sends2'>
           Telemetry sends Mozilla data about performance, hardware,
-          configurations and customizations in your Browser OS device. We use
-          this to make our products better, faster and more responsive.
+          configurations, customizations and app usage in your
+          Browser OS device. We use this to make our products better,
+          faster and more responsive.
         </p>
         <!-- Links destinations are discussed in https://bugzilla.mozilla.org/show_bug.cgi?id=812956 -->
         <p id='external-link-telemetry'>
@@ -592,8 +593,9 @@
           <label class="pack-checkbox">
             <input type="checkbox" id="share-performance" name="debug.performance_data.shared"/>
             <span></span>
-            <p data-l10n-id="collaborate">
-              I want to help improve Browser OS by sharing data about my phone.
+            <p data-l10n-id="sharePerformanceAndUsageData">
+              I want to help improve Browser OS by sharing data about
+              my phone and the way I use it.
               <a href='#sharing-performance-data' data-l10n-id="learnMore">Learn more.</a>
             </p>
           </label>

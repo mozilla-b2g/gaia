@@ -8,7 +8,7 @@ requireApp('sms/js/attachment_renderer.js');
 requireApp('sms/js/utils.js');
 
 requireApp('sms/test/unit/mock_attachment_menu.js');
-requireApp('sms/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('sms/test/unit/mock_utils.js');
 requireApp('sms/test/unit/mock_moz_activity.js');
 requireApp('sms/test/unit/mock_mime_mapper.js');

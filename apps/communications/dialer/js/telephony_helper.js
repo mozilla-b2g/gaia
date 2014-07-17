@@ -94,6 +94,24 @@ var TelephonyHelper = (function() {
         onerror();
         return;
       } else if (emergencyOnly) {
+        var _ = navigator.mozL10n.get;
+        loadConfirm(function() {
+          ConfirmDialog.show(
+            _('connecting') + ' ...',
+            '',
+            {
+              title: _('emergencyDialogBtnOk'),
+              callback: function() {
+                ConfirmDialog.hide();
+              }
+            }
+          );
+          document.addEventListener('visibilitychange', function hideDialog() {
+            document.removeEventListener('visibilitychange', hideDialog);
+            ConfirmDialog.hide();
+          });
+        });
+
         // If the mobileConnection has a sim card we let gecko take the
         // default service, otherwise we force the first slot.
         cardIndex = hasCard ? undefined : 0;

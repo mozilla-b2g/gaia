@@ -189,7 +189,7 @@ module.exports = View.extend({
       '<div class="capture-button test-capture rotates js-capture" name="capture">' +
         '<div class="circle outer-circle"></div>' +
         '<div class="circle inner-circle"></div>' +
-        '<div class="center icon"></div>' +
+        '<div class="center icon-camera"></div>' +
       '</div>' +
     '</div>' +
     '<div class="controls-right">' +

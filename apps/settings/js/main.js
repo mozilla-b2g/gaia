@@ -54,7 +54,7 @@ require(['config/require'], function() {
 
     /**
      * In two column layout, the root panel should not be deactivated. We pass
-     * the id of the root panel to SettingsService so that it won't deacivate
+     * the id of the root panel to SettingsService so that it won't deactivate
      * the root panel when in two column.
      * XXX: Currently we don't separate the navigation logic of one column and
      *      two column layout, so that the root panel will not be deactivated

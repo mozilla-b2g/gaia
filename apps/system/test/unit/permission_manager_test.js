@@ -4,7 +4,7 @@
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/js/template.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
-requireApp('system/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 

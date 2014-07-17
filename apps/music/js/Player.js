@@ -740,10 +740,18 @@ var PlayerView = {
 
     var startTime = this.audio.startTime;
 
-    var endTime =
-      (this.audio.duration && this.audio.duration != 'Infinity') ?
-      this.audio.duration :
-      this.audio.buffered.end(this.audio.buffered.length - 1);
+    var endTime;
+    // The audio element's duration might be NaN or 'Infinity' if it's not ready
+    // We should get the duration from the buffered parts before the duration
+    // is ready, and be sure to get the buffered parts if there is data in it.
+    if (isNaN(this.audio.duration)) {
+      endTime = 0;
+    } else if (this.audio.duration === Infinity) {
+      endTime = (this.audio.buffered.length > 0) ?
+        this.audio.buffered.end(this.audio.buffered.length - 1) : 0;
+    } else {
+      endTime = this.audio.duration;
+    }
 
     var currentTime = this.audio.currentTime;
 

@@ -42,8 +42,6 @@
 
     _ready: false,
 
-    _screen: document.getElementById('screen'),
-
     /**
      * Homescreen launcher is ready or not. Homescreen launcher is ready
      * only when it is done retrieving 'homescreen.manifestURL'
@@ -131,9 +129,6 @@
       window.addEventListener('cardviewbeforeclose', this);
       window.addEventListener('shrinking-start', this);
       window.addEventListener('shrinking-stop', this);
-      window.addEventListener('homescreenopened', this);
-      window.addEventListener('homescreenclosing', this);
-      window.addEventListener('homescreenclosed', this);
       window.addEventListener('software-button-enabled', this);
       window.addEventListener('software-button-disabled', this);
       return this;
@@ -162,9 +157,6 @@
       window.removeEventListener('cardviewbeforeclose', this);
       window.removeEventListener('shrinking-start', this);
       window.removeEventListener('shrinking-stop', this);
-      window.removeEventListener('homescreenopened', this);
-      window.removeEventListener('homescreenclosing', this);
-      window.removeEventListener('homescreenclosed', this);
       window.removeEventListener('software-button-enabled', this);
       window.removeEventListener('software-button-disabled', this);
       this._started = false;
@@ -220,13 +212,6 @@
         case 'shrinking-stop':
           // To resume the homescreen after shrinking UI is over.
           this.getHomescreen().showFadeOverlay();
-          break;
-        case 'homescreenopened':
-          this._screen.classList.add('on-homescreen');
-          break;
-        case 'homescreenclosing':
-        case 'homescreenclosed':
-          this._screen.classList.remove('on-homescreen');
           break;
         case 'software-button-enabled':
         case 'software-button-disabled':

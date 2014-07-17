@@ -74,11 +74,12 @@ suite('app', function() {
         hud: new this.View({ name: 'hud' })
       },
       controllers: {
+        battery: sinon.spy(),
+        overlay: sinon.spy(),
         hud: sinon.spy(),
         timer: sinon.spy(),
         controls: sinon.spy(),
         viewfinder: sinon.spy(),
-        overlay: sinon.spy(),
         camera: sinon.spy(),
         settings: sinon.spy(),
         activity: sinon.spy(),
@@ -90,7 +91,6 @@ suite('app', function() {
         previewGallery: 'controllers/preview-gallery',
         storage: 'controllers/storage',
         confirm: 'controllers/confirm',
-        battery: 'controllers/battery',
         sounds: 'controllers/sounds'
       }
     };
@@ -175,10 +175,11 @@ suite('app', function() {
       var controllers = this.app.controllers;
       var app = this.app;
 
+      assert.ok(controllers.overlay.calledWith(app));
+      assert.ok(controllers.battery.calledWith(app));
       assert.ok(controllers.hud.calledWith(app));
       assert.ok(controllers.controls.calledWith(app));
       assert.ok(controllers.viewfinder.calledWith(app));
-      assert.ok(controllers.overlay.calledWith(app));
       assert.ok(controllers.camera.calledWith(app));
       assert.ok(controllers.zoomBar.calledWith(app));
     });
@@ -283,7 +284,6 @@ suite('app', function() {
         assert.isTrue(loadController.calledWith(controllers.previewGallery));
         assert.isTrue(loadController.calledWith(controllers.storage));
         assert.isTrue(loadController.calledWith(controllers.confirm));
-        assert.isTrue(loadController.calledWith(controllers.battery));
         assert.isTrue(loadController.calledWith(controllers.sounds));
       });
     });

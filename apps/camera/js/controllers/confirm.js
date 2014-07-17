@@ -51,13 +51,8 @@ ConfirmController.prototype.renderView = function() {
     return;
   }
 
-  // Check whether the MediaFrame should limit the pixel size.
-  var maxPreviewSize =
-    this.settings.previewGallery.get('limitMaxPreviewSize') ?
-    window.CONFIG_MAX_IMAGE_PIXEL_SIZE : 0;
-
   this.confirmView = new this.ConfirmView();
-  this.confirmView.maxPreviewSize = maxPreviewSize;
+  this.confirmView.maxPreviewSize = window.CONFIG_MAX_IMAGE_PIXEL_SIZE;
   this.confirmView.render().appendTo(this.container);
 
   this.confirmView.on('click:select', this.onSelectMedia);

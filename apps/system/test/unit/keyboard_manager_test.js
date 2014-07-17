@@ -1,6 +1,6 @@
 /*global
   KeyboardManager, sinon, KeyboardHelper, MockKeyboardHelper,
-  MocksHelper, TransitionEvent, MockNavigatorSettings */
+  MocksHelper, TransitionEvent, MockNavigatorSettings, Applications */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
@@ -113,6 +113,20 @@ suite('KeyboardManager', function() {
     setupHTML();
 
     KeyboardManager.init();
+
+    window.applications = Applications;
+    window.applications.mRegisterMockApp({
+      manifestURL: 'app://keyboard.gaiamobile.org/manifest.webapp',
+      manifest: {
+        type: 'certified'
+      }
+    });
+    Applications.mRegisterMockApp({
+      manifestURL: 'app://keyboard-test.gaiamobile.org/manifest.webapp',
+      manifest: {
+        type: 'certified'
+      }
+    });
   });
 
   suite('Switching keyboard focus', function() {
@@ -590,6 +604,22 @@ suite('KeyboardManager', function() {
       KeyboardManager.setKeyboardToShow('text');
       fakeMozbrowserResize(200);
       sinon.assert.callCount(handleResize, 1, 'handleResize should be called');
+    });
+
+    test('keyboardFrameContainer is hiding.', function() {
+      // show the keyboar first
+      KeyboardManager.setKeyboardToShow('text');
+      fakeMozbrowserResize(200);
+      dispatchTransitionEvents();
+
+      simulateInputChangeEvent('blur');
+      this.sinon.clock.tick(BLUR_CHANGE_DELAY);
+
+      // fire a resize event again after the keyboard frame is hiding
+      fakeMozbrowserResize(200);
+
+      sinon.assert.callCount(handleResize, 1,
+                             'ignore mozbrowserresize event');
     });
 
     test('Switching keyboard.', function() {

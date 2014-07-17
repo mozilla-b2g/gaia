@@ -1,27 +1,11 @@
-#value-selector {
+.value-selector {
   width: 100%;
-  top: 2.4rem;
+  height: 100%;
+  top: 0;
   bottom: 0;
   left: 0;
   position: absolute;
   transition: visibility 0.5s, opacity 0.5s;
-  display: block;
-}
-
-#value-selector[hidden] {
-  visibility: hidden;
-  opacity: 0;
-}
-
-#screen.active-statusbar #value-selector {
-  height: calc(100% - 4rem);
-  top: 4rem;
-}
-
-#screen:-moz-full-screen-ancestor #value-seletcor,
-#screen.fullscreen-app #value-selector {
-  height: 100%;
-  top: 0;
 }
 
 .value-selector-container li > label {

@@ -69,13 +69,13 @@
   padding-left: 1.4rem;
 }
 
-#event-view .current-calendar .icon-dot {
+#event-view .current-calendar .icon-calendar-dot:before {
   position: absolute;
   left: -2.2rem;
-  line-height: 1.8rem;
+  line-height: 2.3rem;
   font-size: 5rem;
 }
 
 #event-view .current-calendar .content {
-  margin-left: 1rem;
+  margin-left: 1.2rem;
 }

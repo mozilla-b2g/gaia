@@ -52,6 +52,7 @@ ControlsController.prototype.bindEvents = function() {
   this.app.on('newthumbnail', this.onNewThumbnail);
   this.app.on('camera:busy', this.onCameraBusy);
   this.app.on('camera:ready', this.restore);
+  this.app.once('criticalpathdone', this.view.show);
 
   // View
   this.view.on('modechanged', this.onViewModeChanged);

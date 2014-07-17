@@ -9,7 +9,7 @@ require('/js/utils.js');
 require('/test/unit/mock_utils.js');
 
 require('/test/unit/mock_contact.js');
-require('/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 require('/js/contact_renderer.js');
 require('/test/unit/mock_settings.js');

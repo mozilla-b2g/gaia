@@ -99,8 +99,17 @@ define(function(require) {
           id: alarm.id
         });
 
-        if (type === 'normal' && alarm.isRepeating()) {
-          alarm.schedule('normal').then(done);
+        if (type === 'normal') {
+          // The alarm instance doesn't yet know that a mozAlarm has
+          // fired, so we call .cancel() to wipe this mozAlarm ID from
+          // alarm.registeredAlarms().
+          alarm.cancel();
+
+          if (alarm.isRepeating()) {
+            alarm.schedule('normal').then(done);
+          } else {
+            done();
+          }
         } else {
           done();
         }

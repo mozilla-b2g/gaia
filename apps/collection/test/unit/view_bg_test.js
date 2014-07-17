@@ -8,19 +8,9 @@ suite('bg image > ', function() {
   var subject;
   var serverResponse;
 
-  function setServerResponse(data) {
-    serverResponse = {
-      checksum: data.checksum,
-      response: {
-        image: {
-          data: data.src
-        }
-      }
-    };
-  }
-
   // Stub eme api
   window.eme = {
+    log: function() {},
     init: function() {
       return Promise.resolve();
     },
@@ -30,6 +20,13 @@ suite('bg image > ', function() {
           return Promise.resolve(serverResponse);
         }
       }
+    }
+  };
+
+  // Mock Common
+  window.Common = {
+    getBackground: function(collection) {
+      return Promise.resolve(collection.background);
     }
   };
 
@@ -46,8 +43,7 @@ suite('bg image > ', function() {
     serverResponse = {};
   });
 
-  test('no change if checksum matches', function(done) {
-    // mock collection with bg1
+  test('adds isFullSize flag after getBackground', function(done) {
     var mockCollection = {
       background: {
         src: 'foo',
@@ -55,67 +51,8 @@ suite('bg image > ', function() {
       }
     };
 
-    // set server response
-    setServerResponse({
-      checksum: 'foo',
-      src: 'bar'
-    });
+    assert.isUndefined(mockCollection.background.isFullSize);
 
-    // mock ViewBgImage.drawBackground
-    this.sinon.stub(subject, 'drawBackground', function mockDraw(bg) {
-      if (this.drawBackground.callCount === 2) {
-        assert.equal(bg.src, 'foo');
-        done();
-      }
-    });
-
-    /* jshint -W031 */
-    new subject(mockCollection);
-  });
-
-  test('change if no checksum match', function(done) {
-    // mock collection with bg1
-    var mockCollection = {
-      background: {
-        src: 'foo',
-        checksum: 'foo'
-      }
-    };
-
-    // set server response
-    setServerResponse({
-      checksum: 'bar',
-      src: 'bar'
-    });
-
-    // mock ViewBgImage.drawBackground
-    this.sinon.stub(subject, 'drawBackground', function mockDraw(bg) {
-      if (this.drawBackground.callCount === 2) {
-        assert.equal(bg.src, 'bar');
-        done();
-      }
-    });
-
-    /* jshint -W031 */
-    new subject(mockCollection);
-  });
-
-  test('ViewBgImage image response has isFullSize param', function(done) {
-    // mock collection with bg1
-    var mockCollection = {
-      background: {
-        src: 'foo',
-        checksum: 'foo'
-      }
-    };
-
-    // set server response
-    setServerResponse({
-      checksum: 'bar',
-      src: 'bar'
-    });
-
-    // mock ViewBgImage.drawBackground
     this.sinon.stub(subject, 'drawBackground', function mockDraw(bg) {
       if (this.drawBackground.callCount === 1) {
         assert.isUndefined(bg.isFullSize);

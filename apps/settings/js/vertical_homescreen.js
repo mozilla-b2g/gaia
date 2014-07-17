@@ -16,16 +16,6 @@ if (!window.verticalHomescreen) {
       // Listen for search engine selection
       this.searchEngineSelect = document.querySelector(
         '[name="search.urlTemplate"]');
-
-      // Show whether the search suggestions are currently enabled
-      var enabledKey = 'search.suggestions.enabled';
-      var enabledDesc = document.getElementById('suggestions-desc');
-
-      SettingsListener.observe(enabledKey, true, function (enabled) {
-        navigator.mozL10n
-          .localize(enabledDesc, enabled ? 'enabled' : 'disabled');
-      });
-
     }
 
     VerticalHomescreen.prototype = {
@@ -94,7 +84,6 @@ if (!window.verticalHomescreen) {
        */
       populateSearchEngines: function(callback) {
         var xhr = new XMLHttpRequest();
-        xhr.overrideMimeType('text/plain');
         xhr.open('GET', '/resources/search/providers.json', true);
 
         xhr.onload = function () {
@@ -137,20 +126,8 @@ if (!window.verticalHomescreen) {
         var selectFragment = document.createDocumentFragment();
         var optionNode = document.createElement('option');
 
-        var engines = data['default'] || [];
-
-        // Get search engine variant if any.
-        var variant = data.variant;
-        if (variant) {
-          var identifier = this._getConnectionVariant();
-          variant = variant[identifier] ||
-                    variant['000000'] ||
-                    [];
-          engines = engines.concat(variant);
-        }
-
-        for (var i = 0; i < engines.length; i++) {
-          var engine = engines[i];
+        for (var i = 0; i < data.length; i++) {
+          var engine = data[i];
           var option = optionNode.cloneNode();
           option.value = engine.urlTemplate;
           option.text = engine.title;
@@ -160,27 +137,6 @@ if (!window.verticalHomescreen) {
           selectFragment.appendChild(option);
         }
         this.searchEngineSelect.appendChild(selectFragment);
-      },
-
-      _getConnectionVariant: function() {
-        var result = '000000';
-
-        var connections = navigator.mozMobileConnections;
-        if (!connections || !connections.length) {
-          return result;
-        }
-
-        var connection = connections[0];
-        if (!connection || !connection.voice) {
-          return result;
-        }
-
-        var network = connection.voice.network;
-        if (!network) {
-          return result;
-        }
-
-        return network.mnc + '' + network.mcc;
       }
     };
 

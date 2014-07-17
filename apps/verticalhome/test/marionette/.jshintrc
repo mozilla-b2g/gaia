@@ -1,6 +1,7 @@
 {
   "extends": "../../../../.jshintrc",
   "predef": [
+    "__dirname",
     "suite",
     "test",
     "setup",

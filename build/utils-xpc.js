@@ -1,3 +1,8 @@
+'use strict';
+
+/* global require, Services, dump, FileUtils, exports, OS, Promise, Reflect */
+/* jshint -W079, -W118 */
+
 const { Cc, Ci, Cr, Cu, CC } = require('chrome');
 const { btoa } = Cu.import('resource://gre/modules/Services.jsm', {});
 
@@ -6,8 +11,10 @@ Cu.import('resource://gre/modules/FileUtils.jsm');
 Cu.import('resource://gre/modules/Services.jsm');
 Cu.import('resource://gre/modules/osfile.jsm');
 Cu.import('resource://gre/modules/Promise.jsm');
+Cu.import('resource://gre/modules/reflect.jsm');
 
 var utils = require('./utils.js');
+var subprocess = require('sdk/system/child_process/subprocess');
 /**
  * Returns an array of nsIFile's for a given directory
  *
@@ -54,13 +61,14 @@ function isExternalApp(webapp) {
       'false. your metadata.json is in ' + webapp.sourceDirectoryFile.path);
   }
   if (!webapp.metaData || webapp.metaData.external === false) {
-    return false
+    return false;
   } else {
     return true;
   }
 }
 
 function getFileContent(file) {
+  var content;
   try {
     let fileStream = Cc['@mozilla.org/network/file-input-stream;1']
                      .createInstance(Ci.nsIFileInputStream);
@@ -76,7 +84,7 @@ function getFileContent(file) {
     let count = fileStream.available();
     converterStream.readString(count, out);
 
-    var content = out.value;
+    content = out.value;
     converterStream.close();
     fileStream.close();
   } catch (e) {
@@ -91,7 +99,7 @@ function writeContent(file, content) {
   try {
     var fileStream = Cc['@mozilla.org/network/file-output-stream;1']
                        .createInstance(Ci.nsIFileOutputStream);
-    fileStream.init(file, 0x02 | 0x08 | 0x20, 0666, 0);
+    fileStream.init(file, 0x02 | 0x08 | 0x20, parseInt('0666', 8), 0);
 
     let converterStream = Cc['@mozilla.org/intl/converter-output-stream;1']
                             .createInstance(Ci.nsIConverterOutputStream);
@@ -111,8 +119,8 @@ function getFile() {
   try {
     let file = new FileUtils.File(arguments[0]);
     if (arguments.length > 1) {
-      for (let i = 1; i < arguments.length; i++) {
-        let dir = arguments[i];
+      let args = Array.prototype.slice.call(arguments, 1);
+      args.forEach(function(dir) {
         dir.split(/[\\\/]/).forEach(function(name) {
           if (name === '..') {
             file = file.parent;
@@ -120,7 +128,7 @@ function getFile() {
             file.append(name);
           }
         });
-      }
+      });
     }
     return file;
   } catch (e) {
@@ -171,7 +179,7 @@ function getFileAsDataURI(file) {
                     .getTypeFromFile(file);
   var inputStream = Cc['@mozilla.org/network/file-input-stream;1']
                     .createInstance(Ci.nsIFileInputStream);
-  inputStream.init(file, 0x01, 0600, 0);
+  inputStream.init(file, 0x01, parseInt('0600', 8), 0);
   var stream = Cc['@mozilla.org/binaryinputstream;1']
                .createInstance(Ci.nsIBinaryInputStream);
   stream.setInputStream(inputStream);
@@ -277,27 +285,6 @@ function makeWebappsObject(appdirs, domain, scheme, port, stageDir) {
     }
   });
   return apps;
-}
-
-function registerProfileDirectory(profileDir) {
-  let directoryProvider = {
-    getFile: function provider_getFile(prop, persistent) {
-      persistent.value = true;
-      if (prop != 'ProfD' && prop != 'ProfLDS') {
-        throw Cr.NS_ERROR_FAILURE;
-      }
-
-      return new FileUtils.File(profileDir);
-    },
-
-    QueryInterface: XPCOMUtils.generateQI([Ci.nsIDirectoryServiceProvider,
-                                           Ci.nsISupports])
-  };
-
-  Cc['@mozilla.org/file/directory_service;1']
-    .getService(Ci.nsIProperties)
-    .QueryInterface(Ci.nsIDirectoryService)
-    .registerProvider(directoryProvider);
 }
 
 var gaia = {
@@ -731,7 +718,31 @@ function Commander(cmd) {
     }
     callback && callback();
   };
-};
+
+  /**
+   * This function use subprocess module to run command. We can capture stdout
+   * throught it.
+   *
+   * @param {Array} args Arrays of command. ex: ['adb', 'b2g-ps'].
+   * @param {Object} options Callback for stdin, stdout, stderr and done.
+   *
+   * XXXX: Since method "runWithSubprocess" cannot be executed in Promise yet,
+   *       we need to keep original method "run" for push-to-device.js (nodejs
+   *       support). We'll file another bug for migration things.
+   */
+  this.runWithSubprocess = function(args, options) {
+    log('cmd', command + ' ' + args.join(' '));
+    var p = subprocess.call({
+      command: _file,
+      arguments: args,
+      stdin: (options && options.stdin) || function(){},
+      stdout: (options && options.stdout) || function(){},
+      stderr: (options && options.stderr) || function(){},
+      done: (options && options.done) || function(){},
+    });
+    p.wait();
+  };
+}
 
 function getEnv(name) {
   var env = Cc['@mozilla.org/process/environment;1'].
@@ -741,6 +752,7 @@ function getEnv(name) {
 
 // Get PATH of the environment
 function getEnvPath() {
+  var paths;
   var os = getOsType();
   if (!os) {
     throw new Error('cannot not read system type');
@@ -776,25 +788,7 @@ function killAppByPid(appName, gaiaDir) {
 
 function getDocument(content) {
   var DOMParser = CC('@mozilla.org/xmlextras/domparser;1', 'nsIDOMParser');
-  return document = (new DOMParser()).parseFromString(content, 'text/html');
-}
-
-/**
- * Add a file to a zip file with the specified time
- */
-function addEntryFileWithTime(zip, pathInZip, file, time, compression) {
-  if (compression === undefined) {
-    compression = Ci.nsIZipWriter.COMPRESSION_BEST;
-  }
-
-  addToZip(
-    pathInZip, time, compression, fis, false);
-  fis.close();
-}
-
-function addToZip(zip, pathInZip, file, time, compression) {
-  zip.addEntryStream(
-    pathInZip, time || 0, compression, fis, false);
+  return (new DOMParser()).parseFromString(content, 'text/html');
 }
 
 function addEntryContentWithTime(zip, pathInZip, data, time, compression) {
@@ -828,10 +822,8 @@ function getCompression(type) {
   switch(type) {
     case 'none':
       return Ci.nsIZipWriter.COMPRESSION_NONE;
-      break;
     case 'best':
       return Ci.nsIZipWriter.COMPRESSION_BEST;
-      break;
   }
 }
 
@@ -842,10 +834,10 @@ function generateUUID() {
 }
 
 function copyRec(source, target) {
-  var results = [];
   var files = source.directoryEntries;
-  if (!target.exists())
+  if (!target.exists()) {
     target.create(Ci.nsIFile.DIRECTORY_TYPE, parseInt('0755', 8));
+  }
 
   while (files.hasMoreElements()) {
     var file = files.getNext().QueryInterface(Ci.nsILocalFile);
@@ -872,6 +864,21 @@ function removeFiles(dir, filenames) {
     }
   });
 }
+var scriptLoader = {
+  scripts: {},
+  load: function(path, exportObj) {
+    try {
+      if (this.scripts[path]) {
+        return;
+      }
+      Services.scriptloader.loadSubScript(path, exportObj);
+      this.scripts[path] = true;
+    } catch(e) {
+      delete this.scripts[path];
+      throw 'cannot load script from ' + path;
+    }
+  }
+};
 
 exports.Q = Promise;
 exports.ls = ls;
@@ -899,6 +906,8 @@ exports.getOsType = getOsType;
 exports.generateUUID = generateUUID;
 exports.copyRec = copyRec;
 exports.createZip = createZip;
+exports.scriptLoader = scriptLoader;
+exports.scriptParser = Reflect.parse;
 // ===== the following functions support node.js compitable interface.
 exports.deleteFile = deleteFile;
 exports.listFiles = listFiles;

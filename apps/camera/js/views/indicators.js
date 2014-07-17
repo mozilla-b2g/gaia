@@ -26,8 +26,8 @@ module.exports = View.extend({
   template: function() {
     return '<li class="indicator_timer icon-self-timer rotates"></li>' +
     '<li class="indicator_hdr icon-hdr rotates"></li>' +
-    '<li class="indicator_geolocation icon-geolocation rotates"></li>' +
-    '<li class="indicator_battery icon rotates"></li>';
+    '<li class="indicator_geolocation icon-location rotates"></li>' +
+    '<li class="indicator_battery icon-battery-low rotates"></li>';
   }
 });
 

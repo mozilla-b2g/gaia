@@ -4,7 +4,6 @@
 mocha.globals(['AppWindow', 'TextSelectionDialog', 'System', 'BaseUI',
   'layoutManager']);
 
-// requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/test/unit/mock_layout_manager.js');
 requireApp('system/test/unit/mock_app_window.js');
 

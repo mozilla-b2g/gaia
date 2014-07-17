@@ -246,22 +246,19 @@ require([
     /**
      * Helper function. Displays rule info.
      */
-    function cs_displayRule(rules, elementId, settingKey) {
+    function cs_displayRule(rules, elementId) {
       var element = document.getElementById(elementId);
       for (var i = 0; i < rules.length; i++) {
         if (rules[i].active &&
             ((_voiceServiceClassMask & rules[i].serviceClass) != 0)) {
           element.textContent = _('callForwardingForwardingVoiceTo') +
             ' ' + rules[i].number;
-          document.getElementById(
-            'cf-' + settingKey + '-number').disabled = true;
           return;
         }
       }
 
       element.textContent = _('callForwardingNotForwarding');
       element.dataset.l10nId = 'callForwardingNotForwarding';
-      document.getElementById('cf-' + settingKey + '-number').disabled = false;
     }
 
     /**
@@ -566,13 +563,10 @@ require([
               var cfAlertPanel = document.querySelector('#call .cf-alert');
               cfAlertPanel.hidden = false;
             }
-            cs_displayRule(
-              cfOptions['unconditional'], 'cfu-desc', 'unconditional');
-            cs_displayRule(cfOptions['mobilebusy'], 'cfmb-desc', 'mobilebusy');
-            cs_displayRule(cfOptions['noreply'], 'cfnrep-desc', 'noreply');
-            cs_displayRule(
-              cfOptions['notreachable'], 'cfnrea-desc', 'notreachable'
-            );
+            cs_displayRule(cfOptions['unconditional'], 'cfu-desc');
+            cs_displayRule(cfOptions['mobilebusy'], 'cfmb-desc');
+            cs_displayRule(cfOptions['noreply'], 'cfnrep-desc');
+            cs_displayRule(cfOptions['notreachable'], 'cfnrea-desc');
             _getCallForwardingOptionSuccess = true;
             cs_enableTabOnCallerIdItem(true);
             cs_enableTabOnCallWaitingItem(true);

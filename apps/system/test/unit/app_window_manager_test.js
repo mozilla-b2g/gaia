@@ -4,7 +4,7 @@
 'use strict';
 
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
-requireApp('system/test/unit/mock_system.js');
+require('/shared/test/unit/mocks/mock_system.js');
 requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_activity_window.js');
@@ -31,9 +31,17 @@ suite('system/AppWindowManager', function() {
   mocksForAppWindowManager.attachTestHelpers();
   var stubById;
   var app1, app2, app3, app4, app5, app6, app7, home;
+
+  var screenElement = document.createElement('div');
+
   setup(function(done) {
-    stubById = this.sinon.stub(document, 'getElementById');
-    stubById.returns(document.createElement('div'));
+    stubById = this.sinon.stub(document, 'getElementById', function(id) {
+      if (id === 'screen') {
+        return screenElement;
+      }
+
+      return document.createElement('div');
+    });
 
     window.layoutManager = new window.LayoutManager();
 
@@ -184,6 +192,22 @@ suite('system/AppWindowManager', function() {
       });
       assert.isTrue(stub_updateActiveApp.calledWith(home.instanceID));
     });
+
+    test('Topmost app should be notified about inputmethod-contextchange ' +
+      'mozChromeEvent', function() {
+        var stubInputMethodContextChange = this.sinon.stub(app1, 'broadcast');
+        var detail = {
+          type: 'inputmethod-contextchange'
+        };
+        this.sinon.stub(app1, 'getTopMostWindow').returns(app1);
+        AppWindowManager._activeApp = app1;
+        AppWindowManager.handleEvent({
+          type: 'mozChromeEvent',
+          detail: detail
+        });
+        assert.isTrue(stubInputMethodContextChange.calledWith(
+          'inputmethod-contextchange', detail));
+      });
 
     test('When permission dialog is closed, we need to focus the active app',
       function() {
@@ -693,6 +717,12 @@ suite('system/AppWindowManager', function() {
       MockSettingsListener.mCallbacks['continuous-transition.enabled'](true);
       assert.isTrue(AppWindowManager.continuousTransition);
     });
+
+    test('app-themecolor.enabled', function() {
+      MockSettingsListener.mCallbacks['app-themecolor.enabled'](true);
+
+      assert.isTrue(screenElement.classList.contains('themecolor-active'));
+    });
   });
 
   suite('linkWindowActivity', function() {
@@ -703,19 +733,7 @@ suite('system/AppWindowManager', function() {
       this.sinon.stub(homescreenLauncher, 'getHomescreen').returns(app2);
     });
 
-    test('caller is system app, we would go to homescreen', function() {
-      // callee is app7, caller is homescreen
-      injectRunningApps(app7);
-      fakeAppConfig.parentApp = window.location.origin;
-
-      AppWindowManager.linkWindowActivity(fakeAppConfig);
-
-      assert.deepEqual(app2.calleeWindow, app7);
-      assert.deepEqual(app7.callerWindow, app2);
-      assert.isTrue(homescreenLauncher.getHomescreen.called);
-    });
-
-    test('caller is not system app, we would go back to original app',
+    test('Whatever caller is, we would go back to original app',
       function() {
         // callee is app7, caller is app2
         injectRunningApps(app7);

@@ -90,8 +90,15 @@ class GaiaApps(object):
         assert result, "Failed to kill app with name '%s'" % app.name
 
     def kill_all(self):
+        # First we attempt to kill the FTU, we treat it as a user app
+        for app in self.running_apps(include_system_apps=True):
+            if app.origin == 'app://ftu.gaiamobile.org':
+                self.kill(app)
+                break
+
+        # Now kill the user apps
         self.marionette.switch_to_frame()
-        self.marionette.execute_async_script("GaiaApps.killAll()")
+        self.marionette.execute_async_script("GaiaApps.killAll();")
 
     @property
     def installed_apps(self):
@@ -111,11 +118,17 @@ class GaiaApps(object):
                     name=app['manifest']['name']))
         return result
 
-    @property
-    def running_apps(self):
+    def running_apps(self, include_system_apps=False):
+        '''  Returns a list of running apps
+        Args:
+            include_system_apps: Includes otherwise hidden System apps in the list
+        Returns:
+            A list of GaiaApp objects representing the running apps.
+        '''
+        include_system_apps = json.dumps(include_system_apps)
         self.marionette.switch_to_frame()
         apps = self.marionette.execute_script(
-            'return GaiaApps.getRunningApps();')
+            "return GaiaApps.getRunningApps(%s);" % include_system_apps)
         result = []
         for app in [a[1] for a in apps.items()]:
             result.append(GaiaApp(origin=app['origin'], name=app['name']))
@@ -357,6 +370,7 @@ class GaiaData(object):
         return files
 
     def send_sms(self, number, message):
+        self.marionette.switch_to_frame()
         import json
         number = json.dumps(number)
         message = json.dumps(message)
@@ -517,12 +531,15 @@ class GaiaDevice(object):
         self.marionette.wait_for_port()
         self.marionette.start_session()
 
-        # Wait for the homescreen to finish loading
-        Wait(self.marionette, timeout).until(expected.element_present(
-            By.CSS_SELECTOR, '#homescreen[loading-state=false]'))
+        self.wait_for_b2g_ready(timeout)
 
         # Reset the storage path for desktop B2G
         self._set_storage_path()
+
+    def wait_for_b2g_ready(self, timeout):
+        # Wait for the homescreen to finish loading
+        Wait(self.marionette, timeout).until(expected.element_present(
+            By.CSS_SELECTOR, '#homescreen[loading-state=false]'))
 
     @property
     def is_b2g_running(self):
@@ -626,6 +643,39 @@ class GaiaDevice(object):
         result = self.marionette.execute_async_script('GaiaLockScreen.unlock()')
         assert result, 'Unable to unlock screen'
 
+    def change_orientation(self, orientation):
+        """  There are 4 orientation states which the phone can be passed in:
+        portrait-primary(which is the default orientation), landscape-primary, portrait-secondary and landscape-secondary
+        """
+        self.marionette.execute_async_script("""
+            if (arguments[0] === arguments[1]) {
+              marionetteScriptFinished();
+            }
+            else {
+              var expected = arguments[1];
+              window.screen.onmozorientationchange = function(e) {
+                console.log("Received 'onmozorientationchange' event.");
+                waitFor(
+                  function() {
+                    window.screen.onmozorientationchange = null;
+                    marionetteScriptFinished();
+                  },
+                  function() {
+                    return window.screen.mozOrientation === expected;
+                  }
+                );
+              };
+              console.log("Changing orientation to '" + arguments[1] + "'.");
+              window.screen.mozLockOrientation(arguments[1]);
+            };""", script_args=[self.screen_orientation, orientation])
+
+    @property
+    def screen_width(self):
+        return self.marionette.execute_script('return window.screen.width')
+
+    @property
+    def screen_orientation(self):
+        return self.marionette.execute_script('return window.screen.mozOrientation')
 
 class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
     def __init__(self, *args, **kwargs):
@@ -742,7 +792,7 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
         if self.data_layer.get_setting('lockscreen.enabled'):
             self.device.unlock()
 
-        # kill any open apps
+        # kill the FTU and any open, user-killable apps
         self.apps.kill_all()
 
         if full_reset:
@@ -819,40 +869,6 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
 
     def resource(self, filename):
         return os.path.abspath(os.path.join(os.path.dirname(__file__), 'resources', filename))
-
-    def change_orientation(self, orientation):
-        """  There are 4 orientation states which the phone can be passed in:
-        portrait-primary(which is the default orientation), landscape-primary, portrait-secondary and landscape-secondary
-        """
-        self.marionette.execute_async_script("""
-            if (arguments[0] === arguments[1]) {
-              marionetteScriptFinished();
-            }
-            else {
-              var expected = arguments[1];
-              window.screen.onmozorientationchange = function(e) {
-                console.log("Received 'onmozorientationchange' event.");
-                waitFor(
-                  function() {
-                    window.screen.onmozorientationchange = null;
-                    marionetteScriptFinished();
-                  },
-                  function() {
-                    return window.screen.mozOrientation === expected;
-                  }
-                );
-              };
-              console.log("Changing orientation to '" + arguments[1] + "'.");
-              window.screen.mozLockOrientation(arguments[1]);
-            };""", script_args=[self.screen_orientation, orientation])
-
-    @property
-    def screen_width(self):
-        return self.marionette.execute_script('return window.screen.width')
-
-    @property
-    def screen_orientation(self):
-        return self.marionette.execute_script('return window.screen.mozOrientation')
 
     def wait_for_element_present(self, by, locator, timeout=None):
         return Wait(self.marionette, timeout, ignored_exceptions=NoSuchElementException).until(

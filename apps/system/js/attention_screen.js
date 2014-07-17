@@ -27,6 +27,14 @@ var AttentionScreen = {
             !this.mainScreen.classList.contains('active-statusbar'));
   },
 
+  get statusHeight() {
+    if (this.isVisible() && !this.isFullyVisible()) {
+      return this.attentionScreen.getBoundingClientRect().height;
+    }
+
+    return 0;
+  },
+
   init: function as_init() {
     window.addEventListener('mozbrowseropenwindow', this.open.bind(this), true);
 

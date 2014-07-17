@@ -142,8 +142,8 @@ Collection.prototype = {
     asyncStorage.getItem('evme-collectionsettings_' + this.id, function(data) {
       if (data && data.value) {
         data = data.value;
-        descriptor.name = data.name;
-        descriptor.cName = data.name.toLowerCase();
+        descriptor.name = data.name || descriptor.name || '';
+        descriptor.cName = descriptor.name.toLowerCase();
         descriptor.background = data.bg;
         descriptor.categoryId = data.experienceId || descriptor.categoryId;
         descriptor.query = data.query;

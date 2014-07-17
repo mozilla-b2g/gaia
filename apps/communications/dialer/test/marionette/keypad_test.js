@@ -56,7 +56,20 @@ marionette('Dialer > Keypad', function() {
     });
   }
 
+  function loadSuggestionDOM() {
+    typeNumber();
+
+    var del = subject.client.findElement(selectors.del);
+    actions.longPress(del, 1).perform();
+
+    var number = subject.client.findElement(selectors.phoneNumber);
+    client.waitFor(function() {
+      return (number.getAttribute('value') === '');
+    });
+  }
+
   test('Entering a 3 digits number with the keypad', function() {
+    loadSuggestionDOM();
     reflowHelper.startTracking(Dialer.URL + '/manifest.webapp');
     typeNumber();
 

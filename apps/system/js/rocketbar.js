@@ -186,7 +186,7 @@
       window.addEventListener('appopened', this);
       window.addEventListener('homescreenopened', this);
       window.addEventListener('stackchanged', this);
-      window.addEventListener('searchcrashed', this);
+      window.addEventListener('searchterminated', this);
       window.addEventListener('permissiondialoghide', this);
       window.addEventListener('launchactivity', this, true);
 
@@ -256,8 +256,8 @@
         case 'launchactivity':
           this.handleActivity(e);
           break;
-        case 'searchcrashed':
-          this.handleSearchCrashed(e);
+        case 'searchterminated':
+          this.handleSearchTerminated(e);
           break;
         case 'touchstart':
         case 'touchmove':
@@ -433,8 +433,8 @@
      * @memberof Rocketbar.prototype
      */
     showResults: function() {
-      if (this.searchWindow) {
-        this.searchWindow._setVisible(true);
+      if (this.searchWindow && !this.searchWindow.isDead()) {
+        this.searchWindow.open();
       }
       this.results.classList.remove('hidden');
     },
@@ -445,7 +445,7 @@
      */
     hideResults: function() {
       if (this.searchWindow) {
-        this.searchWindow._setVisible(false);
+        this.searchWindow.close();
         this.searchWindow.hideContextMenu();
       }
 
@@ -851,10 +851,10 @@
     },
 
     /**
-     * Handles when the search app crashes.
+     * Handles when the search app terminates.
      * @memberof Rocketbar.prototype
      */
-    handleSearchCrashed: function(e) {
+    handleSearchTerminated: function(e) {
       if (!this.searchWindow) {
         return;
       }

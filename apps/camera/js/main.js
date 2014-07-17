@@ -10,6 +10,7 @@ var GeoLocation = require('lib/geo-location');
 var settingsData = require('config/config');
 var settings = new Settings(settingsData);
 var Camera = require('lib/camera/camera');
+var Pinch = require('lib/pinch');
 var App = require('app');
 
 // Log dom-loaded to keep perf on our radar
@@ -28,6 +29,7 @@ if (settingsData.globals) {
 var app = window.app = new App({
   settings: settings,
   geolocation: new GeoLocation(),
+  Pinch: Pinch,
 
   el: document.body,
   doc: document,
@@ -38,11 +40,12 @@ var app = window.app = new App({
   }),
 
   controllers: {
+    overlay: require('controllers/overlay'),
+    battery: require('controllers/battery'),
     hud: require('controllers/hud'),
     controls: require('controllers/controls'),
     viewfinder: require('controllers/viewfinder'),
     recordingTimer: require('controllers/recording-timer'),
-    overlay: require('controllers/overlay'),
     settings: require('controllers/settings'),
     activity: require('controllers/activity'),
     camera: require('controllers/camera'),
@@ -53,9 +56,8 @@ var app = window.app = new App({
     previewGallery: 'controllers/preview-gallery',
     storage: 'controllers/storage',
     confirm: 'controllers/confirm',
-    battery: 'controllers/battery',
     sounds: 'controllers/sounds',
-    timer: 'controllers/timer',
+    timer: 'controllers/timer'
   }
 });
 

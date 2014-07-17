@@ -52,7 +52,8 @@ requireApp('settings/js/vendor/alameda.js', (function() {
         exports: 'MockKeyboardHelper'
       },
       'shared_mocks/mock_settings_listener': {
-        exports: 'MockSettingsListener'
+        exports: 'MockSettingsListener',
+        deps: ['shared_mocks/mock_navigator_moz_settings']
       },
       'shared_mocks/mock_permission_settings': {
         exports: 'MockPermissionSettings'

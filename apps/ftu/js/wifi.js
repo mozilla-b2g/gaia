@@ -109,7 +109,9 @@ var WifiManager = {
   connect: function wn_connect(ssid, password, user) {
     var network = this.getNetwork(ssid);
     this.ssid = ssid;
-    WifiHelper.setPassword(network, password, user);
+    // TODO: Hardcoded for resolving bug 1019146, replace hardcoded eap
+    //       method with user selected eap method after bug 1036829.
+    WifiHelper.setPassword(network, password, user, 'PEAP');
     this.gCurrentNetwork = network;
     this.api.associate(network);
   },

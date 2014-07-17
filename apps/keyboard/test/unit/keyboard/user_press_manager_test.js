@@ -567,7 +567,7 @@ suite('UserPressManager', function() {
       el2 = new MockEventTarget();
       var touchstartEvent2 = {
         type: 'touchstart',
-        target: el,
+        target: el2,
         changedTouches: [
           {
             target: el2,
@@ -845,6 +845,127 @@ suite('UserPressManager', function() {
           pageX: 220,
           pageY: 230
         }, 1]);
+
+      manager.stop();
+    });
+  });
+
+  suite('two touches on the same element', function() {
+    var manager, el;
+
+    setup(function() {
+      manager = new UserPressManager(app);
+      manager.onpressstart = this.sinon.stub();
+      manager.onpressmove = this.sinon.stub();
+      manager.onpressend = this.sinon.stub();
+      manager.start();
+
+      el = new MockEventTarget();
+      this.sinon.stub(el, 'removeEventListener');
+      var touchstartEvent = {
+        type: 'touchstart',
+        target: el,
+        changedTouches: [
+          {
+            target: el,
+            identifier: 0,
+            pageX: 100,
+            pageY: 110
+          }
+        ]
+      };
+      container.dispatchEvent(touchstartEvent);
+
+      assert.isTrue(manager.onpressstart.calledOnce);
+      assert.deepEqual(manager.onpressstart.getCall(0).args,
+        [{
+          target: el,
+          moved: false,
+          pageX: 100,
+          pageY: 110
+        }, 0]);
+
+      var touchstartEvent2 = {
+        type: 'touchstart',
+        target: el,
+        changedTouches: [
+          {
+            target: el,
+            identifier: 1,
+            pageX: 200,
+            pageY: 210
+          }
+        ]
+      };
+      container.dispatchEvent(touchstartEvent2);
+
+      assert.isTrue(manager.onpressstart.calledTwice);
+      assert.equal(manager.presses.size, 2);
+      assert.deepEqual(manager.onpressstart.getCall(1).args,
+        [{
+          target: el,
+          moved: false,
+          pageX: 200,
+          pageY: 210
+        }, 1]);
+
+      document.elementFromPoint.withArgs(100, 110).returns(el);
+      document.elementFromPoint.withArgs(200, 210).returns(el);
+    });
+
+    test('without moving, touchend', function() {
+      var touchendEvent = {
+        type: 'touchend',
+        target: el,
+        changedTouches: [
+          {
+            target: el,
+            identifier: 0,
+            pageX: 100,
+            pageY: 110
+          }
+        ]
+      };
+      el.dispatchEvent(touchendEvent);
+
+      assert.isTrue(manager.onpressend.calledOnce);
+      assert.equal(manager.presses.size, 1);
+      assert.deepEqual(manager.onpressend.getCall(0).args,
+        [{
+          target: el,
+          moved: false,
+          pageX: 100,
+          pageY: 110
+        }, 0]);
+
+      var touchendEvent2 = {
+        type: 'touchend',
+        target: el,
+        changedTouches: [
+          {
+            target: el,
+            identifier: 1,
+            pageX: 200,
+            pageY: 210
+          }
+        ]
+      };
+      el.dispatchEvent(touchendEvent2);
+
+      assert.isTrue(manager.onpressend.calledTwice);
+      assert.equal(manager.presses.size, 0);
+      assert.deepEqual(manager.onpressend.getCall(1).args,
+        [{
+          target: el,
+          moved: false,
+          pageX: 200,
+          pageY: 210
+        }, 1]);
+
+      assert.isTrue(el.removeEventListener.calledWith('touchmove'));
+      assert.isTrue(el.removeEventListener.calledWith('touchend'));
+      assert.isTrue(el.removeEventListener.calledWith('touchcancel'));
+      assert.equal(el.removeEventListener.callCount, 3);
 
       manager.stop();
     });

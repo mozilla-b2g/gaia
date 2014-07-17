@@ -8,9 +8,9 @@ var utils = require('utils');
 function execute(config) {
   var init = utils.getFile(config.STAGE_APP_DIR, 'js', 'config.js');
   var content = {
-    'api_url': 'https://fmd.stage.mozaws.net',
+    'api_url': 'https://find.firefox.com',
     'api_version': '1',
-    'audience_url': 'https://oauth.stage.mozaws.net/v1'
+    'audience_url': 'https://oauth.accounts.firefox.com/v1'
   };
 
   var distDir = config.GAIA_DISTRIBUTION_DIR;

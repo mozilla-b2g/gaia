@@ -9,7 +9,11 @@
 }
 
 .suggestion-bar[hidden] {
-  display: none;
+  opacity: 0;
+}
+
+.suggestion-bar[hidden] .suggestion-count {
+  pointer-events: none;
 }
 
 .suggestion-count {

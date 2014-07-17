@@ -1,7 +1,4 @@
-/* global SettingsURL */
-/* global SettingsListener */
-/* global DUMP */
-/* global SettingsHelper */
+/* global DUMP, Promise, SettingsHelper, SettingsListener, SettingsURL */
 
 'use strict';
 
@@ -146,19 +143,164 @@ var Commands = {
       });
     },
 
+    // TODO: extract utils out to a separate file
     erase: function fmdc_erase(reply) {
-      var wiped = 0;
-      var toWipe = ['apps', 'pictures', 'sdcard', 'videos', 'music', 'crashes'];
+      // storage that doesn't live on an sdcard
+      var storageTypes = ['apps', 'crashes'];
+      var processed = [];
 
-      function cursor_onsuccess(target, ds) {
+      var sdcards = navigator.getDeviceStorages('sdcard');
+      sdcards.forEach(function(card, i) {
+        var donePromise = new Promise(function(resolve, reject) {
+          formatCard(card, resolve);
+        });
+        processed.push(donePromise);
+      });
+
+      storageTypes.forEach(function(storage) {
+        // some of the returned deviceStorages will be pictures or videos on
+        // an sdcard. we are separately formatting the sdcards, so here
+        // we want to ignore those. if storage is on an sdcard, then
+        // storage.canBeFormatted == true.
+        var deviceStorages = navigator.getDeviceStorages(storage);
+        deviceStorages.forEach(function(ds, i) {
+          if (ds === null || ds.canBeFormatted) {
+            return;
+          }
+          var id = storage + i;
+          var donePromise = new Promise(function(resolve, reject) {
+            var cursor = ds.enumerate();
+            cursor.onsuccess = cursor_onsuccess(id, ds, resolve);
+            cursor.onerror = cursor_onerror(id, resolve);
+          });
+          processed.push(donePromise);
+        });
+      });
+
+      Promise.all(processed).then(resetDevice);
+
+      function resetDevice(messages) {
+        // Promise.all will pass in an array of messages, one per resolved
+        // promise - we use this to pass back error responses
+        messages.forEach(function(msg) {
+          if (msg) {
+            DUMP(msg);
+          }
+        });
+
+        DUMP('all storages processed, starting factory reset!');
+        navigator.mozPower.factoryReset();
+
+        // factoryReset() won't return, unless we're testing,
+        // in which case mozPower is a mock. The reply() below
+        // is thus only used for testing.
+        reply(true);
+      }
+
+      /* the utils. to be extracted into a separate file. */
+
+      // state transitions: from gonk DeviceStorage / the brain of dhylands
+      //
+      // There are 4 final states, and they are all handled by formatCard.
+      // We implicitly handle the 4 temporary states by just continuing to
+      // poll if we encounter them.
+      //
+      // Handling the final states:
+      //
+      // Shared:
+      // When a card is Shared, that means USB is connected. For now, bail.
+      // (We *could* wait a really long time for the status to change.)
+      //
+      // NoMedia:
+      // Similarly, if no card is found, NoMedia is the state we get. Bail.
+      //
+      // Mounted:
+      // If a card is Mounted, we want to unmount it, then wait for it to
+      // transition Mounted -> Unmounting -> Idle. So we will call unmount(),
+      // then just poll until it goes Idle. The AutoMounter detects that we
+      // asked to unmount this volume, so it will leave it alone (compare the
+      // notes for the on_format_success method).
+      //
+      // Idle:
+      // Finally, if a card is Idle, then there are no open files, and we can
+      // safely format it. We use the on_format_success method to handle the
+      // post-format() states.
+      function formatCard(card, cb) {
+        var count = 0;
+        // 30 rounds of 1 second each = 30 seconds
+        var interval = 1000;
+        var maxCount = 30;
+        function _poll() {
+          var statusReq = card.storageStatus();
+          statusReq.onerror =
+          statusReq.onsuccess = function on_storage_status() {
+            var status = this.result;
+            count++;
+            if (count > maxCount) {
+              return cb('Error: timeout waiting to format card ' +
+                        card.storageName);
+            } else if (status === 'Idle') {
+              var formatReq = card.format();
+              formatReq.onsuccess =
+                on_format_success.bind(null, card, cb);
+              // give up if formatting fails to start
+              formatReq.onerror = function sdcard_format_error() {
+                cb('Unable to format card ' + card.storageName);
+              };
+              return;
+            } else if (status === 'Shared' || status === 'NoMedia') {
+              return cb('Unable to format ' + card.storageName +
+                        ', status is ' + status);
+            } else if (status === 'Mounted') {
+              card.unmount();
+              // restart the timer to give the card plenty of time to unmount
+              count = 0;
+            }
+            // either we just unmounted, or we are in a temporary state
+            setTimeout(_poll, interval);
+          };
+        }
+        _poll();
+      }
+
+      // state transitions: after format() is called, if this callback is
+      // fired, we know the device is being formatted, but isn't necessarily
+      // done yet. The device.status state goes from Idle to Formatting, and
+      // when it's done formatting, from Formatting to Idle, but the
+      // AutoMounter will detect the Idle and rapidly mount the device. This
+      // means the device will change states again - but we know the state will
+      // no longer be Formatting, so, if status !== 'Formatting', we're done.
+      function on_format_success(c, cb) {
+        var count = 0;
+        // 120 rounds of 30 seconds = 60 minutes
+        var interval = 30 * 1000;
+        var maxCount = 120;
+        function _poll() {
+          var req = c.storageStatus();
+          req.onerror =
+          req.onsuccess = function on_storage_status() {
+            var status = this.result;
+            count++;
+            if (count > maxCount) {
+              return cb('Timeout: formatting ' + c.storageName +
+                        ' took over 1 hour');
+            } else if (status !== 'Formatting') {
+              return cb();
+            }
+            setTimeout(_poll, interval);
+          };
+        }
+        _poll();
+      }
+
+      function cursor_onsuccess(target, ds, cb) {
         return function() {
           var cursor = this;
           var file = cursor.result;
 
           if (!file) {
-            DUMP('enumerating ' + target + ' resulted in a null file?');
-            cursor.continue();
-            return;
+            return cb('onsuccess called with null file, done enumerating ' +
+                 target);
           }
 
           DUMP('deleting: ' + file.name);
@@ -167,47 +309,15 @@ var Commands = {
           request.onsuccess =
           request.onerror = function fmdc_delete_complete() {
             DUMP('done deleting ' + file.name);
-            if (!cursor.done) {
-              cursor.continue();
-              return;
-            }
-
-            DUMP('done wiping ' + target);
-            if (++wiped == toWipe.length) {
-              DUMP('all targets wiped, starting factory reset!');
-              navigator.mozPower.factoryReset();
-
-              // factoryReset() won't return, unless we're testing,
-              // in which case mozPower is a mock. The reply() below
-              // is thus only used for testing.
-              reply(true);
-            }
+            cursor.continue();
           };
         };
       }
 
-      function cursor_onerror(target) {
+      function cursor_onerror(target, cb) {
         return function() {
-          DUMP('wipe failed to acquire cursor for ' + target);
-          wiped++;
+          cb('wipe failed to acquire cursor for ' + target);
         };
-      }
-
-      toWipe = toWipe.filter(function wipe_storage(storage) {
-        var ds = navigator.getDeviceStorage(storage);
-        if (ds !== null) {
-          var cursor = ds.enumerate();
-          cursor.onsuccess = cursor_onsuccess(storage, ds);
-          cursor.onerror = cursor_onerror(storage);
-        }
-
-        return ds !== null;
-      });
-
-      if (toWipe.length === 0) {
-        DUMP('No storages on device, starting factory reset!');
-        navigator.mozPower.factoryReset();
-        reply(true);
       }
     },
 

@@ -24,6 +24,7 @@ suite('controllers/overlay', function() {
       pick: false,
       cancel: sinon.spy()
     };
+    this.app.localized.returns(true);
 
     this.app.l10nGet.withArgs('nocard2-title').returns('nocard title');
     this.app.l10nGet.withArgs('nocard3-text').returns('nocard body');
@@ -95,6 +96,13 @@ suite('controllers/overlay', function() {
       this.controller.createOverlay('unavailable');
       assert.isTrue(this.OverlayProto.appendTo.calledWith(document.body));
     });
+
+    test('Should show spinner if the application is not localized', function() {
+      this.app.localized.returns(false);
+      this.controller.createOverlay('shutdown');
+      assert.isTrue(this.app.showLoading.called);
+    });
+
   });
 
   suite('OverlayController#getOverlayData()', function() {

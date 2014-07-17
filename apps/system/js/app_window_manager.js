@@ -85,7 +85,7 @@
         homescreenLauncher.getHomescreen(true);
 
       if (!appNext) {
-        console.warn('no next app.');
+        this.debug('no next app.');
         return;
       }
 
@@ -99,7 +99,7 @@
 
       if (appCurrent && appCurrent.instanceID == appNext.instanceID) {
         // Do nothing.
-        console.warn('the app has been displayed.');
+        this.debug('the app has been displayed.');
         return;
       }
 
@@ -249,6 +249,8 @@
       window.addEventListener('appopening', this);
       window.addEventListener('localized', this);
 
+      window.addEventListener('mozChromeEvent', this);
+
       this._settingsObserveHandler = {
         // continuous transition controlling
         'continuous-transition.enabled': {
@@ -269,6 +271,13 @@
               this.broadcastMessage('kill_suspended');
             }
           }.bind(this)
+        },
+
+        'app-themecolor.enabled': {
+          defaultValue: false,
+          callback: function(value) {
+            screenElement.classList.toggle('themecolor-active', value);
+          }
         }
       };
 
@@ -315,6 +324,7 @@
       window.removeEventListener('permissiondialoghide', this);
       window.removeEventListener('appopening', this);
       window.removeEventListener('localized', this);
+      window.removeEventListener('mozChromeEvent', this);
 
       for (var name in this._settingsObserveHandler) {
         SettingsListener.unobserve(
@@ -537,10 +547,21 @@
           if (document.mozFullScreen) {
             document.mozCancelFullScreen();
           }
+          activeApp && activeApp.getTopMostWindow().broadcast(
+            'sheetstransitionstart');
           break;
 
         case 'localized':
           this.broadcastMessage('localized');
+          break;
+
+        case 'mozChromeEvent':
+          if (!activeApp || !evt.detail ||
+            evt.detail.type !== 'inputmethod-contextchange') {
+            return;
+          }
+          activeApp.getTopMostWindow().broadcast('inputmethod-contextchange',
+            evt.detail);
           break;
       }
     },
@@ -629,16 +650,7 @@
     linkWindowActivity: function awm_linkWindowActivity(config) {
       var caller;
       var callee = this.getApp(config.origin);
-      var origin = window.location.origin;
-
-      // if caller is system app, we would change the caller to homescreen
-      // so that we won't go back to the wrong place
-      if (config.parentApp && config.parentApp.match(origin)) {
-        caller = homescreenLauncher.getHomescreen(true);
-      } else {
-        caller = this._activeApp.getTopMostWindow();
-      }
-
+      caller = this._activeApp.getTopMostWindow();
       callee.callerWindow = caller;
       caller.calleeWindow = callee;
     },
@@ -686,7 +698,7 @@
     _updateActiveApp: function awm__changeActiveApp(instanceID) {
       this._activeApp = this._apps[instanceID];
       if (!this._activeApp) {
-        console.warn('no active app alive: ', instanceID);
+        this.debug('no active app alive: ' + instanceID);
       }
       if (this._activeApp && this._activeApp.isFullScreen()) {
         screenElement.classList.add('fullscreen-app');

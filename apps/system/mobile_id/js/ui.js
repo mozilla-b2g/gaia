@@ -9,6 +9,7 @@
       verificationCodeInput, msisdnInput,
       msisdnAutomaticOptions, typeMSISDNButton,
       selectAutomaticOptionsButton, msisdnContainer,
+      legend, legendParent,
       countryCodesSelect, verificationPanel,
       msisdnSelectionPanel, verificationCodeTimer,
       stepsExplanation, verificationExplanation,
@@ -134,14 +135,24 @@
         if (xhr.status === 0 || xhr.status === 200) {
           // Cache the CC
           countryCodes = xhr.response;
+
+          var sortedObject = _sortCountriesByFullName();
           // Clean the <select> element
           countryCodesSelect.innerHTML = '';
-          // Per country, we show it CC
+          // Per country, we show its country name (`full`)
           var ccFragment = document.createDocumentFragment();
-          Object.keys(countryCodes).forEach(function(country) {
+          var added = {};
+          sortedObject.forEach(function(country) {
+            var mcc = country[0];
+            // Do not re-add countries (like USA, which has more than one mcc)
+            if (added[countryCodes[mcc].code]) {
+              return;
+            }
             var option = document.createElement('option');
-            option.textContent = countryCodes[country].prefix;
-            option.value = country;
+            option.textContent = countryCodes[mcc].full + ' (' +
+              countryCodes[mcc].prefix + ')';
+            option.value = mcc;
+            added[countryCodes[mcc].code] = true;
             ccFragment.appendChild(option);
           });
 
@@ -154,6 +165,17 @@
     xhr.open('GET', ' resources/mcc.json', true);
     xhr.responseType = 'json';
     xhr.send();
+  }
+
+  function _sortCountriesByFullName() {
+    var sorted = [];
+    for (var mcc in countryCodes) {
+      sorted.push([mcc, countryCodes[mcc].full]);
+    }
+    sorted = sorted.sort(function compareFunction(a, b) {
+      return a[1] > b[1];
+    });
+    return sorted;
   }
 
   function _getIdentitySelected() {
@@ -228,6 +250,8 @@
       selectAutomaticOptionsButton =
         document.getElementById('do-automatic-msisdn');
       msisdnContainer = document.querySelector('.msisdn-selection-wrapper');
+      legend = document.getElementById('legend');
+      legendParent = document.getElementById('legend-parent');
       countryCodesSelect = document.getElementById('country-codes-select');
       verificationPanel = document.querySelector('.verification-panel');
       msisdnSelectionPanel = document.querySelector('.msisdn-selection-panel');
@@ -325,6 +349,25 @@
           // code is accepted, we are ready to close the flow.
           Controller.postCloseAction(isVerified);
         }.bind(this)
+      );
+
+      countryCodesSelect.addEventListener(
+        'blur',
+        function onSelectBlur() {
+          countryCodesSelect.hidden = true;
+          legend.innerHTML = countryCodes[countryCodesSelect.value].prefix;
+          return;
+        }
+      );
+
+      legendParent.addEventListener(
+        'click',
+        function onLegendClick() {
+          countryCodesSelect.click();
+          countryCodesSelect.focus();
+          countryCodesSelect.hidden = false;
+          return;
+        }
       );
     },
     localize: function ui_localize(name) {

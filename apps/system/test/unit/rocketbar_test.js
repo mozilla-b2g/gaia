@@ -852,7 +852,7 @@ suite('system/Rocketbar', function() {
     assert.equal(stubDispatchEvent.getCall(0).args[1].isActivity, true);
   });
 
-  test('handleSearchCrashed() - calls render after crash', function() {
+  test('handleSearchTerminated() - calls render after crash', function() {
     subject.start();
 
     subject._searchAppURL = 'http://search.example.com/';
@@ -866,7 +866,7 @@ suite('system/Rocketbar', function() {
     spy.restore();
 
     // Dispatch a crash event.
-    window.dispatchEvent(new CustomEvent('searchcrashed'));
+    window.dispatchEvent(new CustomEvent('searchterminated'));
 
     assert.equal(subject.searchWindow, null);
     assert.equal(subject._port, null);
@@ -878,14 +878,22 @@ suite('system/Rocketbar', function() {
     assert.equal(subject._port, 'pending');
   });
 
-  test('setVisible', function() {
+  test('open', function() {
     subject.activate();
-    var setVisibleStub = this.sinon.stub(subject.searchWindow, '_setVisible');
+    var openStub = this.sinon.stub(subject.searchWindow, 'open');
+    var closeStub = this.sinon.stub(subject.searchWindow, 'close');
     subject.showResults();
-    setVisibleStub.calledWith(true);
+    assert.isTrue(openStub.called);
     subject.hideResults();
-    setVisibleStub.calledWith(false);
-    setVisibleStub.restore();
+    assert.isTrue(closeStub.called);
+  });
+
+  test('search window should not be opened again if it is dead', function() {
+    subject.activate();
+    this.sinon.stub(subject.searchWindow, 'isDead').returns(true);
+    var openStub = this.sinon.stub(subject.searchWindow, 'open');
+    subject.showResults();
+    assert.isFalse(openStub.called);
   });
 
   test('focus after geolocation hidden', function() {

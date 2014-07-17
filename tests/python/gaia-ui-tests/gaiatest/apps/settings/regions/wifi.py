@@ -46,6 +46,8 @@ class Wifi(Base):
             password_input.send_keys(password)
             ok_button.tap()
 
+        connected_message = self.marionette.find_element(*self._connected_message_locator)
+        self.marionette.execute_script("arguments[0].scrollIntoView(false);", [connected_message])
         timeout = max(self.marionette.timeout and self.marionette.timeout / 1000, 60)
         Wait(self.marionette, timeout, ignored_exceptions=StaleElementException).until(
             lambda m: m.find_element(*self._connected_message_locator).text == "Connected")

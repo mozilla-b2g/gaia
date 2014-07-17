@@ -214,14 +214,13 @@ suite('app', function() {
   suite('global events', function() {
     var calledWith;
     var realRestart;
-    var realTimeout;
+    var clock;
 
     setup(function() {
       calledWith = 0;
-      realTimeout = subject._mozTimeRefreshTimeout;
       realRestart = Calendar.App.forceRestart;
+      clock = sinon.useFakeTimers();
 
-      subject._mozTimeRefreshTimeout = 1;
       subject.forceRestart = function() {
         calledWith++;
       };
@@ -229,24 +228,20 @@ suite('app', function() {
 
     teardown(function() {
       subject.forceRestart = realRestart;
-      subject._mozTimeRefreshTimeout = realTimeout;
+      clock.restore();
     });
 
-    test('moztimechange', function(done) {
+    test('moztimechange', function() {
       // dispatch multiple times to ensure it only fires callback
       // once...
       window.dispatchEvent(new Event('moztimechange'));
       window.dispatchEvent(new Event('moztimechange'));
 
-      setTimeout(function() {
-        window.dispatchEvent(new Event('moztimechange'));
-      }, 0);
+      clock.tick(10);
+      window.dispatchEvent(new Event('moztimechange'));
 
-      setTimeout(function() {
-        done(function() {
-          assert.equal(calledWith, 1);
-        });
-      }, 100);
+      clock.tick(subject._mozTimeRefreshTimeout + 10);
+      assert.equal(calledWith, 1);
     });
   });
 
@@ -433,7 +428,7 @@ suite('app', function() {
     suiteSetup(function() {
       container = document.createElement('div');
       container.innerHTML = '<a id="today" href="#today">' +
-        '<span class="icon-today"></span></a>';
+        '<span class="icon-calendar-today"></span></a>';
       document.body.appendChild(container);
     });
 
@@ -441,10 +436,10 @@ suite('app', function() {
       container.parentNode.removeChild(container);
     });
 
-    test('show current date on the .icon-today span', function() {
+    test('show current date on the .icon-calendar-today span', function() {
       subject._showTodayDate();
       assert.equal(
-        document.querySelector('#today .icon-today').innerHTML,
+        document.querySelector('#today .icon-calendar-today').innerHTML,
         new Date().getDate()
       );
     });
@@ -460,7 +455,7 @@ suite('app', function() {
 
       container = document.createElement('div');
       container.innerHTML = '<a id="today" href="#today">' +
-        '<span class="icon-today">7</span></a>';
+        '<span class="icon-calendar-today">7</span></a>';
       document.body.appendChild(container);
     });
 
@@ -469,11 +464,11 @@ suite('app', function() {
       clock.restore();
     });
 
-    test('Update the date on the .icon-today span after midnight', function() {
+    test('Update the date on the today span after midnight', function() {
       subject._syncTodayDate();
       clock.tick(1500);
       assert.equal(
-        document.querySelector('#today .icon-today').innerHTML,
+        document.querySelector('#today .icon-calendar-today').innerHTML,
         8
       );
     });

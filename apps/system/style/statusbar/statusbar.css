@@ -21,6 +21,10 @@
   transform-origin: left top;
 }
 
+#screen.themecolor-active #statusbar-background {
+  visibility: hidden;
+}
+
 #statusbar {
   position: fixed;
   width: 100%;
@@ -33,7 +37,7 @@ body:not(.rb-enabled) #statusbar {
   transition: transform 0.2s linear;
 }
 
-#screen.on-homescreen:not(.utility-tray):not(.attention) #statusbar-background:not(.opaque) {
+#screen:not(.utility-tray):not(.attention) #statusbar-background:not(.opaque) {
   /* We want to show both the statusbar and homesearch bar at 15% opacity.
      The homescreen has a 5% wallpaper overlay, so 0.1 is needed to match. */
   opacity: 0.1;
@@ -76,26 +80,25 @@ body:not(.rb-enabled) #statusbar {
 
 #statusbar-icons > * {
   float: right;
-  margin: 0 0.2rem 0 0.3rem;
+  margin: 0.4rem 0.2rem 0.4rem 0.3rem;
 }
 
 #statusbar-icons {
   position: absolute;
   width: calc(50% - 0.8rem);
-  height: 2rem;
+  height: 2.4rem;
   margin: 0;
   top: 0;
   right: 0;
-  padding: 0.4rem 0.8rem;
+  padding: 0 0.8rem;
   transition: opacity 0.3s;
   overflow: hidden;
   white-space: nowrap;
 }
 
-#screen.rocketbar-expanded:not(.on-homescreen):not(.locked) #statusbar-icons,
-#screen.on-homescreen.rocketbar-focused:not(.locked) #statusbar-icons,
+#screen.rocketbar-focused:not(.locked) #statusbar-icons,
 #screen.rocketbar-expanded.cards-view #statusbar-icons,
-#screen.fullscreen-app #statusbar:not(.dragged) #statusbar-icons {
+#screen:not(.locked).fullscreen-app #statusbar:not(.dragged) #statusbar-icons {
   visibility: hidden;
   opacity: 0;
 }
@@ -105,8 +108,7 @@ body:not(.rb-enabled) #statusbar {
   opacity: 0;
 }
 
-body:not(.rb-enabled) #statusbar-icons,
-body.rb-enabled #statusbar.on-homescreen #statusbar-icons {
+body:not(.rb-enabled) #statusbar-icons {
   width: 100%;
   box-sizing: border-box;
 }
@@ -115,7 +117,7 @@ body.rb-enabled #statusbar.on-homescreen #statusbar-icons {
 body:not(.rb-enabled) #statusbar-icons > .sb-start {
   float: left;
   margin: 0 0.2rem 0 0;
-  -moz-transition: visibility 0.5s ease, -moz-transform 0.5s ease;
+  transition: visibility 0.5s ease, transform 0.5s ease;
 }
 
 *[dir=rtl] #statusbar-icons {
@@ -134,10 +136,9 @@ body:not(.rb-enabled) #statusbar-icons > .sb-start {
 #statusbar-icons > .sb-start-upper {
   visibility: hidden;
   position: absolute;
-  top: -2.4rem;
   left: 0;
-
-  -moz-transition: visibility 0.5s ease, -moz-transform 0.5s ease;
+  top: -2.4rem;
+  transition: visibility 0.5s ease, transform 0.5s ease;
 }
 
 *[dir=rtl] #statusbar-icons > .sb-start-upper {
@@ -149,18 +150,17 @@ body:not(.rb-enabled) .utility-tray #statusbar-icons > .sb-start-upper,
 .utility-tray #statusbar > #statusbar-title,
 #statusbar-title.hidden {
   visibility: visible;
-  -moz-transform: translateY(2.4rem);
+  transform: translateY(2.4rem);
 }
 
 body:not(.rb-enabled) .utility-tray #statusbar-icons > .sb-start {
   visibility: hidden;
-  -moz-transform: translateY(2.4rem);
+  transform: translateY(2.4rem);
 }
 
 #statusbar-label {
   position: relative;
   margin-left: 0.8rem;
-  padding-top: 0.4rem;
   color: #ffffff;
   font-size: 1.5rem;
   font-weight: 400;
@@ -193,7 +193,7 @@ body.rb-enabled #statusbar-label {
 #statusbar-connections > * {
   float: right;
   pointer-events: none;
-  margin: 0 0.2rem;
+  margin: 0.4rem 0.2rem;
 }
 
 #statusbar-connections .statusbar-data:not(.sb-icon-data-circle) {
@@ -263,7 +263,7 @@ body.rb-enabled #statusbar-label {
 #statusbar-call-forwardings > * {
   float: right;
   pointer-events: none;
-  margin: 0 0.6rem;
+  margin: 0.4rem 0.6rem;
 }
 
 #statusbar-call-forwardings .sb-icon-call-forwarding {

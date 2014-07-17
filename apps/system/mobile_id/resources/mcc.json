@@ -500,6 +500,11 @@
     "prefix": "+971"
   },
   "425": {
+    "full": "Israel",
+    "code": "il",
+    "prefix": "+972"
+  },
+  "425-2": {
     "full": "Palestinian Territory",
     "code": "ps",
     "prefix": "+970"

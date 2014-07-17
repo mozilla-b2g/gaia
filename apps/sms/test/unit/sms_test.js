@@ -9,14 +9,12 @@
 
 
 require('/shared/js/lazy_loader.js');
-require('/shared/js/l10n.js');
-require('/shared/js/l10n_date.js');
 require('/shared/js/gesture_detector.js');
 require('/shared/js/sticky_header.js');
 
 require('/shared/test/unit/mocks/mock_gesture_detector.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('sms/test/unit/mock_contact.js');
-requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/test/unit/mock_time_headers.js');
 requireApp('sms/test/unit/mock_navigatormoz_sms.js');
 requireApp('sms/test/unit/mock_attachment_menu.js');

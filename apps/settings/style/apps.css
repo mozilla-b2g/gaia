@@ -45,11 +45,3 @@ html[dir="rtl"] #homescreens ul li img {
 #homescreen [data-type="list"] li:first-child {
   padding-bottom: 1rem;
 }
-
-#homescreen label {
-  display: block;
-  font-size: 1.9rem;
-  line-height: 1.9rem;
-  margin: 0;
-  padding: 1.5rem 1.5rem 1rem;
-}

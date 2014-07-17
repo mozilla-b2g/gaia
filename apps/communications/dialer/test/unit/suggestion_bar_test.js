@@ -173,6 +173,9 @@ suite('suggestion Bar', function() {
     this.sinon.stub(MockLazyL10n, 'get', function(callback) {
       callback(mozL10nGet);
     });
+
+    MockContacts.mTearDown();
+    MockFbContacts.mTeardown();
   });
 
   teardown(function() {
@@ -188,6 +191,12 @@ suite('suggestion Bar', function() {
     navigator.mozIccManager = realMozIccManager;
   });
 
+  var cloneMockContactResults = function(count) {
+    MockContacts.mResult = new Array(count);
+    for (var i = 0; i < MockContacts.mResult.length; i++) {
+      MockContacts.mResult[i] = mockResult1[0];
+    }
+  };
 
   suite('Suggestion Bar', function() {
     test('#update suggestions by contact data - 1 data', function() {
@@ -209,6 +218,7 @@ suite('suggestion Bar', function() {
       assert.isFalse(domSuggestionCount.classList.contains('more'),
                   '#suggestion-count shouldn\'t contain "more" style');
       assert.isFalse(domSuggestionBar.hidden, 'should show suggestionBar');
+      assert.equal(domSuggestionBar.getAttribute('aria-hidden'), 'false');
     });
 
     test('#update suggestions by contact data - 2 datas', function() {
@@ -229,6 +239,7 @@ suite('suggestion Bar', function() {
       assert.isTrue(domSuggestionCount.classList.contains('more'),
                   '#suggestion-count should contain "more" style');
       assert.isFalse(domSuggestionBar.hidden, 'should show suggestionBar');
+      assert.equal(domSuggestionBar.getAttribute('aria-hidden'), 'false');
     });
 
     test('#update suggestions by contact data - 0 local data - 1 FB data',
@@ -251,6 +262,7 @@ suite('suggestion Bar', function() {
         assert.isFalse(domSuggestionCount.classList.contains('more'),
                     '#suggestion-count should not contain "more" style');
         assert.isFalse(domSuggestionBar.hidden, 'should show suggestionBar');
+        assert.equal(domSuggestionBar.getAttribute('aria-hidden'), 'false');
 
         assert.equal(SuggestionBar._contactList.length, 1,
                      '_contactList.length should be 1');
@@ -277,6 +289,7 @@ suite('suggestion Bar', function() {
         assert.isTrue(domSuggestionCount.classList.contains('more'),
                     '#suggestion-count should contain "more" style');
         assert.isFalse(domSuggestionBar.hidden, 'should show suggestionBar');
+        assert.equal(domSuggestionBar.getAttribute('aria-hidden'), 'false');
     });
 
     test('#update suggestions by contact data - 0 local data - 2 FB data',
@@ -299,6 +312,38 @@ suite('suggestion Bar', function() {
         assert.isTrue(domSuggestionCount.classList.contains('more'),
                     '#suggestion-count should contain "more" style');
         assert.isFalse(domSuggestionBar.hidden, 'should show suggestionBar');
+        assert.equal(domSuggestionBar.getAttribute('aria-hidden'), 'false');
+    });
+
+    test('#update suggestions by contact data - 50 local data - 0 FB data',
+      function() {
+        var enteredNumber = '1234';
+        cloneMockContactResults(50);
+        subject.update(enteredNumber);
+
+        assert.isFalse(domSuggestionBar.hidden, 'should show suggestionBar');
+        assert.equal(domSuggestionBar.getAttribute('aria-hidden'), 'false');
+    });
+
+    test('#update suggestions by contact data - 51 local data - 0 FB data',
+      function() {
+        var enteredNumber = '1234';
+        cloneMockContactResults(51);
+        subject.update(enteredNumber);
+
+        assert.isTrue(domSuggestionBar.hidden, 'should hide suggestionBar');
+        assert.equal(domSuggestionBar.getAttribute('aria-hidden'), 'true');
+    });
+
+    test('#update suggestions by contact data - 50 local data - 1 FB data',
+      function() {
+        var enteredNumber = '1234';
+        cloneMockContactResults(50);
+        MockFbContacts.mResult = mockResultFb.slice(0, 1);
+        subject.update(enteredNumber);
+
+        assert.isTrue(domSuggestionBar.hidden, 'should hide suggestionBar');
+        assert.equal(domSuggestionBar.getAttribute('aria-hidden'), 'true');
     });
 
     suite('#clear suggestions', function() {
@@ -317,6 +362,7 @@ suite('suggestion Bar', function() {
 
       test('should hide suggestionBar', function() {
         assert.isTrue(domSuggestionBar.hidden);
+        assert.equal(domSuggestionBar.getAttribute('aria-hidden'), 'true');
       });
     });
 
@@ -337,6 +383,7 @@ suite('suggestion Bar', function() {
 
         assert.isFalse(domSuggestionBar.hidden,
                        'should not hide suggestionBar');
+        assert.equal(domSuggestionBar.getAttribute('aria-hidden'), 'false');
         assert.equal(tel.textContent, mockNumber);
       });
 
@@ -345,6 +392,7 @@ suite('suggestion Bar', function() {
         setupExactMatch();
 
         assert.isTrue(domSuggestionBar.hidden, 'should hide suggestionBar');
+        assert.equal(domSuggestionBar.getAttribute('aria-hidden'), 'true');
       });
     });
 
@@ -353,6 +401,14 @@ suite('suggestion Bar', function() {
   suite('Suggestion List', function() {
     suite('show overlay', function() {
       var suggestions;
+
+      var getSuggestions = function() {
+        suggestions = Array.prototype.filter.call(subject.list.children,
+          function(element) {
+            return element.classList.contains('js-suggestion-item');
+          });
+      };
+
       setup(function() {
         MockContacts.mResult = mockResult2;
         subject.update('1111');
@@ -361,10 +417,7 @@ suite('suggestion Bar', function() {
         this.sinon.spy(LazyLoader, 'load');
 
         subject.showOverlay();
-        suggestions = Array.prototype.filter.call(subject.list.children,
-          function(element) {
-            return element.classList.contains('js-suggestion-item');
-          });
+        getSuggestions();
       });
 
       test('should load the overlay', function() {
@@ -417,6 +470,27 @@ suite('suggestion Bar', function() {
         suggestions.forEach(function(suggestion) {
           assert.equal(suggestion.querySelector('.si__mark').textContent,
                        '1111');
+        });
+      });
+
+      suite('high load', function() {
+        test('should show 50 suggestions', function() {
+          cloneMockContactResults(50);
+          subject.update('1234');
+          subject.showOverlay();
+          getSuggestions();
+
+          assert.equal(suggestions.length, 50);
+        });
+
+        test('should show 50 suggestions with 1 FB contact', function() {
+          cloneMockContactResults(49);
+          MockFbContacts.mResult = mockResultFb.slice(0, 1);
+          subject.update('1234');
+          subject.showOverlay();
+          getSuggestions();
+
+          assert.equal(suggestions.length, 50);
         });
       });
     });

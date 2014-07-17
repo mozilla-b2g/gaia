@@ -3,7 +3,7 @@
 requireApp('system/js/identity.js');
 requireApp('system/test/unit/mock_chrome_event.js');
 requireApp('system/test/unit/mock_trusted_ui_manager.js');
-requireApp('system/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 
 // ensure its defined as a global so mocha will not complain about us
 // leaking new global variables during the test
@@ -104,4 +104,3 @@ suite('identity', function() {
     });
   });
 });
-

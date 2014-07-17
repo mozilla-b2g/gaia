@@ -48,9 +48,8 @@
     "284": "/shared/resources/branding/browser_284.png"
   },
   "messages": [
-     { "nfc-manager-tech-discovered": "/index.html" },
-     { "nfc-manager-tech-lost": "/index.html" }
-  ],
+     { "first-run-with-sim": "/index.html" }
+   ],
   "activities": {
     "view": {
       "filters": {

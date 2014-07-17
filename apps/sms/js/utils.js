@@ -163,6 +163,9 @@
      * 3. If for some reason a single contact has two phone numbers with the
      * same type and the same carrier then "type" and "phone number" will be
      * returned;
+     *
+     * note: The argument "tels" can actually contain "emails" too.
+     *
      */
     getPhoneDetails: function ut_getPhoneDetails(input, tels) {
       var length = tels.length;

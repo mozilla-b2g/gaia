@@ -1,9 +1,11 @@
 'use strict';
 
 /* global BaseCollection */
-/* global CollectionsDatabase */
 /* global CollectionIcon */
+/* global CollectionsDatabase */
+/* global Common */
 /* global eme */
+/* global HomeIcons */
 /* global PinnedHomeIcon */
 
 (function(exports) {
@@ -32,7 +34,7 @@
         var collection = BaseCollection.create(fresh);
         var newPinned = new PinnedHomeIcon(event.data.identifier);
 
-        collection.homeIcons.init().then(() => {
+        HomeIcons.init().then(() => {
 
           // If a record is already pinned, delete it so it appears first.
           for (var i = 0, iLen = collection.pinned.length; i < iLen; i++) {
@@ -55,7 +57,7 @@
                 collection.addWebResults(response.response.apps);
               })
               .then(() => {
-                BaseCollection.getBackground(collection, grid.maxIconSize)
+                Common.getBackground(collection, grid.maxIconSize)
                   .then((bgObject) => {
                     collection.background = bgObject;
                     this.pinAndSave(newPinned, collection);

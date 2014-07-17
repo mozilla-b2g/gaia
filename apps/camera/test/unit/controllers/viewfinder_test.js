@@ -40,6 +40,8 @@ suite('controllers/viewfinder', function() {
       focusRing: sinon.createStubInstance(this.FocusRingView),
       faces: sinon.createStubInstance(this.FacesView)
     };
+    this.app.Pinch = sinon.stub();
+    this.app.Pinch.prototype.on = sinon.stub();
 
     // Fake elements
     this.app.views.viewfinder.els = { video: {} };
@@ -68,23 +70,27 @@ suite('controllers/viewfinder', function() {
 
   suite('ViewfinderController()', function() {
     test('Should stop the stream when the PreviewGallery is opened', function() {
-      assert.isTrue(this.app.on.calledWith('previewgallery:opened', this.controller.stopStream));
+      assert.isTrue(this.app.on.calledWith('previewgallery:opened',
+        this.controller.onGalleryOpened));
     });
 
-    test('Should listen when the PreviewGallery is closed', function() {
-      assert.isTrue(this.app.on.calledWith('previewgallery:closed'));
+    test('Should start the stream when the PreviewGallery is closed', function() {
+      assert.isTrue(this.app.on.calledWith('previewgallery:closed',
+        this.controller.onGalleryClosed));
     });
 
-    test('Should stop the stream when on app blur', function() {
-      assert.isTrue(this.app.on.calledWith('hidden', this.controller.stopStream));
+    test('Should stop the stream preview is false', function() {
+      assert.isTrue(this.app.on.calledWith('camera:previewactive', this.controller.onPreviewActive));
     });
 
     test('Should hide the grid when the settings menu opened', function() {
-      assert.isTrue(this.app.on.calledWith('settings:opened', this.controller.hideGrid));
+      assert.isTrue(this.app.on.calledWith('settings:opened',
+        this.controller.onSettingsOpened));
     });
 
     test('Should show the grid again when the settings menu is closed', function() {
-      assert.isTrue(this.app.on.calledWith('settings:closed', this.controller.configureGrid));
+      assert.isTrue(this.app.on.calledWith('settings:closed',
+        this.controller.onSettingsClosed));
     });
 
     test('Should flash viewfinder shutter when camera shutter fires', function() {
@@ -113,48 +119,13 @@ suite('controllers/viewfinder', function() {
     });
   });
 
-  suite('ViewfinderController#onPreviewGalleryClosed', function() {
-    setup(function() {
-      sinon.spy(this.controller, 'startStream');
-    });
-
-    test('Should start the stream only if the app is visible', function() {
-      this.app.hidden = true;
-      this.controller.onPreviewGalleryClosed();
-      assert.isFalse(this.controller.startStream.called);
-
-      this.app.hidden = false;
-      this.controller.onPreviewGalleryClosed();
-      assert.isTrue(this.controller.startStream.called);
-    });
-  });
-
-  suite('ViewfinderController#onFacesDetected', function() {
-    setup(function() {
-      this.viewfinder.getSize.returns({ width: 800, height: 600});
-      sinon.spy(this.faces, 'show');
-      sinon.spy(this.faces, 'render');
-    });
-
-    test('Should call render faces and show the faces view', function() {
-      this.controller.onFacesDetected([]);
-      assert.isTrue(this.controller.views.faces.show.called);
-      assert.isTrue(this.faces.render.called);
-    });
-  });
-
-  suite('ViewfinderController#startStream()', function() {
+  suite('ViewfinderController#loadStream()', function() {
     test('Should load preview stream into viewfinder video element', function() {
       var video = this.viewfinder.els.video;
-      this.controller.startStream();
+      this.controller.loadStream();
       assert.isTrue(this.camera.loadStreamInto.calledWith(video));
     });
 
-    test('Should not `loadStreamInto` if preview-gallery is open', function() {
-      this.app.get.withArgs('previewGalleryOpen').returns(true);
-      this.controller.startStream();
-      assert.isFalse(this.camera.loadStreamInto.called);
-    });
   });
 
   suite('ViewfinderController#configurePreview()', function() {

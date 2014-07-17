@@ -4,11 +4,11 @@
 
 .focus {
   position: absolute;
-  width: 10rem;
+  width: 8.2rem;
   height: 10rem;
   font-size: 10rem;
   margin-top: -5rem;
-  margin-left: -5rem;
+  margin-left: -4.1rem;
   pointer-events: none;
   opacity: 0;
   transform-origin: 50% 50%;
@@ -46,7 +46,7 @@
 
 .focus-ring:before,
 .focus-ring:after {
-  font-family: 'gaia-camera';
+  font-family: 'gaia-icons';
   display: block;
   position: absolute;
   top: 0;
@@ -54,11 +54,11 @@
 }
 
 .focus-ring:before {
-  content: "\e616";
+  content: "focus-locking";
 }
 
 .focus-ring:after {
-  content: "\e615";
+  content: "focus-locked";
 }
 
 /**

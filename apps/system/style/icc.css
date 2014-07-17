@@ -83,3 +83,16 @@
   border-color: rgb(77, 77, 77);
   pointer-events: none;
 }
+
+#icc-input-box.full {
+  animation: full-dance .5s;
+  animation-iteration-count: 2;
+}
+
+@keyframes full-dance {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(10px); }
+  50% { transform: translateX(-10px); }
+  75% { transform: translateX(10px); }
+  100% { transform: translateX(0); }
+}

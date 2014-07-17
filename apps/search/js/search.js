@@ -136,7 +136,6 @@
       var providers = this.providers;
 
       this.clear();
-      this.maybeShowNotice(input);
 
       var collectionCount = 0;
       var numProviders = Object.keys(this.providers).length;
@@ -176,6 +175,13 @@
                 maybeShowOffline();
               }
 
+              if (provider.name === 'Suggestions') {
+                var shown = (input.length > 2 &&
+                             results.length &&
+                             this.toShowNotice);
+                this.suggestionNotice.hidden = !shown;
+              }
+
               this.collect(provider, results);
             }, () => {
               maybeShowOffline();
@@ -205,10 +211,6 @@
       this.toShowNotice = false;
       asyncStorage.setItem(this.NOTICE_KEY, true);
       this._port.postMessage({'action': 'focus'});
-    },
-
-    maybeShowNotice: function(msg) {
-      this.suggestionNotice.hidden = !(msg.length > 2 && this.toShowNotice);
     },
 
     /**

@@ -58,6 +58,9 @@ GalleryAppBuilder.prototype.customizeMaximumImageSize = function(options) {
     // megapixel instead of 2 megapixel
     this.DEFAULT_VALUE.maxEditPixelSize = 800 * 600;
   }
+  else if (options.GAIA_MEMORY_PROFILE === '256') {
+    this.DEFAULT_VALUE.maxImagePixelSize = 3 * 1024 * 1024;
+  }
 
   var distDir = options.GAIA_DISTRIBUTION_DIR;
   var customize = JSON.parse(utils.getDistributionFileContent('gallery',

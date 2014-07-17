@@ -1187,8 +1187,7 @@ contacts.Form = (function() {
     delButton.id = IMG_DELETE_ID;
     delButton.className = 'fillflow-row-action';
     var delIcon = document.createElement('span');
-    delIcon.setAttribute('role', 'button');
-    delIcon.className = 'icon-delete';
+    delIcon.className = 'icon icon-delete';
     delButton.appendChild(delIcon);
     delButton.onclick = function removeElement(event) {
       // Workaround until 809452 is fixed.

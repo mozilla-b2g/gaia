@@ -31,7 +31,7 @@ class SimManager(Base):
         # cheeky Select wrapper until Marionette has its own
         # due to the way B2G wraps the app's select box we match on text
 
-        _list_item_locator = (By.XPATH, "id('value-selector-container')/descendant::li[descendant::span[.='%s']]" % match_string)
+        _list_item_locator = (By.XPATH, "//section[contains(@class,'value-selector-container')]/descendant::li[descendant::span[.='%s']]" % match_string)
         _close_button_locator = (By.CSS_SELECTOR, 'button.value-option-confirm')
 
         # have to go back to top level to get the B2G select box wrapper

@@ -9,8 +9,16 @@ var MockLockScreen = {
 
   passcode: '0000',
 
+  maskedBackground: undefined,
+
+  notificationsContainer: undefined,
+  notificationArrow: undefined,
+
   init: function mls_init() {
     this.locked = false;
+    this.maskedBackground = undefined;
+    this.notificationsContainer = undefined;
+    this.notificationArrow = undefined;
   },
 
   lock: function mls_lock() {

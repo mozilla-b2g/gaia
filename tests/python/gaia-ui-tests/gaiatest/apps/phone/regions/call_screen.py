@@ -2,8 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import time
 from marionette.by import By
+from marionette.marionette import Actions
 from gaiatest.apps.phone.app import Phone
 
 
@@ -16,6 +16,7 @@ class CallScreen(Phone):
     _incoming_call_locator = (By.CSS_SELECTOR, '.handled-call.incoming')
     _hangup_bar_locator = (By.ID, 'callbar-hang-up')
     _answer_bar_locator = (By.ID, 'callbar-answer')
+    _lockscreen_handle_locator = (By.ID, 'lockscreen-area-slide')
 
     def __init__(self, marionette):
         Phone.__init__(self, marionette)
@@ -49,6 +50,10 @@ class CallScreen(Phone):
         self.wait_for_condition(lambda m: incoming_call.location['y'] == 0)
         self.wait_for_condition(lambda m: self.incoming_calling_contact != u'')
 
+    def wait_for_incoming_call_with_locked_screen(self):
+        self.wait_for_condition(lambda m: self.is_element_displayed(*self._incoming_call_locator))
+        self.wait_for_condition(lambda m: self.incoming_calling_contact != u'')
+
     def answer_call(self):
         self.marionette.find_element(*self._answer_bar_locator).tap()
 
@@ -64,3 +69,23 @@ class CallScreen(Phone):
         self.a11y_click_hang_up()
         self.marionette.switch_to_frame()
         self.wait_for_element_not_displayed(*self._call_screen_locator)
+
+    def _handle_incoming_call(self, destination):
+
+        lockscreen_handle = self.marionette.find_element(*self._lockscreen_handle_locator)
+        lockscreen_handle_x_centre = int(lockscreen_handle.size['width'] / 2)
+        lockscreen_handle_y_centre = int(lockscreen_handle.size['height'] / 2)
+
+        handle_destination = lockscreen_handle.size['width']
+        if destination == 'reject':
+            handle_destination *= -1
+
+        # Flick lockscreen handle to the destination
+        Actions(self.marionette).flick(
+            lockscreen_handle, lockscreen_handle_x_centre, lockscreen_handle_y_centre, handle_destination, 0
+        ).perform()
+
+    def reject_call(self):
+        self.wait_for_element_displayed(*self._lockscreen_handle_locator)
+        self._handle_incoming_call('reject')
+        self.marionette.switch_to_frame()
