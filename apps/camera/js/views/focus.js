@@ -5,8 +5,8 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
+var debug = require('debug')('view:focus');
 var View = require('vendor/view');
-var find = require('lib/find');
 
 /**
  * Exports
@@ -23,7 +23,13 @@ module.exports = View.extend({
 
   render: function() {
     this.el.innerHTML = this.template();
-    this.els.focus = find('.js-focus', this.el);
+    this.els.focus = this.find('.js-focus');
+
+    // Clean up
+    delete this.template;
+    
+    debug('rendered');
+    return this;
   },
 
   setFocusState: function(state) {

@@ -43,6 +43,11 @@ module.exports = View.extend({
 
     this.el.innerHTML = this.template(data);
     debug('rendered item %s', data.key);
+
+    // Clean up
+    delete this.template;
+
+    debug('rendered');
     return this;
   },
 

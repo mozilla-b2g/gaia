@@ -17,12 +17,12 @@ suite('Sounds', function() {
   var list = [
     {
       name: 'shutter',
-      url: 'resources/sounds/shutter.ogg',
+      url: 'resources/sounds/shutter.opus',
       setting: 'camera.sound.enabled'
     },
     {
       name: 'timer',
-      url: 'resources/sounds/timer.ogg',
+      url: 'resources/sounds/timer.opus',
       setting: 'camera.sound.enabled'
     },
     {
