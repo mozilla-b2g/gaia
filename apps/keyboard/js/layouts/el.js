@@ -17,7 +17,8 @@ Keyboards.el = {
     υ: 'ύϋΰ',
     Ι: 'ΊΪ',
     ι: 'ίϊΐ',
-    η: 'ή'
+    η: 'ή',
+    '.': ',?!;:'
   },
   keys: [
     [
@@ -46,6 +47,9 @@ Keyboards['el-sms'] = {
   label: 'Greek SMS',
   menuLabel: 'Ελληνικό για SMS',
   imEngine: 'latin',
+  alt: {
+    '.': ',?!;:'
+  },
   keys: [
     [
       { value: ';' }, { value: 'Ε', keyCode: 0x45 /* ASCII E */ } ,
