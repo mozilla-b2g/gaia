@@ -160,6 +160,24 @@ suite('calls handler', function() {
         assert.isTrue(toDefaultSpy.calledOnce);
       });
 
+      suite('screen management', function() {
+        setup(function() {
+          this.sinon.spy(navigator, 'requestWakeLock');
+          MockNavigatorMozTelephony.mTriggerCallsChanged();
+        });
+
+        test('should turn the screen on', function() {
+          sinon.assert.called(navigator.requestWakeLock, 'screen');
+        });
+
+        test('and release it when we pick up the call', function() {
+          mockCall._connect();
+          var lock = MockNavigatorWakeLock.mLastWakeLock;
+          assert.equal(lock.topic, 'screen');
+          assert.isTrue(lock.released);
+        });
+      });
+
       suite('in CDMA Network', function() {
         test('should not toggle no-add-call in CDMA network', function() {
           MockNavigatorMozMobileConnections[1].voice = {
@@ -260,6 +278,24 @@ suite('calls handler', function() {
           FontSizeManager.adaptToSpace, FontSizeManager.CALL_WAITING,
           MockCallScreen.incomingNumber, MockCallScreen.fakeIncomingNumber,
           false, 'end');
+      });
+
+      suite('screen management', function() {
+        setup(function() {
+          this.sinon.spy(navigator, 'requestWakeLock');
+          MockNavigatorMozTelephony.mTriggerCallsChanged();
+        });
+
+        test('should turn the screen on', function() {
+          sinon.assert.called(navigator.requestWakeLock, 'screen');
+        });
+
+        test('and release it when we pick up the call', function() {
+          extraCall._connect();
+          var lock = MockNavigatorWakeLock.mLastWakeLock;
+          assert.equal(lock.topic, 'screen');
+          assert.isTrue(lock.released);
+        });
       });
 
       suite('DSDS SIM display >', function() {
