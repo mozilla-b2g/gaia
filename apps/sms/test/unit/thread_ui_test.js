@@ -28,6 +28,7 @@ require('/js/thread_ui.js');
 require('/js/thread_list_ui.js');
 require('/js/shared_components.js');
 require('/js/utils.js');
+require('/js/event_dispatcher.js');
 
 require('/test/unit/mock_time_headers.js');
 require('/test/unit/mock_link_action_handler.js');
@@ -3004,19 +3005,42 @@ suite('thread_ui.js >', function() {
 
     test('messages marked for deletion get deleted', function() {
       var messagesToDelete = [1, 2];
+
+      this.sinon.spy(MessageManager, 'deleteMessage');
+
       doMarkedMessagesDeletion(messagesToDelete);
 
+      sinon.assert.calledWith(
+        MessageManager.deleteMessage,
+        messagesToDelete.reverse()
+      );
+    });
+
+    test('messages deleted from DB are removed from the DOM', function() {
+      var messagesToDelete = [1, 2];
+
+      MessageManager.trigger('messagesDeleted', {
+        ids: messagesToDelete
+      });
+
       for (var i = 0; i < testMessages.length; i++) {
-        assert.equal(checkIfMessageIsInDOM(testMessages[i].id),
-                     messagesToDelete.indexOf(testMessages[i].id) == -1);
+        assert.equal(
+          checkIfMessageIsInDOM(testMessages[i].id),
+          messagesToDelete.indexOf(testMessages[i].id) == -1
+        );
       }
     });
 
     test('deleting marked messages takes user back to view mode', function() {
       this.sinon.stub(ThreadListUI, 'updateThread').returns(true);
       ThreadUI.startEdit();
-      doMarkedMessagesDeletion(1);
+
+      MessageManager.trigger('messagesDeleted', {
+        ids: [1]
+      });
+
       MessageManager.mTriggerOnSuccess();
+
       assert.isFalse(ThreadUI.mainWrapper.classList.contains('edit'));
     });
 
@@ -3037,17 +3061,21 @@ suite('thread_ui.js >', function() {
     test('waiting screen hidden when messages are done deletion', function() {
       this.sinon.stub(ThreadListUI, 'updateThread').returns(true);
       this.sinon.spy(WaitingScreen, 'hide');
-      doMarkedMessagesDeletion(1);
+
+      ThreadUI.startEdit();
+
+      MessageManager.trigger('messagesDeleted', {
+        ids: [1]
+      });
       MessageManager.mTriggerOnSuccess();
+
       sinon.assert.calledOnce(WaitingScreen.hide);
     });
 
-    test('deleting all messages deletes the thread', function() {
+    test('deleting all messages redirects user to thread list', function() {
       this.sinon.spy(Navigation, 'toPanel');
-      this.sinon.spy(ThreadListUI, 'removeThread');
 
       ThreadUI.deleteUIMessages(testMessages.map((m) => m.id));
-      sinon.assert.calledOnce(ThreadListUI.removeThread);
       sinon.assert.calledWith(Navigation.toPanel, 'thread-list');
     });
 

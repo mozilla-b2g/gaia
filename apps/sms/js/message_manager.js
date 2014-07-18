@@ -2,13 +2,15 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 /*global ThreadListUI, ThreadUI, Threads, SMIL, MozSmsFilter,
-         LinkActionHandler, Settings, Navigation, ReportView
+         LinkActionHandler, Settings, Navigation, ReportView,
+         EventDispatcher
 */
 
 /*exported MessageManager */
 
 'use strict';
 
+(function(exports) {
 var MessageManager = {
   init: function mm_init(callback) {
     if (this.initialized) {
@@ -29,6 +31,11 @@ var MessageManager = {
                                             this.onDeliverySuccess);
     this._mozMobileMessage.addEventListener('readsuccess',
                                             this.onReadSuccess);
+    this._mozMobileMessage.addEventListener(
+      'deleted',
+      this.onDeleted.bind(this)
+    );
+
     document.addEventListener('visibilitychange',
                               this.onVisibilityChange.bind(this));
 
@@ -89,6 +96,20 @@ var MessageManager = {
       ThreadUI.onMessageReceived(message);
     } else {
       ThreadListUI.onMessageReceived(message);
+    }
+  },
+
+  onDeleted: function(e) {
+    if (e.deletedThreadIds && e.deletedThreadIds.length) {
+      this.trigger('threadsDeleted', {
+        ids: e.deletedThreadIds
+      });
+    }
+
+    if (e.deletedMessageIds && e.deletedMessageIds.length) {
+      this.trigger('messagesDeleted', {
+        ids: e.deletedMessageIds
+      });
     }
   },
 
@@ -472,3 +493,16 @@ var MessageManager = {
     };
   }
 };
+
+Object.defineProperty(exports, 'MessageManager', {
+  get: function () {
+    delete exports.MessageManager;
+
+    exports.MessageManager = EventDispatcher.mixin(MessageManager);
+
+    return exports.MessageManager;
+  },
+  configurable: true,
+  enumerable: true
+});
+})(window);

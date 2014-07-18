@@ -4,6 +4,7 @@
 
 'use strict';
 
+require('/js/event_dispatcher.js');
 require('/js/utils.js');
 require('/test/unit/mock_utils.js');
 require('/test/unit/mock_thread_ui.js');

@@ -16,6 +16,7 @@ requireApp('sms/js/recipients.js');
 requireApp('sms/js/drafts.js');
 requireApp('sms/js/threads.js');
 requireApp('sms/js/thread_list_ui.js');
+require('/js/event_dispatcher.js');
 
 require('/shared/test/unit/mocks/mock_async_storage.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
@@ -596,6 +597,12 @@ suite('thread_list_ui', function() {
         ThreadListUI.delete();
         MockDialog.triggers.confirm();
       });
+
+      teardown(function() {
+        MessageManager.offAll('messagesDeleted');
+        MessageManager.offAll('threadsDeleted');
+      });
+
       test('called dialog with proper message', function() {
         assert.isTrue(MockDialog.prototype.show.called);
         assert.equal(MockDialog.calls[0].body.l10nId,
@@ -612,65 +619,67 @@ suite('thread_list_ui', function() {
       test('shows WaitingScreen', function() {
         assert.ok(WaitingScreen.show.called);
       });
-      test('called MessageManager.getMessages twice', function() {
-        assert.equal(MessageManager.getMessages.args.length, 2);
-      });
-      suite('getMessages({ each: })', function() {
-        setup(function() {
-          this.sinon.stub(MessageManager, 'deleteMessage');
-          // call the "each" function passed to getMessages with fake message
-          MessageManager.getMessages.args[0][0].each({ id: 3 });
-        });
-        test('MessageManager.deleteMessage called', function() {
-          assert.ok(MessageManager.deleteMessage.calledWith(3));
-        });
-      });
-      suite('first getMessages', function() {
-        setup(function() {
-          this.sinon.stub(Threads, 'delete');
-          this.sinon.stub(ThreadListUI, 'removeThread');
-          this.sinon.spy(Utils, 'closeNotificationsForThread');
 
-          // call the "end" function passed to getMessages with fake message
-          MessageManager.getMessages.args[0][0].end();
+      test('getMessages is called for the right thread', function() {
+        sinon.assert.calledTwice(MessageManager.getMessages);
+
+        assert.equal(
+          MessageManager.getMessages.firstCall.args[0].filter.threadId,
+          1
+        );
+
+        assert.equal(
+          MessageManager.getMessages.secondCall.args[0].filter.threadId,
+          2
+        );
+      });
+
+      test('MessageManager.deleteMessage called', function() {
+        this.sinon.stub(MessageManager, 'deleteMessage');
+
+        MessageManager.getMessages.firstCall.args[0].each({ id: 3 });
+        MessageManager.getMessages.firstCall.args[0].each({ id: 4 });
+
+        sinon.assert.notCalled(MessageManager.deleteMessage);
+
+        MessageManager.getMessages.firstCall.args[0].end();
+
+        sinon.assert.calledOnce(MessageManager.deleteMessage);
+        sinon.assert.calledWith(MessageManager.deleteMessage, [3, 4]);
+
+        MessageManager.getMessages.secondCall.args[0].each({ id: 5 });
+        MessageManager.getMessages.secondCall.args[0].each({ id: 6 });
+
+        sinon.assert.calledOnce(MessageManager.deleteMessage);
+
+        MessageManager.getMessages.secondCall.args[0].end();
+
+        sinon.assert.calledTwice(MessageManager.deleteMessage);
+        sinon.assert.calledWith(MessageManager.deleteMessage, [5, 6]);
+      });
+
+      test('Cleanup DOM when thread is deleted from DB', function() {
+        this.sinon.stub(Threads, 'delete');
+        this.sinon.stub(ThreadListUI, 'removeThread');
+        this.sinon.spy(Utils, 'closeNotificationsForThread');
+
+        var deletedThreadIds = [1, 2];
+
+        MessageManager.trigger('threadsDeleted', {
+          ids: deletedThreadIds
         });
-        test('is for the right thread', function() {
-          assert.equal(
-            MessageManager.getMessages.args[0][0].filter.threadId, 2);
+
+        sinon.assert.calledTwice(ThreadListUI.removeThread);
+        sinon.assert.calledTwice(Threads.delete);
+        sinon.assert.calledTwice(Utils.closeNotificationsForThread);
+
+        deletedThreadIds.forEach(function(threadId) {
+          sinon.assert.calledWith(ThreadListUI.removeThread, threadId);
+          sinon.assert.calledWith(Threads.delete, threadId);
+          sinon.assert.calledWith(Utils.closeNotificationsForThread, threadId);
         });
-        test('end calls removeThread for correct thread', function() {
-          assert.equal(ThreadListUI.removeThread.args[0][0], 2);
-        });
-        test('end calls Threads.delete with correct thread', function() {
-          assert.equal(Threads.delete.args[0][0], 2);
-        });
-        test('end calls closeNotificationsForThread', function() {
-          sinon.assert.calledWith(Utils.closeNotificationsForThread, 2);
-        });
-        test('end doesnt hide waiting screen (yet)', function() {
-          assert.isFalse(WaitingScreen.hide.called);
-        });
-        suite('sencond getMessages', function() {
-          setup(function() {
-            MessageManager.getMessages.args[1][0].end();
-          });
-          test('is for the right thread', function() {
-            assert.equal(
-              MessageManager.getMessages.args[1][0].filter.threadId, 1);
-          });
-          test('end calls removeThread for correct thread', function() {
-            assert.equal(ThreadListUI.removeThread.args[1][0], 1);
-          });
-          test('end calls Threads.delete with correct thread', function() {
-            assert.equal(Threads.delete.args[1][0], 1);
-          });
-          test('end calls closeNotificationsForThread', function() {
-            sinon.assert.calledWith(Utils.closeNotificationsForThread, 1);
-          });
-          test('end calls hide waiting screen', function() {
-            assert.isTrue(WaitingScreen.hide.called);
-          });
-        });
+
+        sinon.assert.notCalled(WaitingScreen.hide);
       });
     });
   });

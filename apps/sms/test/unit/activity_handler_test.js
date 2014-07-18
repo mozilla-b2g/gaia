@@ -21,6 +21,8 @@ requireApp('sms/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('sms/shared/test/unit/mocks/mock_settings_url.js');
 requireApp('sms/shared/test/unit/mocks/mock_l10n.js');
 
+require('/js/event_dispatcher.js');
+
 requireApp('sms/test/unit/mock_attachment.js');
 requireApp('sms/test/unit/mock_compose.js');
 requireApp('sms/test/unit/mock_contacts.js');

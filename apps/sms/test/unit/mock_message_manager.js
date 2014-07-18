@@ -1,7 +1,8 @@
+/* global EventDispatcher */
 /* exported MockMessageManager */
 'use strict';
 
-var MockMessageManager = {
+var MockMessageManager = EventDispatcher.mixin({
   _message: null,
   getThreads: function() {},
   getMessages: function() {},
@@ -14,7 +15,6 @@ var MockMessageManager = {
       callback();
     }
   },
-  onHashChange: function() {},
   launchComposer: function() {},
   handleActivity: function() {},
   handleForward: function() {},
@@ -39,4 +39,4 @@ var MockMessageManager = {
       this._message.onerror();
     }
   }
-};
+});

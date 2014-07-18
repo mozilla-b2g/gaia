@@ -297,6 +297,8 @@ var ThreadUI = global.ThreadUI = {
     this.shouldChangePanelNextEvent = false;
 
     this.showErrorInFailedEvent = '';
+
+    this.onMessagesDeleted = this.onMessagesDeleted.bind(this);
   },
 
   onVisibilityChange: function thui_onVisibilityChange(e) {
@@ -572,6 +574,9 @@ var ThreadUI = global.ThreadUI = {
     if (prevPanel !== 'group-view' && prevPanel !== 'report-view') {
       this.initializeRendering();
     }
+
+    MessageManager.on('messagesDeleted', this.onMessagesDeleted);
+
     return this.updateHeaderData();
   },
 
@@ -654,6 +659,8 @@ var ThreadUI = global.ThreadUI = {
 
     if (!Navigation.isCurrentPanel('thread')) {
       this.threadMessages.classList.remove('has-carrier');
+
+      MessageManager.off('messagesDeleted', this.onMessagesDeleted);
     }
   },
 
@@ -867,6 +874,15 @@ var ThreadUI = global.ThreadUI = {
         this.shouldChangePanelNextEvent = false;
       }
     }
+  },
+
+  onMessagesDeleted: function(e) {
+    ThreadUI.deleteUIMessages(e.ids, function uiDeletionDone() {
+      if (this.inEditMode) {
+        ThreadUI.cancelEdit();
+        WaitingScreen.hide();
+      }
+    }.bind(this));
   },
 
   onNewMessageNoticeClick: function thui_onNewMessageNoticeClick(event) {
@@ -1879,8 +1895,6 @@ var ThreadUI = global.ThreadUI = {
 
     // Do we remove all messages of the Thread?
     if (!ThreadUI.container.firstElementChild) {
-      // Remove the thread from DOM and go back to the thread-list
-      ThreadListUI.removeThread(Threads.currentId);
       callback();
       Navigation.toPanel('thread-list');
     } else {
@@ -1904,21 +1918,10 @@ var ThreadUI = global.ThreadUI = {
   delete: function thui_delete() {
     function performDeletion() {
       WaitingScreen.show();
-      var delNumList = [];
-      var inputs = ThreadUI.selectedInputs;
-      var length = inputs.length;
-      for (var i = 0; i < length; i++) {
-        delNumList.push(+inputs[i].value);
-      }
       // Complete deletion in DB and in UI
-      MessageManager.deleteMessage(delNumList,
-        function onDeletionDone() {
-          ThreadUI.deleteUIMessages(delNumList, function uiDeletionDone() {
-            ThreadUI.cancelEdit();
-            WaitingScreen.hide();
-          });
-        }
-      );
+      MessageManager.deleteMessage(ThreadUI.selectedInputs.map(function(input) {
+        return +input.value;
+      }));
     }
 
     var dialog = new Dialog({
@@ -2131,15 +2134,7 @@ var ThreadUI = global.ThreadUI = {
           },
           {
             l10nId: 'delete',
-            method: function deleteMessage(messageId) {
-              // Complete deletion in DB and UI
-              MessageManager.deleteMessage(messageId,
-                function onDeletionDone() {
-                  ThreadUI.deleteUIMessages(messageId);
-                }
-              );
-            },
-            params: [messageId]
+            method: MessageManager.deleteMessage.bind(MessageManager, messageId)
           }
         );
 
