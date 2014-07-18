@@ -100,11 +100,11 @@ suite('controllers/controls', function() {
     });
 
     test('Should disable the controls when the camera is busy', function() {
-      assert.isTrue(this.app.on.calledWith('camera:busy', this.view.disable));
+      assert.isTrue(this.app.on.calledWith('busy', this.view.disable));
     });
 
     test('Should restore the controls when the camera is \'ready\'', function() {
-      assert.isTrue(this.app.on.calledWith('camera:ready', this.controller.restore));
+      assert.isTrue(this.app.on.calledWith('ready', this.controller.restore));
     });
 
     test('Should hide the controls when the timer is started', function() {

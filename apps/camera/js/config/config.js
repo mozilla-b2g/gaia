@@ -119,7 +119,8 @@ module.exports = {
 
   loadingScreen: {
     takingPicture: 1500,
-    requestingCamera: 600
+    requestingCamera: 600,
+    loadingVideo: 100
   },
 
   mode: {

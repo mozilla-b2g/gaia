@@ -66,8 +66,8 @@ suite('controllers/hud', function() {
 
   suite('HudController()', function() {
     test('Should listen to the following events', function() {
-      assert.ok(this.app.on.calledWith('camera:busy'));
-      assert.ok(this.app.on.calledWith('camera:ready'));
+      assert.ok(this.app.on.calledWith('busy'));
+      assert.ok(this.app.on.calledWith('ready'));
       assert.ok(this.app.on.calledWith('change:recording'));
     });
 
@@ -77,12 +77,12 @@ suite('controllers/hud', function() {
 
     test('Should set \'camera\' to \'busy\' on view when busy', function() {
       assert.ok(this.hud.setter.calledWith('camera', 'busy'));
-      assert.ok(this.app.on.calledWith('camera:busy'));
+      assert.ok(this.app.on.calledWith('busy'));
     });
 
     test('Should set \'camera\' to \'ready\' on view when ready', function() {
       assert.ok(this.hud.setter.calledWith('camera', 'ready'));
-      assert.ok(this.app.on.calledWith('camera:ready'));
+      assert.ok(this.app.on.calledWith('ready'));
     });
 
     test('Should set \'timer\' to \'active\' on view when started', function() {
