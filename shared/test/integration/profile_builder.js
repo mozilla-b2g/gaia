@@ -93,7 +93,9 @@ GaiaBuilder.prototype = {
   build: function(overrides, callback) {
     overrides = overrides || {};
 
-    var env = { 'PROFILE_FOLDER': PROFILE_FOLDER };
+    var env = overrides && overrides.env || {};
+    env.PROFILE_FOLDER = PROFILE_FOLDER;
+
     var profile = fsPath.join(GAIA_ROOT, PROFILE_FOLDER);
 
     // set the base profile to the newly minted profile build.
