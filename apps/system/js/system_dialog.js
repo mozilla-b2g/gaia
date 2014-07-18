@@ -107,7 +107,6 @@
       keyboardHeight = keyboardHeight ? keyboardHeight : 0;
       this.containerElement.style.height = (height - keyboardHeight) + 'px';
       this.debug('updateHeight: new height = ' + (height - keyboardHeight));
-      }
     };
 
   /**
