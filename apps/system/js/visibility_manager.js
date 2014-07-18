@@ -64,17 +64,18 @@
       case 'status-active':
       case 'attentionscreenhide':
       case 'will-unlock':
-        if (evt.type == 'will-unlock' && evt.detail &&
-            evt.detail.areaCamera) {
-          return;
-        }
+        var activityContent = (evt.detail && evt.detail.activity) ?
+          evt.detail.activity : null;
         if (window.lockScreen && window.lockScreen.locked) {
           this.publish('showlockscreenwindow');
           return;
         }
 
         if (!AttentionScreen.isFullyVisible()) {
-          this.publish('showwindow', { type: evt.type });
+          this.publish('showwindow', {
+            type: evt.type,
+            activity: activityContent
+          });
         }
         this._resetDeviceLockedTimer();
         break;

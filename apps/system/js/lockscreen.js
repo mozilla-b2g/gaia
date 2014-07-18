@@ -633,17 +633,17 @@
         return;
       }
 
-      this.unlock(/* instant */ null, /* detail */ { areaCamera: true });
-
-      var a = new window.MozActivity({
+      var activityContent = {
         name: 'record',
         data: {
           type: 'photos'
         }
-      });
-      a.onerror = function ls_activityError() {
-        console.log('MozActivity: camera launch error.');
       };
+
+      this.unlock(/* instant */ null, /* detail */ {
+        areaCamera: true,
+        activity: activityContent
+      });
     }).bind(this);
 
     panelOrFullApp();
