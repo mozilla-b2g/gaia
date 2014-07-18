@@ -151,6 +151,7 @@ exports.fileExists = utils.fileExists;
 exports.mkdirs = utils.mkdirs;
 exports.joinPath = utils.joinPath;
 exports.copyFileTo = utils.copyFileTo;
+exports.copyToStage = utils.copyToStage;
 exports.createXMLHttpRequest = utils.createXMLHttpRequest;
 exports.downloadJSON = utils.downloadJSON;
 exports.readJSONFromPath = utils.readJSONFromPath;

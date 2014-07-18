@@ -40,7 +40,7 @@ var Resources = function(gaia, settings, appDomain) {
 };
 
 // Parse and get resources for a given JSON configuration of one operator.
-// Also create an output JSON configuration for the processed resources. 
+// Also create an output JSON configuration for the processed resources.
 Resources.prototype.getResources = function(conf) {
   var operatorJSON = {};
 
@@ -137,7 +137,7 @@ Resources.prototype.getWallpaperResource = function(wallpaper) {
   }
 };
 
-// Create ringtone JSON and add file. 
+// Create ringtone JSON and add file.
 Resources.prototype.getRingtoneResource = function(ringtone) {
   if (ringtone) {
     var jsonName = 'ringtone-' + getHash(JSON.stringify(ringtone)) + '.json';
@@ -374,6 +374,7 @@ OperatorAppBuilder.prototype.getSingleVariantResources = function(svConfFile) {
 };
 
 OperatorAppBuilder.prototype.execute = function(options) {
+  utils.copyToStage(options);
   this.setOptions(options);
   this.generateCustomizeResources(options);
 };

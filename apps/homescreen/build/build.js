@@ -341,5 +341,6 @@ HomescreenAppBuilder.prototype.customizeSettings = function(origin, custom) {
 };
 
 exports.execute = function(options) {
+  utils.copyToStage(options);
   (new HomescreenAppBuilder()).execute(options);
 };
