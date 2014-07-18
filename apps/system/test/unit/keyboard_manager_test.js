@@ -1,6 +1,6 @@
 /*global
   KeyboardManager, sinon, KeyboardHelper, MockKeyboardHelper,
-  MocksHelper, TransitionEvent, MockNavigatorSettings, Applications */
+  MocksHelper, TransitionEvent, MockNavigatorSettings, Applications, Promise */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
@@ -89,6 +89,7 @@ suite('KeyboardManager', function() {
 
   var realMozSettings = null;
   var realKeyboard = null;
+  var realGetFeature = null;
 
   suiteSetup(function() {
     document.body.innerHTML += '<div id="run-container"></div>';
@@ -98,11 +99,14 @@ suite('KeyboardManager', function() {
     window.navigator.mozInputMethod = {
       removeFocus: function() {}
     };
+
+    realGetFeature = window.navigator.getFeature;
   });
 
   suiteTeardown(function() {
     navigator.mozSettings = realMozSettings;
     window.navigator.mozInputMethod = realKeyboard;
+    window.navigator.getFeature = realGetFeature;
   });
 
   setup(function() {
@@ -127,6 +131,9 @@ suite('KeyboardManager', function() {
         type: 'certified'
       }
     });
+
+    window.navigator.getFeature = this.sinon.stub();
+    window.navigator.getFeature.returns(Promise.resolve(1024));
   });
 
   suite('Switching keyboard focus', function() {
