@@ -1,5 +1,6 @@
 /* global MocksHelper, LayoutManager, MockKeyboardManager,
-          MockAttentionScreen, MocksoftwareButtonManager, MockLockScreen */
+          MockAttentionScreen, MocksoftwareButtonManager, MockLockScreen,
+          MockStatusBar */
 'use strict';
 
 requireApp('system/js/layout_manager.js');
@@ -7,6 +8,7 @@ requireApp('system/test/unit/mock_lock_screen.js');
 requireApp('system/test/unit/mock_keyboard_manager.js');
 requireApp('system/test/unit/mock_software_button_manager.js');
 requireApp('system/test/unit/mock_attention_screen.js');
+requireApp('system/test/unit/mock_statusbar.js');
 
 var mocksForLayoutManager = new MocksHelper([
   'AttentionScreen',
@@ -147,6 +149,36 @@ suite('system/LayoutManager >', function() {
     test('should return integral values in device pixels', function() {
       stubDPX = 1.5;
       assert.equal((layoutManager.height * stubDPX) % 1, 0);
+    });
+  });
+
+  suite('dimentions >', () => {
+    var H, W, _w;
+    setup(() => {
+      H = window.innerHeight;
+      W = window.innerWidth;
+      _w = document.documentElement.clientWidth;
+      MockKeyboardManager.mHeight = 100;
+      MockStatusBar.height = 30;
+      MocksoftwareButtonManager.height = 50;
+      MocksoftwareButtonManager.width = 50;
+    });
+
+    test('height calculation with keyboard enabled', () => {
+      layoutManager.keyboardEnabled = true;
+      assert.equal(layoutManager.height, H - 100 - 30 - 50);
+      assert.isTrue(layoutManager.match(W - 50, H - 100 - 30 - 50));
+    });
+
+    test('height calculation with keyboard disabled', () => {
+      layoutManager.keyboardEnabled = false;
+      assert.equal(layoutManager.height, H - 30 - 50);
+      assert.isTrue(layoutManager.match(W - 50, H - 30 - 50));
+    });
+
+    test('width calculation', () => {
+      assert.equal(layoutManager.width, W - 50);
+      assert.equal(layoutManager.clientWidth, _w);
     });
   });
 });
