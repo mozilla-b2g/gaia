@@ -42,6 +42,9 @@ class TestCostControlDataAlertMobile(GaiaTestCase):
         browser = Browser(self.marionette)
         browser.launch()
         browser.go_to_url('http://www.mozilla.org/', timeout=180)
+        browser.switch_to_content()
+        self.wait_for_condition(lambda m: "Home of the Mozilla Project" in  m.title)
+        browser.switch_to_chrome()
 
         # get the notification bar
         self.device.touch_home_button()
