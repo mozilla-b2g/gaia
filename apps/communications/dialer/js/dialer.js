@@ -291,13 +291,34 @@ var CallHandler = (function callHandler() {
           status: (incoming && data.duration > 0) ? 'connected' : null
         };
 
-        CallLogDBManager.add(entry, function(logGroup) {
-          highPriorityWakeLock.unlock();
-          CallLog.appendGroup(logGroup);
+        CallLogDBManager.add(entry, function(logEntry) {
+          CallLog.appendGroup(logEntry);
+          if(!data.secondNumber) {
+            highPriorityWakeLock.unlock();
+            return;
+          }
+          _addSecondCdmaCall(data, isVoicemailNumber, highPriorityWakeLock);
         });
       });
     });
-   }
+  }
+
+  function _addSecondCdmaCall(data, isVoicemailNumber, wakeLock) {
+    var entryCdmaSecond = {
+      date: Date.now() - parseInt(data.duration),
+      type: 'incoming',
+      number: data.secondNumber,
+      serviceId: data.serviceId,
+      emergency: false,
+      voicemail: isVoicemailNumber,
+      status: 'connected'
+    };
+
+    CallLogDBManager.add(entryCdmaSecond, function(logGroupCdmaSecondCall) {
+      CallLog.appendGroup(logGroupCdmaSecondCall);
+      wakeLock.unlock();
+    });
+  }
 
   /* === postMessage support === */
   function handleMessage(evt) {
