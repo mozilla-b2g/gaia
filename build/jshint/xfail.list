@@ -477,6 +477,7 @@ apps/video/js/thumbnail_list.js
 apps/video/js/video.js
 apps/video/js/video_utils.js
 apps/video/js/view.js
+apps/video/js/dialogs.js
 apps/video/test/marionette/lib/mocks/mock_window_mozactivity.js
 apps/video/test/marionette/lib/video.js
 apps/video/test/marionette/overlay_test.js
