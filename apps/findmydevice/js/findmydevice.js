@@ -1,4 +1,5 @@
 /* global SettingsHelper */
+/* global NotificationHelper */
 /* global asyncStorage */
 /* global Requester */
 /* global Commands */
@@ -11,6 +12,8 @@
 /* global IAC_API_WAKEUP_REASON_TRY_DISABLE */
 
 'use strict';
+
+var _ = window.navigator.mozL10n.get;
 
 var FindMyDevice = {
   _state: null,
@@ -59,6 +62,7 @@ var FindMyDevice = {
   },
 
   _fxaReady: false,
+  _retryCount: null,
 
   init: function fmd_init() {
     var self = this;
@@ -170,6 +174,12 @@ var FindMyDevice = {
           var reason = event.data;
           if (reason === IAC_API_WAKEUP_REASON_ENABLED) {
             DUMP('enabled, trying to reach the server');
+
+            // Ensure the retry counter is set to 0 at start
+            SettingsHelper('findmydevice.enableFailed').set(false);
+            this._retryCount = 0;
+            SettingsHelper('findmydevice.retryCount').set(0);
+
             this._contactServerIfEnabled();
           } else if (reason === IAC_API_WAKEUP_REASON_STALE_REGISTRATION) {
             DUMP('stale registration, re-registering');
@@ -506,6 +516,22 @@ var FindMyDevice = {
     this._disableAttempt = false;
   },
 
+  _notifyServerError: function fmd_notify_server_error(){
+    var req = navigator.mozApps.getSelf();
+
+    req.onsuccess = function wpm_gotApp(event) {
+      var app = event.target.result;
+      var icon = NotificationHelper.getIconURI(app);
+      var title = _('unable-to-connect');
+      var body = _('tap-to-check-settings');
+      var notification = new Notification(title, {body:body, icon:icon});
+      notification.onclick = function(evt) {
+        SettingsHelper('findmydevice.enableFailed').set(true);
+        evt.target.close();
+      };
+    };
+  },
+
   _processCommands: function fmd_process_commands(cmdobj) {
     if (cmdobj === null) {
       return;
@@ -566,6 +592,27 @@ var FindMyDevice = {
       this._registeredHelper.set(false);
     } else {
       this._scheduleAlarm('retry');
+      if (!this._registered) {
+        var countHelper = SettingsHelper('findmydevice.retryCount');
+        var self = this;
+        var incrementOrNotify = function fmd_increment_or_notify() {
+          if (self._retryCount >= 5) {
+            self._notifyServerError();
+          } else {
+            self._retryCount++;
+            countHelper.set(self._retryCount);
+          }
+        }
+
+        if (null == this._retryCount) {
+          countHelper.get(function fmd_get_retry_count(count){
+            this._retryCount = count;
+            incrementOrNotify();
+          });
+        } else {
+          incrementOrNotify();
+        }
+      }
     }
   },
 

@@ -15,6 +15,20 @@ navigator.mozSettings.addObserver('findmydevice.enabled', function(event) {
   }
 });
 
+navigator.mozSettings.addObserver('findmydevice.enableFailed', function(event) {
+  if (event.settingValue === true) {
+    var openSettings = new MozActivity(
+      {
+        name : "configure",
+        data : {
+          target : "device",
+          section: "findmydevice"
+        }
+      });
+    SettingsHelper('findmydevice.enabled').set(false);
+  }
+});
+
 navigator.mozSettings.addObserver('geolocation.enabled', function(event) {
   // invalidate registration so we can report to the server
   // whether tracking is enabled or not, which depends on
