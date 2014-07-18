@@ -254,7 +254,9 @@ var KeypadManager = {
   render: function hk_render(layoutType) {
     if (layoutType == 'oncall') {
       if (CallsHandler.activeCall) {
-        this._phoneNumber = CallsHandler.activeCall.call.number;
+        var activeCall = CallsHandler.activeCall.call;
+        this._phoneNumber =
+          activeCall.id ? activeCall.id.number : activeCall.number;
       }
       this._isKeypadClicked = false;
       this.phoneNumberViewContainer.classList.add('keypad-visible');
