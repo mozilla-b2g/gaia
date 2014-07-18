@@ -176,9 +176,7 @@ var FindMyDevice = {
             DUMP('enabled, trying to reach the server');
 
             // Ensure the retry counter is set to 0 at start
-            SettingsHelper('findmydevice.enableFailed').set(false);
-            this._retryCount = 0;
-            SettingsHelper('findmydevice.retryCount').set(0);
+            SettingsHelper('findmydevice.retry-count').set(0);
 
             this._contactServerIfEnabled();
           } else if (reason === IAC_API_WAKEUP_REASON_STALE_REGISTRATION) {
@@ -593,25 +591,15 @@ var FindMyDevice = {
     } else {
       this._scheduleAlarm('retry');
       if (!this._registered) {
-        var countHelper = SettingsHelper('findmydevice.retryCount');
-        var self = this;
-        var incrementOrNotify = function fmd_increment_or_notify() {
-          if (self._retryCount >= 5) {
-            self._notifyServerError();
-          } else {
-            self._retryCount++;
-            countHelper.set(self._retryCount);
-          }
-        }
+        var countHelper = SettingsHelper('findmydevice.retry-count');
 
-        if (null == this._retryCount) {
-          countHelper.get(function fmd_get_retry_count(count){
-            this._retryCount = count;
-            incrementOrNotify();
-          });
-        } else {
-          incrementOrNotify();
-        }
+        var self = this;
+        countHelper.get(function fmd_get_retry_count(count){
+          if (undefined == count) {
+            count = 0;
+          }
+          countHelper.set(count + 1);
+        });
       }
     }
   },

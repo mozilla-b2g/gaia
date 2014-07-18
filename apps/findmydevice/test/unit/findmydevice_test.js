@@ -1,6 +1,6 @@
 /* global MocksHelper, MockGeolocation, MockNavigatormozSetMessageHandler,
-   MockNavigatorSettings, FindMyDevice,
-   IAC_API_WAKEUP_REASON_LOGIN, IAC_API_WAKEUP_REASON_LOGOUT,
+   MockNavigatorSettings, MockNotificationHelper, FindMyDevice,
+   MockNotifications, IAC_API_WAKEUP_REASON_LOGIN, IAC_API_WAKEUP_REASON_LOGOUT,
    IAC_API_WAKEUP_REASON_TRY_DISABLE
 */
 
@@ -9,14 +9,17 @@
 require('/shared/test/unit/mocks/mock_dump.js');
 require('/shared/test/unit/mocks/mocks_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/test/unit/mocks/mock_settings_helper.js');
 require('/shared/test/unit/mocks/mock_geolocation.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
+require('/shared/test/unit/mocks/mock_notification_helper.js');
+require('/shared/test/unit/mocks/mock_notification.js');
 require('/shared/js/findmydevice_iac_api.js');
 require('/shared/test/unit/mocks/mock_l10n.js');
 
 var mocksForFindMyDevice = new MocksHelper([
-  'Geolocation', 'Dump', 'SettingsHelper'
+  'Geolocation', 'Dump', 'SettingsHelper', 'Notification', 'NotificationHelper'
 ]).init();
 
 suite('FindMyDevice >', function() {
@@ -24,6 +27,8 @@ suite('FindMyDevice >', function() {
   var realMozId;
   var realMozSettings;
   var realMozSetMessageHandler;
+  var realMozAlarms;
+  var realMozApps;
 
   mocksForFindMyDevice.attachTestHelpers();
 
@@ -53,6 +58,52 @@ suite('FindMyDevice >', function() {
     navigator.mozSetMessageHandler = MockNavigatormozSetMessageHandler;
     MockNavigatormozSetMessageHandler.mSetup();
 
+    realMozApps = navigator.mozApps;
+    navigator.mozApps = {
+      getSelf: function() {
+        var mockSelfRequest = {
+        };
+
+        Object.defineProperty(mockSelfRequest, 'onsuccess',{
+          get: function() {return onsucess},
+          set: function(func) {
+            func({ target: {result: {name: 'app://fmd/app/name'}}});
+          }
+        });
+
+        return mockSelfRequest;
+      }
+    };
+
+    realMozAlarms = navigator.mozAlarms;
+    navigator.mozAlarms = {
+      getAll: function (){
+        var mockAlarmsGetAllRequest = {
+          result:[]
+        };
+
+        Object.defineProperty(mockAlarmsGetAllRequest,'onsuccess',{
+          set: function(func) {
+            func.bind(mockAlarmsGetAllRequest)();
+          }
+        });
+
+        return mockAlarmsGetAllRequest;
+      },
+      add: function(time, opt, data) {
+        var mockAlarmsAddRequest = {
+        };
+
+        Object.defineProperty(mockAlarmsAddRequest,'onsuccess',{
+          set: function(func) {
+            func.bind(mockAlarmsAddRequest)();
+          }
+        });
+
+        return mockAlarmsAddRequest;
+      }
+    };
+
     // We require findmydevice.js here and not above because
     // we want to make sure all of our dependencies have already
     // been loaded.
@@ -74,6 +125,10 @@ suite('FindMyDevice >', function() {
 
     navigator.mozSetMessageHandler = realMozSetMessageHandler;
     MockNavigatormozSetMessageHandler.mTeardown();
+
+    navigator.mozApps = realMozApps;
+    navigator.mozAlarms = realMozAlarms;
+
   });
 
   setup(function(done) {
@@ -97,6 +152,33 @@ suite('FindMyDevice >', function() {
       {port: port, keyword: 'findmydevice-wakeup'});
     port.onmessage({data: reason});
   }
+
+  test('ensure retry counter is reset on enable', function() {
+    sendWakeUpMessage(IAC_API_WAKEUP_REASON_ENABLED);
+
+    var helper = MockSettingsHelper('findmydevice.retryCount').get(
+      function(val) {
+        assert.equal(val, 0, 'retry count should be 0');
+      });
+  });
+
+  test('retryCount is incremented on error when not registered', function() {
+    FindMyDevice._registered = false;
+    sendWakeUpMessage(IAC_API_WAKEUP_REASON_ENABLED);
+
+    this.sinon.stub(FindMyDevice, 'beginHighPriority');
+    this.sinon.stub(FindMyDevice, 'endHighPriority');
+
+    // simulate 3 failed requests
+    FindMyDevice._handleServerError({status:500});
+    FindMyDevice._handleServerError({status:500});
+    FindMyDevice._handleServerError({status:500});
+
+    var helper = MockSettingsHelper('findmydevice.retryCount').get(
+      function(val) {
+        assert.equal(val, 3, 'retry count should be 3');
+      });
+  });
 
   test('fields from coordinates are included in server response', function() {
     FindMyDevice._replyCallback('t', true, MockGeolocation.fakePosition);

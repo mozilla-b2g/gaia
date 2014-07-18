@@ -8,6 +8,8 @@
 
 'use strict';
 
+const FIND_MY_DEVICE_RETRIES = 5;
+
 navigator.mozSettings.addObserver('findmydevice.enabled', function(event) {
   if (event.settingValue === true) {
     // make sure Find My Device is registered if it's enabled
@@ -15,17 +17,28 @@ navigator.mozSettings.addObserver('findmydevice.enabled', function(event) {
   }
 });
 
-navigator.mozSettings.addObserver('findmydevice.enableFailed', function(event) {
-  if (event.settingValue === true) {
-    var openSettings = new MozActivity(
-      {
-        name : "configure",
-        data : {
-          target : "device",
+navigator.mozSettings.addObserver('findmydevice.retry-count', function(event) {
+  var _ = navigator.mozL10n.get;
+  if (event.settingValue >= FIND_MY_DEVICE_RETRIES) {
+
+    // TODO: load the icon
+    var icon = null;
+    var title = _('unable-to-connect');
+    var body = _('tap-to-check-settings');
+
+    var notification = new Notification(title, {body:body, icon:icon});
+    notification.onclick = function(evt) {
+      var openSettings = new MozActivity(
+        {
+          name : "configure",
+          data : {
+            target : "device",
           section: "findmydevice"
-        }
-      });
-    SettingsHelper('findmydevice.enabled').set(false);
+          }
+        });
+      SettingsHelper('findmydevice.enabled').set(false);
+      evt.target.close();
+    };
   }
 });
 
