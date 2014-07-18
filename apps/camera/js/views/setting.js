@@ -42,7 +42,11 @@ module.exports = View.extend({
     data.value = data.selected && data.selected.title;
 
     this.el.innerHTML = this.template(data);
-    debug('rendered item %s', data.key);
+
+    // Clean up
+    delete this.template;
+
+    debug('rendered (item %s)', data.key);
     return this;
   },
 

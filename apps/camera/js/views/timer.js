@@ -28,6 +28,12 @@ module.exports = View.extend({
   render: function() {
     this.el.innerHTML = this.template();
     this.els.count = this.find('.js-count');
+
+    // Clean up
+    delete this.template;
+
+    debug('rendered');
+    return this;
   },
 
   set: function(time) {

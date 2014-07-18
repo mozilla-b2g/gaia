@@ -5,9 +5,10 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
-var orientation = require('lib/orientation');
-var bind = require('lib/bind');
+var debug = require('debug')('view:zoom-bar');
 var View = require('view');
+var bind = require('lib/bind');
+var orientation = require('lib/orientation');
 
 /**
  * Locals
@@ -32,25 +33,31 @@ module.exports = View.extend({
 
     // Amount of inactivity time (in milliseconds) to hide the Zoom Bar
     this.zoomBarInactivityTimeout = 3000;
+  },
 
-    // Bind events
+  render: function() {
+    this.el.innerHTML = this.template();
+    this.els.maxIndicator = this.find('.zoom-bar-max-indicator');
+    this.els.minIndicator = this.find('.zoom-bar-min-indicator');
+    this.els.inner = this.find('.zoom-bar-inner');
+    this.els.track = this.find('.zoom-bar-track');
+    this.els.scrubber = this.find('.zoom-bar-scrubber');
+
+    // Clean up
+    delete this.template;
+
+    debug('rendered');
+    return this.bindEvents();
+  },
+
+  bindEvents: function() {
     bind(this.els.scrubber, 'touchstart', this.onTouchStart);
     bind(this.els.scrubber, 'touchmove', this.onTouchMove);
     bind(this.els.scrubber, 'touchend', this.onTouchEnd);
     bind(this.els.maxIndicator, 'click', this.onIncrement);
     bind(this.els.minIndicator, 'click', this.onDecrement);
     orientation.on('orientation', this.setOrientation);
-  },
-
-  render: function() {
-    this.el.innerHTML = this.template();
-
-    // Find elements
-    this.els.maxIndicator = this.find('.zoom-bar-max-indicator');
-    this.els.minIndicator = this.find('.zoom-bar-min-indicator');
-    this.els.inner = this.find('.zoom-bar-inner');
-    this.els.track = this.find('.zoom-bar-track');
-    this.els.scrubber = this.find('.zoom-bar-scrubber');
+    return this;
   },
 
   template: function() {
