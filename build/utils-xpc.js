@@ -731,7 +731,7 @@ function Commander(cmd) {
    *       support). We'll file another bug for migration things.
    */
   this.runWithSubprocess = function(args, options) {
-    log('cmd', command + ' ' + args.join(' '));
+    log('cmd', _file.path + ' ' + args.join(' '));
     var p = subprocess.call({
       command: _file,
       arguments: args,
