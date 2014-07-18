@@ -3,6 +3,7 @@
 /* global MockSettingsListener */
 /* global MockGeolocation */
 /* global Commands */
+/* global FindMyDevice */
 
 'use strict';
 
@@ -70,6 +71,11 @@ suite('FindMyDevice >', function() {
 
     fakeClock = this.sinon.useFakeTimers();
 
+    window.FindMyDevice = {
+      beginHighPriority: this.sinon.stub(),
+      endHighPriority: this.sinon.stub()
+    };
+
     require('/js/commands.js', function() {
       subject = Commands;
       done();
@@ -81,6 +87,8 @@ suite('FindMyDevice >', function() {
 
     subject.invokeCommand('lock', [message, code, function(retval) {
       assert.equal(retval, true);
+    sinon.assert.calledWith(FindMyDevice.beginHighPriority, 'command');
+    sinon.assert.calledWith(FindMyDevice.endHighPriority, 'command');
 
       var lock = MockSettingsListener.getSettingsLock().locks.pop();
       assert.deepEqual({
@@ -113,9 +121,11 @@ suite('FindMyDevice >', function() {
       assert.equal(lock['audio.volume.content'], 15, 'volume set to maximum');
       assert.equal(ringer.paused, false, 'must be playing');
       assert.equal(ringer.src, ringtone, 'must use ringtone');
+      sinon.assert.calledWith(FindMyDevice.beginHighPriority, 'command');
 
       setTimeout(function() {
         assert.equal(ringer.paused, true, 'must have stopped');
+        sinon.assert.calledWith(FindMyDevice.endHighPriority, 'command');
         done();
       }, duration * 1000);
 
@@ -137,7 +147,7 @@ suite('FindMyDevice >', function() {
     MockPermissionSettings.permissions.geolocation = 'deny';
 
     var times = 0;
-    var duration = (3 * subject.TRACK_UPDATE_INTERVAL_MS)/ 1000;
+    var duration = (5 * subject.TRACK_UPDATE_INTERVAL_MS) / 1000;
     subject.invokeCommand('track', [duration, function(retval, position) {
       assert.equal(retval, true);
       assert.equal(MockPermissionSettings.permissions.geolocation, 'allow');
@@ -150,12 +160,14 @@ suite('FindMyDevice >', function() {
         assert.equal(retval, true);
         assert.equal(subject._trackTimeoutId, null);
         assert.equal(subject._trackIntervalId, null);
+        sinon.assert.calledWith(FindMyDevice.endHighPriority, 'command');
         done();
       }
 
       fakeClock.tick(subject.TRACK_UPDATE_INTERVAL_MS);
     }]);
 
+    sinon.assert.calledWith(FindMyDevice.beginHighPriority, 'command');
     fakeClock.tick(subject.TRACK_UPDATE_INTERVAL_MS);
   });
 
@@ -170,12 +182,12 @@ suite('FindMyDevice >', function() {
 
       fakeClock.tick(subject.TRACK_UPDATE_INTERVAL_MS);
 
-      duration = (subject.TRACK_UPDATE_INTERVAL_MS - 1000)/ 1000;
+      duration = 2 * subject.TRACK_UPDATE_INTERVAL_MS / 1000;
       subject.invokeCommand('track', [duration, function(retval, position) {
         positions++;
       }]);
 
-      fakeClock.tick(2 * subject.TRACK_UPDATE_INTERVAL_MS);
+      fakeClock.tick(5 * subject.TRACK_UPDATE_INTERVAL_MS);
 
       assert.equal(positions, 2);
       assert.equal(subject._trackTimeoutId, null);
@@ -255,5 +267,7 @@ suite('FindMyDevice >', function() {
     delete window.DUMP;
 
     fakeClock.restore();
+
+    delete window.FindMyDevice;
   });
 });
