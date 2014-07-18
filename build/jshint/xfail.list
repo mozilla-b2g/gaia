@@ -396,7 +396,6 @@ apps/system/test/unit/carrier_info_notifier_test.js
 apps/system/test/unit/date_picker_test.js
 apps/system/test/unit/download_manager_test.js
 apps/system/test/unit/download_notification_test.js
-apps/system/test/unit/edge_swipe_detector_test.js
 apps/system/test/unit/entery_sheet_test.js
 apps/system/test/unit/fxa_client_test.js
 apps/system/test/unit/fxa_iac_client_test.js
@@ -414,7 +413,6 @@ apps/system/test/unit/fxa_test/screens/fxam_refresh_auth_test.js
 apps/system/test/unit/fxa_test/screens/fxam_set_password_test.js
 apps/system/test/unit/fxa_test/screens/fxam_signin_success_test.js
 apps/system/test/unit/fxa_test/screens/fxam_signup_success_test.js
-apps/system/test/unit/homescreen_launcher_test.js
 apps/system/test/unit/iac_handler_test.js
 apps/system/test/unit/identity_test.js
 apps/system/test/unit/keyboard_helper_test.js
@@ -436,7 +434,6 @@ apps/system/test/unit/mock_download_ui.js
 apps/system/test/unit/mock_ftu_launcher.js
 apps/system/test/unit/mock_fxa_client.js
 apps/system/test/unit/mock_fxa_ui.js
-apps/system/test/unit/mock_homescreen_launcher.js
 apps/system/test/unit/mock_homescreen_window.js
 apps/system/test/unit/mock_iac_handler.js
 apps/system/test/unit/mock_iachandler.js
@@ -462,7 +459,6 @@ apps/system/test/unit/orientation_manager_test.js
 apps/system/test/unit/quick_settings_test.js
 apps/system/test/unit/screen_manager_test.js
 apps/system/test/unit/settings_helper_test.js
-apps/system/test/unit/sheets_transition_test.js
 apps/system/test/unit/spin_date_picker_test.js
 apps/system/test/unit/storage_watcher_test.js
 apps/system/test/unit/updatable_test.js

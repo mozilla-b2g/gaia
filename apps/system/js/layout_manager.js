@@ -111,7 +111,6 @@
       window.addEventListener('mozfullscreenchange', this);
       window.addEventListener('software-button-enabled', this);
       window.addEventListener('software-button-disabled', this);
-      return this;
     },
 
     handleEvent: function lm_handleEvent(evt) {

@@ -47,7 +47,6 @@
     this.overlayEvents.forEach(function overlayEventIterator(event) {
       window.addEventListener(event, this);
     }, this);
-    return this;
   };
 
   VisibilityManager.prototype.handleEvent = function vm_handleEvent(evt) {

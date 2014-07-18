@@ -67,7 +67,8 @@ suite('system/DialerAgent', function() {
     setVisibleSpy = this.sinon.spy(HTMLIFrameElement.prototype, 'setVisible');
 
     this.sinon.useFakeTimers();
-    subject = new DialerAgent().start();
+    subject = new DialerAgent();
+    subject.start();
   });
 
   teardown(function() {

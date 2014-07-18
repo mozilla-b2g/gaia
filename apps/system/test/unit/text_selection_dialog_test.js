@@ -16,7 +16,8 @@ suite('system/TextSelectionDialog', function() {
   mocksForTextSelectionDialog.attachTestHelpers();
   var mockDetail = {};
   setup(function(done) {
-    window.layoutManager = new LayoutManager().start();
+    window.layoutManager = new LayoutManager();
+    window.layoutManager.start();
     window.layoutManager.width = 360;
     window.layoutManager.height = 480;
     mockDetail = {

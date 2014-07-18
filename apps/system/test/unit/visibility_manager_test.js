@@ -22,7 +22,8 @@ suite('system/VisibilityManager', function() {
     stubById = this.sinon.stub(document, 'getElementById');
     stubById.returns(document.createElement('div'));
     requireApp('system/js/visibility_manager.js', function() {
-      visibilityManager = new VisibilityManager().start();
+      visibilityManager = new VisibilityManager();
+      visibilityManager.start();
       done();
     });
   });
