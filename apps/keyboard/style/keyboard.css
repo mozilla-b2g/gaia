@@ -124,6 +124,10 @@ button::-moz-focus-inner {
   transition: color 0s ease-in 0.01s;
 }
 
+.keyboard-key > .visual-wrapper > .key-offset {
+  text-indent: 1.1rem;
+}
+
 .popup {
   position: absolute;
   top: -5.8rem;
@@ -568,6 +572,10 @@ bubble above the key when you tap and hold. */
 
 #keyboard.landscape .keyboard-key > .visual-wrapper > .key-element {
   font-size: 2.8rem
+}
+
+#keyboard.landscape .keyboard-key > .visual-wrapper > .key-offset {
+  text-indent: 1.8rem
 }
 
 #keyboard.landscape .keyboard-key.special-key > .visual-wrapper > .key-element {
