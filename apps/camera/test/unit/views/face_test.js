@@ -14,7 +14,10 @@ suite('views/face', function() {
     var self = this;
     // Shortcuts
     this.view = new this.FaceView();
-
+    this.view.classList = {
+      add: function() {}
+    };
+    this.classes = this.view.el.classList;
   });
 
   suite('FaceView#setPosition()', function() {
@@ -30,6 +33,13 @@ suite('views/face', function() {
       this.view.setDiameter(50);
       assert.equal(this.view.el.style.width, '50px');
       assert.equal(this.view.el.style.height, '50px');
+    });
+  });
+
+  suite('FaceView#setLargestFace()', function() {
+    test('Should set setLargestFace values', function() {
+      this.view.setLargestFace(true);
+      assert.isTrue(this.classes.contains('main-face'));
     });
   });
 

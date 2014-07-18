@@ -104,7 +104,15 @@ suite('controllers/viewfinder', function() {
     });
 
     test('Should should set the foucsRing state when focus changes', function() {
-      assert.isTrue(this.app.on.calledWith('camera:focusstatechanged', this.focusRing.setFocusState));
+      assert.isTrue(this.app.on.calledWith('camera:focusstatechanged', this.controller.onFocusStateChange));
+    });
+
+    test('Should should set the foucsRing state when Face  Detected', function() {
+      assert.isTrue(this.app.on.calledWith('camera:facesdetected', this.controller.onFacesDetected));
+    });
+
+    test('Should should set the foucsRing state when Face  Detected', function() {
+      assert.isTrue(this.app.on.calledWith('camera:autofocuschanged', this.controller.setAutoFocusMode));
     });
 
     test('Should set the scaleType on the view', function() {

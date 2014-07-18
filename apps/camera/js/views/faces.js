@@ -40,15 +40,17 @@ module.exports = View.extend({
     this.hideFaces();
     faces.forEach(function(face, index) {
       var faceView = self.faces[index];
-      self.renderFace(face, faceView);
+      var isLargestFace = index === 0;
+      self.renderFace(face, faceView, isLargestFace);
     });
   },
 
-  renderFace: function(face, faceView) {
+  renderFace: function(face, faceView, isLargestFace) {
     // Maximum diameter is 300px as in the visual spec
     var diameter = Math.min(300, face.diameter);
     faceView.setPosition(face.x, face.y);
     faceView.setDiameter(diameter);
+    faceView.setLargestFace(isLargestFace);
     faceView.show();
   },
 
@@ -64,6 +66,15 @@ module.exports = View.extend({
       self.el.removeChild(faceView.el);
     });
     this.faces = [];
+  },
+
+  setFacesState: function(state) {
+    if (this.faces && this.faces.length > 0) {
+      var mainFace = this.find('.main-face');
+      if (mainFace) {
+        mainFace.classList.add(state);
+      }
+    }
   }
 
 });

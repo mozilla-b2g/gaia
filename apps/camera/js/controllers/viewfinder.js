@@ -102,9 +102,9 @@ ViewfinderController.prototype.bindEvents = function() {
 
   this.camera.on('zoomchanged', this.onZoomChanged);
   this.camera.on('zoomconfigured', this.onZoomConfigured);
-  this.app.on('camera:autofocuschanged', this.views.focus.showAutoFocusRing);
+  this.app.on('camera:autofocuschanged', this.setAutoFocusMode);
   this.app.on('camera:focusconfigured', this.onFocusConfigured);
-  this.app.on('camera:focusstatechanged', this.views.focus.setFocusState);
+  this.app.on('camera:focusstatechanged', this.onFocusStateChange);
   this.app.on('camera:facesdetected', this.onFacesDetected);
   this.app.on('camera:shutter', this.views.viewfinder.shutter);
   this.app.on('camera:busy', this.views.viewfinder.disable);
@@ -151,6 +151,7 @@ ViewfinderController.prototype.show = function() {
 ViewfinderController.prototype.onFocusConfigured = function(config) {
   this.views.focus.setFocusMode(config.mode);
   this.touchFocusEnabled = config.touchFocus;
+  this.isFaceTracking = false;
   this.views.faces.clear();
   if (config.maxDetectedFaces > 0) {
     this.views.faces.configure(config.maxDetectedFaces);
@@ -163,7 +164,10 @@ ViewfinderController.prototype.onFacesDetected = function(faces) {
   var viewfinderSize =  this.views.viewfinder.getSize();
   var viewportHeight = viewfinderSize.height;
   var viewportWidth = viewfinderSize.width;
-
+  var self = this;
+  if (faces.length > 0) {
+    this.isFaceTracking = true;
+  }
   faces.forEach(function(face, index) {
     // Face comes in camera coordinates from gecko
     faceInPixels = convertFaceToPixels(face, viewportWidth, viewportHeight);
@@ -286,6 +290,7 @@ ViewfinderController.prototype.onViewfinderClicked = function(e) {
     y: e.pageY
   };
   this.views.faces.hide();
+  this.isFaceTracking = false;
   focusPoint.area = calculateFocusArea(
     focusPoint.x, focusPoint.y,
     this.views.viewfinder.el.clientWidth,
@@ -330,6 +335,19 @@ ViewfinderController.prototype.onPreviewActive = function(active) {
   if (!active) {
     this.stopStream();
   }
+};
+
+ViewfinderController.prototype.onFocusStateChange = function(state) {
+  if (this.isFaceTracking) {
+    this.views.faces.setFacesState(state);
+  } else {
+    var isVideo = this.camera.mode === 'video';
+    this.views.focus.setFocusState(state, isVideo);
+  }
+};
+
+ViewfinderController.prototype.setAutoFocusMode = function() {
+  this.isFaceTracking = false;
 };
 
 });

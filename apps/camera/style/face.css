@@ -16,3 +16,11 @@
 .face.hidden {
   opacity: 0;
 }
+
+.face.focused {
+  border-color: #afff3d;
+}
+
+.face.fail {
+  border-color: #ff0000;
+}

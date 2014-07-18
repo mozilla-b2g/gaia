@@ -19,6 +19,7 @@ suite('views/faces', function() {
       appendTo: sinon.spy(),
       setPosition: sinon.spy(),
       setDiameter: sinon.spy(),
+      setLargestFace: sinon.spy(),
       show: sinon.spy()
     };
     // Shortcuts
@@ -42,9 +43,11 @@ suite('views/faces', function() {
         diameter: 300
       };
       var faceView = new this.FaceView();
-      this.view.renderFace(face, faceView);
+      var isLargestFace = true;
+      this.view.renderFace(face, faceView, isLargestFace);
       assert.ok(faceView.setPosition.called);
       assert.ok(faceView.setDiameter.called);
+      assert.ok(faceView.setLargestFace.called);
       assert.ok(faceView.show.called);
     });
   });

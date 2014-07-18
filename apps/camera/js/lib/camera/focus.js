@@ -137,9 +137,7 @@ Focus.prototype.suspendContinuousFocus = function(ms) {
 };
 
 Focus.prototype.onAutoFocusMoving = function(state) {
-  if (state) {
     this.onAutoFocusChanged(state);
-  }
 };
 
 Focus.prototype.onAutoFocusChanged = function(state) {
@@ -200,23 +198,46 @@ Focus.prototype.focusOnLargestFace = function(faces) {
     this.onFacesDetected([]);
     return;
   }
-
+  this.stopContinuousFocus();
   if (!facesAlreadyDetected) {
     this.detectedFaces = detectedFaces;
     this.suspendFaceDetection(2000, 2000);
     if (!this.faceFocused) {
-      this.stopContinuousFocus();
       // First face in the array is the one we focus on (largest area on image)
       this.updateFocusArea(detectedFaces[0].bounds, focusDone);
+      this.onFaceFocusChanges('focusing');
     }
   }
   this.onFacesDetected(detectedFaces);
-
+  this.suspendContinuousFocus(3000);
   function focusDone(error) {
     self.faceFocused = true;
-    self.suspendContinuousFocus(4000);
+    if (error) { self.onFaceFocusChanges('fail'); }
+    else { self.onFaceFocusChanges('focused'); }
+    // mozilla implemetation set the time out of 4 sec
+    // we have changes it to 3 sec
+    self.suspendContinuousFocus(3000);
   }
 
+};
+
+Focus.prototype.onFaceFocusChanges = function(state) {
+  // NO OP by default
+};
+
+Focus.prototype.getLargestFace = function(faces) {
+  var faceIndex = -1;
+  var faceSize = 0;
+  faces.forEach(function(face, index) {
+    // Face comes in camera coordinates from gecko
+    var size = face.bounds.width * face.bounds.height;
+    if ( size > faceSize) {
+      faceSize = size;
+      faceIndex = index;
+    }
+  });
+
+  return faceIndex;
 };
 
 /**
@@ -233,7 +254,9 @@ Focus.prototype.focusOnLargestFace = function(faces) {
  */
 Focus.prototype.focus = function(done) {
   var self = this;
-  this.suspendContinuousFocus(10000);
+  // mozilla implemetation set the time out of 10 sec
+  // we have changes it to 3 sec
+  this.suspendContinuousFocus(3000);
   if (this.mozCamera.focusMode !== 'auto') {
     done();
     return;
@@ -329,6 +352,7 @@ Focus.prototype.updateFocusArea = function(rect, done) {
   function focusDone(state) {
     self.startFaceDetection();
     self.suspendFaceDetection(2000, 0);
+    self.suspendContinuousFocus(3000);
     // Restores previous flash mode
     self.mozCamera.flashMode = previousFlashMode;
     done(state);

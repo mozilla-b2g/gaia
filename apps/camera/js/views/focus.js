@@ -32,10 +32,12 @@ module.exports = View.extend({
     return this;
   },
 
-  setFocusState: function(state) {
+  setFocusState: function(state, isVideo) {
     this.set('state', state);
-    if (state !== 'focusing') {
+    if (state === 'none') {
       this.fadeOut();
+    } else if(!isVideo) {
+      this.fadeOut(3000);
     }
   },
 
@@ -55,12 +57,13 @@ module.exports = View.extend({
     this.set('state', 'none');
   },
 
-  fadeOut: function() {
+  fadeOut: function(time) {
     var self = this;
+    var timer = time ? time : this.fadeTime;
     if (this.fadeOutTimer) {
       clearTimeout(this.fadeOutTimer);
     }
-    this.fadeOutTimer = setTimeout(hide, this.fadeTime);
+    this.fadeOutTimer = setTimeout(hide, timer);
     function hide() {
       self.reset();
     }
