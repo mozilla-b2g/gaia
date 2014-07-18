@@ -15,6 +15,7 @@ from marionette import expected
 from marionette.errors import NoSuchElementException
 from marionette.errors import StaleElementException
 from marionette.errors import InvalidResponseException
+from marionette.errors import MarionetteException
 from marionette.wait import Wait
 
 from file_manager import GaiaDeviceFileManager, GaiaLocalFileManager
@@ -923,8 +924,11 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
             shutil.rmtree(self.device.storage_path, ignore_errors=True)
         self.apps = None
         self.data_layer = None
-        MarionetteTestCase.tearDown(self)
-
+        try:
+            # If b2g has crashed/hung we may get a MarionetteException here which we're not concerned about
+            MarionetteTestCase.tearDown(self)
+        except MarionetteException:
+            pass
 
 class GaiaEnduranceTestCase(GaiaTestCase, EnduranceTestCaseMixin, MemoryEnduranceTestCaseMixin):
 
