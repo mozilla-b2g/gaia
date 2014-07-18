@@ -1,6 +1,7 @@
 define(function(require, exports, module) {
 'use strict';
 
+var debug = require('debug')('view:loading-screen');
 var View = require('view');
 
 module.exports = View.extend({
@@ -8,7 +9,17 @@ module.exports = View.extend({
   fadeTime: 300,
 
   initialize: function() {
+    this.render();
+  },
+
+  render: function() {
     this.el.innerHTML = this.template;
+
+    // Clean up
+    delete this.template;
+
+    debug('rendered');
+    return this;
   },
 
   show: function(done) {

@@ -30,6 +30,13 @@
       "description": "Find My Device helps find, lock and erase a lost phone"
     }
   },
+  "icons": {
+    "84": "/style/icons/find_my_device_84.png",
+    "126": "/style/icons/find_my_device_126.png",
+    "142": "/style/icons/find_my_device_142.png",
+    "189": "/style/icons/find_my_device_189.png",
+    "284": "/style/icons/find_my_device_284.png"
+  },
   "messages": [
     { "alarm": "/index.html" },
     { "push": "/index.html" },

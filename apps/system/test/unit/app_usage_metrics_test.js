@@ -208,7 +208,8 @@ suite('AppUsageMetrics:', function() {
       activitySpy = this.sinon.spy(proto, 'recordActivity');
 
       // Create and initialize an AUM instance. It won't start automatically
-      aum = new AppUsageMetrics().start();
+      aum = new AppUsageMetrics();
+      aum.start();
 
       // Start it up so it is ready to handle events
       aum.startCollecting(done);
@@ -544,7 +545,8 @@ suite('AppUsageMetrics:', function() {
       XHR.onCreate = function(instance) { xhr = instance; };
 
       // Create an AUM instance
-      aum = new AppUsageMetrics().start();
+      aum = new AppUsageMetrics();
+      aum.start();
       aum.startCollecting(done);
 
       transmit = this.sinon.spy(AppUsageMetrics.prototype, 'transmit');

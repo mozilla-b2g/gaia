@@ -24,7 +24,8 @@ suite('system/StackManager >', function() {
   setup(function() {
     this.sinon.useFakeTimers();
 
-    window.homescreenLauncher = new HomescreenLauncher().start();
+    window.homescreenLauncher = new HomescreenLauncher();
+    window.homescreenLauncher.start();
     dialer = new AppWindow({
       url: 'app://communications.gaiamobile.org/dialer/index.html',
       origin: 'app://communications.gaiamobile.org/',

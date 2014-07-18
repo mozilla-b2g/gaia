@@ -82,8 +82,6 @@
             this.toggle(value);
           }.bind(this));
       }
-
-      return this;
     },
 
     /**

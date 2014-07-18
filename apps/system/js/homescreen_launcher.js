@@ -110,9 +110,8 @@
      */
     start: function hl_start() {
       if (this._started) {
-        return this;
+        return;
       }
-
       this._started = true;
       if (applications.ready) {
         this._fetchSettings();
@@ -131,7 +130,6 @@
       window.addEventListener('shrinking-stop', this);
       window.addEventListener('software-button-enabled', this);
       window.addEventListener('software-button-disabled', this);
-      return this;
     },
 
     /**

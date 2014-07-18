@@ -179,7 +179,8 @@ var AttentionScreen = {
 
   // Make sure visibililty state of all attention screens are set correctly
   _updateFrameVisibility: function as_updateFrameVisibility(activeFrame) {
-    var frames = this.attentionScreen.querySelectorAll('iframe');
+    var selector = 'iframe:not([data-hidden])';
+    var frames = this.attentionScreen.querySelectorAll(selector);
     var i = frames.length - 1;
 
     // In case someone call this function w/o checking for frame first
@@ -250,6 +251,7 @@ var AttentionScreen = {
       });
 
       iframe.dataset.hidden = 'hidden';
+      iframe.classList.remove('active');
       iframe.blur();
     } else {
       this.attentionScreen.removeChild(iframe);

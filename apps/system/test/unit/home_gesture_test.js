@@ -59,7 +59,8 @@ suite('enable/disable homegesture', function() {
     ScreenLayout.setDefault({
       tiny: true
     });
-    subject = new HomeGesture().start();
+    subject = new HomeGesture();
+    subject.start();
     assert.equal(
       MockNavigatorSettings.mSettings['homegesture.enabled'], false);
   });
@@ -68,7 +69,8 @@ suite('enable/disable homegesture', function() {
     ScreenLayout.setDefault({
       tiny: false
     });
-    subject = new HomeGesture().start();
+    subject = new HomeGesture();
+    subject.start();
     assert.equal(
       subject.homeBar.classList.contains('visible'),
       true);

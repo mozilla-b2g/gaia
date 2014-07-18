@@ -8,6 +8,7 @@
     lastWakeLock = {
       released: false,
       topic: lock,
+      mUnlockCount: 0,
       unlock: function() {
         if (throwAtNextUnlock) {
           throwAtNextUnlock = false;
@@ -15,6 +16,7 @@
         }
 
         this.released = true;
+        this.mUnlockCount++;
       }
     };
     return lastWakeLock;

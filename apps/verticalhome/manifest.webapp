@@ -9,6 +9,7 @@
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "permissions": {
+    "feature-detection": {},
     "mobileconnection":{},
     "open-remote-window":{},
     "storage": {},
@@ -36,10 +37,11 @@
     }
   },
   "icons": {
-    "30": "/style/icons/vertical_30.png",
-    "45": "/style/icons/vertical_45.png",
-    "60": "/style/icons/vertical_60.png",
-    "68": "/style/icons/vertical_68.png"
+    "84": "/style/icons/vertical_84.png",
+    "126": "/style/icons/vertical_126.png",
+    "142": "/style/icons/vertical_142.png",
+    "189": "/style/icons/vertical_189.png",
+    "284": "/style/icons/vertical_284.png"
   },
   "orientation": "default",
   "activities": {},

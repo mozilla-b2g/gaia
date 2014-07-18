@@ -859,7 +859,6 @@
         return;
       }
 
-      this.clear();
       this.hideResults();
       this.collapse();
       this.deactivate();

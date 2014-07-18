@@ -46,7 +46,8 @@ suite('system/AppWindowManager', function() {
     window.layoutManager = new window.LayoutManager();
 
     home = new HomescreenWindow('fakeHome');
-    window.homescreenLauncher = new HomescreenLauncher().start();
+    window.homescreenLauncher = new HomescreenLauncher();
+    window.homescreenLauncher.start();
     homescreenLauncher.mFeedFixtures({
       mHomescreenWindow: home,
       mOrigin: 'fakeOrigin',

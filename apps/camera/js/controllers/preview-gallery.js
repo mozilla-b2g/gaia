@@ -22,7 +22,6 @@ module.exports = function(app) { return new PreviewGalleryController(app); };
 module.exports.PreviewGalleryController = PreviewGalleryController;
 
 function PreviewGalleryController(app) {
-  debug('initializing');
   bindAll(this);
   this.app = app;
   this.settings = app.settings;

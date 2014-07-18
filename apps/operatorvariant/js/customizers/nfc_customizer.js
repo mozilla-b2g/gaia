@@ -6,6 +6,11 @@ var NfcCustomizer = (function() {
   Customizer.call(this, 'nfc', 'json');
 
   this.set = function(nfcParams) {
+    if (!this.simPresentOnFirstBoot) {
+      console.log('NfcCustomizer. No first RUN with configured SIM.');
+      return;
+    }
+
     const NFC_SETTING = 'nfc.enabled';
 
     var settings = navigator.mozSettings;

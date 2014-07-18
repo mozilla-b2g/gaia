@@ -338,6 +338,7 @@ suite('latin input method capitalization and punctuation', function() {
     var keyboardGlue = Object.create(defaultKeyboardGlue);
     var _windowWorker;
     var workers = [];
+    var handleEventSpy = null;
 
     function activateIME() {
       im.activate('en', {
@@ -365,20 +366,33 @@ suite('latin input method capitalization and punctuation', function() {
       };
 
       worker.prototype.postMessage = function() {};
+
+      handleEventSpy = sinon.spy(im, 'handleEvent');
     });
 
     teardown(function() {
       window.Worker = _windowWorker;
+      handleEventSpy.restore();
     });
 
     test('should listen to selectionchange', function() {
       im.init(keyboardGlue);
       activateIME();
 
-      var handleEventSpy = sinon.spy(im, 'handleEvent');
       inputContext.dispatchEvent(new Event('selectionchange'));
 
       sinon.assert.calledOnce(handleEventSpy);
+    });
+
+    test('should stop listening to selectionchange when' +
+         ' deactivated', function() {
+      im.init(keyboardGlue);
+      activateIME();
+
+      im.deactivate();
+
+      inputContext.dispatchEvent(new Event('selectionchange'));
+      sinon.assert.notCalled(handleEventSpy);
     });
 
     test('wll clear the suggestions if selectionchange', function() {

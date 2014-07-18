@@ -93,7 +93,7 @@ var KeyboardManager = {
   },
   hasActiveKeyboard: false,
   isOutOfProcessEnabled: false,
-  isOutOfProcessEnabledForCertifiedApp: false,
+  totalMemory: 0,
 
   init: function km_init() {
     // generate typeTable
@@ -111,11 +111,14 @@ var KeyboardManager = {
         this.isOutOfProcessEnabled = value;
       }.bind(this));
 
-    // Optionally, certified app can stay inproc in memory constrainted config
-    SettingsListener.observe('keyboard.oop-certified-apps', false,
-      function(value) {
-        this.isOutOfProcessEnabledForCertifiedApp = value;
-      }.bind(this));
+    if ('getFeature' in navigator) {
+      navigator.getFeature('hardware.memory').then(function(mem) {
+        this.totalMemory = mem;
+      }.bind(this), function() {
+        console.error('KeyboardManager: ' +
+          'Failed to retrive total memory of the device.');
+      });
+    }
 
     this.keyboardFrameContainer = document.getElementById('keyboards');
 
@@ -425,9 +428,9 @@ var KeyboardManager = {
 
     // oop is always enabled for non-certified app,
     // and optionally enabled to certified apps if
-    // isOutOfProcessEnabledForCertifiedApp is set to true.
+    // available memory is more than 512MB.
     if (this.isOutOfProcessEnabled &&
-        (!isCertifiedApp || this.isOutOfProcessEnabledForCertifiedApp)) {
+        (!isCertifiedApp || this.totalMemory >= 512)) {
       console.log('=== Enable keyboard: ' + layout.origin + ' run as OOP ===');
       keyboard.setAttribute('remote', 'true');
       keyboard.setAttribute('ignoreuserfocus', 'true');
