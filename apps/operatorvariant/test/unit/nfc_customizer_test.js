@@ -21,7 +21,8 @@ suite('NFC customizer >', function() {
         'default': false
       },
       currentValue: false,
-      expectedValue: true
+      expectedValue: true,
+      simPresentOnFirstBoot: true
     },
     {
       title: 'set false value. It has not changed previously > ',
@@ -30,7 +31,8 @@ suite('NFC customizer >', function() {
         'default': false
       },
       currentValue: false,
-      expectedValue: false
+      expectedValue: false,
+      simPresentOnFirstBoot: true
     },
     {
       title: 'set true value. It has changed previously > ',
@@ -39,7 +41,8 @@ suite('NFC customizer >', function() {
         'default': false
       },
       currentValue: true,
-      expectedValue: true
+      expectedValue: true,
+      simPresentOnFirstBoot: true
     },
     {
       title: 'set false value. It has changed previously > ',
@@ -48,7 +51,8 @@ suite('NFC customizer >', function() {
         'default': false
       },
       currentValue: true,
-      expectedValue: true
+      expectedValue: true,
+      simPresentOnFirstBoot: true
     },
     {
       title: 'set true value. Previously value undefined > ',
@@ -57,7 +61,8 @@ suite('NFC customizer >', function() {
         'default': false
       },
       currentValue: undefined,
-      expectedValue: true
+      expectedValue: true,
+      simPresentOnFirstBoot: true
     },
     {
       title: 'set false value. Previous value undefined > ',
@@ -66,7 +71,26 @@ suite('NFC customizer >', function() {
         'default': false
       },
       currentValue: undefined,
-      expectedValue: false
+      expectedValue: false,
+      simPresentOnFirstBoot: true
+    },
+    {
+      title: 'set true value. Previous RUN with no SIM (or unconfigured one)> ',
+      inputValue: {
+        'isEnabled': true,
+        'default': false
+      },
+      expectedValue: undefined,
+      simPresentOnFirstBoot: false
+    },
+    {
+      title: 'set false value. Previous RUN with no SIM (or unconfigured one)>',
+      inputValue: {
+        'isEnabled': false,
+        'default': false
+      },
+      expectedValue: undefined,
+      simPresentOnFirstBoot: false
     }
   ];
 
@@ -94,6 +118,7 @@ suite('NFC customizer >', function() {
         window.MockNavigatorSettings.mSettings[NFC_SETTING] =
           testCase.currentValue;
       }
+      nfcCustomizer.simPresentOnFirstBoot = testCase.simPresentOnFirstBoot;
       nfcCustomizer.set(testCase.inputValue);
       this.sinon.clock.tick(TINY_TIMEOUT);
       var mSettings = window.MockNavigatorSettings.mSettings;
