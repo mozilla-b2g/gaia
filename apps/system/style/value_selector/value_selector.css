@@ -6,6 +6,12 @@
   left: 0;
   position: absolute;
   transition: visibility 0.5s, opacity 0.5s;
+  display: block;
+}
+
+.value-selector[hidden] {
+  visibility: hidden;
+  opacity: 0;
 }
 
 .value-selector-container li > label {

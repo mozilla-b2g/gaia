@@ -210,7 +210,7 @@
 
 /* Level 7: Dialog Module */
 #screen > [data-z-index-level="dialog-overlay"],
-#screen > [data-z-index-level="value-selector"],
+#screen > [data-z-index-level="app"] > .appWindow.active > [data-z-index-level="value-selector"],
 #screen > [data-z-index-level="ime-layout-dialog"],
 #screen > [data-z-index-level="app-install-dialog"],
 #screen > [data-z-index-level="updates-download-dialog"],
@@ -286,7 +286,7 @@
 #screen:-moz-full-screen-ancestor > [data-z-index-level="lockscreen"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="lockscreen-camera"],
 
-#screen:-moz-full-screen-ancestor > [data-z-index-level="value-selector"],
+#screen:-moz-full-screen-ancestor > [data-z-index-level="app"] > .appWindow.active > [data-z-index-level="value-selector"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="system-overlay"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="dialog-overlay"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="app"] > .appWindow.active > .modal-dialog,
