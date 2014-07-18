@@ -341,7 +341,6 @@
     handleEvent: function awm_handleEvent(evt) {
       this.debug('handling ' + evt.type);
       var activeApp = this._activeApp;
-      var detail = evt.detail;
       switch (evt.type) {
         case 'permissiondialoghide':
           activeApp && activeApp.broadcast('focus');
@@ -437,6 +436,8 @@
           break;
 
         case 'hidewindow':
+          var detail = evt.detail;
+
           if (activeApp &&
               activeApp.origin !== homescreenLauncher.origin) {
             // This is coming from attention screen.
@@ -465,32 +466,15 @@
           break;
 
         case 'showwindow':
-          var fireActivity = () => {
-            // Need to invoke activity
-            var a = new window.MozActivity(detail.activity);
-            a.onerror = function ls_activityError() {
-              console.log('MozActivity: activity error.');
-            };
-          };
-
           if (activeApp && activeApp.origin !== homescreenLauncher.origin) {
             activeApp.setVisible(true);
-            // If we need to invoke activity after we show the window.
-            if (detail && detail.activity) {
-              fireActivity();
-            }
           } else {
-            // If we only have activity, we don't open the homescreen.
-            if (detail && detail.activity) {
-              fireActivity();
-            } else {
-              var home = homescreenLauncher.getHomescreen(true); // jshint ignore:line
-              if (home) {
-                if (home.isActive()) {
-                  home.setVisible(true);
-                } else {
-                  this.display();
-                }
+            var home = homescreenLauncher.getHomescreen(true); // jshint ignore:line
+            if (home) {
+              if (home.isActive()) {
+                home.setVisible(true);
+              } else {
+                this.display();
               }
             }
           }

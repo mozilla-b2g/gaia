@@ -430,34 +430,6 @@ suite('system/AppWindowManager', function() {
       assert.isTrue(stubSetVisible.calledWith(true));
     });
 
-    test('Show top window than fire activity when there is an request',
-    function() {
-      injectRunningApps(app1);
-      AppWindowManager._activeApp = app1;
-      MockAttentionScreen.mFullyVisible = false;
-      var stubSetVisible = this.sinon.stub(app1, 'setVisible');
-      var stubActivity = this.sinon.stub();
-      var originalActivity = window.MozActivity;
-      window.MozActivity = stubActivity;
-
-      AppWindowManager.handleEvent({
-        type: 'showwindow',
-        detail: {
-          activity: {
-            name: 'record',
-            data: {
-              type: 'photos'
-            }
-          }
-        }
-      });
-
-      assert.isTrue(stubSetVisible.calledWith(true));
-      assert.isTrue(stubActivity.called,
-        'it didn\'t invoke the activity');
-      window.MozActivity = originalActivity;
-    });
-
     test('Hide top window', function() {
       injectRunningApps(app1);
       AppWindowManager._activeApp = app1;

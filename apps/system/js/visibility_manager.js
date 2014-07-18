@@ -77,14 +77,11 @@
         this._resetDeviceLockedTimer();
         break;
       case 'lockscreen-request-unlock':
-        var activity = evt.detail && evt.detail.activity ?
-          evt.detail.activity : null;
-
+        if (evt.detail && evt.detail.activity) {
+          return;
+        }
         if (!AttentionScreen.isFullyVisible()) {
-          this.publish('showwindow', {
-            type: evt.type,
-            activity: activity  // Trigger activity opening in AWM
-          });
+          this.publish('showwindow', { type: evt.type });
         }
         this._resetDeviceLockedTimer();
         break;
