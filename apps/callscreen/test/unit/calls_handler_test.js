@@ -1379,7 +1379,14 @@ suite('calls handler', function() {
       });
     });
 
-    suite('> CallsHandler.switchToDefaultOut', function() {
+    suite('> CallsHandler.switchToDefaultOut when visible', function() {
+      // switchToDefaultOut() also check callscreen displayed before connecting
+      // to SCO, so we make it displayed first.
+      setup(function() {
+        var mockCall = new MockCall('12334', 'incoming');
+        telephonyAddCall.call(this, mockCall, {trigger: true});
+      });
+
       test('should connect bluetooth SCO', function() {
         var connectScoSpy = this.sinon.spy(
           MockBluetoothHelperInstance, 'connectSco');
@@ -1390,6 +1397,22 @@ suite('calls handler', function() {
       test('should not connect bluetooth SCO', function() {
         var connectScoSpy = this.sinon.spy(
           MockBluetoothHelperInstance, 'connectSco');
+        CallsHandler.switchToDefaultOut(true /* do not connect */);
+        assert.isTrue(connectScoSpy.notCalled);
+      });
+
+      test('should disable the speaker', function() {
+        CallsHandler.switchToDefaultOut();
+        assert.isFalse(MockNavigatorMozTelephony.speakerEnabled);
+      });
+    });
+
+    suite('> CallsHandler.switchToDefaultOut when hidden', function() {
+      test('should never connect bluetooth SCO', function() {
+        var connectScoSpy = this.sinon.spy(
+          MockBluetoothHelperInstance, 'connectSco');
+        CallsHandler.switchToDefaultOut();
+        assert.isTrue(connectScoSpy.notCalled);
         CallsHandler.switchToDefaultOut(true /* do not connect */);
         assert.isTrue(connectScoSpy.notCalled);
       });
