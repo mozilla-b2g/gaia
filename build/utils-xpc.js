@@ -701,7 +701,7 @@ function Commander(cmd) {
       }
     }
     if (!_file) {
-      throw new Error('it does not support ' + command + ' command');
+      throw new Error(command + ': command not found');
     }
   };
 
