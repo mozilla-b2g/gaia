@@ -320,16 +320,7 @@ var ThreadListUI = {
 
     function checkDone(threadId) {
       /* jshint validthis: true */
-      // Threads.delete will handle deleting
-      // any Draft objects associated with the
-      // specified threadId.
-      Threads.delete(threadId);
-
-      // Cleanup the DOM
-      this.removeThread(threadId);
-
-      // Remove notification if exist
-      Utils.closeNotificationsForThread(threadId);
+      this.deleteThread(threadId);
 
       if (--count === 0) {
         this.cancelEdit();
@@ -643,6 +634,19 @@ var ThreadListUI = {
     return li;
   },
 
+  deleteThread: function(threadId) {
+    // Threads.delete will handle deleting
+    // any Draft objects associated with the
+    // specified threadId.
+    Threads.delete(threadId);
+
+    // Cleanup the DOM
+    this.removeThread(threadId);
+
+    // Remove notification if exist
+    Utils.closeNotificationsForThread(threadId);
+  },
+
   insertThreadContainer:
     function thlui_insertThreadContainer(group, timestamp) {
     // We look for placing the group in the right place.
@@ -707,6 +711,14 @@ var ThreadListUI = {
 
   onMessageReceived: function thlui_onMessageReceived(message) {
     this.updateThread(message, { unread: true });
+  },
+
+  onThreadsDeleted: function thlui_onThreadDeleted(ids) {
+    ids.forEach(function(threadId) {
+      if (Threads.has(threadId)) {
+        this.deleteThread(threadId);
+      }
+    }, this);
   },
 
   /**
