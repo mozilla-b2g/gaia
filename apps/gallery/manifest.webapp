@@ -15,7 +15,8 @@
     "deprecated-hwvideo":{},
     "audio-channel-content":{},
     "settings":{ "access": "readonly" },
-    "nfc": { "access": "readwrite" }
+    "nfc": { "access": "readwrite" },
+    "feature-detection": {}
   },
   "activities": {
     "browse": {

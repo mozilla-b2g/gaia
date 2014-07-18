@@ -1,7 +1,20 @@
 /*
-  Media Frame unit tests.
-*/
+ * Unit tests for the MediaFrame class from shared/js/media/media_frame.js
+ */
+/* global Promise */
 'use strict';
+
+// This mock needs to be in place when we load MediaFrame, so it is here
+// rather than in suiteSetup. We remove it in suiteTeardown.
+var realGetFeature = navigator.getFeature;
+navigator.getFeature = function(feature) {
+  if (feature === 'hardware.memory') {
+    return Promise.resolve(4096); // 4gb of memory
+  }
+  else {
+    return Promise.reject();
+  }
+};
 
 var Downsample = require('/shared/js/media/downsample.js');
 var MediaFrame = require('/shared/js/media/media_frame.js');
@@ -26,10 +39,29 @@ suite('Media Frame Unit Tests', function() {
     if (mockDeviceStorage) {
       delete navigator.getDeviceStorage;
     }
+
+    navigator.getFeature = realGetFeature;
+  });
+
+  suite('Runtime memory detection', function() {
+    test('navigator.getFeature() is called', function() {
+      // We're faking 4gb of memory, so we should get 4 * 8mb of decode size
+      assert.equal(MediaFrame.maxImageDecodeSize, 32 * 1024 * 1024);
+    });
+
+    test('computeMaxImageDecodeSize() works correctly', function() {
+      assert.equal(MediaFrame.computeMaxImageDecodeSize(128), 2 * 1024 * 1024);
+      assert.equal(MediaFrame.computeMaxImageDecodeSize(512), 5 * 1024 * 1024);
+      assert.equal(MediaFrame.computeMaxImageDecodeSize(1024), 8 * 1024 * 1024);
+
+      // For low-memory devices, the image size may also depend on
+      // screen size
+      var size = MediaFrame.computeMaxImageDecodeSize(256);
+      assert.ok(size === 3 * 1024 * 1024 || size == 2.5 * 1024 * 1024);
+    });
   });
 
   suite('#displayImage', function() {
-
     var frame;
     var dummyDiv;
     var dummyJPEGBlob;
@@ -208,6 +240,81 @@ suite('Media Frame Unit Tests', function() {
       // Move time forwards so
       // stub callback fires
       this.clock.tick(1);
+    });
+  });
+
+  suite('Max decode size', function() {
+    var frame;
+    var dummyDiv;
+    var dummyJPEGBlob;
+
+    setup(function() {
+      dummyJPEGBlob = new Blob(['empty-image'], {'type': 'image/jpeg'});
+      dummyDiv = document.createElement('div');
+    });
+
+    test('no decode limits', function() {
+      // Even if the image is really big, we will decode it full size
+      // if no limits are set
+      MediaFrame.maxImageDecodeSize = 0;
+      frame = new MediaFrame(dummyDiv, false);
+      frame.displayImage(dummyJPEGBlob, 10000, 10000);
+      assert.equal(frame.fullSampleSize, Downsample.NONE);
+    });
+
+    test('limit decode size with constructor', function() {
+      MediaFrame.maxImageDecodeSize = 0;
+      // With a 1mp limit, a big image will be downsampled
+      frame = new MediaFrame(dummyDiv, false, 1024 * 1024);
+      frame.displayImage(dummyJPEGBlob, 10000, 10000);
+      assert.notEqual(frame.fullSampleSize, Downsample.NONE);
+
+      // With a 1mp limit, a small image will not be downsampled
+      frame = new MediaFrame(dummyDiv, false, 1024 * 1024);
+      frame.displayImage(dummyJPEGBlob, 1000, 1000);
+      assert.deepEqual(frame.fullSampleSize, Downsample.NONE);
+    });
+
+    test('limit decode size with memory', function() {
+      // Set a 1mp limit
+      MediaFrame.maxImageDecodeSize = 1024*1024;
+
+      // Big images will be downsampled
+      frame = new MediaFrame(dummyDiv, false);
+      frame.displayImage(dummyJPEGBlob, 10000, 10000);
+      assert.notEqual(frame.fullSampleSize, Downsample.NONE);
+
+      // Small images will not be downsampled
+      frame.displayImage(dummyJPEGBlob, 1000, 1000);
+      assert.deepEqual(frame.fullSampleSize, Downsample.NONE);
+    });
+
+    test('memory limit lower than constructor', function() {
+      // Set a 1mp limit based on memory
+      MediaFrame.maxImageDecodeSize = 1024*1024;
+
+      // 4mp images will be downsampled even though constructor allows 5mp
+      frame = new MediaFrame(dummyDiv, false, 5 * 1024 * 1024);
+      frame.displayImage(dummyJPEGBlob, 2000, 2000);
+      assert.notEqual(frame.fullSampleSize, Downsample.NONE);
+
+      // Small images will not be downsampled
+      frame.displayImage(dummyJPEGBlob, 1000, 1000);
+      assert.deepEqual(frame.fullSampleSize, Downsample.NONE);
+    });
+
+    test('constructor limit lower than memory', function() {
+      // Set a 5mp limit based on memory
+      MediaFrame.maxImageDecodeSize = 5*1024*1024;
+
+      // 4mp images will be downsampled even though memory allows 5mp
+      frame = new MediaFrame(dummyDiv, false, 1024 * 1024);
+      frame.displayImage(dummyJPEGBlob, 2000, 2000);
+      assert.notEqual(frame.fullSampleSize, Downsample.NONE);
+
+      // Small images will not be downsampled
+      frame.displayImage(dummyJPEGBlob, 1000, 1000);
+      assert.deepEqual(frame.fullSampleSize, Downsample.NONE);
     });
   });
 });
