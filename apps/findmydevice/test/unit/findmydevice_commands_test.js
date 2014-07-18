@@ -44,11 +44,9 @@ suite('FindMyDevice >', function() {
 
     realMozPower = navigator.mozPower;
     navigator.mozPower = {
-      factoryResetCalled: false,
-      factoryReset: function() {
-        this.factoryResetCalled = true;
-      }
+      factoryReset:function(reason) {}
     };
+    sinon.stub(navigator.mozPower, 'factoryReset');
 
     realMozApps = navigator.mozApps;
     navigator.mozApps = {
@@ -127,52 +125,12 @@ suite('FindMyDevice >', function() {
     fakeClock.tick();
   });
 
-  /* TODO re-enable erase tests after fixing the mock: bug 1032617
-  test('Erase command', function(done) {
-    // Meta-mock the mock getDeviceStorage so it returns null
-    // for some storage types
-    var mockGetDeviceStorage = navigator.getDeviceStorage;
-    navigator.getDeviceStorage = function(storage) {
-      if (storage === 'apps' || storage == 'sdcard') {
-        return null;
-      }
-
-      return mockGetDeviceStorage(storage);
-    };
-
+  test('Erase: ensure factoryReset is called with "wipe"', function(done) {
     subject.invokeCommand('erase', [function(retval, error) {
-      var instances = MockDeviceStorage.instances;
-      for (var i = 0; i < instances.length; i++) {
-        // check that we deleted everything on the device storage
-        assert.deepEqual(instances[i].entries, []);
-      }
-
-      assert.equal(navigator.mozPower.factoryResetCalled, true);
-      navigator.getDeviceStorage = mockGetDeviceStorage;
+      assert.equal(navigator.mozPower.factoryReset.calledWith('wipe'), true);
       done();
     }]);
-
-    fakeClock.tick();
   });
-
-  test('Erase command with no device storages', function(done) {
-    // Meta-mock the mock getDeviceStorage so it returns null
-    // for all storage types. We must still factory reset in this case.
-    var mockGetDeviceStorage = navigator.getDeviceStorage;
-    navigator.getDeviceStorage = function(storage) {
-      return null;
-    };
-
-    subject.invokeCommand('erase', [function(retval, error) {
-      assert.deepEqual(MockDeviceStorage.instances, []);
-      assert.equal(navigator.mozPower.factoryResetCalled, true);
-      navigator.getDeviceStorage = mockGetDeviceStorage;
-      done();
-    }]);
-
-    fakeClock.tick();
-  });
-  */
 
   test('Track command', function(done) {
     // we want to make sure this is set to 'allow'
@@ -287,6 +245,9 @@ suite('FindMyDevice >', function() {
 
     MockPermissionSettings.mTeardown();
     navigator.mozPermissionSettings = realPermissionSettings;
+
+    // clean up sinon.js stubs
+    navigator.mozPower.factoryReset.restore();
 
     navigator.mozPower = realMozPower;
     navigator.mozApps = realMozApps;
