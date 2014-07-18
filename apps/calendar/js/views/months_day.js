@@ -2,7 +2,7 @@ define(function(require) {
   'use strict';
 
   var Parent = require('./day_child');
-  var template = require('templates.months_day');
+  var template = require('templates/months_day');
   var dateFormat = require('utils/dateFormat');
   var router = require('app').router;
   var calc = require('calc');

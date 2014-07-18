@@ -2,6 +2,7 @@ define(function(require) {
   'use strict';
 
   var Parent = require('view');
+  var dateFormat = require('utils/dateFormat');
 
   var SETTINGS = /settings/;
 
@@ -125,7 +126,7 @@ define(function(require) {
     },
 
     _localeFormat: function(date, scale) {
-      return this.app.dateFormat.localeFormat(
+      return dateFormat.localeFormat(
         date,
         navigator.mozL10n.get(this.scales[scale])
       );

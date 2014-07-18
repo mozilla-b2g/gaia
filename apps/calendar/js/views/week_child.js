@@ -4,6 +4,7 @@ define(function(require) {
   var template = require('templates/week');
   var Parent = require('./day_based');
   var _super = Parent.prototype;
+  var dateFormat = require('utils/dateFormat');
 
   function Week(options) {
     Parent.apply(this, arguments);
@@ -23,7 +24,7 @@ define(function(require) {
     outsideAllDay: false,
 
     _renderHeader: function() {
-      var format = this.app.dateFormat.localeFormat(
+      var format = dateFormat.localeFormat(
         this.date,
         '%a %e'
       );

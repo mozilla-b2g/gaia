@@ -1,5 +1,7 @@
-define(function() {
+define(function(require) {
   'use strict';
+
+  var View = require('view');
 
   /**
    * The First Time Use Object is used for any and all hints that should
@@ -10,12 +12,12 @@ define(function() {
    *
    */
   function FirstTimeUse(options) {
-    Calendar.View.apply(this, arguments);
+    View.apply(this, arguments);
     this.store = this.app.store('Setting');
   }
 
   FirstTimeUse.prototype = {
-    __proto__: Calendar.View.prototype,
+    __proto__: View.prototype,
 
     /**
      * Default amount of time (in milliseconds) we will show the hint before
@@ -126,7 +128,6 @@ define(function() {
     }
   };
 
-  Calendar.ns('Views').FirstTimeUse = FirstTimeUse;
   return FirstTimeUse;
 
 });

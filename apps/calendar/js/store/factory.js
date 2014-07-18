@@ -4,12 +4,13 @@ define(function(require) {
   var SingletonFactory = require('utils/singleton_factory');
 
   var factory = new SingletonFactory({
-    'Alarm': require('store/alarm'),
-    'Busytime': require('store/busytime'),
-    'Calendar': require('store/calendar'),
-    'Event': require('store/event'),
-    'IcalComponent': require('store/ical_component'),
-    'Setting': require('store/setting')
+    'Alarm': require('./alarm'),
+    'Account': require('./account'),
+    'Busytime': require('./busytime'),
+    'Calendar': require('./calendar'),
+    'Event': require('./event'),
+    'IcalComponent': require('./ical_component'),
+    'Setting': require('./setting')
   }, getArguments);
 
   function getArguments(data) {
