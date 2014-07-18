@@ -52,11 +52,10 @@
   },
   "default_locale": "en-US",
   "icons": {
-    "80": "/style/icons/collection_80.png",
+    "84": "/style/icons/collection_84.png",
     "126": "/style/icons/collection_126.png",
     "142": "/style/icons/collection_142.png",
     "189": "/style/icons/collection_189.png",
-    "256": "/style/icons/collection_256.png",
     "284": "/style/icons/collection_284.png"
   },
   "datastores-access": {
