@@ -690,6 +690,27 @@
       });
     },
 
+   /**
+    * Defines a getter on a specified object that will be created on first use.
+    * @param {Object} target The object to define the lazy getter on.
+    * @param {string} name The name of the getter to define on aObject.
+    * @param {function} getter Function that returns what the getter should
+    * return. This will only ever be called once.
+    */
+   defineLazyGetter: function utils_defineLazyGetter(target, name, getter) {
+     Object.defineProperty(target, name, {
+       get: function () {
+         delete target[name];
+
+         target[name] = getter.apply(target);
+
+         return target[name];
+       },
+       configurable: true,
+       enumerable: true
+     });
+   },
+
     /**
      * Returns a function that will call specified "func" function only after it
      * stops being called for a specified wait time.

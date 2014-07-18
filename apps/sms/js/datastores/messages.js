@@ -1,4 +1,10 @@
-/*global Map, MozSmsFilter, Promise */
+/*global
+        EventDispatcher,
+        Map,
+        MozSmsFilter,
+        Promise,
+        Utils
+*/
 
 (function(exports) {
   'use strict';
@@ -57,6 +63,8 @@
   };*/
 
   var MessagesDatastore = function(mobileMessageManager) {
+    EventDispatcher.mixin(this);
+
     this._datastorePromise = null;
     this._mobileMessageManager = mobileMessageManager;
 
@@ -171,6 +179,22 @@
     });
   };
 
+  MessagesDatastore.prototype.markAsRead = function(id) {
+    return Promise.all([this._getDatastore(), this.get(id)]).then(
+      function(datastoreAndMessage) {
+        var datastore = datastoreAndMessage[0],
+            message = datastoreAndMessage[1];
+
+        message.read = false;
+
+        return datastore.put(message, message.id);
+      }
+    ).catch(function(e) {
+      console.error('Can not mark message as read: %o', e);
+      return Promise.reject(e);
+    });
+  };
+
   MessagesDatastore.prototype._getDatastore = function() {
     if (!this._datastorePromise) {
       this._datastorePromise = new Promise(function(resolve, reject) {
@@ -192,8 +216,11 @@
           }.bind(this)).catch(reject);
       }.bind(this)).catch(function(e) {
         console.error('Can not initialize datastore: %o', e);
+
+        this._datastorePromise = null;
+
         return Promise.reject(e);
-      });
+      }.bind(this));
     }
     return this._datastorePromise;
   };
@@ -270,7 +297,7 @@
 
   MessagesDatastore.prototype._onChange = function(e) {
     console.log('MessagesDatastore._onChange: %o', e);
-    this.trigger('_' + e.operation, {
+    this.emit('_' + e.operation, {
       id: e.id,
       operation: e.operation
     });
@@ -278,15 +305,14 @@
 
   MessagesDatastore.prototype._onDatastoreItemAdd = function(e) {
     console.log(
-      'MessagesDatastore._onDatastoreItemAdd called for id: %s',
-      e.detail.id
+      'MessagesDatastore._onDatastoreItemAdd called for id: %s', e.id
     );
     this._getDatastore().then(function(datastore) {
-      return datastore.get(e.detail.id);
+      return datastore.get(e.id);
     }).then(function(message) {
       this._messageCache.set(message.id, message);
 
-      this.trigger(e.operation, e);
+      this.emit(e.operation, e);
     }.bind(this)).catch(function(e) {
       console.error('Error occurred while retrieving new item: %o', e);
     });
@@ -294,15 +320,14 @@
 
   MessagesDatastore.prototype._onDatastoreItemUpdate = function(e) {
     console.log(
-      'MessagesDatastore._onDatastoreItemUpdate called for id: %s',
-      e.detail.id
+      'MessagesDatastore._onDatastoreItemUpdate called for id: %s', e.id
     );
     this._getDatastore().then(function(datastore) {
-      return datastore.get(e.detail.id);
+      return datastore.get(e.id);
     }).then(function(message) {
       this._messageCache.set(message.id, message);
 
-      this.trigger(e.operation, e);
+      this.emit(e.operation, e);
     }.bind(this)).catch(function(e) {
       console.error('Error occurred while updating existing item: %o', e);
     });
@@ -310,18 +335,17 @@
 
   MessagesDatastore.prototype._onDatastoreItemRemove = function(e) {
     console.log(
-      'MessagesDatastore._onDatastoreItemRemove called for id: %s',
-      e.detail.id
+      'MessagesDatastore._onDatastoreItemRemove called for id: %s', e.id
     );
-    this._messageCache.delete(e.detail.id);
+    this._messageCache.delete(e.id);
 
-    this.trigger(e.operation, e);
+    this.emit(e.operation, e);
   };
 
   MessagesDatastore.prototype._onDatastoreClear = function(e) {
     console.log('MessagesDatastore._onDatastoreClear called');
     this._messageCache.clear();
-    this.trigger(e.operation);
+    this.emit(e.operation);
   };
 
   MessagesDatastore.prototype._isMatch = function(filter, item) {
@@ -407,7 +431,9 @@
     value: Object.seal(MessageType)
   });
 
-  exports.MessagesDatastore = new MessagesDatastore(
-    navigator.mozMobileMessage || window.DesktopMockNavigatormozMobileMessage
-  );
+  Utils.defineLazyGetter(exports, 'MessagesDatastore', function() {
+    return new MessagesDatastore(
+      navigator.mozMobileMessage || window.DesktopMockNavigatormozMobileMessage
+    );
+  });
 })(window);

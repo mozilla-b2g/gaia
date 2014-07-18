@@ -90,8 +90,7 @@ var Startup = {
       if (!navigator.mozMobileMessage) {
         var mocks = [
           'js/desktop-only/mobilemessage.js',
-          'js/desktop-only/contacts.js',
-          'js/datastores/messages.js'
+          'js/desktop-only/contacts.js'
         ];
         LazyLoader.load(mocks, function() {
           MessageManager.init(initUIApp);
