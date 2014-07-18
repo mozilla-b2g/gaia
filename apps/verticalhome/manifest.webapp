@@ -37,11 +37,10 @@
     }
   },
   "icons": {
-    "80": "/style/icons/vertical_80.png",
+    "84": "/style/icons/vertical_84.png",
     "126": "/style/icons/vertical_126.png",
     "142": "/style/icons/vertical_142.png",
     "189": "/style/icons/vertical_189.png",
-    "256": "/style/icons/vertical_256.png",
     "284": "/style/icons/vertical_284.png"
   },
   "orientation": "default",
