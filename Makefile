@@ -900,7 +900,7 @@ endif
 endif
 
 lint:
-	NO_XFAIL=1 $(MAKE) -k gjslint hint
+	NO_XFAIL=1 $(MAKE) -k gjslint hint jsonlint
 
 gjslint: GJSLINT_EXCLUDED_DIRS = $(shell grep '\/\*\*$$' .jshintignore | sed 's/\/\*\*$$//' | paste -s -d, -)
 gjslint: GJSLINT_EXCLUDED_FILES = $(shell egrep -v '(\/\*\*|^\s*)$$' .jshintignore | paste -s -d, -)
@@ -927,6 +927,9 @@ hint: node_modules/.bin/jshint
 
 csslint: $(XULRUNNER_BASE_DIRECTORY)
 	@$(call run-js-command,csslint)
+
+jsonlint: $(XULRUNNER_BASE_DIRECTORY)
+	@$(call run-js-command,jsonlint)
 
 # Erase all the indexedDB databases on the phone, so apps have to rebuild them.
 delete-databases:
