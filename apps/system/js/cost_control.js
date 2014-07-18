@@ -92,12 +92,6 @@
     widgetFrame.setVisible(true);
   }
 
-  function _showWidgetIfLoaded() {
-    if (widgetFrame) {
-      widgetFrame.setVisible(true);
-    }
-  }
-
   function _hideWidget() {
     // It's not necessary to update the widget when it is hidden.
     window.removeEventListener('moznetworkupload', _onNetworkActivity);
@@ -109,6 +103,5 @@
 
   // Listen to utilitytray show
   window.addEventListener('utilitytrayshow', _showWidget);
-  window.addEventListener('utility-tray-overlayopening', _showWidgetIfLoaded);
   window.addEventListener('utilitytrayhide', _hideWidget);
 }());

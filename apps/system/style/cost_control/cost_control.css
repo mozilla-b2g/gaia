@@ -1,12 +1,9 @@
 /* Resetting */
+#cost-control-widget,
 #cost-control-widget iframe {
   width: 100%;
   height: 4.5rem;
   border: none;
   margin: 0;
   padding: 0;
-}
-
-#cost-control-widget {
-  font-size: 0;
 }

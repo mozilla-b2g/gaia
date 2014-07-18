@@ -130,10 +130,6 @@
   z-index: 4095;
 }
 
-#screen > [data-z-index-level="utility-tray-notifications"] {
-  z-index: 4095;
-}
-
 /* Demote level 5 elements to homescreen level if there is an active
  * full screen app frame */
 
