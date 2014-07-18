@@ -1,4 +1,4 @@
-/* global DUMP, SettingsHelper, SettingsListener, SettingsURL */
+/* global DUMP, SettingsHelper, SettingsListener, SettingsURL, FindMyDevice */
 
 'use strict';
 
@@ -58,6 +58,7 @@ var Commands = {
   },
 
   invokeCommand: function fmdc_get_command(name, args) {
+    FindMyDevice.beginHighPriority('command');
     this._commands[name].apply(this, args);
   },
 
@@ -98,9 +99,10 @@ var Commands = {
       function stop() {
         clearInterval(self._trackIntervalId);
         self._trackIntervalId = null;
-        clearInterval(self._trackTimeoutId);
+        clearTimeout(self._trackTimeoutId);
         self._trackTimeoutId = null;
         SettingsHelper('findmydevice.tracking').set(false);
+        FindMyDevice.endHighPriority('command');
       }
 
       if (this._trackIntervalId !== null || this._trackTimeoutId !== null) {
@@ -113,19 +115,11 @@ var Commands = {
         return;
       }
 
-      if (!navigator.mozPermissionSettings) {
-        reply(false, 'mozPermissionSettings is missing');
-        return;
-      }
-
       // set geolocation permission to true, and start requesting
       // the current position every TRACK_UPDATE_INTERVAL_MS milliseconds
       this._setGeolocationPermission(function fmdc_permission_success() {
         SettingsHelper('findmydevice.tracking').set(true);
         self._trackIntervalId = setInterval(function fmdc_track_interval() {
-          duration = (isNaN(duration) || duration < 0) ? 1 : duration;
-          self._trackTimeoutId = setTimeout(stop, duration * 1000);
-
           navigator.geolocation.getCurrentPosition(
             function fmdc_gcp_success(position) {
               DUMP('updating location to (' +
@@ -139,8 +133,12 @@ var Commands = {
             });
         }, self.TRACK_UPDATE_INTERVAL_MS);
       }, function fmdc_permission_error() {
+        FindMyDevice.endHighPriority('command');
         reply(false, 'failed to set geolocation permission!');
       });
+
+      duration = (isNaN(duration) || duration < 0) ? 1 : duration;
+      self._trackTimeoutId = setTimeout(stop, duration * 1000);
     },
 
     erase: function fmdc_erase(reply) {
@@ -176,6 +174,8 @@ var Commands = {
       request.onerror = function() {
         reply(false, 'failed to set settings');
       };
+
+      FindMyDevice.endHighPriority('command');
     },
 
     ring: function fmdc_ring(duration, reply) {
@@ -193,6 +193,7 @@ var Commands = {
         }
 
         reply(true);
+        FindMyDevice.endHighPriority('command');
         return;
       }
 
@@ -213,7 +214,10 @@ var Commands = {
 
       // use a minimum duration if the value we received is invalid
       duration = (isNaN(duration) || duration <= 0) ? 1 : duration;
-      setTimeout(stop, duration * 1000);
+      setTimeout(function() {
+        FindMyDevice.endHighPriority('command');
+        stop();
+      }, duration * 1000);
     }
   }
 };
