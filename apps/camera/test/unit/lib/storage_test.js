@@ -14,6 +14,7 @@ suite('lib/storage', function() {
 
   setup(function() {
     this.clock = sinon.useFakeTimers();
+    this.sandbox = sinon.sandbox.create();
 
     this.video = {};
     this.video.addEventListener = sinon.spy();
@@ -62,6 +63,7 @@ suite('lib/storage', function() {
   teardown(function() {
     navigator.getDeviceStorage.restore();
     this.clock.restore();
+    this.sandbox.restore();
   });
 
   suite('Storage()', function() {
