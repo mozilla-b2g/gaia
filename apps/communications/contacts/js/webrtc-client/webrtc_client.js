@@ -14,13 +14,13 @@
 
 (function(exports) {
   'use strict';
-
+    
   var ACTIVITY_NAME = 'webrtc-call';
 
   var _webrtcClientIntegrationDOM, _detailListDOM;
-
+  
   var _cachedContact = null;
-
+  
   var _isInDetail = false;
   var _isWebrtcClientInstalled;
   var voiceCallButton, videoCallButton;
@@ -39,7 +39,7 @@
       // TODO Add string if needed
     };
   }
-
+  
   function _checkIfInstalled(forceCheck) {
     return new Promise(function(resolve, reject) {
       // If the value was previously checked we dont need to recheck again.
@@ -84,13 +84,13 @@
     // so we create the 'li' element
     _webrtcClientIntegrationDOM = document.createElement('li');
     _webrtcClientIntegrationDOM.id = 'webrtc-client-actions';
-
+    
     var title = document.createElement('h2');
-    title.textContent = navigator.mozL10n.localize(title, 'firefox_hello');
+    title.textContent = 'WebRTC Client';
 
     var colsWrapper = document.createElement('div');
     colsWrapper.className = 'fillflow-twocols';
-
+    
     voiceCallButton = document.createElement('button');
     voiceCallButton.className = 'activity icon icon-webrtc-voice';
     navigator.mozL10n.localize(voiceCallButton, 'audio');
@@ -118,6 +118,16 @@
     _webrtcClientIntegrationDOM.appendChild(colsWrapper);
   }
 
+  function _enableButtons() {
+    voiceCallButton.disabled = false;
+    videoCallButton.disabled = false;
+  }
+
+  function _disableButtons() {
+    voiceCallButton.disabled = true;
+    videoCallButton.disabled = true;
+  }
+
   function _init() {
     // Cache the parent element
     _detailListDOM = document.getElementById('details-list');
@@ -129,24 +139,27 @@
     // Get the section which is going to be shown after, we will use it
     // as a reference
     var reference;
-    // Is there any phone element?
-    var phoneNumbers = _detailListDOM.querySelectorAll('[data-phone]');
-    var phonesLength = phoneNumbers && phoneNumbers.length;
-    if (phonesLength) {
-      reference = phoneNumbers[phonesLength - 1].nextSibling;
-    }
-    else {
-      var emails = _detailListDOM.querySelectorAll('[data-mail]');
-      var emailsLength = emails && emails.length;
-      if (emailsLength) {
-        reference = emails[emailsLength - 1];
-      }
+    // Is there any email element?
+    var emails = _detailListDOM.querySelectorAll('[data-mail]');
+    var emailsLength = emails && emails.length;
+    if (emailsLength > 0) {
+      reference = emails[emailsLength - 1];
+    } else {
+      // Is there any phone number element?
+      var phoneNumbers = _detailListDOM.querySelectorAll('[data-phone]');
+      reference = phoneNumbers[phoneNumbers.length - 1];
     }
 
-    _detailListDOM.insertBefore(
-      _webrtcClientIntegrationDOM,
-      reference
-    );
+    // Append into the right position
+    if (reference) {
+      _detailListDOM.insertBefore(
+        _webrtcClientIntegrationDOM,
+        reference.nextSibling
+      );
+    } else {
+      reference = _detailListDOM.children[0];
+      _detailListDOM.insertBefore(_webrtcClientIntegrationDOM, reference);
+    }
   }
 
   function _remove() {
@@ -179,37 +192,26 @@
     document.removeEventListener('visibilitychange', _onVisibilityChange);
   }
 
-  function _loopAvailable(contact) {
-    var mailPresent = false;
-    var telPresent = false;
-
-    if (Array.isArray(contact.email)) {
-      if (contact.email.length > 0 && contact.email[0] &&
-          contact.email[0].value && contact.email[0].value.trim()) {
-        mailPresent = true;
-      }
-    }
-
-    if (Array.isArray(contact.tel)) {
-      if (contact.tel.length > 0 && contact.tel[0] &&
-          contact.tel[0].value && contact.tel[0].value.trim()) {
-        telPresent = true;
-      }
-    }
-
-    return telPresent || mailPresent;
-  }
-
   function _onWebrtcClientInstalled() {
     // If we are not in the detail of a contact, we
     // dont need to render any button
-    if (!_loopAvailable(_cachedContact) || !_isInDetail) {
+    if (!_isInDetail) {
       return;
     }
 
     // If is not appended yet, we added it
     if (!document.getElementById('webrtc-client-actions')) {
       _render();
+    }
+
+    // Check if we need to enable or disable the button
+    var phones = _cachedContact && _cachedContact.tel || [];
+    var emails = _cachedContact && _cachedContact.email || [];
+    
+    if (phones.length === 0 && emails.length === 0) {
+      _disableButtons();
+    } else {
+      _enableButtons();
     }
   }
 
@@ -232,7 +234,7 @@
         _onWebrtcClientInstalled,
         _onWebrtcClientUninstalled
       );
-
+      
     },
     stop: function stop() {
       // Clean the previous params

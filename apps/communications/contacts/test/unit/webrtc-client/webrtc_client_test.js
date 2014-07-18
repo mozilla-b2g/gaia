@@ -14,10 +14,8 @@ suite('WebRTC Client integration', function() {
   // Mock of a contact with the info we need to render. In this case
   // just a phone number
   var mockContact = {
-    tel: [{
-      value: '612123123',
-      type: ['work']
-    }]
+    tel: ['612123123'],
+    email: []
   };
   // Keep in memory the DOM element we need for the tests
   var detailsList;
@@ -35,7 +33,7 @@ suite('WebRTC Client integration', function() {
     navigator.mozL10n = MockMozL10n;
 
     mocksHelperWebrtcClient.suiteSetup();
-
+    
     // Create the basic structure for this test
     detailsList = document.createElement('ul');
     detailsList.id = 'details-list';
@@ -55,7 +53,7 @@ suite('WebRTC Client integration', function() {
 
   setup(function() {
     mocksHelperWebrtcClient.setup();
-
+    
     // Rebuild the structure
     detailsList.innerHTML =
       '<li data-phone>' +
@@ -65,44 +63,32 @@ suite('WebRTC Client integration', function() {
   teardown(function() {
     mocksHelperWebrtcClient.teardown();
 
-    // Stop WebrtcClient as when tapping on 'back' in Contacts detail
+    // Stop WebrtcClient as when tapping on 'back' in Contacts detail 
     WebrtcClient.stop();
 
     // Clean the structure
     detailsList.innerHTML = '';
   });
 
-  function assertWebRtcSectionPresent() {
-     // Is the section there?
-    var webrtcClientSection = document.getElementById('webrtc-client-actions');
-    assert.isTrue(webrtcClientSection !== null);
-
-    var buttons = webrtcClientSection.querySelectorAll('button');
-    for (var i = 0, l = buttons.length; i < l; i++) {
-      assert.isFalse(buttons[i].disabled);
-    }
-  }
-
-  function assertWebRtcSectionAbsent() {
+  test('If WebrtcClient & no email/phone, buttons are disabled ', function() {
+    // Execute the onsuccess
+    MockMozActivity.setResult([{},{}]);
+    WebrtcClient.start({}, true);
+    // Execute promise on demand
+    MockPromise.then(MockPromise.resolve, MockPromise.reject);
+    // Execute activity on demand
+    MockMozActivity.currentActivity.onsuccess();
     // Is the section there?
     var webrtcClientSection = document.getElementById('webrtc-client-actions');
-    assert.isTrue(webrtcClientSection === null);
-  }
-
-  test('If WebrtcClient & no email/phone, buttons are not present ',
-    function() {
-      // Execute the onsuccess
-      MockMozActivity.setResult([{},{}]);
-      WebrtcClient.start({}, true);
-      // Execute promise on demand
-      MockPromise.then(MockPromise.resolve, MockPromise.reject);
-      // Execute activity on demand
-      MockMozActivity.currentActivity.onsuccess();
-
-      assertWebRtcSectionAbsent();
+    assert.isTrue(!!webrtcClientSection);
+    // Are the buttons disabled?
+    var buttons = webrtcClientSection.querySelectorAll('button');
+    for (var i = 0, l = buttons.length; i < l; i++) {
+      assert.isTrue(buttons[i].disabled);
+    }
   });
 
-  test('If WebrtcClient & only phone, buttons are present ', function() {
+  test('If WebrtcClient & email or phone, buttons are enabled ', function() {
     // Execute the onsuccess
     MockMozActivity.setResult([{},{}]);
     WebrtcClient.start(mockContact, true);
@@ -110,69 +96,17 @@ suite('WebRTC Client integration', function() {
     MockPromise.then(MockPromise.resolve, MockPromise.reject);
     // Execute activity on demand
     MockMozActivity.currentActivity.onsuccess();
-
-    assertWebRtcSectionPresent();
+    // Is the section there?
+    var webrtcClientSection = document.getElementById('webrtc-client-actions');
+    assert.isTrue(!!webrtcClientSection);
+    // Are the buttons disabled?
+    var buttons = webrtcClientSection.querySelectorAll('button');
+    for (var i = 0, l = buttons.length; i < l; i++) {
+      assert.isFalse(buttons[i].disabled);
+    }
   });
 
-  test('If WebrtcClient & email and phone, buttons are correctly positioned',
-    function() {
-      var mockContact2 = {
-        tel: [{
-          value: '612123123',
-          type: ['work']
-        }],
-        email: [{
-          value: 'jj@jj.com',
-          type: ['home']
-        }]
-      };
-       // Rebuild the structure
-      detailsList.innerHTML = '<li data-phone></li>' + '<li data-mail></li>';
-      // Execute the onsuccess
-      MockMozActivity.setResult([{},{}]);
-      WebrtcClient.start(mockContact2, true);
-      // Execute promise on demand
-      MockPromise.then(MockPromise.resolve, MockPromise.reject);
-      // Execute activity on demand
-      MockMozActivity.currentActivity.onsuccess();
-
-      assertWebRtcSectionPresent();
-
-      var webRtcSection =  document.getElementById('webrtc-client-actions');
-      var previousEle = webRtcSection.previousElementSibling;
-      assert.isTrue(previousEle.dataset.phone !== null);
-
-      var nextEle = webRtcSection.nextElementSibling;
-      assert.isTrue(nextEle.dataset.mail !== null);
-  });
-
-  test('If WebrtcClient only email defined, buttons are correctly positioned',
-    function() {
-      var mockContact2 = {
-        email: [{
-          value: 'jj@jj.com',
-          type: ['home']
-        }]
-      };
-       // Rebuild the structure
-      detailsList.innerHTML = '<li data-mail></li>';
-
-      // Execute the onsuccess
-      MockMozActivity.setResult([{},{}]);
-      WebrtcClient.start(mockContact2, true);
-      // Execute promise on demand
-      MockPromise.then(MockPromise.resolve, MockPromise.reject);
-      // Execute activity on demand
-      MockMozActivity.currentActivity.onsuccess();
-
-      assertWebRtcSectionPresent();
-
-      var webRtcSection =  document.getElementById('webrtc-client-actions');
-      var nextEle = webRtcSection.nextElementSibling;
-      assert.isTrue(nextEle.dataset.mail !== null);
-  });
-
-  test('If no WebrtcClient, buttons are not present ', function() {
+  test('If no WebrtcClient, buttons are not appended ', function() {
     // Execute the onsuccess
     MockMozActivity.setResult([]);
     WebrtcClient.start(mockContact, true);
@@ -180,8 +114,9 @@ suite('WebRTC Client integration', function() {
     MockPromise.then(MockPromise.resolve, MockPromise.reject);
     // Execute activity on demand
     MockMozActivity.currentActivity.onsuccess();
-
-    assertWebRtcSectionAbsent();
+    // Is the section there?
+    var webrtcClientSection = document.getElementById('webrtc-client-actions');
+    assert.isTrue(!webrtcClientSection);
   });
 
   test('If no WebrtcClient, and installed after, added Buttons', function() {
@@ -205,8 +140,9 @@ suite('WebRTC Client integration', function() {
     MockPromise.then(MockPromise.resolve, MockPromise.reject);
     // Execute activity on demand
     MockMozActivity.currentActivity.onsuccess();
-
-    assertWebRtcSectionPresent();
+    // Is the button appended?
+    webrtcClientSection = document.getElementById('webrtc-client-actions');
+    assert.isTrue(!!document.getElementById('webrtc-client-actions'));
   });
 
   test('If WebrtcClient, and uninstalled after, removed Buttons', function() {
@@ -230,7 +166,8 @@ suite('WebRTC Client integration', function() {
     MockPromise.then(MockPromise.resolve, MockPromise.reject);
     // Execute activity on demand
     MockMozActivity.currentActivity.onsuccess();
-
-    assertWebRtcSectionAbsent();
+    // Is the button appended?
+    webrtcClientSection = document.getElementById('webrtc-client-actions');
+    assert.isTrue(!document.getElementById('webrtc-client-actions'));
   });
 });
