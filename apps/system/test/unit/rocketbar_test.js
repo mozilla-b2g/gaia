@@ -904,5 +904,12 @@ suite('system/Rocketbar', function() {
     assert.ok(focusStub.calledOnce);
     focusStub.restore();
   });
+
+
+  test('Dont clear input when search app crashes', function() {
+    subject.input.value = 'value to not clear';
+    window.dispatchEvent(new CustomEvent('searchterminated'));
+    assert.equal(subject.input.value, 'value to not clear');
+  });
 });
 
