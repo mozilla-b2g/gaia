@@ -11,6 +11,7 @@
    * @class Rocketbar
    */
   function Rocketbar() {
+
     // States
     this.enabled = false;
     this.expanded = false;
@@ -19,8 +20,6 @@
     this.active = false;
     this.onHomescreen = false;
     this.newTabPage = false;
-    this.cardView = false;
-    this.waitingOnCardViewLaunch = false;
     this.currentApp = null;
 
     // Properties
@@ -73,13 +72,6 @@
      * @memberof Rocketbar.prototype
      */
     EXPANSION_THRESHOLD: 5,
-
-    /**
-     * How many pixels of swipe triggers card view
-     * @type {Number}
-     * @memberof Rocketbar.prototype
-     */
-    TASK_MANAGER_THRESHOLD: 200,
 
     /**
      * How many pixels of scroll triggers expand
@@ -159,7 +151,6 @@
         return;
       }
       this.active = false;
-      this.cardView = false;
       this.newTabPage = false;
       this.rocketbar.classList.remove('active');
       this.form.classList.add('hidden');
@@ -184,9 +175,6 @@
       window.addEventListener('applocationchange', this);
       window.addEventListener('appscroll', this);
       window.addEventListener('home', this);
-      window.addEventListener('cardviewclosedhome', this);
-      window.addEventListener('cardviewclosed', this);
-      window.addEventListener('cardviewshown', this);
       window.addEventListener('appopened', this);
       window.addEventListener('homescreenopened', this);
       window.addEventListener('stackchanged', this);
@@ -237,26 +225,10 @@
           this.handleScroll(e);
           break;
         case 'home':
-        case 'cardviewclosedhome':
-          this.handleHome(e);
-          break;
         case 'lockscreen-appopened':
           this.hideResults();
           this.deactivate();
           break;
-        case 'cardviewshown':
-          if (this.waitingOnCardViewLaunch) {
-            this.showTaskManager();
-            this.waitingOnCardViewLaunch = false;
-          }
-          break;
-        case 'cardviewclosed':
-          this.cardView = false;
-          if (this.waitingOnCardViewLaunch) {
-            this.handleClick();
-            this.waitingOnCardViewLaunch = false;
-          }
-        break;
         case 'launchactivity':
           this.handleActivity(e);
           break;
@@ -328,9 +300,6 @@
       window.removeEventListener('apptitlechange', this);
       window.removeEventListener('applocationchange', this);
       window.removeEventListener('home', this);
-      window.removeEventListener('cardviewclosed', this);
-      window.removeEventListener('cardviewshown', this);
-      window.removeEventListener('cardviewclosedhome', this);
       window.removeEventListener('appopened', this);
       window.removeEventListener('homescreenopened', this);
       window.removeEventListener('stackchanged', this);
@@ -486,29 +455,6 @@
       this.setInput('');
       this.titleContent.textContent =
         navigator.mozL10n.get('search-or-enter-address');
-    },
-
-    /**
-     * Send event to the system app to show the task manager.
-     */
-    fireTaskManagerShow: function() {
-      this.waitingOnCardViewLaunch = true;
-      window.dispatchEvent(new CustomEvent('taskmanagershow'));
-    },
-
-    /**
-     * Show the task manager and clear Rocketbar.
-     * @memberof Rocketbar.prototype
-     */
-    showTaskManager: function() {
-      this.cardView = true;
-      if (this._port) {
-        this._port.postMessage({
-          action: 'showTaskManager'
-        });
-      }
-      this.showResults();
-      this.clear();
     },
 
     /**
@@ -715,10 +661,6 @@
             !this.onHomescreen) {
             this.collapse();
           }
-          if (dy > this.TASK_MANAGER_THRESHOLD &&
-              !this.active && !this.cardView && !this.waitingOnCardViewLaunch) {
-            this.fireTaskManagerShow();
-          }
           break;
         case 'touchend':
           dy = parseInt(e.changedTouches[0].pageY) -
@@ -773,12 +715,6 @@
       var input = this.input.value;
 
       this.rocketbar.classList.toggle('hasText', input.length);
-
-      // If the task manager is shown, hide it
-      if (this.screen.classList.contains('task-manager')) {
-        this.cardView = false;
-        window.dispatchEvent(new CustomEvent('taskmanagerhide'));
-      }
 
       if (!input && !this.newTabPage &&
           !this.results.classList.contains('hidden')) {
@@ -841,20 +777,6 @@
     handleKeyboardChange: function(e) {
       // Swallow event to prevent app being resized
       e.stopImmediatePropagation();
-    },
-
-    /**
-     * Handle change to sheets stack.
-     * @memberof Rocketbar.prototype
-     */
-    handleStackChanged: function(e) {
-      // Focus the Rocketbar in cards view when stack length reaches zero.
-      if (this.cardView && e.detail.sheets.length === 0) {
-        this.hideResults();
-        this.activate((function() {
-          this.focus();
-        }).bind(this));
-      }
     },
 
     /**
