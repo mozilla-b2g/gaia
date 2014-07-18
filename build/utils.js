@@ -146,6 +146,7 @@ exports.FILE_TYPE_FILE = FILE_TYPE_FILE;
 exports.FILE_TYPE_DIRECTORY = FILE_TYPE_DIRECTORY;
 exports.deleteFile = utils.deleteFile;
 exports.listFiles = utils.listFiles;
+exports.listFileNames = utils.listFileNames;
 exports.psParser = psParser;
 exports.fileExists = utils.fileExists;
 exports.mkdirs = utils.mkdirs;

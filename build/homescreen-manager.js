@@ -212,6 +212,29 @@ function getCollections(config, homescreen) {
   return { collections: collections };
 }
 
+function getAllCollections(config) {
+  var path ='apps/collection/collections';
+
+  var gaia = utils.gaia.getInstance(config);
+  var targetDir = gaia.distributionDir ? gaia.distributionDir : config.GAIA_DIR;
+  var dir = utils.getFile(targetDir, path);
+  if (!dir.exists()) {
+    dir = utils.getFile(config.GAIA_DIR, path);
+  }
+
+  var collections = [];
+  var names = utils.listFileNames(dir, utils.FILE_TYPE_DIRECTORY, false);
+  names.forEach(function(name) {
+    var collection = getCollectionMetadata(config, path, name);
+    if (collection) {
+      collection.path = [path, name];
+      collections.push(collection);
+    }
+  });
+
+  return { collections: collections };
+}
+
 function loadHomescreen(config) {
   var defaultConfig = utils.getFile(config.GAIA_DIR, 'apps', 'verticalhome',
     'build', 'default-homescreens.json');
@@ -258,4 +281,9 @@ exports.getCollections = function(config) {
   configure(config);
   var rawHomescreen = loadHomescreen(config);
   return getCollections(config, rawHomescreen);
+};
+
+exports.getAllCollections = function(config) {
+  configure(config);
+  return getAllCollections(config);
 };

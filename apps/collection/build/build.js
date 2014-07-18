@@ -11,11 +11,11 @@ var CollectionAppBuilder = function() {
 };
 
 CollectionAppBuilder.prototype.execute = function(options) {
-  var collections = manager.getCollections(options);
+  var collections = manager.getAllCollections(options);
 
   var stageDir = utils.getFile(options.STAGE_APP_DIR);
 
-  // Clean collections folder to remove unused collections.
+  // Clean collections folder to remove all collections.
   var collectionsFolder = utils.getFile(options.STAGE_APP_DIR, 'collections');
   collectionsFolder.remove(true);
   utils.ensureFolderExists(collectionsFolder);
@@ -72,6 +72,7 @@ CollectionAppBuilder.prototype.execute = function(options) {
 
   var configFile = utils.getFile(stageDir.path, 'js',
                              'pre_installed_collections.json');
+  collections = manager.getCollections(options);
   utils.writeContent(configFile, JSON.stringify(collections));
 };
 
