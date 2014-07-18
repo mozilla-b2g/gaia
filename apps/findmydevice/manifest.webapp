@@ -31,11 +31,10 @@
     }
   },
   "icons": {
-    "80": "/style/icons/find_my_device_80.png",
+    "84": "/style/icons/find_my_device_84.png",
     "126": "/style/icons/find_my_device_126.png",
     "142": "/style/icons/find_my_device_142.png",
     "189": "/style/icons/find_my_device_189.png",
-    "256": "/style/icons/find_my_device_256.png",
     "284": "/style/icons/find_my_device_284.png"
   },
   "messages": [
