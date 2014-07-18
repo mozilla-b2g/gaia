@@ -132,7 +132,7 @@ suite('telephony helper', function() {
       function() {
         var dialNumber = '112';
         subject.call(dialNumber, 0);
-        sinon.assert.calledWith(navigator.mozTelephony.dialEmergency, '112', 0);
+        sinon.assert.calledWith(navigator.mozTelephony.dialEmergency, '112');
       });
     });
 
@@ -145,7 +145,7 @@ suite('telephony helper', function() {
         var dialNumber = '112';
         subject.call(dialNumber, 0);
         sinon.assert.calledWith(navigator.mozTelephony.dialEmergency,
-                                '112', undefined);
+                                '112');
       });
     });
   });
