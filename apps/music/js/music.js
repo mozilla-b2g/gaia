@@ -430,9 +430,11 @@ function showCurrentView(callback) {
  */
 var visibilityMargin = Math.max(window.innerWidth, window.innerHeight) * 3 / 4;
 var minimumScrollDelta = 1;
+var shownList = [];
 
 // monitorChildVisibility() calls this when a thumbnail comes onscreen
 function thumbnailOnscreen(thumbnail) {
+  shownList.push(thumbnail);
   if (thumbnail.dataset.backgroundImage) {
     thumbnail.style.backgroundImage = thumbnail.dataset.backgroundImage;
   }
@@ -440,6 +442,10 @@ function thumbnailOnscreen(thumbnail) {
 
 // monitorChildVisibility() calls this when a thumbnail goes offscreen
 function thumbnailOffscreen(thumbnail) {
+  if (shownList.indexOf(thumbnail) > -1) {
+    shownList.splice(shownList.indexOf(thumbnail), 1);
+  }
+
   if (thumbnail.dataset.backgroundImage) {
     thumbnail.style.backgroundImage = null;
   }
@@ -837,6 +843,9 @@ var TilesView = {
     var setTileBackgroundClosure = function(url) {
       url = url || generateDefaultThumbnailURL(result.metadata);
       tile.dataset.backgroundImage = 'url(' + url + ')';
+      if (shownList.indexOf(tile) > -1) {
+        tile.style.backgroundImage = tile.dataset.backgroundImage;
+      }
     };
 
     if (this.index <= NUM_INITIALLY_VISIBLE_TILES) {
@@ -1029,6 +1038,9 @@ function createListElement(option, data, index, highlight) {
       var setBackground = function(url) {
         url = url || generateDefaultThumbnailURL(data.metadata);
         li.dataset.backgroundImage = 'url(' + url + ')';
+        if (shownList.indexOf(li) > -1) {
+          li.style.backgroundImage = li.dataset.backgroundImage;
+        }
       };
 
       getThumbnailURL(data, setBackground);
@@ -1957,6 +1969,7 @@ var TabBar = {
 
         switch (target.id) {
           case 'tabs-mix':
+            shownList = [];
             // Assuming the users will switch to ListView later or tap one of
             // the album on TilesView to play, just cancel the enumeration
             // because we will start a new one and it can be responsive.
@@ -1972,6 +1985,7 @@ var TabBar = {
 
             break;
           case 'tabs-playlists':
+            shownList = [];
             // Clean the TilesView and SubListView to release the memory used by
             // background image.
             TilesView.clean();
@@ -1987,6 +2001,7 @@ var TabBar = {
           case 'tabs-artists':
           case 'tabs-albums':
           case 'tabs-songs':
+            shownList = [];
             // Clean the TilesView and SubListView to release the memory used by
             // background image.
             TilesView.clean();
