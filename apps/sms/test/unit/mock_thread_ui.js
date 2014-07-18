@@ -1,7 +1,9 @@
-/*global Recipients, Template */
+/*global MockRecipients, Template */
 /*exported MockThreadUI */
 
 'use strict';
+
+require('/test/unit/mock_recipients.js');
 
 var MockThreadUI = {
   LAST_MESSSAGES_BUFFERING_TIME: 600000,
@@ -26,7 +28,7 @@ var MockThreadUI = {
   inThread: false,
   init: function() {},
   initRecipients: function() {
-    this.recipients = new Recipients({
+    this.recipients = new MockRecipients({
       outer: 'messages-to-field',
       inner: 'messages-recipients-list',
       template: new Template('messages-recipient-tmpl')
@@ -101,6 +103,7 @@ var MockThreadUI = {
   mSetup: function() {
     this.isShowMessageErrorCalledTimes = 0;
     this.inThread = false;
+    this.initRecipients();
   },
 
   mTeardown: function() {

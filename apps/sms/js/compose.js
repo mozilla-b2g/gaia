@@ -237,6 +237,7 @@ var Compose = (function() {
 
     compose.updateSendButton();
     compose.updateType();
+    updateSegmentInfoThrottled();
 
     trigger.call(compose, 'input');
   }
@@ -403,7 +404,6 @@ var Compose = (function() {
 
       // update the placeholder, send button and Compose.type
       dom.message.addEventListener('input', onContentChanged);
-      dom.message.addEventListener('input', updateSegmentInfoThrottled);
       dom.subject.addEventListener('input', onContentChanged);
 
       // we need to bind to keydown & keypress because of #870120
