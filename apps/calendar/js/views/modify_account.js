@@ -1,6 +1,9 @@
 define(function(require) {
   'use strict';
 
+  require('dom!modify-account-view');
+  require('css!modify_account_view');
+
   var calendar = require('calendar');
   var AccountCreation = require('utils/account_creation');
   var AccountModel = require('models/account');

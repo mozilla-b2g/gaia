@@ -1,6 +1,8 @@
 define(function(require) {
   'use strict';
 
+  require('dom!create-account-view');
+
   var Parent = require('view');
   var template = require('templates/account');
   var presets = require('presets');

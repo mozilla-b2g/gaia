@@ -1,6 +1,8 @@
 define(function(require) {
   'use strict';
 
+  require('css!week_view');
+
   var Parent = require('./day');
   var template = require('templates/week');
   var Timespan = require('timespan');

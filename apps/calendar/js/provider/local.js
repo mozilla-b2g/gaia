@@ -1,9 +1,9 @@
-/* global uuid */
 define(function(require) {
   'use strict';
 
   var Parent = require('./abstract');
   var EventMutations = require('event_mutations');
+  var uuid = require('ext/uuid');
 
   var LOCAL_CALENDAR_ID = 'local-first';
 

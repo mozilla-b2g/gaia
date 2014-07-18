@@ -18,6 +18,7 @@ define(function(require, exports) {
   'use strict';
 
   var calendarApp = require('app');
+  var NotificationHelper = require('shared/notification_helper');
 
   // Due to a bug in the platform, multiple requests to
   // mozApps.getSelf() will fail if fired in close succession.

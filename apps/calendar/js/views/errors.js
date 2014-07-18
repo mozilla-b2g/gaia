@@ -1,6 +1,9 @@
 define(function(require) {
   'use strict';
 
+  require('dom!errors');
+  require('dom!lazy-styles');
+
   var View = require('view');
 
   function Errors() {

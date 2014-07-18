@@ -1,6 +1,8 @@
 define(function(require) {
   'use strict';
 
+  require('dom!advanced-settings-view');
+
   var Parent = require('view');
   var template = require('templates/account');
   var AlarmTemplate = require('templates/alarm');

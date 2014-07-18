@@ -1,6 +1,9 @@
 define(function(require) {
   'use strict';
 
+  require('dom!event-view');
+  require('css!event_view');
+
   var Parent = require('./event_base');
   var AlarmTemplate = require('templates/alarm');
   var DurationTimeTemplate = require('templates/duration_time');

@@ -1,6 +1,8 @@
 define(function(require) {
   'use strict';
 
+  require('dom!oauth2');
+
   var View = require('view');
   var queryString = require('querystring');
 

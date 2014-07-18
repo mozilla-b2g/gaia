@@ -1,12 +1,16 @@
 define(function(require) {
   'use strict';
 
+  require('dom!modify-event-view');
+  require('css!modify_event_view');
+
   var EventBase = require('./event_base');
   var AlarmTemplate = require('templates/alarm');
   var nextTick = require('calendar').nextTick;
   var LocalProvider = require('provider/local');
   var QueryString = require('querystring');
   var dateFormat = require('utils/dateFormat');
+  var InputParser = require('shared/input_parser');
 
   function ModifyEvent(options) {
     this.deleteRecord = this.deleteRecord.bind(this);

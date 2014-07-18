@@ -1,6 +1,9 @@
 define(function(require) {
   'use strict';
 
+  require('dom!settings');
+  require('css!settings');
+
   var CALENDAR_PREFIX = 'calendar-';
 
   var template = require('templates/calendar');

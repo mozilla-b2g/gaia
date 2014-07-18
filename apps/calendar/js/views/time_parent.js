@@ -1,9 +1,9 @@
-/* global GestureDetector */
 define(function(require) {
   'use strict';
 
   var Parent = require('view');
   var OrderedMap = require('utils/ordered_map');
+  var GestureDetector = require('shared/gesture_detector');
 
   var XSWIPE_OFFSET = window.innerWidth / 10;
 

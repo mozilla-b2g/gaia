@@ -3,7 +3,25 @@ requirejs.config({
   'shim': {
     'ext/page': {
       exports: 'page'
-    }
+    },
+    'shared/accessibility_helper': {
+      exports: 'NotificationHelper'
+    },
+    'shared/input_parser': {
+      exports: 'InputParser'
+    },
+    'shared/gesture_detector': {
+      exports: 'GestureDetector'
+    },
+    'shared/lazy_loader': {
+      exports: 'LazyLoader'
+    },
+    'shared/notification_helper': {
+      exports: 'NotificationHelper'
+    },
+  },
+  'paths': {
+    'shared' : '/shared/js'
   }
 });
 
@@ -12,6 +30,7 @@ define(function(require, exports) {
 
   var nextTick = require('calendar').nextTick;
   var Db = require('db');
+  var AccessibilityHelper = require('shared/accessibility_helper');
   var AlarmController = require('./controllers/alarm');
   var ErrorController = require('./controllers/error');
   var ServiceController = require('./controllers/service');
