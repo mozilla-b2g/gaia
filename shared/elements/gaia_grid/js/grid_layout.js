@@ -17,7 +17,7 @@
 
   const distanceBetweenIconsWithMinIconsPerRow = 36;
 
-  const distanceBetweenIconsWithMaxIconsPerRow = 36;
+  const distanceBetweenIconsWithMaxIconsPerRow = 38;
 
   var windowWidth = window.innerWidth;
 
