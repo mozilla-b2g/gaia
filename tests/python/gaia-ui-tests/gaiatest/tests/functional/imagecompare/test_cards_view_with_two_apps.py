@@ -9,7 +9,7 @@ import sys
 
 class TestCardsView(GaiaTestCase):
 
-    _test_apps = ['Contacts', 'Clock']
+    _test_apps = ['Contacts', 'Gallery']
 
     def setUp(self):
         GaiaTestCase.setUp(self)
