@@ -56,7 +56,7 @@
   "settings": {
       "debugger.remote-mode": "adb-devtools"
   },
-  "collect_ref_images": "true",
+  "collect_ref_images": "false",
   "screenshot_location": "//sdcard//screenshots//",
   "fuzz_factor": "5",
   "post2dot0": "true"
