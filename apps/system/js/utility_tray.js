@@ -18,6 +18,8 @@ var UtilityTray = {
 
   screen: document.getElementById('screen'),
 
+  notifications_container: document.getElementById('notifications-container'),
+
   init: function ut_init() {
     var touchEvents = ['touchstart', 'touchmove', 'touchend'];
     touchEvents.forEach(function bindEvents(name) {
@@ -109,11 +111,13 @@ var UtilityTray = {
         }
 
         if (target !== this.overlay && target !== this.grippy &&
+            target !== this.notifications_container &&
             evt.currentTarget !== this.statusbarIcons) {
           return;
         }
 
-        if (target === this.statusbarIcons || target === this.grippy) {
+        if (target === this.statusbarIcons || target === this.grippy ||
+            target === this.notifications_container) {
           evt.preventDefault();
         }
 
@@ -121,7 +125,8 @@ var UtilityTray = {
         break;
 
       case 'touchmove':
-        if (target === this.statusbarIcons || target === this.grippy) {
+        if (target === this.statusbarIcons || target === this.grippy ||
+            target === this.notifications_container) {
           evt.preventDefault();
         }
 
@@ -129,7 +134,8 @@ var UtilityTray = {
         break;
 
       case 'touchend':
-        if (target === this.statusbarIcons || target === this.grippy) {
+        if (target === this.statusbarIcons || target === this.grippy ||
+            target === this.notifications_container) {
           evt.preventDefault();
         }
 
