@@ -14,12 +14,8 @@
   direction: ltr;
 }
 
-#rocketbar.expanded {
+#rocketbar.active {
   transform: scale(1);
-}
-
-body.rb-enabled #screen:not(.cards-view) #rocketbar:not(.active) {
-  transform: scale(1) translateY(2.4rem);  
 }
 
 #screen.locked:not(.attention) #rocketbar {
