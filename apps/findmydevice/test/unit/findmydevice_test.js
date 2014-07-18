@@ -172,10 +172,17 @@ suite('FindMyDevice >', function() {
     FindMyDevice._registered = true;
     FindMyDevice._state = {clientid: 'clientid'};
 
-    this.sinon.stub(FindMyDevice, '_refreshClientIDIfRegistered');
+    this.sinon.stub(FindMyDevice, 'beginHighPriority');
+    this.sinon.stub(FindMyDevice, 'endHighPriority');
+    this.sinon.spy(FindMyDevice, '_refreshClientIDIfRegistered');
     MockNavigatorSettings.mTriggerObservers('findmydevice.current-clientid',
       {settingValue: ''});
     sinon.assert.calledWith(FindMyDevice._refreshClientIDIfRegistered, false);
+    sinon.assert.calledWith(navigator.mozId.request, {});
+    sinon.assert.calledOnce(FindMyDevice.beginHighPriority);
+    sinon.assert.calledWith(FindMyDevice.beginHighPriority, 'clientLogic');
+    sinon.assert.calledOnce(FindMyDevice.endHighPriority);
+    sinon.assert.calledWith(FindMyDevice.endHighPriority, 'clientLogic');
   });
 
   test('refresh authentication when attempting to disable', function() {
