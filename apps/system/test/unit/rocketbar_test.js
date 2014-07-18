@@ -83,10 +83,8 @@ suite('system/Rocketbar', function() {
     assert.ok(windowAddEventListenerStub.calledWith('apptitlechange'));
     assert.ok(windowAddEventListenerStub.calledWith('applocationchange'));
     assert.ok(windowAddEventListenerStub.calledWith('home'));
-    assert.ok(windowAddEventListenerStub.calledWith('cardviewclosedhome'));
     assert.ok(windowAddEventListenerStub.calledWith('appopened'));
     assert.ok(windowAddEventListenerStub.calledWith('homescreenopened'));
-    assert.ok(windowAddEventListenerStub.calledWith('stackchanged'));
     assert.ok(rocketbarAddEventListenerStub.calledWith('touchstart'));
     assert.ok(rocketbarAddEventListenerStub.calledWith('touchmove'));
     assert.ok(rocketbarAddEventListenerStub.calledWith('touchend'));
@@ -118,10 +116,8 @@ suite('system/Rocketbar', function() {
     assert.ok(windowRemoveEventListenerStub.calledWith('apptitlechange'));
     assert.ok(windowRemoveEventListenerStub.calledWith('applocationchange'));
     assert.ok(windowRemoveEventListenerStub.calledWith('home'));
-    assert.ok(windowRemoveEventListenerStub.calledWith('cardviewclosedhome'));
     assert.ok(windowRemoveEventListenerStub.calledWith('appopened'));
     assert.ok(windowRemoveEventListenerStub.calledWith('homescreenopened'));
-    assert.ok(windowRemoveEventListenerStub.calledWith('stackchanged'));
     assert.ok(rocketbarRemoveEventListenerStub.calledWith('touchstart'));
     assert.ok(rocketbarRemoveEventListenerStub.calledWith('touchmove'));
     assert.ok(rocketbarRemoveEventListenerStub.calledWith('touchend'));
@@ -255,20 +251,6 @@ suite('system/Rocketbar', function() {
     assert.ok(subject.results.classList.contains('hidden'));
     assert.ok(MockIACPort.mNumberOfMessages() == 1);
     sinon.assert.calledOnce(stub);
-  });
-
-  test('showTaskManager()', function() {
-    var showResultsStub = this.sinon.stub(subject, 'showResults');
-    navigator.mozL10n = {
-      'get': function() {
-        return 'Search';
-      }
-    };
-    subject.showTaskManager();
-    assert.ok(showResultsStub.calledOnce);
-    assert.equal(subject.input.value, '');
-    assert.equal(subject.titleContent.textContent, 'Search');
-    showResultsStub.restore();
   });
 
   test('focus()', function() {
@@ -536,11 +518,10 @@ suite('system/Rocketbar', function() {
     assert.equal(subject._touchStart, 3);
   });
 
-  test('handleTouch() - touchmove', function(done) {
-    // Assumes EXPANSION_THRESHOLD: 5, TASK_MANAGER_THRESHOLD: 200
+  test('handleTouch() - touchmove', function() {
+    // Assumes EXPANSION_THRESHOLD: 5
     var expandStub = this.sinon.stub(subject, 'expand');
     var collapseStub = this.sinon.stub(subject, 'collapse');
-    var showTaskManagerStub = this.sinon.stub(subject, 'showTaskManager');
 
     // Expand
     subject._touchStart = 1;
@@ -555,7 +536,6 @@ suite('system/Rocketbar', function() {
     subject.handleTouch(event);
     assert.ok(expandStub.calledOnce);
     assert.ok(collapseStub.notCalled);
-    assert.ok(showTaskManagerStub.notCalled);
 
     // Collapse
     event = {
@@ -568,7 +548,6 @@ suite('system/Rocketbar', function() {
     };
     subject.handleTouch(event);
     assert.ok(collapseStub.calledOnce);
-    assert.ok(showTaskManagerStub.notCalled);
 
     // Show task manager
     event = {
@@ -580,16 +559,10 @@ suite('system/Rocketbar', function() {
       ]
     };
 
-    window.addEventListener('taskmanagershow', function taskmanagershow() {
-      window.removeEventListener('taskmanagershow', taskmanagershow);
-      done();
-    });
-
     subject.handleTouch(event);
 
     expandStub.restore();
     collapseStub.restore();
-    showTaskManagerStub.restore();
   });
 
   test('handleTouch() - touchend', function() {
@@ -662,7 +635,7 @@ suite('system/Rocketbar', function() {
     focusStub.restore();
   });
 
-  test('handleInput()', function(done) {
+  test('handleInput()', function() {
     var showResultsStub = this.sinon.stub(subject, 'showResults');
     var hideResultsStub = this.sinon.stub(subject, 'hideResults');
 
@@ -678,13 +651,6 @@ suite('system/Rocketbar', function() {
     subject.results.classList.remove('hidden');
     subject.handleInput();
     assert.ok(hideResultsStub.calledOnce);
-
-    // Task manager shown
-    subject.screen.classList.add('task-manager');
-    window.addEventListener('taskmanagerhide', function() {
-      done();
-    });
-    subject.handleInput();
 
     showResultsStub.restore();
     hideResultsStub.restore();
@@ -715,32 +681,6 @@ suite('system/Rocketbar', function() {
       }
     };
     subject.handleKeyboardChange(event);
-  });
-
-  test('handleStackChanged() - empty stack', function() {
-    subject.cardView = true;
-    var focusStub = this.sinon.stub(subject, 'activate');
-    var event = {
-      detail: {
-        sheets: []
-      }
-    };
-    subject.handleStackChanged(event);
-    assert.ok(focusStub.calledOnce);
-    focusStub.restore();
-  });
-
-  test('handleStackChanged() - non-empty stack', function() {
-    subject.expanded = true;
-    var focusStub = this.sinon.stub(subject, 'focus');
-    var event = {
-      detail: {
-        sheets: ['a', 'b', 'c']
-      }
-    };
-    subject.handleStackChanged(event);
-    assert.ok(focusStub.notCalled);
-    focusStub.restore();
   });
 
   test('loadSearchApp()', function() {
