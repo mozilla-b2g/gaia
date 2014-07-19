@@ -86,7 +86,7 @@
      * @type {Number}
      * @memberof Rocketbar.prototype
      */
-    SCROLL_THRESHOLD: 5,
+    SCROLL_THRESHOLD: 24,
 
     /**
      * Current scroll position of the app window.
@@ -635,7 +635,7 @@
      * @memberof Rocketbar.prototype
      */
     handleScroll: function(e) {
-      if (e.detail.manifestURL) {
+      /*if (e.detail.manifestURL) {
         return;
       }
       if (this.expanded && !this.focused &&
@@ -645,7 +645,14 @@
         (this.currentScrollPosition - this.SCROLL_THRESHOLD)) {
         this.expand();
       }
-      this.currentScrollPosition = e.detail.scrollPosition;
+      this.currentScrollPosition = e.detail.scrollPosition;*/
+      if (this.expanded && !this.focused &&
+          e.detail.scrollPosition >= this.SCROLL_THRESHOLD) {
+        this.collapse();
+      } else if (!this.expanded && e.detail.scrollPosition <
+        this.SCROLL_THRESHOLD) {
+        this.expand();
+      }
     },
 
     /**

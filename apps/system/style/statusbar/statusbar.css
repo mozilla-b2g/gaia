@@ -12,17 +12,22 @@
 
 #statusbar-background {
   width: 100%;
-  height: 2.4rem;
+  height: 4.8rem;
   background-color: #000;
   opacity: 1;
   padding: 0;
-  transform: scaleY(1);
-  transition: transform 0.1s, opacity 0.5s;
+  transform: scaleY(0.5);
+  transition: transform 0.5s, opacity 0.5s;
   transform-origin: left top;
 }
 
+
 #screen.themecolor-active #statusbar-background {
-  visibility: hidden;
+    visibility: hidden;
+}
+
+#screen.rocketbar-expanded #statusbar-background {
+  transform: scaleY(1);
 }
 
 #statusbar {
@@ -98,7 +103,8 @@ body:not(.rb-enabled) #statusbar {
 
 #screen.rocketbar-focused:not(.locked) #statusbar-icons,
 #screen.rocketbar-expanded.cards-view #statusbar-icons,
-#screen:not(.locked).fullscreen-app #statusbar:not(.dragged) #statusbar-icons {
+#screen:not(.locked).fullscreen-app #statusbar:not(.dragged) #statusbar-icons,
+#screen.rocketbar-expanded:not(.locked) #statusbar-icons {
   visibility: hidden;
   opacity: 0;
 }

@@ -104,7 +104,7 @@
 }
 
 .appWindow.navigation > iframe {
-  height: calc(100% - 2.4rem - 1rem);
+  height: calc(100% - 2.4rem);
 }
 
 .appWindow > .statusbar-overlay,
