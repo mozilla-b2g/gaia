@@ -17,7 +17,7 @@
   ],
   "dependencies": {
     "debug": "https://raw.githubusercontent.com/visionmedia/debug/1.0.2/dist/debug.js",
-    "alameda": "https://raw.githubusercontent.com/requirejs/alameda/0.2.0/alameda.js",
+    "requirejs": "https://raw.githubusercontent.com/jrburke/requirejs/2.1.14/require.js",
     "evt": "gaia-components/evt#~0.4.0",
     "attach": "gaia-components/attach#~0.1.1",
     "device-orientation": "gaia-components/device-orientation",

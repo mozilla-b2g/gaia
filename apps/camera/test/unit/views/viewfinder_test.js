@@ -1,12 +1,11 @@
 suite('views/viewfinder', function() {
   'use strict';
-  var require = window.req;
 
   var SENSOR_ANGLE = 90;
 
   suiteSetup(function(done) {
     var self = this;
-    require(['views/viewfinder'], function(ViewfinderView) {
+    requirejs(['views/viewfinder'], function(ViewfinderView) {
       self.ViewfinderView = ViewfinderView;
       done();
     });

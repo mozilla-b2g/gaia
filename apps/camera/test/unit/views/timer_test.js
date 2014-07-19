@@ -3,7 +3,7 @@ suite('views/timer', function() {
 
   suiteSetup(function(done) {
     var self = this;
-    req(['views/timer'], function(TimerView) {
+    requirejs(['views/timer'], function(TimerView) {
       self.TimerView = TimerView;
       done();
     });

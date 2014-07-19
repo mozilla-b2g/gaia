@@ -5,12 +5,13 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
+var convertFaceToPixels = require('lib/convert-face-to-pixel-coordinates');
+var calculateFocusArea = require('lib/calculate-focus-area');
 var debug = require('debug')('controller:viewfinder');
-var bindAll = require('lib/bind-all');
+var ViewfinderView = require('views/viewfinder');
 var FocusView = require('views/focus');
 var FacesView = require('views/faces');
-var calculateFocusArea = require('lib/calculate-focus-area');
-var convertFaceToPixels = require('lib/convert-face-to-pixel-coordinates');
+var bindAll = require('lib/bind-all');
 
 /**
  * Exports
@@ -27,21 +28,29 @@ module.exports.ViewfinderController = ViewfinderController;
 function ViewfinderController(app) {
   bindAll(this);
   this.app = app;
-  this.views = {};
   this.camera = app.camera;
   this.activity = app.activity;
   this.settings = app.settings;
-  this.views.viewfinder = app.views.viewfinder;
-  // Append focus ring to viewfinder
-  this.views.focus = new FocusView();
-  this.views.focus.appendTo(this.views.viewfinder.el);
-  this.views.faces = new FacesView();
-  this.views.faces.appendTo(this.views.viewfinder.el);
-  this.pinch = new app.Pinch(app.el);
+  this.createViews();
   this.bindEvents();
   this.configure();
   debug('initialized');
 }
+
+/**
+ * Create and inject the views.
+ *
+ * @private
+ */
+ViewfinderController.prototype.createViews = function() {
+  this.views = {};
+  this.views.viewfinder = this.app.views.viewfinder || new ViewfinderView();
+  this.views.focus = this.app.views.focus || new FocusView();
+  this.views.faces = this.app.views.faces || new FacesView();
+  this.views.faces.appendTo(this.views.viewfinder.el);
+  this.views.faces.appendTo(this.views.viewfinder.el);
+  this.views.viewfinder.appendTo(this.app.el);
+};
 
 /**
  * Initial configuration.
@@ -94,30 +103,44 @@ ViewfinderController.prototype.hideGrid = function() {
  * @private
  */
 ViewfinderController.prototype.bindEvents = function() {
-  this.app.settings.grid.on('change:selected',
-    this.views.viewfinder.setter('grid'));
 
+  // View
+  this.views.viewfinder.on('fadedin', this.app.firer('viewfinder:visible'));
+  this.views.viewfinder.on('fadedout', this.app.firer('viewfinder:hidden'));
   this.views.viewfinder.on('click', this.app.firer('viewfinder:click'));
   this.views.viewfinder.on('click', this.onViewfinderClicked);
 
-  this.camera.on('zoomchanged', this.onZoomChanged);
+  // Tut tut, we shouldn't have direct coupling here.
+  // TODO: Camera events should be relayed through the app.
   this.camera.on('zoomconfigured', this.onZoomConfigured);
+  this.camera.on('zoomchanged', this.onZoomChanged);
+  this.camera.on('preview:started', this.show);
+
+  // Camera
   this.app.on('camera:autofocuschanged', this.views.focus.showAutoFocusRing);
-  this.app.on('camera:focusconfigured', this.onFocusConfigured);
   this.app.on('camera:focusstatechanged', this.views.focus.setFocusState);
-  this.app.on('camera:facesdetected', this.onFacesDetected);
+  this.app.on('camera:focusconfigured', this.onFocusConfigured);
   this.app.on('camera:shutter', this.views.viewfinder.shutter);
+  this.app.on('camera:facesdetected', this.onFacesDetected);
+  this.app.on('camera:configured', this.onCameraConfigured);
+  this.app.on('camera:previewactive', this.onPreviewActive);
   this.app.on('busy', this.views.viewfinder.disable);
   this.app.on('ready', this.views.viewfinder.enable);
-  this.app.on('camera:configured', this.onCameraConfigured);
+  this.app.on('camera:willchange', this.hide);
+
+  // Preview Gallery
   this.app.on('previewgallery:opened', this.onGalleryOpened);
   this.app.on('previewgallery:closed', this.onGalleryClosed);
-  this.app.on('camera:previewactive', this.onPreviewActive);
+
+  // Settings
   this.app.on('settings:closed', this.onSettingsClosed);
   this.app.on('settings:opened', this.onSettingsOpened);
-  this.app.on('hidden', this.stopStream);
+  this.app.settings.grid.on('change:selected',
+    this.views.viewfinder.setter('grid'));
 
-  this.pinch.on('pinchchanged', this.onPinchChanged);
+  // App
+  this.app.on('pinch:changed', this.onPinchChanged);
+  this.app.on('hidden', this.stopStream);
 };
 
 /**
@@ -130,19 +153,54 @@ ViewfinderController.prototype.onCameraConfigured = function() {
   debug('configuring');
   this.loadStream();
   this.configurePreview();
-
-  // BUG: We have to use a 300ms timeout here
-  // to conceal a Gecko rendering bug whereby the
-  // video element appears not to have painted the
-  // newly set dimensions before fading in.
-  // https://bugzilla.mozilla.org/show_bug.cgi?id=982230
-  if (!this.app.criticalPathDone) { this.show(); }
-  else { setTimeout(this.show, 280); }
 };
 
+/**
+ * Show the viewfinder.
+ *
+ * If the critical-path is not done we
+ * fade the viewfinder in straight away
+ * to make sure we have the quickest
+ * startup possible.
+ *
+ * We have to use a timeout for all other
+ * viewfinder showing actions conceal a Gecko
+ * rendering bug whereby the video element has
+ * not yet 'visually' switched to the new stream
+ * when we get the preview 'started' event from
+ * the camera. This means the user sees a flicker
+ * if we don't give it some time to adjust.
+ *
+ * We clear these timeouts to avoid multiple pending
+ * timeouts, which could cause pain.
+ *
+ * https://bugzilla.mozilla.org/show_bug.cgi?id=982230
+ *
+ * @private
+ */
 ViewfinderController.prototype.show = function() {
-  this.views.viewfinder.fadeIn();
-  this.app.emit('viewfinder:visible');
+  debug('show');
+  if (!this.app.criticalPathDone) {
+    this.views.viewfinder.fadeIn(1);
+    return;
+  }
+
+  clearTimeout(this.showTimeout);
+  this.showTimeout = setTimeout(this.views.viewfinder.fadeIn, 280);
+  debug('schedule delayed fade-in');
+};
+
+/**
+ * Fades the viewfinder in.
+ *
+ * We clear any pending timeouts here
+ * to prevent unusual behaviour ensuing.
+ *
+ * @private
+ */
+ViewfinderController.prototype.hide = function() {
+  clearTimeout(this.showTimeout);
+  this.views.viewfinder.fadeOut();
 };
 
 /**
@@ -296,12 +354,10 @@ ViewfinderController.prototype.onViewfinderClicked = function(e) {
 
 ViewfinderController.prototype.onSettingsOpened = function() {
   this.hideGrid();
-  this.pinch.disable();
 };
 
 ViewfinderController.prototype.onSettingsClosed = function() {
   this.configureGrid();
-  this.pinch.enable();
 };
 
 /**
@@ -312,7 +368,6 @@ ViewfinderController.prototype.onSettingsClosed = function() {
  */
 ViewfinderController.prototype.onGalleryOpened = function() {
   this.views.viewfinder.disable();
-  this.pinch.disable();
 };
 
 /**
@@ -323,7 +378,6 @@ ViewfinderController.prototype.onGalleryOpened = function() {
  */
 ViewfinderController.prototype.onGalleryClosed = function() {
   this.views.viewfinder.enable();
-  this.pinch.enable();
 };
 
 ViewfinderController.prototype.onPreviewActive = function(active) {

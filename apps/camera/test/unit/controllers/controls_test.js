@@ -4,8 +4,7 @@ suite('controllers/controls', function() {
   'use strict';
   suiteSetup(function(done) {
     var self = this;
-
-    window.req([
+    requirejs([
       'app',
       'lib/camera/camera',
       'controllers/controls',
@@ -60,23 +59,6 @@ suite('controllers/controls', function() {
       assert.isTrue(this.app.views.controls.set.calledWith('cancel', true));
     });
 
-    test('Should be switchable when no activity is active', function() {
-      this.app.activity.pick = false;
-      this.state.controller = new this.ControlsController(this.app);
-      assert.isTrue(this.app.views.controls.set.calledWith('switchable', true));
-    });
-
-    test('Should not be switchable when only one mode is available', function() {
-
-      // Fake avaialable modes
-      this.app.settings.mode.get
-        .withArgs('options')
-        .returns([{ key: 'picture' }]);
-
-      this.state.controller = new this.ControlsController(this.app);
-      assert.isTrue(this.view.set.calledWith('switchable', false));
-    });
-
     test('It sets the mode to the value of the \'mode\' setting', function() {
 
       // Test 'picture'
@@ -111,8 +93,19 @@ suite('controllers/controls', function() {
       sinon.assert.called(this.view.disable);
     });
 
-    test('Should restore the controls when the camera is \'ready\'', function() {
-      sinon.assert.calledWith(this.app.on, 'ready', this.controller.restore);
+    suite('app.once(\'loaded\')', function() {
+      setup(function() {
+        // Call the callback
+        this.app.once.withArgs('loaded').args[0][1]();
+      });
+
+      test('It enables the controls', function() {
+        sinon.assert.called(this.view.enable);
+      });
+
+      test('It \'restores\' the controls when the camera is \'ready\' from thereon after', function() {
+        sinon.assert.calledWith(this.app.on, 'ready', this.controller.restore);
+      });
     });
 
     test('Should hide the controls when the timer is started', function() {
@@ -126,6 +119,19 @@ suite('controllers/controls', function() {
 
     test('Should disable the view intitially until camera is ready', function() {
       sinon.assert.called(this.view.disable);
+    });
+  });
+
+  suite('ControlsController#configureMode()', function() {
+    test('It\'s not switchable when only one mode is available', function() {
+
+      // Fake avaialable modes
+      this.app.settings.mode.get
+        .withArgs('options')
+        .returns([{ key: 'picture' }]);
+
+      this.controller.configureMode();
+      assert.isTrue(this.view.disable.calledWith('switch'));
     });
   });
 

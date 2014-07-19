@@ -1,12 +1,10 @@
 suite('controllers/hud', function() {
   /*jshint maxlen:false*/
-  /*global req*/
   'use strict';
 
   suiteSetup(function(done) {
     var self = this;
-
-    req([
+    requirejs([
       'app',
       'lib/camera/camera',
       'controllers/hud',
@@ -58,7 +56,7 @@ suite('controllers/hud', function() {
     this.controls = this.app.views.controls;
     this.settings = this.app.settings;
     this.camera = this.app.camera;
-    this.hud = this.app.views.hud;
+    this.view = this.app.views.hud;
 
     // Our test instance
     this.controller = new this.HudController(this.app);
@@ -86,28 +84,28 @@ suite('controllers/hud', function() {
     });
 
     test('Should set \'camera\' to \'busy\' on view when busy', function() {
-      assert.ok(this.hud.setter.calledWith('camera', 'busy'));
+      assert.ok(this.view.setter.calledWith('camera', 'busy'));
       assert.ok(this.app.on.calledWith('busy'));
     });
 
     test('Should set \'camera\' to \'ready\' on view when ready', function() {
-      assert.ok(this.hud.setter.calledWith('camera', 'ready'));
+      assert.ok(this.view.setter.calledWith('camera', 'ready'));
       assert.ok(this.app.on.calledWith('ready'));
     });
 
     test('Should set \'timer\' to \'active\' on view when started', function() {
-      assert.ok(this.hud.setter.calledWith('timer', 'active'));
+      assert.ok(this.view.setter.calledWith('timer', 'active'));
       assert.ok(this.app.on.calledWith('timer:started'));
     });
 
     test('Should set \'timer\' to \'inactive\' on view when timer ended or cleared', function() {
-      assert.ok(this.hud.setter.calledWith('timer', 'inactive'));
+      assert.ok(this.view.setter.calledWith('timer', 'inactive'));
       assert.ok(this.app.on.calledWith('timer:cleared'));
       assert.ok(this.app.on.calledWith('timer:ended'));
     });
 
     test('Should set `recording` state on hud', function() {
-      assert.ok(this.hud.setter.calledWith('recording'));
+      assert.ok(this.view.setter.calledWith('recording'));
       assert.ok(this.app.on.calledWith('change:recording'));
     });
 
@@ -116,18 +114,18 @@ suite('controllers/hud', function() {
         .withArgs('options')
         .returns(['back']);
 
-      sinon.assert.calledWith(this.hud.enable, 'camera', false);
+      sinon.assert.calledWith(this.view.enable, 'camera', false);
 
       this.settings.cameras.get
         .withArgs('options')
         .returns(['back', 'front']);
 
       this.controller = new this.HudController(this.app);
-      sinon.assert.calledWith(this.hud.enable, 'camera', true);
+      sinon.assert.calledWith(this.view.enable, 'camera', true);
     });
 
     test('Should disable flash initially until support is known', function() {
-      sinon.assert.calledWith(this.hud.enable, 'flash', false);
+      sinon.assert.calledWith(this.view.disable, 'flash');
     });
   });
 
@@ -146,7 +144,7 @@ suite('controllers/hud', function() {
     test('Should set the new value on the hud view', function() {
       this.settings.flashModes.selected.withArgs('key').returns('auto');
       this.controller.onFlashClick();
-      assert.ok(this.hud.set.calledWith('flashMode', 'auto'));
+      assert.ok(this.view.set.calledWith('flashMode', 'auto'));
     });
 
     test('Should notify', function() {
@@ -197,7 +195,7 @@ suite('controllers/hud', function() {
 
   suite('HudController#onCameraClick()', function() {
     setup(function() {
-      this.callback = this.hud.on.withArgs('click:camera').args[0][1];
+      this.callback = this.view.on.withArgs('click:camera').args[0][1];
     });
 
     test('Should clear notifications', function() {

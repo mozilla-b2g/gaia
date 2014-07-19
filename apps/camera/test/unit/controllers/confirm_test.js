@@ -1,11 +1,10 @@
 /*jshint maxlen:false*/
-/*global req*/
 'use strict';
 
 suite('controllers/confirm', function() {
   suiteSetup(function(done) {
     var modules = this.modules = {};
-    req([
+    requirejs([
       'controllers/confirm',
       'views/confirm'
     ], function(Controller, ConfirmView) {
