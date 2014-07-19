@@ -768,6 +768,30 @@ suite('Build Integration tests', function() {
     );
   });
 
+  test('make app with custom origin', function(done) {
+    // add custom-origin app to apps list
+    var appsListPath  = path.join('build', 'config', 'phone',
+      'apps-engineering.list');
+    fs.renameSync(appsListPath, appsListPath + '.bak');
+    fs.writeFileSync(appsListPath, 'apps/*\ndev_apps/custom-origin\n');
+
+    helper.exec('DEBUG=1 make', function(error, stdout, stderr) {
+      fs.unlinkSync(appsListPath);
+      fs.renameSync(appsListPath + '.bak', appsListPath);
+
+      helper.checkError(error, stdout, stderr);
+
+      var webappsPath = path.join(process.cwd(), 'profile-debug',
+        'webapps', 'webapps.json');
+      var webapps = JSON.parse(fs.readFileSync(webappsPath));
+
+      assert.isNotNull(webapps['test.mozilla.com']);
+      assert.equal(webapps['test.mozilla.com'].origin, 'app://test.mozilla.com');
+
+      done();
+    });
+  });
+
   suite('Build file inclusion tests', function() {
     test('build includes elements folder and sim_picker', function(done) {
       helper.exec('make', function(error, stdout, stderr) {
