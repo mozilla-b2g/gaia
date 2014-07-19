@@ -12,6 +12,7 @@ var whitelistedApps = [
   'camera',
   'calendar',
   'clock',
+  'costcontrol',
   'communications/contacts',
   'communications/dialer',
   'email',
@@ -25,6 +26,7 @@ var whitelistedApps = [
 var whitelistedUnifiedApps = [
   'calendar',
   'clock',
+  'costcontrol',
   'communications/dialer',
   'communications/contacts',
   'email',

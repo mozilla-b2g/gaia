@@ -1,5 +1,6 @@
 /* global BalanceView, LazyLoader, AutoSettings, BalanceLowLimitView,
-          ViewManager, dataLimitConfigurer, Formatting */
+          ViewManager, dataLimitConfigurer, Formatting, PerformanceTestingHelper
+*/
 /* exported debug, sendBalanceThresholdNotification */
 /*
  * Settings is in charge of setup the setting section. It uses an AutoSettings
@@ -29,7 +30,7 @@ var debug = window.parent.debug;
 
 var Settings = (function() {
 
-  var costcontrol, vmanager, initialized;
+  var costcontrol, vmanager, initialized, endLoadSettingsNotified;
   var plantypeSelector, phoneActivityTitle, phoneActivitySettings;
   var balanceTitle, balanceSettings, reportsTitle;
   var balanceView;
@@ -300,6 +301,10 @@ var Settings = (function() {
           updateTelephony(settings.lastTelephonyActivity,
                           settings.lastTelephonyReset);
           break;
+      }
+      if (endLoadSettingsNotified) {
+        PerformanceTestingHelper.dispatch('end-load-settings');
+        endLoadSettingsNotified = true;
       }
     });
   }
