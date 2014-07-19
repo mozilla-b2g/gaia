@@ -89,6 +89,10 @@ var ThreadListUI = {
 
     this.sticky =
       new StickyHeader(this.container, document.getElementById('sticky'));
+
+    MessageManager.on('message-sending', this.onMessageSending.bind(this));
+    MessageManager.on('message-received', this.onMessageReceived.bind(this));
+    MessageManager.on('threads-deleted', this.onThreadsDeleted.bind(this));
   },
 
   beforeLeave: function thlui_beforeLeave() {
@@ -330,7 +334,7 @@ var ThreadListUI = {
     }
 
     function deleteMessage(message) {
-      MessageManager.deleteMessage(message.id);
+      MessageManager.deleteMessages(message.id);
       return true;
     }
 
@@ -514,6 +518,16 @@ var ThreadListUI = {
 
     function onRenderThread(thread) {
       /* jshint validthis: true */
+      // Register all threads to the Threads object.
+      Threads.set(thread.id, thread);
+
+      // If one of the requested threads is also the currently displayed thread,
+      // update the header immediately
+      // TODO: Revise necessity of this code in bug 1050823
+      if (Navigation.isCurrentPanel('thread', { id: thread.id })) {
+        ThreadUI.updateHeaderData();
+      }
+
       if (!hasThreads) {
         hasThreads = true;
         this.startRendering();
@@ -713,16 +727,21 @@ var ThreadListUI = {
     }
   },
 
-  onMessageSending: function thlui_onMessageSending(message) {
-    this.updateThread(message);
+  onMessageSending: function thlui_onMessageSending(e) {
+    this.updateThread(e.message);
   },
 
-  onMessageReceived: function thlui_onMessageReceived(message) {
-    this.updateThread(message, { unread: true });
+  onMessageReceived: function thlui_onMessageReceived(e) {
+    // If user currently in the same thread, then mark thread as read
+    var markAsRead = Navigation.isCurrentPanel('thread', {
+      id: e.message.threadId
+    });
+
+    this.updateThread(e.message, { unread: !markAsRead });
   },
 
-  onThreadsDeleted: function thlui_onThreadDeleted(ids) {
-    ids.forEach(function(threadId) {
+  onThreadsDeleted: function thlui_onThreadDeleted(e) {
+    e.ids.forEach(function(threadId) {
       if (Threads.has(threadId)) {
         this.deleteThread(threadId);
       }

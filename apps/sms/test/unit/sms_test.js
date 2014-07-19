@@ -518,7 +518,7 @@ suite('SMS App Unit-Test', function() {
           .hasAttribute('disabled'), 'Uncheck all enabled');
 
         // now delete the selected messages...
-        MessageManager.deleteMessage = stub(function(list, itCb) {
+        MessageManager.deleteMessages = stub(function(list, itCb) {
           setTimeout(itCb);
         });
 
@@ -529,8 +529,8 @@ suite('SMS App Unit-Test', function() {
         setTimeout(function() {
           getMessageReq.onsuccess();
           assert.isTrue(MockDialog.triggers.confirm.called);
-          assert.equal(MessageManager.deleteMessage.callCount, 1);
-          assert.equal(MessageManager.deleteMessage.calledWith[0].length, 5);
+          assert.equal(MessageManager.deleteMessages.callCount, 1);
+          assert.equal(MessageManager.deleteMessages.calledWith[0].length, 5);
           assert.equal(ThreadUI.container.querySelectorAll('li').length, 1,
             'correct number of Thread li');
           assert.equal(

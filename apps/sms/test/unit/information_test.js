@@ -60,6 +60,7 @@ suite('Information view', function() {
   setup(function() {
     loadBodyHTML('/index.html');
     this.sinon.spy(navigator.mozL10n, 'localize');
+    this.sinon.stub(MessageManager, 'on');
     contact = MockContact();
   });
 
@@ -199,10 +200,12 @@ suite('Information view', function() {
         return request;
       });
       this.sinon.spy(Utils.date.format, 'localeFormat');
+      reportView.beforeEnter();
     });
 
     teardown(function() {
       reportView.reset();
+      reportView.afterLeave();
     });
 
     test('Outgoing Message report(status sending)', function() {
@@ -651,8 +654,8 @@ suite('Information view', function() {
       });
     });
 
-    ['onDeliverySuccess', 'onReadSuccess'].forEach(function(method) {
-      suite(method + '()', function() {
+    ['message-delivered', 'message-read'].forEach(function(event) {
+      suite('MessageManager.on' + event + '()', function() {
         var fakeMessage;
 
         setup(function() {
@@ -664,19 +667,24 @@ suite('Information view', function() {
         test('If showing this message, report is refreshed', function() {
           Navigation.isCurrentPanel
             .withArgs('report-view', { id: 1 }).returns(true);
-          reportView[method](fakeMessage);
+
+          MessageManager.on.withArgs(event).yield({ message: fakeMessage });
+
           sinon.assert.called(reportView.refresh);
         });
 
         test('If showing another message, report is not refreshed', function() {
           Navigation.isCurrentPanel
             .withArgs('report-view', { id: 2 }).returns(true);
-          reportView[method](fakeMessage);
+
+          MessageManager.on.withArgs(event).yield({ message: fakeMessage });
+
           sinon.assert.notCalled(reportView.refresh);
         });
 
         test('If not showing the report, it is not refreshed', function() {
-          reportView[method](fakeMessage);
+          MessageManager.on.withArgs(event).yield({ message: fakeMessage });
+
           sinon.assert.notCalled(reportView.refresh);
         });
       });
