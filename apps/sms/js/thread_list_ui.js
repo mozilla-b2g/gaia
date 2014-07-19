@@ -55,6 +55,10 @@ var ThreadListUI = {
       'click', this.toggleCheckedAll.bind(this)
     );
 
+    this.readUnreadButton.addEventListener(
+      'click', this.markReadUnread.bind(this)
+    );
+
     this.deleteButton.addEventListener(
       'click', this.delete.bind(this)
     );
@@ -265,6 +269,30 @@ var ThreadListUI = {
     } else {
         this.readUnreadButton.disabled = true;
     }
+  },
+
+  markReadUnread: function thlui_markReadUnread() {
+    var inputs = document.getElementsByClassName('threadlist-item');
+    var length = inputs.length;
+    var isRead;
+
+    if (document.getElementById('threads-read-unread-button').className == 'icon msg-mark-read-btn') {
+      isRead = true;
+    } else {
+      isRead = false;
+    }
+    for (var i = 0; i < length; i++) {
+      if ((inputs[i].querySelector('input[type=checkbox]:checked')) && (inputs[i].className != 'threadlist-item draft is-draft')) {
+        if (isRead) {
+          inputs[i].classList.remove('unread');
+        } else {
+          inputs[i].classList.add('unread');
+        }
+        MessageManager.markThreadRead(inputs[i].dataset.threadId, isRead);
+      }
+    }
+
+    this.cancelEdit();
   },
 
   cleanForm: function thlui_cleanForm() {

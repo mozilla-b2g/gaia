@@ -1474,7 +1474,8 @@ var ThreadUI = global.ThreadUI = {
 
     function onMessagesDone() {
       setTimeout(
-        MessageManager.markThreadRead.bind(MessageManager, filter.threadId)
+        //new parameter (true/false for isRead or not) is introduced in markThreadRead
+        MessageManager.markThreadRead.bind(MessageManager, filter.threadId, true)
       );
     }
 
