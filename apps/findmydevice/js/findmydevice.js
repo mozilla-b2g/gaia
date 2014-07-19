@@ -58,6 +58,8 @@ var FindMyDevice = {
     command: []
   },
 
+  _fxaReady: false,
+
   init: function fmd_init() {
     var self = this;
 
@@ -98,6 +100,8 @@ var FindMyDevice = {
     this._loadState(function() {
       self._initSettings(self._initMessageHandlers.bind(self));
     });
+
+    this._fxaReady = true;
   },
 
   _loadState: function fmd_load_state(callback) {
@@ -333,6 +337,13 @@ var FindMyDevice = {
   _onFxAError: function fmd_on_error(error) {
     DUMP('FxA error: ' + error);
 
+    if (!this._fxaReady) {
+      // FIXME(ggp) workaround for bug 1040935, if FxA errors out
+      // while we are initializing (usually due to an unverified
+      // account), just give up for now.
+      window.close();
+    }
+
     if (this._refreshingClientID) {
       this._cancelClientIDRefresh();
     }
@@ -382,7 +393,9 @@ var FindMyDevice = {
 
       var data = {type: 'findmydevice-alarm'};
       var request = navigator.mozAlarms.add(nextAlarm, 'honorTimezone', data);
-      request.onsuccess = self.endHighPriority('clientLogic');
+      request.onsuccess = function() {
+        self.endHighPriority('clientLogic');
+      };
     };
   },
 
