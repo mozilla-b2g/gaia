@@ -5,10 +5,12 @@ var KeyboardSettingsCustomizer = (function() {
   Customizer.call(this, 'keyboard_settings', 'json');
 
   this.set = function(keybrdParams) {
-    const KEYBRD_SETTINGS = ['keyboard.vibration', 'keyboard.autocorrect',
-                             'keyboard.clicksound', 'keyboard.wordsuggestion'];
+    if (!this.simPresentOnFirstBoot) {
+      console.log('KeyboardSettingsCustomizer. ' +
+                  'Skipping configuration since there was no SIM at first run');
+      return;
+    }
 
-    var actualValues = {};
     var settings = navigator.mozSettings;
     if (!settings) {
       console.error('KeyboardSettingsCustomizer. Settings is not available');
@@ -32,23 +34,8 @@ var KeyboardSettingsCustomizer = (function() {
       }
     }
 
-    function saveActualValue(key, req) {
-      actualValues[key] = req.result[key];
-      var numKeybrdSettings = KEYBRD_SETTINGS.length;
-      if (Object.keys(actualValues).length === numKeybrdSettings) {
-        // Verify that the user has changed any setting before we
-        // change the configuration
-        var hasChanged = false;
-        for (var i = 0; i < numKeybrdSettings && !hasChanged; i++) {
-          hasChanged = (keybrdParams.defaults[KEYBRD_SETTINGS[i]] !==
-                        actualValues[KEYBRD_SETTINGS[i]]);
-        }
-        !hasChanged && setKeyboard();
-      }
-    }
-
     // First of all, we should verify the parameters
-    if (!keybrdParams || !keybrdParams.defaults || !keybrdParams.values) {
+    if (!keybrdParams || !keybrdParams.values) {
       console.error('KeyboardCustomizer -> Configuration error: ' +
                     'Defaults parameters or new values have not been received');
       return;
@@ -61,27 +48,7 @@ var KeyboardSettingsCustomizer = (function() {
       return;
     }
 
-    // If there are not default values for all keyboard settings
-    // we can't continue. We must verify if the user has changed any value
-    for (var i = 0, l = KEYBRD_SETTINGS.length; i < l; i++) {
-      if (!(KEYBRD_SETTINGS[i] in keybrdParams.defaults)) {
-        console.log('KeyboardCustomizer -> Configuration error: Not all the ' +
-                    'default settings values were set. Missing value ' +
-                    KEYBRD_SETTINGS[i]);
-        return;
-      }
-    }
-
-    var onErrorMessage = function(settingName, req) {
-      console.error('Error requesting ' + settingName + '. ' + req.error.name);
-    };
-
-    var keyboardLock = settings.createLock();
-    for (var param in keybrdParams.defaults) {
-      var keyboardReq = keyboardLock.get(param);
-      keyboardReq.onsuccess = saveActualValue.bind(this, param, keyboardReq);
-      keyboardReq.onerror = onErrorMessage.bind(this, param, keyboardReq);
-    }
+    setKeyboard();
   };
 });
 
