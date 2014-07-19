@@ -41,7 +41,7 @@ marionette('Vertical - Search', function() {
     search.removeGeolocationPermission();
   });
 
-  test('Search notification', function() {
+  test.skip('Search notification', function() {
 
     var searchUrl = server.url('search.html') + '?q={searchTerms}';
     client.settings.set('search.urlTemplate', searchUrl);
@@ -96,7 +96,7 @@ marionette('Vertical - Search', function() {
     // Lauch the rocketbar and trigger its first run notice
     home.waitForLaunch();
     home.focusRocketBar();
-    search.triggerFirstRun(rocketbar);
+    //search.triggerFirstRun(rocketbar);
 
     // Clear button shouldnt be visible when no text entered
     assert.ok(!rocketbar.clear.displayed());
