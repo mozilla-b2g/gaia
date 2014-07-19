@@ -94,7 +94,7 @@ OverlayController.prototype.createOverlay = function(type, callback) {
   var overlay;
 
   if (!this.app.localized()) {
-    this.app.showLoading();
+    this.app.showSpinner();
     this.app.on('localized', onLocalized);
     return;
   }

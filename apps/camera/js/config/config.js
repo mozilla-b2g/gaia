@@ -117,9 +117,9 @@ module.exports = {
     maxSharePixelSize: 0
   },
 
-  loadingScreen: {
+  spinnerTimeouts: {
     takingPicture: 1500,
-    requestingCamera: 600
+    requestingCamera: 700
   },
 
   mode: {
