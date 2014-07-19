@@ -232,6 +232,9 @@ body.homesearch-enabled #rocketbar-input {
 body.homesearch-enabled #screen #rocketbar.active {
   transform: scale(1) translateY(2.4rem);
 }
+body.homesearch-enabled #screen.active-statusbar #rocketbar.active {
+  transform: scale(1) translateY(4.0rem);
+}
 
 /* Do not expand the statusbar background on homescreen. We have our own markup in the homescreen. */
 body.homesearch-enabled #screen.rocketbar-expanded #statusbar-background {

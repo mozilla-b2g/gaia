@@ -25,7 +25,7 @@
   transition: none;
 }
 
-#screen.attention.active-statusbar #statusbar {
+#screen.attention.active-statusbar:not(.rocketbar-focused) #statusbar {
   display: none;
 }
 
