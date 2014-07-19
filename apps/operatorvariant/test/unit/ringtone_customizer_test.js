@@ -37,8 +37,9 @@ suite('RingtoneCustomizer >', function() {
     this.sinon.clock.restore();
   });
 
-  test(' request the right ringtone blob > ', function() {
+  test(' First run with valid SIM. Set > ', function() {
     var resourcesSpy = sinon.spy(Resources, 'load');
+    ringtoneCustomizer.simPresentOnFirstBoot = true;
     ringtoneCustomizer.set(ringtoneParams);
     this.sinon.clock.tick(TINY_TIMEOUT);
     sinon.assert.calledOnce(resourcesSpy);
@@ -51,8 +52,21 @@ suite('RingtoneCustomizer >', function() {
     this.sinon.stub(Resources, 'load', function(uri, type, onsuccess) {
       onsuccess('ABC');
     });
+    ringtoneCustomizer.simPresentOnFirstBoot = true;
     ringtoneCustomizer.set(ringtoneParams);
     sinon.assert.calledOnce(createLockSpy);
     createLockSpy.restore();
   });
+
+  test(' First run outwith valid SIM. Not set > ', function() {
+    var createLockSpy = sinon.spy(navigator.mozSettings, 'createLock');
+    this.sinon.stub(Resources, 'load', function(uri, type, onsuccess) {
+      onsuccess('ABC');
+    });
+    ringtoneCustomizer.simPresentOnFirstBoot = false;
+    ringtoneCustomizer.set(ringtoneParams);
+    sinon.assert.notCalled(createLockSpy);
+    createLockSpy.restore();
+  });
+
 });
