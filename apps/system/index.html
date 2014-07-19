@@ -492,7 +492,15 @@
 
       <!-- Utility Tray -->
       <div id="utility-tray" data-z-index-level="utility-tray">
-        <!-- notifications -->
+        <!-- Placeholder for notifications -->
+        <div id="notifications-placeholder"></div>
+
+        <div id="utility-tray-grippy" role="button" data-l10n-id="utilityTrayGrippy">
+        </div>
+      </div>
+
+      <!-- Notifications -->
+      <div id="utility-tray-notifications" data-z-index-level="utility-tray-notifications">
         <div id="notification-bar">
           <span id="notification-some" data-l10n-id="notifications">Notifications</span>
 
@@ -582,9 +590,6 @@
           <a href="#" id="quick-settings-airplane-mode" data-enabled="false" role="button"></a>
           <div class="separator"></div>
           <a href="#" id="quick-settings-full-app" data-enabled="false" role="button" data-l10n-id="settingsButton"></a>
-        </div>
-
-        <div id="utility-tray-grippy" role="button" data-l10n-id="utilityTrayGrippy">
         </div>
       </div>
 

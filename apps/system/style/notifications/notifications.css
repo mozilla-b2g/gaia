@@ -103,8 +103,7 @@
 #notifications-container {
   width: 100%;
 
-  /* minus cost control, quick settings, bar and grippy */
-  height: calc(100% - 4.5rem - 6rem - 3rem - 2rem);
+  flex: 1;
   overflow-y: scroll;
   overflow-x: hidden;
 }
