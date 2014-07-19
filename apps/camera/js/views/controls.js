@@ -24,10 +24,13 @@ module.exports = View.extend({
   render: function() {
     this.el.innerHTML = this.template();
     this.els.thumbnail = this.find('.js-thumbnail');
+    this.els.capture = this.find('.js-capture');
+    this.els.cancel = this.find('.js-cancel');
+    this.els.switch = this.find('.js-switch');
 
     // Clean up
     delete this.template;
-    
+
     debug('rendered');
     return this.bindEvents();
   },
@@ -81,6 +84,7 @@ module.exports = View.extend({
     }
 
     this.els.image.src = window.URL.createObjectURL(blob);
+    debug('thumbnail set');
   },
 
   removeThumbnail: function() {

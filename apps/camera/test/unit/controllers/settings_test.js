@@ -1,11 +1,10 @@
 suite('controllers/settings', function() {
   /*jshint maxlen:false*/
-  /*global req*/
   'use strict';
 
   suiteSetup(function(done) {
     var self = this;
-    req([
+    requirejs([
       'controllers/settings',
       'lib/settings',
       'lib/setting',

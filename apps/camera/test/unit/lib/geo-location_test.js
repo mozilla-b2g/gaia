@@ -2,11 +2,10 @@
 'use strict';
 
 suite('geolocation', function() {
-  var require = window.req;
   var GeoLocation;
 
   suiteSetup(function(done) {
-    require(['lib/geo-location'], function(geolocation) {
+    requirejs(['lib/geo-location'], function(geolocation) {
       GeoLocation = geolocation;
       done();
     });

@@ -1,11 +1,9 @@
 suite('controllers/preview-gallery', function() {
-  /*global req*/
   'use strict';
 
   suiteSetup(function(done) {
     var self = this;
-
-    req([
+    requirejs([
       'app',
       'lib/camera/camera',
       'controllers/preview-gallery',

@@ -2,11 +2,10 @@
 
 suite('lib/camera/camera', function() {
   'use strict';
-  var require = window.req;
 
   suiteSetup(function(done) {
     var self = this;
-    require(['lib/camera/camera'], function(Camera) {
+    requirejs(['lib/camera/camera'], function(Camera) {
       self.Camera = Camera;
       done();
     });

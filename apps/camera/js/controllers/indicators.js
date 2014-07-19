@@ -23,32 +23,30 @@ module.exports.IndicatorsController = IndicatorsController;
 function IndicatorsController(app) {
   this.app = app;
   this.settings = app.settings;
-  this.onSettingsConfigured = this.onSettingsConfigured.bind(this);
+  this.configure = this.configure.bind(this);
+  this.createView();
   this.configure();
+  this.bindEvents();
   debug('initialized');
 }
 
 /**
- * Initial configuration. Injects
- * view and binds events.
+ * Creates and injects the view.
+ *
+ * The view is hidden until the
+ * settings are configured.
  *
  * @private
  */
-IndicatorsController.prototype.configure = function() {
+IndicatorsController.prototype.createView = function() {
+  debug('create view');
   this.view = this.app.views.indicators || new IndicatorsView();
-  // Indicators hidden by default until the settings are configured
-  this.view.hide();
   this.view.appendTo(this.app.el);
-  this.bindEvents();
-  debug('events bound');
+  debug('view created');
 };
 
 /**
- * Update the view when related
- * settings and app state change.
- *
- * Configure each time the settings
- * configure.
+ * Bind to relevant events.
  *
  * @public
  */
@@ -57,51 +55,22 @@ IndicatorsController.prototype.bindEvents = function() {
   this.settings.hdr.on('change:selected', this.view.setter('hdr'));
   this.app.on('change:batteryStatus', this.view.setter('battery'));
   this.app.on('change:recording', this.view.setter('recording'));
-  this.app.on('settings:configured', this.onSettingsConfigured);
+  this.app.on('settings:configured', this.configure);
   debug('events bound');
 };
 
 /**
- * Enables supported indicators,
- * configures initial state and
- * then shows the view.
+ * Configures the view to match
+ * current settings state.
  *
  * @private
  */
-IndicatorsController.prototype.onSettingsConfigured = function() {
+IndicatorsController.prototype.configure = function() {
   debug('configuring');
-  this.configureEnabled();
   this.view.set('hdr', this.settings.hdr.selected('key'));
   this.view.set('timer', this.settings.timer.selected('key'));
-  this.view.show();
+  this.view.set('battery', this.app.get('batteryStatus'));
   debug('configured');
-};
-
-/**
- * Configures the enabling/disabling
- * of all keys in the indicator config.
- *
- * @private
- */
-IndicatorsController.prototype.configureEnabled = function() {
-  for (var key in this.enabled) { this.enable(key, this.enabled[key]); }
-};
-
-/**
- * Enables an indicator in the view,
- * if truthy in indicator config, and
- * not a setting, or is a 'supported'
- * setting.
- *
- * @param  {String} key
- * @param {Boolean} enabled
- * @private
- */
-IndicatorsController.prototype.enable = function(key, enabled) {
-  var setting = this.settings[key];
-  var shouldEnable = enabled && (!setting || setting.supported());
-  this.view.enable(key, shouldEnable);
-  debug('enable key: %s, shouldEnable: %s', key, shouldEnable);
 };
 
 });
