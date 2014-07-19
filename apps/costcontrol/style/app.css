@@ -132,16 +132,9 @@ input.error {
 }
 
 /* BB HEADER ICONS */
-body[role="application"] section[role="region"] > header .icon.config {
+[icon="config"]:before {
   background-image: url(images/app/icons/config.png);
-  background-size: 3rem;
 }
-
-body[role="application"] section[role="region"] > header button {
-  text-shadow: none;
-  font-weight: normal;
-}
-
 
 /* BB BUTTONS ICONS */
 .buttons-list {
