@@ -15,12 +15,18 @@ const domUtils = Cc['@mozilla.org/inspector/dom-utils;1']
 const domParser = Cc['@mozilla.org/xmlextras/domparser;1']
                     .createInstance(Ci.nsIDOMParser);
 
+let plugins = [];
+
 let CSSLint = null;
 
 function execute(config) {
   let gaia = utils.gaia.getInstance(config);
 
   let files = [];
+
+  let pluginDir = config.GAIA_DIR + '/build/csslint/plugins/'
+
+  plugins = utils.listFiles(pluginDir, utils.FILE_TYPE_FILE);
 
   // Starts by parsing the CSS files from apps/
   gaia.webapps.forEach(function getAllFilesFor(webapp) {
@@ -184,8 +190,19 @@ function setupLinters(root) {
   // Load the third-party CSS Linter.
   let scope = {};
   let url =
-    'file:///' + root + '/build/csslinter.js?reload=' + Date.now();
+    'file:///' + root + '/build/csslint/csslinter.js?reload=' + Date.now();
   Services.scriptloader.loadSubScript(url, scope);
+
+  // Load plugins
+  plugins.forEach(function(plugin) {
+    plugin = plugin.match(/csslint\/(.*)\.js$/)[1];
+    const kRootPath = 'file:///' + root + '/build/csslint/' + plugin + '.js';
+    let pluginScope = {};
+    let url = kRootPath + '?reload=' + Date.now();
+    Services.scriptloader.loadSubScript(url, pluginScope);
+    scope.CSSLint.addRule(pluginScope.CSSLintPlugin);
+  });
+
   CSSLint = scope.CSSLint;
 }
 
@@ -302,6 +319,13 @@ function checkForGoodPractices(content) {
     // use the Gecko engine to find unknow properties.
     'known-properties': 0,
   };
+
+  // Enable all of our custom plugins.
+  plugins.forEach(function(plugin) {
+    plugin = plugin.match(/csslint\/(.*)\.js$/)[1];
+    plugin = plugin.replace(/_/g, '-');
+    rules[plugin] = 1;
+  });
 
   let messages = CSSLint.verify(content, rules).messages;
 
