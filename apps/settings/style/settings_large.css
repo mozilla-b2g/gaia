@@ -309,6 +309,8 @@
     line-height: 5rem;
     color: #fff;
     padding: 0 1rem 0 2rem;
+    width:100%;
+    text-align:left;
   }
 
   section[role="region"] > header:first-child menu[type="toolbar"] a,
