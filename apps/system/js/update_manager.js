@@ -200,7 +200,7 @@ var UpdateManager = {
   },
 
   showDownloadPrompt: function um_showDownloadPrompt() {
-    var _localize = navigator.mozL10n.localize;
+    var _localize = navigator.mozL10n.setAttributes;
 
     this._systemUpdateDisplayed = false;
     _localize(this.downloadDialogTitle, 'numberOfUpdates', {
@@ -323,7 +323,7 @@ var UpdateManager = {
   },
 
   render: function um_render() {
-    var _localize = navigator.mozL10n.localize;
+    var _localize = navigator.mozL10n.setAttributes;
 
     _localize(this.toasterMessage, 'updateAvailableInfo', {
       n: this.updatesQueue.length - this.lastUpdatesAvailable

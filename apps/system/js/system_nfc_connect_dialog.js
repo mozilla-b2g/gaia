@@ -42,10 +42,11 @@
       cancelId = 'dismissNFCConnectBTdisabled';
     }
 
-    navigator.mozL10n.translate(this.confirmNFCConnectTitle);
-    navigator.mozL10n.localize(this.buttonOK, okayId);
-    navigator.mozL10n.localize(this.buttonCancel, cancelId);
-    navigator.mozL10n.localize(this.confirmNFCConnectMsg, msgId, l10nArgs);
+    this.buttonOK.setAttribute('data-l10n-id', okayId);
+    this.buttonCancel.setAttribute('data-l10n-id', cancelId);
+    navigator.mozL10n.setAttributes(this.confirmNFCConnectMsg,
+                                    msgId,
+                                    l10nArgs);
   };
 
   NfcConnectSystemDialog.prototype.hide = function ncsd_hide(reason) {

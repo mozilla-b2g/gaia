@@ -72,7 +72,7 @@
   /**
    * Populate element with localized string
    */
-  var localizeElement = navigator.mozL10n.localize;
+  var localizeElement = navigator.mozL10n.setAttributes;
 
   /**
    * Parse the neterror information that's sent to us as part of the documentURI
@@ -203,7 +203,6 @@
 
     init: function ew_init() {
       window.LazyLoader.load(this.node, (function loaded() {
-        navigator.mozL10n.translate(this.node);
         this.title = document.getElementById('error-title');
         this.message = document.getElementById('error-message');
         this.applyStyle();
