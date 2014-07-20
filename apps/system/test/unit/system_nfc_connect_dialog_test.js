@@ -136,7 +136,13 @@ suite('NfcConnectSystemDialog', function() {
     var assertTextContent = function(btEnabled, btName, el, expected) {
       MockBluetooth.enabled = btEnabled;
       nfcDialog.show(btName);
-      assert.equal(nfcDialog[el].textContent, expected);
+      if (typeof expected === 'string') {
+        assert.equal(nfcDialog[el].getAttribute('data-l10n-id'), expected);
+      } else {
+        var l10nAttrs = MockL10n.getAttributes(nfcDialog[el]);
+        assert.equal(l10nAttrs.id, expected.id);
+        assert.deepEqual(l10nAttrs.args, expected.args);
+      }
     };
 
     test('BT enabled, button OK', function() {
@@ -159,28 +165,34 @@ suite('NfcConnectSystemDialog', function() {
 
     test('BT enabled, no BT name, message', function() {
       assertTextContent(true, null, 'confirmNFCConnectMsg',
-        'confirmNFCConnectBTenabledNameUnknown{"deviceName":null}');
+        {id: 'confirmNFCConnectBTenabledNameUnknown',
+         args: {deviceName: null}
+        }
+      );
     });
 
     test('BT enabled, with BT name, message', function() {
       assertTextContent(true, 'xyz 123', 'confirmNFCConnectMsg',
-        'confirmNFCConnectBTenabledNameKnown{"deviceName":"xyz 123"}');
+        {id: 'confirmNFCConnectBTenabledNameKnown',
+         args: {deviceName: 'xyz 123'}
+        }
+      );
     });
 
     test('BT disabled, no BT name, message', function() {
       assertTextContent(false, null, 'confirmNFCConnectMsg',
-        'confirmNFCConnectBTdisabledNameUnknown{"deviceName":null}');
+        {id: 'confirmNFCConnectBTdisabledNameUnknown',
+         args: {deviceName: null}
+        }
+      );
     });
 
     test('BT disabled, with BT name, message', function() {
       assertTextContent(false, 'xyz 123', 'confirmNFCConnectMsg',
-        'confirmNFCConnectBTdisabledNameKnown{"deviceName":"xyz 123"}');
-    });
-
-    test('Dialog title', function() {
-      var spyTranslate = this.sinon.spy(MockL10n, 'translate');
-      nfcDialog.show();
-      assert.isTrue(spyTranslate.calledOnce);
+        {id: 'confirmNFCConnectBTdisabledNameKnown',
+         args: {deviceName: 'xyz 123'}
+        }
+      );
     });
   });
 });
