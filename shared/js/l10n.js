@@ -1274,7 +1274,8 @@
   var DEBUG = false;
   var isPretranslated = false;
   var rtlList = ['ar', 'he', 'fa', 'ps', 'qps-plocm', 'ur'];
-  var nodeObserver = false;
+  var nodeObserver = null;
+  var pendingEntities = null;
 
   var moConfig = {
     attributes: true,
@@ -1397,6 +1398,10 @@
       }
     }
 
+    waitFor('interactive', function() {
+      nodeObserver = new MutationObserver(onMutations.bind(navigator.mozL10n));
+      nodeObserver.observe(document, moConfig);
+    });
   }
 
   function pretranslate() {
@@ -1522,9 +1527,11 @@
     }
     isPretranslated = false;
 
-    if (!nodeObserver) {
-      nodeObserver = new MutationObserver(onMutations.bind(this));
-      nodeObserver.observe(document, moConfig);
+    if (pendingEntities) {
+      for (var i in pendingEntities) {
+        translateElement.call(this, pendingEntities[i]);
+      }
+      pendingEntities = null;
     }
 
     fireLocalizedEvent.call(this);
@@ -1672,6 +1679,14 @@
   }
 
   function translateElement(element) {
+    if (isPretranslated && !this.ctx.isReady) {
+      if (!pendingEntities) {
+        pendingEntities = [];
+      }
+      pendingEntities.push(element);
+      return;
+    }
+
     var l10n = getL10nAttributes(element);
 
     if (!l10n.id) {
