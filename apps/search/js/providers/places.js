@@ -1,4 +1,4 @@
-/* globals HtmlHelper, Promise, Provider, Search, SettingsListener */
+/* globals DataGridProvider, Promise, Search, SettingsListener, GaiaGrid */
 
 (function(exports) {
 
@@ -218,22 +218,19 @@
   }
 
   function formatPlace(placeObj, filter) {
-    var titleText = placeObj.title || placeObj.url;
-
-    var renderObj = {
-      title: HtmlHelper.createHighlightHTML(titleText, filter),
-      meta: HtmlHelper.createHighlightHTML(placeObj.url, filter),
-      description: placeObj.url,
-      label: titleText,
-      dataset: {
-        url: placeObj.url
-      }
-    };
-
+    var icon;
     if (placeObj.iconUri in icons && icons[placeObj.iconUri]) {
-      renderObj.icon = icons[placeObj.iconUri];
+      icon = URL.createObjectURL(icons[placeObj.iconUri]);
     }
 
+    var renderObj = {
+      data: new GaiaGrid.Bookmark({
+        id: placeObj.url,
+        name: placeObj.title || placeObj.url,
+        url: placeObj.url,
+        icon: icon
+      })
+    };
     return renderObj;
   }
 
@@ -241,19 +238,18 @@
 
   Places.prototype = {
 
-    __proto__: Provider.prototype,
+    __proto__: DataGridProvider.prototype,
 
     name: 'Places',
 
     click: itemClicked,
 
     init: function() {
-      Provider.prototype.init.apply(this, arguments);
+      DataGridProvider.prototype.init.apply(this, arguments);
     },
 
     search: function(filter) {
       return new Promise((resolve, reject) => {
-        this.clear();
         var matched = 0;
         var renderResults = [];
         for (var url in results) {
@@ -271,11 +267,6 @@
 
         resolve(renderResults);
       });
-    },
-
-
-    clear: function() {
-      Provider.prototype.clear.apply(this, arguments);
     },
 
     /**
