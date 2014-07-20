@@ -104,7 +104,7 @@ body:not(.rb-enabled) #rocketbar {
   display: none;
 }
 
-#rocketbar.hasText #rocketbar-clear {
+#rocketbar.has-text #rocketbar-clear {
   display: block;
 }
 

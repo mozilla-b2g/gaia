@@ -714,7 +714,7 @@
     handleInput: function() {
       var input = this.input.value;
 
-      this.rocketbar.classList.toggle('hasText', input.length);
+      this.rocketbar.classList.toggle('has-text', input.length);
 
       if (!input && !this.newTabPage &&
           !this.results.classList.contains('hidden')) {
