@@ -20561,20 +20561,28 @@ function MailUniverse(callAfterBigBang, online, testOptions) {
 
       // - Try to re-create any accounts using old account infos.
       if (lazyCarryover) {
-        self._LOG.configMigrating(lazyCarryover);
+        this._LOG.configMigrating_begin(lazyCarryover);
         var waitingCount = lazyCarryover.accountInfos.length;
         var oldVersion = lazyCarryover.oldVersion;
+
+        var accountRecreated = function(accountInfo, err) {
+          this._LOG.recreateAccount_end(accountInfo.type, accountInfo.id, err);
+          // We don't care how they turn out, just that they get a chance
+          // to run to completion before we call our bootstrap complete.
+          if (--waitingCount === 0) {
+            this._LOG.configMigrating_end(null);
+            this._initFromConfig();
+            callAfterBigBang();
+          }
+        };
+
         for (i = 0; i < lazyCarryover.accountInfos.length; i++) {
           var accountInfo = lazyCarryover.accountInfos[i];
-          $acctcommon.recreateAccount(self, oldVersion, accountInfo,
-                                      function() {
-            // We don't care how they turn out, just that they get a chance
-            // to run to completion before we call our bootstrap complete.
-            if (--waitingCount === 0) {
-              self._initFromConfig();
-              callAfterBigBang();
-            }
-          });
+          this._LOG.recreateAccount_begin(accountInfo.type, accountInfo.id,
+                                          null);
+          $acctcommon.recreateAccount(
+            self, oldVersion, accountInfo,
+            accountRecreated.bind(this, accountInfo));
         }
         // Do not let callAfterBigBang get called.
         return;
@@ -20585,7 +20593,7 @@ function MailUniverse(callAfterBigBang, online, testOptions) {
     }
     self._initFromConfig();
     callAfterBigBang();
-  });
+  }.bind(this));
 }
 exports.MailUniverse = MailUniverse;
 MailUniverse.prototype = {
@@ -21233,6 +21241,11 @@ MailUniverse.prototype = {
     }
   },
 
+  /**
+   * A local op finished; figure out what the error means, perform any requested
+   * saves, and *only after the saves complete*, issue any appropriate callback
+   * and only then start the next op.
+   */
   _localOpCompleted: function(account, op, err, resultIfAny,
                               accountSaveSuggested) {
 
@@ -21293,30 +21306,30 @@ MailUniverse.prototype = {
     }
     localQueue.shift();
 
+    var callback;
     if (completeOp) {
       if (this._opCallbacks.hasOwnProperty(op.longtermId)) {
-        var callback = this._opCallbacks[op.longtermId];
+        callback = this._opCallbacks[op.longtermId];
         delete this._opCallbacks[op.longtermId];
-        try {
-          callback(err, resultIfAny, account, op);
-        }
-        catch(ex) {
-          console.log(ex.message, ex.stack);
-          this._LOG.opCallbackErr(op.type);
-        }
       }
     }
 
     if (accountSaveSuggested) {
-      account.saveAccountState(null, this._startNextOp.bind(this, account),
-                               'localOp');
+      account.saveAccountState(
+        null,
+        this._startNextOp.bind(this, account, callback, op, err, resultIfAny),
+        'localOp:' + op.type);
       return;
     }
 
-    this._startNextOp(account);
+    this._startNextOp(account, callback, op, err, resultIfAny);
   },
 
   /**
+   * A server op finished; figure out what the error means, perform any
+   * requested saves, and *only after the saves complete*, issue any appropriate
+   * callback and only then start the next op.
+   *
    * @args[
    *   @param[account[
    *   @param[op]{
@@ -21501,49 +21514,68 @@ MailUniverse.prototype = {
     if (accountSaveSuggested)
       account._saveAccountIsImminent = true;
 
+    var callback;
     if (completeOp) {
       if (this._opCallbacks.hasOwnProperty(op.longtermId)) {
-        var callback = this._opCallbacks[op.longtermId];
+        callback = this._opCallbacks[op.longtermId];
         delete this._opCallbacks[op.longtermId];
-        try {
-          callback(err, resultIfAny, account, op);
-        }
-        catch(ex) {
-          console.log(ex.message, ex.stack);
-          this._LOG.opCallbackErr(op.type);
-        }
       }
 
       // This is a suggestion; in the event of high-throughput on operations,
       // we probably don't want to save the account every tick, etc.
       if (accountSaveSuggested) {
         account._saveAccountIsImminent = false;
-        account.saveAccountState(null, this._startNextOp.bind(this, account),
-                                'serverOp');
+        account.saveAccountState(
+          null,
+          this._startNextOp.bind(this, account, callback, op, err, resultIfAny),
+          'serverOp:' + op.type);
         return;
       }
     }
 
-    this._startNextOp(account)
+    this._startNextOp(account, callback, op, err, resultIfAny);
   },
 
   /**
    * Shared code for _localOpCompleted and _serverOpCompleted to figure out what
-   * to do next *after* any account save has completed.  It used to be that we
-   * would trigger saves without waiting for them to complete with the theory
-   * that this would allow us to generally be more efficient without losing
-   * correctness since the IndexedDB transaction model is strong and takes care
-   * of data dependency issues for us.  However, for both testing purposes and
-   * with some new concerns over correctness issues, it's now making sense to
-   * wait on the transaction to commit.  There are potentially some memory-use
-   * wins from waiting for the transaction to complete, especially if we
-   * imagine some particularly pathological situations.
+   * to do next *after* any account save has completed, including invoking
+   * callbacks.  See bug https://bugzil.la/1039007 for rationale as to why we
+   * think it makes sense to defer the callbacks or to provide new reasons why
+   * we should change this behaviour.
+   *
+   * It used to be that we would trigger saves without waiting for them to
+   * complete with the theory that this would allow us to generally be more
+   * efficient without losing correctness since the IndexedDB transaction model
+   * is strong and takes care of data dependency issues for us.  However, for
+   * both testing purposes and with some new concerns over correctness issues,
+   * it's now making sense to wait on the transaction to commit.  There are
+   * potentially some memory-use wins from waiting for the transaction to
+   * complete, especially if we imagine some particularly pathological
+   * situations.
+   *
+   * @param account
+   * @param {Function} [callback]
+   *   The callback associated with the last operation.  May be omitted.  If
+   *    provided then all of the following arguments must also be provided.
+   * @param [lastOp]
+   * @param [err]
+   * @param [result]
    */
-  _startNextOp: function(account, queues) {
+  _startNextOp: function(account, callback, lastOp, err, result) {
     var queues = this._opsByAccount[account.id],
         serverQueue = queues.server,
         localQueue = queues.local;
     var op;
+
+    if (callback) {
+      try {
+        callback(err, result, account, lastOp);
+      }
+      catch(ex) {
+        console.log(ex.message, ex.stack);
+        this._LOG.opCallbackErr(lastOp.type);
+      }
+    }
 
     // We must hold off on freeing up queue.active until after we have
     // completed processing and called the callback, just as we do in
@@ -21957,7 +21989,8 @@ MailUniverse.prototype = {
         folderId: folderId,
         headerInfo: sentSafeHeader,
         bodyInfo: sentSafeBody
-      });
+      },
+      callback);
     return [longtermId];
   },
 
@@ -22293,7 +22326,6 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
     type: $log.ACCOUNT,
     events: {
       configCreated: {},
-      configMigrating: {},
       configLoaded: {},
       createAccount: { type: true, id: false },
       reportProblem: { type: true, suppressed: true, id: false },
@@ -22310,6 +22342,8 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
       createAccount: { name: false },
     },
     asyncJobs: {
+      configMigrating: {},
+      recreateAccount: { type: true, id: false, err: false },
       saveUniverseState: {}
     },
     errors: {
