@@ -337,7 +337,7 @@
 
     setInput: function(input) {
       this.input.value = input;
-      this.rocketbar.classList.toggle('hasText', input.length);
+      this.rocketbar.classList.toggle('has-text', input.length);
     },
 
     /**
