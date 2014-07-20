@@ -15,7 +15,10 @@ const domUtils = Cc['@mozilla.org/inspector/dom-utils;1']
 const domParser = Cc['@mozilla.org/xmlextras/domparser;1']
                     .createInstance(Ci.nsIDOMParser);
 
-const plugins = ['plugin_lowercase_properties'];
+const plugins = [
+  'plugin_lowercase_properties',
+  'plugin_lowercase_selectors'
+];
 
 let CSSLint = null;
 
