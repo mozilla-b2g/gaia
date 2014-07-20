@@ -244,6 +244,56 @@
   text-overflow: ellipsis;
 }
 
+/* Opt-out of italic style in these locales. See bug 1023702 */
+.bb-tablist[data-type="filter"] > li > a:lang(ar),
+.bb-tablist[data-type="filter"] > li > a:lang(as),
+.bb-tablist[data-type="filter"] > li > a:lang(bn),
+.bb-tablist[data-type="filter"] > li > a:lang(fa),
+.bb-tablist[data-type="filter"] > li > a:lang(gu),
+.bb-tablist[data-type="filter"] > li > a:lang(he),
+.bb-tablist[data-type="filter"] > li > a:lang(hi),
+.bb-tablist[data-type="filter"] > li > a:lang(ja),
+.bb-tablist[data-type="filter"] > li > a:lang(km),
+.bb-tablist[data-type="filter"] > li > a:lang(kn),
+.bb-tablist[data-type="filter"] > li > a:lang(ko),
+.bb-tablist[data-type="filter"] > li > a:lang(mai),
+.bb-tablist[data-type="filter"] > li > a:lang(ml),
+.bb-tablist[data-type="filter"] > li > a:lang(mr),
+.bb-tablist[data-type="filter"] > li > a:lang(ne),
+.bb-tablist[data-type="filter"] > li > a:lang(or),
+.bb-tablist[data-type="filter"] > li > a:lang(pa),
+.bb-tablist[data-type="filter"] > li > a:lang(si),
+.bb-tablist[data-type="filter"] > li > a:lang(ta),
+.bb-tablist[data-type="filter"] > li > a:lang(te),
+.bb-tablist[data-type="filter"] > li > a:lang(th),
+.bb-tablist[data-type="filter"] > li > a:lang(ur),
+.bb-tablist[data-type="filter"] > li > a:lang(zh),
+.bb-tablist[data-type="filter"] > li > button:lang(ar),
+.bb-tablist[data-type="filter"] > li > button:lang(as),
+.bb-tablist[data-type="filter"] > li > button:lang(bn),
+.bb-tablist[data-type="filter"] > li > button:lang(fa),
+.bb-tablist[data-type="filter"] > li > button:lang(gu),
+.bb-tablist[data-type="filter"] > li > button:lang(he),
+.bb-tablist[data-type="filter"] > li > button:lang(hi),
+.bb-tablist[data-type="filter"] > li > button:lang(ja),
+.bb-tablist[data-type="filter"] > li > button:lang(km),
+.bb-tablist[data-type="filter"] > li > button:lang(kn),
+.bb-tablist[data-type="filter"] > li > button:lang(ko),
+.bb-tablist[data-type="filter"] > li > button:lang(mai),
+.bb-tablist[data-type="filter"] > li > button:lang(ml),
+.bb-tablist[data-type="filter"] > li > button:lang(mr),
+.bb-tablist[data-type="filter"] > li > button:lang(ne),
+.bb-tablist[data-type="filter"] > li > button:lang(or),
+.bb-tablist[data-type="filter"] > li > button:lang(pa),
+.bb-tablist[data-type="filter"] > li > button:lang(si),
+.bb-tablist[data-type="filter"] > li > button:lang(ta),
+.bb-tablist[data-type="filter"] > li > button:lang(te),
+.bb-tablist[data-type="filter"] > li > button:lang(th),
+.bb-tablist[data-type="filter"] > li > button:lang(ur),
+.bb-tablist[data-type="filter"] > li > button:lang(zh) {
+  font-style: normal;
+}
+
 .bb-tablist[data-type="filter"] > li > a:before,
 .bb-tablist[data-type="filter"] > li > button:before {
   content: "";

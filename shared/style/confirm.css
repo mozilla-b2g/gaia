@@ -100,6 +100,33 @@ form[role="dialog"][data-type="confirm"] menu button {
   outline: none;
 }
 
+/* Opt-out of italic style in these locales. See bug 1023702 */
+form[role="dialog"][data-type="confirm"] menu button:lang(ar),
+form[role="dialog"][data-type="confirm"] menu button:lang(as),
+form[role="dialog"][data-type="confirm"] menu button:lang(bn),
+form[role="dialog"][data-type="confirm"] menu button:lang(fa),
+form[role="dialog"][data-type="confirm"] menu button:lang(gu),
+form[role="dialog"][data-type="confirm"] menu button:lang(he),
+form[role="dialog"][data-type="confirm"] menu button:lang(hi),
+form[role="dialog"][data-type="confirm"] menu button:lang(ja),
+form[role="dialog"][data-type="confirm"] menu button:lang(km),
+form[role="dialog"][data-type="confirm"] menu button:lang(kn),
+form[role="dialog"][data-type="confirm"] menu button:lang(ko),
+form[role="dialog"][data-type="confirm"] menu button:lang(mai),
+form[role="dialog"][data-type="confirm"] menu button:lang(ml),
+form[role="dialog"][data-type="confirm"] menu button:lang(mr),
+form[role="dialog"][data-type="confirm"] menu button:lang(ne),
+form[role="dialog"][data-type="confirm"] menu button:lang(or),
+form[role="dialog"][data-type="confirm"] menu button:lang(pa),
+form[role="dialog"][data-type="confirm"] menu button:lang(si),
+form[role="dialog"][data-type="confirm"] menu button:lang(ta),
+form[role="dialog"][data-type="confirm"] menu button:lang(te),
+form[role="dialog"][data-type="confirm"] menu button:lang(th),
+form[role="dialog"][data-type="confirm"] menu button:lang(ur),
+form[role="dialog"][data-type="confirm"] menu button:lang(zh) {
+  font-style: normal;
+}
+
 /* Recommend */
 form[role="dialog"][data-type="confirm"] menu button.recommend {
   background-color: #00caf2;

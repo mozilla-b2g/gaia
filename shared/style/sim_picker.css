@@ -4,6 +4,33 @@
   font-style: italic;
 }
 
+/* Opt-out of italic style in these locales. See bug 1023702 */
+.sim-default:lang(ar),
+.sim-default:lang(as),
+.sim-default:lang(bn),
+.sim-default:lang(fa),
+.sim-default:lang(gu),
+.sim-default:lang(he),
+.sim-default:lang(hi),
+.sim-default:lang(ja),
+.sim-default:lang(km),
+.sim-default:lang(kn),
+.sim-default:lang(ko),
+.sim-default:lang(mai),
+.sim-default:lang(ml),
+.sim-default:lang(mr),
+.sim-default:lang(ne),
+.sim-default:lang(or),
+.sim-default:lang(pa),
+.sim-default:lang(si),
+.sim-default:lang(ta),
+.sim-default:lang(te),
+.sim-default:lang(th),
+.sim-default:lang(ur),
+.sim-default:lang(zh) {
+  font-style: normal;
+}
+
 .is-default .sim-default {
   display: initial;
 }

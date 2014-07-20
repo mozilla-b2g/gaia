@@ -27,6 +27,33 @@ section[role="region"] > header:first-child h1 {
   text-align: center;
 }
 
+/* Opt-out of italic style in these locales. See bug 1023702 */
+section[role="region"] > header:first-child h1:lang(ar),
+section[role="region"] > header:first-child h1:lang(as),
+section[role="region"] > header:first-child h1:lang(bn),
+section[role="region"] > header:first-child h1:lang(fa),
+section[role="region"] > header:first-child h1:lang(gu),
+section[role="region"] > header:first-child h1:lang(he),
+section[role="region"] > header:first-child h1:lang(hi),
+section[role="region"] > header:first-child h1:lang(ja),
+section[role="region"] > header:first-child h1:lang(km),
+section[role="region"] > header:first-child h1:lang(kn),
+section[role="region"] > header:first-child h1:lang(ko),
+section[role="region"] > header:first-child h1:lang(mai),
+section[role="region"] > header:first-child h1:lang(ml),
+section[role="region"] > header:first-child h1:lang(mr),
+section[role="region"] > header:first-child h1:lang(ne),
+section[role="region"] > header:first-child h1:lang(or),
+section[role="region"] > header:first-child h1:lang(pa),
+section[role="region"] > header:first-child h1:lang(si),
+section[role="region"] > header:first-child h1:lang(ta),
+section[role="region"] > header:first-child h1:lang(te),
+section[role="region"] > header:first-child h1:lang(th),
+section[role="region"] > header:first-child h1:lang(ur),
+section[role="region"] > header:first-child h1:lang(zh) {
+  font-style: normal;
+}
+
 section[role="region"] > header:first-child h1 em {
   font-weight: 400;
   font-size: 1.5rem;
@@ -67,6 +94,56 @@ section[role="region"] > header:first-child button {
   text-align: center;
   text-shadow: none;
   font-style: italic;
+}
+
+/* Opt-out of italic style in these locales. See bug 1023702 */
+section[role="region"] > header:first-child a:lang(ar),
+section[role="region"] > header:first-child a:lang(as),
+section[role="region"] > header:first-child a:lang(bn),
+section[role="region"] > header:first-child a:lang(fa),
+section[role="region"] > header:first-child a:lang(gu),
+section[role="region"] > header:first-child a:lang(he),
+section[role="region"] > header:first-child a:lang(hi),
+section[role="region"] > header:first-child a:lang(ja),
+section[role="region"] > header:first-child a:lang(km),
+section[role="region"] > header:first-child a:lang(kn),
+section[role="region"] > header:first-child a:lang(ko),
+section[role="region"] > header:first-child a:lang(mai),
+section[role="region"] > header:first-child a:lang(ml),
+section[role="region"] > header:first-child a:lang(mr),
+section[role="region"] > header:first-child a:lang(ne),
+section[role="region"] > header:first-child a:lang(or),
+section[role="region"] > header:first-child a:lang(pa),
+section[role="region"] > header:first-child a:lang(si),
+section[role="region"] > header:first-child a:lang(ta),
+section[role="region"] > header:first-child a:lang(te),
+section[role="region"] > header:first-child a:lang(th),
+section[role="region"] > header:first-child a:lang(ur),
+section[role="region"] > header:first-child a:lang(zh),
+section[role="region"] > header:first-child button:lang(ar),
+section[role="region"] > header:first-child button:lang(as),
+section[role="region"] > header:first-child button:lang(bn),
+section[role="region"] > header:first-child button:lang(fa),
+section[role="region"] > header:first-child button:lang(gu),
+section[role="region"] > header:first-child button:lang(he),
+section[role="region"] > header:first-child button:lang(hi),
+section[role="region"] > header:first-child button:lang(ja),
+section[role="region"] > header:first-child button:lang(km),
+section[role="region"] > header:first-child button:lang(kn),
+section[role="region"] > header:first-child button:lang(ko),
+section[role="region"] > header:first-child button:lang(mai),
+section[role="region"] > header:first-child button:lang(ml),
+section[role="region"] > header:first-child button:lang(mr),
+section[role="region"] > header:first-child button:lang(ne),
+section[role="region"] > header:first-child button:lang(or),
+section[role="region"] > header:first-child button:lang(pa),
+section[role="region"] > header:first-child button:lang(si),
+section[role="region"] > header:first-child button:lang(ta),
+section[role="region"] > header:first-child button:lang(te),
+section[role="region"] > header:first-child button:lang(th),
+section[role="region"] > header:first-child button:lang(ur),
+section[role="region"] > header:first-child button:lang(zh) {
+  font-style: normal;
 }
 
 /* Pressed state */

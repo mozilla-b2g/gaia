@@ -53,6 +53,20 @@ button {
   outline: none;
 }
 
+/* Opt-out of italic style in these locales. See bug 1023702 */
+a:lang(ar), a:lang(as), a:lang(bn), a:lang(fa), a:lang(gu), a:lang(he),
+a:lang(hi), a:lang(ja), a:lang(km), a:lang(kn), a:lang(ko), a:lang(mai),
+a:lang(ml), a:lang(mr), a:lang(ne), a:lang(or), a:lang(pa),  a:lang(si),
+a:lang(ta), a:lang(te), a:lang(th), a:lang(ur), a:lang(zh),
+button:lang(ar), button:lang(as), button:lang(bn), button:lang(fa),
+button:lang(gu), button:lang(he), button:lang(hi), button:lang(ja),
+button:lang(km), button:lang(kn), button:lang(ko), button:lang(mai),
+button:lang(ml), button:lang(mr), button:lang(ne), button:lang(or),
+button:lang(pa),  button:lang(si), button:lang(ta), button:lang(te),
+button:lang(th), button:lang(ur), button:lang(zh) {
+  font-style: normal;
+}
+
 /* Recommend */
 a.recommend,
 button.recommend {

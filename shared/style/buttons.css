@@ -36,6 +36,30 @@ button,
   outline: none;
 }
 
+/* Opt-out of italic style in these locales. See bug 1023702 */
+[role="button"]:lang(ar), [role="button"]:lang(as), [role="button"]:lang(bn),
+[role="button"]:lang(fa), [role="button"]:lang(gu), [role="button"]:lang(he),
+[role="button"]:lang(hi), [role="button"]:lang(ja), [role="button"]:lang(km),
+[role="button"]:lang(kn), [role="button"]:lang(ko), [role="button"]:lang(mai),
+[role="button"]:lang(ml), [role="button"]:lang(mr), [role="button"]:lang(ne),
+[role="button"]:lang(or), [role="button"]:lang(pa),  [role="button"]:lang(si),
+[role="button"]:lang(ta), [role="button"]:lang(te), [role="button"]:lang(th),
+[role="button"]:lang(ur), [role="button"]:lang(zh),
+button:lang(ar), button:lang(as), button:lang(bn), button:lang(fa),
+button:lang(gu), button:lang(he), button:lang(hi), button:lang(ja),
+button:lang(km), button:lang(kn), button:lang(ko), button:lang(mai),
+button:lang(ml), button:lang(mr), button:lang(ne), button:lang(or),
+button:lang(pa),  button:lang(si), button:lang(ta), button:lang(te),
+button:lang(th), button:lang(ur), button:lang(zh),
+.button:lang(ar), .button:lang(as), .button:lang(bn), .button:lang(fa),
+.button:lang(gu), .button:lang(he), .button:lang(hi), .button:lang(ja),
+.button:lang(km), .button:lang(kn), .button:lang(ko), .button:lang(mai),
+.button:lang(ml), .button:lang(mr), .button:lang(ne), .button:lang(or),
+.button:lang(pa),  .button:lang(si), .button:lang(ta), .button:lang(te),
+.button:lang(th), .button:lang(ur), .button:lang(zh) {
+  font-style: normal;
+}
+
 /* Recommend */
 button.recommend,
 [role="button"].recommend {
@@ -272,6 +296,16 @@ select {
   background: rgba(0,0,0,0.05);
 }
 
+/* Opt-out of italic style in these locales. See bug 1023702 */
+select:lang(ar), select:lang(as), select:lang(bn), select:lang(fa),
+select:lang(gu), select:lang(he), select:lang(hi), select:lang(ja),
+select:lang(km), select:lang(kn), select:lang(ko), select:lang(mai),
+select:lang(ml), select:lang(mr), select:lang(ne), select:lang(or),
+select:lang(pa),  select:lang(si), select:lang(ta), select:lang(te),
+select:lang(th), select:lang(ur), select:lang(zh) {
+  font-style: normal;
+}
+
 .skin-dark select {
   background-color: rgba(87, 87, 87, 0.8);
   border: none;
@@ -359,14 +393,12 @@ html[dir="rtl"] li .button.icon-dialog:before {
 }
 
 html[dir="rtl"] select {
-  padding: 0 1.2rem 0 0; /* .3rem right space because of italic */
   text-align: right;
 }
 
 /* Hides dropdown arrow until bug #649849 is fixed */
 html[dir="rtl"] .button.icon-dialog select {
   left: auto;
-  right: 0.3rem; /* .3rem space because of italic */
   text-indent: 1rem;
   padding: 0 0 0 4rem;
 }

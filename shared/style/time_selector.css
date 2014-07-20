@@ -252,6 +252,33 @@
   outline: none;
 }
 
+/* Opt-out of italic style in these locales. See bug 1023702 */
+[role="dialog"][data-type="time-selector"] menu button:lang(ar),
+[role="dialog"][data-type="time-selector"] menu button:lang(as),
+[role="dialog"][data-type="time-selector"] menu button:lang(bn),
+[role="dialog"][data-type="time-selector"] menu button:lang(fa),
+[role="dialog"][data-type="time-selector"] menu button:lang(gu),
+[role="dialog"][data-type="time-selector"] menu button:lang(he),
+[role="dialog"][data-type="time-selector"] menu button:lang(hi),
+[role="dialog"][data-type="time-selector"] menu button:lang(ja),
+[role="dialog"][data-type="time-selector"] menu button:lang(km),
+[role="dialog"][data-type="time-selector"] menu button:lang(kn),
+[role="dialog"][data-type="time-selector"] menu button:lang(ko),
+[role="dialog"][data-type="time-selector"] menu button:lang(mai),
+[role="dialog"][data-type="time-selector"] menu button:lang(ml),
+[role="dialog"][data-type="time-selector"] menu button:lang(mr),
+[role="dialog"][data-type="time-selector"] menu button:lang(ne),
+[role="dialog"][data-type="time-selector"] menu button:lang(or),
+[role="dialog"][data-type="time-selector"] menu button:lang(pa),
+[role="dialog"][data-type="time-selector"] menu button:lang(si),
+[role="dialog"][data-type="time-selector"] menu button:lang(ta),
+[role="dialog"][data-type="time-selector"] menu button:lang(te),
+[role="dialog"][data-type="time-selector"] menu button:lang(th),
+[role="dialog"][data-type="time-selector"] menu button:lang(ur),
+[role="dialog"][data-type="time-selector"] menu button:lang(zh) {
+  font-style: normal;
+}
+
 /* Affirmative */
 [role="dialog"][data-type="time-selector"] menu button.affirmative,
 [role="dialog"][data-type="time-selector"] menu button.recommend {

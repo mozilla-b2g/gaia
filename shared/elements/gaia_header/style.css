@@ -29,6 +29,14 @@ h1 {
   text-align: center;
 }
 
+/* Opt-out of italic style in these locales. See bug 1023702 */
+h1:lang(ar), h1:lang(as), h1:lang(bn), h1:lang(fa), h1:lang(gu), h1:lang(he),
+h1:lang(hi), h1:lang(ja), h1:lang(km), h1:lang(kn), h1:lang(ko), h1:lang(mai),
+h1:lang(ml), h1:lang(mr), h1:lang(ne), h1:lang(or), h1:lang(pa),  h1:lang(si),
+h1:lang(ta), h1:lang(te), h1:lang(th), h1:lang(ur), h1:lang(zh) {
+  font-style: normal;
+}
+
 h1 em {
   font-weight: 400;
   font-size: 1.5rem;
@@ -58,6 +66,20 @@ button {
   text-align: center;
   text-shadow: none;
   font-style: italic;
+}
+
+/* Opt-out of italic style in these locales. See bug 1023702 */
+a:lang(ar), a:lang(as), a:lang(bn), a:lang(fa), a:lang(gu), a:lang(he),
+a:lang(hi), a:lang(ja), a:lang(km), a:lang(kn), a:lang(ko), a:lang(mai),
+a:lang(ml), a:lang(mr), a:lang(ne), a:lang(or), a:lang(pa),  a:lang(si),
+a:lang(ta), a:lang(te), a:lang(th), a:lang(ur), a:lang(zh),
+button:lang(ar), button:lang(as), button:lang(bn), button:lang(fa),
+button:lang(gu), button:lang(he), button:lang(hi), button:lang(ja),
+button:lang(km), button:lang(kn), button:lang(ko), button:lang(mai),
+button:lang(ml), button:lang(mr), button:lang(ne), button:lang(or),
+button:lang(pa),  button:lang(si), button:lang(ta), button:lang(te),
+button:lang(th), button:lang(ur), button:lang(zh) {
+  font-style: normal;
 }
 
 /* Pressed state */

@@ -74,6 +74,33 @@
   flex: 1;
 }
 
+/* Opt-out of italic style in these locales. See bug 1023702 */
+[role="dialog"][data-type="edit"] > menu button:lang(ar),
+[role="dialog"][data-type="edit"] > menu button:lang(as),
+[role="dialog"][data-type="edit"] > menu button:lang(bn),
+[role="dialog"][data-type="edit"] > menu button:lang(fa),
+[role="dialog"][data-type="edit"] > menu button:lang(gu),
+[role="dialog"][data-type="edit"] > menu button:lang(he),
+[role="dialog"][data-type="edit"] > menu button:lang(hi),
+[role="dialog"][data-type="edit"] > menu button:lang(ja),
+[role="dialog"][data-type="edit"] > menu button:lang(km),
+[role="dialog"][data-type="edit"] > menu button:lang(kn),
+[role="dialog"][data-type="edit"] > menu button:lang(ko),
+[role="dialog"][data-type="edit"] > menu button:lang(mai),
+[role="dialog"][data-type="edit"] > menu button:lang(ml),
+[role="dialog"][data-type="edit"] > menu button:lang(mr),
+[role="dialog"][data-type="edit"] > menu button:lang(ne),
+[role="dialog"][data-type="edit"] > menu button:lang(or),
+[role="dialog"][data-type="edit"] > menu button:lang(pa),
+[role="dialog"][data-type="edit"] > menu button:lang(si),
+[role="dialog"][data-type="edit"] > menu button:lang(ta),
+[role="dialog"][data-type="edit"] > menu button:lang(te),
+[role="dialog"][data-type="edit"] > menu button:lang(th),
+[role="dialog"][data-type="edit"] > menu button:lang(ur),
+[role="dialog"][data-type="edit"] > menu button:lang(zh) {
+  font-style: normal;
+}
+
 /* Press (default & recommend) */
 [role="dialog"][data-type="edit"] > menu button:not(:disabled):active {
   background: #b2f2ff;
