@@ -170,10 +170,7 @@ var CallsHandler = (function callsHandler() {
     CallScreen.insertCall(hc.node);
 
     if (call.state === 'incoming') {
-      // This is the initial incoming call, need to ring !
-      if (handledCalls.length === 1) {
-        handleFirstIncoming(call);
-      }
+      turnScreenOn(call);
     }
 
     if (handledCalls.length > 1) {
@@ -232,7 +229,7 @@ var CallsHandler = (function callsHandler() {
     }
   }
 
-  function handleFirstIncoming(call) {
+  function turnScreenOn(call) {
     screenLock = navigator.requestWakeLock('screen');
 
     call.addEventListener('statechange', function callStateChange() {
