@@ -107,13 +107,8 @@ SettingsAppBuilder.prototype.writeGitCommit = function(options) {
       },
       done: function(data) {
         if (data.exitCode !== 0) {
-          var errStr = 'Error writing git commit file!\n' + 'stderr: \n' +
-            stderr + '\nstdout: ' + stdout;
-          utils.log('settings-app-build', errStr);
-          throw new Error(errStr); // FIXME: this is currently ignored
+          throw new Error('stderr: \n' + stderr + '\nstdout: ' + stdout);
         } else {
-          utils.log('settings-app-build', 'Writing git commit information ' +
-            'to: ' + commitFile.path);
           utils.writeContent(commitFile, stdout);
         }
       }
