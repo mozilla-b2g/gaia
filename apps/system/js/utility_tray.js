@@ -42,9 +42,6 @@ var UtilityTray = {
 
     this.overlay.addEventListener('transitionend', this);
 
-    if (window.navigator.mozMobileConnections) {
-      LazyLoader.load('js/cost_control.js');
-    }
   },
 
   startY: undefined,
