@@ -393,24 +393,19 @@ var AttentionScreen = {
     this.mainScreen.classList.add('active-statusbar');
 
     var attentionScreen = this.attentionScreen;
-    attentionScreen.addEventListener('transitionend', function trWait() {
-      attentionScreen.removeEventListener('transitionend', trWait);
+    var safetyTimeout = null;
+    var finish = (function() {
+      clearTimeout(safetyTimeout);
+      attentionScreen.removeEventListener('transitionend', finish);
 
-      // transition completed, entering "status-mode" (40px height iframe)
+      // transition completed, entering "status-mode" and informing
+      // the rest of the system
       attentionScreen.classList.add('status-mode');
-    });
+      this.dispatchEvent('status-active');
+    }).bind(this);
 
-    // The only way to hide attention screen is the home/holdhome event.
-    // So we don't fire any origin information here.
-    // The expected behavior is restore homescreen visibility to 'true'
-    // in the Window Manager.
-    // Make sure the status-active event is sent after the 'home' event has
-    // dispatched. Otherwise we can end up in a race where the 'foreground'
-    // application perceived by the screen manager is not the homescreen, but
-    // the last visible app since events dispatching are synchronous.
-    setTimeout(function(self) {
-      self.dispatchEvent('status-active');
-    }, 0, this);
+    attentionScreen.addEventListener('transitionend', finish);
+    safetyTimeout = setTimeout(finish, 500);
   },
 
   // If the lock request fails, request again later.

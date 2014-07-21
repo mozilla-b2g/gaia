@@ -1,5 +1,5 @@
 'use strict';
-/* global Rocketbar, AttentionScreen */
+/* global Rocketbar */
 
 (function(exports) {
 
@@ -52,6 +52,7 @@
     window.addEventListener('searchterminated', this);
     window.addEventListener('permissiondialoghide', this);
     window.addEventListener('attentionscreenshow', this);
+    window.addEventListener('status-inactive', this);
 
     // Listen for events from Rocketbar
     this.input.addEventListener('focus', this);
@@ -80,6 +81,7 @@
       case 'appforeground':
       case 'appopened':
       case 'attentionscreenshow':
+      case 'status-inactive':
         this.rocketbar.classList.remove('expanded');
         this.screen.classList.remove('rocketbar-expanded');
         this.exitHome();
@@ -120,11 +122,7 @@
         this.handleSubmit(e);
         break;
       case 'iac-search-results':
-        if (AttentionScreen.isVisible()) {
-          AttentionScreen.maximize();
-        } else {
-          this.handleSearchMessage(e);
-        }
+        this.handleSearchMessage(e);
         break;
       case 'permissiondialoghide':
         if (this.active) {
@@ -136,8 +134,10 @@
 
   // Preventing the RocketBar implementation from triggering a background
   // scale change before getting stuck because of the lack of transitionend.
-  HomeSearchbar.prototype.enterHome = function() {
-  };
+  HomeSearchbar.prototype.enterHome = function() {};
+
+  // Prevent the rocketbar input from being manually shown
+  HomeSearchbar.prototype.show = function() { };
 
   exports.HomeSearchbar = HomeSearchbar;
 

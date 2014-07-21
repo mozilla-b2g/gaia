@@ -88,38 +88,16 @@ SettingsAppBuilder.prototype.writeGitCommit = function(options) {
 
   commitFile.append('gaia_commit.txt');
   if (overrideCommitFile.exists()) {
-    utils.copyFileTo(overrideCommitFile, commitFile.parent.path,
-      commitFile.leafName, true);
+    if (commitFile.exists()) {
+      commitFile.remove(false);
+    }
+    overrideCommitFile.copyTo(commitFile.parent, commitFile.leafName);
   } else if(gitDir.exists()) {
-    var git = new utils.Commander('git');
-    var stderr, stdout;
-    var args = [
-      '--git-dir=' + gitDir.path,
-      'log', '-1',
-      '--format=%H%n%ct',
-      'HEAD'];
-    var cmdOptions = {
-      stdout: function(data) {
-        stdout = data;
-      },
-      stderr: function(data) {
-        stderr = data;
-      },
-      done: function(data) {
-        if (data.exitCode !== 0) {
-          var errStr = 'Error writing git commit file!\n' + 'stderr: \n' +
-            stderr + '\nstdout: ' + stdout;
-          utils.log('settings-app-build', errStr);
-          throw new Error(errStr); // FIXME: this is currently ignored
-        } else {
-          utils.log('settings-app-build', 'Writing git commit information ' +
-            'to: ' + commitFile.path);
-          utils.writeContent(commitFile, stdout);
-        }
-      }
-    };
-    git.initPath(utils.getEnvPath());
-    git.runWithSubprocess(args, cmdOptions);
+    var sh = new utils.Commander('sh');
+    sh.initPath(utils.getEnvPath());
+
+    sh.run(['-c', 'git --git-dir=' + gitDir.path + ' log -1 ' +
+      '--format="%H%n%ct" HEAD > ' + commitFile.path]);
   } else {
     utils.writeContent(commitFile,
       'Unknown Git commit; build date shown here.\n' +

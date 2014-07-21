@@ -93,6 +93,7 @@ var Settings = {
       return;
     }
 
+    this.SettingsUtils = options.SettingsUtils;
     this.SettingsService = options.SettingsService;
     this.PageTransitions = options.PageTransitions;
     this.ScreenLayout = options.ScreenLayout;

@@ -20,7 +20,11 @@
     'shared/settings_listener': 'empty:',
     'utils': 'empty:',
     'shared/settings_url': 'empty:',
-    'shared/omadrm/fl': 'empty:'
+    'shared/omadrm/fl': 'empty:',
+    'shared/device_storage/enumerate_all': 'empty:',
+    'shared/wifi_helper': 'empty:',
+    'modules/wifi_utils': 'empty:',
+    'modules/wifi_context': 'empty:'
   },
 
   findNestedDependencies: true,

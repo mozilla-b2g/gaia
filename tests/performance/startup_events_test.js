@@ -12,6 +12,7 @@ var whitelistedApps = [
   'camera',
   'calendar',
   'clock',
+  'costcontrol',
   'communications/contacts',
   'communications/dialer',
   'email',
@@ -27,6 +28,7 @@ var whitelistedUnifiedApps = [
   'camera',
   'calendar',
   'clock',
+  'costcontrol',
   'communications/dialer',
   'communications/contacts',
   'email',
@@ -34,6 +36,7 @@ var whitelistedUnifiedApps = [
   'gallery',
   'marketplace.firefox.com',
   'settings',
+  'sms',
   'video'
 ];
 

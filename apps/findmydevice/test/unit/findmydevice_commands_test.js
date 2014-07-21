@@ -3,6 +3,7 @@
 /* global MockSettingsListener */
 /* global MockGeolocation */
 /* global Commands */
+/* global FindMyDevice */
 
 'use strict';
 
@@ -44,11 +45,9 @@ suite('FindMyDevice >', function() {
 
     realMozPower = navigator.mozPower;
     navigator.mozPower = {
-      factoryResetCalled: false,
-      factoryReset: function() {
-        this.factoryResetCalled = true;
-      }
+      factoryReset:function(reason) {}
     };
+    sinon.stub(navigator.mozPower, 'factoryReset');
 
     realMozApps = navigator.mozApps;
     navigator.mozApps = {
@@ -72,6 +71,11 @@ suite('FindMyDevice >', function() {
 
     fakeClock = this.sinon.useFakeTimers();
 
+    window.FindMyDevice = {
+      beginHighPriority: this.sinon.stub(),
+      endHighPriority: this.sinon.stub()
+    };
+
     require('/js/commands.js', function() {
       subject = Commands;
       done();
@@ -83,6 +87,8 @@ suite('FindMyDevice >', function() {
 
     subject.invokeCommand('lock', [message, code, function(retval) {
       assert.equal(retval, true);
+    sinon.assert.calledWith(FindMyDevice.beginHighPriority, 'command');
+    sinon.assert.calledWith(FindMyDevice.endHighPriority, 'command');
 
       var lock = MockSettingsListener.getSettingsLock().locks.pop();
       assert.deepEqual({
@@ -115,9 +121,11 @@ suite('FindMyDevice >', function() {
       assert.equal(lock['audio.volume.content'], 15, 'volume set to maximum');
       assert.equal(ringer.paused, false, 'must be playing');
       assert.equal(ringer.src, ringtone, 'must use ringtone');
+      sinon.assert.calledWith(FindMyDevice.beginHighPriority, 'command');
 
       setTimeout(function() {
         assert.equal(ringer.paused, true, 'must have stopped');
+        sinon.assert.calledWith(FindMyDevice.endHighPriority, 'command');
         done();
       }, duration * 1000);
 
@@ -127,59 +135,19 @@ suite('FindMyDevice >', function() {
     fakeClock.tick();
   });
 
-  /* TODO re-enable erase tests after fixing the mock: bug 1032617
-  test('Erase command', function(done) {
-    // Meta-mock the mock getDeviceStorage so it returns null
-    // for some storage types
-    var mockGetDeviceStorage = navigator.getDeviceStorage;
-    navigator.getDeviceStorage = function(storage) {
-      if (storage === 'apps' || storage == 'sdcard') {
-        return null;
-      }
-
-      return mockGetDeviceStorage(storage);
-    };
-
+  test('Erase: ensure factoryReset is called with "wipe"', function(done) {
     subject.invokeCommand('erase', [function(retval, error) {
-      var instances = MockDeviceStorage.instances;
-      for (var i = 0; i < instances.length; i++) {
-        // check that we deleted everything on the device storage
-        assert.deepEqual(instances[i].entries, []);
-      }
-
-      assert.equal(navigator.mozPower.factoryResetCalled, true);
-      navigator.getDeviceStorage = mockGetDeviceStorage;
+      assert.equal(navigator.mozPower.factoryReset.calledWith('wipe'), true);
       done();
     }]);
-
-    fakeClock.tick();
   });
-
-  test('Erase command with no device storages', function(done) {
-    // Meta-mock the mock getDeviceStorage so it returns null
-    // for all storage types. We must still factory reset in this case.
-    var mockGetDeviceStorage = navigator.getDeviceStorage;
-    navigator.getDeviceStorage = function(storage) {
-      return null;
-    };
-
-    subject.invokeCommand('erase', [function(retval, error) {
-      assert.deepEqual(MockDeviceStorage.instances, []);
-      assert.equal(navigator.mozPower.factoryResetCalled, true);
-      navigator.getDeviceStorage = mockGetDeviceStorage;
-      done();
-    }]);
-
-    fakeClock.tick();
-  });
-  */
 
   test('Track command', function(done) {
     // we want to make sure this is set to 'allow'
     MockPermissionSettings.permissions.geolocation = 'deny';
 
     var times = 0;
-    var duration = (3 * subject.TRACK_UPDATE_INTERVAL_MS)/ 1000;
+    var duration = (5 * subject.TRACK_UPDATE_INTERVAL_MS) / 1000;
     subject.invokeCommand('track', [duration, function(retval, position) {
       assert.equal(retval, true);
       assert.equal(MockPermissionSettings.permissions.geolocation, 'allow');
@@ -192,12 +160,14 @@ suite('FindMyDevice >', function() {
         assert.equal(retval, true);
         assert.equal(subject._trackTimeoutId, null);
         assert.equal(subject._trackIntervalId, null);
+        sinon.assert.calledWith(FindMyDevice.endHighPriority, 'command');
         done();
       }
 
       fakeClock.tick(subject.TRACK_UPDATE_INTERVAL_MS);
     }]);
 
+    sinon.assert.calledWith(FindMyDevice.beginHighPriority, 'command');
     fakeClock.tick(subject.TRACK_UPDATE_INTERVAL_MS);
   });
 
@@ -212,12 +182,12 @@ suite('FindMyDevice >', function() {
 
       fakeClock.tick(subject.TRACK_UPDATE_INTERVAL_MS);
 
-      duration = (subject.TRACK_UPDATE_INTERVAL_MS - 1000)/ 1000;
+      duration = 2 * subject.TRACK_UPDATE_INTERVAL_MS / 1000;
       subject.invokeCommand('track', [duration, function(retval, position) {
         positions++;
       }]);
 
-      fakeClock.tick(2 * subject.TRACK_UPDATE_INTERVAL_MS);
+      fakeClock.tick(5 * subject.TRACK_UPDATE_INTERVAL_MS);
 
       assert.equal(positions, 2);
       assert.equal(subject._trackTimeoutId, null);
@@ -288,11 +258,16 @@ suite('FindMyDevice >', function() {
     MockPermissionSettings.mTeardown();
     navigator.mozPermissionSettings = realPermissionSettings;
 
+    // clean up sinon.js stubs
+    navigator.mozPower.factoryReset.restore();
+
     navigator.mozPower = realMozPower;
     navigator.mozApps = realMozApps;
 
     delete window.DUMP;
 
     fakeClock.restore();
+
+    delete window.FindMyDevice;
   });
 });

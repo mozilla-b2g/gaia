@@ -29,7 +29,7 @@ marionette('Rocketbar', function() {
     search.removeGeolocationPermission();
   });
 
-  test('Focus', function() {
+  test.skip('Focus', function() {
     rocketbar.waitForLoad();
     var screen = rocketbar.screen;
     // Check that focussed Rocketbar is in the focused state
@@ -69,7 +69,7 @@ marionette('Rocketbar', function() {
     });
   });
 
-  test('Cancel Rocketbar', function() {
+  test.skip('Cancel Rocketbar', function() {
     rocketbar.waitForLoad();
 
     // Check that cancel button appears

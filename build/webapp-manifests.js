@@ -123,11 +123,17 @@ ManifestBuilder.prototype.checkOrigin = function(origin) {
 
 ManifestBuilder.prototype.fillAppManifest = function(webapp) {
   var url = webapp.url;
+
+  var installOrigin = url;
+  if (webapp.metadata && webapp.metadata.installOrigin) {
+    installOrigin = webapp.metadata.installOrigin;
+  }
+
   this.stageManifests[webapp.sourceDirectoryName] = {
     originalManifest: webapp.manifest,
     origin: url,
     manifestURL: url + '/manifest.webapp',
-    installOrigin: url,
+    installOrigin: installOrigin,
     receipt: null,
     installTime: this.INSTALL_TIME,
     updateTime: this.UPDATE_TIME,

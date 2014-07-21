@@ -41,6 +41,25 @@ var FindMyDevice = {
 
   _disableAttempt: false,
 
+  // There are two situations in which we want to make sure
+  // FMD is alive:
+  // - when it is running client logic that accesses the network;
+  // - when it is executing a command with a duration.
+  // Command wakelocks are managed by individual commands.
+  // For client logic wakelocks, we use the fact that when a network
+  // request succeeds, we'll either update 'findmydevice.registered',
+  // or 'findmydevice.can-disable', or process a command and set
+  // a 'ping' timer, and when it fails, we'll set a timer to retry.
+  // Since each network transaction finishes with either a change
+  // in one of these settings or with a timer, we release the locks
+  // in the observers for the settings and in _scheduleAlarm.
+  _highPriorityWakeLocks: {
+    clientLogic: [],
+    command: []
+  },
+
+  _fxaReady: false,
+
   init: function fmd_init() {
     var self = this;
 
@@ -81,6 +100,8 @@ var FindMyDevice = {
     this._loadState(function() {
       self._initSettings(self._initMessageHandlers.bind(self));
     });
+
+    this._fxaReady = true;
   },
 
   _loadState: function fmd_load_state(callback) {
@@ -130,6 +151,7 @@ var FindMyDevice = {
 
     navigator.mozSetMessageHandler('push-register', (function(message) {
       DUMP('findmydevice lost push endpoint, re-registering');
+      this.beginHighPriority('clientLogic');
       this._registeredHelper.set(false);
     }).bind(this));
 
@@ -151,13 +173,16 @@ var FindMyDevice = {
             this._contactServerIfEnabled();
           } else if (reason === IAC_API_WAKEUP_REASON_STALE_REGISTRATION) {
             DUMP('stale registration, re-registering');
+            this.beginHighPriority('clientLogic');
             this._registeredHelper.set(false);
           } else if (reason === IAC_API_WAKEUP_REASON_LOGIN) {
             DUMP('new login, invalidating client id');
+            this.beginHighPriority('clientLogic');
             this._loggedIn = true;
             this._currentClientIDHelper.set('');
           } else if (reason === IAC_API_WAKEUP_REASON_LOGOUT) {
             DUMP('logout, invalidating client id');
+            this.beginHighPriority('clientLogic');
             this._loggedIn = false;
             this._currentClientIDHelper.set('');
           } else if (reason === IAC_API_WAKEUP_REASON_TRY_DISABLE) {
@@ -183,6 +208,7 @@ var FindMyDevice = {
       return;
     }
 
+    this.beginHighPriority('clientLogic');
     if (this._registered) {
       this._replyAndFetchCommands();
     } else {
@@ -311,6 +337,13 @@ var FindMyDevice = {
   _onFxAError: function fmd_on_error(error) {
     DUMP('FxA error: ' + error);
 
+    if (!this._fxaReady) {
+      // FIXME(ggp) workaround for bug 1040935, if FxA errors out
+      // while we are initializing (usually due to an unverified
+      // account), just give up for now.
+      window.close();
+    }
+
     if (this._refreshingClientID) {
       this._cancelClientIDRefresh();
     }
@@ -329,6 +362,9 @@ var FindMyDevice = {
     // properly.
     this._enabledHelper.set(this._enabled);
     this._currentClientIDHelper.set(this._currentClientID);
+
+    // XXX(ggp) no need to unlock the 'currentClient' lock here, let
+    // _onClientIDChanged do it for us
   },
 
   _scheduleAlarm: function fmd_schedule_alarm(mode) {
@@ -348,6 +384,7 @@ var FindMyDevice = {
       return;
     }
 
+    var self = this;
     var request = navigator.mozAlarms.getAll();
     request.onsuccess = function fmd_alarms_get_all() {
       this.result.forEach(function(alarm) {
@@ -355,7 +392,10 @@ var FindMyDevice = {
       });
 
       var data = {type: 'findmydevice-alarm'};
-      navigator.mozAlarms.add(nextAlarm, 'honorTimezone', data);
+      var request = navigator.mozAlarms.add(nextAlarm, 'honorTimezone', data);
+      request.onsuccess = function() {
+        self.endHighPriority('clientLogic');
+      };
     };
   },
 
@@ -376,10 +416,14 @@ var FindMyDevice = {
 
     if (!this._registered) {
       this._contactServerIfEnabled();
+      this.endHighPriority('clientLogic');
     } else {
       this._loadState((function() {
         this._contactServerIfEnabled();
         this._currentClientIDHelper.set(this._state.clientid);
+        // XXX(ggp) since every re-registration causes a change in the
+        // client id, we don't need to release the 'clientLogic' lock
+        // here, let _onCanDisableChanged do it
       }).bind(this));
     }
   },
@@ -398,6 +442,7 @@ var FindMyDevice = {
 
     if (this._loggedIn && this._currentClientID === '') {
       this._refreshClientIDIfRegistered(false);
+      this.endHighPriority('clientLogic');
     } else {
       this._canDisableHelper.set(
         this._loggedIn &&
@@ -411,6 +456,7 @@ var FindMyDevice = {
     }
 
     this._disableAttempt = false;
+    this.endHighPriority('clientLogic');
   },
 
   _refreshClientIDIfRegistered: function fmd_refresh_client_id(forceReauth) {
@@ -423,6 +469,7 @@ var FindMyDevice = {
 
     DUMP('requesting assertion to refresh client id, forceReauth: ' +
          forceReauth);
+    this.beginHighPriority('clientLogic');
 
     this._refreshingClientID = true;
     var mozIdRequestOptions = {};
@@ -536,6 +583,30 @@ var FindMyDevice = {
 
     this._reply[cmd] = value;
     this._contactServerIfEnabled();
+  },
+
+  beginHighPriority: function(reason) {
+    DUMP('begin high priority section, reason: ', reason);
+    if (Object.keys(this._highPriorityWakeLocks).indexOf(reason) === -1) {
+      DUMP('unknown reason for high priority section?!');
+      return;
+    }
+
+    DUMP('acquiring one wakelock, wakelocks are: ',
+      this._highPriorityWakeLocks);
+    this._highPriorityWakeLocks[reason].push(
+      navigator.requestWakeLock('high-priority'));
+  },
+
+  endHighPriority: function(reason) {
+    DUMP('end high priority section, reason: ', reason);
+    if (!this._highPriorityWakeLocks[reason]) {
+      return;
+    }
+
+    DUMP('releasing one wakelock, wakelocks are: ',
+      this._highPriorityWakeLocks);
+    this._highPriorityWakeLocks[reason].pop().unlock();
   }
 };
 

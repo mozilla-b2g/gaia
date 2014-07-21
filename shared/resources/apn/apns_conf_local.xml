@@ -161,4 +161,17 @@
       authtype="1"
       type="dun"
   />
+
+  <!-- overwrite APNs until they get updated in the upstream database -->
+
+  <apn carrier="ATT Phone"
+      overwrite="true"
+      mcc="310"
+      mnc="410"
+      apn="phone"
+      type="default,mms,supl,fota"
+      mmsc="http://mmsc.mobile.att.net"
+      mmsproxy="proxy.mobile.att.net"
+      mmsport="80"
+  />
 </apns>

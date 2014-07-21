@@ -1,4 +1,4 @@
-/* global _, debug, ConfigManager, Toolkit, SimManager  */
+/* global _, debug, ConfigManager, Toolkit, SimManager */
 /* exported addAlarmTimeout, setNextReset, addNetworkUsageAlarm,
             getTopUpTimeout, Common, sendBalanceThresholdNotification
 */
@@ -72,6 +72,28 @@ var Common = {
         window.removeEventListener('message', handler);
 
         iframe.classList.remove('non-ready');
+
+        // PERFORMANCE EVENTS
+        // Designates that the app's *core* chrome or navigation interface
+        // exists in the DOM and is marked as ready to be displayed.
+        window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
+
+        // Designates that the app's *core* chrome or navigation interface
+        // has its events bound and is ready for user interaction.
+        window.dispatchEvent(new CustomEvent('moz-chrome-interactive'));
+
+        // Designates that the app is visually loaded (e.g.: all of the
+        // "above-the-fold" content exists in the DOM and is marked as
+        // ready to be displayed).
+        window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
+
+        // Designates that the app has its events bound for the minimum
+        // set of functionality to allow the user to interact with the
+        // "above-the-fold" content.
+        window.dispatchEvent(new CustomEvent('moz-content-interactive'));
+
+        // Start up ended when FTE ready
+        window.dispatchEvent(new CustomEvent('moz-app-loaded'));
       }
     });
 
@@ -218,7 +240,7 @@ var Common = {
         }
       });
     }
-      // Set last Reset
+    // Set last Reset
     if (mode === 'all') {
       ConfigManager.setOption({ lastCompleteDataReset: new Date() });
     } else {

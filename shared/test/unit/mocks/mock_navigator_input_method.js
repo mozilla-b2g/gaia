@@ -160,6 +160,7 @@
 
   MockInputMethodManager.prototype.supportSwitching = false;
 
+  exports.MockInputMethodManager = MockInputMethodManager;
   exports.MockInputMethod = MockInputMethod;
   exports.MockInputContext = MockInputContext;
 }(window));

@@ -14,12 +14,8 @@
   direction: ltr;
 }
 
-#rocketbar.expanded {
+#rocketbar.active {
   transform: scale(1);
-}
-
-body.rb-enabled #screen:not(.cards-view) #rocketbar:not(.active) {
-  transform: scale(1) translateY(2.4rem);  
 }
 
 #screen.locked:not(.attention) #rocketbar {
@@ -108,7 +104,7 @@ body:not(.rb-enabled) #rocketbar {
   display: none;
 }
 
-#rocketbar.hasText #rocketbar-clear {
+#rocketbar.has-text #rocketbar-clear {
   display: block;
 }
 
@@ -231,6 +227,9 @@ body.homesearch-enabled #rocketbar-input {
 /* Expand the rocketbar when it's active */
 body.homesearch-enabled #screen #rocketbar.active {
   transform: scale(1) translateY(2.4rem);
+}
+body.homesearch-enabled #screen.active-statusbar #rocketbar.active {
+  transform: scale(1) translateY(4.0rem);
 }
 
 /* Do not expand the statusbar background on homescreen. We have our own markup in the homescreen. */

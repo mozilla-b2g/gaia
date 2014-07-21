@@ -549,13 +549,3 @@
 #screen.locked #windows .appWindow.active iframe {
   transition-property: none;
 }
-
-#screen.rocketbar-expanded #windows > .appWindow:not(.fullscreen-app).active iframe {
-  transform: translateY(2.4rem);
-}
-
-#screen.locked.rocketbar-expanded .appWindow.active iframe,
-#screen.rocketbar-expanded .appWindow.active iframe {
-  transform: none;
-}
-

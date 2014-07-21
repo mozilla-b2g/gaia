@@ -768,6 +768,30 @@ suite('Build Integration tests', function() {
     );
   });
 
+  test('make app with custom origin', function(done) {
+    // add custom-origin app to apps list
+    var appsListPath  = path.join('build', 'config', 'phone',
+      'apps-engineering.list');
+    fs.renameSync(appsListPath, appsListPath + '.bak');
+    fs.writeFileSync(appsListPath, 'apps/*\ndev_apps/custom-origin\n');
+
+    helper.exec('DEBUG=1 make', function(error, stdout, stderr) {
+      fs.unlinkSync(appsListPath);
+      fs.renameSync(appsListPath + '.bak', appsListPath);
+
+      helper.checkError(error, stdout, stderr);
+
+      var webappsPath = path.join(process.cwd(), 'profile-debug',
+        'webapps', 'webapps.json');
+      var webapps = JSON.parse(fs.readFileSync(webappsPath));
+
+      assert.isNotNull(webapps['test.mozilla.com']);
+      assert.equal(webapps['test.mozilla.com'].origin, 'app://test.mozilla.com');
+
+      done();
+    });
+  });
+
   suite('Build file inclusion tests', function() {
     test('build includes elements folder and sim_picker', function(done) {
       helper.exec('make', function(error, stdout, stderr) {
@@ -787,7 +811,7 @@ suite('Build Integration tests', function() {
       helper.exec('GAIA_CONCAT_LOCALES=0 make', function(error, stdout, stderr) {
         helper.checkError(error, stdout, stderr);
         var zipPath = path.join(process.cwd(), 'profile', 'webapps',
-          'settings.gaiamobile.org', 'application.zip');
+          'system.gaiamobile.org', 'application.zip');
         var zip = new AdmZip(zipPath);
         var qpsPlocPathInZip = 'locales-obj/qps-ploc.json';
         assert.isNull(zip.getEntry(qpsPlocPathInZip),
@@ -804,21 +828,12 @@ suite('Build Integration tests', function() {
         var zipPath = path.join(process.cwd(), 'profile', 'webapps',
           'system.gaiamobile.org', 'application.zip');
         var zip = new AdmZip(zipPath);
-        var enUSFileInZip = zip.getEntry('locales-obj/en-US.json');
         var qpsPlocPathInZip = 'locales-obj/qps-ploc.json';
+        assert.isNull(zip.getEntry(qpsPlocPathInZip),
+          'accented English file ' + qpsPlocPathInZip + ' should not exist');
         var qpsPlocmPathInZip = 'locales-obj/qps-plocm.json';
-        var qpsPlocFileInZip = zip.getEntry(qpsPlocPathInZip);
-        var qpsPlocmFileInZip = zip.getEntry(qpsPlocmPathInZip);
-        assert.isNotNull(qpsPlocFileInZip,
-          'accented English file ' + qpsPlocPathInZip + ' should exist');
-        assert.notDeepEqual(JSON.parse(zip.readAsText(qpsPlocFileInZip)),
-                            JSON.parse(zip.readAsText(enUSFileInZip)),
-          'accented English file should not be identical to regular English');
-        assert.isNotNull(qpsPlocmFileInZip,
-          'mirrored English file ' + qpsPlocmPathInZip + ' should exist');
-        assert.notDeepEqual(JSON.parse(zip.readAsText(qpsPlocmFileInZip)),
-                            JSON.parse(zip.readAsText(enUSFileInZip)),
-          'mirrored English file should not be identical to regular English');
+        assert.isNull(zip.getEntry(qpsPlocmPathInZip),
+          'mirrored English file ' + qpsPlocmPathInZip + ' should not exist');
         done();
       });
     });

@@ -293,8 +293,7 @@ apps/settings/js/telephony_items_handler.js
 apps/settings/js/telephony_settings.js
 apps/settings/js/try_show_homescreen_section.js
 apps/settings/js/utils.js
-apps/settings/js/wifi.js
-apps/settings/js/wifi_select_certificate_file.js
+apps/settings/js/wallpaper.js
 apps/settings/test/marionette/app/regions/feedback.js
 apps/settings/test/marionette/app/regions/improve.js
 apps/settings/test/marionette/tests/improve_settings_test.js
@@ -306,7 +305,6 @@ apps/settings/test/unit/download_ui_test.js
 apps/settings/test/unit/downloads_list_test.js
 apps/settings/test/unit/hotspot_test.js
 apps/settings/test/unit/mock_navigator_settings.js
-apps/settings/test/unit/mock_settings.js
 apps/settings/test/unit/mock_template.js
 apps/settings/test/unit/sim_settings_helper_test.js
 apps/settings/test/unit/simcard_lock_test.js

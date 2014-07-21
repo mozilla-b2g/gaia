@@ -106,22 +106,23 @@ const IMERender = (function() {
     inputMethodName = name;
   };
 
-  // Accepts three values: true / 'locked' / false
-  //   Use 'locked' when caps are locked
-  //   Use true when uppercase is enabled
-  //   Use false when uppercase if disabled
+  // Accepts a state object with two properties.
+  //   Set isUpperCaseLocked to true if locked
+  //   Set isUpperCase to true when uppercase is enabled
+  //   Use false on both of these properties when uppercase is disabled
   var setUpperCaseLock = function kr_setUpperCaseLock(state) {
     var capsLockKey = activeIme.querySelector(
-      'button[data-keycode="' + KeyboardEvent.DOM_VK_CAPS_LOCK + '"]'
+      'button:not([disabled])' +
+      '[data-keycode="' + KeyboardEvent.DOM_VK_CAPS_LOCK + '"]'
     );
 
     if (!capsLockKey)
       return;
 
-    if (state === 'locked') {
+    if (state.isUpperCaseLocked) {
       capsLockKey.classList.remove('kbr-key-active');
       capsLockKey.classList.add('kbr-key-hold');
-    } else if (state) {
+    } else if (state.isUpperCase) {
       capsLockKey.classList.add('kbr-key-active');
       capsLockKey.classList.remove('kbr-key-hold');
     } else {
@@ -328,7 +329,7 @@ const IMERender = (function() {
       container.insertBefore(
         candidatePanelToggleButtonCode(), container.firstChild);
       container.insertBefore(candidatePanelCode(), container.firstChild);
-      showCandidates([], true);
+      showCandidates([]);
 
       container.classList.add('candidate-panel');
     } else {
@@ -354,12 +355,14 @@ const IMERender = (function() {
     key.classList.remove('lowercase');
   };
 
-  var toggleCandidatePanel = function(expand, resetScroll) {
+  var toggleCandidatePanel = function(expand) {
     var candidatePanel = activeIme.querySelector('.keyboard-candidate-panel');
-    if (resetScroll) {
-      candidatePanel.scrollTop = candidatePanel.scrollLeft = 0;
-    }
+    candidatePanel.scrollTop = candidatePanel.scrollLeft = 0;
 
+    toggleCandidatePanelWithoutResetScroll(expand);
+  };
+
+  var toggleCandidatePanelWithoutResetScroll = function(expand) {
     if (expand) {
       ime.classList.remove('candidate-panel');
       ime.classList.add('full-candidate-panel');
@@ -375,7 +378,7 @@ const IMERender = (function() {
 
   // Show candidates
   // Each candidate is a string or an array of two strings
-  var showCandidates = function(candidates, noWindowHeightUpdate) {
+  var showCandidates = function(candidates) {
     if (!activeIme)
       return;
 
@@ -492,7 +495,7 @@ const IMERender = (function() {
         candidatePanel.innerHTML = '';
 
         candidatePanelToggleButton.style.display = 'none';
-        toggleCandidatePanel(false, false);
+        toggleCandidatePanelWithoutResetScroll(false);
         docFragment = candidatesFragmentCode(1, candidates, true);
         candidatePanel.appendChild(docFragment);
       }

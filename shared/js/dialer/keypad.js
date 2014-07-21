@@ -229,13 +229,13 @@ var KeypadManager = {
     var channel = this._onCall ? 'telephony' : 'normal';
     window.addEventListener('visibilitychange', (function() {
       var telephony = navigator.mozTelephony;
-      var callIsActive = telephony.calls.length > 0 ||
-            telephony.conferenceGroup;
+      var callIsActive = telephony.calls.length ||
+            telephony.conferenceGroup.calls.length;
 
       if (TonePlayer) {
         // If app is hidden and we are not in the middle of a call, then switch
         // to normal channel, no matter what channel this app should use
-        if (document.mozHidden && !callIsActive) {
+        if (document.hidden && !callIsActive) {
           TonePlayer.setChannel('normal');
         } else {
           // Otherwise switch to the channel this app is supposed to use

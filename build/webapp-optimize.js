@@ -58,10 +58,7 @@ HTMLOptimizer.prototype.process = function() {
   var mozL10n = this.win.navigator.mozL10n;
   this.mockWinObj();
 
-  // configure mozL10n.getDictionary to skip the default locale when populating
-  // subDicts
-  this.getDictionary =
-    mozL10n.getDictionary.bind(mozL10n, this.config.GAIA_DEFAULT_LOCALE);
+  this.getDictionary = mozL10n.getDictionary.bind(mozL10n);
 
   var ignore = this.optimizeConfig.L10N_OPTIMIZATION_BLACKLIST;
   // If this HTML document uses l10n.js, pre-localize it --
@@ -146,6 +143,13 @@ HTMLOptimizer.prototype._proceedLocales = function() {
   }
 
   for (var lang in this.fullDict)  {
+    // skip to the next language if the dictionary is null
+    if (!this.fullDict[lang]) {
+      continue;
+    }
+    if (!this.webapp.dictionary[lang]) {
+      this.webapp.dictionary[lang] = {};
+    }
     for (var id in this.fullDict[lang]) {
       this.webapp.dictionary[lang][id] = this.fullDict[lang][id];
     }
@@ -706,14 +710,11 @@ WebappOptimize.prototype.execute = function(config) {
     return;
   }
 
-  var dictionary = {};
-  this.locales.forEach(function(lang) {
-    dictionary[lang] = {};
-  });
-  // We store all locale lang to webapp object and pass it to all HTMLOptimizer
-  // in order to store the content of each html, and then execute
-  // writingDictionaries after all html are processed.
-  this.webapp.dictionary = dictionary;
+  // Locale dictionaries are created when they're needed in HTMLOptimizer's
+  // _proceedLocales.  mozL10n controls which languages to create the
+  // dictionaries for (e.g. pseudolanguages don't have JSON dictionaries
+  // associated with them).
+  this.webapp.dictionary = {};
 
   // remove excluded condition /^(shared|tests?)$/)
   var files = utils.ls(this.webapp.buildDirectoryFile, true,

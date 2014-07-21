@@ -131,11 +131,11 @@ class Keyboard(Base):
 
     @property
     def _is_upper_case(self):
-        return self.marionette.execute_script('return window.wrappedJSObject.isUpperCase;')
+        return self.marionette.execute_script('return window.wrappedJSObject.upperCaseStateManager.isUpperCase;')
 
     @property
     def _is_upper_case_locked(self):
-        return self.marionette.execute_script('return window.wrappedJSObject.isUpperCaseLocked;')
+        return self.marionette.execute_script('return window.wrappedJSObject.upperCaseStateManager.isUpperCaseLocked;')
 
     @property
     def _current_input_type(self):
