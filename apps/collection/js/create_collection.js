@@ -102,78 +102,47 @@
               // but you are still not done,
               // it's time to get the background images
               dataReady.then(function success(collections) {
-                var iconsReady = [];
-                collections.forEach(function doIcon(collection) {
-                  var promise =
-                    Common.getBackground(collection, maxIconSize)
-                    .then(function setBackground(bgObject) {
-                      collection.background = bgObject;
-                      return collection.renderIcon();
-                    }, function noBackground() {
-                      return collection.renderIcon();
-                    });
-
-                  iconsReady.push(promise);
-                });
-
-                Promise.all(iconsReady).then(function then() {
-                  // Save the collections
-                  function saveAll(collections) {
-                    var trxs = collections.map(collection => {
-                      return collection.save('add');
-                    });
-                    return trxs;
+                var allCollectionIds = [];
+                function processCollection() {
+                  if (!collections.length) {
+                    postResultIds(allCollectionIds);
+                    return;
                   }
 
-                  // XXX: We currently need to save before we populate info.
-                  Promise.all(saveAll(collections))
-                  .then(populateNativeInfo.bind(null, collections))
-                  .then(generateIcons.bind(null, collections))
-                  .then(() => {
-                    return Promise.all(saveAll(collections));
-                  })
-                  .then(postResultIds.bind(null, collections), postResultIds);
-                }).catch(function _catch(ex) {
-                  eme.log('caught exception', ex);
-                  activity.postResult(false);
-                });
+                  var collection = collections.shift();
+                  populateNativeInfo(collection)
+                    .then(generateIcon.bind(null, collection))
+                    .then(collection.save.bind(collection, 'add'))
+                    .then(() => {
+                      allCollectionIds.push(collection.id);
+                      processCollection();
+                    });
+                }
+                processCollection();
               });
 
-              function populateNativeInfo(collections) {
-                var nativeTasks = [];
-                collections.forEach(collection => {
-                  nativeTasks.push(NativeInfo.processCollection(collection));
-                });
-                return Promise.all(nativeTasks);
+              function populateNativeInfo(collection) {
+                return NativeInfo.processCollection(collection);
               }
 
-              function generateIcons(collections) {
-                var iconTasks = [];
-                collections.forEach(collection => {
-                  var promise =
-                    Common.getBackground(collection, maxIconSize)
-                    .then(function setBackground(bgObject) {
-                      collection.background = bgObject;
-                      return collection.renderIcon();
-                    }, function noBackground() {
-                      return collection.renderIcon();
-                    });
-                  iconTasks.push(promise);
-                });
-                return Promise.all(iconTasks);
+              function generateIcon(collection) {
+                return Common.getBackground(collection, maxIconSize)
+                  .then(function setBackground(bgObject) {
+                    collection.background = bgObject;
+                    return collection.renderIcon();
+                  }, function noBackground() {
+                    return collection.renderIcon();
+                  });
               }
 
               /**
                * Return from the activity to the homescreen. Create a list of
                * collection IDs and post it to the homescreen so it knows what
                * collections will be created, and positions them accordingly.
+               * @param {Array} allCollectionIds
                */
-              function postResultIds(collections) {
-                collections = collections || [];
-                // Generate an array of collection IDs.
-                var ids = collections.map(c => c.id);
-
-                activity.postResult(ids);
+              function postResultIds(allCollectionIds) {
+                activity.postResult(allCollectionIds);
               }
             },
             function cancel(reason) {
