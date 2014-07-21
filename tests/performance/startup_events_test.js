@@ -33,6 +33,7 @@ var whitelistedUnifiedApps = [
   'fm',
   'gallery',
   'settings',
+  'sms',
   'video'
 ];
 
