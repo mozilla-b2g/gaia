@@ -22,6 +22,8 @@ var ActiveTargetsManager = function(app) {
   this.alternativesCharMenuManager = null;
 
   this.longPressTimer = undefined;
+
+  this.doubleTapTimers = null;
 };
 
 ActiveTargetsManager.prototype.ontargetactivated = null;
@@ -30,13 +32,19 @@ ActiveTargetsManager.prototype.ontargetmovedout = null;
 ActiveTargetsManager.prototype.ontargetmovedin = null;
 ActiveTargetsManager.prototype.ontargetcommitted = null;
 ActiveTargetsManager.prototype.ontargetcancelled = null;
+ActiveTargetsManager.prototype.ontargetdoubletapped = null;
 
 // Show accent char menu (if there is one) or do other stuff
 // after LONG_PRESS_TIMEOUT
 ActiveTargetsManager.prototype.LONG_PRESS_TIMEOUT = 700;
 
+// Taps the shift key twice within DOUBLE_TAP_TIMEOUT
+// to lock the keyboard at upper case state.
+ActiveTargetsManager.prototype.DOUBLE_TAP_TIMEOUT = 450;
+
 ActiveTargetsManager.prototype.start = function() {
   this.activeTargets = new Map();
+  this.doubleTapTimers = new WeakMap();
 
   var userPressManager =
     this.userPressManager = new UserPressManager(this.app);
@@ -193,8 +201,25 @@ ActiveTargetsManager.prototype._handlePressEnd = function(press, id) {
   this.alternativesCharMenuManager.hide();
   clearTimeout(this.longPressTimer);
 
-  if (typeof this.ontargetcommitted === 'function') {
-    this.ontargetcommitted(target);
+  // Target should be either committed or doubled tapped here.
+  var timer;
+  if (this.doubleTapTimers.has(target)) {
+    timer = this.doubleTapTimers.get(target);
+    clearTimeout(timer);
+    this.doubleTapTimers.delete(target);
+
+    if (typeof this.ontargetdoubletapped === 'function') {
+      this.ontargetdoubletapped(target);
+    }
+  } else {
+    timer = setTimeout(function() {
+      this.doubleTapTimers.delete(target);
+    }.bind(this), this.DOUBLE_TAP_TIMEOUT);
+    this.doubleTapTimers.set(target, timer);
+
+    if (typeof this.ontargetcommitted === 'function') {
+      this.ontargetcommitted(target);
+    }
   }
 };
 

@@ -41,32 +41,15 @@ var perfTimer = new PerformanceTimer();
 perfTimer.start();
 perfTimer.printTime('keyboard.js');
 
-var isWaitingForSecondTap = false;
-var isContinousSpacePressed = false;
-var isUpperCase = false;
-var isUpperCaseLocked = false;
 var isKeyboardRendered = false;
-var currentCandidates = [];
-var candidatePanelScrollTimer = null;
-
-// Backspace repeat delay and repeat rate
-const REPEAT_RATE = 75;
-const REPEAT_TIMEOUT = 700;
 
 // How long to wait for more focuschange events before processing
 const FOCUS_CHANGE_DELAY = 100;
-
-// Taps the shift key twice within CAPS_LOCK_TIMEOUT
-// to lock the keyboard at upper case state.
-const CAPS_LOCK_TIMEOUT = 450;
 
 // Time we wait after blur to hide the keyboard
 // in case we get a focus event right after
 const HIDE_KEYBOARD_TIMEOUT = 500;
 
-// timeout and interval for delete, they could be cancelled on mouse over
-var deleteTimeout = 0;
-var deleteInterval = 0;
 var hideKeyboardTimeout = 0;
 
 // XXX: For now let's pass a fake app object,
@@ -76,7 +59,11 @@ var fakeAppObject = {
   layoutManager: null,
   settingsPromiseManager: null,
   l10nLoader: null,
-  activeTargetsManager: null,
+  feedbackManager: null,
+  visualHighlightManager: null,
+  targetHandlersManager: null,
+  upperCaseStateManager: null,
+  candidatePanelManager: null,
 
   inputContext: null,
 
@@ -128,8 +115,7 @@ var fakeAppObject = {
 
   sendCandidates: function kc_glue_sendCandidates(candidates) {
     perfTimer.printTime('glue.sendCandidates');
-    currentCandidates = candidates;
-    IMERender.showCandidates(candidates);
+    candidatePanelManager.updateCandidates(candidates);
   },
   setComposition: function kc_glue_setComposition(symbols, cursor) {
     perfTimer.printTime('glue.setComposition');
@@ -159,13 +145,14 @@ var fakeAppObject = {
         setLayoutPage(layoutManager.currentLayoutPage);
     }
   },
-  setUpperCase: setUpperCase,
-  resetUpperCase: resetUpperCase,
+  setUpperCase: function setUpperCase(state) {
+    this.upperCaseStateManager.switchUpperCaseState(state);
+  },
   isCapitalized: function isCapitalized() {
-    return (isUpperCase || isUpperCaseLocked);
+    return this.upperCaseStateManager.isUpperCase;
   },
   isCapitalizeLocked: function isCapitalizeLocked() {
-    return isUpperCaseLocked;
+    return this.upperCaseStateManager.isUpperCaseLocked;
   },
   replaceSurroundingText: replaceSurroundingText,
   getNumberOfCandidatesPerRow:
@@ -192,22 +179,28 @@ var settingsPromiseManager =
 // only after we have run everything in the critical cold launch path.
 var l10nLoader = fakeAppObject.l10nLoader = new L10nLoader();
 
-// ActiveTargetsManager run these callbacks when keys are interacted.
-var activeTargetsManager =
-  fakeAppObject.activeTargetsManager = new ActiveTargetsManager(fakeAppObject);
-activeTargetsManager.ontargetactivated = handleTargetActivated;
-activeTargetsManager.ontargetlongpressed = handleTargetLongPressed;
-activeTargetsManager.ontargetmovedout = handleTargetMovedOut;
-activeTargetsManager.ontargetmovedin = handleTargetMovedIn;
-activeTargetsManager.ontargetcommitted = handleTargetCommitted;
-activeTargetsManager.ontargetcancelled = handleTargetCancelled;
-activeTargetsManager.start();
+// targetHandlersManager handles key targets when they are being interacted.
+var targetHandlersManager = fakeAppObject.targetHandlersManager =
+  new TargetHandlersManager(fakeAppObject);
+targetHandlersManager.start();
 
-var feedbackManager = new FeedbackManager(fakeAppObject);
+var feedbackManager = fakeAppObject.feedbackManager =
+  new FeedbackManager(fakeAppObject);
 feedbackManager.start();
 
-var visualHighlightManager = new VisualHighlightManager(fakeAppObject);
+var visualHighlightManager = fakeAppObject.visualHighlightManager =
+  new VisualHighlightManager(fakeAppObject);
 visualHighlightManager.start();
+
+var candidatePanelManager =
+  fakeAppObject.candidatePanelManager =
+  new CandidatePanelManager(fakeAppObject);
+candidatePanelManager.start();
+
+var upperCaseStateManager =
+  fakeAppObject.upperCaseStateManager = new UpperCaseStateManager();
+upperCaseStateManager.onstatechange = handleUpperCaseStateChange;
+upperCaseStateManager.start();
 
 // User settings (in Settings database) are tracked within these modules
 var imEngineSettings;
@@ -218,9 +211,6 @@ var inputContextGetTextPromise;
 
 // A MutationObserver we use to spy on the renderer module
 var dimensionsObserver;
-
-// For tracking "scrolling the full candidate panel".
-var touchStartCoordinate;
 
 initKeyboard();
 
@@ -378,7 +368,7 @@ function renderKeyboard() {
   // Rule of thumb: always render uppercase, unless secondLayout has been
   // specified (for e.g. arabic, then depending on shift key)
   var needsUpperCase = layoutManager.currentModifiedLayout.secondLayout ?
-    (isUpperCaseLocked || isUpperCase) : true;
+    upperCaseStateManager.isUpperCase : true;
 
   // And draw the layout
   IMERender.draw(layoutManager.currentModifiedLayout, {
@@ -390,12 +380,12 @@ function renderKeyboard() {
     perfTimer.startTimer('IMERender.draw:callback');
     // So there are a couple of things that we want don't want to block
     // on here, so we can do it if resizeUI is fully finished
-    IMERender.setUpperCaseLock(isUpperCaseLocked ? 'locked' : isUpperCase);
+    IMERender.setUpperCaseLock(upperCaseStateManager);
 
     // Tell the input method about the new keyboard layout
     updateLayoutParams();
 
-    IMERender.showCandidates(currentCandidates);
+    candidatePanelManager.showCandidates();
     perfTimer.printTime(
       'BLOCKING IMERender.draw:callback', 'IMERender.draw:callback');
   });
@@ -415,18 +405,7 @@ function renderKeyboard() {
   perfTimer.printTime('BLOCKING renderKeyboard', 'renderKeyboard');
 }
 
-function setUpperCase(upperCase, upperCaseLocked) {
-  upperCaseLocked = (typeof upperCaseLocked == 'undefined') ?
-                     isUpperCaseLocked : upperCaseLocked;
-
-  // Do nothing if the states are not changed
-  if (isUpperCase == upperCase &&
-      isUpperCaseLocked == upperCaseLocked)
-    return;
-
-  isUpperCaseLocked = upperCaseLocked;
-  isUpperCase = upperCase;
-
+function handleUpperCaseStateChange() {
   if (!isKeyboardRendered)
     return;
 
@@ -440,23 +419,15 @@ function setUpperCase(upperCase, upperCaseLocked) {
   requestAnimationFrame(function() {
     perfTimer.startTimer('setUpperCase:requestAnimationFrame:callback');
     // And make sure the caps lock key is highlighted correctly
-    IMERender.setUpperCaseLock(isUpperCaseLocked ? 'locked' : isUpperCase);
+    IMERender.setUpperCaseLock(upperCaseStateManager);
 
     //restore the previous candidates
-    IMERender.showCandidates(currentCandidates);
+    candidatePanelManager.showCandidates();
 
     perfTimer.printTime(
       'BLOCKING setUpperCase:requestAnimationFrame:callback',
       'setUpperCase:requestAnimationFrame:callback');
   });
-}
-
-function resetUpperCase() {
-  if (isUpperCase &&
-      !isUpperCaseLocked &&
-      layoutManager.currentLayoutPage === LAYOUT_PAGE_DEFAULT) {
-    setUpperCase(false);
-  }
 }
 
 // Inform about a change in the displayed application via mutation observer
@@ -469,347 +440,6 @@ function updateTargetWindowHeight(hide) {
   window.resizeTo(imeWidth, imeHeight);
 }
 
-// Sends a delete code to remove last character
-// The argument specifies whether this is an auto repeat or not.
-// Repeat does not trigger and sound/vibration feedback.
-function sendDelete(isRepeat) {
-  // Pass the isRepeat argument to the input method. It may not want
-  // to compute suggestions, for example, if this is just one in a series
-  // of repeating events.
-  inputMethodManager.currentIMEngine.click(KeyboardEvent.DOM_VK_BACK_SPACE,
-                                           null,
-                                           isRepeat);
-}
-
-function getKeyCodeFromTarget(target) {
-  return isUpperCase || isUpperCaseLocked ?
-    parseInt(target.dataset.keycodeUpper, 10) :
-    parseInt(target.dataset.keycode, 10);
-}
-
-function handleTargetActivated(target) {
-  // Ignore non-key targets
-  if (!('keycode' in target.dataset) &&
-      !('selection' in target.dataset) &&
-      !('compositeKey' in target.dataset)) {
-    return;
-  }
-
-  var keyCode = getKeyCodeFromTarget(target);
-
-  // Feedback
-  feedbackManager.triggerFeedback(target);
-  visualHighlightManager.show(target);
-
-  // Special keys (such as delete) response when pressing (not releasing)
-  // Furthermore, delete key has a repetition behavior
-  if (keyCode === KeyEvent.DOM_VK_BACK_SPACE) {
-    // First repetition, after a delay (with feedback)
-    deleteTimeout = window.setTimeout(function() {
-      sendDelete(true);
-
-      // Second, after shorter delay (with feedback too)
-      deleteInterval = setInterval(function() {
-        sendDelete(true);
-      }, REPEAT_RATE);
-
-    }, REPEAT_TIMEOUT);
-  }
-}
-
-function handleTargetLongPressed(target) {
-  // Does the key have an long press value?
-  if (target.dataset.longPressValue) {
-    // Attach a dataset property that will be used to ignore
-    // keypress in endPress
-    target.dataset.ignoreEndPress = true;
-
-    var keyCode = parseInt(target.dataset.longPressKeyCode, 10);
-    sendKey(keyCode);
-
-    return;
-  }
-
-  var keyCode = getKeyCodeFromTarget(target);
-
-  // Handle languages alternatives
-  if (keyCode === SWITCH_KEYBOARD) {
-    showIMEList();
-    return;
-  }
-
-  // Hide the keyboard
-  if (keyCode === KeyEvent.DOM_VK_SPACE) {
-    dismissKeyboard();
-    return;
-  }
-}
-
-function handleTargetMovedOut(target) {
-  // Ignore non-key targets
-  if (!('keycode' in target.dataset) &&
-      !('selection' in target.dataset) &&
-      !('compositeKey' in target.dataset)) {
-    return;
-  }
-
-  visualHighlightManager.hide(target);
-
-  clearTimeout(deleteTimeout);
-  clearInterval(deleteInterval);
-}
-
-function handleTargetMovedIn(target) {
-  // Ignore non-key targets
-  if (!('keycode' in target.dataset) &&
-      !('selection' in target.dataset) &&
-      !('compositeKey' in target.dataset)) {
-    return;
-  }
-
-  var keyCode = getKeyCodeFromTarget(target);
-
-  // Update highlight: add to the new (Ignore if moving over delete key)
-  if (keyCode != KeyEvent.DOM_VK_BACK_SPACE) {
-    visualHighlightManager.show(target);
-  }
-}
-
-function handleTargetCommitted(target) {
-  clearTimeout(deleteTimeout);
-  clearInterval(deleteInterval);
-
-  if (target.classList.contains('dismiss-suggestions-button')) {
-    if (inputMethodManager.currentIMEngine.dismissSuggestions) {
-      inputMethodManager.currentIMEngine.dismissSuggestions();
-    }
-    return;
-  }
-
-  // IME candidate selected
-  var dataset = target.dataset;
-  if (dataset.selection) {
-    IMERender.toggleCandidatePanel(false, true);
-
-    if (inputMethodManager.currentIMEngine.select) {
-      // We use dataset.data instead of target.textContent because the
-      // text actually displayed to the user might have an ellipsis in it
-      // to make it fit.
-      inputMethodManager.currentIMEngine
-        .select(target.textContent, dataset.data);
-    }
-
-    visualHighlightManager.hide(target);
-    return;
-  }
-
-  visualHighlightManager.hide(target);
-
-  // The alternate keys of telLayout and numberLayout do not
-  // trigger keypress on key release.
-  if (target.dataset.ignoreEndPress) {
-    delete target.dataset.ignoreEndPress;
-    return;
-  }
-
-  var keyCode = getKeyCodeFromTarget(target);
-
-  // Delete is a special key, it reacts when pressed not released
-  if (keyCode == KeyEvent.DOM_VK_BACK_SPACE) {
-    // The backspace key pressing is regarded as non-repetitive behavior.
-    sendDelete(false);
-    return;
-  }
-
-  // Reset the flag when a non-space key is pressed,
-  // used in space key double tap handling
-  if (keyCode != KeyEvent.DOM_VK_SPACE)
-    isContinousSpacePressed = false;
-
-  var keyStyle = getComputedStyle(target);
-  if (keyStyle.display == 'none' || keyStyle.visibility == 'hidden')
-    return;
-
-  // Handle normal key
-  switch (keyCode) {
-
-  case BASIC_LAYOUT:
-    // Return to default page
-    fakeAppObject.setLayoutPage(layoutManager.LAYOUT_PAGE_DEFAULT);
-    break;
-
-  case ALTERNATE_LAYOUT:
-    // Switch to numbers+symbols page
-    fakeAppObject.setLayoutPage(layoutManager.LAYOUT_PAGE_SYMBOLS_I);
-    break;
-
-  case KeyEvent.DOM_VK_ALT:
-    // alternate between pages 1 and 2 of SYMBOLS
-    if (layoutManager.currentLayoutPage ===
-        layoutManager.LAYOUT_PAGE_SYMBOLS_I) {
-      fakeAppObject.setLayoutPage(layoutManager.LAYOUT_PAGE_SYMBOLS_II);
-    } else {
-      fakeAppObject.setLayoutPage(layoutManager.LAYOUT_PAGE_SYMBOLS_I);
-    }
-    break;
-
-    // Switch language (keyboard)
-  case SWITCH_KEYBOARD:
-    switchToNextIME();
-    break;
-
-    // Expand / shrink the candidate panel
-  case TOGGLE_CANDIDATE_PANEL:
-    var candidatePanel = IMERender.candidatePanel;
-
-    if (IMERender.ime.classList.contains('candidate-panel')) {
-      var doToggleCandidatePanel = function doToggleCandidatePanel() {
-        if (candidatePanel.dataset.truncated) {
-          if (candidatePanelScrollTimer) {
-            clearTimeout(candidatePanelScrollTimer);
-            candidatePanelScrollTimer = null;
-          }
-          candidatePanel.addEventListener('scroll', candidatePanelOnScroll);
-        }
-
-        IMERender.toggleCandidatePanel(true, true);
-      };
-
-      if (candidatePanel.dataset.rowCount == 1) {
-        var firstPageRows = 11;
-        var numberOfCandidatesPerRow = IMERender.getNumberOfCandidatesPerRow();
-        var candidateIndicator =
-          parseInt(candidatePanel.dataset.candidateIndicator);
-
-        if (inputMethodManager.currentIMEngine.getMoreCandidates) {
-          inputMethodManager.currentIMEngine.getMoreCandidates(
-            candidateIndicator,
-            firstPageRows * numberOfCandidatesPerRow + 1,
-            function getMoreCandidatesCallbackOnToggle(list) {
-              if (candidatePanel.dataset.rowCount == 1) {
-                IMERender.showMoreCandidates(firstPageRows, list);
-                doToggleCandidatePanel();
-              }
-            }
-          );
-        } else {
-          var list = currentCandidates.slice(candidateIndicator,
-            candidateIndicator + firstPageRows * numberOfCandidatesPerRow + 1);
-
-          IMERender.showMoreCandidates(firstPageRows, list);
-          doToggleCandidatePanel();
-        }
-      } else {
-        doToggleCandidatePanel();
-      }
-    } else {
-      if (inputMethodManager.currentIMEngine.getMoreCandidates) {
-        candidatePanel.removeEventListener('scroll', candidatePanelOnScroll);
-        if (candidatePanelScrollTimer) {
-          clearTimeout(candidatePanelScrollTimer);
-          candidatePanelScrollTimer = null;
-        }
-      }
-
-      IMERender.toggleCandidatePanel(false, true);
-    }
-    break;
-
-    // Shift or caps lock
-  case KeyEvent.DOM_VK_CAPS_LOCK:
-
-    // Already waiting for caps lock
-    if (isWaitingForSecondTap) {
-      isWaitingForSecondTap = false;
-
-      setUpperCase(true, true);
-
-      // Normal behavior: set timeout for second tap and toggle caps
-    } else {
-
-      isWaitingForSecondTap = true;
-      window.setTimeout(
-        function() {
-          isWaitingForSecondTap = false;
-        },
-        CAPS_LOCK_TIMEOUT
-      );
-
-      // Toggle caps
-      setUpperCase(!isUpperCase, false);
-    }
-    break;
-
-    // Normal key
-  default:
-    if (target.dataset.compositeKey) {
-      // Keys with this attribute set send more than a single character
-      // Like ".com" or "2nd" or (in Catalan) "l·l".
-      var compositeKey = target.dataset.compositeKey;
-      for (var i = 0; i < compositeKey.length; i++) {
-        inputMethodManager.currentIMEngine.click(compositeKey.charCodeAt(i));
-      }
-    }
-    else {
-      /*
-       * XXX: A hack to send both keycode and uppercase keycode to latin IME,
-       * since latin IME would maintain a promise queue for each key, and
-       * send correct keycode based on the current capitalization state.
-       * See bug 1013570 and bug 987809 for details.
-       * This hack should be removed and the state/input queue should be
-       * maintained in keyboard.js.
-       */
-      if (layoutManager.currentModifiedLayout.imEngine == 'latin') {
-        inputMethodManager.currentIMEngine.click(
-          parseInt(target.dataset.keycode, 10),
-          parseInt(target.dataset.keycodeUpper, 10));
-      } else {
-        inputMethodManager.currentIMEngine.click(keyCode);
-      }
-    }
-    break;
-  }
-}
-
-function handleTargetCancelled(target) {
-  visualHighlightManager.hide(target);
-
-  clearTimeout(deleteTimeout);
-  clearInterval(deleteInterval);
-}
-
-function candidatePanelOnScroll() {
-  if (candidatePanelScrollTimer) {
-    clearTimeout(candidatePanelScrollTimer);
-    candidatePanelScrollTimer = null;
-  }
-
-  if (this.scrollTop != 0 &&
-      this.scrollHeight - this.clientHeight - this.scrollTop < 5) {
-
-    candidatePanelScrollTimer = setTimeout(function() {
-      var pageRows = 12;
-      var numberOfCandidatesPerRow = IMERender.getNumberOfCandidatesPerRow();
-      var candidatePanel = IMERender.candidatePanel;
-      var candidateIndicator =
-        parseInt(candidatePanel.dataset.candidateIndicator);
-
-      if (inputMethodManager.currentIMEngine.getMoreCandidates) {
-        inputMethodManager.currentIMEngine.getMoreCandidates(
-          candidateIndicator,
-          pageRows * numberOfCandidatesPerRow + 1,
-          IMERender.showMoreCandidates.bind(IMERender, pageRows)
-        );
-      } else {
-        var list = currentCandidates.slice(candidateIndicator,
-          candidateIndicator + pageRows * numberOfCandidatesPerRow + 1);
-
-        IMERender.showMoreCandidates(pageRows, list);
-      }
-    }, 200);
-  }
-}
-
 function getKeyCoordinateY(y) {
   var candidatePanel = IMERender.candidatePanel;
 
@@ -820,26 +450,11 @@ function getKeyCoordinateY(y) {
   return y - yBias;
 }
 
-function switchToNextIME() {
-  deactivateInputMethod();
-  var mgmt = navigator.mozInputMethod.mgmt;
-  mgmt.next();
-}
-
-function showIMEList() {
-  activeTargetsManager.clearAllTargets();
-  var mgmt = navigator.mozInputMethod.mgmt;
-  mgmt.showAll();
-}
-
 // Turn to default values
 function resetKeyboard() {
   layoutManager.updateLayoutPage(layoutManager.LAYOUT_PAGE_DEFAULT);
 
-  // Don't call setUpperCase because renderKeyboard() should be invoked
-  // separately after this function
-  isUpperCase = false;
-  isUpperCaseLocked = false;
+  upperCaseStateManager.reset();
 }
 
 // This is a wrapper around fakeAppObject.inputContext.sendKey()
@@ -937,7 +552,7 @@ function hideKeyboard() {
     'keyboard.current': undefined
   });
 
-  activeTargetsManager.clearAllTargets();
+  targetHandlersManager.activeTargetsManager.clearAllTargets();
 }
 
 // Resize event handler
@@ -1045,11 +660,4 @@ function needsCandidatePanel() {
 function isGreekSMS() {
   return (fakeAppObject.inputContext.inputMode === '-moz-sms' &&
           layoutManager.currentLayoutName === 'el');
-}
-
-// Hide the keyboard via input method API
-function dismissKeyboard() {
-  activeTargetsManager.clearAllTargets();
-
-  navigator.mozInputMethod.mgmt.hide();
 }
