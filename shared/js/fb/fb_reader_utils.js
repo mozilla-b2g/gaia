@@ -311,7 +311,7 @@ if (!this.AuxFB) {
 
   for (var j = 0, end = props.length; j < end; j++) {
     var prop = props[j];
-    if (typeof self.fb[prop] === 'function') {
+    if (!(typeof self.fb[prop] === 'function')) {
       self.fb[prop] = self.AuxFb[prop];
     }
     else {
