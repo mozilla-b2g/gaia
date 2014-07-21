@@ -579,4 +579,11 @@
       enableStrict7BitEncodingForSms="true"
       operatorSizeLimitation="614400"
   />
+  <operator
+      name="Grameenphone"
+      mcc="470"
+      mnc="01"
+      cellBroadcastSearchList="50"
+      voicemail="1266"
+  />
 </variant>

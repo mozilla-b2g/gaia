@@ -161,4 +161,30 @@
       authtype="1"
       type="dun"
   />
+
+  <apn carrier="GP INTERNET"
+      mcc="470"
+      mnc="01"
+      apn="gpinternet"
+      type="default"
+  />
+
+  <apn carrier="GP WAP"
+      mcc="470"
+      mnc="01"
+      apn="gpwap"
+      proxy="10.128.1.2"
+      port="8080"
+      type="default"
+  />
+
+  <apn carrier="GP MMS"
+      mcc="470"
+      mnc="01"
+      apn="gpmms"
+      mmsc="http://mms.gpsurf.net/servlets"
+      mmsproxy="10.128.1.2"
+      mmsport="8080"
+      type="mms"
+  />
 </apns>

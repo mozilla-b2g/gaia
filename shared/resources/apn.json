@@ -3296,6 +3296,14 @@
     {"carrier":"亞太電信(APBW) (MMS)","apn":"aptmms","mmsc":"http://mms.aptg.com.tw","mmsproxy":"210.200.66.196","mmsport":"80","user":"aptwap@nsip.qma.com.tw","password":"aptwap","type":["mms"]}
   ]
 },
+"470": {
+  "01": [
+    {"carrier":"GP INTERNET","apn":"gpinternet","type":["default"]},
+    {"voicemail":"1266","cellBroadcastSearchList":"50","type":["operatorvariant"]},
+    {"carrier":"GP WAP","apn":"gpwap","proxy":"10.128.1.2","port":"8080","type":["default"]},
+    {"carrier":"GP MMS","apn":"gpmms","mmsc":"http://mms.gpsurf.net/servlets","mmsproxy":"10.128.1.2","mmsport":"8080","type":["mms"]}
+  ]
+},
 "472": {
   "01": [
     {"carrier":"Dhiraagu","apn":"default","type":["default","supl"]}
