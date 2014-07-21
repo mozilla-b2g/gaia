@@ -319,7 +319,6 @@ suite('ActivityHandler', function() {
         };
 
         MockNavigatormozSetMessageHandler.mTrigger('notification', message);
-        MockNavigatormozApps.mTriggerLastRequestSuccess();
       });
 
       test('handleMessageNotification has been called', function() {
@@ -331,23 +330,20 @@ suite('ActivityHandler', function() {
         assert.equal(arg.threadId, threadId);
       });
 
-      test('launches the app', function() {
-        assert.ok(MockNavigatormozApps.mAppWasLaunched);
-      });
     });
 
     suite('class-0 message', function() {
       setup(function() {
-      var notification = {
-        title: title,
-        body: body,
-        imageURL: 'url?id=' + messageId + '&threadId=' + threadId +
-          '&type=class0',
-        clicked: true
-      };
+        var notification = {
+          title: title,
+          body: body,
+          imageURL: 'url?id=' + messageId + '&threadId=' + threadId +
+            '&type=class0',
+          clicked: true
+        };
 
-      MockNavigatormozSetMessageHandler.mTrigger('notification', notification);
-      MockNavigatormozApps.mTriggerLastRequestSuccess();
+        MockNavigatormozSetMessageHandler.mTrigger(
+          'notification', notification);
       });
 
       test('an alert is displayed', function() {

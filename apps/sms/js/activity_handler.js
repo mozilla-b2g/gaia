@@ -125,7 +125,16 @@ var ActivityHandler = {
     ThreadUI.resetActivityRequestMode();
   },
 
+  _disablePointerEvent: function() {
+    document.body.classList.add('no-pointer-event');
+  },
+
+  _enablePointerEvent: function() {
+    document.body.classList.remove('no-pointer-event');
+  },
+
   handleMessageNotification: function ah_handleMessageNotification(message) {
+    var that = this;
     //Validate if message still exists before opening message thread
     //See issue https://bugzilla.mozilla.org/show_bug.cgi?id=837029
     if (!message) {
@@ -138,14 +147,29 @@ var ActivityHandler = {
         if (window.confirm(navigator.mozL10n.get('discard-new-message'))) {
           ThreadUI.cleanFields(true);
         } else {
+          // XXX: re-enable pointer event
+          // Pointer event was disabled upon receiving notification,
+          // re-enable here.
+          that._enablePointerEvent();
           return;
         }
       }
 
       ActivityHandler.toView(message);
+      // XXX: re-enable pointer event
+      // We directly launch app when user tap notification in utility tray.
+      // It will make SMS show thread list first then slide to the message.
+      // Thus we need to disable pointer event to prevent user from touching
+      // other thread during the process. Here we have arrive targeted view,
+      // so re-enable pointer event.
+      // For detail please refer to http://bugzil.la/1041303
+      that._enablePointerEvent();
     };
 
     request.onerror = function onerror() {
+      // XXX: re-enable pointer event
+      // Pointer event was disabled upon receiving notification, re-enable here.
+      that._enablePointerEvent();
       alert(navigator.mozL10n.get('deleted-sms'));
     };
   },
@@ -486,21 +510,22 @@ var ActivityHandler = {
       return;
     }
 
-    navigator.mozApps.getSelf().onsuccess = function(event) {
-      var app = event.target.result;
+    // the type param is only set for class0 messages
+    if (params.type === 'class0') {
+      alert(message.title + '\n' + message.body);
+      return;
+    }
 
-      app.launch();
-
-      // the type param is only set for class0 messages
-      if (params.type === 'class0') {
-        alert(message.title + '\n' + message.body);
-        return;
-      }
-
-      ActivityHandler.handleMessageNotification({
-        id: params.id,
-        threadId: params.threadId
-      });
-    };
+    // XXX: disable pointer event
+    // We directly launch app when user tap notification in utility tray.
+    // It will make SMS show thread list first then slide to the message.
+    // Thus we need to disable pointer event to prevent user from touching
+    // other thread during the process. For detail please refer to
+    // http://bugzil.la/1041303
+    this._disablePointerEvent();
+    ActivityHandler.handleMessageNotification({
+      id: params.id,
+      threadId: params.threadId
+    });
   }
 };
