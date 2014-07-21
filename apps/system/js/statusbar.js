@@ -658,9 +658,10 @@ var StatusBar = {
 
       var label = this.icons.label;
       var l10nArgs = JSON.parse(label.dataset.l10nArgs || '{}');
+      var operatorInfos = MobileOperator.userFacingInfo(conn);
 
       if (!conn || !conn.voice || !conn.voice.connected ||
-          conn.voice.emergencyCallsOnly) {
+          conn.voice.emergencyCallsOnly || !operatorInfos.operator) {
         delete l10nArgs.operator;
         label.dataset.l10nArgs = JSON.stringify(l10nArgs);
 
@@ -670,7 +671,6 @@ var StatusBar = {
         return;
       }
 
-      var operatorInfos = MobileOperator.userFacingInfo(conn);
       l10nArgs.operator = operatorInfos.operator;
 
       if (operatorInfos.region) {

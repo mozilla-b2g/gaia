@@ -1178,6 +1178,14 @@ suite('system/Statusbar', function() {
         assert.include(label_content, 'Orange');
         assert.include(label_content, 'PR');
       });
+
+      test('Connection without operator information', function() {
+        MockMobileOperator.mOperator = null;
+        var evt = new CustomEvent('simslot-iccinfochange');
+        StatusBar.handleEvent(evt);
+        var label_content = fakeIcons.label.textContent;
+        assert.equal(-1, label_content.indexOf('null'));
+      });
     });
 
     suite('multiple sims', function() {
@@ -1197,6 +1205,14 @@ suite('system/Statusbar', function() {
         var label_content = fakeIcons.label.textContent;
         assert.equal(-1, label_content.indexOf('Orange'));
         assert.equal(-1, label_content.indexOf('PR'));
+      });
+
+      test('Connection without operator information', function() {
+        MockMobileOperator.mOperator = null;
+        var evt = new CustomEvent('simslot-iccinfochange');
+        StatusBar.handleEvent(evt);
+        var label_content = fakeIcons.label.textContent;
+        assert.equal(-1, label_content.indexOf('null'));
       });
     });
   });
