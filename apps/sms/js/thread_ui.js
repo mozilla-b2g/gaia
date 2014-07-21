@@ -380,7 +380,9 @@ var ThreadUI = global.ThreadUI = {
       return;
     }
 
-    this.sentAudio = new Audio('/sounds/sent.opus');
+    this.sentAudio = new Audio();
+    this.sentAudio.preload = 'none';
+    this.sentAudio.src = '/sounds/sent.opus';
     this.sentAudio.mozAudioChannelType = 'notification';
 
     // TODO move sentAudioEnabled management to Settings
@@ -544,6 +546,7 @@ var ThreadUI = global.ThreadUI = {
       LazyLoader.load([simPickerElt], function() {
         navigator.mozL10n.translate(simPickerElt);
       });
+      this.initSentAudio();
     }
 
     var next = args.meta.next.panel;
@@ -2206,7 +2209,6 @@ var ThreadUI = global.ThreadUI = {
       cardIndex = 0;
     }
 
-    this.initSentAudio();
     this.sendMessage({ serviceId: cardIndex });
   },
 

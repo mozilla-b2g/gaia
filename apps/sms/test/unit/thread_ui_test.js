@@ -4775,17 +4775,6 @@ suite('thread_ui.js >', function() {
       ThreadUI.simSelectedCallback(undefined, '' + serviceId);
     }
 
-    function assertSentAudioLoaded() {
-      assert.isTrue(
-        ThreadUI.sentAudio.src.endsWith('/sounds/sent.opus'),
-        'sentAudio properly loaded'
-      );
-      assert.equal(
-        ThreadUI.sentAudio.mozAudioChannelType, 'notification',
-        'sentAudio uses the right audio channel'
-      );
-    }
-
     setup(function() {
       this.sinon.stub(MessageManager, 'sendSMS');
       this.sinon.stub(MessageManager, 'sendMMS');
@@ -4815,7 +4804,6 @@ suite('thread_ui.js >', function() {
       Compose.append(body);
 
       clickButton();
-      assertSentAudioLoaded();
 
       sinon.assert.calledWithMatch(MessageManager.sendSMS, {
         recipients: [recipient],
@@ -6246,7 +6234,6 @@ suite('thread_ui.js >', function() {
     });
   });
 
-
   function beforeEnterGeneralTests(getTransitionArgs) {
     suite('beforeEnter()', function() {
       var transitionArgs;
@@ -6285,8 +6272,25 @@ suite('thread_ui.js >', function() {
         sinon.assert.calledWith(MockL10n.translate, simPickerElt);
         sinon.assert.calledWith(MockLazyLoader.load, [simPickerElt]);
       });
-    });
 
+      test('loads the audio played when a message is sent', function() {
+        var sentAudio = ThreadUI.sentAudio;
+
+        assert.isTrue(
+          sentAudio.src.endsWith('/sounds/sent.opus'),
+          'sentAudio properly loaded'
+        );
+        assert.equal(
+          sentAudio.mozAudioChannelType, 'notification',
+          'sentAudio uses the right audio channel'
+        );
+
+        assert.equal(
+          sentAudio.preload, 'none',
+          'the file is not preloaded'
+        );
+      });
+    });
   }
 
   suite('switch to composer >', function() {
