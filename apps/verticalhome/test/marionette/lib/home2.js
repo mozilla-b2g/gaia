@@ -231,15 +231,14 @@ Home2.prototype = {
     var client = this.client.scope({context: 'chrome'});
 
     var file = 'app://' + app + '.gaiamobile.org/manifest.webapp';
-    var manifest = client.executeScript(function(file) {
+    var manifest = client.executeAsyncScript(function(file) {
       var xhr = new XMLHttpRequest();
-      var data;
-      xhr.open('GET', file, false); // Intentional sync
+      xhr.open('GET', file, true);
       xhr.onload = function(o) {
-        data = JSON.parse(xhr.response);
+        var data = JSON.parse(xhr.response);
+        marionetteScriptFinished(data);
       };
       xhr.send(null);
-      return data;
     }, [file]);
 
     var locales;
@@ -257,15 +256,14 @@ Home2.prototype = {
    * @param {String} key of the string to lookup.
    */
   l10n: function(file, key) {
-    var string = this.client.executeScript(function(file, key) {
+    var string = this.client.executeAsyncScript(function(file, key) {
       var xhr = new XMLHttpRequest();
-      var data;
-      xhr.open('GET', file, false); // Intentional sync
+      xhr.open('GET', file, true);
       xhr.onload = function(o) {
-        data = JSON.parse(xhr.response);
+        var data = JSON.parse(xhr.response);
+        marionetteScriptFinished(data);
       };
       xhr.send(null);
-      return data;
     }, [file, key]);
 
     return string[key];
