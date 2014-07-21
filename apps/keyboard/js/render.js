@@ -135,9 +135,6 @@ const IMERender = (function() {
 
   // Draw the keyboard and its components. Meat is here.
   var draw = function kr_draw(layout, flags, callback) {
-    perfTimer.printTime('IMERender.draw');
-    perfTimer.startTimer('IMERender.draw');
-
     flags = flags || {};
 
     var supportsSwitching = 'mozInputMethod' in navigator ?
@@ -193,8 +190,6 @@ const IMERender = (function() {
     // XXX We have to wait for layout to complete before
     // return this function
     container.offsetWidth;
-
-    perfTimer.printTime('BLOCKING IMERender.draw', 'IMERender.draw');
   };
 
   /**
@@ -735,9 +730,6 @@ const IMERender = (function() {
 
   // Recalculate dimensions for the current render
   var resizeUI = function(layout, callback) {
-    perfTimer.printTime('IMERender.resizeUI');
-    perfTimer.startTimer('IMERender.resizeUI');
-
     var RESIZE_UI_TIMEOUT = 0;
 
     // This function consists of two actual functions
@@ -746,9 +738,6 @@ const IMERender = (function() {
     // these are seperated into separate groups because they do similar
     // operations and minimizing reflow causes because of this
     function setKeyWidth() {
-      perfTimer.printTime('IMERender.resizeUI:setKeyWidth');
-      perfTimer.startTimer('IMERender.resizeUI:setKeyWidth');
-
       [].forEach.call(rows, function(rowEl, rIx) {
         var rowLayoutWidth = parseInt(rowEl.dataset.layoutWidth, 10);
         var keysInRow = rowEl.childNodes.length;
@@ -780,15 +769,9 @@ const IMERender = (function() {
       });
 
       setTimeout(getVisualData, RESIZE_UI_TIMEOUT);
-
-      perfTimer.printTime('BLOCKING IMERender.resizeUI:setKeyWidth',
-        'IMERender.resizeUI:setKeyWidth');
     }
 
     function getVisualData() {
-      perfTimer.printTime('IMERender.resizeUI:getVisualData');
-      perfTimer.startTimer('IMERender.resizeUI:getVisualData');
-
       // Now that key sizes have been set and adjusted for the row,
       // loop again and record the size and position of each. If we
       // do this as part of the loop above, we get bad position data.
@@ -827,9 +810,6 @@ const IMERender = (function() {
       // XXX We have to wait for layout to complete before
       // return this function
       ime.offsetWidth;
-
-      perfTimer.printTime('BLOCKING IMERender.resizeUI:getVisualData',
-        'IMERender.resizeUI:getVisualData');
     }
 
     var changeScale;
@@ -872,8 +852,6 @@ const IMERender = (function() {
     // XXX We have to wait for layout to complete before
     // return this function
     activeIme.offsetWidth;
-
-    perfTimer.printTime('BLOCKING IMERender.resizeUI', 'IMERender.resizeUI');
   };
 
   //
