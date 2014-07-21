@@ -3,6 +3,7 @@ define(function(require) {
 
   var SettingsPanel = require('modules/settings_panel');
   var Root = require('panels/root/root');
+  var BluetoothItem = require('panels/root/bluetooth_item');
   var NFCItem = require('panels/root/nfc_item');
   var LanguageItem = require('panels/root/language_item');
   var BatteryItem = require('panels/root/battery_item');
@@ -13,6 +14,7 @@ define(function(require) {
 
   return function ctor_root_panel() {
     var root = Root();
+    var bluetoothItem;
     var nfcItem;
     var languageItem;
     var batteryItem;
@@ -24,6 +26,7 @@ define(function(require) {
     return SettingsPanel({
       onInit: function rp_onInit(panel) {
         root.init();
+        bluetoothItem = BluetoothItem(panel.querySelector('.bluetooth-desc'));
         nfcItem = NFCItem(panel.querySelector('.nfc-settings'));
         languageItem = LanguageItem(panel.querySelector('.language-desc'));
         batteryItem = BatteryItem(panel.querySelector('.battery-desc'));
@@ -43,6 +46,7 @@ define(function(require) {
         wifiItem = WifiItem(panel.querySelector('#wifi-desc'));
       },
       onBeforeShow: function rp_onBeforeShow() {
+        bluetoothItem.enabled = true;
         languageItem.enabled = true;
         batteryItem.enabled = true;
         findMyDeviceItem.enabled = true;
@@ -58,6 +62,7 @@ define(function(require) {
         document.body.dataset.ready = true;
       },
       onHide: function rp_onHide() {
+        bluetoothItem.enabled = false;
         languageItem.enabled = false;
         batteryItem.enabled = false;
         findMyDeviceItem.enabled = false;

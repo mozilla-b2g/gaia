@@ -726,13 +726,6 @@ ul li > label.range-icons.volume input {
   display: none;
 }
 
-/******************************************************************************
- * Bluetooth
- */
-#update-device-name > section input {
-  margin: 1rem 0;
-}
-
 /* Web activity handling */
 .skin-organic section[data-dialog] > header:first-child .icon.icon-back {
   background-image: url(/shared/style/headers/images/icons/organic/close.png);
