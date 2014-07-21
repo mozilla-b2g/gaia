@@ -214,16 +214,43 @@ SystemUpdatable.prototype.errorCallBack = function() {
 };
 
 SystemUpdatable.prototype.showApplyPrompt = function() {
-  var batteryLevel = window.navigator.battery.level;
-
-  if (batteryLevel < 0.5) {
-    this.showApplyPromptBatteryNok();
-  } else {
-    this.showApplyPromptBatteryOk();
-  }
+  var batteryLevel = window.navigator.battery.level * 100;
+  this.getBatteryPercentageThreshold().then(function(threshold) {
+    if (batteryLevel < threshold) {
+      this.showApplyPromptBatteryNok(threshold);
+    } else {
+      this.showApplyPromptBatteryOk();
+    }
+  }.bind(this));
 };
 
-SystemUpdatable.prototype.showApplyPromptBatteryNok = function() {
+SystemUpdatable.prototype.BATTERY_FALLBACK_THRESHOLD = 25;
+
+SystemUpdatable.prototype.getBatteryPercentageThreshold = function() {
+  var fallbackThreshold = this.BATTERY_FALLBACK_THRESHOLD;
+
+  var isCharging = window.navigator.battery.charging;
+  var batteryThresholdKey =
+    'app.update.battery-threshold.' + (isCharging ? 'plugged' : 'unplugged');
+
+  var settings = window.navigator.mozSettings;
+  var getRequest = settings.createLock().get(batteryThresholdKey);
+
+  return new Promise(function(resolve, reject) {
+    getRequest.onerror = function() {
+      resolve(fallbackThreshold);
+    };
+    getRequest.onsuccess = function() {
+      var threshold = getRequest.result[batteryThresholdKey];
+      if (typeof threshold !== 'number') {
+        threshold = fallbackThreshold;
+      }
+      resolve(threshold);
+    };
+  });
+};
+
+SystemUpdatable.prototype.showApplyPromptBatteryNok = function(minBattery) {
   var _ = navigator.mozL10n.get;
 
   var ok = {
@@ -232,7 +259,11 @@ SystemUpdatable.prototype.showApplyPromptBatteryNok = function() {
   };
 
   UtilityTray.hide();
-  CustomDialog.show(_('systemUpdateReady'), _('systemUpdateLowBattery'), ok);
+  CustomDialog.show(
+    _('systemUpdateReady'),
+    _('systemUpdateLowBatteryThreshold', { threshold: minBattery }),
+    ok
+  );
 };
 
 SystemUpdatable.prototype.showApplyPromptBatteryOk = function() {
