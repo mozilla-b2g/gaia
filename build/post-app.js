@@ -14,6 +14,8 @@ function execute(options) {
     require('./multilocale').execute(options);
   }
 
+  require('./pseudo-l10n').execute(options);
+
   // This task will do three things.
   // 1. Copy manifest to profile: generally we got manifest from
   //    webapp-manifest.js unless manifest is generated from Makefile of app.
