@@ -36,6 +36,7 @@ var whitelistedUnifiedApps = [
   'gallery',
   'marketplace.firefox.com',
   'settings',
+  'sms',
   'video'
 ];
 
