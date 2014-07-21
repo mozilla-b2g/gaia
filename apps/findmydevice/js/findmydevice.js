@@ -195,9 +195,16 @@ var FindMyDevice = {
         }
 
         if (request.keyword === 'findmydevice-test') {
+          if (event.data === 'forget') {
+            DUMP('got request to forget registration state');
+            this._forgetRegistration();
+          } else {
             DUMP('got request for test command!');
             event.data.testing = true;
             this._processCommands(event.data);
+          }
+
+          return;
         }
       }).bind(this);
     }).bind(this));
@@ -623,6 +630,41 @@ var FindMyDevice = {
     DUMP('releasing one wakelock, wakelocks are: ',
       this._highPriorityWakeLocks);
     this._highPriorityWakeLocks[reason].pop().unlock();
+  },
+
+  // used by the test app only
+  _forgetRegistration: function() {
+    this.beginHighPriority('clientLogic');
+
+    // stub wakelock functions because they are called by
+    // settings observers. window.close() will release the
+    // lock we acquired.
+    this.beginHighPriority = this.endHighPriority = function() {};
+
+    // clear all pending alarms
+    navigator.mozAlarms.getAll().onsuccess = function() {
+      this.result.forEach(function(alarm) {
+        navigator.mozAlarms.remove(alarm.id);
+      });
+
+      resetStateAndSettings();
+    };
+
+    function resetStateAndSettings(callback) {
+      asyncStorage.setItem('findmydevice-state', null, function() {
+        var lock = navigator.mozSettings.createLock();
+        var request = lock.set({
+          'findmydevice.enabled': false,
+          'findmydevice.registered': false,
+          'findmydevice.current-clientid': '',
+          'findmydevice.can-disable': true
+        });
+
+        request.onsuccess = request.onerror = function() {
+          window.close();
+        };
+      });
+    }
   }
 };
 

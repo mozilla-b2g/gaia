@@ -1,23 +1,8 @@
 'use strict';
 
 window.onload = function() {
-  var systemPort = null;
-  navigator.mozApps.getSelf().onsuccess = function() {
-    var app = this.result;
-    app.connect('findmydevice-test').then(function(ports) {
-      if (ports.length !== 1) {
-        console.error('got more than one connection?');
-        return;
-      }
-
-      systemPort = ports[0];
-    }, function(err) {
-      console.error('failed to connect: ' + err);
-    });
-  };
-
-  var buttons = document.getElementById('buttons');
-  buttons.addEventListener('click', function(event) {
+  var commands = document.getElementById('commands');
+  commands.addEventListener('click', function(event) {
     var cmdobj = {};
     var command = event.target.id[0];
     cmdobj[command] = {};
@@ -27,6 +12,11 @@ window.onload = function() {
       cmdobj[command][options[i].name[0]] = options[i].value;
     }
 
-    systemPort.postMessage(cmdobj);
+    wakeUpFindMyDevice(cmdobj, IAC_API_KEYWORD_TEST);
+  });
+
+  var utils = document.getElementById('utils');
+  utils.addEventListener('click', function(event) {
+    wakeUpFindMyDevice(event.target.id, IAC_API_KEYWORD_TEST);
   });
 };

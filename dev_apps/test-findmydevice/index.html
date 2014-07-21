@@ -18,11 +18,12 @@
       }
     </style>
 
+    <script src="shared/js/findmydevice_iac_api.js"></script>
     <script src="js/findmydevice.js"></script>
   </head>
 
   <body>
-    <div id="buttons">
+    <div id="commands">
       <button id="track">Track</button>
       <button id="erase">Erase</button>
       <button id="lock">Lock</button>
@@ -33,6 +34,10 @@
       <label>Duration <input name="duration" type="number" placeholder="60"/></label>
       <label>Message <input name="message" type="text" placeholder="Help! I'm lost!"/></label>
       <label>Passcode <input name="code" type="text" placeholder="0000"/></label>
+    </div>
+
+    <div id="utils">
+      <button id="forget">Forget registration state</button>
     </div>
   </body>
 </html>
