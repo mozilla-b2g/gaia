@@ -227,6 +227,9 @@ var GridManager = (function() {
   function handleEvent(evt) {
     switch (evt.type) {
       case touchstart:
+        if (isPanning) {
+          return;
+        }
         if (currentPage)
           evt.stopPropagation();
         touchStartTimestamp = evt.timeStamp;
@@ -234,7 +237,6 @@ var GridManager = (function() {
         deltaX = 0;
         attachEvents();
         removePanHandler = noop;
-        isPanning = false;
         IconManager.addActive(evt.target);
         panningResolver.reset();
         break;
@@ -418,7 +420,9 @@ var GridManager = (function() {
       tap(evt.target);
     }
 
-    goToPage(page);
+    goToPage(page, function set_panning_flag() {
+       isPanning = false;
+    });
   }
 
   function attachEvents() {
@@ -492,8 +496,12 @@ var GridManager = (function() {
   var lastGoingPageTimestamp = 0;
 
   function goToPage(index, callback) {
-    if (index < 0 || index >= pages.length)
+    if (index < 0 || index >= pages.length) {
+      if (callback) {
+        setTimeout(callback, 0);
+      }
       return;
+    }
 
     touchEndTimestamp = touchEndTimestamp || lastGoingPageTimestamp;
     var delay = touchEndTimestamp - lastGoingPageTimestamp ||
