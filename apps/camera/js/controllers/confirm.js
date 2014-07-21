@@ -57,6 +57,8 @@ ConfirmController.prototype.renderView = function() {
 
   this.confirmView.on('click:select', this.onSelectMedia);
   this.confirmView.on('click:retake', this.onRetakeMedia);
+  this.confirmView.on('loadingvideo', this.app.firer('busy'));
+  this.confirmView.on('playingvideo', this.app.firer('ready'));
 };
 
 /**

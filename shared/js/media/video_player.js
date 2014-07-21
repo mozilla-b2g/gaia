@@ -103,6 +103,10 @@ function VideoPlayer(container) {
   }
 
   function showPlayer() {
+    if (self.onloading) {
+      self.onloading();
+    }
+
     player.style.display = 'block';
     player.src = videourl;
     self.playerShowing = true;
@@ -170,20 +174,20 @@ function VideoPlayer(container) {
       return;
     }
 
+    // Hide the play button
+    playbutton.classList.add('hidden');
     this.playing = true;
 
     // Start playing the video
     player.play();
 
-    // Hide the play button
-    playbutton.classList.add('hidden');
-
     // Show the controls
     footer.classList.remove('hidden');
     controlsHidden = false;
 
-    if (this.onplaying)
+    if (this.onplaying) {
       this.onplaying();
+    }
   };
 
   fullscreenButton.addEventListener('tap', function(e) {

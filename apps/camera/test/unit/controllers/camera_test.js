@@ -460,7 +460,7 @@ suite('controllers/camera', function() {
     test('It clears loading after the camera has loaded', function() {
       this.controller.onGalleryClosed();
       this.camera.load.args[0][0]();
-      sinon.assert.called(this.app.hideSpinner);
+      sinon.assert.called(this.app.onReady);
     });
 
     test('It doesn\'t load the camera if the app is hidden', function() {
