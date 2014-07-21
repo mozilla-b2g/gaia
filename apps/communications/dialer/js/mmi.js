@@ -54,6 +54,12 @@ var MmiManager = {
 
     this._conn = conn;
 
+    if(message == '*#06#')
+    {
+      this.getImeis(message);
+      return;
+    }
+
     this.init((function onInitDone() {
       if (this._conn) {
         var request = this._pendingRequest = this._conn.sendMMI(message);
@@ -64,6 +70,42 @@ var MmiManager = {
     }).bind(this));
   },
 
+  getImei: function _getImei(mobileConnection,simnum,callback){
+    var req = null;
+    req = mobileConnection.sendMMI('*#06#');
+    req.onsuccess = function() {
+        if (this.result && this.result.statusMessage) {
+            callback(this.result.statusMessage, simnum);
+        }
+    }
+    req.onerror = function getIMEI_ERROR(){
+        console.log('req[' + simnum + '].req.onerror');
+    }
+  },
+
+  getImeis: function mm_getImeis(message){
+    var mobileConnections = navigator.mozMobileConnections;
+    var messages = {};
+    messages = {
+        type: 'mmi-error',
+        error: 'error, no connection',
+        result: ''
+    };
+
+    for (var i = 0; i < mobileConnections.length; i++) {
+      if (mobileConnections[i]) {
+            this.getImei(mobileConnections[i], i, (function getimeiDone(imeinum, simnum) {
+            messages.type = 'mmi-success';
+            messages.title = 'IMEI';
+            messages.result += 'IMEI' + (simnum+1) + '\n';
+            messages.result += imeinum + '\n';
+            if((simnum+1)== mobileConnections.length){
+                window.postMessage(messages, this.COMMS_APP_ORIGIN);
+            }
+          }).bind(this));
+      }
+    }
+  },
   notifySuccess: function mm_notifySuccess(evt) {
     // Helper function to compose an informative message about a successful
     // request to query the call forwarding status.
