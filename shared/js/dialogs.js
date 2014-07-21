@@ -1,3 +1,9 @@
+/* jshint unused: true */
+/* global LazyLoader, $, pendingPick */
+/* exported Dialogs */
+
+'use strict';
+
 var Dialogs = {
   // show a confirm dialog
   confirm: function(options, onConfirm, onCancel) {
@@ -23,6 +29,15 @@ var Dialogs = {
       // show the confirm dialog
       dialog.classList.remove('hidden');
 
+      function close(ev) {
+        dialog.classList.add('hidden');
+        cancelButton.removeEventListener('click', onCancelClick);
+        confirmButton.removeEventListener('click', onConfirmClick);
+        ev.preventDefault();
+        ev.stopPropagation();
+        return false;
+      }
+
       // attach event handlers
       var onCancelClick = function(ev) {
         close(ev);
@@ -41,14 +56,6 @@ var Dialogs = {
       cancelButton.addEventListener('click', onCancelClick);
       confirmButton.addEventListener('click', onConfirmClick);
 
-      function close(ev) {
-        dialog.classList.add('hidden');
-        cancelButton.removeEventListener('click', onCancelClick);
-        confirmButton.removeEventListener('click', onConfirmClick);
-        ev.preventDefault();
-        ev.stopPropagation();
-        return false;
-      }
     });
   },
   //
