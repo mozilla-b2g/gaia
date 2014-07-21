@@ -766,6 +766,7 @@ aside.connecting {
 #welcome_browser {
   padding: 1.5rem 3rem 0 3rem;
   width: calc(100% - 6rem);
+  overflow: hidden;
 }
 
 #welcome_browser p {
