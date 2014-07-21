@@ -150,11 +150,48 @@ var UIManager = {
     this.hiddenWifiSecurity.addEventListener('change', this);
     this.wifiJoinButton.disabled = true;
 
+    // check the 'hidden-wifi-ssid' input everytime it is changed.
+    // and disabled the "Join" button when neither of the value listed
+    // below is true:
+    // the password is too short.
+    // the ssid name is null.
+    // the user name is null.
+    this.hiddenWifiSsid.addEventListener('keyup', function() {
+      this.wifiJoinButton.disabled = !WifiHelper.isValidInput(
+        this.hiddenWifiSecurity.value,
+        this.hiddenWifiPassword.value,
+        this.hiddenWifiIdentity.value,
+        this.hiddenWifiSsid.value
+      );
+    }.bind(this));
+
+    // check the 'hidden-wifi-identity' input everytime it is changed.
+    // and disabled the "Join" button when neither of the value listed
+    // below is true:
+    // the password is too short.
+    // the ssid name is null.
+    // the user name is null.
+    this.hiddenWifiIdentity.addEventListener('keyup', function() {
+      this.wifiJoinButton.disabled = !WifiHelper.isValidInput(
+        this.hiddenWifiSecurity.value,
+        this.hiddenWifiPassword.value,
+        this.hiddenWifiIdentity.value,
+        this.hiddenWifiSsid.value
+      );
+    }.bind(this));
+
+    // check the 'hidden-wifi-password' input everytime it is changed.
+    // and disabled the "Join" button when neither of the value listed
+    // below is true:
+    // the password is too short.
+    // the ssid name is null.
+    // the user name is null.
     this.hiddenWifiPassword.addEventListener('keyup', function() {
       this.wifiJoinButton.disabled = !WifiHelper.isValidInput(
         this.hiddenWifiSecurity.value,
         this.hiddenWifiPassword.value,
-        this.hiddenWifiIdentity.value
+        this.hiddenWifiIdentity.value,
+        this.hiddenWifiSsid.value
       );
     }.bind(this));
 
@@ -365,6 +402,15 @@ var UIManager = {
         break;
       case 'hidden-wifi-security':
         var securityType = event.target.value;
+        // everytime the securityType changed, we must check if the account
+        // inputed is validate and modify the status of the join button
+        // according to the return value of function isValidInput.
+        this.wifiJoinButton.disabled = !WifiHelper.isValidInput(
+          this.hiddenWifiSecurity.value,
+          this.hiddenWifiPassword.value,
+          this.hiddenWifiIdentity.value,
+          this.hiddenWifiSsid.value
+        );
         WifiUI.handleHiddenWifiSecurity(securityType);
         break;
       // Date & Time

@@ -95,7 +95,7 @@ var WifiHelper = {
     return key === curkey;
   },
 
-  isValidInput: function(key, password, identity, eap) {
+  isValidInput: function(key, password, identity, ssid, eap) {
     function isValidWepKey(password) {
       switch (password.length) {
         case 5:
@@ -115,20 +115,23 @@ var WifiHelper = {
 
     switch (key) {
       case 'WPA-PSK':
-        if (!password || password.length < 8) {
+        if (!ssid || !password || password.length < 8 ) {
           return false;
         }
         break;
       case 'WPA-EAP':
         switch (eap) {
           case 'SIM':
+            if (!ssid) {
+              return false;
+            }
             break;
           case 'PEAP':
           case 'TLS':
           case 'TTLS':
             /* falls through */
           default:
-            if (!password || password.length < 1 ||
+            if (!ssid || !password || password.length < 1 ||
                 !identity || identity.length < 1) {
               return false;
             }
@@ -136,7 +139,7 @@ var WifiHelper = {
         }
         break;
       case 'WEP':
-        if (!password || !isValidWepKey(password)) {
+        if (!ssid || !password || !isValidWepKey(password)) {
           return false;
         }
         break;
