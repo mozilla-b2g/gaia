@@ -287,8 +287,20 @@ button::-moz-focus-inner {
   font-size: 1.6rem;
 }
 
-span.pinyin-toggle-button-small {
-  font-size: 70%;
+div.zh-encode-switcher-half {
+  margin-top: -0.8rem;
+}
+
+div.zh-encode-switcher {
+  width: 100%;
+  height: calc(50%);
+  padding: 0;
+  float: left;
+  font-size: 1.8rem;
+}
+
+div.zh-encode-switcher-selected {
+  color: #00AACC;
 }
 
 /* Alternatives menu -- this menu appears when you tap and hold a key that has

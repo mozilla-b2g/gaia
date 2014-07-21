@@ -320,9 +320,12 @@ LayoutManager.prototype._updateModifiedLayout = function() {
         // Add comma key if we asked too,
         // Only add the key at alternative pages or if
         // we didn't add the switching key.
+        // Add comma key in any page if needsCommaKey is
+        // set explicitly.
         if (overwrites[','] !== false &&
             (this.currentLayoutPage !== this.LAYOUT_PAGE_DEFAULT ||
-            !needsSwitchingKey)) {
+             !needsSwitchingKey ||
+             layout.needsCommaKey)) {
           var commaKey = {
             value: ',',
             ratio: 1,
