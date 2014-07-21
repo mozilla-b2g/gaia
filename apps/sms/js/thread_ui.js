@@ -2177,6 +2177,10 @@ var ThreadUI = global.ThreadUI = {
 
       Compose.clear();
 
+      // reset notice
+      this.resizeNotice.classList.add('hide');
+      this.convertNotice.classList.add('hide');
+
       // reset the counter
       this.counterLabel.dataset.counter = '';
       this.counterLabel.classList.remove('has-counter');
