@@ -11,6 +11,8 @@
    "app.update.channel": "",
    "app.update.interval": 86400,
    "app.update.url": "",
+   "app.update.battery-threshold.unplugged": 25,
+   "app.update.battery-threshold.plugged": 25,
    "apz.force-enable": true,
    "apz.overscroll.enabled": true,
    "audio.volume.alarm": 15,
