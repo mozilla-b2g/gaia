@@ -115,8 +115,7 @@ suite('ActivityHandler', function() {
   });
 
   suite('"share" activity', function() {
-    var shareActivity, blobs, names;
-    var arr = [];
+    var shareActivity;
     var panelPromise;
 
     setup(function() {
@@ -146,23 +145,6 @@ suite('ActivityHandler', function() {
 
     teardown(function() {
       ActivityHandler.leaveActivity();
-    });
-
-    test('test for pushing an attachments to an array', function() {
-      blobs = shareActivity.source.data.blobs;
-      names = shareActivity.source.data.filenames;
-      assert.ok(arr.length === 0);
-
-      blobs.forEach(function(blob, idx) {
-        var attachment = new Attachment(blob, {
-          name: names[idx],
-          isDraft: true
-        });
-        arr.push(attachment);
-      });
-      ThreadUI.cleanFields(true);
-      //checks an array length after pushing the data to an array
-      assert.ok(arr.length > 0);
     });
 
     test('moves to the composer panel', function() {

@@ -189,8 +189,8 @@ App.prototype.bindEvents = function() {
   // App
   this.once('viewfinder:visible', this.onCriticalPathDone);
   this.once('storage:checked:healthy', this.geolocationWatch);
-  this.on('camera:ready', this.hideSpinner);
-  this.on('camera:busy', this.onCameraBusy);
+  this.on('busy', this.onBusy);
+  this.on('ready', this.onReady);
   this.on('visible', this.onVisible);
   this.on('hidden', this.onHidden);
 
@@ -285,22 +285,6 @@ App.prototype.onCriticalPathDone = function() {
   // has its events bound and is ready for user interaction. All
   // required startup background processing should be complete.
   window.dispatchEvent(new CustomEvent('moz-app-loaded'));
-};
-
-/**
- * When the camera indicates it's busy it
- * sometimes passes a `type` string. When
- * this type matches one of our keys in the
- * `spinnerTimeouts` config, we display the
- * loading screen passing on the type.
- *
- * @param  {String} type
- * @private
- */
-App.prototype.onCameraBusy = function(type) {
-  debug('camera busy, type: %s', type);
-  var delay = this.settings.spinnerTimeouts.get(type);
-  if (delay) { this.showSpinner(type); }
 };
 
 /**
@@ -408,12 +392,28 @@ App.prototype.showSpinner = function(key) {
 };
 
 /**
+ * When the camera indicates it's busy it
+ * sometimes passes a `type` string. When
+ * this type matches one of our keys in the
+ * `spinnerTimeouts` config, we display the
+ * loading screen passing on the type.
+ *
+ * @param  {String} type
+ * @private
+ */
+App.prototype.onBusy = function(type) {
+  debug('camera busy, type: %s', type);
+  var delay = this.settings.spinnerTimeouts.get(type);
+  if (delay) { this.showSpinner(type); }
+};
+
+/**
  * Clears the loadings screen, or
  * any pending loading screen.
  *
  * @private
  */
-App.prototype.hideSpinner = function() {
+App.prototype.onReady = function() {
   debug('clear loading');
   var view = this.views.loading;
   clearTimeout(this.spinnerTimeout);

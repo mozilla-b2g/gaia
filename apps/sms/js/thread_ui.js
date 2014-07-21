@@ -287,9 +287,6 @@ var ThreadUI = global.ThreadUI = {
 
     this.initRecipients();
 
-    // Initialized here, but used in ThreadUI.cleanFields
-    this.previousPanel = null;
-
     this.multiSimActionButton = null;
 
     this.timeouts.update = null;
@@ -641,7 +638,7 @@ var ThreadUI = global.ThreadUI = {
   afterLeave: function thui_afterLeave(args) {
     if (Navigation.isCurrentPanel('thread-list')) {
       this.container.textContent = '';
-      this.cleanFields(true);
+      this.cleanFields();
       Threads.currentId = null;
     }
     if (!Navigation.isCurrentPanel('composer')) {
@@ -761,7 +758,7 @@ var ThreadUI = global.ThreadUI = {
     // instead of in afterEnter: Bug 1010223
 
     Threads.currentId = null;
-    this.cleanFields(true);
+    this.cleanFields();
     this.initRecipients();
     this.updateComposerHeader();
     this.container.textContent = '';
@@ -1083,7 +1080,7 @@ var ThreadUI = global.ThreadUI = {
     }
 
     return this._onNavigatingBack().then(function() {
-      this.cleanFields(true);
+      this.cleanFields();
       Navigation.toPanel('thread-list');
     }.bind(this)).catch(function(e) {
       e && console.error('Unexpected error while navigating back: ', e);
@@ -2166,33 +2163,21 @@ var ThreadUI = global.ThreadUI = {
     }
   },
 
-  cleanFields: function thui_cleanFields(forceClean) {
-    var clean = (function clean() {
-      // Compose.clear might cause a conversion from mms -> sms
-      // Therefore we're reseting the message type here because
-      // in messageComposerTypeHandler we're using this value to know
-      // if the message type changed, and to display the convertNotice
-      // accordingly
-      this.composeForm.dataset.messageType = 'sms';
+  cleanFields: function thui_cleanFields() {
+    // Compose.clear might cause a conversion from mms -> sms
+    // Therefore we're reseting the message type here because
+    // in messageComposerTypeHandler we're using this value to know
+    // if the message type changed, and to display the convertNotice
+    // accordingly
+    this.composeForm.dataset.messageType = 'sms';
 
-      Compose.clear();
+    Compose.clear();
 
-      // reset the counter
-      this.counterLabel.dataset.counter = '';
-      this.counterLabel.classList.remove('has-counter');
-    }).bind(this);
+    // reset the counter
+    this.counterLabel.dataset.counter = '';
+    this.counterLabel.classList.remove('has-counter');
 
-    // TODO understand this : bug 1009568
-    if (Navigation.isCurrentPanel(this.previousPanel) ||
-        (this.previousPanel && this.previousPanel.panel === 'composer')) {
-      if (forceClean) {
-        clean();
-      }
-    } else {
-      clean();
-    }
     this.enableSend();
-    this.previousPanel = Navigation.getCurrentPanel();
   },
 
   onSendClick: function thui_onSendClick() {
@@ -2247,7 +2232,7 @@ var ThreadUI = global.ThreadUI = {
     }
 
     // Clean composer fields (this lock any repeated click in 'send' button)
-    this.cleanFields(true);
+    this.cleanFields();
 
     // If there was a draft, it just got sent
     // so delete it

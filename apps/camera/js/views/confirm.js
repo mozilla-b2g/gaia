@@ -59,9 +59,19 @@ module.exports = View.extend({
   setupMediaFrame: function() {
     this.mediaFrame = new MediaFrame(this.els.mediaFrame, true,
                                      this.maxPreviewSize);
+    this.mediaFrame.video.onloading = this.onVideoLoading;
+    this.mediaFrame.video.onplaying = this.onVideoPlaying;
     addPanAndZoomHandlers(this.mediaFrame);
     window.addEventListener('resize', this.onResize);
     return this;
+  },
+
+  onVideoLoading: function() {
+    this.emit('loadingvideo', 'loadingVideo');
+  },
+
+  onVideoPlaying: function() {
+    this.emit('playingvideo');
   },
 
   clearMediaFrame: function() {

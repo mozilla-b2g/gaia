@@ -57,8 +57,8 @@ CameraController.prototype.bindEvents = function() {
   camera.on('shutter', app.firer('camera:shutter'));
   camera.on('configured', this.onCameraConfigured);
   camera.on('loaded', app.firer('camera:loaded'));
-  camera.on('ready', app.firer('camera:ready'));
-  camera.on('busy', app.firer('camera:busy'));
+  camera.on('ready', app.firer('ready'));
+  camera.on('busy', app.firer('busy'));
 
   // App
   app.on('viewfinder:focuspointchanged', this.onFocusPointChanged);
@@ -379,7 +379,7 @@ CameraController.prototype.shutdownCamera = function() {
  */
 CameraController.prototype.onGalleryClosed = function() {
   if (this.app.hidden) { return; }
-  this.camera.load(this.app.hideSpinner);
+  this.camera.load(this.app.onReady);
 };
 
 });
