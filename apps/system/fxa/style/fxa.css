@@ -156,7 +156,6 @@ ul {
 
 #fxa-user-email,
 #fxa-user-set-email {
-  display: inline-block;
   text-overflow: ellipsis;
   max-width: 100%;
   white-space: nowrap;
