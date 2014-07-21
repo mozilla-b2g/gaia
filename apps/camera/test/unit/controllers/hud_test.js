@@ -85,30 +85,25 @@ suite('controllers/hud', function() {
       sinon.assert.calledWith(this.app.on, 'settings:configured', this.controller.updateFlashSupport);
     });
 
-    test('Should set \'camera\' to \'busy\' on view when busy', function() {
-      assert.ok(this.hud.setter.calledWith('camera', 'busy'));
-      assert.ok(this.app.on.calledWith('camera:busy'));
+    test('Should disable the view when camera is busy', function() {
+      assert.ok(this.app.on.calledWith('camera:busy', this.hud.disable));
     });
 
-    test('Should set \'camera\' to \'ready\' on view when ready', function() {
-      assert.ok(this.hud.setter.calledWith('camera', 'ready'));
-      assert.ok(this.app.on.calledWith('camera:ready'));
+    test('Should enable the view when camera is ready', function() {
+      assert.ok(this.app.on.calledWith('camera:ready', this.hud.enable));
     });
 
-    test('Should set \'timer\' to \'active\' on view when started', function() {
-      assert.ok(this.hud.setter.calledWith('timer', 'active'));
-      assert.ok(this.app.on.calledWith('timer:started'));
+    test('Should hide the view when timer is started', function() {
+      assert.ok(this.app.on.calledWith('timer:started', this.hud.hide));
     });
 
-    test('Should set \'timer\' to \'inactive\' on view when timer ended or cleared', function() {
-      assert.ok(this.hud.setter.calledWith('timer', 'inactive'));
-      assert.ok(this.app.on.calledWith('timer:cleared'));
-      assert.ok(this.app.on.calledWith('timer:ended'));
+    test('Should show the view when timer ended or cleared', function() {
+      assert.ok(this.app.on.calledWith('timer:ended', this.hud.show));
+      assert.ok(this.app.on.calledWith('timer:cleared', this.hud.show));
     });
 
-    test('Should set `recording` state on hud', function() {
-      assert.ok(this.hud.setter.calledWith('recording'));
-      assert.ok(this.app.on.calledWith('change:recording'));
+    test('Should toggle the view when recorging changes', function() {
+      assert.ok(this.app.on.calledWith('change:recording', this.hud.toggler(true)));
     });
 
     test('Should enable camera button depending on support', function() {

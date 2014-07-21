@@ -26,7 +26,7 @@ module.exports.HudController = HudController;
 function HudController(app) {
   bindAll(this);
   this.app = app;
-  this.hud = app.views.hud;
+  this.view = app.views.hud;
   this.settings = app.settings;
   this.l10nGet = app.l10nGet;
   this.notification = app.views.notification;
@@ -42,12 +42,12 @@ function HudController(app) {
  */
 HudController.prototype.configure = function() {
   var hasDualCamera = this.settings.cameras.get('options').length > 1;
-  this.hud.enable('camera', hasDualCamera);
+  this.view.enable('camera', hasDualCamera);
   this.updateCamera();
 
   // Disable flash button until we
   // know whether the hardware has flash
-  this.hud.enable('flash', false);
+  this.view.enable('flash', false);
 };
 
 /**
@@ -61,29 +61,29 @@ HudController.prototype.bindEvents = function() {
   this.app.settings.mode.on('change:selected', this.updateFlashMode);
   this.app.settings.cameras.on('change:selected', this.updateCamera);
   this.app.on('settings:configured', this.updateFlashSupport);
-  this.app.once('criticalpathdone', this.hud.show);
+  this.app.once('criticalpathdone', this.view.show);
 
   // We 'debouce' some UI callbacks to prevent
   // thrashing the hardware when a user taps repeatedly.
   // This means the first calback will fire instantly but
   // subsequent events will be blocked for given time period.
-  this.hud.on('click:camera', debounce(this.onCameraClick, 500, true));
-  this.hud.on('click:settings', this.app.firer('settings:toggle'));
-  this.hud.on('click:flash', this.onFlashClick);
+  this.view.on('click:camera', debounce(this.onCameraClick, 500, true));
+  this.view.on('click:settings', this.app.firer('settings:toggle'));
+  this.view.on('click:flash', this.onFlashClick);
 
   // Camera
-  this.app.on('camera:ready', this.hud.setter('camera', 'ready'));
-  this.app.on('camera:busy', this.hud.setter('camera', 'busy'));
-  this.app.on('change:recording', this.hud.setter('recording'));
+  this.app.on('camera:ready', this.view.enable);
+  this.app.on('camera:busy', this.view.disable);
+  this.app.on('change:recording', this.view.toggler(true));
 
   // Timer
-  this.app.on('timer:cleared', this.hud.setter('timer', 'inactive'));
-  this.app.on('timer:started', this.hud.setter('timer', 'active'));
-  this.app.on('timer:ended', this.hud.setter('timer', 'inactive'));
+  this.app.on('timer:cleared', this.view.show);
+  this.app.on('timer:started', this.view.hide);
+  this.app.on('timer:ended', this.view.show);
 
   // Settings
-  this.app.on('settings:opened', this.hud.hide);
-  this.app.on('settings:closed', this.hud.show);
+  this.app.on('settings:opened', this.view.hide);
+  this.app.on('settings:closed', this.view.show);
 };
 
 HudController.prototype.onCameraClick = function() {
@@ -108,7 +108,7 @@ HudController.prototype.onFlashClick = function() {
   var ishdrOn = this.settings.hdr.selected('key') === 'on';
 
   setting.next();
-  this.hud.set('flashMode' , setting.selected('key'));
+  this.view.set('flashMode' , setting.selected('key'));
   this.notify(setting, ishdrOn);
 };
 
@@ -140,13 +140,13 @@ HudController.prototype.notify = function(setting, hdrDeactivated) {
 HudController.prototype.updateFlashMode = function() {
   var selected = this.settings.flashModes.selected();
   if (!selected) { return; }
-  this.hud.setFlashMode(selected);
+  this.view.setFlashMode(selected);
   debug('updated flash mode: %s', selected.key);
 };
 
 HudController.prototype.updateFlashSupport = function() {
   var supported = this.settings.flashModes.supported();
-  this.hud.enable('flash', supported);
+  this.view.enable('flash', supported);
   this.updateFlashMode();
   debug('flash supported: %s', supported);
 };
@@ -154,7 +154,7 @@ HudController.prototype.updateFlashSupport = function() {
 HudController.prototype.updateCamera = function() {
   var selected = this.settings.cameras.selected();
   if (!selected) { return; }
-  this.hud.setCamera(selected);
+  this.view.setCamera(selected);
   debug('updated camera: %s', selected.key);
 };
 

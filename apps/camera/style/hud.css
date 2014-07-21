@@ -20,9 +20,7 @@
 /**
  * hidden
  */
-.hud.hidden,
-.hud[timer=active],
-.hud[recording=true] {
+.hud.hidden {
   pointer-events: none;
   opacity: 0;
 }
@@ -31,7 +29,7 @@
  * disabled
  */
 
-.hud[camera=busy] {
+.hud.disabled {
   pointer-events: none;
 }
 

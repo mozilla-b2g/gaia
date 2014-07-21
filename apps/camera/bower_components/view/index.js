@@ -200,6 +200,18 @@ View.prototype.show =  function(key) {
   this.toggle(key, true);
 };
 
+View.prototype.toggler =  function(key, invert) {
+  var invertValue;
+  if (arguments.length === 1 && typeof key === 'boolean') {
+    invert = key;
+    key = '';
+  }
+  invertValue = invert;
+  return (function(value) {
+    this.toggle(key, invertValue? !value : value);
+  }).bind(this);
+};
+
 View.prototype.toggle = function(key, value) {
   if (arguments.length === 1 && typeof key === 'boolean') {
     value = key;
