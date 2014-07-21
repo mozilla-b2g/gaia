@@ -15,6 +15,7 @@ require(['config/require'], function() {
     // used by all header building blocks
     require('shared/font_size_utils');
 
+    var SettingsUtils = require('modules/settings_utils');
     var SettingsService = require('modules/settings_service');
     var PageTransitions = require('modules/page_transitions');
     var LazyLoader = require('shared/lazy_loader');
@@ -63,6 +64,7 @@ require(['config/require'], function() {
     SettingsService.init('root');
 
     var options = {
+      SettingsUtils: SettingsUtils,
       SettingsService: SettingsService,
       PageTransitions: PageTransitions,
       LazyLoader: LazyLoader,

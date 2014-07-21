@@ -9,6 +9,7 @@ define(function(require) {
   var FindMyDeviceItem = require('panels/root/findmydevice_item');
   var StorageUSBItem = require('panels/root/storage_usb_item');
   var StorageAppItem = require('panels/root/storage_app_item');
+  var WifiItem = require('panels/root/wifi_item');
 
   return function ctor_root_panel() {
     var root = Root();
@@ -18,6 +19,7 @@ define(function(require) {
     var findMyDeviceItem;
     var storageUsbItem;
     var storageAppItem;
+    var wifiItem;
 
     return SettingsPanel({
       onInit: function rp_onInit(panel) {
@@ -38,6 +40,7 @@ define(function(require) {
         });
         storageAppItem = StorageAppItem(
           panel.querySelector('.application-storage-desc'));
+        wifiItem = WifiItem(panel.querySelector('#wifi-desc'));
       },
       onBeforeShow: function rp_onBeforeShow() {
         languageItem.enabled = true;
@@ -45,6 +48,7 @@ define(function(require) {
         findMyDeviceItem.enabled = true;
         storageUsbItem.enabled = true;
         storageAppItem.enabled = true;
+        wifiItem.enabled = true;
       },
       onShow: function rp_onShow() {
         // XXX: Set data-ready to true to indicate that the first panel is
@@ -59,6 +63,7 @@ define(function(require) {
         findMyDeviceItem.enabled = false;
         storageUsbItem.enabled = false;
         storageAppItem.enabled = false;
+        wifiItem.enabled = false;
       }
     });
   };
