@@ -1,8 +1,9 @@
 'use strict';
 
 /* global InputMethodGlue, InputMethodLoader, InputMethodManager,
-          Promise, KeyEvent */
+          IMEngineSettings, Promise, KeyEvent */
 
+require('/js/keyboard/settings.js');
 require('/js/keyboard/input_method_manager.js');
 
 suite('InputMethodGlue', function() {
@@ -363,6 +364,9 @@ suite('InputMethodLoader', function() {
 
 suite('InputMethodManager', function() {
   var realInputMethods;
+  var imEngineSettingsStub;
+  var app;
+  var initSettingsPromise;
 
   suiteSetup(function() {
     realInputMethods = window.InputMethods;
@@ -372,12 +376,31 @@ suite('InputMethodManager', function() {
     window.InputMethods = realInputMethods;
   });
 
+  setup(function () {
+    imEngineSettingsStub = this.sinon.stub(IMEngineSettings.prototype);
+    this.sinon.stub(window, 'IMEngineSettings').returns(imEngineSettingsStub);
+    initSettingsPromise = Promise.resolve({
+      suggestionsEnabled: true,
+      correctionsEnabled: true
+    });
+    imEngineSettingsStub.initSettings.returns(initSettingsPromise);
+
+    app = {
+      promiseManager: {},
+      layoutManager: {
+        currentModifiedLayout: {
+          autoCorrectLanguage: 'xx-XX'
+        }
+      }
+    };
+  });
+
   test('start', function() {
     window.InputMethods = {
       'default': realInputMethods['default']
     };
 
-    var manager = new InputMethodManager({});
+    var manager = new InputMethodManager(app);
     manager.start();
 
     assert.equal(manager.loader.app, manager.app);
@@ -389,12 +412,12 @@ suite('InputMethodManager', function() {
       'default': realInputMethods['default']
     };
 
-    var manager = new InputMethodManager({});
+    var manager = new InputMethodManager(app);
     manager.start();
     manager.loader.SOURCE_DIR = './fake-imes/';
 
-    var dataPromise = new Promise(function(resolve) {
-      resolve(['foo', 'bar']);
+    var dataPromise = Promise.resolve({
+      value: 'data'
     });
 
     var p = manager.switchCurrentIMEngine('foo', dataPromise);
@@ -405,7 +428,12 @@ suite('InputMethodManager', function() {
       assert.equal(manager.currentIMEngine, imEngine, 'currentIMEngine is set');
 
       var activateStub = imEngine.activate;
-      assert.isTrue(activateStub.calledWith('foo', 'bar'));
+      assert.isTrue(activateStub.calledWithExactly('xx-XX', {
+        value: 'data'
+      }, {
+        suggest: true,
+        correct: true
+      }));
       assert.equal(activateStub.getCall(0).thisValue,
         imEngine);
 
@@ -422,12 +450,12 @@ suite('InputMethodManager', function() {
       'default': realInputMethods['default']
     };
 
-    var manager = new InputMethodManager({});
+    var manager = new InputMethodManager(app);
     manager.start();
     manager.loader.SOURCE_DIR = './fake-imes/';
 
-    var dataPromise = new Promise(function(resolve) {
-      resolve(['foo', 'bar']);
+    var dataPromise = Promise.resolve({
+      value: 'data'
     });
 
     var p = manager.switchCurrentIMEngine('bar', dataPromise);
@@ -447,7 +475,7 @@ suite('InputMethodManager', function() {
       'default': realInputMethods['default']
     };
 
-    var manager = new InputMethodManager({});
+    var manager = new InputMethodManager(app);
     manager.start();
     manager.loader.SOURCE_DIR = './fake-imes/';
 
@@ -459,7 +487,10 @@ suite('InputMethodManager', function() {
       assert.equal(manager.currentIMEngine, imEngine, 'currentIMEngine is set');
 
       var activateStub = imEngine.activate;
-      assert.isTrue(activateStub.calledWithExactly());
+      assert.isTrue(activateStub.calledWithExactly('xx-XX', undefined, {
+        suggest: true,
+        correct: true
+      }));
       assert.equal(activateStub.getCall(0).thisValue,
         imEngine);
 
@@ -476,13 +507,11 @@ suite('InputMethodManager', function() {
       'default': realInputMethods['default']
     };
 
-    var manager = new InputMethodManager({});
+    var manager = new InputMethodManager(app);
     manager.start();
     manager.loader.SOURCE_DIR = './fake-imes/';
 
-    var dataPromise = new Promise(function(resolve, reject) {
-      reject();
-    });
+    var dataPromise = Promise.reject();
 
     var p = manager.switchCurrentIMEngine('foo', dataPromise);
     p.then(function() {
@@ -501,12 +530,12 @@ suite('InputMethodManager', function() {
       'default': realInputMethods['default']
     };
 
-    var manager = new InputMethodManager({});
+    var manager = new InputMethodManager(app);
     manager.start();
     manager.loader.SOURCE_DIR = './fake-imes/';
 
-    var dataPromise = new Promise(function(resolve) {
-      resolve(['foo', 'bar']);
+    var dataPromise = Promise.resolve({
+      value: 'data'
     });
 
     var p1 = manager.switchCurrentIMEngine('foo', dataPromise);
@@ -536,12 +565,12 @@ suite('InputMethodManager', function() {
       'default': realInputMethods['default']
     };
 
-    var manager = new InputMethodManager({});
+    var manager = new InputMethodManager(app);
     manager.start();
     manager.loader.SOURCE_DIR = './fake-imes/';
 
-    var dataPromise = new Promise(function(resolve) {
-      resolve(['foo', 'bar']);
+    var dataPromise = Promise.resolve({
+      value: 'data'
     });
 
     var p = manager.switchCurrentIMEngine('foo', dataPromise);
@@ -552,7 +581,12 @@ suite('InputMethodManager', function() {
       assert.equal(manager.currentIMEngine, imEngine, 'currentIMEngine is set');
 
       var activateStub = imEngine.activate;
-      assert.isTrue(activateStub.calledWith('foo', 'bar'));
+      assert.isTrue(activateStub.calledWithExactly('xx-XX', {
+        value: 'data'
+      }, {
+        suggest: true,
+        correct: true
+      }));
       assert.equal(activateStub.getCall(0).thisValue,
         imEngine);
 
@@ -576,7 +610,12 @@ suite('InputMethodManager', function() {
 
         var activateStub = imEngine.activate;
         assert.isTrue(activateStub.calledTwice);
-        assert.isTrue(activateStub.getCall(1).calledWith('foo', 'bar'));
+        assert.isTrue(activateStub.calledWithExactly('xx-XX', {
+          value: 'data'
+        }, {
+          suggest: true,
+          correct: true
+        }));
         assert.equal(activateStub.getCall(1).thisValue,
           imEngine);
 

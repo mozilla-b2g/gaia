@@ -1,6 +1,6 @@
 'use strict';
 
-/* global app, IMERender, IMEngineSettings, Promise */
+/* global app, IMERender, Promise */
 
 // |app| is considered created and started at this point.
 // It was intentionally exposed from bootstrap.js to allow lagency code access
@@ -15,9 +15,6 @@ const HIDE_KEYBOARD_TIMEOUT = 500;
 var hideKeyboardTimeout = 0;
 
 app.upperCaseStateManager.onstatechange = handleUpperCaseStateChange;
-
-// User settings (in Settings database) are tracked within these modules
-var imEngineSettings;
 
 // We keep this promise in the global scope for the time being,
 // so they can be called as soon as we need it to.
@@ -40,13 +37,6 @@ setTimeout(function attachResizeListener() {
 function initKeyboard() {
   app.perfTimer.startTimer('initKeyboard');
   app.perfTimer.printTime('initKeyboard');
-
-  imEngineSettings = new IMEngineSettings();
-  imEngineSettings.promiseManager = app.settingsPromiseManager;
-  var imEngineSettingsInitPromise = imEngineSettings.initSettings();
-  imEngineSettingsInitPromise.catch(function rejected() {
-    console.error('Fatal Error! Failed to get initial imEngine settings.');
-  });
 
   // Initialize the rendering module
   IMERender.init();
@@ -362,28 +352,19 @@ function switchIMEngine(mustRender) {
   var imEngineName = layout.imEngine || 'default';
 
   // dataPromise resolves to an array of data to be sent to imEngine.activate()
-  var dataPromise = Promise.all(
-    [inputContextGetTextPromise, imEngineSettings.initSettings()])
-  .then(function(values) {
+  var dataPromise = inputContextGetTextPromise.then(function(value) {
     app.perfTimer.printTime('switchIMEngine:dataPromise resolved');
     var inputContext = app.inputContext;
 
-    // Resolve to this array
-    return [
-      layout.autoCorrectLanguage,
-      {
-        type: inputContext.inputType,
-        inputmode: inputContext.inputMode,
-        selectionStart: inputContext.selectionStart,
-        selectionEnd: inputContext.selectionEnd,
-        value: values[0],
-        inputContext: inputContext
-      },
-      {
-        suggest: values[1].suggestionsEnabled && !isGreekSMS(),
-        correct: values[1].correctionsEnabled && !isGreekSMS()
-      }
-    ];
+    // Resolve to this object containing information of inputContext
+    return {
+      type: inputContext.inputType,
+      inputmode: inputContext.inputMode,
+      selectionStart: inputContext.selectionStart,
+      selectionEnd: inputContext.selectionEnd,
+      value: value,
+      inputContext: inputContext
+    };
   }, function(error) {
     return Promise.reject(error);
   });

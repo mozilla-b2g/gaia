@@ -36,6 +36,10 @@ KeyboardApp.prototype._startComponents = function() {
   this.perfTimer.printTime('KeyboardApp._startComponents()');
   this.perfTimer.startTimer('KeyboardApp._startComponents()');
 
+  // SettingsPromiseManager wraps Settings DB methods into promises.
+  // This must be available to InputMethodManager and FeedbackManager.
+  this.settingsPromiseManager = new SettingsPromiseManager();
+
   // InputMethodManager is responsible of loading/activating input methods.
   this.inputMethodManager = new InputMethodManager(this);
   this.inputMethodManager.start();
@@ -44,9 +48,6 @@ KeyboardApp.prototype._startComponents = function() {
   // It also help us ensure there is only one current layout at the time.
   this.layoutManager = new LayoutManager(this);
   this.layoutManager.start();
-
-  // SettingsPromiseManager wraps Settings DB methods into promises.
-  this.settingsPromiseManager = new SettingsPromiseManager();
 
   // L10nLoader loads l10n.js. We call it's one and only load() method
   // only after we have run everything in the critical cold launch path.

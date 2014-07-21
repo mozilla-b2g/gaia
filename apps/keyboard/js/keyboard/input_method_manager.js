@@ -1,6 +1,6 @@
 'use strict';
 
-/* global Promise, KeyEvent */
+/* global IMEngineSettings, Promise, KeyEvent */
 
 /*
  * InputMethodManager manages life cycle of input methods.
@@ -313,6 +313,12 @@ InputMethodManager.prototype.start = function() {
   this.loader = new InputMethodLoader(this.app);
   this.loader.start();
 
+  this.imEngineSettings = new IMEngineSettings();
+  this.imEngineSettings.promiseManager = this.app.settingsPromiseManager;
+  this.imEngineSettings.initSettings().catch(function rejected() {
+    console.error('Fatal Error! Failed to get initial imEngine settings.');
+  });
+
   this.currentIMEngine = this.loader.getInputMethod('default');
 
   this._switchStateId = 0;
@@ -344,8 +350,10 @@ InputMethodManager.prototype.switchCurrentIMEngine = function(imEngineName,
   // Create our own promise by resolving promise from loader and the passed
   // dataPromise, then do our things.
   var loaderPromise = this.loader.getInputMethodAsync(imEngineName);
+  var settingsPromise = this.imEngineSettings.initSettings();
 
-  var p = Promise.all([loaderPromise, dataPromise]).then(function(values) {
+  var p = Promise.all([loaderPromise, dataPromise, settingsPromise])
+  .then(function(values) {
     if (switchStateId !== this._switchStateId) {
       console.log('InputMethodManager: ' +
         'Promise is resolved after another switchCurrentIMEngine() call. ' +
@@ -357,10 +365,18 @@ InputMethodManager.prototype.switchCurrentIMEngine = function(imEngineName,
     }
 
     var imEngine = values[0];
-    var dataValues = values[1];
 
     if (typeof imEngine.activate === 'function') {
-      imEngine.activate.apply(imEngine, dataValues);
+      var dataValues = values[1];
+      var settingsValues = values[2];
+      imEngine.activate(
+        this.app.layoutManager.currentModifiedLayout.autoCorrectLanguage,
+        dataValues,
+        {
+          suggest: settingsValues.suggestionsEnabled,
+          correct: settingsValues.correctionsEnabled
+        }
+      );
     }
     this.currentIMEngine = imEngine;
 
