@@ -238,22 +238,25 @@ var UpdateManager = {
 
     if (this._downloading) {
       var cancel = {
-        title: _('no'),
+        title: 'no',
         callback: this.cancelPrompt.bind(this)
       };
 
       var confirm = {
-        title: _('yes'),
+        title: 'yes',
         callback: this.cancelAllDownloads.bind(this)
       };
 
-      var cancelAllDownloads = _('cancelAllDownloads');
-      var wantToCancelAll = _('wantToCancelAll');
       var screen = document.getElementById('screen');
 
-      CustomDialog
-        .show(cancelAllDownloads, wantToCancelAll, cancel, confirm, screen)
-        .setAttribute('data-z-index-level', 'system-dialog');
+      CustomDialog.show(
+        'cancelAllDownloads',
+        'wantToCancelAll',
+        cancel,
+        confirm,
+        screen
+      )
+      .setAttribute('data-z-index-level', 'system-dialog');
     } else {
       this.launchDownload();
     }

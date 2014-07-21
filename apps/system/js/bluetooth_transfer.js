@@ -160,35 +160,40 @@ var BluetoothTransfer = {
   },
 
   showReceivePrompt: function bt_showReceivePrompt(evt) {
-    var _ = navigator.mozL10n.get;
 
     var address = evt.address;
     var fileName = evt.fileName;
     var fileSize = this.humanizeSize(evt.fileLength);
     var cancel = {
-      title: _('deny'),
+      title: 'deny',
       callback: this.declineReceive.bind(this, address)
     };
 
     var confirm = {
-      title: _('transfer'),
+      title: 'transfer',
       callback: this.acceptReceive.bind(this, evt),
       recommend: true
     };
 
     var deviceName = '';
-    var acceptFileTransfer = _('acceptFileTransfer');
-    var wantToReceiveFile = _('wantToReceiveFile', {
-      deviceName: deviceName,
-      fileName: fileName,
-      fileSize: fileSize
-    });
     var screen = document.getElementById('screen');
     this.getPairedDevice(function getPairedDeviceComplete() {
       deviceName = this.getDeviceName(address);
-      CustomDialog
-        .show(acceptFileTransfer, wantToReceiveFile, cancel, confirm, screen)
-        .setAttribute('data-z-index-level', 'system-dialog');
+      CustomDialog.show(
+        'acceptFileTransfer',
+        {
+          id: 'wantToReceiveFile',
+          args: {
+            deviceName: deviceName,
+            fileName: fileName,
+            fileSize: fileSize
+          }
+        },
+        cancel,
+        confirm,
+        screen
+      )
+      .setAttribute('data-z-index-level', 'system-dialog');
     }.bind(this));
   },
 
@@ -227,9 +232,8 @@ var BluetoothTransfer = {
   },
 
   showStorageUnavaliablePrompt: function bt_showStorageUnavaliablePrompt(msg) {
-    var _ = navigator.mozL10n.get;
     var confirm = {
-      title: _('confirm'),
+      title: 'confirm',
       callback: function() {
         CustomDialog.hide();
       }
@@ -237,9 +241,8 @@ var BluetoothTransfer = {
 
     var body = msg;
     var screen = document.getElementById('screen');
-    CustomDialog
-      .show(_('cannotReceiveFile'), body, confirm, null, screen)
-      .setAttribute('data-z-index-level', 'system-dialog');
+    CustomDialog.show('cannotReceiveFile', body, confirm, null, screen)
+    .setAttribute('data-z-index-level', 'system-dialog');
   },
 
   checkStorageSpace: function bt_checkStorageSpace(fileSize, callback) {
@@ -256,13 +259,13 @@ var BluetoothTransfer = {
         // skip down to the code below
         break;
       case 'unavailable':
-        callback(false, _('sdcard-not-exist2'));
+        callback(false, 'sdcard-not-exist2');
         return;
       case 'shared':
-        callback(false, _('sdcard-in-use'));
+        callback(false, 'sdcard-in-use');
         return;
       default:
-        callback(false, _('unknown-error'));
+        callback(false, 'unknown-error');
         return;
       }
 
@@ -273,15 +276,15 @@ var BluetoothTransfer = {
         if (freereq.result >= fileSize)
           callback(true, '');
         else
-          callback(false, _('sdcard-no-space2'));
+          callback(false, 'sdcard-no-space2');
       };
       freereq.onerror = function() {
-        callback(false, _('cannotGetStorageState'));
+        callback(false, 'cannotGetStorageState');
       };
     };
 
     availreq.onerror = function(e) {
-      callback(false, _('cannotGetStorageState'));
+      callback(false, 'cannotGetStorageState');
     };
   },
 
@@ -400,21 +403,25 @@ var BluetoothTransfer = {
     var _ = navigator.mozL10n.get;
 
     var cancel = {
-      title: _('continueFileTransfer'),
+      title: 'continueFileTransfer',
       callback: this.continueTransfer.bind(this)
     };
 
     var confirm = {
-      title: _('cancel'),
+      title: 'cancel',
       callback: this.cancelTransfer.bind(this, address)
     };
 
-    var cancelFileTransfer = _('cancelFileTransfer');
     var screen = document.getElementById('screen');
 
-    CustomDialog
-      .show(cancelFileTransfer, cancelFileTransfer, cancel, confirm, screen)
-      .setAttribute('data-z-index-level', 'system-dialog');
+    CustomDialog.show(
+      'cancelFileTransfer',
+      'cancelFileTransfer',
+      cancel,
+      confirm,
+      screen
+    )
+    .setAttribute('data-z-index-level', 'system-dialog');
   },
 
   continueTransfer: function bt_continueTransfer() {
@@ -589,20 +596,19 @@ var BluetoothTransfer = {
   },
 
   showUnknownMediaPrompt: function bt_showUnknownMediaPrompt(fileName) {
-    var _ = navigator.mozL10n.get;
     var confirm = {
-      title: _('confirm'),
+      title: 'confirm',
       callback: function() {
         CustomDialog.hide();
       }
     };
 
-    var body = _('unknownMediaTypeToOpen') + ' ' + fileName;
     var screen = document.getElementById('screen');
-    CustomDialog
-      .show(_('cannotOpenFile'), body, confirm, null, screen)
-      .setAttribute('data-z-index-level', 'system-dialog');
+    var body = {id: 'unknownMediaTypeToOpenFile', args: {fileName: fileName}};
+    CustomDialog.show('cannotOpenFile', body, confirm, null, screen)
+    .setAttribute('data-z-index-level', 'system-dialog');
   }
+
 };
 
 BluetoothTransfer.init();

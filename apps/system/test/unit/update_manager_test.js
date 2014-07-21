@@ -1316,7 +1316,10 @@ suite('system/UpdateManager', function() {
         assert.isTrue(MockCustomDialog.mShown);
         assert.isFalse(MockUtilityTray.mShown);
 
-        assert.equal('cancelAllDownloads', MockCustomDialog.mShowedTitle);
+        assert.equal(
+          'cancelAllDownloads',
+          MockCustomDialog.mShowedTitle
+        );
         assert.equal('wantToCancelAll', MockCustomDialog.mShowedMsg);
 
         assert.equal('no', MockCustomDialog.mShowedCancel.title);

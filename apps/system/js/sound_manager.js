@@ -539,16 +539,15 @@
    */
   SoundManager.prototype.showCEWarningDialog = function sm_showCEDialog(okfn) {
     // Show dialog.
-    var _ = navigator.mozL10n.get;
 
     var ceTitle = {
       'icon': '/style/sound_manager/images/icon_Volumewarning.png',
-      'title': _('ceWarningtitle')
+      'id': 'ceWarningtitle'
     };
-    var ceMsg = _('ceWarningcontent');
+    var ceMsg = 'ceWarningcontent';
 
     var cancel = {
-      'title': _('ok')
+      'title': 'ok'
     };
 
     var self = this;

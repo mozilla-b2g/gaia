@@ -563,7 +563,6 @@ suite('dialer/keypad', function() {
 
         test('should display an error if no voicemail number is set',
         function() {
-          var getSpy = this.sinon.spy(MockMozL10n, 'get');
           var showSpy = this.sinon.spy(CustomDialog, 'show');
           MockNavigatorSettings.mSettings['ril.iccInfo.mbdn'] = '';
 
@@ -587,10 +586,6 @@ suite('dialer/keypad', function() {
           sinon.assert.calledWith(showSpy,
             expectedVoicemailDialog.title, expectedVoicemailDialog.text,
             expectedVoicemailDialog.cancel, expectedVoicemailDialog.confirm);
-          sinon.assert.calledWith(getSpy, 'voicemailNoNumberTitle');
-          sinon.assert.calledWith(getSpy, 'voicemailNoNumberText');
-          sinon.assert.calledWith(getSpy, 'voicemailNoNumberSettings');
-          sinon.assert.calledWith(getSpy, 'voicemailNoNumberCancel');
         });
 
         test('should open settings app with MozActivity when no voicemail set',

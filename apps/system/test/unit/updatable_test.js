@@ -670,23 +670,30 @@ suite('system/Updatable', function() {
         assert.equal('systemUpdateReady', MockCustomDialog.mShowedTitle);
         assert.equal('wantToInstallNow', MockCustomDialog.mShowedMsg);
 
-        assert.equal('later', MockCustomDialog.mShowedCancel.title);
-        assert.equal('installNow', MockCustomDialog.mShowedConfirm.title);
+        assert.equal(
+          'later',
+          MockCustomDialog.mShowedCancel.title
+        );
+        assert.equal(
+          'installNow',
+          MockCustomDialog.mShowedConfirm.title);
       });
     }
 
     function testSystemApplyPromptBatteryNok(expectedThreshold) {
       test('battery prompt shown', function() {
-        var getSpy =
-          navigator.mozL10n.get.withArgs(SYSTEM_LOW_BATTERY_L10N_KEY);
 
         assert.isTrue(MockCustomDialog.mShown);
-        assert.deepEqual(
-          getSpy.getCall(0).args[1],
-          { threshold: expectedThreshold }
-        );
         assert.equal('systemUpdateReady', MockCustomDialog.mShowedTitle);
-        assert.equal(SYSTEM_LOW_BATTERY_L10N_KEY, MockCustomDialog.mShowedMsg);
+
+        assert.deepEqual(
+          MockCustomDialog.mShowedMsg,
+          {
+            id: SYSTEM_LOW_BATTERY_L10N_KEY,
+            args: { threshold: expectedThreshold }
+          }
+        );
+
         assert.equal('ok', MockCustomDialog.mShowedCancel.title);
       });
 

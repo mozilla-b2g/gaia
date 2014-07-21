@@ -106,7 +106,6 @@ ActionsMenu.prototype = {
    * @param {Event} event The event.
    */
   _delete: function(event) {
-    var _ = navigator.mozL10n.get;
     var self = this;
     this.close();
 
@@ -116,14 +115,14 @@ ActionsMenu.prototype = {
     }
 
     var cancelButton = {
-      title: _('delete-cancel'),
+      title: 'delete-cancel',
       callback: function() {
         CustomDialog.hide();
         self._finish('cancel');
       }
     };
     var confirmButton = {
-      title: _('delete-confirm'),
+      title: 'delete-confirm',
       callback: function() {
         CustomDialog.hide();
         Toaster.showToast({
@@ -136,7 +135,8 @@ ActionsMenu.prototype = {
       }
     };
     CustomDialog.show(
-      _('delete-title'), _(descKey, {tone: self._tone.name}),
+      'delete-title',
+      {id: descKey, args: {tone: self._tone.name}},
       cancelButton, confirmButton
     );
   },
