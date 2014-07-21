@@ -48,9 +48,9 @@ ControlsController.prototype.bindEvents = function() {
   // App
   this.app.on('change:recording', this.onRecordingChange);
   this.app.on('camera:shutter', this.captureHighlightOff);
-  this.app.on('camera:busy', this.view.disable);
+  this.app.on('busy', this.view.disable);
+  this.app.on('ready', this.restore);
   this.app.on('newthumbnail', this.onNewThumbnail);
-  this.app.on('camera:ready', this.restore);
   this.app.once('criticalpathdone', this.view.show);
 
   // View

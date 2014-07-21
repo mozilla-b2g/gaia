@@ -73,8 +73,9 @@ return View.extend({
     this.currentIndex = this.lastIndex = 0;
 
     this.frame = new MediaFrame(this.els.mediaFrame, true, this.maxPreviewSize);
-    this.frame.video.onplaying = this.handleVideoPlay;
-    this.frame.video.onpaused = this.handleVideoStop;
+    this.frame.video.onloading = this.onVideoLoading;
+    this.frame.video.onplaying = this.onVideoPlaying;
+    this.frame.video.onpaused = this.onVideoPaused;
 
     addPanAndZoomHandlers(this.frame, this.swipeCallback);
   },
@@ -174,7 +175,7 @@ return View.extend({
 
     // First, stop the video if there is one and it is playing.
     if (this.videoPlaying) {
-      this.handleVideoStop();
+      this.onVideoPaused();
     }
 
     // Now animate the item off the screen
@@ -281,16 +282,22 @@ return View.extend({
       video.rotation);
   },
 
-  handleVideoPlay: function() {
+  onVideoLoading: function() {
+    this.emit('loadingvideo', 'loadingVideo');
+  },
+
+  onVideoPlaying: function() {
     if (this.videoPlaying) {
       return;
     }
 
     this.videoPlaying = true;
     this.previewMenuFadeOut();
+
+    this.emit('playingvideo');
   },
 
-  handleVideoStop: function() {
+  onVideoPaused: function() {
     if (!this.videoPlaying) {
       return;
     }
