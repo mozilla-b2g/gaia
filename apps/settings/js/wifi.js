@@ -629,17 +629,21 @@ navigator.mozL10n.once(function wifiSettings() {
     }
 
     // scan and list imported certificates
-    function scan() {
+    function scan(isDebugging) {
+      console.log('--> scan imported certificates');
       clear();
 
       var certRequest = gWifiManager.getImportedCerts();
 
       certRequest.onsuccess = function() {
+        var debugMsg = (isDebugging != null) ? ' scan before getList' : '';
+        console.log('--> certRequest.onsuccess!!!' + debugMsg);
         var certList = certRequest.result;
         // save the imported server certificates
         certificateList = certList.ServerCert;
 
         // display certificate list
+        console.log('--> certificateList.length = ' + certificateList.length);
         if (certificateList.length) {
           for (var i = 0; i < certificateList.length; i++) {
             list.appendChild(newCertificateItem(certificateList[i]));
@@ -661,6 +665,8 @@ navigator.mozL10n.once(function wifiSettings() {
         }
       };
       certRequest.onerror = function() {
+        var debugMsg = (isDebugging != null) ? ' scan before getList' : '';
+        console.log('--> certRequest.onerror!!! ' + debugMsg);
         console.warn('getImportedCerts failed');
       };
 
@@ -672,6 +678,7 @@ navigator.mozL10n.once(function wifiSettings() {
     // Detect platform is supporting certificate or not..
     if (gWifiManager.getImportedCerts) {
       // API is ready.
+      console.log('--> init(): gCertificateList scan() list');
       scan();
     } else {
       // API is not ready yet.
@@ -726,7 +733,9 @@ navigator.mozL10n.once(function wifiSettings() {
       select.remove(1);
     }
 
+    gCertificateList.scan('debugging');
     var certificateList = gCertificateList.getList();
+    console.log('--> certificateList.length = ' + certificateList.length);
     for (var i = 0; i < certificateList.length; i++) {
       var option = document.createElement('option');
       option.text = certificateList[i];
@@ -813,6 +822,7 @@ navigator.mozL10n.once(function wifiSettings() {
 
         authPhase2 = dialog.querySelector('li.auth-phase2 select');
         certificate = dialog.querySelector('li.server-certificate select');
+        console.log('--> loadImportedCertificateOptions');
         loadImportedCertificateOptions(certificate);
         description = dialog.querySelector('li.server-certificate-description');
       }
