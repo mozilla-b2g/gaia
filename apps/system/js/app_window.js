@@ -392,7 +392,9 @@
       return;
     }
 
-    this._killed = true;
+    if (!this.isHomescreen) {
+      this._killed = true;
+    }
 
     if (DEBUG) {
       AppWindow[this.instanceID] = null;
