@@ -240,7 +240,7 @@ suite('system/LockScreenConnInfoManager >', function() {
 
         subject._cellbroadcastLabel = DUMMYTEXT1;
 
-        var l10nSpy = sinon.spy(navigator.mozL10n, 'localize');
+        var l10nSpy = sinon.spy(navigator.mozL10n, 'setAttributes');
 
         var l10nArgs = {
           carrier: carrier,
@@ -253,7 +253,7 @@ suite('system/LockScreenConnInfoManager >', function() {
                                      'operator-info',
                                      l10nArgs));
 
-        navigator.mozL10n.localize.restore();
+        navigator.mozL10n.setAttributes.restore();
 
         subject._cellbroadcastLabel = null;
     });
@@ -283,7 +283,7 @@ suite('system/LockScreenConnInfoManager >', function() {
         roaming: true
       };
 
-      var l10nSpy = sinon.spy(navigator.mozL10n, 'localize');
+      var l10nSpy = sinon.spy(navigator.mozL10n, 'setAttributes');
 
       var l10nArgs = {
         operator: MockMobileOperator.mOperator
@@ -295,7 +295,7 @@ suite('system/LockScreenConnInfoManager >', function() {
                                    'roaming',
                                    l10nArgs));
 
-      navigator.mozL10n.localize.restore();
+      navigator.mozL10n.setAttributes.restore();
     });
 
     test('Show localized roaming',
@@ -310,12 +310,12 @@ suite('system/LockScreenConnInfoManager >', function() {
           operator: 'operator'
         };
 
-        var l10nSpy = this.sinon.spy(navigator.mozL10n, 'localize');
+        var l10nSpy = this.sinon.spy(navigator.mozL10n, 'setAttributes');
         subject.updateConnStates();
         assert.ok(l10nSpy.calledWith(domConnstateL1, 'roaming', l10nArgs),
           'Roaming network name displayed localized with proper string');
 
-        navigator.mozL10n.localize.restore();
+        navigator.mozL10n.setAttributes.restore();
     });
 
     suite('Show correct card states when emergency calls only', function() {
@@ -539,7 +539,9 @@ suite('system/LockScreenConnInfoManager >', function() {
           var simIDLine2 = domConnStateList[1].domConnstateIDLine;
           assert.isTrue(simIDLine1.hidden);
           assert.isTrue(simIDLine2.hidden);
-          assert.equal(connState1line1.textContent, 'emergencyCallsOnly');
+          assert.equal(
+            connState1line1.getAttribute('data-l10n-id'),
+            'emergencyCallsOnly');
           SIMSlotManager.noSIMCardConnectedToNetwork.restore();
       });
 
@@ -553,7 +555,7 @@ suite('system/LockScreenConnInfoManager >', function() {
       });
 
       test('Should show carrier and region on Line 2', function() {
-        var l10nSpy = sinon.spy(navigator.mozL10n, 'localize');
+        var l10nSpy = sinon.spy(navigator.mozL10n, 'setAttributes');
 
         var l10nArgs = {
           carrier: MockMobileOperator.mCarrier,

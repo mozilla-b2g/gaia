@@ -95,7 +95,6 @@ if (typeof window.importer === 'undefined') {
       var recommend = serviceConnector.name === 'facebook';
       var dialog = parent.document.getElementById('confirmation-message');
       parent.LazyLoader.load(dialog, function() {
-        navigator.mozL10n.translate(dialog);
         LazyLoader.load('/shared/js/confirm.js',
           function() {
           ConfirmDialog.show(_('connectionLost'), _('connectionLostMsg'),
@@ -342,8 +341,8 @@ if (typeof window.importer === 'undefined') {
       var serviceName = connector.name;
 
       // Setting UI title
-      document.querySelector('#content h1').textContent =
-                                          _(serviceName + '-serviceName');
+      document.querySelector('#content h1').
+        setAttribute('data-l10n-id', serviceName + '-serviceName');
       document.body.classList.add(serviceName);
 
       serviceConnector = connector;

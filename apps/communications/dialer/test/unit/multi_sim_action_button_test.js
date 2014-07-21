@@ -310,9 +310,9 @@ suite('multi SIM action button', function() {
     };
 
     var shouldNotShowAnIndicator = function() {
-      var localizeSpy = this.sinon.spy(MockMozL10n, 'localize');
+      var setAttributesSpy = this.sinon.spy(MockMozL10n, 'setAttributes');
       initSubject();
-      sinon.assert.notCalled(localizeSpy);
+      sinon.assert.notCalled(setAttributesSpy);
     };
 
     setup(function() {
@@ -333,27 +333,31 @@ suite('multi SIM action button', function() {
       });
 
       test('has a default localized SIM indicator', function() {
-        var localizeSpy = this.sinon.spy(MockMozL10n, 'localize');
+        var setAttributesSpy = this.sinon.spy(MockMozL10n, 'setAttributes');
         initSubject();
-        sinon.assert.calledWith(localizeSpy, simIndication, 'sim-picker-button',
+        sinon.assert.calledWith(setAttributesSpy,
+                                simIndication,
+                                'sim-picker-button',
                                 {n: expectedCardIndex+1});
       });
 
       test('has a custom localized SIM indicator', function() {
-        var localizeSpy = this.sinon.spy(MockMozL10n, 'localize');
+        var setAttributesSpy = this.sinon.spy(MockMozL10n, 'setAttributes');
         simIndication.dataset.l10nId = 'expected';
         initSubject();
-        sinon.assert.calledWith(localizeSpy, simIndication, 'expected',
+        sinon.assert.calledWith(setAttributesSpy, simIndication, 'expected',
                                 {n: expectedCardIndex+1});
       });
 
       test('indicator changes when settings change', function() {
-        var localizeSpy = this.sinon.spy(MockMozL10n, 'localize');
+        var setAttributesSpy = this.sinon.spy(MockMozL10n, 'setAttributes');
 
         MockSettingsListener.mTriggerCallback(
           'ril.telephony.defaultServiceId', 1);
 
-        sinon.assert.calledWith(localizeSpy, simIndication, 'sim-picker-button',
+        sinon.assert.calledWith(setAttributesSpy,
+                                simIndication,
+                                'sim-picker-button',
                                 {n: 2});
       });
 
@@ -379,12 +383,12 @@ suite('multi SIM action button', function() {
         });
 
         test('should show SIM indicator with in-use serviceId', function() {
-          var localizeSpy = this.sinon.spy(MockMozL10n, 'localize');
+          var setAttributesSpy = this.sinon.spy(MockMozL10n, 'setAttributes');
 
           MockTelephonyHelper.mInUseSim = 1;
           MockNavigatorMozTelephony.mTriggerEvent({type: 'callschanged'});
 
-          sinon.assert.calledWith(localizeSpy, simIndication,
+          sinon.assert.calledWith(setAttributesSpy, simIndication,
                                   'sim-picker-button', {n: 2});
         });
 
@@ -393,11 +397,11 @@ suite('multi SIM action button', function() {
           MockTelephonyHelper.mInUseSim = 1;
           MockNavigatorMozTelephony.mTriggerEvent({type: 'callschanged'});
 
-          var localizeSpy = this.sinon.spy(MockMozL10n, 'localize');
+          var setAttributesSpy = this.sinon.spy(MockMozL10n, 'setAttributes');
           MockTelephonyHelper.mTeardown();
           MockNavigatorMozTelephony.mTriggerEvent({type: 'callschanged'});
 
-          sinon.assert.calledWith(localizeSpy, simIndication,
+          sinon.assert.calledWith(setAttributesSpy, simIndication,
                                   'sim-picker-button', {n: 1});
         });
       });
