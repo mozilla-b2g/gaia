@@ -132,6 +132,13 @@ require.config({
         'main',
         'modules/mvvm/observable'
       ]
+    },
+    {
+      name: 'panels/media_storage/panel',
+      exclude: [
+        'main',
+        'modules/mvvm/observable'
+      ]
     }
   ]
 });

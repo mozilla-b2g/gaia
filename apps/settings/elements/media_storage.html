@@ -7,7 +7,7 @@
     </header>
 
     <div>
-      <div id="volume-list">
+      <div class="volume-list">
       </div>
       <header>
         <h2 data-l10n-id="advanced">Advanced</h2>
@@ -16,7 +16,7 @@
         <li>
           <p data-l10n-id="default-media-location">Default media location</p>
           <span class="button icon icon-dialog">
-            <select id="defaultMediaLocation" name="device.storage.writable.name">
+            <select class="defaultMediaLocation" name="device.storage.writable.name">
             </select>
           </span>
         </li>
@@ -35,16 +35,17 @@
         <button id="format-sdcard-ok-btn" class="danger" data-l10n-id="format-sdcard-btnformat">Format</button>
       </menu>
     </form>
-    <form data-type="confirm" role="dialog" id="default-location-popup-container" hidden>
+    <form data-type="confirm" role="dialog" class="default-location-popup-container" hidden>
       <section>
         <p data-l10n-id="change-default-location-confirm">Changing the default media storage volume will affect where photos, videos, downloads and other media will be saved to by default. Existing data will remain in its current location.</p>
       </section>
       <menu>
-        <button id="default-location-cancel-btn" data-l10n-id="cancel">Cancel</button>
-        <button id="default-location-change-btn" data-l10n-id="change">Change</button>
+        <button class="default-location-cancel-btn" data-l10n-id="cancel">Cancel</button>
+        <button class="default-location-change-btn" data-l10n-id="change">Change</button>
       </menu>
     </form>
-    <script src="js/media_storage.js"></script>
+
+    <panel data-path="panels/media_storage/panel"></panel>
 
   </template>
 </element>
