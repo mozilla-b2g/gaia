@@ -100,7 +100,7 @@ suite('controllers/overlay', function() {
     test('Should show spinner if the application is not localized', function() {
       this.app.localized.returns(false);
       this.controller.createOverlay('shutdown');
-      assert.isTrue(this.app.showLoading.called);
+      assert.isTrue(this.app.showSpinner.called);
     });
 
   });

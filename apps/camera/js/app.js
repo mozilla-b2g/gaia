@@ -98,6 +98,7 @@ function App(options) {
 App.prototype.boot = function() {
   debug('boot');
   if (this.booted) { return; }
+  this.showSpinner('requestingCamera');
   this.bindEvents();
   this.initializeViews();
   this.runControllers();
@@ -188,7 +189,7 @@ App.prototype.bindEvents = function() {
   // App
   this.once('viewfinder:visible', this.onCriticalPathDone);
   this.once('storage:checked:healthy', this.geolocationWatch);
-  this.on('camera:ready', this.clearLoading);
+  this.on('camera:ready', this.hideSpinner);
   this.on('camera:busy', this.onCameraBusy);
   this.on('visible', this.onVisible);
   this.on('hidden', this.onHidden);
@@ -290,16 +291,16 @@ App.prototype.onCriticalPathDone = function() {
  * When the camera indicates it's busy it
  * sometimes passes a `type` string. When
  * this type matches one of our keys in the
- * `loadingScreen` config, we display the
- * loading screen in the given number
- * of milliseconds.
+ * `spinnerTimeouts` config, we display the
+ * loading screen passing on the type.
  *
  * @param  {String} type
  * @private
  */
 App.prototype.onCameraBusy = function(type) {
-  var delay = this.settings.loadingScreen.get(type);
-  if (delay) { this.showLoading(delay); }
+  debug('camera busy, type: %s', type);
+  var delay = this.settings.spinnerTimeouts.get(type);
+  if (delay) { this.showSpinner(type); }
 };
 
 /**
@@ -390,18 +391,20 @@ App.prototype.l10nGet = function(key) {
  * Shows the loading screen after the
  * number of ms defined in config.js
  *
- * @param {Number} delay
+ * @param {String} type
  * @private
  */
-App.prototype.showLoading = function(delay) {
-  debug('show loading delay: %s', delay);
+App.prototype.showSpinner = function(key) {
+  debug('show loading type: %s', key);
+  var ms = this.settings.spinnerTimeouts.get(key) || 0;
   var self = this;
-  clearTimeout(this.loadingTimeout);
-  this.loadingTimeout = setTimeout(function() {
+
+  clearTimeout(this.spinnerTimeout);
+  this.spinnerTimeout = setTimeout(function() {
     self.views.loading = new self.LoadingView();
     self.views.loading.appendTo(self.el).show();
     debug('loading shown');
-  }, delay);
+  }, ms);
 };
 
 /**
@@ -410,10 +413,10 @@ App.prototype.showLoading = function(delay) {
  *
  * @private
  */
-App.prototype.clearLoading = function() {
+App.prototype.hideSpinner = function() {
   debug('clear loading');
   var view = this.views.loading;
-  clearTimeout(this.loadingTimeout);
+  clearTimeout(this.spinnerTimeout);
   if (!view) { return; }
   view.hide(view.destroy);
   this.views.loading = null;
