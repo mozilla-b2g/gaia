@@ -106,10 +106,18 @@ var SimLock = {
         // If the former is true, the SIM PIN dialog should not displayed after
         // unlock, because the camera will be opened (Bug 849718)
         if (evt.detail && evt.detail.activity &&
-            'record' === evt.detail.activity.name)
+            'record' === evt.detail.activity.name) {
           return;
-
-        this.showIfLocked();
+        }
+        var self = this;
+        // We should wait for lockscreen-appclosed event sent before checking
+        // the value of System.locked in showIfLocked method.
+        window.addEventListener('lockscreen-appclosed',
+          function lockscreenOnClosed() {
+            window.removeEventListener('lockscreen-appclosed',
+              lockscreenOnClosed);
+            self.showIfLocked();
+          });
         break;
       case 'appopened':
         // If an app needs 'telephony' or 'sms' permissions (i.e. mobile
