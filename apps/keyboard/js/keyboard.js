@@ -114,7 +114,7 @@ var fakeAppObject = {
   },
 
   setForcedModifiedLayout: function(layoutName) {
-    layoutManager.updateForcedModifiedLayout(layoutName);
+    this.layoutManager.updateForcedModifiedLayout(layoutName);
     renderKeyboard();
   },
   setLayoutPage: function setLayoutPage(page) {
@@ -125,9 +125,9 @@ var fakeAppObject = {
     this.layoutManager.updateLayoutPage(page);
     renderKeyboard();
 
-    if (inputMethodManager.currentIMEngine.setLayoutPage) {
-      inputMethodManager.currentIMEngine.
-        setLayoutPage(layoutManager.currentLayoutPage);
+    if (this.inputMethodManager.currentIMEngine.setLayoutPage) {
+      this.inputMethodManager.currentIMEngine.
+        setLayoutPage(this.layoutManager.currentLayoutPage);
     }
   },
 
@@ -136,47 +136,38 @@ var fakeAppObject = {
 };
 
 // InputMethodManager is responsible of loading/activating input methods.
-var inputMethodManager =
-  fakeAppObject.inputMethodManager = new InputMethodManager(fakeAppObject);
-inputMethodManager.start();
+fakeAppObject.inputMethodManager = new InputMethodManager(fakeAppObject);
+fakeAppObject.inputMethodManager.start();
 
 // LayoutManager loads and holds layout layouts for us.
 // It also help us ensure there is only one current layout at the time.
-var layoutManager =
-  fakeAppObject.layoutManager = new LayoutManager(fakeAppObject);
-layoutManager.start();
-var layoutLoader = layoutManager.loader;
+fakeAppObject.layoutManager = new LayoutManager(fakeAppObject);
+fakeAppObject.layoutManager.start();
 
 // SettingsPromiseManager wraps Settings DB methods into promises.
-var settingsPromiseManager =
-  fakeAppObject.settingsPromiseManager = new SettingsPromiseManager();
+fakeAppObject.settingsPromiseManager = new SettingsPromiseManager();
 
 // L10nLoader loads l10n.js. We call it's one and only load() method
 // only after we have run everything in the critical cold launch path.
-var l10nLoader = fakeAppObject.l10nLoader = new L10nLoader();
+fakeAppObject.l10nLoader = new L10nLoader();
 
 // targetHandlersManager handles key targets when they are being interacted.
-var targetHandlersManager = fakeAppObject.targetHandlersManager =
-  new TargetHandlersManager(fakeAppObject);
-targetHandlersManager.start();
+fakeAppObject.targetHandlersManager = new TargetHandlersManager(fakeAppObject);
+fakeAppObject.targetHandlersManager.start();
 
-var feedbackManager = fakeAppObject.feedbackManager =
-  new FeedbackManager(fakeAppObject);
-feedbackManager.start();
+fakeAppObject.feedbackManager = new FeedbackManager(fakeAppObject);
+fakeAppObject.feedbackManager.start();
 
-var visualHighlightManager = fakeAppObject.visualHighlightManager =
+fakeAppObject.visualHighlightManager =
   new VisualHighlightManager(fakeAppObject);
-visualHighlightManager.start();
+fakeAppObject.visualHighlightManager.start();
 
-var candidatePanelManager =
-  fakeAppObject.candidatePanelManager =
-  new CandidatePanelManager(fakeAppObject);
-candidatePanelManager.start();
+fakeAppObject.candidatePanelManager = new CandidatePanelManager(fakeAppObject);
+fakeAppObject.candidatePanelManager.start();
 
-var upperCaseStateManager =
-  fakeAppObject.upperCaseStateManager = new UpperCaseStateManager();
-upperCaseStateManager.onstatechange = handleUpperCaseStateChange;
-upperCaseStateManager.start();
+fakeAppObject.upperCaseStateManager = new UpperCaseStateManager();
+fakeAppObject.upperCaseStateManager.onstatechange = handleUpperCaseStateChange;
+fakeAppObject.upperCaseStateManager.start();
 
 // User settings (in Settings database) are tracked within these modules
 var imEngineSettings;
@@ -204,7 +195,7 @@ function initKeyboard() {
   perfTimer.printTime('initKeyboard');
 
   imEngineSettings = new IMEngineSettings();
-  imEngineSettings.promiseManager = settingsPromiseManager;
+  imEngineSettings.promiseManager = fakeAppObject.settingsPromiseManager;
   var imEngineSettingsInitPromise = imEngineSettings.initSettings();
   imEngineSettingsInitPromise.catch(function rejected() {
     console.error('Fatal Error! Failed to get initial imEngine settings.');
@@ -232,7 +223,7 @@ function initKeyboard() {
       inputContextGetTextPromise = fakeAppObject.inputContext.getText();
     }
 
-    layoutLoader.getLayoutAsync(layoutName);
+    fakeAppObject.layoutManager.loader.getLayoutAsync(layoutName);
     updateCurrentLayout(layoutName);
   }, false);
 
@@ -272,7 +263,7 @@ function initKeyboard() {
   var layoutName = '';
   if (window.location.hash !== '') {
     layoutName = window.location.hash.substring(1);
-    layoutLoader.getLayoutAsync(layoutName);
+    fakeAppObject.layoutManager.loader.getLayoutAsync(layoutName);
   } else {
     console.error('This page should never be loaded without an URL hash.');
 
@@ -294,17 +285,17 @@ function deactivateInputMethod() {
   // Switching to default IMEngine makes the current IMEngine deactivate.
   // The currentIMEngine will be set and activates again in
   // showKeyboard() (specifically, switchIMEngine()).
-  inputMethodManager.switchCurrentIMEngine('default');
+  fakeAppObject.inputMethodManager.switchCurrentIMEngine('default');
 }
 
 function updateCurrentLayout(name) {
   perfTimer.printTime('updateCurrentLayout');
 
-  layoutManager.switchCurrentLayout(name).then(function() {
+  fakeAppObject.layoutManager.switchCurrentLayout(name).then(function() {
     perfTimer.printTime('updateCurrentLayout:promise resolved');
 
     // Ask the loader to start loading IMEngine
-    var imEngineloader = inputMethodManager.loader;
+    var imEngineloader = fakeAppObject.inputMethodManager.loader;
     var imEngineName = keyboard.imEngine;
     if (imEngineName && !imEngineloader.getInputMethod(imEngineName)) {
       imEngineloader.getInputMethodAsync(imEngineName);
@@ -319,7 +310,7 @@ function updateCurrentLayout(name) {
 
       // Load l10n library here, there is nothing more to do left
       // in the critical path.
-      l10nLoader.load();
+      fakeAppObject.l10nLoader.load();
     }
   }, function(error) {
     console.warn('Failed to switch layout for ' + name + '.' +
@@ -343,11 +334,12 @@ function renderKeyboard() {
 
   // Rule of thumb: always render uppercase, unless secondLayout has been
   // specified (for e.g. arabic, then depending on shift key)
-  var needsUpperCase = layoutManager.currentModifiedLayout.secondLayout ?
-    upperCaseStateManager.isUpperCase : true;
+  var needsUpperCase =
+    fakeAppObject.layoutManager.currentModifiedLayout.secondLayout ?
+      fakeAppObject.upperCaseStateManager.isUpperCase : true;
 
   // And draw the layout
-  IMERender.draw(layoutManager.currentModifiedLayout, {
+  IMERender.draw(fakeAppObject.layoutManager.currentModifiedLayout, {
     uppercase: needsUpperCase,
     inputType: fakeAppObject.getBasicInputType(),
     showCandidatePanel: needsCandidatePanel()
@@ -356,12 +348,12 @@ function renderKeyboard() {
     perfTimer.startTimer('IMERender.draw:callback');
     // So there are a couple of things that we want don't want to block
     // on here, so we can do it if resizeUI is fully finished
-    IMERender.setUpperCaseLock(upperCaseStateManager);
+    IMERender.setUpperCaseLock(fakeAppObject.upperCaseStateManager);
 
     // Tell the input method about the new keyboard layout
     updateLayoutParams();
 
-    candidatePanelManager.showCandidates();
+    fakeAppObject.candidatePanelManager.showCandidates();
     perfTimer.printTime(
       'BLOCKING IMERender.draw:callback', 'IMERender.draw:callback');
   });
@@ -369,11 +361,11 @@ function renderKeyboard() {
   // Tell the renderer what input method we're using. This will set a CSS
   // classname that can be used to style the keyboards differently
   IMERender.setInputMethodName(
-    layoutManager.currentModifiedLayout.imEngine || 'default');
+    fakeAppObject.layoutManager.currentModifiedLayout.imEngine || 'default');
 
   // If needed, empty the candidate panel
-  if (inputMethodManager.currentIMEngine.empty) {
-    inputMethodManager.currentIMEngine.empty();
+  if (fakeAppObject.inputMethodManager.currentIMEngine.empty) {
+    fakeAppObject.inputMethodManager.currentIMEngine.empty();
   }
 
   isKeyboardRendered = true;
@@ -386,7 +378,7 @@ function handleUpperCaseStateChange() {
     return;
 
   // When we have secondLayout, we need to force re-render on uppercase switch
-  if (layoutManager.currentModifiedLayout.secondLayout) {
+  if (fakeAppObject.layoutManager.currentModifiedLayout.secondLayout) {
     return renderKeyboard();
   }
 
@@ -395,10 +387,10 @@ function handleUpperCaseStateChange() {
   requestAnimationFrame(function() {
     perfTimer.startTimer('setUpperCase:requestAnimationFrame:callback');
     // And make sure the caps lock key is highlighted correctly
-    IMERender.setUpperCaseLock(upperCaseStateManager);
+    IMERender.setUpperCaseLock(fakeAppObject.upperCaseStateManager);
 
     //restore the previous candidates
-    candidatePanelManager.showCandidates();
+    fakeAppObject.candidatePanelManager.showCandidates();
 
     perfTimer.printTime(
       'BLOCKING setUpperCase:requestAnimationFrame:callback',
@@ -428,9 +420,10 @@ function getKeyCoordinateY(y) {
 
 // Turn to default values
 function resetKeyboard() {
-  layoutManager.updateLayoutPage(layoutManager.LAYOUT_PAGE_DEFAULT);
+  fakeAppObject.layoutManager.updateLayoutPage(
+    fakeAppObject.layoutManager.LAYOUT_PAGE_DEFAULT);
 
-  upperCaseStateManager.reset();
+  fakeAppObject.upperCaseStateManager.reset();
 }
 
 // Set up the keyboard and its input method.
@@ -451,8 +444,8 @@ function showKeyboard() {
 
   // everything.me uses this setting to improve searches,
   // but they really shouldn't.
-  settingsPromiseManager.set({
-    'keyboard.current': layoutManager.currentLayoutName
+  fakeAppObject.settingsPromiseManager.set({
+    'keyboard.current': fakeAppObject.layoutManager.currentLayoutName
   });
 
   // If we are already visible,
@@ -487,11 +480,11 @@ function hideKeyboard() {
 
   // everything.me uses this setting to improve searches,
   // but they really shouldn't.
-  settingsPromiseManager.set({
+  fakeAppObject.settingsPromiseManager.set({
     'keyboard.current': undefined
   });
 
-  targetHandlersManager.activeTargetsManager.clearAllTargets();
+  fakeAppObject.targetHandlersManager.activeTargetsManager.clearAllTargets();
 }
 
 // Resize event handler
@@ -501,7 +494,7 @@ function onResize() {
     return;
   }
 
-  IMERender.resizeUI(layoutManager.currentModifiedLayout);
+  IMERender.resizeUI(fakeAppObject.layoutManager.currentModifiedLayout);
   updateTargetWindowHeight(); // this case is not captured by the mutation
   // observer so we handle it apart
 
@@ -513,7 +506,7 @@ function onResize() {
 function switchIMEngine(mustRender) {
   perfTimer.printTime('switchIMEngine');
 
-  var layout = layoutManager.currentModifiedLayout;
+  var layout = fakeAppObject.layoutManager.currentModifiedLayout;
   var imEngineName = layout.imEngine || 'default';
 
   // dataPromise resolves to an array of data to be sent to imEngine.activate()
@@ -545,7 +538,8 @@ function switchIMEngine(mustRender) {
 
   inputContextGetTextPromise = null;
 
-  var p = inputMethodManager.switchCurrentIMEngine(imEngineName, dataPromise);
+  var p = fakeAppObject.inputMethodManager
+    .switchCurrentIMEngine(imEngineName, dataPromise);
   p.then(function() {
     perfTimer.printTime('switchIMEngine:promise resolved');
     // Render keyboard again to get updated info from imEngine
@@ -554,7 +548,7 @@ function switchIMEngine(mustRender) {
     }
 
     // Load l10n library after IMEngine is loaded (if it's not loaded yet).
-    l10nLoader.load();
+    fakeAppObject.l10nLoader.load();
   }, function() {
     console.warn('Failed to switch imEngine for ' + layout.layoutName + '.' +
       ' It might possible because we were called more than once.');
@@ -568,9 +562,9 @@ function switchIMEngine(mustRender) {
 // the default, since the input methods we support don't do anything special
 // for symbols
 function updateLayoutParams() {
-  if (inputMethodManager.currentIMEngine.setLayoutParams &&
-      layoutManager.currentLayoutPage === LAYOUT_PAGE_DEFAULT) {
-    inputMethodManager.currentIMEngine.setLayoutParams({
+  if (fakeAppObject.inputMethodManager.currentIMEngine.setLayoutParams &&
+      fakeAppObject.layoutManager.currentLayoutPage === LAYOUT_PAGE_DEFAULT) {
+    fakeAppObject.inputMethodManager.currentIMEngine.setLayoutParams({
       keyboardWidth: IMERender.getWidth(),
       keyboardHeight: getKeyCoordinateY(IMERender.getHeight()),
       keyArray: IMERender.getKeyArray(),
@@ -589,14 +583,16 @@ function needsCandidatePanel() {
     return false;
   }
 
-  return !!((layoutManager.currentLayout.autoCorrectLanguage ||
-           layoutManager.currentLayout.needsCandidatePanel) &&
-          (!inputMethodManager.currentIMEngine.displaysCandidates ||
-           inputMethodManager.currentIMEngine.displaysCandidates()));
+  return !!((fakeAppObject.layoutManager.currentLayout.autoCorrectLanguage ||
+           fakeAppObject.layoutManager.currentLayout.needsCandidatePanel) &&
+          (!fakeAppObject.inputMethodManager
+              .currentIMEngine.displaysCandidates ||
+            fakeAppObject.inputMethodManager
+              .currentIMEngine.displaysCandidates()));
 }
 
 // To determine if we need to show a "all uppercase layout" for Greek SMS
 function isGreekSMS() {
   return (fakeAppObject.inputContext.inputMode === '-moz-sms' &&
-          layoutManager.currentLayoutName === 'el');
+          fakeAppObject.layoutManager.currentLayoutName === 'el');
 }
