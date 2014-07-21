@@ -150,13 +150,16 @@ var UIManager = {
     this.hiddenWifiSecurity.addEventListener('change', this);
     this.wifiJoinButton.disabled = true;
 
-    this.hiddenWifiPassword.addEventListener('keyup', function() {
-      this.wifiJoinButton.disabled = !WifiHelper.isValidInput(
-        this.hiddenWifiSecurity.value,
-        this.hiddenWifiPassword.value,
-        this.hiddenWifiIdentity.value
-      );
-    }.bind(this));
+    // check the 'hidden-wifi-ssid','hidden-wifi-identity',
+    // 'hidden-wifi-password' input everytime they are changed.
+    this.hiddenWifiSsid.addEventListener('keyup',
+      this.enableJoinButton.bind(this));
+
+    this.hiddenWifiIdentity.addEventListener('keyup',
+      this.enableJoinButton.bind(this));
+
+    this.hiddenWifiPassword.addEventListener('keyup',
+      this.enableJoinButton.bind(this));
 
     this.hiddenWifiShowPassword.onchange = function togglePasswordVisibility() {
       UIManager.hiddenWifiPassword.type = this.checked ? 'text' : 'password';
@@ -251,6 +254,19 @@ var UIManager = {
       window.addEventListener(event,
         this.showActivationScreenToScreenReader.bind(this));
     }, this);
+  },
+
+  // disable the 'Join' button when any of the fields are not valid
+  // the password is too short.
+  // the ssid name is null.
+  // the user name is null.
+  enableJoinButton: function ui_enableJoinButton() {
+    this.wifiJoinButton.disabled = !WifiHelper.isValidInput(
+      this.hiddenWifiSecurity.value,
+      this.hiddenWifiPassword.value,
+      this.hiddenWifiIdentity.value,
+      this.hiddenWifiSsid.value
+    );
   },
 
   scrollToElement: function ui_scrollToElement(container, element) {
@@ -365,6 +381,10 @@ var UIManager = {
         break;
       case 'hidden-wifi-security':
         var securityType = event.target.value;
+        // everytime the securityType changed, we must check if the account
+        // inputed is validate and modify the status of the join button
+        // according to the return value of function isValidInput.
+        this.enableJoinButton();
         WifiUI.handleHiddenWifiSecurity(securityType);
         break;
       // Date & Time

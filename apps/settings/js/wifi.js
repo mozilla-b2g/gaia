@@ -817,13 +817,14 @@ navigator.mozL10n.once(function wifiSettings() {
         description = dialog.querySelector('li.server-certificate-description');
       }
 
+      var ssid = dialog.querySelector('input[name=ssid]');
+      var ssidStr = ssid.value;
       if (dialogID === 'wifi-joinHidden') {
         network.hidden = true;
 
         // Make sure ssid length is less then 32 bytes.
-        var ssid = dialog.querySelector('input[name=ssid]');
         ssid.oninput = function() {
-          var ssidStr = ssid.value;
+          ssidStr = ssid.value;
           // Non-ASCII chars in SSID will be encoded by UTF-8, and length of
           // each char might be longer than 1 byte.
           // Use encodeURIComponent() to encode ssid, then calculate correct
@@ -832,17 +833,21 @@ navigator.mozL10n.once(function wifiSettings() {
                 .length > 32) {
             ssid.value = ssidStr.substring(0, ssidStr.length - 1);
           }
+          // disable the "OK" button if the password is too short
+          // or the name is null.
+          dialog.querySelector('button[type=submit]').disabled =
+            !WifiHelper.isValidInput(key, password.value, identity.value,
+              ssidStr, eap.value);
         };
       }
 
       // disable the "OK" button if the password is too short
+      // or the name is null.
       if (password) {
         var checkPassword = function checkPassword() {
           dialog.querySelector('button[type=submit]').disabled =
-            !WifiHelper.isValidInput(key,
-                                     password.value,
-                                     identity.value,
-                                     eap.value);
+            !WifiHelper.isValidInput(key, password.value, identity.value,
+              ssidStr, eap.value);
         };
         eap.onchange = function() {
           checkPassword();
