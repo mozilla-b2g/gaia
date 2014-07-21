@@ -1,6 +1,7 @@
 'use strict';
 
-/* global InputMethodGlue, InputMethodLoader, InputMethodManager, Promise */
+/* global InputMethodGlue, InputMethodLoader, InputMethodManager,
+          Promise, KeyEvent */
 
 require('/js/keyboard/input_method_manager.js');
 
@@ -17,71 +18,129 @@ suite('InputMethodGlue', function() {
   test('sendCandidates', function() {
     var glue = new InputMethodGlue();
     var app = {
-      sendCandidates: this.sinon.stub()
+      candidatePanelManager: {
+        updateCandidates: this.sinon.stub()
+      }
     };
     var data = [['foo', 1]];
     glue.init(app, 'foo');
     glue.sendCandidates(data);
 
-    assert.isTrue(app.sendCandidates.calledWith(data));
+    assert.isTrue(app.candidatePanelManager.updateCandidates.calledWith(data));
   });
 
   test('setComposition', function() {
     var glue = new InputMethodGlue();
     var app = {
-      setComposition: this.sinon.stub()
+      inputContext: {
+        setComposition: this.sinon.stub()
+      }
     };
     var symbols = 'bar';
     var cursor = 1;
     glue.init(app, 'foo');
     glue.setComposition(symbols, cursor);
 
-    assert.isTrue(app.setComposition.calledWith(symbols, cursor));
+    assert.isTrue(app.inputContext.setComposition.calledWith(symbols, cursor));
   });
 
   test('endComposition', function() {
     var glue = new InputMethodGlue();
     var app = {
-      endComposition: this.sinon.stub()
+      inputContext: {
+        endComposition: this.sinon.stub()
+      }
     };
     var data = 'bar';
     glue.init(app, 'foo');
     glue.endComposition(data);
 
-    assert.isTrue(app.endComposition.calledWith(data));
+    assert.isTrue(app.inputContext.endComposition.calledWith(data));
   });
 
-  test('sendKey', function() {
-    var glue = new InputMethodGlue();
-    var app = {
-      sendKey: this.sinon.stub()
-    };
-    var p = {};
-    app.sendKey.returns(p);
-    var keyCode = 123;
-    var isRepeat = false;
-    glue.init(app, 'foo');
-    var returned = glue.sendKey(keyCode, isRepeat);
+  suite('sendKey', function() {
+    var glue;
+    var app;
+    var p;
+    setup(function() {
+      glue = new InputMethodGlue();
+      app = {
+        inputContext: {
+          sendKey: this.sinon.stub()
+        }
+      };
+      p = Promise.resolve();
+      app.inputContext.sendKey.returns(p);
+    });
 
-    assert.isTrue(app.sendKey.calledWith(keyCode, isRepeat));
-    assert.equal(returned, p);
+    test('KeyEvent.DOM_VK_BACK_SPACE', function() {
+      var keyCode = KeyEvent.DOM_VK_BACK_SPACE;
+      var isRepeat = false;
+      glue.init(app, 'foo');
+      var returned = glue.sendKey(keyCode, isRepeat);
+
+      assert.isTrue(
+        app.inputContext.sendKey.calledWith(keyCode, 0, 0, isRepeat));
+      assert.equal(returned, p);
+    });
+
+    test('KeyEvent.DOM_VK_RETURN', function() {
+      var keyCode = KeyEvent.DOM_VK_RETURN;
+      var isRepeat = false;
+      glue.init(app, 'foo');
+      var returned = glue.sendKey(keyCode, isRepeat);
+
+      assert.isTrue(
+        app.inputContext.sendKey.calledWith(keyCode, 0, 0));
+      assert.equal(returned, p);
+    });
+
+    test('99', function() {
+      var keyCode = 99;
+      var isRepeat = false;
+      glue.init(app, 'foo');
+      var returned = glue.sendKey(keyCode, isRepeat);
+
+      assert.isTrue(
+        app.inputContext.sendKey.calledWith(0, 99, 0));
+      assert.equal(returned, p);
+    });
+
+    test('-99', function() {
+      var keyCode = -99;
+      var isRepeat = false;
+      glue.init(app, 'foo');
+      var returned = glue.sendKey(keyCode, isRepeat);
+
+      assert.isTrue(
+        app.inputContext.sendKey.calledWith(0, -99, 0));
+      assert.equal(returned, p);
+    });
   });
 
   test('sendString', function() {
     var glue = new InputMethodGlue();
     var app = {
-      sendKey: this.sinon.stub()
+      inputContext: {
+        sendKey: this.sinon.stub()
+      }
     };
     var text = 'foobar';
     glue.init(app, 'foo');
     glue.sendString(text);
 
-    assert.equal(app.sendKey.getCall(0).args[0], text.charCodeAt(0));
-    assert.equal(app.sendKey.getCall(1).args[0], text.charCodeAt(1));
-    assert.equal(app.sendKey.getCall(2).args[0], text.charCodeAt(2));
-    assert.equal(app.sendKey.getCall(3).args[0], text.charCodeAt(3));
-    assert.equal(app.sendKey.getCall(4).args[0], text.charCodeAt(4));
-    assert.equal(app.sendKey.getCall(5).args[0], text.charCodeAt(5));
+    assert.isTrue(
+      app.inputContext.sendKey.getCall(0).calledWith(0, text.charCodeAt(0), 0));
+    assert.isTrue(
+      app.inputContext.sendKey.getCall(1).calledWith(0, text.charCodeAt(1), 0));
+    assert.isTrue(
+      app.inputContext.sendKey.getCall(2).calledWith(0, text.charCodeAt(2), 0));
+    assert.isTrue(
+      app.inputContext.sendKey.getCall(3).calledWith(0, text.charCodeAt(3), 0));
+    assert.isTrue(
+      app.inputContext.sendKey.getCall(4).calledWith(0, text.charCodeAt(4), 0));
+    assert.isTrue(
+      app.inputContext.sendKey.getCall(5).calledWith(0, text.charCodeAt(5), 0));
   });
 
   test('alterKeyboard', function() {
@@ -114,7 +173,9 @@ suite('InputMethodGlue', function() {
   test('setUpperCase', function() {
     var glue = new InputMethodGlue();
     var app = {
-      setUpperCase: this.sinon.stub()
+      upperCaseStateManager: {
+        switchUpperCaseState: this.sinon.stub()
+      }
     };
     var state = {
       isUpperCase: true,
@@ -123,16 +184,19 @@ suite('InputMethodGlue', function() {
     glue.init(app, 'foo');
     glue.setUpperCase(state);
 
-    assert.isTrue(app.setUpperCase.calledWith(state));
+    assert.isTrue(
+      app.upperCaseStateManager.switchUpperCaseState.calledWith(state));
   });
 
   test('replaceSurroundingText', function() {
     var glue = new InputMethodGlue();
     var app = {
-      replaceSurroundingText: this.sinon.stub()
+      inputContext: {
+        replaceSurroundingText: this.sinon.stub()
+      }
     };
-    var p = {};
-    app.replaceSurroundingText.returns(p);
+    var p = Promise.resolve();
+    app.inputContext.replaceSurroundingText.returns(p);
 
     var text = 'foobar';
     var offset = 3;
@@ -141,7 +205,7 @@ suite('InputMethodGlue', function() {
     var returned = glue.replaceSurroundingText(text, offset, length);
 
     assert.isTrue(
-      app.replaceSurroundingText.calledWith(text, offset, length));
+      app.inputContext.replaceSurroundingText.calledWith(text, offset, length));
     assert.equal(returned, p);
   });
 

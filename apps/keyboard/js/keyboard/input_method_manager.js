@@ -1,6 +1,6 @@
 'use strict';
 
-/* global Promise */
+/* global Promise, KeyEvent */
 
 /*
  * InputMethodManager manages life cycle of input methods.
@@ -141,25 +141,59 @@ InputMethodGlue.prototype.init = function(app, imEngineName) {
 };
 
 InputMethodGlue.prototype.sendCandidates = function(candidates) {
-  this.app.sendCandidates(candidates);
+  this.app.candidatePanelManager.updateCandidates(candidates);
 };
 
 InputMethodGlue.prototype.setComposition = function(symbols, cursor) {
-  this.app.setComposition(symbols, cursor);
+  if (!this.app.inputContext) {
+    console.warn('InputMethodGlue: call setComposition() when ' +
+      'inputContext does not exist.');
+    return;
+  }
+  cursor = cursor || symbols.length;
+  this.app.inputContext.setComposition(symbols, cursor);
 };
 
 InputMethodGlue.prototype.endComposition = function(text) {
-  this.app.endComposition(text);
+  if (!this.app.inputContext) {
+    console.warn('InputMethodGlue: call endComposition() when ' +
+      'inputContext does not exist.');
+    return;
+  }
+  text = text || '';
+  this.app.inputContext.endComposition(text);
 };
 
 InputMethodGlue.prototype.sendKey = function(keyCode, isRepeat) {
-  return this.app.sendKey(keyCode, isRepeat);
+  if (!this.app.inputContext) {
+    console.warn('InputMethodGlue: call sendKey() when ' +
+      'inputContext does not exist.');
+    return Promise.reject();
+  }
+
+  var promise;
+
+  switch (keyCode) {
+    case KeyEvent.DOM_VK_BACK_SPACE:
+      promise = this.app.inputContext.sendKey(keyCode, 0, 0, isRepeat);
+      break;
+
+    case KeyEvent.DOM_VK_RETURN:
+      promise = this.app.inputContext.sendKey(keyCode, 0, 0);
+      break;
+
+    default:
+      promise = this.app.inputContext.sendKey(0, keyCode, 0);
+      break;
+  }
+
+  return promise;
 };
 
 // XXX deprecated
 InputMethodGlue.prototype.sendString = function(str) {
   for (var i = 0; i < str.length; i++) {
-    this.app.sendKey(str.charCodeAt(i));
+    this.sendKey(str.charCodeAt(i));
   }
 };
 
@@ -178,17 +212,24 @@ InputMethodGlue.prototype.setLayoutPage = function(newpage) {
 };
 
 InputMethodGlue.prototype.setUpperCase = function(state) {
-  this.app.setUpperCase(state);
+  this.app.upperCaseStateManager.switchUpperCaseState(state);
 };
 
 InputMethodGlue.prototype.isCapitalized = function() {
-  return this.app.isCapitalized();
+  return this.app.upperCaseStateManager.isUpperCase;
 };
 
 InputMethodGlue.prototype.replaceSurroundingText = function(text, offset,
                                                             length) {
-  return this.app.replaceSurroundingText(text, offset, length);
+  if (!this.app.inputContext) {
+    console.warn('InputMethodGlue: call replaceSurroundingText() when ' +
+      'inputContext does not exist.');
+    return Promise.reject();
+  }
+
+  return this.app.inputContext.replaceSurroundingText(text, offset, length);
 };
+
 InputMethodGlue.prototype.getNumberOfCandidatesPerRow = function() {
   return this.app.getNumberOfCandidatesPerRow();
 };

@@ -68,11 +68,11 @@ function _getAlternativesForTarget(target) {
   var alternatives;
   var altMap = this.app.layoutManager.currentModifiedLayout.alt;
 
-  if (this.app.isCapitalizeLocked()) {
+  if (this.app.upperCaseStateManager.isUpperCaseLocked) {
     alternatives = (altMap[target.dataset.uppercaseValue].upperCaseLocked) ?
       altMap[target.dataset.uppercaseValue].upperCaseLocked :
       altMap[target.dataset.uppercaseValue];
-  } else if (this.app.isCapitalized()) {
+  } else if (this.app.upperCaseStateManager.isUpperCase) {
     alternatives = altMap[target.dataset.uppercaseValue];
   } else {
     alternatives = altMap[target.dataset.lowercaseValue];

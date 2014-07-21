@@ -49,9 +49,9 @@ suite('AlternativesCharMenuManager', function() {
       getMenuContainer: function() {
         return container;
       },
-      isCapitalizeLocked: function() {
-      },
-      isCapitalized: function() {
+      upperCaseStateManager: {
+        isUpperCaseLocked: undefined,
+        isUpperCase: undefined
       },
       layoutManager: {
         currentModifiedLayout: {
@@ -84,8 +84,8 @@ suite('AlternativesCharMenuManager', function() {
   });
 
   test('show (lower case)', function() {
-    this.sinon.stub(app, 'isCapitalized').returns(false);
-    this.sinon.stub(app, 'isCapitalizeLocked').returns(false);
+    app.upperCaseStateManager.isUpperCase = false;
+    app.upperCaseStateManager.isUpperCaseLocked = false;
 
     app.layoutManager.currentModifiedLayout.alt.x =
       ['a', 'b', 'c', 'd'];
@@ -101,8 +101,8 @@ suite('AlternativesCharMenuManager', function() {
   });
 
   test('show (upper case)', function() {
-    this.sinon.stub(app, 'isCapitalized').returns(true);
-    this.sinon.stub(app, 'isCapitalizeLocked').returns(false);
+    app.upperCaseStateManager.isUpperCase = true;
+    app.upperCaseStateManager.isUpperCaseLocked = false;
 
     app.layoutManager.currentModifiedLayout.alt.X =
       ['A', 'B', 'C', 'D'];
@@ -120,8 +120,8 @@ suite('AlternativesCharMenuManager', function() {
   });
 
   test('show (upper case locked)', function() {
-    this.sinon.stub(app, 'isCapitalized').returns(true);
-    this.sinon.stub(app, 'isCapitalizeLocked').returns(true);
+    app.upperCaseStateManager.isUpperCase = true;
+    app.upperCaseStateManager.isUpperCaseLocked = true;
 
     app.layoutManager.currentModifiedLayout.alt.X =
       ['A', 'B', 'C', 'D'];
@@ -139,8 +139,8 @@ suite('AlternativesCharMenuManager', function() {
   });
 
   test('show (ignore key w/o alternatives)', function() {
-    this.sinon.stub(app, 'isCapitalized').returns(false);
-    this.sinon.stub(app, 'isCapitalizeLocked').returns(false);
+    app.upperCaseStateManager.isUpperCase = false;
+    app.upperCaseStateManager.isUpperCaseLocked = false;
 
     manager.show(target);
 
@@ -150,8 +150,8 @@ suite('AlternativesCharMenuManager', function() {
 
   suite('after shown', function() {
     setup(function() {
-      this.sinon.stub(app, 'isCapitalized').returns(false);
-      this.sinon.stub(app, 'isCapitalizeLocked').returns(false);
+      app.upperCaseStateManager.isUpperCase = false;
+      app.upperCaseStateManager.isUpperCaseLocked = false;
 
       app.layoutManager.currentModifiedLayout.alt.x =
         ['a', 'b', 'c', 'd'];

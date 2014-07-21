@@ -113,21 +113,6 @@ var fakeAppObject = {
     return navigator.mozInputMethod.mgmt.supportsSwitching();
   },
 
-  sendCandidates: function kc_glue_sendCandidates(candidates) {
-    perfTimer.printTime('glue.sendCandidates');
-    candidatePanelManager.updateCandidates(candidates);
-  },
-  setComposition: function kc_glue_setComposition(symbols, cursor) {
-    perfTimer.printTime('glue.setComposition');
-    cursor = cursor || symbols.length;
-    this.inputContext.setComposition(symbols, cursor);
-  },
-  endComposition: function kc_glue_endComposition(text) {
-    perfTimer.printTime('glue.endComposition');
-    text = text || '';
-    this.inputContext.endComposition(text);
-  },
-  sendKey: sendKey,
   setForcedModifiedLayout: function(layoutName) {
     layoutManager.updateForcedModifiedLayout(layoutName);
     renderKeyboard();
@@ -145,16 +130,7 @@ var fakeAppObject = {
         setLayoutPage(layoutManager.currentLayoutPage);
     }
   },
-  setUpperCase: function setUpperCase(state) {
-    this.upperCaseStateManager.switchUpperCaseState(state);
-  },
-  isCapitalized: function isCapitalized() {
-    return this.upperCaseStateManager.isUpperCase;
-  },
-  isCapitalizeLocked: function isCapitalizeLocked() {
-    return this.upperCaseStateManager.isUpperCaseLocked;
-  },
-  replaceSurroundingText: replaceSurroundingText,
+
   getNumberOfCandidatesPerRow:
     IMERender.getNumberOfCandidatesPerRow.bind(IMERender)
 };
@@ -455,43 +431,6 @@ function resetKeyboard() {
   layoutManager.updateLayoutPage(layoutManager.LAYOUT_PAGE_DEFAULT);
 
   upperCaseStateManager.reset();
-}
-
-// This is a wrapper around fakeAppObject.inputContext.sendKey()
-// We use it in the defaultInputMethod and in the interface object
-// we pass to real input methods
-function sendKey(keyCode, isRepeat) {
-  var inputContext = fakeAppObject.inputContext;
-
-  switch (keyCode) {
-  case KeyEvent.DOM_VK_BACK_SPACE:
-    if (inputContext) {
-      return inputContext.sendKey(keyCode, 0, 0, isRepeat);
-    }
-    break;
-  case KeyEvent.DOM_VK_RETURN:
-    if (inputContext) {
-      return inputContext.sendKey(keyCode, 0, 0);
-    }
-    break;
-
-  default:
-    if (inputContext) {
-      return inputContext.sendKey(0, keyCode, 0);
-    }
-    break;
-  }
-}
-
-function replaceSurroundingText(text, offset, length) {
-  var inputContext = fakeAppObject.inputContext;
-
-  if (inputContext) {
-    return inputContext.replaceSurroundingText(text, offset, length);
-  } else {
-    console.warn('no inputContext for replaceSurroudingText');
-    return new Promise(function(res, rej) { rej(); });
-  }
 }
 
 // Set up the keyboard and its input method.
