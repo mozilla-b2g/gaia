@@ -177,7 +177,6 @@
       window.addEventListener('home', this);
       window.addEventListener('appopened', this);
       window.addEventListener('homescreenopened', this);
-      window.addEventListener('stackchanged', this);
       window.addEventListener('searchterminated', this);
       window.addEventListener('permissiondialoghide', this);
       window.addEventListener('launchactivity', this, true);
@@ -279,9 +278,6 @@
         case 'homescreenopened':
           this.enterHome(e);
           break;
-        case 'stackchanged':
-          this.handleStackChanged(e);
-          break;
         case 'permissiondialoghide':
           if (this.active) {
             this.focus();
@@ -302,7 +298,6 @@
       window.removeEventListener('home', this);
       window.removeEventListener('appopened', this);
       window.removeEventListener('homescreenopened', this);
-      window.removeEventListener('stackchanged', this);
       window.removeEventListener('permissiondialoghide', this);
 
 
