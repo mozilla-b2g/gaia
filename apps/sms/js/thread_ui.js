@@ -1812,7 +1812,7 @@ var ThreadUI = global.ThreadUI = {
       * - 'Delete messages' for existing conversations
       */
     var params = {
-      header: navigator.mozL10n.get('message'),
+      header: { l10nId: 'message' },
       items: []
     };
 
@@ -2097,7 +2097,7 @@ var ThreadUI = global.ThreadUI = {
         var messageId = messageBubble.id;
         var params = {
           type: 'action',
-          header: navigator.mozL10n.get('message-options'),
+          header: { l10nId: 'message-options' },
           items:[]
         };
 
