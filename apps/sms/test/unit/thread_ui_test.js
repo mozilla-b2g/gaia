@@ -314,7 +314,7 @@ suite('thread_ui.js >', function() {
     test('composer cleared', function() {
       Compose.append('foo');
       subject.textContent = 'foo';
-      ThreadUI.cleanFields(true);
+      ThreadUI.cleanFields();
       assert.equal(Compose.getContent(), '');
       assert.equal(Compose.getSubject(), '');
     });
@@ -6322,7 +6322,7 @@ suite('thread_ui.js >', function() {
         });
 
         test(' all fields cleaned', function() {
-          sinon.assert.calledWith(ThreadUI.cleanFields, true);
+          sinon.assert.called(ThreadUI.cleanFields);
         });
 
         test(' layout updated', function() {
