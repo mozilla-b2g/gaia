@@ -116,6 +116,13 @@
 
       this.appearance = value;
       this.port.postMessage(value);
+
+      var meta = document.head.querySelector('meta[name="theme-color"]');
+      if (value == APPEARANCE.OPAQUE) {
+        meta.content = 'black';
+      } else {
+        meta.content = 'transparent';
+      }
     }
   };
 
