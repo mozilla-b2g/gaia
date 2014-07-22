@@ -179,6 +179,7 @@
       window.addEventListener('homescreenopened', this);
       window.addEventListener('searchterminated', this);
       window.addEventListener('permissiondialoghide', this);
+      window.addEventListener('global-search-request', this);
       window.addEventListener('launchactivity', this, true);
 
       // Listen for events from Rocketbar
@@ -299,6 +300,7 @@
       window.removeEventListener('appopened', this);
       window.removeEventListener('homescreenopened', this);
       window.removeEventListener('permissiondialoghide', this);
+      window.addEventListener('global-search-request', this);
 
 
       // Stop listening for events from Rocketbar

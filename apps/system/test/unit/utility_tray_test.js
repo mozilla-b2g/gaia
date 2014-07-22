@@ -28,13 +28,15 @@ suite('system/UtilityTray', function() {
     return evt;
   }
 
-  function fakeTouches(start, end) {
-    UtilityTray.onTouchStart({ pageY: start });
+  function fakeTouches(start, end, target) {
+    target = target || UtilityTray.topPanel;
+
+    UtilityTray.onTouchStart({ target: target, pageX: 42, pageY: start });
     UtilityTray.screenHeight = 480;
 
     var y = start;
     while (y != end) {
-      UtilityTray.onTouchMove({ pageY: y });
+      UtilityTray.onTouchMove({ target: target, pageX: 42, pageY: y });
 
       if (y < end) {
         y++;
@@ -42,7 +44,7 @@ suite('system/UtilityTray', function() {
         y--;
       }
     }
-    UtilityTray.onTouchEnd();
+    UtilityTray.onTouchEnd({target: target, pageX: 42, pageY: y});
   }
 
   setup(function(done) {
@@ -141,6 +143,23 @@ suite('system/UtilityTray', function() {
 
 
   suite('onTouch', function() {
+    suite('taping the left corner', function() {
+      test('should send a global search request', function(done) {
+        window.addEventListener('global-search-request', function gotIt() {
+          window.removeEventListener('global-search-request', gotIt);
+          assert.isTrue(true, 'got the event');
+          done();
+        });
+        fakeTouches(0, 2);
+      });
+
+      test('should hide the Utility tray', function() {
+        UtilityTray.show();
+        fakeTouches(0, 2);
+        assert.equal(UtilityTray.shown, false);
+      });
+    });
+
     suite('showing', function() {
       test('should not be shown by a tap', function() {
         fakeTouches(0, 5);
@@ -199,12 +218,12 @@ suite('system/UtilityTray', function() {
       });
 
       test('should not be hidden by a tap', function() {
-        fakeTouches(480, 475);
+        fakeTouches(480, 475, UtilityTray.grippy);
         assert.equal(UtilityTray.shown, true);
       });
 
       test('should be hidden by a drag from the bottom', function() {
-        fakeTouches(480, 380);
+        fakeTouches(480, 380, UtilityTray.grippy);
         assert.equal(UtilityTray.shown, false);
       });
     });

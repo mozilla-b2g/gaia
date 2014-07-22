@@ -53,6 +53,7 @@
     window.addEventListener('permissiondialoghide', this);
     window.addEventListener('attentionscreenshow', this);
     window.addEventListener('status-inactive', this);
+    window.addEventListener('global-search-request', this);
 
     // Listen for events from Rocketbar
     this.input.addEventListener('focus', this);
@@ -128,6 +129,9 @@
         if (this.active) {
           this.focus();
         }
+        break;
+      case 'global-search-request':
+        this.activate(setTimeout.bind(null, this.focus.bind(this)));
         break;
     }
   };

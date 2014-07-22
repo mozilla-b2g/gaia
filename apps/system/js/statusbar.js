@@ -425,11 +425,11 @@ var StatusBar = {
       return;
     }
 
-    if (this._dontStopEvent) {
+    if (!this.element.classList.contains('invisible')) {
       return;
     }
 
-    if (!this.element.classList.contains('invisible')) {
+    if (this._dontStopEvent) {
       return;
     }
 

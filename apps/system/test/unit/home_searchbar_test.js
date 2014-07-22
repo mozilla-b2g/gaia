@@ -83,15 +83,16 @@ suite('system/HomeSearchbar', function() {
       navigator.mozApps.getSelf = function() { return app; };
       subject.initSearchConnection();
       app.onsuccess();
+      subject.stop();
     });
 
     teardown(function() {
+      subject.start();
       navigator.mozApps = realMozApps;
     });
 
     test('app opening events', function() {
       this.sinon.stub(subject._port, 'postMessage');
-      subject.stop();
       subject.expand();
 
       var assertStubs = [
@@ -213,7 +214,6 @@ suite('system/HomeSearchbar', function() {
      */
     test('attentionscreenshow', function() {
       this.sinon.stub(subject._port, 'postMessage');
-      subject.stop();
       subject.expand();
 
       var assertStubs = [
@@ -237,7 +237,6 @@ suite('system/HomeSearchbar', function() {
 
     test('status-inactive', function() {
       this.sinon.stub(subject._port, 'postMessage');
-      subject.stop();
       subject.expand();
 
       var assertStubs = [
@@ -257,6 +256,19 @@ suite('system/HomeSearchbar', function() {
       assertStubs.forEach(function(stub) {
         assert.ok(stub.calledOnce);
       });
+    });
+
+    test('global-search-request', function() {
+      this.sinon.useFakeTimers();
+      this.sinon.stub(subject, 'activate', function(cb) {
+        cb();
+      });
+      this.sinon.spy(subject, 'focus');
+
+      window.dispatchEvent(new CustomEvent('global-search-request'));
+      this.sinon.clock.tick();
+
+      sinon.assert.callOrder(subject.activate, subject.focus);
     });
   });
 });
