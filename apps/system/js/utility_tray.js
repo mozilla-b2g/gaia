@@ -275,6 +275,19 @@ var UtilityTray = {
 
       shouldOpen ? this.show() : this.hide();
     }
+
+    // Trigger search from the left half of the screen
+    var corner = touch && (touch.target === this.topPanel) &&
+                 (touch.pageX < (window.innerWidth / 2));
+    if (this.isTap && corner) {
+      if (this.shown) {
+        this.hide();
+      }
+      setTimeout(function() {
+        window.dispatchEvent(new CustomEvent('global-search-request'));
+      });
+    }
+
     this.startY = undefined;
     this.lastDelta = undefined;
     this.isTap = false;

@@ -44,13 +44,40 @@
   AppTitleBar.prototype.view = function at_view() {
     return '<div class="titlebar" id="' +
             this.CLASS_NAME + this.instanceID + '">' +
-             '<div class="title">&hellip;</div>' +
+             '<div class="bubble"><span>&hellip;<span></div>' +
            '</div>';
   };
 
   AppTitleBar.prototype._fetchElements = function at__fetchElements() {
     this.element = this.containerElement.querySelector('.titlebar');
-    this.title = this.element.querySelector('.title');
+    this.bubble = this.element.querySelector('.bubble');
+    this.title = this.bubble.querySelector('span');
+  };
+
+  AppTitleBar.prototype.expand = function at_expand(callback) {
+    var element = this.element;
+    element.classList.add('expand');
+
+    if (!callback) {
+      return;
+    }
+
+    var safetyTimeout = null;
+    var finish = function(evt) {
+      if (evt && evt.target !== element) {
+        return;
+      }
+
+      element.removeEventListener('transitionend', finish);
+      clearTimeout(safetyTimeout);
+      callback();
+    };
+    element.addEventListener('transitionend', finish);
+    safetyTimeout = setTimeout(finish, 250);
+  };
+
+  AppTitleBar.prototype.collapse = function at_collapse() {
+    this.element.classList.remove('expand');
   };
 
   AppTitleBar.prototype.handleEvent = function at_handleEvent(evt) {
@@ -60,9 +87,16 @@
       }
       return;
     }
+
+    switch (evt.type) {
+      case 'rocketbar-overlayopened':
+        this.collapse();
+        break;
+    }
   };
 
   AppTitleBar.prototype._registerEvents = function at__registerEvents() {
+    window.addEventListener('rocketbar-overlayopened', this);
     this.app.element.addEventListener('mozbrowsermetachange', this);
     this.app.element.addEventListener('mozbrowsertitlechange', this);
     this.app.element.addEventListener('mozbrowserlocationchange', this);
@@ -70,6 +104,8 @@
   };
 
   AppTitleBar.prototype._unregisterEvents = function at__unregisterEvents() {
+    window.removeEventListener('rocketbar-overlayopened', this);
+
     if (!this.app) {
       return;
     }
