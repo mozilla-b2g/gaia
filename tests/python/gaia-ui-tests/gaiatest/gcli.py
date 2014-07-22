@@ -115,7 +115,7 @@ class GCli(object):
         self.marionette.start_session()
 
         self.apps = gaiatest.GaiaApps(self.marionette)
-        self.data_layer = gaiatest.GaiaData(self.marionette)
+        self.data_layer = gaiatest.GaiaDataManager(self.marionette)
         self.device = gaiatest.GaiaDevice(self.marionette)
 
         ret = args.func(args)
