@@ -287,7 +287,8 @@
 
   BrowserContextMenu.prototype.showDefaultMenu = function() {
     var config = this.app.config;
-    var icon = ('favicon' in config) ? config.favicon.href : null;
+    var icon = ('icons' in config && config.icons.length) ?
+      config.icons[0].href : null;
     this.showMenu([{
       label: _('add-to-home-screen'),
       callback: this.bookmarkUrl.bind(this, config.url, this.app.title, icon)
