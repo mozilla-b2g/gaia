@@ -29,6 +29,13 @@ var mocksForNfcUtils = new MocksHelper([
   'NotificationHelper'
 ]).init();
 
+function switchReadOnlyProperty(originObject, propName, targetObj) {
+  Object.defineProperty(originObject, propName, {
+    configurable: true,
+    get: function() { return targetObj; }
+  });
+}
+
 suite('Nfc Handover Manager Functions', function() {
 
   var realMozNfc;
@@ -49,7 +56,7 @@ suite('Nfc Handover Manager Functions', function() {
 
     navigator.mozNfc = MockMozNfc;
     navigator.mozSettings = MockNavigatorSettings;
-    navigator.mozBluetooth = MockBluetooth;
+    switchReadOnlyProperty(navigator, 'mozBluetooth', MockBluetooth);
     navigator.mozSetMessageHandler = MockNavigatormozSetMessageHandler;
     navigator.mozL10n = MockL10n;
 
@@ -67,7 +74,7 @@ suite('Nfc Handover Manager Functions', function() {
     MockNavigatormozSetMessageHandler.mTeardown();
     navigator.mozNfc = realMozNfc;
     navigator.mozSettings = realMozSettings;
-    navigator.mozBluetooth = realMozBluetooth;
+    switchReadOnlyProperty(navigator, 'mozBluetooth', realMozBluetooth);
     navigator.mozSetMessageHandler = realMozSetMessageHandler;
     navigator.mozL10n = realL10n;
   });
@@ -331,6 +338,24 @@ suite('Nfc Handover Manager Functions', function() {
 
       assert.isTrue(action.callback.calledOnce);
       assert.deepEqual(action.args, action.callback.getCall(0).args);
+    });
+
+    test('Action should be removed if throwing error', function() {
+      var action = {
+        callback: function () {throw 'error';},
+        args: []
+      };
+      var callbackSpy = this.sinon.spy(action, 'callback');
+
+      NfcHandoverManager._doAction(action);
+      assert.equal(1, NfcHandoverManager.actionQueue.length);
+
+      window.dispatchEvent(new CustomEvent('bluetooth-adapter-added'));
+      invokeBluetoothGetDefaultAdapter();
+
+      assert.isTrue(callbackSpy.threw());
+      assert.isTrue(callbackSpy.calledOnce);
+      assert.equal(0, NfcHandoverManager.actionQueue.length);
     });
   });
 
