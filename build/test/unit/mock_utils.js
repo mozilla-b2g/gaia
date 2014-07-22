@@ -71,6 +71,10 @@ exports.isSubjectToBranding = function(path) {
          /branding[\/\\]initlogo.png/.test(path);
 };
 
+exports.isSubjectToDeviceType = function(path) {
+  return /shared[\/\\]?[a-zA-Z]*[\/\\]?device_type$/.test(path);
+};
+
 exports.existsInAppDirs =  function(appDirs, appName) {
   var apps = appDirs.split(' ');
   var exists = apps.some(function (appPath) {
