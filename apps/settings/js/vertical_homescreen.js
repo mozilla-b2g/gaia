@@ -5,10 +5,13 @@ if (!window.verticalHomescreen) {
   (function(exports) {
 
     function VerticalHomescreen() {
+      this.section = document.getElementById('vertical-homescreen-layout');
       this.gridSelect = document.querySelector('[name="grid.layout.cols"]');
       verticalPreferences.addEventListener('updated', this);
       this.gridSelect.addEventListener('change', this);
       verticalPreferences.get('grid.cols').then(this.updateCols.bind(this));
+      verticalPreferences.get('cols.preference.enabled').then(
+        this.updateColsPref.bind(this));
 
       this.searchUrlTemplate = null;
       this.getCurrentSearchEngine();
@@ -57,6 +60,10 @@ if (!window.verticalHomescreen) {
         if (option) {
           option.selected = true;
         }
+      },
+
+      updateColsPref: function(enabled) {
+        this.section.hidden = !enabled;
       },
 
       getCurrentSearchEngine: function() {
