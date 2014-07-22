@@ -75,9 +75,7 @@ li a:active {
 }
 
 [data-type="list"].active li:active:after,
-[data-type="list"].active li:hover:after,
-[data-type="list"] li > a:active:after,
-[data-type="list"] li > a:hover:after {
+[data-type="list"] li > a:active:after {
   background-color: rgba(0,213,255,0.3);
 }
 
