@@ -67,6 +67,11 @@ MultiSimActionButton.prototype._click = function(event) {
     return;
   }
 
+  if (event) {
+    // Prevent the KeypadManager handler from triggering.
+    event.stopImmediatePropagation();
+  }
+
   if (navigator.mozIccManager.iccIds.length === 0) {
     // We don't care what slot to call on, as emergency calls for example will
     // go through on any slot.

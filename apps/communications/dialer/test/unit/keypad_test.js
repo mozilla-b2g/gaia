@@ -550,7 +550,15 @@ suite('dialer/keypad', function() {
   });
 
   suite('Initializing MultiSimActionButton', function() {
+    var callBarCallActionButton;
+    var addEventListenerSpy;
+
     setup(function() {
+      callBarCallActionButton =
+        document.getElementById('keypad-callbar-call-action');
+      addEventListenerSpy = this.sinon.spy(callBarCallActionButton,
+                                           'addEventListener');
+
       subject.init(false);
     });
 
@@ -561,7 +569,13 @@ suite('dialer/keypad', function() {
     test('Should pass a valid phone number getter', function() {
       subject._phoneNumber = '1111111';
       assert.equal(subject._phoneNumber,
-        MockMultiSimActionButtonSingleton._phoneNumberGetter());
+                   MockMultiSimActionButtonSingleton._phoneNumberGetter());
+    });
+
+    test('Should add the first click event handler to the button', function() {
+      assert.equal(addEventListenerSpy.firstCall.args[0], 'click');
+      assert.equal(addEventListenerSpy.firstCall.args[1],
+                   MockMultiSimActionButtonSingleton._click);
     });
   });
 });

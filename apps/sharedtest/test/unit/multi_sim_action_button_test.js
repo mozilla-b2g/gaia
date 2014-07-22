@@ -5,8 +5,8 @@
 
 'use strict';
 
-require('/dialer/test/unit/mock_lazy_loader.js');
-require('/dialer/test/unit/mock_telephony_helper.js');
+require('/apps/communications/dialer/test/unit/mock_telephony_helper.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 require('/shared/test/unit/mocks/mock_sim_picker.js');
@@ -36,12 +36,17 @@ suite('multi SIM action button', function() {
 
   mocksHelperForMultiSimActionButton.attachTestHelpers();
 
-  var initSubject = function() {
+  var initSubject = function(options) {
+    options = options || {};
+    var callback = options.callback || function() {};
+    var noSettingsTriggerCallback = options.noSettingsTriggerCallback || false;
+
     MockTelephonyHelper.mInUseSim = setCardIndex;
 
+    button = options.button || document.createElement('button');
     subject = new MultiSimActionButton(
       button,
-      function() {},
+      callback,
       'ril.telephony.defaultServiceId',
       phoneNumberGetter
     );
@@ -50,8 +55,10 @@ suite('multi SIM action button', function() {
     // the callback as soon as the pref is loaded, so we have to simulate it
     // once the subject is initialized. We can't alter MockSettingsListener
     // since doing so makes a ton of other tests fail.
-    MockSettingsListener.mTriggerCallback(
-      'ril.telephony.defaultServiceId', setCardIndex);
+    if (!noSettingsTriggerCallback) {
+      MockSettingsListener.mTriggerCallback(
+        'ril.telephony.defaultServiceId', setCardIndex);
+    }
   };
 
   var simulateClick = function() {
@@ -75,20 +82,12 @@ suite('multi SIM action button', function() {
   };
 
   var shouldUsePrimarySimCard = function() {
-    var callStub = this.sinon.stub();
-    subject = new MultiSimActionButton(
-      button,
-      callStub,
-      'ril.telephony.defaultServiceId',
-      phoneNumberGetter
-    );
-
-    MockSettingsListener.mTriggerCallback(
-      'ril.telephony.defaultServiceId', setCardIndex);
+    var callbackStub = this.sinon.stub();
+    initSubject({ callback: callbackStub });
 
     phoneNumber = '0145345520';
     simulateClick();
-    sinon.assert.calledWith(callStub, phoneNumber, expectedCardIndex);
+    sinon.assert.calledWith(callbackStub, phoneNumber, expectedCardIndex);
   };
 
   suiteSetup(function() {
@@ -115,7 +114,6 @@ suite('multi SIM action button', function() {
 
   setup(function() {
     phoneNumber = '';
-    button = document.createElement('button');
     initSubject();
 
     setCardIndex = expectedCardIndex = 0;
@@ -177,13 +175,10 @@ suite('multi SIM action button', function() {
         phoneNumber = '1234';
 
         callbackStub = this.sinon.stub();
-
-        subject = new MultiSimActionButton(
-          button,
-          callbackStub,
-          'ril.telephony.defaultServiceId',
-          phoneNumberGetter
-        );
+        initSubject({
+          callback: callbackStub,
+          noSettingsTriggerCallback: true
+        });
 
         this.sinon.spy(MockSimPicker, 'getOrPick');
       });
@@ -219,15 +214,6 @@ suite('multi SIM action button', function() {
 
       test('should fire SIM selected callback', function() {
         var showSpy = this.sinon.spy(MockSimPicker, 'getOrPick');
-        subject = new MultiSimActionButton(
-          button,
-          function() {},
-          'ril.telephony.defaultServiceId',
-          phoneNumberGetter
-        );
-
-        MockSettingsListener.mTriggerCallback(
-          'ril.telephony.defaultServiceId', setCardIndex);
 
         phoneNumber = '15555555555';
         simulateContextMenu();
@@ -277,27 +263,20 @@ suite('multi SIM action button', function() {
       });
 
       test('should return current serviceId of call', function() {
-        var callStub = this.sinon.stub();
-
-        subject = new MultiSimActionButton(
-          button,
-          callStub,
-          'ril.telephony.defaultServiceId',
-          phoneNumberGetter
-        );
-        MockSettingsListener.mTriggerCallback(
-          'ril.telephony.defaultServiceId', setCardIndex);
+        var callbackStub = this.sinon.stub();
+        initSubject({ callback: callbackStub });
 
         phoneNumber = '0123456789';
         simulateClick();
 
-        sinon.assert.calledWith(callStub, phoneNumber,
+        sinon.assert.calledWith(callbackStub, phoneNumber,
                                 MockTelephonyHelper.mInUseSim);
       });
     });
   });
 
   suite('UI tests', function(){
+    var localizeSpy;
     var simIndication;
 
     var initWithIndicationElement = function() {
@@ -306,7 +285,7 @@ suite('multi SIM action button', function() {
         '<div id="container"><div class="js-sim-indication"></div></div>';
       button = document.getElementById('container');
       simIndication = button.querySelector('.js-sim-indication');
-      initSubject();
+      initSubject({ button: button });
     };
 
     var shouldNotShowAnIndicator = function() {
@@ -317,7 +296,6 @@ suite('multi SIM action button', function() {
 
     setup(function() {
       setCardIndex = expectedCardIndex = 0;
-      initSubject();
 
       navigator.mozIccManager.addIcc(0, {});
       navigator.mozIccManager.addIcc(1, {});
@@ -325,6 +303,7 @@ suite('multi SIM action button', function() {
 
     suite('with SIM indication', function() {
       setup(function() {
+        localizeSpy = this.sinon.spy(MockMozL10n, 'localize');
         initWithIndicationElement();
       });
 
@@ -333,23 +312,21 @@ suite('multi SIM action button', function() {
       });
 
       test('has a default localized SIM indicator', function() {
-        var localizeSpy = this.sinon.spy(MockMozL10n, 'localize');
-        initSubject();
-        sinon.assert.calledWith(localizeSpy, simIndication, 'sim-picker-button',
+        sinon.assert.calledWith(localizeSpy,
+                                simIndication,
+                                'sim-picker-button',
                                 {n: expectedCardIndex+1});
       });
 
       test('has a custom localized SIM indicator', function() {
-        var localizeSpy = this.sinon.spy(MockMozL10n, 'localize');
         simIndication.dataset.l10nId = 'expected';
-        initSubject();
+        // Re-create the button taking into account the new l10n-id.
+        initSubject({ button: button });
         sinon.assert.calledWith(localizeSpy, simIndication, 'expected',
                                 {n: expectedCardIndex+1});
       });
 
       test('indicator changes when settings change', function() {
-        var localizeSpy = this.sinon.spy(MockMozL10n, 'localize');
-
         MockSettingsListener.mTriggerCallback(
           'ril.telephony.defaultServiceId', 1);
 
@@ -379,8 +356,6 @@ suite('multi SIM action button', function() {
         });
 
         test('should show SIM indicator with in-use serviceId', function() {
-          var localizeSpy = this.sinon.spy(MockMozL10n, 'localize');
-
           MockTelephonyHelper.mInUseSim = 1;
           MockNavigatorMozTelephony.mTriggerEvent({type: 'callschanged'});
 
@@ -392,8 +367,7 @@ suite('multi SIM action button', function() {
              function() {
           MockTelephonyHelper.mInUseSim = 1;
           MockNavigatorMozTelephony.mTriggerEvent({type: 'callschanged'});
-
-          var localizeSpy = this.sinon.spy(MockMozL10n, 'localize');
+          localizeSpy.reset();
           MockTelephonyHelper.mTeardown();
           MockNavigatorMozTelephony.mTriggerEvent({type: 'callschanged'});
 
