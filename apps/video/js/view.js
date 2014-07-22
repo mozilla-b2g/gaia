@@ -104,7 +104,7 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
 
     // Get all the elements we use by their id
     var ids = ['player', 'player-view', 'videoControls',
-               'close', 'play', 'playHead', 'video-container',
+               'player-header', 'play', 'playHead', 'video-container',
                'elapsedTime', 'video-title', 'duration-text', 'elapsed-text',
                'slider-wrapper', 'spinner-overlay',
                'menu', 'save', 'banner', 'message', 'seek-forward',
@@ -149,7 +149,7 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
 
     // option buttons
     dom.play.addEventListener('click', handlePlayButtonClick);
-    dom.close.addEventListener('click', done);
+    dom.playerHeader.addEventListener('action', done);
     dom.save.addEventListener('click', save);
     // show/hide controls
     dom.videoControls.addEventListener('click', toggleVideoControls, true);
