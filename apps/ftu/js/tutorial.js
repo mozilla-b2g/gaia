@@ -174,9 +174,9 @@
 
       // homescreen notification is out of band and neednt block
       // the other init steps
-      if (currentLayout === 'tiny') {
+      //if (currentLayout === 'tiny') {
         notifyHomescreenApp();
-      }
+      //}
 
       initTasks.next();
     },
