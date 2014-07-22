@@ -19,6 +19,8 @@ var UtilityTray = {
 
   statusbarIcons: document.getElementById('statusbar-icons'),
 
+  topPanel: document.getElementById('top-panel'),
+
   grippy: document.getElementById('utility-tray-grippy'),
 
   screen: document.getElementById('screen'),
@@ -29,6 +31,7 @@ var UtilityTray = {
       this.overlay.addEventListener(name, this);
       this.statusbarIcons.addEventListener(name, this);
       this.grippy.addEventListener(name, this);
+      this.topPanel.addEventListener(name, this);
     }, this);
 
     window.addEventListener('screenchange', this);
@@ -117,7 +120,8 @@ var UtilityTray = {
         }
 
         if (target !== this.overlay && target !== this.grippy &&
-            evt.currentTarget !== this.statusbarIcons) {
+            evt.currentTarget !== this.statusbarIcons &&
+            evt.currentTarget !== this.topPanel) {
           return;
         }
 
@@ -323,5 +327,3 @@ var UtilityTray = {
     }
   }
 };
-
-UtilityTray.init();

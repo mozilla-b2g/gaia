@@ -67,6 +67,9 @@ suite('system/UtilityTray', function() {
     var notifications = document.createElement('div');
     notifications.style.cssText = 'height: 100px; display: block;';
 
+    var topPanel = document.createElement('div');
+    topPanel.style.cssText = 'height: 20px; display: block;';
+
     stubById = this.sinon.stub(document, 'getElementById', function(id) {
       switch (id) {
         case 'statusbar':
@@ -83,11 +86,16 @@ suite('system/UtilityTray', function() {
           return placeholder;
         case 'utility-tray-notifications':
           return notifications;
+        case 'top-panel':
+          return topPanel;
         default:
           return null;
       }
     });
-    requireApp('system/js/utility_tray.js', done);
+    requireApp('system/js/utility_tray.js', function() {
+      UtilityTray.init();
+      done();
+    });
   });
 
   teardown(function() {
@@ -299,6 +307,13 @@ suite('system/UtilityTray', function() {
       window.System.locked = false;
       var stub = this.sinon.stub(UtilityTray, 'onTouchStart');
       UtilityTray.statusbarIcons.dispatchEvent(fakeEvt);
+      assert.ok(stub.calledOnce);
+    });
+
+    test('events on the topPanel are handled', function() {
+      window.System.locked = false;
+      var stub = this.sinon.stub(UtilityTray, 'onTouchStart');
+      UtilityTray.topPanel.dispatchEvent(fakeEvt);
       assert.ok(stub.calledOnce);
     });
 
