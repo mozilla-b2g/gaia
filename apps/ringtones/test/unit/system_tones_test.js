@@ -103,9 +103,9 @@ suite('system tones', function() {
     setup(function(done) {
       var settings = {};
       settings[getSettingsBase('ringtone') + '.default.id'] =
-        defaultIDs.ringtone = 'builtin:ringer_classic_courier';
+        defaultIDs.ringtone = 'builtin:ringer_firefox';
       settings[getSettingsBase('alerttone') + '.default.id'] =
-        defaultIDs.alerttone = 'builtin:notifier_bell';
+        defaultIDs.alerttone = 'builtin:notifier_firefox';
 
       var req = navigator.mozSettings.createLock().set(settings);
       req.onsuccess = function() { done(); };

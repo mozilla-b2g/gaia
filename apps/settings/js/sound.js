@@ -137,7 +137,7 @@
         var mediaToneURL = '/shared/resources/media/notifications/' +
           'notifier_bop.opus';
         var ringerToneURL = '/shared/resources/media/ringtones/' +
-          'ringer_classic_courier.opus';
+          'ringer_firefox.opus';
         var alarmToneURL = '/shared/resources/media/alarms/' +
           'ac_classic_clock_alarm.opus';
 
