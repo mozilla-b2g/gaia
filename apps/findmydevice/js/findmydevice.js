@@ -443,10 +443,10 @@ var FindMyDevice = {
     if (this._loggedIn && this._currentClientID === '') {
       this._refreshClientIDIfRegistered(false);
       this.endHighPriority('clientLogic');
-    } else {
+    } else if (this._registered) {
       this._canDisableHelper.set(
         this._loggedIn &&
-        this._state && (this._currentClientID === this._state.clientid));
+        this._currentClientID === this._state.clientid);
     }
   },
 
