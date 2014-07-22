@@ -153,11 +153,15 @@ var NfcHandoverManager = {
          * Call all actions that have queued up while Bluetooth
          * was turned on.
          */
-        for (var i = 0; i < self.actionQueue.length; i++) {
-          var action = self.actionQueue[i];
-          action.callback.apply(self, action.args);
+        try {
+          while (self.actionQueue.length > 0) {
+            var action = self.actionQueue.shift();
+            action.callback.apply(self, action.args);
+          }
+        } catch (e) {
+          dump('throw ' + e);
+          self._restoreBluetoothStatus();
         }
-        self.actionQueue = [];
       };
     });
 
