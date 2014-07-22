@@ -128,13 +128,13 @@ suite('simcard dialog', function() {
     });
 
     test('showErrorMsg', function() {
-      var stub_ = this.sinon.stub(MockL10n, 'get');
+      var stub_ = this.sinon.stub(MockL10n, 'setAttributes');
       var count = 0;
       stub_.returns(count++);
       SimPinDialog.showErrorMsg(1, 'pin');
-      assert.deepEqual(stub_.getCall(0).args[1], { n: 1 });
-      assert.deepEqual(stub_.getCall(1).args[0], 'pinErrorMsg');
-      assert.deepEqual(stub_.getCall(2).args[0], 'pinLastChanceMsg');
+      assert.deepEqual(stub_.getCall(0).args[2], { n: 1 });
+      assert.deepEqual(stub_.getCall(1).args[1], 'pinErrorMsg');
+      assert.deepEqual(stub_.getCall(2).args[1], 'pinLastChanceMsg');
     });
   });
 
