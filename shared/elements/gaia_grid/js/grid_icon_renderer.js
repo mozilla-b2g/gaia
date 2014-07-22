@@ -85,16 +85,9 @@
         clipCtx.drawImage(img, 0, 0,
                                clipCanvas.width, clipCanvas.height);
 
-        clipCanvas.toBlob((blob) => {
-          var clipImage = new Image();
-          clipImage.onload = () => {
-            shadowCtx.drawImage(clipImage, CANVAS_PADDING, CANVAS_PADDING,
+        shadowCtx.drawImage(clipCanvas, CANVAS_PADDING, CANVAS_PADDING,
                                 this._maxSize, this._maxSize);
-            shadowCanvas.toBlob(resolve);
-            URL.revokeObjectURL(clipImage.src);
-          };
-          clipImage.src = URL.createObjectURL(blob);
-        });
+        shadowCanvas.toBlob(resolve);
       });
     },
 
