@@ -21,6 +21,9 @@ var FindMyDevice = {
     loadJSON('/resources/findmydevice.json', function(data) {
       self._audienceURL = data.audience_url;
 
+      SettingsListener.observe('findmydevice.logged-in', false,
+        self._togglePanel.bind(self));
+
       navigator.mozId.watch({
         wantIssuer: 'firefox-accounts',
         audience: self._audienceURL,
@@ -31,10 +34,12 @@ var FindMyDevice = {
           console.log('Find My Device: onready fired');
         },
         onerror: function fmd_fxa_onerror(err) {
-          self._interactiveLogin = false;
-          self._togglePanel(false);
-          self._loginButton.removeAttribute('disabled');
           console.error('Find My Device: onerror fired: ' + err);
+          self._interactiveLogin = false;
+          self._loginButton.removeAttribute('disabled');
+          if (JSON.parse(err).name !== 'OFFLINE') {
+            SettingsHelper('findmydevice.logged-in').set(false);
+          }
         }
       });
     });
@@ -105,8 +110,6 @@ var FindMyDevice = {
   _onChangeLoginState: function fmd_on_change_login_state(loggedIn) {
     console.log('settings, logged in: ' + loggedIn);
 
-    this._togglePanel(loggedIn);
-
     if (this._interactiveLogin) {
       SettingsHelper('findmydevice.registered').get(function(registered) {
         if (!registered) {
@@ -120,6 +123,16 @@ var FindMyDevice = {
 
   _onCheckboxChanged: function fmd_on_checkbox_changed(event) {
     event.preventDefault();
+
+    var _ = navigator.mozL10n.get;
+    if (!window.navigator.onLine) {
+      setTimeout(function() {
+        // XXX(ggp) do this later so that the visual change in the
+        // checkbox is properly prevented.
+        window.alert(_('findmydevice-enable-network'));
+      });
+      return;
+    }
 
     var checkbox = document.querySelector('#findmydevice-enabled input');
     checkbox.disabled = true;

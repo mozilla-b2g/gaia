@@ -101,21 +101,32 @@ suite('Find My Device panel > ', function() {
   });
 
   test('prompt for login when logged out of FxA', function() {
-    MockMozId.onlogout();
+    MockSettingsListener.mCallbacks['findmydevice.logged-in'](false);
     assert.isFalse(signinSection.hidden);
     assert.isTrue(settingsSection.hidden);
   });
 
-  test('bug 1030597 - prompt for login if onerror fires', function() {
-    signinSection.hidden = true;
-    settingsSection.hidden = true;
-    MockMozId.onerror();
+  test('consider ourselves logged out if onerror fires when not offline',
+  function() {
+    MockMozId.onerror('{"name": "NOT_OFFLINE"}');
+    assert.isFalse(
+      MockSettingsHelper.instances['findmydevice.logged-in'].value);
+  });
+
+  test('persist panel if onerror fires due to being offline', function() {
+    MockSettingsListener.mCallbacks['findmydevice.logged-in'](true);
+    MockMozId.onerror('{"name": "OFFLINE"}');
+    assert.isFalse(settingsSection.hidden);
+    assert.isTrue(signinSection.hidden);
+
+    MockSettingsListener.mCallbacks['findmydevice.logged-in'](false);
+    MockMozId.onerror('{"name": "OFFLINE"}');
     assert.isTrue(settingsSection.hidden);
     assert.isFalse(signinSection.hidden);
   });
 
   test('show settings when logged in to FxA', function() {
-    MockMozId.onlogin();
+    MockSettingsListener.mCallbacks['findmydevice.logged-in'](true);
     assert.isFalse(settingsSection.hidden);
     assert.isTrue(signinSection.hidden);
   });
@@ -136,7 +147,7 @@ suite('Find My Device panel > ', function() {
 
   test('enable button after watch fires onerror', function() {
     loginButton.disabled = true;
-    MockMozId.onerror();
+    MockMozId.onerror('{"name": "NOT_OFFLINE"}');
     assert.isFalse(!!loginButton.disabled);
   });
 
