@@ -4,7 +4,8 @@ var MockL10n = {
   get: function get(key, params) {
     return key;
   },
-  localize: function localize(element, l10nId) {},
+  localize: function localize(element, l10nId){},
+  setAttributes: function localize(element, l10nId){},
   ready: function(callback) {
     callback();
   },
