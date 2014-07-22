@@ -422,7 +422,6 @@
 
       lastSpaceTimestamp = (keyCode === SPACE) ? Date.now() : 0;
       pendingSelectionChange--;
-
     }, function() {
       // the previous sendKey or replaceSurroundingText has been rejected,
       // No need to update the state.
@@ -700,6 +699,8 @@
 
     // Replace the current word with the selected suggestion plus space
     var newWord = data += ' ';
+
+    pendingSelectionChange++;
     return replaceBeforeCursor(oldWord, newWord).then(function() {
       // Remember the change we just made so we can revert it if the
       // next key is a backspace. Note that it is not an autocorrection
@@ -718,6 +719,7 @@
 
       // And update the keyboard capitalization state, if necessary
       updateCapitalization();
+      pendingSelectionChange--;
     });
   }
 
@@ -998,15 +1000,15 @@
     switch (type) {
       case 'selectionchange':
       // We would get selectionchange event when the user type each char,
-      // or accept a word suggestion,so don't update suggestions in these
+      // or accept a word suggestion, so don't update suggestions in these
       // cases.
       if (cursor === evt.target.selectionStart ||
           pendingSelectionChange > 0) {
         return;
       }
 
-      var newText = evt.target.textBeforeCursor + evt.target.textAfterCursor;
-      inputText = newText;
+      //XXX: Don't update inputText here, since textBeforeCursor would only
+      // contain 100 chars at most.
       cursor = evt.target.selectionStart;
       if (evt.target.selectionEnd > evt.target.selectionStart) {
         selection = evt.target.selectionEnd;
