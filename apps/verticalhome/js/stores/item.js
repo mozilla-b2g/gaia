@@ -105,7 +105,7 @@
     withTxnAndStore(txn, store);
   }
 
-  function ItemStore() {
+  function ItemStore(onsuccess) {
     var self = this;
     this.applicationSource = new ApplicationSource(this);
     this.bookmarkSource = new BookmarkSource(this);
@@ -133,7 +133,6 @@
 
           objectStore.createIndex('index', 'index', { unique: true });
           isEmpty = true;
-          self.gridOrder = configurator.getGrid();
           var objectSV = db.createObjectStore(DB_SV_APP_STORE_NAME,
             { keyPath: 'manifestURL' });
           objectSV.createIndex('indexSV', 'indexSV', { unique: true });
@@ -141,14 +140,18 @@
     };
 
     request.onsuccess = function _onsuccess() {
+      onsuccess && onsuccess(isEmpty);
       db = request.result;
+      var cb = self.fetch.bind(self, self.synchronize.bind(self));
 
       if (isEmpty) {
-        self.populate(
-          self.fetch.bind(self, self.synchronize.bind(self)));
+        window.addEventListener('configuration-ready', function onReady() {
+          window.removeEventListener('configuration-ready', onReady);
+          self.gridOrder = configurator.getGrid();
+          self.populate(cb);
+        });
       } else {
-        self.initSources(
-          self.fetch.bind(self, self.synchronize.bind(self)));
+        self.initSources(cb);
       }
     };
   }

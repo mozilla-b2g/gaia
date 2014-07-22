@@ -1,9 +1,9 @@
-/* global app, IccHelper, verticalPreferences, VersionHelper */
+/* global IccHelper, verticalPreferences, VersionHelper */
 /* exported configurator */
 
 'use strict';
 
-var configurator = (function() {
+(function(exports) {
 
   const CAPABILITIES = {
     LOW: 'low',
@@ -23,8 +23,6 @@ var configurator = (function() {
   // Keeps the list of single variant apps, indexed by manifestURL
   var singleVariantApps = {};
   var simPresentOnFirstBoot = true;
-
-  var gaiaGridLayoutReady = false;
 
   function loadFile(file, success, error) {
     try {
@@ -150,20 +148,10 @@ var configurator = (function() {
     }
   }
 
-  var gridLayoutReady = function(evt) {
-    window.removeEventListener('gaiagrid-layout-ready', gridLayoutReady);
-    app.init();
-  };
-
   function onLoadInitJSON(loadedData) {
     conf = loadedData;
     setup();
-    if (!gaiaGridLayoutReady) {
-      window.removeEventListener('gaiagrid-layout-ready', globalHandleEvent);
-      window.addEventListener('gaiagrid-layout-ready', gridLayoutReady);
-    } else {
-      app.init();
-    }
+    window.dispatchEvent(new CustomEvent('configuration-ready'));
     loadSingleVariantConf();
   }
 
@@ -212,26 +200,9 @@ var configurator = (function() {
   function onErrorInitJSON(e) {
     conf = {};
     console.error('Failed parsing homescreen configuration file:' + e);
-    if (!gaiaGridLayoutReady) {
-      window.removeEventListener('gaiagrid-layout-ready', globalHandleEvent);
-      window.addEventListener('gaiagrid-layout-ready', gridLayoutReady);
-    } else {
-      app.init();
-    }
+    window.dispatchEvent(new CustomEvent('configuration-ready'));
     loadSingleVariantConf();
   }
-
-  /**
-   * General event handler.
-   */
-  var globalHandleEvent = function(e) {
-    switch(e.type) {
-      case 'gaiagrid-layout-ready':
-      gaiaGridLayoutReady = true;
-      window.removeEventListener('gaiagrid-layout-ready', globalHandleEvent);
-      break;
-    }
-  };
 
   function handlerGridLayout(evt) {
     switch(evt.type) {
@@ -246,8 +217,6 @@ var configurator = (function() {
 
   function load() {
     conf = {};
-    gaiaGridLayoutReady = false;
-    window.addEventListener('gaiagrid-layout-ready', globalHandleEvent);
 
     VersionHelper.getVersionInfo().then(function(verInfo) {
       if (verInfo.isUpgrade()) {
@@ -267,9 +236,11 @@ var configurator = (function() {
     });
   }
 
-  load();
+  function Configurator() {
+    load();
+  }
 
-  return {
+  Configurator.prototype = {
     getSection: function(section) {
       return conf[section];
     },
@@ -300,4 +271,6 @@ var configurator = (function() {
     loadSettingSIMPresent: loadSettingSIMPresent
   };
 
-}());
+  exports.Configurator = Configurator;
+
+}(window));
