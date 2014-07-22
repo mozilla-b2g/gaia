@@ -108,13 +108,6 @@
     },
 
     /**
-     * Removes a search provider
-     */
-    removeProvider: function(provider) {
-      delete this.providers[provider.name];
-    },
-
-    /**
      * Dispatches messages to handlers in the Search class
      */
     dispatchMessage: function(msg) {
@@ -335,15 +328,19 @@
     /**
      * Opens a browser to a URL
      * @param {String} url The url to navigate to
-     * @param {Object} config Optional configuration.
      */
-    navigate: function(url, config) {
+    navigate: function(url) {
+      window.open(url, '_blank', 'remote=true');
+      /*
+      Bug 1042012: Disabled until we enable registering of the view activity
+      to the system app.
       var activity = new window.MozActivity({name: 'view', data: {
         type: 'url',
         url: url
       }});
       // Keep jshint happy
       activity.onsuccess = function() {};
+      */
     },
 
     requestScreenshot: function(url) {

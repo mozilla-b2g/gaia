@@ -1,5 +1,5 @@
 'use strict';
-/* globals SettingsListener, Promise, AppWindowManager */
+/* globals Promise, AppWindowManager */
 /* exported Places */
 
 (function(exports) {
@@ -9,7 +9,6 @@
    * B2G. Places monitors app events and syncs information with the Places
    * datastore for consumption by apps like Search.
    * @requires AppWindowManager
-   * @requires SettingsListener
    * @class Places
    */
   function Places() {}
@@ -29,13 +28,6 @@
      * @type {Object}
      */
     dataStore: null,
-
-    /**
-     * Whether or not rocketbar is enabled.
-     * @memberof Places.prototype
-     * @type {Boolean}
-     */
-    rocketBarEnabled: false,
 
     /**
      * Set when we are editing a place record in the datastore.
@@ -65,10 +57,6 @@
 
       navigator.getDataStores(this.STORE_NAME)
         .then(this.initStore.bind(this)).then(callback);
-
-      SettingsListener.observe('rocketbar.enabled', false, (function(value) {
-        this.rocketBarEnabled = value;
-      }).bind(this));
     },
 
     /**
@@ -87,9 +75,6 @@
      * @memberof Places.prototype
      */
     handleEvent: function(evt) {
-      if (!this.rocketBarEnabled) {
-        return;
-      }
       var app = evt.detail;
       switch (evt.type) {
       case 'apptitlechange':

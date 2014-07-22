@@ -9,13 +9,12 @@ var Rocketbar = require(
   '../../../../apps/system/test/marionette/lib/rocketbar.js');
 var Search = require('../../../../apps/search/test/marionette/lib/search.js');
 var System = require('../../../../apps/system/test/marionette/lib/system');
-var Browser = require('../../../../apps/browser/test/marionette/lib/browser');
 var Server = require('../../../../shared/test/integration/server');
 
 marionette('Vertical - Search', function() {
 
   var client = marionette.client(Home2.clientOptions);
-  var home, rocketbar, search, system, browser, server;
+  var home, rocketbar, search, system, server;
   var phoneIdentifier =
     'app://communications.gaiamobile.org/manifest.webapp-dialer';
 
@@ -36,7 +35,6 @@ marionette('Vertical - Search', function() {
     search = new Search(client);
     rocketbar = new Rocketbar(client);
     system = new System(client);
-    browser = new Browser(client);
     system.waitForStartup();
     search.removeGeolocationPermission();
   });
@@ -78,8 +76,9 @@ marionette('Vertical - Search', function() {
     // Notice should be dismissed if we press enter
     client.settings.set('search.suggestions.enabled', true);
     client.switchToFrame();
-    rocketbar.enterText('abc\uE006');
-    client.apps.switchToApp(Browser.URL);
+    var searchText = 'abc\uE006';
+    rocketbar.enterText(searchText);
+    rocketbar.switchToSearchFrame(searchUrl, searchText);
     client.switchToFrame();
     home.pressHomeButton();
     client.apps.switchToApp(Home2.URL);
@@ -144,10 +143,7 @@ marionette('Vertical - Search', function() {
 
     // Perform a search
     rocketbar.enterText('a test\uE006');
-    client.apps.switchToApp(Browser.URL);
-    var frame = browser.currentTabFrame();
-    assert.equal(frame.getAttribute('src'),
-                 server.url('search.html') + '?q=a%20test');
+    rocketbar.switchToBrowserFrame(server.url('search.html') + '?q=a%20test');
   });
 
 });
