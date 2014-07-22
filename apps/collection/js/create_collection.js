@@ -32,7 +32,7 @@
     var maxIconSize = activity.source.data.maxIconSize;
 
     CollectionIcon.init(maxIconSize);
-    const APPS_IN_ICON = Common.APPS_IN_ICON;
+    var numAppIcons = CollectionIcon.numAppIcons;
 
     cancel.addEventListener('click', function() {
       // TODO request should always have an 'abort' method
@@ -75,10 +75,10 @@
                 // collection from custom query
                 // we make another request to get web app icons
                 dataReady = new Promise(function getIcons(resolve) {
-                  eme.api.Apps.search({query: selected, limit: APPS_IN_ICON})
+                  eme.api.Apps.search({query: selected, limit: numAppIcons})
                     .then(function success(response) {
                       var webicons =
-                        response.response.apps.slice(0,APPS_IN_ICON).map(
+                        response.response.apps.slice(0,numAppIcons).map(
                           function each(app) {
                             return app.icon;
                         });

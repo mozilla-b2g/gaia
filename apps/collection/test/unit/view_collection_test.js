@@ -4,7 +4,6 @@
 /* global Promise */
 /* global MocksHelper */
 
-require('/js/common.js');
 require('/js/objects.js');
 require('/test/unit/mock_contextmenu.js');
 require('/test/unit/mock_view_apps.js');

@@ -20,15 +20,10 @@
   const mozBgUrl =
     'http://fxos.cdn.mozilla.net/collection/background/{categoryId}' + suffix;
 
-  const APPS_IN_ICON = 3;
 
   function Common() {}
 
   Common.prototype = {
-
-    APPS_IN_ICON: APPS_IN_ICON,
-
-    chooseBackgroundRatio: chooseBackgroundRatio,
 
     b64toBlob: function b64toBlob(b64) {
       return new Promise((resolve, reject) => {
@@ -51,6 +46,8 @@
       });
     },
 
+    chooseBackgroundRatio: chooseBackgroundRatio,
+
     // TODO
     // add support for 'size' parameter (like getEmeBackground has) to fetch
     // smaller backgrounds when the full size image is not required
@@ -62,7 +59,7 @@
 
       var url = mozBgUrl.replace('{categoryId}', collection.categoryId);
       var xhr = new XMLHttpRequest({mozSystem: true});
-      xhr.open('GET', url, true);
+      xhr.open('GET', url);
       xhr.responseType = 'blob';
 
       return new Promise((resolve, reject) => {
@@ -155,48 +152,6 @@
             }.bind(this))
             .catch(function (e) {
               eme.log('getBackground', 'failed', e);
-            });
-    },
-
-    getWebIcons: function getWebIcons(collection) {
-      var options =
-        (collection.categoryId) ? {categoryId: collection.categoryId} :
-                                  {query: collection.query};
-
-      options.limit = APPS_IN_ICON;
-
-      return eme.api.Apps.search(options).then(response => {
-        var webicons =
-          response.response.apps.slice(0, APPS_IN_ICON).map(app => app.icon);
-
-        return webicons;
-      });
-    },
-
-    /**
-     * prepares the assets needed for rendering a collection's icon:
-     * 1. background
-     * 2. web icons
-     *
-     * returns a promise resolved when all assets requests are done and
-     * updates the collection instance but not the db
-     *
-     */
-    prepareAssets: function prepareAssets(collection) {
-      var ready = Promise.resolve(null);
-
-      var backgroundPromise = collection.backgroundReady ?
-                              ready : this.getBackground(collection);
-
-      var iconsPromise = collection.iconsReady ?
-                              ready : this.getWebIcons(collection);
-
-      return Promise.all([iconsPromise, backgroundPromise])
-            .then((results) => {
-              // results are null if not fetched
-              collection.webicons = results[0] || collection.webicons;
-              collection.background = results[1] || collection.background;
-              return collection;
             });
     }
   };

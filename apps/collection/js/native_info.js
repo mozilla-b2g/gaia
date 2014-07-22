@@ -10,7 +10,7 @@
   const SETUP_KEY = 'NativeInfo-setup';
 
   function onerror(e) {
-    eme.error('NativeInfo error', e && (e.name || e.message || e));
+    eme.error('NativeInfo error', e.name || e.message || e);
   }
 
   // Provides information about native apps in order to match them against
