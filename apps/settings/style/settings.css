@@ -382,7 +382,7 @@ section ul.operate-certificate {
   display: none;
 }
 
-#menuItem-callWaiting[data-state="unknown"] .checkbox-label {
+#menuItem-callWaiting[data-state="unknown"] .checkbox-label input ~ span:after {
   display: none;
 }
 
