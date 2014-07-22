@@ -38,6 +38,11 @@ dom.player.mozAudioChannelType = 'content';
 
 var playing = false;
 
+//eventactive flag is required to stop accessing more than
+// one events at a time.otherwise fastkey press opens more
+//than one menu.
+var eventactive=false;
+
 // if this is true then the video tag is showing
 // if false, then the gallery is showing
 var playerShowing = false;
@@ -554,6 +559,11 @@ function resetCurrentVideo() {
 }
 
 function deleteSelectedItems() {
+  if (eventactive === false) {
+    eventactive = true;
+  } else {
+  return;
+  }
   if (selectedFileNames.length === 0)
     return;
 
@@ -568,6 +578,9 @@ function deleteSelectedItems() {
       deleteFile(selectedFileNames[i]);
     }
     clearSelection();
+  }
+  if (eventactive === true) {
+    eventactive = false;
   }
 }
 
@@ -602,6 +615,11 @@ function deleteSingleFile(file) {
 
 // Clicking on the share button in select mode shares all selected images
 function shareSelectedItems() {
+  if(eventactive === false) {
+    eventactive = true;
+   } else {
+    return;
+  }
   var blobs = selectedFileNames.map(function(name) {
     return selectedFileNamesToBlobs[name];
   });
@@ -654,12 +672,18 @@ function share(blobs) {
       filepaths: fullpaths
     }
   });
-
+  a.onsuccess = function(s) {
+    if(eventactive == true)
+      eventactive = false;
+  };
   a.onerror = function(e) {
     if (a.error.name === 'NO_PROVIDER') {
       var msg = navigator.mozL10n.get('share-noprovider');
       alert(msg);
     } else {
+    if(eventactive == true) {
+      eventactive = false;
+    }
       console.warn('share activity error:', a.error.name);
     }
   };
