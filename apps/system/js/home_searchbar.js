@@ -1,5 +1,5 @@
 'use strict';
-/* global Rocketbar */
+/* global Rocketbar, AppWindowManager */
 
 (function(exports) {
 
@@ -131,7 +131,14 @@
         }
         break;
       case 'global-search-request':
-        this.activate(setTimeout.bind(null, this.focus.bind(this)));
+        var app = AppWindowManager.getActiveApp();
+        if (app && app.titleBar) {
+          app.titleBar.expand(function() {
+            this.activate(setTimeout.bind(null, this.focus.bind(this)));
+          }.bind(this));
+        } else {
+          this.activate(setTimeout.bind(null, this.focus.bind(this)));
+        }
         break;
     }
   };

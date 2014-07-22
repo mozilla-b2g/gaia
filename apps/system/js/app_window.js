@@ -720,7 +720,7 @@
       }
 
       if (!this.config.chrome || !this.config.chrome.bar) {
-        this.appTitleBar = new self.AppTitleBar(this);
+        this.titleBar = new self.AppTitleBar(this);
       }
     };
 

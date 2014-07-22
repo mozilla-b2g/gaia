@@ -1,5 +1,5 @@
 'use strict';
-/* global HomeSearchbar, Rocketbar, MocksHelper */
+/* global HomeSearchbar, Rocketbar, MocksHelper, MockAppWindowManager */
 
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_search_window.js');
@@ -258,17 +258,47 @@ suite('system/HomeSearchbar', function() {
       });
     });
 
-    test('global-search-request', function() {
-      this.sinon.useFakeTimers();
-      this.sinon.stub(subject, 'activate', function(cb) {
-        cb();
+    suite('global-search-request', function() {
+      test('should activate then focus the search bar', function() {
+        this.sinon.useFakeTimers();
+        this.sinon.stub(subject, 'activate', function(cb) {
+          cb();
+        });
+        this.sinon.spy(subject, 'focus');
+
+        window.dispatchEvent(new CustomEvent('global-search-request'));
+        this.sinon.clock.tick();
+
+        sinon.assert.callOrder(subject.activate, subject.focus);
       });
-      this.sinon.spy(subject, 'focus');
 
-      window.dispatchEvent(new CustomEvent('global-search-request'));
-      this.sinon.clock.tick();
+      suite('when the current app has a titlebar', function() {
+        var fakeApp;
+        setup(function() {
+          fakeApp = {
+            titleBar: {
+              expand: function(cb) { cb && cb(); }
+            }
+          };
+          MockAppWindowManager.mActiveApp = fakeApp;
+        });
 
-      sinon.assert.callOrder(subject.activate, subject.focus);
+        test('should expand the title bar then activate then focus',
+        function() {
+          this.sinon.useFakeTimers();
+          this.sinon.stub(subject, 'activate', function(cb) {
+            cb();
+          });
+          this.sinon.spy(subject, 'focus');
+          this.sinon.spy(fakeApp.titleBar, 'expand');
+
+          window.dispatchEvent(new CustomEvent('global-search-request'));
+          this.sinon.clock.tick();
+
+          sinon.assert.callOrder(fakeApp.titleBar.expand, subject.activate,
+                                 subject.focus);
+        });
+      });
     });
   });
 });
