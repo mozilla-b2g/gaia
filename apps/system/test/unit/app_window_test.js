@@ -11,6 +11,7 @@ requireApp('system/test/unit/mock_context_menu.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_layout_manager.js');
 requireApp('system/test/unit/mock_app_chrome.js');
+requireApp('system/test/unit/mock_app_titlebar.js');
 requireApp('system/test/unit/mock_screen_layout.js');
 requireApp('system/test/unit/mock_popup_window.js');
 requireApp('system/test/unit/mock_activity_window.js');
@@ -19,7 +20,7 @@ requireApp('system/test/unit/mock_statusbar.js');
 var mocksForAppWindow = new MocksHelper([
   'OrientationManager', 'Applications', 'SettingsListener',
   'ManifestHelper', 'LayoutManager', 'ActivityWindow',
-  'ScreenLayout', 'AppChrome', 'PopupWindow', 'StatusBar'
+  'ScreenLayout', 'AppChrome', 'AppTitleBar', 'PopupWindow', 'StatusBar'
 ]).init();
 
 suite('system/AppWindow', function() {
@@ -133,6 +134,14 @@ suite('system/AppWindow', function() {
     }
   };
 
+  var fakeChromeConfigWithNavigationBar = {
+    url: 'http://www.fakeChrome2/index.html',
+    origin: 'http://www.fakeChrome2',
+    manifest: {
+      chrome: { 'navigation': false, 'bar': true }
+    }
+  };
+
   var fakeAppConfigCertified = {
     url: 'app://www.fakecertified/index.html',
     manifest: {
@@ -242,6 +251,18 @@ suite('system/AppWindow', function() {
     test('No navigation setting in manifest', function() {
       var spy = this.sinon.spy(window, 'AppChrome');
       new AppWindow(fakeChromeConfigWithoutNavigation); // jshint ignore:line
+      assert.isFalse(spy.calledWithNew());
+    });
+
+    test('No navigation setting in manifest - titlebar', function() {
+      var spy = this.sinon.spy(window, 'AppTitleBar');
+      new AppWindow(fakeChromeConfigWithoutNavigation); // jshint ignore:line
+      assert.isTrue(spy.calledWithNew());
+    });
+
+    test('Navigation bar in manifest - titlebar', function() {
+      var spy = this.sinon.spy(window, 'AppTitleBar');
+      new AppWindow(fakeChromeConfigWithNavigationBar); // jshint ignore:line
       assert.isFalse(spy.calledWithNew());
     });
 

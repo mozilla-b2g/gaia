@@ -105,6 +105,8 @@
    * is removed, remove me when the bug is fixed.
    */
   transition: opacity 0.1s ease;
+
+  z-index: 0;
 }
 
 /**

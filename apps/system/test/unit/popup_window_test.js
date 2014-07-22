@@ -8,12 +8,13 @@ requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_attention_screen.js');
 requireApp('system/test/unit/mock_app_chrome.js');
+requireApp('system/test/unit/mock_app_titlebar.js');
 
 requireApp('system/shared/test/unit/mocks/mock_screen_layout.js');
 
 var mocksForPopupWindow = new MocksHelper([
   'OrientationManager', 'Applications', 'SettingsListener',
-  'ManifestHelper', 'AppChrome'
+  'ManifestHelper', 'AppChrome', 'AppTitleBar'
 ]).init();
 
 suite('system/PopupWindow', function() {

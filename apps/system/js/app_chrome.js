@@ -38,7 +38,7 @@
 
   AppChrome.prototype.EVENT_PREFIX = 'chrome';
 
-  AppChrome.prototype._DEBUG = true;
+  AppChrome.prototype._DEBUG = false;
 
   AppChrome.prototype.hidingNavigation = false;
 
