@@ -263,20 +263,16 @@ ActivityController.prototype.onActivityConfirmed = function(newMedia) {
   // Image
   else {
     media.type = 'image/jpeg';
-    needsResizing = activity.source.data.width || activity.source.data.height;
-    debug('needs resizing: %s', needsResizing);
-
-    if (needsResizing) {
-      resizeImageAndSave({
-        blob: newMedia.blob,
-        width: activity.source.data.width,
-        height: activity.source.data.height
-      }, function(resizedBlob) {
-        media.blob = resizedBlob;
-        activity.postResult(media);
-      });
+    resizeImageAndSave({
+      blob: newMedia.blob,
+      width: activity.source.data.width,
+      height: activity.source.data.height,
+      size: activity.source.data.maxFileSizeBytes
+    }, function(resizedBlob) {
+      media.blob = resizedBlob;
+      activity.postResult(media);
+    });
       return;
-    }
   }
 
   this.activity.postResult(media);
