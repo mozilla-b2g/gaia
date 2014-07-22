@@ -263,7 +263,7 @@ suite('Nfc Handover Manager Functions', function() {
       assert.equal(spyNotify.firstCall.args[0], 1);
     });
 
-    test('Aborts when getNFCPeer() fails.', function() {
+    test('Aborts when getNFCPeer() fails during file send.', function() {
       fileRequest.sessionToken = fileRequest.session;
       var stubGetPeer = this.sinon.stub(MockMozNfc, 'getNFCPeer').throws();
       var spyNotify = this.sinon.spy(MockMozNfc, 'notifySendFileStatus');
@@ -272,6 +272,16 @@ suite('Nfc Handover Manager Functions', function() {
       assert.isTrue(stubGetPeer.calledOnce);
       assert.isTrue(spyNotify.calledOnce);
       assert.equal(spyNotify.firstCall.args[0], 1);
+    });
+
+    test('Aborts when getNFCPeer() fails during file receive.', function() {
+      var cps = NDEF.CPS_ACTIVE;
+      var mac = '01:23:45:67:89:AB';
+      var handoverRequest = NDEFUtils.encodeHandoverRequest(mac, cps);
+      var stubGetPeer = this.sinon.stub(MockMozNfc, 'getNFCPeer').throws();
+      NfcHandoverManager.handleHandoverRequest(handoverRequest);
+      assert.isTrue(stubGetPeer.calledOnce);
+      assert.isTrue(spySendNDEF.notCalled);
     });
 
     test('Handover select results in file being transmitted over Bluetooth',
