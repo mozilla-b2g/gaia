@@ -1028,6 +1028,12 @@
       var newText = evt.target.textBeforeCursor + evt.target.textAfterCursor;
       inputText = newText;
       cursor = evt.target.selectionStart;
+      // The textBeforeCursor would only contains 100 chars at most, so set it
+      // as a boundary for the cursor.
+      if (cursor > inputText.length) {
+        cursor = inputText.length - 1;
+      }
+
       if (evt.target.selectionEnd > evt.target.selectionStart) {
         selection = evt.target.selectionEnd;
       } else {

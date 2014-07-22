@@ -340,7 +340,7 @@ suite('latin input method capitalization and punctuation', function() {
     function activateIME() {
       im.activate('en', {
         type: 'text',
-        inputmode: '',
+        inputmode: 'latin-prose',
         value: '',
         selectionStart: 0,
         selectionEnd: 0,
@@ -464,7 +464,6 @@ suite('latin input method capitalization and punctuation', function() {
       activateIME();
 
       im.click('t'.charCodeAt(0)).then(function() {
-        console.log('hi hi');
         inputContext.selectionStart = 4;
         inputContext.selectionEnd = 4;
 
@@ -476,6 +475,33 @@ suite('latin input method capitalization and punctuation', function() {
         sinon.assert.calledOnce(keyboardGlue.sendCandidates);
         done();
       });
+    });
+
+    test('handle selection change when the input length is > 100',
+         function(done) {
+      im = InputMethods.latin;
+      keyboardGlue.setUpperCase = sinon.stub();
+      im.init(keyboardGlue);
+
+      activateIME();
+
+      inputContext.selectionStart = 150;
+      inputContext.selectionEnd = 150;
+
+      var i = 0;
+      for (i = 0; i < 100; i++) {
+        inputContext.textBeforeCursor += 'a';
+      }
+      inputContext.textAfterCursor = '';
+
+      // send the event after the first key is resolved
+      inputContext.dispatchEvent(new Event('selectionchange'));
+
+      function assertFunc() {
+        assert.equal(keyboardGlue.setUpperCase.getCall(1).args[0], false);
+      }
+
+      im.click('t'.charCodeAt(0)).then(assertFunc, assertFunc).then(done, done);
     });
   });
 
