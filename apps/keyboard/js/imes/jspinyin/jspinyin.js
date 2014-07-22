@@ -702,12 +702,7 @@ IMEngine.prototype = {
     var inputType = state.type;
     debug('Activate. Input type: ' + inputType);
 
-    var keyboard = 'zh-Hans-Pinyin';
-    if (inputType == '' || inputType == 'text' || inputType == 'textarea') {
-      keyboard = this._keyboard;
-    }
-
-    this._glue.alterKeyboard(keyboard);
+    this._keyboard = 'zh-Hans-Pinyin';
 
     if (!emEngineWrapper.isReady()) {
       var self = this;
