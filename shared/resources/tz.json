@@ -183,6 +183,7 @@
   {"cc":"BR", "offset":"-04:00,-04:00", "city":"Porto_Acre", "id":"America/Rio_Branco"},
   {"cc":"BR", "offset":"-04:00,-04:00", "city":"Porto_Velho"},
   {"cc":"PR", "offset":"-04:00,-04:00", "city":"Puerto_Rico"},
+  {"cc":"EC", "offset":"-05:00,-05:00", "city":"Quito"},
   {"cc":"CA", "offset":"-06:00,-05:00", "city":"Rainy_River"},
   {"cc":"CA", "offset":"-06:00,-05:00", "city":"Rankin_Inlet"},
   {"cc":"BR", "offset":"-03:00,-03:00", "city":"Recife"},
