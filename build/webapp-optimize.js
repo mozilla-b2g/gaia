@@ -549,6 +549,9 @@ HTMLOptimizer.prototype.getFileByRelativePath = function(relativePath) {
     if (utils.isSubjectToBranding(file.path)) {
       file.append((this.config.OFFICIAL === '1') ? 'official' : 'unofficial');
     }
+    if (utils.isSubjectToDeviceType(file.path)) {
+      file.append(this.config.GAIA_DEVICE_TYPE);
+    }
   }, this);
 
   try {
