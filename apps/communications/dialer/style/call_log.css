@@ -68,6 +68,12 @@ form[role="dialog"][data-type="edit"] > menu {
   -moz-box-sizing: border-box;
 }
 
+/* For preventig active status with withheld number */
+#call-log-container[data-type="list"] li[data-phone-number=""]:after,
+#call-log-container[data-type="list"] li[data-phone-number=""]:active:after {
+  background-color: transparent;
+}
+
 #call-log-container[data-type="list"] li a p {
   line-height: 1.9rem;
 }
