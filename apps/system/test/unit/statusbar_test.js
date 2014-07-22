@@ -94,7 +94,9 @@ suite('system/Statusbar', function() {
 
     prepareDOM();
 
-    requireApp('system/js/statusbar.js', statusBarReady);
+    requireApp('system/js/clock.js', function() {
+      requireApp('system/js/statusbar.js', statusBarReady);
+    });
 
     function statusBarReady() {
 

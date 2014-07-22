@@ -1,71 +1,25 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+/**
+  Copyright 2012, Mozilla Foundation
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+*/
+
+/*global Clock, AppWindowManager, SettingsListener */
+/*global SimPinDialog, TouchForwarder, FtuLauncher */
+/*global MobileOperator, SIMSlotManager, System */
+/*global Bluetooth */
 
 'use strict';
-
-/**
- * Creates an object used for refreshing the clock UI element. Handles all
- * related timer manipulation (start/stop/cancel).
- * @class  Clock
- */
-function Clock() {
-  /**
-   * One-shot timer used to refresh the clock at a minute's turn
-   * @memberOf Clock
-   */
-  this.timeoutID = null;
-
-  /**
-   * Timer used to refresh the clock every minute
-   * @memberOf Clock
-   */
-  this.timerID = null;
-
-  /**
-   * Start the timer used to refresh the clock, will call the specified
-   * callback at every timer tick to refresh the UI. The callback used to
-   * refresh the UI will also be called immediately to ensure the UI is
-   * consistent.
-   *
-   * @param {Function} refresh Function used to refresh the UI at every timer
-   *        tick, should accept a date object as its only argument.
-   * @memberOf Clock
-   */
-  this.start = function cl_start(refresh) {
-    var date = new Date();
-    var self = this;
-
-    refresh(date);
-
-    if (this.timeoutID == null) {
-      this.timeoutID = window.setTimeout(function cl_setClockInterval() {
-        refresh(new Date());
-
-        if (self.timerID == null) {
-          self.timerID = window.setInterval(function cl_clockInterval() {
-            refresh(new Date());
-          }, 60000);
-        }
-      }, (60 - date.getSeconds()) * 1000);
-    }
-  };
-
-  /**
-   * Stops the timer used to refresh the clock
-   * @memberOf Clock
-   */
-  this.stop = function cl_stop() {
-    if (this.timeoutID != null) {
-      window.clearTimeout(this.timeoutID);
-      this.timeoutID = null;
-    }
-
-    if (this.timerID != null) {
-      window.clearInterval(this.timerID);
-      this.timerID = null;
-    }
-  };
-}
 
 var StatusBar = {
   /* all elements that are children nodes of the status bar */
@@ -187,21 +141,19 @@ var StatusBar = {
       'operatorResources.data.icon': ['iconData']
     };
 
-    var self = this;
-    for (var settingKey in settings) {
-      (function sb_setSettingsListener(settingKey) {
-        SettingsListener.observe(settingKey, false,
-          function sb_settingUpdate(value) {
-            self.settingValues[settingKey] = value;
-            settings[settingKey].forEach(
-              function sb_callUpdate(name) {
-                self.update[name].call(self);
-              }
-            );
-          }
-        );
-        self.settingValues[settingKey] = false;
-      })(settingKey);
+    var setSettingsListener = (settingKey) => {
+      SettingsListener.observe(settingKey, false,
+        (value) => {
+          this.settingValues[settingKey] = value;
+          settings[settingKey].forEach(
+            (name) => this.update[name].call(this)
+          );
+        }
+      );
+      this.settingValues[settingKey] = false;
+    };
+    for (var key in settings) {
+      setSettingsListener(key);
     }
     // Listen to 'attentionscreenshow/hide' from attention_screen.js
     window.addEventListener('attentionscreenshow', this);
@@ -270,10 +222,11 @@ var StatusBar = {
   },
 
   handleEvent: function sb_handleEvent(evt) {
+    var app;
     switch (evt.type) {
       case 'appopened':
         this.setAppearance('opaque');
-        var app = evt.detail;
+        app = evt.detail;
         if (app.isFullScreen()) {
           this.hide();
         } else {
@@ -307,7 +260,7 @@ var StatusBar = {
       case 'attentionscreenhide':
         // Hide the clock in the statusbar when screen is locked
         this.toggleTimeLabel(!this.isLocked());
-        var app = AppWindowManager.getActiveApp();
+        app = AppWindowManager.getActiveApp();
         if (app && app.isFullScreen()) {
           this.hide();
         }
@@ -318,7 +271,7 @@ var StatusBar = {
         break;
 
       case 'utilitytrayhide':
-        var app = AppWindowManager.getActiveApp();
+        app = AppWindowManager.getActiveApp();
         if (app && app.isFullScreen()) {
           this.hide();
         }
@@ -473,7 +426,8 @@ var StatusBar = {
 
     evt.preventDefault();
 
-    var elem = this.element;
+    var elem = this.element,
+        touch;
     switch (evt.type) {
       case 'touchstart':
         clearTimeout(this._releaseTimeout);
@@ -484,7 +438,7 @@ var StatusBar = {
         this._shouldForwardTap = true;
 
 
-        var touch = evt.changedTouches[0];
+        touch = evt.changedTouches[0];
         this._startX = touch.clientX;
         this._startY = touch.clientY;
         elem.style.transition = 'transform';
@@ -492,7 +446,7 @@ var StatusBar = {
         break;
 
       case 'touchmove':
-        var touch = evt.touches[0];
+        touch = evt.touches[0];
         var height = this.height || this._cacheHeight;
         var deltaX = touch.clientX - this._startX;
         var deltaY = touch.clientY - this._startY;
@@ -566,10 +520,12 @@ var StatusBar = {
   },
 
   setActive: function sb_setActive(active) {
-    var self = this;
+    var self = this,
+        battery,
+        conns;
     this.active = active;
     if (active) {
-      var battery = window.navigator.battery;
+      battery = window.navigator.battery;
       if (battery) {
         battery.addEventListener('chargingchange', this);
         battery.addEventListener('levelchange', this);
@@ -577,7 +533,7 @@ var StatusBar = {
         this.update.battery.call(this);
       }
 
-      var conns = window.navigator.mozMobileConnections;
+      conns = window.navigator.mozMobileConnections;
       if (conns) {
         Array.prototype.slice.call(conns).forEach(function(conn) {
           conn.addEventListener('voicechange', self);
@@ -604,14 +560,14 @@ var StatusBar = {
       this.refreshCallListener();
       this.toggleTimeLabel(!this.isLocked());
     } else {
-      var battery = window.navigator.battery;
+      battery = window.navigator.battery;
       if (battery) {
         battery.removeEventListener('chargingchange', this);
         battery.removeEventListener('levelchange', this);
         battery.removeEventListener('statuschange', this);
       }
 
-      var conns = window.navigator.mozMobileConnections;
+      conns = window.navigator.mozMobileConnections;
       if (conns) {
         Array.prototype.slice.call(conns).forEach(function(conn) {
           conn.removeEventListener('voicechange', self);
@@ -1237,16 +1193,16 @@ var StatusBar = {
         document.getElementById('statusbar-call-forwardings');
       sbCallForwardings.dataset.multiple = multipleSims;
       this.icons.callForwardings = {};
-      for (var i = conns.length - 1; i >= 0; i--) {
+      for (var idx = conns.length - 1; idx >= 0; idx--) {
         var callForwarding = document.createElement('div');
         callForwarding.className = 'sb-icon sb-icon-call-forwarding';
         if (multipleSims) {
-          callForwarding.dataset.index = i + 1;
+          callForwarding.dataset.index = idx + 1;
         }
         callForwarding.setAttribute('role', 'listitem');
         callForwarding.setAttribute('aria-label', 'statusbarForwarding');
         sbCallForwardings.appendChild(callForwarding);
-        this.icons.callForwardings[i] = callForwarding;
+        this.icons.callForwardings[idx] = callForwarding;
       }
     }
 
