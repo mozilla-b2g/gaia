@@ -48,16 +48,16 @@
     }
   }
 
-  function saveIcon(url) {
-    if (url in icons) {
+  function saveIcon(key, url) {
+    if (key in icons) {
       return;
     }
     fetchIcon(url, function(err, icon) {
       if (err) {
         // null it out so we dont keep fetching broken icons
-        icons[url] = null;
+        icons[key] = null;
       } else {
-        icons[url] = icon;
+        icons[key] = icon;
       }
       showStartPage();
     });
@@ -219,8 +219,8 @@
 
   function formatPlace(placeObj, filter) {
     var icon;
-    if (placeObj.iconUri in icons && icons[placeObj.iconUri]) {
-      icon = URL.createObjectURL(icons[placeObj.iconUri]);
+    if (placeObj.url in icons) {
+      icon = URL.createObjectURL(icons[placeObj.url]);
     }
 
     var renderObj = {
@@ -274,8 +274,9 @@
      */
     addPlace: function(place) {
       results[place.url] = place;
-      if (place.iconUri) {
-        saveIcon(place.iconUri);
+      var icons = Object.keys(place.icons);
+      if (icons.length) {
+        saveIcon(place.url, icons[0]);
       }
       if (!(place.url in urls)) {
         urls.unshift(place.url);
@@ -286,7 +287,6 @@
       }
       addToStartPage(place);
     }
-
   };
 
   exports.Places = new Places();
