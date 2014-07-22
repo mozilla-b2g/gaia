@@ -2,7 +2,7 @@ Calendar.ns('Views').DayBased = (function() {
   'use strict';
 
   var Calc = Calendar.Calc;
-  var hoursOfOccurance = Calendar.Calc.hoursOfOccurance;
+  var hoursOfOccurence = Calendar.Calc.hoursOfOccurence;
   var OrderedMap = Calendar.Utils.OrderedMap;
   const MINUTES_IN_HOUR = 60;
 
@@ -421,7 +421,7 @@ Calendar.ns('Views').DayBased = (function() {
      * @param {Object} event related event object.
      */
     add: function(busytime, event) {
-      var hours = hoursOfOccurance(
+      var hours = hoursOfOccurence(
         this.date,
         busytime.startDate,
         busytime.endDate

@@ -110,15 +110,13 @@ Calendar.ns('Views').TimeHeader = (function() {
     },
 
     _getLastWeekday: function(){
+      // we display 5 days at a time, controller.position is always the day on
+      // the left of the view
       var position = this.controller.position;
-      // since we break the week into Sun-Wed and Thr-Sat we need to compute
-      // what is going to be the last date displayed on the current view
-      var weekday = position.getDay();
-      var diff = ((weekday <= 3) ? 3 : 6) - weekday;
       return new Date(
         position.getFullYear(),
         position.getMonth(),
-        position.getDate() + diff
+        position.getDate() + 4
       );
     },
 

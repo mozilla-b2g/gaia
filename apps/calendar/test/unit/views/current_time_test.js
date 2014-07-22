@@ -446,12 +446,8 @@ suiteGroup('Views.CurrentTime', function() {
       subject.deactivate.restore();
     });
 
-    test('stop timer, remove element and delete properties', function() {
+    test('stop timer, remove element', function() {
       subject.destroy();
-      assert.ok(!subject.element, 'element');
-      assert.ok(!subject._container, '_container');
-      assert.ok(!subject.timespan, 'timespan');
-      assert.ok(!subject._previousOverlap, '_previousOverlap');
       assert.ok(subject.deactivate.calledOnce, 'deactivate');
       assert.ok(container.removeChild.calledWithExactly(el), 'removeChild');
     });

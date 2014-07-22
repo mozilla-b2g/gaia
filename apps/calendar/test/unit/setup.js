@@ -329,6 +329,7 @@
   requireLib('interval_tree.js');
   requireLib('time_observer.js');
   requireLib('store/abstract.js');
+  requireLib('store/alarm.js');
   requireLib('store/busytime.js');
   requireLib('store/account.js');
   requireLib('store/calendar.js');
@@ -345,8 +346,10 @@
   requireLib('controllers/sync.js');
   requireLib('controllers/alarm.js');
   requireLib('store/setting.js');
-  requireLib('store/alarm.js');
   requireLib('db.js');
+  requireLib('ext/eventemitter2.js');
+  requireLib('utils/mout.js');
+  requireLib('day_observer.js');
   requireLib('app.js');
 
   /* test helpers */

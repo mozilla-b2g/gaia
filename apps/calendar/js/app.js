@@ -124,6 +124,8 @@ Calendar.App = (function(window) {
 
     DateL10n: DateL10n,
 
+    dateFormat: navigator.mozL10n.DateTimeFormat(),
+
     //XXX: always assumes that app is never lazy loaded
     startingURL: window.location.href,
 
@@ -162,6 +164,9 @@ Calendar.App = (function(window) {
       this.serviceController = new Calendar.Controllers.Service(this);
       this.alarmController = new Calendar.Controllers.Alarm(this);
       this.errorController = new Calendar.Controllers.Error(this);
+
+      Calendar.dayObserver.timeController = this.timeController;
+      Calendar.dayObserver.calendarStore = this.store('Calendar');
 
       // observe sync events
       this.observePendingObject(this.syncController);
@@ -349,8 +354,6 @@ Calendar.App = (function(window) {
           AccessibilityHelper.setAriaSelected(event.target, tabs);
         }
       });
-
-      this.dateFormat = navigator.mozL10n.DateTimeFormat();
 
       // re-localize dates on screen
       this.observeDateLocalization();

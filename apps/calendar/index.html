@@ -12,6 +12,7 @@
   <link rel="stylesheet" type="text/css" href="/style/calendar.css">
   <link rel="stylesheet" type="text/css" href="/style/ui.css">
   <link rel="stylesheet" type="text/css" href="/style/day_views.css">
+  <link rel="stylesheet" type="text/css" href="/style/multi_day.css">
   <link rel="stylesheet" type="text/css" href="/style/month.css">
   <link rel="stylesheet" type="text/css" href="/style/building_blocks.css">
   <link rel="stylesheet" type="text/css" href="/style/first_time_use.css">
@@ -98,6 +99,9 @@
   <script defer src="/js/controllers/sync.js"></script>
   <script defer src="/js/controllers/alarm.js"></script>
   <script defer src="/js/performance.js"></script>
+  <script defer src="/js/ext/eventemitter2.js"></script>
+  <script defer src="/js/utils/mout.js"></script>
+  <script defer src="/js/day_observer.js"></script>
   <script defer src="/js/app.js"></script>
 
   <link rel="import" href="/elements/errors.html">
@@ -109,6 +113,7 @@
   <link rel="import" href="/elements/oauth.html">
   <link rel="import" href="/elements/settings.html">
   <link rel="import" href="/elements/show_event.html">
+  <link rel="import" href="/elements/multi_day.html">
 </head>
 
 <body role="application" class="loading">
@@ -163,7 +168,7 @@
 
   <section id="day-view" role="tabpanel" aria-labelledby="day"></section>
 
-  <section id="week-view" role="tabpanel" aria-labelledby="week"></section>
+  <section is="multi-day" id="week-view" class="multi-day" role="tabpanel" aria-labelledby="week"></section>
 
   <ul id="view-selector" role="tablist" class="bb-tablist">
     <li class="today" role="presentation">

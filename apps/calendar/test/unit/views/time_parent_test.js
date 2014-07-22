@@ -274,24 +274,6 @@ suiteGroup('Views.TimeParent', function() {
       subject.app.timeController.emit('purge', span);
       assert.equal(calledWith[0], span);
     });
-
-    suite('calendarVisibilityChange', function() {
-      setup(function() {
-        sinon.stub(subject, '_onCalendarVisibilityChange');
-      });
-
-      teardown(function() {
-        subject._onCalendarVisibilityChange.restore();
-      });
-
-      test('event: calendarVisibilityChange', function() {
-        subject.app.store('Calendar').emit('calendarVisibilityChange');
-        assert.ok(
-          subject._onCalendarVisibilityChange.calledOnce,
-          '_onCalendarVisibilityChange'
-        );
-      });
-    });
   });
 
   suite('#purgeFrames', function() {
@@ -400,34 +382,4 @@ suiteGroup('Views.TimeParent', function() {
     });
 
   });
-
-  suite('#_onCalendarVisibilityChange', function() {
-    setup(function() {
-      sinon.stub(subject, 'purgeFrames');
-      sinon.stub(subject, 'changeDate');
-      subject.date = new Date();
-      subject.currentFrame = {
-        getScrollTop: sinon.stub().returns(100),
-        setScrollTop: sinon.stub()
-      };
-    });
-
-    teardown(function() {
-      subject.purgeFrames.restore();
-      subject.changeDate.restore();
-    });
-
-    test('redraw frame and restore scroll position', function() {
-      var timespan = subject.app.timeController.timespan;
-      var date = subject.date;
-
-      subject._onCalendarVisibilityChange();
-
-      sinon.assert.calledWithExactly(subject.purgeFrames, timespan);
-      sinon.assert.calledWithExactly(subject.changeDate, date);
-      sinon.assert.calledOnce(subject.currentFrame.getScrollTop);
-      sinon.assert.calledWithExactly(subject.currentFrame.setScrollTop, 100);
-    });
-  });
-
 });

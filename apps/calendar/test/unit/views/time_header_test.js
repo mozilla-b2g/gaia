@@ -108,10 +108,11 @@ suiteGroup('Views.TimeHeader', function() {
   test('#getScale for week - month ending on Wednesday', function() {
     controller.move(new Date(2013, 6, 30));
     var out = subject.getScale('week');
-    // even tho the week ends on the next month the days displayed on calendar
-    // all belong to same month (since we break the week into Sun-Wed and
-    // Thr-Sat)
-    assert.equal(out, localeFormat(new Date(2013, 6, 1), '%b %Y'));
+    assert.equal(
+      out,
+      localeFormat(new Date(2013, 6, 28), '%b %Y') + ' ' +
+      localeFormat(new Date(2013, 7, 3), '%b %Y')
+    );
   });
 
   test('#_updateTitle', function() {

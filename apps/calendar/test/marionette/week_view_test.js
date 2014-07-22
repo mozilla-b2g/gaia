@@ -24,14 +24,32 @@ marionette('week view', function() {
     app.openWeekView();
   });
 
+  test('hours', function() {
+    var hours = week.hours;
+    var i = -1, h, hour;
+    var currentHour = (new Date()).getHours();
+    while (++i < 24) {
+      h = i % 12 || 12;
+      hour = hours[i];
+      var text = h + '\n' + (i < 12 ? 'AM' : 'PM');
+      // current hour is hidden because "current time" line overlaps it!
+      if (i === currentHour) {
+        text = '';
+      }
+      assert.strictEqual(hour.text(), text, 'hour text');
+    }
+  });
+
   test('swipe should change date', function() {
     var prevText = app.headerContent.text();
-    var swipeCount = 20;
+    var swipeCount = 0;
     var headerCount = 0;
+    var multiMonthCount = 0;
+    // match the header on a multi week view, we just check for 2 dates since
+    // month names will have different patterns on each locale
+    var multiMonthPattern = /\d{4}.+\d{4}$/;
 
-    while (swipeCount--) {
-      app.swipeLeft();
-
+    while (++swipeCount < 30) {
       var text = app.headerContent.text();
 
       // we are not checking for real overflow since font is different on each
@@ -39,91 +57,91 @@ marionette('week view', function() {
       // https://groups.google.com/forum/#!topic/mozilla.dev.gaia/DrQzv7qexw4
       assert.operator(text.length, '<', 21, 'header should not overflow');
 
+      if (multiMonthPattern.test(text)) {
+        multiMonthCount += 1;
+      }
+
+      // jshint -W083
+      // there was a bug during implementation that caused week view to add
+      // duplicate dates to the DOM, checking if the days have a different
+      // "name" should be enough to catch regressions
+      var duplicateNames = week.dayNames.filter(function(name, i, arr) {
+        return arr.indexOf(name, i + 1) !== -1;
+      });
+      assert.equal(duplicateNames.join(', '), '', 'duplicate dates');
+      // jshint +W083
+
       if (prevText !== text) {
         prevText = text;
         headerCount += 1;
       }
-    }
 
-    assert.operator(headerCount, '>', 1, 'should update header at least 2x');
-  });
-
-  test('multiple months (eg. "Dec 2013 Jan 2014")', function() {
-    // match the header on a multi week view, we just check for 2 dates since
-    // month names will have different patterns on each locale
-    var multiMonthPattern = /\d{4}.+\d{4}$/;
-    var swipeCount = 30;
-    var nMatches = 0;
-    var headerText;
-
-    while (swipeCount--) {
-      headerText = app.headerContent.text();
-      if (multiMonthPattern.test(headerText)) {
-        nMatches += 1;
-      }
       app.swipeLeft();
     }
 
-    assert.operator(nMatches, '>', 0, 'header with multiple months');
+    assert.operator(headerCount, '>', 1, 'should update header at least 2x');
+    assert.operator(multiMonthCount, '>', 0, 'header with multiple months');
   });
 
-  suite('event', function() {
-    var event;
+  test('event + style + scroll + click', function() {
+    // "better" to do all these checks at once because of performance
+
+    // we don't set the startHour because the view will scroll to current time
+    // by default (since it's displaying today)
     var eventData = {
       title: 'Test Week View',
-      location: 'Somewhere',
-      startHour: 1
+      location: 'Somewhere'
     };
 
-    setup(function() {
-      app.createEvent(eventData);
-      event = week.events[0];
-    });
+    app.createEvent(eventData);
 
-    test('style', function() {
-      assert.strictEqual(
-        event.text(),
-        eventData.title,
-        'display event title'
-      );
+    // this is also enough to test if the view is scrolling to the proper
+    // destination (will timeout if it doesn't end or click won't trigger on
+    // proper element)
+    week.waitForHourScrollEnd();
 
-      assert.match(
-        event.cssProperty('background-color'),
-        /rgba\(.+0.2\)/,
-        'should set bg color'
-      );
+    var event = week.events[0];
 
-      assert.ok(
-        event.cssProperty('border-left-color'),
-        'should set the border color'
-      );
+    assert.strictEqual(
+      event.text(),
+      eventData.title,
+      'display event title'
+    );
 
-      assert.operator(
-        parseFloat(event.cssProperty('border-left-width')), '>', 0,
-        'should have border left width'
-      );
+    assert.match(
+      event.cssProperty('background-color'),
+      /rgba\(.+0.2\)/,
+      'should set bg color'
+    );
 
-      assert.strictEqual(
-        event.cssProperty('border-left-style'),
-        'solid',
-        'should have solid border'
-      );
-    });
+    assert.ok(
+      event.cssProperty('border-left-color'),
+      'should set the border color'
+    );
 
-    test('click + event details', function() {
-      event.click();
-      app.readEvent.waitForDisplay();
-      assert.strictEqual(
-        app.readEvent.title,
-        eventData.title,
-        'title'
-      );
-      assert.strictEqual(
-        app.readEvent.location,
-        eventData.location,
-        'location'
-      );
-    });
+    assert.operator(
+      parseFloat(event.cssProperty('border-left-width')), '>', 0,
+      'should have border left width'
+    );
+
+    assert.strictEqual(
+      event.cssProperty('border-left-style'),
+      'solid',
+      'should have solid border'
+    );
+
+    event.click();
+    app.readEvent.waitForDisplay();
+    assert.strictEqual(
+      app.readEvent.title,
+      eventData.title,
+      'title'
+    );
+    assert.strictEqual(
+      app.readEvent.location,
+      eventData.location,
+      'location'
+    );
   });
 
   test('overlaps', function() {
@@ -137,8 +155,7 @@ marionette('week view', function() {
 
     app.createEvent({
       title: '1 Overlap',
-      location: 'Somewhere',
-      startHour: 1
+      location: 'Somewhere'
     });
 
     assert.ok(
@@ -148,8 +165,7 @@ marionette('week view', function() {
 
     app.createEvent({
       title: '2 Overlap',
-      location: 'Somewhere Else',
-      startHour: 1
+      location: 'Somewhere Else'
     });
 
     assert.isFalse(
@@ -159,8 +175,7 @@ marionette('week view', function() {
 
     app.createEvent({
       title: '3 Overlap',
-      location: 'Here',
-      startHour: 1
+      location: 'Here'
     });
 
     assert.isFalse(
@@ -190,11 +205,12 @@ marionette('week view', function() {
   });
 
   test('current-time', function() {
+    week.waitForHourScrollEnd();
+
     var currentTime = week.currentTime;
 
-    assert.include(
-      currentTime.getAttribute('className'),
-      'active',
+    assert.ok(
+      currentTime.displayed(),
       'current-time should be active'
     );
 
@@ -203,19 +219,10 @@ marionette('week view', function() {
       'current time should be inside current hour range'
     );
 
-    var currentDisplayHour = week.currentDisplayHour;
-
-    if (intersect(currentTime, currentDisplayHour)) {
-      assert.ok(
-        !currentDisplayHour.displayed(),
-        'hour should be hidden if overlapping'
-      );
-    } else {
-      assert.ok(
-        currentDisplayHour.displayed(),
-        'hour should be displayed if not overlapping'
-      );
-    }
+    assert.ok(
+      !week.currentDisplayHour.displayed(),
+      'hour should be hidden if overlapping'
+    );
 
     function intersect(el1, el2) {
       var b1 = getBounds(el1);
@@ -234,5 +241,43 @@ marionette('week view', function() {
         return el.getBoundingClientRect();
       });
     }
+
+    // it should hide the currentTime if current day is not visible
+    app.swipeLeft();
+    client.waitFor(function() {
+      return !currentTime.displayed() && week.currentDisplayHour.displayed();
+    });
   });
+
+  test('double tap', function() {
+    week.waitForHourScrollEnd();
+
+    // we always click on the day that is in the middle of the screen
+    var day = week.days[7].scriptWith(function(el) {
+      return el.dataset.date;
+    });
+    var date = new Date(day);
+    var dateIso = date.toISOString().slice(0, 10);
+
+    // we always click the 3rd hour from the top
+    var time = Math.floor((week.scrollTop + 100) / 50);
+
+    week.actions
+      .doubleTap(week.element, 200, 200)
+      .perform();
+
+    var editEvent = app.editEvent;
+    editEvent.waitForDisplay();
+
+    assert.equal(editEvent.startDate, dateIso, 'startDate');
+    assert.equal(editEvent.endDate, dateIso, 'endDate');
+
+    assert.equal(editEvent.startTime, pad(time) + ':00:00', 'startTime');
+    assert.equal(editEvent.endTime, pad(time + 1) + ':00:00', 'endTime');
+  });
+
+  function pad(n) {
+    return n < 10 ? '0' + n : String(n);
+  }
+
 });
