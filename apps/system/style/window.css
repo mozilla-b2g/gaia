@@ -20,10 +20,23 @@
   background-color: transparent;
 }
 
+/* Allow the rocketbar to be scrolled on/off */
+.appWindow > .browser-container {
+  overflow-y: scroll;
+  font-size: 0;
+}
+
 /* mozbrowser iframe layout */
 
-.appWindow > iframe {
+.appWindow > .browser-container > iframe {
   border: none;
+  width: 100%;
+  height: 100%;
+}
+
+/* Allow rocketbar expansion on apps with navigation */
+.appWindow.navigation > .browser-container > iframe {
+  margin-top: 4.8rem;
 }
 
 .appWindow .throbber.loading {

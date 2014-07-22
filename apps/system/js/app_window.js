@@ -351,7 +351,7 @@
     }
     this.debug(' ...revived!');
     this.browser = new self.BrowserFrame(this.browser_config);
-    this.element.appendChild(this.browser.element);
+    this.element.appendChild(this.browser.container);
     this.iframe = this.browser.element;
     this.launchTime = Date.now();
     this.suspended = false;
@@ -373,7 +373,7 @@
     this.loaded = false;
     this.suspended = true;
     this.element.classList.add('suspended');
-    this.element.removeChild(this.browser.element);
+    this.element.removeChild(this.browser.container);
     this.browser = null;
     this.publish('suspended');
   };
@@ -526,7 +526,8 @@
     // window.open would offer the iframe so we don't need to generate.
     if (this.iframe) {
       this.browser = {
-        element: this.iframe
+        element: this.iframe,
+        container: this.iframe
       };
     } else {
       this.browser = new self.BrowserFrame(this.browser_config);
@@ -548,7 +549,7 @@
       this.element.classList.add('fullscreen-app');
     }
 
-    this.element.appendChild(this.browser.element);
+    this.element.appendChild(this.browser.container);
 
     // Intentional! The app in the iframe gets two resize events when adding
     // the element to the page (see bug 1007595). The first one is incorrect,
@@ -649,7 +650,7 @@
     ['mozbrowserclose', 'mozbrowsererror', 'mozbrowservisibilitychange',
      'mozbrowserloadend', 'mozbrowseractivitydone', 'mozbrowserloadstart',
      'mozbrowsertitlechange', 'mozbrowserlocationchange',
-     'mozbrowsermetachange', 'mozbrowsericonchange', 'mozbrowserasyncscroll',
+     'mozbrowsermetachange', 'mozbrowsericonchange',
      '_localized', '_swipein', '_swipeout', '_kill_suspended',
      '_orientationchange', '_focus'];
 
@@ -671,7 +672,6 @@
    * @type {Array}
    */
   var SELF_MANAGED_EVENTS = [
-    'mozbrowserasyncscroll',
     'mozbrowserclose',
     'mozbrowsercontextmenu',
     'mozbrowsererror',
@@ -896,12 +896,15 @@
       this.publish('iconchange');
     };
 
-  AppWindow.prototype._handle_mozbrowserasyncscroll =
-    function aw__handle_mozbrowserasyncscroll(evt) {
-      if (this.manifest) {
+  AppWindow.prototype._handle_scroll =
+    function aw__handle_scroll(evt) {
+      if (!this.browser || !this.browser.container) {
         return;
       }
-      this.scrollPosition = evt.detail.top;
+
+      var container = this.browser.container;
+      this.scrollPosition = [container.scrollLeft, container.scrollTop];
+      this.scrollMax = [container.scrollLeftMax, container.scrollTopMax];
       this.publish('scroll');
     };
 
@@ -938,6 +941,9 @@
         this.element.addEventListener(evt, this);
       }
     }, this);
+    if (this.browser && this.browser.container) {
+      this.browser.container.addEventListener('scroll', this);
+    }
   };
 
   /**
