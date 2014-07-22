@@ -1,5 +1,4 @@
 'use strict';
-/* global eme */
 /* global CollectionIcon */
 /* global NativeInfo */
 
@@ -31,7 +30,7 @@
      */
     install: function(event) {
       var message = event.data;
-      eme.init().then(() => NativeInfo.processApp('install', message.id));
+      NativeInfo.processApp('install', message.id);
     },
 
     /**
@@ -39,7 +38,7 @@
      */
     uninstall: function(event) {
       var message = event.data;
-      eme.init().then(() => NativeInfo.processApp('uninstall', message.id));
+      NativeInfo.processApp('uninstall', message.id);
     }
   };
 

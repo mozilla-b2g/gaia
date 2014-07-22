@@ -31,6 +31,9 @@
 
   /* constants */
 
+  // number of app icons in the collection icon
+  const numAppIcons = 3;
+
   // darkness of to side icons
   const sideIconDarken = 0.65;
 
@@ -105,6 +108,12 @@
     // bgSrc: base64 image
     this.bgSrc = config.bgSrc || null;
   }
+
+  Object.defineProperty(CollectionIcon, 'numAppIcons', {
+    get: function get() {
+      return numAppIcons;
+    }
+  });
 
   CollectionIcon.init = function init(maxIconSize) {
     // measurements are based on a 60px icon (cf. bug 965711)

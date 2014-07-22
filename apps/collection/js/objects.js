@@ -2,14 +2,12 @@
 /* global eme */
 /* global CollectionsDatabase */
 /* global CollectionIcon */
-/* global Common */
 /* global GaiaGrid */
 /* global HomeIcons */
 /* global SearchDedupe */
 /* global GridIconRenderer */
 
 (function(exports) {
-  const APPS_IN_ICON = Common.APPS_IN_ICON;
 
   // web result created from E.me API data
   function WebResult(data, gridItemFeatures) {
@@ -58,10 +56,7 @@
 
     // save copy of original properties so we can tell when to re-render the
     // collection icon
-    this.originalProps = {
-      pinned: props.pinned ? props.pinned.slice() : [],
-      background: props.background || {}
-    };
+    this.originalProps = props;
 
     if (window.SearchDedupe) {
       this.dedupe = new SearchDedupe();
@@ -78,17 +73,6 @@
   };
 
   BaseCollection.prototype = {
-
-    // let's us know if we have enough app icons for rendering the
-    //  collection's icon
-    get iconsReady() {
-      return this.pinned.length + this.webicons.length >= APPS_IN_ICON;
-    },
-
-    // let's us know if the background is ready for rendering
-    get backgroundReady() {
-      return this.background && this.background.blob;
-    },
 
     get localizedName() {
       // l10n prefix taken from /shared/locales/collection_categories
@@ -113,8 +97,7 @@
      */
     save: function save(method) {
       if (this.iconDirty) {
-        return this.renderIcon()
-                   .then(() => this.write(method), () => this.write(method));
+        return this.renderIcon().then(this.write.bind(this, method));
       } else {
         return this.write(method);
       }
@@ -137,14 +120,8 @@
         background: this.background,
         icon: this.icon
       };
-
-      // update instance
-      this.originalProps = toSave;
-
-      // update db
       return CollectionsDatabase[method](toSave).then(() => {
         this.id = toSave.id;
-        eme.log(this.name, 'saved to CollectionsDatabase');
       });
     },
 
@@ -155,36 +132,33 @@
      * - The background image changes.
      */
     get iconDirty() {
-      var original = this.originalProps;
+      var numAppIcons = CollectionIcon.numAppIcons;
+      var before = this.originalProps;
       try {
         // background
-        if ((original.background && original.background.blob) !==
-            (this.background && this.background.blob)) {
+        if (before.background.blob !== this.background.blob) {
+          this.originalProps.background = this.background;
           return true;
         }
 
         // apps
-        var first = this.pinned.concat(this.webResults).slice(0, APPS_IN_ICON);
-        var oFirst =
-          original.pinned.concat(original.webResults).slice(0, APPS_IN_ICON);
+        var first = this.pinned.concat(this.webResults).slice(0, numAppIcons);
+        var oldFirst =
+          before.pinned.concat(before.webResults).slice(0, numAppIcons);
 
-        if (first.length !== oFirst.length) {
-          return true;
-        }
-
-        for (var i = 0; i < APPS_IN_ICON; i++) {
-          var item = first[i];
-          var oItem = oFirst[i];
-
-          if ((item && item.identifier) !== (oItem && oItem.identifier)) {
+        for (var i = 0; i < numAppIcons; i++) {
+          if (first[i].identifier !== oldFirst[i].identifier) {
+            before.pinned = this.pinned;
             return true;
           }
         }
 
-      } catch (e) {
-        eme.error('icon dirty checking failed', e);
-      }
+        if (first.length !== before.length) {
+          before.pinned = this.pinned;
+          return true;
+        }
 
+      } catch (e) {}
       return false;
     },
 
@@ -203,9 +177,8 @@
 
       if (newItems.length) {
         this.pinned = this.pinned.concat(newItems);
-        this.save()
-          .then(() => eme.log(newItems.length, 'new pinned to', this.name));
-
+        this.save();
+        eme.log(newItems.length, 'new pinned to', this.name);
       }
     },
 
@@ -214,21 +187,6 @@
         return new PinnedHomeIcon(identifier);
       });
       this.pin(items);
-    },
-
-    dropHomeIcon: function dropHomeIcon(identifier) {
-      var newPinned = new PinnedHomeIcon(identifier);
-
-      // If a record is already pinned, delete it so it appears first.
-      for (var i = 0, iLen = this.pinned.length; i < iLen; i++) {
-        if (this.pinned[i].identifier === identifier) {
-          this.pinned.splice(i, 1);
-          break;
-        }
-      }
-
-      this.pinned.unshift(newPinned);
-      this.save().then(() => eme.log(identifier, 'dropped into', this.name));
     },
 
     pinWebResult: function pinWebResult(data) {
@@ -253,7 +211,7 @@
       });
       this.webResults = results;
 
-      this.webicons = arrayOfData.slice(0, APPS_IN_ICON)
+      this.webicons = arrayOfData.slice(0, CollectionIcon.numAppIcons)
         .map(app => app.icon);
     },
 
@@ -382,42 +340,34 @@
     },
 
     renderIcon: function renderIcon() {
-      eme.log('rendering icon for', this.name);
 
-      return Common.prepareAssets(this)
-             .then(() => this.doRenderIcon())
-             .catch(() => this.doRenderIcon());
-    },
-
-    doRenderIcon: function doRenderIcon() {
       // Build the small icons from pinned, then webicons
-      var iconSrcs = this.pinned.slice(0, APPS_IN_ICON)
+      var numAppIcons = CollectionIcon.numAppIcons;
+      var iconSrcs = this.pinned.slice(0, numAppIcons)
                          .map((item) => this.toGridObject(item).icon);
 
-      if (iconSrcs.length < APPS_IN_ICON) {
+      if (iconSrcs.length < numAppIcons) {
         var moreIcons =
           this.webicons
           // bug 1028674: deupde
           .filter((webicon) => iconSrcs.indexOf(webicon) === -1)
-          .slice(0, APPS_IN_ICON - iconSrcs.length);
+          .slice(0, numAppIcons - iconSrcs.length);
 
         iconSrcs = iconSrcs.concat(moreIcons);
       }
 
-      var bgSrc = (this.background && this.background.blob) ?
-                  URL.createObjectURL(this.background.blob) :
-                  null;
-
       var icon = new CollectionIcon({
         iconSrcs: iconSrcs,
-        bgSrc: bgSrc
+        bgSrc: this.background ? URL.createObjectURL(this.background.blob)
+                               : null
       });
 
-      return icon.render().then((canvas) => {
+      // return a promise
+      return icon.render().then(function success(canvas) {
         this.icon = canvas.toDataURL();
-      });
+        return this.icon;
+      }.bind(this));
     }
-
   };
 
 
