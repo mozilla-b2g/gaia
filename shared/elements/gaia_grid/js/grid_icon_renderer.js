@@ -52,7 +52,7 @@
      * @return {CanvasRenderingContext2D}
      */
     _decorateShadowCanvas: function(canvas) {
-      var ctx = canvas.getContext('2d');
+      var ctx = canvas.getContext('2d', { willReadFrequently: true });
 
       ctx.shadowColor = SHADOW_COLOR;
       ctx.shadowBlur = SHADOW_BLUR;
@@ -75,7 +75,8 @@
         var shadowCtx = this._decorateShadowCanvas(shadowCanvas);
 
         var clipCanvas = this._createCanvas();
-        var clipCtx = clipCanvas.getContext('2d');
+        var clipCtx = clipCanvas.getContext('2d',
+                                            { willReadFrequently: true });
 
         clipCtx.beginPath();
         clipCtx.arc(clipCanvas.width / 2, clipCanvas.height / 2,
