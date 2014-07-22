@@ -1,4 +1,4 @@
-/*global Factory */
+/* global Factory, requirejs */
 
 (function(window) {
   'use strict';
@@ -317,7 +317,6 @@
   requireApp('calendar/shared/js/lazy_loader.js');
 
   requireLib('calendar.js');
-  requireLib('promise.js');
   requireLib('performance.js');
   requireLib('error.js');
   requireApp('calendar/test/unit/loader.js');
@@ -359,4 +358,9 @@
   window.uuid = null;
   window.NotAmd = null;
 
+  requireLib('ext/alameda.js');
+
+  requirejs.config({
+    baseUrl: '/js'
+  });
 }(this));
