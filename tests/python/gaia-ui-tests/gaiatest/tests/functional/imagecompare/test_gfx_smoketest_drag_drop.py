@@ -61,5 +61,3 @@ class testGfxSmokeTestDragDrop(GaiaTestCase):
         # In case the assertion fails this will still kill the call
         # An open call creates problems for future tests
         self.graphics.execute_image_job()
-
-        GaiaTestCase.tearDown(self)

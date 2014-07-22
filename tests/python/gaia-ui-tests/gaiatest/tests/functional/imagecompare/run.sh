@@ -19,14 +19,14 @@ git pull
 # zip the contents of the shots folder and save elsewhere
 rm $gaiahome/shots/*
 
-# sleep for 5 minutes, give time until the phone boots up
-sleep 5m
+# sleep for 2 minutes, give time until the phone boots up
+sleep 2m
 
 # go to the gaia folder, and setup adb and execute the manifest
 cd $gaiahome
 git pull
+echo "mozilla" | sudo -S python setup.py develop
 adb forward tcp:2828 tcp:2828
-workon $virtualenvname
 gaiatest --address=localhost:2828 --testvars=gaiatest/$config --restart  --type=b2g gaiatest/tests/functional/imagecompare/manifest.ini > $runlog
 
 
