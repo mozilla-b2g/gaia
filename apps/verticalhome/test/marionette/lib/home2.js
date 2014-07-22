@@ -52,7 +52,8 @@ Home2.Selectors = {
   search: '#search',
   firstIcon: '#icons div.icon:not(.placeholder)',
   dividers: '#icons section.divider',
-  contextmenu: '#contextmenu-dialog'
+  contextmenu: '#contextmenu-dialog',
+  themeColor: 'head meta[name="theme-color"]'
 };
 
 /**
@@ -207,6 +208,16 @@ Home2.prototype = {
       '[data-identifier="' + manifestUrl +
       (entryPoint ? '-' + entryPoint : '') + '"]'
     );
+  },
+
+  /**
+  Get the the current meta=theme-color of the homescreen
+
+  @return {String}
+  */
+  getThemeColor: function() {
+    var meta = this.client.findElement(Home2.Selectors.themeColor);
+    return meta.getAttribute('content');
   },
 
   /**
