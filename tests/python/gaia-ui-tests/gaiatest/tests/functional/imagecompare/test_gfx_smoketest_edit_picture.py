@@ -7,7 +7,7 @@ from gaiatest import GaiaTestCase
 from gaiatest.apps.gallery.app import Gallery
 from marionette.marionette import Actions
 from gaiatest.utils.Imagecompare.imagecompare_util import ImageCompareUtil
-import sys
+import sys,time
 import pdb
 
 class TestGalleryEditPhoto(GaiaTestCase):
@@ -84,7 +84,8 @@ class TestGalleryEditPhoto(GaiaTestCase):
         self.marionette.find_element(*self._bluesteel_effect_button).tap()
         self.graphics.invoke_screen_capture()
         self.device.change_orientation('landscape-primary')
-
+        time.sleep(3)
+        pdb.set_trace()
         # save the resulting picture
         gallery = edit_image.tap_edit_save_button()
         gallery.wait_for_files_to_load(12)
@@ -107,5 +108,3 @@ class TestGalleryEditPhoto(GaiaTestCase):
         # In case the assertion fails this will still kill the call
         # An open call creates problems for future tests
         self.graphics.execute_image_job()
-
-        GaiaTestCase.tearDown(self)
