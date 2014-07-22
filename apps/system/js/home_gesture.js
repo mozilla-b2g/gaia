@@ -82,8 +82,6 @@
             this.toggle(value);
           }.bind(this));
       }
-
-      return this;
     },
 
     /**
@@ -98,14 +96,14 @@
 
       if (enable) {
         this.publish('homegesture-enabled');
-        window.addEventListener('lockscreen-appclosing', this);
+        window.addEventListener('lockscreen-appclose', this);
         window.addEventListener('lockscreen-appopened', this);
         window.addEventListener('utilitytrayshow', this);
         window.addEventListener('utilitytrayhide', this);
         this.homeBar.classList.add('visible');
       } else {
         this.publish('homegesture-disabled');
-        window.removeEventListener('lockscreen-appclosing', this);
+        window.removeEventListener('lockscreen-appclose', this);
         window.removeEventListener('lockscreen-appopened', this);
         window.removeEventListener('utilitytrayshow', this);
         window.removeEventListener('utilitytrayhide', this);
@@ -147,7 +145,7 @@
         case 'utilitytrayshow':
           this.homeBar.classList.remove('visible');
           break;
-        case 'lockscreen-appclosing':
+        case 'lockscreen-appclose':
         case 'utilitytrayhide':
           this.homeBar.classList.add('visible');
           break;

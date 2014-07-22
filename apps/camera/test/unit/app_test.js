@@ -66,7 +66,7 @@ suite('app', function() {
       require: sinon.stub(),
       settings: {
         geolocation: sinon.createStubInstance(this.Setting),
-        loadingScreen: sinon.createStubInstance(this.Setting)
+        spinnerTimeouts: sinon.createStubInstance(this.Setting)
       },
       views: {
         viewfinder: new this.View({ name: 'viewfinder' }),
@@ -74,11 +74,12 @@ suite('app', function() {
         hud: new this.View({ name: 'hud' })
       },
       controllers: {
+        battery: sinon.spy(),
+        overlay: sinon.spy(),
         hud: sinon.spy(),
         timer: sinon.spy(),
         controls: sinon.spy(),
         viewfinder: sinon.spy(),
-        overlay: sinon.spy(),
         camera: sinon.spy(),
         settings: sinon.spy(),
         activity: sinon.spy(),
@@ -90,7 +91,6 @@ suite('app', function() {
         previewGallery: 'controllers/preview-gallery',
         storage: 'controllers/storage',
         confirm: 'controllers/confirm',
-        battery: 'controllers/battery',
         sounds: 'controllers/sounds'
       }
     };
@@ -117,7 +117,8 @@ suite('app', function() {
     // methods before any of this happens, so that the
     // spy is always at the root of any call.
     this.sandbox.spy(this.App.prototype, 'boot');
-    this.sandbox.spy(this.App.prototype, 'clearLoading');
+    this.sandbox.spy(this.App.prototype, 'onReady');
+    this.sandbox.spy(this.App.prototype, 'showSpinner');
 
     // Aliases
     this.settings = options.settings;
@@ -175,10 +176,11 @@ suite('app', function() {
       var controllers = this.app.controllers;
       var app = this.app;
 
+      assert.ok(controllers.overlay.calledWith(app));
+      assert.ok(controllers.battery.calledWith(app));
       assert.ok(controllers.hud.calledWith(app));
       assert.ok(controllers.controls.calledWith(app));
       assert.ok(controllers.viewfinder.calledWith(app));
-      assert.ok(controllers.overlay.calledWith(app));
       assert.ok(controllers.camera.calledWith(app));
       assert.ok(controllers.zoomBar.calledWith(app));
     });
@@ -216,13 +218,17 @@ suite('app', function() {
     });
 
     test('Should clear loading screen when camera is ready', function() {
-      var on = this.app.on.withArgs('camera:ready');
+      var on = this.app.on.withArgs('ready');
       var callback = on.args[0][1];
 
       // Call the callback and make sure
-      // that `clearLoading` was called.
+      // that `onReady` was called.
       callback();
-      sinon.assert.calledOnce(this.App.prototype.clearLoading);
+      sinon.assert.calledOnce(this.App.prototype.onReady);
+    });
+
+    test('It calls `showSpinner`', function() {
+      sinon.assert.calledWith(this.App.prototype.showSpinner, 'requestingCamera');
     });
 
     suite('App#geolocationWatch()', function() {
@@ -256,7 +262,7 @@ suite('app', function() {
         this.spy = this.app.once.withArgs('viewfinder:visible');
         this.callback = this.spy.args[0][1];
 
-        sinon.stub(this.app, 'clearLoading');
+        sinon.stub(this.app, 'onReady');
         sinon.spy(this.app, 'loadController');
         sinon.spy(this.app, 'loadL10n');
 
@@ -283,7 +289,6 @@ suite('app', function() {
         assert.isTrue(loadController.calledWith(controllers.previewGallery));
         assert.isTrue(loadController.calledWith(controllers.storage));
         assert.isTrue(loadController.calledWith(controllers.confirm));
-        assert.isTrue(loadController.calledWith(controllers.battery));
         assert.isTrue(loadController.calledWith(controllers.sounds));
       });
     });
@@ -357,62 +362,71 @@ suite('app', function() {
     });
   });
 
-  suite('App#onCameraBusy()', function() {
+  suite('App#onBusy()', function() {
     setup(function() {
-      this.app.settings.loadingScreen.get
+      this.app.settings.spinnerTimeouts.get
         .withArgs('takingPicture')
         .returns(1500);
 
-      this.app.settings.loadingScreen.get
+      this.app.settings.spinnerTimeouts.get
         .withArgs('requestingCamera')
         .returns(600);
 
-      sinon.stub(this.app, 'showLoading');
+      sinon.stub(this.app, 'showSpinner');
     });
 
-    test('Should call showLoading if busy type recongnised', function() {
-      this.app.onCameraBusy('takingPicture');
-      sinon.assert.calledWith(this.app.showLoading, 1500);
-      this.app.showLoading.reset();
+    test('It calls showSpinner with type if busy type recongnised', function() {
+      this.app.onBusy('takingPicture');
+      sinon.assert.calledWith(this.app.showSpinner, 'takingPicture');
+      this.app.showSpinner.reset();
 
-      this.app.onCameraBusy('requestingCamera');
-      sinon.assert.calledWith(this.app.showLoading, 600);
-      this.app.showLoading.reset();
+      this.app.onBusy('requestingCamera');
+      sinon.assert.calledWith(this.app.showSpinner, 'requestingCamera');
+      this.app.showSpinner.reset();
     });
 
     test('Should not show loading screen if busy type not recongnised', function() {
-      this.app.onCameraBusy('unknownType');
-      sinon.assert.notCalled(this.app.showLoading);
+      this.app.onBusy('unknownType');
+      sinon.assert.notCalled(this.app.showSpinner);
     });
   });
 
-  suite('App#showLoading()', function() {
+  suite('App#showSpinner()', function() {
     setup(function() {
       this.sandbox.spy(window, 'clearTimeout');
+
+      this.app.settings.spinnerTimeouts.get
+        .withArgs('takingPicture')
+        .returns(1500);
+
+      this.app.settings.spinnerTimeouts.get
+        .withArgs('requestingCamera')
+        .returns(600);
+
     });
 
     test('Should append a loading view to the app element and show', function() {
-      this.app.showLoading(400);
-      this.clock.tick(400);
+      this.app.showSpinner('takingPicture');
+      this.clock.tick(1500);
       sinon.assert.calledWith(this.app.views.loading.appendTo, this.app.el);
       sinon.assert.called(this.app.views.loading.show);
     });
 
     test('Should clear any existing timeouts', function() {
       this.sandbox.stub(window, 'setTimeout').returns('<timeout-id>');
-      this.app.showLoading(400);
-      this.app.showLoading(400);
+      this.app.showSpinner('requestingCamera');
+      this.app.showSpinner('requestingCamera');
       sinon.assert.calledWith(window.clearTimeout, '<timeout-id>');
     });
 
-    test('Should be able to overide default delay', function() {
-      this.sandbox.stub(window, 'setTimeout');
-      this.app.showLoading(3000);
-      assert.equal(window.setTimeout.args[0][1], 3000);
+    test('It should not require a type', function() {
+      this.app.showSpinner();
+      this.clock.tick(1);
+      sinon.assert.calledWith(this.app.views.loading.appendTo, this.app.el);
     });
   });
 
-  suite('App#clearLoading()', function() {
+  suite('App#onReady()', function() {
     setup(function() {
       this.sandbox.spy(window, 'clearTimeout');
       this.sandbox.stub(window, 'setTimeout').returns('<timeout-id>');
@@ -421,21 +435,21 @@ suite('app', function() {
     });
 
     test('Should clear loadingTimeout', function() {
-      this.app.showLoading();
-      this.app.clearLoading();
+      this.app.showSpinner();
+      this.app.onReady();
       sinon.assert.calledWith(window.clearTimeout, '<timeout-id>');
     });
 
     test('Should hide, then destroy the view', function() {
       var view = this.app.views.loading;
-      this.app.clearLoading();
+      this.app.onReady();
 
       sinon.assert.called(view.hide);
       assert.ok(view.destroy.calledAfter(view.hide));
     });
 
     test('Should clear reference to `app.views.loading`', function() {
-      this.app.clearLoading();
+      this.app.onReady();
       assert.equal(this.app.views.loading, null);
     });
   });

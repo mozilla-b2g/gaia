@@ -93,6 +93,7 @@ var KeyboardManager = {
   },
   hasActiveKeyboard: false,
   isOutOfProcessEnabled: false,
+  totalMemory: 0,
 
   init: function km_init() {
     // generate typeTable
@@ -109,6 +110,15 @@ var KeyboardManager = {
       function(value) {
         this.isOutOfProcessEnabled = value;
       }.bind(this));
+
+    if ('getFeature' in navigator) {
+      navigator.getFeature('hardware.memory').then(function(mem) {
+        this.totalMemory = mem;
+      }.bind(this), function() {
+        console.error('KeyboardManager: ' +
+          'Failed to retrive total memory of the device.');
+      });
+    }
 
     this.keyboardFrameContainer = document.getElementById('keyboards');
 
@@ -412,7 +422,15 @@ var KeyboardManager = {
     keyboard.setAttribute('mozpasspointerevents', 'true');
     keyboard.setAttribute('mozapp', layout.manifestURL);
 
-    if (this.isOutOfProcessEnabled) {
+    var manifest =
+      window.applications.getByManifestURL(layout.manifestURL).manifest;
+    var isCertifiedApp = (manifest.type === 'certified');
+
+    // oop is always enabled for non-certified app,
+    // and optionally enabled to certified apps if
+    // available memory is more than 512MB.
+    if (this.isOutOfProcessEnabled &&
+        (!isCertifiedApp || this.totalMemory >= 512)) {
       console.log('=== Enable keyboard: ' + layout.origin + ' run as OOP ===');
       keyboard.setAttribute('remote', 'true');
       keyboard.setAttribute('ignoreuserfocus', 'true');

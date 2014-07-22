@@ -431,3 +431,8 @@ input.error {
   text-align: center;
   font-weight: 300;
 }
+
+#legend {
+  text-align: center;
+  display: block;
+}

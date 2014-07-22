@@ -7,13 +7,31 @@
   top: calc(-100% + 4.8rem);
   width: calc(100%);
   height: calc(100% - 2.4rem);
-  background-color: rgba(0, 0, 0, 0.7);
+  background-color: rgba(0, 0, 0, 0.9);
 
   transform: translateY(-4rem);
   visibility: hidden;
 }
 
 .utility-tray #utility-tray {
+  visibility: visible;
+}
+
+#notifications-placeholder {
+  height: calc(100% - 2rem);
+}
+
+#utility-tray-notifications {
+  position: fixed;
+  width: 100%;
+  top: 2.4rem;
+  visibility: hidden;
+  clip: rect(0, 0, 0, 0);
+  display: flex;
+  flex-direction: column;
+}
+
+#utility-tray-notifications.visible {
   visibility: visible;
 }
 

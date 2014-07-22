@@ -10,7 +10,9 @@ var appPath = mozTestInfo.appPath;
 
 var whitelistedApps = [
   'camera',
+  'calendar',
   'clock',
+  'costcontrol',
   'communications/contacts',
   'communications/dialer',
   'email',
@@ -18,18 +20,24 @@ var whitelistedApps = [
   'gallery',
   'marketplace.firefox.com',
   'settings',
-  'sms'
+  'sms',
+  'video'
 ];
 
 var whitelistedUnifiedApps = [
   'camera',
+  'calendar',
   'clock',
+  'costcontrol',
   'communications/dialer',
+  'communications/contacts',
   'email',
   'fm',
   'gallery',
   'marketplace.firefox.com',
-  'settings'
+  'settings',
+  'sms',
+  'video'
 ];
 
 function contains(haystack, needle) {

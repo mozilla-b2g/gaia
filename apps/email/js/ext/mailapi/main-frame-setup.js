@@ -527,62 +527,8 @@ MailSenderIdentity.prototype = {
 
 function MailFolder(api, wireRep) {
   this._api = api;
-  this.id = wireRep.id;
-
-  // Hold on to wireRep for caching
-  this._wireRep = wireRep;
-
-  /**
-   * The human-readable name of the folder.  (As opposed to its path or the
-   * modified utf-7 encoded folder names.)
-   */
-  this.name = wireRep.name;
-  /**
-   * The full string of the path.
-   */
-  this.path = wireRep.path;
-  /**
-   * The hierarchical depth of this folder.
-   */
-  this.depth = wireRep.depth;
-  /**
-   * @oneof[
-   *   @case['account']{
-   *     It's not really a folder at all, just an account serving as hierarchy.
-   *   }
-   *   @case['nomail']{
-   *     A folder that exists only to provide hierarchy but which can't
-   *     contain messages.  An artifact of various mail backends that are
-   *     reflected in IMAP as NOSELECT.
-   *   }
-   *   @case['inbox']
-   *   @case['drafts']
-   *   @case['localdrafts']{
-   *     Local-only folder that stores drafts composed on this device.
-   *   }
-   *   @case['queue']
-   *   @case['sent']
-   *   @case['trash']
-   *   @case['archive']
-   *   @case['junk']
-   *   @case['starred']
-   *   @case['important']
-   *   @case['normal']{
-   *     A traditional mail folder with nothing special about it.
-   *   }
-   * ]{
-   *   Non-localized string indicating the type of folder this is, primarily
-   *   for styling purposes.
-   * }
-   */
-  this.type = wireRep.type;
-
-  // Exchange folder name with the localized version if available
-  this.name = this._api.l10n_folder_name(this.name, this.type);
 
   this.__update(wireRep);
-
-  this.selectable = (wireRep.type !== 'account') && (wireRep.type !== 'nomail');
 
   this.onchange = null;
   this.onremove = null;
@@ -603,8 +549,64 @@ MailFolder.prototype = {
   },
 
   __update: function(wireRep) {
+    // Hold on to wireRep for caching
+    this._wireRep = wireRep;
+
     this.lastSyncedAt = wireRep.lastSyncedAt ? new Date(wireRep.lastSyncedAt)
                                              : null;
+    this.path = wireRep.path;
+    this.id = wireRep.id;
+
+    /**
+     * The human-readable name of the folder.  (As opposed to its path or the
+     * modified utf-7 encoded folder names.)
+     */
+    this.name = wireRep.name;
+    /**
+     * The full string of the path.
+     */
+    this.path = wireRep.path;
+    /**
+     * The hierarchical depth of this folder.
+     */
+    this.depth = wireRep.depth;
+    /**
+     * @oneof[
+     *   @case['account']{
+     *     It's not really a folder at all, just an account serving as hierarchy
+     *   }
+     *   @case['nomail']{
+     *     A folder that exists only to provide hierarchy but which can't
+     *     contain messages.  An artifact of various mail backends that are
+     *     reflected in IMAP as NOSELECT.
+     *   }
+     *   @case['inbox']
+     *   @case['drafts']
+     *   @case['localdrafts']{
+     *     Local-only folder that stores drafts composed on this device.
+     *   }
+     *   @case['queue']
+     *   @case['sent']
+     *   @case['trash']
+     *   @case['archive']
+     *   @case['junk']
+     *   @case['starred']
+     *   @case['important']
+     *   @case['normal']{
+     *     A traditional mail folder with nothing special about it.
+     *   }
+     * ]{
+     *   Non-localized string indicating the type of folder this is, primarily
+     *   for styling purposes.
+     * }
+     */
+    this.type = wireRep.type;
+
+    // Exchange folder name with the localized version if available
+    this.name = this._api.l10n_folder_name(this.name, this.type);
+
+    this.selectable = ((wireRep.type !== 'account') &&
+                       (wireRep.type !== 'nomail'));
   },
 
   __die: function() {
@@ -1194,6 +1196,15 @@ MailHeader.prototype = {
     this.isForwarded = wireRep.flags.indexOf('$Forwarded') !== -1;
     this.isJunk = wireRep.flags.indexOf('$Junk') !== -1;
     this.tags = filterOutBuiltinFlags(wireRep.flags);
+
+    // Messages in the outbox will have `sendStatus` populated like so:
+    // {
+    //   state: 'pending', 'error', 'success', 'sending', or 'syncDone'
+    //   err: null,
+    //   badAddresses: null,
+    //   sendFailures: 2
+    // }
+    this.sendStatus = wireRep.sendStatus || {};
   },
 
   /**
@@ -1974,6 +1985,17 @@ FoldersViewSlice.prototype.getFirstFolderWithName = function(name, items) {
   return null;
 };
 
+FoldersViewSlice.prototype.getFirstFolderWithPath = function(path, items) {
+  if (!items)
+    items = this.items;
+  for (var i = 0; i < items.length; i++) {
+    var folder = items[i];
+    if (folder.path === path)
+      return folder;
+  }
+  return null;
+};
+
 function HeadersViewSlice(api, handle, ns) {
   BridgedViewSlice.call(this, api, ns || 'headers', handle);
 
@@ -2196,36 +2218,8 @@ MessageComposition.prototype = {
   },
 
   /**
-   * Finalize and send the message in its current state.
-   *
-   * @args[
-   *   @param[callback @func[
-   *     @args[
-   *       @param[state @oneof[
-   *         @case['sent']{
-   *           The message made it to the SMTP server and we believe it was sent
-   *           successfully.
-   *         }
-   *         @case['offline']{
-   *           We are known to be offline and so we can't send it right now.
-   *           We will attempt to send when we next get good network.
-   *         }
-   *         @case['will-retry']{
-   *           Something didn't work, but we will automatically retry again
-   *           at some point in the future.
-   *         }
-   *         @case['fatal']{
-   *           Something really bad happened, probably a bug in the program.
-   *           The error will be reported using console.error or internal
-   *           logging or something.
-   *         }
-   *       ]]
-   *       }
-   *     ]
-   *   ]]{
-   *     The callback to invoke on success/failure/deferral to later.
-   *   }
-   * ]
+   * Enqueue the message for sending. When the callback fires, the
+   * message will be in the outbox, but will likely not have been sent yet.
    */
   finishCompositionSendMessage: function(callback) {
     this._api._composeDone(this._handle, 'send', this._buildWireRep(),
@@ -3326,7 +3320,7 @@ MailAPI.prototype = {
   },
   */
 
-  moveMessages: function ma_moveMessages(messages, targetFolder) {
+  moveMessages: function ma_moveMessages(messages, targetFolder, callback) {
     // We allocate a handle that provides a temporary name for our undoable
     // operation until we hear back from the other side about it.
     var handle = this._nextHandle++;
@@ -3338,7 +3332,8 @@ MailAPI.prototype = {
     this._pendingRequests[handle] = {
       type: 'mutation',
       handle: handle,
-      undoableOp: undoableOp
+      undoableOp: undoableOp,
+      callback: callback
     };
     this.__bridgeSend({
       type: 'moveMessages',
@@ -3397,6 +3392,66 @@ MailAPI.prototype = {
     return undoableOp;
   },
 
+  /**
+   * Check the outbox for pending messages, and initiate a series of
+   * jobs to attempt to send them. The callback fires after the first
+   * message's send attempt completes; this job will then
+   * self-schedule further jobs to attempt to send the rest of the
+   * outbox.
+   *
+   * @param {MailAccount} account
+   * @param {function} callback
+   *   Called after the first message's send attempt finishes.
+   */
+  sendOutboxMessages: function (account, callback) {
+    var handle = this._nextHandle++;
+    this._pendingRequests[handle] = {
+      type: 'sendOutboxMessages',
+      callback: callback
+    };
+    this.__bridgeSend({
+      type: 'sendOutboxMessages',
+      accountId: account.id,
+      handle: handle
+    });
+  },
+
+  _recv_sendOutboxMessages: function(msg) {
+    var req = this._pendingRequests[msg.handle];
+    delete this._pendingRequests[msg.handle];
+    req.callback && req.callback();
+    return true;
+  },
+
+  /**
+   * Enable or disable outbox syncing for this account. This is
+   * generally a temporary measure, used when the user is actively
+   * editing the list of outbox messages and we don't want to
+   * inadvertently move something out from under them. This change
+   * does _not_ persist; it's meant to be used only for brief periods
+   * of time, not as a "sync schedule" coordinator.
+   */
+  setOutboxSyncEnabled: function (account, enabled, callback) {
+    var handle = this._nextHandle++;
+    this._pendingRequests[handle] = {
+      type: 'setOutboxSyncEnabled',
+      callback: callback
+    };
+    this.__bridgeSend({
+      type: 'setOutboxSyncEnabled',
+      accountId: account.id,
+      outboxSyncEnabled: enabled,
+      handle: handle
+    });
+  },
+
+  _recv_setOutboxSyncEnabled: function(msg) {
+    var req = this._pendingRequests[msg.handle];
+    delete this._pendingRequests[msg.handle];
+    req.callback && req.callback();
+    return true;
+  },
+
   createFolder: function(account, parentFolder, containOnlyOtherFolders) {
     this.__bridgeSend({
       type: 'createFolder',
@@ -3437,6 +3492,11 @@ MailAPI.prototype = {
     req.undoableOp._longtermIds = msg.longtermIds;
     if (req.undoableOp._undoRequested)
       req.undoableOp.undo();
+
+    if (req.callback) {
+      req.callback(msg.result);
+    }
+
     return true;
   },
 
@@ -3600,6 +3660,7 @@ MailAPI.prototype = {
     req.composer.bcc = msg.bcc;
     req.composer._references = msg.referencesStr;
     req.composer.attachments = msg.attachments;
+    req.composer.sendStatus = msg.sendStatus; // For displaying "Send failed".
 
     if (req.callback) {
       var callback = req.callback;
@@ -3708,8 +3769,11 @@ MailAPI.prototype = {
     if (req.type === 'die' || (!msg.err && (req.type !== 'save')))
       delete this._pendingRequests[msg.handle];
     if (req.callback) {
-      req.callback.call(null, msg.err, msg.badAddresses,
-                        { sentDate: msg.sentDate, messageId: msg.messageId });
+      req.callback.call(null, {
+        sentDate: msg.sentDate,
+        messageId: msg.messageId,
+        sendStatus: msg.sendStatus
+      });
       req.callback = null;
     }
     return true;
@@ -3743,6 +3807,12 @@ MailAPI.prototype = {
     return true;
   },
 
+  _recv_backgroundSendStatus: function(msg) {
+    if (this.onbackgroundsendstatus) {
+      this.onbackgroundsendstatus(msg.data);
+    }
+    return true;
+  },
 
   //////////////////////////////////////////////////////////////////////////////
   // Localization
@@ -5211,6 +5281,10 @@ function write(uid, data, offset, length) {
     return;
   }
 
+  // Fake an onprogress event so that we can delay wakelock expiration
+  // as long as data still flows to the server.
+  self.sendMessage(uid, 'onprogress', []);
+
   if (data instanceof Blob) {
     beginBlobSend(sockInfo, data);
   }
@@ -5259,6 +5333,53 @@ return self;
 });
 
 /**
+ * The docs for this can be found in `mailapi/wakelocks.js`.
+ *
+ * This file runs on the main thread, receiving messages sent from a
+ * SmartWakeLock instance -> through the router -> to this file.
+ */
+define('mailapi/worker-support/wakelocks-main',[],function() {
+  'use strict';
+
+  function debug(str) {
+    dump('WakeLocks: ' + str + '\n');
+  }
+
+  var nextId = 1;
+  var locks = {};
+
+  function requestWakeLock(type) {
+    var lock = navigator.requestWakeLock(type);
+    var id = nextId++;
+    locks[id] = lock;
+    return id;
+  }
+
+  var self = {
+    name: 'wakelocks',
+    sendMessage: null,
+    process: function(uid, cmd, args) {
+      debug('process ' + cmd + ' ' + JSON.stringify(args));
+      switch (cmd) {
+      case 'requestWakeLock':
+        var type = args[0];
+        self.sendMessage(uid, cmd, [requestWakeLock(type)]);
+        break;
+      case 'unlock':
+        var id = args[0];
+        var lock = locks[id];
+        if (lock) {
+          lock.unlock();
+          delete locks[id];
+        }
+        self.sendMessage(uid, cmd, []);
+      }
+    }
+  };
+  return self;
+});
+
+/**
  * The startup process (which can be improved) looks like this:
  *
  * Main: Initializes worker support logic
@@ -5288,7 +5409,8 @@ define('mailapi/main-frame-setup',
     './worker-support/cronsync-main',
     './worker-support/devicestorage-main',
     './worker-support/maildb-main',
-    './worker-support/net-main'
+    './worker-support/net-main',
+    './worker-support/wakelocks-main'
   ],
   function(
     $shim_setup,
@@ -5298,7 +5420,8 @@ define('mailapi/main-frame-setup',
     $cronsync,
     $devicestorage,
     $maildb,
-    $net
+    $net,
+    $wakelocks
   ) {
 
   var control = {
@@ -5360,6 +5483,7 @@ define('mailapi/main-frame-setup',
   $router.register($devicestorage);
   $router.register($maildb);
   $router.register($net);
+  $router.register($wakelocks);
 
   return MailAPI;
 }); // end define

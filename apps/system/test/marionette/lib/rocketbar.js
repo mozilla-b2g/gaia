@@ -25,6 +25,8 @@ Rocketbar.clientOptions = {
     'dom.w3c_touch_events.enabled': 1
   },
   settings: {
+    'homescreen.manifestURL':
+      'app://verticalhome.gaiamobile.org/manifest.webapp',
     'ftu.manifestURL': null,
     'keyboard.ftu.enabled': false,
     'lockscreen.enabled': false,

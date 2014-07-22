@@ -4,7 +4,7 @@
 
 requireApp('system/mobile_id/js/controller.js');
 requireApp('system/mobile_id/js/ui.js');
-requireApp('system/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/load_body_html_helper.js');
 
 suite('MobileID UI ', function() {

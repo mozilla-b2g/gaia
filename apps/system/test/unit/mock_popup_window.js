@@ -64,7 +64,7 @@
     this.getLeafWindow = function() { return self; };
     this.getActiveWindow = function() { return self; };
     this.requestOpen = function() {};
-    this.instanceID = _id++;
+    this.instanceID = 'mock-popup-' + _id++;
     this.groupID = this.instanceID;
   };
 

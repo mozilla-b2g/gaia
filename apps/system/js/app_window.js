@@ -1,5 +1,4 @@
-/* global SettingsListener, AttentionScreen,
-          OrientationManager, StatusBar */
+/* global SettingsListener, OrientationManager */
 'use strict';
 
 (function(exports) {
@@ -301,6 +300,10 @@
    * @return {Boolean} The instance is active or not.
    */
   AppWindow.prototype.isActive = function aw_isActive() {
+    if (!this.element) {
+      return false;
+    }
+
     if (this.element.classList.contains('will-become-active')) {
       return true;
     }
@@ -389,7 +392,9 @@
       return;
     }
 
-    this._killed = true;
+    if (!this.isHomescreen) {
+      this._killed = true;
+    }
 
     if (DEBUG) {
       AppWindow[this.instanceID] = null;
@@ -433,17 +438,6 @@
       this.destroy();
     }
 
-    // Remove previous -> next reference.
-    if (this.previousWindow) {
-      this.previousWindow.unsetNextWindow();
-      this.previousWindow = null;
-    }
-
-    // Remove rear -> front reference.
-    if (this.rearWindow) {
-      this.rearWindow.unsetFrontWindow();
-      this.rearWindow = null;
-    }
     /**
      * Fired when the instance is terminated.
      * @event AppWindow#appterminated
@@ -469,6 +463,17 @@
      * Fired before the instance id destroyed.
      * @event AppWindow#appwilldestroy
      */
+    // Remove previous -> next reference.
+    if (this.previousWindow) {
+      this.previousWindow.unsetNextWindow();
+      this.previousWindow = null;
+    }
+
+    // Remove rear -> front reference.
+    if (this.rearWindow) {
+      this.rearWindow.unsetFrontWindow();
+      this.rearWindow = null;
+    }
     this.publish('willdestroy');
     this.uninstallSubComponents();
     if (this.element) {
@@ -491,8 +496,8 @@
     return '<div class=" ' + this.CLASS_LIST +
             ' " id="' + this.instanceID +
             '" transition-state="closed">' +
-              '<div class="screenshot-overlay">' +
-              '</div>' +
+              '<div class="screenshot-overlay"></div>' +
+              '<div class="statusbar-overlay"></div>' +
               '<div class="identification-overlay">' +
                 '<div>' +
                   '<div class="icon"></div>' +
@@ -554,6 +559,7 @@
     // End intentional
 
     this.screenshotOverlay = this.element.querySelector('.screenshot-overlay');
+    this.statusbarOverlay = this.element.querySelector('.statusbar-overlay');
     this.fadeOverlay = this.element.querySelector('.fade-overlay');
 
     var overlay = '.identification-overlay';
@@ -643,14 +649,14 @@
     ['mozbrowserclose', 'mozbrowsererror', 'mozbrowservisibilitychange',
      'mozbrowserloadend', 'mozbrowseractivitydone', 'mozbrowserloadstart',
      'mozbrowsertitlechange', 'mozbrowserlocationchange',
-     'mozbrowsericonchange', 'mozbrowserasyncscroll',
+     'mozbrowsermetachange', 'mozbrowsericonchange', 'mozbrowserasyncscroll',
      '_localized', '_swipein', '_swipeout', '_kill_suspended',
-     'popupterminated', 'activityterminated', 'activityclosing',
-     'popupclosing', 'activityopened', '_orientationchange', '_focus'];
+     '_orientationchange', '_focus'];
 
   AppWindow.SUB_COMPONENTS = {
     'transitionController': window.AppTransitionController,
     'modalDialog': window.AppModalDialog,
+    'valueSelector': window.ValueSelector,
     'authDialog': window.AppAuthenticationDialog,
     'contextmenu': window.BrowserContextMenu,
     'childWindowFactory': window.ChildWindowFactory,
@@ -679,7 +685,7 @@
     'mozbrowsertitlechange',
     'mozbrowserusernameandpasswordrequired',
     'mozbrowseropensearch',
-    'mozbrowsertitlechange'
+    'mozbrowsermetachange'
   ];
 
   AppWindow.prototype.openAnimation = 'enlarge';
@@ -755,9 +761,6 @@
     // Resize only the overlays not the app
     var width = self.layoutManager.width;
     var height = self.layoutManager.height + this.calibratedHeight();
-    if (this.isFullScreen()) {
-      height += StatusBar.height;
-    }
 
     this.iframe.style.width = this.width + 'px';
     this.iframe.style.height = this.height + 'px';
@@ -794,8 +797,11 @@
         var calleeBottom = this.getBottomMostWindow();
         caller.calleeWindow = null;
         this.callerWindow = null;
-        callerBottom.open('in-from-left');
-        calleeBottom.close('out-to-right');
+        // No transition when the callee is caller
+        if (callerBottom !== calleeBottom) {
+          callerBottom.open('in-from-left');
+          calleeBottom.close('out-to-right');
+        }
       }
     };
 
@@ -832,7 +838,7 @@
       this.title = evt.detail;
       this.publish('titlechange');
 
-      if (this.identificationTitle) {
+      if (this.identificationTitle && !this.manifest) {
         this.identificationTitle.textContent = this.title;
       }
     };
@@ -899,6 +905,26 @@
       this.publish('scroll');
     };
 
+  AppWindow.prototype._handle_mozbrowsermetachange =
+    function aw__handle_mozbrowsermetachange(evt) {
+      var detail = evt.detail;
+      if (detail.name !== 'theme-color' || !detail.type) {
+        return;
+      }
+
+      // If the theme-color meta is removed, let's reset the color.
+      var color = '';
+
+      // Otherwise, set it to the color that has been asked.
+      if (detail.type !== 'removed') {
+        color = detail.content;
+      }
+      this.themeColor = color;
+      this.statusbarOverlay.style.backgroundColor = color;
+
+      this.publish('themecolorchange');
+    };
+
   AppWindow.prototype._registerEvents = function aw__registerEvents() {
     if (this.element === null) {
       this._dump();
@@ -926,10 +952,9 @@
 
     // WebAPI testing is using mozbrowserloadend event to know
     // the first app is loaded so we cannot stop the propagation here.
-    // When an activity is killed we remove the rearWindow reference first
     // but we don't want subsequent mozbrowser events to bubble to the
     // used-to-be-rear-window
-    if (this.rearWindow || this._killed) {
+    if (this.rearWindow && evt.type.startsWith('mozbrowser')) {
       evt.stopPropagation();
     }
     this.debug(' Handling ' + evt.type + ' event...');
@@ -981,6 +1006,8 @@
 
   AppWindow.prototype.queueShow = function aw_queueShow() {
     this.element.classList.add('will-become-active');
+    // bug 1033921: notify current app changed
+    this.publish('will-become-active');
   };
 
   AppWindow.prototype.cancelQueuedShow = function aw_cancelQueuedShow() {
@@ -989,6 +1016,7 @@
 
   AppWindow.prototype.queueHide = function aw_queueHide() {
     this.element.classList.add('will-become-inactive');
+    this.publish('will-become-inactive');
   };
 
   /**
@@ -1392,7 +1420,7 @@
    * fade out to window to black.
    */
   AppWindow.prototype.fadeOut = function aw__fadeout() {
-    if (!this.isActive()) {
+    if (!this.isActive() && this.element) {
       this.element.classList.add('fadeout');
       this.debug(' fade out >>>> ');
     }
@@ -1785,48 +1813,6 @@
   AppWindow.prototype.getFrameForScreenshot = function() {
     var top = this.getTopMostWindow();
     return top.browser ? top.browser.element : null;
-  };
-
-  AppWindow.prototype._handle_activityterminated = function() {
-    this.frontWindow = null;
-  };
-
-  AppWindow.prototype._handle_popupterminated = function() {
-    this.frontWindow = null;
-  };
-
-  /**
-   * Restore visibility and orientation when the embedded window
-   * is closing.
-   */
-  AppWindow.prototype._handle_activityclosing = function() {
-    // Do nothing if we are not active or we are being killing.
-    if (!this.isVisible() || this._killed) {
-      return;
-    }
-
-    this.lockOrientation();
-    // XXX: Refine this in attention-window refactor.
-    if (!AttentionScreen.isFullyVisible()) {
-      this.setVisible(true);
-    }
-  };
-
-  /**
-   * Restore visibility and orientation when the embedded window
-   * is closing.
-   */
-  AppWindow.prototype._handle_popupclosing = function() {
-    // Do nothing if we are not active or we are being killing.
-    if (!this.isVisible() || this._killed) {
-      return;
-    }
-
-    this.lockOrientation();
-    // XXX: Refine this in attention-window refactor.
-    if (!AttentionScreen.isFullyVisible()) {
-      this.setVisible(true);
-    }
   };
 
   /**

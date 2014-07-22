@@ -4,7 +4,7 @@
 /* Copyright © 2013, Deutsche Telekom, Inc. */
 
 /* globals dump, BluetoothTransfer, NDEFUtils, NfcConnectSystemDialog,
-           NDEF */
+           NDEF, NfcUtils, NotificationHelper */
 /* exported NfcHandoverManager */
 'use strict';
 
@@ -60,13 +60,13 @@ var NfcHandoverManager = {
   actionQueue: [],
 
   /**
-   * Set whenever an app called peer.sendFile(blob).
+   * Keeps a list of send file requests made via peer.sendFile(blob).
    * It will be inspected in the handling of Handover Select messages
    * to distinguish between static and negotiated handovers.
    * @type {Object}
    * @memberof NfcHandoverManager.prototype
    */
-  sendFileRequest: null,
+  sendFileQueue: [],
 
   /**
    * Set to true during a file transfer that was initiated by another device.
@@ -76,12 +76,19 @@ var NfcHandoverManager = {
   incomingFileTransferInProgress: false,
 
   /**
-   * Remembers whether Bluetooth was enabled or disabled prior to a file
-   * transfer.
+   * Remembers whether Bluetooth was already saved during an earlier
+   * file transfer.
    * @type {boolean}
    * @memberof NfcHandoverManager.prototype
    */
-  bluetoothWasEnabled: false,
+  bluetoothStatusSaved: false,
+
+  /**
+   * Remembers whether Bluetooth was enabled or automatically.
+   * @type {boolean}
+   * @memberof NfcHandoverManager.prototype
+   */
+  bluetoothAutoEnabled: false,
 
   /**
    * Used to prevent triggering Settings multiple times.
@@ -120,6 +127,10 @@ var NfcHandoverManager = {
     this.bluetooth = navigator.mozBluetooth;
     this.nfc = navigator.mozNfc;
 
+    this.incomingFileTransferInProgress = false;
+    this.bluetoothStatusSaved = false;
+    this.bluetoothAutoEnabled = false;
+
     if (this.bluetooth.enabled) {
       this._debug('Bluetooth already enabled on boot');
       var req = this.bluetooth.getDefaultAdapter();
@@ -150,6 +161,11 @@ var NfcHandoverManager = {
       };
     });
 
+    window.addEventListener('bluetooth-disabled', function() {
+      self._debug('bluetooth-disabled');
+      self._clearBluetoothStatus();
+    });
+
     window.navigator.mozSetMessageHandler('nfc-manager-send-file',
       function(msg) {
         self._debug('In New event nfc-manager-send-file' + JSON.stringify(msg));
@@ -158,6 +174,41 @@ var NfcHandoverManager = {
   },
 
   /**
+   * Save the on/off status of Bluetooth.
+   * @memberof NfcHandoverManager.prototype
+   */
+  _saveBluetoothStatus: function _saveBluetoothStatus() {
+    if (!this.bluetoothStatusSaved) {
+      this.bluetoothStatusSaved = true;
+      this.bluetoothAutoEnabled = !this.bluetooth.enabled;
+    }
+  },
+
+  /**
+   * Restore the Bluetooth status.
+   * @memberof NfcHandoverManager.prototype
+   */
+  _restoreBluetoothStatus: function _restoreBluetoothStatus() {
+    if (!this.isHandoverInProgress() &&
+        BluetoothTransfer.isSendFileQueueEmpty) {
+      if (this.bluetoothAutoEnabled) {
+        this._debug('Disabling Bluetooth');
+        this.settings.createLock().set({'bluetooth.enabled': false});
+        this.bluetoothAutoEnabled = false;
+      }
+      this.bluetoothStatusSaved = false;
+    }
+  },
+
+  /**
+   * Forget a previously saved Bluetooth status.
+   * @memberof NfcHandoverManager.prototype
+   */
+  _clearBluetoothStatus: function _clearBluetoothStatus() {
+    this.bluetoothStatusSaved = false;
+  },
+
+  /*
    * Performs an action once Bluetooth is enabled. If Bluetooth is disabled,
    * it is enabled and the action is queued. If Bluetooth is already enabled,
    * performs the action directly.
@@ -223,10 +274,12 @@ var NfcHandoverManager = {
     var self = this;
     req.onsuccess = function() {
       self._debug('Pairing succeeded');
+      self._clearBluetoothStatus();
       self.doConnect(mac);
     };
     req.onerror = function() {
       self._debug('Pairing failed');
+      self._restoreBluetoothStatus();
     };
   },
 
@@ -238,14 +291,14 @@ var NfcHandoverManager = {
    */
   _doFileTransfer: function _doFileTransfer(mac) {
     this._debug('doFileTransfer');
-    if (this.sendFileRequest == null) {
+    if (this.sendFileQueue.length === 0) {
       // Nothing to do
-      this._debug('No pending sendFileRequest');
+      this._debug('sendFileQueue empty');
       return;
     }
     this._debug('Send blob to ' + mac);
-    var blob = this.sendFileRequest.blob;
-    BluetoothTransfer.sendFile(mac, blob);
+    var blob = this.sendFileQueue[0].blob;
+    BluetoothTransfer.sendFileViaHandover(mac, blob);
   },
 
   /**
@@ -276,7 +329,22 @@ var NfcHandoverManager = {
     };
     req.onerror = function() {
       self._debug('sendNDEF(hs) failed');
+      self._restoreBluetoothStatus();
     };
+  },
+
+  /**
+   * Show an error notification when file transfer failed.
+   * @param {String} name Optional file name.
+   * @memberof NfcHandoverManager.prototype
+   */
+  _showFailedNotification: function _showFailedNotification(name) {
+    var _ = navigator.mozL10n.get;
+    var fileName = (name !== undefined) ? name : '';
+    var icon = 'style/bluetooth_transfer/images/icon_bluetooth.png';
+    NotificationHelper.send(_('transferFinished-sentFailed-title'),
+                            fileName,
+                            icon);
   },
 
   /**
@@ -289,21 +357,31 @@ var NfcHandoverManager = {
    */
   _initiateFileTransfer:
     function _initiateFileTransfer(session, blob, requestId) {
+      this._debug('initiateFileTransfer');
       /*
        * Initiate a file transfer by sending a Handover Request to the
        * remote device.
        */
       var self = this;
       var onsuccess = function() {
-        self._dispatchSendFileStatus(0);
+        self._dispatchSendFileStatus(0, requestId);
       };
       var onerror = function() {
-        self._dispatchSendFileStatus(1);
+        self._dispatchSendFileStatus(1, requestId);
       };
-      this.sendFileRequest = {session: session, blob: blob,
-                              requestId: requestId,
-                              onsuccess: onsuccess, onerror: onerror};
-      var nfcPeer = this.nfc.getNFCPeer(session);
+      var nfcPeer;
+      try {
+        nfcPeer = this.nfc.getNFCPeer(session);
+      } catch (ex) {
+        this._debug('NFC peer went away');
+        onerror();
+        this._showFailedNotification(blob.name);
+        this._restoreBluetoothStatus();
+        return;
+      }
+      var job = {session: session, blob: blob, requestId: requestId,
+                 onsuccess: onsuccess, onerror: onerror};
+      this.sendFileQueue.push(job);
       var cps = this.bluetooth.enabled ? NDEF.CPS_ACTIVE : NDEF.CPS_ACTIVATING;
       var mac = this.defaultAdapter.address;
       var hr = NDEFUtils.encodeHandoverRequest(mac, cps);
@@ -314,7 +392,9 @@ var NfcHandoverManager = {
       req.onerror = function() {
         self._debug('sendNDEF(hr) failed');
         onerror();
-        self.sendFileRequest = null;
+        self._showFailedNotification(blob.name);
+        self.sendFileQueue.pop();
+        self._restoreBluetoothStatus();
       };
   },
 
@@ -359,12 +439,12 @@ var NfcHandoverManager = {
   /**
    * Dispatches status of file sending to mozNfc.
    * @param {number} status status of file send operation
+   * @param {string} request ID of the operation
    * @memberof NfcHandoverManager.prototype
    */
-  _dispatchSendFileStatus: function _dispatchSendFileStatus(status) {
+  _dispatchSendFileStatus: function _dispatchSendFileStatus(status, requestId) {
     this._debug('In dispatchSendFileStatus ' + status);
-    navigator.mozNfc.notifySendFileStatus(status,
-                         this.sendFileRequest.requestId);
+    navigator.mozNfc.notifySendFileStatus(status, requestId);
   },
 
   /**
@@ -392,8 +472,9 @@ var NfcHandoverManager = {
    * @param {Array} ndef NDEF message containing simplified pairing record
    * @memberof NfcHandoverManager.prototype
    */
-  handleSimplifiedPairingRecord: function handleSimplifiedPairingRecord(ndef) {
-    this._debug('handleSimplifiedPairingRecord');
+  _handleSimplifiedPairingRecord:
+  function _handleSimplifiedPairingRecord(ndef) {
+    this._debug('_handleSimplifiedPairingRecord');
     var pairingRecord = ndef[0];
     var btssp = NDEFUtils.parseBluetoothSSP(pairingRecord);
     this._debug('Simplified pairing with: ' + btssp.mac);
@@ -405,13 +486,13 @@ var NfcHandoverManager = {
    * @param {Array} ndef NDEF message containing handover select record
    * @memberof NfcHandoverManager.prototype
    */
-  handleHandoverSelect: function handleHandoverSelect(ndef) {
-    this._debug('handleHandoverSelect');
+  _handleHandoverSelect: function _handleHandoverSelect(ndef) {
+    this._debug('_handleHandoverSelect');
     var btssp = this._getBluetoothSSP(ndef);
     if (btssp == null) {
       return;
     }
-    if (this.sendFileRequest != null) {
+    if (this.sendFileQueue.length !== 0) {
       // This is the response to a file transfer request (negotiated handover)
       this._doAction({callback: this._doFileTransfer, args: [btssp.mac]});
     } else {
@@ -425,10 +506,42 @@ var NfcHandoverManager = {
    * @param {Array} ndef NDEF message containing handover request record
    * @memberof NfcHandoverManager.prototype
    */
-  handleHandoverRequest: function handleHandoverRequest(ndef, session) {
-    this._debug('handleHandoverRequest');
+  _handleHandoverRequest: function _handleHandoverRequest(ndef, session) {
+    this._debug('_handleHandoverRequest');
     this.bluetoothWasEnabled = this.bluetooth.enabled;
     this._doAction({callback: this._doHandoverRequest, args: [ndef, session]});
+  },
+
+  /**
+   * Checks if the first record of NDEF message is a handover record.
+   * If yes the NDEF message is handled according to handover record type.
+   * @param {Array} ndefMsg array of NDEF records
+   * @param {string} session session token
+   * @returns {boolean} true if handover record was found and handled, false
+   * if no handover record was found
+   * @memberof NfcHandoverManager.prototype
+   */
+  tryHandover: function(ndefMsg, session) {
+    if (!Array.isArray(ndefMsg) || !ndefMsg.length) {
+      return false;
+    }
+
+    var record = ndefMsg[0];
+    if (record.tnf === NDEF.TNF_WELL_KNOWN) {
+      if (NfcUtils.equalArrays(record.type, NDEF.RTD_HANDOVER_SELECT)) {
+        this._handleHandoverSelect(ndefMsg);
+        return true;
+      } else if (NfcUtils.equalArrays(record.type, NDEF.RTD_HANDOVER_REQUEST)) {
+        this._handleHandoverRequest(ndefMsg, session);
+        return true;
+      }
+    } else if ((record.tnf === NDEF.TNF_MIME_MEDIA) &&
+        NfcUtils.equalArrays(record.type, NDEF.MIME_BLUETOOTH_OOB)) {
+      this._handleSimplifiedPairingRecord(ndefMsg);
+      return true;
+    }
+
+    return false;
   },
 
   /**
@@ -440,9 +553,9 @@ var NfcHandoverManager = {
    */
   handleFileTransfer: function handleFileTransfer(session, blob, requestId) {
     this._debug('handleFileTransfer');
-    this.bluetoothWasEnabled = this.bluetooth.enabled;
+    this._saveBluetoothStatus();
     this._doAction({callback: this._initiateFileTransfer, args: [session, blob,
-                                                               requestId]});
+                                                                 requestId]});
   },
 
   /**
@@ -451,32 +564,35 @@ var NfcHandoverManager = {
    * @memberof NfcHandoverManager.prototype
    */
   isHandoverInProgress: function isHandoverInProgress() {
-    return (this.sendFileRequest != null) ||
+    return (this.sendFileQueue.length !== 0) ||
            (this.incomingFileTransferInProgress === true);
   },
 
   /**
    * Tells NfcHandoverManager that a BT file transfer
    * has been completed.
-   * @param succeeded True if file transfer was successfull.
+   * @param details succeeded True if file transfer was successfull.
    * @memberof NfcHandoverManager.prototype
    */
-  transferComplete: function transferComplete(succeeded) {
-    this._debug('transferComplete');
-    if (!this.bluetoothWasEnabled) {
-      this._debug('Disabling Bluetooth');
-      this.settings.createLock().set({'bluetooth.enabled': false});
-    }
-    if (this.sendFileRequest != null) {
+  transferComplete: function transferComplete(details) {
+    this._debug('transferComplete: ' + JSON.stringify(details));
+    if (!details.received && details.viaHandover) {
       // Completed an outgoing send file request. Call onsuccess/onerror
-      if (succeeded) {
-        this.sendFileRequest.onsuccess();
+      var job = this.sendFileQueue.shift();
+      if (details.success) {
+        job.onsuccess();
       } else {
-        this.sendFileRequest.onerror();
+        job.onerror();
       }
-      this.sendFileRequest = null;
+    }
+    if (details.received) {
+      // We know that a file was received but we do not know if that
+      // file was sent via a NFC handover. Clearing the
+      // incomingFileTransferInProgress flag here could lead to an
+      // unavoidable race condition
       this.incomingFileTransferInProgress = false;
     }
+    this._restoreBluetoothStatus();
   }
 };
 

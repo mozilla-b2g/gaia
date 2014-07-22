@@ -59,6 +59,7 @@
   margin-top: 5.3rem;
 }
 
+.evme-has-history:not(.evme-has-query) .evmeScope,
 .evme-has-query .evmeScope {
     height: 100%;
 }
@@ -69,6 +70,7 @@
 }
 
 .evme-keyboard-visible .apps > div.evmePage ol,
+.evme-has-history:not(.evme-has-query) .apps > div.evmePage ol,
 .evme-has-query .apps > div.evmePage ol {
     opacity: 0;
 }
@@ -87,6 +89,7 @@
     visibility: visible;
 }
 .evme-displayed.evme-keyboard-visible #footer,
+.evme-displayed.evme-has-history:not(.evme-has-query) #footer,
 .evme-displayed.evme-has-query #footer,
 .evme-collection-visible ~ #footer{
     transform: translateY(100%);
@@ -95,6 +98,7 @@
 
 .evme-loading-from-input #bg-overlay,
 .evme-displayed.evme-keyboard-visible #bg-overlay,
+.evme-displayed.evme-has-history:not(.evme-has-query) #bg-overlay,
 .evme-displayed.evme-has-query #bg-overlay{
   transform: translateY(0);
 }

@@ -13,7 +13,6 @@ var AlternativesCharMenuManager = function(app) {
   this.app = app;
 
   this.isShown = false;
-  this.menuTouchId = undefined;
 
   this._originalTarget = null;
   this._hasMovedAwayFromOriginalTarget = false;
@@ -31,7 +30,7 @@ AlternativesCharMenuManager.prototype.stop = function() {
   this._menuContainer = null;
 };
 
-AlternativesCharMenuManager.prototype.show = function(target, touchId) {
+AlternativesCharMenuManager.prototype.show = function(target) {
   var alternatives = this._getAlternativesForTarget(target);
   if (!alternatives) {
     return;
@@ -43,7 +42,6 @@ AlternativesCharMenuManager.prototype.show = function(target, touchId) {
   // XXX: Remove reference to IMERender in the global in the future.
   IMERender.showAlternativesCharMenu(target, alternatives);
   this.isShown = true;
-  this.menuTouchId = touchId;
 
   this._originalTarget = target;
   this._hasMovedAwayFromOriginalTarget = false;
@@ -70,11 +68,11 @@ function _getAlternativesForTarget(target) {
   var alternatives;
   var altMap = this.app.layoutManager.currentModifiedLayout.alt;
 
-  if (this.app.isCapitalizeLocked()) {
+  if (this.app.upperCaseStateManager.isUpperCaseLocked) {
     alternatives = (altMap[target.dataset.uppercaseValue].upperCaseLocked) ?
       altMap[target.dataset.uppercaseValue].upperCaseLocked :
       altMap[target.dataset.uppercaseValue];
-  } else if (this.app.isCapitalized()) {
+  } else if (this.app.upperCaseStateManager.isUpperCase) {
     alternatives = altMap[target.dataset.uppercaseValue];
   } else {
     alternatives = altMap[target.dataset.lowercaseValue];
@@ -95,7 +93,6 @@ AlternativesCharMenuManager.prototype.hide = function() {
   // XXX: Remove reference to IMERender in the global in the future.
   IMERender.hideAlternativesCharMenu();
   this.isShown = false;
-  this.menuTouchId = undefined;
 
   this._originalTarget = null;
   this._hasMovedAwayFromOriginalTarget = false;
@@ -103,10 +100,6 @@ AlternativesCharMenuManager.prototype.hide = function() {
     this._menuAreaLeft =
     this._menuAreaRight =
     this._menuAreaBottom = 0;
-};
-
-AlternativesCharMenuManager.prototype.isMenuTouch = function(touchId) {
-  return (this.menuTouchId === touchId);
 };
 
 AlternativesCharMenuManager.prototype.isMenuTarget = function(target) {

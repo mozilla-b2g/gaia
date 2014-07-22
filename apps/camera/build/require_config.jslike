@@ -35,6 +35,8 @@
     mangle: false
   },
 
+  cssImportIgnore: '../bower_components/gaia-icons/style.css',
+
   // Keeping build dir since Makefile cleans it up and
   // preps build dir with the shared directory
   keepBuildDir: true,

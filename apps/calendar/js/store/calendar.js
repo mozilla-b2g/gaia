@@ -4,6 +4,14 @@
   function Store() {
     Calendar.Store.Abstract.apply(this, arguments);
     this._usedColors = [];
+
+    Calendar.Promise.denodeifyAll(this, [
+      'markWithError',
+      'remotesByAccount',
+      'sync',
+      'providerFor',
+      'ownersOf'
+    ]);
   }
 
   /**

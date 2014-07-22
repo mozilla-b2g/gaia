@@ -2,12 +2,14 @@
 /* global eme */
 /* global CollectionsDatabase */
 /* global CollectionIcon */
+/* global Common */
 /* global GaiaGrid */
 /* global HomeIcons */
 /* global SearchDedupe */
 /* global GridIconRenderer */
 
 (function(exports) {
+  const APPS_IN_ICON = Common.APPS_IN_ICON;
 
   // web result created from E.me API data
   function WebResult(data, gridItemFeatures) {
@@ -42,27 +44,27 @@
     this.name = props.name || '';
     this.icon = props.icon || null;
     this.pinned = props.pinned || [];
-    this.webicons = props.webicons || [];
 
     // A list of the web results for this collection view
     this.webResults = [];
 
+    // list of base64 icon data for webResults from E.me api
+    // these icons are NOT ROUNDED
+    this.webicons = props.webicons || [];
+
     // an object containing data about the background image
-    // {src: string, source: string, checksum: string}
+    // {blob: blob, source: string, checksum: string}
     this.background = props.background || {};
 
     // save copy of original properties so we can tell when to re-render the
     // collection icon
-    this.originalProps = props;
+    this.originalProps = {
+      pinned: props.pinned ? props.pinned.slice() : [],
+      background: props.background || {}
+    };
 
     if (window.SearchDedupe) {
       this.dedupe = new SearchDedupe();
-    }
-
-    // for rendering pinned homescreen apps/bookmarks
-    if (window.HomeIcons) {
-      this.homeIcons = new HomeIcons();
-      this.homeIcons.init();
     }
   }
 
@@ -75,38 +77,18 @@
     return null;
   };
 
-  BaseCollection.getBackground = function getBackground(collection, iconSize) {
-    var src;
-    var options = {
-      width: iconSize,
-      height: iconSize
-    };
-
-    if (collection.categoryId) {
-      options.categoryId = collection.categoryId;
-    }
-    else {
-      options.query = collection.query;
-    }
-
-    return eme.api.Search.bgimage(options).then(function success(response) {
-      var image = response.response.image;
-      if (image) {
-        src = image.data;
-        if (/image\//.test(image.MIMEType)) {  // base64 image data
-          src = 'data:' + image.MIMEType + ';base64,' + image.data;
-        }
-      }
-
-      return {
-        src: src,
-        source: response.response.source,
-        checksum: response.checksum || null
-      };
-    });
-  };
-
   BaseCollection.prototype = {
+
+    // let's us know if we have enough app icons for rendering the
+    //  collection's icon
+    get iconsReady() {
+      return this.pinned.length + this.webicons.length >= APPS_IN_ICON;
+    },
+
+    // let's us know if the background is ready for rendering
+    get backgroundReady() {
+      return this.background && this.background.blob;
+    },
 
     get localizedName() {
       // l10n prefix taken from /shared/locales/collection_categories
@@ -131,7 +113,8 @@
      */
     save: function save(method) {
       if (this.iconDirty) {
-        return this.renderIcon().then(this.write.bind(this, method));
+        return this.renderIcon()
+                   .then(() => this.write(method), () => this.write(method));
       } else {
         return this.write(method);
       }
@@ -154,8 +137,14 @@
         background: this.background,
         icon: this.icon
       };
+
+      // update instance
+      this.originalProps = toSave;
+
+      // update db
       return CollectionsDatabase[method](toSave).then(() => {
         this.id = toSave.id;
+        eme.log(this.name, 'saved to CollectionsDatabase');
       });
     },
 
@@ -166,33 +155,36 @@
      * - The background image changes.
      */
     get iconDirty() {
-      var numAppIcons = CollectionIcon.numAppIcons;
-      var before = this.originalProps;
+      var original = this.originalProps;
       try {
         // background
-        if (before.background.src !== this.background.src) {
-          this.originalProps.background = this.background;
+        if ((original.background && original.background.blob) !==
+            (this.background && this.background.blob)) {
           return true;
         }
 
         // apps
-        var first = this.pinned.concat(this.webResults).slice(0, numAppIcons);
-        var oldFirst =
-          before.pinned.concat(before.webResults).slice(0, numAppIcons);
+        var first = this.pinned.concat(this.webResults).slice(0, APPS_IN_ICON);
+        var oFirst =
+          original.pinned.concat(original.webResults).slice(0, APPS_IN_ICON);
 
-        for (var i = 0; i < numAppIcons; i++) {
-          if (first[i].identifier !== oldFirst[i].identifier) {
-            before.pinned = this.pinned;
+        if (first.length !== oFirst.length) {
+          return true;
+        }
+
+        for (var i = 0; i < APPS_IN_ICON; i++) {
+          var item = first[i];
+          var oItem = oFirst[i];
+
+          if ((item && item.identifier) !== (oItem && oItem.identifier)) {
             return true;
           }
         }
 
-        if (first.length !== before.length) {
-          before.pinned = this.pinned;
-          return true;
-        }
+      } catch (e) {
+        eme.error('icon dirty checking failed', e);
+      }
 
-      } catch (e) {}
       return false;
     },
 
@@ -211,8 +203,9 @@
 
       if (newItems.length) {
         this.pinned = this.pinned.concat(newItems);
-        this.save();
-        eme.log(newItems.length, 'new pinned to', this.name);
+        this.save()
+          .then(() => eme.log(newItems.length, 'new pinned to', this.name));
+
       }
     },
 
@@ -223,6 +216,21 @@
       this.pin(items);
     },
 
+    dropHomeIcon: function dropHomeIcon(identifier) {
+      var newPinned = new PinnedHomeIcon(identifier);
+
+      // If a record is already pinned, delete it so it appears first.
+      for (var i = 0, iLen = this.pinned.length; i < iLen; i++) {
+        if (this.pinned[i].identifier === identifier) {
+          this.pinned.splice(i, 1);
+          break;
+        }
+      }
+
+      this.pinned.unshift(newPinned);
+      this.save().then(() => eme.log(identifier, 'dropped into', this.name));
+    },
+
     pinWebResult: function pinWebResult(data) {
       this.pin(new WebResult(data));
     },
@@ -231,8 +239,8 @@
       var idx = this.pinnedIdentifiers.indexOf(identifier);
       if (idx !== -1) {
         this.pinned.splice(idx, 1);
-        eme.log('removed pinned item', identifier);
-        return this.save();
+        return this.save()
+               .then(() => eme.log('removed pinned item', identifier));
       }
     },
 
@@ -245,7 +253,7 @@
       });
       this.webResults = results;
 
-      this.webicons = arrayOfData.slice(0, CollectionIcon.numAppIcons)
+      this.webicons = arrayOfData.slice(0, APPS_IN_ICON)
         .map(app => app.icon);
     },
 
@@ -293,7 +301,11 @@
     toGridObject: function(item) {
       var icon;
       if (item.type === 'homeIcon') {
-        icon = this.homeIcons.get(item.identifier);
+        if (!HomeIcons.ready) {
+          eme.warn('HomeIcons not ready, pinned apps may not render properly');
+        }
+
+        icon = HomeIcons.get(item.identifier);
       } else if (item.type === 'webResult') {
         item.features = item.features || {};
         item.features.isEditable = false;
@@ -328,6 +340,20 @@
       }, this);
     },
 
+    addItemToGrid: function addItemToGrid(item, grid, position) {
+      this.pinned.splice(position, 1, new PinnedHomeIcon(item.identifier));
+
+      grid.add(this.toGridObject(item), position);
+
+      // Add a divider if it's our first pinned result.
+      if (this.pinned.length === 1) {
+        grid.add(new GaiaGrid.Divider(), 1);
+      }
+
+      grid.render();
+      this.renderIcon();
+    },
+
     renderWebResults: function render(grid) {
       if (!this.webResults.length) {
         return;
@@ -356,31 +382,42 @@
     },
 
     renderIcon: function renderIcon() {
+      eme.log('rendering icon for', this.name);
 
+      return Common.prepareAssets(this)
+             .then(() => this.doRenderIcon())
+             .catch(() => this.doRenderIcon());
+    },
+
+    doRenderIcon: function doRenderIcon() {
       // Build the small icons from pinned, then webicons
-      var numAppIcons = CollectionIcon.numAppIcons;
-      var iconSrcs = this.pinned.slice(0, numAppIcons);
+      var iconSrcs = this.pinned.slice(0, APPS_IN_ICON)
+                         .map((item) => this.toGridObject(item).icon);
 
-      iconSrcs = iconSrcs.concat(
-        this.webicons.slice(0, numAppIcons - iconSrcs.length));
+      if (iconSrcs.length < APPS_IN_ICON) {
+        var moreIcons =
+          this.webicons
+          // bug 1028674: deupde
+          .filter((webicon) => iconSrcs.indexOf(webicon) === -1)
+          .slice(0, APPS_IN_ICON - iconSrcs.length);
 
-      for (var i = 0; i < iconSrcs.length; i++) {
-        if (typeof iconSrcs[i] === 'object') {
-          iconSrcs[i] = this.toGridObject(iconSrcs[i]).icon;
-        }
+        iconSrcs = iconSrcs.concat(moreIcons);
       }
+
+      var bgSrc = (this.background && this.background.blob) ?
+                  URL.createObjectURL(this.background.blob) :
+                  null;
 
       var icon = new CollectionIcon({
         iconSrcs: iconSrcs,
-        bgSrc: this.background ? this.background.src : null
+        bgSrc: bgSrc
       });
 
-      // return a promise
-      return icon.render().then(function success(canvas) {
+      return icon.render().then((canvas) => {
         this.icon = canvas.toDataURL();
-        return this.icon;
-      }.bind(this));
+      });
     }
+
   };
 
 

@@ -1,5 +1,15 @@
 'use strict';
 
+/**
+ * This file contains all Node.js version of utils functions.
+ * Since we're stil in the progress to migrate to Node.js, the
+ * missing functions in this file should be in the 'utils-xpc.js'
+ *
+ * About documents:
+ * Users can find comments in the 'utils-xpc.js',
+ * which contains the complete functions used in 'utils.js'
+ */
+
 /* global require, exports, Buffer */
 
 var utils = require('./utils.js');

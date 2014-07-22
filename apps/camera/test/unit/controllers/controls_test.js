@@ -107,12 +107,12 @@ suite('controllers/controls', function() {
 
     test('Should disable the controls when the camera is busy', function() {
       // Call the callback and check the view was disabled
-      this.app.on.withArgs('camera:busy').args[0][1]();
+      this.app.on.withArgs('busy').args[0][1]();
       sinon.assert.called(this.view.disable);
     });
 
     test('Should restore the controls when the camera is \'ready\'', function() {
-      sinon.assert.calledWith(this.app.on, 'camera:ready', this.controller.restore);
+      sinon.assert.calledWith(this.app.on, 'ready', this.controller.restore);
     });
 
     test('Should hide the controls when the timer is started', function() {

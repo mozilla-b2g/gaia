@@ -35,7 +35,16 @@ var Pairview = {
   pinInput: document.getElementById('pin-input'),
   passkeyInput: document.getElementById('passkey-input'),
 
+  get isFullAttentionMode() {
+    return (window.innerHeight > 200);
+  },
+
   show: function pv_show() {
+    if (!this.isFullAttentionMode) {
+      this.close();
+      return;
+    }
+
     var _ = navigator.mozL10n.get;
     this.pairButton.addEventListener('click', this);
     this.closeButton.addEventListener('click', this);
@@ -146,10 +155,10 @@ var Pairview = {
         }
         break;
       case 'resize':
-      // XXX: this is hack that we have to close the attention in this case,
-      // while in most other cases, we would just change it into an active
-      // status bar
-        if (window.innerHeight < 200) {
+        // XXX: this is hack that we have to close the attention in this case,
+        // while in most other cases, we would just change it into an active
+        // status bar
+        if (!this.isFullAttentionMode) {
           this.close();
         }
         break;

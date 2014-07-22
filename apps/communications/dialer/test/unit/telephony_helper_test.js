@@ -112,6 +112,19 @@ suite('telephony helper', function() {
 
     teardown(function() {
       MockIccHelper.mCardState = initialState;
+      document.dispatchEvent(new CustomEvent('visibilitychange'));
+    });
+
+    test('should display the connecting message', function() {
+      subject.call('112', 0);
+      sinon.assert.calledWith(spyConfirmShow, 'connecting ...', '');
+    });
+
+    test('should hide the connecting message', function() {
+      subject.call('112', 0);
+      var spyConfirmHide = this.sinon.spy(ConfirmDialog, 'hide');
+      document.dispatchEvent(new CustomEvent('visibilitychange'));
+      sinon.assert.calledOnce(spyConfirmHide);
     });
 
     suite('when there is no sim card', function() {
@@ -119,7 +132,7 @@ suite('telephony helper', function() {
       function() {
         var dialNumber = '112';
         subject.call(dialNumber, 0);
-        sinon.assert.calledWith(navigator.mozTelephony.dialEmergency, '112', 0);
+        sinon.assert.calledWith(navigator.mozTelephony.dialEmergency, '112');
       });
     });
 
@@ -132,7 +145,7 @@ suite('telephony helper', function() {
         var dialNumber = '112';
         subject.call(dialNumber, 0);
         sinon.assert.calledWith(navigator.mozTelephony.dialEmergency,
-                                '112', undefined);
+                                '112');
       });
     });
   });
@@ -329,6 +342,19 @@ suite('telephony helper', function() {
         mockPromise.then(function() {
           mockCall.onerror(createCallError('BusyError'));
           assert.isTrue(playSpy.calledOnce);
+        }).then(done, done);
+      });
+
+      test('Busy tone should be played in telephony channel', function(done) {
+        var playSpy = this.sinon.spy(MockTonePlayer, 'playSequence');
+        var setChannelSpy = this.sinon.spy(MockTonePlayer, 'setChannel');
+        var setTelephonySpy = setChannelSpy.withArgs('telephony');
+        var setNormalSpy = setChannelSpy.withArgs('normal');
+        subject.call('123', 0);
+        mockPromise.then(function() {
+          mockCall.onerror(createCallError('BusyError'));
+          assert.isTrue(setTelephonySpy.calledBefore(playSpy));
+          assert.isTrue(setNormalSpy.calledAfter(playSpy));
         }).then(done, done);
       });
 

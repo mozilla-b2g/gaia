@@ -5,6 +5,7 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
+var debug = require('debug')('view:hud');
 var bind = require('lib/bind');
 var View = require('view');
 
@@ -24,9 +25,19 @@ module.exports = View.extend({
     this.els.flash = this.find('.js-flash');
     this.els.camera = this.find('.js-camera');
     this.els.settings = this.find('.js-settings');
+
+    // Clean up
+    delete this.template;
+
+    debug('rendered');
+    return this.bindEvents();
+  },
+
+  bindEvents: function() {
     bind(this.els.flash, 'click', this.onFlashClick);
     bind(this.els.camera, 'click', this.onCameraClick);
     bind(this.els.settings, 'click', this.onSettingsClick, true);
+    return this;
   },
 
   setFlashMode: function(mode) {
@@ -78,7 +89,7 @@ module.exports = View.extend({
     /*jshint maxlen:false*/
     return '<div class="hud_btn hud_camera rotates test-camera-toggle js-camera"></div>' +
     '<div class="hud_btn hud_flash rotates test-flash-button js-flash"></div>' +
-    '<div class="hud_btn hud_settings rotates icon-settings test-settings-toggle js-settings">' +
+    '<div class="hud_btn hud_settings rotates icon-menu test-settings-toggle js-settings">' +
     '</div>';
   }
 });

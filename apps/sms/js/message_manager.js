@@ -32,6 +32,11 @@ var MessageManager = {
     document.addEventListener('visibilitychange',
                               this.onVisibilityChange.bind(this));
 
+    this._mozMobileMessage.addEventListener(
+      'deleted',
+      this.onDeleted.bind(this)
+    );
+
     // Callback if needed
     if (typeof callback === 'function') {
       callback();
@@ -89,6 +94,12 @@ var MessageManager = {
       ThreadUI.onMessageReceived(message);
     } else {
       ThreadListUI.onMessageReceived(message);
+    }
+  },
+
+  onDeleted: function(e) {
+    if (e.deletedThreadIds && e.deletedThreadIds.length) {
+      ThreadListUI.onThreadsDeleted(e.deletedThreadIds);
     }
   },
 

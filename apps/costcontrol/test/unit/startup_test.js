@@ -3,6 +3,7 @@
           MockMozNetworkStats, MocksHelper, SimManager, MockNavigatorSettings,
           AirplaneModeHelper, MockNavigatorMozIccManager
 */
+/* exported PerformanceTestingHelper */
 'use strict';
 
 // XXX: As there are two iframes in the body, Firefox adds two indexed items
@@ -39,6 +40,10 @@ var realCommon,
     realMozSetMessageHandler,
     realMozNetworkStats,
     realMozIccManager;
+
+var PerformanceTestingHelper = {
+  dispatch: function() { }
+};
 
 if (!window.navigator.mozNetworkStats) {
   window.navigator.mozNetworkStats = null;
@@ -81,7 +86,6 @@ var MocksHelperForUnitTest = new MocksHelper([
 suite('Application Startup Modes Test Suite >', function() {
 
   MocksHelperForUnitTest.attachTestHelpers();
-
   suiteSetup(function() {
     realCommon = window.Common;
 

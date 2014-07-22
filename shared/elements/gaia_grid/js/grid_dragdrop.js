@@ -260,13 +260,14 @@
         this.positionIcon(touch.pageX, touch.pageY);
       }
 
+      var scrollStep;
       var docScroll = this.scrollable.scrollTop;
       var distanceFromTop = Math.abs(touch.pageY - docScroll);
       var distanceFromHeader = distanceFromTop -
         (this.editHeaderElement ? this.editHeaderElement.clientHeight : 0);
       if (distanceFromTop > SCREEN_HEIGHT - EDGE_PAGE_THRESHOLD) {
         var maxY = this.maxScroll;
-        var scrollStep = this.getScrollStep(SCREEN_HEIGHT - distanceFromTop);
+        scrollStep = this.getScrollStep(SCREEN_HEIGHT - distanceFromTop);
         // We cannot exceed the maximum scroll value
         if (touch.pageY >= maxY || maxY - touch.pageY < scrollStep) {
           this.isScrolling = false;
@@ -275,7 +276,15 @@
 
         doScroll.call(this, scrollStep);
       } else if (touch.pageY > 0 && distanceFromHeader < EDGE_PAGE_THRESHOLD) {
-        doScroll.call(this, 0 - this.getScrollStep(distanceFromHeader));
+        // We cannot go below the minimum scroll value
+        scrollStep = this.getScrollStep(distanceFromHeader);
+        scrollStep = Math.min(scrollStep, this.scrollable.scrollTop);
+        if (scrollStep <= 0) {
+          this.isScrolling = false;
+          return;
+        }
+
+        doScroll.call(this, -scrollStep);
       } else {
         this.isScrolling = false;
       }

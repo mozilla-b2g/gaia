@@ -272,6 +272,7 @@ var StatusBar = {
   handleEvent: function sb_handleEvent(evt) {
     switch (evt.type) {
       case 'appopened':
+        this.setAppearance('opaque');
         var app = evt.detail;
         if (app.isFullScreen()) {
           this.hide();

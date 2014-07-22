@@ -9,23 +9,8 @@ from gaiatest.apps.base import Base
 class Keyboard(Base):
 
     _section_locator = (By.ID, 'keyboard')
-    _selected_keyboards_link_locator = (By.CSS_SELECTOR, "a[data-l10n-id='selectedKeyboards']")
-
-    def __init__(self, marionette):
-        Base.__init__(self, marionette)
-        section = self.marionette.find_element(*self._section_locator)
-        self.wait_for_condition(lambda m: section.location['x'] == 0)
-
-    def tap_selected_keyboards(self):
-        self.marionette.find_element(*self._selected_keyboards_link_locator).tap()
-        return KeyboardSelectKeyboard(self.marionette)
-
-
-class KeyboardSelectKeyboard(Base):
-
-    _section_locator = (By.ID, 'keyboard-selection')
-    _add_more_keyboards_button_locator = (By.CSS_SELECTOR, "button[data-l10n-id='addMoreKeyboards']")
-    _built_in_keyboard_list_element_locator = (By.CSS_SELECTOR, '.enabledKeyboardList > li >span')
+    _add_more_keyboards_button_locator = (By.CSS_SELECTOR, "button[data-l10n-id='selectKeyboards']")
+    _built_in_keyboard_list_element_locator = (By.CSS_SELECTOR, '.enabledKeyboardList > li > span')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)

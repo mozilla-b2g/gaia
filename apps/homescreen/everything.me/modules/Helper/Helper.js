@@ -99,6 +99,9 @@ Evme.Helper = new function Evme_Helper() {
   this.getList = function getList() {
     return elList;
   };
+  this.getCurrentDisplayType = function getCurrentDisplayType() {
+    return currentDisplayedType;
+  };
 
   this.enableCloseAnimation = function enableCloseAnimation() {
     elWrapper.classList.add('animate');

@@ -1,10 +1,20 @@
-/* global MockNavigatorDatastore, MockDatastore, Promise, Search */
+/* global MockNavigatorDatastore, MockDatastore, Promise */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_navigator_datastore.js');
 require('/shared/js/utilities.js');
 requireApp('search/test/unit/mock_search.js');
 requireApp('search/js/providers/provider.js');
+requireApp('search/js/providers/grid_provider.js');
+
+// Required files for the grid and a mozapp result
+require('/shared/js/l10n.js');
+require('/shared/elements/gaia_grid/js/grid_icon_renderer.js');
+require('/shared/elements/gaia_grid/js/grid_layout.js');
+require('/shared/elements/gaia_grid/js/grid_view.js');
+require('/shared/elements/gaia_grid/script.js');
+require('/shared/elements/gaia_grid/js/items/grid_item.js');
+require('/shared/elements/gaia_grid/js/items/bookmark.js');
 
 suite('search/providers/places', function() {
   var fakeElement, subject;
@@ -50,28 +60,16 @@ suite('search/providers/places', function() {
                           .returns(fakeElement.cloneNode(true));
     requireApp('search/js/providers/places.js', function() {
       subject = window.Places;
-      subject.init();
+      subject.grid = document.createElement('gaia-grid');
       promiseDone.then(done.bind(null, null));
     });
   });
 
   suite('search', function() {
-    test('calls clear', function() {
-      var stub = this.sinon.stub(subject, 'clear');
-      subject.search('foo', function() {});
-      assert.ok(stub.calledOnce);
-    });
-
     test('renders data url', function(done) {
       subject.search('mozilla').then((results) => {
-        Search.collect(subject, results);
-        var place = subject.container.querySelector('.result');
-        assert.equal(place.dataset.url, 'http://mozilla.org');
-        assert.equal(place.querySelector('.title').innerHTML, 'homepage');
-        assert.equal(place.getAttribute('aria-label'), 'homepage');
-        assert.equal(place.getAttribute('role'), 'link');
-        assert.equal(place.querySelector('.icon').getAttribute('role'),
-          'presentation');
+        assert.equal(results[0].data.detail.url, 'http://mozilla.org');
+        assert.equal(results[0].data.name, 'homepage');
         done();
       });
     });

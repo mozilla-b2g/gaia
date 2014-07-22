@@ -288,6 +288,31 @@ document.addEventListener('DOMContentLoaded', function onload() {
           var localApns =
             localAndroidDB.documentElement.querySelectorAll('apn');
           for (var localApn of localApns) {
+            if (localApn.getAttribute('overwrite')) {
+              var pattern = '[carrier="' + localApn.getAttribute('carrier') +
+                            '"]';
+              var androidApns =
+                gAndroidDB.documentElement.querySelectorAll(pattern);
+              for (var androidApn of androidApns) {
+                if (androidApn &&
+                    androidApn.getAttribute('carrier') ===
+                    localApn.getAttribute('carrier')) {
+
+                  if (DEBUG) {
+                    console.log('- replace "' +
+                                androidApn.getAttribute('apn') +
+                                '" to "' + localApn.getAttribute('apn') +
+                                '"');
+                  }
+                  localApn.removeAttribute('overwrite');
+                  var parent = androidApn.parentNode;
+                  parent.insertBefore(localApn, androidApn);
+                  parent.removeChild(androidApn);
+                }
+              }
+              continue;
+            }
+
             // use local apn to patch origin carrier name in the Android DB
             // if the name is not the correct one (see bug 863126).
             // Note: This patch will not function once we get

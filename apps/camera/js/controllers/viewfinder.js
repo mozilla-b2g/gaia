@@ -25,7 +25,6 @@ module.exports.ViewfinderController = ViewfinderController;
  * @param {App} app
  */
 function ViewfinderController(app) {
-  debug('initializing');
   bindAll(this);
   this.app = app;
   this.views = {};
@@ -108,9 +107,8 @@ ViewfinderController.prototype.bindEvents = function() {
   this.app.on('camera:focusstatechanged', this.views.focus.setFocusState);
   this.app.on('camera:facesdetected', this.onFacesDetected);
   this.app.on('camera:shutter', this.views.viewfinder.shutter);
-  this.app.on('camera:busy', this.views.viewfinder.disable);
-  this.app.on('camera:ready', this.views.viewfinder.enable);
-  this.app.on('previewgallery:closed', this.onPreviewGalleryClosed);
+  this.app.on('busy', this.views.viewfinder.disable);
+  this.app.on('ready', this.views.viewfinder.enable);
   this.app.on('camera:configured', this.onCameraConfigured);
   this.app.on('previewgallery:opened', this.onGalleryOpened);
   this.app.on('previewgallery:closed', this.onGalleryClosed);
@@ -173,17 +171,6 @@ ViewfinderController.prototype.onFacesDetected = function(faces) {
   });
   this.views.faces.show();
   this.views.faces.render(facesInPixels);
-};
-
-/**
- * Starts the stream, only if
- * the app is currently visible.
- *
- * @private
- */
-ViewfinderController.prototype.onPreviewGalleryClosed = function() {
-  if (this.app.hidden) { return; }
-  this.startStream();
 };
 
 /**
@@ -317,15 +304,25 @@ ViewfinderController.prototype.onSettingsClosed = function() {
   this.pinch.enable();
 };
 
+/**
+ * Disables the viewfinder stream
+ * and pinch events.
+ *
+ * @private
+ */
 ViewfinderController.prototype.onGalleryOpened = function() {
-  // Disables events when the gallery opens
-  this.viewfinder.disable();
+  this.views.viewfinder.disable();
   this.pinch.disable();
 };
 
+/**
+ * Enables the viewfinder stream
+ * and pinch events.
+ *
+ * @private
+ */
 ViewfinderController.prototype.onGalleryClosed = function() {
-  // Renables events when the gallery closes
-  this.viewfinder.enable();
+  this.views.viewfinder.enable();
   this.pinch.enable();
 };
 

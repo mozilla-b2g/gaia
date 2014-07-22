@@ -4,7 +4,6 @@
 mocha.globals(['AppWindow', 'TextSelectionDialog', 'System', 'BaseUI',
   'layoutManager']);
 
-// requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/test/unit/mock_layout_manager.js');
 requireApp('system/test/unit/mock_app_window.js');
 
@@ -17,7 +16,8 @@ suite('system/TextSelectionDialog', function() {
   mocksForTextSelectionDialog.attachTestHelpers();
   var mockDetail = {};
   setup(function(done) {
-    window.layoutManager = new LayoutManager().start();
+    window.layoutManager = new LayoutManager();
+    window.layoutManager.start();
     window.layoutManager.width = 360;
     window.layoutManager.height = 480;
     mockDetail = {

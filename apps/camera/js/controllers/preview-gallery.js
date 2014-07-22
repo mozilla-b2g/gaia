@@ -22,7 +22,6 @@ module.exports = function(app) { return new PreviewGalleryController(app); };
 module.exports.PreviewGalleryController = PreviewGalleryController;
 
 function PreviewGalleryController(app) {
-  debug('initializing');
   bindAll(this);
   this.app = app;
   this.settings = app.settings;
@@ -75,6 +74,8 @@ PreviewGalleryController.prototype.openPreview = function() {
   this.view.on('click:back', this.closePreview);
   this.view.on('swipe', this.handleSwipe);
   this.view.on('click:options', this.onOptionsClick);
+  this.view.on('loadingvideo', this.app.firer('busy'));
+  this.view.on('playingvideo', this.app.firer('ready'));
 
   // If lockscreen is locked, hide all control buttons
   var secureMode = this.app.inSecureMode;
@@ -133,7 +134,6 @@ PreviewGalleryController.prototype.onOptionsClick = function() {
 
   this.view.showOptionsMenu();
 };
-
 
 PreviewGalleryController.prototype.shareCurrentItem = function() {
   if (this.app.inSecureMode) {

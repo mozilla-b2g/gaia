@@ -82,7 +82,6 @@
   float: left;
   position: absolute;
   top: 1.9rem;
-  font-size: 3.2rem;
   width: 2.9rem;
   height: 5.1rem;
   color: #707070;
@@ -91,7 +90,7 @@
   line-height: 5rem;
 }
 
-#week-view .icon-allday:before {
+#week-view .icon-calendar-allday:before {
   margin-left: -0.2rem;
 }
 

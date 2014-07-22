@@ -30,6 +30,7 @@
     "audio-capture":{},
     "video-capture":{},
     "bluetooth":{},
-    "downloads":{}
+    "downloads":{},
+    "firefox-accounts": {}
   }
 }

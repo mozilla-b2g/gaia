@@ -61,4 +61,5 @@ if (mozPerfVerbose) {
   console.error('testing "' + mozTestInfo.appPath + '"');
 }
 
+marionette.plugin('apps', require('marionette-apps'));
 marionette.plugin('contentScript', require('marionette-content-script'));

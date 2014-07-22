@@ -169,7 +169,8 @@ define(function(require) {
                 settings = navigator.mozSettings;
                 lock = settings.createLock();
                 lock.set({
-                  'lockscreen.enabled': false
+                  'lockscreen.enabled': false,
+                  'lockscreen.passcode-lock.enabled': false
                 });
                 this._backToScreenLock();
               } else {

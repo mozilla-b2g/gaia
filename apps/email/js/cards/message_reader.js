@@ -12,6 +12,7 @@ var MimeMapper,
     msgAttachmentDisabledConfirmNode =
                          require('tmpl!./msg/attachment_disabled_confirm.html'),
     common = require('mail_common'),
+    Toaster = require('toaster'),
     model = require('model'),
     headerCursor = require('header_cursor').cursor,
     evt = require('evt'),
@@ -21,7 +22,6 @@ var MimeMapper,
     queryURI = require('query_uri'),
 
     Cards = common.Cards,
-    Toaster = common.Toaster,
     ConfirmDialog = common.ConfirmDialog,
     displaySubject = common.displaySubject,
     prettyDate = common.prettyDate,
@@ -360,8 +360,8 @@ MessageReaderCard.prototype = {
         id: 'msg-delete-ok',
         handler: function() {
           var op = this.header.deleteMessage();
-          Toaster.logMutation(op, true);
           Cards.removeCardAndSuccessors(this.domNode, 'animate');
+          Toaster.toastOperation(op);
         }.bind(this)
       },
       { // Cancel
@@ -384,8 +384,8 @@ MessageReaderCard.prototype = {
     //TODO: Please verify move functionality after api landed.
     Cards.folderSelector(function(folder) {
       var op = this.header.moveMessage(folder);
-      Toaster.logMutation(op, true);
       Cards.removeCardAndSuccessors(this.domNode, 'animate');
+      Toaster.toastOperation(op);
     }.bind(this));
   },
 

@@ -76,31 +76,22 @@ var Contacts = {
     request.onsuccess = function findCallback() {
       var contacts = request.result;
       if (contacts.length === 0) {
-        // Checking if FB is enabled or not
-        window.asyncStorage.getItem('tokenData', function(data) {
-          if (!data || !data.access_token) {
-            // Facebook is not even enabled
-            callback(null);
-            return;
+        // It is only necessary to search for one variant as FB takes care
+        fb.getContactByNumber(number, function fb_ready(finalContact) {
+          var objMatching = null;
+          if (finalContact) {
+            objMatching = {
+              value: number,
+              // Facebook telephone are always of type personal
+              type: 'personal',
+              // We don't know the carrier from FB phones
+              carrier: null
+            };
           }
-
-          // It is only necessary to search for one variant as FB takes care
-          fb.getContactByNumber(number, function fb_ready(finalContact) {
-              var objMatching = null;
-              if (finalContact) {
-                objMatching = {
-                  value: number,
-                  // Facebook telephone are always of type personal
-                  type: 'personal',
-                  // We don't know the carrier from FB phones
-                  carrier: null
-                };
-              }
-              callback(finalContact, objMatching);
-            }, function fb_err(err) {
-                callback(null);
-            });
-          });
+          callback(finalContact, objMatching);
+        }, function fb_err(err) {
+          callback(null);
+        });
         return;
       }
 
@@ -192,13 +183,7 @@ var Contacts = {
 
       // If we have contacts data from Facebook, we need to merge it with the
       // one from the Contacts API db.
-      window.asyncStorage.getItem('tokenData', function(data) {
-        if (data && data.access_token) {
-          self._mergeFbContacts(contacts, callback);
-        } else {
-          callback(contacts);
-        }
-      });
+      self._mergeFbContacts(contacts, callback);
     };
 
     req.onerror = function onerror() {

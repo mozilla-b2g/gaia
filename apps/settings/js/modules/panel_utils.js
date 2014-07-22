@@ -126,8 +126,19 @@ define(function(require) {
       });
       LazyLoader.load(scripts_src);
 
-      var _onclick = function(callback, value) {
-        callback(value);
+      var _onclick = function() {
+        if (!this.dataset.href) {
+          this.dataset.href = this.href;
+          this.href = '#';
+        }
+        var href = this.dataset.href;
+        if (!href.startsWith('#')) { // external link
+          openLink(href);
+        } else if (!href.endsWith('Settings')) { // generic dialog
+          openDialog(href.substr(1));
+        } else { // Settings-specific dialog box
+          _openDialog(href.substr(1));
+        }
         return false;
       };
 
@@ -137,21 +148,7 @@ define(function(require) {
       var i, count;
 
       for (i = 0, count = links.length; i < count; i++) {
-        var link = links[i];
-        if (!link.dataset.href) {
-          link.dataset.href = link.href;
-          link.href = '#';
-        }
-        if (!link.dataset.href.startsWith('#')) { // external link
-          link.onclick = _onclick.bind(this, openLink,
-                                       link.dataset.href);
-        } else if (!link.dataset.href.endsWith('Settings')) { // generic dialog
-          link.onclick = _onclick.bind(this, openDialog,
-                                       link.dataset.href.substr(1));
-        } else { // Settings-specific dialog box
-          link.onclick = _onclick.bind(this, _openDialog,
-                                       link.dataset.href.substr(1));
-        }
+        links[i].onclick = _onclick;
       }
     },
 

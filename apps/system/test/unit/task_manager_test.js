@@ -10,7 +10,7 @@ requireApp('system/test/unit/mock_trusted_ui_manager.js');
 requireApp('system/test/unit/mock_utility_tray.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_app_window.js');
-requireApp('system/test/unit/mock_system.js');
+require('/shared/test/unit/mocks/mock_system.js');
 requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/test/unit/mock_rocketbar.js');
 requireApp('system/test/unit/mock_sleep_menu.js');
@@ -670,6 +670,38 @@ suite('system/TaskManager >', function() {
       // Pre-Haida/Cardsview mode: taskManager shows empty message
       taskManager.isRocketbar = false;
       taskManager.show();
+    });
+
+    suite('display empty cardsview >', function() {
+      setup(function(done) {
+        assert.isFalse(taskManager.isShown(), 'taskManager isnt showing yet');
+        waitForEvent(window, 'cardviewshown')
+          .then(function() { done(); }, failOnReject);
+        taskManager.show();
+      });
+
+      test('on touchstart, empty cardsview is closed and back to home screen',
+      function(done) {
+        var events = [];
+        assert.isTrue(cardsView.classList.contains('empty'));
+        assert.isTrue(cardsView.classList.contains('active'));
+        assert.isTrue(taskManager.isShown());
+
+        waitForEvent(window, 'cardviewclosedhome').then(function(){
+          events.push('cardviewclosedhome');
+        }, failOnReject).then(function() {
+          assert.equal(events.length, 1, 'sanity check, only 1 event received');
+          assert.equal(events[0],
+                      'cardviewclosedhome',
+                      'cardviewclosedhome event raised when touch starts');
+          assert.isFalse(cardsView.classList.contains('active'));
+          assert.isFalse(taskManager.isShown());
+          done();
+        }, failOnReject);
+
+        cardsView.dispatchEvent(
+          createTouchEvent('touchstart', cardsView, 100, 100));
+      });
     });
   });
 

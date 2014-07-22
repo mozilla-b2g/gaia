@@ -43,9 +43,9 @@
       case 'app':
         return false;
 
-      // If we are in a "browser" frame, we are either in a browser tab/system 
+      // If we are in a "browser" frame, we are either in a browser tab/system
       // bookmark, or mozbrowser iframe within in app. Since system
-      // bookmarks are considered unframed, we must perform a check here to 
+      // bookmarks are considered unframed, we must perform a check here to
       // distinguish between the two cases.
       case 'browser':
         return manifestURL !== window.SYSTEM_MANIFEST;
@@ -217,40 +217,36 @@
     ErrorView.call(this, error, title, message);
   };
 
-  FramedErrorView.prototype = {
-    __proto__: ErrorView.prototype,
+  FramedErrorView.prototype = Object.create(ErrorView.prototype);
 
-    applyStyle: function few_applyStyle() {
-      ErrorView.prototype.applyStyle.call(this);
-      document.body.classList.add('framed');
-    },
+  FramedErrorView.prototype.applyStyle = function few_applyStyle() {
+    ErrorView.prototype.applyStyle.call(this);
+    document.body.classList.add('framed');
+  };
 
-    addHandlers: function few_addHandlers() {
-      document.body.onclick = function bodyClick() {
-        document.getElementById('retry-icon').classList.remove('still');
-        NetError.reload(true);
-      };
-    }
+  FramedErrorView.prototype.addHandlers = function few_addHandlers() {
+    document.body.onclick = function bodyClick() {
+      document.getElementById('retry-icon').classList.remove('still');
+      NetError.reload(true);
+    };
   };
 
   var AppErrorView = function(error, title, message) {
     ErrorView.call(this, error, title, message);
   };
 
-  AppErrorView.prototype = {
-    __proto__: ErrorView.prototype,
+  AppErrorView.prototype = Object.create(ErrorView.prototype);
 
-    applyStyle: function few_applyStyle() {
-      ErrorView.prototype.applyStyle.call(this);
-      document.body.classList.add('no-frame');
-    },
+  AppErrorView.prototype.applyStyle = function few_applyStyle() {
+    ErrorView.prototype.applyStyle.call(this);
+    document.body.classList.add('no-frame');
+  };
 
-    addHandlers: function aew_addHandlers() {
-      document.getElementById('retry-btn').onclick = function retryClick() {
-        NetError.reload(true);
-      };
-      document.getElementById('close-btn').onclick = closeWindow;
-    }
+  AppErrorView.prototype.addHandlers = function aew_addHandlers() {
+    document.getElementById('retry-btn').onclick = function retryClick() {
+      NetError.reload(true);
+    };
+    document.getElementById('close-btn').onclick = closeWindow;
   };
 
   // Dns error view
@@ -258,26 +254,24 @@
     AppErrorView.call(this, error, title, message);
   };
 
-  DnsErrorAppErrorView.prototype = {
-    __proto__: AppErrorView.prototype,
+  DnsErrorAppErrorView.prototype = Object.create(AppErrorView.prototype);
 
-    populateMessages: function noew_populateMessages() {
-      localizeElement(this.title, this.titleText);
-      localizeElement(this.message, this.messageText, { name: this.error.u });
-    }
+  DnsErrorAppErrorView.prototype.populateMessages =
+  function noew_populateMessages() {
+    localizeElement(this.title, this.titleText);
+    localizeElement(this.message, this.messageText, { name: this.error.u });
   };
 
   var DnsErrorFramedErrorView = function(error, title, message) {
     FramedErrorView.call(this, error, title, message);
   };
 
-  DnsErrorFramedErrorView.prototype = {
-    __proto__: FramedErrorView.prototype,
+  DnsErrorFramedErrorView.prototype = Object.create(FramedErrorView.prototype);
 
-    populateMessages: function noew_populateMessages() {
-      localizeElement(this.title, this.titleText);
-      localizeElement(this.message, this.messageText, { name: this.error.u });
-    }
+  DnsErrorFramedErrorView.prototype.populateMessages =
+  function noew_populateMessages() {
+    localizeElement(this.title, this.titleText);
+    localizeElement(this.message, this.messageText, { name: this.error.u });
   };
 
   // Offline view
@@ -286,44 +280,44 @@
     this.node = document.getElementById('net-error-action-menu');
   };
 
-  NetOfflineAppErrorView.prototype = {
-    __proto__: AppErrorView.prototype,
+  NetOfflineAppErrorView.prototype = Object.create(AppErrorView.prototype);
 
-    populateMessages: function noew_populateMessages() {
-      if (hasHistory()) {
-        localizeElement(this.title, 'network-error-in-app');
-      } else {
-        getAppName((function localizeTitle(appName) {
-          localizeElement(this.title, 'network-error-launching', {
-            name: appName
-          });
-        }).bind(this));
-      }
-    },
-
-    addHandlers: function noew_addHandlers() {
-      addConnectionHandlers();
-      document.getElementById('settings-btn').onclick = showSettingsView;
-      document.getElementById('cancel-btn').onclick = cancel;
+  NetOfflineAppErrorView.prototype.populateMessages =
+  function noew_populateMessages() {
+    if (hasHistory()) {
+      localizeElement(this.title, 'network-error-in-app');
+    } else {
+      getAppName((function localizeTitle(appName) {
+        localizeElement(this.title, 'network-error-launching', {
+          name: appName
+        });
+      }).bind(this));
     }
+  };
+
+  NetOfflineAppErrorView.prototype.addHandlers = function noew_addHandlers() {
+    addConnectionHandlers();
+    document.getElementById('settings-btn').onclick = showSettingsView;
+    document.getElementById('cancel-btn').onclick = cancel;
   };
 
   var NetOfflineFramedErrorView = function(error) {
     FramedErrorView.call(this, error);
   };
 
-  NetOfflineFramedErrorView.prototype = {
-    __proto__: FramedErrorView.prototype,
+  NetOfflineFramedErrorView.prototype =
+    Object.create(FramedErrorView.prototype);
 
-    populateMessages: function noew_populateMessages() {
-      localizeElement(this.title, 'unable-to-connect');
-      localizeElement(this.message, 'tap-to-check-settings');
-    },
+  NetOfflineFramedErrorView.prototype.populateMessages =
+  function noew_populateMessages() {
+    localizeElement(this.title, 'unable-to-connect');
+    localizeElement(this.message, 'tap-to-check-settings');
+  };
 
-    addHandlers: function noew_addHandlers() {
-      addConnectionHandlers();
-      document.body.onclick = showSettingsView;
-    }
+  NetOfflineFramedErrorView.prototype.addHandlers =
+  function noew_addHandlers() {
+    addConnectionHandlers();
+    document.body.onclick = showSettingsView;
   };
 
   // Confirm views
@@ -331,13 +325,11 @@
     AppErrorView.call(this, error, title, message);
   };
 
-  ConfirmAppErrorView.prototype = {
-    __proto__: AppErrorView.prototype,
+  ConfirmAppErrorView.prototype = Object.create(AppErrorView.prototype);
 
-    applyStyle: function caew_applyStyle() {
-      AppErrorView.prototype.applyStyle.call(this);
-      document.body.classList.add('dialog');
-    }
+  ConfirmAppErrorView.prototype.applyStyle = function caew_applyStyle() {
+    AppErrorView.prototype.applyStyle.call(this);
+    document.body.classList.add('dialog');
   };
 
   // Alert view
@@ -345,13 +337,11 @@
     AppErrorView.call(this, error, title, message);
   };
 
-  AlertAppErrorView.prototype = {
-    __proto__: AppErrorView.prototype,
+  AlertAppErrorView.prototype = Object.create(AppErrorView.prototype);
 
-    applyStyle: function aaew_applyStyle() {
-      AppErrorView.prototype.applyStyle.call(this);
-      document.body.classList.add('dialog', 'alert');
-    },
+  AlertAppErrorView.prototype.applyStyle = function aaew_applyStyle() {
+    AppErrorView.prototype.applyStyle.call(this);
+    document.body.classList.add('dialog', 'alert');
   };
 
   var views = {

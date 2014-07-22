@@ -31,9 +31,6 @@
 
   /* constants */
 
-  // number of app icons in the collection icon
-  const numAppIcons = 3;
-
   // darkness of to side icons
   const sideIconDarken = 0.65;
 
@@ -43,6 +40,13 @@
   const defaultBgFill = 'rgba(51, 51, 51, 0.85)';
   const deafultBgImage = '/style/images/icon_default.png';
 
+  const emePrefix = /https?:\/\/api.everything.me/;
+
+  // icons from EverythingMe api requires clipping (they are rectangular),
+  // but everything else does not
+  function shouldClip(url) {
+    return emePrefix.test(url);
+  }
 
   function blobToDataURI(blob) {
     return new Promise(function convert(resolve, reject) {
@@ -101,12 +105,6 @@
     // bgSrc: base64 image
     this.bgSrc = config.bgSrc || null;
   }
-
-  Object.defineProperty(CollectionIcon, 'numAppIcons', {
-    get: function get() {
-      return numAppIcons;
-    }
-  });
 
   CollectionIcon.init = function init(maxIconSize) {
     // measurements are based on a 60px icon (cf. bug 965711)
@@ -214,9 +212,10 @@
             imgCanvas.width = imgWidth;
             imgCanvas.height = imgHeight;
 
-            // we need rounded icons (API returns rectangular icons)
-            ctx.arc(imgWidth/2, imgHeight/2, imgWidth/2, 0, 2 * Math.PI);
-            ctx.clip();
+            if (shouldClip(url)) {
+              ctx.arc(imgWidth/2, imgHeight/2, imgWidth/2, 0, 2 * Math.PI);
+              ctx.clip();
+            }
             ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
 
             if (darkness) {

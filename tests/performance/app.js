@@ -15,11 +15,13 @@ function PerfTestApp(client, origin) {
     return;
   }
   var arr = mozTestInfo.appPath.split('/');
-  manifestPath = arr[0];
-  entryPoint = arr[1];
+  var manifestPath = arr[0];
+  var entryPoint = arr[1];
+  var origin = util.format('app://%s',
+    manifestPath.indexOf('.') !== -1 ?
+    manifestPath :
+    manifestPath + '.gaiamobile.org');
 
-  origin = util.format('app://%s.gaiamobile.org',
-                       manifestPath);
   this.entryPoint = entryPoint;
   this.client = client;
   this.origin = origin;

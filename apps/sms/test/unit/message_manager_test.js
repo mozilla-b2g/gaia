@@ -7,6 +7,7 @@
         ReportView,
         Settings,
         SMIL,
+        ThreadListUI,
         ThreadUI,
         Threads
 */
@@ -722,6 +723,28 @@ suite('message_manager.js >', function() {
         this.mockEvent.message);
       sinon.assert.calledWith(ReportView.onReadSuccess,
         this.mockEvent.message);
+    });
+  });
+
+  suite('onDeleted', function() {
+    setup(function() {
+      this.sinon.spy(ThreadListUI, 'onThreadsDeleted');
+    });
+
+    test('calls ThreadListUI.onThreadsDeleted', function() {
+      MessageManager.onDeleted({
+        deletedThreadIds : [1, 2]
+      });
+
+      sinon.assert.calledWith(ThreadListUI.onThreadsDeleted, [1, 2]);
+    });
+
+    test('does not call ThreadListUI.onThreadsDeleted', function() {
+      MessageManager.onDeleted({
+        deletedThreadIds : null
+      });
+
+      sinon.assert.notCalled(ThreadListUI.onThreadsDeleted);
     });
   });
 });

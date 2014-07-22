@@ -57,6 +57,8 @@
     configs: {
       listens: ['system-dialog-created',
                 'system-dialog-show',
+                'value-selector-showing',
+                'value-selector-hiding',
                 'system-dialog-hide',
                 'system-resize',
                 'home',
@@ -100,8 +102,28 @@
       case 'holdhome':
         // Automatically hide the dialog on home button press
         if (this.states.activeDialog) {
+          // Remove when bug 1040936 is fixed.
+          // Reset the z-index level if removed by value-selector-showing
+          this.states.activeDialog.containerElement.setAttribute(
+            'data-z-index-level', 'dialog-overlay');
           // Deactivate the dialog and pass the event type in the two cases
           this.deactivateDialog(this.states.activeDialog, evt.type);
+        }
+        break;
+      case 'value-selector-showing':
+        // Remove when bug 1040936 is fixed.
+        // Remove the dialog-overlay z-index to make the value-selector visible.
+        if (this.states.activeDialog) {
+          this.states.activeDialog.containerElement.removeAttribute(
+            'data-z-index-level');
+        }
+        break;
+      case 'value-selector-hiding':
+        // Remove when bug 1040936 is fixed.
+        // Add the dialog-overlay z-index when value-selector is hidden.
+        if (this.states.activeDialog) {
+          this.states.activeDialog.containerElement.setAttribute(
+            'data-z-index-level', 'dialog-overlay');
         }
         break;
     }

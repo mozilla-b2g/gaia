@@ -73,7 +73,7 @@ suiteGroup('Views.DayChild', function() {
     var result = subject._renderEvent(busytime, event);
     assert.ok(result);
 
-    assert.include(result, 'icon-alarm');
+    assert.include(result, 'icon-calendar-alarm');
     assert.include(result, 'UX');
     assert.include(result, 'Paris');
   });
@@ -90,7 +90,7 @@ suiteGroup('Views.DayChild', function() {
     var result = subject._renderEvent(busytime, event);
     assert.ok(result);
 
-    assert.ok(result.indexOf('icon-alarm') === -1);
+    assert.ok(result.indexOf('icon-calendar-alarm') === -1);
   });
 
   test('#_renderEvent undefined alarms, bug 868600', function() {

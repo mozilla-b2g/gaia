@@ -57,7 +57,11 @@ var SimLock = {
   handleEvent: function sl_handleEvent(evt) {
     switch (evt.type) {
       case 'ftuopen':
-        SimPinDialog.close();
+        VersionHelper.getVersionInfo().then(function(info) {
+          if (!info.isUpgrade()) {
+            SimPinDialog.close();
+          }
+        });
         break;
       case 'simpinback':
         var index = evt.detail._currentSlot.index;
@@ -102,10 +106,18 @@ var SimLock = {
         // If the former is true, the SIM PIN dialog should not displayed after
         // unlock, because the camera will be opened (Bug 849718)
         if (evt.detail && evt.detail.activity &&
-            'record' === evt.detail.activity.name)
+            'record' === evt.detail.activity.name) {
           return;
-
-        this.showIfLocked();
+        }
+        var self = this;
+        // We should wait for lockscreen-appclosed event sent before checking
+        // the value of System.locked in showIfLocked method.
+        window.addEventListener('lockscreen-appclosed',
+          function lockscreenOnClosed() {
+            window.removeEventListener('lockscreen-appclosed',
+              lockscreenOnClosed);
+            self.showIfLocked();
+          });
         break;
       case 'appopened':
         // If an app needs 'telephony' or 'sms' permissions (i.e. mobile
@@ -155,8 +167,13 @@ var SimLock = {
     }
 
     // FTU has its specific SIM PIN UI
-    if (FtuLauncher.isFtuRunning())
-      return false;
+    if (FtuLauncher.isFtuRunning()) {
+      VersionHelper.getVersionInfo().then(function(info) {
+        if (!info.isUpgrade()) {
+          SimPinDialog.close();
+        }
+      });
+    }
 
     if (this._duringCall) {
       this._showPrevented = true;

@@ -10,7 +10,7 @@
     this.scrollable = document.querySelector('.scrollable');
     this.grid = document.getElementById('icons');
 
-    this.grid.addEventListener('gaiagrid-iconblobload', this);
+    this.grid.addEventListener('iconblobdecorated', this);
     this.grid.addEventListener('gaiagrid-iconbloberror', this);
     window.addEventListener('hashchange', this);
     window.addEventListener('gaiagrid-saveitems', this);
@@ -136,13 +136,8 @@
      */
     handleEvent: function(e) {
       switch(e.type) {
-        case 'gaiagrid-iconblobload':
+        case 'iconblobdecorated':
           var item = e.detail;
-
-          // do not attempt to cache the app:// protocol icons
-          if (item.icon.startsWith('app://')) {
-            return;
-          }
 
           // XXX: sad naming... e.detail is a gaia grid GridItem interface.
           this.itemStore.saveItem(item.detail, () => {

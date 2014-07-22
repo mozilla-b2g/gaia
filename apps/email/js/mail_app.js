@@ -117,6 +117,7 @@ model.latestOnce('api', function(api) {
     },
     folderNames: {
       inbox: mozL10n.get('folder-inbox'),
+      outbox: mozL10n.get('folder-outbox'),
       sent: mozL10n.get('folder-sent'),
       drafts: mozL10n.get('folder-drafts'),
       trash: mozL10n.get('folder-trash'),
@@ -492,7 +493,9 @@ appMessages.on('activity', gateEntry(function(type, data, rawActivity) {
 }));
 
 appMessages.on('notification', gateEntry(function(data) {
-  var type = data ? data.type : '';
+  data = data || {};
+  var type = data.type || '';
+  var folderType = data.folderType || 'inbox';
 
   model.latestOnce('foldersSlice', function latestFolderSlice() {
     function onCorrectFolder() {
@@ -533,7 +536,10 @@ appMessages.on('notification', gateEntry(function(data) {
         accountId = data.accountId;
 
     if (model.account.id === accountId) {
-      return model.selectInbox(onCorrectFolder);
+      // folderType will often be 'inbox' (in the case of a new message
+      // notification) or 'outbox' (in the case of a "failed send"
+      // notification).
+      return model.selectFirstFolderWithType(folderType, onCorrectFolder);
     } else {
       var newAccount;
       acctsSlice.items.some(function(account) {
@@ -544,7 +550,9 @@ appMessages.on('notification', gateEntry(function(data) {
       });
 
       if (newAccount) {
-        model.changeAccount(newAccount, onCorrectFolder);
+        model.changeAccount(newAccount, function() {
+          model.selectFirstFolderWithType(folderType, onCorrectFolder);
+        });
       }
     }
   });

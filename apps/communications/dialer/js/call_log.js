@@ -862,37 +862,26 @@ var CallLog = {
 
   // We need _updateContact and _removeContact aux functions to keep the
   // correct references to the log DOM element.
-  _updateContact: function _updateContact(log, phoneNumber, updateDb) {
+  _updateContact: function _updateContact(log, phoneNumber, contactId,
+                                          updateDb) {
     var self = this;
     Contacts.findByNumber(phoneNumber,
                           function(contact, matchingTel) {
       if (!contact || !matchingTel) {
-        // Remove contact info.
-        if (self._contactCache && updateDb) {
-          var group = self._getGroupFromLog(log);
-          if (!group) {
-            return;
-          }
+        self._removeContact(log, contactId, updateDb);
+        return;
+      }
 
-          CallLogDBManager.removeGroupContactInfo(null, group,
-                                                  function(result) {
-            self.updateContactInfo(log);
-          });
-        } else {
-          self.updateContactInfo(log);
-        }
+      // Update contact info.
+      if (self._contactCache && updateDb) {
+        CallLogDBManager.updateGroupContactInfo(contact, matchingTel,
+                                                function(result) {
+          if (typeof result === 'number' && result > 0) {
+            self.updateContactInfo(log, contact, matchingTel);
+          }
+        });
       } else {
-        // Update contact info.
-        if (self._contactCache && updateDb) {
-          CallLogDBManager.updateGroupContactInfo(contact, matchingTel,
-                                                  function(result) {
-            if (typeof result === 'number' && result > 0) {
-              self.updateContactInfo(log, contact, matchingTel);
-            }
-          });
-        } else {
-          self.updateContactInfo(log, contact, matchingTel);
-        }
+        self.updateContactInfo(log, contact, matchingTel);
       }
     });
   },
@@ -958,12 +947,7 @@ var CallLog = {
       var log = logs[i];
       var logInfo = log.dataset;
 
-      if (!reason ||
-          (phoneNumbers && phoneNumbers.indexOf(logInfo.phoneNumber) > -1)) {
-        this._updateContact(log, logInfo.phoneNumber, i == 0);
-      } else if (logInfo.contactId && (logInfo.contactId === contactId)) {
-        this._removeContact(log, contactId, i == 0);
-      }
+      this._updateContact(log, logInfo.phoneNumber, contactId, i == 0);
     }
   },
 

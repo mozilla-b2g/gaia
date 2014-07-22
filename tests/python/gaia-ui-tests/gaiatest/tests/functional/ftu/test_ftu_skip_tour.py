@@ -55,7 +55,7 @@ class TestFtu(GaiaTestCase):
                 self.testvars['wifi']['ssid']).get_attribute('class'))
 
         self.assertTrue(self.data_layer.is_wifi_connected(self.testvars['wifi']),
-		    "WiFi was not connected via FTU app")
+                        "WiFi was not connected via FTU app")
 
         self.apps.switch_to_displayed_app()
 
@@ -71,8 +71,8 @@ class TestFtu(GaiaTestCase):
         # Disable geolocation
         self.ftu.disable_geolocation()
         self.wait_for_condition(
-		        lambda m: not self.data_layer.get_setting('geolocation.enabled'),
-		        message='Geolocation was not disabled by the FTU app')
+            lambda m: not self.data_layer.get_setting('geolocation.enabled'),
+            message='Geolocation was not disabled by the FTU app')
         self.ftu.tap_next_to_import_contacts_section()
 
         # Tap import from SIM
@@ -87,8 +87,8 @@ class TestFtu(GaiaTestCase):
         self.ftu.tap_next_to_welcome_browser_section()
 
         # Tap the statistics box and check that it sets a setting
-        # TODO assert via settings API that this is set. Currently it is not used
         self.ftu.tap_statistics_checkbox()
+        self.assertTrue(self.data_layer.get_setting('debug.performance_data.shared'))
         self.ftu.tap_next_to_privacy_browser_section()
 
         # Enter a dummy email address and check it set inside the os

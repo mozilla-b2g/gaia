@@ -121,7 +121,7 @@ marionette('App Usage Metrics >', function() {
     });
   });
 
-  test('Uninstalled apps are counted', function(done) {
+  test('Uninstalled apps are counted', function() {
     var frame = sys.waitForLaunch(Settings.ORIGIN);
     client.switchToFrame(frame);
     client.helper.waitForElement(Settings.Selectors.menuItemsSection);
@@ -139,11 +139,11 @@ marionette('App Usage Metrics >', function() {
     var confirm = client.helper.waitForElement('.modal-dialog-confirm-ok');
     confirm.click();
 
-    waitForEvent('applicationuninstall', function() {
-      var uninstalls = metrics.getAppUninstalls(TEMPLATE_MANIFEST);
-      assert.equal(uninstalls, 1);
-      done();
-    });
+    // Wait for the app to be uninstalled and the list item is gone.
+    client.helper.waitForElementToDisappear(apps[0]);
+
+    var uninstalls = metrics.getAppUninstalls(TEMPLATE_MANIFEST);
+    assert.equal(uninstalls, 1);
   });
 
   test('App usage is counted after screen lock and unlock', function(done) {

@@ -20,6 +20,8 @@
     this._normalAudioChannelActive = false;
     this._deviceLockedTimer = 0;
     this.overlayEvents = [
+      'cardviewshown',
+      'cardviewclosed',
       'lockscreen-appopened',
       'lockscreen-request-unlock',
       'attentionscreenshow',
@@ -45,7 +47,6 @@
     this.overlayEvents.forEach(function overlayEventIterator(event) {
       window.addEventListener(event, this);
     }, this);
-    return this;
   };
 
   VisibilityManager.prototype.handleEvent = function vm_handleEvent(evt) {
@@ -59,6 +60,9 @@
       // is opened.
       case 'appclosing':
       case 'homescreenopened':
+        if (window.taskManager.isShown()) {
+          this.publish('hidewindowforscreenreader');
+        }
         this._normalAudioChannelActive = false;
         break;
       case 'status-active':
@@ -73,11 +77,14 @@
         this._resetDeviceLockedTimer();
         break;
       case 'lockscreen-request-unlock':
-        if (evt.detail && evt.detail.activity) {
-          return;
-        }
+        var activity = evt.detail && evt.detail.activity ?
+          evt.detail.activity : null;
+
         if (!AttentionScreen.isFullyVisible()) {
-          this.publish('showwindow', { type: evt.type });
+          this.publish('showwindow', {
+            type: evt.type,
+            activity: activity  // Trigger activity opening in AWM
+          });
         }
         this._resetDeviceLockedTimer();
         break;
@@ -106,10 +113,12 @@
         break;
       case 'rocketbar-overlayopened':
       case 'utility-tray-overlayopened':
+      case 'cardviewshown':
         this.publish('hidewindowforscreenreader');
         break;
       case 'rocketbar-overlayclosed':
       case 'utility-tray-overlayclosed':
+      case 'cardviewclosed':
         this.publish('showwindowforscreenreader');
         break;
       case 'mozChromeEvent':

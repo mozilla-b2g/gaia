@@ -22,13 +22,11 @@ requireApp('communications/contacts/test/unit/mock_contacts_settings.js');
 
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_contact_all_fields.js');
-require('/shared/test/unit/mocks/mock_performance_testing_helper.js');
 
 var mocksForStatusBar = new MocksHelper([
   'DatastoreMigration',
   'LazyLoader',
   'SmsIntegration',
-  'PerformanceTestingHelper',
   'ActivityHandler'
 ]).init();
 
@@ -84,6 +82,7 @@ suite('Contacts', function() {
     realNavigationStack = window.navigationStack;
     window.navigationStack = MockNavigationStack;
     sinon.spy(window, 'navigationStack');
+    requireApp('communications/contacts/js/utilities/performance_helper.js');
     requireApp('communications/contacts/js/contacts.js', done);
   });
 
@@ -97,6 +96,7 @@ suite('Contacts', function() {
   });
 
   setup(function() {
+    this.sinon.spy(window.utils.PerformanceHelper, 'chromeInteractive');
     loadBodyHTML('/contacts/index.html');
 
     Contacts.init();
@@ -114,6 +114,7 @@ suite('Contacts', function() {
 
   test('mozL10n initialized', function() {
     sinon.assert.calledOnce(navigator.mozL10n.once);
+    sinon.assert.calledOnce(window.utils.PerformanceHelper.chromeInteractive);
   });
 
   suite('on contacts change', function() {

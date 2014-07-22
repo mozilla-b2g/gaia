@@ -48,7 +48,14 @@ module.exports = View.extend({
       container: this.els.switch,
     });
 
-    // Bind events
+    // Clean up
+    delete this.template;
+
+    debug('rendered');
+    return this.bindEvents();
+  },
+
+  bindEvents: function() {
     bind(this.els.thumbnail, 'click', this.onButtonClick);
     bind(this.els.capture, 'click', this.onButtonClick);
     bind(this.els.cancel, 'click', this.onButtonClick);
@@ -57,8 +64,7 @@ module.exports = View.extend({
     this.drag.on('snapped', this.onSwitchSnapped);
     this.drag.on('tapped', this.onSwitchTapped);
     this.on('inserted', this.onInserted);
-
-    debug('rendered');
+    return this;
   },
 
   onInserted: function() {
@@ -189,7 +195,7 @@ module.exports = View.extend({
       '<div class="capture-button test-capture rotates js-capture" name="capture">' +
         '<div class="circle outer-circle"></div>' +
         '<div class="circle inner-circle"></div>' +
-        '<div class="center icon"></div>' +
+        '<div class="center icon-camera"></div>' +
       '</div>' +
     '</div>' +
     '<div class="controls-right">' +

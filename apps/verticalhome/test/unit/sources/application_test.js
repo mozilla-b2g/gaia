@@ -13,7 +13,7 @@ require('/shared/elements/gaia_grid/script.js');
 require('/shared/elements/gaia_grid/js/items/grid_item.js');
 require('/shared/elements/gaia_grid/js/items/placeholder.js');
 require('/shared/elements/gaia_grid/js/items/mozapp.js');
-require('/js/sources/application.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 
 require('/test/unit/mock_app.js');
 require('/test/unit/mock_item_store.js');
@@ -31,10 +31,11 @@ suite('app.js > ', function() {
   var subject;
   var realMozApps;
 
-  suiteSetup(function() {
+  suiteSetup(function(done) {
     window.app = new App();
     realMozApps = navigator.mozApps;
     navigator.mozApps = MockNavigatormozApps;
+    require('/js/sources/application.js', done);
   });
 
   suiteTeardown(function() {

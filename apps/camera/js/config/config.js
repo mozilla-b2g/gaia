@@ -7,7 +7,7 @@ module.exports = {
   // shared/js/media/media_frame.js
   globals : {
     // The maximum picture size that camera is allowed to take
-    CONFIG_MAX_IMAGE_PIXEL_SIZE: 3145728, // 3MP
+    CONFIG_MAX_IMAGE_PIXEL_SIZE: 5242880, // 5MP
     CONFIG_MAX_SNAPSHOT_PIXEL_SIZE: 5242880, // 5MP
 
     // Size of the exif preview embeded in images taken by camera
@@ -72,12 +72,12 @@ module.exports = {
     list: [
       {
         name: 'shutter',
-        url: './resources/sounds/shutter.ogg',
+        url: './resources/sounds/shutter.opus',
         setting: 'camera.sound.enabled'
       },
       {
         name: 'timer',
-        url: './resources/sounds/timer.ogg',
+        url: './resources/sounds/timer.opus',
         setting: 'camera.sound.enabled'
       },
       {
@@ -117,9 +117,10 @@ module.exports = {
     maxSharePixelSize: 0
   },
 
-  loadingScreen: {
+  spinnerTimeouts: {
     takingPicture: 1500,
-    requestingCamera: 600
+    requestingCamera: 700,
+    loadingVideo: 100
   },
 
   mode: {
@@ -291,7 +292,7 @@ module.exports = {
   hdr: {
     title: 'hdr',
     header: 'hdr-header',
-    icon: 'icon-hdr-menu',
+    icon: 'icon-hdr-boxed',
     disabled: false,
     options: [
       {
@@ -330,7 +331,7 @@ module.exports = {
   grid: {
     title: 'grid',
     header: 'grid-header',
-    icon: 'icon-grid',
+    icon: 'icon-grid-circular',
     options: [
       {
         key: 'off',

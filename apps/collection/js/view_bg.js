@@ -1,5 +1,6 @@
 'use strict';
 /* global eme */
+/* global Common */
 
 (function(exports) {
 
@@ -20,53 +21,21 @@
       }
     }
 
-    function getBackground() {
-      var checksum;
-      var options = collection.categoryId ? {categoryId: collection.categoryId}
-                                          : {query: collection.query};
-
-      if (collection.background) {
-        checksum = collection.background.checksum;
-
-        // when we send _checksum server will not return an image if checksum
-        // was not updated, so check that we really have a background src
-        if (collection.background.src) {
-          options._checksum = checksum;
-        }
-      }
-
-      return eme.api.Search.bgimage(options).then(function success(response) {
-        if (checksum && checksum === response.checksum) {
-          ViewBgImage.drawBackground(collection.background);
-          eme.log('background didn\'t change (checksum match)');
-        } else {
-          // update background
-          var src;
-          var image = response.response.image;
-          if (image) {
-            src = image.data;
-            if (/image\//.test(image.MIMEType)) {  // base64 image data
-              src = 'data:' + image.MIMEType + ';base64,' + image.data;
-            }
-
-            var newBackground = {
-              src: src,
-              source: response.response.source,
-              checksum: response.checksum,
-              isFullSize: true
-            };
-
-            ViewBgImage.drawBackground(newBackground);
-
-            collection.background = newBackground;
-            collection.save();
-          }
-        }
-      });
-    }
-
     function onOnline() {
-      getBackground().then(function success() {
+      Common.getBackground(collection).then(function success(background) {
+        // XXX better to drop the isFullSize flag
+        // a better approach would be not to store non-fullsize backgrounds
+        background.isFullSize = true;
+
+        ViewBgImage.drawBackground(background);
+
+        if (!collection.background ||
+             collection.background.checksum !== background.checksum) {
+
+          collection.background = background;
+          collection.save();
+        }
+
         removeListeners();
       }, function error(e) {
         // no background
@@ -90,9 +59,11 @@
     }
 
     // draw stored background if in full size (as opposed to square icon size)
-    if (bg && bg.src && bg.isFullSize) {
-      elements.content.style.backgroundImage = 'url(' + bg.src + ')';
-      eme.log('drawBackground', 'drawn');
+    if (bg && bg.blob && bg.isFullSize) {
+      var url = URL.createObjectURL(bg.blob);
+      elements.content.style.backgroundImage = 'url(' + url + ')';
+      eme.log('drawBackground', 'drawn', url);
+
     } else {
       eme.log('drawBackground', 'not drawn, failed conditions', bg);
     }

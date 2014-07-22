@@ -100,7 +100,7 @@ var ThreadUI = global.ThreadUI = {
       'new-message-notice', 'options-icon', 'edit-mode', 'edit-form',
       'tel-form', 'header-text', 'max-length-notice', 'convert-notice',
       'resize-notice', 'dual-sim-information', 'new-message-notice',
-      'subject-max-length-notice', 'counter-label'
+      'subject-max-length-notice', 'counter-label', 'recipient-suggestions'
     ].forEach(function(id) {
       this[Utils.camelCase(id)] = document.getElementById('messages-' + id);
     }, this);
@@ -274,6 +274,11 @@ var ThreadUI = global.ThreadUI = {
       this.updateHeaderData.bind(this)
     );
 
+    this.recipientSuggestions.addEventListener(
+      'click',
+      this.onRecipientSuggestionClick.bind(this)
+    );
+
     this.tmpl = templateIds.reduce(function(tmpls, name) {
       tmpls[Utils.camelCase(name)] =
         Template('messages-' + name + '-tmpl');
@@ -281,9 +286,6 @@ var ThreadUI = global.ThreadUI = {
     }, {});
 
     this.initRecipients();
-
-    // Initialized here, but used in ThreadUI.cleanFields
-    this.previousPanel = null;
 
     this.multiSimActionButton = null;
 
@@ -353,8 +355,7 @@ var ThreadUI = global.ThreadUI = {
       }
 
       // Clean search result after recipient count change.
-      this.container.textContent = '';
-
+      this.toggleRecipientSuggestions();
     }).bind(this);
 
     if (this.recipients) {
@@ -371,7 +372,7 @@ var ThreadUI = global.ThreadUI = {
       this.recipients.on('add', recipientsChanged);
       this.recipients.on('remove', recipientsChanged);
     }
-    this.container.textContent = '';
+    this.toggleRecipientSuggestions();
   },
 
   initSentAudio: function thui_initSentAudio() {
@@ -563,6 +564,11 @@ var ThreadUI = global.ThreadUI = {
     // get an event whenever the panel changes?
     Threads.currentId = args.id;
 
+    var prevPanel = args.meta.prev && args.meta.prev.panel;
+
+    if (prevPanel !== 'group-view' && prevPanel !== 'report-view') {
+      this.initializeRendering();
+    }
     return this.updateHeaderData();
   },
 
@@ -614,6 +620,10 @@ var ThreadUI = global.ThreadUI = {
     }
 
     ThreadListUI.mark(threadId, 'read');
+
+    // nothing urgent, let's do it when the main thread has some time
+    setTimeout(MessageManager.markThreadRead.bind(MessageManager, threadId));
+
     return Utils.closeNotificationsForThread(threadId);
   },
 
@@ -628,13 +638,15 @@ var ThreadUI = global.ThreadUI = {
   afterLeave: function thui_afterLeave(args) {
     if (Navigation.isCurrentPanel('thread-list')) {
       this.container.textContent = '';
-      this.cleanFields(true);
+      this.cleanFields();
       Threads.currentId = null;
     }
     if (!Navigation.isCurrentPanel('composer')) {
       this.threadMessages.classList.remove('new');
 
       this.recipients.length = 0;
+
+      this.toggleRecipientSuggestions();
     }
 
     if (!Navigation.isCurrentPanel('thread')) {
@@ -668,15 +680,15 @@ var ThreadUI = global.ThreadUI = {
     }
     /**
      * Choose the appropriate contact resolver:
-     *  - if we have a phone number and no contact, rely on findByPhoneNumber
+     *  - if we have a phone number and no contact, rely on findByAddress
      *    to get a contact matching the number;
      *  - if we have a contact object and no phone number, just use a dummy
      *    source that returns the contact.
      */
-    var findByPhoneNumber = Contacts.findByPhoneNumber.bind(Contacts);
+    var findByAddress = Contacts.findByAddress.bind(Contacts);
     var number = activity.number;
     if (activity.contact && !number) {
-      findByPhoneNumber = function dummySource(contact, cb) {
+      findByAddress = function dummySource(contact, cb) {
         cb(activity.contact);
       };
       number = activity.contact.number || activity.contact.tel[0].value;
@@ -685,7 +697,7 @@ var ThreadUI = global.ThreadUI = {
     // Add recipients and fill+focus the Compose area.
     if (activity.contact && number) {
       Utils.getContactDisplayInfo(
-        findByPhoneNumber, number, function onData(data) {
+        findByAddress, number, function onData(data) {
           data.source = 'contacts';
           ThreadUI.recipients.add(data);
           Compose.fromMessage(activity);
@@ -716,7 +728,7 @@ var ThreadUI = global.ThreadUI = {
       // Recipients will exist for draft messages in threads
       // Otherwise find them from draft recipient numbers
       draft.recipients.forEach(function(number) {
-        Contacts.findByPhoneNumber(number, function(records) {
+        Contacts.findByAddress(number, function(records) {
           if (records.length) {
             this.recipients.add(
               Utils.basicContact(number, records[0])
@@ -746,7 +758,7 @@ var ThreadUI = global.ThreadUI = {
     // instead of in afterEnter: Bug 1010223
 
     Threads.currentId = null;
-    this.cleanFields(true);
+    this.cleanFields();
     this.initRecipients();
     this.updateComposerHeader();
     this.container.textContent = '';
@@ -860,6 +872,20 @@ var ThreadUI = global.ThreadUI = {
     this.forceScrollViewToBottom();
   },
 
+  /**
+   * Fires once user clicks on any recipient in the suggestions list.
+   */
+  onRecipientSuggestionClick: function(event) {
+    event.stopPropagation();
+    event.preventDefault();
+
+    // Since the "dataset" DOMStringMap property is essentially
+    // just an object of properties that exactly match the properties
+    // used for recipients, push the whole dataset object into
+    // the current recipients list as a new entry.
+    this.recipients.add(event.target.dataset).focus();
+  },
+
   // Message composer type changed:
   messageComposerTypeHandler: function thui_messageComposerTypeHandler() {
     this.updateCounter();
@@ -906,19 +932,25 @@ var ThreadUI = global.ThreadUI = {
     // Ensure that Recipients does not trigger focus on
     // itself, which causes the keyboard to appear.
     Recipients.View.isFocusable = false;
+    var contactProperties = ['tel'];
+
+    if (Settings.supportEmailRecipient) {
+      contactProperties.push('email');
+    }
 
     var activity = new MozActivity({
       name: 'pick',
       data: {
-        type: 'webcontacts/tel'
+        type: 'webcontacts/select',
+        contactProperties: contactProperties
       }
     });
 
     activity.onsuccess = (function() {
       if (!activity.result ||
-          !activity.result.tel ||
-          !activity.result.tel.length ||
-          !activity.result.tel[0].value) {
+          !activity.result.select ||
+          !activity.result.select.length ||
+          !activity.result.select[0].value) {
         console.error('The pick activity result is invalid.');
         return;
       }
@@ -926,7 +958,7 @@ var ThreadUI = global.ThreadUI = {
       Recipients.View.isFocusable = true;
 
       var data = Utils.basicContact(
-        activity.result.tel[0].value, activity.result
+        activity.result.select[0].value, activity.result.contact
       );
       data.source = 'contacts';
 
@@ -1048,7 +1080,7 @@ var ThreadUI = global.ThreadUI = {
     }
 
     return this._onNavigatingBack().then(function() {
-      this.cleanFields(true);
+      this.cleanFields();
       Navigation.toPanel('thread-list');
     }.bind(this)).catch(function(e) {
       e && console.error('Unexpected error while navigating back: ', e);
@@ -1333,13 +1365,17 @@ var ThreadUI = global.ThreadUI = {
     var threadMessages = this.threadMessages;
     var number = thread.participants[0];
     var phoneDetails;
+    var address;
 
     // The carrier banner is meaningless and confusing in
     // group message mode.
     if (thread.participants.length === 1 &&
         (contacts && contacts.length)) {
 
-      phoneDetails = Utils.getPhoneDetails(number, contacts[0].tel);
+      address = Settings.supportEmailRecipient && Utils.isEmailAddress(number) ?
+                contacts[0].email : contacts[0].tel;
+
+      phoneDetails = Utils.getPhoneDetails(number, address);
 
       if (phoneDetails) {
         carrierTag.innerHTML = SharedComponents.phoneDetails(phoneDetails);
@@ -1385,7 +1421,7 @@ var ThreadUI = global.ThreadUI = {
     this.headerText.dataset.number = number;
 
     return new Promise(function(resolve, reject) {
-      Contacts.findByPhoneNumber(number, function gotContact(contacts) {
+      Contacts.findByAddress(number, function gotContact(contacts) {
         // For the basic display, we only need the first contact's information
         // e.g. for 3 contacts, the app displays:
         //
@@ -1476,12 +1512,6 @@ var ThreadUI = global.ThreadUI = {
       }
     }).bind(this);
 
-    function onMessagesDone() {
-      setTimeout(
-        MessageManager.markThreadRead.bind(MessageManager, filter.threadId)
-      );
-    }
-
     var onRenderMessage = (function renderMessage(message) {
       if (this._stopRenderingNextStep) {
         // stop the iteration
@@ -1495,8 +1525,10 @@ var ThreadUI = global.ThreadUI = {
       return true;
     }).bind(this);
 
-    // We initialize all params before rendering
-    this.initializeRendering();
+    if (this._stopRenderingNextStep) {
+      // we were already asked to stop rendering, before even starting
+      return;
+    }
 
     var filter = new MozSmsFilter();
     filter.threadId = threadId;
@@ -1506,8 +1538,7 @@ var ThreadUI = global.ThreadUI = {
       each: onRenderMessage,
       filter: filter,
       invert: false,
-      end: onMessagesRendered,
-      done: onMessagesDone
+      end: onMessagesRendered
     };
 
     MessageManager.getMessages(renderingOptions);
@@ -1756,10 +1787,6 @@ var ThreadUI = global.ThreadUI = {
     }
     // Reset vars for deleting methods
     this.checkInputs();
-  },
-
-  clear: function thui_clear() {
-    this.initRecipients();
   },
 
   toggleCheckedAll: function thui_select(value) {
@@ -2136,33 +2163,21 @@ var ThreadUI = global.ThreadUI = {
     }
   },
 
-  cleanFields: function thui_cleanFields(forceClean) {
-    var clean = (function clean() {
-      // Compose.clear might cause a conversion from mms -> sms
-      // Therefore we're reseting the message type here because
-      // in messageComposerTypeHandler we're using this value to know
-      // if the message type changed, and to display the convertNotice
-      // accordingly
-      this.composeForm.dataset.messageType = 'sms';
+  cleanFields: function thui_cleanFields() {
+    // Compose.clear might cause a conversion from mms -> sms
+    // Therefore we're reseting the message type here because
+    // in messageComposerTypeHandler we're using this value to know
+    // if the message type changed, and to display the convertNotice
+    // accordingly
+    this.composeForm.dataset.messageType = 'sms';
 
-      Compose.clear();
+    Compose.clear();
 
-      // reset the counter
-      this.counterLabel.dataset.counter = '';
-      this.counterLabel.classList.remove('has-counter');
-    }).bind(this);
+    // reset the counter
+    this.counterLabel.dataset.counter = '';
+    this.counterLabel.classList.remove('has-counter');
 
-    // TODO understand this : bug 1009568
-    if (Navigation.isCurrentPanel(this.previousPanel) ||
-        (this.previousPanel && this.previousPanel.panel === 'composer')) {
-      if (forceClean) {
-        clean();
-      }
-    } else {
-      clean();
-    }
     this.enableSend();
-    this.previousPanel = Navigation.getCurrentPanel();
   },
 
   onSendClick: function thui_onSendClick() {
@@ -2217,7 +2232,7 @@ var ThreadUI = global.ThreadUI = {
     }
 
     // Clean composer fields (this lock any repeated click in 'send' button)
-    this.cleanFields(true);
+    this.cleanFields();
 
     // If there was a draft, it just got sent
     // so delete it
@@ -2510,7 +2525,7 @@ var ThreadUI = global.ThreadUI = {
 
   toFieldKeypress: function(event) {
     if (event.keyCode === 13 || event.keyCode === event.DOM_VK_ENTER) {
-      this.container.textContent = '';
+      this.toggleRecipientSuggestions();
     }
   },
 
@@ -2536,7 +2551,7 @@ var ThreadUI = global.ThreadUI = {
       // character in the recipient input field,
       // eg. type "a", then delete it.
       // Always remove the the existing results.
-      this.container.textContent = '';
+      this.toggleRecipientSuggestions();
       return;
     }
 
@@ -2653,30 +2668,13 @@ var ThreadUI = global.ThreadUI = {
       return;
     }
 
-    this.container.textContent = '';
+    this.toggleRecipientSuggestions();
     if (!contacts || !contacts.length) {
       return;
     }
 
     // There are contacts that match the input.
-
-    // TODO Modify in Bug 861227 in order to create a standalone element
-    var ul = document.createElement('ul');
-    ul.classList.add('contact-list');
-    ul.addEventListener('click', function ulHandler(event) {
-      event.stopPropagation();
-      event.preventDefault();
-      // Since the "dataset" DOMStringMap property is essentially
-      // just an object of properties that exactly match the properties
-      // used for recipients, push the whole dataset object into
-      // the current recipients list as a new entry.
-      this.recipients.add(
-        event.target.dataset
-      ).focus();
-
-      // Clean up the event listener
-      ul.removeEventListener('click', ulHandler);
-    }.bind(this));
+    var suggestionList = document.createDocumentFragment();
 
     // Render each contact in the contacts results
     var renderer = ContactRenderer.flavor('suggestion');
@@ -2686,7 +2684,7 @@ var ThreadUI = global.ThreadUI = {
       var rendererArg = {
         contact: contact,
         input: fValue,
-        target: ul,
+        target: suggestionList,
         skip: this.recipients.numbers
       };
       if (contact.source != 'unknown') {
@@ -2697,7 +2695,7 @@ var ThreadUI = global.ThreadUI = {
       }
     }, this);
 
-    this.container.appendChild(ul);
+    this.toggleRecipientSuggestions(suggestionList);
   },
 
   onHeaderActivation: function thui_onHeaderActivation() {
@@ -2718,13 +2716,21 @@ var ThreadUI = global.ThreadUI = {
 
     var number = this.headerText.dataset.number;
 
+    var tel, email;
+    if (Settings.supportEmailRecipient && Utils.isEmailAddress(number)) {
+      email = number;
+    } else {
+      tel = number;
+    }
+
     if (this.headerText.dataset.isContact === 'true') {
       this.promptContact({
         number: number
       });
     } else {
       this.prompt({
-        number: number,
+        number: tel,
+        email: email,
         isContact: false
       });
     }
@@ -2735,8 +2741,15 @@ var ThreadUI = global.ThreadUI = {
 
     var inMessage = opts.inMessage || false;
     var number = opts.number || '';
+    var tel, email;
 
-    Contacts.findByPhoneNumber(number, function(results) {
+    if (Settings.supportEmailRecipient && Utils.isEmailAddress(number)) {
+      email = number || '';
+    } else {
+      tel = number || '';
+    }
+
+    Contacts.findByAddress(number, function(results) {
       var isContact = results && results.length;
       var contact = results[0];
       var id;
@@ -2756,7 +2769,8 @@ var ThreadUI = global.ThreadUI = {
       }
 
       this.prompt({
-        number: number,
+        number: tel,
+        email: email,
         header: fragment || number,
         contactId: id,
         isContact: isContact,
@@ -2984,6 +2998,24 @@ var ThreadUI = global.ThreadUI = {
     // auto save operation
     if (!opts || (opts && !opts.autoSave)) {
       ThreadListUI.onDraftSaved();
+    }
+  },
+
+  /**
+   * Shows recipient suggestions if available, otherwise removes it from the DOM
+   * and hides suggestions container.
+   * @param {DocumentFragment} suggestions DocumentFragment node that contains
+   * recipient suggestion to display.
+   */
+  toggleRecipientSuggestions: function(suggestions) {
+    var contactList = this.recipientSuggestions.querySelector('.contact-list');
+
+    this.recipientSuggestions.classList.toggle('hide', !suggestions);
+
+    if (!suggestions) {
+      contactList.textContent = '';
+    } else {
+      contactList.appendChild(suggestions);
     }
   }
 };

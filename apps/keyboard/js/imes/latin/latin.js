@@ -130,11 +130,11 @@
    */
   var inputSequencePromise = Promise.resolve();
 
-
   // Flag to stop updating suggestions for selectionchange when we're going
   // to do some actions that will cause selectionchange, such as sendKey()
   // or replaceSurroundingText().
   var pendingSelectionChange = 0;
+  var inputContext = null;
 
   // keyboard.js calls this to pass us the interface object we need
   // to communicate with it
@@ -199,7 +199,8 @@
     correcting = (options.correct && inputMode !== 'verbatim');
 
     if (state.inputContext) {
-      state.inputContext.addEventListener('selectionchange', this);
+      inputContext = state.inputContext;
+      inputContext.addEventListener('selectionchange', this);
     }
 
     // Reset our state
@@ -230,6 +231,10 @@
   }
 
   function deactivate() {
+    if (inputContext) {
+      inputContext.removeEventListener('selectionchange', this);
+    }
+
     if (!worker || idleTimer)
       return;
     idleTimer = setTimeout(terminateWorker, workerTimeout);
@@ -422,7 +427,6 @@
 
       lastSpaceTimestamp = (keyCode === SPACE) ? Date.now() : 0;
       pendingSelectionChange--;
-
     }, function() {
       // the previous sendKey or replaceSurroundingText has been rejected,
       // No need to update the state.
@@ -701,6 +705,8 @@
 
     // Replace the current word with the selected suggestion plus space
     var newWord = data += ' ';
+
+    pendingSelectionChange++;
     return replaceBeforeCursor(oldWord, newWord).then(function() {
       // Remember the change we just made so we can revert it if the
       // next key is a backspace. Note that it is not an autocorrection
@@ -719,6 +725,7 @@
 
       // And update the keyboard capitalization state, if necessary
       updateCapitalization();
+      pendingSelectionChange--;
     });
   }
 
@@ -882,8 +889,12 @@
   function updateCapitalization() {
     // If either the input mode or the input type is one that doesn't
     // want capitalization, then don't alter the state of the keyboard.
+    // We however want to reset the shift key state triggered by the user,
+    // regardless of the layout page the user is currently on.
     if (!capitalizing) {
-      keyboard.resetUpperCase();
+      keyboard.setUpperCase({
+        isUpperCase: false
+      });
       return;
     }
 
@@ -903,20 +914,30 @@
     // 5) Otherwise: lowercase
     //
     if (cursor === 0) {
-      keyboard.setUpperCase(true);
+      keyboard.setUpperCase({
+        isUpperCase: true
+      });
     }
     else if (cursor >= 2 &&
              isUpperCase(inputText.substring(cursor - 2, cursor))) {
-      keyboard.setUpperCase(true);
+      keyboard.setUpperCase({
+        isUpperCase: true
+      });
     }
     else if (!isWhiteSpace(inputText.substring(cursor - 1, cursor))) {
-      keyboard.setUpperCase(false);
+      keyboard.setUpperCase({
+        isUpperCase: false
+      });
     }
     else if (atSentenceStart()) {
-      keyboard.setUpperCase(true);
+      keyboard.setUpperCase({
+        isUpperCase: true
+      });
     }
     else {
-      keyboard.setUpperCase(false);
+      keyboard.setUpperCase({
+        isUpperCase: false
+      });
     }
   }
 
@@ -999,15 +1020,15 @@
     switch (type) {
       case 'selectionchange':
       // We would get selectionchange event when the user type each char,
-      // or accept a word suggestion,so don't update suggestions in these
+      // or accept a word suggestion, so don't update suggestions in these
       // cases.
       if (cursor === evt.target.selectionStart ||
           pendingSelectionChange > 0) {
         return;
       }
 
-      var newText = evt.target.textBeforeCursor + evt.target.textAfterCursor;
-      inputText = newText;
+      //XXX: Don't update inputText here, since textBeforeCursor would only
+      // contain 100 chars at most.
       cursor = evt.target.selectionStart;
       if (evt.target.selectionEnd > evt.target.selectionStart) {
         selection = evt.target.selectionEnd;

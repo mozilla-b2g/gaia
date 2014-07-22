@@ -3,7 +3,7 @@
           MockL10n, MockFtuLauncher, MockNavigatorSettings, KeyboardEvent */
 'use strict';
 
-requireApp('system/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system/test/unit/mock_system_icc_worker.js');
 requireApp('system/test/unit/mock_ftu_launcher.js');
 requireApp('system/test/unit/mock_statusbar.js');

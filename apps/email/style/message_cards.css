@@ -102,6 +102,38 @@ reflows. Foreground/background colors should be safe.
   background-color: #2fc9ec;
 }
 
+.msg-header-syncing-section {
+  position: absolute;
+  top: 50%;
+  display: inline-block;
+  height: 3rem;
+  width: 3rem;
+  margin-top: -1.5rem;
+  border-radius: 50%;
+  visibility: hidden;
+}
+
+@keyframes syncing-rotation {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.msg-header-syncing-section-syncing {
+  animation: syncing-rotation 1s linear infinite;
+  visibility: visible;
+  background: url("images/icons/icon_outbox_sending.png") no-repeat center / contain;
+}
+
+/* The syncing status supercedes the unread icon. */
+.unread .msg-header-syncing-section-error + .msg-header-unread-section,
+.unread .msg-header-syncing-section-syncing + .msg-header-unread-section {
+  display: none;
+}
+
+.msg-header-syncing-section-error {
+  visibility: visible;
+  background: url("images/icons/icon_outbox_pending.png") no-repeat center / contain;
+}
+
 .msg-header-details-section {
   -moz-box-sizing: border-box;
   position: absolute;
@@ -590,6 +622,9 @@ reflows. Foreground/background colors should be safe.
 
 .msg-messages-container.show-edit .msg-header-unread-section {
   left: 3.9rem;
+}
+.msg-messages-container.show-edit .msg-header-syncing-section {
+  left: 3.5rem;
 }
 .msg-messages-container.show-edit .msg-header-details-section {
   padding-left: 4.5rem;

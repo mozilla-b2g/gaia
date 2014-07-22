@@ -79,6 +79,7 @@ define(function(require) {
       options.onShow = options.onShow || _emptyFunc;
       options.onHide = options.onHide || _emptyFunc;
       options.onBeforeShow = options.onBeforeShow || _emptyFunc;
+      options.onBeforeHide = options.onBeforeHide || _emptyFunc;
 
       return Panel({
         onInit: function(panel, initOptions) {
@@ -89,7 +90,7 @@ define(function(require) {
           _panel = panel;
           PanelUtils.activate(panel);
 
-          options.onInit(panel, initOptions);
+          return options.onInit(panel, initOptions);
         },
         onUninit: function() {
           _removeListeners(_panel);
@@ -98,21 +99,23 @@ define(function(require) {
           options.onUninit();
         },
         onShow: function(panel, showOptions) {
-          options.onShow(panel, showOptions);
+          return options.onShow(panel, showOptions);
         },
         onHide: function() {
           // Remove listeners.
           _removeListeners(_panel);
 
-          options.onHide();
+          return options.onHide();
         },
         onBeforeShow: function(panel, beforeShowOptions) {
           // Preset the panel every time when it is presented.
           PanelUtils.preset(panel);
           _addListeners(panel);
-          options.onBeforeShow(panel, beforeShowOptions);
+          return options.onBeforeShow(panel, beforeShowOptions);
         },
-        onBeforeHide: options.onBeforeHide
+        onBeforeHide: function() {
+          return options.onBeforeHide();
+        }
       });
     };
     return SettingsPanel;

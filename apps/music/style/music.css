@@ -240,6 +240,11 @@ body.picker-mode #title-player {
   display: none;
 }
 
+#title-player[hidden],
+#title-done[hidden] {
+  display: none;
+}
+
 #title-player > .icon-player {
   background-image: url("./images/now_playing.png");
 }

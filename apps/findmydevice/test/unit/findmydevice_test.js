@@ -1,299 +1,207 @@
-/* global MocksHelper */
-/* global MockPermissionSettings */
-/* global MockSettingsListener */
-/* global MockGeolocation */
-/* global Commands */
+/* global MocksHelper, MockGeolocation, MockNavigatormozSetMessageHandler,
+   MockNavigatorSettings, FindMyDevice,
+   IAC_API_WAKEUP_REASON_LOGIN, IAC_API_WAKEUP_REASON_LOGOUT,
+   IAC_API_WAKEUP_REASON_TRY_DISABLE
+*/
 
 'use strict';
 
+require('/shared/test/unit/mocks/mock_dump.js');
 require('/shared/test/unit/mocks/mocks_helper.js');
-require('/shared/test/unit/mocks/mock_settings_url.js');
-require('/shared/test/unit/mocks/mock_settings_listener.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_settings_helper.js');
-require('/shared/test/unit/mocks/mock_audio.js');
-require('/shared/test/unit/mocks/mock_device_storage.js');
 require('/shared/test/unit/mocks/mock_geolocation.js');
-require('/shared/test/unit/mocks/mock_permission_settings.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
+require('/shared/js/findmydevice_iac_api.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 
 var mocksForFindMyDevice = new MocksHelper([
-  'SettingsListener', 'SettingsURL', 'SettingsHelper', 'Audio',
-  'DeviceStorage', 'Geolocation'
+  'Geolocation', 'Dump', 'SettingsHelper'
 ]).init();
 
 suite('FindMyDevice >', function() {
   var realL10n;
-  var realPermissionSettings;
-  var realMozPower;
-  var realMozApps;
-  var fakeClock;
+  var realMozId;
+  var realMozSettings;
+  var realMozSetMessageHandler;
 
   mocksForFindMyDevice.attachTestHelpers();
 
-  var subject;
-  setup(function(done) {
+  suiteSetup(function(done) {
     realL10n = navigator.mozL10n;
-    navigator.mozL10n = {
-      once: function(callback) {
-        callback();
-      }
+    navigator.mozL10n = window.MockL10n;
+    sinon.stub(navigator.mozL10n, 'once', function(callback) {
+      // we don't need to actually initialize FMD
+      // for these unit tests, and it saves us from
+      // mocking many objects
+    });
+
+    realMozId = navigator.mozId;
+    // attempting to stub only the request method of mozId,
+    // as in |sinon.stub(navigator.mozId, 'request', ...)|,
+    // causes an exception to be raised, so we replace the
+    // entire mozId object.
+    navigator.mozId = {
+      request: sinon.stub()
     };
 
-    realPermissionSettings = navigator.mozPermissionSettings;
-    navigator.mozPermissionSettings = MockPermissionSettings;
-    MockPermissionSettings.mSetup();
+    realMozSettings = navigator.mozSettings;
+    navigator.mozSettings = MockNavigatorSettings;
+    MockNavigatorSettings.mSetup();
 
-    realMozPower = navigator.mozPower;
-    navigator.mozPower = {
-      factoryResetCalled: false,
-      factoryReset: function() {
-        this.factoryResetCalled = true;
-      }
-    };
+    realMozSetMessageHandler = navigator.mozSetMessageHandler;
+    navigator.mozSetMessageHandler = MockNavigatormozSetMessageHandler;
+    MockNavigatormozSetMessageHandler.mSetup();
 
-    realMozApps = navigator.mozApps;
-    navigator.mozApps = {
-      getSelf: function() {
-        var app = {
-          manifestURL: 'app://findmydevice.gaiamobile.org/manifest.webapp',
-          origin: 'app://findmydevice.gaiamobile.org/'
-        };
-
-        var request = {result: app};
-        setTimeout(function() {
-          request.onsuccess.call(request);
-        });
-
-        return request;
-      }
-    };
-
-    // replace shared/js/dump.js
-    window.DUMP = function() {};
-
-    fakeClock = this.sinon.useFakeTimers();
-
-    require('/js/commands.js', function() {
-      subject = Commands;
+    // We require findmydevice.js here and not above because
+    // we want to make sure all of our dependencies have already
+    // been loaded.
+    require('/js/findmydevice.js', function() {
+      FindMyDevice._observeSettings();
+      FindMyDevice._initMessageHandlers();
       done();
     });
   });
 
-  test('Lock command', function(done) {
-    var code = '1234', message = 'locked!';
+  suiteTeardown(function() {
+    navigator.mozL10n.once.restore();
+    navigator.mozL10n = realL10n;
 
-    subject.invokeCommand('lock', [message, code, function(retval) {
-      assert.equal(retval, true);
+    navigator.mozId = realMozId;
 
-      var lock = MockSettingsListener.getSettingsLock().locks.pop();
-      assert.deepEqual({
-        'lockscreen.enabled': true,
-        'lockscreen.notifications-preview.enabled': false,
-        'lockscreen.passcode-lock.enabled': true,
-        'lockscreen.lock-message': message,
-        'lockscreen.passcode-lock.code': code,
-        'lockscreen.lock-immediately': true
-      }, lock, 'check that the correct settings were set');
+    navigator.mozSettings = realMozSettings;
+    MockNavigatorSettings.mTeardown();
 
-      done();
-    }]);
-
-    fakeClock.tick();
+    navigator.mozSetMessageHandler = realMozSetMessageHandler;
+    MockNavigatormozSetMessageHandler.mTeardown();
   });
 
-  test('Ring command', function(done) {
-    var duration = 2;
-    var ringtone = 'user selected ringtone';
-
-    MockSettingsListener.mCallbacks['dialer.ringtone'](ringtone);
-
-    subject.invokeCommand('ring', [duration, function(retval) {
-      var lock = MockSettingsListener.getSettingsLock().locks.pop();
-
-      var ringer = subject._ringer;
-      var channel = ringer.mozAudioChannelType;
-      assert.equal(channel, 'content', 'use content channel');
-      assert.equal(lock['audio.volume.content'], 15, 'volume set to maximum');
-      assert.equal(ringer.paused, false, 'must be playing');
-      assert.equal(ringer.src, ringtone, 'must use ringtone');
-
-      setTimeout(function() {
-        assert.equal(ringer.paused, true, 'must have stopped');
-        done();
-      }, duration * 1000);
-
-      fakeClock.tick(duration * 1000);
-    }]);
-
-    fakeClock.tick();
-  });
-
-  /* TODO re-enable erase tests after fixing the mock: bug 1032617
-  test('Erase command', function(done) {
-    // Meta-mock the mock getDeviceStorage so it returns null
-    // for some storage types
-    var mockGetDeviceStorage = navigator.getDeviceStorage;
-    navigator.getDeviceStorage = function(storage) {
-      if (storage === 'apps' || storage == 'sdcard') {
-        return null;
-      }
-
-      return mockGetDeviceStorage(storage);
-    };
-
-    subject.invokeCommand('erase', [function(retval, error) {
-      var instances = MockDeviceStorage.instances;
-      for (var i = 0; i < instances.length; i++) {
-        // check that we deleted everything on the device storage
-        assert.deepEqual(instances[i].entries, []);
-      }
-
-      assert.equal(navigator.mozPower.factoryResetCalled, true);
-      navigator.getDeviceStorage = mockGetDeviceStorage;
-      done();
-    }]);
-
-    fakeClock.tick();
-  });
-
-  test('Erase command with no device storages', function(done) {
-    // Meta-mock the mock getDeviceStorage so it returns null
-    // for all storage types. We must still factory reset in this case.
-    var mockGetDeviceStorage = navigator.getDeviceStorage;
-    navigator.getDeviceStorage = function(storage) {
-      return null;
-    };
-
-    subject.invokeCommand('erase', [function(retval, error) {
-      assert.deepEqual(MockDeviceStorage.instances, []);
-      assert.equal(navigator.mozPower.factoryResetCalled, true);
-      navigator.getDeviceStorage = mockGetDeviceStorage;
-      done();
-    }]);
-
-    fakeClock.tick();
-  });
-  */
-
-  test('Track command', function(done) {
-    // we want to make sure this is set to 'allow'
-    MockPermissionSettings.permissions.geolocation = 'deny';
-
-    var times = 0;
-    var duration = (3 * subject.TRACK_UPDATE_INTERVAL_MS)/ 1000;
-    subject.invokeCommand('track', [duration, function(retval, position) {
-      assert.equal(retval, true);
-      assert.equal(MockPermissionSettings.permissions.geolocation, 'allow');
-      assert.equal(position.coords.latitude, MockGeolocation.latitude);
-      assert.equal(position.coords.longitude, MockGeolocation.longitude);
-
-      if (times++ === 3) {
-        assert.notEqual(subject._trackIntervalId, null);
-        assert.notEqual(subject._trackTimeoutId, null);
-        fakeClock.tick(subject.TRACK_UPDATE_INTERVAL_MS);
-        assert.equal(retval, true);
-        assert.equal(subject._trackTimeoutId, null);
-        assert.equal(subject._trackIntervalId, null);
-        done();
-      }
-
-      fakeClock.tick(subject.TRACK_UPDATE_INTERVAL_MS);
-    }]);
-
-    fakeClock.tick(subject.TRACK_UPDATE_INTERVAL_MS);
-  });
-
-  test('Track command should update its duration if invoked while running',
-    function(done) {
-      var duration = 10 * subject.TRACK_UPDATE_INTERVAL_MS / 1000;
-
-      var positions = 0;
-      subject.invokeCommand('track', [duration, function(retval, position) {
-        positions++;
-      }]);
-
-      fakeClock.tick(subject.TRACK_UPDATE_INTERVAL_MS);
-
-      duration = (subject.TRACK_UPDATE_INTERVAL_MS - 1000)/ 1000;
-      subject.invokeCommand('track', [duration, function(retval, position) {
-        positions++;
-      }]);
-
-      fakeClock.tick(2 * subject.TRACK_UPDATE_INTERVAL_MS);
-
-      assert.equal(positions, 2);
-      assert.equal(subject._trackTimeoutId, null);
-      assert.equal(subject._trackIntervalId, null);
-      done();
-  });
-
-  test('Track command should stop if duration is zero',
-    function(done) {
-      var duration = 10 * subject.TRACK_UPDATE_INTERVAL_MS / 1000;
-
-      var positions = 0;
-      subject.invokeCommand('track', [duration, function(retval, position) {
-        positions++;
-      }]);
-
-      fakeClock.tick(subject.TRACK_UPDATE_INTERVAL_MS);
-
-      subject.invokeCommand('track', [0, function(retval) {
-        assert.equal(retval, true);
-        fakeClock.tick(2 * subject.TRACK_UPDATE_INTERVAL_MS);
-        assert.equal(positions, 1);
-        assert.equal(subject._trackTimeoutId, null);
-        assert.equal(subject._trackIntervalId, null);
-        done();
-      }]);
-  });
-
-  test('Bug 1027325 - correctly check that passcode lock is set', function() {
-    MockSettingsListener.mTriggerCallback('lockscreen.enabled', true);
-    MockSettingsListener.mTriggerCallback('lockscreen.passcode-lock.enabled',
-      '1234');
-    assert.equal(true, subject.deviceHasPasscode());
-  });
-
-  test('Bug 1027325 - correctly check that passcode lock is unset', function() {
-    MockSettingsListener.mTriggerCallback('lockscreen.enabled', false);
-    MockSettingsListener.mTriggerCallback('lockscreen.passcode-lock.enabled',
-      false);
-    assert.equal(false, subject.deviceHasPasscode());
-  });
-
-  test('Bug 1027325 - correctly check that lockscreen is set, but passcode ' +
-       'lock is unset', function() {
-    MockSettingsListener.mTriggerCallback('lockscreen.enabled', true);
-    MockSettingsListener.mTriggerCallback('lockscreen.passcode-lock.enabled',
-      false);
-    assert.equal(false, subject.deviceHasPasscode());
-  });
-
-  test('List of accepted commands', function() {
-    MockSettingsListener.mTriggerCallback('geolocation.enabled', true);
-
-    var allCommands = ['track', 'erase', 'ring', 'lock'];
-    var enabledCommands = subject.getEnabledCommands();
-    assert.deepEqual(enabledCommands.sort(), allCommands.sort());
-
-    // track should be disabled when geolocation is disabled
-    MockSettingsListener.mTriggerCallback('geolocation.enabled', false);
-    allCommands = ['erase', 'ring', 'lock'];
-    enabledCommands = subject.getEnabledCommands();
-    assert.deepEqual(enabledCommands.sort(), allCommands.sort());
+  setup(function(done) {
+    this.sinon.stub(FindMyDevice, '_contactServerIfEnabled');
+    // XXX(ggp) force re-creation of the SettingsHelper objects
+    // used by FMD, since MockSettingsHelper invalidates all objects
+    // in its mTeardown.
+    FindMyDevice._initSettings(done);
   });
 
   teardown(function() {
-    navigator.mozL10n = realL10n;
+    FindMyDevice._enabled = false;
+    FindMyDevice._registered = false;
+    FindMyDevice._loggedIn = false;
+    FindMyDevice._state = null;
+  });
 
-    MockPermissionSettings.mTeardown();
-    navigator.mozPermissionSettings = realPermissionSettings;
+  function sendWakeUpMessage(reason) {
+    var port = {};
+    MockNavigatormozSetMessageHandler.mTrigger('connection',
+      {port: port, keyword: 'findmydevice-wakeup'});
+    port.onmessage({data: reason});
+  }
 
-    navigator.mozPower = realMozPower;
-    navigator.mozApps = realMozApps;
+  test('fields from coordinates are included in server response', function() {
+    FindMyDevice._replyCallback('t', true, MockGeolocation.fakePosition);
+    assert.isTrue(FindMyDevice._contactServerIfEnabled.called);
+    assert.deepEqual(FindMyDevice._reply.t, {
+      ok: true,
+      la: MockGeolocation.fakePosition.coords.latitude,
+      lo: MockGeolocation.fakePosition.coords.longitude,
+      acc: MockGeolocation.fakePosition.coords.accuracy,
+      ti: MockGeolocation.fakePosition.timestamp
+    });
+  });
 
-    delete window.DUMP;
+  test('error message is included in the server response', function() {
+    var message = 'error message';
+    FindMyDevice._replyCallback('t', false, message);
+    assert.isTrue(FindMyDevice._contactServerIfEnabled.called);
+    assert.equal(FindMyDevice._reply.t.error, message);
+  });
 
-    fakeClock.restore();
+  suite('findmydevice.current-clientid behavior', function() {
+    setup(function() {
+      this.sinon.spy(FindMyDevice._currentClientIDHelper, 'set');
+    });
+
+    test('invalidate client id when logged in', function() {
+      sendWakeUpMessage(IAC_API_WAKEUP_REASON_LOGIN);
+      assert.isTrue(FindMyDevice._loggedIn, 'not logged in after login event');
+      sinon.assert.calledWith(FindMyDevice._currentClientIDHelper.set, '');
+    });
+
+    test('invalidate client id when logged out', function() {
+      sendWakeUpMessage(IAC_API_WAKEUP_REASON_LOGOUT);
+      assert.isFalse(FindMyDevice._loggedIn, 'logged in after logout event');
+      sinon.assert.calledWith(FindMyDevice._currentClientIDHelper.set, '');
+    });
+  });
+
+  suite('findmydevice.can-disable behavior', function() {
+    setup(function() {
+      this.sinon.spy(FindMyDevice._canDisableHelper, 'set');
+    });
+
+    test('set findmydevice.can-disable to false when logged out', function() {
+      FindMyDevice._loggedIn = false;
+      MockNavigatorSettings.mTriggerObservers('findmydevice.current-clientid',
+        {settingValue: ''});
+      sinon.assert.calledWith(FindMyDevice._canDisableHelper.set, false);
+    });
+
+    test('allow disabling when clientid matches the state', function() {
+      FindMyDevice._loggedIn = true;
+      FindMyDevice._state = {clientid: 'clientid'};
+
+      MockNavigatorSettings.mTriggerObservers('findmydevice.current-clientid',
+        {settingValue: 'clientid'});
+      sinon.assert.calledWith(FindMyDevice._canDisableHelper.set, true);
+    });
+
+    test('disallow disabling when clientid doesn\'t match the state',
+    function() {
+      FindMyDevice._loggedIn = true;
+      FindMyDevice._state = {clientid: 'wrong clientid'};
+
+      MockNavigatorSettings.mTriggerObservers('findmydevice.current-clientid',
+        {settingValue: 'clientid'});
+      sinon.assert.calledWith(FindMyDevice._canDisableHelper.set, false);
+    });
+  });
+
+  test('request client id when invalidated', function() {
+    FindMyDevice._loggedIn = true;
+    FindMyDevice._registered = true;
+    FindMyDevice._state = {clientid: 'clientid'};
+
+    this.sinon.stub(FindMyDevice, 'beginHighPriority');
+    this.sinon.stub(FindMyDevice, 'endHighPriority');
+    this.sinon.spy(FindMyDevice, '_refreshClientIDIfRegistered');
+    MockNavigatorSettings.mTriggerObservers('findmydevice.current-clientid',
+      {settingValue: ''});
+    sinon.assert.calledWith(FindMyDevice._refreshClientIDIfRegistered, false);
+    sinon.assert.calledWith(navigator.mozId.request, {});
+    sinon.assert.calledOnce(FindMyDevice.beginHighPriority);
+    sinon.assert.calledWith(FindMyDevice.beginHighPriority, 'clientLogic');
+    sinon.assert.calledOnce(FindMyDevice.endHighPriority);
+    sinon.assert.calledWith(FindMyDevice.endHighPriority, 'clientLogic');
+  });
+
+  test('refresh authentication when attempting to disable', function() {
+    FindMyDevice._loggedIn = true;
+    FindMyDevice._registered = true;
+
+    this.sinon.spy(FindMyDevice, '_refreshClientIDIfRegistered');
+    sendWakeUpMessage(IAC_API_WAKEUP_REASON_TRY_DISABLE);
+    assert.isTrue(FindMyDevice._disableAttempt);
+    sinon.assert.calledWith(FindMyDevice._refreshClientIDIfRegistered, true);
+    assert.isTrue(
+      navigator.mozId.request.calledWithMatch(
+        {refreshAuthentication: 0}));
+  });
+
+  test('contact the server on alarm', function() {
+    this.sinon.stub(FindMyDevice, '_refreshClientIDIfRegistered');
+    MockNavigatormozSetMessageHandler.mTrigger('alarm');
+    sinon.assert.calledWith(FindMyDevice._refreshClientIDIfRegistered, false);
+    sinon.assert.called(FindMyDevice._contactServerIfEnabled);
   });
 });

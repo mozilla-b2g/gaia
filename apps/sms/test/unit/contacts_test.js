@@ -651,6 +651,118 @@ suite('Contacts', function(done) {
     });
   });
 
+  suite('Contacts.findByAddress', function() {
+
+    test('removes spaces', function(done) {
+      var mozContacts = navigator.mozContacts;
+
+      Contacts.findByAddress('+33 1 23 45 67 89', function(contacts) {
+        done(function() {
+          assert.equal(
+            mozContacts.mHistory[0].filter.filterValue, '+33123456789'
+          );
+        });
+      });
+    });
+
+    test('The mozContacts find() call returned an error', function(done) {
+      Contacts.findByAddress('callonerror', function(contacts) {
+        done(function() {
+          assert.equal(contacts.length, 0);
+        });
+      });
+    });
+
+    test('Local number found.', function(done) {
+      Contacts.findByAddress(targetLocalNumber, function(contacts) {
+        done(function() {
+          assert.equal(contacts.length, 1);
+          assert.isTrue(!contacts[0].isFbContact);
+          assert.equal(contacts[0].name[0], localContactName);
+        });
+      });
+    });
+
+    test('Local email found.', function(done) {
+      Contacts.findByAddress(targetLocalEmail, function(contacts) {
+        done(function() {
+          assert.equal(contacts.length, 1);
+          assert.isTrue(!contacts[0].isFbContact);
+          assert.equal(contacts[0].name[0], localContactName);
+        });
+      });
+    });
+
+    test('Local number not found. FB Number found', function(done) {
+      Contacts.findByAddress(targetFbNumber, function(contacts) {
+        done(function() {
+          assert.equal(contacts.length, 1);
+          assert.equal(contacts[0].name[0], fbContactName);
+          assert.equal(contacts[0].isFbContact, true);
+        });
+      });
+    });
+
+    test('Local number not found. FB Number not found either', function(done) {
+      Contacts.findByAddress(notFoundNumber, function(contacts) {
+        done(function() {
+          assert.equal(contacts.length, 0);
+        });
+      });
+    });
+
+    test('Local email not found. FB Number not found either', function(done) {
+      Contacts.findByAddress(notFoundEmail, function(contacts) {
+        done(function() {
+          assert.equal(contacts.length, 0);
+        });
+      });
+    });
+
+    test('Local number not found. FB returns error', function(done) {
+      fb.inError = true;
+
+      Contacts.findByAddress(targetFbNumber, function(contacts) {
+        done(function() {
+          assert.equal(contacts.length, 0);
+          delete window.fb.inError;
+        });
+      });
+    });
+  });
+
+  suite('Contacts.findExactByEmail', function() {
+
+    test('Local email found.', function(done) {
+      Contacts.findExactByEmail(targetLocalEmail, function(contacts) {
+        done(function() {
+          assert.equal(contacts.length, 1);
+          assert.isTrue(!contacts[0].isFbContact);
+          assert.equal(contacts[0].name[0], localContactName);
+        });
+      });
+    });
+
+    test('Local email not found. FB Email not found either', function(done) {
+      Contacts.findExactByEmail(notFoundEmail, function(contacts) {
+        done(function() {
+          assert.equal(contacts.length, 0);
+        });
+      });
+    });
+
+    test('Local email not found. FB returns error', function(done) {
+      fb.inError = true;
+
+      Contacts.findExactByEmail(targetLocalEmail, function(contacts) {
+        done(function() {
+          assert.equal(contacts.length, 1);
+          delete window.fb.inError;
+        });
+      });
+    });
+  });
+
   suite('Contacts.addUnknown', function() {
 
     test('For adding an unknown contact', function() {

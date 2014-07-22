@@ -143,7 +143,7 @@ var ThreadListUI = {
       return;
     }
 
-    Contacts.findByPhoneNumber(number, function gotContact(contacts) {
+    Contacts.findByAddress(number, function gotContact(contacts) {
       var name = node.getElementsByClassName('name')[0];
       var photo = node.querySelector('span[data-type=img]');
       var title, src, details;
@@ -320,16 +320,7 @@ var ThreadListUI = {
 
     function checkDone(threadId) {
       /* jshint validthis: true */
-      // Threads.delete will handle deleting
-      // any Draft objects associated with the
-      // specified threadId.
-      Threads.delete(threadId);
-
-      // Cleanup the DOM
-      this.removeThread(threadId);
-
-      // Remove notification if exist
-      Utils.closeNotificationsForThread(threadId);
+      this.deleteThread(threadId);
 
       if (--count === 0) {
         this.cancelEdit();
@@ -530,7 +521,10 @@ var ThreadListUI = {
 
       this.appendThread(thread);
       if (--firstPanelCount === 0) {
-        PerformanceTestingHelper.dispatch('above-the-fold-ready');
+        // dispatch visually-complete and content-interactive when rendered
+        // threads could fill up the top of the visiable area
+        window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
+        window.dispatchEvent(new CustomEvent('moz-content-interactive'));
       }
     }
 
@@ -541,7 +535,12 @@ var ThreadListUI = {
        * this is done to prevent races between renering threads and drafts. */
       this.finalizeRendering(!(hasThreads || Drafts.size));
 
-      PerformanceTestingHelper.dispatch('startup-path-done');
+      if (firstPanelCount > 0) {
+        // dispatch visually-complete and content-interactive when rendering
+        // ended but threads could not fill up the top of the visiable area
+        window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
+        window.dispatchEvent(new CustomEvent('moz-content-interactive'));
+      }
     }
 
     var renderingOptions = {
@@ -643,6 +642,19 @@ var ThreadListUI = {
     return li;
   },
 
+  deleteThread: function(threadId) {
+    // Threads.delete will handle deleting
+    // any Draft objects associated with the
+    // specified threadId.
+    Threads.delete(threadId);
+
+    // Cleanup the DOM
+    this.removeThread(threadId);
+
+    // Remove notification if exist
+    Utils.closeNotificationsForThread(threadId);
+  },
+
   insertThreadContainer:
     function thlui_insertThreadContainer(group, timestamp) {
     // We look for placing the group in the right place.
@@ -707,6 +719,14 @@ var ThreadListUI = {
 
   onMessageReceived: function thlui_onMessageReceived(message) {
     this.updateThread(message, { unread: true });
+  },
+
+  onThreadsDeleted: function thlui_onThreadDeleted(ids) {
+    ids.forEach(function(threadId) {
+      if (Threads.has(threadId)) {
+        this.deleteThread(threadId);
+      }
+    }, this);
   },
 
   /**

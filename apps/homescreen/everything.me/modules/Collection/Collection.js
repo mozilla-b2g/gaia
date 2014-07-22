@@ -75,7 +75,11 @@ void function() {
             elInput, elDone;
 
         el.classList.add(CLASS_WHEN_EDITING_NAME);
+        // Make the collection container invisible to the screen reader when
+        // renaming.
+        elAppsContainer.setAttribute('aria-hidden', true);
 
+        elTitle.setAttribute('role', 'presentation');
         elTitle.innerHTML = '<input type="text" ' +
                                     'autocorrect="off" ' +
                                     'x-inputmode="verbatim" />' +
@@ -88,11 +92,17 @@ void function() {
         elInput.focus();
         elInput.value = currentTitle;
 
-        elInput.addEventListener('blur', self.Rename.cancel);
+        elTitle.addEventListener('blur', self.Rename.cancel, true);
         elInput.addEventListener('keyup', self.Rename.onKeyUp);
-        elDone.addEventListener('touchstart', self.Rename.save);
+        elDone.addEventListener('click', self.Rename.save);
+        // If the click comes from within the collection container - cancel
+        // renaming.
+        elAppsContainer.addEventListener('click', self.Rename.cancel);
 
         elTitle.removeEventListener('click', self.Rename.start);
+        // When renaming close button is used to cancel renaming.
+        elClose.removeEventListener('click', self.onCloseClick);
+        elClose.addEventListener('click', self.Rename.cancel);
 
         self.isRenaming = true;
       },
@@ -108,7 +118,10 @@ void function() {
         self.Rename.done(true);
       },
 
-      cancel: function renameCancel() {
+      cancel: function renameCancel(e) {
+        if (e.explicitOriginalTarget.parentNode === elTitle) {
+          return;
+        }
         self.Rename.done(false);
       },
 
@@ -128,9 +141,10 @@ void function() {
             newName = elInput.value,
             nameChanged = newName && newName !== oldName;
 
-        elInput.removeEventListener('blur', self.Rename.cancel);
+        elTitle.removeEventListener('blur', self.Rename.cancel, true);
         elInput.removeEventListener('keyup', self.Rename.onKeyUp);
-        elDone.removeEventListener('touchstart', self.Rename.save);
+        elDone.removeEventListener('click', self.Rename.save);
+        elAppsContainer.removeEventListener('click', self.Rename.cancel);
 
         elInput.blur();
 
@@ -156,6 +170,7 @@ void function() {
 
         function exitDoneState() {
           el.classList.remove(CLASS_WHEN_EDITING_NAME);
+          elAppsContainer.setAttribute('aria-hidden', false);
 
           self.isRenaming = false;
 
@@ -164,6 +179,8 @@ void function() {
           // the user in the rename mode
           window.setTimeout(function() {
             elTitle.addEventListener('click', self.Rename.start);
+            elClose.removeEventListener('click', self.Rename.cancel);
+            elClose.addEventListener('click', self.onCloseClick);
           }, 0);
         }
       }
@@ -434,7 +451,7 @@ void function() {
 
     this.setTitle = function setTitle(newTitle) {
       title = newTitle;
-
+      elTitle.setAttribute('role', 'button');
       elTitle.innerHTML =
               '<span>' + title + '</span>';
     };

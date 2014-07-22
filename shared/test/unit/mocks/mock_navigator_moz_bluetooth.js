@@ -18,6 +18,8 @@
     onscostatuschanged: null
   };
 
+  var mEventListeners = [];
+
   var mAdapterRequest = {
     result: MockBTAdapter,
     onsuccess: null,
@@ -34,7 +36,25 @@
     }
   }
 
+  function mmb_addEventListener(type, callback) {
+    mEventListeners.push({
+      type: type,
+      callback: callback
+    });
+  }
+
+  function mmb_triggerEventListeners(type) {
+    mEventListeners.forEach(function(eventListener) {
+      if (eventListener.type === type) {
+        eventListener.callback();
+      }
+    });
+  }
+
+
   window.MockMozBluetooth = {
+    addEventListener: mmb_addEventListener,
+    triggerEventListeners: mmb_triggerEventListeners,
     getDefaultAdapter: mmb_getDefaultAdapter,
     triggerOnGetAdapterSuccess: mmb_triggerOnGetAdapterSuccess,
     ondisabled: function mmb_ondisabled() {}

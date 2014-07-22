@@ -60,7 +60,10 @@ var TelephonyHelper = (function() {
                     [480, 620, 500], [0, 0, 500],
                     [480, 620, 500], [0, 0, 500],
                     [480, 620, 500], [0, 0, 500]];
+    
+    TonePlayer.setChannel('telephony');
     TonePlayer.playSequence(sequence);
+    TonePlayer.setChannel('normal');
   }
 
   function startDial(cardIndex, conn, sanitizedNumber, oncall, onconnected,
@@ -94,10 +97,28 @@ var TelephonyHelper = (function() {
         onerror();
         return;
       } else if (emergencyOnly) {
+        var _ = navigator.mozL10n.get;
+        loadConfirm(function() {
+          ConfirmDialog.show(
+            _('connecting') + ' ...',
+            '',
+            {
+              title: _('emergencyDialogBtnOk'),
+              callback: function() {
+                ConfirmDialog.hide();
+              }
+            }
+          );
+          document.addEventListener('visibilitychange', function hideDialog() {
+            document.removeEventListener('visibilitychange', hideDialog);
+            ConfirmDialog.hide();
+          });
+        });
+
         // If the mobileConnection has a sim card we let gecko take the
         // default service, otherwise we force the first slot.
         cardIndex = hasCard ? undefined : 0;
-        callPromise = telephony.dialEmergency(sanitizedNumber, cardIndex);
+        callPromise = telephony.dialEmergency(sanitizedNumber);
       } else {
         callPromise = telephony.dial(sanitizedNumber, cardIndex);
       }

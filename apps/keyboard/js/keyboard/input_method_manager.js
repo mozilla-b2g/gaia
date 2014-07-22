@@ -1,6 +1,6 @@
 'use strict';
 
-/* global Promise */
+/* global IMEngineSettings, Promise, KeyEvent */
 
 /*
  * InputMethodManager manages life cycle of input methods.
@@ -96,16 +96,11 @@
  *      Allows the IM to switch between default and symbol layouts on the
  *      keyboard. Used by the latin IM.
  *
- *    setUpperCase(upperCase, upperCaseLocked):
+ *    setUpperCase(state):
  *      Allows the IM to switch between uppercase and lowercase layout on the
  *      keyboard. Used by the latin IM.
- *        - upperCase: to enable the upper case or not.
- *        - upperCaseLocked: to change the caps lock state.
- *
- *    resetUpperCase():
- *      Allows the IM to reset the upperCase to lowerCase without knowing the
- *      internal states like caps lock and current layout page while keeping
- *      setUpperCase simple as it is.
+ *        - state.isUpperCase: to enable the upper case or not.
+ *        - state.isUpperCaseLocked: to change the caps lock state.
  *
  *    getNumberOfCandidatesPerRow():
  *      Allow the IM to know how many candidates the Render need in one row so
@@ -146,25 +141,59 @@ InputMethodGlue.prototype.init = function(app, imEngineName) {
 };
 
 InputMethodGlue.prototype.sendCandidates = function(candidates) {
-  this.app.sendCandidates(candidates);
+  this.app.candidatePanelManager.updateCandidates(candidates);
 };
 
 InputMethodGlue.prototype.setComposition = function(symbols, cursor) {
-  this.app.setComposition(symbols, cursor);
+  if (!this.app.inputContext) {
+    console.warn('InputMethodGlue: call setComposition() when ' +
+      'inputContext does not exist.');
+    return;
+  }
+  cursor = cursor || symbols.length;
+  this.app.inputContext.setComposition(symbols, cursor);
 };
 
 InputMethodGlue.prototype.endComposition = function(text) {
-  this.app.endComposition(text);
+  if (!this.app.inputContext) {
+    console.warn('InputMethodGlue: call endComposition() when ' +
+      'inputContext does not exist.');
+    return;
+  }
+  text = text || '';
+  this.app.inputContext.endComposition(text);
 };
 
 InputMethodGlue.prototype.sendKey = function(keyCode, isRepeat) {
-  return this.app.sendKey(keyCode, isRepeat);
+  if (!this.app.inputContext) {
+    console.warn('InputMethodGlue: call sendKey() when ' +
+      'inputContext does not exist.');
+    return Promise.reject();
+  }
+
+  var promise;
+
+  switch (keyCode) {
+    case KeyEvent.DOM_VK_BACK_SPACE:
+      promise = this.app.inputContext.sendKey(keyCode, 0, 0, isRepeat);
+      break;
+
+    case KeyEvent.DOM_VK_RETURN:
+      promise = this.app.inputContext.sendKey(keyCode, 0, 0);
+      break;
+
+    default:
+      promise = this.app.inputContext.sendKey(0, keyCode, 0);
+      break;
+  }
+
+  return promise;
 };
 
 // XXX deprecated
 InputMethodGlue.prototype.sendString = function(str) {
   for (var i = 0; i < str.length; i++) {
-    this.app.sendKey(str.charCodeAt(i));
+    this.sendKey(str.charCodeAt(i));
   }
 };
 
@@ -182,21 +211,25 @@ InputMethodGlue.prototype.setLayoutPage = function(newpage) {
   this.app.setLayoutPage(newpage);
 };
 
-InputMethodGlue.prototype.setUpperCase = function(upperCase, upperCaseLocked) {
-  this.app.setUpperCase(upperCase, upperCaseLocked);
-};
-InputMethodGlue.prototype.resetUpperCase = function() {
-  this.app.resetUpperCase();
+InputMethodGlue.prototype.setUpperCase = function(state) {
+  this.app.upperCaseStateManager.switchUpperCaseState(state);
 };
 
 InputMethodGlue.prototype.isCapitalized = function() {
-  return this.app.isCapitalized();
+  return this.app.upperCaseStateManager.isUpperCase;
 };
 
 InputMethodGlue.prototype.replaceSurroundingText = function(text, offset,
                                                             length) {
-  return this.app.replaceSurroundingText(text, offset, length);
+  if (!this.app.inputContext) {
+    console.warn('InputMethodGlue: call replaceSurroundingText() when ' +
+      'inputContext does not exist.');
+    return Promise.reject();
+  }
+
+  return this.app.inputContext.replaceSurroundingText(text, offset, length);
 };
+
 InputMethodGlue.prototype.getNumberOfCandidatesPerRow = function() {
   return this.app.getNumberOfCandidatesPerRow();
 };
@@ -280,6 +313,12 @@ InputMethodManager.prototype.start = function() {
   this.loader = new InputMethodLoader(this.app);
   this.loader.start();
 
+  this.imEngineSettings = new IMEngineSettings();
+  this.imEngineSettings.promiseManager = this.app.settingsPromiseManager;
+  this.imEngineSettings.initSettings().catch(function rejected() {
+    console.error('Fatal Error! Failed to get initial imEngine settings.');
+  });
+
   this.currentIMEngine = this.loader.getInputMethod('default');
 
   this._switchStateId = 0;
@@ -311,8 +350,10 @@ InputMethodManager.prototype.switchCurrentIMEngine = function(imEngineName,
   // Create our own promise by resolving promise from loader and the passed
   // dataPromise, then do our things.
   var loaderPromise = this.loader.getInputMethodAsync(imEngineName);
+  var settingsPromise = this.imEngineSettings.initSettings();
 
-  var p = Promise.all([loaderPromise, dataPromise]).then(function(values) {
+  var p = Promise.all([loaderPromise, dataPromise, settingsPromise])
+  .then(function(values) {
     if (switchStateId !== this._switchStateId) {
       console.log('InputMethodManager: ' +
         'Promise is resolved after another switchCurrentIMEngine() call. ' +
@@ -324,10 +365,18 @@ InputMethodManager.prototype.switchCurrentIMEngine = function(imEngineName,
     }
 
     var imEngine = values[0];
-    var dataValues = values[1];
 
     if (typeof imEngine.activate === 'function') {
-      imEngine.activate.apply(imEngine, dataValues);
+      var dataValues = values[1];
+      var settingsValues = values[2];
+      imEngine.activate(
+        this.app.layoutManager.currentModifiedLayout.autoCorrectLanguage,
+        dataValues,
+        {
+          suggest: settingsValues.suggestionsEnabled,
+          correct: settingsValues.correctionsEnabled
+        }
+      );
     }
     this.currentIMEngine = imEngine;
 

@@ -3,6 +3,7 @@
   "predef": [
     "define",
     "require",
-    "Settings"
+    "Settings",
+    "Promise"
   ]
 }

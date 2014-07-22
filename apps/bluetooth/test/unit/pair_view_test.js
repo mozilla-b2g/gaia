@@ -36,6 +36,39 @@ suite('Bluetooth app > Pairview ', function() {
     document.body.innerHTML = '';
   });
 
+  suite('isFullAttentionMode > ', function() {
+    var realWindowInnerHeight;
+    suiteSetup(function() {
+      realWindowInnerHeight = window.innerHeight;
+    });
+
+    suiteTeardown(function() {
+      switchReadOnlyProperty(window, 'innerHeight', realWindowInnerHeight);
+    });
+
+    suite('window.innerHeight is 200 > ', function() {
+      setup(function() {
+        switchReadOnlyProperty(window, 'innerHeight', 200);
+      });
+
+      test('getting the mode of full attention should be false ' +
+         'after isFullAttentionMode() is called ', function() {
+        assert.isFalse(Pairview.isFullAttentionMode);
+      });
+    });
+
+    suite('window.innerHeight is 201 > ', function() {
+      setup(function() {
+        switchReadOnlyProperty(window, 'innerHeight', 201);
+      });
+
+      test('getting the mode of full attention should be true ' +
+         'after isFullAttentionMode() is called ', function() {
+        assert.isTrue(Pairview.isFullAttentionMode);
+      });
+    });
+  });
+
   suite('init > ', function() {
     var device = {
       address: '00:11:22:AA:BB:CC',
@@ -75,6 +108,35 @@ suite('Bluetooth app > Pairview ', function() {
       window.getTruncated = this.sinon.stub();
       window.getTruncated.returns({
         addEventListener: this.sinon.stub()
+      });
+    });
+
+    suite('early return > ', function() {
+      var realWindowInnerHeight;
+
+      setup(function() {
+        realWindowInnerHeight = window.innerHeight;
+        switchReadOnlyProperty(window, 'innerHeight', 200);
+        this.sinon.stub(Pairview, 'close');
+        Pairview.show();
+      });
+
+      teardown(function() {
+        switchReadOnlyProperty(window, 'innerHeight', realWindowInnerHeight);
+      });
+
+      test('isFullAttentionMode() should be false', function() {
+        assert.isFalse(Pairview.isFullAttentionMode);
+      });
+
+      test('close() should be called while attention sceen is not in full ' +
+        'screen mode ', function() {
+        assert.isTrue(Pairview.close.called);
+      });
+
+      test('getTruncated() should not be called since early return',
+        function() {
+        assert.isFalse(window.getTruncated.called);
       });
     });
 

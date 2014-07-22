@@ -1,10 +1,16 @@
 'use strict';
-
+/* global eme */
+/* global CollectionIcon */
 /* global NativeInfo */
 
 (function(exports) {
 
   function Synchronizer() {
+
+    // Icon generation requirements.
+    var grid = document.getElementById('grid');
+    CollectionIcon.init(grid.maxIconSize);
+
     navigator.mozSetMessageHandler('connection', this.onConnection.bind(this));
   }
 
@@ -25,7 +31,7 @@
      */
     install: function(event) {
       var message = event.data;
-      NativeInfo.processApp('install', message.id);
+      eme.init().then(() => NativeInfo.processApp('install', message.id));
     },
 
     /**
@@ -33,7 +39,7 @@
      */
     uninstall: function(event) {
       var message = event.data;
-      NativeInfo.processApp('uninstall', message.id);
+      eme.init().then(() => NativeInfo.processApp('uninstall', message.id));
     }
   };
 

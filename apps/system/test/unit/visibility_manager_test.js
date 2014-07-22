@@ -1,11 +1,12 @@
 /* globals MocksHelper, VisibilityManager,
-           MockAttentionScreen */
+           MockAttentionScreen, MockTaskManager */
 'use strict';
 
 requireApp('system/test/unit/mock_orientation_manager.js');
+requireApp('system/test/unit/mock_task_manager.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/test/unit/mock_attention_screen.js');
-requireApp('system/test/unit/mock_system.js');
+require('/shared/test/unit/mocks/mock_system.js');
 
 var mocksForVisibilityManager = new MocksHelper([
   'AttentionScreen', 'System'
@@ -21,7 +22,8 @@ suite('system/VisibilityManager', function() {
     stubById = this.sinon.stub(document, 'getElementById');
     stubById.returns(document.createElement('div'));
     requireApp('system/js/visibility_manager.js', function() {
-      visibilityManager = new VisibilityManager().start();
+      visibilityManager = new VisibilityManager();
+      visibilityManager.start();
       done();
     });
   });
@@ -70,20 +72,6 @@ suite('system/VisibilityManager', function() {
       });
 
       assert.isTrue(stubPublish.calledOnce);
-    });
-
-    test('lockscreen-request-unlock should be ignore if' +
-          ' it is launching camera', function() {
-      var stubPublish = this.sinon.stub(visibilityManager, 'publish');
-
-      visibilityManager.handleEvent({
-        type: 'lockscreen-request-unlock',
-        detail: {
-          activity: true
-        }
-      });
-
-      assert.isFalse(stubPublish.called);
     });
 
     test('attentionscreenshow', function() {
@@ -182,6 +170,50 @@ suite('system/VisibilityManager', function() {
       });
 
       assert.isFalse(visibilityManager._normalAudioChannelActive);
+    });
+
+    test('show task manager, hide windows from screen reader', function () {
+      var stubPublish = this.sinon.stub(visibilityManager, 'publish');
+      visibilityManager.handleEvent({
+        type: 'cardviewshown'
+      });
+
+      assert.isTrue(stubPublish.called);
+      assert.isTrue(stubPublish.calledWith('hidewindowforscreenreader'));
+    });
+
+    test('hide task manager, unhide windows from screen reader', function () {
+      var stubPublish = this.sinon.stub(visibilityManager, 'publish');
+      visibilityManager.handleEvent({
+        type: 'cardviewclosed'
+      });
+
+      assert.isTrue(stubPublish.called);
+      assert.isTrue(stubPublish.calledWith('showwindowforscreenreader'));
+    });
+
+    test('show homescreen when task manager is showing', function () {
+      var stubPublish = this.sinon.stub(visibilityManager, 'publish');
+      window.taskManager = new MockTaskManager();
+      window.taskManager.show();
+      visibilityManager.handleEvent({
+        type: 'homescreenopened'
+      });
+
+      assert.isTrue(stubPublish.called);
+      assert.isTrue(stubPublish.calledWith('hidewindowforscreenreader'));
+    });
+
+    test('show homescreen when task manager is hidden', function () {
+      var stubPublish = this.sinon.stub(visibilityManager, 'publish');
+      window.taskManager = new MockTaskManager();
+      window.taskManager.hide();
+      visibilityManager.handleEvent({
+        type: 'homescreenopened'
+      });
+
+      assert.isFalse(stubPublish.called);
+      assert.isFalse(stubPublish.calledWith('hidewindowforscreenreader'));
     });
   });
 });

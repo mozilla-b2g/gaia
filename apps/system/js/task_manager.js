@@ -1120,6 +1120,13 @@
   TaskManager.prototype.onStartEvent = function cs_onStartEvent(evt) {
     var cardsView = this.element;
     evt.stopPropagation();
+
+    // If there is no card in the cardsView, go back to home screen
+    if (cardsView.classList.contains('empty')) {
+      this.goToHomescreen(evt);
+      return;
+    }
+
     evt.target.setCapture(true);
     cardsView.addEventListener('touchmove', this);
     cardsView.addEventListener('touchend', this);

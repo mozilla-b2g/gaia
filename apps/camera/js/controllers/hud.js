@@ -72,8 +72,8 @@ HudController.prototype.bindEvents = function() {
   this.hud.on('click:flash', this.onFlashClick);
 
   // Camera
-  this.app.on('camera:ready', this.hud.setter('camera', 'ready'));
-  this.app.on('camera:busy', this.hud.setter('camera', 'busy'));
+  this.app.on('busy', this.hud.setter('camera', 'busy'));
+  this.app.on('ready', this.hud.setter('camera', 'ready'));
   this.app.on('change:recording', this.hud.setter('recording'));
 
   // Timer
