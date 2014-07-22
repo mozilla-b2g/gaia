@@ -23,6 +23,10 @@ function isSubjectToBranding(path) {
          /branding[\/\\]initlogo.png/.test(path);
 }
 
+function isSubjectToDeviceType(path) {
+  return /shared[\/\\]?[a-zA-Z]*[\/\\]?device_type$/.test(path);
+}
+
 function getExtension(filename) {
   return filename.substr(filename.lastIndexOf('.') + 1).toLowerCase();
 }
@@ -110,6 +114,7 @@ function jsComparator(jsa, jsb) {
 
 exports.Q = utils.Q;
 exports.isSubjectToBranding = isSubjectToBranding;
+exports.isSubjectToDeviceType = isSubjectToDeviceType;
 exports.ls = utils.ls;
 exports.getFileContent = utils.getFileContent;
 exports.writeContent = utils.writeContent;
