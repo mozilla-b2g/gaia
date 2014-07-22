@@ -717,7 +717,7 @@
       }
       if (this.config.chrome &&
           (this.config.chrome.navigation ||
-           this.config.chrome.rocketbar)) {
+           this.config.chrome.bar)) {
         this.appChrome = new self.AppChrome(this);
       }
     };

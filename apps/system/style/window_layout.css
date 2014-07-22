@@ -187,12 +187,12 @@
 | Rocketbar Layout
 \*****************************************************************************/
 
-.appWindow.rocketbar:not(.navigation) > iframe {
+.appWindow.bar:not(.navigation) > iframe {
   top: calc(5rem + 2.4rem);
   height: calc(100% - 2.4rem);
 }
 
-.appWindow.rocketbar.navigation > iframe {
+.appWindow.bar.navigation > iframe {
   top: calc(5rem + 2.4rem);
   height: calc(100% - 2.4rem - 1rem);
 }
