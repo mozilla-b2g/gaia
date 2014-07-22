@@ -376,11 +376,11 @@
 
 
     show: function() {
-      this.rocketbar.style.display = 'block';
+      this.rocketbar.classList.remove('hidden');
     },
 
     hide: function() {
-      this.rocketbar.style.display = 'none';
+      this.rocketbar.classList.add('hidden');
     },
 
     /**
