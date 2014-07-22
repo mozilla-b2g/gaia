@@ -3,6 +3,11 @@
 /* global _, TonePlayer, LazyLoader, IccHelper, ConfirmDialog, LazyL10n */
 /* exported TelephonyHelper */
 
+// DTMF control digit separator length (ms) as defined in GSM ETSI GSM 02.07
+const DTMF_SEPARATOR_PAUSE_DURATION = 3000;
+// DTMF play tone duration (ms)
+const DTMF_PLAY_LENGTH = 120;
+
 var TelephonyHelper = (function() {
   var confirmLoaded = false;
 
@@ -66,6 +71,29 @@ var TelephonyHelper = (function() {
     TonePlayer.setChannel('normal');
   }
 
+  // Split a number in 2 parts, the part before the DTMF separator and
+  // the part after the DTMF separator
+  function splitNumberAtDtmfSeparator(number) {
+    var firstDtmfSeparator = number.indexOf(',');
+    if (firstDtmfSeparator > 0) {
+      return [number.substr(0, firstDtmfSeparator),
+              number.substr(firstDtmfSeparator)];
+    } else {
+      return [number, ''];
+    }
+  }
+
+  // Get the digits to dial, i.e. the digits before the first DTMF separator
+  function getBaseDigitsFromNumber(number) {
+    return splitNumberAtDtmfSeparator(number)[0];
+  }
+
+  // Get the DTMF digits part of the number, i.e. digits after the first 
+  // DTMF separator
+  function getDtmfDigitsFromNumber(number) {
+    return splitNumberAtDtmfSeparator(number)[1];
+  }
+
   function startDial(cardIndex, conn, sanitizedNumber, oncall, onconnected,
                      ondisconnected, onerror) {
 
@@ -89,6 +117,7 @@ var TelephonyHelper = (function() {
       var emergencyOnly = conn.voice.emergencyCallsOnly;
       var hasCard = (conn.iccId !== null);
       var callPromise;
+      var baseNumber = getBaseDigitsFromNumber(sanitizedNumber);
 
       // Note: no need to check for cardState null. While airplane mode is on
       // cardState is null and we handle that situation in call() above.
@@ -118,9 +147,9 @@ var TelephonyHelper = (function() {
         // If the mobileConnection has a sim card we let gecko take the
         // default service, otherwise we force the first slot.
         cardIndex = hasCard ? undefined : 0;
-        callPromise = telephony.dialEmergency(sanitizedNumber);
+        callPromise = telephony.dialEmergency(baseNumber);
       } else {
-        callPromise = telephony.dial(sanitizedNumber, cardIndex);
+        callPromise = telephony.dial(baseNumber, cardIndex);
       }
 
       callPromise.then(function(call) {
@@ -137,12 +166,58 @@ var TelephonyHelper = (function() {
     if (oncall) {
       oncall();
     }
-    call.onconnected = onconnected;
+    call.onconnected = function connectedCB() {
+      var dtmfDigits = getDtmfDigitsFromNumber(number);
+      if (dtmfDigits) {
+        playDtmfTones(call, dtmfDigits);
+      }
+      if (onconnected) {
+        onconnected.apply(this, arguments);
+      }
+    };
     call.ondisconnected = ondisconnected;
     call.onerror = function errorCB(evt) {
       var errorName = evt.call.error.name;
       handleError(errorName, number, emergencyOnly, onerror);
     };
+  }
+
+  function playDtmfTones(call, dtmfDigits) {
+    if (call.state !== 'connected' || !dtmfDigits.length) {
+      return;
+    }
+
+    var firstDigit = dtmfDigits[0];
+    var restDigits = dtmfDigits.substr(1);
+
+    if (firstDigit === ',') {
+      // If the first digit is a separator we have to wait pause duration
+      // before playing the rest of the digits
+      setTimeout(function() {
+        // Then, recursively play the remaining digits
+        playDtmfTones(call, restDigits);
+      }, DTMF_SEPARATOR_PAUSE_DURATION);
+    } else {
+      // Play the first DTMF digit
+      playDtmfTone(call, firstDigit, function() {
+        // When done, recursively play remaining digits
+        playDtmfTones(call, restDigits);
+      });
+    }
+  }
+
+  // Plays a single dtmf tone for DTMF_PLAY_LENGTH and then calls callback
+  function playDtmfTone(call, digit, callback) {
+    var telephony = navigator.mozTelephony;
+    if (!telephony) {
+      return;
+    }
+
+    telephony.startTone(digit, call.serviceId);
+    setTimeout(function() {
+      telephony.stopTone(call.serviceId);
+      callback();
+    }, DTMF_PLAY_LENGTH);
   }
 
   function handleError(errorName, number, emergencyOnly, onerror) {
@@ -176,7 +251,7 @@ var TelephonyHelper = (function() {
   }
 
   var isValid = function t_isValid(sanitizedNumber) {
-    var validExp = /^[0-9#+*]{1,50}$/;
+    var validExp = /^(?!,)([0-9#+*,]){1,50}$/;
     return validExp.test(sanitizedNumber);
   };
 

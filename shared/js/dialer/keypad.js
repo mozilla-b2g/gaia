@@ -388,19 +388,27 @@ var KeypadManager = {
     }
 
     // Manage long press
-    if ((key == '0' && !this._onCall) || key == 'delete') {
+    if (((key == '0' || key == '*') && !this._onCall) || key == 'delete') {
       this._holdTimer = setTimeout(function(self) {
         if (key == 'delete') {
           self._phoneNumber = '';
         } else {
           var index = self._phoneNumber.length - 1;
 
-          //Remove last 0, this is a long press and we want to add the '+'
-          if (index >= 0 && self._phoneNumber[index] === '0') {
+          // Remove last key, this is a long press and we want to add the
+          // long pressed symbol
+          if (index >= 0 && self._phoneNumber[index] === key) {
             self._phoneNumber = self._phoneNumber.substr(0, index);
           }
 
-          self._phoneNumber += '+';
+          if (key === '0') {
+            self._phoneNumber += '+';
+          } else if (key === '*') {
+            // ',' DTMF separator can't be the first
+            if (self._phoneNumber.length > 0) {
+              self._phoneNumber += ',';
+            }
+          }
         }
 
         self._longPress = true;
