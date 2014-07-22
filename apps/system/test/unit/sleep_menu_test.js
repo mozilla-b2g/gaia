@@ -2,10 +2,12 @@
 /* global MocksHelper */
 /* global MockL10n */
 /* global MockMozPower */
+/* global MockNavigatorMozTelephony */
 /* global SleepMenu */
 
 require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system/test/unit/mock_navigator_moz_power.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 require('/shared/test/unit/mocks/mock_system.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/js/logo_loader.js');
@@ -22,6 +24,7 @@ suite('system/SleepMenu', function() {
   var fakeElement;
   var realL10n;
   var realMozPower;
+  var realTelephony;
   var stubById;
   var stubByQuerySelector;
   var subject;
@@ -32,6 +35,8 @@ suite('system/SleepMenu', function() {
 
     realMozPower = navigator.mozPower;
     navigator.mozPower = MockMozPower;
+
+    realTelephony = navigator.mozTelephony;
 
     fakeElement = document.createElement('div');
     stubById = stubById = this.sinon.stub(document, 'getElementById',
@@ -51,6 +56,7 @@ suite('system/SleepMenu', function() {
   teardown(function() {
     navigator.mozL10n = realL10n;
     navigator.mozPower = realMozPower;
+    navigator.mozTelephony = realTelephony;
     stubById.restore();
     stubByQuerySelector.restore();
   });
@@ -68,11 +74,18 @@ suite('system/SleepMenu', function() {
   });
 
   test('generateItems', function() {
+    navigator.mozTelephony = MockNavigatorMozTelephony;
     var items = subject.generateItems();
     assert.equal(items.length, 4);
   });
 
+  test('generateItems w/o mozTelephony', function() {
+    var items = subject.generateItems();
+    assert.equal(items.length, 3);
+  });
+
   test('generateItems /w developer options', function() {
+    navigator.mozTelephony = MockNavigatorMozTelephony;
     subject.isDeveloperMenuEnabled = true;
     subject.developerOptions = {
       testme: {

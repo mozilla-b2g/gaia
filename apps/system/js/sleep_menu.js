@@ -157,10 +157,12 @@
         items.push(options.airplane);
       }
 
-      if (!this.isSilentModeEnabled) {
-        items.push(options.silent);
-      } else {
-        items.push(options.silentOff);
+      if (navigator.mozTelephony) {
+        if (!this.isSilentModeEnabled) {
+          items.push(options.silent);
+        } else {
+          items.push(options.silentOff);
+        }
       }
 
       items.push(options.restart);
