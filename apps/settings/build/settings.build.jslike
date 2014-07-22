@@ -15,6 +15,7 @@
     'shared/bluetooth_helper': 'empty:',
     'shared/async_storage': 'empty:',
     'shared/icc_helper': 'empty:',
+    'shared/language_list': 'empty:',
     'shared/lazy_loader': 'empty:',
     'shared/manifest_helper': 'empty:',
     'shared/settings_listener': 'empty:',

@@ -38,11 +38,11 @@ suite('Languages > ', function() {
   suite('when localized change', function() {
     setup(function() {
       this.sinon.stub(mockKeyboardHelper, 'changeDefaultLayouts');
-      this.sinon.stub(languages, 'update');
+      this.sinon.stub(languages, 'updateDateTime');
       languages.onLocalized();
     });
     test('we would call update() and changeDefaultLayouts()', function() {
-      assert.ok(languages.update.called);
+      assert.ok(languages.updateDateTime.called);
       assert.ok(mockKeyboardHelper.changeDefaultLayouts.called);
     });
   });
