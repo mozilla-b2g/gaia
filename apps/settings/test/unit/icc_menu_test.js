@@ -134,8 +134,8 @@ suite('STK (Main menu) >', function() {
     });
 
     test('SIM number (SIM 1) showed in the list', function() {
-      assert.equal(document.querySelector(
-        '#icc-entries li small').textContent, 'SIM 1');
+      var small = document.querySelector('#icc-entries li small');
+      assert.equal(small.textContent, 'SIM 1');
     });
 
     test('Operator name (SIM 2) showed in the list', function() {
@@ -144,8 +144,9 @@ suite('STK (Main menu) >', function() {
     });
 
     test('SIM number (SIM 2) showed in the list', function() {
-      assert.equal(document.querySelector(
-        '#icc-entries li:nth-child(2) small').textContent, 'SIM 2');
+            var small =
+            document.querySelector('#icc-entries li:nth-child(2) small');
+      assert.deepEqual(navigator.mozL10n.localize(small, 'sim2'));
     });
   });
 });

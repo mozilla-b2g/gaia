@@ -95,6 +95,7 @@ suite('SimUIModel', function() {
       });
 
       test('set state to normal successfully', function() {
+        fakeSimcard.setState();
         var cardInfo = fakeSimcard.getInfo();
         assert.isTrue(cardInfo.enabled);
         assert.isFalse(cardInfo.absent);

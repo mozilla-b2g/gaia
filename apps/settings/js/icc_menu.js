@@ -74,7 +74,7 @@
         var li = document.createElement('li');
         if (Object.keys(menu).length > 1) {
           var small = document.createElement('small');
-          small.textContent = _('sim' + SIMNumber);
+          navigator.mozL10n.localize(small, 'sim' + (SIMNumber));
           small.classList.add('menu-item-desc');
           li.appendChild(small);
         }

@@ -4,7 +4,7 @@
 
 (function(exports) {
 
-  var _ = window.navigator.mozL10n.get;
+
 
   /*
    * SimUIModel is a helper to help us map real card status
@@ -49,6 +49,8 @@
       return info;
     },
     setState: function(key, options) {
+        var _ = window.navigator.mozL10n.get;
+      this.cardIndex = 0;
       this.name = _('sim' + (this.cardIndex + 1));
       switch (key) {
         case 'nosim':

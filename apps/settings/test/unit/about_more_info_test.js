@@ -96,10 +96,16 @@ suite('about >', function() {
       });
 
       test('should show correct sim indicator', function() {
+        sandbox.spy(MockL10n, 'localize');
         AboutMoreInfo.loadIccId();
         var spans = deviceInfoIccIds.querySelectorAll('span');
-        assert.equal(spans[0].textContent, 'SIM 1: ' + iccIds[0]);
-        assert.equal(spans[1].textContent, 'SIM 2: ' + iccIds[1]);
+
+        assert.deepEqual(MockL10n.localize.args[0], [
+          spans[0], 'deviceInfo-ICCID-sim', { index: 1, number: iccIds[0] }
+        ]);
+        assert.deepEqual(MockL10n.localize.args[1], [
+          spans[1], 'deviceInfo-ICCID-sim', { index: 2, number: iccIds[1] }
+        ]);
       });
     });
   });

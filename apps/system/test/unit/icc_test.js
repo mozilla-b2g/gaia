@@ -30,6 +30,7 @@ suite('STK (icc) >', function() {
       realNavigatormozSetMessageHandler, realNavigatormozMobileConnections;
   var stkTestCommands = {};
   var xhrFake, xhrRequests = [];
+  navigator.mozL10n = realL10n;
 
   suiteSetup(function() {
     loadBodyHTML('/index.html');

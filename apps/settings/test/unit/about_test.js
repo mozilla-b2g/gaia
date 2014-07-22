@@ -364,11 +364,17 @@ suite('about >', function() {
       });
 
       test('should show correct sim indicator', function() {
+        sandbox.spy(MockL10n, 'localize');
         About.loadHardwareInfo();
         var spans =
           deviceInfoPhoneNum.querySelectorAll('#deviceInfo-msisdns span');
-        assert.equal(spans[0].textContent, 'SIM 1: mdn1');
-        assert.equal(spans[1].textContent, 'SIM 2: mdn2');
+
+          assert.deepEqual(MockL10n.localize.args[0], [
+            spans[0], 'phoneNumber-sim', { index: 1, number: 'mdn1' }
+          ]);
+          assert.deepEqual(MockL10n.localize.args[1], [
+            spans[1], 'phoneNumber-sim', { index: 2, number: 'mdn2' }
+          ]);
       });
     });
   });

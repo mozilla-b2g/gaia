@@ -501,7 +501,6 @@ var icc_worker = {
   '0x28': function STK_CMD_SET_UP_IDLE_MODE_TEXT(message) {
     DUMP('STK_CMD_SET_UP_IDLE_MODE_TEXT:', message.command.options);
     var options = message.command.options;
-    var _ = window.navigator.mozL10n.get;
     var text = _('icc-message-stk', { id: icc.getSIMNumber(message.iccId) });
     this.idleTextNotifications[message.iccId] = new Notification(
       text, {
