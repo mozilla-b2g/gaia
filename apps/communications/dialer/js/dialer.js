@@ -275,8 +275,8 @@ var CallHandler = (function callHandler() {
     var incoming = data.direction === 'incoming';
 
     NavbarManager.ensureResources(function() {
-      // Missed call
-      if (incoming && !data.duration) {
+      // Missed call when not rejected by user
+      if(incoming && !data.duration && !data.hangUpLocal) {
         sendNotification(number, data.serviceId);
       }
 
