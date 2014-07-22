@@ -467,10 +467,14 @@ var NotificationScreen = {
 
       if (this.vibrates) {
         if (document.hidden) {
-          window.addEventListener('visibilitychange', function waitOn() {
-            window.removeEventListener('visibilitychange', waitOn);
-            navigator.vibrate([200, 200, 200, 200]);
-          });
+           // bug 1030310: disable vibration for the email app when asleep
+          if (!detail.manifestURL ||
+              detail.manifestURL.indexOf('email.gaiamobile.org') === -1) {
+            window.addEventListener('visibilitychange', function waitOn() {
+              window.removeEventListener('visibilitychange', waitOn);
+              navigator.vibrate([200, 200, 200, 200]);
+            });
+          }
         } else {
           navigator.vibrate([200, 200, 200, 200]);
         }
