@@ -944,5 +944,41 @@ suite('LayoutManager', function() {
         done();
       });
     });
+
+    test('needsCommaKey', function(done) {
+      app.getBasicInputType.returns('text');
+      app.supportsSwitching.returns(true);
+      spaceLayout.needsCommaKey = true;
+
+      manager.switchCurrentLayout('spaceLayout').then(function() {
+        assert.deepEqual(manager.currentLayout, spaceLayout,
+          'Original layout not touched.');
+
+        var expectedModifiedLayout = {
+          layoutName: 'spaceLayout',
+          alternativeLayoutName: '',
+          keys: [ [ { value: 'S' } ],
+                  [ { keyCode: manager.KEYCODE_ALTERNATE_LAYOUT,
+                      value: '12&',
+                      ratio: 1.5,
+                      ariaLabel: 'alternateLayoutKey',
+                      className: 'switch-key' },
+                    { value: '&#x1f310;',
+                      ratio: 1,
+                      keyCode: -3,
+                      className: 'switch-key' },
+                    { value: ',', ratio: 1, keyCode: 44 },
+                    { ratio: 5.5 },
+                    { value: '.', ratio: 1, keyCode: 46 } ] ] };
+
+        assert.deepEqual(manager.currentModifiedLayout, expectedModifiedLayout);
+        assert.equal(manager.currentModifiedLayout.__proto__,
+          spaceLayout, 'proto is set correctly for layout.');
+        assert.equal(manager.currentModifiedLayout.keys[1][3].__proto__,
+          spaceLayout.keys[1][0], 'proto is set correctly for space key.');
+
+        done();
+      });
+    });
   });
 });
