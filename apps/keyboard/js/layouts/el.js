@@ -47,6 +47,8 @@ Keyboards['el-sms'] = {
   label: 'Greek SMS',
   menuLabel: 'Ελληνικό για SMS',
   imEngine: 'latin',
+  // No autocorrect for this layout
+  // autoCorrectLanguage: undefined,
   alt: {
     '.': ',?!;:'
   },

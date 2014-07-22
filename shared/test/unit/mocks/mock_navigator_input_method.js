@@ -158,7 +158,8 @@
   MockInputMethodManager.prototype.hide = function() {
   };
 
-  MockInputMethodManager.prototype.supportSwitching = false;
+  MockInputMethodManager.prototype.supportsSwitching = function() {
+  };
 
   exports.MockInputMethodManager = MockInputMethodManager;
   exports.MockInputMethod = MockInputMethod;

@@ -131,19 +131,19 @@ class Keyboard(Base):
 
     @property
     def _is_upper_case(self):
-        return self.marionette.execute_script('return window.wrappedJSObject.upperCaseStateManager.isUpperCase;')
+        return self.marionette.execute_script('return window.wrappedJSObject.app.upperCaseStateManager.isUpperCase;')
 
     @property
     def _is_upper_case_locked(self):
-        return self.marionette.execute_script('return window.wrappedJSObject.upperCaseStateManager.isUpperCaseLocked;')
+        return self.marionette.execute_script('return window.wrappedJSObject.app.upperCaseStateManager.isUpperCaseLocked;')
 
     @property
     def _current_input_type(self):
-        return self.marionette.execute_script('return window.wrappedJSObject.fakeAppObject.getBasicInputType();')
+        return self.marionette.execute_script('return window.wrappedJSObject.app.getBasicInputType();')
 
     @property
     def _layout_page(self):
-        return self.marionette.execute_script('return window.wrappedJSObject.layoutManager.currentLayoutPage;')
+        return self.marionette.execute_script('return window.wrappedJSObject.app.layoutManager.currentLayoutPage;')
 
     # this is to switch to the frame of keyboard
     def switch_to_keyboard(self):

@@ -11,7 +11,9 @@ suite('VisualHighlightManager', function() {
 
   setup(function() {
     app = {
-      isCapitalized: this.sinon.stub()
+      upperCaseStateManager: {
+        isUpperCase: false
+      }
     };
 
     // Create fake IMERender
@@ -35,7 +37,6 @@ suite('VisualHighlightManager', function() {
   });
 
   test('show (lower case)', function() {
-    app.isCapitalized.returns(false);
     manager.show(target);
 
     assert.isTrue(window.IMERender.highlightKey
@@ -43,7 +44,7 @@ suite('VisualHighlightManager', function() {
   });
 
   test('show (upper case)', function() {
-    app.isCapitalized.returns(true);
+    app.upperCaseStateManager.isUpperCase = true;
     manager.show(target);
 
     assert.isTrue(window.IMERender.highlightKey
@@ -55,7 +56,7 @@ suite('VisualHighlightManager', function() {
 
     var target2 = {};
 
-    app.isCapitalized.returns(false);
+    app.upperCaseStateManager.isUpperCase = false;
     manager.show(target2);
 
     assert.isTrue(window.IMERender.unHighlightKey.calledWith(target),

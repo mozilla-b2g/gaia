@@ -28,7 +28,7 @@ VisualHighlightManager.prototype.show = function(target) {
     IMERender.unHighlightKey(target);
   }, this);
 
-  var showUpperCase = this.app.isCapitalized();
+  var showUpperCase = this.app.upperCaseStateManager.isUpperCase;
   IMERender.highlightKey(target, { showUpperCase: showUpperCase });
 };
 
