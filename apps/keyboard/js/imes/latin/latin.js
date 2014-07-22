@@ -203,6 +203,12 @@
       inputContext.addEventListener('selectionchange', this);
     }
 
+    // Some layouts (like French) need to disable punctuation autocorrection
+    // all the time.
+    if (!options.correctPunctuation) {
+      punctuating = false;
+    }
+
     // Reset our state
     lastSpaceTimestamp = 0;
     autoCorrection = null;

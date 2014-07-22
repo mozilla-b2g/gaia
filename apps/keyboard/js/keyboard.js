@@ -584,7 +584,11 @@ function switchIMEngine(mustRender) {
     perfTimer.printTime('switchIMEngine:dataPromise resolved');
     var inputContext = fakeAppObject.inputContext;
 
-    // Resolve to this array
+    var autoCorrectPunctuation = ('autoCorrectPunctuation' in layout) ?
+      layout.autoCorrectPunctuation :
+      true;
+
+    // Resolve to this arrays
     return [
       layout.autoCorrectLanguage,
       {
@@ -597,7 +601,8 @@ function switchIMEngine(mustRender) {
       },
       {
         suggest: values[1].suggestionsEnabled && !isGreekSMS(),
-        correct: values[1].correctionsEnabled && !isGreekSMS()
+        correct: values[1].correctionsEnabled && !isGreekSMS(),
+        correctPunctuation: autoCorrectPunctuation
       }
     ];
   }, function(error) {
