@@ -351,7 +351,8 @@
     }
     this.debug(' ...revived!');
     this.browser = new self.BrowserFrame(this.browser_config);
-    this.element.appendChild(this.browser.element);
+    var container = this._createBrowserContainer(this.browser.element);
+    this.element.appendChild(container);
     this.iframe = this.browser.element;
     this.launchTime = Date.now();
     this.suspended = false;
@@ -373,7 +374,7 @@
     this.loaded = false;
     this.suspended = true;
     this.element.classList.add('suspended');
-    this.element.removeChild(this.browser.element);
+    this.element.removeChild(this.browser.element.parentNode);
     this.browser = null;
     this.publish('suspended');
   };
@@ -548,7 +549,8 @@
       this.element.classList.add('fullscreen-app');
     }
 
-    this.element.appendChild(this.browser.element);
+    var container = this._createBrowserContainer(this.browser.element);
+    this.element.appendChild(container);
 
     // Intentional! The app in the iframe gets two resize events when adding
     // the element to the page (see bug 1007595). The first one is incorrect,
@@ -593,6 +595,15 @@
     this.installSubComponents();
     // Pre determine the rotation degree.
     this.determineRotationDegree();
+  };
+
+  AppWindow.prototype._createBrowserContainer =
+    function aw_createBrowserContainer(iframe) {
+    var container = document.createElement('div');
+    container.className = 'browser-container';
+    container.scrollgrab = true;
+    container.appendChild(iframe);
+    return container;
   };
 
   /**
