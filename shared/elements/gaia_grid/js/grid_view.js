@@ -3,6 +3,7 @@
 /* global GaiaGrid */
 /* global GridLayout */
 /* global GridZoom */
+/* global LazyLoader */
 
 (function(exports) {
 
@@ -20,10 +21,6 @@
 
     if (config.features.zoom) {
       this.zoom = new GridZoom(this);
-    }
-
-    if (config.features.dragdrop) {
-      this.dragdrop = new GridDragDrop(this);
     }
 
     this.layout = new GridLayout(this);
@@ -394,6 +391,12 @@
 
       this.element.setAttribute('cols', this.layout.cols);
       pendingCachedIcons === 0 && onCachedIconRendered();
+
+      if (!this.dragdrop && this.config.features.dragdrop) {
+        LazyLoader.load('shared/elements/gaia_grid/js/grid_dragdrop.js', () => {
+          this.dragdrop = new GridDragDrop(this);
+        });
+      }
     }
   };
 
