@@ -151,9 +151,14 @@ suite('wifi > ', function() {
     });
 
     test('none available', function(done) {
+      var noNetworks = [];
+      MockNavigatorMozWifiManager.setNetworks(noNetworks);
       WifiManager.scan(function(networks) {
         assert.ok(showOverlayStub.calledOnce, 'shows loading overlay');
-        assert.isUndefined(networks, 'return zero networks');
+        assert.equal(networks.length, noNetworks.length,
+          'return zero networks');
+        assert.isDefined(document.getElementById('no-result-container'),
+          'show no networks message');
         done();
       });
     });

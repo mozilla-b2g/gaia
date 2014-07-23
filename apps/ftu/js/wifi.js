@@ -293,7 +293,8 @@ var WifiUI = {
     var networksDOM = document.getElementById('networks');
     networksDOM.innerHTML = '';
     var networksList;
-    if (!networks) {
+
+    if (!networks || networks.length === 0) {
       var noResult = '<div id="no-result-container">' +
                      '  <div id="no-result-message">' +
                      '    <p>' + _('noWifiFound3') + '</p>' +
