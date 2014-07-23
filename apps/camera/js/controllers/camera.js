@@ -361,7 +361,7 @@ CameraController.prototype.onBatteryStatusChange = function(status) {
  * @param  {String} value  ['nospace'|'shared'|'unavailable'|'available']
  */
 CameraController.prototype.onStorageStateChange = function(value) {
-  if (value === 'shared' && this.camera.get('recording')) {
+  if (this.camera.get('recording')) {
     this.camera.stopRecording();
   }
 };
