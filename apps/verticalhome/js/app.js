@@ -7,6 +7,7 @@
   const HIDDEN_ROLES = ['system', 'input', 'homescreen', 'search'];
 
   function App() {
+    window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
     this.scrollable = document.querySelector('.scrollable');
     this.grid = document.getElementById('icons');
 
@@ -31,6 +32,8 @@
     // some terrible glue to keep track of which icons failed to download
     // and should be retried when/if we come online again.
     this._iconsToRetry = [];
+
+    window.dispatchEvent(new CustomEvent('moz-chrome-interactive'));
   }
 
   App.prototype = {
@@ -95,11 +98,17 @@
           }.bind(this));
         }
 
+        window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
+        window.dispatchEvent(new CustomEvent('moz-content-interactive'));
+
         window.addEventListener('localized', this.onLocalized.bind(this));
         LazyLoader.load(['shared/style/headers.css',
                          '/shared/js/font_size_utils.js',
                          'js/contextmenu_handler.js',
-                         '/shared/js/homescreens/confirm_dialog_helper.js']);
+                         '/shared/js/homescreens/confirm_dialog_helper.js'],
+          function() {
+            window.dispatchEvent(new CustomEvent('moz-app-loaded'));
+          });
       }.bind(this));
     },
 
