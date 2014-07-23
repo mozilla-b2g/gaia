@@ -739,8 +739,6 @@ suite('Utils', function() {
       'default_quality_resized.jpg': null
     };
 
-    this.timeout(5000);
-
     suiteSetup(function(done) {
       // load test blobs for image resize testing
       var assetsNeeded = 0;
