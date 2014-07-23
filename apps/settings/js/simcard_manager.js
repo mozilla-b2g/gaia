@@ -358,6 +358,7 @@
           var iccId = conns[i].iccId;
           this.updateCardStateWithUI(i, iccId);
         }
+        this.updateSelectOptionsUI();
       }.bind(this));
     },
     addChangeEventOnIccByIccId: function(iccId) {

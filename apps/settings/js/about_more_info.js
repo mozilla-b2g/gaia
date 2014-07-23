@@ -174,8 +174,12 @@ var AboutMoreInfo = {
     Array.prototype.forEach.call(conns, function(conn, index) {
       var span = document.createElement('span');
       if (conn.iccId) {
-        span.textContent = multiSim ?
-          'SIM ' + (index + 1) + ': ' + conn.iccId : conn.iccId;
+        if (multiSim) {
+          navigator.mozL10n.localize(span,
+            'deviceInfo-ICCID-sim', { index: index + 1, number: conn.iccId });
+        } else {
+          span.textContent = conn.iccId;
+        }
       } else {
         if (multiSim) {
           navigator.mozL10n.localize(span,

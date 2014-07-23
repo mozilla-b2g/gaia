@@ -30,7 +30,7 @@
     this.enabled = false;
     this.absent = false;
     this.locked = false;
-    this.name = 'SIM ' + (this.cardIndex + 1);
+    this.name = '';
     this.number = '';
     this.operator = '';
   };
@@ -46,10 +46,10 @@
       keys.forEach(function(key) {
         info[key] = this[key];
       }.bind(this));
-
       return info;
     },
     setState: function(key, options) {
+      this.name = _('sim' + (this.cardIndex + 1));
       switch (key) {
         case 'nosim':
           this.enabled = false;
