@@ -231,7 +231,7 @@
     },
 
     /**
-     * Processes all pending collections and adds them to the grid. 
+     * Processes all pending collections and adds them to the grid.
      */
     processPending: function() {
       // An ordered array of detail objects.
