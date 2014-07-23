@@ -37,11 +37,14 @@ var Wallpaper = {
       self.wallpapers.innerHTML = '';
       xhr.response.forEach(function(wallpaper) {
         var fileName = 'resources/' + wallpaper;
-        var div = document.createElement('div');
-        div.classList.add('wallpaper');
-        div.dataset.filename = fileName;
-        div.style.backgroundImage = 'url(' + fileName + sampleSize + ')';
-        self.wallpapers.appendChild(div);
+        // Use image tag instead of backgroundImage because gecko handles
+        // memory for off-screen images better
+        var imgNode = document.createElement('img');
+        imgNode.alt = '';
+        imgNode.classList.add('wallpaper');
+        imgNode.dataset.filename = fileName;
+        imgNode.src = fileName + sampleSize;
+        self.wallpapers.appendChild(imgNode);
       });
       if (cb) {
         cb();
