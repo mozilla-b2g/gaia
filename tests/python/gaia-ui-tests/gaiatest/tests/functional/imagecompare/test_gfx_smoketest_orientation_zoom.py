@@ -91,6 +91,7 @@ class TestGfxSmokeTestOZ(GaiaTestCase):
         self.graphics.invoke_screen_capture()
         self.device.change_orientation('portrait-primary')
         self.apps.kill(gallery.app)
+	time.sleep(5)
         self.graphics.invoke_screen_capture()
 
         # Kill gallery, launch browser.  Go to Mozilla FirefoxOS site
@@ -99,7 +100,7 @@ class TestGfxSmokeTestOZ(GaiaTestCase):
         browser.launch()
 
         browser.go_to_url('http://mozilla.org/firefoxos')
-        time.sleep(10)
+        time.sleep(15)
         self.graphics.scroll(self.marionette,browser._main_screen_locator,'up',7)
         self.graphics.invoke_screen_capture()
         self.graphics.scroll(self.marionette,browser._main_screen_locator,'up',1)

@@ -137,9 +137,9 @@ class ImageCompareUtil():
             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out, err = p.communicate()
         p.wait()
-
-        if err != '0':
-            print '\nWARNING: ' + err + ' pixels mismatched between ' + target_img + ' and ' + ref_img
+	
+        if err != '0\n':
+	   print '\nWARNING: ' + err + ' pixels mismatched between ' + target_img + ' and ' + ref_img
             #raise self.ImageMismatchError(err, target_img,ref_img) #Enable this line instead if exception is needed
 
     #do batch image compare- pick images with specified module name and compare against ref images
