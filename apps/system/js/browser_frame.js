@@ -82,6 +82,12 @@
     this.config = config;
 
     this.element = browser;
+
+    var container = document.createElement('div');
+    container.className = 'browser-container';
+    container.scrollgrab = true;
+    container.appendChild(browser);
+    this.container = container;
   };
 
   function setMozAppType(iframe, config) {

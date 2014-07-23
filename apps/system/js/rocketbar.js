@@ -15,7 +15,6 @@
     // States
     this.enabled = false;
     this.expanded = false;
-    this.transitioning = false;
     this.focused = false;
     this.active = false;
     this.onHomescreen = false;
@@ -25,6 +24,8 @@
     // Properties
     this._port = null; // Inter-app communications port
     this._touchStart = -1;
+    this._wasExpanded = false; // Remember if the rocketbar was expanded before
+                               // activation.
     this._wasClicked = false; // Remember when transition triggered by a click
     this._pendingMessage = null;
 
@@ -72,20 +73,6 @@
      * @memberof Rocketbar.prototype
      */
     EXPANSION_THRESHOLD: 5,
-
-    /**
-     * How many pixels of scroll triggers expand
-     * @type {Number}
-     * @memberof Rocketbar.prototype
-     */
-    SCROLL_THRESHOLD: 5,
-
-    /**
-     * Current scroll position of the app window.
-     * @type {Number}
-     * @memberof Rocketbar.prototype
-     */
-    currentScrollPosition: 0,
 
     /**
      * Starts Rocketbar.
@@ -159,6 +146,9 @@
       this.blur();
       this.screen.classList.remove('rocketbar-focused');
       window.dispatchEvent(new CustomEvent('rocketbar-overlayclosed'));
+      if (!this._wasExpanded) {
+        this.collapse();
+      }
       if (this.onHomescreen) {
         this.enterHome();
       }
@@ -340,7 +330,7 @@
      * @memberof Rocketbar.prototype
      */
     expand: function() {
-      if (this.expanded || this.transitioning) {
+      if (this.expanded) {
         return;
       }
 
@@ -350,7 +340,6 @@
         return;
       }
 
-      this.transitioning = true;
       this.rocketbar.classList.add('expanded');
       this.screen.classList.add('rocketbar-expanded');
       this.expanded = true;
@@ -361,26 +350,24 @@
      * @memberof Rocketbar.prototype
      */
     collapse: function() {
-      if (!this.expanded || this.transitioning) {
+      if (!this.expanded) {
         return;
       }
 
-      this.transitioning = true;
       this.expanded = false;
       this.rocketbar.classList.remove('expanded');
       this.screen.classList.remove('rocketbar-expanded');
-      this.exitHome();
       this.hideResults();
       this.deactivate();
     },
 
 
     show: function() {
-      this.rocketbar.style.display = 'block';
+      this.rocketbar.classList.remove('hidden');
     },
 
     hide: function() {
-      this.rocketbar.style.display = 'none';
+      this.rocketbar.classList.add('hidden');
     },
 
     /**
@@ -392,12 +379,11 @@
       if (this.onHomescreen) {
         return;
       }
-      this.onHomescreen = true;
-      if (!this.expanded) {
-        this.expand();
+      if (this.expanded) {
+        this.collapse();
       }
-      this.clear();
       this.disableNavigation();
+      this.onHomescreen = true;
     },
 
     /**
@@ -406,9 +392,6 @@
      */
     exitHome: function() {
       this.show();
-      if (!this.onHomescreen) {
-        return;
-      }
       this.onHomescreen = false;
     },
 
@@ -595,17 +578,17 @@
      * @memberof Rocketbar.prototype
      */
     handleScroll: function(e) {
-      if (e.detail.manifestURL) {
+      if (!e.detail.scrollMax[1]) {
         return;
       }
-      if (this.expanded && !this.focused &&
-          e.detail.scrollPosition > this.currentScrollPosition) {
+
+      if (e.detail.scrollPosition[1] >= e.detail.scrollMax[1]) {
         this.collapse();
-      } else if (!this.expanded && e.detail.scrollPosition <
-        (this.currentScrollPosition - this.SCROLL_THRESHOLD)) {
+      } else if (e.detail.scrollPosition[1] <=
+                 Math.max(0, e.detail.scrollMax[1] -
+                          this.EXPANSION_THRESHOLD)) {
         this.expand();
       }
-      this.currentScrollPosition = e.detail.scrollPosition;
     },
 
     /**
@@ -652,21 +635,23 @@
           dy = parseInt(e.touches[0].pageY) - parseInt(this._touchStart);
           if (dy > this.EXPANSION_THRESHOLD) {
             this.expand();
-          } else if (dy < (this.EXPANSION_THRESHOLD * -1) &&
-            !this.onHomescreen) {
+          } else if (dy < -this.EXPANSION_THRESHOLD) {
             this.collapse();
           }
           break;
         case 'touchend':
           dy = parseInt(e.changedTouches[0].pageY) -
             parseInt(this._touchStart);
-          if (dy > (this.EXPANSION_THRESHOLD * -1) &&
+          if (dy > -this.EXPANSION_THRESHOLD &&
               dy < this.EXPANSION_THRESHOLD) {
             this.handleClick();
           }
           this._touchStart = -1;
           break;
       }
+
+      e.stopImmediatePropagation();
+      e.preventDefault();
     },
 
     /**
@@ -674,6 +659,7 @@
      * @memberof Rocketbar.prototype
      */
     handleClick: function() {
+      this._wasExpanded = true;
       if (this.active) {
         this.focus();
         return;
@@ -683,6 +669,7 @@
           this.focus();
         }).bind(this));
       } else {
+        this._wasExpanded = false;
         this._wasClicked = true;
         this.expand();
       }
@@ -693,12 +680,14 @@
      * @memberof Rocketbar.prototype
      */
     handleTransitionEnd: function() {
-      this.transitioning = false;
       if (this.expanded && this._wasClicked) {
         this.activate((function() {
           this.focus();
         }).bind(this));
         this._wasClicked = false;
+      }
+      if (this.onHomescreen) {
+        this.clear();
       }
     },
 

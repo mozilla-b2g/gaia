@@ -17,8 +17,6 @@ var UtilityTray = {
 
   statusbar: document.getElementById('statusbar'),
 
-  statusbarIcons: document.getElementById('statusbar-icons'),
-
   grippy: document.getElementById('utility-tray-grippy'),
 
   screen: document.getElementById('screen'),
@@ -26,8 +24,7 @@ var UtilityTray = {
   init: function ut_init() {
     var touchEvents = ['touchstart', 'touchmove', 'touchend'];
     touchEvents.forEach(function bindEvents(name) {
-      this.overlay.addEventListener(name, this);
-      this.statusbarIcons.addEventListener(name, this);
+      this.statusbar.addEventListener(name, this);
       this.grippy.addEventListener(name, this);
     }, this);
 
@@ -116,31 +113,26 @@ var UtilityTray = {
           return;
         }
 
-        if (target !== this.overlay && target !== this.grippy &&
-            evt.currentTarget !== this.statusbarIcons) {
-          return;
-        }
-
-        if (target === this.statusbarIcons || target === this.grippy) {
-          evt.preventDefault();
-        }
+        evt.preventDefault();
 
         this.onTouchStart(evt.touches[0]);
         break;
 
       case 'touchmove':
-        if (target === this.statusbarIcons || target === this.grippy) {
-          evt.preventDefault();
+        if (window.System.locked) {
+          return;
         }
 
+        evt.preventDefault();
         this.onTouchMove(evt.touches[0]);
         break;
 
       case 'touchend':
-        if (target === this.statusbarIcons || target === this.grippy) {
-          evt.preventDefault();
+        if (window.System.locked) {
+          return;
         }
 
+        evt.preventDefault();
         evt.stopImmediatePropagation();
         var touch = evt.changedTouches[0];
 

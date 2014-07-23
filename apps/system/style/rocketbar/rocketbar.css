@@ -4,9 +4,16 @@
   height: 4.6rem;
   left: 0;
   top: 0;
-  transition: transform 0.5s;
+  transition: transform 0.5s, opacity 0.5s;
   transform: scale(0.5);
   transform-origin: left top;
+}
+
+#rocketbar.hidden,
+#screen.locked:not(.attention) #rocketbar,
+#screen.utility-tray #rocketbar {
+  opacity: 0;
+  pointer-events: none;
 }
 
 /* RTL fixes being tracked in bug 1008013 */
@@ -16,14 +23,6 @@
 
 #rocketbar.active {
   transform: scale(1);
-}
-
-#screen.locked:not(.attention) #rocketbar {
-  display: none;
-}
-
-body:not(.rb-enabled) #rocketbar {
-  display: none;
 }
 
 #rocketbar-title, #rocketbar-form {
@@ -56,21 +55,14 @@ body:not(.rb-enabled) #rocketbar {
 }
 
 #rocketbar-title-content {
-  font-size: 1.8rem;
+  font-size: 2.4rem;
   font-style: italic;
   font-weight: 300;
-  transform: scale(1.33);
-  transform-origin: left center;
-  transition: transform 0.5s;
   overflow: hidden;
 }
 
-*[dir=rtl] #rocketbar-title-content {
-  transform-origin: right center;
-}
-
-#rocketbar.expanded #rocketbar-title-content {
-  transform: scale(1);
+#rocketbar.expanded {
+  transform: translateY(2.4rem) scale(1);
 }
 
 #rocketbar-input {
@@ -100,6 +92,7 @@ body:not(.rb-enabled) #rocketbar {
   flex: none;
 }
 
+body:not(.rb-enabled) #rocketbar,
 #rocketbar-clear {
   display: none;
 }
