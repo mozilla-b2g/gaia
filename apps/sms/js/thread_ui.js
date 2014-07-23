@@ -533,12 +533,14 @@ var ThreadUI = global.ThreadUI = {
   },
 
   showMaxLengthNotice: function thui_showMaxLengthNotice(l10nKey) {
+    Compose.lock = true;
     navigator.mozL10n.localize(
       this.maxLengthNotice.querySelector('p'), l10nKey);
     this.maxLengthNotice.classList.remove('hide');
   },
 
   hideMaxLengthNotice: function thui_hideMaxLengthNotice() {
+    Compose.lock = false;
     this.maxLengthNotice.classList.add('hide');
   },
 
@@ -1227,17 +1229,14 @@ var ThreadUI = global.ThreadUI = {
 
     if (Settings.mmsSizeLimitation) {
       if (Compose.size > Settings.mmsSizeLimitation) {
-        Compose.lock = true;
         this.showMaxLengthNotice('message-exceeded-max-length');
         return false;
       } else if (Compose.size === Settings.mmsSizeLimitation) {
-        Compose.lock = true;
         this.showMaxLengthNotice('messages-max-length-text');
         return true;
       }
     }
 
-    Compose.lock = false;
     this.hideMaxLengthNotice();
     return true;
   },
