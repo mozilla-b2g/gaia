@@ -43,13 +43,6 @@ section[role="region"] > header:first-child form {
   display: none;
 }
 
-/* TODO: Move this into the shared building block
- * if we use the icon in more places
- */
-section[role="region"] > header:first-child .icon.icon-attachment {
-  background-image: url(images/icons/attachments.png);
-}
-
 /* Override Building Block [Imput areas] styles */
 form.bottom[role="search"] {
   z-index: 3;
@@ -831,7 +824,6 @@ section[role="region"].new .article-list[data-type="list"]  li {
 
 /* Elements related to information view */
 section[role="region"][class$='information'] #messages-options-icon,
-section[role="region"][class$='information'] #messages-attach-button,
 section[role="region"][class$='information'] #messages-subheader,
 section[role="region"][class$='information'] #messages-container,
 section[role="region"][class$='information'] #messages-compose-form {

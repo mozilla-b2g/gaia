@@ -190,8 +190,6 @@ form[role="search"] button[type="submit"]:after {
   position: relative;
   min-height: 4rem;
   min-width: 0;
-
-  margin-left: 1.5rem;
 }
 
 .subject-input-visible .composer-message-complete:before {
@@ -284,6 +282,20 @@ form[role="search"] button[type="submit"]:after {
 
 [data-message-type='sms'].subject-input-visible .has-counter:after {
   top: 3rem;
+}
+
+#messages-attach-button {
+  align-self: flex-end;
+  flex: none;
+
+  box-sizing: content-box;
+  width: 3rem;
+  margin: 0;
+  padding: 0 1rem 0 0.5rem;
+
+  background: transparent
+              url('images/icons/actionicon_sms_add_attachment_30x30.png')
+              no-repeat center;
 }
 
 /*
