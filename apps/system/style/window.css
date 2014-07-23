@@ -171,7 +171,6 @@
   animation: closeAppTowardsTaskManager 0.15s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
-
 @keyframes closeApp {
   0%   { transform: scale(1.0); opacity: 1;}
   100% { transform: scale(0.01); opacity: 0;}
@@ -539,6 +538,12 @@
 #screen #windows > .appWindow.outside-edges-right {
   opacity: 1;
   transform: translateX(calc(100% + 2rem));
+}
+
+@media (orientation: landscape) {
+  #screen.software-button-enabled #windows > .appWindow.outside-edges-right {
+    transform: translateX(calc(100% + 5rem));
+  }
 }
 
 #windows .appWindow.active iframe {
