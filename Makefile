@@ -65,6 +65,9 @@ MAKEFLAGS=-r
 
 -include local.mk
 
+TEST_FILES=apps/search/test/marionette/app_search_test.js
+VERBOSE=1
+
 # Headless bot does not need the full output of wget
 # and it can cause crashes in bot.io option is here so
 # -nv can be passed and turn off verbose output.
