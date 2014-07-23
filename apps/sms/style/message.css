@@ -152,11 +152,11 @@
 .message .download {
   display: block;
 
-  height: 3.2rem;
+  min-height: initial;
   width: auto;
   padding: 0;
   /* Eliminating container paragraph line-height */
-  margin-top: -2rem;
+  margin-top: -1rem;
 
   background: none;
   border: none;
@@ -177,5 +177,5 @@
 }
 
 .message.pending .download {
-  border-bottom: none;
+  border-color: transparent;
 }
