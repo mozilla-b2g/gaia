@@ -904,5 +904,18 @@ suite('system/Rocketbar', function() {
     assert.ok(focusStub.calledOnce);
     focusStub.restore();
   });
+
+  test('focus on render after a tick', function() {
+    this.sinon.useFakeTimers();
+    var focusStub = this.sinon.stub(subject, 'focus');
+
+    subject.activate();
+    subject.active = true;
+    subject.handleSearchMessage({detail: {action: 'render'}});
+
+    sinon.assert.notCalled(focusStub);
+    this.sinon.clock.tick(1);
+    sinon.assert.calledOnce(focusStub);
+  });
 });
 

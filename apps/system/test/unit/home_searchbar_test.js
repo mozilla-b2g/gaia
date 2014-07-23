@@ -1,7 +1,6 @@
 'use strict';
-/* global HomeSearchbar, Rocketbar, MocksHelper, AttentionScreen */
+/* global HomeSearchbar, Rocketbar, MocksHelper */
 
-requireApp('system/test/unit/mock_attention_screen.js');
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_search_window.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
@@ -13,7 +12,6 @@ requireApp('system/js/rocketbar.js');
 var mocksForRocketbar = new MocksHelper([
   'AppWindow',
   'AppWindowManager',
-  'AttentionScreen',
   'SearchWindow',
   'SettingsListener',
   'SettingsURL',
@@ -237,20 +235,29 @@ suite('system/HomeSearchbar', function() {
       });
     });
 
-    test('iac-search-results with attention screen', function() {
-      AttentionScreen.mVisible = true;
-      var maximizeStub = this.sinon.stub(AttentionScreen, 'maximize');
-      var searchStub = this.sinon.stub(Rocketbar.prototype,
-                                       'handleSearchMessage');
+    test('status-inactive', function() {
+      this.sinon.stub(subject._port, 'postMessage');
+      subject.stop();
+      subject.expand();
 
-      subject.handleEvent({
-        type: 'iac-search-results'
+      var assertStubs = [
+        this.sinon.stub(subject, 'exitHome'),
+        this.sinon.stub(subject, 'hideResults'),
+        this.sinon.stub(subject, 'deactivate')
+      ];
+
+      assert.ok(subject.screen.classList.contains('rocketbar-expanded'));
+      assert.ok(subject.rocketbar.classList.contains('expanded'));
+
+      window.dispatchEvent(new CustomEvent('status-inactive'));
+
+      assert.ok(!subject.screen.classList.contains('rocketbar-expanded'));
+      assert.ok(!subject.rocketbar.classList.contains('expanded'));
+
+      assertStubs.forEach(function(stub) {
+        assert.ok(stub.calledOnce);
       });
-
-      assert.isTrue(maximizeStub.calledOnce);
-      assert.isFalse(searchStub.calledOnce);
     });
-
   });
 });
 
