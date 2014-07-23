@@ -322,6 +322,51 @@ InputMethodManager.prototype.start = function() {
   this.currentIMEngine = this.loader.getInputMethod('default');
 
   this._switchStateId = 0;
+  this._inputContextData = null;
+};
+
+/*
+ * When the inputcontext is ready, the layout might not be ready yet so it's
+ * not known which IMEngine we should switch to.
+ * However, before that, updateInputContextData() can be called to update
+ * the data needs to activate the IMEngine.
+ */
+InputMethodManager.prototype.updateInputContextData = function() {
+  // Do nothing if there is already a promise or there is no inputContext
+  if (!this.app.inputContext || this._inputContextData) {
+    return;
+  }
+
+  var p = this.app.inputContext.getText().then(function(value) {
+    this.app.perfTimer.printTime('updateInputContextData:promise resolved');
+    var inputContext = this.app.inputContext;
+
+    // Resolve to this object containing information of inputContext
+    return {
+      type: inputContext.inputType,
+      inputmode: inputContext.inputMode,
+      selectionStart: inputContext.selectionStart,
+      selectionEnd: inputContext.selectionEnd,
+      value: value,
+      inputContext: inputContext
+    };
+  }.bind(this), function(error) {
+    console.warn('InputMethodManager: inputcontext.getText() was rejected.');
+    var inputContext = this.app.inputContext;
+
+    // Resolve to this object containing information of inputContext
+    // With empty string as value.
+    return {
+      type: inputContext.inputType,
+      inputmode: inputContext.inputMode,
+      selectionStart: inputContext.selectionStart,
+      selectionEnd: inputContext.selectionEnd,
+      value: '',
+      inputContext: inputContext
+    };
+  }.bind(this));
+
+  this._inputContextData = p;
 };
 
 /*
@@ -332,15 +377,22 @@ InputMethodManager.prototype.start = function() {
  * Before the promise resolves (when the IM is active), the currentIMEngine
  * will be the default IMEngine so we won't block keyboard rendering.
  *
- * The actual IMEngine will not be switched and activated until dataPromise
- * resolves, if it has an activate method.
- *
  */
-InputMethodManager.prototype.switchCurrentIMEngine = function(imEngineName,
-                                                              dataPromise) {
+InputMethodManager.prototype.switchCurrentIMEngine = function(imEngineName) {
   var switchStateId = ++this._switchStateId;
 
-  dataPromise = dataPromise || Promise.resolve();
+  // dataPromise is the one we previously created with updateInputContextData()
+  var dataPromise = this._inputContextData;
+
+  // Unset the used promise so it will get filled when
+  // updateInputContextData() is called.
+  this._inputContextData = null;
+
+  if (!dataPromise) {
+    console.warn('InputMethodManager: switchCurrentIMEngine() called ' +
+      'without calling updateInputContextData() first.');
+  }
+
   // Deactivate and switch the currentIMEngine to 'default' first.
   if (this.currentIMEngine && this.currentIMEngine.deactivate) {
     this.currentIMEngine.deactivate();
@@ -365,7 +417,6 @@ InputMethodManager.prototype.switchCurrentIMEngine = function(imEngineName,
     }
 
     var imEngine = values[0];
-
     if (typeof imEngine.activate === 'function') {
       var dataValues = values[1];
       var settingsValues = values[2];
@@ -379,7 +430,6 @@ InputMethodManager.prototype.switchCurrentIMEngine = function(imEngineName,
       );
     }
     this.currentIMEngine = imEngine;
-
     // resolve to undefined
     return;
   }.bind(this), function(error) {

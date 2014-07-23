@@ -1,10 +1,11 @@
 'use strict';
 
 /* global InputMethodGlue, InputMethodLoader, InputMethodManager,
-          IMEngineSettings, Promise, KeyEvent */
+          PerformanceTimer, IMEngineSettings, KeyEvent, Promise */
 
 require('/js/keyboard/settings.js');
 require('/js/keyboard/input_method_manager.js');
+require('/js/keyboard/performance_timer.js');
 
 suite('InputMethodGlue', function() {
   test('init', function() {
@@ -367,6 +368,7 @@ suite('InputMethodManager', function() {
   var imEngineSettingsStub;
   var app;
   var initSettingsPromise;
+  var manager;
 
   suiteSetup(function() {
     realInputMethods = window.InputMethods;
@@ -391,36 +393,40 @@ suite('InputMethodManager', function() {
         currentModifiedLayout: {
           autoCorrectLanguage: 'xx-XX'
         }
+      },
+      perfTimer: this.sinon.stub(PerformanceTimer.prototype),
+      inputContext: {
+        inputType: 'text',
+        inputMode: '',
+        selectionStart: 0,
+        selectionEnd: 0,
+        getText: this.sinon.stub()
       }
     };
-  });
 
-  test('start', function() {
     window.InputMethods = {
       'default': realInputMethods['default']
     };
 
-    var manager = new InputMethodManager(app);
+    manager = new InputMethodManager(app);
     manager.start();
+    manager.loader.SOURCE_DIR = './fake-imes/';
 
     assert.equal(manager.loader.app, manager.app);
     assert.isTrue(!!manager.currentIMEngine, 'started with default IMEngine.');
   });
 
   test('switchCurrentIMEngine', function(done) {
-    window.InputMethods = {
-      'default': realInputMethods['default']
-    };
+    app.inputContext.getText.returns(Promise.resolve('foobar'));
 
-    var manager = new InputMethodManager(app);
-    manager.start();
-    manager.loader.SOURCE_DIR = './fake-imes/';
+    manager.updateInputContextData();
+    assert.isTrue(app.inputContext.getText.calledOnce);
 
-    var dataPromise = Promise.resolve({
-      value: 'data'
-    });
+    manager.updateInputContextData();
+    assert.isTrue(app.inputContext.getText.calledOnce,
+      'Should not getText() twice if we have already do so.');
 
-    var p = manager.switchCurrentIMEngine('foo', dataPromise);
+    var p = manager.switchCurrentIMEngine('foo');
     p.then(function() {
       assert.isTrue(true, 'resolved');
       var imEngine = manager.loader.getInputMethod('foo');
@@ -429,7 +435,12 @@ suite('InputMethodManager', function() {
 
       var activateStub = imEngine.activate;
       assert.isTrue(activateStub.calledWithExactly('xx-XX', {
-        value: 'data'
+        type: 'text',
+        inputmode: '',
+        selectionStart: 0,
+        selectionEnd: 0,
+        value: 'foobar',
+        inputContext: app.inputContext
       }, {
         suggest: true,
         correct: true
@@ -446,19 +457,12 @@ suite('InputMethodManager', function() {
   });
 
   test('switchCurrentIMEngine (failed loader)', function(done) {
-    window.InputMethods = {
-      'default': realInputMethods['default']
-    };
+    app.inputContext.getText.returns(Promise.resolve('foobar'));
 
-    var manager = new InputMethodManager(app);
-    manager.start();
-    manager.loader.SOURCE_DIR = './fake-imes/';
+    manager.updateInputContextData();
+    assert.isTrue(app.inputContext.getText.calledOnce);
 
-    var dataPromise = Promise.resolve({
-      value: 'data'
-    });
-
-    var p = manager.switchCurrentIMEngine('bar', dataPromise);
+    var p = manager.switchCurrentIMEngine('bar');
     p.then(function() {
       assert.isTrue(false, 'should not resolve');
 
@@ -470,14 +474,11 @@ suite('InputMethodManager', function() {
     });
   });
 
-  test('switchCurrentIMEngine (no data promise)', function(done) {
-    window.InputMethods = {
-      'default': realInputMethods['default']
-    };
+  test('switchCurrentIMEngine (failed getText())', function(done) {
+    app.inputContext.getText.returns(Promise.reject());
 
-    var manager = new InputMethodManager(app);
-    manager.start();
-    manager.loader.SOURCE_DIR = './fake-imes/';
+    manager.updateInputContextData();
+    assert.isTrue(app.inputContext.getText.calledOnce);
 
     var p = manager.switchCurrentIMEngine('foo');
     p.then(function() {
@@ -487,7 +488,14 @@ suite('InputMethodManager', function() {
       assert.equal(manager.currentIMEngine, imEngine, 'currentIMEngine is set');
 
       var activateStub = imEngine.activate;
-      assert.isTrue(activateStub.calledWithExactly('xx-XX', undefined, {
+      assert.isTrue(activateStub.calledWithExactly('xx-XX', {
+        type: 'text',
+        inputmode: '',
+        selectionStart: 0,
+        selectionEnd: 0,
+        value: '',
+        inputContext: app.inputContext
+      }, {
         suggest: true,
         correct: true
       }));
@@ -496,50 +504,23 @@ suite('InputMethodManager', function() {
 
       done();
     }, function() {
-      assert.isTrue(false, 'should not reject');
-
-      done();
-    });
-  });
-
-  test('switchCurrentIMEngine (failed data promise)', function(done) {
-    window.InputMethods = {
-      'default': realInputMethods['default']
-    };
-
-    var manager = new InputMethodManager(app);
-    manager.start();
-    manager.loader.SOURCE_DIR = './fake-imes/';
-
-    var dataPromise = Promise.reject();
-
-    var p = manager.switchCurrentIMEngine('foo', dataPromise);
-    p.then(function() {
-      assert.isTrue(false, 'should not resolve');
-
-      done();
-    }, function() {
-      assert.isTrue(true, 'rejected');
-
+      assert.isTrue(false, 'rejected');
       done();
     });
   });
 
   test('switchCurrentIMEngine (twice)', function(done) {
-    window.InputMethods = {
-      'default': realInputMethods['default']
-    };
+    app.inputContext.getText.returns(Promise.resolve('foobar'));
 
-    var manager = new InputMethodManager(app);
-    manager.start();
-    manager.loader.SOURCE_DIR = './fake-imes/';
+    manager.updateInputContextData();
+    assert.isTrue(app.inputContext.getText.calledOnce);
 
-    var dataPromise = Promise.resolve({
-      value: 'data'
-    });
+    var p1 = manager.switchCurrentIMEngine('foo');
 
-    var p1 = manager.switchCurrentIMEngine('foo', dataPromise);
-    var p2 = manager.switchCurrentIMEngine('foo', dataPromise);
+    manager.updateInputContextData();
+    assert.isTrue(app.inputContext.getText.calledTwice);
+
+    var p2 = manager.switchCurrentIMEngine('foo');
     p1.then(function() {
       assert.isTrue(false, 'should not resolve');
     }, function() {
@@ -561,19 +542,12 @@ suite('InputMethodManager', function() {
   });
 
   test('switchCurrentIMEngine (reload after loaded)', function(done) {
-    window.InputMethods = {
-      'default': realInputMethods['default']
-    };
+    app.inputContext.getText.returns(Promise.resolve('foobar'));
 
-    var manager = new InputMethodManager(app);
-    manager.start();
-    manager.loader.SOURCE_DIR = './fake-imes/';
+    manager.updateInputContextData();
+    assert.isTrue(app.inputContext.getText.calledOnce);
 
-    var dataPromise = Promise.resolve({
-      value: 'data'
-    });
-
-    var p = manager.switchCurrentIMEngine('foo', dataPromise);
+    var p = manager.switchCurrentIMEngine('foo');
     p.then(function() {
       assert.isTrue(true, 'resolved');
       var imEngine = manager.loader.getInputMethod('foo');
@@ -582,7 +556,12 @@ suite('InputMethodManager', function() {
 
       var activateStub = imEngine.activate;
       assert.isTrue(activateStub.calledWithExactly('xx-XX', {
-        value: 'data'
+        type: 'text',
+        inputmode: '',
+        selectionStart: 0,
+        selectionEnd: 0,
+        value: 'foobar',
+        inputContext: app.inputContext
       }, {
         suggest: true,
         correct: true
@@ -590,7 +569,9 @@ suite('InputMethodManager', function() {
       assert.equal(activateStub.getCall(0).thisValue,
         imEngine);
 
-      var p2 = manager.switchCurrentIMEngine('foo', dataPromise);
+      manager.updateInputContextData();
+
+      var p2 = manager.switchCurrentIMEngine('foo');
 
       var deactivateStub = imEngine.deactivate;
       assert.isTrue(deactivateStub.calledOnce);
@@ -610,8 +591,13 @@ suite('InputMethodManager', function() {
 
         var activateStub = imEngine.activate;
         assert.isTrue(activateStub.calledTwice);
-        assert.isTrue(activateStub.calledWithExactly('xx-XX', {
-          value: 'data'
+        assert.isTrue(activateStub.getCall(1).calledWithExactly('xx-XX', {
+          type: 'text',
+          inputmode: '',
+          selectionStart: 0,
+          selectionEnd: 0,
+          value: 'foobar',
+          inputContext: app.inputContext
         }, {
           suggest: true,
           correct: true
