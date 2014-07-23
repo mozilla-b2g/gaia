@@ -28,7 +28,7 @@
 
   SimPinSystemDialog.prototype.view = function spd_view() {
     return '<div id="' + this.instanceID + '" role="dialog" ' +
-           'class="generic-dialog" data-z-index-level="simpin-dialog" hidden>' +
+           'class="generic-dialog" data-z-index-level="system-dialog" hidden>' +
            '<section role="region" class="skin-organic">' +
              '<header>' +
                '<button class="back" hidden>' +

@@ -164,7 +164,7 @@
   z-index: 2046;
 }
 
-#screen > [data-z-index-level="simpin-dialog"] {
+#screen > [data-z-index-level="system-dialog"] {
   z-index: 2045;
 }
 
