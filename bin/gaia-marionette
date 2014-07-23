@@ -4,6 +4,9 @@
 # you can also use mocha commands like `--grep`, `--timeout` see `--help`
 # for more options.
 
+TEST_FILES=apps/search/test/marionette/app_search_test.js
+VERBOSE=1
+
 # Find the source of this file
 SOURCE="${BASH_SOURCE[0]}"
 # Make it an absolute path
