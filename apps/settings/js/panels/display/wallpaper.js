@@ -61,8 +61,8 @@ define(function(require) {
           type: ['wallpaper', 'image/*'],
           includeLocked: (secret !== null),
           // XXX: This will not work with Desktop Fx / Simulator.
-          width: window.screen.width * window.devicePixelRatio,
-          height: window.screen.height * window.devicePixelRatio
+          width: Math.ceil(window.screen.width * window.devicePixelRatio),
+          height: Math.ceil(window.screen.height * window.devicePixelRatio)
         }
       });
       mozActivity.onsuccess = function() {

@@ -3,6 +3,7 @@
 /*global MockApplications, Applications*/
 
 requireApp('system/shared/js/async_storage.js');
+requireApp('system/shared/js/lazy_loader.js');
 requireApp('system/shared/js/screen_layout.js');
 requireApp('system/shared/test/unit/mocks/mock_icc_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_apps.js');
