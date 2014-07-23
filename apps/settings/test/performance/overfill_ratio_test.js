@@ -31,7 +31,7 @@ marionette(mozTestInfo.appPath + ' >', function() {
 
   test('Overfill Settings Scroll >', function() {
     var results = [];
-    var lastEvent = 'startup-path-done';
+    var lastEvent = 'moz-app-loaded';
 
     var performanceHelper = new PerformanceHelper({
       app: app,
