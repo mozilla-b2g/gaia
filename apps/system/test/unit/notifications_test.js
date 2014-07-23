@@ -4,7 +4,10 @@
   MockStatusBar,
   MocksHelper,
   NotificationScreen,
-  ScreenManager
+  ScreenManager,
+  MockNavigatorMozTelephony,
+  MockCall,
+  MockAudio
  */
 
 'use strict';
@@ -16,6 +19,8 @@ require('/test/unit/mock_utility_tray.js');
 require('/test/unit/mock_navigator_moz_chromenotifications.js');
 require('/shared/test/unit/mocks/mock_gesture_detector.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
+require('/shared/test/unit/mocks/dialer/mock_call.js');
 require('/shared/test/unit/mocks/mock_settings_url.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/test/unit/mocks/mock_system.js');
@@ -141,6 +146,45 @@ suite('system/NotificationScreen >', function() {
       assert.ok(NotificationScreen.removeNotification.called);
       assert.equal(NotificationScreen.removeNotification.args[0][0], 'id-1');
     });
+  });
+
+  suite('playing notification ringtone', function() {
+    var realMozTelephony;
+
+    function sendNotification() {
+      var imgpath = 'http://example.com/test.png';
+      var detail = {icon: imgpath, title: 'title', detail: 'detail'};
+      NotificationScreen.addNotification(detail);
+    }
+
+    suiteSetup(function() {
+      realMozTelephony = navigator.mozTelephony;
+      navigator.mozTelephony = MockNavigatorMozTelephony;
+    });
+
+    suiteTeardown(function() {
+      MockNavigatorMozTelephony.mSuiteTeardown();
+      navigator.mozTelephony = realMozTelephony;
+    });
+
+    test('it should play it by default on notification channel', function() {
+      var playSpy = this.sinon.spy(MockAudio.prototype, 'play');
+      sendNotification();
+      var mockAudio = MockAudio.instances[0];
+      assert.equal(mockAudio.mozAudioChannelType, 'notification');
+      assert.ok(playSpy.calledOnce);
+    });
+
+    test('if active call it should use telephony channel', function() {
+      var playSpy = this.sinon.spy(MockAudio.prototype, 'play');
+      var mockCall = new MockCall('123456', 'connected');
+      MockNavigatorMozTelephony.calls.push(mockCall);
+      sendNotification();
+      var mockAudio = MockAudio.instances[0];
+      assert.equal(mockAudio.mozAudioChannelType, 'telephony');
+      assert.ok(playSpy.calledOnce);
+    });
+
   });
 
   suite('updateStatusBarIcon >', function() {
