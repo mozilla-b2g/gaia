@@ -5232,18 +5232,6 @@ suite('thread_ui.js >', function() {
     });
   });
 
-  suite('initSentAudio', function() {
-    test('calling function does not throw uncaught exception ', function() {
-      assert.doesNotThrow(ThreadUI.initSentAudio);
-    });
-
-    test('correctly creates the audio element', function() {
-      ThreadUI.initSentAudio();
-      assert.isTrue(ThreadUI.sentAudio.src.endsWith('/sounds/sent.opus'));
-      assert.equal(ThreadUI.sentAudio.mozAudioChannelType, 'notification');
-    });
-  });
-
   suite('saveDraft() > ', function() {
     var addSpy, updateSpy, bannerSpy, arg;
 
@@ -6246,7 +6234,6 @@ suite('thread_ui.js >', function() {
     });
   });
 
-
   function beforeEnterGeneralTests(getTransitionArgs) {
     suite('beforeEnter()', function() {
       var transitionArgs;
@@ -6285,8 +6272,25 @@ suite('thread_ui.js >', function() {
         sinon.assert.calledWith(MockL10n.translate, simPickerElt);
         sinon.assert.calledWith(MockLazyLoader.load, [simPickerElt]);
       });
-    });
 
+      test('loads the audio played when a message is sent', function() {
+        var sentAudio = ThreadUI.sentAudio;
+
+        assert.isTrue(
+          sentAudio.src.endsWith('/sounds/sent.opus'),
+          'sentAudio properly loaded'
+        );
+        assert.equal(
+          sentAudio.mozAudioChannelType, 'notification',
+          'sentAudio uses the right audio channel'
+        );
+
+        assert.equal(
+          sentAudio.preload, 'none',
+          'the file is not preloaded'
+        );
+      });
+    });
   }
 
   suite('switch to composer >', function() {

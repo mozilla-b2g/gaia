@@ -141,14 +141,25 @@ suite('FindMyDevice >', function() {
     });
 
     test('set findmydevice.can-disable to false when logged out', function() {
+      FindMyDevice._registered = true;
       FindMyDevice._loggedIn = false;
       MockNavigatorSettings.mTriggerObservers('findmydevice.current-clientid',
         {settingValue: ''});
       sinon.assert.calledWith(FindMyDevice._canDisableHelper.set, false);
     });
 
+    test('don\'t set findmydevice.can-disable on logout if not registered',
+    function() {
+      FindMyDevice._loggedIn = false;
+      FindMyDevice._registered = false;
+      MockNavigatorSettings.mTriggerObservers('findmydevice.current-clientid',
+        {settingValue: ''});
+      sinon.assert.notCalled(FindMyDevice._canDisableHelper.set);
+    });
+
     test('allow disabling when clientid matches the state', function() {
       FindMyDevice._loggedIn = true;
+      FindMyDevice._registered = true;
       FindMyDevice._state = {clientid: 'clientid'};
 
       MockNavigatorSettings.mTriggerObservers('findmydevice.current-clientid',
@@ -159,6 +170,7 @@ suite('FindMyDevice >', function() {
     test('disallow disabling when clientid doesn\'t match the state',
     function() {
       FindMyDevice._loggedIn = true;
+      FindMyDevice._registered = true;
       FindMyDevice._state = {clientid: 'wrong clientid'};
 
       MockNavigatorSettings.mTriggerObservers('findmydevice.current-clientid',

@@ -80,7 +80,6 @@ suite('SimLock', function() {
                             });
       assert.isFalse(SimPinDialog.close.called);
     });
-
   });
 
   suite('to test events', function() {
@@ -90,6 +89,38 @@ suite('SimLock', function() {
       SimLock.handleEvent('lockscreen-request-unlock');
       assert.isFalse(stubShowIfLocked.called,
         'should not show the dialog');
+    });
+  });
+
+  suite('lockscreen request to unlock', function() {
+    var stubShowIfLocked;
+    setup(function() {
+      stubShowIfLocked = this.sinon.stub(SimLock, 'showIfLocked');
+    });
+
+    test('launch camera from lockscreen', function() {
+      var requestUnlockEvent = {
+        type: 'lockscreen-request-unlock',
+        detail: {
+          activity: {
+            name: 'record'
+          }
+        }
+      };
+      SimLock.handleEvent(requestUnlockEvent);
+      assert.isFalse(stubShowIfLocked.called,
+        'should not call showIfLocked');
+    });
+
+    test('unlock normally', function() {
+      SimLock.handleEvent({
+        type: 'lockscreen-request-unlock'
+      });
+      assert.isFalse(stubShowIfLocked.called,
+        'should not call showIfLocked if app is not closed yet');
+      window.dispatchEvent(new window.CustomEvent('lockscreen-appclosed'));
+      assert.isTrue(stubShowIfLocked.called,
+        'should call showIfLocked if app is closed');
     });
   });
 });

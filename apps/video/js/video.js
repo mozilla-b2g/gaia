@@ -36,6 +36,7 @@ ids.forEach(function createElementRef(name) {
 
 dom.player.mozAudioChannelType = 'content';
 
+function $(id) { return document.getElementById(id); }
 var playing = false;
 
 // if this is true then the video tag is showing
@@ -557,10 +558,13 @@ function deleteSelectedItems() {
   if (selectedFileNames.length === 0)
     return;
 
-  var msg = navigator.mozL10n.get('delete-n-items?',
-                                  {n: selectedFileNames.length});
-  if (confirm(msg)) {
-    // XXX
+  Dialogs.confirm({
+    message: navigator.mozL10n.get('delete-n-items?',
+             {n: selectedFileNames.length}),
+    cancelText: navigator.mozL10n.get('cancel'),
+    confirmText: navigator.mozL10n.get('delete'),
+    danger: true
+  }, function() { // onSuccess
     // deleteFile is O(n), so this loop is O(n*n). If used with really large
     // selections, it might have noticably bad performance.  If so, we
     // can write a more efficient deleteFiles() function.
@@ -568,7 +572,7 @@ function deleteSelectedItems() {
       deleteFile(selectedFileNames[i]);
     }
     clearSelection();
-  }
+  });
 }
 
 function deleteFile(filename) {
@@ -588,16 +592,6 @@ function deleteFile(filename) {
   // actual video file. This will cause the MediaDB to send a 'deleted'
   // event, and the handler for that event will call videoDeleted() below.
   videodb.deleteFile(filename);
-}
-
-function deleteSingleFile(file) {
-  var msg = navigator.mozL10n.get('confirm-delete');
-  if (confirm(msg + ' ' + file)) {
-    deleteFile(file);
-    return true;
-  }
-
-  return false;
 }
 
 // Clicking on the share button in select mode shares all selected images
@@ -834,7 +828,13 @@ function deleteCurrentVideo() {
   // If we're deleting the file shown in the player we've got to
   // return to the thumbnail list. We pass false to hidePlayer() to tell it
   // not to record new metadata for the file we're about to delete.
-  if (deleteSingleFile(currentVideo.name)) {
+  Dialogs.confirm({
+    message: navigator.mozL10n.get('delete-video?'),
+    cancelText: navigator.mozL10n.get('cancel'),
+    confirmText: navigator.mozL10n.get('delete'),
+    danger: true
+  }, function _onSuccess() { // onSuccess
+    deleteFile(currentVideo.name);
     if (!isPhone && !isPortrait) {
       // If the file is deleted, we need to load another video file. This is
       // only required at tablet and landscape mode. When there is no video in
@@ -845,10 +845,10 @@ function deleteCurrentVideo() {
     } else {
       hidePlayer(false);
     }
-  } else {
-      // Enable NFC sharing when cancels delete and returns to fullscreen mode
-      setNFCSharing(true);
-  }
+  }, function _onError() {
+     // Enable NFC sharing when cancels delete and returns to fullscreen mode
+     setNFCSharing(true);
+  });
 }
 
 function handlePlayButtonClick() {

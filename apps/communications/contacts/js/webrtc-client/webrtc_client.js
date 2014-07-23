@@ -17,6 +17,8 @@
 
   var ACTIVITY_NAME = 'webrtc-call';
 
+  var WEBRTC_CLIENTNAME = 'Firefox Hello';
+
   var _webrtcClientIntegrationDOM, _detailListDOM;
 
   var _cachedContact = null;
@@ -86,7 +88,8 @@
     _webrtcClientIntegrationDOM.id = 'webrtc-client-actions';
 
     var title = document.createElement('h2');
-    title.textContent = navigator.mozL10n.localize(title, 'webRtcClientName');
+    // This has been hardcoded to prevent uplifting issues to v2.0
+    title.textContent = WEBRTC_CLIENTNAME;
 
     var colsWrapper = document.createElement('div');
     colsWrapper.className = 'fillflow-twocols';

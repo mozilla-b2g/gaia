@@ -156,8 +156,6 @@ var DownloadUI = (function() {
   }
 
   function createConfirm(type, req, downloads) {
-    var _ = navigator.mozL10n.get;
-
     addConfirm();
 
     var dialog = document.createElement('section');
@@ -189,9 +187,8 @@ var DownloadUI = (function() {
       // Left button
       var lButton = document.createElement('button');
       lButton.type = 'button';
-      lButton.appendChild(
-        document.createTextNode(_(type.name + '_download_left_button'))
-      );
+      lButton.setAttribute('data-l10n-id',
+                           type.name + '_download_left_button');
 
       lButton.onclick = function l_cancel() {
         lButton.onclick = null;
@@ -207,9 +204,8 @@ var DownloadUI = (function() {
       rButton.classList.add(clazz);
     });
 
-    rButton.appendChild(
-      document.createTextNode(_(type.name + '_download_right_button'))
-    );
+    rButton.setAttribute('data-l10n-id',
+                         type.name + '_download_right_button');
 
     rButton.onclick = function r_confirm() {
       rButton.onclick = null;

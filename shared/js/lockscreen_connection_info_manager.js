@@ -165,10 +165,13 @@
       node.removeAttribute('data-content');
     }
 
-    navigator.mozL10n.localize(node, l10nId, l10nArgs);
-
-    if (text) {
-      node.textContent = text;
+    if (l10nId) {
+      navigator.mozL10n.setAttributes(node, l10nId, l10nArgs);
+    } else {
+      node.removeAttribute('data-l10n-id');
+      if (text) {
+        node.textContent = text;
+      }
     }
   }
 

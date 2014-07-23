@@ -382,7 +382,7 @@ section ul.operate-certificate {
   display: none;
 }
 
-#menuItem-callWaiting[data-state="unknown"] .checkbox-label {
+#menuItem-callWaiting[data-state="unknown"] .checkbox-label input ~ span:after {
   display: none;
 }
 
@@ -763,6 +763,30 @@ section[data-dialog] > header:first-child .icon.icon-back {
 }
 
 /******************************************************************************
+ * Developer and Developer HUD
+ *
+ * Override default behavior to let checkbox text wrap on multiple lines
+ */
+
+#developer ul li > label > span,
+#developer-hud ul li > label > span {
+  overflow: visible;
+  white-space: normal;
+  min-height: 6rem;
+  height: auto;
+  line-height: 2.3rem;
+  padding: 1.9rem 4rem 1.5rem 3rem;
+}
+
+#developer-hud ul li > label > span.color-preview {
+  padding-left: 5rem;
+}
+
+#developer-hud ul li.hud-separator {
+  border-top: 0.1rem solid #e6e6e3;
+}
+
+/******************************************************************************
 * App Permissions
 *
 * Note: The reason why we need this style is because element.hidden will make
@@ -905,4 +929,9 @@ html[dir="rtl"] ul li > label.range-icons.volume:before {
 
 html[dir="rtl"] ul li > label.range-icons.volume input {
   margin-right: 5.8rem;
+}
+
+html[dir="rtl"] #developer-hud ul li > label > span.color-preview {
+  padding-left: 0;
+  padding-right: 5rem;
 }

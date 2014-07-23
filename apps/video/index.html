@@ -27,6 +27,8 @@
     <script defer src="shared/js/media/video_stats.js"></script>
     <script defer src="shared/js/performance_testing_helper.js"></script>
     <script defer src="shared/js/font_size_utils.js"></script>
+    <script defer src="shared/js/lazy_loader.js"></script>
+    <script defer src="shared/js/dialogs.js"></script>
     <script defer src="js/metadata.js"></script>
     <script defer src="js/db.js"></script>
     <script defer src="js/thumbnail_list.js"></script>
@@ -185,6 +187,14 @@
         <button type="button" id="overlay-action-button" class="full"></button>
       </menu>
     </form>
-
+    <form id="confirm-dialog" role="dialog" data-type="confirm" class="hidden">
+      <section>
+        <p id="confirm-msg"></p>
+      </section>
+      <menu>
+        <button id="confirm-cancel"></button>
+        <button id="confirm-ok"></button>
+      </menu>
+    </form>
   </body>
 </html>

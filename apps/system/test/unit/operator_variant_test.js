@@ -149,6 +149,7 @@ suite('Operator variant', function() {
   });
 
   teardown(function() {
+    MockNavigatorSettings.mTeardown();
     MockNavigatorMozIccManager.mTeardown();
     MockNavigatorMozMobileConnections.mTeardown();
   });

@@ -11,6 +11,7 @@ suite('operator variant helper', function() {
   const FAKE_ICC_CARD_INDEX = '0';
   const EXPECTED_MCC = '123';
   const EXPECTED_MNC = '45';
+  const EXPECTED_ICCIDS = [FAKE_ICC_ID, null];
   const EXPECTED_ICC_INFO = { mcc: EXPECTED_MCC, mnc: EXPECTED_MNC };
   const NULL_ICC_INFO = { mcc: '', mnc: '' };
   const PERSIST_KEY_PREFIX = 'operatorvariant';
@@ -20,6 +21,8 @@ suite('operator variant helper', function() {
                       PERSIST_KEY_SUFIX;
   const MCC_SETTINGS_KEY = 'operatorvariant.mcc';
   const MNC_SETTINGS_KEY = 'operatorvariant.mnc';
+  const ICCID_SETTINGS_KEY = 'operatorvariant.iccId';
+  const NEW_FAKE_ICC_ID = '8934071100276980489';
 
   var realMozSettings, realMozIccManager;
 
@@ -224,15 +227,17 @@ suite('operator variant helper', function() {
       MockNavigatorMozIccManager.getIccById(FAKE_ICC_ID).iccInfo =
         EXPECTED_ICC_INFO;
 
-      var mcc = {}, mnc = {}, persistSetting = {};
+      var mcc = {}, mnc = {}, iccIds = {}, persistSetting = {};
 
       mcc[MCC_SETTINGS_KEY] = EXPECTED_MCC;
       mnc[MNC_SETTINGS_KEY] = EXPECTED_MNC;
+      iccIds[ICCID_SETTINGS_KEY] = EXPECTED_ICCIDS;
       persistSetting[PERSIST_KEY] = true;
 
       var transaction = MockNavigatorSettings.createLock();
       transaction.set(mcc);
       transaction.set(mnc);
+      transaction.set(iccIds);
       transaction.set(persistSetting);
     });
 
@@ -263,7 +268,7 @@ suite('operator variant helper', function() {
       );
     });
 
-    test('Customization should run again', function(done) {
+    test('Customization should run again when system updated', function(done) {
       helper = new OperatorVariantHelper(
         FAKE_ICC_ID,
         FAKE_ICC_CARD_INDEX,
@@ -283,6 +288,40 @@ suite('operator variant helper', function() {
       MockNavigatorMozIccManager.getIccById(FAKE_ICC_ID).triggerEventListeners(
         'iccinfochange', {}
       );
+    });
+
+    test('Customization should run again when new icc detected',
+      function(done) {
+        MockNavigatorMozIccManager.addIcc(NEW_FAKE_ICC_ID, mozIcc);
+        MockNavigatorMozIccManager.getIccById(NEW_FAKE_ICC_ID).iccInfo =
+          EXPECTED_ICC_INFO;
+
+        helper = new OperatorVariantHelper(
+          NEW_FAKE_ICC_ID,
+          FAKE_ICC_CARD_INDEX,
+          function(mcc, mnc) {
+            assert.equal(
+              EXPECTED_MCC,
+              mcc,
+              'Expected MCC value of ' + EXPECTED_MCC
+            );
+            assert.equal(
+              EXPECTED_MNC,
+              mnc,
+              'Expected MNC value of ' + EXPECTED_MNC
+            );
+            done();
+          },
+          PERSIST_KEY,
+          false
+        );
+
+        helper.listen();
+
+        MockNavigatorMozIccManager.getIccById(NEW_FAKE_ICC_ID)
+          .triggerEventListeners(
+            'iccinfochange', {}
+        );
     });
   });
 });

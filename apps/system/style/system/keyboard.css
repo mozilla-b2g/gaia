@@ -33,6 +33,15 @@
   bottom: 5rem;
 }
 
+@media (orientation: landscape) {
+  #screen.software-button-enabled #keyboards {
+    right: 5rem;
+    bottom: 0;
+    left: 0;
+    width: auto;
+  }
+}
+
 #keyboards iframe {
   position: absolute;
   bottom: 0;

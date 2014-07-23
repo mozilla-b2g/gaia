@@ -745,6 +745,7 @@
   #incoming-container button {
     height: 4rem;
     flex: 1;
+    padding: 0;
     border:0;
     border-radius:2rem;
     display: block;

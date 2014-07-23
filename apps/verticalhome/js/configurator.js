@@ -171,6 +171,8 @@ var configurator = (function() {
     navigator.getFeature('hardware.memory').then(mem => {
       // If capability is defined in the build or customization.
       var capability = conf && conf.preferences && conf.preferences.capability;
+      var colsPrefEnabled = conf && conf.preferences &&
+        conf.preferences['cols.preference.enabled'];
 
       if (!capability) {
         capability = CAPABILITIES.HIGH;
@@ -181,9 +183,11 @@ var configurator = (function() {
         // - Icon rendering does not account for devicePixelRatio.
         if (mem < 512) {
           capability = CAPABILITIES.LOW;
+          colsPrefEnabled = false;
         }
       }
       verticalPreferences.put('capability', capability);
+      verticalPreferences.put('cols.preference.enabled', colsPrefEnabled);
       setupColumns(capability);
     });
   }
