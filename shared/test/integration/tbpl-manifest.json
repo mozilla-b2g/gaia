@@ -33,6 +33,7 @@
     "apps/system/test/marionette/edges_gesture_test.js",
     "apps/system/test/marionette/notification_get_test.js",
     "apps/system/test/marionette/notification_resend_test.js",
-    "apps/verticalhome/test/marionette/app_hosted_use_cached_icon_test.js"
+    "apps/verticalhome/test/marionette/app_hosted_use_cached_icon_test.js",
+    "apps/verticalhome/test/marionette/search_test.js"
   ]
 }
