@@ -1,11 +1,10 @@
 suite('lib/storage', function() {
   /*jshint maxlen:false*/
   'use strict';
-  var require = window.req;
 
   suiteSetup(function(done) {
     var self = this;
-    require([
+    requirejs([
       'lib/storage'
     ], function(Storage) {
       self.Storage = Storage;

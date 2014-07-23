@@ -40,7 +40,7 @@ suite('Sounds', function() {
   mocksHelperForSounds.attachTestHelpers();
 
   suiteSetup(function(done) {
-    req(['lib/sounds'], function(sounds) {
+    requirejs(['lib/sounds'], function(sounds) {
       Sounds = sounds;
       done();
     });

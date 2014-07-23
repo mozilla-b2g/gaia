@@ -1,11 +1,10 @@
-/*global req*/
 'use strict';
 
 suite('controllers/viewfinder', function() {
   suiteSetup(function(done) {
     var self = this;
 
-    req([
+    requirejs([
       'app',
       'lib/camera/camera',
       'controllers/viewfinder',
@@ -30,6 +29,9 @@ suite('controllers/viewfinder', function() {
   });
 
   setup(function() {
+    this.sandbox = sinon.sandbox.create();
+
+    // App
     this.app = sinon.createStubInstance(this.App);
     this.app.camera = sinon.createStubInstance(this.Camera);
     this.app.activity = {};
@@ -66,6 +68,10 @@ suite('controllers/viewfinder', function() {
     this.faces = this.controller.views.faces;
     this.settings = this.app.settings;
     this.camera = this.app.camera;
+  });
+
+  teardown(function() {
+    this.sandbox.restore();
   });
 
   suite('ViewfinderController()', function() {
@@ -119,13 +125,56 @@ suite('controllers/viewfinder', function() {
     });
   });
 
+  suite('ViewfinderController#show()', function() {
+    setup(function() {
+      this.sandbox.stub(window, 'clearTimeout');
+      this.sandbox.stub(window, 'setTimeout').returns('<timeout-id>');
+      this.app.criticalPathDone = true;
+    });
+
+    test('It fades the viewfinder in straight away if the critical path is incomplete', function() {
+      this.app.criticalPathDone = false;
+      this.controller.show();
+      sinon.assert.called(this.viewfinder.fadeIn);
+      sinon.assert.notCalled(window.setTimeout);
+    });
+
+    test('It fades the viewfinder in after 280ms timeout to avoid flicker', function() {
+      this.controller.show();
+      sinon.assert.calledWith(window.setTimeout, this.viewfinder.fadeIn, 280);
+    });
+
+    test('It clears any existing timeouts to avoid multiple scheduled timeouts', function() {
+      this.controller.show();
+      this.controller.show();
+      sinon.assert.calledWith(window.clearTimeout, '<timeout-id>');
+    });
+  });
+
+  suite('ViewfinderController#hide()', function() {
+    setup(function() {
+      this.sandbox.stub(window, 'setTimeout').returns('<timeout-id>');
+      this.sandbox.stub(window, 'clearTimeout');
+    });
+
+    test('It fades out the viewfinder', function() {
+      this.controller.hide();
+      sinon.assert.called(this.viewfinder.fadeOut);
+    });
+
+    test('It clears any fadeTimeout hanging around', function() {
+      this.controller.show();
+      this.controller.hide();
+      sinon.assert.called(window.clearTimeout, '<timeout-id>');
+    });
+  });
+
   suite('ViewfinderController#loadStream()', function() {
     test('Should load preview stream into viewfinder video element', function() {
       var video = this.viewfinder.els.video;
       this.controller.loadStream();
       assert.isTrue(this.camera.loadStreamInto.calledWith(video));
     });
-
   });
 
   suite('ViewfinderController#configurePreview()', function() {

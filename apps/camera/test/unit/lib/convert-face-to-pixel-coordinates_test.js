@@ -1,11 +1,10 @@
 suite('lib/convert-face-to-pixel-coordinates', function() {
   /*jshint maxlen:false*/
-  /*global req*/
   'use strict';
 
   suiteSetup(function(done) {
     var self = this;
-    req(['lib/convert-face-to-pixel-coordinates'], function(convertFaceToPixelCoordinates) {
+    requirejs(['lib/convert-face-to-pixel-coordinates'], function(convertFaceToPixelCoordinates) {
       self.convertFaceToPixelCoordinates = convertFaceToPixelCoordinates;
       done();
     });

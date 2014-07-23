@@ -1,10 +1,9 @@
 suite('lib/camera/focus', function() {
   'use strict';
-  var require = window.req;
 
   suiteSetup(function(done) {
     var self = this;
-    require(['lib/camera/focus'], function(Focus) {
+    requirejs(['lib/camera/focus'], function(Focus) {
       self.Focus = Focus;
       done();
     });

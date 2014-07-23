@@ -3,7 +3,7 @@ suite('controllers/storage', function() {
 
   suiteSetup(function(done) {
     var self = this;
-    req([
+    requirejs([
       'controllers/storage',
       'lib/setting',
       'lib/storage',

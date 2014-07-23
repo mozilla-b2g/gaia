@@ -43,11 +43,6 @@ module.exports = View.extend({
       video: this.find('.js-icon-video')
     };
 
-    this.drag = new Drag({
-      handle: this.els.switchHandle,
-      container: this.els.switch,
-    });
-
     // Clean up
     delete this.template;
 
@@ -59,17 +54,22 @@ module.exports = View.extend({
     bind(this.els.thumbnail, 'click', this.onButtonClick);
     bind(this.els.capture, 'click', this.onButtonClick);
     bind(this.els.cancel, 'click', this.onButtonClick);
+    return this;
+  },
+
+  setupSwitch: function() {
+    debug('setup dragger');
+    this.drag = new Drag({
+      handle: this.els.switchHandle,
+      container: this.els.switch,
+    });
+
     this.drag.on('ended', this.drag.snapToClosestEdge);
     this.drag.on('translate', this.onSwitchTranslate);
     this.drag.on('snapped', this.onSwitchSnapped);
     this.drag.on('tapped', this.onSwitchTapped);
-    this.on('inserted', this.onInserted);
-    return this;
-  },
-
-  onInserted: function() {
     this.drag.updateDimensions();
-    this.drag.set({ x: this.switchPosition });
+    this.updateSwitchPosition();
   },
 
   onSwitchSnapped: function(edges) {
@@ -88,17 +88,21 @@ module.exports = View.extend({
   },
 
   onSwitchTranslate: function(e) {
-    var skew = 2;
-    var ratio = e.position.ratio.x * skew;
-    var camera = Math.max(0, 1 - ratio);
-    var video = Math.max(0, -1 + ratio);
+    this.setSwitchIcon(e.position.ratio.x);
+  },
 
+  setSwitchIcon: function(ratio) {
+    var skew = 2;
+    var ratioSkewed = ratio * skew;
+    var camera = Math.max(0, 1 - ratioSkewed);
+    var video = Math.max(0, -1 + ratioSkewed);
     this.els.icons.camera.style.opacity = camera;
     this.els.icons.video.style.opacity = video;
     debug('opacity camera: %s, video: %s', camera, video);
   },
 
   onButtonClick: function(e) {
+    debug('button click');
     e.stopPropagation();
     var name = e.currentTarget.getAttribute('name');
     var enabled = this.get('enabled');
@@ -108,10 +112,16 @@ module.exports = View.extend({
   },
 
   setMode: function(mode) {
-    this.switchPosition = this.switchPositions[mode];
-    this.drag.set({ x: this.switchPosition });
     this.set('mode', mode);
-    debug('setMode mode: %s, pos: %s', mode, this.switchPosition);
+    this.switchPosition = this.switchPositions[mode];
+    this.updateSwitchPosition();
+    this.setSwitchIcon({ left: 0, right: 1 }[this.switchPosition]);
+    debug('setMode mode: %s, pos: %s', mode);
+  },
+
+  updateSwitchPosition: function() {
+    if (!this.drag) { return; }
+    this.drag.set({ x: this.switchPosition });
   },
 
   setThumbnail: function(blob) {
@@ -125,6 +135,7 @@ module.exports = View.extend({
     }
 
     this.els.image.src = window.URL.createObjectURL(blob);
+    debug('thumbnail set');
   },
 
   removeThumbnail: function() {
@@ -189,7 +200,7 @@ module.exports = View.extend({
     /*jshint maxlen:false*/
     return '<div class="controls-left">' +
       '<div class="controls-button controls-thumbnail-button test-thumbnail js-thumbnail rotates" name="thumbnail"></div>' +
-      '<div class="controls-button controls-cancel-pick-button test-cancel-pick icon-pick-cancel rotates js-cancel" name="cancel"></div>' +
+      '<div class="controls-button controls-cancel-pick-button test-cancel-pick icon-close rotates js-cancel" name="cancel"></div>' +
     '</div>' +
     '<div class="controls-middle">' +
       '<div class="capture-button test-capture rotates js-capture" name="capture">' +

@@ -26,8 +26,6 @@ function CameraController(app) {
   this.camera = app.camera;
   this.settings = app.settings;
   this.activity = app.activity;
-  this.viewfinder = app.views.viewfinder;
-  this.controls = app.views.controls;
   this.hdrDisabled = this.settings.hdr.get('disabled');
   this.l10nGet = app.l10nGet;
   this.configure();
@@ -50,12 +48,12 @@ CameraController.prototype.bindEvents = function() {
   camera.on('filesizelimitreached', this.onFileSizeLimitReached);
   camera.on('facesdetected', app.firer('camera:facesdetected'));
   camera.on('willrecord', app.firer('camera:willrecord'));
+  camera.on('configured', app.firer('camera:configured'));
   camera.on('change:recording', app.setter('recording'));
   camera.on('newcamera', app.firer('camera:newcamera'));
   camera.on('newimage', app.firer('camera:newimage'));
   camera.on('newvideo', app.firer('camera:newvideo'));
   camera.on('shutter', app.firer('camera:shutter'));
-  camera.on('configured', this.onCameraConfigured);
   camera.on('loaded', app.firer('camera:loaded'));
   camera.on('ready', app.firer('ready'));
   camera.on('busy', app.firer('busy'));
@@ -63,17 +61,17 @@ CameraController.prototype.bindEvents = function() {
   // App
   app.on('viewfinder:focuspointchanged', this.onFocusPointChanged);
   app.on('change:batteryStatus', this.onBatteryStatusChange);
+  app.on('attentionscreenopened', this.camera.stopRecording);
   app.on('settings:configured', this.onSettingsConfigured);
   app.on('previewgallery:opened', this.shutdownCamera);
   app.on('previewgallery:closed', this.onGalleryClosed);
-  app.on('storage:changed', this.onStorageChanged);
   app.on('storage:volumechanged', this.onStorageVolumeChanged);
+  app.on('storage:changed', this.onStorageChanged);
   app.on('activity:pick', this.onPickActivity);
   app.on('timer:ended', this.capture);
   app.on('visible', this.camera.load);
   app.on('capture', this.capture);
   app.on('hidden', this.onHidden);
-  app.on('attentionscreenopened', this.camera.stopRecording);
 
   // Settings
   settings.recorderProfiles.on('change:selected', this.updateRecorderProfile);
@@ -118,43 +116,11 @@ CameraController.prototype.onSettingsConfigured = function() {
   this.camera.setPictureSize(pictureSize);
   this.camera.configureZoom();
 
-  // Bug 983930 - [B2G][Camera] CameraControl API's "zoom" attribute doesn't
-  // scale preview properly
-  //
-  // For some reason, the above calculation for `maxHardwareZoom` does not
-  // work properly on Nexus 4 devices.
-  var hardware = navigator.mozSettings.createLock().get('deviceinfo.hardware');
-  var self = this;
-  hardware.onsuccess = function(evt) {
-    var device = evt.target.result['deviceinfo.hardware'];
-    if (device === 'mako') {
-
-      // Nexus 4 needs zoom preview adjustment since the viewfinder preview
-      // stream does not automatically reflect the current zoom value.
-      self.settings.zoom.set('useZoomPreviewAdjustment', true);
-
-      if (self.camera.selectedCamera === 'front') {
-        self.camera.set('maxHardwareZoom', 1);
-      } else {
-        self.camera.set('maxHardwareZoom', 1.25);
-      }
-
-      self.camera.emit('zoomconfigured');
-    }
-  };
+  // Defer this work as it involves
+  // expensive mozSettings calls
+  setTimeout(this.updateZoomForMako);
 
   debug('camera configured with final settings');
-};
-
-/**
- * Saves the last camera configuration
- * and relays the event through the app.
- *
- * @param  {Object} config
- * @private
- */
-CameraController.prototype.onCameraConfigured = function(config) {
-  this.app.emit('camera:configured');
 };
 
 /**
@@ -226,60 +192,126 @@ CameraController.prototype.showSizeLimitAlert = function() {
   this.sizeLimitAlertActive = false;
 };
 
+/**
+ * Set the camera's mode (picture/video).
+ *
+ * We send a signal to say that the camera
+ * 'will change', this allows other parts
+ * of the app to respond if need be.
+ *
+ * We then wait for the viewfinder to be 'hidden'
+ * before setting the camera to prevent the
+ * user from seeing the stream flicker/jump.
+ *
+ * @param {String} mode ['picture'|'video']
+ * @private
+ */
 CameraController.prototype.setMode = function(mode) {
   var self = this;
   this.setFlashMode();
-  this.viewfinder.fadeOut(function() {
+  this.app.emit('camera:willchange');
+  this.app.once('viewfinder:hidden', function() {
     self.camera.setMode(mode);
   });
 };
 
+/**
+ * Updates the camera's `pictureSize` to match
+ * the size set in the app's settings.
+ *
+ * When in 'picture' mode we send a signal
+ * to say that the camera 'will change',
+ * this allows other parts of the app to
+ * repsond if need be.
+ *
+ * We then wait for the viewfinder to be hidden
+ * before setting the pictureSize to prevent the
+ * user from seeing the stream flicker/jump.
+ *
+ * @private
+ */
 CameraController.prototype.updatePictureSize = function() {
   var pictureMode = this.settings.mode.selected('key') === 'picture';
   var value = this.settings.pictureSizes.selected('data');
   var self = this;
 
-  // Only configure in video mode
+  // If not currently in 'picture'
+  // mode, just configure.
   if (!pictureMode) {
     this.camera.setPictureSize(value, { configure: false });
     return;
   }
 
-  // Fade out, then configure
-  this.viewfinder.fadeOut(function() {
+  // Make change once the viewfinder is hidden
+  this.app.emit('camera:willchange');
+  this.app.once('viewfinder:hidden', function() {
     self.camera.setPictureSize(value);
   });
 };
 
+/**
+ * Updates the camera's `recorderProfile` to
+ * match the size set in the app's settings.
+ *
+ * When in 'picture' mode we send a signal
+ * to say that the camera 'will change',
+ * this allows other parts of the app to
+ * repsond if need be.
+ *
+ * We then wait for the viewfinder to be hidden
+ * before setting the pictureSize to prevent the
+ * user from seeing the stream flicker/jump.
+ *
+ * @private
+ */
 CameraController.prototype.updateRecorderProfile = function() {
   var videoMode = this.settings.mode.selected('key') === 'video';
   var key = this.settings.recorderProfiles.selected('key');
   var self = this;
 
-  // Only configure in picture mode
+  // If not currently in 'video'
+  // mode, just configure.
   if (!videoMode) {
     this.camera.setRecorderProfile(key, { configure: false });
     return;
   }
 
-  // Fade out, then change the setting
-  this.viewfinder.fadeOut(function() {
+  // Wait for the viewfinder to be hidden
+  this.app.emit('camera:willchange');
+  this.app.once('viewfinder:hidden', function() {
     self.camera.setRecorderProfile(key);
   });
 };
 
 /**
- * Set the 'selected' camera.
+ * Set the selected camera (front/back).
  *
- * @param {String} camera 'front'|'back'
+ * We send a signal to say that the camera
+ * 'will change', this allows other parts
+ * of the app to respond if need be.
+ *
+ * We then wait for the viewfinder to be 'hidden'
+ * before setting the camera to prevent the
+ * user from seeing the stream flicker/jump.
+ *
+ * @param {String} camera ['front'|'back']
+ * @private
  */
 CameraController.prototype.setCamera = function(camera) {
   var self = this;
-  this.viewfinder.fadeOut(function() {
+  this.app.emit('camera:willchange');
+  this.app.once('viewfinder:hidden', function() {
     self.camera.setCamera(camera);
   });
 };
 
+/**
+ * Sets the flash mode on the camera
+ * to match the current flash mode
+ * in the app's settings.
+ *
+ * @private
+ */
 CameraController.prototype.setFlashMode = function() {
   var flashSetting = this.settings.flashModes;
   this.camera.setFlashMode(flashSetting.selected('key'));
@@ -380,6 +412,42 @@ CameraController.prototype.shutdownCamera = function() {
 CameraController.prototype.onGalleryClosed = function() {
   if (this.app.hidden) { return; }
   this.camera.load(this.app.onReady);
+};
+
+/**
+ * For some reason, the above calculation
+ * for `maxHardwareZoom` does not work
+ * properly on Mako (Nexus-4) devices.
+ *
+ * Bug 983930 - [B2G][Camera] CameraControl API's
+ * "zoom" attribute doesn't scale preview properly
+ *
+ * @private
+ */
+CameraController.prototype.updateZoomForMako = function() {
+  debug('update zoom for mako');
+
+  var self = this;
+  navigator.mozSettings
+    .createLock()
+    .get('deviceinfo.hardware')
+    .onsuccess = onSuccess;
+
+  debug('settings request made');
+  function onSuccess(e) {
+    var device = e.target.result['deviceinfo.hardware'];
+    if (device !== 'mako') { return; }
+
+    var frontCamera = self.camera.selectedCamera === 'front';
+    var maxHardwareZoom = frontCamera ? 1 : 1.25;
+
+    // Nexus 4 needs zoom preview adjustment since the viewfinder preview
+    // stream does not automatically reflect the current zoom value.
+    self.settings.zoom.set('useZoomPreviewAdjustment', true);
+    self.camera.set('maxHardwareZoom', maxHardwareZoom);
+    self.camera.emit('zoomconfigured');
+    debug('zoom reconfigured for mako');
+  }
 };
 
 });
