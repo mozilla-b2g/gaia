@@ -204,10 +204,10 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
           node.textContent = self._cachedInfo;
         });
       }
-      self.formatPhoneNumber('end');
       self._cachedAdditionalInfo =
         Utils.getPhoneNumberAdditionalInfo(matchingTel);
       self.replaceAdditionalContactInfo(self._cachedAdditionalInfo);
+      self.formatPhoneNumber('end');
       var photo = ContactPhotoHelper.getFullResolution(contact);
       if (photo) {
         self.photo = photo;
@@ -251,7 +251,7 @@ HandledCall.prototype.formatPhoneNumber =
     }
 
     FontSizeManager.adaptToSpace(
-      CallScreen.getScenario(), this.numberNode,
+      CallScreen.getScenario(this.numberNode.textContent), this.numberNode,
       this.node.querySelector('.fake-number'), false, ellipsisSide);
 };
 

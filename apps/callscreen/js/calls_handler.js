@@ -255,8 +255,9 @@ var CallsHandler = (function callsHandler() {
       if (!number) {
         CallScreen.incomingNumber.textContent = _('withheld-number');
         FontSizeManager.adaptToSpace(
-          FontSizeManager.CALL_WAITING, CallScreen.incomingNumber,
-          CallScreen.fakeIncomingNumber, false, 'end');
+          CallScreen.getScenario(CallScreen.incomingNumber.textContent),
+          CallScreen.incomingNumber, CallScreen.fakeIncomingNumber, false,
+          'end');
         return;
       }
 
@@ -279,8 +280,9 @@ var CallsHandler = (function callsHandler() {
           CallScreen.incomingNumberAdditionalInfo.textContent = '';
         }
         FontSizeManager.adaptToSpace(
-          FontSizeManager.CALL_WAITING, CallScreen.incomingNumber,
-          CallScreen.fakeIncomingNumber, false, 'end');
+          CallScreen.getScenario(CallScreen.incomingNumber.textContent),
+          CallScreen.incomingNumber, CallScreen.fakeIncomingNumber, false,
+          'end');
       });
     });
 
