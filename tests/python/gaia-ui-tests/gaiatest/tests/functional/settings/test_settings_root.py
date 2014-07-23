@@ -19,7 +19,7 @@ class TestSettingsRoot(GaiaTestCase):
         settings.launch()
 
         # This will take longer, so let's just wait for this
-        self.wait_for_condition(lambda s: 'Disabled' in settings.wifi_menu_item_description)
+        self.wait_for_condition(lambda s: 'Turned off' in settings.bluetooth_menu_item_description)
 
         self.assertEqual(settings.wifi_menu_item_description, 'Disabled')
         self.assertEqual(settings.usb_storage_menu_item_description, 'Disabled')
