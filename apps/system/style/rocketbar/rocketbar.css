@@ -94,6 +94,8 @@ body:not(.rb-enabled) #rocketbar {
 
 #rocketbar-input {
   flex: auto;
+  min-height: 0;
+  min-width: 0;
 }
 
 #rocketbar-cancel, #rocketbar-clear {
