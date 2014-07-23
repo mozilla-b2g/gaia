@@ -128,7 +128,8 @@ suite('navigation bar', function() {
         callEndedData = {
           id: { number: '123' },
           serviceId: 1,
-          direction: 'incoming'
+          direction: 'incoming',
+          hangUpLocal: false
         };
       });
 
@@ -167,6 +168,19 @@ suite('navigation bar', function() {
         test('should send the notification', function() {
           sinon.assert.calledWith(Notification, 'missedCallMultiSims');
           assert.deepEqual(MockLazyL10n.keys.missedCallMultiSims, {n: 2});
+        });
+      });
+
+      suite('> Rejected call', function() {
+        setup(function() {
+          callEndedData.hangUpLocal = true;
+          MockNavigatormozSetMessageHandler.mTrigger('telephony-call-ended',
+                                                     callEndedData);
+        });
+
+        test('does not send notification', function() {
+          // Requesting an app indicates that we are sending a notification.
+          assert.isNull(MockNavigatormozApps.mLastRequest);
         });
       });
     });
