@@ -53,12 +53,13 @@ suite('lib/storage', function() {
       dcf: { init: sinon.spy() }
     };
 
-    // The test instance
-    this.storage = new this.Storage(options);
-    this.storage.configure();
-
     // For convenience
     this.createFilename = options.createFilename;
+
+    // The test instance
+    this.storage = new this.Storage(options);
+    // Storage is a singleton. This forces reconfiguration for each suite
+    this.storage.configure();
   });
 
   teardown(function() {
@@ -68,7 +69,6 @@ suite('lib/storage', function() {
 
   suite('Storage()', function() {
     test('Should listen for change events', function() {
-      this.storage.configure();
       assert.isTrue(this.picture.addEventListener.calledWith('change'));
       assert.isTrue(navigator.mozSettings.addObserver.called);
     });
@@ -91,7 +91,7 @@ suite('lib/storage', function() {
     });
 
     test('Should create a filename if one not given', function() {
-      assert.isTrue(this.createFilename.calledWith(this.picture, 'image'));
+      assert.isTrue(this.storage.createFilename.calledWith(this.picture, 'image'));
     });
 
     test('Should add the given blob to picture storage', function() {
