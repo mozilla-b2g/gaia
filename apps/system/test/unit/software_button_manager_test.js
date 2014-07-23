@@ -4,6 +4,7 @@
 /* global MockNavigatorSettings */
 /* global MockScreenLayout */
 /* global MockSettingsListener */
+/* global MockOrientationManager */
 /* global ScreenLayout */
 /* global SoftwareButtonManager */
 
@@ -11,10 +12,12 @@ requireApp('system/test/unit/mock_applications.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/test/unit/mock_screen_layout.js');
+requireApp('system/test/unit/mock_orientation_manager.js');
 
 var mocksForSftButtonManager = new MocksHelper([
   'SettingsListener',
-  'ScreenLayout'
+  'ScreenLayout',
+  'OrientationManager'
 ]).init();
 
 suite('enable/disable software home button', function() {
@@ -22,6 +25,7 @@ suite('enable/disable software home button', function() {
   var realSettingsListener;
   var realScreenLayout;
   var realSettings;
+  var realOrientationManager;
   var fakeElement;
   var fakeHomeButton;
   var fakeFullScreenHomeButton;
@@ -37,11 +41,14 @@ suite('enable/disable software home button', function() {
     window.SettingsListener = MockSettingsListener;
     realScreenLayout = window.ScreenLayout;
     window.ScreenLayout = MockScreenLayout;
+    realOrientationManager = window.OrientationManager;
+    window.OrientationManager = MockOrientationManager;
   });
 
   suiteTeardown(function() {
     window.SettingsListener = realSettingsListener;
     window.ScreenLayout = realScreenLayout;
+    window.OrientationManager = realOrientationManager;
     navigator.mozSettings = realSettings;
   });
 

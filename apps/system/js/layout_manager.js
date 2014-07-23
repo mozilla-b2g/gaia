@@ -74,7 +74,7 @@
      * @memberOf LayoutManager
      */
     get width() {
-      return window.innerWidth;
+      return window.innerWidth - softwareButtonManager.width;
     },
 
     /**
@@ -86,7 +86,7 @@
      * @memberOf LayoutManager
      */
     match: function lm_match(width, height) {
-      return (this.height === height);
+      return (this.width === width && this.height === height);
     },
 
     /**
