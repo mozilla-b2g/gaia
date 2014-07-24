@@ -87,8 +87,9 @@ marionette('startup event test > ' + appPath + ' >', function() {
 
   test('startup >', function() {
 
-    performanceHelper.repeatWithDelay(function(app, next) {
+    PerformanceHelper.registerTimestamp(client);
 
+    performanceHelper.repeatWithDelay(function(app, next) {
       var waitForBody = false;
       PerformanceHelper.registerTimestamp(client);
       app.launch(waitForBody);
@@ -97,11 +98,15 @@ marionette('startup event test > ' + appPath + ' >', function() {
         if (error) {
           app.close();
           throw error;
-        } else {
-          performanceHelper.reportRunDurations(runResults);
-          assert.ok(Object.keys(runResults).length, 'empty results');
-          app.close();
         }
+
+        var epochEnd = PerformanceHelper.getEpochEnd(client);
+        var epochStart = PerformanceHelper.getEpochStart(client);
+        var delta = epochEnd - epochStart;
+
+        performanceHelper.reportRunDurations(runResults, null, delta);
+        assert.ok(Object.keys(runResults).length, 'empty results');
+        app.close();
       });
     });
 
