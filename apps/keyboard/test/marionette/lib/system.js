@@ -91,8 +91,8 @@ System.prototype = {
   dragDownUtilityTray: function dragDownUtilityTray() {
     client.switchToFrame();
 
-    var statusbar = client.findElement('#statusbar');
-    var chain = this.actions.press(statusbar, 100, 0).moveByOffset(100, 300);
+    var topPanel = client.findElement('#top-panel');
+    var chain = this.actions.press(topPanel, 100, 0).moveByOffset(100, 300);
     chain.release().perform();
 
     var utilityTray = client.findElement('#utility-tray');

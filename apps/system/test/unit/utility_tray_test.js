@@ -28,13 +28,15 @@ suite('system/UtilityTray', function() {
     return evt;
   }
 
-  function fakeTouches(start, end) {
-    UtilityTray.onTouchStart({ pageY: start });
+  function fakeTouches(start, end, target) {
+    target = target || UtilityTray.topPanel;
+
+    UtilityTray.onTouchStart({ target: target, pageX: 42, pageY: start });
     UtilityTray.screenHeight = 480;
 
     var y = start;
     while (y != end) {
-      UtilityTray.onTouchMove({ pageY: y });
+      UtilityTray.onTouchMove({ target: target, pageX: 42, pageY: y });
 
       if (y < end) {
         y++;
@@ -42,7 +44,7 @@ suite('system/UtilityTray', function() {
         y--;
       }
     }
-    UtilityTray.onTouchEnd();
+    UtilityTray.onTouchEnd({target: target, pageX: 42, pageY: y});
   }
 
   setup(function(done) {
@@ -67,6 +69,9 @@ suite('system/UtilityTray', function() {
     var notifications = document.createElement('div');
     notifications.style.cssText = 'height: 100px; display: block;';
 
+    var topPanel = document.createElement('div');
+    topPanel.style.cssText = 'height: 20px; display: block;';
+
     stubById = this.sinon.stub(document, 'getElementById', function(id) {
       switch (id) {
         case 'statusbar':
@@ -83,11 +88,16 @@ suite('system/UtilityTray', function() {
           return placeholder;
         case 'utility-tray-notifications':
           return notifications;
+        case 'top-panel':
+          return topPanel;
         default:
           return null;
       }
     });
-    requireApp('system/js/utility_tray.js', done);
+    requireApp('system/js/utility_tray.js', function() {
+      UtilityTray.init();
+      done();
+    });
   });
 
   teardown(function() {
@@ -191,12 +201,12 @@ suite('system/UtilityTray', function() {
       });
 
       test('should not be hidden by a tap', function() {
-        fakeTouches(480, 475);
+        fakeTouches(480, 475, UtilityTray.grippy);
         assert.equal(UtilityTray.shown, true);
       });
 
       test('should be hidden by a drag from the bottom', function() {
-        fakeTouches(480, 380);
+        fakeTouches(480, 380, UtilityTray.grippy);
         assert.equal(UtilityTray.shown, false);
       });
     });
@@ -299,6 +309,13 @@ suite('system/UtilityTray', function() {
       window.System.locked = false;
       var stub = this.sinon.stub(UtilityTray, 'onTouchStart');
       UtilityTray.statusbarIcons.dispatchEvent(fakeEvt);
+      assert.ok(stub.calledOnce);
+    });
+
+    test('events on the topPanel are handled', function() {
+      window.System.locked = false;
+      var stub = this.sinon.stub(UtilityTray, 'onTouchStart');
+      UtilityTray.topPanel.dispatchEvent(fakeEvt);
       assert.ok(stub.calledOnce);
     });
 

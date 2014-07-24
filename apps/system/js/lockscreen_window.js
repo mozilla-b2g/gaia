@@ -18,7 +18,6 @@
     var configs = {
       url: window.location.href,
       manifest: {
-        fullscreen: true,
         orientation: ['default']
       },
       name: 'Lockscreen',

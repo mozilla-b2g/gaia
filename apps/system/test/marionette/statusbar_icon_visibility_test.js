@@ -27,7 +27,7 @@ marionette('Statusbar Visibility', function() {
 
   test('Visibility of date in utility tray', function() {
     actions
-      .press(system.statusbar)
+      .press(system.topPanel)
       .moveByOffset(0, halfScreenHeight)
       .release()
       .perform();

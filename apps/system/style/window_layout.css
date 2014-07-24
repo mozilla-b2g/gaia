@@ -131,14 +131,9 @@
   height: calc(100% - 2.4rem - 1rem);
 }
 
-.appWindow > .statusbar-overlay,
 .appWindow > .fade-overlay,
 .appWindow > .identification-overlay {
   top: 0;
-}
-
-.appWindow > .statusbar-overlay {
-  height: 2.4rem;
 }
 
 .appWindow > .fade-overlay,
@@ -153,7 +148,7 @@
   height: 100%;
 }
 
-#screen.active-statusbar #windows .appWindow > .statusbar-overlay {
+#screen.active-statusbar #windows .appWindow > .titlebar {
   height: 0;
 }
 
@@ -172,8 +167,8 @@
   height: calc(100% - 1rem);
 }
 
-#screen:-moz-full-screen-ancestor .appWindow > .statusbar-overlay,
-.appWindow.fullscreen-app > .statusbar-overlay {
+#screen:-moz-full-screen-ancestor .appWindow > .titlebar,
+.appWindow.fullscreen-app > .titlebar {
   height: 0;
 }
 
@@ -187,12 +182,12 @@
 | Rocketbar Layout
 \*****************************************************************************/
 
-.appWindow.rocketbar:not(.navigation) > iframe {
+.appWindow.bar:not(.navigation) > iframe {
   top: calc(5rem + 2.4rem);
   height: calc(100% - 2.4rem);
 }
 
-.appWindow.rocketbar.navigation > iframe {
+.appWindow.bar.navigation > iframe {
   top: calc(5rem + 2.4rem);
   height: calc(100% - 2.4rem - 1rem);
 }
@@ -226,7 +221,7 @@
   top: calc(-7rem - 2.4rem);
 }
 
-.appWindow.searchWindow > .statusbar-overlay {
+.appWindow.searchWindow > .titlebar {
   height: 0;
 }
 

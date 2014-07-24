@@ -278,16 +278,6 @@
   visibility: visible;
 }
 
-/****************** Statusbar Overlay ******************/
-.appWindow > .statusbar-overlay {
-  visibility: hidden;
-  background-color: black;
-}
-
-#screen .appWindow:not([loading-state=true]) > .statusbar-overlay {
-  visibility: visible;
-}
-
 /****************** Screenshot Overlay ******************/
 .appWindow > .screenshot-overlay {
   visibility: hidden;
