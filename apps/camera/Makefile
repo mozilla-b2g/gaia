@@ -12,6 +12,12 @@ ifdef GAIA_DISTRIBUTION_DIR
 	endif
 endif
 
+ifeq ($(GAIA_OPTIMIZE), 1)
+	GAIA_CAMERA_MINIFY?=uglify
+else
+	GAIA_CAMERA_MINIFY?=none
+endif
+
 -include $(PWD)/build/common.mk
 
 .PHONY: all $(STAGE_APP_DIR)/js/main.js
@@ -23,4 +29,4 @@ $(STAGE_APP_DIR):
 $(STAGE_APP_DIR)/js/main.js: | $(STAGE_APP_DIR)
 	$(CP_USER_CONFIGURATION)
 	rm -rf $(STAGE_APP_DIR)/style
-	$(XULRUNNERSDK) $(XPCSHELLSDK) ../../build/r.js -o build/require_config.jslike
+	$(XULRUNNERSDK) $(XPCSHELLSDK) ../../build/r.js -o build/require_config.jslike optimize=$(GAIA_CAMERA_MINIFY)

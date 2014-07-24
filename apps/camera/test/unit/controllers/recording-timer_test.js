@@ -1,11 +1,9 @@
-/*global req*/
 'use strict';
 
 suite('controllers/recording-timer', function() {
   suiteSetup(function(done) {
     var self = this;
-
-    req([
+    requirejs([
       'app',
       'controllers/recording-timer',
       'views/recording-timer'

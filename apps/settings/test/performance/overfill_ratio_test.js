@@ -1,5 +1,7 @@
 'use strict';
 
+var assert = require('assert');
+
 var MarionetteHelper = requireGaia('/tests/js-marionette/helper.js');
 var PerformanceHelper =
   requireGaia('/tests/performance/performance_helper.js');
@@ -31,7 +33,7 @@ marionette(mozTestInfo.appPath + ' >', function() {
 
   test('Overfill Settings Scroll >', function() {
     var results = [];
-    var lastEvent = 'startup-path-done';
+    var lastEvent = 'moz-app-loaded';
 
     var performanceHelper = new PerformanceHelper({
       app: app,
@@ -68,6 +70,9 @@ marionette(mozTestInfo.appPath + ' >', function() {
       }); // end wait for perf event
 
      });
+
+    // results is an Array of values, one per run.
+    assert.ok(results.length == mozTestInfo.runs, 'missing runs');
 
     PerformanceHelper.reportDuration(results, 'overfills');
   });

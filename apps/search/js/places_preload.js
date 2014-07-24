@@ -8,16 +8,16 @@
   var defaultHistory = [
     {url: 'http://www.nytimes.com', visited: 1, frecency: -1,
      title: 'The New York Times - Breaking News, World News & Multimedia',
-     iconUri: '/style/preloaded/favicons/1_NYTimes.png'},
+     icons: {'/style/preloaded/favicons/1_NYTimes.png': {}}},
     {url: 'http://www.behance.net', visited: 1, frecency: -1,
      title: 'Online Portfolios on Behance',
-     iconUri: '/style/preloaded/favicons/2_Behance.png'},
+     icons: {'/style/preloaded/favicons/2_Behance.png': {}}},
     {url: 'http://gizmodo.com', visited: 1, frecency: -1,
      title: 'Gizmodo - Tech By Design',
-     iconUri: '/style/preloaded/favicons/3_Gizmodo.png'},
+     icons: {'/style/preloaded/favicons/3_Gizmodo.png': {}}},
     {url: 'http://www.vogue.com', visited: 1, frecency: -1,
      title: 'Fashion Magazine - Latest News, Catwalk Photos & Designers',
-     iconUri: '/style/preloaded/favicons/4_Vouge.png'},
+     icons: {'/style/preloaded/favicons/4_Vouge.png': {}}}
   ];
 
   var defaultTopSites = [

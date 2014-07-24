@@ -746,12 +746,6 @@ suite('system/AppWindowManager', function() {
       MockSettingsListener.mCallbacks['continuous-transition.enabled'](true);
       assert.isTrue(AppWindowManager.continuousTransition);
     });
-
-    test('app-themecolor.enabled', function() {
-      MockSettingsListener.mCallbacks['app-themecolor.enabled'](true);
-
-      assert.isTrue(screenElement.classList.contains('themecolor-active'));
-    });
   });
 
   suite('linkWindowActivity', function() {

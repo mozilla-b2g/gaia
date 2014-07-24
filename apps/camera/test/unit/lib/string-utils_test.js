@@ -10,7 +10,7 @@ suite('utils/string-utils', function() {
 
     this.modules = {};
 
-    req([
+    requirejs([
       'lib/string-utils'
     ], function(_StringUtils) {
       StringUtils = self.modules.StringUtils = _StringUtils;

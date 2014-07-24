@@ -21,7 +21,7 @@
   transform-origin: left top;
 }
 
-#screen.themecolor-active #statusbar-background {
+#screen #statusbar-background {
   visibility: hidden;
 }
 

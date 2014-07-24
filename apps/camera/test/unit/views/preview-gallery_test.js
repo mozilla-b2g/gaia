@@ -3,7 +3,7 @@ suite('views/preview-gallery', function() {
 
   suiteSetup(function(done) {
     var self = this;
-    req(['views/preview-gallery'], function(previewGalleryView) {
+    requirejs(['views/preview-gallery'], function(previewGalleryView) {
       self.previewGalleryView = previewGalleryView;
       done();
     });

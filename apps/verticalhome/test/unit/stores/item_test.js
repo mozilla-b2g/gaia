@@ -105,6 +105,7 @@ suite('item.js >', function() {
     };
     /*jshint unused:false*/
     var itemStore = new ItemStore();
+    window.dispatchEvent(new CustomEvent('configuration-ready'));
 
     var savedElem = mockIndexedDB.dbs[0].receivedData;
     var grid = configurator.getGrid();

@@ -849,6 +849,7 @@
         // Perf test needs.
         this.publish('loadtime', {
           time: parseInt(Date.now() - this.launchTime),
+          timestamp: this.timestamp,
           type: 'c',
           src: this.config.url
         });
@@ -886,9 +887,25 @@
       this.publish('locationchange');
     };
 
+
   AppWindow.prototype._handle_mozbrowsericonchange =
     function aw__handle_mozbrowsericonchange(evt) {
-      this.config.favicon = evt.detail;
+
+      var href = evt.detail.href;
+      var sizes = evt.detail.sizes;
+
+      if (!('favicons' in this)) {
+        this.favicons = {};
+      }
+
+      if (!(href in this.favicons)) {
+        this.favicons[href] = {sizes: []};
+      }
+
+      if (this.favicons[href].sizes.indexOf(sizes) === -1) {
+        this.favicons[href].sizes.push(sizes);
+      }
+
       if (this.identificationIcon) {
         this.identificationIcon.style.backgroundImage =
           'url("' + evt.detail.href + '")';

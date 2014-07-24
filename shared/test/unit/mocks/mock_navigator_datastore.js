@@ -136,7 +136,11 @@ MockDatastoreObj.prototype = {
     if (type === 'change') {
       this._cb = cb;
     }
-  }
+  },
+
+  removeEventListener: function() {
+    this._cb = null;
+  },
 };
 
 var MockDatastore = new MockDatastoreObj();

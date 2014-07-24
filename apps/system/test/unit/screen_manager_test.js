@@ -203,14 +203,30 @@ suite('system/ScreenManager', function() {
       assert.isTrue(stubTurnOn.called);
     });
 
-    test('Testing nfc-tech-discovered and nfc-tech-lost event', function() {
-      var stubReconfigScreenTimeout = this.sinon.stub(
-                                         ScreenManager,
-                                         '_reconfigScreenTimeout');
-      ScreenManager.handleEvent({'type': 'nfc-tech-discovered'});
-      assert.isTrue(stubReconfigScreenTimeout.called);
-      ScreenManager.handleEvent({'type': 'nfc-tech-lost'});
-      assert.isTrue(stubReconfigScreenTimeout.called);
+    suite('Test nfc-tech events', function() {
+      test('if _inTransition is true', function() {
+        var stubTurnScreenOn = this.sinon.stub(ScreenManager, 'turnScreenOn');
+        ScreenManager._inTransition = true;
+
+        ScreenManager.handleEvent({'type': 'nfc-tech-discovered'});
+        assert.isTrue(stubTurnScreenOn.calledOnce, 'nfc-tech-discovered');
+
+        ScreenManager.handleEvent({'type': 'nfc-tech-lost'});
+        assert.isTrue(stubTurnScreenOn.calledTwice, 'nfc-tech-lost');
+      });
+
+      test('if _intransition is false', function() {
+        var stubReconfigScreenTimeout = this.sinon.stub(
+                                           ScreenManager,
+                                           '_reconfigScreenTimeout');
+
+        ScreenManager.handleEvent({'type': 'nfc-tech-discovered'});
+        assert.isTrue(stubReconfigScreenTimeout.calledOnce,
+                     'nfc-tech-discovered');
+
+        ScreenManager.handleEvent({'type': 'nfc-tech-lost'});
+        assert.isTrue(stubReconfigScreenTimeout.calledTwice, 'nfc-tech-lost');
+      });
     });
 
     suite('Testing userproximity event', function() {

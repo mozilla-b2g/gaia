@@ -204,10 +204,10 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
           node.textContent = self._cachedInfo;
         });
       }
-      self.formatPhoneNumber('end');
       self._cachedAdditionalInfo =
         Utils.getPhoneNumberAdditionalInfo(matchingTel);
       self.replaceAdditionalContactInfo(self._cachedAdditionalInfo);
+      self.formatPhoneNumber('end');
       var photo = ContactPhotoHelper.getFullResolution(contact);
       if (photo) {
         self.photo = photo;
@@ -250,9 +250,18 @@ HandledCall.prototype.formatPhoneNumber =
       return;
     }
 
+    var scenario = CallScreen.getScenario();
+    // To cover the second incoming call sub-scenario of the call waiting one,
+    //  we have to check if the current call is in incoming state and if the
+    //  incoming lower pane is being shown.
+    if (scenario === FontSizeManager.CALL_WAITING &&
+        this.call.state === 'incoming' &&
+        CallScreen.incomingContainer.classList.contains('displayed')) {
+      scenario = FontSizeManager.SECOND_INCOMING_CALL;
+    }
     FontSizeManager.adaptToSpace(
-      CallScreen.getScenario(), this.numberNode,
-      this.node.querySelector('.fake-number'), false, ellipsisSide);
+      scenario, this.numberNode, this.node.querySelector('.fake-number'),
+      false, ellipsisSide);
 };
 
 HandledCall.prototype.replacePhoneNumber =

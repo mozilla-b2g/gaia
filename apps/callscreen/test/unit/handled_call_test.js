@@ -676,7 +676,7 @@ suite('dialer/handled_call', function() {
       this.sinon.spy(FontSizeManager, 'adaptToSpace');
       subject.formatPhoneNumber('end');
       sinon.assert.calledWith(
-        FontSizeManager.adaptToSpace, MockCallScreen.getScenario(),
+        FontSizeManager.adaptToSpace, MockCallScreen.mScenario,
         subject.numberNode, subject.node.querySelector('.fake-number'),
         false, 'end');
     });

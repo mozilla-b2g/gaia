@@ -1,5 +1,5 @@
 'use strict';
-/* global ItemStore, LazyLoader */
+/* global ItemStore, LazyLoader, Configurator */
 
 (function(exports) {
 
@@ -7,6 +7,7 @@
   const HIDDEN_ROLES = ['system', 'input', 'homescreen', 'search'];
 
   function App() {
+    window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
     this.scrollable = document.querySelector('.scrollable');
     this.grid = document.getElementById('icons');
 
@@ -25,9 +26,14 @@
     window.addEventListener('context-menu-open', this);
     window.addEventListener('context-menu-close', this);
 
+    this.layoutReady = false;
+    window.addEventListener('gaiagrid-layout-ready', this);
+
     // some terrible glue to keep track of which icons failed to download
     // and should be retried when/if we come online again.
     this._iconsToRetry = [];
+
+    window.dispatchEvent(new CustomEvent('moz-chrome-interactive'));
   }
 
   App.prototype = {
@@ -66,21 +72,49 @@
      * Fetch all icons and render them.
      */
     init: function() {
-      this.itemStore = new ItemStore();
+      this.itemStore = new ItemStore((firstTime) => {
+        if (!firstTime) {
+          return;
+        }
+
+        LazyLoader.load(['shared/js/icc_helper.js',
+                         'shared/js/version_helper.js',
+                         'js/configurator.js'], function onLoad() {
+          exports.configurator = new Configurator();
+        });
+      });
+
       this.itemStore.all(function _all(results) {
         results.forEach(function _eachResult(result) {
           this.grid.add(result);
         }, this);
-        this.grid.render();
+
+        if (this.layoutReady) {
+          this.renderGrid();
+        } else {
+          window.addEventListener('gaiagrid-layout-ready', function onReady() {
+            window.removeEventListener('gaiagrid-layout-ready', onReady);
+            this.renderGrid();
+          }.bind(this));
+        }
+
+        window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
+        window.dispatchEvent(new CustomEvent('moz-content-interactive'));
 
         window.addEventListener('localized', this.onLocalized.bind(this));
         LazyLoader.load(['shared/style/headers.css',
                          '/shared/js/font_size_utils.js',
                          'js/contextmenu_handler.js',
-                         '/shared/js/homescreens/confirm_dialog_helper.js']);
+                         '/shared/js/homescreens/confirm_dialog_helper.js'],
+          function() {
+            window.dispatchEvent(new CustomEvent('moz-app-loaded'));
+          });
       }.bind(this));
+    },
 
+    renderGrid: function() {
       this.grid.setEditHeaderElement(document.getElementById('edit-header'));
+      this.grid.render();
     },
 
     start: function() {
@@ -97,7 +131,6 @@
      */
     onLocalized: function() {
       var items = this.grid.getItems();
-      var titles = [];
       items.forEach(function eachItem(item) {
         if(!item.name) {
           return;
@@ -107,18 +140,6 @@
         // the app. We just need to get it and set the content.
         var element = item.element.querySelector('.title');
         element.textContent = item.name;
-
-        // Bug 1022866 - Workaround for projected content nodes disappearing
-        // We need to hide and 'flash' the the element style.
-        element.style.display = 'none';
-
-        titles.push(element);
-      });
-
-      // Bug 1022866 - Recover from workaround, display titles afer a reflow.
-      document.body.clientTop;
-      titles.forEach(function eachItem(title) {
-        title.style.display = '';
       });
     },
 
@@ -166,6 +187,11 @@
           window.addEventListener('hashchange', this);
           break;
 
+        case 'gaiagrid-layout-ready':
+          this.layoutReady = true;
+          window.removeEventListener('gaiagrid-layout-ready', this);
+          break;
+
         case 'hashchange':
           if (this.grid._grid.dragdrop.inEditMode) {
             this.grid._grid.dragdrop.exitEditMode();
@@ -203,6 +229,19 @@
     }
   };
 
+  // Dummy configurator
+  exports.configurator = {
+    getSingleVariantApp: function() {
+      return {};
+    },
+    get isSingleVariantReady() {
+      return true;
+    },
+    get isSimPresentOnFirstBoot() {
+      return false;
+    }
+  };
   exports.app = new App();
+  exports.app.init();
 
 }(window));

@@ -108,13 +108,13 @@
     // id should be a guid (manifest or bookmark URL)
     processApp: function processApp(action, id) {
       if (action === 'install') {
-        return HomeIcons.init()
+        return HomeIcons.init(true)
                .then(() => this.getInfo([id]))
                .then(this.addToCollections)
                .catch(onerror);
 
       } else if (action === 'uninstall') {
-        return HomeIcons.init()
+        return HomeIcons.init(true)
                .then(() => this.removeFromCollections(id))
                .catch(onerror);
       }

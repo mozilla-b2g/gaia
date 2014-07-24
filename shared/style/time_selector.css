@@ -292,3 +292,30 @@ button[disabled]::-moz-selection {
 [role="dialog"][data-type="time-selector"] menu button.full {
   width: 100%;
 }
+
+/******************************************************************************
+ * Right-To-Left tweaks
+ */
+
+html[dir="rtl"] [role="dialog"][data-type="time-selector"] .format12h .picker-bar-background {
+  left: 0;
+  right: auto;
+}
+
+html[dir="rtl"] [role="dialog"][data-type="time-selector"] .format12h .value-picker-hour24-wrapper {
+  left: 0;
+  right: auto;
+}
+
+html[dir="rtl"] [role="dialog"][data-type="time-selector"] .format12h .value-picker-hours-wrapper {
+  left: calc(100% / 3);
+}
+
+html[dir="rtl"] [role="dialog"][data-type="time-selector"] .format12h .value-picker-minutes-wrapper {
+  left: auto;
+  right: 0;
+}
+
+html[dir="rtl"] [role="dialog"][data-type="time-selector"] .format12h .value-indicator > .value-indicator-colon {
+  left: calc(100% / 3);
+}

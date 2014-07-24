@@ -52,7 +52,8 @@ Home2.Selectors = {
   search: '#search',
   firstIcon: '#icons div.icon:not(.placeholder)',
   dividers: '#icons section.divider',
-  contextmenu: '#contextmenu-dialog'
+  contextmenu: '#contextmenu-dialog',
+  themeColor: 'head meta[name="theme-color"]'
 };
 
 /**
@@ -82,10 +83,11 @@ Home2.prototype = {
   Click confirm on a particular type of confirmation dialog.
 
   @param {String} type of dialog.
+  @param {String} selector of the button. Defaults to .confirm.
   */
-  confirmDialog: function(type) {
+  confirmDialog: function(type, button) {
     var dialog = this.getConfirmDialog(type);
-    var confirm = dialog.findElement('.confirm');
+    var confirm = dialog.findElement(button || '.confirm');
 
     // XXX: Hack to use faster polling
     var quickly = this.client.scope({ searchTimeout: 50 });
@@ -209,6 +211,16 @@ Home2.prototype = {
   },
 
   /**
+  Get the the current meta=theme-color of the homescreen
+
+  @return {String}
+  */
+  getThemeColor: function() {
+    var meta = this.client.findElement(Home2.Selectors.themeColor);
+    return meta.getAttribute('content');
+  },
+
+  /**
    * Waits for the homescreen to launch and switches to the frame.
    */
   waitForLaunch: function() {
@@ -283,6 +295,23 @@ Home2.prototype = {
     var banner = this.client.findElement('.banner.generic-dialog');
     this.client.helper.waitForElementToDisappear(banner);
     this.client.switchToFrame(this.system.getHomescreenIframe());
+  },
+
+  /**
+   * Helper function to move an icon to a specified index. Currently uses
+   * executeScript() and manually fiddles with the homescreen grid logic,
+   * this is because scripted drag/drop does not work too well within the
+   * vertically scrolling homescreen on b2g desktop.
+   * @param {Element} icon The grid icon object.
+   * @param {Integer} index The position to insert the icon into.
+   */
+  moveIconToIndex: function(icon, index) {
+    this.client.executeScript(function(identifier, newPos) {
+      var app = window.wrappedJSObject.app;
+      var icon = app.grid.getIcon(identifier);
+      app.grid.moveTo(icon.detail.index, newPos);
+      app.grid.render();
+    }, [icon.getAttribute('data-identifier'), index]);
   }
 };
 

@@ -3,6 +3,7 @@
 /* global GaiaGrid */
 /* global GridLayout */
 /* global GridZoom */
+/* global LazyLoader */
 
 (function(exports) {
 
@@ -20,10 +21,6 @@
 
     if (config.features.zoom) {
       this.zoom = new GridZoom(this);
-    }
-
-    if (config.features.dragdrop) {
-      this.dragdrop = new GridDragDrop(this);
     }
 
     this.layout = new GridLayout(this);
@@ -86,9 +83,16 @@
         }
 
         this.icons[item.identifier] = item;
+      } else if (item.detail.type !== 'divider' &&
+        item.detail.type !== 'placeholder') {
+        // If the item does not have an identifier, and is not a placeholder
+        // or divider, do not add it to the grid.
+        console.log('Error, could not load identifier for object: ',
+            JSON.stringify(item.detail));
+        return;
       }
 
-      // If isnsertTo it is a number, splice.
+      // If insertTo it is a number, splice.
       if (!isNaN(parseFloat(insertTo)) && isFinite(insertTo)) {
         this.items.splice(insertTo, 0, item);
       } else {
@@ -153,7 +157,6 @@
         container = e.target.parentNode;
         action = 'remove';
       }
-
       var identifier = container.dataset.identifier;
       var icon = this.icons[identifier];
       var inEditMode = this.dragdrop && this.dragdrop.inEditMode;
@@ -394,6 +397,12 @@
 
       this.element.setAttribute('cols', this.layout.cols);
       pendingCachedIcons === 0 && onCachedIconRendered();
+
+      if (!this.dragdrop && this.config.features.dragdrop) {
+        LazyLoader.load('shared/elements/gaia_grid/js/grid_dragdrop.js', () => {
+          this.dragdrop = new GridDragDrop(this);
+        });
+      }
     }
   };
 

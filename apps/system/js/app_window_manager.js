@@ -273,13 +273,6 @@
               this.broadcastMessage('kill_suspended');
             }
           }.bind(this)
-        },
-
-        'app-themecolor.enabled': {
-          defaultValue: false,
-          callback: function(value) {
-            screenElement.classList.toggle('themecolor-active', value);
-          }
         }
       };
 

@@ -145,6 +145,13 @@
           // GridItem.renderIcon is not concurrency safe one image may override
           // another without ordering.
           this.renderIcon();
+
+          window.dispatchEvent(new CustomEvent('downloadapplied', {
+            detail: {
+              id: this.app.manifestURL
+            }
+          }));
+
           break;
       }
     },

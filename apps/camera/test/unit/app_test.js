@@ -5,19 +5,20 @@ suite('app', function() {
 
   suiteSetup(function(done) {
     var self = this;
-
-    window.req([
+    requirejs([
       'app',
       'lib/camera/camera',
       'view',
       'lib/geo-location',
       'lib/setting',
-    ], function(App, Camera, View, GeoLocation, Setting) {
+      'lib/pinch'
+    ], function(App, Camera, View, GeoLocation, Setting, Pinch) {
       self.App = App;
       self.View = View;
       self.Camera = Camera;
       self.Geolocation = GeoLocation;
       self.Setting = Setting;
+      self.Pinch = Pinch;
       done();
     });
   });
@@ -32,6 +33,7 @@ suite('app', function() {
     win: function() {
       return {
         addEventListener: sinon.spy(),
+        dispatchEvent: sinon.stub(),
         location: {
           hash: ''
         }
@@ -61,6 +63,7 @@ suite('app', function() {
       win: mocks.win(),
       el: document.createElement('div'),
       geolocation: sinon.createStubInstance(this.Geolocation),
+      pinch: sinon.createStubInstance(this.Pinch),
       activity: {},
       camera: sinon.createStubInstance(this.Camera),
       require: sinon.stub(),
@@ -68,11 +71,7 @@ suite('app', function() {
         geolocation: sinon.createStubInstance(this.Setting),
         spinnerTimeouts: sinon.createStubInstance(this.Setting)
       },
-      views: {
-        viewfinder: new this.View({ name: 'viewfinder' }),
-        focusRing: new this.View({ name: 'focus-ring' }),
-        hud: new this.View({ name: 'hud' })
-      },
+      views: {},
       controllers: {
         battery: sinon.spy(),
         overlay: sinon.spy(),
@@ -83,15 +82,14 @@ suite('app', function() {
         camera: sinon.spy(),
         settings: sinon.spy(),
         activity: sinon.spy(),
-        recordingTimer: sinon.spy(),
-        zoomBar: sinon.spy(),
-        indicators: sinon.spy(),
 
         // Lazy loaded
-        previewGallery: 'controllers/preview-gallery',
-        storage: 'controllers/storage',
-        confirm: 'controllers/confirm',
-        sounds: 'controllers/sounds'
+        lazy: [
+          'controllers/preview-gallery',
+          'controllers/storage',
+          'controllers/confirm',
+          'controllers/sounds'
+        ]
       }
     };
 
@@ -107,7 +105,6 @@ suite('app', function() {
 
     // Stub out all methods
     this.sandbox.stub(options.activity);
-    this.sandbox.stub(options.viewfinder);
     this.sandbox.stub(options.focusRing);
     this.sandbox.stub(options.hud);
 
@@ -122,6 +119,7 @@ suite('app', function() {
 
     // Aliases
     this.settings = options.settings;
+    this.pinch = options.pinch;
 
     // Create the app
     this.app = new this.App(options);
@@ -182,14 +180,6 @@ suite('app', function() {
       assert.ok(controllers.controls.calledWith(app));
       assert.ok(controllers.viewfinder.calledWith(app));
       assert.ok(controllers.camera.calledWith(app));
-      assert.ok(controllers.zoomBar.calledWith(app));
-    });
-
-    test('Should put each of the views into the root element', function() {
-      var el = this.app.el;
-
-      assert.ok(el.querySelector('.viewfinder'));
-      assert.ok(el.querySelector('.hud'));
     });
 
     test('Should bind to `visibilitychange` event', function() {
@@ -231,6 +221,22 @@ suite('app', function() {
       sinon.assert.calledWith(this.App.prototype.showSpinner, 'requestingCamera');
     });
 
+    suite('pinch', function() {
+      test('It listens to the pinch `changed` event', function() {
+        sinon.assert.called(this.pinch.on, 'changed');
+      });
+
+      test('It disables pinch while the preview-gallery is open', function() {
+        sinon.assert.called(this.app.on, 'previewgallery:opened', this.pinch.disable);
+        sinon.assert.called(this.app.on, 'previewgallery:closed', this.pinch.enable);
+      });
+
+      test('It disables pinch while settings is open', function() {
+        sinon.assert.called(this.app.on, 'settings:opened', this.pinch.disable);
+        sinon.assert.called(this.app.on, 'settings:closed', this.pinch.enable);
+      });
+    });
+
     suite('App#geolocationWatch()', function() {
       test('Should *not* watch location if in activity', function() {
         this.app.hidden = false;
@@ -263,7 +269,7 @@ suite('app', function() {
         this.callback = this.spy.args[0][1];
 
         sinon.stub(this.app, 'onReady');
-        sinon.spy(this.app, 'loadController');
+        sinon.spy(this.app, 'loadLazyControllers');
         sinon.spy(this.app, 'loadL10n');
 
         // Call the callback to test
@@ -283,13 +289,7 @@ suite('app', function() {
       });
 
       test('Should load non-critical controllers', function() {
-        var loadController = this.app.loadController;
-        var controllers = this.app.controllers;
-
-        assert.isTrue(loadController.calledWith(controllers.previewGallery));
-        assert.isTrue(loadController.calledWith(controllers.storage));
-        assert.isTrue(loadController.calledWith(controllers.confirm));
-        assert.isTrue(loadController.calledWith(controllers.sounds));
+        sinon.assert.called(this.app.loadLazyControllers);
       });
     });
   });
@@ -451,6 +451,31 @@ suite('app', function() {
     test('Should clear reference to `app.views.loading`', function() {
       this.app.onReady();
       assert.equal(this.app.views.loading, null);
+    });
+  });
+
+  suite('App#loadLazyControllers()', function() {
+    setup(function() {
+      this.done = sinon.spy();
+      this.fakeControllers = [ sinon.spy(), sinon.spy(), sinon.spy() ];
+      this.app.loadLazyControllers(this.done);
+      this.callback = this.app.require.withArgs(this.app.controllers.lazy).args[0][1];
+      this.callback.apply(window, this.fakeControllers);
+    });
+
+    test('It requires the lazy controllers', function() {
+      sinon.assert.calledWith(this.app.require, this.app.controllers.lazy);
+    });
+
+    test('It runs each controller, passing in the App instance', function() {
+      var self = this;
+      this.fakeControllers.forEach(function(fakeController) {
+        sinon.assert.calledWith(fakeController, self.app);
+      });
+    });
+
+    test('It calls the callback', function() {
+      sinon.assert.calledOnce(this.done);
     });
   });
 });

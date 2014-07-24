@@ -70,9 +70,9 @@
 
 .icon .title {
   display: inline-block;
-  margin-top: -0.2rem;
+  margin-top: 0.1rem;
   /* We need this rule in order not to hide the drop shadow */
-  padding: 0.2rem 0.2rem 1rem;
+  padding: 0 0.2rem 1rem;
   text-shadow: 0.1rem 0.1rem 0.3rem rgba(0, 0, 0, 0.3),
                0.2rem 0.4rem 1rem rgba(0, 0, 0, 0.4);
   font-size: 1.4rem;
@@ -82,12 +82,14 @@
   overflow: hidden;
   width: calc(100% - 0.4rem);
   box-sizing: border-box;
+  vertical-align: top;
 }
 
 [cols="4"] .icon .title {
   /* Font size is the same independent on grid configuration */
   font-size: calc(1.2rem * 1.333);
-  margin-top: 0.2rem;
+  margin-top: 0.5rem;
+  line-height: 1.94rem;
 }
 
 .divider {

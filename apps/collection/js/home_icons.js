@@ -22,14 +22,13 @@
   }
 
   HomeIcons.prototype = {
-    init: function init() {
-      initPromise =
-        Promise.all([this.collectBookmarkURLs(), this.collectManifestURLs()])
-               .then(() => this.ready = true);
-
-      this.init = function noop() {
-        return initPromise;
-      };
+    init: function init(force) {
+      // first init call or forcing new init
+      if (!initPromise || force) {
+        initPromise =
+          Promise.all([this.collectBookmarkURLs(), this.collectManifestURLs()])
+                 .then(() => this.ready = true);
+      }
 
       return initPromise;
     },

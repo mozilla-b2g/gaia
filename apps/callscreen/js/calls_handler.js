@@ -254,9 +254,11 @@ var CallsHandler = (function callsHandler() {
 
       if (!number) {
         CallScreen.incomingNumber.textContent = _('withheld-number');
-        FontSizeManager.adaptToSpace(
-          FontSizeManager.CALL_WAITING, CallScreen.incomingNumber,
-          CallScreen.fakeIncomingNumber, false, 'end');
+        var scenario = (call.state === 'incoming') ?
+          FontSizeManager.SECOND_INCOMING_CALL : FontSizeManager.CALL_WAITING;
+        FontSizeManager.adaptToSpace(scenario, CallScreen.incomingNumber,
+                                     CallScreen.fakeIncomingNumber, false,
+                                     'end');
         return;
       }
 
@@ -278,9 +280,11 @@ var CallsHandler = (function callsHandler() {
           CallScreen.incomingNumber.textContent = number;
           CallScreen.incomingNumberAdditionalInfo.textContent = '';
         }
-        FontSizeManager.adaptToSpace(
-          FontSizeManager.CALL_WAITING, CallScreen.incomingNumber,
-          CallScreen.fakeIncomingNumber, false, 'end');
+        var scenario = (call.state === 'incoming') ?
+          FontSizeManager.SECOND_INCOMING_CALL : FontSizeManager.CALL_WAITING;
+        FontSizeManager.adaptToSpace(scenario, CallScreen.incomingNumber,
+                                     CallScreen.fakeIncomingNumber, false,
+                                     'end');
       });
     });
 
@@ -654,7 +658,7 @@ var CallsHandler = (function callsHandler() {
       telephony.speakerEnabled = false;
     }
 
-    if (!doNotConnect) {
+    if (!doNotConnect && displayed) {
       // add a btHelper.isConnected() check before calling disconnectSco
       // once bug 929376 lands.
       btHelper.connectSco();

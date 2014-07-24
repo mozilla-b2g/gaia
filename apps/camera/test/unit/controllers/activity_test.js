@@ -1,11 +1,10 @@
 suite('controllers/activity', function() {
   /*jshint maxlen:false*/
-  /*global req*/
   'use strict';
 
   suiteSetup(function(done) {
     var self = this;
-    req([
+    requirejs([
       'app',
       'controllers/activity',
       'lib/setting',
@@ -21,6 +20,7 @@ suite('controllers/activity', function() {
     this.sandbox = sinon.sandbox.create();
 
     this.app = sinon.createStubInstance(this.App);
+    this.app.win = { location: {} };
     this.app.activity = {};
     this.app.settings = {
       mode: sinon.createStubInstance(this.Setting),
@@ -53,7 +53,39 @@ suite('controllers/activity', function() {
   });
 
   suite('ActivityController#bindEvents()', function() {
+    setup(function() {
+      sinon.spy(this.controller, 'setupListener');
+    });
 
+    test('It binds a listener straight away if an activity name was found', function() {
+      this.controller.name = 'pick';
+      this.controller.bindEvents();
+      sinon.assert.calledWith(navigator.mozSetMessageHandler, 'activity');
+    });
+
+    test('It binds a listener straight after critical path if no activity name was found', function() {
+      this.controller.name = undefined;
+      this.controller.bindEvents();
+      sinon.assert.calledWith(this.app.once, 'criticalpathdone');
+
+      // Call the callback
+      this.app.once.withArgs('criticalpathdone').args[0][1]();
+      sinon.assert.calledWith(navigator.mozSetMessageHandler, 'activity');
+    });
+  });
+
+  suite('ActivityController#getName()', function() {
+    test('It returns the name after the #', function() {
+      this.app.win.location.hash = '#pick';
+      var name = this.controller.getName();
+      assert.equal(name, 'pick');
+    });
+
+    test('It returns undefined if no hash fragment is present', function() {
+      this.app.win.location.hash = '';
+      var name = this.controller.getName();
+      assert.equal(name, undefined);
+    });
   });
 
   suite('Activity#confgureMode()', function() {
@@ -150,8 +182,6 @@ suite('controllers/activity', function() {
 
   suite('ActivityController#onMessage()', function() {
     setup(function() {
-      this.onMessage = navigator.mozSetMessageHandler.args[0][1];
-
       this.activity = {
         source: {
           name: 'pick',
@@ -164,7 +194,7 @@ suite('controllers/activity', function() {
 
       sinon.spy(this.controller, 'configureMode');
       sinon.stub(this.controller, 'getMaxPixelSize').returns('<max-pixel-size>');
-      this.onMessage(this.activity);
+      this.controller.onMessage(this.activity);
     });
 
     test('Should emit app events', function() {
@@ -199,7 +229,7 @@ suite('controllers/activity', function() {
       this.app.emit.reset();
 
       this.activity.source.name = 'unknown';
-      this.onMessage(this.activity);
+      this.controller.onMessage(this.activity);
 
       assert.isFalse(this.app.emit.calledWith('activity'));
       assert.isFalse(this.app.emit.calledWith('activity:unknown'));

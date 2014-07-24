@@ -14,6 +14,7 @@ var Customizer = (function(setting, resourceType, onerror) {
       if (event.detail.setting === setting) {
         window.removeEventListener('customization', eventHandler);
         var value = event.detail.value;
+        self.simPresentOnFirstBoot = event.detail.simPresentOnFirstBoot;
         // If resourceType === 'data' the value received contains directly the
         // value that the customizer will proccess.
         // In other case the value will have the resource to be loaded by the
@@ -21,7 +22,6 @@ var Customizer = (function(setting, resourceType, onerror) {
         if (resourceType === 'data') {
           self.set(value);
         } else {
-          self.simPresentOnFirstBoot = event.detail.simPresentOnFirstBoot;
           Resources.load(value, resourceType, self.set.bind(self),
             function onerrorRetrieving(status) {
               console.error('Customizer.js: Error retrieving the resource.');
