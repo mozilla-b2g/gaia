@@ -1,6 +1,6 @@
 'use strict';
 
-/* global configurator, MockNavigatorSettings, IccHelper, App, app,
+/* global Configurator, MockNavigatorSettings, IccHelper,
    MocksHelper, MockVersionHelper, verticalPreferences,
    MockNavigatorGetFeature */
 
@@ -8,11 +8,9 @@ require('/shared/js/homescreens/vertical_preferences.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_navigator_get_feature.js');
 require('/shared/test/unit/mocks/mock_icc_helper.js');
-require('/test/unit/mock_app.js');
 require('/test/unit/mock_version_helper.js');
 
 var mocksHelperForConfigurator = new MocksHelper([
-  'App',
   'VersionHelper',
   'IccHelper'
 ]).init();
@@ -24,6 +22,7 @@ suite('configurator.js >', function() {
   var realMozSettings;
   var xhr;
   var requests = [];
+  var configurator;
 
   var confGridOK = {
     'preferences': {},
@@ -82,9 +81,12 @@ suite('configurator.js >', function() {
   setup(function(done) {
     mocksHelperForConfigurator.setup();
     xhr = sinon.useFakeXMLHttpRequest();
-    requests = [];
     xhr.onCreate = function(req) { requests.push(req); };
-    requireApp('verticalhome/js/configurator.js', done);
+    requireApp('verticalhome/js/configurator.js', function() {
+      configurator = new Configurator();
+      requests = [];
+      done();
+    });
   });
 
   teardown(function() {
@@ -94,6 +96,7 @@ suite('configurator.js >', function() {
   });
 
   test('Sections >', function() {
+    configurator.load();
     var req = requests[0];
     req.response = confGridOK;
     req.onload();
@@ -111,132 +114,89 @@ suite('configurator.js >', function() {
     // This section should be undefined
     assert.isUndefined(configurator.getSection('noExiste'));
 
-    window.app = new App();
-
-    //For configurator remove the listener
-    var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent('gaiagrid-layout-ready', true, false, null);
-    window.dispatchEvent(evt);
+    // For configurator remove the listener
     IccHelper.mProps.iccInfo = {mcc:'214', mnc:'007'};
     IccHelper.mTriggerEventListeners('iccinfochange', {});
   });
 
-  function assertLoadFile(okLoad, eventFirst) {
-
-    window.app = new App();
+  function assertLoadFile(okLoad, done) {
+    window.addEventListener('configuration-ready', function ready() {
+      window.removeEventListener('configuration-ready', ready);
+      var grid = configurator.getGrid();
+      if (okLoad) {
+        assert.notEqual(grid, undefined);
+      } else {
+        assert.equal(grid, undefined);
+      }
+      // For remove listener
+      IccHelper.mProps.iccInfo = {mcc:'214', mnc:'007'};
+      IccHelper.mTriggerEventListeners('iccinfochange', {});
+      done();
+    });
 
     configurator.load();
 
-    assert.isFalse(app.mGetInitialized());
-
-    var evt = document.createEvent('CustomEvent');
     var req = requests[0];
-    if (eventFirst) {
-      evt.initCustomEvent('gaiagrid-layout-ready', true, false, null);
-      window.dispatchEvent(evt);
-    } else {
-      req.response = confGridOK;
-      if (okLoad) {
-        req.onload();
-      } else {
-        req.onerror({'type': 'expected error'});
-      }
-    }
-    assert.isFalse(app.mGetInitialized());
-
-    if (eventFirst) {
-      req.response = confGridOK;
-      if (okLoad) {
-        req.onload();
-      } else {
-        req.onerror({'type': 'expected error'});
-      }
-    } else {
-      evt.initCustomEvent('gaiagrid-layout-ready', true, false, null);
-      window.dispatchEvent(evt);
-    }
-
-    assert.isTrue(app.mGetInitialized());
-
-    var grid = configurator.getGrid();
+    req.response = confGridOK;
     if (okLoad) {
-      assert.notEqual(grid, undefined);
+      req.onload();
     } else {
-      assert.equal(grid, undefined);
+      req.onerror({'type': 'expected error'});
     }
-    // For remove listener
-    IccHelper.mProps.iccInfo = {mcc:'214', mnc:'007'};
-    IccHelper.mTriggerEventListeners('iccinfochange', {});
   }
 
-  test ('Correct load conf file after event gaiaGridLayoutReady >', function() {
-    assertLoadFile(true, true);
+  test ('Correct load conf file >', function(done) {
+    assertLoadFile(true, done);
   });
 
-  test ('Wrong load conf file after event gaiaGridLayoutReady >', function() {
-    assertLoadFile(false, true);
+  test ('Wrong load conf file >', function(done) {
+    assertLoadFile(false, done);
   });
 
-  test ('Correct load conf file before event gaiaGridLayoutReady>', function() {
-    assertLoadFile(true, false);
-  });
-
-  test ('Wrong load conf file before event gaiaGridLayoutReady >', function() {
-    assertLoadFile(false, false);
-  });
-
-  function assertSV(xhrOk) {
+  function assertSV(xhrOk, done) {
     sinon.useFakeTimers();
-    window.app = new App();
     configurator.load();
 
     var req = requests[0];
     req.response = confGridOK;
     req.onload();
 
-    var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent('gaiagrid-layout-ready', true, false, null);
-    window.dispatchEvent(evt);
-
     IccHelper.mProps.iccInfo = {mcc:'214', mnc:'007'};
     IccHelper.mTriggerEventListeners('iccinfochange', {});
 
-    var svEventRaise = false;
     window.addEventListener('singlevariant-ready', function svReady() {
       window.removeEventListener('singlevariant-ready', svReady);
-      svEventRaise = true;
+      var svApp;
+      if (xhrOk) {
+        svApp =
+          configurator.getSingleVariantApp(confSV['214-007'][0].manifestURL);
+        assert.equal(svApp.manifestURL, confSV['214-007'][0].manifestURL);
+        assert.equal(svApp.location, confSV['214-007'][0].location);
+        svApp =
+            configurator.getSingleVariantApp('nonexistent_manifest');
+        assert.isUndefined(svApp);
+      } else {
+        svApp =
+          configurator.getSingleVariantApp(confSV['214-007'][0].manifestURL);
+        assert.isUndefined(svApp);
+      }
+      done();
     });
 
     req = requests[1];
     req.response = confSV;
-    var svApp;
-    if (xhrOk) {
-      req.onload();
-      svApp =
-        configurator.getSingleVariantApp(confSV['214-007'][0].manifestURL);
-      assert.equal(svApp.manifestURL, confSV['214-007'][0].manifestURL);
-      assert.equal(svApp.location, confSV['214-007'][0].location);
-      svApp =
-          configurator.getSingleVariantApp('nonexistent_manifest');
-      assert.isUndefined(svApp);
-    } else {
-      req.onerror({'type': 'expected error'});
-      svApp =
-        configurator.getSingleVariantApp(confSV['214-007'][0].manifestURL);
-      assert.isUndefined(svApp);
-    }
-    assert.isTrue(svEventRaise);
+    xhrOk ? req.onload() : req.onerror({'type': 'expected error'});
   }
 
   /*
    * It tests the public method 'getSingleVariantApps' getting properties/values
    */
-  test('getSingleVariantApps - Correct conf file  >', function() {
-    assertSV(true);
+  test('getSingleVariantApps - Correct conf file  >', function(done) {
+    assertSV(true, done);
   });
 
-  test('getSingleVariantApps - Wrong conf file  >', function() {
-    assertSV(false);
+  test('getSingleVariantApps - Wrong conf file  >', function(done) {
+    assertSV(false, done);
   });
 
   const KEY_SIM_ON_1ST_RUN = 'ftu.simPresentOnFirstBoot';
@@ -280,7 +240,6 @@ suite('configurator.js >', function() {
   });
 
   suite('migration> ', function() {
-    var evtGridReady;
     var updateHandler = null;
     var vpGetStub = null;
     var vpEvtUpdateStub = null;
@@ -370,10 +329,6 @@ suite('configurator.js >', function() {
       );
 
       MockVersionHelper.mIsUpgrade = true;
-      window.app = new App();
-      evtGridReady = document.createEvent('CustomEvent');
-      evtGridReady.initCustomEvent('gaiagrid-layout-ready', true, false, null);
-
     });
 
     teardown(function() {
@@ -393,23 +348,23 @@ suite('configurator.js >', function() {
       }
     }
 
-    test('Upgrade from old homescreen - grid.layout ready >', function() {
-      assert.isFalse(window.app.mGetInitialized());
+    test('Upgrade from old homescreen - grid.layout ready >', function(done) {
+      window.addEventListener('configuration-ready', function ready() {
+        window.removeEventListener('configuration-ready', ready);
+        var grid = configurator.getGrid();
+        assertGridOk(grid, mGrid_layout.grid);
+        done();
+      });
+
       configurator.load();
       sinon.assert.callCount(vpEvtUpdateStub, 0);
-      window.dispatchEvent(evtGridReady);
-      assert.isTrue(window.app.mGetInitialized());
-      var grid = configurator.getGrid();
-      assertGridOk(grid, mGrid_layout.grid);
     });
 
     test('Upgrade from old homescreen - grid.layout not ready >', function() {
-      assert.isFalse(window.app.mGetInitialized());
       var gridTest = mGrid_layout;
       mGrid_layout = undefined;
       configurator.load();
       sinon.assert.calledOnce(vpEvtUpdateStub);
-      assert.isFalse(window.app.mGetInitialized());
       var grid = configurator.getGrid();
       assert.equal(grid, undefined);
 

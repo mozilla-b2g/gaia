@@ -1,5 +1,5 @@
 'use strict';
-/* global ItemStore, LazyLoader */
+/* global ItemStore, LazyLoader, Configurator */
 
 (function(exports) {
 
@@ -24,6 +24,9 @@
 
     window.addEventListener('context-menu-open', this);
     window.addEventListener('context-menu-close', this);
+
+    this.layoutReady = false;
+    window.addEventListener('gaiagrid-layout-ready', this);
 
     // some terrible glue to keep track of which icons failed to download
     // and should be retried when/if we come online again.
@@ -66,12 +69,31 @@
      * Fetch all icons and render them.
      */
     init: function() {
-      this.itemStore = new ItemStore();
+      this.itemStore = new ItemStore((firstTime) => {
+        if (!firstTime) {
+          return;
+        }
+
+        LazyLoader.load(['shared/js/icc_helper.js',
+                         'shared/js/version_helper.js',
+                         'js/configurator.js'], function onLoad() {
+          exports.configurator = new Configurator();
+        });
+      });
+
       this.itemStore.all(function _all(results) {
         results.forEach(function _eachResult(result) {
           this.grid.add(result);
         }, this);
-        this.grid.render();
+
+        if (this.layoutReady) {
+          this.renderGrid();
+        } else {
+          window.addEventListener('gaiagrid-layout-ready', function onReady() {
+            window.removeEventListener('gaiagrid-layout-ready', onReady);
+            this.renderGrid();
+          }.bind(this));
+        }
 
         window.addEventListener('localized', this.onLocalized.bind(this));
         LazyLoader.load(['shared/style/headers.css',
@@ -79,8 +101,11 @@
                          'js/contextmenu_handler.js',
                          '/shared/js/homescreens/confirm_dialog_helper.js']);
       }.bind(this));
+    },
 
+    renderGrid: function() {
       this.grid.setEditHeaderElement(document.getElementById('edit-header'));
+      this.grid.render();
     },
 
     start: function() {
@@ -166,6 +191,11 @@
           window.addEventListener('hashchange', this);
           break;
 
+        case 'gaiagrid-layout-ready':
+          this.layoutReady = true;
+          window.removeEventListener('gaiagrid-layout-ready', this);
+          break;
+
         case 'hashchange':
           if (this.grid._grid.dragdrop.inEditMode) {
             this.grid._grid.dragdrop.exitEditMode();
@@ -203,6 +233,19 @@
     }
   };
 
+  // Dummy configurator
+  exports.configurator = {
+    getSingleVariantApp: function() {
+      return {};
+    },
+    get isSingleVariantReady() {
+      return true;
+    },
+    get isSimPresentOnFirstBoot() {
+      return false;
+    }
+  };
   exports.app = new App();
+  exports.app.init();
 
 }(window));
