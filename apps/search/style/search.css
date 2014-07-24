@@ -30,7 +30,7 @@ body, a {
 
 section.suggestions {
   margin: 0 0.7rem;
-  font-size: 16px;
+  font-size: 1.4rem;
   font-style: italic;
   overflow: hidden;
   height: 3.5rem;
@@ -48,7 +48,7 @@ section.suggestions ul {
 section.suggestions ul li {
   display: inline-block;
   margin-left: 1rem;
-  padding: 0.9rem 0.7rem 0.9rem 0;
+  padding: 0.3rem 0.7rem 0.9rem 0;
   margin: 0;
 }
 
@@ -101,7 +101,7 @@ section .result * {
 
 /* web */
 section.apps {
-  padding-top: 1rem;
+  padding-top: 0.5rem;
   /* Hide the whitespace between inline elements */
   font-size: 0;
 }
@@ -217,4 +217,11 @@ gaia-grid {
   top: -0.9rem;
   left: 0;
   z-index: -1;
+}
+
+/* show up to 2-line labels in result icons */
+#search-results .icon .title {
+  text-shadow: none !important;
+  height: calc(3.88rem + 0.2rem);
+  white-space: normal !important;
 }
