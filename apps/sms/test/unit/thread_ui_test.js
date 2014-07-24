@@ -5395,8 +5395,8 @@ suite('thread_ui.js >', function() {
       test('should show option for adding subject', function() {
         assert.equal(options[0].l10nId, 'add-subject');
       });
-      test('should show option for deleting messages', function() {
-        assert.equal(options[1].l10nId, 'deleteMessages-label');
+      test('should show option for selecting messages', function() {
+        assert.equal(options[1].l10nId, 'selectMessages-label');
       });
     });
   });

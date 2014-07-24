@@ -95,7 +95,7 @@ var ThreadUI = {
     // Fields with 'messages' label
     [
       'container', 'subheader', 'to-field', 'recipients-list', 'recipient',
-      'input', 'compose-form', 'check-all-button', 'uncheck-all-button',
+      'input', 'compose-form', 'check-uncheck-all-button',
       'contact-pick-button', 'back-button', 'close-button', 'send-button',
       'attach-button', 'delete-button', 'cancel-button', 'subject-input',
       'new-message-notice', 'options-icon', 'edit-mode', 'edit-form',
@@ -167,12 +167,8 @@ var ThreadUI = {
       'click', this.close.bind(this)
     );
 
-    this.checkAllButton.addEventListener(
-      'click', this.toggleCheckedAll.bind(this, true)
-    );
-
-    this.uncheckAllButton.addEventListener(
-      'click', this.toggleCheckedAll.bind(this, false)
+    this.checkUncheckAllButton.addEventListener(
+      'click', this.toggleCheckedAll.bind(this)
     );
 
     this.cancelButton.addEventListener(
@@ -1679,17 +1675,19 @@ var ThreadUI = {
     this.checkInputs();
   },
 
-  toggleCheckedAll: function thui_select(value) {
+  // if no message or few are checked : select all the messages
+  // and if all messages are checked : deselect them all.
+  toggleCheckedAll: function thui_select() {
+    var selected = this.selectedInputs;
+    var allInputs = this.allInputs;
+    var allSelected = (selected.length === allInputs.length);
     var inputs = this.container.querySelectorAll(
       'input[type="checkbox"]' +
-      // value ?
-      //   true : query for currently unselected threads
-      //   false: query for currently selected threads
-      (value ? ':not(:checked)' : ':checked')
+      (!allSelected ? ':not(:checked)' : ':checked')
     );
     var length = inputs.length;
     for (var i = 0; i < length; i++) {
-      inputs[i].checked = value;
+      inputs[i].checked = !allSelected;
       this.chooseMessage(inputs[i]);
     }
     this.checkInputs();
@@ -1714,10 +1712,10 @@ var ThreadUI = {
       }
     });
 
-    // If we are on a thread, we can call to DeleteMessages
+    // If we are on a thread, we can call to SelectMessages
     if (Navigation.isCurrentPanel('thread')) {
       params.items.push({
-        l10nId: 'deleteMessages-label',
+        l10nId: 'selectMessages-label',
         method: this.startEdit.bind(this)
       });
     }
@@ -1855,14 +1853,18 @@ var ThreadUI = {
     var isAnySelected = selected.length > 0;
 
     // Manage buttons enabled\disabled state
-    this.checkAllButton.disabled = selected.length === allInputs.length;
-    this.uncheckAllButton.disabled = !isAnySelected;
-    this.deleteButton.disabled = !isAnySelected;
+    if (selected.length === allInputs.length) {
+      navigator.mozL10n.localize(this.checkUncheckAllButton, 'deselect-all');
+    } else {
+      navigator.mozL10n.localize(this.checkUncheckAllButton, 'select-all');
+    }
 
     if (isAnySelected) {
+      this.deleteButton.disabled = false;
       navigator.mozL10n.localize(this.editMode, 'selected',
         {n: selected.length});
     } else {
+      this.deleteButton.disabled = true;
       navigator.mozL10n.localize(this.editMode, 'deleteMessages-title');
     }
   },
