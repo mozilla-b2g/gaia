@@ -7,8 +7,6 @@
 
 (function(exports) {
 
-  const PREVENT_CLICK_TIMEOUT = 300;
-
   /**
    * GridView is a generic class to render and display a grid of items.
    * @param {Object} config Configuration object containing:
@@ -30,8 +28,16 @@
       this.layout.cols = parseInt(config.element.getAttribute('cols'), 10);
     }
 
+    var isTouch = 'ontouchstart' in window;
+    this.touchend = isTouch ? 'touchend' : 'mouseup';
+
     // Enable event listeners when instantiated.
     this.start();
+
+    this.clickCanceled = false;
+    this.element.addEventListener(isTouch ? 'touchstart' : 'mousedown', () => {
+      this.clickCanceled = false;
+    });
   }
 
   GridView.prototype = {
@@ -128,21 +134,17 @@
     },
 
     start: function() {
-      this.element.addEventListener('click', this.clickIcon);
-      window.addEventListener('scroll', this.onScroll);
+      this.element.addEventListener(this.touchend, this.clickIcon);
+      this.element.parentNode.addEventListener('scroll', this.onScroll);
     },
 
     stop: function() {
-      this.element.removeEventListener('click', this.clickIcon);
-      window.removeEventListener('scroll', this.onScroll);
+      this.element.removeEventListener(this.touchend, this.clickIcon);
+      this.element.parentNode.removeEventListener('scroll', this.onScroll);
     },
 
     onScroll: function(e) {
-      this.element.removeEventListener('click', this.clickIcon);
-      clearTimeout(this.preventClickTimeout);
-      this.preventClickTimeout = setTimeout(function addClickEvent() {
-        this.element.addEventListener('click', this.clickIcon);
-      }.bind(this), PREVENT_CLICK_TIMEOUT);
+      this.clickCanceled = true;
     },
 
     /**
@@ -150,6 +152,11 @@
      */
     clickIcon: function(e) {
       e.preventDefault();
+
+      if (this.clickCanceled) {
+        return;
+      }
+
       var container = e.target;
       var action = 'launch';
 
