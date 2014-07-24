@@ -112,7 +112,6 @@
               // prevent click events from firing
               this.grid.stop();
 
-              e.stopImmediatePropagation();
               e.preventDefault();
 
               this.target = e.target;
