@@ -420,6 +420,13 @@
               return;
             }
 
+            if (e.defaultPrevented) {
+              // other handlers already handled this.
+              // in the future, we should use the shadow root and dispatch a
+              // "contextmenu" event from here instead.
+              return;
+            }
+
             this.target = e.target;
 
             if (!this.target) {
@@ -435,7 +442,6 @@
 
             this.addDragHandlers();
 
-            e.stopImmediatePropagation();
             e.preventDefault();
 
             this.begin(e);
