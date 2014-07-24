@@ -1029,3 +1029,7 @@ section[role="region"].new .article-list[data-type="list"]  li {
   margin: 1.5rem 1.5rem 0 0;
   float: right;
 }
+
+.no-pointer-event {
+  pointer-events: none;
+}

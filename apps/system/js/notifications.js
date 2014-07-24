@@ -228,11 +228,30 @@ var NotificationScreen = {
     notification.classList.add('disappearing');
   },
 
+  _directLaunchList: [
+    'app://sms.gaiamobile.org/'
+  ],
+
+  _inDirectLaunchList: function ns_inDirectLaunchList(manifestURL) {
+    var origin = manifestURL.replace('manifest.webapp', '');
+    return this._directLaunchList.indexOf(origin) > -1;
+  },
+
   tap: function ns_tap(node) {
     var notificationId = node.dataset.notificationId;
     var notificationNode = this.container.querySelector(
       '[data-notification-id="' + notificationId + '"]');
 
+    if (this._inDirectLaunchList(notificationNode.dataset.manifestURL)) {
+      var manifestURL = notificationNode.dataset.manifestURL;
+      var origin = manifestURL.replace('manifest.webapp', '');
+      var browserConfig =
+        new BrowserConfigHelper(origin, manifestURL);
+      var launchAppEvent = new CustomEvent('launchapp', {
+        detail: browserConfig
+      });
+      window.dispatchEvent(launchAppEvent);
+    }
     var event = document.createEvent('CustomEvent');
     event.initCustomEvent('mozContentEvent', true, true, {
       type: 'desktop-notification-click',
