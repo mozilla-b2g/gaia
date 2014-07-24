@@ -43,6 +43,8 @@
     {"carrier":"Tele2 GPRS","apn":"internet.tele2.nl","mmsc":"http://mmsc.tele2.nl","mmsproxy":"193.12.40.64","mmsport":"8080","type":["default","supl","mms"]}
   ],
   "04": [
+    {"carrier":"Truphone","apn":"truphone.com","type":["default","supl"],"mvno_match_data":"204043914","mvno_type":"imsi"},
+    {"carrier":"Truphone","apn":"truphone.com","type":["default","supl"],"mvno_match_data":"20404794","mvno_type":"imsi"},
     {"carrier":"Vodafone NL","apn":"live.vodafone.com","user":"vodafone","password":"vodafone","authtype":"1","mmsc":"http://mmsc.mms.vodafone.nl","mmsproxy":"192.168.251.150","mmsport":"8799","type":["default","supl","mms"]},
     {"carrier":"SaskTel","apn":"pda.stm.sk.ca","type":["default","mms","supl","dun"],"mmsc":"http://mms.sasktel.com/","mmsproxy":"mig.sasktel.com","mmsport":"80","mvno_match_data":"5A","mvno_type":"gid"}
   ],
@@ -153,6 +155,9 @@
   "21": [
     {"carrier":"Jazztel Internet","apn":"jazzinternet","type":["default","supl"]},
     {"carrier":"Jazztel MMS","apn":"jazzmms","user":"","password":"","authtype":"1","mmsc":"http://jazztelmms.com/servlets/mms","mmsproxy":"37.132.0.10","mmsport":"8080","type":["mms"]}
+  ],
+  "27": [
+    {"carrier":"Truphone","apn":"truphone.com","type":["default","supl"]}
   ],
   "01": [
     {"carrier":"Internet movil","apn":"airtelwap.es","user":"wap@wap","password":"wap125","authtype":"1","type":["default","supl"]},
@@ -424,6 +429,9 @@
   ],
   "20": [
     {"carrier":"3","apn":"three.co.uk","mmsc":"http://mms.um.three.co.uk:10021/mmsc","mmsproxy":"mms.three.co.uk","mmsport":"8799","type":["default","supl","mms"]}
+  ],
+  "25": [
+    {"carrier":"Truphone","apn":"truphone.com","type":["default","supl"]}
   ],
   "30": [
     {"carrier":"Virgin Media Mobile Internet","apn":"goto.virginmobile.uk","user":"user","mmsc":"http://mms.virginmobile.co.uk:8002","mmsproxy":"193.30.166.2","mmsport":"8080","authtype":"1","type":["default","supl","mms"],"mvno_match_data":"28","mvno_type":"gid"},
@@ -751,6 +759,9 @@
   ]
 },
 "260": {
+  "33": [
+    {"carrier":"Truphone","apn":"truphone.com","type":["default","supl"]}
+  ],
   "01": [
     {"carrier":"Plus Internet","apn":"plus","type":["default","supl"]},
     {"voicemail":"2222","type":["operatorvariant"]},
@@ -775,6 +786,9 @@
   ]
 },
 "262": {
+  "42": [
+    {"carrier":"Truphone","apn":"truphone.com","type":["default","supl"]}
+  ],
   "01": [
     {"carrier":"Telekom Internet","apn":"","type":["ia"]},
     {"voicemail":"3311","type":["operatorvariant"]},
@@ -792,9 +806,9 @@
     {"carrier":"E-Plus MMS","apn":"mms.eplus.de","user":"mms","password":"eplus","mmsc":"http://mms/eplus/","mmsproxy":"212.23.97.153","mmsport":"5080","authtype":"1","type":["mms"]}
   ],
   "07": [
-    {"carrier":"o2 Internet","apn":"internet","mmsc":"http://10.81.0.7:8002","mmsproxy":"82.113.100.5","mmsport":"8080","type":["default","supl","mms"]},
+    {"carrier":"o2 Internet","apn":"internet","mmsc":"http://10.81.0.7:8002","mmsproxy":"82.113.100.5","mmsport":"8080","type":["default","supl","mms"],"mvno_match_data":"2620739","mvno_type":"imsi"},
     {"voicemail":"333","enableStrict7BitEncodingForSms":true,"operatorSizeLimitation":614400,"type":["operatorvariant"]},
-    {"carrier":"o2 Internet Prepaid","apn":"pinternet.interkom.de","mmsc":"http://10.81.0.7:8002","mmsproxy":"82.113.100.6","mmsport":"8080","type":["default","supl","mms"]}
+    {"carrier":"o2 Internet Prepaid","apn":"pinternet.interkom.de","mmsc":"http://10.81.0.7:8002","mmsproxy":"82.113.100.6","mmsport":"8080","type":["default","supl","mms"],"mvno_match_data":"2620749","mvno_type":"imsi"}
   ]
 },
 "268": {
@@ -1006,6 +1020,9 @@
   ]
 },
 "310": {
+  "30": [
+    {"carrier":"Truphone","apn":"truphone.com","type":["default","supl"]}
+  ],
   "100": [
     {"carrier":"PLATMMS","apn":"mms.plateau","mmsc":"http://mms","mmsproxy":"172.23.253.206","mmsport":"8080","type":["mms"]},
     {"carrier":"PLATWEB","apn":"isp.plateau","type":["default","supl"]}
@@ -1090,7 +1107,8 @@
   ],
   "300": [
     {"carrier":"T-Mobile US 300","apn":"fast.t-mobile.com","mmsc":"http://mms.msg.eng.t-mobile.com/mms/wapenc","type":["default","supl","mms"],"protocol":"IPV6","roaming_protocol":"IP"},
-    {"carrier":"MetroPCS 300","apn":"fast.metropcs.com","mmsc":"http://metropcs.mmsmvno.com/mms/wapenc","type":["default","supl","mms"],"protocol":"IPV6","roaming_protocol":"IP","mvno_match_data":"6D","mvno_type":"gid"}
+    {"carrier":"MetroPCS 300","apn":"fast.metropcs.com","mmsc":"http://metropcs.mmsmvno.com/mms/wapenc","type":["default","supl","mms"],"protocol":"IPV6","roaming_protocol":"IP","mvno_match_data":"6D","mvno_type":"gid"},
+    {"carrier":"Truphone","apn":"truphone.com","type":["default","supl"]}
   ],
   "310": [
     {"carrier":"T-Mobile US 310","apn":"","type":["ia"],"protocol":"IPV6","roaming_protocol":"IP"},
@@ -2748,7 +2766,8 @@
     {"carrier":"Zain-MMS","apn":"MMS","user":"atheer","password":"atheer","authtype":"1","mmsc":"http://mms:8002/","mmsproxy":"172.29.11.12","mmsport":"8080","type":["mms"]}
   ],
   "30": [
-    {"carrier":"ZainHURI - SNPT","apn":"default","type":["default","supl"]}
+    {"carrier":"ZAIN-GPRS","apn":"internet","user":"atheer","password":"atheer","authtype":"1","type":["default","supl"]},
+    {"carrier":"Zain-MMS","apn":"MMS","user":"atheer","password":"atheer","authtype":"1","mmsc":"http://mms:8002/","mmsproxy":"172.29.11.12","mmsport":"8080","type":["mms"]}
   ],
   "40": [
     {"carrier":"Korek 9595","apn":"internet.korek.com","type":["default","supl"]},
@@ -3147,6 +3166,9 @@
   ],
   "06": [
     {"carrier":"SmarTone","apn":"SmarTone","mmsc":"http://mms.smartone.com/server","mmsproxy":"10.9.9.9","mmsport":"8080","authtype":"3","type":["default","supl","mms"]}
+  ],
+  "08": [
+    {"carrier":"Truphone","apn":"truphone.com","type":["default","supl"]}
   ]
 },
 "455": {
@@ -3356,6 +3378,7 @@
     {"carrier":"Optus Business Mobile Broadband","apn":"yesbusiness"},
     {"carrier":"Optus Internet","apn":"internet","type":["default"]},
     {"carrier":"Optus MMS","apn":"mms","mmsc":"http://mmsc.optus.com.au:8002/","mmsproxy":"61.88.190.10","mmsport":"8070","type":["mms"]},
+    {"carrier":"Truphone","apn":"truphone.com","type":["default","supl"],"mvno_match_data":"50502100","mvno_type":"imsi"},
     {"carrier":"Virgin Internet","apn":"virgininternet","type":["default"],"proxy":"202.139.83.152","port":"8070","mvno_match_data":"505029","mvno_type":"imsi"},
     {"carrier":"Virgin MMS","apn":"virginmms","type":["mms"],"mmsc":"http://mms.virginvibe.com.au:8002","mmsproxy":"202.139.83.152","mmsport":"8070","mvno_match_data":"505029","mvno_type":"imsi"}
   ],

@@ -1,12 +1,16 @@
 /* global SettingsListener */
+/* global SettingsHelper */
 /* global loadJSON */
+/* global wakeUpFindMyDevice */
+/* global IAC_API_WAKEUP_REASON_TRY_DISABLE */
 
 'use strict';
 
 var FindMyDevice = {
   // When the FxA login callback is called, we need to know if the
   // login process began with the user clicking our login button
-  // since in that case we also want to enable Find My Device
+  // since in that case we also want to enable Find My Device if it's
+  // not already registered.
   _interactiveLogin: false,
   _loginButton: null,
 
@@ -16,6 +20,9 @@ var FindMyDevice = {
 
     loadJSON('/resources/findmydevice.json', function(data) {
       self._audienceURL = data.audience_url;
+
+      SettingsListener.observe('findmydevice.logged-in', false,
+        self._togglePanel.bind(self));
 
       navigator.mozId.watch({
         wantIssuer: 'firefox-accounts',
@@ -27,9 +34,12 @@ var FindMyDevice = {
           console.log('Find My Device: onready fired');
         },
         onerror: function fmd_fxa_onerror(err) {
-          self._togglePanel(false);
-          self._loginButton.removeAttribute('disabled');
           console.error('Find My Device: onerror fired: ' + err);
+          self._interactiveLogin = false;
+          self._loginButton.removeAttribute('disabled');
+          if (JSON.parse(err).name !== 'OFFLINE') {
+            SettingsHelper('findmydevice.logged-in').set(false);
+          }
         }
       });
     });
@@ -40,9 +50,11 @@ var FindMyDevice = {
 
     SettingsListener.observe('findmydevice.enabled', false,
       this._setEnabled.bind(this));
+    SettingsListener.observe('findmydevice.can-disable', true,
+      this._setCanDisable.bind(this));
 
     var checkbox = document.querySelector('#findmydevice-enabled input');
-    checkbox.addEventListener('change', this._onCheckboxChanged.bind(this));
+    checkbox.addEventListener('click', this._onCheckboxChanged.bind(this));
   },
 
   _onLoginClick: function fmd_on_login_click(e) {
@@ -56,13 +68,18 @@ var FindMyDevice = {
       return window.alert(_('findmydevice-enable-network'));
     }
     this._interactiveLogin = true;
-    navigator.mozId.request();
+    var self = this;
+    navigator.mozId.request({
+      oncancel: function fmd_fxa_oncancel() {
+        self._interactiveLogin = false;
+        console.log('Find My Device: oncancel fired');
+      }
+    });
   },
 
   _setEnabled: function fmd_set_enabled(value) {
     var checkbox = document.querySelector('#findmydevice-enabled input');
     checkbox.checked = value;
-    checkbox.disabled = false;
 
     var status = document.getElementById('findmydevice-tracking');
     status.hidden = !value;
@@ -72,6 +89,11 @@ var FindMyDevice = {
     var status = document.getElementById('findmydevice-tracking');
     navigator.mozL10n.localize(status,
       value ?  'findmydevice-active-tracking' : 'findmydevice-not-tracking');
+  },
+
+  _setCanDisable: function fmd_set_can_disable(value) {
+    var checkbox = document.querySelector('#findmydevice-enabled input');
+    checkbox.disabled = !value;
   },
 
   _togglePanel: function fmd_toggle_panel(loggedIn) {
@@ -85,28 +107,41 @@ var FindMyDevice = {
   _onChangeLoginState: function fmd_on_change_login_state(loggedIn) {
     console.log('settings, logged in: ' + loggedIn);
 
-    this._togglePanel(loggedIn);
-
     if (this._interactiveLogin) {
-      SettingsListener.getSettingsLock().set({
-        'findmydevice.enabled': loggedIn
+      SettingsHelper('findmydevice.registered').get(function(registered) {
+        if (!registered) {
+          SettingsHelper('findmydevice.enabled').set(true);
+        }
       });
     }
 
     this._interactiveLogin = false;
   },
 
-  _onCheckboxChanged: function fmd_on_checkbox_changed() {
-      var checkbox = document.querySelector('#findmydevice-enabled input');
+  _onCheckboxChanged: function fmd_on_checkbox_changed(event) {
+    event.preventDefault();
 
-      SettingsListener.getSettingsLock().set({
-        'findmydevice.enabled': checkbox.checked
-      }).onerror = function() {
+    var _ = navigator.mozL10n.get;
+    if (!window.navigator.onLine) {
+      setTimeout(function() {
+        // XXX(ggp) do this later so that the visual change in the
+        // checkbox is properly prevented.
+        window.alert(_('findmydevice-enable-network'));
+      });
+      return;
+    }
+
+    var checkbox = document.querySelector('#findmydevice-enabled input');
+    checkbox.disabled = true;
+
+    if (checkbox.checked === false) {
+      wakeUpFindMyDevice(IAC_API_WAKEUP_REASON_TRY_DISABLE);
+    } else {
+      SettingsHelper('findmydevice.enabled').set(true, function() {
         checkbox.disabled = false;
-      };
-
-      checkbox.disabled = true;
-  }
+      });
+    }
+  },
 };
 
 navigator.mozL10n.once(FindMyDevice.init.bind(FindMyDevice));

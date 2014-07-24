@@ -33,7 +33,6 @@
       this.container = document.getElementById('media-recoding-status-list');
 
       window.addEventListener('mozChromeEvent', this);
-      return this;
     },
 
     /**

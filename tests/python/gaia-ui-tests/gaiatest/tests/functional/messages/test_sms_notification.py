@@ -23,4 +23,4 @@ class TestSmsNotification(GaiaTestCase):
                     message="Notification did not appear. SMS database dump: %s " % self.data_layer.get_all_sms())
         system.wait_for_notification_toaster_not_displayed()
 
-        self.assertTrue(any("Messages" in app.name for app in self.apps.running_apps))
+        self.assertTrue(any("Messages" in app.name for app in self.apps.running_apps()))

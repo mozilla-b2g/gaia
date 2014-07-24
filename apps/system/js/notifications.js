@@ -186,7 +186,6 @@ var NotificationScreen = {
     if (!target.dataset.notificationId)
       return;
 
-    evt.preventDefault();
     this._notification = target;
     this._containerWidth = this.container.clientWidth;
   },
@@ -294,7 +293,7 @@ var NotificationScreen = {
     this.lockScreenContainer = this.lockScreenContainer ||
       document.getElementById('notifications-lockscreen-container');
     var notificationNode = document.createElement('div');
-    notificationNode.className = 'notification';
+    notificationNode.classList.add('notification');
     notificationNode.setAttribute('role', 'link');
 
     notificationNode.dataset.notificationId = detail.id;
@@ -314,38 +313,45 @@ var NotificationScreen = {
       notificationNode.appendChild(icon);
     }
 
+    var dir = (detail.bidi === 'ltr' ||
+               detail.bidi === 'rtl') ?
+          detail.bidi : 'auto';
+
+    var titleContainer = document.createElement('div');
+    titleContainer.classList.add('title-container');
+    titleContainer.lang = detail.lang;
+    titleContainer.dir = dir;
+
+    var title = document.createElement('div');
+    title.classList.add('title');
+    title.textContent = detail.title;
+    title.lang = detail.lang;
+    title.dir = dir;
+    titleContainer.appendChild(title);
+
     var time = document.createElement('span');
     var timestamp = detail.timestamp ? new Date(detail.timestamp) : new Date();
     time.classList.add('timestamp');
     time.dataset.timestamp = timestamp;
     time.textContent = this.prettyDate(timestamp);
-    notificationNode.appendChild(time);
+    titleContainer.appendChild(time);
 
-    var dir = (detail.bidi === 'ltr' ||
-               detail.bidi === 'rtl') ?
-          detail.bidi : 'auto';
-
-    var title = document.createElement('div');
-    title.classList.add('title');
-    title.textContent = detail.title;
-    notificationNode.appendChild(title);
-    title.lang = detail.lang;
-    title.dir = dir;
+    notificationNode.appendChild(titleContainer);
 
     var message = document.createElement('div');
     message.classList.add('detail');
     message.textContent = detail.text;
-    notificationNode.appendChild(message);
     message.lang = detail.lang;
     message.dir = dir;
+    notificationNode.appendChild(message);
 
     var notifSelector = '[data-notification-id="' + detail.id + '"]';
     var oldNotif = this.container.querySelector(notifSelector);
     if (oldNotif) {
       // The whole node cannot be replaced because CSS animations are re-started
-      oldNotif.replaceChild(title, oldNotif.querySelector('.title'));
+      oldNotif.replaceChild(titleContainer,
+        oldNotif.querySelector('.title-container'));
       oldNotif.replaceChild(message, oldNotif.querySelector('.detail'));
-      oldNotif.replaceChild(time, oldNotif.querySelector('.timestamp'));
       var oldIcon = oldNotif.querySelector('img');
       if (icon) {
         oldIcon ? oldIcon.src = icon.src : oldNotif.insertBefore(icon,
@@ -424,12 +430,26 @@ var NotificationScreen = {
         );
       }
 
-      // when we have notifications, show bgcolor from wallpaper
-      // remove the simple gradient at the same time
-      window.lockScreen.maskedBackground.style.backgroundColor =
-        window.lockScreen.maskedBackground.dataset.wallpaperColor;
+      window.lockScreenNotifications.showColoredMaskBG();
 
-      window.lockScreen.maskedBackground.classList.remove('blank');
+      // UX specifies that the container should scroll to top
+      /* note two things:
+       * 1. we need to call adjustContainerVisualHints even
+       *    though we're setting scrollTop, since setting sT doesn't
+       *    necessarily invoke onscroll (if the old container is already
+       *    scrolled to top, we might still need to decide to show
+       *    the arrow)
+       * 2. set scrollTop before calling adjustContainerVisualHints
+       *    since sT = 0 will hide the mask if it's showing,
+       *    and if we call aCVH before setting sT,
+       *    under some circumstances aCVH would decide to show mask,
+       *    only to be negated by st = 0 (waste of energy!).
+       */
+      window.lockScreenNotifications.scrollToTop();
+
+      // check if lockscreen notifications visual
+      // hints (masks & arrow) need to show
+      window.lockScreenNotifications.adjustContainerVisualHints();
     }
 
     if (notify && !this.isResending) {
@@ -497,12 +517,6 @@ var NotificationScreen = {
 
   closeNotification: function ns_closeNotification(notificationNode) {
     var notificationId = notificationNode.dataset.notificationId;
-    var event = document.createEvent('CustomEvent');
-    event.initCustomEvent('mozContentNotificationEvent', true, true, {
-      type: 'desktop-notification-close',
-      id: notificationId
-    });
-    window.dispatchEvent(event);
     this.removeNotification(notificationId);
   },
 
@@ -516,20 +530,30 @@ var NotificationScreen = {
         this.lockScreenContainer.querySelector(notifSelector);
     }
 
-    if (notificationNode)
+    if (notificationNode) {
       notificationNode.parentNode.removeChild(notificationNode);
+    }
+
+    var event = document.createEvent('CustomEvent');
+    event.initCustomEvent('mozContentNotificationEvent', true, true, {
+      type: 'desktop-notification-close',
+      id: notificationId
+    });
+    window.dispatchEvent(event);
 
     if (lockScreenNotificationNode) {
       var lockScreenNotificationParentNode =
         lockScreenNotificationNode.parentNode;
       lockScreenNotificationParentNode.removeChild(lockScreenNotificationNode);
-      // if we don't have any notifications, remove the bgcolor from wallpaper
-      // and use the simple gradient
+      // if we don't have any notifications,
+      // use the no-notifications masked background for lockscreen
       if (!lockScreenNotificationParentNode.firstElementChild) {
-        window.lockScreen.maskedBackground.style.backgroundColor =
-          'transparent';
-        window.lockScreen.maskedBackground.classList.add('blank');
+        window.lockScreenNotifications.hideColoredMaskBG();
       }
+
+      // check if lockscreen notifications visual
+      // hints (masks & arrow) need to show
+      window.lockScreenNotifications.adjustContainerVisualHints();
     }
     this.updateStatusBarIcon();
 
@@ -554,10 +578,12 @@ var NotificationScreen = {
       var element = this.lockScreenContainer.firstElementChild;
       this.lockScreenContainer.removeChild(element);
     }
-    // remove the bgcolor from wallpaper,
-    // and use the simple gradient
-    window.lockScreen.maskedBackground.style.backgroundColor = 'transparent';
-    window.lockScreen.maskedBackground.classList.add('blank');
+
+    // remove the "have notifications" masked background from lockscreen
+    window.lockScreenNotifications.hideColoredMaskBG();
+    // check if lockscreen notifications visual
+    // hints (masks & arrow) need to show
+    window.lockScreenNotifications.adjustContainerVisualHints();
   },
 
   updateStatusBarIcon: function ns_updateStatusBarIcon(unread) {

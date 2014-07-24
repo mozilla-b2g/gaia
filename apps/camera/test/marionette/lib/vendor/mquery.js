@@ -246,7 +246,8 @@ ElementSet.prototype.val = function(value) {
 
       this.client.switchToFrame(); // Switch to the system frame.
 
-      var options = this.client.findElements('#select-option-popup li');
+      var options = this.client.findElements(
+        '.value-selector-select-option-popup li');
       var values = (!Array.isArray(value) ? [value] : value);
       options.forEach(function(option) {
         var itemText = option.findElement('label span').text();

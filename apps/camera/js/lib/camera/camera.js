@@ -59,14 +59,15 @@ function Camera(options) {
   // Test hooks
   this.getVideoMetaData = options.getVideoMetaData || getVideoMetaData;
   this.orientation = options.orientation || orientation;
-  this.storage = options.storage || localStorage;
+  this.configStorage = options.configStorage || localStorage;
 
   this.cameraList = navigator.mozCameras.getListOfCameras();
   this.mozCamera = null;
 
+  this.storage = options.storage || {};
+
   // Video config
   this.video = {
-    storage: navigator.getDeviceStorage('videos'),
     filepath: null,
     minSpace: this.recordSpaceMin,
     spacePadding : this.recordSpacePadding
@@ -236,7 +237,7 @@ Camera.prototype.saveBootConfig = function() {
     pictureSize: this.pictureSize
   };
 
-  this.storage.setItem('cameraBootConfig', JSON.stringify(json));
+  this.configStorage.setItem('cameraBootConfig', JSON.stringify(json));
   debug('saved camera config', json);
 };
 
@@ -250,7 +251,7 @@ Camera.prototype.saveBootConfig = function() {
  * @return {Object}
  */
 Camera.prototype.fetchBootConfig = function() {
-  var string = this.storage.getItem('cameraBootConfig');
+  var string = this.configStorage.getItem('cameraBootConfig');
   var json = string && JSON.parse(string);
   debug('got camera config', json);
   return json;
@@ -647,16 +648,16 @@ Camera.prototype.release = function(done) {
 
   function onSuccess() {
     debug('successfully released');
-    self.releasing = false;
     self.ready();
     self.emit('released');
+    self.releasing = false;
     done();
   }
 
   function onError(err) {
     debug('failed to release hardware');
-    self.releasing = false;
     self.ready();
+    self.releasing = false;
     done(err);
   }
 };
@@ -848,6 +849,15 @@ Camera.prototype.toggleRecording = function(options) {
 };
 
 /**
+ * Seet the storage for video.
+ *
+ * @public
+ */
+Camera.prototype.setVideoStorage = function(storage) {
+  this.storage.video = storage;
+};
+
+/**
  * Start recording a video.
  *
  * @public
@@ -856,7 +866,7 @@ Camera.prototype.startRecording = function(options) {
   debug('start recording');
   var frontCamera = this.selectedCamera === 'front';
   var rotation = this.orientation.get();
-  var storage = this.video.storage;
+  var storage = this.storage.video;
   var video = this.video;
   var self = this;
 
@@ -943,7 +953,7 @@ Camera.prototype.stopRecording = function() {
 
   var notRecording = !this.get('recording');
   var filepath = this.video.filepath;
-  var storage = this.video.storage;
+  var storage = this.storage.video;
   var self = this;
 
   if (notRecording) { return; }
@@ -1016,7 +1026,7 @@ Camera.prototype.onNewVideo = function(video) {
   // short and possibly corrupted.
   if (tooShort) {
     debug('video too short, deleting...');
-    this.video.storage.delete(video.filepath);
+    this.storage.video.delete(video.filepath);
     this.ready();
     return;
   }
@@ -1075,6 +1085,7 @@ Camera.prototype.onShutter = function() {
 Camera.prototype.onPreviewStateChange = function(state) {
   debug('preview state change: %s', state);
   var busy = state === 'stopped' || state === 'paused';
+  this.emit('preview:' + state);
   if (busy) { this.busy(); }
   else { this.ready(); }
 };
@@ -1102,7 +1113,7 @@ Camera.prototype.onRecorderStateChange = function(msg) {
 Camera.prototype.getFreeVideoStorageSpace = function(done) {
   debug('get free storage space');
 
-  var storage = this.video.storage;
+  var storage = this.storage.video;
   var req = storage.freeSpace();
   req.onerror = onError;
   req.onsuccess = onSuccess;

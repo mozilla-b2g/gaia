@@ -93,6 +93,43 @@
       return r;
     },
 
+    /**
+     * Utility function to merge default apn settings (from apn.json) to
+     * existing apn settings.
+     *
+     * @param {Array} apns
+     *                Existing apns.
+     * @param {Array} defaultApns
+     *                Default apns. Note that in the array there should be no
+     *                apn with the carrier name "_custom_".
+     */
+    mergeAndKeepCustomApnSettings:
+      function ovh_mergeApnSettings(apns, defaultApns) {
+        var existingCustomApns = apns.filter(function(apn) {
+          return (apn.carrier === '_custom_');
+        });
+
+        // Find the apn types of the custom apns.
+        var typesOfCustomApn = new Set();
+        existingCustomApns.forEach(function(apn) {
+          apn.types.forEach(function(type) {
+            typesOfCustomApn.add(type);
+          });
+        });
+
+        // We only need to set the apns of the types that are not covered by
+        // the custom apns.
+        var apnsToBeSet = defaultApns.filter(function(apn) {
+          // Remove the type that is already covered by the custom apns.
+          apn.types = apn.types.filter(function(type) {
+            return !typesOfCustomApn.has(type);
+          });
+          return !!apn.types.length;
+        });
+        apnsToBeSet = apnsToBeSet.concat(existingCustomApns);
+
+        return apnsToBeSet;
+    },
 
     /**
      * Apply the carrier settings relaying on the MCC and MNC values. This
@@ -491,8 +528,16 @@
         if (!result || !Array.isArray(result)) {
           result = [[], []];
         }
-        result[this._iccCardIndex] = apnSettings;
 
+        // We should respect to the existing custom settings if any. Instead of
+        // overwriting it with "apnSettings" compeletely, we should only
+        // overwrite the apn settings that are not configured by custom settings
+        // by using the result of "mergeAndKeepCustomApnSettings".
+        var existingApnSettings = result[this._iccCardIndex];
+        var mergedApnSettings =
+          this.mergeAndKeepCustomApnSettings(existingApnSettings, apnSettings);
+
+        result[this._iccCardIndex] = mergedApnSettings;
         transaction.set({'ril.data.apnSettings': result});
       }).bind(this);
     },

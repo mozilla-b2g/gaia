@@ -181,15 +181,15 @@
     transition: transform 0.5s ease 0s;
   }
 
-  #call-screen:before {
-    background: url("images/call_screen/mask.png") no-repeat scroll 50% 50% / cover transparent;
-  }
-
   #main-container {
     position: absolute;
+    top: 0;
     height: 100%;
     width: 100%;
-    background: #000 no-repeat center top/cover;
+    background-color: #000;
+    background-size: cover; /* Possible memory over-consumption with huge images, it should be removed for improving stability*/
+    background-position: 50% calc(50% - 1.2rem); /* 1.2rem is half the size of the status bar. Keep this value in sync with the one declared in system app's statusbar.css */
+    background-repeat: no-repeat;
   }
 
   #actions-container {
@@ -505,7 +505,7 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    padding: 0 0 2rem;
+    padding: 0 4.5rem 2rem 0;
     font-size: 1.6rem;
     line-height: 2rem;
   }
@@ -710,7 +710,6 @@
     line-height: 3.5rem;
   }
 
-
   #incoming-container {
     position: absolute;
     bottom: 0;
@@ -746,6 +745,7 @@
   #incoming-container button {
     height: 4rem;
     flex: 1;
+    padding: 0;
     border:0;
     border-radius:2rem;
     display: block;
@@ -850,6 +850,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     font-weight: bold;
+    padding-right: 4.5rem;
   }
 
   #group-call-details {
@@ -857,10 +858,12 @@
   }
 
   #group-call-details .hangup-button {
-    float: right;
-    width: 4.5rem;
-    height: 4.5rem;
-    background: url(images/handled_call/actionicon_activecall_hangup.png) no-repeat center center / 4rem;
+    position: absolute;
+    background: url('images/handled_call/actionicon_activecall_hangup.png') no-repeat scroll right 1.8rem center / 4rem auto transparent;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
   }
 
   #group-call .fake-number {
@@ -876,12 +879,12 @@
   #contact-background {
     position: absolute;
     top: 0;
-    width: 100%;
     height: 100%;
-    background-repeat: no-repeat;
-    background-position: center center;
+    width: 100%;
     background-color: transparent;
     background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
     opacity: 0;
     transition: opacity 0.3s linear;
   }
@@ -895,17 +898,17 @@
   }
 
   #call-screen[data-layout="dialing"] #callbar-answer,
-  #call-screen[data-layout="dialing"] #swiper-wrapper,
   #call-screen[data-layout="incoming"] #swiper-wrapper,
   #call-screen[data-layout="incoming-locked"] #callbar-answer,
   #call-screen[data-layout="incoming-locked"] #callbar-hang-up,
   #call-screen[data-layout="incoming-locked"] #call-options,
   #call-screen[data-layout="incoming-locked"] .duration,
-  #call-screen[data-layout="connected"] #swiper-wrapper,
   #call-screen[data-layout="connected"] #callbar-answer,
-  #call-screen[data-layout="connected-hold"] #swiper-wrapper,
   #call-screen[data-layout="connected-hold"] #callbar-answer,
-  #call-screen:not([data-layout="incoming-locked"]) #lockscreen-header {
+  #call-screen:not([data-layout="incoming-locked"]) #lockscreen-header,
+  #call-screen:not([data-layout="incoming-locked"]) #lockscreen-masked-background,
+  #call-screen:not([data-layout="incoming-locked"]) #lockscreen-area,
+  #call-screen:not([data-layout="incoming-locked"]) #swiper-wrapper {
     display: none;
   }
 
@@ -974,6 +977,10 @@
     font-weight: 300;
   }
 
+  #call-screen[data-layout="incoming-locked"] #calls.big-duration section.sim-info .numberWrapper {
+    padding-right: 6.5rem;
+  }
+
   #call-screen[data-layout="incoming-locked"] #calls.big-duration .numberWrapper .number {
     line-height: 3.4rem;
     padding-top: 2rem;
@@ -988,40 +995,6 @@
     font-weight: normal;
     line-height: 1.6rem;
     padding-bottom: 2rem;
-  }
-
-  #lockscreen-header {
-    z-index: 9999;
-    position: absolute;
-    top: 3.4rem;
-    left: 0;
-    width: 100%;
-    -moz-box-sizing: border-box;
-    padding: 1.8rem 2.5rem 1.2rem 2.5rem;
-    color: #fff;
-    text-shadow: 0 0 0.3rem #333;
-    transition: transform 0.2s ease, opacity 0.2s ease;
-    opacity: 1;
-  }
-
-  #lockscreen-clock-time {
-    margin: -0.6rem 0 -1rem -0.4rem;
-    font-weight: 300;
-    font-size: calc(26 * 0.226rem);
-  }
-
-  #lockscreen-clock-time span { /* optional meridiem */
-    font-size: calc(17 * 0.226rem);
-  }
-
-  #lockscreen-date {
-    font-weight: 400;
-    font-size: calc(7 * 0.226rem);
-  }
-
-  #lockscreen-clock-time, #lockscreen-date {
-    text-shadow: 0.1rem 0.1rem 0.3rem #000000;
-    color: #fff;
   }
 
   /* We may need to sync system lockscreen media query part for showing call
@@ -1070,18 +1043,25 @@
   #call-screen[data-layout="incoming-locked"] .sim {
     display: inline-block;
     position: absolute;
-    top: 2.6rem;
-    right: 2rem;
-    height: 2.2rem;
-    padding-right: 2.6rem;
-
+    top: 0;
+    right: 0;
+    padding-right: 2.5rem;
     text-align: right;
     font-size: 1.3rem;
-    line-height: 3rem;
+    text-shadow: none;
+    line-height: 9rem;
+    color: #038282;
   }
+
+  #call-screen[data-layout="incoming-locked"] section.additionalInfo .sim {
+    line-height: 3.4rem;
+    padding-top: 2rem;
+  }
+
   #call-screen[data-layout="incoming-locked"] .sim .via-sim {
     display: none;
   }
+
   #call-screen[data-layout="incoming-locked"] .sim .sim-number {
     display: inline;
   }

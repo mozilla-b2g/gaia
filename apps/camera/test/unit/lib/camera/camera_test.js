@@ -2,11 +2,10 @@
 
 suite('lib/camera/camera', function() {
   'use strict';
-  var require = window.req;
 
   suiteSetup(function(done) {
     var self = this;
-    require(['lib/camera/camera'], function(Camera) {
+    requirejs(['lib/camera/camera'], function(Camera) {
       self.Camera = Camera;
       done();
     });
@@ -43,13 +42,17 @@ suite('lib/camera/camera', function() {
 
     this.options = {
       getVideoMetaData: sinon.stub(),
-      storage: {
+      configStorage: {
         setItem: sinon.stub(),
         getItem: sinon.stub()
+      },
+      storage: {
+        video: this.videoStorage
       }
     };
 
     // Aliases
+    this.configStorage = this.options.configStorage;
     this.storage = this.options.storage;
     this.camera = new this.Camera(this.options);
     this.sandbox.spy(this.camera, 'ready');
@@ -69,6 +72,9 @@ suite('lib/camera/camera', function() {
           get: sinon.stub().returns(0),
           start: sinon.stub(),
           stop: sinon.stub()
+        },
+        storage: {
+          video: this.videoStorage
         },
         recordSpaceMin: 999,
         recordSpacePadding: 100
@@ -166,7 +172,7 @@ suite('lib/camera/camera', function() {
       this.camera.startRecording();
       var args = this.camera.mozCamera.startRecording.args[0];
       var storage = args[1];
-      assert.ok(storage === this.camera.video.storage);
+      assert.ok(storage === this.camera.storage.video);
     });
 
     test('Should pass the generated filepath', function() {
@@ -993,7 +999,7 @@ suite('lib/camera/camera', function() {
 
   suite('Camera#fetchBootConfig()', function() {
     setup(function() {
-      this.storage.getItem
+      this.configStorage.getItem
         .withArgs('cameraBootConfig')
         .returns('{"mozCameraConfig":{},"pictureSize":{},"recorderProfile":"720p"}');
     });
@@ -1050,7 +1056,7 @@ suite('lib/camera/camera', function() {
       this.camera.mozCameraConfig = '<moz-camera-config>';
       this.camera.saveBootConfig();
 
-      var data = JSON.parse(this.storage.setItem.args[0][1]);
+      var data = JSON.parse(this.configStorage.setItem.args[0][1]);
       assert.equal(data.pictureSize, '<picture-size>');
       assert.equal(data.recorderProfile, '<recorder-profile>');
       assert.equal(data.mozCameraConfig, '<moz-camera-config>');
@@ -1060,29 +1066,29 @@ suite('lib/camera/camera', function() {
       this.options.cacheConfig = false;
       this.camera = new this.Camera(this.options);
       this.camera.saveBootConfig();
-      sinon.assert.notCalled(this.storage.setItem);
+      sinon.assert.notCalled(this.configStorage.setItem);
     });
 
     test('Should only store bootConfig if mode is \'picture\' and \'back\' camera', function() {
       this.camera.selectedCamera = 'front';
       this.camera.mode = 'video';
       this.camera.saveBootConfig();
-      sinon.assert.notCalled(this.storage.setItem);
+      sinon.assert.notCalled(this.configStorage.setItem);
 
       this.camera.selectedCamera = 'back';
       this.camera.mode = 'video';
       this.camera.saveBootConfig();
-      sinon.assert.notCalled(this.storage.setItem);
+      sinon.assert.notCalled(this.configStorage.setItem);
 
       this.camera.selectedCamera = 'front';
       this.camera.mode = 'picture';
       this.camera.saveBootConfig();
-      sinon.assert.notCalled(this.storage.setItem);
+      sinon.assert.notCalled(this.configStorage.setItem);
 
       this.camera.selectedCamera = 'back';
       this.camera.mode = 'picture';
       this.camera.saveBootConfig();
-      sinon.assert.called(this.storage.setItem);
+      sinon.assert.called(this.configStorage.setItem);
     });
   });
 

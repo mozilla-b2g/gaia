@@ -45,6 +45,7 @@
     <script defer src="shared/js/sim_picker.js"></script>
     <script defer src="shared/js/multi_sim_action_button.js"></script>
     <script defer src="js/shared_components.js"></script>
+    <script defer src="js/event_dispatcher.js"></script>
     <script defer src="js/navigation.js"></script>
     <script defer src="js/dialog.js"></script>
     <script defer src="js/task_runner.js"></script>
@@ -288,6 +289,9 @@
             <button id="messages-delete-button" data-l10n-id="delete">delete</button>
           </menu>
         </form>
+        <section id="messages-recipient-suggestions" class="article-list hide" data-type="list">
+          <ul class="contact-list"></ul>
+        </section>
       </section>
     </article>
 

@@ -1,10 +1,9 @@
 suite('lib/pinch', function() {
   'use strict';
-  var require = window.req;
 
   suiteSetup(function(done) {
     var self = this;
-    require([
+    requirejs([
       'lib/pinch'
     ], function(Pinch) {
       self.Pinch = Pinch;
@@ -51,15 +50,15 @@ suite('lib/pinch', function() {
       this.pinch.isPinching = false;
     });
 
-    test('Should NOT emit pinchstart for one touch', function() {
+    test('Should NOT emit `started` for one touch', function() {
       this.pinch.onTouchStart({
         touches: [{}]
       });
 
-      assert.isFalse(this.pinch.emit.calledWith('pinchstarted'));
+      assert.isFalse(this.pinch.emit.calledWith('started'));
     });
 
-    test('Should emit pinchstart for two touches', function() {
+    test('Should emit `started` for two touches', function() {
       this.pinch.onTouchStart({
         touches: [{}]
       });
@@ -68,7 +67,7 @@ suite('lib/pinch', function() {
       });
 
       assert.isTrue(this.pinch.isPinching);
-      assert.isTrue(this.pinch.emit.calledWith('pinchstarted'));
+      assert.isTrue(this.pinch.emit.calledWith('started'));
     });
 
     test('Should remember last two touches for two touches', function() {
@@ -88,7 +87,7 @@ suite('lib/pinch', function() {
       this.pinch.isPinching = false;
     });
 
-    test('Should NOT emit pinchchange for one touch', function() {
+    test('Should NOT emit `change` for one touch', function() {
       this.pinch.onTouchStart({
         touches: [{}]
       });
@@ -96,10 +95,10 @@ suite('lib/pinch', function() {
         touches: [{}]
       });
 
-      assert.isFalse(this.pinch.emit.calledWith('pinchchanged'));
+      assert.isFalse(this.pinch.emit.calledWith('changed'));
     });
 
-    test('Should emit pinchchange for two touches', function() {
+    test('Should emit `change` for two touches', function() {
       this.pinch.onTouchStart({
         touches: [{}]
       });
@@ -110,7 +109,7 @@ suite('lib/pinch', function() {
         touches: [{}, {}]
       });
 
-      assert.isTrue(this.pinch.emit.calledWith('pinchchanged'));
+      assert.isTrue(this.pinch.emit.calledWith('changed'));
     });
 
     test('Should track touch "A" for two touches', function() {
@@ -166,7 +165,7 @@ suite('lib/pinch', function() {
       this.pinch.isPinching = false;
     });
 
-    test('Should NOT emit pinchend for one touch', function() {
+    test('Should NOT emit `ended` for one touch', function() {
       this.pinch.onTouchStart({
         touches: [{}]
       });
@@ -174,10 +173,10 @@ suite('lib/pinch', function() {
         touches: []
       });
 
-      assert.isFalse(this.pinch.emit.calledWith('pinchended'));
+      assert.isFalse(this.pinch.emit.calledWith('ended'));
     });
 
-    test('Should emit pinchend for two touches', function() {
+    test('Should emit `ended` for two touches', function() {
       this.pinch.onTouchStart({
         touches: [{}, {}]
       });
@@ -186,7 +185,7 @@ suite('lib/pinch', function() {
       });
 
       assert.isFalse(this.pinch.isPinching);
-      assert.isTrue(this.pinch.emit.calledWith('pinchended'));
+      assert.isTrue(this.pinch.emit.calledWith('ended'));
     });
   });
 });

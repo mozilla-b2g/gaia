@@ -294,7 +294,8 @@ var icc_worker = {
       }, true);
 
     var timeout = (options.duration &&
-      icc.calculateDurationInMS(options.duration)) || icc._inputTimeout;
+      icc.calculateDurationInMS(options.duration.timeUnit,
+          options.duration.timeInterval)) || icc._inputTimeout;
     icc.input(message, options.text, timeout, options,
       function(response, value) {
         if (response == null) {
@@ -326,7 +327,7 @@ var icc_worker = {
       'icc.data': JSON.stringify(message)
     });
     reqIccData.onsuccess = function icc_getIccData() {
-      if (AppWindowManager.getApps(application)) {
+      if (AppWindowManager.getApp(application)) {
         return DUMP('Settings is running. Ignoring');
       }
       navigator.mozApps.mgmt.getAll().onsuccess = function gotApps(evt) {

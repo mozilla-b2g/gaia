@@ -246,7 +246,7 @@
      */
     _getDefaultPreferredNetworkType: function(hwSupportedTypes) {
       return ['lte', 'wcdma', 'gsm', 'cdma', 'evdo'].filter(function(type) {
-        return (hwSupportedTypes.indexOf(type) !== -1);
+        return (hwSupportedTypes && hwSupportedTypes.indexOf(type) !== -1);
       }).join('/');
     }
   };

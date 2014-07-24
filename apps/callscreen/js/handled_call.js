@@ -1,5 +1,5 @@
 /* globals CallsHandler, CallScreen, Contacts, ContactPhotoHelper,
-           FontSizeManager, LazyL10n, Utils, Voicemail */
+           FontSizeManager, LazyL10n, Utils, Voicemail, AudioCompetingHelper */
 
 'use strict';
 
@@ -66,6 +66,7 @@ function HandledCall(aCall) {
     this.updateDirection();
 
     if (navigator.mozIccManager.iccIds.length > 1) {
+      this.node.classList.add('sim-info');
       var n = this.call.serviceId + 1;
       this.viaSimNode.textContent = _('via-sim', { n: n });
       this.simNumberNode.textContent = _('sim-number', { n: n });
@@ -94,13 +95,22 @@ HandledCall.prototype.handleEvent = function hc_handle(evt) {
       CallsHandler.updateKeypadEnabled();
       break;
     case 'connected':
+      // The dialer agent in the system app plays and stops the ringtone once
+      // the call state changes. If we play silence right after the ringtone
+      // stops then a mozinterrupbegin event is fired. This is a race condition
+      // we could easily avoid with a 1-second-timeout fix.
+      window.setTimeout(function onTimeout() {
+        AudioCompetingHelper.compete();
+      }, 1000);
       CallScreen.render('connected');
       this.connected();
       break;
     case 'disconnected':
+      AudioCompetingHelper.leaveCompetition();
       this.disconnected();
       break;
     case 'held':
+      AudioCompetingHelper.leaveCompetition();
       CallsHandler.updateKeypadEnabled();
       this.node.classList.add('held');
       break;
@@ -194,10 +204,10 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
           node.textContent = self._cachedInfo;
         });
       }
-      self.formatPhoneNumber('end');
       self._cachedAdditionalInfo =
         Utils.getPhoneNumberAdditionalInfo(matchingTel);
       self.replaceAdditionalContactInfo(self._cachedAdditionalInfo);
+      self.formatPhoneNumber('end');
       var photo = ContactPhotoHelper.getFullResolution(contact);
       if (photo) {
         self.photo = photo;
@@ -240,9 +250,18 @@ HandledCall.prototype.formatPhoneNumber =
       return;
     }
 
+    var scenario = CallScreen.getScenario();
+    // To cover the second incoming call sub-scenario of the call waiting one,
+    //  we have to check if the current call is in incoming state and if the
+    //  incoming lower pane is being shown.
+    if (scenario === FontSizeManager.CALL_WAITING &&
+        this.call.state === 'incoming' &&
+        CallScreen.incomingContainer.classList.contains('displayed')) {
+      scenario = FontSizeManager.SECOND_INCOMING_CALL;
+    }
     FontSizeManager.adaptToSpace(
-      CallScreen.getScenario(), this.numberNode,
-      this.node.querySelector('.fake-number'), false, ellipsisSide);
+      scenario, this.numberNode, this.node.querySelector('.fake-number'),
+      false, ellipsisSide);
 };
 
 HandledCall.prototype.replacePhoneNumber =

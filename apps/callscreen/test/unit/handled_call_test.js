@@ -1,7 +1,8 @@
 /* globals CallsHandler, FontSizeManager, HandledCall, MockCall, MockCallScreen,
            MockCallsHandler, MockContactPhotoHelper, MockContacts,
            MockLazyL10n, MockMozL10n, MockNavigatorMozIccManager,
-           MockNavigatorSettings, MocksHelper, MockUtils, Voicemail */
+           MockNavigatorSettings, MocksHelper, MockUtils, Voicemail,
+           AudioCompetingHelper */
 
 'use strict';
 
@@ -17,6 +18,7 @@ require('/shared/test/unit/mocks/dialer/mock_call.js');
 require('/shared/test/unit/mocks/dialer/mock_calls_handler.js');
 require('/shared/test/unit/mocks/dialer/mock_font_size_manager.js');
 
+require('/js/audio_competing_helper.js');
 require('/js/handled_call.js');
 require('/shared/js/dialer/voicemail.js');
 
@@ -111,6 +113,7 @@ suite('dialer/handled_call', function() {
     mockCall = new MockCall(String(phoneNumber), 'dialing');
     subject = new HandledCall(mockCall);
 
+    AudioCompetingHelper.init('test');
     document.body.appendChild(subject.node);
   });
 
@@ -296,6 +299,7 @@ suite('dialer/handled_call', function() {
 
   suite('on connect', function() {
     setup(function() {
+      this.sinon.spy(AudioCompetingHelper, 'compete');
       mockCall._connect();
     });
 
@@ -356,6 +360,12 @@ suite('dialer/handled_call', function() {
 
     test('speaker initially off', function() {
       assert.isFalse(MockCallScreen.mSpeakerOn);
+    });
+
+    test('AudioCompetingHelper compete gets called when connected', function() {
+      sinon.assert.notCalled(AudioCompetingHelper.compete);
+      this.sinon.clock.tick(1000);
+      sinon.assert.calledOnce(AudioCompetingHelper.compete);
     });
   });
 
@@ -435,6 +445,14 @@ suite('dialer/handled_call', function() {
       test('it does not show the banner', function() {
         assert.isFalse(MockCallScreen.mShowStatusMessageCalled);
       });
+
+      test('AudioCompetingHelper leaveCompetition gets called on disconnected',
+        function() {
+          this.sinon.spy(AudioCompetingHelper, 'leaveCompetition');
+          mockCall._disconnect();
+
+          sinon.assert.called(AudioCompetingHelper.leaveCompetition);
+      });
     });
 
     suite('from a group', function() {
@@ -455,6 +473,7 @@ suite('dialer/handled_call', function() {
 
   suite('holding', function() {
     setup(function() {
+      this.sinon.spy(AudioCompetingHelper, 'leaveCompetition');
       mockCall._hold();
     });
 
@@ -464,6 +483,11 @@ suite('dialer/handled_call', function() {
 
     test('add the css class', function() {
       assert.isTrue(subject.node.classList.contains('held'));
+    });
+
+    test('AudioCompetingHelper leaveCompetition gets called when held',
+      function() {
+	sinon.assert.called(AudioCompetingHelper.leaveCompetition);
     });
   });
 
@@ -652,7 +676,7 @@ suite('dialer/handled_call', function() {
       this.sinon.spy(FontSizeManager, 'adaptToSpace');
       subject.formatPhoneNumber('end');
       sinon.assert.calledWith(
-        FontSizeManager.adaptToSpace, MockCallScreen.getScenario(),
+        FontSizeManager.adaptToSpace, MockCallScreen.mScenario,
         subject.numberNode, subject.node.querySelector('.fake-number'),
         false, 'end');
     });

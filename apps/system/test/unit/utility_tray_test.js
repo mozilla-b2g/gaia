@@ -2,7 +2,7 @@
 
 requireApp('system/shared/test/unit/mocks/mock_lazy_loader.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
-requireApp('system/test/unit/mock_system.js');
+require('/shared/test/unit/mocks/mock_system.js');
 
 var mocksHelperForUtilityTray = new MocksHelper([
   'AppWindowManager',
@@ -61,6 +61,12 @@ suite('system/UtilityTray', function() {
     var screen = document.createElement('div');
     screen.style.cssText = 'height: 100px; display: block;';
 
+    var placeholder = document.createElement('div');
+    placeholder.style.cssText = 'height: 100px; display: block;';
+
+    var notifications = document.createElement('div');
+    notifications.style.cssText = 'height: 100px; display: block;';
+
     stubById = this.sinon.stub(document, 'getElementById', function(id) {
       switch (id) {
         case 'statusbar':
@@ -73,6 +79,10 @@ suite('system/UtilityTray', function() {
           return overlay;
         case 'screen':
           return screen;
+        case 'notifications-placeholder':
+          return placeholder;
+        case 'utility-tray-notifications':
+          return notifications;
         default:
           return null;
       }

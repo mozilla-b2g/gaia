@@ -38,9 +38,9 @@ class Language(Base):
         # have to go back to top level to get the B2G select box wrapper
         self.marionette.switch_to_frame()
 
-        self.wait_for_condition(lambda m: len(self.marionette.find_elements(By.CSS_SELECTOR, '#value-selector-container li')) > 0)
+        self.wait_for_condition(lambda m: len(self.marionette.find_elements(By.CSS_SELECTOR, '.value-selector-container li')) > 0)
 
-        options = self.marionette.find_elements(By.CSS_SELECTOR, '#value-selector-container li')
+        options = self.marionette.find_elements(By.CSS_SELECTOR, '.value-selector-container li')
         close_button = self.marionette.find_element(By.CSS_SELECTOR, 'button.value-option-confirm')
 
         # loop options until we find the match

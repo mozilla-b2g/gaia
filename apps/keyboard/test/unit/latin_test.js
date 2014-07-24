@@ -17,20 +17,20 @@ suite('latin input method capitalization and punctuation', function() {
   var isUpperCase;
 
   var defaultKeyboardGlue = {
-    resetUpperCase: function() {
-      isUpperCase = false;
-    },
     sendKey: sendKey,
     sendCandidates: function(words) {
       // gotSuggestions(words);
     },
-    setUpperCase: function(uc) {
-      isUpperCase = uc;
+    setUpperCase: function(state) {
+      isUpperCase = state.isUpperCase;
     },
     setLayoutPage: function() {
     },
     isCapitalized: function() {
       return isUpperCase;
+    },
+    replaceSurroundingText: function() {
+      return Promise.resolve();
     }
   };
 
@@ -338,14 +338,15 @@ suite('latin input method capitalization and punctuation', function() {
     var keyboardGlue = Object.create(defaultKeyboardGlue);
     var _windowWorker;
     var workers = [];
+    var handleEventSpy = null;
 
     function activateIME() {
       im.activate('en', {
         type: 'text',
         inputmode: '',
-        value: '',
-        selectionStart: 0,
-        selectionEnd: 0,
+        value: 'before after',
+        selectionStart: 5,
+        selectionEnd: 5,
         inputContext: inputContext
       },{suggest: true, correct: true});
     }
@@ -365,20 +366,33 @@ suite('latin input method capitalization and punctuation', function() {
       };
 
       worker.prototype.postMessage = function() {};
+
+      handleEventSpy = sinon.spy(im, 'handleEvent');
     });
 
     teardown(function() {
       window.Worker = _windowWorker;
+      handleEventSpy.restore();
     });
 
     test('should listen to selectionchange', function() {
       im.init(keyboardGlue);
       activateIME();
 
-      var handleEventSpy = sinon.spy(im, 'handleEvent');
       inputContext.dispatchEvent(new Event('selectionchange'));
 
       sinon.assert.calledOnce(handleEventSpy);
+    });
+
+    test('should stop listening to selectionchange when' +
+         ' deactivated', function() {
+      im.init(keyboardGlue);
+      activateIME();
+
+      im.deactivate();
+
+      inputContext.dispatchEvent(new Event('selectionchange'));
+      sinon.assert.notCalled(handleEventSpy);
     });
 
     test('wll clear the suggestions if selectionchange', function() {
@@ -389,8 +403,6 @@ suite('latin input method capitalization and punctuation', function() {
       activateIME();
 
       // change the cursor position
-      inputContext.selectionStart = 4;
-      inputContext.selectionEnd = 4;
       inputContext.dispatchEvent(new Event('selectionchange'));
 
       // will clear the suggestions since cursor changed
@@ -403,6 +415,9 @@ suite('latin input method capitalization and punctuation', function() {
       im.init(keyboardGlue);
 
       activateIME();
+
+      inputContext.selectionStart = 5;
+      inputContext.selectionEnd = 5;
       inputContext.dispatchEvent(new Event('selectionchange'));
 
       // Do nothing with the same cursor
@@ -427,6 +442,25 @@ suite('latin input method capitalization and punctuation', function() {
       sinon.assert.calledOnce(keyboardGlue.sendCandidates);
     });
 
+    test('Do nothing if there is pending selection change after' +
+         ' selecting a suggestion', function() {
+      im = InputMethods.latin;
+      keyboardGlue.sendCandidates = sinon.stub();
+      im.init(keyboardGlue);
+
+      activateIME();
+
+      im.select('suggestedWord', 'word data');
+
+      // change the cursor position
+      inputContext.selectionStart = 4;
+      inputContext.selectionEnd = 4;
+      inputContext.dispatchEvent(new Event('selectionchange'));
+
+      // Do nothing with the same cursor
+      sinon.assert.calledOnce(keyboardGlue.sendCandidates);
+    });
+
     test('Continue to listen to selectionchange after pending', function(done) {
       im = InputMethods.latin;
       keyboardGlue.sendCandidates = sinon.stub();
@@ -434,14 +468,17 @@ suite('latin input method capitalization and punctuation', function() {
 
       activateIME();
 
+      sinon.assert.calledOnce(keyboardGlue.sendCandidates);
+
       im.click('t'.charCodeAt(0)).then(function() {
-        inputContext.selectionStart = 4;
-        inputContext.selectionEnd = 4;
+        sinon.assert.calledTwice(keyboardGlue.sendCandidates);
+
+        inputContext.selectionStart = 0;
+        inputContext.selectionEnd = 0;
         inputContext.dispatchEvent(new Event('selectionchange'));
 
-        sinon.assert.calledTwice(keyboardGlue.sendCandidates);
-        done();
-      });
+        sinon.assert.calledThrice(keyboardGlue.sendCandidates);
+      }).then(done, done);
     });
 
     test('Continue to skip selectionchange if there are still' +
@@ -453,7 +490,9 @@ suite('latin input method capitalization and punctuation', function() {
       activateIME();
 
       im.click('t'.charCodeAt(0)).then(function() {
-        console.log('hi hi');
+
+        sinon.assert.calledTwice(keyboardGlue.sendCandidates);
+
         inputContext.selectionStart = 4;
         inputContext.selectionEnd = 4;
 
@@ -462,9 +501,8 @@ suite('latin input method capitalization and punctuation', function() {
       });
 
       im.click('o'.charCodeAt(0)).then(function() {
-        sinon.assert.calledOnce(keyboardGlue.sendCandidates);
-        done();
-      });
+        sinon.assert.calledThrice(keyboardGlue.sendCandidates);
+      }).then(done, done);
     });
   });
 

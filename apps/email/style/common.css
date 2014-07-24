@@ -225,37 +225,23 @@ section[role="region"] > header:first-child menu[type="toolbar"] a[aria-disabled
   pointer-events: none;
 }
 
-/* Toaset banner extend class */
-section[role="status"].customized {
+/* Toaster */
+section[role="status"].toaster {
   bottom: 4.8rem;
   opacity: 1;
-  padding-left: 3.2rem;
 }
 
+section[role="status"].toaster button {
+  display: inline-block;
+  width: auto;
+  margin-left: 3rem;
+}
+section[role="status"].toaster button:disabled {
+  display: none;
+}
 section[role="status"].fadeout {
   transition: opacity 500ms ease;
   opacity: 0;
-}
-
-section[role="status"][title="undo"] p,
-section[role="status"][title="retry"] p {
-  max-width: 65% !important;
-}
-
-section[role="status"] .toaster-cancel-btn {
-  height: 8rem;
-}
-
-section[role="status"] .toaster-banner-undo,
-section[role="status"] .toaster-banner-retry {
-  display: none;
-  margin: 1rem;
-  width: auto;
-}
-
-section[role="status"][title="undo"] .toaster-banner-undo,
-section[role="status"][title="retry"] .toaster-banner-retry {
-  display: inline;
 }
 
 /* General helpers for opacity transition */

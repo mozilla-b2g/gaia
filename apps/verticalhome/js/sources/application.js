@@ -122,8 +122,15 @@
 
     appMgr.onuninstall = function onuninstall(event) {
       var application = event.application;
+      var manifest = application.updateManifest || application.manifest;
+
       this.removeIconFromGrid(application.manifestURL);
       app.itemStore.save(app.grid.getItems());
+
+      if (app.HIDDEN_ROLES.indexOf(manifest.role) !== -1) {
+        return;
+      }
+
       appManager.sendEventToCollectionApp('uninstall',
         { id: application.manifestURL });
     }.bind(this);
@@ -180,7 +187,9 @@
       var appObject = this.mapToApp({
         manifestURL: application.manifestURL
       });
+      var lastDivider = app.grid.removeUntilDivider();
       app.grid.add(appObject);
+      app.grid.add(lastDivider);
       app.grid.render();
     },
 

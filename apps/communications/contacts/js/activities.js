@@ -36,6 +36,14 @@ var ActivityHandler = {
     return this._currentActivity.source.data;
   },
 
+  get activityContactProperties() {
+    if (!this._currentActivity) {
+      return null;
+    }
+
+    return this._currentActivity.source.data.contactProperties;
+  },
+
   /* checks first if we are handling an activity, then if it is
    * of the same type of any of the items from the list provided.
    * @param list Array with types of activities to be checked
@@ -159,6 +167,23 @@ var ActivityHandler = {
         dataSet = theContact.email;
         noDataStr = _('no_contact_email');
         break;
+      case 'webcontacts/select':
+        type = 'select';
+        var data = [];
+        if (this.activityContactProperties.indexOf('tel') !== -1) {
+          if (theContact.tel && theContact.tel.length) {
+            data = data.concat(theContact.tel);
+          }
+        }
+        if (this.activityContactProperties.indexOf('email') !== -1) {
+          if (theContact.email && theContact.email.length) {
+            data = data.concat(theContact.email);
+          }
+        }
+
+        dataSet = data;
+        noDataStr = _('no_contact_data');
+        break;
     }
     var hasData = dataSet && dataSet.length;
     var numOfData = hasData ? dataSet.length : 0;
@@ -178,8 +203,9 @@ var ActivityHandler = {
         break;
       case 1:
         // if one required type of data
-        if (this.activityDataType == 'webcontacts/tel') {
-          result = utils.misc.toMozContact(theContact);
+        if (this.activityDataType == 'webcontacts/tel' ||
+            this.activityDataType == 'webcontacts/select') {
+          result = this.pickContactsResult(theContact);
         } else {
           result[type] = dataSet[0].value;
         }
@@ -194,11 +220,9 @@ var ActivityHandler = {
           var itemData;
           var capture = function(itemData) {
             return function() {
-              if (self.activityDataType == 'webcontacts/tel') {
-                // filter phone from data.tel to take out the rest
-                result = utils.misc.toMozContact(theContact);
-                result.tel = self.filterDestinationForActivity(
-                               itemData, result.tel);
+              if (self.activityDataType == 'webcontacts/tel' ||
+                  self.activityDataType == 'webcontacts/select') {
+                result = self.pickContactsResult(theContact, itemData);
               } else {
                 result[type] = itemData;
               }
@@ -206,7 +230,7 @@ var ActivityHandler = {
               self.postPickSuccess(result);
             };
           };
-          for (var i = 0; i < dataSet.length; i++) {
+          for (var i = 0, l = dataSet.length; i < l; i++) {
             itemData = dataSet[i].value;
             var carrier = dataSet[i].carrier || '';
             prompt1.addToList(
@@ -217,6 +241,41 @@ var ActivityHandler = {
           prompt1.show();
         });
     } // switch
+  },
+
+  pickContactsResult:
+  function ah_pickContactsResult(theContact, itemData) {
+    var pickResult = {};
+    var contact = utils.misc.toMozContact(theContact);
+
+    if (this.activityDataType == 'webcontacts/tel') {
+      pickResult = contact;
+
+      if (itemData) {
+        pickResult.tel = this.filterDestinationForActivity(
+                            itemData, pickResult.tel);
+      }
+    } else if (this.activityDataType == 'webcontacts/select') {
+      pickResult.contact = contact;
+
+      if (!itemData) {
+        pickResult.select = pickResult.contact.tel;
+
+        if (!pickResult.select || !pickResult.select.length) {
+          pickResult.select = pickResult.contact.email;
+        }
+      } else {
+        pickResult.select = this.filterDestinationForActivity(
+                                itemData, pickResult.contact.tel);
+
+        if (!pickResult.select || !pickResult.select.length) {
+          pickResult.select = this.filterDestinationForActivity(
+                                  itemData, pickResult.contact.email);
+        }
+      }
+    }
+
+    return pickResult;
   },
 
   filterDestinationForActivity:

@@ -10,7 +10,7 @@ from gaiatest.apps.system.app import System
 
 
 class UtilityTray(Base):
-    _notification_container_locator = (By.ID, 'notifications-container')
+    _notifications_locator = (By.ID, 'utility-tray-notifications')
     _desktop_notifications_locator = (By.CSS_SELECTOR, '#desktop-notifications-container .notification')
     _notification_clear_locator = (By.ID, 'notification-clear')
     _quicksettings_app_locator = (By.ID, 'quick-settings-full-app')
@@ -18,8 +18,11 @@ class UtilityTray(Base):
     _quick_settings_full_app_locator = (By.ID, 'quick-settings-full-app')
 
     def wait_for_notification_container_displayed(self):
-        # Marionette cannot read the displayed state of the notification container so we wait for its location
-        self.wait_for_condition(lambda m: m.find_element(*self._notification_container_locator).location['y'] == 54)
+        # Marionette cannot read the displayed state of the notification
+        # container so we wait for the gripper to reach its expanded state
+        utility_tray = self.marionette.find_element(*self._notifications_locator)
+        utility_tray_bottom = utility_tray.location['y'] + utility_tray.size['height'];
+        self.wait_for_condition(lambda m: m.find_element(*self._grippy_locator).location['y'] >= utility_tray_bottom)
 
     @property
     def notifications(self):

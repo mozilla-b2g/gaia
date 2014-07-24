@@ -1,10 +1,12 @@
 'use strict';
 
 /* global configurator, MockNavigatorSettings, IccHelper, App, app,
-   MocksHelper, MockVersionHelper, verticalPreferences  */
+   MocksHelper, MockVersionHelper, verticalPreferences,
+   MockNavigatorGetFeature */
 
 require('/shared/js/homescreens/vertical_preferences.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+require('/shared/test/unit/mocks/mock_navigator_get_feature.js');
 require('/shared/test/unit/mocks/mock_icc_helper.js');
 require('/test/unit/mock_app.js');
 require('/test/unit/mock_version_helper.js');
@@ -18,6 +20,7 @@ var mocksHelperForConfigurator = new MocksHelper([
 suite('configurator.js >', function() {
   mocksHelperForConfigurator.attachTestHelpers();
 
+  var realGetFeature;
   var realMozSettings;
   var xhr;
   var requests = [];
@@ -63,12 +66,15 @@ suite('configurator.js >', function() {
   suiteSetup(function() {
     mocksHelperForConfigurator.suiteSetup();
     realMozSettings = navigator.mozSettings;
+    realGetFeature = navigator.getFeature;
+    navigator.getFeature = MockNavigatorGetFeature;
     navigator.mozSettings = MockNavigatorSettings;
     MockNavigatorSettings.mSyncRepliesOnly = true;
   });
 
   suiteTeardown(function() {
     mocksHelperForConfigurator.suiteTeardown();
+    navigator.getFeature = realGetFeature;
     navigator.mozSettings = realMozSettings;
     MockNavigatorSettings.mSyncRepliesOnly = false;
   });

@@ -126,6 +126,11 @@
   border: none;
 }
 
+
+[role="dialog"][data-type="date-selector"]  .YMD .picker-bar-background {
+  width: 21%;
+}
+
 /*MDY*/
 [role="dialog"][data-type="date-selector"] .MDY .value-picker-month-wrapper {
   left: 0;

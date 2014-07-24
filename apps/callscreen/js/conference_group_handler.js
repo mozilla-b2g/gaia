@@ -75,7 +75,7 @@ var ConferenceGroupHandler = (function() {
     groupLine.classList.add('ended');
     groupLine.classList.remove('held');
     FontSizeManager.adaptToSpace(CallScreen.getScenario(), groupLabel,
-      fakeNumber, false, 'end');
+                                 fakeNumber, false, 'end');
     CallScreen.stopTicker(groupDuration);
 
     setTimeout(function(evt) {

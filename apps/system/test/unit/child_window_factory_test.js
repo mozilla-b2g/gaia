@@ -9,10 +9,11 @@ requireApp('system/test/unit/mock_popup_window.js');
 requireApp('system/test/unit/mock_activity_window.js');
 requireApp('system/test/unit/mock_attention_screen.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
+requireApp('system/test/unit/mock_activity.js');
 
 var mocksForChildWindowFactory = new MocksHelper([
-  'AppWindow', 'ActivityWindow', 'PopupWindow', 'SettingsListener',
-  'AttentionScreen'
+  'MozActivity', 'AppWindow', 'ActivityWindow', 'PopupWindow',
+  'AttentionScreen', 'SettingsListener'
 ]).init();
 
 suite('system/ChildWindowFactory', function() {
@@ -39,30 +40,44 @@ suite('system/ChildWindowFactory', function() {
 
   var fakeWindowOpenDetailSameOrigin = {
     url: 'app://www.fake/child.html',
-    name: '_blank',
+    name: 'same',
     iframe: document.createElement('iframe'),
     features: ''
   };
 
   var fakeWindowOpenDetailCrossOrigin = {
     url: 'http://fake.com/child.html',
+    name: 'other',
+    iframe: document.createElement('iframe'),
+    features: ''
+  };
+
+  var fakeWindowOpenBlank = {
+    url: 'http://blank.com/index.html',
     name: '_blank',
     iframe: document.createElement('iframe'),
     features: ''
   };
 
+
   var fakeWindowOpenPopup = {
     url: 'http://fake.com/child2.html',
-    name: '_blank',
+    name: '',
     iframe: document.createElement('iframe'),
     features: 'dialog'
   };
 
   var fakeWindowOpenHaidaSheet = {
     url: 'http://fake.com/child2.html',
-    name: '_blank',
+    name: 'haida',
     iframe: document.createElement('iframe'),
     features: 'mozhaidasheet'
+  };
+
+  var fakeWindowOpenEmail = {
+    url: 'mailto:demo@mozilla.com',
+    name: '',
+    features: 'dialog'
   };
 
   var fakeActivityDetail = {
@@ -191,6 +206,44 @@ suite('system/ChildWindowFactory', function() {
         detail: fakeWindowOpenHaidaSheet
       }));
     assert.isTrue(spy.calledWithNew());
+  });
+
+  test('Open email sheets', function() {
+    var app1 = new MockAppWindow(fakeAppConfig1);
+    var activitySpy = this.sinon.spy(window, 'MozActivity');
+    var cwf = new ChildWindowFactory(app1);
+    var expectedActivity = {
+      name: 'view',
+      data: {
+        type: 'url',
+        url: 'mailto:demo@mozilla.com'
+      }
+    };
+    cwf.handleEvent(new CustomEvent('mozbrowseropenwindow',
+      {
+        detail: fakeWindowOpenEmail
+      }));
+    assert.isTrue(activitySpy.calledWithNew());
+    sinon.assert.calledWith(activitySpy, expectedActivity);
+  });
+
+  test('Target _blank support', function() {
+    var app1 = new MockAppWindow(fakeAppConfig1);
+    var activitySpy = this.sinon.spy(window, 'MozActivity');
+    var cwf = new ChildWindowFactory(app1);
+    var expectedActivity = {
+      name: 'view',
+      data: {
+        type: 'url',
+        url: 'http://blank.com/index.html'
+      }
+    };
+    cwf.handleEvent(new CustomEvent('mozbrowseropenwindow',
+      {
+        detail: fakeWindowOpenBlank
+      }));
+    assert.isTrue(activitySpy.calledWithNew());
+    sinon.assert.calledWith(activitySpy, expectedActivity);
   });
 
   test('Create ActivityWindow', function() {

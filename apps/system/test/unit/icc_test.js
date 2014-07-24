@@ -3,7 +3,7 @@
           MockL10n, MockFtuLauncher, MockNavigatorSettings, KeyboardEvent */
 'use strict';
 
-requireApp('system/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system/test/unit/mock_system_icc_worker.js');
 requireApp('system/test/unit/mock_ftu_launcher.js');
 requireApp('system/test/unit/mock_statusbar.js');
@@ -180,9 +180,9 @@ suite('STK (icc) >', function() {
 
   test('calculateDurationInMS', function() {
     assert.equal(window.icc.calculateDurationInMS(
-      navigator.mozIccManager.STK_TIME_UNIT_MINUTE, 1), 3600000);
+      navigator.mozIccManager.STK_TIME_UNIT_MINUTE, 1), 60000);
     assert.equal(window.icc.calculateDurationInMS(
-      navigator.mozIccManager.STK_TIME_UNIT_MINUTE, 2), 7200000);
+      navigator.mozIccManager.STK_TIME_UNIT_MINUTE, 2), 120000);
     assert.equal(window.icc.calculateDurationInMS(
       navigator.mozIccManager.STK_TIME_UNIT_SECOND, 1), 1000);
     assert.equal(window.icc.calculateDurationInMS(

@@ -21,7 +21,6 @@ module.exports.SoundsController = SoundsController;
  * @param {App} app [description]
  */
 function SoundsController(app) {
-  debug('initializing');
   var list = app.settings.sounds.get('list');
   this.sounds = new Sounds(list);
   this.app = app;

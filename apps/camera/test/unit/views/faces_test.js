@@ -4,7 +4,7 @@ suite('views/faces', function() {
 
   suiteSetup(function(done) {
     var self = this;
-    window.req(['views/faces'], function(FacesView) {
+    requirejs(['views/faces'], function(FacesView) {
       self.FacesView = FacesView;
       done();
     });

@@ -19,14 +19,23 @@
         return;
       }
 
-      this.grid = [];
-      this.migrating = this.iterating = true;
-      this.pendingItems = 0;
-      HomeState.openDB(HomeState.getGrid.bind(undefined,
-                          this.iteratePage.bind(this),
-                          this.onHomeStateSuccess.bind(this),
-                          this.onHomeStateError.bind(this)),
-                          this.onHomeStateError.bind(this));
+      this.migrating = true;
+
+      verticalPreferences.get('grid.layout').then((gridLayout) => {
+        if (gridLayout) {
+          // Migration was performed
+          return;
+        }
+
+        this.grid = [];
+        this.iterating = true;
+        this.pendingItems = 0;
+        HomeState.openDB(HomeState.getGrid.bind(undefined,
+                         this.iteratePage.bind(this),
+                         this.onHomeStateSuccess.bind(this),
+                         this.onHomeStateError.bind(this)),
+                         this.onHomeStateError.bind(this));
+      });
     },
 
     /**
@@ -55,8 +64,12 @@
           database = BookmarksDatabase;
         }
 
+        var record = {
+          role: type
+        };
+
         if (!database) {
-          var record = {
+          record = {
             name: icon.name,
             manifestURL: icon.manifestURL,
             icon: icon.icon
@@ -70,16 +83,15 @@
           return;
         }
 
+        icon.record = record;
+        section.push(icon.record);
+
         ++this.pendingItems;
         // We are going to propagate the bookmark/collection to datastore
         GridItemsFactory.create(icon).getDescriptor(function(descriptor) {
-          section.push({
-            // categoryId for collections and url for bookmarks
-            id: descriptor.categoryId !== undefined ?
-                  descriptor.id :
-                  descriptor.url,
-            role: type
-          });
+          icon.record.id = descriptor.type === types.COLLECTION ?
+                           descriptor.id : descriptor.url;
+          console.debug('Migrated to datastore', JSON.stringify(descriptor));
           database.add(descriptor).then(onItemMigrated, onItemMigrated);
         });
       }.bind(this));

@@ -15,7 +15,7 @@ requireApp('system/test/unit/mock_notification_screen.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_wake_lock.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_mobile_connection.js');
-requireApp('system/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system/test/unit/mock_asyncStorage.js');
 
 var mocksForUpdateManager = new MocksHelper([

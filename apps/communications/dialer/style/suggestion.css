@@ -9,7 +9,11 @@
 }
 
 .suggestion-bar[hidden] {
-  display: none;
+  opacity: 0;
+}
+
+.suggestion-bar[hidden] .suggestion-count {
+  pointer-events: none;
 }
 
 .suggestion-count {
@@ -43,8 +47,7 @@
 
 .suggestion-item {
   flex: 1;
-  padding-left: 2rem;
-  padding-top: .2rem;
+  padding: .2rem 2rem 0;
 }
 
 .suggestion-item .si__tel-type:not(:empty):after {

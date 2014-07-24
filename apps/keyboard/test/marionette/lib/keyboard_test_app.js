@@ -7,10 +7,18 @@ module.exports = KeyboardTests;
 
 KeyboardTests.ORIGIN = 'app://keyboardtestapp.gaiamobile.org';
 
-KeyboardTests.prototype = {
+KeyboardTests.Selector = Object.freeze({
+  textInput: '#textInput',
+  nonInputArea: '#nonInput'
+});
 
+KeyboardTests.prototype = {
   get textInput() {
-    return this.client.findElement('#textInput');
+    return this.client.findElement(KeyboardTests.Selector.textInput);
+  },
+
+  get nonInputArea() {
+    return this.client.findElement(KeyboardTests.Selector.nonInputArea);
   },
 
   launch: function() {

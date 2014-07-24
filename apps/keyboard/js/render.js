@@ -106,22 +106,23 @@ const IMERender = (function() {
     inputMethodName = name;
   };
 
-  // Accepts three values: true / 'locked' / false
-  //   Use 'locked' when caps are locked
-  //   Use true when uppercase is enabled
-  //   Use false when uppercase if disabled
+  // Accepts a state object with two properties.
+  //   Set isUpperCaseLocked to true if locked
+  //   Set isUpperCase to true when uppercase is enabled
+  //   Use false on both of these properties when uppercase is disabled
   var setUpperCaseLock = function kr_setUpperCaseLock(state) {
     var capsLockKey = activeIme.querySelector(
-      'button[data-keycode="' + KeyboardEvent.DOM_VK_CAPS_LOCK + '"]'
+      'button:not([disabled])' +
+      '[data-keycode="' + KeyboardEvent.DOM_VK_CAPS_LOCK + '"]'
     );
 
     if (!capsLockKey)
       return;
 
-    if (state === 'locked') {
+    if (state.isUpperCaseLocked) {
       capsLockKey.classList.remove('kbr-key-active');
       capsLockKey.classList.add('kbr-key-hold');
-    } else if (state) {
+    } else if (state.isUpperCase) {
       capsLockKey.classList.add('kbr-key-active');
       capsLockKey.classList.remove('kbr-key-hold');
     } else {
@@ -134,9 +135,6 @@ const IMERender = (function() {
 
   // Draw the keyboard and its components. Meat is here.
   var draw = function kr_draw(layout, flags, callback) {
-    perfTimer.printTime('IMERender.draw');
-    perfTimer.startTimer('IMERender.draw');
-
     flags = flags || {};
 
     var supportsSwitching = 'mozInputMethod' in navigator ?
@@ -192,8 +190,6 @@ const IMERender = (function() {
     // XXX We have to wait for layout to complete before
     // return this function
     container.offsetWidth;
-
-    perfTimer.printTime('BLOCKING IMERender.draw', 'IMERender.draw');
   };
 
   /**
@@ -244,11 +240,24 @@ const IMERender = (function() {
         // Uppercase keycode
         var upperCode = key.keyCode || upperCaseKeyChar.charCodeAt(0);
 
+        var attributeList = [];
         var className = '';
+
         if (isSpecialKey(key)) {
           className = 'special-key';
-        } else if (layout.keyClassName) {
-          className = layout.keyClassName;
+        } else {
+          // The 'key' role tells an assistive technology that these buttons
+          // are used for composing text or numbers, and should be easier to
+          // activate than usual buttons. We keep special keys, like backspace,
+          // as buttons so that their activation is not performed by mistake.
+          attributeList.push({
+            key: 'role',
+            value: 'key'
+          });
+
+          if (layout.keyClassName) {
+            className = layout.keyClassName;
+          }
         }
 
         if (key.className) {
@@ -268,7 +277,6 @@ const IMERender = (function() {
           dataset.push({'key': 'compositeKey', 'value': key.compositeKey});
         }
 
-        var attributeList = [];
         if (key.disabled) {
           attributeList.push({
             key: 'disabled',
@@ -316,7 +324,7 @@ const IMERender = (function() {
       container.insertBefore(
         candidatePanelToggleButtonCode(), container.firstChild);
       container.insertBefore(candidatePanelCode(), container.firstChild);
-      showCandidates([], true);
+      showCandidates([]);
 
       container.classList.add('candidate-panel');
     } else {
@@ -342,12 +350,14 @@ const IMERender = (function() {
     key.classList.remove('lowercase');
   };
 
-  var toggleCandidatePanel = function(expand, resetScroll) {
+  var toggleCandidatePanel = function(expand) {
     var candidatePanel = activeIme.querySelector('.keyboard-candidate-panel');
-    if (resetScroll) {
-      candidatePanel.scrollTop = candidatePanel.scrollLeft = 0;
-    }
+    candidatePanel.scrollTop = candidatePanel.scrollLeft = 0;
 
+    toggleCandidatePanelWithoutResetScroll(expand);
+  };
+
+  var toggleCandidatePanelWithoutResetScroll = function(expand) {
     if (expand) {
       ime.classList.remove('candidate-panel');
       ime.classList.add('full-candidate-panel');
@@ -363,7 +373,7 @@ const IMERender = (function() {
 
   // Show candidates
   // Each candidate is a string or an array of two strings
-  var showCandidates = function(candidates, noWindowHeightUpdate) {
+  var showCandidates = function(candidates) {
     if (!activeIme)
       return;
 
@@ -480,7 +490,7 @@ const IMERender = (function() {
         candidatePanel.innerHTML = '';
 
         candidatePanelToggleButton.style.display = 'none';
-        toggleCandidatePanel(false, false);
+        toggleCandidatePanelWithoutResetScroll(false);
         docFragment = candidatesFragmentCode(1, candidates, true);
         candidatePanel.appendChild(docFragment);
       }
@@ -634,6 +644,11 @@ const IMERender = (function() {
         });
       }
 
+      attributeList.push({
+        key: 'role',
+        value: 'key'
+      });
+
       content.appendChild(
         buildKey(alt, '', width + 'px', dataset, null, attributeList));
     });
@@ -715,9 +730,6 @@ const IMERender = (function() {
 
   // Recalculate dimensions for the current render
   var resizeUI = function(layout, callback) {
-    perfTimer.printTime('IMERender.resizeUI');
-    perfTimer.startTimer('IMERender.resizeUI');
-
     var RESIZE_UI_TIMEOUT = 0;
 
     // This function consists of two actual functions
@@ -726,9 +738,6 @@ const IMERender = (function() {
     // these are seperated into separate groups because they do similar
     // operations and minimizing reflow causes because of this
     function setKeyWidth() {
-      perfTimer.printTime('IMERender.resizeUI:setKeyWidth');
-      perfTimer.startTimer('IMERender.resizeUI:setKeyWidth');
-
       [].forEach.call(rows, function(rowEl, rIx) {
         var rowLayoutWidth = parseInt(rowEl.dataset.layoutWidth, 10);
         var keysInRow = rowEl.childNodes.length;
@@ -760,15 +769,9 @@ const IMERender = (function() {
       });
 
       setTimeout(getVisualData, RESIZE_UI_TIMEOUT);
-
-      perfTimer.printTime('BLOCKING IMERender.resizeUI:setKeyWidth',
-        'IMERender.resizeUI:setKeyWidth');
     }
 
     function getVisualData() {
-      perfTimer.printTime('IMERender.resizeUI:getVisualData');
-      perfTimer.startTimer('IMERender.resizeUI:getVisualData');
-
       // Now that key sizes have been set and adjusted for the row,
       // loop again and record the size and position of each. If we
       // do this as part of the loop above, we get bad position data.
@@ -807,9 +810,6 @@ const IMERender = (function() {
       // XXX We have to wait for layout to complete before
       // return this function
       ime.offsetWidth;
-
-      perfTimer.printTime('BLOCKING IMERender.resizeUI:getVisualData',
-        'IMERender.resizeUI:getVisualData');
     }
 
     var changeScale;
@@ -852,8 +852,6 @@ const IMERender = (function() {
     // XXX We have to wait for layout to complete before
     // return this function
     activeIme.offsetWidth;
-
-    perfTimer.printTime('BLOCKING IMERender.resizeUI', 'IMERender.resizeUI');
   };
 
   //
@@ -949,14 +947,6 @@ const IMERender = (function() {
     dataset.forEach(function(data) {
       contentNode.dataset[data.key] = data.value;
     });
-
-    if (!contentNode.classList.contains('special-key')) {
-      // The 'key' role tells an assistive technology that these buttons
-      // are used for composing text or numbers, and should be easier to
-      // activate than usual buttons. We keep special keys, like backsapce, as
-      // buttons so that their activation is not performed by mistake.
-      contentNode.setAttribute('role', 'key');
-    }
 
     var vWrapperNode = document.createElement('span');
     vWrapperNode.className = 'visual-wrapper';

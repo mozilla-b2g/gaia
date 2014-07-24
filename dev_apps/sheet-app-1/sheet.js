@@ -54,6 +54,8 @@
       request.onerror = function() {
         this.INPUT.value = 'canceled';
       }.bind(this);
+    } else if (data.dialog) { // for window.open dialog test
+      window.open('test:test.sheet', '_blank', 'dialog');
     } else if (data.target) {
       var child = window.open(data.target, data.target, data.feature);
       if (data.feature !== 'dialog') {

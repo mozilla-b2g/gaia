@@ -40,6 +40,13 @@
   padding-left: 1rem;
 }
 
+/** Setting Text
+ ---------------------------------------------------------*/
+
+.setting_text {
+  line-height: 1;
+}
+
 /** Title
  ---------------------------------------------------------*/
 
@@ -48,6 +55,10 @@
   margin-bottom: 0.6rem;
   color: rgba(255,255,255,0.5);
 }
+
+/**
+ * :active
+ */
 
 .setting:active .setting_title {
   color: #fff;

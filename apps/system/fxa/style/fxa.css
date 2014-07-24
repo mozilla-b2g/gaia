@@ -32,10 +32,12 @@ body {
 
 h3 {
   text-align: left;
+  margin: 0 0 1rem;
 }
 
-input {
-  -moz-user-select: text;
+label {
+  width:100%;
+  display:block;
 }
 
 ul {
@@ -47,18 +49,18 @@ ul {
  * Navigation bar based on a flex model
  * * * * * * * * * * * * * * * * * * * * * * * */
 
-.horizontal {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
 .navigation {
-  position: relative;
-  background: rgba(0,0,0,0.05);
+  position: absolute;
+  background: #f4f4f4;
   border-top: 0.1rem solid #a6a6a6;
-  padding: .5rem;
-  -moz-box-sizing: border-box;
+  padding: .75rem 1.5rem;
+  box-sizing: border-box;
+  margin: 0;
+  left: 0;
+  right:0;
+  bottom: 0;
+  overflow: hidden;
+  display: block;
 }
 
 /* Overwrite this property from Building Blocks */
@@ -67,20 +69,24 @@ ul {
 }
 
 .navigation button.left {
-  margin-right: .25rem;
+  margin-right: 1rem;
 }
 
-.navigation button.right {
-  margin-left: .25rem;
+.navigation button.left, .navigation button.right {
+  width: calc((100% / 2) - 0.5rem);
+  float: left;
+  position: relative;
 }
 
 /* When there is only one option, we remove the margin */
-.navigation-single-button button{
-  margin: 0;
-}
 
 .navigation-single-button button.left {
   display: none;
+}
+
+.navigation.navigation-single-button button.right {
+  margin: 0;
+  width: 100%
 }
 
 .navigation-back-only button {
@@ -124,22 +130,30 @@ ul {
 .ff_account,
 .screen {
   font-family: sans-serif;
-  font-size: 1.6rem;
+  font-size: 1.7rem;
+  line-height:2.3rem;
   width: 100%;
   height: 100%;
   position: absolute;
   overflow: scroll;
   display: none;
-  padding: 1rem;
-  -moz-box-sizing: border-box;
+  padding: 1.5rem;
+  box-sizing: border-box;
   text-align: center;
+}
+
+.screen p.fxa-intro {
+  text-align: left;
+  line-height: 2.3rem;
+  font-size: 1.7rem;
+  margin: 0 1.5rem 1rem;
 }
 
 .screen p {
   text-align: left;
-  line-height: 1.6rem;
-  font-size: 1.6rem;
-  margin: 1rem 0;
+  line-height: 1.9rem;
+  font-size: 1.5rem;
+  margin: 0 0 1rem;
 }
 
 .current {
@@ -151,26 +165,57 @@ ul {
  */
 
 #fxa-hello-user {
+  white-space: nowrap;
   width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 #fxa-user-email,
 #fxa-user-set-email {
-  display: inline-block;
-  text-overflow: ellipsis;
-  max-width: 100%;
   white-space: nowrap;
   overflow: hidden;
+  text-decoration: none;
 }
 
+p.fine-print {
+    font-size: 1.2rem;
+    line-height: 1.6rem;
+    margin: 0 1.5rem;
+}
 
+/*
+* Verification Screen Styles
+*/
+
+ul.fxa-verification-wrapper {
+  margin: 0;
+  padding: 0;
+}
+
+ul.fxa-verification-wrapper li {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
 
 /*
  * Password screen styles
  */
 
-.fxa-password .forgot-password {
-  font-size: 1rem;
+#show-pw-wrapper {
+  width: 100%;
+  display: block;
+}
+
+#show-pw-wrapper p {
+  float: left;
+  display: block;
+  margin: 1.5rem 0;
+}
+
+#show-pw-wrapper > label {
+  float: left;
 }
 
 /* Animate next screen */
@@ -220,11 +265,11 @@ ul {
 
 .fxa-logo {
   background-image: url('fxa_logo.png');
+  background-size: 14rem auto;
   background-repeat: no-repeat;
-  background-size: 16.4rem;
-  margin: 1.4rem auto 0;
-  width: 17rem;
-  height: 17.5rem;
+  margin: 0 auto;
+  width: 14rem;
+  height: 15rem;
 }
 
 p.fxa-envelope {
@@ -234,8 +279,10 @@ p.fxa-envelope {
   padding-left: 8rem;
   padding-top: 1rem;
   line-height: 2rem;
-  min-height: 6.4rem; /* short email addresses will only take up one line*/
-                      /* force the entire envelope image to be displayed */
+  min-height: 6.4rem;
+  max-width:100%;
+  overflow: hidden; /* short email addresses will only take up one line*/
+  text-overflow: ellipsis;
 }
 
 #fxa-error-overlay {
@@ -274,7 +321,6 @@ form[role=dialog] {
 form[role=dialog].show {
   display: block;
 }
-
 
 /*
  * Classes to ensure functionality

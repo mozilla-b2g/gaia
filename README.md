@@ -180,7 +180,6 @@ make test-integration OOP=1
 
 #### Where to find documentation
   - [Node.js](http://nodejs.org)
-
   - [MDN: for high level overview](https://developer.mozilla.org/en-US/docs/Marionette/Marionette_JavaScript_Tools)
   - [mocha: which is wrapped by marionette-js-runner](http://visionmedia.github.io/mocha/)
   - [marionette-js-runner: for the test framework](https://github.com/mozilla-b2g/marionette-js-runner)

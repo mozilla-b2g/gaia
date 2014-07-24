@@ -59,7 +59,7 @@ navigator.mozL10n.ready(function localized() {
 });
 
 window.addEventListener('load', function() {
-  PerformanceTestingHelper.dispatch('load');
+  window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
   function initUIApp() {
     Navigation.init();
     TimeHeaders.init();
@@ -71,8 +71,11 @@ window.addEventListener('load', function() {
     ThreadListUI.init();
     Information.initDefaultViews();
     ThreadListUI.renderThreads(function() {
+      window.dispatchEvent(new CustomEvent('moz-app-loaded'));
       App.setReady();
     });
+    // dispatch chrome-interactive when all the modules initialized
+    window.dispatchEvent(new CustomEvent('moz-chrome-interactive'));
 
     // Fetch mmsSizeLimitation
     Settings.init();

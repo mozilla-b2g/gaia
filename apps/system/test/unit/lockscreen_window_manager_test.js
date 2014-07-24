@@ -209,24 +209,6 @@ suite('system/LockScreenWindowManager', function() {
         'it did\'t close the window while unlock request arrive');
     });
 
-    test('LockScreen request to unlock with activity detail', function() {
-      var evt = {
-            type: 'lockscreen-request-unlock',
-            detail: {
-              activity: {
-                name: 'foo',
-                data: {
-                  type: 'photos'
-                }
-              }
-            }
-          },
-          stubMozActivity = this.sinon.stub(window, 'MozActivity');
-      window.lockScreenWindowManager.handleEvent(evt);
-      assert.isTrue(stubMozActivity.called,
-        'it didn\'t construct the activity while the request denote to do it');
-    });
-
     test('Open the app when asked via lock-immediately setting', function() {
       window.lockScreenWindowManager.registerApp(appFake);
       var stubOpen = this.sinon.stub(appFake, 'open');

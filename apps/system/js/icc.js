@@ -218,7 +218,7 @@ var icc = {
     var timeout = timeInterval;
     switch (timeUnit) {
       case this._iccManager.STK_TIME_UNIT_MINUTE:
-        timeout *= 3600000;
+        timeout *= 60000;
         break;
       case this._iccManager.STK_TIME_UNIT_SECOND:
         timeout *= 1000;

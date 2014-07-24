@@ -19,6 +19,11 @@ Calendar.ns('Store').Alarm = (function() {
   function Alarm() {
     Calendar.Store.Abstract.apply(this, arguments);
     this._processQueue = this._processQueue.bind(this);
+
+    Calendar.Promise.denodeifyAll(this, [
+      'findAllByBusytimeId',
+      'workQueue'
+    ]);
   }
 
   Alarm.prototype = {

@@ -167,12 +167,14 @@
             '" id="activity-window-' + _id++ + '">' +
             '<div class="screenshot-overlay"></div>' +
             '<div class="fade-overlay"></div>' +
+            '<div class="statusbar-overlay"></div>' +
             '</div>';
   };
 
   ActivityWindow.SUB_COMPONENTS = {
     'transitionController': window.AppTransitionController,
     'modalDialog': window.AppModalDialog,
+    'valueSelector': window.ValueSelector,
     'authDialog': window.AppAuthenticationDialog,
     'contextmenu': window.BrowserContextMenu,
     'childWindowFactory': window.ChildWindowFactory

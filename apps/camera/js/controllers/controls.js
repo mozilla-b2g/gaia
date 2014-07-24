@@ -2,10 +2,6 @@ define(function(require, exports, module) {
 'use strict';
 
 /**
- * TODO: Controllers should create views
- */
-
-/**
  * Dependencies
  */
 
@@ -26,14 +22,11 @@ module.exports.ControlsController = ControlsController;
  * @param {App} app
  */
 function ControlsController(app) {
-  debug('initializing');
   bindAll(this);
   this.app = app;
   this.activity = app.activity;
-  this.view = app.views.controls || new ControlsView();
-  this.app.views.controls = this.view;
+  this.createView();
   this.bindEvents();
-  this.configure();
   debug('initialized');
 }
 
@@ -50,8 +43,8 @@ ControlsController.prototype.bindEvents = function() {
   this.app.on('change:recording', this.onRecordingChange);
   this.app.on('camera:shutter', this.captureHighlightOff);
   this.app.on('newthumbnail', this.onNewThumbnail);
-  this.app.on('camera:busy', this.onCameraBusy);
-  this.app.on('camera:ready', this.restore);
+  this.app.once('loaded', this.onceAppLoaded);
+  this.app.on('busy', this.onCameraBusy);
 
   // View
   this.view.on('modechanged', this.onViewModeChanged);
@@ -68,37 +61,68 @@ ControlsController.prototype.bindEvents = function() {
 };
 
 /**
- * Initial configuration.
+ * Create and configure the view.
  *
  * @private
  */
-ControlsController.prototype.configure = function() {
+ControlsController.prototype.createView = function() {
   var initialMode = this.app.settings.mode.selected('key');
-  var isCancellable = !!this.app.activity.pick;
+  var cancellable = !!this.app.activity.pick;
+
+  // Create the view (test hook)
+  this.view = this.app.views.controls || new ControlsView();
 
   // The gallery button should not
   // be shown if an activity is pending
   // or the application is in 'secure mode'.
-  this.view.set('cancel', isCancellable);
+  this.view.set('cancel', cancellable);
   this.view.setMode(initialMode);
 
   // Disable view until camera
   // 'ready' enables it.
-  this.view.set('faded');
   this.view.disable();
-
-  this.configureMode();
 
   // Put it in the DOM
   this.view.appendTo(this.app.el);
 
-  debug('cancelable: %s', isCancellable);
+  debug('cancelable: %s', cancellable);
   debug('mode: %s', initialMode);
 };
 
+/**
+ * Disables the switch if there is
+ * only one modes available.
+ *
+ * This is only the case if an activity
+ * indicated it only supports one mode,
+ * just 'picture' or 'video'.
+ *
+ * @private
+ */
 ControlsController.prototype.configureMode = function() {
-  var isSwitchable = this.app.settings.mode.get('options').length > 1;
-  this.view.set('switchable', isSwitchable);
+  var switchable = this.app.settings.mode.get('options').length > 1;
+  if (!switchable) { this.view.disable('switch'); }
+};
+
+/**
+ * Once the app is loaded, we can enable
+ * the controls. We also bind a listener
+ * that enabled the controls whenever
+ * the camera becomes 'ready' from
+ * hereon after.
+ *
+ * `.setupSwitch()` adds the dragging interactions
+ * to the mode-switch. We do this after the app
+ * has loaded and in a `setTimeout` to avoid
+ * causing a forced-sync-layout which is
+ * bad for performance.
+ *
+ * @private
+ */
+ControlsController.prototype.onceAppLoaded = function() {
+  this.app.on('ready', this.restore);
+  setTimeout(this.view.setupSwitch, 50);
+  this.view.enable();
 };
 
 /**
@@ -193,7 +217,6 @@ ControlsController.prototype.onCameraBusy = function() {
 ControlsController.prototype.restore = function() {
   debug('restore');
   this.captureHighlightOff();
-  this.view.unset('faded');
   this.view.enable();
 };
 

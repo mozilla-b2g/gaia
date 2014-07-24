@@ -4,22 +4,17 @@ suite('controllers/camera', function() {
   'use strict';
 
   suiteSetup(function(done) {
-    var require = window.req;
     var self = this;
-
-    require([
+    requirejs([
       'app',
       'controllers/camera',
       'lib/camera/camera',
-      'views/viewfinder',
       'lib/settings',
       'lib/setting',
       'lib/geo-location'
     ], function(
-      App, CameraController, Camera, ViewfinderView,
-      Settings, Setting, GeoLocation) {
+      App, CameraController, Camera, Settings, Setting, GeoLocation) {
       self.CameraController = CameraController.CameraController;
-      self.ViewfinderView = ViewfinderView;
       self.GeoLocation = GeoLocation;
       self.Settings = Settings;
       self.Setting = Setting;
@@ -37,11 +32,6 @@ suite('controllers/camera', function() {
 
     // Activity
     this.app.activity = {};
-
-    // Views
-    this.app.views = {
-      viewfinder: sinon.createStubInstance(this.ViewfinderView)
-    };
 
     this.app.storage = {
       getItem: sinon.stub(),
@@ -62,15 +52,11 @@ suite('controllers/camera', function() {
     this.app.settings.timer = sinon.createStubInstance(this.Setting);
 
     // Aliases
-    this.viewfinder = this.app.views.viewfinder;
     this.settings = this.app.settings;
     this.storage = this.app.storage;
     this.camera = this.app.camera;
 
     this.camera.cameraList = ['back', 'front'];
-
-    // Call the callback
-    this.viewfinder.fadeOut.callsArg(0);
 
     // Test instance (some tests create there own)
     this.controller = new this.CameraController(this.app);
@@ -116,19 +102,9 @@ suite('controllers/camera', function() {
   });
 
   suite('camera.on(\'configured\')', function() {
-    setup(function() {
-
-      // Get the callback registered
-      var spy = this.camera.on.withArgs('configured');
-      var callback = spy.args[0][1];
-
-      // Call the callback
-      this.config = {};
-      callback(this.config);
-    });
-
     test('Should relay via app event', function() {
-      assert.isTrue(this.app.emit.calledWith('camera:configured'));
+      sinon.assert.calledWith(this.camera.on, 'configured');
+      sinon.assert.calledWith(this.app.firer, 'camera:configured');
     });
   });
 
@@ -212,6 +188,43 @@ suite('controllers/camera', function() {
     });
   });
 
+  suite('CameraController#setMode()', function() {
+    test('It sets the flash mode', function() {
+      this.controller.setMode();
+      sinon.assert.called(this.camera.setFlashMode);
+    });
+
+    test('It emits `camera:willchange` event', function() {
+      this.controller.setMode();
+      sinon.assert.calledWith(this.app.emit, 'camera:willchange');
+    });
+
+    test('It sets the mode once the viewfinder is hidden', function() {
+      this.controller.setMode('my-mode');
+      sinon.assert.calledWith(this.app.once, 'viewfinder:hidden');
+
+      // call the callback
+      this.app.once.withArgs('viewfinder:hidden').args[0][1]();
+      sinon.assert.calledWith(this.camera.setMode, 'my-mode');
+    });
+  });
+
+  suite('CameraController#setCamera()', function() {
+    test('It emits `camera:willchange` event', function() {
+      this.controller.setMode();
+      sinon.assert.calledWith(this.app.emit, 'camera:willchange');
+    });
+
+    test('It sets the camera once the viewfinder is hidden', function() {
+      this.controller.setCamera('back');
+      sinon.assert.calledWith(this.app.once, 'viewfinder:hidden');
+
+      // call the callback
+      this.app.once.withArgs('viewfinder:hidden').args[0][1]();
+      sinon.assert.calledWith(this.camera.setCamera, 'back');
+    });
+  });
+
   suite('CameraController#updatePictureSize()', function() {
     setup(function() {
       this.settings.mode.selected
@@ -221,41 +234,42 @@ suite('controllers/camera', function() {
       this.settings.pictureSizes.selected
         .withArgs('data')
         .returns({ width: 400, height: 300 });
-
-      this.viewfinder.fadeOut.callsArg(0);
     });
 
-    test('Should set the camera pictureSize with the current setting', function() {
+    test('It emits `camera:willchange` event', function() {
       this.controller.updatePictureSize();
-      var pictureSize = this.camera.setPictureSize.args[0][0];
-      assert.deepEqual(pictureSize, { width: 400, height: 300 });
+      sinon.assert.calledWith(this.app.emit, 'camera:willchange');
     });
 
-    test('Should fade out the viewfinder first when in video mode', function() {
+    test('It sets the camera once the viewfinder is hidden', function() {
       this.controller.updatePictureSize();
-      assert.isTrue(this.viewfinder.fadeOut.calledBefore(this.camera.setPictureSize));
+      sinon.assert.calledWith(this.app.once, 'viewfinder:hidden');
+
+      // call the callback
+      this.app.once.withArgs('viewfinder:hidden').args[0][1]();
+      sinon.assert.calledWith(this.camera.setPictureSize, { width: 400, height: 300 });
     });
 
-    test('Should not configure the camera in video mode', function() {
-      this.settings.mode.selected
-        .withArgs('key')
-        .returns('video');
+    suite('`video` mode', function() {
+      setup(function() {
+        this.settings.mode.selected
+          .withArgs('key')
+          .returns('video');
+      });
 
-      this.controller.updatePictureSize();
+      test('It doesn\'t emit `camera:willchange` if in `video` mode', function() {
+        this.controller.updatePictureSize();
+        assert.isFalse(this.app.emit.calledWith('camera:willchange'));
+      });
 
-      var args = this.camera.setPictureSize.args[0];
-
-      assert.deepEqual(args[0], { width: 400, height: 300 });
-      assert.deepEqual(args[1], { configure: false });
-    });
-
-     test('Should not fade out viewfinder in video mode', function() {
-      this.settings.mode.selected
-        .withArgs('key')
-        .returns('video');
-
-      this.controller.updatePictureSize();
-      sinon.assert.notCalled(this.viewfinder.fadeOut);
+      test('It calls `camera.setPictureSize`, but doesn\'t reconfigure camera', function() {
+        this.controller.updatePictureSize();
+        sinon.assert.calledWith(
+          this.camera.setPictureSize,
+          { width: 400, height: 300 },
+          { configure: false }
+        );
+      });
     });
   });
 
@@ -268,40 +282,42 @@ suite('controllers/camera', function() {
       this.settings.recorderProfiles.selected
         .withArgs('key')
         .returns('720p');
-
-      this.viewfinder.fadeOut.callsArg(0);
     });
 
-    test('Should set the camera recorderProfile with the current setting', function() {
+    test('It emits `camera:willchange` event', function() {
       this.controller.updateRecorderProfile();
+      sinon.assert.calledWith(this.app.emit, 'camera:willchange');
+    });
+
+    test('It sets the camera once the viewfinder is hidden', function() {
+      this.controller.updateRecorderProfile();
+      sinon.assert.calledWith(this.app.once, 'viewfinder:hidden');
+
+      // call the callback
+      this.app.once.withArgs('viewfinder:hidden').args[0][1]();
       sinon.assert.calledWith(this.camera.setRecorderProfile, '720p');
     });
 
-    test('Should fade out the viewfinder first when in video mode', function() {
-      this.controller.updateRecorderProfile();
-      assert.isTrue(this.viewfinder.fadeOut.calledBefore(this.camera.setRecorderProfile));
-    });
+    suite('`picture` mode', function() {
+      setup(function() {
+        this.settings.mode.selected
+          .withArgs('key')
+          .returns('picture');
+      });
 
-    test('Should not configure the camera in picture mode', function() {
-      this.settings.mode.selected
-        .withArgs('key')
-        .returns('picture');
+      test('It doesn\'t emit `camera:willchange` if in `video` mode', function() {
+        this.controller.updateRecorderProfile();
+        assert.isFalse(this.app.emit.calledWith('camera:willchange'));
+      });
 
-      this.controller.updateRecorderProfile();
-
-      var args = this.camera.setRecorderProfile.args[0];
-
-      assert.equal(args[0], '720p');
-      assert.deepEqual(args[1], { configure: false });
-    });
-
-     test('Should not fade out viewfinder in picture mode', function() {
-      this.settings.mode.selected
-        .withArgs('key')
-        .returns('picture');
-
-      this.controller.updateRecorderProfile();
-      sinon.assert.notCalled(this.viewfinder.fadeOut);
+      test('It calls `camera.setRecorderProfile`, but doesn\'t reconfigure camera', function() {
+        this.controller.updateRecorderProfile();
+        sinon.assert.calledWith(
+          this.camera.setRecorderProfile,
+          '720p',
+          { configure: false }
+        );
+      });
     });
   });
 
@@ -448,6 +464,25 @@ suite('controllers/camera', function() {
 
       this.controller.onStorageChanged('shared');
       assert.isTrue(this.camera.stopRecording.called);
+    });
+  });
+
+  suite('CameraController#onGalleryClosed()', function() {
+    test('It loads the camera', function() {
+      this.controller.onGalleryClosed();
+      sinon.assert.called(this.camera.load);
+    });
+
+    test('It clears loading after the camera has loaded', function() {
+      this.controller.onGalleryClosed();
+      this.camera.load.args[0][0]();
+      sinon.assert.called(this.app.onReady);
+    });
+
+    test('It doesn\'t load the camera if the app is hidden', function() {
+      this.app.hidden = true;
+      this.controller.onGalleryClosed();
+      sinon.assert.notCalled(this.camera.load);
     });
   });
 });

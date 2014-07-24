@@ -253,8 +253,8 @@ endif
 # some commands for invoking it. But it is platform dependent
 # IMPORTANT: you should generally change the directory name when you change the
 # URL unless you know what you're doing
-XULRUNNER_SDK_URL=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/nightly/2014/03/2014-03-08-03-02-03-mozilla-central/xulrunner-30.0a1.en-US.
-XULRUNNER_BASE_DIRECTORY?=xulrunner-sdk-30
+XULRUNNER_SDK_URL=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/nightly/2014/07/2014-07-04-03-02-08-mozilla-central/xulrunner-33.0a1.en-US.
+XULRUNNER_BASE_DIRECTORY?=xulrunner-sdk-33
 XULRUNNER_DIRECTORY?=$(XULRUNNER_BASE_DIRECTORY)/xulrunner-sdk
 XULRUNNER_URL_FILE=$(XULRUNNER_BASE_DIRECTORY)/.url
 
@@ -705,18 +705,23 @@ $(NPM_INSTALLED_PROGRAMS): package.json node_modules
 
 
 NODE_MODULES_REV=$(shell cat gaia_node_modules.revision)
-$(NODE_MODULES_SRC): gaia_node_modules.revision
-ifeq "$(NODE_MODULES_SRC)" "modules.tar"
+# modules.tar and git-gaia-node-modules are the possible values for
+# $(NODE_MODULES_SRC). See the node_modules target.
+modules.tar: gaia_node_modules.revision
 	-$(DOWNLOAD_CMD) https://github.com/mozilla-b2g/gaia-node-modules/tarball/$(NODE_MODULES_REV) &&\
 	mv $(NODE_MODULES_REV) "$(NODE_MODULES_SRC)"
-else
+
+git-gaia-node-modules: gaia_node_modules.revision
 	if [ ! -d "$(NODE_MODULES_SRC)" ] ; then \
 		git clone "$(NODE_MODULES_GIT_URL)" "$(NODE_MODULES_SRC)" ; \
 	fi
 	(cd "$(NODE_MODULES_SRC)" && git fetch && git reset --hard "$(NODE_MODULES_REV)" )
-endif
 
-node_modules: $(NODE_MODULES_SRC)
+node_modules: gaia_node_modules.revision
+	# Running make without using a dependency ensures that we can run
+	# "make node_modules" with a custom NODE_MODULES_GIT_URL variable, and then
+	# run another target without specifying the variable
+	$(MAKE) $(NODE_MODULES_SRC)
 ifeq "$(NODE_MODULES_SRC)" "modules.tar"
 	$(TAR_WILDCARDS) --strip-components 1 -x -m -f $(NODE_MODULES_SRC) "mozilla-b2g-gaia-node-modules-*/node_modules"
 else
@@ -895,7 +900,7 @@ endif
 endif
 
 lint:
-	NO_XFAIL=1 $(MAKE) -k gjslint hint
+	NO_XFAIL=1 $(MAKE) -k gjslint hint jsonlint
 
 gjslint: GJSLINT_EXCLUDED_DIRS = $(shell grep '\/\*\*$$' .jshintignore | sed 's/\/\*\*$$//' | paste -s -d, -)
 gjslint: GJSLINT_EXCLUDED_FILES = $(shell egrep -v '(\/\*\*|^\s*)$$' .jshintignore | paste -s -d, -)
@@ -922,6 +927,9 @@ hint: node_modules/.bin/jshint
 
 csslint: $(XULRUNNER_BASE_DIRECTORY)
 	@$(call run-js-command,csslint)
+
+jsonlint: $(XULRUNNER_BASE_DIRECTORY)
+	@$(call run-js-command,jsonlint)
 
 # Erase all the indexedDB databases on the phone, so apps have to rebuild them.
 delete-databases:

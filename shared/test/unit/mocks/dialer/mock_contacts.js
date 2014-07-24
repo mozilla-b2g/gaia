@@ -54,5 +54,6 @@ var MockContacts = {
     this._calledWith = null;
     this.mCarrier = 'carrier';
     this.mType = 'type';
+    this.mResult = [];
   }
 };

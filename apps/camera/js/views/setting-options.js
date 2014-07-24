@@ -52,6 +52,11 @@ module.exports = View.extend({
     // options should be localized
     var localizable = data.optionsLocalizable === false ? false : true;
     data.options.forEach(this.renderOption.bind(this, localizable));
+
+    // Clean up
+    delete this.template;
+
+    debug('rendered');
     return this;
   },
 
@@ -74,7 +79,7 @@ module.exports = View.extend({
   template: function(data) {
     return '<div class="inner">' +
       '<h2 class="settings_title">' +
-      '<button class="settings-back-btn icon-back-arrow js-back">' +
+      '<button class="settings-back-btn icon-back js-back">' +
       '</button>' +
       this.l10n.get(data.header) + '</h2>' +
       '<div class="settings_items"><ul class="inner js-list"></ul></div>' +

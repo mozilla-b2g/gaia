@@ -170,3 +170,26 @@ Our `Makefile` has two tasks, one to **'build'** and one to **'clean'** (delete 
 1. Remove any previous settings build from the `build_stage/`
 2. Create an new directory `build_stage/settings`
 3. Run the `r.js` (RequireJS optimizer), pointing it at our `require_config.jslike` file (`.jslike` because we don't want Gaia builds to mess with it [I think]). This copies our entire application (JS and all) and bundles our JS (tracing `require()` calls) and CSS (tracing `@import`) in two single files.
+
+## Q&A
+
+### How to make sure some specific works are done before rendering panels ?
+
+Sometimes, you may need to do something before rendering panels. In order to achieve this, you have to return a promise object in `onBeforeShow` first and Settings app will do the transition after the promise is resolved. By the way, don't put some really heavy works here, otherwise users will feel confused and would treat Settings app as broken.
+
+```js
+return SettingsPanel({
+  onBeforeShow: function _onBeforeShow() {
+    var promise = new Promise(function(resolve, reject) {
+      // do your works here
+      // then call the resolve method from Promise instance
+      fetch_data_from_server(function callback() {
+        resolve();
+      });
+    });
+
+    // Return the promise object back to Settings app
+    return promise;
+  }
+});
+```

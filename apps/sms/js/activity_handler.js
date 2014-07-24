@@ -203,7 +203,7 @@ var ActivityHandler = {
     request.onsuccess = function onsuccess() {
       if (!Compose.isEmpty()) {
         if (window.confirm(navigator.mozL10n.get('discard-new-message'))) {
-          ThreadUI.cleanFields(true);
+          ThreadUI.cleanFields();
         } else {
           return;
         }
@@ -473,8 +473,7 @@ var ActivityHandler = {
           }
         }
 
-        Contacts.findByPhoneNumber(message.sender, function gotContact(
-                                                                contact) {
+        Contacts.findByAddress(message.sender, function gotContact(contact) {
           var sender = message.sender;
           if (!contact) {
             console.error('We got a null contact for sender:', sender);

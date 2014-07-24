@@ -56,7 +56,7 @@ var Settings = {
       hash = '#' + hash;
     }
 
-    if (hash == this._currentPanel) {
+    if (hash === this._currentPanel) {
       return;
     }
 
@@ -93,6 +93,7 @@ var Settings = {
       return;
     }
 
+    this.SettingsUtils = options.SettingsUtils;
     this.SettingsService = options.SettingsService;
     this.PageTransitions = options.PageTransitions;
     this.ScreenLayout = options.ScreenLayout;
@@ -101,7 +102,7 @@ var Settings = {
     // register web activity handler
     navigator.mozSetMessageHandler('activity', this.webActivityHandler);
 
-    this.currentPanel = 'root';
+    this.currentPanel = '#root';
 
     // init connectivity when we get a chance
     navigator.mozL10n.once(function loadWhenIdle() {

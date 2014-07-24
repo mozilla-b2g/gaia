@@ -1,6 +1,6 @@
 'use strict';
 
-/* global Utils */
+/* global Utils, Promise */
 /* exported MockUtils */
 
 var MockUtils = {
@@ -31,7 +31,7 @@ var MockUtils = {
   basicContact: Utils.basicContact,
   asyncLoadRevokeURL: Utils.asyncLoadRevokeURL,
   isEmailAddress: Utils.isEmailAddress,
-  closeNotificationsForThread: Utils.closeNotificationsForThread,
+  closeNotificationsForThread: () => Promise.resolve(),
   imageToDataUrl: Utils.imageToDataUrl,
   imageUrlToDataUrl: Utils.imageUrlToDataUrl,
   Promise: Utils.Promise

@@ -1,6 +1,6 @@
 'use strict';
 
-/* global ScreenManager */
+/* global ScreenManager, SettingsListener */
 
 (function(exports) {
 
@@ -76,6 +76,7 @@
    **/
   var HardwareButtons = function HardwareButtons() {
     this._started = false;
+    this._softwareHome = false;
   };
 
   /**
@@ -123,6 +124,10 @@
     window.addEventListener('mozChromeEvent', this);
 
     window.addEventListener('softwareButtonEvent', this);
+
+    SettingsListener.observe('software-button.enabled', false, function(value) {
+      this._softwareHome = value;
+    }.bind(this));
   };
 
   /**
@@ -184,6 +189,15 @@
    */
   HardwareButtons.prototype.handleEvent = function hb_handleEvent(evt) {
     var type = evt.detail.type;
+
+    // When the software home button is displayed we ignore the hardware
+    // home button if there is one
+    var hardwareHomeEvent = (evt.type == 'mozChromeEvent') &&
+                            type.startsWith('home-button');
+    if (this._softwareHome && hardwareHomeEvent) {
+      return;
+    }
+
     switch (type) {
       case 'home-button-press':
       case 'home-button-release':

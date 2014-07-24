@@ -298,6 +298,10 @@ body {
   pointer-events: auto;
 }
 
+#screen.locked #dialog-overlay {
+  visibility: hidden;
+}
+
 @keyframes banner-bounce {
   from, to {
     transform: translateY(100%);

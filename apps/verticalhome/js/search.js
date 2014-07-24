@@ -24,7 +24,12 @@
     }
 
     var input = document.getElementById('search');
-    input.addEventListener('touchstart', this.open.bind(this));
+    input.addEventListener('click', this.open.bind(this));
+    // Prevent the context menu from appearing as we will not allow
+    // long-tapping on the search bar later in 2.1.
+    input.addEventListener('contextmenu', (e) => {
+      e.stopPropagation();
+    });
   }
 
   Search.prototype = {

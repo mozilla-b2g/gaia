@@ -51,6 +51,14 @@ class MockContact(dict):
     def __getattr__(self, attr):
         return self[attr]
 
+    # Remove key when passing None values
+    def update(self, *args, **kwargs):
+        dict.update(self, *args, **kwargs)
+        d = self.copy()
+        for k,v in d.iteritems():
+            if v is None:
+                del self[k]
+
     def create_mozcontact(self):
         """
         Returns the MockContact dictionary in a format compatible with the

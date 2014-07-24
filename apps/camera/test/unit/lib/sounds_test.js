@@ -17,12 +17,12 @@ suite('Sounds', function() {
   var list = [
     {
       name: 'shutter',
-      url: 'resources/sounds/shutter.ogg',
+      url: 'resources/sounds/shutter.opus',
       setting: 'camera.sound.enabled'
     },
     {
       name: 'timer',
-      url: 'resources/sounds/timer.ogg',
+      url: 'resources/sounds/timer.opus',
       setting: 'camera.sound.enabled'
     },
     {
@@ -40,7 +40,7 @@ suite('Sounds', function() {
   mocksHelperForSounds.attachTestHelpers();
 
   suiteSetup(function(done) {
-    req(['lib/sounds'], function(sounds) {
+    requirejs(['lib/sounds'], function(sounds) {
       Sounds = sounds;
       done();
     });
@@ -54,7 +54,7 @@ suite('Sounds', function() {
     // A sound to pass to APIs
     this.mockSound = {
       name: 'camera',
-      url: 'resources/sounds/shutter.ogg',
+      url: 'resources/sounds/shutter.opus',
       setting: 'camera.sound.enabled'
     };
 

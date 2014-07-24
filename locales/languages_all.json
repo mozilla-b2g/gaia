@@ -1,4 +1,5 @@
 {
+  "af"        : "Afrikaans",
   "ar"        : "عربي",
   "as"        : "অসমীয়া",
   "ast"       : "Asturianu",
@@ -13,6 +14,7 @@
   "da"        : "Dansk",
   "de"        : "Deutsch",
   "el"        : "Ελληνικά",
+  "en-GB"     : "English (GB)",
   "en-US"     : "English (US)",
   "eo"        : "Esperanto",
   "es"        : "Español",
@@ -39,10 +41,10 @@
   "lij"       : "Ligure",
   "lt"        : "Lietuvių",
   "mai"       : "मैथिली",
-  "ml"        : "മലയാളം",
   "mk"        : "Македонски",
-  "ms"        : "Melayu",
+  "ml"        : "മലയാളം",
   "mr"        : "मराठी",
+  "ms"        : "Melayu",
   "nb-NO"     : "Norsk bokmål",
   "ne-NP"     : "नेपाली",
   "nl"        : "Nederlands",
@@ -69,5 +71,6 @@
   "vi"        : "Tiếng Việt",
   "xh"        : "isiXhosa",
   "zh-CN"     : "中文 (简体)",
-  "zh-TW"     : "正體中文 (繁體)"
+  "zh-TW"     : "正體中文 (繁體)",
+  "zu"        : "isiZulu"
 }

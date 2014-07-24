@@ -16,6 +16,7 @@
     "device-storage:videos":{ "access": "readwrite" },
     "device-storage:music":{ "access": "readwrite" },
     "device-storage:crashes":{ "access": "readwrite" },
+    "firefox-accounts": {},
     "geolocation":{},
     "permissions": {},
     "power":{},
@@ -29,6 +30,13 @@
       "description": "Find My Device helps find, lock and erase a lost phone"
     }
   },
+  "icons": {
+    "84": "/style/icons/find_my_device_84.png",
+    "126": "/style/icons/find_my_device_126.png",
+    "142": "/style/icons/find_my_device_142.png",
+    "189": "/style/icons/find_my_device_189.png",
+    "284": "/style/icons/find_my_device_284.png"
+  },
   "messages": [
     { "alarm": "/index.html" },
     { "push": "/index.html" },
@@ -39,7 +47,8 @@
       "description": "Wake up Find My Device from the System app",
       "rules": {
         "manifestURLs": [
-          "app://system.gaiamobile.org/manifest.webapp"
+          "app://system.gaiamobile.org/manifest.webapp",
+          "app://settings.gaiamobile.org/manifest.webapp"
         ]
       }
     },

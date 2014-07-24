@@ -51,6 +51,13 @@
     }
   },
   "default_locale": "en-US",
+  "icons": {
+    "84": "/style/icons/collection_84.png",
+    "126": "/style/icons/collection_126.png",
+    "142": "/style/icons/collection_142.png",
+    "189": "/style/icons/collection_189.png",
+    "284": "/style/icons/collection_284.png"
+  },
   "datastores-access": {
     "bookmarks_store": {
       "readonly": true,

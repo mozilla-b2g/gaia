@@ -1,5 +1,5 @@
-/* global KeyboardManager, softwareButtonManager, StatusBar,
-          System */
+/* global KeyboardManager, softwareButtonManager, System,
+          AttentionScreen */
 'use strict';
 
 (function(exports) {
@@ -55,7 +55,7 @@
     get height() {
       var height = window.innerHeight -
         (this.keyboardEnabled ? KeyboardManager.getHeight() : 0) -
-        StatusBar.height -
+        AttentionScreen.statusHeight -
         softwareButtonManager.height;
 
       // Normalizing the height so that it always translates to an integral
@@ -74,7 +74,7 @@
      * @memberOf LayoutManager
      */
     get width() {
-      return window.innerWidth;
+      return window.innerWidth - softwareButtonManager.width;
     },
 
     /**
@@ -86,7 +86,7 @@
      * @memberOf LayoutManager
      */
     match: function lm_match(width, height) {
-      return (this.height === height);
+      return (this.width === width && this.height === height);
     },
 
     /**
@@ -111,7 +111,6 @@
       window.addEventListener('mozfullscreenchange', this);
       window.addEventListener('software-button-enabled', this);
       window.addEventListener('software-button-disabled', this);
-      return this;
     },
 
     handleEvent: function lm_handleEvent(evt) {

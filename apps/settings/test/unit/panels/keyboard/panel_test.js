@@ -5,7 +5,8 @@ suite('KeyboardPanel', function() {
     '*': {
       'modules/keyboard_context': 'MockKeyboardContext',
       'modules/settings_panel': 'MockSettingsPanel',
-      'panels/keyboard/core': 'MockCore'
+      'panels/keyboard/installed_keyboards': 'MockInstalledKeyboards',
+      'panels/keyboard/enabled_layouts': 'MockEnabledLayouts'
     }
   };
 
@@ -23,18 +24,6 @@ suite('KeyboardPanel', function() {
       return {};
     });
 
-    // Define MockCore
-    this.mockCore = {
-      enabled: false,
-      init: function() {}
-    };
-    this.MockCore = function() {
-      return that.mockCore;
-    };
-    define('MockCore', function() {
-      return that.MockCore;
-    });
-
     // Define MockSettingsPanel
     define('MockSettingsPanel', function() {
       return function(options) {
@@ -47,6 +36,30 @@ suite('KeyboardPanel', function() {
       };
     });
 
+    // Define MockInstalledKeyboards
+    this.mockInstalledKeyboards = {
+      enabled: false,
+      init: function() {}
+    };
+    this.MockInstalledKeyboards = function() {
+      return that.mockInstalledKeyboards;
+    };
+    define('MockInstalledKeyboards', function() {
+      return that.MockInstalledKeyboards;
+    });
+
+    // Define MockEnabledLayouts
+    this.mockEnabledLayouts = {
+      enabled: false,
+      init: function() {}
+    };
+    this.MockEnabledLayouts = function() {
+      return that.mockEnabledLayouts;
+    };
+    define('MockEnabledLayouts', function() {
+      return that.MockEnabledLayouts;
+    });
+
     requireCtx([
       'panels/keyboard/panel'
     ],
@@ -56,19 +69,23 @@ suite('KeyboardPanel', function() {
     });
   });
 
-  test('Init the core when onInit', function() {
-    sinon.spy(this.mockCore, 'init');
+  test('Init MockEnabledLayouts when onInit', function() {
+    sinon.spy(this.mockInstalledKeyboards, 'init');
+    sinon.spy(this.mockEnabledLayouts, 'init');
     this.panel.init(this.fakeRootElement);
-    sinon.assert.called(this.mockCore.init);
+    sinon.assert.called(this.mockInstalledKeyboards.init);
+    sinon.assert.called(this.mockEnabledLayouts.init);
   });
 
-  test('Enabled the core when onBeforeShow', function() {
+  test('Enabled MockEnabledLayouts when onBeforeShow', function() {
     this.panel.beforeShow();
-    assert.ok(this.mockCore.enabled);
+    assert.ok(this.mockInstalledKeyboards.enabled);
+    assert.ok(this.mockEnabledLayouts.enabled);
   });
 
-  test('Disable the core when onHide', function() {
+  test('Disable MockEnabledLayouts when onHide', function() {
     this.panel.hide();
-    assert.ok(!this.mockCore.enabled);
+    assert.ok(!this.mockInstalledKeyboards.enabled);
+    assert.ok(!this.mockEnabledLayouts.enabled);
   });
 });

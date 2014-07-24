@@ -5,10 +5,13 @@ if (!window.verticalHomescreen) {
   (function(exports) {
 
     function VerticalHomescreen() {
+      this.section = document.getElementById('vertical-homescreen-layout');
       this.gridSelect = document.querySelector('[name="grid.layout.cols"]');
       verticalPreferences.addEventListener('updated', this);
       this.gridSelect.addEventListener('change', this);
       verticalPreferences.get('grid.cols').then(this.updateCols.bind(this));
+      verticalPreferences.get('cols.preference.enabled').then(
+        this.updateColsPref.bind(this));
 
       this.searchUrlTemplate = null;
       this.getCurrentSearchEngine();
@@ -16,16 +19,6 @@ if (!window.verticalHomescreen) {
       // Listen for search engine selection
       this.searchEngineSelect = document.querySelector(
         '[name="search.urlTemplate"]');
-
-      // Show whether the search suggestions are currently enabled
-      var enabledKey = 'search.suggestions.enabled';
-      var enabledDesc = document.getElementById('suggestions-desc');
-
-      SettingsListener.observe(enabledKey, true, function (enabled) {
-        navigator.mozL10n
-          .localize(enabledDesc, enabled ? 'enabled' : 'disabled');
-      });
-
     }
 
     VerticalHomescreen.prototype = {
@@ -57,6 +50,10 @@ if (!window.verticalHomescreen) {
         if (option) {
           option.selected = true;
         }
+      },
+
+      updateColsPref: function(enabled) {
+        this.section.hidden = !enabled;
       },
 
       getCurrentSearchEngine: function() {

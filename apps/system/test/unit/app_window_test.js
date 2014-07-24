@@ -28,7 +28,8 @@ suite('system/AppWindow', function() {
   setup(function(done) {
     this.sinon.useFakeTimers();
 
-    window.layoutManager = new LayoutManager().start();
+    window.layoutManager = new LayoutManager();
+    window.layoutManager.start();
 
     stubById = this.sinon.stub(document, 'getElementById');
     stubById.returns(document.createElement('div'));
@@ -1099,6 +1100,23 @@ suite('system/AppWindow', function() {
     });
   });
 
+  suite('_setVisibleForScreenReader', function() {
+    test('_setVisibleForScreenReader: false', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      injectFakeMozBrowserAPI(app1.browser.element);
+
+      app1._setVisibleForScreenReader(false);
+      assert.equal(app1.browser.element.getAttribute('aria-hidden'), 'true');
+    });
+    test('_setVisibleForScreenReader: true', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      injectFakeMozBrowserAPI(app1.browser.element);
+
+      app1._setVisibleForScreenReader(true);
+      assert.equal(app1.browser.element.getAttribute('aria-hidden'), 'false');
+    });
+  });
+
   suite('apply and unapplyStyle', function() {
     test('applyStyle', function() {
       var app = new AppWindow(fakeAppConfig1);
@@ -1196,6 +1214,27 @@ suite('system/AppWindow', function() {
       assert.isNull(app2.callerWindow);
       assert.isTrue(spyOpen.calledWith('in-from-left'));
       assert.isTrue(spyClose.calledWith('out-to-right'));
+    });
+
+    test('No transition when the callee is caller', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      var spyOpen = this.sinon.spy(app1, 'open');
+      var spyClose = this.sinon.spy(app1, 'close');
+      var stubIsActive = this.sinon.stub(app1, 'isActive');
+      app1.setCalleeWindow(app1);
+      stubIsActive.returns(true);
+
+      assert.deepEqual(app1.calleeWindow, app1);
+      assert.deepEqual(app1.callerWindow, app1);
+
+      app1.handleEvent({
+        type: 'mozbrowseractivitydone'
+      });
+
+      assert.isNull(app1.calleeWindow);
+      assert.isNull(app1.callerWindow);
+      assert.isFalse(spyOpen.calledWith('in-from-left'));
+      assert.isFalse(spyClose.calledWith('out-to-right'));
     });
 
     test('We should open the base window if we are not', function() {
@@ -1413,6 +1452,32 @@ suite('system/AppWindow', function() {
       assert.equal(app1.identificationTitle.textContent, 'Mon Application');
     });
 
+    test('Titilechange event', function() {
+      var app1 = new AppWindow(fakeWrapperConfig);
+      var stubPublish = this.sinon.stub(app1, 'publish');
+
+      app1.handleEvent({
+        type: 'mozbrowsertitlechange',
+        detail: 'newtitile'
+      });
+
+      assert.isTrue(stubPublish.calledWithExactly('titlechange'));
+      assert.equal(
+        app1.identificationTitle.textContent, 'newtitile',
+        'title should be changed since it is not an app'
+      );
+
+      var app2 = new AppWindow(fakeAppConfig1);
+      app2.handleEvent({
+        type: 'mozbrowsertitlechange',
+        detail: 'newtitile'
+      });
+      assert.equal(
+        app2.identificationTitle.textContent, '',
+        'title should not be changed since it is an app'
+      );
+    });
+
     test('Orientation change event on app', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       this.sinon.stub(app1, 'isActive').returns(false);
@@ -1471,7 +1536,7 @@ suite('system/AppWindow', function() {
       app1.width = 320;
       app1.height = 480;
       layoutManager.width = 480;
-      layoutManager.height = 300;
+      layoutManager.height = 320;
 
       app1.handleEvent({
         type: '_orientationchange'
@@ -1572,6 +1637,49 @@ suite('system/AppWindow', function() {
     assert.deepEqual(app1.nextWindow, childNew);
   });
 
+  suite('isActive', function() {
+    var testApp;
+    setup(function() {
+      testApp = new AppWindow(fakeAppConfig1);
+    });
+
+    test('dom is removed', function() {
+      testApp.element = null;
+      assert.isFalse(testApp.isActive());
+    });
+
+    test('app is in queue to show', function() {
+      testApp.element.classList.add('will-become-active');
+      assert.isTrue(testApp.isActive());
+    });
+
+    test('app doesnot have transitionController', function() {
+      testApp.transitionController = null;
+      assert.isFalse(testApp.isActive());
+    });
+
+    test('app doesnot is in opened state', function() {
+      testApp.transitionController = {
+        '_transitionState': 'opened'
+      };
+      assert.isTrue(testApp.isActive());
+    });
+
+    test('app doesnot is in opening state', function() {
+      testApp.transitionController = {
+        '_transitionState': 'opening'
+      };
+      assert.isTrue(testApp.isActive());
+    });
+
+    test('app doesnot is in closing state', function() {
+      testApp.transitionController = {
+        '_transitionState': 'closing'
+      };
+      assert.isFalse(testApp.isActive());
+    });
+  });
+
   test('isBrowser', function() {
     var app1 = new AppWindow(fakeAppConfig1);
     var app2 = new AppWindow(fakeAppConfig4);
@@ -1601,6 +1709,25 @@ suite('system/AppWindow', function() {
     app2.frontWindow = popup;
     app2.navigate(url);
     assert.isNull(app2.frontWindow);
+  });
+
+  suite('fadeOut', function() {
+    var app1;
+    setup(function() {
+      app1 = new AppWindow(fakeAppConfig1);
+    });
+
+    test('app is active', function() {
+      this.sinon.stub(app1, 'isActive', function() {return true;});
+      app1.fadeOut();
+      assert.isFalse(app1.element.classList.contains('fadeout'));
+    });
+
+    test('app not active', function() {
+      this.sinon.stub(app1, 'isActive', function() {return false;});
+      app1.fadeOut();
+      assert.isTrue(app1.element.classList.contains('fadeout'));
+    });
   });
 
   test('showDefaultContextMenu', function() {
@@ -1767,4 +1894,73 @@ suite('system/AppWindow', function() {
       assert.isTrue(caught);
       assert.isTrue(caughtOnParent);
     });
+
+  suite('Theme Color', function() {
+    test('(No type)', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      var stubPublish = this.sinon.stub(app1, 'publish');
+
+      app1.handleEvent({
+        type: 'mozbrowsermetachange',
+        detail: {
+          name: 'theme-color',
+          content: 'transparent'
+        }
+      });
+
+      assert.isFalse(!!app1.themeColor);
+      assert.isFalse(stubPublish.calledOnce);
+    });
+
+    test('Added', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      var stubPublish = this.sinon.stub(app1, 'publish');
+
+      app1.handleEvent({
+        type: 'mozbrowsermetachange',
+        detail: {
+          name: 'theme-color',
+          content: 'transparent',
+          type: 'added'
+        }
+      });
+
+      assert.equal(app1.themeColor, 'transparent');
+      assert.isTrue(stubPublish.calledOnce);
+    });
+
+    test('Changed', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      var stubPublish = this.sinon.stub(app1, 'publish');
+
+      app1.handleEvent({
+        type: 'mozbrowsermetachange',
+        detail: {
+          name: 'theme-color',
+          content: 'pink',
+          type: 'changed'
+        }
+      });
+
+      assert.equal(app1.themeColor, 'pink');
+      assert.isTrue(stubPublish.calledOnce);
+    });
+
+    test('Removed', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      var stubPublish = this.sinon.stub(app1, 'publish');
+
+      app1.handleEvent({
+        type: 'mozbrowsermetachange',
+        detail: {
+          name: 'theme-color',
+          content: 'pink',
+          type: 'removed'
+        }
+      });
+
+      assert.equal(app1.themeColor, '');
+      assert.isTrue(stubPublish.calledOnce);
+    });
+  });
 });

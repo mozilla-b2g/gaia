@@ -58,6 +58,9 @@ contacts.Form = (function() {
   // The size we want our contact photos to be
   var PHOTO_WIDTH = 320;
   var PHOTO_HEIGHT = 320;
+  // bug 1038414: ask for an image about 2MP before
+  // doing the crop to save memory in both apps
+  var MAX_PHOTO_SIZE = 200000;
 
   var touchstart = 'ontouchstart' in window ? 'touchstart' : 'mousedown';
 
@@ -1187,8 +1190,7 @@ contacts.Form = (function() {
     delButton.id = IMG_DELETE_ID;
     delButton.className = 'fillflow-row-action';
     var delIcon = document.createElement('span');
-    delIcon.setAttribute('role', 'button');
-    delIcon.className = 'icon-delete';
+    delIcon.className = 'icon icon-delete';
     delButton.appendChild(delIcon);
     delButton.onclick = function removeElement(event) {
       // Workaround until 809452 is fixed.
@@ -1253,7 +1255,8 @@ contacts.Form = (function() {
     var activity = new MozActivity({
       name: 'pick',
       data: {
-        type: 'image/jpeg'
+        type: 'image/jpeg',
+        maxFileSizeBytes: MAX_PHOTO_SIZE
       }
     });
 

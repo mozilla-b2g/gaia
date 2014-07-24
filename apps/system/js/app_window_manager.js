@@ -42,11 +42,13 @@
     /**
      * Match app origin and get the first matching one.
      * @param  {String} origin The origin to be matched.
+     * @param  {String} [manifestURL] The manifestURL to be matched.
      * @return {AppWindow}        The app window object matched.
      */
-    getApp: function awm_getApp(origin) {
+    getApp: function awm_getApp(origin, manifestURL) {
       for (var id in this._apps) {
-        if (this._apps[id].origin == origin) {
+        if (this._apps[id].origin === origin &&
+            (!manifestURL || this._apps[id].manifestURL === manifestURL)) {
           return this._apps[id];
         }
       }
@@ -54,11 +56,11 @@
     },
 
     /**
-     * Match app origin and get the first matching one.
+     * Get all apps.
      * @return {Object} The running app window references stored
      *                  by its instanceID.
      */
-    getApps: function awm_getApps(origin) {
+    getApps: function awm_getApps() {
       return this._apps;
     },
 
@@ -85,7 +87,7 @@
         homescreenLauncher.getHomescreen(true);
 
       if (!appNext) {
-        console.warn('no next app.');
+        this.debug('no next app.');
         return;
       }
 
@@ -99,7 +101,7 @@
 
       if (appCurrent && appCurrent.instanceID == appNext.instanceID) {
         // Do nothing.
-        console.warn('the app has been displayed.');
+        this.debug('the app has been displayed.');
         return;
       }
 
@@ -249,6 +251,8 @@
       window.addEventListener('appopening', this);
       window.addEventListener('localized', this);
 
+      window.addEventListener('mozChromeEvent', this);
+
       this._settingsObserveHandler = {
         // continuous transition controlling
         'continuous-transition.enabled': {
@@ -269,6 +273,13 @@
               this.broadcastMessage('kill_suspended');
             }
           }.bind(this)
+        },
+
+        'app-themecolor.enabled': {
+          defaultValue: false,
+          callback: function(value) {
+            screenElement.classList.toggle('themecolor-active', value);
+          }
         }
       };
 
@@ -315,6 +326,7 @@
       window.removeEventListener('permissiondialoghide', this);
       window.removeEventListener('appopening', this);
       window.removeEventListener('localized', this);
+      window.removeEventListener('mozChromeEvent', this);
 
       for (var name in this._settingsObserveHandler) {
         SettingsListener.unobserve(
@@ -329,6 +341,7 @@
     handleEvent: function awm_handleEvent(evt) {
       this.debug('handling ' + evt.type);
       var activeApp = this._activeApp;
+      var detail = evt.detail;
       switch (evt.type) {
         case 'permissiondialoghide':
           activeApp && activeApp.broadcast('focus');
@@ -424,8 +437,6 @@
           break;
 
         case 'hidewindow':
-          var detail = evt.detail;
-
           if (activeApp &&
               activeApp.origin !== homescreenLauncher.origin) {
             // This is coming from attention screen.
@@ -454,15 +465,32 @@
           break;
 
         case 'showwindow':
+          var fireActivity = () => {
+            // Need to invoke activity
+            var a = new window.MozActivity(detail.activity);
+            a.onerror = function ls_activityError() {
+              console.log('MozActivity: activity error.');
+            };
+          };
+
           if (activeApp && activeApp.origin !== homescreenLauncher.origin) {
             activeApp.setVisible(true);
+            // If we need to invoke activity after we show the window.
+            if (detail && detail.activity) {
+              fireActivity();
+            }
           } else {
-            var home = homescreenLauncher.getHomescreen(true); // jshint ignore:line
-            if (home) {
-              if (home.isActive()) {
-                home.setVisible(true);
-              } else {
-                this.display();
+            // If we only have activity, we don't open the homescreen.
+            if (detail && detail.activity) {
+              fireActivity();
+            } else {
+              var home = homescreenLauncher.getHomescreen(true); // jshint ignore:line
+              if (home) {
+                if (home.isActive()) {
+                  home.setVisible(true);
+                } else {
+                  this.display();
+                }
               }
             }
           }
@@ -537,10 +565,21 @@
           if (document.mozFullScreen) {
             document.mozCancelFullScreen();
           }
+          activeApp && activeApp.getTopMostWindow().broadcast(
+            'sheetstransitionstart');
           break;
 
         case 'localized':
           this.broadcastMessage('localized');
+          break;
+
+        case 'mozChromeEvent':
+          if (!activeApp || !evt.detail ||
+            evt.detail.type !== 'inputmethod-contextchange') {
+            return;
+          }
+          activeApp.getTopMostWindow().broadcast('inputmethod-contextchange',
+            evt.detail);
           break;
       }
     },
@@ -629,16 +668,7 @@
     linkWindowActivity: function awm_linkWindowActivity(config) {
       var caller;
       var callee = this.getApp(config.origin);
-      var origin = window.location.origin;
-
-      // if caller is system app, we would change the caller to homescreen
-      // so that we won't go back to the wrong place
-      if (config.parentApp && config.parentApp.match(origin)) {
-        caller = homescreenLauncher.getHomescreen(true);
-      } else {
-        caller = this._activeApp.getTopMostWindow();
-      }
-
+      caller = this._activeApp.getTopMostWindow();
       callee.callerWindow = caller;
       caller.calleeWindow = callee;
     },
@@ -667,9 +697,10 @@
      * @param {String} origin The origin of the running app window to be killed.
      * @memberOf module:AppWindowManager
      */
-    kill: function awm_kill(origin) {
+    kill: function awm_kill(origin, manifestURL) {
       for (var id in this._apps) {
-        if (this._apps[id].origin === origin) {
+        if (this._apps[id].origin === origin &&
+            (!manifestURL || this._apps[id].manifestURL === manifestURL)) {
           this._apps[id].kill();
         }
       }
@@ -686,7 +717,7 @@
     _updateActiveApp: function awm__changeActiveApp(instanceID) {
       this._activeApp = this._apps[instanceID];
       if (!this._activeApp) {
-        console.warn('no active app alive: ', instanceID);
+        this.debug('no active app alive: ' + instanceID);
       }
       if (this._activeApp && this._activeApp.isFullScreen()) {
         screenElement.classList.add('fullscreen-app');

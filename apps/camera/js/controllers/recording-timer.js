@@ -23,11 +23,9 @@ module.exports.RecordingTimerController = RecordingTimerController;
  * @param {App} app
  */
 function RecordingTimerController(app) {
-  debug('initializing');
   this.onRecordingChange = this.onRecordingChange.bind(this);
-  this.view = app.view || new RecordingTimerView();
   this.app = app;
-  this.setup();
+  this.createView();
   this.bindEvents();
   debug('initialized');
 }
@@ -37,7 +35,8 @@ function RecordingTimerController(app) {
  *
  * @private
  */
-RecordingTimerController.prototype.setup = function() {
+RecordingTimerController.prototype.createView = function() {
+  this.view = this.app.view || new RecordingTimerView();
   this.view.appendTo(this.app.el);
 };
 

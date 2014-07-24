@@ -14,12 +14,8 @@
   direction: ltr;
 }
 
-#rocketbar.expanded {
+#rocketbar.active {
   transform: scale(1);
-}
-
-body.rb-enabled #screen.on-homescreen:not(.cards-view) #rocketbar:not(.active) {
-  transform: scale(1) translateY(2.4rem);  
 }
 
 #screen.locked:not(.attention) #rocketbar {
@@ -108,7 +104,7 @@ body:not(.rb-enabled) #rocketbar {
   display: none;
 }
 
-#rocketbar.hasText #rocketbar-clear {
+#rocketbar.has-text #rocketbar-clear {
   display: block;
 }
 
@@ -177,12 +173,6 @@ body:not(.rb-enabled) #rocketbar {
   height: calc(100% - 9.8rem);
 }
 
-#rocketbar-results iframe {
-  border: 0;
-  width: 100%;
-  height: 100%;
-}
-
 #rocketbar-results.hidden, #rocketbar-results iframe.hidden,
 #rocketbar-backdrop.hidden {
   display: none;
@@ -235,17 +225,20 @@ body.homesearch-enabled #rocketbar-input {
 }
 
 /* Expand the rocketbar when it's active */
-body.homesearch-enabled #screen.on-homescreen #rocketbar.active {
+body.homesearch-enabled #screen #rocketbar.active {
   transform: scale(1) translateY(2.4rem);
+}
+body.homesearch-enabled #screen.active-statusbar #rocketbar.active {
+  transform: scale(1) translateY(4.0rem);
 }
 
 /* Do not expand the statusbar background on homescreen. We have our own markup in the homescreen. */
-body.homesearch-enabled #screen.on-homescreen.rocketbar-expanded #statusbar-background {
+body.homesearch-enabled #screen.rocketbar-expanded #statusbar-background {
   transform: scaleY(0.5);
 }
 
 /* Size the rocketbar form to cover the homescreen one exactly */
-body.homesearch-enabled #screen.on-homescreen #rocketbar-form {
+body.homesearch-enabled #screen #rocketbar-form {
   width: calc(100% - 1rem);
   box-sizing: border-box;
 }

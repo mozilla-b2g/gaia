@@ -262,6 +262,65 @@ suite('LayoutLoader', function() {
     });
   });
 
+  test('normalize alt menu of sub-layout alternateLayout', function(done) {
+    window.Keyboards = {
+      'preloaded': {
+        keys: [
+          [
+            { value: 'preloaded' }
+          ]
+        ],
+        alternateLayout: {
+          keys: [
+            [
+              { value: 'preloaded-alternateLayout' }
+            ]
+          ],
+          alt: {
+            'a': 'áàâäåãāæ'
+          }
+        }
+      }
+    };
+
+    var loader = new LayoutLoader();
+    loader.start();
+
+    assert.equal(!!window.Keyboards.preloaded, false, 'original removed');
+    assert.isTrue(!!loader.getLayout('preloaded'), 'preloaded loaded');
+
+    var p = loader.getLayoutAsync('preloaded');
+    p.then(function(layout) {
+      assert.isTrue(true, 'loaded');
+      assert.deepEqual(loader.getLayout('preloaded'), {
+        keys: [
+          [
+            { value: 'preloaded' }
+          ]
+        ],
+        alternateLayout: {
+          keys: [
+            [
+              { value: 'preloaded-alternateLayout' }
+            ]
+          ],
+          alt: { 'a': [ 'á', 'à', 'â', 'ä', 'å', 'ã', 'ā', 'æ' ],
+                 'A': [ 'Á', 'À', 'Â', 'Ä', 'Å', 'Ã', 'Ā', 'Æ' ] },
+          upperCase: {}
+        },
+        alt: {},
+        upperCase: {}
+      }, 'preloaded loaded');
+      assert.equal(layout, loader.getLayout('preloaded'));
+
+      done();
+    }, function() {
+      assert.isTrue(false, 'should not reject');
+
+      done();
+    });
+  });
+
   test('normalize alt menu (with multi-char keys)', function(done) {
     window.Keyboards = {
       'preloaded': {

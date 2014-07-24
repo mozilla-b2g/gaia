@@ -112,12 +112,22 @@ Collection.prototype = {
 
   /**
    * Enters the create collection screen from the homescreen.
+   * @param {Integer} position The desired position to create the collection.
    */
-  enterCreateScreen: function() {
+  enterCreateScreen: function(position) {
     var selectors = Collection.Selectors;
     var container = this.client.helper.waitForElement(
       selectors.contextMenuTarget);
     this.actions.longPress(container, 1).perform();
+
+    if (position !== undefined) {
+      // Manually override the collection insertion position.
+      // This is to simplify dragdrop logic into the collection.
+      this.client.executeScript(function(position) {
+        window.wrappedJSObject.app.itemStore.collectionSource.insertPosition =
+          position;
+      }, [position]);
+    }
 
     this.client.helper.waitForElement(selectors.menuAddButton).click();
   },

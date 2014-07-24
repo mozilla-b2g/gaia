@@ -14,13 +14,10 @@ html, body {
 }
 
 .wallpaper {
-  background-size:cover;
-  background-repeat: no-repeat;
   border-bottom: 0.1rem solid #000000;
   border-right: 0.1rem solid #000000;
   position: relative;
   overflow: hidden;
-  height: 15.9rem;
   float: left;
   width: 33%;
 }

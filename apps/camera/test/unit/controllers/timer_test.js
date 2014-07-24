@@ -3,7 +3,7 @@ suite('controllers/timer', function() {
 
   suiteSetup(function(done) {
     var self = this;
-    req([
+    requirejs([
       'controllers/timer',
       'views/timer',
       'lib/setting',

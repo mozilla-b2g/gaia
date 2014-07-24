@@ -326,23 +326,28 @@
         if (evt.detail.type === 'status') {
           switch (evt.detail.data.playStatus) {
             case 'PLAYING':
-              this.notificationsContainer.classList.add('collapsed');
-              break;
             case 'PAUSED':
-              this.notificationsContainer.classList.add('collapsed');
+              window.lockScreenNotifications.collapseNotifications();
+              window.lockScreenNotifications.adjustContainerVisualHints();
               break;
             case 'STOPPED':
-              this.notificationsContainer.classList.remove('collapsed');
-              break;
             case 'mozinterruptbegin':
-              this.notificationsContainer.classList.remove('collapsed');
+              window.lockScreenNotifications.expandNotifications();
+              window.lockScreenNotifications.adjustContainerVisualHints();
               break;
           }
         }
         break;
       case 'appterminated':
         if (evt.detail.origin === this.mediaPlaybackWidget.origin) {
-          this.notificationsContainer.classList.remove('collapsed');
+          window.lockScreenNotifications.expandNotifications();
+          window.lockScreenNotifications.adjustContainerVisualHints();
+        }
+        break;
+      case 'scroll':
+        if (this.notificationsContainer === evt.target) {
+          window.lockScreenNotifications.adjustContainerVisualHints();
+          break;
         }
         break;
     }
@@ -485,6 +490,8 @@
       }
     }).bind(this));
 
+    this.notificationsContainer.addEventListener('scroll', this);
+
     navigator.mozL10n.ready(this.l10nInit.bind(this));
 
     // when lockscreen is just initialized,
@@ -499,6 +506,8 @@
     // Clock always uses one Timeouts/Intervals so it's safe in
     // other scenarios (such as turning on lockscreen after boot in settings)
     this.clock.start(this.refreshClock.bind(this));
+
+    window.lockScreenNotifications.bindLockScreen(this);
   };
 
   LockScreen.prototype.initUnlockerEvents =
@@ -1104,7 +1113,7 @@
         'alt-camera', 'alt-camera-button', 'slide-handle',
         'passcode-pad', 'camera', 'accessibility-camera',
         'accessibility-unlock', 'panel-emergency-call', 'canvas', 'message',
-        'masked-background'];
+        'notification-arrow', 'masked-background'];
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {

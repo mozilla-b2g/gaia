@@ -190,8 +190,8 @@ button[disabled]::-moz-selection {
 }
 
 /* Right to left tweaks */
-html[dir="rtl"] #value-selector li input:checked + span,
-html[dir="rtl"] #value-selector li[aria-selected="true"] span {
+html[dir="rtl"] .value-selector li input:checked + span,
+html[dir="rtl"] .value-selector li[aria-selected="true"] span {
   padding-left: 2.6rem;
   padding-right: 1.5rem;
   margin-left: 1.2rem;

@@ -5,6 +5,11 @@
 
 var configurator = (function() {
 
+  const CAPABILITIES = {
+    LOW: 'low',
+    HIGH: 'high'
+  };
+
   // We're going to use the mcc_mnc as a semaphore as well as to store its
   // value during the singleVariant file's processing time.
   var mcc_mnc;
@@ -163,12 +168,47 @@ var configurator = (function() {
   }
 
   function setup() {
-    var colsByDefault = conf && conf.preferences &&
+    navigator.getFeature('hardware.memory').then(mem => {
+      // If capability is defined in the build or customization.
+      var capability = conf && conf.preferences && conf.preferences.capability;
+      var colsPrefEnabled = conf && conf.preferences &&
+        conf.preferences['cols.preference.enabled'];
+
+      if (!capability) {
+        capability = CAPABILITIES.HIGH;
+        // Devices below 512mb are served a lower quality version.
+        // Currently the following changes are made for low capability devices:
+        // - Icons default to 4 per row.
+        // - Icon resolution is reduced.
+        // - Icon rendering does not account for devicePixelRatio.
+        if (mem < 512) {
+          capability = CAPABILITIES.LOW;
+          colsPrefEnabled = false;
+        }
+      }
+      verticalPreferences.put('capability', capability);
+      verticalPreferences.put('cols.preference.enabled', colsPrefEnabled);
+      setupColumns(capability);
+    });
+  }
+
+  /**
+   * Sets up the default columns. For low capability devices, default to four
+   * columns per row as this saves on memory.
+   */
+  function setupColumns(capability) {
+    var defaultCols = conf && conf.preferences &&
                           conf.preferences['grid.cols'] || undefined;
-    if (colsByDefault) {
+
+    // Set default capability to 4 for low-end devices.
+    if (capability === CAPABILITIES.LOW) {
+      defaultCols = 4;
+    }
+
+    if (defaultCols) {
       verticalPreferences.get('grid.cols').then(function(cols) {
         // Set the number of cols by default in preference's datastore
-        !cols && verticalPreferences.put('grid.cols', colsByDefault);
+        !cols && verticalPreferences.put('grid.cols', defaultCols);
       });
     }
   }

@@ -4,7 +4,7 @@ suite('views/preview-gallery', function() {
 
   suiteSetup(function(done) {
     var self = this;
-    window.req(['views/controls'], function(ControlsView) {
+    requirejs(['views/controls'], function(ControlsView) {
       self.ControlsView = ControlsView;
       done();
     });

@@ -5,7 +5,7 @@ suite('lib/calculate-focus-area', function() {
 
   suiteSetup(function(done) {
     var self = this;
-    req(['lib/calculate-focus-area'], function(calculateFocusArea) {
+    requirejs(['lib/calculate-focus-area'], function(calculateFocusArea) {
       self.calculateFocusArea = calculateFocusArea;
       done();
     });

@@ -317,6 +317,7 @@
   requireApp('calendar/shared/js/lazy_loader.js');
 
   requireLib('calendar.js');
+  requireLib('promise.js');
   requireLib('performance.js');
   requireLib('error.js');
   requireApp('calendar/test/unit/loader.js');

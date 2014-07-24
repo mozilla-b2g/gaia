@@ -4,7 +4,7 @@ define(function(require) {
 
   var debug = require('debug')('camera-utils');
 
-  var CameraUtils = function CameraUtils() {};
+  var CameraUtils = {};
 
   CameraUtils.scaleSizeToFitViewport = function(viewportSize, imageSize) {
     var sw = viewportSize.width / imageSize.width,
@@ -153,10 +153,6 @@ define(function(require) {
     });
 
     return maximumPreviewSize;
-  };
-
-  CameraUtils.prototype = {
-    constructor: CameraUtils
   };
 
   return CameraUtils;

@@ -142,7 +142,6 @@ function startup(data, reason) {
     Cu.import('resource://gre/modules/ContactService.jsm');
     Cu.import('resource://gre/modules/SettingsChangeNotifier.jsm');
     Cu.import('resource://gre/modules/ActivitiesService.jsm');
-    Cu.import('resource://gre/modules/PermissionPromptHelper.jsm');
 
     var mm = Cc['@mozilla.org/globalmessagemanager;1']
                .getService(Ci.nsIMessageBroadcaster);

@@ -1,3 +1,7 @@
+/**
+ * This file exports all 'utils' functions, which indeed exports the
+ * implementations inside the 'utils-node' and 'utils-xpc' files.
+ */
 
 const FILE_TYPE_FILE = 0;
 const FILE_TYPE_DIRECTORY = 1;
@@ -9,7 +13,11 @@ if (isNode()) {
   utils = require('./utils-xpc.js');
 }
 
-
+/**
+ * Detect if we're in Node.js mode.
+ *
+ * @return {bool}
+ */
 function isNode() {
   try {
     return process && process.versions && process.versions.node;
@@ -18,18 +26,39 @@ function isNode() {
   }
 }
 
+/**
+ * Detect if this path is a Mozilla branding logo or L10N resource.
+ *
+ * @param path {string} - the file path
+ * @return {bool}
+ */
 function isSubjectToBranding(path) {
   return /shared[\/\\]?[a-zA-Z]*[\/\\]?branding$/.test(path) ||
          /branding[\/\\]initlogo.png/.test(path);
 }
 
+/**
+ * Get file extension from a name.
+ *
+ * @return string: the extension name
+ */
 function getExtension(filename) {
   return filename.substr(filename.lastIndexOf('.') + 1).toLowerCase();
 }
 
-// We parse list like ps aux and b2g-ps into object
-function psParser(out) {
-  var rows = out.split('\n');
+/**
+ * We parse list like ps aux and b2g-ps into object
+ * ex: root 24692 nginx -> {
+ *     user: 'root',
+ *     pid: '24692',
+ *     command: 'nginx'
+ * }
+ *
+ * @param psresult {string} - the result of `ps` command.
+ * @return object - {ps title: ps column content}
+ */
+function psParser(psresult) {
+  var rows = psresult.split('\n');
   if (rows.length < 2)
     return {};
 
@@ -62,14 +91,48 @@ function psParser(out) {
   return result;
 }
 
+/**
+ * Concat to Gaia URL original like:
+ * 'app://system.gaiamobile.org'
+ *
+ * @param name {string} - the app name
+ * @param scheme {string} - the scheme, like 'app://' or 'http://'
+ * @param domain {string} - the domain for Gaia, like 'gaiamobile.org'
+ * @param port {string} - the port, but we don't use it
+ * @return {string}
+ */
 function gaiaOriginURL(name, scheme, domain, port) {
   return scheme + name + '.' + domain;
 }
 
+/**
+ * Give the default app manifest URL like:
+ * 'app://system.gaiamobile.org:8080/manifest.webapp'
+ *
+ * In fact, what we do is only to append the '/manifest.webapp'
+ * to the origin URL.
+ *
+ * @param name {string} - the app name
+ * @param scheme {string} - the scheme, like 'app://' or 'http://'
+ * @param domain {string} - the domain for Gaia, like 'gaiamobile.org'
+ * @param port {string} - the port, like 8080 or '8080'
+ * @return {string}
+ */
 function gaiaManifestURL(name, scheme, domain, port) {
   return gaiaOriginURL(name, scheme, domain, port) + '/manifest.webapp';
 }
 
+/**
+ * To see if the app status is 'certified', 'privileged' or 'web',
+ * and give the corresponding status code:
+ *
+ * 'certified': 3,
+ * 'privileged': 2,
+ * 'web': 1
+ *
+ * @param status {string} - 'certified', 'privileged' or 'web'
+ * @return {number} - 3, 2 or 1
+ */
 function getAppStatus(status) {
   var appStatus;
   switch (status) {
@@ -87,6 +150,12 @@ function getAppStatus(status) {
   return appStatus;
 }
 
+/**
+ * Serialize an object, then parse it as a cloned, new object.
+ *
+ * @param obj {object}
+ * @return {object} - the cloned new object
+ */
 function cloneJSON(obj) {
   var result = null;
   try {
@@ -97,7 +166,13 @@ function cloneJSON(obj) {
   return result;
 }
 
-// Compare contents of two js scripts.
+/**
+ * Compare contents of two JavaScript scripts.
+ *
+ * @param jsa {string}
+ * @param jsb {string}
+ * @return {bool} - if they're strictly equal
+ */
 function jsComparator(jsa, jsb) {
   try {
     var jsaPrsed = JSON.stringify(utils.scriptParser(jsa, {loc: 0}));
@@ -108,7 +183,16 @@ function jsComparator(jsa, jsb) {
   }
 }
 
+/**
+ * NodeJS library Q for promise.
+ * @exports Q
+ */
 exports.Q = utils.Q;
+
+/**
+ * Common function.
+ * @exports isSubjectToBranding
+ */
 exports.isSubjectToBranding = isSubjectToBranding;
 exports.ls = utils.ls;
 exports.getFileContent = utils.getFileContent;
@@ -118,7 +202,17 @@ exports.ensureFolderExists = utils.ensureFolderExists;
 exports.getJSON = utils.getJSON;
 exports.getFileAsDataURI = utils.getFileAsDataURI;
 exports.makeWebappsObject = utils.makeWebappsObject;
+
+/**
+ * Common function.
+ * @exports gaiaOriginURL
+ */
 exports.gaiaOriginURL = gaiaOriginURL;
+
+/**
+ * Common function.
+ * @exports gaiaManifestURL
+ */
 exports.gaiaManifestURL = gaiaManifestURL;
 exports.getDistributionFileContent = utils.getDistributionFileContent;
 exports.resolve = utils.resolve;
@@ -137,6 +231,11 @@ exports.getNewURI = utils.getNewURI;
 exports.getOsType = utils.getOsType;
 exports.generateUUID = utils.generateUUID;
 exports.copyRec = utils.copyRec;
+
+/**
+ * Common function.
+ * @exports getAppStatus
+ */
 exports.getAppStatus = getAppStatus;
 exports.createZip = utils.createZip;
 exports.scriptLoader = utils.scriptLoader;
@@ -146,6 +245,11 @@ exports.FILE_TYPE_FILE = FILE_TYPE_FILE;
 exports.FILE_TYPE_DIRECTORY = FILE_TYPE_DIRECTORY;
 exports.deleteFile = utils.deleteFile;
 exports.listFiles = utils.listFiles;
+
+/**
+ * Common function.
+ * @exports psParser
+ */
 exports.psParser = psParser;
 exports.fileExists = utils.fileExists;
 exports.mkdirs = utils.mkdirs;
@@ -173,5 +277,15 @@ exports.copyDirTo = utils.copyDirTo;
 exports.existsInAppDirs = utils.existsInAppDirs;
 exports.getCompression = utils.getCompression;
 exports.removeFiles = utils.removeFiles;
+
+/**
+ * Common function.
+ * @exports cloneJSON
+ */
 exports.cloneJSON = cloneJSON;
+
+/**
+ * Common function.
+ * @exports jsComparator
+ */
 exports.jsComparator = jsComparator;

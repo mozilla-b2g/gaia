@@ -30,6 +30,11 @@ MockNotification.prototype.addEventListener =
   this.mEvents[evt] = callback;
 };
 
+MockNotification.prototype.removeEventListener =
+  function mockNotification_removeEventListener(evt, callback) {
+  delete this.mEvents[evt];
+};
+
 MockNotification.get = function mockNotification_get(options) {
   return {
     then: function() {}

@@ -59,7 +59,8 @@ suite('enable/disable homegesture', function() {
     ScreenLayout.setDefault({
       tiny: true
     });
-    subject = new HomeGesture().start();
+    subject = new HomeGesture();
+    subject.start();
     assert.equal(
       MockNavigatorSettings.mSettings['homegesture.enabled'], false);
   });
@@ -68,7 +69,8 @@ suite('enable/disable homegesture', function() {
     ScreenLayout.setDefault({
       tiny: false
     });
-    subject = new HomeGesture().start();
+    subject = new HomeGesture();
+    subject.start();
     assert.equal(
       subject.homeBar.classList.contains('visible'),
       true);
@@ -123,7 +125,7 @@ suite('enable/disable homegesture', function() {
 
   test('when lockscreen is disabled', function() {
     subject.handleEvent({
-      type: 'lockscreen-appclosing'
+      type: 'lockscreen-appclose'
     });
     assert.equal(
       subject.homeBar.classList.contains('visible'),

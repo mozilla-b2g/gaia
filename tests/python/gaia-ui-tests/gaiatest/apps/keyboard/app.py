@@ -13,10 +13,13 @@ from gaiatest.apps.base import Base
 class Keyboard(Base):
     '''
     There are two underlying strategies in this class;
-    * send() method which uses logic to traverse the keyboard to type the string sent to it.
-        Send should be used in tests where the layout of the keyboard is not tested and only string input is important
-    * tap_x() or anything not send() methods which do not use logic to change keyboard panels.
-        Tap should be used where the keyboard is expected to open with that key visible
+
+    * send() method which uses logic to traverse the keyboard to type the
+      string sent to it. Send should be used in tests where the layout of the
+      keyboard is not tested and only string input is important
+    * tap_x() or anything not send() methods which do not use logic to change
+      keyboard panels. Tap should be used where the keyboard is expected to
+      open with that key visible
 
     The methods in this class employ a lot of aggressive frame switching to the keyboard and back to the
     displayed app because it predominantly acts as a utility class and thus it works best when the main focus
@@ -128,19 +131,19 @@ class Keyboard(Base):
 
     @property
     def _is_upper_case(self):
-        return self.marionette.execute_script('return window.wrappedJSObject.isUpperCase;')
+        return self.marionette.execute_script('return window.wrappedJSObject.app.upperCaseStateManager.isUpperCase;')
 
     @property
     def _is_upper_case_locked(self):
-        return self.marionette.execute_script('return window.wrappedJSObject.isUpperCaseLocked;')
+        return self.marionette.execute_script('return window.wrappedJSObject.app.upperCaseStateManager.isUpperCaseLocked;')
 
     @property
     def _current_input_type(self):
-        return self.marionette.execute_script('return window.wrappedJSObject.fakeAppObject.getBasicInputType();')
+        return self.marionette.execute_script('return window.wrappedJSObject.app.getBasicInputType();')
 
     @property
     def _layout_page(self):
-        return self.marionette.execute_script('return window.wrappedJSObject.layoutManager.currentLayoutPage;')
+        return self.marionette.execute_script('return window.wrappedJSObject.app.layoutManager.currentLayoutPage;')
 
     # this is to switch to the frame of keyboard
     def switch_to_keyboard(self):

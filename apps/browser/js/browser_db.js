@@ -10,6 +10,13 @@ var BrowserDB = {
   TOP_SITE_SCREENSHOTS: 4, // Number of top sites to keep screenshots for
   variantObserver: null,
 
+  waitFirstRunWithSim: function browserDB_waitFirstRunWithSim() {
+    window.navigator.mozSetMessageHandler('first-run-with-sim', (function(msg) {
+      Browser.getConfigurationData({ mcc: msg.mcc, mnc: msg.mnc },
+                                   this.populateBookmarks);
+    }).bind(this));
+  },
+
   init: function browserDB_init(callback) {
     this.db.open(callback);
   },
@@ -78,56 +85,55 @@ var BrowserDB = {
   populate: function browserDB_populate(upgradeFrom, callback) {
     console.log('Populating browser database.');
 
+    var self = this;
+    this.populateBookmarks = function(data) {
+      // Populate bookmarks if upgrading from version 0 or below
+      if (upgradeFrom < 1 && data.bookmarks) {
+        data.bookmarks.forEach(function(bookmark) {
+          if (!bookmark.uri || !bookmark.title) {
+            return;
+          }
+          self.addBookmark(bookmark.uri, bookmark.title, callback);
+          if (bookmark.iconUri) {
+            self.setAndLoadIconForPage(bookmark.uri, bookmark.iconUri);
+          }
+        }, self);
+      }
+      // Populate search engines & settings if upgrading from below version 7
+      if (upgradeFrom < 7 && data.searchEngines && data.settings) {
+        var defaultSearchEngine = data.settings.defaultSearchEngine;
+        if (defaultSearchEngine) {
+          self.updateSetting(defaultSearchEngine, 'defaultSearchEngine');
+        }
+        self.db.clearSearchEngines(function browserDB_addSearchEngines() {
+          data.searchEngines.forEach(function(searchEngine) {
+            if (!searchEngine.uri || !searchEngine.title ||
+                !searchEngine.iconUri) {
+              return;
+            }
+            self.addSearchEngine(searchEngine, callback);
+            if (searchEngine.uri == defaultSearchEngine) {
+              Browser.searchEngine = searchEngine;
+            }
+            self.setAndLoadIconForPage(searchEngine.uri, searchEngine.iconUri);
+          }, self);
+        });
+      }
+    };
+
     Browser.getDefaultData(function(data) {
       if (!data)
         return;
-
       // Populate top sites if upgrading from below version 7
       if (upgradeFrom < 7 && data.topSites) {
-        this.populateTopSites(data.topSites, -20);
+        self.populateTopSites(data.topSites, -20);
       }
-    }.bind(this));
 
-    SimpleOperatorVariantHelper.getOperatorVariant((function(mcc, mnc) {
-      Browser.getConfigurationData({ mcc: mcc, mnc: mnc }, (function(data) {
+    });
 
-        // Populate bookmarks if upgrading from version 0 or below
-        if (upgradeFrom < 1 && data.bookmarks) {
-          data.bookmarks.forEach(function(bookmark) {
-            if (!bookmark.uri || !bookmark.title)
-              return;
-            this.addBookmark(bookmark.uri, bookmark.title, callback);
-            if (bookmark.iconUri)
-              this.setAndLoadIconForPage(bookmark.uri, bookmark.iconUri);
-          }, this);
-        }
+    Browser.getConfigurationData({ mcc: '000', mnc: '000' },
+                                 this.populateBookmarks);
 
-        // Populate search engines & settings if upgrading from below version 7
-        if (upgradeFrom < 7 && data.searchEngines && data.settings) {
-          var defaultSearchEngine = data.settings.defaultSearchEngine;
-          if (defaultSearchEngine) {
-            this.updateSetting(defaultSearchEngine,
-              'defaultSearchEngine');
-          }
-
-          this.db.clearSearchEngines((function browserDB_addSearchEngines() {
-            data.searchEngines.forEach(function(searchEngine) {
-              if (!searchEngine.uri || !searchEngine.title ||
-                !searchEngine.iconUri)
-                return;
-              this.addSearchEngine(searchEngine, callback);
-              if (searchEngine.uri == defaultSearchEngine) {
-                Browser.searchEngine = searchEngine;
-              }
-              this.setAndLoadIconForPage(searchEngine.uri,
-                searchEngine.iconUri);
-            }, this);
-          }).bind(this));
-
-        }
-
-      }).bind(this));
-    }).bind(this));
   },
 
   addPlace: function browserDB_addPlace(uri, callback) {

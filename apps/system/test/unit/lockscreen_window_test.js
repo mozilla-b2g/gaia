@@ -7,7 +7,7 @@ requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_layout_manager.js');
-requireApp('system/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system/test/unit/mock_statusbar.js');
 requireApp('system/test/unit/mock_screen_layout.js');
 
@@ -35,7 +35,8 @@ suite('system/LockScreenWindow', function() {
     // Differs from the existing mock which is expected by other components.
     window.LockScreen = function() {};
     window.LockScreen.prototype.init = this.sinon.stub();
-    window.layoutManager = new LayoutManager().start();
+    window.layoutManager = new LayoutManager();
+    window.layoutManager.start();
 
     realL10n = window.navigator.mozL10n;
     window.navigator.mozL10n = MockL10n;
@@ -119,6 +120,6 @@ suite('system/LockScreenWindow', function() {
     var stubIsActive = this.sinon.stub(app, 'isActive');
     stubIsActive.returns(true);
     app.resize();
-    assert.equal(app.height, layoutManager.height + 20);
+    assert.equal(app.height, layoutManager.height);
   });
 });

@@ -91,7 +91,7 @@
       "filters": {
         "type": {
           "required": true,
-          "value": ["webcontacts/contact","webcontacts/email","webcontacts/tel"]
+          "value": ["webcontacts/contact","webcontacts/email","webcontacts/tel","webcontacts/select"]
         }
        },
       "disposition": "inline",
@@ -178,7 +178,7 @@
   },
 
   "icons": {
-        "30": "/style/icons/communication_30.png",
-        "45": "/style/icons/communication_45.png"
+        "30": "/style/icons/communications_30.png",
+        "45": "/style/icons/communications_45.png"
   }
 }

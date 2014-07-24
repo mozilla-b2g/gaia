@@ -252,10 +252,13 @@ function L10nManager(gaiaDir, localesFilePath, localeBasedir, official) {
   function localizeManifest(webapp) {
     var localesProps = [];
     var localesForManifest = self.locales.filter(function(locale) {
+      if (locale === 'en-US') {
+        return false;
+      }
       var parent = webapp.sourceDirectoryFile.parent.leafName;
       var propFile = utils.getFile(self.localeBasedir, locale, parent,
         webapp.sourceDirectoryName, 'manifest.properties');
-      if (!propFile.exists() ) {
+      if (!propFile.exists()) {
         // we don't show warning message if it isn't in "apps" directory.
         if (locale !== 'en-US' && parent === 'apps') {
           utils.log(MODNAME, 'App "' + webapp.sourceDirectoryName +

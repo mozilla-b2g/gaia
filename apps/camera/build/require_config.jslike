@@ -6,7 +6,7 @@
   insertRequire: ['main'],
   name: 'main',
   include: [
-    '../bower_components/alameda/index',
+    '../bower_components/requirejs/index',
     'config/require',
   ],
 
@@ -19,21 +19,9 @@
   // builds where 'none' is used for 'optimize'.
   normalizeDirDefines: 'all',
 
-  // Set to 'uglify2' to get uglify to run using the
-  // uglify2 settings below.
-  optimize: 'none',
-
-  // Just strip comments, no code compression or mangling.
-  // Only active if optimize: 'uglify2'
-  uglify2: {
-    // Comment out the output section to get rid of line
-    // returns and tabs spacing.
-    output: {
-      beautify: true
-    },
-    compress: false,
-    mangle: false
-  },
+  // This is defined in the makefile
+  //optimize: 'uglify',
+  optimizeCss: 'standard',
 
   // Keeping build dir since Makefile cleans it up and
   // preps build dir with the shared directory

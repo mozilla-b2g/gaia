@@ -33,6 +33,15 @@
   bottom: 5rem;
 }
 
+@media (orientation: landscape) {
+  #screen.software-button-enabled #keyboards {
+    right: 5rem;
+    bottom: 0;
+    left: 0;
+    width: auto;
+  }
+}
+
 #keyboards iframe {
   position: absolute;
   bottom: 0;
@@ -51,18 +60,24 @@
   background-repeat: no-repeat;
   background-position: 1.5rem center;
   background-size: 3rem;
-  -moz-box-sizing: border-box;
+  box-sizing: border-box;
   padding: 1rem 1rem 1rem 5rem;
 
   /* wait for activate */
   display: none;
 }
 
+#keyboard-show-ime-list > .fake-notification > .message,
+#keyboard-show-ime-list > .fake-notification > .tip {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
 #keyboard-show-ime-list > .fake-notification > .message {
   line-height: 2.5rem;
   font-weight: 700;
   font-size: 1.6rem;
-  white-space: nowrap;
 }
 
 #keyboard-show-ime-list > .fake-notification > .tip {

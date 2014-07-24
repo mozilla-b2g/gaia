@@ -4,10 +4,11 @@
            MockNavigatormozSetMessageHandler, MockNavigatorMozTelephony,
            MockNavigatorWakeLock, MocksHelper, MockTonePlayer, MockUtils,
            telephonyAddCall, telephonyAddCdmaCall,
-           MockNavigatorMozMobileConnections */
+           MockNavigatorMozMobileConnections, AudioCompetingHelper */
 
 'use strict';
 
+require('/js/audio_competing_helper.js');
 require('/test/unit/mock_call_screen.js');
 require('/test/unit/mock_simple_phone_matcher.js');
 require('/shared/test/unit/mocks/mock_bluetooth_helper.js');
@@ -159,6 +160,24 @@ suite('calls handler', function() {
         assert.isTrue(toDefaultSpy.calledOnce);
       });
 
+      suite('screen management', function() {
+        setup(function() {
+          this.sinon.spy(navigator, 'requestWakeLock');
+          MockNavigatorMozTelephony.mTriggerCallsChanged();
+        });
+
+        test('should turn the screen on', function() {
+          sinon.assert.called(navigator.requestWakeLock, 'screen');
+        });
+
+        test('and release it when we pick up the call', function() {
+          mockCall._connect();
+          var lock = MockNavigatorWakeLock.mLastWakeLock;
+          assert.equal(lock.topic, 'screen');
+          assert.isTrue(lock.released);
+        });
+      });
+
       suite('in CDMA Network', function() {
         test('should not toggle no-add-call in CDMA network', function() {
           MockNavigatorMozMobileConnections[1].voice = {
@@ -256,9 +275,67 @@ suite('calls handler', function() {
         MockNavigatorMozTelephony.mTriggerCallsChanged();
 
         sinon.assert.calledWith(
-          FontSizeManager.adaptToSpace, FontSizeManager.CALL_WAITING,
+          FontSizeManager.adaptToSpace, FontSizeManager.SECOND_INCOMING_CALL,
           MockCallScreen.incomingNumber, MockCallScreen.fakeIncomingNumber,
           false, 'end');
+      });
+
+      test('should call FontSizeManager.adaptToSpace if both calls have ' +
+           'withheld numbers', function() {
+        MockNavigatorMozTelephony.calls = [];
+
+        var firstCall = new MockCall('', 'incoming');
+        extraCall = new MockCall('', 'incoming');
+
+        telephonyAddCall.call(this, firstCall, {trigger: true});
+        extraHC = telephonyAddCall.call(this, extraCall);
+
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
+
+        sinon.assert.calledWith(
+          FontSizeManager.adaptToSpace, FontSizeManager.SECOND_INCOMING_CALL,
+          MockCallScreen.incomingNumber, MockCallScreen.fakeIncomingNumber,
+          false, 'end');
+        assert.equal(
+          MockCallScreen.incomingNumber.textContent, 'withheld-number');
+      });
+
+      test('should call FontSizeManager.adaptToSpace if the second call has ' +
+           'withheld number', function() {
+        MockNavigatorMozTelephony.calls = [];
+
+        var firstCall = new MockCall('543552', 'incoming');
+        extraCall = new MockCall('', 'incoming');
+
+        telephonyAddCall.call(this, firstCall, {trigger: true});
+        extraHC = telephonyAddCall.call(this, extraCall);
+
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
+
+        sinon.assert.calledWith(
+          FontSizeManager.adaptToSpace, FontSizeManager.SECOND_INCOMING_CALL,
+          MockCallScreen.incomingNumber, MockCallScreen.fakeIncomingNumber,
+          false, 'end');
+        assert.equal(MockCallScreen.incomingNumber.textContent,
+          'withheld-number');
+      });
+
+      suite('screen management', function() {
+        setup(function() {
+          this.sinon.spy(navigator, 'requestWakeLock');
+          MockNavigatorMozTelephony.mTriggerCallsChanged();
+        });
+
+        test('should turn the screen on', function() {
+          sinon.assert.called(navigator.requestWakeLock, 'screen');
+        });
+
+        test('and release it when we pick up the call', function() {
+          extraCall._connect();
+          var lock = MockNavigatorWakeLock.mLastWakeLock;
+          assert.equal(lock.topic, 'screen');
+          assert.isTrue(lock.released);
+        });
       });
 
       suite('DSDS SIM display >', function() {
@@ -422,7 +499,7 @@ suite('calls handler', function() {
         MockNavigatorMozTelephony.mTriggerCallsChanged();
 
         sinon.assert.calledWith(
-          FontSizeManager.adaptToSpace, FontSizeManager.CALL_WAITING,
+          FontSizeManager.adaptToSpace, FontSizeManager.SECOND_INCOMING_CALL,
           MockCallScreen.incomingNumber, MockCallScreen.fakeIncomingNumber,
           false, 'end');
       });
@@ -460,7 +537,7 @@ suite('calls handler', function() {
         MockNavigatorMozTelephony.mTriggerCallsChanged();
 
         sinon.assert.calledWith(
-          FontSizeManager.adaptToSpace, FontSizeManager.CALL_WAITING,
+          FontSizeManager.adaptToSpace, FontSizeManager.SECOND_INCOMING_CALL,
           MockCallScreen.incomingNumber, MockCallScreen.fakeIncomingNumber,
           false, 'end');
       });
@@ -506,7 +583,7 @@ suite('calls handler', function() {
         MockNavigatorMozTelephony.mTriggerCallsChanged();
 
         sinon.assert.calledWith(
-          FontSizeManager.adaptToSpace, FontSizeManager.CALL_WAITING,
+          FontSizeManager.adaptToSpace, FontSizeManager.SECOND_INCOMING_CALL,
           MockCallScreen.incomingNumber, MockCallScreen.fakeIncomingNumber,
           false, 'end');
       });
@@ -535,7 +612,7 @@ suite('calls handler', function() {
         MockNavigatorMozTelephony.mTriggerCallsChanged();
 
         sinon.assert.calledWith(
-          FontSizeManager.adaptToSpace, FontSizeManager.CALL_WAITING,
+          FontSizeManager.adaptToSpace, FontSizeManager.SECOND_INCOMING_CALL,
           MockCallScreen.incomingNumber, MockCallScreen.fakeIncomingNumber,
           false, 'end');
       });
@@ -583,7 +660,7 @@ suite('calls handler', function() {
         MockNavigatorMozTelephony.mTriggerCallsChanged();
 
         sinon.assert.calledWith(
-          FontSizeManager.adaptToSpace, FontSizeManager.CALL_WAITING,
+          FontSizeManager.adaptToSpace, FontSizeManager.SECOND_INCOMING_CALL,
           MockCallScreen.incomingNumber, MockCallScreen.fakeIncomingNumber,
           false, 'end');
       });
@@ -1774,6 +1851,51 @@ suite('calls handler', function() {
         assert.equal(CallsHandler.activeCallForContactImage.call.id.number,
                      MockNavigatorMozTelephony.active.id.number);
       });
+    });
+  });
+
+  suite('> Audio competing event listening', function() {
+    var gsmcall = null;
+
+    setup(function() {
+      AudioCompetingHelper.init('test');
+      this.sinon.spy(AudioCompetingHelper, 'clearListeners');
+
+      gsmcall = new MockCall('543552', 'connected');
+      telephonyAddCall.call(this, gsmcall);
+
+      CallsHandler.setup();
+    });
+
+    test('should call clearListeners', function() {
+      sinon.assert.called(AudioCompetingHelper.clearListeners);
+    });
+
+    test('should call onMozInterrupBegin', function() {
+      this.sinon.spy(gsmcall, 'hold');
+
+      MockNavigatorMozTelephony.active = gsmcall;
+      AudioCompetingHelper.compete();
+      var evt = new CustomEvent('mozinterruptbegin');
+
+      AudioCompetingHelper.audioContext.dispatchEvent(evt);
+      sinon.assert.called(gsmcall.hold);
+      AudioCompetingHelper.leaveCompetition();
+    });
+
+    test('should call forceAnAudioCompetitionWin', function() {
+      this.sinon.spy(AudioCompetingHelper, 'compete');
+      this.sinon.spy(AudioCompetingHelper, 'leaveCompetition');
+
+      var gsmcall2 = new MockCall('543552', 'connected');
+      telephonyAddCall.call(this, gsmcall2);
+
+      AudioCompetingHelper.compete();
+      var evt = new CustomEvent('mozinterruptbegin');
+
+      AudioCompetingHelper.audioContext.dispatchEvent(evt);
+      sinon.assert.calledOnce(AudioCompetingHelper.leaveCompetition);
+      sinon.assert.calledTwice(AudioCompetingHelper.compete);
     });
   });
 });
