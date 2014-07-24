@@ -709,9 +709,6 @@
 
     this._cached = {};
 
-    //queue stuff
-    this._queue = [];
-
     this.doneCallbacks = [];
 
     if (typeof(options) === 'undefined') {
@@ -730,7 +727,7 @@
     /**
      * Queue for script loads.
      */
-    _queue: null,
+    _queue: 0,
 
     /**
      * Used for queue identification.
@@ -797,31 +794,26 @@
      *
      * @param {Function} callback called after all scripts are loaded.
      */
-    done: function done(callback) {
-      this.doneCallbacks.push(callback);
-      return this;
-    },
-
-    /**
-     * Begins an item in the queue.
-     */
-    _begin: function() {
-      var item = this._queue[0];
-
-      if (item) {
-        item();
-      } else {
-        this._fireCallbacks();
-      }
+    done: function done() {
+      return new Promise(function(accept, reject) {
+        if (this._queue  === 0) {
+          return accept();
+        }
+        this.doneCallbacks.push(accept);
+      }.bind(this));
     },
 
     /**
      * Moves to the next item in the queue.
      */
     _next: function() {
-      this._queue.shift();
-      this._begin();
+      this._queue--;
+      if (this._queue === 0) {
+        this._fireCallbacks();
+      }
     },
+
+    _pendingRequires: null,
 
     /**
      * Loads given script into current target window.
@@ -832,13 +824,9 @@
      * @param {String} callback callback when script loading is complete.
      */
     require: function(url, callback, options) {
-      this._queue.push(
-        this._require.bind(this, url, callback, options)
-      );
-
-      if (this._queue.length === 1) {
-        this._begin();
-      }
+      this._queue++;
+      var next = this._next.bind(this);
+      return this._require(url, options).then(callback).then(next).catch(next);
     },
 
     /**
@@ -848,59 +836,52 @@
      *
      * @private
      */
-    _require: function require(url, callback, options) {
-      var prefix = this.prefix,
-          suffix = '',
-          self = this,
-          element,
-          key,
-          document = this.targetWindow.document;
+    _require: function require(url, options) {
+      return new Promise(function(accept, reject) {
+        var prefix = this.prefix,
+            suffix = '',
+            self = this,
+            element,
+            key,
+            document = this.targetWindow.document;
 
-      if (url in this._cached) {
-        if (callback) {
-          callback();
+        if (url in this._cached) {
+          return accept();
         }
-        return this._next();
-      }
 
-      if (this.bustCache) {
-        suffix = '?time=' + String(Date.now());
-      }
+        if (this.bustCache) {
+          suffix = '?time=' + String(Date.now());
+        }
 
-      this._cached[url] = true;
+        this._cached[url] = true;
 
-      url = prefix + url + suffix;
-      element = document.createElement('script');
-      element.src = url;
-      element.async = false;
-      element.type = this.type;
+        url = prefix + url + suffix;
+        element = document.createElement('script');
+        element.src = url;
+        element.async = false;
+        element.type = this.type;
 
-      if (options) {
-        for (key in options) {
-          if (options.hasOwnProperty(key)) {
-            element.setAttribute(key, options[key]);
+        if (options) {
+          for (key in options) {
+            if (options.hasOwnProperty(key)) {
+              element.setAttribute(key, options[key]);
+            }
           }
-        }
-      };
+        };
 
-      function oncomplete() {
-        if (callback) {
-          callback();
-        }
-        self._next();
-      }
+        element.onerror = function() {
+          console.error('Error while loading: ', url);
+          accept();
+        };
 
+        element.onload = function() {
+          console.log('loaded', url);
+          accept();
+        };
 
-      //XXX: should we report missing
-      //files differently ? maybe
-      //fail the whole test case
-      //when a file is missing...?
-      element.onerror = oncomplete;
-      element.onload = oncomplete;
-
-      document.getElementsByTagName('head')[0].appendChild(element);
+        document.getElementsByTagName('head')[0].appendChild(element);
+      }.bind(this));
     }
-
   };
 
 }(this));
@@ -2374,7 +2355,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     var self = this;
 
     this.sandbox.run(function onSandboxRun() {
+      // Test agent runtime configuration.
+      this.testAgentRuntime = {
+        // Hack to expose an api to load setup files.
+        testLoader: self.loader.require.bind(self.loader)
+      };
+
       self.loader.targetWindow = this;
+
       if (callback) {
         if (!('require' in this)) {
           this.require = self.loader.require.bind(self.loader);
@@ -3012,38 +3000,26 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       return result;
     },
 
-    _loadTestHelpers: function(box, callback) {
+    _loadTestHelpers: function(loader) {
       var helpers = this.testHelperUrl;
       if (typeof(helpers) === 'string') {
         helpers = [helpers];
       }
 
-      var current = 0;
-      var max = helpers.length;
-
-      function next() {
-        if (current < max) {
-          box.require(helpers[current], function() {
-            current++;
-            next();
-          });
-        } else {
-          callback();
-        }
-      }
-
-      next();
+      // Serialize the order of loading for test helpers.
+      Promise.all(helpers.map(function(helper) {
+        return loader.require(helper);
+      })).then(function() {
+        return loader.done();
+      });
     },
 
     _testRunner: function _testRunner(worker, tests, done) {
       var box = worker.sandbox.getWindow(),
           self = this;
 
-      worker.loader.done(function onDone() {
-        box.mocha.run(done);
-      });
-
-      box.require(this.mochaUrl, function onRequireMocha() {
+      return box.require(this.mochaUrl).then(function() {
+        // Terrible hack to expose nodeish api to some downstream consumer.
         if (!box.process) {
           box.process = {
             stdout: {
@@ -3061,12 +3037,17 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
         //setup mocha
         box.mocha.setup(options);
-      });
 
-      self._loadTestHelpers(box, function() {
-        tests.sort().forEach(function(test) {
-          box.require(test);
-        });
+        return this._loadTestHelpers(box);
+      }.bind(this)).then(function() {
+        return Promise.all(tests.sort().map(function(test) {
+          return box.testAgentRuntime.testLoader(test);
+        }));
+        return promise;
+      }).then(function() {
+        return worker.loader.done();
+      }).then(function() {
+        box.mocha.run(done);
       });
     }
 
@@ -3579,3 +3560,4 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   window.TestAgent.Common.BlanketReportCollector = BlanketReportCollector;
 
 })();
+
