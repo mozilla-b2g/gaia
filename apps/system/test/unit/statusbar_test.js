@@ -150,7 +150,7 @@ suite('system/Statusbar', function() {
 
   suite('airplane mode icon', function() {
     test('turning on airplane mode makes icon appear', function() {
-      MockSettingsListener.mCallbacks['airplaneMode.enabled'](true);
+      MockSettingsListener.mCallbacks['airplaneMode.status']('enabled');
       assert.isFalse(StatusBar.icons.flightMode.hidden);
     });
   });
@@ -590,7 +590,7 @@ suite('system/Statusbar', function() {
           mockSimSlots[slotIndex].simCard.iccInfo = {};
           sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
 
-          MockSettingsListener.mCallbacks['airplaneMode.enabled'](true);
+          MockSettingsListener.mCallbacks['airplaneMode.status']('enabled');
 
           assert.isFalse(StatusBar.icons.flightMode.hidden);
           assert.isTrue(StatusBar.icons.data[slotIndex].hidden);
