@@ -1,6 +1,6 @@
 'use strict';
 
-/* global MockNavigatormozApps, mockMozActivityInstance */
+/* global MockNavigatormozApps, mockMozActivityInstance, MockL10n */
 
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/load_body_html_helper.js');
@@ -127,17 +127,29 @@ suite('Net errors', function() {
 
       test('Messages were initialized correctly ', function() {
         if (type === 'regular') {
-          assert.equal(document.getElementById('error-title').textContent,
-                      'unable-to-connect');
-          assert.isTrue(document.getElementById('error-message').textContent.
-                        startsWith('tap-to-check-settings'));
+          assert.equal(
+            document.getElementById('error-title').
+              getAttribute('data-l10n-id'),
+            'unable-to-connect');
+          assert.equal(
+            document.getElementById('error-message').
+              getAttribute('data-l10n-id'),
+            'tap-to-check-settings');
         } else {
           if (length > 1) {
-            assert.equal(document.getElementById('error-title').textContent,
-                        'network-error-in-app');
+            assert.equal(
+              document.getElementById('error-title').
+                getAttribute('data-l10n-id'),
+              'network-error-in-app');
+            assert.equal(
+              document.getElementById('error-title').
+                getAttribute('data-l10n-id'),
+              'network-error-in-app');
           } else {
-            assert.equal(document.getElementById('error-title').textContent,
-                        'network-error-launching{"name":"' + appName + '"}');
+            var l10nAttrs = MockL10n.getAttributes(
+              document.getElementById('error-title'));
+            assert.equal(l10nAttrs.id, 'network-error-launching');
+            assert.deepEqual(l10nAttrs.args, { name: appName });
           }
         }
       });
@@ -217,12 +229,14 @@ suite('Net errors', function() {
       });
 
       test('Messages were initialized correctly ', function() {
-        assert.equal(document.getElementById('error-title').textContent,
-                    'server-not-found');
-        assert.isTrue(document.getElementById('error-message').textContent.
-                      startsWith('server-not-found-error'));
-        assert.isTrue(document.getElementById('error-message').textContent.
-                      contains(url));
+        assert.equal(
+          document.getElementById('error-title').
+            getAttribute('data-l10n-id'),
+          'server-not-found');
+        assert.equal(
+          document.getElementById('error-message').
+            getAttribute('data-l10n-id'),
+          'server-not-found-error');
       });
 
       test('Retry action was executed ', function() {
@@ -257,10 +271,14 @@ suite('Net errors', function() {
       });
 
       test('Messages were initialized correctly ', function() {
-        assert.equal(document.getElementById('error-title').textContent,
-                    'file-not-found');
-        assert.isTrue(document.getElementById('error-message').textContent.
-                      startsWith('file-not-found-error'));
+        assert.equal(
+          document.getElementById('error-title').
+            getAttribute('data-l10n-id'),
+          'file-not-found');
+        assert.equal(
+          document.getElementById('error-message').
+            getAttribute('data-l10n-id'),
+          'file-not-found-error');
       });
 
       test('Retry action was executed ', function() {
@@ -296,10 +314,14 @@ suite('Net errors', function() {
       });
 
       test('Messages were initialized correctly ', function() {
-        assert.equal(document.getElementById('error-title').textContent,
-                    'unable-to-connect');
-        assert.equal(document.getElementById('error-message').textContent,
-                     description);
+        assert.equal(
+          document.getElementById('error-title').
+            getAttribute('data-l10n-id'),
+          'unable-to-connect');
+        assert.equal(
+          document.getElementById('error-message').
+            getAttribute('data-l10n-id'),
+          description);
       });
 
       test('Retry action was executed ', function() {

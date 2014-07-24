@@ -1423,19 +1423,26 @@ suite('system/AppInstallManager >', function() {
                       setupInstalledAppDialog.classList.contains('visible'));
       AppInstallManager.handleInstallSuccess(mockAppTwo);
       assert.isTrue(AppInstallManager.showSetupDialog.calledOnce);
-      assert.equal(AppInstallManager.setupAppName.textContent,
-        'app-install-success{"appName":"' + mockAppName + '"}');
+
+      var l10nAttrs = MockL10n.getAttributes(
+        AppInstallManager.setupAppName);
+      assert.equal(l10nAttrs.id, 'app-install-success');
+      assert.deepEqual(l10nAttrs.args, {appName: mockAppName});
     });
 
     test('should show setupInstalledAppDialog two times', function() {
       this.sinon.spy(AppInstallManager, 'showSetupDialog');
       AppInstallManager.handleInstallSuccess(mockApp);
-      assert.equal(AppInstallManager.setupAppName.textContent,
-        'app-install-success{"appName":"' + mockAppName + '"}');
+      var l10nAttrs = MockL10n.getAttributes(
+        AppInstallManager.setupAppName);
+      assert.equal(l10nAttrs.id, 'app-install-success');
+      assert.deepEqual(l10nAttrs.args, {appName: mockAppName});
       AppInstallManager.setupCancelButton.click();
       AppInstallManager.handleInstallSuccess(mockAppTwo);
-      assert.equal(AppInstallManager.setupAppName.textContent,
-        'app-install-success{"appName":"' + mockAppTwoName + '"}');
+      var l10nAttrs = MockL10n.getAttributes(
+        AppInstallManager.setupAppName);
+      assert.equal(l10nAttrs.id, 'app-install-success');
+      assert.deepEqual(l10nAttrs.args, {appName: mockAppTwoName});
     });
 
     test('should show ime list', function() {

@@ -76,15 +76,6 @@ var FxaModuleUI = {
         this.setProgressBar(params.count);
 
         navigator.mozL10n.once(function() {
-          // NOTE: order matters inside this callback.
-          // params.onload will call the module's init method (fxam_navigation
-          // loadStep method). Since the module might do dynamic localization
-          // as well, we need to do the first translate pass *before* firing
-          // onload.
-
-          // translate all children of nextScreen that have data-l10n-id attrs
-          navigator.mozL10n.translate(nextScreen);
-
           // fire module's init method
           params.onload && params.onload();
 
