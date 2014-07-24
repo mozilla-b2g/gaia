@@ -7,8 +7,6 @@
 
 (function(exports) {
 
-  const PREVENT_CLICK_TIMEOUT = 300;
-
   /**
    * GridView is a generic class to render and display a grid of items.
    * @param {Object} config Configuration object containing:
@@ -17,7 +15,6 @@
   function GridView(config) {
     this.config = config;
     this.clickIcon = this.clickIcon.bind(this);
-    this.onScroll = this.onScroll.bind(this);
 
     if (config.features.zoom) {
       this.zoom = new GridZoom(this);
@@ -129,20 +126,10 @@
 
     start: function() {
       this.element.addEventListener('click', this.clickIcon);
-      window.addEventListener('scroll', this.onScroll);
     },
 
     stop: function() {
       this.element.removeEventListener('click', this.clickIcon);
-      window.removeEventListener('scroll', this.onScroll);
-    },
-
-    onScroll: function(e) {
-      this.element.removeEventListener('click', this.clickIcon);
-      clearTimeout(this.preventClickTimeout);
-      this.preventClickTimeout = setTimeout(function addClickEvent() {
-        this.element.addEventListener('click', this.clickIcon);
-      }.bind(this), PREVENT_CLICK_TIMEOUT);
     },
 
     /**
