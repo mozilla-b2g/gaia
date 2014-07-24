@@ -416,7 +416,7 @@ suite('message_manager.js >', function() {
       this.sinon.spy(MockNavigatormozMobileMessage, 'getMessages');
       this.sinon.spy(MockNavigatormozMobileMessage, 'markMessageRead');
 
-      MessageManager.markThreadRead(1);
+      MessageManager.markThreadRead(1,/*isRead*/ true);
     });
 
     test('call mark read on the correct messages', function() {
@@ -461,23 +461,35 @@ suite('message_manager.js >', function() {
     setup(function() {
       this.sinon.spy(MockNavigatormozMobileMessage, 'markMessageRead');
       messageIds = [1, 2, 3];
-
-      MessageManager.markMessagesRead(messageIds);
     });
 
     test('properly mark all ids as read', function() {
+      MessageManager.markMessagesRead(messageIds);
       while (MockNavigatormozMobileMessage.mTriggerMarkReadSuccess()) {
       }
 
       sinon.assert.callCount(MockNavigatormozMobileMessage.markMessageRead, 3);
       messageIds.forEach(function(id) {
         sinon.assert.calledWith(
-          MockNavigatormozMobileMessage.markMessageRead, id
+          MockNavigatormozMobileMessage.markMessageRead, id, true
         );
       });
     });
 
+    test('properly mark all ids as unread', function() {
+      var copyMsgIds = messageIds.slice();
+      MessageManager.markMessagesRead(messageIds,/*isRead*/ false);
+      while (MockNavigatormozMobileMessage.mTriggerMarkReadSuccess()) {
+      }
+
+      sinon.assert.callCount(MockNavigatormozMobileMessage.markMessageRead, 1);
+      sinon.assert.calledWith(
+        MockNavigatormozMobileMessage.markMessageRead, copyMsgIds.pop(), false
+      );
+    });
+
     test('output an error if there is an error', function() {
+      MessageManager.markMessagesRead(messageIds);
       this.sinon.stub(console, 'error');
       MockNavigatormozMobileMessage.mTriggerMarkReadError('UnknownError');
       assert.isTrue(

@@ -18,6 +18,7 @@
     <link rel="stylesheet" type="text/css" href="shared/style/lists.css">
     <link rel="stylesheet" type="text/css" href="shared/style/progress_activity.css">
     <link rel="stylesheet" type="text/css" href="shared/style/status.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/tabs.css" >
     <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/gaia-icons.css">
     <!-- App styles -->
     <link rel="stylesheet" type="text/css" href="style/common.css">
@@ -141,9 +142,16 @@
               <button id="threads-check-uncheck-all-button" class="edit-button" data-l10n-id="select-all"></button>
             </gaia-header>
           </section>
-          <menu>
-            <button id="threads-delete-button" data-l10n-id="delete">delete</button>
-          </menu>
+          <div class="bottom-tab" role="region" >
+            <ul class="bb-tablist">
+              <li role="presentation">
+                <button id="threads-delete-button" data-action="delete-button"></button>
+              </li>
+              <li role="presentation">
+                <button id="threads-read-unread-button" data-action="mark-as-read"></button>
+              </li>
+            </ul>
+          </div>
         </form>
 
         <section id="threads-draft-saved-banner" class="hide" role="status">
@@ -301,9 +309,13 @@
               <button id="messages-check-uncheck-all-button" class="edit-button" data-l10n-id="select-all"></button>
             </gaia-header>
           </section>
-          <menu>
-            <button id="messages-delete-button" data-l10n-id="delete">delete</button>
-          </menu>
+          <div class="bottom-tab" role="region" >
+            <ul class="bb-tablist">
+              <li role="presentation">
+                <button id="messages-delete-button" data-action="delete-button"></button>
+              </li>
+            </ul>
+          </div>
         </form>
         <section id="messages-recipient-suggestions" class="article-list hide" data-type="list">
           <ul class="contact-list recipient-suggestions-list" role="listbox"></ul>

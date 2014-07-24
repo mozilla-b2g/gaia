@@ -1,5 +1,5 @@
 /*global MocksHelper, MockL10n, MockGestureDetector,
-         loadBodyHTML, ThreadUI, MessageManager,
+         loadBodyHTML, ThreadUI, Threads, MessageManager,
          ThreadListUI, Contacts, MockContact, MockThreadList,
          MockThreadMessages, getMockupedDate, Utils */
 /*
@@ -344,6 +344,62 @@ suite('SMS App Unit-Test', function() {
           'select-all'
         );
         assert.isFalse(checkUncheckAllButton.disabled);
+      });
+
+      test('Read/Unread buttons', function() {
+        var readUnreadButton;
+
+        ThreadListUI.startEdit();
+        // Retrieve all inputs
+        var inputs = ThreadListUI.container.getElementsByTagName('input');
+        readUnreadButton =
+          document.querySelector('#threads-read-unread-button');
+
+        // unread button enabled when selected threads has read message only
+        Array.forEach(inputs, (input) => {
+          input.checked = true;
+          Threads.get(input.value).unreadCount = 0;
+          ThreadListUI.selectionHandler.select(input.value);
+        });
+        ThreadListUI.checkInputs();
+        assert.equal(readUnreadButton.dataset.action, 'mark-as-unread');
+
+        // read button enabled when selected threads has unread message only
+        Array.forEach(inputs, (input) => {
+          input.checked = true;
+          Threads.get(input.value).unreadCount = 1;
+          ThreadListUI.selectionHandler.select(input.value);
+        });
+        ThreadListUI.checkInputs();
+        assert.equal(readUnreadButton.dataset.action, 'mark-as-read');
+
+        // read button enabled when selected thread has read & unread message
+        Array.forEach(inputs, (input, key) => {
+          if(key === 0) {
+            Threads.get(input.value).unreadCount = 0;
+          }
+          input.checked = true;
+          ThreadListUI.selectionHandler.select(input.value);
+        });
+        ThreadListUI.checkInputs();
+        assert.equal(readUnreadButton.dataset.action, 'mark-as-read');
+
+        // read/unread button disabled when no any threads are selected
+        Array.forEach(inputs, (input) => {
+          input.checked = false;
+          ThreadListUI.selectionHandler.unselect(input.value);
+        });
+        ThreadListUI.checkInputs();
+        assert.isTrue(readUnreadButton.disabled);
+
+        // read/unread button disabled when only drafts are selected
+        Array.forEach(inputs, (input) => {
+          input.value = 'undefined';
+          input.checked = true;
+          ThreadListUI.selectionHandler.select(input.value);
+        });
+        ThreadListUI.checkInputs();
+        assert.isTrue(readUnreadButton.disabled);
       });
 
       test('Select all while receiving new thread', function(done) {
