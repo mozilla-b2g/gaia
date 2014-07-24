@@ -90,6 +90,7 @@ marionette('startup event test > ' + appPath + ' >', function() {
     performanceHelper.repeatWithDelay(function(app, next) {
 
       var waitForBody = false;
+      PerformanceHelper.registerTimestamp(client);
       app.launch(waitForBody);
 
       performanceHelper.waitForPerfEvent(function(runResults, error) {
