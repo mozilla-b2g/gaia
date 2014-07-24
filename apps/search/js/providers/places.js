@@ -1,4 +1,4 @@
-/* globals DataGridProvider, Promise, Search, SettingsListener, GaiaGrid */
+/* globals DataGridProvider, Promise, Search, GaiaGrid */
 
 (function(exports) {
 
@@ -290,14 +290,7 @@
   };
 
   exports.Places = new Places();
-
-  SettingsListener.observe('rocketbar.enabled', false, (function(value) {
-    if (value) {
-      Search.provider(exports.Places);
-    } else {
-      Search.removeProvider(exports.Places);
-    }
-  }).bind(this));
+  Search.provider(exports.Places);
 
   navigator.getDataStores(STORE_NAME).then(function(stores) {
     store = stores[0];

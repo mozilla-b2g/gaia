@@ -90,10 +90,21 @@ Rocketbar.prototype = {
   },
 
   /**
+   * Switches to a search browser frame.
+   * The URL of a search provider will generally contain '{searchTerms}', so
+   * we replace that with the search text.
+   */
+  switchToSearchFrame: function(url, text) {
+    url = url.replace('{searchTerms}', '');
+    return this.switchToBrowserFrame(url);
+  },
+
+  /**
    * Switch to a browser window frame which matches the given URL.
    */
   switchToBrowserFrame: function(url) {
-    var browserFrame = this.client.findElement('iframe[src="' + url + '"]');
+    url = url.replace(/\s+/g, '%20');
+    var browserFrame = this.client.findElement('iframe[src*="' + url + '"]');
     this.client.switchToFrame(browserFrame);
   },
 
