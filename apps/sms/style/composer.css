@@ -194,6 +194,7 @@ form[role="search"] button[type="submit"]:after {
   flex: auto;
   position: relative;
   min-height: 4rem;
+  min-width: 0;
 
   margin-left: 1.5rem;
 }
