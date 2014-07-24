@@ -342,7 +342,9 @@ var FindMyDevice = {
     Requester.post('/register/', obj, function(response) {
       DUMP('findmydevice successfully registered: ', response);
 
-      asyncStorage.setItem('findmydevice-state', response, function() {
+      var state = response;
+      state.pushEndpoint = endpoint;
+      asyncStorage.setItem('findmydevice-state', state, function() {
         self._registeredHelper.set(true);
       });
     }, this._handleServerError.bind(this));
@@ -637,18 +639,25 @@ var FindMyDevice = {
     this.beginHighPriority('clientLogic');
 
     // stub wakelock functions because they are called by
-    // settings observers. window.close() will release the
-    // lock we acquired.
+    // settings observers.
     this.beginHighPriority = this.endHighPriority = function() {};
 
-    // clear all pending alarms
-    navigator.mozAlarms.getAll().onsuccess = function() {
-      this.result.forEach(function(alarm) {
-        navigator.mozAlarms.remove(alarm.id);
-      });
+    if (this._state) {
+      var request = navigator.push.unregister(this._state.pushEndpoint);
+      request.onsuccess = clearPendingAlarms();
+    } else {
+      clearPendingAlarms();
+    }
 
-      resetStateAndSettings();
-    };
+    function clearPendingAlarms() {
+      navigator.mozAlarms.getAll().onsuccess = function() {
+        this.result.forEach(function(alarm) {
+          navigator.mozAlarms.remove(alarm.id);
+        });
+
+        resetStateAndSettings();
+      };
+    }
 
     function resetStateAndSettings(callback) {
       asyncStorage.setItem('findmydevice-state', null, function() {
@@ -661,6 +670,8 @@ var FindMyDevice = {
         });
 
         request.onsuccess = request.onerror = function() {
+          // this releases the lock we acquired at the beginning
+          // of the method
           window.close();
         };
       });
