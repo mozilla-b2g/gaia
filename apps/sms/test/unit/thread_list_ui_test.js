@@ -940,6 +940,7 @@ suite('thread_list_ui', function() {
   });
 
   suite('renderThreads', function() {
+    var firstViewDone;
     setup(function() {
       this.sinon.spy(ThreadListUI, 'setEmpty');
       this.sinon.spy(ThreadListUI, 'prepareRendering');
@@ -951,6 +952,7 @@ suite('thread_list_ui', function() {
       this.sinon.spy(ThreadListUI, 'setContact');
       this.sinon.spy(ThreadListUI, 'renderDrafts');
       this.sinon.spy(ThreadListUI.sticky, 'refresh');
+      firstViewDone = sinon.stub();
     });
 
     test('Rendering an empty screen', function(done) {
@@ -959,8 +961,9 @@ suite('thread_list_ui', function() {
         options.done();
       });
 
-      ThreadListUI.renderThreads(function() {
+      ThreadListUI.renderThreads(firstViewDone ,function() {
         done(function checks() {
+          sinon.assert.called(firstViewDone);
           sinon.assert.called(ThreadListUI.renderDrafts);
           sinon.assert.called(ThreadListUI.sticky.refresh);
           sinon.assert.calledWith(ThreadListUI.finalizeRendering, true);
@@ -975,7 +978,9 @@ suite('thread_list_ui', function() {
 
       this.sinon.stub(MessageManager, 'getThreads',
         function(options) {
-          var threadsMockup = new MockThreadList();
+          var threadsMockup = new MockThreadList({
+            fullList : true
+          });
 
           var each = options.each;
           var end = options.end;
@@ -983,6 +988,14 @@ suite('thread_list_ui', function() {
 
           for (var i = 0; i < threadsMockup.length; i++) {
             each && each(threadsMockup[i]);
+
+            // When the returned threads reach first panel amount, firstViewDone
+            // shoule be call here instead of whole iteration finished.
+            if (i < 8) {
+              sinon.assert.notCalled(firstViewDone);
+            } else {
+              sinon.assert.calledOnce(firstViewDone);
+            }
 
             var threads = container.querySelectorAll(
                 '[data-last-message-type="sms"],' +
@@ -997,7 +1010,7 @@ suite('thread_list_ui', function() {
           done && done();
         });
 
-      ThreadListUI.renderThreads(function() {
+      ThreadListUI.renderThreads(firstViewDone, function() {
         done(function checks() {
           sinon.assert.calledWith(ThreadListUI.finalizeRendering, false);
           assert.isTrue(ThreadListUI.noMessages.classList.contains('hide'));
@@ -1011,8 +1024,8 @@ suite('thread_list_ui', function() {
           );
 
           // Check that all threads have been properly inserted in the list
-          assert.equal(mmsThreads.length, 1);
-          assert.equal(smsThreads.length, 4);
+          assert.equal(mmsThreads.length, 2);
+          assert.equal(smsThreads.length, 8);
         });
       });
     });
