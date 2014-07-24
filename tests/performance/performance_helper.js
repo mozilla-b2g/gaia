@@ -84,6 +84,31 @@ PerformanceHelper.injectHelperAtom = function(client) {
       client.executeScript(removeListener);
     },
 
+    registerTimestamp: function(client) {
+      client
+        .executeScript(function registerListener() {
+          window.addEventListener('apploadtime', function loadtimeHandler(e) {
+            window.removeEventListener('apploadtime', loadtimeHandler);
+            window.wrappedJSObject.epochStart = e.detail.timestamp;
+          });
+        });
+    },
+
+    getEpochStart: function(client) {
+      client.switchToFrame();
+
+      return client
+        .executeScript(function() {
+          return window.wrappedJSObject.epochStart;
+        });
+    },
+
+    getEpochEnd: function(client) {
+      return client.executeScript(function() {
+        return document.defaultView.wrappedJSObject.epochEnd;
+      });
+    },
+
     getLoadTimes: function(client) {
       var getResults = 'return global.wrappedJSObject.loadTimes;';
       return client.executeScript(getResults);
@@ -105,15 +130,16 @@ PerformanceHelper.injectHelperAtom = function(client) {
 PerformanceHelper.prototype = {
     // startValue is the name of the start event.
     // By default it is 'start'
-    reportRunDurations: function(runResults, startValue) {
+    reportRunDurations: function(runResults, startValue, delta) {
 
       startValue = startValue || 'start';
+      delta = delta || 0;
 
       var start = runResults[startValue] || 0;
       delete runResults[startValue];
 
       for (var name in runResults) {
-        var value = runResults[name] - start;
+        var value = runResults[name] - start + delta;
         // Sometime we start from an event that happen later.
         // Ignore the one that occur before - ie negative values.
         if (value >= 0) {

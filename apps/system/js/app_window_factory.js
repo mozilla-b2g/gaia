@@ -109,6 +109,7 @@
 
       switch (evt.type) {
         case 'webapps-launch':
+          config.timestamp = detail.timestamp;
           // TODO: Look up current opened window list,
           // and then create a new instance here.
           this.launch(config);

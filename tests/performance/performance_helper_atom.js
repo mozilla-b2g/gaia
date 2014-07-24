@@ -61,6 +61,7 @@ function _registerListener(document) {
     debug('registering');
     perfMeasurements = Object.create(null);
     perfMeasurements.start = window.performance.now();
+    window.epochEnd = Date.now();
 
     window.addEventListener(PERF_EVENT_NAME, handlePerfEvent);
     window[PERF_FLAG_NAME] = hasRegistered = true;

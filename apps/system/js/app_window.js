@@ -849,6 +849,7 @@
         // Perf test needs.
         this.publish('loadtime', {
           time: parseInt(Date.now() - this.launchTime),
+          timestamp: this.timestamp,
           type: 'c',
           src: this.config.url
         });
