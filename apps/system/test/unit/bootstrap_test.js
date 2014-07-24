@@ -31,6 +31,7 @@ requireApp('system/js/layout_manager.js');
 requireApp('system/js/lockscreen_window_manager.js');
 requireApp('system/js/lockscreen_notifications.js');
 requireApp('system/js/lockscreen_passcode_validator.js');
+requireApp('system/js/lockscreen_notification_builder.js');
 requireApp('system/js/media_recording.js');
 requireApp('system/js/permission_manager.js');
 requireApp('system/js/remote_debugger.js');

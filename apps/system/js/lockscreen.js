@@ -17,6 +17,8 @@
     configs: {
       mode: 'default'
     },
+    // 'notificationId' for opening app after unlocking.
+    _unlockingMessage: {},
     // The unlocking strategy.
     _unlocker: null,
     _unlockerInitialized: false,
@@ -502,8 +504,6 @@
     // Clock always uses one Timeouts/Intervals so it's safe in
     // other scenarios (such as turning on lockscreen after boot in settings)
     this.clock.start(this.refreshClock.bind(this));
-
-    window.lockScreenNotifications.bindLockScreen(this);
   };
 
   LockScreen.prototype.initUnlockerEvents =
@@ -642,14 +642,11 @@
 
   LockScreen.prototype._activateUnlock =
   function ls_activateUnlock() {
-    var passcodeOrUnlock = (function() {
-      if (this.passCodeEnabled && this.checkPassCodeTimeout()) {
-          this.switchPanel('passcode');
-      } else {
-        this.unlock();
-      }
-    }).bind(this);
-    passcodeOrUnlock();
+    if (this.passCodeEnabled && this.checkPassCodeTimeout()) {
+        this.switchPanel('passcode');
+    } else {
+      this.unlock();
+    }
   };
 
   LockScreen.prototype.handleIconClick =
@@ -759,6 +756,9 @@
       unlockAudio.play();
     }
 
+    if (!detail) {
+      detail = this._unlockingMessage;
+    }
     this.overlay.classList.toggle('no-transition', instant);
     this.dispatchEvent('lockscreen-request-unlock', detail);
     this.dispatchEvent('secure-modeoff');
@@ -772,6 +772,8 @@
     } else {
       this.unlockDetail = detail;
     }
+    // Clear the state after we send the request.
+    this._unlockingMessage = {};
   };
 
   LockScreen.prototype.lock =

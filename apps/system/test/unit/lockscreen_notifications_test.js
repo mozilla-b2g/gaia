@@ -16,15 +16,11 @@ suite('system/LockScreenNotifications', function() {
   setup(function() {
     lockScreenNotifications = new LockScreenNotifications();
     MockLockScreen.init();
+    lockScreenNotifications.start(MockLockScreen);
   });
 
   teardown(function() {
     MockLockScreen.mTeardown();
-  });
-
-  test('Test Bind Lockscreen', function() {
-    lockScreenNotifications.bindLockScreen('FakeLockscreen');
-    assert.equal(lockScreenNotifications._lockScreen, 'FakeLockscreen');
   });
 
   test('Test Show Colored Masked Background', function() {
