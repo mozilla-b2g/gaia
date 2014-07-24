@@ -6,6 +6,7 @@ require('/shared/js/utilities.js');
 requireApp('search/test/unit/mock_search.js');
 requireApp('search/js/providers/provider.js');
 requireApp('search/js/providers/grid_provider.js');
+requireApp('search/js/providers/sync_provider.js');
 
 // Required files for the grid and a mozapp result
 require('/shared/js/l10n.js');
