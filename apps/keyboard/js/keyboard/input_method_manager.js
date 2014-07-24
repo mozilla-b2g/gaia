@@ -388,7 +388,7 @@ InputMethodManager.prototype.switchCurrentIMEngine = function(imEngineName) {
   // updateInputContextData() is called.
   this._inputContextData = null;
 
-  if (!dataPromise) {
+  if (!dataPromise && imEngineName !== 'default') {
     console.warn('InputMethodManager: switchCurrentIMEngine() called ' +
       'without calling updateInputContextData() first.');
   }

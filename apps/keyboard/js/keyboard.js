@@ -48,49 +48,29 @@ function initKeyboard() {
     attributes: true, attributeFilter: ['class', 'style']
   });
 
-  window.addEventListener('hashchange', function() {
+  window.addEventListener('hashchange', function handleHashchange() {
     app.perfTimer.printTime('hashchange');
-    var layoutName = window.location.hash.substring(1);
 
-    app.layoutManager.loader.getLayoutAsync(layoutName);
-    updateCurrentLayout(layoutName);
+    updateCurrentKeyboardState();
   }, false);
 
   // Need to listen to both mozvisibilitychange and oninputcontextchange,
   // because we are not sure which will happen first and we will call
-  // showKeyboard() when mozHidden is false and we got inputContext
-  window.addEventListener('mozvisibilitychange', function visibilityHandler() {
-    app.perfTimer.printTime('mozvisibilitychange');
-    if (document.mozHidden && !app.inputContext) {
-      hideKeyboard();
-
-      return;
-    }
-
-    var layoutName = window.location.hash.substring(1);
-    updateCurrentLayout(layoutName);
+  // showKeyboard() when document.hidden is false and we got inputContext
+  window.addEventListener('visibilitychange', function visibilityHandler() {
+    app.perfTimer.printTime('visibilitychange');
+    updateCurrentKeyboardState();
   });
 
   window.navigator.mozInputMethod.oninputcontextchange = function() {
     app.perfTimer.printTime('inputcontextchange');
     app.inputContext = navigator.mozInputMethod.inputcontext;
-    if (document.mozHidden && !app.inputContext) {
-      hideKeyboard();
-
-      return;
-    }
-
-    var layoutName = window.location.hash.substring(1);
-    updateCurrentLayout(layoutName);
+    updateCurrentKeyboardState();
   };
 
   // Initialize the current layout according to
   // the hash this page is loaded with.
-  var layoutName = '';
-  if (window.location.hash !== '') {
-    layoutName = window.location.hash.substring(1);
-    app.layoutManager.loader.getLayoutAsync(layoutName);
-  } else {
+  if (!window.location.hash) {
     console.error('This page should never be loaded without an URL hash.');
 
     return;
@@ -100,7 +80,7 @@ function initKeyboard() {
 
   // Finally, if we are only loaded by keyboard manager when the user
   // have already focused, the keyboard should show right away.
-  updateCurrentLayout(layoutName);
+  updateCurrentKeyboardState();
 
   app.perfTimer.printTime('BLOCKING initKeyboard', 'initKeyboard');
 }
@@ -112,39 +92,46 @@ function deactivateInputMethod() {
   app.inputMethodManager.switchCurrentIMEngine('default');
 }
 
-function updateCurrentLayout(name) {
-  app.perfTimer.printTime('updateCurrentLayout');
+function updateCurrentKeyboardState() {
+  app.perfTimer.printTime('updateCurrentKeyboardState');
+
+  var layoutName = window.location.hash.substring(1);
+  // Before we really decide whether or not to show the keyboard layout,
+  // let's try to start the loading process of what we need.
+  app.layoutManager.loader.getLayoutAsync(layoutName).then(function(layout) {
+    var imEngineName = layout.imEngine;
+
+    // Ask the loader to start loading IMEngine
+    if (imEngineName) {
+      app.inputMethodManager.loader.getInputMethodAsync(imEngineName);
+    }
+  });
+
+  // Don't bother try to switch the layout if it's not needed (yet).
+  if (document.hidden || !app.inputContext) {
+    hideKeyboard();
+
+    // Load l10n library here, there is nothing more to do left
+    // in the critical path.
+    app.l10nLoader.load();
+
+    return;
+  }
 
   // Make sure we are working in parallel,
   // since eventually IMEngine will be switched.
   // See showKeyboard()->switchIMEngine()
-  if (!document.mozHidden) {
-    app.inputMethodManager.updateInputContextData();
-  }
+  app.inputMethodManager.updateInputContextData();
 
-  app.layoutManager.switchCurrentLayout(name).then(function() {
-    app.perfTimer.printTime('updateCurrentLayout:promise resolved');
-
-    // Ask the loader to start loading IMEngine
-    var imEngineloader = app.inputMethodManager.loader;
-    var imEngineName = app.layoutManager.currentLayout.imEngine;
-    if (imEngineName && !imEngineloader.getInputMethod(imEngineName)) {
-      imEngineloader.getInputMethodAsync(imEngineName);
-    }
-
+  app.layoutManager.switchCurrentLayout(layoutName).then(function() {
+    app.perfTimer.printTime('updateCurrentKeyboardState:promise resolved');
     // Now the that we have the layout ready,
-    // we should either show or hide the keyboard.
-    if (!document.mozHidden && app.inputContext) {
+    // we should show the keyboard if we need it.
+    if (!document.hidden && app.inputContext) {
       showKeyboard();
-    } else {
-      hideKeyboard();
-
-      // Load l10n library here, there is nothing more to do left
-      // in the critical path.
-      app.l10nLoader.load();
     }
   }, function(error) {
-    console.warn('Failed to switch layout for ' + name + '.' +
+    console.warn('Failed to switch layout for ' + layoutName + '.' +
       ' It might possible because we were called more than once.');
   });
 }
@@ -271,10 +258,6 @@ function showKeyboard() {
 
   resetKeyboard();
 
-  if (!app.inputContext) {
-    return;
-  }
-
   // everything.me uses this setting to improve searches,
   // but they really shouldn't.
   app.settingsPromiseManager.set({
@@ -324,7 +307,7 @@ function hideKeyboard() {
 // Resize event handler
 function onResize() {
   app.perfTimer.printTime('onResize');
-  if (document.mozHidden) {
+  if (document.hidden) {
     return;
   }
 
