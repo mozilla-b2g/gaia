@@ -122,7 +122,6 @@
      */
     onLocalized: function() {
       var items = this.grid.getItems();
-      var titles = [];
       items.forEach(function eachItem(item) {
         if(!item.name) {
           return;
@@ -132,18 +131,6 @@
         // the app. We just need to get it and set the content.
         var element = item.element.querySelector('.title');
         element.textContent = item.name;
-
-        // Bug 1022866 - Workaround for projected content nodes disappearing
-        // We need to hide and 'flash' the the element style.
-        element.style.display = 'none';
-
-        titles.push(element);
-      });
-
-      // Bug 1022866 - Recover from workaround, display titles afer a reflow.
-      document.body.clientTop;
-      titles.forEach(function eachItem(title) {
-        title.style.display = '';
       });
     },
 
