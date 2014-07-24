@@ -29,12 +29,12 @@
   z-index: 1000;
 }
 
-.chrome > .rocketbar {
+.chrome > .bar {
   pointer-events: auto;
   display: none;
 } 
 
-.chrome > .rocketbar.visible {
+.chrome > .bar.visible {
   display: block;
 }
 

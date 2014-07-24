@@ -26,9 +26,9 @@
       this.app.element.classList.add('navigation');
     }
 
-    if (this.app.config.chrome && this.app.config.chrome.rocketbar) {
-      this.app.element.classList.add('rocketbar');
-      this.rocketbar.classList.add('visible');
+    if (this.app.config.chrome && this.app.config.chrome.bar) {
+      this.app.element.classList.add('bar');
+      this.bar.classList.add('visible');
     }
   };
 
@@ -38,7 +38,7 @@
 
   AppChrome.prototype.EVENT_PREFIX = 'chrome';
 
-  AppChrome.prototype._DEBUG = true;
+  AppChrome.prototype._DEBUG = false;
 
   AppChrome.prototype.hidingNavigation = false;
 
@@ -46,7 +46,7 @@
     return '<div class="chrome" id="' +
             this.CLASS_NAME + this.instanceID + '">' +
             '<div class="progress"></div>' +
-            '<section role="region" class="rocketbar skin-organic">' +
+            '<section role="region" class="bar skin-organic">' +
               '<header>' +
                 '<button class="kill popup-close">' +
                 '<span class="icon icon-close"></span></button>' +
@@ -74,13 +74,13 @@
   AppChrome.prototype._fetchElements = function ac__fetchElements() {
     this.element = this.containerElement.querySelector('.chrome');
     this.navigation = this.element.querySelector('.navigation');
-    this.rocketbar = this.element.querySelector('.rocketbar');
+    this.bar = this.element.querySelector('.bar');
 
     // We're appending new elements to DOM so to make sure headers are
     // properly resized and centered, we emmit a lazyload event.
     // This will be removed when the gaia-header web component lands.
     window.dispatchEvent(new CustomEvent('lazyload', {
-      detail: this.rocketbar
+      detail: this.bar
     }));
 
     this.progress = this.element.querySelector('.progress');
