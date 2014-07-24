@@ -35,7 +35,6 @@ marionette('Vertical Home - Packaged App Update', function() {
 
     // wait for the system app to be running
     system.waitForStartup();
-    client.apps.launch(Home2.URL);
     subject.waitForLaunch();
 
     // install the app
@@ -59,6 +58,9 @@ marionette('Vertical Home - Packaged App Update', function() {
 
   test('resume update', function() {
     var appIcon = subject.getIcon(server.packageManifestURL);
+
+    // helps marionette finding the icon: Bug 1046706
+    subject.moveIconToIndex(appIcon, 0);
 
     // ensure the app is installed before updating it
     client.waitFor(function() {
