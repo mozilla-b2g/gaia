@@ -502,6 +502,11 @@ var NotificationScreen = {
         );
       }
 
+      // To prevent add more code in this too complicated component,
+      // LockScreen related code would incrementally move to another component.
+      // However, to keep the compatibility is necessary, so the APIs would
+      // accomplish the existing code.
+      window.lockScreenNotificationBuilder.decorate(lockScreenNode);
       window.lockScreenNotifications.showColoredMaskBG();
 
       // UX specifies that the container should scroll to top
@@ -598,26 +603,15 @@ var NotificationScreen = {
     this.removeNotification(notificationId);
   },
 
-  removeNotification: function ns_removeNotification(notificationId) {
+  removeLockScreenNotification:
+  function ns_removeLockScreenNotification(notificationId) {
     var notifSelector = '[data-notification-id="' + notificationId + '"]';
-    var notificationNode = this.container.querySelector(notifSelector);
     this.lockScreenContainer = this.lockScreenContainer ||
       document.getElementById('notifications-lockscreen-container');
     if (this.lockScreenContainer) {
       var lockScreenNotificationNode =
-        this.lockScreenContainer.querySelector(notifSelector);
+          this.lockScreenContainer.querySelector(notifSelector);
     }
-
-    if (notificationNode) {
-      notificationNode.remove();
-    }
-
-    var event = document.createEvent('CustomEvent');
-    event.initCustomEvent('mozContentNotificationEvent', true, true, {
-      type: 'desktop-notification-close',
-      id: notificationId
-    });
-    window.dispatchEvent(event);
 
     if (lockScreenNotificationNode) {
       var lockScreenNotificationParentNode =
@@ -633,8 +627,22 @@ var NotificationScreen = {
       // hints (masks & arrow) need to show
       window.lockScreenNotifications.adjustContainerVisualHints();
     }
-    this.updateStatusBarIcon();
+  },
 
+  removeNotification: function ns_removeNotification(notificationId) {
+    var notifSelector = '[data-notification-id="' + notificationId + '"]';
+    var notificationNode = this.container.querySelector(notifSelector);
+    if (notificationNode) {
+      notificationNode.remove();
+    }
+    var event = document.createEvent('CustomEvent');
+    event.initCustomEvent('mozContentNotificationEvent', true, true, {
+      type: 'desktop-notification-close',
+      id: notificationId
+    });
+    window.dispatchEvent(event);
+    this.removeLockScreenNotification(notificationId);
+    this.updateStatusBarIcon();
     if (!this.container.querySelector('.notification')) {
       // no notifications left
       this.clearAllButton.disabled = true;

@@ -8,7 +8,11 @@ var assert = require('assert'),
 var SHARED_PATH = __dirname + '/../../../../shared/test/integration/';
 
 marionette('notification tests', function() {
-  var client = marionette.client();
+  var client = marionette.client({
+    settings: {
+      'ftu.manifestURL': null
+    }
+  });
   var notificationList = new NotificationList(client);
 
   test('fire notification', function() {
@@ -22,7 +26,6 @@ marionette('notification tests', function() {
                    body: 'test body',
                    dir: 'rtl',
                    lang: 'en'};
-    //console.log(client.screenshot());
     var notify = new NotificationTest(client, details);
     notificationList.refresh();
     assert.ok(notificationList.contains(details),
@@ -96,8 +99,11 @@ marionette('notification tests', function() {
     assert.ok(!notificationList.contains(details),
               'notification should not be in list after calling close');
     notificationList.refreshLockScreen();
+    client.waitFor(function() {
+      return !notificationList.containsLockScreen(details);
+    });
     assert.ok(!notificationList.containsLockScreen(details),
-              'notification should be in list before calling close');
+              'notification should not be in list before calling close');
   });
 
   // function to check if screen status is enabled/disabled
