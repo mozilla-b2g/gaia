@@ -39,6 +39,11 @@ suite('contacts_bulk_delete.js', function() {
     window.utils.overlay = {
       show: function() {}
     };
+
+    window.utils.confirmDialog = function(){
+      ConfirmDialog.show.apply(ConfirmDialog, arguments);
+    };
+
   });
 
   suiteTeardown(function() {
@@ -63,7 +68,7 @@ suite('contacts_bulk_delete.js', function() {
     contacts.BulkDelete.performDelete(promise);
 
     assert.isTrue(overlayShowSpy.calledWith('preparing-contacts', 'spinner'));
-    
+
     promise.onsuccess({
       length: numberOfContacts
     });
@@ -98,7 +103,7 @@ suite('contacts_bulk_delete.js', function() {
   test('call performDelete but the promise fails', function() {
     contacts.BulkDelete.performDelete(promise);
     assert.isTrue(overlayShowSpy.calledWith('preparing-contacts', 'spinner'));
-    
+
     promise.onerror();
     assert.isTrue(overlayHideSpy.called);
   });

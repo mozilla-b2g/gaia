@@ -240,7 +240,7 @@ function navigationStack(currentView) {
     document.getElementById(nextView.view).classList.add('current');
     var _callbackInner = function _callbackInner() {
       currentClassList.remove('current');
-      if (callback) {
+      if (callback && typeof callback === 'function') {
         callback();
       }
     };

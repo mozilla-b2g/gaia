@@ -10,6 +10,8 @@
 /* global Normalizer */
 /* global utils */
 /* global TAG_OPTIONS */
+/* global navigationStackShim */
+/* global MessageBroadcaster */
 
 var contacts = window.contacts || {};
 
@@ -24,6 +26,7 @@ contacts.Form = (function() {
 
   var currentContact = {};
   var dom,
+      _,
       contactForm,
       deleteContactButton,
       addNewDateButton,
@@ -37,7 +40,6 @@ contacts.Form = (function() {
       company,
       familyName,
       configs,
-      _,
       formView,
       throbber,
       mode,
@@ -46,7 +48,10 @@ contacts.Form = (function() {
       nonEditableValues,
       deviceContact,
       fbContact,
-      currentPhoto;
+      currentPhoto,
+      navigation,
+      selectedTag,
+      updateActivity = false;
 
   var REMOVED_CLASS = 'removed';
   var FB_CLASS = 'facebook';
@@ -63,6 +68,8 @@ contacts.Form = (function() {
   var MAX_PHOTO_SIZE = 200000;
 
   var touchstart = 'ontouchstart' in window ? 'touchstart' : 'mousedown';
+
+  var messageBroadcaster = new MessageBroadcaster();
 
   var textFieldsCache = {
     _textFields: null,
@@ -157,8 +164,20 @@ contacts.Form = (function() {
   };
 
   var init = function cf_init(tags, currentDom) {
+    var params = window.location.href.split('?')[1];
+    updateActivity = false;
+
+    if (params) {
+      params = utils.extractParams(params);
+    }
+
+    if (params && params.extras) {
+      params.extras = JSON.parse(decodeURIComponent(params.extras));
+    }
+
     dom = currentDom || document;
-  
+    navigation = new navigationStackShim();
+
     _ = navigator.mozL10n.get;
     initContainers();
 
@@ -188,22 +207,76 @@ contacts.Form = (function() {
       }
     });
 
-    formView.addEventListener('ValueModified', function onValueModified(event) {
-      if (!event.detail) {
+    messageBroadcaster.on('value-modified', function onValueModified(data) {
+      if (!data) {
         return;
       }
 
-      if (!emptyForm() && event.detail.prevValue !== event.detail.newValue) {
+      selectedTag.textContent = data.textContent;
+      selectedTag.dataset.value = data.dataset.value;
+      if (data.dataset.l10nId) {
+        selectedTag.dataset.l10nId = data.dataset.l10nId;
+      }
+
+      selectedTag = null;
+
+      if (!emptyForm() && data.prevValue !== data.textContent) {
         saveButton.removeAttribute('disabled');
       }
     });
 
     // Add listeners
     utils.listeners.add({
-      '#cancel-edit': Contacts.cancel, // Cancel edition
+      '#cancel-edit': handleCancel, // Cancel edition
       '#save-button': saveContact,
       '#contact-form button[data-field-type]': newField
     });
+
+    // Edit mode
+    if (params && params.id) {
+      utils.getContactById(params.id, function(contact, fbContact) {
+        // we have more data to put on the contact (probably from the
+        // `update` activity), so let's update it
+        if (params.extras) {
+          updateActivity = true;
+          contact = utils.addExtrasToContact(params.extras, contact);
+        }
+
+        if (contact && fbContact) {
+          var mozFbContact = new fb.Contact(contact);
+          var req = mozFbContact.getDataAndValues();
+
+          req.onsuccess = function() {
+            render(contact, function() {}, req.result, updateActivity);
+          };
+
+          req.onerror = function() {
+            render(contact, function() {}, null, updateActivity);
+          };
+        }
+        else {
+          render(contact, function() {}, null, updateActivity);
+        }
+      });
+    } else {
+      //new contact
+      render(null, function() {});
+    }
+    if (window.navigator.mozSetMessageHandler) {
+      window.navigator.mozSetMessageHandler('activity',
+        ActivityHandler.handle.bind(ActivityHandler)
+      );
+    }
+  };
+
+  var handleCancel = function handleCancel() {
+    //If in an activity, cancel it
+    if (ActivityHandler.currentlyHandling) {
+      ActivityHandler.postCancel();
+      navigation.home();
+    } else {
+      navigation.back();
+    }
   };
 
    // Renders the birthday as per the locale
@@ -226,6 +299,7 @@ contacts.Form = (function() {
 
   var render = function cf_render(contact, callback, pFbContactData,
                                   fromUpdateActivity) {
+
     var fbContactData = pFbContactData || [];
 
     fbContact = fbContactData[2] || {};
@@ -285,7 +359,7 @@ contacts.Form = (function() {
         thumbAction.classList.add(FB_CLASS);
       }
     }
-    Contacts.updatePhoto(currentPhoto, thumb);
+    utils.updatePhoto(currentPhoto, thumb);
 
     if (contact.bday) {
       contact.date = [];
@@ -331,7 +405,7 @@ contacts.Form = (function() {
         }
       };
 
-      Contacts.confirmDialog(null, msg, noObject, yesObject);
+      utils.confirmDialog(null, msg, noObject, yesObject);
     };
   };
 
@@ -431,7 +505,8 @@ contacts.Form = (function() {
     var obj = object || {};
     var config = configs[type];
     var template = config.template;
-    var tags = ContactsTag.filterTags(type, null, config.tags);
+    var tagData = ContactsTag.prepareTagData(type, null);
+    var tags = ContactsTag.filterTags(type, tagData, config.tags);
 
     var fields = config.fields;
     var container = config.container;
@@ -484,6 +559,7 @@ contacts.Form = (function() {
 
     // Adding listener to properly render dates
     if (type === 'date') {
+
       var dateInput = rendered.querySelector('input[type="date"]');
 
       // Setting the max value as today's date
@@ -534,7 +610,27 @@ contacts.Form = (function() {
 
   var onGoToSelectTag = function onGoToSelectTag(evt) {
     evt.preventDefault();
-    Contacts.goToSelectTag(evt);
+    var node = evt.currentTarget.children[0];
+    selectedTag = node;
+
+    var type = node.dataset.taglist.split('-')[0];
+
+    var tagData = ContactsTag.prepareTagData(type, node);
+
+    tagData.dataset = {};
+    for (var set in node.dataset) {
+      tagData.dataset[set] = node.dataset[set];
+    }
+
+    tagData.textContent = node.textContent;
+
+    // Because DOM nodes cannot be send using postMessage, we send an object
+    // with all the data needed to identify given node in ContactsTag
+    messageBroadcaster.fire(
+      'go-to-select-tag',
+      tagData
+    );
+
     return false;
   };
 
@@ -551,7 +647,7 @@ contacts.Form = (function() {
       if ('mozNfc' in navigator && contacts.NFC) {
         contacts.NFC.stopListening();
       }
-      Contacts.navigation.home();
+      navigation.home();
     };
     var request;
 
@@ -660,7 +756,7 @@ contacts.Form = (function() {
       // and inspect address by it self.
       var fields = ['givenName', 'familyName', 'org', 'tel',
         'email', 'note', 'bday', 'anniversary', 'adr'];
-      if (Contacts.isEmpty(myContact, fields)) {
+      if (utils.isEmpty(myContact, fields)) {
         return;
       }
 
@@ -716,7 +812,6 @@ contacts.Form = (function() {
           if (e.origin !== fb.CONTACTS_APP_ORIGIN) {
             return;
           }
-
           var data = e.data;
           switch (data.type) {
             case 'duplicate_contacts_loaded':
@@ -734,7 +829,7 @@ contacts.Form = (function() {
                 data: {
                   name: getCompleteName(getDisplayName(contact)),
                   duplicateContacts: duplicateContacts
-                }
+                },
               }, fb.CONTACTS_APP_ORIGIN);
 
             break;
@@ -767,7 +862,7 @@ contacts.Form = (function() {
               // The list of duplicate contacts has been loaded
               cancelButton.removeEventListener('click', cancelHandler);
               hideThrobber();
-              window.setTimeout(Contacts.goBack, 300);
+              //window.setTimeout(navigation.back, 300);
 
             break;
 
@@ -775,7 +870,6 @@ contacts.Form = (function() {
               // If user igonores duplicate contacts we save the contact
               window.removeEventListener('message', mergeHandler);
               doSave(contact, true);
-
             break;
           }
         };
@@ -877,13 +971,24 @@ contacts.Form = (function() {
     request.onsuccess = function onsuccess() {
       hideThrobber();
       // Reloading contact, as it only allows to be updated once
-      if (ActivityHandler.currentlyHandling) {
-        ActivityHandler.postNewSuccess(contact);
+      if (updateActivity) {
+        // The 'update' activity uses form/edit view that is rendered in
+        // separate iframe, therefore it has it's own scope with Activity
+        // Handler. We need to send information about `update` being finished
+        // to the same instance that started the action - the one in the
+        // contacts list (because first thing we do during the `update`
+        // activity is choosing contact from the list)
+        messageBroadcaster.fire(
+          'activity-post-new-success',
+          {
+            id: contact.id
+          }
+        );
       }
       if (!noTransition) {
-        Contacts.cancel();
+        handleCancel();
       }
-      Contacts.setCurrent(contact);
+      messageBroadcaster.fire('set-current-contact', {id: contact.id});
     };
 
     request.onerror = function onerror() {
@@ -1288,7 +1393,7 @@ contacts.Form = (function() {
       // our own copy that is at the right size.
       resizeBlob(this.result.blob, PHOTO_WIDTH, PHOTO_HEIGHT,
                  function(resized) {
-                   Contacts.updatePhoto(resized, thumb);
+                   utils.updatePhoto(resized, thumb);
                    currentPhoto = resized;
                  });
     };
@@ -1349,3 +1454,14 @@ contacts.Form = (function() {
     'pickImage': pickImage
   };
 })();
+
+navigator.mozL10n.once(function() {
+  utils.loadFacebook(function(){
+    LazyLoader.load([
+      '/contacts/js/tag_options.js',
+      '/contacts/js/broadcast_message.js'
+      ], function() {
+      contacts.Form.init();
+    });
+  });
+});

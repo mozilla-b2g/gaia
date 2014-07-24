@@ -1,9 +1,18 @@
-/* globals _, ConfirmDialog, Contacts, LazyLoader, utils, ActionMenu */
+/* global _ */
+/* global ConfirmDialog */
+/* global Contacts */
+/* global LazyLoader*/
+/* global utils */
+/* global ActionMenu */
+/* global contacts */
+/* global MessageBroadcaster */
+
 /* exported ActivityHandler */
 
 'use strict';
 
 var ActivityHandler = {
+  _messageBroadcaster: null,
   _currentActivity: null,
 
   _launchedAsInlineActivity: (window.location.search == '?pick'),
@@ -84,16 +93,34 @@ var ActivityHandler = {
   },
 
   handle: function ah_handle(activity) {
-
+    var that = this;
     switch (activity.source.name) {
       case 'new':
-        this.launch_activity(activity, 'view-contact-form');
+        this._currentActivity = activity;
+        contacts.Form.render(activity.source.data.params);
         break;
       case 'open':
         this.launch_activity(activity, 'view-contact-details');
         break;
       case 'update':
-        this.launch_activity(activity, 'add-parameters');
+        that.launch_activity(activity, 'add-parameters');
+        // The 'update' activity uses form/edit view that is rendered in
+        // separate iframe, therefore it has it's own scope with Activity
+        // Handler. So when we will receive a contacts id from the form/edit
+        // view (we cannot send contact object) we get the contact object
+        // using utils.getContactById() and send it further, to the current
+        // activity.
+        if (this.messageBroadcaster === null) {
+          this.messageBroadcaster = new MessageBroadcaster();
+        }
+        this.messageBroadcaster.on(
+          'activity-post-new-success',
+          function(id) {
+            utils.getContactById(id, function success(mContact) {
+              that.postNewSuccess(mContact);
+            });
+          }
+        );
         break;
       case 'pick':
         if (!this._launchedAsInlineActivity) {
@@ -119,7 +146,7 @@ var ActivityHandler = {
         '/shared/js/contacts/import/utilities/import_from_vcard.js',
         '/shared/js/contacts/import/utilities/overlay.js'
       ], function loaded() {
-        Contacts.loadFacebook(function() {
+        utils.loadFacebook(function() {
           utils.importFromVcard(activity.source.data.blob,
             function imported(numberOfContacts, id) {
               if (numberOfContacts === 1) {
@@ -199,7 +226,7 @@ var ActivityHandler = {
             ConfirmDialog.hide();
           }
         };
-        Contacts.confirmDialog(null, noDataStr, dismiss);
+        utils.confirmDialog(null, noDataStr, dismiss);
         break;
       case 1:
         // if one required type of data

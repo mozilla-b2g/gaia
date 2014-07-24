@@ -4,7 +4,7 @@
           MockContactsListObj, MockCookie, MockMozL10n,
           MockNavigationStack, MockUtils, MocksHelper,
           MockContactAllFields, MockContactDetails, MockContactsNfc,
-          MockContactsSearch, MockContactsSettings
+          MockContactsSearch, MockContactsSettings, utils
 */
 
 requireApp('communications/contacts/test/unit/mock_l10n.js');
@@ -14,6 +14,7 @@ requireApp('communications/contacts/test/unit/mock_datastore_migrator.js');
 requireApp('communications/contacts/test/unit/mock_event_listeners.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
 requireApp('communications/contacts/test/unit/mock_activities.js');
+requireApp('communications/contacts/test/unit/mock_message_broadcaster.js');
 requireApp('communications/contacts/test/unit/mock_sms_integration.js');
 requireApp('communications/contacts/test/unit/mock_contacts_details.js');
 requireApp('communications/contacts/test/unit/mock_contacts_nfc.js');
@@ -27,7 +28,8 @@ var mocksForStatusBar = new MocksHelper([
   'DatastoreMigration',
   'LazyLoader',
   'SmsIntegration',
-  'ActivityHandler'
+  'ActivityHandler',
+  'messageBroadcaster'
 ]).init();
 
 if (!window.navigationStack) {
@@ -124,7 +126,7 @@ suite('Contacts', function() {
       mozContact = new MockContactAllFields();
       Contacts.setCurrent(mozContact);
 
-      this.sinon.stub(contacts.List, 'getContactById', function(id, cb) {
+      this.sinon.stub(utils, 'getContactById', function(id, cb) {
         // Return the contact + additional FB info
         cb(mozContact, {
           id: 'FBID',
@@ -149,8 +151,8 @@ suite('Contacts', function() {
       mockNavigation._currentView = 'view-contact-details';
 
       navigator.mozContacts.oncontactchange(evt);
-      sinon.assert.pass(contacts.List.getContactById.called);
-      sinon.assert.calledWith(contacts.List.getContactById, mozContact.id);
+      sinon.assert.pass(utils.getContactById.called);
+      sinon.assert.calledWith(utils.getContactById, mozContact.id);
       sinon.assert.pass(contacts.List.refresh.called);
       sinon.assert.called(contacts.List.refresh);
 
@@ -278,7 +280,7 @@ suite('Contacts', function() {
       this.sinon.stub(Contacts, 'view', function(view, cb) {
         cb();
       });
-      this.sinon.stub(window.contacts.List, 'getContactById',
+      this.sinon.stub(utils, 'getContactById',
        function(id, cb) {
         cb(theSelectedContact, null);
       });
@@ -292,7 +294,7 @@ suite('Contacts', function() {
       Contacts.showContactDetail('1');
 
       sinon.assert.called(Contacts.view);
-      sinon.assert.called(window.contacts.List.getContactById);
+      sinon.assert.called(utils.getContactById);
       sinon.assert.called(contacts.Details.render);
       sinon.assert.calledWith(navigation.go,
        'view-contact-details', 'go-deeper');
@@ -320,7 +322,7 @@ suite('Contacts', function() {
         ActivityHandler.activityName = 'pick';
         Contacts.showContactDetail('1');
 
-        sinon.assert.called(window.contacts.List.getContactById);
+        sinon.assert.called(utils.getContactById);
         sinon.assert.notCalled(contacts.Details.render);
         sinon.assert.notCalled(navigation.go);
         sinon.assert.called(ActivityHandler.dataPickHandler);
@@ -336,7 +338,7 @@ suite('Contacts', function() {
         ActivityHandler.activityName = 'import';
         Contacts.showContactDetail('1');
 
-        sinon.assert.called(window.contacts.List.getContactById);
+        sinon.assert.called(utils.getContactById);
         sinon.assert.called(contacts.Details.render);
         sinon.assert.called(navigation.go);
         sinon.assert.notCalled(ActivityHandler.dataPickHandler);

@@ -1,31 +1,30 @@
 'use strict';
 /* exported TAG_OPTIONS */
-/* global _ */
 
 var TAG_OPTIONS = {
   'phone-type' : [
-    {type: 'mobile', value: _('mobile')},
-    {type: 'home', value: _('home')},
-    {type: 'work', value: _('work')},
-    {type: 'personal', value: _('personal')},
-    {type: 'faxHome', value: _('faxHome')},
-    {type: 'faxOffice', value: _('faxOffice')},
-    {type: 'faxOther', value: _('faxOther')},
-    {type: 'other', value: _('other')}
+    {type: 'mobile', value: navigator.mozL10n.get('mobile')},
+    {type: 'home', value: navigator.mozL10n.get('home')},
+    {type: 'work', value: navigator.mozL10n.get('work')},
+    {type: 'personal', value: navigator.mozL10n.get('personal')},
+    {type: 'faxHome', value: navigator.mozL10n.get('faxHome')},
+    {type: 'faxOffice', value: navigator.mozL10n.get('faxOffice')},
+    {type: 'faxOther', value: navigator.mozL10n.get('faxOther')},
+    {type: 'other', value: navigator.mozL10n.get('other')}
   ],
   'email-type' : [
-    {type: 'personal', value: _('personal')},
-    {type: 'home', value: _('home')},
-    {type: 'work', value: _('work')},
-    {type: 'other', value: _('other')}
+    {type: 'personal', value: navigator.mozL10n.get('personal')},
+    {type: 'home', value: navigator.mozL10n.get('home')},
+    {type: 'work', value: navigator.mozL10n.get('work')},
+    {type: 'other', value: navigator.mozL10n.get('other')}
   ],
   'address-type' : [
-    {type: 'current', value: _('current')},
-    {type: 'home', value: _('home')},
-    {type: 'work', value: _('work')}
+    {type: 'current', value: navigator.mozL10n.get('current')},
+    {type: 'home', value: navigator.mozL10n.get('home')},
+    {type: 'work', value: navigator.mozL10n.get('work')}
   ],
   'date-type': [
-    {type: 'birthday', value: _('birthday')},
-    {type: 'anniversary', value: _('anniversary')}
+    {type: 'birthday', value: navigator.mozL10n.get('birthday')},
+    {type: 'anniversary', value: navigator.mozL10n.get('anniversary')}
   ]
 };

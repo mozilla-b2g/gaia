@@ -771,7 +771,7 @@ contacts.List = (function() {
     utils.PerformanceHelper.loadEnd();
     fb.init(function contacts_init() {
       if (fb.isEnabled) {
-        Contacts.loadFacebook(NOP_FUNCTION);
+        utils.loadFacebook(NOP_FUNCTION);
       }
       lazyLoadImages();
       loaded = true;
@@ -968,7 +968,7 @@ contacts.List = (function() {
       }
     };
 
-    Contacts.confirmDialog(null, msg, noObject);
+    utils.confirmDialog(null, msg, noObject);
   };
 
   var getContactsByGroup = function gCtByGroup(errorCb, contacts) {
@@ -995,35 +995,6 @@ contacts.List = (function() {
       return;
     }
     getAllContacts(errorCb, loadChunk);
-  };
-
-  var getContactById = function(contactID, successCb, errorCb) {
-    var options = {
-      filterBy: ['id'],
-      filterOp: 'equals',
-      filterValue: contactID
-    };
-    var request = navigator.mozContacts.find(options);
-
-    request.onsuccess = function findCallback(e) {
-      var result = e.target.result[0];
-
-      if (!fb.isFbContact(result)) {
-        successCb(result);
-        return;
-      }
-
-      var fbContact = new fb.Contact(result);
-      var fbReq = fbContact.getData();
-      fbReq.onsuccess = function() {
-        successCb(result, fbReq.result);
-      };
-      fbReq.onerror = successCb.bind(null, result);
-    }; // request.onsuccess
-
-    if (typeof errorCb === 'function') {
-      request.onerror = errorCb;
-    }
   };
 
   var getAllContacts = function cl_getAllContacts(errorCb, successCb) {
@@ -1308,7 +1279,7 @@ contacts.List = (function() {
     }
 
     // Passed an ID, so look up contact
-    getContactById(idOrContact, function(contact, fbData) {
+    utils.getContactById(idOrContact, function(contact, fbData) {
       var enrichedContact = null;
       if (fb.isFbContact(contact)) {
         var fbContact = new fb.Contact(contact);
@@ -1876,7 +1847,6 @@ contacts.List = (function() {
     'load': load,
     'refresh': refresh,
     'refreshFb': refreshFb,
-    'getContactById': getContactById,
     'getAllContacts': getAllContacts,
     'handleClick': handleClick,
     'hide': hide,

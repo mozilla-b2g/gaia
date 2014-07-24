@@ -15,6 +15,7 @@
 /* global MockNavigatorMozMobileConnections */
 /* global MockSimContactsImporter */
 /* global MockVCFReader */
+/* global ConfirmDialog */
 
 require('/shared/js/lazy_loader.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
@@ -100,6 +101,10 @@ suite('Import contacts >', function() {
     window.utils.sdcard = MockSdCard;
     window.utils.time = {
       pretty: function() {}
+    };
+
+    window.utils.confirmDialog = function(){
+      ConfirmDialog.show.apply(ConfirmDialog, arguments);
     };
 
     document.body.innerHTML = MockContactsIndexHtml;

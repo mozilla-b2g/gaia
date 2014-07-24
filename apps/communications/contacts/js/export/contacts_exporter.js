@@ -128,7 +128,7 @@ window.ContactsExporter = function ContactsExporter(theStrategy) {
         }
 
         var errorString = 'exportError-' + strategy.name + '-';
-        Contacts.confirmDialog(_('exportErrorTitle'),
+        utils.confirmDialog(_('exportErrorTitle'),
                               _(errorString + error.reason), cancel, retry);
 
         Contacts.hideOverlay();
