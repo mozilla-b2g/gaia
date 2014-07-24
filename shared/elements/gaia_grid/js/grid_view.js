@@ -29,6 +29,8 @@
     this.onTouchEnd = this.onTouchEnd.bind(this);
     this.onScroll = this.onScroll.bind(this);
     this.lastTouchStart = null;
+    this.scrollableParent = this.findScrollableParent();
+    this.lastScrollTop = this.scrollableParent.scrollTop;
 
     if (config.features.zoom) {
       this.zoom = new GridZoom(this);
@@ -167,6 +169,14 @@
 
     // bug 1015000
     onScroll: function() {
+      // If we scroll slowly, we can still launch an app.
+      var scrollTop = this.scrollableParent.scrollTop;
+      var delta = scrollTop - this.lastScrollTop;
+      this.lastScrollTop = scrollTop;
+      if (Math.abs(delta) < SCROLL_THRESHOLD) {
+        return;
+      }
+
       clearTimeout(this.preventTapTimeout);
 
       this.element.removeEventListener('touchstart', this.onTouchStart);
