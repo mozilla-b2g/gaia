@@ -836,7 +836,7 @@
      * @private
      */
     _require: function require(url, options) {
-      return new Promise(function(accept, reject) {
+      var promise = new Promise(function(accept, reject) {
         var prefix = this.prefix,
             suffix = '',
             self = this,
@@ -845,14 +845,14 @@
             document = this.targetWindow.document;
 
         if (url in this._cached) {
-          return accept();
+          return this._cached[url];
         }
 
         if (this.bustCache) {
           suffix = '?time=' + String(Date.now());
         }
 
-        this._cached[url] = true;
+        this._cached[url] = promise;
 
         url = prefix + url + suffix;
         element = document.createElement('script');
@@ -874,12 +874,12 @@
         };
 
         element.onload = function() {
-          console.log('loaded', url);
           accept();
         };
 
         document.getElementsByTagName('head')[0].appendChild(element);
       }.bind(this));
+      return promise;
     }
   };
 
@@ -3559,4 +3559,3 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   window.TestAgent.Common.BlanketReportCollector = BlanketReportCollector;
 
 })();
-
