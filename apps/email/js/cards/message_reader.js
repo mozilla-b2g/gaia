@@ -617,8 +617,12 @@ MessageReaderCard.prototype = {
           var mappedType = (MimeMapper.isSupportedType(originalType)) ?
             originalType : MimeMapper.guessTypeFromExtension(extension);
 
+          // If the type is a vcf (vcard), then replace the open activity by
+          // an import activity which adds the contact before showing it.
+          var activityName = (mappedType === 'text/vcard') ? 'import' : 'open';
+
           var activity = new MozActivity({
-            name: 'open',
+            name: activityName,
             data: {
               type: mappedType,
               blob: blob
