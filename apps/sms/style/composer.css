@@ -52,6 +52,7 @@
    * information
    */
   flex: 1 0 calc(15.4% + 5.38rem);
+  overflow: auto;
 }
 
 .new #composer-messages-container {
@@ -183,8 +184,6 @@ form[role="search"] button[type="submit"]:after {
 
 #messages-container {
   height: 100%;
-
-  overflow: auto;
 }
 
 /*
