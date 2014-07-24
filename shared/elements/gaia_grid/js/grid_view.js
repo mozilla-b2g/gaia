@@ -86,9 +86,16 @@
         }
 
         this.icons[item.identifier] = item;
+      } else if (item.detail.type !== 'divider' &&
+        item.detail.type !== 'placeholder') {
+        // If the item does not have an identifier, and is not a placeholder
+        // or divider, do not add it to the grid.
+        console.log('Error, could not load identifier for object: ',
+            JSON.stringify(item.detail));
+        return;
       }
 
-      // If isnsertTo it is a number, splice.
+      // If insertTo it is a number, splice.
       if (!isNaN(parseFloat(insertTo)) && isFinite(insertTo)) {
         this.items.splice(insertTo, 0, item);
       } else {
@@ -153,7 +160,6 @@
         container = e.target.parentNode;
         action = 'remove';
       }
-
       var identifier = container.dataset.identifier;
       var icon = this.icons[identifier];
       var inEditMode = this.dragdrop && this.dragdrop.inEditMode;
