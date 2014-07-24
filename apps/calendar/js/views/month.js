@@ -9,6 +9,8 @@ Calendar.ns('Views').Month = (function() {
    */
   function Month(options) {
     Parent.apply(this, arguments);
+    // default to today
+    this._selectedDay = new Date();
   }
 
   Month.prototype = {

@@ -116,8 +116,4 @@ suiteGroup('Views.MonthsDay', function() {
   });
 */
 
-  test('#onfirstseen', function() {
-    assert.equal(subject.onfirstseen, subject.render);
-  });
-
 });
