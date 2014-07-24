@@ -190,12 +190,6 @@ function loadJSON(href, callback) {
 })(this);
 
 /**
- * L10n helper
- */
-
-var localize = navigator.mozL10n.localize;
-
-/**
  * Helper class for formatting file size strings
  * required by *_storage.js
  */
@@ -241,10 +235,12 @@ var DeviceStorageHelper = (function DeviceStorageHelper() {
     var sizeInfo = FileSizeFormatter.getReadableFileSize(size, fixedDigits);
 
     var _ = navigator.mozL10n.get;
-    element.textContent = _(l10nId, {
-      size: sizeInfo.size,
-      unit: _('byteUnit-' + sizeInfo.unit)
-    });
+    navigator.mozL10n.setAttributes(element,
+                                    l10nId,
+                                    {
+                                      size: sizeInfo.size,
+                                      unit: _('byteUnit-' + sizeInfo.unit)
+                                    });
   }
 
   return {

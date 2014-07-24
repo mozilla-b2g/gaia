@@ -10,9 +10,9 @@ define(function(require) {
   return function ctor_battery_panel() {
     var _batteryLevelText = null;
     var _refreshText = function() {
-      navigator.mozL10n.localize(_batteryLevelText,
-                                 'batteryLevel-percent-' + Battery.state,
-                                 { level: Battery.level });
+      navigator.mozL10n.setAttributes(_batteryLevelText,
+                                      'batteryLevel-percent-' + Battery.state,
+                                      { level: Battery.level });
     };
 
     return SettingsPanel({

@@ -87,10 +87,10 @@ var About = {
           'SIM ' + (index + 1) + ': ' + msisdn : msisdn;
       } else {
         if (multiSim) {
-          navigator.mozL10n.localize(span,
+          navigator.mozL10n.setAttributes(span,
             'unknown-phoneNumber-sim', { index: index + 1 });
         } else {
-          navigator.mozL10n.localize(span, 'unknown-phoneNumber');
+          navigator.mozL10n.setAttributes(span, 'unknown-phoneNumber');
         }
       }
       deviceInfoMsisdns.appendChild(span);
@@ -104,7 +104,6 @@ var About = {
     if (!settings)
       return;
 
-    var _ = navigator.mozL10n.get;
     var updateStatus = document.getElementById('update-status'),
         systemStatus = updateStatus.querySelector('.system-update-status');
 
@@ -131,8 +130,13 @@ var About = {
        * to check if this is still current
        */
 
+      var l10nValues = ['no-updates',
+                        'already-latest-version',
+                        'retry-when-online'];
+
       if (value !== 'check-complete') {
-        systemStatus.textContent = _(value) || _('check-error');
+        systemStatus.setAttribute('data-l10n-id',
+          l10nValues.indexOf(value) !== -1 ? value : 'check-error');
         console.error('Error checking for system update:', value);
       }
 

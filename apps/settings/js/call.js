@@ -52,7 +52,6 @@ require([
       'CLIR_SUPPRESSION': 2
     };
 
-    var _ = window.navigator.mozL10n.get;
     var _settings = window.navigator.mozSettings;
     var _mobileConnections = window.navigator.mozMobileConnections;
     var _voiceTypes = Array.prototype.map.call(_mobileConnections,
@@ -251,14 +250,14 @@ require([
       for (var i = 0; i < rules.length; i++) {
         if (rules[i].active &&
             ((_voiceServiceClassMask & rules[i].serviceClass) != 0)) {
-          element.textContent = _('callForwardingForwardingVoiceTo') +
-            ' ' + rules[i].number;
+          navigator.mozL10n.setAttributes(element,
+                                          'callForwardingForwardingVoiceTo'
+                                          { number: rules[i].number });
           return;
         }
       }
 
-      element.textContent = _('callForwardingNotForwarding');
-      element.dataset.l10nId = 'callForwardingNotForwarding';
+      element.setAttribute('data-l10n-id', 'callForwardingNotForwarding');
     }
 
     /**
@@ -289,12 +288,15 @@ require([
     /**
      * Display information relevant to the SIM card state.
      */
-    function cs_displayInfoForAll(what) {
-      document.getElementById('cfu-desc').textContent =
-        document.getElementById('cfmb-desc').textContent =
-          document.getElementById('cfnrep-desc').textContent =
-            document.getElementById('cfnrea-desc').textContent =
-              what;
+    function cs_displayInfoForAll(l10nId) {
+      document.getElementById('cfu-desc').
+        setAttribute('data-l10n-id', l10nId);
+      document.getElementById('cfmb-desc').
+        setAttribute('data-l10n-id', l10nId);
+      document.getElementById('cfnrep-desc').
+        setAttribute('data-l10n-id', l10nId);
+      document.getElementById('cfnrea-desc').
+        setAttribute('data-l10n-id', l10nId);
     }
 
     /**
@@ -471,8 +473,8 @@ require([
           mozMobileCFInfo['serviceClass'] = _voiceServiceClassMask;
 
           if (!cs_isPhoneNumberValid(textInput.value)) {
-            document.getElementById('cf-confirm-message').textContent =
-              _('callForwardingInvalidNumberError');
+            document.getElementById('cf-confirm-message').
+              setAttribute('data-l10n-id', 'callForwardingInvalidNumberError');
             var cfAlertPanel = document.querySelector('#call .cf-alert');
             cfAlertPanel.hidden = false;
             cs_enableTabOnCallerIdItem(false);
@@ -491,7 +493,7 @@ require([
           cs_enableTabOnCallerIdItem(false);
           cs_enableTabOnCallWaitingItem(false);
           cs_enableTapOnCallForwardingItems(false);
-          cs_displayInfoForAll(_('callSettingsQuery'));
+          cs_displayInfoForAll('callSettingsQuery');
 
           req.onsuccess = function() {
             cs_updateCallForwardingSubpanels(null,
@@ -500,8 +502,8 @@ require([
                                              mozMobileCFInfo['action']);
           };
           req.onerror = function() {
-            document.getElementById('cf-confirm-message').textContent =
-              _('callForwardingSetError');
+            document.getElementById('cf-confirm-message').
+              setAttribute('data-l10n-id', 'callForwardingSetError');
             var cfAlertPanel = document.querySelector('#call .cf-alert');
             cfAlertPanel.hidden = false;
             cs_updateCallForwardingSubpanels();
@@ -511,24 +513,24 @@ require([
     }
 
     /**
-     * Get the message to show after setting up call forwarding.
+     * Get the l10nId to show after setting up call forwarding.
      */
     function cs_getSetCallForwardingOptionResult(rules, action) {
-      var message;
+      var l10nId;
       for (var i = 0; i < rules.length; i++) {
         if (rules[i].active &&
             ((_voiceServiceClassMask & rules[i].serviceClass) != 0)) {
           var disableAction = action === _cfAction.CALL_FORWARD_ACTION_DISABLE;
-          message = disableAction ?
-            _('callForwardingSetForbidden') : _('callForwardingSetSuccess');
-          return message;
+          l10nId = disableAction ?
+            'callForwardingSetForbidden' : 'callForwardingSetSuccess';
+          return l10nId;
         }
       }
       var registrationAction =
         action === _cfAction.CALL_FORWARD_ACTION_REGISTRATION;
-      message = registrationAction ?
-        _('callForwardingSetError') : _('callForwardingSetSuccess');
-      return message;
+      l10nId = registrationAction ?
+        'callForwardingSetError' : 'callForwardingSetSuccess';
+      return l10nId;
     }
 
     /**
@@ -547,7 +549,7 @@ require([
       }
 
       _taskScheduler.enqueue('CALL_FORWARDING', function(done) {
-        cs_displayInfoForAll(_('callSettingsQuery'));
+        cs_displayInfoForAll('callSettingsQuery');
         cs_enableTapOnCallForwardingItems(false);
         cs_getCallForwardingOption(function got_cfOption(cfOptions) {
           if (cfOptions) {
@@ -557,9 +559,9 @@ require([
             // etc.
             if (checkSetCallForwardingOptionResult) {
               var rules = cfOptions[reason];
-              var message = cs_getSetCallForwardingOptionResult(rules, action);
-              document.getElementById('cf-confirm-message')
-                .textContent = message;
+              var l10nId = cs_getSetCallForwardingOptionResult(rules, action);
+              document.getElementById('cf-confirm-message').
+                setAttribute('data-l10n-id', l10nId);
               var cfAlertPanel = document.querySelector('#call .cf-alert');
               cfAlertPanel.hidden = false;
             }
@@ -573,7 +575,7 @@ require([
             //  If the query is a success enable call forwarding items.
             cs_enableTapOnCallForwardingItems(_getCallForwardingOptionSuccess);
           } else {
-            cs_displayInfoForAll(_('callSettingsQueryError'));
+            cs_displayInfoForAll('callSettingsQueryError');
             _getCallForwardingOptionSuccess = false;
             cs_enableTabOnCallerIdItem(true);
             cs_enableTabOnCallWaitingItem(true);
@@ -897,10 +899,11 @@ require([
         var numbers = results['ril.iccInfo.mbdn'];
         var number = numbers[targetIndex];
         if (number) {
-          localize(voiceMailMenuItem, null);
+          voiceMailMenuItem.removeAttribute('data-l10n-id');
           voiceMailMenuItem.textContent = number;
         } else {
-          localize(voiceMailMenuItem, 'voiceMail-number-notSet');
+          voiceMailMenuItem.setAttribute('data-l10n-id',
+                                         'voiceMail-number-notSet');
         }
       });
     }
@@ -1017,7 +1020,8 @@ require([
         var enabled = req.result.enabled;
 
         var simFdnDesc = document.querySelector('#fdnSettings-desc');
-        localize(simFdnDesc, enabled ? 'enabled' : 'disabled');
+        simFdnDesc.setAttribute('data-l10n-id',
+                                enabled ? 'enabled' : 'disabled');
 
         var fdnSettingsBlocked = document.querySelector('#fdnSettingsBlocked');
         fdnSettingsBlocked.hidden = !enabled;

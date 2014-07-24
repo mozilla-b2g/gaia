@@ -10,9 +10,6 @@ define(function(require) {
   var WifiNetworkList = require('panels/wifi/wifi_network_list');
   var wifiManager = WifiHelper.getWifiManager();
 
-  var _ = navigator.mozL10n.get;
-  var localize = navigator.mozL10n.localize;
-
   return function ctor_wifi() {
     var elements;
 
@@ -56,9 +53,11 @@ define(function(require) {
         this._networkList = WifiNetworkList(elements.networklist);
         this._wps = WifiWps();
         this._wps.addEventListener('statusreset', function() {
-          localize(elements.wps.wpsPbcLabelBlock, 'wpsMessage');
+          elements.wps.wpsPbcLabelBlock.setAttribute('data-l10n-id',
+                                                     'wpsMessage');
           setTimeout(function resetWpsInfoBlock() {
-            localize(elements.wps.wpsPbcLabelBlock, 'wpsDescription2');
+            elements.wps.wpsPbcLabelBlock.setAttribute('data-l10n-id',
+                                                       'wpsDescription2');
           }, 1500);
         });
 
@@ -128,11 +127,13 @@ define(function(require) {
         if (this._wps.inProgress) {
           this._wps.cancel({
             onSuccess: function() {
-              localize(elements.wpsInfoBlock, 'fullStatus-wps-canceled');
+              elements.wpsInfoBlock.setAttribute('data-l10n-id',
+                                                 'fullStatus-wps-canceled');
             },
             onError: function(error) {
-              elements.wpsInfoBlock.textContent =
-                _('wpsCancelFailedMessage') + ' [' + error.name + ']';
+              navigator.mozL10n.setAttributes(elements.wpsInfoBlock,
+                                              'wpsCancelFailedMessage',
+                                              { error: error.name });
             }
           });
         } else {
@@ -140,14 +141,15 @@ define(function(require) {
             onSubmit: function() {
               self._wps.connect({
                 onSuccess: function() {
-                  localize(elements.wps.wpsPbcLabelBlock,
+                  elements.wps.wpsPbcLabelBlock.setAttribute('data-l10n-id',
                     'wpsCancelMessage');
-                  localize(elements.wps.wpsInfoBlock,
+                  elements.wps.wpsInfoBlock.setAttribute('data-l10n-id',
                     'fullStatus-wps-inprogress');
                 },
                 onError: function(error) {
-                  elements.wps.wpsInfoBlock.textContent =
-                    _('fullStatus-wps-failed') + ' [' + error.name + ']';
+                  navigator.mozL10n.setAttributes(elements.wpsInfoBlock,
+                                                  'fullStatus-wps-failed',
+                                                  { error: error.name });
                 }
               });
             },
@@ -188,7 +190,15 @@ define(function(require) {
           elements.wpsColumn.hidden = false;
         } else {
           if (this._wps.inProgress) {
-            elements.wpsInfoBlock.textContent = WifiContext.wifiStatusText;
+            elements.wpsInfoBlock.
+              setAttribute('data-l10n-id', WifiContext.wifiStatusText.id);
+            if (WifiContext.wifiStatusText.args) {
+              elements.wpsInfoBlock.
+                setAttribute('data-l10n-args',
+                             JSON.stringify(WifiContext.wifiStatusText.args));
+            } else {
+              elements.wpsInfoBlock.removeAttribute('data-l10n-args');
+            }
           }
           this._networkList.clear(false);
           this._networkList.autoscan = false;
@@ -201,7 +211,15 @@ define(function(require) {
 
         if (this._wps.inProgress) {
           if (networkStatus !== 'disconnected') {
-            elements.wpsInfoBlock.textContent = WifiContext.wifiStatusText;
+            elements.wpsInfoBlock.
+              setAttribute('data-l10n-id', WifiContext.wifiStatusText.id);
+            if (WifiContext.wifiStatusText.args) {
+              elements.wpsInfoBlock.
+                setAttribute('data-l10n-args',
+                             JSON.stringify(WifiContext.wifiStatusText.args));
+            } else {
+              elements.wpsInfoBlock.removeAttribute('data-l10n-args');
+            }
           }
           if (networkStatus === 'connected' ||
             networkStatus === 'wps-timedout' ||

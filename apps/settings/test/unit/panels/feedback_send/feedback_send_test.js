@@ -26,13 +26,19 @@ suite('sendFeedback > ', function() {
       hidden: false
     },
     alertMsg: {
-      textContent: 'testAlertMsg'
+      _keys: {},
+      setAttribute: function(key, value) { this._keys[key] = value; },
+      getAttribute: function(key) { return this._keys[key]; },
+      removeAttribute: function(key) { delete this._keys[key]; },
     },
     doneDialog: {
       hidden: true
     },
     title: {
-      textContent: 'testTitle'
+      _keys: {},
+      setAttribute: function(key, value) { this._keys[key] = value; },
+      getAttribute: function(key) { return this._keys[key]; },
+      removeAttribute: function(key) { delete this._keys[key]; },
     },
     description: {
       value: 'testDescription',
@@ -105,7 +111,7 @@ suite('sendFeedback > ', function() {
       sendFeedback.options = mock_options;
       sendFeedback.updateTitle();
       sendFeedback.getPreviousInputs();
-      assert.equal(sendFeedback.elements.title.textContent,
+      assert.equal(sendFeedback.elements.title.getAttribute('data-l10n-id'),
         'feedback_whyfeel_' +
         (mock_options.feel === 'feedback-happy' ? 'happy' : 'sad'));
       assert.deepEqual(sendFeedback._inputData, {
@@ -172,23 +178,23 @@ suite('sendFeedback > ', function() {
 
       sendFeedback._xhr.status = 400;
       sendFeedback._responseHandler();
-      assert.equal(sendFeedback.elements.alertMsg.textContent,
+      assert.equal(sendFeedback.elements.alertMsg.getAttribute('data-l10n-id'),
         'feedback-errormessage-wrong-email');
       assert.equal(sendFeedback.elements.alertDialog.hidden, false);
 
       sendFeedback._xhr.status = 429;
       sendFeedback._responseHandler();
-      assert.equal(sendFeedback.elements.alertMsg.textContent,
+      assert.equal(sendFeedback.elements.alertMsg.getAttribute('data-l10n-id'),
         'feedback-errormessage-just-sent');
 
       sendFeedback._xhr.status = 404;
       sendFeedback._responseHandler();
-      assert.equal(sendFeedback.elements.alertMsg.textContent,
+      assert.equal(sendFeedback.elements.alertMsg.getAttribute('data-l10n-id'),
         'feedback-errormessage-server-off');
 
       sendFeedback._xhr.status = 402;
       sendFeedback._responseHandler();
-      assert.equal(sendFeedback.elements.alertMsg.textContent,
+      assert.equal(sendFeedback.elements.alertMsg.getAttribute('data-l10n-id'),
         'feedback-errormessage-connect-error');
     });
 

@@ -36,7 +36,7 @@ suite('Find My Device panel > ', function() {
       once: function(callback) {
         callback();
       },
-      localize: function(element, id) {
+      setAttributes: function(element, id) {
       },
     };
 
@@ -188,14 +188,12 @@ suite('Find My Device panel > ', function() {
     MockSettingsListener.mCallbacks['findmydevice.enabled'](true);
     assert.isFalse(trackingSection.hidden);
 
-    this.sinon.spy(navigator.mozL10n, 'localize');
     MockSettingsListener.mCallbacks['findmydevice.tracking'](true);
-    assert.ok(navigator.mozL10n.localize.calledWith(
-        trackingSection, 'findmydevice-active-tracking'));
+    assert.equal(trackingSection.getAttribute('data-l10n-id'),
+                                              'findmydevice-active-tracking');
     MockSettingsListener.mCallbacks['findmydevice.tracking'](false);
-    assert.ok(navigator.mozL10n.localize.calledWith(
-        trackingSection, 'findmydevice-not-tracking'));
-    navigator.mozL10n.localize.reset();
+    assert.equal(trackingSection.getAttribute('data-l10n-id'),
+                                              'findmydevice-not-tracking');
   });
 
   test('prevent accidental auto-enable on FxA sign-in', function() {

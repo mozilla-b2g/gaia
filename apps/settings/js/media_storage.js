@@ -92,15 +92,13 @@ require([
   };
 
   Volume.prototype.createView = function volume_createView(listRoot) {
-    var _ = navigator.mozL10n.get;
     // declair re-useable variables
     var l10nId, li, label, text, size;
 
     // create header
     var h2 = document.createElement('h2');
     l10nId = this.getL10nId();
-    h2.dataset.l10nId = l10nId;
-    h2.textContent = _(l10nId);
+    h2.setAttribute('data-l10n-id', l10nId);
     var header = document.createElement('header');
     header.appendChild(h2);
     listRoot.appendChild(header);
@@ -125,8 +123,7 @@ require([
       size.hidden = true;
       text = document.createElement('a');
       l10nId = type + '-space';
-      text.dataset.l10nId = l10nId;
-      text.textContent = _(l10nId);
+      text.setAttribute('data-l10n-id', l10nId);
       text.appendChild(size);
       li = document.createElement('li');
       li.classList.add('color-' + type);
@@ -140,8 +137,7 @@ require([
     size.hidden = true;
     text = document.createElement('a');
     l10nId = 'total-space';
-    text.dataset.l10nId = l10nId;
-    text.textContent = _(l10nId);
+    text.setAttribute('data-l10n-id', l10nId);
     text.appendChild(size);
     li = document.createElement('li');
     li.appendChild(text);
@@ -149,8 +145,7 @@ require([
 
     var buttonType = 'format-sdcard';
     var button = document.createElement('button');
-    button.dataset.l10nId = buttonType;
-    button.textContent = _(buttonType);
+    button.setAttribute('data-l10n-id', buttonType);
     button.disabled = true;
     button.onclick = this.formatSDCard.bind(this);
     label = document.createElement('label');
@@ -166,8 +161,7 @@ require([
     label.classList.add('pack-switch');
     label.appendChild(input);
     var span = document.createElement('span');
-    span.dataset.l10nId = 'share-using-usb';
-    span.textContent = _('share-using-usb');
+    span.setAttribute('data-l10n-id', 'share-using-usb');
     label.appendChild(span);
 
     var ele = document.createElement('li');
@@ -242,18 +236,15 @@ require([
 
   Volume.prototype.setInfoUnavailable = function volume_setInfoUnavailable() {
     var self = this;
-    var _ = navigator.mozL10n.get;
     ITEM_TYPE.forEach(function(type) {
       var rule = '.color-' + type + ' .size';
       var element = self.rootElement.querySelector(rule);
-      element.textContent = _('size-not-available');
-      element.dataset.l10nId = 'size-not-available';
+      element.setAttribute('data-l10n-id', 'size-not-available');
     });
     // set total space info.
     var element =
       this.rootElement.querySelector('a[data-l10n-id="total-space"] .size');
-    element.textContent = _('size-not-available');
-    element.dataset.l10nId = 'size-not-available';
+    element.setAttribute('data-l10n-id', 'size-not-available');
     // stacked bar reset
     this.stackedbar.reset();
   };
@@ -397,7 +388,6 @@ require([
     },
 
     makeDefaultLocationMenu: function ms_makeDefaultLocationMenu() {
-      var _ = navigator.mozL10n.get;
       var self = this;
       var defaultMediaVolumeKey = 'device.storage.writable.name';
       SettingsCache.getSettings(function(allSettings) {
@@ -408,8 +398,7 @@ require([
           var option = document.createElement('option');
           option.value = volume.name;
           var l10nId = volume.getL10nId(true);
-          option.dataset.l10nId = l10nId;
-          option.textContent = _(l10nId);
+          option.setAttribute('data-l10n-id', l10nId);
           selectionMenu.appendChild(option);
           if (defaultName && volume.name === defaultName) {
             selectedIndex = index;

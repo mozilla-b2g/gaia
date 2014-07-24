@@ -111,7 +111,7 @@ var AboutMoreInfo = {
     if (!imeis || imeis.length === 0) {
       var span = document.createElement('span');
 
-      navigator.mozL10n.localize(span, 'unavailable');
+      span.setAttribute('data-l10n-id', 'unavailable');
       deviceInfoImeis.appendChild(span);
     } else {
       imeis.forEach(function(imei, index) {
@@ -178,10 +178,10 @@ var AboutMoreInfo = {
           'SIM ' + (index + 1) + ': ' + conn.iccId : conn.iccId;
       } else {
         if (multiSim) {
-          navigator.mozL10n.localize(span,
+          navigator.mozL10n.setAttributes(span,
             'deviceInfo-ICCID-unavailable-sim', { index: index + 1 });
         } else {
-          navigator.mozL10n.localize(span, 'unavailable');
+          navigator.mozL10n.setAttributes(span, 'unavailable');
         }
       }
       deviceInfoIccIds.appendChild(span);

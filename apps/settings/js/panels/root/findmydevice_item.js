@@ -37,8 +37,8 @@ define(function(require) {
         return;
       }
 
-      navigator.mozL10n.localize(element,
-        this._FMDEnabled ? 'enabled' : 'disabled');
+      element.setAttribute('data-l10n-id',
+                           this._FMDEnabled ? 'enabled' : 'disabled');
       element.hidden = false;
     },
 

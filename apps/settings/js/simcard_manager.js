@@ -1,7 +1,7 @@
 /* exported SimCardManager */
 /* global Template, SimUIModel,
    SimSettingsHelper, MobileOperator, SimCardManager,
-   AirplaneModeHelper, localize */
+   AirplaneModeHelper */
 
 'use strict';
 
@@ -210,10 +210,12 @@
       if (firstCardInfo.absent && secondCardInfo.absent ||
         this.isAirplaneMode) {
           this.simManagerSecurityEntry.setAttribute('aria-disabled', true);
-          localize(this.simManagerSecurityDesc, 'noSimCard');
+          this.simManagerSecurityDesc.setAttribute('data-l10n-id',
+                                                   'noSimCard');
       } else {
         this.simManagerSecurityEntry.setAttribute('aria-disabled', false);
-        localize(this.simManagerSecurityDesc);
+        this.simManagerSecurityDesc.removeAttribute('data-l10n-id');
+        this.simManagerSecurityDesc.textContent = '';
       }
     },
     updateSelectOptionsUI: function() {
@@ -301,7 +303,7 @@
       if (storageKey === 'outgoingCall' || storageKey === 'outgoingMessages') {
         var option = document.createElement('option');
         option.value = SimSettingsHelper.ALWAYS_ASK_OPTION_VALUE;
-        localize(option, 'sim-manager-always-ask');
+        option.setAttribute('data-l10n-id', 'sim-manager-always-ask');
 
         if (SimSettingsHelper.ALWAYS_ASK_OPTION_VALUE == selectedCardIndex) {
           option.selected = true;

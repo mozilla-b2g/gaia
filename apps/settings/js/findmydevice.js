@@ -85,7 +85,7 @@ var FindMyDevice = {
 
   _setTracked: function fmd_set_tracked(value) {
     var status = document.getElementById('findmydevice-tracking');
-    navigator.mozL10n.localize(status,
+    status.setAttribute('data-l10n-id',
       value ?  'findmydevice-active-tracking' : 'findmydevice-not-tracking');
   },
 

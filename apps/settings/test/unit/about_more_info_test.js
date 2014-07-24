@@ -74,10 +74,10 @@ suite('about >', function() {
       test('should show "Not available" when iccid is unavalilable',
         function() {
           MockNavigatorMozMobileConnections[0].iccId = null;
-          sandbox.spy(MockL10n, 'localize');
+          sandbox.spy(MockL10n, 'setAttributes');
           AboutMoreInfo.loadIccId();
           var span = deviceInfoIccIds.querySelector('span');
-          sinon.assert.calledWith(MockL10n.localize, span, 'unavailable');
+          sinon.assert.calledWith(MockL10n.setAttributes, span, 'unavailable');
       });
 
       test('should show correct value when with iccid', function() {
@@ -158,7 +158,6 @@ suite('about >', function() {
 
     test('should show correct value when without correct result',
       function(done) {
-        sandbox.spy(MockL10n, 'localize');
         var req = {};
         sandbox.stub(MockNavigatorMozMobileConnections[0], 'sendMMI',
           function() {
@@ -169,13 +168,12 @@ suite('about >', function() {
 
         promise.then(function() {
           var span = deviceInfoImeis.querySelector('span');
-          sinon.assert.calledWith(MockL10n.localize, span, 'unavailable');
+          assert.equal(span.getAttribute('data-l10n-id'), 'unavailable');
         }).then(done, done);
     });
 
     test('should show correct value when with getting imei failed',
       function(done) {
-        sandbox.spy(MockL10n, 'localize');
         var req = {};
         sandbox.stub(MockNavigatorMozMobileConnections[0], 'sendMMI',
           function() {
@@ -186,7 +184,7 @@ suite('about >', function() {
 
         promise.then(function() {
           var span = deviceInfoImeis.querySelector('span');
-          sinon.assert.calledWith(MockL10n.localize, span, 'unavailable');
+          assert.equal(span.getAttribute('data-l10n-id'), 'unavailable');
         }).then(done, done);
     });
 

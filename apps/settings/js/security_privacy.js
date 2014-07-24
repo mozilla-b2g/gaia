@@ -13,7 +13,6 @@ var Security = {
   _airplaneMode: false,
 
   init: function init() {
-    var _ = navigator.mozL10n.get;
     var settings = navigator.mozSettings;
     if (!settings)
       return;
@@ -24,8 +23,8 @@ var Security = {
     var reqLockscreenEnable = lock.get('lockscreen.enabled');
     reqLockscreenEnable.onsuccess = function onLockscreenEnableSuccess() {
       var enable = reqLockscreenEnable.result['lockscreen.enabled'];
-      screenlockDesc.textContent = enable ? _('enabled') : _('disabled');
-      screenlockDesc.dataset.l10nId = enable ? 'enabled' : 'disabled';
+      screenlockDesc.setAttribute('data-l10n-id',
+                                  enable ? 'enabled' : 'disabled');
     };
 
     this.updateSimLockDesc();
@@ -58,19 +57,16 @@ var Security = {
     simSecurityDesc.style.fontStyle = 'italic';
 
     if (this._airplaneMode) {
-      simSecurityDesc.textContent = _('simCardNotReady');
-      simSecurityDesc.dataset.l10nId = 'simCardNotReady';
+      simSecurityDesc.setAttribute('data-l10n-id', 'simCardNotReady');
       return;
     }
 
     switch (IccHelper.cardState) {
       case null:
-        simSecurityDesc.textContent = _('noSimCard');
-        simSecurityDesc.dataset.l10nId = 'noSimCard';
+        simSecurityDesc.setAttribute('data-l10n-id', 'noSimCard');
         return;
       case 'unknown':
-        simSecurityDesc.textContent = _('unknownSimCardState');
-        simSecurityDesc.dataset.l10nId = 'unknownSimCardState';
+        simSecurityDesc.setAttribute('data-l10n-id', 'unknownSimCardState');
         return;
     }
 
@@ -79,10 +75,8 @@ var Security = {
     var req = IccHelper.getCardLock('pin');
     req.onsuccess = function spl_checkSuccess() {
       var enabled = req.result.enabled;
-      simSecurityDesc.textContent = (enabled) ?
-        _('enabled') : _('disabled');
-      simSecurityDesc.dataset.l10nId = (enabled) ?
-        'enabled' : 'disabled';
+      simSecurityDesc.setAttribute('data-l10n-id',
+                                   enabled ? 'enabled' : 'disabled');
     };
   }
 };

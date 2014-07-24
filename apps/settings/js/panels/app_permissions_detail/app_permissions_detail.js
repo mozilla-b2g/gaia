@@ -151,12 +151,10 @@ define(function(require) {
      */
     _insertPermissionSelect:
       function pd__insert_permission_select(perm, value) {
-        var _ = window.navigator.mozL10n.get;
         var item = document.createElement('li');
         var content = document.createElement('p');
         var contentL10nId = 'perm-' + perm.replace(':', '-');
-        content.textContent = _(contentL10nId);
-        content.dataset.l10nId = contentL10nId;
+        content.setAttribute('data-l10n-id', contentL10nId);
 
         var fakeSelect = document.createElement('span');
         fakeSelect.classList.add('button', 'icon', 'icon-dialog');
@@ -166,17 +164,17 @@ define(function(require) {
 
         var askOpt = document.createElement('option');
         askOpt.value = 'prompt';
-        askOpt.text = _('ask');
+        askOpt.setAttribute('data-l10n-id', 'ask');
         select.add(askOpt);
 
         var denyOpt = document.createElement('option');
         denyOpt.value = 'deny';
-        denyOpt.text = _('deny');
+        denyOpt.setAttribute('data-l10n-id', 'deny');
         select.add(denyOpt);
 
         var allowOpt = document.createElement('option');
         allowOpt.value = 'allow';
-        allowOpt.text = _('allow');
+        allowOpt.setAttribute('data-l10n-id', 'allow');
         select.add(allowOpt);
 
         var opt = select.querySelector('[value="' + value + '"]');

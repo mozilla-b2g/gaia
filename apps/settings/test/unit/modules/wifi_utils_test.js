@@ -52,7 +52,7 @@ suite('WifiUtils', function() {
   test('newExplanationItem', function() {
     var li = wifiUtils.newExplanationItem('test');
     assert.equal(li.className, 'explanation');
-    assert.equal(li.textContent, 'test');
+    assert.equal(li.getAttribute('data-l10n-id'), 'test');
   });
 
   suite('changeDisplay', function() {

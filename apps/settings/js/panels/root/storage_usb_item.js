@@ -99,7 +99,6 @@ define(function(require) {
 
     // ums description
     _updateUmsDesc: function storage_updateUmsDesc() {
-      var localize = navigator.mozL10n.localize;
       var key;
       if (this._elements.umsEnabledCheckBox.checked) {
         //TODO list all enabled volume name
@@ -109,7 +108,7 @@ define(function(require) {
       } else {
         key = 'disabled';
       }
-      localize(this._elements.umsEnabledInfoBlock, key);
+      this._elements.umsEnabledInfoBlock.setAttribute('data-l10n-id', key);
     },
 
     _umsMasterSettingChanged: function storage_umsMasterSettingChanged(evt) {
@@ -199,7 +198,6 @@ define(function(require) {
     },
 
     _updateVolumeState: function storage_updateVolumeState(volume, state) {
-      var localize = navigator.mozL10n.localize;
       this._defaultVolumeState = state;
       this._updateUmsDesc();
       switch (state) {
@@ -209,12 +207,14 @@ define(function(require) {
           break;
 
         case 'shared':
-          localize(this._elements.mediaStorageDesc, '');
+          this._elements.mediaStorageDesc.removeAttribute('data-l10n-id');
+          this._elements.mediaStorageDesc.textContent = '';
           this._lockMediaStorageMenu(false);
           break;
 
         case 'unavailable':
-          localize(this._elements.mediaStorageDesc, 'no-storage');
+          this._elements.mediaStorageDesc.setAttribute('data-l10n-id',
+                                                       'no-storage');
           this._lockMediaStorageMenu(true);
           break;
       }

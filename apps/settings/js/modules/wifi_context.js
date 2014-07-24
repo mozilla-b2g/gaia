@@ -12,7 +12,6 @@ define(function(require) {
   var WifiHelper = require('shared/wifi_helper');
   var wifiManager = WifiHelper.getWifiManager();
   var settings = Settings.mozSettings;
-  var _ = navigator.mozL10n.get;
 
   // observed objects
   var _currentNetwork =
@@ -75,7 +74,7 @@ define(function(require) {
      * @memberOf WifiContext
      * @type {String}
      */
-    _wifiStatusText: '',
+    _wifiStatusText: { id: null },
 
     /**
      * Mac address
@@ -115,20 +114,12 @@ define(function(require) {
       var self = this;
 
       var _updateWifi = this._updateWifi.bind(this);
-      var _updateWifiStatusText = this._updateWifiStatusText.bind(this);
       var _updateNetworkStatus = this._updateNetworkStatus.bind(this);
 
       // make sure we would update anything when wifi got changed
       this._wifiEnabledListeners.push(_updateWifi, _updateNetworkStatus);
       this._wifiDisabledListeners.push(_updateWifi);
       this._wifiStatusChangeListeners.push(_updateWifi, _updateNetworkStatus);
-
-      // make sure when localizations got changed, we would also translate
-      // wifiStatus at the same time.
-      window.addEventListener('localized', function() {
-        _updateWifiStatusText();
-        self._wifiStatusTextChange();
-      });
 
       // Now register callbacks to track the state of the wifi hardware
       if (wifiManager) {
@@ -188,9 +179,11 @@ define(function(require) {
         var networkProp = wifiManager.connection.network ?
           { ssid: wifiManager.connection.network.ssid } : null;
         this._wifiStatusText =
-          _('fullStatus-' + wifiManager.connection.status, networkProp);
+          { id: 'fullStatus-' + wifiManager.connection.status,
+            args: networkProp };
       } else {
-        this._wifiStatusText = _('disabled');
+        this._wifiStatusText =
+          { id: 'disabled' };
       }
     },
 

@@ -117,8 +117,6 @@ define(function(require) {
      *                      The root element of the panel.
      */
     activate: function pu_activate(panel) {
-      navigator.mozL10n.translate(panel);
-
       // activate all scripts
       var scripts = panel.getElementsByTagName('script');
       var scripts_src = Array.prototype.map.call(scripts, function(script) {
@@ -251,9 +249,10 @@ define(function(require) {
               '[value="' + result[key] + '"]';
             var option_span = document.querySelector(rule);
             if (option_span) {
-              spanFields[i].dataset.l10nId = option_span.dataset.l10nId;
-              spanFields[i].textContent = option_span.textContent;
+              spanFields[i].setAttribute('data-l10n-id',
+                option_span.getAttribute('data-l10n-id'));
             } else {
+              spanFields[i].removeAttribute('data-l10n-id');
               spanFields[i].textContent = result[key];
             }
           } else { // result[key] is undefined
@@ -262,9 +261,10 @@ define(function(require) {
               //XXX bug 816899 will also provide 'deviceinfo.software' from
               // Gecko which is {os name + os version}
               case 'deviceinfo.software':
-                var text = _('brandShortName') + ' ' +
-                  result['deviceinfo.os'];
-                spanFields[i].textContent = text;
+                navigator.mozL10n.setAttributes(spanFields[i],
+                  'deviceInfo_software',
+                  { brandShortName: _('brandShortName'),
+                    os: result['deviceinfo.os'] });
                 break;
 
               //XXX workaround request from bug 808892 comment 22
@@ -274,7 +274,7 @@ define(function(require) {
                 break;
 
               case 'deviceinfo.mac':
-                spanFields[i].textContent = _('macUnavailable');
+                spanFields[i].setAttribute('data-l10n-id', 'macUnavailable');
                 break;
             }
           }

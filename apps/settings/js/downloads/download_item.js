@@ -106,7 +106,7 @@ var DownloadItem = (function DownloadItem() {
       domNodes['progress'].value =
         DownloadFormatter.getPercentage(download);
 
-      navigator.mozL10n.localize(domNodes['info'], 'partialResult', {
+      navigator.mozL10n.setAttributes(domNodes['info'], 'partialResult', {
         partial: DownloadFormatter.getDownloadedSize(download),
         total: DownloadFormatter.getTotalSize(download)
       });
@@ -123,7 +123,7 @@ var DownloadItem = (function DownloadItem() {
           break;
       }
       DownloadFormatter.getDate(download, function(date) {
-        navigator.mozL10n.localize(domNodes['info'], 'summary', {
+        navigator.mozL10n.setAttributes(domNodes['info'], 'summary', {
           date: date,
           status: status
         });

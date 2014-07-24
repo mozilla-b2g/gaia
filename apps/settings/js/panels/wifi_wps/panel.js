@@ -1,7 +1,6 @@
 define(function(require) {
   'use strict';
 
-  var _ = navigator.mozL10n.get;
   var SettingsPanel = require('modules/settings_panel');
   var WifiContext = require('modules/wifi_context');
   var WifiWps = require('panels/wifi_wps/wifi_wps');
@@ -56,7 +55,7 @@ define(function(require) {
       _updateApList: function(wpsAvailableNetworks) {
         // Add the first option
         var option = document.createElement('option');
-        option.textContent = _('wpsAnyAp');
+        option.setAttribute('data-l10n-id', 'wpsAnyAp');
         option.value = 'any';
         elements.apSelect.appendChild(option);
 
