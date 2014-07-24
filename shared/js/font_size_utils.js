@@ -175,7 +175,7 @@
      * @param {Array} allowedSizes A list of fontSizes allowed.
      * @param {String} fontFamily The font family of the string we're measuring.
      * @param {Integer} maxWidth The maximum number of pixels before overflow.
-     * @return {Object} Dict containing max fontSize and overflow flag.
+     * @return {Object} Dict containing fontSize, overflow and textWidth.
      */
     getMaxFontSizeInfo: function(string, allowedSizes, fontFamily, maxWidth) {
       var fontSize;

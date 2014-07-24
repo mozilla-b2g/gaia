@@ -93,8 +93,10 @@ suite('calls handler', function() {
 
   setup(function() {
     this.sinon.useFakeTimers();
-    this.sinon.spy(FontSizeManager, 'adaptToSpace');
     MockNavigatormozSetMessageHandler.mSetup();
+    var conn1 = new window.MockMobileconnection();
+    conn1.voice = { type: 'edge' };
+    MockNavigatorMozMobileConnections.mAddMobileConnection(conn1, 1);
   });
 
   teardown(function() {
@@ -112,11 +114,6 @@ suite('calls handler', function() {
       setup(function() {
         mockCall = new MockCall('12334', 'incoming');
         mockHC = telephonyAddCall.call(this, mockCall);
-        var conn1 = new window.MockMobileconnection();
-        conn1.voice = {
-          type: 'edge'
-        };
-        MockNavigatorMozMobileConnections.mAddMobileConnection(conn1, 1);
       });
 
       test('should instanciate a handled call', function() {
@@ -262,7 +259,7 @@ suite('calls handler', function() {
       });
 
       test('should show the number of a unknown contact', function() {
-        // 111 is a special case for unknown contacts in MockContacts
+        // 111 is a special case in MockContacts to return no contact.
         extraCall.id = { number: '111' };
         MockNavigatorMozTelephony.mTriggerCallsChanged();
         assert.equal(CallScreen.incomingNumber.textContent,
@@ -271,53 +268,82 @@ suite('calls handler', function() {
         assert.equal(CallScreen.incomingNumberAdditionalInfo.textContent, '');
       });
 
-      test('should call FontSizeManager.adaptToSpace', function() {
-        MockNavigatorMozTelephony.mTriggerCallsChanged();
+      suite('adaptToSpace and ensureFixedBaseline', function() {
+        setup(function() {
+          this.sinon.spy(FontSizeManager, 'adaptToSpace');
+          this.sinon.spy(FontSizeManager, 'ensureFixedBaseline');
+        });
 
-        sinon.assert.calledWith(
-          FontSizeManager.adaptToSpace, FontSizeManager.SECOND_INCOMING_CALL,
-          MockCallScreen.incomingNumber, MockCallScreen.fakeIncomingNumber,
-          false, 'end');
-      });
+        test('should call FontSizeManager.adaptToSpace and ensureFixedBaseline',
+        function() {
+          MockNavigatorMozTelephony.mTriggerCallsChanged();
 
-      test('should call FontSizeManager.adaptToSpace if both calls have ' +
-           'withheld numbers', function() {
-        MockNavigatorMozTelephony.calls = [];
+          sinon.assert.calledWith(
+            FontSizeManager.adaptToSpace, FontSizeManager.SECOND_INCOMING_CALL,
+            CallScreen.incomingNumber, false, 'end');
+          sinon.assert.calledWith(
+            FontSizeManager.ensureFixedBaseline,
+            FontSizeManager.SECOND_INCOMING_CALL,
+            CallScreen.incomingNumber
+          );
+        });
 
-        var firstCall = new MockCall('', 'incoming');
-        extraCall = new MockCall('', 'incoming');
+        test('should only call FontSizeManager.adaptToSpace if incoming call ' +
+             'not a contact', function() {
+          // 111 is a special case in MockContacts to return no contact.
+          extraCall.id = { number: '111' };
+          MockNavigatorMozTelephony.mTriggerCallsChanged();
+          sinon.assert.calledWith(
+            FontSizeManager.adaptToSpace, FontSizeManager.SECOND_INCOMING_CALL,
+            CallScreen.incomingNumber, false, 'end');
+          sinon.assert.notCalled(FontSizeManager.ensureFixedBaseline);
+        });
 
-        telephonyAddCall.call(this, firstCall, {trigger: true});
-        extraHC = telephonyAddCall.call(this, extraCall);
+        test('should only call FontSizeManager.adaptToSpace if both calls ' +
+             'have withheld numbers', function() {
+          MockNavigatorMozTelephony.calls = [];
 
-        MockNavigatorMozTelephony.mTriggerCallsChanged();
+          var firstCall = new MockCall('', 'incoming');
+          extraCall = new MockCall('', 'incoming');
 
-        sinon.assert.calledWith(
-          FontSizeManager.adaptToSpace, FontSizeManager.SECOND_INCOMING_CALL,
-          MockCallScreen.incomingNumber, MockCallScreen.fakeIncomingNumber,
-          false, 'end');
-        assert.equal(
-          MockCallScreen.incomingNumber.textContent, 'withheld-number');
-      });
+          telephonyAddCall.call(this, firstCall, {trigger: true});
+          extraHC = telephonyAddCall.call(this, extraCall);
 
-      test('should call FontSizeManager.adaptToSpace if the second call has ' +
-           'withheld number', function() {
-        MockNavigatorMozTelephony.calls = [];
+          FontSizeManager.adaptToSpace.reset();
+          FontSizeManager.ensureFixedBaseline.reset();
 
-        var firstCall = new MockCall('543552', 'incoming');
-        extraCall = new MockCall('', 'incoming');
+          MockNavigatorMozTelephony.mTriggerCallsChanged();
 
-        telephonyAddCall.call(this, firstCall, {trigger: true});
-        extraHC = telephonyAddCall.call(this, extraCall);
+          sinon.assert.calledWith(
+            FontSizeManager.adaptToSpace, FontSizeManager.SECOND_INCOMING_CALL,
+            MockCallScreen.incomingNumber, false, 'end');
+          sinon.assert.notCalled(FontSizeManager.ensureFixedBaseline);
+          assert.equal(
+            MockCallScreen.incomingNumber.textContent, 'withheld-number');
+        });
 
-        MockNavigatorMozTelephony.mTriggerCallsChanged();
+        test('should only call FontSizeManager.adaptToSpace if the second ' +
+             'call has withheld number', function() {
+          MockNavigatorMozTelephony.calls = [];
 
-        sinon.assert.calledWith(
-          FontSizeManager.adaptToSpace, FontSizeManager.SECOND_INCOMING_CALL,
-          MockCallScreen.incomingNumber, MockCallScreen.fakeIncomingNumber,
-          false, 'end');
-        assert.equal(MockCallScreen.incomingNumber.textContent,
-          'withheld-number');
+          var firstCall = new MockCall('543552', 'incoming');
+          extraCall = new MockCall('', 'incoming');
+
+          telephonyAddCall.call(this, firstCall, {trigger: true});
+          extraHC = telephonyAddCall.call(this, extraCall);
+
+          FontSizeManager.adaptToSpace.reset();
+          FontSizeManager.ensureFixedBaseline.reset();
+
+          MockNavigatorMozTelephony.mTriggerCallsChanged();
+
+          sinon.assert.calledWith(
+            FontSizeManager.adaptToSpace, FontSizeManager.SECOND_INCOMING_CALL,
+            MockCallScreen.incomingNumber, false, 'end');
+          sinon.assert.notCalled(FontSizeManager.ensureFixedBaseline);
+          assert.equal(
+            MockCallScreen.incomingNumber.textContent, 'withheld-number');
+        });
       });
 
       suite('screen management', function() {
@@ -494,15 +520,6 @@ suite('calls handler', function() {
         MockNavigatorMozTelephony.mTriggerCallsChanged();
         assert.isTrue(hideSpy.calledOnce);
       });
-
-      test('should call FontSizeManager.adaptToSpace', function() {
-        MockNavigatorMozTelephony.mTriggerCallsChanged();
-
-        sinon.assert.calledWith(
-          FontSizeManager.adaptToSpace, FontSizeManager.SECOND_INCOMING_CALL,
-          MockCallScreen.incomingNumber, MockCallScreen.fakeIncomingNumber,
-          false, 'end');
-      });
     });
 
     suite('> conference call creation', function() {
@@ -530,16 +547,6 @@ suite('calls handler', function() {
 
         assert.isTrue(firstHideSpy.notCalled);
         assert.isTrue(secondHideSpy.notCalled);
-      });
-
-      test('should call FontSizeManager.adaptToSpace', function() {
-        MockNavigatorMozTelephony.mTriggerGroupCallsChanged();
-        MockNavigatorMozTelephony.mTriggerCallsChanged();
-
-        sinon.assert.calledWith(
-          FontSizeManager.adaptToSpace, FontSizeManager.SECOND_INCOMING_CALL,
-          MockCallScreen.incomingNumber, MockCallScreen.fakeIncomingNumber,
-          false, 'end');
       });
     });
 
@@ -577,16 +584,6 @@ suite('calls handler', function() {
         MockNavigatorMozTelephony.mTriggerGroupCallsChanged();
         assert.isTrue(toggleSpy.calledOnce);
       });
-
-      test('should call FontSizeManager.adaptToSpace', function() {
-        MockNavigatorMozTelephony.mTriggerGroupCallsChanged();
-        MockNavigatorMozTelephony.mTriggerCallsChanged();
-
-        sinon.assert.calledWith(
-          FontSizeManager.adaptToSpace, FontSizeManager.SECOND_INCOMING_CALL,
-          MockCallScreen.incomingNumber, MockCallScreen.fakeIncomingNumber,
-          false, 'end');
-      });
     });
 
     suite('> hanging up the second call', function() {
@@ -606,15 +603,6 @@ suite('calls handler', function() {
         this.sinon.spy(firstCall, 'resume');
         MockNavigatorMozTelephony.mTriggerCallsChanged();
         sinon.assert.called(firstCall.resume);
-      });
-
-      test('should call FontSizeManager.adaptToSpace', function() {
-        MockNavigatorMozTelephony.mTriggerCallsChanged();
-
-        sinon.assert.calledWith(
-          FontSizeManager.adaptToSpace, FontSizeManager.SECOND_INCOMING_CALL,
-          MockCallScreen.incomingNumber, MockCallScreen.fakeIncomingNumber,
-          false, 'end');
       });
     });
 
@@ -653,16 +641,6 @@ suite('calls handler', function() {
         MockNavigatorMozTelephony.calls = [];
         MockNavigatorMozTelephony.mTriggerCallsChanged();
         sinon.assert.called(MockNavigatorMozTelephony.conferenceGroup.resume);
-      });
-
-      test('should call FontSizeManager.adaptToSpace', function() {
-        MockNavigatorMozTelephony.calls = [];
-        MockNavigatorMozTelephony.mTriggerCallsChanged();
-
-        sinon.assert.calledWith(
-          FontSizeManager.adaptToSpace, FontSizeManager.SECOND_INCOMING_CALL,
-          MockCallScreen.incomingNumber, MockCallScreen.fakeIncomingNumber,
-          false, 'end');
       });
     });
   });

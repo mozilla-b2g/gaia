@@ -44,8 +44,6 @@ function HandledCall(aCall) {
   this.numberNode = this.node.querySelector('.numberWrapper .number');
   this.groupCallNumberNode =
     document.getElementById('group-call-label');
-  this.groupCallFakeNumberNode =
-    document.querySelector('#group-call .fake-number');
   this.additionalInfoNode = this.node.querySelector('.additionalContactInfo');
   this.hangupButton = this.node.querySelector('.hangup-button');
   this.hangupButton.onclick = (function() {
@@ -262,8 +260,10 @@ HandledCall.prototype.formatPhoneNumber =
       scenario = FontSizeManager.SECOND_INCOMING_CALL;
     }
     FontSizeManager.adaptToSpace(
-      scenario, this.numberNode, this.node.querySelector('.fake-number'),
-      false, ellipsisSide);
+      scenario, this.numberNode, false, ellipsisSide);
+    if (this.node.classList.contains('additionalInfo')) {
+      FontSizeManager.ensureFixedBaseline(scenario, this.numberNode);
+    }
 };
 
 HandledCall.prototype.replacePhoneNumber =

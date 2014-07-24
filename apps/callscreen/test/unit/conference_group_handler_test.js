@@ -50,7 +50,6 @@ suite('conference group handler', function() {
                             '<div id="group-call-label" ' +
                               'class="number font-light"></div>' +
                           '</div>' +
-                          '<div class="fake-number font-light"></div>' +
                           '<div id="group-call-summary" ' +
                             'class="additionalContactInfo font-light"></div>' +
                           '<div class="duration">' +
@@ -291,14 +290,13 @@ suite('conference group handler', function() {
          function() {
       MockCallScreen.mScenario = FontSizeManager.SINGLE_CALL;
       var view = fakeDOM.querySelector('#group-call-label');
-      var fakeView = fakeDOM.querySelector('.fake-number');
 
       MockNavigatorMozTelephony.conferenceGroup.state = '';
       MockNavigatorMozTelephony.mTriggerGroupStateChange();
 
       sinon.assert.calledWith(
         FontSizeManager.adaptToSpace, FontSizeManager.SINGLE_CALL, view,
-        fakeView, false, 'end');
+        false, 'end');
     });
 
     test('should add the held class once held', function() {

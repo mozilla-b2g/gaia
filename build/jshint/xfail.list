@@ -32,7 +32,6 @@ apps/communications/dialer/test/unit/mock_confirm_dialog.js
 apps/communications/dialer/test/unit/mock_dialer_index.html.js
 apps/communications/dialer/test/unit/mock_icc_helper.js
 apps/communications/dialer/test/unit/mock_mozVoicemail.js
-apps/communications/dialer/test/unit/utils_test.js
 apps/communications/dialer/test/unit/voicemail_test.js
 apps/communications/facebook/js/console.js
 apps/communications/facebook/js/fb_sync.js
