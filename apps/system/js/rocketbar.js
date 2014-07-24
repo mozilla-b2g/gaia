@@ -127,17 +127,40 @@
       this.rocketbar.classList.add('active');
       this.form.classList.remove('hidden');
       this.title.classList.add('hidden');
-      this.backdrop.classList.remove('hidden');
-      this.loadSearchApp((function() {
+      this.screen.classList.add('rocketbar-focused');
+
+      // We wait for the transition do be over and the search app to be loaded
+      // before moving on (and triggering the callback).
+      var searchLoaded = false;
+      var transitionEnded = false;
+      var waitOver = function() {
+        if (searchLoaded && transitionEnded && callback) {
+          callback();
+        }
+      };
+
+      var backdrop = this.backdrop;
+      var safetyTimeout = null;
+      var finishTransition = function() {
+        backdrop.removeEventListener('transitionend', finishTransition);
+        clearTimeout(safetyTimeout);
+
+        window.dispatchEvent(new CustomEvent('rocketbar-overlayopened'));
+        transitionEnded = true;
+        waitOver();
+      };
+      backdrop.classList.remove('hidden');
+      backdrop.addEventListener('transitionend', finishTransition);
+      safetyTimeout = setTimeout(finishTransition, 300);
+
+      var finishLoad = (function() {
         if (this.input.value.length) {
           this.handleInput();
         }
-        if (callback) {
-          callback();
-        }
-      }).bind(this));
-      this.screen.classList.add('rocketbar-focused');
-      window.dispatchEvent(new CustomEvent('rocketbar-overlayopened'));
+        searchLoaded = true;
+        waitOver();
+      }).bind(this);
+      this.loadSearchApp(finishLoad);
     },
 
     /**
@@ -179,6 +202,7 @@
       window.addEventListener('homescreenopened', this);
       window.addEventListener('searchterminated', this);
       window.addEventListener('permissiondialoghide', this);
+      window.addEventListener('global-search-request', this);
       window.addEventListener('launchactivity', this, true);
 
       // Listen for events from Rocketbar
@@ -299,6 +323,7 @@
       window.removeEventListener('appopened', this);
       window.removeEventListener('homescreenopened', this);
       window.removeEventListener('permissiondialoghide', this);
+      window.addEventListener('global-search-request', this);
 
 
       // Stop listening for events from Rocketbar

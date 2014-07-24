@@ -17,10 +17,10 @@
       this.containerElement = configs.rearWindow.element;
     }
     configs.chrome = {
-      rocketbar: true,
+      bar: true,
       navigation: false
     };
-      
+
     AppWindow.call(this, configs);
   };
 
