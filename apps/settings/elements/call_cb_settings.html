@@ -1,0 +1,62 @@
+<element name="call-cbSettings" extends="section">
+  <template>
+
+    <header>
+      <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
+      <h1 data-l10n-id="callBarring-header"> Call barring </h1>
+    </header>
+
+    <div>
+      <header id="header-cb-outgoing">
+        <h2 data-l10n-id="cb-outgoing"> Outgoing calls </h2>
+      </header>
+      <ul id="list-callBarring-outgoing">
+        <li id="li-cb-baoc" data-state="off">
+          <label class="pack-switch checkbox-label">
+            <input type="checkbox" data-ignore>
+            <span data-l10n-id="cb-baoc">All</span>
+          </label>
+        </li>
+        <li id="li-cb-boic" data-state="off">
+          <label class="pack-switch checkbox-label">
+            <input type="checkbox" data-ignore>
+            <span data-l10n-id="cb-boic">International</span>
+          </label>
+        </li>
+        <li id="li-cb-boic-exhc" data-state="off">
+          <label class="pack-switch checkbox-label">
+            <input type="checkbox" data-ignore>
+            <span data-l10n-id="cb-boic-exhc">International except Home Country</span>
+          </label>
+        </li>
+      </ul>
+
+      <header id="header-cb-incoming">
+        <h2 data-l10n-id="cb-incoming"> Incoming calls </h2>
+      </header>
+      <ul id="list-callBarring-incoming">
+        <li id="li-cb-baic" data-state="off">
+          <label class="pack-switch checkbox-label">
+            <input type="checkbox" data-ignore>
+            <span data-l10n-id="cb-baic">All</span>
+          </label>
+        </li>
+        <li id="li-cb-baic-r" data-state="off">
+          <label class="pack-switch checkbox-label">
+            <input type="checkbox" data-ignore>
+            <span data-l10n-id="cb-baic-r">All while roaming</span>
+          </label>
+        </li>
+      </ul>
+
+      <header id="header-cb-password">
+        <h2 data-l10n-id="cb-password"> Change password </h2>
+      </header>
+      <ul id="list-callBarring-password">
+        <li id="li-cb-pswd" aria-disabled="true">
+          <small id="cbp-desc"></small>
+          <a>Change password</a>
+        </li>
+      </ul>
+  </template>
+</element>
