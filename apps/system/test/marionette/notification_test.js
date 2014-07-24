@@ -2,7 +2,10 @@ var assert = require('assert'),
     NotificationTest = require('./lib/notification').NotificationTest,
     NotificationList = require('./lib/notification').NotificationList,
     Marionette = require('marionette-client'),
-    util = require('util');
+    util = require('util'),
+    fs = require('fs');
+
+var SHARED_PATH = __dirname + '/../../../../shared/test/integration/';
 
 marionette('notification tests', function() {
   var client = marionette.client();
@@ -100,7 +103,8 @@ marionette('notification tests', function() {
   // function to check if screen status is enabled/disabled
   var urls = {
     system: 'app://system.gaiamobile.org',
-    email: 'app://email.gaiamobile.org'
+    email: 'app://email.gaiamobile.org',
+    calendar: 'app://calendar.gaiamobile.org'
   };
   var screenStatusIs = function(enabled) {
     return client.executeScript(function(enabled) {
@@ -130,4 +134,61 @@ marionette('notification tests', function() {
     assert.equal(screenOn, false, 'Screen should be off');
   });
 
+  test('email notif should not vibrate the phone while asleep', function() {
+    client.switchToFrame();
+    client.executeScript(fs.readFileSync(
+      SHARED_PATH + '/mock_navigator_vibrate.js', 'utf8'));
+
+    // Mock turning the screen off
+    client.executeScript(function() {
+      window.wrappedJSObject.__setDocumentVisibility(false);
+    });
+
+    client.apps.launch(urls.email);
+    client.apps.switchToApp(urls.email);
+    var notify = new NotificationTest(client, '123', 'test', 'test');
+    client.switchToFrame();
+
+    // We have to check if the phone will vibrate when it'll wake up
+    dispatchVisibilityChangeEvent();
+
+    assert.equal(fakeVibrationsNumber(), 0, 'the phone should not vibrate');
+  });
+
+  test('calendar notif should vibrate the phone when waking up', function() {
+    client.switchToFrame();
+    client.executeScript(fs.readFileSync(
+      SHARED_PATH + '/mock_navigator_vibrate.js', 'utf8'));
+
+    // Mock screen off
+    client.executeScript(function() {
+      window.wrappedJSObject.__setDocumentVisibility(false);
+    });
+
+    client.apps.launch(urls.calendar);
+    client.apps.switchToApp(urls.calendar);
+    var notify = new NotificationTest(client, '123', 'test', 'test');
+    client.switchToFrame();
+
+    assert.equal(fakeVibrationsNumber(), 0, 'the phone should not vibrate');
+
+    dispatchVisibilityChangeEvent();
+
+    assert.equal(fakeVibrationsNumber(), 1,
+                 'the phone should have vibrated once');
+  });
 });
+
+function dispatchVisibilityChangeEvent() {
+  client.executeScript(function() {
+    window.wrappedJSObject.__setDocumentVisibility(true);
+    window.wrappedJSObject.dispatchEvent(new CustomEvent('visibilitychange'));
+  });
+}
+
+function fakeVibrationsNumber() {
+  return client.executeScript(function() {
+    return window.wrappedJSObject.__fakeVibrationsNo;
+  });
+}
+
