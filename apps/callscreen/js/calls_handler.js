@@ -658,7 +658,7 @@ var CallsHandler = (function callsHandler() {
       telephony.speakerEnabled = false;
     }
 
-    if (!doNotConnect) {
+    if (!doNotConnect && displayed) {
       // add a btHelper.isConnected() check before calling disconnectSco
       // once bug 929376 lands.
       btHelper.connectSco();
