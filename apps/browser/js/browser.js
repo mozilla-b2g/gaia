@@ -277,45 +277,41 @@ var Browser = {
     var xhr = new XMLHttpRequest();
     xhr.open('GET', '/js/init.json', true);
 
-    xhr.addEventListener('load', (function browser_defaultDataListener() {
+    xhr.addEventListener('load', function browser_defaultDataListener() {
       if (!(xhr.status === 200 | xhr.status === 0)) {
         console.error('Unknown response when getting configuration data.');
         return;
       }
       var data = JSON.parse(xhr.responseText);
 
-      var mccCodes = variant.mcc;
-      var mncCodes = variant.mnc;
-      if (!Array.isArray(variant.mcc)) {
-        mccCodes = [variant.mcc];
-      }
-      if (!Array.isArray(variant.mnc)) {
-        mncCodes = [variant.mnc];
-      }
-
-      for (var i = 0; i < mccCodes.length; i++) {
-        var mccCode = NumberHelper.zfill(mccCodes[i], 3);
-        var mncCode = DEFAULT_MNC;
-        if (i < mncCodes.length) {
-          mncCode = mncCodes[i];
+      var mccCode = NumberHelper.zfill(variant.mcc, 3);
+      var mncCode = NumberHelper.zfill(variant.mnc, 3);
+      if (mccCode === DEFAULT_MCC && mncCode === DEFAULT_MNC) {
+        // If there is singleVariant configuration we wait for
+        // first run with a valid SIM
+        var keys = Object.keys(data);
+        var posDefault = keys.indexOf(DEFAULT_MCC + DEFAULT_MNC);
+        // We only want to know if there is configuration different from the
+        // default one
+        if (posDefault >= 0) {
+          keys.splice(posDefault, 1);
         }
-        mncCode = NumberHelper.zfill(mncCode, 3);
-
-        if (data[mccCode + mncCode]) {
-          callback(data[mccCode + mncCode]);
-            return;
+        // If there is another key, it is single variant configuration, we
+        // need to wait for the correct SIM
+        if (keys.length > 0) {
+          BrowserDB.waitFirstRunWithSim();
+          return;
         }
       }
-
-      if (data[DEFAULT_MCC + DEFAULT_MNC]) {
-        callback(data[DEFAULT_MCC + DEFAULT_MNC]);
+      if (data[mccCode + mncCode]) {
+        callback(data[mccCode + mncCode]);
         return;
       }
 
       callback(null);
       console.error('No configuration data found.');
 
-    }).bind(this), false);
+    }, false);
 
     xhr.onerror = function getDefaultDataError() {
       callback(null);

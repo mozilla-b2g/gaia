@@ -1,9 +1,13 @@
 'use strict';
 /* global BrowserDB, NumberHelper, MockNavigatorSettings */
 
+requireApp('browser/shared/test/unit/mocks/' +
+           'mock_navigator_moz_set_message_handler.js');
+
 // Stub of Browser object.
 var Browser = {
   _doNotCustomize: true,
+  _hasSV: false,
 
   getDefaultData: function getDefaultData(callback) {
 
@@ -44,7 +48,7 @@ var Browser = {
     var mncCode = NumberHelper.zfill(variant.mnc, 3);
 
     // Customization test data.
-    var data = {
+    var dataNoSV = {
       '000000': {
         bookmarks: [
           {
@@ -69,13 +73,65 @@ var Browser = {
       }
     };
 
+    var dataSV = {
+      '000000': {
+        bookmarks: [
+          {
+            title: 'customize test 1',
+            uri: 'http://customize.test.mozilla.org/1'
+          },
+          {
+            title: 'customize test 2',
+            uri: 'http://customize.test.mozilla.org/2'
+          }
+        ],
+        searchEngines: [
+          {
+            title: 'customize search test 1',
+            uri: 'http://customize.test.mozilla.org/search/1',
+            iconUri: DATA_URI
+          }
+        ],
+        settings: {
+          defaultSearchEngine: 'http://customize.test.mozilla.org/search/1'
+        }
+      },
+      '214007': {
+        bookmarks: [
+          {
+            title: 'customize SV test 1',
+            uri: 'http://customize.sv.test.mozilla.org/1'
+          },
+          {
+            title: 'customize SV test 2',
+            uri: 'http://customize.sv.test.mozilla.org/2'
+          }
+        ],
+        searchEngines: [
+          {
+            title: 'customize SV search test 1',
+            uri: 'http://customize.sv.test.mozilla.org/search/1',
+            iconUri: DATA_URI
+          }
+        ],
+        settings: {
+          defaultSearchEngine: 'http://customize.sv.test.mozilla.org/search/1'
+        }
+      }
+    };
+
     // Imitate real getConfigurationData function by creating JSON from our
     // object and parsing it before returning it.
-    var json = JSON.stringify(data);
+    var json =
+       this._hasSV ? JSON.stringify(dataSV) : JSON.stringify(dataNoSV);
 
     // Select the data from the object.
     var parsed = JSON.parse(json);
 
+    if (mccCode === '000' && mncCode === '000' && this._hasSV) {
+      BrowserDB.waitFirstRunWithSim();
+      return;
+    }
     // Done, notify callback.
     callback(parsed[mccCode + mncCode]);
 
@@ -88,7 +144,6 @@ var Browser = {
 };
 
 requireApp('browser/shared/test/unit/mocks/mock_navigator_moz_settings.js');
-requireApp('browser/shared/js/simple_operator_variant_helper.js');
 
 requireApp('browser/shared/js/utilities.js');
 requireApp('browser/js/browser_db.js');
@@ -117,6 +172,9 @@ var clearBrowserStores = function(done) {
 suite('BrowserDB', function() {
   var realMozSettings = null;
 
+  const MSG_NAME = 'first-run-with-sim';
+  var message = { mcc: '214', mnc: '007' };
+
   suiteSetup(function() {
     realMozSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
@@ -126,9 +184,83 @@ suite('BrowserDB', function() {
     navigator.mozSettings = realMozSettings;
   });
 
+  suite('BrowserDB.operatorVariantCustomization WITH SV configuration',
+        function() {
+    var realSetMessageHandler = null;
+
+    suiteSetup(function() {
+      realSetMessageHandler = window.navigator.mozSetMessageHandler;
+      window.navigator.mozSetMessageHandler =
+        window.MockNavigatormozSetMessageHandler;
+    });
+
+    suiteTeardown(function() {
+      window.navigator.mozSetMessageHandler = realSetMessageHandler;
+    });
+
+    setup(function(done) {
+      this.sinon.useFakeTimers();
+      navigator.mozSetMessageHandler.mSetup();
+      navigator.mozSettings.createLock()
+               .set({'operatorResources.data.topsites': {
+        'topSites': [
+          {
+            'title': 'Topsite',
+            'uri': 'http://customize.test.mozilla.org/topsite'
+          }
+        ]}});
+
+      // For these series of tests, we *do* want customizations to run.
+      Browser._doNotCustomize = false;
+      Browser._hasSV = true;
+      // And we want to manually initialize the DB.
+      BrowserDB.init(function() {
+        var itemsToAdd = 3;
+         BrowserDB.populate(0, function() {
+          if (--itemsToAdd <= 0) {
+            done();
+          }
+        });
+      window.navigator.mozSetMessageHandler.mTrigger(MSG_NAME, message);
+      });
+    });
+
+    teardown(function(done) {
+      Browser._doNotCustomize = true;
+      Browser._hasSV = false;
+      clearBrowserStores(done);
+      window.navigator.mozSetMessageHandler.mTeardown();
+    });
+
+    test('Operator Variant Customization -- Bookmarks with SV configuration',
+         function(done) {
+      BrowserDB.db.getAllBookmarks(function(bookmarks) {
+        assert.equal(bookmarks.length, 2);
+
+        // We can't yet guarantee order of bookmarks (bug 895807)
+        if (bookmarks[0].uri == 'http://customize.sv.test.mozilla.org/2') {
+          assert.equal(bookmarks[0].uri,
+                       'http://customize.sv.test.mozilla.org/2');
+          assert.equal(bookmarks[0].title, 'customize SV test 2');
+          assert.equal(bookmarks[1].uri,
+                       'http://customize.sv.test.mozilla.org/1');
+          assert.equal(bookmarks[1].title, 'customize SV test 1');
+        } else {
+          assert.equal(bookmarks[1].uri,
+                       'http://customize.sv.test.mozilla.org/2');
+          assert.equal(bookmarks[1].title, 'customize SV test 2');
+
+          assert.equal(bookmarks[0].uri,
+                       'http://customize.sv.test.mozilla.org/1');
+          assert.equal(bookmarks[0].title, 'customize SV test 1');
+        }
+        done();
+      });
+    });
+  });
+
   suite('BrowserDB.operatorVariantCustomization', function() {
     setup(function(done) {
-
       navigator.mozSettings.createLock()
                .set({'operatorResources.data.topsites': {
         'topSites': [
@@ -153,10 +285,13 @@ suite('BrowserDB', function() {
 
     teardown(function(done) {
       Browser._doNotCustomize = true;
+      Browser._hasSV = false;
       clearBrowserStores(done);
     });
 
-    test('Operator Variant Customization -- Bookmarks', function(done) {
+    test('Operator Variant Customization -- Bookmarks without SV configuration',
+         function(done) {
+
       BrowserDB.db.getAllBookmarks(function(bookmarks) {
         assert.equal(bookmarks.length, 2);
 
