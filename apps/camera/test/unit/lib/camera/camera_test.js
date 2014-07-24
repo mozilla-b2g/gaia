@@ -133,7 +133,7 @@ suite('lib/camera/camera', function() {
       assert.ok(config.rotation === 90);
     });
 
-    test('Should invert roation for front camera', function() {
+    test('Should invert rotation for front camera', function() {
       this.camera.selectedCamera = 'front';
       this.camera.orientation.get.returns(90);
       this.camera.startRecording();
@@ -488,7 +488,14 @@ suite('lib/camera/camera', function() {
 
   suite('Camera#takePicture()', function() {
     setup(function() {
-      this.camera = new this.Camera();
+      this.options = {
+        orientation: {
+          get: sinon.stub().returns(0),
+          start: sinon.stub(),
+          stop: sinon.stub()
+        }
+      };
+      this.camera = new this.Camera(this.options);
       this.camera.focus = {
         resume: function() {},
         focus: sinon.stub().callsArg(0),
@@ -578,6 +585,29 @@ suite('lib/camera/camera', function() {
       this.camera.takePicture({});
       assert.isTrue(takePicture.calledBefore(resumePreview));
     });
+
+    test('Should call mozCamera.takePicture with the current rotation',
+      function() {
+      this.camera.orientation.get.returns(90);
+      this.camera.takePicture();
+
+      var args = this.camera.mozCamera.takePicture.args[0];
+      var config = args[0];
+
+      assert.ok(config.rotation === 90);
+    });
+
+    test('Should invert rotation for front camera', function() {
+      this.camera.selectedCamera = 'front';
+      this.camera.orientation.get.returns(90);
+      this.camera.takePicture();
+
+      var args = this.camera.mozCamera.takePicture.args[0];
+      var config = args[0];
+
+      assert.ok(config.rotation === -90);
+    });
+
   });
 
   suite('Camera#onPreviewStateChange()', function() {
