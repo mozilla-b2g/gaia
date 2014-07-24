@@ -1,6 +1,7 @@
 'use strict';
-/* global GaiaGrid */
+/* global GaiaGrid, MocksHelper */
 
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/elements/gaia_grid/js/grid_dragdrop.js');
 require('/shared/elements/gaia_grid/js/grid_icon_renderer.js');
 require('/shared/elements/gaia_grid/js/grid_layout.js');
@@ -12,6 +13,10 @@ require('/shared/elements/gaia_grid/js/items/divider.js');
 require('/shared/elements/gaia_grid/js/items/mozapp.js');
 require('/shared/elements/gaia_grid/js/items/bookmark.js');
 require('/shared/elements/gaia_grid/js/items/placeholder.js');
+
+var mocksHelperForDragDrop = new MocksHelper([
+  'LazyLoader'
+]).init();
 
 suite('GaiaGrid > DragDrop', function() {
   var grid;
@@ -30,6 +35,8 @@ suite('GaiaGrid > DragDrop', function() {
     icon: 'no',
     url: 'http://mozilla.org/2'
   };
+
+  mocksHelperForDragDrop.attachTestHelpers();
 
   suiteSetup(function() {
     document.body.innerHTML = '<div id="zoom"><div class="arrows">' +
