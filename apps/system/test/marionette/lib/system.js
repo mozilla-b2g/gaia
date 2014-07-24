@@ -9,6 +9,7 @@ module.exports = System;
 System.URL = 'app://system.gaiamobile.org/manifest.webapp';
 
 System.Selector = Object.freeze({
+  appTitlebar: '.appWindow.active .titlebar',
   statusbar: '#statusbar',
   statusbarBackground: '#statusbar-background',
   statusbarLabel: '#statusbar-label',
@@ -20,6 +21,10 @@ System.Selector = Object.freeze({
 
 System.prototype = {
   client: null,
+
+  get appTitlebar() {
+    return this.client.findElement(System.Selector.appTitlebar);
+  },
 
   get statusbar() {
     return this.client.findElement(System.Selector.statusbar);

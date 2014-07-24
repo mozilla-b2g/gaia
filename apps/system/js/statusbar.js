@@ -103,17 +103,6 @@ var StatusBar = {
     }
   },
 
-  show: function sb_show() {
-    this.background.classList.remove('hidden');
-    this.element.classList.remove('invisible');
-  },
-
-  hide: function sb_hide() {
-    this._releaseBar();
-    this.background.classList.add('hidden');
-    this.element.classList.add('invisible');
-  },
-
   init: function sb_init() {
     this.getAllElements();
 
@@ -160,9 +149,6 @@ var StatusBar = {
     window.addEventListener('attentionscreenshow', this);
     window.addEventListener('attentionscreenhide', this);
 
-    window.addEventListener('utilitytrayshow', this);
-    window.addEventListener('utilitytrayhide', this);
-
     // Listen to 'screenchange' from screen_manager.js
     window.addEventListener('screenchange', this);
 
@@ -203,7 +189,6 @@ var StatusBar = {
     window.addEventListener('lockpanelchange', this);
 
     window.addEventListener('appopened', this);
-    window.addEventListener('homescreenopened', this.show.bind(this));
 
     window.addEventListener('simpinshow', this);
     window.addEventListener('simpinclose', this);
@@ -228,11 +213,6 @@ var StatusBar = {
       case 'appopened':
         this.setAppearance('opaque');
         app = evt.detail;
-        if (app.isFullScreen()) {
-          this.hide();
-        } else {
-          this.show();
-        }
         break;
 
       case 'screenchange':
@@ -255,27 +235,11 @@ var StatusBar = {
 
       case 'attentionscreenshow':
         this.toggleTimeLabel(true);
-        this.show();
         break;
 
       case 'attentionscreenhide':
         // Hide the clock in the statusbar when screen is locked
         this.toggleTimeLabel(!this.isLocked());
-        app = AppWindowManager.getActiveApp();
-        if (app && app.isFullScreen()) {
-          this.hide();
-        }
-        break;
-
-      case 'utilitytrayshow':
-        this.show();
-        break;
-
-      case 'utilitytrayhide':
-        app = AppWindowManager.getActiveApp();
-        if (app && app.isFullScreen()) {
-          this.hide();
-        }
         break;
 
       case 'lockpanelchange':
@@ -420,13 +384,11 @@ var StatusBar = {
   _shouldForwardTap: false,
   _dontStopEvent: false,
   panelHandler: function sb_panelHandler(evt) {
+    var app = AppWindowManager.getActiveApp().getTopMostWindow();
+    var titleBar = app.titleBar.element;
 
     // Do not forward events if FTU is running
     if (FtuLauncher.isFtuRunning()) {
-      return;
-    }
-
-    if (!this.element.classList.contains('invisible')) {
       return;
     }
 
@@ -434,16 +396,21 @@ var StatusBar = {
       return;
     }
 
+    // If the app is not a fullscreen app, let utility_tray.js handle
+    // this instead.
+    if (!document.mozFullScreen && !app.isFullScreen()) {
+      return;
+    }
+
     evt.stopImmediatePropagation();
     evt.preventDefault();
 
-    var elem = this.element,
-        touch;
+    var touch;
     switch (evt.type) {
       case 'touchstart':
         clearTimeout(this._releaseTimeout);
 
-        var iframe = AppWindowManager.getActiveApp().iframe;
+        var iframe = app.iframe;
         this._touchForwarder.destination = iframe;
         this._touchStart = evt;
         this._shouldForwardTap = true;
@@ -452,13 +419,13 @@ var StatusBar = {
         touch = evt.changedTouches[0];
         this._startX = touch.clientX;
         this._startY = touch.clientY;
-        elem.style.transition = 'transform';
-        elem.classList.add('dragged');
+
+        titleBar.style.transition = 'transform';
         break;
 
       case 'touchmove':
         touch = evt.touches[0];
-        var height = this.height || this._cacheHeight;
+        var height = this._cacheHeight;
         var deltaX = touch.clientX - this._startX;
         var deltaY = touch.clientY - this._startY;
 
@@ -467,7 +434,8 @@ var StatusBar = {
         }
 
         var translate = Math.min(deltaY, height);
-        elem.style.transform = 'translateY(calc(' + translate + 'px - 100%)';
+        titleBar.style.transform =
+          'translateY(calc(' + translate + 'px - 100%)';
 
         if (translate == height) {
           if (this._touchStart) {
@@ -487,38 +455,38 @@ var StatusBar = {
             this._touchForwarder.forward(evt);
             this._touchStart = null;
           }
-          this._releaseBar();
+          this._releaseBar(titleBar);
         } else {
           // If we already forwarded the touchstart it means the bar
           // if fully open, releasing after a timeout.
           this._dontStopEvent = true;
           this._touchForwarder.forward(evt);
-          this._releaseAfterTimeout();
+          this._releaseAfterTimeout(titleBar);
         }
 
         break;
     }
   },
 
-  _releaseBar: function sb_releaseBar() {
+  _releaseBar: function sb_releaseBar(titleBar) {
     this._dontStopEvent = false;
 
-    var elem = this.element;
-    elem.style.transform = '';
-    elem.style.transition = '';
-    elem.addEventListener('transitionend', function trWait() {
-      elem.removeEventListener('transitionend', trWait);
-      elem.classList.remove('dragged');
-    });
+    titleBar.classList.remove('dragged');
+    titleBar.style.transform = '';
+    titleBar.style.transition = '';
 
     clearTimeout(this._releaseTimeout);
     this._releaseTimeout = null;
   },
 
-  _releaseAfterTimeout: function sb_releaseAfterTimeout() {
+  _releaseAfterTimeout: function sb_releaseAfterTimeout(titleBar) {
     var self = this;
+    titleBar.style.transform = '';
+    titleBar.style.transition = '';
+    titleBar.classList.add('dragged');
+
     self._releaseTimeout = setTimeout(function() {
-      self._releaseBar();
+      self._releaseBar(titleBar);
       window.removeEventListener('touchstart', closeOnTap);
     }, 5000);
 
@@ -528,7 +496,7 @@ var StatusBar = {
       }
 
       window.removeEventListener('touchstart', closeOnTap);
-      self._releaseBar();
+      self._releaseBar(titleBar);
     }
     window.addEventListener('touchstart', closeOnTap);
   },

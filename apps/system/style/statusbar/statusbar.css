@@ -34,8 +34,7 @@
 }
 
 #screen.utility-tray #statusbar,
-#screen.attention #statusbar,
-#screen:not(.rocketbar-focused) #statusbar.dragged {
+#screen.attention #statusbar {
   top: 0;
   background-color: black;
 }
@@ -52,15 +51,9 @@ body:not(.rb-enabled) #statusbar {
 
 /* Hiding the black background while the homescreen is in foreground but not
  * utility tray or attention screen */
-#screen.lockscreen-camera > #statusbar,
-#statusbar.invisible {
+#screen.lockscreen-camera > #statusbar {
   transform: scaleY(0);
   transform-origin: left top;
-}
-
-#screen.rocketbar-focused.fullscreen-app #statusbar:not(.dragged) {
-  transform: translateY(calc(4.8rem - 100%));
-  transition: none;
 }
 
 #statusbar-background.hidden {
@@ -80,10 +73,6 @@ body:not(.rb-enabled) #statusbar {
 
 #screen.locked:not(.attention) #statusbar-background:before {
   background-color: transparent;
-}
-
-#screen:not(.locked):not(.rocketbar-focused) #statusbar.invisible.dragged {
-  background-color: black;
 }
 
 #screen.attention.locked #statusbar-time {
@@ -109,8 +98,7 @@ body:not(.rb-enabled) #statusbar {
 }
 
 #screen.rocketbar-focused:not(.locked) #statusbar-icons,
-#screen.rocketbar-expanded.cards-view #statusbar-icons,
-#screen:not(.locked).fullscreen-app #statusbar:not(.dragged) #statusbar-icons {
+#screen.rocketbar-expanded.cards-view #statusbar-icons {
   visibility: hidden;
   opacity: 0;
 }

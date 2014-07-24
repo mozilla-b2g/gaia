@@ -1,7 +1,8 @@
 /* globals FtuLauncher, MockAppWindowManager, MockL10n, MockMobileOperator,
            MockNavigatorMozMobileConnections, MockNavigatorMozTelephony,
            MockSettingsListener, MocksHelper, MockSIMSlot, MockSIMSlotManager,
-           MockSystem, MockTouchForwarder, SimPinDialog, StatusBar, System */
+           MockSystem, MockTouchForwarder, SimPinDialog, StatusBar, System,
+           AppWindowManager */
 
 'use strict';
 
@@ -171,6 +172,9 @@ suite('system/Statusbar', function() {
       app = {
         isFullScreen: function() {
           return true;
+        },
+        getTopMostWindow: function() {
+          return app;
         }
       };
 
@@ -1319,21 +1323,25 @@ suite('system/Statusbar', function() {
     // outside of this suite.
     setup(function() {
       this.sinon.useFakeTimers();
-      StatusBar.element.classList.add('invisible');
     });
 
     teardown(function() {
       this.sinon.clock.tick(10000);
-      StatusBar.element.classList.remove('invisible');
     });
 
     var app;
     setup(function() {
       app = {
         isFullScreen: function() {
-          return false;
+          return true;
         },
-        iframe: document.createElement('iframe')
+        titleBar: {
+          element: document.createElement('div')
+        },
+        iframe: document.createElement('iframe'),
+        getTopMostWindow: function() {
+          return app;
+        }
       };
 
       this.sinon.stub(MockAppWindowManager, 'getActiveApp').returns(app);
@@ -1344,87 +1352,20 @@ suite('system/Statusbar', function() {
       StatusBar.screen = document.createElement('div');
     });
 
-    test('the status bar should not close if the current app is not fullscreen',
-    function() {
-      this.sinon.stub(app, 'isFullScreen').returns(false);
-      StatusBar.show();
-
-      var evt = new CustomEvent('utilitytrayhide');
-      StatusBar.handleEvent(evt);
-
-      assert.isFalse(StatusBar.element.classList.contains('invisible'));
-    });
-
-    test('the status bar should show when utilitytray is showing',
-    function() {
-      this.sinon.stub(app, 'isFullScreen').returns(true);
-      StatusBar.hide();
-
-      var evt = new CustomEvent('utilitytrayshow');
-      StatusBar.handleEvent(evt);
-
-      assert.isFalse(StatusBar.element.classList.contains('invisible'));
-    });
-
-    test('the status bar should show when attentionscreen is showing',
-    function() {
-      this.sinon.stub(app, 'isFullScreen').returns(true);
-      StatusBar.hide();
-
-      var evt = new CustomEvent('attentionscreenshow');
-      StatusBar.handleEvent(evt);
-
-      assert.isFalse(StatusBar.element.classList.contains('invisible'));
-    });
-
-    test('the status bar should be hidden when attentionscreen is hidden',
-    function() {
-      this.sinon.stub(app, 'isFullScreen').returns(true);
-      StatusBar.show();
-
-      var evt = new CustomEvent('attentionscreenhide');
-      StatusBar.handleEvent(evt);
-
-      assert.isTrue(StatusBar.element.classList.contains('invisible'));
-    });
-
-    test('the status bar should be hidden when app is opening in fullscreen',
-    function() {
-      this.sinon.stub(app, 'isFullScreen').returns(true);
-      StatusBar.show();
-
-      var evt = new CustomEvent('appopened', { detail: app });
-      StatusBar.handleEvent(evt);
-
-      assert.isTrue(StatusBar.element.classList.contains('invisible'));
-    });
-
-    test('the status bar should show when app is opening not in fullscreen',
-    function() {
-      this.sinon.stub(app, 'isFullScreen').returns(false);
-      StatusBar.show();
-
-      var evt = new CustomEvent('appopened', { detail: app });
-      StatusBar.handleEvent(evt);
-
-      assert.isFalse(StatusBar.element.classList.contains('invisible'));
-    });
-
     suite('Revealing the StatusBar >', function() {
       var transitionEndSpy;
       setup(function() {
-        transitionEndSpy = this.sinon.spy(StatusBar.element,
-                                          'addEventListener');
+        StatusBar._cacheHeight = 24;
+        var element = AppWindowManager.getActiveApp().titleBar.element;
+        transitionEndSpy = this.sinon.spy(element, 'addEventListener');
       });
 
       function assertStatusBarReleased() {
         assert.equal(StatusBar.element.style.transform, '');
         assert.equal(StatusBar.element.style.transition, '');
 
-        // We remove the background after the transition
-        assert.isTrue(StatusBar.element.classList.contains('dragged'));
-        transitionEndSpy.yield();
-        assert.isFalse(StatusBar.element.classList.contains('dragged'));
+        var element = AppWindowManager.getActiveApp().titleBar.element;
+        assert.isFalse(element.classList.contains('dragged'));
       }
 
       teardown(function() {
@@ -1447,15 +1388,18 @@ suite('system/Statusbar', function() {
         fakeDispatch('touchstart', 100, 0);
         fakeDispatch('touchmove', 100, 5);
         var transform = 'translateY(calc(5px - 100%))';
-
-        assert.equal(StatusBar.element.style.transform, transform);
+        var element = AppWindowManager.getActiveApp().titleBar.element;
+        assert.equal(element.style.transform, transform);
         fakeDispatch('touchend', 100, 5);
       });
 
       test('it should set the dragged class on touchstart', function() {
         fakeDispatch('touchstart', 100, 0);
-        assert.isTrue(StatusBar.element.classList.contains('dragged'));
-        fakeDispatch('touchend', 100, 5);
+        var element = AppWindowManager.getActiveApp().titleBar.element;
+        assert.isFalse(element.classList.contains('dragged'));
+        fakeDispatch('touchmove', 100, 24);
+        fakeDispatch('touchend', 100, 25);
+        assert.isTrue(element.classList.contains('dragged'));
       });
 
       test('it should not translate the statusbar more than its height',
@@ -1463,9 +1407,9 @@ suite('system/Statusbar', function() {
         fakeDispatch('touchstart', 100, 0);
         fakeDispatch('touchmove', 100, 5);
         fakeDispatch('touchmove', 100, 15);
-        var transform = 'translateY(calc(10px - 100%))';
-
-        assert.equal(StatusBar.element.style.transform, transform);
+        var transform = 'translateY(calc(15px - 100%))';
+        var element = AppWindowManager.getActiveApp().titleBar.element;
+        assert.equal(element.style.transform, transform);
         fakeDispatch('touchend', 100, 15);
       });
 
@@ -1473,7 +1417,7 @@ suite('system/Statusbar', function() {
       function() {
         fakeDispatch('touchstart', 100, 0);
         fakeDispatch('touchmove', 100, 5);
-        fakeDispatch('touchmove', 100, 15);
+        fakeDispatch('touchmove', 100, 24);
         fakeDispatch('touchend', 100, 5);
 
         var fakeEvt = {
@@ -1511,15 +1455,15 @@ suite('system/Statusbar', function() {
           setup(function() {
             fakeDispatch('touchstart', 100, 0);
             fakeDispatch('touchmove', 100, 5);
-            fakeDispatch('touchmove', 100, 15);
-            fakeDispatch('touchend', 100, 15);
+            fakeDispatch('touchmove', 100, 24);
+            fakeDispatch('touchend', 100, 24);
           });
 
           test('it should not hide it right away', function() {
-            var transform = 'translateY(calc(10px - 100%))';
-            assert.equal(StatusBar.element.style.transform, transform);
-            assert.equal(StatusBar.element.style.transition,
-                         'transform 0s ease 0s');
+            var titleEl = AppWindowManager.getActiveApp().titleBar.element;
+            assert.equal(titleEl.style.transform, '');
+            assert.equal(titleEl.style.transition, '');
+            assert.ok(titleEl.classList.contains('dragged'));
           });
 
           test('but after 5 seconds', function() {
@@ -1544,7 +1488,6 @@ suite('system/Statusbar', function() {
 
     test('it should prevent default on mouse events keep the focus on the app',
     function() {
-      StatusBar.element.classList.add('invisible');
       var mousedown = fakeDispatch('mousedown', 100, 0);
       var mousemove = fakeDispatch('mousemove', 100, 2);
       var mouseup = fakeDispatch('mouseup', 100, 2);
@@ -1552,19 +1495,14 @@ suite('system/Statusbar', function() {
       assert.isTrue(mousedown.defaultPrevented);
       assert.isTrue(mousemove.defaultPrevented);
       assert.isTrue(mouseup.defaultPrevented);
-      StatusBar.element.classList.remove('invisible');
     });
 
     suite('Touch forwarding in fullscreen >', function() {
       var forwardSpy;
 
       setup(function() {
-        StatusBar.element.classList.add('invisible');
+        StatusBar._cacheHeight = 24;
         forwardSpy = this.sinon.spy(MockTouchForwarder.prototype, 'forward');
-      });
-
-      teardown(function() {
-        StatusBar.element.classList.remove('invisible');
       });
 
       test('it should prevent default on all touch events to prevent reflows',
@@ -1612,8 +1550,8 @@ suite('system/Statusbar', function() {
       function() {
         var touchstart = fakeDispatch('touchstart', 100, 0);
         fakeDispatch('touchmove', 100, 6);
-        var secondMove = fakeDispatch('touchmove', 100, 12);
-        var thirdMove = fakeDispatch('touchmove', 100, 18);
+        var secondMove = fakeDispatch('touchmove', 100, 26);
+        var thirdMove = fakeDispatch('touchmove', 100, 28);
         var touchend = fakeDispatch('touchend', 100, 2);
 
         assert.equal(forwardSpy.callCount, 4);
@@ -1626,32 +1564,6 @@ suite('system/Statusbar', function() {
         call = forwardSpy.getCall(3);
         assert.equal(call.args[0], touchend);
       });
-    });
-  });
-
-  suite('not fullscreen mode >', function() {
-    var app;
-    setup(function() {
-      app = {
-        isFullScreen: function() {
-          return true;
-        },
-        iframe: document.createElement('iframe')
-      };
-
-      this.sinon.stub(MockAppWindowManager, 'getActiveApp').returns(app);
-      StatusBar.screen = document.createElement('div');
-    });
-
-    test('the status bar should not be hidden when attentionscreen is hidden',
-    function() {
-      this.sinon.stub(app, 'isFullScreen').returns(false);
-      StatusBar.show();
-
-      var evt = new CustomEvent('attentionscreenhide');
-      StatusBar.handleEvent(evt);
-
-      assert.isFalse(StatusBar.element.classList.contains('invisible'));
     });
   });
 
