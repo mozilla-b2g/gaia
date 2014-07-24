@@ -35,9 +35,6 @@ var FxaModuleRefreshAuth = (function() {
     /*jshint validthis:true */
     FxModuleServerRequest.requestPasswordReset(
       email,
-      function onSuccess(response) {
-        done(response.success);
-      },
       this.showErrorResponse
     );
   }
