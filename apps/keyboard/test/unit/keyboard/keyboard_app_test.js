@@ -3,7 +3,8 @@
 /* global KeyboardApp, PerformanceTimer, InputMethodManager, LayoutManager,
           SettingsPromiseManager, L10nLoader, TargetHandlersManager,
           FeedbackManager, VisualHighlightManager, CandidatePanelManager,
-          UpperCaseStateManager, MockInputMethodManager */
+          UpperCaseStateManager, LayoutRenderingManager,
+          MockInputMethodManager */
 
 require('/js/keyboard/performance_timer.js');
 require('/js/keyboard/input_method_manager.js');
@@ -15,6 +16,7 @@ require('/js/keyboard/feedback_manager.js');
 require('/js/keyboard/visual_highlight_manager.js');
 require('/js/keyboard/candidate_panel_manager.js');
 require('/js/keyboard/upper_case_state_manager.js');
+require('/js/keyboard/layout_rendering_manager.js');
 
 requireApp('keyboard/shared/test/unit/mocks/mock_event_target.js');
 requireApp('keyboard/shared/test/unit/mocks/mock_navigator_input_method.js');
@@ -32,6 +34,7 @@ suite('KeyboardApp', function() {
   var visualHighlightManagerStub;
   var candidatePanelManagerStub;
   var upperCaseStateManagerStub;
+  var layoutRenderingManagerStub;
 
   var app;
   var realMozInputMethod;
@@ -85,6 +88,11 @@ suite('KeyboardApp', function() {
     this.sinon.stub(window, 'UpperCaseStateManager')
       .returns(upperCaseStateManagerStub);
 
+    layoutRenderingManagerStub =
+      this.sinon.stub(LayoutRenderingManager.prototype);
+    this.sinon.stub(window, 'LayoutRenderingManager')
+      .returns(layoutRenderingManagerStub);
+
     app = new KeyboardApp();
     app.start();
 
@@ -98,6 +106,7 @@ suite('KeyboardApp', function() {
     assert.isTrue(window.VisualHighlightManager.calledWithNew());
     assert.isTrue(window.CandidatePanelManager.calledWithNew());
     assert.isTrue(window.UpperCaseStateManager.calledWithNew());
+    assert.isTrue(window.LayoutRenderingManager.calledWithNew());
 
     assert.isTrue(window.InputMethodManager.calledWith(app));
     assert.isTrue(window.LayoutManager.calledWith(app));
@@ -114,6 +123,7 @@ suite('KeyboardApp', function() {
     assert.isTrue(visualHighlightManagerStub.start.calledOnce);
     assert.isTrue(candidatePanelManagerStub.start.calledOnce);
     assert.isTrue(upperCaseStateManagerStub.start.calledOnce);
+    assert.isTrue(layoutRenderingManagerStub.start.calledOnce);
   });
 
   teardown(function() {
@@ -124,6 +134,7 @@ suite('KeyboardApp', function() {
     assert.isTrue(visualHighlightManagerStub.stop.calledOnce);
     assert.isTrue(candidatePanelManagerStub.stop.calledOnce);
     assert.isTrue(upperCaseStateManagerStub.stop.calledOnce);
+    assert.isTrue(layoutRenderingManagerStub.stop.calledOnce);
 
     navigator.mozInputMethod = realMozInputMethod;
     delete window.renderKeyboard;

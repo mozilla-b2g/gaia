@@ -305,7 +305,7 @@
   }
 
   function displaysCandidates() {
-    return suggesting && worker;
+    return !!(suggesting && worker);
   }
 
   /*

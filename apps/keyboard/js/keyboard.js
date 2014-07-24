@@ -16,19 +16,7 @@ var hideKeyboardTimeout = 0;
 
 app.upperCaseStateManager.onstatechange = handleUpperCaseStateChange;
 
-// A MutationObserver we use to spy on the renderer module
-var dimensionsObserver;
-
 initKeyboard();
-
-// We cannot listen to resize event right at start because of
-// https://bugzil.la/1007595 ;
-// only attach the event listener after 600ms.
-setTimeout(function attachResizeListener() {
-  app.perfTimer.printTime('attachResizeListener');
-  // Handle resize events
-  window.addEventListener('resize', onResize);
-}, 2000);
 
 function initKeyboard() {
   app.perfTimer.startTimer('initKeyboard');
@@ -36,17 +24,6 @@ function initKeyboard() {
 
   // Initialize the rendering module
   IMERender.init();
-
-  dimensionsObserver = new MutationObserver(function() {
-    app.perfTimer.printTime('dimensionsObserver:callback');
-    updateTargetWindowHeight();
-  });
-
-  // And observe mutation events on the renderer element
-  dimensionsObserver.observe(IMERender.ime, {
-    childList: true, // to detect changes in IMEngine
-    attributes: true, attributeFilter: ['class', 'style']
-  });
 
   window.addEventListener('hashchange', function handleHashchange() {
     app.perfTimer.printTime('hashchange');
@@ -83,13 +60,6 @@ function initKeyboard() {
   updateCurrentKeyboardState();
 
   app.perfTimer.printTime('BLOCKING initKeyboard', 'initKeyboard');
-}
-
-function deactivateInputMethod() {
-  // Switching to default IMEngine makes the current IMEngine deactivate.
-  // The currentIMEngine will be set and activates again in
-  // showKeyboard() (specifically, switchIMEngine()).
-  app.inputMethodManager.switchCurrentIMEngine('default');
 }
 
 function updateCurrentKeyboardState() {
@@ -136,50 +106,11 @@ function updateCurrentKeyboardState() {
   });
 }
 
-// This function asks render.js to create an HTML layout for the keyboard.
-// The layout is based on the layout in layout.js, but is augmented by
-// modifyLayout() to include keyboard-switching keys and type-specific keys
-// for url and email address input, e.g.
-//
-// This should be called when the keyboard changes or when the layout page
-// changes in order to actually render the layout.
-//
 function renderKeyboard() {
   app.perfTimer.printTime('renderKeyboard');
   app.perfTimer.startTimer('renderKeyboard');
 
-  IMERender.ime.classList.remove('full-candidate-panel');
-
-  // Rule of thumb: always render uppercase, unless secondLayout has been
-  // specified (for e.g. arabic, then depending on shift key)
-  var needsUpperCase =
-    app.layoutManager.currentModifiedLayout.secondLayout ?
-      app.upperCaseStateManager.isUpperCase : true;
-
-  // And draw the layout
-  IMERender.draw(app.layoutManager.currentModifiedLayout, {
-    uppercase: needsUpperCase,
-    inputType: app.getBasicInputType(),
-    showCandidatePanel: needsCandidatePanel()
-  }, function() {
-    app.perfTimer.printTime('IMERender.draw:callback');
-    app.perfTimer.startTimer('IMERender.draw:callback');
-    // So there are a couple of things that we want don't want to block
-    // on here, so we can do it if resizeUI is fully finished
-    IMERender.setUpperCaseLock(app.upperCaseStateManager);
-
-    // Tell the input method about the new keyboard layout
-    updateLayoutParams();
-
-    app.candidatePanelManager.showCandidates();
-    app.perfTimer.printTime(
-      'BLOCKING IMERender.draw:callback', 'IMERender.draw:callback');
-  });
-
-  // Tell the renderer what input method we're using. This will set a CSS
-  // classname that can be used to style the keyboards differently
-  IMERender.setInputMethodName(
-    app.layoutManager.currentModifiedLayout.imEngine || 'default');
+  app.layoutRenderingManager.updateLayoutRendering();
 
   // If needed, empty the candidate panel
   if (app.inputMethodManager.currentIMEngine.empty) {
@@ -215,27 +146,6 @@ function handleUpperCaseStateChange() {
       'BLOCKING setUpperCase:requestAnimationFrame:callback',
       'setUpperCase:requestAnimationFrame:callback');
   });
-}
-
-// Inform about a change in the displayed application via mutation observer
-// http://hacks.mozilla.org/2012/05/dom-mutationobserver
-function updateTargetWindowHeight(hide) {
-  app.perfTimer.printTime('updateTargetWindowHeight');
-  // height of the current active IME + 1px for the borderTop
-  var imeHeight = IMERender.getHeight() + 1;
-  var imeWidth = IMERender.getWidth();
-  window.resizeTo(imeWidth, imeHeight);
-}
-
-function getKeyCoordinateY(y) {
-  var candidatePanel = IMERender.candidatePanel;
-
-  var yBias = 0;
-  if (candidatePanel) {
-    yBias = candidatePanel.clientHeight;
-  }
-
-  return y - yBias;
 }
 
 // Turn to default values
@@ -284,7 +194,8 @@ function hideKeyboard() {
     return;
   }
 
-  deactivateInputMethod();
+  app.candidatePanelManager.hideFullPanel();
+  app.inputMethodManager.switchCurrentIMEngine('default');
 
   clearTimeout(hideKeyboardTimeout);
 
@@ -302,22 +213,6 @@ function hideKeyboard() {
   });
 
   app.targetHandlersManager.activeTargetsManager.clearAllTargets();
-}
-
-// Resize event handler
-function onResize() {
-  app.perfTimer.printTime('onResize');
-  if (document.hidden) {
-    return;
-  }
-
-  IMERender.resizeUI(app.layoutManager.currentModifiedLayout);
-  updateTargetWindowHeight(); // this case is not captured by the mutation
-  // observer so we handle it apart
-
-  // TODO: need to check how to handle orientation change case to
-  // show corrent word suggestions
-  updateLayoutParams();
 }
 
 function switchIMEngine(mustRender) {
@@ -340,45 +235,4 @@ function switchIMEngine(mustRender) {
     console.warn('Failed to switch imEngine for ' + layout.layoutName + '.' +
       ' It might possible because we were called more than once.');
   });
-}
-
-// If the input method cares about layout details, get those details
-// from the renderer and pass them on to the input method. This is called
-// from renderKeyboard() each time the keyboard layout changes.
-// As an optimzation, however, we only send parameters if layoutPage is
-// the default, since the input methods we support don't do anything special
-// for symbols
-function updateLayoutParams() {
-  if (app.inputMethodManager.currentIMEngine.setLayoutParams &&
-      app.layoutManager.currentLayoutPage ===
-      app.layoutManager.LAYOUT_PAGE_DEFAULT) {
-    app.inputMethodManager.currentIMEngine.setLayoutParams({
-      keyboardWidth: IMERender.getWidth(),
-      keyboardHeight: getKeyCoordinateY(IMERender.getHeight()),
-      keyArray: IMERender.getKeyArray(),
-      keyWidth: IMERender.getKeyWidth(),
-      keyHeight: IMERender.getKeyHeight()
-    });
-  }
-}
-
-// To determine if the candidate panel for word suggestion is needed
-function needsCandidatePanel() {
-  // Disable the word suggestion for Greek SMS layout.
-  // This is because the suggestion result is still unicode and
-  // we would not convert the suggestion result to GSM 7-bit.
-  if (isGreekSMS()) {
-    return false;
-  }
-
-  return !!((app.layoutManager.currentLayout.autoCorrectLanguage ||
-           app.layoutManager.currentLayout.needsCandidatePanel) &&
-          (!app.inputMethodManager.currentIMEngine.displaysCandidates ||
-            app.inputMethodManager.currentIMEngine.displaysCandidates()));
-}
-
-// To determine if we need to show a "all uppercase layout" for Greek SMS
-function isGreekSMS() {
-  return (app.inputContext.inputMode === '-moz-sms' &&
-          app.layoutManager.currentLayoutName === 'el');
 }

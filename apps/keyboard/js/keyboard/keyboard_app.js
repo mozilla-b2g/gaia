@@ -3,7 +3,7 @@
 /* global PerformanceTimer, InputMethodManager, LayoutManager,
           SettingsPromiseManager, L10nLoader, TargetHandlersManager,
           FeedbackManager, VisualHighlightManager, CandidatePanelManager,
-          UpperCaseStateManager, IMERender */
+          UpperCaseStateManager, LayoutRenderingManager, IMERender */
 
 (function(exports) {
 
@@ -18,6 +18,7 @@ var KeyboardApp = function() {
   this.visualHighlightManager = null;
   this.candidatePanelManager = null;
   this.upperCaseStateManager = null;
+  this.layoutRenderingManager = null;
 
   this.inputContext = null;
 };
@@ -69,6 +70,9 @@ KeyboardApp.prototype._startComponents = function() {
   this.upperCaseStateManager = new UpperCaseStateManager();
   this.upperCaseStateManager.start();
 
+  this.layoutRenderingManager = new LayoutRenderingManager(this);
+  this.layoutRenderingManager.start();
+
   this.perfTimer.printTime('BLOCKING KeyboardApp._startComponents()',
     'KeyboardApp._startComponents()');
 };
@@ -104,6 +108,9 @@ KeyboardApp.prototype._stopComponents = function() {
 
   this.upperCaseStateManager.stop();
   this.upperCaseStateManager = null;
+
+  this.layoutRenderingManager.stop();
+  this.layoutRenderingManager = null;
 };
 
 KeyboardApp.prototype.getMenuContainer = function() {
