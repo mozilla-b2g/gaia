@@ -1478,6 +1478,50 @@ suite('system/AppWindow', function() {
       );
     });
 
+    test('iconchange event', function() {
+      var app1 = new AppWindow(fakeWrapperConfig);
+      var stubPublish = this.sinon.stub(app1, 'publish');
+
+      app1.handleEvent({
+        type: 'mozbrowsericonchange',
+        detail: {
+          sizes: '32x32',
+          href: 'favicon.ico'
+        }
+      });
+
+      assert.isTrue(stubPublish.calledWithExactly('iconchange'));
+      assert.deepEqual(app1.favicons, {'favicon.ico': {sizes: ['32x32']}});
+
+      app1.handleEvent({
+        type: 'mozbrowsericonchange',
+        detail: {
+          sizes: '32x32',
+          href: 'another.ico'
+        }
+      });
+
+      assert.isTrue(stubPublish.calledWithExactly('iconchange'));
+      assert.deepEqual(app1.favicons, {
+        'favicon.ico': {sizes: ['32x32']},
+        'another.ico': {sizes: ['32x32']}
+      });
+
+      app1.handleEvent({
+        type: 'mozbrowsericonchange',
+        detail: {
+          sizes: '16x16',
+          href: 'favicon.ico'
+        }
+      });
+
+      assert.isTrue(stubPublish.calledWithExactly('iconchange'));
+      assert.deepEqual(app1.favicons, {
+        'favicon.ico': {sizes: ['32x32', '16x16']},
+        'another.ico': {sizes: ['32x32']}
+      });
+    });
+
     test('Orientation change event on app', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       this.sinon.stub(app1, 'isActive').returns(false);

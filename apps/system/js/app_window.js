@@ -887,9 +887,29 @@
       this.publish('locationchange');
     };
 
+
+  /**
+   * Object that keeps track of all the icons that have been
+   * defined by web content.
+   *
+   * @type {Object}
+   */
+  AppWindow.prototype.favicons = {};
+
   AppWindow.prototype._handle_mozbrowsericonchange =
     function aw__handle_mozbrowsericonchange(evt) {
-      this.config.favicon = evt.detail;
+
+      var href = evt.detail.href;
+      var sizes = evt.detail.sizes;
+
+      if (!(href in this.favicons)) {
+        this.favicons[href] = {sizes: []};
+      }
+
+      if (this.favicons[href].sizes.indexOf(sizes) === -1) {
+        this.favicons[href].sizes.push(sizes);
+      }
+
       if (this.identificationIcon) {
         this.identificationIcon.style.backgroundImage =
           'url("' + evt.detail.href + '")';
