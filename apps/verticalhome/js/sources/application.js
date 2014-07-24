@@ -33,7 +33,16 @@
       });
     }
 
+    function addMozAppListener() {
+      window.addEventListener('downloadapplied', function onDownloadApplied(e) {
+        appManager.sendEventToCollectionApp('install', {
+          id: e.detail.id
+        });
+      });
+    }
+
     addSVEventListener();
+    addMozAppListener();
 
     var self = this;
     function addIcons() {
@@ -83,8 +92,13 @@
       app.grid.render();
       app.itemStore.save(app.grid.getItems());
 
-      appManager.sendEventToCollectionApp('install',
-        { id: application.manifestURL });
+      // for packaged apps ignore the 'install' event and wait for
+      // 'downloadapplied'
+      if (application.installState === 'installed') {
+        appManager.sendEventToCollectionApp('install', {
+          id: application.manifestURL
+        });
+      }
     }
 
     /**

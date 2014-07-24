@@ -318,6 +318,9 @@
         }
       }
 
+      if (!icon) {
+        eme.error(item.identifier, 'home icon not found');
+      }
       return icon;
     },
 
@@ -385,8 +388,10 @@
       eme.log('rendering icon for', this.name);
 
       return Common.prepareAssets(this)
-             .then(() => this.doRenderIcon())
-             .catch(() => this.doRenderIcon());
+             .then(() => this.doRenderIcon(), () => this.doRenderIcon())
+             .catch((e) => {
+                eme.error('icon rendering failed', e);
+             });
     },
 
     doRenderIcon: function doRenderIcon() {
