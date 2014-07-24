@@ -803,6 +803,7 @@
       }.bind(this));
     },
 
+
     /**
      * Moves to the next item in the queue.
      */
@@ -812,8 +813,6 @@
         this._fireCallbacks();
       }
     },
-
-    _pendingRequires: null,
 
     /**
      * Loads given script into current target window.
@@ -3000,18 +2999,17 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       return result;
     },
 
-    _loadTestHelpers: function(loader) {
+    _loadTestHelpers: function(box) {
       var helpers = this.testHelperUrl;
       if (typeof(helpers) === 'string') {
         helpers = [helpers];
       }
 
-      // Serialize the order of loading for test helpers.
-      Promise.all(helpers.map(function(helper) {
-        return loader.require(helper);
-      })).then(function() {
-        return loader.done();
+      var promise = Promise.resolve();
+      helpers.forEach(function(helper) {
+        promise = promise.then(box.require.bind(box, helper));
       });
+      return promise;
     },
 
     _testRunner: function _testRunner(worker, tests, done) {
@@ -3050,6 +3048,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         box.mocha.run(done);
       });
     }
+
 
   };
 
