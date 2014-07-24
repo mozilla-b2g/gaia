@@ -208,7 +208,7 @@ suite('Nfc Manager Functions', function() {
       assert.equal(stubDispatchEvent.getCall(2).args[0].type,
                    'check-p2p-registration-for-active-app');
     });
-    
+
     // integration test, will be refactored in Bug 1006375
     test('NDEF and empty records activity triggering', function() {
        var msg = { type: 'techDiscovered', sessionToken: 'token',

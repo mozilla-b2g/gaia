@@ -4,7 +4,7 @@
 /* global MockMozPower */
 /* global SleepMenu */
 
-requireApp('system/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system/test/unit/mock_navigator_moz_power.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/js/logo_loader.js');

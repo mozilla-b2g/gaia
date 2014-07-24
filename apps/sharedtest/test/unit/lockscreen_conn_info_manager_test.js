@@ -1,25 +1,29 @@
+/* globals LockScreenConnInfoManager, MobileOperator, MockMobileconnection,
+           MockMobileOperator, MockNavigatorMozIccManager,
+           MockNavigatorSettings, MockSettingsListener, MockSIMSlot,
+           MockSIMSlotManager, SIMSlotManager */
 'use strict';
 
-requireApp('system/test/unit/mock_l10n.js');
-requireApp('system/js/mock_simslot.js');
-requireApp('system/js/mock_simslot_manager.js');
-requireApp('system/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
-requireApp('system/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
-requireApp('system/shared/test/unit/mocks/mock_mobile_operator.js');
-requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
-requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
-requireApp('system/js/lockscreen_connection_info_manager.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_simslot.js');
+require('/shared/test/unit/mocks/mock_simslot_manager.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
+require('/shared/test/unit/mocks/mock_mobile_operator.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+require('/shared/test/unit/mocks/mock_settings_listener.js');
+require('/shared/js/lockscreen_connection_info_manager.js');
 
-if (!this.MobileOperator) {
-  this.MobileOperator = null;
+if (!window.MobileOperator) {
+  window.MobileOperator = null;
 }
 
-if (!this.SettingsListener) {
-  this.SettingsListener = null;
+if (!window.SettingsListener) {
+  window.SettingsListener = null;
 }
 
-if (!this.SIMSlotManager) {
-  this.SIMSlotManager = null;
+if (!window.SIMSlotManager) {
+  window.SIMSlotManager = null;
 }
 
 suite('system/LockScreenConnInfoManager >', function() {
