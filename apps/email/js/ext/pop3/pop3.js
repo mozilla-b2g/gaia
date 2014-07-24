@@ -2408,7 +2408,10 @@ function chewStructure(msg) {
       // If it exists, keep it the same, except in the case of inline
       // disposition without a content id.
       if (partInfo.disposition.type.toLowerCase() == 'inline') {
-        if (partInfo.id) {
+      // Displaying text-parts inline is not a problem for us, but we need a
+      // content id for other embedded content.  (Currently only images are
+      // supported, but that is enforced in a subsequent check.)
+        if (partInfo.type === 'text' || partInfo.id) {
           disposition = 'inline';
         } else {
           disposition = 'attachment';
