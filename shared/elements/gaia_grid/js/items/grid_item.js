@@ -210,9 +210,16 @@
      * @param {String} url The image url to display.
      */
     renderIconFromSrc: function(url) {
-      var background = new Image();
-      background.src = url;
-      background.onload = this._decorateIcon.bind(this, background);
+      console.log('evme', 'renderIconFromSrc', url);
+
+      return new Promise((resolve) => {
+        var background = new Image();
+        background.onload = () => {
+          this._decorateIcon(background).then(resolve);
+        };
+
+        background.src = url;
+      });
     },
 
 
@@ -236,10 +243,11 @@
      * @param {HTMLImageElement} img An image element to display from.
      */
     _decorateIcon: function(img) {
+      console.log('evme', '_decorateIcon');
       var strategy = this.detail.renderer || this.renderer;
       this.rendererInstance = new GridIconRenderer(this);
-      this.rendererInstance[strategy](img).
-        then(this._displayDecoratedIcon.bind(this));
+      return this.rendererInstance[strategy](img)
+        .then((blob) => this._displayDecoratedIcon(blob));
     },
 
     /**
@@ -248,6 +256,7 @@
      * @param {Blob} blob The image blob to display.
      */
     _displayDecoratedIcon: function(blob, isCachedIcon) {
+      console.log('evme', '_displayDecoratedIcon');
       if (!this.element) {
         // The icon could be removed while it is being decorated
         return;
@@ -277,10 +286,10 @@
         return;
       }
 
-      this._compareBlobs(blob, this.detail.decoratedIconBlob).
+      return this._compareBlobs(blob, this.detail.decoratedIconBlob).
       then((equal) => {
         if (equal) {
-          return;
+          return this.detail.decoratedIconBlob;
         }
 
         style.backgroundImage = 'url(' + URL.createObjectURL(blob) + ')';
@@ -292,6 +301,9 @@
         );
         var bgImg = this.element.dataset.backgroundImage;
         bgImg && URL.revokeObjectURL(bgImg);
+
+        console.log('evme', 'return decorated blob', this.identifier);
+        return this.detail.decoratedIconBlob;
       });
     },
 

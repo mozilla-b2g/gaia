@@ -27,20 +27,24 @@
       if (!initPromise || force) {
         initPromise =
           Promise.all([this.collectBookmarkURLs(), this.collectManifestURLs()])
-                 .then(() => this.ready = true);
+                 .then(() => {
+                  this.ready = true;
+                  console.log('evme', 'HomeIcons init done');
+                 })
+                 .catch((e) => console.log('HomeIcons init error', e));
       }
 
       return initPromise;
     },
 
     collectBookmarkURLs: function collectBookmarkURLs() {
-     return new Promise((resolve) => {
-        BookmarksDatabase.getAll().then((systemBookmarks) => {
-         for (var id in systemBookmarks) {
-          this.processBookmark(systemBookmarks[id]);
-         }
-         resolve();
-       });
+      return BookmarksDatabase.getAll().then((systemBookmarks) => {
+        var tasks = [];
+        for (var id in systemBookmarks) {
+          tasks.push(this.processBookmark(systemBookmarks[id]));
+        }
+        console.log('evme', 'tasks', tasks.length);
+        return Promise.all(tasks);
       });
     },
 
@@ -62,8 +66,17 @@
         search: true
       };
       var bookmark = new GaiaGrid.Bookmark(eachBookmark, features);
+
       this.gridItemsByIdentifier[bookmark.identifier] = bookmark;
       this.recordsByBookmarkUrl[eachBookmark.bookmarkURL] = eachBookmark;
+
+      // bug 1033598
+      // we are going to replace the icon url with the decorated version
+      console.log('evme', 'prepare the decorated icon');
+      return bookmark.renderIconFromSrc(bookmark.icon)
+        .then((decoratedIconBlob) => {
+          bookmark.icon = URL.createObjectURL(decoratedIconBlob);
+        });
     },
 
     processMozApp: function(eachApp) {
