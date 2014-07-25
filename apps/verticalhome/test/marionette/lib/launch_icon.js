@@ -12,20 +12,20 @@ module.exports = function launchIcon(element) {
   element.scriptWith(function(e) {
     e.scrollIntoView(false);
     e.__ensureClick__ = function() {
-      e.removeEventListener('click', e.__ensureClick__);
+      e.removeEventListener('touchstart', e.__ensureClick__);
       e.setAttribute('data-test-was-clicked', true);
     };
-    e.addEventListener('click', e.__ensureClick__);
+    e.addEventListener('touchstart', e.__ensureClick__);
   });
 
   element.client.waitFor(function() {
     // try to click it
-    element.click();
+    element.tap();
 
     return element.scriptWith(function(e) {
       // if it was clicked clear the state if we want to run this again
       if (e.getAttribute('data-test-was-clicked')) {
-        e.removeEventListener('click', e.__ensureClick__);
+        e.removeEventListener('touchstart', e.__ensureClick__);
         e.removeAttribute('data-test-was-clicked');
         return true;
       }
