@@ -768,6 +768,7 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
             # TODO: Remove hard-coded paths once bug 1018079 is resolved
             storage_paths.extend(['/mnt/sdcard',
                                   '/mnt/extsdcard',
+                                  '/storage/sdcard',
                                   '/storage/sdcard0',
                                   '/storage/sdcard1'])
         for path in storage_paths:
