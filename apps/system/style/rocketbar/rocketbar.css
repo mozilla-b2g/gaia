@@ -85,11 +85,7 @@ body:not(.rb-enabled) #rocketbar {
   font-style: italic;
   font-weight: 300;
   opacity: 1;
-  color: #e7e7e7;
-}
-
-#rocketbar-input:focus::-moz-placeholder {
-  opacity: 0.4;
+  color: rgba(231, 231, 231, 0.4);
 }
 
 #rocketbar-input {
@@ -160,12 +156,15 @@ body:not(.rb-enabled) #rocketbar {
   background-size: cover;
   background-repeat: no-repeat;
   background-position: 50% 50%;
+
+  opacity: 1;
+  transition: opacity 0.3s linear;
 }
 
 #rocketbar-backdrop-cover {
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.35);
+  background-color: rgba(0, 0, 0, 0.75);
   pointer-events: none;
 }
 
@@ -175,7 +174,8 @@ body:not(.rb-enabled) #rocketbar {
 
 #rocketbar-results.hidden, #rocketbar-results iframe.hidden,
 #rocketbar-backdrop.hidden {
-  display: none;
+  opacity: 0;
+  pointer-events: none;
 }
 
 #rocketbar-overflow-button {
@@ -213,15 +213,25 @@ body:not(.rb-enabled) #rocketbar {
  * Style overrides for the HomeSearchbar
  */
 body.homesearch-enabled #rocketbar {
-  transition: none;
+  transition: opacity 0.25s linear;
+  display: block;
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(1) translateY(2.4rem);
 }
 
 body.homesearch-enabled #rocketbar.active {
-  display: block;
+  opacity: 1;
+  pointer-events: auto;
 }
 
 body.homesearch-enabled #rocketbar-input {
   height: 2rem;
+}
+
+body.homesearch-enabled #rocketbar-title-content {
+  margin-top: 0.7rem;
+  transform: scale(1);
 }
 
 /* Expand the rocketbar when it's active */

@@ -1,5 +1,5 @@
 /* global MocksHelper, MockAppWindow, MockSystem, AppTransitionController,
-          MockSimPinDialog, MockRocketbar, rocketbar */
+          MockSimPinDialog, MockRocketbar, rocketbar, homeSearchbar */
 'use strict';
 
 requireApp('system/test/unit/mock_app_window.js');
@@ -20,6 +20,7 @@ suite('system/AppTransitionController', function() {
   setup(function(done) {
     window.SimPinDialog = new MockSimPinDialog();
     window.rocketbar = new MockRocketbar();
+    window.homeSearchbar = new MockRocketbar();
     stubById = this.sinon.stub(document, 'getElementById');
     stubById.returns(document.createElement('div'));
     requireApp('system/js/app_transition_controller.js', done);
@@ -228,6 +229,25 @@ suite('system/AppTransitionController', function() {
     acn1.handle_opened();
 
     assert.isTrue(stubFocus.called);
+  });
+
+  test('Do not focus if rocketbar is active', function() {
+    var app1 = new MockAppWindow(fakeAppConfig1);
+    var acn1 = new AppTransitionController(app1);
+    var stubFocus = this.sinon.stub(app1, 'focus');
+    app1.loaded = true;
+    MockSimPinDialog.visible = false;
+    rocketbar.active = true;
+    acn1._transitionState = 'opened';
+
+    acn1.handle_opened();
+    assert.isTrue(stubFocus.notCalled);
+
+    rocketbar.active = false;
+    homeSearchbar.active = true;
+    acn1._transitionState = 'opened';
+    acn1.handle_opened();
+    assert.isTrue(stubFocus.notCalled);
   });
 
   suite('Opened', function() {
