@@ -2,5 +2,5 @@
 /* exported MockSmsIntegration */
 
 var MockSmsIntegration = {
-  sendSms: function (number) {}
+  _send: function (data) {}
 };
