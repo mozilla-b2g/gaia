@@ -9,6 +9,7 @@ var debug = require('debug')('storage');
 var bindAll = require('lib/bind-all');
 var dcf = require('lib/dcf');
 var events = require('evt');
+var storageSingleton;
 
 /**
  * Locals
@@ -34,6 +35,10 @@ events(Storage.prototype);
  * @param {Object} options
  */
 function Storage(options) {
+  if (storageSingleton) {
+    return storageSingleton;
+  }
+  storageSingleton = this;
   bindAll(this);
   this.maxFileSize = 0;
   options = options || {};
@@ -42,6 +47,7 @@ function Storage(options) {
   this.dcf.init();
   navigator.mozSettings.addObserver('device.storage.writable.name',
                                     this.onStorageVolumeChanged);
+  this.configure();
   debug('initialized');
 }
 
