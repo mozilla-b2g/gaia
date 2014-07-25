@@ -95,9 +95,6 @@ function updateCurrentKeyboardState() {
     if (!document.hidden && app.inputContext) {
       showKeyboard();
     }
-  }, function(error) {
-    console.warn('Failed to switch layout for ' + layoutName + '.' +
-      ' It might possible because we were called more than once.');
   });
 }
 
@@ -188,8 +185,5 @@ function switchIMEngine(mustRender) {
 
     // Load l10n library after IMEngine is loaded (if it's not loaded yet).
     app.l10nLoader.load();
-  }, function() {
-    console.warn('Failed to switch imEngine for ' + layout.layoutName + '.' +
-      ' It might possible because we were called more than once.');
   });
 }

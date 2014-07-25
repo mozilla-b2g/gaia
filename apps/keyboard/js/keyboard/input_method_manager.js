@@ -409,12 +409,9 @@ InputMethodManager.prototype.switchCurrentIMEngine = function(imEngineName) {
   .then(function(values) {
     if (switchStateId !== this._switchStateId) {
       console.log('InputMethodManager: ' +
-        'Promise is resolved after another switchCurrentIMEngine() call. ' +
-        'Reject the promise instead.');
+        'Promise is resolved after another switchCurrentIMEngine() call.');
 
-      return Promise.reject(new Error(
-        'InputMethodManager: switchCurrentIMEngine() is called again before ' +
-        'resolving.'));
+      return Promise.reject();
     }
 
     var imEngine = values[0];
@@ -431,10 +428,6 @@ InputMethodManager.prototype.switchCurrentIMEngine = function(imEngineName) {
       );
     }
     this.currentIMEngine = imEngine;
-    // resolve to undefined
-    return;
-  }.bind(this), function(error) {
-    return Promise.reject(error);
   }.bind(this));
 
   return p;
