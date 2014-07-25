@@ -1,5 +1,5 @@
 'use strict';
-/* global HomeSearchbar, Rocketbar, MocksHelper */
+/* global HomeSearchbar, Rocketbar, MocksHelper, MockAppWindowManager */
 
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_search_window.js');
@@ -83,15 +83,16 @@ suite('system/HomeSearchbar', function() {
       navigator.mozApps.getSelf = function() { return app; };
       subject.initSearchConnection();
       app.onsuccess();
+      subject.stop();
     });
 
     teardown(function() {
+      subject.start();
       navigator.mozApps = realMozApps;
     });
 
     test('app opening events', function() {
       this.sinon.stub(subject._port, 'postMessage');
-      subject.stop();
       subject.expand();
 
       var assertStubs = [
@@ -213,7 +214,6 @@ suite('system/HomeSearchbar', function() {
      */
     test('attentionscreenshow', function() {
       this.sinon.stub(subject._port, 'postMessage');
-      subject.stop();
       subject.expand();
 
       var assertStubs = [
@@ -237,7 +237,6 @@ suite('system/HomeSearchbar', function() {
 
     test('status-inactive', function() {
       this.sinon.stub(subject._port, 'postMessage');
-      subject.stop();
       subject.expand();
 
       var assertStubs = [
@@ -256,6 +255,50 @@ suite('system/HomeSearchbar', function() {
 
       assertStubs.forEach(function(stub) {
         assert.ok(stub.calledOnce);
+      });
+    });
+
+    suite('global-search-request', function() {
+      test('should activate then focus the search bar', function() {
+        this.sinon.useFakeTimers();
+        this.sinon.stub(subject, 'activate', function(cb) {
+          cb();
+        });
+        this.sinon.spy(subject, 'focus');
+
+        window.dispatchEvent(new CustomEvent('global-search-request'));
+        this.sinon.clock.tick();
+
+        sinon.assert.callOrder(subject.activate, subject.focus);
+      });
+
+      suite('when the current app has a titlebar', function() {
+        var fakeApp;
+        setup(function() {
+          fakeApp = {
+            getTopMostWindow: function() { return this; },
+            titleBar: {
+              expand: function(cb) { cb && cb(); }
+            }
+          };
+          MockAppWindowManager.mActiveApp = fakeApp;
+        });
+
+        test('should expand the title bar then activate then focus',
+        function() {
+          this.sinon.useFakeTimers();
+          this.sinon.stub(subject, 'activate', function(cb) {
+            cb();
+          });
+          this.sinon.spy(subject, 'focus');
+          this.sinon.spy(fakeApp.titleBar, 'expand');
+
+          window.dispatchEvent(new CustomEvent('global-search-request'));
+          this.sinon.clock.tick();
+
+          sinon.assert.callOrder(fakeApp.titleBar.expand, subject.activate,
+                                 subject.focus);
+        });
       });
     });
   });
