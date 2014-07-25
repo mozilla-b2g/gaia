@@ -9,6 +9,7 @@ require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/test/unit/mock_applications.js');
 require('/test/unit/mock_homescreen_launcher.js');
+require('/test/unit/mock_ime_switcher.js');
 require('/js/input_transition.js');
 require('/js/keyboard_manager.js');
 
@@ -16,7 +17,8 @@ var mocksHelperForKeyboardManager = new MocksHelper([
     'SettingsListener',
     'KeyboardHelper',
     'LazyLoader',
-    'Applications'
+    'Applications',
+    'IMESwitcher'
 ]).init();
 
 suite('KeyboardManager', function() {
@@ -50,9 +52,6 @@ suite('KeyboardManager', function() {
     var rc = document.querySelector('#run-container');
     rc.innerHTML = '';
 
-    rc.innerHTML += '<div id="keyboard-show-ime-list">' +
-      '<div class="fake-notification"><div class="message tip"></div></div>' +
-      '</div>';
     rc.innerHTML += '<div id="keyboards" class="hide">hoi</div>';
   }
 
@@ -139,7 +138,6 @@ suite('KeyboardManager', function() {
   suite('Switching keyboard focus', function() {
     setup(function() {
       this.sinon.stub(KeyboardManager, 'hideKeyboard');
-      this.sinon.stub(KeyboardManager, 'hideIMESwitcher');
       this.sinon.stub(KeyboardManager, 'showIMESwitcher');
       this.sinon.stub(KeyboardManager, 'setKeyboardToShow');
       this.sinon.stub(KeyboardManager, 'resetShowingKeyboard');
@@ -593,10 +591,12 @@ suite('KeyboardManager', function() {
 
   suite('mozbrowserresize event test', function() {
     var handleResize;
+    var showIMESwitcher;
     setup(function() {
       handleResize =
         this.sinon.spy(KeyboardManager.transitionManager, 'handleResize');
-      this.sinon.stub(KeyboardManager, 'showIMESwitcher');
+      showIMESwitcher =
+        this.sinon.stub(KeyboardManager, 'showIMESwitcher');
     });
 
     function fakeMozbrowserResize(height) {
@@ -611,6 +611,8 @@ suite('KeyboardManager', function() {
       KeyboardManager.setKeyboardToShow('text');
       fakeMozbrowserResize(200);
       sinon.assert.callCount(handleResize, 1, 'handleResize should be called');
+      sinon.assert.callCount(showIMESwitcher, 1,
+                             'showIMESwitcher should be called');
     });
 
     test('keyboardFrameContainer is hiding.', function() {
@@ -638,6 +640,8 @@ suite('KeyboardManager', function() {
       assert.equal(KeyboardManager.getHeight(), 250);
       sinon.assert.callCount(handleResize, 2,
                                         'handleResize should be called twice');
+      sinon.assert.callCount(showIMESwitcher, 2,
+                                     'showIMESwitcher should be called twice');
     });
 
     test('keyboard is showing.', function() {
@@ -651,10 +655,12 @@ suite('KeyboardManager', function() {
   });
 
   suite('Focus and Blur', function() {
+    var imeSwitcherHide;
     setup(function() {
       this.sinon.stub(KeyboardManager, 'hideKeyboard');
       this.sinon.stub(KeyboardManager, 'setKeyboardToShow');
       this.sinon.stub(KeyboardManager, 'showIMESwitcher');
+      imeSwitcherHide = this.sinon.stub(KeyboardManager.imeSwitcher, 'hide');
       KeyboardManager.keyboardLayouts = {
         text: {
           activeLayout: {}
@@ -669,6 +675,8 @@ suite('KeyboardManager', function() {
 
       sinon.assert.callCount(KeyboardManager.hideKeyboard, 1);
       sinon.assert.notCalled(KeyboardManager.setKeyboardToShow);
+      sinon.assert.callCount(imeSwitcherHide, 1,
+                             'IMESwitcher.hide should be called');
     });
 
     test('Focus should show', function() {
@@ -686,5 +694,31 @@ suite('KeyboardManager', function() {
       sinon.assert.callCount(KeyboardManager.hideKeyboard, 0);
       sinon.assert.callCount(KeyboardManager.setKeyboardToShow, 1);
     });
+  });
+
+  test('showIMESwitcher should call IMESwitcher.show properly', function() {
+    var oldShowingLayout = KeyboardManager.showingLayout;
+    var oldKeyboardLayouts = KeyboardManager.keyboardLayouts;
+    KeyboardManager.showingLayout = {
+      type: 'text',
+      index: 0
+    };
+    KeyboardManager.keyboardLayouts = {
+      text: [
+        {
+          appName: 'DummyApp',
+          name: 'DummyKB'
+        }
+      ]
+    };
+
+    var stubIMESwitcherShow =
+      this.sinon.stub(KeyboardManager.imeSwitcher, 'show');
+    KeyboardManager.showIMESwitcher();
+
+    sinon.assert.calledWith(stubIMESwitcherShow, 'DummyApp', 'DummyKB');
+
+    KeyboardManager.showingLayout = oldShowingLayout;
+    KeyboardManager.keyboardLayouts = oldKeyboardLayouts;
   });
 });
