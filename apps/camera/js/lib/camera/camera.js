@@ -743,12 +743,11 @@ Camera.prototype.takePicture = function(options) {
   debug('take picture');
   this.busy();
 
-  var rotation = orientation.get();
+  var rotation = this.orientation.get();
   var selectedCamera = this.selectedCamera;
   var self = this;
   var position = options && options.position;
   var config = {
-    rotation: rotation,
     dateTime: Date.now() / 1000,
     pictureSize: self.pictureSize,
     fileFormat: 'jpeg'
@@ -761,7 +760,7 @@ Camera.prototype.takePicture = function(options) {
   }
 
   // Front camera is inverted, so flip rotation
-  rotation = selectedCamera === 'front' ? -rotation : rotation;
+  config.rotation = selectedCamera === 'front' ? -rotation : rotation;
 
   // If the camera focus is 'continuous' or 'infinity'
   // we can take the picture straight away.
