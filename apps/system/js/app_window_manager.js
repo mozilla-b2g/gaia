@@ -1,5 +1,5 @@
 /* global SettingsListener, homescreenLauncher, KeyboardManager,
-          layoutManager, System */
+          layoutManager, System, NfcHandler */
 'use strict';
 
 (function(exports) {
@@ -213,6 +213,9 @@
      * @memberOf module:AppWindowManager
      */
     init: function awm_init() {
+      var nfcHandler = new NfcHandler(this);
+      nfcHandler.start();
+
       if (System.slowTransition) {
         this.element.classList.add('slow-transition');
       } else {

@@ -41,7 +41,7 @@
     "audio-channel-ringer":{},
     "cellbroadcast":{},
     "input-manage":{},
-    "nfc":{ "access": "readonly" },
+    "nfc":{ "access": "readwrite" },
     "nfc-manager":{},
     "downloads":{},
     "systemXHR":{},

@@ -1,12 +1,14 @@
-/* global MocksHelper, ShrinkingUI */
+/* global MocksHelper, ShrinkingUI, MockSystem */
 
 'use strict';
 
 requireApp('system/js/shrinking_ui.js');
 requireApp('system/test/unit/mock_orientation_manager.js');
+require('/shared/test/unit/mocks/mock_system.js');
 
 var mocksForShrinkingUI = new MocksHelper([
-  'OrientationManager'
+  'OrientationManager',
+  'System'
 ]).init();
 
 suite('system/ShrinkingUI', function() {
@@ -94,6 +96,8 @@ suite('system/ShrinkingUI', function() {
     var evt = {
       type: 'appcreated',
       detail: {
+        url: 'app://www.fake.app/murl',
+        instanceID: 'fake',
         manifestURL: 'app://www.fake.app/murl'
       }
     };
@@ -102,11 +106,11 @@ suite('system/ShrinkingUI', function() {
     assert.isTrue(stubRegister.calledWith(evt.detail));
 
     // test the early return in handleEvent
-    //   (for evt.detail & evnt.detail.manifestURL)
+    //   (for evt.detail & evnt.detail.url)
     // note that this is only tested in appcreated,
     // and not appterminated & appopen
 
-    delete evt.detail.manifestURL;
+    delete evt.detail.url;
     stubRegister.reset();
     ShrinkingUI.handleEvent(evt);
     assert.isFalse(stubRegister.called);
@@ -121,6 +125,7 @@ suite('system/ShrinkingUI', function() {
     var evt = {
       type: 'appterminated',
       detail: {
+        url: 'app://www.fake.app/maniurl',
         manifestURL: 'app://www.fake.app/maniurl',
         instanceID: 'fakeinstance'
       }
@@ -176,7 +181,8 @@ suite('system/ShrinkingUI', function() {
       type: 'appopen',
       detail: {
         manifestURL: 'app://www.fake.app/mfurl',
-        instanceID: 'instanceID'
+        instanceID: 'instanceID',
+        url: 'app://www.fake.app/mfurl'
       }
     };
     var stubSwitchTo = this.sinon.stub(ShrinkingUI, '_switchTo');
@@ -189,7 +195,8 @@ suite('system/ShrinkingUI', function() {
       type: 'appwill-become-active',
       detail: {
         manifestURL: 'app://www.fake.app/mfsturl',
-        instanceID: 'instanceID'
+        instanceID: 'instanceID',
+        url: 'app://www.fake.app/mfsturl'
       }
     };
     var stubSwitchTo = this.sinon.stub(ShrinkingUI, '_switchTo');
@@ -278,9 +285,14 @@ suite('system/ShrinkingUI', function() {
     ShrinkingUI.apps = oldApps;
   });
 
-  test('ShrinkingUI SwitchTo', function() {
+  test('ShrinkingUI SwitchTo some instance ID', function() {
     ShrinkingUI._switchTo('someOtherInstanceID');
     assert.equal(ShrinkingUI.current.instanceID, 'someOtherInstanceID');
+  });
+
+  test('ShrinkingUI SwitchTo when manifestURL is null', function() {
+    ShrinkingUI._switchTo(null, null);
+    assert.equal(ShrinkingUI.current.manifestURL, MockSystem.manifestURL);
   });
 
   test('Shrinking UI Setup', function() {
