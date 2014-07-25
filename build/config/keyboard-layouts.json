@@ -141,6 +141,12 @@
     "pt-BR": [
         {"layoutId": "pt-BR", "app": ["apps", "keyboard"]}
     ],
+    "qps-ploc": [
+        {"layoutId": "en", "app": ["apps", "keyboard"]}
+    ],
+    "qps-plocm": [
+        {"layoutId": "en", "app": ["apps", "keyboard"]}
+    ],
     "ro": [
         {"layoutId": "ro", "app": ["apps", "keyboard"]}
     ],
