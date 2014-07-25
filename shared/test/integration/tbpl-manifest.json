@@ -33,7 +33,6 @@
     "apps/system/test/marionette/edges_gesture_test.js": "",
     "apps/system/test/marionette/notification_get_test.js": "Bug 960126 - TEST-UNEXPECTED-FAIL | Notification.get(): should work across domains",
     "apps/system/test/marionette/notification_resend_test.js": " Bug 1037194 - TEST-UNEXPECTED-FAIL | Vertical Home - Hosted app cached icon fetch fallback to default icon",
-    "apps/verticalhome/test/marionette/app_hosted_use_cached_icon_test.js": "Bug 1037194 - TEST-UNEXPECTED-FAIL | Vertical Home - Hosted app cached icon fetch fallback to default icon",
-    "apps/verticalhome/test/marionette/search_test.js": "Bug 1042534 - TEST-UNEXPECTED-FAIL | Vertical - Search General walkthrough"
+    "apps/verticalhome/test/marionette/app_hosted_use_cached_icon_test.js": "Bug 1037194 - TEST-UNEXPECTED-FAIL | Vertical Home - Hosted app cached icon fetch fallback to default icon"
   }
 }
