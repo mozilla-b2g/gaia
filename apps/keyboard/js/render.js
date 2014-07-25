@@ -1042,7 +1042,8 @@ const IMERender = (function() {
   var scaleContext = null;
   var getScale = function(element, noOfSuggestions) {
     if (!scaleContext) {
-      scaleContext = document.createElement('canvas').getContext('2d');
+      scaleContext = document.createElement('canvas')
+        .getContext('2d', { willReadFrequently: true });
       scaleContext.font = '2rem sans-serif';
     }
 
