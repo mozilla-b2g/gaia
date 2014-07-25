@@ -24,7 +24,6 @@
    */
   function GridView(config) {
     this.config = config;
-    this.scrollableParent = this.findScrollableParent();
     this.onTouchStart = this.onTouchStart.bind(this);
     this.onTouchEnd = this.onTouchEnd.bind(this);
     this.onScroll = this.onScroll.bind(this);
@@ -138,30 +137,17 @@
       return foundIndex;
     },
 
-    findScrollableParent: function() {
-      var element = this.element;
-      while (element && !element.classList.contains('scrollable')) {
-        element = element.parentNode;
-      }
-
-      if (!element) {
-        throw new Error('Could not find a scrollable ancestor.');
-      }
-
-      return element;
-    },
-
     start: function() {
       this.element.addEventListener('touchstart', this.onTouchStart);
       this.element.addEventListener('touchend', this.onTouchEnd);
-      this.scrollableParent.addEventListener('scroll', this.onScroll);
+      window.addEventListener('scroll', this.onScroll, true);
       this.lastTouchStart = null;
     },
 
     stop: function() {
       this.element.removeEventListener('touchstart', this.onTouchStart);
       this.element.removeEventListener('touchend', this.onTouchEnd);
-      this.scrollableParent.removeEventListener('scroll', this.onScroll);
+      window.removeEventListener('scroll', this.onScroll, true);
       this.lastTouchStart = null;
     },
 
