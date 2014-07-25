@@ -178,6 +178,10 @@ contacts.Settings = (function() {
         fbImportedValue = 'renew-pwd';
         fbImportOption.dataset.state = fbImportedValue;
       });
+
+      document.addEventListener('fb_cleaned', function onFbCleaned(evt) {
+        checkNoContacts();
+      });
     }
     else {
       document.querySelector('#settings-article').dataset.state = 'fb-disabled';
@@ -605,6 +609,8 @@ contacts.Settings = (function() {
       var cleaner = req.result;
       progressBar.setTotal(cleaner.lcontacts.length);
       cleaner.onsuccess = function() {
+        document.dispatchEvent(new CustomEvent('fb_cleaned'));
+
         Contacts.showOverlay(_('loggingOutFb'), 'activityBar');
         var logoutReq = fb.utils.logout();
 
