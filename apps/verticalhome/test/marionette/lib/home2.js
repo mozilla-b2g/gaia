@@ -36,7 +36,9 @@ Home2.clientOptions = {
       'app://verticalhome.gaiamobile.org/manifest.webapp',
     'ftu.manifestURL': null,
     'keyboard.ftu.enabled': false,
-    'lockscreen.enabled': false
+    'lockscreen.enabled': false,
+    'devtools.qps.enabled': false,
+    'language.current': 'en-US'
   }
 };
 
@@ -239,10 +241,11 @@ Home2.prototype = {
       entryPoint = null;
     }
 
-    var client = this.client.scope({context: 'chrome'});
+    var chromeClient = this.client.scope({context: 'chrome'});
+    var contentClient = this.client.scope({context: 'content'});
 
     var file = 'app://' + app + '.gaiamobile.org/manifest.webapp';
-    var manifest = client.executeAsyncScript(function(file) {
+    var manifest = chromeClient.executeAsyncScript(function(file) {
       var xhr = new XMLHttpRequest();
       xhr.open('GET', file, true);
       xhr.onload = function(o) {
@@ -258,26 +261,31 @@ Home2.prototype = {
     } else {
       locales = manifest.locales;
     }
-    return locales && locales[locale].name;
+
+    if (!locales) {
+      return false;
+    }
+
+    if (locale.indexOf('qps') === 0) {
+      return contentClient.executeScript(function(locale, name) {
+        var mozL10n = window.wrappedJSObject.navigator.mozL10n;
+        return mozL10n.qps[locale].translate(name);
+      }, [locale, locales['en-US'].name]);
+    }
+
+    return locales[locale].name;
   },
 
   /**
    * Returns a localized string from a properties file.
-   * @param {String} file to open.
    * @param {String} key of the string to lookup.
    */
-  l10n: function(file, key) {
-    var string = this.client.executeAsyncScript(function(file, key) {
-      var xhr = new XMLHttpRequest();
-      xhr.open('GET', file, true);
-      xhr.onload = function(o) {
-        var data = JSON.parse(xhr.response);
-        marionetteScriptFinished(data);
-      };
-      xhr.send(null);
-    }, [file, key]);
+  l10n: function(key) {
+    var string = this.client.executeScript(function(key) {
+      return window.wrappedJSObject.navigator.mozL10n.get(key);
+    }, [key]);
 
-    return string[key];
+    return string;
   },
 
   containsClass: function(selector, clazz) {

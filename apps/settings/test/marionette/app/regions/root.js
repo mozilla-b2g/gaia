@@ -47,11 +47,11 @@ RootPanel.prototype = {
     english: {
       desc: 'English (US)',
     },
-    traditionalChinese: {
-      desc: '正體中文',
+    accented: {
+      desc: 'Ȧȧƈƈḗḗƞŧḗḗḓ Ḗḗƞɠŀīīşħ'
     },
-    french: {
-      desc: 'Français',
+    mirrored: {
+      desc: '\u202eWıɹɹoɹǝp\u202c \u202eƎuƃʅısɥ\u202c'
     }
   },
 
