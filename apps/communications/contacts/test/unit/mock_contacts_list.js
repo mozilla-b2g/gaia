@@ -24,6 +24,8 @@
       ],
       'familyName': ['AD'],
       'givenName': ['Pepito'],
+      'phoneticFamilyName': ['Test phoneticFamilyName'],
+      'phoneticGivenName': ['Test phoneticGivenName'],
       'jobTitle': [''],
       'name': [
         'Pepito A'
@@ -63,6 +65,8 @@
       ],
       'familyName': ['BA'],
       'givenName': ['Pepito'],
+      'phoneticFamilyName': ['Test phoneticFamilyName'],
+      'phoneticGivenName': ['Test phoneticGivenName'],
       'jobTitle': [''],
       'name': [
         'Pepito BA'
@@ -102,6 +106,8 @@
       ],
       'familyName': ['CC'],
       'givenName': ['Antonio'],
+      'phoneticFamilyName': ['Test phoneticFamilyName'],
+      'phoneticGivenName': ['Test phoneticGivenName'],
       'jobTitle': [''],
       'name': [
         'Antonio CC'

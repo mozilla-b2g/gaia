@@ -36,6 +36,8 @@ function MockContactAllFields(withoutPhoto) {
     'honorificPrefix': ['Mr.'],
     'familyName': ['Grillo'],
     'givenName': ['Pepito'],
+    'phoneticFamilyName': ['Test phoneticFamilyName'],
+    'phoneticGivenName': ['Test phoneticGivenName'],
     'nickname': ['PG'],
     'jobTitle': ['Sr. Software Architect'],
     'name': ['Pepito Grillo'],

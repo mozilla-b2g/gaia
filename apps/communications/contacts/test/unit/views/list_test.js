@@ -14,6 +14,7 @@
 /* global MockURL */
 /* global MocksHelper */
 /* global MockNavigationStack */
+/* global MockPhonetic */
 /* global Normalizer */
 
 require('/shared/js/lazy_loader.js');
@@ -36,6 +37,7 @@ requireApp('communications/contacts/test/unit/mock_extfb.js');
 requireApp('communications/contacts/test/unit/mock_activities.js');
 requireApp('communications/contacts/test/unit/mock_utils.js');
 requireApp('communications/contacts/test/unit/mock_mozContacts.js');
+requireApp('communications/contacts/test/unit/mock_phonetic_contact_fields.js');
 requireApp('communications/contacts/js/utilities/performance_helper.js');
 
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
@@ -393,6 +395,7 @@ suite('Render contacts list', function() {
     window.utils = window.utils || {};
     window.utils.alphaScroll = MockAlphaScroll;
     window.utils.cookie = MockCookie;
+    window.utils.phonetic = MockPhonetic;
     realMozContacts = navigator.mozContacts;
     navigator.mozContacts = MockMozContacts;
     subject = contacts.List;

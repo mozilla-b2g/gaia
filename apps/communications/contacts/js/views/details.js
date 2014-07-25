@@ -30,6 +30,7 @@ contacts.Details = (function() {
       contactDetails,
       listContainer,
       detailsName,
+      phoneticName,
       orgTitle,
       datesTemplate,
       phonesTemplate,
@@ -60,6 +61,7 @@ contacts.Details = (function() {
     contactDetails = dom.querySelector('#contact-detail');
     listContainer = dom.querySelector('#details-list');
     detailsName = dom.querySelector('#contact-name-title');
+    phoneticName = dom.querySelector('#phonetic-name');
     orgTitle = dom.querySelector('#org-title');
     datesTemplate = dom.querySelector('#dates-template-\\#i\\#');
     phonesTemplate = dom.querySelector('#phone-details-template-\\#i\\#');
@@ -214,7 +216,14 @@ contacts.Details = (function() {
     var name = _('noName');
 
     if (hasName(contact)) {
-      name = contact.name[0];
+      var givenName = (contact.givenName && contact.givenName[0]) || '';
+      var familyName = (contact.familyName && contact.familyName[0]) || '';
+      if (utils.phonetic.isCJK(String(familyName))) {
+          name = _('support_phonetic', {familyName: familyName,
+          givenName: givenName});
+      } else {
+        name = contact.name[0];
+      }
     } else if (hasContent(contact.tel)) {
       name = contact.tel[0].value;
     } else if (hasContent(contact.email)) {
@@ -246,6 +255,11 @@ contacts.Details = (function() {
     contactDetails.classList.remove('up');
     utils.dom.removeChildNodes(listContainer);
 
+    if (utils.phonetic.isJapaneseLang()) {
+      renderPhoneticName(contact);
+    } else {
+      phoneticName.classList.add('hide');
+    }
     renderFavorite(contact);
     renderOrg(contact);
 
@@ -268,6 +282,31 @@ contacts.Details = (function() {
     }
 
     renderPhoto(contact);
+  };
+
+  var renderPhoneticName = function cd_renderPhoneticName(contact) {
+    var phoneticNameText = '';
+
+    if (contact.phoneticFamilyName && contact.phoneticFamilyName.length > 0 &&
+        contact.phoneticFamilyName[0] !== '') {
+      phoneticNameText = contact.phoneticFamilyName[0];
+    }
+    if (contact.phoneticGivenName && contact.phoneticGivenName.length > 0 &&
+        contact.phoneticGivenName[0] !== '') {
+      if (phoneticNameText) {
+        phoneticNameText = _('support_phonetic', {familyName: phoneticNameText,
+            givenName: contact.phoneticGivenName[0]});
+      } else {
+        phoneticNameText = contact.phoneticGivenName[0];
+      }
+    }
+
+    if (phoneticNameText !== '') {
+      phoneticName.textContent = phoneticNameText;
+      phoneticName.classList.remove('hide');
+    } else {
+      phoneticName.classList.add('hide');
+    }
   };
 
   var renderFavorite = function cd_renderFavorite(contact) {
@@ -753,12 +792,26 @@ contacts.Details = (function() {
     }
   };
 
+  var showPhoneticArea = function renderPhoneticInputArea() {
+    if (phoneticName && phoneticName.textContent !== '') {
+      phoneticName.classList.remove('hide');
+    }
+  };
+
+  var hidePhoneticArea = function renderPhoneticInputArea() {
+    if (phoneticName) {
+      phoneticName.classList.add('hide');
+    }
+  };
+
   return {
     'init': init,
     'setContact': setContact,
     'toggleFavorite': toggleFavorite,
     'render': render,
     'reMark': reMark,
+    'showPhoneticArea': showPhoneticArea,
+    'hidePhoneticArea': hidePhoneticArea,
     'defaultTelType' : DEFAULT_TEL_TYPE
   };
 })();

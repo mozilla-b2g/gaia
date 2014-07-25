@@ -11,6 +11,7 @@
 /* global MockMozContactsObj */
 /* global MockThumbnailImage */
 /* global MockMozNfc */
+/* global MockPhonetic */
 /* global utils */
 /* exported _ */
 
@@ -35,6 +36,7 @@ requireApp('communications/contacts/test/unit/mock_fb.js');
 requireApp('communications/contacts/test/unit/mock_contacts_search.js');
 requireApp('communications/contacts/test/unit/mock_confirm_dialog.js');
 requireApp('communications/contacts/test/unit/mock_image_thumbnail.js');
+requireApp('communications/contacts/test/unit/mock_phonetic_contact_fields.js');
 
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 
@@ -107,6 +109,7 @@ suite('Render contact form', function() {
     document.body.innerHTML = MockFormDom;
     footer = document.querySelector('footer');
     subject = contacts.Form;
+    utils.phonetic = MockPhonetic;
 
     ActivityHandler = {
       currentlyHandling: false
@@ -344,6 +347,20 @@ suite('Render contact form', function() {
       mockContact.familyName.pop();
       subject.render(mockContact);
       var nameField = document.querySelector('#familyName');
+      assert.equal(nameField.value, '');
+    });
+
+    test('with no phonetic given name', function() {
+      mockContact.phoneticGivenName.pop();
+      subject.render(mockContact);
+      var nameField = document.querySelector('#phoneticGivenName');
+      assert.equal(nameField.value, '');
+    });
+
+    test('with no phonetic family name', function() {
+      mockContact.phoneticFamilyName.pop();
+      subject.render(mockContact);
+      var nameField = document.querySelector('#phoneticFamilyName');
       assert.equal(nameField.value, '');
     });
 

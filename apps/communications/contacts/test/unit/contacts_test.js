@@ -19,6 +19,7 @@ requireApp('communications/contacts/test/unit/mock_contacts_details.js');
 requireApp('communications/contacts/test/unit/mock_contacts_nfc.js');
 requireApp('communications/contacts/test/unit/mock_contacts_search.js');
 requireApp('communications/contacts/test/unit/mock_contacts_settings.js');
+//requireApp('communications/contacts/js/contacts.js');
 
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_contact_all_fields.js');
@@ -402,6 +403,7 @@ suite('Contacts', function() {
   });
 
   suite('Visibility changes', function() {
+    requireApp('communications/contacts/js/contacts.js', done);
     var navigation;
     function fireVisibilityChange() {
       document.dispatchEvent(new CustomEvent('visibilitychange'));
