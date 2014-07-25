@@ -362,15 +362,16 @@ CameraController.prototype.onBatteryStatusChange = function(status) {
 };
 
 /**
- * Stop recording if storage becomes
- * 'shared' (unavailable) usually due
- * to the device being connected to
- * a computer via USB.
+ * Stop recording if storage changes state.
+ * Examples:
+ * 'shared' usually due to the device being connected to
+ *  a computer via USB.
+ * 'unavailable' when the SDCARD is yanked
  *
  * @private
  */
-CameraController.prototype.onStorageChanged = function(state) {
-  if (state === 'shared') { this.camera.stopRecording(); }
+CameraController.prototype.onStorageChanged = function() {
+  this.camera.stopRecording();
 };
 
 /**
