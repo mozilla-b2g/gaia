@@ -35,47 +35,6 @@ suite('system/AppTitleBar', function() {
     stubById.returns(document.createElement('div'));
   });
 
-  suite('mozbrowsermetachange', function() {
-    var subject = null;
-    setup(function() {
-      var app = new AppWindow(fakeApp);
-      subject = new AppTitleBar(app);
-      subject._registerEvents();
-    });
-
-    teardown(function() {
-      subject._unregisterEvents();
-    });
-
-    test('should set background when the meta is added', function() {
-      subject.element.style.backgroundColor = '';
-      var evt = new CustomEvent('mozbrowsermetachange', {
-        detail: {
-          type: 'added',
-          name: 'theme-color',
-          content: 'orange'
-        }
-      });
-      subject.app.element.dispatchEvent(evt);
-
-      assert.equal(subject.element.style.backgroundColor, 'orange');
-    });
-
-    test('should remove color when the meta is removed', function() {
-      subject.element.style.backgroundColor = 'orange';
-      var evt = new CustomEvent('mozbrowsermetachange', {
-        detail: {
-          type: 'removed',
-          name: 'theme-color',
-          content: 'orange'
-        }
-      });
-      subject.app.element.dispatchEvent(evt);
-
-      assert.equal(subject.element.style.backgroundColor, '');
-    });
-  });
-
   suite('mozbrowsertitlechange', function() {
     var subject = null;
     setup(function() {
@@ -181,6 +140,56 @@ suite('system/AppTitleBar', function() {
       subject.app.element.dispatchEvent(evt);
 
       assert.equal(subject.title.textContent, 'Téléphone');
+    });
+  });
+
+  suite('theme color', function() {
+    test('should take the current themeColor of the app at init', function() {
+      var app = new AppWindow(fakeApp);
+      app.themeColor = 'blue';
+      var subject = new AppTitleBar(app);
+      assert.equal(subject.element.style.backgroundColor, 'blue');
+    });
+
+    suite('mozbrowsermetachange', function() {
+      var subject = null;
+      setup(function() {
+        var app = new AppWindow(fakeApp);
+        subject = new AppTitleBar(app);
+        subject._registerEvents();
+      });
+
+      teardown(function() {
+        subject._unregisterEvents();
+      });
+
+      test('should set background when the meta is added', function() {
+        subject.element.style.backgroundColor = '';
+        var evt = new CustomEvent('mozbrowsermetachange', {
+          detail: {
+            type: 'added',
+            name: 'theme-color',
+            content: 'orange'
+          }
+        });
+        subject.app.element.dispatchEvent(evt);
+
+        assert.equal(subject.element.style.backgroundColor, 'orange');
+      });
+
+      test('should remove color when the meta is removed', function() {
+        subject.element.style.backgroundColor = 'orange';
+        var evt = new CustomEvent('mozbrowsermetachange', {
+          detail: {
+            type: 'removed',
+            name: 'theme-color',
+            content: 'orange'
+          }
+        });
+        subject.app.element.dispatchEvent(evt);
+
+        assert.equal(subject.element.style.backgroundColor, '');
+      });
     });
   });
 });

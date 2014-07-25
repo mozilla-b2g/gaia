@@ -720,7 +720,15 @@
       }
 
       if (!this.config.chrome || !this.config.chrome.bar) {
-        this.appTitleBar = new self.AppTitleBar(this);
+        if (this.manifest) {
+          var that = this;
+          that.element.addEventListener('_opened', function onOpened() {
+            that.element.removeEventListener('_opened', onOpened);
+            that.appTitleBar = new self.AppTitleBar(that);
+          });
+        } else {
+          this.appTitleBar = new self.AppTitleBar(this);
+        }
       }
     };
 

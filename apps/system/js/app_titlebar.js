@@ -24,6 +24,10 @@
       this._gotName = true;
       this.title.textContent = appName;
     }
+
+    if (this.app.themeColor) {
+      this.element.style.backgroundColor = this.app.themeColor;
+    }
   };
 
   AppTitleBar.prototype = Object.create(window.BaseUI.prototype);
