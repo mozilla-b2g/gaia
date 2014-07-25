@@ -45,20 +45,18 @@ class TestGfxSmokeTestOZ(GaiaTestCase):
         self.assertTrue(image.is_photo_toolbar_displayed)
 
         #scroll back and forth in different display mode
-        self.device.change_orientation('landscape-primary')
+        self.change_orientation('landscape-primary')
         self.graphics.invoke_screen_capture()
         self.graphics.scroll(self.marionette,self._current_image_locator,'left',5)
-        self.device.change_orientation('portrait-primary')
+        self.change_orientation('portrait-primary')
         self.graphics.invoke_screen_capture()
         self.graphics.scroll(self.marionette,self._current_image_locator,'right',5)
 
         #flip A LOT
         x = 0
         while ( x < 10):
-            self.device.change_orientation('landscape-primary')
-            time.sleep(1)
-            self.device.change_orientation('portrait-primary')
-            time.sleep(1)
+            self.change_orientation('landscape-primary')
+            self.change_orientation('portrait-primary')
             x += 1
         self.graphics.invoke_screen_capture()
 
@@ -67,10 +65,10 @@ class TestGfxSmokeTestOZ(GaiaTestCase):
         self.graphics.invoke_screen_capture()
         self.graphics.scroll(self.marionette,self._current_image_locator,'left',1,distance=10)
         self.graphics.invoke_screen_capture()
-        self.device.change_orientation('landscape-primary')
+        self.change_orientation('landscape-primary')
         self.graphics.pinch(self.marionette,self._current_image_locator,'out','high')
         self.graphics.invoke_screen_capture()
-        self.device.change_orientation('portrait-primary')
+        self.change_orientation('portrait-primary')
         action = Actions(self.marionette)
         time.sleep(2)
         action.double_tap(self.marionette.find_element(*self._current_image_locator)).perform()
@@ -89,9 +87,8 @@ class TestGfxSmokeTestOZ(GaiaTestCase):
         time.sleep(2)
         self.graphics.scroll(self.marionette,self._current_image_locator,'right',2,release=False)
         self.graphics.invoke_screen_capture()
-        self.device.change_orientation('portrait-primary')
+        self.change_orientation('portrait-primary')
         self.apps.kill(gallery.app)
-	time.sleep(5)
         self.graphics.invoke_screen_capture()
 
         # Kill gallery, launch browser.  Go to Mozilla FirefoxOS site
@@ -105,11 +102,18 @@ class TestGfxSmokeTestOZ(GaiaTestCase):
         self.graphics.invoke_screen_capture()
         self.graphics.scroll(self.marionette,browser._main_screen_locator,'up',1)
         self.graphics.invoke_screen_capture()
-        self.device.change_orientation('landscape-primary')
+        self.change_orientation('landscape-primary')
         self.graphics.scroll(self.marionette,browser._main_screen_locator,'down',4,distance=100)
         self.graphics.invoke_screen_capture()
         self.graphics.scroll(self.marionette,browser._main_screen_locator,'down',4)
         self.graphics.invoke_screen_capture()
+        self.apps.kill(gallery.app)
+        self.graphics.invoke_screen_capture()
+
+    # take screenshot and pause, otherwise there will be a collision
+    def change_orientation(self, orientation,wait=2):
+	    self.device.change_orientation(orientation)
+	    time.sleep(wait)
 
     def tearDown(self):
 
