@@ -152,6 +152,7 @@ var DownloadUI = (function() {
     }
     // Then localize.
     element.setAttribute('data-l10n-id', l10nid);
+    navigator.mozL10n.translate(element);
     return element;
   }
 
