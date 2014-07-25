@@ -254,9 +254,17 @@ suite('system/AppWindow', function() {
       assert.isFalse(spy.calledWithNew());
     });
 
-    test('No navigation setting in manifest - titlebar', function() {
+    test('No navigation setting in manifest - app - titlebar', function() {
       var spy = this.sinon.spy(window, 'AppTitleBar');
-      new AppWindow(fakeChromeConfigWithoutNavigation); // jshint ignore:line
+      var aw = new AppWindow(fakeChromeConfigWithoutNavigation);
+      assert.isFalse(spy.calledWithNew());
+      aw.element.dispatchEvent(new CustomEvent('_opened'));
+      assert.isTrue(spy.calledWithNew());
+    });
+
+    test('No navigation setting in manifest - wrapper - titlebar', function() {
+      var spy = this.sinon.spy(window, 'AppTitleBar');
+      new AppWindow(fakeWrapperConfig); // jshint ignore:line
       assert.isTrue(spy.calledWithNew());
     });
 
