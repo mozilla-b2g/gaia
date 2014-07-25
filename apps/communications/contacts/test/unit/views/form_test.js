@@ -55,21 +55,21 @@ realL10n = navigator.mozL10n;
 navigator.mozL10n = {
   get: function get(key) {
     var out = key;
-
+    
     switch(key) {
       case 'dateFormat':
         out = null;
       break;
-
+    
       case 'dateOutput':
         out = MOCK_DATE_STRING;
       break;
-
+    
       case 'date-span-placeholder':
         out = MOCK_DATE_PLACEHOLDER;
       break;
     }
-
+    
     return out;
   },
   DateTimeFormat: function() {
@@ -917,22 +917,6 @@ suite('Render contact form', function() {
       contacts.Matcher.match.restore();
       Contacts.setCurrent.restore();
       navigator.mozContacts.save.restore();
-    });
-  });
-
-  suite('> Add new contact', function() {
-    suiteSetup(function(){
-      subject.render();
-    });
-    test('> Adding a contact doesn\'t make it a global contact', function() {
-
-      var given = document.getElementById('givenName');
-      given.value = 'New';
-      var spy = sinon.spy(Contacts, 'setCurrent');
-      subject.saveContact();
-
-      assert.equal(spy.callCount, 0);
-      spy.restore();
     });
   });
 
