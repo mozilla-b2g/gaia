@@ -37,6 +37,10 @@ module.exports = function(options, done) {
     }
 
     var storage = new Storage();
+    // We need to configure the Device Storage in order to delete picture and
+    // add the new one after being resized
+    storage.configure();
+
     storage.deletePicture(blob.name);
     storage.addPicture(resizedBlob, {
       filepath: blob.name
