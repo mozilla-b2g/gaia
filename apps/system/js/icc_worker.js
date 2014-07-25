@@ -51,15 +51,23 @@ var icc_worker = {
   // STK_CMD_SET_UP_CALL
   '0x10': function STK_CMD_SET_UP_CALL(message) {
     function stkSetupCall(confirmed, postMessage) {
-      icc.responseSTKCommand(message, {
-        hasConfirmed: confirmed,
-        resultCode: icc._iccManager.STK_RESULT_OK
-      });
-      if (confirmed && postMessage) {
-        // Transfering the second alpha id to dialer (Bug #873906)
-        window.navigator.mozSettings.createLock().set({
-          'icc.callmessage': options.callMessage
+      DUMP('STK_CMD_SET_UP_CALL:', message.command.options);
+      function answerConfirmed() {
+        icc.responseSTKCommand(message, {
+          hasConfirmed: confirmed,
+          resultCode: icc._iccManager.STK_RESULT_OK
         });
+      }
+
+      if (confirmed && postMessage) {
+        DUMP('Transfering the second alpha id to dialer (Bug #873906)');
+        var setRequest = window.navigator.mozSettings.createLock().set({
+          'icc.callmessage': postMessage
+        });
+        setRequest.onsuccess = answerConfirmed;
+        setRequest.onerror = answerConfirmed;
+      } else {
+        answerConfirmed();
       }
     }
 

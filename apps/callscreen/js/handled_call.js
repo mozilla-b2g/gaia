@@ -1,6 +1,6 @@
 /* globals CallsHandler, CallScreen, Contacts, ContactPhotoHelper,
            FontSizeManager, LazyL10n, Utils, Voicemail, TonePlayer,
-           AudioCompetingHelper */
+           AudioCompetingHelper, DUMP */
 
 'use strict';
 
@@ -177,6 +177,7 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
       get('icc.callmessage');
     callMessageReq.onsuccess = function onCallMessageSuccess() {
       self._iccCallMessage = callMessageReq.result['icc.callmessage'];
+      DUMP('Displaying _iccCallMessage instead: ', self._iccCallMessage);
       if (self._iccCallMessage) {
         self.replacePhoneNumber(self._iccCallMessage, 'end');
         self._cachedInfo = self._iccCallMessage;

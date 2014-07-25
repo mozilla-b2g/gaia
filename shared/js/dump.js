@@ -5,9 +5,13 @@
 
   function dump_off(msg, optionalObject) {}
   function dump_on(msg, optionalObject) {
+    var where = new Error().stack.split('\n')[1];
     var output = msg;
     if (optionalObject) {
       output += JSON.stringify(optionalObject);
+    }
+    if (where) {
+      output += ' [at] ' + where.replace(/@.*?:\/\/.*?\//, '@');
     }
     if (dump) {
       var appName = document.location.hostname.replace(/\..*$/, '');
