@@ -76,6 +76,7 @@
 .message .message-body {
   flex: 1;
   padding: 1.5rem 1.5rem 1rem;
+  min-width: 0;
 }
 
 .message.incoming .message-body {

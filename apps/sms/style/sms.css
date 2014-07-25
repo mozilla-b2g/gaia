@@ -643,6 +643,7 @@ section[role="region"].new #messages-to-field.multiline {
 
 #messages-recipients-list-container {
   min-height: 4rem;
+  min-width: 0;
   box-sizing: border-box;
 
   flex-grow: 1;
