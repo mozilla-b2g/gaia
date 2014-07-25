@@ -41,8 +41,7 @@ class TestGalleryEditPhoto(GaiaTestCase):
         gallery.wait_for_files_to_load(1)
 
         self.assertTrue(gallery.gallery_items_number > 0)
-
-        # open picture and capture
+	# open picture and capture
         image = gallery.tap_first_gallery_item()
         self.graphics.invoke_screen_capture()
 
@@ -54,45 +53,48 @@ class TestGalleryEditPhoto(GaiaTestCase):
         self.graphics.invoke_screen_capture()
 
         #do crop and capture
-        self.device.change_orientation('landscape-primary')
-        self.marionette.find_element(*self._edit_crop_button).tap()
+        self.change_orientation('landscape-primary')
+	self.marionette.find_element(*self._edit_crop_button).tap()
         self.graphics.invoke_screen_capture()
-        self.device.change_orientation('portrait-primary')
+        self.change_orientation('portrait-primary')
         self.wait_for_element_displayed(*self._crop_aspect_square_button)
         self.marionette.find_element(*self._crop_aspect_portrait_button).tap()
         self.graphics.invoke_screen_capture()
-        self.device.change_orientation('landscape-primary')
+        self.change_orientation('landscape-primary')
         self.marionette.find_element(*self._crop_aspect_landscape_button).tap()
         self.graphics.invoke_screen_capture()
-        self.device.change_orientation('portrait-primary')
+        self.change_orientation('portrait-primary')
         self.marionette.find_element(*self._crop_aspect_square_button).tap()
         self.graphics.invoke_screen_capture()
-        self.device.change_orientation('landscape-primary')
-
+        self.change_orientation('landscape-primary')
+	
         # Tap on Effects button.
         edit_image.tap_edit_effects_button()
         # Change effects.  take screenshot on each change.
         self.marionette.find_element(*self._bw_effect_button).tap()
         self.graphics.invoke_screen_capture()
-        self.device.change_orientation('portrait-primary')
+        self.change_orientation('portrait-primary')
         self.marionette.find_element(*self._sepia_effect_button).tap()
         self.graphics.invoke_screen_capture()
-        self.device.change_orientation('landscape-primary')
+        self.change_orientation('landscape-primary')
         self.marionette.find_element(*self._faded_effect_button).tap()
         self.graphics.invoke_screen_capture()
-        self.device.change_orientation('portrait-primary')
+        self.change_orientation('portrait-primary')
         self.marionette.find_element(*self._bluesteel_effect_button).tap()
         self.graphics.invoke_screen_capture()
-        self.device.change_orientation('landscape-primary')
-        time.sleep(3)
-        pdb.set_trace()
-        # save the resulting picture
+        self.change_orientation('landscape-primary')
+       	# save the resulting picture
         gallery = edit_image.tap_edit_save_button()
         gallery.wait_for_files_to_load(12)
         self.graphics.invoke_screen_capture()
 
         # Verify new Photo is created by opening the first image (most recent) in the list
         self.assertEqual(13, gallery.gallery_items_number)
+
+    # take screenshot and pause, otherwise there will be a collision
+    def change_orientation(self, orientation,wait=2):
+	self.device.change_orientation(orientation)
+	time.sleep(wait)
 
     # move the slider
     def move_slider(self, slider, dir_x):
