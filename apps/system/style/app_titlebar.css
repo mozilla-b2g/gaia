@@ -20,6 +20,7 @@
 .appWindow:not(.homescreen) .titlebar.expand {
   background-size: 0  0, 100% 100%, 100% 100%;
   transform: translateY(0);
+  z-index: 1001;
 }
 
 #screen.utility-tray .appWindow .titlebar {

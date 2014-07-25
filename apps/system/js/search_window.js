@@ -45,6 +45,7 @@
              ' " id="' + this.instanceID +
              '" transition-state="closed">' +
              '<div class="fade-overlay"></div>' +
+             '<div class="browser-container"></div>' +
            '</div>';
   };
 
