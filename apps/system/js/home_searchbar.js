@@ -1,5 +1,5 @@
 'use strict';
-/* global Rocketbar */
+/* global Rocketbar, AppWindowManager */
 
 (function(exports) {
 
@@ -53,6 +53,7 @@
     window.addEventListener('permissiondialoghide', this);
     window.addEventListener('attentionscreenshow', this);
     window.addEventListener('status-inactive', this);
+    window.addEventListener('global-search-request', this);
 
     // Listen for events from Rocketbar
     this.input.addEventListener('focus', this);
@@ -127,6 +128,19 @@
       case 'permissiondialoghide':
         if (this.active) {
           this.focus();
+        }
+        break;
+      case 'global-search-request':
+        // XXX: fix the WindowManager coupling
+        // but currently the transition sequence is crucial for performance
+        var app = AppWindowManager.getActiveApp();
+        if (app && app.getTopMostWindow().titleBar) {
+          var top = app.getTopMostWindow();
+          top.titleBar.expand(function() {
+            this.activate(setTimeout.bind(null, this.focus.bind(this)));
+          }.bind(this));
+        } else {
+          this.activate(setTimeout.bind(null, this.focus.bind(this)));
         }
         break;
     }

@@ -2,26 +2,36 @@
   position: absolute;
   top: 0;
   width: 100%;
-  height: 2.4rem;
+  height: 7.4rem;
 
   overflow: hidden;
 
   background-color: black;
-  background-image: -moz-element(#statusbar),
-                    linear-gradient(rgba(0,0,0,0.1),
+  background-image: -moz-element(#statusbar), linear-gradient(rgba(0,0,0,0.1),
                     rgba(0,0,0,0.1));
-  transition: background-color 0.5s ease;
+  background-size: 100% 2.4rem, 100% 100%, 100% 100%;
+  background-repeat: no-repeat, repeat, repeat;
+  background-position: bottom right, center center, center center;
+  transition: background-color 0.5s ease, transform 0.2s ease-in;
+
+  transform: translateY(-5rem);
+}
+
+.appWindow:not(.homescreen) .titlebar.expand {
+  background-size: 0  0, 100% 100%, 100% 100%;
+  transform: translateY(0);
 }
 
 #screen.utility-tray .appWindow .titlebar {
   visibility: hidden;
 }
 
-.titlebar .title {
+.titlebar .bubble {
+  position: absolute;
+  top: 5.28rem;
+  left: 0.5rem;
   width: calc(40% - 1.8rem);
   height: 1.8rem;
-  margin-top: 0.28rem;
-  margin-left: 0.5rem;
   overflow: hidden;
 
   padding-left: 0.5rem;
@@ -31,11 +41,27 @@
   white-space: nowrap;
 
   background: rgba(51, 51, 51, 0.5);
-  border-radius: 1.8rem;
+  border-radius: 1.7rem;
+
+  transform-origin: center left;
+  transition: transform 0.2s ease-in, opacity 0.1s linear 0.1s;
 }
 
-.activityWindow .titlebar .title,
-.homescreen .titlebar .title {
+.titlebar.expand .bubble {
+  transform: scale(2.64, 1.89) translateY(-1rem);
+  opacity: 0.7;
+}
+
+.titlebar .bubble span {
+  transition: opacity 0.15s ease-in;
+}
+
+.titlebar.expand .bubble span {
+  opacity: 0;
+}
+
+.lockScreenWindow .titlebar .bubble,
+.homescreen .titlebar .bubble {
   visibility: hidden;
 }
 
@@ -48,8 +74,3 @@
 #screen.attention .appWindow.lockScreenWindow .titlebar {
   background-color: black;
 }
-
-.lockScreenWindow .titlebar .title {
-  display: none;
-}
-

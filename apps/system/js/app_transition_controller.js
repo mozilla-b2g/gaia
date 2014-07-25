@@ -1,4 +1,4 @@
-/* global SettingsListener, System, SimPinDialog, rocketbar */
+/* global SettingsListener, System, SimPinDialog, rocketbar, homeSearchbar */
 'use strict';
 
 (function(exports) {
@@ -264,7 +264,7 @@
     // XXX: Rocketbar losing input focus
     // See: https://bugzilla.mozilla.org/show_bug.cgi?id=961557
     if (this._transitionState == 'opened' &&
-        !SimPinDialog.visible && !rocketbar.active) {
+        !SimPinDialog.visible && !(rocketbar.active || homeSearchbar.active)) {
       this.app.debug('focusing this app.');
       this.app.focus();
     }
