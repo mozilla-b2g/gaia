@@ -42,13 +42,14 @@
 
 var NotificationScreen = {
   TOASTER_TIMEOUT: 5000,
-  TRANSITION_SPEED: 1.8,
   TRANSITION_FRACTION: 0.30,
 
   _notification: null,
   _containerWidth: null,
+  _touchStartX: 0,
+  _touchPosX: 0,
+  _touching: false,
   _toasterTimeout: null,
-  _toasterGD: null,
 
   lockscreenPreview: true,
   silent: false,
@@ -69,11 +70,11 @@ var NotificationScreen = {
     this.toasterDetail = document.getElementById('toaster-detail');
     this.clearAllButton = document.getElementById('notification-clear');
 
-    this._toasterGD = new GestureDetector(this.toaster);
-    ['tap', 'touchstart', 'swipe', 'wheel'].forEach(function(evt) {
-      this.container.addEventListener(evt, this);
-      this.toaster.addEventListener(evt, this);
-    }, this);
+    ['tap', 'touchstart', 'touchmove', 'touchend', 'touchcancel', 'wheel'].
+      forEach(function(evt) {
+        this.container.addEventListener(evt, this);
+        this.toaster.addEventListener(evt, this);
+      }, this);
 
     this.clearAllButton.addEventListener('click', this.clearAll.bind(this));
 
@@ -136,8 +137,14 @@ var NotificationScreen = {
       case 'touchstart':
         this.touchstart(evt);
         break;
-      case 'swipe':
-        this.swipe(evt);
+      case 'touchmove':
+        this.touchmove(evt);
+        break;
+      case 'touchend':
+        this.touchend(evt);
+        break;
+      case 'touchcancel':
+        this.touchcancel(evt);
         break;
       case 'wheel':
         this.wheel(evt);
@@ -180,34 +187,88 @@ var NotificationScreen = {
     }
   },
 
+  cancelSwipe: function ns_cancelSwipe() {
+    var notification = this._notification;
+    this._notification = null;
+
+    // If the notification has been moved, animate it back to its original
+    // position.
+    if (this._touchPosX) {
+      notification.addEventListener('transitionend',
+        function trListener() {
+          notification.removeEventListener('transitionend', trListener);
+          notification.classList.remove('snapback');
+        });
+      notification.classList.add('snapback');
+    }
+
+    notification.style.transform = '';
+  },
+
   // Swipe handling
   touchstart: function ns_touchstart(evt) {
+    if (evt.touches.length !== 1) {
+      if (this._touching) {
+        this._touching = false;
+        this.cancelSwipe();
+      }
+      return;
+    }
+
     var target = evt.touches[0].target;
     if (!target.dataset.notificationId)
       return;
 
+    evt.preventDefault();
     this._notification = target;
     this._containerWidth = this.container.clientWidth;
+    this._touchStartX = evt.touches[0].pageX;
+    this._touchPosX = 0;
+    this._touching = true;
   },
 
-  swipe: function ns_swipe(evt) {
-    var detail = evt.detail;
-    var distance = detail.start.screenX - detail.end.screenX;
-    var fastEnough = Math.abs(detail.vx) > this.TRANSITION_SPEED;
-    var farEnough = Math.abs(distance) >
-      this._containerWidth * this.TRANSITION_FRACTION;
-
-    // We only remove the notification if the swipe was
-    // - left to right
-    // - far or fast enough
-    if ((distance > 0) ||
-        !(farEnough || fastEnough)) {
-      // Werent far or fast enough to delete, restore
-      delete this._notification;
+  touchmove: function ns_touchmove(evt) {
+    if (!this._touching) {
       return;
     }
 
-    this.swipeCloseNotification();
+    if (evt.touches.length !== 1) {
+      this._touching = false;
+      this.cancelSwipe();
+      return;
+    }
+
+    evt.preventDefault();
+    this._touchPosX = evt.touches[0].pageX - this._touchStartX;
+    this._notification.style.transform =
+      'translateX(' + this._touchPosX + 'px)';
+  },
+
+  touchend: function ns_touchend(evt) {
+    if (!this._touching) {
+      return;
+    }
+
+    evt.preventDefault();
+    this._touching = false;
+
+    if (Math.abs(this._touchPosX) >
+        this._containerWidth * this.TRANSITION_FRACTION) {
+      if (this._touchPosX < 0) {
+        this._notification.classList.add('left');
+      }
+      this.swipeCloseNotification();
+    } else {
+      this.cancelSwipe();
+    }
+  },
+
+  touchcancel: function ns_touchcancel(evt) {
+    if (this._touching) {
+      evt.preventDefault();
+      this._touching = false;
+      this.cancelSwipe();
+    }
   },
 
   wheel: function ns_wheel(evt) {
@@ -373,8 +434,6 @@ var NotificationScreen = {
     });
     window.dispatchEvent(event);
 
-    new GestureDetector(notificationNode).startDetecting();
-
     // We turn the screen on if needed in order to let
     // the user see the notification toaster
     if (typeof(ScreenManager) !== 'undefined' &&
@@ -394,7 +453,6 @@ var NotificationScreen = {
       this.updateToaster(detail, type, dir);
       if (this.lockscreenPreview || !window.System.locked) {
         this.toaster.classList.add('displayed');
-        this._toasterGD.startDetecting();
 
         if (this._toasterTimeout) {
           clearTimeout(this._toasterTimeout);
@@ -403,7 +461,6 @@ var NotificationScreen = {
         this._toasterTimeout = setTimeout((function() {
           this.toaster.classList.remove('displayed');
           this._toasterTimeout = null;
-          this._toasterGD.stopDetecting();
         }).bind(this), this.TOASTER_TIMEOUT);
       }
     }
@@ -517,6 +574,7 @@ var NotificationScreen = {
     });
 
     notification.classList.add('disappearing');
+    notification.style.transform = '';
   },
 
   closeNotification: function ns_closeNotification(notificationNode) {
