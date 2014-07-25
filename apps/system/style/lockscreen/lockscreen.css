@@ -159,6 +159,7 @@
 
 [data-panel="main"] #lockscreen-alt-camera {
   visibility: hidden;
+  position: absolute;
 }
 
 [data-panel="passcode"] #lockscreen-alt-camera {
