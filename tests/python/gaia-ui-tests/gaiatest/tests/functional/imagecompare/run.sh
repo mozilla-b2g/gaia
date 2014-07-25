@@ -8,8 +8,9 @@ comparelog=$timestamp'_compare.log'
 zipfile=$timestamp'_zipped.zip'
 virtualenvname=default
 gaiahome=~/ImgCmpTest/gaia/tests/python/gaia-ui-tests
-username=npark@mozilla.com
-password=A2mw9q01mozilla
+username=putyourusername
+password=putyourpassword
+sudopassword=putyoursudopassword
 config=b2g-7.json
 set -x #echo on
 
@@ -26,7 +27,7 @@ sleep 2m
 
 # go to the gaia folder, and setup adb and execute the manifest
 cd $gaiahome
-echo "mozilla" | sudo -S python setup.py develop
+echo $sudopassword | sudo -S python setup.py develop
 adb forward tcp:2828 tcp:2828
 gaiatest --address=localhost:2828 --testvars=gaiatest/$config --restart  --type=b2g gaiatest/tests/functional/imagecompare/manifest.ini > $runlog
 
