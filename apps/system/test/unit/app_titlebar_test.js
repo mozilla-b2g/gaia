@@ -18,6 +18,14 @@ suite('system/AppTitleBar', function() {
     origin: 'app://communications.gaiamobile.org'
   };
 
+  var fakeAppWithName = {
+    url: 'app://communications.gaiamobile.org/dialer/index.html',
+    name: 'Phone',
+    manifest: {name: 'Dialer'},
+    manifestURL: 'app://communications.gaiamobile.org/manifest.webapp',
+    origin: 'app://communications.gaiamobile.org'
+  };
+
   var fakeWebSite = {
     url: 'http://google.com/index.html',
     origin: 'app://google.com'
@@ -111,8 +119,7 @@ suite('system/AppTitleBar', function() {
     });
 
     test('should not do anything on apps with manifests', function() {
-      var app = new AppWindow(fakeApp);
-      app.name = 'Dialer';
+      var app = new AppWindow(fakeAppWithName);
       var appTitle = new AppTitleBar(app);
       appTitle._registerEvents();
 
@@ -122,7 +129,7 @@ suite('system/AppTitleBar', function() {
       appTitle.app.element.dispatchEvent(evt);
       this.sinon.clock.tick(500);
 
-      assert.equal(appTitle.title.textContent, 'Dialer');
+      assert.equal(appTitle.title.textContent, 'Phone');
       appTitle._unregisterEvents();
     });
 
@@ -160,9 +167,7 @@ suite('system/AppTitleBar', function() {
   suite('name localization', function() {
     var subject = null;
     setup(function() {
-      var app = new AppWindow(fakeApp);
-      app.name = 'Dialer';
-
+      var app = new AppWindow(fakeAppWithName);
       subject = new AppTitleBar(app);
       subject._registerEvents();
     });
@@ -172,7 +177,7 @@ suite('system/AppTitleBar', function() {
     });
 
     test('should set the name when created', function() {
-      assert.equal(subject.title.textContent, 'Dialer');
+      assert.equal(subject.title.textContent, 'Phone');
     });
 
     test('should update the name when it changes', function() {
@@ -181,6 +186,15 @@ suite('system/AppTitleBar', function() {
       subject.app.element.dispatchEvent(evt);
 
       assert.equal(subject.title.textContent, 'Téléphone');
+    });
+
+    test('localized app is not immediately overridden by titlechange event',
+      function() {
+      var app = new AppWindow(fakeAppWithName);
+      subject = new AppTitleBar(app);
+      subject._registerEvents();
+      subject._handle_mozbrowsertitlechange({detail: 'Do not update.'});
+      assert.equal(subject.title.textContent, fakeAppWithName.name);
     });
   });
 });

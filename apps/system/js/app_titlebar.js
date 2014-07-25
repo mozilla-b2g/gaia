@@ -22,7 +22,7 @@
     var appName = this.app.name;
     if (this.app.manifest && appName) {
       this._gotName = true;
-      this.title.textContent = appName;
+      this.setFreshTitle(appName);
     }
   };
 
@@ -104,13 +104,20 @@
 
   AppTitleBar.prototype._handle_mozbrowsertitlechange =
     function at__handle_mozbrowsertitlechange(evt) {
-      this.title.textContent = evt.detail;
-      clearTimeout(this._titleTimeout);
-      this._recentTitle = true;
-      this._titleTimeout = setTimeout((function() {
-        this._recentTitle = false;
-      }).bind(this), this.FRESH_TITLE);
+      if (this._recentTitle) {
+        return;
+      }
+      this.setFreshTitle(evt.detail);
     };
+
+  AppTitleBar.prototype.setFreshTitle = function at_setFreshTitle(title) {
+    this.title.textContent = title;
+    clearTimeout(this._titleTimeout);
+    this._recentTitle = true;
+    this._titleTimeout = setTimeout((function() {
+      this._recentTitle = false;
+    }).bind(this), this.FRESH_TITLE);
+  };
 
   AppTitleBar.prototype._handle_mozbrowserlocationchange =
     function at__handle_mozbrowserlocationchange(evt) {
