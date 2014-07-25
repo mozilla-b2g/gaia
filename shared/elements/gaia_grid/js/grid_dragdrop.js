@@ -15,7 +15,7 @@
   const EDGE_PAGE_THRESHOLD = 50;
 
   /* This delay is the time to wait before rearranging a collection. */
-  const REARRANGE_COLLECTION_DELAY = 1500;
+  const REARRANGE_COLLECTION_DELAY = 500;
 
   const SCREEN_HEIGHT = window.innerHeight;
 
