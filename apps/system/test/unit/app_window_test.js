@@ -1,6 +1,5 @@
 /* global AppWindow, ScreenLayout, MockOrientationManager,
-      LayoutManager, MocksHelper, MockContextMenu,
-      AppChrome, layoutManager */
+      LayoutManager, MocksHelper, MockContextMenu, layoutManager */
 'use strict';
 
 requireApp('system/test/unit/mock_orientation_manager.js');
@@ -118,14 +117,6 @@ suite('system/AppWindow', function() {
     title: 'Fakebook'
   };
 
-  var fakeChromeConfig = {
-    url: 'http://www.fakeChrome/index.html',
-    origin: 'http://www.fakeChrome',
-    manifest: {
-      chrome: { 'navigation': true }
-    }
-  };
-
   var fakeChromeConfigWithoutNavigation = {
     url: 'http://www.fakeChrome2/index.html',
     origin: 'http://www.fakeChrome2',
@@ -236,18 +227,6 @@ suite('system/AppWindow', function() {
       assert.equal(app1.iframe.style.height, '');
     });
 
-    test('Would get the height of chrome\'s button bar', function() {
-      var stubGetBarHeight =
-        this.sinon.stub(AppChrome.prototype, 'getBarHeight');
-      var spy = this.sinon.spy(window, 'AppChrome');
-      var chromeApp = new AppWindow(fakeChromeConfig);
-      var stubIsActive = this.sinon.stub(chromeApp, 'isActive');
-      stubIsActive.returns(true);
-      chromeApp.resize();
-      assert.isTrue(stubGetBarHeight.called);
-      assert.isTrue(spy.calledWithNew());
-    });
-
     test('No navigation setting in manifest', function() {
       var spy = this.sinon.spy(window, 'AppChrome');
       new AppWindow(fakeChromeConfigWithoutNavigation); // jshint ignore:line
@@ -270,8 +249,9 @@ suite('system/AppWindow', function() {
 
     test('Navigation bar in manifest - titlebar', function() {
       var spy = this.sinon.spy(window, 'AppTitleBar');
-      new AppWindow(fakeChromeConfigWithNavigationBar); // jshint ignore:line
-      assert.isFalse(spy.calledWithNew());
+      var aw = new AppWindow(fakeChromeConfigWithNavigationBar);
+      aw.element.dispatchEvent(new CustomEvent('_opened'));
+      assert.isTrue(spy.calledWithNew());
     });
 
     test('resize to bottom most and top most window', function() {
