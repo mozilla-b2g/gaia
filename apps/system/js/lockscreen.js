@@ -77,12 +77,6 @@
     _regenerateMaskedBackgroundColorFrom: undefined,
 
     /*
-    * Four digit Passcode
-    * XXX: should come for Settings
-    */
-    passCode: '0000',
-
-    /*
     * The time to request for passcode input since device is off.
     */
     passCodeRequestTimeout: 0,
@@ -178,11 +172,6 @@
 
           // Resume refreshing the clock when the screen is turned on.
           this.clock.start(this.refreshClock.bind(this));
-
-          // Show the unlock keypad immediately
-          if (this.passCodeEnabled && this.checkPassCodeTimeout()) {
-            this.switchPanel('passcode');
-          }
         }
         // No matter turn on or off from screen timeout or poweroff,
         // all secure apps would be hidden.
@@ -451,11 +440,6 @@
     window.addEventListener('wallpaperchange', (function(evt) {
       this.updateBackground(evt.detail.url);
       this.overlay.classList.remove('uninit');
-    }).bind(this));
-
-    window.SettingsListener.observe(
-      'lockscreen.passcode-lock.code', '0000', (function(value) {
-      this.passCode = value;
     }).bind(this));
 
     window.SettingsListener.observe(
@@ -954,36 +938,22 @@
     }
   };
 
+  /**
+   * This function would fire an event to validate the passcode.
+   * The validator is a component in System app, and LockScreen should
+   * not validate it.
+   */
   LockScreen.prototype.checkPassCode =
   function lockscreen_checkPassCode() {
-    if (this.passCodeEntered === this.passCode) {
-      this.overlay.dataset.passcodeStatus = 'success';
-      this.passCodeError = 0;
-      this.kPassCodeErrorTimeout = 500;
-      this.kPassCodeErrorCounter = 0;
-
-      var transitionend = (function() {
-        this.passcodeCode.removeEventListener('transitionend', transitionend);
-        this.unlock();
-      }).bind(this);
-      this.passcodeCode.addEventListener('transitionend', transitionend);
-    } else {
-      this.overlay.dataset.passcodeStatus = 'error';
-      this.kPassCodeErrorCounter++;
-      //double delay if >5 failed attempts
-      if (this.kPassCodeErrorCounter > 5) {
-        this.kPassCodeErrorTimeout = 2 * this.kPassCodeErrorTimeout;
-      }
-      if ('vibrate' in navigator) {
-        navigator.vibrate([50, 50, 50]);
-      }
-
-      setTimeout((function() {
-        delete this.overlay.dataset.passcodeStatus;
-        this.passCodeEntered = '';
-        this.updatePassCodeUI();
-      }).bind(this), this.kPassCodeErrorTimeout);
-    }
+    var request = {
+      passcode: this.passCodeEntered,
+      onsuccess: this.onPasscodeValidationSuccess.bind(this),
+      onerror: this.onPasscodeValidationFailed.bind(this),
+    };
+    window.dispatchEvent(new CustomEvent(
+      'lockscreen-request-passcode-validate',
+      { detail: request }
+    ));
   };
 
   LockScreen.prototype.updateBackground =
@@ -1196,6 +1166,45 @@
       } else {
         return true;
       }
+    };
+
+  /**
+   * When validation failed, do UI change.
+   */
+  LockScreen.prototype.onPasscodeValidationFailed =
+    function ls_onPasscodeValidationFailed() {
+      this.overlay.dataset.passcodeStatus = 'error';
+      this.kPassCodeErrorCounter++;
+      //double delay if >5 failed attempts
+      if (this.kPassCodeErrorCounter > 5) {
+        this.kPassCodeErrorTimeout = 2 * this.kPassCodeErrorTimeout;
+      }
+      if ('vibrate' in navigator) {
+        navigator.vibrate([50, 50, 50]);
+      }
+
+      setTimeout(() => {
+        delete this.overlay.dataset.passcodeStatus;
+        this.passCodeEntered = '';
+        this.updatePassCodeUI();
+      }, this.kPassCodeErrorTimeout);
+    };
+
+  /**
+   * When validation success, do UI change, then unlock.
+   */
+  LockScreen.prototype.onPasscodeValidationSuccess =
+    function ls_onPasscodeValidationSuccess() {
+      this.overlay.dataset.passcodeStatus = 'success';
+      this.passCodeError = 0;
+      this.kPassCodeErrorTimeout = 500;
+      this.kPassCodeErrorCounter = 0;
+
+      var transitionend = () => {
+        this.passcodeCode.removeEventListener('transitionend', transitionend);
+        this.unlock();
+      };
+      this.passcodeCode.addEventListener('transitionend', transitionend);
     };
 
   /** @exports LockScreen */
