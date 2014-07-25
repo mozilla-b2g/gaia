@@ -690,6 +690,17 @@ ul li > label.range-icons.volume input {
   display: none;
 }
 
+#email-enable + span:after {
+  left: 2.4rem;
+  right: auto;
+  top: 2rem;
+}
+
+#email-enable + span {
+  margin-left: 1.5rem;
+  padding-right: 3rem;
+}
+
 #feedback-send-btn {
   text-align: center;
 }
