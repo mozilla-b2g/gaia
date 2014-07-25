@@ -112,8 +112,7 @@
 
 /* Regular windows */
 
-.appWindow > div,
-.appWindow > iframe {
+.appWindow > div {
   position: absolute;
   top: 2.4rem;
   left: 0;
@@ -121,14 +120,17 @@
   height: calc(100% - 2.4rem);
 }
 
-.appWindow.searchWindow > div,
-.appWindow.searchWindow > iframe {
+.appWindow > div > iframe {
+  position: absolute;
   top: 0;
+  left: 0;
+  width: 100%;
   height: 100%;
 }
 
-.appWindow.navigation > iframe {
-  height: calc(100% - 2.4rem - 1rem);
+.appWindow.searchWindow > div {
+  top: 0;
+  height: 100%;
 }
 
 .appWindow > .fade-overlay,
@@ -142,8 +144,7 @@
 }
 
 /* Regular windows + active status bar */
-#screen.active-statusbar #windows .appWindow > div,
-#screen.active-statusbar #windows .appWindow > iframe {
+#screen.active-statusbar #windows .appWindow > div {
   top: 0;
   height: 100%;
 }
@@ -155,16 +156,9 @@
 /* Fullscreen windows */
 
 #screen:-moz-full-screen-ancestor .appWindow > div,
-#screen:-moz-full-screen-ancestor .appWindow > iframe,
-.appWindow.fullscreen-app > div,
-.appWindow.fullscreen-app > iframe {
+.appWindow.fullscreen-app > div {
   top: 0;
   height: 100%;
-}
-
-#screen:-moz-full-screen-ancestor .appWindow.navigation > iframe,
-.appWindow.fullscreen-app.navigation > iframe {
-  height: calc(100% - 1rem);
 }
 
 #screen:-moz-full-screen-ancestor .appWindow > .titlebar,
@@ -182,14 +176,29 @@
 | Rocketbar Layout
 \*****************************************************************************/
 
-.appWindow.bar:not(.navigation) > iframe {
-  top: calc(5rem + 2.4rem);
-  height: calc(100% - 2.4rem);
+.appWindow:not(.bar).navigation > div.browser-container iframe {
+  height: calc(100% - 1rem);
 }
 
-.appWindow.bar.navigation > iframe {
-  top: calc(5rem + 2.4rem);
-  height: calc(100% - 2.4rem - 1rem);
+.appWindow.bar.navigation > div.browser-container {
+  overflow-x: hidden;
+  overflow-y: scroll;
+
+  /*
+     Bug 1041576. The +1rem size is a workaround around the current lack of
+     overflow property that hides browser scrollbars but still authorize a
+     scrollable area to be scrollable.
+  */
+  width: calc(100% + 1rem);
+}
+
+.appWindow.bar.navigation > div.browser-container > div {
+  width: calc(100% - 1rem);
+}
+
+.appWindow.bar.navigation > div.browser-container > iframe {
+  top: 5rem;
+  width: calc(100% - 1rem);
 }
 
 /*****************************************************************************\
@@ -223,5 +232,15 @@
 
 .appWindow.searchWindow > .titlebar {
   height: 0;
+}
+
+/*
+ * For the moment the lockscreen window is a kind weird mix between
+ * a fullscreen app and a non fullscreen app.
+ */
+.appWindow.lockScreenWindow > div.browser-container {
+  top: 0;
+  height: 100%;
+  z-index: 0;
 }
 
