@@ -117,7 +117,7 @@
       if (!app) {
         config.chrome = {
           navigation: true,
-          bar: true
+          rocketbar: false
         };
         app = new AppWindow(config);
       } else {

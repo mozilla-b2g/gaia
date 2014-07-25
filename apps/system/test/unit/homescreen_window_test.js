@@ -30,16 +30,8 @@ suite('system/HomescreenWindow', function() {
     this.sinon.useFakeTimers();
     window.homescreenLauncher = new HomescreenLauncher();
     window.homescreenLauncher.start();
-    stubById = this.sinon.stub(document, 'getElementById', function(id) {
-      var element = document.createElement('div');
-      if (id === 'homescreen') {
-        var container = document.createElement('div');
-        container.className = 'browser-container';
-        element.appendChild(container);
-      }
-
-      return element;
-    });
+    stubById = this.sinon.stub(document, 'getElementById');
+    stubById.returns(document.createElement('div'));
     requireApp('system/js/system.js');
     requireApp('system/js/browser_config_helper.js');
     requireApp('system/js/browser_frame.js');

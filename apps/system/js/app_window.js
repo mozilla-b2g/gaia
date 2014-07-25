@@ -108,8 +108,7 @@
 
     if (!this.manifestURL && !this.config.chrome) {
       this.config.chrome = {
-        navigation: true,
-        bar: true
+        navigation: true
       };
     }
 
@@ -352,7 +351,7 @@
     }
     this.debug(' ...revived!');
     this.browser = new self.BrowserFrame(this.browser_config);
-    this.browserContainer.appendChild(this.browser.element);
+    this.element.appendChild(this.browser.element);
     this.iframe = this.browser.element;
     this.launchTime = Date.now();
     this.suspended = false;
@@ -374,7 +373,7 @@
     this.loaded = false;
     this.suspended = true;
     this.element.classList.add('suspended');
-    this.browserContainer.removeChild(this.browser.element);
+    this.element.removeChild(this.browser.element);
     this.browser = null;
     this.publish('suspended');
   };
@@ -506,7 +505,6 @@
               '</div>' +
               '<div class="fade-overlay"></div>' +
               '<div class="touch-blocker"></div>' +
-              '<div class="browser-container"></div>' +
            '</div>';
   };
 
@@ -549,8 +547,7 @@
       this.element.classList.add('fullscreen-app');
     }
 
-    this.browserContainer = this.element.querySelector('.browser-container');
-    this.browserContainer.appendChild(this.browser.element);
+    this.element.appendChild(this.browser.element);
 
     // Intentional! The app in the iframe gets two resize events when adding
     // the element to the page (see bug 1007595). The first one is incorrect,
@@ -720,18 +717,18 @@
           (this.config.chrome.navigation ||
            this.config.chrome.bar)) {
         this.appChrome = new self.AppChrome(this);
-        this.browserContainer.scrollgrab =
-          this.config.chrome.navigation && this.config.chrome.bar;
       }
 
-      if (this.manifest) {
-        var that = this;
-        that.element.addEventListener('_opened', function onOpened() {
-          that.element.removeEventListener('_opened', onOpened);
-          that.titleBar = new self.AppTitleBar(that);
-        });
-      } else {
-        this.titleBar = new self.AppTitleBar(this);
+      if (!this.config.chrome || !this.config.chrome.bar) {
+        if (this.manifest) {
+          var that = this;
+          that.element.addEventListener('_opened', function onOpened() {
+            that.element.removeEventListener('_opened', onOpened);
+            that.titleBar = new self.AppTitleBar(that);
+          });
+        } else {
+          this.titleBar = new self.AppTitleBar(this);
+        }
       }
     };
 
@@ -773,7 +770,7 @@
 
     // Resize only the overlays not the app
     var width = self.layoutManager.width;
-    var height = self.layoutManager.height;
+    var height = self.layoutManager.height + this.calibratedHeight();
 
     this.iframe.style.width = this.width + 'px';
     this.iframe.style.height = this.height + 'px';
@@ -870,11 +867,6 @@
       this.loading = false;
       this.loaded = true;
       this.element.classList.add('render');
-      // Bug 1043408 - Marionette tests relies on the render class of the
-      // iframe parent in order to starts. So let's replicate the 'render'
-      // class on browser-container until the proper patch on the external
-      // repo.
-      this.browserContainer.classList.add('render');
       // Force removing background image.
       this.element.style.backgroundImage = 'none';
       this._changeState('loading', false);
@@ -1306,6 +1298,14 @@
       return this._defaultOrientation;
     };
 
+  AppWindow.prototype.calibratedHeight = function aw_calibratedHeight() {
+    if (this.appChrome && this.appChrome.hidingNavigation) {
+      return this.appChrome.getBarHeight();
+    } else {
+      return 0;
+    }
+  };
+
   AppWindow.prototype._resize = function aw__resize() {
     var height, width;
     this.debug('force RESIZE...');
@@ -1326,7 +1326,7 @@
        */
       this.broadcast('withoutkeyboard');
     }
-    height = self.layoutManager.height;
+    height = self.layoutManager.height + this.calibratedHeight();
 
     // If we have sidebar in the future, change layoutManager then.
     width = self.layoutManager.width;

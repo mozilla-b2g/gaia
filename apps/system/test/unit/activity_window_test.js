@@ -31,16 +31,8 @@ suite('system/ActivityWindow', function() {
   };
 
   setup(function(done) {
-    stubById = this.sinon.stub(document, 'getElementById', function(id) {
-      var element = document.createElement('div');
-      if (id.indexOf('AppWindow') >= 0 || id.indexOf('activity-window') >= 0) {
-        var container = document.createElement('div');
-        container.className = 'browser-container';
-        element.appendChild(container);
-      }
-
-      return element;
-    });
+    stubById = this.sinon.stub(document, 'getElementById');
+    stubById.returns(document.createElement('div'));
     requireApp('system/js/system.js');
     requireApp('system/js/browser_config_helper.js');
     requireApp('system/js/browser_frame.js');

@@ -21,12 +21,6 @@
   };
   MockAppWindow.prototype = {
     isHomescreen: false,
-    get browserContainer() {
-      if (!this._browserContainer) {
-        this._browserContainer = document.createElement('div');
-      }
-      return this._browserContainer;
-    },
     get element() {
       if (!this._element) {
         this._element = document.createElement('div');

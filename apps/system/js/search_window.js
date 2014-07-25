@@ -44,7 +44,6 @@
     return '<div class=" ' + this.CLASS_LIST +
              ' " id="' + this.instanceID +
              '" transition-state="closed">' +
-             '<div class="browser-container"></div>' +
            '</div>';
   };
 

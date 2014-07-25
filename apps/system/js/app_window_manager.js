@@ -178,7 +178,8 @@
         }
 
         if (appNext.resized &&
-            !layoutManager.match(appNext.width, appNext.height)) {
+            !layoutManager.match(appNext.width,
+              appNext.height - appNext.calibratedHeight())) {
           immediateTranstion = true;
         }
 
