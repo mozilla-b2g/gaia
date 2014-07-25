@@ -6,7 +6,7 @@
 /*
  * Flex layout is wrapped by 'flex-composer'. Our flex layout has
  * 2 well differentiated:
- * - 'composer-messages-container'
+ * - 'messages-container'
  * - 'messages-compose-form'
  */
 
@@ -30,7 +30,7 @@
   height: calc(100% - 5.5rem);
 }
 
-#composer-messages-container {
+#messages-container {
   /* We'll set flex-basis with a shrink factor of 0 to do min-height.
    * formula: flex-basis = a % + b)
    * a = (gap2 - gap1) / keyboard_height
@@ -55,7 +55,7 @@
   overflow: auto;
 }
 
-.new #composer-messages-container {
+.new #messages-container {
   flex-basis: 0;
 }
 
@@ -180,10 +180,6 @@ form[role="search"] button[type="submit"]:after {
 
 #messages-subject-input.placeholder:after {
   content: attr(data-placeholder);
-}
-
-#messages-container {
-  height: 100%;
 }
 
 /*

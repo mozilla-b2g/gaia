@@ -490,8 +490,8 @@ section[role="region"].new > header:first-child form {
   Styles for Edit mode in Messages Container
 */
 
-.edit #composer-messages-container {
-  margin-bottom: 4.0rem;
+.edit #messages-container {
+  margin-bottom: 7rem;
 }
 
 .edit .article-list[data-type="list"] .message {
@@ -530,10 +530,6 @@ section[role="region"].new > header:first-child form {
 
 .edit #messages-compose-form {
   display: none;
-}
-
-.edit #composer-messages-container {
-  margin-bottom: 7rem;
 }
 
 /* Add a margin at the end of the last thread or message node to avoid overlay
