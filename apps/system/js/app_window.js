@@ -497,7 +497,6 @@
             ' " id="' + this.instanceID +
             '" transition-state="closed">' +
               '<div class="screenshot-overlay"></div>' +
-              '<div class="statusbar-overlay"></div>' +
               '<div class="identification-overlay">' +
                 '<div>' +
                   '<div class="icon"></div>' +
@@ -559,7 +558,6 @@
     // End intentional
 
     this.screenshotOverlay = this.element.querySelector('.screenshot-overlay');
-    this.statusbarOverlay = this.element.querySelector('.statusbar-overlay');
     this.fadeOverlay = this.element.querySelector('.fade-overlay');
 
     var overlay = '.identification-overlay';
@@ -717,8 +715,20 @@
       }
       if (this.config.chrome &&
           (this.config.chrome.navigation ||
-           this.config.chrome.rocketbar)) {
+           this.config.chrome.bar)) {
         this.appChrome = new self.AppChrome(this);
+      }
+
+      if (!this.config.chrome || !this.config.chrome.bar) {
+        if (this.manifest) {
+          var that = this;
+          that.element.addEventListener('_opened', function onOpened() {
+            that.element.removeEventListener('_opened', onOpened);
+            that.appTitleBar = new self.AppTitleBar(that);
+          });
+        } else {
+          this.appTitleBar = new self.AppTitleBar(this);
+        }
       }
     };
 
@@ -937,7 +947,6 @@
         color = detail.content;
       }
       this.themeColor = color;
-      this.statusbarOverlay.style.backgroundColor = color;
 
       this.publish('themecolorchange');
     };

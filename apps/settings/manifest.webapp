@@ -9,6 +9,8 @@
   },
   "permissions": {
     "storage":{},
+    "browser": {},
+    "embed-apps": {},
     "mobileconnection":{},
     "voicemail":{},
     "bluetooth":{},

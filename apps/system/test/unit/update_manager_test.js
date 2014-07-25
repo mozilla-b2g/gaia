@@ -411,8 +411,11 @@ suite('system/UpdateManager', function() {
       test('should show the downloading progress if downloading', function() {
         UpdateManager._downloading = true;
         UpdateManager.render();
-        assert.equal('downloadingUpdateMessage{"progress":"0.00 bytes"}',
-                     UpdateManager.message.textContent);
+
+        var l10nAttrs = MockL10n.getAttributes(UpdateManager.message);
+
+        assert.equal(l10nAttrs.id, 'downloadingUpdateMessage');
+        assert.deepEqual(l10nAttrs.args, { progress: '0.00 bytes' });
       });
 
       suite('if downloading', function() {
@@ -439,8 +442,11 @@ suite('system/UpdateManager', function() {
       test('should show the available message if not downloading', function() {
         UpdateManager.updatesQueue = updatableApps;
         UpdateManager.render();
-        assert.equal('updateAvailableInfo{"n":3}',
-                     UpdateManager.message.textContent);
+
+        var l10nAttrs = MockL10n.getAttributes(UpdateManager.message);
+
+        assert.equal(l10nAttrs.id, 'updateAvailableInfo');
+        assert.deepEqual(l10nAttrs.args, { n: 3 });
       });
     });
 
@@ -462,8 +468,10 @@ suite('system/UpdateManager', function() {
         evt.initEvent('click', true, true);
         UpdateManager.startDownloads(evt);
 
-        assert.equal('downloadingUpdateMessage{"progress":"0.00 bytes"}',
-                     UpdateManager.message.textContent);
+        var l10nAttrs = MockL10n.getAttributes(UpdateManager.message);
+
+        assert.equal(l10nAttrs.id, 'downloadingUpdateMessage');
+        assert.deepEqual(l10nAttrs.args, { progress: '0.00 bytes' });
       });
 
       test('downloadedBytes should be reset when stopping the download',
@@ -472,20 +480,26 @@ suite('system/UpdateManager', function() {
         UpdateManager.removeFromDownloadsQueue(uAppWithDownloadAvailable);
         UpdateManager.addToDownloadsQueue(uAppWithDownloadAvailable);
 
-        assert.equal('downloadingUpdateMessage{"progress":"0.00 bytes"}',
-                     UpdateManager.message.textContent);
+        var l10nAttrs = MockL10n.getAttributes(UpdateManager.message);
+
+        assert.equal(l10nAttrs.id, 'downloadingUpdateMessage');
+        assert.deepEqual(l10nAttrs.args, { progress: '0.00 bytes' });
       });
 
       test('should increment the downloadedBytes', function() {
         UpdateManager.downloadProgressed(100);
-        assert.equal('downloadingUpdateMessage{"progress":"1.30 kB"}',
-                     UpdateManager.message.textContent);
+        var l10nAttrs = MockL10n.getAttributes(UpdateManager.message);
+
+        assert.equal(l10nAttrs.id, 'downloadingUpdateMessage');
+        assert.deepEqual(l10nAttrs.args, { progress: '1.30 kB' });
       });
 
       test('should not update if bytes <= 0', function() {
         UpdateManager.downloadProgressed(-100);
-        assert.equal('downloadingUpdateMessage{"progress":"1.21 kB"}',
-                     UpdateManager.message.textContent);
+        var l10nAttrs = MockL10n.getAttributes(UpdateManager.message);
+
+        assert.equal(l10nAttrs.id, 'downloadingUpdateMessage');
+        assert.deepEqual(l10nAttrs.args, { progress: '1.21 kB' });
       });
 
       test('should display the notification', function() {
@@ -508,7 +522,7 @@ suite('system/UpdateManager', function() {
         });
 
         test('should render in uncompressing mode', function() {
-          assert.equal(UpdateManager.message.textContent,
+          assert.equal(UpdateManager.message.getAttribute('data-l10n-id'),
                        'uncompressingMessage');
         });
       });
@@ -526,7 +540,7 @@ suite('system/UpdateManager', function() {
         });
 
         test('should stay in downloading mode', function() {
-          assert.include(UpdateManager.message.textContent,
+          assert.include(UpdateManager.message.getAttribute('data-l10n-id'),
                           'downloadingUpdateMessage');
         });
 
@@ -537,7 +551,7 @@ suite('system/UpdateManager', function() {
           });
 
           test('should render in uncompressing mode', function() {
-            assert.equal(UpdateManager.message.textContent,
+            assert.equal(UpdateManager.message.getAttribute('data-l10n-id'),
                          'uncompressingMessage');
           });
         });
@@ -639,8 +653,11 @@ suite('system/UpdateManager', function() {
 
           this.sinon.clock.tick(tinyTimeout);
 
-          assert.equal('updateAvailableInfo{"n":2}',
-                        UpdateManager.message.textContent);
+          var l10nAttrs = MockL10n.getAttributes(
+            UpdateManager.message);
+
+          assert.equal(l10nAttrs.id, 'updateAvailableInfo');
+          assert.deepEqual(l10nAttrs.args, { n: 2 });
         });
 
         suite('update toaster', function() {
@@ -652,8 +669,11 @@ suite('system/UpdateManager', function() {
 
             var css = UpdateManager.toaster.classList;
             assert.isTrue(css.contains('displayed'));
-            assert.equal('updateAvailableInfo{"n":1}',
-                          UpdateManager.toasterMessage.textContent);
+            var l10nAttrs = MockL10n.getAttributes(
+              UpdateManager.toasterMessage);
+
+            assert.equal(l10nAttrs.id, 'updateAvailableInfo');
+            assert.deepEqual(l10nAttrs.args, { n: 1 });
           });
 
           test('should reset toaster value when notification was activated',
@@ -661,15 +681,21 @@ suite('system/UpdateManager', function() {
               this.sinon.clock.tick(tinyTimeout);
 
               UpdateManager.addToUpdatesQueue(updatableApps[1]);
-              assert.equal('updateAvailableInfo{"n":1}',
-                          UpdateManager.toasterMessage.textContent);
+              var l10nAttrs = MockL10n.getAttributes(
+                UpdateManager.toasterMessage);
+
+              assert.equal(l10nAttrs.id, 'updateAvailableInfo');
+              assert.deepEqual(l10nAttrs.args, { n: 1 });
             });
 
           test('should show the right message', function() {
             this.sinon.clock.tick(tinyTimeout);
 
-            assert.equal('updateAvailableInfo{"n":1}',
-                          UpdateManager.toasterMessage.textContent);
+            var l10nAttrs = MockL10n.getAttributes(
+              UpdateManager.toasterMessage);
+
+            assert.equal(l10nAttrs.id, 'updateAvailableInfo');
+            assert.deepEqual(l10nAttrs.args, { n: 1 });
           });
 
 
@@ -1079,7 +1105,10 @@ suite('system/UpdateManager', function() {
 
         test('should set the title', function() {
           var title = fakeDialog.querySelector('h1');
-          assert.equal('numberOfUpdates{"n":3}', title.textContent);
+          var l10nAttrs = MockL10n.getAttributes(title);
+
+          assert.equal(l10nAttrs.id, 'numberOfUpdates');
+          assert.deepEqual(l10nAttrs.args, { n: 3 });
         });
 
         suite('update list rendering', function() {
@@ -1090,12 +1119,12 @@ suite('system/UpdateManager', function() {
           test('should render system update item first with required',
           function() {
             var item = UpdateManager.downloadDialogList.children[0];
-            assert.include(item.textContent, '5.05 MB');
-            assert.include(item.textContent, 'required');
-
-            var name = item.querySelector('div.name');
-            assert.equal(name.textContent, 'systemUpdate');
-            assert.equal(name.dataset.l10nId, 'systemUpdate');
+            assert.equal(
+              item.children[0].getAttribute('data-l10n-id'), 'required');
+            assert.equal(
+              item.children[1].getAttribute('data-l10n-id'), 'systemUpdate');
+            assert.equal(
+              item.children[2].textContent, '5.05 MB');
           });
 
           test('should render packaged app items alphabetically with checkbox',
@@ -1305,8 +1334,11 @@ suite('system/UpdateManager', function() {
           var updatableApp = UpdateManager.updatableApps[0];
 
           UpdateManager.addToUpdatesQueue(updatableApp);
-          assert.equal('updateAvailableInfo{"n":1}',
-                       UpdateManager.message.textContent);
+          var l10nAttrs = MockL10n.getAttributes(
+            UpdateManager.message);
+
+          assert.equal(l10nAttrs.id, 'updateAvailableInfo');
+          assert.deepEqual(l10nAttrs.args, { n: 1 });
         });
 
         test('should not add app if not in updatableApps array', function() {
@@ -1382,8 +1414,11 @@ suite('system/UpdateManager', function() {
 
         test('should render', function() {
           UpdateManager.removeFromUpdatesQueue(updatableApp);
-          assert.equal('updateAvailableInfo{"n":0}',
-                       UpdateManager.message.textContent);
+          var l10nAttrs = MockL10n.getAttributes(
+            UpdateManager.message);
+
+          assert.equal(l10nAttrs.id, 'updateAvailableInfo');
+          assert.deepEqual(l10nAttrs.args, { n: 0 });
         });
 
         test('should remove system updates too', function() {

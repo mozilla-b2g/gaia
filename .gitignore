@@ -2,6 +2,8 @@
 *.rej
 *.orig
 *.swp
+*.swn
+*.swo
 .svn
 *~
 manifest.appcache

@@ -167,7 +167,6 @@
             '" id="activity-window-' + _id++ + '">' +
             '<div class="screenshot-overlay"></div>' +
             '<div class="fade-overlay"></div>' +
-            '<div class="statusbar-overlay"></div>' +
             '</div>';
   };
 

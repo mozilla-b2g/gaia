@@ -1,4 +1,7 @@
 var MockUtilityTray = {
+  init: function() {
+  },
+
   show: function() {
     this.mShown = true;
   },

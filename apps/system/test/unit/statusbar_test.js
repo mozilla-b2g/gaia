@@ -20,6 +20,7 @@ require('/test/unit/mock_app_window_manager.js');
 require('/test/unit/mock_ftu_launcher.js');
 require('/test/unit/mock_touch_forwarder.js');
 require('/test/unit/mock_sim_pin_dialog.js');
+require('/test/unit/mock_utility_tray.js');
 
 var mocksForStatusBar = new MocksHelper([
   'FtuLauncher',
@@ -28,7 +29,8 @@ var mocksForStatusBar = new MocksHelper([
   'SIMSlotManager',
   'AppWindowManager',
   'TouchForwarder',
-  'SimPinDialog'
+  'SimPinDialog',
+  'UtilityTray'
 ]).init();
 
 suite('system/Statusbar', function() {
@@ -1317,10 +1319,12 @@ suite('system/Statusbar', function() {
     // outside of this suite.
     setup(function() {
       this.sinon.useFakeTimers();
+      StatusBar.element.classList.add('invisible');
     });
 
     teardown(function() {
       this.sinon.clock.tick(10000);
+      StatusBar.element.classList.remove('invisible');
     });
 
     var app;
@@ -1428,6 +1432,17 @@ suite('system/Statusbar', function() {
         StatusBar.element.style.transform = '';
       });
 
+      test('it should stop the propagation of the events at first', function() {
+        var fakeEvt = {
+          stopImmediatePropagation: function() {},
+          preventDefault: function() {},
+          type: 'fake'
+        };
+        this.sinon.spy(fakeEvt, 'stopImmediatePropagation');
+        StatusBar.panelHandler(fakeEvt);
+        sinon.assert.calledOnce(fakeEvt.stopImmediatePropagation);
+      });
+
       test('it should translate the statusbar on touchmove', function() {
         fakeDispatch('touchstart', 100, 0);
         fakeDispatch('touchmove', 100, 5);
@@ -1452,6 +1467,23 @@ suite('system/Statusbar', function() {
 
         assert.equal(StatusBar.element.style.transform, transform);
         fakeDispatch('touchend', 100, 15);
+      });
+
+      test('it should not stop the propagation of the events once revealed',
+      function() {
+        fakeDispatch('touchstart', 100, 0);
+        fakeDispatch('touchmove', 100, 5);
+        fakeDispatch('touchmove', 100, 15);
+        fakeDispatch('touchend', 100, 5);
+
+        var fakeEvt = {
+          stopImmediatePropagation: function() {},
+          preventDefault: function() {},
+          type: 'fake'
+        };
+        this.sinon.spy(fakeEvt, 'stopImmediatePropagation');
+        StatusBar.panelHandler(fakeEvt);
+        sinon.assert.notCalled(fakeEvt.stopImmediatePropagation);
       });
 
       test('it should not reveal when ftu is running', function() {
@@ -1512,6 +1544,7 @@ suite('system/Statusbar', function() {
 
     test('it should prevent default on mouse events keep the focus on the app',
     function() {
+      StatusBar.element.classList.add('invisible');
       var mousedown = fakeDispatch('mousedown', 100, 0);
       var mousemove = fakeDispatch('mousemove', 100, 2);
       var mouseup = fakeDispatch('mouseup', 100, 2);
@@ -1519,13 +1552,19 @@ suite('system/Statusbar', function() {
       assert.isTrue(mousedown.defaultPrevented);
       assert.isTrue(mousemove.defaultPrevented);
       assert.isTrue(mouseup.defaultPrevented);
+      StatusBar.element.classList.remove('invisible');
     });
 
-    suite('Touch forwarding >', function() {
+    suite('Touch forwarding in fullscreen >', function() {
       var forwardSpy;
 
       setup(function() {
+        StatusBar.element.classList.add('invisible');
         forwardSpy = this.sinon.spy(MockTouchForwarder.prototype, 'forward');
+      });
+
+      teardown(function() {
+        StatusBar.element.classList.remove('invisible');
       });
 
       test('it should prevent default on all touch events to prevent reflows',

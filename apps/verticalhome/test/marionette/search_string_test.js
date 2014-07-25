@@ -7,13 +7,12 @@ var Rocketbar = require(
   '../../../../apps/system/test/marionette/lib/rocketbar.js');
 var Search = require('../../../../apps/search/test/marionette/lib/search.js');
 var System = require('../../../../apps/system/test/marionette/lib/system');
-var Browser = require('../../../../apps/browser/test/marionette/lib/browser');
 var Server = require('../../../../shared/test/integration/server');
 
 marionette('Vertical - Search Terms: URI scheme', function() {
 
   var client = marionette.client(Home2.clientOptions);
-  var home, rocketbar, search, system, browser, server;
+  var home, rocketbar, search, system, server;
 
   suiteSetup(function(done) {
     Server.create(__dirname + '/fixtures/', function(err, _server) {
@@ -32,7 +31,6 @@ marionette('Vertical - Search Terms: URI scheme', function() {
     search = new Search(client);
     rocketbar = new Rocketbar(client);
     system = new System(client);
-    browser = new Browser(client);
     system.waitForStartup();
     search.removeGeolocationPermission();
   });
@@ -49,7 +47,7 @@ marionette('Vertical - Search Terms: URI scheme', function() {
     rocketbar.enterText(searchTerms + '\uE006');
 
     // Ensure the browser is launched
-    client.apps.switchToApp(Browser.URL);
+    rocketbar.switchToBrowserFrame(searchTerms);
   }
 
   test('Testing URI Scheme - DATA:', function() {

@@ -18,7 +18,6 @@
     var configs = {
       url: window.location.href,
       manifest: {
-        fullscreen: true,
         orientation: ['default']
       },
       name: 'Lockscreen',
@@ -125,9 +124,6 @@
           dummy = document.createElement('div');
 
       dummy.innerHTML = html;
-      // Need to translate to render some attributes correctly (e.g.
-      // aria-label).
-      navigator.mozL10n.translate(dummy);
       var iframe = dummy.firstElementChild;
       iframe.setVisible = function() {};
       // XXX: real iframes would own these methods.

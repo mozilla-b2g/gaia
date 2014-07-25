@@ -316,11 +316,13 @@
     <!-- homescreen from being displayed must come before this script. -->
     <link rel="stylesheet" type="text/css" href="style/window_layout.css">
     <link rel="stylesheet" type="text/css" href="style/window.css">
+    <link rel="stylesheet" type="text/css" href="style/app_titlebar.css">
     <script defer src="js/base_ui.js"></script>
     <script defer src="js/browser_context_menu.js"></script>
     <script defer src="js/child_window_factory.js"></script>
     <script defer src="js/app_modal_dialog.js"></script>
     <script defer src="js/app_chrome.js"></script>
+    <script defer src="js/app_titlebar.js"></script>
     <script defer src="js/app_transition_controller.js"></script>
     <script defer src="js/app_authentication_dialog.js"></script>
     <script defer src="js/text_selection_dialog.js"></script>
@@ -1241,7 +1243,7 @@
       </div>
 
       <div id="TextSelectionDialogRoot" data-z-index-level="text-selection-dialog"></div>
-      <div id="top-panel" class="gesture-panel" data-z-index-level="gesture-panel"></div>
+      <div id="top-panel" class="gesture-panel" data-z-index-level="statusbar"></div>
       <div id="left-panel" class="gesture-panel disabled" data-z-index-level="gesture-panel"></div>
       <div id="right-panel" class="gesture-panel disabled" data-z-index-level="gesture-panel"></div>
       <div id="bottom-panel" class="gesture-panel" data-z-index-level="gesture-panel"></div>

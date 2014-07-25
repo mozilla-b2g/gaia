@@ -18,6 +18,7 @@
 /*global SimPinDialog, TouchForwarder, FtuLauncher */
 /*global MobileOperator, SIMSlotManager, System */
 /*global Bluetooth */
+/*global UtilityTray */
 
 'use strict';
 
@@ -417,6 +418,7 @@ var StatusBar = {
   _touchStart: null,
   _touchForwarder: new TouchForwarder(),
   _shouldForwardTap: false,
+  _dontStopEvent: false,
   panelHandler: function sb_panelHandler(evt) {
 
     // Do not forward events if FTU is running
@@ -424,6 +426,15 @@ var StatusBar = {
       return;
     }
 
+    if (!this.element.classList.contains('invisible')) {
+      return;
+    }
+
+    if (this._dontStopEvent) {
+      return;
+    }
+
+    evt.stopImmediatePropagation();
     evt.preventDefault();
 
     var elem = this.element,
@@ -480,6 +491,7 @@ var StatusBar = {
         } else {
           // If we already forwarded the touchstart it means the bar
           // if fully open, releasing after a timeout.
+          this._dontStopEvent = true;
           this._touchForwarder.forward(evt);
           this._releaseAfterTimeout();
         }
@@ -489,6 +501,8 @@ var StatusBar = {
   },
 
   _releaseBar: function sb_releaseBar() {
+    this._dontStopEvent = false;
+
     var elem = this.element;
     elem.style.transform = '';
     elem.style.transition = '';
@@ -1222,5 +1236,10 @@ var StatusBar = {
 
 // unit tests call init() manually
 if (navigator.mozL10n) {
-  navigator.mozL10n.once(StatusBar.init.bind(StatusBar));
+  navigator.mozL10n.once(function() {
+    // The utitility tray and the status bar share event handling
+    // for the top-panel, initialisation order matters.
+    StatusBar.init();
+    UtilityTray.init();
+  });
 }

@@ -129,6 +129,7 @@ marionette('Statusbar', function() {
       // confirm dialog, then scroll to the top and check statusbar state.
       appInstall.installPackage(server.packageManifestURL);
       client.switchToFrame(system.getHomescreenIframe());
+      home.waitForSystemBanner();
       icon = home.getIcon(server.packageManifestURL);
       icon.scriptWith(function(el) {
         el.scrollIntoView(false);

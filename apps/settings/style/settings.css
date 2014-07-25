@@ -99,6 +99,18 @@ section[role="region"] > div > ul {
 }
 
 /******************************************************************************
+ * Frame section
+ */
+#frame iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/******************************************************************************
  * Activities section = "root" and filtered by category
  */
 #activityDoneButton {

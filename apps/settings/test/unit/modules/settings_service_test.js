@@ -88,6 +88,12 @@ suite('SettingsService', function() {
       this.panelElements.push(panelElement);
     }
 
+    // create additional frame panel
+    var framePanelElement = document.createElement('div');
+    framePanelElement.id = 'frame';
+    document.body.appendChild(framePanelElement);
+    this.panelElements.push(framePanelElement);
+
     this.callCount = 0;
     this.MockSettingsPanel.mInnerFunction = (function() {
       return this.mockSettingsPanelInstances[this.callCount++];
@@ -220,6 +226,20 @@ suite('SettingsService', function() {
       this.SettingsService.navigate(fakePanelId, {}, (function() {
         assert.equal(this.MockSettings._currentPanel, '#' + fakePanelId);
       }).bind(this));
+    });
+
+    test('can navigate to frame panel if panelId is app:app_name', function() {
+      var fakePanelId = 'app:bluetooth';
+      this.SettingsService.navigate(fakePanelId, {}, (function() {
+        assert.equal(this.MockSettings._currentPanel, '#frame');
+      }).bind(this));
+    });
+
+    test('can\'t navigate to non-trust apps', function() {
+      var fakePanelId = 'app:unknownApp';
+      this.sinon.spy(console, 'error');
+      this.SettingsService.navigate(fakePanelId, {});
+      console.error.calledWith('We only embed trust apps.');
     });
   });
 

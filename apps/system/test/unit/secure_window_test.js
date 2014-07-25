@@ -10,11 +10,12 @@ requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_applications.js');
+requireApp('system/test/unit/mock_app_titlebar.js');
 requireApp('system/test/unit/mock_screen_layout.js');
 
 var mocksForSecureWindowManager = new window.MocksHelper([
   'OrientationManager', 'Applications', 'SettingsListener',
-  'ManifestHelper', 'ScreenLayout'
+  'ManifestHelper', 'ScreenLayout', 'AppTitleBar'
 ]).init();
 
 suite('system/SecureWindow', function() {

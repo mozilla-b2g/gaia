@@ -18,6 +18,10 @@ suite('search/search', function() {
   var realSetMessageHandler;
   var clock;
 
+  function removeProvider(provider) {
+    delete Search.providers[provider.name];
+  }
+
   suiteSetup(function(done) {
     loadBodyHTML('/index.html');
 
@@ -104,7 +108,7 @@ suite('search/search', function() {
       });
       assert.equal(count + 1, numProviders());
 
-      Search.removeProvider({
+      removeProvider({
         name: 'Foo'
       });
       assert.equal(count, numProviders());
@@ -260,9 +264,16 @@ suite('search/search', function() {
   suite('navigate', function() {
     test('Open activity is fired', function() {
       var url = 'http://mozilla.org';
+      var stub = this.sinon.stub(window, 'open');
+      Search.navigate(url);
+      assert.ok(stub.calledOnce);
+      // Bug 1042012: Disabled until we enable registering of the view activity
+      /*
+      var url = 'http://mozilla.org';
       assert.equal(MockMozActivity.calls.length, 0);
       Search.navigate(url);
       assert.equal(MockMozActivity.calls.length, 1);
+      */
     });
   });
 
@@ -607,8 +618,8 @@ suite('search/search', function() {
       assert.ok(remoteStub.notCalled);
       assert.ok(localStub.calledOnce);
 
-      Search.removeProvider(localProvider);
-      Search.removeProvider(remoteProvider);
+      removeProvider(localProvider);
+      removeProvider(remoteProvider);
     });
 
     test('Search all providers when suggestions enabled', function() {
@@ -631,8 +642,8 @@ suite('search/search', function() {
       assert.ok(remoteStub.calledOnce);
       assert.ok(localStub.calledOnce);
 
-      Search.removeProvider(localProvider);
-      Search.removeProvider(remoteProvider);
+      removeProvider(localProvider);
+      removeProvider(remoteProvider);
     });
 
   });

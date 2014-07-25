@@ -10,7 +10,6 @@ function execute(config) {
   var content = {
     'api_url': 'https://find.firefox.com',
     'api_version': '1',
-    'audience_url': 'https://oauth.accounts.firefox.com/v1'
   };
 
   var distDir = config.GAIA_DISTRIBUTION_DIR;

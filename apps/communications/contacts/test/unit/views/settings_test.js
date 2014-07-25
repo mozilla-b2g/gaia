@@ -571,6 +571,31 @@ suite('Contacts settings >', function() {
       assert.isNull(bulkDelContacts.getAttribute('disabled'));
     });
 
+    test('If FB contacts are deleted but some contacts remain,'+
+                                ' bulk Delete option is enabled', function() {
+      document.addEventListener('fb_cleaned', function cleaned() {
+        document.removeEventListener('fb_cleaned', cleaned);
+        navigator.mozContacts.number = 50;
+        contacts.Settings.refresh();
+      });
+      document.dispatchEvent(new CustomEvent('fb_cleaned'));
+      contacts.Settings.refresh();
+      var bulkDelContacts = document.getElementById('bulkDelete');
+      assert.isNull(bulkDelContacts.getAttribute('disabled'));
+    });
+
+    test('If there are only FB contacts and they are deleted,' +
+                               ' bulk Delete option is disabled', function() {
+      document.addEventListener('fb_cleaned', function cleaned() {
+        document.removeEventListener('fb_cleaned', cleaned);
+        navigator.mozContacts.number = 0;
+        contacts.Settings.refresh();
+      });
+      document.dispatchEvent(new CustomEvent('fb_cleaned'));
+      var bulkDelContacts = document.getElementById('bulkDelete');
+      assert.equal(bulkDelContacts.getAttribute('disabled'), 'disabled');
+    });
+
     suiteTeardown(function() {
       mocksHelper.suiteTeardown();
       navigator.mozContacts = realMozContacts;
