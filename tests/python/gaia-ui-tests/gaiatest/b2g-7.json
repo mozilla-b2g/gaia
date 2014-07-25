@@ -19,36 +19,6 @@
     "time.timezone": "America/Los_Angeles",
     "time.timezone.user-selected": "America/Los_Angeles"
   },
-  "email": {
-    "gmail": {
-      "name": "FxOS Import",
-      "email": "fxos.email.import@gmail.com",
-      "password": "mozwebqa"
-    },
-    "IMAP": {
-      "name": "FxOS Import",
-      "email": "fxos.email.import@gmail.com",
-      "password": "mozwebqa",
-      "imap_hostname": "imap.gmail.com",
-      "imap_name": "fxos.email.import",
-      "imap_port": "993",
-      "smtp_hostname": "smtp.gmail.com",
-      "smtp_name": "fxos.email.import",
-      "smtp_port": "465"
-    },
-    "ActiveSync":{
-      "name": "test account mozilla",
-      "email": "mozuser10@allizom.onmicrosoft.com",
-      "password": "Sparky2014",
-      "active_sync_hostname": "outlook.office365.com",
-      "active_sync_username": "mozuser10@allizom.onmicrosoft.com"
-    }
-  },
-    "plivo": {
-    "auth_id": "MANTQWY2QXMGEYOWM2NZ",
-    "auth_token": "MmI3YWU1ZTk4OGY1ODgxYTk5ODM3ZTEzNGQ5Njli",
-    "phone_number": "13852003227"
-  },
 
     "prefs": {
     "devtools.debugger.forbid-certified-apps": false
