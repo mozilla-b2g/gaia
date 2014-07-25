@@ -55,7 +55,7 @@ marionette('Vertical - Bookmark Uninstall', function() {
     // select the icon in edit mode and click remove
     var icon = home.getIcon(url);
     var remove = icon.findElement('.remove');
-    remove.click();
+    remove.tap();
     home.confirmDialog('remove');
 
     // ensure the icon disappears

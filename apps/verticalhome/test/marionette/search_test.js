@@ -108,7 +108,7 @@ marionette('Vertical - Search', function() {
     // Press rocketbar close button, ensure the homescreen is
     // now displayed
     client.switchToFrame();
-    rocketbar.cancel.click();
+    rocketbar.cancel.tap();
     client.apps.switchToApp(Home2.URL);
     var firstIcon = client.helper.waitForElement(Home2.Selectors.firstIcon);
     assert.ok(firstIcon.displayed());
@@ -137,7 +137,7 @@ marionette('Vertical - Search', function() {
     assert.ok(rocketbar.clear.displayed());
 
     // Press clear button, input
-    rocketbar.clear.click();
+    rocketbar.clear.tap();
     assert.equal(rocketbar.input.getAttribute('value'), '');
     assert.ok(!rocketbar.clear.displayed());
 

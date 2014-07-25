@@ -54,7 +54,7 @@ marionette('Vertical - Uninstall Collection', function() {
       return el.dataset.identifier;
     });
 
-    remove.click();
+    remove.tap();
     home.confirmDialog('remove');
 
     // ensure the icon disappears

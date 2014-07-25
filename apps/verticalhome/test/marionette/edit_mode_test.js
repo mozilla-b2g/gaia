@@ -28,7 +28,7 @@ marionette('Vertical - Edit Mode', function() {
     home.enterEditMode();
     var header = client.findElement(selectors.editHeaderText);
     var done = client.helper.waitForElement(selectors.editHeaderDone);
-    done.click();
+    done.tap();
     client.helper.waitForElementToDisappear(header);
   });
 
