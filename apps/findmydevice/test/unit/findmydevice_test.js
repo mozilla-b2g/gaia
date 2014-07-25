@@ -156,7 +156,7 @@ suite('FindMyDevice >', function() {
   test('ensure retry counter is reset on enable', function() {
     sendWakeUpMessage(IAC_API_WAKEUP_REASON_ENABLED);
 
-    var helper = MockSettingsHelper('findmydevice.retryCount').get(
+    var helper = MockSettingsHelper('findmydevice.retry-count').get(
       function(val) {
         assert.equal(val, 0, 'retry count should be 0');
       });
@@ -174,7 +174,7 @@ suite('FindMyDevice >', function() {
     FindMyDevice._handleServerError({status:500});
     FindMyDevice._handleServerError({status:500});
 
-    var helper = MockSettingsHelper('findmydevice.retryCount').get(
+    var helper = MockSettingsHelper('findmydevice.retry-count').get(
       function(val) {
         assert.equal(val, 3, 'retry count should be 3');
       });

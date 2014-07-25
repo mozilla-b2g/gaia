@@ -21,8 +21,7 @@ navigator.mozSettings.addObserver('findmydevice.retry-count', function(event) {
   var _ = navigator.mozL10n.get;
   if (event.settingValue >= FIND_MY_DEVICE_RETRIES) {
 
-    // TODO: load the icon
-    var icon = null;
+    var icon = 'style/find_my_device/images/findMyDevice.png';
     var title = _('unable-to-connect');
     var body = _('tap-to-check-settings');
 
