@@ -100,6 +100,8 @@ class Camera(Base):
         self.wait_for_condition(
             lambda m: m.execute_script('return arguments[0].readyState;', [
                 self.wait_for_element_present(*self._viewfinder_video_locator)]) > 0, 10)
+        self.wait_for_condition(lambda m: self.marionette.find_element(
+            *self._controls_locator).get_attribute('data-enabled') == 'true')
 
     def wait_for_video_capturing(self):
         self.wait_for_condition(lambda m: self.marionette.find_element(
