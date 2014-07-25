@@ -9,7 +9,6 @@ from marionette import MarionetteTextTestRunner
 from marionette import BaseMarionetteTestRunner
 from marionette.runtests import cli
 
-from gaiatest import __name__
 from gaiatest import GaiaTestCase, GaiaOptionsMixin, GaiaTestRunnerMixin
 from version import __version__
 
@@ -41,7 +40,7 @@ class GaiaTestRunner(BaseMarionetteTestRunner, GaiaTestRunnerMixin, HTMLReportin
     def __init__(self, **kwargs):
         BaseMarionetteTestRunner.__init__(self, **kwargs)
         GaiaTestRunnerMixin.__init__(self, **kwargs)
-        HTMLReportingTestRunnerMixin.__init__(self, name=__name__, version=__version__, **kwargs)
+        HTMLReportingTestRunnerMixin.__init__(self, name='gaiatest-v2.0', version=__version__, **kwargs)
         self.test_handlers = [GaiaTestCase]
 
 

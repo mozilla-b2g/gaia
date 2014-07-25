@@ -33,7 +33,7 @@ else:
     else:
         raise Exception('JS atoms not found in %s or %s!' % (jsdir, pythondir))
 
-setup(name='gaiatest',
+setup(name='gaiatest-v2.0',
       version=version['__version__'],
       description="Marionette test automation client for Gaia",
       long_description=description,
