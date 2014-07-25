@@ -123,6 +123,15 @@ suite('system/AppTitleBar', function() {
     });
   });
 
+  test('rocketbar-overlayopened should collapse the titlebar', function() {
+    var app = new AppWindow(fakeApp);
+    var subject = new AppTitleBar(app);
+    subject.element.classList.add('expand');
+
+    window.dispatchEvent(new CustomEvent('rocketbar-overlayopened'));
+    assert.isFalse(subject.element.classList.contains('expand'));
+  });
+
   suite('name localization', function() {
     var subject = null;
     setup(function() {
@@ -205,5 +214,42 @@ suite('system/AppTitleBar', function() {
         assert.equal(subject.element.style.backgroundColor, '');
       });
     });
+  });
+
+  suite('expand', function() {
+    var subject = null;
+    var cbSpy = null;
+    setup(function() {
+      var app = new AppWindow(fakeApp);
+      subject = new AppTitleBar(app);
+      cbSpy = this.sinon.spy();
+
+      subject.expand(cbSpy);
+    });
+
+    test('should add the expand css class on the element', function() {
+      assert.isTrue(subject.element.classList.contains('expand'));
+    });
+
+    test('should trigger the callback after the transition', function() {
+      sinon.assert.notCalled(cbSpy);
+      subject.element.dispatchEvent(new CustomEvent('transitionend'));
+      sinon.assert.calledOnce(cbSpy);
+    });
+
+    test('should trigger the callback after a safety timeout', function() {
+      sinon.assert.notCalled(cbSpy);
+      this.sinon.clock.tick(500);
+      sinon.assert.calledOnce(cbSpy);
+    });
+  });
+
+  test('collapse should remove the expand css class', function() {
+    var app = new AppWindow(fakeApp);
+    var subject = new AppTitleBar(app);
+    subject.element.classList.add('expand');
+
+    subject.collapse();
+    assert.isFalse(subject.element.classList.contains('expand'));
   });
 });

@@ -266,6 +266,17 @@ var UtilityTray = {
   },
 
   onTouchEnd: function ut_onTouchEnd(touch) {
+    // Only the left half of the screen tiggers search
+    var corner = touch && (touch.target === this.topPanel) &&
+                 (touch.pageX < (window.innerWidth / 2));
+    if (this.isTap && corner) {
+      if (this.shown) {
+        this.hide();
+      }
+      setTimeout(function() {
+        window.dispatchEvent(new CustomEvent('global-search-request'));
+      });
+    }
     // Prevent utility tray shows while the screen got black out.
     if (window.System.locked) {
       this.hide(true);
