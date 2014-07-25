@@ -246,6 +246,99 @@ suite('lib/camera', function() {
     });
   });
 
+  suite('Camera#stopRecording()', function() {
+    setup(function() {
+      sinon.stub(this.camera, 'get');
+      sinon.stub(this.camera, 'set');
+      sinon.stub(this.camera, 'stopVideoTimer');
+      sinon.stub(this.camera, 'onRecordingError');
+      sinon.stub(this.camera, 'getVideoBlob');
+      this.videoStorage = {
+        addEventListener: sinon.stub(),
+        removeEventListener: sinon.stub()
+      };
+      this.camera.video.storage = this.videoStorage;
+      this.camera.get.withArgs('recording').returns(true);
+
+      this.camera.mozCamera = {
+        stopRecording: sinon.stub()
+      };
+    });
+
+    test('Should not do anything if camera is not recording', function() {
+      this.camera.get.withArgs('recording').returns(false);
+      this.camera.stopRecording();
+      sinon.assert.notCalled(this.camera.mozCamera.stopRecording);
+    });
+
+    test('Should indicate busy', function() {
+      this.camera.stopRecording();
+      sinon.assert.calledWith(this.camera.emit, 'busy');
+    });
+
+    test('Should stop timer counting', function() {
+      this.camera.stopRecording();
+      sinon.assert.called(this.camera.stopVideoTimer);
+    });
+
+    test('Should call `mozCamera.stopRecording`', function() {
+      this.camera.stopRecording();
+      sinon.assert.called(this.camera.mozCamera.stopRecording);
+    });
+
+    test('Should set `recording` flag to `false`', function() {
+      this.camera.stopRecording();
+      sinon.assert.called(this.camera.set, 'recording', false);
+    });
+
+    suite('onStorageChange', function() {
+      setup(function() {
+        this.req = {};
+        this.camera.video.filepath = 'foo/bar/baz.3gp';
+        this.camera.stopRecording();
+        this.callback = this.camera.video.storage.addEventListener.args[0][1];
+        this.callback({
+          reason: 'modified',
+          path: '/absolute/path/foo/bar/baz.3gp'
+        });
+      });
+
+      test('Should getVideoBlob if storage change event refers to recorded video', function() {
+        sinon.assert.called(this.camera.getVideoBlob);
+        this.camera.getVideoBlob.reset();
+
+        this.callback({
+          reason: 'modified',
+          path: 'boop/beep/bop.3pg'
+        });
+
+        sinon.assert.notCalled(this.camera.getVideoBlob);
+        this.camera.getVideoBlob.reset();
+
+        this.callback({
+          reason: 'something else',
+          path: 'foo/bar/baz.3gp'
+        });
+
+        sinon.assert.notCalled(this.camera.getVideoBlob);
+      });
+
+      test('Should removeEventListener', function() {
+        sinon.assert.called(this.videoStorage.removeEventListener);
+      });
+
+      test('Should removeEventListener and set camera to ready if SD card is removed', function() {
+        this.callback({
+          reason: 'unavailable',
+          path: 'boop/beep/bop.3pg'
+        });
+        sinon.assert.called(this.videoStorage.removeEventListener);
+        assert.isTrue(this.camera.emit.calledWith('ready'));
+      });
+
+    });
+  });
+
   suite('Camera#setISOMode()', function() {
     setup(function() {
       this.camera = {
