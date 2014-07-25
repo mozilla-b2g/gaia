@@ -68,10 +68,15 @@ KeyboardApp.prototype._startComponents = function() {
   this.candidatePanelManager.start();
 
   this.upperCaseStateManager = new UpperCaseStateManager();
+  this.upperCaseStateManager.onstatechange =
+    this.handleUpperCaseStateChange.bind(this);
   this.upperCaseStateManager.start();
 
   this.layoutRenderingManager = new LayoutRenderingManager(this);
   this.layoutRenderingManager.start();
+
+  // Initialize the rendering module
+  IMERender.init();
 
   this.perfTimer.printTime('BLOCKING KeyboardApp._startComponents()',
     'KeyboardApp._startComponents()');
@@ -106,6 +111,7 @@ KeyboardApp.prototype._stopComponents = function() {
   this.candidatePanelManager.stop();
   this.candidatePanelManager = null;
 
+  this.upperCaseStateManager.onstatechange = null;
   this.upperCaseStateManager.stop();
   this.upperCaseStateManager = null;
 
@@ -163,23 +169,13 @@ KeyboardApp.prototype.supportsSwitching = function() {
   return navigator.mozInputMethod.mgmt.supportsSwitching();
 };
 
-// XXX: this should move to InputMethodGlue after
-// renderKeyboard() is no longer a global function.
-KeyboardApp.prototype.setForcedModifiedLayout = function(layoutName) {
-  this.layoutManager.updateForcedModifiedLayout(layoutName);
-
-  window.renderKeyboard();
-};
-
-// XXX: this should move to InputMethodGlue after
-// renderKeyboard() is no longer a global function.
 KeyboardApp.prototype.setLayoutPage = function setLayoutPage(page) {
   if (page === this.layoutManager.currentLayoutPage) {
     return;
   }
 
   this.layoutManager.updateLayoutPage(page);
-  window.renderKeyboard();
+  this.layoutRenderingManager.updateLayoutRendering();
 
   var engine = this.inputMethodManager.currentIMEngine;
   if (typeof engine.setLayoutPage === 'function') {
@@ -191,6 +187,30 @@ KeyboardApp.prototype.setLayoutPage = function setLayoutPage(page) {
 // IMERender() is no longer a global class.
 KeyboardApp.prototype.getNumberOfCandidatesPerRow = function() {
   return IMERender.getNumberOfCandidatesPerRow();
+};
+
+KeyboardApp.prototype.handleUpperCaseStateChange = function() {
+  // When we have secondLayout, we need to force re-render on uppercase switch
+  if (this.layoutManager.currentModifiedLayout.secondLayout) {
+    this.layoutRenderingManager.updateLayoutRendering();
+
+    return;
+  }
+
+  // Otherwise we can just update only the keys we need...
+  // Try to block the event loop as little as possible
+  window.requestAnimationFrame(function() {
+    this.perfTimer.startTimer('setUpperCase:requestAnimationFrame:callback');
+    // And make sure the caps lock key is highlighted correctly
+    IMERender.setUpperCaseLock(this.upperCaseStateManager);
+
+    //restore the previous candidates
+    this.candidatePanelManager.showCandidates();
+
+    this.perfTimer.printTime(
+      'BLOCKING setUpperCase:requestAnimationFrame:callback',
+      'setUpperCase:requestAnimationFrame:callback');
+  }.bind(this));
 };
 
 exports.KeyboardApp = KeyboardApp;

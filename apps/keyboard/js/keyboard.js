@@ -1,6 +1,6 @@
 'use strict';
 
-/* global app, IMERender */
+/* global app */
 
 // |app| is considered created and started at this point.
 // It was intentionally exposed from bootstrap.js to allow lagency code access
@@ -14,16 +14,11 @@ const HIDE_KEYBOARD_TIMEOUT = 500;
 
 var hideKeyboardTimeout = 0;
 
-app.upperCaseStateManager.onstatechange = handleUpperCaseStateChange;
-
 initKeyboard();
 
 function initKeyboard() {
   app.perfTimer.startTimer('initKeyboard');
   app.perfTimer.printTime('initKeyboard');
-
-  // Initialize the rendering module
-  IMERender.init();
 
   window.addEventListener('hashchange', function handleHashchange() {
     app.perfTimer.printTime('hashchange');
@@ -112,48 +107,9 @@ function renderKeyboard() {
 
   app.layoutRenderingManager.updateLayoutRendering();
 
-  // If needed, empty the candidate panel
-  if (app.inputMethodManager.currentIMEngine.empty) {
-    app.inputMethodManager.currentIMEngine.empty();
-  }
-
   isKeyboardRendered = true;
 
   app.perfTimer.printTime('BLOCKING renderKeyboard', 'renderKeyboard');
-}
-
-function handleUpperCaseStateChange() {
-  if (!isKeyboardRendered) {
-    return;
-  }
-
-  // When we have secondLayout, we need to force re-render on uppercase switch
-  if (app.layoutManager.currentModifiedLayout.secondLayout) {
-    return renderKeyboard();
-  }
-
-  // Otherwise we can just update only the keys we need...
-  // Try to block the event loop as little as possible
-  window.requestAnimationFrame(function() {
-    app.perfTimer.startTimer('setUpperCase:requestAnimationFrame:callback');
-    // And make sure the caps lock key is highlighted correctly
-    IMERender.setUpperCaseLock(app.upperCaseStateManager);
-
-    //restore the previous candidates
-    app.candidatePanelManager.showCandidates();
-
-    app.perfTimer.printTime(
-      'BLOCKING setUpperCase:requestAnimationFrame:callback',
-      'setUpperCase:requestAnimationFrame:callback');
-  });
-}
-
-// Turn to default values
-function resetKeyboard() {
-  app.layoutManager.updateLayoutPage(
-    app.layoutManager.LAYOUT_PAGE_DEFAULT);
-
-  app.upperCaseStateManager.reset();
 }
 
 // Set up the keyboard and its input method.
@@ -166,7 +122,8 @@ function showKeyboard() {
 
   app.inputContext = navigator.mozInputMethod.inputcontext;
 
-  resetKeyboard();
+  app.layoutManager.updateLayoutPage(app.layoutManager.LAYOUT_PAGE_DEFAULT);
+  app.upperCaseStateManager.reset();
 
   // everything.me uses this setting to improve searches,
   // but they really shouldn't.

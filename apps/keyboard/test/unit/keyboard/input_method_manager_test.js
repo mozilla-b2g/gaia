@@ -148,13 +148,21 @@ suite('InputMethodGlue', function() {
   test('alterKeyboard', function() {
     var glue = new InputMethodGlue();
     var app = {
-      setForcedModifiedLayout: this.sinon.stub()
+      layoutManager: {
+        updateForcedModifiedLayout: this.sinon.stub()
+      },
+      layoutRenderingManager: {
+        updateLayoutRendering: this.sinon.stub()
+      }
     };
     var name = 'bar';
     glue.init(app, 'foo');
     glue.alterKeyboard(name);
 
-    assert.isTrue(app.setForcedModifiedLayout.calledWith(name));
+    assert.isTrue(
+      app.layoutManager.updateForcedModifiedLayout.calledWith(name));
+    assert.isTrue(
+      app.layoutRenderingManager.updateLayoutRendering.calledOnce);
   });
 
   test('setLayoutPage', function() {

@@ -46,7 +46,8 @@ suite('target handlers', function() {
         currentIMEngine: {
           click: this.sinon.stub(),
           select: this.sinon.stub(),
-          dismissSuggestions: this.sinon.stub()
+          dismissSuggestions: this.sinon.stub(),
+          empty: this.sinon.stub()
         }
       },
       targetHandlersManager: {
@@ -848,6 +849,8 @@ suite('target handlers', function() {
 
         assert.isTrue(app.visualHighlightManager.hide.calledWith(target));
         assert.isTrue(app.visualHighlightManager.hide.calledOnce);
+
+        assert.isTrue(app.inputMethodManager.currentIMEngine.empty.calledOnce);
       });
     });
 
@@ -866,6 +869,8 @@ suite('target handlers', function() {
 
         assert.isTrue(app.visualHighlightManager.hide.calledWith(target));
         assert.isTrue(app.visualHighlightManager.hide.calledOnce);
+
+        assert.isTrue(app.inputMethodManager.currentIMEngine.empty.calledOnce);
       });
     });
 
@@ -886,6 +891,8 @@ suite('target handlers', function() {
 
         assert.isTrue(app.visualHighlightManager.hide.calledWith(target));
         assert.isTrue(app.visualHighlightManager.hide.calledOnce);
+
+        assert.isTrue(app.inputMethodManager.currentIMEngine.empty.calledOnce);
       });
 
       test('commit (Symbols II -> I)', function() {
@@ -900,6 +907,8 @@ suite('target handlers', function() {
 
         assert.isTrue(app.visualHighlightManager.hide.calledWith(target));
         assert.isTrue(app.visualHighlightManager.hide.calledOnce);
+
+        assert.isTrue(app.inputMethodManager.currentIMEngine.empty.calledOnce);
       });
     });
   });

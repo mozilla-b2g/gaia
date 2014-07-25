@@ -200,7 +200,8 @@ InputMethodGlue.prototype.sendString = function(str) {
 // Set the current rendered layout to a specific named layout
 // XXX deprecated; overwrite alternative/symbol layout instead.
 InputMethodGlue.prototype.alterKeyboard = function(layoutName) {
-  this.app.setForcedModifiedLayout(layoutName);
+  this.app.layoutManager.updateForcedModifiedLayout(layoutName);
+  this.app.layoutRenderingManager.updateLayoutRendering();
 };
 
 InputMethodGlue.prototype.setLayoutPage = function(newpage) {
