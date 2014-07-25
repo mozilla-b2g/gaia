@@ -246,6 +246,13 @@ HandledCall.prototype.formatPhoneNumber =
       return;
     }
 
+    // Don't format if the call is in a conference.
+    if (this.call.group) {
+      this.numberNode.style = '';
+      return;
+    }
+
+
     var scenario = CallScreen.getScenario();
     // To cover the second incoming call sub-scenario of the call waiting one,
     //  we have to check if the current call is in incoming state and if the

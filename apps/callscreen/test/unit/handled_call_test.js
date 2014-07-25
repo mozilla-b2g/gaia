@@ -660,13 +660,22 @@ suite('dialer/handled_call', function() {
   });
 
   suite('phone number', function() {
-    test('formatPhoneNumber should call the font size manager',
-    function() {
+    test('formatPhoneNumber should call the font size manager if call is not' +
+         ' in a conference', function() {
       this.sinon.spy(FontSizeManager, 'adaptToSpace');
       subject.formatPhoneNumber('end');
       sinon.assert.calledWith(
         FontSizeManager.adaptToSpace, MockCallScreen.mScenario,
         subject.numberNode, false, 'end');
+    });
+
+    test('formatPhoneNumber should not call the font size manager if call is' +
+         ' in a conference', function() {
+      subject.call.group = {};
+      this.sinon.spy(FontSizeManager, 'adaptToSpace');
+      subject.formatPhoneNumber('end');
+      assert.equal(FontSizeManager.adaptToSpace.callCount, 0);
+      delete subject.call.group;
     });
 
     test('should ensureFixedBaseline with a contact', function() {
