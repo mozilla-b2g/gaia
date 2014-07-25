@@ -23,6 +23,38 @@ define(function(require) {
     var _navigating = false;
     var _pendingNavigationRequest = null;
 
+    var _cachedNavigation = null;
+    var _cachedNavigationOptions = {};
+
+    var _getAppNameToLink = function ss_get_app_name_to_link(panelId) {
+      var reAppName = /app:(\w+)/;
+      var name = reAppName.exec(panelId);
+      return name && name[1];
+    };
+
+    var _getAppInfo = function ss_get_app_info(appName) {
+      // We can customize the path for specific apps
+      var _supportedAppInFrame = {
+        keyboard: {},
+        bluetooth: {}
+      };
+
+      var appInfo = _supportedAppInFrame[appName];
+      if (!appInfo) {
+        return false;
+      }
+
+      var prefix = 'app://' + appName + '.gaiamobile.org/';
+      var defaultSrc = prefix + 'settings.html';
+      var appMozapp = prefix + 'manifest.webapp';
+      var appSrc = appInfo.src ? prefix + appInfo.src : defaultSrc;
+
+      return {
+        src: appSrc,
+        mozapp: appMozapp
+      };
+    };
+
     var _isTabletAndLandscape = function ss_is_tablet_and_landscape() {
       return ScreenLayout.getCurrentLayout('tabletAndLandscaped');
     };
@@ -117,6 +149,11 @@ define(function(require) {
             var currentPanelElement =
               _currentNavigation && _currentNavigation.panelElement;
             var currentPanel = _currentNavigation && _currentNavigation.panel;
+
+            // Keep these to make sure we can use when going back
+            _cachedNavigation = _currentNavigation;
+            _cachedNavigationOptions = options;
+
             // Prepare options and calls to the panel object's before
             // show function.
             options = options || {};
@@ -183,6 +220,8 @@ define(function(require) {
       reset: function ss_reset() {
         _rootPanelId = null;
         _currentNavigation = null;
+        _cachedNavigation = null;
+        _cachedNavigationOptions = {};
         _navigating = false;
         _pendingNavigationRequest = null;
         window.removeEventListener('visibilitychange', _onVisibilityChange);
@@ -218,6 +257,25 @@ define(function(require) {
           return;
         }
 
+        // If we find out the link includes information about app's name,
+        // it means that we are going to embed the app into our app.
+        //
+        // In this way, we have to navigate to `frame` panel and embed it.
+        var appName = _getAppNameToLink(panelId);
+        if (appName) {
+          var appInfo = _getAppInfo(appName);
+
+          if (!appInfo) {
+            console.error('We only embed trust apps.');
+            return;
+          }
+
+          panelId = 'frame';
+          options = options || {};
+          options.mozapp = appInfo.mozapp;
+          options.src = appInfo.src;
+        }
+
         _navigating = true;
         _navigate(panelId, options, (function() {
           _navigating = false;
@@ -233,6 +291,19 @@ define(function(require) {
             callback();
           }
         }).bind(this));
+      },
+
+      /**
+       * Go back to previous panel
+       *
+       * @alias module:SettingsService#back
+       */
+      back: function ss_back() {
+        if (_cachedNavigation) {
+          this.navigate(_cachedNavigation.panelId, _cachedNavigationOptions);
+          _cachedNavigation = null;
+          _cachedNavigationOptions = {};
+        }
       }
     };
 });

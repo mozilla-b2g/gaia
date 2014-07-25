@@ -75,12 +75,12 @@ var Settings = {
       PerformanceTestingHelper.dispatch('start-wifi-list-test');
     }
 
+    // take off # first
     var panelID = hash;
     if (panelID.startsWith('#')) {
       panelID = panelID.substring(1);
     }
 
-    this._currentPanel = hash;
     this.SettingsService.navigate(panelID);
   },
 

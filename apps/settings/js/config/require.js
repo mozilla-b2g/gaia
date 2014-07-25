@@ -68,6 +68,10 @@ require.config({
       ]
     },
     {
+      name: 'panels/frame/panel',
+      exclude: ['main']
+    },
+    {
       name: 'panels/feedback_send/panel',
       exclude: ['main']
     },
