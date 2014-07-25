@@ -19,14 +19,12 @@ var FindMyDevice = {
     self._loginButton = document.getElementById('findmydevice-login');
 
     loadJSON('/resources/findmydevice.json', function(data) {
-      self._audienceURL = data.audience_url;
-
       SettingsListener.observe('findmydevice.logged-in', false,
         self._togglePanel.bind(self));
 
       navigator.mozId.watch({
         wantIssuer: 'firefox-accounts',
-        audience: self._audienceURL,
+        audience: data.api_url,
         onlogin: self._onChangeLoginState.bind(self, true),
         onlogout: self._onChangeLoginState.bind(self, false),
         onready: function fmd_fxa_onready() {
