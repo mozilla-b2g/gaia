@@ -34,7 +34,8 @@ SettingsAppBuilder.prototype.writeFindMyDeviceConfigJSON = function(options) {
   var file = utils.getFile(options.STAGE_APP_DIR,
     'resources', 'findmydevice.json');
   var defaultContent = {
-    audience_url: 'https://oauth.accounts.firefox.com/v1',
+    api_url: 'https://find.firefox.com',
+    api_version: '1',
   };
 
   var content = utils.getDistributionFileContent('findmydevice',
