@@ -973,6 +973,13 @@ Camera.prototype.stopRecording = function() {
   storage.addEventListener('change', onStorageChange);
 
   function onStorageChange(e) {
+    // If the storage becomes unavailable
+    // For instance when yanking the SD CARD
+    if (e.reason === 'unavailable') {
+      storage.removeEventListener('change', onStorageChange);
+      self.emit('ready');
+      return;
+    }
     debug('video file ready', e.path);
     var matchesFile = e.path.indexOf(filepath) > -1;
 
