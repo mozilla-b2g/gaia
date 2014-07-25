@@ -48,6 +48,7 @@ var AttentionScreen = {
 
     window.addEventListener('home', this.hide.bind(this));
     window.addEventListener('holdhome', this.hide.bind(this));
+    window.addEventListener('global-search-request', this.hide.bind(this));
     window.addEventListener('appwillopen', this.appOpenHandler.bind(this));
     window.addEventListener('launchapp', this.appLaunchHandler.bind(this));
     window.addEventListener('emergencyalert', this.hide.bind(this));
@@ -463,6 +464,10 @@ var AttentionScreen = {
   appForegroundHandler: function as_appForegroundHandler(evt) {
     // If the app behind the soon-to-be-unlocked lockscreen has an
     // attention screen we should display it
+    if (window.homeSearchbar.active) {
+      return;
+    }
+
     var app = evt.detail;
     this.showForOrigin(app.origin);
   },

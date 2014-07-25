@@ -40,6 +40,13 @@
   SearchWindow.prototype.containerElement =
     document.getElementById('rocketbar-results');
 
+  SearchWindow.prototype.view = function aw_view() {
+    return '<div class=" ' + this.CLASS_LIST +
+             ' " id="' + this.instanceID +
+             '" transition-state="closed">' +
+           '</div>';
+  };
+
   // We don't need to wait.
   // Kill process will call requestclose to let manager decide
   // if we want to wait the background needs repaint,

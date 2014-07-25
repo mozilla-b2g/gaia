@@ -1,4 +1,4 @@
-/* global SettingsListener, System, SimPinDialog, rocketbar */
+/* global SettingsListener, System, SimPinDialog, rocketbar, homeSearchbar */
 'use strict';
 
 (function(exports) {
@@ -259,15 +259,20 @@
       return;
     }
 
+    if (this._shouldFocusApp()) {
+      this.app.debug('focusing this app.');
+      this.app.focus();
+    }
+  };
+
+  AppTransitionController.prototype._shouldFocusApp = function() {
     // XXX: Remove this after SIMPIN Dialog is refactored.
     // See https://bugzilla.mozilla.org/show_bug.cgi?id=938979
     // XXX: Rocketbar losing input focus
     // See: https://bugzilla.mozilla.org/show_bug.cgi?id=961557
-    if (this._transitionState == 'opened' &&
-        !SimPinDialog.visible && !rocketbar.active) {
-      this.app.debug('focusing this app.');
-      this.app.focus();
-    }
+    return (this._transitionState == 'opened' &&
+            !SimPinDialog.visible &&
+            !(rocketbar.active || homeSearchbar.active));
   };
 
   AppTransitionController.prototype.requireOpen = function(animation) {

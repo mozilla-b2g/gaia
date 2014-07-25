@@ -724,10 +724,10 @@
           var that = this;
           that.element.addEventListener('_opened', function onOpened() {
             that.element.removeEventListener('_opened', onOpened);
-            that.appTitleBar = new self.AppTitleBar(that);
+            that.titleBar = new self.AppTitleBar(that);
           });
         } else {
-          this.appTitleBar = new self.AppTitleBar(this);
+          this.titleBar = new self.AppTitleBar(this);
         }
       }
     };

@@ -24,6 +24,8 @@ suite('system/Rocketbar', function() {
   var subject;
 
   setup(function(done) {
+    this.sinon.useFakeTimers();
+
     stubById = this.sinon.stub(document, 'getElementById', function(id) {
       if (id == 'rocketbar-input') {
         return document.createElement('input');
@@ -604,6 +606,7 @@ suite('system/Rocketbar', function() {
     // Expanded
     subject.expanded = true;
     subject.handleClick();
+    this.sinon.clock.tick(500);
     assert.ok(focusStub.calledOnce);
 
     // Collapsed
@@ -629,6 +632,7 @@ suite('system/Rocketbar', function() {
     subject._wasClicked = true;
     subject.transitioning = true;
     subject.handleTransitionEnd();
+    this.sinon.clock.tick(500);
     assert.ok(focusStub.calledOnce);
     assert.ok(!subject._wasClicked);
     assert.equal(subject.transitioning, false);
@@ -852,7 +856,6 @@ suite('system/Rocketbar', function() {
   });
 
   test('focus on render after a tick', function() {
-    this.sinon.useFakeTimers();
     var focusStub = this.sinon.stub(subject, 'focus');
 
     subject.activate();
@@ -862,6 +865,22 @@ suite('system/Rocketbar', function() {
     sinon.assert.notCalled(focusStub);
     this.sinon.clock.tick(1);
     sinon.assert.calledOnce(focusStub);
+  });
+
+  suite('activate with a transition', function() {
+    test('done after transition and search app load', function(done) {
+      this.sinon.spy(subject, 'loadSearchApp');
+      subject.activate(done);
+      subject.loadSearchApp.yield();
+      subject.backdrop.dispatchEvent(new CustomEvent('transitionend'));
+    });
+
+    test('done after safety timeout and search app load', function(done) {
+      this.sinon.spy(subject, 'loadSearchApp');
+      subject.activate(done);
+      subject.loadSearchApp.yield();
+      this.sinon.clock.tick(500);
+    });
   });
 });
 
