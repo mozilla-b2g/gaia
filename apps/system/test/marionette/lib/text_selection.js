@@ -40,7 +40,7 @@ TextSelection.prototype = {
    * Get appWindow's id and origin of displayed app.
    * XXXXX: Since gecko is not ready yet, we need to simulate gecko dispatching
    *        mozbrowsertextualmenu event to display textselection dialog.
-   * 
+   *
    * @return {displayApp}.
    */
   _getDisplayedAppInfo: function() {

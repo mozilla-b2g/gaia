@@ -175,13 +175,13 @@ suite('thread_list_ui', function() {
       assert.equal(optionItems[1].l10nId, 'cancel');
     });
 
-    test('show delete/settings/cancel options when list existed', function() {
+    test('show select/settings/cancel options when list existed', function() {
       ThreadListUI.setEmpty(false);
       ThreadListUI.showOptions();
 
       var optionItems = MockOptionMenu.calls[0].items;
       assert.equal(optionItems.length, 3);
-      assert.equal(optionItems[0].l10nId, 'deleteMessages-label');
+      assert.equal(optionItems[0].l10nId, 'selectThreads-label');
       assert.equal(optionItems[1].l10nId, 'settings');
       assert.equal(optionItems[2].l10nId, 'cancel');
     });

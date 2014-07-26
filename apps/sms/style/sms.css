@@ -186,10 +186,14 @@ form[role="dialog"][data-type="edit"] > menu {
 }
 
 /* Lists: edit mode */
+.edit #threads-container[data-type="list"] ul {
+  padding: 0 0rem;
+}
+
 .edit [data-type="list"] li > label {
   opacity: 1;
   pointer-events: auto;
-  left: -1.4rem;
+  left: -1.5rem;
 }
 
 .edit [data-type="list"] li > .pack-checkbox input ~ span:after {
@@ -199,7 +203,8 @@ form[role="dialog"][data-type="edit"] > menu {
 }
 
 .edit [data-type="list"] li > a > aside.icon-unread {
-  opacity: 0;
+  opacity: 1;
+  left: 3.5rem;
 }
 
 .edit [data-type="list"] li > a > p {

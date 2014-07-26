@@ -181,7 +181,7 @@ define(function(require) {
       identity.oninput = checkPassword;
       checkPassword();
     },
-    
+
     /**
      * This is an inner function that used to inject certificates options
      * into select element.

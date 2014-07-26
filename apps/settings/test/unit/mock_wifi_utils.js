@@ -19,7 +19,7 @@ define(function() {
 
     },
     changeDisplay: function() {
-  
+
     }
   };
 

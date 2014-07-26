@@ -120,18 +120,13 @@
                 <span data-l10n-id="cancel" class="icon icon-close">close</span>
               </button>
               <menu type="toolbar">
-                <button id="threads-delete-button" data-l10n-id="delete">delete</button>
+                <button id="threads-check-uncheck-all-button" class="edit-button" data-l10n-id="select-all"></button>
               </menu>
-              <h1 id="threads-edit-mode" data-l10n-id="deleteMessages-title">Delete messages</h1>
+              <h1 id="threads-edit-mode" data-l10n-id="selectThreads-title">Select</h1>
             </header>
           </section>
           <menu>
-            <button id="threads-uncheck-all-button" disabled class="edit-button" data-l10n-id="deselect-all">
-              None
-            </button>
-            <button id="threads-check-all-button" class="edit-button" data-l10n-id="select-all">
-              All
-            </button>
+            <button id="threads-delete-button" data-l10n-id="delete">delete</button>
           </menu>
         </form>
 
@@ -283,18 +278,13 @@
                 <span data-l10n-id="cancel" class="icon icon-close">close</span>
               </button>
               <menu type="toolbar">
-                <button id="messages-delete-button" data-l10n-id="delete">delete</button>
+                <button id="messages-check-uncheck-all-button" class="edit-button" data-l10n-id="select-all"></button>
               </menu>
               <h1 id="messages-edit-mode" data-l10n-id="deleteMessages-title">Delete Messages</h1>
             </header>
           </section>
           <menu>
-            <button id="messages-uncheck-all-button" disabled class="edit-button" data-l10n-id="deselect-all">
-              None
-            </button>
-            <button id="messages-check-all-button" class="edit-button" data-l10n-id="select-all">
-              All
-            </button>
+            <button id="messages-delete-button" data-l10n-id="delete">delete</button>
           </menu>
         </form>
         <section id="messages-recipient-suggestions" class="article-list hide" data-type="list">
@@ -463,7 +453,7 @@
 
     <div id="messages-thread-tmpl" class="hide">
       <!--
-      <label class="pack-checkbox danger">
+      <label class="pack-checkbox negative">
         <input type="checkbox" value="${id}" data-mode="${mode}">
         <span></span>
       </label>

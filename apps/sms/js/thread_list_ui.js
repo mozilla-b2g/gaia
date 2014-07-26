@@ -34,7 +34,7 @@ var ThreadListUI = {
     // TODO: https://bugzilla.mozilla.org/show_bug.cgi?id=854413
     [
       'container', 'no-messages',
-      'check-all-button', 'uncheck-all-button',
+      'check-uncheck-all-button',
       'delete-button', 'cancel-button',
       'options-icon', 'edit-mode', 'edit-form', 'draft-saved-banner'
     ].forEach(function(id) {
@@ -51,12 +51,8 @@ var ThreadListUI = {
       'click', this.launchComposer.bind(this)
     );
 
-    this.checkAllButton.addEventListener(
-      'click', this.toggleCheckedAll.bind(this, true)
-    );
-
-    this.uncheckAllButton.addEventListener(
-      'click', this.toggleCheckedAll.bind(this, false)
+    this.checkUncheckAllButton.addEventListener(
+      'click', this.toggleCheckedAll.bind(this)
     );
 
     this.deleteButton.addEventListener(
@@ -235,18 +231,16 @@ var ThreadListUI = {
     var selected = ThreadListUI.selectedInputs.length;
 
     if (selected === ThreadListUI.allInputs.length) {
-      this.checkAllButton.disabled = true;
+      navigator.mozL10n.localize(this.checkUncheckAllButton, 'deselect-all');
     } else {
-      this.checkAllButton.disabled = false;
+      navigator.mozL10n.localize(this.checkUncheckAllButton, 'select-all');
     }
     if (selected) {
-      this.uncheckAllButton.disabled = false;
       this.deleteButton.disabled = false;
       navigator.mozL10n.localize(this.editMode, 'selected', {n: selected});
     } else {
-      this.uncheckAllButton.disabled = true;
       this.deleteButton.disabled = true;
-      navigator.mozL10n.localize(this.editMode, 'deleteMessages-title');
+      navigator.mozL10n.localize(this.editMode, 'selectThreads-title');
     }
   },
 
@@ -261,17 +255,16 @@ var ThreadListUI = {
     this.checkInputs();
   },
 
-  toggleCheckedAll: function thlui_select(value) {
+  toggleCheckedAll: function thlui_select() {
+    var selected = ThreadListUI.selectedInputs.length;
+    var allSelected = (selected === ThreadListUI.allInputs.length);
     var inputs = this.container.querySelectorAll(
       'input[type="checkbox"]' +
-      // value ?
-      //   true : query for currently unselected threads
-      //   false: query for currently selected threads
-      (value ? ':not(:checked)' : ':checked')
+      (!allSelected ? ':not(:checked)' : ':checked')
     );
     var length = inputs.length;
     for (var i = 0; i < length; i++) {
-      inputs[i].checked = value;
+      inputs[i].checked = !allSelected;
     }
     this.checkInputs();
   },
@@ -431,10 +424,9 @@ var ThreadListUI = {
       }]
     };
 
-    // Add delete option when list is not empty
     if (ThreadListUI.noMessages.classList.contains('hide')) {
       params.items.unshift({
-        l10nId: 'deleteMessages-label',
+        l10nId: 'selectThreads-label',
         method: this.startEdit.bind(this)
       });
     }

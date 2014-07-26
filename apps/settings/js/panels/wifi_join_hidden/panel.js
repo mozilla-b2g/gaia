@@ -1,6 +1,6 @@
 define(function(require) {
   'use strict';
-  
+
   var SettingsPanel = require('modules/settings_panel');
   var WifiHelper = require('shared/wifi_helper');
   var WifiUtils = require('modules/wifi_utils');

@@ -137,7 +137,7 @@ suite('WifiUtils', function() {
       assert.equal(certificate.parentNode.parentNode.style.display, 'block');
       assert.equal(description.style.display, 'block');
     });
-    
+
     test('panel is wifi-auth, security is none', function() {
       wifiUtils.changeDisplay(dialog, 'none');
       assert.equal(identity.parentNode.style.display, 'none');

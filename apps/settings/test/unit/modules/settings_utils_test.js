@@ -67,13 +67,13 @@ suite('SettingsUtils', function() {
       settingsUtils.openDialog('dialog0', {});
       assert.isFalse(settingsService.navigate.called);
     });
-    
+
     test('if currentPanel is different, then press submit button', function() {
       Settings.currentPanel = '#root';
       settingsUtils.openDialog(fakePanel.id, {
         onSubmit: onSubmitCallback
       });
-      
+
       // trigger the button to check following logics
       fakeSubmitButton.onclick();
 

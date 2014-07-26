@@ -75,7 +75,7 @@ FakeTextSelectionApp.prototype = {
    * XXXX: this function will mock mozbrowsertextualmenu event to simulate gecko
    *       has successfully select content and trigger text_selection_dialog
    *       displaying.
-   *       
+   *
    * @param {String} ele query string of dom element.
    */
   press: function(target) {

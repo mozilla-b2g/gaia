@@ -289,7 +289,7 @@
       , qsIndex = path.indexOf('?')
       , pathname = ~qsIndex ? path.slice(0, qsIndex) : path
       , m = this.regexp.exec(pathname);
-  
+
     if (!m) return false;
 
     for (var i = 1, len = m.length; i < len; ++i) {
