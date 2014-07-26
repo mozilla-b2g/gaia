@@ -72,7 +72,7 @@ suite('FindMyDevice Launcher >', function(done) {
   });
 
   test('clear lockscreen message when the lockscreen unlocks', function() {
-    window.dispatchEvent(new CustomEvent('lockscreen-appclosing'));
+    window.dispatchEvent(new CustomEvent('will-unlock'));
     assert.equal(
       MockSettingsHelper.instances['lockscreen.lock-message'].value, '');
   });
