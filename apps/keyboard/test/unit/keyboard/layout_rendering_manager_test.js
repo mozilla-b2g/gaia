@@ -92,25 +92,31 @@ suite('LayoutRenderingManager', function() {
   });
 
   suite('updateLayoutRendering', function() {
-    teardown(function() {
+    var p;
+
+    teardown(function(done) {
       IMERender.draw.getCall(0).args[2].call(window);
 
-      assert.isTrue(
-        IMERender.setUpperCaseLock.calledWith(app.upperCaseStateManager));
-      assert.isTrue(
-        app.inputMethodManager.currentIMEngine.setLayoutParams.calledWith({
-          keyboardWidth: 600,
-          keyboardHeight: 277,
-          keyArray: [],
-          keyWidth: 15,
-          keyHeight: 12
-        }));
+      p.then(function() {
+        assert.isTrue(
+          IMERender.setUpperCaseLock.calledWith(app.upperCaseStateManager));
+        assert.isTrue(
+          app.inputMethodManager.currentIMEngine.setLayoutParams.calledWith({
+            keyboardWidth: 600,
+            keyboardHeight: 277,
+            keyArray: [],
+            keyWidth: 15,
+            keyHeight: 12
+          }));
 
-      assert.isTrue(window.resizeTo.calledWith(600, 401));
+        assert.isTrue(window.resizeTo.calledWith(600, 401));
+      }, function() {
+        assert.isTrue(false, 'Should not reject.');
+      }).then(done, done);
     });
 
     test('w/o secondLayout & autoCorrectLanguage', function() {
-      manager.updateLayoutRendering();
+      p = manager.updateLayoutRendering();
 
       assert.isTrue(IMERender.draw.calledWith(
         app.layoutManager.currentModifiedLayout,
@@ -127,7 +133,7 @@ suite('LayoutRenderingManager', function() {
       app.layoutManager.currentModifiedLayout.secondLayout = true;
       app.upperCaseStateManager.isUpperCase = false;
 
-      manager.updateLayoutRendering();
+      p = manager.updateLayoutRendering();
 
       assert.isTrue(IMERender.draw.calledWith(
         app.layoutManager.currentModifiedLayout,
@@ -141,7 +147,7 @@ suite('LayoutRenderingManager', function() {
     test('w/ autoCorrectLanguage, w/o displaysCandidates()', function() {
       app.layoutManager.currentLayout.autoCorrectLanguage = 'zz-ZZ';
 
-      manager.updateLayoutRendering();
+      p = manager.updateLayoutRendering();
 
       assert.isTrue(IMERender.draw.calledWith(
         app.layoutManager.currentModifiedLayout,
@@ -157,7 +163,7 @@ suite('LayoutRenderingManager', function() {
       app.inputMethodManager.currentIMEngine.displaysCandidates =
         this.sinon.stub().returns(false);
 
-      manager.updateLayoutRendering();
+      p = manager.updateLayoutRendering();
 
       assert.isTrue(IMERender.draw.calledWith(
         app.layoutManager.currentModifiedLayout,
@@ -171,7 +177,7 @@ suite('LayoutRenderingManager', function() {
     test('w/ needsCandidatePanel, w/o displaysCandidates()', function() {
       app.layoutManager.currentLayout.needsCandidatePanel = true;
 
-      manager.updateLayoutRendering();
+      p = manager.updateLayoutRendering();
 
       assert.isTrue(IMERender.draw.calledWith(
         app.layoutManager.currentModifiedLayout,
@@ -187,7 +193,7 @@ suite('LayoutRenderingManager', function() {
       app.inputMethodManager.currentIMEngine.displaysCandidates =
         this.sinon.stub().returns(false);
 
-      manager.updateLayoutRendering();
+      p = manager.updateLayoutRendering();
 
       assert.isTrue(IMERender.draw.calledWith(
         app.layoutManager.currentModifiedLayout,

@@ -3,7 +3,8 @@
 /* global PerformanceTimer, InputMethodManager, LayoutManager,
           SettingsPromiseManager, L10nLoader, TargetHandlersManager,
           FeedbackManager, VisualHighlightManager, CandidatePanelManager,
-          UpperCaseStateManager, LayoutRenderingManager, IMERender */
+          UpperCaseStateManager, LayoutRenderingManager, IMERender,
+          StateManager */
 
 (function(exports) {
 
@@ -19,6 +20,7 @@ var KeyboardApp = function() {
   this.candidatePanelManager = null;
   this.upperCaseStateManager = null;
   this.layoutRenderingManager = null;
+  this.stateManager = null;
 
   this.inputContext = null;
 };
@@ -78,6 +80,9 @@ KeyboardApp.prototype._startComponents = function() {
   // Initialize the rendering module
   IMERender.init();
 
+  this.stateManager = new StateManager(this);
+  this.stateManager.start();
+
   this.perfTimer.printTime('BLOCKING KeyboardApp._startComponents()',
     'KeyboardApp._startComponents()');
 };
@@ -117,6 +122,9 @@ KeyboardApp.prototype._stopComponents = function() {
 
   this.layoutRenderingManager.stop();
   this.layoutRenderingManager = null;
+
+  this.stateManager.stop();
+  this.stateManager = null;
 };
 
 KeyboardApp.prototype.getMenuContainer = function() {
@@ -129,6 +137,9 @@ KeyboardApp.prototype.getContainer = function() {
   return document.getElementById(this.CONATINER_ELEMENT_ID);
 };
 
+KeyboardApp.prototype.setInputContext = function(inputContext) {
+  this.inputContext = inputContext;
+};
 
 KeyboardApp.prototype.getBasicInputType = function() {
   if (!this.inputContext) {

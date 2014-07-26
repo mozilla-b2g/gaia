@@ -1,6 +1,6 @@
 'use strict';
 
-/* global IMERender */
+/* global IMERender, Promise */
 
 (function(exports) {
 
@@ -65,11 +65,13 @@ LayoutRenderingManager.prototype.updateLayoutRendering = function() {
   var needsUpperCase = currentModifiedLayout.secondLayout ?
       this.app.upperCaseStateManager.isUpperCase : true;
 
-  IMERender.draw(currentModifiedLayout, {
-    uppercase: needsUpperCase,
-    inputType: this.app.getBasicInputType(),
-    showCandidatePanel: needsCandidatePanel
-  }, this._afterRenderDrew.bind(this));
+  var p = new Promise(function(resolve) {
+    IMERender.draw(currentModifiedLayout, {
+      uppercase: needsUpperCase,
+      inputType: this.app.getBasicInputType(),
+      showCandidatePanel: needsCandidatePanel
+    }, resolve);
+  }.bind(this)).then(this._afterRenderDrew.bind(this));
 
   // Tell the renderer what input method we're using. This will set a CSS
   // classname that can be used to style the keyboards differently
@@ -79,6 +81,8 @@ LayoutRenderingManager.prototype.updateLayoutRendering = function() {
   this.app.perfTimer.printTime(
     'BLOCKING layoutRenderingManager.updateLayoutRendering',
     'updateLayoutRendering');
+
+  return p;
 };
 
 // So there are a couple of things that we want don't want to block

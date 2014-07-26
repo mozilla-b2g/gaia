@@ -3,7 +3,7 @@
 /* global KeyboardApp, PerformanceTimer, InputMethodManager, LayoutManager,
           SettingsPromiseManager, L10nLoader, TargetHandlersManager,
           FeedbackManager, VisualHighlightManager, CandidatePanelManager,
-          UpperCaseStateManager, LayoutRenderingManager,
+          UpperCaseStateManager, LayoutRenderingManager, StateManager,
           MockInputMethodManager, IMERender */
 
 require('/js/keyboard/performance_timer.js');
@@ -17,6 +17,7 @@ require('/js/keyboard/visual_highlight_manager.js');
 require('/js/keyboard/candidate_panel_manager.js');
 require('/js/keyboard/upper_case_state_manager.js');
 require('/js/keyboard/layout_rendering_manager.js');
+require('/js/keyboard/state_manager.js');
 
 requireApp('keyboard/shared/test/unit/mocks/mock_event_target.js');
 requireApp('keyboard/shared/test/unit/mocks/mock_navigator_input_method.js');
@@ -35,6 +36,7 @@ suite('KeyboardApp', function() {
   var candidatePanelManagerStub;
   var upperCaseStateManagerStub;
   var layoutRenderingManagerStub;
+  var stateManagerStub;
 
   var app;
   var realMozInputMethod;
@@ -96,6 +98,11 @@ suite('KeyboardApp', function() {
       setUpperCaseLock: this.sinon.stub()
     };
 
+    stateManagerStub =
+      this.sinon.stub(StateManager.prototype);
+    this.sinon.stub(window, 'StateManager')
+      .returns(stateManagerStub);
+
     window.requestAnimationFrame = this.sinon.stub();
 
     app = new KeyboardApp();
@@ -112,6 +119,7 @@ suite('KeyboardApp', function() {
     assert.isTrue(window.CandidatePanelManager.calledWithNew());
     assert.isTrue(window.UpperCaseStateManager.calledWithNew());
     assert.isTrue(window.LayoutRenderingManager.calledWithNew());
+    assert.isTrue(window.StateManager.calledWithNew());
 
     assert.isTrue(window.InputMethodManager.calledWith(app));
     assert.isTrue(window.LayoutManager.calledWith(app));
@@ -129,6 +137,7 @@ suite('KeyboardApp', function() {
     assert.isTrue(candidatePanelManagerStub.start.calledOnce);
     assert.isTrue(upperCaseStateManagerStub.start.calledOnce);
     assert.isTrue(layoutRenderingManagerStub.start.calledOnce);
+    assert.isTrue(stateManagerStub.start.calledOnce);
   });
 
   teardown(function() {
@@ -140,6 +149,7 @@ suite('KeyboardApp', function() {
     assert.isTrue(candidatePanelManagerStub.stop.calledOnce);
     assert.isTrue(upperCaseStateManagerStub.stop.calledOnce);
     assert.isTrue(layoutRenderingManagerStub.stop.calledOnce);
+    assert.isTrue(stateManagerStub.stop.calledOnce);
 
     navigator.mozInputMethod = realMozInputMethod;
 
@@ -165,6 +175,14 @@ suite('KeyboardApp', function() {
     assert.isTrue(
       document.getElementById.calledWith(app.CONATINER_ELEMENT_ID));
     assert.equal(result, el);
+  });
+
+  test('setInputContext', function() {
+    var inputContext = {};
+
+    app.setInputContext(inputContext);
+
+    assert.equal(app.inputContext, inputContext);
   });
 
   suite('getBasicInputType', function() {
