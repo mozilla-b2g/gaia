@@ -26,7 +26,7 @@ apps/communications/contacts/style/status.css 0 1
 apps/communications/dialer/style/toolbar.css 0 1
 apps/costcontrol/style/app.css 0 3
 apps/costcontrol/style/views/balance.css 0 2
-apps/email/style/common.css 0 4
+apps/email/style/common.css 0 5
 apps/email/style/message_cards.css 0 2
 apps/email/style/setup_cards.css 0 1
 apps/fm/style/fm.css 0 1
