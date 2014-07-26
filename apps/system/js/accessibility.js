@@ -91,6 +91,14 @@
         SettingsListener.observe(settingKey,
           this.settings[settingKey], function observe(aValue) {
             this.settings[settingKey] = aValue;
+
+            // Show/Hide Accessibility Panel whenever volume buttons trigger Screen Reader
+            if (settingKey === 'accessibility.screenreader') {
+              SettingsListener.getSettingsLock().set({
+                'accessibility.show-settings':
+                  aValue
+              });
+            }
           }.bind(this));
       }
     },
@@ -153,14 +161,14 @@
       this.reset();
 
       if (!this.isSpeaking && timeStamp > this.expectedCompleteTimeStamp) {
-        this.speechSynthesis.cancel();
+        //this.speechSynthesis.cancel();
         this.announceScreenReader(function onEnd() {
           this.resetSpeaking(timeStamp + this.REPEAT_BUTTON_PRESS);
         }.bind(this));
         return;
       }
 
-      this.speechSynthesis.cancel();
+      //this.speechSynthesis.cancel();
       this.resetSpeaking();
       SettingsListener.getSettingsLock().set({
         'accessibility.screenreader':
