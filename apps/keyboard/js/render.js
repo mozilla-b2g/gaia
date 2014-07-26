@@ -186,10 +186,6 @@ const IMERender = (function() {
         requestAnimationFrame(callback);
       }
     }
-
-    // XXX We have to wait for layout to complete before
-    // return this function
-    container.offsetWidth;
   };
 
   /**
@@ -804,10 +800,6 @@ const IMERender = (function() {
       if (callback) {
         callback();
       }
-
-      // XXX We have to wait for layout to complete before
-      // return this function
-      ime.offsetWidth;
     }
 
     var changeScale;
@@ -846,10 +838,6 @@ const IMERender = (function() {
     var rows = activeIme.querySelectorAll('.keyboard-row');
 
     setKeyWidth();
-
-    // XXX We have to wait for layout to complete before
-    // return this function
-    activeIme.offsetWidth;
   };
 
   //
