@@ -1,6 +1,8 @@
 /*global Information, loadBodyHTML, MockContact, MockL10n, MocksHelper,
          ThreadUI, MessageManager, ContactRenderer, Utils, Template, Threads,
-         MockMessages, Settings, Navigation */
+         MockMessages, Settings, Navigation,
+         AssetsHelper
+*/
 
 'use strict';
 
@@ -43,25 +45,11 @@ suite('Information view', function() {
     realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
 
-    var assetsNeeded = 0;
-    function getAsset(filename, loadCallback) {
-      assetsNeeded++;
-
-      var req = new XMLHttpRequest();
-      req.open('GET', filename, true);
-      req.responseType = 'blob';
-      req.onload = function() {
-        loadCallback(req.response);
-        if (--assetsNeeded === 0) {
-          done();
-        }
-      };
-      req.send();
-    }
-
-    getAsset('/test/unit/media/kitten-450.jpg', function(blob) {
-      testImageBlob = blob;
-    });
+    AssetsHelper.generateImageBlob(400, 400, 'image/jpeg', 0.5).then(
+      (blob) => {
+        testImageBlob = blob;
+      }
+    ).then(done, done);
   });
 
   suiteTeardown(function() {

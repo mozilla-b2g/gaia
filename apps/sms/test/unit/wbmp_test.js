@@ -1,4 +1,7 @@
-/*global WBMP*/
+/*global WBMP,
+         AssetsHelper,
+         Promise
+*/
 
 'use strict';
 
@@ -9,29 +12,16 @@ suite('wbmp.js >', function() {
   var wbmpBlob, wbmpAsPngBlob;
 
   suiteSetup(function(done) {
-    var assetsNeeded = 0;
+    var blobPromises = [
+      AssetsHelper.loadFileBlob('/test/unit/media/grid.png').then(
+        (blob) => wbmpAsPngBlob = blob
+      ),
+      AssetsHelper.loadFileBlob('/test/unit/media/grid.wbmp').then(
+        (blob) => wbmpBlob = blob
+      )
+    ];
 
-    function getAsset(filename, loadCallback) {
-      assetsNeeded++;
-
-      var req = new XMLHttpRequest();
-      req.open('GET', filename, true);
-      req.responseType = 'blob';
-      req.onload = function() {
-        loadCallback(req.response);
-        if (--assetsNeeded === 0) {
-          done();
-        }
-      };
-      req.send();
-    }
-
-    getAsset('/test/unit/media/grid.wbmp', function(blob) {
-      wbmpBlob = blob;
-    });
-    getAsset('/test/unit/media/grid.png', function(blob) {
-      wbmpAsPngBlob = blob;
-    });
+    Promise.all(blobPromises).then(() => done(), done);
   });
 
   function writeBlobToCanvas(blob, callback) {

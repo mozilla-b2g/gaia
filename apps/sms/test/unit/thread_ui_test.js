@@ -11,7 +11,8 @@
          FocusEvent,
          DocumentFragment,
          Errors,
-         MockCompose
+         MockCompose,
+         AssetsHelper
 */
 
 'use strict';
@@ -143,33 +144,29 @@ suite('thread_ui.js >', function() {
     realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
 
-    var assetsNeeded = 0;
-    function getAsset(filename, loadCallback) {
-      assetsNeeded++;
+    var blobPromises = [
+      AssetsHelper.generateImageBlob(1400, 1400, 'image/jpeg', 1).then(
+        (blob) => oversizedImageBlob = blob
+      ),
+      AssetsHelper.generateImageBlob(300, 300, 'image/jpeg', 0.5).then(
+        (blob) => testImageBlob = blob
+      ),
+      AssetsHelper.loadFileBlob('/test/unit/media/audio.oga').then(
+        (blob) => testAudioBlob = blob
+      ),
+      AssetsHelper.loadFileBlob('/test/unit/media/video.ogv').then(
+        (blob) => testVideoBlob = blob
+      ),
+    ];
 
-      var req = new XMLHttpRequest();
-      req.open('GET', filename, true);
-      req.responseType = 'blob';
-      req.onload = function() {
-        loadCallback(req.response);
-        if (--assetsNeeded === 0) {
-          done();
-        }
-      };
-      req.send();
-    }
-    getAsset('/test/unit/media/kitten-450.jpg', function(blob) {
-      testImageBlob = blob;
-    });
-    getAsset('/test/unit/media/IMG_0554.jpg', function(blob) {
-      oversizedImageBlob = blob;
-    });
-    getAsset('/test/unit/media/audio.oga', function(blob) {
-      testAudioBlob = blob;
-    });
-    getAsset('/test/unit/media/video.ogv', function(blob) {
-      testVideoBlob = blob;
-    });
+    Promise.all(blobPromises).then(() => {
+      done(function() {
+        assert.isTrue(
+          oversizedImageBlob.size > 300 * 1024,
+          'Image blob should be greater than MMS size limit'
+        );
+      });
+    }, done);
   });
 
   suiteTeardown(function() {
