@@ -236,9 +236,7 @@
      */
     submit: function(msg) {
 
-      if (!this.suggestionNotice.hidden) {
-        this.discardNotice();
-      }
+      this.discardNotice();
 
       var input = msg.data.input;
 

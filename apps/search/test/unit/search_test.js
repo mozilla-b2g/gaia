@@ -48,6 +48,8 @@ suite('search/search', function() {
       // true, so it will always show for integration tests.
       assert.equal(Search.toShowNotice, true);
       Search.toShowNotice = false;
+
+      Search._port = { postMessage: function() {} };
       done();
     });
   });
@@ -254,7 +256,6 @@ suite('search/search', function() {
 
   suite('close', function() {
     test('posts a message to the port', function() {
-      Search._port = { postMessage: function() {} };
       var stub = this.sinon.stub(Search._port, 'postMessage');
       Search.close();
       assert.ok(stub.calledWith({action: 'hide'}));
@@ -300,7 +301,6 @@ suite('search/search', function() {
 
   suite('setInput', function() {
     test('posts a message to the port', function() {
-      Search._port = { postMessage: function() {} };
       var stub = this.sinon.stub(Search._port, 'postMessage');
       this.sinon.stub(Search, 'expandSearch');
       Search.setInput('foo');
