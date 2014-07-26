@@ -1,4 +1,4 @@
 # This includes the packages required to run some of the gaia-ui-tests
 
-http://pybluez.googlecode.com/files/PyBluez-0.18.tar.gz
+BT-Manager==0.3.0
 plivo==0.9.6

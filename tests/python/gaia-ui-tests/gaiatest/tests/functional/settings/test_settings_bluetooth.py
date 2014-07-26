@@ -20,6 +20,7 @@ class TestBluetoothSettings(GaiaTestCase):
     def tearDown(self):
         self.data_layer.unpair_all_bluetooth_devices()
         self.data_layer.bluetooth_disable()
+        self.bluetooth_host.discoverable = False
 
     def test_toggle_bluetooth_settings(self):
         """Toggle Bluetooth via Settings - Networks & Connectivity
@@ -44,6 +45,6 @@ class TestBluetoothSettings(GaiaTestCase):
         device_found = self.bluetooth_host.is_device_visible(device_name)
         self.assertTrue(device_found, "Host should see our device (device discoverable mode is ON)")
 
-        remote_device_name = self.testvars['bluetooth']['remote_ssid']
+        remote_device_name = self.bluetooth_host.host_name
         bluetooth_settings.pair_device(remote_device_name)
         self.assertIn(remote_device_name, bluetooth_settings.connected_devices)
