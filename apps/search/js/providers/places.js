@@ -274,7 +274,7 @@
      */
     addPlace: function(place) {
       results[place.url] = place;
-      var icons = Object.keys(place.icons);
+      var icons = place.icons ? Object.keys(place.icons) : [];
       if (icons.length) {
         saveIcon(place.url, icons[0]);
       }
