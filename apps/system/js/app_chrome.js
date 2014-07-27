@@ -7,6 +7,7 @@
   var _ = navigator.mozL10n.get;
   var BUTTONBAR_TIMEOUT = 5000;
   var BUTTONBAR_INITIAL_OPEN_TIMEOUT = 1500;
+  var _buttonBarHeight = 0;
 
   /**
    * The chrome UI of the AppWindow.
@@ -18,7 +19,7 @@
   var AppChrome = function AppChrome(app) {
     this.app = app;
     this.instanceID = _id++;
-    this.containerElement = app.browserContainer;
+    this.containerElement = app.element;
     this.render();
 
     if (this.app.config.chrome && this.app.config.chrome.navigation) {
@@ -39,22 +40,7 @@
 
   AppChrome.prototype._DEBUG = false;
 
-  AppChrome.prototype.combinedView = function an_combinedView() {
-    return '<div class="chrome" id="' +
-            this.CLASS_NAME + this.instanceID + '">' +
-            '<div class="progress"></div>' +
-            '<section role="region" class="bar skin-organic">' +
-              '<header>' +
-                '<button type="button" class="back-button"' +
-                ' alt="Back" data-disabled="disabled"></button>' +
-                '<button type="button" class="forward-button"' +
-                ' alt="Forward" data-disabled="disabled"></button>' +
-                '<div class="title"></div>' +
-                '<button type="button" class="reload-button"' +
-                ' alt="Reload"></button>' +
-              '</header>' +
-            '</section>';
-  };
+  AppChrome.prototype.hidingNavigation = false;
 
   AppChrome.prototype.view = function an_view() {
     return '<div class="chrome" id="' +
@@ -141,12 +127,14 @@
       case '_withkeyboard':
         if (this.app && this.app.isActive()) {
           this.hide(this.navigation);
+          this.hidingNavigation = true;
         }
         break;
 
       case '_withoutkeyboard':
         if (this.app) {
           this.show(this.navigation);
+          this.hidingNavigation = false;
         }
         break;
 
@@ -201,35 +189,17 @@
         }
         this.navigation.classList.add('closed');
         break;
-
-      case this.title:
-        window.dispatchEvent(new CustomEvent('global-search-request'));
-        break;
     }
   };
 
   AppChrome.prototype._registerEvents = function ac__registerEvents() {
-    if (this.openButton) {
-      this.openButton.addEventListener('click', this);
-    }
-
-    if (this.closeButton) {
-      this.closeButton.addEventListener('click', this);
-    }
-
-    if (this.killButton) {
-      this.killButton.addEventListener('click', this);
-    }
-
-    if (this.bookmarkButton) {
-      this.bookmarkButton.addEventListener('click', this);
-    }
-
+    this.openButton.addEventListener('click', this);
+    this.closeButton.addEventListener('click', this);
     this.reloadButton.addEventListener('click', this);
     this.forwardButton.addEventListener('click', this);
     this.backButton.addEventListener('click', this);
-    this.title.addEventListener('click', this);
-
+    this.bookmarkButton.addEventListener('click', this);
+    this.killButton.addEventListener('click', this);
     this.app.element.addEventListener('mozbrowserlocationchange', this);
     this.app.element.addEventListener('mozbrowsertitlechange', this);
     this.app.element.addEventListener('_loading', this);
@@ -243,27 +213,13 @@
   };
 
   AppChrome.prototype._unregisterEvents = function ac__unregisterEvents() {
-    if (this.openButton) {
-      this.openButton.removeEventListener('click', this);
-    }
-
-    if (this.closeButton) {
-      this.closeButton.removeEventListener('click', this);
-    }
-
-    if (this.killButton) {
-      this.killButton.removeEventListener('click', this);
-    }
-
-    if (this.bookmarkButton) {
-      this.bookmarkButton.removeEventListener('click', this);
-    }
-
+    this.openButton.removeEventListener('click', this);
+    this.closeButton.removeEventListener('click', this);
     this.reloadButton.removeEventListener('click', this);
     this.forwardButton.removeEventListener('click', this);
     this.backButton.removeEventListener('click', this);
-    this.title.removeEventListener('click', this);
-
+    this.bookmarkButton.removeEventListener('click', this);
+    this.killButton.removeEventListener('click', this);
     if (!this.app) {
       return;
     }
@@ -302,6 +258,13 @@
     if (!this.navigation.classList.contains('closed')) {
       this.navigation.classList.add('closed');
     }
+  };
+
+  /**
+   * Return buttonbar height for AppWindow calibration
+   */
+  AppChrome.prototype.getBarHeight = function ac_getBarHeight() {
+    return _buttonBarHeight ? _buttonBarHeight : this.openButton.clientHeight;
   };
 
   AppChrome.prototype.isButtonBarDisplayed = false;
@@ -349,24 +312,6 @@
   AppChrome.prototype.handleTitleChanged = function(evt) {
     this.title.textContent = evt.detail;
     this._titleChanged = true;
-  };
-
-  AppChrome.prototype.render = function() {
-    this.publish('willrender');
-
-    var view;
-    if (this.app.config.chrome &&
-        this.app.config.chrome.navigation &&
-        this.app.config.chrome.bar) {
-      view = this.combinedView();
-    } else {
-      view = this.view();
-    }
-    this.app.browserContainer.insertAdjacentHTML('afterbegin', view);
-
-    this._fetchElements();
-    this._registerEvents();
-    this.publish('rendered');
   };
 
   AppChrome.prototype.handleLocationChanged =

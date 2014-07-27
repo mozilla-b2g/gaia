@@ -41,28 +41,6 @@ suite('system/AppChrome', function() {
     origin: 'app://www.fake'
   };
 
-  var fakeAppConfigNavigation = {
-    url: 'app://www.fake/index.html',
-    chrome: {
-      navigation: true,
-    }
-  };
-
-  var fakeAppConfigBar = {
-    url: 'app://www.fake/index.html',
-    chrome: {
-      bar: true
-    }
-  };
-
-  var fakeAppConfigBoth = {
-    url: 'app://www.fake/index.html',
-    chrome: {
-      navigation: true,
-      bar: true
-    }
-  };
-
   test('app is closing', function() {
     var app1 = new AppWindow(fakeAppConfig1);
     var chrome1 = new AppChrome(app1);
@@ -186,21 +164,18 @@ suite('system/AppChrome', function() {
     var stubIsActive = this.sinon.stub(app1, 'isActive');
     stubIsActive.returns(true);
     chrome1.navigation.classList.add('visible');
-
-    var stubHide = this.sinon.stub(chrome1, 'hide');
     chrome1.handleEvent({ type: '_withkeyboard' });
-    assert.isTrue(stubHide.called);
+    assert.isTrue(chrome1.hidingNavigation);
   });
 
   test('keyboard hides', function() {
     var app1 = new AppWindow(fakeAppConfig1);
     var chrome1 = new AppChrome(app1);
-
+    var stubIsActive = this.sinon.stub(app1, 'isActive');
+    stubIsActive.returns(true);
     chrome1.navigation.classList.remove('visible');
-
-    var stubShow = this.sinon.stub(chrome1, 'show');
     chrome1.handleEvent({ type: '_withoutkeyboard' });
-    assert.isTrue(stubShow.called);
+    assert.isFalse(chrome1.hidingNavigation);
   });
 
   test('toggle navigation', function() {
@@ -261,42 +236,5 @@ suite('system/AppChrome', function() {
     homeGesture.enabled = true;
     chrome1.handleClosing();
     assert.isFalse(chrome1.navigation.classList.contains('closed'));
-  });
-
-  suite('Views', function() {
-    test('Regular view for navigation only', function() {
-      var app = new AppWindow(fakeAppConfigNavigation);
-
-      var spyView = this.sinon.spy(AppChrome.prototype, 'view');
-      new AppChrome(app); // jshint ignore:line
-      assert.isTrue(spyView.called);
-    });
-
-    test('Regular view for bar only', function() {
-      var app = new AppWindow(fakeAppConfigBar);
-
-      var spyView = this.sinon.spy(AppChrome.prototype, 'view');
-      new AppChrome(app); // jshint ignore:line
-      assert.isTrue(spyView.called);
-    });
-
-    test('Combined view for navigation + bar', function() {
-      var app = new AppWindow(fakeAppConfigBoth);
-
-      var spyView = this.sinon.spy(AppChrome.prototype, 'combinedView');
-      new AppChrome(app); // jshint ignore:line
-      assert.isTrue(spyView.called);
-    });
-
-  });
-
-  suite('Combined View Specific tests', function() {
-    test('reload', function() {
-      var app = new AppWindow(fakeAppConfigBoth);
-      var chrome = new AppChrome(app);
-      var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
-      chrome.handleEvent({ type: 'click', target: chrome.title });
-      assert.isTrue(stubDispatchEvent.called);
-    });
   });
 });

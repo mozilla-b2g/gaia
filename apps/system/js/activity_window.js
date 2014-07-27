@@ -167,7 +167,6 @@
             '" id="activity-window-' + _id++ + '">' +
             '<div class="screenshot-overlay"></div>' +
             '<div class="fade-overlay"></div>' +
-            '<div class="browser-container"></div>' +
             '</div>';
   };
 
@@ -207,9 +206,7 @@
     this.browser = new BrowserFrame(this.browser_config);
     this.element =
       document.getElementById('activity-window-' + this.instanceID);
-
-    this.browserContainer = this.element.querySelector('.browser-container');
-    this.browserContainer.appendChild(this.browser.element);
+    this.element.insertBefore(this.browser.element, this.element.childNodes[0]);
     this.frame = this.element;
     this.iframe = this.browser.element;
     this.screenshotOverlay = this.element.querySelector('.screenshot-overlay');
