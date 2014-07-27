@@ -921,7 +921,32 @@ var WindowManager = (function() {
     var frame = app.frame;
 
     if (frame) {
-      windows.removeChild(frame);
+      // XXX: Just a workaround for Bug 1041987
+      var removeAppFrame = function() {
+        windows.removeChild(frame);
+      };
+
+      if (app.origin == 'app://music.gaiamobile.org' &&
+          StatusBar.playingActive) {
+        var port = IACHandler.getPort('mediacomms');
+        if (port) {
+          var waitForChannelChanged = function(evt) {
+            if (evt.detail.type == 'audio-channel-changed' &&
+                evt.detail.channel != 'content') {
+              window.removeEventListener('mozChromeEvent',
+                                         waitForChannelChanged);
+              removeAppFrame();
+            }
+          };
+
+          window.addEventListener('mozChromeEvent', waitForChannelChanged);
+          port.postMessage({command: 'stop'});
+        } else {
+          removeAppFrame();
+        }
+      } else {
+        removeAppFrame();
+      }
     }
 
     if (openFrame == frame) {
