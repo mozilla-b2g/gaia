@@ -123,7 +123,7 @@
       // Reset our centering styles.
       this.resetCentering(header);
 
-      // Cache the element style properites to avoid reflows.
+      // Cache the element style properties to avoid reflows.
       var style = this.getStyleProperties(header);
 
       // Perform auto-resize and center.
@@ -243,10 +243,12 @@
     },
 
     /**
-     * Get an element's style properies.
+     * Get style and layout properties of the specified <h1> element and its
+     * parent <header> that are relevant to font size adjustment.
      *
-     * @param {HTMLElement} element The element from which to fetch style.
-     * @return {Object} A dictionary containing element's style properties.
+     * @param {HTMLElement} element The <h1> element of the header.
+     * @return {Object} A dictionary containing element's style and layout
+     *                  properties.
      */
     getStyleProperties: function(element) {
       var style = window.getComputedStyle(element);
@@ -260,7 +262,8 @@
         contentWidth: contentWidth,
         paddingRight: parseInt(style.paddingRight, 10),
         paddingLeft: parseInt(style.paddingLeft, 10),
-        offsetLeft: element.offsetLeft
+        offsetLeft: element.offsetLeft,
+        parentOffsetWidth: element.parentNode.offsetWidth
       };
     },
 
@@ -268,11 +271,16 @@
      * Auto resize element's font to fit its content width.
      *
      * @param {HTMLElement} element The element to perform auto-resize on.
-     * @param {Object} styleOptions Dictionary containing cached style props,
-     *                 to avoid reflows caused by grabbing style properties.
+     * @param {Object} styleOptions Dictionary containing cached style and layout
+     *                 props, to avoid reflows caused by grabbing them from
+     *                 the element.
      * @return {Integer} The pixel width of the resized text.
      */
     autoResizeElement: function(element, styleOptions) {
+      if (element.textContent == "Keyboards") {
+        console.log("here");
+        window.alert("here");
+      }
       var allowedSizes = this.getAllowedSizes(element);
       if (allowedSizes.length === 0) {
         return 0;
@@ -311,8 +319,8 @@
      * Center an elements text based on screen position rather than container.
      *
      * @param {HTMLElement} element The element whose text we want to center.
-     * @param {Object} styleOptions Dictionary containing cached style props,
-     *                 avoids reflows caused by caching style properties.
+     * @param {Object} styleOptions Dictionary containing cached style and layout
+     *                 props to avoid reflows.
      */
     centerTextToScreen: function(element, styleOptions) {
       // Calculate the minimum amount of space needed for the header text
@@ -322,7 +330,7 @@
 
       // Get the amount of space on each side of the header text element.
       var sideSpaceLeft = styleOptions.offsetLeft;
-      var sideSpaceRight = this.getWindowWidth() - sideSpaceLeft -
+      var sideSpaceRight = styleOptions.parentOffsetWidth - sideSpaceLeft -
         styleOptions.contentWidth - styleOptions.paddingRight -
         styleOptions.paddingLeft;
 
@@ -339,7 +347,7 @@
       // fits inside the width of the window, we can center this header.
       // We subtract 1 pixels to wrap text like Gecko.
       // See https://bugzil.la/1026955
-      if (minHeaderWidth + (margin * 2) < this.getWindowWidth() - 1) {
+      if (minHeaderWidth + (margin * 2) < styleOptions.parentOffsetWidth - 1) {
         element.style.marginLeft = element.style.marginRight = margin + 'px';
       }
     },
@@ -374,15 +382,6 @@
         this._initHeaderFormatting();
       }
     },
-
-    /**
-     * Cache and return the width of the inner window.
-     *
-     * @return {Integer} The width of the inner window in pixels.
-     */
-    getWindowWidth: function() {
-      return window.innerWidth;
-    }
   };
 
   FontSizeUtils.init();
