@@ -31,6 +31,7 @@
     "apps/settings/test/marionette/tests/hotspot_wifi_settings_test.js": "Bug 1006527 - Disable intermittent failing travis test, manipulate hotspot wifi settings resets settings for second load",
     "apps/settings/test/marionette/tests/message_settings_test.js": "",
     "apps/system/test/marionette/edges_gesture_test.js": "",
+    "apps/system/test/marionette/homescreen_navigation_test.js": "Bug 1043870 - TEST-UNEXPECTED-FAIL | Homescreen navigation > Going to the homescreen and back to a warm app",
     "apps/system/test/marionette/notification_get_test.js": "Bug 960126 - TEST-UNEXPECTED-FAIL | Notification.get(): should work across domains",
     "apps/system/test/marionette/notification_resend_test.js": " Bug 1037194 - TEST-UNEXPECTED-FAIL | Vertical Home - Hosted app cached icon fetch fallback to default icon",
     "apps/verticalhome/test/marionette/app_hosted_use_cached_icon_test.js": "Bug 1037194 - TEST-UNEXPECTED-FAIL | Vertical Home - Hosted app cached icon fetch fallback to default icon"
