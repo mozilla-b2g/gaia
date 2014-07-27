@@ -173,14 +173,10 @@
 }
 
 /*****************************************************************************\
-| Rocketbar Layout
+| Scrollable Layout
 \*****************************************************************************/
 
-.appWindow:not(.bar).navigation > div.browser-container iframe {
-  height: calc(100% - 1rem);
-}
-
-.appWindow.bar.navigation > div.browser-container {
+.appWindow > div.browser-container.scrollable {
   overflow-x: hidden;
   overflow-y: scroll;
 
@@ -192,11 +188,11 @@
   width: calc(100% + 1rem);
 }
 
-.appWindow.bar.navigation > div.browser-container > div {
+.appWindow > div.browser-container.scrollable > div {
   width: calc(100% - 1rem);
 }
 
-.appWindow.bar.navigation > div.browser-container > iframe {
+.appWindow > div.browser-container.scrollable > iframe {
   top: 5rem;
   width: calc(100% - 1rem);
 }

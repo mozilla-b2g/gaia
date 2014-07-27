@@ -1,13 +1,11 @@
 .appWindow > .chrome {
   pointer-events: none;
+  background-color: black;
+  transition: background-color 0.5s ease;
 }
 
 .appWindow:not(.navigation) .navigation {
   display: none;
-}
-
-.appWindow.navigation.bar .chrome section.skin-organic[role="region"] > header:first-child {
-  background-color: black;
 }
 
 .chrome > .title {
@@ -93,7 +91,6 @@
   -moz-transform: translateY(0);
 }
 
-.appWindow.navigation.bar .chrome section[role="region"] > header:first-child button,
 .chrome > .navigation menu button {
   background-color: transparent;
   -moz-appearance: none;
@@ -109,22 +106,15 @@
   opacity: 1;
 }
 
-.appWindow.navigation.bar .chrome section[role="region"] > header:first-child button {
-  min-width: 3rem;
-  width: 3rem;
-}
-
-.chrome div.title {
+.chrome > div.title {
   line-height: 3.5rem;
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
   padding: 0 1rem;
   font-weight: 300;
-  font-style: italic;
-  text-align: center;
   float: left;
-  width: calc(100% - 11rem);
+  width: calc(100% - 5rem);
   font-size: 2rem;
   background-color: rgba(51,51,51,0.5);
   border-radius: 2rem 0 0 2rem;
@@ -132,32 +122,19 @@
   height: 3.5rem;
 }
 
-.chrome section[role="region"] > header:first-child button.back-button,
 .chrome > .navigation .back-button {
   background-image: url("images/back.png");
   background-size: 2rem;
 }
 
-.chrome section[role="region"] > header:first-child button.forward-button,
 .chrome > .navigation .forward-button {
   background-image: url("images/forward.png");
   background-size: 3rem;
 }
 
-.chrome section[role="region"] > header:first-child button.reload-button,
 .chrome > .navigation .reload-button {
   background-image: url("images/reload.png");
   background-size: 2.6rem;
-}
-
-.appWindow.navigation.bar .chrome section[role="region"] > header:first-child button.reload-button {
-  background-color: rgba(51,51,51,0.5);
-  margin: 0.7rem 0;
-  height: 3.5rem;
-  border-radius: 0 2rem 2rem 0;
-  width: 2rem;
-  background-size: 2rem auto;
-  background-position: left center;
 }
 
 .chrome > .navigation .bookmark-button {
@@ -174,7 +151,6 @@
   background-size: 2.1rem;
 }
 
-.appWindow.navigation.bar .chrome section[role="region"] > header:first-child button[data-disabled],
 .chrome > .navigation menu button[data-disabled] {
   opacity: .2;
   pointer-events: none;

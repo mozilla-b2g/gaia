@@ -109,7 +109,8 @@
     if (!this.manifestURL && !this.config.chrome) {
       this.config.chrome = {
         navigation: true,
-        bar: true
+        bar: true,
+        scrollable: true,
       };
     }
 
@@ -720,8 +721,6 @@
           (this.config.chrome.navigation ||
            this.config.chrome.bar)) {
         this.appChrome = new self.AppChrome(this);
-        this.browserContainer.scrollgrab =
-          this.config.chrome.navigation && this.config.chrome.bar;
       }
 
       if (this.manifest) {
