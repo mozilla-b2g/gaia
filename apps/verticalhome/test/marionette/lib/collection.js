@@ -116,9 +116,9 @@ Collection.prototype = {
    */
   enterCreateScreen: function(position) {
     var selectors = Collection.Selectors;
-    var container = this.client.helper.waitForElement(
-      selectors.contextMenuTarget);
-    this.actions.longPress(container, 1).perform();
+    var firstDivider = this.client.helper.waitForElement(
+      selectors.allDividers);
+    this.actions.longPress(firstDivider, 1).perform();
 
     if (position !== undefined) {
       // Manually override the collection insertion position.

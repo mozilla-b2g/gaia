@@ -24,6 +24,7 @@
    */
   function GridView(config) {
     this.config = config;
+    this.clickIcon = this.clickIcon.bind(this);
     this.onTouchStart = this.onTouchStart.bind(this);
     this.onTouchEnd = this.onTouchEnd.bind(this);
     this.onScroll = this.onScroll.bind(this);
@@ -138,6 +139,7 @@
     },
 
     start: function() {
+      this.element.addEventListener('click', this.clickIcon);
       this.element.addEventListener('touchstart', this.onTouchStart);
       this.element.addEventListener('touchend', this.onTouchEnd);
       window.addEventListener('scroll', this.onScroll, true);
@@ -145,6 +147,7 @@
     },
 
     stop: function() {
+      this.element.removeEventListener('click', this.clickIcon);
       this.element.removeEventListener('touchstart', this.onTouchStart);
       this.element.removeEventListener('touchend', this.onTouchEnd);
       window.removeEventListener('scroll', this.onScroll, true);
@@ -200,6 +203,7 @@
      */
     clickIcon: function(e) {
       e.preventDefault();
+      e.stopImmediatePropagation();
 
       var container = e.target;
       var action = 'launch';
