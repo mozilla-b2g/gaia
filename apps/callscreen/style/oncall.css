@@ -485,18 +485,7 @@
     padding: 0;
   }
 
-  #calls > section.handled-call .fake-number,
-  #fake-incoming-number,
-  #group-call-details-list > section.handled-call .fake-number {
-    position: absolute;
-    visibility: hidden;
-    white-space: nowrap;
-    padding: 0;
-    font-style: italic;
-  }
-
-  #calls > section .additionalContactInfo,
-  #group-call-details-list  > section .additionalContactInfo {
+  #calls > section .additionalContactInfo {
     height: 1.5rem;
     white-space: nowrap;
     overflow: hidden;
@@ -836,48 +825,9 @@
     padding-right: 3rem;
   }
 
-  .hangup-button,
-  #calls:not(.big-duration) #group-call > .duration.isTimer,
-  #group-call-details-list .duration {
+  #group-call .hangup-button,
+  #calls:not(.big-duration) #group-call > .duration.isTimer{
     display: none;
-  }
-
-  #group-call-details-list .number {
-    font-size: 1.7rem !important;
-    line-height: 2.4rem;
-    white-space: nowrap;
-    display: block;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    font-weight: bold;
-    padding-right: 4.5rem;
-  }
-
-  #group-call-details-list > section:not(.additionalInfo) .number {
-    line-height: 4.5rem;
-  }
-
-  #group-call-details {
-    z-index: 750;
-  }
-
-  #group-call-details .hangup-button {
-    position: absolute;
-    background: url('images/handled_call/actionicon_activecall_hangup.png') no-repeat scroll right 1.8rem center / 4rem auto transparent;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-  }
-
-  #group-call .fake-number {
-    position: absolute;
-    top: 0;
-    white-space: nowrap;
-    font-size: 3.4rem;
-    font-style: italic;
-    line-height: 10rem;
-    visibility: hidden;
   }
 
   #contact-background {
@@ -1067,7 +1017,6 @@
   }
 
   /* Hidden everywhere else */
-  #group-call-details-list .sim,
   .sim {
     display: none;
     color: #ffffff;

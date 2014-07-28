@@ -15,9 +15,11 @@ require('/shared/test/unit/mocks/dialer/mock_keypad.js');
 require('/shared/test/unit/mocks/dialer/mock_utils.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/js/lockscreen_connection_info_manager.js');
+require('/test/unit/mock_conference_group_ui.js');
 
 var mocksHelperForCallScreen = new MocksHelper([
   'CallsHandler',
+  'ConferenceGroupUI',
   'MozActivity',
   'LazyL10n',
   'FontSizeManager',
@@ -374,21 +376,6 @@ suite('call screen', function() {
         CallScreen.removeCall(fakeNode);
         assert.equal(fakeNode.parentNode, null);
         assert.isTrue(singleLineStub.calledOnce);
-      });
-
-      test('should remove the node in the groupList',
-      function() {
-        CallScreen.moveToGroup(fakeNode);
-        CallScreen.removeCall(fakeNode);
-        assert.equal(fakeNode.parentNode, null);
-      });
-    });
-
-    suite('moveToGroup', function() {
-      test('should insert the node in the group calls article', function() {
-        var fakeNode = document.createElement('section');
-        CallScreen.moveToGroup(fakeNode);
-        assert.equal(fakeNode.parentNode, CallScreen.groupCallsList);
       });
     });
   });
@@ -914,18 +901,6 @@ suite('call screen', function() {
     });
   });
 
-  suite('Toggling the group details screen', function() {
-    test('should show group details', function() {
-      CallScreen.showGroupDetails();
-      assert.isTrue(groupCalls.classList.contains('display'));
-    });
-
-    test('should hide group details', function() {
-      CallScreen.hideGroupDetails();
-      assert.isFalse(groupCalls.classList.contains('display'));
-    });
-  });
-
   suite('showClock in screen locked status', function() {
     var formatArgs = [],
         currentDate,
@@ -1011,26 +986,6 @@ suite('call screen', function() {
       CallScreen.stopTicker(durationNode);
       assert.isUndefined(durationNode.dataset.tickerId);
       assert.isFalse(durationNode.classList.contains('isTimer'));
-    });
-  });
-
-  suite('set end conference call', function() {
-    var fakeNode1 = document.createElement('section');
-    var fakeNode2 = document.createElement('section');
-    var fakeNode3 = document.createElement('section');
-
-    setup(function() {
-      CallScreen.moveToGroup(fakeNode1);
-      CallScreen.moveToGroup(fakeNode2);
-      CallScreen.moveToGroup(fakeNode3);
-    });
-
-    test('should set groupHangup to all nodes in group detail lists',
-    function() {
-      CallScreen.setEndConferenceCall();
-      assert.equal(fakeNode1.dataset.groupHangup, 'groupHangup');
-      assert.equal(fakeNode2.dataset.groupHangup, 'groupHangup');
-      assert.equal(fakeNode3.dataset.groupHangup, 'groupHangup');
     });
   });
 
