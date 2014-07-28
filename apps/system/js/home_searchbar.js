@@ -134,13 +134,27 @@
         // XXX: fix the WindowManager coupling
         // but currently the transition sequence is crucial for performance
         var app = AppWindowManager.getActiveApp();
-        if (app && app.getTopMostWindow().titleBar) {
-          var top = app.getTopMostWindow();
-          top.titleBar.expand(function() {
-            this.activate(setTimeout.bind(null, this.focus.bind(this)));
-          }.bind(this));
+        if (app && !app.manifestURL) {
+          this.setInput(app.config.url);
         } else {
-          this.activate(setTimeout.bind(null, this.focus.bind(this)));
+          this.setInput('');
+        }
+
+        var self = this;
+        var focusAndSelect = function() {
+          self.hideResults();
+          setTimeout(function() {
+            self.focus();
+            self.selectAll();
+          });
+        };
+
+        if (app) {
+          app.titleBar.expand(function() {
+            self.activate(focusAndSelect);
+          });
+        } else {
+          this.activate(focusAndSelect);
         }
         break;
     }

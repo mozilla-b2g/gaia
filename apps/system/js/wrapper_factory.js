@@ -117,7 +117,8 @@
       if (!app) {
         config.chrome = {
           navigation: true,
-          bar: true
+          bar: true,
+          scrollable: true
         };
         app = new AppWindow(config);
       } else {

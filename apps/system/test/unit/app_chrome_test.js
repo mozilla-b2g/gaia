@@ -298,5 +298,78 @@ suite('system/AppChrome', function() {
       chrome.handleEvent({ type: 'click', target: chrome.title });
       assert.isTrue(stubDispatchEvent.called);
     });
+
+    test('stop', function() {
+      var app = new AppWindow(fakeAppConfig1);
+      var chrome = new AppChrome(app);
+      var stubStop = this.sinon.stub(app, 'stop');
+      chrome.handleEvent({ type: 'click', target: chrome.stopButton });
+      assert.isTrue(stubStop.called);
+    });
+
+    test('loadstart', function() {
+      var app = new AppWindow(fakeAppConfigBoth);
+      var chrome = new AppChrome(app);
+      chrome.handleEvent({ type: 'mozbrowserloadstart' });
+      assert.isTrue(chrome.containerElement.classList.contains('loading'));
+      assert.isFalse(chrome._titleChanged);
+    });
+
+    test('loadend', function() {
+      var app = new AppWindow(fakeAppConfigBoth);
+      var chrome = new AppChrome(app);
+      chrome.handleEvent({ type: 'mozbrowserloadend' });
+      assert.isFalse(chrome.containerElement.classList.contains('loading'));
+    });
+
+    test('metachange already set', function() {
+      var app = new AppWindow(fakeAppConfigBoth);
+      app.themeColor = 'orange';
+
+      var chrome = new AppChrome(app);
+      assert.equal(chrome.element.style.backgroundColor, 'orange');
+    });
+
+    test('metachange added', function() {
+      var app = new AppWindow(fakeAppConfigBoth);
+      var chrome = new AppChrome(app);
+      chrome.handleEvent({
+        type: 'mozbrowsermetachange',
+        detail: {
+          name: 'theme-color',
+          type: 'added',
+          content: 'orange'
+        }
+      });
+      assert.equal(chrome.element.style.backgroundColor, 'orange');
+    });
+
+    test('metachange removed', function() {
+      var app = new AppWindow(fakeAppConfigBoth);
+      var chrome = new AppChrome(app);
+      chrome.handleEvent({
+        type: 'mozbrowsermetachange',
+        detail: {
+          name: 'theme-color',
+          type: 'removed'
+        }
+      });
+      assert.equal(chrome.element.style.backgroundColor, '');
+    });
+
+    test('metachange changed', function() {
+      var app = new AppWindow(fakeAppConfigBoth);
+      var chrome = new AppChrome(app);
+      chrome.handleEvent({
+        type: 'mozbrowsermetachange',
+        detail: {
+          name: 'theme-color',
+          type: 'changed',
+          content: 'red'
+        }
+      });
+      assert.equal(chrome.element.style.backgroundColor, 'red');
+    });
+
   });
 });

@@ -279,6 +279,9 @@ suite('system/HomeSearchbar', function() {
             getTopMostWindow: function() { return this; },
             titleBar: {
               expand: function(cb) { cb && cb(); }
+            },
+            config: {
+              url: ''
             }
           };
           MockAppWindowManager.mActiveApp = fakeApp;
@@ -293,11 +296,21 @@ suite('system/HomeSearchbar', function() {
           this.sinon.spy(subject, 'focus');
           this.sinon.spy(fakeApp.titleBar, 'expand');
 
+          var hideResultsStub = this.sinon.stub(subject, 'hideResults');
+          var setInputStub = this.sinon.stub(subject, 'setInput');
+          var selectAllStub = this.sinon.stub(subject, 'selectAll');
+
           window.dispatchEvent(new CustomEvent('global-search-request'));
           this.sinon.clock.tick();
 
-          sinon.assert.callOrder(fakeApp.titleBar.expand, subject.activate,
-                                 subject.focus);
+          sinon.assert.callOrder(
+            setInputStub,
+            fakeApp.titleBar.expand,
+            subject.activate,
+            hideResultsStub,
+            subject.focus,
+            selectAllStub
+          );
         });
       });
     });
