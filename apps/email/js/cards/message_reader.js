@@ -84,6 +84,8 @@ function MessageReaderCard(domNode, mode, args) {
     domNode.getElementsByClassName('scrollregion-below-header')[0];
   this.loadBar =
     this.domNode.getElementsByClassName('msg-reader-load-infobar')[0];
+  this.loadBarText =
+    this.domNode.getElementsByClassName('msg-reader-load-infobar-text')[0];
   this.rootBodyNode = domNode.getElementsByClassName('msg-body-container')[0];
 
   // whether or not we've built the body DOM the first time
@@ -898,12 +900,12 @@ MessageReaderCard.prototype = {
     var loadBar = this.loadBar;
     if (body.embeddedImageCount && !body.embeddedImagesDownloaded) {
       loadBar.classList.remove('collapsed');
-      mozL10n.setAttributes(loadBar, 'message-download-images',
+      mozL10n.setAttributes(this.loadBarText, 'message-download-images-tap',
                             { n: body.embeddedImageCount });
     }
     else if (hasExternalImages) {
       loadBar.classList.remove('collapsed');
-      mozL10n.setAttributes(loadBar, 'message-show-external-images');
+      mozL10n.setAttributes(this.loadBarText, 'message-show-external-images');
     }
     else {
       loadBar.classList.add('collapsed');
