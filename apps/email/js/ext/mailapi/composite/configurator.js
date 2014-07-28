@@ -905,9 +905,13 @@ ImapFolderConn.prototype = {
    * we are unable to reach the server (we are offline, the server is down,
    * nework troubles), the `abortedCallback` will be invoked.  Note that it can
    * take many seconds for us to conclusively fail to reach the server.
+   *
+   * Track an isRetry flag to ensure we don't fall into an infinite retry loop.
    */
   _timelySyncSearch: function(searchOptions, searchedCallback,
-                              abortedCallback, progressCallback) {
+                              abortedCallback, progressCallback, isRetry) {
+    var gotSearchResponse = false;
+
     // If we don't have a connection, get one, then re-call.
     if (!this._conn) {
       // XXX the abortedCallback should really only be used for the duration
@@ -917,13 +921,42 @@ ImapFolderConn.prototype = {
       // causes us to not release the connection back to the account).  We
       // should tie this to the mutex or something else transactional.
       this.acquireConn(
-        this._timelySyncSearch.bind(this, searchOptions, searchedCallback,
-                                    abortedCallback, progressCallback),
+        this._timelySyncSearch.bind(this,
+                                    searchOptions, searchedCallback,
+                                    abortedCallback, progressCallback,
+                                    /* isRetry: */ isRetry),
         abortedCallback, 'sync', true);
       return;
     }
-    // We do have a connection, hook-up our abortedCallback
+    // We do have a connection. Hopefully the connection is still
+    // valid and functional. However, since this connection may have
+    // been hanging around a while, sending data now might trigger a
+    // connection reset notification. In other words, if the
+    // connection has gone stale, we want to grab a new connection and
+    // retry before aborting.
     else {
+      if (!isRetry) {
+        var origAbortedCallback = abortedCallback;
+        abortedCallback = (function() {
+          // Here, we've acquired an already-connected socket. If we
+          // were already connected, but failed to receive a response
+          // from the server, this socket is effectively dead. In that
+          // case, retry the SEARCH once again with a fresh connection,
+          // if we haven't already retried the request.
+          if (!gotSearchResponse) {
+            console.warn('Broken connection for SEARCH. Retrying.');
+            this._timelySyncSearch(searchOptions, searchedCallback,
+                                   origAbortedCallback, progressCallback,
+                                   /* isRetry: */ true);
+          }
+          // Otherwise, we received an error from this._conn.search
+          // below (i.e. there was a legitimate server problem), or we
+          // already retried, so we should actually give up.
+          else {
+            origAbortedCallback();
+          }
+        }.bind(this));
+      }
       this._deathback = abortedCallback;
     }
 
@@ -942,6 +975,7 @@ ImapFolderConn.prototype = {
     }
 
     this._conn.search(searchOptions, function(err, uids) {
+        gotSearchResponse = true;
         if (err) {
           console.error('Search error on', searchOptions, 'err:', err);
           abortedCallback();
@@ -1132,7 +1166,8 @@ console.log('BISECT CASE', serverUIDs.length, 'curDaysDelta', curDaysDelta);
         this._LOG.syncDateRange_end(0, 0, 0, startTS, endTS, null, null);
         doneCallback('aborted');
       }.bind(this),
-      progressCallback);
+      progressCallback,
+      /* isRetry: */ false);
     this._storage.getAllMessagesInImapDateRange(skewedStartTS, skewedEndTS,
                                                 callbacks.db);
   },
