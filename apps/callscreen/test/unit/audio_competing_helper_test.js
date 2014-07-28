@@ -29,17 +29,6 @@ suite('callscreen / audio competing helper', function() {
         sinon.assert.called(AudioCompetingApp.onMozInterrupEventHandler);
     });
 
-    test('listeners are removed and not called if the helper stops competing',
-      function() {
-        this.sinon.spy(AudioCompetingApp, 'onMozInterrupEventHandler');
-
-        AudioCompetingHelper.leaveCompetition();
-
-        var evt = new CustomEvent('mozinterruptbegin');
-        AudioCompetingHelper.audioContext.dispatchEvent(evt);
-        sinon.assert.notCalled(AudioCompetingApp.onMozInterrupEventHandler);
-    });
-
     test('listeners are not called if they were removed', function() {
       this.sinon.spy(AudioCompetingApp, 'onMozInterrupEventHandler');
       AudioCompetingHelper.clearListeners();
@@ -49,6 +38,12 @@ suite('callscreen / audio competing helper', function() {
       var evt = new CustomEvent('mozinterruptbegin');
       AudioCompetingHelper.audioContext.dispatchEvent(evt);
       sinon.assert.notCalled(AudioCompetingApp.onMozInterrupEventHandler);
+    });
+
+    test('AudioContext/resources are released when the helper stops competing',
+      function() {
+        AudioCompetingHelper.leaveCompetition();
+        assert.isNull(AudioCompetingHelper.audioContext);
     });
   });
 });
