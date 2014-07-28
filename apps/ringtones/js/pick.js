@@ -46,10 +46,14 @@ navigator.mozSetMessageHandler('activity', function handler(activity) {
   navigator.mozL10n.localize(title, toneType + '-title');
 
   cancel.onclick = function() {
+    stop();
+
     activity.postError('cancelled');
   };
 
   done.onclick = function() {
+    stop();
+
     if (selectedSoundURL) {
       var xhr = new XMLHttpRequest();
       xhr.open('GET', selectedSoundURL);
@@ -207,8 +211,13 @@ navigator.mozSetMessageHandler('activity', function handler(activity) {
       player.play();
     }
     else {      // Otherwise, the user clicked None, so stop playing anything
-      player.removeAttribute('src');
-      player.load();
+      stop();
     }
+  }
+
+  function stop() {
+    player.pause();
+    player.removeAttribute('src');
+    player.load();
   }
 });
