@@ -17,10 +17,12 @@ require('/shared/elements/gaia_grid/js/items/grid_item.js');
 require('/shared/elements/gaia_grid/js/items/bookmark.js');
 require('/shared/js/sync_datastore.js');
 
-suite('search/providers/places', function() {
-  var fakeElement, subject;
+suite('search/providers/providers', function() {
+  var subject;
   var realDatastore;
   var promiseDone = Promise.resolve({ operation: 'done' });
+
+  var ICON = 'https://mozorg.cdn.mozilla.net/media/img/favicon.ico';
 
   suiteSetup(function() {
     realDatastore = navigator.getDataStores;
@@ -36,7 +38,8 @@ suite('search/providers/places', function() {
             operation: 'add',
             data: {
               url: 'http://mozilla.org',
-              title: 'homepage'
+              name: 'homepage',
+              icon: ICON
             }
           });
         }
@@ -50,12 +53,8 @@ suite('search/providers/places', function() {
   });
 
   setup(function(done) {
-    fakeElement = document.createElement('div');
-    fakeElement.style.cssText = 'height: 100px; display: block;';
-    this.sinon.stub(document, 'getElementById')
-                          .returns(fakeElement.cloneNode(true));
-    requireApp('search/js/providers/places.js', function() {
-      subject = window.Places;
+    requireApp('search/js/providers/bookmarks.js', function() {
+      subject = window.Bookmarks;
       subject.grid = document.createElement('gaia-grid');
       promiseDone.then(function() {
         subject.init().then(done);
@@ -68,6 +67,8 @@ suite('search/providers/places', function() {
       subject.search('mozilla').then((results) => {
         assert.equal(results[0].data.detail.url, 'http://mozilla.org');
         assert.equal(results[0].data.detail.name, 'homepage');
+        assert.equal(results[0].data.detail.id, 'http://mozilla.org');
+        assert.equal(results[0].data.detail.icon, ICON);
         done();
       });
     });
