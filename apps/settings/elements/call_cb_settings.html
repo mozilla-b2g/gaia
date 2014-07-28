@@ -58,5 +58,29 @@
           <a>Change password</a>
         </li>
       </ul>
+    </div>
+
+    <form data-type="confirm" role="dialog" id="cb-passcode" hidden>
+      <input type="number" x-inputmode="digit" class="passcode-input" />
+      <div class="passcode-container">
+        <p id="cb-passcode-title">
+            <strong>Enter passcode</strong>
+        </p>
+        <div class="passcode" id="cb-passcode-pseudo-input">
+          <span class="passcode-digit"></span>
+          <span class="passcode-digit"></span>
+          <span class="passcode-digit"></span>
+          <span class="passcode-digit"></span>
+        </div>
+        <p id="cb-passcode-def">
+          <small>definition</small>
+        </p>
+      </div>
+      <menu>
+        <button id="cb-passcode-cancel-btn" data-l10n-id="cancel">Cancel</button>
+        <button id="cb-passcode-ok-btn" data-l10n-id="ok" class="recommend">OK</button>
+      </menu>
+    </form>
+
   </template>
 </element>

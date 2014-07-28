@@ -460,6 +460,22 @@ section ul.operate-certificate {
   margin-top: -1.5rem;
 }
 
+#cb-passcode section {
+  padding: 0;
+}
+#cb-passcode-title {
+  border-top: 0;
+  border-bottom: 0.1rem solid #686868;
+  margin-bottom: 2rem;
+  font-size: 1.7rem;
+}
+#cb-passcode-pseudo-input {
+  width: 80%;
+}
+#cb-passcode-def {
+  border: 0;
+}
+
 #call .cw-alert .cw-alert-sub-p {
   border-top: none;
 }
