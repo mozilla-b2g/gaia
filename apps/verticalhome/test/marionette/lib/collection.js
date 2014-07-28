@@ -16,7 +16,7 @@ Collection.URL = 'app://collection.gaiamobile.org';
 
 Collection.Selectors = {
 
-  bookmarkActivity: '.inline-activity.active > iframe' +
+  bookmarkActivity: '.inline-activity.active iframe' +
     '[mozapp="app://bookmark.gaiamobile.org/manifest.webapp"]',
   bookmarkAddButton: '#add-button',
 
@@ -41,7 +41,7 @@ Collection.Selectors = {
 
   offlineMessage: '#offline-message',
 
-  mozbrowser: '.inline-activity.active > iframe[mozbrowser]',
+  mozbrowser: '.inline-activity.active iframe[mozbrowser]',
 };
 
 Collection.prototype = {

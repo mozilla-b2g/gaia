@@ -98,7 +98,7 @@ FakeTextSelectionApp.prototype = {
     this.client.executeScript(function(appFrameId, boxInfoTop, boxInfoBottom,
                                        boxInfoLeft, boxInfoRight) {
       var appFrame = document.getElementById(appFrameId);
-      var appWindow = appFrame.parentElement;
+      var appWindow = appFrame.parentElement.parentElement;
       appWindow.dispatchEvent(new CustomEvent('mozbrowsertextualmenu', {
         detail: {
           canPaste: true,

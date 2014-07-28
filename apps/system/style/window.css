@@ -414,7 +414,7 @@
 }
 
 .appWindow > .contextmenu {
-  z-index: 2;
+  z-index: 11;
 }
 
 @keyframes inFromLeft {
