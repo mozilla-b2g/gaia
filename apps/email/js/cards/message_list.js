@@ -1831,17 +1831,13 @@ MessageListCard.prototype = {
     // TODO: Batch move back-end mail api is not ready now.
     //       Please verify this function when api landed.
 
-    // This function is passed into folderSelector, so that folders that
-    // cannot be moved into are not included
-    var filter = function _filter(folder) {
-      return folder.isValidMoveTarget;
-    };
-
     Cards.folderSelector(function(folder) {
       var op = model.api.moveMessages(this.selectedMessages, folder);
       Toaster.toastOperation(op);
       this.setEditMode(false);
-    }.bind(this), filter);
+    }.bind(this), function(folder) {
+      return folder.isValidMoveTarget;
+    });
 
 
   },

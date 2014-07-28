@@ -551,9 +551,10 @@ Cards = {
         for (var i = 0; i < folders.length; i++) {
           var folder = folders[i];
 
-          if (folder.neededForHeirarchy || !filter || filter(folder)) {
+          var isMatch = !filter || filter(folder);
+          if (folder.neededForHierarchy || isMatch) {
             self.folderPrompt.addToList(folder.name, folder.depth,
-              folder.selectable,
+              isMatch,
               function(folder) {
                 return function() {
                   self.folderPrompt.hide();
