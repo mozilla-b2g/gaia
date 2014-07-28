@@ -10,6 +10,7 @@ require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/test/unit/mock_applications.js');
 require('/test/unit/mock_homescreen_launcher.js');
 require('/test/unit/mock_ime_switcher.js');
+require('/test/unit/mock_input_frame_manager.js');
 require('/js/input_transition.js');
 require('/js/keyboard_manager.js');
 
@@ -18,7 +19,8 @@ var mocksHelperForKeyboardManager = new MocksHelper([
     'KeyboardHelper',
     'LazyLoader',
     'Applications',
-    'IMESwitcher'
+    'IMESwitcher',
+    'InputFrameManager'
 ]).init();
 
 suite('KeyboardManager', function() {
@@ -298,48 +300,57 @@ suite('KeyboardManager', function() {
       fakeFrame_B = {
         manifestURL: 'app://keyboard-test.gaiamobile.org/manifest.webapp',
         id: 'en'};
+      KeyboardManager.inputFrameManager.runningLayouts = {};
     });
 
     test('Not exist in runningLayouts', function() {
-      KeyboardManager.runningLayouts[fakeFrame_A.manifestURL] = {};
-      KeyboardManager.runningLayouts[fakeFrame_A.manifestURL][fakeFrame_A.id] =
-                                                              this.sinon.stub;
+      KeyboardManager.inputFrameManager
+        .runningLayouts[fakeFrame_A.manifestURL] = {};
+      KeyboardManager.inputFrameManager
+        .runningLayouts[fakeFrame_A.manifestURL][fakeFrame_A.id] = 'dummy';
       KeyboardManager.removeKeyboard(fakeFrame_B.manifestURL);
       assert.equal(
-        KeyboardManager.runningLayouts.hasOwnProperty(fakeFrame_A.manifestURL),
+        KeyboardManager.inputFrameManager.runningLayouts.hasOwnProperty(
+          fakeFrame_A.manifestURL
+        ),
         true);
     });
 
-    test('Not in showingLayout', function() {
+    test('Not in showingLayoutInfo', function() {
       var hideKeyboard = this.sinon.stub(KeyboardManager, 'hideKeyboard');
-      KeyboardManager.runningLayouts[fakeFrame_B.manifestURL] = {};
-      KeyboardManager.runningLayouts[fakeFrame_B.manifestURL][fakeFrame_B.id] =
-                                                              this.sinon.stub;
+      KeyboardManager.inputFrameManager
+        .runningLayouts[fakeFrame_B.manifestURL] = {};
+      KeyboardManager.inputFrameManager
+        .runningLayouts[fakeFrame_B.manifestURL][fakeFrame_B.id] = 'dummy';
       KeyboardManager.removeKeyboard(fakeFrame_B.manifestURL);
       sinon.assert.callCount(hideKeyboard, 0);
       assert.equal(
-        KeyboardManager.runningLayouts.hasOwnProperty(fakeFrame_B.manifestURL),
+        KeyboardManager.inputFrameManager.runningLayouts.hasOwnProperty(
+          fakeFrame_B.manifestURL
+        ),
         false);
     });
 
-    test('In showingLayout', function() {
+    test('In showingLayoutInfo', function() {
       var hideKeyboard = this.sinon.stub(KeyboardManager, 'hideKeyboard');
       var setKeyboardToShow =
                           this.sinon.stub(KeyboardManager, 'setKeyboardToShow');
-      KeyboardManager.runningLayouts[fakeFrame_A.manifestURL] = {};
-      KeyboardManager.runningLayouts[fakeFrame_A.manifestURL][fakeFrame_A.id] =
-                                                              this.sinon.stub;
+      KeyboardManager.inputFrameManager
+        .runningLayouts[fakeFrame_A.manifestURL] = {};
+      KeyboardManager.inputFrameManager
+        .runningLayouts[fakeFrame_A.manifestURL][fakeFrame_A.id] = 'dummy';
       var fakeFrame = document.createElement('div');
       fakeFrame.dataset.frameManifestURL =
         'app://keyboard.gaiamobile.org/manifest.webapp';
 
-      KeyboardManager.showingLayout.frame = fakeFrame;
-      KeyboardManager.showingLayout.type = 'text';
+      KeyboardManager.showingLayoutInfo.type = 'text';
       KeyboardManager.removeKeyboard(fakeFrame_A.manifestURL, true);
       sinon.assert.callCount(hideKeyboard, 1);
       assert.ok(setKeyboardToShow.calledWith('text'));
       assert.equal(
-        KeyboardManager.runningLayouts.hasOwnProperty(fakeFrame_A.manifestURL),
+        KeyboardManager.inputFrameManager.runningLayouts.hasOwnProperty(
+          fakeFrame_A.manifestURL
+        ),
         false);
     });
   });
@@ -366,17 +377,6 @@ suite('KeyboardManager', function() {
         target: fakeFrame
       });
       assert.ok(removeKeyboard.calledWith(fakeManifestURL));
-    });
-
-    test('mozbrowserresize event', function() {
-      KeyboardManager.handleEvent({
-        type: 'mozbrowserresize',
-        detail: {
-          height: 123
-        },
-        stopPropagation: function() {}
-      });
-      assert.ok(handleResize.called);
     });
 
     test('attentionscreenshow event', function() {
@@ -600,7 +600,7 @@ suite('KeyboardManager', function() {
     });
 
     function fakeMozbrowserResize(height) {
-      KeyboardManager.handleEvent({
+      KeyboardManager.resizeKeyboard({
         type: 'mozbrowserresize',
         detail: { height: height },
         stopPropagation: sinon.stub()
@@ -657,6 +657,12 @@ suite('KeyboardManager', function() {
   suite('Focus and Blur', function() {
     var imeSwitcherHide;
     setup(function() {
+      // prevent setKeyboardToShow callCount miscalculation
+      // due to launch on boot
+      KeyboardManager.inputFrameManager.runningLayouts[
+        'app://keyboard.gaiamobile.org/manifest.webapp'
+      ] = {};
+
       this.sinon.stub(KeyboardManager, 'hideKeyboard');
       this.sinon.stub(KeyboardManager, 'setKeyboardToShow');
       this.sinon.stub(KeyboardManager, 'showIMESwitcher');
@@ -697,9 +703,9 @@ suite('KeyboardManager', function() {
   });
 
   test('showIMESwitcher should call IMESwitcher.show properly', function() {
-    var oldShowingLayout = KeyboardManager.showingLayout;
+    var oldShowingLayoutInfo = KeyboardManager.showingLayoutInfo;
     var oldKeyboardLayouts = KeyboardManager.keyboardLayouts;
-    KeyboardManager.showingLayout = {
+    KeyboardManager.showingLayoutInfo = {
       type: 'text',
       index: 0
     };
@@ -718,7 +724,50 @@ suite('KeyboardManager', function() {
 
     sinon.assert.calledWith(stubIMESwitcherShow, 'DummyApp', 'DummyKB');
 
-    KeyboardManager.showingLayout = oldShowingLayout;
+    KeyboardManager.showingLayoutInfo = oldShowingLayoutInfo;
     KeyboardManager.keyboardLayouts = oldKeyboardLayouts;
+  });
+
+  test('setHasActiveKeyboard helper', function() {
+    var oldHasActiveKeyboard = KeyboardManager.hasActiveKeyboard;
+    KeyboardManager.setHasActiveKeyboard(true);
+    assert.strictEqual(KeyboardManager.hasActiveKeyboard, true);
+    KeyboardManager.setHasActiveKeyboard(false);
+    assert.strictEqual(KeyboardManager.hasActiveKeyboard, false);
+    KeyboardManager.hasActiveKeyboard = oldHasActiveKeyboard;
+  });
+
+  suite('showingLayoutInfo helpers', function() {
+    var layoutInfo;
+    setup(function() {
+      layoutInfo = KeyboardManager.showingLayoutInfo;
+    });
+    teardown(function() {
+      KeyboardManager.showingLayoutInfo = layoutInfo;
+    });
+    test('resetShowingLayoutInfo', function(){
+      KeyboardManager.showingLayoutInfo = {};
+      KeyboardManager.showingLayoutInfo.type = 'dummy';
+      KeyboardManager.showingLayoutInfo.index = 0xfff;
+      KeyboardManager.showingLayoutInfo.layout = 'something';
+
+      KeyboardManager.resetShowingLayoutInfo();
+
+      assert.equal(KeyboardManager.showingLayoutInfo.type, 'text');
+      assert.equal(KeyboardManager.showingLayoutInfo.index, 0);
+      assert.strictEqual(KeyboardManager.showingLayoutInfo.layout, null);
+    });
+    test('setShowingLayoutInfo', function(){
+      KeyboardManager.showingLayoutInfo = {};
+      KeyboardManager.showingLayoutInfo.type = 'dummy';
+      KeyboardManager.showingLayoutInfo.index = 0xfff;
+      KeyboardManager.showingLayoutInfo.layout = 'something';
+
+      KeyboardManager.setShowingLayoutInfo('type', 1, 'someLayout');
+
+      assert.equal(KeyboardManager.showingLayoutInfo.type, 'type');
+      assert.equal(KeyboardManager.showingLayoutInfo.index, 1);
+      assert.equal(KeyboardManager.showingLayoutInfo.layout, 'someLayout');
+    });
   });
 });
