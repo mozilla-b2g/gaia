@@ -28,7 +28,7 @@ class TestGallery(GaiaTestCase):
 
         #  Verify that the screen orientation is in portrait mode
         self.assertTrue(image.is_photo_toolbar_displayed)
-        self.assertEqual('portrait-primary', self.device.screen_orientation)
+        self.assertIn('portrait', self.device.screen_orientation)
         self.assertEqual(self.device.screen_width, image.photo_toolbar_width)
 
         #  Change the screen orientation to landscape mode and verify that the screen is in landscape mode
@@ -49,7 +49,7 @@ class TestGallery(GaiaTestCase):
         # Here we sleep only to give visual feedback when observing the test run
         time.sleep(1)
         self.assertTrue(image.is_photo_toolbar_displayed)
-        self.assertEqual('portrait-primary', self.device.screen_orientation)
+        self.assertIn('portrait', self.device.screen_orientation)
         self.assertEqual(self.device.screen_width, image.photo_toolbar_width)
 
     def tearDown(self):
