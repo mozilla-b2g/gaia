@@ -1,0 +1,127 @@
+.appWindow > .chrome {
+  pointer-events: none;
+  background-color: black;
+  transition: background-color 0.5s ease;
+}
+
+.controls {
+  pointer-events: auto;
+  background-color: transparent;
+  width: 100%;
+}
+
+.homeScreenWindow > .chrome,
+.lockScreenWindow > .chrome,
+.searchWindow > .chrome {
+  display: none;
+}
+
+/* URL bar */
+.chrome .controls .urlbar {
+  display: inline-block;
+  vertical-align: middle;
+  width: calc(100% - 3rem);
+  height: 3.5rem;
+  line-height: 3.5rem;
+  padding: 0 1rem;
+  background-color: rgba(51,51,51,0.5);
+  border-radius: 2rem;
+  margin: 0.7rem 0;
+  color: white;
+}
+
+.chrome .controls .urlbar .title {
+  width: calc(100% - 3rem);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-weight: 300;
+  font-size: 2rem;
+  float: none;
+}
+
+.controls .forward-button:not([data-disabled]) + .urlbar {
+  width: calc(100% - 6rem);
+}
+
+.controls .back-button:not([data-disabled]) + .forward-button[data-disabled] + .urlbar {
+  width: calc(100% - 6rem);
+}
+
+.controls .back-button:not([data-disabled]) + .forward-button:not([data-disabled]) + .urlbar {
+  width: calc(100% - 9rem);
+}
+
+
+/* Buttons */
+.controls button  {
+  -moz-appearance: none;
+  border: none;
+  display: inline-block;
+  margin: 0;
+  padding: 0;
+  min-width: 3rem;
+  width: 3rem;
+  height: 5rem;
+  line-height: 5rem;
+  vertical-align: middle;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: transparent;
+  background-size: contain;
+  opacity: 1;
+}
+
+.controls .reload-button,
+.controls .stop-button {
+  background-size: 2rem auto;
+  background-position: left center;
+  position: absolute;
+  top: 0;
+  right: 2rem;
+}
+
+.loading .controls .reload-button {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.controls .stop-button {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.loading .controls .stop-button {
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.controls .back-button[data-disabled],
+.controls .forward-button[data-disabled] {
+  display: none;
+}
+
+
+/* Buttons Images */
+.controls .back-button {
+  background-image: url("images/back.png");
+}
+
+.controls .forward-button {
+  background-image: url("images/forward.png");
+}
+
+.controls .reload-button {
+  background-image: url("images/reload.png");
+}
+
+.controls .stop-button {
+  background-image: url("images/stop.png");
+}
+
+
+/* Progress */
+.appWindow.navigation .scrollable .progress {
+  top: 5rem;
+}
+

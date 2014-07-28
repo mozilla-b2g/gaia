@@ -18,16 +18,32 @@
   var AppChrome = function AppChrome(app) {
     this.app = app;
     this.instanceID = _id++;
-    this.containerElement = app.browserContainer;
+    this.containerElement = app.element;
+    this.scrollable = app.browserContainer;
     this.render();
 
-    if (this.app.config.chrome && this.app.config.chrome.navigation) {
+    if (this.app.themeColor) {
+      this.element.style.backgroundColor = this.app.themeColor;
+    }
+
+    var chrome = this.app.config.chrome;
+    if (!chrome) {
+      return;
+    }
+
+    if (chrome.navigation) {
       this.app.element.classList.add('navigation');
     }
 
-    if (this.app.config.chrome && this.app.config.chrome.bar) {
+    if (chrome.bar && !chrome.navigation) {
       this.app.element.classList.add('bar');
       this.bar.classList.add('visible');
+    }
+
+    if (chrome.scrollable) {
+      this.scrollable.scrollgrab = true;
+      this.scrollable.classList.add('scrollable');
+      this.element.classList.add('maximized');
     }
   };
 
@@ -43,17 +59,19 @@
     return '<div class="chrome" id="' +
             this.CLASS_NAME + this.instanceID + '">' +
             '<div class="progress"></div>' +
-            '<section role="region" class="bar skin-organic">' +
-              '<header>' +
-                '<button type="button" class="back-button"' +
-                ' alt="Back" data-disabled="disabled"></button>' +
-                '<button type="button" class="forward-button"' +
-                ' alt="Forward" data-disabled="disabled"></button>' +
-                '<div class="title"></div>' +
-                '<button type="button" class="reload-button"' +
-                ' alt="Reload"></button>' +
-              '</header>' +
-            '</section>';
+            '<div class="controls">' +
+            ' <button type="button" class="back-button"' +
+            '   alt="Back" data-disabled="disabled"></button>' +
+            ' <button type="button" class="forward-button"' +
+            '   alt="Forward" data-disabled="disabled"></button>' +
+            ' <div class="urlbar">' +
+            '   <div class="title"></div>' +
+            '   <button type="button" class="reload-button"' +
+            '     alt="Reload"></button>' +
+            '   <button type="button" class="stop-button"' +
+            '     alt="Stop"></button>' +
+            ' </div>' +
+            '</div>';
   };
 
   AppChrome.prototype.view = function an_view() {
@@ -86,7 +104,7 @@
   };
 
   AppChrome.prototype._fetchElements = function ac__fetchElements() {
-    this.element = this.containerElement.querySelector('.chrome');
+    this.element = this.scrollable.querySelector('.chrome');
     this.navigation = this.element.querySelector('.navigation');
     this.bar = this.element.querySelector('.bar');
 
@@ -102,6 +120,7 @@
     this.bookmarkButton = this.element.querySelector('.bookmark-button');
     this.reloadButton = this.element.querySelector('.reload-button');
     this.forwardButton = this.element.querySelector('.forward-button');
+    this.stopButton = this.element.querySelector('.stop-button');
     this.backButton = this.element.querySelector('.back-button');
     this.closeButton = this.element.querySelector('.close-button');
     this.killButton = this.element.querySelector('.kill');
@@ -114,6 +133,10 @@
         this.handleClickEvent(evt);
         break;
 
+      case 'scroll':
+        this.handleScrollEvent(evt);
+        break;
+
       case '_loading':
         this.show(this.progress);
         break;
@@ -122,12 +145,24 @@
         this.hide(this.progress);
         break;
 
+      case 'mozbrowserloadstart':
+        this.handleLoadStart(evt);
+        break;
+
+      case 'mozbrowserloadend':
+        this.handleLoadEnd(evt);
+        break;
+
       case 'mozbrowserlocationchange':
         this.handleLocationChanged(evt);
         break;
 
       case 'mozbrowsertitlechange':
         this.handleTitleChanged(evt);
+        break;
+
+      case 'mozbrowsermetachange':
+        this.handleMetaChange(evt);
         break;
 
       case '_opened':
@@ -139,13 +174,13 @@
         break;
 
       case '_withkeyboard':
-        if (this.app && this.app.isActive()) {
+        if (this.app && this.navigation && this.app.isActive()) {
           this.hide(this.navigation);
         }
         break;
 
       case '_withoutkeyboard':
-        if (this.app) {
+        if (this.app && this.navigation) {
           this.show(this.navigation);
         }
         break;
@@ -175,6 +210,10 @@
       case this.reloadButton:
         this.clearButtonBarTimeout();
         this.app.reload();
+        break;
+
+      case this.stopButton:
+        this.app.stop();
         break;
 
       case this.backButton:
@@ -208,6 +247,10 @@
     }
   };
 
+  AppChrome.prototype.handleScrollEvent = function ac_handleScrollEvent(evt) {
+    // Bug 1039519 - Implement a smooth transition to show/hide the chrome
+  };
+
   AppChrome.prototype._registerEvents = function ac__registerEvents() {
     if (this.openButton) {
       this.openButton.addEventListener('click', this);
@@ -225,13 +268,21 @@
       this.bookmarkButton.addEventListener('click', this);
     }
 
-    this.reloadButton.addEventListener('click', this);
-    this.forwardButton.addEventListener('click', this);
-    this.backButton.addEventListener('click', this);
-    this.title.addEventListener('click', this);
+    if (this.stopButton) {
+      this.stopButton.addEventListener('click', this);
+    }
 
+    this.reloadButton.addEventListener('click', this);
+    this.backButton.addEventListener('click', this);
+    this.forwardButton.addEventListener('click', this);
+    this.title.addEventListener('click', this);
+    this.scrollable.addEventListener('scroll', this);
+
+    this.app.element.addEventListener('mozbrowserloadstart', this);
+    this.app.element.addEventListener('mozbrowserloadend', this);
     this.app.element.addEventListener('mozbrowserlocationchange', this);
     this.app.element.addEventListener('mozbrowsertitlechange', this);
+    this.app.element.addEventListener('mozbrowsermetachange', this);
     this.app.element.addEventListener('_loading', this);
     this.app.element.addEventListener('_loaded', this);
     this.app.element.addEventListener('_opened', this);
@@ -259,15 +310,25 @@
       this.bookmarkButton.removeEventListener('click', this);
     }
 
+    if (this.stopButton) {
+      this.stopButton.removeEventListener('click', this);
+    }
+
     this.reloadButton.removeEventListener('click', this);
-    this.forwardButton.removeEventListener('click', this);
     this.backButton.removeEventListener('click', this);
+    this.forwardButton.removeEventListener('click', this);
     this.title.removeEventListener('click', this);
+    this.scrollable.removeEventListener('scroll', this);
 
     if (!this.app) {
       return;
     }
+
+    this.app.element.removeEventListener('mozbrowserloadstart', this);
+    this.app.element.removeEventListener('mozbrowserloadend', this);
     this.app.element.removeEventListener('mozbrowserlocationchange', this);
+    this.app.element.removeEventListener('mozbrowsertitlechange', this);
+    this.app.element.removeEventListener('mozbrowsermetachange', this);
     this.app.element.removeEventListener('_loading', this);
     this.app.element.removeEventListener('_loaded', this);
     this.app.element.removeEventListener('_opened', this);
@@ -287,7 +348,7 @@
     if (this.closeButton.style.visibility !== 'hidden') {
       this.closeButton.style.visibility = 'hidden';
     }
-    if (this.navigation.classList.contains('closed')) {
+    if (this.navigation && this.navigation.classList.contains('closed')) {
       this.navigation.classList.remove('closed');
     }
   };
@@ -299,7 +360,7 @@
     if (this.closeButton.style.visibility !== 'visible') {
       this.closeButton.style.visibility = 'visible';
     }
-    if (!this.navigation.classList.contains('closed')) {
+    if (this.navigation && !this.navigation.classList.contains('closed')) {
       this.navigation.classList.add('closed');
     }
   };
@@ -320,6 +381,10 @@
 
   AppChrome.prototype.clearButtonBarTimeout =
     function ac_clearButtonBarTimeout() {
+      if (!this.navigation) {
+        return;
+      }
+
       clearTimeout(this.buttonBarTimeout);
       this.buttonBarTimeout =
         setTimeout(this.toggleButtonBar.bind(this), BUTTONBAR_TIMEOUT);
@@ -347,26 +412,43 @@
     };
 
   AppChrome.prototype.handleTitleChanged = function(evt) {
-    this.title.textContent = evt.detail;
+    this.title.textContent = evt.detail || this._currentURL;
     this._titleChanged = true;
   };
+
+  AppChrome.prototype.handleMetaChange =
+    function ac__handleMetaChange(evt) {
+      var detail = evt.detail;
+      if (detail.name !== 'theme-color' || !detail.type) {
+        return;
+      }
+
+      // If the theme-color meta is removed, let's reset the color.
+      var color = '';
+
+      // Otherwise, set it to the color that has been asked.
+      if (detail.type !== 'removed') {
+        color = detail.content;
+      }
+
+      this.element.style.backgroundColor = color;
+    };
 
   AppChrome.prototype.render = function() {
     this.publish('willrender');
 
-    var view;
-    if (this.app.config.chrome &&
-        this.app.config.chrome.navigation &&
-        this.app.config.chrome.bar) {
-      view = this.combinedView();
-    } else {
-      view = this.view();
-    }
+    var view = this.useCombinedChrome() ? this.combinedView() : this.view();
     this.app.browserContainer.insertAdjacentHTML('afterbegin', view);
 
     this._fetchElements();
     this._registerEvents();
     this.publish('rendered');
+  };
+
+  AppChrome.prototype.useCombinedChrome = function ac_useCombinedChrome(evt) {
+    return this.app.config.chrome &&
+           this.app.config.chrome.navigation &&
+           this.app.config.chrome.bar;
   };
 
   AppChrome.prototype.handleLocationChanged =
@@ -378,6 +460,7 @@
       if (!this._titleChanged) {
         this.title.textContent = evt.detail;
       }
+      this._currentURL = evt.detail;
 
       this.app.canGoForward(function forwardSuccess(result) {
         if (result === true) {
@@ -395,6 +478,15 @@
         }
       }.bind(this));
     };
+
+  AppChrome.prototype.handleLoadStart = function ac_handleLoadStart(evt) {
+    this.containerElement.classList.add('loading');
+    this._titleChanged = false;
+  };
+
+  AppChrome.prototype.handleLoadEnd = function ac_handleLoadEnd(evt) {
+    this.containerElement.classList.remove('loading');
+  };
 
   AppChrome.prototype.addBookmark = function ac_addBookmark() {
     if (this.bookmarkButton.dataset.disabled) {

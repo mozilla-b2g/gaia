@@ -516,6 +516,14 @@
     },
 
     /**
+     * SelectAll text content from Rocketbar input.
+     * @memberof Rocketbar.prototype
+     */
+    selectAll: function() {
+      this.input.select();
+    },
+
+    /**
      * Handle a focus event.
      * @memberof Rocketbar.prototype
      */

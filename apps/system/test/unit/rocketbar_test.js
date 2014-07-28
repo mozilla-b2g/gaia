@@ -255,6 +255,12 @@ suite('system/Rocketbar', function() {
     sinon.assert.calledOnce(stub);
   });
 
+  test('selectAll()', function() {
+    var stub = this.sinon.stub(subject.input, 'select');
+    subject.selectAll();
+    sinon.assert.calledOnce(stub);
+  });
+
   test('focus()', function() {
     var loadSearchAppStub = this.sinon.stub(subject, 'loadSearchApp');
     subject.form.classList.add('hidden');

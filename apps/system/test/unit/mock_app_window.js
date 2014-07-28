@@ -73,6 +73,7 @@
     canGoBack: function() {},
     back: function() {},
     reload: function() {},
+    stop: function() {},
     isBrowser: function() {},
     isCertified: function() {},
     navigate: function() {},
