@@ -106,11 +106,11 @@
       this.manifest.chrome :
       this.config.chrome;
 
-    if (!this.manifestURL && !this.config.chrome) {
+    if (!this.config.chrome) {
       this.config.chrome = {
         navigation: true,
         bar: true,
-        scrollable: true,
+        scrollable: this.isBrowser()
       };
     }
 
@@ -498,6 +498,7 @@
     return '<div class=" ' + this.CLASS_LIST +
             ' " id="' + this.instanceID +
             '" transition-state="closed">' +
+              '<div class="titlebar"></div>' +
               '<div class="screenshot-overlay"></div>' +
               '<div class="identification-overlay">' +
                 '<div>' +
@@ -717,20 +718,15 @@
             new this.constructor.SUB_COMPONENTS[componentName](this);
         }
       }
-      if (this.config.chrome &&
-          (this.config.chrome.navigation ||
-           this.config.chrome.bar)) {
-        this.appChrome = new self.AppChrome(this);
-      }
 
       if (this.manifest) {
         var that = this;
         that.element.addEventListener('_opened', function onOpened() {
           that.element.removeEventListener('_opened', onOpened);
-          that.titleBar = new self.AppTitleBar(that);
+          that.appChrome = new self.AppChrome(that);
         });
       } else {
-        this.titleBar = new self.AppTitleBar(this);
+        this.appChrome = new self.AppChrome(this);
       }
     };
 
@@ -743,7 +739,7 @@
         }
       }
 
-      if (this.config.chrome) {
+      if (this.appChrome) {
         this.appChrome.destroy();
         this.appChrome = null;
       }

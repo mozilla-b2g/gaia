@@ -149,8 +149,8 @@
           });
         };
 
-        if (app) {
-          app.titleBar.expand(function() {
+        if (app && app.appChrome && !app.appChrome.isMaximized()) {
+          app.appChrome.maximized(function() {
             self.activate(focusAndSelect);
           });
         } else {
