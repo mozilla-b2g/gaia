@@ -194,10 +194,11 @@ exports.connect = function(port, host, wuh, onconnect) {
 
 }); // end define
 ;
-define('imap',['require','exports','module','util','rdcommon/log','net','tls','events','mailparser/mailparser'],function(require, exports, module) {
+define('imap',['require','exports','module','util','rdcommon/log','net','tls','events','./mailapi/syncbase','mailparser/mailparser'],function(require, exports, module) {
 var util = require('util'), $log = require('rdcommon/log'),
     net = require('net'), tls = require('tls'),
     EventEmitter = require('events').EventEmitter,
+    $syncbase = require('./mailapi/syncbase'),
     mailparser = require('mailparser/mailparser');
 
 var emptyFn = function() {}, CRLF = '\r\n',
@@ -229,11 +230,18 @@ const CHARCODE_RBRACE = ('}').charCodeAt(0),
       CHARCODE_RPAREN = (')').charCodeAt(0);
 
 var setTimeoutFunc = window.setTimeout.bind(window),
-    clearTimeoutFunc = window.clearTimeout.bind(window);
+    clearTimeoutFunc = window.clearTimeout.bind(window),
+    setStaleTimeoutFunc = window.setTimeout.bind(window),
+    clearStaleTimeoutFunc = window.clearTimeout.bind(window);
 
 exports.TEST_useTimeoutFuncs = function(setFunc, clearFunc) {
   setTimeoutFunc = setFunc;
   clearTimeoutFunc = clearFunc;
+};
+
+exports.TEST_useStaleTimeoutFuncs = function(setFunc, clearFunc) {
+  setStaleTimeoutFunc = setFunc;
+  clearStaleTimeoutFunc = clearFunc;
 };
 
 /**
@@ -563,8 +571,32 @@ ImapConnection.prototype.connect = function(loginCb) {
     fnInit();
   };
 
+  /**
+   * Kill any connections which haven't handled any data within
+   * $syncbase.STALE_CONNECTION_TIMEOUT_MS milliseconds, to alleviate
+   * issues where a connection effectively goes dead but we don't
+   * actually receive a close/reset event for some reason.
+   */
+  function resetStaleTimeout() {
+    if (self._state.staleTimeout) {
+      clearStaleTimeoutFunc(self._state.staleTimeout);
+      self._state.staleTimeout = null;
+    }
+    self._state.staleTimeout = setStaleTimeoutFunc(function() {
+      //  Only kill the connection if we're still connected to the server.
+      if (self._state.status >= STATES.AUTH) {
+        console.log('Killing stale connection.');
+        self._state.conn.end();
+        self._reset();
+        if (this._LOG) this._LOG.closed('forcibly killed stale connection');
+        self.emit('close');
+      }
+    }, $syncbase.STALE_CONNECTION_TIMEOUT_MS);
+  }
+
   this._state.conn.on('data', function(buffer) {
     try {
+      resetStaleTimeout();
       self._unprocessed.push(buffer);
       while (self._unprocessed.length) {
         processData(self._unprocessed.shift());
@@ -1162,7 +1194,7 @@ ImapConnection.prototype.connect = function(loginCb) {
 
   this._state.conn.on('close', function onClose() {
     self._reset();
-    if (this._LOG) this._LOG.closed();
+    if (this._LOG) this._LOG.closed('connection close');
     self.emit('close');
   });
   this._state.conn.on('error', function(err) {
@@ -1784,6 +1816,12 @@ ImapConnection.prototype._login = function(cb) {
 ImapConnection.prototype._reset = function() {
   if (this._state.tmrConn)
     clearTimeoutFunc(this._state.tmrConn);
+
+  if (this._state.staleTimeout) {
+    clearStaleTimeoutFunc(this._state.staleTimeout);
+    this._state.staleTimeout = null;
+ }
+
   this._state.status = STATES.NOCONNECT;
   this._state.numCapRecvs = 0;
   this._state.requests = [];
@@ -2624,7 +2662,7 @@ var LOGFAB = exports.LOGFAB = $log.register(module, {
       created: {},
       connect: {},
       connected: {},
-      closed: {},
+      closed: { reason: false },
       sendData: { length: false },
       bypassCmd: { prefix: false, cmd: false },
       data: { length: false },
