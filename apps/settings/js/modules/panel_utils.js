@@ -20,7 +20,6 @@ define(function(require) {
    *                 The id of the dialog element.
    */
   var _openDialog = function pu_openDialog(dialogID) {
-    console.log('>>> ID = ' + dialogID);
     var dialog = document.getElementById(dialogID);
     var fields = Array.prototype.slice.call(
       dialog.querySelectorAll('[data-setting]:not([data-ignore])'));

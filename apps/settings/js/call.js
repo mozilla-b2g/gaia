@@ -926,25 +926,42 @@ require([
         console.log('EVENT: ' + JSON.stringify(event));
         console.log('TARGET: ' + JSON.stringify(event.target));
         console.log('CLICK ON BAOC');
-        //TODO disable tap on the rest of inputs
-        var option = {
-          'program': BAOC,
-          'enabled': inputBaoc.checked,
-          'password': '0000',
-          'serviceClass': _voiceServiceClassMask
-        };
-        console.log('option: ' + JSON.stringify(option));
-        var request = _mobileConnection.setCallBarringOption(option);
-        request.onsuccess = function() {
-          console.log('SUCCESS!');
-          console.log('RESULT: ' + JSON.stringify(request.result));
-        };
-        request.onerror = function() {
-          console.log('ERROR!');
-          console.log('request: ' + JSON.stringify(request));
-          console.log('RESULT: ' + JSON.stringify(request.result));
-          console.log('e =  ' + JSON.stringify(request.error));
-        };
+        //TODO disable tap on the rest of inputs while we deal with server
+
+        // Show password screen
+        console.log('showing password screen??');
+        console.log('PANEL: ' + CallServicesPasswordScreen);
+        CallServicesPasswordScreen.show().then(
+          function confirmed(code) {
+            console.log('CLICK ON confirm button');
+            // Create the option object
+            var option = {
+              'program': BAOC,
+              'enabled': inputBaoc.checked,
+              'password': code, //pasword retrieved
+              'serviceClass': _voiceServiceClassMask
+            };
+            console.log('option: ' + JSON.stringify(option));
+
+            // Send the request
+            var request = _mobileConnection.setCallBarringOption(option);
+            request.onsuccess = function() {
+              console.log('SUCCESS!');
+              console.log('RESULT: ' + JSON.stringify(request.result));
+              //TODO Disable the rest of the options
+            };
+            request.onerror = function() {
+              console.log('ERROR!');
+              console.log('request: ' + JSON.stringify(request));
+              console.log('RESULT: ' + JSON.stringify(request.result));
+              console.log('e =  ' + JSON.stringify(request.error));
+              //TODO revert visual changes
+            };
+          },
+          function canceled() {
+            console.log('CLICK ON cancel button');
+            //TODO revert visual changes
+          });
       });
     }
 
