@@ -341,7 +341,6 @@ button::-moz-focus-inner {
   border-radius: 2.5rem;
   background-color: rgba(255, 255, 255, 0.25);
   -moz-box-sizing: border-box;
-
   float: right;
   pointer-events: auto;
   opacity: 0.1;
@@ -853,4 +852,9 @@ button::-moz-focus-inner {
        container should not be scrollable with collapsed */
     display: none;
   }
+}
+
+/* Right-To-Left layout */
+html[dir="rtl"] #lockscreen-alt-camera {
+  float: left;
 }
