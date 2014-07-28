@@ -11,7 +11,7 @@
          applications, Rocketbar, LayoutManager, PermissionManager,
          HomeSearchbar, SoftwareButtonManager, Accessibility,
          TextSelectionDialog, InternetSharing, SleepMenu, AppUsageMetrics,
-         LockScreenNotifications*/
+         LockScreenNotifications, LockScreenPasscodeValidator */
 'use strict';
 
 
@@ -123,6 +123,8 @@ window.addEventListener('load', function startup() {
   window.internetSharing = new InternetSharing();
   window.internetSharing.start();
   window.lockScreenNotifications = new LockScreenNotifications();
+  window.lockScreenPasscodeValidator = new LockScreenPasscodeValidator();
+  window.lockScreenPasscodeValidator.start();
   window.layoutManager = new LayoutManager();
   window.layoutManager.start();
   window.permissionManager = new PermissionManager();

@@ -153,21 +153,15 @@ suite('system/LockScreen >', function() {
     assert.isFalse(subject.locked);
   });
 
-  test('Passcode: enter passcode can unlock the screen', function() {
-    subject.passCodeEntered = '0000';
-    subject.passCode = '0000';
-    subject.passcodeCode = domPasscodeCode;
+  test('Passcode: enter passcode should fire the validation event', function() {
+    var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
+    subject.passCodeEntered = 'foobar';
     subject.checkPassCode();
-    assert.equal(subject.overlay.dataset.passcodeStatus, 'success');
-  });
-
-  test('Passcode: enter passcode can unlock the screen', function() {
-    subject.passCodeEntered = '0000';
-    subject.passCode = '3141';
-
-    subject.passcodeCode = domPasscodeCode;
-    subject.checkPassCode();
-    assert.equal(subject.overlay.dataset.passcodeStatus, 'error');
+    assert.isTrue(stubDispatchEvent.calledWithMatch(function(event) {
+      return 'lockscreen-request-passcode-validate' === event.type &&
+        'foobar' === event.detail.passcode;
+    }),
+    'it did\'t fire the correspond event to validate the passcode');
   });
 
   test('Handle event: when screen changed,' +
