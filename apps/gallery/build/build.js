@@ -118,10 +118,18 @@ GalleryAppBuilder.prototype.customizeMaximumImageSize = function(options) {
     utils.writeContent(file, content);
 };
 
+GalleryAppBuilder.prototype.optimize = function(options) {
+  var r = require('r-wrapper').get(options.GAIA_DIR);
+  var configFile = utils.getFile(options.APP_DIR, 'build',
+    'require_config.jslike');
+  r.optimize([configFile.path]);
+};
+
 GalleryAppBuilder.prototype.execute = function(options) {
   this.setOptions(options);
   this.concatenatedScripts();
   this.customizeMaximumImageSize(options);
+  this.optimize();
 };
 
 exports.execute = function(options) {

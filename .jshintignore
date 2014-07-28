@@ -60,3 +60,4 @@ apps/findmydevice/js/lib/*
 apps/findmydevice/js/config.js
 apps/system/js/uuid.js
 apps/camera/bower_components/**
+apps/gallery/bower_components/**
