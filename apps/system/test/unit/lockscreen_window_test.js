@@ -44,6 +44,9 @@ suite('system/LockScreenWindow', function() {
     window.lockScreenNotifications = {
       start: function() {}
     };
+    window.LockScreenStateManager = function() {
+      this.start = function() {};
+    };
     window.layoutManager = new LayoutManager();
     window.layoutManager.start();
 

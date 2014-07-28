@@ -108,12 +108,6 @@ var FtuLauncher = {
           this.close();
         }
         break;
-
-      case 'lockscreen-appopened':
-        if (this._isRunningFirstTime) {
-          lockScreen.unlock(true);
-        }
-        break;
     }
   },
 
