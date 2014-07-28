@@ -2,6 +2,7 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 /*global Settings, Utils, Attachment, AttachmentMenu, MozActivity, SMIL,
+        EventDispatcher,
         MessageManager,
         Navigation,
         Promise,
@@ -33,12 +34,6 @@
     subject: null,
     sendButton: null,
     attachButton: null
-  };
-
-  var handlers = {
-    input: [],
-    type: [],
-    segmentinfochange: []
   };
 
   var state = {
@@ -240,7 +235,7 @@
     Compose.updateType();
     updateSegmentInfoThrottled();
 
-    trigger.call(Compose, 'input');
+    Compose.emit('input');
   }
 
   function hasAttachment() {
@@ -259,17 +254,6 @@
       // trigger a recompute of size on the keypresses
       state.size = null;
       Compose.lock = false;
-    }
-  }
-
-  function trigger(type) {
-    var event = new CustomEvent(type);
-    var fns = handlers[type];
-
-    if (fns && fns.length) {
-      for (var i = 0; i < fns.length; i++) {
-        fns[i].call(Compose, event);
-      }
     }
   }
 
@@ -391,7 +375,7 @@
         };
       }
     ).then(Compose.updateType.bind(Compose))
-    .then(trigger.bind(Compose, 'segmentinfochange'));
+    .then(Compose.emit.bind(Compose, 'segmentinfochange'));
   }
 
   var Compose = {
@@ -420,7 +404,7 @@
       dom.attachButton.addEventListener('click',
         this.onAttachClick.bind(this));
 
-      this.clearListeners();
+      this.offAll();
       this.clear();
 
       this.on('type', this.onTypeChange);
@@ -431,29 +415,6 @@
       // Bug 1026384: call updateType as well when the recipients change
 
       return this;
-    },
-
-    on: function(type, handler) {
-      if (handlers[type]) {
-        handlers[type].push(handler);
-      }
-      return this;
-    },
-
-    off: function(type, handler) {
-      if (handlers[type]) {
-        var index = handlers[type].indexOf(handler);
-        if (index !== -1) {
-          handlers[type].splice(index, 1);
-        }
-      }
-      return this;
-    },
-
-    clearListeners: function() {
-      for (var type in handlers) {
-        handlers[type] = [];
-      }
     },
 
     getContent: function() {
@@ -710,7 +671,7 @@
 
       if (newType !== state.type) {
         state.type = newType;
-        trigger.call(this, 'type');
+        this.emit('type');
       }
     },
 
@@ -920,5 +881,13 @@
     }
   });
 
-  exports.Compose = Compose;
+  Object.defineProperty(exports, 'Compose', {
+    get: function() {
+      delete exports.Compose;
+      var allowedEvents = ['input', 'segmentinfochange', 'type'];
+      return (exports.Compose = EventDispatcher.mixin(Compose, allowedEvents));
+    },
+    configurable: true,
+    enumerable: true
+  });
 }(window));

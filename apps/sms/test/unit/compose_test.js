@@ -13,6 +13,7 @@
 
 'use strict';
 
+require('/js/event_dispatcher.js');
 requireApp('sms/js/compose.js');
 requireApp('sms/js/utils.js');
 requireApp('sms/js/drafts.js');
@@ -403,7 +404,7 @@ suite('compose_test.js', function() {
       });
 
       teardown(function() {
-        Compose.clearListeners();
+        Compose.offAll();
         typeWhenEvent = null;
       });
 
@@ -1543,7 +1544,7 @@ suite('compose_test.js', function() {
       // some tests use a rejected promise
       segmentInfoPromise.catch(() => {}).then(function() {
         Compose.clear();
-        Compose.clearListeners();
+        Compose.offAll();
       }).then(done, done);
     });
 
