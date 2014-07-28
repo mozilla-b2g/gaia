@@ -114,6 +114,13 @@ suite('UI Manager > ', function() {
         UIManager.setTimeZone(FAKE_TIMEZONE);
       });
 
+      test('should set/clear timeZoneNeedsConfirmation flag', function() {
+        UIManager.setTimeZone(FAKE_TIMEZONE, true);
+        assert.isTrue(UIManager.timeZoneNeedsConfirmation);
+        UIManager.setTimeZone(FAKE_TIMEZONE, false);
+        assert.isFalse(UIManager.timeZoneNeedsConfirmation);
+      });
+
       test('should localize title', function() {
         assert.isTrue(localizeSpy.calledOnce);
         assert.isTrue(localizeSpy.calledWith(timezoneTitle,
