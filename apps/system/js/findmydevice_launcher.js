@@ -1,7 +1,7 @@
 /* global DUMP */
 /* global SettingsHelper */
 /* global wakeUpFindMyDevice */
-/* global IAC_API_WAKEUP_REASON_ENABLED_CHANGED */
+/* global IAC_API_WAKEUP_REASON_ENABLED */
 /* global IAC_API_WAKEUP_REASON_LOGIN */
 /* global IAC_API_WAKEUP_REASON_LOGOUT */
 /* global IAC_API_WAKEUP_REASON_STALE_REGISTRATION */
@@ -9,9 +9,10 @@
 'use strict';
 
 navigator.mozSettings.addObserver('findmydevice.enabled', function(event) {
-  // make sure Find My Device is registered if it's enabled,
-  // and that it notifies the server if disabled
-  wakeUpFindMyDevice(IAC_API_WAKEUP_REASON_ENABLED_CHANGED);
+  if (event.settingValue === true) {
+    // make sure Find My Device is registered if it's enabled
+    wakeUpFindMyDevice(IAC_API_WAKEUP_REASON_ENABLED);
+  }
 });
 
 navigator.mozSettings.addObserver('geolocation.enabled', function(event) {
