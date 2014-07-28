@@ -3,6 +3,8 @@
 /* global ConfirmDialog */
 /* global contacts */
 /* global fb */
+/* global utils */
+/* global navigationStackShim */
 
 var Contacts = window.Contacts || {};
 
@@ -251,7 +253,7 @@ if (typeof Contacts.extServices === 'undefined') {
         }
       };
 
-      Contacts.confirmDialog(null, msg, noObject, yesObject);
+      utils.confirmDialog(null, msg, noObject, yesObject);
     }
 
     function doUnlink(cid) {
@@ -327,6 +329,8 @@ if (typeof Contacts.extServices === 'undefined') {
         break;
 
         case 'window_close':
+          var navigation = new navigationStackShim();
+          navigation.back();
           close(data.message, data.additionalMessage);
           notifySettings();
         break;

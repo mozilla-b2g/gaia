@@ -12,6 +12,7 @@
 /* global MockThumbnailImage */
 /* global MockMozNfc */
 /* global utils */
+/* global messageBroadcaster */
 /* exported _ */
 
 require('/shared/test/unit/mocks/mock_contact_all_fields.js');
@@ -25,8 +26,10 @@ require('/shared/test/unit/mocks/mock_moz_nfc.js');
 //Avoiding lint checking the DOM file renaming it to .html
 requireApp('communications/contacts/test/unit/mock_form_dom.js.html');
 
+requireApp('communications/contacts/js/utilities/extract_params.js');
 requireApp('communications/contacts/js/contacts_tag.js');
 requireApp('communications/contacts/js/views/form.js');
+requireApp('communications/contacts/test/unit/mock_message_broadcaster.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
 requireApp('communications/contacts/test/unit/mock_mozContacts.js');
@@ -55,21 +58,21 @@ realL10n = navigator.mozL10n;
 navigator.mozL10n = {
   get: function get(key) {
     var out = key;
-    
+
     switch(key) {
       case 'dateFormat':
         out = null;
       break;
-    
+
       case 'dateOutput':
         out = MOCK_DATE_STRING;
       break;
-    
+
       case 'date-span-placeholder':
         out = MOCK_DATE_PLACEHOLDER;
       break;
     }
-    
+
     return out;
   },
   DateTimeFormat: function() {
@@ -82,10 +85,26 @@ window._ = navigator.mozL10n.get;
 
 requireApp('communications/contacts/js/tag_options.js');
 
+window.navigationStackShim = function(){
+  return {
+    home: function(){},
+    back: function(){}
+  };
+};
+
+window.utils = {
+  updatePhoto: function(){},
+  isEmpty: function(){ return false; },
+  confirmDialog: function(){
+    ConfirmDialog.show.apply(ConfirmDialog, arguments);
+  }
+};
+
 var mocksForm = new MocksHelper([
   'Contacts',
   'ConfirmDialog',
-  'ContactPhotoHelper'
+  'ContactPhotoHelper',
+  'messageBroadcaster'
 ]).init();
 
 suite('Render contact form', function() {
@@ -109,7 +128,8 @@ suite('Render contact form', function() {
     subject = contacts.Form;
 
     ActivityHandler = {
-      currentlyHandling: false
+      currentlyHandling: false,
+      handle: function(){}
     };
 
     subject.init();
@@ -893,7 +913,7 @@ suite('Render contact form', function() {
       sinon.stub(contacts.Matcher, 'match', function(contact, mode, cbs) {
         cbs.onmismatch();
       });
-      sinon.spy(Contacts, 'setCurrent');
+      sinon.spy(messageBroadcaster, 'fire');
 
       // Need to stub here cause we have a global setup that is
       // incompatible
@@ -910,12 +930,10 @@ suite('Render contact form', function() {
 
       subject.saveContact();
 
-      sinon.assert.calledOnce(Contacts.setCurrent);
-      var arg = Contacts.setCurrent.getCall(0).args[0];
-      assert.equal(arg.givenName[0], 'Edited');
+      sinon.assert.calledWith(messageBroadcaster.fire, 'set-current-contact');
 
       contacts.Matcher.match.restore();
-      Contacts.setCurrent.restore();
+      messageBroadcaster.fire.restore();
       navigator.mozContacts.save.restore();
     });
   });

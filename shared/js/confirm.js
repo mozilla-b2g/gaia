@@ -6,6 +6,7 @@ var ConfirmDialog = (function() {
   var isShown = false;
   var doc = (parent.location === window.location) ?
       document : parent.document;
+
   var screen = doc.getElementById('confirmation-message');
   var titleNode = screen.querySelector('h1');
   var messageNode = screen.querySelector('p');

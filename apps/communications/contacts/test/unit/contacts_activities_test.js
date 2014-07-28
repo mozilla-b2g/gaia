@@ -1,6 +1,11 @@
-/* globals Contacts, ActivityHandler, ConfirmDialog,
-           MockContactAllFields, MocksHelper, MockMozL10n
- */
+/* global Contacts */
+/* global contacts */
+/* global ActivityHandler */
+/* global ConfirmDialog */
+/* global MockContactAllFields */
+/* global MockContactsForm */
+/* global MocksHelper */
+/* global MockMozL10n */
 
 'use strict';
 
@@ -11,7 +16,9 @@ requireApp('communications/contacts/js/activities.js');
 requireApp('communications/contacts/test/unit/mock_l10n.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
+requireApp('communications/contacts/test/unit/mock_message_broadcaster.js');
 requireApp('communications/contacts/test/unit/mock_action_menu.js');
+requireApp('communications/contacts/test/unit/mock_contacts_form.js');
 requireApp('communications/dialer/test/unit/mock_confirm_dialog.js');
 
 if (!window._) {
@@ -22,20 +29,39 @@ if (!window.utils) {
   window.utils = null;
 }
 
+if (!window.contacts) {
+  window.contacts = {};
+}
+
 var mocksHelperForActivities = new MocksHelper([
   'Contacts',
   'ConfirmDialog',
-  'LazyLoader'
+  'LazyLoader',
+  'ContactsForm',
+  'messageBroadcaster'
 ]).init();
 
 suite('Test Activities', function() {
   var realMozL10n,
       real_,
-      realImport;
+      realImport,
+      realContacts;
 
   mocksHelperForActivities.attachTestHelpers();
 
   suiteSetup(function() {
+    realContacts = window.contacts;
+    window.contacts = {
+      Form: MockContactsForm
+    };
+
+    window.utils.loadFacebook = function(cb) {
+      cb();
+    };
+    window.utils.confirmDialog = function(){
+      ConfirmDialog.show.apply(ConfirmDialog, arguments);
+    };
+
     realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockMozL10n;
 
@@ -60,6 +86,7 @@ suite('Test Activities', function() {
   });
 
   suiteTeardown(function() {
+    window.contacts = realContacts;
     navigator.mozL10n = realMozL10n;
     window._ = real_;
     window.utils.importFromVcard = realImport;
@@ -76,6 +103,7 @@ suite('Test Activities', function() {
     });
 
     test('New contact', function() {
+      sinon.spy(contacts.Form, 'render');
       var activity = {
         source: {
           name: 'new',
@@ -83,7 +111,7 @@ suite('Test Activities', function() {
         }
       };
       ActivityHandler.handle(activity);
-      assert.include(document.location.hash, 'view-contact-form');
+      sinon.assert.calledOnce(contacts.Form.render);
       assert.equal(ActivityHandler._currentActivity, activity);
     });
 

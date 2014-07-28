@@ -1,6 +1,5 @@
 'use strict';
 /* global MockNavigationStack */
-/* global ConfirmDialog */
 /* exported MockContacts */
 
 var MockContacts = {
@@ -15,9 +14,6 @@ var MockContacts = {
   },
   hideOverlay: function() {
   },
-  loadFacebook: function(cb) {
-    cb();
-  },
   asyncScriptsLoaded: true,
   cardStateChanged: function() {
   },
@@ -28,9 +24,6 @@ var MockContacts = {
   navigation: new MockNavigationStack(),
   checkCancelableActivity: function() {},
   cancel: function() {},
-  confirmDialog: function() {
-    ConfirmDialog.show.apply(ConfirmDialog, arguments);
-  },
   utility: function(view, callback, type) {
     callback();
   },
@@ -53,6 +46,6 @@ var MockContacts = {
     }
   },
   setCurrent: function(ct) {
-    
+
   }
 };

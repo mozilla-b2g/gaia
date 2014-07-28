@@ -1,11 +1,12 @@
 'use strict';
 /* global MockContactsList */
-/* global MockContacts */
 /* global ContactsExporter */
 /* global MockExportStrategy */
 /* global MockMozContacts */
 /* global MockMozL10n */
 /* global MocksHelper */
+/* global ConfirmDialog */
+/* global utils */
 
 requireApp('communications/contacts/test/unit/mock_navigation.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
@@ -14,13 +15,12 @@ requireApp('communications/contacts/test/unit/mock_export_strategy.js');
 requireApp('communications/contacts/test/unit/mock_contacts_list.js');
 requireApp('communications/contacts/test/unit/mock_l10n.js');
 requireApp('communications/dialer/test/unit/mock_confirm_dialog.js');
-
 requireApp('communications/contacts/js/export/contacts_exporter.js');
 
 var realUtils = null;
 var realStatus = null;
 var real_ = null;
-
+var realUtils = null;
 if (!window.utils) {
   window.utils = null;
 } else {
@@ -76,6 +76,12 @@ suite('Contacts Exporter', function() {
 
     real_ = window._;
     window._ = navigator.mozL10n.get;
+
+    window.utils = {
+      confirmDialog: function(){
+        ConfirmDialog.show.apply(ConfirmDialog, arguments);
+      }
+    };
 
     navigator.mozContacts = MockMozContacts;
     sinon.stub(navigator.mozContacts, 'find', function() {
@@ -230,7 +236,7 @@ suite('Contacts Exporter', function() {
         errorName;
 
     setup(function(done) {
-      sinon.spy(MockContacts, 'confirmDialog');
+      sinon.spy(utils, 'confirmDialog');
       subject.init(ids, function onInitDone(contacts) {
         error = {
           'reason': 'BIGerror'
@@ -244,17 +250,17 @@ suite('Contacts Exporter', function() {
       });
     });
     teardown(function() {
-      MockContacts.confirmDialog.restore();
+      utils.confirmDialog.restore();
     });
 
     test('Error dialog is called', function() {
-      assert.ok(MockContacts.confirmDialog.calledOnce);
+      assert.ok(utils.confirmDialog.calledOnce);
     });
 
     test('The proper error shows', function() {
       // errors are called with the structure
       // {title, error, retry, cancel}
-      assert.equal(MockContacts.confirmDialog.args[0][1], errorName);
+      assert.equal(utils.confirmDialog.args[0][1], errorName);
     });
 
     test('Status shown', function() {

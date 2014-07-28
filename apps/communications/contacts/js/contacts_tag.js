@@ -1,11 +1,13 @@
 'use strict';
 /* global utils */
+/* global MessageBroadcaster */
 /* exported ContactsTag */
 
 var ContactsTag = (function() {
   var originalTag = null;
   var selectedTag = null;
   var customTag = null;
+  var messageBroadcaster = null;
 
   var setCustomTag = function setCustomTag(element) {
     customTag = element;
@@ -90,15 +92,26 @@ var ContactsTag = (function() {
   };
 
   var clickDone = function clickDone(callback) {
+    var tagData = {
+      dataset: {}
+    };
+
+    tagData.prevValue = originalTag.textContent;
+
     if (selectedTag) {
-      originalTag.textContent = selectedTag.textContent;
-      originalTag.dataset.l10nId = selectedTag.dataset.l10nId;
-      originalTag.dataset.value = selectedTag.dataset.value;
+      tagData.textContent = selectedTag.textContent;
+      tagData.dataset.l10nId = selectedTag.dataset.l10nId;
+      tagData.dataset.value = selectedTag.dataset.value;
     } else if (customTag.value.length > 0) {
-      originalTag.textContent = customTag.value;
-      originalTag.dataset.value = customTag.value;
+      tagData.textContent = customTag.value;
+      tagData.dataset.value = customTag.value;
     }
-    originalTag = null;
+
+    if (messageBroadcaster === null) {
+      messageBroadcaster = new MessageBroadcaster();
+    }
+
+    messageBroadcaster.fire('value-modified', tagData);
 
     if (callback !== undefined && typeof callback === 'function') {
       callback();
@@ -109,9 +122,7 @@ var ContactsTag = (function() {
   // This is particularly useful for dates as we cannot have multiple instances
   // of them (only one birthday, only one anniversary)
   function filterTags(type, currentNode, tags) {
-    var element = document.querySelector(
-                          '[data-template]' + '.' + type + '-' + 'template');
-    if (!element || !element.dataset.exclusive) {
+    if (!currentNode || !currentNode.exclusive) {
       return tags;
     }
 
@@ -119,23 +130,50 @@ var ContactsTag = (function() {
     // the existing ones
     var newOptions = tags.slice(0);
 
-    var sameType = document.querySelectorAll('.' + type + '-template');
-    if (sameType.length > 1) {
-      /* jshint loopfunc:true */
-      for (var j = 0; j < sameType.length; j++) {
-        var itemSame = sameType.item(j);
-        var tagNode = itemSame.querySelector('[data-field="type"]');
-        if (tagNode !== currentNode &&
-            !itemSame.classList.contains('removed')) {
-          newOptions = newOptions.filter(function(ele) {
-            return ele.type != tagNode.dataset.value;
-          });
+    newOptions = newOptions.filter(function(ele) {
+      return currentNode.sameTypeTags.indexOf(ele.type) === -1;
+    });
+
+
+    return newOptions;
+  }
+
+  var prepareTagData = function(type, node) {
+    var element = document.querySelector(
+      '[data-template]' + '.' + type + '-template'
+    );
+
+    var exclusive = false;
+    var customTagVisible = false;
+
+    if (element) {
+      exclusive = element.dataset.exclusive || false;
+      customTagVisible = (element.dataset.custom != 'false');
+    }
+
+    var sameTypeTags = [];
+    if (exclusive) {
+      var sameType = document.querySelectorAll('.' + type + '-template');
+      if (sameType.length > 1) {
+        /* jshint loopfunc:true */
+        for (var j = 0; j < sameType.length; j++) {
+          var itemSame = sameType.item(j);
+          var tagNode = itemSame.querySelector('[data-field="type"]');
+          if (tagNode !== node &&
+              !itemSame.classList.contains('removed')) {
+            sameTypeTags.push(tagNode.dataset.value);
+          }
         }
       }
     }
 
-    return newOptions;
-  }
+    return {
+      type: type,
+      customTagVisible: customTagVisible,
+      exclusive: exclusive,
+      sameTypeTags: sameTypeTags
+    };
+  };
 
   return {
     'setCustomTag': setCustomTag,
@@ -143,6 +181,7 @@ var ContactsTag = (function() {
     'fillTagOptions': fillTagOptions,
     'clickDone': clickDone,
     'setCustomTagVisibility': setCustomTagVisibility,
-    'filterTags': filterTags
+    'filterTags': filterTags,
+    'prepareTagData': prepareTagData
   };
 })();

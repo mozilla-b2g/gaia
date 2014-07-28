@@ -2,5 +2,6 @@
 /* exported MockContactsForm */
 
 var MockContactsForm = {
-  'init': function init() {}
+  'init': function init() {},
+  'render': function render() {}
 };

@@ -126,7 +126,12 @@ contacts.Details = (function() {
   };
 
   var showEditContact = function showEditContact() {
-    Contacts.showForm(true, contactData);
+    Contacts.showForm(
+      true,
+      {
+        id: contactData.id
+      }
+    );
   };
 
   var setContact = function cd_setContact(currentContact) {
@@ -308,13 +313,12 @@ contacts.Details = (function() {
 
     var request = navigator.mozContacts.save(utils.misc.toMozContact(contact));
     request.onsuccess = function onsuccess() {
-      var cList = contacts.List;
       /*
          Two contacts are returned because the enrichedContact is readonly
          and if the Contact is edited we need to prevent saving
          FB data on the mozContacts DB.
       */
-       cList.getContactById(contact.id,
+       utils.getContactById(contact.id,
                            function onSuccess(savedContact, enrichedContact) {
         renderFavorite(savedContact);
         setContact(savedContact);
@@ -596,7 +600,7 @@ contacts.Details = (function() {
     for (var i = 0; i < contact.adr.length; i++) {
       var currentAddress = contact.adr[i];
       // Sanity check
-      if (Contacts.isEmpty(currentAddress, ['streetAddress', 'postalCode',
+      if (utils.isEmpty(currentAddress, ['streetAddress', 'postalCode',
         'locality', 'countryName'])) {
         continue;
       }
@@ -698,14 +702,14 @@ contacts.Details = (function() {
     if (photo) {
       var currentHash = cover.dataset.imgHash;
       if (!currentHash) {
-        Contacts.updatePhoto(photo, cover);
+        utils.updatePhoto(photo, cover);
         updateHash(photo, cover);
       }
       else {
         // Need to recalculate the hash and see whether the images changed
         calculateHash(photo, function(newHash) {
           if (currentHash !== newHash) {
-            Contacts.updatePhoto(photo, cover);
+            utils.updatePhoto(photo, cover);
             cover.dataset.imgHash = newHash;
           }
           else {

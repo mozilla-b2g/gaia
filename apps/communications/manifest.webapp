@@ -119,7 +119,7 @@
         "type": "webcontacts/contact"
       },
       "disposition": "inline",
-      "href": "/contacts/index.html?new",
+      "href": "/contacts/form.html",
       "returnValue": true
     },
     "update": {

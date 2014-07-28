@@ -39,13 +39,14 @@ require('/dialer/test/unit/mock_telephony_helper.js');
 
 
 requireApp('communications/contacts/js/views/details.js');
+requireApp('communications/contacts/js/controllers/details.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
 requireApp('communications/contacts/test/unit/mock_contacts_list_obj.js');
 requireApp('communications/contacts/test/unit/mock_fb.js');
 requireApp('communications/contacts/test/unit/mock_extfb.js');
 requireApp('communications/contacts/test/unit/mock_activities.js');
-
+requireApp('communications/contacts/js/utilities/others.js');
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 
 var _ = function(key) { return key; },
@@ -132,6 +133,10 @@ suite('Render contact', function() {
         var offset = date.getTimezoneOffset() * 60 * 1000;
         var normalizedDate = new Date(date.getTime() + offset);
         return normalizedDate.toString();
+    };
+
+    utils.isEmpty = function(prop) {
+      return false;
     };
 
     Object.defineProperty(navigator, 'onLine', {
@@ -756,14 +761,14 @@ suite('Render contact', function() {
       subject.setContact(contact);
       var observer = new MutationObserver(function() {
         assert.isTrue(contactDetails.classList.contains('up'));
-        assert.include(dom.innerHTML, contact.photo[0]);
 
         observer.disconnect();
-        var spy = sinon.spy(Contacts, 'updatePhoto');
+        var spy = sinon.spy(utils, 'updatePhoto');
 
         var observer2 = new MutationObserver(function() {
           observer2.disconnect();
           assert.equal(spy.callCount, 0);
+          spy.restore();
           done();
         });
         observer2.observe(cover, {

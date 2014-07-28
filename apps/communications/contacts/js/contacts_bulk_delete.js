@@ -36,7 +36,7 @@ contacts.BulkDelete = (function() {
         }
       };
 
-      Contacts.confirmDialog(null, _('ContactConfirmDel', {n: n}), cancelObject,
+      utils.confirmDialog(null, _('ContactConfirmDel', {n: n}), cancelObject,
                              removeObject);
     });
   };

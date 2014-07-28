@@ -393,6 +393,9 @@ suite('Render contacts list', function() {
     window.utils = window.utils || {};
     window.utils.alphaScroll = MockAlphaScroll;
     window.utils.cookie = MockCookie;
+    window.utils.loadFacebook = function(cb) {
+      cb();
+    };
     realMozContacts = navigator.mozContacts;
     navigator.mozContacts = MockMozContacts;
     subject = contacts.List;

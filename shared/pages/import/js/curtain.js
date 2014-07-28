@@ -159,16 +159,13 @@ var Curtain = (function() {
       }
 
       curtainFrame.classList.add('fade-out');
-      curtainFrame.addEventListener('animationend', function cu_fadeOut(ev) {
-        curtainFrame.removeEventListener('animationend', cu_fadeOut);
-        curtainFrame.classList.remove('visible');
-        curtainFrame.classList.remove('fade-out');
-        curtainFrame.classList.remove('fade-in');
-        delete form.dataset.state;
-        if (typeof hiddenCB === 'function') {
-          hiddenCB();
-        }
-      });
+      curtainFrame.classList.remove('visible');
+      curtainFrame.classList.remove('fade-out');
+      curtainFrame.classList.remove('fade-in');
+      delete form.dataset.state;
+      if (typeof hiddenCB === 'function') {
+        hiddenCB();
+      }
     },
 
     /**

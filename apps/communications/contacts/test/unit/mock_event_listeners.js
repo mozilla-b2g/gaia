@@ -35,5 +35,6 @@ var MockUtils = {
   },
   cookie: {
 
-  }
+  },
+  getContactById: function() {}
 };
