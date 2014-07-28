@@ -114,7 +114,7 @@
           conn.radioState !== null) {
         this._doSetRadioEnabled(conn, enabled);
       } else {
-        var radioStateChangeHandler = (function radioStateChangeHandler() {
+        var radioStateChangeHandler = (function onchange() {
           if (conn.radioState == 'enabling' ||
               conn.radioState == 'disabling' ||
               conn.radioState == null) {
