@@ -77,6 +77,11 @@
      * @param {string} eventName Name of the event to remove all listeners for.
      */
     offAll: function(eventName) {
+      if (typeof eventName === 'undefined') {
+        this.listeners.clear();
+        return;
+      }
+
       ensureValidEventName(eventName);
       ensureAllowedEventName(this.allowedEvents, eventName);
 
