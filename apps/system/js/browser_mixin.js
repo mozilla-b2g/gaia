@@ -148,6 +148,12 @@
       }
     },
 
+    stop: function bm_stop() {
+      if (this.browser.element) {
+        this.browser.element.stop();
+      }
+    },
+
     _setVisible: function bm__setVisible(visible) {
       if (this.browser && this.browser.element &&
           'setVisible' in this.browser.element) {

@@ -841,6 +841,7 @@ suite('system/AppWindow', function() {
     goBack: function() {},
     goForward: function() {},
     reload: function() {},
+    stop: function() {},
     getCanGoForward: function() {
       return {
         onsuccess: function() {},
@@ -911,6 +912,7 @@ suite('system/AppWindow', function() {
       var stubBack = this.sinon.stub(app1.browser.element, 'goBack');
       var stubForward = this.sinon.stub(app1.browser.element, 'goForward');
       var stubReload = this.sinon.stub(app1.browser.element, 'reload');
+      var stubStop = this.sinon.stub(app1.browser.element, 'stop');
 
       app1.focus();
       assert.isTrue(stubFocus.called);
@@ -922,6 +924,8 @@ suite('system/AppWindow', function() {
       assert.isTrue(stubForward.called);
       app1.reload();
       assert.isTrue(stubReload.called);
+      app1.stop();
+      assert.isTrue(stubStop.called);
     });
 
     test('MozBrowser API: getScreenshot', function() {
