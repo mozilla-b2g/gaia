@@ -179,7 +179,7 @@ function shareSingleItem() {
 
   function shareModifiedImage() {
     var metadata = fileinfo.metadata;
-    var button = $('fullscreen-share-button');
+    var button = fullscreenButtons.share;
     button.classList.add('disabled');
     showSpinner();
     cropResizeRotate(currentFrame.imageblob, null,
