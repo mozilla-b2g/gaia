@@ -347,8 +347,7 @@ suite('system/NotificationScreen >', function() {
       window.addEventListener(
         'mozContentNotificationEvent', contentNotificationEventStub);
 
-      var event = new CustomEvent('tap', { bubbles: true, cancelable: true });
-      notificationNode.dispatchEvent(event);
+      notificationNode.click();
     });
 
     teardown(function() {
@@ -403,8 +402,7 @@ suite('system/NotificationScreen >', function() {
     });
 
     test('tapping on the notification', function() {
-      var event = new CustomEvent('tap', { bubbles: true, cancelable: true });
-      notificationNode.dispatchEvent(event);
+      notificationNode.click();
 
       sinon.assert.calledOnce(notifClickedStub);
       sinon.assert.calledTwice(contentNotificationEventStub);
@@ -431,8 +429,7 @@ suite('system/NotificationScreen >', function() {
     });
 
     test('tapping on the toaster', function() {
-      var event = new CustomEvent('tap', { bubbles: true, cancelable: true });
-      fakeToaster.dispatchEvent(event);
+      fakeToaster.click();
 
       sinon.assert.calledOnce(notifClickedStub);
       sinon.assert.calledTwice(contentNotificationEventStub);
