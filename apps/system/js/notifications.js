@@ -72,7 +72,7 @@ var NotificationScreen = {
     this.toasterDetail = document.getElementById('toaster-detail');
     this.clearAllButton = document.getElementById('notification-clear');
 
-    ['touchstart', 'touchmove', 'touchend', 'touchcancel', 'wheel'].
+    ['tap', 'touchstart', 'touchmove', 'touchend', 'touchcancel', 'wheel'].
       forEach(function(evt) {
         this.container.addEventListener(evt, this);
         this.toaster.addEventListener(evt, this);
@@ -131,6 +131,10 @@ var NotificationScreen = {
             this.removeNotification(detail.id);
             break;
         }
+        break;
+      case 'tap':
+        var target = evt.target;
+        this.tap(target);
         break;
       case 'touchstart':
         this.touchstart(evt);
@@ -257,7 +261,11 @@ var NotificationScreen = {
     this._touching = false;
 
     if (this._isTap) {
-      this.tap(this._notification);
+      var event = new CustomEvent('tap', {
+        bubbles: true,
+        cancelable: true
+      });
+      this._notification.dispatchEvent(event);
       this._notification = null;
       return;
     }
