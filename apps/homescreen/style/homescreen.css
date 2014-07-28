@@ -177,9 +177,11 @@ body[data-mode = 'edit'] .apps ol > li[data-type = "bookmark"] > div > span > sp
        (device-height: 480px) and (max-height: 390px),
        /* For the Tablet, 800x1280 */
        (device-height: 1280px) and (max-height: 710px),
-       /* For the Twist , 960x540 */
+       /* For the Twist, 960x540 */
        (device-height: 540px) and (max-height: 450px),
-       (device-height: 960px) and (max-height: 870px) {
+       (device-height: 960px) and (max-height: 870px),
+       /* For the Dolphin, 320x569 */
+       (min-device-height: 569px) and (max-device-height: 570px) and (max-height: 479px) {
   footer { display: none !important; }
   .apps > div { height: 100% !important; }
   #bg-overlay { height: 100%;}
