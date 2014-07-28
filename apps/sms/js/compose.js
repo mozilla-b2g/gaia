@@ -16,7 +16,8 @@
  * resetting (auto manages placeholder text), getting
  * message content, and message size
  */
-var Compose = (function() {
+
+(function(exports) {
   // delay between 2 counter updates while composing a message
   var UPDATE_DELAY = 500;
 
@@ -235,11 +236,11 @@ var Compose = (function() {
     */
     state.empty = isEmptyMessage && !hasSubject();
 
-    compose.updateSendButton();
-    compose.updateType();
+    Compose.updateSendButton();
+    Compose.updateType();
     updateSegmentInfoThrottled();
 
-    trigger.call(compose, 'input');
+    trigger.call(Compose, 'input');
   }
 
   function hasAttachment() {
@@ -252,12 +253,12 @@ var Compose = (function() {
 
   function composeKeyEvents(e) {
     // if locking and no-backspace pressed, cancel
-    if (compose.lock && e.which !== 8) {
+    if (Compose.lock && e.which !== 8) {
       e.preventDefault();
     } else {
       // trigger a recompute of size on the keypresses
       state.size = null;
-      compose.lock = false;
+      Compose.lock = false;
     }
   }
 
@@ -267,7 +268,7 @@ var Compose = (function() {
 
     if (fns && fns.length) {
       for (var i = 0; i < fns.length; i++) {
-        fns[i].call(compose, event);
+        fns[i].call(Compose, event);
       }
     }
   }
@@ -389,11 +390,11 @@ var Compose = (function() {
           charsAvailableInLastSegment: 0
         };
       }
-    ).then(compose.updateType.bind(Compose))
-    .then(trigger.bind(compose, 'segmentinfochange'));
+    ).then(Compose.updateType.bind(Compose))
+    .then(trigger.bind(Compose, 'segmentinfochange'));
   }
 
-  var compose = {
+  var Compose = {
     init: function composeInit(formId) {
       dom.form = document.getElementById(formId);
       dom.message = document.getElementById('messages-input');
@@ -716,7 +717,7 @@ var Compose = (function() {
     updateSendButton: function() {
       // should disable if we have no message input
       var disableSendMessage = state.empty || state.resizing;
-      var messageNotLong = compose.size <= Settings.mmsSizeLimitation;
+      var messageNotLong = Compose.size <= Settings.mmsSizeLimitation;
 
       /* Bug 1040144: replace ThreadUI direct invocation by a instanciation-time
        * property */
@@ -867,13 +868,13 @@ var Compose = (function() {
 
   };
 
-  Object.defineProperty(compose, 'type', {
+  Object.defineProperty(Compose, 'type', {
     get: function composeGetType() {
       return state.type;
     }
   });
 
-  Object.defineProperty(compose, 'size', {
+  Object.defineProperty(Compose, 'size', {
     get: function composeGetSize() {
       if (state.size === null) {
         state.size = this.getContent().reduce(function(sum, content) {
@@ -889,35 +890,35 @@ var Compose = (function() {
     }
   });
 
-  Object.defineProperty(compose, 'segmentInfo', {
+  Object.defineProperty(Compose, 'segmentInfo', {
     get: function composeGetSegmentInfo() {
       return state.segmentInfo;
     }
   });
 
-  Object.defineProperty(compose, 'isResizing', {
+  Object.defineProperty(Compose, 'isResizing', {
     get: function composeGetResizeState() {
       return state.resizing;
     }
   });
 
-  Object.defineProperty(compose, 'isSubjectVisible', {
+  Object.defineProperty(Compose, 'isSubjectVisible', {
     get: function composeGetResizeState() {
       return subject.isShowing;
     }
   });
 
-  Object.defineProperty(compose, 'subjectMaxLength', {
+  Object.defineProperty(Compose, 'subjectMaxLength', {
     get: function composeGetResizeState() {
       return subject.getMaxLength();
     }
   });
 
-  Object.defineProperty(compose, 'ignoreEvents', {
+  Object.defineProperty(Compose, 'ignoreEvents', {
     set: function composeIgnoreEvents(value) {
       dom.message.classList.toggle('ignoreEvents', value);
     }
   });
 
-  return compose;
-}());
+  exports.Compose = Compose;
+}(window));
