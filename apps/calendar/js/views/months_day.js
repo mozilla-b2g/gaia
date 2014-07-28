@@ -132,10 +132,16 @@ Calendar.ns('Views').MonthsDay = (function() {
       this._initEvents();
       var date = Calendar.Calc.createDay(new Date());
       this.changeDate(date);
+    },
+
+    onfirstseen: function() {
+      // this avoids a race condition where events from hidden calendars would
+      // show up on first load
+      this.app.store('Calendar').all(() => {
+        this.render();
+      });
     }
   };
-
-  MonthsDay.prototype.onfirstseen = MonthsDay.prototype.render;
 
   return MonthsDay;
 }());
