@@ -44,6 +44,7 @@
      */
     configs: {
       listens: ['lockscreen-request-unlock',
+                'lockscreen-request-lock',
                 'lockscreen-appcreated',
                 'lockscreen-appterminated',
                 'lockscreen-appclose',
@@ -109,6 +110,9 @@
         case 'lockscreen-request-unlock':
           this.responseUnlock(evt.detail);
           break;
+        case 'lockscreen-request-lock':
+          this.responseLock(evt.detail);
+          break;
         case 'lockscreen-appcreated':
           app = evt.detail;
           this.registerApp(app);
@@ -134,6 +138,11 @@
           // We assume that this component is started before AppWindowManager
           // to make this blocking code works.
           if (this.states.active) {
+            // XXX: I don't want to change the order of event registration
+            // at this early-refactoring stage, so do this to minimize the
+            // risk and complete the work.
+            window.dispatchEvent(
+              new CustomEvent('lockscreen-notify-homepressed'));
             evt.stopImmediatePropagation();
           }
           break;
@@ -352,6 +361,11 @@
       } else {
         activeApp.ready(this.closeApp.bind(this));
       }
+    };
+
+  LockScreenWindowManager.prototype.responseLock =
+    function lwm_responseLock(detail) {
+      this.openApp();
     };
 
   /** @exports LockScreenWindowManager */
