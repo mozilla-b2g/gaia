@@ -862,7 +862,28 @@
     top: 0;
     right: 0;
     bottom: 0;
-    left: 0;  
+    left: 0;
+  }
+
+  #group-call-details section.ended > .hangup-button {
+    background-image: none;
+  }
+
+  #group-call-details section.ended > .duration {
+    display: block;
+    position: absolute;
+    top: 1rem;
+    right: 1.5rem;
+  }
+
+  #group-call-details section.ended > .duration > span {
+    font-weight: normal;
+  }
+
+  #group-call-details section.ended > .duration > .total-duration {
+    text-align: right;
+    font-weight: 300;
+    line-height: 1.7rem;
   }
 
   #group-call .fake-number {

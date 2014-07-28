@@ -34,7 +34,10 @@ var ConferenceGroupHandler = (function() {
     var calls = telephony.conferenceGroup.calls;
     CallScreen.updateCallsDisplay();
     if (!calls.length) {
-      CallScreen.hideGroupDetails();
+      setTimeout(function() {
+        CallScreen.hideGroupDetails();
+      }, CallScreen.groupCalls.classList.contains('display') ?
+          CallScreen.callEndPromptTime : 0);
     }
 
     LazyL10n.get(function localized(_) {

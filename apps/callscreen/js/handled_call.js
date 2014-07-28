@@ -16,6 +16,10 @@ function HandledCall(aCall) {
       CallScreen.moveToGroup(this.node);
       this._leftGroup = false;
     } else if (this._wasUnmerged()) {
+      if (CallScreen.groupCalls.classList.contains('display')) {
+        var clonedNode = this.node.cloneNode(true);
+        this.node.parentNode.insertBefore(clonedNode, this.node);
+      }
       CallScreen.insertCall(this.node);
       this._leftGroup = false;
     } else {
