@@ -98,6 +98,9 @@
       _ac.removeEventListener('mozinterruptbegin', _onmozinterruptbegin);
       _ac.removeEventListener('mozinterruptend', _onmozinterruptend);
       _addListenersBeforeCompeting = true;
+      _silenceBufferSource.buffer = null;
+      _silenceBufferSource = null;
+      _ac = null;
     },
 
     /**
