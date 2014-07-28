@@ -24,6 +24,11 @@ class GaiaIntegrationParser(ArgumentParser):
           "default": None,
           "help": "Path to b2g directory."
         }],
+        [["--symbols-path"],
+        { "dest": "symbols_path",
+          "default": None,
+          "help": "Path to build symbols used by crash reporting."
+        }],
     ]
 
     def __init__(self, *args, **kwargs):

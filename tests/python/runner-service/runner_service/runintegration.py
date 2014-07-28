@@ -59,7 +59,9 @@ def cli(args=sys.argv[1:]):
     parser = GaiaIntegrationParser()
     args = parser.parse_args(args)
 
-    rhandler_args = {}
+    rhandler_args = {
+        'symbols_path': args.symbols_path,
+    }
     if args.b2g_home:
         rhandler_args['b2g_home'] = args.b2g_home
     rhandler = runner_handlers[args.buildapp](**rhandler_args)
