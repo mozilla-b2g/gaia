@@ -25,13 +25,13 @@ define(function(require) {
         elements = {
           panel: panel,
           wifi: panel,
-          wpsColumn: panel.querySelector('#wps-column'),
-          wpsInfoBlock: panel.querySelector('#wps-column small'),
-          wpsPbcLabelBlock: panel.querySelector('#wps-column a'),
-          manageNetworksBtn: panel.querySelector('#manageNetworks'),
-          wifiCheckbox: panel.querySelector('#wifi-enabled input'),
-          manageCertificatesBtn: panel.querySelector('#manageCertificates'),
-          wifiAvailableNetworks: panel.querySelector('#wifi-availableNetworks'),
+          wpsColumn: panel.querySelector('.wps-column'),
+          wpsInfoBlock: panel.querySelector('.wps-column small'),
+          wpsPbcLabelBlock: panel.querySelector('.wps-column a'),
+          manageNetworksBtn: panel.querySelector('.manageNetworks'),
+          wifiCheckbox: panel.querySelector('.wifi-enabled input'),
+          manageCertificatesBtn: panel.querySelector('.manageCertificates'),
+          wifiAvailableNetworks: panel.querySelector('.wifi-availableNetworks'),
         };
 
         elements.infoItem = elements.wifiAvailableNetworks.querySelector(

@@ -16,9 +16,9 @@ define(function(require) {
         elements = {};
         elements.panel = panel;
         elements.certificateFilesList =
-          panel.querySelector('#wifi-certificate-files-List');
+          panel.querySelector('.wifi-certificate-files-List');
         elements.certificateFailedDialog =
-          panel.querySelector('#certificate-import-failed');
+          panel.querySelector('.certificate-import-failed');
       },
       onBeforeShow: function(panel) {
         this._cleanup();
