@@ -22,7 +22,8 @@ requirejs.config({
     'performance-testing-helper': '../shared/js/performance_testing_helper',
     'debug': '../bower_components/debug/index',
     'model': '../bower_components/model/index',
-    'evt': '../bower_components/evt/index'
+    'evt': '../bower_components/evt/index',
+    'device-orientation': '../bower_components/device-orientation/index'
   },
 
   // 'shim' config lets us `require()` packages
