@@ -158,7 +158,7 @@ contacts.Form = (function() {
 
   var init = function cf_init(tags, currentDom) {
     dom = currentDom || document;
-  
+
     _ = navigator.mozL10n.get;
     initContainers();
 
@@ -872,6 +872,9 @@ contacts.Form = (function() {
     // Deleting auxiliary objects created for dates
     delete contact.date;
 
+    // When we add new contact, it has no id at the beginning. We have one, if
+    // we edit current contact. We will use this information below.
+    var isNew = contact.id !== 'undefined';
     var request = navigator.mozContacts.save(utils.misc.toMozContact(contact));
 
     request.onsuccess = function onsuccess() {
@@ -883,7 +886,14 @@ contacts.Form = (function() {
       if (!noTransition) {
         Contacts.cancel();
       }
-      Contacts.setCurrent(contact);
+
+      // Since editing current contact returns to the details view, and adding
+      // the new one to the contacts list, we call setCurrent() only in the
+      // first case, so NFC listeners are not set on the Contact List
+      // (Bug 1041455).
+      if (isNew) {
+        Contacts.setCurrent(contact);
+      }
     };
 
     request.onerror = function onerror() {
