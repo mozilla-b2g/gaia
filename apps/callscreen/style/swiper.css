@@ -1,0 +1,126 @@
+/* Lockscreen slider - Need to move duplicate styling in other proper place */
+#lockscreen-area {
+  position: absolute;
+  height: 11.2rem;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 4;
+}
+
+.lockscreen-icon-area {
+  height: 10rem;
+  position: absolute;
+  border-style: none;
+  transition: opacity 0.5s ease;
+}
+
+.lockscreen-icon {
+  margin-top: 2rem;
+  width: 6rem;
+  height: 6rem;
+
+  pointer-events: none;
+}
+
+.lockscreen-icon-area.dark .lockscreen-icon {
+  opacity: 0.65;
+}
+
+#lockscreen-area-slide {
+  text-align: center;
+  width: calc(100%);
+}
+
+.touched .lockscreen-icon {
+  transition: none;
+}
+
+.lockscreen-icon-right {
+  right: calc(50% - 14rem);
+}
+
+.lockscreen-icon-left {
+  left: calc(50% - 14rem);
+}
+
+@media (min-width:768px) {
+  .lockscreen-icon-right {
+    right: calc(50% - 20.5rem);
+  }
+
+  .lockscreen-icon-left {
+    left: calc(50% - 20.5rem);
+  }
+
+  #lockscreen-header {
+    text-shadow: 0 0 0.5rem #111111;
+    padding-left: 6rem;
+    font-weight: lighter;
+  }
+
+  #lockscreen-date {
+    padding-top: 0.5rem;
+    font-size: 2.4rem;
+  }
+}
+
+button::-moz-focus-inner {
+  border: 0;
+}
+
+:-moz-any(.touched, #screen:not(.locked), #screen.attention, #lockscreen:not([data-panel="main"]))
+:-moz-any(#lockscreen-left-arrow, #lockscreen-right-arrow) {
+  display: none;
+  animation: none;
+}
+
+#lockscreen-area-pickup > div {
+  background-image: url('images/lock_screen/actionicon_lockscreen_answer.png');
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 4rem;
+}
+
+.lockscreen-icon-left, .lockscreen-icon-right {
+  z-index: 16;
+  pointer-events: auto;
+}
+
+/* Compensation for the effects after enabling the pointer-event attribute. */
+.lockscreen-icon-left:active, .lockscreen-icon-right:active {
+  background: none;
+}
+
+#lockscreen-area-hangup > div {
+  background-image: url('images/lock_screen/actionicon_lockscreen_reject.png');
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 4rem;
+}
+
+#lockscreen-icon-container {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 10rem;
+  pointer-events: none;
+  border-top: 0.1rem solid #989898;
+  background-color: rgba(231, 231, 231, 0.85);
+  z-index: 5;
+}
+
+.touched #lockscreen-icon-container {
+  transition: none;
+}
+
+.touched .lockscreen-icon-area {
+  transition: none;
+}
+
+#lockscreen-canvas-wrapper {
+  position: absolute;
+  bottom: 0.75rem;
+  z-index: 8;
+  width: 100%;
+}

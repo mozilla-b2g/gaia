@@ -366,6 +366,7 @@ apps/system/js/icc_worker.js
 apps/system/js/identity.js
 apps/system/js/init_logo_handler.js
 apps/system/js/keyboard_manager.js
+apps/system/js/lockscreen_connection_info_manager.js
 apps/system/js/media_playback.js
 apps/system/js/modal_dialog.js
 apps/system/js/notifications.js
@@ -377,6 +378,8 @@ apps/system/js/quick_settings.js
 apps/system/js/screen_manager.js
 apps/system/js/sheets_transition.js
 apps/system/js/sim_lock.js
+apps/system/js/simslot.js
+apps/system/js/simslot_manager.js
 apps/system/js/sound_manager.js
 apps/system/js/statusbar.js
 apps/system/js/storage_watcher.js
@@ -430,6 +433,7 @@ apps/system/test/unit/homescreen_launcher_test.js
 apps/system/test/unit/iac_handler_test.js
 apps/system/test/unit/identity_test.js
 apps/system/test/unit/keyboard_helper_test.js
+apps/system/test/unit/lockscreen_conn_info_manager_test.js
 apps/system/test/unit/lockscreen_test.js
 apps/system/test/unit/mobile_operator_test.js
 apps/system/test/unit/mock_activity.js
@@ -452,6 +456,7 @@ apps/system/test/unit/mock_homescreen_launcher.js
 apps/system/test/unit/mock_homescreen_window.js
 apps/system/test/unit/mock_iac_handler.js
 apps/system/test/unit/mock_iachandler.js
+apps/system/test/unit/mock_icc_manager.js
 apps/system/test/unit/mock_keyboard_manager.js
 apps/system/test/unit/mock_lock_screen.js
 apps/system/test/unit/mock_media_files.js
@@ -475,7 +480,11 @@ apps/system/test/unit/quick_settings_test.js
 apps/system/test/unit/screen_manager_test.js
 apps/system/test/unit/settings_helper_test.js
 apps/system/test/unit/sheets_transition_test.js
+apps/system/test/unit/simcard_dialog_test.js
+apps/system/test/unit/simslot_manager_test.js
+apps/system/test/unit/simslot_test.js
 apps/system/test/unit/spin_date_picker_test.js
+apps/system/test/unit/statusbar_test.js
 apps/system/test/unit/storage_watcher_test.js
 apps/system/test/unit/updatable_test.js
 apps/system/test/unit/update_manager_test.js

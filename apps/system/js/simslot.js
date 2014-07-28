@@ -1,4 +1,3 @@
-/* globals SIMSlot */
 'use strict';
 
 (function(window) {
@@ -139,4 +138,4 @@
   SIMSlot.prototype.isLocked = function ss_isLocked() {
     return !!lockTypes[this.simCard.cardState];
   };
-}(window));
+}(this));

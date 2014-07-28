@@ -85,7 +85,7 @@
       if (typeof cur === 'object') {
         cur = JSON.stringify(cur);
       }
-      return prev + (cur ? cur : '');
+      return prev + cur;
     }, '');
   }
 

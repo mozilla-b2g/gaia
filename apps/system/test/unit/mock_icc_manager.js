@@ -1,4 +1,3 @@
-/* exported MockIccManager */
 'use strict';
 
 var MockIccManager = {

@@ -1402,3 +1402,4 @@ test('extend()', function() {
     'does not copy over properties from prototype'
   );
 });
+

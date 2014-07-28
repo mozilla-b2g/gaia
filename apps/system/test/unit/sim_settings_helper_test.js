@@ -5,8 +5,8 @@
 
 'use strict';
 
-requireApp('system/shared/test/unit/mocks/mock_simslot.js');
-requireApp('system/shared/test/unit/mocks/mock_simslot_manager.js');
+requireApp('system/js/mock_simslot.js');
+requireApp('system/js/mock_simslot_manager.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 
 var mocksForSIMSettingsHelper = new MocksHelper([

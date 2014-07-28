@@ -12,7 +12,6 @@ var CallScreen = {
 
   body: document.body,
   screen: document.getElementById('call-screen'),
-  lockscreenConnStates: document.getElementById('lockscreen-conn-states'),
   views: document.getElementById('views'),
 
   calls: document.getElementById('calls'),
@@ -154,21 +153,6 @@ var CallScreen = {
     this.syncSpeakerEnabled();
   },
 
-  _connInfoManagerInitialized: false,
-  initLockScreenConnInfoManager: function cs_initLockScreenConnInfoManager() {
-    if (this._connInfoManagerInitialized) {
-      return;
-    }
-
-    /* mobile connection state on lock screen */
-    if (window.navigator.mozMobileConnections) {
-      LazyL10n.get(function localized(_) {
-          new window.LockScreenConnInfoManager(CallScreen.lockscreenConnStates);
-        CallScreen._connInfoManagerInitialized = true;
-      });
-    }
-  },
-
   _slideInitialized: false,
   initLockScreenSlide: function cs_initLockScreenSlide() {
     if (this._slideInitialized) {
@@ -180,49 +164,46 @@ var CallScreen = {
     this.hangUpIcon = document.getElementById('lockscreen-area-hangup');
     this.pickUpIcon = document.getElementById('lockscreen-area-pickup');
     this.initUnlockerEvents();
-    new LockScreenSlide({
-      useNewStyle: true,
-
-      IDs: {
-        overlay: 'main-container',
-        areas: {
-          left: 'lockscreen-area-hangup',
-          right: 'lockscreen-area-pickup'
+    new LockScreenSlide(
+      // Options
+      {
+        IDs: {
+          overlay: 'main-container',
+          areas: {
+            left: 'lockscreen-area-hangup',
+            right: 'lockscreen-area-pickup'
+          }
         },
-      },
 
-      trackNew: {
-        strokeColorTop: 'rgba(0, 0, 0, 0)',
-        strokeColorBottom: 'rgba(0, 0, 0, 0)',
-        fillColorTop: 'rgba(0, 0, 0, 0.1)',
-        fillColorBottom: 'rgba(0, 0, 0, 0.1)'
-      },
-
-      colors: {
-        left: {
-          touchedColor: '224, 0, 0',
-          touchedColorStop: '255, 255, 255'
+        track: {
+          backgroundColor: 'rgba(0, 0, 0, 0.4)'
         },
-        right: {
-          touchedColor: '0, 173, 173',
-          touchedColorStop: '255, 255, 255'
+
+        colors: {
+          left: {
+            touchedColor: '255, 0, 0',
+            touchedColorStop: '255, 178, 178'
+          },
+
+          right: {
+            touchedColor: '132, 200, 44',
+            touchedColorStop: '218, 238, 191'
+          }
+        },
+
+        resources: {
+          larrow: '/style/images/lock_screen/LArrow_Lockscreen.png',
+          rarrow: '/style/images/lock_screen/RArrow_Lockscreen.png'
+        },
+        handle: {
+          autoExpand: {
+            sentinelOffset: 80
+          },
+          backgroundColor: '255, 255, 255',
+          backgroundAlpha: 0.85
         }
-      },
-
-      iconBG: {
-        left: {
-          color: 'rgba(224, 0, 0, 0.80)'
-        },
-        right: {
-          color: 'rgba(0, 173, 173, 0.80)'
-        }
-      },
-
-      resourcesNew: {
-        larrow: '/style/images/lock_screen/lockscreen_toggle_arrow_left.png',
-        rarrow: '/style/images/lock_screen/lockscreen_toggle_arrow_right.png'
       }
-    });
+    );
   },
 
   _wallpaperReady: false,
@@ -343,7 +324,6 @@ var CallScreen = {
 
   hashchangeHandler: function cs_hashchangeHandler() {
     if (window.location.hash.startsWith('#locked')) {
-      this.initLockScreenConnInfoManager();
       this.showClock(new Date());
       this.initLockScreenSlide();
 
