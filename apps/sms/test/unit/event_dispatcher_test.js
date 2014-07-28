@@ -31,6 +31,10 @@ suite('EventDispatcher >', function() {
     );
   });
 
+  teardown(function() {
+    eventTarget.offAll();
+  });
+
   suite('mixin >', function() {
     test('throws if object to mix into is not valid object', function() {
       assert.throws(() => EventDispatcher.mixin());
@@ -73,10 +77,6 @@ suite('EventDispatcher >', function() {
   });
 
   suite('on >', function() {
-    setup(function() {
-      eventTarget.offAll('event');
-    });
-
     test('throws if event name is not valid string', function() {
       assert.throws(() => eventTarget.on());
       assert.throws(() => eventTarget.on('', () => {}));
@@ -122,10 +122,6 @@ suite('EventDispatcher >', function() {
     });
 
     suite('with allowed events >', function() {
-      setup(function() {
-        allowedEvents.forEach((event) => restrictedEventTarget.offAll(event));
-      });
-
       test('throws if event name is not allowed', function() {
         assert.throws(() => restrictedEventTarget.on('event'));
       });
@@ -148,10 +144,6 @@ suite('EventDispatcher >', function() {
   });
 
   suite('off >', function() {
-    setup(function() {
-      eventTarget.offAll('event');
-    });
-
     test('throws if event name is not valid string', function() {
       assert.throws(() => eventTarget.off());
       assert.throws(() => eventTarget.off('', () => {}));
@@ -210,10 +202,6 @@ suite('EventDispatcher >', function() {
     });
 
     suite('with allowed events >', function() {
-      setup(function() {
-        allowedEvents.forEach((event) => restrictedEventTarget.offAll(event));
-      });
-
       test('throws if event name is not allowed', function() {
         assert.throws(() => restrictedEventTarget.off('event'));
       });
@@ -235,12 +223,7 @@ suite('EventDispatcher >', function() {
   });
 
   suite('offAll >', function() {
-    setup(function() {
-      eventTarget.offAll('event');
-    });
-
     test('throws if event name is not valid string', function() {
-      assert.throws(() => eventTarget.offAll());
       assert.throws(() => eventTarget.offAll(''));
       assert.throws(() => eventTarget.offAll(null));
     });
@@ -269,11 +252,25 @@ suite('EventDispatcher >', function() {
       sinon.assert.calledTwice(handler2);
     });
 
-    suite('with allowed events >', function() {
-      setup(function() {
-        allowedEvents.forEach((event) => restrictedEventTarget.offAll(event));
-      });
+    test('successfully unregisters all handlers', function() {
+      var handler1 = sinon.stub();
+      var handler2 = sinon.stub();
+      var handler3 = sinon.stub();
 
+      restrictedEventTarget.on('allowed-event-1', handler1);
+      restrictedEventTarget.on('allowed-event-1', handler2);
+      restrictedEventTarget.on('allowed-event-2', handler3);
+
+      restrictedEventTarget.offAll();
+      restrictedEventTarget.emit('allowed-event-1');
+      restrictedEventTarget.emit('allowed-event-2');
+
+      sinon.assert.notCalled(handler1);
+      sinon.assert.notCalled(handler2);
+      sinon.assert.notCalled(handler3);
+    });
+
+    suite('with allowed events >', function() {
       test('throws if event name is not allowed', function() {
         assert.throws(() => restrictedEventTarget.offAll('event'));
       });
@@ -306,12 +303,6 @@ suite('EventDispatcher >', function() {
   });
 
   suite('emit >', function() {
-    setup(function() {
-      eventTarget.offAll('event');
-      eventTarget.offAll('other-event');
-      eventTarget.offAll('event-1');
-    });
-
     test('throws if event name is not valid string', function() {
       assert.throws(() => eventTarget.emit());
       assert.throws(() => eventTarget.emit('', {}));
@@ -374,10 +365,6 @@ suite('EventDispatcher >', function() {
     });
 
     suite('with allowed events >', function() {
-      setup(function() {
-        allowedEvents.forEach((event) => restrictedEventTarget.offAll(event));
-      });
-
       test('throws if event name is not allowed', function() {
         assert.throws(() => restrictedEventTarget.emit('event'));
       });
