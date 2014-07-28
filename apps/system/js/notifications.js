@@ -70,7 +70,7 @@ var NotificationScreen = {
     this.toasterDetail = document.getElementById('toaster-detail');
     this.clearAllButton = document.getElementById('notification-clear');
 
-    ['tap', 'touchstart', 'touchmove', 'touchend', 'touchcancel', 'wheel'].
+    ['click', 'touchstart', 'touchmove', 'touchend', 'touchcancel', 'wheel'].
       forEach(function(evt) {
         this.container.addEventListener(evt, this);
         this.toaster.addEventListener(evt, this);
@@ -130,7 +130,7 @@ var NotificationScreen = {
             break;
         }
         break;
-      case 'tap':
+      case 'click':
         var target = evt.target;
         this.tap(target);
         break;
@@ -159,10 +159,10 @@ var NotificationScreen = {
         }
         break;
       case 'ftuopen':
-        this.toaster.removeEventListener('tap', this);
+        this.toaster.removeEventListener('click', this);
         break;
       case 'ftudone':
-        this.toaster.addEventListener('tap', this);
+        this.toaster.addEventListener('click', this);
         break;
       case 'desktop-notification-resend':
         this.resendExpecting = evt.detail.number;
