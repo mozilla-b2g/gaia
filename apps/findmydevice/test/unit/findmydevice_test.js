@@ -232,4 +232,13 @@ suite('FindMyDevice >', function() {
     sendWakeUpMessage(IAC_API_WAKEUP_REASON_ENABLED_CHANGED);
     sinon.assert.called(FindMyDevice._reportDisabled);
   });
+
+  test('wakelocks are released on unregistered clientID change', function() {
+    FindMyDevice._registered = false;
+    this.sinon.stub(FindMyDevice, 'endHighPriority');
+    MockNavigatorSettings.mTriggerObservers('findmydevice.current-clientid',
+        {settingValue: ''});
+    sinon.assert.calledOnce(FindMyDevice.endHighPriority);
+    sinon.assert.calledWith(FindMyDevice.endHighPriority, 'clientLogic');
+  });
 });

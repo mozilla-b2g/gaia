@@ -459,6 +459,8 @@ var FindMyDevice = {
       this._canDisableHelper.set(
         this._loggedIn &&
         this._currentClientID === this._state.clientid);
+    } else {
+      this.endHighPriority('clientLogic');
     }
   },
 
