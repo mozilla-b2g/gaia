@@ -10,8 +10,16 @@ var Hotspot = {
 
   initHotspotPanel: function() {
     var settings = window.navigator.mozSettings;
+    var lock = settings.createLock();
+
     var hotspotSettingBtn =
       document.querySelector('#hotspot-settings-section button');
+
+    var hotspotElement =
+      document.querySelector('input#tethering-wifi-enabled');
+
+    var usbTetheringElement =
+      document.querySelector('input#tethering-usb-enabled');
 
     function generateHotspotPassword() {
       var words = ['amsterdam', 'ankara', 'auckland',
@@ -31,7 +39,6 @@ var Hotspot = {
       return password;
     }
 
-    var lock = settings.createLock();
     var req = lock.get('tethering.wifi.security.password');
     req.onsuccess = function onThetheringPasswordSuccess() {
       var pwd = req.result['tethering.wifi.security.password'];
@@ -44,19 +51,131 @@ var Hotspot = {
     function setHotspotSettingsEnabled(enabled) {
       // disable the setting button when internet sharing is enabled
       hotspotSettingBtn.disabled = enabled;
+      hotspotElement.checked = enabled;
     }
 
-    // tethering enabled
+    function setUSBTetheringCheckbox(enabled) {
+      usbTetheringElement.checked = enabled;
+    }
+
+    // Wi-fi hotspot event listener
+    hotspotElement.addEventListener('change', _hotspotMasterSettingChanged);
+
+    // Wifi tethering enabled
     settings.addObserver('tethering.wifi.enabled', function(event) {
       setHotspotSettingsEnabled(event.settingValue);
     });
 
+    // USB tethering event listener
+    usbTetheringElement.addEventListener('change', _usbTetheringSettingChanged);
+
+    // USB tethering enabled
+    settings.addObserver('tethering.usb.enabled', function(event) {
+      setUSBTetheringCheckbox(event.settingValue);
+    });
+
+    function _hotspotMasterSettingChanged(evt) {
+      var checkbox = evt.target;
+      var lock = settings.createLock();
+      var cset = {};
+      var usbStorageSetting;
+      var usbTetheringSetting;
+
+      var promiseUsbTethering = new Promise(function(resolve, reject) {
+        var requestUsbTetheringSetting = lock.get('tethering.usb.enabled');
+
+        requestUsbTetheringSetting.onsuccess = function dt_getStatusSuccess() {
+          resolve(requestUsbTetheringSetting.result['tethering.usb.enabled']);
+        };
+      });
+      promiseUsbTethering.then(function(usbTetheringSetting) {
+        if (checkbox.checked) {
+          // In that case there is no need to show a dialog
+          if (!usbTetheringSetting) {
+            cset['tethering.wifi.enabled'] = true;
+            settings.createLock().set(cset);
+          } else {
+            openIncompatibleSettingsDialog('incompatible-settings-dialog',
+              'tethering.wifi.enabled', 'tethering.usb.enabled', null);
+          }
+        } else {
+          cset['tethering.wifi.enabled'] = false;
+          settings.createLock().set(cset);
+        }
+      });
+    }
+
+    function _usbTetheringSettingChanged(evt) {
+      var checkbox = evt.target;
+      var lock = navigator.mozSettings.createLock();
+      var cset = {};
+      var usbStorageSetting;
+      var wifiTetheringSetting;
+
+      var promiseUsbStorage = new Promise(function(resolve, reject) {
+        var requestUsbStorageSetting = lock.get('ums.enabled');
+
+        requestUsbStorageSetting.onsuccess = function dt_getStatusSuccess() {
+          resolve(requestUsbStorageSetting.result['ums.enabled']);
+        };
+      });
+
+      var promiseWifiTethering = new Promise(function(resolve, reject) {
+        var requestWifiTetheringSetting = lock.get('tethering.wifi.enabled');
+
+        requestWifiTetheringSetting.onsuccess = function dt_getStatusSuccess() {
+          resolve(requestWifiTetheringSetting.result['tethering.wifi.enabled']);
+        };
+      });
+
+      Promise.all([promiseUsbStorage, promiseWifiTethering])
+        .then(function(values) {
+          usbStorageSetting = values[0];
+          wifiTetheringSetting = values[1];
+          if (checkbox.checked) {
+            if (!usbStorageSetting && !wifiTetheringSetting) {
+              cset['tethering.usb.enabled'] = true;
+              settings.createLock().set(cset);
+            } else {
+              if (usbStorageSetting && wifiTetheringSetting) {
+                // First the user must disable wifi tethering setting
+                openIncompatibleSettingsDialog('incompatible-settings-dialog',
+                  'tethering.usb.enabled', 'tethering.wifi.enabled',
+                  openSecondWarning);
+              } else {
+                var oldSetting = usbStorageSetting ? 'ums.enabled' :
+                  'tethering.wifi.enabled';
+                openIncompatibleSettingsDialog('incompatible-settings-dialog',
+                  'tethering.usb.enabled', oldSetting, null);
+              }
+            }
+          } else {
+            cset['tethering.usb.enabled'] = false;
+            settings.createLock().set(cset);
+          }
+      });
+
+      function openSecondWarning() {
+        openIncompatibleSettingsDialog('incompatible-settings-dialog',
+          'tethering.usb.enabled', 'ums.enabled', null);
+      }
+    }
+
     var reqTetheringWifiEnabled =
       settings.createLock().get('tethering.wifi.enabled');
+
+    var reqTetheringUSBEnabled =
+      settings.createLock().get('tethering.usb.enabled');
 
     reqTetheringWifiEnabled.onsuccess = function dt_getStatusSuccess() {
       setHotspotSettingsEnabled(
         reqTetheringWifiEnabled.result['tethering.wifi.enabled']
+      );
+    };
+
+    reqTetheringUSBEnabled.onsuccess = function dt_getStatusSuccess() {
+      setUSBTetheringCheckbox(
+        reqTetheringUSBEnabled.result['tethering.usb.enabled']
       );
     };
 
