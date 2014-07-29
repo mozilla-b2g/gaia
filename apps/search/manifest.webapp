@@ -35,6 +35,10 @@
     "places": {
       "access": "readonly",
       "description": "Stores data about browsing history."
+    },
+    "bookmarks_store": {
+      "access": "readonly",
+      "description": "Stores data about bookmarks"
     }
   },
   "icons": {

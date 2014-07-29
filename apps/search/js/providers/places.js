@@ -1,12 +1,9 @@
-/* globals DataGridProvider, Promise, Search, GaiaGrid */
+/* globals SyncProvider, GaiaGrid, Search */
 
 (function(exports) {
 
   'use strict';
 
-  // We current re sync from scratch every time and store the last 50
-  // urls in memory
-  var results = {};
   var icons = {};
   var urls = [];
   var MAX_URLS = 50;
@@ -21,32 +18,27 @@
   var MAX_HISTORY_RESULTS = 5;
   var MAX_TOPSITES_RESULTS = 6;
 
+  var MAX_ICON_SIZE = 20000;
+
   // Name of the datastore we pick up places from
   var STORE_NAME = 'places';
-
-  // The last revision that we synced from the datastore, we sync
-  // every time the search app gains focus
-  var lastRevision = 0;
-
-  // Is there a sync in progress
-  var syncing = false;
-
-  var store;
 
   var topSitesWrapper = document.getElementById('top-sites');
   var historyWrapper = document.getElementById('history');
 
-  var initialSync = true;
   var screenshotRequests = {};
 
-  topSitesWrapper.addEventListener('click', itemClicked);
-  historyWrapper.addEventListener('click', itemClicked);
-
+  // Default click handler, expects that we
+  // build object with a url value in the
+  // dataset
   function itemClicked(e) {
     if (e.target.dataset.url) {
       Search.navigate(e.target.dataset.url);
     }
   }
+
+  topSitesWrapper.addEventListener('click', itemClicked);
+  historyWrapper.addEventListener('click', itemClicked);
 
   function saveIcon(key, url) {
     if (key in icons) {
@@ -76,7 +68,7 @@
 
       var blob = xhr.response;
 
-      if (blob.size > this.MAX_ICON_SIZE) {
+      if (blob.size > MAX_ICON_SIZE) {
         return callback(new Error('image_to_large'));
       }
 
@@ -132,7 +124,7 @@
     addToOrderedStore(history, place, 'visited', MAX_HISTORY_RESULTS);
 
     if (addToOrderedStore(topSites, place, 'frecency', MAX_TOPSITES_RESULTS)) {
-      if (initialSync) {
+      if (exports.Places.initialSync) {
         // Dont attempt to load screenshots during initial sync, the
         // pages wont exist
         return;
@@ -178,41 +170,6 @@
     topSitesWrapper.appendChild(docFragment);
   }
 
-  function doSync() {
-    if (syncing) {
-      return;
-    }
-    syncing = true;
-    var cursor = store.sync(lastRevision);
-
-    function cursorResolve(task) {
-      lastRevision = task.revisionId;
-      switch (task.operation) {
-        // First implementation simply syncs recently used links
-        // and searches most recent, this will eventually be used
-        // to build an index
-      case 'update':
-      case 'add':
-        var place = task.data;
-        if (place.url.startsWith('app://') || place.url === 'about:blank') {
-          break;
-        }
-        exports.Places.addPlace(place);
-        break;
-      case 'clear':
-      case 'remove':
-        break;
-      case 'done':
-        initialSync = false;
-        showStartPage();
-        syncing = false;
-        return;
-      }
-      cursor.next().then(cursorResolve);
-    }
-    cursor.next().then(cursorResolve);
-  }
-
   function matchesFilter(value, filter) {
     return !filter || (value && value.match(new RegExp(filter, 'i')) !== null);
   }
@@ -238,42 +195,38 @@
 
   Places.prototype = {
 
-    __proto__: DataGridProvider.prototype,
+    __proto__: SyncProvider.prototype,
 
     name: 'Places',
 
-    click: itemClicked,
+    storeName: STORE_NAME,
 
-    init: function() {
-      DataGridProvider.prototype.init.apply(this, arguments);
+    matchFilter: function(result, filter) {
+      return (matchesFilter(result.title, filter) ||
+                matchesFilter(result.url, filter));
     },
 
-    search: function(filter) {
-      return new Promise((resolve, reject) => {
-        var matched = 0;
-        var renderResults = [];
-        for (var url in results) {
-          var result = results[url];
-          if (!(matchesFilter(result.title, filter) ||
-                matchesFilter(result.url, filter))) {
-            continue;
-          }
-          renderResults.push(formatPlace(result, filter));
-
-          if (++matched >= MAX_AWESOME_RESULTS) {
-            break;
-          }
-        }
-
-        resolve(renderResults);
-      });
+    filterData: function(place) {
+      return place.url.startsWith('app://') ||
+       place.url === 'about:blank';
     },
+
+    adapt: formatPlace,
+
+    limitResults: MAX_AWESOME_RESULTS,
 
     /**
      * Add a place
      */
     addPlace: function(place) {
-      results[place.url] = place;
+      this.add(place);
+    },
+
+    add: function(place) {
+      SyncProvider.prototype.add.call(this, place);
+    },
+
+    postAdd: function(place) {
       var icons = place.icons ? Object.keys(place.icons) : [];
       if (icons.length) {
         saveIcon(place.url, icons[0]);
@@ -283,19 +236,15 @@
       }
       while (urls.length > MAX_URLS) {
         var url = urls.pop();
-        delete results[url];
+        this.delete(url);
       }
       addToStartPage(place);
-    }
+    },
+
+    onDone: showStartPage
   };
 
   exports.Places = new Places();
-  Search.provider(exports.Places);
-
-  navigator.getDataStores(STORE_NAME).then(function(stores) {
-    store = stores[0];
-    store.onchange = doSync;
-    doSync();
-  });
+  exports.Places.init();
 
 }(window));
