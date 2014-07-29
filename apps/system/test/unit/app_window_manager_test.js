@@ -544,16 +544,6 @@ suite('system/AppWindowManager', function() {
       assert.deepEqual(stubSwitchApp.getCall(0).args[1], app2);
       assert.isTrue(stub_updateActiveApp.called);
     });
-
-    test('Continunous app open requests', function() {
-      injectRunningApps(home, app1, app2);
-      AppWindowManager._activeApp = home;
-
-      AppWindowManager.display(app1);
-      AppWindowManager.display(app2);
-
-      assert.deepEqual(AppWindowManager._activeApp, app2);
-    });
   });
 
   suite('Switch app', function() {
@@ -595,6 +585,30 @@ suite('system/AppWindowManager', function() {
       stubReady.yield();
       assert.isTrue(stubAppNextOpen.called);
       assert.isTrue(stubAppCurrentClose.called);
+    });
+
+    test('Continunous app open requests', function() {
+      injectRunningApps(home, app1, app2);
+      AppWindowManager._activeApp = home;
+
+      AppWindowManager.display(app1);
+      AppWindowManager.display(app2);
+ 
+      assert.deepEqual(AppWindowManager._activeApp, app2);
+    });
+
+    test('app to home, and home is dead', function() {
+      injectRunningApps(home, app1);
+      AppWindowManager._activeApp = app1;
+      var stubGetHomescreen =
+        this.sinon.stub(homescreenLauncher, 'getHomescreen');
+      stubGetHomescreen.returns(home);
+      var stubReady = this.sinon.stub(home, 'ready');
+
+      this.sinon.stub(home, 'isDead').returns(true);
+      AppWindowManager.switchApp(app1, home);
+      stubReady.yield();
+      assert.isTrue(stubGetHomescreen.called);
     });
 
     test('lockscreen to home', function() {
