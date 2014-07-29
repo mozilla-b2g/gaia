@@ -1,5 +1,6 @@
 /* global hawk */
 /* global Config */
+/* global DUMP */
 
 'use strict';
 
@@ -23,6 +24,7 @@ var Requester = {
   post: function fmdr_post(url, data, onsuccess, onerror) {
     url = this._url + url;
     data = JSON.stringify(data);
+    DUMP('POST-ing to ' + url + ': ' + data);
 
     var xhr = new XMLHttpRequest({mozSystem: true});
     xhr.open('POST', url);
@@ -49,17 +51,21 @@ var Requester = {
       }
 
       if (!valid) {
+        DUMP('ignoring invalid HAWK signature');
         return;
       }
 
-      if (xhr.status == 200 && onsuccess) {
-        onsuccess(JSON.parse(xhr.response));
-      } else if (xhr.status !== 200 && onerror) {
-        onerror(xhr);
+      if (xhr.status == 200) {
+        DUMP('successful request, response: ' + xhr.response);
+        onsuccess && onsuccess(JSON.parse(xhr.response));
+      } else if (xhr.status !== 200) {
+        DUMP('request failed with status ' + xhr.status);
+        onerror && onerror(xhr);
       }
     };
 
     xhr.onerror = function fmd_xhr_onerror() {
+      DUMP('request failed with status ' + xhr.status);
       onerror && onerror(xhr);
     };
 

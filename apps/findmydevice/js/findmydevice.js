@@ -4,7 +4,7 @@
 /* global Commands */
 /* global Config */
 /* global DUMP */
-/* global IAC_API_WAKEUP_REASON_ENABLED */
+/* global IAC_API_WAKEUP_REASON_ENABLED_CHANGED */
 /* global IAC_API_WAKEUP_REASON_LOGIN */
 /* global IAC_API_WAKEUP_REASON_LOGOUT */
 /* global IAC_API_WAKEUP_REASON_STALE_REGISTRATION */
@@ -146,7 +146,7 @@ var FindMyDevice = {
   _initMessageHandlers: function fmd_init_message_handlers() {
     navigator.mozSetMessageHandler('push', (function(message) {
       DUMP('findmydevice got push notification!');
-      this._contactServerIfEnabled();
+      this._contactServer();
     }).bind(this));
 
     navigator.mozSetMessageHandler('push-register', (function(message) {
@@ -157,7 +157,7 @@ var FindMyDevice = {
 
     navigator.mozSetMessageHandler('alarm', (function(alarm) {
       DUMP('findmydevice alarm!');
-      this._contactServerIfEnabled();
+      this._contactServer();
       this._refreshClientIDIfRegistered(false);
     }).bind(this));
 
@@ -168,9 +168,9 @@ var FindMyDevice = {
           DUMP('got wake up request');
 
           var reason = event.data;
-          if (reason === IAC_API_WAKEUP_REASON_ENABLED) {
-            DUMP('enabled, trying to reach the server');
-            this._contactServerIfEnabled();
+          if (reason === IAC_API_WAKEUP_REASON_ENABLED_CHANGED) {
+            DUMP('enabled state changed, trying to reach the server');
+            this._contactServer();
           } else if (reason === IAC_API_WAKEUP_REASON_STALE_REGISTRATION) {
             DUMP('stale registration, re-registering');
             this.beginHighPriority('clientLogic');
@@ -203,17 +203,29 @@ var FindMyDevice = {
     }).bind(this));
   },
 
-  _contactServerIfEnabled: function fmd_contact_server() {
-    if (!this._enabled) {
-      return;
-    }
-
+  _contactServer: function fmd_contact_server() {
     this.beginHighPriority('clientLogic');
-    if (this._registered) {
+    if (this._registered && this._enabled) {
       this._replyAndFetchCommands();
-    } else {
+    } else if (this._registered && !this._enabled) {
+      this._reportDisabled();
+    } else if (!this._registered && this._enabled) {
       this._register();
+    } else {
+      // XXX(ggp) this should never happen, but let's play
+      // it safe and release lock we acquired
+      DUMP('can\'t contact the server while not registered and not enabled!!');
+      this.endHighPriority('clientLogic');
     }
+  },
+
+  _reportDisabled: function fmd_report_disabled() {
+    DUMP('reporting disabled');
+    Requester.post(
+      this._getCommandEndpoint(),
+      {enabled: false},
+      null, // no need to do anything on success
+      this._handleServerError.bind(this));
   },
 
   _register: function fmd_register() {
@@ -402,7 +414,7 @@ var FindMyDevice = {
   _replyAndFetchCommands: function fmd_reply_and_fetch() {
     this._reply.has_passcode = Commands.deviceHasPasscode();
     Requester.post(
-      '/cmd/' + this._state.deviceid,
+      this._getCommandEndpoint(),
       this._reply,
       this._processCommands.bind(this),
       this._handleServerError.bind(this));
@@ -415,11 +427,11 @@ var FindMyDevice = {
     DUMP('registered: ' + this._registered);
 
     if (!this._registered) {
-      this._contactServerIfEnabled();
+      this._contactServer();
       this.endHighPriority('clientLogic');
     } else {
       this._loadState((function() {
-        this._contactServerIfEnabled();
+        this._contactServer();
         this._currentClientIDHelper.set(this._state.clientid);
         // XXX(ggp) since every re-registration causes a change in the
         // client id, we don't need to release the 'clientLogic' lock
@@ -582,7 +594,11 @@ var FindMyDevice = {
     }
 
     this._reply[cmd] = value;
-    this._contactServerIfEnabled();
+    this._contactServer();
+  },
+
+  _getCommandEndpoint: function fmd_get_command_endpoint() {
+    return '/cmd/' + this._state.deviceid;
   },
 
   beginHighPriority: function(reason) {
