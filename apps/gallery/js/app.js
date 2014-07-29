@@ -89,7 +89,6 @@ App.prototype.bindEvents = function() {
   debug('binding events');
 
   // App
-  this.once('viewfinder:visible', this.onCriticalPathDone);
   this.on('busy', this.onBusy);
   this.on('ready', this.onReady);
   this.on('visible', this.onVisible);
@@ -227,7 +226,6 @@ App.prototype.onVisibilityChange = function() {
  * @private
  */
 App.prototype.onBeforeUnload = function() {
-  this.views.viewfinder.stopStream();
   this.emit('beforeunload');
   debug('beforeunload');
 };
