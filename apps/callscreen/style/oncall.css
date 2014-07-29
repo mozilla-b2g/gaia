@@ -188,7 +188,6 @@
     width: 100%;
     background-color: #000;
     background-size: cover; /* Possible memory over-consumption with huge images, it should be removed for improving stability*/
-    background-position: 50% calc(50% - 1.2rem); /* 1.2rem is half the size of the status bar. Keep this value in sync with the one declared in system app's statusbar.css */
     background-repeat: no-repeat;
   }
 
