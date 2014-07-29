@@ -2340,9 +2340,13 @@ var ThreadUI = {
         return;
       }
 
+      // Replacing error code to show more specific error message for this case
+      if (errorCode === 'RadioDisabledError') {
+        errorCode = 'RadioDisabledToDownloadError';
+      }
+
       if (errorCode) {
         this.showMessageError(errorCode, {
-          messageId: id,
           confirmHandler: function stateResetAndRetry() {
             var serviceId = Settings.getServiceIdByIccId(iccId);
             if (serviceId === null) {
