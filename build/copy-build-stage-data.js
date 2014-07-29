@@ -1,4 +1,5 @@
-/* global require, exports */
+/* global exports */
+/* global require */
 'use strict';
 
 // This script is to copy necessary data from build_stage to profile folder,
