@@ -12,7 +12,6 @@ build/copy-build-stage-data.js
 build/csslinter.js
 build/download-manager.js
 build/image-resolution.js
-build/jshint/xfail.js
 build/jsmin.js
 build/post-manifest.js
 build/pre-app.js
