@@ -12,7 +12,6 @@ var debug = require('debug')('app');
 var bind = require('lib/bind');
 var bindAll = require('lib/bind-all');
 var AllDone = require('lib/all-done');
-var orientation = require('lib/orientation');
 var model = require('model');
 
 /**
@@ -111,7 +110,6 @@ App.prototype.bindEvents = function() {
  *
  */
 App.prototype.onVisible = function() {
-  orientation.start();
   debug('visible');
 };
 
@@ -122,7 +120,6 @@ App.prototype.onVisible = function() {
  * @private
  */
 App.prototype.onHidden = function() {
-  orientation.stop();
   debug('hidden');
 };
 
