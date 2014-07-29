@@ -32,7 +32,7 @@
   background-size: auto 0.3rem;
 }
 
-.appWindow:not(.homescreen):not(.searchWindow).render > iframe {
+.appWindow:not(.homescreen):not(.searchWindow).render > div.browser-container > iframe {
   background-color: #fff;
 }
 
