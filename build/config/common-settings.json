@@ -27,6 +27,7 @@
    "bluetooth.enabled": false,
    "bluetooth.debugging.enabled": false,
    "bluetooth.suspended": false,
+   "bluetooth.device.connected": null,
    "camera.sound.enabled": true,
    "camera.recording.preferredSizes": [],
    "clear.remote-windows.data": false,

@@ -44,6 +44,7 @@ apps/clock/style/picker/picker.css 0 1
 apps/clock/style/onring.css 2 1
 apps/clock/style/timer.css 0 2
 apps/bluetooth/style/icons.css 0 1
+apps/bluetooth/style/settings.css 0 1
 apps/camera/style/setting.css 1 0
 apps/camera/style/overlay.css 0 4
 apps/fm/style/fm.css 0 1
