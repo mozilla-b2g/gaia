@@ -14,7 +14,6 @@ build/csslint.js
 build/csslinter.js
 build/download-manager.js
 build/image-resolution.js
-build/jshint/xfail.js
 build/jsmin.js
 build/optimize-clean.js
 build/post-manifest.js
