@@ -20,7 +20,9 @@ define(function(require) {
           clockDate: panel.querySelector('.clock-date'),
           clockTime: panel.querySelector('.clock-time'),
           timeManual: panel.querySelector('.time-manual'),
-          timezone: panel.querySelector('.timezone')
+          timezone: panel.querySelector('.timezone'),
+          timeFormatDate: panel.querySelector('.time-format-date'),
+          timeFormatTime: panel.querySelector('.time-format-time')
         };
 
         // update date/clock periodically
