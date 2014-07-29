@@ -1,7 +1,7 @@
 {
   "name": "gallery",
   "version": "0.0.0",
-  "homepage": "https://github.com/mozilla-b2g/gaia/tree/master/apps/camera",
+  "homepage": "https://github.com/mozilla-b2g/gaia/tree/master/apps/gallery",
   "authors": [
     "Diego Marcos <diego.marcos@gmail.com>"
   ],
