@@ -621,6 +621,20 @@ suite('system/AppWindowManager', function() {
       assert.isTrue(stubAppCurrentClose.called);
     });
 
+    test('app to home, and home is dead', function() {
+      injectRunningApps(home, app1);
+      AppWindowManager._activeApp = app1;
+      var stubGetHomescreen =
+        this.sinon.stub(homescreenLauncher, 'getHomescreen');
+      stubGetHomescreen.returns(home);
+      var stubReady = this.sinon.stub(home, 'ready');
+
+      this.sinon.stub(home, 'isDead').returns(true);
+      AppWindowManager.switchApp(app1, home);
+      stubReady.yield();
+      assert.isTrue(stubGetHomescreen.called);
+    });
+
     test('lockscreen to home', function() {
       injectRunningApps(home);
       AppWindowManager._activeApp = null;
