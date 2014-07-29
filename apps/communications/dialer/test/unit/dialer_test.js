@@ -17,7 +17,6 @@ require('/dialer/test/unit/mock_lazy_loader.js');
 require('/dialer/test/unit/mock_mmi_manager.js');
 require('/dialer/test/unit/mock_voicemail.js');
 require('/dialer/test/unit/mock_suggestion_bar.js');
-require('/dialer/test/unit/mock_telephony_helper.js');
 
 require('/shared/test/unit/mocks/mock_accessibility_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
@@ -30,6 +29,7 @@ require('/shared/test/unit/mocks/mock_sim_settings_helper.js');
 require('/shared/test/unit/mocks/dialer/mock_contacts.js');
 require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
 require('/shared/test/unit/mocks/dialer/mock_keypad.js');
+require('/shared/test/unit/mocks/dialer/mock_telephony_helper.js');
 require('/shared/test/unit/mocks/dialer/mock_tone_player.js');
 require('/shared/test/unit/mocks/dialer/mock_utils.js');
 
