@@ -123,7 +123,7 @@ GalleryAppBuilder.prototype.optimize = function(options) {
   var optimizeOption = 'optimize=' + (options.GAIA_OPTIMIZE === '1' ?
     'uglify2' : 'none');
   var configFile = utils.getFile(options.APP_DIR, 'build',
-    'require_config.jslike');
+    'gallery.build.js');
   r.optimize([configFile.path, optimizeOption]);
 };
 

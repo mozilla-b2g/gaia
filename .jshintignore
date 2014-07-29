@@ -6,6 +6,7 @@ apps/email/js/ext/**
 apps/calendar/js/ext/**
 apps/camera/js/vendor/**
 apps/camera/test/**
+apps/gallery/build/**
 apps/system/camera/**
 build/r.js
 build/config/payment-prefs.js
