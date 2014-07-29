@@ -161,14 +161,14 @@
       this.reset();
 
       if (!this.isSpeaking && timeStamp > this.expectedCompleteTimeStamp) {
-        //this.speechSynthesis.cancel();
+        this.speechSynthesis.cancel();
         this.announceScreenReader(function onEnd() {
           this.resetSpeaking(timeStamp + this.REPEAT_BUTTON_PRESS);
         }.bind(this));
         return;
       }
 
-      //this.speechSynthesis.cancel();
+      this.speechSynthesis.cancel();
       this.resetSpeaking();
       SettingsListener.getSettingsLock().set({
         'accessibility.screenreader':
