@@ -582,7 +582,8 @@ ul li > label.range-icons.volume input {
  */
 
 #dateTime ul.disabled p,
-#dateTime ul.disabled a {
+#dateTime ul.disabled a,
+#dateTime .time-manual.disabled span {
   color: #797e80;
   opacity: 0.6;
   pointer-events: none;
