@@ -374,6 +374,12 @@ var ThreadUI = {
 
       this.recipients.on('add', recipientsChanged);
       this.recipients.on('remove', recipientsChanged);
+      this.recipients.on('modechange', function(mode) {
+        this.threadMessages.classList.toggle(
+          'multiline-recipients-mode',
+           mode === 'multiline-mode'
+        );
+      }.bind(this));
     }
     this.toggleRecipientSuggestions();
   },

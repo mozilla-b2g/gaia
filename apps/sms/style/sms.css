@@ -594,6 +594,10 @@ section[role="region"].new .subheader {
   font-size: 1.465rem;
   background-color: #f2f2f2;
   transition: transform 0.2s ease-in-out 0s;
+  transform: translateY(calc(-100% + 4rem));
+}
+
+.multiline-recipients-mode #messages-to-field {
   transform: translateY(calc(-100% + 5.5rem));
 }
 
@@ -697,13 +701,19 @@ Do not remove.
 
 #messages-recipient-suggestions {
   position: absolute;
-  /* 10.5rem (5 rem from app header + 5.5rem from "To" panel heights) */
-  top: 10.5rem;
+  /* 9rem (5 rem from app header + 4rem from "To" panel heights) */
+  top: 9rem;
 
   overflow-y: auto;
 
-  max-height: calc(100% - 10.5rem);
+  max-height: calc(100% - 9rem);
   width: 100%;
+}
+
+.multiline-recipients-mode #messages-recipient-suggestions {
+  top: 10.5rem;
+
+  max-height: calc(100% - 10.5rem);
 }
 
 #messages-recipient-suggestions li:first-child {
