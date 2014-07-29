@@ -41,7 +41,7 @@ function SimContactsImporter(targetIcc) {
 
   function notifyFinish() {
     if (typeof self.onfinish === 'function') {
-      window.setTimeout(self.onfinish, 0, numDupsMerged);
+      window.setTimeout(self.onfinish, 0, numDupsMerged, iccId);
     }
   }
 
@@ -92,7 +92,7 @@ function SimContactsImporter(targetIcc) {
 
   this.start = function() {
     numDupsMerged = 0;
-    
+
     if (mustFinish) {
       notifyFinish();
       return;

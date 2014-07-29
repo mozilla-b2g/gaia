@@ -715,7 +715,8 @@ var Contacts = (function() {
       SHARED_UTILS_PATH + '/' + 'sdcard.js',
       SHARED_UTILS_PATH + '/' + 'vcard_parser.js',
       SHARED_UTILS_PATH + '/' + 'status.js',
-      '/shared/js/contacts/utilities/dom.js'
+      '/shared/js/contacts/utilities/dom.js',
+      '/shared/js/contacts/import/import_status_data.js'
     ];
 
     // Lazyload nfc.js if NFC is available
