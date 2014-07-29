@@ -109,9 +109,6 @@ App.prototype.bindEvents = function() {
  * Tasks to run when the
  * app becomes visible.
  *
- * Check the storage again as users
- * may have made changes since the
- * app was minimised
  */
 App.prototype.onVisible = function() {
   orientation.start();
@@ -125,7 +122,6 @@ App.prototype.onVisible = function() {
  * @private
  */
 App.prototype.onHidden = function() {
-  this.geolocation.stopWatching();
   orientation.stop();
   debug('hidden');
 };
