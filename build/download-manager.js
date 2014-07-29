@@ -1,3 +1,7 @@
+/* global Downloads, exports, require */
+/* exported Cr */
+'use strict';
+
 /**
  * DownloadManager is a tool for downloading file from internet. This
  * implementation uses Downloads.jsm to do it. When downloads a https url which

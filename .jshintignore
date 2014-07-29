@@ -12,7 +12,6 @@ build/config/payment-prefs.js
 build/copy-build-stage-data.js
 build/csslint.js
 build/csslinter.js
-build/download-manager.js
 build/image-resolution.js
 build/jshint/xfail.js
 build/jsmin.js
