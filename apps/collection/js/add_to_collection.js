@@ -60,6 +60,8 @@
                     collection.background = bgObject;
                     this.pinAndSave(newPinned, collection);
                   });
+              }).catch((e) => {
+                this.pinAndSave(newPinned, collection);
               });
           } else {
             this.pinAndSave(newPinned, collection);
