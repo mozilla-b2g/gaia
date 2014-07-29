@@ -680,11 +680,11 @@ ComposeCard.prototype = {
     var content = dialog.getElementsByTagName('p')[0];
 
     if (numAttachments > 1) {
-      title.textContent = mozL10n.get('composer-attachments-large');
-      content.textContent = mozL10n.get('compose-attchments-size-exceeded');
+      mozL10n.setAttributes(title, 'composer-attachments-large');
+      mozL10n.setAttributes(content, 'compose-attchments-size-exceeded');
     } else {
-      title.textContent = mozL10n.get('composer-attachment-large');
-      content.textContent = mozL10n.get('compose-attchment-size-exceeded');
+      mozL10n.setAttributes(title, 'composer-attachment-large');
+      mozL10n.setAttributes(content, 'compose-attchment-size-exceeded');
     }
     ConfirmDialog.show(dialog,
      {
@@ -834,9 +834,8 @@ ComposeCard.prototype = {
     var attachmentsSize =
       this.domNode.getElementsByClassName('cmp-attachment-size')[0];
 
-    attachmentLabel.textContent =
-      mozL10n.get('compose-attachments',
-                  { n: this.composer.attachments.length});
+    mozL10n.setAttributes(attachmentLabel, 'compose-attachments',
+      {n: this.composer.attachments.length});
 
     if (this.composer.attachments.length === 0) {
       attachmentsSize.textContent = '';

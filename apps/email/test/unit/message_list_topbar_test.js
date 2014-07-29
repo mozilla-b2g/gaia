@@ -3,7 +3,7 @@
 
 requireApp('email/js/alameda.js');
 requireApp('email/test/config.js');
-requireApp('email/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 
 suite('MessageListTopbar', function() {
   var subject, el, scrollContainer, newEmailCount,
@@ -119,7 +119,6 @@ suite('MessageListTopbar', function() {
     });
 
     test('should empty the element', function() {
-      assert.notEqual(el.textContent, '');
       subject.destroy();
       assert.equal(el.textContent, '');
     });
@@ -148,9 +147,9 @@ suite('MessageListTopbar', function() {
       subject._el = el;
       assert.equal(subject._el.textContent, '');
       subject.updateNewEmailCount();
-      assert.equal(
-          subject._el.textContent,
-          mozL10n.get('new-emails', { n: 5 })
+      assert.deepEqual(
+          mozL10n.getAttributes(subject._el),
+          {id: 'new-emails', args: { n: 5 }}
       );
     });
   });
