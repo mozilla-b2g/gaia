@@ -98,7 +98,8 @@ NotificationList.prototype = {
           .getAttribute('lang'),
         dir: document.querySelector(query + ' > .title-container')
           .getAttribute('dir'),
-        manifestURL: node.getAttribute('data-manifest-u-r-l')
+        manifestURL: node.getAttribute('data-manifest-u-r-l'),
+        query: query
       });
     }
     return details;
@@ -154,7 +155,7 @@ NotificationList.prototype = {
       }
     }
     var count = 0;
-    for (var i = 0; i < list.length; i++) {
+    for (var i = 0; list && i < list.length; i++) {
       var notification = list[i];
       if (details.title && notification.title !== details.title) {
         continue;
@@ -171,6 +172,11 @@ NotificationList.prototype = {
       ++count;
     }
     return count;
+  },
+
+  // perform a tap action on the notification list
+  tap: function(notificationDetails) {
+    this.client.findElement(notificationDetails.query).tap(1, 1);
   },
 
   // make sure we have an item with given title and body from the lockscreen.

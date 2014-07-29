@@ -43,12 +43,14 @@
 var NotificationScreen = {
   TOASTER_TIMEOUT: 5000,
   TRANSITION_FRACTION: 0.30,
+  TAP_THRESHOLD: 10,
 
   _notification: null,
   _containerWidth: null,
   _touchStartX: 0,
   _touchPosX: 0,
   _touching: false,
+  _isTap: false,
   _toasterTimeout: null,
 
   lockscreenPreview: true,
@@ -225,6 +227,7 @@ var NotificationScreen = {
     this._touchStartX = evt.touches[0].pageX;
     this._touchPosX = 0;
     this._touching = true;
+    this._isTap = true;
   },
 
   touchmove: function ns_touchmove(evt) {
@@ -240,8 +243,13 @@ var NotificationScreen = {
 
     evt.preventDefault();
     this._touchPosX = evt.touches[0].pageX - this._touchStartX;
-    this._notification.style.transform =
-      'translateX(' + this._touchPosX + 'px)';
+    if (this._touchPosX >= this.TAP_THRESHOLD) {
+      this._isTap = false;
+    }
+    if (!this._isTap) {
+      this._notification.style.transform =
+        'translateX(' + this._touchPosX + 'px)';
+    }
   },
 
   touchend: function ns_touchend(evt) {
@@ -251,6 +259,16 @@ var NotificationScreen = {
 
     evt.preventDefault();
     this._touching = false;
+
+    if (this._isTap) {
+      var event = new CustomEvent('tap', {
+        bubbles: true,
+        cancelable: true
+      });
+      this._notification.dispatchEvent(event);
+      this._notification = null;
+      return;
+    }
 
     if (Math.abs(this._touchPosX) >
         this._containerWidth * this.TRANSITION_FRACTION) {
