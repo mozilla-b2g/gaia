@@ -19,15 +19,9 @@ define(function(require) {
           timePicker: panel.querySelector('.time-picker'),
           clockDate: panel.querySelector('.clock-date'),
           clockTime: panel.querySelector('.clock-time'),
-          timezoneRaw: panel.querySelector('.timezone-raw'),
-          timezoneValue: panel.querySelector('.timezone-value'),
           timeManual: panel.querySelector('.time-manual'),
           timezone: panel.querySelector('.timezone')
         };
-        // monitor time.timezone changes, see /shared/js/tz_select.js
-        var noOp = function() {};
-        tzSelect(this._elements.timezoneRegion, this._elements.timezoneCity,
-          noOp, noOp);
 
         // update date/clock periodically
         this.boundSetDate = function() {
@@ -47,8 +41,6 @@ define(function(require) {
         this.boundSetTimeAutoEnabled = function(enabled) {
           this._elements.timeAutoSwitch.dataset.state =
             enabled ? 'auto' : 'manual';
-          this._elements.timezoneRaw.hidden =
-            !(DateTime.timezoneAutoAvailable && DateTime.clockAutoEnabled);
 
           DateTime.setTimezoneAutoEnabled(enabled);
 
@@ -66,9 +58,6 @@ define(function(require) {
           DateTime.setTimezoneAutoAvailable();
         }.bind(this);
 
-        this.boundSetTimezone = function(timezone) {
-          this._elements.timezoneValue.textContent = timezone;
-        }.bind(this);
         /**
          * Reset the timezone to the previous user selected value
          */
@@ -92,12 +81,12 @@ define(function(require) {
         this._elements.timePicker.addEventListener('input',
           this._boundTimePickerChange);
 
+        this.setTimeZone();
         this.boundSetDate();
         this.boundSetClock();
         this.boundSetTimeAutoEnabled(DateTime.clockAutoEnabled);
         this.boundSetClockAutoAvailable(DateTime.clockAutoAvailable);
         this.boundSetTimezoneAutoAvailable(DateTime.timezoneAutoAvailable);
-        this.boundSetTimezone(DateTime.timezone);
         if (DateTime.userSelectedTimezone) {
           if (!DateTime.clockAutoEnabled) {
             this.boundSetSelectedTimeZone(DateTime.userSelectedTimezone);
@@ -124,6 +113,14 @@ define(function(require) {
           this._boundTimePickerChange);
 
         window.removeEventListener('localized', this);
+      },
+      /**
+       * monitor time.timezone changes, see /shared/js/tz_select.js
+       */
+      setTimeZone: function dt_setTimeZone() {
+        var noOp = function() {};
+        tzSelect(this._elements.timezoneRegion, this._elements.timezoneCity,
+          noOp, noOp);
       },
       /**
        * Update DatePicker value
@@ -169,8 +166,6 @@ define(function(require) {
           (DateTime.timezoneAutoAvailable && DateTime.clockAutoEnabled);
         this._elements.timezoneCity.disabled =
           (DateTime.timezoneAutoAvailable && DateTime.clockAutoEnabled);
-        this._elements.timezoneRaw.hidden =
-          !(DateTime.timezoneAutoAvailable && DateTime.clockAutoEnabled);
 
         if (DateTime.clockAutoEnabled) {
           this._elements.timeManual.classList.add('disabled');
