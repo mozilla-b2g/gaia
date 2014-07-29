@@ -1,3 +1,6 @@
+/* global require, exports */
+'use strict';
+
 // This script is to copy necessary data from build_stage to profile folder,
 // include
 // 1. copy external app, which may rename the name of stage folder to uuid name.
@@ -16,7 +19,6 @@ function moveExternalApp(webapp, source, destination) {
             'contains a `package_path` attribute specifying where ' +
             'to download the application zip package from the origin ' +
             'specified in `metadata.json` file.';
-      return;
     }
     var appPackage = source.clone();
     appPackage.append('application.zip');
@@ -35,7 +37,6 @@ function moveExternalApp(webapp, source, destination) {
         throw 'External webapp `' + webapp.domain +
               '` has a cache directory without `manifest.appcache`' +
               ' file.';
-        return;
       }
 
       // Copy recursively the whole cache folder to webapp folder
