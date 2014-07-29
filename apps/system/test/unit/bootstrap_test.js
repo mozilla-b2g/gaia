@@ -23,7 +23,6 @@ requireApp('system/js/dialer_agent.js');
 requireApp('system/js/ftu_launcher.js');
 requireApp('system/js/rocketbar.js');
 requireApp('system/js/home_gesture.js');
-requireApp('system/js/home_searchbar.js');
 requireApp('system/js/homescreen_launcher.js');
 requireApp('system/js/internet_sharing.js');
 requireApp('system/js/layout_manager.js');

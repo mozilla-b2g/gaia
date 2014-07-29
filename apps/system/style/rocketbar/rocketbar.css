@@ -22,10 +22,6 @@
   display: none;
 }
 
-body:not(.rb-enabled) #rocketbar {
-  display: none;
-}
-
 #rocketbar-title, #rocketbar-form {
   height: 3.4rem;
   background: rgba(51, 51, 51, 0.5);
@@ -144,8 +140,8 @@ body:not(.rb-enabled) #rocketbar {
 }
 
 #rocketbar-results {
-  height: calc(100% - 4.8rem);
-  top: 4.8rem;
+  height: calc(100% - 7rem);
+  top: 7rem;
   width: 100%;
 }
 
@@ -247,20 +243,4 @@ body.homesearch-enabled #screen.active-statusbar #rocketbar.active {
 /* Do not expand the statusbar background on homescreen. We have our own markup in the homescreen. */
 body.homesearch-enabled #screen.rocketbar-expanded #statusbar-background {
   transform: scaleY(0.5);
-}
-
-/* Size the rocketbar form to cover the homescreen one exactly */
-body.homesearch-enabled #screen #rocketbar-form {
-  width: calc(100% - 1rem);
-  box-sizing: border-box;
-}
-
-/* Move the search results up and resize as we display the statusbar still for 2.0 */
-body.homesearch-enabled #rocketbar-results {
-  top: 7rem;
-  height: calc(100% - 7rem);
-}
-
-body.homesearch-enabled #screen.software-button-enabled #rocketbar-results {
-  height: calc(100% - 12rem);
 }

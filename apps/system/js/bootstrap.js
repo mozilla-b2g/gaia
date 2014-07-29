@@ -9,7 +9,7 @@
          TelephonySettings, SuspendingAppPriorityManager, TTLView,
          MediaRecording, AppWindowFactory, SystemDialogManager,
          applications, Rocketbar, LayoutManager, PermissionManager,
-         HomeSearchbar, SoftwareButtonManager, Accessibility,
+         SoftwareButtonManager, Accessibility,
          TextSelectionDialog, InternetSharing, SleepMenu, AppUsageMetrics,
          LockScreenNotifications, LockScreenPasscodeValidator */
 'use strict';
@@ -119,7 +119,6 @@ window.addEventListener('load', function startup() {
   window.homeGesture = new HomeGesture();
   window.homeGesture.start();
   window.homescreenLauncher = new HomescreenLauncher();
-  window.homeSearchbar = new HomeSearchbar();
   window.internetSharing = new InternetSharing();
   window.internetSharing.start();
   window.lockScreenNotifications = new LockScreenNotifications();
