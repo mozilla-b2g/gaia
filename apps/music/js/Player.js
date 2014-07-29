@@ -111,6 +111,7 @@ var PlayerView = {
 
     this.isTouching = false;
     this.isFastSeeking = false;
+    this.stopFromFastSeeking = false;
     this.playStatus = PLAYSTATUS_STOPPED;
     this.pausedPosition = null;
     this.dataSource = [];
@@ -927,7 +928,20 @@ var PlayerView = {
             break;
           case 'player-cover-share':
             this.share();
-
+            break;
+          case 'player-controls-next':
+            if (this.stopFromFastSeeking) {
+              this.stopFromFastSeeking = false;
+            } else {
+              this.next();
+            }
+            break;
+          case 'player-controls-previous':
+            if (this.stopFromFastSeeking) {
+              this.stopFromFastSeeking = false;
+            } else {
+              this.previous();
+            }
             break;
         }
 
@@ -984,6 +998,7 @@ var PlayerView = {
         // Otherwise, check the target id then do the corresponding actions.
         if (this.isFastSeeking) {
           this.stopFastSeeking();
+          this.stopFromFastSeeking = true;
         } else if (target.id === 'player-seek-bar') {
           this.seekIndicator.classList.remove('highlight');
           if (this.audio.duration > 0 && this.isTouching) {
@@ -991,10 +1006,6 @@ var PlayerView = {
             this.seekTime = 0;
           }
           this.isTouching = false;
-        } else if (target.id === 'player-controls-previous') {
-          this.previous();
-        } else if (target.id === 'player-controls-next') {
-          this.next();
         }
         break;
       case 'contextmenu':
