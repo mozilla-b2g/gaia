@@ -46,7 +46,6 @@ function App(options) {
   this.perf = options.perf || {};
   this.require = options.require || window.requirejs; // Test hook
   this.inSecureMode = (this.win.location.hash === '#secure');
-  this.settings = options.settings;
   this.activity = {};
   debug('initialized');
 }
@@ -162,7 +161,6 @@ App.prototype.loadLazyModules = function() {
   var self = this;
 
   this.loadL10n(done());
-  this.loadLazyControllers(done());
 
   // All done
   done(function() {
@@ -274,11 +272,9 @@ App.prototype.l10nGet = function(key) {
  * @param {String} type
  * @private
  */
-App.prototype.showSpinner = function(key) {
-  debug('show loading type: %s', key);
-  var spinnerTimeouts = this.settings.spinnerTimeouts;
-  var timeout = spinnerTimeouts && spinnerTimeouts.get(key);
-  var ms = timeout || 0;
+App.prototype.showSpinner = function(delay) {
+  debug('show loading type');
+  delay = delay || 0;
   var self = this;
 
   clearTimeout(this.spinnerTimeout);
@@ -286,7 +282,7 @@ App.prototype.showSpinner = function(key) {
     self.views.loading = new self.LoadingView();
     self.views.loading.appendTo(self.el).show();
     debug('loading shown');
-  }, ms);
+  }, delay);
 };
 
 /**
@@ -301,9 +297,7 @@ App.prototype.showSpinner = function(key) {
  */
 App.prototype.onBusy = function(type) {
   debug('application busy, type: %s', type);
-  var spinnerTimeouts = this.settings.spinnerTimeouts;
-  var delay = spinnerTimeouts && spinnerTimeouts.get(type);
-  if (delay) { this.showSpinner(type); }
+  this.showSpinner();
 };
 
 /**
