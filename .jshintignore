@@ -16,7 +16,6 @@ build/download-manager.js
 build/image-resolution.js
 build/jshint/xfail.js
 build/jsmin.js
-build/optimize-clean.js
 build/post-manifest.js
 build/pre-app.js
 build/preferences.js
