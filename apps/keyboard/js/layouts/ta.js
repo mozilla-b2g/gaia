@@ -1,4 +1,4 @@
-Keyboards.ta = {
+ Keyboards.ta = {
   label: 'Tamil',
   shortLabel: 'த',
   imEngine: 'india',
