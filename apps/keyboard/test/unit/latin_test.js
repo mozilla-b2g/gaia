@@ -226,10 +226,6 @@ suite('latin input method capitalization and punctuation', function() {
     if (cursor === 0)
       return capitalize(input);
 
-    // If inserting in an all caps word, use uppercase
-    if (cursor >= 2 && isUppercase(value.substring(cursor - 2, cursor)))
-      return input.toUpperCase();
-
     // if the character before the cursor is not a space, don't capitalize
     if (!/\s/.test(value[cursor - 1]))
       return input;
@@ -546,8 +542,9 @@ suite('latin input method capitalization and punctuation', function() {
           im.deactivate();
           assert.equal(output, expected,
                        'expected "' + expected + '" for input "' + input + '"');
-          next();
-        });
+        }, function() {
+          assert.ok(false, 'should not reject');
+        }).then(next, next);
       } else {
         // Send the input one character at a time, converting
         // the input to uppercase if the IM has set uppercase
