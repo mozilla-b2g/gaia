@@ -87,7 +87,6 @@ suite('LinkActionHandler', function() {
     });
 
     teardown(function() {
-      LinkActionHandler.reset();
       mocksHelperLAH.teardown();
     });
 
