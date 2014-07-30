@@ -108,12 +108,10 @@ SetupAccountInfoCard.prototype = {
 
     // Attempt to get a user-friendly string for the error we got. If we can't
     // find a match, just show the "unknown" error string.
-    var errorStr = mozL10n.get(
-      SETUP_ERROR_L10N_ID_MAP.hasOwnProperty(errName) ?
+    var errorStr = SETUP_ERROR_L10N_ID_MAP.hasOwnProperty(errName) ?
         SETUP_ERROR_L10N_ID_MAP[errName] :
-        SETUP_ERROR_L10N_ID_MAP.unknown,
-      errDetails);
-    errorMessageNode.textContent = errorStr;
+        SETUP_ERROR_L10N_ID_MAP.unknown;
+    mozL10n.setAttributes(errorMessageNode, errorStr, errDetails);
 
     // Make sure we are scrolled to the top of the scroll region so that the
     // error message is visible.

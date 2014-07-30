@@ -1,6 +1,6 @@
 requireApp('email/js/alameda.js');
 requireApp('email/test/config.js');
-requireApp('email/test/unit/mock_l10n.js');
+requireApp('/shared/test/unit/mocks/mock_l10n.js');
 
 suite('appMessages', function() {
   var subject;
