@@ -302,11 +302,17 @@
 /** Inner Circle
  ---------------------------------------------------------*/
 
+/**
+ * 1. bug/1045624: `will-change` seems to be
+ *    impacting border-radius layer-masks
+ *    when element is transformed/transitioned.
+ */
+
 .capture-button .inner-circle {
   background-color: white;
-  will-change: transform;
   transform: scale(0.76);
   transition: transform 150ms ease-in;
+  /*will-change: transform;*/ /* 1 */
 }
 
 /**
