@@ -211,20 +211,22 @@ var PowerSaveHandler = (function PowerSaveHandler() {
   function showPowerSavingNotification() {
     var _ = navigator.mozL10n.get;
 
-    var clickCB = function() {
-      var activityRequest = new MozActivity({
-        name: 'configure',
-        data: {
-          target: 'device',
-          section: 'battery'
-        }
-      });
+    navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
+      var app = evt.target.result;
+      var iconURL = NotificationHelper.getIconURI(app);
+      var clickCB = function() {
+        var activityRequest = new MozActivity({
+          name: 'configure',
+          data: {
+            target: 'device',
+            section: 'battery'
+          }
+        });
+      };
+      NotificationHelper.send(_('notification-powersaving-mode-on-title'),
+                              _('notification-powersaving-mode-on-description'),
+                              iconURL, clickCB);
     };
-
-    NotificationHelper.send(_('notification-powersaving-mode-on-title'),
-                            _('notification-powersaving-mode-on-description'),
-                            'style/icons/System.png',
-                            clickCB);
   }
 
   function onBatteryChange() {
