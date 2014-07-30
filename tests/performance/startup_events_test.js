@@ -105,9 +105,16 @@ marionette('startup event test > ' + appPath + ' >', function() {
         var epochStart = PerformanceHelper.getEpochStart(client);
         var delta = epochEnd - epochStart;
 
+        // Bug 1045076: Sanity check. If for some reason any handlers
+        // didn't register or we didn't get valid timestamps back, do not
+        // report the values for this run and continue on
+        if (!epochEnd || !epochStart || delta < 1) {
+          return app.close();
+        }
+
         performanceHelper.reportRunDurations(runResults, null, delta);
-        assert.ok(Object.keys(runResults).length, 'empty results');
         app.close();
+        assert.ok(Object.keys(runResults).length, 'empty results');
       });
     });
 
