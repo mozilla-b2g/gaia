@@ -15,7 +15,6 @@ build/image-resolution.js
 build/jshint/xfail.js
 build/jsmin.js
 build/post-manifest.js
-build/pre-app.js
 build/push-to-device.js
 build/settings.js
 build/test/integration/build.test.js
