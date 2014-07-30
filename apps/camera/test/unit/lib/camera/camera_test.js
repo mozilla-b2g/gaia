@@ -295,14 +295,6 @@ suite('lib/camera/camera', function() {
         this.req.onerror();
         sinon.assert.called(this.camera.onRecordingError);
       });
-
-      test('Should removeEventListener and set camera to ready if SD card is removed', function() {
-        this.callback({
-          reason: 'unavailable'
-        });
-        sinon.assert.called(this.videoStorage.removeEventListener);
-        assert.isTrue(this.camera.emit.calledWith('ready'));
-      });
     });
   });
 

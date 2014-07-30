@@ -441,8 +441,14 @@ suite('controllers/camera', function() {
   });
 
   suite('CameraController#onStorageChanged()', function() {
-    test('Should stop recording', function() {
-      this.controller.onStorageChanged();
+    test('Should stop recording if shared', function() {
+      this.controller.onStorageChanged('foo');
+      assert.isFalse(this.camera.stopRecording.called);
+
+      this.controller.onStorageChanged('bar');
+      assert.isFalse(this.camera.stopRecording.called);
+
+      this.controller.onStorageChanged('shared');
       assert.isTrue(this.camera.stopRecording.called);
     });
   });
