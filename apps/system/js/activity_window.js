@@ -165,6 +165,7 @@
     this.instanceID = _id;
     return '<div class="appWindow activityWindow inline-activity' +
             '" id="activity-window-' + _id++ + '">' +
+            '<div class="titlebar"></div>' +
             '<div class="screenshot-overlay"></div>' +
             '<div class="fade-overlay"></div>' +
             '<div class="browser-container"></div>' +

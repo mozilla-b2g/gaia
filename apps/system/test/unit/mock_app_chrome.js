@@ -3,10 +3,6 @@
 (function(exports) {
 
   var MockAppChrome = function AppChrome(app) {};
-  MockAppChrome.prototype.getBarHeight =
-  MockAppChrome.prototype.destroy =
-  MockAppChrome.prototype.hidingNavigation =
-  function() {};
-
+  MockAppChrome.prototype.destroy = function() {};
   exports.MockAppChrome = MockAppChrome;
 })(window);

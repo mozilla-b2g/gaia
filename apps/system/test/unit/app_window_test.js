@@ -10,7 +10,6 @@ requireApp('system/test/unit/mock_context_menu.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_layout_manager.js');
 requireApp('system/test/unit/mock_app_chrome.js');
-requireApp('system/test/unit/mock_app_titlebar.js');
 requireApp('system/test/unit/mock_screen_layout.js');
 requireApp('system/test/unit/mock_popup_window.js');
 requireApp('system/test/unit/mock_activity_window.js');
@@ -19,7 +18,7 @@ requireApp('system/test/unit/mock_statusbar.js');
 var mocksForAppWindow = new MocksHelper([
   'OrientationManager', 'Applications', 'SettingsListener',
   'ManifestHelper', 'LayoutManager', 'ActivityWindow',
-  'ScreenLayout', 'AppChrome', 'AppTitleBar', 'PopupWindow', 'StatusBar'
+  'ScreenLayout', 'AppChrome', 'PopupWindow', 'StatusBar'
 ]).init();
 
 suite('system/AppWindow', function() {
@@ -233,22 +232,22 @@ suite('system/AppWindow', function() {
       assert.isFalse(spy.calledWithNew());
     });
 
-    test('No navigation setting in manifest - app - titlebar', function() {
-      var spy = this.sinon.spy(window, 'AppTitleBar');
+    test('No navigation setting in manifest - app - appChrome', function() {
+      var spy = this.sinon.spy(window, 'AppChrome');
       var aw = new AppWindow(fakeChromeConfigWithoutNavigation);
       assert.isFalse(spy.calledWithNew());
       aw.element.dispatchEvent(new CustomEvent('_opened'));
       assert.isTrue(spy.calledWithNew());
     });
 
-    test('No navigation setting in manifest - wrapper - titlebar', function() {
-      var spy = this.sinon.spy(window, 'AppTitleBar');
+    test('No navigation setting in manifest - wrapper - appChrome', function() {
+      var spy = this.sinon.spy(window, 'AppChrome');
       new AppWindow(fakeWrapperConfig); // jshint ignore:line
       assert.isTrue(spy.calledWithNew());
     });
 
-    test('Navigation bar in manifest - titlebar', function() {
-      var spy = this.sinon.spy(window, 'AppTitleBar');
+    test('Navigation bar in manifest - appChrome', function() {
+      var spy = this.sinon.spy(window, 'AppChrome');
       var aw = new AppWindow(fakeChromeConfigWithNavigationBar);
       aw.element.dispatchEvent(new CustomEvent('_opened'));
       assert.isTrue(spy.calledWithNew());
