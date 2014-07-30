@@ -3,6 +3,7 @@
 'use strict';
 
 var MockSimSettingsHelper = {
+  ALWAYS_ASK_OPTION_VALUE: '-1',
   _getOption: null,
   _defaultCards: {
     outgoingCall: 0,
