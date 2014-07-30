@@ -112,6 +112,8 @@
         bar: true,
         scrollable: this.isBrowser()
       };
+    } else if (this.config.chrome.navigation) {
+      this.config.chrome.scrollable = true;
     }
 
     if (!this.manifest && this.config && this.config.title) {
