@@ -122,9 +122,8 @@ define(function(require, exports, module) {
         this.domNode.classList.add('closing');
       } else {
         if (state === 'message') {
-          this.domNode.textContent = mozL10n.get('new-emails', {
-            n: this._newEmailCount
-          });
+          mozL10n.setAttributes(this.domNode, 'new-emails',
+                                { n: this._newEmailCount });
 
           // Get the node width to correctly center the contents. Since l10n and
           // number of messages can change this value, do it after each content
