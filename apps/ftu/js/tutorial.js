@@ -179,7 +179,14 @@
 
       // homescreen notification is out of band and neednt block
       // the other init steps
-      notifyHomescreenApp();
+      var req = navigator.mozSettings.createLock()
+                .get('homescreen.manifestURL');
+      req.onsuccess = function(){
+        var url = req.result['homescreen.manifestURL'];
+        if (url === 'app://verticalhome.gaiamobile.org/manifest.webapp') {
+          notifyHomescreenApp();
+        }
+      };
 
       initTasks.next();
     },
