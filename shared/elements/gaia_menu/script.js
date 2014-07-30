@@ -12,7 +12,6 @@ window.GaiaMenu = (function(win) {
   proto.createdCallback = function () {
     var shadow = this.createShadowRoot();
 
-    navigator.mozL10n.translate(template);
     this._template = template.content.cloneNode(true);
 
     var cancelButton = this._template.querySelector('.gaia-menu-cancel');
@@ -25,8 +24,7 @@ window.GaiaMenu = (function(win) {
     shadow.appendChild(this._template);
 
     ComponentUtils.style.call(this, baseurl);
-
-    window.addEventListener('localized', this.localize.bind(this));
+    navigator.mozL10n.ready(this.localize.bind(this));
   };
 
   proto.localize = function() {
