@@ -2,11 +2,12 @@
   pointer-events: none;
   background-color: black;
   top: 0;
-  height: 7.4rem;
-  transform: scaleY(0.48) translateY(-2.4rem);
+  height: 7.6rem;
+  transform: scaleY(0.6521) translateY(-3rem);
   transform-origin: top left;
   transition: transform 0.2s ease-in-out, background-color 0.5s ease;
   background-image: linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.1));
+  will-change: transform;
 }
 
 .appWindow:not(.bar) > .chrome.maximized {
@@ -14,8 +15,8 @@
 }
 
 .appWindow:not(.bar).fullscreen-app > .chrome {
-  height: 7.4rem;
-  top: -2.4rem;
+  height: 7.6rem;
+  top: -3rem;
 }
 
 .appWindow:not(.bar).fullscreen-app > .chrome.maximized {
@@ -28,6 +29,7 @@
   position: absolute;
   bottom: 0;
   width: 100%;
+  font-size: 0;
 }
 
 /* Special cases */
@@ -52,44 +54,63 @@
 
 /* URL bar */
 .chrome .controls .urlbar {
-  display: inline-block;
-  vertical-align: middle;
-  width: calc(100% - 3rem);
-  height: 3.5rem;
-  line-height: 3.5rem;
-  padding: 0 1rem;
-  background-color: rgba(51,51,51,0.5);
-  border-radius: 2rem;
-  margin: 0.7rem 0 0.7rem 0.45rem;
+  width: calc(100% - 4.5rem);
+  height: 3.6rem;
+  line-height: 3.6rem;
+  margin: 0.4rem 0 0.6rem;
+  border-radius: 1.8rem;
   color: white;
+  overflow: hidden;
+  background-color: transparent;
+  float: left;
+  margin-left: 0.5rem;
+}
+
+.chrome:not(.manifest) .controls button:not([data-disabled]) + button[data-disabled] + .urlbar,
+.chrome:not(.manifest) .controls button:not([data-disabled]) + .urlbar {
+  margin-left: 0;
+}
+
+.maximized .controls .urlbar {
+  background-color: rgba(51,51,51,0.5);
 }
 
 .chrome .controls .urlbar .title {
-  width: calc(100% - 3rem);
+  width: calc(100% - 3.2rem);
+  padding-left: 1rem;
+  box-sizing: padding-box;
   overflow: hidden;
   white-space: nowrap;
-  text-overflow: ellipsis;
   font-weight: 300;
   font-size: 2rem;
   float: none;
+  background-color: rgba(51,51,51,0.5);
+  border-radius: 1.8rem;
+  text-overflow: ellipsis;
 }
 
+.maximized .controls .urlbar .title {
+  background-color: transparent;
+}
+
+
 .controls .forward-button:not([data-disabled]) + .urlbar {
-  width: calc(100% - 6rem);
+  width: calc(100% - 8rem);
 }
 
 .controls .back-button:not([data-disabled]) + .forward-button[data-disabled] + .urlbar {
-  width: calc(100% - 6rem);
+  width: calc(100% - 8rem);
 }
 
 .controls .back-button:not([data-disabled]) + .forward-button:not([data-disabled]) + .urlbar {
-  width: calc(100% - 9rem);
+  width: calc(100% - 12rem);
 }
 
 .controls .urlbar {
-  transform: scaleX(0.48);
+  transform: scaleX(0.6521);
   transform-origin: top left;
   transition: transform 0.2s ease-in-out;
+  will-change: transform;
 }
 
 .maximized .controls .urlbar {
@@ -98,11 +119,11 @@
 
 .chrome:not(.maximized):not(.manifest) .back-button:not([data-disabled]) + .forward-button[data-disabled] + .urlbar,
 .chrome:not(.maximized):not(.manifest) .forward-button:not([data-disabled]) + .urlbar {
-  transform: scaleX(0.48) translateX(-6rem);
+  transform: scaleX(0.6521) translateX(-5.5rem);
 }
 
 .chrome:not(.maximized):not(.manifest) .back-button:not([data-disabled]) + .forward-button:not([data-disabled]) + .urlbar {
-  transform: scaleX(0.48) translateX(-12.4rem);
+  transform: scaleX(0.6521) translateX(-12rem);
 }
 
 
@@ -110,29 +131,32 @@
 .controls button  {
   -moz-appearance: none;
   border: none;
-  display: inline-block;
   margin: 0;
   padding: 0;
-  min-width: 3rem;
-  width: 3rem;
-  height: 5rem;
-  line-height: 5rem;
-  vertical-align: middle;
+  min-width: 4rem;
+  width: 4rem;
+  height: 4rem;
+  line-height: 4rem;
   background-position: center;
   background-repeat: no-repeat;
   background-color: transparent;
   background-size: contain;
   opacity: 1;
+  float: left;
+  border-radius: 0;
 }
 
 .controls .reload-button,
 .controls .stop-button {
   background-size: 2rem auto;
-  background-position: left center;
+  background-position: center center;
   position: absolute;
-  bottom: 0;
-  right: 0;
-  height: 3.5rem;
+  bottom: 0.3rem;
+  right: 0.3rem;
+  width: 3rem;
+  height: 3rem;
+  min-width: 0.3rem;
+  border-left: 1px solid rgba(51,51,51,0.5);
 }
 
 .loading .controls .reload-button {
@@ -153,6 +177,11 @@
 .controls .back-button[data-disabled],
 .controls .forward-button[data-disabled] {
   display: none;
+}
+
+.chrome.maximized .controls .menu-button[data-disabled] {
+  opacity: 0.2;
+  pointer-events: none;
 }
 
 .appWindow:not(.bar) > .chrome button {
@@ -182,6 +211,10 @@
   background-image: url("images/stop.png");
 }
 
+.controls .menu-button {
+  background-image: url("images/overflow.png");
+}
+
 
 /* Progress */
 .appWindow:not(.bar).navigation > .chrome .progress {
@@ -197,7 +230,7 @@
 .chrome.manifest .controls .back-button:not([data-disabled]) + .forward-button[data-disabled] + .urlbar,
 .chrome.manifest .controls .back-button:not([data-disabled]) + .forward-button:not([data-disabled]) + .urlbar,
 .chrome.manifest .controls .urlbar {
-  width: calc(100% - 3rem);
+  width: calc(100% - 8rem);
 }
 
 .chrome.manifest .controls .urlbar .title {
