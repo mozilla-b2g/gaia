@@ -1,13 +1,21 @@
 .appWindow:not(.bar) > .chrome {
   pointer-events: none;
-  background-color: black;
   top: 0;
   height: 7.6rem;
   transform: scaleY(0.6521) translateY(-3rem);
   transform-origin: top left;
   transition: transform 0.2s ease-in-out, background-color 0.5s ease;
-  background-image: linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.1));
   will-change: transform;
+
+  background-color: black;
+  background-image: linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.1));
+  color: white;
+}
+
+.appWindow.browser:not(.bar) > .chrome {
+  background-image: linear-gradient(rgba(0,0,0,0.05), rgba(0,0,0,0.05));
+  background-color: white;
+  color: #4d4d4d;
 }
 
 .appWindow:not(.bar) > .chrome.maximized {
@@ -59,20 +67,24 @@
   line-height: 3.6rem;
   margin: 0.4rem 0 0.6rem;
   border-radius: 1.8rem;
-  color: white;
+  color: inherit;
   overflow: hidden;
   background-color: transparent;
   float: left;
   margin-left: 0.5rem;
 }
 
-.chrome:not(.manifest) .controls button:not([data-disabled]) + button[data-disabled] + .urlbar,
-.chrome:not(.manifest) .controls button:not([data-disabled]) + .urlbar {
+.browser .chrome .controls button:not([data-disabled]) + button[data-disabled] + .urlbar,
+.browser .chrome .controls button:not([data-disabled]) + .urlbar {
   margin-left: 0;
 }
 
 .maximized .controls .urlbar {
   background-color: rgba(51,51,51,0.5);
+}
+
+.appWindow.browser .maximized .controls .urlbar {
+  background-color: rgba(201,201,201,0.4);
 }
 
 .chrome .controls .urlbar .title {
@@ -87,6 +99,10 @@
   background-color: rgba(51,51,51,0.5);
   border-radius: 1.8rem;
   text-overflow: ellipsis;
+}
+
+.appWindow.browser .chrome:not(.maximized) .controls .urlbar .title {
+  background-color: rgba(201,201,201,0.4);
 }
 
 .maximized .controls .urlbar .title {
@@ -117,12 +133,12 @@
   transform: scaleX(1);
 }
 
-.chrome:not(.maximized):not(.manifest) .back-button:not([data-disabled]) + .forward-button[data-disabled] + .urlbar,
-.chrome:not(.maximized):not(.manifest) .forward-button:not([data-disabled]) + .urlbar {
+.browser .chrome:not(.maximized) .back-button:not([data-disabled]) + .forward-button[data-disabled] + .urlbar,
+.browser .chrome:not(.maximized) .forward-button:not([data-disabled]) + .urlbar {
   transform: scaleX(0.6521) translateX(-5.5rem);
 }
 
-.chrome:not(.maximized):not(.manifest) .back-button:not([data-disabled]) + .forward-button:not([data-disabled]) + .urlbar {
+.browser .chrome:not(.maximized) .back-button:not([data-disabled]) + .forward-button:not([data-disabled]) + .urlbar {
   transform: scaleX(0.6521) translateX(-12rem);
 }
 
@@ -215,6 +231,25 @@
   background-image: url("images/overflow.png");
 }
 
+.browser .controls .back-button {
+  background-image: url("images/dark/back.png");
+}
+
+.browser .controls .forward-button {
+  background-image: url("images/dark/forward.png");
+}
+
+.browser .controls .reload-button {
+  background-image: url("images/dark/reload.png");
+}
+
+.browser .controls .stop-button {
+  background-image: url("images/dark/stop.png");
+}
+
+.browser .controls .menu-button {
+  background-image: url("images/dark/overflow.png");
+}
 
 /* Progress */
 .appWindow:not(.bar).navigation > .chrome .progress {
@@ -222,18 +257,18 @@
 }
 
 /* App specifics */
-.chrome.manifest .controls button {
+.appWindow:not(.browser) > .chrome .controls button {
   display: none;
 }
 
-.chrome.manifest .controls .forward-button:not([data-disabled]) + .urlbar,
-.chrome.manifest .controls .back-button:not([data-disabled]) + .forward-button[data-disabled] + .urlbar,
-.chrome.manifest .controls .back-button:not([data-disabled]) + .forward-button:not([data-disabled]) + .urlbar,
-.chrome.manifest .controls .urlbar {
+.appWindow:not(.browser) > .chrome .controls .forward-button:not([data-disabled]) + .urlbar,
+.appWindow:not(.browser) > .chrome .controls .back-button:not([data-disabled]) + .forward-button[data-disabled] + .urlbar,
+.appWindow:not(.browser) > .chrome .controls .back-button:not([data-disabled]) + .forward-button:not([data-disabled]) + .urlbar,
+.appWindow:not(.browser) > .chrome .controls .urlbar {
   width: calc(100% - 8rem);
 }
 
-.chrome.manifest .controls .urlbar .title {
+.appWindow:not(.browser) > .chrome .controls .urlbar .title {
   width: calc(100%);
 }
 
