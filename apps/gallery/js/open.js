@@ -61,7 +61,23 @@ navigator.mozL10n.once(function() {
     $('menu').hidden = true;
 
     blob = activityData.blob;
+    setNFCSharing(true, blob);
     open(blob);
+
+  }
+
+  function setNFCSharing(enable, blob) {
+    if (!window.navigator.mozNfc) {
+      return;
+    }
+    if (enable) {
+      // If we have NFC, we need to put the callback to have shrinking UI.
+      window.navigator.mozNfc.onpeerready = function(event) {
+        navigator.mozNfc.getNFCPeer(event.detail).sendFile(blob);
+      };
+    } else {
+      window.navigator.mozNfc.onpeerready = null;
+    }
   }
 
   // Display the specified blob, unless it is too big to display
@@ -213,6 +229,7 @@ navigator.mozL10n.once(function() {
   function done() {
     activity.postResult({ saved: saved });
     activity = null;
+    setNFCSharing(false);
   }
 
   function handleDoubleTap(e) {
