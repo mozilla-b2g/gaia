@@ -63,7 +63,14 @@
           </header>
           <ul data-type="list" id="contactsManagement">
             <li>
-              <button id="bulkDelete" class="fillflow-row action action-delete" data-l10n-id="bulkDeleteButton">Bulk delete</button>
+              <button id="set-ice" class="action action-delete" data-l10n-id="setICEButton">
+                Set ICE Contacts
+              </button>
+            </li>
+            <li>
+              <button id="bulkDelete" class="action action-delete" data-l10n-id="bulkDeleteButton">
+                Delete Contacts
+              </button>
             </li>
           </ul>
         </section>
@@ -108,6 +115,51 @@
             <li id="export-bluetooth-option" data-source="bluetooth">
               <button class="icon icon-bluetooth" data-l10n-id="bluetooth">
                 Bluetooth
+              </button>
+            </li>
+          </ul>
+        </section>
+      </article>
+    </section>
+    <section data-theme="organic" id="ice-settings" role="region" class="skin-organic view view-right">
+      <header id="ice-settings-header">
+        <button id="ice-settings-back" class="negative">
+          <span class="icon icon-back" data-l10n-id="back">back</span>
+        </button>
+        <h1 id='ice-settings-title' data-l10n-id="ICESettingTitle">ICE Contacts</h1>
+      </header>
+      <article class="view-body">
+        <section role="region" class="view-body-inner">
+          <p class="description" data-l10n-id="ICEDescription">
+            Add two contacts for making “In Case of Emergency” calls.
+          </p>
+          <ul data-type="list">
+            <li id="ice-contacts-1-switch">
+             <aside class="pack-end">
+                <label class="pack-switch">
+                  <input type="checkbox" name="ice-contact-1-enabled" />
+                  <span></span>
+                </label>
+              </aside>
+              <p data-l10n-id="ICEContact1">ICE Contact 1</p>
+            </li>
+            <li>
+              <button id="select-ice-contact-1" class="icon icon-view" data-l10n-id="ICESelectContact" disabled>
+                Select a contact
+              </button>
+            </li>
+            <li id="ice-contacts-2-switch">
+             <aside class="pack-end">
+                <label class="pack-switch">
+                  <input type="checkbox" name="ice-contact-2-enabled" />
+                  <span></span>
+                </label>
+              </aside>
+              <p data-l10n-id="ICEContact2">ICE Contact 2</p>
+            </li>
+            <li>
+              <button id="select-ice-contact-2" class="icon icon-view" data-l10n-id="ICESelectContact" disabled>
+                Select a contact
               </button>
             </li>
           </ul>
