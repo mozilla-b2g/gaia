@@ -501,7 +501,6 @@
             ' " id="' + this.instanceID +
             '" transition-state="closed">' +
               '<div class="titlebar"></div>' +
-              '<div class="screenshot-overlay"></div>' +
               '<div class="identification-overlay">' +
                 '<div>' +
                   '<div class="icon"></div>' +
@@ -510,7 +509,9 @@
               '</div>' +
               '<div class="fade-overlay"></div>' +
               '<div class="touch-blocker"></div>' +
-              '<div class="browser-container"></div>' +
+              '<div class="browser-container">' +
+              ' <div class="screenshot-overlay"></div>' +
+              '</div>' +
            '</div>';
   };
 
