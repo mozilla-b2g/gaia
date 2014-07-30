@@ -567,14 +567,10 @@ button::-moz-focus-inner {
 }
 
 #lockscreen-passcode-pad > a.row0 > div > span,
-#lockscreen-passcode-pad > a.row1 > div > span {
+#lockscreen-passcode-pad > a.row1 > div > span,
+#lockscreen-passcode-pad > a.row2 > div > span {
   display: block;
   margin-top: -2.6rem;
-}
-
-#lockscreen-passcode-pad > a.row2 > div > span {
-  display:block;
-  margin-top:-2.6rem;
 }
 
 #lockscreen-passcode-pad > a:active > div > span {
