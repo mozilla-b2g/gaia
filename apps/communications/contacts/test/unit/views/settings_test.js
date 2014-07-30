@@ -601,4 +601,30 @@ suite('Contacts settings >', function() {
       navigator.mozContacts = realMozContacts;
     });
   });
+
+  suite('ICE options', function() {
+
+    setup(function() {
+      contacts.Settings.init();
+      mocksHelper.suiteSetup();
+      realMozContacts = navigator.mozContacts;
+      navigator.mozContacts = MockMozContacts;
+    });
+
+    test('Pressing the ICE button should init ICE module', function(done) {
+      contacts.Settings.showICEScreen(function() {
+        assert.equal(
+          contacts.Settings.navigation.currentView(),
+          'ice-settings'
+        );
+        assert.ok(contacts.ICE.loaded);
+        done();
+      });
+    });
+
+    suiteTeardown(function() {
+      mocksHelper.suiteTeardown();
+      navigator.mozContacts = realMozContacts;
+    });
+  });
 });
