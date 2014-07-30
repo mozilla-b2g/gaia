@@ -3,7 +3,8 @@
 /* global AccessibilityHelper, CallLog, CallLogDBManager, Contacts,
           KeypadManager,LazyL10n, LazyLoader, MmiManager, Notification,
           NotificationHelper, SettingsListener, SimPicker, SimSettingsHelper,
-          SuggestionBar, TelephonyHelper, TonePlayer, Utils, Voicemail */
+          SuggestionBar, TelephonyHelper, TonePlayer, Utils, Voicemail,
+          MozActivity */
 
 var NavbarManager = {
   init: function nm_init() {
@@ -148,6 +149,7 @@ var CallHandler = (function callHandler() {
 
   /* === Settings === */
   var screenState = null;
+  var engineeringModeKey = null;
 
   /* === WebActivity === */
   function handleActivity(activity) {
@@ -424,6 +426,16 @@ var CallHandler = (function callHandler() {
 
   /* === Calls === */
   function call(number, cardIndex) {
+    if (engineeringModeKey && number === engineeringModeKey) {
+      var activity = new MozActivity({
+        name: 'internal-system-engineering-mode'
+      });
+      activity.onerror = function() {
+        console.log('Could not launch engineering mode');
+      };
+      return;
+    }
+
     if (MmiManager.isMMI(number, cardIndex)) {
       if (number === '*#06#') {
         MmiManager.showImei();
@@ -516,6 +528,9 @@ var CallHandler = (function callHandler() {
         } else {
           screenState = 'unlocked';
         }
+      });
+      SettingsListener.observe('engineering-mode.key', null, function(value) {
+        engineeringModeKey = value || null;
       });
     });
   }
