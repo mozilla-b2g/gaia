@@ -1533,7 +1533,8 @@ MessageListCard.prototype = {
 
   onClickMessage: function(messageNode, event) {
     // You cannot open a message if this is the outbox and it is syncing.
-    if (this.curFolder.type === 'outbox' && this.outboxSyncInProgress) {
+    if (this.curFolder &&
+        this.curFolder.type === 'outbox' && this.outboxSyncInProgress) {
       return;
     }
 
