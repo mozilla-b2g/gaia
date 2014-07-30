@@ -14,6 +14,7 @@
   var initialized = false;
 
   var FinishScreen = {
+    isUpgrade: false,
     init: function () {
       if (initialized) {
         return;
@@ -29,7 +30,11 @@
       // Show finish panel
       var finishPanel = document.getElementById(panelSelector);
       finishPanel.classList.add('show');
-      
+
+      if (this.isUpgrade) {
+        finishPanel.classList.add('upgrade-tour');
+      }
+
       // Cache non-layout-related DOM elements
       elementIDs.forEach(function (name) {
         dom[Utils.camelCase(name)] = document.getElementById(name);
