@@ -1,4 +1,4 @@
-/* global DeviceStorageHelper */
+/* global DeviceStorageHelper, openIncompatibleSettingsDialog */
 /**
  * Links the root panel list item with USB Storage.
  *
@@ -9,6 +9,7 @@ define(function(require) {
 
   var SettingsListener = require('shared/settings_listener');
   var AsyncStorage = require('shared/async_storage');
+  var SettingsCache = require('modules/settings_cache');
 
   /**
    * @alias module:panels/root/storage_usb_item
@@ -122,11 +123,11 @@ define(function(require) {
             this._elements.umsWarningDialog.hidden = false;
 
             this._elements.umsConfirmButton.onclick = function() {
-              cset[this._umsSettingKey] = true;
-              Settings.mozSettings.createLock().set(cset);
-
               AsyncStorage.setItem(warningKey, true);
               this._elements.umsWarningDialog.hidden = true;
+
+              SettingsCache.getSettings(
+                this._openIncompatibleSettingsDialogIfNeeded.bind(this));
             }.bind(this);
 
             this._elements.umsCancelButton.onclick = function() {
@@ -137,14 +138,30 @@ define(function(require) {
               this._elements.umsWarningDialog.hidden = true;
             }.bind(this);
           } else {
-            cset[this._umsSettingKey] = true;
-            Settings.mozSettings.createLock().set(cset);
+            SettingsCache.getSettings(
+              this._openIncompatibleSettingsDialogIfNeeded.bind(this));
           }
         }.bind(this));
       } else {
         cset[this._umsSettingKey] = false;
         Settings.mozSettings.createLock().set(cset);
       }
+    },
+
+    _openIncompatibleSettingsDialogIfNeeded:
+      function storage_openIncompatibleSettingsDialogIfNeeded(settings) {
+        var cset = {};
+        var umsSettingKey = this._umsSettingKey;
+        var usbTetheringSetting = settings['tethering.usb.enabled'];
+
+        if (!usbTetheringSetting) {
+          cset[umsSettingKey] = true;
+          Settings.mozSettings.createLock().set(cset);
+        } else {
+          var oldSetting = 'tethering.usb.enabled';
+          openIncompatibleSettingsDialog('incompatible-settings-warning',
+            umsSettingKey, oldSetting, null);
+        }
     },
 
     // XXX media related functions
