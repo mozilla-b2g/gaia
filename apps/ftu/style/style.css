@@ -567,6 +567,11 @@ aside.connecting {
   line-height: 2rem;
 }
 
+/* Bug 1045345: hide h2 after upgrade tour */
+.tutorial-finish-base.upgrade-tour h2[data-l10n-id="enjoyYourPhone"] {
+  display: none;
+}
+
 .finish-screen-base p, .tutorial-finish-base p {
   margin: 0;
   color: white;

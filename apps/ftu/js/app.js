@@ -1,6 +1,6 @@
 /* global DataMobile, Navigation, SimManager, TimeManager,
-          UIManager, WifiManager, ImportIntegration, Tutorial,
-          VersionHelper */
+          UIManager, WifiManager, ImportIntegration, Tutorial, Promise,
+          VersionHelper, FinishScreen */
 /* exported AppManager */
 'use strict';
 
@@ -93,6 +93,8 @@ navigator.mozL10n.ready(function showBody() {
       UIManager.splashScreen.classList.remove('show');
       UIManager.activationScreen.classList.remove('show');
       UIManager.updateScreen.classList.add('show');
+
+      FinishScreen.isUpgrade = true;
 
       // Load and play the what's new tutorial
       Tutorial.init(stepsKey, function() {
