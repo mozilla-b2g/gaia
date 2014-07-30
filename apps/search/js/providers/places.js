@@ -1,5 +1,5 @@
 /* globals DataGridProvider, SyncDataStore, Promise,
- Search, GaiaGrid, InMemoryStore */
+ Search, GaiaGrid, InMemoryStore, IconsHelper */
 
 (function(exports) {
 
@@ -9,6 +9,7 @@
   // urls in memory
   var results = {};
   var icons = {};
+  var iconsUrls = {};
   var urls = [];
   var MAX_URLS = 50;
 
@@ -59,6 +60,7 @@
       } else {
         icons[key] = icon;
       }
+      iconsUrls[key] = url;
       showStartPage();
     });
   }
@@ -195,8 +197,10 @@
 
   function formatPlace(placeObj, filter) {
     var icon;
+    var iconUrl;
     if (placeObj.url in icons) {
       icon = URL.createObjectURL(icons[placeObj.url]);
+      iconUrl = iconsUrls[placeObj.url];
     }
 
     var renderObj = {
@@ -204,7 +208,8 @@
         id: placeObj.url,
         name: placeObj.title || placeObj.url,
         url: placeObj.url,
-        icon: icon
+        icon: icon,
+        iconUrl: iconUrl
       })
     };
     return renderObj;
@@ -281,9 +286,9 @@
      */
     addPlace: function(place) {
       results[place.url] = place;
-      var icons = place.icons ? Object.keys(place.icons) : [];
-      if (icons.length) {
-        saveIcon(place.url, icons[0]);
+      var icon = IconsHelper.getBestIcon(place.icons);
+      if (icon) {
+        saveIcon(place.url, icon);
       }
       if (!(place.url in urls)) {
         urls.unshift(place.url);

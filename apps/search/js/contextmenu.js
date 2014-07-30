@@ -55,13 +55,24 @@
 
         case 'click':
           /* jshint nonew: false */
+          /**
+           * We could have several cases for icons in the search grid:
+           * - Icons from e.me: this.icon.icon will be url
+           * - Icons from places: this.icon.icon can be:
+           *   - a blob, cached icon
+           *   - a icon url
+           *   To solve this, added an extra feature attribute: iconUrl,
+           *   so GaiaGridItems with this extra attribute in the detail
+           *   will have a way to keep track of the original url.
+           */
+          var iconUrl = this.icon.detail.iconUrl || this.icon.icon;
           new MozActivity({
             name: 'save-bookmark',
             data: {
               type: 'url',
               url: this.icon.detail.url,
               name: this.icon.name,
-              icon: this.icon.icon
+              icon: iconUrl
             }
           });
           break;

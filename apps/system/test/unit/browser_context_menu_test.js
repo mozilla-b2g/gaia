@@ -4,12 +4,14 @@
 'use strict';
 
 require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
+require('/shared/test/unit/mocks/mock_icons_helper.js');
 requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/test/unit/mock_app_window.js');
 require('/shared/test/unit/mocks/mock_moz_activity.js');
 
 var mocksForAppModalDialog = new MocksHelper([
-  'AppWindow', 'MozActivity'
+  'AppWindow', 'MozActivity', 'LazyLoader', 'IconsHelper'
 ]).init();
 
 suite('system/BrowserContextMenu', function() {
