@@ -1204,10 +1204,22 @@ Camera.prototype.setCamera = function(camera) {
  */
 Camera.prototype.setMode = function(mode) {
   debug('setting mode to: %s', mode);
-  if (this.mode === mode) { return; }
+  if (this.isMode(mode)) { return; }
   this.mode = mode;
   this.configure();
   return this;
+};
+
+/**
+ * States if the camera is currently
+ * set to the passed mode.
+ *
+ * @param  {String}  mode  ['picture'|'video']
+ * @return {Boolean}
+ * @public
+ */
+Camera.prototype.isMode = function(mode) {
+  return this.mode === mode;
 };
 
 /**

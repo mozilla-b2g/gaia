@@ -1211,4 +1211,35 @@ suite('lib/camera/camera', function() {
       sinon.assert.called(this.camera.setThumbnailSize);
     });
   });
+
+  suite('Camera#setMode()', function() {
+    setup(function() {
+      sinon.stub(this.camera, 'configure');
+    });
+
+    test('It sets `this.mode`', function() {
+      this.camera.setMode('my-mode');
+      assert.equal(this.camera.mode, 'my-mode');
+    });
+
+    test('It configures the camera', function() {
+      this.camera.setMode('my-mode');
+      sinon.assert.called(this.camera.configure);
+    });
+
+    test('It doesn\'t do anything if the mode didn\'t change', function() {
+      this.camera.setMode('my-mode');
+      this.camera.configure.reset();
+      this.camera.setMode('my-mode');
+      sinon.assert.notCalled(this.camera.configure);
+    });
+  });
+
+  suite('Camera#isMode()', function() {
+    test('It returns `true` is the camera is set to the passed mode', function() {
+      this.camera.mode = 'my-mode';
+      assert.isTrue(this.camera.isMode('my-mode'));
+      assert.isFalse(this.camera.isMode('not-my-mode'));
+    });
+  });
 });

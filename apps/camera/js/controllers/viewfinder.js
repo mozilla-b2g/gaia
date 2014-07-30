@@ -199,6 +199,7 @@ ViewfinderController.prototype.show = function() {
  * @private
  */
 ViewfinderController.prototype.hide = function() {
+  debug('hide');
   clearTimeout(this.showTimeout);
   this.views.viewfinder.fadeOut();
 };
