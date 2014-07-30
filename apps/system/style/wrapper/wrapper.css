@@ -2,6 +2,7 @@
   pointer-events: none;
   background-color: black;
   transition: background-color 0.5s ease;
+  height: 5rem;
 }
 
 .appWindow:not(.navigation) .navigation {
