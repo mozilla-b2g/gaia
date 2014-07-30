@@ -36,13 +36,14 @@
     _cachedStatus: '',
     ready: function(cb) {
       if (this._cachedStatus === '') {
+        var self = this;
         this.addEventListener(kEventName, function onChangeEvent() {
           // make sure _cachedStatus is definitely not ''
-          if (this._cachedStatus !== '') {
-            this.removeEventListener(kEventName, onChangeEvent);
+          if (self._cachedStatus !== '') {
+            self.removeEventListener(kEventName, onChangeEvent);
             cb();
           }
-        }.bind(this));
+        });
       } else {
         cb();
       }
