@@ -94,6 +94,9 @@
         <div id="frame2" class="frame"></div>
         <div id="frame3" class="frame"></div>
       </div>
+      <div id="edit-copy-save-banner" hidden>
+        <span id="edit-copy-save-status"></span>
+      </div>
       <button id="fullscreen-back-button-tiny" type="reset" class="tiny-only" data-icon="back"></button>
       <footer id="fullscreen-toolbar" class="tiny-only">
         <a id="fullscreen-camera-button-tiny" class="button" data-icon="camera"></a>
@@ -142,7 +145,8 @@
     <section role="region" id="edit-view" class="skin-dark">
       <gaia-header id="edit-header" action="close">
         <h1 id="edit-title" data-l10n-id="edit"></h1>
-        <button id="edit-save-button" data-l10n-id="done">done</button>
+        <button id="edit-save-button" data-l10n-id="save">Save</button>
+        <button id="edit-modes-apply-button" data-l10n-id="apply" class="edit-mode" hidden>Apply</button>
       </gaia-header>
 
       <!-- Indicates progress when saving -->
@@ -192,16 +196,14 @@
           <a id="edit-effect-faded" class="radio button filter-faded bgimage"
              data-effect="faded"></a>
         </div>
-
-        <div id="edit-enhance-options" class="edit-options-bar hidden">
-          <span id="edit-enhance-status"></span>
-        </div>
-
+      </div>
+      <div id="edit-enhance-banner" hidden>
+        <span id="edit-enhance-status"></span>
       </div>
 
       <!-- buttons for selecting the type of edit to perform -->
       <footer id="edit-toolbar">
-        <a id="edit-exposure-button" class="selected radio button" data-icon="brightness"></a>
+        <a id="edit-exposure-button" class="radio button" data-icon="brightness"></a>
         <a id="edit-crop-button" class="radio button" data-icon="crop"></a>
         <a id="edit-effect-button" class="radio button"></a>
         <a id="edit-enhance-button" class="radio button"></a>

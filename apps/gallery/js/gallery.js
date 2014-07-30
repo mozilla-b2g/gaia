@@ -580,6 +580,14 @@ function deleteFile(n) {
 }
 
 function fileCreated(fileinfo) {
+  function showBanner(msg) {
+    var banner = $('edit-copy-save-banner');
+    navigator.mozL10n.setAttributes($('edit-copy-save-status'), msg);
+    banner.hidden = false;
+    setTimeout(function() {
+      banner.hidden = true;
+    }, 3000);
+  }
   // If the new file is a video and we're handling an image pick activity
   // then we won't display the new file.
   if (pendingPick && fileinfo.metadata.video)
@@ -620,6 +628,7 @@ function fileCreated(fileinfo) {
     if (currentView === LAYOUT_MODE.fullscreen) {
       if (hasSaved) {
         showFile(0);
+        showBanner('edit-copy-saved');
       } else {
         showFile(currentFileIndex);
       }
