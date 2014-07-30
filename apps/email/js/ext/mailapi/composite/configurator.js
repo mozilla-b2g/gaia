@@ -489,8 +489,8 @@ CompositeIncomingAccount.prototype = {
    * We are being told that a synchronization pass completed, and that we may
    * want to consider persisting our state.
    */
-  __checkpointSyncCompleted: function(callback) {
-    this.saveAccountState(null, callback, 'checkpointSync');
+  __checkpointSyncCompleted: function(callback, betterReason) {
+    this.saveAccountState(null, callback, betterReason || 'checkpointSync');
   },
 
   /**
@@ -649,11 +649,10 @@ exports.LOGFAB_DEFINITION = {
       createConnection: {},
       reuseConnection: {},
       releaseConnection: {},
-      deadConnection: {},
+      deadConnection: { why: true },
       unknownDeadConnection: {},
       connectionMismatch: {},
 
-      saveAccountState: { reason: false },
       /**
        * XXX: this is really an error/warning, but to make the logging less
        * confusing, treat it as an event.
@@ -671,8 +670,8 @@ exports.LOGFAB_DEFINITION = {
 
       createConnection: { label: false },
       reuseConnection: { label: false },
-      releaseConnection: { label: false },
-      deadConnection: { },
+      releaseConnection: { folderId: false, label: false },
+      deadConnection: { folder: false },
       connectionMismatch: {},
     },
     errors: {
@@ -683,6 +682,7 @@ exports.LOGFAB_DEFINITION = {
     asyncJobs: {
       checkAccount: { err: null },
       runOp: { mode: true, type: true, error: false, op: false },
+      saveAccountState: { reason: true, folderSaveCount: true },
     },
     TEST_ONLY_asyncJobs: {
     },
@@ -1841,21 +1841,24 @@ ImapFolderSyncer.prototype = {
     //
     this._syncSlice.desiredHeaders = this._syncSlice.headers.length;
 
-    if (this._curSyncDoneCallback)
-      this._curSyncDoneCallback(err);
-
     // Save our state even if there was an error because we may have accumulated
-    // some partial state.
-    this._account.__checkpointSyncCompleted();
+    // some partial state.  Additionally, don't *actually* complete until the
+    // save has hit the disk.  This is beneficial for both tests and cronsync
+    // which has been trying to shut us down in a race with this save
+    // triggering.
+    this._account.__checkpointSyncCompleted(function () {
+      if (this._curSyncDoneCallback)
+        this._curSyncDoneCallback(err);
 
-    this._syncSlice = null;
-    this._curSyncAccuracyStamp = null;
-    this._curSyncDir = null;
-    this._nextSyncAnchorTS = null;
-    this._syncThroughTS = null;
-    this._curSyncDayStep = null;
-    this._curSyncDoNotGrowBoundary = null;
-    this._curSyncDoneCallback = null;
+      this._syncSlice = null;
+      this._curSyncAccuracyStamp = null;
+      this._curSyncDir = null;
+      this._nextSyncAnchorTS = null;
+      this._syncThroughTS = null;
+      this._curSyncDayStep = null;
+      this._curSyncDoNotGrowBoundary = null;
+      this._curSyncDoneCallback = null;
+    }.bind(this));
   },
 
   /**
@@ -3510,6 +3513,31 @@ var properties = {
   },
 
   /**
+   * All our operations completed; let's think about closing any connections
+   * they may have established that we don't need anymore.
+   */
+  allOperationsCompleted: function() {
+    this.maybeCloseUnusedConnections();
+  },
+
+  /**
+   * Using great wisdom, potentially close some/all connections.
+   */
+  maybeCloseUnusedConnections: function() {
+    // XXX: We are closing unused connections in an effort to stem
+    // problems associated with unreliable cell connections; they
+    // tend to be dropped unceremoniously when left idle for a
+    // long time, particularly on cell networks. NB: This will
+    // close the connection we just used, unless someone else is
+    // waiting for a connection.
+    if ($syncbase.KILL_CONNECTIONS_WHEN_JOBLESS &&
+        !this._demandedConns.length &&
+        !this.universe.areServerJobsWaiting(this)) {
+      this.closeUnusedConnections();
+    }
+  },
+
+  /**
    * Close all connections that aren't currently in use.
    */
   closeUnusedConnections: function() {
@@ -3521,7 +3549,7 @@ var properties = {
       // this eats all future notifications, so we need to splice...
       connInfo.conn.die();
       this._ownedConns.splice(i, 1);
-      this._LOG.deadConnection();
+      this._LOG.deadConnection('unused', null);
     }
   },
 
@@ -3638,7 +3666,8 @@ var properties = {
       for (var i = 0; i < this._ownedConns.length; i++) {
         var connInfo = this._ownedConns[i];
         if (connInfo.conn === conn) {
-          this._LOG.deadConnection(connInfo.inUseBy &&
+          this._LOG.deadConnection('closed',
+                                   connInfo.inUseBy &&
                                    connInfo.inUseBy.folderId);
           if (connInfo.inUseBy && connInfo.inUseBy.deathback)
             connInfo.inUseBy.deathback(conn);
@@ -3667,20 +3696,11 @@ var properties = {
                                     connInfo.inUseBy.label);
         connInfo.inUseBy = null;
         // (this will trigger an expunge if not read-only...)
-        if (closeFolder && !resourceProblem && !this._TEST_doNotCloseFolder)
+        if (closeFolder && !resourceProblem && !this._TEST_doNotCloseFolder) {
           conn.closeBox(function() {});
-
-        // XXX: We are closing unused connections in an effort to stem
-        // problems associated with unreliable cell connections; they
-        // tend to be dropped unceremoniously when left idle for a
-        // long time, particularly on cell networks. NB: This will
-        // close the connection we just used, unless someone else is
-        // waiting for a connection.
-        if ($syncbase.KILL_CONNECTIONS_WHEN_JOBLESS &&
-            !this._demandedConns.length &&
-            !this.universe.areServerJobsWaiting(this)) {
-          this.closeUnusedConnections();
         }
+        // We just freed up a connection, it may be appropriate to close it.
+        this.maybeCloseUnusedConnections();
         return;
       }
     }
@@ -8202,27 +8222,31 @@ Pop3FolderSyncer.prototype = {
    * sync, we queue up "server-only" modifications and execute them
    * upon sync. This allows us to reuse much of the existing tests for
    * certain folder operations, and becomes a no-op in production.
+   *
+   * @return {Boolean} true if a save is needed because we're actually doing
+   * something.
    */
-  _performTestDeletions: function(cb) {
+  _performTestAdditionsAndDeletions: function(cb) {
     var meta = this.storage.folderMeta;
-    var callbacksWaiting = 1;
     var numAdds = 0;
     var latch = allback.latch();
+    var saveNeeded = false;
     if (meta._TEST_pendingHeaderDeletes) {
       meta._TEST_pendingHeaderDeletes.forEach(function(header) {
-        callbacksWaiting++;
+        saveNeeded = true;
         this.storage.deleteMessageHeaderUsingHeader(header, latch.defer());
       }, this);
       meta._TEST_pendingHeaderDeletes = null;
     }
     if (meta._TEST_pendingAdds) {
       meta._TEST_pendingAdds.forEach(function(msg) {
-        callbacksWaiting++;
+        saveNeeded = true;
         this.storeMessage(msg.header, msg.bodyInfo, {}, latch.defer());
       }, this);
       meta._TEST_pendingAdds = null;
     }
     latch.then(function(results) { cb(); });
+    return saveNeeded;
   },
 
   /**
@@ -8298,7 +8322,6 @@ Pop3FolderSyncer.prototype = {
   function(conn, syncType, slice, doneCallback, progressCallback) {
     // if we could not establish a connection, abort the sync.
     var self = this;
-    this._LOG.sync_begin();
 
     // Only fetch info for messages we don't already know about.
     var filterFunc;
@@ -8317,12 +8340,19 @@ Pop3FolderSyncer.prototype = {
     var bytesStored = 0;
     var numMessagesSynced = 0;
     var latch = allback.latch();
+    // We only want to trigger a save if work is actually being done.  This is
+    // ugly/complicated because in order to let POP3 use the existing IMAP tests
+    // that did things in other folders, a test-only bypass route was created
+    // that has us actually add the messages
+    var saveNeeded;
 
     if (!this.isInbox) {
       slice.desiredHeaders = (this._TEST_pendingAdds &&
                               this._TEST_pendingAdds.length);
-      this._performTestDeletions(latch.defer());
+      saveNeeded = this._performTestAdditionsAndDeletions(latch.defer());
     } else {
+      saveNeeded = true;
+      this._LOG.sync_begin();
       var fetchDoneCb = latch.defer();
 
       // Fetch messages, ensuring that we don't actually store them all in
@@ -8335,7 +8365,7 @@ Pop3FolderSyncer.prototype = {
           // Every N messages, wait for everything to be stored to
           // disk and saved in the database. Then proceed.
           this.storage.runAfterDeferredCalls(function() {
-            this.account.__checkpointSyncCompleted(next);
+            this.account.__checkpointSyncCompleted(next, 'syncBatch');
           }.bind(this));
         }.bind(this),
         progress: function fetchProgress(evt) {
@@ -8382,8 +8412,6 @@ Pop3FolderSyncer.prototype = {
     }
 
     latch.then((function onSyncDone() {
-      this._LOG.sync_end();
-
       // Because POP3 has no concept of syncing discrete time ranges,
       // we have to trick the storage into marking everything synced
       // _except_ the dawn of time. This has to be slightly later than
@@ -8399,7 +8427,18 @@ Pop3FolderSyncer.prototype = {
         this.storage.markSyncedToDawnOfTime();
       }
 
-      this.account.__checkpointSyncCompleted();
+      if (this.isInbox) {
+        this._LOG.sync_end();
+      }
+      // Don't notify completion until the save completes, if relevant.
+      if (saveNeeded) {
+        this.account.__checkpointSyncCompleted(doDoneStuff, 'syncComplete');
+      } else {
+        doDoneStuff();
+      }
+    }).bind(this));
+
+    var doDoneStuff = function() {
       if (syncType === 'initial') {
         // If it's the first time we've synced, we've set
         // ignoreHeaders to true, which means that slices don't know
@@ -8426,8 +8465,7 @@ Pop3FolderSyncer.prototype = {
       } else {
         doneCallback(null, null);
       }
-    }).bind(this));
-
+    }.bind(this);
   }),
 };
 
@@ -9454,6 +9492,12 @@ CompositeAccount.prototype = {
 
   runAfterSaves: function(callback) {
     return this._receivePiece.runAfterSaves(callback);
+  },
+
+  allOperationsCompleted: function() {
+    if (this._receivePiece.allOperationsCompleted) {
+      this._receivePiece.allOperationsCompleted();
+    }
   },
 
   /**
