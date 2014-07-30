@@ -86,6 +86,8 @@
             '   <button type="button" class="stop-button"' +
             '     alt="Stop"></button>' +
             ' </div>' +
+            ' <button type="button" class="menu-button"' +
+            '   alt="Menu" data-disabled="disabled"></button>' +
             '</div>';
   };
 
