@@ -39,7 +39,7 @@
   background-color: black;
 }
 
-body:not(.rb-enabled) #statusbar {
+body #statusbar {
   transition: transform 0.2s linear;
 }
 
@@ -108,7 +108,7 @@ body:not(.rb-enabled) #statusbar {
   opacity: 0;
 }
 
-body:not(.rb-enabled) #statusbar-icons {
+body #statusbar-icons {
   width: 100%;
   box-sizing: border-box;
 }
@@ -122,7 +122,7 @@ body:not(.rb-enabled) #statusbar-icons {
   float: left;
 }
 
-*[dir=rtl] body:not(.rb-enabled) #statusbar-icons > .sb-start {
+*[dir=rtl] body #statusbar-icons > .sb-start {
   float: right;
 }
 
@@ -138,14 +138,14 @@ body:not(.rb-enabled) #statusbar-icons {
   right: 0;
 }
 
-body:not(.rb-enabled) .utility-tray #statusbar-icons > .sb-start-upper,
+body .utility-tray #statusbar-icons > .sb-start-upper,
 .utility-tray #statusbar > #statusbar-title,
 #statusbar-title.hidden {
   visibility: visible;
   transform: translateY(2.4rem);
 }
 
-body:not(.rb-enabled) .utility-tray #statusbar-icons > .sb-start {
+body .utility-tray #statusbar-icons > .sb-start {
   visibility: hidden;
   transform: translateY(2.4rem);
 }
@@ -157,10 +157,6 @@ body:not(.rb-enabled) .utility-tray #statusbar-icons > .sb-start {
   font-size: 1.5rem;
   font-weight: 400;
   line-height: 1.6rem;
-}
-
-body.rb-enabled #statusbar-label {
-  display: none;
 }
 
 #statusbar-time, #statusbar-data:not(.sb-icon-data-circle) {

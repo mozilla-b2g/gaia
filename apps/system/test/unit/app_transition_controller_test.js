@@ -1,5 +1,5 @@
 /* global MocksHelper, MockAppWindow, MockSystem, AppTransitionController,
-          MockSimPinDialog, MockRocketbar, rocketbar, homeSearchbar */
+          MockSimPinDialog, MockRocketbar, rocketbar */
 'use strict';
 
 requireApp('system/test/unit/mock_app_window.js');
@@ -20,7 +20,7 @@ suite('system/AppTransitionController', function() {
   setup(function(done) {
     window.SimPinDialog = new MockSimPinDialog();
     window.rocketbar = new MockRocketbar();
-    window.homeSearchbar = new MockRocketbar();
+    window.rocketbar = new MockRocketbar();
     stubById = this.sinon.stub(document, 'getElementById');
     stubById.returns(document.createElement('div'));
     requireApp('system/js/app_transition_controller.js', done);
@@ -240,12 +240,6 @@ suite('system/AppTransitionController', function() {
     rocketbar.active = true;
     acn1._transitionState = 'opened';
 
-    acn1.handle_opened();
-    assert.isTrue(stubFocus.notCalled);
-
-    rocketbar.active = false;
-    homeSearchbar.active = true;
-    acn1._transitionState = 'opened';
     acn1.handle_opened();
     assert.isTrue(stubFocus.notCalled);
   });

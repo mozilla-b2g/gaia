@@ -464,7 +464,7 @@ var AttentionScreen = {
   appForegroundHandler: function as_appForegroundHandler(evt) {
     // If the app behind the soon-to-be-unlocked lockscreen has an
     // attention screen we should display it
-    if (window.homeSearchbar.active) {
+    if (window.rocketbar.active) {
       return;
     }
 
