@@ -4,9 +4,7 @@
 
 /* Main dialog setup */
 [role="dialog"][data-type="action"] {
-  background:
-    url(action_menu/images/ui/pattern.png) repeat left top,
-    url(action_menu/images/ui/gradient.png) no-repeat left top / 100% 100%;
+  background: #2d2d2d;
   overflow: hidden;
   position: fixed;
   z-index: 100;
@@ -268,7 +266,7 @@
   content: '';
   position: fixed;
   width: 100%;
-  background: url(action_menu/images/ui/pattern.png) repeat scroll left top #2D2D2D;
+  background: #2D2D2D;
   height: 7rem;
   left: 0;
   bottom: 0;

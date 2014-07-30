@@ -4,7 +4,7 @@
 
 /* Main dialog setup */
 [role="dialog"][data-type="time-selector"] {
-  background: url(time_selector/images/ui/pattern.png) repeat left top, url(time_selector/images/ui/gradient.png) no-repeat left top / 100% 100%;
+  background: #2d2d2d;
   overflow: hidden;
   position: absolute;
   z-index: 100;
@@ -77,7 +77,7 @@
   right: 0;
   width: calc(100% / 3);
   height: 100%;
-  background: url(time_selector/images/ui/pattern-time.png);
+  background: #4d4d4d;
 }
 
 [role="dialog"][data-type="time-selector"] .format12hrev .picker-bar-background {
@@ -212,7 +212,7 @@
   white-space: nowrap;
   margin: 0;
   padding: 1.5rem;
-  background: #2d2d2d url(time_selector/images/ui/pattern.png) repeat left top;
+  background: #4d4d4d;
   display: block;
   overflow: hidden;
   position: absolute;
