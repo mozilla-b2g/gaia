@@ -9,17 +9,13 @@
          Draft, MockStickyHeader, MultiSimActionButton, Promise, KeyboardEvent,
          MockLazyLoader, WaitingScreen, Navigation, MockDialog, MockSettings,
          FocusEvent,
-         DocumentFragment
+         DocumentFragment,
+         MockCompose
 */
 
 'use strict';
 
 mocha.setup({ globals: ['alert'] });
-
-// For Desktop testing
-if (!navigator.mozContacts) {
-  require('/js/desktop_contact_mock.js');
-}
 
 require('/js/compose.js');
 require('/js/drafts.js');
@@ -128,13 +124,6 @@ suite('thread_ui.js >', function() {
       type: 'video/ogg',
       size: size
     }, 'video.ogv');
-  }
-
-  function mockImgAttachment(isOversized) {
-    var attachment = isOversized ?
-      new MockAttachment(oversizedImageBlob, 'testOversized.jpg') :
-      new MockAttachment(testImageBlob, 'test.jpg');
-    return attachment;
   }
 
   function dispatchScrollEvent(elt) {
@@ -429,332 +418,45 @@ suite('thread_ui.js >', function() {
     });
   });
 
-  suite('enableSend() >', function() {
-    setup(function() {
-      Compose.clear();
-      ThreadUI.updateCounter();
+  suite('segmentInfo management >', function() {
+    var banner, convertBanner, form, counterLabel, localize;
 
-      this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
+    var realCompose;
+
+    suiteSetup(function() {
+      realCompose = window.Compose;
+      window.Compose = MockCompose;
     });
 
-    teardown(function() {
-      Compose.clear();
+    suiteTeardown(function() {
+      window.Compose = realCompose;
+      realCompose = null;
     });
-
-    suite('In #thread view, button should be...', function() {
-      setup(function() {
-        Navigation.isCurrentPanel.withArgs('thread', { id: 1 }).returns(true);
-        Compose.clear();
-      });
-
-      test('disabled at the beginning', function() {
-        assert.isTrue(sendButton.disabled);
-      });
-
-      test('enabled when there is message input', function() {
-        Compose.append('Hola');
-        assert.isFalse(sendButton.disabled);
-      });
-
-      test('enabled when there is subject input and is visible', function() {
-        subject.textContent = 'Title';
-        Compose.toggleSubject(); // show the subject
-        subject.dispatchEvent(new CustomEvent('input'));
-        assert.isFalse(sendButton.disabled);
-      });
-
-      test('disabled when there is subject input, but is hidden', function() {
-        subject.textContent = 'Title';
-        subject.dispatchEvent(new CustomEvent('input'));
-        assert.isTrue(sendButton.disabled);
-      });
-
-      test('enabled when there is message input, but too many segments',
-        function() {
-
-        Compose.append('Hola');
-        this.sinon.clock.tick(ThreadUI.UPDATE_DELAY);
-
-        var segmentInfo = {
-          segments: 11,
-          charsAvailableInLastSegment: 10
-        };
-        MockNavigatormozMobileMessage.mTriggerSegmentInfoSuccess(segmentInfo);
-
-        assert.isFalse(sendButton.disabled);
-      });
-    });
-
-    suite('In #new view, button should be...', function() {
-      setup(function() {
-        Navigation.isCurrentPanel.withArgs('composer').returns(true);
-
-        Compose.clear();
-        ThreadUI.recipients.length = 0;
-        ThreadUI.recipients.inputValue = '';
-      });
-
-      teardown(function() {
-        Compose.clear();
-        ThreadUI.recipients.length = 0;
-        ThreadUI.recipients.inputValue = '';
-      });
-
-      suite('enabled', function() {
-
-        suite('when there is message input...', function() {
-          setup(function() {
-            Compose.append('Hola');
-          });
-          teardown(function() {
-            Compose.clear();
-          });
-
-          test('and recipient field value is valid ', function() {
-            ThreadUI.recipients.inputValue = '999';
-
-            // Call directly since no input event will be triggered
-            ThreadUI.enableSend();
-            assert.isFalse(sendButton.disabled);
-          });
-
-          test('after adding a valid recipient ', function() {
-            ThreadUI.recipients.add({
-              number: '999'
-            });
-
-            assert.isFalse(sendButton.disabled);
-          });
-
-          test('after adding valid & questionable recipients ', function() {
-            ThreadUI.recipients.add({
-              number: 'foo',
-              isQuestionable: true
-            });
-
-            ThreadUI.recipients.add({
-              number: '999'
-            });
-
-            assert.isFalse(sendButton.disabled);
-          });
-        });
-
-        suite('when there is visible subject with input...', function() {
-          setup(function() {
-            subject.textContent = 'Title';
-            Compose.toggleSubject();
-          });
-
-          teardown(function() {
-            Compose.clear();
-          });
-
-          test('and recipient field value is valid ', function() {
-            ThreadUI.recipients.inputValue = '999';
-
-            // Call directly since no input event will be triggered
-            ThreadUI.enableSend();
-            assert.isFalse(sendButton.disabled);
-          });
-
-          test('after adding a valid recipient ', function() {
-            ThreadUI.recipients.add({
-              number: '999'
-            });
-
-            assert.isFalse(sendButton.disabled);
-          });
-
-          test('after adding valid & questionable recipients ', function() {
-            ThreadUI.recipients.add({
-              number: 'foo',
-              isQuestionable: true
-            });
-
-            ThreadUI.recipients.add({
-              number: '999'
-            });
-
-            assert.isFalse(sendButton.disabled);
-          });
-        });
-
-        suite('when a valid recipient exists...', function() {
-          setup(function() {
-            ThreadUI.recipients.add({
-              number: '999'
-            });
-          });
-          teardown(function() {
-            Compose.clear();
-          });
-          test('after adding message input ', function() {
-            Compose.append('Hola');
-            assert.isFalse(sendButton.disabled);
-          });
-
-          test('after adding subject input', function() {
-            Compose.toggleSubject();
-            subject.textContent = 'Title';
-            subject.dispatchEvent(new CustomEvent('input'));
-            assert.isFalse(sendButton.disabled);
-          });
-
-          test('after appending image within size limits ', function() {
-            Compose.append(mockImgAttachment());
-            assert.isFalse(sendButton.disabled);
-          });
-        });
-      });
-
-      suite('disabled', function() {
-
-        test('when there is no message input, subject or recipient',
-          function() {
-          assert.isTrue(sendButton.disabled);
-        });
-
-        test('when message is over data limit ', function() {
-          ThreadUI.recipients.add({
-            number: '999'
-          });
-
-          Compose.append(mockAttachment(295 * 1024));
-
-          assert.isFalse(sendButton.disabled);
-          Compose.append('Hola');
-
-          assert.isTrue(sendButton.disabled);
-        });
-
-        suite('when there is message input...', function() {
-          setup(function() {
-            Compose.append('Hola');
-          });
-
-          teardown(function() {
-            Compose.clear();
-          });
-
-          test('there is no recipient ', function() {
-            assert.isTrue(sendButton.disabled);
-          });
-
-          test('recipient field value is questionable ', function() {
-            ThreadUI.recipients.inputValue = 'a';
-
-            // Call directly since no input event will be triggered
-            ThreadUI.enableSend();
-            assert.isTrue(sendButton.disabled);
-          });
-
-          test('after adding a questionable recipient ', function() {
-            ThreadUI.recipients.add({
-              number: 'foo',
-              isQuestionable: true
-            });
-
-            assert.isFalse(sendButton.disabled);
-          });
-        });
-
-        suite('when there is subject input...', function() {
-          setup(function() {
-            sendButton.disabled = false;
-            subject.textContent = 'Title';
-            subject.dispatchEvent(new CustomEvent('input'));
-          });
-
-          teardown(function() {
-            Compose.clear();
-          });
-
-          test('there is no recipient ', function() {
-            assert.isTrue(sendButton.disabled);
-          });
-
-          test('recipient field value is questionable ', function() {
-            ThreadUI.recipients.inputValue = 'a';
-
-            // Call directly since no input event will be triggered
-            ThreadUI.enableSend();
-            assert.isTrue(sendButton.disabled);
-          });
-
-          test('after adding a questionable recipient ', function() {
-            ThreadUI.recipients.add({
-              number: 'foo',
-              isQuestionable: true
-            });
-
-            assert.isTrue(sendButton.disabled);
-          });
-
-          test('there is recipient, but subject field is hidden', function() {
-            ThreadUI.recipients.add({
-              number: '999'
-            });
-
-            assert.isTrue(sendButton.disabled);
-          });
-        });
-
-        suite('when a valid recipient exists...', function() {
-          test('there is no message input ', function() {
-
-            ThreadUI.recipients.add({
-              number: 'foo'
-            });
-
-            assert.isTrue(sendButton.disabled);
-          });
-        });
-      });
-
-      test('disabled while resizing oversized image and ' +
-        'enabled when resize complete ',
-        function(done) {
-        this.sinon.stub(Utils, 'getResizedImgBlob');
-
-        ThreadUI.recipients.add({
-          number: '999'
-        });
-
-        function onInput() {
-          if (!Compose.isResizing) {
-            Compose.off('input', onInput);
-            assert.isFalse(sendButton.disabled);
-            done();
-          }
-        }
-        Compose.on('input', onInput);
-        Compose.append(mockImgAttachment(true));
-        assert.isTrue(sendButton.disabled);
-        Utils.getResizedImgBlob.yield(testImageBlob);
-      });
-    });
-  });
-
-  suite('updateCounter() >', function() {
-    var banner, convertBanner, shouldEnableSend, form, counterLabel, localize;
 
     setup(function() {
+      MockCompose.mSetup();
+
+      this.sinon.stub(Compose, 'on');
+
+      // This is added in ThreadUI.init, so we need to remove the listener to
+      // prevent having the listener being called several times.
+      // We need to do this here in addition to main teardown because
+      // ThreadUI.init changes the function, binding it.
+
+      document.removeEventListener(
+        'visibilitychange', ThreadUI.onVisibilityChange
+      );
+      ThreadUI.init();
+
       banner = document.getElementById('messages-max-length-notice');
       convertBanner = document.getElementById('messages-convert-notice');
       form = document.getElementById('messages-compose-form');
       counterLabel = document.getElementById('messages-counter-label');
 
       localize = this.sinon.spy(navigator.mozL10n, 'localize');
-
-      // let any update timeout play so that we don't have false errors
-      this.sinon.clock.tick(ThreadUI.UPDATE_DELAY);
-
-      // and reset any previous possible state
-      MockNavigatormozMobileMessage.mTeardown();
     });
 
-    function updateCounter(segmentInfo) {
+    function yieldInputAndSegmentInfo(segmentInfo) {
       /*jshint validthis: true */
       // display the banner to check that it is correctly hidden
       banner.classList.remove('hide');
@@ -762,309 +464,167 @@ suite('thread_ui.js >', function() {
       // add a lock to check that it is correctly removed
       Compose.lock = true;
 
-      shouldEnableSend = ThreadUI.updateCounter();
-      this.sinon.clock.tick(ThreadUI.UPDATE_DELAY);
-      MockNavigatormozMobileMessage.mTriggerSegmentInfoSuccess(segmentInfo);
+      Compose.on.withArgs('input').yield();
+
+      Compose.segmentInfo = segmentInfo;
+      Compose.on.withArgs('segmentinfochange').yield();
     }
 
-    var initialText = 'some text';
-    var followingText = 'some other text';
+    function yieldType(type) {
+      Compose.type = type;
+      Compose.on.withArgs('type').yield();
+    }
 
-    test('do not call getSegmentInfoForText twice in a row', function() {
-      var spy = this.sinon.spy(MockNavigatormozMobileMessage,
-        'getSegmentInfoForText');
-
-      Compose.append(initialText);
-      this.sinon.clock.tick(ThreadUI.UPDATE_DELAY / 2);
-      Compose.append(followingText);
-      this.sinon.clock.tick(ThreadUI.UPDATE_DELAY);
-
-      assert.equal(spy.callCount, 1);
-      assert.ok(spy.calledWith(initialText + followingText));
-    });
-
-    test('getSegmentInfoForText error hides the counter', function() {
+    test('hides the counter when no segment', function() {
       counterLabel.classList.add('has-counter');
-      Compose.append(initialText);
-      this.sinon.clock.tick(ThreadUI.UPDATE_DELAY);
-      MockNavigatormozMobileMessage.mTriggerSegmentInfoError();
 
-      assert.isFalse(counterLabel.classList.contains('has-counter'));
+      yieldInputAndSegmentInfo({
+        segments: 0,
+        charsAvailableInLastSegment: 0
+      });
+
+      assert.isFalse(
+        counterLabel.classList.contains('has-counter'),
+        'no counter is displayed'
+      );
+
+      assert.ok(
+        banner.classList.contains('hide'),
+        'no banner is displayed'
+      );
+
+      assert.isFalse(
+        Compose.lock,
+        'lock is disabled'
+      );
     });
 
-    suite('asynchronous tricky tests >', function() {
-      var spy;
+    test('in first segment', function() {
+      counterLabel.classList.add('has-counter');
 
-      var segmentInfo1 = {
+      yieldInputAndSegmentInfo({
         segments: 1,
-        charsAvailableInLastSegment: 50
-      };
-
-      var segmentInfo2 = {
-        segments: 1,
-        charsAvailableInLastSegment: 40
-      };
-
-      setup(function() {
-        spy = this.sinon.spy(MockNavigatormozMobileMessage,
-          'getSegmentInfoForText');
-
-        Compose.append(initialText);
-        this.sinon.clock.tick(ThreadUI.UPDATE_DELAY);
-
-        // the user appends more text before the segment info request returns
-        Compose.append(followingText);
-
-        // wait for the next update delay => should fire
-        this.sinon.clock.tick(ThreadUI.UPDATE_DELAY);
-
+        charsAvailableInLastSegment: 25
       });
 
-      teardown(function() {
-        Compose.clear();
-      });
+      assert.isFalse(
+        counterLabel.classList.contains('has-counter'),
+        'no counter is displayed'
+      );
 
-      test('getSegmentInfoForText got called twice', function() {
-        assert.equal(spy.callCount, 2);
-        assert.ok(spy.getCall(0).calledWith(initialText));
-        assert.ok(spy.getCall(1).calledWith(initialText + followingText));
-      });
+      assert.ok(
+        banner.classList.contains('hide'),
+        'no banner is displayed'
+      );
 
-      test('segment info requests return ordered', function() {
-        // answer the first request
-        MockNavigatormozMobileMessage.mTriggerSegmentInfoSuccess(
-          segmentInfo1, 0
-        );
-
-        // answer the second request
-        MockNavigatormozMobileMessage.mTriggerSegmentInfoSuccess(
-          segmentInfo2, 0
-        );
-
-        var subject = counterLabel.dataset.counter;
-        var expected = segmentInfo2.charsAvailableInLastSegment + '/' +
-          segmentInfo2.segments;
-
-        assert.equal(subject, expected);
-      });
-
-      test('2 segment info requests return unordered', function() {
-        // answer the last request
-        // the index argument is not necessary here but it's esaier to read
-        MockNavigatormozMobileMessage.mTriggerSegmentInfoSuccess(
-          segmentInfo2, 1
-        );
-
-        // then answer the first request
-        MockNavigatormozMobileMessage.mTriggerSegmentInfoSuccess(
-          segmentInfo1, 0
-        );
-
-        var subject = counterLabel.dataset.counter;
-        var expected = segmentInfo1.charsAvailableInLastSegment + '/' +
-          segmentInfo1.segments;
-
-        // note: this is wrong, but this won't happen in real life
-        assert.equal(subject, expected);
-      });
+      assert.isFalse(
+        Compose.lock,
+        'lock is disabled'
+      );
     });
 
-    suite('type changed after the first segment info request >', function() {
-      setup(function() {
-        Compose.type = 'sms';
-        counterLabel.classList.add('has-counter');
-
-        ThreadUI.updateCounter();
-        this.sinon.clock.tick(ThreadUI.UPDATE_DELAY);
-
-        // change type to MMS
-        Compose.type = 'mms';
-
-        // no characters were entered in the first call
-        var segmentInfo = {
-          segments: 0,
-          charsAvailableInLastSegment: 0
-        };
-        MockNavigatormozMobileMessage.mTriggerSegmentInfoSuccess(segmentInfo);
-      });
-
-      teardown(function() {
-        Compose.type = 'sms';
-      });
-
-      test('should remove has-counter class if sms became mms', function() {
-        assert.isFalse(counterLabel.classList.contains('has-counter'));
-      });
-    });
-
-    suite('no characters entered >', function() {
-      setup(function() {
-        var segmentInfo = {
-          segments: 0,
-          charsAvailableInLastSegment: 0
-        };
-
-        updateCounter.call(this, segmentInfo);
-      });
-
-      test('no counter is displayed', function() {
-        assert.isFalse(counterLabel.classList.contains('has-counter'));
-      });
-
-      test('no banner is displayed', function() {
-        assert.ok(banner.classList.contains('hide'));
-      });
-
-      test('lock is unset', function() {
-        assert.isFalse(Compose.lock);
-      });
-    });
-
-    suite('in first segment >', function() {
-      setup(function() {
-        var segmentInfo = {
-          segments: 1,
-          charsAvailableInLastSegment: 25
-        };
-
-        updateCounter.call(this, segmentInfo);
-      });
-
-      test('no counter is displayed', function() {
-        assert.isFalse(counterLabel.classList.contains('has-counter'));
-      });
-
-      test('no banner is displayed', function() {
-        assert.ok(banner.classList.contains('hide'));
-      });
-
-      test('the send button should be enabled', function() {
-        assert.isTrue(shouldEnableSend);
-      });
-
-      test('lock is unset', function() {
-        assert.isFalse(Compose.lock);
-      });
-    });
-
-    suite('in first segment, less than 20 chars left >', function() {
+    test('in first segment, less than 20 chars left', function() {
       var segment = 1,
           availableChars = 20;
 
-      setup(function() {
-        var segmentInfo = {
-          segments: segment,
-          charsAvailableInLastSegment: availableChars
-        };
-        updateCounter.call(this, segmentInfo);
+      yieldInputAndSegmentInfo({
+        segments: segment,
+        charsAvailableInLastSegment: availableChars
       });
 
-      test('a counter is displayed', function() {
-        var expected = availableChars + '/' + segment;
-        assert.equal(counterLabel.dataset.counter, expected);
-      });
+      var expected = availableChars + '/' + segment;
+      assert.equal(
+        counterLabel.dataset.counter, expected,
+        'a counter is displayed'
+      );
 
-      test('no banner is displayed', function() {
-        assert.ok(banner.classList.contains('hide'));
-      });
+      assert.ok(
+        banner.classList.contains('hide'),
+        'no banner is displayed'
+      );
 
-      test('the send button should be enabled', function() {
-        assert.isTrue(shouldEnableSend);
-      });
-
-      test('lock is unset', function() {
-        assert.isFalse(Compose.lock);
-      });
+      assert.isFalse(
+        Compose.lock,
+        'lock is disabled'
+      );
     });
 
-    suite('in second segment >', function() {
+    test('in second segment', function() {
       var segment = 2,
           availableChars = 20;
 
-      setup(function() {
-        var segmentInfo = {
-          segments: segment,
-          charsAvailableInLastSegment: availableChars
-        };
-        updateCounter.call(this, segmentInfo);
+      yieldInputAndSegmentInfo({
+        segments: segment,
+        charsAvailableInLastSegment: availableChars
       });
 
-      test('a counter is displayed', function() {
-        var expected = availableChars + '/' + segment;
-        assert.equal(counterLabel.dataset.counter, expected);
-      });
+      var expected = availableChars + '/' + segment;
+      assert.equal(
+        counterLabel.dataset.counter, expected,
+        'a counter is displayed'
+      );
 
-      test('no banner is displayed', function() {
-        assert.ok(banner.classList.contains('hide'));
-      });
+      assert.ok(
+        banner.classList.contains('hide'),
+        'no banner is displayed'
+      );
 
-      test('the send button should be enabled', function() {
-        assert.isTrue(shouldEnableSend);
-      });
-
-      test('lock is unset', function() {
-        assert.isFalse(Compose.lock);
-      });
+      assert.isFalse(
+        Compose.lock,
+        'lock is disabled'
+      );
     });
 
-    suite('in last segment >', function() {
+    test('in last segment', function() {
       var segment = 10,
           availableChars = 20;
 
-      setup(function() {
-        var segmentInfo = {
-          segments: segment,
-          charsAvailableInLastSegment: availableChars
-        };
-        updateCounter.call(this, segmentInfo);
+      yieldInputAndSegmentInfo({
+        segments: segment,
+        charsAvailableInLastSegment: availableChars
       });
 
-      test('a counter is displayed', function() {
-        var expected = availableChars + '/' + segment;
-        assert.equal(counterLabel.dataset.counter, expected);
-      });
+      var expected = availableChars + '/' + segment;
+      assert.equal(
+        counterLabel.dataset.counter, expected,
+        'a counter is displayed'
+      );
 
-      test('no banner is displayed', function() {
-        assert.ok(banner.classList.contains('hide'));
-      });
+      assert.ok(
+        banner.classList.contains('hide'),
+        'no banner is displayed'
+      );
 
-      test('the send button should be enabled', function() {
-        assert.isTrue(shouldEnableSend);
-      });
-
-      test('lock is unset', function() {
-        assert.isFalse(Compose.lock);
-      });
+      assert.isFalse(
+        Compose.lock,
+        'lock is disabled'
+      );
     });
 
-    suite('in last segment, no characters left >', function() {
+    test('in last segment, no characters left >', function() {
       var segment = 10,
           availableChars = 0;
 
-      setup(function() {
-        var segmentInfo = {
-          segments: segment,
-          charsAvailableInLastSegment: availableChars
-        };
-        updateCounter.call(this, segmentInfo);
+      yieldInputAndSegmentInfo({
+        segments: segment,
+        charsAvailableInLastSegment: availableChars
       });
 
-      test('a counter is displayed', function() {
-        var expected = availableChars + '/' + segment;
-        assert.equal(counterLabel.dataset.counter, expected);
-      });
+      var expected = availableChars + '/' + segment;
+      assert.equal(
+        counterLabel.dataset.counter, expected,
+        'a counter is displayed'
+      );
 
-      test('the send button should be enabled', function() {
-        assert.isTrue(shouldEnableSend);
-      });
+      assert.ok(
+        banner.classList.contains('hide'),
+        'no banner is displayed'
+      );
 
-      test('message type is sms', function() {
-        assert.equal(form.dataset.messageType, 'sms');
-      });
-
-      test('lock is disabled', function() {
-        assert.isFalse(Compose.lock);
-      });
+      assert.isFalse(
+        Compose.lock,
+        'lock is disabled'
+      );
     });
 
     suite('too many segments >', function() {
@@ -1074,68 +634,61 @@ suite('thread_ui.js >', function() {
       };
 
       setup(function() {
-        updateCounter.call(this, segmentInfo);
+        yieldType('mms');
+        yieldInputAndSegmentInfo(segmentInfo);
       });
 
-      test('message type is mms', function() {
-        assert.equal(form.dataset.messageType, 'mms');
+      test('The composer has the correct state', function() {
+        assert.equal(
+          form.dataset.messageType, 'mms',
+          'message type is mms'
+        );
+
+        assert.isFalse(
+          Compose.lock,
+          'lock is disabled'
+        );
+
+        assert.isFalse(
+          convertBanner.classList.contains('hide'),
+          'the conversion notice is displayed'
+        );
       });
 
-      test('lock is disabled', function() {
-        assert.isFalse(Compose.lock);
-      });
+      test('removing some characters', function() {
+        // waiting some seconds so that the existing possible banner is hidden
+        this.sinon.clock.tick(5000);
+        yieldInputAndSegmentInfo(segmentInfo);
 
-      suite('trying to move back to sms >', function() {
-        setup(function() {
-          // waiting some seconds so that the existing possible banner is hidden
-          this.sinon.clock.tick(5000);
-          this.sinon.spy(MockNavigatormozMobileMessage,
-            'getSegmentInfoForText');
-          Compose.type = 'sms';
-          MockNavigatormozMobileMessage.mTriggerSegmentInfoSuccess(segmentInfo);
-        });
+        assert.equal(
+          form.dataset.messageType, 'mms',
+          'message type is still mms'
+        );
 
-        test('getSegmentInfoForText was called', function() {
-          assert.ok(MockNavigatormozMobileMessage.getSegmentInfoForText.called);
-        });
-
-        test('message type is still mms', function() {
-          assert.equal(Compose.type, 'mms');
-          assert.equal(form.dataset.messageType, 'mms');
-        });
-
-        test('the convertion notice is not displayed', function() {
-          assert.ok(convertBanner.classList.contains('hide'));
-        });
+        assert.ok(
+          convertBanner.classList.contains('hide'),
+          'the conversion notice is not displayed again'
+        );
       });
     });
 
     suite('at size limit in mms >', function() {
       setup(function() {
         Settings.mmsSizeLimitation = 1024;
-        Compose.append(mockAttachment(512));
-        Compose.append(mockAttachment(512));
-        shouldEnableSend = ThreadUI.updateCounter();
-      });
-
-      teardown(function() {
-        Compose.clear();
-      });
-
-      test('shouldEnableSend', function() {
-        assert.isTrue(shouldEnableSend);
+        yieldType('mms');
+        Compose.size = 1024;
+        Compose.on.withArgs('input').yield();
       });
 
       test('banner is displayed and stays', function() {
         assert.isFalse(banner.classList.contains('hide'));
         this.sinon.clock.tick(200000);
         assert.isFalse(banner.classList.contains('hide'));
-      });
 
-      test('banner localized', function() {
-        assert.ok(
-          localize.calledWith(banner.querySelector('p'),
-            'messages-max-length-text')
+        sinon.assert.calledWith(
+          localize,
+          banner.querySelector('p'),
+          'messages-max-length-text'
         );
       });
 
@@ -1151,30 +704,20 @@ suite('thread_ui.js >', function() {
     suite('over size limit in mms >', function() {
       setup(function() {
         Settings.mmsSizeLimitation = 1024;
-        Compose.append(mockAttachment(512));
-        Compose.append('sigh');
-        Compose.append(mockAttachment(512));
-        shouldEnableSend = ThreadUI.updateCounter();
-      });
-
-      teardown(function() {
-        Compose.clear();
-      });
-
-      test('shouldEnableSend is false', function() {
-        assert.isFalse(shouldEnableSend);
+        yieldType('mms');
+        Compose.size = 1025;
+        Compose.on.withArgs('input').yield();
       });
 
       test('banner is displayed and stays', function() {
         assert.isFalse(banner.classList.contains('hide'));
         this.sinon.clock.tick(200000);
         assert.isFalse(banner.classList.contains('hide'));
-      });
 
-      test('banner localized', function() {
-        assert.ok(
-          localize.calledWith(banner.querySelector('p'),
-            'message-exceeded-max-length')
+        sinon.assert.calledWith(
+          localize,
+          banner.querySelector('p'),
+          'message-exceeded-max-length'
         );
       });
 
@@ -1459,8 +1002,35 @@ suite('thread_ui.js >', function() {
   });
 
   suite('message type conversion >', function() {
+    var realCompose;
     var convertBanner, convertBannerText, form, counterLabel, localize;
+
+    suiteSetup(function() {
+      realCompose = window.Compose;
+      window.Compose = MockCompose;
+    });
+
+    suiteTeardown(function() {
+      window.Compose = realCompose;
+      realCompose = null;
+    });
+
     setup(function() {
+      MockCompose.mSetup();
+
+      this.sinon.stub(Compose, 'on');
+
+      // This is added in ThreadUI.init, so we need to remove the listener to
+      // prevent having the listener being called several times.
+      // We need to do this here in addition to main teardown because
+      // ThreadUI.init changes the function, binding it.
+
+      document.removeEventListener(
+        'visibilitychange', ThreadUI.onVisibilityChange
+      );
+
+      ThreadUI.init();
+
       convertBanner = document.getElementById('messages-convert-notice');
       convertBannerText = convertBanner.querySelector('p');
       form = document.getElementById('messages-compose-form');
@@ -1468,9 +1038,15 @@ suite('thread_ui.js >', function() {
 
       localize = this.sinon.spy(navigator.mozL10n, 'localize');
     });
+
+    function yieldType(type) {
+      Compose.type = type;
+      Compose.on.withArgs('type').yield();
+    }
+
     test('sms to mms and back displays banner', function() {
-      // cause a type switch event to happen
-      Compose.type = 'mms';
+      yieldType('mms');
+
       assert.isFalse(counterLabel.classList.contains('has-counter'));
       assert.isFalse(convertBanner.classList.contains('hide'),
         'conversion banner is shown for mms');
@@ -1491,9 +1067,7 @@ suite('thread_ui.js >', function() {
       assert.isTrue(convertBanner.classList.contains('hide'),
         'conversion banner is hidden at 3 seconds');
 
-      Compose.type = 'sms';
-      this.sinon.clock.tick(ThreadUI.UPDATE_DELAY);
-      MockNavigatormozMobileMessage.mTriggerSegmentInfoSuccess();
+      yieldType('sms');
 
       assert.isFalse(counterLabel.classList.contains('has-counter'));
       assert.isFalse(convertBanner.classList.contains('hide'),
@@ -1512,77 +1086,10 @@ suite('thread_ui.js >', function() {
       this.sinon.clock.tick(1);
       assert.isTrue(convertBanner.classList.contains('hide'),
         'conversion banner is hidden at 3 seconds');
-
-    });
-
-    test('character limit from sms to mms and back displays banner',
-      function() {
-      ThreadUI.updateCounter();
-      this.sinon.clock.tick(ThreadUI.UPDATE_DELAY);
-
-      // go over the limit
-      var segmentInfo = {
-        segments: 11,
-        charsAvailableInLastSegment: 0
-      };
-
-      MockNavigatormozMobileMessage.mTriggerSegmentInfoSuccess(segmentInfo);
-
-      assert.isFalse(convertBanner.classList.contains('hide'),
-        'conversion banner is shown for mms');
-      assert.equal(composeForm.dataset.messageType, 'mms',
-        'the composer has type mms');
-      assert.ok(
-        localize.calledWith(convertBannerText, 'converted-to-mms'),
-        'conversion banner has mms message'
-      );
-      localize.reset();
-
-      this.sinon.clock.tick(2999);
-      assert.isFalse(convertBanner.classList.contains('hide'),
-        'conversion banner is shown for just shy of 3 seconds');
-
-      this.sinon.clock.tick(1);
-      assert.isTrue(convertBanner.classList.contains('hide'),
-        'conversion banner is hidden at 3 seconds');
-
-      Compose.clear();
-      this.sinon.clock.tick(ThreadUI.UPDATE_DELAY);
-      segmentInfo.segments = 0;
-      // we have 2 requests, so we trigger twice
-      MockNavigatormozMobileMessage.mTriggerSegmentInfoSuccess(segmentInfo);
-      MockNavigatormozMobileMessage.mTriggerSegmentInfoSuccess(segmentInfo);
-
-      assert.isFalse(convertBanner.classList.contains('hide'),
-        'conversion banner is shown for sms');
-      assert.equal(composeForm.dataset.messageType, 'sms',
-        'the composer has type sms');
-      assert.ok(
-        localize.calledWith(convertBannerText, 'converted-to-sms'),
-        'conversion banner has sms message'
-      );
-      localize.reset();
-
-      this.sinon.clock.tick(2999);
-      assert.isFalse(convertBanner.classList.contains('hide'),
-        'conversion banner is shown for just shy of 3 seconds');
-
-      this.sinon.clock.tick(1);
-      assert.isTrue(convertBanner.classList.contains('hide'),
-        'conversion banner is hidden at 3 seconds');
-
     });
 
     test('converting from sms to mms and back quickly', function() {
-      ThreadUI.updateCounter();
-      this.sinon.clock.tick(ThreadUI.UPDATE_DELAY);
-
-      // go over the limit
-      var segmentInfo = {
-        segments: 11,
-        charsAvailableInLastSegment: 0
-      };
-      MockNavigatormozMobileMessage.mTriggerSegmentInfoSuccess(segmentInfo);
+      yieldType('mms');
 
       assert.isFalse(convertBanner.classList.contains('hide'),
         'conversion banner is shown for mms');
@@ -1596,12 +1103,7 @@ suite('thread_ui.js >', function() {
       assert.isFalse(convertBanner.classList.contains('hide'),
         'conversion banner is still shown');
 
-      Compose.clear();
-      this.sinon.clock.tick(ThreadUI.UPDATE_DELAY);
-      segmentInfo.segments = 0;
-      // we have 2 requests, so we trigger twice
-      MockNavigatormozMobileMessage.mTriggerSegmentInfoSuccess(segmentInfo);
-      MockNavigatormozMobileMessage.mTriggerSegmentInfoSuccess(segmentInfo);
+      yieldType('sms');
 
       assert.isFalse(convertBanner.classList.contains('hide'),
         'conversion banner is shown for sms');
@@ -1624,21 +1126,16 @@ suite('thread_ui.js >', function() {
 
     test('we dont display the banner when cleaning fields', function() {
 
-      // let's move to MMS type
-      Compose.type = 'mms';
+      yieldType('mms');
 
       // and ignore this banner which should be there
       this.sinon.clock.tick(ThreadUI.CONVERTED_MESSAGE_DURATION);
 
-      this.sinon.spy(Compose, 'clear');
+      this.sinon.stub(Compose, 'clear');
 
       ThreadUI.cleanFields();
-      MockNavigatormozMobileMessage.mTriggerSegmentInfoSuccess({
-        segments: 0,
-        charsAvailableInLastSegment: 0
-      });
 
-      assert.isTrue(Compose.clear.called);
+      sinon.assert.called(Compose.clear);
       assert.isTrue(convertBanner.classList.contains('hide'));
     });
   });
@@ -4779,10 +4276,6 @@ suite('thread_ui.js >', function() {
       this.sinon.stub(MessageManager, 'sendSMS');
       this.sinon.stub(MessageManager, 'sendMMS');
 
-      this.sinon.stub(ThreadUI, 'enableSend', function() {
-        ThreadUI.sendButton.disabled = false;
-      });
-
       this.sinon.stub(Compose, 'isEmpty').returns(false);
       this.sinon.stub(Settings, 'hasSeveralSim').returns(false);
       this.sinon.stub(Settings, 'isDualSimDevice').returns(false);
@@ -5167,11 +4660,19 @@ suite('thread_ui.js >', function() {
 
   suite('recipient handling >', function() {
     var localize;
+    var onRecipientsChange;
+
     setup(function() {
       this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
       Navigation.isCurrentPanel.withArgs('composer').returns(true);
 
+      // Please, auto-answering stub, don't interfere with my test
+      this.sinon.stub(Contacts, 'findExact');
+
       localize = this.sinon.spy(navigator.mozL10n, 'localize');
+
+      onRecipientsChange = sinon.stub();
+      ThreadUI.on('recipientschange', onRecipientsChange);
     });
 
     function testPickButtonEnabled() {
@@ -5187,9 +4688,11 @@ suite('thread_ui.js >', function() {
       });
 
       test('header is correct', function() {
-        assert.deepEqual(localize.args[0], [
-          headerText, 'newMessage'
-        ]);
+        sinon.assert.calledWith(localize, headerText, 'newMessage');
+      });
+
+      test('no event is sent', function() {
+        sinon.assert.notCalled(onRecipientsChange);
       });
 
       testPickButtonEnabled();
@@ -5203,9 +4706,11 @@ suite('thread_ui.js >', function() {
       });
 
       test('header is correct', function() {
-        assert.deepEqual(localize.args[0], [
-          headerText, 'recipient', {n: 1}
-        ]);
+        sinon.assert.calledWith(localize, headerText, 'recipient', {n: 1});
+      });
+
+      test('One event `recipientschange` is sent', function() {
+        sinon.assert.calledOnce(onRecipientsChange);
       });
 
       testPickButtonEnabled();
@@ -5222,13 +4727,52 @@ suite('thread_ui.js >', function() {
       });
 
       test('header is correct', function() {
-        assert.ok(localize.calledTwice);
-        assert.deepEqual(localize.args[1], [
-          headerText, 'recipient', {n: 2}
-        ]);
+        sinon.assert.calledTwice(localize);
+        sinon.assert.calledWith(
+          localize, headerText, 'recipient', {n: 2}
+        );
+      });
+
+      test('Two events `recipientschange` are sent', function() {
+        sinon.assert.calledTwice(onRecipientsChange);
       });
 
       testPickButtonEnabled();
+    });
+
+    suite('add one questionable recipient', function() {
+      setup(function() {
+        ThreadUI.recipients.add({
+          number: 'foo',
+          isQuestionable: true
+        });
+      });
+
+      test('header is correct', function() {
+        sinon.assert.notCalled(localize);
+      });
+
+      test('No event `recipientschange` is sent', function() {
+        sinon.assert.notCalled(onRecipientsChange);
+      });
+    });
+
+    suite('edit a recipient', function() {
+      setup(function() {
+        var placeholder = document.createElement('span');
+        placeholder.setAttribute('contenteditable', 'true');
+        placeholder.isPlaceholder = true;
+        placeholder.textContent = '999';
+        recipientsList.appendChild(placeholder);
+
+        ThreadUI.recipients.inputValue = '999';
+
+        placeholder.dispatchEvent(new CustomEvent('input', { bubbles: true }));
+      });
+
+      test('An event `recipientschange` is sent', function() {
+        sinon.assert.calledOnce(onRecipientsChange);
+      });
     });
   });
 

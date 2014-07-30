@@ -2,7 +2,12 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 /*global Settings, Utils, Attachment, AttachmentMenu, MozActivity, SMIL,
-        ThreadUI */
+        EventDispatcher,
+        MessageManager,
+        Navigation,
+        Promise,
+        ThreadUI
+*/
 /*exported Compose */
 
 'use strict';
@@ -12,11 +17,14 @@
  * resetting (auto manages placeholder text), getting
  * message content, and message size
  */
-var Compose = (function() {
+
+(function(exports) {
+  // delay between 2 counter updates while composing a message
+  var UPDATE_DELAY = 500;
+
   var placeholderClass = 'placeholder';
   var attachmentClass = 'attachment-container';
 
-  var slice = Array.prototype.slice;
   var attachments = new WeakMap();
 
   // will be defined in init
@@ -28,11 +36,6 @@ var Compose = (function() {
     attachButton: null
   };
 
-  var handlers = {
-    input: [],
-    type: []
-  };
-
   var state = {
     empty: true,
     maxLength: null,
@@ -41,7 +44,12 @@ var Compose = (function() {
     resizing: false,
 
     // 'sms' or 'mms'
-    type: 'sms'
+    type: 'sms',
+
+    segmentInfo: {
+      segments: 0,
+      charsAvailableInLastSegment: 0
+    }
   };
 
   var subject = {
@@ -188,9 +196,7 @@ var Compose = (function() {
       return imageAttachmentsHandling();
     }
 
-    var messageHasFrames = !!dom.message.querySelector('iframe');
-    var isEmptyMessage = !dom.message.textContent.length && !messageHasFrames;
-    var isEmptySubject = subject.isEmpty;
+    var isEmptyMessage = !dom.message.textContent.length && !hasAttachment();
 
     if (isEmptyMessage) {
       var brs = dom.message.getElementsByTagName('br');
@@ -212,7 +218,7 @@ var Compose = (function() {
     // Subject placeholder management
     dom.subject.classList.toggle(
       placeholderClass,
-      subject.isShowing && isEmptySubject
+      subject.isShowing && subject.isEmpty
     );
 
     // Indicates that subject has multiple lines to change layout accordingly
@@ -223,39 +229,31 @@ var Compose = (function() {
      * - The subject is showing and is not empty (it has text)
      * - The message is not empty (it has text or attachment)
     */
-    if ((isEmptyMessage && !subject.isShowing) ||
-        (isEmptyMessage && subject.isShowing && isEmptySubject)) {
-      compose.disable(true);
-      state.empty = true;
-    } else {
-      compose.disable(false);
-      state.empty = false;
-    }
+    state.empty = isEmptyMessage && !hasSubject();
 
-    compose.updateType();
+    Compose.updateSendButton();
+    Compose.updateType();
+    updateSegmentInfoThrottled();
 
-    trigger.call(compose, 'input', new CustomEvent('input'));
+    Compose.emit('input');
+  }
+
+  function hasAttachment() {
+    return !!dom.message.querySelector('iframe');
+  }
+
+  function hasSubject() {
+    return subject.isShowing && !subject.isEmpty;
   }
 
   function composeKeyEvents(e) {
     // if locking and no-backspace pressed, cancel
-    if (compose.lock && e.which !== 8) {
+    if (Compose.lock && e.which !== 8) {
       e.preventDefault();
     } else {
       // trigger a recompute of size on the keypresses
       state.size = null;
-      compose.lock = false;
-    }
-  }
-
-  function trigger(type) {
-    var fns = handlers[type];
-    var args = slice.call(arguments, 1);
-
-    if (fns && fns.length) {
-      for (var i = 0; i < fns.length; i++) {
-        fns[i].apply(compose, args);
-      }
+      Compose.lock = false;
     }
   }
 
@@ -346,7 +344,41 @@ var Compose = (function() {
     onContentChanged();
   }
 
-  var compose = {
+  var segmentInfoTimeout = null;
+  function updateSegmentInfoThrottled() {
+    if (hasAttachment()) {
+      return;
+    }
+
+    if (segmentInfoTimeout === null) {
+      segmentInfoTimeout = setTimeout(updateSegmentInfo, UPDATE_DELAY);
+    }
+  }
+
+  function updateSegmentInfo() {
+    segmentInfoTimeout = null;
+
+    var value = Compose.getText();
+
+    // saving one IPC call when we clear the composer
+    var segmentInfoPromise = value ?
+      MessageManager.getSegmentInfo(value) :
+      Promise.reject();
+
+    segmentInfoPromise.then(
+      function(segmentInfo) {
+        state.segmentInfo = segmentInfo;
+      }, function(error) {
+        state.segmentInfo = {
+          segments: 0,
+          charsAvailableInLastSegment: 0
+        };
+      }
+    ).then(Compose.updateType.bind(Compose))
+    .then(Compose.emit.bind(Compose, 'segmentinfochange'));
+  }
+
+  var Compose = {
     init: function composeInit(formId) {
       dom.form = document.getElementById(formId);
       dom.message = document.getElementById('messages-input');
@@ -372,35 +404,17 @@ var Compose = (function() {
       dom.attachButton.addEventListener('click',
         this.onAttachClick.bind(this));
 
-      this.clearListeners();
+      this.offAll();
       this.clear();
 
       this.on('type', this.onTypeChange);
 
-      return this;
-    },
+      /* Bug 1040144: replace ThreadUI direct invocation by a instanciation-time
+       * property */
+      ThreadUI.on('recipientschange', this.updateSendButton.bind(this));
+      // Bug 1026384: call updateType as well when the recipients change
 
-    on: function(type, handler) {
-      if (handlers[type]) {
-        handlers[type].push(handler);
-      }
       return this;
-    },
-
-    off: function(type, handler) {
-      if (handlers[type]) {
-        var index = handlers[type].indexOf(handler);
-        if (index !== -1) {
-          handlers[type].splice(index, 1);
-        }
-      }
-      return this;
-    },
-
-    clearListeners: function() {
-      for (var type in handlers) {
-        handlers[type] = [];
-      }
     },
 
     getContent: function() {
@@ -623,9 +637,13 @@ var Compose = (function() {
     clear: function() {
       dom.message.innerHTML = '<br>';
       subject.clear().hide();
-      state.resizing = state.full = false;
+      state.resizing = false;
       state.size = 0;
-      state.empty = true;
+      state.segmentInfo = {
+        segments: 0,
+        charsAvailableInLastSegment: 0
+      };
+      segmentInfoTimeout = null;
       onContentChanged();
       return this;
     },
@@ -636,12 +654,61 @@ var Compose = (function() {
     },
 
     updateType: function() {
-      if ((subject.isShowing && !subject.isEmpty) ||
-          !!dom.message.querySelector('iframe')) {
-        this.type = 'mms';
-      } else {
-        this.type = 'sms';
+      var isTextTooLong =
+        state.segmentInfo.segments > Settings.maxConcatenatedMessages;
+      /* Bug 1026384: if a recipient is a mail, the type must be MMS
+       * Bug 1040144: replace ThreadUI direct invocation by a instanciation-time
+       * property
+      var hasEmailRecipient = ThreadUI.recipients.list.some(
+        function(recipient) { return recipient.isEmail; }
+      );
+      */
+
+      /* Note: in the future, we'll maybe want to force 'mms' from the UI */
+      var newType =
+        hasAttachment() || hasSubject() || isTextTooLong ?
+        'mms' : 'sms';
+
+      if (newType !== state.type) {
+        state.type = newType;
+        this.emit('type');
       }
+    },
+
+    updateSendButton: function() {
+      // should disable if we have no message input
+      var disableSendMessage = state.empty || state.resizing;
+      var messageNotLong = Compose.size <= Settings.mmsSizeLimitation;
+
+      /* Bug 1040144: replace ThreadUI direct invocation by a instanciation-time
+       * property */
+      var recipients = ThreadUI.recipients;
+      var recipientsValue = recipients.inputValue;
+      var hasRecipients = false;
+
+      // Set hasRecipients to true based on the following conditions:
+      //
+      //  1. There is a valid recipients object
+      //  2. One of the following is true:
+      //      - The recipients object contains at least 1 valid recipient
+      //        - OR -
+      //      - There is >=1 character typed and the value is a finite number
+      //
+      if (recipients &&
+          (recipients.numbers.length ||
+            (recipientsValue && isFinite(recipientsValue)))) {
+
+        hasRecipients = true;
+      }
+
+      // should disable if the message is too long
+      disableSendMessage = disableSendMessage || !messageNotLong;
+
+      // should disable if we have no recipients in the "new thread" view
+      disableSendMessage = disableSendMessage ||
+        (Navigation.isCurrentPanel('composer') && !hasRecipients);
+
+      this.disable(disableSendMessage);
     },
 
     _onAttachmentRequestError: function c_onAttachmentRequestError(err) {
@@ -762,25 +829,13 @@ var Compose = (function() {
 
   };
 
-  Object.defineProperty(compose, 'type', {
+  Object.defineProperty(Compose, 'type', {
     get: function composeGetType() {
-      return state.type;
-    },
-    set: function composeSetType(value) {
-      // reject invalid types
-      if (!(value === 'sms' || value === 'mms')) {
-        return state.type;
-      }
-      if (value !== state.type) {
-        var event = new CustomEvent('type');
-        state.type = value;
-        trigger.call(this, 'type', event);
-      }
       return state.type;
     }
   });
 
-  Object.defineProperty(compose, 'size', {
+  Object.defineProperty(Compose, 'size', {
     get: function composeGetSize() {
       if (state.size === null) {
         state.size = this.getContent().reduce(function(sum, content) {
@@ -796,29 +851,43 @@ var Compose = (function() {
     }
   });
 
-  Object.defineProperty(compose, 'isResizing', {
+  Object.defineProperty(Compose, 'segmentInfo', {
+    get: function composeGetSegmentInfo() {
+      return state.segmentInfo;
+    }
+  });
+
+  Object.defineProperty(Compose, 'isResizing', {
     get: function composeGetResizeState() {
       return state.resizing;
     }
   });
 
-  Object.defineProperty(compose, 'isSubjectVisible', {
+  Object.defineProperty(Compose, 'isSubjectVisible', {
     get: function composeGetResizeState() {
       return subject.isShowing;
     }
   });
 
-  Object.defineProperty(compose, 'subjectMaxLength', {
+  Object.defineProperty(Compose, 'subjectMaxLength', {
     get: function composeGetResizeState() {
       return subject.getMaxLength();
     }
   });
 
-  Object.defineProperty(compose, 'ignoreEvents', {
+  Object.defineProperty(Compose, 'ignoreEvents', {
     set: function composeIgnoreEvents(value) {
       dom.message.classList.toggle('ignoreEvents', value);
     }
   });
 
-  return compose;
-}());
+  Object.defineProperty(exports, 'Compose', {
+    get: function() {
+      delete exports.Compose;
+      var allowedEvents = ['input', 'segmentinfochange', 'type'];
+      return (exports.Compose = EventDispatcher.mixin(Compose, allowedEvents));
+    },
+    configurable: true,
+    enumerable: true
+  });
+}(window));
