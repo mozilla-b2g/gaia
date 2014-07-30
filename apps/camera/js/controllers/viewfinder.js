@@ -47,7 +47,7 @@ ViewfinderController.prototype.createViews = function() {
   this.views.viewfinder = this.app.views.viewfinder || new ViewfinderView();
   this.views.focus = this.app.views.focus || new FocusView();
   this.views.faces = this.app.views.faces || new FacesView();
-  this.views.faces.appendTo(this.views.viewfinder.el);
+  this.views.focus.appendTo(this.views.viewfinder.el);
   this.views.faces.appendTo(this.views.viewfinder.el);
   this.views.viewfinder.appendTo(this.app.el);
 };
