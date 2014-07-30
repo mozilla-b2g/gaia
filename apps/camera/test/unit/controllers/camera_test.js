@@ -250,6 +250,12 @@ suite('controllers/camera', function() {
       sinon.assert.calledWith(this.camera.setPictureSize, { width: 400, height: 300 });
     });
 
+    test('It doesn\'t proceed if `pictureSize` didn\'t change', function() {
+      this.camera.isPictureSize.returns(true);
+      this.controller.updatePictureSize();
+      assert.isFalse(this.app.emit.calledWith('camera:willchange'));
+    });
+
     suite('`video` mode', function() {
       setup(function() {
         this.settings.mode.selected
@@ -296,6 +302,12 @@ suite('controllers/camera', function() {
       // call the callback
       this.app.once.withArgs('viewfinder:hidden').args[0][1]();
       sinon.assert.calledWith(this.camera.setRecorderProfile, '720p');
+    });
+
+    test('It doesn\'t proceed if `recorderProfile` didn\'t change', function() {
+      this.camera.isRecorderProfile.returns(true);
+      this.controller.updateRecorderProfile();
+      assert.isFalse(this.app.emit.calledWith('camera:willchange'));
     });
 
     suite('`picture` mode', function() {
