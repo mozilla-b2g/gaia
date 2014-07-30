@@ -9,7 +9,8 @@
          Draft, MockStickyHeader, MultiSimActionButton, Promise, KeyboardEvent,
          MockLazyLoader, WaitingScreen, Navigation, MockDialog, MockSettings,
          FocusEvent,
-         DocumentFragment
+         DocumentFragment,
+         Errors
 */
 
 'use strict';
@@ -28,6 +29,7 @@ require('/js/thread_ui.js');
 require('/js/thread_list_ui.js');
 require('/js/shared_components.js');
 require('/js/utils.js');
+require('/js/errors.js');
 
 require('/test/unit/mock_time_headers.js');
 require('/test/unit/mock_link_action_handler.js');
@@ -3288,7 +3290,7 @@ suite('thread_ui.js >', function() {
           test('Error dialog params and show', function() {
             var code = MockErrorDialog.calls[0][0];
             var opts = MockErrorDialog.calls[0][1];
-            assert.equal(code, 'NonActiveSimCardError');
+            assert.equal(code, Errors.get('NonActiveSimCardError'));
             assert.equal(opts.messageId, message.id);
             assert.isTrue(!!opts.confirmHandler);
             assert.equal(MockErrorDialog.prototype.show.called, true);
@@ -3316,7 +3318,10 @@ suite('thread_ui.js >', function() {
             assert.isFalse(element.classList.contains('pending'));
             assert.isTrue(element.classList.contains('error'));
             sinon.assert.notCalled(Settings.switchMmsSimHandler);
-            assert.equal(MockErrorDialog.calls[1][0], 'NoSimCardError');
+            assert.equal(
+              MockErrorDialog.calls[1][0],
+              Errors.get('NoSimCardError')
+            );
           });
         });
 
@@ -3335,7 +3340,7 @@ suite('thread_ui.js >', function() {
           test('Error dialog params and show', function() {
             var code = MockErrorDialog.calls[0][0];
             var opts = MockErrorDialog.calls[0][1];
-            assert.equal(code, 'OtherError');
+            assert.equal(code, Errors.get('OtherError'));
             assert.equal(opts.messageId, message.id);
             assert.equal(MockErrorDialog.prototype.show.called, true);
           });
