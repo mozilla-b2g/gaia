@@ -295,7 +295,7 @@ form[role="search"] button[type="submit"]:after {
 
   background: transparent
               url('images/icons/actionicon_sms_add_attachment_30x30.png')
-              no-repeat center;
+              no-repeat center / 3rem;
 }
 
 /*
