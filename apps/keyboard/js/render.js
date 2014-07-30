@@ -757,7 +757,7 @@ const IMERender = (function() {
             keyRatio = wrapperRatio + ((layoutWidth - rowLayoutWidth) / 2);
           }
 
-          keyEl.style.width = (placeHolderWidth | 0) * keyRatio + 'px';
+          keyEl.style.width = (placeHolderWidth * keyRatio | 0) + 'px';
 
           // Default aligns 100%, if they differ set width on the wrapper
           if (keyRatio !== wrapperRatio) {
