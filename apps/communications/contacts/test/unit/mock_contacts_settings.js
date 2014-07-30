@@ -6,5 +6,6 @@ var MockContactsSettings = {
   close: function() {},
   refresh: function() {},
   cardStateChanged: function() {},
-  updateTimestamps: function() {}
+  updateTimestamps: function() {},
+  updateSimCardLocale: function() {}
 };
