@@ -4693,7 +4693,7 @@ suite('thread_ui.js >', function() {
         sinon.assert.calledWith(localize, headerText, 'recipient', {n: 1});
       });
 
-      test('One event `recipientschange` is sent', function() {
+      test('One `recipientschange` event is sent', function() {
         sinon.assert.calledOnce(onRecipientsChange);
       });
 
@@ -4717,7 +4717,7 @@ suite('thread_ui.js >', function() {
         );
       });
 
-      test('Two events `recipientschange` are sent', function() {
+      test('Two `recipientschange` events are sent', function() {
         sinon.assert.calledTwice(onRecipientsChange);
       });
 
@@ -4736,7 +4736,7 @@ suite('thread_ui.js >', function() {
         sinon.assert.notCalled(localize);
       });
 
-      test('No event `recipientschange` is sent', function() {
+      test('No `recipientschange` event is sent', function() {
         sinon.assert.notCalled(onRecipientsChange);
       });
     });
@@ -4754,7 +4754,7 @@ suite('thread_ui.js >', function() {
         placeholder.dispatchEvent(new CustomEvent('input', { bubbles: true }));
       });
 
-      test('An event `recipientschange` is sent', function() {
+      test('An `recipientschange` event is sent', function() {
         sinon.assert.calledOnce(onRecipientsChange);
       });
     });

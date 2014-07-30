@@ -753,12 +753,14 @@ suite('message_manager.js >', function() {
 
       MessageManager.getSegmentInfo(subject).then(
         function() {
-          done(new Error(
+          throw new Error(
             'getSegmentInfo returned a resolved promise, ' +
             'but a rejected promise was expected.'
-          ));
-        }, done.bind(null, null)
-      );
+          );
+        }, function(err) {
+          assert.instanceOf(err, Error);
+        }
+      ).then(done, done);
     });
 
     test('returns a resolved promise with the returned value', function(done) {

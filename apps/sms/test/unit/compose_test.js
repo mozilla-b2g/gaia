@@ -113,6 +113,8 @@ suite('compose_test.js', function() {
       this.sinon.stub(ThreadUI, 'on');
 
       loadBodyHTML('/index.html');
+      // this needs a proper DOM
+      ThreadUI.initRecipients();
       Compose.init('messages-compose-form');
       message = document.getElementById('messages-input');
       subject = document.getElementById('messages-subject-input');

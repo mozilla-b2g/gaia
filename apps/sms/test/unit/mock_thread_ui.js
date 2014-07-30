@@ -103,7 +103,6 @@ var MockThreadUI = {
   mSetup: function() {
     this.isShowMessageErrorCalledTimes = 0;
     this.inThread = false;
-    this.initRecipients();
   },
 
   mTeardown: function() {
