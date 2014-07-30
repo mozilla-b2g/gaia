@@ -1505,10 +1505,22 @@ suite('compose_test.js', function() {
 
       var event = new InputEvent('input', { bubbles: true, cancelable: true });
       message.dispatchEvent(event);
+    }
+
+    function setInputAndWait(string) {
+      setInput(string);
 
       clock.tick(UPDATE_DELAY);
 
       return waitForSegmentinfo();
+    }
+
+    function setSubjectInput(string) {
+      var subject = document.getElementById('messages-subject-input');
+      subject.textContent = string;
+
+      var event = new InputEvent('input', { bubbles: true, cancelable: true });
+      subject.dispatchEvent(event);
     }
 
     // Wait "count" segmentinfochange events. (default: 1)
@@ -1553,15 +1565,29 @@ suite('compose_test.js', function() {
     });
 
     test('updates when input is entered', function(done) {
-      setInput('some text').then(function() {
+      setInputAndWait('some text').then(function() {
         assert.deepEqual(Compose.segmentInfo, expected);
         assert.equal(Compose.type, 'sms');
       }).then(done, done);
     });
 
+    test('does not update when subject input changes', function() {
+      toggleSubject();
+      setInput('some body');
+      this.sinon.clock.tick(UPDATE_DELAY);
+      sinon.assert.called(MessageManager.getSegmentInfo);
+
+      MessageManager.getSegmentInfo.reset();
+
+      setSubjectInput('more title');
+      this.sinon.clock.tick(UPDATE_DELAY);
+
+      sinon.assert.notCalled(MessageManager.getSegmentInfo);
+    });
+
     test('updates when subject is removed', function(done) {
       toggleSubject();
-      setInput('some text').then(function() {
+      setInputAndWait('some text').then(function() {
         assert.equal(Compose.type, 'mms');
         toggleSubject();
         assert.deepEqual(Compose.segmentInfo, expected);
@@ -1573,7 +1599,7 @@ suite('compose_test.js', function() {
       segmentInfoPromise = Promise.reject(new Error('error'));
       MessageManager.getSegmentInfo.returns(segmentInfoPromise);
 
-      setInput('some text').then(function() {
+      setInputAndWait('some text').then(function() {
         assert.deepEqual(Compose.segmentInfo, initialSegmentInfo);
         assert.equal(Compose.type, 'sms');
       }).then(done, done);
@@ -1589,7 +1615,7 @@ suite('compose_test.js', function() {
       segmentInfoPromise = Promise.resolve(expected);
       MessageManager.getSegmentInfo.returns(segmentInfoPromise);
 
-      setInput('some text').then(function() {
+      setInputAndWait('some text').then(function() {
         assert.deepEqual(Compose.segmentInfo, expected);
         assert.equal(Compose.type, 'mms');
       }).then(done, done);
@@ -1609,10 +1635,10 @@ suite('compose_test.js', function() {
       segmentInfoPromise = Promise.resolve(result1);
       MessageManager.getSegmentInfo.returns(segmentInfoPromise);
 
-      setInput('some text').then(function() {
+      setInputAndWait('some text').then(function() {
         segmentInfoPromise = Promise.resolve(result2);
         MessageManager.getSegmentInfo.returns(segmentInfoPromise);
-        return setInput('some text');
+        return setInputAndWait('some text');
       }).then(function() {
         assert.deepEqual(Compose.segmentInfo, result2);
         assert.equal(Compose.type, 'sms');
@@ -1620,9 +1646,9 @@ suite('compose_test.js', function() {
     });
 
     test('returns the empty segmentInfo when text is empty', function(done) {
-      setInput('some text').then(function() {
+      setInputAndWait('some text').then(function() {
         MessageManager.getSegmentInfo.reset();
-        return setInput('');
+        return setInputAndWait('');
       }).then(function() {
         sinon.assert.notCalled(MessageManager.getSegmentInfo);
         assert.deepEqual(Compose.segmentInfo, initialSegmentInfo);

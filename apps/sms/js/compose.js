@@ -74,15 +74,13 @@ var Compose = (function() {
       dom.form.classList.add('subject-input-visible');
       this.isVisible = true;
       dom.subject.focus();
-      Compose.updateType();
-      onContentChanged();
+      onSubjectChanged();
       return this;
     },
     hide: function sub_hide() {
       dom.form.classList.remove('subject-input-visible');
       this.isVisible = false;
-      Compose.updateType();
-      onContentChanged();
+      onSubjectChanged();
       return this;
     },
     clear: function sub_clear() {
@@ -219,6 +217,22 @@ var Compose = (function() {
       dom.message.classList.add(placeholderClass);
     }
 
+    state.emptyMessage = isEmptyMessage;
+
+    Compose.updateEmptyState();
+    Compose.updateSendButton();
+    Compose.updateType();
+    updateSegmentInfoThrottled();
+
+    trigger.call(Compose, 'input');
+  }
+
+  function onSubjectChanged() {
+    // Track when content is edited for draft replacement case
+    if (ThreadUI.draft) {
+      ThreadUI.draft.isEdited = true;
+    }
+
     // Subject placeholder management
     dom.subject.classList.toggle(
       placeholderClass,
@@ -228,18 +242,9 @@ var Compose = (function() {
     // Indicates that subject has multiple lines to change layout accordingly
     dom.form.classList.toggle('multiline-subject', subject.isMultiline());
 
-    // Send button management
-    /* The send button should be enabled only in the situations where:
-     * - The subject is showing and is not empty (it has text)
-     * - The message is not empty (it has text or attachment)
-    */
-    state.empty = isEmptyMessage && !hasSubject();
-
-    compose.updateSendButton();
-    compose.updateType();
-    updateSegmentInfoThrottled();
-
-    trigger.call(compose, 'input');
+    Compose.updateEmptyState();
+    Compose.updateSendButton();
+    Compose.updateType();
   }
 
   function hasAttachment() {
@@ -404,7 +409,7 @@ var Compose = (function() {
 
       // update the placeholder, send button and Compose.type
       dom.message.addEventListener('input', onContentChanged);
-      dom.subject.addEventListener('input', onContentChanged);
+      dom.subject.addEventListener('input', onSubjectChanged);
 
       // we need to bind to keydown & keypress because of #870120
       dom.message.addEventListener('keydown', composeKeyEvents);
@@ -717,6 +722,15 @@ var Compose = (function() {
       }
     },
 
+    updateEmptyState: function() {
+      state.empty = state.emptyMessage && !hasSubject();
+    },
+
+    // Send button management
+    /* The send button should be enabled only in the situations where:
+     * - The subject is showing and is not empty (it has text)
+     * - The message is not empty (it has text or attachment)
+    */
     updateSendButton: function() {
       // should disable if we have no message input
       var disableSendMessage = state.empty || state.resizing;
