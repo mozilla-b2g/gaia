@@ -935,7 +935,12 @@ var PlayerView = {
             break;
           case 'player-cover-share':
             this.share();
-
+            break;
+          case 'player-controls-next':
+            this.next();
+            break;
+          case 'player-controls-previous':
+            this.previous();
             break;
         }
 
@@ -999,10 +1004,8 @@ var PlayerView = {
             this.seekTime = 0;
           }
           this.isTouching = false;
-        } else if (target.id === 'player-controls-previous') {
-          this.previous();
-        } else if (target.id === 'player-controls-next') {
-          this.next();
+        } else {
+          evt.preventDefault();
         }
         break;
       case 'contextmenu':
