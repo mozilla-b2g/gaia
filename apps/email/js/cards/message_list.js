@@ -1869,11 +1869,16 @@ MessageListCard.prototype = {
   onMoveMessages: function() {
     // TODO: Batch move back-end mail api is not ready now.
     //       Please verify this function when api landed.
+
     Cards.folderSelector(function(folder) {
       var op = model.api.moveMessages(this.selectedMessages, folder);
       Toaster.toastOperation(op);
       this.setEditMode(false);
-    }.bind(this));
+    }.bind(this), function(folder) {
+      return folder.isValidMoveTarget;
+    });
+
+
   },
 
   _folderChanged: function(folder) {
