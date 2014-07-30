@@ -3,6 +3,8 @@
 /* global BookmarksDatabase */
 /* global applications */
 /* global SettingsListener */
+/* global LazyLoader */
+/* global IconsHelper */
 
 'use strict';
 
@@ -561,6 +563,7 @@
 
   AppChrome.prototype.addBookmark = function ac_addBookmark() {
     var dataset = this.app.config;
+    var favicons = this.app.favicons;
 
     var name;
     if (this.isSearch()) {
@@ -570,23 +573,25 @@
     }
     var url = this._currentURL;
 
-    var activity = new MozActivity({
-      name: 'save-bookmark',
-      data: {
-        type: 'url',
-        url: url,
-        name: name,
-        icon: dataset.icon,
-        useAsyncPanZoom: dataset.useAsyncPanZoom,
-        iconable: false
-      }
-    });
+    LazyLoader.load('shared/js/icons_helper.js', (function() {
+      var activity = new MozActivity({
+        name: 'save-bookmark',
+        data: {
+          type: 'url',
+          url: url,
+          name: name,
+          icon: IconsHelper.getBestIcon(favicons),
+          useAsyncPanZoom: dataset.useAsyncPanZoom,
+          iconable: false
+        }
+      });
 
-    if (this.addToHomeButton) {
-      activity.onsuccess = function onsuccess() {
-        this.addToHomeButton.dataset.disabled = true;
-      }.bind(this);
-    }
+      if (this.addToHomeButton) {
+        activity.onsuccess = function onsuccess() {
+          this.addToHomeButton.dataset.disabled = true;
+        }.bind(this);
+      }
+    }).bind(this));
   };
 
   AppChrome.prototype.onAddBookmark = function ac_onAddBookmark() {

@@ -16,6 +16,7 @@ require('/shared/elements/gaia_grid/script.js');
 require('/shared/elements/gaia_grid/js/items/grid_item.js');
 require('/shared/elements/gaia_grid/js/items/bookmark.js');
 require('/shared/js/sync_datastore.js');
+require('/shared/js/icons_helper.js');
 
 suite('search/providers/places', function() {
   var fakeElement, subject;
