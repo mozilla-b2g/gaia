@@ -16,7 +16,6 @@
     left: 0;
     -moz-box-sizing: border-box;
     background-color: rgba(0,0,0,0.6);
-    background: url(../themes/default/images/ui/menu_bg.png) no-repeat;
   }
 
   #sleep-menu-container {
