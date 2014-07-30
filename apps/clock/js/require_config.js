@@ -22,6 +22,9 @@ requirejs.config({
     'shared/js/accessibility_helper': {
       exports: 'AccessibilityHelper'
     },
+    'shared/js/performance_testing_helper': {
+      exports: 'PerformanceTestingHelper'
+    },
     'shared/js/l10n_date': ['shared/js/l10n']
   }
 });
