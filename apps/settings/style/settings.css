@@ -45,18 +45,16 @@ section[role="region"] {
 section[role="region"] {
   transform: translateX(+100%);
   visibility: hidden;
-  height: 0;
 }
 
 section[role="region"].previous {
   transform: translateX(-100%);
-  height: 100%;
+  visibility: hidden;
 }
 
 section[role="region"].current {
   transform: translateX(0);
   visibility: visible;
-  height: 100%;
 }
 
 /**
