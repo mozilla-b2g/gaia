@@ -24,26 +24,20 @@ marionette('Fullscreen status bar >', function() {
 
   setup(function() {
     video = sys.waitForLaunch(VIDEO_APP);
-
-    var titlebar = sys.appTitlebar;
-    var statusbarHeight = titlebar.size().height;
-    client.waitFor(function() {
-      return (titlebar.location().y <= (-1 * statusbarHeight));
-    });
   });
 
   test('Swiping from the top should open the statusbar', function() {
     var top = sys.topPanel;
-    var titlebar = sys.appTitlebar;
+    var statusbar = sys.statusbar;
 
     actions.press(top, 100, 0).moveByOffset(0, 250).release().perform();
     client.waitFor(function() {
-      var rect = titlebar.scriptWith(function(el) {
+      var rect = statusbar.scriptWith(function(el) {
         return el.getBoundingClientRect();
       });
       var expectedHeight = 24;
       return (rect.bottom >= expectedHeight);
     });
-    assert(titlebar.displayed(), 'The status bar is visible');
+    assert(statusbar.displayed(), 'The status bar is visible');
   });
 });
