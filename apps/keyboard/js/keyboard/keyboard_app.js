@@ -181,10 +181,6 @@ KeyboardApp.prototype.supportsSwitching = function() {
 };
 
 KeyboardApp.prototype.setLayoutPage = function setLayoutPage(page) {
-  if (page === this.layoutManager.currentLayoutPage) {
-    return;
-  }
-
   this.layoutManager.updateLayoutPage(page);
   this.layoutRenderingManager.updateLayoutRendering();
 

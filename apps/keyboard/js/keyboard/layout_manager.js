@@ -43,6 +43,7 @@ LayoutManager.prototype.KEYCODE_BASIC_LAYOUT = -1;
 LayoutManager.prototype.KEYCODE_ALTERNATE_LAYOUT = -2;
 LayoutManager.prototype.KEYCODE_SWITCH_KEYBOARD = -3;
 LayoutManager.prototype.KEYCODE_TOGGLE_CANDIDATE_PANEL = -4;
+LayoutManager.prototype.KEYCODE_SYMBOL_LAYOUT = -5;
 
 LayoutManager.prototype.LAYOUT_PAGE_DEFAULT = 0;
 LayoutManager.prototype.LAYOUT_PAGE_SYMBOLS_I = 1;
@@ -114,6 +115,9 @@ LayoutManager.prototype.updateLayoutPage = function(page) {
     case this.LAYOUT_PAGE_SYMBOLS_I:
     case this.LAYOUT_PAGE_SYMBOLS_II:
       this.currentLayoutPage = page;
+      // Reset currentForcedModifiedLayoutName, for the case to go back to
+      // default or symbol page from self-defined layout page.
+      this.currentForcedModifiedLayoutName = null;
       this._updateModifiedLayout();
 
       break;
