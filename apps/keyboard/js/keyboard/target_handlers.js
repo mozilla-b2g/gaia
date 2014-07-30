@@ -216,6 +216,12 @@ PageSwitchingTargetHandler.prototype.commit = function() {
       break;
 
     case KeyEvent.DOM_VK_ALT:
+      var pageSwitching =  this.target.dataset.pageSwitching;
+      if (pageSwitching) {
+        page = pageSwitching;
+        break;
+      }
+
       // alternate between pages 1 and 2 of SYMBOLS
       if (this.app.layoutManager.currentLayoutPage ===
           this.app.layoutManager.LAYOUT_PAGE_SYMBOLS_I) {

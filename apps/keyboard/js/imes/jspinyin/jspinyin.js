@@ -606,30 +606,7 @@ IMEngine.prototype = {
     }
 
     IMEngineBase.prototype.click.call(this, keyCode);
-
-    switch (keyCode) {
-      case -11: // Switch to Pinyin Panel
-        this._alterKeyboard('zh-Hans-Pinyin');
-        break;
-      case -20: // Switch to Chinese Symbol Panel, Same page
-      case -21: // Switch to Chinese Symbol Panel, Page 1
-      case -22: // Switch to Chinese Symbol Panel, Page 2
-      case -30: // Switch to English Symbol Panel, Same page
-      case -31: // Switch to English Symbol Panel, Page 1
-      case -32: // Switch to English Symbol Panel, Page 2
-        var index = Math.abs(keyCode);
-        var symbolType = index < 30 ? 'Ch' : 'En';
-        var symbolPage = index % 10;
-        if (!symbolPage)
-          symbolPage = this._keyboard.substr(-1);
-        this._alterKeyboard(
-          'zh-Hans-Pinyin-Symbol-' + symbolType + '-' + symbolPage);
-        break;
-      default:
-        this._keypressQueue.push(keyCode);
-        break;
-    }
-
+    this._keypressQueue.push(keyCode);
     this._start();
   },
 

@@ -130,7 +130,10 @@ LayoutManager.prototype.updateLayoutPage = function(page) {
       break;
 
     default:
-      throw new Error('LayoutManager: undefined layout page.');
+      this.currentLayoutPage = page;
+      this._updateModifiedLayout();
+
+      //throw new Error('LayoutManager: undefined layout page.');
   }
 };
 
@@ -396,6 +399,12 @@ LayoutManager.prototype._getAlternativeLayoutName = function(basicInputType,
 
     case this.LAYOUT_PAGE_SYMBOLS_II:
       return 'symbolLayout';
+
+    default:
+      if (typeof this.currentLayoutPage === 'string') {
+        return this.currentLayoutPage;
+      }
+      break;
   }
 
   switch (basicInputType) {

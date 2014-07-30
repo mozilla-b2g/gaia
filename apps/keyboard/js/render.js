@@ -306,6 +306,10 @@ const IMERender = (function() {
         dataset.push({'key': 'lowercaseValue', 'value': keyChar });
         dataset.push({'key': 'uppercaseValue', 'value': upperCaseKeyChar });
 
+        if (key.pageSwitching) {
+          dataset.push({'key': 'pageSwitching', 'value': key.pageSwitching});
+        }
+
         kbRow.appendChild(buildKey(outputChar, className, keyWidth + 'px',
           dataset, key.longPressValue, attributeList));
       }));
