@@ -3,7 +3,6 @@ Keyboards['zh-Hans-Pinyin'] = {
   shortLabel: '拼',
   menuLabel: '拼音',
   needsCandidatePanel: true,
-  disableAlternateLayout: true,
   needsCommaKey: true,
   imEngine: 'jspinyin',
   types: ['text', 'url', 'email'],
@@ -31,16 +30,14 @@ Keyboards['zh-Hans-Pinyin'] = {
       { value: 'n' }, { value: 'm' },
       { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
     ], [
-      { value: '12&', keyCode: -21, ratio: 1.5, className: 'switch-key' },
-      { value: '&nbsp', keyCode: KeyEvent.DOM_VK_SPACE, ratio: 6 },
-      { value: '↵', ratio: 2.5, keyCode: KeyEvent.DOM_VK_RETURN }
+      { value: '&nbsp', keyCode: KeyEvent.DOM_VK_SPACE, ratio: 8 },
+      { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
     ]
   ]
 };
 
 Keyboards['zh-Hans-Pinyin-Symbol-Ch-1'] = {
   needsCandidatePanel: true,
-  disableAlternateLayout: true,
   needsCommaKey: true,
   width: 10,
   textLayoutOverwrite: {
@@ -69,16 +66,14 @@ Keyboards['zh-Hans-Pinyin-Symbol-Ch-1'] = {
       { value: '＃' }, { value: '％' }, { value: '／' },
       { value: '⌫', keyCode: KeyEvent.DOM_VK_BACK_SPACE }
     ], [
-      { value: 'ABC', ratio: 1.5, keyCode: -11 },
-      { value: '&nbsp', ratio: 6, keyCode: KeyboardEvent.DOM_VK_SPACE },
-      { value: '↵', ratio: 2.5, keyCode: KeyEvent.DOM_VK_RETURN }
+      { value: '&nbsp', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
+      { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
     ]
   ]
 };
 
 Keyboards['zh-Hans-Pinyin-Symbol-Ch-2'] = {
   needsCandidatePanel: true,
-  disableAlternateLayout: true,
   needsCommaKey: true,
   width: 10,
   textLayoutOverwrite: {
@@ -106,16 +101,14 @@ Keyboards['zh-Hans-Pinyin-Symbol-Ch-2'] = {
       { value: '＊' }, { value: '·' }, { value: '｜' },
       { value: '⌫', keyCode: KeyEvent.DOM_VK_BACK_SPACE }
     ], [
-      { value: 'ABC', ratio: 1.5, keyCode: -11 },
-      { value: '&nbsp', ratio: 6, keyCode: KeyboardEvent.DOM_VK_SPACE },
-      { value: '↵', ratio: 2.5, keyCode: KeyEvent.DOM_VK_RETURN }
+      { value: '&nbsp', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
+      { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
     ]
   ]
 };
 
 Keyboards['zh-Hans-Pinyin-Symbol-En-1'] = {
   needsCandidatePanel: true,
-  disableAlternateLayout: true,
   needsCommaKey: true,
   width: 10,
   keys: [
@@ -139,16 +132,14 @@ Keyboards['zh-Hans-Pinyin-Symbol-En-1'] = {
       { value: '#' }, { value: '%' }, { value: '/' },
       { value: '⌫', keyCode: KeyEvent.DOM_VK_BACK_SPACE }
     ], [
-      { value: 'ABC', ratio: 1.5, keyCode: -11 },
-      { value: '&nbsp', ratio: 6, keyCode: KeyboardEvent.DOM_VK_SPACE },
-      { value: '↵', ratio: 2.5, keyCode: KeyEvent.DOM_VK_RETURN }
+      { value: '&nbsp', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
+      { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
     ]
   ]
 };
 
 Keyboards['zh-Hans-Pinyin-Symbol-En-2'] = {
   needsCandidatePanel: true,
-  disableAlternateLayout: true,
   needsCommaKey: true,
   width: 10,
   keys: [
@@ -172,9 +163,8 @@ Keyboards['zh-Hans-Pinyin-Symbol-En-2'] = {
       { value: '*' }, { value: '`' }, { value: '|' },
       { value: '⌫', keyCode: KeyEvent.DOM_VK_BACK_SPACE }
     ], [
-      { value: 'ABC', ratio: 1.5, keyCode: -11 },
-      { value: '&nbsp', ratio: 6, keyCode: KeyboardEvent.DOM_VK_SPACE },
-      { value: '↵', ratio: 2.5, keyCode: KeyEvent.DOM_VK_RETURN }
+      { value: '&nbsp', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
+      { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
     ]
   ]
 };
