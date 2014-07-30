@@ -24,9 +24,7 @@ window.GaiaMenu = (function(win) {
     shadow.appendChild(this._template);
 
     ComponentUtils.style.call(this, baseurl);
-
-    this.localize();
-    window.addEventListener('localized', this.localize.bind(this));
+    navigator.mozL10n.ready(this.localize.bind(this));
   };
 
   proto.localize = function() {
