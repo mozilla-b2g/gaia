@@ -3,6 +3,7 @@
 /* global MockAllFacebookContacts */
 /* global MockContactAllFields */
 /* global MockLinkedContacts */
+/* global MockImportStatusData */
 
 var FB_ID = 220439;
 
@@ -308,8 +309,14 @@ Mockfb.utils = (function() {
       }
     },
 
-    getImportChecked: function() {
-
+    getImportChecked: function(cb) {
+      MockImportStatusData.get('tokenData').then(function(data){
+        if (data && data.access_token) {
+          cb('logged-in');
+        } else {
+          cb('logged-out');
+        }
+      });
     },
 
     setCachedNumFriends: function() {
@@ -317,6 +324,27 @@ Mockfb.utils = (function() {
     },
 
     _fbData: [],
+
+    getNumFbContacts: function() {
+      return {
+        result: 25,
+        set onsuccess(cb) {
+          cb();
+        }
+      };
+    },
+
+    numFbFriendsData: function(cbl) {
+      var localCb = cbl.local;
+      var remoteCb = cbl.remote;
+
+      if (typeof localCb == 'function'){
+        localCb(50);
+      }
+      if (typeof remoteCb == 'function'){
+        remoteCb(50);
+      }
+    },
 
     getAllFbContacts: function() {
       return {
