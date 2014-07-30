@@ -10,6 +10,13 @@
   white-space: nowrap;
   background: rgba(0,0,0,0.85);
   overflow: hidden;
+  opacity: 1;
+  transition: opacity 150ms linear;
+  will-change: opacity;
+}
+
+.settings.hidden {
+  opacity: 0;
 }
 
 /**

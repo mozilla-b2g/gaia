@@ -1,4 +1,5 @@
 suite('lib/setting-alias', function() {
+  /*jshint maxlen:false*/
   'use strict';
 
   suiteSetup(function(done) {
@@ -30,29 +31,24 @@ suite('lib/setting-alias', function() {
     this.alias = new this.SettingAlias({
       key: 'my-alias',
       settings: this.settings,
-      map: {
-        'a': 'a',
-        'b': 'b',
-      },
       get: function() {
-        return this.settings[this.map[self.state.value]];
+        return this.settings[self.state.value];
       }
     });
   });
 
   suite('SettingAlias()', function() {
-    test('Should store various options', function() {
+    test('It stores `key` and `settings` options', function() {
       assert.equal(this.alias.key, 'my-alias');
       assert.equal(this.alias.settings, this.settings);
-      assert.equal(this.alias.map.a, 'a');
     });
   });
 
-  suite('SettingAlias#get()', function() {
-    test('Should get the current setting', function() {
-      assert.equal(this.alias.get().key, 'a');
+  suite('SettingAlias#current()', function() {
+    test('It returns the current setting', function() {
+      assert.equal(this.alias.current().key, 'a');
       this.state.value = 'b';
-      assert.equal(this.alias.get().key, 'b');
+      assert.equal(this.alias.current().key, 'b');
     });
   });
 
@@ -62,7 +58,7 @@ suite('lib/setting-alias', function() {
       this.alias.on('event', callback);
       this.settings.a.fire('event');
       this.settings.b.fire('event');
-      assert.ok(callback.calledOnce);
+      sinon.assert.calledOnce(callback);
     });
 
     test('Should pass arguments to the callback', function() {
@@ -74,17 +70,87 @@ suite('lib/setting-alias', function() {
   });
 
   suite('SettingAlias#off()', function() {
-    test('Should be able to remove listeners', function() {
+    test('it calls the callback once', function() {
       var callback = sinon.spy();
 
       this.alias.on('event', callback);
       this.settings.a.fire('event');
-      assert.ok(callback.called);
-      callback.reset();
 
-      this.alias.off('event', callback);
-      this.settings.a.fire('event');
-      assert.ok(!callback.called);
+      sinon.assert.calledOnce(callback);
     });
+
+    test('It only removes the listeners that match the callback given', function() {
+      var callback1 = sinon.spy();
+      var callback2 = sinon.stub();
+
+      this.alias.on('event', callback1);
+      this.alias.on('event', callback2);
+
+      this.settings.a.fire('event');
+
+      sinon.assert.calledOnce(callback1);
+      sinon.assert.calledOnce(callback2);
+
+      callback1.reset();
+      callback2.reset();
+
+      this.alias.off('event', callback1);
+      this.settings.a.fire('event');
+
+      sinon.assert.calledOnce(callback2);
+      sinon.assert.notCalled(callback1);
+    });
+  });
+
+  suite('SettingAlias#get()', function() {
+    test('It calls the underlying Setting\'s `.get()` method', function() {
+      assert.equal(this.alias.get('key'), 'a');
+      this.state.value = 'b';
+      assert.equal(this.alias.get('key'), 'b');
+    });
+  });
+
+  test('It forwards the setting mathod calls onto the current setting', function() {
+    sinon.stub(this.settings.a);
+    sinon.stub(this.settings.b);
+
+    this.alias.filterOptions();
+    this.alias.resetOptions();
+    this.alias.supported();
+    this.alias.selected();
+    this.alias.select();
+    this.alias.next();
+    this.alias.get();
+    this.alias.set();
+
+    sinon.assert.calledOnce(this.settings.a.filterOptions);
+    sinon.assert.calledOnce(this.settings.a.resetOptions);
+    sinon.assert.calledOnce(this.settings.a.supported);
+    sinon.assert.calledOnce(this.settings.a.selected);
+    sinon.assert.calledOnce(this.settings.a.select);
+    sinon.assert.calledOnce(this.settings.a.next);
+    sinon.assert.calledOnce(this.settings.a.get);
+    sinon.assert.calledOnce(this.settings.a.set);
+
+    // Change state
+    this.state.value = 'b';
+
+    this.alias.filterOptions();
+    this.alias.resetOptions();
+    this.alias.supported();
+    this.alias.selected();
+    this.alias.select();
+    this.alias.next();
+    this.alias.get();
+    this.alias.set();
+
+    sinon.assert.calledOnce(this.settings.b.filterOptions);
+    sinon.assert.calledOnce(this.settings.b.resetOptions);
+    sinon.assert.calledOnce(this.settings.b.supported);
+    sinon.assert.calledOnce(this.settings.b.selected);
+    sinon.assert.calledOnce(this.settings.b.select);
+    sinon.assert.calledOnce(this.settings.b.next);
+    sinon.assert.calledOnce(this.settings.b.get);
+    sinon.assert.calledOnce(this.settings.b.set);
   });
 });
