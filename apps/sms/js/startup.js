@@ -5,7 +5,7 @@
 
 /*global Utils, ActivityHandler, ThreadUI, ThreadListUI, MessageManager,
          Settings, LazyLoader, TimeHeaders, Information, SilentSms,
-         PerformanceTestingHelper, App, Navigation */
+         PerformanceTestingHelper, App, Navigation, EventDispatcher */
 
 navigator.mozL10n.ready(function localized() {
   // This will be called during startup, and any time the languange is changed
@@ -58,39 +58,94 @@ navigator.mozL10n.ready(function localized() {
 
 });
 
-window.addEventListener('load', function() {
-  window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
-  function initUIApp() {
-    Navigation.init();
-    TimeHeaders.init();
-    SilentSms.init();
-    ActivityHandler.init();
+var Startup = {
+  _lazyLoadScripts: [
+    '/shared/js/settings_listener.js',
+    '/shared/js/sim_picker.js',
+    '/shared/js/mime_mapper.js',
+    '/shared/js/notification_helper.js',
+    '/shared/js/gesture_detector.js',
+    '/shared/js/settings_url.js',
+    '/shared/js/mobile_operator.js',
+    '/shared/js/multi_sim_action_button.js',
+    '/shared/js/font_size_utils.js',
+    'js/waiting_screen.js',
+    'js/dialog.js',
+    'js/link_helper.js',
+    'js/action_menu.js',
+    'js/link_action_handler.js',
+    'js/contact_renderer.js',
+    'js/activity_picker.js',
+    'js/information.js',
+    'js/shared_components.js',
+    'js/task_runner.js',
+    'js/silent_sms.js',
+    'js/recipients.js',
+    'js/attachment.js',
+    'js/attachment_renderer.js',
+    'js/attachment_menu.js',
+    'js/thread_ui.js',
+    'js/compose.js',
+    'js/wbmp.js',
+    'js/smil.js',
+    'js/notify.js',
+    'js/activity_handler.js'
+  ],
 
-    // Init UI Managers
-    ThreadUI.init();
+  _lazyLoadInit: function() {
+    LazyLoader.load(this._lazyLoadScripts, function() {
+      // dispatch moz-content-interactive when all the modules initialized
+      SilentSms.init();
+      ActivityHandler.init();
+
+      // Init UI Managers
+      TimeHeaders.init();
+      ThreadUI.init();
+      Information.initDefaultViews();
+
+      // Dispatch post-initialize event for continuing the pending action
+      Startup.emit('post-initialize');
+      window.dispatchEvent(new CustomEvent('moz-content-interactive'));
+
+      // Fetch mmsSizeLimitation and max concat
+      Settings.init();
+
+      PerformanceTestingHelper.dispatch('objects-init-finished');
+    });
+  },
+
+  _initUIApp: function() {
+    Navigation.init();
     ThreadListUI.init();
-    Information.initDefaultViews();
-    ThreadListUI.renderThreads(function() {
+    ThreadListUI.renderThreads(this._lazyLoadInit.bind(this), function() {
       window.dispatchEvent(new CustomEvent('moz-app-loaded'));
       App.setReady();
     });
-    // dispatch chrome-interactive when all the modules initialized
+
+    // dispatch chrome-interactive when thread list related modules
+    // initialized
     window.dispatchEvent(new CustomEvent('moz-chrome-interactive'));
+  },
 
-    // Fetch mmsSizeLimitation
-    Settings.init();
-    PerformanceTestingHelper.dispatch('objects-init-finished');
-  }
+  init: function() {
+    var initUIApp = this._initUIApp.bind(this);
+    window.addEventListener('load', function() {
+      window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
 
-  if (!navigator.mozMobileMessage) {
-    var mocks = [
-      'js/desktop-only/mobilemessage.js',
-      'js/desktop-only/contacts.js'
-    ];
-    LazyLoader.load(mocks, function() {
+      if (!navigator.mozMobileMessage) {
+        var mocks = [
+          'js/desktop-only/mobilemessage.js',
+          'js/desktop-only/contacts.js'
+        ];
+        LazyLoader.load(mocks, function() {
+          MessageManager.init(initUIApp);
+        });
+        return;
+      }
       MessageManager.init(initUIApp);
     });
-    return;
   }
-  MessageManager.init(initUIApp);
-});
+};
+
+EventDispatcher.mixin(Startup);
+Startup.init();
