@@ -13,7 +13,7 @@
   color: #fff;
   font-size: 0;
   white-space: nowrap;
-  background: url(images/ui/pattern.png), url(images/ui/gradient.png) no-repeat;
+  background: #2d2d2d;
   background-size: auto auto, 100% 100%;
   z-index: 100;
   overflow: hidden;
@@ -51,7 +51,7 @@
   margin: 0;
   padding: 1.5rem;
   border-top: solid 0.1rem rgba(255, 255, 255, 0.1);
-  background: #2d2d2d url(images/ui/pattern.png) repeat left top;
+  background: #2d2d2d;
   display: block;
   overflow: hidden;
   position: absolute;
