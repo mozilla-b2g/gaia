@@ -37,6 +37,8 @@ var pendingPick;
 // Key for store the player options of repeat and shuffle
 var SETTINGS_OPTION_KEY = 'settings_option_key';
 var playerSettings;
+// For 1.3t we enable text mode for the list elements to get better performance.
+var isListTextMode = true;
 
 // We get a localized event when the application is launched and when
 // the user switches languages.
@@ -72,6 +74,10 @@ window.addEventListener('localized', function onlocalized() {
     SubListView.init();
     SearchView.init();
     TabBar.init();
+
+    if (isListTextMode) {
+      document.body.classList.add('list-text-mode');
+    }
 
     // If the URL contains '#pick', we will handle the pick activity
     // or just start the Music app from Mix page
@@ -764,7 +770,10 @@ var TilesView = {
 
                                          knownSongs.length = 0;
                                          songs.forEach(function(song) {
-                                           TilesView.update(song);
+                                           // Don't update TilesView in picker.
+                                           if (!pendingPick) {
+                                             TilesView.update(song);
+                                           }
                                            // Push the song to knownSongs then
                                            // we can display a correct overlay
                                            knownSongs.push(song);
@@ -1043,7 +1052,9 @@ function createListElement(option, data, index, highlight) {
         }
       };
 
-      getThumbnailURL(data, setBackground);
+      if (!isListTextMode) {
+        getThumbnailURL(data, setBackground);
+      }
 
       if (option === 'artist') {
         var artistSpan = document.createElement('span');
@@ -1158,6 +1169,12 @@ var ListView = {
     this.view.addEventListener('touchend', this);
     this.view.addEventListener('scroll', this);
     this.searchInput.addEventListener('focus', this);
+
+    // We don't need Tag Visibility monitor in list text mode.
+    if (isListTextMode) {
+      return;
+    }
+
     monitorTagVisibility(this.view, 'li',
                  visibilityMargin,    // extra space top and bottom
                  minimumScrollDelta,  // min scroll before we do work
@@ -1784,6 +1801,12 @@ var SearchView = {
     this.searchHandles = { artist: null, album: null, title: null };
 
     this.view.addEventListener('click', this);
+
+    // We don't need Tag Visibility monitor in list text mode.
+    if (isListTextMode) {
+      return;
+    }
+
     monitorTagVisibility(this.view, 'li',
                          visibilityMargin,    // extra space top and bottom
                          minimumScrollDelta,  // min scroll before we do work
