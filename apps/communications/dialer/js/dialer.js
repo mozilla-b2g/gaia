@@ -211,7 +211,19 @@ var CallHandler = (function callHandler() {
     CallLogDBManager.getGroupAtPosition(position, 'lastEntryDate', true, null,
     function(result) {
       if (result && (typeof result === 'object') && result.number) {
-        CallHandler.call(result.number);
+        LazyLoader.load(['/shared/js/sim_settings_helper.js'], function() {
+          SimSettingsHelper.getCardIndexFrom('outgoingCall', function(ci) {
+            // If the default outgoing call SIM is set to "Always ask", or is
+            // unset, we place this call on the SIM that was used the last time
+            // we were in a phone call with this number/contact.
+            if (ci === undefined || ci === null ||
+                ci == SimSettingsHelper.ALWAYS_ASK_OPTION_VALUE) {
+              ci = result.serviceId;
+            }
+
+            CallHandler.call(result.number, ci);
+          });
+        });
       } else {
         console.log('Could not get the group at: ' + position +
                     '. Error: ' + result);
