@@ -151,11 +151,17 @@
       this.debug('before ready check' + appCurrent + appNext);
       appNext.ready(function() {
         if (appNext.isDead()) {
-          // The app was killed while we were opening it,
-          // let's not switch to a dead app!
-          this._updateActiveApp(appCurrent.isHomescreen ?
-            homescreenLauncher.origin : appCurrent.origin);
-          return;
+          if (!appNext.isHomescreen) {
+            // The app was killed while we were opening it,
+            // let's not switch to a dead app!
+            this._updateActiveApp(appCurrent.instanceID);
+            return;
+          } else {
+            // Homescreen might be dead due to OOM, we should ensure its opening
+            // before updateActiveApp.
+            appNext = homescreenLauncher.getHomescreen();
+            appNext.ensure(true);
+          }
         }
         this.debug('ready to open/close' + switching);
         if (switching) {
