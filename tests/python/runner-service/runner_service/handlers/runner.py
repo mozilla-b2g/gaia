@@ -16,6 +16,18 @@ class MozrunnerHandler(object):
     __metaclass__ = ABCMeta
     runner = None
 
+    def __init__(self, symbols_path=None):
+        process_args = {
+            # TODO save gecko output to a file rather than discarding it
+            'stream': open(os.devnull, 'wb'),
+            'onFinish': self.on_finish,
+        }
+
+        self.common_runner_args = {
+            'process_args': process_args,
+            'symbols_path': symbols_path,
+        }
+
     @abstractmethod
     def start_runner(self, data):
         pass
@@ -23,6 +35,10 @@ class MozrunnerHandler(object):
     @abstractmethod
     def stop_runner(self, data):
         pass
+
+    def on_finish(self):
+        if self.runner:
+            self.runner.check_for_crashes()
 
     def cleanup(self):
         if self.runner:
@@ -58,8 +74,8 @@ class DesktopHandler(MozrunnerHandler):
         if options.get('startDebugger'):
             cmdargs.extend(['-start-debugger-server', options['startDebugger']])
 
-        process_args = {'processOutputLine': [lambda x: x[:1]]}
-        self.runner = B2GDesktopRunner(binary, cmdargs=cmdargs, profile=profile, process_args=process_args)
+        self.runner = B2GDesktopRunner(binary, cmdargs=cmdargs, profile=profile,
+                                       **self.common_runner_args)
         self.runner.start()
 
     def stop_runner(self, data):
@@ -72,8 +88,7 @@ class EmulatorHandler(MozrunnerHandler):
     def __init__(self, b2g_home, *args, **kwargs):
         MozrunnerHandler.__init__(self, *args, **kwargs)
 
-        process_args = {'processOutputLine': [lambda x: x[:1]]}
-        self.runner = B2GEmulatorRunner(b2g_home=b2g_home, process_args=process_args)
+        self.runner = B2GEmulatorRunner(b2g_home=b2g_home, **self.common_runner_args)
         self.runner.device.start()
 
     def start_runner(self, data):
@@ -94,9 +109,9 @@ class EmulatorHandler(MozrunnerHandler):
 class DeviceHandler(MozrunnerHandler):
 
     def __init__(self, *args, **kwargs):
-        process_args = { 'stream': open(os.devnull, 'wb'),
-                         'processOutputLine': [lambda x: x[:1]]}
-        self.runner = B2GDeviceRunner(process_args=process_args)
+        MozrunnerHandler.__init__(self, *args, **kwargs)
+
+        self.runner = B2GDeviceRunner(**self.common_runner_args)
         self.runner.device.connect()
 
     def start_runner(self, data):
