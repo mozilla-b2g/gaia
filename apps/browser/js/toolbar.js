@@ -1,7 +1,8 @@
 /* global Browser, BrowserDB, MozActivity */
 'use strict';
 /**
- *  Browser app toolbar
+ * Browser app toolbar
+ * @namespace Toolbar
  */
 var Toolbar = {
 
@@ -59,7 +60,7 @@ var Toolbar = {
     this.refreshBookmarkButton();
   },
 
-    /**
+  /**
    * Handle share button clicks.
    *
    * @param {Event} evt Click event.
