@@ -32,7 +32,7 @@ function ZoomBarController(app) {
 
 ZoomBarController.prototype.createView = function() {
   this.view = new ZoomBar();
-  this.setZoom(this.camera.getZoom);
+  this.setZoom(this.camera.getZoom());
   this.view.hide();
   this.view.appendTo(this.app.el);
 };
