@@ -14,7 +14,7 @@ module.exports = function(options, done) {
     {
       width: options.width,
       height: options.height
-    } : options.size || null;
+    } : options.size || blob.size;
 
   cropResizeRotate(blob, null, outputSize, null, function(error, resizedBlob) {
 
@@ -37,12 +37,15 @@ module.exports = function(options, done) {
     }
 
     var storage = new Storage();
-    storage.deletePicture(blob.name);
-    storage.addPicture(resizedBlob, {
-      filepath: blob.name
-    }, function(filepath, absolutePath, fileBlob) {
-      done(fileBlob);
-    });
+    storage.configure();
+    storage.deletePicture(blob.name, addImage);
+    function addImage() {
+      storage.addPicture(resizedBlob, {
+        filepath: blob.name
+      }, function(filepath, absolutePath, fileBlob) {
+        done(fileBlob);
+      });
+    }
   });
 };
 

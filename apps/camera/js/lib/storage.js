@@ -302,11 +302,15 @@ Storage.prototype.available = function() {
  *
  * @param  {String} filepath
  */
-Storage.prototype.deletePicture = function(filepath) {
-  this.picture.delete(filepath).onerror = function(e) {
+Storage.prototype.deletePicture = function(filepath, done) {
+  var request = this.picture.delete(filepath);
+  request.onerror = function(e) {
     console.warn(
       'Failed to delete', filepath,
       'from DeviceStorage:', e.target.error);
+  };
+  request.onsuccess = function() {
+    if (done) { done(); }
   };
 };
 
