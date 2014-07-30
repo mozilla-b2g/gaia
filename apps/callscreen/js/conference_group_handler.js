@@ -115,4 +115,10 @@ var ConferenceGroupHandler = (function() {
       CallScreen.showStatusMessage(errorMsg);
     });
   }
+
+  return {
+    get currentDuration() {
+      return groupDurationChildNode.textContent;
+    }
+  };
 })();

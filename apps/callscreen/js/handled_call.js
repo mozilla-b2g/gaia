@@ -1,6 +1,6 @@
-/* globals CallsHandler, CallScreen, Contacts, ContactPhotoHelper,
-           FontSizeManager, LazyL10n, Utils, Voicemail, TonePlayer,
-           AudioCompetingHelper */
+/* globals CallsHandler, CallScreen, ConferenceGroupHandler, Contacts,
+           ContactPhotoHelper, FontSizeManager, LazyL10n, Utils, Voicemail,
+           TonePlayer, AudioCompetingHelper */
 
 'use strict';
 
@@ -302,7 +302,8 @@ HandledCall.prototype.remove = function hc_remove() {
 
   var self = this;
   CallScreen.stopTicker(this.durationNode);
-  var currentDuration = this.durationChildNode.textContent;
+  var currentDuration = CallScreen.groupCalls.classList.contains('display') ?
+    ConferenceGroupHandler.currentDuration : this.durationChildNode.textContent;
   // FIXME/bug 1007148: Refactor duration element structure. No number or ':'
   //  existence checking will be necessary.
   this.totalDurationNode.textContent =
