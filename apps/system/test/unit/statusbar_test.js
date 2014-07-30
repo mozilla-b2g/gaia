@@ -175,7 +175,9 @@ suite('system/Statusbar', function() {
         },
         getTopMostWindow: function() {
           return app;
-        }
+        },
+
+        element: document.createElement('div')
       };
 
       this.sinon.stub(MockAppWindowManager, 'getActiveApp').returns(app);
@@ -1341,6 +1343,19 @@ suite('system/Statusbar', function() {
         iframe: document.createElement('iframe'),
         getTopMostWindow: function() {
           return app;
+        },
+
+        _element: null,
+        get element() {
+          if (!this._element) {
+            var element = document.createElement('div');
+            var title = document.createElement('div');
+            title.classList.add('titlebar');
+            element.appendChild(title);
+            this._element = element;
+          }
+
+          return this._element;
         }
       };
 
@@ -1354,9 +1369,11 @@ suite('system/Statusbar', function() {
 
     suite('Revealing the StatusBar >', function() {
       var transitionEndSpy;
+      var element;
       setup(function() {
         StatusBar._cacheHeight = 24;
-        var element = AppWindowManager.getActiveApp().titleBar.element;
+        element = AppWindowManager.getActiveApp().element
+                                                 .querySelector('.titlebar');
         transitionEndSpy = this.sinon.spy(element, 'addEventListener');
       });
 
@@ -1364,7 +1381,6 @@ suite('system/Statusbar', function() {
         assert.equal(StatusBar.element.style.transform, '');
         assert.equal(StatusBar.element.style.transition, '');
 
-        var element = AppWindowManager.getActiveApp().titleBar.element;
         assert.isFalse(element.classList.contains('dragged'));
       }
 
@@ -1388,14 +1404,12 @@ suite('system/Statusbar', function() {
         fakeDispatch('touchstart', 100, 0);
         fakeDispatch('touchmove', 100, 5);
         var transform = 'translateY(calc(5px - 100%))';
-        var element = AppWindowManager.getActiveApp().titleBar.element;
         assert.equal(element.style.transform, transform);
         fakeDispatch('touchend', 100, 5);
       });
 
       test('it should set the dragged class on touchstart', function() {
         fakeDispatch('touchstart', 100, 0);
-        var element = AppWindowManager.getActiveApp().titleBar.element;
         assert.isFalse(element.classList.contains('dragged'));
         fakeDispatch('touchmove', 100, 24);
         fakeDispatch('touchend', 100, 25);
@@ -1408,7 +1422,6 @@ suite('system/Statusbar', function() {
         fakeDispatch('touchmove', 100, 5);
         fakeDispatch('touchmove', 100, 15);
         var transform = 'translateY(calc(15px - 100%))';
-        var element = AppWindowManager.getActiveApp().titleBar.element;
         assert.equal(element.style.transform, transform);
         fakeDispatch('touchend', 100, 15);
       });
@@ -1460,7 +1473,8 @@ suite('system/Statusbar', function() {
           });
 
           test('it should not hide it right away', function() {
-            var titleEl = AppWindowManager.getActiveApp().titleBar.element;
+            var titleEl = AppWindowManager.getActiveApp().element
+                                          .querySelector('.titlebar');
             assert.equal(titleEl.style.transform, '');
             assert.equal(titleEl.style.transition, '');
             assert.ok(titleEl.classList.contains('dragged'));
