@@ -138,6 +138,10 @@
      * @param {HTMLElement} domNode
      */
     _registerHeadersInSubtree: function(domNode) {
+      if (!domNode) {
+        return;
+      }
+
       var headers = domNode.querySelectorAll('header > h1');
       for (var i = 0; i < headers.length; i++) {
         // On some apps wrapping inside a requestAnimationFrame reduces the

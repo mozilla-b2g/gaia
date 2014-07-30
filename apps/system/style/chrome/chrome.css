@@ -1,19 +1,53 @@
-.appWindow > .chrome {
+.appWindow:not(.bar) > .chrome {
   pointer-events: none;
   background-color: black;
-  transition: background-color 0.5s ease;
+  top: 0;
+  height: 7.4rem;
+  transform: scaleY(0.48) translateY(-2.4rem);
+  transform-origin: top left;
+  transition: transform 0.2s ease-in-out, background-color 0.5s ease;
+  background-image: linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.1));
+}
+
+.appWindow:not(.bar) > .chrome.maximized {
+  transform: scaleY(1) translateY(0);
+}
+
+.appWindow:not(.bar).fullscreen-app > .chrome {
+  height: 7.4rem;
+  top: -2.4rem;
+}
+
+.appWindow:not(.bar).fullscreen-app > .chrome.maximized {
+  top: 0;
 }
 
 .controls {
   pointer-events: auto;
   background-color: transparent;
+  position: absolute;
+  bottom: 0;
   width: 100%;
 }
 
-.homeScreenWindow > .chrome,
-.lockScreenWindow > .chrome,
+/* Special cases */
 .searchWindow > .chrome {
   display: none;
+}
+
+.lockScreenWindow:not(.bar) > .chrome .controls,
+.lockScreenWindow:not(.bar) > .chrome .progress,
+.homescreen:not(.bar) > .chrome .controls,
+.homescreen:not(.bar) > .chrome .progress {
+  visibility: hidden;
+}
+
+.lockScreenWindow:not(.bar) > .chrome {
+  background-color: transparent;
+}
+
+#screen.attention .lockScreenWindow:not(.bar) > .chrome {
+  background-color: black;
 }
 
 /* URL bar */
@@ -26,7 +60,7 @@
   padding: 0 1rem;
   background-color: rgba(51,51,51,0.5);
   border-radius: 2rem;
-  margin: 0.7rem 0;
+  margin: 0.7rem 0 0.7rem 0.45rem;
   color: white;
 }
 
@@ -50,6 +84,25 @@
 
 .controls .back-button:not([data-disabled]) + .forward-button:not([data-disabled]) + .urlbar {
   width: calc(100% - 9rem);
+}
+
+.controls .urlbar {
+  transform: scaleX(0.48);
+  transform-origin: top left;
+  transition: transform 0.2s ease-in-out;
+}
+
+.maximized .controls .urlbar {
+  transform: scaleX(1);
+}
+
+.chrome:not(.maximized):not(.manifest) .back-button:not([data-disabled]) + .forward-button[data-disabled] + .urlbar,
+.chrome:not(.maximized):not(.manifest) .forward-button:not([data-disabled]) + .urlbar {
+  transform: scaleX(0.48) translateX(-6rem);
+}
+
+.chrome:not(.maximized):not(.manifest) .back-button:not([data-disabled]) + .forward-button:not([data-disabled]) + .urlbar {
+  transform: scaleX(0.48) translateX(-12.4rem);
 }
 
 
@@ -77,8 +130,9 @@
   background-size: 2rem auto;
   background-position: left center;
   position: absolute;
-  top: 0;
-  right: 2rem;
+  bottom: 0;
+  right: 0;
+  height: 3.5rem;
 }
 
 .loading .controls .reload-button {
@@ -101,6 +155,15 @@
   display: none;
 }
 
+.appWindow:not(.bar) > .chrome button {
+  opacity: 0;
+  transition: opacity 0.15s ease-in;
+}
+
+.appWindow:not(.bar) > .chrome.maximized button {
+  opacity: 1;
+}
+
 
 /* Buttons Images */
 .controls .back-button {
@@ -121,7 +184,23 @@
 
 
 /* Progress */
-.appWindow.navigation .scrollable .progress {
-  top: 5rem;
+.appWindow:not(.bar).navigation > .chrome .progress {
+  top: 7.4rem;
+}
+
+/* App specifics */
+.chrome.manifest .controls button {
+  display: none;
+}
+
+.chrome.manifest .controls .forward-button:not([data-disabled]) + .urlbar,
+.chrome.manifest .controls .back-button:not([data-disabled]) + .forward-button[data-disabled] + .urlbar,
+.chrome.manifest .controls .back-button:not([data-disabled]) + .forward-button:not([data-disabled]) + .urlbar,
+.chrome.manifest .controls .urlbar {
+  width: calc(100% - 3rem);
+}
+
+.chrome.manifest .controls .urlbar .title {
+  width: calc(100%);
 }
 

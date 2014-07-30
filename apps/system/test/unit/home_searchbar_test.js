@@ -272,13 +272,14 @@ suite('system/HomeSearchbar', function() {
         sinon.assert.callOrder(subject.activate, subject.focus);
       });
 
-      suite('when the current app has a titlebar', function() {
+      suite('when the current app has chrome', function() {
         var fakeApp;
         setup(function() {
           fakeApp = {
             getTopMostWindow: function() { return this; },
-            titleBar: {
-              expand: function(cb) { cb && cb(); }
+            appChrome: {
+              maximized: function(cb) { cb && cb(); },
+              isMaximized: function() { return false; }
             },
             config: {
               url: 'foo'
@@ -300,15 +301,15 @@ suite('system/HomeSearchbar', function() {
           sinon.assert.calledWith(setInputStub, 'foo');
         });
 
-
-        test('should expand the title bar then activate then focus',
+        test('should not expand the title bar but activate the focus',
         function() {
           this.sinon.useFakeTimers();
           this.sinon.stub(subject, 'activate', function(cb) {
             cb();
           });
           this.sinon.spy(subject, 'focus');
-          this.sinon.spy(fakeApp.titleBar, 'expand');
+
+          fakeApp.appChrome.isMaximized = function() { return true; };
 
           var hideResultsStub = this.sinon.stub(subject, 'hideResults');
           var setInputStub = this.sinon.stub(subject, 'setInput');
@@ -319,7 +320,34 @@ suite('system/HomeSearchbar', function() {
 
           sinon.assert.callOrder(
             setInputStub,
-            fakeApp.titleBar.expand,
+            subject.activate,
+            hideResultsStub,
+            subject.focus,
+            selectAllStub
+          );
+        });
+
+        test('should expand the title bar then activate then focus',
+        function() {
+          this.sinon.useFakeTimers();
+          this.sinon.stub(subject, 'activate', function(cb) {
+            cb();
+          });
+          this.sinon.spy(subject, 'focus');
+          this.sinon.spy(fakeApp.appChrome, 'maximized');
+
+          fakeApp.appChrome.isMaximized = function() { return false; };
+
+          var hideResultsStub = this.sinon.stub(subject, 'hideResults');
+          var setInputStub = this.sinon.stub(subject, 'setInput');
+          var selectAllStub = this.sinon.stub(subject, 'selectAll');
+
+          window.dispatchEvent(new CustomEvent('global-search-request'));
+          this.sinon.clock.tick();
+
+          sinon.assert.callOrder(
+            setInputStub,
+            fakeApp.appChrome.maximized,
             subject.activate,
             hideResultsStub,
             subject.focus,
