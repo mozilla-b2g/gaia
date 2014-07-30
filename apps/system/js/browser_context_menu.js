@@ -1,4 +1,4 @@
-/* global MozActivity */
+/* global MozActivity, IconsHelper, LazyLoader */
 
 (function(window) {
   'use strict';
@@ -290,16 +290,18 @@
   };
 
   BrowserContextMenu.prototype.showDefaultMenu = function() {
+    var favicons = this.app.favicons;
     var config = this.app.config;
-    var icon = ('icons' in config && config.icons.length) ?
-      config.icons[0].href : null;
-    this.showMenu([{
-      label: _('add-to-home-screen'),
-      callback: this.bookmarkUrl.bind(this, config.url, this.app.title, icon)
-    }, {
-      label: _('share'),
-      callback: this.shareUrl.bind(this, config.url)
-    }]);
+    LazyLoader.load('shared/js/icons_helper.js', (function() {
+      var icon = IconsHelper.getBestIcon(favicons);
+      this.showMenu([{
+        label: _('add-to-home-screen'),
+        callback: this.bookmarkUrl.bind(this, config.url, this.app.title, icon)
+      }, {
+        label: _('share'),
+        callback: this.shareUrl.bind(this, config.url)
+      }]);
+    }).bind(this));
   };
 
 }(this));

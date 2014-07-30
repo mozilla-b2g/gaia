@@ -928,7 +928,7 @@
         this.favicons[href] = {sizes: []};
       }
 
-      if (this.favicons[href].sizes.indexOf(sizes) === -1) {
+      if (sizes && this.favicons[href].sizes.indexOf(sizes) === -1) {
         this.favicons[href].sizes.push(sizes);
       }
 
