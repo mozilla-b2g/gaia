@@ -111,6 +111,19 @@ suite('system/permission manager', function() {
     });
   });
 
+  suite('attentionscreenshow Handler', function() {
+    setup(function() {
+      this.sinon.stub(permissionManager, 'discardPermissionRequest');
+      var evt = document.createEvent('CustomEvent');
+      evt.initCustomEvent('attentionscreenshow', true, true, {origin: ''});
+      window.dispatchEvent(evt);
+    });
+
+    test('discardPermissionRequest is called', function() {
+      assert.isTrue(permissionManager.discardPermissionRequest.called);
+    });
+  });
+
   suite('fullscreenoriginchange Handler', function() {
     setup(function() {
       this.sinon.stub(permissionManager,
