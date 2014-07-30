@@ -19,6 +19,8 @@
     this.app = app;
     this.instanceID = _id++;
     this.containerElement = app.element;
+    this._recentTitle = false;
+    this._titleTimeout = null;
     this.scrollable = app.browserContainer;
     this.render();
 
@@ -26,9 +28,18 @@
       this.element.style.backgroundColor = this.app.themeColor;
     }
 
+    if (!this.app.isBrowser() && this.app.name) {
+      this._gotName = true;
+      this.setFreshTitle(this.app.name);
+    }
+
     var chrome = this.app.config.chrome;
     if (!chrome) {
       return;
+    }
+
+    if (!this.app.isBrowser()) {
+      this.element.classList.add('manifest');
     }
 
     if (chrome.navigation) {
@@ -52,6 +63,10 @@
   AppChrome.prototype.CLASS_NAME = 'AppChrome';
 
   AppChrome.prototype.EVENT_PREFIX = 'chrome';
+
+  AppChrome.prototype.FRESH_TITLE = 500;
+
+  AppChrome.prototype.LOCATION_COALESCE = 250;
 
   AppChrome.prototype._DEBUG = false;
 
@@ -104,7 +119,7 @@
   };
 
   AppChrome.prototype._fetchElements = function ac__fetchElements() {
-    this.element = this.scrollable.querySelector('.chrome');
+    this.element = this.containerElement.querySelector('.chrome');
     this.navigation = this.element.querySelector('.navigation');
     this.bar = this.element.querySelector('.bar');
 
@@ -129,6 +144,10 @@
 
   AppChrome.prototype.handleEvent = function ac_handleEvent(evt) {
     switch (evt.type) {
+      case 'rocketbar-overlayopened':
+        this.collapse();
+        break;
+
       case 'click':
         this.handleClickEvent(evt);
         break;
@@ -174,13 +193,13 @@
         break;
 
       case '_withkeyboard':
-        if (this.app && this.navigation && this.app.isActive()) {
+        if (this.app && this.app.isActive()) {
           this.hide(this.navigation);
         }
         break;
 
       case '_withoutkeyboard':
-        if (this.app && this.navigation) {
+        if (this.app) {
           this.show(this.navigation);
         }
         break;
@@ -191,6 +210,10 @@
 
       case '_homegesture-disabled':
         this.releaseNavigation();
+        break;
+
+      case '_namechanged':
+        this.handleNameChanged(evt);
         break;
     }
   };
@@ -248,7 +271,18 @@
   };
 
   AppChrome.prototype.handleScrollEvent = function ac_handleScrollEvent(evt) {
-    // Bug 1039519 - Implement a smooth transition to show/hide the chrome
+    // Ideally we'd animate based on scroll position, but until we have
+    // the necessary spec and implementation, we'll animate completely to
+    // the expanded or collapsed state depending on whether it's at the
+    // top or not.
+    // XXX Open a bug since I wonder if there is scrollgrab rounding issue
+    // somewhere. While panning from the bottom to the top, there is often
+    // a scrollTop position of scrollTopMax - 1, which triggers the transition!
+    if (this.scrollable.scrollTop >= this.scrollable.scrollTopMax - 1) {
+      this.element.classList.remove('maximized');
+    } else {
+      this.element.classList.add('maximized');
+    }
   };
 
   AppChrome.prototype._registerEvents = function ac__registerEvents() {
@@ -285,12 +319,15 @@
     this.app.element.addEventListener('mozbrowsermetachange', this);
     this.app.element.addEventListener('_loading', this);
     this.app.element.addEventListener('_loaded', this);
-    this.app.element.addEventListener('_opened', this);
-    this.app.element.addEventListener('_closing', this);
-    this.app.element.addEventListener('_withkeyboard', this);
-    this.app.element.addEventListener('_withoutkeyboard', this);
-    this.app.element.addEventListener('_homegesture-enabled', this);
-    this.app.element.addEventListener('_homegesture-disabled', this);
+    this.app.element.addEventListener('_namechanged', this);
+    if (!this.useCombinedChrome()) {
+      this.app.element.addEventListener('_opened', this);
+      this.app.element.addEventListener('_closing', this);
+      this.app.element.addEventListener('_withkeyboard', this);
+      this.app.element.addEventListener('_withoutkeyboard', this);
+      this.app.element.addEventListener('_homegesture-enabled', this);
+      this.app.element.addEventListener('_homegesture-disabled', this);
+    }
   };
 
   AppChrome.prototype._unregisterEvents = function ac__unregisterEvents() {
@@ -331,12 +368,15 @@
     this.app.element.removeEventListener('mozbrowsermetachange', this);
     this.app.element.removeEventListener('_loading', this);
     this.app.element.removeEventListener('_loaded', this);
-    this.app.element.removeEventListener('_opened', this);
-    this.app.element.removeEventListener('_closing', this);
-    this.app.element.removeEventListener('_withkeyboard', this);
-    this.app.element.removeEventListener('_withoutkeyboard', this);
-    this.app.element.removeEventListener('_homegesture-enabled', this);
-    this.app.element.removeEventListener('_homegesture-disabled', this);
+    this.app.element.removeEventListener('_namechanged', this);
+    if (!this.useCombinedChrome()) {
+      this.app.element.removeEventListener('_opened', this);
+      this.app.element.removeEventListener('_closing', this);
+      this.app.element.removeEventListener('_withkeyboard', this);
+      this.app.element.removeEventListener('_withoutkeyboard', this);
+      this.app.element.removeEventListener('_homegesture-enabled', this);
+      this.app.element.removeEventListener('_homegesture-disabled', this);
+    }
     this.app = null;
   };
 
@@ -348,7 +388,7 @@
     if (this.closeButton.style.visibility !== 'hidden') {
       this.closeButton.style.visibility = 'hidden';
     }
-    if (this.navigation && this.navigation.classList.contains('closed')) {
+    if (this.navigation.classList.contains('closed')) {
       this.navigation.classList.remove('closed');
     }
   };
@@ -360,9 +400,25 @@
     if (this.closeButton.style.visibility !== 'visible') {
       this.closeButton.style.visibility = 'visible';
     }
-    if (this.navigation && !this.navigation.classList.contains('closed')) {
+    if (!this.navigation.classList.contains('closed')) {
       this.navigation.classList.add('closed');
     }
+  };
+
+  // Name has priority over the rest
+  AppChrome.prototype.handleNameChanged =
+    function ac_handleNameChanged(evt) {
+      this.title.textContent = this.app.name;
+      this._gotName = true;
+    };
+
+  AppChrome.prototype.setFreshTitle = function ac_setFreshTitle(title) {
+    this.title.textContent = title;
+    clearTimeout(this._titleTimeout);
+    this._recentTitle = true;
+    this._titleTimeout = setTimeout((function() {
+      this._recentTitle = false;
+    }).bind(this), this.FRESH_TITLE);
   };
 
   AppChrome.prototype.isButtonBarDisplayed = false;
@@ -412,7 +468,11 @@
     };
 
   AppChrome.prototype.handleTitleChanged = function(evt) {
-    this.title.textContent = evt.detail || this._currentURL;
+    if (this._gotName) {
+      return;
+    }
+
+    this.setFreshTitle(evt.detail || this._currentURL);
     this._titleChanged = true;
   };
 
@@ -438,7 +498,7 @@
     this.publish('willrender');
 
     var view = this.useCombinedChrome() ? this.combinedView() : this.view();
-    this.app.browserContainer.insertAdjacentHTML('afterbegin', view);
+    this.app.element.insertAdjacentHTML('afterbegin', view);
 
     this._fetchElements();
     this._registerEvents();
@@ -451,15 +511,24 @@
            this.app.config.chrome.bar;
   };
 
+  AppChrome.prototype._updateLocation =
+    function ac_updateTitle(title) {
+      if (this._titleChanged || this._gotName || this._recentTitle) {
+        return;
+      }
+      this.title.textContent = title;
+    };
+
   AppChrome.prototype.handleLocationChanged =
     function ac_handleLocationChange(evt) {
       if (!this.app) {
         return;
       }
 
-      if (!this._titleChanged) {
-        this.title.textContent = evt.detail;
-      }
+      // We wait a small while because if we get a title/name it's even better
+      // and we don't want the label to flash
+      setTimeout(this._updateLocation.bind(this, evt.detail),
+                 this.LOCATION_COALESCE);
       this._currentURL = evt.detail;
 
       this.app.canGoForward(function forwardSuccess(result) {
@@ -486,6 +555,38 @@
 
   AppChrome.prototype.handleLoadEnd = function ac_handleLoadEnd(evt) {
     this.containerElement.classList.remove('loading');
+  };
+
+  AppChrome.prototype.maximize = function ac_maximize(callback) {
+    var element = this.element;
+    element.classList.add('maximized');
+    window.addEventListener('rocketbar-overlayopened', this);
+
+    if (!callback) {
+      return;
+    }
+
+    var safetyTimeout = null;
+    var finish = function(evt) {
+      if (evt && evt.target !== element) {
+        return;
+      }
+
+      element.removeEventListener('transitionend', finish);
+      clearTimeout(safetyTimeout);
+      callback();
+    };
+    element.addEventListener('transitionend', finish);
+    safetyTimeout = setTimeout(finish, 250);
+  };
+
+  AppChrome.prototype.collapse = function ac_collapse() {
+    window.removeEventListener('rocketbar-overlayopened', this);
+    this.element.classList.remove('maximized');
+  };
+
+  AppChrome.prototype.isMaximized = function ac_isMaximized() {
+    return this.element.classList.contains('maximized');
   };
 
   AppChrome.prototype.addBookmark = function ac_addBookmark() {

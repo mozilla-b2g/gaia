@@ -24,7 +24,6 @@ marionette('Fullscreen status bar >', function() {
 
   setup(function() {
     video = sys.waitForLaunch(VIDEO_APP);
-
     var titlebar = sys.appTitlebar;
     var statusbarHeight = titlebar.size().height;
     client.waitFor(function() {

@@ -385,7 +385,7 @@ var StatusBar = {
   _dontStopEvent: false,
   panelHandler: function sb_panelHandler(evt) {
     var app = AppWindowManager.getActiveApp().getTopMostWindow();
-    var titleBar = app.titleBar.element;
+    var titleBar = app.element.querySelector('.titlebar');
 
     // Do not forward events if FTU is running
     if (FtuLauncher.isFtuRunning()) {

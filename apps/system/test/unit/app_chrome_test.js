@@ -14,6 +14,7 @@ var mocksForAppChrome = new MocksHelper([
 suite('system/AppChrome', function() {
   var stubById, realL10n, realHomeGesture;
   mocksForAppChrome.attachTestHelpers();
+
   setup(function(done) {
     realHomeGesture = window.homeGesture;
     window.homeGesture = { enable: false };
@@ -41,6 +42,19 @@ suite('system/AppChrome', function() {
     origin: 'app://www.fake'
   };
 
+  var fakeWebSite = {
+    url: 'http://google.com/index.html',
+    origin: 'app://google.com'
+  };
+
+  var fakeAppWithName = {
+    url: 'app://communications.gaiamobile.org/dialer/index.html',
+    name: 'Phone',
+    manifest: {name: 'Dialer'},
+    manifestURL: 'app://communications.gaiamobile.org/manifest.webapp',
+    origin: 'app://communications.gaiamobile.org'
+  };
+
   var fakeAppConfigNavigation = {
     url: 'app://www.fake/index.html',
     chrome: {
@@ -63,204 +77,152 @@ suite('system/AppChrome', function() {
     }
   };
 
-  test('app is closing', function() {
-    var app1 = new AppWindow(fakeAppConfig1);
-    var chrome1 = new AppChrome(app1);
-    var stubHandleClosing = this.sinon.stub(chrome1, 'handleClosing');
-    chrome1.handleEvent({ type: '_closing' });
-    assert.isTrue(stubHandleClosing.called);
-  });
+  suite('Old Navigation - Application events', function() {
+    test('app is closing', function() {
+      var app = new AppWindow(fakeAppConfig1);
+      var chrome = new AppChrome(app);
+      var stubHandleClosing = this.sinon.stub(chrome, 'handleClosing');
+      chrome.handleEvent({ type: '_closing' });
+      assert.isTrue(stubHandleClosing.called);
+    });
 
-  test('app is opened', function() {
-    var app1 = new AppWindow(fakeAppConfig1);
-    var chrome1 = new AppChrome(app1);
-    var stubHandleOpened = this.sinon.stub(chrome1, 'handleOpened');
-    chrome1.handleEvent({ type: '_opened' });
-    assert.isTrue(stubHandleOpened.called);
-  });
+    test('app is opened', function() {
+      var app = new AppWindow(fakeAppConfig1);
+      var chrome = new AppChrome(app);
+      var stubHandleOpened = this.sinon.stub(chrome, 'handleOpened');
+      chrome.handleEvent({ type: '_opened' });
+      assert.isTrue(stubHandleOpened.called);
+    });
 
-  test('app is loading', function() {
-    var app1 = new AppWindow(fakeAppConfig1);
-    var chrome1 = new AppChrome(app1);
-    var stubShowProgress = this.sinon.stub(chrome1, 'show');
-    chrome1.handleEvent({ type: '_loading' });
-    assert.isTrue(stubShowProgress.calledWith(chrome1.progress));
-  });
+    test('app is loading', function() {
+      var app = new AppWindow(fakeAppConfig1);
+      var chrome = new AppChrome(app);
+      var stubShowProgress = this.sinon.stub(chrome, 'show');
+      chrome.handleEvent({ type: '_loading' });
+      assert.isTrue(stubShowProgress.calledWith(chrome.progress));
+    });
 
-  test('app is loaded', function() {
-    var app1 = new AppWindow(fakeAppConfig1);
-    var chrome1 = new AppChrome(app1);
-    var stubHideProgress = this.sinon.stub(chrome1, 'hide');
-    chrome1.handleEvent({ type: '_loaded' });
-    assert.isTrue(stubHideProgress.calledWith(chrome1.progress));
-  });
+    test('app is loaded', function() {
+      var app = new AppWindow(fakeAppConfig1);
+      var chrome = new AppChrome(app);
+      var stubHideProgress = this.sinon.stub(chrome, 'hide');
+      chrome.handleEvent({ type: '_loaded' });
+      assert.isTrue(stubHideProgress.calledWith(chrome.progress));
+    });
 
-  test('app location is changed', function() {
-    var app1 = new AppWindow(fakeAppConfig1);
-    var chrome1 = new AppChrome(app1);
-    var stubHandleLocationChanged =
-      this.sinon.stub(chrome1, 'handleLocationChanged');
-    chrome1.handleEvent({ type: 'mozbrowserlocationchange' });
-    assert.isTrue(stubHandleLocationChanged.called);
-  });
+    test('app location is changed', function() {
+      var app = new AppWindow(fakeAppConfig1);
+      var chrome = new AppChrome(app);
+      var stubHandleLocationChanged =
+        this.sinon.stub(chrome, 'handleLocationChanged');
+      chrome.handleEvent({ type: 'mozbrowserlocationchange' });
+      assert.isTrue(stubHandleLocationChanged.called);
+    });
 
-  test('close navigation', function() {
-    var app1 = new AppWindow(fakeAppConfig1);
-    var chrome1 = new AppChrome(app1);
-    chrome1.handleEvent({ type: 'click', target: chrome1.closeButton });
-  });
+    test('open navigation', function() {
+      var app = new AppWindow(fakeAppConfig1);
+      var chrome = new AppChrome(app);
+      chrome.handleEvent({ type: 'click', target: chrome.openButton });
 
-  test('bookmark', function() {
-    var app1 = new AppWindow(fakeAppConfig1);
-    var chrome1 = new AppChrome(app1);
-    var stubAddBookmark = this.sinon.stub(chrome1, 'addBookmark');
-    chrome1.handleEvent({ type: 'click', target: chrome1.bookmarkButton });
-    assert.isTrue(stubAddBookmark.called);
-  });
+      assert.isFalse(chrome.navigation.classList.contains('closed'));
+      this.sinon.clock.tick(5000);
+      assert.isTrue(chrome.navigation.classList.contains('closed'));
+    });
 
-  test('back', function() {
-    var app1 = new AppWindow(fakeAppConfig1);
-    var chrome1 = new AppChrome(app1);
-    var stubBack = this.sinon.stub(app1, 'back');
-    chrome1.handleEvent({ type: 'click', target: chrome1.backButton });
-    assert.isTrue(stubBack.called);
-  });
+    test('close navigation', function() {
+      var app = new AppWindow(fakeAppConfig1);
+      var chrome = new AppChrome(app);
+      chrome.handleEvent({ type: 'click', target: chrome.closeButton });
+    });
 
-  test('forward', function() {
-    var app1 = new AppWindow(fakeAppConfig1);
-    var chrome1 = new AppChrome(app1);
-    var stubForward = this.sinon.stub(app1, 'forward');
-    chrome1.handleEvent({ type: 'click', target: chrome1.forwardButton });
-    assert.isTrue(stubForward.called);
-  });
+    test('add bookmark', function() {
+      var app = new AppWindow(fakeAppConfig1);
+      var chrome = new AppChrome(app);
+      var stubClearButtonBarTimeout =
+        this.sinon.stub(chrome, 'clearButtonBarTimeout');
+      delete chrome.bookmarkButton.dataset.disabled;
+      var stubSelectOne = this.sinon.stub(MockModalDialog, 'selectOne');
+      chrome.addBookmark();
+      assert.isTrue(stubClearButtonBarTimeout.called);
+      assert.isTrue(stubSelectOne.called);
+    });
 
-  test('reload', function() {
-    var app1 = new AppWindow(fakeAppConfig1);
-    var chrome1 = new AppChrome(app1);
-    var stubReload = this.sinon.stub(app1, 'reload');
-    chrome1.handleEvent({ type: 'click', target: chrome1.reloadButton });
-    assert.isTrue(stubReload.called);
-  });
+    test('home gesture enabled', function() {
+      var app = new AppWindow(fakeAppConfig1);
+      var chrome = new AppChrome(app);
+      var stubHoldNavigation = this.sinon.stub(chrome, 'holdNavigation');
+      chrome.handleEvent({ type: '_homegesture-enabled' });
+      assert.isTrue(stubHoldNavigation.called);
+    });
 
-  test('open navigation', function() {
-    var app1 = new AppWindow(fakeAppConfig1);
-    var chrome1 = new AppChrome(app1);
-    chrome1.handleEvent({ type: 'click', target: chrome1.openButton });
+    test('home gesture disabled', function() {
+      var app = new AppWindow(fakeAppConfig1);
+      var chrome = new AppChrome(app);
+      var stubReleaseNavigation = this.sinon.stub(chrome, 'releaseNavigation');
+      chrome.handleEvent({ type: '_homegesture-disabled' });
+      assert.isTrue(stubReleaseNavigation.called);
+    });
 
-    assert.isFalse(chrome1.navigation.classList.contains('closed'));
-    this.sinon.clock.tick(5000);
-    assert.isTrue(chrome1.navigation.classList.contains('closed'));
-  });
+    test('keyboard shows', function() {
+      var app = new AppWindow(fakeAppConfig1);
+      var chrome = new AppChrome(app);
+      var stubIsActive = this.sinon.stub(app, 'isActive');
+      stubIsActive.returns(true);
+      chrome.navigation.classList.add('visible');
 
-  test('add bookmark', function() {
-    var app1 = new AppWindow(fakeAppConfig1);
-    var chrome1 = new AppChrome(app1);
-    var stubClearButtonBarTimeout =
-      this.sinon.stub(chrome1, 'clearButtonBarTimeout');
-    delete chrome1.bookmarkButton.dataset.disabled;
-    var stubSelectOne = this.sinon.stub(MockModalDialog, 'selectOne');
-    chrome1.addBookmark();
-    assert.isTrue(stubClearButtonBarTimeout.called);
-    assert.isTrue(stubSelectOne.called);
-  });
+      var stubHide = this.sinon.stub(chrome, 'hide');
+      chrome.handleEvent({ type: '_withkeyboard' });
+      assert.isTrue(stubHide.called);
+    });
 
-  test('home gesture enabled', function() {
-    var app1 = new AppWindow(fakeAppConfig1);
-    var chrome1 = new AppChrome(app1);
-    var stubHoldNavigation = this.sinon.stub(chrome1, 'holdNavigation');
-    chrome1.handleEvent({ type: '_homegesture-enabled' });
-    assert.isTrue(stubHoldNavigation.called);
-  });
+    test('keyboard hides', function() {
+      var app = new AppWindow(fakeAppConfig1);
+      var chrome = new AppChrome(app);
 
-  test('home gesture disabled', function() {
-    var app1 = new AppWindow(fakeAppConfig1);
-    var chrome1 = new AppChrome(app1);
-    var stubReleaseNavigation = this.sinon.stub(chrome1, 'releaseNavigation');
-    chrome1.handleEvent({ type: '_homegesture-disabled' });
-    assert.isTrue(stubReleaseNavigation.called);
-  });
+      chrome.navigation.classList.remove('visible');
 
-  test('keyboard shows', function() {
-    var app1 = new AppWindow(fakeAppConfig1);
-    var chrome1 = new AppChrome(app1);
-    var stubIsActive = this.sinon.stub(app1, 'isActive');
-    stubIsActive.returns(true);
-    chrome1.navigation.classList.add('visible');
+      var stubShow = this.sinon.stub(chrome, 'show');
+      chrome.handleEvent({ type: '_withoutkeyboard' });
+      assert.isTrue(stubShow.called);
+    });
 
-    var stubHide = this.sinon.stub(chrome1, 'hide');
-    chrome1.handleEvent({ type: '_withkeyboard' });
-    assert.isTrue(stubHide.called);
-  });
+    test('toggle navigation', function() {
+      var app = new AppWindow(fakeAppConfig1);
+      var chrome = new AppChrome(app);
+      chrome.toggleButtonBar();
+      this.sinon.clock.tick(5000);
+      assert.isTrue(chrome.navigation.classList.contains('closed'));
+    });
 
-  test('keyboard hides', function() {
-    var app1 = new AppWindow(fakeAppConfig1);
-    var chrome1 = new AppChrome(app1);
+    test('opened', function() {
+      var app = new AppWindow(fakeAppConfig1);
+      var chrome = new AppChrome(app);
 
-    chrome1.navigation.classList.remove('visible');
+      var stubToggleButtonBar = this.sinon.stub(chrome, 'toggleButtonBar');
+      chrome.handleOpened();
+      assert.isTrue(stubToggleButtonBar.called);
+    });
 
-    var stubShow = this.sinon.stub(chrome1, 'show');
-    chrome1.handleEvent({ type: '_withoutkeyboard' });
-    assert.isTrue(stubShow.called);
-  });
+    test('toggleButtonBar with homeGesture enabled', function() {
+      var app = new AppWindow(fakeAppConfig1);
+      var chrome = new AppChrome(app);
+      homeGesture.enabled = true;
+      chrome.toggleButtonBar();
+      assert.isTrue(chrome.navigation.classList.contains('closed'));
+    });
 
-  test('toggle navigation', function() {
-    var app1 = new AppWindow(fakeAppConfig1);
-    var chrome1 = new AppChrome(app1);
-    chrome1.toggleButtonBar();
-    this.sinon.clock.tick(5000);
-    assert.isTrue(chrome1.navigation.classList.contains('closed'));
-  });
-
-  test('location changed', function() {
-    var app1 = new AppWindow(fakeAppConfig1);
-    var chrome1 = new AppChrome(app1);
-    var stub1 = this.sinon.stub(app1, 'canGoForward');
-    var stub2 = this.sinon.stub(app1, 'canGoBack');
-    chrome1.handleLocationChanged(new CustomEvent(
-      'mozbrowserlocationchange',
-      {
-        detail: 'new.location'
-      }
-    ));
-    stub1.getCall(0).args[0](true);
-    assert.isUndefined(chrome1.forwardButton.dataset.disabled);
-    stub1.getCall(0).args[0](false);
-    assert.equal(chrome1.forwardButton.dataset.disabled, 'true');
-
-    stub2.getCall(0).args[0](true);
-    assert.isUndefined(chrome1.backButton.dataset.disabled);
-    stub2.getCall(0).args[0](false);
-    assert.equal(chrome1.backButton.dataset.disabled, 'true');
-  });
-
-  test('opened', function() {
-    var app1 = new AppWindow(fakeAppConfig1);
-    var chrome1 = new AppChrome(app1);
-
-    var stubToggleButtonBar = this.sinon.stub(chrome1, 'toggleButtonBar');
-    chrome1.handleOpened();
-    assert.isTrue(stubToggleButtonBar.called);
-  });
-
-  test('toggleButtonBar with homeGesture enabled', function() {
-    var app1 = new AppWindow(fakeAppConfig1);
-    var chrome1 = new AppChrome(app1);
-    homeGesture.enabled = true;
-    chrome1.toggleButtonBar();
-    assert.isTrue(chrome1.navigation.classList.contains('closed'));
-  });
-
-  test('handleClosing with homeGesture enabled', function() {
-    var app1 = new AppWindow(fakeAppConfig1);
-    var chrome1 = new AppChrome(app1);
-    homeGesture.enabled = false;
-    chrome1.navigation.classList.remove('closed');
-    chrome1.handleClosing();
-    assert.isTrue(chrome1.navigation.classList.contains('closed'));
-    chrome1.navigation.classList.remove('closed');
-    homeGesture.enabled = true;
-    chrome1.handleClosing();
-    assert.isFalse(chrome1.navigation.classList.contains('closed'));
+    test('handleClosing with homeGesture enabled', function() {
+      var app = new AppWindow(fakeAppConfig1);
+      var chrome = new AppChrome(app);
+      homeGesture.enabled = false;
+      chrome.navigation.classList.remove('closed');
+      chrome.handleClosing();
+      assert.isTrue(chrome.navigation.classList.contains('closed'));
+      chrome.navigation.classList.remove('closed');
+      homeGesture.enabled = true;
+      chrome.handleClosing();
+      assert.isFalse(chrome.navigation.classList.contains('closed'));
+    });
   });
 
   suite('Views', function() {
@@ -287,16 +249,32 @@ suite('system/AppChrome', function() {
       new AppChrome(app); // jshint ignore:line
       assert.isTrue(spyView.called);
     });
-
   });
 
-  suite('Combined View Specific tests', function() {
-    test('reload', function() {
-      var app = new AppWindow(fakeAppConfigBoth);
+
+  suite('Button events', function() {
+    test('back', function() {
+      var app = new AppWindow(fakeAppConfig1);
       var chrome = new AppChrome(app);
-      var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
-      chrome.handleEvent({ type: 'click', target: chrome.title });
-      assert.isTrue(stubDispatchEvent.called);
+      var stubBack = this.sinon.stub(app, 'back');
+      chrome.handleEvent({ type: 'click', target: chrome.backButton });
+      assert.isTrue(stubBack.called);
+    });
+
+    test('forward', function() {
+      var app = new AppWindow(fakeAppConfig1);
+      var chrome = new AppChrome(app);
+      var stubForward = this.sinon.stub(app, 'forward');
+      chrome.handleEvent({ type: 'click', target: chrome.forwardButton });
+      assert.isTrue(stubForward.called);
+    });
+
+    test('reload', function() {
+      var app = new AppWindow(fakeAppConfig1);
+      var chrome = new AppChrome(app);
+      var stubReload = this.sinon.stub(app, 'reload');
+      chrome.handleEvent({ type: 'click', target: chrome.reloadButton });
+      assert.isTrue(stubReload.called);
     });
 
     test('stop', function() {
@@ -307,6 +285,37 @@ suite('system/AppChrome', function() {
       assert.isTrue(stubStop.called);
     });
 
+    test('bookmark', function() {
+      var app = new AppWindow(fakeAppConfig1);
+      var chrome = new AppChrome(app);
+      var stubAddBookmark = this.sinon.stub(chrome, 'addBookmark');
+      chrome.handleEvent({ type: 'click', target: chrome.bookmarkButton });
+      assert.isTrue(stubAddBookmark.called);
+    });
+
+    test('location changed', function() {
+      var app = new AppWindow(fakeAppConfig1);
+      var chrome = new AppChrome(app);
+      var stub1 = this.sinon.stub(app, 'canGoForward');
+      var stub2 = this.sinon.stub(app, 'canGoBack');
+
+      chrome.handleEvent({ type: 'mozbrowserlocationchange',
+                           detail: 'new.location' });
+
+      stub1.getCall(0).args[0](true);
+      assert.isUndefined(chrome.forwardButton.dataset.disabled);
+      stub1.getCall(0).args[0](false);
+      assert.equal(chrome.forwardButton.dataset.disabled, 'true');
+
+      stub2.getCall(0).args[0](true);
+      assert.isUndefined(chrome.backButton.dataset.disabled);
+      stub2.getCall(0).args[0](false);
+      assert.equal(chrome.backButton.dataset.disabled, 'true');
+    });
+  });
+
+
+  suite('Navigation events', function() {
     test('loadstart', function() {
       var app = new AppWindow(fakeAppConfigBoth);
       var chrome = new AppChrome(app);
@@ -330,8 +339,6 @@ suite('system/AppChrome', function() {
       chrome.handleEvent({ type: 'mozbrowserlocationchange',
                            detail: app.config.url });
 
-      assert.equal(chrome.title.textContent, app.config.url);
-
       chrome.handleEvent({ type: 'mozbrowsertitlechange',
                            detail: '' });
 
@@ -342,7 +349,154 @@ suite('system/AppChrome', function() {
 
       assert.equal(chrome.title.textContent, 'Hello');
     });
+  });
 
+
+  suite('URLBar', function() {
+    test('click', function() {
+      var app = new AppWindow(fakeAppConfigBoth);
+      var chrome = new AppChrome(app);
+      var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
+      chrome.handleEvent({ type: 'click', target: chrome.title });
+      assert.isTrue(stubDispatchEvent.called);
+    });
+
+    test('should set the name when created', function() {
+      var app = new AppWindow(fakeAppConfig1);
+      app.name = 'Phone';
+      var chrome = new AppChrome(app);
+      assert.equal(chrome.title.textContent, 'Phone');
+    });
+
+    test('should update the name when it changes', function() {
+      var app = new AppWindow(fakeAppConfig1);
+      app.name = 'Phone';
+      var chrome = new AppChrome(app);
+      assert.equal(chrome.title.textContent, 'Phone');
+
+      app.name = 'Phone2';
+      var evt = new CustomEvent('_namechanged');
+      app.element.dispatchEvent(evt);
+      assert.equal(chrome.title.textContent, 'Phone2');
+    });
+
+    test('localized app is not immediately overridden by titlechange event',
+      function() {
+      var app = new AppWindow(fakeAppConfig1);
+      app.name = 'Phone';
+
+      var chrome = new AppChrome(app);
+      chrome.handleEvent({ type: 'mozbrowsertitlechange',
+                           detail: 'Do not update' });
+      assert.equal(chrome.title.textContent, 'Phone');
+    });
+  });
+
+  suite('mozbrowserlocationchange', function() {
+    var subject = null;
+    setup(function() {
+      var website = new AppWindow(fakeWebSite);
+      subject = new AppChrome(website);
+      subject._registerEvents();
+    });
+
+    teardown(function() {
+      subject._unregisterEvents();
+    });
+
+    test('should not do anything on apps with manifests', function() {
+      var app = new AppWindow(fakeAppWithName);
+      var chrome = new AppChrome(app);
+      chrome._registerEvents();
+
+      var evt = new CustomEvent('mozbrowserlocationchange', {
+        detail: 'app://communications.gaiamobile.org/calllog.html'
+      });
+      chrome.app.element.dispatchEvent(evt);
+      this.sinon.clock.tick(500);
+
+      assert.equal(chrome.title.textContent, 'Phone');
+      chrome._unregisterEvents();
+    });
+
+    test('should wait before updating the title', function() {
+      subject.title.textContent = 'Google';
+      var evt = new CustomEvent('mozbrowserlocationchange', {
+        detail: 'http://bing.com'
+      });
+      subject.app.element.dispatchEvent(evt);
+
+      assert.equal(subject.title.textContent, 'Google');
+      this.sinon.clock.tick(500);
+      assert.equal(subject.title.textContent, 'http://bing.com');
+    });
+
+    test('should not update the title if we get a titlechange right after',
+    function() {
+      subject.title.textContent = 'Google';
+      var evt = new CustomEvent('mozbrowserlocationchange', {
+        detail: 'http://bing.com'
+      });
+      subject.app.element.dispatchEvent(evt);
+
+      assert.equal(subject.title.textContent, 'Google');
+      this.sinon.clock.tick(100);
+      var titleEvent = new CustomEvent('mozbrowsertitlechange', {
+        detail: 'Bing'
+      });
+      subject.app.element.dispatchEvent(titleEvent);
+      this.sinon.clock.tick(500);
+      assert.equal(subject.title.textContent, 'Bing');
+    });
+  });
+
+  suite('Maximized', function() {
+    var subject = null;
+    var cbSpy = null;
+    setup(function() {
+      var app = new AppWindow(fakeAppConfig1);
+      subject = new AppChrome(app);
+      cbSpy = this.sinon.spy();
+
+      subject.maximize(cbSpy);
+    });
+
+    test('should add the maximized css class on the element', function() {
+      assert.isTrue(subject.element.classList.contains('maximized'));
+    });
+
+    test('should trigger the callback after the transition', function() {
+      sinon.assert.notCalled(cbSpy);
+      subject.element.dispatchEvent(new CustomEvent('transitionend'));
+      sinon.assert.calledOnce(cbSpy);
+    });
+
+    test('should trigger the callback after a safety timeout', function() {
+      sinon.assert.notCalled(cbSpy);
+      this.sinon.clock.tick(500);
+      sinon.assert.calledOnce(cbSpy);
+    });
+
+    test('collapse should remove the maximized css class', function() {
+      var app = new AppWindow(fakeAppConfig1);
+      var subject = new AppChrome(app);
+      subject.element.classList.add('maximized');
+
+      subject.collapse();
+      assert.isFalse(subject.element.classList.contains('maximized'));
+    });
+
+    test('rocketbar-overlayopened should collapse the urlbar', function() {
+      var app = new AppWindow(fakeAppConfig1);
+      var subject = new AppChrome(app);
+      subject.maximize();
+
+      window.dispatchEvent(new CustomEvent('rocketbar-overlayopened'));
+      assert.isFalse(subject.element.classList.contains('maximized'));
+    });
+  });
+
+  suite('Theme-Color', function() {
     test('metachange already set', function() {
       var app = new AppWindow(fakeAppConfigBoth);
       app.themeColor = 'orange';
@@ -391,6 +545,5 @@ suite('system/AppChrome', function() {
       });
       assert.equal(chrome.element.style.backgroundColor, 'red');
     });
-
   });
 });

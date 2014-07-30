@@ -11,13 +11,12 @@ requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_attention_screen.js');
 requireApp('system/test/unit/mock_homescreen_launcher.js');
-requireApp('system/test/unit/mock_app_titlebar.js');
 
 var mocksForHomescreenWindow = new MocksHelper([
   'OrientationManager',
   'Applications', 'SettingsListener',
   'ManifestHelper', 'AppWindowManager',
-  'HomescreenLauncher', 'AppTitleBar'
+  'HomescreenLauncher'
 ]).init();
 
 suite('system/HomescreenWindow', function() {
