@@ -9,7 +9,6 @@ apps/camera/test/**
 apps/system/camera/**
 build/r.js
 build/config/payment-prefs.js
-build/copy-build-stage-data.js
 build/csslint.js
 build/csslinter.js
 build/download-manager.js
