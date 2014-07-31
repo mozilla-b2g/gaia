@@ -60,6 +60,12 @@ class ContactDetails(Base):
         from gaiatest.apps.contacts.regions.contact_form import EditContact
         return EditContact(self.marionette)
 
+    def a11y_click_edit(self):
+        self.wait_for_element_displayed(*self._edit_contact_button_locator)
+        self.accessibility.click(self.marionette.find_element(*self._edit_contact_button_locator))
+        from gaiatest.apps.contacts.regions.contact_form import EditContact
+        return EditContact(self.marionette)
+
     def tap_back(self):
         self.wait_for_element_displayed(*self._back_button_locator)
         self.marionette.find_element(*self._back_button_locator).tap()
