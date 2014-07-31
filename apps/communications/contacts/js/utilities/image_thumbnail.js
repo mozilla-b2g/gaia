@@ -48,7 +48,7 @@ var utils = window.utils || {};
         canvas.width = canvas.height = 0;
         canvas = null;
         callback(canvasBlob);
-      });
+      }, 'image/jpeg', 0.65);
     };
 
     img.onerror = function onError() {
