@@ -232,9 +232,9 @@
       if (!this.states.enabled && !this.states.active) {
         return;
       }
+      this.states.active = false;
       this.states.instance.close(instant ? 'immediate': undefined);
       this.elements.screen.classList.remove('locked');
-      this.states.active = false;
     };
 
   /**
