@@ -4,9 +4,9 @@
 
 #utility-tray {
   position: absolute;
-  top: calc(-100% + 4.8rem);
+  top: calc(-100% + 6rem);
   width: calc(100%);
-  height: calc(100% - 2.4rem);
+  height: calc(100% - 3rem);
   background-color: rgba(0, 0, 0, 0.9);
 
   transform: translateY(-4rem);
@@ -24,7 +24,7 @@
 #utility-tray-notifications {
   position: fixed;
   width: 100%;
-  top: 2.4rem;
+  top: 3rem;
   visibility: hidden;
   clip: rect(0, 0, 0, 0);
   display: flex;
