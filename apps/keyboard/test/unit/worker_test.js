@@ -1,5 +1,11 @@
 /*global suite suiteSetup setup test sinon assert */
 suite('Latin en_us worker', function() {
+
+  // XXX: Disabled for causing intermittent 1044984. Will
+  //      be fixed shortly.
+  return;
+
+
   var worker;
   suiteSetup(function(next) {
     worker = new Worker('../../js/imes/latin/worker.js');
