@@ -23,7 +23,6 @@ build/test/integration/distribution.test.js
 build/test/integration/helper.js
 build/test/integration/multilocale.test.js
 build/utils.js
-build/watcher.js
 build/webapp-manifests.js
 build/webapp-optimize.js
 apps/communications/contacts/oauth2/js/parameters.js
