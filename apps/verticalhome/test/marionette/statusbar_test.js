@@ -130,7 +130,7 @@ marionette('Statusbar', function() {
       home.enterEditMode(icon);
 
       var remove = icon.findElement('.remove');
-      remove.click();
+      remove.tap();
       home.confirmDialog('remove');
 
       // Scroll until we reach the top and verify statusbar state.
