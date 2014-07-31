@@ -8,6 +8,8 @@ require('performance-testing-helper');
  * Dependencies
  */
 
+var NotificationView = require('views/notification');
+var LoadingView = require('views/loading-screen');
 var debug = require('debug')('app');
 var bind = require('lib/bind');
 var bindAll = require('lib/bind-all');
@@ -45,9 +47,13 @@ function App(options) {
   this.doc = options.doc;
   this.perf = options.perf || {};
   this.require = options.require || window.requirejs; // Test hook
+  this.LoadingView = options.LoadingView || LoadingView; // test hook
+  this.NotificationView =
+    options.NotificationView || NotificationView; // test hook
   this.inSecureMode = (this.win.location.hash === '#secure');
   this.activity = {};
   debug('initialized');
+
 }
 
 /**
@@ -61,6 +67,8 @@ function App(options) {
 App.prototype.boot = function() {
   debug('boot');
   this.bindEvents();
+  this.initializeViews();
+
   // PERFORMANCE EVENT (1): moz-chrome-dom-loaded
   // Designates that the app's *core* chrome or navigation interface
   // exists in the DOM and is marked as ready to be displayed.
@@ -70,6 +78,7 @@ App.prototype.boot = function() {
   this.dispatchEvent('moz-chrome-dom-loaded');
   this.dispatchEvent('moz-chrome-interactive');
 
+  this.injectViews();
   this.booted = true;
   debug('booted');
 };
@@ -153,6 +162,28 @@ App.prototype.onCriticalPathDone = function() {
   this.perf.criticalPath = Date.now();
   this.criticalPathDone = true;
   this.emit('criticalpathdone');
+};
+
+/**
+ * Initialize views.
+ *
+ * @private
+ */
+App.prototype.initializeViews = function() {
+  debug('initializing views');
+  this.views.notification = new NotificationView();
+  debug('views initialized');
+};
+
+/**
+ * Put views in the DOM.
+ *
+ * @private
+ */
+App.prototype.injectViews = function() {
+  debug('injecting views');
+  this.views.notification.appendTo(this.el);
+  debug('views injected');
 };
 
 App.prototype.loadLazyModules = function() {

@@ -22,6 +22,7 @@ requirejs.config({
     'performance-testing-helper': '../shared/js/performance_testing_helper',
     'debug': '../bower_components/debug/index',
     'model': '../bower_components/model/index',
+    'view': '../bower_components/view/index',
     'evt': '../bower_components/evt/index',
     'device-orientation': '../bower_components/device-orientation/index'
   },

@@ -25,6 +25,8 @@ var app = window.app = new App({
   perf: perf
 });
 
-app.boot();
+setTimeout(function() {
+  app.boot();
+}, 12000);
 
 });
