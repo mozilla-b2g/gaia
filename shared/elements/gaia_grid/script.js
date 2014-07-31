@@ -118,6 +118,7 @@ window.GaiaGrid = (function(win) {
       var item = items[i];
       if (item instanceof GaiaGrid.Placeholder) {
         items.pop();
+        item.remove();
         continue;
       } else if (item instanceof GaiaGrid.Divider) {
         return items.pop();

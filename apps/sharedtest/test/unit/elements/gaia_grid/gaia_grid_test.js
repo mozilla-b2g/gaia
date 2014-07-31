@@ -1,3 +1,4 @@
+/* global GaiaGrid */
 /* global MocksHelper */
 
 'use strict';
@@ -64,6 +65,16 @@ suite('GaiaGrid', function() {
   suite('items', function() {
     var element;
 
+    var fakeBookmarkItem = {
+      identifier: 'http://mozilla.org',
+      detail: {
+        type: 'bookmark',
+        id: 'http://mozilla.org',
+        url: 'http://mozilla.org'
+      },
+      render: function() {}
+    };
+
     setup(function() {
       this.container.innerHTML = '<gaia-grid></gaia-grid>';
       element = this.container.firstElementChild;
@@ -89,6 +100,20 @@ suite('GaiaGrid', function() {
       assert.equal(element.getItems().length, itemLength + 3);
       element.removeItemByIndex(0);
       assert.equal(element.getItems().length, itemLength + 2);
+    });
+
+    test('removeUntilDivider', function() {
+      element.clear();
+      var placeholder = new GaiaGrid.Placeholder();
+
+      var removeStub = this.sinon.stub(placeholder, 'remove');
+      element.add(fakeBookmarkItem);
+      element.add(placeholder);
+      element.render();
+      assert.equal(element.children.length, 2);
+      element.removeUntilDivider();
+      assert.ok(removeStub.calledOnce);
+      assert.equal(element.children.length, 2);
     });
 
     test('clear will dereference item elements', function() {
