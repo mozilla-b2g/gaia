@@ -34,7 +34,7 @@ if (typeof utils.squareImage === 'undefined') {
           canvas.width = canvas.height = 0;
           canvas = null;
           callback(canvasBlob);
-        });
+        }, 'image/jpeg', 0.65);
       }
     };
   }; // utils.squareImage
