@@ -27,6 +27,7 @@
     this.onTouchStart = this.onTouchStart.bind(this);
     this.onTouchEnd = this.onTouchEnd.bind(this);
     this.onScroll = this.onScroll.bind(this);
+    this.onContextMenu = this.onContextMenu.bind(this);
     this.lastTouchStart = null;
 
     if (config.features.zoom) {
@@ -140,6 +141,7 @@
     start: function() {
       this.element.addEventListener('touchstart', this.onTouchStart);
       this.element.addEventListener('touchend', this.onTouchEnd);
+      this.element.addEventListener('contextmenu', this.onContextMenu);
       window.addEventListener('scroll', this.onScroll, true);
       this.lastTouchStart = null;
     },
@@ -147,8 +149,17 @@
     stop: function() {
       this.element.removeEventListener('touchstart', this.onTouchStart);
       this.element.removeEventListener('touchend', this.onTouchEnd);
+      this.element.removeEventListener('contextmenu', this.onContextMenu);
       window.removeEventListener('scroll', this.onScroll, true);
       this.lastTouchStart = null;
+    },
+
+    onContextMenu: function(e) {
+      setTimeout(function() {
+        if (e.defaultPrevented) {
+          this.lastTouchStart = null;
+        }
+      }.bind(this));
     },
 
     // bug 1015000
