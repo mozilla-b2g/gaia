@@ -233,6 +233,8 @@ var FindMyDevice = {
     DUMP('registering: ' + this._registering);
 
     if (this._registering) {
+      this._registering = false;
+      this.endHighPriority('clientLogic');
       return;
     }
 
@@ -252,6 +254,7 @@ var FindMyDevice = {
         // corner case. For now, just give up if this happens, but we still
         // need to notify the user somehow (bug 1013423).
         this._registering = false;
+        this.endHighPriority('clientLogic');
         return;
       }
 
