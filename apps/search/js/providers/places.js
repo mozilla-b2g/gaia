@@ -18,7 +18,7 @@
   var topSites = [];
 
   // Maximum number of results to show show for a single query
-  var MAX_AWESOME_RESULTS = 3;
+  var MAX_AWESOME_RESULTS = 4;
   var MAX_HISTORY_RESULTS = 5;
   var MAX_TOPSITES_RESULTS = 6;
 
@@ -32,6 +32,12 @@
 
   topSitesWrapper.addEventListener('click', itemClicked);
   historyWrapper.addEventListener('click', itemClicked);
+
+  var cachedLink = document.createElement('a');
+  function parseUrl(url) {
+    cachedLink.href = url;
+    return cachedLink;
+  }
 
   function itemClicked(e) {
     if (e.target.dataset.url) {
@@ -230,12 +236,16 @@
       return new Promise((resolve, reject) => {
         var matched = 0;
         var renderResults = [];
+        var matchedOrigins = {};
         for (var url in results) {
           var result = results[url];
+          var parsedUrl = parseUrl(result.url);
           if (!(matchesFilter(result.title, filter) ||
-                matchesFilter(result.url, filter))) {
+                matchesFilter(result.url, filter)) ||
+              parsedUrl.hostname in matchedOrigins) {
             continue;
           }
+          matchedOrigins[parsedUrl.hostname] = true;
           renderResults.push(formatPlace(result, filter));
 
           if (++matched >= MAX_AWESOME_RESULTS) {

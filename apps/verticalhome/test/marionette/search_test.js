@@ -103,7 +103,7 @@ marionette('Vertical - Search', function() {
     // Search for an app ane make sure it exists
     rocketbar.enterText('Phone');
     search.goToResults();
-    search.checkAppResult(phoneIdentifier, 'Phone');
+    search.checkResult(phoneIdentifier, 'Phone');
 
     // Press rocketbar close button, ensure the homescreen is
     // now displayed
@@ -130,7 +130,7 @@ marionette('Vertical - Search', function() {
     // previous result should be displayed
     home.focusRocketBar();
     search.goToResults();
-    search.checkAppResult(phoneIdentifier, 'Phone');
+    search.checkResult(phoneIdentifier, 'Phone');
 
     // Clear button should be visible when text entered
     client.switchToFrame();
