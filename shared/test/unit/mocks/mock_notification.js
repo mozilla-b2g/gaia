@@ -40,3 +40,9 @@ MockNotification.get = function mockNotification_get(options) {
     then: function() {}
   };
 };
+
+MockNotification.mTeardown = function mn_mTeardown() {
+  MockNotifications = [];
+};
+
+MockNotification.requestPermission = function() {};
