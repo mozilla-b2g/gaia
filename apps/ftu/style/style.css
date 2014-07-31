@@ -583,6 +583,10 @@ aside.connecting {
   background: url(images/icon_tour.png) no-repeat center 95% / 16.9rem;
 }
 
+#update-screen.finish-screen-base .content {
+  background-position: center 60%;
+}
+
 .finish-screen-base .content .for-tiny {
   display: block;
 }
@@ -593,6 +597,10 @@ aside.connecting {
 
 .tutorial-finish-base .content {
   background: url(images/thumb_up.png) no-repeat center 70% / 14.4rem;
+}
+
+.tutorial-finish-base.upgrade-tour .content {
+  background-position: center 60%;
 }
 
 .finish-screen-base .content, .tutorial-finish-base .content {

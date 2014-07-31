@@ -1,5 +1,5 @@
 /* global DataMobile, Navigation, SimManager, TimeManager,
-          UIManager, WifiManager, ImportIntegration, Tutorial, Promise,
+          UIManager, WifiManager, ImportIntegration, Tutorial,
           VersionHelper, FinishScreen */
 /* exported AppManager */
 'use strict';
