@@ -44,9 +44,6 @@ suite('AppManager >', function() {
     realMozApps = navigator.mozApps;
     navigator.mozApps = MockNavigatormozApps;
     mocksHelperForAppManager.suiteSetup();
-    // also call setup the first time
-    mocksHelperForAppManager.setup();
-
     requireApp('ftu/js/app.js', done);
   });
 

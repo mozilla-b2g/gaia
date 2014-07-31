@@ -9,6 +9,8 @@ requireApp('ftu/test/unit/mock_finish_screen.js');
 
 requireApp('ftu/js/finish_screen.js');
 requireApp('ftu/js/utils.js');
+requireApp('ftu/js/tutorial.js');
+
 
 suite('Tutorial >', function() {
   var mocksHelperForFTU = new MocksHelper([
@@ -51,7 +53,7 @@ suite('Tutorial >', function() {
   var realMozApps;
   var realXHR;
 
-  suiteSetup(function(done) {
+  suiteSetup(function() {
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
 
@@ -62,8 +64,6 @@ suite('Tutorial >', function() {
 
     realXHR = window.XMLHttpRequest;
     window.XMLHttpRequest = MockXMLHttpRequest;
-
-    requireApp('ftu/js/tutorial.js', done);
   });
 
   suiteTeardown(function() {
@@ -79,26 +79,18 @@ suite('Tutorial >', function() {
     MockNavigatormozApps.mTeardown();
   });
 
-  test(' sanity test Tutorial', function() {
-    assert.equal(typeof Tutorial, 'object');
-    assert.equal(typeof Tutorial.loadConfig, 'function');
-    assert.equal(typeof Tutorial.init, 'function');
-    assert.equal(typeof Tutorial.start, 'function');
-  });
-
   test(' sanity test mocks', function(done) {
     MockXMLHttpRequest.mResponse = mockConfig(2);
-    Tutorial.loadConfig().then(onOutcome, onOutcome)
-                         .then(done, done);
-    function onOutcome() {
-      assert.equal(Tutorial.config['default'].steps.length, 2);
-    };
+    Tutorial.init(null, function() {
+      done(function() {
+        assert.equal(Tutorial.config['default'].steps.length, 2);
+      });
+    });
   });
 
   suite(' lifecycle', function() {
     teardown(function() {
       Tutorial.reset();
-      document.getElementById('tutorial').classList.remove('show');
     });
 
     test('reset', function(done) {
@@ -138,30 +130,7 @@ suite('Tutorial >', function() {
       }
     });
 
-    test('start during init', function(done) {
-      Tutorial.init();
-      Tutorial.start(function() {
-        setTimeout(done, 0);
-        assert.ok(Tutorial.config);
-        assert.isTrue(
-          document.getElementById('tutorial').classList.contains('show')
-        );
-      });
-    });
-
-    test('start after init', function(done) {
-      Tutorial.init(null, function() {
-        Tutorial.start(function() {
-          setTimeout(done, 0);
-          assert.ok(Tutorial.config);
-          assert.isTrue(
-            document.getElementById('tutorial').classList.contains('show')
-          );
-        });
-      });
-    });
-
-    test('start despite failure to load media', function(done) {
+    test('init despite failure to load media', function(done) {
       var tutorialWasInitialized = false;
       MockXMLHttpRequest.mResponse = {
         'default': {
@@ -174,8 +143,7 @@ suite('Tutorial >', function() {
       window.addEventListener('tutorialinitialized', function() {
         tutorialWasInitialized = true;
       });
-      Tutorial.init();
-      Tutorial.start(function() {
+      Tutorial.init(null, function() {
         done(function() {
           assert.isTrue(tutorialWasInitialized, 'tutorialinitialized fired');
         });
@@ -190,20 +158,19 @@ suite('Tutorial >', function() {
 
       MockXMLHttpRequest.mResponse = mockConfig(3);
 
-      Tutorial.init();
-      Tutorial.start(function() {
+      Tutorial.init(null, function() {
         done();
       });
     });
 
-    test(' is shown properly after Tutorial.start', function() {
+    test(' is shown properly after Tutorial.init', function() {
       // Is the tutorial shown?
       assert.isTrue(
         document.getElementById('tutorial').classList.contains('show')
       );
     });
 
-    test(' check dataset after Tutorial.start', function() {
+    test(' check dataset after Tutorial.init', function() {
       // Are we in Step 1?
       assert.equal(
         document.getElementById('tutorial').dataset.step,
@@ -281,8 +248,7 @@ suite('Tutorial >', function() {
 
     test(' dont display with 3 steps', function(done) {
       MockXMLHttpRequest.mResponse = mockConfig(3);
-      Tutorial.init();
-      Tutorial.start(function() {
+      Tutorial.init(null, function() {
         assert.equal(Tutorial.config['default'].steps.length, 3);
         var tutorialNode = document.getElementById('tutorial');
         assert.ok(!tutorialNode.hasAttribute('data-progressbar'), '');
@@ -292,8 +258,7 @@ suite('Tutorial >', function() {
 
     test(' do display with 4 steps', function(done) {
       MockXMLHttpRequest.mResponse = mockConfig(4);
-      Tutorial.init();
-      Tutorial.start(function() {
+      Tutorial.init(null, function() {
         assert.equal(Tutorial.config['default'].steps.length, 4);
         var tutorialNode = document.getElementById('tutorial');
         assert.ok(tutorialNode.hasAttribute('data-progressbar'));

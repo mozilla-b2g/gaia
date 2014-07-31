@@ -1,5 +1,5 @@
 /* global DataMobile, Navigation, SimManager, TimeManager,
-          UIManager, WifiManager, ImportIntegration, Tutorial,
+          UIManager, WifiManager, ImportIntegration, Tutorial, Promise,
           VersionHelper */
 /* exported AppManager */
 'use strict';
@@ -82,7 +82,14 @@ var AppManager = {
 
 navigator.mozL10n.ready(function showBody() {
 
-  VersionHelper.getVersionInfo().then(function(versionInfo) {
+  var versionInfo;
+  Promise.all([
+    VersionHelper.getVersionInfo().then(function(info) {
+      versionInfo = info;
+    }),
+    Tutorial.loadConfig()
+  ]).then(function() {
+
     if (!AppManager.isInitialized) {
       AppManager.init(versionInfo.isUpgrade());
     }
@@ -94,18 +101,15 @@ navigator.mozL10n.ready(function showBody() {
       UIManager.activationScreen.classList.remove('show');
       UIManager.updateScreen.classList.add('show');
 
-      // Load and play the what's new tutorial
-      Tutorial.init(stepsKey, function() {
-        Tutorial.start();
-      });
-
+      if (stepsKey && Tutorial.config[stepsKey]) {
+        Tutorial.init(stepsKey);
+      } else {
+        // play the whole tutorial if there is no specific upgrade steps
+        Tutorial.init();
+      }
     } else {
       UIManager.initTZ();
       UIManager.mainTitle.innerHTML = _('language');
-
-      // Just prepare tutorial to be optionally triggered by user in FTU
-      Tutorial.init();
     }
-
   });
 });
