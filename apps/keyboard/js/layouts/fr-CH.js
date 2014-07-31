@@ -1,12 +1,12 @@
-Keyboards['ch-fr'] = {
-  label: 'Swiss-french',
-  shortLabel: 'Ch',
-  menuLabel: 'Suisse-romand',
+Keyboards['fr-CH'] = {
+  label: 'French (Switzerland)',
+  shortLabel: 'Fr',
+  menuLabel: 'Français (Suisse)',
   imEngine: 'latin',
   types: ['text', 'url', 'email'],
   autoCorrectLanguage: 'fr',
   alt: {
-		a: 'àâæáãäåā',
+	a: 'àâæáãäåā',
     c: 'çćč',
     e: 'éèêë€ē',
     i: 'îïìíī',
