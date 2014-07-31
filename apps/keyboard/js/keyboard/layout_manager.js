@@ -1,6 +1,6 @@
 'use strict';
 
-/* global Promise, KeyboardEvent, LayoutLoader */
+/* global KeyboardEvent, LayoutLoader, Promise */
 
 /** @fileoverview These are special keyboard layouts.
  * Language-specific layouts are in individual js files in layouts/ .
@@ -54,24 +54,20 @@ LayoutManager.prototype.LAYOUT_PAGE_SYMBOLS_II = 2;
  * LayoutLoader.
  *
  * This method returns a promise and it resolves when the layout is ready.
- * currentLayout/currentModifiedLayout will be updated to the desired condition
- * and currentLayoutPage and currentForcedModifiedLayoutName will be reset.
+ * If a second call took place before the previous promise resolves,
+ * the previous call will be rejected.
  *
  */
 LayoutManager.prototype.switchCurrentLayout = function(layoutName) {
   var switchStateId = ++this._switchStateId;
 
   var loaderPromise = this.loader.getLayoutAsync(layoutName);
-
   var p = loaderPromise.then(function(layout) {
     if (switchStateId !== this._switchStateId) {
       console.log('LayoutManager: ' +
-        'Promise is resolved after another switchCurrentLayout() call. ' +
-        'Reject the promise instead.');
+        'Promise is resolved after another switchCurrentLayout() call.');
 
-      return Promise.reject(new Error(
-        'LayoutManager: switchCurrentLayout() is called again before ' +
-        'resolving.'));
+      return Promise.reject();
     }
 
     this.currentLayout = layout;
@@ -80,11 +76,6 @@ LayoutManager.prototype.switchCurrentLayout = function(layoutName) {
     this.currentForcedModifiedLayoutName = undefined;
 
     this._updateModifiedLayout();
-
-    // resolve to undefined
-    return;
-  }.bind(this), function(error) {
-    return Promise.reject(error);
   }.bind(this));
 
   return p;
@@ -199,7 +190,8 @@ LayoutManager.prototype._updateModifiedLayout = function() {
   }
 
   if (!spaceKeyFound) {
-    console.warn('No space key found. No special keys will be added.');
+    console.warn('LayoutManager:' +
+      'No space key found. No special keys will be added.');
     this.currentModifiedLayout = layout;
     // renderer need these information to cache the DOM tree.
     layout.layoutName = this.currentForcedModifiedLayoutName ||

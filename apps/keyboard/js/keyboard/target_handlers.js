@@ -228,6 +228,12 @@ PageSwitchingTargetHandler.prototype.commit = function() {
 
   this.app.setLayoutPage(page);
   this.app.visualHighlightManager.hide(this.target);
+
+  // If needed, empty the candidate panel
+  var currentIMEngine = this.app.inputMethodManager.currentIMEngine;
+  if (typeof currentIMEngine.empty === 'function') {
+    currentIMEngine.empty();
+  }
 };
 
 var CapsLockTargetHandler = function(target, app) {
