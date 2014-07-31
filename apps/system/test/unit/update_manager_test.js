@@ -1093,17 +1093,6 @@ suite('system/UpdateManager', function() {
         UpdateManager.downloadDialog.dataset.nowifi = false;
       });
 
-      var fakeSyncPromiseWithValue =
-        function mum_fakeSyncPromiseWithValue(value) {
-          return function _fakeStub() {
-            return {
-              then: function then(callback) {
-                callback(value);
-              }
-            };
-          };
-      };
-
       suite('download prompt', function() {
         test('should hide the utility tray', function() {
           assert.isFalse(MockUtilityTray.mShown);
@@ -1187,8 +1176,6 @@ suite('system/UpdateManager', function() {
       test('should handle clicking download when using data connection ' +
             'in the first time',
           function() {
-        this.sinon.stub(UpdateManager, '_getDataRoamingSetting',
-          fakeSyncPromiseWithValue(false));
         UpdateManager.downloadDialog.dataset.nowifi = true;
 
         var evt = document.createEvent('MouseEvents');
@@ -1196,44 +1183,7 @@ suite('system/UpdateManager', function() {
 
         UpdateManager.requestDownloads(evt);
         var css = UpdateManager.downloadViaDataConnectionDialog.classList;
-        var titleL10nId =
-          UpdateManager.downloadViaDataConnectionTitle
-          .getAttribute('data-l10n-id');
-        var messageL10nId =
-          UpdateManager.downloadViaDataConnectionMessage
-          .getAttribute('data-l10n-id');
-
         assert.isTrue(css.contains('visible'));
-        assert.deepEqual(titleL10nId,
-          'downloadUpdatesViaDataConnection');
-        assert.deepEqual(messageL10nId,
-          'downloadUpdatesViaDataConnectionMessage');
-      });
-
-      test('should handle clicking download when using data ' +
-            'connection roaming in the first time',
-          function() {
-        this.sinon.stub(UpdateManager, '_getDataRoamingSetting',
-          fakeSyncPromiseWithValue(true));
-        UpdateManager.downloadDialog.dataset.nowifi = true;
-
-        var evt = document.createEvent('MouseEvents');
-        evt.initEvent('click', true, true);
-
-        UpdateManager.requestDownloads(evt);
-        var css = UpdateManager.downloadViaDataConnectionDialog.classList;
-        var titleL10nId =
-          UpdateManager.downloadViaDataConnectionTitle
-          .getAttribute('data-l10n-id');
-        var messageL10nId =
-          UpdateManager.downloadViaDataConnectionMessage
-          .getAttribute('data-l10n-id');
-
-        assert.isTrue(css.contains('visible'));
-        assert.deepEqual(titleL10nId,
-          'downloadUpdatesViaDataRoamingConnection');
-        assert.deepEqual(messageL10nId,
-          'downloadUpdatesViaDataRoamingConnectionMessage');
       });
 
       test('should handle clicking download when using wifi', function() {

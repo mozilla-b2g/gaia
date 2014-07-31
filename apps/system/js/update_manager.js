@@ -35,7 +35,6 @@ var UpdateManager = {
   downloadViaDataConnectionButton: null,
   downloadDialog: null,
   downloadViaDataConnectionDialog: null,
-  downloadViaDataConnectionMessage: null,
   downloadDialogTitle: null,
   downloadDialogList: null,
   lastUpdatesAvailable: 0,
@@ -79,10 +78,6 @@ var UpdateManager = {
     this.downloadDialogList = this.downloadDialog.querySelector('ul');
     this.downloadViaDataConnectionDialog =
       document.getElementById('updates-viaDataConnection-dialog');
-    this.downloadViaDataConnectionMessage =
-      this.downloadViaDataConnectionDialog.querySelector('p');
-    this.downloadViaDataConnectionTitle =
-      this.downloadViaDataConnectionDialog.querySelector('h1');
 
     this.container.onclick = this.containerClicked.bind(this);
     this.laterButton.onclick = this.cancelPrompt.bind(this);
@@ -122,7 +117,7 @@ var UpdateManager = {
     } else {
       if (this._dataConnectionWarningEnabled &&
           this.downloadDialog.dataset.nowifi === 'true') {
-        this._openDownloadViaDataDialog();
+        this.downloadViaDataConnectionDialog.classList.add('visible');
       } else {
         this._startedDownloadUsingDataConnection = false;
         this.startDownloads();
@@ -591,45 +586,6 @@ var UpdateManager = {
     lock.set({
       'gaia.system.checkForUpdates': false
     });
-  },
-
-  _openDownloadViaDataDialog: function um_downloadViaDataDialog() {
-    var _ = navigator.mozL10n.setAttributes;
-
-    var dataRoamingSettingPromise = this._getDataRoamingSetting();
-    dataRoamingSettingPromise.then(function(dataRoamingSetting) {
-      if (dataRoamingSetting) {
-        _(this.downloadViaDataConnectionTitle,
-          'downloadUpdatesViaDataRoamingConnection');
-        _(this.downloadViaDataConnectionMessage,
-          'downloadUpdatesViaDataRoamingConnectionMessage');
-      } else {
-        _(this.downloadViaDataConnectionTitle,
-          'downloadUpdatesViaDataConnection');
-        _(this.downloadViaDataConnectionMessage,
-          'downloadUpdatesViaDataConnectionMessage');
-      }
-
-      this.downloadViaDataConnectionDialog.classList.add('visible');
-    }.bind(this));
-  },
-
-  _getDataRoamingSetting: function um_getDataRoamingSetting() {
-    var lock = this._settings.createLock(),
-      reqDataRoaming = lock.get('ril.data.roaming_enabled'),
-      dataRoamingSettingPromise;
-
-    dataRoamingSettingPromise = new Promise(function(resolve, reject) {
-      reqDataRoaming.onsuccess = function() {
-        resolve(reqDataRoaming.result['ril.data.roaming_enabled']);
-      };
-
-      reqDataRoaming.onerror = function() {
-        resolve(false);
-      };
-    });
-
-    return dataRoamingSettingPromise;
   },
 
   _dispatchEvent: function um_dispatchEvent(type, result) {
