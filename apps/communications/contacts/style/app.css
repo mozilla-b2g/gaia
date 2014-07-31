@@ -313,7 +313,7 @@ li button.activity > b {
 
 /* Removes scroll from the view body inner */
 .view-noscroll .view-body-inner {
-  width: -moz-calc(100% + 1rem);
+  width: -moz-calc(100% + 1.5rem);
 }
 
 
