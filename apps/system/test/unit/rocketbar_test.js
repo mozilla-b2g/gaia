@@ -1,9 +1,7 @@
 'use strict';
-/* global Rocketbar, MocksHelper, MockAppWindowManager,
-          MockIACPort, MockSearchWindow */
+/* global Rocketbar, MocksHelper, MockIACPort, MockSearchWindow */
 
 requireApp('system/test/unit/mock_app_window.js');
-requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_search_window.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_url.js');
@@ -11,7 +9,6 @@ requireApp('system/test/unit/mock_iac_handler.js');
 
 var mocksForRocketbar = new MocksHelper([
   'AppWindow',
-  'AppWindowManager',
   'SearchWindow',
   'SettingsListener',
   'SettingsURL',
@@ -82,75 +79,6 @@ suite('system/Rocketbar', function() {
     formAddEventListenerStub.restore();
   });
 
-  test('expand() - collapsed', function() {
-    subject.expand();
-    assert.ok(subject.rocketbar.classList.contains('expanded'));
-    assert.ok(subject.screen.classList.contains('rocketbar-expanded'));
-    assert.ok(subject.expanded);
-    assert.ok(subject.transitioning === true);
-  });
-
-  test('expand() - already expanded', function() {
-    subject.expanded = true;
-    subject.expand();
-    assert.equal(subject.rocketbar.classList.contains('expanded'), false);
-  });
-
-  test('expand() - transitioning', function() {
-    subject.transitioning = true;
-    subject.expand();
-    assert.equal(subject.rocketbar.classList.contains('expanded'), false);
-  });
-
-  test('expand() - in fullscreen - not implemented', function() {
-    var stubApp = {
-      isFullScreen: function() { return true; }
-    };
-
-    MockAppWindowManager.mActiveApp = stubApp;
-
-    subject.expand();
-    assert.equal(subject.rocketbar.classList.contains('expanded'), false);
-  });
-
-  test('collapse() - expanded', function() {
-    var hideResultsStub = this.sinon.stub(subject, 'hideResults');
-    var blurStub = this.sinon.stub(subject, 'blur');
-    subject.active = true;
-    subject.expanded = true;
-    subject.collapse();
-    assert.ok(hideResultsStub.calledOnce);
-    assert.ok(blurStub.calledOnce);
-    assert.equal(subject.rocketbar.classList.contains('expanded'), false);
-    assert.equal(subject.screen.classList.contains('rocketbar-expanded'),
-      false);
-    assert.equal(subject.expanded, false);
-    assert.ok(subject.transitioning === true);
-    hideResultsStub.restore();
-    blurStub.restore();
-  });
-
-  test('collapse() - already collapsed', function() {
-    var hideResultsStub = this.sinon.stub(subject, 'hideResults');
-    var blurStub = this.sinon.stub(subject, 'blur');
-    subject.collapse();
-    assert.ok(hideResultsStub.notCalled);
-    assert.ok(blurStub.notCalled);
-    hideResultsStub.restore();
-    blurStub.restore();
-  });
-
-  test('collapse() - transitioning', function() {
-    var hideResultsStub = this.sinon.stub(subject, 'hideResults');
-    var blurStub = this.sinon.stub(subject, 'blur');
-    subject.transitioning = true;
-    subject.collapse();
-    assert.ok(hideResultsStub.notCalled);
-    assert.ok(blurStub.notCalled);
-    hideResultsStub.restore();
-    blurStub.restore();
-  });
-
   test('showResults()', function() {
     subject.results.classList.add('hidden');
     subject.showResults();
@@ -179,7 +107,6 @@ suite('system/Rocketbar', function() {
     subject.activate();
     subject.focus();
     assert.ok(subject.rocketbar.classList.contains('active'));
-    assert.ok(subject.title.classList.contains('hidden'));
     assert.equal(subject.form.classList.contains('hidden'), false);
     assert.ok(subject.screen.classList.contains('rocketbar-focused'));
     assert.ok(subject.active);
@@ -189,10 +116,8 @@ suite('system/Rocketbar', function() {
 
   test('blur() - results hidden', function() {
     subject.results.classList.add('hidden');
-    subject.title.classList.add('hidden');
     subject.active = true;
     subject.deactivate();
-    assert.equal(subject.title.classList.contains('hidden'), false);
     assert.ok(subject.form.classList.contains('hidden'));
     assert.ok(!subject.screen.classList.contains('rocketbar-focused'));
     assert.equal(subject.active, false);
@@ -296,7 +221,6 @@ suite('system/Rocketbar', function() {
     var initSearchConnectionStub = this.sinon.stub(subject,
       'initSearchConnection');
     var hideResultsStub = this.sinon.stub(subject, 'hideResults');
-    var collapseStub = this.sinon.stub(subject, 'collapse');
 
     // Input message
     var event = {
@@ -321,7 +245,6 @@ suite('system/Rocketbar', function() {
     };
     subject.handleSearchMessage(event);
     assert.ok(hideResultsStub.calledOnce);
-    assert.ok(collapseStub.calledOnce);
 
     // No _port
     subject._port = null;
@@ -331,7 +254,6 @@ suite('system/Rocketbar', function() {
 
     initSearchConnectionStub.restore();
     hideResultsStub.restore();
-    collapseStub.restore();
   });
 
   test('updateSearchIndex()', function() {

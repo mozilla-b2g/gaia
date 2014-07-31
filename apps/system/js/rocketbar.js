@@ -14,8 +14,6 @@
 
     // States
     this.enabled = false;
-    this.expanded = false;
-    this.transitioning = false;
     this.focused = false;
     this.active = false;
     this.newTabPage = false;
@@ -30,15 +28,12 @@
     this.body = document.body;
     this.screen = document.getElementById('screen');
     this.rocketbar = document.getElementById('rocketbar');
-    this.title = document.getElementById('rocketbar-title');
-    this.titleContent = document.getElementById('rocketbar-title-content');
     this.form = document.getElementById('rocketbar-form');
     this.input = document.getElementById('rocketbar-input');
     this.cancel = document.getElementById('rocketbar-cancel');
     this.clearBtn = document.getElementById('rocketbar-clear');
     this.results = document.getElementById('rocketbar-results');
     this.backdrop = document.getElementById('rocketbar-backdrop');
-    this.overflow = document.getElementById('rocketbar-overflow-button');
     this.start();
 
     // TODO: We shouldnt be creating a blob for each wallpaper that needs
@@ -62,7 +57,6 @@
      */
     start: function() {
       this.addEventListeners();
-      this.body.classList.add('homesearch-enabled');
       this.enabled = true;
     },
 
@@ -84,7 +78,6 @@
       this.active = true;
       this.rocketbar.classList.add('active');
       this.form.classList.remove('hidden');
-      this.title.classList.add('hidden');
       this.screen.classList.add('rocketbar-focused');
 
       // We wait for the transition do be over and the search app to be loaded
@@ -135,7 +128,6 @@
       this.newTabPage = false;
       this.rocketbar.classList.remove('active');
       this.form.classList.add('hidden');
-      this.title.classList.remove('hidden');
       this.backdrop.classList.add('hidden');
       this.blur();
       this.screen.classList.remove('rocketbar-focused');
@@ -186,8 +178,6 @@
         case 'appopened':
         case 'attentionscreenshow':
         case 'status-inactive':
-          this.rocketbar.classList.remove('expanded');
-          this.screen.classList.remove('rocketbar-expanded');
           this.hideResults();
           this.deactivate();
           break;
@@ -276,44 +266,6 @@
     },
 
     /**
-     * Put Rocketbar in expanded state.
-     * @memberof Rocketbar.prototype
-     */
-    expand: function() {
-      if (this.expanded || this.transitioning) {
-        return;
-      }
-
-      //TODO: support fullscreen apps in the rocketbar
-      var app = AppWindowManager.getActiveApp();
-      if (app && app.isFullScreen()) {
-        return;
-      }
-
-      this.transitioning = true;
-      this.rocketbar.classList.add('expanded');
-      this.screen.classList.add('rocketbar-expanded');
-      this.expanded = true;
-    },
-
-    /**
-     * Take Rocketbar out of expanded state, into status state.
-     * @memberof Rocketbar.prototype
-     */
-    collapse: function() {
-      if (!this.expanded || this.transitioning) {
-        return;
-      }
-
-      this.transitioning = true;
-      this.expanded = false;
-      this.rocketbar.classList.remove('expanded');
-      this.screen.classList.remove('rocketbar-expanded');
-      this.hideResults();
-      this.deactivate();
-    },
-
-    /**
      * Show the Rocketbar results pane.
      * @memberof Rocketbar.prototype
      */
@@ -349,8 +301,6 @@
      */
     clear: function() {
       this.setInput('');
-      this.titleContent.textContent =
-        navigator.mozL10n.get('search-or-enter-address');
     },
 
     /**
@@ -437,7 +387,6 @@
      */
     handleLock: function() {
       this.hideResults();
-      this.collapse();
       this.deactivate();
     },
 
@@ -547,7 +496,6 @@
       }
 
       this.hideResults();
-      this.collapse();
       this.deactivate();
 
       this.searchWindow = null;
@@ -627,7 +575,6 @@
           break;
         case 'hide':
           this.hideResults();
-          this.collapse();
           this.deactivate();
           break;
       }
