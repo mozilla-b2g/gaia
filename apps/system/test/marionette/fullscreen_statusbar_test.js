@@ -40,7 +40,7 @@ marionette('Fullscreen status bar >', function() {
       var rect = titlebar.scriptWith(function(el) {
         return el.getBoundingClientRect();
       });
-      var expectedHeight = 24;
+      var expectedHeight = 30;
       return (rect.bottom >= expectedHeight);
     });
     assert(titlebar.displayed(), 'The status bar is visible');

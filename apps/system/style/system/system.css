@@ -228,7 +228,7 @@ body {
   position: absolute;
   top: 0;
   width: 100%;
-  height: 2.4rem;
+  height: 3rem;
 
   background: rgba(0, 0, 0, .15);
   content: '';
@@ -251,17 +251,17 @@ body {
 
 #dialog-overlay {
   position: absolute;
-  top: 2.4rem;
+  top: 3rem;
   left: 0;
   width: 100%;
-  height: calc(100% - 2.4rem);
+  height: calc(100% - 3rem);
   visibility: hidden;
   pointer-events: none;
 }
 
 #screen.software-button-enabled #windows + #dialog-overlay {
   bottom: 5rem;
-  height: calc(100% - 2.4rem - 5rem);
+  height: calc(100% - 3rem - 5rem);
 }
 
 #screen.active-statusbar #dialog-overlay,
