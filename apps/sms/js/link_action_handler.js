@@ -6,6 +6,7 @@
    Centralized event handling for various
    data-actions url, email, phone in a message
   */
+  var inProgress = false;
 
   var LinkActionHandler = {
     onClick: function lah_onClick(event) {
@@ -34,14 +35,25 @@
       }
 
       if (action === 'url-link') {
+        if (inProgress) {
+          return;
+        }
 
+        inProgress = true;
         var type = action.replace('-link', '');
-
+        // Use `LinkActionHandler.reset` (this.reset) as BOTH the
+        // success and error callback. This ensure that any
+        // activities will be freed regardless of their
+        // resulting state.
         ActivityPicker[type](
           dataset[type], this.reset, this.reset
         );
       }
 
+    },
+
+    reset: function lah_reset() {
+      inProgress = false;
     }
   };
 
