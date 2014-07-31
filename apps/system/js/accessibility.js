@@ -68,7 +68,7 @@
      */
     settings: {
       'accessibility.screenreader': false,
-      'audio.volume.content': 15,
+      'accessibility.screenreader-volume': 1,
       'accessibility.screenreader-rate': 0
     },
 
@@ -76,6 +76,7 @@
      * Audio used by the screen reader.
      * Note: Lazy-loaded when first needed
      * @type {Object}
+     * @memberof Accessibility.prototype
      */
     sounds: {
       clickedAudio: null,
@@ -86,6 +87,7 @@
     /**
      * URLs for screen reader audio files.
      * @type {Object}
+     * @memberof Accessibility.prototype
      */
     soundURLs: {
       clickedAudio: './resources/sounds/screen_reader_clicked.ogg',
@@ -185,15 +187,39 @@
     },
 
     /**
-     * Get audio for a screen reader notification.
+     * Play audio for a screen reader notification.
      * @param  {String} aSoundKey a key for the screen reader audio.
-     * @return {Object} Audio object to be played.
+     * @memberof Accessibility.prototype
      */
-    _getSound: function ar__getSound(aSoundKey) {
+    _playSound: function ar__playSound(aSoundKey) {
+      // If volume is at 0, do not play sound.
+      if (!this.volume) {
+        return;
+      }
       if (!this.sounds[aSoundKey]) {
         this.sounds[aSoundKey] = new Audio(this.soundURLs[aSoundKey]);
       }
-      return this.sounds[aSoundKey];
+      this.sounds[aSoundKey].volume = this.volume;
+      this.sounds[aSoundKey].play();
+    },
+
+    /**
+     * Get current screen reader volume defined by the setting.
+     * @return {Number} Screen reader volume wihtin the [0, 1] interval.
+     * @memberof Accessibility.prototype
+     */
+    get volume() {
+      return this.settings['accessibility.screenreader-volume'];
+    },
+
+    /**
+     * Get current screen reader speech rate defined by the setting.
+     * @return {Number} Screen reader rate within the [0.2, 10] interval.
+     * @memberof Accessibility.prototype
+     */
+    get rate() {
+      var rate = this.settings['accessibility.screenreader-rate'];
+      return rate >= 0 ? rate + 1 : 1 / (Math.abs(rate) + 1);
     },
 
     /**
@@ -207,12 +233,12 @@
         case 'vc-change':
           // Vibrate when the virtual cursor changes.
           navigator.vibrate(options.pattern);
-          this._getSound(options.isKey ? 'vcKeyAudio' : 'vcMoveAudio').play();
+          this._playSound(options.isKey ? 'vcKeyAudio' : 'vcMoveAudio');
           break;
         case 'action':
           if (aDetails.data[0].string === 'clickAction') {
             // If element is clicked, play 'click' sound instead of speech.
-            this._getSound('clickedAudio').play();
+            this._playSound('clickedAudio');
             return;
           }
           break;
@@ -264,9 +290,12 @@
      * @memberof Accessibility.prototype
      */
     speak: function ar_speak(aData, aCallback, aOptions = {}) {
-      speechSynthesizer.speak(aData, aOptions,
-        this.settings['accessibility.screenreader-rate'],
-        this.settings['audio.volume.content'] / 15, aCallback);
+      // If volume is at 0, do not speak.
+      if (!this.volume) {
+        return;
+      }
+      speechSynthesizer.speak(aData, aOptions, this.rate, this.volume,
+        aCallback);
     }
   };
 
@@ -282,6 +311,11 @@
      * @memberof speechSynthesizer
      */
     get speech() {
+      // If there are no voices bundled, consider speech synthesis unavailable.
+      if (!window.speechSynthesis ||
+        window.speechSynthesis.getVoices().length === 0) {
+        return null;
+      }
       return window.speechSynthesis;
     },
 
@@ -361,8 +395,7 @@
     /**
      * Utter a message with a speechSynthesizer.
      * @param {?Array} aData A messages array to be localized.
-     * @param {JSON} aOptions Options to be used when speaking. For
-     * example: {
+     * @param {JSON} aOptions Options to be used when speaking. For example: {
      *   enqueue: false
      * }
      * @param {Number} aRate Speech rate.
@@ -385,7 +418,7 @@
 
       var utterance = new this.utterance(this.buildUtterance(aData));
       utterance.volume = aVolume;
-      utterance.rate = aRate >= 0 ? aRate + 1 : 1 / (Math.abs(aRate) + 1);
+      utterance.rate = aRate;
       utterance.addEventListener('end', aCallback);
       this.speech.speak(utterance);
     }
