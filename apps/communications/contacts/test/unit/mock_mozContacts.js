@@ -19,7 +19,7 @@ MockMozContactsObj.prototype = {
     }
     return new Req(result);
   },
-  find: function find() {
+  find: function find(aOptions) {
     return this._getRequest(this.contacts);
   },
   total: 0,
@@ -78,7 +78,15 @@ MockMozContactsObj.prototype = {
       }
     };
   },
-  remove: function remove(ct) {
+  getRevision: function(callback) {
+    return 'fakeRevision';
+  },
+
+  setContacts: function(contacts) {
+    this.contacts = contacts;
+  },
+
+    remove: function remove(ct) {
     var contactsIndex = this.contacts.indexOf(ct);
     if (contactsIndex > -1) {
       this.contacts.splice(contactsIndex, 1);

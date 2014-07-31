@@ -18,7 +18,6 @@ apps/browser/test/unit/browser_db_test.js
 apps/callscreen/js/fake-oncall-desktop.js
 apps/callscreen/js/index.js
 apps/callscreen/test/unit/mock_mozbluetooth.js
-apps/callscreen/test/unit/mock_simple_phone_matcher.js
 apps/communications/dialer/js/call_log.js
 apps/communications/dialer/js/call_log_db.js
 apps/communications/dialer/js/index.js
