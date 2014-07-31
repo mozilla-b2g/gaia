@@ -731,12 +731,12 @@ button::-moz-focus-inner {
   max-height: 11.7rem;
 }
 
-#notifications-lockscreen-container.masked-top {
-  mask: url('lockscreen_container_mask.svg#solid_mask_top');
-}
-
 #notifications-lockscreen-container.masked-both {
   mask: url('lockscreen_container_mask.svg#fade_mask_both');
+}
+
+#notifications-lockscreen-container.collapsed.masked-top {
+  mask: url('lockscreen_container_mask.svg#solid_mask_top');
 }
 
 @media (max-height:480px) {
@@ -784,6 +784,11 @@ button::-moz-focus-inner {
 
 #notifications-lockscreen-container .notification:last-child {
   border-bottom: none;
+  margin-bottom: 1.2rem;
+}
+
+#notifications-lockscreen-container.collapsed .notification:last-child {
+  margin-bottom: 0.05rem;
 }
 
 #notifications-lockscreen-container .notification > div {
