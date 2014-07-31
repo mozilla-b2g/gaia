@@ -22,8 +22,7 @@ var MockBluetooth = {
       getPairedDevices: function mbt_getPairedDevices() {
         // fake object with two paired devices
         var tmpObj = {
-          result: [{ address: '01:01:01:02:02:02' },
-                   { address: '03:03:03:04:04:04' }]
+          result: [{}, {}]
         };
         // run asynchronous onsuccess callback
         setTimeout(function() {
@@ -44,7 +43,7 @@ var MockBluetooth = {
         return new MockDOMRequest();
       },
       pair: function() {
-        return new MockDOMRequest();
+        return {};
       }
     };
     this.defaultAdapter = mockAdapater;

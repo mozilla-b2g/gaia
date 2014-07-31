@@ -138,21 +138,6 @@ suite('Nfc Handover Manager Functions', function() {
       assert.isTrue(spyName.withArgs('MBH10').calledOnce);
       assert.isTrue(spyPairing.withArgs('4C:21:D0:9F:12:F1').calledOnce);
     });
-
-    test('Attempts to connect to peer after pairing', function() {
-      var spyBluetoothPair = this.sinon.spy(MockBluetooth.defaultAdapter,
-                              'pair');
-      var spyConnect = this.sinon.spy(NfcHandoverManager, '_doConnect');
-
-      NfcHandoverManager.init();
-      invokeBluetoothGetDefaultAdapter();
-
-      NfcHandoverManager._doPairing('01:23:45:67:89:AB');
-      spyBluetoothPair.firstCall.returnValue.fireSuccess();
-
-      assert.isTrue(spyConnect.calledOnce);
-      assert.equal(spyConnect.firstCall.args[0], '01:23:45:67:89:AB');
-    });
   });
 
   suite('Handover request and select', function() {
