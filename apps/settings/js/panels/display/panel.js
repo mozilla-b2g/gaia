@@ -40,10 +40,11 @@ define(function(require) {
         wallpaper.observe('wallpaperSrc', function(newValue) {
           wallpaperElements.wallpaperPreview.src = newValue;
         });
+        wallpaperElements.wallpaperPreview.src = wallpaper.wallpaperSrc;
       },
 
       onBeforeHide: function dp_onBeforeHide() {
-        wallpaper.unobserve();
+        wallpaper.unobserve('wallpaperSrc');
       }
     });
   };
