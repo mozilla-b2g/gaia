@@ -343,6 +343,19 @@ function optimize_inlineResources(doc, webapp, filePath, htmlFile) {
 }
 
 /**
+ * Removes stylesheets that are not relevant for the current device
+ * @param {HTMLDocument} doc DOM document of the file.
+ */
+function optimize_deviceTypeCSS(doc) {
+  let links = doc.querySelectorAll('link[data-device-type]');
+  Array.prototype.forEach.call(links, function(el) {
+    if (el.dataset.deviceType !== config.GAIA_DEVICE_TYPE) {
+      el.parentNode.removeChild(el);
+    }
+  });
+};
+
+/**
  * Part of our polyfill for web components
  * Inserts components into the DOM as comment nodes
  * @param {HTMLDocument} doc DOM document of the file.
@@ -612,6 +625,7 @@ function optimize_compile(webapp, file, callback) {
       let newFile = new FileUtils.File(file.path + '.' +
                                        config.GAIA_DEFAULT_LOCALE);
       optimize_embedHtmlImports(win.document, webapp, newFile);
+      optimize_deviceTypeCSS(win.document);
       optimize_embedL10nResources(win.document, subDict);
       optimize_concatL10nResources(win.document, webapp, fullDict);
       optimize_aggregateJsResources(win.document, webapp, newFile);
