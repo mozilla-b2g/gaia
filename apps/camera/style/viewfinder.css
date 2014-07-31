@@ -10,7 +10,7 @@
   overflow: hidden;
   opacity: 0;
   will-change: opacity;
-  transition: opacity 150ms ease-in-out;
+  transition: opacity 360ms ease-in-out;
 }
 
 /**
