@@ -1,3 +1,6 @@
+'use strict';
+/* jshint -W109, -W101, -W061 */
+/*jshint unused:false */
 /*!
 CSSLint
 Copyright (c) 2013 Nicole Sullivan and Nicholas C. Zakas. All rights reserved.

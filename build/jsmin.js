@@ -1,3 +1,6 @@
+'use strict';
+/* jshint -W101, -W109 , -W117 , -W120 */
+/*jshint unused:false */
 /*
 node-jsmin2
 2012-10-07
@@ -262,6 +265,7 @@ function jsminc(stdin, options) {
             return c;
           }
         }
+        break;
       case '*':
         get();
         nextIndex = getIndex;
@@ -279,6 +283,7 @@ function jsminc(stdin, options) {
           }
           nextIndex = getIndex;
         }
+        break;
       default:
         return c;
       }
@@ -302,6 +307,7 @@ action recognizes a regular expression if it is preceded by ( or , or =.
       if (theA === theB && (theA === '+' || theA === '-') && theY !== theA) {
         putc(' ', stdout);
       }
+      break;
     case 2:
       theA = theB;
       theAIndex = theBIndex;
@@ -323,6 +329,7 @@ action recognizes a regular expression if it is preceded by ( or , or =.
           }
         }
       }
+      break;
     case 3:
       theB = next();
       theBIndex = nextIndex;

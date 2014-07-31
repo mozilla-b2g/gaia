@@ -10,11 +10,9 @@ apps/system/camera/**
 build/r.js
 build/copy-build-stage-data.js
 build/csslint.js
-build/csslinter.js
 build/download-manager.js
 build/image-resolution.js
 build/jshint/xfail.js
-build/jsmin.js
 build/post-manifest.js
 build/pre-app.js
 build/settings.js
