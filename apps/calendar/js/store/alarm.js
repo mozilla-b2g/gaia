@@ -1,11 +1,11 @@
 Calendar.ns('Store').Alarm = (function() {
   'use strict';
 
-  var Calc = Calendar.Calc;
-
-  var _super = Calendar.Store.Abstract.prototype;
-
-  var debug = Calendar.debug('alarm store');
+  var Abstract = Calendar.Store.Abstract,
+      Calc = Calendar.Calc,
+      debug = Calendar.debug('alarm store'),
+      notifications = Calendar.Controllers.notifications,
+      promise = Calendar.Promise;
 
   /**
    * The alarm store can be thought of as a big queue.
@@ -17,17 +17,17 @@ Calendar.ns('Store').Alarm = (function() {
    * from the queue (this object store) and added (via mozAlarms).
    */
   function Alarm() {
-    Calendar.Store.Abstract.apply(this, arguments);
+    Abstract.apply(this, arguments);
     this._processQueue = this._processQueue.bind(this);
 
-    Calendar.Promise.denodeifyAll(this, [
+    promise.denodeifyAll(this, [
       'findAllByBusytimeId',
       'workQueue'
     ]);
   }
 
   Alarm.prototype = {
-    __proto__: _super,
+    __proto__: Abstract.prototype,
 
     _store: 'alarms',
 
@@ -57,7 +57,7 @@ Calendar.ns('Store').Alarm = (function() {
     },
 
     _objectData: function(object) {
-      var data = _super._objectData.call(this, object);
+      var data = Abstract.prototype._objectData.call(this, object);
       if (data.startDate) {
         // ensure the pending trigger is always in sync
         // with the current trigger whenever we update
@@ -126,8 +126,6 @@ Calendar.ns('Store').Alarm = (function() {
         }
       }
 
-      // XXX: sad we need to use Calendar.App here...
-      var controller = Calendar.App.notificationsController;
 
       function addAlarm(data) {
         var date = Calc.dateFromTransport(data.trigger);
@@ -135,7 +133,7 @@ Calendar.ns('Store').Alarm = (function() {
         // if trigger is in the past we need to send
         // the data directly to the controller not to mozAlarms.
         if (date < new Date()) {
-          return controller.onAlarm(data);
+          return notifications.onAlarm(data);
         }
 
         pending++;

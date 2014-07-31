@@ -75,6 +75,10 @@
   <script defer src="/js/templates/months_day.js"></script>
   <script defer src="/js/views/months_day.js"></script>
 
+  <!-- Must be loaded before alarm store...
+       really need modules with non-global deps -->
+  <script defer src="/js/controllers/notifications.js"></script>
+
   <!--- store -->
   <script defer src="/js/store/abstract.js"></script>
   <script defer src="/js/store/busytime.js"></script>
@@ -98,7 +102,6 @@
   <script defer src="/js/controllers/error.js"></script>
   <script defer src="/js/controllers/time.js"></script>
   <script defer src="/js/controllers/sync.js"></script>
-  <script defer src="/js/controllers/notifications.js"></script>
   <script defer src="/js/controllers/periodic_sync.js"></script>
   <script defer src="/js/performance.js"></script>
   <script defer src="/js/app.js"></script>

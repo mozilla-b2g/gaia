@@ -6,37 +6,57 @@
  * 2. Syncing when a sync alarm fires and adding a new alarm.
  * 3. Invalidating / reissuing a sync alarm when the sync interval changes.
  */
-Calendar.ns('Controllers').periodicSync = function(app) {
+Calendar.ns('Controllers').periodicSync = (function() {
   'use strict';
 
   var exports = {};
 
   var debug = Calendar.debug('periodicSync');
 
-  var syncAlarm,
-      syncFrequency,
-      pendingSyncFrequency,
-      scheduling = false;
+  /**
+   * Cached alarm previously sent to alarms db.
+   * @type {Object}
+   */
+  var syncAlarm;
+
+  /**
+   * Cached sync value (every x minutes) from scheduling.
+   * @type {Number}
+   */
+  var prevSyncFrequency;
+
+  /**
+   * Most recent set sync interval (every x minutes).
+   * @type {Number}
+   */
+  var currSyncFrequency;
+
+  /**
+   * Cached promise representing the next async action we're waiting for.
+   * @type {Promise}
+   */
+  var action;
+
+  exports.app = null;
 
   exports.observe = () => {
-    var settings = app.store('Setting');
+    var settings = exports.app.store('Setting');
     return Promise.all([
       settings.getValue('syncAlarm'),
       settings.getValue('syncFrequency')
     ])
     .then((values) => {
-      syncAlarm = values[0];
-      syncFrequency = values[1];
+      [syncAlarm, currSyncFrequency] = values;
       debug('syncAlarm:', syncAlarm);
-      debug('syncFrequency:', syncFrequency);
-      settings.on('syncFrequencyChange', this);
-      return scheduleSync();
+      debug('syncFrequency:', currSyncFrequency);
+      settings.on('syncFrequencyChange', exports);
+      return (action = scheduleSync());
     });
   };
 
   exports.unobserve = () => {
-    var settings = app.store('Setting');
-    settings.off('syncFrequencyChange', this);
+    var settings = exports.app.store('Setting');
+    settings.off('syncFrequencyChange', exports);
   };
 
   exports.handleEvent = (event) => {
@@ -44,84 +64,120 @@ Calendar.ns('Controllers').periodicSync = function(app) {
       case 'sync':
         return onSync();
       case 'syncFrequencyChange':
-        return onSyncFrequencyChange(...event.data);
+        return onSyncFrequencyChange(event.data[0]);
     }
   };
 
+  /**
+   * 1. Wait until we're done with any previous work.
+   * 2. Sync.
+   * 3. Schedule another periodic sync.
+   */
   function onSync() {
-    if (scheduling) {
-      // This means that we were told to periodic sync _just_ as the user
-      // changed the sync interval. Don't do anything.
-      return;
+    if (action instanceof Promise) {
+      action.then(sync);
+    } else {
+      action = sync();
     }
 
-    scheduling = true;
-    return sync().then(() => {
-      return scheduleSync();
+    return action.then(scheduleSync);
+  }
+
+  /**
+   * 1. Wait until we're done with any previous work.
+   * 2. Schedule a periodic sync at the new interval.
+   */
+  function onSyncFrequencyChange(value) {
+    return cacheSyncFrequency(value)
+    .then(() => {
+      if (action instanceof Promise) {
+        action.then(scheduleSync);
+      } else {
+        action = scheduleSync();
+      }
+
+      return action;
     });
   }
 
-  function onSyncFrequencyChange(value) {
-    if (scheduling) {
-      // This means that the user changed the sync interval while we
-      // were performing periodic sync. Set a flag to remind ourselves
-      // to invalidate the existing sync alarm and issue a new one with
-      // at the correct time in the future once periodic sync completes.
-      pendingSyncFrequency = value;
-      return;
-    }
-
-    syncFrequency = value;
-    scheduling = true;
-    return scheduleSync();
+  function scheduleSync() {
+    debug('Will schedule periodic sync in', currSyncFrequency);
+    // Cache the sync interval which we're sending to the alarms api.
+    prevSyncFrequency = currSyncFrequency;
+    return revokePreviousAlarm()
+    .then(issueSyncAlarm)
+    .then(cacheSyncAlarm)
+    .then(maybeScheduleSync)
+    .catch((error) => {
+      debug('Error scheduling sync:', error);
+      console.error(error.toString());
+    });
   }
 
-  function scheduleSync() {
+  /**
+   * TODO: One day the platform will provide us with a DOMRequest response
+   *     from navigator.mozAlarms#remove and we should resolve or reject
+   *     appropriately.
+   */
+  function revokePreviousAlarm() {
     var alarms = navigator.mozAlarms;
-    debug('Will schedule periodic sync in', syncFrequency);
+    return new Promise((resolve) => {
+      if (typeof syncAlarm !== 'object' || !('alarmId' in syncAlarm)) {
+        return resolve();
+      }
 
-    if (typeof syncAlarm === 'object' && !!syncAlarm.alarmId) {
       debug('Will invalidate previous periodic sync alarm.');
+      // Agh! Platform! How do I know that this worked?!
       alarms.remove(syncAlarm.alarmId);
-    }
+      resolve();
+    });
+  }
 
+  function issueSyncAlarm() {
     return new Promise((resolve, reject) => {
-      if (typeof syncFrequency !== 'number') {
+      if (typeof prevSyncFrequency !== 'number') {
         debug('Periodic sync disabled!');
         return resolve({ alarmId: null, start: null, end: null });
       }
 
-      var start = new Date(),
-          end = new Date(start.getTime() + syncFrequency * 60 * 1000);
+      var start = new Date();
+      var end = new Date(start.getTime() + prevSyncFrequency * 60 * 1000);
 
+      var alarms = navigator.mozAlarms;
       var request = alarms.add(end, 'ignoreTimezone', { type: 'sync' });
 
       request.onsuccess = function(event) {
         resolve({ alarmId: this.result, start: start, end: end });
       };
 
-      request.onerror = function(event) {
+      request.onerror = function() {
         reject(this.error);
       };
-    })
-    .then((alarm) => {
-      debug('Created alarm:', JSON.stringify(alarm));
-      var settings = app.store('Setting');
-      return settings.set('syncAlarm', alarm);
-    })
-    .then(() => {
-      if (typeof pendingSyncFrequency === 'number') {
-        syncFrequency = pendingSyncFrequency;
-        pendingSyncFrequency = null;
-        return scheduleSync();
-      }
-
-      scheduling = false;
-    })
-    .catch((error) => {
-      debug('Error setting alarm:', error);
-      console.error(error.toString());
     });
+  }
+
+  function cacheSyncAlarm(alarm) {
+    debug('Will save alarm:', JSON.stringify(alarm));
+    syncAlarm = alarm;
+    var settings = exports.app.store('Setting');
+    return settings.set('syncAlarm', syncAlarm);
+  }
+
+  function cacheSyncFrequency(frequency) {
+    debug('Will save sync interval:', frequency);
+    currSyncFrequency = frequency;
+    var settings = exports.app.store('Setting');
+    return settings.set('syncFrequency', frequency);
+  }
+
+  function maybeScheduleSync() {
+    if (currSyncFrequency !== prevSyncFrequency) {
+      // Oh noes! That means that the sync interval was changed while
+      // we were scheduling. We need to take a mulligan.
+      action = action.then(scheduleSync);
+    }
+
+    return action;
   }
 
   function sync() {
@@ -130,7 +186,7 @@ Calendar.ns('Controllers').periodicSync = function(app) {
       var cpuLock = navigator.requestWakeLock('cpu'),
           wifiLock = navigator.requestWakeLock('wifi');
       debug('Will sync.');
-      app.syncController.all(() => {
+      exports.app.syncController.all(() => {
         debug('Sync complete! Will release cpu and wifi locks.');
         cpuLock.unlock();
         wifiLock.unlock();
@@ -140,4 +196,4 @@ Calendar.ns('Controllers').periodicSync = function(app) {
   }
 
   return exports;
-};
+})();

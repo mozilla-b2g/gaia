@@ -1,7 +1,12 @@
 Calendar.App = (function(window) {
   'use strict';
 
-  var debug = Calendar.debug('app');
+  /**
+   * Module dependencies
+   */
+  var debug = Calendar.debug('app'),
+      notifications = Calendar.Controllers.notifications,
+      periodicSync = Calendar.Controllers.periodicSync;
 
   function PendingManager() {
     this.objects = [];
@@ -163,8 +168,8 @@ Calendar.App = (function(window) {
       this.timeController = new Calendar.Controllers.Time(this);
       this.syncController = new Calendar.Controllers.Sync(this);
       this.serviceController = new Calendar.Controllers.Service(this);
-      this.notificationsController = Calendar.Controllers.notifications(this);
-      this.periodicSyncController = Calendar.Controllers.periodicSync(this);
+      notifications.app = this;
+      periodicSync.app = this;
       this.errorController = new Calendar.Controllers.Error(this);
 
       // observe sync events
@@ -361,8 +366,8 @@ Calendar.App = (function(window) {
       this.observeDateLocalization();
 
       this.timeController.observe();
-      this.notificationsController.observe();
-      this.periodicSyncController.observe();
+      notifications.observe();
+      periodicSync.observe();
 
       // turn on the auto queue this means that when
       // alarms are added to the database we manage them

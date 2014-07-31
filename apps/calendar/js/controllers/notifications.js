@@ -1,26 +1,19 @@
 /* global Promise */
-Calendar.ns('Controllers').notifications = function(app) {
+Calendar.ns('Controllers').notifications = (function() {
   'use strict';
 
   var exports = {};
 
   var debug = Calendar.debug('notifications');
 
+  exports.app = null;
+
   exports.observe = function() {
-    app.messages.on('alarm', exports);
+    exports.app.messages.on('alarm', exports.onAlarm);
   };
 
   exports.unobserve = function() {
-    app.messages.off('alarm', exports);
-  };
-
-  exports.handleEvent = function(event) {
-    var data = event.data;
-    switch (event.type) {
-      case 'alarm':
-        debug('alarm', data);
-        return exports.onAlarm(...data);
-    }
+    exports.app.messages.off('alarm', exports.onAlarm);
   };
 
   exports.onAlarm = function(alarm) {
@@ -33,8 +26,9 @@ Calendar.ns('Controllers').notifications = function(app) {
   };
 
   function issueNotification(alarm) {
-    var busytimeStore = app.store('Busytime'),
-        eventStore = app.store('Event');
+    var app = exports.app;
+    var busytimeStore = app.store('Busytime');
+    var eventStore = app.store('Event');
 
     var trans = eventStore.db.transaction(['busytimes', 'events']);
     return Promise.all([
@@ -42,18 +36,19 @@ Calendar.ns('Controllers').notifications = function(app) {
       findById(alarm.eventId, eventStore, trans)
     ])
     .then((values) => {
-      var busytime = values[0],
-          event = values[1];
+      var [busytime, event] = values;
       debug('Alarm busytime:', busytime);
       debug('Alarm event:', event);
 
       var begins = Calendar.Calc.dateFromTransport(busytime.start),
-          distance = app.dateFormat.fromNow(begins);
+          distance = app.dateFormat.fromNow(begins),
+          now = new Date();
+
       debug('Event begins:', begins);
-      debug('Now:', Date.now());
+      debug('Now:', now);
       debug('Distance:', distance);
 
-      var type = begins > new Date() ?
+      var type = begins > now ?
         'alarm-start-notice' :
         'alarm-started-notice';
 
@@ -90,4 +85,4 @@ Calendar.ns('Controllers').notifications = function(app) {
   }
 
   return exports;
-};
+})();
