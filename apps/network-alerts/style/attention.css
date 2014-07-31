@@ -1,0 +1,34 @@
+p {
+  line-height: 2.3rem !important;
+}
+
+section {
+  font-size: 1.5rem !important;
+}
+
+h1 {
+  font-size: 1.6rem !important;
+}
+
+/* second design */
+
+.style-2 form {
+  top: 1rem !important;
+  right: 1rem !important;
+  bottom: 1rem !important;
+  left: 1rem !important;
+  border: .2rem solid white;
+}
+
+.style-2 section {
+  padding: 0 !important;
+}
+
+.style-2 menu {
+  padding: 1rem !important;
+}
+
+.style-2 button {
+  height: auto !important;
+  line-height: 3.5rem !important;
+}
