@@ -1,7 +1,5 @@
 'use strict';
 
-/* global require, exports */
-
 var utils = require('./utils');
 var sh = new utils.Commander('sh');
 var Q = utils.Q;
@@ -78,7 +76,6 @@ function getRemoteInstallPath(adb) {
   var tempDirName = 'pushGaia' + Math.random().toString(36).substr(2, 8);
   var tempDir = utils.getTempFolder(tempDirName);
   var tempFile = tempDir.clone();
-  var content;
   tempFile.append('webapps.json');
 
   // Use |adb shell cat| instead of |adb pull| so we don't run into
@@ -90,7 +87,7 @@ function getRemoteInstallPath(adb) {
   // If there were no webapps ever installed on the device (likely purged in
   // the previous step), default to /system/b2g
   try {
-    content = utils.getJSON(tempFile);
+    var content = utils.getJSON(tempFile);
   } catch (e) {
     return '/system/b2g';
   }
@@ -105,7 +102,7 @@ function getRemoteInstallPath(adb) {
     }
   }
   return '/data/local';
-}
+};
 
 function execute(options) {
   const buildAppName = options.BUILD_APP_NAME;
@@ -113,27 +110,11 @@ function execute(options) {
   const profileFolder = options.PROFILE_DIR;
   const gaiaDomain = options.GAIA_DOMAIN;
   var remotePath = options.GAIA_INSTALL_PARENT;
-  var pid;
-  var manifest;
-  var restartB2g = true;
 
   var mainQ = Q.defer();
   var targetFolder;
 
   var adb = options.ADB;
-
-  if (buildAppName !== '*') {
-    targetFolder = utils.joinPath(
-        profileFolder, 'webapps',
-        buildAppName + '.' + gaiaDomain);
-    // Some app folder name is different with the process name,
-    // ex. sms -> Messages
-    manifest = utils.readZipManifest(utils.getFile(targetFolder));
-    pid = utils.getPid(manifest.name, gaiaDir);
-
-    // don't restart b2g process if we found pid by app name
-    restartB2g = (pid === -1);
-  }
 
   mainQ.resolve();
   return mainQ.promise.then(function() {
@@ -148,7 +129,7 @@ function execute(options) {
     utils.log('push', 'Waiting for device ...');
     return sh.run(['-c', adb + ' wait-for-device']);
   }).then(function() {
-    if (restartB2g) {
+    if (buildAppName === '*' || buildAppName === 'system') {
       return sh.run(['-c', adb + ' shell stop b2g']);
     }
   }).then(function() {
@@ -168,6 +149,9 @@ function execute(options) {
     if (buildAppName === '*') {
       return pushToDevice(profileFolder, remotePath, adb);
     } else {
+      targetFolder = utils.joinPath(
+          profileFolder, 'webapps',
+          buildAppName + '.' + gaiaDomain);
       return installOneApp(targetFolder, buildAppName,
                            remotePath, gaiaDomain, adb);
     }
@@ -176,15 +160,22 @@ function execute(options) {
       return installSvoperapps(profileFolder, adb);
     }
   }).then(function() {
-    if (restartB2g) {
+    if (buildAppName === '*' || buildAppName === 'system') {
       utils.log('push', 'Restarting B2G...');
       sh.run(['-c', adb + ' shell start b2g']);
     } else {
       var Q3 = Q.defer();
+      var manifest;
+      var appPid;
       Q3.resolve();
       return Q3.promise.then(function() {
+      // Some app folder name is different with the process name,
+      // ex. sms -> Messages
+        manifest = utils.readZipManifest(utils.getFile(
+                        targetFolder));
+      }).then(function() {
         utils.log('push', 'Restarting ' + manifest.name + '...');
-        utils.killAppByPid(pid);
+        utils.killAppByPid(manifest.name, gaiaDir);
       });
     }
   });

@@ -996,17 +996,15 @@ function getEnvPath() {
   return paths;
 }
 
-
 /**
- * get pid from device via adb
- * @param  {string} appName - the app name
- * @param  {string} gaiaDir - the absolute path to Gaia directory
- * @return {number}         - process id
+ * Kill one running app by PID.
+ * @param appName {string} - the app name
+ * @param gaiaDir {string} - the absolute path to Gaia directory
  */
-function getPid(appName, gaiaDir) {
+function killAppByPid(appName, gaiaDir) {
+
   var sh = new Commander('sh');
   sh.initPath(getEnvPath(), function() {});
-
   var tempFileName = 'tmpFile';
   var tmpFileSrc = joinPath(gaiaDir, tempFileName);
   sh.run(['-c', 'touch ' + tempFileName]);
@@ -1015,25 +1013,11 @@ function getPid(appName, gaiaDir) {
   var content = getFileContent(tempFile);
   var pidMap = utils.psParser(content);
   sh.run(['-c', 'rm ' + tempFileName]);
-
   // b2g-ps only show first 15 letters of app name
   var truncatedAppName = appName.substr(0, 15);
   if (pidMap[truncatedAppName] && pidMap[truncatedAppName].PID) {
-    return pidMap[truncatedAppName].PID;
-  } else {
-    return -1;
+    sh.run(['-c', 'adb shell kill ' + pidMap[truncatedAppName].PID]);
   }
-}
-
-
-/**
- * Kill one running app by PID.
- * @param pid {number} - process id to kill in device
- */
-function killAppByPid(pid) {
-  var sh = new Commander('sh');
-  sh.initPath(getEnvPath(), function() {});
-  sh.run(['-c', 'adb shell kill ' + pid]);
 }
 
 /**
@@ -1241,7 +1225,6 @@ exports.processEvents = processEvents;
 exports.readZipManifest = readZipManifest;
 exports.log = log;
 exports.killAppByPid = killAppByPid;
-exports.getPid = getPid;
 exports.getEnv = getEnv;
 exports.isExternalApp = isExternalApp;
 exports.getDocument = getDocument;

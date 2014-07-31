@@ -264,7 +264,6 @@ exports.processEvents = utils.processEvents;
 exports.log = utils.log;
 exports.getExtension = getExtension;
 exports.killAppByPid = utils.killAppByPid;
-exports.getPid = utils.getPid;
 exports.getEnv = utils.getEnv;
 exports.isExternalApp = utils.isExternalApp;
 exports.getDocument = utils.getDocument;

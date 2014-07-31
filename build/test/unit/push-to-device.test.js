@@ -167,9 +167,6 @@ suite('push-to-device.js', function() {
         };
         return pidMap;
       };
-      mockUtils.getPid = function(appName, gaiaDir) {
-        return appID;
-      };
       var queue = app.execute(options);
       queue.done(function() {
         assert.deepEqual(mockUtils.hasRunCommands, {
@@ -188,7 +185,7 @@ suite('push-to-device.js', function() {
                 '/application.zip" /' + options.GAIA_INSTALL_PARENT +
                 '/webapps/' + options.BUILD_APP_NAME + '.' +
                 options.GAIA_DOMAIN + '/application.zip',
-            '-c adb shell kill ' + appID]});
+            '-c adb shell kill testApp']});
         done();
       });
     });
