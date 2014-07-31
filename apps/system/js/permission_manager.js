@@ -78,6 +78,7 @@
       });
 
       window.addEventListener('mozChromeEvent', this);
+      window.addEventListener('attentionscreenshow', this);
       /* On home/holdhome pressed, discard permission request.
        * XXX: We should make permission dialog be embededd in appWindow
        * Gaia bug is https://bugzilla.mozilla.org/show_bug.cgi?id=853711
@@ -94,7 +95,7 @@
         if (evt.detail.origin == this.currentOrigin) {
           this.discardPermissionRequest();
         }
-        }).bind(this));
+      }).bind(this));
 
       // Ensure that the focus is not stolen by the permission overlay, as
       // it may appears on top of a <select> element, and just cancel it.
@@ -140,6 +141,7 @@
       this.no = null;
 
       window.removeEventListener('mozChromeEvent', this);
+      window.removeEventListener('attentionscreenshow',this);
       window.removeEventListener('home', this);
       window.removeEventListener('holdhome', this);
     },
@@ -252,6 +254,12 @@
         case 'fullscreenoriginchange':
           delete this.overlay.dataset.type;
           this.handleFullscreenOriginChange(detail);
+          break;
+      }
+
+      switch (evt.type) {
+        case 'attentionscreenshow':
+          this.discardPermissionRequest();
           break;
       }
     },
