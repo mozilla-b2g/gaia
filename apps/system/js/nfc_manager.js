@@ -17,7 +17,7 @@
  */
 
 /* globals dump, CustomEvent, MozActivity, System,
-   NfcHandoverManager, NfcUtils, NDEF, ScreenManager */
+   NfcHandoverManager, NfcUtils, NfcBuffer, NDEF, ScreenManager */
 'use strict';
 
 var NfcManager = {
@@ -506,7 +506,7 @@ var NfcManager = {
     this._debug('formatSmartPosterRecords');
 
     // Smart poster contains embedded records in it's payload.
-    var buffer = NfcUtils.createBuffer(smartposter.payload);
+    var buffer = new NfcBuffer(smartposter.payload);
     var records = NfcUtils.parseNDEF(buffer);
 
     // First, decode URI. It's treated specially, because it's the only

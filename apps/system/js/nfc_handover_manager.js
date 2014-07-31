@@ -291,7 +291,7 @@ var NfcHandoverManager = {
     req.onsuccess = function() {
       self._debug('Pairing succeeded');
       self._clearBluetoothStatus();
-      self.doConnect(mac);
+      self._doConnect(mac);
     };
     req.onerror = function() {
       self._debug('Pairing failed');
