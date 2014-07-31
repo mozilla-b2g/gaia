@@ -2,7 +2,7 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 /*global ThreadListUI, ThreadUI, Threads, SMIL, MozSmsFilter,
-         Settings, Navigation, ReportView
+         LinkActionHandler, Settings, Navigation, ReportView
 */
 
 /*exported MessageManager */
@@ -29,6 +29,8 @@ var MessageManager = {
                                             this.onDeliverySuccess);
     this._mozMobileMessage.addEventListener('readsuccess',
                                             this.onReadSuccess);
+    document.addEventListener('visibilitychange',
+                              this.onVisibilityChange.bind(this));
 
     this._mozMobileMessage.addEventListener(
       'deleted',
@@ -99,6 +101,10 @@ var MessageManager = {
     if (e.deletedThreadIds && e.deletedThreadIds.length) {
       ThreadListUI.onThreadsDeleted(e.deletedThreadIds);
     }
+  },
+
+  onVisibilityChange: function mm_onVisibilityChange(e) {
+    LinkActionHandler.reset();
   },
 
   getThreads: function mm_getThreads(options) {
