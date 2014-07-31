@@ -1,3 +1,4 @@
+/* global GaiaGrid */
 /* global MocksHelper */
 
 'use strict';
@@ -70,7 +71,8 @@ suite('GaiaGrid', function() {
         type: 'bookmark',
         id: 'http://mozilla.org',
         url: 'http://mozilla.org'
-      }
+      },
+      render: function() {}
     };
 
     var fakeBookmarkItem2 = {
@@ -115,6 +117,20 @@ suite('GaiaGrid', function() {
       assert.equal(element.getItems().length, itemLength + 2);
       element.removeItemByIndex(0);
       assert.equal(element.getItems().length, itemLength + 1);
+    });
+
+    test('removeUntilDivider', function() {
+      element.clear();
+      var placeholder = new GaiaGrid.Placeholder();
+
+      var removeStub = this.sinon.stub(placeholder, 'remove');
+      element.add(fakeBookmarkItem);
+      element.add(placeholder);
+      element.render();
+      assert.equal(element.children.length, 2);
+      element.removeUntilDivider();
+      assert.ok(removeStub.calledOnce);
+      assert.equal(element.children.length, 2);
     });
 
     test('clear will dereference item elements', function() {
