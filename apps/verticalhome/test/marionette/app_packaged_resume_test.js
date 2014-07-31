@@ -56,7 +56,10 @@ marionette('Vertical Home - Packaged App Resuming Downloads', function() {
 
     // pause the download
     var icon = subject.getIcon(server.packageManifestURL);
+    // this helps marionette finding the icon: Bug 1046706
+    subject.moveIconToIndex(icon, 0);
     launchIcon(icon);
+
     subject.confirmDialog('pause');
     expectAppState(icon, 'paused');
 
