@@ -38,8 +38,8 @@
       return;
     }
 
-    if (!this.app.isBrowser()) {
-      this.element.classList.add('manifest');
+    if (this.app.isBrowser()) {
+      this.app.element.classList.add('browser');
     }
 
     if (chrome.navigation) {
