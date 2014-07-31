@@ -25,20 +25,6 @@ form[data-type="confirm"] .phone-details .phone-number {
   display: inline;
 }
 
-
-/* Override Building Block [Header] styles */
-section[role="region"] > header:first-child .icon.icon-clear {
-  background-image: url(images/icons/clear.png);
-  background-position: center calc(50% + 0.1rem);
-  background-size: 3rem;
-  width: 2rem;
-  margin: 0;
-  padding: 0 2rem;
-  position: absolute;
-  top: 0;
-  right: 0;
-}
-
 section[role="region"] > header:first-child form {
   display: none;
 }
@@ -158,7 +144,7 @@ form[role="dialog"][data-type="edit"] > menu {
 }
 
 [data-type="list"] .draft .icon-draft {
-  background: url("../style/images/draft.png") no-repeat left center / 1rem;
+  background: url("../style/images/draft.png") no-repeat left center / 1.2rem;
 }
 
 [data-type="list"] .is-draft .pack-end {
