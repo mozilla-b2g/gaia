@@ -16,7 +16,7 @@ var FindMyDevice = {
 
   init: function fmd_init() {
     var self = this;
-    self._loginButton = document.getElementById('findmydevice-login');
+    self._loginButton = document.querySelector('#findmydevice-login > button');
 
     loadJSON('/resources/findmydevice.json', function(data) {
       SettingsListener.observe('findmydevice.logged-in', false,
@@ -35,7 +35,16 @@ var FindMyDevice = {
           console.error('Find My Device: onerror fired: ' + err);
           self._interactiveLogin = false;
           self._loginButton.removeAttribute('disabled');
-          if (JSON.parse(err).name !== 'OFFLINE') {
+          var errorName = JSON.parse(err).name;
+          if (errorName !== 'OFFLINE') {
+            if (errorName === 'UNVERIFIED_ACCOUNT') {
+              var unverifiedError = document.getElementById(
+                'findmydevice-fxa-unverified-error');
+              unverifiedError.hidden = false;
+              var login = document.getElementById('findmydevice-login');
+              login.hidden = true;
+            }
+
             SettingsHelper('findmydevice.logged-in').set(false);
           }
         }
@@ -114,6 +123,12 @@ var FindMyDevice = {
     }
 
     this._interactiveLogin = false;
+
+    var unverifiedError = document.getElementById(
+      'findmydevice-fxa-unverified-error');
+    unverifiedError.hidden = true;
+    var login = document.getElementById('findmydevice-login');
+    login.hidden = false;
   },
 
   _onCheckboxChanged: function fmd_on_checkbox_changed(event) {
