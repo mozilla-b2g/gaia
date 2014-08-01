@@ -4,7 +4,8 @@
            MockNavigatormozSetMessageHandler, MockNavigatorMozTelephony,
            MockNavigatorWakeLock, MocksHelper, MockTonePlayer, MockUtils,
            telephonyAddCall, telephonyAddCdmaCall,
-           MockNavigatorMozMobileConnections, AudioCompetingHelper */
+           MockNavigatorMozMobileConnections, AudioCompetingHelper,
+           MockMozActivity */
 
 'use strict';
 
@@ -19,6 +20,7 @@ require('/shared/test/unit/mocks/mock_settings_url.js');
 require('/shared/test/unit/mocks/mock_navigator_wake_lock.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
+require('/shared/test/unit/mocks/mock_moz_activity.js');
 require('/shared/test/unit/mocks/dialer/mock_call.js');
 require('/shared/test/unit/mocks/dialer/mock_handled_call.js');
 require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
@@ -41,7 +43,8 @@ var mocksHelperForCallsHandler = new MocksHelper([
   'Utils',
   'Audio',
   'SimplePhoneMatcher',
-  'FontSizeManager'
+  'FontSizeManager',
+  'MozActivity'
 ]).init();
 
 suite('calls handler', function() {
@@ -1552,6 +1555,27 @@ suite('calls handler', function() {
           MockNavigatorMozTelephony.mTriggerCallsChanged();
           assert.isTrue(CallsHandler.isFirstCallOnCdmaNetwork());
         });
+      });
+    });
+  });
+
+  suite('showMessageList', function() {
+    var mockCall;
+
+    setup(function() {
+      mockCall = new MockCall('12334', 'incoming');
+      telephonyAddCall.call(this, mockCall, {trigger: true});
+    });
+    test('launches the sms app with an sms activity', function() {
+      CallsHandler.showMessageList();
+      var activity = MockMozActivity.calls[0];
+      assert.deepEqual(activity, {
+        name: 'quickreply',
+        data: {
+          type: 'websms/sms',
+          number: '12334',
+          serviceId: 1
+        }
       });
     });
   });

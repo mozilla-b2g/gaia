@@ -851,3 +851,20 @@ section[role="region"].report-information > header .icon-back {
 .phone-details.has-phone-carrier > .phone-carrier-separator {
   display: inline;
 }
+
+#message-container-menu {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  z-index: 9999;
+}
+
+#message-container-menu menu {
+  margin-bottom: 8rem;
+}
+
+#quick-message-title {
+  font-size: 2.5rem;
+}

@@ -213,6 +213,12 @@
   };
 
   DialerAgent.prototype.showCallScreen = function da_showCallScreen() {
+    // If calls.length is 1(decline message feature),
+    // AttentionScreen is not shown
+    if (this._telephony.calls.length === 1) {
+      return;
+    }
+
     if (this._callScreen) {
       AttentionScreen.show(this._callScreen);
     }

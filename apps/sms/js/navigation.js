@@ -60,6 +60,10 @@ var Navigation = window.Navigation = {
     'report-view': {
       behaviour: 'ReportView',
       wrapperPosition: 'left'
+    },
+    'quick-reply': {
+      behaviour: 'QuickReplyPanel',
+      wrapperPosition: 'right'
     }
   },
 

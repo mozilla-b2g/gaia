@@ -195,7 +195,7 @@
     position: absolute;
     bottom: 0;
     width: 100%;
-    height: 14rem;
+    height: 16rem;
   }
 
   #call-options {
@@ -277,6 +277,72 @@
     background-position: 0 0;
   }
 
+  #decline-with-message {
+    position: absolute;
+    padding: 0;
+    border: 0;
+    text-align: center;
+
+    height: 6rem;
+    width: 100%;
+    margin-top: -6rem;
+    background: rgba(255, 255, 255, 0.85);
+  }
+
+  #decline-with-message.disabled {
+    pointer-events: none;
+    opacity: 0.4;
+  }
+
+  #decline-with-message:active {
+    background-color: #94eee9;
+    opacity: 1;
+  }
+
+  #decline-with-message > .callbar-inner-button,
+  #lockscreen-message-bar > .message-inner-button {
+    font-family: FiraSans;
+    font-weight: lighter;
+    font-style: italic;
+    font-size: 1.3rem;
+
+    color: #333333;
+    opacity: 0.85;
+
+    text-align: center;
+    margin: 0;
+    height: 6rem;
+    border: 0;
+  }
+
+  #decline-with-message > .callbar-inner-button:active,
+  #lockscreen-message-bar > .message-inner-button:active {
+    background-color: #94eee9;
+    color: #ffffff;
+    opacity: 1;
+
+    background-position: center top;
+  }
+
+  #decline-with-message > .callbar-inner-button .message-icon,
+  #lockscreen-message-bar > .message-inner-button .message-icon {
+    height: 4rem;
+    background-image: url('images/call_screen/actionicon_dialer_message_40x80.svg');
+    background-repeat: no-repeat;
+    background-position: center bottom;
+    opacity: 0.7;
+  }
+
+  #decline-with-message.disabled > .callbar-inner-button .message-icon,
+  #lockscreen-message-bar.disabled > .message-inner-button .message-icon {
+    background-image: url('images/call_screen/dialer_ic_sms.svg');
+  }
+
+  #decline-with-message > .callbar-inner-button:active .message-icon,
+  #lockscreen-message-bar > .message-inner-button:active .message-icon {
+    background-position: center top;
+  }
+
   #callbar {
     background: rgba(255, 255, 255, 0.85);
     -moz-box-sizing: border-box;
@@ -322,6 +388,10 @@
   #callbar-hang-up:active > .callbar-inner-button {
     background: url('images/handled_call/actionicon_activecall_hangup.png') center / 4rem no-repeat,
                 #ff5933;
+  }
+
+  #callbar-hang-up.disabled > .callbar-inner-button {
+    background: none;
   }
 
   #callbar-answer > .callbar-inner-button {
@@ -803,8 +873,41 @@
   #incoming-ignore {
     background: #575757;
     font-style: italic;
-    width: 29rem;
-    margin: 1rem 1.5rem 1rem 1.5rem;
+    font-family: FiraSans;
+    width: calc(50% - 2.5rem);
+    margin: 1rem 1rem 1rem 1.5rem;
+
+    color: #ffffff;
+    text-align: center;
+    float: left;
+  }
+
+  #incoming-ignore:active {
+    background-color: #94eee9;
+    color: white;
+    opacity: 1;
+  }
+
+  #incoming-container #incoming-reply {
+    background-image: url('images/call_screen/actionicon_dialer_message_40x80.svg');
+    background-color: #575757;
+    background-repeat: no-repeat;
+    background-position: center top;
+
+    margin: 1rem 1.5rem 1rem 1rem;
+    width: calc(50% - 2.5rem);
+    float: right;
+  }
+
+  #incoming-container #incoming-reply.disabled {
+    background-image: url('images/call_screen/dialer_ic_sms.svg');
+    background-position: center top;
+    pointer-events: none;
+    opacity: 0.4;
+  }
+
+  #incoming-container #incoming-reply:active {
+    background-color: #94eee9;
   }
 
   /* Conference group support */
@@ -896,13 +999,17 @@
     z-index: 751;
   }
 
+  #call-screen[data-layout="dialing"] #decline-with-message,
   #call-screen[data-layout="dialing"] #callbar-answer,
   #call-screen[data-layout="incoming"] #swiper-wrapper,
+  #call-screen[data-layout="incoming-locked"] #decline-with-message,
   #call-screen[data-layout="incoming-locked"] #callbar-answer,
   #call-screen[data-layout="incoming-locked"] #callbar-hang-up,
   #call-screen[data-layout="incoming-locked"] #call-options,
   #call-screen[data-layout="incoming-locked"] .duration,
+  #call-screen[data-layout="connected"] #decline-with-message,
   #call-screen[data-layout="connected"] #callbar-answer,
+  #call-screen[data-layout="connected-hold"] #decline-with-message,
   #call-screen[data-layout="connected-hold"] #callbar-answer,
   #call-screen:not([data-layout="incoming-locked"]) #lockscreen-header,
   #call-screen:not([data-layout="incoming-locked"]) #lockscreen-masked-background,
@@ -949,6 +1056,7 @@
   }
 
   #call-screen:not(.displayed) #co-advanced,
+  #call-screen:not(.displayed) #decline-with-message,
   #call-screen:not(.displayed) #callbar {
     pointer-events: none;
     opacity: 0.4;
@@ -965,7 +1073,7 @@
 
   #call-screen[data-layout="incoming-locked"] #calls {
     position: absolute;
-    top: calc(100% - 19rem);
+    top: calc(100% - 25rem);
     height: 9rem;
     color: #333;
     font-weight: normal;

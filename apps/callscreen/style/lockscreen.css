@@ -193,6 +193,25 @@ button::-moz-focus-inner {
   background-color: rgba(255, 255, 255, .85);
 }
 
+#lockscreen-message-bar {
+  background-color: rgba(255, 255, 255, .85);
+  position: absolute;
+  z-index: 9999;
+  height: 6rem;
+  width: 100%;
+  padding: 0;
+  text-align: center;
+}
+
+#lockscreen-message-bar.disabled {
+  pointer-events: none;
+  opacity: 0.4;
+}
+
+#lockscreen-message-bar:active {
+  background: #00a5c5;
+}
+
 .touched #lockscreen-icon-container {
   transition: none;
 }

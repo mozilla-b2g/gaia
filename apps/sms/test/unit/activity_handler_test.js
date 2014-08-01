@@ -1,6 +1,6 @@
 /*global Notify, Compose, MocksHelper, ActivityHandler, Contacts,
          Attachment, ThreadUI, Settings, Notification,
-         Threads, Navigation, Promise  */
+         Threads, Navigation, Promise, loadBodyHTML  */
 /*global MockNavigatormozSetMessageHandler, MockNavigatormozApps,
          MockNavigatorWakeLock, MockOptionMenu,
          MockMessages, MockL10n, MockSilentSms,
@@ -809,6 +809,55 @@ suite('ActivityHandler', function() {
       }
     );
 
+  });
+
+  suite('"quickreply" activity', function() {
+    // Mockup activity
+    var quickReplyActivity = {
+      source: {
+        name: 'quickreply',
+        data: {
+          number: '123'
+        }
+      },
+      postResult: sinon.stub(),
+      postError: sinon.stub()
+    };
+
+    var quickMessage;
+    var messageContainer;
+
+    setup(function() {
+      loadBodyHTML('/index.html');
+      messageContainer = document.getElementById('message-container-menu');
+      this.sinon.spy(Navigation, 'toPanel');
+    });
+
+    teardown(function() {
+      ActivityHandler.leaveActivity();
+    });
+
+    test('moves to the quick-reply panel', function() {
+      MockNavigatormozSetMessageHandler.mTrigger('activity',
+        quickReplyActivity);
+      sinon.assert.calledWith(Navigation.toPanel, 'quick-reply');
+    });
+
+    test('quickreply should set the current activity', function() {
+      MockNavigatormozSetMessageHandler.mTrigger('activity',
+        quickReplyActivity);
+      assert.isTrue(ActivityHandler.isInActivity());
+    });
+
+    test('quickreply should switch application to request activity mode',
+      function() {
+        MockNavigatormozSetMessageHandler.mTrigger('activity',
+          quickReplyActivity);
+        assert.isTrue(document.body.classList.contains(
+          ActivityHandler.REQUEST_ACTIVITY_MODE_CLASS_NAME)
+        );
+      }
+    );
   });
 
   suite('When compose is not empty', function() {
