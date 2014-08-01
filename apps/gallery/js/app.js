@@ -46,6 +46,7 @@ function App(options) {
   this.win = options.win;
   this.doc = options.doc;
   this.perf = options.perf || {};
+  this.deps = options.deps || [];
   this.require = options.require || window.requirejs; // Test hook
   this.LoadingView = options.LoadingView || LoadingView; // test hook
   this.NotificationView =
@@ -65,6 +66,7 @@ function App(options) {
  * @public
  */
 App.prototype.boot = function() {
+  var self = this;
   debug('boot');
   this.bindEvents();
   this.initializeViews();
@@ -79,12 +81,30 @@ App.prototype.boot = function() {
   this.dispatchEvent('moz-chrome-interactive');
 
   this.injectViews();
-  this.booted = true;
+  this.loadDeps(this.deps, onLoadedDeps);
+  function onLoadedDeps() {
+    self.boot = true;
+    self.onCriticalPathDone();
+  }
   debug('booted');
 };
 
 App.prototype.dispatchEvent = function(name) {
   this.win.dispatchEvent(new CustomEvent(name));
+};
+
+/**
+ * Load Dependencies.
+ *
+ * @private
+ */
+App.prototype.loadDeps = function(deps, done) {
+  var depsString = JSON.stringify(deps);
+  debug('load dependencies: ' + depsString);
+  this.require(deps, function() {
+    debug('dependencies loaded' + depsString);
+    if (done) { done(); }
+  });
 };
 
 /**
@@ -157,7 +177,7 @@ App.prototype.onCriticalPathDone = function() {
   this.dispatchEvent('moz-app-visually-complete');
 
   // Load non-critical modules
-  this.loadLazyModules();
+  this.loadDeps(self.lazyDeps);
   this.listenForAttentionScreen();
   this.perf.criticalPath = Date.now();
   this.criticalPathDone = true;

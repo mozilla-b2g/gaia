@@ -14,17 +14,20 @@ requirejs.config({
     'font-size-utils': '../shared/js/font_size_utils',
     'media-utils': '../shared/js/media/media_utils',
     'screen-layout': '../shared/js/screen_layout',
-    'screen-detector': '../shared/js/screen_detector',
     'downsample': '../shared/js/media/downsample',
-    'scroll-detector': '../shared/js/media/scroll_detector',
-    'dialogs': '../shared/js/media/dialogs',
-    'asyncStorage': '../shared/js/async_storage',
+    'scroll-detector': '../shared/js/scroll_detector',
+    'dialogs': '../shared/js/dialogs',
     'performance-testing-helper': '../shared/js/performance_testing_helper',
     'debug': '../bower_components/debug/index',
     'model': '../bower_components/model/index',
     'view': '../bower_components/view/index',
     'evt': '../bower_components/evt/index',
-    'device-orientation': '../bower_components/device-orientation/index'
+    // Gallery specific code
+    'config': 'config',
+    'thumbnail-item': 'thumbnail_item',
+    'thumbnail-date-group': 'thumbnail_date_group',
+    'thumbnail-list': 'thumbnail_list',
+    'gallery': 'gallery'
   },
 
   // 'shim' config lets us `require()` packages
@@ -32,7 +35,16 @@ requirejs.config({
   shim: {
     'performance-testing-helper': {
       exports: 'PerformanceTestingHelper'
+    },
+    'l10n-date': {
+      deps: ['l10n']
+    },
+    'gallery': {
+      deps: ['config', 'lazy-loader', 'screen-layout',
+        'thumbnail-list', 'thumbnail-date-group']
+    },
+    'thumbnail-date-group': {
+      deps: ['thumbnail-item']
     }
   }
-
 });

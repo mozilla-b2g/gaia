@@ -18,7 +18,6 @@
   "dependencies": {
     "requirejs": "https://raw.githubusercontent.com/jrburke/requirejs/2.1.14/require.js",
     "debug": "https://raw.githubusercontent.com/visionmedia/debug/1.0.2/dist/debug.js",
-    "device-orientation": "gaia-components/device-orientation",
     "model": "gaia-components/model#~0.1.0",
     "view": "gaia-components/view#~0.1.1"
   }

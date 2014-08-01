@@ -22,11 +22,26 @@ var app = window.app = new App({
   el: document.body,
   doc: document,
   win: window,
-  perf: perf
+  perf: perf,
+  deps: [
+    'l10n',
+    'l10n-date',
+    'template',
+    'enumerate-all',
+    'mediadb',
+    'font-size-utils',
+    'media-utils',
+    'downsample',
+    'scroll-detector',
+    'dialogs',
+    // Gallery specific code
+    'gallery'
+  ],
+  lazyDeps: []
 });
 
 setTimeout(function() {
   app.boot();
-}, 12000);
+}, 0);
 
 });
