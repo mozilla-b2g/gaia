@@ -132,7 +132,7 @@ define(function(require) {
             },
             onError: function(error) {
               navigator.mozL10n.setAttributes(elements.wpsInfoBlock,
-                                              'wpsCancelFailedMessage',
+                                              'wpsCancelFailedMessageError',
                                               { error: error.name });
             }
           });
@@ -148,8 +148,7 @@ define(function(require) {
                 },
                 onError: function(error) {
                   navigator.mozL10n.setAttributes(elements.wpsInfoBlock,
-                                                  'fullStatus-wps-failed',
-                                                  { error: error.name });
+                    'fullStatus-wps-failed-error', { error: error.name });
                 }
               });
             },

@@ -251,8 +251,8 @@ require([
         if (rules[i].active &&
             ((_voiceServiceClassMask & rules[i].serviceClass) != 0)) {
           navigator.mozL10n.setAttributes(element,
-                                          'callForwardingForwardingVoiceTo'
-                                          { number: rules[i].number });
+            'callForwardingForwardingVoiceToNumber',
+            { number: rules[i].number });
           return;
         }
       }
