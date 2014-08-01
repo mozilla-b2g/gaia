@@ -105,6 +105,14 @@
         SettingsListener.observe(settingKey, this.settings[settingKey],
           function observe(aValue) {
             this.settings[settingKey] = aValue;
+
+            // Show/Hide Accessibility Panel whenever volume buttons
+            // trigger Screen Reader
+            if (settingKey === 'accessibility.screenreader') {
+              SettingsListener.getSettingsLock().set({
+                'accessibility.show-settings': aValue
+              });
+            }
           }.bind(this));
       }, this);
     },
