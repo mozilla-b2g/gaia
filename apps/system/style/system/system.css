@@ -22,12 +22,9 @@ body {
   width: 100%;
   height: 100%;
   background-color: #000;
-  /**
-   * By drawing exactly the full background image exactly we can hit an optimization
-   * where the background image will be sent directly to the gpu bypassing the
-   * rasterizer and avoiding a backbuffer.
-   */
-  background-size: 100% 100%; /* It's important to have a high quality version of the image match the size of the screen */
+  background-size: cover; /* Possible memory over-consumption with huge images, it should be removed for improving stability*/
+  background-repeat: no-repeat;
+  background-position: 50% 50%;
 }
 
 #screen.screenoff {
@@ -225,6 +222,16 @@ body {
   max-height: 100%;
   border: 0;
   overflow: hidden;
+}
+
+#windows::before {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 3rem;
+
+  background: rgba(0, 0, 0, .15);
+  content: '';
 }
 
 #screen.fullscreen-app #windows::before {
