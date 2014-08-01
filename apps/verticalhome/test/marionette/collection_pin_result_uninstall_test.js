@@ -88,12 +88,12 @@ marionette('Vertical - Collection', function() {
     });
     home.enterEditMode(lastIcon);
     var remove = client.helper.waitForElement(lastIcon.findElement('.remove'));
-    remove.click();
+    remove.tap();
     home.confirmDialog('remove');
     client.helper.waitForElementToDisappear(lastIcon);
 
     // Exit edit mode
-    client.helper.waitForElement(Home2.Selectors.editHeaderDone).click();
+    client.helper.waitForElement(Home2.Selectors.editHeaderDone).tap();
 
     // Open the collection again and make sure the pinned icon is still there
     collection.enterCollection(

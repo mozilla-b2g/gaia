@@ -97,7 +97,7 @@ Home2.prototype = {
     this.client.waitFor(function() {
       try {
         // click the dialog to dismiss it
-        confirm.click();
+        confirm.tap();
         // ensure it is either hidden or hits the stale element ref
         return !confirm.displayed();
       } catch(e) {
@@ -153,7 +153,7 @@ Home2.prototype = {
 
       // tap the app in the homescreen
       var newApp = this.getIcon(manifestURL);
-      newApp.click();
+      newApp.tap();
 
       // go to the system app
       client.switchToFrame();

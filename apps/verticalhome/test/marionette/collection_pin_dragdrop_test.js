@@ -66,7 +66,7 @@ marionette('Vertical - Collection', function() {
 
     // Exit edit mode.
     var done = client.helper.waitForElement(Home2.Selectors.editHeaderDone);
-    done.click();
+    done.tap();
 
     // Enter the created collection.
     collection.enterCollection(collectionIcon);

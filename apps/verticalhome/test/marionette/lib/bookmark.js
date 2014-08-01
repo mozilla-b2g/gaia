@@ -53,7 +53,7 @@ Bookmark.prototype = {
 
     browser.backToApp();
     browser.searchBar.sendKeys(url);
-    browser.searchButton.click();
+    browser.searchButton.tap();
 
     // Ensure page is loaded before clicking the bookmark icon
     var webFrame = helper.waitForElement('iframe[src="' + url + '"]');
@@ -61,10 +61,10 @@ Bookmark.prototype = {
     helper.waitForElement('header h1');
     browser.backToApp();
 
-    helper.waitForElement(browser.bookmarkButton).click();
-    helper.waitForElement(browser.bookmarkAddToHomeButton).click();
+    helper.waitForElement(browser.bookmarkButton).tap();
+    helper.waitForElement(browser.bookmarkAddToHomeButton).tap();
     this.backToApp();
-    this.addButton.click();
+    this.addButton.tap();
   },
 };
 

@@ -129,7 +129,7 @@ Collection.prototype = {
       }, [position]);
     }
 
-    this.client.helper.waitForElement(selectors.menuAddButton).click();
+    this.client.helper.waitForElement(selectors.menuAddButton).tap();
   },
 
   /**
@@ -228,7 +228,7 @@ Collection.prototype = {
   pin: function(element) {
     this.actions.longPress(element, 1).perform();
     this.client.helper.waitForElement(
-      Collection.Selectors.cloudMenuPin).click();
+      Collection.Selectors.cloudMenuPin).tap();
   },
 
   /**
@@ -241,7 +241,7 @@ Collection.prototype = {
 
     var icons = this.client.helper.waitForElement(selector);
     this.actions.longPress(icons, 1).perform();
-    this.client.helper.waitForElement(bookmarkSelector).click();
+    this.client.helper.waitForElement(bookmarkSelector).tap();
     this.client.switchToFrame();
 
     this.client.switchToFrame(
@@ -249,7 +249,7 @@ Collection.prototype = {
         selectors.bookmarkActivity)
     );
 
-    bookmark.addButton.click();
+    bookmark.addButton.tap();
   }
 };
 
