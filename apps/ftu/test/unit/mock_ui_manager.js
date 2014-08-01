@@ -2,22 +2,25 @@
 
 var MockUIManager = {
   domSelectors: [
+    'splash-screen',
     'activation-screen',
     'progress-bar',
     'progress-bar-state',
     'finish-screen',
+    'update-screen',
     'nav-bar',
     'main-title',
     // Unlock SIM Screen
     'unlock-sim-screen',
     'unlock-sim-header',
+    'unlock-sim-back',
     // PIN Screen
     'pincode-screen',
     'pin-label',
     'pin-retries-left',
     'pin-input',
-    'pin-error',
     'back-sim-button',
+    'pin-error',
     'skip-pin-button',
     'unlock-sim-button',
     // PUK Screen
@@ -53,22 +56,57 @@ var MockUIManager = {
     'no-sim',
     'sd-import-button',
     'no-memorycard',
+    // Fxa Intro
+    'fxa-create-account',
+    'fxa-intro',
+    // Wifi
+    'networks',
+    'wifi-refresh-button',
+    'wifi-join-button',
+    'join-hidden-button',
+    // Hidden Wifi
+    'hidden-wifi-authentication',
+    'hidden-wifi-ssid',
+    'hidden-wifi-security',
+    'hidden-wifi-password',
+    'hidden-wifi-identity',
+    'hidden-wifi-identity-box',
+    'hidden-wifi-show-password',
+    //Date & Time
+    'date-configuration',
+    'time-configuration',
+    'date-configuration-label',
+    'time-configuration-label',
+    'time-form',
+    // 3G
+    'data-connection-switch',
+    // Geolocation
+    'geolocation-switch',
     // Tutorial
-    'tutorial-screen',
-    'tutorial-progress',
-    'tutorial-progress-state',
     'lets-go-button',
+    'update-lets-go-button',
     'skip-tutorial-button',
-    // Navigation
-    'back',
-    'forward',
-    'wifi-join-button'
+    'update-skip-tutorial-button',
+    // Privacy Settings
+    'share-performance',
+    'offline-error-dialog',
+    // Browser privacy newsletter subscription
+    'newsletter-form',
+    'newsletter-input',
+    'newsletter-success-screen',
+    'offline-newsletter-error-dialog',
+    'invalid-email-error-dialog'
   ],
 
   mSuiteSetup: function muim_mSuiteSetup() {
     this.domSelectors.forEach(function createElementRef(name) {
       if (name) {
-        this[toCamelCase(name)] = document.getElementById(name);
+        var element = document.getElementById(name);
+        if (!element) {
+            element = document.createElement('div');
+            element.id = name;
+        }
+        this[toCamelCase(name)] = element;
       }
     }.bind(this));
   },
@@ -85,7 +123,8 @@ var MockUIManager = {
   updateDataConnectionStatus: function(status) {return DataMobile.getStatus();},
   displayOfflineDialog: function() {},
   hideActivationScreenFromScreenReader: function() {},
-  init: function() {}
+  init: function() {},
+  initTZ: function() {}
 };
 
 function toCamelCase(str) {
