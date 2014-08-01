@@ -82,21 +82,19 @@ var AuthenticationDialog = {
     this.currentOrigin = origin;
     var evt = this.currentEvents[origin];
 
-    var message = evt.detail.message;
     this.httpAuthenticationDialog.classList.remove('hidden');
-
-    var _ = navigator.mozL10n.get;
 
     // XXX: We don't have a better way to detect login failed.
     if (this._confirmed[origin]) {
-      message = _('the-username-or-password-is-incorrect');
+      this.httpAuthenticationMessage.setAttribute('data-l10n-id',
+        'the-username-or-password-is-incorrect');
       this.httpAuthenticationMessage.classList.add('error');
     } else {
-      var l10nArgs = { host: evt.detail.host };
-      message = _('http-authentication-message', l10nArgs);
+      navigator.mozL10n.setAttributes(this.httpAuthenticationMessage,
+                                      'http-authentication-message',
+                                      { host: evt.detail.host });
       this.httpAuthenticationMessage.classList.remove('error');
     }
-    this.httpAuthenticationMessage.textContent = message;
 
     this.httpAuthenticationUsername.value = '';
     this.httpAuthenticationPassword.value = '';

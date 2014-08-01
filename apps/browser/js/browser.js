@@ -217,12 +217,6 @@ var Browser = {
 
     var loadBrowserFiles = function() {
       LazyLoader.load(jsFiles, function() {
-        var mozL10n = navigator.mozL10n;
-        mozL10n.ready(function browser_localizeElements() {
-          elementsToLoad.forEach(function l10nElement(element) {
-            mozL10n.translate(element);
-          });
-        });
         domElements.forEach(function createElementRef(name) {
           this[this.toCamelCase(name)] = document.getElementById(name);
         }, this);
@@ -1814,7 +1808,6 @@ var Browser = {
    */
   showDangerDialog: function browser_showDangerDialog(title, btn, callback) {
     var self = this;
-    var msg = navigator.mozL10n.get(title);
 
     var ok = function(e) {
       e.preventDefault();
@@ -1836,7 +1829,7 @@ var Browser = {
       self.dangerDialogCancel.removeEventListener('click', cancel);
     };
 
-    this.dangerDialogMessage.textContent = msg;
+    this.dangerDialogMessage.setAttribute('data-l10n-id', title);
     this.dangerDialog.hidden = false;
 
     this.dangerDialogOk.addEventListener('click', ok);
