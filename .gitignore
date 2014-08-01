@@ -18,7 +18,7 @@ manifest.appcache
 /apps/sms/js/blacklist.json
 /apps/settings/resources/network.json
 /apps/settings/resources/support.json
-/apps/settings/resources/sensors.json
+/apps/settings/resources/device-features.json
 /apps/settings/resources/findmydevice.json
 /apps/system/resources/icc.json
 /apps/system/resources/wapuaprof.json
