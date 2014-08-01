@@ -505,7 +505,7 @@ var icc_worker = {
     this.idleTextNotifications[message.iccId] = new Notification(
       'SIM ' + icc.getSIMNumber(message.iccId) + ' STK', {
         body: options.text,
-        icon: 'style/icons/System.png',
+        icon: 'style/icons/system.png',
         tag: 'stkNotification_' + message.iccId
       });
     this.idleTextNotifications[message.iccId].onclick =
