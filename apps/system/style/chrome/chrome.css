@@ -12,7 +12,7 @@
   color: white;
 }
 
-.appWindow.browser:not(.bar) > .chrome {
+.appWindow.light > .chrome {
   background-image: linear-gradient(rgba(0,0,0,0.05), rgba(0,0,0,0.05));
   background-color: white;
   color: #4d4d4d;
@@ -231,23 +231,23 @@
   background-image: url("images/overflow.png");
 }
 
-.browser .controls .back-button {
+.light .controls .back-button {
   background-image: url("images/dark/back.png");
 }
 
-.browser .controls .forward-button {
+.ligth .controls .forward-button {
   background-image: url("images/dark/forward.png");
 }
 
-.browser .controls .reload-button {
+.light .controls .reload-button {
   background-image: url("images/dark/reload.png");
 }
 
-.browser .controls .stop-button {
+.light .controls .stop-button {
   background-image: url("images/dark/stop.png");
 }
 
-.browser .controls .menu-button {
+.light .controls .menu-button {
   background-image: url("images/dark/overflow.png");
 }
 

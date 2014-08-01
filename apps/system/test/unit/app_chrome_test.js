@@ -47,14 +47,6 @@ suite('system/AppChrome', function() {
     origin: 'app://google.com'
   };
 
-  var fakeAppWithName = {
-    url: 'app://communications.gaiamobile.org/dialer/index.html',
-    name: 'Phone',
-    manifest: {name: 'Dialer'},
-    manifestURL: 'app://communications.gaiamobile.org/manifest.webapp',
-    origin: 'app://communications.gaiamobile.org'
-  };
-
   var fakeAppConfigNavigation = {
     url: 'app://www.fake/index.html',
     chrome: {
@@ -329,28 +321,7 @@ suite('system/AppChrome', function() {
       chrome.handleEvent({ type: 'mozbrowserloadend' });
       assert.isFalse(chrome.containerElement.classList.contains('loading'));
     });
-
-    test('titlechange', function() {
-      var app = new AppWindow(fakeAppConfigBoth);
-      var chrome = new AppChrome(app);
-
-      assert.equal(chrome.title.textContent, '');
-
-      chrome.handleEvent({ type: 'mozbrowserlocationchange',
-                           detail: app.config.url });
-
-      chrome.handleEvent({ type: 'mozbrowsertitlechange',
-                           detail: '' });
-
-      assert.equal(chrome.title.textContent, app.config.url);
-
-      chrome.handleEvent({ type: 'mozbrowsertitlechange',
-                           detail: 'Hello' });
-
-      assert.equal(chrome.title.textContent, 'Hello');
-    });
   });
-
 
   suite('URLBar', function() {
     test('click', function() {
@@ -361,34 +332,10 @@ suite('system/AppChrome', function() {
       assert.isTrue(stubDispatchEvent.called);
     });
 
-    test('should set the name when created', function() {
+    test('should set "Search" for app window when created', function() {
       var app = new AppWindow(fakeAppConfig1);
-      app.name = 'Phone';
       var chrome = new AppChrome(app);
-      assert.equal(chrome.title.textContent, 'Phone');
-    });
-
-    test('should update the name when it changes', function() {
-      var app = new AppWindow(fakeAppConfig1);
-      app.name = 'Phone';
-      var chrome = new AppChrome(app);
-      assert.equal(chrome.title.textContent, 'Phone');
-
-      app.name = 'Phone2';
-      var evt = new CustomEvent('_namechanged');
-      app.element.dispatchEvent(evt);
-      assert.equal(chrome.title.textContent, 'Phone2');
-    });
-
-    test('localized app is not immediately overridden by titlechange event',
-      function() {
-      var app = new AppWindow(fakeAppConfig1);
-      app.name = 'Phone';
-
-      var chrome = new AppChrome(app);
-      chrome.handleEvent({ type: 'mozbrowsertitlechange',
-                           detail: 'Do not update' });
-      assert.equal(chrome.title.textContent, 'Phone');
+      assert.equal(chrome.title.textContent, 'Search');
     });
   });
 
@@ -402,51 +349,6 @@ suite('system/AppChrome', function() {
 
     teardown(function() {
       subject._unregisterEvents();
-    });
-
-    test('should not do anything on apps with manifests', function() {
-      var app = new AppWindow(fakeAppWithName);
-      var chrome = new AppChrome(app);
-      chrome._registerEvents();
-
-      var evt = new CustomEvent('mozbrowserlocationchange', {
-        detail: 'app://communications.gaiamobile.org/calllog.html'
-      });
-      chrome.app.element.dispatchEvent(evt);
-      this.sinon.clock.tick(500);
-
-      assert.equal(chrome.title.textContent, 'Phone');
-      chrome._unregisterEvents();
-    });
-
-    test('should wait before updating the title', function() {
-      subject.title.textContent = 'Google';
-      var evt = new CustomEvent('mozbrowserlocationchange', {
-        detail: 'http://bing.com'
-      });
-      subject.app.element.dispatchEvent(evt);
-
-      assert.equal(subject.title.textContent, 'Google');
-      this.sinon.clock.tick(500);
-      assert.equal(subject.title.textContent, 'http://bing.com');
-    });
-
-    test('should not update the title if we get a titlechange right after',
-    function() {
-      subject.title.textContent = 'Google';
-      var evt = new CustomEvent('mozbrowserlocationchange', {
-        detail: 'http://bing.com'
-      });
-      subject.app.element.dispatchEvent(evt);
-
-      assert.equal(subject.title.textContent, 'Google');
-      this.sinon.clock.tick(100);
-      var titleEvent = new CustomEvent('mozbrowsertitlechange', {
-        detail: 'Bing'
-      });
-      subject.app.element.dispatchEvent(titleEvent);
-      this.sinon.clock.tick(500);
-      assert.equal(subject.title.textContent, 'Bing');
     });
   });
 
@@ -544,6 +446,34 @@ suite('system/AppChrome', function() {
         }
       });
       assert.equal(chrome.element.style.backgroundColor, 'red');
+    });
+
+    test('dark color have light icons', function() {
+      var app = new AppWindow(fakeAppConfigBoth);
+      var chrome = new AppChrome(app);
+      var stubRequestAnimationFrame =
+        this.sinon.stub(window, 'requestAnimationFrame', function(cb) {
+
+        cb();
+      });
+
+      chrome.setThemeColor('black');
+      assert.isTrue(stubRequestAnimationFrame.called);
+      assert.isFalse(app.element.classList.contains('light'));
+    });
+
+    test('light color have dark icons', function() {
+      var app = new AppWindow(fakeAppConfigBoth);
+      var chrome = new AppChrome(app);
+      var stubRequestAnimationFrame =
+        this.sinon.stub(window, 'requestAnimationFrame', function(cb) {
+
+        cb();
+      });
+
+      chrome.setThemeColor('white');
+      assert.isTrue(stubRequestAnimationFrame.called);
+      assert.isTrue(app.element.classList.contains('light'));
     });
   });
 });
