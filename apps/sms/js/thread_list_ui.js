@@ -504,7 +504,7 @@ var ThreadListUI = {
     this.sticky.refresh();
   },
 
-  renderThreads: function thlui_renderThreads(done) {
+  renderThreads: function thlui_renderThreads(firstViewDone, allDone) {
     PerformanceTestingHelper.dispatch('will-render-threads');
 
     var hasThreads = false;
@@ -523,8 +523,8 @@ var ThreadListUI = {
       if (--firstPanelCount === 0) {
         // dispatch visually-complete and content-interactive when rendered
         // threads could fill up the top of the visiable area
+        firstViewDone();
         window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
-        window.dispatchEvent(new CustomEvent('moz-content-interactive'));
       }
     }
 
@@ -538,15 +538,15 @@ var ThreadListUI = {
       if (firstPanelCount > 0) {
         // dispatch visually-complete and content-interactive when rendering
         // ended but threads could not fill up the top of the visiable area
+        firstViewDone();
         window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
-        window.dispatchEvent(new CustomEvent('moz-content-interactive'));
       }
     }
 
     var renderingOptions = {
       each: onRenderThread.bind(this),
       end: onThreadsRendered.bind(this),
-      done: done
+      done: allDone
     };
 
     MessageManager.getThreads(renderingOptions);

@@ -1,6 +1,7 @@
 /* global
       Promise,
-      Utils
+      Utils,
+      Startup
 */
 
 /* exported Navigation */
@@ -34,6 +35,7 @@ function nextQueuedPanel() {
 }
 
 var Navigation = window.Navigation = {
+  isReady: false,
   panelObjects: window,
 
   defaultPanel: 'thread-list',
@@ -64,6 +66,11 @@ var Navigation = window.Navigation = {
   init: function n_init() {
     this.mainWrapper = document.getElementById('main-wrapper');
     this.transitioning = false;
+
+    Startup.on('post-initialize', function() {
+      this.isReady = true;
+      nextQueuedPanel();
+    }.bind(this));
 
     return this.toPanelFromHash();
   },
@@ -152,7 +159,11 @@ var Navigation = window.Navigation = {
       return Promise.reject(new Error('Panel ' + panel + ' is unknown.'));
     }
 
-    if (this.transitioning) {
+    // put the request to a queue when:
+    //   - Panel is still transitioning
+    //   - trying to navigate when the app is not loaded completely
+    var notReadyNavigate = (panel !== this.defaultPanel && !this.isReady);
+    if (this.transitioning || notReadyNavigate) {
       queuedPanel = {
         panel: panel,
         args: args
