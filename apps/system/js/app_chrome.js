@@ -38,11 +38,6 @@
       return;
     }
 
-    if (this.app.isBrowser()) {
-      this.app.element.classList.add('browser');
-      this.app.element.classList.add('light');
-    }
-
     if (chrome.navigation) {
       this.app.element.classList.add('navigation');
     }
@@ -53,8 +48,9 @@
     }
 
     if (chrome.scrollable) {
+      this.app.element.classList.add('scrollable');
+      this.app.element.classList.add('light');
       this.scrollable.scrollgrab = true;
-      this.scrollable.classList.add('scrollable');
       this.element.classList.add('maximized');
     }
   };
@@ -535,9 +531,12 @@
   };
 
   AppChrome.prototype.useCombinedChrome = function ac_useCombinedChrome(evt) {
-    return this.app.config.chrome &&
-           this.app.config.chrome.navigation &&
-           this.app.config.chrome.bar;
+    var chrome = this.app.config.chrome;
+    if (!chrome) {
+      return;
+    }
+
+    return chrome.scrollable || (chrome.navigation && chrome.bar);
   };
 
   AppChrome.prototype._updateLocation =

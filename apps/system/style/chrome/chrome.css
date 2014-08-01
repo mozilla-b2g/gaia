@@ -73,8 +73,8 @@
   margin-left: 0.5rem;
 }
 
-.browser .chrome .controls button:not([data-disabled]) + button[data-disabled] + .urlbar,
-.browser .chrome .controls button:not([data-disabled]) + .urlbar {
+.scrollable .chrome .controls button:not([data-disabled]) + button[data-disabled] + .urlbar,
+.scrollable .chrome .controls button:not([data-disabled]) + .urlbar {
   margin-left: 0;
 }
 
@@ -131,12 +131,12 @@
   transform: scaleX(1);
 }
 
-.browser .chrome:not(.maximized) .back-button:not([data-disabled]) + .forward-button[data-disabled] + .urlbar,
-.browser .chrome:not(.maximized) .forward-button:not([data-disabled]) + .urlbar {
+.scrollable .chrome:not(.maximized) .back-button:not([data-disabled]) + .forward-button[data-disabled] + .urlbar,
+.scrollable .chrome:not(.maximized) .forward-button:not([data-disabled]) + .urlbar {
   transform: scaleX(0.6521) translateX(-5.5rem);
 }
 
-.browser .chrome:not(.maximized) .back-button:not([data-disabled]) + .forward-button:not([data-disabled]) + .urlbar {
+.scrollable .chrome:not(.maximized) .back-button:not([data-disabled]) + .forward-button:not([data-disabled]) + .urlbar {
   transform: scaleX(0.6521) translateX(-12rem);
 }
 
@@ -255,18 +255,18 @@
 }
 
 /* App specifics */
-.appWindow:not(.browser) > .chrome .controls button {
+.appWindow:not(.scrollable) > .chrome .controls button {
   display: none;
 }
 
-.appWindow:not(.browser) > .chrome .controls .forward-button:not([data-disabled]) + .urlbar,
-.appWindow:not(.browser) > .chrome .controls .back-button:not([data-disabled]) + .forward-button[data-disabled] + .urlbar,
-.appWindow:not(.browser) > .chrome .controls .back-button:not([data-disabled]) + .forward-button:not([data-disabled]) + .urlbar,
-.appWindow:not(.browser) > .chrome .controls .urlbar {
+.appWindow:not(.scrollable) > .chrome .controls .forward-button:not([data-disabled]) + .urlbar,
+.appWindow:not(.scrollable) > .chrome .controls .back-button:not([data-disabled]) + .forward-button[data-disabled] + .urlbar,
+.appWindow:not(.scrollable) > .chrome .controls .back-button:not([data-disabled]) + .forward-button:not([data-disabled]) + .urlbar,
+.appWindow:not(.scrollable) > .chrome .controls .urlbar {
   width: calc(100% - 8rem);
 }
 
-.appWindow:not(.browser) > .chrome .controls .urlbar .title {
+.appWindow:not(.scrollable) > .chrome .controls .urlbar .title {
   width: calc(100%);
 }
 
