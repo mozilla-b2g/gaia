@@ -12,7 +12,7 @@
   color: white;
 }
 
-.appWindow.browser:not(.bar) > .chrome {
+.appWindow.scrollable:not(.bar) > .chrome {
   background-image: linear-gradient(rgba(0,0,0,0.05), rgba(0,0,0,0.05));
   background-color: white;
   color: #4d4d4d;
@@ -74,8 +74,8 @@
   margin-left: 0.5rem;
 }
 
-.browser .chrome .controls button:not([data-disabled]) + button[data-disabled] + .urlbar,
-.browser .chrome .controls button:not([data-disabled]) + .urlbar {
+.scrollable .chrome .controls button:not([data-disabled]) + button[data-disabled] + .urlbar,
+.scrollable .chrome .controls button:not([data-disabled]) + .urlbar {
   margin-left: 0;
 }
 
@@ -83,7 +83,7 @@
   background-color: rgba(51,51,51,0.5);
 }
 
-.appWindow.browser .maximized .controls .urlbar {
+.appWindow.scrollable .maximized .controls .urlbar {
   background-color: rgba(201,201,201,0.4);
 }
 
@@ -101,7 +101,7 @@
   text-overflow: ellipsis;
 }
 
-.appWindow.browser .chrome:not(.maximized) .controls .urlbar .title {
+.appWindow.scrollable .chrome:not(.maximized) .controls .urlbar .title {
   background-color: rgba(201,201,201,0.4);
 }
 
@@ -133,12 +133,12 @@
   transform: scaleX(1);
 }
 
-.browser .chrome:not(.maximized) .back-button:not([data-disabled]) + .forward-button[data-disabled] + .urlbar,
-.browser .chrome:not(.maximized) .forward-button:not([data-disabled]) + .urlbar {
+.scrollable .chrome:not(.maximized) .back-button:not([data-disabled]) + .forward-button[data-disabled] + .urlbar,
+.scrollable .chrome:not(.maximized) .forward-button:not([data-disabled]) + .urlbar {
   transform: scaleX(0.6521) translateX(-5.5rem);
 }
 
-.browser .chrome:not(.maximized) .back-button:not([data-disabled]) + .forward-button:not([data-disabled]) + .urlbar {
+.scrollable .chrome:not(.maximized) .back-button:not([data-disabled]) + .forward-button:not([data-disabled]) + .urlbar {
   transform: scaleX(0.6521) translateX(-12rem);
 }
 
@@ -231,23 +231,23 @@
   background-image: url("images/overflow.png");
 }
 
-.browser .controls .back-button {
+.scrollable .controls .back-button {
   background-image: url("images/dark/back.png");
 }
 
-.browser .controls .forward-button {
+.scrollable .controls .forward-button {
   background-image: url("images/dark/forward.png");
 }
 
-.browser .controls .reload-button {
+.scrollable .controls .reload-button {
   background-image: url("images/dark/reload.png");
 }
 
-.browser .controls .stop-button {
+.scrollable .controls .stop-button {
   background-image: url("images/dark/stop.png");
 }
 
-.browser .controls .menu-button {
+.scrollable .controls .menu-button {
   background-image: url("images/dark/overflow.png");
 }
 
@@ -257,18 +257,18 @@
 }
 
 /* App specifics */
-.appWindow:not(.browser) > .chrome .controls button {
+.appWindow:not(.scrollable) > .chrome .controls button {
   display: none;
 }
 
-.appWindow:not(.browser) > .chrome .controls .forward-button:not([data-disabled]) + .urlbar,
-.appWindow:not(.browser) > .chrome .controls .back-button:not([data-disabled]) + .forward-button[data-disabled] + .urlbar,
-.appWindow:not(.browser) > .chrome .controls .back-button:not([data-disabled]) + .forward-button:not([data-disabled]) + .urlbar,
-.appWindow:not(.browser) > .chrome .controls .urlbar {
+.appWindow:not(.scrollable) > .chrome .controls .forward-button:not([data-disabled]) + .urlbar,
+.appWindow:not(.scrollable) > .chrome .controls .back-button:not([data-disabled]) + .forward-button[data-disabled] + .urlbar,
+.appWindow:not(.scrollable) > .chrome .controls .back-button:not([data-disabled]) + .forward-button:not([data-disabled]) + .urlbar,
+.appWindow:not(.scrollable) > .chrome .controls .urlbar {
   width: calc(100% - 8rem);
 }
 
-.appWindow:not(.browser) > .chrome .controls .urlbar .title {
+.appWindow:not(.scrollable) > .chrome .controls .urlbar .title {
   width: calc(100%);
 }
 
