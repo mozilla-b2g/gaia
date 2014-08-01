@@ -39,6 +39,12 @@
   background-color: black;
 }
 
+/* When the utility tray is displayed, the title bar is hidden, so we only show
+ the maximised status bar. */
+#screen.utility-tray #statusbar-minimized {
+  display: none;
+}
+
 body #statusbar {
   transition: transform 0.2s linear;
 }
@@ -79,14 +85,9 @@ body #statusbar {
   display: block;
 }
 
-#statusbar-icons > * {
-  float: right;
-  margin: 0.6rem 0.2rem 0.6rem 0.3rem;
-}
-
-#statusbar-icons {
+.statusbar {
   position: absolute;
-  width: calc(50% - 0.8rem);
+  width: 100%;
   height: 3rem;
   margin: 0;
   top: 0;
@@ -95,9 +96,20 @@ body #statusbar {
   transition: opacity 0.3s;
   overflow: hidden;
   white-space: nowrap;
+  box-sizing: border-box;
 }
 
-#screen.rocketbar-focused:not(.locked) #statusbar-icons {
+#statusbar-minimized {
+  width: calc(100% - 100% * 0.6521 + 8rem * 0.6521 - 0.5rem);
+  padding: 0 0.8rem 0 0;
+}
+
+.statusbar > * {
+  float: right;
+  margin: 0.6rem 0.2rem 0.6rem 0.3rem;
+}
+
+#screen.rocketbar-focused:not(.locked) .statusbar {
   visibility: hidden;
   opacity: 0;
 }
@@ -107,50 +119,44 @@ body #statusbar {
   opacity: 0;
 }
 
-body #statusbar-icons {
-  width: 100%;
-  box-sizing: border-box;
-}
-
-*[dir=rtl] #statusbar-icons {
+*[dir=rtl] .statusbar {
   right: auto;
   left: 0;
 }
 
-*[dir=rtl] #statusbar-icons > * {
+*[dir=rtl] .statusbar > * {
   float: left;
 }
 
-*[dir=rtl] body #statusbar-icons > .sb-start {
+*[dir=rtl] body .statusbar > .sb-start {
   float: right;
 }
 
-#statusbar-icons > .sb-start-upper {
+.statusbar > .sb-start-upper {
   visibility: hidden;
   position: absolute;
   left: 0;
   top: -3rem;
 }
 
-*[dir=rtl] #statusbar-icons > .sb-start-upper {
+*[dir=rtl] .statusbar > .sb-start-upper {
   left: auto;
   right: 0;
 }
 
-body .utility-tray #statusbar-icons > .sb-start-upper,
+body .utility-tray .statusbar > .sb-start-upper,
 .utility-tray #statusbar > #statusbar-title,
 #statusbar-title.hidden {
   visibility: visible;
   transform: translateY(3rem);
 }
 
-body .utility-tray #statusbar-icons > .sb-start {
+body .utility-tray .statusbar > .sb-start {
   visibility: hidden;
   transform: translateY(3rem);
 }
 
 #statusbar-label {
-  position: relative;
   margin-left: 0.8rem;
   color: #ffffff;
   font-size: 1.5rem;
@@ -284,7 +290,7 @@ body .utility-tray #statusbar-icons > .sb-start {
   background-size: 34rem 9.6rem;
 }
 
-#statusbar-icons .sb-icon-battery {
+.sb-icon-battery {
   width: 2.5rem;
 }
 .sb-icon-battery[data-level="0"] {
@@ -518,7 +524,8 @@ body .utility-tray #statusbar-icons > .sb-start {
 .sb-icon-notification {
   background: none;
   width: 3.2rem;
-  position: relative;
+  position: absolute;
+  left: 0;
 }
 
 .sb-icon-notification::before {
@@ -565,7 +572,7 @@ body .utility-tray #statusbar-icons > .sb-start {
   left: 0;
 }
 
-.sb-emergency-cb-icon-notification {
+.sb-icon-emergency-cb-notification {
   background-position: -24rem -8rem;
 }
 
@@ -608,4 +615,32 @@ body .utility-tray #statusbar-icons > .sb-start {
 
 .sb-icon-nfc {
   background-position: -26rem -8rem;
+}
+
+/* Hide icons applying a class to the status bar */
+.sb-hide-time .sb-icon-time,
+.sb-hide-battery .sb-icon-battery,
+.sb-hide-flight-mode .sb-icon-flight-mode,
+.sb-hide-wifi .sb-icon-wifi,
+.sb-hide-connections .sb-icon-connections,
+.sb-hide-network-activity .sb-icon-network-activity,
+.sb-hide-tethering .sb-icon-tethering,
+.sb-hide-bluetooth .sb-icon-bluetooth,
+.sb-hide-nfc .sb-icon-nfc,
+.sb-hide-emergency-cb-notification .sb-icon-emergency-cb-notification,
+.sb-hide-system-downloads .sb-icon-system-downloads,
+.sb-hide-usb .sb-icon-usb,
+.sb-hide-mute .sb-icon-mute,
+.sb-hide-recording .sb-icon-recording,
+.sb-hide-geolocation .sb-icon-geolocation,
+.sb-hide-call-forwardings .sb-icon-call-forwardings,
+.sb-hide-bluetooth-headphones .sb-icon-bluetooth-headphones,
+.sb-hide-headphones .sb-icon-headphones,
+.sb-hide-playing .sb-icon-playing,
+.sb-hide-notification .sb-icon-notification,
+.sb-hide-bluetooth-transferring .sb-icon-bluetooth-transferring,
+.sb-hide-alarm .sb-icon-alarm,
+.sb-hide-sms .sb-icon-sms,
+.sb-hide-label .sb-icon-label {
+  display: none;
 }
