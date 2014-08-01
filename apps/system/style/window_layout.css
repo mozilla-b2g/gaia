@@ -118,6 +118,7 @@
   left: 0;
   width: 100%;
   height: calc(100% - 3rem);
+  overflow: hidden;
 }
 
 .appWindow > div > iframe {
@@ -126,6 +127,7 @@
   left: 0;
   width: 100%;
   height: 100%;
+  overflow: hidden;
 }
 
 .appWindow.searchWindow > div {

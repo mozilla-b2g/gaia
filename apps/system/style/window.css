@@ -22,7 +22,7 @@
 
 /* mozbrowser iframe layout */
 
-.appWindow > iframe {
+.appWindow iframe {
   border: none;
 }
 
@@ -32,6 +32,7 @@
   background-size: auto 0.3rem;
 }
 
+.appWindow:not(.homescreen):not(.searchWindow).render > div.browser-container,
 .appWindow:not(.homescreen):not(.searchWindow).render > div.browser-container > iframe {
   background-color: #fff;
 }
@@ -196,7 +197,7 @@
   transition: transform 0.25s cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
-.appWindow > iframe {
+.appWindow iframe {
   visibility: visible;
 }
 
@@ -350,7 +351,7 @@
   overflow: hidden;
 }
 
-.appWindow > iframe.hidden {
+.appWindow iframe.hidden {
   visibility: hidden;
 }
 
