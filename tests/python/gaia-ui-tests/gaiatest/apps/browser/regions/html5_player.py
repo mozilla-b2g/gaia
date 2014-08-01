@@ -21,15 +21,15 @@ class HTML5Player(PageRegion):
 
     @property
     def is_paused(self):
-        return self.root_element.get_attribute('paused') == 'true'
+        return self.marionette.execute_script('return arguments[0].paused;', [self.root_element])
 
     @property
     def is_ended(self):
-        return self.root_element.get_attribute('ended') == 'true'
+        return self.marionette.execute_script('return arguments[0].ended;', [self.root_element])
 
     @property
     def has_controls(self):
-        return self.root_element.get_attribute('controls') == 'true'
+        return self.marionette.execute_script('return arguments[0].controls;', [self.root_element])
 
     def _disable_controls(self):
         if self.has_controls:
@@ -66,6 +66,9 @@ class HTML5Player(PageRegion):
         self.wait_for_condition(lambda m: self.is_paused)
         self._disable_controls()
 
+    def wait_for_video_playing(self):
+        self.wait_for_condition(lambda m: self.is_video_playing())
+
     def is_video_playing(self):
         # get 4 timestamps during approx. 1 sec
         # ensure that newer timestamp has greater value than previous one
@@ -77,4 +80,4 @@ class HTML5Player(PageRegion):
 
     @property
     def current_timestamp(self):
-        return float(self.root_element.get_attribute('currentTime'))
+        return float(self.marionette.execute_script('return arguments[0].currentTime;', [self.root_element]))
