@@ -215,7 +215,7 @@ Settings.prototype = {
       return this.findElement('messageMenuItem').enabled();
     }.bind(this));
 
-    menuItem.tap(1, 1);
+    menuItem.tap(20, 20);
     this.client.waitFor(function() {
       var loc = parentSection.location();
       var size = parentSection.size();
