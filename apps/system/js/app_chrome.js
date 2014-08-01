@@ -19,8 +19,6 @@
     this.app = app;
     this.instanceID = _id++;
     this.containerElement = app.element;
-    this._recentTitle = false;
-    this._titleTimeout = null;
     this.scrollable = app.browserContainer;
     this.render();
 
@@ -28,9 +26,8 @@
       this.setThemeColor(this.app.themeColor);
     }
 
-    if (!this.app.isBrowser() && this.app.name) {
-      this._gotName = true;
-      this.setFreshTitle(this.app.name);
+    if (!this.app.isBrowser()) {
+      this.title.textContent = navigator.mozL10n.get('search');
     }
 
     var chrome = this.app.config.chrome;
@@ -179,10 +176,6 @@
         this.handleLocationChanged(evt);
         break;
 
-      case 'mozbrowsertitlechange':
-        this.handleTitleChanged(evt);
-        break;
-
       case 'mozbrowsermetachange':
         this.handleMetaChange(evt);
         break;
@@ -213,10 +206,6 @@
 
       case '_homegesture-disabled':
         this.releaseNavigation();
-        break;
-
-      case '_namechanged':
-        this.handleNameChanged(evt);
         break;
     }
   };
@@ -315,15 +304,17 @@
     this.title.addEventListener('click', this);
     this.scrollable.addEventListener('scroll', this);
 
-    this.app.element.addEventListener('mozbrowserloadstart', this);
-    this.app.element.addEventListener('mozbrowserloadend', this);
-    this.app.element.addEventListener('mozbrowserlocationchange', this);
-    this.app.element.addEventListener('mozbrowsertitlechange', this);
     this.app.element.addEventListener('mozbrowsermetachange', this);
-    this.app.element.addEventListener('_loading', this);
-    this.app.element.addEventListener('_loaded', this);
-    this.app.element.addEventListener('_namechanged', this);
+
+    if (this.app.isBrowser()) {
+      this.app.element.addEventListener('mozbrowserlocationchange', this);
+      this.app.element.addEventListener('mozbrowserloadstart', this);
+      this.app.element.addEventListener('mozbrowserloadend', this);
+    }
+
     if (!this.useCombinedChrome()) {
+      this.app.element.addEventListener('_loading', this);
+      this.app.element.addEventListener('_loaded', this);
       this.app.element.addEventListener('_opened', this);
       this.app.element.addEventListener('_closing', this);
       this.app.element.addEventListener('_withkeyboard', this);
@@ -364,15 +355,17 @@
       return;
     }
 
-    this.app.element.removeEventListener('mozbrowserloadstart', this);
-    this.app.element.removeEventListener('mozbrowserloadend', this);
-    this.app.element.removeEventListener('mozbrowserlocationchange', this);
-    this.app.element.removeEventListener('mozbrowsertitlechange', this);
     this.app.element.removeEventListener('mozbrowsermetachange', this);
-    this.app.element.removeEventListener('_loading', this);
-    this.app.element.removeEventListener('_loaded', this);
-    this.app.element.removeEventListener('_namechanged', this);
+
+    if (this.app.isBrowser()) {
+      this.app.element.removeEventListener('mozbrowserloadstart', this);
+      this.app.element.removeEventListener('mozbrowserloadend', this);
+      this.app.element.removeEventListener('mozbrowserlocationchange', this);
+    }
+
     if (!this.useCombinedChrome()) {
+      this.app.element.removeEventListener('_loading', this);
+      this.app.element.removeEventListener('_loaded', this);
       this.app.element.removeEventListener('_opened', this);
       this.app.element.removeEventListener('_closing', this);
       this.app.element.removeEventListener('_withkeyboard', this);
@@ -406,22 +399,6 @@
     if (!this.navigation.classList.contains('closed')) {
       this.navigation.classList.add('closed');
     }
-  };
-
-  // Name has priority over the rest
-  AppChrome.prototype.handleNameChanged =
-    function ac_handleNameChanged(evt) {
-      this.title.textContent = this.app.name;
-      this._gotName = true;
-    };
-
-  AppChrome.prototype.setFreshTitle = function ac_setFreshTitle(title) {
-    this.title.textContent = title;
-    clearTimeout(this._titleTimeout);
-    this._recentTitle = true;
-    this._titleTimeout = setTimeout((function() {
-      this._recentTitle = false;
-    }).bind(this), this.FRESH_TITLE);
   };
 
   AppChrome.prototype.isButtonBarDisplayed = false;
@@ -469,15 +446,6 @@
 
       this.bookmarkButton.dataset.disabled = true;
     };
-
-  AppChrome.prototype.handleTitleChanged = function(evt) {
-    if (this._gotName) {
-      return;
-    }
-
-    this.setFreshTitle(evt.detail || this._currentURL);
-    this._titleChanged = true;
-  };
 
   AppChrome.prototype.handleMetaChange =
     function ac__handleMetaChange(evt) {
@@ -540,25 +508,13 @@
            this.app.config.chrome.bar;
   };
 
-  AppChrome.prototype._updateLocation =
-    function ac_updateTitle(title) {
-      if (this._titleChanged || this._gotName || this._recentTitle) {
-        return;
-      }
-      this.title.textContent = title;
-    };
-
   AppChrome.prototype.handleLocationChanged =
     function ac_handleLocationChange(evt) {
       if (!this.app) {
         return;
       }
 
-      // We wait a small while because if we get a title/name it's even better
-      // and we don't want the label to flash
-      setTimeout(this._updateLocation.bind(this, evt.detail),
-                 this.LOCATION_COALESCE);
-      this._currentURL = evt.detail;
+      this.title.textContent = evt.detail;
 
       this.app.canGoForward(function forwardSuccess(result) {
         if (result === true) {
@@ -579,7 +535,6 @@
 
   AppChrome.prototype.handleLoadStart = function ac_handleLoadStart(evt) {
     this.containerElement.classList.add('loading');
-    this._titleChanged = false;
   };
 
   AppChrome.prototype.handleLoadEnd = function ac_handleLoadEnd(evt) {
