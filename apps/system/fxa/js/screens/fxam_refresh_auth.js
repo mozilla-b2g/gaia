@@ -36,9 +36,11 @@ var FxaModuleRefreshAuth = (function() {
     FxModuleServerRequest.requestPasswordReset(
       email,
       function onSuccess(response) {
-        done(response.success);
+        done();
       },
-      this.showErrorResponse
+      (function onError(response) {
+        this._showCouldNotResetPassword();
+      }).bind(this)
     );
   }
 
@@ -55,13 +57,8 @@ var FxaModuleRefreshAuth = (function() {
     _requestPasswordReset.call(
       this,
       this.email,
-      function(isRequestHandled) {
+      function() {
         FxaModuleOverlay.hide();
-        if (!isRequestHandled) {
-          _showCouldNotResetPassword.call(this);
-          return;
-        }
-
         FxaModuleStates.setState(FxaModuleStates.PASSWORD_RESET_SUCCESS);
       }
     );
