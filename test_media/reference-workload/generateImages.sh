@@ -10,7 +10,7 @@ fi
 if [ "$1" != "0" ]; then
 #  REMOTE_DIR="/sdcard/DCIM/100MZLLA"
   REMOTE_DIR=
-  for dir in /sdcard /storage/sdcard; do
+  for dir in /sdcard /storage/sdcard /storage/sdcard0; do
     if [ -n "$(adb shell "test -d $dir && echo found")" ]; then
       REMOTE_DIR=$dir
       break
