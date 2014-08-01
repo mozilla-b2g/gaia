@@ -263,7 +263,7 @@ var PowerSaveHandler = (function PowerSaveHandler() {
 
     NotificationHelper.send(_('notification-powersaving-mode-on-title'),
                             _('notification-powersaving-mode-on-description'),
-                            'style/icons/System.png',
+                            'style/icons/system.png',
                             clickCB);
   }
 
