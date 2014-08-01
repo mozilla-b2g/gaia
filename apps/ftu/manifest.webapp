@@ -56,6 +56,10 @@
     "Gaia_Facebook_Friends": {
       "readonly": false,
       "description": "Facebook contacts"
+    },
+    "Import_Status_Data": {
+      "readonly": false,
+      "description": "Import status data shared between FTU and Contacts"
     }
   }
 }
