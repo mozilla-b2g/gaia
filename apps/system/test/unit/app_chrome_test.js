@@ -545,5 +545,33 @@ suite('system/AppChrome', function() {
       });
       assert.equal(chrome.element.style.backgroundColor, 'red');
     });
+
+    test('dark color have light icons', function() {
+      var app = new AppWindow(fakeAppConfigBoth);
+      var chrome = new AppChrome(app);
+      var stubRequestAnimationFrame =
+        this.sinon.stub(window, 'requestAnimationFrame', function(cb) {
+
+        cb();
+      });
+
+      chrome.setThemeColor('black');
+      assert.isTrue(stubRequestAnimationFrame.called);
+      assert.isFalse(app.element.classList.contains('light'));
+    });
+
+    test('light color have dark icons', function() {
+      var app = new AppWindow(fakeAppConfigBoth);
+      var chrome = new AppChrome(app);
+      var stubRequestAnimationFrame =
+        this.sinon.stub(window, 'requestAnimationFrame', function(cb) {
+
+        cb();
+      });
+
+      chrome.setThemeColor('white');
+      assert.isTrue(stubRequestAnimationFrame.called);
+      assert.isTrue(app.element.classList.contains('light'));
+    });
   });
 });

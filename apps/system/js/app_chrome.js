@@ -25,7 +25,7 @@
     this.render();
 
     if (this.app.themeColor) {
-      this.element.style.backgroundColor = this.app.themeColor;
+      this.setThemeColor(this.app.themeColor);
     }
 
     if (!this.app.isBrowser() && this.app.name) {
@@ -40,6 +40,7 @@
 
     if (this.app.isBrowser()) {
       this.app.element.classList.add('browser');
+      this.app.element.classList.add('light');
     }
 
     if (chrome.navigation) {
@@ -493,8 +494,34 @@
         color = detail.content;
       }
 
-      this.element.style.backgroundColor = color;
+      this.setThemeColor(color);
     };
+
+  AppChrome.prototype.setThemeColor = function ac_setThemColor(color) {
+    this.element.style.backgroundColor = color;
+
+    if (color === 'transparent' || color === '') {
+      this.app.element.classList.remove('light');
+      return;
+    }
+
+    var self = this;
+    window.requestAnimationFrame(function updateAppColor() {
+      var computedColor = window.getComputedStyle(self.element).backgroundColor;
+      var colorCodes = /rgb\((\d+), (\d+), (\d+)\)/.exec(computedColor);
+      if (!colorCodes || colorCodes.length === 0) {
+        return;
+      }
+
+      var r = parseInt(colorCodes[1]);
+      var g = parseInt(colorCodes[2]);
+      var b = parseInt(colorCodes[3]);
+      var brightness =
+        Math.sqrt((r*r) * 0.241 + (g*g) * 0.691 + (b*b) * 0.068);
+
+      self.app.element.classList.toggle('light', brightness > 200);
+    });
+  };
 
   AppChrome.prototype.render = function() {
     this.publish('willrender');
