@@ -270,6 +270,38 @@ suite('FindMyDevice >', function() {
         {refreshAuthentication: 0}));
   });
 
+  test('setting an alarm releases a wakelock', function() {
+    var clock = this.sinon.useFakeTimers();
+    this.sinon.stub(FindMyDevice, 'endHighPriority');
+    FindMyDevice._scheduleAlarm('ping');
+    clock.tick();
+    sinon.assert.calledWith(FindMyDevice.endHighPriority, 'clientLogic');
+    clock.restore();
+  });
+
+  suite('set alarm on server interaction', function() {
+    var response = {t: {d: 60}};
+
+    setup(function() {
+      this.sinon.stub(FindMyDevice, '_processCommands');
+      this.sinon.stub(FindMyDevice, '_scheduleAlarm');
+    });
+
+    test('alarm is set on successful server response', function() {
+      FindMyDevice._enabled = true;
+      FindMyDevice._handleServerResponse(response);
+      sinon.assert.calledWith(FindMyDevice._processCommands, response);
+      sinon.assert.calledWith(FindMyDevice._scheduleAlarm, 'ping');
+    });
+
+    test('alarm is set on server response even when disabled', function() {
+      FindMyDevice._enabled = false;
+      FindMyDevice._handleServerResponse(response);
+      sinon.assert.notCalled(FindMyDevice._processCommands);
+      sinon.assert.calledWith(FindMyDevice._scheduleAlarm, 'ping');
+    });
+  });
+
   test('contact the server on alarm', function() {
     this.sinon.stub(FindMyDevice, '_contactServer');
     this.sinon.stub(FindMyDevice, '_refreshClientIDIfRegistered');
