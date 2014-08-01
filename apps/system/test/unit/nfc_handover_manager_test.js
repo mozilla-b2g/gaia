@@ -206,7 +206,7 @@ suite('Nfc Handover Manager Functions', function() {
 
       fileRequest = {
         session: '0da40690-518c-469b-8345-dc7875cf77eb',
-        blob: 'Lorem ipsum',
+        blob: { name: 'Lorem ipsum' },
         requestId: 'request-01'
       };
 
@@ -265,23 +265,44 @@ suite('Nfc Handover Manager Functions', function() {
 
     test('Aborts when getNFCPeer() fails during file send.', function() {
       fileRequest.sessionToken = fileRequest.session;
-      var stubGetPeer = this.sinon.stub(MockMozNfc, 'getNFCPeer').throws();
+      var stubGetPeer = this.sinon.stub(MockMozNfc, 'getNFCPeer', () => null);
       var spyNotify = this.sinon.spy(MockMozNfc, 'notifySendFileStatus');
+      var stubShowNotification = this.sinon.stub(NfcHandoverManager,
+                                                 '_showFailedNotification');
+      var stubRestoreBT = this.sinon.stub(NfcHandoverManager,
+                                          '_restoreBluetoothStatus');
+
       MockNavigatormozSetMessageHandler.mTrigger(
         'nfc-manager-send-file', fileRequest);
       assert.isTrue(stubGetPeer.calledOnce);
       assert.isTrue(spyNotify.calledOnce);
       assert.equal(spyNotify.firstCall.args[0], 1);
+      assert.isTrue(stubShowNotification
+                    .withArgs('transferFinished-sentFailed-title',
+                              fileRequest.blob.name)
+                    .calledOnce,
+                    'Notification not shown');
+      assert.isTrue(stubRestoreBT.calledOnce, 'BT status not restored');
     });
 
     test('Aborts when getNFCPeer() fails during file receive.', function() {
       var cps = NDEF.CPS_ACTIVE;
       var mac = '01:23:45:67:89:AB';
       var handoverRequest = NDEFUtils.encodeHandoverRequest(mac, cps);
-      var stubGetPeer = this.sinon.stub(MockMozNfc, 'getNFCPeer').throws();
+      var stubGetPeer = this.sinon.stub(MockMozNfc, 'getNFCPeer', () => null);
+      var stubShowNotification = this.sinon.stub(NfcHandoverManager,
+                                                 '_showFailedNotification');
+      var stubRestoreBT = this.sinon.stub(NfcHandoverManager,
+                                          '_restoreBluetoothStatus');
+
       NfcHandoverManager._handleHandoverRequest(handoverRequest);
       assert.isTrue(stubGetPeer.calledOnce);
       assert.isTrue(spySendNDEF.notCalled);
+      assert.isTrue(stubShowNotification
+                    .withArgs('transferFinished-receivedFailed-title')
+                    .calledOnce,
+                    'Notification not shown');
+      assert.isTrue(stubRestoreBT.calledOnce, 'BT status not restored');
     });
 
     test('Handover select results in file being transmitted over Bluetooth',
