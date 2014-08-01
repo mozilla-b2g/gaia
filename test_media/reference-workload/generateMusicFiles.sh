@@ -4,13 +4,13 @@ SCRIPT_DIR=$(cd $(dirname $0); pwd)
 
 if [ -z "$1" ]; then 
   echo "Must provide number of iterations"
-  exit
+  exit 1
 fi
 
 if ! type mid3v2 > /dev/null 2>&1; then
   echo "mid3v2 required to load music - install with |sudo apt-get install python-mutagen|"
   echo "No music loaded"
-  exit
+  exit 1
 fi
 
 ALBUM=1
@@ -24,19 +24,24 @@ mid3v2 -D ${SCRIPT_DIR}/${SONG_NAME}
 # We start with 1 track per album, and increment that up to 10, and then cycle between 5 and 10
 TRACKS_PER_ALBUM=1
 # REMOTE_DIR="/sdcard/Music"
-  REMOTE_DIR=
-  for dir in /sdcard /storage/sdcard0; do
-    if [ -n "$(adb shell "test -d $dir && echo found")" ]; then
-      REMOTE_DIR=$dir
-      break
-    fi
-  done
+REMOTE_DIR=
+for dir in /sdcard /storage/sdcard; do
+  if [ -n "$(adb shell "test -d $dir && echo found")" ]; then
+    REMOTE_DIR=$dir
+    break
+  fi
+done
+
+if [ -z "$REMOTE_DIR" ]; then
+  echo "Can't find remote dir" >&2
+  exit 1
+fi
 
 for i in `seq -f '%04g' 2 $1` ; do
   FILENAME=SONG_$i.mp3
 
-  mid3v2 -t "Song ${i}" -a "Artist ${ARTIST}" -A "Album ${ALBUM}" -T "${TRACK}" ${SCRIPT_DIR}/${SONG_NAME}
-  adb push ${SCRIPT_DIR}/${SONG_NAME} ${REMOTE_DIR}/Music/${FILENAME}
+  mid3v2 -t "Song ${i}" -a "Artist ${ARTIST}" -A "Album ${ALBUM}" -T "${TRACK}" ${SCRIPT_DIR}/${SONG_NAME} || exit 1
+  adb push ${SCRIPT_DIR}/${SONG_NAME} ${REMOTE_DIR}/Music/${FILENAME} || exit 1
 
   let TRACK=TRACK+1
   if [ ${TRACK} -gt ${TRACKS_PER_ALBUM} ]; then
@@ -51,4 +56,4 @@ for i in `seq -f '%04g' 2 $1` ; do
 done
 
 # remove all the ID3 tags from the song (again)
-mid3v2 -D ${SCRIPT_DIR}/${SONG_NAME}
+mid3v2 -D ${SCRIPT_DIR}/${SONG_NAME} || exit 1
