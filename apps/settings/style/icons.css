@@ -25,6 +25,16 @@ a.menu-item::after  {
   height: 100%;
   line-height: 6rem;
   color: #657073;
+  top: 0;
+}
+
+label > .menu-item::before {
+  left: 1.5rem;
+}
+
+label > .menu-item + small {
+  margin: 0 0 0 4rem;
+  padding: 0;
 }
 
 .menu-item-desc {
@@ -161,6 +171,11 @@ html[dir="rtl"] .menu-item-desc {
 html[dir="rtl"] .menu-item::before {
   left: auto;
   right: calc((2.5rem - 2.8rem) / 2);
+}
+
+html[dir="rtl"] label > .menu-item::before {
+  right: 1.5rem;
+  left: auto;
 }
 
 html[dir="rtl"] aside.pack-end {

@@ -29,8 +29,9 @@ define(function(require) {
           uninstallButton: panel.querySelector('.uninstall-app'),
           list: panel.querySelector('.permissionsListHeader + ul'),
           header: panel.querySelector('.permissionsListHeader'),
-          developerLink: panel.querySelector('.developer-infos > small > a'),
-          developerName: panel.querySelector('.developer-infos > a'),
+          developerLink: panel.querySelector('.developer-infos > a'),
+          developerName: panel.querySelector('.developer-infos > a > span'),
+          developerUrl: panel.querySelector('.developer-infos > a > small'),
           developerInfos: panel.querySelector('.developer-infos'),
           developerHeader: panel.querySelector('.developer-header'),
           detailTitle:

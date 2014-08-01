@@ -37,8 +37,10 @@ define(function(require) {
        * A Wi-Fi list item has the following HTML structure:
        *   <li>
        *     <aside class="pack-end wifi-icon level-[?] [secured]"></aside>
-       *     <small> Network Security </small>
-       *     <a> Network SSID </a>
+       *     <a>
+       *       <span> Network SSID </span>
+       *       <small> Network Security </small>
+       *     </a>
        *   </li>
        */
 
@@ -50,7 +52,7 @@ define(function(require) {
       icon.classList.add('level-' + level);
 
       // ssid
-      var ssid = document.createElement('a');
+      var ssid = document.createElement('span');
       ssid.textContent = network.ssid;
 
       // supported authentication methods
@@ -65,11 +67,14 @@ define(function(require) {
         small.setAttribute('data-l10n-id', 'securityOpen');
       }
 
+      var a = document.createElement('a');
+      a.appendChild(ssid);
+      a.appendChild(small);
+
       // create list item
       var li = document.createElement('li');
       li.appendChild(icon);
-      li.appendChild(small);
-      li.appendChild(ssid);
+      li.appendChild(a);
 
       // Show connection status
       icon.classList.add('wifi-signal');

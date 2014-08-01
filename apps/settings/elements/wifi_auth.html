@@ -12,12 +12,14 @@
     <div>
       <ul>
         <li>
-          <a data-l10n-id="security">security
+          <a>
+            <span data-l10n-id="security">security</span>
             <span data-security>WPA-PSK</span>
           </a>
         </li>
         <li>
-          <a data-l10n-id="signalStrength">signal strength
+          <a>
+            <span data-l10n-id="signalStrength">signal strength</span>
             <span data-signal>good</span>
           </a>
         </li>
@@ -48,12 +50,12 @@
           <input type="text" data-ignore name="identity" dir="auto" />
         </li>
         <li class="password">
+          <p data-l10n-id="wifi-auth-password">Password</p>
+          <input type="password" data-ignore name="password" maxlength="63" x-inputmode="verbatim" />
           <label class="pack-checkbox">
             <input type="checkbox" data-ignore name="show-pwd" id="pwd-auth">
             <span data-l10n-id="showPassword">show password</span>
           </label>
-          <p data-l10n-id="wifi-auth-password">Password</p>
-          <input type="password" data-ignore name="password" maxlength="63" x-inputmode="verbatim" />
         </li>
         <li class="server-certificate">
           <p data-l10n-id="server-certificate">Server certificate</p>

@@ -31,6 +31,7 @@
   padding-top: 0;
   padding-bottom: 0;
   height: 8rem;
+  display: block;
 }
 #sim-card-container .sim-card:last-child {
   border-bottom: 0;

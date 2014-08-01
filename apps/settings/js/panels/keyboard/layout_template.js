@@ -16,8 +16,8 @@ define(function(require) {
       container = document.createElement('li');
       span = document.createElement('span');
       small = document.createElement('small');
-      container.appendChild(small);
       container.appendChild(span);
+      container.appendChild(small);
     }
     var refreshName = function() {
       span.textContent = layout.name;

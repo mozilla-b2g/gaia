@@ -18,19 +18,14 @@ suite('app permission detail > ', function() {
     developerHeader: {
       hidden: false
     },
-    developerName: {
-      textContent: 'testDeveloperName',
-      dataset: {
-        href: 'developerNameHref'
-      }
-    },
     developerLink: {
-      href: 'testDeveloperLink',
-      hidden: false,
-      textContent: 'devloperText',
-      dataset: {
-        href: 'developerNameHref'
-      }
+      href: 'testDeveloperLink'
+    },
+    developerName: {
+      textContent: 'testDeveloperName'
+    },
+    developerUrl: {
+      textContent: 'testDeveloperLink'
     },
     list: {
       appendChild: function(item) {
@@ -171,26 +166,20 @@ suite('app permission detail > ', function() {
         false);
       assert.equal(permissionDetail._elements.developerHeader.hidden,
         false);
-      assert.equal(permissionDetail._elements.developerLink.hidden,
+      assert.equal(permissionDetail._elements.developerUrl.hidden,
         false);
-      assert.equal(permissionDetail._elements.developerName.dataset.href,
-        mock_app.manifest.developer.url);
       assert.equal(permissionDetail._elements.developerLink.href,
         mock_app.manifest.developer.url);
-      assert.equal(permissionDetail._elements.developerLink.dataset.href,
-        mock_app.manifest.developer.url);
-      assert.equal(permissionDetail._elements.developerLink.textContent,
+      assert.equal(permissionDetail._elements.developerUrl.textContent,
         mock_app.manifest.developer.url);
       assert.equal(permissionDetail._elements.header.hidden,
         false);
 
       mock_app.manifest.developer.url = null;
       permissionDetail.showAppDetails(mock_app);
-      assert.equal(permissionDetail._elements.developerName.dataset.href,
-        undefined);
       assert.equal(permissionDetail._elements.developerLink.href,
         undefined);
-      assert.equal(permissionDetail._elements.developerLink.hidden,
+      assert.equal(permissionDetail._elements.developerUrl.hidden,
         true);
 
       delete mock_app.manifest.developer;
