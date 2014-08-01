@@ -189,6 +189,10 @@ suite('dialer/keypad', function() {
         target: {
           dataset: {
             value: null
+          },
+          classList: {
+            add: function() {},
+            remove: function() {}
           }
         },
         stopPropagation: function() {},
@@ -204,6 +208,25 @@ suite('dialer/keypad', function() {
         subject.keyHandler(fakeEvent);
       }
       assert.equal(subject._phoneNumber, digits.substring(0, 50));
+    });
+
+    test('Adds active class to keys when pressed', function() {
+      var fakeEvent = {
+        target: document.createElement('div'),
+        stopPropagation: function() {},
+        type: null
+      };
+      fakeEvent.target.dataset.value = 1;
+
+      subject._phoneNumber = '';
+
+      assert.isFalse(fakeEvent.target.classList.contains('active'));
+      fakeEvent.type = 'touchstart';
+      subject.keyHandler(fakeEvent);
+      assert.isTrue(fakeEvent.target.classList.contains('active'));
+      fakeEvent.type = 'touchend';
+      subject.keyHandler(fakeEvent);
+      assert.isFalse(fakeEvent.target.classList.contains('active'));
     });
 
     test('FontSizeManager is invoked with the right parameters', function() {
@@ -380,6 +403,10 @@ suite('dialer/keypad', function() {
           target: {
             dataset: {
               value: null
+            },
+            classList: {
+              add: function() {},
+              remove: function() {}
             }
           },
           stopPropagation: function() {},

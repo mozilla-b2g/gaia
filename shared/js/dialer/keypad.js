@@ -66,6 +66,8 @@ DtmfTone.kShortToneLength = 120;
 
 var KeypadManager = {
 
+  kMaxDigits: 50,
+
   _phoneNumber: '',
   _onCall: false,
 
@@ -158,9 +160,10 @@ var KeypadManager = {
 
     var keyHandler = this.keyHandler.bind(this);
     this.keypad.addEventListener('touchstart', keyHandler, true);
-    this.keypad.addEventListener('touchend', keyHandler, true);
-
     this.keypad.addEventListener('touchmove', keyHandler, true);
+    this.keypad.addEventListener('touchend', keyHandler, true);
+    this.keypad.addEventListener('touchcancel', keyHandler, true);
+
     this.deleteButton.addEventListener('touchstart', keyHandler);
     this.deleteButton.addEventListener('touchend', keyHandler);
     // The keypad add contact bar is only included in the normal version of
@@ -508,7 +511,9 @@ var KeypadManager = {
     // If user input number more 50 digits, app shouldn't accept.
     // The limit only applies while not on a call - there is no
     // limit while on a call (bug 917630).
-    if (key != 'delete' && this._phoneNumber.length >= 50 && !this._onCall) {
+    if (key != 'delete' && this._phoneNumber.length >= this.kMaxDigits &&
+        !this._onCall) {
+      event.target.classList.remove('active');
       return;
     }
 
@@ -516,12 +521,15 @@ var KeypadManager = {
 
     switch (event.type) {
       case 'touchstart':
+        event.target.classList.add('active');
         this._touchStart(key, event.target.dataset.voicemail);
         break;
       case 'touchmove':
         this._touchMove(event.touches[0]);
         break;
       case 'touchend':
+      case 'touchcancel':
+        event.target.classList.remove('active');
         this._touchEnd(key);
         break;
     }
