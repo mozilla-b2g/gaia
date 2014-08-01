@@ -34,6 +34,16 @@ define(function(require) {
     };
   };
 
+  CameraUtils.isMatchingAspectRatio = function(targetSize, size) {
+    // Use a very small tolerance because we want an exact match.
+    const ASPECT_TOLERANCE = 0.001;
+
+    var targetRatio = targetSize.width / targetSize.height;
+    var ratio = size.width / size.height;
+
+    return Math.abs(ratio - targetRatio) <= ASPECT_TOLERANCE;
+  };
+
   /**
    * This implementation is loosely based around AOSP's
    * Camera.Util.getOptimalPreviewSize() method:
@@ -53,10 +63,6 @@ define(function(require) {
    */
   CameraUtils.getOptimalPreviewSize =
     function(previewSizes, targetSize, viewportSize) {
-
-      // Use a very small tolerance because we want an exact match.
-      const ASPECT_TOLERANCE = 0.001;
-      
       if (!previewSizes || previewSizes.length === 0) {
         return null;
       }
@@ -73,23 +79,21 @@ define(function(require) {
         targetHeight = screenHeight;
       }
 
-      var targetRatio = targetSize.width / targetSize.height;
-
       // Try to find an size match aspect ratio and size
       previewSizes.forEach(function(previewSize) {
-        var ratio = previewSize.width / previewSize.height;
-        var diff;
+        // Discard preview sizes that don't match the target aspect ratio.
+        if (!CameraUtils.isMatchingAspectRatio(targetSize, previewSize)) {
+          return;
+        }
 
-        if (Math.abs(ratio - targetRatio) <= ASPECT_TOLERANCE) {
-          // Use Math.sqrt() to err on the side of a slightly larger
-          // preview size in the event of a tie.
-          diff = Math.abs(
-            Math.sqrt(previewSize.height) - Math.sqrt(targetHeight));
+        // Use Math.sqrt() to err on the side of a slightly larger
+        // preview size in the event of a tie.
+        var diff = Math.abs(
+          Math.sqrt(previewSize.height) - Math.sqrt(targetHeight));
 
-          if (diff < minDiff) {
-            optimalSize = previewSize;
-            minDiff = diff;
-          }
+        if (diff < minDiff) {
+          optimalSize = previewSize;
+          minDiff = diff;
         }
       });
 

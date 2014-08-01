@@ -9,6 +9,7 @@ var formatRecorderProfiles = require('lib/format-recorder-profiles');
 var formatPictureSizes = require('lib/format-picture-sizes');
 var debug = require('debug')('controller:settings');
 var SettingsView = require('views/settings');
+var CameraUtils = require('lib/camera-utils');
 var bindAll = require('lib/bind-all');
 
 /**
@@ -221,13 +222,66 @@ SettingsController.prototype.onNewCamera = function(capabilities) {
   this.settings.flashModesPicture.filterOptions(capabilities.flashModes);
   this.settings.flashModesVideo.filterOptions(capabilities.flashModes);
 
-  this.configurePictureSizes(capabilities.pictureSizes);
-  this.configureRecorderProfiles(capabilities.recorderProfiles);
+  this.configurePictureSizes(capabilities.pictureSizes,
+    capabilities.previewSizes);
+  this.configureRecorderProfiles(capabilities.recorderProfiles,
+    capabilities.previewSizes);
 
   // Let the rest of the app know we're good to go.
   this.app.emit('settings:configured');
   debug('settings configured to new capabilities');
 };
+
+/**
+ * Filters array of picture sizes to only return
+ * those who have a corresponding preview size
+ * with a matching aspect ratio.
+ *
+ * @param  {Array} sizes
+ * @param  {Array} previewSizes
+ *
+ * @return {Array}
+ */
+SettingsController.prototype.filterPictureSizes =
+  function(sizes, previewSizes) {
+    return sizes.filter(function(size) {
+      for (var i = 0, length = previewSizes.length; i < length; i++) {
+        if (CameraUtils.isMatchingAspectRatio(size, previewSizes[i])) {
+          return true;
+        }
+      }
+
+      return false;
+    });
+  };
+
+/**
+ * Filters recorder profiles to only return
+ * those who have a corresponding preview size
+ * with a matching aspect ratio.
+ *
+ * @param  {Object} profiles
+ * @param  {Array} previewSizes
+ *
+ * @return {Array}
+ */
+SettingsController.prototype.filterRecorderProfiles =
+  function(profiles, previewSizes) {
+    var filteredProfiles = {};
+
+    for (var key in profiles) {
+      for (var i = 0, length = previewSizes.length; i < length; i++) {
+        var isMatch = CameraUtils.isMatchingAspectRatio(profiles[key].video,
+          previewSizes[i]);
+        if (isMatch) {
+          filteredProfiles[key] = profiles[key];
+          break;
+        }
+      }
+    }
+
+    return filteredProfiles;
+  };
 
 /**
  * Formats the raw pictureSizes into
@@ -237,21 +291,25 @@ SettingsController.prototype.onNewCamera = function(capabilities) {
  *
  * @param  {Array} sizes
  */
-SettingsController.prototype.configurePictureSizes = function(sizes) {
-  debug('configuring picture sizes');
-  var setting = this.settings.pictureSizes;
-  var maxPixelSize = window.CONFIG_MAX_IMAGE_PIXEL_SIZE;
-  var exclude = setting.get('exclude');
-  var options = {
-    exclude: exclude,
-    maxPixelSize: maxPixelSize
-  };
+SettingsController.prototype.configurePictureSizes =
+  function(sizes, previewSizes) {
+    debug('configuring picture sizes');
+    var setting = this.settings.pictureSizes;
+    var maxPixelSize = window.CONFIG_MAX_IMAGE_PIXEL_SIZE;
+    var exclude = setting.get('exclude');
+    var options = {
+      exclude: exclude,
+      maxPixelSize: maxPixelSize
+    };
 
-  var formatted = this.formatPictureSizes(sizes, options);
-  setting.resetOptions(formatted);
-  this.formatPictureSizeTitles();
-  debug('configured pictureSizes', setting.selected('key'));
-};
+    // Filter out picture sizes that don't have a preview size
+    // with a matching aspect ratio.
+    var filteredSizes = this.filterPictureSizes(sizes, previewSizes);
+    var formatted = this.formatPictureSizes(filteredSizes, options);
+    setting.resetOptions(formatted);
+    this.formatPictureSizeTitles();
+    debug('configured pictureSizes', setting.selected('key'));
+  };
 
 /**
  * Formats the raw recorderProfiles
@@ -261,19 +319,24 @@ SettingsController.prototype.configurePictureSizes = function(sizes) {
  *
  * @param  {Array} sizes
  */
-SettingsController.prototype.configureRecorderProfiles = function(sizes) {
-  var setting = this.settings.recorderProfiles;
-  var maxFileSize = setting.get('maxFileSizeBytes');
-  var exclude = setting.get('exclude');
-  var options = { exclude: exclude };
-  var formatted = this.formatRecorderProfiles(sizes, options);
+SettingsController.prototype.configureRecorderProfiles =
+  function(sizes, previewSizes) {
+    var setting = this.settings.recorderProfiles;
+    var maxFileSize = setting.get('maxFileSizeBytes');
+    var exclude = setting.get('exclude');
+    var options = { exclude: exclude };
 
-  // If a file size limit has been imposed,
-  // pick the lowest-res (last) profile only.
-  if (maxFileSize) { formatted = [formatted[formatted.length - 1]]; }
+    // Filter out recorder profiles that don't have a preview size
+    // with a matching aspect ratio.
+    var filteredSizes = this.filterRecorderProfiles(sizes, previewSizes);
+    var formatted = this.formatRecorderProfiles(filteredSizes, options);
 
-  setting.resetOptions(formatted);
-};
+    // If a file size limit has been imposed,
+    // pick the lowest-res (last) profile only.
+    if (maxFileSize) { formatted = [formatted[formatted.length - 1]]; }
+
+    setting.resetOptions(formatted);
+  };
 
 /**
  * Creates a localized `title` property
