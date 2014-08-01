@@ -4,6 +4,8 @@
 
 (function(exports) {
   'use strict';
+  var initialized;
+
   var allowButton, closeButton, verificationCodeButton,
       multistateButton, panelsContainer,
       verificationCodeInput, msisdnInput,
@@ -21,7 +23,7 @@
   var isTimeoutOver = false;
   var isManualMSISDN = false;
   var buttonCurrentStatus;
-  
+
   var appName, identity;
 
   var verificationInterval, verificationIntervalSteps = 0,
@@ -128,7 +130,7 @@
     element.classList.add('error');
   }
 
-  function _fillCountryCodesList() {
+  function _fillCountryCodesList(callback) {
     var xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function fileLoaded() {
       if (xhr.readyState === 4) {
@@ -157,12 +159,23 @@
           });
 
           countryCodesSelect.appendChild(ccFragment);
+
+          // Once we have the country code list we can default to the current
+          // MCC if available.
+          var conn = window.navigator.mozMobileConnections ?
+                     window.navigator.mozMobileConnections[0] : null;
+          if (conn && conn.voice && conn.voice.network) {
+            countryCodesSelect.value = conn.voice.network.mcc;
+            legend.innerHTML = countryCodes[countryCodesSelect.value].prefix;
+          }
+          callback();
         } else {
           console.error('Failed to fetch file: ', xhr.statusText);
+          callback();
         }
       }
     };
-    xhr.open('GET', ' resources/mcc.json', true);
+    xhr.open('GET', ' /shared/resources/mcc.json', true);
     xhr.responseType = 'json';
     xhr.send();
   }
@@ -236,8 +249,116 @@
     _setPanelsStep('done');
   }
 
+  function _addEventListeners() {
+    closeButton.addEventListener(
+      'click',
+      function onClose() {
+        Controller.postCloseAction(isVerified);
+      }
+    );
+
+    typeMSISDNButton.addEventListener(
+      'click',
+      function onManualMSISDN() {
+        _msisdnContainerTranslate(1);
+      }
+    );
+
+    selectAutomaticOptionsButton.addEventListener(
+      'click',
+      function onAutomaticMSISDN() {
+        _msisdnContainerTranslate(0);
+      }
+    );
+
+    allowButton.addEventListener(
+      'click',
+      function onAllow() {
+        // Send to controller the identity selected
+        identity = _getIdentitySelected();
+        // Check if is a valid identity
+        if (identity.mcc &&
+            (!identity.phoneNumber ||
+             isNaN(identity.phoneNumber)
+            )) {
+          _fieldErrorDance(msisdnInput);
+          return;
+        }
+        // Disable to avoid any action while requesting the server
+        _disablePanel('msisdn');
+        // Update the status of the button
+        _setMultibuttonStep('sending');
+        // Post identity
+        Controller.postIdentity(identity);
+      }
+    );
+
+    verificationCodeButton.addEventListener(
+      'click',
+      function onVerify() {
+        // In the case is not verified yet
+        if (!isVerified) {
+          // Was the tap done in the 'resend'?
+          if (verificationCodeButton.classList.contains('state-resend')) {
+            Controller.requestCode();
+            verificationCodeInput.value = '';
+            // Disable the panel
+            _enablePanel('verification');
+            // We udpate the button
+            _setMultibuttonStep('verify');
+            // As we are resending, we reset the conditions
+            isVerifying = false;
+            isTimeoutOver = false;
+          } else {
+            var code = _getCode();
+            if (!code.length || isNaN(code) || code.length < 6) {
+              _fieldErrorDance(verificationCodeInput);
+              return;
+            }
+            // If we are in the proccess of verifying, we need
+            // first to send the code to the server
+            Controller.postVerificationCode(_getCode());
+            // Disable the panel
+            _disablePanel('verification');
+            // We udpate the button
+            _setMultibuttonStep('verifying');
+            // As we are verifying, we udpate the flag
+            isVerifying = true;
+          }
+          return;
+        }
+        // If the identity posted to the server and/or the verification
+        // code is accepted, we are ready to close the flow.
+        Controller.postCloseAction(isVerified);
+      }
+    );
+
+    countryCodesSelect.addEventListener(
+      'blur',
+      function onSelectBlur() {
+        countryCodesSelect.hidden = true;
+        legend.innerHTML = countryCodes[countryCodesSelect.value].prefix;
+        return;
+      }
+    );
+
+    legendParent.addEventListener(
+      'click',
+      function onLegendClick() {
+        countryCodesSelect.click();
+        countryCodesSelect.focus();
+        countryCodesSelect.hidden = false;
+        return;
+      }
+    );
+  }
+
   var UI = {
     init: function ui_init(params) {
+      var callback = params && params.callback ?
+                     params.callback :
+                     function() {};
+
       allowButton = document.getElementById('allow-button');
       closeButton = document.getElementById('close-button');
       verificationCodeButton = document.getElementById('verify-button');
@@ -264,111 +385,19 @@
         document.getElementById('verification-code-explanation');
       successExplanation =
         document.getElementById('success-explanation');
-      
+
       // Fill the country code list
-      _fillCountryCodesList();
-
-      closeButton.addEventListener(
-        'click',
-        function onClose() {
-          Controller.postCloseAction(isVerified);
-        }
-      );
-
-      typeMSISDNButton.addEventListener(
-        'click',
-        function onManualMSISDN() {
-          _msisdnContainerTranslate(1);
-        }
-      );
-
-      selectAutomaticOptionsButton.addEventListener(
-        'click',
-        function onAutomaticMSISDN() {
-          _msisdnContainerTranslate(0);
-        }
-      );
-
-      allowButton.addEventListener(
-        'click',
-        function onAllow() {
-          // Send to controller the identity selected
-          identity = _getIdentitySelected();
-          // Check if is a valid identity
-          if (identity.mcc &&
-              (!identity.phoneNumber ||
-               isNaN(identity.phoneNumber)
-              )) {
-            _fieldErrorDance(msisdnInput);
-            return;
-          }
-          // Disable to avoid any action while requesting the server
-          _disablePanel('msisdn');
-          // Update the status of the button
-          _setMultibuttonStep('sending');
-          // Post identity
-          Controller.postIdentity(identity);
-        }
-      );
-
-      verificationCodeButton.addEventListener(
-        'click',
-        function onVerify() {
-          // In the case is not verified yet
-          if (!isVerified) {
-            // Was the tap done in the 'resend'?
-            if (verificationCodeButton.classList.contains('state-resend')) {
-              Controller.requestCode();
-              verificationCodeInput.value = '';
-              // Disable the panel
-              _enablePanel('verification');
-              // We udpate the button
-              _setMultibuttonStep('verify');
-              // As we are resending, we reset the conditions
-              isVerifying = false;
-              isTimeoutOver = false;
-            } else {
-              var code = _getCode();
-              if (!code.length || isNaN(code) || code.length < 6) {
-                _fieldErrorDance(verificationCodeInput);
-                return;
-              }
-              // If we are in the proccess of verifying, we need
-              // first to send the code to the server
-              Controller.postVerificationCode(_getCode());
-              // Disable the panel
-              _disablePanel('verification');
-              // We udpate the button
-              _setMultibuttonStep('verifying');
-              // As we are verifying, we udpate the flag
-              isVerifying = true;
-            }
-            return;
-          }
-          // If the identity posted to the server and/or the verification
-          // code is accepted, we are ready to close the flow.
-          Controller.postCloseAction(isVerified);
-        }.bind(this)
-      );
-
-      countryCodesSelect.addEventListener(
-        'blur',
-        function onSelectBlur() {
-          countryCodesSelect.hidden = true;
-          legend.innerHTML = countryCodes[countryCodesSelect.value].prefix;
+      _fillCountryCodesList(function() {
+        // Avoid adding duplicated listeners if init is called more than once.
+        if (initialized) {
+          callback();
           return;
         }
-      );
+        initialized = true;
+        _addEventListeners();
+        callback();
+      });
 
-      legendParent.addEventListener(
-        'click',
-        function onLegendClick() {
-          countryCodesSelect.click();
-          countryCodesSelect.focus();
-          countryCodesSelect.hidden = false;
-          return;
-        }
-      );
     },
     localize: function ui_localize(name) {
       // Cache the name of the app
@@ -463,7 +492,7 @@
       } else {
         _showVerificationPanel(phoneNumber);
       }
-      
+
     },
     onVerificationCode: function ui_onVerificationCode(params) {
       isVerificationCode = true;
@@ -481,7 +510,7 @@
           phone_number: identity.phoneNumber
         }
       );
-     
+
       // Timer UI
 
       // Update the params we need

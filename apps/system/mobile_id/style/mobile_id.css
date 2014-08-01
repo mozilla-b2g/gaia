@@ -17,7 +17,6 @@ section[role="region"] {
 button::-moz-focus-inner,
 input::-moz-focus-inner {
   border: 0;
-  border: 0; 
 }
 
 .disabled {
@@ -48,7 +47,6 @@ input::-moz-focus-inner {
 
   transition: all .3s ease;
   
-  background: none;
   border: none;
   text-decoration: none;
   outline: none;
@@ -242,7 +240,6 @@ ul.phone-options-list li input {
 ul.phone-options-list li span.icon {
   width: 3rem;
   height: 3rem;
-  display: inline-block;
   float: left;
   margin-top: 1rem;
   margin-right: 1rem;
@@ -346,7 +343,6 @@ ul.msisdn-form li:last-child{
   width: calc(100% - 7.3rem);
 }
 
-
 .button-select-wrapper {
   width: 7rem !important;
   padding: 0 !important;
@@ -435,4 +431,6 @@ input.error {
 #legend {
   text-align: center;
   display: block;
+  padding-top: 0.8rem;
+  padding-left: 1.3rem;
 }
