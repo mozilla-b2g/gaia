@@ -98,7 +98,7 @@ var FxaPanel = (function fxa_panel() {
   }
 
   function showLoggedInPanel(email) {
-    navigator.mozL10n.localize(loggedInEmail, 'fxa-logged-in-text', {
+    navigator.mozL10n.setAttributes(loggedInEmail, 'fxa-logged-in-text', {
       email: email
     });
     loggedInPanel.hidden = false;
@@ -117,7 +117,7 @@ var FxaPanel = (function fxa_panel() {
   function showUnverifiedPanel(email) {
     unverifiedPanel.hidden = false;
     cancelBtn.onclick = onLogoutClick;
-    navigator.mozL10n.localize(
+    navigator.mozL10n.setAttributes(
       unverifiedEmail,
       'fxa-verification-email-sent-msg',
       {email: email}

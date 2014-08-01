@@ -185,9 +185,8 @@ var Hotspot = {
     // Localize WiFi security type string when setting changes
     SettingsListener.observe('tethering.wifi.security.type', 'wpa-psk',
       function(value) {
-        var l10n = navigator.mozL10n;
         var wifiSecurityType = document.getElementById('wifi-security-type');
-        l10n.localize(wifiSecurityType, 'hotspot-' + value);
+        wifiSecurityType.setAttribute('data-l10n-id', 'hotspot-' + value);
       }
     );
   }

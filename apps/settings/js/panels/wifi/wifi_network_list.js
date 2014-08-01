@@ -7,7 +7,6 @@ define(function(require) {
   var WifiHelper = require('shared/wifi_helper');
   var WifiContext = require('modules/wifi_context');
   var wifiManager = WifiHelper.getWifiManager();
-  var _ = navigator.mozL10n.get;
 
   var WifiNetworkList = function(elements) {
     var list = elements.wifiAvailableNetworks;
@@ -50,15 +49,15 @@ define(function(require) {
 
         if (active && active != listItem) {
           active.classList.remove('active');
-          active.querySelector('small').textContent =
-            _('shortStatus-disconnected');
+          active.querySelector('small').
+            setAttribute('data-l10n-id', 'shortStatus-disconnected');
           active.querySelector('aside').classList.remove('connecting');
           active.querySelector('aside').classList.remove('connected');
         }
         if (listItem) {
           listItem.classList.add('active');
-          listItem.querySelector('small').textContent =
-            _('shortStatus-' + networkStatus);
+          listItem.querySelector('small').
+            setAttribute('data-l10n-id', 'shortStatus-' + networkStatus);
           if (networkStatus === 'connecting') {
             listItem.querySelector('aside').classList.add('connecting');
           }

@@ -159,21 +159,24 @@ suite('about >', function() {
         MockNavigatorSettings.mTriggerObservers(geckoUpdateSetting, {
           settingValue: 'no-updates'
         });
-        assert.equal(systemStatus.textContent, 'no-updates');
+        assert.equal(systemStatus.getAttribute('data-l10n-id'),
+                                               'no-updates');
       });
 
       test('already-latest-version', function() {
         MockNavigatorSettings.mTriggerObservers(geckoUpdateSetting, {
           settingValue: 'already-latest-version'
         });
-        assert.equal(systemStatus.textContent, 'already-latest-version');
+        assert.equal(systemStatus.getAttribute('data-l10n-id'),
+                                               'already-latest-version');
       });
 
       test('retry-when-online', function() {
         MockNavigatorSettings.mTriggerObservers(geckoUpdateSetting, {
           settingValue: 'retry-when-online'
         });
-        assert.equal(systemStatus.textContent, 'retry-when-online');
+        assert.equal(systemStatus.getAttribute('data-l10n-id'),
+                                               'retry-when-online');
       });
 
       test('check-error', function() {
@@ -184,7 +187,8 @@ suite('about >', function() {
           MockNavigatorSettings.mTriggerObservers(geckoUpdateSetting, {
             settingValue: errors[i]
           });
-          assert.equal(systemStatus.textContent, errors[i]);
+          assert.equal(systemStatus.getAttribute('data-l10n-id'),
+                       'check-error');
         }
       });
     });
@@ -295,11 +299,11 @@ suite('about >', function() {
       test('should show unknown phone number when no msisdn and mdn',
         function() {
           MockNavigatorMozIccManager.getIccById(iccIds[0]).iccInfo = {};
-          sandbox.spy(MockL10n, 'localize');
+          sandbox.spy(MockL10n, 'setAttributes');
           About.loadHardwareInfo();
           var span =
             deviceInfoPhoneNum.querySelector('#deviceInfo-msisdns span');
-          sinon.assert.calledWith(MockL10n.localize, span,
+          sinon.assert.calledWith(MockL10n.setAttributes, span,
             'unknown-phoneNumber');
       });
 
@@ -350,15 +354,15 @@ suite('about >', function() {
         function() {
           MockNavigatorMozIccManager.getIccById(iccIds[0]).iccInfo = {};
           MockNavigatorMozIccManager.getIccById(iccIds[1]).iccInfo = {};
-          sandbox.spy(MockL10n, 'localize');
+          sandbox.spy(MockL10n, 'setAttributes');
           About.loadHardwareInfo();
           var spans =
             deviceInfoPhoneNum.querySelectorAll('#deviceInfo-msisdns span');
 
-          assert.deepEqual(MockL10n.localize.args[0], [
+          assert.deepEqual(MockL10n.setAttributes.args[0], [
             spans[0], 'unknown-phoneNumber-sim', { index: 1 }
           ]);
-          assert.deepEqual(MockL10n.localize.args[1], [
+          assert.deepEqual(MockL10n.setAttributes.args[1], [
             spans[1], 'unknown-phoneNumber-sim', { index: 2 }
           ]);
       });

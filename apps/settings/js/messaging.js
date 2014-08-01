@@ -107,7 +107,7 @@ var Messaging = (function(window, document, undefined) {
       holder.textContent = this.result.split(',')[0].replace(/"/g, '');
     };
     request.onerror = function() {
-      navigator.l10n.localize(holder, 'unknownSMSC');
+      holder.setAttribute('data-l10n-id', 'unknownSMSC');
       console.error('Unable to retrieve SMSC number');
     };
    }

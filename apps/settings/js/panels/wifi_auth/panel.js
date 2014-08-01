@@ -4,7 +4,6 @@ define(function(require) {
   var SettingsPanel = require('modules/settings_panel');
   var WifiUtils = require('modules/wifi_utils');
   var WifiContext = require('modules/wifi_context');
-  var _ = navigator.mozL10n.get;
 
   return function ctor_wifiAuth() {
     var elements = {};
@@ -29,8 +28,14 @@ define(function(require) {
 
         panel.dataset.security = options.security;
         elements.ssid.textContent = network.ssid;
-        elements.signal.textContent = _('signalLevel' + options.sl);
-        elements.security.textContent = options.security || _('securityNone');
+        elements.signal.setAttribute('data-l10n-id',
+                                     'signalLevel' + options.sl);
+        if (options.security) {
+          elements.security.removeAttribute('data-l10n-id');
+          elements.security.textContent = options.security;
+        } else {
+          elements.security.setAttribute('data-l10n-id', 'securityNone');
+        }
       },
       onBeforeHide: function() {
         WifiContext.authOptions.password = elements.password.value;

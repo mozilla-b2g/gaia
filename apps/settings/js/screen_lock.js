@@ -30,12 +30,11 @@ require([
     },
 
     _watchChanges: function() {
-      var localize = navigator.mozL10n.localize;
-
       // reflect UI changes on screenLock-Desc
       SettingsListener.observe('lockscreen.enabled', false,
         function onLockscreenEnabledChange(enabled) {
-          localize(this.screenLockDesc, enabled ? 'enabled' : 'disabled');
+          this.screenLockDesc.setAttribute('data-l10n-id',
+                                           enabled ? 'enabled' : 'disabled');
       }.bind(this));
     }
   };
