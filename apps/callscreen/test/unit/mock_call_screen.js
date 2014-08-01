@@ -107,7 +107,6 @@ var MockCallScreen = {
   incomingContainer: document.createElement('div'),
   incomingInfo: document.createElement('div'),
   incomingNumber: document.createElement('div'),
-  fakeIncomingNumber: document.createElement('div'),
   incomingSim: document.createElement('div'),
   incomingNumberAdditionalInfo: document.createElement('span'),
 
@@ -135,7 +134,6 @@ var MockCallScreen = {
     this.incomingContainer = document.createElement('div');
     this.incomingInfo = document.createElement('div');
     this.incomingNumber = document.createElement('div');
-    this.fakeIncomingNumber = document.createElement('div');
     this.incomingNumberAdditionalInfo = document.createElement('span');
     this.mGroupDetailsShown = false;
     this.mRemoveCallCalled = false;

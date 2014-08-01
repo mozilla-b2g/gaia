@@ -12,5 +12,6 @@ var MockFontSizeManager = {
   STATUS_BAR: 3,
   SECOND_INCOMING_CALL: 4,
 
-  adaptToSpace: function() {}
+  adaptToSpace: function() {},
+  ensureFixedBaseline: function() {}
 };

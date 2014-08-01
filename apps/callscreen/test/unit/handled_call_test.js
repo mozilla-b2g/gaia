@@ -507,8 +507,8 @@ suite('dialer/handled_call', function() {
     });
 
     test('AudioCompetingHelper leaveCompetition gets called when held',
-      function() {
-	sinon.assert.called(AudioCompetingHelper.leaveCompetition);
+    function() {
+      sinon.assert.called(AudioCompetingHelper.leaveCompetition);
     });
   });
 
@@ -698,8 +698,27 @@ suite('dialer/handled_call', function() {
       subject.formatPhoneNumber('end');
       sinon.assert.calledWith(
         FontSizeManager.adaptToSpace, MockCallScreen.mScenario,
-        subject.numberNode, subject.node.querySelector('.fake-number'),
-        false, 'end');
+        subject.numberNode, false, 'end');
+    });
+
+    test('should ensureFixedBaseline with a contact', function() {
+      mockCall = new MockCall('888', 'dialing');
+      subject = new HandledCall(mockCall);
+      this.sinon.spy(FontSizeManager, 'ensureFixedBaseline');
+      subject.formatPhoneNumber('end');
+      sinon.assert.calledWith(
+        FontSizeManager.ensureFixedBaseline,
+        MockCallScreen.mScenario,
+        subject.numberNode
+      );
+    });
+
+    test('should not ensureFixedBaseline without a contact', function() {
+      mockCall = new MockCall('111', 'dialing');
+      subject = new HandledCall(mockCall);
+      this.sinon.spy(FontSizeManager, 'ensureFixedBaseline');
+      subject.formatPhoneNumber('end');
+      sinon.assert.notCalled(FontSizeManager.ensureFixedBaseline);
     });
 
     test('check replace number', function() {

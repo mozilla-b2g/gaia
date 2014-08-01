@@ -45,7 +45,6 @@ var CallScreen = {
   incomingContainer: document.getElementById('incoming-container'),
   incomingInfo: document.getElementById('incoming-info'),
   incomingNumber: document.getElementById('incoming-number'),
-  fakeIncomingNumber: document.getElementById('fake-incoming-number'),
   incomingSim: document.getElementById('incoming-sim'),
   incomingNumberAdditionalInfo:
     document.getElementById('incoming-number-additional-info'),
@@ -640,11 +639,10 @@ var CallScreen = {
     var scenario;
     if (this.inStatusBarMode) {
       scenario = FontSizeManager.STATUS_BAR;
-    } else if (this.calls.querySelectorAll(
-      'section:not([hidden])').length > 1) {
-      scenario = FontSizeManager.CALL_WAITING;
-    } else {
+    } else if (this.calls.classList.contains('single-line')) {
       scenario = FontSizeManager.SINGLE_CALL;
+    } else {
+      scenario = FontSizeManager.CALL_WAITING;
     }
     return scenario;
   }
