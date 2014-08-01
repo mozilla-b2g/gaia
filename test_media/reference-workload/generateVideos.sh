@@ -4,19 +4,23 @@ SCRIPT_DIR=$(cd $(dirname $0); pwd)
 
 if [ -z "$1" ]; then 
   echo Must provide number of iterations
-  exit
+  exit 1
 fi
 
 if [ "$1" != "0" ]; then
 # REMOTE_DIR="/sdcard/Movies"
   REMOTE_DIR=
-  for dir in /sdcard /storage/sdcard0; do
+  for dir in /sdcard /storage/sdcard; do
     if [ -n "$(adb shell "test -d $dir && echo found")" ]; then
       REMOTE_DIR=$dir
       break
     fi
   done
-  adb push ${SCRIPT_DIR}/MasterVideo.3gp ${REMOTE_DIR}/Movies/VID_0001.3gp
+  if [ -z "$REMOTE_DIR" ]; then
+    echo "Can't find remote dir" >&2
+    exit 1
+  fi
+  adb push ${SCRIPT_DIR}/MasterVideo.3gp ${REMOTE_DIR}/Movies/VID_0001.3gp || exit 1
 
   for i in `seq -f '%04g' 2 $1` ; do
     FILENAME=VID_$i.3gp
