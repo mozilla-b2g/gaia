@@ -565,3 +565,364 @@ suite('NfcBuffer', function() {
     }, Error);
   });
 });
+
+suite('NDEF.payload', function() {
+  mocksForNfcUtils.attachTestHelpers();
+
+  suite('decode()', function() {
+    test('TNF empty', function() {
+      var decoded = NDEF.payload.decode(NDEF.TNF_EMPTY, undefined, undefined);
+      assert.deepEqual(decoded, {type: 'empty'});
+    });
+
+    test('TNF well known', function() {
+      var stubDecodeWellKnown = this.sinon.stub(NDEF.payload,
+                                                'decodeWellKnown');
+      NDEF.payload.decode(NDEF.TNF_WELL_KNOWN, NDEF.RTD_URI, 'payload');
+      assert.isTrue(stubDecodeWellKnown.withArgs(NDEF.RTD_URI, 'payload')
+                                       .calledOnce);
+    });
+
+    test('TNF mime media-type', function() {
+      // text/plain
+      var type = new Uint8Array([0x74, 0x65, 0x78, 0x74,
+                                 0x2F, 0x70, 0x6C, 0x61,
+                                 0x69, 0x6E]);
+      // What up?!
+      var payload = new Uint8Array([0x57, 0x68, 0x61, 0x74,
+                                    0x20, 0x75, 0x70, 0x3F,
+                                    0x21]);
+
+      var stubDecodeMIME = this.sinon.stub(NDEF.payload, 'decodeMIME');
+
+      NDEF.payload.decode(NDEF.TNF_MIME_MEDIA, type, payload);
+      assert.isTrue(stubDecodeMIME.withArgs(type, payload).calledOnce);
+    });
+
+    test('TNF absolute uri', function() {
+      // TNF_ABSOLUTE_URI has uri in the type
+      var type = new Uint8Array([0x68, 0x74, 0x74, 0x70,
+                                 0x3A, 0x2F, 0x2F, 0x6D,
+                                 0x6F, 0x7A, 0x69, 0x6C,
+                                 0x6C, 0x61, 0x2E, 0x6F,
+                                 0x72, 0x67]);
+
+      var decoded = NDEF.payload.decode(NDEF.TNF_ABSOLUTE_URI, type, null);
+      assert.deepEqual(decoded, { type: 'http://mozilla.org' });
+    });
+
+    test('TNF external type', function() {
+      var type = new Uint8Array([0x6D, 0x6F, 0x7A, 0x69,
+                                 0x6C, 0x6C, 0x61, 0x2E,
+                                 0x6F, 0x72, 0x67, 0x3A,
+                                 0x62, 0x75, 0x67]);
+
+      var decoded = NDEF.payload.decode(NDEF.TNF_EXTERNAL_TYPE, type, null);
+      assert.deepEqual(decoded, { type: 'mozilla.org:bug' });
+    });
+
+    test('TNF unknown, reserved', function() {
+      var decUnknown = NDEF.payload.decode(NDEF.TNF_UNKNOWN, null, 'data1');
+      var decReserved = NDEF.payload.decode(NDEF.TNF_RESERVED, null, 'data2');
+      assert.deepEqual(decUnknown, decReserved, 'should be decoded the same');
+      assert.deepEqual(decUnknown, {}, 'should be empty initialized object');
+    });
+
+    test('TNF unchanged', function() {
+      var decoded = NDEF.payload.decode(NDEF.TNF_UNCHANGED, null, 'data');
+      assert.equal(decoded, null);
+    });
+  }),
+
+  suite('decodeWellKnown()', function() {
+    test('RTD Text', function() {
+      var stubDecodeText = this.sinon.stub(NDEF.payload, 'decodeText');
+
+      NDEF.payload.decodeWellKnown(NDEF.RTD_TEXT, 'payload');
+      assert.isTrue(stubDecodeText.withArgs('payload').calledOnce);
+    });
+
+    test('RTD URI', function() {
+      var stubDecodeURI = this.sinon.stub(NDEF.payload, 'decodeURI');
+
+      NDEF.payload.decodeWellKnown(NDEF.RTD_URI, 'payload');
+      assert.isTrue(stubDecodeURI.withArgs('payload').calledOnce);
+    });
+
+    test('RTD Smart Poster', function() {
+      var stubDecodeSmartPoster = this.sinon.stub(NDEF.payload,
+                                                  'decodeSmartPoster');
+
+      NDEF.payload.decodeWellKnown(NDEF.RTD_SMART_POSTER, 'payload');
+      assert.isTrue(stubDecodeSmartPoster.withArgs('payload').calledOnce);
+    });
+
+    test('Wrong RTD', function() {
+      var decoded = NDEF.payload.decodeWellKnown('fake', 'payload');
+      assert.equal(decoded, null);
+    });
+  }),
+
+  suite('decodeText()', function() {
+    test('UTF-8 en', function() {
+      var payload = new Uint8Array([0x02, 0x65, 0x6E, 0x48,
+                                    0x65, 0x79, 0x21, 0x20,
+                                    0x55, 0x54, 0x46, 0x2D,
+                                    0x38, 0x20, 0x65, 0x6E]);
+
+      var decoded = NDEF.payload.decodeText(payload);
+      assert.deepEqual(decoded, {
+        type: 'text',
+        text: 'Hey! UTF-8 en',
+        language: 'en',
+        encoding: 'UTF-8'
+      });
+    });
+
+    test('UTF-16 en', function() {
+      var payload = Uint8Array([0x82, 0x65, 0x6E, 0xFF,
+                                0xFE, 0x48, 0x00, 0x6F,
+                                0x00, 0x21, 0x00, 0x20,
+                                0x00, 0x55, 0x00, 0x54,
+                                0x00, 0x46, 0x00, 0x2D,
+                                0x00, 0x31, 0x00, 0x36,
+                                0x00, 0x20, 0x00, 0x65,
+                                0x00, 0x6E, 0x00]);
+
+      var decoded = NDEF.payload.decodeText(payload);
+      assert.deepEqual(decoded, {
+        type: 'text',
+        text: 'Ho! UTF-16 en',
+        language: 'en',
+        encoding: 'UTF-16'
+      });
+    });
+  }),
+
+  suite('decodeURI()', function() {
+    test('https://', function() {
+      var payload = new Uint8Array([0x04, 0x77, 0x69, 0x6B,
+                                    0x69, 0x2E, 0x6D, 0x6F,
+                                    0x7A, 0x69, 0x6C, 0x6C,
+                                    0x61, 0x2E, 0x6F, 0x72,
+                                    0x67]);
+
+      var decoded = NDEF.payload.decodeURI(payload);
+      assert.deepEqual(decoded, {
+        type: 'uri',
+        uri: 'https://wiki.mozilla.org'
+      });
+    });
+
+    test('mailto:', function() {
+      // \u0006 is short for mailto:
+      var payload = NfcUtils.fromUTF8('\u0006jorge@borges.ar');
+
+      var decoded = NDEF.payload.decodeURI(payload);
+      assert.deepEqual(decoded, {
+        type: 'uri',
+        uri: 'mailto:jorge@borges.ar'
+      });
+    });
+
+    test('tel:', function() {
+      // \u0005 is short for tel:
+      var payload = NfcUtils.fromUTF8('\u00050054267437');
+
+      var decoded = NDEF.payload.decodeURI(payload);
+      assert.deepEqual(decoded, {
+        type: 'uri',
+        uri: 'tel:0054267437'
+      });
+    });
+
+    test('unabbreviated', function() {
+      var payload = NfcUtils.fromUTF8('\u0000http://mozilla.com');
+
+      var decoded = NDEF.payload.decodeURI(payload);
+      assert.deepEqual(decoded, {
+        type: 'uri',
+        uri: 'http://mozilla.com'
+      });
+    });
+  }),
+
+  suite('decodeSmartPoster()', function() {
+    /**
+     * Constructs a NDEF message with one record. This record
+     * is a smart poster, so it contains multiple subrecords
+     * in the payload, encoded as bytes.
+     *
+     * Accepts 3*N arguments, where:
+     *  3*(N + 0) argument - TNF of the record
+     *  3*(N + 1) argument - type given as string
+     *  3*(N + 2) argument - payload, given as Uint8Array
+     */
+    var makePoster = function() {
+      var records = [];
+      for (var arg = 0; arg < arguments.length; arg += 3) {
+        records.push({
+          tnf: arguments[arg],
+          type: NfcUtils.fromUTF8(arguments[arg + 1]),
+          payload: arguments[arg + 2],
+          id: new Uint8Array()
+        });
+      }
+
+      var payload = NfcUtils.encodeNDEF(records);
+      return [{
+        tnf: NDEF.TNF_WELL_KNOWN,
+        type: NDEF.RTD_SMART_POSTER,
+        id: new Uint8Array(),
+        payload: new Uint8Array(payload)
+      }];
+    };
+
+    var recordURI,
+        recordTextEnglish,
+        recordTextPolish,
+        recordAction,
+        recordIcon;
+
+    setup(function() {
+      // URI "http://www.youtube.com" with abbreviation
+      // for "http://www."
+      recordURI = [
+        0x01,  // Payload: abbreviation
+        0x79, 0x6F, 0x75, 0x74, // 'yout'
+        0x75, 0x62, 0x65, 0x2E, // 'ube.'
+        0x63, 0x6F, 0x6D        // 'com'
+      ];
+
+      // Text record with contents: "Best page ever!  q#@"
+      // and language code: "en"
+      recordTextEnglish = [
+        0x02,  // Status byte: UTF-8, two byte lang code
+        0x65, 0x6E, // ISO language code: 'en'
+        0x42, 0x65, 0x73, 0x74, // 'Best'
+        0x20, 0x70, 0x61, 0x67, // ' pag'
+        0x65, 0x20, 0x65, 0x76, // 'e ev'
+        0x65, 0x72, 0x21, 0x20, // 'er! '
+        0x20, 0x71, 0x23, 0x40  // ' q#@'
+      ];
+
+      // Text record with contents: "ąćńó"
+      // and language code: "pl"
+      recordTextPolish = [
+       0x02,  // Status byte: UTF-8, two byte lang code
+       0x70, 0x6C, // ISO language code: 'pl'
+       0xC4, 0x85, 0xC4, 0x87, // 'ąć'
+       0xC5, 0x84, 0xC3, 0xB3  // 'ńó'
+      ];
+
+      // Action record with action = 0
+      recordAction = [0x00];
+
+      // Icon record with simple 4x4 PNG image.
+      recordIcon = [
+        0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+        0x00, 0x00, 0x00, 0x0d, 0x49, 0x48, 0x44, 0x52,
+        0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x04,
+        0x08, 0x02, 0x00, 0x00, 0x00, 0x26, 0x93, 0x09,
+        0x29, 0x00, 0x00, 0x00, 0x1b, 0x49, 0x44, 0x41,
+        0x54, 0x08, 0xd7, 0x63, 0xf8, 0xff, 0xff, 0x3f,
+        0x03, 0x0c, 0x30, 0xc2, 0x39, 0x8c, 0x8c, 0x8c,
+        0x4c, 0x10, 0x0a, 0x2a, 0x85, 0xac, 0x0c, 0x00,
+        0x26, 0x0b, 0x09, 0x01, 0xc3, 0xd1, 0x9a, 0x7b,
+        0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4e, 0x44,
+        0xae, 0x42, 0x60, 0x82
+      ];
+    });
+
+    test('Decodes simple poster', function() {
+      var poster = makePoster(NDEF.TNF_WELL_KNOWN, 'U', recordURI);
+      var decoded = NDEF.payload.decodeSmartPoster(poster[0].payload);
+      assert.equal(decoded.type, 'smartposter');
+      assert.equal(decoded.uri, 'http://www.youtube.com');
+    });
+
+    test('Decodes extra records', function() {
+      var poster = makePoster(NDEF.TNF_WELL_KNOWN, 'U', recordURI,
+                              NDEF.TNF_WELL_KNOWN, 'T', recordTextEnglish,
+                              NDEF.TNF_WELL_KNOWN, 'T', recordTextPolish,
+                              NDEF.TNF_WELL_KNOWN, 'act', recordAction,
+                              NDEF.TNF_MIME_MEDIA, 'image/png', recordIcon);
+
+      var decoded = NDEF.payload.decodeSmartPoster(poster[0].payload);
+      assert.equal(decoded.uri, 'http://www.youtube.com');
+      assert.equal(decoded.text.en, 'Best page ever!  q#@');
+      assert.equal(decoded.text.pl, 'ąćńó');
+      assert.equal(decoded.icons.length, 1);
+      assert.equal(decoded.icons[0].type, 'image/png');
+      assert.isTrue(NfcUtils.equalArrays(decoded.icons[0].bytes,
+                                         recordIcon));
+    });
+
+    test('Does not handle poster with multiple URIs', function() {
+      var poster = makePoster(NDEF.TNF_WELL_KNOWN, 'U', recordURI,
+                              NDEF.TNF_WELL_KNOWN, 'U', recordURI);
+
+      var decoded = NDEF.payload.decodeSmartPoster(poster[0].payload);
+      assert.equal(decoded, null);
+    });
+
+    test('Does not handle poster with no URI', function() {
+      var poster = makePoster(NDEF.TNF_WELL_KNOWN, 'T', recordTextEnglish,
+                              NDEF.TNF_WELL_KNOWN, 'act', recordAction);
+
+      var decoded = NDEF.payload.decodeSmartPoster(poster[0].payload);
+      assert.equal(decoded, null);
+    });
+
+    test('Does not handle poster with multiple title ' +
+      'records in the same language', function() {
+
+      var poster = makePoster(NDEF.TNF_WELL_KNOWN, 'U', recordURI,
+                              NDEF.TNF_WELL_KNOWN, 'T', recordTextEnglish,
+                              NDEF.TNF_WELL_KNOWN, 'T', recordTextEnglish);
+
+      var decoded = NDEF.payload.decodeSmartPoster(poster[0].payload);
+      assert.equal(decoded, null);
+    });
+  });
+
+  suite('decodeMIME()', function() {
+    suite('vcards', function() {
+      var vcardTxt = 'BEGIN:VCARD\nVERSION:2.1\nN:J;\nEND:VCARD';
+      var payload;
+      var decoded;
+
+      setup(function() {
+        payload = NfcUtils.fromUTF8(vcardTxt);
+        decoded = {
+          type: 'text/vcard',
+          blob: new Blob([vcardTxt], {type: 'text/vcard'})
+        };
+      });
+
+      test('text/vcard', function() {
+        var vcard = NDEF.payload.decodeMIME(NfcUtils.fromUTF8('text/vcard'),
+                                            payload);
+        assert.deepEqual(decoded, vcard);
+      });
+
+      test('text/x-vCard', function() {
+        var vcard = NDEF.payload.decodeMIME(NfcUtils.fromUTF8('text/x-vCard'),
+                                            payload);
+        assert.deepEqual(decoded, vcard);
+      });
+
+      test('text/x-vcard', function() {
+        var vcard = NDEF.payload.decodeMIME(NfcUtils.fromUTF8('text/x-vcard'),
+                                            payload);
+        assert.deepEqual(decoded, vcard);
+      });
+    });
+
+    test('other', function() {
+      var decoded = NDEF.payload.decodeMIME(NfcUtils.fromUTF8('text/plain'),
+                                             'payload');
+      assert.deepEqual(decoded, { type: 'text/plain' });
+    });
+  });
+});
