@@ -285,4 +285,13 @@ suite('FindMyDevice >', function() {
     sendWakeUpMessage(IAC_API_WAKEUP_REASON_ENABLED_CHANGED);
     sinon.assert.called(FindMyDevice._reportDisabled);
   });
+
+  test('wakelocks are released when registering while already registering',
+  function() {
+    this.sinon.stub(FindMyDevice, 'endHighPriority');
+    FindMyDevice._registering = true;
+    FindMyDevice._register();
+    sinon.assert.calledOnce(FindMyDevice.endHighPriority);
+    sinon.assert.calledWith(FindMyDevice.endHighPriority, 'clientLogic');
+  });
 });
