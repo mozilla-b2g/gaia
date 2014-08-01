@@ -16,6 +16,7 @@ requireApp('sms/test/unit/mock_moz_activity.js');
 requireApp('sms/test/unit/mock_information.js');
 requireApp('sms/test/unit/mock_activity_handler.js');
 require('/test/unit/mock_navigation.js');
+require('/js/event_dispatcher.js');
 requireApp('sms/js/utils.js');
 requireApp('sms/js/settings.js');
 requireApp('sms/js/attachment_menu.js');

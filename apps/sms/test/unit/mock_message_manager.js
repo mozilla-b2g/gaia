@@ -1,3 +1,4 @@
+/* global Promise */
 /* exported MockMessageManager */
 'use strict';
 
@@ -29,6 +30,9 @@ var MockMessageManager = {
   retrieveMMS: function() {},
   markMessagesRead: function() {},
   markThreadRead: function() {},
+  getSegmentInfo: function() {
+    return Promise.reject(new Error('not implemented '));
+  },
   mTriggerOnSuccess: function() {
     if (this._message.onsuccess) {
       this._message.onsuccess();
