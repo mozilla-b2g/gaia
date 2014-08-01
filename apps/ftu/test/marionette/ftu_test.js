@@ -1,9 +1,14 @@
+/* global require */
 'use strict';
+
+var assert = require('assert');
 
 marionette('First Time Use >', function() {
   var FTU = 'app://ftu.gaiamobile.org';
 
   var client = marionette.client();
+  var wifiPassword64 =
+    'e93FSJpMGMxRnWHs2vJYyMud5h6u7yEhSC445cz7RdHVxXrj2LCTZPAphzaYuyy2';
 
   var clickThruPanel = function(panel_id, button_id) {
     if (panel_id == '#wifi') {
@@ -46,4 +51,16 @@ marionette('First Time Use >', function() {
     clickThruPanel('#wifi', undefined);
   });
 
+  test('Wi-Fi hidden network password 64 characters', function() {
+    client.apps.switchToApp(FTU);
+    clickThruPanel('#languages', '#forward');
+    clickThruPanel('#wifi', '#join-hidden-button');
+
+    var input = client.findElement('#hidden-wifi-password');
+    var password = input.getAttribute('value');
+    assert.equal(password.length, 0);
+    input.sendKeys(wifiPassword64);
+    password = input.getAttribute('value');
+    assert.equal(password.length, 63);
+  });
 });
