@@ -165,7 +165,8 @@ suite('call screen', function() {
   suite('call screen initialize', function() {
     var mockElements = ['keypadButton', 'placeNewCallButton', 'answerButton',
       'rejectButton', 'holdButton', 'showGroupButton', 'hideGroupButton',
-      'incomingAnswer', 'incomingEnd', 'incomingIgnore'];
+      'incomingAnswer', 'incomingEnd', 'incomingIgnore', 'incomingReply',
+      'quickMessageButton', 'lockScreenSMSButton'];
 
     setup(function() {
       this.sinon.stub(CallScreen, 'showClock');

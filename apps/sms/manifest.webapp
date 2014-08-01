@@ -67,6 +67,17 @@
        },
       "disposition": "inline",
       "returnValue": true
+    },
+    "quickreply": {
+      "href": "/index.html#activity-quickreply",
+      "filters": {
+        "type": "websms/sms",
+        "number": {
+          "pattern":"[\\w\\s+#*().-]{0,50}"
+        }
+       },
+      "disposition": "inline",
+      "returnValue": true
     }
   },
   "messages": [

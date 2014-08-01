@@ -55,6 +55,7 @@
     <script defer src="js/message_manager.js"></script>
     <script defer src="js/app.js"></script>
     <script defer src="js/startup.js"></script>
+    <script defer src="js/quick_reply.js"></script>
     <!-- Lazy load scripts
     <script defer src="shared/js/notification_helper.js"></script>
     <script defer src="shared/js/gesture_detector.js"></script>
@@ -550,6 +551,22 @@
 
     <article>
       <form is="sim-picker" id="sim-picker" role="dialog" data-type="action" tabindex="-1" hidden></form>
+    </article>
+    <article>
+      <form id="message-container-menu" role="dialog" data-type="action" hidden>
+        <header>
+          <h1 id="quick-message-title" data-l10n-id="quick-message-title"> Select Message </h1>
+        </header>
+        <menu>
+          <button class="message" data-l10n-id="quick-message-text-01"> I will call you back</button>
+          <button class="message" data-l10n-id="quick-message-text-02"> Can't talk right now. </button>
+          <button class="message" data-l10n-id="quick-message-text-03"> I'm in a meeting. </button>
+          <button class="message" data-l10n-id="quick-message-text-04"> I'm driving. </button>
+          <button class="message" data-l10n-id="quick-message-text-05"> On my way. </button>
+          <button id="customize-sms" data-l10n-id="customize-text"> Customize... </button>
+          <button id="sms-cancel" data-l10n-id="cancel"> Cancel </button>
+        </menu>
+      </form>
     </article>
   </body>
 </html>
