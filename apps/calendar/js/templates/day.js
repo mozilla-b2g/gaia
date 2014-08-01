@@ -5,14 +5,15 @@
     hour: function() {
       var hour = this.h('hour');
       var l10n = '';
-      var displayHour;
       var isAllDay = hour === Calendar.Calc.ALLDAY;
 
       if (isAllDay) {
-        l10n = ' data-l10n-id="hour-allday" ';
-        displayHour = navigator.mozL10n.get('hour-allday');
+        l10n = 'data-l10n-id="hour-allday"';
       } else {
-        displayHour = this.h('displayHour');
+        var date = new Date();
+        date.setHours(hour, 0, 0, 0);
+        l10n = 'data-l10n-date-format="hour-format" ' +
+          'data-date="' + date + '"';
       }
 
       var classes = [
@@ -24,8 +25,8 @@
       return '<section class="' + classes + '" data-hour="' + hour + '">' +
           '<div class="hour-header">' +
             (isAllDay ? '<i class="gaia-icon icon-calendar-allday"></i>' : '') +
-            '<span ' + l10n + 'class="display-hour">' +
-              displayHour +
+            '<span ' + l10n + ' class="display-hour">' +
+              this.h('displayHour') +
             '</span>' +
           '</div>' +
           // we add a wrapper to allday events to improve the scroll

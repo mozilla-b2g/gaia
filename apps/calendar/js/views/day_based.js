@@ -4,7 +4,6 @@ Calendar.ns('Views').DayBased = (function() {
   var Calc = Calendar.Calc;
   var hoursOfOccurance = Calendar.Calc.hoursOfOccurance;
   var OrderedMap = Calendar.Utils.OrderedMap;
-
   const MINUTES_IN_HOUR = 60;
 
   /**
@@ -365,7 +364,7 @@ Calendar.ns('Views').DayBased = (function() {
     _renderHour: function(hour) {
       return this.template.hour.render({
         displayHour: Calendar.Calc.formatHour(hour),
-        hour: hour.toString()
+        hour: hour
       });
     },
 
