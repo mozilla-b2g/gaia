@@ -11,7 +11,7 @@
   color: white;
 }
 
-.appWindow.browser:not(.bar) > .chrome {
+.appWindow.light > .chrome {
   background-image: linear-gradient(rgba(0,0,0,0.05), rgba(0,0,0,0.05));
   background-color: white;
   color: #4d4d4d;
@@ -82,7 +82,7 @@
   background-color: rgba(51,51,51,0.5);
 }
 
-.appWindow.browser .maximized .controls .urlbar {
+.appWindow.light .maximized .controls .urlbar {
   background-color: rgba(201,201,201,0.4);
 }
 
@@ -100,7 +100,7 @@
   text-overflow: ellipsis;
 }
 
-.appWindow.browser .chrome:not(.maximized) .controls .urlbar .title {
+.appWindow.light .chrome:not(.maximized) .controls .urlbar .title {
   background-color: rgba(201,201,201,0.4);
 }
 
@@ -229,23 +229,23 @@
   background-image: url("images/overflow.png");
 }
 
-.browser .controls .back-button {
+.light .controls .back-button {
   background-image: url("images/dark/back.png");
 }
 
-.browser .controls .forward-button {
+.light .controls .forward-button {
   background-image: url("images/dark/forward.png");
 }
 
-.browser .controls .reload-button {
+.light .controls .reload-button {
   background-image: url("images/dark/reload.png");
 }
 
-.browser .controls .stop-button {
+.light .controls .stop-button {
   background-image: url("images/dark/stop.png");
 }
 
-.browser .controls .menu-button {
+.light .controls .menu-button {
   background-image: url("images/dark/overflow.png");
 }
 
