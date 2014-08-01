@@ -4,7 +4,7 @@
 suite('Timer.Panel', function() {
   var clock, activeAlarm;
   var isHidden;
-  var View, Timer, Utils, mozL10n;
+  var View, Timer, Utils;
 
   suiteSetup(function(done) {
     isHidden = function(element) {
@@ -12,13 +12,12 @@ suite('Timer.Panel', function() {
     };
 
     require(['panels/alarm/active_alarm', 'timer', 'panels/timer/main',
-             'view', 'utils', 'l10n'],
-            function(ActiveAlarm, timer, timerPanel, view, utils, l10n) {
+             'view', 'utils'],
+            function(ActiveAlarm, timer, timerPanel, view, utils) {
       Timer = timer;
       Timer.Panel = timerPanel;
       View = view;
       Utils = utils;
-      mozL10n = l10n;
       activeAlarm = new ActiveAlarm();
       done();
     });
@@ -54,13 +53,6 @@ suite('Timer.Panel', function() {
     panel.dialog({ isVisible: false });
 
     assert.isFalse(dialog.visible);
-  });
-
-  test('panel is translated', function() {
-    /* jshint unused:false */
-    this.sinon.spy(mozL10n, 'translate');
-    var panel = new Timer.Panel(document.createElement('div'));
-    assert.ok(mozL10n.translate.called);
   });
 
   test('update ', function() {
