@@ -140,11 +140,9 @@ suite('system/LockScreen >', function() {
   });
 
   test('Lock: can actually lock', function() {
-    var mockLO = sinon.stub(screen, 'mozLockOrientation');
     subject.overlay = domOverlay;
     subject.lock();
     assert.isTrue(subject.locked);
-    mockLO.restore();
   });
 
   test('Unlock: can actually unlock', function() {
