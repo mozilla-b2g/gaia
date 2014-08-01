@@ -52,7 +52,7 @@ var icc_worker = {
   '0x10': function STK_CMD_SET_UP_CALL(message) {
     function stkSetupCall(confirmed, postMessage) {
       DUMP('STK_CMD_SET_UP_CALL:', message.command.options);
-      function answerConfirmed() {
+      function answerAsConfirmed() {
         icc.responseSTKCommand(message, {
           hasConfirmed: confirmed,
           resultCode: icc._iccManager.STK_RESULT_OK
@@ -64,8 +64,8 @@ var icc_worker = {
         var setRequest = window.navigator.mozSettings.createLock().set({
           'icc.callmessage': postMessage
         });
-        setRequest.onsuccess = answerConfirmed;
-        setRequest.onerror = answerConfirmed;
+        setRequest.onsuccess = answerAsConfirmed;
+        setRequest.onerror = answerAsConfirmed;
       } else {
         answerConfirmed();
       }
@@ -83,7 +83,13 @@ var icc_worker = {
     if (options.confirmMessage) {
       icc.asyncConfirm(message, options.confirmMessage,
         function(confirmed) {
-          stkSetupCall(confirmed, options.callMessage);
+          // According to STK spec [1], if callMessage is not available, what to
+          // show is up to the mobile equipment (ME) so showing confirmMessage
+          // instead.
+          // [1] http://www.etsi.org/deliver/etsi_ts%5C101200_101299%5C101267
+          // %5C08.18.00_60%5Cts_101267v081800p.pdf
+          var callMessage = options.callMessage || options.confirmMessage;
+          stkSetupCall(confirmed, callMessage);
         });
     } else {
       stkSetupCall(true, options.callMessage);
