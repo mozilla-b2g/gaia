@@ -25,7 +25,7 @@ mid3v2 -D ${SCRIPT_DIR}/${SONG_NAME}
 TRACKS_PER_ALBUM=1
 # REMOTE_DIR="/sdcard/Music"
 REMOTE_DIR=
-for dir in /sdcard /storage/sdcard; do
+for dir in /sdcard /storage/sdcard /storage/sdcard0; do
   if [ -n "$(adb shell "test -d $dir && echo found")" ]; then
     REMOTE_DIR=$dir
     break
