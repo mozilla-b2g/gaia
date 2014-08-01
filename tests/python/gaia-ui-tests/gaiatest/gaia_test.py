@@ -292,7 +292,6 @@ class GaiaData(object):
 
     def is_wifi_connected(self, network=None):
         network = network or self.testvars.get('wifi')
-        assert network, 'No WiFi network provided'
         self.marionette.switch_to_frame()
         return self.marionette.execute_script("return GaiaDataLayer.isWiFiConnected(%s)" % json.dumps(network))
 
