@@ -686,12 +686,17 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
     def setUp(self):
         try:
             MarionetteTestCase.setUp(self)
-        except (InvalidResponseException, IOError):
+        except InvalidResponseException:
             if self.restart:
                 pass
 
+        # TODO: Once bug 1019043 is fixed we will be able to just use
+        # self.device_manager instead of guarding for desktop B2G
+        device_manager = None
+        if not self.marionette.session_capabilities['device'] == 'desktop':
+            device_manager = self.device_manager
         self.device = GaiaDevice(self.marionette,
-                                 manager=self.device_manager,
+                                 manager=device_manager,
                                  testvars=self.testvars)
 
         if self.restart and (self.device.is_android_build or self.marionette.instance):
