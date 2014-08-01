@@ -601,18 +601,11 @@ const IMERender = (function() {
     var content = document.createDocumentFragment();
     var left = (cachedWindowWidth / 2 > key.offsetLeft);
 
-    // Place the menu to the left
-    if (!left) {
-      menu.classList.add('kbr-menu-left');
-      altChars = altChars.reverse();
-    }
-
     // How wide (in characters) is the key that we're displaying
     // these alternatives for?
     var keycharwidth = key.dataset.compositeKey ?
       key.dataset.compositeKey.length : 1;
 
-    // Build a key for each alternative
     var numberAltKeys = altChars.length;
     var numberRows;
     if (numberAltKeys < 6) {
@@ -625,16 +618,36 @@ const IMERender = (function() {
       }
     }
     var numberCols = Math.ceil(numberAltKeys / numberRows);
+    // Place the menu to the left
+    if (!left) {
+      menu.classList.add('kbr-menu-left');
+      switch (numberRows) {
+      case 1:
+        altChars = altChars.reverse();
+        break;
+      case 2:
+        altChars = [].concat(altChars.slice(0, numberCols).reverse(),
+          altChars.slice(numberCols).reverse());
+        break;
+      case 3:
+        altChars = [].concat(altChars.slice(0, numberCols).reverse(),
+          altChars.slice(numberCols, 2 * numberCols).reverse(),
+          altChars.slice(3 * numberCols).reverse());
+        break;
+      }
+    }
     var alt, index, keyAlternativeClassName;
     // This loop is need so that alternatives is sorted following the
     // recommendation, e.g.:
     //
     //     #5 #6 #7
     //     #1 #2 #3 #4
+    //
+    // Build a key for each alternative
     for (var i = numberRows - 1; i >= 0; i--) {
       for (var j = 0; j < numberCols; j++) {
         index = i * numberCols + j;
-        if (index === altChars.length || j === 0 || j === numberCols) {
+        if (j === 0 || j === numberCols) {
           keyAlternativeClassName = 'alternative-key-on-border';
         } else {
           keyAlternativeClassName = '';
@@ -676,6 +689,15 @@ const IMERender = (function() {
           content.appendChild(
             buildKey(alt, keyAlternativeClassName, width + 'px',
               dataset, null, attributeList));
+        } else {
+          content.appendChild(function() {
+            var emptyKey = document.createElement('span');
+            emptyKey.classList.add('keyboard-key');
+            if (keyAlternativeClassName !== '') {
+              emptyKey.classList.add(keyAlternativeClassName);
+            }
+            return emptyKey;
+          }());
         }
       }
       if (i > 0) {
