@@ -35,6 +35,7 @@ var CallScreen = {
   switchToSpeakerButton: document.getElementById('btmenu-speaker'),
   bluetoothMenuCancel: document.getElementById('btmenu-cancel'),
 
+  quickMessageButton: document.getElementById('decline-with-message'),
   answerButton: document.getElementById('callbar-answer'),
   rejectButton: document.getElementById('callbar-hang-up'),
   holdButton: document.getElementById('callbar-hold'),
@@ -51,9 +52,11 @@ var CallScreen = {
     document.getElementById('incoming-number-additional-info'),
   incomingAnswer: document.getElementById('incoming-answer'),
   incomingEnd: document.getElementById('incoming-end'),
+  incomingReply: document.getElementById('incoming-reply'),
   incomingIgnore: document.getElementById('incoming-ignore'),
   lockedClockTime: document.getElementById('lockscreen-clock-time'),
   lockedDate: document.getElementById('lockscreen-date'),
+  lockScreenSMSButton: document.getElementById('lockscreen-message-bar'),
 
   statusMessage: document.getElementById('statusMsg'),
   configs: {
@@ -126,6 +129,10 @@ var CallScreen = {
                                     CallsHandler.answer);
     this.rejectButton.addEventListener('click',
                                     CallsHandler.end);
+    this.quickMessageButton.addEventListener('click',
+                                    CallsHandler.showMessageList);
+    this.lockScreenSMSButton.addEventListener('click',
+                                    CallsHandler.showMessageList);
     this.holdButton.addEventListener('mouseup', CallsHandler.toggleCalls);
 
     this.showGroupButton.addEventListener('click',
@@ -149,6 +156,8 @@ var CallScreen = {
                               CallsHandler.endAndAnswer);
     this.incomingIgnore.addEventListener('click',
                                     CallsHandler.ignore);
+    this.incomingReply.addEventListener('click',
+                                    CallsHandler.showMessageList);
 
     this.calls.addEventListener('click', CallsHandler.toggleCalls.bind(this));
 
@@ -441,6 +450,14 @@ var CallScreen = {
     window.resizeTo(100, 40);
   },
 
+  enterStatusBarMode: function cs_triggerActivity() {
+    window.resizeTo(100, 40);
+  },
+
+  exitStatusBarMode: function cs_postActivity() {
+    window.resizeTo(100, 100);
+  },
+
   render: function cs_render(layout_type) {
     this.screen.dataset.layout = layout_type;
     if (layout_type !== 'connected') {
@@ -463,6 +480,7 @@ var CallScreen = {
 
     this.callToolbar.classList.add('transparent');
     this.incomingContainer.classList.add('displayed');
+    this.rejectButton.classList.add('disabled');
 
     this._screenWakeLock = navigator.requestWakeLock('screen');
   },
@@ -470,6 +488,7 @@ var CallScreen = {
   hideIncoming: function cs_hideIncoming() {
     this.callToolbar.classList.remove('transparent');
     this.incomingContainer.classList.remove('displayed');
+    this.rejectButton.classList.remove('disabled');
 
     if (this._screenWakeLock) {
       this._screenWakeLock.unlock();

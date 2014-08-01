@@ -123,6 +123,7 @@ var Startup = {
       window.dispatchEvent(new CustomEvent('moz-app-loaded'));
       App.setReady();
     });
+    QuickReplyPanel.init();
 
     // dispatch chrome-interactive when thread list related modules
     // initialized

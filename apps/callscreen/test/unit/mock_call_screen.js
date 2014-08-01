@@ -41,6 +41,8 @@ var MockCallScreen = {
   switchToSpeaker: function() {
     this.mSpeakerOn = true;
   },
+  enterStatusBarMode: function() {},
+  exitStatusBarMode: function() {},
   render: function(mode) {
     this.mLastRenderMode = mode;
   },
@@ -98,6 +100,7 @@ var MockCallScreen = {
     this.mGetScenarioCalled = true;
     return this.mScenario;
   },
+  setActivityMode: function() {},
 
   mGetScenarioCalled: false,
 
@@ -110,6 +113,9 @@ var MockCallScreen = {
   fakeIncomingNumber: document.createElement('div'),
   incomingSim: document.createElement('div'),
   incomingNumberAdditionalInfo: document.createElement('span'),
+  quickMessageButton: document.createElement('section'),
+  lockScreenSMSButton: document.createElement('div'),
+  incomingReply: document.createElement('button'),
 
   mEnableKeypadCalled: false,
   mSyncSpeakerCalled: false,

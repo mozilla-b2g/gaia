@@ -1,6 +1,6 @@
 /* globals BluetoothHelper, CallScreen, Contacts, HandledCall, KeypadManager,
            LazyL10n, SimplePhoneMatcher, TonePlayer, Utils,
-           AudioCompetingHelper */
+           AudioCompetingHelper, MozActivity */
 
 'use strict';
 
@@ -98,6 +98,7 @@ var CallsHandler = (function callsHandler() {
 
       if (!alreadyAdded) {
         addCall(call);
+        disableDeclineMessageButton(call, false);
       }
     });
 
@@ -119,6 +120,7 @@ var CallsHandler = (function callsHandler() {
 
     if (cdmaCallWaiting()) {
       handleCallWaiting(telephony.calls[0]);
+      disableDeclineMessageButton(telephony.calls[0], true);
     } else {
       if (isCdma3WayCall()) {
         CallScreen.hidePlaceNewCallButton();
@@ -307,6 +309,25 @@ var CallsHandler = (function callsHandler() {
         closeWindow();
       }
     });
+  }
+
+  function disableDeclineMessageButton(call, isCDMA) {
+    var number;
+    if (isCDMA) {
+      number = call.id ? call.secondId.number : call.secondNumber;
+    } else {
+      number = call.id ? call.id.number : call.number
+    }
+
+    if (!number) {
+      CallScreen.quickMessageButton.classList.add('disabled');
+      CallScreen.lockScreenSMSButton.classList.add('disabled');
+      CallScreen.incomingReply.classList.add('disabled');
+    } else {
+      CallScreen.quickMessageButton.classList.remove('disabled');
+      CallScreen.lockScreenSMSButton.classList.remove('disabled');
+      CallScreen.incomingReply.classList.remove('disabled');
+    }
   }
 
   function updateKeypadEnabled() {
@@ -640,6 +661,77 @@ var CallsHandler = (function callsHandler() {
     handledCalls[lastCallIndex].call.hangUp();
   }
 
+  // Run sms app
+  function showMessageList() {
+    var incomingCall = handledCalls[handledCalls.length - 1].call;
+    var recipient;
+
+    if (cdmaCallWaiting()) {
+      recipient = incomingCall.secondId ?
+        incomingCall.secondId.number : incomingCall.secondNumber;
+    } else {
+      recipient = incomingCall.id ?
+        incomingCall.id.number : incomingCall.number;
+    }
+
+    if (!recipient) {
+      return;
+    }
+
+    var serviceId = null;
+
+    if (telephony) {
+      var isInCall = !!telephony.calls.length;
+      var isInConference = !!telephony.conferenceGroup.calls.length;
+
+      if (isInCall || isInConference) {
+        serviceId = isInCall ?
+          telephony.calls[0].serviceId :
+          telephony.conferenceGroup.calls[0].serviceId;
+      }
+    }
+
+    var activity;
+    try {
+      activity = new MozActivity({
+        name: 'quickreply',
+        data: {
+          type: 'websms/sms',
+          number: recipient,
+          serviceId: serviceId
+        }
+      });
+      CallScreen.enterStatusBarMode();
+    } catch (e) {
+      console.log('WebActivities unavailable? : ' + e);
+    }
+
+    activity.onsuccess = function() {
+      CallScreen.exitStatusBarMode();
+    };
+
+    activity.onerror = function() {
+      CallScreen.exitStatusBarMode();
+    };
+
+    navigator.mozSetMessageHandler('connection', function(connReq) {
+      if (connReq.keyword !== 'declinemessage') {
+        return;
+      }
+      var port = connReq.port;
+      port.onmessage = function(event) {
+        var state = event.data.state;
+        if (state == 'end-call') {
+          incomingCall.hangUp();
+          if (handledCalls.length <= 1) {
+            exitCallScreen(false);
+          }
+        }
+      };
+      port.start();
+    });
+  }
+
   function unmute() {
     telephony.muted = false;
   }
@@ -824,6 +916,7 @@ var CallsHandler = (function callsHandler() {
     toggleCalls: toggleCalls,
     ignore: ignore,
     end: end,
+    showMessageList: showMessageList,
     updateKeypadEnabled: updateKeypadEnabled,
     toggleMute: toggleMute,
     toggleSpeaker: toggleSpeaker,

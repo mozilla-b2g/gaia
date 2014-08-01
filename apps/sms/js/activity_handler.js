@@ -37,7 +37,8 @@ var ActivityHandler = {
     window.navigator.mozSetMessageHandler('activity',
       this._onActivity.bind(this, {
         'new': this._onNewActivity,
-        'share': this._onShareActivity
+        'share': this._onShareActivity,
+        'quickreply': this._onQuickReplyActivity
       })
     );
 
@@ -164,6 +165,10 @@ var ActivityHandler = {
     Navigation.toPanel('composer').then(
       Compose.append.bind(Compose, dataToShare)
     );
+  },
+
+  _onQuickReplyActivity: function quickReplyHandler(activity) {
+    Navigation.toPanel('quick-reply', { activity: activity });
   },
 
   _toggleActivityRequestMode: function(toggle) {
