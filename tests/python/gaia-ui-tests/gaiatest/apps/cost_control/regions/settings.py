@@ -2,6 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import time
 from marionette.by import By
 from gaiatest.apps.base import Base
 
@@ -9,7 +10,7 @@ from gaiatest.apps.base import Base
 class Settings(Base):
 
     _settings_iframe_locator = (By.ID, 'settings-view-placeholder')
-    _settings_title_locator = (By.CSS_SELECTOR, 'section#settings-view h1')
+    _settings_section_locator = (By.ID, 'settings-view')
 
     _data_alert_label_locator = (By.XPATH, "//ul[preceding-sibling::header[@id='data-usage-settings']]/li[2]/label")
     _data_alert_switch_locator = (By.CSS_SELECTOR, 'input[data-option="dataLimit"]')
@@ -29,7 +30,10 @@ class Settings(Base):
         # go into iframe of usage app settings
         self.wait_for_element_displayed(*self._settings_iframe_locator)
         self.marionette.switch_to_frame(self.marionette.find_element(*self._settings_iframe_locator))
-        self.wait_for_element_displayed(*self._settings_title_locator)
+        settings_section = self.marionette.find_element(*self._settings_section_locator)
+        self.wait_for_condition(lambda m: settings_section.location['y'] == 0)
+        # Replace time.sleep when finding a suitable wait
+        time.sleep(0.5)
 
     def toggle_data_alert_switch(self, value):
         switch = self.marionette.find_element(*self._data_alert_switch_locator)
