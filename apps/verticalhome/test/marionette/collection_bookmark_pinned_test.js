@@ -40,6 +40,8 @@ marionette('Vertical - Collection Pin Bookmark', function() {
     system = new System(client);
     system.waitForStartup();
 
+    client.apps.launch(Home2.URL);
+
     home.waitForLaunch();
     collection.disableGeolocation();
     collection.setServerURL(server);
@@ -52,8 +54,6 @@ marionette('Vertical - Collection Pin Bookmark', function() {
     collectionIcon = collection.getCollectionByName(name);
 
     // Pin a result of the collection
-    // helps marionette finding the icon: Bug 1046706
-    home.moveIconToIndex(collectionIcon, 0);
     // Enter the created collection.
     collection.enterCollection(collectionIcon);
     collection.bookmark(bookmark, selectors.firstWebResultNoPinned);
@@ -65,8 +65,9 @@ marionette('Vertical - Collection Pin Bookmark', function() {
 
   test('pins the bookmarked result', function() {
     var bookmarkIcon = home.getIcon(bookmarkIdentifier);
-    // scrolling with APZC confuses marionette when tapping: Bug 1046706
-    home.moveIconToIndex(bookmarkIcon, 1);
+    bookmarkIcon.scriptWith(function(el) {
+      el.scrollIntoView(false);
+    });
 
     actions.longPress(bookmarkIcon, 1).perform();
     client.helper.waitForElement(Home2.Selectors.editHeaderText);
@@ -86,6 +87,7 @@ marionette('Vertical - Collection Pin Bookmark', function() {
     var done = client.helper.waitForElement(Home2.Selectors.editHeaderDone);
     done.click();
 
+    // Enter the created collection.
     collection.enterCollection(collectionIcon);
 
     var firstPinnedIcon = collection.firstPinnedResult;

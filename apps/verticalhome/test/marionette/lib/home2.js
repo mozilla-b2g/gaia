@@ -153,7 +153,7 @@ Home2.prototype = {
 
       // tap the app in the homescreen
       var newApp = this.getIcon(manifestURL);
-      newApp.tap();
+      newApp.click();
 
       // go to the system app
       client.switchToFrame();

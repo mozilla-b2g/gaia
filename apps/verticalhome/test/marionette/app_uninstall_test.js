@@ -50,15 +50,19 @@ marionette('Vertical - App Uninstall', function() {
   test('use edit mode to uninstall the app', function() {
     var icon = home.getIcon(server.manifestURL);
     var iconId = getIconId(icon);
-    // helps marionette finding the icon: Bug 1046706
-    home.moveIconToIndex(icon, 0);
-
     var remove = icon.findElement('.remove');
+
+    // XXX: work around issues where the icon is hidden by other
+    //      status messages on the system app.
+    icon.scriptWith(function(el) {
+      // effectively scroll to the bottom of the screen.
+      el.scrollIntoView(false);
+    });
 
     home.waitForSystemBanner();
 
     // remove the icon
-    remove.tap();
+    remove.click();
     // confirm the dialog to ensure it was removed.
     home.confirmDialog('remove');
     // ensure the icon disappears

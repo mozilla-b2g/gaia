@@ -33,6 +33,8 @@ marionette('Vertical - Collection', function() {
     system = new System(client);
     system.waitForStartup();
 
+    client.apps.launch(Home2.URL);
+
     home.waitForLaunch();
     collection.disableGeolocation();
     collection.setServerURL(server);
@@ -49,11 +51,9 @@ marionette('Vertical - Collection', function() {
     collection.selectNew(collectionName);
     client.apps.switchToApp(Home2.URL);
 
-    var collectionIcon = collection.getCollectionByName(collectionName);
-    // helps marionette finding the icon: Bug 1046706
-    home.moveIconToIndex(collectionIcon, 0);
     // Enter the created collection.
-    collection.enterCollection(collectionIcon);
+    collection.enterCollection(
+      collection.getCollectionByName(collectionName));
 
     // Count the number of dividers
     var numDividers = client.findElements(selectors.allDividers).length;
@@ -83,12 +83,12 @@ marionette('Vertical - Collection', function() {
     // Uninstall the bookmark from the home-screen
     var lastIcon = client.findElements(Home2.Selectors.firstIcon).pop();
     var iconId = lastIcon.getAttribute('data-identifier');
-    // if we scroll now, marionette won't find the collection icon later:
-    // Bug 1046706
-    home.moveIconToIndex(lastIcon, 1);
+    lastIcon.scriptWith(function(el) {
+      el.scrollIntoView(false);
+    });
     home.enterEditMode(lastIcon);
     var remove = client.helper.waitForElement(lastIcon.findElement('.remove'));
-    remove.tap();
+    remove.click();
     home.confirmDialog('remove');
     client.helper.waitForElementToDisappear(lastIcon);
 

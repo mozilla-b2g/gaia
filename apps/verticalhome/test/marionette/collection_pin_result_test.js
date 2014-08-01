@@ -49,11 +49,9 @@ marionette('Vertical - Collection', function() {
     collection.selectNew(collectionName);
     client.apps.switchToApp(Home2.URL);
 
-    var collectionIcon = collection.getCollectionByName(collectionName);
-    // helps marionette finding the icon: Bug 1046706
-    home.moveIconToIndex(collectionIcon, 0);
     // Enter the created collection.
-    collection.enterCollection(collectionIcon);
+    collection.enterCollection(
+      collection.getCollectionByName(collectionName));
 
     // Count the number of dividers
     var numDividers = client.findElements(selectors.allDividers).length;

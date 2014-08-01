@@ -60,9 +60,6 @@ marionette('Vertical Home - Hosted app failed icon fetch', function() {
     var appIcon = subject.getIcon(server.packageManifestURL);
     expectAppState(appIcon, 'loading');
 
-    // this helps marionette finding the icon: Bug 1046706
-    subject.moveIconToIndex(appIcon, 0);
-
     // stop the download
     launchIcon(appIcon);
     subject.confirmDialog('pause');

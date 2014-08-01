@@ -20,7 +20,7 @@ module.exports = function launchIcon(element) {
 
   element.client.waitFor(function() {
     // try to click it
-    element.tap();
+    element.click();
 
     return element.scriptWith(function(e) {
       // if it was clicked clear the state if we want to run this again

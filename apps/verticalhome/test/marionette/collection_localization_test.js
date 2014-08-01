@@ -30,6 +30,8 @@ marionette('Vertical - Collection', function() {
     system = new System(client);
     system.waitForStartup();
 
+    client.apps.launch(Home2.URL);
+
     home.waitForLaunch();
     collection.disableGeolocation();
     collection.setServerURL(server);
