@@ -638,6 +638,14 @@
       return;
     }
 
+    // If input is ucase, then make all suggestions ucase as well.
+    // Ignore input.length of 1, it never gets autocorrected anyway
+    if (input.length > 1 && isUpperCase(input)) {
+      for (var ix = 0; ix < suggestions.length; ix++) {
+        suggestions[ix][0] = suggestions[ix][0].toUpperCase();
+      }
+    }
+
     // See if the user's input is a valid word on the list of suggestions
     var inputIsSuggestion = false;
     var inputWeight = 0;
