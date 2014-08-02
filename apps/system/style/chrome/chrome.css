@@ -251,7 +251,7 @@
 
 /* Progress */
 .appWindow:not(.bar).navigation > .chrome .progress {
-  top: 7.4rem;
+  top: 7.3rem;
 }
 
 /* App specifics */
