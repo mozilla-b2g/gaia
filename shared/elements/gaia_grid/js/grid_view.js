@@ -397,9 +397,21 @@
 
       this.element.setAttribute('cols', this.layout.cols);
       pendingCachedIcons === 0 && onCachedIconRendered();
+      this.loadDragDrop();
+    },
 
+    /**
+     * Loads dragdrop libraries and instantiates if necessary.
+     * DragDrop libraries are lazy laoded to save on startup time. They are
+     * loaded after the initial paint in order to paint the icons as fast
+     * as possible.
+     */
+    loadDragDrop: function() {
       if (!this.dragdrop && this.config.features.dragdrop) {
         LazyLoader.load('shared/elements/gaia_grid/js/grid_dragdrop.js', () => {
+          if (this.dragdrop) {
+            return;
+          }
           this.dragdrop = new GridDragDrop(this);
         });
       }
