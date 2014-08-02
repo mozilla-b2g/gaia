@@ -338,26 +338,26 @@ Keyboards.latex = {
         { value: '<math><mo>∏</mo></math>', compositeKey: '\\prod', className: 'math' },
     ],
     '<math><mo>(</mo><mi>x</mi><mo>)</mo></math>': [
-        { value: '<math><mo>[</mo><mi>x</mi><mo>]</mo></math>', compositeKey: '\\left[\\right]', className: 'math' },
-        { value: '<math><mo>{</mo><mi>x</mi><mo>}</mo></math>', compositeKey: '\\left\\{\\right\\}', className: 'math' },
-        { value: '<math><mo>⟨</mo><mi>x</mi><mo>⟩</mo></math>', compositeKey: '\\langle\\rangle', className: 'math' },
-        { value: '<math><mo>⟪</mo><mi>x</mi><mo>⟫</mo></math>', compositeKey: '\\lang\\rang', className: 'math' },
-        { value: '<math><mo>⌈</mo><mi>x</mi><mo>⌉</mo></math>', compositeKey: '\\lceil\\rceil', className: 'math' },
-        { value: '<math><mo>⌊</mo><mi>x</mi><mo>⌋</mo></math>', compositeKey: '\\lfloor\\rfloor', className: 'math' }
+        { value: '<math><mo>[</mo><mi>x</mi><mo>]</mo></math>', compositeKey: '\\left[\\right]', ratio: 1.5, className: 'math' },
+        { value: '<math><mo>{</mo><mi>x</mi><mo>}</mo></math>', compositeKey: '\\left\\{\\right\\}', ratio: 1.5, className: 'math' },
+        { value: '<math><mo>⟨</mo><mi>x</mi><mo>⟩</mo></math>', compositeKey: '\\langle\\rangle', ratio: 1.5, className: 'math' },
+        { value: '<math><mo>⟪</mo><mi>x</mi><mo>⟫</mo></math>', compositeKey: '\\lang\\rang', ratio: 1.5, className: 'math' },
+        { value: '<math><mo>⌈</mo><mi>x</mi><mo>⌉</mo></math>', compositeKey: '\\lceil\\rceil', ratio: 1.5, className: 'math' },
+        { value: '<math><mo>⌊</mo><mi>x</mi><mo>⌋</mo></math>', compositeKey: '\\lfloor\\rfloor', ratio: 1.5, className: 'math' }
     ],
     '<math><mtable><mtr><mtd><mi>a</mi></mtd><mtd><mi>b</mi></mtd></mtr></mtable></math>': [
         { value: '<math><mfenced open="(" close=")"><mtable><mtr><mtd><mi>a</mi></mtd><mtd><mi>b</mi></mtd></mtr></mtable></mfenced></math>',
-            compositeKey: '\\begin{pmatrix}\\end{pmatrix}', className: 'math' },
+            compositeKey: '\\begin{pmatrix}\\end{pmatrix}', ratio: 2, className: 'math' },
         { value: '<math><mfenced open="[" close="]"><mtable><mtr><mtd><mi>a</mi></mtd><mtd><mi>b</mi></mtd></mtr></mtable></mfenced></math>',
-            compositeKey: '\\begin{bmatrix}\\end{bmatrix}', className: 'math' },
+            compositeKey: '\\begin{bmatrix}\\end{bmatrix}', ratio: 2, className: 'math' },
         { value: '<math><mfenced open="{" close="}"><mtable><mtr><mtd><mi>a</mi></mtd><mtd><mi>b</mi></mtd></mtr></mtable></mfenced></math>',
-            compositeKey: '\\begin{Bmatrix}\\end{Bmatrix}', className: 'math' },
+            compositeKey: '\\begin{Bmatrix}\\end{Bmatrix}', ratio: 2, className: 'math' },
         { value: '<math><mfenced open="|" close="|"><mtable><mtr><mtd><mi>a</mi></mtd><mtd><mi>b</mi></mtd></mtr></mtable></mfenced></math>',
-            compositeKey: '\\begin{vmatrix}\\end{vmatrix}', className: 'math' },
+            compositeKey: '\\begin{vmatrix}\\end{vmatrix}', ratio: 2, className: 'math' },
         { value: '<math><mfenced open="‖" close="‖"><mtable><mtr><mtd><mi>a</mi></mtd><mtd><mi>b</mi></mtd></mtr></mtable></mfenced></math>',
-            compositeKey: '\\begin{Vmatrix}\\end{Vmatrix}', className: 'math' },
+            compositeKey: '\\begin{Vmatrix}\\end{Vmatrix}', ratio: 2, className: 'math' },
         { value: '<math><mfenced open="{" close=""><mtable><mtr><mtd><mi>a</mi></mtd><mtd><mi>b</mi></mtd></mtr></mtable></mfenced></math>',
-            compositeKey: '\\begin{cases}\\end{cases}', className: 'math' }
+            compositeKey: '\\begin{cases}\\end{cases}', ratio: 2, className: 'math' }
     ],
     '<math><mover><mi>x</mi><mo>^</mo></mover></math>': [
         { value: '<math><mover><mi>x</mi><mo>ˇ</mo></mover></math>', compositeKey: '\\check{}', className: 'math' },
@@ -394,24 +394,24 @@ Keyboards.latex = {
     ],
     '<math><mo>←</mo></math>': [
         { value: '<math><mo>↚</mo></math>', compositeKey: '\\nleftarrow', className: 'math' },
-        { value: '<math><mo>⟵</mo></math>', compositeKey: '\\longleftarrow', className: 'math' },
+        { value: '<math><mo>⟵</mo></math>', compositeKey: '\\longleftarrow', ratio: 2, className: 'math' },
         { value: '<math><mo>⇐</mo></math>', compositeKey: '\\Leftarrow', className: 'math' },
         { value: '<math><mo>⇍</mo></math>', compositeKey: '\\nLeftarrow', className: 'math' },
-        { value: '<math><mo>⟸</mo></math>', compositeKey: '\\Longleftarrow', className: 'math' }
+        { value: '<math><mo>⟸</mo></math>', compositeKey: '\\Longleftarrow', ratio: 2, className: 'math' }
     ],
     '<math><mo>↔</mo></math>': [
         { value: '<math><mo>↮</mo></math>', compositeKey: '\\nleftrightarrow', className: 'math' },
-        { value: '<math><mo>⟷</mo></math>', compositeKey: '\\longleftrightarrow', className: 'math' },
+        { value: '<math><mo>⟷</mo></math>', compositeKey: '\\longleftrightarrow', ratio: 2, className: 'math' },
         { value: '<math><mo>⇔</mo></math>', compositeKey: '\\Leftrightarrow', className: 'math' },
         { value: '<math><mo>⇎</mo></math>', compositeKey: '\\nLeftrightarrow', className: 'math' },
-        { value: '<math><mo>⟺</mo></math>', compositeKey: '\\Longleftrightarrow', className: 'math' }
+        { value: '<math><mo>⟺</mo></math>', compositeKey: '\\Longleftrightarrow', ratio: 2, className: 'math' }
     ],
     '<math><mo>→</mo></math>': [
         { value: '<math><mo>↛</mo></math>', compositeKey: '\\nrightarrow', className: 'math' },
-        { value: '<math><mo>⟶</mo></math>', compositeKey: '\\longrightarrow', className: 'math' },
+        { value: '<math><mo>⟶</mo></math>', compositeKey: '\\longrightarrow', ratio: 2, className: 'math' },
         { value: '<math><mo>⇒</mo></math>', compositeKey: '\\Rightarrow', className: 'math' },
         { value: '<math><mo>⇏</mo></math>', compositeKey: '\\nRightarrow', className: 'math' },
-        { value: '<math><mo>⟹</mo></math>', compositeKey: '\\Longrightarrow', className: 'math' }
+        { value: '<math><mo>⟹</mo></math>', compositeKey: '\\Longrightarrow', ratio: 2, className: 'math' }
     ]
   },
   keys: [

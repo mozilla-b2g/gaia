@@ -674,10 +674,17 @@ const IMERender = (function() {
                  'value': alt.value.toUpperCase().charCodeAt(0) }];
           }
 
-          // Make each of these alternative keys 75% as wide as the key that
-          // it is an alternative for, but adjust for the relative number of
-          // characters in the original and the alternative
-          var width = 0.75 * key.offsetWidth / keycharwidth * alt.length;
+          var width;
+          if (alt.ratio) {
+            // Work around for keys that use HTML code as value and need
+            // more space than the original key.
+            width = alt.ratio * key.offsetWidth;
+          } else {
+            // Make each of these alternative keys 75% as wide as the key that
+            // it is an alternative for, but adjust for the relative number of
+            // characters in the original and the alternative
+            width = 0.75 * key.offsetWidth / keycharwidth * alt.length;
+          }
 
           var attributeList = [];
 
