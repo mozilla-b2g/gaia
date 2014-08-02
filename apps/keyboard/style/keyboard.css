@@ -858,3 +858,12 @@ bubble above the key when you tap and hold. */
     font-size: 2rem;
   }
 }
+
+/* Math */
+.keyboard-key.math > .visual-wrapper > .key-element {
+  font-size: 2rem;
+}
+
+#keyboard.landscape .keyboard-key.math > .visual-wrapper > .key-element {
+  font-size: 2rem
+}

@@ -228,6 +228,21 @@ PageSwitchingTargetHandler.prototype.commit = function() {
       page = this.app.layoutManager.LAYOUT_PAGE_SYMBOLS_II;
       break;
 
+    case this.app.layoutManager.KEYCODE_LATEX_GREEK_LAYOUT:
+      // Switch to Greek letters page
+      page = this.app.layoutManager.LAYOUT_PAGE_LATEX_GREEK;
+      break;
+
+    case this.app.layoutManager.KEYCODE_LATEX_SYMBOLS_LAYOUT:
+      // Switch to math symbols page
+      page = this.app.layoutManager.LAYOUT_PAGE_LATEX_SYMBOLS;
+      break;
+
+    case this.app.layoutManager.KEYCODE_LATEX_FUNCTIONS_LAYOUT:
+      // Switch to math functions page
+      page = this.app.layoutManager.LAYOUT_PAGE_LATEX_FUNCTIONS;
+      break;
+
     case KeyEvent.DOM_VK_ALT:
       // alternate between pages 1 and 2 of SYMBOLS
       if (this.app.layoutManager.currentLayoutPage ===
