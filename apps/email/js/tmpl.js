@@ -2,7 +2,7 @@ define(['l10n!'], function(mozL10n) {
   // Keep track of all translated nodes, so that they are properly
   // updated on the fly when the language changes.
   var nodes = [];
-  mozL10n.ready(function() {
+  window.addEventListener('localized', function() {
     nodes.forEach(function(node) {
       mozL10n.translate(node);
     });
