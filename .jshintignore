@@ -21,7 +21,6 @@ build/push-to-device.js
 build/settings.js
 build/test/integration/build.test.js
 build/test/integration/distribution.test.js
-build/test/integration/helper.js
 build/test/integration/multilocale.test.js
 build/utils.js
 build/webapp-manifests.js
