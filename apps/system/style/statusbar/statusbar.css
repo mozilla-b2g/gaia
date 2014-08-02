@@ -97,8 +97,7 @@ body #statusbar {
   white-space: nowrap;
 }
 
-#screen.rocketbar-focused:not(.locked) #statusbar-icons,
-#screen.rocketbar-expanded.cards-view #statusbar-icons {
+#screen.rocketbar-focused:not(.locked) #statusbar-icons {
   visibility: hidden;
   opacity: 0;
 }

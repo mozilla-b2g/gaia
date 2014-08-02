@@ -4,9 +4,11 @@
   height: 4.6rem;
   left: 0;
   top: 0;
-  transition: transform 0.5s;
-  transform: scale(0.5);
-  transform-origin: left top;
+  display: block;
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(1) translateY(3rem);
+  transition: opacity 0.25s linear;
 }
 
 /* RTL fixes being tracked in bug 1008013 */
@@ -15,14 +17,16 @@
 }
 
 #rocketbar.active {
-  transform: scale(1);
+  opacity: 1;
+  pointer-events: auto;
+  transform: scale(1) translateY(3rem);
 }
 
 #screen.locked:not(.attention) #rocketbar {
   display: none;
 }
 
-#rocketbar-title, #rocketbar-form {
+#rocketbar-form {
   height: 3.4rem;
   background: rgba(51, 51, 51, 0.5);
   border-radius: 1.7rem;
@@ -32,41 +36,19 @@
   white-space: nowrap;
 }
 
-#rocketbar-title {
-  width: calc(100% - 3.2rem);
-}
-
 #rocketbar-form {
   display: flex;
   flex-direction: row;
 }
 
-#rocketbar-title-content, #rocketbar-input {
+#rocketbar-input {
   background: none;
   display: block;
   width: 100%;
-  height: 3.4rem;
+  height: 2rem;
   color: #e7e7e7;
   padding: 0 0 0 0.5rem;
   text-overflow: ellipsis;
-}
-
-#rocketbar-title-content {
-  font-size: 1.8rem;
-  font-style: italic;
-  font-weight: 300;
-  transform: scale(1.33);
-  transform-origin: left center;
-  transition: transform 0.5s;
-  overflow: hidden;
-}
-
-*[dir=rtl] #rocketbar-title-content {
-  transform-origin: right center;
-}
-
-#rocketbar.expanded #rocketbar-title-content {
-  transform: scale(1);
 }
 
 #rocketbar-input {
@@ -130,10 +112,6 @@
   background-color: rgba(255, 255, 255, 0.08);
 }
 
-#rocketbar-title.hidden, #rocketbar-form.hidden {
-  display: none;
-}
-
 #rocketbar-results, #rocketbar-backdrop {
   position: fixed;
   left: 0;
@@ -176,71 +154,7 @@
   pointer-events: none;
 }
 
-#rocketbar-overflow-button {
-  display: none;
-  width: 4rem;
-  height: 4.8rem;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-color: transparent;
-  border: none;
-  opacity: 1;
-}
-
-#rocketbar-overflow-button {
-  background-image: url('overflow.png');
-}
-
 #rocketbar.navigation:not(.active) {
   display: flex;
   flex-direction: row;
-}
-
-#rocketbar.expanded.navigation:not(.active) #rocketbar-overflow-button {
-  display: block;
-}
-
-#rocketbar.expanded.navigation:not(.active) #rocketbar-title {
-  position: relative;
-  flex: 1;
-  width: auto;
-  margin: 0.6rem 0;
-}
-
-/**
- * Style overrides for the HomeSearchbar
- */
-body.homesearch-enabled #rocketbar {
-  transition: opacity 0.25s linear;
-  display: block;
-  pointer-events: none;
-  opacity: 0;
-  transform: scale(1) translateY(3rem);
-}
-
-body.homesearch-enabled #rocketbar.active {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-body.homesearch-enabled #rocketbar-input {
-  height: 2rem;
-}
-
-body.homesearch-enabled #rocketbar-title-content {
-  margin-top: 0.7rem;
-  transform: scale(1);
-}
-
-/* Expand the rocketbar when it's active */
-body.homesearch-enabled #screen #rocketbar.active {
-  transform: scale(1) translateY(3rem);
-}
-body.homesearch-enabled #screen.active-statusbar #rocketbar.active {
-  transform: scale(1) translateY(4.0rem);
-}
-
-/* Do not expand the statusbar background on homescreen. We have our own markup in the homescreen. */
-body.homesearch-enabled #screen.rocketbar-expanded #statusbar-background {
-  transform: scaleY(0.5);
 }
