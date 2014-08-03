@@ -1,8 +1,10 @@
 /* global Tutorial, FinishScreen,
-          MocksHelper, MockL10n */
+          MocksHelper, MockL10n
+          MockNavigatorSettings */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('ftu/test/unit/mock_l10n.js');
 requireApp('ftu/test/unit/mock_screenlayout.js');
 requireApp('ftu/test/unit/mock_finish_screen.js');
@@ -49,6 +51,7 @@ suite('Tutorial >', function() {
 
   var realL10n;
   var realMozApps;
+  var realMozSettings;
   var realXHR;
 
   suiteSetup(function(done) {
@@ -57,6 +60,9 @@ suite('Tutorial >', function() {
 
     realMozApps = navigator.mozApps;
     navigator.mozApps = MockNavigatormozApps;
+
+    realMozSettings = navigator.mozSettings;
+    navigator.mozSettings = MockNavigatorSettings;
 
     loadBodyHTML('/index.html');
 
@@ -69,6 +75,7 @@ suite('Tutorial >', function() {
   suiteTeardown(function() {
     navigator.mozL10n = realL10n;
     navigator.mozApps = realMozApps;
+    navigator.mozSettings = realMozSettings;
     realL10n = null;
     window.XMLHttpRequest = realXHR;
     realXHR = null;
@@ -306,10 +313,22 @@ suite('Tutorial >', function() {
   suite('IAC Message >', function() {
 
     test('will send message', function() {
-      Tutorial.init();
-      MockNavigatormozApps.mTriggerLastRequestSuccess();
-      assert.equal(MockNavigatormozApps.mLastConnectionKeyword,
-                   'migrate');
+      var url = 'app://verticalhome.gaiamobile.org/manifest.webapp';
+      function setHomescreenManifest(url) {
+        return new Promise(function() {
+          var obj = {};
+          obj['homescreen.manifestURL'] = url;
+          var req = window.navigator.mozSettings.createLock().set(obj);
+        });
+      }
+
+      setHomescreenManifest(url).then(
+        Tutorial.init(null, function() {
+          MockNavigatormozApps.mTriggerLastRequestSuccess();
+          assert.equal(MockNavigatormozApps.mLastConnectionKeyword, 'migrate');
+        })
+      );
+
     });
   });
 });
