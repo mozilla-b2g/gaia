@@ -13,6 +13,7 @@
   "trailing": true,
   "maxlen": 80,
 
+  "node":true,
   "eqnull": true,
   "esnext": true,
   "expr": true,
