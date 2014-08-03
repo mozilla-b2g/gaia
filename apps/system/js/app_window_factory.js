@@ -118,7 +118,6 @@
           // System Message Handler API is asking us to open the specific URL
           // that handles the pending system message.
           // We will launch it in background if it's not handling an activity.
-          config.isSystemMessage = true;
           if (detail.isActivity) {
             config.isActivity = true;
             if (detail.target.disposition &&
