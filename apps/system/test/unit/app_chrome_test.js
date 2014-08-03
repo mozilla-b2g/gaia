@@ -573,5 +573,25 @@ suite('system/AppChrome', function() {
       assert.isTrue(stubRequestAnimationFrame.called);
       assert.isTrue(app.element.classList.contains('light'));
     });
+
+    test('browser scrollable background is black', function() {
+      var app = new AppWindow(fakeAppConfigBoth);
+      var chrome = new AppChrome(app);
+
+      assert.equal(chrome.scrollable.style.backgroundColor, '');
+      chrome.setThemeColor('black');
+      assert.equal(chrome.scrollable.style.backgroundColor, 'black');
+    });
+
+
+    test('homescreen scrollable background is unset', function() {
+      var app = new AppWindow(fakeAppConfigBoth);
+      app.isHomescreen = true;
+      var chrome = new AppChrome(app);
+
+      assert.equal(chrome.scrollable.style.backgroundColor, '');
+      chrome.setThemeColor('black');
+      assert.equal(chrome.scrollable.style.backgroundColor, '');
+    });
   });
 });

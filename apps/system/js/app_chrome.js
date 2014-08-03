@@ -496,6 +496,10 @@
   AppChrome.prototype.setThemeColor = function ac_setThemColor(color) {
     this.element.style.backgroundColor = color;
 
+    if (!this.app.isHomescreen) {
+      this.scrollable.style.backgroundColor = color;
+    }
+
     if (color === 'transparent' || color === '') {
       this.app.element.classList.remove('light');
       return;

@@ -32,7 +32,14 @@
   background-size: auto 0.3rem;
 }
 
-.appWindow:not(.homescreen):not(.searchWindow).render > div.browser-container,
+.appWindow:not(.homescreen):not(.searchWindow).render > div.browser-container {
+  background-color: #fff;
+}
+
+.appWindow:not(.homescreen):not(.searchWindow).light.render > div.browser-container {
+  background-color: #f2f2f2;
+}
+
 .appWindow:not(.homescreen):not(.searchWindow).render > div.browser-container > iframe {
   background-color: #fff;
 }
@@ -280,16 +287,20 @@
 }
 
 /****************** Screenshot Overlay ******************/
-.appWindow > .screenshot-overlay {
-  visibility: hidden;
+.appWindow .screenshot-overlay {
   pointer-events: none;
+  height: 100%;
 
   /* We need this to resize hi-res screenshot */
   background-size: cover;
 }
 
-.appWindow > .screenshot-overlay.visible {
-  visibility: visible;
+.appWindow.scrollable .screenshot-overlay {
+  background-color: inherit;
+}
+
+.appWindow.scrollable:not(.active) .screenshot-overlay {
+  margin-top: 4.6rem;
 }
 
 .appWindow > .identification-overlay {
@@ -371,10 +382,6 @@
 
 .appWindow > .identification-overlay {
   z-index: 1024;
-}
-
-.appWindow > .screenshot-overlay {
-  z-index: 1023;
 }
 
 .appWindow > .chrome {
