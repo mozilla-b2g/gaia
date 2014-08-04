@@ -28,7 +28,7 @@ var StatusBar = {
     'battery', 'wifi', 'data', 'flight-mode', 'network-activity', 'tethering',
     'alarm', 'bluetooth', 'mute', 'headphones', 'bluetooth-headphones',
     'bluetooth-transferring', 'recording', 'sms', 'geolocation', 'usb', 'label',
-    'system-downloads', 'call-forwardings', 'playing', 'nfc'],
+    'system-downloads', 'call-forwardings', 'playing', 'nfc', 'debugging'],
 
   /* Timeout for 'recently active' indicators */
   kActiveIndicatorTimeout: 5 * 1000,
@@ -124,6 +124,7 @@ var StatusBar = {
       'tethering.wifi.enabled': ['tethering'],
       'tethering.wifi.connectedClients': ['tethering'],
       'tethering.usb.connectedClients': ['tethering'],
+      'debugger.remote-mode': ['debugging'],
       'audio.volume.notification': ['mute'],
       'alarm.enabled': ['alarm'],
       'vibration.enabled': ['vibration'],
@@ -858,6 +859,12 @@ var StatusBar = {
         (this.settingValues['tethering.usb.connectedClients'] !== 0);
 
       this.updateIconLabel(icon, 'tethering', icon.dataset.active);
+    },
+
+    debugging: function sb_updateDebugging() {
+      var icon = this.icons.debugging;
+
+      icon.hidden = this.settingValues['debugger.remote-mode'] === 'disabled';
     },
 
     bluetooth: function sb_updateBluetooth() {
