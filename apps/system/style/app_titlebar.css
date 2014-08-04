@@ -54,12 +54,6 @@
 }
 
 /* Special cases */
-#screen:-moz-full-screen-ancestor .appWindow > .titlebar,
-.appWindow.fullscreen-app > .titlebar,
-.appWindow.bar .titlebar {
-  background-color: black;
-}
-
 #screen.utility-tray .appWindow .titlebar {
   visibility: hidden;
 }
