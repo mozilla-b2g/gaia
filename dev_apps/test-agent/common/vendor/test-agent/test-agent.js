@@ -20,7 +20,13 @@
 // DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
+function LOG(msg) {
+  setTimeout(function() {
+      throw '----------------> ' + (new Date).toLocaleTimeString() + msg;
+  });
+}
 (function(window) {
+
   if (typeof(window.TestAgent) === 'undefined') {
     window.TestAgent = {};
   }
@@ -1773,6 +1779,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 }());
 (function() {
+  var START_TIME = Date.now();
+
 
   var isNode = typeof(window) === 'undefined',
       Responder;
@@ -1960,6 +1968,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     //when another env sends the start event queue
     //it to be next in line.
     if (event === this.START) {
+      LOG('STARTING ' + envId);
       this.total = this.total + data.total;
 
       this.envOrder.push(envId);
@@ -1995,6 +2004,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     //when the end event fires
     //on the current group
     if (event === this.END) {
+      LOG('ENDING ' + currentEnv);
       removeIndex(this.envs, currentEnv);
 
       // if we had a start before this end
@@ -2671,6 +2681,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       this.runCoverage = false;
 
       worker.on('worker start', function(data) {
+        LOG('WORKER START');
         if (data && data.type == self.listenToWorker) {
           self._startDomainTests(self.currentEnv);
         }
@@ -2721,6 +2732,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
      * @return {HTMLElement} iframe element.
      */
     createIframe: function(src) {
+      LOG('creating frame: ' + src);
       var iframe = document.createElement('iframe');
       iframe.src = src + '?time' + String(Date.now());
 
@@ -2747,6 +2759,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
      * @param {HTMLElement} iframe raw iframe element.
      */
     removeIframe: function(iframe) {
+      LOG('removing frame: ' + iframe.src);
       if (iframe && iframe.parentNode) {
         iframe.parentNode.removeChild(iframe);
       }
@@ -2891,6 +2904,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     // Runs the next domain, or the next batch if there is no any domain.
     // This also resets the running flag if there is nothing left to run.
     _next: function() {
+      LOG('running next test');
       this._running = true;
 
       if (!this._loadNextDomain() && !this._loadNextBatch()) {

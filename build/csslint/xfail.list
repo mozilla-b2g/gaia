@@ -2,6 +2,7 @@
 # Each line contains 3 informations:
 # - the filename, the numbers or known errors, the numbers of known warnings
 #
+apps/system/style/statusbar/statusbar.css
 apps/video/style/video_tablet.css 0 1
 apps/video/style/video.css 0 7
 apps/video/style/info.css 0 2
