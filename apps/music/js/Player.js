@@ -111,6 +111,7 @@ var PlayerView = {
 
     this.isTouching = false;
     this.isFastSeeking = false;
+    this.hadFastSeeked = false;
     this.playStatus = PLAYSTATUS_STOPPED;
     this.pausedPosition = null;
     this.dataSource = [];
@@ -935,7 +936,16 @@ var PlayerView = {
             break;
           case 'player-cover-share':
             this.share();
-
+            break;
+          case 'player-controls-previous':
+            if (!this.hadFastSeeked) {
+              this.previous();
+            }
+            break;
+          case 'player-controls-next':
+            if (!this.hadFastSeeked) {
+              this.next();
+            }
             break;
         }
 
@@ -952,6 +962,8 @@ var PlayerView = {
           musicdb.updateMetadata(songData.name, songData.metadata);
           this.setRatings(newRating);
         }
+
+        this.hadFastSeeked = false;
 
         break;
       case 'play':
@@ -992,6 +1004,7 @@ var PlayerView = {
         // Otherwise, check the target id then do the corresponding actions.
         if (this.isFastSeeking) {
           this.stopFastSeeking();
+          this.hadFastSeeked = true;
         } else if (target.id === 'player-seek-bar') {
           this.seekIndicator.classList.remove('highlight');
           if (this.audio.duration > 0 && this.isTouching) {
@@ -999,10 +1012,6 @@ var PlayerView = {
             this.seekTime = 0;
           }
           this.isTouching = false;
-        } else if (target.id === 'player-controls-previous') {
-          this.previous();
-        } else if (target.id === 'player-controls-next') {
-          this.next();
         }
         break;
       case 'contextmenu':
