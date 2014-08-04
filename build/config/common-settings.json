@@ -118,6 +118,7 @@
    "ril.data.suspended": false,
    "ril.iccInfo.mbdn": "",
    "ril.sms.requestStatusReport.enabled": false,
+   "ril.mms.requestReadReport.enabled": false,
    "ril.cellbroadcast.searchlist": "",
    "ril.callwaiting.enabled": null,
    "ril.cf.enabled": false,
