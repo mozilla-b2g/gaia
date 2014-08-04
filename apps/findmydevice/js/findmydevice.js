@@ -170,6 +170,8 @@ var FindMyDevice = {
           var reason = event.data;
           if (reason === IAC_API_WAKEUP_REASON_ENABLED_CHANGED) {
             DUMP('enabled state changed, trying to reach the server');
+            // Ensure the retry counter is reset to 0 on enable
+            SettingsHelper('findmydevice.retry-count').set(0);
             this._contactServer();
           } else if (reason === IAC_API_WAKEUP_REASON_STALE_REGISTRATION) {
             DUMP('stale registration, re-registering');
@@ -578,6 +580,13 @@ var FindMyDevice = {
       this._registeredHelper.set(false);
     } else {
       this._scheduleAlarm('retry');
+      if (!this._registered) {
+        var countHelper = SettingsHelper('findmydevice.retry-count');
+
+        countHelper.get(function fmd_get_retry_count(count){
+          countHelper.set((count || 0) + 1);
+        });
+      }
     }
   },
 
