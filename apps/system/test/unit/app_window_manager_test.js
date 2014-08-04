@@ -148,6 +148,12 @@ suite('system/AppWindowManager', function() {
     });
   }
 
+  test('Get active app when _activeApp is null', function() {
+    AppWindowManager._activeApp = null;
+    assert.deepEqual(AppWindowManager.getActiveApp(), home,
+      'should return home app');
+  });
+
   suite('Handle events', function() {
     test('localized event should be broadcasted.', function() {
       var stubBroadcastMessage =
