@@ -84,7 +84,8 @@
      { "nfc-manager-tech-discovered": "/index.html" },
      { "nfc-manager-tech-lost": "/index.html" },
      { "nfc-manager-send-file": "/index.html" },
-     { "bluetooth-pairing-request": "/index.html" }
+     { "bluetooth-pairing-request": "/index.html" },
+     { "notification": "/index.html" }
   ],
   "connections": {
     "mediacomms": {
