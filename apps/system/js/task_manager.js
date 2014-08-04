@@ -82,6 +82,13 @@
      */
     sortingDirection: null,
 
+    /**
+     * The app that was active when we started, null if we started
+     * from homescreen.
+     * @memberOf TaskManager.prototype
+     */
+    startingApp: null,
+
     _showing: false
   }, {
     /**
@@ -298,6 +305,9 @@
     var stack = this.stack = StackManager.snapshot();
     this.currentPosition = StackManager.position;
 
+    var startedFromHomescreen =
+      this.currentPosition === -1 || stack.length === 0;
+
     // If we are currently displaying the homescreen but we have apps in the
     // stack we will display the most recently used application.
     if ((this.currentPosition == -1 || StackManager.outOfStack()) &&
@@ -308,6 +318,11 @@
 
     var currentApp = (stack.length && this.currentPosition > -1 &&
                      stack[this.currentPosition]);
+
+    this.startingApp =
+      (!startedFromHomescreen && typeof(currentApp) != 'number') ?
+        currentApp :
+        null;
 
     // Return early if isRocketbar and there are no apps.
     if (!currentApp && this.isRocketbar) {
@@ -683,7 +698,14 @@
         break;
 
       case 'home':
-        this.goToHomescreen(evt);
+        if (this._showing &&
+            this.startingApp &&
+            this.stack.some(app => app === this.startingApp)) {
+          evt.stopImmediatePropagation();
+          AppWindowManager.display(this.startingApp, 'from-cardview', null);
+        } else {
+          this.goToHomescreen(evt);
+        }
         break;
 
       case 'lockscreen-appopened':
