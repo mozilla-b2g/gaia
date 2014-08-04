@@ -179,6 +179,11 @@ UserPressManager.prototype.handleEvent = function(evt) {
       break;
 
     case 'mousemove':
+      // Ignore mousemove event if mouse button is not pressed.
+      if (!this.presses.has('_mouse')) {
+        return;
+      }
+
       if (!this._distanceReachesLimit('_mouse', evt)) {
         return;
       }
