@@ -229,7 +229,7 @@ LayoutManager.prototype._updateModifiedLayout = function() {
     if (this.currentLayoutPage === this.LAYOUT_PAGE_DEFAULT) {
       spaceKeyRow.splice(spaceKeyCount, 0, {
         keyCode: this.KEYCODE_ALTERNATE_LAYOUT,
-        value: layout.alternateLayoutKey || '12&',
+        value: layout.alternateLayoutKey || '?12',
         ratio: 1.5,
         ariaLabel: 'alternateLayoutKey',
         className: 'switch-key'
