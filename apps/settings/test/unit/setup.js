@@ -24,8 +24,14 @@ requireApp('settings/js/vendor/alameda.js', (function() {
       'shared/screen_layout': {
         exports: 'ScreenLayout'
       },
+      'shared/tz_select': {
+        exports: 'tzSelect'
+      },
       'unit/mock_l10n': {
         exports: 'MockL10n'
+      },
+      'unit/mock_navigator_moz_time': {
+        exports: 'MockTime'
       },
       'unit/mock_async_storage': {
         exports: 'MockAsyncStorage'
