@@ -257,6 +257,16 @@ button {
   font-style: italic;
 }
 
+/* Opt-out of italic style in these locales. See bug 1023702 */
+button:lang(ar), button:lang(as), button:lang(bn), button:lang(fa),
+button:lang(gu), button:lang(he), button:lang(hi), button:lang(ja),
+button:lang(km), button:lang(kn), button:lang(ko), button:lang(mai),
+button:lang(ml), button:lang(mr), button:lang(ne), button:lang(or),
+button:lang(pa),  button:lang(si), button:lang(ta), button:lang(te),
+button:lang(th), button:lang(ur), button:lang(zh) {
+  font-style: normal;
+}
+
 button:last-child {
   position: fixed;
   bottom: 0;

@@ -196,6 +196,33 @@
   font-style: italic;
 }
 
+/* Opt-out of italic style in these locales. See bug 1023702 */
+.keypad-callbar-button.cancel:lang(ar),
+.keypad-callbar-button.cancel:lang(as),
+.keypad-callbar-button.cancel:lang(bn),
+.keypad-callbar-button.cancel:lang(fa),
+.keypad-callbar-button.cancel:lang(gu),
+.keypad-callbar-button.cancel:lang(he),
+.keypad-callbar-button.cancel:lang(hi),
+.keypad-callbar-button.cancel:lang(ja),
+.keypad-callbar-button.cancel:lang(km),
+.keypad-callbar-button.cancel:lang(kn),
+.keypad-callbar-button.cancel:lang(ko),
+.keypad-callbar-button.cancel:lang(mai),
+.keypad-callbar-button.cancel:lang(ml),
+.keypad-callbar-button.cancel:lang(mr),
+.keypad-callbar-button.cancel:lang(ne),
+.keypad-callbar-button.cancel:lang(or),
+.keypad-callbar-button.cancel:lang(pa),
+.keypad-callbar-button.cancel:lang(si),
+.keypad-callbar-button.cancel:lang(ta),
+.keypad-callbar-button.cancel:lang(te),
+.keypad-callbar-button.cancel:lang(th),
+.keypad-callbar-button.cancel:lang(ur),
+.keypad-callbar-button.cancel:lang(zh) {
+  font-style: normal;
+}
+
 .keypad-callbar-button.cancel:active {
   background: #9ef2e7;
 }
