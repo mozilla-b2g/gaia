@@ -62,8 +62,8 @@ apps/system/style/update_manager/update_manager.css 1 0
 apps/system/style/window.css 0 3
 apps/system/style/zindex.css 0 2
 apps/video/style/info.css 0 2
-apps/video/style/video.css 0 7
-apps/video/style/video_tablet.css 0 1
+apps/video/style/video.css 0 8
+apps/video/style/video_tablet.css 0 4
 apps/wappush/style/wappush.css 0 1
 apps/sms/style/root.css 0 2
 apps/sms/style/sms.css 0 4
