@@ -142,7 +142,7 @@ suite('system/AppChrome', function() {
         this.sinon.stub(chrome, 'clearButtonBarTimeout');
       delete chrome.bookmarkButton.dataset.disabled;
       var stubSelectOne = this.sinon.stub(MockModalDialog, 'selectOne');
-      chrome.addBookmark();
+      chrome.onAddBookmark();
       assert.isTrue(stubClearButtonBarTimeout.called);
       assert.isTrue(stubSelectOne.called);
     });
@@ -288,7 +288,7 @@ suite('system/AppChrome', function() {
     test('bookmark', function() {
       var app = new AppWindow(fakeAppConfig1);
       var chrome = new AppChrome(app);
-      var stubAddBookmark = this.sinon.stub(chrome, 'addBookmark');
+      var stubAddBookmark = this.sinon.stub(chrome, 'onAddBookmark');
       chrome.handleEvent({ type: 'click', target: chrome.bookmarkButton });
       assert.isTrue(stubAddBookmark.called);
     });
