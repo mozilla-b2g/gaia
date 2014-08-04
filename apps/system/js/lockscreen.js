@@ -370,7 +370,6 @@
     this.lockIfEnabled(true);
     this.writeSetting(this.enabled);
     this.initUnlockerEvents();
-    this.initEmergencyCallEvents();
 
     /* Status changes */
     window.addEventListener('volumechange', this);
@@ -382,7 +381,10 @@
 
     /* Telephony changes */
     if (navigator.mozTelephony) {
+      this.initEmergencyCallEvents();
       navigator.mozTelephony.addEventListener('callschanged', this);
+    } else {
+      this.passcodePad.querySelector('a[data-key=e]').classList.add('disabled');
     }
 
     /* Gesture */

@@ -60,12 +60,22 @@ suite('system/LockScreen >', function() {
   var domCamera;
   var stubById;
   var domMessage;
+  var mockGetAllElements;
   mocksForLockScreen.attachTestHelpers();
 
   setup(function() {
     stubById = sinon.stub(document, 'getElementById');
     stubById.returns(document.createElement('div'));
+    mockGetAllElements = function() {
+      ['area', 'areaCamera', 'areaUnlock', 'altCameraButton', 'iconContainer',
+       'overlay', 'clockTime', 'date'].forEach(function(name) {
+          subject[name] = document.createElement('div');
+      });
+    };
 
+    window.lockScreenNotifications = {
+      bindLockScreen: function() {}
+    };
     window.LockScreenConnInfoManager = function() {
       this.updateConnStates = function() {};
     };
@@ -110,6 +120,7 @@ suite('system/LockScreen >', function() {
     subject.message = domMessage;
 
     var mockClock = {
+      start: function() {},
       stop: function() {}
     };
     subject.overlay = domOverlay;
@@ -117,6 +128,27 @@ suite('system/LockScreen >', function() {
     subject.clock = mockClock;
     subject.camera = domCamera;
     subject.lock();
+  });
+
+  test('Emergency call: should disable when has no telephony', function() {
+    navigator.mozTelephony = null;
+    var stubGetAll = this.sinon.stub(subject, 'getAllElements',
+                      mockGetAllElements);
+    var spyEmergencyCallEvents = this.sinon.spy(subject,
+                                  'initEmergencyCallEvents');
+    subject.init();
+    assert.isTrue(domEmergencyCallBtn.classList.contains('disabled'));
+    assert.isFalse(spyEmergencyCallEvents.calledOnce);
+  });
+
+  test('Emergency call: should enable when has telephony', function() {
+    var stubGetAll = this.sinon.stub(subject, 'getAllElements',
+                      mockGetAllElements);
+    var spyEmergencyCallEvents = this.sinon.spy(subject,
+                                  'initEmergencyCallEvents');
+    subject.init();
+    assert.isFalse(domEmergencyCallBtn.classList.contains('disabled'));
+    assert.isTrue(spyEmergencyCallEvents.calledOnce);
   });
 
   test('Emergency call: should disable emergency-call button',
