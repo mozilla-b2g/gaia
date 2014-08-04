@@ -25,9 +25,10 @@ gaia-header {
 
 .action-button {
   display: none; /* 1 */
+  position: relative;
   align-items: center;
   min-width: 50px;
-  font-size: 40px;
+  font-size: 30px;
   border: none;
   color: var(--header-nav-button-color, #000);
 }
@@ -38,7 +39,7 @@ gaia-header {
  * 1. For icon vertical-alignment
  */
 
-.action-supported .action-button {
+.supported-action .action-button {
   display: flex; /* 1 */
 }
 
@@ -61,6 +62,32 @@ gaia-header {
   display: block;
 }
 
+/** Action Button Text
+ ---------------------------------------------------------*/
+
+/**
+ * To provide custom localized content for
+ * the action-button, we allow the user
+ * to provide an element with the class
+ * `.l10n-action`. This node is then
+ * pulled inside the real action-button.
+ *
+ * Example:
+ *
+ *   <gaia-header action="back">
+ *     <span class="l10n-action" aria-label="Back">Localized text</span>
+ *     <h1>title</h1>
+ *   </gaia-header>
+ */
+
+.content .l10n-action {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  font-size: 0;
+}
 
 /** Title
  ---------------------------------------------------------*/
@@ -105,6 +132,15 @@ button,
   font-style: italic;
   transition: var(--button-transition);
   transition-delay: var(--button-transition-delay);
+}
+
+/**
+ * [hidden]
+ */
+
+.content a[hidden],
+.content button[hidden] {
+  display: none;
 }
 
 /**
