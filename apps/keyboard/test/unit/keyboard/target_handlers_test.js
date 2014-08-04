@@ -874,6 +874,24 @@ suite('target handlers', function() {
       });
     });
 
+    suite('KEYCODE_SYMBOL_LAYOUT', function() {
+      setup(function() {
+        target.dataset.keycode =
+          app.layoutManager.KEYCODE_SYMBOL_LAYOUT.toString(10);
+      });
+
+      test('commit', function() {
+        handler.commit();
+
+        assert.isTrue(app.setLayoutPage.calledWith(
+          app.layoutManager.LAYOUT_PAGE_SYMBOLS_II));
+        assert.isTrue(app.setLayoutPage.calledOnce);
+
+        assert.isTrue(app.visualHighlightManager.hide.calledWith(target));
+        assert.isTrue(app.visualHighlightManager.hide.calledOnce);
+      });
+    });
+
     suite('DOM_VK_ALT', function() {
       setup(function() {
         target.dataset.keycode = KeyEvent.DOM_VK_ALT.toString(10);
