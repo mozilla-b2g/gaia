@@ -97,10 +97,15 @@
       return;
     }
 
+    var items = this._listItems(detail);
+
+    if (!items.length) {
+      return;
+    }
+
     // Notify the embedder we are handling the context menu
     evt.preventDefault();
-
-    this.showMenu(this._listItems(detail));
+    this.showMenu(items);
   };
 
   BrowserContextMenu.prototype.showMenu = function(menu) {
@@ -214,7 +219,6 @@
     if (icon) {
       data.icon = icon;
     }
-    console.log(JSON.stringify(data));
     new MozActivity({
       name: 'save-bookmark',
       data: data
@@ -223,7 +227,7 @@
 
   BrowserContextMenu.prototype.generateSystemMenuItem = function(item) {
 
-    var nodeName = item.nodeName;
+    var nodeName = item.nodeName.toUpperCase();
     var uri = item.data.uri;
 
     switch (nodeName) {

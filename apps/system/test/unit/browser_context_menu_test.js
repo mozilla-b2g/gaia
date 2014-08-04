@@ -64,6 +64,7 @@ suite('system/BrowserContextMenu', function() {
   };
 
   var SYSTEM_TARGET_TYPES = [
+    'a',
     'A',
     'IMG',
     'VIDEO',
