@@ -1190,6 +1190,37 @@ suite('Utils', function() {
     });
   });
 
+  suite('Utils.debounce', function() {
+    setup(function() {
+      this.sinon.useFakeTimers();
+    });
+
+    test('calls function only once it stops being called', function() {
+      var waitTime = 1000,
+          funcToExecute = sinon.stub(),
+          debouncedFuncToExecute = Utils.debounce(funcToExecute, waitTime);
+
+      debouncedFuncToExecute();
+      sinon.assert.notCalled(funcToExecute);
+
+      this.sinon.clock.tick(waitTime - 100);
+      sinon.assert.notCalled(funcToExecute);
+
+      debouncedFuncToExecute();
+      debouncedFuncToExecute();
+      debouncedFuncToExecute();
+
+      this.sinon.clock.tick(waitTime - 100);
+      sinon.assert.notCalled(funcToExecute);
+
+      this.sinon.clock.tick(100);
+      sinon.assert.calledOnce(funcToExecute);
+
+      this.sinon.clock.tick(waitTime);
+      sinon.assert.calledOnce(funcToExecute);
+    });
+  });
+
   suite('Utils.Promise', function() {
     suite('defer()', function() {
       test('deferred object structure', function() {

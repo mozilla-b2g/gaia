@@ -1,6 +1,8 @@
 /*global loadBodyHTML, Recipients, MocksHelper, CustomEvent, KeyEvent,
          MockDialog, Template, MockL10n, Navigation, SharedComponents,
-         MockSettings */
+         MockSettings,
+         KeyboardEvent
+*/
 'use strict';
 
 require('/shared/test/unit/mocks/mock_gesture_detector.js');
@@ -49,6 +51,8 @@ suite('Recipients', function() {
   }
 
   setup(function() {
+    this.sinon.useFakeTimers();
+
     loadBodyHTML('/index.html');
 
     mocksHelper.setup();
@@ -1088,6 +1092,84 @@ suite('Recipients', function() {
           sinon.assert.calledWith(visible, 'multiline');
           sinon.assert.called(last.scrollIntoView);
         });
+      });
+    });
+
+    suite('Multi and single line modes', function() {
+      var waitTime = 100, inner, outer, modeChangeHandler;
+
+      setup(function() {
+        outer = document.getElementById('messages-to-field');
+        outer.style.minHeight = '55px';
+
+        // Simulate multiline mode by default
+        inner = document.getElementById('messages-recipients-list');
+        inner.style.height = '60px';
+
+        modeChangeHandler = sinon.stub();
+        recipients.on('modechange', modeChangeHandler);
+      });
+
+      test('mode is refreshed on "render"', function() {
+        recipients.render();
+        this.sinon.clock.tick(waitTime);
+
+        sinon.assert.calledWith(modeChangeHandler, 'multiline-mode');
+
+        inner.style.height = '50px';
+
+        recipients.render();
+        this.sinon.clock.tick(waitTime);
+
+        sinon.assert.calledWith(modeChangeHandler, 'singleline-mode');
+      });
+
+      test('mode is refreshed on "focus"', function() {
+        recipients.focus();
+        this.sinon.clock.tick(waitTime);
+
+        sinon.assert.calledWith(modeChangeHandler, 'multiline-mode');
+
+        inner.style.height = '50px';
+
+        recipients.focus();
+        this.sinon.clock.tick(waitTime);
+
+        sinon.assert.calledWith(modeChangeHandler, 'singleline-mode');
+      });
+
+      test('mode is refreshed on "keyup"', function() {
+        outer.dispatchEvent(new KeyboardEvent('keyup', {
+          bubbles: true,
+          cancelable: true,
+          keyCode: KeyEvent.DOM_VK_SPACE
+        }));
+        this.sinon.clock.tick(waitTime);
+
+        sinon.assert.calledWith(modeChangeHandler, 'multiline-mode');
+
+        inner.style.height = '50px';
+        outer.dispatchEvent(new KeyboardEvent('keyup', {
+          bubbles: true,
+          cancelable: true,
+          keyCode: KeyEvent.DOM_VK_BACK_SPACE
+        }));
+        this.sinon.clock.tick(waitTime);
+
+        sinon.assert.calledWith(modeChangeHandler, 'singleline-mode');
+      });
+
+      test('modechange is fired once and only if mode is changed', function() {
+        recipients.render().render().render();
+        this.sinon.clock.tick(waitTime * 2);
+
+        sinon.assert.calledOnce(modeChangeHandler);
+        sinon.assert.calledWith(modeChangeHandler, 'multiline-mode');
+
+        recipients.render().render().render();
+        this.sinon.clock.tick(waitTime * 2);
+
+        sinon.assert.calledOnce(modeChangeHandler);
       });
     });
   });

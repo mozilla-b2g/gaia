@@ -6167,6 +6167,42 @@ suite('thread_ui.js >', function() {
         sinon.assert.notCalled(Compose.focus);
       });
     });
+
+    suite('recipients panel mode change', function() {
+      setup(function() {
+        this.sinon.stub(Recipients.prototype, 'on');
+
+        ThreadUI.recipients = null;
+
+        ThreadUI.init();
+      });
+
+      test('multiline-recipients mode is turned off by default', function() {
+        assert.isFalse(
+          threadMessages.classList.contains('multiline-recipients-mode')
+        );
+      });
+
+      test('correctly toggles multiline-recipients mode', function() {
+        ThreadUI.recipients.on.withArgs('modechange').yield('singleline-mode');
+        assert.isFalse(
+          threadMessages.classList.contains('multiline-recipients-mode'),
+          'Single line mode event should not add multiline class'
+        );
+
+        ThreadUI.recipients.on.withArgs('modechange').yield('multiline-mode');
+        assert.isTrue(
+          threadMessages.classList.contains('multiline-recipients-mode'),
+          'Multi line mode event should add multiline class'
+        );
+
+        ThreadUI.recipients.on.withArgs('modechange').yield('singleline-mode');
+        assert.isFalse(
+          threadMessages.classList.contains('multiline-recipients-mode'),
+          'Single line mode event should remove multiline class if it is set'
+        );
+      });
+    });
   });
 
   suite('onMessageSendRequestCompleted >', function() {
