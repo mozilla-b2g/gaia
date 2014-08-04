@@ -1,6 +1,6 @@
 var PhoneNumberActionMenu = (function() {
 
-  var _initiated, _newPhoneNumber, _addContactActionMenu, _callMenuItem,
+  var _initiated, _newPhoneNumber, _addContactActionMenu,
     _createNewContactMenuItem, _addToExistingContactMenuItem, _sendSmsMenuItem,
     _cancelActionMenuItem, _addContactActionTitle, _optionToMenuItem;
 
@@ -39,28 +39,6 @@ var PhoneNumberActionMenu = (function() {
     _addContactActionMenu.classList.remove('visible');
   };
 
-  var _call = function _call() {
-    if (_newPhoneNumber) {
-      _updateLatestVisit();
-      if (navigator.mozIccManager.iccIds.length <= 1) {
-        CallHandler.call(_newPhoneNumber, 0);
-      } else {
-        var callFn = CallHandler.call.bind(CallHandler, _newPhoneNumber);
-
-        var key = 'ril.voicemail.defaultServiceId';
-        var req = navigator.mozSettings.createLock().get(key);
-        req.onsuccess = function() {
-          LazyLoader.load(['/shared/js/sim_picker.js'], function() {
-            LazyL10n.get(function(_) {
-              SimPicker.getOrPick(req.result[key], _newPhoneNumber, callFn);
-            });
-          });
-        };
-      }
-    }
-    _addContactActionMenu.classList.remove('visible');
-  };
-
   var _sendSms = function _sendSms() {
     if (_newPhoneNumber) {
       _updateLatestVisit();
@@ -84,7 +62,7 @@ var PhoneNumberActionMenu = (function() {
   };
 
   /*
-   * @param {Array} options Possible entries are: 'call', 'new-contact',
+   * @param {Array} options Possible entries are: 'new-contact',
    * 'add-to-existent'. If no options, include all possible options.
   */
   var _show = function _show(contactId, phoneNumber, options, isMissedCall) {
@@ -133,8 +111,6 @@ var PhoneNumberActionMenu = (function() {
       'add-contact-action-title');
     _addContactActionMenu = document.getElementById('add-contact-action-menu');
     _addContactActionMenu.addEventListener('submit', _formSubmit);
-    _callMenuItem = document.getElementById('call-menuitem');
-    _callMenuItem.addEventListener('click', _call);
     _sendSmsMenuItem = document.getElementById('send-sms-menuitem');
     _sendSmsMenuItem.addEventListener('click', _sendSms);
     _createNewContactMenuItem = document.getElementById(
@@ -146,7 +122,6 @@ var PhoneNumberActionMenu = (function() {
       _addToExistingContact);
 
     _optionToMenuItem = {
-      'call': _callMenuItem,
       'send-sms': _sendSmsMenuItem,
       'new-contact': _createNewContactMenuItem,
       'add-to-existent': _addToExistingContactMenuItem
@@ -159,7 +134,7 @@ var PhoneNumberActionMenu = (function() {
 
   return {
     /*
-     * @param {Array} options Possible entries are: 'call', 'new-contact',
+     * @param {Array} options Possible entries are: 'new-contact',
      * 'add-to-existent'. If no options, include all possible options.
     */
     show: function show(contactId, phoneNumber, options, isMissedCall) {

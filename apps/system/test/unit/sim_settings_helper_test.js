@@ -1,17 +1,13 @@
-/* global mocha, requireApp, suite, suiteSetup, test,
+/* global requireApp, suite, suiteSetup, test,
           setup, assert, CustomEvent,
           SIMSlotManager, SIMSlot, SimSettingsHelper,
           MocksHelper */
 
 'use strict';
 
-requireApp('system/js/mock_simslot.js');
-requireApp('system/js/mock_simslot_manager.js');
+requireApp('system/shared/test/unit/mocks/mock_simslot.js');
+requireApp('system/shared/test/unit/mocks/mock_simslot_manager.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
-
-mocha.globals([
-  'SimSettingsHelper'
-]);
 
 var mocksForSIMSettingsHelper = new MocksHelper([
   'SIMSlot',

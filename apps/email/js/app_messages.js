@@ -49,16 +49,13 @@ define(function(require) {
       // Dynamically load util, since it is only needed for certain
       // pathways in this module.
       require(['attachment_name'], function(attachmentName) {
-        var data = {};
+        var data;
         if (dataType === 'url' && activityName === 'share') {
-          data.body = url;
+          data = {
+            body: url
+          };
         } else {
-          var urlParts = url ? queryURI(url) : [];
-          data.to = urlParts[0];
-          data.subject = urlParts[1];
-          data.body = typeof urlParts[2] === 'string' ? urlParts[2] : null;
-          data.cc = urlParts[3];
-          data.bcc = urlParts[4];
+          data = queryURI(url);
           data.attachmentBlobs = sourceData.blobs || [];
           data.attachmentNames = sourceData.filenames || [];
 

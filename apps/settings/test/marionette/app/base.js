@@ -20,7 +20,16 @@ Base.prototype = {
   launch: function() {
     this.client.apps.launch(this.origin);
     this.client.apps.switchToApp(this.origin);
-    this.client.helper.waitForElement('body');
+    this.client.helper.waitForElement('body[data-ready="true"]');
+  },
+
+  /**
+   * Switches back to the current app frame.
+   * Useful when switching to system frame during test and needs to switch back.
+   */
+  switchTo: function() {
+    this.client.switchToFrame();
+    this.client.apps.switchToApp(this.origin);
   },
 
   /**

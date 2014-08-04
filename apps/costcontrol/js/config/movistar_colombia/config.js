@@ -3,8 +3,8 @@
 
 var MovistarColombiaConfig = {
   provider: 'Movistar',
-  is_free: false,
-  is_roaming_free: false,
+  is_free: true,
+  is_roaming_free: true,
   credit: { currency: '$' },
   balance: {
     destination: '611',

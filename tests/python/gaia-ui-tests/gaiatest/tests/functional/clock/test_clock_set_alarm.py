@@ -30,7 +30,8 @@ class TestClockSetAlarm(GaiaTestCase):
         self.assertEqual('Weekdays', new_alarm.alarm_repeat)
 
         new_alarm.select_repeat('Sunday')
-        self.assertEqual('Mon, Tue, Wed, Thu, Fri, Sun', new_alarm.alarm_repeat)
+        # In this locale, Sunday is the first day of the week; it appears first.
+        self.assertEqual('Sun, Mon, Tue, Wed, Thu, Fri', new_alarm.alarm_repeat)
 
         new_alarm.select_repeat('Sunday')
         self.assertEqual('Weekdays', new_alarm.alarm_repeat)

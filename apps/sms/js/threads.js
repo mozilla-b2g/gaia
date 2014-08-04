@@ -4,18 +4,6 @@
   'use strict';
 
   var threads = new Map();
-  var rthread = /\bthread=(.+)$/;
-  var currentId, lastId;
-
-  function cacheId() {
-    var matches = rthread.exec(window.location.hash);
-    currentId = (matches && matches.length) ? +(matches[1].trim()) : null;
-
-    if (currentId !== null && currentId !== lastId) {
-      lastId = currentId;
-    }
-    return currentId;
-  }
 
   function Thread(thread) {
     var length = Thread.FIELDS.length;
@@ -154,27 +142,11 @@
       }
       return +threads.size;
     },
-    get currentId() {
-
-      if (window.location.hash.startsWith('#thread=')) {
-        if (!currentId) {
-          currentId = cacheId();
-        }
-      } else {
-        currentId = null;
-      }
-
-      return currentId;
-    },
-    get lastId() {
-      return lastId;
-    },
+    currentId: null,
     get active() {
       return threads.get(+Threads.currentId);
     }
   };
 
   exports.Thread = Thread;
-
-  window.addEventListener('hashchange', cacheId);
 }(this));

@@ -16,7 +16,8 @@ function debug(data) {
 function initResponsiveDesign(browserWindow) {
   // Inject custom controls in responsive view
   Cu.import('resource:///modules/devtools/responsivedesign.jsm');
-  ResponsiveUIManager.once('on', function(event, tab, responsive) {
+  ResponsiveUIManager.once('on', function(event, {tab:tab}) {
+    let responsive = tab.__responsiveUI;
     let document = tab.ownerDocument;
 
     browserWindow.shell = {
@@ -141,7 +142,6 @@ function startup(data, reason) {
     Cu.import('resource://gre/modules/ContactService.jsm');
     Cu.import('resource://gre/modules/SettingsChangeNotifier.jsm');
     Cu.import('resource://gre/modules/ActivitiesService.jsm');
-    Cu.import('resource://gre/modules/PermissionPromptHelper.jsm');
 
     var mm = Cc['@mozilla.org/globalmessagemanager;1']
                .getService(Ci.nsIMessageBroadcaster);
@@ -192,7 +192,7 @@ function startup(data, reason) {
           // We should end up with urls like:
           //   http://system.gaiamobile.org:8080/manifest.webapp
           //   app://system.gaiamobile.org/manifest.webapp
-          let manifestURL = request.URI.prePath + '/manifest.webapp';
+          let manifestURL = 'app://'+ request.URI.host +'/manifest.webapp';
           let manifest = appsService.getAppByManifestURL(manifestURL);
           if (manifest) {
             let app = manifest.QueryInterface(Ci.mozIApplication);
@@ -292,4 +292,10 @@ function startup(data, reason) {
 
 function shutdown(data, reason) {
   // prevent stdout warnings
+}
+
+function install(data, reason) {
+}
+
+function uninstall(data, reason) {
 }

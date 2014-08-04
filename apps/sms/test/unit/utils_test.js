@@ -1,22 +1,24 @@
 /*global MockL10n, Utils, MockContact, FixturePhones, MockContactPhotoHelper,
          MockContacts, MockMozPhoneNumberService, MocksHelper, Notification,
-         MockNotification, Threads, Promise */
+         MockNotification, Threads, Promise, MockSettings */
 
 'use strict';
 
 requireApp('sms/test/unit/mock_contact.js');
 requireApp('sms/test/unit/mock_contacts.js');
-requireApp('sms/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('sms/test/unit/mock_navigator_mozphonenumberservice.js');
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 requireApp('sms/js/utils.js');
 requireApp('sms/shared/test/unit/mocks/mock_notification.js');
 requireApp('sms/test/unit/mock_threads.js');
+require('/test/unit/mock_settings.js');
 
 var MocksHelperForUtilsUnitTest = new MocksHelper([
   'ContactPhotoHelper',
   'Notification',
-  'Threads'
+  'Threads',
+  'Settings'
 ]).init();
 
 
@@ -39,16 +41,7 @@ suite('Utils', function() {
     this.sinon.stub(navigator.mozL10n, 'get',
       function get(key, params) {
         if (params) {
-          if (key == 'thread-header') {
-            return params.numberType + ' | ' + params.numberDetail;
-          }
           return key + JSON.stringify(params);
-        }
-        if (key == 'thread-separator') {
-          return ' | ';
-        }
-        if (key == 'carrier-separator') {
-          return ', ';
         }
         return key;
     });
@@ -212,8 +205,7 @@ suite('Utils', function() {
         isContact: true,
         title: 'Pepito O\'Hare',
         name: 'Pepito O\'Hare',
-        org: '',
-        carrier: 'Mobile | TEF'
+        org: ''
       });
 
       details = Utils.getContactDetails('12125559999', contact);
@@ -221,8 +213,7 @@ suite('Utils', function() {
         isContact: true,
         title: 'Pepito O\'Hare',
         name: 'Pepito O\'Hare',
-        org: '',
-        carrier: 'Batphone | XXX'
+        org: ''
       });
     });
 
@@ -241,8 +232,7 @@ suite('Utils', function() {
         isContact: true,
         title: 'Pepito O\'Hare',
         name: 'Pepito O\'Hare',
-        org: '',
-        carrier: 'Mobile | TEF'
+        org: ''
       });
     });
 
@@ -257,8 +247,7 @@ suite('Utils', function() {
         isContact: true,
         title: '',
         name: '',
-        org: '',
-        carrier: 'Mobile | TEF'
+        org: ''
       });
 
     });
@@ -277,8 +266,7 @@ suite('Utils', function() {
         isContact: true,
         title: 'Pepito O\'Hare',
         name: 'Pepito O\'Hare',
-        org: '',
-        carrier: 'Mobile | +346578888888'
+        org: ''
       });
 
     });
@@ -315,8 +303,7 @@ suite('Utils', function() {
           isContact: true,
           title: 'Pepito O\'Hare',
           name: 'Pepito O\'Hare',
-          org: '',
-          carrier: ''
+          org: ''
         });
       });
 
@@ -329,8 +316,7 @@ suite('Utils', function() {
           isContact: true,
           title: 'Pepito O\'Hare',
           name: 'Pepito O\'Hare',
-          org: '',
-          carrier: ''
+          org: ''
         });
       });
 
@@ -343,8 +329,7 @@ suite('Utils', function() {
           isContact: true,
           title: 'Pepito O\'Hare',
           name: 'Pepito O\'Hare',
-          org: '',
-          carrier: ''
+          org: ''
         });
       });
 
@@ -357,8 +342,7 @@ suite('Utils', function() {
           isContact: true,
           title: 'Pepito O\'Hare',
           name: 'Pepito O\'Hare',
-          org: '',
-          carrier: 'Batphone | XXX'
+          org: ''
         });
       });
 
@@ -375,8 +359,7 @@ suite('Utils', function() {
           isContact: true,
           title: 'Jane Doozer',
           name: 'Jane Doozer',
-          org: '',
-          carrier: 'Mobile | TEF'
+          org: ''
         });
       });
 
@@ -392,37 +375,25 @@ suite('Utils', function() {
           isContact: true,
           title: 'TEF',
           name: '',
-          org: 'TEF',
-          carrier: 'Mobile | TEF'
+          org: 'TEF'
         });
       });
     });
   });
 
-  suite('Utils.getCarrierTag', function() {
+  suite('Utils.getPhoneDetails', function() {
     /**
-      1. If a phone number has carrier associated with it
-          the output will be:
-
-        type | carrier
-
-      2. If there is no carrier associated with the phone number
-          the output will be:
-
-        type | phonenumber
-
-      3. If for some reason a single contact has two phone numbers with
-          the same type and the same carrier the output will be:
-
-        type | phonenumber
-
-      4. If for some reason a single contact has no name and no carrier,
-          the output will be:
-
-        type
-
-      5. If for some reason a single contact has no name, no type
-          and no carrier, the output will be nothing.
+     * Based on input number tries to extract more phone details like phone
+     * type, full phone number and phone carrier.
+     * 1. If a phone number has carrier associated with it then both "type" and
+     * "carrier" will be returned;
+     *
+     * 2. If there is no carrier associated with the phone number then "type"
+     *  and "phone number" will be returned;
+     *
+     * 3. If for some reason a single contact has two phone numbers with the
+     * same type and the same carrier then "type" and "phone number" will be
+     * returned;
     */
     test('Single with carrier', function() {
       // ie. contact.tel [ ... ]
@@ -430,9 +401,13 @@ suite('Utils', function() {
         {value: '101', type: ['Mobile'], carrier: 'Nynex'}
       ];
 
-      var a = Utils.getCarrierTag('101', tel);
+      var a = Utils.getPhoneDetails('101', tel);
 
-      assert.equal(a, 'Mobile | Nynex');
+      assert.deepEqual(a, {
+        type: tel[0].type[0],
+        carrier: tel[0].carrier,
+        number: tel[0].value
+      });
     });
 
     test('Single no carrier', function() {
@@ -441,42 +416,28 @@ suite('Utils', function() {
         {value: '201', type: ['Mobile'], carrier: null}
       ];
 
-      var a = Utils.getCarrierTag('201', tel);
+      var a = Utils.getPhoneDetails('201', tel);
 
-      assert.equal(a, 'Mobile | 201');
+      assert.deepEqual(a, {
+        type: tel[0].type[0],
+        carrier: null,
+        number: tel[0].value
+      });
     });
 
-    test('Single no name', function() {
-      // ie. contact.tel [ ... ]
-      var tel = [
-        {value: '201', type: ['Mobile'], carrier: 'Telco'}
-      ];
-
-      var a = Utils.getCarrierTag('201', tel, { name: '' });
-
-      assert.equal(a, 'Mobile | Telco');
-    });
-
-    test('Single no name, no carrier', function() {
-      // ie. contact.tel [ ... ]
-      var tel = [
-        {value: '201', type: ['Mobile'], carrier: null}
-      ];
-
-      var a = Utils.getCarrierTag('201', tel, { name: '' });
-
-      assert.equal(a, 'Mobile');
-    });
-
-    test('Single no name, no carrier, no type', function() {
+    test('No carrier, no type', function() {
       // ie. contact.tel [ ... ]
       var tel = [
         {value: '201', type: [], carrier: null}
       ];
 
-      var a = Utils.getCarrierTag('201', tel, { name: '' });
+      var a = Utils.getPhoneDetails('201', tel);
 
-      assert.equal(a, '');
+      assert.deepEqual(a, {
+        type: null,
+        carrier: null,
+        number: tel[0].value
+      });
     });
 
     test('Multi different carrier & type, match both', function() {
@@ -486,11 +447,19 @@ suite('Utils', function() {
         {value: '302', type: ['Home'], carrier: 'MCI'}
       ];
 
-      var a = Utils.getCarrierTag('301', tel);
-      var b = Utils.getCarrierTag('302', tel);
+      var a = Utils.getPhoneDetails('301', tel);
+      var b = Utils.getPhoneDetails('302', tel);
 
-      assert.equal(a, 'Mobile | Nynex');
-      assert.equal(b, 'Home | MCI');
+      assert.deepEqual(a, {
+        type: tel[0].type[0],
+        carrier: tel[0].carrier,
+        number: tel[0].value
+      });
+      assert.deepEqual(b, {
+        type: tel[1].type[0],
+        carrier: tel[1].carrier,
+        number: tel[1].value
+      });
     });
 
     test('Multi different carrier, match first', function() {
@@ -500,9 +469,13 @@ suite('Utils', function() {
         {value: '402', type: ['Home'], carrier: 'MCI'}
       ];
 
-      var a = Utils.getCarrierTag('401', tel);
+      var a = Utils.getPhoneDetails('401', tel);
 
-      assert.equal(a, 'Mobile | Nynex');
+      assert.deepEqual(a, {
+        type: tel[0].type[0],
+        carrier: tel[0].carrier,
+        number: tel[0].value
+      });
     });
 
     test('Multi different carrier, match second', function() {
@@ -512,9 +485,13 @@ suite('Utils', function() {
         {value: '502', type: ['Home'], carrier: 'MCI'}
       ];
 
-      var a = Utils.getCarrierTag('502', tel);
+      var a = Utils.getPhoneDetails('502', tel);
 
-      assert.equal(a, 'Home | MCI');
+      assert.deepEqual(a, {
+        type: tel[1].type[0],
+        carrier: tel[1].carrier,
+        number: tel[1].value
+      });
     });
 
     test('Multi same carrier & type', function() {
@@ -524,11 +501,19 @@ suite('Utils', function() {
         {value: '602', type: ['Mobile'], carrier: 'Nynex'}
       ];
 
-      var a = Utils.getCarrierTag('601', tel);
-      var b = Utils.getCarrierTag('602', tel);
+      var a = Utils.getPhoneDetails('601', tel);
+      var b = Utils.getPhoneDetails('602', tel);
 
-      assert.equal(a, 'Mobile | 601');
-      assert.equal(b, 'Mobile | 602');
+      assert.deepEqual(a, {
+        type: tel[0].type[0],
+        carrier: null,
+        number: tel[0].value
+      });
+      assert.deepEqual(b, {
+        type: tel[1].type[0],
+        carrier: null,
+        number: tel[1].value
+      });
     });
 
     test('Multi same carrier, different type', function() {
@@ -538,11 +523,19 @@ suite('Utils', function() {
         {value: '702', type: ['Home'], carrier: 'Nynex'}
       ];
 
-      var a = Utils.getCarrierTag('701', tel);
-      var b = Utils.getCarrierTag('702', tel);
+      var a = Utils.getPhoneDetails('701', tel);
+      var b = Utils.getPhoneDetails('702', tel);
 
-      assert.equal(a, 'Mobile | Nynex');
-      assert.equal(b, 'Home | Nynex');
+      assert.deepEqual(a, {
+        type: tel[0].type[0],
+        carrier: tel[0].carrier,
+        number: tel[0].value
+      });
+      assert.deepEqual(b, {
+        type: tel[1].type[0],
+        carrier: tel[1].carrier,
+        number: tel[1].value
+      });
     });
 
     test('Multi different carrier, same type', function() {
@@ -552,11 +545,19 @@ suite('Utils', function() {
         {value: '802', type: ['Mobile'], carrier: 'MCI'}
       ];
 
-      var a = Utils.getCarrierTag('801', tel);
-      var b = Utils.getCarrierTag('802', tel);
+      var a = Utils.getPhoneDetails('801', tel);
+      var b = Utils.getPhoneDetails('802', tel);
 
-      assert.equal(a, 'Mobile | Nynex');
-      assert.equal(b, 'Mobile | MCI');
+      assert.deepEqual(a, {
+        type: tel[0].type[0],
+        carrier: tel[0].carrier,
+        number: tel[0].value
+      });
+      assert.deepEqual(b, {
+        type: tel[1].type[0],
+        carrier: tel[1].carrier,
+        number: tel[1].value
+      });
     });
 
     test('Multi different carrier, same type - intl number', function() {
@@ -566,11 +567,19 @@ suite('Utils', function() {
         {value: '0987654321', type: ['Mobile'], carrier: 'MCI'}
       ];
 
-      var a = Utils.getCarrierTag('+1234567890', tel);
-      var b = Utils.getCarrierTag('+0987654321', tel);
+      var a = Utils.getPhoneDetails('+1234567890', tel);
+      var b = Utils.getPhoneDetails('+0987654321', tel);
 
-      assert.equal(a, 'Mobile | Nynex');
-      assert.equal(b, 'Mobile | MCI');
+      assert.deepEqual(a, {
+        type: tel[0].type[0],
+        carrier: tel[0].carrier,
+        number: tel[0].value
+      });
+      assert.deepEqual(b, {
+        type: tel[1].type[0],
+        carrier: tel[1].carrier,
+        number: tel[1].value
+      });
     });
 
     test('Multi different carrier, same type - never match', function() {
@@ -580,11 +589,11 @@ suite('Utils', function() {
         {value: '0987654321', type: ['Mobile'], carrier: 'MCI'}
       ];
 
-      var a = Utils.getCarrierTag('+9999999999', tel);
-      var b = Utils.getCarrierTag('+9999999999', tel);
+      var a = Utils.getPhoneDetails('+9999999999', tel);
+      var b = Utils.getPhoneDetails('+9999999999', tel);
 
-      assert.equal(a, '');
-      assert.equal(b, '');
+      assert.isNull(a);
+      assert.isNull(b);
     });
   });
 
@@ -716,7 +725,6 @@ suite('Utils', function() {
 
   });
 
-
   suite('Utils.getResizedImgBlob', function() {
     // a list of files in /test/unit/media/ to test resizing on
     var typeTestData = {
@@ -731,9 +739,10 @@ suite('Utils', function() {
       'default_quality_resized.jpg': null
     };
 
-    this.timeout(5000);
-
     suiteSetup(function(done) {
+      // loading all these blobs takes time!
+      this.timeout(30000);
+
       // load test blobs for image resize testing
       var assetsNeeded = 0;
 
@@ -1053,9 +1062,180 @@ suite('Utils', function() {
       }).then(done, done);
     });
   });
+
+  suite('Utils.imageToCanvas', function() {
+    setup(function() {
+      this.sinon.stub(CanvasRenderingContext2D.prototype, 'drawImage');
+    });
+
+    test('correct ratio is used', function() {
+      var imgNode = document.createElement('img'),
+          targetWidth = 100,
+          targetHeight = 200,
+          heightRatio = 2,
+          widthRatio = 3;
+
+      imgNode.width = targetWidth * widthRatio;
+      imgNode.height = targetHeight * heightRatio;
+
+      var canvas = Utils.imageToCanvas(imgNode, targetWidth, targetHeight);
+
+      assert.equal(canvas.width, Math.round(imgNode.width / widthRatio));
+      assert.equal(canvas.height, Math.round(imgNode.height / widthRatio));
+
+      heightRatio = 3;
+      widthRatio = 2;
+
+      imgNode.width = targetWidth * widthRatio;
+      imgNode.height = targetHeight * heightRatio;
+
+      canvas = Utils.imageToCanvas(imgNode, targetWidth, targetHeight);
+
+      assert.equal(canvas.width, Math.round(imgNode.width / heightRatio));
+      assert.equal(canvas.height, Math.round(imgNode.height / heightRatio));
+    });
+
+    test('canvas is drawn with right dimensions', function() {
+      var imgNode = document.createElement('img'),
+          targetWidth = 100,
+          targetHeight = 200,
+          ratio = 2;
+
+      imgNode.width = targetWidth * ratio;
+      imgNode.height = targetHeight * ratio;
+
+      var canvas = Utils.imageToCanvas(imgNode, targetWidth, targetHeight);
+
+      assert.equal(canvas.width, Math.round(imgNode.width / ratio));
+      assert.equal(canvas.height, Math.round(imgNode.height / ratio));
+      sinon.assert.calledWith(
+        CanvasRenderingContext2D.prototype.drawImage,
+        imgNode, 0, 0, canvas.width, canvas.height
+      );
+    });
+  });
+
+  suite('Utils.imageUrlToDataUrl', function() {
+     var getCustomImageDataURL = function(width, height, type) {
+      var canvas = document.createElement('canvas'),
+          context = canvas.getContext('2d');
+
+      canvas.width = width;
+      canvas.height = height;
+
+      context.fillStyle = 'rgb(255, 0, 0)';
+      context.fillRect (0, 0, width, height);
+
+      return canvas.toDataURL(type);
+    };
+
+    test('generates the same image if size is not adjusted', function(done) {
+      var type = 'image/jpeg',
+          actualWidth = 100,
+          actualHeight = 200,
+          imageURL = getCustomImageDataURL(actualWidth, actualHeight, type);
+
+      Utils.imageUrlToDataUrl(imageURL, type).then((result) => {
+        assert.deepEqual(result, {
+          dataUrl: imageURL,
+          width: actualWidth,
+          height: actualHeight
+        });
+      }).then(done, done);
+    });
+
+    test('generates image with the adjusted size', function(done) {
+      var type = 'image/png',
+          actualWidth = 100,
+          actualHeight = 200,
+          scaleFactor = 2,
+          imageURL = getCustomImageDataURL(actualWidth, actualHeight, type);
+
+      Utils.imageUrlToDataUrl(imageURL, type, (width, height) => {
+        return {
+          width: width * scaleFactor,
+          height: height * scaleFactor
+        };
+      }).then((result) => {
+        assert.equal(result.dataUrl.indexOf('data:' + type), 0);
+        assert.equal(result.width, actualWidth * scaleFactor);
+        assert.equal(result.height, actualHeight * scaleFactor);
+      }).then(done, done);
+    });
+
+    test('rejects in case of invalid image URL', function(done) {
+      var invalidImageURL = 'null';
+
+      Utils.imageUrlToDataUrl(invalidImageURL, 'image/png').then(() => {
+        return Promise.reject(new Error('Success callback is not expected!'));
+      }, (e) => {
+        assert.ok(e);
+      }).then(done, done);
+    });
+
+    test('rejects in case of sizeAdjuster fails', function(done) {
+      var type = 'image/png',
+          actualWidth = 100,
+          actualHeight = 200,
+          imageURL = getCustomImageDataURL(actualWidth, actualHeight, type);
+
+      Utils.imageUrlToDataUrl(imageURL, type, () => {
+        throw new Error('Something went wrong!');
+      }).then(
+        () => Promise.reject(new Error('Success callback is not expected!')),
+        (e) => {
+          assert.ok(e);
+        }
+      ).then(done, done);
+    });
+  });
+
+  suite('Utils.Promise', function() {
+    suite('defer()', function() {
+      test('deferred object structure', function() {
+        var deferred = Utils.Promise.defer();
+
+        assert.isNotNull(deferred);
+        assert.isTrue(deferred.promise instanceof Promise);
+        assert.isTrue(typeof deferred.resolve == 'function');
+        assert.isTrue(typeof deferred.reject == 'function');
+      });
+
+      test('resolved promise', function(done) {
+        var deferred = Utils.Promise.defer(),
+            resolveResult = {
+              message: 'Yay!'
+            };
+
+        deferred.promise.then(
+          (result) => {
+            assert.equal(resolveResult, result);
+          },
+          () => Promise.reject(new Error('Fail callback is not expected!'))
+        ).then(done, done);
+
+        deferred.resolve(resolveResult);
+      });
+
+      test('rejected promise', function(done) {
+        var deferred = Utils.Promise.defer(),
+            rejectResult = new Error('Nooo!');
+
+        deferred.promise.then(
+          () => Promise.reject(new Error('Success callback is not expected!')),
+          (result) => {
+            assert.equal(rejectResult, result);
+          }).then(done, done);
+
+        deferred.reject(rejectResult);
+      });
+    });
+  });
 });
 
 suite('getDisplayObject', function() {
+  MocksHelperForUtilsUnitTest.attachTestHelpers();
+
   var nativeMozL10n = navigator.mozL10n;
   setup(function() {
     navigator.mozL10n = MockL10n;
@@ -1063,16 +1243,7 @@ suite('getDisplayObject', function() {
     this.sinon.stub(navigator.mozL10n, 'get',
       function get(key, params) {
         if (params) {
-          if (key == 'thread-header') {
-            return params.numberType + ' | ' + params.numberDetail;
-          }
           return key + JSON.stringify(params);
-        }
-        if (key == 'thread-separator') {
-          return ' | ';
-        }
-        if (key == 'carrier-separator') {
-          return ', ';
         }
         return key;
     });
@@ -1094,9 +1265,8 @@ suite('getDisplayObject', function() {
     });
 
     assert.equal(data.name, myTitle);
-    assert.equal(data.separator, ' | ');
     assert.equal(data.type, type);
-    assert.equal(data.carrier, carrier + ', ');
+    assert.equal(data.carrier, carrier);
     assert.equal(data.number, value);
   });
 
@@ -1111,7 +1281,6 @@ suite('getDisplayObject', function() {
     });
 
     assert.equal(data.name, myTitle);
-    assert.equal(data.separator, ' | ');
     assert.equal(data.type, type);
     assert.equal(data.carrier, '');
     assert.equal(data.number, value);
@@ -1125,7 +1294,6 @@ suite('getDisplayObject', function() {
     });
 
     assert.equal(data.name, myTitle);
-    assert.equal(data.separator, '');
     assert.equal(data.type, '');
     assert.equal(data.carrier, '');
     assert.equal(data.number, value);
@@ -1142,66 +1310,63 @@ suite('getDisplayObject', function() {
     });
 
     assert.equal(data.name, value);
-    assert.equal(data.separator, ' | ');
     assert.equal(data.type, type);
-    assert.equal(data.carrier, carrier + ', ');
+    assert.equal(data.carrier, carrier);
     assert.equal(data.number, value);
   });
-});
 
-suite('getDisplayObject l10n values', function() {
-  var nativeMozL10n;
+  test('Tel object with title, type and value of email', function() {
+    MockSettings.supportEmailRecipient = true;
+    var type = 'Personal';
+    var myTitle = 'My title';
+    var value = 'a@b.com';
+    var data = Utils.getDisplayObject(myTitle, {
+      'value': value,
+      'type': [type]
+    });
 
-  setup(function() {
-    nativeMozL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
+    assert.equal(data.name, myTitle);
+    assert.equal(data.type, type);
+    assert.equal(data.carrier, '');
+    assert.equal(data.number, value);
+    assert.equal(data.email, value);
   });
 
-  teardown(function() {
-    navigator.mozL10n = nativeMozL10n;
-    nativeMozL10n = null;
+  test('Tel object with title, NO type and value of email', function() {
+    MockSettings.supportEmailRecipient = true;
+    var myTitle = 'My title';
+    var value = 'a@b.com';
+    var data = Utils.getDisplayObject(myTitle, {
+      'value': value
+    });
+
+    assert.equal(data.name, myTitle);
+    assert.equal(data.type, '');
+    assert.equal(data.carrier, '');
+    assert.equal(data.number, value);
+    assert.equal(data.email, value);
   });
 
-  test('(l10n) Empty separator (l10n)', function() {
-    this.sinon.stub(navigator.mozL10n, 'get').returns('');
-    var type = 'Mobile';
-    var carrier = 'Carrier';
-    var value = 111111;
+  test('Tel object with NO title, type and value of email', function() {
+    MockSettings.supportEmailRecipient = true;
+    var type = 'Personal';
+    var value = 'a@b.com';
     var data = Utils.getDisplayObject(null, {
       'value': value,
-      'carrier': carrier,
       'type': [type]
     });
 
     assert.equal(data.name, value);
-    assert.equal(data.separator, ' | ');
     assert.equal(data.type, type);
-    assert.equal(data.carrier, carrier + ', ');
+    assert.equal(data.carrier, '');
     assert.equal(data.number, value);
-  });
-
-  test('(l10n) Different separators (l10n)', function() {
-    var l10nStub = this.sinon.stub(navigator.mozL10n, 'get');
-    l10nStub.withArgs('thread-separator').returns(' # ');
-    l10nStub.withArgs('carrier-separator').returns(': ');
-    var type = 'Mobile';
-    var carrier = 'Carrier';
-    var value = 111111;
-    var data = Utils.getDisplayObject(null, {
-      'value': value,
-      'carrier': carrier,
-      'type': [type]
-    });
-
-    assert.equal(data.name, value);
-    assert.equal(data.separator, ' # ');
-    assert.equal(data.type, type);
-    assert.equal(data.carrier, carrier + ': ');
-    assert.equal(data.number, value);
+    assert.equal(data.email, value);
   });
 });
 
 suite('getContactDisplayInfo', function() {
+  MocksHelperForUtilsUnitTest.attachTestHelpers();
+
   var nativeMozL10n = navigator.mozL10n;
 
   setup(function() {
@@ -1292,6 +1457,24 @@ suite('getContactDisplayInfo', function() {
   });
 });
 
+suite('isEmailAddress', function() {
+  test('check +348888888888', function() {
+    assert.isFalse(Utils.isEmailAddress('+348888888888'));
+  });
+  test('check a@b.com', function() {
+    assert.isTrue(Utils.isEmailAddress('a@b.com'));
+  });
+  test('check @b.com', function() {
+    assert.isFalse(Utils.isEmailAddress('@b.com'));
+  });
+  test('check abcd@', function() {
+    assert.isFalse(Utils.isEmailAddress('abcd@'));
+  });
+  test('check a@a', function() {
+    assert.isTrue(Utils.isEmailAddress('a@a'));
+  });
+});
+
 test('getClosestSampleSize', function() {
   assert.equal(Utils.getClosestSampleSize(1), 1);
   assert.equal(Utils.getClosestSampleSize(2), 2);
@@ -1305,3 +1488,42 @@ test('getClosestSampleSize', function() {
   assert.equal(Utils.getClosestSampleSize(9), 8);
 });
 
+test('extend()', function() {
+  var source = {
+    prop1: 'prop1-source',
+    prop2: 'prop2-source'
+  };
+
+  var target = {
+    prop2: 'prop2-target',
+    prop3: 'prop3-target'
+  };
+
+  var prototype = {
+    prop4: 'prop4-proto'
+  };
+
+  target.prototype = Object.create(prototype);
+
+  Utils.extend(target, source);
+
+  assert.equal(
+    target.prop1, source.prop1,
+    'copies over properties'
+  );
+
+  assert.equal(
+    target.prop2, source.prop2,
+    'overrides properties'
+  );
+
+  assert.equal(
+    target.prop3, 'prop3-target',
+    'does not change properties that is not in target'
+  );
+
+  assert.isUndefined(
+    target.prop4,
+    'does not copy over properties from prototype'
+  );
+});

@@ -21,21 +21,21 @@
       </header>
       <ul>
         <li class="sound-setting">
-          <label class="range-icons volume">
+          <label class="range-icons volume media">
             <p data-l10n-id="media-sound">Media</p>
-            <input type="range" name="audio.volume.content" step="1" min="0" value="15" max="15">
+            <input type="range" step="1" min="0" value="15" max="15">
           </label>
         </li>
         <li class="sound-setting">
-          <label class="range-icons volume">
+          <label class="range-icons volume notification">
             <p data-l10n-id="ringer-and-notification-sound">Ringer & Notifications</p>
-            <input type="range" name="audio.volume.notification" step="1" min="0" value="15" max="15">
+            <input type="range" step="1" min="0" value="15" max="15">
           </label>
         </li>
         <li class="sound-setting">
-          <label class="range-icons volume">
+          <label class="range-icons volume alarm">
             <p data-l10n-id="alarm-sound">Alarm</p>
-            <input type="range" name="audio.volume.alarm" step="1" min="0" value="15" max="15">
+            <input type="range" step="1" min="0" value="15" max="15">
           </label>
         </li>
       </ul>
@@ -46,11 +46,11 @@
       <ul>
         <li id="ringer" hidden>
           <p data-l10n-id="ringer">Ringer</p>
-          <button id="ring-tone-selection" class="icon icon-view" data-l10n-id="change"></button>
+          <button id="ring-tone-selection" class="icon icon-view"></button>
         </li>
         <li id="alerts">
           <p data-l10n-id="alerts">Alerts</p>
-          <button id="alert-tone-selection" class="icon icon-view" data-l10n-id="change"></button>
+          <button id="alert-tone-selection" class="icon icon-view"></button>
         </li>
         <li id="touch-tone-selector" hidden>
           <a data-l10n-id="touch-tones">Audible touch tones</a>
@@ -64,31 +64,28 @@
       </ul>
 
       <header>
+        <h2 data-l10n-id="manage-sounds">Manage Sounds</h2>
+      </header>
+      <ul>
+        <li id="manage-ringtones">
+          <button id="manage-ringtones-button" class="icon icon-view" data-l10n-id="manage-ringtones"></button>
+        </li>
+      </ul>
+
+      <header>
         <h2 data-l10n-id="other-sounds">Other Sounds</h2>
       </header>
       <ul>
         <li>
           <label class="pack-checkbox">
             <input type="checkbox" name="phone.ring.keypad" checked>
-            <span data-l10n-id="keypad">Keypad</span>
+            <span data-l10n-id="dialpad">Dial Pad</span>
           </label>
         </li>
         <li>
           <label class="pack-checkbox">
-            <input type="checkbox" name="camera.shutter.enabled" checked>
-            <span data-l10n-id="camera-shutter">Camera Shutter</span>
-          </label>
-        </li>
-        <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="camera.recordingsound.enabled" checked>
-            <span data-l10n-id="camera-recordingsound">Camera Recording Sound</span>
-          </label>
-        </li>
-        <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="mail.sent-sound.enabled" checked>
-            <span data-l10n-id="sent-mail">Sent Mail</span>
+            <input type="checkbox" name="camera.sound.enabled" checked>
+            <span data-l10n-id="camera">Camera</span>
           </label>
         </li>
         <li>

@@ -36,8 +36,6 @@ class TestContacts(GaiaTestCase):
         self.contact['familyName'] = "testedit"
         self.contact['tel']['value'] = "02011111111"
 
-        # self.(*self._given_name_locator)
-
         edit_contact.type_given_name(self.contact['givenName'])
         edit_contact.type_family_name(self.contact['familyName'])
         edit_contact.type_phone(self.contact['tel']['value'])

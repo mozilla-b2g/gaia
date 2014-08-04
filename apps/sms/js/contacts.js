@@ -2,7 +2,7 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 (function(exports) {
   'use strict';
-  /*global fb */
+  /*global fb, Settings, Utils */
   var unknownNumbers = [];
 
   var filterFns = {
@@ -188,6 +188,9 @@
       request.onsuccess = function onsuccess() {
         var contacts = this.result.slice();
         var fields = ['tel', 'givenName', 'familyName'];
+        if (Settings.supportEmailRecipient) {
+          fields.push('email');
+        }
         var criteria = { fields: fields, terms: lower };
         var results = [];
         var contact;
@@ -228,8 +231,12 @@
     },
 
     findContactByString: function contacts_findBy(filterValue, callback) {
+      var props = ['tel', 'givenName', 'familyName'];
+      if (Settings.supportEmailRecipient) {
+        props.push('email');
+      }
       return this.findBy({
-        filterBy: ['tel', 'givenName', 'familyName'],
+        filterBy: props,
         filterOp: 'contains',
         filterValue: filterValue
       }, callback);
@@ -297,6 +304,22 @@
           callback(results);
         });
       });
+    },
+
+    findByAddress: function contacts_findByAddress(fValue, callback) {
+      if (Settings.supportEmailRecipient && Utils.isEmailAddress(fValue)) {
+        this.findExactByEmail(fValue, callback);
+      } else {
+        this.findByPhoneNumber(fValue, callback);
+      }
+    },
+
+    findExactByEmail: function contacts_findExactByEmail(fValue, callback) {
+      return this.findBy({
+        filterBy: ['email'],
+        filterOp: 'equals',
+        filterValue: fValue
+      }, callback);
     },
 
     addUnknown: function addUnknown(number) {

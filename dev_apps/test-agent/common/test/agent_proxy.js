@@ -8,6 +8,7 @@
   worker.use(TestAgent.BrowserWorker.PostMessage);
 
   worker.use(TestAgent.BrowserWorker.MochaDriver, {
+
     ui: 'tdd',
     /* path to mocha */
     mochaUrl: CommonResourceLoader.url('/common/vendor/mocha/mocha.js'),
@@ -25,8 +26,14 @@
       '/test/unit/setup.js'
     ],
 
-    reporter: null
+    reporter: null,
+
+    setup: {
+      ignoreLeaks: true
+    }
+
   });
+
   worker.use(TestAgent.BrowserWorker.BlanketDriver, {
     blanketUrl: CommonResourceLoader.url('/common/vendor/blanket/blanket.js')
   });
@@ -55,5 +62,3 @@
   worker.start();
 
 }(this));
-
-

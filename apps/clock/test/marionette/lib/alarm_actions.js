@@ -1,7 +1,6 @@
 'use strict';
 /* global marionetteScriptFinished */
 
-var assert = require('assert');
 var utils = require('./utils');
 var $ = require('./mquery');
 
@@ -149,8 +148,9 @@ AlarmActions.prototype = {
       return !!alarmData;
     }.bind(this));
 
-    assert.equal(this.list.length, originalAlarmCount + 1,
-                 'Alarm list should have an additional item after creation');
+    this._client.waitFor(function() {
+      return this.list.length === originalAlarmCount + 1;
+    }.bind(this));
 
     $('[data-panel-id="alarm"]').waitToAppear();
     this.waitForBanner();

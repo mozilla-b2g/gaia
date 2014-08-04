@@ -94,6 +94,11 @@ var MmiUI = {
     } else {
       this.headerTitleNode.textContent = '';
     }
+
+    // Make sure the app is displayed
+    navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
+      evt.target.result.launch('dialer');
+    };
   },
 
   showLoading: function mui_showLoading() {
@@ -118,10 +123,12 @@ var MmiUI = {
 
   showResponseForm: function mui_showForm() {
     this.mmiScreen.classList.add('responseForm');
+    this.sendNode.classList.remove('hide');
   },
 
   hideResponseForm: function mui_hideForm() {
     this.mmiScreen.classList.remove('responseForm');
+    this.sendNode.classList.add('hide');
   },
 
   resetResponse: function mui_resetResponse() {
@@ -185,6 +192,7 @@ var MmiUI = {
   handleError: function ph_handleError(data) {
     var header = data.title ? data.title : undefined;
     var error = data.error ? data.error : this._('mmi-error');
+    this.hideResponseForm();
     this.showMessage(error, header);
   }
 };

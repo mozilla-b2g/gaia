@@ -3,13 +3,10 @@
 /* global HtmlImports */
 /* global FindMyDevice */
 /* global MockSettingsListener */
+/* global MockSettingsHelper */
+/* global IAC_API_WAKEUP_REASON_TRY_DISABLE */
 
 'use strict';
-
-mocha.globals([
-  'FindMyDevice',
-  'loadJSON'
-]);
 
 require('mock_load_json.js');
 
@@ -19,15 +16,17 @@ require('/shared/js/html_imports.js');
 
 require('/shared/test/unit/mocks/mocks_helper.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
+require('/shared/test/unit/mocks/mock_settings_helper.js');
+require('/shared/js/findmydevice_iac_api.js');
 
 var mocksForFindMyDevice = new MocksHelper([
-  'SettingsListener'
+  'SettingsListener', 'SettingsHelper'
 ]).init();
 
 suite('Find My Device panel > ', function() {
   var MockMozId, realMozId;
   var realL10n, realLoadJSON, subject;
-  var signinSection, settingsSection, loginButton, checkbox;
+  var signinSection, settingsSection, trackingSection, loginButton, checkbox;
 
   mocksForFindMyDevice.attachTestHelpers();
 
@@ -36,7 +35,9 @@ suite('Find My Device panel > ', function() {
     navigator.mozL10n = {
       once: function(callback) {
         callback();
-      }
+      },
+      setAttributes: function(element, id) {
+      },
     };
 
     realMozId = navigator.mozId;
@@ -44,19 +45,22 @@ suite('Find My Device panel > ', function() {
       onlogin: null,
       onlogout: null,
       onready: null,
+      onerror: null,
+      oncancel: null,
 
       watch: function(options) {
         this.onlogin = options.onlogin;
         this.onlogout = options.onlogout;
         this.onready = options.onready;
+        this.onerror = options.onerror;
 
         setTimeout(function() {
           options.onready();
         });
       },
 
-      request: function() {
-        // noop
+      request: function(options) {
+        this.oncancel = options.oncancel;
       },
     };
 
@@ -82,8 +86,12 @@ suite('Find My Device panel > ', function() {
       // grab pointers to useful elements
       signinSection = document.getElementById('findmydevice-signin');
       settingsSection = document.getElementById('findmydevice-settings');
-      loginButton = document.getElementById('findmydevice-login');
+      trackingSection = document.getElementById('findmydevice-tracking');
       checkbox = document.querySelector('#findmydevice-enabled input');
+      loginButton = document.getElementById('findmydevice-login');
+
+      // manually enable the loginButton
+      loginButton.removeAttribute('disabled');
 
       require('/js/findmydevice.js', function() {
         subject = FindMyDevice;
@@ -93,32 +101,130 @@ suite('Find My Device panel > ', function() {
   });
 
   test('prompt for login when logged out of FxA', function() {
-    MockMozId.onlogout();
+    MockSettingsListener.mCallbacks['findmydevice.logged-in'](false);
     assert.isFalse(signinSection.hidden);
     assert.isTrue(settingsSection.hidden);
   });
 
+  test('consider ourselves logged out if onerror fires when not offline',
+  function() {
+    MockMozId.onerror('{"name": "NOT_OFFLINE"}');
+    assert.isFalse(
+      MockSettingsHelper.instances['findmydevice.logged-in'].value);
+  });
+
+  test('persist panel if onerror fires due to being offline', function() {
+    MockSettingsListener.mCallbacks['findmydevice.logged-in'](true);
+    MockMozId.onerror('{"name": "OFFLINE"}');
+    assert.isFalse(settingsSection.hidden);
+    assert.isTrue(signinSection.hidden);
+
+    MockSettingsListener.mCallbacks['findmydevice.logged-in'](false);
+    MockMozId.onerror('{"name": "OFFLINE"}');
+    assert.isTrue(settingsSection.hidden);
+    assert.isFalse(signinSection.hidden);
+  });
+
   test('show settings when logged in to FxA', function() {
-    MockMozId.onlogin();
+    MockSettingsListener.mCallbacks['findmydevice.logged-in'](true);
     assert.isFalse(settingsSection.hidden);
     assert.isTrue(signinSection.hidden);
   });
 
-  test('auto-enable when logging in using the login button', function() {
+  test('ignore clicks when button is disabled', function() {
+    loginButton.disabled = true;
+    var onLoginClickSpy = sinon.spy(FindMyDevice, '_onLoginClick');
+    loginButton.click();
+    sinon.assert.notCalled(onLoginClickSpy);
+    FindMyDevice._onLoginClick.restore();
+  });
+
+  test('enable button after watch fires onready', function() {
+    loginButton.disabled = true;
+    MockMozId.onready();
+    assert.isFalse(!!loginButton.disabled);
+  });
+
+  test('enable button after watch fires onerror', function() {
+    loginButton.disabled = true;
+    MockMozId.onerror('{"name": "NOT_OFFLINE"}');
+    assert.isFalse(!!loginButton.disabled);
+  });
+
+  test('auto-enable if not registered when logging in using the login button',
+  function(done) {
+    MockSettingsHelper('findmydevice.registered').set(false);
+
     MockMozId.onlogout();
     loginButton.click();
     MockMozId.onlogin();
 
-    var lock = MockSettingsListener.getSettingsLock().locks.pop();
-    assert.deepEqual({
-      'findmydevice.enabled': true
-    }, lock, 'check whether findmydevice.enabled was set automatically');
+    MockSettingsHelper('findmydevice.enabled').get(function(enabled) {
+      assert.isTrue(enabled);
+      done();
+    });
+  });
+
+  test('don\'t auto-enable if registered when logging in with the login button',
+  function() {
+    MockSettingsHelper('findmydevice.registered').set(true);
+
+    MockMozId.onlogout();
+    loginButton.click();
+    MockMozId.onlogin();
+
+    assert.isUndefined(MockSettingsHelper.instances['findmydevice.enabled']);
   });
 
   test('bug 997310 - don\'t disable on non-interactive login', function() {
     MockMozId.onlogin();
     var nLocks = MockSettingsListener.getSettingsLock().locks.length;
     assert.equal(nLocks, 0, 'set no settings on non-interactive login');
+  });
+
+  test('notify in settings panel when phone is tracked', function() {
+    MockSettingsListener.mCallbacks['findmydevice.enabled'](false);
+    assert.isTrue(trackingSection.hidden);
+    MockSettingsListener.mCallbacks['findmydevice.enabled'](true);
+    assert.isFalse(trackingSection.hidden);
+
+    MockSettingsListener.mCallbacks['findmydevice.tracking'](true);
+    assert.equal(trackingSection.getAttribute('data-l10n-id'),
+                                              'findmydevice-active-tracking');
+    MockSettingsListener.mCallbacks['findmydevice.tracking'](false);
+    assert.equal(trackingSection.getAttribute('data-l10n-id'),
+                                              'findmydevice-not-tracking');
+  });
+
+  test('prevent accidental auto-enable on FxA sign-in', function() {
+    MockMozId.onlogout();
+    loginButton.click();
+    assert.equal(true, window.FindMyDevice._interactiveLogin,
+      'ensure _interactiveLogin is true after login button is clicked');
+    MockMozId.oncancel();
+    assert.equal(false, window.FindMyDevice._interactiveLogin,
+      'ensure _interactiveLogin is false after FxA cancel');
+    MockMozId.onlogin();
+    assert.equal(0, MockSettingsListener.getSettingsLock().locks.length,
+      'ensure findmydevice.enabled was not set automatically on FxA login');
+  });
+
+  test('disallow changes when findmydevice.can-disable is false', function() {
+    MockSettingsListener.mCallbacks['findmydevice.can-disable'](false);
+    assert.isTrue(checkbox.disabled,
+      'checkbox is not disabled while findmydevice.can-disable is false');
+    MockSettingsListener.mCallbacks['findmydevice.can-disable'](true);
+    assert.isFalse(checkbox.disabled,
+      'checkbox is disabled while findmydevice.can-disable is true');
+  });
+
+  test('wake up find my device upon a disable attempt', function() {
+    this.sinon.stub(window, 'wakeUpFindMyDevice');
+    checkbox.checked = true;
+    checkbox.click();
+    assert.ok(window.wakeUpFindMyDevice.calledWith(
+        IAC_API_WAKEUP_REASON_TRY_DISABLE));
+    window.wakeUpFindMyDevice.reset();
   });
 
   suiteTeardown(function() {

@@ -1,12 +1,11 @@
 /* exported KeypadManager */
 
 /* globals CallHandler, CallLogDBManager, CallsHandler, CallScreen,
-           LazyLoader, LazyL10n, MultiSimActionButton, PhoneNumberActionMenu,
-           SimPicker, SettingsListener, TonePlayer, Utils */
+           CustomDialog, FontSizeManager, LazyLoader, LazyL10n,
+           MultiSimActionButton, PhoneNumberActionMenu, SimPicker,
+           SettingsListener, TonePlayer */
 
 'use strict';
-
-var kFontStep = 4;
 
 // Frequencies coming from http://en.wikipedia.org/wiki/Telephone_keypad
 var gTonesFrequencies = {
@@ -67,9 +66,6 @@ DtmfTone.kShortToneLength = 120;
 
 var KeypadManager = {
 
-  _MAX_FONT_SIZE_DIAL_PAD: 18,
-  _MAX_FONT_SIZE_ON_CALL: 16,
-
   _phoneNumber: '',
   _onCall: false,
 
@@ -80,70 +76,75 @@ var KeypadManager = {
 
   get phoneNumberView() {
     delete this.phoneNumberView;
-    return this.phoneNumberView = document.getElementById('phone-number-view');
-  },
-
-  get fakePhoneNumberView() {
-    delete this.fakePhoneNumberView;
-    return this.fakePhoneNumberView =
-      document.getElementById('fake-phone-number-view');
+    this.phoneNumberView = document.getElementById('phone-number-view');
+    return this.phoneNumberView;
   },
 
   get phoneNumberViewContainer() {
     delete this.phoneNumberViewContainer;
-    return this.phoneNumberViewContainer =
+    this.phoneNumberViewContainer =
       document.getElementById('phone-number-view-container');
+    return this.phoneNumberViewContainer;
   },
 
   get keypad() {
     delete this.keypad;
-    return this.keypad = document.getElementById('keypad');
+    this.keypad = document.getElementById('keypad');
+    return this.keypad;
   },
 
   get callBar() {
     delete this.callBar;
-    return this.callBar =
+    this.callBar =
       document.getElementById('keypad-callbar');
+    return this.callBar;
   },
 
   get hideBar() {
     delete this.hideBar;
-    return this.hideBar = document.getElementById('keypad-hidebar');
+    this.hideBar = document.getElementById('keypad-hidebar');
+    return this.hideBar;
   },
 
   get callBarAddContact() {
     delete this.callBarAddContact;
-    return this.callBarAddContact =
+    this.callBarAddContact =
       document.getElementById('keypad-callbar-add-contact');
+    return this.callBarAddContact;
   },
 
   get callBarCallAction() {
     delete this.callBarCallAction;
-    return this.callBarCallAction =
+    this.callBarCallAction =
       document.getElementById('keypad-callbar-call-action');
+    return this.callBarCallAction;
   },
 
   get callBarCancelAction() {
     delete this.callBarCancelAction;
-    return this.callBarCancelAction =
+    this.callBarCancelAction =
       document.getElementById('keypad-callbar-cancel');
+    return this.callBarCancelAction;
   },
 
   get deleteButton() {
     delete this.deleteButton;
-    return this.deleteButton = document.getElementById('keypad-delete');
+    this.deleteButton = document.getElementById('keypad-delete');
+    return this.deleteButton;
   },
 
   get hideBarHangUpAction() {
     delete this.hideBarHangUpAction;
-    return this.hideBarHangUpAction =
+    this.hideBarHangUpAction =
       document.getElementById('keypad-hidebar-hang-up-action-wrapper');
+    return this.hideBarHangUpAction;
   },
 
   get hideBarHideAction() {
     delete this.hideBarHideAction;
-    return this.hideBarHideAction =
+    this.hideBarHideAction =
       document.getElementById('keypad-hidebar-hide-keypad-action');
+    return this.hideBarHideAction;
   },
 
   multiSimActionButton: null,
@@ -151,20 +152,6 @@ var KeypadManager = {
   init: function kh_init(oncall) {
 
     this._onCall = !!oncall;
-
-    // Update the minimum phone number phone size.
-    // The UX team states that the minimum font size should be
-    // 10pt. First off, we convert it to px multiplying it 0.226 times,
-    // then we convert it to rem multiplying it a number of times equal
-    // to the font-size property of the body element.
-    var defaultFontSize = window.getComputedStyle(document.body, null)
-                                .getPropertyValue('font-size');
-    this.minFontSize = parseInt(parseInt(defaultFontSize) * 10 * 0.226);
-    this.maxFontSize = this._onCall ?
-      parseInt(parseInt(defaultFontSize) * this._MAX_FONT_SIZE_ON_CALL *
-        0.226) :
-      parseInt(parseInt(defaultFontSize) * this._MAX_FONT_SIZE_DIAL_PAD *
-        0.226);
 
     this.phoneNumberView.value = '';
     this._phoneNumber = '';
@@ -234,7 +221,20 @@ var KeypadManager = {
     TonePlayer.init('normal');
     var channel = this._onCall ? 'telephony' : 'normal';
     window.addEventListener('visibilitychange', (function() {
-      TonePlayer.setChannel(document.mozHidden ? 'normal' : channel);
+      var telephony = navigator.mozTelephony;
+      var callIsActive = telephony.calls.length ||
+            telephony.conferenceGroup.calls.length;
+
+      if (TonePlayer) {
+        // If app is hidden and we are not in the middle of a call, then switch
+        // to normal channel, no matter what channel this app should use
+        if (document.hidden && !callIsActive) {
+          TonePlayer.setChannel('normal');
+        } else {
+          // Otherwise switch to the channel this app is supposed to use
+          TonePlayer.setChannel(channel);
+        }
+      }
     }).bind(this));
 
     this.render();
@@ -258,7 +258,9 @@ var KeypadManager = {
   render: function hk_render(layoutType) {
     if (layoutType == 'oncall') {
       if (CallsHandler.activeCall) {
-        this._phoneNumber = CallsHandler.activeCall.call.number;
+        var activeCall = CallsHandler.activeCall.call;
+        this._phoneNumber =
+          activeCall.id ? activeCall.id.number : activeCall.number;
       }
       this._isKeypadClicked = false;
       this.phoneNumberViewContainer.classList.add('keypad-visible');
@@ -324,29 +326,6 @@ var KeypadManager = {
   hangUpCallFromKeypad: function hk_hangUpCallFromKeypad(event) {
     CallScreen.body.classList.remove('showKeypad');
     CallsHandler.end();
-  },
-
-  formatPhoneNumber: function kh_formatPhoneNumber(ellipsisSide, maxFontSize) {
-    var fakeView = this.fakePhoneNumberView;
-    var view = this.phoneNumberView;
-
-    // We consider the case where the delete button may have
-    // been used to delete the whole phone number.
-    if (view.value === '') {
-      view.style.fontSize = this.maxFontSize;
-      return;
-    }
-
-    var newFontSize;
-    if (maxFontSize) {
-      newFontSize = this.maxFontSize;
-    } else {
-      newFontSize =
-        Utils.getNextFontSize(view, fakeView, this.maxFontSize,
-          this.minFontSize, kFontStep);
-    }
-    view.style.fontSize = newFontSize + 'px';
-    Utils.addEllipsis(view, fakeView, ellipsisSide);
   },
 
   _lastPressedKey: null,
@@ -527,7 +506,9 @@ var KeypadManager = {
     }
 
     // If user input number more 50 digits, app shouldn't accept.
-    if (key != 'delete' && this._phoneNumber.length >= 50) {
+    // The limit only applies while not on a call - there is no
+    // limit while on a call (bug 917630).
+    if (key != 'delete' && this._phoneNumber.length >= 50 && !this._onCall) {
       return;
     }
 
@@ -551,10 +532,10 @@ var KeypadManager = {
   },
 
   updatePhoneNumber: function kh_updatePhoneNumber(number, ellipsisSide,
-    maxFontSize) {
+    forceMaxFontSize) {
     number = this.sanitizePhoneNumber(number);
     this._phoneNumber = number;
-    this._updatePhoneNumberView(ellipsisSide, maxFontSize);
+    this._updatePhoneNumberView(ellipsisSide, forceMaxFontSize);
   },
 
   press: function(value) {
@@ -567,13 +548,13 @@ var KeypadManager = {
   },
 
   _updatePhoneNumberView: function kh_updatePhoneNumberview(ellipsisSide,
-    maxFontSize) {
+    forceMaxFontSize) {
     var phoneNumber = this._phoneNumber;
 
     // If there are digits in the phone number, show the delete button
     // and enable the add contact button
     if (this._onCall) {
-      this.replacePhoneNumber(phoneNumber, ellipsisSide, maxFontSize);
+      this.replacePhoneNumber(phoneNumber, ellipsisSide, forceMaxFontSize);
     } else {
       var visibility;
       if (phoneNumber.length > 0) {
@@ -584,11 +565,12 @@ var KeypadManager = {
         this.callBarAddContact.setAttribute('disabled', 'disabled');
       }
       this.deleteButton.style.visibility = visibility;
-
       this.phoneNumberView.value = phoneNumber;
       this.moveCaretToEnd(this.phoneNumberView);
 
-      this.formatPhoneNumber(ellipsisSide, maxFontSize);
+      FontSizeManager.adaptToSpace(
+        FontSizeManager.DIAL_PAD, this.phoneNumberView, forceMaxFontSize,
+        ellipsisSide);
     }
 
     if (this.onValueChanged) {
@@ -597,21 +579,23 @@ var KeypadManager = {
   },
 
   replacePhoneNumber:
-    function kh_replacePhoneNumber(phoneNumber, ellipsisSide, maxFontSize) {
+    function kh_replacePhoneNumber(phoneNumber, ellipsisSide,
+      forceMaxFontSize) {
       if (this._onCall && CallsHandler.activeCall) {
         CallsHandler.activeCall.
-          replacePhoneNumber(phoneNumber, ellipsisSide, maxFontSize);
+          replacePhoneNumber(phoneNumber, ellipsisSide, forceMaxFontSize);
       }
   },
 
-  restorePhoneNumber: function kh_restorePhoneNumber() {
+  restorePhoneNumber:
+    function kh_restorePhoneNumber() {
     if (this._onCall && CallsHandler.activeCall) {
       CallsHandler.activeCall.restorePhoneNumber();
     }
   },
 
   replaceAdditionalContactInfo:
-    function kh_updateAdditionalContactInfo(additionalContactInfo) {
+    function kh_replaceAdditionalContactInfo(additionalContactInfo) {
       var call = CallsHandler.activeCall;
       if (this._onCall && call) {
         call.replaceAdditionalContactInfo(additionalContactInfo);
@@ -650,7 +634,7 @@ var KeypadManager = {
     }
     var transaction = settings.createLock();
     var request = transaction.get('ril.iccInfo.mbdn');
-    request.onsuccess = function() {
+    request.onsuccess = (function() {
       var numbers = request.result['ril.iccInfo.mbdn'];
       var number;
       if (typeof numbers == 'string') {
@@ -664,11 +648,53 @@ var KeypadManager = {
       }
       if (number) {
         CallHandler.call(number, cardIndex);
+      } else {
+        this._showNoVoicemailDialog();
       }
-      // TODO: Bug 881178 - [Dialer] Invite the user to go set a voicemail
-      // number in the setting app.
-    };
+    }).bind(this);
     request.onerror = function() {};
+  },
+
+  _showNoVoicemailDialog: function hk_showNoVoicemailDialog() {
+    var _ = window.navigator.mozL10n.get;
+
+    var voicemailDialog = {
+      title: _('voicemailNoNumberTitle'),
+      text: _('voicemailNoNumberText'),
+      confirm: {
+        title: _('voicemailNoNumberSettings'),
+        recommend: true,
+        callback: this.showVoicemailSettings
+      },
+      cancel: {
+        title: _('voicemailNoNumberCancel'),
+        callback: this._hideNoVoicemailDialog
+      }
+    };
+
+    LazyLoader.load(['/shared/js/custom_dialog.js'], function() {
+      CustomDialog.show(
+        voicemailDialog.title, voicemailDialog.text,
+        voicemailDialog.cancel, voicemailDialog.confirm);
+    });
+  },
+
+  _hideNoVoicemailDialog: function kh_hideNoVoicemailDialog() {
+    CustomDialog.hide();
+  },
+
+  showVoicemailSettings: function kh_showVoicemailSettings() {
+    var activity = new window.MozActivity({
+      name: 'configure',
+      data: {
+        target: 'device',
+        section: 'call'
+      }
+    });
+
+    activity.onerror = function() {
+      console.warn('Configure activity error:', activity.error.name);
+    };
   },
 
   _observePreferences: function kh_observePreferences() {

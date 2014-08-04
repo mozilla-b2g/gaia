@@ -6,17 +6,18 @@
 
 /*jshint browser: true */
 /*global define, console, MozActivity, alert */
-define(function(require) {
+define(function(require, exports, module) {
 
 var templateNode = require('tmpl!./compose.html'),
     cmpAttachmentItemNode = require('tmpl!./cmp/attachment_item.html'),
     cmpContactMenuNode = require('tmpl!./cmp/contact_menu.html'),
     cmpDraftMenuNode = require('tmpl!./cmp/draft_menu.html'),
     cmpPeepBubbleNode = require('tmpl!./cmp/peep_bubble.html'),
-    cmpSendFailedConfirmNode = require('tmpl!./cmp/send_failed_confirm.html'),
-    cmpSendingContainerNode = require('tmpl!./cmp/sending_container.html'),
+    cmpInvalidAddressesNode = require('tmpl!./cmp/invalid_addresses.html'),
     msgAttachConfirmNode = require('tmpl!./msg/attach_confirm.html'),
+    evt = require('evt'),
     common = require('mail_common'),
+    Toaster = require('toaster'),
     model = require('model'),
     iframeShims = require('iframe_shims'),
     Marquee = require('marquee'),
@@ -24,7 +25,9 @@ var templateNode = require('tmpl!./compose.html'),
 
     prettyFileSize = common.prettyFileSize,
     Cards = common.Cards,
-    ConfirmDialog = common.ConfirmDialog;
+    ConfirmDialog = common.ConfirmDialog,
+    mimeToClass = common.mimeToClass,
+    dataIdCounter = 0;
 
 /**
  * Max composer attachment size is defined as 5120000 bytes.
@@ -59,6 +62,8 @@ function focusInputAndPositionCursorFromContainerClick(event, input) {
   input.setSelectionRange(cursorPos, cursorPos);
 }
 
+
+
 /**
  * Composer card; wants an initialized message composition object when it is
  * created (for now).
@@ -69,15 +74,17 @@ function ComposeCard(domNode, mode, args) {
   this.composerData = args.composerData || {};
   this.activity = args.activity;
   this.sending = false;
-  this.wifiLock = null;
+
+  // Management of attachment work, to limit memory use
+  this._totalAttachmentsFinishing = 0;
+  this._totalAttachmentsDone = 0;
+  this._wantAttachment = false;
+  this._onAttachmentDone = this._onAttachmentDone.bind(this);
 
   domNode.getElementsByClassName('cmp-back-btn')[0]
     .addEventListener('click', this.onBack.bind(this), false);
   this.sendButton = domNode.getElementsByClassName('cmp-send-btn')[0];
   this.sendButton.addEventListener('click', this.onSend.bind(this), false);
-  this._bound_onVisibilityChange = this.onVisibilityChange.bind(this);
-  document.addEventListener('visibilitychange',
-                            this._bound_onVisibilityChange);
 
   this.toNode = domNode.getElementsByClassName('cmp-to-text')[0];
   this.ccNode = domNode.getElementsByClassName('cmp-cc-text')[0];
@@ -85,6 +92,7 @@ function ComposeCard(domNode, mode, args) {
   this.subjectNode = domNode.getElementsByClassName('cmp-subject-text')[0];
   this.textBodyNode = domNode.getElementsByClassName('cmp-body-text')[0];
   this.htmlBodyContainer = domNode.getElementsByClassName('cmp-body-html')[0];
+  this.errorMessage = domNode.getElementsByClassName('cmp-error-message')[0];
   this.htmlIframeNode = null;
 
   this.scrollContainer =
@@ -144,24 +152,23 @@ function ComposeCard(domNode, mode, args) {
   // state.
   this._selfClosed = false;
 
-  // Sent sound init
-  this.sentAudioKey = 'mail.sent-sound.enabled';
-  this.sentAudio = new Audio('/sounds/sent.ogg');
-  this.sentAudio.mozAudioChannelType = 'notification';
-  this.sentAudioEnabled = false;
-
-  if (navigator.mozSettings) {
-    var req = navigator.mozSettings.createLock().get(this.sentAudioKey);
-    req.onsuccess = (function onsuccess() {
-      this.sentAudioEnabled = req.result[this.sentAudioKey];
-    }).bind(this);
-
-    navigator.mozSettings.addObserver(this.sentAudioKey, (function(e) {
-      this.sentAudioEnabled = e.settingValue;
-    }).bind(this));
-  }
+  // Set up unique data IDs for data-sensitive operations that could be in
+  // progress. These IDs are unique per kind of action, not unique per instance
+  // of a kind of action. However, these IDs are just used to know if a hard
+  // shutdown should be delayed a bit, and are unique enough for those purposes.
+  var dataId = module.id + '-' + (dataIdCounter += 1);
+  this._dataIdSaveDraft = dataId + '-saveDraft';
+  this._dataIdSendEmail = dataId + '-sendEmail';
 }
+
 ComposeCard.prototype = {
+  /**
+   * Inform Cards to not emit startup content events, this card will trigger
+   * them once data from back end has been received and the DOM is up to date
+   * with that data.
+   * @type {Boolean}
+   */
+  skipEmitContentEvents: true,
 
   /**
    * Focus our contenteditable region and position the cursor at the last
@@ -245,6 +252,11 @@ ComposeCard.prototype = {
     // the HTML bit needs us linked into the DOM so the iframe can be
     // linked in, hence this happens in postInsert.
     require(['iframe_shims'], function() {
+
+      // NOTE: when the compose card changes to allow switching the From account
+      // then this logic will need to change, both the acquisition of the
+      // account pref and the folder to use for the composer. So it is good to
+      // group this logic together, since they both will need to change later.
       if (this.composer) {
         this._loadStateFromComposer();
       } else {
@@ -289,9 +301,9 @@ ComposeCard.prototype = {
     expandAddresses(this.ccNode, this.composer.cc);
     expandAddresses(this.bccNode, this.composer.bcc);
 
-    if (this.isEmptyAddress()) {
-      this.sendButton.setAttribute('aria-disabled', 'true');
-    }
+    this.validateAddresses();
+
+    this.renderSendStatus();
 
     // Add attachments
     this.renderAttachments();
@@ -311,13 +323,78 @@ ComposeCard.prototype = {
         /* no click handler because no navigation desired */ null);
       this.htmlIframeNode = ishims.iframe;
     }
+
+    // There is a bit more possibility of async work done in the iframeShims
+    // internals, but this is close enough and is better than breaking open
+    // the internals of the iframeShims to get the final number.
+    if (!this._emittedContentEvents) {
+      evt.emit('metrics:contentDone');
+      this._emittedContentEvents = true;
+    }
   },
 
-  _saveStateToComposer: function() {
-    function frobAddressNode(node) {
-      var container = node.parentNode;
+  /**
+   * If this draft came from the outbox, it might have a sendStatus
+   * description explaining why the send failed. Display it if so.
+   *
+   * The sendStatus information on this messages is provided through
+   * the sendOutboxMessages job; see `mailapi/jobs/outbox.js` for details.
+   */
+  renderSendStatus: function() {
+    var sendStatus = this.composer.sendStatus || {};
+    if (sendStatus.state === 'error') {
+      var badAddresses = sendStatus.badAddresses || [];
+
+      // For debugging, report some details to the console, masking
+      // recipients for privacy.
+      console.log('Editing a failed outbox message. Details:', JSON.stringify({
+        err: sendStatus.err,
+        badAddressCount: badAddresses.length,
+        sendFailures: sendStatus.sendFailures
+      }, null, ' '));
+
+      var l10nId;
+      if (badAddresses.length || sendStatus.err === 'bad-recipient') {
+        l10nId = 'send-failure-recipients';
+      } else {
+        l10nId = 'send-failure-unknown';
+      }
+
+      mozL10n.localize(this.errorMessage, l10nId);
+      this.errorMessage.classList.remove('collapsed');
+    } else {
+      this.errorMessage.classList.add('collapsed');
+    }
+  },
+
+  /**
+   * Return true if the given address is syntactically valid.
+   *
+   * @param {String} address
+   *   The email address to validate, as a string.
+   * @return {Boolean}
+   */
+  isValidAddress: function(address) {
+    // An address is valid if model.api.parseMailbox thinks it
+    // contains a valid address. (It correctly classifies names that
+    // are not valid addresses.)
+    var mailbox = model.api.parseMailbox(address);
+    return mailbox && mailbox.address;
+  },
+
+  /**
+   * Extract addresses from the bubbles and/or inputs, returning a map
+   * with keys for 'to', 'cc', 'bcc', 'all', and 'invalid' addresses.
+   */
+  extractAddresses: function() {
+    var allAddresses = [];
+    var invalidAddresses = [];
+
+    // Extract the addresses from the bubbles as well as any partial
+    // addresses entered in the text input.
+    var frobAddressNode = (function(node) {
+      var bubbles = node.parentNode.querySelectorAll('.cmp-peep-bubble');
       var addrList = [];
-      var bubbles = container.querySelectorAll('.cmp-peep-bubble');
       for (var i = 0; i < bubbles.length; i++) {
         var dataSet = bubbles[i].dataset;
         addrList.push({ name: dataSet.name, address: dataSet.address });
@@ -326,11 +403,34 @@ ComposeCard.prototype = {
         var mailbox = model.api.parseMailbox(node.value);
         addrList.push({ name: mailbox.name, address: mailbox.address });
       }
+      addrList.forEach(function(addr) {
+        allAddresses.push(addr);
+        if (!this.isValidAddress(addr.address)) {
+          invalidAddresses.push(addr);
+        }
+      }.bind(this));
       return addrList;
-    }
-    this.composer.to = frobAddressNode(this.toNode);
-    this.composer.cc = frobAddressNode(this.ccNode);
-    this.composer.bcc = frobAddressNode(this.bccNode);
+    }.bind(this));
+
+    // NOTE: allAddresses contains invalidAddresses, but we never
+    // actually send a message directly using either of those lists.
+    // We use to/cc/bcc for that, and our send validation here
+    // prevents users from sending a message with invalid addresses.
+
+    return {
+      to: frobAddressNode(this.toNode),
+      cc: frobAddressNode(this.ccNode),
+      bcc: frobAddressNode(this.bccNode),
+      all: allAddresses,
+      invalid: invalidAddresses
+    };
+  },
+
+  _saveStateToComposer: function() {
+    var addrs = this.extractAddresses();
+    this.composer.to = addrs.to;
+    this.composer.cc = addrs.cc;
+    this.composer.bcc = addrs.bcc;
     this.composer.subject = this.subjectNode.value;
     this.composer.body.text = this.fromEditor();
     // The HTML representation cannot currently change in our UI, so no
@@ -380,7 +480,13 @@ ComposeCard.prototype = {
       return;
     }
     this._saveStateToComposer();
-    this.composer.saveDraft(callback);
+    evt.emit('uiDataOperationStart', this._dataIdSaveDraft);
+    this.composer.saveDraft(function() {
+      evt.emit('uiDataOperationStop', this._dataIdSaveDraft);
+      if (callback) {
+        callback();
+      }
+    }.bind(this));
   },
 
   createBubbleNode: function(name, address) {
@@ -408,7 +514,9 @@ ComposeCard.prototype = {
     var container = node.parentNode;
     var bubble = this.createBubbleNode(name || address, address);
     container.insertBefore(bubble, node);
+    this.validateAddresses();
   },
+
   /**
    * deleteBubble: Delete the bubble from the parent container.
    */
@@ -420,22 +528,38 @@ ComposeCard.prototype = {
     if (node.classList.contains('cmp-peep-bubble')) {
       container.removeChild(node);
     }
-    if (this.isEmptyAddress()) {
-      this.sendButton.setAttribute('aria-disabled', 'true');
-    }
+    this.validateAddresses();
   },
 
   /**
-   * Check if envelope-bar is empty or contains any string or bubble.
+   * editBubble: Turn the bubble back into editable text.
    */
-  isEmptyAddress: function() {
-    var inputSet = this.toNode.value + this.ccNode.value + this.bccNode.value;
-    var addrBar = this.domNode.getElementsByClassName('cmp-envelope-bar')[0];
-    var bubbles = addrBar.querySelectorAll('.cmp-peep-bubble');
-    if (!inputSet.replace(/\s/g, '') && bubbles.length === 0) {
-      return true;
+  editBubble: function(node) {
+    if (!node) {
+      return;
     }
-    return false;
+    var container = node.parentNode;
+    if (node.classList.contains('cmp-peep-bubble')) {
+      container.removeChild(node);
+      var input = container.querySelector('.cmp-addr-text');
+      // If there is already a partially or fully entered address in
+      // the typing area, force it to be converted into a bubble, even
+      // though the resulting address may not be valid. If it's not
+      // valid, that bubble can subsequently be edited. This helps
+      // avoid the user losing anything they typed in.
+      if (input.value.length > 0) {
+        input.value = input.value + ',';
+        this.onAddressInput({ target: input }); // Bubblize if necessary.
+      }
+      var address = node.dataset.address;
+      var selStart = input.value.length;
+      var selEnd = selStart + address.length;
+      input.value += address;
+      input.focus();
+      this.onAddressInput({ target: input }); // Force width calculations.
+      input.setSelectionRange(selStart, selEnd);
+    }
+    this.validateAddresses();
   },
 
   /**
@@ -449,9 +573,6 @@ ComposeCard.prototype = {
       //delete bubble
       var previousBubble = node.previousElementSibling;
       this.deleteBubble(previousBubble);
-      if (this.isEmptyAddress()) {
-        this.sendButton.setAttribute('aria-disabled', 'true');
-      }
     }
   },
 
@@ -462,11 +583,6 @@ ComposeCard.prototype = {
     var node = evt.target;
     var container = evt.target.parentNode;
 
-    if (this.isEmptyAddress()) {
-      this.sendButton.setAttribute('aria-disabled', 'true');
-      return;
-    }
-    this.sendButton.setAttribute('aria-disabled', 'false');
     var makeBubble = false;
     // When do we want to tie off this e-mail address, put it into a bubble
     // and clear the input box so the user can type another address?
@@ -512,6 +628,8 @@ ComposeCard.prototype = {
     this.stringContainer.textContent = node.value;
     node.style.width =
       (this.stringContainer.clientWidth + 2) + 'px';
+
+    this.validateAddresses();
   },
 
   onContainerClick: function(evt) {
@@ -530,6 +648,9 @@ ComposeCard.prototype = {
       var formSubmit = (function(evt) {
         document.body.removeChild(contents);
         switch (evt.explicitOriginalTarget.className) {
+          case 'cmp-contact-menu-edit':
+            this.editBubble(target);
+            break;
           case 'cmp-contact-menu-delete':
             this.deleteBubble(target);
             break;
@@ -556,11 +677,12 @@ ComposeCard.prototype = {
     var content = dialog.getElementsByTagName('p')[0];
 
     if (numAttachments > 1) {
-      title.textContent = mozL10n.get('composer-attachments-large');
-      content.textContent = mozL10n.get('compose-attchments-size-exceeded');
+      // Note! attachments with an "s" versus the case below.
+      mozL10n.setAttributes(title, 'composer-attachments-large');
+      mozL10n.setAttributes(content, 'compose-attchments-size-exceeded');
     } else {
-      title.textContent = mozL10n.get('composer-attachment-large');
-      content.textContent = mozL10n.get('compose-attchment-size-exceeded');
+      mozL10n.setAttributes(title, 'composer-attachment-large');
+      mozL10n.setAttributes(content, 'compose-attchment-size-exceeded');
     }
     ConfirmDialog.show(dialog,
      {
@@ -574,6 +696,45 @@ ComposeCard.prototype = {
   },
 
   /**
+   * Used to count when an attachment has been fully processed by this.composer.
+   * Broken out as a separate member method to avoid inline closures in
+   * addAttachmentsSubjectToSizeLimits that may lead to holding on to too much
+   * memory.
+   */
+  _onAttachmentDone: function() {
+    this._totalAttachmentsDone += 1;
+    if (this._totalAttachmentsDone < this._totalAttachmentsFinishing) {
+      return;
+    }
+
+    // Give a bit of time for all the DB transactions to clean up.
+    // Unfortunately there are no good signals to do this decisively so just
+    // adding a bit of a buffer, just to be nice for super low memory
+    // devices. Not a catastrophe if work is still going on when the timeout
+    // fires.
+    setTimeout(function() {
+      var wantAttachment = this._wantAttachment;
+      this._totalAttachmentsFinishing = 0;
+      this._totalAttachmentsDone = 0;
+      this._wantAttachment = false;
+
+      // Close out the toaster if it was showing. While the toaster could
+      // be showing for some other reason, this is the most likely cause,
+      // and want to give the user the impression of fast action.
+      if (Toaster.isShowing()) {
+        Toaster.hide();
+      }
+
+      // If the user wanted to add something else, proceed, since in many
+      // cases, the user just had to wait a second or so before we could
+      // proceed anyway.
+      if (wantAttachment) {
+        this.onAttachmentAdd();
+      }
+    }.bind(this), 600);
+  },
+
+  /**
    * Given a list of Blobs/Files that we want to attach, attach as many as
    * possible and generate an error message for any we can't attach.  This will
    * update the UI as a side-effect; you do not need to do it.
@@ -582,9 +743,11 @@ ComposeCard.prototype = {
     var totalSize = 0;
     // Tally the size of the already-attached attachments.
     if (this.composer.attachments) {
-      this.composer.attachments.forEach(function(attachment) {
-        totalSize += attachment.blob.size;
-      });
+      // Using a for loop to avoid any closures that may capture
+      // the large attachments.
+      for (var i = 0; i < this.composer.attachments.length; i++) {
+        totalSize += this.composer.attachments[i].blob.size;
+      }
     }
 
     // Keep attaching until we find one that puts us over the limit.  Then
@@ -605,7 +768,8 @@ ComposeCard.prototype = {
         break;
       }
 
-      this.composer.addAttachment(attachment);
+      this._totalAttachmentsFinishing += 1;
+      this.composer.addAttachment(attachment, this._onAttachmentDone);
       attachedAny = true;
     }
 
@@ -634,11 +798,13 @@ ComposeCard.prototype = {
 
       for (var i = 0; i < this.composer.attachments.length; i++) {
         var attachment = this.composer.attachments[i];
+
         filenameTemplate.textContent = attachment.name;
         filesizeTemplate.textContent = prettyFileSize(attachment.blob.size);
         var attachmentNode = attTemplate.cloneNode(true);
         attachmentsContainer.appendChild(attachmentNode);
 
+        attachmentNode.classList.add(mimeToClass(attachment.blob.type));
         attachmentNode.getElementsByClassName('cmp-attachment-remove')[0]
           .addEventListener('click',
                             this.onClickRemoveAttachment.bind(
@@ -666,9 +832,8 @@ ComposeCard.prototype = {
     var attachmentsSize =
       this.domNode.getElementsByClassName('cmp-attachment-size')[0];
 
-    attachmentLabel.textContent =
-      mozL10n.get('compose-attachments',
-                  { n: this.composer.attachments.length});
+    mozL10n.setAttributes(attachmentLabel, 'compose-attachments',
+                          { n: this.composer.attachments.length });
 
     if (this.composer.attachments.length === 0) {
       attachmentsSize.textContent = '';
@@ -757,39 +922,78 @@ ComposeCard.prototype = {
   },
 
   /**
-   * Save the draft if there's anything to it, close the card.
+   * Save the draft if there's anything to it. Called by Cards if this card
+   * is also the current card.
    */
-  onVisibilityChange: function() {
+  onCurrentCardDocumentVisibilityChange: function() {
     if (document.hidden && this._saveNeeded()) {
       console.log('compose: autosaving; we became hidden and save needed.');
       this._saveDraft('automatic');
     }
   },
 
-  releaseLocks: function() {
-    if (this.wifiLock) {
-      this.wifiLock.unlock();
-      this.wifiLock = null;
+  /**
+   * Validate that the provided addresses are valid. Enable the send
+   * button conditional on all addresses being correct. If all
+   * addresses are correct and we had previously displayed a
+   * sendStatus error, hide the sendStatus error display.
+   *
+   * @return {Boolean}
+   *   True if all addresses are valid, otherwise false.
+   */
+  validateAddresses: function() {
+    var addrs = this.extractAddresses();
+
+    // The send button should only be disabled if the addresses are
+    // empty. They can still tap the send button if there are invalid
+    // addresses.
+    if (addrs.all.length === 0) {
+      this.sendButton.setAttribute('aria-disabled', 'true');
+    } else {
+      this.sendButton.setAttribute('aria-disabled', 'false');
+    }
+
+    if (addrs.invalid.length === 0) {
+      // If the error message is visible, meaning they opened this
+      // message from the outbox after a send failure, remove the error
+      // when they've corrected the recipients.
+      this.errorMessage.classList.add('collapsed');
+      return true; // No invalid addresses.
+    } else {
+      return false; // Some addresses were invalid.
     }
   },
 
+  /**
+   * If the user attempts to tap the send button while there are
+   * invalid addresses, display a dialog to warn them to correct the
+   * error. Otherwise, go ahead and send the message.
+   */
   onSend: function() {
+    if (!this.validateAddresses()) {
+      ConfirmDialog.show(cmpInvalidAddressesNode.cloneNode(true), {
+        id: 'cmp-confirm-invalid-addresses',
+        handler: function() {
+          // There is nothing to do.
+        }
+      });
+    } else {
+      this.reallySend();
+    }
+  },
+
+  /**
+   * Actually send the message, foregoing any validation that the
+   * addresses are valid (as we did in `onSend` above).
+   */
+  reallySend: function() {
     /* Check if already lock is enabled,
      * If so disable it and then re enable the lock
      */
-    this.releaseLocks();
-    if (navigator.requestWakeLock) {
-      this.wifiLock = navigator.requestWakeLock('wifi');
-    }
     this._saveStateToComposer();
 
-    // XXX well-formedness-check (ideally just handle by not letting you send
-    // if you haven't added anyone...)
-    var self = this;
     var activity = this.activity;
     var domNode = this.domNode;
-    var sendingTemplate = cmpSendingContainerNode;
-    domNode.appendChild(sendingTemplate);
 
     // Indicate we are sending so we can suppress any of our auto-save logic
     // from trying to fire.
@@ -797,55 +1001,29 @@ ComposeCard.prototype = {
 
     // Initiate the send.
     console.log('compose: initiating send');
-    this.composer.finishCompositionSendMessage(
-      function callback(error , badAddress, sentDate) {
-        // Card could have been destroyed in the meantime,
-        // via an app card reset (not a _selfClosed case),
-        // so do not bother with the rest of this work if
-        // that was the case.
-        if (!this.composer) {
-          return;
-        }
+    evt.emit('uiDataOperationStart', this._dataIdSendEmail);
 
-        console.log('compose: callback triggered, err:', error);
-        // releasing the wake lock on send response
-        this.releaseLocks();
-        var activityHandler = function() {
-          if (activity) {
-            // Just mention the action completed, but do not give
-            // specifics, to maintain some privacy.
-            activity.postResult('complete');
-            activity = null;
-          }
-        };
+    this.composer.finishCompositionSendMessage(function(sendInfo) {
+      evt.emit('uiDataOperationStop', this._dataIdSendEmail);
 
-        domNode.removeChild(sendingTemplate);
-        if (error) {
-          // Indicate we are no longer sending so that if the user goes on to
-          // change the message, we do save it.
-          this.sending = false;
+      // Card could have been destroyed in the meantime,
+      // via an app card reset (not a _selfClosed case),
+      // so do not bother with the rest of this work if
+      // that was the case.
+      if (!this.composer) {
+        return;
+      }
 
-          // TODO: We don't have the resend now, so we use alert dialog
-          //       before resend is enabled.
-          // var dialog = cmpSendFailedConfirmNode.cloneNode(true);
-          // document.body.appendChild(dialog);
-          // var formSubmit = function(evt) {
-          //   document.body.removeChild(dialog);
-          //   return false;
-          // };
-          // dialog.addEventListener('submit', formSubmit);
-          alert(mozL10n.get('compose-send-message-failed'));
-          return;
-        }
+      if (activity) {
+        // Just mention the action completed, but do not give
+        // specifics, to maintain some privacy.
+        activity.postResult('complete');
+        activity = null;
+      }
 
-        if (self.sentAudioEnabled) {
-          self.sentAudio.play();
-        }
+      this._closeCard();
 
-        activityHandler();
-        this._closeCard();
-      }.bind(this)
-    );
+    }.bind(this));
   },
 
   onContactAdd: function(event) {
@@ -868,7 +1046,6 @@ ComposeCard.prototype = {
               name = name[0];
           }
           self.insertBubble(emt, name, this.result.email);
-          self.sendButton.setAttribute('aria-disabled', 'false');
         }
       };
     } catch (e) {
@@ -877,7 +1054,22 @@ ComposeCard.prototype = {
   },
 
   onAttachmentAdd: function(event) {
-    event.stopPropagation();
+    if (event) {
+      event.stopPropagation();
+    }
+
+    // To be nice on memory consumption, wait for any previous attachment to
+    // finish attaching before triggering another attachment action.
+    if (this._totalAttachmentsFinishing > 0) {
+      // Use a separate flag than testing if the toaster is showing, in case the
+      // toaster is shown for some other reason. In that case, do not want to
+      // trigger activity after previous attachment completes.
+      this._wantAttachment = true;
+      Toaster.toast({
+        text: mozL10n.get('compose-attachment-still-working')
+      });
+      return;
+    }
 
     try {
       console.log('compose: attach: triggering web activity');
@@ -914,9 +1106,6 @@ ComposeCard.prototype = {
   },
 
   die: function() {
-    document.removeEventListener('visibilitychange',
-                                 this._bound_onVisibilityChange);
-
     // If confirming for prompt when destroyed, just remove
     // and if save is needed, it will be autosaved below.
     if (this._savePromptMenu) {
@@ -932,8 +1121,6 @@ ComposeCard.prototype = {
       console.log('compose: autosaving draft because not self-closed');
       this._saveDraft('automatic');
     }
-
-    this.releaseLocks();
 
     if (this.composer) {
       this.composer.die();

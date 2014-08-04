@@ -1,112 +1,71 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
+'use strict';
 /*global MockNavigatormozApps, MockNavigatorSettings, MocksHelper, MockL10n*/
 /*global MockApplications, Applications*/
 
-'use strict';
-
+requireApp('system/shared/js/async_storage.js');
+requireApp('system/shared/js/lazy_loader.js');
+requireApp('system/shared/js/screen_layout.js');
+requireApp('system/shared/test/unit/mocks/mock_icc_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_url.js');
-requireApp('system/test/unit/mock_activities.js');
-requireApp('system/test/unit/mock_applications.js');
-requireApp('system/test/unit/mock_devtools_view.js');
-requireApp('system/test/unit/mock_dialer_agent.js');
-requireApp('system/test/unit/mock_ftu_launcher.js');
-requireApp('system/test/unit/mock_home_gesture.js');
-requireApp('system/test/unit/mock_home_searchbar.js');
-requireApp('system/test/unit/mock_homescreen_launcher.js');
-requireApp('system/test/unit/mock_l10n.js');
-requireApp('system/test/unit/mock_media_recording.js');
-requireApp('system/test/unit/mock_permission_manager.js');
-requireApp('system/test/unit/mock_places.js');
-requireApp('system/test/unit/mock_remote_debugger.js');
-requireApp('system/test/unit/mock_rocketbar.js');
-requireApp('system/test/unit/mock_screen_manager.js');
-requireApp('system/test/unit/mock_software_button_manager.js');
-requireApp('system/test/unit/mock_source_view.js');
-requireApp('system/test/unit/mock_storage.js');
-requireApp('system/test/unit/mock_telephony_settings.js');
-requireApp('system/test/unit/mock_system_dialog_manager.js');
-requireApp('system/test/unit/mock_ttl_view.js');
-requireApp('system/test/unit/mock_title.js');
-requireApp('system/test/unit/mock_activity_window_factory.js');
-requireApp('system/test/unit/mock_visibility_manager.js');
-requireApp('system/test/unit/mock_layout_manager.js');
-requireApp('system/test/unit/mock_secure_window_manager.js');
-requireApp('system/test/unit/mock_lockscreen_window_manager.js');
-requireApp('system/test/unit/mock_secure_window_factory.js');
-requireApp('system/test/unit/mock_activity_window_manager.js');
-requireApp('system/test/unit/mock_app_window_factory.js');
 
-mocha.globals([
-  'activityWindowManager',
-  'activities',
-  'applications',
-  'appWindowFactory',
-  'cancelHomeTouchstart',
-  'cancelHomeTouchend',
-  'cancelHomeClick',
-  'devtoolsView',
-  'dialerAgent',
-  'homeGesture',
-  'homeSearchbar',
-  'homescreenLauncher',
-  'layoutManager',
-  'lockScreenWindowManager',
-  'mediaRecording',
-  'permissionManager',
-  'places',
-  'remoteDebugger',
-  'rocketbar',
-  'secureWindowFactory',
-  'secureWindowManager',
-  'Shortcuts',
-  'sourceView',
-  'softwareButtonManager',
-  'storage',
-  'systemDialogManager',
-  'telephonySettings',
-  'title',
-  'ttlView',
-  'visibilityManager',
-  'wallpaperURL'
-]);
+requireApp('system/js/accessibility.js');
+requireApp('system/js/activities.js');
+requireApp('system/js/activity_window_factory.js');
+requireApp('system/js/activity_window_manager.js');
+requireApp('system/js/airplane_mode.js');
+requireApp('system/js/app_usage_metrics.js');
+requireApp('system/js/app_window_factory.js');
+requireApp('system/js/devtools/developer_hud.js');
+requireApp('system/js/dialer_agent.js');
+requireApp('system/js/ftu_launcher.js');
+requireApp('system/js/rocketbar.js');
+requireApp('system/js/home_gesture.js');
+requireApp('system/js/homescreen_launcher.js');
+requireApp('system/js/internet_sharing.js');
+requireApp('system/js/layout_manager.js');
+requireApp('system/js/lockscreen_window_manager.js');
+requireApp('system/js/lockscreen_notifications.js');
+requireApp('system/js/lockscreen_passcode_validator.js');
+requireApp('system/js/media_recording.js');
+requireApp('system/js/permission_manager.js');
+requireApp('system/js/remote_debugger.js');
+requireApp('system/js/secure_window_factory.js');
+requireApp('system/js/secure_window_manager.js');
+requireApp('system/js/sleep_menu.js');
+requireApp('system/js/orientation_manager.js');
+requireApp('system/js/software_button_manager.js');
+requireApp('system/js/source_view.js');
+requireApp('system/js/storage.js');
+requireApp('system/js/system_dialog_manager.js');
+requireApp('system/js/telephony_settings.js');
+requireApp('system/js/base_ui.js');
+requireApp('system/js/text_selection_dialog.js');
+requireApp('system/js/ttlview.js');
+requireApp('system/js/visibility_manager.js');
+requireApp('system/js/wallpaper_manager.js');
+
+requireApp('system/test/unit/mock_airplane_mode.js');
+requireApp('system/test/unit/mock_applications.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
+requireApp('system/test/unit/mock_places.js');
+requireApp('system/test/unit/mock_screen_manager.js');
+requireApp('system/test/unit/mock_task_manager.js');
+requireApp('system/test/unit/mock_app_window_manager.js');
 
 var mocksForBootstrap = new MocksHelper([
-  'Activities',
+  'AirplaneMode',
   'Applications',
-  'DevtoolsView',
-  'DialerAgent',
-  'FtuLauncher',
-  'HomeGesture',
-  'HomeSearchbar',
-  'HomescreenLauncher',
-  'MediaRecording',
-  'PermissionManager',
-  'Places',
-  'RemoteDebugger',
-  'Rocketbar',
+  'IccHelper',
   'ScreenManager',
+  'Places',
   'SettingsListener',
   'SettingsURL',
-  'SoftwareButtonManager',
-  'SourceView',
-  'Storage',
-  'TelephonySettings',
-  'SystemDialogManager',
-  'TTLView',
-  'Title',
-  'AppWindowFactory',
-  'VisibilityManager',
-  'LayoutManager',
-  'SecureWindowManager',
-  'SecureWindowFactory',
-  'ActivityWindowManager',
-  'LockScreenWindowManager',
-  'L10n'
+  'TaskManager',
+  'L10n',
+  'AppWindowManager'
 ]).init();
 
 suite('system/Bootstrap', function() {
@@ -116,8 +75,23 @@ suite('system/Bootstrap', function() {
   var realDocumentElementDir;
   var realDocumentElementLang;
   var realApplications;
+  var fakeElement;
 
   mocksForBootstrap.attachTestHelpers();
+
+  setup(function() {
+    fakeElement = document.createElement('div');
+    this.sinon.stub(document, 'getElementById')
+      .returns(fakeElement.cloneNode(true));
+    this.sinon.stub(document, 'querySelector')
+      .returns(fakeElement.cloneNode(true));
+  });
+
+  teardown(function() {
+    MockNavigatorSettings.mTeardown();
+    MockNavigatormozApps.mTeardown();
+    MockApplications.mTeardown();
+  });
 
   suiteSetup(function(done) {
     realNavigatormozApps = navigator.mozApps;

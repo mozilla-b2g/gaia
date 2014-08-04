@@ -85,51 +85,58 @@ window.ContactsExporter = function ContactsExporter(theStrategy) {
     strategy.doExport(_doHandleResult);
   };
 
-  //
-  // Callback invoked when the exporting process finished.
-
-  // @param: {Object} error Not null in case an error happened
-  // @param: {Integer} exported Number of contacts successfuly exported
-  // @param: {String} message Any extra message from the exporting mechanism
-  //
+  /**
+   * Callback invoked when the exporting process finished.
+   *
+   * @param {Object} error Not null in case an error happened
+   * @param {Number} exported Number of contacts successfuly exported
+   * @param {Boolean} isRecoverable In case of error, whether it is recoverable
+   */
   var _doHandleResult = function _doHandleResult(error, exported,
                                                  isRecoverable) {
     if (hasProgress && !error) {
       utils.overlay.hide();
     }
-    // Error handling
+
     if (error) {
-      var cancel = {
-        title: _('cancel'),
-        callback: function() {
-          utils.overlay.hide();
-          ConfirmDialog.hide();
-          _showStatus(exported, contacts.length);
-        }
-      };
-      var retry = {
-        title: _('retry'),
-        isRecommend: true,
-        callback: function() {
-          utils.overlay.hide();
-          ConfirmDialog.hide();
-          // And now the action is reproduced one more time
-          window.setTimeout(_doExport, 0);
-        }
-      };
+      // If it was cancelled by the user we don't show the error screen.
+      if (error.reason && error.reason.name === 'cancelled') {
+        utils.overlay.hide();
+      } else {
+        var cancel = {
+          title: _('cancel'),
+          callback: function() {
+            utils.overlay.hide();
+            ConfirmDialog.hide();
+            _showStatus(exported, contacts.length);
+          }
+        };
 
-      if (isRecoverable === false) {
-        retry = null;
+        var retry = {
+          title: _('retry'),
+          isRecommend: true,
+          callback: function() {
+            utils.overlay.hide();
+            ConfirmDialog.hide();
+            // And now the action is reproduced one more time
+            window.setTimeout(_doExport, 0);
+          }
+        };
+
+        if (isRecoverable === false) {
+          retry = null;
+        }
+
+        var errorString = 'exportError-' + strategy.name + '-';
+        Contacts.confirmDialog(_('exportErrorTitle'),
+                              _(errorString + error.reason), cancel, retry);
+
+        Contacts.hideOverlay();
+
+        console.error('An error occurred during the export: ',
+                      error.reason.name || error.reason);
+        return;
       }
-
-      var errorString = 'exportError-' + strategy.name + '-';
-      Contacts.confirmDialog(_('exportErrorTitle'),
-                             _(errorString + error.reason),
-                             cancel, retry);
-      Contacts.hideOverlay();
-      console.error('An error occurred during the export: ',
-                    error.reason.name || error.reason);
-      return;
     }
 
     _showStatus(exported, contacts.length);
@@ -167,6 +174,11 @@ window.ContactsExporter = function ContactsExporter(theStrategy) {
         progressClass,
         null
       );
+      utils.overlay.showMenu();
+      utils.overlay.oncancel = function() {
+        strategy.cancelExport();
+        utils.overlay.hide();
+      };
 
       // Allow the strategy to setup the progress bar
       if (determinativeProgress) {

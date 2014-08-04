@@ -271,6 +271,9 @@ Calendar.ConflictSpan = (function() {
           var el = this.parent.getElement(busytime);
           el.style.width = width + '%';
           el.style.left = (width * cIdx) + '%';
+          // we toggle the style based on amount of overlaps
+          el.classList.toggle('many-overlaps', numCols > 4);
+          el.classList.toggle('has-overlaps', numCols > 1);
         }
       }
     }
@@ -407,6 +410,7 @@ Calendar.ns('Utils').Overlap = (function() {
       var el = this.elements[busytime._id];
       el.style.width = '';
       el.style.left = '';
+      el.classList.remove('has-overlaps', 'many-overlaps');
     }
 
   };

@@ -13,9 +13,9 @@ HomescreenAppBuilder.prototype.BASE_ICON_SIZE = 60;
 HomescreenAppBuilder.prototype.setOptions = function(options) {
   this.stageDir = utils.getFile(options.STAGE_APP_DIR);
 
-  let mappingFile = utils.getFile(options.STAGE_DIR, 'webapps-mapping.json');
+  let mappingFile = utils.getFile(options.STAGE_DIR, 'webapps_stage.json');
   if (!mappingFile.exists()) {
-    throw new Error('build_stage/webapps-mapping.json not found.');
+    throw new Error('build_stage/webapps_stage.json not found.');
   }
   this.webappsMapping = utils.getJSON(mappingFile);
 
@@ -25,6 +25,9 @@ HomescreenAppBuilder.prototype.setOptions = function(options) {
 
   this.preferredIconSize =
     this.BASE_ICON_SIZE * parseFloat(options.GAIA_DEV_PIXELS_PER_PX);
+
+  options.configPath =
+    utils.joinPath(options.APP_DIR, 'build', options.GAIA_DEVICE_TYPE);
 
   this.options = options;
 };
@@ -175,8 +178,22 @@ HomescreenAppBuilder.prototype.customizeHomescreen = function() {
     customize.homescreens[0].push(['dogfood_apps', 'feedback']);
   }
 
-  customize = JSON.parse(utils.getDistributionFileContent('homescreens',
-    customize, config.GAIA_DISTRIBUTION_DIR));
+  // Load device specific configuration
+  if (config.GAIA_DEVICE_TYPE) {
+    var deviceCustom =
+      JSON.parse(utils.getDistributionFileContent('homescreens',
+        customize, config.configPath));
+    customize = this.customizeSettings(customize, deviceCustom);
+  }
+
+  // Load distribution specific configuration
+  if (config.GAIA_DISTRIBUTION_DIR) {
+    var distributionCustom =
+      JSON.parse(utils.getDistributionFileContent('homescreens',
+        customize, config.GAIA_DISTRIBUTION_DIR));
+    customize = this.customizeSettings(customize, distributionCustom);
+  }
+
   // keep e.me on by default
   let search_page_enabled = (customize.search_page) ?
                             customize.search_page.enabled : true;
@@ -284,6 +301,25 @@ HomescreenAppBuilder.prototype.customizeHomescreen = function() {
   return content;
 };
 
+/**
+ * Updates the homescreen manifest.
+ * Changes the role from homescreen to system for phones.
+ */
+HomescreenAppBuilder.prototype.updateManifest = function() {
+  var options = this.options;
+
+  if (options.GAIA_DEVICE_TYPE !== 'phone') {
+    return;
+  }
+
+  var manifest =
+    utils.getJSON(utils.getFile(options.APP_DIR, 'manifest.webapp'));
+  manifest.role = 'system';
+  // Write content to build_stage
+  utils.writeContent(utils.getFile(this.stageDir.path, 'manifest.webapp'),
+                     JSON.stringify(manifest));
+};
+
 HomescreenAppBuilder.prototype.execute = function(options) {
   this.setOptions(options);
   var homescreen = this.customizeHomescreen();
@@ -293,6 +329,15 @@ HomescreenAppBuilder.prototype.execute = function(options) {
   if (options.VARIANT_PATH) {
     svoperapps.execute(options, homescreen, this.stageDir);
   }
+
+  this.updateManifest();
+};
+
+HomescreenAppBuilder.prototype.customizeSettings = function(origin, custom) {
+  Object.keys(custom).forEach(function(key) {
+    origin[key] = custom[key];
+  });
+  return origin;
 };
 
 exports.execute = function(options) {

@@ -1,15 +1,13 @@
 'use strict';
-/* global MocksHelper, MockLockScreen, MockSettingsListener, Storage */
+/* global MocksHelper, MockSettingsListener, Storage */
 
-requireApp('system/test/unit/mock_lock_screen.js');
+require('/shared/test/unit/mocks/mock_system.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/js/storage.js');
 
-mocha.globals(['lockScreen', 'Storage', 'addEventListener',
-  'removeEventListener']);
-
 var mocksForStorage = new MocksHelper([
-  'SettingsListener'
+  'SettingsListener',
+  'System'
 ]).init();
 
 suite('system/Storage', function() {
@@ -19,7 +17,6 @@ suite('system/Storage', function() {
 
   mocksForStorage.attachTestHelpers();
   setup(function() {
-    window.lockScreen = MockLockScreen;
     fakeElement = document.createElement('div');
     fakeElement.style.cssText = 'height: 100px; display: block;';
     stubById = this.sinon.stub(document, 'getElementById')
@@ -29,6 +26,7 @@ suite('system/Storage', function() {
 
   teardown(function() {
     stubById.restore();
+    window.System.locked = false;
   });
 
   suite('constructor', function() {
@@ -40,7 +38,7 @@ suite('system/Storage', function() {
 
     test('sets mode when locked', function() {
       var setModeStub = this.sinon.stub(Storage.prototype, 'setMode');
-      window.lockScreen.locked = true;
+      window.System.locked = true;
       subject = new Storage();
       MockSettingsListener.mCallbacks['ums.enabled'](1);
       assert.ok(setModeStub.calledWith(subject.automounterDisable));
@@ -48,7 +46,7 @@ suite('system/Storage', function() {
 
     test('sets current mode', function() {
       var setModeStub = this.sinon.stub(Storage.prototype, 'setMode');
-      window.lockScreen.locked = false;
+      window.System.locked = false;
       subject = new Storage();
       MockSettingsListener.mCallbacks['ums.enabled'](1);
       assert.ok(setModeStub.calledWith(subject._mode));
@@ -76,7 +74,7 @@ suite('system/Storage', function() {
     test('lock calls setMode', function() {
       var setModeStub = this.sinon.stub(Storage.prototype, 'setMode');
       subject.handleEvent({
-        type: 'lock'
+        type: 'lockscreen-appopened'
       });
       assert.ok(setModeStub.calledWith(2));
     });
@@ -86,7 +84,7 @@ suite('system/Storage', function() {
       subject._mode = 3;
       var setModeStub = this.sinon.stub(Storage.prototype, 'setMode');
       subject.handleEvent({
-        type: 'unlock'
+        type: 'lockscreen-appclosed'
       });
       assert.ok(setModeStub.calledWith(3));
     });

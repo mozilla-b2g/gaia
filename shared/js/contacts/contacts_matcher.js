@@ -4,11 +4,13 @@
 
 var contacts = window.contacts || {};
 
-contacts.Matcher = (function() {
+contacts.MatcherObj = function(pdataProvider) {
   var blankRegExp = /\s+/g;
 
   var FB_CATEGORY = 'facebook';
   var FB_LINKED = 'fb_linked';
+  
+  var dataProvider = pdataProvider;
 
   // Multiple matcher Object. It tries to find a set of Contacts that match at
   // least one of the targets passed as parameters
@@ -32,7 +34,7 @@ contacts.Matcher = (function() {
         filterOp: matchingOptions.filterOp
       };
 
-      var req = navigator.mozContacts.find(options);
+      var req = dataProvider.find(options);
 
       req.onsuccess = function() {
         var matchings = req.result.filter(function(aResult) {
@@ -233,6 +235,23 @@ contacts.Matcher = (function() {
     matchByTel(aContact, localCbs, options);
   }
 
+  function getSourceSimUrl(aContact) {
+    var out;
+
+    if (Array.isArray(aContact.category) &&
+      aContact.category.indexOf('sim') !== -1 && Array.isArray(aContact.url)) {
+      for (var j = 0; j < aContact.url.length; j++) {
+        var aUrl = aContact.url[j];
+        if (aUrl.type.indexOf('source') !== -1 &&
+                                          aUrl.type.indexOf('sim') !== -1) {
+          out = aUrl.value;
+        }
+      }
+    }
+
+    return out;
+  }
+
   // Implements the silent mode matching
   function doMatchPassive(aContact, callbacks) {
     if (!hasName(aContact)) {
@@ -240,6 +259,50 @@ contacts.Matcher = (function() {
       return;
     }
 
+    // SIM Contacts are detected and matched accordingly
+    // We try to match by name and then try to see if they correspond to
+    // the same SIM contact. In that case matching is reported
+    var simUrl = getSourceSimUrl(aContact);
+    if (simUrl) {
+      performPassiveMatchForSimContact(simUrl, aContact, callbacks);
+    }
+    else {
+      performPassiveMatch(aContact, callbacks);
+    }
+  }
+
+  function performPassiveMatchForSimContact(simUrl, aContact, callbacks) {
+    var localCbs = {
+      onmatch: function(results) {
+        var matchingFound = false;
+
+        Object.keys(results).forEach(function(aResultId) {
+          var matchingContact = results[aResultId].matchingContact;
+          var matchingUrl = getSourceSimUrl(matchingContact);
+          if (matchingUrl && matchingUrl === simUrl) {
+            matchingFound = true;
+            var matchings = {};
+            matchings[aResultId] = {
+              matchingContact: matchingContact
+            };
+            callbacks.onmatch(matchings);
+            return;
+          }
+        });
+        if (!matchingFound) {
+          performPassiveMatch(aContact, callbacks);
+        }
+      },
+      onmismatch: function() {
+        performPassiveMatch(aContact, callbacks);
+      }
+    };
+    // Matching by name and then see if they have the same SIM contact source
+    matchByName(aContact, localCbs);
+  }
+
+  // Implements the silent mode matching
+  function performPassiveMatch(aContact, callbacks) {
     var matchingsFound = {};
 
     var localCbs = {
@@ -385,7 +448,7 @@ contacts.Matcher = (function() {
       var targetName = aContact.name[0].trim();
       // Filter by familyName using startsWith. Gecko 'startsWith' operation
       // acts as 'equal' but does not match case.
-      var reqName = navigator.mozContacts.find({
+      var reqName = dataProvider.find({
         filterValue: targetName,
         filterBy: ['name'],
         filterOp: 'startsWith'
@@ -415,7 +478,7 @@ contacts.Matcher = (function() {
       var targetFamilyName = aContact.familyName[0].trim();
       // Filter by familyName using startsWith. Gecko 'startsWith' operation
       // acts as 'equal' but does not match case.
-      var reqFamilyName = navigator.mozContacts.find({
+      var reqFamilyName = dataProvider.find({
         filterValue: targetFamilyName,
         filterBy: ['familyName'],
         filterOp: 'startsWith'
@@ -633,8 +696,15 @@ contacts.Matcher = (function() {
       notifyMismatch(callbacks);
     }
   }
+  
+  // Exported method
+  this.match = doMatch;
+  
+  Object.defineProperty(this, 'dataProvider', {
+    set: function(theProvider) {
+      dataProvider = theProvider;
+    }
+  });
+};
 
-  return {
-    match: doMatch
-  };
-})();
+contacts.Matcher = new contacts.MatcherObj(navigator.mozContacts);

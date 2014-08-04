@@ -8,8 +8,8 @@ var utils = require('utils');
 function execute(config) {
   var init = utils.getFile(config.STAGE_APP_DIR, 'js', 'config.js');
   var content = {
-    'api_url': 'http://ec2-54-241-87-238.us-west-1.compute.amazonaws.com',
-    'api_version': '0'
+    'api_url': 'https://find.firefox.com',
+    'api_version': '1',
   };
 
   var distDir = config.GAIA_DISTRIBUTION_DIR;

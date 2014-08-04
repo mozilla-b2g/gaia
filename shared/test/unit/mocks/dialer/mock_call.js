@@ -8,7 +8,7 @@ function MockCall(aNumber, aState, aServiceId) {
     'disconnected': []
   };
 
-  this.number = aNumber;
+  this.id = { number: aNumber };
   this.serviceId = (aServiceId === undefined) ? 1 : aServiceId;
   this.state = aState;
 
@@ -20,10 +20,10 @@ function MockCall(aNumber, aState, aServiceId) {
   this.resume = function() {};
 
   this.mEmergencyNumbers = ['112', '911'];
-  this.emergency = this.mEmergencyNumbers.indexOf(this.number) >= 0;
+  this.emergency = this.mEmergencyNumbers.indexOf(aNumber) >= 0;
 
   this.mVoicemailNumbers = ['123'];
-  this.voicemail = this.mVoicemailNumbers.indexOf(this.number) >= 0;
+  this.voicemail = this.mVoicemailNumbers.indexOf(aNumber) >= 0;
 
   this.addEventListener = (function(type, handler) {
     if (this._eventListeners[type]) {

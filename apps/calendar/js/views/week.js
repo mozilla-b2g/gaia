@@ -40,8 +40,14 @@ Calendar.ns('Views').Week = (function() {
       weekChildren.appendChild(children[i].create());
     }
 
-    this.element.querySelector('.sticky .children').appendChild(stickyList);
+    this.element.querySelector('.sticky').appendChild(stickyList);
     this._appendSidebarHours();
+
+    this._currentTime = new Calendar.Views.CurrentTime({
+      container: this.element.querySelector('.scroll-content'),
+      sticky: this.element.querySelector('.sticky'),
+      timespan: this.timespan
+    });
   }
 
   Frame.prototype = {
@@ -61,16 +67,22 @@ Calendar.ns('Views').Week = (function() {
       for (; i < len; i++) {
         this.children[i][method]();
       }
+
+      if (method in this._currentTime) {
+        this._currentTime[method]();
+      }
     },
 
     /**
      * Activates all children and adds ACTIVE class to frame.
      */
     activate: function() {
-      this._childMethod('activate');
+      // we need to add the active class before caling activate in the child
+      // elements because they might need to get access to element style
       this.element.classList.add(
         Calendar.View.ACTIVE
       );
+      this._childMethod('activate');
     },
 
     /**
@@ -116,20 +128,33 @@ Calendar.ns('Views').Week = (function() {
 
       var i = 0;
       var hour;
-      var displayHour;
 
       for (; i < 24; i++) {
         hour = String(i);
-        displayHour = Calendar.Calc.formatHour(i);
 
         element.insertAdjacentHTML(
           'beforeend',
           template.sidebarHour.render({
             hour: hour,
-            displayHour: displayHour
+            displayHour: this._formatDisplayHour(i)
           })
         );
       }
+    },
+
+    _formatDisplayHour: function(hour) {
+      var date = new Date();
+      date.setHours(hour, 0, 0, 0);
+
+      var format = navigator.mozL10n.get('hour-format')
+        .replace(/\s*%p\s*/, '<span class="ampm">%p</span>');
+
+      var result = Calendar.App.dateFormat.localeFormat(date, format);
+
+      // remove leading zero
+      result = result.replace(/^0/, '');
+
+      return result;
     }
   };
 
@@ -266,6 +291,7 @@ Calendar.ns('Views').Week = (function() {
       var len = details.length;
       var children = [];
       var stickyList = document.createElement('ul');
+      stickyList.classList.add('sticky-list');
 
       var i = 0;
       for (; i < len; i++) {
@@ -273,6 +299,7 @@ Calendar.ns('Views').Week = (function() {
         date.setDate(date.getDate() + i);
 
         var stickyFrame = document.createElement('li');
+        stickyFrame.classList.add('sticky-frame');
         stickyList.appendChild(stickyFrame);
 
         children.push(new Calendar.Views.WeekChild({

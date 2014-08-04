@@ -12,7 +12,7 @@ class TestGalleryDelete(GaiaTestCase):
         GaiaTestCase.setUp(self)
 
         # add photo to storage
-        self.push_resource('IMG_0001.jpg', destination='DCIM/100MZLLA')
+        self.push_resource('IMG_0001.jpg')
 
     def test_gallery_delete_image(self):
         gallery = Gallery(self.marionette)

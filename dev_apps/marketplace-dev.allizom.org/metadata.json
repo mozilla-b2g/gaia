@@ -1,4 +1,5 @@
 {
+  "external": true,
   "etag": "\"f0ded6b03d456d6ee167a20b17e18d3e575171bed1566c6645d71a2631b3b9df\"",
   "installOrigin": "https://marketplace-dev.allizom.org",
   "manifestURL": "https://marketplace-dev.allizom.org/packaged.webapp",

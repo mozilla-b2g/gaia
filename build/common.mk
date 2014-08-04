@@ -11,7 +11,7 @@ define run-build-test
     --harmony \
     --reporter $(REPORTER) \
     --ui tdd \
-    --timeout 0 \
+    --timeout 180000 \
     $(strip $1)
 endef
 
@@ -31,8 +31,4 @@ define run-node-command
   echo "run-node-command $1";
   node --harmony -e \
   "require('./build/$(strip $1).js').execute($(BUILD_CONFIG))"
-endef
-
-define clean-build-files
-  rm -rf "$(1)$(SEP)Makefile" "$(1)$(SEP)build" "$(1)$(SEP)build.txt" "$(1)$(SEP)test" "$(1)$(SEP)README.md"
 endef

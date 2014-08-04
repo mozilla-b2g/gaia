@@ -21,10 +21,12 @@ define(function(require) {
       }
 
       LazyLoader.load(['shared/style/action_menu.css',
-                       'shared/style_unstable/buttons.css',
+                       'shared/style/buttons.css',
                        'shared/style/confirm.css',
-                       'shared/style_unstable/input_areas.css',
+                       'shared/style/input_areas.css',
                        'shared/style/progress_activity.css',
+                       'shared/js/component_utils.js',
+                       'shared/elements/gaia_buttons/script.js',
                        'style/apps.css',
                        'style/screen_lock.css',
                        'style/simcard.css',

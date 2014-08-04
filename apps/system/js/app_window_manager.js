@@ -1,5 +1,5 @@
 /* global SettingsListener, homescreenLauncher, KeyboardManager,
-          layoutManager, lockScreen, System */
+          layoutManager, System */
 'use strict';
 
 (function(exports) {
@@ -42,11 +42,13 @@
     /**
      * Match app origin and get the first matching one.
      * @param  {String} origin The origin to be matched.
+     * @param  {String} [manifestURL] The manifestURL to be matched.
      * @return {AppWindow}        The app window object matched.
      */
-    getApp: function awm_getApp(origin) {
+    getApp: function awm_getApp(origin, manifestURL) {
       for (var id in this._apps) {
-        if (this._apps[id].origin == origin) {
+        if (this._apps[id].origin === origin &&
+            (!manifestURL || this._apps[id].manifestURL === manifestURL)) {
           return this._apps[id];
         }
       }
@@ -54,11 +56,11 @@
     },
 
     /**
-     * Match app origin and get the first matching one.
+     * Get all apps.
      * @return {Object} The running app window references stored
      *                  by its instanceID.
      */
-    getApps: function awm_getApps(origin) {
+    getApps: function awm_getApps() {
       return this._apps;
     },
 
@@ -85,7 +87,7 @@
         homescreenLauncher.getHomescreen(true);
 
       if (!appNext) {
-        console.warn('no next app.');
+        this.debug('no next app.');
         return;
       }
 
@@ -99,7 +101,7 @@
 
       if (appCurrent && appCurrent.instanceID == appNext.instanceID) {
         // Do nothing.
-        console.warn('the app has been displayed.');
+        this.debug('the app has been displayed.');
         return;
       }
 
@@ -149,11 +151,17 @@
       this.debug('before ready check' + appCurrent + appNext);
       appNext.ready(function() {
         if (appNext.isDead()) {
-          // The app was killed while we were opening it,
-          // let's not switch to a dead app!
-          this._updateActiveApp(appCurrent.isHomescreen ?
-            homescreenLauncher.origin : appCurrent.origin);
-          return;
+          if (!appNext.isHomescreen) {
+            // The app was killed while we were opening it,
+            // let's not switch to a dead app!
+            this._updateActiveApp(appCurrent.instanceID);
+            return;
+          } else {
+            // Homescreen might be dead due to OOM, we should ensure its opening
+            // before updateActiveApp.
+            appNext = homescreenLauncher.getHomescreen();
+            appNext.ensure(true);
+          }
         }
         this.debug('ready to open/close' + switching);
         if (switching) {
@@ -169,11 +177,14 @@
           if (degree === 90 || degree === 270) {
             immediateTranstion = true;
           }
+        } else if (appNext.isHomescreen) {
+          // If there's no active app and next app is homescreen,
+          // open it right away.
+          immediateTranstion = true;
         }
 
         if (appNext.resized &&
-            !layoutManager.match(appNext.width,
-              appNext.height - appNext.calibratedHeight())) {
+            !layoutManager.match(appNext.width, appNext.height)) {
           immediateTranstion = true;
         }
 
@@ -209,7 +220,7 @@
       }
       window.addEventListener('cardviewbeforeshow', this);
       window.addEventListener('launchapp', this);
-      window.addEventListener('launchactivity', this);
+      document.body.addEventListener('launchactivity', this, true);
       window.addEventListener('home', this);
       window.addEventListener('appcreated', this);
       window.addEventListener('appterminated', this);
@@ -231,23 +242,23 @@
       window.addEventListener('applicationuninstall', this);
       window.addEventListener('hidewindow', this);
       window.addEventListener('showwindow', this);
+      window.addEventListener('hidewindowforscreenreader', this);
+      window.addEventListener('showwindowforscreenreader', this);
       window.addEventListener('overlaystart', this);
       window.addEventListener('homegesture-enabled', this);
       window.addEventListener('homegesture-disabled', this);
       window.addEventListener('system-resize', this);
+      window.addEventListener('orientationchange', this);
+      window.addEventListener('sheetstransitionstart', this);
+      // XXX: PermissionDialog is shared so we need AppWindowManager
+      // to focus the active app after it's closed.
+      window.addEventListener('permissiondialoghide', this);
+      window.addEventListener('appopening', this);
+      window.addEventListener('localized', this);
+
+      window.addEventListener('mozChromeEvent', this);
 
       this._settingsObserveHandler = {
-        // update app name when language setting changes
-        'language.current': {
-          defaultValue: null,
-          callback: function(value) {
-            if (!value) {
-              return;
-            }
-            this.broadcastMessage('localized');
-          }.bind(this)
-        },
-
         // continuous transition controlling
         'continuous-transition.enabled': {
           defaultValue: null,
@@ -302,10 +313,18 @@
       window.removeEventListener('applicationuninstall', this);
       window.removeEventListener('hidewindow', this);
       window.removeEventListener('showwindow', this);
+      window.removeEventListener('hidewindowforscreenreader', this);
+      window.removeEventListener('showwindowforscreenreader', this);
       window.removeEventListener('overlaystart', this);
       window.removeEventListener('homegesture-enabled', this);
       window.removeEventListener('homegesture-disabled', this);
       window.removeEventListener('system-resize', this);
+      window.removeEventListener('orientationchange', this);
+      window.removeEventListener('sheetstransitionstart', this);
+      window.removeEventListener('permissiondialoghide', this);
+      window.removeEventListener('appopening', this);
+      window.removeEventListener('localized', this);
+      window.removeEventListener('mozChromeEvent', this);
 
       for (var name in this._settingsObserveHandler) {
         SettingsListener.unobserve(
@@ -320,7 +339,14 @@
     handleEvent: function awm_handleEvent(evt) {
       this.debug('handling ' + evt.type);
       var activeApp = this._activeApp;
+      var detail = evt.detail;
       switch (evt.type) {
+        case 'permissiondialoghide':
+          activeApp && activeApp.broadcast('focus');
+          break;
+        case 'orientationchange':
+          this.broadcastMessage(evt.type);
+          break;
         case 'system-resize':
           this.debug(' Resizing...');
           if (activeApp) {
@@ -363,13 +389,14 @@
           // XXX: There's a race between lockscreenWindow and homescreenWindow.
           // If lockscreenWindow is instantiated before homescreenWindow,
           // we should not display the homescreen here.
-          if (!lockScreen.locked) {
+          if (!System.locked) {
             this.display();
           } else {
             homescreenLauncher.getHomescreen().setVisible(false);
           }
           break;
 
+        case 'appopening':
         case 'appopened':
         case 'homescreenopened':
           // Someone else may open the app,
@@ -408,8 +435,6 @@
           break;
 
         case 'hidewindow':
-          var detail = evt.detail;
-
           if (activeApp &&
               activeApp.origin !== homescreenLauncher.origin) {
             // This is coming from attention screen.
@@ -429,16 +454,41 @@
           }
           break;
 
+        case 'hidewindowforscreenreader':
+          activeApp.setVisibleForScreenReader(false);
+          break;
+
+        case 'showwindowforscreenreader':
+          activeApp.setVisibleForScreenReader(true);
+          break;
+
         case 'showwindow':
+          var fireActivity = () => {
+            // Need to invoke activity
+            var a = new window.MozActivity(detail.activity);
+            a.onerror = function ls_activityError() {
+              console.log('MozActivity: activity error.');
+            };
+          };
+
           if (activeApp && activeApp.origin !== homescreenLauncher.origin) {
             activeApp.setVisible(true);
+            // If we need to invoke activity after we show the window.
+            if (detail && detail.activity) {
+              fireActivity();
+            }
           } else {
-            var home = homescreenLauncher.getHomescreen(true); // jshint ignore:line
-            if (home) {
-              if (home.isActive()) {
-                home.setVisible(true);
-              } else {
-                this.display();
+            // If we only have activity, we don't open the homescreen.
+            if (detail && detail.activity) {
+              fireActivity();
+            } else {
+              var home = homescreenLauncher.getHomescreen(true); // jshint ignore:line
+              if (home) {
+                if (home.isActive()) {
+                  home.setVisible(true);
+                } else {
+                  this.display();
+                }
               }
             }
           }
@@ -508,6 +558,26 @@
           if (this._activeApp) {
             this._activeApp.getTopMostWindow().blur();
           }
+          break;
+        case 'sheetstransitionstart':
+          if (document.mozFullScreen) {
+            document.mozCancelFullScreen();
+          }
+          activeApp && activeApp.getTopMostWindow().broadcast(
+            'sheetstransitionstart');
+          break;
+
+        case 'localized':
+          this.broadcastMessage('localized');
+          break;
+
+        case 'mozChromeEvent':
+          if (!activeApp || !evt.detail ||
+            evt.detail.type !== 'inputmethod-contextchange') {
+            return;
+          }
+          activeApp.getTopMostWindow().broadcast('inputmethod-contextchange',
+            evt.detail);
           break;
       }
     },
@@ -596,16 +666,7 @@
     linkWindowActivity: function awm_linkWindowActivity(config) {
       var caller;
       var callee = this.getApp(config.origin);
-      var origin = window.location.origin;
-
-      // if caller is system app, we would change the caller to homescreen
-      // so that we won't go back to the wrong place
-      if (config.parentApp && config.parentApp.match(origin)) {
-        caller = homescreenLauncher.getHomescreen(true);
-      } else {
-        caller = this._activeApp.getTopMostWindow();
-      }
-
+      caller = this._activeApp.getTopMostWindow();
       callee.callerWindow = caller;
       caller.calleeWindow = callee;
     },
@@ -634,9 +695,10 @@
      * @param {String} origin The origin of the running app window to be killed.
      * @memberOf module:AppWindowManager
      */
-    kill: function awm_kill(origin) {
+    kill: function awm_kill(origin, manifestURL) {
       for (var id in this._apps) {
-        if (this._apps[id].origin === origin) {
+        if (this._apps[id].origin === origin &&
+            (!manifestURL || this._apps[id].manifestURL === manifestURL)) {
           this._apps[id].kill();
         }
       }
@@ -653,13 +715,18 @@
     _updateActiveApp: function awm__changeActiveApp(instanceID) {
       this._activeApp = this._apps[instanceID];
       if (!this._activeApp) {
-        console.warn('no active app alive: ', instanceID);
+        this.debug('no active app alive: ' + instanceID);
       }
       if (this._activeApp && this._activeApp.isFullScreen()) {
         screenElement.classList.add('fullscreen-app');
       } else {
         screenElement.classList.remove('fullscreen-app');
       }
+      // Resize when opened.
+      // Note: we will not trigger reflow if the final size
+      // is the same as its current value.
+      this._activeApp.resize();
+
       this.debug('=== Active app now is: ',
         (this._activeApp.name || this._activeApp.origin), '===');
     },
@@ -692,5 +759,4 @@
   };
 
   exports.AppWindowManager = AppWindowManager;
-  AppWindowManager.init();
 }(window));

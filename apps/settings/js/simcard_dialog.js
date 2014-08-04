@@ -12,7 +12,7 @@ function SimPinDialog(dialog) {
     return;
   }
 
-  var _localize = navigator.mozL10n.localize;
+  var _localize = navigator.mozL10n.setAttributes;
 
 
   /**
@@ -77,7 +77,7 @@ function SimPinDialog(dialog) {
       errorMsg.hidden = true;
       return;
     }
-    _localize(errorMsgHeader, headerL10nId);
+    errorMsgHeader.setAttribute('data-l10n-id', headerL10nId);
     _localize(errorMsgBody, bodyL10nId, args);
     errorMsg.hidden = false;
   }

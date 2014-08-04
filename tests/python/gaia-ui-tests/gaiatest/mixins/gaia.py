@@ -7,46 +7,8 @@ import sys
 import textwrap
 import time
 
-from yoctopuce.yocto_api import YAPI, YRefParam
-from yoctopuce.yocto_current import YCurrent
-from yoctopuce.yocto_datalogger import YDataLogger
 
 class GaiaOptionsMixin(object):
-
-    def gaia_verify_usage(self, options, tests):
-        if options.yocto:
-            # need to verify that the yocto ammeter is attached
-            errmsg = YRefParam()
-            if YAPI.RegisterHub("usb", errmsg) != YAPI.SUCCESS:
-                raise RuntimeError('could not register yocto usb connection: %s' % str(errmsg))
-
-            # rescan for yocto devices
-            if YAPI.UpdateDeviceList(errmsg) != YAPI.SUCCESS:
-                raise RuntimeError('could not detect yoctopuce modules: %s' % str(errmsg))
-
-            # check for ammeter
-            ammeter = YCurrent.FirstCurrent()
-            if ammeter is None:
-                raise RuntimeError('could not find ammeter device')
-            if ammeter.isOnline():
-                module = ammeter.get_module()
-                dc_ammeter = YCurrent.FindCurrent(module.get_serialNumber() + '.current1')
-                if (not module.isOnline()) or (dc_ammeter is None):
-                    raise RuntimeError('could not get ammeter device')
-            else:
-                raise RuntimeError('could not find yocto ammeter device')
-
-            # check for data logger
-            data_logger = YDataLogger.FirstDataLogger()
-            if data_logger is None :
-                raise RuntimeError('could not find data logger device')
-            if data_logger.isOnline():
-                module = data_logger.get_module()
-                data_logger = YDataLogger.FindDataLogger(module.get_serialNumber() + '.dataLogger')
-                if not module.isOnline() or data_logger is None:
-                    raise RuntimeError('could not get data logger device')
-            else:
-                raise RuntimeError('could not find yocto ammeter device')
 
     def __init__(self, **kwargs):
         # Inheriting object must call this __init__ to set up option handling
@@ -56,12 +18,6 @@ class GaiaOptionsMixin(object):
                          dest='restart',
                          default=False,
                          help='restart target instance between tests')
-        group.add_option('--yocto',
-                         action='store_true',
-                         dest='yocto',
-                         default=False,
-                         help='collect voltage and amperage during test runs (requires special hardware)')
-        self.verify_usage_handlers.append(self.gaia_verify_usage)
 
 
 class GaiaTestRunnerMixin(object):
@@ -69,7 +25,7 @@ class GaiaTestRunnerMixin(object):
     def __init__(self, **kwargs):
         width = 80
         if not (self.testvars.get('acknowledged_risks') is True or os.environ.get('GAIATEST_ACKNOWLEDGED_RISKS')):
-            url = 'https://developer.mozilla.org/en-US/docs/Gaia_Test_Runner#Risks'
+            url = 'http://gaiatest.readthedocs.org/en/latest/testrunner.html#risks'
             heading = 'Acknowledge risks'
             message = 'These tests are destructive and may remove data from the target Firefox OS instance as well ' \
                       'as using services that may incur costs! Before you can run these tests you must follow the ' \

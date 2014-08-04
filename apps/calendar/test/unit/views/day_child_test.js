@@ -1,5 +1,3 @@
-/*global Factory */
-
 /*
 requireLib('utils/ordered_map.js');
 requireLib('templates/day.js');
@@ -66,8 +64,7 @@ suiteGroup('Views.DayChild', function() {
     var event = Factory('event', {
       remote: {
         title: 'UX',
-        location: 'Paris',
-        attendees: ['zoo', 'barr']
+        location: 'Paris'
       }
     });
 
@@ -76,11 +73,9 @@ suiteGroup('Views.DayChild', function() {
     var result = subject._renderEvent(busytime, event);
     assert.ok(result);
 
-    assert.include(result, 'has-alarms');
+    assert.include(result, 'icon-calendar-alarm');
     assert.include(result, 'UX');
     assert.include(result, 'Paris');
-    assert.include(result, '>zoo<');
-    assert.include(result, '>barr<');
   });
 
   test('#_renderEvent without alarms', function() {
@@ -95,7 +90,7 @@ suiteGroup('Views.DayChild', function() {
     var result = subject._renderEvent(busytime, event);
     assert.ok(result);
 
-    assert.ok(result.indexOf('has-alarms') === -1);
+    assert.ok(result.indexOf('icon-calendar-alarm') === -1);
   });
 
   test('#_renderEvent undefined alarms, bug 868600', function() {

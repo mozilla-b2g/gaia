@@ -1,6 +1,8 @@
 {
   "maxImagePixelSize": 123456,
   "maxSnapshotPixelSize": 234567,
+  "maxPickPixelSize": 345678,
+  "maxEditPixelSize": 456789,
   "requiredEXIFPreviewSize": {
     "width": 3121,
     "height": 122112

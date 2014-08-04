@@ -1,13 +1,17 @@
+'use strict';
+
+/* globals Notification */
+
 var assert = require('assert');
 
 var CALENDAR_APP = 'app://calendar.gaiamobile.org';
-var CALENDAR_APP_MANIFEST = CALENDAR_APP + '/manifest.webapp';
 
 marionette('Notification.get():', function() {
 
   var client = marionette.client({
     settings: {
-      'ftu.manifestURL': null
+      'ftu.manifestURL': null,
+      'lockscreen.enabled': false
     }
   });
 
@@ -38,6 +42,7 @@ marionette('Notification.get():', function() {
     var error = client.executeAsyncScript(function() {
       try {
         var title = 'test title';
+        /* jshint unused:false */
         var notification = new Notification(title);
         var promise = Notification.get();
         promise.then(function(notifications) {
@@ -70,6 +75,7 @@ marionette('Notification.get():', function() {
         var options = {
           tag: 'my tag:' + Date.now()
         };
+	/* jshint unused:false */
         var notification = new Notification(title, options);
         var promise = Notification.get({tag: options.tag});
         promise.then(function(notifications) {
@@ -97,8 +103,7 @@ marionette('Notification.get():', function() {
     done();
   });
 
-  // skip until gecko part of bug 1000337 lands
-  test.skip('should work across domains', function(done) {
+  test('should work across domains', function(done) {
     var sharedTag = 'shared tag:' + Date.now();
     var emailTitle = 'email title:' + Date.now();
     var systemTitle = 'system tite:' + Date.now();
@@ -106,20 +111,28 @@ marionette('Notification.get():', function() {
     // switch to email app and send notification
     client.apps.launch(CALENDAR_APP);
     client.apps.switchToApp(CALENDAR_APP);
-    client.executeScript(function(title, tag) {
+    var error = client.executeAsyncScript(function(title, tag) {
       var notification = new Notification(title, {tag: tag});
+      notification.addEventListener('show', function() {
+        marionetteScriptFinished(false);
+      });
     }, [emailTitle, sharedTag]);
+    assert.equal(error, false, 'email notification error: ' + error);
 
     // switch to system app and send system notification
     client.switchToFrame();
-    client.executeScript(function(title, tag) {
+    error = client.executeAsyncScript(function(title, tag) {
       var notification = new Notification(title, {tag: tag});
+      notification.addEventListener('show', function() {
+        marionetteScriptFinished(false);
+      });
     }, [systemTitle, sharedTag]);
+    assert.equal(error, false, 'system notification error: ' + error);
 
     // switch back to email, and fetch notification by tag
     client.apps.launch(CALENDAR_APP);
     client.apps.switchToApp(CALENDAR_APP);
-    var error = client.executeAsyncScript(function(title, tag) {
+    error = client.executeAsyncScript(function(title, tag) {
       var promise = Notification.get({tag: tag});
       promise.then(function(notifications) {
         if (!notifications || notifications.length !== 1) {
@@ -167,9 +180,13 @@ marionette('Notification.get():', function() {
     client.apps.launch(CALENDAR_APP);
     client.apps.switchToApp(CALENDAR_APP);
 
-    client.executeScript(function(title, tag) {
+    var error = client.executeAsyncScript(function(title, tag) {
       var notification = new Notification(title, {tag: tag});
+      notification.addEventListener('show', function() {
+        marionetteScriptFinished(false);
+      });
     }, [title, tag]);
+    assert.equal(error, false, 'sending notification error: ' + error);
 
     client.switchToFrame();
     client.apps.close(CALENDAR_APP);
@@ -177,7 +194,7 @@ marionette('Notification.get():', function() {
     client.apps.launch(CALENDAR_APP);
     client.apps.switchToApp(CALENDAR_APP);
 
-    var error = client.executeAsyncScript(function(title, tag) {
+    error = client.executeAsyncScript(function(title, tag) {
       var promise = Notification.get({tag: tag});
       promise.then(function(notifications) {
         if (!notifications || notifications.length !== 1) {
@@ -199,6 +216,7 @@ marionette('Notification.get():', function() {
 
   test('bug 931307, empty title should not cause crash', function(done) {
     var error = client.executeAsyncScript(function() {
+      /* jshint unused:false */
       var notification = new Notification('');
       var promise = Notification.get();
       promise.then(function() {
@@ -208,57 +226,6 @@ marionette('Notification.get():', function() {
       });
     });
     assert.equal(error, false, 'empty title returned error: ' + error);
-    done();
-  });
-
-  test('desktop-notification-close removes notification', function(done) {
-    var notificationTitle = 'Title:' + Date.now();
-
-    // switch to calendar app and send notification
-    client.apps.launch(CALENDAR_APP);
-    client.apps.switchToApp(CALENDAR_APP);
-    client.executeScript(function(title) {
-      var notification = new Notification(title);
-    }, [notificationTitle]);
-
-    // switch to system app and send desktop-notification-close
-    client.switchToFrame();
-    var error = client.executeAsyncScript(function(manifest) {
-      var container =
-        document.getElementById('desktop-notifications-container');
-      var selector = '[data-manifest-u-r-l="' + manifest + '"]';
-      var nodes = container.querySelectorAll(selector);
-      if (nodes.length === 0) {
-        marionetteScriptFinished('no node to query');
-      }
-      for (var i = nodes.length - 1; i >= 0; i--) {
-        var event = document.createEvent('CustomEvent');
-        event.initCustomEvent('mozContentNotificationEvent', true, true, {
-          type: 'desktop-notification-close',
-          id: nodes[i].dataset.notificationId
-        });
-        window.dispatchEvent(event);
-      }
-      marionetteScriptFinished(false);
-    }, [CALENDAR_APP_MANIFEST]);
-    assert.equal(error, false, 'desktop-notification-close error: ' + error);
-
-    // switch back to calendar, and fetch notifications
-    client.apps.launch(CALENDAR_APP);
-    client.apps.switchToApp(CALENDAR_APP);
-    var error = client.executeAsyncScript(function() {
-      var promise = Notification.get();
-      promise.then(function(notifications) {
-        if (notifications && notifications.length !== 0) {
-          marionetteScriptFinished('notification still present');
-        }
-        // success, return no error
-        marionetteScriptFinished(false);
-      }, function(error) {
-        marionetteScriptFinished('promise.then error: ' + error);
-      });
-    });
-    assert.equal(error, false, 'desktop-notification-close error: ' + error);
     done();
   });
 

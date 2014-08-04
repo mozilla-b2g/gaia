@@ -4,7 +4,7 @@
 
 /* Main dialog setup */
 [role="dialog"][data-type="date-selector"] {
-  background: url(date_selector/images/ui/pattern.png) repeat left top, url(date_selector/images/ui/gradient.png) no-repeat left top / 100% 100%;
+  background: #2d2d2d;
   overflow: hidden;
   position: absolute;
   z-index: 100;
@@ -77,7 +77,7 @@
   right: 0;
   width: 27%;
   height: 100%;
-  background: url(date_selector/images/ui/pattern-time.png);
+  background: #4d4d4d;
 }
 
 [role="dialog"][data-type="date-selector"] .value-picker-date-wrapper,
@@ -126,6 +126,11 @@
   border: none;
 }
 
+
+[role="dialog"][data-type="date-selector"]  .YMD .picker-bar-background {
+  width: 21%;
+}
+
 /*MDY*/
 [role="dialog"][data-type="date-selector"] .MDY .value-picker-month-wrapper {
   left: 0;
@@ -171,13 +176,20 @@
 
 [role="dialog"][data-type="date-selector"]  .picker-unit {
   position: relative;
-  font: 2.2rem/5.6rem 'MozTT',sans-serif;
+  font: 2.2rem/5.6rem sans-serif;
   color: #fff;
   text-align: center;
   vertical-align: middle;
   width: 100%;
   height: 5.6rem;
   pointer-events: none;
+  opacity: 0.6;
+  transform: scale(0.8);
+}
+
+[role="dialog"][data-type="date-selector"]  .picker-unit.selected {
+  opacity: 1;
+  transform: scale(1);
 }
 
 /* Menu & buttons setup */
@@ -185,7 +197,7 @@
   white-space: nowrap;
   margin: 0;
   padding: 1.5rem;
-  background: #2d2d2d url(date_selector/images/ui/pattern.png) repeat left top;
+  background: #4d4d4d;
   display: block;
   overflow: hidden;
   position: absolute;

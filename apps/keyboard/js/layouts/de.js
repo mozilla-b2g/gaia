@@ -1,5 +1,6 @@
 Keyboards.de = {
   label: 'German',
+  shortLabel: 'De',
   menuLabel: 'Deutsch',
   imEngine: 'latin',
   types: ['text', 'url', 'email'],

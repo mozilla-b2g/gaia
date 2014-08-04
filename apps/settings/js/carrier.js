@@ -68,11 +68,10 @@ var CarrierSettings = (function(window, document, undefined) {
    * Init function.
    */
   function cs_init() {
-    _ = window.navigator.mozL10n.get;
     _settings = window.navigator.mozSettings;
     _mobileConnections = window.navigator.mozMobileConnections;
     _iccManager = window.navigator.mozIccManager;
-    if (!_ || !_settings || !_mobileConnections || !_iccManager) {
+    if (!_settings || !_mobileConnections || !_iccManager) {
       return;
     }
 
@@ -132,6 +131,8 @@ var CarrierSettings = (function(window, document, undefined) {
 
         var currentHash = e.detail.current;
         if (currentHash === '#carrier') {
+          cs_updateNetworkTypeLimitedItemsVisibility(
+            _mobileConnection.voice && _mobileConnection.voice.type);
           // Show carrier name.
           cs_showCarrierName();
           cs_disabeEnableDataCallCheckbox();
@@ -169,6 +170,37 @@ var CarrierSettings = (function(window, document, undefined) {
         });
       });
     });
+
+    // We need to refresh call setting items as they can be changed in dialer.
+    document.addEventListener('visibilitychange', function() {
+      if (document.hidden) {
+        return;
+      }
+
+      if (Settings.currentPanel === '#carrier-dataSettings') {
+        cs_refreshItems('data');
+      } else if (Settings.currentPanel === '#carrier-mmsSettings') {
+        cs_refreshItems('mms');
+      } else if (Settings.currentPanel === '#carrier-suplSettings') {
+        cs_refreshItems('supl');
+      } else if (Settings.currentPanel === '#carrier-dunSettings') {
+        cs_refreshItems('dun');
+      } else if (Settings.currentPanel === '##carrier-imsSettings') {
+        cs_refreshItems('ims');
+      }
+    });
+  }
+
+  function cs_refreshItems(usage) {
+    _mobileConnections = window.navigator.mozMobileConnections;
+    _mobileConnection = _mobileConnections[
+      DsdsSettings.getIccCardIndexForCellAndDataSettings()
+    ];
+    if (!_mobileConnection) {
+      return;
+    }
+    var networkType = _mobileConnection.data.type;
+    cs_queryApns(cs_updateApnList, usage, networkType);
   }
 
   /**
@@ -184,7 +216,9 @@ var CarrierSettings = (function(window, document, undefined) {
           return;
         }
         _voiceTypes[index] = newType;
-        cs_updateNetworkTypeLimitedItemsVisibility(newType);
+        if (newType) {
+          cs_updateNetworkTypeLimitedItemsVisibility(newType);
+        }
       });
     });
   }
@@ -362,7 +396,8 @@ var CarrierSettings = (function(window, document, undefined) {
         });
       };
       request.onerror = function onErrorHandler() {
-        message.textContent = _('preferredNetworkTypeAlertErrorMessage');
+        message.setAttribute('data-l10n-id',
+                             'preferredNetworkTypeAlertErrorMessage');
         alertDialog.hidden = false;
       };
     });
@@ -397,7 +432,7 @@ var CarrierSettings = (function(window, document, undefined) {
             option.text = networkTypeMapping[type];
           } else {
             var l10nId = supportedNetworkTypeResult.l10nIdForType(type);
-            localize(option, l10nId);
+            option.setAttribute('data-l10n-id', l10nId);
             // fallback to the network type
             if (!l10nId) {
               option.textContent = type;
@@ -435,9 +470,11 @@ var CarrierSettings = (function(window, document, undefined) {
       var auto = !mode || (mode === 'automatic');
       opAutoSelectInput.checked = auto;
       if (auto) {
-        localize(opAutoSelectState, 'operator-networkSelect-auto');
+        opAutoSelectState.setAttribute('data-l10n-id',
+                                       'operator-networkSelect-auto');
       } else {
-        localize(opAutoSelectState, 'operator-networkSelect-manual');
+        opAutoSelectState.setAttribute('data-l10n-id',
+                                       'operator-networkSelect-manual');
         if (scan) {
           gOperatorNetworkList.scan();
         }
@@ -480,7 +517,7 @@ var CarrierSettings = (function(window, document, undefined) {
 
       // state
       var state = document.createElement('small');
-      localize(state,
+      state.setAttribute('data-l10n-id',
         network.state ? ('state-' + network.state) : 'state-unknown');
 
       // create list item
@@ -539,7 +576,7 @@ var CarrierSettings = (function(window, document, undefined) {
             state = 'available';
           }
 
-          localize(messageElement, 'state-' + state);
+          messageElement.setAttribute('data-l10n-id', 'state-' + state);
         });
       }
 
@@ -566,16 +603,19 @@ var CarrierSettings = (function(window, document, undefined) {
         }
 
         var req = _mobileConnection.selectNetwork(network);
-        localize(messageElement, 'operator-status-connecting');
+        messageElement.setAttribute('data-l10n-id',
+                                    'operator-status-connecting');
         req.onsuccess = function onsuccess() {
           currentConnectedNetwork = network;
-          localize(messageElement, 'operator-status-connected');
+          messageElement.setAttribute('data-l10n-id',
+                                      'operator-status-connected');
           updateSelectionMode(false);
           connecting = false;
         };
         req.onerror = function onerror() {
           connecting = false;
-          localize(messageElement, 'operator-status-connectingfailed');
+          messageElement.setAttribute('data-l10n-id',
+                                      'operator-status-connectingfailed');
           if (currentConnectedNetwork) {
             recoverAvailableOperator();
           } else {
@@ -1036,7 +1076,7 @@ var CarrierSettings = (function(window, document, undefined) {
       var input = document.createElement('input');
       input.type = 'radio';
       input.name = currentType + 'Apn';
-      var s = item.carrier + index;
+      var s = (item._id || item.carrier) + index;
       var hashCode = _getHashCode(s);
       input.value = hashCode;
       item.hashCode = hashCode;
@@ -1265,7 +1305,7 @@ var CarrierSettings = (function(window, document, undefined) {
         var apnSelected = false;
         var radioApnItems = apnList.querySelectorAll('input[type="radio"]');
         for (var j = 0; (j < radioApnItems.length) && apn; j++) {
-          var s = apn.carrier + j;
+          var s = (apn._id || apn.carrier) + j;
           var hashCode = apn.hashCode || _getHashCode(s);
           if (radioApnItems[j].value == hashCode) {
             apn.hashCode = apn.hashCode || hashCode;

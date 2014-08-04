@@ -16,6 +16,7 @@
     selectors: {
       element: '#advanced-settings-view',
       accountList: '#advanced-settings-view .account-list',
+      createAccountButton: '#advanced-settings-view .create-account',
       accountListHeader: '#advanced-settings-view .account-list-header',
       syncFrequency: '#setting-sync-frequency',
 
@@ -25,6 +26,10 @@
 
     get accountList() {
       return this._findElement('accountList');
+    },
+
+    get createAccountButton() {
+      return this._findElement('createAccountButton');
     },
 
     get accountListHeader() {
@@ -74,6 +79,8 @@
       account.on('update', this._updateAccount.bind(this));
       account.on('preRemove', this._removeAccount.bind(this));
 
+      this.createAccountButton.addEventListener('click',
+                                               this.onCreateAccount.bind(this));
       setting.on('syncFrequencyChange', this);
       this.syncFrequency.addEventListener('change', this);
 
@@ -120,14 +127,16 @@
       }
     },
 
+    onCreateAccount: function(event) {
+      event.stopPropagation();
+      event.preventDefault();
+      Calendar.App.router.show(event.target.getAttribute('href'));
+    },
+
     _addAccount: function(id, model) {
       if (!this._displayAccount(model)) {
         return;
       }
-
-      // Before we add this, ensure that the account list header
-      // is being shown since we could be the first child
-      this.accountListHeader.classList.add('active');
 
       var idx = this.accountList.children.length;
       var item = template.account.render(this._formatModel(model));
@@ -165,13 +174,6 @@
         /** @type {Node} */
         var parentNode = el.parentNode;
         parentNode.removeChild(el);
-
-        // When we remove this, it's possible that there aren't
-        // any accounts left, so we should check that and possibly
-        // remove the account list header.
-        if (parentNode.childNodes.length === 0) {
-          this.accountListHeader.classList.remove('active');
-        }
       }
     },
 
@@ -191,8 +193,11 @@
       }
 
       function renderAccounts(err, accounts) {
-        self.accountListHeader.classList.remove('active');
-        self.accountList.innerHTML = '';
+        var elements = Array.prototype.slice.call(self.accountList
+                                            .getElementsByClassName('user'));
+        elements.forEach(function(element) {
+          element.parentChild.removeChild(element);
+        });
 
         for (var id in accounts) {
           self._addAccount(id, accounts[id]);

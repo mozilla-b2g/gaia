@@ -35,6 +35,7 @@
     SUSPEND_INTERVAL: 100,
     apps: {},
     current: {
+      instanceID: '',
       manifestURL: '',
       wrapper: null,
       appFrame: null,
@@ -85,6 +86,7 @@
       window.addEventListener('appcreated', this);
       window.addEventListener('appterminated', this);
       window.addEventListener('appopen', this);
+      window.addEventListener('appwill-become-active', this);
       window.addEventListener('shrinking-start', this);
       window.addEventListener('shrinking-stop', this);
       window.addEventListener('shrinking-receiving', this);
@@ -107,6 +109,7 @@
         case 'appcreated':
         case 'appterminated':
         case 'appopen':
+        case 'appwill-become-active':
           if (!evt.detail || !evt.detail.manifestURL) {
             return;
           }
@@ -126,7 +129,7 @@
           }
           break;
         case 'homescreenopened':
-          this._switchTo(null);
+          this._switchTo(null, null);
           break;
         case 'appcreated':
           var app = evt.detail;
@@ -134,20 +137,24 @@
           break;
         case 'appterminated':
           if (this._state() &&
-              evt.detail.manifestURL === this.current.manifestURL) {
+              evt.detail.instanceID === this.current.instanceID) {
             this._cleanEffects();
           }
-          this._unregister(evt.detail.manifestURL);
+          this._unregister(evt.detail.instanceID);
           break;
         case 'appopen':
+        case 'appwill-become-active':
           var config = evt.detail;
-          this._switchTo(config.manifestURL);
+          this._switchTo(config.instanceID, config.manifestURL);
           break;
         case 'shrinking-start':
           this._setup();
           this.start();
           break;
         case 'shrinking-stop':
+          // OrientationManager listen this event to
+          // publish 'reset-orientation' event
+          // even when orientation is locked
           this.stop();
           break;
         case 'shrinking-receiving':
@@ -161,12 +168,12 @@
           break;
         case 'check-p2p-registration-for-active-app':
           if (evt.detail && evt.detail.checkP2PRegistration) {
-            evt.detail.checkP2PRegistration(this.currentAppURL);
+            evt.detail.checkP2PRegistration(this.current.manifestURL);
           }
           break;
         case 'dispatch-p2p-user-response-on-active-app':
           if (evt.detail && evt.detail.dispatchP2PUserResponse) {
-            evt.detail.dispatchP2PUserResponse(this.currentAppURL);
+            evt.detail.dispatchP2PUserResponse(this.current.manifestURL);
           }
           break;
       }
@@ -180,18 +187,18 @@
    */
   ShrinkingUI._register =
     (function su_register(app) {
-      this.apps[app.manifestURL] = app;
+      this.apps[app.instanceID] = app;
     }).bind(ShrinkingUI);
 
   /**
    * Unregister an app.
    *
-   * @param {string} |manifestURL| the manifest URL.
+   * @param {string} |instanceID| the instance ID.
    * @this {ShrinkingUI}
    */
   ShrinkingUI._unregister =
-    (function su_unregister(manifestURL) {
-      delete this.apps[manifestURL];
+    (function su_unregister(instanceID) {
+      delete this.apps[instanceID];
     }).bind(ShrinkingUI);
 
   /**
@@ -201,8 +208,9 @@
    * @this {ShrinkingUI}
    */
   ShrinkingUI._switchTo =
-    (function su_switchTo(url) {
-      this.currentAppURL = url;
+    (function su_switchTo(instanceID, manifestURL) {
+      this.current.instanceID = instanceID;
+      this.current.manifestURL = manifestURL;
     }).bind(ShrinkingUI);
 
   /**
@@ -214,7 +222,7 @@
    */
   ShrinkingUI._setup =
     (function su_setup() {
-      var currentWindow = this.apps[this.currentAppURL];
+      var currentWindow = this.apps[this.current.instanceID];
       this.current.appFrame = currentWindow.frame;
       this.current.wrapper = this.current.appFrame.parentNode;
     }).bind(ShrinkingUI);
@@ -233,12 +241,14 @@
 
       var afterTilt = (function() {
         // After it tilted done, turn it to the screenshot mode.
-        var currentWindow = this.apps[this.currentAppURL];
+        var currentWindow = this.apps[this.current.instanceID];
         currentWindow.setVisible(false, true);
       }).bind(this);
 
       this._setTip();
       this._setState(true);
+      // disable rotation to prevent display UI with wrong image
+      screen.mozLockOrientation(screen.mozOrientation);
       this._shrinkingTilt(afterTilt);
     }).bind(ShrinkingUI);
 
@@ -269,7 +279,7 @@
       }
       var afterTiltBack = (function() {
         // Turn off the screenshot mode.
-        var currentWindow = this.apps[this.currentAppURL];
+        var currentWindow = this.apps[this.current.instanceID];
         currentWindow.setVisible(true);
         this._cleanEffects();
       }).bind(this);
@@ -287,6 +297,8 @@
     this._sendingSlideTo('BOTTOM' , (function() {
       this._enableSlidingCover();
       this._setTip();
+      // will stop once flied back
+      this.stop();
     }).bind(this));
   }).bind(ShrinkingUI);
 
@@ -557,13 +569,13 @@
    * @this {ShrinkingUI}
    */
   ShrinkingUI._shrinkingTiltBack =
-    (function su_shrinkingTiltBack(instant, cb) {
+    (function su_shrinkingTiltBack(instant, callback) {
       // Setup the rotating animation.
       if (!instant) {
         var tsEnd = (function _tsEnd(evt) {
             this.current.appFrame.removeEventListener('transitionend', tsEnd);
-            if (cb) {
-              cb();
+            if (callback) {
+              callback();
             }
         }).bind(this);
         this.current.appFrame.style.transition = 'transform 0.3s ease';
@@ -573,8 +585,8 @@
       } else {
         this.current.appFrame.style.transition = '';
         this.current.appFrame.style.transform = 'rotateX(0.0deg)';
-        if (cb) {
-          cb();
+        if (callback) {
+          callback();
         }
       }
     }).bind(ShrinkingUI);

@@ -17,9 +17,9 @@ suite('KeyboardHelper', function() {
   var DEFAULT_KEY = 'keyboard.default-layouts';
   var ENABLED_KEY = 'keyboard.enabled-layouts';
   var THIRD_PARTY_APP_ENABLED_KEY = 'keyboard.3rd-party-app.enabled';
-  var keyboardAppOrigin = 'http://keyboard.gaiamobile.org:8080';
+  var keyboardAppOrigin = 'app://keyboard.gaiamobile.org';
   var keyboardAppManifestURL =
-      'http://keyboard.gaiamobile.org:8080/manifest.webapp';
+      'app://keyboard.gaiamobile.org/manifest.webapp';
   var standardKeyboards = [
     {
       manifestURL: keyboardAppManifestURL,

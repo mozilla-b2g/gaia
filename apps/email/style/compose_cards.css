@@ -1,10 +1,13 @@
 .cmp-addr-label, .cmp-subject-label {
   color: #888888;
-  display: table-cell;
   width: -moz-min-content;
   white-space: nowrap;
   text-align: left;
-  line-height: 3rem;
+  line-height: 3.3rem;
+}
+
+.cmp-subject-label {
+  line-height: 3.2rem;
 }
 
 .cmp-addr-label::after, .cmp-subject-label::after {
@@ -12,31 +15,51 @@
 }
 
 .cmp-addr-container, .cmp-subject-text {
-  display: table-cell;
+  flex:1;
   width: -moz-available;
 }
 
 .cmp-bubble-container {
-  width: calc(100% - 3rem);
+  width: calc(100% - 1rem);
   float: left;
 }
 
-.cmp-peep-bubble {
+/* Make sure these styles take precedence over the base msg-peep-bubble styles
+   by using both class names */
+.cmp-peep-bubble.msg-peep-bubble {
   float: left;
-  margin-left: 0.3rem;
+  margin: 0.3rem 0.6rem;
+  border: 0;
+  border-radius: 1.4rem;
+  font-size: 1.6rem;
+  font-style: italic;
+  color: #2c2c2c;
+  background-color: white;
+}
+.cmp-peep-bubble.msg-peep-bubble:active {
+  color: white;
+  background-color: #00aacc;
 }
 
 .cmp-to-text-container {
   overflow: hidden;
 }
 
+/* Override base shared style that adds a focus highlight */
+.card-compose input {
+  margin-bottom: 0;
+  padding: 0;
+}
+.card-compose input:focus {
+  box-shadow: none;
+  border-bottom: 0;
+}
+
 input.cmp-addr-text, input.cmp-subject-text {
-  height: 3rem;
+  height: 3.3rem;
   margin-left: 0.5rem;
-  padding: 0 0 0.2rem;
-  font-size: 1.5rem;
-  line-height: 2.2rem;
-  border: 0 !important;
+  font-size: 1.4rem;
+  border: 0;
   background: none;
 }
 
@@ -46,48 +69,38 @@ input.cmp-addr-text, input.cmp-dot-text {
   max-width: 100%;
 }
 
-input.cmp-bcc-text {
-  font-size: 1.6rem;
-  padding-bottom: 0.4rem;
-}
-
 input.cmp-subject-text {
   display: table-cell;
   font-size: 1.6rem;
   text-overflow: ellipsis;
 }
 
-.cmp-envelope-bar {
-  margin: 0.3rem 0;
-}
-
 .cmp-contact-add {
-  position: relative;
-  left: 0.5rem;
-  background: url("images/icons/actionicon_email_addrecipient.png") no-repeat center / 2rem;
-  width: 1.8rem;
-  height: 1.8rem;
-  border: 0.6rem solid transparent;
-  border-radius: 50%;
-  transition: border 200ms ease;
-  display: inline-block;
-  vertical-align: middle;
-}
-
-.cmp-contact-add:active,
-.cmp-attachment-remove:active {
-  border: 0.6rem solid #52B6CC;
+  background: url("images/icons/actionicon_email_addrecipient.png") no-repeat center center / 3rem auto;
+  width: 3rem;
+  height: 3.3rem;
 }
 
 .cmp-envelope-line {
-  display: table;
-  table-layout: fixed;
-  width: calc(100% - 3rem);
-  height: 3rem;
-  border-bottom: 0.1rem solid lightgray;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  width: calc(100% - 2.8rem);
+  color: #575757;
+  background-color: #f2f2f2;
+  padding: 0.4rem 1.4rem;
+  font-size: 1.4rem;
+}
+
+.cmp-envelope-line.cmp-subject {
   margin: 0 1.5rem;
   padding: 0.4rem 0;
-  font-size: 1.5rem;
+  background-color: white;
+  border-bottom: 0.1rem solid #dfdfdf;
+}
+
+.cmp-subject input {
+  color: #2c2c2c;
 }
 
 .cmp-body-text {
@@ -100,8 +113,9 @@ input.cmp-subject-text {
   /* be careful about specifying a line-height different than the font-size,
      as it may result in the text visuall shifting upwards when typing the
      first character on a blank/new line and then back down when deleted. */
-  font-size: 1.7rem;
+  font-size: 1.6rem;
   font-weight: normal;
+  color: #333333;
   border: none;
   box-shadow: none;
   background: #fff;
@@ -110,73 +124,93 @@ input.cmp-subject-text {
 }
 
 /* Attachment */
-.icon-attachment {
-  background: url("images/icons/actionicon_attachments.png") no-repeat scroll center / 3rem !important;
+/* Super specific style to override base styles */
+section[role="region"] .cmp-attachment-btn .icon.icon-attachment {
+  background: url("images/icons/actionicon_attachments.png") no-repeat scroll center / 3rem;
 }
 
 .cmp-attachment-total {
-  border-bottom: none;
+  margin: 0 1.5rem;
+  padding: 0.6rem 0;
+  border-top: 0.1rem solid #dfdfdf;
+  color: #a6a6a6;
+  background-color: white;
+}
+
+.cmp-attachment-label {
+  line-height: 1.4rem;
+  color: inherit;
 }
 
 .cmp-attachment-size {
-  display: table-cell;
   white-space: nowrap;
   text-align: left;
-  line-height: 3rem;
+  line-height: 1.4rem;
   padding-left: 0.5rem;
 }
 
 .cmp-attachment-container {
-  padding: 0 1.5rem;
-  margin: 0;
+  padding: 0;
+  margin: 0 1.5rem;
   font-size: 1.2rem;
+  border-bottom: 0.1rem solid #dfdfdf;
 }
-.cmp-attachment-item {
+
+.cmp-attachment-container li:last-child {
+  margin-bottom: 0.6rem;
+}
+
+.cmp-attachment-container li:only-child {
+  margin-bottom: 0;
+}
+
+/* More specific selector to override shared styles */
+.cmp-attachment-container .cmp-attachment-item {
   list-style-type: none;
-  min-height: 3.5rem !important;
-  height: 3.5rem;
-  border-bottom: none !important;
+  height: 4rem;
+  min-height: 4rem;
+  border-bottom: none;
 }
-.cmp-attachment-item:only-child {
-  min-height: 3.8rem !important;
-  height: 3.8rem;
-}
-.cmp-attachment-item:last-child {
-  border-bottom: 0.1rem solid lightgray !important;
-}
+
 .cmp-attachment-icon {
-  background: url("images/icons/message-list-attachment.png") no-repeat scroll center / 2rem auto transparent;
-  display: inline-block;
-  width: 2rem;
-  height: 3.5rem;
+  display: block;
+  float: left;
+  background: url("images/icons/icon_default.png") no-repeat center left / 3rem auto;
+  width: 3.6rem;
+  height: 4rem;
 }
-.cmp-attachment-item:only-child > .cmp-attachment-icon {
-  height: 3.8rem;
+.mime-image .cmp-attachment-icon {
+  background-image: url("images/icons/icon_image.png");
 }
+.mime-audio .cmp-attachment-icon {
+  background-image: url("images/icons/icon_music.png");
+}
+.mime-video .cmp-attachment-icon {
+  background-image: url("images/icons/icon_video.png");
+}
+
 .cmp-attachment-filename,
 .cmp-attachment-filesize {
-  display: inline-block;
+  display: block;
+  clear: right;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: calc(100% - 12.5rem);
+  max-width: calc(100% - 8rem);
   white-space: nowrap;
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   font-weight: normal;
-  line-height: 3.5rem;
+  color: #393d3e;
 }
-.cmp-attachment-item:only-child > .cmp-attachment-filename,
-.cmp-attachment-item:only-child > .cmp-attachment-filesize {
-  line-height: 3.8rem;
+
+.cmp-attachment-filename {
+  padding-top: 0.4rem;
 }
+
 .cmp-attachment-filesize {
   max-width: 6.5rem;
+  color: #a6a6a6;
 }
-.cmp-attachment-filesize:before {
-  content: "(";
-}
-.cmp-attachment-filesize:after {
-  content: ")";
-}
+
 .cmp-attachment-remove {
   background: url("images/icons/actionicon_email_removeattachment.png") no-repeat scroll center / 2rem;
   width: 2rem;
@@ -185,10 +219,17 @@ input.cmp-subject-text {
   border: 0.6rem solid transparent;
   border-radius: 50%;
   position: absolute;
-  right: -0.6rem;
+  right: -0.1rem;
 }
 
 .cmp-messages-sending p {
   text-align: center;
 }
 
+.cmp-error-message {
+  background-color: black;
+  color: #fff;
+  padding: 0.8rem;
+  font-size: 120%;
+  text-align: center;
+}

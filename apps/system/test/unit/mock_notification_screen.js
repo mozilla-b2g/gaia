@@ -23,7 +23,15 @@ var MockNotificationScreen = {
             methodName == 'removeNotification') {
           return {
             addEventListener: function() {},
-            removeEventListener: function() {}
+            removeEventListener: function() {},
+
+            //
+            // Actual parent node: <div id="desktop-notifications-container">
+            //
+            // This dummy parent node is used to pass the null check in
+            // CaptivePortal::dismissNotification() in captive_portal.js.
+            //
+            parentNode: document.createElement('div')
           };
         }
       };

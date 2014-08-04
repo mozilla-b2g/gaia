@@ -1,25 +1,17 @@
 /*global
    loadBodyHTML,
    Dialog,
-   ErrorDialog,
-   MockL10n,
-   MocksHelper,
-   MockSettings
+   MockL10n
 */
 'use strict';
 
-requireApp('sms/test/unit/mock_settings.js');
-requireApp('sms/test/unit/mock_l10n.js');
-requireApp('sms/js/dialog.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 
-var mocksHelperForDialog = new MocksHelper([
-  'Settings'
-]).init();
+require('/js/dialog.js');
 
 suite('Dialog', function() {
   var nativeMozL10n = navigator.mozL10n;
   var params = null;
-  mocksHelperForDialog.attachTestHelpers();
 
   suiteSetup(function() {
     loadBodyHTML('/index.html');
@@ -237,154 +229,4 @@ suite('Dialog', function() {
     assert.ok(l10nSpy.calledWith(bodyDOM, params.body.l10nId),
       'Body DOM localized with proper string');
   });
-
-  suite('Message Error Dialog', function() {
-    var dialogSpy;
-
-    setup(function() {
-      dialogSpy = this.sinon.spy(Dialog, 'call');
-    });
-
-    test('No signal error', function() {
-      var dialog = new ErrorDialog('NoSignalError');
-      dialog.show();
-
-      var opt = dialogSpy.firstCall.args[1];
-      assert.equal(opt.title.l10nId,
-                  'sendNoSignalErrorTitle');
-      assert.equal(opt.body.l10nId,
-                  'sendNoSignalErrorBody');
-    });
-
-    test('show not found error', function() {
-      var dialog = new ErrorDialog('NotFoundError');
-      dialog.show();
-
-      var opt = dialogSpy.firstCall.args[1];
-      assert.equal(opt.title.l10nId,
-                  'sendNotFoundErrorTitle');
-      assert.equal(opt.body.l10nId,
-                  'sendNotFoundErrorBody');
-    });
-
-    test('show general error for unknown error', function() {
-      var dialog = new ErrorDialog('UnknownError');
-      dialog.show();
-
-      var opt = dialogSpy.firstCall.args[1];
-      assert.equal(opt.title.l10nId,
-                  'sendDefaultErrorTitle');
-      assert.equal(opt.body.l10nId,
-                  'sendDefaultErrorBody');
-    });
-
-    test('show general error for internal case', function() {
-      var dialog = new ErrorDialog('InternalError');
-      dialog.show();
-
-      var opt = dialogSpy.firstCall.args[1];
-      assert.equal(opt.title.l10nId, 'sendDefaultErrorTitle');
-      assert.equal(opt.body.l10nId, 'sendDefaultErrorBody');
-    });
-
-    test('show invalid address error', function() {
-      var dialog = new ErrorDialog('InvalidAddressError');
-      dialog.show();
-
-      var opt = dialogSpy.firstCall.args[1];
-      assert.equal(opt.title.l10nId,
-                  'sendInvalidAddressErrorTitle');
-      assert.equal(opt.body.l10nId,
-                  'sendInvalidAddressErrorBody');
-    });
-
-    test('show no SIM card', function() {
-      var dialog = new ErrorDialog('NoSimCardError');
-      dialog.show();
-
-      var opt = dialogSpy.firstCall.args[1];
-      assert.equal(opt.title.l10nId,
-                  'sendMissingSimCardTitle');
-      assert.equal(opt.body.l10nId,
-                  'sendMissingSimCardBody');
-    });
-
-    test('show air plane mode', function() {
-      var dialog = new ErrorDialog('RadioDisabledError');
-      dialog.show();
-
-      var opt = dialogSpy.firstCall.args[1];
-      assert.equal(opt.title.l10nId,
-                  'sendFlightModeTitle');
-      assert.equal(opt.body.l10nId,
-                  'sendFlightModeBody');
-    });
-
-    test('show FDN blockage error', function() {
-      var dialog = new ErrorDialog(
-        'FdnCheckError', {recipients: ['777', '888', '999']}
-      );
-      dialog.show();
-
-      var opt = dialogSpy.firstCall.args[1];
-      assert.equal(opt.title.l10nId,
-                  'fdnBlocked2Title');
-      assert.equal(opt.body.l10nId,
-                  'fdnBlocked2Body');
-      assert.deepEqual(opt.body.l10nArgs,
-      {
-        n: 3,
-        numbers: '777<br />888<br />999'
-      });
-    });
-
-    test('show non-active sim card error', function() {
-      MockSettings.mmsServiceId = 0;
-
-      var handler = function() {};
-      var dialog = new ErrorDialog(
-        'NonActiveSimCardError', { confirmHandler: handler }
-      );
-      dialog.show();
-
-      var opt = dialogSpy.firstCall.args[1];
-      assert.equal(opt.title.l10nId,
-                  'nonActiveSimTitle');
-      assert.equal(opt.body.l10nId,
-                  'nonActiveSimBody');
-      assert.deepEqual(opt.body.l10nArgs,
-      {
-        active: 'SIM 1',
-        nonactive: 'SIM 2'
-      });
-      assert.equal(opt.options.confirm.text.l10nId,
-                  'nonActiveSimConfirm');
-      assert.equal(opt.options.confirm.method, handler);
-    });
-
-    test('show non-active sim card when sending mms error', function() {
-      MockSettings.mmsServiceId = 0;
-
-      var handler = function() {};
-      var dialog = new ErrorDialog(
-        'NonActiveSimCardToSendError', { confirmHandler: handler }
-      );
-      dialog.show();
-
-      var opt = dialogSpy.firstCall.args[1];
-      assert.equal(opt.title.l10nId,
-                  'nonActiveSimToSendTitle');
-      assert.equal(opt.body.l10nId,
-                  'nonActiveSimToSendBody');
-      assert.deepEqual(opt.body.l10nArgs,
-      {
-        active: 'SIM 1',
-        nonactive: 'SIM 2'
-      });
-      assert.equal(opt.options.confirm.text.l10nId,
-                  'nonActiveSimToSendConfirm');
-      assert.equal(opt.options.confirm.method, handler);
-    });
-  });
-
 });

@@ -4,37 +4,47 @@
 
 var MockGeolocation = {
   mSetup: function() {
-    this.latitude = 37.388590;
-    this.longitude = -122.061704;
+    this.fakeCoords = {
+      latitude: 37.388590,
+      longitude: -122.061704,
+      accuracy: 5.0
+    };
+
+    this.fakePosition = {
+      timestamp: 1404756850457,
+      coords: this.fakeCoords
+    };
+
     this.activeWatches = [];
 
-    var self = this;
+    this.realGetCurrentPosition = navigator.geolocation.getCurrentPosition;
+    navigator.geolocation.getCurrentPosition = (function(onsuccess, onerror) {
+      if (onsuccess) {
+        onsuccess(this.fakePosition);
+      }
+    }).bind(this);
+
     this.realWatchPosition = navigator.geolocation.watchPosition;
-    navigator.geolocation.watchPosition = function(onsuccess, onerror) {
+    navigator.geolocation.watchPosition = (function(onsuccess, onerror) {
       var watch = setInterval(function() {
         if (onsuccess) {
-          onsuccess({
-            coords: {
-              latitude: self.latitude,
-              longitude: self.longitude
-            }
-          });
+          onsuccess(this.fakePosition);
         }
       });
 
-      self.activeWatches.push(watch);
+      this.activeWatches.push(watch);
       return watch;
-    };
+    }).bind(this);
 
     this.realClearWatch = navigator.geolocation.clearWatch;
-    navigator.geolocation.clearWatch = function(watch) {
-      var idx = self.activeWatches.indexOf(watch);
+    navigator.geolocation.clearWatch = (function(watch) {
+      var idx = this.activeWatches.indexOf(watch);
 
       if (idx >= 0) {
-        self.activeWatches.splice(idx, 1);
+        this.activeWatches.splice(idx, 1);
         clearInterval(watch);
       }
-    };
+    }).bind(this);
   },
 
   mTeardown: function() {
@@ -43,6 +53,7 @@ var MockGeolocation = {
     }
 
     this.activeWatches = [];
+    navigator.geolocation.getCurrentPosition = this.realGetCurrentPosition;
     navigator.geolocation.watchPosition = this.realWatchPosition;
     navigator.geolocation.clearWatch = this.realClearWatch;
   }

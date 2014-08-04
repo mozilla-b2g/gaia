@@ -3,7 +3,7 @@
  */
 
 #appPermissions ul li img,
-#homescreen ul li img {
+#homescreens ul li img {
   float: left;
   margin-top: calc(3rem - 1.5rem);
   margin-right: 1.4rem;
@@ -32,9 +32,16 @@
  */
 
 html[dir="rtl"] #appPermissions ul li img,
-html[dir="rtl"] #homescreen ul li img {
+html[dir="rtl"] #homescreens ul li img {
   float: right;
   margin-left: 1.4rem;
   margin-right: auto;
 }
 
+/**
+ * Vertical homescreen panel
+ */
+
+#homescreen [data-type="list"] li:first-child {
+  padding-bottom: 1rem;
+}

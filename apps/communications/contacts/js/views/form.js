@@ -9,6 +9,7 @@
 /* global MozActivity */
 /* global Normalizer */
 /* global utils */
+/* global TAG_OPTIONS */
 
 var contacts = window.contacts || {};
 
@@ -20,9 +21,10 @@ contacts.Form = (function() {
     'date': 0,
     'note': 0
   };
-  var TAG_OPTIONS;
+
   var currentContact = {};
   var dom,
+      contactForm,
       deleteContactButton,
       addNewDateButton,
       thumb,
@@ -56,6 +58,9 @@ contacts.Form = (function() {
   // The size we want our contact photos to be
   var PHOTO_WIDTH = 320;
   var PHOTO_HEIGHT = 320;
+  // bug 1038414: ask for an image about 2MP before
+  // doing the crop to save memory in both apps
+  var MAX_PHOTO_SIZE = 200000;
 
   var touchstart = 'ontouchstart' in window ? 'touchstart' : 'mousedown';
 
@@ -64,13 +69,12 @@ contacts.Form = (function() {
 
     get: function textFieldsCache_get() {
       if (!this._textFields) {
-        var form = dom.getElementById('contact-form');
-        var fields = form.querySelectorAll('input.textfield');
+        var fields = contactForm.querySelectorAll('input.textfield');
 
         var removedFields =
-          Array.slice(form.querySelectorAll('.removed input.textfield'));
+          Array.slice(contactForm.querySelectorAll('.removed input.textfield'));
         var invalidFields =
-          Array.slice(form.querySelectorAll('.invalid input.textfield'));
+          Array.slice(contactForm.querySelectorAll('.invalid input.textfield'));
 
         this._textFields = Array.filter(fields, function(field) {
           return (removedFields.indexOf(field) === -1 &&
@@ -89,11 +93,12 @@ contacts.Form = (function() {
   var initContainers = function cf_initContainers() {
     deleteContactButton = dom.querySelector('#delete-contact');
     thumb = dom.querySelector('#thumbnail-photo');
-    thumb.onclick = pickImage;
     thumbAction = dom.querySelector('#thumbnail-action');
+    thumbAction.querySelector('#photo-button').onclick = pickImage;
     saveButton = dom.querySelector('#save-button');
     addNewDateButton = dom.querySelector('#add-new-date');
     cancelButton = dom.querySelector('#cancel-edit');
+    contactForm = dom.getElementById('contact-form');
     formTitle = dom.getElementById('contact-form-title');
     currentContactId = dom.getElementById('contact-form-id');
     givenName = dom.getElementById('givenName');
@@ -153,7 +158,7 @@ contacts.Form = (function() {
 
   var init = function cf_init(tags, currentDom) {
     dom = currentDom || document;
-    TAG_OPTIONS = tags;
+
     _ = navigator.mozL10n.get;
     initContainers();
 
@@ -161,8 +166,7 @@ contacts.Form = (function() {
       checkDisableButton();
     });
 
-    var form = dom.getElementById('contact-form');
-    form.addEventListener(touchstart, function click(event) {
+    contactForm.addEventListener(touchstart, function click(event) {
       var tgt = event.target;
       if (tgt.tagName == 'BUTTON' && tgt.getAttribute('type') == 'reset') {
         event.preventDefault();
@@ -232,6 +236,10 @@ contacts.Form = (function() {
     resetForm();
     (renderedContact && renderedContact.id) ?
        showEdit(renderedContact, fromUpdateActivity) : showAdd(renderedContact);
+
+    // reset the scroll from (possible) previous renders
+    contactForm.parentNode.scrollTop = 0;
+
     if (callback) {
       callback();
     }
@@ -489,6 +497,9 @@ contacts.Form = (function() {
         dateInput.valueAsDate = currField.value;
         renderDate(currField.value, dateInputText);
       }
+      else {
+        dateInputText.textContent = _('date-span-placeholder');
+      }
 
       dateInput.addEventListener('input',
         onInputDate.bind(null, dateInputText));
@@ -534,6 +545,11 @@ contacts.Form = (function() {
         contacts.Search.invalidateCache();
         contacts.Search.removeContact(contact.id);
         contacts.Search.exitSearchMode();
+      }
+      // As we jump back to the list, stop listening for NFC and
+      // prevent sharing contacts from the contact list.
+      if ('mozNfc' in navigator && contacts.NFC) {
+        contacts.NFC.stopListening();
       }
       Contacts.navigation.home();
     };
@@ -610,8 +626,8 @@ contacts.Form = (function() {
 
     currentContact = currentContact || {};
     currentContact = deviceContact || currentContact;
-    var deviceGivenName = currentContact.givenName;
-    var deviceFamilyName = currentContact.familyName;
+    var deviceGivenName = currentContact.givenName || [''];
+    var deviceFamilyName = currentContact.familyName || [''];
 
     var myContact = {
       id: document.getElementById('contact-form-id').value,
@@ -672,11 +688,11 @@ contacts.Form = (function() {
             var fbContact = new fb.Contact(contact);
             // Here the contact has been promoted to linked but not saved yet
             fbContact.promoteToLinked();
-          } else {
-            setPropagatedFlag('givenName', deviceGivenName[0], contact);
-            setPropagatedFlag('familyName', deviceFamilyName[0], contact);
-            createName(contact);
           }
+
+          setPropagatedFlag('givenName', deviceGivenName[0], contact);
+          setPropagatedFlag('familyName', deviceFamilyName[0], contact);
+          createName(contact);
         }
       } else {
         contact = utils.misc.toMozContact(myContact);
@@ -856,6 +872,9 @@ contacts.Form = (function() {
     // Deleting auxiliary objects created for dates
     delete contact.date;
 
+    // When we add new contact, it has no id at the beginning. We have one, if
+    // we edit current contact. We will use this information below.
+    var isNew = contact.id !== 'undefined';
     var request = navigator.mozContacts.save(utils.misc.toMozContact(contact));
 
     request.onsuccess = function onsuccess() {
@@ -866,6 +885,14 @@ contacts.Form = (function() {
       }
       if (!noTransition) {
         Contacts.cancel();
+      }
+
+      // Since editing current contact returns to the details view, and adding
+      // the new one to the contacts list, we call setCurrent() only in the
+      // first case, so NFC listeners are not set on the Contact List
+      // (Bug 1041455).
+      if (isNew) {
+        Contacts.setCurrent(contact);
       }
     };
 
@@ -938,11 +965,11 @@ contacts.Form = (function() {
       var carrierSelector = 'carrier_' + arrayIndex;
       var carrierField = dom.getElementById(carrierSelector).value || '';
       contact.tel = contact.tel || [];
-      contact.tel[i] = {
+      contact.tel.push({
         value: numberValue,
         type: [typeField],
         carrier: carrierField
-      };
+      });
     }
   };
 
@@ -954,20 +981,17 @@ contacts.Form = (function() {
       var arrayIndex = currentEmail.dataset.index;
       var emailField = dom.getElementById('email_' + arrayIndex);
       var emailValue = emailField.value;
-      if (emailValue) {
-        emailValue = emailValue.trim();
-      }
-      selector = 'email_type_' + arrayIndex;
-      var typeField = dom.getElementById(selector).dataset.value || '';
+      emailValue = emailValue && emailValue.trim();
       if (!emailValue) {
         continue;
       }
-
+      selector = 'email_type_' + arrayIndex;
+      var typeField = dom.getElementById(selector).dataset.value || '';
       contact.email = contact.email || [];
-      contact.email[i] = {
+      contact.email.push({
         value: emailValue,
         type: [typeField]
-      };
+      });
     }
   };
 
@@ -1017,16 +1041,19 @@ contacts.Form = (function() {
       var arrayIndex = currentAddress.dataset.index;
       var addressField = dom.getElementById('streetAddress_' + arrayIndex);
       var addressValue = addressField.value || '';
-
+      addressValue = addressValue.trim();
       selector = 'address_type_' + arrayIndex;
       var typeField = dom.getElementById(selector).dataset.value || '';
-
+      typeField = typeField.trim();
       selector = 'locality_' + arrayIndex;
       var locality = dom.getElementById(selector).value || '';
+      locality = locality.trim();
       selector = 'postalCode_' + arrayIndex;
       var postalCode = dom.getElementById(selector).value || '';
+      postalCode = postalCode.trim();
       selector = 'countryName_' + arrayIndex;
       var countryName = dom.getElementById(selector).value || '';
+      countryName = countryName.trim();
 
       // Sanity check for pameters, check all params but the typeField
       if (addressValue === '' && locality === '' &&
@@ -1035,13 +1062,13 @@ contacts.Form = (function() {
       }
 
       contact.adr = contact.adr || [];
-      contact.adr[i] = {
+      contact.adr.push({
         streetAddress: addressValue,
         postalCode: postalCode,
         locality: locality,
         countryName: countryName,
         type: [typeField]
-      };
+      });
     }
   };
 
@@ -1053,6 +1080,7 @@ contacts.Form = (function() {
       var arrayIndex = currentNote.dataset.index;
       var noteField = dom.getElementById('note_' + arrayIndex);
       var noteValue = noteField.value;
+      noteValue = noteValue && noteValue.trim();
       if (!noteValue) {
         continue;
       }
@@ -1104,6 +1132,7 @@ contacts.Form = (function() {
     var removedFields = dom.querySelectorAll('.removed');
     for (var i = 0; i < removedFields.length; i++) {
       removedFields[i].classList.remove(REMOVED_CLASS);
+      removedFields[i].classList.remove(FB_CLASS);
     }
     thumbAction.classList.remove('with-photo');
     var removeButton = thumbAction.querySelector('button');
@@ -1168,11 +1197,13 @@ contacts.Form = (function() {
 
   var removeFieldIcon = function removeFieldIcon(selector) {
     var delButton = document.createElement('button');
+    var _ = navigator.mozL10n.get;
     delButton.id = IMG_DELETE_ID;
     delButton.className = 'fillflow-row-action';
+    delButton.setAttribute('aria-label', _('removeField.ariaLabel'));
+    delButton.setAttribute('data-l10n-id', 'removeField');
     var delIcon = document.createElement('span');
-    delIcon.setAttribute('role', 'button');
-    delIcon.className = 'icon-delete';
+    delIcon.className = 'icon icon-delete';
     delButton.appendChild(delIcon);
     delButton.onclick = function removeElement(event) {
       // Workaround until 809452 is fixed.
@@ -1194,6 +1225,19 @@ contacts.Form = (function() {
         }
       }
       elem.classList.toggle(REMOVED_CLASS);
+
+      // Update the aria label for acessibility
+      var delButton = event.target;
+
+      // As the user can add and remove fields, the aria-label of the delete
+      // button must change according with the current status (Remove/Undo)
+      if (elem.classList.contains(REMOVED_CLASS)) {
+        delButton.setAttribute('aria-label', _('undo.ariaLabel'));
+        delButton.setAttribute('data-l10n-id', 'undo');
+      } else {
+        delButton.setAttribute('aria-label', _('removeField.ariaLabel'));
+        delButton.setAttribute('data-l10n-id', 'removeField');
+      }
 
       // As the user can add and remove fields he can end up having two date
       // types with the same value and we want to avoid that erroneous case
@@ -1237,7 +1281,8 @@ contacts.Form = (function() {
     var activity = new MozActivity({
       name: 'pick',
       data: {
-        type: 'image/jpeg'
+        type: 'image/jpeg',
+        maxFileSizeBytes: MAX_PHOTO_SIZE
       }
     });
 

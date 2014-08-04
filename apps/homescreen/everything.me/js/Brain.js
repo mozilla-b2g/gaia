@@ -29,6 +29,8 @@
 
       CLASS_WHEN_EVME_READY = 'evme-ready',
       CLASS_WHEN_HAS_QUERY = 'evme-has-query',
+      CLASS_WHEN_HAS_HISTORY = 'evme-has-history',
+      CLASS_WHEN_HAS_NO_HISTORY = 'empty-history',
       CLASS_WHEN_COLLECTION_VISIBLE = 'evme-collection-visible',
       CLASS_WHEN_LOADING_SHORTCUTS_SUGGESTIONS =
                                             'evme-suggest-collections-loading',
@@ -144,6 +146,7 @@
       Searcher.empty();
       Evme.Searchbar.clear();
       Brain.Searchbar.setEmptyClass();
+      Brain.Helper.setHistoryClass();
       document.body.classList.add(CLASS_WHEN_EVME_READY);
     };
   };
@@ -165,6 +168,26 @@
       } else {
         Brain.Helper.showDefault();
       }
+
+      // A custom event fired by everything.me to capture clicks within the
+      // homescreen page grip.
+      window.addEventListener('gridclicked', self.handleContainerClick);
+    };
+
+    this.handleContainerClick = function handleContainerClick(e) {
+      if (Evme.Searchbar.getValue() !== '' ||
+        Evme.Helper.getCurrentDisplayType() !== 'history') {
+        return;
+      }
+      var parent = e.detail.data.explicitOriginalTarget;
+      while (parent) {
+        if (parent === elContainer) {
+          return;
+        }
+        parent = parent.parentNode;
+      }
+      Brain.Helper.setHistoryClass();
+      window.removeEventListener('gridclicked', self.handleContainerClick);
     };
 
     // Searchbar blurred. Keyboard hides.
@@ -192,8 +215,13 @@
 
       var searchbarValue = Evme.Searchbar.getValue();
       if (searchbarValue === '') {
-        Evme.Helper.setTitle();
-        Evme.Helper.showTitle();
+        if (Evme.Helper.getCurrentDisplayType() !== 'history') {
+          Evme.Helper.setTitle();
+          Evme.Helper.showTitle();
+        } else if (elClicked === elContainer) {
+          Brain.Helper.setHistoryClass();
+          window.removeEventListener('gridclicked', self.handleContainerClick);
+        }
       } else if (didClickApp) {
         Evme.Searchbar.setValue(searchbarValue);
         Evme.Helper.setTitle(searchbarValue);
@@ -304,6 +332,10 @@
     this.populate = function populate() {
       Evme.Brain.Helper.showDefault();
     };
+
+    this.clear = function() {
+      Brain.Helper.setHistoryClass();
+    };
   };
 
   // modules/Helper/
@@ -407,11 +439,22 @@
       }
     };
 
+    this.setHistoryClass = function setHistoryClass(length) {
+      if (length && length > 0) {
+        elContainer.classList.remove(CLASS_WHEN_HAS_NO_HISTORY);
+        document.body.classList.add(CLASS_WHEN_HAS_HISTORY);
+      } else {
+        elContainer.classList.add(CLASS_WHEN_HAS_NO_HISTORY);
+        document.body.classList.remove(CLASS_WHEN_HAS_HISTORY);
+      }
+    };
+
     // load history items
     this.loadHistory = function loadHistory(history) {
       history = history || Evme.SearchHistory.get();
 
       if (history && history.length > 0) {
+        self.setHistoryClass(history.length);
         var items = [];
         for (var i = 0, l = history.length; i < l; i++) {
           items.push({
@@ -423,6 +466,8 @@
 
         Evme.Helper.loadHistory(items);
         Evme.Helper.showHistory();
+      } else {
+        self.setHistoryClass();
       }
     };
 

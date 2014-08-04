@@ -28,6 +28,7 @@ contacts.Settings = (function() {
     importSettingsBack,
     orderCheckBox,
     orderByLastName,
+    setICEButton,
     importSettingsPanel,
     importSettingsTitle,
     importContacts,
@@ -58,6 +59,10 @@ contacts.Settings = (function() {
 
     fb.init(function onFbInit() {
       initContainers();
+      // To avoid any race condition we listen for online events once
+      // containers have been initialized
+      window.addEventListener('online', checkOnline);
+      window.addEventListener('offline', checkOnline);
     });
     utils.listeners.add({
       '#settings-close': hideSettings
@@ -113,6 +118,9 @@ contacts.Settings = (function() {
     importLiveOption = document.getElementById('import-live-option');
     importGmailOption = document.getElementById('import-gmail-option');
 
+    // ICE view
+    setICEButton = document.getElementById('set-ice');
+
     /*
      * Adding listeners
      */
@@ -145,6 +153,9 @@ contacts.Settings = (function() {
     exportOptions = document.getElementById('export-options');
     exportOptions.addEventListener('click', exportOptionsHandler);
 
+    // ICE view
+    setICEButton.addEventListener('click', showICEScreen);
+
     // Bulk delete
     bulkDeleteButton = document.getElementById('bulkDelete');
     bulkDeleteButton.addEventListener('click', bulkDeleteHandler);
@@ -174,6 +185,10 @@ contacts.Settings = (function() {
         fbImportedValue = 'renew-pwd';
         fbImportOption.dataset.state = fbImportedValue;
       });
+
+      document.addEventListener('fb_cleaned', function onFbCleaned(evt) {
+        checkNoContacts();
+      });
     }
     else {
       document.querySelector('#settings-article').dataset.state = 'fb-disabled';
@@ -192,6 +207,7 @@ contacts.Settings = (function() {
 
   function importContactsHandler() {
       // Hide elements for export and transition
+      importSettingsPanel.classList.remove('export');
       importSettingsPanel.classList.add('import');
       updateImportTitle('importContactsTitle');
       navigationHandler.go('import-settings', 'right-left');
@@ -203,11 +219,22 @@ contacts.Settings = (function() {
 
       function loadSearch() {
         Contacts.view('search', function() {
+          importSettingsPanel.classList.remove('import');
           importSettingsPanel.classList.add('export');
           updateImportTitle('exportContactsTitle');
           navigationHandler.go('import-settings', 'right-left');
         }, Contacts.SHARED_CONTACTS);
       }
+  }
+
+  function showICEScreen(cb) {
+    LazyLoader.load(['/contacts/js/ice.js'], function(){
+      contacts.ICE.init();
+      navigationHandler.go('ice-settings', 'right-left');
+      if (typeof cb === 'function') {
+        cb();
+      }
+    });
   }
 
   // Given an event, select wich should be the targeted
@@ -599,6 +626,8 @@ contacts.Settings = (function() {
       var cleaner = req.result;
       progressBar.setTotal(cleaner.lcontacts.length);
       cleaner.onsuccess = function() {
+        document.dispatchEvent(new CustomEvent('fb_cleaned'));
+
         Contacts.showOverlay(_('loggingOutFb'), 'activityBar');
         var logoutReq = fb.utils.logout();
 
@@ -651,7 +680,7 @@ contacts.Settings = (function() {
   };
 
   // Import contacts from SIM card and updates ui
-  var onSimImport = function onSimImport(iccId) {
+  var onSimImport = function onSimImport(iccId, done) {
     var icc = IccHandler.getIccById(iccId);
     if (icc === null) {
       return;
@@ -692,7 +721,7 @@ contacts.Settings = (function() {
       }
     };
 
-    importer.onfinish = function import_finish() {
+    importer.onfinish = function import_finish(numDupsMerged) {
       window.setTimeout(function onfinish_import() {
         resetWait(wakeLock);
         if (importedContacts > 0) {
@@ -706,8 +735,14 @@ contacts.Settings = (function() {
         if (!cancelled) {
           Contacts.showStatus(_('simContacts-imported3', {
             n: importedContacts
+          }),
+          !numDupsMerged ? null : _('contactsMerged', {
+            numDups: numDupsMerged
           }));
         }
+
+        typeof done === 'function' && done();
+
       }, DELAY_FEEDBACK);
 
       importer.onfinish = null;
@@ -798,17 +833,24 @@ contacts.Settings = (function() {
       importer.onimported = imported_contact;
       importer.onerror = import_error;
 
-      importer.process(function import_finish() {
+      importer.process(function import_finish(total, numDupsMerged) {
         window.setTimeout(function onfinish_import() {
           utils.misc.setTimestamp('sd', function() {
             // Once the timestamp is saved, update the list
             updateTimestamps();
             checkNoContacts();
             resetWait(wakeLock);
+
             if (!cancelled) {
-              Contacts.showStatus(_('memoryCardContacts-imported3', {
+              var msg1 = _('memoryCardContacts-imported3', {
                 n: importedContacts
-              }));
+              });
+              var msg2 = !numDupsMerged ? null : _('contactsMerged', {
+                numDups: numDupsMerged
+              });
+
+              Contacts.showStatus(msg1, msg2);
+
               if (typeof cb === 'function') {
                 cb();
               }
@@ -1043,10 +1085,11 @@ contacts.Settings = (function() {
     'init': init,
     'close': close,
     'refresh': refresh,
-    'onLineChanged': checkOnline,
     'cardStateChanged': checkSIMCard,
     'updateTimestamps': updateTimestamps,
-    'navigation': navigationHandler,
-    'importFromSDCard': onSdImport
+    'showICEScreen' : showICEScreen,
+    get navigation() { return navigationHandler; },
+    'importFromSDCard': onSdImport,
+    'importFromSIMCard': onSimImport
   };
 })();

@@ -1,10 +1,18 @@
 /* exported MockContactToVcarBlob, MockGetStorageIfAvailable,
-            MockGetUnusedFilename */
+            MockGetUnusedFilename, MockGetStorageIfAvailableError */
 
 'use strict';
 
 var MockGetStorageIfAvailable = function(type, size, callback) {
   callback(navigator.getDeviceStorage());
+};
+
+var MockGetStorageIfAvailableError = function(type, size, callback, cbErr) {
+  if (cbErr) {
+    cbErr(10); // Simulate no space error
+  } else {
+    callback(navigator.getDeviceStorage());
+  }
 };
 
 var MockGetUnusedFilename = function(storage, filename, callback) {

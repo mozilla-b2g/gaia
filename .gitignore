@@ -2,6 +2,8 @@
 *.rej
 *.orig
 *.swp
+*.swn
+*.swo
 .svn
 *~
 manifest.appcache
@@ -24,7 +26,6 @@ manifest.appcache
 /apps/*/test/unit/_sandbox.html
 /apps/*/test/unit/_proxy.html
 /apps/*/locales-obj
-/apps/*/shared
 
 /dev_apps/test-agent/test/config.json
 /dev_apps/*/test/unit/_sandbox.html
@@ -33,11 +34,14 @@ manifest.appcache
 
 /shared/test/integration/node_modules
 /shared/resources/keyboard_layouts.json
+/shared/pages/import/js/parameters.js
 
 /b2g
 /profile/
 /profile-debug/
 /profile-test/
+/profile-gaia-test-b2g/
+/profile-gaia-test-firefox/
 /profile.tar.gz
 /.xulrunner-url
 /xulrunner/
@@ -50,7 +54,6 @@ manifest.appcache
 /build/config/custom-settings.json
 /build_stage/
 /local.mk
-/.b2g.mk
 
 /tools/xpcwindow/vendor/
 
@@ -67,3 +70,6 @@ mozilla-b2g-gaia-node-modules-*
 /.cproject
 /.project
 /.settings
+
+venv/
+travis_venv/

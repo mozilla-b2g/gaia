@@ -86,7 +86,8 @@ if (typeof window.importer === 'undefined') {
       parent.postMessage({
         type: message.type || '',
         data: message.data || '',
-        message: message.message || ''
+        message: message.message || '',
+        additionalMessage: message.additionalMessage || ''
       }, origin);
     }
 
@@ -94,7 +95,6 @@ if (typeof window.importer === 'undefined') {
       var recommend = serviceConnector.name === 'facebook';
       var dialog = parent.document.getElementById('confirmation-message');
       parent.LazyLoader.load(dialog, function() {
-        navigator.mozL10n.translate(dialog);
         LazyLoader.load('/shared/js/confirm.js',
           function() {
           ConfirmDialog.show(_('connectionLost'), _('connectionLostMsg'),
@@ -341,8 +341,8 @@ if (typeof window.importer === 'undefined') {
       var serviceName = connector.name;
 
       // Setting UI title
-      document.querySelector('#content h1').textContent =
-                                          _(serviceName + '-serviceName');
+      document.querySelector('#content h1').
+        setAttribute('data-l10n-id', serviceName + '-serviceName');
       document.body.classList.add(serviceName);
 
       serviceConnector = connector;
@@ -459,9 +459,13 @@ if (typeof window.importer === 'undefined') {
     function markExisting(deviceFriends) {
       updateButton.textContent = deviceFriends.length === 0 ? _('import') :
                                                               _('update');
+      var reallyExisting = 0;
 
       deviceFriends.forEach(function(fbContact) {
         var uid = serviceConnector.getContactUid(fbContact);
+        if (myFriendsByUid[uid]) {
+          reallyExisting++;
+        }
         // We are updating those friends that are potentially selectable
         delete selectableFriends[uid];
         var ele = document.querySelector('[data-uuid="' + uid + '"]');
@@ -477,11 +481,15 @@ if (typeof window.importer === 'undefined') {
         }
       });
 
-      var newValue = myFriends.length -
-                        Object.keys(existingContactsByUid).length;
-      friendsMsgElement.textContent = _('fbFriendsFound', {
-        numFriends: newValue
-      });
+      if (myFriends.length < 1) {
+        friendsMsgElement.textContent = _('fbNoFriends');
+      } else {
+        var newValue = myFriends.length -
+                          Object.keys(existingContactsByUid).length;
+        friendsMsgElement.textContent = _('fbFriendsFound', {
+          numFriends: newValue
+        });
+      }
 
       checkDisabledButtons();
     }
@@ -682,7 +690,7 @@ if (typeof window.importer === 'undefined') {
      *  This function is invoked when importing and updating operations
      *  finished
      */
-    function onUpdate(numFriends) {
+    function onUpdate(numFriends, numMergedDuplicated) {
       // If the service requires to do the logout it is done
       serviceLogout(notifyLogout);
 
@@ -691,28 +699,41 @@ if (typeof window.importer === 'undefined') {
           type: 'window_close',
           message: cancelled ? null : _('friendsUpdated', {
             numFriends: numFriends
+          }),
+          additionalMessage: (cancelled || !numMergedDuplicated) ?
+                              null : _('friendsMerged', {
+            numDups: numMergedDuplicated
           })
         }, targetApp));
       } else {
-        notifyParent({
-          type: 'import_updated'
-        }, targetApp);
-        window.addEventListener('message', function finished(e) {
-          if (e.origin !== targetApp) {
-            return;
-          }
-          if (e.data.type === 'contacts_loaded') {
-            // When the list of contacts is loaded and it's the current view
-            Curtain.hide(notifyParent.bind(null, {
-              type: 'window_close',
-              message: cancelled ? null :
-              _('friendsUpdated', {
+          notifyParent({
+            type: 'import_updated'
+          }, targetApp);
+
+          window.addEventListener('message', function finished(e) {
+            if (e.origin !== targetApp) {
+              return;
+            }
+            if (e.data.type === 'contacts_loaded') {
+              // When the list of contacts is loaded and it's the current view
+
+              var message = cancelled ? null : _('friendsUpdated', {
                 numFriends: numFriends
-              })
-            }, targetApp));
-            window.removeEventListener('message', finished);
-          }
-        });
+              });
+              var additionalMessage = (cancelled || !numMergedDuplicated) ?
+                null : _('friendsMerged', {
+                  numDups: numMergedDuplicated
+              });
+
+              Curtain.hide(notifyParent.bind(null, {
+                type: 'window_close',
+                message: message,
+                additionalMessage: additionalMessage
+              }, targetApp));
+
+              window.removeEventListener('message', finished);
+            }
+          });
       }
     }
 
@@ -783,7 +804,7 @@ if (typeof window.importer === 'undefined') {
         progress.setTotal(total);
 
         Curtain.oncancel = cancelImport;
-        Importer.importAll(function on_all_imported(totalImported) {
+        Importer.importAll(function on_all_imported(totalImported, numDups) {
           if (typeof serviceConnector.oncontactsimported === 'function') {
             // Check whether we need to set the last update and schedule next
             // sync. Only in that case otherwise that will be done by the sync
@@ -796,10 +817,10 @@ if (typeof window.importer === 'undefined') {
           if (!cancelled && unSelected > 0) {
             progress.setFrom('update');
             cleanContacts(function callback() {
-              onUpdate(progress.getValue());
+              onUpdate(progress.getValue(), numDups);
             }, progress);
           } else {
-            onUpdate(progress.getValue());
+            onUpdate(progress.getValue(), numDups);
           }
         }, progress);
       } else if (unSelected > 0) {
@@ -965,11 +986,11 @@ if (typeof window.importer === 'undefined') {
         progress.update();
       };
 
-      theImporter.onsuccess = function(totalImported) {
+      theImporter.onsuccess = function(totalImported, totalMerged) {
         ongoingImport = false;
         window.setTimeout(function imported() {
           utils.misc.setTimestamp(serviceConnector.name);
-          importedCB(totalImported);
+          importedCB(totalImported, totalMerged);
         }, 0);
 
         if (cpuLock) {

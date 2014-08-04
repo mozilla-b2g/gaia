@@ -98,21 +98,13 @@
       var self = this;
       var viewObjs = [];
 
-      function setPath(ctx, next) {
-
-        // Reset our views
-        viewObjs = [];
-
-        if (options.path !== false) {
-          document.body.dataset.path = ctx.canonicalPath;
-        }
-        next();
-      }
-
       function loadAllViews(ctx, next) {
         var len = views.length;
         var numViews = len;
         var i;
+
+        // Reset our views
+        viewObjs = [];
 
         /*jshint loopfunc: true */
         for (i = 0; i < numViews; i++) {
@@ -125,6 +117,24 @@
             }
           });
         }
+      }
+
+      function setPath(ctx, next) {
+        // Only set the dataset path after the view has loaded
+        // its resources. Otherwise, there is some flash and
+        // jank while styles start to apply and the view is only
+        // partially loaded.
+        if (options.path !== false) {
+          document.body.dataset.path = ctx.canonicalPath;
+          // Need to trigger the DOM to accept the new style
+          // right away. Otherwise, once manageObject is called,
+          // any styles/animations it triggers may be delayed
+          // or dropped as the browser coalesces style changes
+          // into one visible change. Example is the settings
+          // drawer animation getting chopped so it is not smooth.
+          document.body.clientWidth;
+        }
+        next();
       }
 
       function handleViews(ctx, next) {
@@ -147,7 +157,7 @@
         next();
       }
 
-      this.page(path, setPath, loadAllViews, handleViews, this._lastState);
+      this.page(path, loadAllViews, setPath, handleViews, this._lastState);
     },
 
     /**

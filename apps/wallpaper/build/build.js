@@ -17,6 +17,8 @@ WallPaperAppBuilder.prototype.setOptions = function(options) {
   this.wallpaperDir = utils.getFile.apply(utils, wallpaperDirPath);
 
   this.gaia = utils.gaia.getInstance(options);
+  this.configPath =
+    utils.joinPath(options.APP_DIR, 'build', options.GAIA_DEVICE_TYPE);
 };
 
 // XXX This inherits the behavior of what's done before in bug 838110
@@ -39,9 +41,30 @@ WallPaperAppBuilder.prototype.copyDistributionWallpapers = function() {
     file.copyTo(this.wallpaperDir, file.leafName);
   }, this);
 };
+
+WallPaperAppBuilder.prototype.copyWallpapers = function() {
+  if (!this.configPath) {
+    throw new Error('device config path not found');
+  }
+
+  var dir = utils.getFile(this.configPath, 'wallpapers');
+  if (!dir.exists()) {
+    return;
+  }
+
+  utils.log('Include wallpapers in app configuration directory ...\n');
+
+  var files = utils.ls(dir);
+
+  files.forEach(function(file) {
+    file.copyTo(this.wallpaperDir, file.leafName);
+  }, this);
+};
+
 WallPaperAppBuilder.prototype.execute = function(options) {
   this.setOptions(options);
 
+  this.copyWallpapers();
   this.copyDistributionWallpapers();
 };
 

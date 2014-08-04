@@ -24,7 +24,7 @@
  * contains children and do the opacity animation, which would cost lot on
  * temporary surfaces.
  **/
-#lockscreen-background {
+#lockscreen-background, #lockscreen-masked-background {
   position: absolute;
   top: 0;
   overflow: hidden;
@@ -32,14 +32,26 @@
   /* Must match the CSS background rule of #screen in system.css */
   width: 100%;
   height: 100%;
-  background-color: #000;
-  background-size: cover; /* Possible memory over-consumption with huge images, it should be removed for improving stability*/
   background-repeat: no-repeat;
-  background-position: 50% 50%;
 
   -moz-user-select: none;
   opacity: 1;
   z-index: 1;
+}
+
+#lockscreen-background {
+  background-color: #000;
+  background-size: cover; /* Possible memory over-consumption with huge images, it should be removed for improving stability*/
+  background-position: 50% 50%;
+}
+
+#lockscreen-masked-background {
+  background-size: 100% 100%;
+  transition: background-image 0.3s ease, background-color 0.3s ease;
+}
+
+#lockscreen-masked-background.blank {
+  background: rgba(0,0,0,0.35);
 }
 
 #screen.screenoff > #lockscreen,
@@ -92,6 +104,8 @@
    * is removed, remove me when the bug is fixed.
    */
   transition: opacity 0.1s ease;
+
+  z-index: 0;
 }
 
 /**
@@ -121,9 +135,6 @@
   position: absolute;
   top: 0;
   left: 0;
-  /* Replace this with radical gradient */
-  background: transparent url('./images/mask.png') 50% 50% no-repeat;
-  background-size: cover;
 }
 
 /**
@@ -131,6 +142,7 @@
  * after the passcode pad got invoked, so we need to hide it here.
  */
 [data-panel="passcode"] #notifications-lockscreen-container,
+[data-panel="passcode"] #lockscreen-notification-arrow,
 [data-panel="passcode"] #lockscreen-media-container,
 [data-panel="passcode"] #lockscreen-icon-container {
   visibility: hidden;
@@ -146,6 +158,7 @@
 
 [data-panel="main"] #lockscreen-alt-camera {
   visibility: hidden;
+  position: absolute;
 }
 
 [data-panel="passcode"] #lockscreen-alt-camera {
@@ -155,13 +168,12 @@
 #lockscreen-header {
   z-index: 9999;
   position: absolute;
-  top: 2.4rem;   /* 2.4rem = height of status bar */
+  top: 3rem;   /* 3rem = height of status bar */
   left: 0;
   width: 100%;
   -moz-box-sizing: border-box;
-  padding: 1.8rem 2.5rem 1.2rem 2.5rem;
+  padding: 2rem 2.4rem 0;
   color: #fff;
-  text-shadow: 0 0 0.3rem #333;
   transition: transform 0.2s ease, opacity 0.2s ease;
   opacity: 1;
 }
@@ -179,11 +191,9 @@
 #lockscreen-conn-states {
   width: 100%;
   display: inline-block;
-  font-weight: 400;
-  font-size: calc(6 * 0.226rem);
-  text-shadow: 0.1rem 0.1rem 0.3rem #000000;
-  padding-bottom: 1rem;
-  border-bottom: solid 0.1rem rgba(256,256,256,.4);
+  font-weight: 300;
+  font-size: 1.4rem;
+  padding-bottom: 1.4rem;
 
   overflow: hidden;
   white-space: nowrap;
@@ -210,28 +220,29 @@
 }
 
 #lockscreen-clock-time {
-  margin: -0.8rem 0 -1rem -0.4rem;
-  font-weight: 300;
-  font-size: calc(26 * 0.226rem);
+  line-height: 1;
+  margin: -1.4rem 0 0 -0.4rem;
+  font-weight: 200;
+  font-size: 8.5rem;
 }
 
 #lockscreen-clock-time span { /* optional meridiem */
-  font-size: calc(17 * 0.226rem);
+  font-size: 3rem;
+  display: none;
 }
 
 #lockscreen-date {
-  font-weight: 400;
-  font-size: calc(7 * 0.226rem);
+  font-weight: 300;
+  font-size: 1.4rem;
 }
 
 #lockscreen-clock-time, #lockscreen-date {
-  text-shadow: 0.1rem 0.1rem 0.3rem #000000;
   color: #fff;
 }
 
 #lockscreen-area {
   position: absolute;
-  height: 11.2rem;
+  height: 8.6rem;
   left: 0;
   right: 0;
   bottom: 0;
@@ -246,15 +257,10 @@
 }
 
 .lockscreen-icon {
-  margin-top: 2rem;
   width: 6rem;
   height: 6rem;
 
   pointer-events: none;
-}
-
-.lockscreen-icon-area.dark .lockscreen-icon{
-  opacity: 0.65;
 }
 
 #lockscreen-area-slide {
@@ -284,9 +290,8 @@
   }
 
   #lockscreen-header {
-    text-shadow: 0 0 0.5rem #111111;
     padding-left: 6rem;
-    font-weight: lighter;
+    font-weight: 300;
   }
 
   #lockscreen-date {
@@ -306,10 +311,11 @@ button::-moz-focus-inner {
 }
 
 #lockscreen-area-unlock > div {
-  background-image: url('./images/icon-unlock.png');
-  background-position: center;
+  background-image: url('./images/lockscreen_unlock.png');
+  background-position: 1.1rem center;
   background-repeat: no-repeat;
   background-size: 3rem;
+  margin-top: 1.9rem;
 }
 
 .lockscreen-icon-left, .lockscreen-icon-right {
@@ -322,24 +328,25 @@ button::-moz-focus-inner {
   background: none;
 }
 
-#lockscreen-alt-camera-button,
 #lockscreen-area-camera > div {
-  background-image: url('./images/icon-camera.png');
-  background-position: center;
+  background-image: url('./images/lockscreen_camera.png');
+  background-position: 1.85rem center;
   background-repeat: no-repeat;
-  background-size: 2.4rem;
+  background-size: 3rem;
+  margin-top: 2rem;
 }
 
 #lockscreen-alt-camera {
-  border-radius: 3rem;
-  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 2.5rem;
+  background-color: rgba(255, 255, 255, 0.25);
   -moz-box-sizing: border-box;
-  border: 0.2rem solid rgba(255, 255, 255, 0.8);
-
   float: right;
   pointer-events: auto;
   opacity: 0.1;
   transition: opacity 0.5s ease;
+  width: 5rem;
+  height: 5rem;
+  margin-top: 5rem;
 }
 
 #lockscreen-alt-camera-button {
@@ -349,6 +356,11 @@ button::-moz-focus-inner {
   border-radius: 50%;
 
   pointer-events: auto;
+
+  background-image: url('./images/pin_camera.png');
+  background-position: 1rem center;
+  background-repeat: no-repeat;
+  background-size: 3rem;
 }
 
 #lockscreen-panel-passcode {
@@ -366,11 +378,10 @@ button::-moz-focus-inner {
   bottom: 21.4rem;
   height: 7rem;
   width: 100%;
-  background-color: rgba(49, 60, 70, 0.9);
+  background-color: rgba(51, 51, 51, 0.3);
   margin: 0;
   padding: 0 1rem;
   -moz-box-sizing: border-box;
-  border-top: 0.1rem solid #525050;
   visibility: hidden;
   transform: translateY(calc(21.4rem + 7.2rem));
   transition: visibility 0.3s ease, transform 0.3s ease;
@@ -398,7 +409,7 @@ button::-moz-focus-inner {
   margin: 1.5rem 0.5rem;
   height: calc(100% - 3rem);
   text-align: center;
-  background-color: #fff;
+  background-color: rgba(255, 255, 255, 0.8);
   border-radius: 0.5rem;
 
   position: relative;
@@ -433,7 +444,7 @@ button::-moz-focus-inner {
   bottom: 0;
   height: 21.4rem;
   width: 100%;
-  background-color: rgba(0, 0, 0, 0.8);
+  background-color: #606b6e;
   visibility: hidden;
   transform: translateY(calc(21.4rem + 7em));
   transition: visibility 0.3s ease, transform 0.3s ease;
@@ -454,65 +465,121 @@ button::-moz-focus-inner {
   float: left;
   width: 33.333%;
   height: 5rem;
-  border-top: 0.1rem solid #525050;
-  border-bottom: 0.1rem solid #000000;
-  border-left: 0.1rem solid #525050;
-  border-right: 0.1rem solid #000000;
   outline: none;
-  padding: 0 2rem;
+  padding: 0; /* 2rem; */
 
-  font-size: 3.2rem;
-  font-weight: 500;
-  line-height: 5rem;
+  font-size: 3rem;
+  font-weight: 400;
+  line-height: 4.2rem;
 
   color: #fff;
   text-decoration: none;
-  text-shadow: 0 0 0.3rem #000;
+  font-family: 'Keyboard Symbols', sans-serif;
 }
 
-#lockscreen-passcode-pad > a:nth-child(3n+1):not([data-key="b"]) {
+#lockscreen-passcode-pad > a > div {
+  height: calc(100% - 0.8rem);
+  margin-top: 0.4rem;
+  border-right-width: 0.1rem;
+  border-right-style: solid;
+}
+
+#lockscreen-passcode-pad > a:not(.lockscreen-passcode-pad-func) > div{
+  text-align: center;
+}
+
+#lockscreen-passcode-pad > a:last-child > div{
+  border-right: none;
+}
+
+#lockscreen-passcode-pad > a:nth-child(3n+1):not([data-key="b"]) > div{
   border-left: none;
+}
+
+#lockscreen-passcode-pad > a[data-key="b"] > div {
+  font-size: 1.5rem;
+  padding-left: 4rem;
+  color: #abb0b1;
 }
 
 #lockscreen-passcode-pad > a.last-row {
   height: 6.4rem;
+  line-height: 5.6rem;
 }
 
-#lockscreen-passcode-pad > a > span {
+#lockscreen-passcode-pad > a > div > span {
   pointer-events: none;
   font-size: 1.2rem;
-  padding: 1.2rem;
-  color: #9aaabc;
+  padding: 0.4rem;
+  font-weight: 400;
+  color: #a6a6a6;
 }
 
 .passcode-entered #lockscreen-passcode-pad > a[data-key="c"] {
   display: none;
 }
 
-#lockscreen-passcode-pad > a[data-key="b"] {
-  display: none;
-  background: url(images/icon-clear.png) no-repeat center center;
-}
-
 .passcode-entered #lockscreen-passcode-pad > a[data-key="b"] {
   display: block;
-  text-align: left;
-  text-indent: -9999px;
 }
 
 #lockscreen-passcode-pad > a:active {
-  background-color: #00aacd;
-  color: #fff;
+  background-color: #4a5255;
+  color: #00caf2;
   text-shadow: none;
 }
 
-#lockscreen-passcode-pad > a:active > span {
-  color: #fff;
+#lockscreen-passcode-pad > a.lockscreen-passcode-pad-func:active > div > span{
+  color: #00caf2;
+}
+
+#lockscreen-passcode-pad .row1 {
+  background-color: #5b6668;
+}
+
+#lockscreen-passcode-pad .row2 {
+  background-color: #566061;
+}
+
+#lockscreen-passcode-pad .row3 {
+  background-color: #525c5e;
+}
+
+#lockscreen-passcode-pad .row0 > div{
+  border-right-color: #606B6E;
+}
+
+#lockscreen-passcode-pad .row1 > div {
+  border-right-color: #5B6668;
+}
+
+#lockscreen-passcode-pad .row2 > div {
+  border-right-color: #566063;
+}
+
+#lockscreen-passcode-pad .row3 > div {
+  border-right-color: #525C5E;
+}
+
+#lockscreen-passcode-pad > a.row0 > div,
+#lockscreen-passcode-pad > a.row1 > div,
+#lockscreen-passcode-pad > a.row2 > div {
+  margin-top: 0.1rem;
+}
+
+#lockscreen-passcode-pad > a.row0 > div > span,
+#lockscreen-passcode-pad > a.row1 > div > span,
+#lockscreen-passcode-pad > a.row2 > div > span {
+  display: block;
+  margin-top: -2.6rem;
+}
+
+#lockscreen-passcode-pad > a:active > div > span {
+  color: transparent;
   text-shadow: none;
 }
 
-
-#lockscreen-passcode-pad > a.lockscreen-passcode-pad-func {
+#lockscreen-passcode-pad > a.lockscreen-passcode-pad-func > div{
   padding: 0 1rem;
   text-align: center;
 }
@@ -526,12 +593,12 @@ button::-moz-focus-inner {
   vertical-align: middle;
 }
 
-#lockscreen-passcode-pad > a.lockscreen-passcode-pad-func > span {
+#lockscreen-passcode-pad > a.lockscreen-passcode-pad-func > div > span {
   display: inline-block;
   padding: 0;
-  color: #fff;
+  color: white;
   font-size: 1.5rem;
-  font-weight: 500;
+  font-weight: 400;
   line-height: 1.6rem;
   text-transform: uppercase;
   vertical-align: middle;
@@ -541,7 +608,7 @@ button::-moz-focus-inner {
   pointer-events: none;
 }
 
-#lockscreen-passcode-pad > a.disabled > span {
+#lockscreen-passcode-pad > a.disabled > div > span {
   color: #4d4d4d;
 }
 
@@ -584,8 +651,6 @@ button::-moz-focus-inner {
   width: 100%;
   height: 10rem;
   pointer-events: none;
-  border-top: 0.1rem solid #989898;
-  background-image: linear-gradient(to bottom, rgba(0,0,0,0.8), rgba(0,0,0,0.2) 20%);
   z-index: 5;
 }
 
@@ -627,4 +692,185 @@ button::-moz-focus-inner {
   font-size: 1.4rem;
   font-weight: 700;
   color: black;
+}
+
+/* notifications */
+
+/* in "normal" mode (there is no widget)
+ * desired vertical position is centered in the space
+ * between date and slider
+ * for big screen, we allow four notifications,
+ * for small screen, we allow three notification
+ * that would be (for four notifications)
+ * (100% - 16.3rem (header) - 3rem (statusbar)
+ *  - 10rem (slider) - 24.6rem (4xNotifications height + 1.2rem for showing the 5th)) / 2
+ *  + 16.3rem + 3rem
+ */
+
+#notifications-lockscreen-container {
+  z-index: 1;
+  position: absolute;
+  top: calc(50% - 8.35rem);
+  left: 0;
+  width: 100%;
+  max-height: 24.6rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  background-color: transparent;
+}
+
+/* in collapsed mode (there is a widget)
+ * desired vertical position is manually adjusted for big screen,
+ *  and for big screen we allow two notifications
+ * for small screen, we allow one notification and it is
+ * vertically centered between date and music player widget
+ */
+#notifications-lockscreen-container.collapsed {
+  top: calc(50% - 9.6rem);
+  max-height: 11.7rem;
+}
+
+#notifications-lockscreen-container.masked-both {
+  mask: url('lockscreen_container_mask.svg#fade_mask_both');
+}
+
+#notifications-lockscreen-container.collapsed.masked-top {
+  mask: url('lockscreen_container_mask.svg#solid_mask_top');
+}
+
+@media (max-height:480px) {
+ /* small screen, normal mode: for three notifications...
+  * (100% - 16.3rem (header) - 3rem (statusbar)
+  *  - 10rem (slider) - 18.7rem (3xNotifications height + showing the 4th)) / 2
+  *  + 16.3rem + 3rem
+  */
+
+  #notifications-lockscreen-container {
+    top: calc(50% - 5.4rem);
+    max-height: 18.7rem;
+  }
+
+ /* small screen, collapsed mode: for one notification...
+  * manally adjusted; 1x Notification is 5.8rem
+  * UX specifies in bug 1023500 that the container should not be scrollable
+  * (so there is no mask either)
+  */
+  #notifications-lockscreen-container.collapsed {
+    top: calc(50% - 5.4rem);
+    max-height: 5.8rem;
+    overflow-y: hidden;
+  }
+
+  #notifications-lockscreen-container.collapsed.masked-top,
+  #notifications-lockscreen-container.collapsed.masked-both {
+    mask: none;
+  }
+}
+
+#notifications-lockscreen-container .notification {
+  background-color: transparent;
+  border-top: none;
+  border-bottom: 0.1rem solid rgba(255, 255, 255, 0.3);
+  height: 4.8rem;
+  width: calc(100% - 5.2rem);
+  margin-left: 2.4rem;
+  margin-right: 2.4rem;
+}
+
+#notifications-lockscreen-container .notification:first-child {
+  border-top: none;
+}
+
+#notifications-lockscreen-container .notification:last-child {
+  border-bottom: none;
+  margin-bottom: 1.2rem;
+}
+
+#notifications-lockscreen-container.collapsed .notification:last-child {
+  margin-bottom: 0.05rem;
+}
+
+#notifications-lockscreen-container .notification > div {
+  width: calc(100% - 3.6rem);
+  margin-left: 3.6rem;
+  color: #ffffff;
+}
+
+#notifications-lockscreen-container .notification > .title-container div:first-of-type {
+  width: calc(100% - 9.4rem);
+  font-size: 1.4rem;
+}
+
+#notifications-lockscreen-container .notification > div.detail {
+  margin-top: 0.2rem;
+}
+
+#notifications-lockscreen-container .notification > .title-container .timestamp {
+  margin-top: 0.1rem;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 1.4rem;
+  font-style: italic;
+  font-weight: 400;
+  overflow: hidden;
+}
+
+#notifications-lockscreen-container .notification > img {
+  margin-top: 0.8rem;
+  margin-left: 0;
+  width: 2.4rem;
+  height: 2.4rem;
+}
+
+#lockscreen-notification-arrow {
+  width: calc(100% - 5.2rem);
+  height: 1.6rem;
+  background-image: url('/style/lockscreen/images/lockscreen_notification_arrow.png');
+  background-repeat: no-repeat;
+  background-position: calc(50% + 0.25rem) center;
+  border-top: 0.1rem solid rgba(255, 255, 255, 0.3);
+
+  position: absolute;
+  left: 0;
+  z-index: 1;
+  background-size: 1.6rem 1.6rem;
+  margin: 0 2.4rem;
+
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+#lockscreen-notification-arrow.visible {
+  opacity: 1;
+}
+
+/* please see how we calculate top and max-height of
+ * #notifications-lockscreen-container to place the arrow's top.
+ * the last offset in calc is to make sure hairlines align together,
+ * and is empirical values.
+ */
+#lockscreen-notification-arrow {
+  top: calc(50% - 7.95rem + 24.6rem - 1.2rem);
+}
+
+#lockscreen-notification-arrow.collapsed {
+  /* manullay adjusted */
+  top: calc(50% - 9.6rem + 11.7rem - 0.05rem);
+}
+
+@media (max-height:480px) {
+  #lockscreen-notification-arrow {
+    top: calc(50% - 5rem + 18.7rem - 1.1rem);
+  }
+
+  #lockscreen-notification-arrow.collapsed {
+    /* UX specifies in bug 1023500 that the notifications
+       container should not be scrollable with collapsed */
+    display: none;
+  }
+}
+
+/* Right-To-Left layout */
+html[dir="rtl"] #lockscreen-alt-camera {
+  float: left;
 }

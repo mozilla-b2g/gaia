@@ -196,4 +196,28 @@ suite('Sim export', function() {
       done();
     });
   });
+
+  test('Calling with cancel flag activated', function(done) {
+    var contacts = [c1, c2, c1, c2, c1];
+    var exportedContacts = 2;
+    var callNum = 0;
+    // Replacing the progress function to allow simulating the click of the
+    // cancel button on the nth call
+    var progressMockForCancel = function() {
+      callNum++;
+      if (callNum === exportedContacts) {
+        obj.subject.cancelExport();
+      }
+    };
+
+    var obj = setupManagerAndSubject(contacts);
+    obj.subject.setProgressStep(progressMockForCancel);
+
+    obj.subject.doExport(function onFinish(error, exported) {
+      assert.equal(exportedContacts, obj.updateSpy.callCount);
+      assert.isNull(error);
+      assert.equal(exportedContacts, exported);
+      done();
+    });
+  });
 });

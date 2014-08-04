@@ -24,11 +24,15 @@
   z-index: 2147483647;
 }
 
+/* System developer HUD should be above everything */
+#screen > .developer-hud {
+  z-index: 2147483647;
+}
+
 #screen > *[data-z-index-level="poweroff-splash"] {
   z-index: 65536;
 }
 
-#screen > [data-z-index-level="debug-grid"],
 #screen > [data-z-index-level="debug-ttl"] {
   z-index: 65536;
 }
@@ -51,16 +55,21 @@
 
 /* Promote the transitioning appWindow to this level as the entry and exiting
  * transition of the cards view. */
-#screen.cards-view > [data-z-index-level="app"] > .appWindow.active:not(.homescreen),
-#screen.cards-view > [data-z-index-level="app"] > .appWindow.transition-opening:not(.homescreen),
-#screen.cards-view > [data-z-index-level="app"] > .appWindow.transition-closing.to-cardview:not(.homescreen),
-#screen.cards-view > [data-z-index-level="app"] > .appWindow.transition-opening.fullscreen-app:not(.homescreen),
-#screen.cards-view > [data-z-index-level="app"] > .appWindow.transition-closing.fullscreen-app.to-cardview:not(.homescreen) {
+#screen.cards-view:not(.task-manager) > [data-z-index-level="app"] > .appWindow.active:not(.homescreen),
+#screen.cards-view:not(.task-manager) > [data-z-index-level="app"] > .appWindow.transition-opening:not(.homescreen),
+#screen.cards-view:not(.task-manager) > [data-z-index-level="app"] > .appWindow.transition-closing.to-cardview:not(.homescreen),
+#screen.cards-view:not(.task-manager) > [data-z-index-level="app"] > .appWindow.transition-opening.fullscreen-app:not(.homescreen),
+#screen.cards-view:not(.task-manager) > [data-z-index-level="app"] > .appWindow.transition-closing.fullscreen-app.to-cardview:not(.homescreen) {
   z-index: 65537;
 }
 
 #screen.cards-view > [data-z-index-level="cards-view"] {
   z-index: 65535;
+}
+
+/* move app windows to sit above homescreen but below task manager */
+#screen.task-manager > #windows > .in-task-manager:not(.homescreen) {
+  z-index: 2043;
 }
 
 /* Keyboard is shown above task manager */
@@ -98,9 +107,18 @@
   z-index: 16384;
 }
 
-/* Level 4: Activity menu, context menu and value selector */
+/* Level 4: Activity menu, context menu, value selector, and permissions */
 #screen > [data-z-index-level="action-menu"] {
   z-index: 8192;
+}
+
+#screen > [data-z-index-level="permission-screen"] {
+  z-index: 8192;
+}
+
+/* The edges zones get promoted when an action menu is displayed */
+#screen.action-menu > [data-z-index-level="gesture-panel"] {
+  z-index: 8193;
 }
 
 /* Level 5: Statusbar, Utility-Tray */
@@ -109,6 +127,10 @@
 }
 
 #screen > [data-z-index-level="utility-tray"] {
+  z-index: 4095;
+}
+
+#screen > [data-z-index-level="utility-tray-notifications"] {
   z-index: 4095;
 }
 
@@ -122,6 +144,9 @@
   z-index: 16386;
 }
 #screen.attention:not(.active-statusbar) > [data-z-index-level="utility-tray"] {
+  z-index: 16385;
+}
+#screen.attention:not(.active-statusbar) > [data-z-index-level="permission-screen"] {
   z-index: 16385;
 }
 
@@ -139,16 +164,11 @@
   z-index: 2048 !important;
 }
 
-/* Permission screen is here because of the lockscreen camera. */
-#screen > [data-z-index-level="permission-screen"] {
-  z-index: 2047;
-}
-
 #screen > [data-z-index-level="lockscreen-camera"] {
   z-index: 2046;
 }
 
-#screen > [data-z-index-level="simpin-dialog"] {
+#screen > [data-z-index-level="system-dialog"] {
   z-index: 2045;
 }
 
@@ -157,8 +177,26 @@
   z-index: 2044;
 }
 
+#screen > [data-z-index-level="software-buttons"],
+#screen.task-manager > #cards-view[data-z-index-level="cards-view"] {
+  z-index: 2044;
+}
+
 #screen > [data-z-index-level="rocketbar-results"] {
   z-index: 2043;
+}
+
+/*
+ * In order to display a context menu on top of the search input
+ * the z-indexes needs to be updated.
+ * The real issue is that the search input is part of the statusbar.
+ */
+#screen.rocketbar-focused > [data-z-index-level="statusbar"] {
+  z-index: 2042;
+}
+
+#screen > [data-z-index-level="rocketbar-backdrop"] {
+  z-index: 2041;
 }
 
 #screen.locked.attention > [data-z-index-level="keyboards"] {
@@ -172,13 +210,17 @@
 
 /* Level 7: Dialog Module */
 #screen > [data-z-index-level="dialog-overlay"],
-#screen > [data-z-index-level="value-selector"],
+#screen > [data-z-index-level="app"] > .appWindow.active > [data-z-index-level="value-selector"],
 #screen > [data-z-index-level="ime-layout-dialog"],
 #screen > [data-z-index-level="app-install-dialog"],
 #screen > [data-z-index-level="updates-download-dialog"],
 #screen > [data-z-index-level="updates-viaDataConnection-dialog"],
 #screen > [data-z-index-level="emergency-callback-dialog"] {
   z-index: 1024;
+}
+
+#screen > [data-z-index-level="ext-selection-dialog"] {
+  z-index: 10;
 }
 
 /* Level 8 */
@@ -211,7 +253,7 @@
 }
 
 #screen > [data-z-index-level="app"] > .appWindow.active:not(.homescreen),
-#screen.edges > [data-z-index-level="app"] > .appWindow:not(.homescreen),
+#screen > [data-z-index-level="app"] > .appWindow:not(.homescreen):not(.lockScreenWindow),
 #screen > [data-z-index-level="app"] > .appWindow.will-become-active {
   z-index: 6;
 }
@@ -241,10 +283,9 @@
 #screen:-moz-full-screen-ancestor > [data-z-index-level="sleep-menu"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="action-menu"],
 #screen.locked:-moz-full-screen-ancestor > [data-z-index-level="statusbar"],
-#screen:-moz-full-screen-ancestor > [data-z-index-level="lockscreen"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="lockscreen-camera"],
 
-#screen:-moz-full-screen-ancestor > [data-z-index-level="value-selector"],
+#screen:-moz-full-screen-ancestor > [data-z-index-level="app"] > .appWindow.active > [data-z-index-level="value-selector"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="system-overlay"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="dialog-overlay"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="app"] > .appWindow.active > .modal-dialog,

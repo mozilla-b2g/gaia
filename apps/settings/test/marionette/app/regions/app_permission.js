@@ -16,8 +16,9 @@ function AppPermissionPanel(client) {
 module.exports = AppPermissionPanel;
 
 AppPermissionPanel.Selectors = {
-  'firstAppEntry': '.app-list a',
-  'geolocationSelect': 'select[data-perm="geolocation"]'
+  'appListItem': '.app-list a',
+  'geolocationSelect': 'select[data-perm="geolocation"]',
+  'uninstallButton': '#uninstall-app'
 };
 
 AppPermissionPanel.prototype = {
@@ -32,12 +33,20 @@ AppPermissionPanel.prototype = {
     return this.findElement('geolocationSelect').getAttribute('value');
   },
 
+  get appList() {
+    return this.findElements('appListItem');
+  },
+
+  get uninstallButton() {
+    return this.waitForElement('uninstallButton');
+  },
+
   tapGeolocationSelect: function(value) {
     this.tapSelectOption('geolocationSelect', value);
   },
 
   enterPermissionDetail: function() {
-    var entry = this.waitForElement('firstAppEntry');
+    var entry = this.waitForElement('appListItem');
     entry.tap();
     this.client.waitFor(function() {
       return this.findElement('geolocationSelect');

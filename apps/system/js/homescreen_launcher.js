@@ -42,8 +42,6 @@
 
     _ready: false,
 
-    _screen: document.getElementById('screen'),
-
     /**
      * Homescreen launcher is ready or not. Homescreen launcher is ready
      * only when it is done retrieving 'homescreen.manifestURL'
@@ -112,9 +110,8 @@
      */
     start: function hl_start() {
       if (this._started) {
-        return this;
+        return;
       }
-
       this._started = true;
       if (applications.ready) {
         this._fetchSettings();
@@ -131,9 +128,8 @@
       window.addEventListener('cardviewbeforeclose', this);
       window.addEventListener('shrinking-start', this);
       window.addEventListener('shrinking-stop', this);
-      window.addEventListener('homescreenopening', this);
-      window.addEventListener('homescreenclosing', this);
-      return this;
+      window.addEventListener('software-button-enabled', this);
+      window.addEventListener('software-button-disabled', this);
     },
 
     /**
@@ -159,8 +155,8 @@
       window.removeEventListener('cardviewbeforeclose', this);
       window.removeEventListener('shrinking-start', this);
       window.removeEventListener('shrinking-stop', this);
-      window.removeEventListener('homescreenopening', this);
-      window.removeEventListener('homescreenclosing', this);
+      window.removeEventListener('software-button-enabled', this);
+      window.removeEventListener('software-button-disabled', this);
       this._started = false;
     },
 
@@ -215,11 +211,10 @@
           // To resume the homescreen after shrinking UI is over.
           this.getHomescreen().showFadeOverlay();
           break;
-        case 'homescreenopening':
-          this._screen.classList.add('on-homescreen');
-          break;
-        case 'homescreenclosing':
-          this._screen.classList.remove('on-homescreen');
+        case 'software-button-enabled':
+        case 'software-button-disabled':
+          var homescreen = this.getHomescreen();
+          homescreen && homescreen.resize();
           break;
       }
     },

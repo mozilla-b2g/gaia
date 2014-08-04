@@ -15,11 +15,11 @@ fi
 SHARED=$GAIA_DIR/shared/test/integration
 
 # make sure node_modules are 100% up to date
-make node_modules
+make node_modules || exit 1
 
 if [ $MARIONETTE_RUNNER_HOST = "marionette-b2gdesktop-host" ] ; then
   # download b2g-desktop (if its not present)
-  make -C $GAIA_DIR/ b2g
+  make -C $GAIA_DIR/ b2g || exit 1
 fi
 
 if [ $MARIONETTE_RUNNER_HOST = "marionette-b2gdesktop-host" ] ; then
@@ -47,6 +47,17 @@ if [ -z "$APPS" ] ; then
   exit 1
 fi
 
+# We try to figure out the reporter.
+# Default is JSON. But console is better for humans.
+# TODO maybe select based on MOZPERFOUT too...
+case z"$REPORTER" in
+zConsoleMozPerf)
+  MOZPERFREPORTER="$GAIA_DIR/tests/reporters/consolemozperf.js"
+  ;;
+*)
+  MOZPERFREPORTER="$GAIA_DIR/tests/reporters/jsonmozperf.js"
+  ;;
+esac
 
 # All echo calls help create a JSON array
 echo '[' >&3
@@ -69,7 +80,7 @@ for app in $APPS; do
     --host $MARIONETTE_RUNNER_HOST \
     $SHARED/setup.js \
     $GAIA_DIR/tests/performance/perf.js $SHARED_PERF $FILES_PERF \
-    -R "$GAIA_DIR/tests/reporters/jsonmozperf.js" \
+    -R $MOZPERFREPORTER \
     $@`
   # Bug 987383 if there is no output report an error.
   if [ -z "$OUT" ]; then

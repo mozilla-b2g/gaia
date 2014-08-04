@@ -3,14 +3,15 @@
   <head>
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
     <meta charset="utf-8">
+    <meta name="theme-color" content="#00adad">
     <title> Contacts </title>
 
     <!-- Building Blocks -->
     <link href="/shared/style/headers.css" rel="stylesheet">
-    <link href="/shared/style_unstable/input_areas.css" rel="stylesheet">
+    <link href="/shared/style/input_areas.css" rel="stylesheet">
     <link href="/shared/style/lists.css" rel="stylesheet">
     <link href="/shared/style/scrolling.css" rel="stylesheet">
-    <link href="/shared/style_unstable/buttons.css" rel="stylesheet">
+    <link href="/shared/style/buttons.css" rel="stylesheet">
     <link href="/shared/style/progress_activity.css" rel="stylesheet">
     <link href="/shared/style/status.css" rel="stylesheet">
     <link href="/shared/style/switches.css" rel="stylesheet">
@@ -38,12 +39,14 @@
     <script defer type="text/javascript" src="/shared/js/contacts/contacts_shortcuts.js"></script>
     <script defer type="text/javascript" src="/shared/js/contacts/import/utilities/overlay.js"></script>
     <script defer type="text/javascript" src="/shared/js/contacts/import/utilities/status.js"></script>
+    <script defer type="text/javascript" src="/shared/js/contacts/import/import_status_data.js"></script>
     -->
 
     <script defer src="/shared/js/l10n.js"></script>
     <script defer src="/shared/js/l10n_date.js"></script>
     <script defer src="/contacts/js/activities.js"></script>
     <script defer src="/shared/js/lazy_loader.js"></script>
+    <script defer src="/shared/js/font_size_utils.js"></script>
     <script defer src="/shared/js/contact_photo_helper.js"></script>
     <script defer src="/shared/js/mime_mapper.js"></script>
 
@@ -51,6 +54,7 @@
     <script defer src="/shared/js/contacts/import/utilities/config.js"></script>
     <script defer src="/contacts/js/utilities/cookie.js"></script>
     <script defer src="/contacts/js/utilities/extract_params.js"></script>
+    <script defer src="/contacts/js/utilities/performance_helper.js"></script>
     <script defer src="/shared/js/contacts/import/utilities/misc.js"></script>
 
     <!-- For initializing FB integration -->
@@ -68,6 +72,7 @@
     <link rel="resource" type="application/l10n" href="/shared/locales/import_contacts.ini"/>
     <link rel="resource" type="application/l10n" href="/shared/locales/date.ini"/>
     <link rel="resource" type="application/l10n" href="/shared/locales/sim_picker.ini"/>
+    <link rel="resource" type="application/l10n" href="/shared/locales/phone_types.ini"/>
     <script defer src="/contacts/js/fb_loader.js"></script>
 
     <!-- For the build system to include in zip:
@@ -80,6 +85,15 @@
     <link href="/shared/js/setImmediate.js">
     <link href="/shared/js/sim_settings_helper.js">
     <link href="/shared/js/sim_picker.js">
+    <link href="/shared/js/nfc_utils.js">
+
+    <link href="/shared/js/contacts/import/facebook/fb_data.js">
+    <link href="/shared/js/contacts/import/facebook/fb_utils.js">
+    <link href="/shared/js/contacts/import/facebook/fb_query.js">
+    <link href="/shared/js/contacts/import/facebook/fb_contact_utils.js">
+    <link href="/shared/js/contacts/import/facebook/fb_contact.js">
+
+    <link href="/shared/pages/import/js/parameters.js">
     -->
 
     <link rel="import" href="elements/confirm.html">
@@ -91,13 +105,15 @@
     <link rel="import" href="elements/settings.html">
     <link rel="import" href="elements/status.html">
     <link rel="import" href="elements/tag.html">
-    <link rel="import" href="/shared/elements/sim-picker.html">
-    <link rel="import" href="/shared/pages/import/oauth.html">
-    <link rel="import" href="/shared/pages/import/curtain.html">
-    <link rel="import" href="/shared/pages/import/import.html">
+    <link rel="import" href="/shared/elements/sim_picker.html">
+    <!--
+    <link href="/shared/pages/import/oauth.html">
+    <link href="/shared/pages/import/curtain.html">
+    <link href="/shared/pages/import/import.html">
+    -->
   </head>
 
-  <body role="application" class="app-contacts">
+  <body role="application" class="app-contacts skin-comms">
 
       <!-- Contacts List Section -->
       <section id='view-contacts-list' role="region" data-state="active" class="view view-noscroll view-contacts-list">
@@ -204,6 +220,11 @@
     <section is="view-contact-details" id='view-contact-details' role="region" class="view view-right view-contact-profile view-noscroll"></section>
     <section is="view-contact-form" id='view-contact-form' role="region" class="view view-bottom view-edit-contact"></section>
     <section is="view-select-tag" id="view-select-tag" role="region" class="view view-right view-select-tag"></section>
+    <form id="action-menu" role="dialog" data-type="action" class="hide">
+      <header id="org-title" data-l10n-id="select_recipient"> Select recipient </header>
+      <menu id="value-menu" type="toolbar">
+      </menu>
+    </form>
     <article is="settings" id="settings-wrapper"></article>
     <form    is="confirm-form" data-type="confirm" id="loading-overlay" class="hide no-opacity" role="dialog"></form>
     <section is="status-message" id="statusMsg" role="status" class="hidden"></section>

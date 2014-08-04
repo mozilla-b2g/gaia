@@ -25,16 +25,18 @@
  * the MediaFrame will just move the photo within itself, if it can, and
  * return 0.
  *
- * Much of the code in this file used to be part of the PhotoState class.
+ * MediaFrame uses the #-moz-samplesize media fragment (via the downsample.js
+ * module) to downsample large jpeg images while decoding them when necessary.
+ * You can specify a maximum image decode size (in megapixels) when invoking
+ * the constructor. The MediaFrame code also includes a runtime check for
+ * the amount of RAM available on the device, and may limit the image decode
+ * size on low-memory devices.
  */
-function MediaFrame(container, includeVideo) {
+function MediaFrame(container, includeVideo, maxImageSize) {
   if (typeof container === 'string')
     container = document.getElementById(container);
   this.container = container;
-  this.image = document.createElement('img');
-  this.image.style.transformOrigin = 'center center';
-  this.container.appendChild(this.image);
-  this.image.style.display = 'none';
+  this.maximumImageSize = maxImageSize || 0;
   if (includeVideo !== false) {
     this.video = new VideoPlayer(container);
     this.video.hide();
@@ -48,10 +50,55 @@ function MediaFrame(container, includeVideo) {
   this.url = null;
 
   var self = this;
-  this.image.onerror = function(e) {
-    if (self.onerror)
-      self.onerror(e);
-  };
+}
+
+MediaFrame.computeMaxImageDecodeSize = function(mem) {
+  if (!mem) {
+    return 0;
+  }
+  else if (mem < 256) {  // This is a Tarako-class device ultra low-end device.
+    return 2 * 1024 * 1024;   // 2 megapixels
+  }
+  else if (mem < 512) {  // This is a low-end 256mb device
+    // Normally we can handle 3mp images on devices like this, but if
+    // this device has a big screen and low memory (like a memory
+    // throttled Flame) then it needs something smaller than 3mp.
+    var screensize = screen.width * window.devicePixelRatio *
+      screen.height * window.devicePixelRatio;
+    if (mem < 325 && screensize > 480 * 800) {
+      return 2.5 * 1024 * 1024;  // 2.5mp megapixels for throttled Flame
+    }
+
+    return 3 * 1024 * 1024;      // 3 megapixels otherwise
+  }
+  else if (mem < 1024) { // A mid-range 512mb device
+    return 5 * 1024 * 1024;   // 5 megapixels
+  }
+  else {                 // A high-end device with 1 gigabyte or more of memory
+    // Allow 8 megapixels of image decode size per gigabyte of memory
+    return (mem / 1024) * 8 * 1024 * 1024;
+  }
+};
+
+//
+// Find out how much memory this device has because we may need to limit image
+// decode size on low-end devices.  Note that navigator.getFeature requires
+// the "feature-detection" permission (at least for now) so we only run this
+// code if the client app has that permission.
+//
+if (navigator.getFeature) {
+  MediaFrame.pendingPromise = navigator.getFeature('hardware.memory');
+  MediaFrame.pendingPromise.then(
+    function resolve(mem) {
+      delete MediaFrame.pendingPromise;
+      MediaFrame.maxImageDecodeSize = MediaFrame.computeMaxImageDecodeSize(mem);
+    },
+    function reject(err) {
+      // This should never happen!
+      delete MediaFrame.pendingPromise;
+      MediaFrame.maxImageDecodeSize = 0;
+    }
+  );
 }
 
 MediaFrame.prototype.displayImage = function displayImage(blob,
@@ -61,15 +108,25 @@ MediaFrame.prototype.displayImage = function displayImage(blob,
                                                           rotation,
                                                           mirrored)
 {
-  var self = this;
-  var previewSizeFillsScreen;
-  this.clear();  // Reset everything
+  // If we are still querying the device memory, wait for that query to
+  // complete and then try again.
+  if (MediaFrame.pendingPromise) {
+    MediaFrame.pendingPromise.then(function resolve() {
+      displayImage(blob, width, height, preview, rotation, mirrored);
+    });
+    return;
+  }
 
+  var self = this;
+  this.clear();  // Reset everything
   // Remember what we're displaying
   this.imageblob = blob;
-  this.fullsizeWidth = width;
-  this.fullsizeHeight = height;
   this.preview = preview;
+
+  // Figure out if we are going to downsample the image before displaying it
+  this.fullSampleSize = computeFullSampleSize(blob, width, height);
+  this.fullsizeWidth = this.fullSampleSize.scale(width);
+  this.fullsizeHeight = this.fullSampleSize.scale(height);
 
   // Note: There is a default value for orientation/mirrored since some
   // images don't have EXIF data to retrieve this information.
@@ -79,8 +136,22 @@ MediaFrame.prototype.displayImage = function displayImage(blob,
   // Keep track of what kind of content we have
   this.displayingImage = true;
 
-  function isPreviewBigEnough(preview) {
-    if (!preview || !preview.width || !preview.height)
+  // Determine whether we can use the preview image
+  function usePreview(preview) {
+    // If no preview at all, we can't use it.
+    if (!preview)
+      return false;
+
+    // If we don't know the preview size, we can't use it.
+    if (!preview.width || !preview.height)
+      return false;
+
+    // If there isn't a preview offset or file, we can't use it
+    if (!preview.start && !preview.filename)
+      return false;
+
+    // If the aspect ratio does not match, we can't use it
+    if (Math.abs(width / height - preview.width / preview.height) > 0.01)
       return false;
 
     // If setMinimumPreviewSize has been called, then a preview is big
@@ -103,81 +174,144 @@ MediaFrame.prototype.displayImage = function displayImage(blob,
              preview.height >= screenWidth));  // landscape
   }
 
-  previewSizeFillsScreen = isPreviewBigEnough(preview);
-
-  if (!previewSizeFillsScreen) {
-    console.error('The thumbnail contained in the jpeg doesn\'t fit' +
-                  'the device screen. The full size image is rendered.' +
-                  'This might cause out of memory errors');
-  }
-
-  // If the preview is at least as big as the screen, display that.
-  // Otherwise, display the full-size image.
-  if (preview && (preview.start || preview.filename) &&
-      previewSizeFillsScreen) {
-    this.displayingPreview = true;
+  // If we have a useable preview image, use it.
+  if (usePreview(preview)) {
     if (preview.start) {
       this.previewblob = blob.slice(preview.start, preview.end, 'image/jpeg');
-      this._displayImage(this.previewblob);
+      this.previewSampleSize = Downsample.NONE;
+      this._displayImage(this.previewblob, true);
     }
     else {
       var storage = navigator.getDeviceStorage('pictures');
       var getreq = storage.get(preview.filename);
       getreq.onsuccess = function() {
         self.previewblob = getreq.result;
-        self._displayImage(self.previewblob);
+        self.previewSampleSize = Downsample.NONE;
+        self._displayImage(self.previewblob, true);
       };
       getreq.onerror = function() {
-        self.displayingPreview = false;
         self.preview = null;
-        self._displayImage(blob);
+        self.previewblob = null;
+        self.previewSampleSize = computePreviewSampleSize(blob, width, height);
+        self._displayImage(blob, self.previewSampleSize !== Downsample.NONE);
       };
     }
   }
   else {
+    // In this case we don't have a usable preview image
     this.preview = null;
-    this._displayImage(blob);
+    this.previewblob = null;
+
+    // If the image is a JPEG, then we can use #-moz-samplesize to downsample
+    // while decoding so that we can display a small preview without using
+    // lots of memory.
+    this.previewSampleSize = computePreviewSampleSize(blob, width, height);
+    this._displayImage(blob, this.previewSampleSize !== Downsample.NONE);
+  }
+
+  // If the blob is a JPEG then we can use #-moz-samplesize to downsample
+  // it while decoding. If this is a particularly large image then to avoid
+  // OOMs, we may not want to allow it to ever be decoded at full size
+  function computeFullSampleSize(blob, width, height) {
+    if (blob.type !== 'image/jpeg') {
+      // We're not using #-moz-samplesize at all
+      return Downsample.NONE;
+    }
+
+    // Determine the maximum size we will decode the image at, based on
+    // device memory and the maximum size passed to the constructor.
+    var max = MediaFrame.maxImageDecodeSize || 0;
+    if (self.maximumImageSize && (max === 0 || self.maximumImageSize < max)) {
+      max = self.maximumImageSize;
+    }
+
+    if (!max || width * height <= max) {
+      return Downsample.NONE;
+    }
+
+    return Downsample.areaAtLeast(max / (width * height));
+  }
+
+  function computePreviewSampleSize(blob, width, height) {
+    // If the image is not a JPEG we can't use a samplesize
+    if (blob.type !== 'image/jpeg') {
+      return Downsample.NONE;
+    }
+
+    //
+    // Determine how much we can scale the image down and still have it
+    // big enough to fill the screen in at least one dimension.
+    //
+    // For example, suppose we have a 1600x1200 photo and a 320x480 screen
+    //
+    //  portraitScale = Math.min(.2, .4) = 0.2
+    //  landscapeScale = Math.min(.3, .266) = 0.266
+    //  scale = 0.266
+    //
+    var screenWidth = window.innerWidth * window.devicePixelRatio;
+    var screenHeight = window.innerHeight * window.devicePixelRatio;
+
+    // To display the image in portrait orientation, this is how much we
+    // have to scale it down to ensure that both dimensions fit
+    var portraitScale = Math.min(screenWidth / width, screenHeight / height);
+
+    // To display the image in landscape, this is we need to scale it
+    // this much
+    var landscapeScale = Math.min(screenHeight / width, screenWidth / height);
+
+    // We need an image that is big enough in either orientation
+    var scale = Math.max(portraitScale, landscapeScale);
+
+    // Return the largest samplesize that still produces a big enough preview
+    return Downsample.sizeNoMoreThan(scale);
   }
 };
 
 // A utility function we use to display the full-size image or the preview.
-MediaFrame.prototype._displayImage = function _displayImage(blob) {
+MediaFrame.prototype._displayImage = function _displayImage(blob, isPreview) {
   var self = this;
+
+  // Get rid of any existing image and its event handlers
+  this._clearImage();
+
+  // And create a fresh new one
+  this.image = document.createElement('img');
+  this.image.style.transformOrigin = 'center center';
+  this.image.style.display = 'none';
+  this.image.className = 'image-view';
+  this.container.appendChild(this.image);
+
+  this.displayingPreview = isPreview;
 
   // Create a URL for the blob (or preview blob)
   if (this.url)
     URL.revokeObjectURL(this.url);
   this.url = URL.createObjectURL(blob);
 
-  if (!this.preload) {
-    // Make preload image as object wide variable so that we can cancel the
-    // loading by setting src.
-    this.preload = new Image();
-    // If user gives us a dummy blob, we also need to handle the error case.
-    this.preload.addEventListener('error', function onerror(e) {
-      if (self.onerror)
-        self.onerror(e);
-    });
+  this.image.onerror = function(e) {
+    console.error('failed to load image', self.image.url, e);
+    if (self.onerror)
+      self.onerror(e);
+  };
+  this.image.onload = function(e) {
+    self.image.onload = null;
 
-    this.preload.addEventListener('load', function onload() {
-      self.image.src = self.preload.src;
+    // Switch height & width for rotated images
+    if (self.rotation == 0 || self.rotation == 180) {
+      self.itemWidth = self.image.width;
+      self.itemHeight = self.image.height;
+    } else {
+      self.itemWidth = self.image.height;
+      self.itemHeight = self.image.width;
+    }
 
-      // Switch height & width for rotated images
-      if (self.rotation == 0 || self.rotation == 180) {
-        self.itemWidth = self.preload.width;
-        self.itemHeight = self.preload.height;
-      } else {
-        self.itemWidth = self.preload.height;
-        self.itemHeight = self.preload.width;
-      }
+    self.computeFit();
+    self.setPosition();
+    self.image.style.display = 'block';
+  };
 
-      self.computeFit();
-      self.setPosition();
-      self.image.style.display = 'block';
-    });
-  }
-
-  this.preload.src = this.url;
+  this.image.src = this.url +
+    (isPreview ? this.previewSampleSize : this.fullSampleSize);
 };
 
 MediaFrame.prototype._switchToFullSizeImage = function _switchToFull() {
@@ -187,11 +321,17 @@ MediaFrame.prototype._switchToFullSizeImage = function _switchToFull() {
   var self = this;
   this.displayingPreview = false;
 
-  var oldurl = this.url;
   var oldimage = this.oldimage = this.image;
   var newimage = this.image = document.createElement('img');
   newimage.style.transformOrigin = 'center center';
-  newimage.src = this.url = URL.createObjectURL(this.imageblob);
+
+  // If there is a separate preview blob, then we need a new url now
+  if (this.previewblob) {
+    URL.revokeObjectURL(this.url);
+    this.url = URL.createObjectURL(this.imageblob);
+  }
+
+  newimage.src = this.url + this.fullSampleSize;
 
   // move onerror callback to newimage when oldimage becomes useless.
   newimage.onerror = oldimage.onerror;
@@ -223,32 +363,42 @@ MediaFrame.prototype._switchToFullSizeImage = function _switchToFull() {
   }
 
   // When the new image is loaded we can begin to remove the preview image
-  newimage.addEventListener('load', function imageLoaded() {
-    newimage.removeEventListener('load', imageLoaded);
+  newimage.onload = function imageLoaded() {
+    newimage.onload = null;
+
+    // If the image we got has a different size than what we predicted
+    // then make an adjustment now. This might happen if we use a
+    // #-moz-samplesize fragment and it does not do what we expect.
+    if (newimage.width !== self.fullsizeWidth) {
+      console.warn('#-moz-samplesize did not scale as expected',
+                  newimage.width, self.fullsizeWidth);
+      self.itemWidth = self.fullsizeWidth = newimage.width;
+      self.itemHeight = self.fullsizeHeight = newimage.height;
+    }
 
     // It takes quite a while for gecko to decode a 1200x1600 image once
     // it is loaded, so we wait a second here before removing the preview.
     // XXX: This is a hack. There really ought to be an event we can listen for
     // to know when the image is ready to display onscreen. See Bug 844245.
-    setTimeout(function() {
-      mozRequestAnimationFrame(function() {
-        self.container.removeChild(oldimage);
+    self.imageSwitchTimeout = setTimeout(function() {
+      self.imageSwitchTimeout = null;
+      if (self.oldimage) {
+        self.container.removeChild(self.oldimage);
+        self.oldimage.onload = null;
+        self.oldimage.src = '';
         self.oldimage = null;
-        oldimage.src = ''; // Use '' instead of null. See Bug 901410
-        if (oldurl)
-          URL.revokeObjectURL(oldurl);
-      });
+      }
     }, 1000);
-  });
+  };
 };
 
 MediaFrame.prototype._switchToPreviewImage = function _switchToPreview() {
-  if (this.displayingImage && this.preview && !this.displayingPreview) {
-    this.displayingPreview = true;
-    this._displayImage(this.previewblob,
-                       this.preview.width,
-                       this.preview.height);
-  }
+  // If we're not displaying an image or already displaying preview
+  // then there is nothing to do
+  if (!this.displayingImage || this.displayingPreview)
+    return;
+
+  this._displayImage(this.previewblob || this.imageblob, true);
 };
 
 MediaFrame.prototype.displayVideo = function displayVideo(videoblob, posterblob,
@@ -280,6 +430,17 @@ MediaFrame.prototype.displayVideo = function displayVideo(videoblob, posterblob,
   this.video.show();
 };
 
+// Get rid of the image if we have one
+MediaFrame.prototype._clearImage = function _clearImage() {
+  if (this.image) {
+    this.container.removeChild(this.image);
+    this.image.onload = null;
+    this.image.onerror = null;
+    this.image.src = '';
+    this.image = null;
+  }
+};
+
 // Reset the frame state, release any urls and and hide everything
 MediaFrame.prototype.clear = function clear() {
   // Reset the saved state
@@ -299,13 +460,21 @@ MediaFrame.prototype.clear = function clear() {
     this.url = null;
   }
 
-  if (this.preload) {
-    this.preload.src = '';
-  }
+  this._clearImage();
 
-  // Hide the image
-  this.image.style.display = 'none';
-  this.image.src = '';  // Use '' instead of null. See Bug 901410
+  // If we were in the middle of switching from a preview image to a
+  // fullsize image, then clean up from that, too.
+  if (this.imageSwitchTimeout) {
+    clearTimeout(this.imageSwitchTimeout);
+    this.imageSwitchTimeout = null;
+  }
+  if (this.oldimage) {
+    this.container.removeChild(this.oldimage);
+    this.oldimage.onload = null;
+    this.oldimage.onerror = null;
+    this.oldimage.src = '';
+    this.oldimage = null;
+  }
 
   // Hide the video player
   if (this.video) {
@@ -384,7 +553,8 @@ MediaFrame.prototype.computeFit = function computeFit() {
 MediaFrame.prototype.reset = function reset() {
   // If we're not displaying the preview image, but we have one,
   // and it is the right size, then switch to it
-  if (this.displayingImage && !this.displayingPreview && this.preview) {
+  if (this.displayingImage && !this.displayingPreview &&
+      (this.previewblob || this.previewSampleSize !== Downsample.NONE)) {
     this._switchToPreviewImage(); // resets image size and position
     return;
   }

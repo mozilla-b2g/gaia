@@ -4,8 +4,6 @@
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/js/ttlview.js');
 
-mocha.globals(['TTLView', 'addEventListener', 'removeEventListener']);
-
 var mocksForTTLView = new MocksHelper([
   'SettingsListener'
 ]).init();
@@ -46,8 +44,18 @@ suite('system/TTLView', function() {
 
   suite('hide', function() {
     test('removes listeners', function() {
-      var events = ['appwillopen', 'apploadtime',
-        'activitywillopen', 'activityloadtime'];
+      var targets = [
+        'homescreen',
+        'app',
+        'activity'
+      ];
+
+      var events = [];
+      targets.forEach(function listen(target) {
+        events.push(target + 'opening');
+        events.push(target + 'loadtime');
+      });
+
       var removeStub = this.sinon.stub(window, 'removeEventListener');
       subject.hide();
       events.forEach(function(evt) {
@@ -58,8 +66,18 @@ suite('system/TTLView', function() {
 
   suite('show', function() {
     test('adds listeners', function() {
-      var events = ['appwillopen', 'apploadtime',
-        'activitywillopen', 'activityloadtime'];
+      var targets = [
+        'homescreen',
+        'app',
+        'activity'
+      ];
+
+      var events = [];
+      targets.forEach(function listen(target) {
+        events.push(target + 'opening');
+        events.push(target + 'loadtime');
+      });
+
       var addEventStub = this.sinon.stub(window, 'addEventListener');
       subject.show();
       events.forEach(function(evt) {
@@ -70,7 +88,17 @@ suite('system/TTLView', function() {
 
   suite('handleEvent', function() {
     test('updateLoadtime events', function() {
-      var events = ['apploadtime', 'activityloadtime'];
+      var targets = [
+        'homescreen',
+        'app',
+        'activity'
+      ];
+
+      var events = [];
+      targets.forEach(function listen(target) {
+        events.push(target + 'loadtime');
+      });
+
       var updateStub = this.sinon.stub(subject, 'updateLoadtime');
       events.forEach(function(evt, i) {
         subject.handleEvent({
@@ -85,7 +113,17 @@ suite('system/TTLView', function() {
     });
 
     test('resetLoadtime events', function() {
-      var events = ['appwillopen', 'activitywillopen'];
+      var targets = [
+        'homescreen',
+        'app',
+        'activity'
+      ];
+
+      var events = [];
+      targets.forEach(function listen(target) {
+        events.push(target + 'opening');
+      });
+
       events.forEach(function(evt) {
         var resetStub = this.sinon.stub(subject, 'resetLoadtime');
         subject.handleEvent({

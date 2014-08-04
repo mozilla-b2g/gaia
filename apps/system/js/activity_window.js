@@ -86,7 +86,7 @@
     this.publish('created');
   };
 
-  ActivityWindow.prototype.__proto__ = AppWindow.prototype;
+  ActivityWindow.prototype = Object.create(AppWindow.prototype);
 
   ActivityWindow.prototype.eventPrefix = 'activity';
 
@@ -98,8 +98,8 @@
    */
   ActivityWindow.prototype._DEBUG = false;
 
-  ActivityWindow.prototype.openAnimation = 'slideup';
-  ActivityWindow.prototype.closeAnimation = 'slidedown';
+  ActivityWindow.prototype.openAnimation = 'fade-in';
+  ActivityWindow.prototype.closeAnimation = 'fade-out';
 
   /**
    * ActivityWindow's fullscreen state is copying from the caller
@@ -165,14 +165,18 @@
     this.instanceID = _id;
     return '<div class="appWindow activityWindow inline-activity' +
             '" id="activity-window-' + _id++ + '">' +
-            '<div class="screenshot-overlay"></div>' +
+            '<div class="titlebar"></div>' +
             '<div class="fade-overlay"></div>' +
+            '<div class="browser-container">' +
+            ' <div class="screenshot-overlay"></div>' +
+            '</div>' +
             '</div>';
   };
 
   ActivityWindow.SUB_COMPONENTS = {
     'transitionController': window.AppTransitionController,
     'modalDialog': window.AppModalDialog,
+    'valueSelector': window.ValueSelector,
     'authDialog': window.AppAuthenticationDialog,
     'contextmenu': window.BrowserContextMenu,
     'childWindowFactory': window.ChildWindowFactory
@@ -181,7 +185,7 @@
   ActivityWindow.REGISTERED_EVENTS =
     ['mozbrowserclose', 'mozbrowsererror', 'mozbrowservisibilitychange',
       'mozbrowserloadend', 'mozbrowseractivitydone', 'mozbrowserloadstart',
-      '_localized', '_opened', '_closing', 'acitivityclosing', 'popupclosing'];
+      '_localized'];
 
   ActivityWindow.prototype._handle_mozbrowseractivitydone =
     function aw__handle_mozbrowseractivitydone() {
@@ -205,7 +209,9 @@
     this.browser = new BrowserFrame(this.browser_config);
     this.element =
       document.getElementById('activity-window-' + this.instanceID);
-    this.element.insertBefore(this.browser.element, this.element.childNodes[0]);
+
+    this.browserContainer = this.element.querySelector('.browser-container');
+    this.browserContainer.appendChild(this.browser.element);
     this.frame = this.element;
     this.iframe = this.browser.element;
     this.screenshotOverlay = this.element.querySelector('.screenshot-overlay');

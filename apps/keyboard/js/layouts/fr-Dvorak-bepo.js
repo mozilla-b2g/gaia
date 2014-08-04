@@ -1,5 +1,6 @@
 Keyboards['fr-Dvorak-bepo'] = {
   label: 'French - Bépo',
+  shortLabel: 'Fr',
   menuLabel: 'Bépo',
   imEngine: 'latin',
   types: ['text', 'url', 'email'],

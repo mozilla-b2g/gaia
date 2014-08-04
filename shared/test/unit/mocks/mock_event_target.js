@@ -33,6 +33,11 @@
       }
 
       eventCallbacks[type] = eventCallbacks[type] || [];
+      // the same handler should not be added twice.
+      if (eventCallbacks[type].indexOf(handler) !== -1) {
+        return;
+      }
+
       eventCallbacks[type].push(handler);
     };
 
@@ -81,7 +86,12 @@
     var captureCallbacks = this._captureCallbacks[type] || [];
     var bubbleCallbacks = this._bubbleCallbacks[type] || [];
 
-    evt.target = this;
+    // Don't overwrite evt.target if it is assigned already.
+    // Sometimes we want to simulate event bubbling/capturing in the DOM tree
+    // even though this is not how this mock behaves.
+    if (!evt.target) {
+      evt.target = this;
+    }
     evt.currentTarget = this;
 
     captureCallbacks.forEach(function fireCaptureEvents(handler) {

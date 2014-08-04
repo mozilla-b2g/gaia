@@ -1,14 +1,18 @@
+'use strict';
+
+/* global Components, FileUtils, Services, dump, quit */
+/* exported run, require */
+
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cu = Components.utils;
-const CC = Components.Constructor;
 const loaderURI = 'resource://gre/modules/commonjs/toolkit/loader.js';
 const env = Cc['@mozilla.org/process/environment;1'].
             getService(Ci.nsIEnvironment);
 let { Loader } = Cu.import(loaderURI, {});
 
 Cu.import('resource://gre/modules/Services.jsm');
-Cu.import("resource://gre/modules/FileUtils.jsm");
+Cu.import('resource://gre/modules/FileUtils.jsm');
 
 var CommonjsRunner = function(module) {
   const GAIA_DIR = env.get('GAIA_DIR');
@@ -53,7 +57,7 @@ CommonjsRunner.prototype.run = function() {
   var output = '';
   // Move this code here, to simplify the Makefile...
   try {
-    let options = JSON.parse(env.get("BUILD_CONFIG"));
+    let options = JSON.parse(env.get('BUILD_CONFIG'));
     // ...and to allow doing easily such thing \o/
     if (this.appDirFile) {
       var stageAppDir = this.gaiaDirFile.clone();
@@ -70,8 +74,8 @@ CommonjsRunner.prototype.run = function() {
 
     // When an xpcshell module throws exception which is already captured by
     // JavaScript module, some exceptions will make xpcshell returns error code.
-    // We put quit(0); to override the return code when all exceptions are handled
-    // in JavaScript module.
+    // We put quit(0); to override the return code when all exceptions are
+    // handled in JavaScript module.
     quit(0);
   } catch(e) {
     dump('Exception: ' + e + '\n' + e.stack + '\n');

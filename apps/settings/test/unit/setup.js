@@ -27,9 +27,6 @@ requireApp('settings/js/vendor/alameda.js', (function() {
       'unit/mock_l10n': {
         exports: 'MockL10n'
       },
-      'unit/mock_moz_apps': {
-        exports: 'MockMozApps'
-      },
       'unit/mock_async_storage': {
         exports: 'MockAsyncStorage'
       },
@@ -45,6 +42,12 @@ requireApp('settings/js/vendor/alameda.js', (function() {
       'unit/mock_xml_http_request': {
         exports: 'MockXmlHttpRequest'
       },
+      'unit/mock_moz_apps': {
+        exports: 'MockMozApps'
+      },
+      'unit/mock_wifi_utils': {
+        exports: 'MockWifiUtils'
+      },
       'shared_mocks/mock_navigator_moz_settings': {
         exports: 'MockNavigatorSettings'
       },
@@ -52,13 +55,29 @@ requireApp('settings/js/vendor/alameda.js', (function() {
         exports: 'MockKeyboardHelper'
       },
       'shared_mocks/mock_settings_listener': {
-        exports: 'MockSettingsListener'
+        exports: 'MockSettingsListener',
+        deps: ['shared_mocks/mock_navigator_moz_settings']
       },
       'shared_mocks/mock_permission_settings': {
         exports: 'MockPermissionSettings'
       },
       'shared_mocks/mock_manifest_helper': {
         exports: 'MockManifestHelper'
+      },
+      'shared_mocks/mock_moz_activity': {
+        exports: 'MockMozActivity'
+      },
+      'shared_mocks/mock_settings_url': {
+        exports: 'MockSettingsURL'
+      },
+      'shared_mocks/mock_wifi_helper': {
+        exports: 'MockWifiHelper'
+      },
+      'shared_mocks/mock_navigator_moz_wifi_manager': {
+        exports: 'MockNavigatorMozWifiManager'
+      },
+      'shared_mocks/mock_enumerate_all': {
+        exports: 'MockEnumerateAll'
       }
     },
     modules: [

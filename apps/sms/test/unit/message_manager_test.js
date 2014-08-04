@@ -1,81 +1,61 @@
-/*global MocksHelper, MockNavigatormozMobileMessage, MessageManager, ThreadUI,
-         MockL10n, MockContact, loadBodyHTML, MozSmsFilter,
-         ThreadListUI, MockThreads, MockMessages, Threads, Compose, Settings,
-         GroupView, ReportView, ThreadListUI, MockMessages, Compose, SMIL,
-         Drafts, Draft, Utils
+/*global
+        MessageManager,
+        MockNavigatormozMobileMessage,
+        MocksHelper,
+        MockMessages,
+        MozSmsFilter,
+        ReportView,
+        Settings,
+        SMIL,
+        ThreadListUI,
+        ThreadUI,
+        Threads
 */
 
 'use strict';
 
-requireApp('sms/js/utils.js');
-requireApp('sms/js/time_headers.js');
-
-requireApp('sms/test/unit/mock_attachment.js');
-require('/shared/test/unit/mocks/mock_async_storage.js');
-requireApp('sms/test/unit/mock_compose.js');
-requireApp('sms/test/unit/mock_contact.js');
-requireApp('sms/test/unit/mock_contacts.js');
-requireApp('sms/test/unit/mock_drafts.js');
-requireApp('sms/test/unit/mock_link_action_handler.js');
-requireApp('sms/test/unit/mock_l10n.js');
-requireApp('sms/test/unit/mock_information.js');
-requireApp('sms/test/unit/mock_messages.js');
-requireApp('sms/test/unit/mock_moz_sms_filter.js');
-requireApp('sms/test/unit/mock_navigatormoz_sms.js');
-requireApp('sms/test/unit/mock_recipients.js');
+require('/test/unit/mock_messages.js');
+require('/test/unit/mock_navigatormoz_sms.js');
+require('/test/unit/mock_navigation.js');
 require('/test/unit/mock_settings.js');
-requireApp('sms/test/unit/mock_smil.js');
-requireApp('sms/test/unit/mock_thread_ui.js');
-requireApp('sms/test/unit/mock_thread_list_ui.js');
-requireApp('sms/test/unit/mock_threads.js');
-requireApp('sms/test/unit/utils_mockup.js');
-requireApp('sms/test/unit/mock_utils.js');
+require('/test/unit/mock_smil.js');
+require('/test/unit/mock_thread_ui.js');
+require('/test/unit/mock_thread_list_ui.js');
+require('/test/unit/mock_threads.js');
+require('/test/unit/mock_information.js');
 
-requireApp('sms/js/message_manager.js');
+require('/js/utils.js');
+require('/test/unit/mock_utils.js');
+
+require('/js/message_manager.js');
 
 var mocksHelperForMessageManager = new MocksHelper([
-  'Attachment',
-  'asyncStorage',
-  'Compose',
-  'Contacts',
-  'Draft',
-  'Drafts',
-  'LinkActionHandler',
-  'MozSmsFilter',
-  'GroupView',
+  'Navigation',
   'ReportView',
-  'Recipients',
   'Settings',
   'SMIL',
+  'Threads',
   'ThreadListUI',
   'ThreadUI',
-  'Threads',
   'Utils'
-]);
-
-mocksHelperForMessageManager.init();
+]).init();
 
 suite('message_manager.js >', function() {
 
-  var mocksHelper = mocksHelperForMessageManager;
+  mocksHelperForMessageManager.attachTestHelpers();
   var realMozMobileMessage;
 
-  suiteSetup(function() {
-    mocksHelper.suiteSetup();
+  setup(function() {
     realMozMobileMessage = MessageManager._mozMobileMessage;
     MessageManager._mozMobileMessage = MockNavigatormozMobileMessage;
-  });
 
-  suiteTeardown(function() {
-    mocksHelper.suiteTeardown();
-    MessageManager._mozMobileMessage = realMozMobileMessage;
-  });
-
-  setup(function() {
     this.sinon.spy(MockNavigatormozMobileMessage, 'send');
     this.sinon.spy(MockNavigatormozMobileMessage, 'sendMMS');
   });
 
+  teardown(function() {
+    MessageManager._mozMobileMessage = realMozMobileMessage;
+  });
 
   suite('on message sent > ', function() {
     setup(function() {
@@ -408,225 +388,6 @@ suite('message_manager.js >', function() {
     });
   });
 
-  suite('launchComposer() >', function() {
-
-    suiteSetup(function() {
-      MessageManager.threadMessages = document.createElement('div');
-      MessageManager.mainWrapper = document.createElement('div');
-    });
-
-    suiteTeardown(function() {
-      MessageManager.threadMessages = null;
-      MessageManager.mainWrapper = null;
-    });
-
-    setup(function() {
-      this.sinon.spy(ThreadUI, 'cleanFields');
-      this.sinon.spy(ThreadUI.recipients, 'focus');
-      ThreadUI.draft = null;
-      MessageManager.launchComposer();
-    });
-
-    test(' all fields cleaned', function() {
-      assert.ok(ThreadUI.cleanFields.calledWith(true));
-    });
-
-    test(' layout updated', function() {
-      assert.ok(MessageManager.threadMessages.classList.contains('new'));
-    });
-
-    test(' slide & callback', function(done) {
-      MessageManager.launchComposer(function() {
-        done();
-      });
-    });
-
-    suite('message drafts', function() {
-      var nativeMozL10n;
-
-      setup(function() {
-        nativeMozL10n = navigator.mozL10n;
-        navigator.mozL10n = MockL10n;
-        ThreadUI.draft = new Draft({
-          threadId: 1234,
-          recipients: []
-        });
-        this.sinon.spy(Compose, 'fromDraft');
-        this.sinon.stub(Drafts, 'delete').returns(Drafts);
-        this.sinon.stub(Drafts, 'store').returns(Drafts);
-        this.sinon.spy(ThreadUI.recipients, 'add');
-        this.sinon.spy(ThreadUI, 'updateHeaderData');
-      });
-
-      teardown(function() {
-        navigator.mozL10n = nativeMozL10n;
-        nativeMozL10n = null;
-        ThreadUI.draft = null;
-      });
-
-      test('Calls Compose.fromDraft()', function() {
-        MessageManager.launchComposer();
-        assert.ok(Compose.fromDraft.calledOnce);
-      });
-
-      test('No recipients loaded', function() {
-        MessageManager.launchComposer();
-        assert.isFalse(ThreadUI.recipients.add.called);
-        assert.isFalse(ThreadUI.updateHeaderData.called);
-      });
-
-      test('with recipients', function() {
-        ThreadUI.draft.recipients = ['800 732 0872', '800 555 1212'];
-        MessageManager.launchComposer();
-        assert.ok(ThreadUI.recipients.add.calledTwice);
-        assert.isFalse(ThreadUI.updateHeaderData.called);
-      });
-
-      test('discards draft record', function() {
-        ThreadUI.draft = {
-          recipients: []
-        };
-
-        MessageManager.launchComposer();
-
-        assert.isTrue(Drafts.delete.called);
-        assert.isTrue(Drafts.store.called);
-      });
-    });
-  });
-
-  suite('handleActivity() >', function() {
-    var nativeMozL10n = navigator.mozL10n;
-
-    suiteSetup(function() {
-      navigator.mozL10n = MockL10n;
-      loadBodyHTML('/index.html');
-      ThreadUI.initRecipients();
-    });
-
-    suiteTeardown(function() {
-      navigator.mozL10n = nativeMozL10n;
-    });
-
-    setup(function() {
-      ThreadUI.initRecipients();
-      this.sinon.spy(Compose, 'fromDraft');
-      this.sinon.spy(Compose, 'fromMessage');
-      MessageManager.threadMessages = document.createElement('div');
-    });
-
-    teardown(function() {
-      MessageManager.activity = null;
-    });
-
-    test('from activity with unknown contact', function() {
-      var activity = {
-        number: '998',
-        contact: null
-      };
-      MessageManager.handleActivity(activity);
-
-      assert.equal(ThreadUI.recipients.numbers.length, 1);
-      assert.equal(ThreadUI.recipients.numbers[0], '998');
-      assert.ok(Compose.fromMessage.calledWith(activity));
-    });
-
-    test('from activity with known contact', function() {
-      var activity = {
-        contact: new MockContact()
-      };
-      MessageManager.handleActivity(activity);
-
-      assert.equal(ThreadUI.recipients.numbers.length, 1);
-      assert.equal(ThreadUI.recipients.numbers[0], '+346578888888');
-      assert.ok(Compose.fromMessage.calledWith(activity));
-    });
-
-    test('with message body', function() {
-      var activity = {
-        number: '998',
-        contact: null,
-        body: 'test'
-      };
-      MessageManager.handleActivity(activity);
-      assert.ok(Compose.fromMessage.calledWith(activity));
-    });
-
-    test('No contact and no number', function() {
-      var activity = {
-        number: null,
-        contact: null,
-        body: 'Youtube url'
-      };
-      MessageManager.handleActivity(activity);
-      assert.equal(ThreadUI.recipients.numbers.length, 0);
-      assert.ok(Compose.fromMessage.calledWith(activity));
-    });
-  });
-
-  suite('handleForward() >', function() {
-    var message;
-    setup(function() {
-      this.sinon.spy(Compose, 'fromMessage');
-      this.sinon.stub(MessageManager, 'getMessage', function(id) {
-        switch (id) {
-          case 1:
-            message = MockMessages.sms();
-            break;
-          case 2:
-            message = MockMessages.mms();
-            break;
-          case 3:
-            message = MockMessages.mms({subject: 'Title'});
-        }
-        var request = {
-          result: message,
-          set onsuccess(cb) {
-            cb();
-          },
-          get onsuccess() {
-            return {};
-          }
-        };
-        return request;
-      });
-    });
-
-    teardown(function() {
-      MessageManager.forward = null;
-    });
-
-    test(' forward SMS', function() {
-      var forward = {
-        messageId: 1
-      };
-      MessageManager.handleForward(forward);
-      assert.ok(MessageManager.getMessage.calledOnce);
-      assert.ok(MessageManager.getMessage.calledWith(1));
-      assert.ok(Compose.fromMessage.called);
-    });
-
-    test(' forward MMS with attachment', function() {
-      var forward = {
-        messageId: 2
-      };
-      MessageManager.handleForward(forward);
-      assert.ok(MessageManager.getMessage.calledOnce);
-      assert.ok(MessageManager.getMessage.calledWith(2));
-      assert.isTrue(Compose.fromMessage.calledWith(message));
-    });
-
-    test(' forward MMS with subject', function() {
-      var forward = {
-        messageId: 3
-      };
-      MessageManager.handleForward(forward);
-      assert.ok(MessageManager.getMessage.calledOnce);
-      assert.ok(MessageManager.getMessage.calledWith(3));
-      assert.isTrue(Compose.fromMessage.calledWith(message));
-    });
-  });
-
   suite('getMessages() >', function() {
     var options;
 
@@ -681,7 +442,6 @@ suite('message_manager.js >', function() {
   });
 
   suite('markThreadRead()', function() {
-
     setup(function() {
       this.sinon.spy(MockNavigatormozMobileMessage, 'getMessages');
       this.sinon.spy(MockNavigatormozMobileMessage, 'markMessageRead');
@@ -723,290 +483,199 @@ suite('message_manager.js >', function() {
         );
       });
     });
-
   });
 
-  suite('onHashChange', function() {
+  suite('markMessagesRead()', function() {
+    var messageIds;
+
     setup(function() {
-      this.sinon.spy(document.activeElement, 'blur');
-      MessageManager.threadMessages = document.createElement('div');
-      MessageManager.composerContainer = document.createElement('div');
-      this.sinon.spy(ThreadUI, 'cancelEdit');
-      this.sinon.spy(ThreadUI, 'renderMessages');
-      this.sinon.spy(ThreadUI, 'cleanFields');
-      this.sinon.stub(ThreadUI, 'updateHeaderData');
-      this.sinon.spy(ThreadListUI, 'cancelEdit');
-      this.sinon.spy(ThreadListUI, 'mark');
-      this.sinon.spy(GroupView, 'reset');
-      this.sinon.spy(ReportView, 'reset');
-      this.sinon.spy(MessageManager, 'handleActivity');
-      this.sinon.stub(MessageManager, 'slide');
-      MessageManager.onHashChange();
+      this.sinon.spy(MockNavigatormozMobileMessage, 'markMessageRead');
+      messageIds = [1, 2, 3];
+
+      MessageManager.markMessagesRead(messageIds);
     });
 
-    teardown(function() {
-      ThreadUI.draft = null;
-      Threads.currentId = null;
-      delete MessageManager.threadMessages;
-    });
+    test('properly mark all ids as read', function() {
+      while (MockNavigatormozMobileMessage.mTriggerMarkReadSuccess()) {
+      }
 
-    suite('> Draft content for threaded messages', function() {
-      setup(function() {
-        // Reset state for slide and updateHeaderData
-        // which we need to track
-        MessageManager.slide.reset();
-        ThreadUI.updateHeaderData.reset();
-        ThreadUI.inThread = false;
-        ThreadUI.draft = new Draft({
-          content: ['i am a draft'],
-          threadId: 1234
-        });
-        this.threadId = Threads.currentId = 1234;
-        window.location.hash = '#thread=' + this.threadId;
-        this.sinon.spy(Compose, 'fromDraft');
-        MessageManager.onHashChange();
-      });
-      teardown(function() {
-        ThreadUI.draft = null;
-        Threads.currentId = null;
-      });
-
-      test('Thread latest draft rendered after clearing composer', function() {
-        var draft = {};
-        this.sinon.stub(Threads, 'get').returns({
-          hasDrafts: true,
-          drafts: {
-            latest: draft
-          }
-        });
-        ThreadUI.draft = null;
-
-        ThreadUI.updateHeaderData.yield();
-        MessageManager.slide.yield();
-
-        sinon.assert.callOrder(ThreadUI.renderMessages, Compose.fromDraft);
-        sinon.assert.calledWith(Compose.fromDraft, draft);
-        assert.equal(draft, ThreadUI.draft);
-        assert.isFalse(ThreadUI.draft.isEdited);
-      });
-
-      test('Thread latest draft rendered if not in thread', function() {
-        var draft = {
-          content: 'AAA'
-        };
-        this.sinon.stub(Threads, 'get').returns({
-          hasDrafts: true,
-          drafts: {
-            latest: draft
-          }
-        });
-
-        ThreadUI.updateHeaderData.yield();
-        MessageManager.slide.yield();
-
-        sinon.assert.callOrder(ThreadUI.renderMessages, Compose.fromDraft);
-        sinon.assert.calledWith(Compose.fromDraft, draft);
-        assert.equal(draft, ThreadUI.draft);
-        assert.isFalse(ThreadUI.draft.isEdited);
-      });
-
-      test('Thread latest draft not rendered if in thread', function() {
-        ThreadUI.inThread = true;
-        var draft = {
-          content: 'AAA'
-        };
-        this.sinon.stub(Threads, 'get').returns({
-          hasDrafts: true,
-          drafts: {
-            latest: draft
-          }
-        });
-
-        ThreadUI.updateHeaderData.yield();
-        MessageManager.slide.yield();
-
-        sinon.assert.notCalled(Compose.fromDraft);
-        sinon.assert.neverCalledWith(Compose.fromDraft, draft);
-      });
-    });
-
-    test('Remove any focus left on specific elements ', function() {
-      assert.ok(document.activeElement.blur.called);
-    });
-
-    test('Exit edit mode (Thread or Message) ', function() {
-      assert.ok(ThreadUI.cancelEdit.called);
-      assert.ok(ThreadListUI.cancelEdit.called);
-    });
-
-    test('Reset Group Participants/Report View ', function() {
-      assert.ok(GroupView.reset.called);
-      assert.ok(ReportView.reset.called);
-    });
-
-    suite('> Switch to #new', function() {
-      setup(function() {
-        this.activity = MessageManager.activity = { test: true };
-        MessageManager.handleActivity();
-        ThreadUI.inThread = true; // to test this is reset correctly
-        this.sinon.spy(ThreadUI.recipients, 'focus');
-        window.location.hash = '#new';
-        MessageManager.onHashChange();
-      });
-
-      teardown(function() {
-        MessageManager.activity = null;
-      });
-
-      test('called handleActivity with activity', function() {
-        assert.ok(MessageManager.handleActivity.calledOnce);
-      });
-
-      test('focus after show "composer"', function(done) {
-        this.sinon.stub(MessageManager, 'launchComposer', function(cb) {
-          cb && cb();
-          assert.ok(ThreadUI.recipients.focus.called);
-          done();
-        });
-        MessageManager.onHashChange();
-      });
-
-      suite('> Switch to #thread=100', function() {
-        setup(function() {
-          // reset states
-          MessageManager.threadMessages.classList.add('new');
-          MessageManager.slide.reset();
-          ThreadUI.updateHeaderData.reset();
-
-          this.sinon.spy(Utils, 'closeNotificationsForThread');
-          this.threadId = MockThreads.currentId = 100;
-          window.location.hash = '#thread=' + this.threadId;
-          MessageManager.onHashChange();
-        });
-        teardown(function() {
-          MockThreads.currentId = null;
-        });
-        test('removes "new" class from messages', function() {
-          assert.isFalse(
-            MessageManager.threadMessages.classList.contains('new')
-          );
-        });
-        test('calls ThreadListUI.mark', function() {
-          assert.ok(
-            ThreadListUI.mark.calledWith(this.threadId, 'read')
-          );
-        });
-        test('calls closeNotificationsForThread', function() {
-          sinon.assert.called(Utils.closeNotificationsForThread);
-        });
-        test('calls updateHeaderData', function() {
-          assert.ok(
-            ThreadUI.updateHeaderData.called
-          );
-        });
-
-        suite('> header data updated', function() {
-          setup(function() {
-            ThreadUI.updateHeaderData.yield();
-          });
-          test('does not call MessageManager.slide', function() {
-            assert.isFalse(
-              MessageManager.slide.called
-            );
-          });
-          test('sets ThreadUI.inThread', function() {
-            assert.isTrue(
-              ThreadUI.inThread
-            );
-          });
-          test('calls ThreadUI.renderMessages', function() {
-            assert.ok(ThreadUI.renderMessages.called);
-            assert.equal(
-              ThreadUI.renderMessages.args[0][0], this.threadId
-            );
-          });
-        });
-      });
-    });
-
-    suite('> Switch to #thread=100', function() {
-      setup(function() {
-        // reset states
-        MessageManager.threadMessages.classList.remove('new');
-        MessageManager.slide.reset();
-        ThreadUI.updateHeaderData.reset();
-        ThreadUI.inThread = false;
-
-        this.threadId = MockThreads.currentId = 100;
-        window.location.hash = '#thread=' + this.threadId;
-        MessageManager.onHashChange();
-      });
-      teardown(function() {
-        MockThreads.currentId = null;
-      });
-      test('calls ThreadListUI.mark', function() {
-        assert.ok(
-          ThreadListUI.mark.calledWith(this.threadId, 'read')
+      sinon.assert.callCount(MockNavigatormozMobileMessage.markMessageRead, 3);
+      messageIds.forEach(function(id) {
+        sinon.assert.calledWith(
+          MockNavigatormozMobileMessage.markMessageRead, id
         );
       });
-      test('calls updateHeaderData', function() {
-        assert.ok(
-          ThreadUI.updateHeaderData.called
-        );
-      });
-
-      suite('> header data updated', function() {
-        setup(function() {
-          ThreadUI.updateHeaderData.yield();
-        });
-        test('calls MessageManager.slide', function() {
-          assert.ok(
-            MessageManager.slide.called
-          );
-        });
-
-        suite('> slide completed', function() {
-          setup(function() {
-            MessageManager.slide.yield();
-          });
-          test('sets ThreadUI.inThread', function() {
-            assert.isTrue(
-              ThreadUI.inThread
-            );
-          });
-          test('calls ThreadUI.renderMessages', function() {
-            assert.ok(ThreadUI.renderMessages.called);
-            assert.equal(
-              ThreadUI.renderMessages.args[0][0], this.threadId
-            );
-          });
-        });
-      });
     });
 
-    suite('> Switch to #group-view', function() {
-      setup(function() {
-        this.sinon.spy(GroupView, 'show');
-        window.location.hash = '#group-view';
-        MessageManager.onHashChange();
-      });
-      test('GroupView show method called', function() {
-        assert.isTrue(GroupView.show.called);
-      });
+    test('output an error if there is an error', function() {
+      this.sinon.stub(console, 'error');
+      MockNavigatormozMobileMessage.mTriggerMarkReadError('UnknownError');
+      assert.isTrue(
+        console.error.firstCall.args.some(
+          (arg) => typeof arg === 'string' && arg.contains('UnknownError')
+        )
+      );
     });
-
-    suite('> Switch to #report-view=1', function() {
-      setup(function() {
-        this.sinon.spy(ReportView, 'show');
-        window.location.hash = '#report-view=1';
-        MessageManager.onHashChange();
-      });
-      test('ReportView show method called', function() {
-        assert.isTrue(ReportView.show.called);
-      });
-    });
-
   });
+
+  suite('resendMessage() >', function() {
+    setup(function() {
+      this.sinon.stub(MessageManager, 'deleteMessage');
+    });
+
+    test('fails if message is not passed', function() {
+      assert.throws(function() {
+        MessageManager.resendMessage({
+          onsuccess: function() {}
+        });
+      });
+    });
+
+    suite('SMS message', function() {
+      var resendParameters;
+      setup(function() {
+        resendParameters = {
+          message: MockMessages.sms({
+            iccId: 100
+          }),
+          onsuccess: sinon.stub(),
+          onerror: sinon.stub()
+        };
+      });
+
+      test('uses message iccId to retrieve service Id in case of multiple SIMs',
+      function() {
+        var serviceId = 3;
+
+        this.sinon.stub(Settings, 'hasSeveralSim').returns(true);
+        this.sinon.stub(Settings, 'getServiceIdByIccId').returns(serviceId);
+
+        MessageManager.resendMessage(resendParameters);
+
+        sinon.assert.calledWith(
+          Settings.getServiceIdByIccId,
+          resendParameters.message.iccId
+        );
+        sinon.assert.calledWith(
+          MockNavigatormozMobileMessage.send,
+          sinon.match.any, sinon.match.any, {
+            serviceId: serviceId
+          }
+        );
+      });
+
+      test('correctly sends message', function() {
+        MessageManager.resendMessage(resendParameters);
+
+        sinon.assert.calledWithExactly(
+          MockNavigatormozMobileMessage.send,
+          resendParameters.message.receiver, resendParameters.message.body,
+          undefined
+        );
+      });
+
+      test('deletes old message on success and calls callback', function() {
+        MessageManager.resendMessage(resendParameters);
+
+        MockNavigatormozMobileMessage.mTriggerSmsOnSuccess();
+
+        sinon.assert.called(resendParameters.onsuccess);
+        sinon.assert.notCalled(resendParameters.onerror);
+        sinon.assert.calledWith(
+          MessageManager.deleteMessage,
+          resendParameters.message.id
+        );
+      });
+
+      test('deletes old message on error and calls callback', function() {
+        MessageManager.resendMessage(resendParameters);
+
+        MockNavigatormozMobileMessage.mTriggerSmsOnError();
+
+        sinon.assert.notCalled(resendParameters.onsuccess);
+        sinon.assert.called(resendParameters.onerror);
+        sinon.assert.calledWith(
+          MessageManager.deleteMessage,
+          resendParameters.message.id
+        );
+      });
+    });
+
+    suite('MMS message', function() {
+      var resendParameters;
+      setup(function() {
+        resendParameters = {
+          message: MockMessages.mms({
+            iccId: 100
+          }),
+          onsuccess: sinon.stub(),
+          onerror: sinon.stub()
+        };
+      });
+
+      test('uses message iccId to retrieve service Id in case of multiple SIMs',
+      function() {
+        var serviceId = 3;
+
+        this.sinon.stub(Settings, 'hasSeveralSim').returns(true);
+        this.sinon.stub(Settings, 'getServiceIdByIccId').returns(serviceId);
+
+        MessageManager.resendMessage(resendParameters);
+
+        sinon.assert.calledWith(
+          Settings.getServiceIdByIccId,
+          resendParameters.message.iccId
+        );
+        sinon.assert.calledWith(
+          MockNavigatormozMobileMessage.sendMMS,
+          sinon.match.any, {
+            serviceId: serviceId
+          }
+        );
+      });
+
+      test('correctly sends message', function() {
+        MessageManager.resendMessage(resendParameters);
+
+        sinon.assert.calledWithExactly(
+          MockNavigatormozMobileMessage.sendMMS, {
+            receivers: resendParameters.message.receivers,
+            subject: resendParameters.message.subject,
+            smil: resendParameters.message.smil,
+            attachments: resendParameters.message.attachments
+          },
+          undefined
+        );
+      });
+
+      test('deletes old message on success and calls callback', function() {
+        MessageManager.resendMessage(resendParameters);
+
+        MockNavigatormozMobileMessage.mTriggerMmsOnSuccess();
+
+        sinon.assert.called(resendParameters.onsuccess);
+        sinon.assert.notCalled(resendParameters.onerror);
+        sinon.assert.calledWith(
+          MessageManager.deleteMessage,
+          resendParameters.message.id
+        );
+      });
+
+      test('deletes old message on error and calls callback', function() {
+        MessageManager.resendMessage(resendParameters);
+
+        MockNavigatormozMobileMessage.mTriggerMmsOnError();
+
+        sinon.assert.notCalled(resendParameters.onsuccess);
+        sinon.assert.called(resendParameters.onerror);
+        sinon.assert.calledWith(
+          MessageManager.deleteMessage,
+          resendParameters.message.id
+        );
+      });
+    });
+  });
+
 
   suite('onDeliverySuccess', function() {
     suiteSetup(function() {
@@ -1016,30 +685,17 @@ suite('message_manager.js >', function() {
         }
       };
     });
+
     setup(function() {
       this.sinon.spy(ThreadUI, 'onDeliverySuccess');
-      ReportView.mSetup();
+      this.sinon.stub(ReportView, 'onDeliverySuccess');
     });
 
-    test('Delivery Success outside report view', function() {
-      window.location.hash = '#other-view';
+    test('calls the appropriate views', function() {
       MessageManager.onDeliverySuccess(this.mockEvent);
-      assert.isFalse(ReportView.refresh.called);
       sinon.assert.calledWith(ThreadUI.onDeliverySuccess,
         this.mockEvent.message);
-    });
-    test('Delivery Success in report view but id not match', function() {
-      window.location.hash = '#report-view=0';
-      MessageManager.onDeliverySuccess(this.mockEvent);
-      assert.isFalse(ReportView.refresh.called);
-      sinon.assert.calledWith(ThreadUI.onDeliverySuccess,
-        this.mockEvent.message);
-    });
-    test('Delivery Success in report view and need refresh', function() {
-      window.location.hash = '#report-view=1';
-      MessageManager.onDeliverySuccess(this.mockEvent);
-      assert.isTrue(ReportView.refresh.called);
-      sinon.assert.calledWith(ThreadUI.onDeliverySuccess,
+      sinon.assert.calledWith(ReportView.onDeliverySuccess,
         this.mockEvent.message);
     });
   });
@@ -1052,32 +708,89 @@ suite('message_manager.js >', function() {
         }
       };
     });
+
     setup(function() {
       this.sinon.spy(ThreadUI, 'onReadSuccess');
-      ReportView.mSetup();
+      this.sinon.stub(ReportView, 'onReadSuccess');
     });
 
-    test('Read Success outside report view', function() {
-      window.location.hash = '#other-view';
+    test('calls the appropriate views', function() {
       MessageManager.onReadSuccess(this.mockEvent);
-      assert.isFalse(ReportView.refresh.called);
       sinon.assert.calledWith(ThreadUI.onReadSuccess,
         this.mockEvent.message);
-    });
-    test('Read Success in report view but id not match', function() {
-      window.location.hash = '#report-view=0';
-      MessageManager.onReadSuccess(this.mockEvent);
-      assert.isFalse(ReportView.refresh.called);
-      sinon.assert.calledWith(ThreadUI.onReadSuccess,
-        this.mockEvent.message);
-    });
-    test('Read Success in report view and need refresh', function() {
-      window.location.hash = '#report-view=1';
-      MessageManager.onReadSuccess(this.mockEvent);
-      assert.isTrue(ReportView.refresh.called);
-      sinon.assert.calledWith(ThreadUI.onReadSuccess,
+      sinon.assert.calledWith(ReportView.onReadSuccess,
         this.mockEvent.message);
     });
   });
 
+  suite('onDeleted', function() {
+    setup(function() {
+      this.sinon.spy(ThreadListUI, 'onThreadsDeleted');
+    });
+
+    test('calls ThreadListUI.onThreadsDeleted', function() {
+      MessageManager.onDeleted({
+        deletedThreadIds : [1, 2]
+      });
+
+      sinon.assert.calledWith(ThreadListUI.onThreadsDeleted, [1, 2]);
+    });
+
+    test('does not call ThreadListUI.onThreadsDeleted', function() {
+      MessageManager.onDeleted({
+        deletedThreadIds : null
+      });
+
+      sinon.assert.notCalled(ThreadListUI.onThreadsDeleted);
+    });
+  });
+
+  suite('getSegmentInfo()', function() {
+    var subject = 'some text';
+
+    test('returns a rejected promise if there is no API', function(done) {
+      MessageManager._mozMobileMessage = undefined;
+
+      MessageManager.getSegmentInfo(subject).then(
+        function() {
+          throw new Error(
+            'getSegmentInfo returned a resolved promise, ' +
+            'but a rejected promise was expected.'
+          );
+        }, function(err) {
+          assert.instanceOf(err, Error);
+        }
+      ).then(done, done);
+    });
+
+    test('returns a resolved promise with the returned value', function(done) {
+      var expected = {
+        segments: 1,
+        charsAvailableInLastSegment: 20
+      };
+
+      MessageManager.getSegmentInfo(subject).then(
+        function(result) {
+          assert.deepEqual(result, expected);
+        }
+      ).then(done, done);
+
+      MockNavigatormozMobileMessage.mTriggerSegmentInfoSuccess(expected);
+    });
+
+    test('returns a rejected promise if there is an error', function(done) {
+      MessageManager.getSegmentInfo(subject).then(
+        function() {
+          throw new Error(
+            'getSegmentInfo returned a resolved promise, ' +
+            'but a rejected promise was expected.'
+          );
+        }, function(error) {
+          assert.ok(error.name);
+        }
+      ).then(done, done);
+
+      MockNavigatormozMobileMessage.mTriggerSegmentInfoError();
+    });
+  });
 });

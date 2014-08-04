@@ -1,11 +1,9 @@
-/* global MockNavigatorSettings, mocha, AirplaneModeHelper
+/* global MockNavigatorSettings, AirplaneModeHelper, Promise
  */
 'use strict';
 
 requireApp(
   'settings/shared/test/unit/mocks/mock_navigator_moz_settings.js');
-
-mocha.globals(['AirplaneModeHelper']);
 
 suite('AirplaneModeHelper > ', function() {
   var realMozSettings;
@@ -20,6 +18,14 @@ suite('AirplaneModeHelper > ', function() {
 
   suiteTeardown(function() {
     window.navigator.mozSettings = realMozSettings;
+  });
+
+  teardown(function() {
+    window.navigator.mozSettings.mTeardown();
+    AirplaneModeHelper._callbacks = [];
+    // After |mozSettings.mTeardown| is called, observers are cleared, we
+    // need to re-initialize the AirplaneModeHelper to add them back.
+    AirplaneModeHelper.init();
   });
 
   suite('init > ', function() {
@@ -55,6 +61,46 @@ suite('AirplaneModeHelper > ', function() {
       test('we would execute the callback directly', function() {
         assert.ok(fakeCallback.called);
       });
+    });
+
+    suite('invoked times', function() {
+      function runTestSuite(withCachedStatus) {
+        return function() {
+          var readyCallback = sinon.spy();
+
+          setup(function() {
+            AirplaneModeHelper._cachedStatus =
+              withCachedStatus ? 'disabled' : '';
+            AirplaneModeHelper.ready(readyCallback);
+          });
+
+          test('we would execute the callback only once', function(done) {
+            function updateSettings(enabled, status) {
+              return new Promise(function(resolve) {
+                var obj = {};
+                obj[kCommunicationKey] = enabled;
+                obj[kStatusKey] = status;
+                var req = window.navigator.mozSettings.createLock().set(obj);
+                req.onsuccess = function() {
+                  resolve();
+                };
+              });
+            }
+
+            // Enable airplane mode.
+            updateSettings(true, 'enabled').then(function() {
+              // Disable airplane mode.
+              return updateSettings(false, 'disabled');
+            }).then(function() {
+              assert.isTrue(readyCallback.calledOnce);
+              done();
+            });
+          });
+        };
+      }
+
+      suite('with _cachedStatus', runTestSuite(true));
+      suite('without _cachedStatus', runTestSuite(false));
     });
   });
 

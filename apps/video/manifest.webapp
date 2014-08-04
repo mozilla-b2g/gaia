@@ -12,7 +12,6 @@
     "storage":{},
     "device-storage:pictures":{ "access": "readwrite" },
     "device-storage:videos":{ "access": "readwrite" },
-    "settings":{ "access": "readonly" },
     "deprecated-hwvideo":{},
     "audio-channel-content":{},
     "nfc": { "access": "readwrite" }
@@ -37,15 +36,16 @@
   },
   "default_locale": "en-US",
   "icons": {
-    "60": "/style/icons/Video_60.png",
-    "90": "/style/icons/Video_90.png",
-    "120": "/style/icons/Video_120.png",
-    "135": "/style/icons/Video_135.png"
+    "84": "/style/icons/video_84.png",
+    "126": "/style/icons/video_126.png",
+    "142": "/style/icons/video_142.png",
+    "189": "/style/icons/video_189.png",
+    "284": "/style/icons/video_284.png"
   },
   "activities": {
     "pick": {
       "filters": {
-        "type": ["video/*", "video/webm", "video/mp4", "video/3gpp", "video/ogg"]
+        "type": ["video/*", "video/webm", "video/mp4", "video/3gpp", "video/3gpp2", "video/ogg"]
        },
       "disposition": "inline",
       "returnValue": true,
@@ -53,7 +53,7 @@
     },
     "view" : {
       "filters": {
-        "type": ["video/webm", "video/mp4", "video/3gpp", "video/ogg", "video/rtsp"]
+        "type": ["video/webm", "video/mp4", "video/3gpp", "video/3gpp2", "video/ogg"]
       },
       "href": "view.html",
       "disposition": "inline",
@@ -61,7 +61,7 @@
     },
     "open" : {
       "filters": {
-        "type": ["video/webm", "video/mp4", "video/3gpp", "video/ogg"]
+        "type": ["video/webm", "video/mp4", "video/3gpp", "video/3gpp2", "video/ogg"]
       },
       "href": "view.html",
       "disposition": "inline",

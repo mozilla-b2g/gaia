@@ -22,6 +22,11 @@
         throw new Error('Application should be marked as ready only once!');
       }
       document.body.classList.add(APPLICATION_READY_CLASS_NAME);
+      // Tell audio channel manager that we want to adjust the notification
+      // channel if the user press the volumeup/volumedown buttons in Messages.
+      if (navigator.mozAudioChannelManager) {
+        navigator.mozAudioChannelManager.volumeControlChannel = 'notification';
+      }
     },
 
     /**

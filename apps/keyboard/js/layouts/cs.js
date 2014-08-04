@@ -1,5 +1,6 @@
 Keyboards.cs = {
   label: 'Czech',
+  shortLabel: 'Cs',
   menuLabel: 'Česká',
   imEngine: 'latin',
   types: ['text', 'url', 'email'],

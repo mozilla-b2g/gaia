@@ -5,43 +5,57 @@
 
 html, body {
   height: 100%;
-}
-
-html {
-  background: #212121;
-}
-
-body, a {
-  color: #5A5A5A;
   font-size: 10px;
 }
 
-section {
-  color: #858585;
-  font-size: 1rem;
+/* RTL fixes being tracked in bug 1008013 */
+html[dir="rtl"] {
+  direction: ltr;
+}
+
+body, a {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+#offline-message {
+  font-size: 1.7rem;
+  font-style: italic;
+  margin: 35% 2rem 0;
+  text-align: center;
+}
+
+#offline-message:empty {
+  display: none;
 }
 
 section.suggestions {
-  background: #1a1a1a;
+  margin: 0 0.7rem;
+  font-size: 1.4rem;
+  font-style: italic;
+  overflow: hidden;
+  height: 3.5rem;
 }
 
 section.suggestions ul {
   list-style: none;
+  color: #00AACC;
   white-space: nowrap;
   overflow-x: scroll;
   padding-left: 0;
+  height: 5rem;
 }
 
 section.suggestions ul li {
   display: inline-block;
   margin-left: 1rem;
-  padding: 0.9rem 0.7rem 0.9rem 0;
+  padding: 0.3rem 0.7rem 0.9rem 0;
   margin: 0;
 }
 
 section.suggestions ul li+li:before {
   content: "\2022";
   padding-right: 0.7rem;
+  color: #666;
 }
 
 section.suggestions ul li:first-child {
@@ -73,10 +87,6 @@ section .result * {
   border-radius: 2px;
 }
 
-.local .meta {
-  color: #858585;
-}
-
 .local .title, .local .meta {
   display: block;
   white-space:nowrap;
@@ -89,47 +99,17 @@ section .result * {
   text-decoration: underline;
 }
 
-#googlelink .result {
-  color: #858585;
-  font-size: 1rem;
-  background: url(icons/google_favicon.png) 8px center no-repeat;
-  padding: 12px;
-  text-indent: 30px;
-  border-bottom: 1px solid #5A5A5A;
-}
-
 /* web */
 section.apps {
-  padding-top: 1rem;
+  padding-top: 0.5rem;
   /* Hide the whitespace between inline elements */
   font-size: 0;
 }
 
-section.apps section {
-  display: inline;
-  font-size: 0.8125rem;
-}
-
-section.apps .result {
-  width: calc(100%/4 - 0.4rem);
-  display: inline-block;
-  text-align: center;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  height: 6.1rem;
-  line-height: 1rem;
-  padding: 0 0.2rem;
-}
-
-section.apps img {
+gaia-grid {
   display: block;
-  margin: 0 auto 0.3rem;
-  pointer-events: none;
-  width: 2.75rem;
-}
-
-#webresults .result img {
-  border-radius: 50%;
+  height: 100%;
+  width: 100%;
 }
 
 #newtab-page {
@@ -190,4 +170,58 @@ section.apps img {
 
 .hidden {
   display: none;
+}
+
+#suggestions-wrapper {
+  display: flex;
+}
+
+#suggestions {
+  flex: 1;
+}
+
+#suggestions-notice-wrapper {
+  background: rgba(45, 45, 45, 0.94);
+  z-index: 100;
+  border-radius: 2px;
+  position: absolute;
+  margin: 1rem 1.5rem 0 1.5rem;
+}
+
+#suggestions-notice-wrapper p {
+  padding: 1.5rem;
+  font-size: 1.6rem;
+  font-style: italic;
+}
+
+#suggestions-notice-confirm {
+  display: block;
+  width: 100%;
+  color: #00AACC;
+  background: none;
+  border: none;
+  border-top: 0.1rem solid rgba(255, 255, 255, 0.05);
+  border-radius: 0;
+  padding: 1rem;
+  font-size: 16px;
+  font-style: italic;
+}
+
+#suggestions-notice-wrapper::before {
+  content: ' ';
+  height: 0;
+  width: 0;
+  position: absolute;
+  border: 9px solid transparent;
+  border-left-color: rgba(45, 45, 45, 0.94);
+  top: -0.9rem;
+  left: 0;
+  z-index: -1;
+}
+
+/* show up to 2-line labels in result icons */
+#search-results .icon .title {
+  text-shadow: none !important;
+  height: calc(3.88rem + 0.2rem);
+  white-space: normal !important;
 }

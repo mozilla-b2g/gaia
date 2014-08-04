@@ -27,7 +27,9 @@ function SettingsAccountCard(domNode, mode, args) {
   this.nodeFromClass('tng-account-header-label').
        textContent = args.account.name;
 
-  this._bindPrefs('tng-account-check-interval', 'tng-notify-mail');
+  this._bindPrefs('tng-account-check-interval',
+                  'tng-notify-mail',
+                  'tng-sound-onsend');
 
   this.nodeFromClass('tng-back-btn')
     .addEventListener('click', this.onBack.bind(this), false);
@@ -72,7 +74,7 @@ function SettingsAccountCard(domNode, mode, args) {
     var serverLabel =
       serverNode.getElementsByClassName('tng-account-server-label')[0];
 
-    serverLabel.textContent = mozL10n.get('settings-' + server.type + '-label');
+    mozL10n.setAttributes(serverLabel, 'settings-' + server.type + '-label');
     serverLabel.addEventListener('click',
       this.onClickServers.bind(this, index), false);
 
@@ -127,8 +129,8 @@ SettingsAccountCard.prototype = {
 
     var dialog = tngAccountDeleteConfirmNode.cloneNode(true);
     var content = dialog.getElementsByTagName('p')[0];
-    content.textContent = mozL10n.get('settings-account-delete-prompt',
-                                      { account: account.name });
+    mozL10n.setAttributes(content, 'settings-account-delete-prompt',
+                          { account: account.name });
     ConfirmDialog.show(dialog,
       { // Confirm
         id: 'account-delete-ok',

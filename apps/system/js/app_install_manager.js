@@ -255,8 +255,9 @@ var AppInstallManager = {
     var appName = appManifest.name;
     var appDescription = appManifest.description;
     this.setupAppDescription.textContent = appDescription;
-    navigator.mozL10n.localize(this.setupAppName,
-                              'app-install-success', { appName: appName });
+    navigator.mozL10n.setAttributes(this.setupAppName,
+                                    'app-install-success',
+                                    { appName: appName });
     this.setupInstalledAppDialog.classList.add('visible');
     window.dispatchEvent(new CustomEvent('applicationsetupdialogshow'));
   },
@@ -315,12 +316,12 @@ var AppInstallManager = {
   },
 
   handleImeConfirmAction: function ai_handleImeConfirmAction() {
-    var origin = this.setupQueue[0].origin;
+    var manifestURL = this.setupQueue[0].manifestURL;
     var keyboards = this.imeList.getElementsByTagName('input');
     for (var i = 0, l = keyboards.length; i < l; i++) {
       var keyboardIME = keyboards[i];
       if (keyboardIME.checked) {
-        KeyboardHelper.setLayoutEnabled(origin, keyboardIME.value, true);
+        KeyboardHelper.setLayoutEnabled(manifestURL, keyboardIME.value, true);
         KeyboardHelper.saveToSettings();
       }
     }
@@ -410,7 +411,7 @@ var AppInstallManager = {
     }
 
     var newNotif =
-      '<div class="fake-notification">' +
+      '<div class="fake-notification" role="link">' +
         '<div class="message"></div>' +
         '<progress></progress>' +
       '</div>';

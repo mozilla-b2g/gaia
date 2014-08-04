@@ -11,6 +11,7 @@ class TestPrivilegedAppAudioCapturePrompt(GaiaTestCase):
 
     def setUp(self):
         GaiaTestCase.setUp(self)
+        self.apps.set_permission('UI Tests - Privileged App', 'audio-capture', 'prompt')
 
     def test_audio_capture_prompt(self):
         uiTestsPrivileged = UiTestsPivileged(self.marionette)
@@ -30,4 +31,4 @@ class TestPrivilegedAppAudioCapturePrompt(GaiaTestCase):
         permission.tap_to_confirm_permission()
 
         current_permission = self.apps.get_permission('UI tests - Privileged App', 'audio-capture')
-        self.assertEqual(current_permission, 'prompt')
+        self.assertEqual(current_permission, 'allow')

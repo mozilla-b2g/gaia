@@ -740,10 +740,18 @@ var PlayerView = {
 
     var startTime = this.audio.startTime;
 
-    var endTime =
-      (this.audio.duration && this.audio.duration != 'Infinity') ?
-      this.audio.duration :
-      this.audio.buffered.end(this.audio.buffered.length - 1);
+    var endTime;
+    // The audio element's duration might be NaN or 'Infinity' if it's not ready
+    // We should get the duration from the buffered parts before the duration
+    // is ready, and be sure to get the buffered parts if there is data in it.
+    if (isNaN(this.audio.duration)) {
+      endTime = 0;
+    } else if (this.audio.duration === Infinity) {
+      endTime = (this.audio.buffered.length > 0) ?
+        this.audio.buffered.end(this.audio.buffered.length - 1) : 0;
+    } else {
+      endTime = this.audio.duration;
+    }
 
     var currentTime = this.audio.currentTime;
 
@@ -782,104 +790,104 @@ var PlayerView = {
       return;
 
     musicdb.getFile(songData.name, function(file) {
-      var filename = songData.name,
-          name = filename.substring(filename.lastIndexOf('/') + 1),
-          type = file.type;
+      getAlbumArtBlob(songData, function(err, pictureBlob) {
+        var filename = songData.name,
+        name = filename.substring(filename.lastIndexOf('/') + 1),
+        type = file.type;
 
-      // And we just want the first component of the type "audio" or "video".
-      type = type.substring(0, type.indexOf('/')) + '/*';
-
-      var activityData = {
-        type: type,
-        number: 1,
-        blobs: [file],
-        filenames: [name],
-        filepaths: [filename],
-        // We only pass some metadata attributes so we don't share personal
-        // details like # of times played and ratings
-        metadata: [{
-          title: songData.metadata.title,
-          artist: songData.metadata.artist,
-          album: songData.metadata.album
-        }]
-      };
-
-      if (PlayerView.playStatus !== PLAYSTATUS_PLAYING) {
-        var a = new MozActivity({
-          name: 'share',
-          data: activityData
-        });
-
-        a.onerror = function(e) {
-          console.warn('share activity error:', a.error.name);
+        var activityData = {
+          type: 'audio/*',
+          number: 1,
+          blobs: [file],
+          filenames: [name],
+          filepaths: [filename],
+          // We only pass some metadata attributes so we don't share personal
+          // details like # of times played and ratings
+          metadata: [{
+            title: songData.metadata.title,
+            artist: songData.metadata.artist,
+            album: songData.metadata.album,
+            picture: pictureBlob
+          }]
         };
-      }
-      else {
-        // HACK HACK HACK
-        //
-        // Bug 956811: If we are currently playing music and share the
-        // music with an inline activity handler (like the set
-        // ringtone app) that wants to play music itself, we have a
-        // problem because we have two foreground apps playing music
-        // and neither one takes priority over the other. This is an
-        // underlying bug in the way that inline activities are
-        // handled and in our "audio competing policy". See bug
-        // 892371.
-        //
-        // To work around this problem, if the music app is currently
-        // playing anything, then before we launch the activity we start
-        // listening for changes on a property in the settings database.
-        // If the setting changes, we pause our playback and don't resume
-        // until the activity returns. Then we pass the name of this magic
-        // setting as a secret undocumented property of the activity so that
-        // the setringtone app can use it.
-        //
-        // This done as much as possible in a self-invoking function to make it
-        // easier to remove the hack when we have a real bug fix.
-        //
-        // See also the corresponding code in apps/setringtone/js/share.js
-        //
-        // HACK HACK HACK
-        (function() {
-          // This are the magic names we'll use for this hack
-          var hack_activity_property = '_hack_hack_shut_up';
-          var hack_setting_property = 'music._hack.pause_please';
 
-          // Listen for changes to the magic setting
-          navigator.mozSettings.addObserver(hack_setting_property, observer);
-
-          // Pass the magic setting name as part of the activity request
-          activityData[hack_activity_property] = hack_setting_property;
-
-          // Now initiate the activity. This code is the same as the
-          // normal non-hack code in the if clause above.
+        if (PlayerView.playStatus !== PLAYSTATUS_PLAYING) {
           var a = new MozActivity({
             name: 'share',
             data: activityData
           });
 
-          a.onerror = a.onsuccess = cleanup;
+          a.onerror = function(e) {
+            console.warn('share activity error:', a.error.name);
+          };
+        }
+        else {
+          // HACK HACK HACK
+          //
+          // Bug 956811: If we are currently playing music and share the
+          // music with an inline activity handler (like the set
+          // ringtone app) that wants to play music itself, we have a
+          // problem because we have two foreground apps playing music
+          // and neither one takes priority over the other. This is an
+          // underlying bug in the way that inline activities are
+          // handled and in our "audio competing policy". See bug
+          // 892371.
+          //
+          // To work around this problem, if the music app is currently
+          // playing anything, then before we launch the activity we start
+          // listening for changes on a property in the settings database.
+          // If the setting changes, we pause our playback and don't resume
+          // until the activity returns. Then we pass the name of this magic
+          // setting as a secret undocumented property of the activity so that
+          // the ringtones app can use it.
+          //
+          // This done as much as possible in a self-invoking function to make
+          // it easier to remove the hack when we have a real bug fix.
+          //
+          // See also the corresponding code in apps/ringtones/js/share.js
+          //
+          // HACK HACK HACK
+          (function() {
+            // This are the magic names we'll use for this hack
+            var hack_activity_property = '_hack_hack_shut_up';
+            var hack_setting_property = 'music._hack.pause_please';
 
-          // This is the function that pauses the music if the activity
-          // handler sets the magic settings property.
-          function observer(e) {
-            // If the value of the setting has changed, then we pause the music.
-            // Note that we don't care what the new value of the setting is.
-            // We only care whether it has changed. The setringtone app will
-            // just toggle it back and forth between true and false.
-            PlayerView.pause();
-          }
+            // Listen for changes to the magic setting
+            navigator.mozSettings.addObserver(hack_setting_property, observer);
 
-          // When the activity is done, we stop observing the setting.
-          // And if we have been paused, then we resume playing.
-          function cleanup() {
-            navigator.mozSettings.removeObserver(hack_setting_property,
-                                                 observer);
-            if (PlayerView.playStatus === PLAYSTATUS_PAUSED)
-              PlayerView.audio.play();
-          }
-        }());
-      }
+            // Pass the magic setting name as part of the activity request
+            activityData[hack_activity_property] = hack_setting_property;
+
+            // Now initiate the activity. This code is the same as the
+            // normal non-hack code in the if clause above.
+            var a = new MozActivity({
+              name: 'share',
+              data: activityData
+            });
+
+            a.onerror = a.onsuccess = cleanup;
+
+            // This is the function that pauses the music if the activity
+            // handler sets the magic settings property.
+            function observer(e) {
+              // If the value of the setting has changed, then we pause the
+              // music. Note that we don't care what the new value of the
+              // setting is.  We only care whether it has changed. The ringtones
+              // app will just toggle it back and forth between true and false.
+              PlayerView.pause();
+            }
+
+            // When the activity is done, we stop observing the setting.
+            // And if we have been paused, then we resume playing.
+            function cleanup() {
+              navigator.mozSettings.removeObserver(hack_setting_property,
+                                                   observer);
+              if (PlayerView.playStatus === PLAYSTATUS_PAUSED)
+                PlayerView.play();
+            }
+          }());
+        }
+      });
     });
   },
 

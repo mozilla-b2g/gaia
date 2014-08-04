@@ -7,6 +7,9 @@ var AdmZip = require('adm-zip');
 var dive = require('dive');
 var helper = require('./helper');
 
+const MAX_PROFILE_SIZE_MB = 65;
+const MAX_PROFILE_SIZE = MAX_PROFILE_SIZE_MB * 1024 * 1024;
+
 suite('ADB tests', function() {
   suiteSetup(function() {
     rmrf('build/test/integration/result');
@@ -50,6 +53,15 @@ suite('Build GAIA from differece app list', function() {
 
       // sms should not exists in Tablet builds
       assert.isFalse(fs.existsSync(zipPath));
+
+      // vertical homescreen and collection should not exists
+      var zipVertHomePath = path.join(process.cwd(), 'profile', 'webapps',
+        'verticalhome.gaiamobile.org', 'application.zip');
+      var zipCollectionPath = path.join(process.cwd(), 'profile', 'webapps',
+        'collection.gaiamobile.org', 'application.zip');
+      assert.isFalse(fs.existsSync(zipVertHomePath));
+      assert.isFalse(fs.existsSync(zipCollectionPath));
+
       done();
     });
   });
@@ -58,12 +70,63 @@ suite('Build GAIA from differece app list', function() {
     helper.exec('GAIA_DEVICE_TYPE=phone make', function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
 
-      // zip path for system app
+      // zip path for sms app
       var zipPath = path.join(process.cwd(), 'profile', 'webapps',
         'sms.gaiamobile.org', 'application.zip');
 
       // sms should not exists in Tablet builds
       assert.ok(fs.existsSync(zipPath));
+
+      // vertical homescreen and collection should exists
+      var zipVertHomePath = path.join(process.cwd(), 'profile', 'webapps',
+        'verticalhome.gaiamobile.org', 'application.zip');
+      var zipCollectionPath = path.join(process.cwd(), 'profile', 'webapps',
+        'collection.gaiamobile.org', 'application.zip');
+      assert.ok(fs.existsSync(zipVertHomePath));
+      assert.ok(fs.existsSync(zipCollectionPath));
+
+      // Check init.json
+      var initPath = path.join(process.cwd(), 'build_stage',
+        'verticalhome', 'js', 'init.json');
+      assert.ok(fs.existsSync(initPath),
+        'init.json should exist');
+
+      // Check pre_installed_collections.json
+      var collectionPath = path.join(process.cwd(), 'build_stage',
+        'collection', 'js', 'pre_installed_collections.json');
+      assert.ok(fs.existsSync(initPath),
+        'init.json should exist');
+
+      // Homescreen1 should have a role of system
+      var hsHomZip = new AdmZip(path.join(process.cwd(), 'profile',
+        'webapps', 'homescreen.gaiamobile.org', 'application.zip'));
+      var hsHomManifest =
+        JSON.parse(hsHomZip.readAsText(hsHomZip.getEntry('manifest.webapp')));
+      assert.equal(hsHomManifest.role, 'system')
+
+      done();
+    });
+  });
+
+  test('GAIA_DEVICE_TYPE=tv make', function(done) {
+    helper.exec('GAIA_DEVICE_TYPE=tv make', function(error, stdout, stderr) {
+      helper.checkError(error, stdout, stderr);
+
+      // zip path for homescreen-stingray app
+      var zipPath = path.join(process.cwd(), 'profile', 'webapps',
+        'homescreen-stingray.gaiamobile.org', 'application.zip');
+
+      // homescreen-stingray should not exists in tv builds
+      assert.ok(fs.existsSync(zipPath));
+
+      // vertical homescreen and collection should not exists
+      var zipVertHomePath = path.join(process.cwd(), 'profile', 'webapps',
+        'verticalhome.gaiamobile.org', 'application.zip');
+      var zipCollectionPath = path.join(process.cwd(), 'profile', 'webapps',
+        'collection.gaiamobile.org', 'application.zip');
+      assert.isFalse(fs.existsSync(zipVertHomePath));
+      assert.isFalse(fs.existsSync(zipCollectionPath));
+
       done();
     });
   });
@@ -189,7 +252,7 @@ suite('Build Integration tests', function() {
       var fileInZip = zipEntries[f];
       var fileName = fileInZip.entryName;
       if (/\.(png|gif|jpg)$/.test(fileName)) {
-        if (reso !== 1 && fileName.indexOf('Browser_') === -1) {
+        if (reso !== 1 && fileName.indexOf('browser_') === -1) {
           fileName = fileName.replace(
             /(.*)(\.(png|gif|jpg))$/, "$1@" + reso + "x$2");
         }
@@ -226,8 +289,6 @@ suite('Build Integration tests', function() {
 
       // expected values for prefs and user_prefs
       var expectedUserPrefs = {
-        'browser.manifestURL': 'app://system.gaiamobile.org/manifest.webapp',
-        'browser.homescreenURL': 'app://system.gaiamobile.org/index.html',
         'network.http.max-connections-per-server': 15,
         'dom.mozInputMethod.enabled': true,
         'ril.debugging.enabled': false,
@@ -308,15 +369,6 @@ suite('Build Integration tests', function() {
       helper.checkWebappsScheme(webapps);
       helper.checkFileInZip(zipPath, pathInZip, expectedBrandingPath);
 
-      // Check blacklist.json of sms app
-      var hsSmsZip = new AdmZip(path.join(process.cwd(), 'profile',
-                   'webapps', 'sms.gaiamobile.org', 'application.zip'));
-      var hsSmsBlacklistJSON =
-        hsSmsZip.readAsText(hsSmsZip.getEntry('js/blacklist.json'));
-      var expectedResult = ['4850', '7000'];
-      assert.deepEqual(JSON.parse(hsSmsBlacklistJSON), expectedResult,
-        'Sms blacklist.json is not expected');
-
       // Check config.js file of gallery
       var hsGalleryZip = new AdmZip(path.join(process.cwd(), 'profile',
                    'webapps', 'gallery.gaiamobile.org', 'application.zip'));
@@ -326,12 +378,19 @@ suite('Build Integration tests', function() {
       var expectedScript =
         '//\n' +
         '// This file is automatically generated: DO NOT EDIT.\n' +
-        '// To change these values, create a camera.json file in the\n' +
-        '// distribution directory with content like this: \n' +
-        '//\n' +
+        '//\n'+
+        '// The default value of these variables depends on the\n'+
+        '// GAIA_MEMORY_PROFILE environment variable. Set\n'+
+        '// GAIA_MEMORY_PROFILE=low when building Gaia to get default\n'+
+        '// values suitable for low-memory devices.\n'+
+        '//\n'+
+        '// To customize these values, create a gallery.json file in the\n' +
+        '// distribution directory with content like this:\n' +    '//\n' +
         '//   {\n' +
         '//     "maxImagePixelSize": 6000000,\n' +
-        '//     "maxSnapshotPixelSize": 4000000 }\n' +
+        '//     "maxSnapshotPixelSize": 4000000,\n' +
+        '//     "maxPickPixelSize": 480000,\n' +
+        '//     "maxEditPixelSize": 480000 }\n' +
         '//   }\n' +
         '//\n' +
         '// Optionally, you can also define variables to specify the\n' +
@@ -340,8 +399,7 @@ suite('Build Integration tests', function() {
         '//\n' +
         '// "requiredEXIFPreviewSize": { "width": 640, "height": 480}\n' +
         '//\n' +
-        '// If you do not specify this property then EXIF previews will only' +
-        '\n' +
+        '// If you do not specify this property then EXIF previews will only\n' +
         '// be used if they are big enough to fill the screen in either\n' +
         '// width or height in both landscape and portrait mode.\n' +
         '//\n' +
@@ -349,6 +407,10 @@ suite('Build Integration tests', function() {
           5 * 1024 * 1024 + ';\n' +
         'var CONFIG_MAX_SNAPSHOT_PIXEL_SIZE = ' +
           5 * 1024 * 1024 + ';\n' +
+        'var CONFIG_MAX_PICK_PIXEL_SIZE = ' +
+          0 + ';\n' +
+        'var CONFIG_MAX_EDIT_PIXEL_SIZE = ' +
+          0 + ';\n' +
         'var CONFIG_REQUIRED_EXIF_PREVIEW_WIDTH = 0;\n' +
         'var CONFIG_REQUIRED_EXIF_PREVIEW_HEIGHT = 0;\n';
 
@@ -367,7 +429,19 @@ suite('Build Integration tests', function() {
         'gallery', 'js', 'frame_scripts.js');
       assert.ok(fs.existsSync(galleryMetadataScriptPath),
         'frame_scripts.js should exist');
-      done();
+
+      var profileSize = 0;
+      dive(path.join(process.cwd(), 'profile'), {recursive: true},
+        function action(err, file) {
+          profileSize += fs.statSync(file).size;
+        },
+        function complete() {
+          assert(profileSize < MAX_PROFILE_SIZE,
+            'profile size should be less than ' + MAX_PROFILE_SIZE_MB +
+            'MB, current is ' + (profileSize / 1024 / 1024).toFixed(2) + 'MB');
+          done();
+        }
+      );
     });
   });
 
@@ -469,9 +543,9 @@ suite('Build Integration tests', function() {
         'font.name.monospace.x-western': 'Source Code Pro',
         'font.name-list.sans-serif.x-western': 'Fira Sans, Roboto',
         'extensions.autoDisableScopes': 0,
-        'devtools.debugger.enable-content-actors': true,
         'devtools.debugger.prompt-connection': false,
         'devtools.debugger.forbid-certified-apps': false,
+        'javascript.options.discardSystemSource': false,
         'b2g.adb.timeout': 0
       };
       var userjs = fs.readFileSync(
@@ -488,19 +562,23 @@ suite('Build Integration tests', function() {
   });
 
   test('make with DEBUG=1', function(done) {
+    // avoid downloading extension from addon website
+    var extConfigPath  = path.join('build', 'config',
+      'additional-extensions.json');
+    fs.renameSync(extConfigPath, extConfigPath + '.bak');
+    fs.writeFileSync(extConfigPath, '{}');
+
     helper.exec('DEBUG=1 make', function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
 
-      var installedExtsPath = path.join('profile-debug',
-        'installed-extensions.json');
+      var installedExtsPath = path.join('build_stage', 'additional-extensions',
+        'downloaded.json');
       var expectedSettings = {
-        'homescreen.manifestURL': 'http://homescreen.gaiamobile.org:8080/manifest.webapp',
-        'rocketbar.searchAppURL': 'http://search.gaiamobile.org:8080/index.html'
+        'homescreen.manifestURL': 'app://verticalhome.gaiamobile.org/manifest.webapp',
+        'rocketbar.searchAppURL': 'app://search.gaiamobile.org/index.html'
       };
       var expectedUserPrefs = {
-        'browser.manifestURL': 'http://system.gaiamobile.org:8080/manifest.webapp',
-        'browser.homescreenURL': 'http://system.gaiamobile.org:8080',
-        'browser.startup.homepage': 'http://system.gaiamobile.org:8080',
+        'browser.startup.homepage': 'app://system.gaiamobile.org/index.html',
         'startup.homepage_welcome_url': '',
         'browser.shell.checkDefaultBrowser': false,
         'devtools.toolbox.host': 'side',
@@ -590,6 +668,9 @@ suite('Build Integration tests', function() {
           helper.checkPrefs(sandbox.userPrefs, expectedUserPrefs);
           // only expect one zip file for marketplace.
           assert.equal(zipCount, 1);
+
+          fs.unlinkSync(extConfigPath);
+          fs.renameSync(extConfigPath + '.bak', extConfigPath);
           done();
         }
       );
@@ -649,7 +730,7 @@ suite('Build Integration tests', function() {
                 type: 'url',
                 url: {
                   required: true,
-                  pattern: 'https?:.{1,16384}',
+                  pattern: '(https?:|data:).{1,16384}',
                   patternFlags: 'i'
                 }
               }
@@ -667,6 +748,16 @@ suite('Build Integration tests', function() {
     );
   });
 
+  test('make with GAIA_OPTIMIZE=1 BUILD_DEBUG=1',
+    function(done) {
+    helper.exec('GAIA_OPTIMIZE=1 BUILD_DEBUG=1 make',
+      function(error, stdout, stderr) {
+        helper.checkError(error, stdout, stderr);
+        done();
+      }
+    );
+  });
+
   test('make with GAIA_DEV_PIXELS_PER_PX=1.5', function(done) {
     helper.exec('GAIA_DEV_PIXELS_PER_PX=1.5 APP=system make ',
       function(error, stdout, stderr) {
@@ -677,15 +768,72 @@ suite('Build Integration tests', function() {
     );
   });
 
+  test('make app with custom origin', function(done) {
+    // add custom-origin app to apps list
+    var appsListPath  = path.join('build', 'config', 'phone',
+      'apps-engineering.list');
+    fs.renameSync(appsListPath, appsListPath + '.bak');
+    fs.writeFileSync(appsListPath, 'apps/*\ndev_apps/custom-origin\n');
+
+    helper.exec('DEBUG=1 make', function(error, stdout, stderr) {
+      fs.unlinkSync(appsListPath);
+      fs.renameSync(appsListPath + '.bak', appsListPath);
+
+      helper.checkError(error, stdout, stderr);
+
+      var webappsPath = path.join(process.cwd(), 'profile-debug',
+        'webapps', 'webapps.json');
+      var webapps = JSON.parse(fs.readFileSync(webappsPath));
+
+      assert.isNotNull(webapps['test.mozilla.com']);
+      assert.equal(webapps['test.mozilla.com'].origin, 'app://test.mozilla.com');
+
+      done();
+    });
+  });
+
   suite('Build file inclusion tests', function() {
-    test('build includes elements folder and sim-picker', function(done) {
+    test('build includes elements folder and sim_picker', function(done) {
       helper.exec('make', function(error, stdout, stderr) {
-        var pathInZip = 'shared/elements/sim-picker.html';
+        var pathInZip = 'shared/elements/sim_picker.html';
         var zipPath = path.join(process.cwd(), 'profile', 'webapps',
           'communications.gaiamobile.org', 'application.zip');
         var expectedSimPickerPath = path.join(process.cwd(),
-          'shared', 'elements', 'sim-picker.html');
+          'shared', 'elements', 'sim_picker.html');
         helper.checkFileInZip(zipPath, pathInZip, expectedSimPickerPath);
+        done();
+      });
+    });
+  });
+
+  suite('Pseudolocalizations', function() {
+    test('build with GAIA_CONCAT_LOCALES=0 doesn\'t include pseudolocales', function(done) {
+      helper.exec('GAIA_CONCAT_LOCALES=0 make', function(error, stdout, stderr) {
+        helper.checkError(error, stdout, stderr);
+        var zipPath = path.join(process.cwd(), 'profile', 'webapps',
+          'system.gaiamobile.org', 'application.zip');
+        var zip = new AdmZip(zipPath);
+        var qpsPlocPathInZip = 'locales-obj/qps-ploc.json';
+        assert.isNull(zip.getEntry(qpsPlocPathInZip),
+          'accented English file ' + qpsPlocPathInZip + ' should not exist');
+        var qpsPlocmPathInZip = 'locales-obj/qps-plocm.json';
+        assert.isNull(zip.getEntry(qpsPlocmPathInZip),
+          'mirrored English file ' + qpsPlocmPathInZip + ' should not exist');
+        done();
+      });
+    });
+    test('build with GAIA_CONCAT_LOCALES=1 includes pseudolocales', function(done) {
+      helper.exec('GAIA_CONCAT_LOCALES=1 make', function(error, stdout, stderr) {
+        helper.checkError(error, stdout, stderr);
+        var zipPath = path.join(process.cwd(), 'profile', 'webapps',
+          'system.gaiamobile.org', 'application.zip');
+        var zip = new AdmZip(zipPath);
+        var qpsPlocPathInZip = 'locales-obj/qps-ploc.json';
+        assert.isNull(zip.getEntry(qpsPlocPathInZip),
+          'accented English file ' + qpsPlocPathInZip + ' should not exist');
+        var qpsPlocmPathInZip = 'locales-obj/qps-plocm.json';
+        assert.isNull(zip.getEntry(qpsPlocmPathInZip),
+          'mirrored English file ' + qpsPlocmPathInZip + ' should not exist');
         done();
       });
     });

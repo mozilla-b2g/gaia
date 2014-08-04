@@ -1,6 +1,7 @@
 'use strict';
 
 requireApp('homescreen/js/pagbar.js');
+requireApp('homescreen/test/unit/mock_l10n.js');
 
 suite('pagbar.js >', function() {
 
@@ -9,7 +10,8 @@ suite('pagbar.js >', function() {
   suiteSetup(function() {
     var markup = '<div class="paginationScroller" role="slider" ' +
                        'aria-valuemin="0" aria-valuenow="0" ' +
-                       'aria-valuemax="0" aria-controls="icongrid"></div>';
+                       'aria-valuetext="Step 0 of 0"' + 'aria-valuemax="0" ' +
+                       'aria-controls="icongrid"></div>';
 
     scroller = document.createElement('header');
     scroller.id = 'paginationBar';

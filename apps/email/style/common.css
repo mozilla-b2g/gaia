@@ -37,19 +37,22 @@ body {
   width: 100%;
   height: 100%;
   background-color: white;
-  -moz-transition-property: transform;
-  -moz-transition-duration: 0.3s;
-  -moz-transition-timing-function: ease;
+  transition-property: transform;
+  transition-duration: 0.3s;
+  transition-timing-function: ease;
   transition-delay: 0s;
 
 }
 
-.card.anim-up center {
-  transform: translateX(0);
+.card.anim-fade {
+  transition-property: opacity;
+  transition-duration: .3s;
+  transition-timing-function: ease;
+  transition-delay: 0s;
 }
 
 .card.no-anim {
-  -moz-transition-property: none;
+  transition-property: none;
 }
 
 .card.center {
@@ -60,12 +63,25 @@ body {
   transform: translateY(0);
 }
 
+.card.center.anim-fade {
+  opacity: 1;
+}
+
 .card.before {
   transform: translateX(-100%);
 }
 
 .card.before.anim-vertical {
   transform: translateY(100%);
+}
+
+.card.before.anim-fade {
+  transform: translateX(0);
+  opacity: 0;
+}
+
+.card.before.upflow.anim-vertical {
+  transform: translateY(-100%);
 }
 
 .card.after {
@@ -76,34 +92,17 @@ body {
   transform: translateY(-100%);
 }
 
-
-.card.center.card-folder-picker,
-.card.center.card-account-picker,
-.card.card-account-picker {
-  width: calc(100% - 5em);
+.card.after.upflow.anim-vertical {
+  transform: translateY(100%);
 }
 
-.card.center.card-folder-picker + .card.after {
-  transform: translateX(calc(100% - 5em));
+.card.after.anim-fade {
+  transform: translateX(0);
+  opacity: 0;
 }
 
 .form-card {
   overflow: auto;
-}
-
-.top-header {
-  background: -moz-linear-gradient(to top, #ffffff 0, #a3a3a3 0.5rem, #992f21 0.5rem, #992f21 0.6rem, #bb492d 0.6rem, #cc6523 100%);
-  height: 5.2rem;
-  width: 100%;
-  padding: 0;
-  padding-bottom: 0.6rem;
-  z-index: 999;
-}
-.top-header.top-edit-header {
-  background: url("images/ui/dark_header.png") repeat-x scroll left top transparent;
-  background-size: auto 5.2rem;
-  /*background: -moz-linear-gradient(to top, #ffffff 0, #a3a3a3 0.5rem, #888888 0.5rem, #999999 0.6rem, #bbbbbb 0.6rem, #cccccc 100%);
-  background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%,  #cccccc), color-stop(100%, #bbbbbb));*/
 }
 
 .header-label {
@@ -156,7 +155,7 @@ body {
   bottom: 0;
   width: 100%;
   height: 4rem;
-  background-color: rgba(0, 0, 0, 0.85);
+  background-color: rgba(0, 0, 0, 0.75);
   z-index: 10;
 }
 
@@ -166,10 +165,6 @@ body {
   width: 6rem;
   background: transparent no-repeat center / 3rem !important;
   margin: 0 calc((100% - 25rem) / 8);
-}
-.bottom-btn.disabled {
-  opacity: 0.3;
-  pointer-events: none;
 }
 
 .popup {
@@ -202,7 +197,8 @@ body {
 }
 
 .highlight {
-  background-color: #f3f3D3;
+  background-color: #ffe3d6;
+  font-weight: bolder;
 }
 
 .icon-download {
@@ -214,76 +210,109 @@ body {
   height: 100%;
 }
 
+.icon-view {
+  background: url("images/icons/view.png") no-repeat center / 3rem;
+  top: 0;
+  left: 0;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  font-size: 0;
+}
+
 /*Disabled a tag style extend*/
 section[role="region"] > header:first-child menu[type="toolbar"] a[aria-disabled="true"] {
   pointer-events: none;
 }
 
-/* Toaset banner extend class */
-section[role="status"].customized {
+/* Toaster */
+section[role="status"].toaster {
   bottom: 4.8rem;
   opacity: 1;
-  padding-left: 3.2rem;
 }
 
+section[role="status"].toaster button {
+  display: inline-block;
+  width: auto;
+  margin-left: 3rem;
+}
+section[role="status"].toaster button:disabled {
+  display: none;
+}
 section[role="status"].fadeout {
-  -moz-transition: opacity 500ms ease;
+  transition: opacity 500ms ease;
   opacity: 0;
 }
 
-section[role="status"][title="undo"] p,
-section[role="status"][title="retry"] p {
-  max-width: 65% !important;
+/* General helpers for opacity transition */
+.anim-opacity {
+  transition-property: opacity;
+  transition-duration: 0.3s;
+  transition-timing-function: ease;
+  transition-delay: 0s;
 }
 
-section[role="status"] .toaster-cancel-btn {
-  height: 8rem;
+.transparent {
+  opacity: 0;
 }
-
-section[role="status"] .toaster-banner-undo,
-section[role="status"] .toaster-banner-retry {
-  display: none;
-  margin: 1rem;
-  width: auto;
-}
-
-section[role="status"][title="undo"] .toaster-banner-undo,
-section[role="status"][title="retry"] .toaster-banner-retry {
-  display: inline;
-}
-
 
 /*
 These folder-depth* styles are here instead of folder_cards.css
 because they are also used by the value_selector for showing
-the list of folders. folder-item specific styles so that these
-paddings override other styles in folder_cards.css
+the list of folders.
 */
-.fld-folder-item.fld-folder-depth0,
+.email-value-selector[role="dialog"][data-type="value-selector"] [role="listbox"] .fld-folder-depth0,
 .fld-folder-depth0 {
   padding-left: 1.5rem;
 }
-.fld-folder-item.fld-folder-depth1,
+.email-value-selector[role="dialog"][data-type="value-selector"] [role="listbox"] .fld-folder-depth1,
 .fld-folder-depth1 {
   padding-left: 3rem;
 }
-.fld-folder-item.fld-folder-depth2,
+.email-value-selector[role="dialog"][data-type="value-selector"] [role="listbox"] .fld-folder-depth2,
 .fld-folder-depth2 {
   padding-left: 4.5rem;
 }
-.fld-folder-item.fld-folder-depth3,
+.email-value-selector[role="dialog"][data-type="value-selector"] [role="listbox"] .fld-folder-depth3,
 .fld-folder-depth3 {
   padding-left: 6rem;
 }
-.fld-folder-item.fld-folder-depth4,
+.email-value-selector[role="dialog"][data-type="value-selector"] [role="listbox"] .fld-folder-depth4,
 .fld-folder-depth4 {
   padding-left: 6.5rem;
 }
-.fld-folder-item.fld-folder-depth5,
+.email-value-selector[role="dialog"][data-type="value-selector"] [role="listbox"] .fld-folder-depth5,
 .fld-folder-depth5 {
   padding-left: 9.5rem;
 }
-.fld-folder-item.fld-folder-depth6,
+.email-value-selector[role="dialog"][data-type="value-selector"] [role="listbox"] .fld-folder-depth6,
+.fld-folder-depth6,
+.email-value-selector[role="dialog"][data-type="value-selector"] [role="listbox"] .fld-folder-depthmax,
 .fld-folder-depthmax {
   padding-left: 11rem;
+}
+
+/* Styles for errors that could appear at any time. */
+.error-card h2 {
+  font-size: 1.6rem;
+  font-weight: 400;
+}
+
+.error-card .scrollregion-below-header {
+  margin: 1rem 2rem;
+}
+
+.error-card .actions {
+  margin-top: 1.5rem;
+  text-align: center;
+}
+
+.error-card .sup-bad-password-account {
+  margin: 1.4rem 0;
+  font-size: 1.4rem;
+}
+
+.card-setup-fix-gmail .sup-gmail-account {
+  text-align: center;
+  font-size: 1.4rem;
 }

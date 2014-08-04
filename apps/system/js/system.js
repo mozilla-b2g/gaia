@@ -9,6 +9,13 @@
    */
   window.System = {
     /**
+     * Indicates the system is busy doing something.
+     * Now it stands for the foreground app is not loaded yet.
+     */
+    isBusyLoading: function() {
+      return !window.AppWindowManager.getActiveApp().loaded;
+    },
+    /**
      * Record the start time of the system for later debugging usage.
      * @access private
      * @type {Number}
@@ -52,6 +59,24 @@
         throw new Error('dump');
       } catch (e) {
         console.log(e.stack);
+      }
+    },
+
+    publish: function sys_publish(eventName, detail) {
+      var evt = new CustomEvent(eventName, {
+        bubbles: true,
+        cancelable: false,
+        detail: detail
+      });
+      window.dispatchEvent(evt);
+    },
+
+    get locked() {
+      // Someone ask this state too early.
+      if ('undefined' === typeof window.lockScreenWindowManager) {
+        return false;
+      } else {
+        return window.lockScreenWindowManager.states.active;
       }
     }
   };

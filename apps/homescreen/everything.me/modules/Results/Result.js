@@ -29,15 +29,14 @@
 
       el = Evme.$create('li', {
         'id': 'app_' + cfg.id,
+        'aria-label': cfg.name,
+        'role': 'link',
         'data-name': cfg.name
       }, '<img class="icon" />' +
          '<img class="name" />');
 
       this.elIcon = el.querySelector('.icon');
       this.elName = el.querySelector('.name');
-
-      this.elIcon.setAttribute('aria-label', cfg.name);
-      this.elName.setAttribute('aria-label', cfg.name);
 
       if ('isOfflineReady' in cfg) {
         el.dataset.offlineReady = cfg.isOfflineReady;

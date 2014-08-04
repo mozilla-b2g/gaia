@@ -25,7 +25,7 @@ var BatteryManager = {
     if (!battery)
       return;
     if (battery.level <= this.AUTO_SHUTDOWN_LEVEL && !battery.charging) {
-      // Fire a event to inform SleepMenu perform shutdown.
+      // Fire a event to inform sleepMenu perform shutdown.
       window.dispatchEvent(new CustomEvent('batteryshutdown'));
     }
   },
@@ -35,7 +35,7 @@ var BatteryManager = {
     var battery = this._battery;
     if (battery) {
       // When the device is booted, check if the battery is drained.
-      // If so, batteryshutdown would be triggered to inform SleepMenu shutdown.
+      // If so, batteryshutdown would be triggered to inform sleepMenu shutdown.
       window.addEventListener('homescreen-ready',
                               this.checkBatteryDrainage.bind(this));
 
@@ -43,10 +43,6 @@ var BatteryManager = {
       battery.addEventListener('chargingchange', this);
     }
     window.addEventListener('screenchange', this);
-    this._toasterGD = new GestureDetector(this.notification);
-    ['mousedown', 'swipe'].forEach(function(evt) {
-      this.notification.addEventListener(evt, this);
-    }, this);
 
     this._screenOn = true;
     this._wasEmptyBatteryNotificationDisplayed = false;
@@ -89,13 +85,6 @@ var BatteryManager = {
           this.displayIfNecessary();
         }
         break;
-
-      case 'mousedown':
-        this.mousedown(evt);
-        break;
-      case 'swipe':
-        this.swipe(evt);
-        break;
     }
   },
 
@@ -121,7 +110,6 @@ var BatteryManager = {
 
     this.overlay.classList.add('battery');
 
-    this._toasterGD.startDetecting();
     this._wasEmptyBatteryNotificationDisplayed = true;
 
     if (this._toasterTimeout) {
@@ -137,35 +125,7 @@ var BatteryManager = {
     if (overlayCss.contains('battery')) {
       this.overlay.classList.remove('battery');
       this._toasterTimeout = null;
-      this._toasterGD.stopDetecting();
     }
-  },
-
-  // Swipe handling
-  mousedown: function bm_mousedown(evt) {
-    evt.preventDefault();
-    this._containerWidth = this.overlay.clientWidth;
-  },
-
-  swipe: function bm_swipe(evt) {
-    var detail = evt.detail;
-    var distance = detail.start.screenX - detail.end.screenX;
-    var fastEnough = Math.abs(detail.vx) > this.TRANSITION_SPEED;
-    var farEnough = Math.abs(distance) >
-      this._containerWidth * this.TRANSITION_FRACTION;
-
-    // If the swipe distance is too short or swipe speed is too slow,
-    // do nothing.
-    if (!(farEnough || fastEnough))
-      return;
-
-    var self = this;
-    this.notification.addEventListener('animationend', function animationend() {
-      self.notification.removeEventListener('animationend', animationend);
-      self.notification.classList.remove('disappearing');
-      self.hide();
-    });
-    this.notification.classList.add('disappearing');
   }
 };
 
@@ -263,7 +223,7 @@ var PowerSaveHandler = (function PowerSaveHandler() {
 
     NotificationHelper.send(_('notification-powersaving-mode-on-title'),
                             _('notification-powersaving-mode-on-description'),
-                            'style/icons/System.png',
+                            'style/icons/system.png',
                             clickCB);
   }
 

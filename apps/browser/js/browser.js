@@ -54,20 +54,19 @@ var Browser = {
 
   init: function browser_init() {
     this.getAllElements();
-    if (window.navigator.mozNfc) {
-      window.navigator.mozNfc.onpeerready = NfcURI.handlePeerConnectivity;
-    }
     // Add event listeners
     this.urlBar.addEventListener('submit', this.handleUrlFormSubmit.bind(this));
     this.urlInput.addEventListener('focus', this.urlFocus.bind(this));
     this.urlInput.addEventListener('blur', this.urlBlur.bind(this));
-    this.urlInput.addEventListener('mouseup', this.urlMouseUp.bind(this));
-    this.urlInput.addEventListener('keyup',
+    this.urlInput.addEventListener('touchend', this.urlTouchEnd.bind(this));
+    this.urlInput.addEventListener('input',
       this.handleUrlInputKeypress.bind(this));
     this.urlButton.addEventListener('click',
       this.handleUrlFormSubmit.bind(this));
     this.tabsBadge.addEventListener('click',
       this.handleTabsBadgeClicked.bind(this));
+
+    this.addTabBtnActive();
 
     // Hack to make integration tests pass, see bug 912150
     this.urlInput.addEventListener('click', this.urlFocus.bind(this));
@@ -130,8 +129,8 @@ var Browser = {
     var filesToLoad = [
       // css files
       'shared/style/headers.css',
-      'shared/style_unstable/buttons.css',
-      'shared/style_unstable/input_areas.css',
+      'shared/style/buttons.css',
+      'shared/style/input_areas.css',
       'shared/style/status.css',
       'shared/style/confirm.css',
       'shared/style/action_menu.css',
@@ -216,7 +215,7 @@ var Browser = {
        this.followLink.bind(this));
 
     this.tabsSwipeMngr.browser = this;
-     ['mousedown', 'pan', 'tap', 'swipe'].forEach(function(evt) {
+     ['touchstart', 'pan', 'tap', 'swipe'].forEach(function(evt) {
        this.tabsList.addEventListener(evt,
          this.tabsSwipeMngr[evt].bind(this.tabsSwipeMngr));
      }, this);
@@ -226,7 +225,7 @@ var Browser = {
      this.screenSwipeMngr.gestureDetector =
        new GestureDetector(this.mainScreen);
 
-     ['mousedown', 'pan', 'tap', 'swipe'].forEach(function(evt) {
+     ['touchstart', 'pan', 'tap', 'swipe'].forEach(function(evt) {
        this.mainScreen.addEventListener(evt,
          this.screenSwipeMngr[evt].bind(this.screenSwipeMngr));
      }, this);
@@ -238,6 +237,28 @@ var Browser = {
      ModalDialog.init();
      Awesomescreen.init();
      AuthenticationDialog.init(false);
+  },
+
+  getDefaultData: function browser_getConfData(callback) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', '/js/inittopsites.json', true);
+
+    xhr.addEventListener('load', (function browser_defaultConfDataListener() {
+      if (!(xhr.status === 200 | xhr.status === 0)) {
+        console.error('Unknown response when getting configuration data.');
+        return;
+      }
+
+      callback(JSON.parse(xhr.responseText));
+
+    }).bind(this), false);
+
+    xhr.onerror = function getDefaultConfDataError() {
+      callback(null);
+      console.error('Error getting configuration data.');
+    };
+
+    xhr.send();
   },
 
   /**
@@ -256,45 +277,41 @@ var Browser = {
     var xhr = new XMLHttpRequest();
     xhr.open('GET', '/js/init.json', true);
 
-    xhr.addEventListener('load', (function browser_defaultDataListener() {
+    xhr.addEventListener('load', function browser_defaultDataListener() {
       if (!(xhr.status === 200 | xhr.status === 0)) {
         console.error('Unknown response when getting configuration data.');
         return;
       }
       var data = JSON.parse(xhr.responseText);
 
-      var mccCodes = variant.mcc;
-      var mncCodes = variant.mnc;
-      if (!Array.isArray(variant.mcc)) {
-        mccCodes = [variant.mcc];
-      }
-      if (!Array.isArray(variant.mnc)) {
-        mncCodes = [variant.mnc];
-      }
-
-      for (var i = 0; i < mccCodes.length; i++) {
-        var mccCode = NumberHelper.zfill(mccCodes[i], 3);
-        var mncCode = DEFAULT_MNC;
-        if (i < mncCodes.length) {
-          mncCode = mncCodes[i];
+      var mccCode = NumberHelper.zfill(variant.mcc, 3);
+      var mncCode = NumberHelper.zfill(variant.mnc, 3);
+      if (mccCode === DEFAULT_MCC && mncCode === DEFAULT_MNC) {
+        // If there is singleVariant configuration we wait for
+        // first run with a valid SIM
+        var keys = Object.keys(data);
+        var posDefault = keys.indexOf(DEFAULT_MCC + DEFAULT_MNC);
+        // We only want to know if there is configuration different from the
+        // default one
+        if (posDefault >= 0) {
+          keys.splice(posDefault, 1);
         }
-        mncCode = NumberHelper.zfill(mncCode, 3);
-
-        if (data[mccCode + mncCode]) {
-          callback(data[mccCode + mncCode]);
-            return;
+        // If there is another key, it is single variant configuration, we
+        // need to wait for the correct SIM
+        if (keys.length > 0) {
+          BrowserDB.waitFirstRunWithSim();
+          return;
         }
       }
-
-      if (data[DEFAULT_MCC + DEFAULT_MNC]) {
-        callback(data[DEFAULT_MCC + DEFAULT_MNC]);
+      if (data[mccCode + mncCode]) {
+        callback(data[mccCode + mncCode]);
         return;
       }
 
       callback(null);
       console.error('No configuration data found.');
 
-    }).bind(this), false);
+    }, false);
 
     xhr.onerror = function getDefaultDataError() {
       callback(null);
@@ -302,6 +319,24 @@ var Browser = {
     };
 
     xhr.send();
+  },
+
+  // Extract :active behaviour from CSS into js at it was misbehaving
+  addTabBtnActive: function() {
+    var self = this;
+
+    this.tabsBadge.addEventListener('mousedown', function() {
+
+      var leave = function() {
+        self.toolbarStart.classList.remove('tab-btn-active');
+        self.tabsBadge.removeEventListener('mouseleave', leave);
+        self.tabsBadge.removeEventListener('mouseup', leave);
+      };
+
+      self.toolbarStart.classList.add('tab-btn-active');
+      self.tabsBadge.addEventListener('mouseleave', leave);
+      self.tabsBadge.addEventListener('mouseup', leave);
+    });
   },
 
   // Clicking the page preview on the left gutter of the tab page opens
@@ -890,11 +925,11 @@ var Browser = {
 
   shouldFocus: false,
 
-  urlMouseUp: function browser_urlMouseUp(e) {
+  urlTouchEnd: function browser_urlTouchEnd(e) {
     if (this.shouldFocus) {
-      e.preventDefault();
       this.urlInput.focus();
-      this.urlInput.select();
+      this.urlInput.setSelectionRange(0, this.urlInput.value.length);
+      this.urlInput.scrollLeft = this.urlInput.scrollWidth;
       this.shouldFocus = false;
     }
   },
@@ -916,6 +951,7 @@ var Browser = {
   },
 
   urlBlur: function browser_urlBlur() {
+    this.urlInput.scrollLeft = 0;
     this.urlBar.classList.remove('focus');
   },
 
@@ -956,83 +992,8 @@ var Browser = {
   },
 
   // Saves a media file to device storage.
-  saveMedia: function browser_saveMedia(url, type) {
-    function displayMessage(message) {
-      var status = document.getElementById('save-media-status');
-      status.firstElementChild.textContent = message;
-      status.classList.add('visible');
-      window.setTimeout(function() {
-        status.classList.remove('visible');
-      }, 3000);
-    }
-
-    function storeBlob(blob, name, retryCount) {
-      /*
-       * XXX: Bug 852864 - DeviceStorage addNamed failed with TypeMismatchError
-       * 3gp and ogg types of audio files are returned as blobs of video type.
-       * The workaround here is saving the blob to corresponding storage based
-       * on the type of it instead of the type specified by users. Which allows
-       * users able to save those types of audio files.
-       */
-      var storageTypeMap = {
-        'image': 'pictures',
-        'video': 'videos',
-        'audio': 'music'
-      };
-      var blobType = blob.type.split('/')[0];
-      var storageType = storageTypeMap[blobType];
-      if (!storageType) {
-        displayMessage(_('error-saving-' + type));
-        return;
-      }
-
-      var storage = navigator.getDeviceStorage(storageType);
-      var addreq = storage.addNamed(blob, name);
-
-      addreq.onsuccess = function() {
-        displayMessage(_(type + '-saved'));
-      };
-      addreq.onerror = function() {
-        // Prepend some always changing id and try to store again, but give up
-        // after MAX_SAVING_RETRIES retries.
-        if (addreq.error.name === 'NoModificationAllowedError' &&
-            retryCount !== Browser.MAX_SAVING_RETRIES) {
-          name = Date.now() + '-' + name;
-          storeBlob(blob, name, retryCount + 1);
-        } else {
-          displayMessage(_('error-saving-' + type));
-        }
-      };
-    }
-
-    var xhr = new XMLHttpRequest({mozSystem: true});
-    xhr.open('GET', url, true);
-    xhr.responseType = 'blob';
-    xhr.onload = function browser_mediaDataListener() {
-      if (xhr.status !== 200 || !xhr.response) {
-        displayMessage(_('error-saving-' + type));
-        return;
-      }
-
-      // Save the blob to device storage.
-      // Extract a filename from the URL, and to some sanitizing.
-      var name = url.split('/').reverse()[0].toLowerCase().split(/[&?#]/g)[0]
-                    .replace(/[^a-z0-9\.]/g, '_');
-
-      // If we have no file extension, use the content-type header to
-      // add one.
-      var ext = MimeMapper.guessExtensionFromType(xhr.response.type);
-      if (ext && name.indexOf(ext) === -1) {
-        name += '.' + ext;
-      }
-
-      storeBlob(xhr.response, name, 0);
-    };
-
-    xhr.onerror = function getDefaultDataError() {
-      displayMessage(_('error-saving-' + type));
-    };
-    xhr.send();
+  saveMedia: function browser_saveMedia(url) {
+    this.currentTab.dom.download(url);
   },
 
   // This generates callbacks for context menu targets that have
@@ -1042,13 +1003,18 @@ var Browser = {
     var nodeName = item.nodeName ? item.nodeName.toUpperCase() : '';
     switch (nodeName) {
       case 'A':
-        return {
-          id: 'open-in-new-tab',
-          label: _('open-in-new-tab'),
-          callback: function() {
-            self.openInNewTab(item.data.uri);
-          }
-        };
+        return [{
+            id: 'open-in-new-tab',
+            label: _('open-in-new-tab'),
+            callback: function() {
+              self.openInNewTab(item.data.uri);
+            }
+          }, {
+            label: _('save-link'),
+            callback: function() {
+              self.saveMedia(item.data.uri);
+            }
+          }];
       case 'IMG':
       case 'VIDEO':
       case 'AUDIO':
@@ -1065,7 +1031,7 @@ var Browser = {
         return {
           label: _('save-' + type),
           callback: function() {
-            self.saveMedia(item.data.uri, type);
+            self.saveMedia(item.data.uri);
           }
         };
       default:
@@ -1078,14 +1044,18 @@ var Browser = {
     var menuData = evt.detail;
     var dialog = document.createElement('section');
     var menu = document.createElement('menu');
-    var list = document.createElement('ul');
     var self = this;
     // SystemTargets are default elements that have contextmenu
     // actions associated
     evt.detail.systemTargets.forEach(function(item) {
       var action = this.generateSystemMenuItem(item);
       if (action) {
-        menuItems.push(action);
+        if (Array.isArray(action)) {
+          menuItems = menuItems.concat(action);
+        }
+        else {
+          menuItems.push(action);
+        }
       }
     }, this);
 
@@ -1120,9 +1090,8 @@ var Browser = {
     evt.preventDefault();
 
     menuItems.forEach(function(menuitem) {
-      var li = document.createElement('li');
-      li.id = menuitem.id;
       var button = this.createButton(menuitem.label, menuitem.icon);
+      button.id = menuitem.id;
 
       button.addEventListener('click', function() {
         document.body.removeChild(dialog);
@@ -1130,22 +1099,20 @@ var Browser = {
         menuitem.callback();
       });
 
-      li.appendChild(button);
-      list.appendChild(li);
+      menu.appendChild(button);
     }, this);
 
-    var cancel = document.createElement('li');
+    var cancel = this.createButton(_('cancel'));
     cancel.id = 'cancel';
-    cancel.appendChild(this.createButton(_('cancel')));
-    list.appendChild(cancel);
+    menu.appendChild(cancel);
 
     cancel.addEventListener('click', function(e) {
       self.contextMenuHasCalled = false;
       document.body.removeChild(dialog);
     });
 
-    menu.classList.add('actions');
-    menu.appendChild(list);
+    menu.setAttribute('type', 'toolbar');
+    dialog.setAttribute('data-type', 'action');
     dialog.setAttribute('role', 'dialog');
     dialog.appendChild(menu);
     document.body.appendChild(dialog);
@@ -1360,6 +1327,7 @@ var Browser = {
       this.loadRemaining();
     }.bind(this));
     Toolbar.bookmarkButton.classList.remove('bookmarked');
+    NfcURI.stopListening();
   },
 
   _topSiteThumbnailObjectURLs: [],
@@ -1378,6 +1346,7 @@ var Browser = {
     document.body.classList.remove('start-page');
     this.startscreen.classList.add('hidden');
     this.clearTopSiteThumbnails();
+    NfcURI.startListening();
   },
 
   showTopSiteThumbnails: function browser_showStartscreenThumbnails(places) {
@@ -1572,8 +1541,8 @@ var Browser = {
     screen: null,
     winWidth: null,
 
-    mousedown: function screenSwipe_mousedown(e) {
-      // The mousedown event can be fired at any time, the other
+    touchstart: function screenSwipe_touchstart(e) {
+      // The touchstart event can be fired at any time, the other
       // events are only fired when tabs screen is active
       if (this.browser.currentScreen !== this.browser.TABS_SCREEN) {
         return;
@@ -1621,11 +1590,12 @@ var Browser = {
     id: null,
     containerWidth: null,
 
-    mousedown: function tabSwipe_mousedown(e) {
+    touchstart: function tabSwipe_touchstart(e) {
       e.preventDefault();
 
-      this.isCloseButton = e.target.nodeName === 'BUTTON';
-      this.tab = this.isCloseButton ? e.target.parentNode : e.target;
+      var target = e.touches[0].target;
+      this.isCloseButton = target.nodeName === 'BUTTON';
+      this.tab = this.isCloseButton ? target.parentNode : target;
       this.id = this.tab.getAttribute('data-id');
       this.containerWidth = this.tab.parentNode.clientWidth;
 
@@ -1733,6 +1703,13 @@ var Browser = {
             this.navigate(url);
           }
         }
+
+        // If an url is opened on the browser from an activity,
+        // let's cancel all the ongoing menu.
+        Settings.hide();
+        this.hideBookmarkMenu();
+        this.hideBookmarkEntrySheet();
+
         this.showPageScreen();
         break;
     }

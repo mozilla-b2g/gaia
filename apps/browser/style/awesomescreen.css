@@ -1,5 +1,5 @@
 #awesomescreen-cancel-button {
-  background: url('./images/close.png') center center no-repeat;
+  background: url('./images/close.png') no-repeat 50% 50% / 3rem auto;
   display: none;
   position: absolute;
   right: 0;
@@ -9,8 +9,9 @@
 }
 
 #awesomescreen-cancel-button:active {
-  background: url('./images/close.png') center center no-repeat,
-              url('./images/close-pressed-bg.png') center center no-repeat;
+  background: url('./images/close.png') no-repeat center center,
+              url('./images/close-pressed-bg.png') no-repeat center center;
+  background-size: 3rem auto, auto;
 }
 
 .awesome-screen #awesomescreen-cancel-button {
@@ -190,4 +191,17 @@ li[role="listitem"] small {
 
 #history-list {
   -moz-box-flex: 1;
+}
+
+/* Language specific overrides, temporary hack as browser is soon to die */
+html[lang="fr"] #tab-headers #bookmarks-tab {
+  max-width: 27%;
+}
+
+html[lang="fr"] #tab-headers #top-sites-tab {
+  max-width: 15%;
+}
+
+html[lang="fr"] #tab-headers #history {
+  max-width: 20%;
 }

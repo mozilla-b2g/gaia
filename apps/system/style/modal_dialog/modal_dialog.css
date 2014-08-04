@@ -55,9 +55,10 @@
 
 /* Confirm dialog */
 .modal-dialog-message-container p {
-  display:inline !important;
+  display: inline-block;
   word-wrap: break-word;
-  padding: 0;
+  padding: 0 1.5rem;
+  margin: 0;
 }
 
 /* Select one dialog */

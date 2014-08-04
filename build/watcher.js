@@ -1,5 +1,7 @@
 'use strict';
 
+/* global require, process, __dirname */
+
 var Monitor = require(__dirname + '/monitor.js').Monitor;
 
 // Execute the script.

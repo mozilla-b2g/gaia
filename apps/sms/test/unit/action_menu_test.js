@@ -2,8 +2,9 @@
 
 'use strict';
 
+require('/shared/test/unit/mocks/mock_l10n.js');
+
 requireApp('sms/js/action_menu.js');
-requireApp('sms/test/unit/mock_l10n.js');
 
 suite('OptionMenu', function() {
   var options, menu, formHeader, formSection, realL10n;

@@ -37,6 +37,17 @@ suiteGroup('Views.Day', function() {
       app: app
     });
 
+    // we need to mock the DayChild constructor to avoid problems with the
+    // CurrentTime and keep the tests isolated
+    subject.childClass = function MockDayChild() {
+      this.create = sinon.spy();
+      this.activate = sinon.spy();
+      this.deactivate = sinon.spy();
+      this.setScrollTop = sinon.spy();
+      this.getScrollTop = sinon.spy();
+      this.destroy = sinon.spy();
+      this.element = document.createElement('div');
+    };
   });
 
   test('#initialize', function() {
@@ -175,6 +186,7 @@ suiteGroup('Views.Day', function() {
       );
 
       assert.deepEqual(subject.date, controller.position);
+      assert.ok(subject.currentFrame.activate.called, 'activate frame');
     });
 
     test('mostRecentDayType === selectedDay', function() {
@@ -191,6 +203,7 @@ suiteGroup('Views.Day', function() {
       );
 
       assert.deepEqual(subject.date, selDate);
+      assert.ok(subject.currentFrame.activate.called, 'activate frame');
     });
 
     test('inactive for a peroid then reactivate', function() {
@@ -199,9 +212,14 @@ suiteGroup('Views.Day', function() {
 
       subject.oninactive();
       controller.move(new Date(2012, 8, 1));
+      assert.ok(
+        subject.currentFrame.deactivate.calledOnce,
+        'deactivate frame'
+      );
 
       subject.onactive();
       assert.deepEqual(subject.date, controller.position);
+      assert.ok(subject.currentFrame.activate.calledOnce, 'activate frame');
     });
 
   });

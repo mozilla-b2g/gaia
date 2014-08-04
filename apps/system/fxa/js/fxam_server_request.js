@@ -21,10 +21,7 @@
   });
 
   function _setAccountDetails(response) {
-    // XXX FxAccountsIACHelper currently is inconsistent about response format
-    //     fix this after 981210 lands (e.accountId vs e.email)
-    if(response && response.user &&
-       response.user.accountId || response.user.email) {
+    if(response && response.user && response.user.email) {
       FxaModuleManager.setParam('done', true);
       FxaModuleManager.setParam('verified', response.user.verified);
     }

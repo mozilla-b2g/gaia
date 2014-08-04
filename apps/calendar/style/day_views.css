@@ -1,10 +1,5 @@
 /* common (day/months day) - careful here */
 
-.day-events h4,
-.day-events h5 {
-  font-weight: normal;
-}
-
 /** hour */
 
 .day-events {
@@ -17,11 +12,13 @@
 }
 
 .day-events > .hour {
-  height: 6rem;
+  height: 5rem;
   padding-left: 1.5rem;
   position: relative;
-  border-bottom: 0.1rem solid #D0D0D0;
+  border-bottom: 0.1rem solid #f8f8f8;
+}
 
+.day-events-wrapper .hour {
   /**
    * set scrollable areas to a solid background color
    * see bug 968478
@@ -29,27 +26,38 @@
   background-color: #fff;
 }
 
+.allday-events-wrapper .events {
+  /* set scrollable areas to a solid background color. see bug 968478 */
+  background-color: #f8f8f8;
+  /* postion: relative + z-index; used to create a new stacking context to fix
+   * APZ glitches */
+  position: relative;
+  z-index: 0;
+}
+
 .day-events > .hour:last-child {
-  border-bottom: none !important;
+  border-bottom: none;
 }
 
-.day-events > .hour.hour-allday {
-  min-height: 6rem;
-  height: auto;
+.day-events .hour.hour-allday .display-hour {
+  overflow: hidden;
+  height: 1px;
+  width: 1px;
+  text-indent: 100%;
+  display: block;
 }
-
 
 .day-events .hour-allday .events {
   height: auto;
 }
 
-.day-events > .hour h4 {
+.day-events .hour-header {
   position: absolute;
-  width: 6rem;
-  padding-top: 1.4rem;
-  color: #000;
+  width: 4em;
+  padding-top: 0.5rem;
+  color: #777;
   font-size: 1.4rem;
-  line-height: 1.2rem;
+  line-height: 1;
   font-weight: 400;
 }
 
@@ -58,98 +66,137 @@
 .day-events .events {
   -moz-user-select: none;
   position: relative;
-  width: calc(100% - 7.4rem);
-  height: 6rem;
-  margin-left: 7.4rem;
-  border-left: 0.1rem solid #bbb;
+  width: calc(100% - 6rem);
+  height: 5rem;
+  margin-left: 5.5rem;
+  border-left: 0.1rem solid #f8f8f8;
 }
 
 .day-events .event {
   position: absolute;
-  height: 6rem;
   top: 0;
   z-index: 10;
+  overflow: hidden;
 }
 
 .day-events .hour-allday .event {
   position: relative;
+  margin-top: 0.1rem;
+  height: 3.8rem;
+}
+
+.day-events .hour-allday .event:only-of-type {
+  /* we center it vertically if only one .event */
+  margin-top: 0.6rem;
 }
 
 .day-events .container {
-  /* turn off calendar color bg */
-  background: white !important;
-  border-width: 0.1rem;
-  border-style: solid;
-  border-left-width: 0.6rem;
   height: 100%;
-  padding: 0.8rem 1rem 2.2rem;
+  padding: 0.85rem 0.7rem 0;
+  border-left-style: solid;
+  border-left-width: 0.4rem;
 }
 
-.day-events .event.has-alarms .container {
-  background: #FFF url(/style/icons/alarm.png) no-repeat top right / 3rem !important;
+.day-events .container.has-alarm {
+  padding-right: 3rem;
 }
 
-.day-events .hour .display-hour {
-  display: block;
-  text-transform: uppercase;
-  overflow: hidden;
-  height: 100%;
-  vertical-align: top;
+.day-events .icon-calendar-alarm {
+  position: absolute;
+  top: 0.2rem;
+  right: 0;
+  width: 3rem;
+  height: 3rem;
 }
 
-.day-events .event h5 {
-  width: calc(100% - 1rem - 0.6rem);
-  min-height: 2.2rem;
-  padding-top: 0.6rem;
-  font-size: 1.9rem;
+.day-events .event-title {
+  min-height: 1.5rem;
+  font-size: 1.4rem;
   font-weight: 500;
+  line-height: 1;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+  color: #333;
 }
 
-.day-events .event .details {
+.day-events .event-location {
   display: block;
   top: 2.8rem;
-  width: calc(100% - 1rem - 0.6rem);
   min-height: 2.1rem;
-  padding-top: 0.8rem;
+  padding-top: 0.5rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: #5b5b5b;
-  font-size: 1.5rem;
+  color: #707070;
+  font-size: 1.3rem;
+  font-weight: 400;
 }
 
-.day-events .event.partial-hour .details {
+/* we hide when the there is not enough room for copy */
+.day-events .event.many-overlaps .event-title,
+.day-events .event.many-overlaps .event-location {
   display: none;
 }
 
-.attendee {
-  padding-right: 0.3rem;
+.day-events .event.partial-hour .container,
+.hour-allday .event .container {
+  padding-top: 0.4rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-/* overlap */
-
-.event[data-overlaps="1"] { padding-left: 0.6rem; z-index: 11; }
-.event[data-overlaps="2"] { padding-left: 1.2rem; z-index: 12; }
-.event[data-overlaps="3"] { padding-left: 1.8rem; z-index: 13; }
-.event[data-overlaps="4"] { padding-left: 2.4rem; z-index: 14; }
-.event[data-overlaps="5"] { padding-left: 3rem; z-index: 15; }
-.event[data-overlaps="6"] { padding-left: 3.6rem; z-index: 16; }
-.event[data-overlaps="7"] { padding-left: 4.2rem; z-index: 17; }
-.event[data-overlaps="8"] { padding-left: 4.8rem; z-index: 18; }
-.event[data-overlaps="9"] { padding-left: 5.4rem; z-index: 19; }
-.event[data-overlaps="10"] { padding-left: 6rem; z-index: 20; }
-
-/* months day view */
-
-#months-day-view .day-events {
-  height: calc(100% - 4.6rem);
-  overflow-x: hidden;
-  overflow-y: auto;
-  will-change: scroll-position;
+.day-events .event.partial-hour-tiny .container,
+.day-events .event.partial-hour-small .container {
+  padding-top: 0;
+  padding-bottom: 0;
+  display: flex;
+  align-items: center;
 }
+
+.day-events .event.partial-hour-micro .container,
+.day-events .event.partial-hour-tiny .container {
+  /* since alarm icon is hidden we remove the padding right */
+  padding-right: 0.7rem;
+}
+
+.hour-allday .event .event-location,
+.day-events .event.partial-hour .event-location {
+  padding-top: 0.2rem;
+}
+
+.day-events .event.partial-hour-tiny .event-title,
+.day-events .event.partial-hour-tiny .event-location,
+.day-events .event.partial-hour-small .event-title,
+.day-events .event.partial-hour-small .event-location {
+  display: inline-block;
+  line-height: 1.6rem;
+  min-height: 0;
+  padding: 0;
+}
+
+.day-events .event.partial-hour-tiny .event-title,
+.day-events .event.partial-hour-small .event-title {
+  margin-right: 0.85rem;
+}
+
+.day-events .event.partial-hour-micro .event-title,
+.day-events .event.partial-hour-micro .event-location {
+  visibility: hidden;
+}
+
+.day-events .event.partial-hour-micro .icon-calendar-alarm,
+.day-events .event.partial-hour-tiny .icon-calendar-alarm {
+  /* hide icon since we don't have enough space for it and using a different
+   * size looks weird (not consistent) */
+  display: none;
+}
+
+.day-events .event.partial-hour-small .icon-calendar-alarm {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
 
 /* day view */
 
@@ -162,8 +209,10 @@
   display: none;
 }
 
-#day-view h4 {
-  font-size: 1.3rem;
+#day-view .hour-header {
+  font-size: 1.5rem;
+  width: 4.5rem;
+  font-weight: normal;
 }
 
 #day-view > section.active {
@@ -173,13 +222,39 @@
 #day-view .day-events-wrapper {
   overflow-y: scroll;
   overflow-x: hidden;
-  height: calc(100% - 6rem);
+  height: calc(100% - 5.1rem);
   will-change: scroll-position;
+  border-top: 0.1rem solid #e2e2e2;
 }
 
 #day-view .day-events.allday {
-  height: 6rem;
-  box-shadow: 0 5px 5px 0 rgba(1, 1, 1, 0.2);
+  height: 5rem;
   position: relative;
-  z-index: 11;
+  background-color: #f8f8f8;
+}
+
+#day-view .allday-events-wrapper {
+  height: 100%;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  will-change: scroll-position;
+}
+
+#day-view .icon-calendar-allday:before {
+  position: relative;
+  top: 0.4rem;
+  left: 0.4rem;
+}
+
+#day-view .current-time {
+  text-indent: 2.2rem;
+}
+
+#day-view .current-time:before {
+  left: 7.1rem;
+}
+
+#day-view .current-time:after {
+  width: calc(100% - 7.1rem);
+  left: 7.1rem;
 }

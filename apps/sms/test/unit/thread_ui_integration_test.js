@@ -1,5 +1,5 @@
 /*global MocksHelper, MockL10n, ThreadUI, MockNavigatormozMobileMessage,
-         loadBodyHTML, Compose, MessageManager */
+         loadBodyHTML, Compose, MessageManager, Navigation */
 
 'use strict';
 
@@ -7,14 +7,16 @@ if (typeof GestureDetector === 'undefined') {
   require('/shared/js/gesture_detector.js');
 }
 require('/shared/test/unit/mocks/mock_gesture_detector.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 
 requireApp('sms/test/unit/mock_contact.js');
-requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/test/unit/mock_navigatormoz_sms.js');
 requireApp('sms/test/unit/mock_message_manager.js');
 requireApp('sms/test/unit/mock_moz_activity.js');
 requireApp('sms/test/unit/mock_information.js');
 requireApp('sms/test/unit/mock_activity_handler.js');
+require('/test/unit/mock_navigation.js');
+require('/js/event_dispatcher.js');
 requireApp('sms/js/utils.js');
 requireApp('sms/js/settings.js');
 requireApp('sms/js/attachment_menu.js');
@@ -27,12 +29,14 @@ requireApp('sms/js/thread_list_ui.js');
 requireApp('sms/js/thread_ui.js');
 requireApp('sms/js/attachment.js');
 requireApp('sms/js/contact_renderer.js');
+require('/js/navigation.js');
 
 var mHelperIntegration = new MocksHelper([
   'MessageManager',
   'MozActivity',
   'Information',
-  'ActivityHandler'
+  'ActivityHandler',
+  'Navigation'
 ]).init();
 
 suite('ThreadUI Integration', function() {
@@ -58,6 +62,7 @@ suite('ThreadUI Integration', function() {
     ThreadUI._mozMobileMessage = MockNavigatormozMobileMessage;
 
     loadBodyHTML('/index.html');
+    Navigation.init();
     ThreadUI.init();
   });
 
@@ -294,11 +299,10 @@ suite('ThreadUI Integration', function() {
     };
 
     setup(function() {
-      window.location.hash = '#new';
-    });
+      this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
+      Navigation.isCurrentPanel.withArgs('composer').returns(true);
 
-    teardown(function() {
-      window.location.hash = '';
+      this.sinon.stub(MessageManager, 'sendSMS');
     });
 
     test('Assimilate stranded recipients (message input)', function() {
@@ -379,8 +383,6 @@ suite('ThreadUI Integration', function() {
     });
 
     test('Assimilate stranded recipients (sendButton)', function() {
-      this.sinon.spy(MessageManager, 'sendSMS');
-
       // To ensure the onSendClick handler will succeed:
 
       // 1. Add some content to the message

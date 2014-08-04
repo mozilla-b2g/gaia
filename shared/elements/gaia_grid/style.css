@@ -1,0 +1,160 @@
+.icon[data-app-state="loading"]:after {
+  content: "";
+  background: no-repeat top center url('images/app_install_spinner.png');
+  background-size: contain;
+  height: 8.4rem;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  /**
+  Keyframe must be defined outside of the web component.
+  See bug 1018269
+  */
+
+  animation: rotate 2.25s linear infinite;
+}
+
+.icon[data-app-state="loading"] {
+  /**
+  We must align this value with the value of [data-app-state]:after height the background size
+  here is overridden at the element level elsewhere which causes the spinner to be aligned too
+  low.
+  */
+  background-size: 8.4rem !important;
+  background-image: url('images/app_installing.png') !important;
+}
+
+.icon[data-app-state="unrecoverable"] {
+  background-image: url('images/app_install_unrecoverable.png') !important;
+}
+
+.icon[data-app-state="error"] {
+  background-image: url('images/app_install_failed.png') !important;
+}
+
+.icon[data-app-state="paused"] {
+  background-image: url('images/app_install_canceled.png') !important;
+}
+
+.icon {
+  position: absolute;
+  transform-origin: 0 0;
+  display: inline-block;
+  width: calc(100% / 3);
+  text-align: center;
+  background: no-repeat top center;
+  z-index: 3;
+}
+
+.dragging .icon {
+  will-change: transform;
+}
+
+.icon.launching {
+  opacity: .65;
+}
+
+/* XXX: Override the .remove element  */
+.edit-mode .collection.hovered .remove {
+  background: url(images/add.png) no-repeat;
+}
+
+.icon p {
+  pointer-events: none;
+  height: 3.2rem;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.icon .title {
+  display: inline-block;
+  margin-top: 0.1rem;
+  /* We need this rule in order not to hide the drop shadow */
+  padding: 0 0.2rem 1rem;
+  text-shadow: 0.1rem 0.1rem 0.3rem rgba(0, 0, 0, 0.3),
+               0.2rem 0.4rem 1rem rgba(0, 0, 0, 0.4);
+  font-size: 1.4rem;
+  color: #fff;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  width: calc(100% - 0.4rem);
+  box-sizing: border-box;
+  vertical-align: top;
+}
+
+[cols="4"] .icon .title {
+  /* Font size is the same independent on grid configuration */
+  font-size: calc(1.2rem * 1.333);
+  margin-top: 0.5rem;
+  line-height: 1.94rem;
+}
+
+.divider {
+  position: absolute;
+  width: 50%;
+  margin: 2.3rem 25% 3.5rem 25%;
+}
+
+[cols="4"] .divider {
+  margin: 1.6rem 25% 3.2rem 25%;
+}
+
+.divider span {
+  display: block;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0.5));
+  width: 100%;
+  z-index: 2;
+  height: 0.2rem;
+}
+
+.dragging .icon.active {
+  z-index: 4;
+  opacity: 0.65;
+}
+
+.dragging .divider,
+.dragging .icon:not(.active),
+.dropped {
+  transition: transform 0.5s, opacity 0.5s;
+}
+
+.edit-mode .icon .remove {
+  display: block;
+  position: absolute;
+  top: 0.1rem;
+  left: 0.5rem;
+  width: 2.6rem;
+  height: 2.6rem;
+  background: url(images/remove.png) no-repeat;
+  background-size: 2rem;
+  /*
+  Ensure that remove is on top of the icon and has some extra
+  padding so it is easy to click.
+  */
+  z-index: 200;
+  padding: 0.5rem;
+}
+
+.icon .remove {
+  display: none;
+}
+
+.edit-mode .icon.active .remove {
+  display: none;
+}
+
+.edit-mode .icon.bookmark.editable .title {
+  background-color: rgba(132, 132, 132, 0.7);
+  border-radius: 2rem;
+  margin-top: .4rem;
+  padding: 0 1rem;
+  width: auto;
+  max-width: 100%;
+}
+
+#confirm-message {
+  z-index: 100;
+}

@@ -53,9 +53,11 @@ suiteGroup('Templates.Week', function() {
   });
 
   test('#header', function() {
-    var result = subject.header.render('foo');
+    var result = subject.header.render({
+      title: 'foo'
+    });
     assert.ok(result);
-    assert.include(result, 'foo');
+    assert.include(result, 'foo', 'title');
   });
 
   test('#frame', function() {

@@ -1,3 +1,7 @@
+/* globals CallScreen, FontSizeManager, MockCall, MockCallScreen,
+           MockCallsHandler, MockLazyL10n, MockMozL10n,
+           MockNavigatorMozTelephony, MocksHelper, telephonyAddCall */
+
 'use strict';
 
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
@@ -6,22 +10,21 @@ require('/shared/test/unit/mocks/dialer/mock_handled_call.js');
 require('/shared/test/unit/mocks/dialer/mock_calls_handler.js');
 require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
 require('/test/unit/mock_call_screen.js');
+require('/shared/test/unit/mocks/dialer/mock_font_size_manager.js');
 
 // The ConferenceGroupHandler binds stuff when evaluated so we load it
 // after the mocks and we don't want it to show up as a leak.
-if (!this.ConferenceGroupHandler) {
-  this.ConferenceGroupHandler = null;
-}
-
 var mocksHelperForConferenceGroupHandler = new MocksHelper([
   'HandledCall',
   'CallsHandler',
   'LazyL10n',
-  'CallScreen'
+  'CallScreen',
+  'FontSizeManager'
 ]).init();
 
 suite('conference group handler', function() {
   var realMozTelephony;
+  var realMozL10n;
 
   mocksHelperForConferenceGroupHandler.attachTestHelpers();
 
@@ -31,32 +34,44 @@ suite('conference group handler', function() {
   var fakeGroupDetails;
   var fakeMergeButton;
   var fakeDurationChildNode;
+  var fakeTotalDurationChildNode;
 
   suiteSetup(function(done) {
     realMozTelephony = navigator.mozTelephony;
     navigator.mozTelephony = MockNavigatorMozTelephony;
 
+    realMozL10n = navigator.mozL10n;
+    navigator.mozL10n = MockMozL10n;
+
     fakeDOM = document.createElement('div');
     fakeDOM.innerHTML = '<section id="group-call" hidden>' +
                             '<div class="numberWrapper">' +
-                              '<div id="group-show"></div>' +
-                              '<div id="group-call-label"' +
-                                'class="number font-light"></div>' +
-                            '</div>' +
-                            '<div class="fake-number font-light"></div>' +
-                            '<div id="group-call-summary"' +
-                              'class="additionalContactInfo"></div>' +
-                            '<div class="duration">' +
-                              '<span class="font-light"></span>' +
-                              '<div class="direction">' +
-                                '<div></div>' +
-                              '</div>' +
-                            '</div>' +
-                            '<button class="merge-button"></button>' +
-                          '</section>' +
-                          '<form id="group-call-details">' +
-                            '<header></header>' +
-                          '</form>';
+                            '<div id="group-show"></div>' +
+                            '<div id="group-call-label" ' +
+                              'class="number font-light"></div>' +
+                          '</div>' +
+                          '<div id="group-call-summary" ' +
+                            'class="additionalContactInfo font-light"></div>' +
+                          '<div class="duration">' +
+                            '<span class="font-light"></span>' +
+                            '<div class="total-duration"></div>' +
+                            '<div class="direction"></div>' +
+                          '</div>' +
+                          '<button class="merge-button" data-l10n-id="merge">' +
+                            'Merge</button>' +
+                        '</section>' +
+                        '<form id="group-call-details" role="dialog" ' +
+                          'data-type="action" class="overlay">' +
+                          '<header></header>' +
+                          '<menu>' +
+                            '<ul id="group-call-details-list">' +
+                            '</ul>' +
+                            '<button id="group-hide" data-l10n-id="close">' +
+                              'Close' +
+                            '</button>' +
+                          '</menu>' +
+                        '</form>';
+
     document.body.appendChild(fakeDOM);
     fakeGroupLine = document.getElementById('group-call');
     fakeGroupLabel = document.getElementById('group-call-label');
@@ -64,6 +79,8 @@ suite('conference group handler', function() {
     fakeMergeButton = document.querySelector('.merge-button');
     fakeDurationChildNode =
         document.querySelector('#group-call > .duration > span');
+    fakeTotalDurationChildNode =
+        document.querySelector('#group-call > .duration > .total-duration');
 
     require('/js/conference_group_handler.js', done);
   });
@@ -71,6 +88,7 @@ suite('conference group handler', function() {
   suiteTeardown(function() {
     fakeDOM.parentNode.removeChild(fakeDOM);
     navigator.moztelephony = realMozTelephony;
+    navigator.mozL10n = realMozL10n;
   });
 
   teardown(function() {
@@ -104,8 +122,16 @@ suite('conference group handler', function() {
 
       test('should update the group label', function() {
         flush();
-        assert.equal(fakeGroupLabel.textContent, 'group-call');
-        assert.deepEqual(MockLazyL10n.keys['group-call'], {n: 2});
+        assert.equal(fakeGroupLabel.textContent, 'conferenceCall');
+        assert.deepEqual(MockLazyL10n.keys.conferenceCall, {n: 2});
+      });
+
+      test('should update call screen in CDMA network', function() {
+        MockCallsHandler.mIsFirstCallOnCdmaNetwork = true;
+        this.sinon.spy(MockCallScreen, 'cdmaConferenceCall');
+
+        flush();
+        sinon.assert.calledOnce(MockCallScreen.cdmaConferenceCall);
       });
 
       suite('when a new called is merged in the conference', function() {
@@ -122,8 +148,8 @@ suite('conference group handler', function() {
 
         test('should update the group label', function() {
           flush();
-          assert.equal(fakeGroupLabel.textContent, 'group-call');
-          assert.deepEqual(MockLazyL10n.keys['group-call'], {n: 3});
+          assert.equal(fakeGroupLabel.textContent, 'conferenceCall');
+          assert.deepEqual(MockLazyL10n.keys.conferenceCall, {n: 3});
         });
 
         test('should update single line status', function() {
@@ -143,8 +169,8 @@ suite('conference group handler', function() {
 
           test('should update the group label', function() {
             flush();
-            assert.equal(fakeGroupLabel.textContent, 'group-call');
-            assert.deepEqual(MockLazyL10n.keys['group-call'], {n: 2});
+            assert.equal(fakeGroupLabel.textContent, 'conferenceCall');
+            assert.deepEqual(MockLazyL10n.keys.conferenceCall, {n: 2});
           });
         });
 
@@ -159,8 +185,8 @@ suite('conference group handler', function() {
 
           test('should update the group label', function() {
             flush();
-            assert.equal(fakeGroupLabel.textContent, 'group-call');
-            assert.deepEqual(MockLazyL10n.keys['group-call'], {n: 2});
+            assert.equal(fakeGroupLabel.textContent, 'conferenceCall');
+            assert.deepEqual(MockLazyL10n.keys.conferenceCall, {n: 2});
           });
 
           test('should call CallsHandler.checkCalls if two more phones remains',
@@ -186,6 +212,12 @@ suite('conference group handler', function() {
           flush();
           assert.isFalse(MockCallScreen.mGroupDetailsShown);
         });
+
+        test('should update the calls display', function() {
+          MockCallScreen.mUpdateSingleLineCalled = false;
+          flush();
+          assert.isTrue(MockCallScreen.mUpdateSingleLineCalled);
+        });
       });
     });
   });
@@ -206,6 +238,8 @@ suite('conference group handler', function() {
 
       MockNavigatorMozTelephony.mTriggerGroupCallsChanged();
       MockNavigatorMozTelephony.mTriggerCallsChanged();
+
+      this.sinon.spy(FontSizeManager, 'adaptToSpace');
     });
 
     test('should start timer when connected', function() {
@@ -229,19 +263,17 @@ suite('conference group handler', function() {
       assert.isFalse(fakeGroupLine.hidden);
     });
 
-    test('should set photo to default when connected', function() {
+    test('should set photo when connected', function() {
       MockNavigatorMozTelephony.conferenceGroup.state = 'connected';
       MockNavigatorMozTelephony.mTriggerGroupStateChange();
 
-      assert.isNull(MockCallScreen.mSetCallerContactImageArg);
       assert.isTrue(MockCallScreen.mSetCallerContactImageCalled);
     });
 
-    test('should set photo to default when resuming', function() {
+    test('should set photo when resuming', function() {
       MockNavigatorMozTelephony.conferenceGroup.state = 'resuming';
       MockNavigatorMozTelephony.mTriggerGroupStateChange();
 
-      assert.isNull(MockCallScreen.mSetCallerContactImageArg);
       assert.isTrue(MockCallScreen.mSetCallerContactImageCalled);
     });
 
@@ -252,6 +284,19 @@ suite('conference group handler', function() {
       MockNavigatorMozTelephony.mTriggerGroupStateChange();
 
       assert.isTrue(MockCallScreen.mCalledStopTicker);
+    });
+
+    test('should call FontSizeManager.adaptToSpace with the correct parameters',
+         function() {
+      MockCallScreen.mScenario = FontSizeManager.SINGLE_CALL;
+      var view = fakeDOM.querySelector('#group-call-label');
+
+      MockNavigatorMozTelephony.conferenceGroup.state = '';
+      MockNavigatorMozTelephony.mTriggerGroupStateChange();
+
+      sinon.assert.calledWith(
+        FontSizeManager.adaptToSpace, FontSizeManager.SINGLE_CALL, view,
+        false, 'end');
     });
 
     test('should add the held class once held', function() {
@@ -288,6 +333,16 @@ suite('conference group handler', function() {
       MockNavigatorMozTelephony.conferenceGroup.state = '';
       MockNavigatorMozTelephony.mTriggerGroupStateChange();
       assert.equal(fakeDurationChildNode.textContent, 'callEnded');
+    });
+
+    test('should show call the duration when exiting conference call',
+      function() {
+      var totalCallDuration = '12:34';
+      fakeDurationChildNode.textContent = totalCallDuration;
+      MockNavigatorMozTelephony.conferenceGroup.state = '';
+      MockNavigatorMozTelephony.mTriggerGroupStateChange();
+      assert.deepEqual(fakeTotalDurationChildNode.textContent,
+                       totalCallDuration);
     });
 
     test('should hide the group line after leaving conference call',

@@ -80,8 +80,10 @@ Evme.Helper = new function Evme_Helper() {
   };
 
   this.empty = function empty() {
+    elList.setAttribute('aria-hidden', true);
     elList.innerHTML =
-      '<li class="label" ' + Evme.Utils.l10nAttr(NAME, 'default2') + '></li>';
+      '<li id="helper-label" class="label" ' +
+      Evme.Utils.l10nAttr(NAME, 'default2') + '></li>';
     elList.classList.remove('default');
   };
 
@@ -96,6 +98,9 @@ Evme.Helper = new function Evme_Helper() {
   };
   this.getList = function getList() {
     return elList;
+  };
+  this.getCurrentDisplayType = function getCurrentDisplayType() {
+    return currentDisplayedType;
   };
 
   this.enableCloseAnimation = function enableCloseAnimation() {
@@ -280,11 +285,16 @@ Evme.Helper = new function Evme_Helper() {
     self.empty();
 
     elList.className = classToAdd;
+    elList.removeAttribute('aria-hidden');
 
     var html = '';
 
     if (label) {
-      html += '<li class="label" ' + label + '></li>';
+      html += '<li id="helper-list-label" aria-hidden="true" class="label" ' +
+        label + '></li>';
+      elList.setAttribute('aria-labelledby', 'helper-list-label');
+    } else {
+      elList.removeAttribute('aria-labelledby');
     }
 
     for (var i = 0; i < items.length; i++) {
@@ -425,6 +435,7 @@ Evme.Helper = new function Evme_Helper() {
   this.addLink = function addLink(l10Key, callback, isBefore) {
     var elLink = Evme.$create('li', {
       'class': 'link',
+      'role': 'link',
       'data-l10n-id': Evme.Utils.l10nKey(NAME, l10Key)
     });
 
@@ -525,6 +536,7 @@ Evme.Helper = new function Evme_Helper() {
 
     text = text.replace(/</g, '&lt;');
 
+    var label = text.replace(/[\[\]]/g, '');
     var content = text.replace(/\[/g, '<b>').replace(/\]/g, '</b>');
 
 
@@ -533,9 +545,10 @@ Evme.Helper = new function Evme_Helper() {
       text = '.';
     }
 
-    return '<li data-index="' + index + '" data-suggestion="' +
+    return '<li role="option" data-index="' + index + '" data-suggestion="' +
       text.replace(/"/g, '&quot;') + '" data-source="' + source +
-      '" data-type="' + id + '">' + content + '</li>';
+      '" data-type="' + id + '" aria-label="' + label + '">' + content +
+      '</li>';
   }
 
   function elementClick(e) {
@@ -599,6 +612,8 @@ Evme.Helper = new function Evme_Helper() {
       if (name && name.toLowerCase() === title.toLowerCase()) {
         elSaveSearch.dataset.savedAsCollection = true;
         elSaveSearch.dataset.collectionId = collection.id;
+        elSaveSearch.setAttribute('aria-label', Evme.Utils.l10n(NAME,
+          'unsave-search'));
         return true;
       }
     });
@@ -606,6 +621,8 @@ Evme.Helper = new function Evme_Helper() {
     if (!found) {
       elSaveSearch.dataset.savedAsCollection = false;
       elSaveSearch.dataset.collectionId = '';
+      elSaveSearch.setAttribute('aria-label', Evme.Utils.l10n(NAME,
+        'save-search'));
     }
   }
 

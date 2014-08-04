@@ -53,6 +53,7 @@ class SettingsForm(Base):
         self.marionette.find_element(*self._import_from_sim_button_locator).tap()
         from gaiatest.apps.contacts.app import Contacts
         self.wait_for_element_displayed(*Contacts._status_message_locator)
+        self.wait_for_element_not_displayed(*Contacts._status_message_locator)
 
     @property
     def gmail_imported_contacts(self):
@@ -69,6 +70,7 @@ class SettingsForm(Base):
         self.marionette.find_element(*self._import_from_sdcard_locator).tap()
         from gaiatest.apps.contacts.app import Contacts
         self.wait_for_element_displayed(*Contacts._status_message_locator)
+        self.wait_for_element_not_displayed(*Contacts._status_message_locator)
 
     def tap_export_to_sd(self):
         self.wait_for_element_displayed(*self._export_to_sd_button_locator)

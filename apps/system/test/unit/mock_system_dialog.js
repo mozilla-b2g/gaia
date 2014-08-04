@@ -10,6 +10,7 @@
     var dialogFake = document.createElement('div');
     dialogFake.setAttribute('id', 'fake-dialog');
     this.element = dialogFake;
+    this.containerElement = document.createElement('div');
   };
 
   MockSystemDialog.prototype.show = function msd_show(reason) {

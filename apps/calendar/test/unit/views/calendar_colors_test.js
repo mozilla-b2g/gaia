@@ -1,5 +1,3 @@
-/*global Factory */
-
 suiteGroup('Views.CalendarColors', function() {
   'use strict';
 
@@ -105,8 +103,7 @@ suiteGroup('Views.CalendarColors', function() {
     setup(function() {
       calls = {
         add: [],
-        remove: [],
-        preremove: []
+        remove: []
       };
 
       subject.updateRule = function(item) {
@@ -116,21 +113,12 @@ suiteGroup('Views.CalendarColors', function() {
       subject.removeRule = function(item) {
         calls.remove.push(item);
       };
-
-      subject.hideCalendar = function(item) {
-        calls.preremove.push(item);
-      };
     });
 
     test('type: persist', function() {
       store.emit('persist', model._id, model);
 
       assert.deepEqual(calls.add, [model]);
-    });
-
-    test('type: preremove', function() {
-      store.emit('preRemove', model._id);
-      assert.deepEqual(calls.preremove, [model._id]);
     });
 
     test('type: remove', function() {
@@ -174,32 +162,9 @@ suiteGroup('Views.CalendarColors', function() {
       assert.match(rules[0].selectorText, /3xx/, msg);
       assert.match(rules[1].selectorText, /3xx/, msg);
 
-      assert.equal(rules.length, 2, 'should remove css rules');
+      assert.equal(rules.length, 3, 'should remove css rules');
     });
 
-  });
-
-  suite('#hideCalendar', function() {
-    setup(function() {
-      subject.hideCalendar(model._id);
-    });
-
-    test('hides display', function() {
-      // check that the actual style is flushed to the dom...
-      var bgRule = subject._styles.cssRules[0];
-
-      // it may do the RGB conversion so its not strictly equal...
-      assert.ok(
-        bgRule.style.backgroundColor,
-        'should have set background color'
-      );
-
-      var displayRule = subject._styles.cssRules[1];
-      assert.equal(
-        displayRule.style.display, 'none',
-        'should set display to none'
-      );
-    });
   });
 
   suite('#updateRule', function() {
@@ -212,31 +177,19 @@ suiteGroup('Views.CalendarColors', function() {
       assert.equal(subject.colorMap[id], model.color);
 
       // check that the actual style is flushed to the dom...
-      assert.equal(subject._styles.cssRules.length, 2);
+      assert.equal(subject._styles.cssRules.length, 3);
       var bgRule = subject._styles.cssRules[0];
-      var displayRule = subject._styles.cssRules[1];
+      var borderRule = subject._styles.cssRules[1];
+      var textRule = subject._styles.cssRules[2];
 
       assert.include(bgRule.selectorText, subject.getId(model._id));
-      assert.include(bgRule.selectorText, 'calendar-color');
+      assert.include(bgRule.selectorText, 'calendar-bg-color');
 
-      assert.include(displayRule.selectorText, subject.getId(model._id));
-      assert.include(displayRule.selectorText, 'calendar-display');
+      assert.include(borderRule.selectorText, subject.getId(model._id));
+      assert.include(borderRule.selectorText, 'calendar-border-color');
 
-      // it may do the RGB conversion so its not strictly equal...
-      assert.ok(
-        bgRule.style.backgroundColor,
-        'should have set background color'
-      );
-
-      assert.ok(bgRule.style.borderColor, 'sets border color');
-    });
-
-    test('first time hidden', function() {
-      model.localDisplayed = false;
-      subject.updateRule(model);
-
-      // check that the actual style is flushed to the dom...
-      var bgRule = subject._styles.cssRules[0];
+      assert.include(textRule.selectorText, subject.getId(model._id));
+      assert.include(textRule.selectorText, 'calendar-text-color');
 
       // it may do the RGB conversion so its not strictly equal...
       assert.ok(
@@ -244,36 +197,33 @@ suiteGroup('Views.CalendarColors', function() {
         'should have set background color'
       );
 
-      var displayRule = subject._styles.cssRules[1];
-      assert.equal(
-        displayRule.style.display, 'none',
-        'should set display to none'
-      );
+      assert.ok(borderRule.style.borderColor, 'sets border color');
+      assert.ok(textRule.style.color, 'sets text color');
     });
 
     test('second time', function() {
       subject.updateRule(model);
 
-      var bgStyle = subject._styles.cssRules[0].style;
-      var displayStyle = subject._styles.cssRules[1].style;
+      var rules = subject._styles.cssRules;
 
-      var oldColor = bgStyle.backgroundColor;
+      var bgStyle = rules[0].style;
+      var borderStyle = rules[1].style;
+      var textStyle = rules[2].style;
+
+      var oldBgColor = bgStyle.backgroundColor;
+      var oldBorderColor = borderStyle.borderColor;
+      var oldTextColor = textStyle.color;
 
       model.remote.color = '#FAFAFA';
 
       subject.updateRule(model);
 
-      assert.notEqual(bgStyle.backgroundColor, oldColor, 'should change color');
-      assert.notEqual(bgStyle.borderColor, oldColor, 'should change color');
-
-      model.localDisplayed = false;
-      subject.updateRule(model);
-
-      assert.equal(displayStyle.display, 'none');
-
-      model.localDisplayed = true;
-      subject.updateRule(model);
-      assert.equal(displayStyle.display, 'inherit');
+      assert.notEqual(bgStyle.backgroundColor, oldBgColor,
+        'should change bg color');
+      assert.notEqual(borderStyle.borderColor, oldBorderColor,
+        'should change border color');
+      assert.notEqual(textStyle.borderColor, oldTextColor,
+        'should change text color');
     });
   });
 
@@ -309,7 +259,8 @@ suiteGroup('Views.CalendarColors', function() {
     toggleN(5);
 
     var rules = subject._styles.cssRules;
-    assert.equal(rules.length, 4, 'two calendars rules');
+    // each calendar creates 3 rules (bg, border, text)
+    assert.equal(rules.length, 6, 'two calendars rules');
 
     function verify(calendar, start, end) {
       for (var i = start; i < end; i++) {
@@ -323,8 +274,8 @@ suiteGroup('Views.CalendarColors', function() {
 
     // verify each of the kept calendars is in the right
     // spot with all the right events.
-    verify(keepOne, 0, 2);
-    verify(keepTwo, 2, 4);
+    verify(keepOne, 0, 3);
+    verify(keepTwo, 3, 6);
   });
 
 });

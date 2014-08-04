@@ -1,4 +1,4 @@
-/*global MocksHelper, MockL10n, MockGestureDetector,
+/*global MocksHelper, MockL10n, MockGestureDetector, MockDialog,
          loadBodyHTML, ThreadUI, MessageManager, MockNavigatormozMobileMessage,
          ThreadListUI, Contacts, MockContact, MockThreadList,
          MockThreadMessages, getMockupedDate, Utils */
@@ -9,21 +9,23 @@
 
 
 require('/shared/js/lazy_loader.js');
-require('/shared/js/l10n.js');
-require('/shared/js/l10n_date.js');
 require('/shared/js/gesture_detector.js');
 require('/shared/js/sticky_header.js');
 
 require('/shared/test/unit/mocks/mock_gesture_detector.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('sms/test/unit/mock_contact.js');
-requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/test/unit/mock_time_headers.js');
 requireApp('sms/test/unit/mock_navigatormoz_sms.js');
 requireApp('sms/test/unit/mock_attachment_menu.js');
 requireApp('sms/test/unit/mock_information.js');
+requireApp('sms/test/unit/mock_dialog.js');
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 require('/shared/test/unit/mocks/mock_async_storage.js');
+require('/test/unit/mock_settings.js');
 
+require('/js/event_dispatcher.js');
+require('/js/navigation.js');
 requireApp('sms/js/link_helper.js');
 requireApp('sms/js/drafts.js');
 requireApp('sms/js/contacts.js');
@@ -44,10 +46,12 @@ requireApp('sms/js/startup.js');
 
 var MocksHelperForSmsUnitTest = new MocksHelper([
   'asyncStorage',
+  'Settings',
   'AttachmentMenu',
   'TimeHeaders',
   'Information',
-  'ContactPhotoHelper'
+  'ContactPhotoHelper',
+  'Dialog'
 ]).init();
 
 suite('SMS App Unit-Test', function() {
@@ -74,7 +78,6 @@ suite('SMS App Unit-Test', function() {
 
   var nativeMozL10n = navigator.mozL10n;
   var realMozMobileMessage;
-  var boundOnHashChange;
   var realGestureDetector;
 
   suiteSetup(function() {
@@ -121,10 +124,6 @@ suite('SMS App Unit-Test', function() {
     // ...And render
     ThreadUI.init();
     ThreadListUI.init();
-    boundOnHashChange = MessageManager.onHashChange.bind(MessageManager);
-    window.addEventListener(
-      'hashchange', boundOnHashChange
-    );
     realMozMobileMessage = ThreadUI._mozMobileMessage;
     ThreadUI._mozMobileMessage = MockNavigatormozMobileMessage;
   });
@@ -133,7 +132,6 @@ suite('SMS App Unit-Test', function() {
     ThreadUI._mozMobileMessage = realMozMobileMessage;
     // cleanup
     window.document.body.innerHTML = '';
-    window.removeEventListener('hashchange', boundOnHashChange);
   });
 
   setup(function() {
@@ -524,15 +522,13 @@ suite('SMS App Unit-Test', function() {
           setTimeout(itCb);
         });
 
-        window.confirm = stub(true);
-
         var getMessageReq = {};
         this.sinon.stub(MessageManager, 'getMessage').returns(getMessageReq);
         getMessageReq.result = incomingMessage;
 
         setTimeout(function() {
           getMessageReq.onsuccess();
-          assert.equal(window.confirm.callCount, 1);
+          assert.isTrue(MockDialog.triggers.confirm.called);
           assert.equal(MessageManager.deleteMessage.callCount, 1);
           assert.equal(MessageManager.deleteMessage.calledWith[0].length, 5);
           assert.equal(ThreadUI.container.querySelectorAll('li').length, 1,
@@ -544,6 +540,7 @@ suite('SMS App Unit-Test', function() {
         }, 1500); // only the last one is slow. What is blocking?
 
         ThreadUI.delete();
+        MockDialog.triggers.confirm();
       });
 
       test('checkInputs should fire in edit mode', function() {

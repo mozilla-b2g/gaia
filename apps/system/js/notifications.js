@@ -42,17 +42,23 @@
 
 var NotificationScreen = {
   TOASTER_TIMEOUT: 5000,
-  TRANSITION_SPEED: 1.8,
   TRANSITION_FRACTION: 0.30,
+  TAP_THRESHOLD: 10,
 
   _notification: null,
   _containerWidth: null,
+  _touchStartX: 0,
+  _touchPosX: 0,
+  _touching: false,
+  _isTap: false,
   _toasterTimeout: null,
-  _toasterGD: null,
 
   lockscreenPreview: true,
   silent: false,
   vibrates: true,
+  isResending: false,
+  resendReceived: 0,
+  resendExpecting: 0,
 
   init: function ns_init() {
     window.addEventListener('mozChromeNotificationEvent', this);
@@ -66,11 +72,11 @@ var NotificationScreen = {
     this.toasterDetail = document.getElementById('toaster-detail');
     this.clearAllButton = document.getElementById('notification-clear');
 
-    this._toasterGD = new GestureDetector(this.toaster);
-    ['tap', 'mousedown', 'swipe'].forEach(function(evt) {
-      this.container.addEventListener(evt, this);
-      this.toaster.addEventListener(evt, this);
-    }, this);
+    ['tap', 'touchstart', 'touchmove', 'touchend', 'touchcancel', 'wheel'].
+      forEach(function(evt) {
+        this.container.addEventListener(evt, this);
+        this.toaster.addEventListener(evt, this);
+      }, this);
 
     this.clearAllButton.addEventListener('click', this.clearAll.bind(this));
 
@@ -79,7 +85,8 @@ var NotificationScreen = {
     this.externalNotificationsCount = 0;
 
     window.addEventListener('utilitytrayshow', this);
-    window.addEventListener('unlock', this.clearLockScreen.bind(this));
+    window.addEventListener('lockscreen-appclosed',
+      this.clearLockScreen.bind(this));
     window.addEventListener('visibilitychange', this);
     window.addEventListener('ftuopen', this);
     window.addEventListener('ftudone', this);
@@ -87,6 +94,7 @@ var NotificationScreen = {
       this.clearDesktopNotifications.bind(this));
     window.addEventListener('appopened',
       this.clearDesktopNotifications.bind(this));
+    window.addEventListener('desktop-notification-resend', this);
 
     this._sound = 'style/notifications/ringtones/notifier_exclamation.ogg';
 
@@ -114,6 +122,10 @@ var NotificationScreen = {
         switch (detail.type) {
           case 'desktop-notification':
             this.addNotification(detail);
+            if (this.isResending) {
+              this.resendReceived++;
+              this.isResending = (this.resendReceived < this.resendExpecting);
+            }
             break;
           case 'desktop-notification-close':
             this.removeNotification(detail.id);
@@ -124,12 +136,20 @@ var NotificationScreen = {
         var target = evt.target;
         this.tap(target);
         break;
-      case 'mousedown':
-        this.mousedown(evt);
+      case 'touchstart':
+        this.touchstart(evt);
         break;
-      case 'swipe':
-        this.swipe(evt);
+      case 'touchmove':
+        this.touchmove(evt);
         break;
+      case 'touchend':
+        this.touchend(evt);
+        break;
+      case 'touchcancel':
+        this.touchcancel(evt);
+        break;
+      case 'wheel':
+        this.wheel(evt);
       case 'utilitytrayshow':
         this.updateTimestamps();
         StatusBar.updateNotificationUnread(false);
@@ -145,6 +165,12 @@ var NotificationScreen = {
         break;
       case 'ftudone':
         this.toaster.addEventListener('tap', this);
+        break;
+      case 'desktop-notification-resend':
+        this.resendExpecting = evt.detail.number;
+        if (this.resendExpecting) {
+          this.isResending = true;
+        }
         break;
     }
   },
@@ -163,61 +189,111 @@ var NotificationScreen = {
     }
   },
 
-  // Swipe handling
-  mousedown: function ns_mousedown(evt) {
-    if (!evt.target.dataset.notificationId)
-      return;
-
-    evt.preventDefault();
-    this._notification = evt.target;
-    this._containerWidth = this.container.clientWidth;
-  },
-
-  swipe: function ns_swipe(evt) {
-    var detail = evt.detail;
-    var distance = detail.start.screenX - detail.end.screenX;
-    var fastEnough = Math.abs(detail.vx) > this.TRANSITION_SPEED;
-    var farEnough = Math.abs(distance) >
-      this._containerWidth * this.TRANSITION_FRACTION;
-
-    // We only remove the notification if the swipe was
-    // - left to right
-    // - far or fast enough
-    if ((distance > 0) ||
-        !(farEnough || fastEnough)) {
-      // Werent far or fast enough to delete, restore
-      delete this._notification;
-      return;
-    }
-
+  cancelSwipe: function ns_cancelSwipe() {
     var notification = this._notification;
     this._notification = null;
 
-    var toaster = this.toaster;
-    var self = this;
-    notification.addEventListener('transitionend', function trListener() {
-      notification.removeEventListener('transitionend', trListener);
-
-      self.closeNotification(notification);
-
-      if (notification != toaster)
-        return;
-
-      // Putting back the toaster in a clean state for the next notification
-      toaster.style.display = 'none';
-      setTimeout(function nextLoop() {
-        toaster.style.MozTransition = '';
-        toaster.style.MozTransform = '';
-        toaster.classList.remove('displayed');
-        toaster.classList.remove('disappearing');
-
-        setTimeout(function nextLoop() {
-          toaster.style.display = 'block';
+    // If the notification has been moved, animate it back to its original
+    // position.
+    if (this._touchPosX) {
+      notification.addEventListener('transitionend',
+        function trListener() {
+          notification.removeEventListener('transitionend', trListener);
+          notification.classList.remove('snapback');
         });
-      });
-    });
+      notification.classList.add('snapback');
+    }
 
-    notification.classList.add('disappearing');
+    notification.style.transform = '';
+  },
+
+  // Swipe handling
+  touchstart: function ns_touchstart(evt) {
+    if (evt.touches.length !== 1) {
+      if (this._touching) {
+        this._touching = false;
+        this.cancelSwipe();
+      }
+      return;
+    }
+
+    var target = evt.touches[0].target;
+    if (!target.dataset.notificationId)
+      return;
+
+    evt.preventDefault();
+    this._notification = target;
+    this._containerWidth = this.container.clientWidth;
+    this._touchStartX = evt.touches[0].pageX;
+    this._touchPosX = 0;
+    this._touching = true;
+    this._isTap = true;
+  },
+
+  touchmove: function ns_touchmove(evt) {
+    if (!this._touching) {
+      return;
+    }
+
+    if (evt.touches.length !== 1) {
+      this._touching = false;
+      this.cancelSwipe();
+      return;
+    }
+
+    evt.preventDefault();
+    this._touchPosX = evt.touches[0].pageX - this._touchStartX;
+    if (this._touchPosX >= this.TAP_THRESHOLD) {
+      this._isTap = false;
+    }
+    if (!this._isTap) {
+      this._notification.style.transform =
+        'translateX(' + this._touchPosX + 'px)';
+    }
+  },
+
+  touchend: function ns_touchend(evt) {
+    if (!this._touching) {
+      return;
+    }
+
+    evt.preventDefault();
+    this._touching = false;
+
+    if (this._isTap) {
+      var event = new CustomEvent('tap', {
+        bubbles: true,
+        cancelable: true
+      });
+      this._notification.dispatchEvent(event);
+      this._notification = null;
+      return;
+    }
+
+    if (Math.abs(this._touchPosX) >
+        this._containerWidth * this.TRANSITION_FRACTION) {
+      if (this._touchPosX < 0) {
+        this._notification.classList.add('left');
+      }
+      this.swipeCloseNotification();
+    } else {
+      this.cancelSwipe();
+    }
+  },
+
+  touchcancel: function ns_touchcancel(evt) {
+    if (this._touching) {
+      evt.preventDefault();
+      this._touching = false;
+      this.cancelSwipe();
+    }
+  },
+
+  wheel: function ns_wheel(evt) {
+    if (evt.deltaMode === evt.DOM_DELTA_PAGE && evt.deltaX) {
+      this._notification = evt.target;
+      this.swipeCloseNotification();
+    }
   },
 
   tap: function ns_tap(node) {
@@ -296,7 +372,8 @@ var NotificationScreen = {
     this.lockScreenContainer = this.lockScreenContainer ||
       document.getElementById('notifications-lockscreen-container');
     var notificationNode = document.createElement('div');
-    notificationNode.className = 'notification';
+    notificationNode.classList.add('notification');
+    notificationNode.setAttribute('role', 'link');
 
     notificationNode.dataset.notificationId = detail.id;
     notificationNode.dataset.obsoleteAPI = 'false';
@@ -311,41 +388,49 @@ var NotificationScreen = {
     if (detail.icon) {
       var icon = document.createElement('img');
       icon.src = detail.icon;
+      icon.setAttribute('role', 'presentation');
       notificationNode.appendChild(icon);
     }
-
-    var time = document.createElement('span');
-    var timestamp = new Date();
-    time.classList.add('timestamp');
-    time.dataset.timestamp = timestamp;
-    time.textContent = this.prettyDate(timestamp);
-    notificationNode.appendChild(time);
 
     var dir = (detail.bidi === 'ltr' ||
                detail.bidi === 'rtl') ?
           detail.bidi : 'auto';
 
+    var titleContainer = document.createElement('div');
+    titleContainer.classList.add('title-container');
+    titleContainer.lang = detail.lang;
+    titleContainer.dir = dir;
+
     var title = document.createElement('div');
     title.classList.add('title');
     title.textContent = detail.title;
-    notificationNode.appendChild(title);
     title.lang = detail.lang;
     title.dir = dir;
+    titleContainer.appendChild(title);
+
+    var time = document.createElement('span');
+    var timestamp = detail.timestamp ? new Date(detail.timestamp) : new Date();
+    time.classList.add('timestamp');
+    time.dataset.timestamp = timestamp;
+    time.textContent = this.prettyDate(timestamp);
+    titleContainer.appendChild(time);
+
+    notificationNode.appendChild(titleContainer);
 
     var message = document.createElement('div');
     message.classList.add('detail');
     message.textContent = detail.text;
-    notificationNode.appendChild(message);
     message.lang = detail.lang;
     message.dir = dir;
+    notificationNode.appendChild(message);
 
     var notifSelector = '[data-notification-id="' + detail.id + '"]';
     var oldNotif = this.container.querySelector(notifSelector);
     if (oldNotif) {
       // The whole node cannot be replaced because CSS animations are re-started
-      oldNotif.replaceChild(title, oldNotif.querySelector('.title'));
+      oldNotif.replaceChild(titleContainer,
+        oldNotif.querySelector('.title-container'));
       oldNotif.replaceChild(message, oldNotif.querySelector('.detail'));
-      oldNotif.replaceChild(time, oldNotif.querySelector('.timestamp'));
       var oldIcon = oldNotif.querySelector('img');
       if (icon) {
         oldIcon ? oldIcon.src = icon.src : oldNotif.insertBefore(icon,
@@ -367,14 +452,13 @@ var NotificationScreen = {
     });
     window.dispatchEvent(event);
 
-    new GestureDetector(notificationNode).startDetecting();
-
     // We turn the screen on if needed in order to let
     // the user see the notification toaster
     if (typeof(ScreenManager) !== 'undefined' &&
       !ScreenManager.screenEnabled) {
       // bug 915236: disable turning on the screen for email notifications
-      if (detail.manifestURL.indexOf('email.gaiamobile.org') === -1) {
+      if (!detail.manifestURL ||
+           detail.manifestURL.indexOf('email.gaiamobile.org') === -1) {
         ScreenManager.turnScreenOn();
       }
     }
@@ -385,10 +469,8 @@ var NotificationScreen = {
     // Notification toaster
     if (notify) {
       this.updateToaster(detail, type, dir);
-      if (this.lockscreenPreview || !window.lockScreen ||
-          !window.lockScreen.locked) {
+      if (this.lockscreenPreview || !window.System.locked) {
         this.toaster.classList.add('displayed');
-        this._toasterGD.startDetecting();
 
         if (this._toasterTimeout) {
           clearTimeout(this._toasterTimeout);
@@ -397,15 +479,13 @@ var NotificationScreen = {
         this._toasterTimeout = setTimeout((function() {
           this.toaster.classList.remove('displayed');
           this._toasterTimeout = null;
-          this._toasterGD.stopDetecting();
         }).bind(this), this.TOASTER_TIMEOUT);
       }
     }
 
     // Adding it to the lockscreen if locked and the privacy setting
     // does not prevent it.
-    if (typeof(window.lockScreen) !== 'undefined' &&
-        window.lockScreen.locked && this.lockscreenPreview) {
+    if (System.locked && this.lockscreenPreview) {
       var lockScreenNode = notificationNode.cloneNode(true);
 
       // First we try and find an existing notification with the same id.
@@ -424,9 +504,30 @@ var NotificationScreen = {
           this.lockScreenContainer.firstElementChild
         );
       }
+
+      window.lockScreenNotifications.showColoredMaskBG();
+
+      // UX specifies that the container should scroll to top
+      /* note two things:
+       * 1. we need to call adjustContainerVisualHints even
+       *    though we're setting scrollTop, since setting sT doesn't
+       *    necessarily invoke onscroll (if the old container is already
+       *    scrolled to top, we might still need to decide to show
+       *    the arrow)
+       * 2. set scrollTop before calling adjustContainerVisualHints
+       *    since sT = 0 will hide the mask if it's showing,
+       *    and if we call aCVH before setting sT,
+       *    under some circumstances aCVH would decide to show mask,
+       *    only to be negated by st = 0 (waste of energy!).
+       */
+      window.lockScreenNotifications.scrollToTop();
+
+      // check if lockscreen notifications visual
+      // hints (masks & arrow) need to show
+      window.lockScreenNotifications.adjustContainerVisualHints();
     }
 
-    if (notify) {
+    if (notify && !this.isResending) {
       if (!this.silent) {
         var ringtonePlayer = new Audio();
         ringtonePlayer.src = this._sound;
@@ -441,10 +542,14 @@ var NotificationScreen = {
 
       if (this.vibrates) {
         if (document.hidden) {
-          window.addEventListener('visibilitychange', function waitOn() {
-            window.removeEventListener('visibilitychange', waitOn);
-            navigator.vibrate([200, 200, 200, 200]);
-          });
+           // bug 1030310: disable vibration for the email app when asleep
+          if (!detail.manifestURL ||
+              detail.manifestURL.indexOf('email.gaiamobile.org') === -1) {
+            window.addEventListener('visibilitychange', function waitOn() {
+              window.removeEventListener('visibilitychange', waitOn);
+              navigator.vibrate([200, 200, 200, 200]);
+            });
+          }
         } else {
           navigator.vibrate([200, 200, 200, 200]);
         }
@@ -457,14 +562,41 @@ var NotificationScreen = {
     return notificationNode;
   },
 
+  swipeCloseNotification: function ns_swipeCloseNotification() {
+    var notification = this._notification;
+    this._notification = null;
+
+    var toaster = this.toaster;
+    var self = this;
+    notification.addEventListener('transitionend', function trListener() {
+      notification.removeEventListener('transitionend', trListener);
+
+      self.closeNotification(notification);
+
+      if (notification != toaster) {
+        return;
+      }
+
+      // Putting back the toaster in a clean state for the next notification
+      toaster.style.display = 'none';
+      setTimeout(function nextLoop() {
+        toaster.style.MozTransition = '';
+        toaster.style.MozTransform = '';
+        toaster.classList.remove('displayed');
+        toaster.classList.remove('disappearing');
+
+        setTimeout(function nextLoop() {
+          toaster.style.display = 'block';
+        });
+      });
+    });
+
+    notification.classList.add('disappearing');
+    notification.style.transform = '';
+  },
+
   closeNotification: function ns_closeNotification(notificationNode) {
     var notificationId = notificationNode.dataset.notificationId;
-    var event = document.createEvent('CustomEvent');
-    event.initCustomEvent('mozContentNotificationEvent', true, true, {
-      type: 'desktop-notification-close',
-      id: notificationId
-    });
-    window.dispatchEvent(event);
     this.removeNotification(notificationId);
   },
 
@@ -478,12 +610,31 @@ var NotificationScreen = {
         this.lockScreenContainer.querySelector(notifSelector);
     }
 
-    if (notificationNode)
+    if (notificationNode) {
       notificationNode.parentNode.removeChild(notificationNode);
+    }
 
-    if (lockScreenNotificationNode)
-      lockScreenNotificationNode.parentNode
-        .removeChild(lockScreenNotificationNode);
+    var event = document.createEvent('CustomEvent');
+    event.initCustomEvent('mozContentNotificationEvent', true, true, {
+      type: 'desktop-notification-close',
+      id: notificationId
+    });
+    window.dispatchEvent(event);
+
+    if (lockScreenNotificationNode) {
+      var lockScreenNotificationParentNode =
+        lockScreenNotificationNode.parentNode;
+      lockScreenNotificationParentNode.removeChild(lockScreenNotificationNode);
+      // if we don't have any notifications,
+      // use the no-notifications masked background for lockscreen
+      if (!lockScreenNotificationParentNode.firstElementChild) {
+        window.lockScreenNotifications.hideColoredMaskBG();
+      }
+
+      // check if lockscreen notifications visual
+      // hints (masks & arrow) need to show
+      window.lockScreenNotifications.adjustContainerVisualHints();
+    }
     this.updateStatusBarIcon();
 
     if (!this.container.firstElementChild) {
@@ -507,6 +658,12 @@ var NotificationScreen = {
       var element = this.lockScreenContainer.firstElementChild;
       this.lockScreenContainer.removeChild(element);
     }
+
+    // remove the "have notifications" masked background from lockscreen
+    window.lockScreenNotifications.hideColoredMaskBG();
+    // check if lockscreen notifications visual
+    // hints (masks & arrow) need to show
+    window.lockScreenNotifications.adjustContainerVisualHints();
   },
 
   updateStatusBarIcon: function ns_updateStatusBarIcon(unread) {
@@ -532,6 +689,31 @@ var NotificationScreen = {
   }
 
 };
+
+window.addEventListener('load', function() {
+  window.removeEventListener('load', this);
+  if ('mozSettings' in navigator && navigator.mozSettings) {
+    var key = 'notifications.resend';
+    var req = navigator.mozSettings.createLock().get(key);
+    req.onsuccess = function onsuccess() {
+      var resendEnabled = req.result[key] || false;
+      if (!resendEnabled) {
+        return;
+      }
+
+      var resendCallback = (function(number) {
+        window.dispatchEvent(
+          new CustomEvent('desktop-notification-resend',
+            { detail: { number: number } }));
+      }).bind(this);
+
+      if ('mozChromeNotifications' in navigator) {
+        navigator.mozChromeNotifications.
+          mozResendAllNotifications(resendCallback);
+      }
+    };
+  }
+});
 
 NotificationScreen.init();
 

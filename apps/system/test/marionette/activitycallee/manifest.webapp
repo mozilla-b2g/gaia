@@ -1,5 +1,5 @@
 {
-  "name": "Fake Activity Callee",
+  "name": "Fake Activity Callee with inline deposition",
   "description": "A fake activity callee",
   "type": "certified",
   "launch_path": "/index.html",
@@ -12,6 +12,11 @@
     "test-alert": {
       "disposition": "inline",
       "href": "index.html",
+      "returnValue": true
+    },
+    "test-chain-inline": {
+      "disposition": "inline",
+      "href": "chain.html",
       "returnValue": true
     }
   }

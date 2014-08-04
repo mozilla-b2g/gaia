@@ -4,6 +4,7 @@
 window.realL10n = window.navigator.mozL10n;
 
 var MockMozL10n = window.navigator.mozL10n = {
+  realL10nCB: null,
   language: {
     code: 'en',
     dir: 'ltr'
@@ -27,5 +28,7 @@ var MockMozL10n = window.navigator.mozL10n = {
     element.textContent = this.get(key, params);
   },
   translate: function() {},
-  once: function() {},
+  once: function(cb) {
+    this.realL10nCB = cb;
+  },
 };

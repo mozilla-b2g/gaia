@@ -7,7 +7,7 @@
     <!-- Include shared building blocks -->
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/confirm.css"/>
-    <link rel="stylesheet" type="text/css" href="shared/style_unstable/input_areas.css"/>
+    <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/progress_activity.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/status.css">
     <link rel="stylesheet" type="text/css" href="shared/style/tabs.css"/>
@@ -19,6 +19,7 @@
     <script defer src="shared/js/device_storage/enumerate_all.js"></script>
     <script defer src="shared/js/mediadb.js"></script>
     <script defer src="shared/js/lazy_loader.js"></script>
+    <script defer src="shared/js/font_size_utils.js"></script>
     <script defer src="shared/js/accessibility_helper.js"></script>
     <script defer src="shared/js/async_storage.js"></script>
     <script defer src="shared/js/text_normalizer.js"></script>
@@ -47,7 +48,7 @@
         <form id="views-tiles-search" role="search" class="skin-dark">
           <button id="views-tiles-search-close" data-l10n-id="search-close" type="submit">close</button>
           <p>
-            <input id="views-tiles-search-input" type="text"
+            <input id="views-tiles-search-input" type="text" dir="auto"
                    data-l10n-id="search-music" placeholder="SearcH MusiC">
             <button id="views-tiles-search-clear" type="reset">Clear</button>
           </p>

@@ -3,6 +3,14 @@
 'use strict';
 
 var OperatorVariantManager = {
+  SETTING_FTU_SIM_PRESENT: 'ftu.simPresentOnFirstBoot',
+
+  // Settings 'ftu.simPresentOnFirstBoot' only had false value if the user
+  // powered the phone on without SIM
+  // In other case we would have true or undefined depending on what process was
+  // executed first, so our variable is true by default.
+  simPresentOnFirstBoot: true,
+
   // This file is created during the BUILD process
   CUSTOMIZATION_FILE: '/resources/customization.json',
 
@@ -17,22 +25,44 @@ var OperatorVariantManager = {
     '/js/customizers/network_type_customizer.js',
     '/js/customizers/ringtone_customizer.js',
     '/js/customizers/support_contacts_customizer.js',
+    '/js/customizers/sms_customizer.js',
     '/js/customizers/default_contacts_customizer.js',
     '/js/customizers/power_customizer.js',
     '/js/customizers/known_networks_customizer.js',
     '/js/customizers/data_ftu_customizer.js',
-    '/js/customizers/nfc_customizer.js'
+    '/js/customizers/nfc_customizer.js',
+    '/js/customizers/search_customizer.js',
+    '/js/customizers/default_search_customizer.js',
+    '/js/customizers/topsites_customizer.js',
+    '/js/customizers/data_roaming_customizer.js'
   ],
 
   init: function ovm_init() {
-    window.navigator.mozSetMessageHandler('first-run-with-sim', msg => {
-      this.mcc_mnc = this.getMccMnc(msg.mcc, msg.mnc);
-      if (this.mcc_mnc) {
-        // Load the variant customizers and the variant JSON file.
-        LazyLoader.load(
-          this.CUSTOMIZERS,
-          this.loadVariantAndCustomize.bind(this)
-        );
+    navigator.mozSetMessageHandler('first-run-with-sim', (msg) => {
+      var self = this;
+      self.mcc_mnc = self.getMccMnc(msg.mcc, msg.mnc);
+      if (self.mcc_mnc) {
+        var settings = navigator.mozSettings;
+        if (!settings) {
+          console.log(
+            'Settings is not available. Cannot make the configuration changes');
+          return;
+        }
+        var req = settings.createLock().get(self.SETTING_FTU_SIM_PRESENT);
+
+        req.onsuccess = function osv_success(e) {
+          var simOnFirstBoot = req.result[self.SETTING_FTU_SIM_PRESENT];
+          self.simPresentOnFirstBoot = !simOnFirstBoot ||
+              req.result[self.SETTING_FTU_SIM_PRESENT] === self.mcc_mnc;
+          LazyLoader.load(
+            self.CUSTOMIZERS,
+            self.loadVariantAndCustomize.bind(self)
+          );
+        };
+
+        req.onerror = function osv_error(e) {
+          console.error('Error retrieving ftu.simPresentOnFirstBoot. ', e);
+        };
       }
     });
   },
@@ -92,7 +122,8 @@ var OperatorVariantManager = {
         var customizationEvent = new CustomEvent('customization', {
           detail: {
             setting: setting,
-            value: customizationSettings[setting]
+            value: customizationSettings[setting],
+            simPresentOnFirstBoot: this.simPresentOnFirstBoot
           }
         });
         scheduleEvent(customizationEvent);

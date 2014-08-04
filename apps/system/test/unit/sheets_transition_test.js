@@ -1,5 +1,8 @@
 'use strict';
-mocha.globals(['homescreenLauncher']);
+/* global MocksHelper */
+/* global MockHomescreenLauncher */
+/* global MockStackManager */
+/* global SheetsTransition */
 
 requireApp('system/js/sheets_transition.js');
 
@@ -36,7 +39,8 @@ suite('system/SheetsTransition >', function() {
   var getPrevStub, getNextStub;
 
   setup(function() {
-    window.homescreenLauncher = new MockHomescreenLauncher().start();
+    window.homescreenLauncher = new MockHomescreenLauncher();
+    window.homescreenLauncher.start();
     getPrevStub = this.sinon.stub(MockStackManager, 'getPrev');
     getPrevStub.returns(dialer);
     dialerFrame = document.createElement('div');
@@ -59,6 +63,16 @@ suite('system/SheetsTransition >', function() {
   suite('Begining the transition', function() {
     setup(function() {
       SheetsTransition.begin('ltr');
+    });
+
+    test('it should cleanup previous sheet transitions', function() {
+      SheetsTransition.moveInDirection('ltr', 0.3);
+
+      MockStackManager.getCurrent.returns(contacts);
+      SheetsTransition.begin('ltr');
+
+      assert.isFalse(settingsFrame.classList.contains('inside-edges'));
+      assert.equal(settingsFrame.style.transform, '');
     });
 
     test('it should add the inside-edges class to the current sheet',
@@ -117,6 +131,17 @@ suite('system/SheetsTransition >', function() {
         assert.isTrue(true, 'did not fail');
       });
     });
+  });
+
+  test('it should dispatch a sheetstransitionstart event', function(done) {
+    window.addEventListener('sheetstransitionstart', function gotIt(evt) {
+      window.removeEventListener('sheetstransitionstart', gotIt);
+
+      assert.isTrue(true, 'got it');
+      done();
+    });
+
+    SheetsTransition.begin('ltr');
   });
 
   suite('Moving the sheets', function() {

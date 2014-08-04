@@ -5,8 +5,9 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
-var View = require('vendor/view');
+var debug = require('debug')('view:hud');
 var bind = require('lib/bind');
+var View = require('view');
 
 /**
  * Exports
@@ -24,18 +25,49 @@ module.exports = View.extend({
     this.els.flash = this.find('.js-flash');
     this.els.camera = this.find('.js-camera');
     this.els.settings = this.find('.js-settings');
+
+    // Clean up
+    delete this.template;
+
+    debug('rendered');
+    return this.bindEvents();
+  },
+
+  bindEvents: function() {
     bind(this.els.flash, 'click', this.onFlashClick);
     bind(this.els.camera, 'click', this.onCameraClick);
     bind(this.els.settings, 'click', this.onSettingsClick, true);
+    return this;
   },
 
   setFlashMode: function(mode) {
-    if (!mode) { return; }
+    if (!mode) {
+      return;
+    }
+
     var classes = this.els.flash.classList;
     var oldIcon = this.flashMode && this.flashMode.icon;
-    if (oldIcon) { classes.remove(oldIcon); }
+    if (oldIcon) {
+      classes.remove(oldIcon);
+    }
+
     classes.add(mode.icon);
     this.flashMode = mode;
+  },
+
+  setCamera: function(camera) {
+    if (!camera) {
+      return;
+    }
+
+    var classes = this.els.camera.classList;
+    var oldIcon = this.camera && this.camera.icon;
+    if (oldIcon) {
+      classes.remove(oldIcon);
+    }
+
+    classes.add(camera.icon);
+    this.camera = camera;
   },
 
   onFlashClick: function(event) {
@@ -54,10 +86,10 @@ module.exports = View.extend({
   },
 
   template: function() {
-    return '<div class="hud_btn hud_camera rotates icon-toggle-camera ' +
-    'test-toggle-camera js-camera"></div>' +
-    '<div class="hud_btn hud_flash rotates test-toggle-flash js-flash"></div>' +
-    '<div class="hud_btn hud_settings rotates icon-settings js-settings">' +
+    /*jshint maxlen:false*/
+    return '<div class="hud_btn hud_camera rotates test-camera-toggle js-camera"></div>' +
+    '<div class="hud_btn hud_flash rotates test-flash-button js-flash"></div>' +
+    '<div class="hud_btn hud_settings rotates icon-menu test-settings-toggle js-settings">' +
     '</div>';
   }
 });

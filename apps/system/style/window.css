@@ -1,45 +1,13 @@
-.appWindow,
-.activityWindow {
-  position: absolute;
-  left: 0;
-  border: 0;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-  top: 2.4rem;
-  width: 100%;
-  height: 100%;
-  background-repeat: no-repeat;
-  background-position: center center;
-}
-
-.appWindow > .appWindow {
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-}
-
-@media not all and (-moz-physical-home-button) {
-  #screen:not(.software-button-disabled) > #windows > .appWindow {
-    bottom: 5rem;
-  }
-}
-
 .appWindow[transition-state="closed"]:not(.fadeout):not(.homescreen) {
   opacity: 0;
   transform: translateX(0);
-}
-
-#screen.software-button-enabled #windows > .appWindow {
-  bottom: 5rem;
 }
 
 #screen.utility-tray #windows > .appWindow {
   pointer-events: none;
 }
 
-.appWindow:not(.homescreen) {
+.appWindow:not(.homescreen):not(.searchWindow) {
   background-color: black;
 }
 
@@ -47,47 +15,15 @@
   background-color: white;
 }
 
-.appWindow:not(.homescreen).render {
+.appWindow:not(.homescreen):not(.searchWindow).render {
   background-image: none !important;
   background-color: transparent;
 }
 
 /* mozbrowser iframe layout */
 
-.appWindow > iframe {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+.appWindow iframe {
   border: none;
-}
-
-.appWindow.navigation:not(.rocketbar) > iframe {
-  position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 1rem;
-  width: 100%;
-  height: calc(100% - 1rem);
-}
-
-.appWindow.rocketbar:not(.navigation) > iframe {
-  position: absolute;
-  top: 5rem;
-  left: 0;
-  bottom: 0;
-  width: 100%;
-  height: calc(100% - 5rem);
-}
-
-.appWindow.navigation.rocketbar > iframe {
-  position: absolute;
-  top: 5rem;
-  left: 0;
-  bottom: 1rem;
-  width: 100%;
-  height: calc(100% - 6rem);
 }
 
 .appWindow .throbber.loading {
@@ -96,16 +32,16 @@
   background-size: auto 0.3rem;
 }
 
-.appWindow:not(.homescreen).render > iframe {
+.appWindow:not(.homescreen):not(.searchWindow).render > div.browser-container {
   background-color: #fff;
 }
 
-/* app window layout */
+.appWindow:not(.homescreen):not(.searchWindow).light.render > div.browser-container {
+  background-color: #f2f2f2;
+}
 
-#screen.active-statusbar > #windows > .appWindow,
-#screen.active-statusbar > #windows > .appWindow.fullscreen-app {
-  top: 4rem;
-  height: calc(100% - 4rem);
+.appWindow:not(.homescreen):not(.searchWindow).render > div.browser-container > iframe {
+  background-color: #fff;
 }
 
 .appWindow.enlarge {
@@ -216,13 +152,6 @@
   animation-duration: 3s;
 }
 
-.appWindow.transition-closing,
-.appWindow.transition-opening {
-  /* The animation takes .3 seconds so users cannot touch the app while the
-   * closing animation is performing */
-  pointer-events: none;
-}
-
 .appWindow.reduce {
   animation: closeApp 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
@@ -250,54 +179,6 @@
   animation: closeAppTowardsTaskManager 0.15s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
-/* Prebuild width/height */
-#screen:not(.active-statusbar):not(.software-button-enabled):not(:-moz-full-screen-ancestor) > #windows > .appWindow:not(.fullscreen-app),
-.appWindow.homescreen {
-  top: 2.4rem;
-  height: calc(100% - 2.4rem);
-  width: 100%;
-}
-
-#screen:not(.active-statusbar):not(.software-button-enabled) > #windows > .appWindow.fullscreen-app {
-  top: 0;
-  height: 100%;
-  width: 100%;
-}
-
-#screen.active-statusbar:not(.software-button-enabled):not(:-moz-full-screen-ancestor) > #windows > .appWindow {
-  top: 4rem;
-  height: calc(100% - 4rem);
-  width: 100%;
-}
-
-#screen.active-statusbar.software-button-enabled:not(:-moz-full-screen-ancestor) > #windows > .appWindow {
-  top: 4rem;
-  bottom: 5rem;
-  height: calc(100% - 5rem - 4rem);
-  width: 100%;
-}
-
-#screen.software-button-enabled:not(:-moz-full-screen-ancestor) > #windows > .appWindow {
-  top: 2.4rem;
-  bottom: 5rem;
-  height: calc(100% - 5rem - 2.4rem);
-  width: 100%;
-}
-
-#screen.software-button-enabled:not(.active-statusbar) > #windows > .appWindow.fullscreen-app {
-  top: 0;
-  bottom: 5rem;
-  height: calc(100% - 5rem);
-  width: 100%;
-}
-
-#screen.active-statusbar:not(.software-button-enabled) > #windows > .appWindow.fullscreen-app {
-  top: 4rem;
-  bottom: 0;
-  height: calc(100% - 4rem);
-  width: 100%;
-}
-
 @keyframes closeApp {
   0%   { transform: scale(1.0); opacity: 1;}
   100% { transform: scale(0.01); opacity: 0;}
@@ -323,50 +204,53 @@
   transition: transform 0.25s cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
-#screen > #windows > .appWindow.fullscreen-app {
-  top: 0;
-}
-
-.appWindow > iframe {
+.appWindow iframe {
   visibility: visible;
 }
 
 .appWindow > .fade-overlay {
   background-color: black;
-  position: absolute;
   visibility: hidden;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
   opacity: 0.8;
 }
 
-.appWindow.homescreen.fadeout > .fade-overlay.hidden {
+.appWindow.homescreen.fadeout .fade-overlay.hidden {
   visibility: hidden;
 }
 
-.appWindow.fadeout > .fade-overlay {
+.appWindow.fadeout .fade-overlay {
   visibility: visible;
 }
 
-.appWindow.homescreen.fadeout > .fade-overlay {
-  opacity: 0.8;
+.appWindow.homescreen.fadeout .fade-overlay {
+  opacity: 1;
+}
+
+.appWindow > .touch-blocker {
+  visibility: hidden;
+  background: transparent;
+  pointer-events: all;
+}
+
+.appWindow.transition-closing .touch-blocker,
+.appWindow.transition-opening .touch-blocker {
+  /* The animation takes .3 seconds so users cannot touch the app while the
+   * closing animation is performing */
+  visibility: visible;
 }
 
 .appWindow > .modal-dialog,
 .appWindow > .authentication-dialog,
 .authentication-dialog > .authentication-dialog-http {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
   visibility: hidden;
 }
 
 .appWindow > .contextmenu {
   visibility: visible;
+}
+
+.appWindow.searchWindow {
+  overflow: visible;
 }
 
 .appWindow > .modal-dialog.visible,
@@ -402,41 +286,43 @@
   visibility: visible;
 }
 
-.appWindow > .screenshot-overlay {
-  visibility: hidden;
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+/****************** Screenshot Overlay ******************/
+.appWindow .screenshot-overlay {
   pointer-events: none;
+  height: 100%;
 
   /* We need this to resize hi-res screenshot */
   background-size: cover;
 }
 
-.appWindow > .screenshot-overlay.visible {
-  visibility: visible;
+.appWindow.scrollable .screenshot-overlay {
+  background-color: inherit;
+}
+
+.appWindow.scrollable:not(.active) .screenshot-overlay {
+  margin-top: 4.6rem;
 }
 
 .appWindow > .identification-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
   pointer-events: none;
 
   background: rgba(255, 255, 255, 0.8);
 
   opacity: 0;
   transition: opacity 0.2s ease-in;
-  will-change: opacity;
 }
 
 .appWindow.suspended > .identification-overlay,
-#screen.edges .appWindow:not(.active) .identification-overlay.visible {
+.appWindow:not(.active) > .identification-overlay.visible {
   opacity: 1;
+}
+
+/* we don't want to show the overlay at all during the opening
+   transition (from the homescreen and from the cardview) */
+.appWindow.enlarge > .identification-overlay.visible,
+.appWindow.from-cardview > .identification-overlay.visible {
+  opacity: 0 !important;
+  transition: none !important;
 }
 
 .identification-overlay > div {
@@ -476,7 +362,7 @@
   overflow: hidden;
 }
 
-.appWindow > iframe.hidden {
+.appWindow iframe.hidden {
   visibility: hidden;
 }
 
@@ -486,16 +372,16 @@
   z-index: 65536;
 }
 
+.appWindow > .touch-blocker {
+  z-index: 1026;
+}
+
 .appWindow > .fade-overlay {
   z-index: 1025;
 }
 
 .appWindow > .identification-overlay {
   z-index: 1024;
-}
-
-.appWindow > .screenshot-overlay {
-  z-index: 1023;
 }
 
 .appWindow > .chrome {
@@ -536,7 +422,7 @@
 }
 
 .appWindow > .contextmenu {
-  z-index: 2;
+  z-index: 11;
 }
 
 @keyframes inFromLeft {
@@ -603,39 +489,59 @@
   100% { transform: translateX(100%); }
 }
 
+/* Task Manager */
+#screen.task-manager:not(.active-statusbar):not(.software-button-enabled) > #windows > .appWindow.in-task-manager,
+#screen.task-manager:not(.active-statusbar):not(.software-button-enabled):not(:-moz-full-screen-ancestor) > #windows > .appWindow.in-task-manager:not(.fullscreen-app) {
+  /* XXX sfoster - watch specificify here
+     Position values are 1/2 because of scaling */
+  top: calc(25% + 2.5rem);
+  margin: 0 auto;
+  overflow: hidden;
+  transform-origin: 50% 0;
+  transform: translateX(99.99%) scale(0.5, 0.5);
+  will-change: transform;
+}
+
 /* Edges */
-#screen.edges #windows > .appWindow:not(.homescreen) {
-  /* in the viewport but not really */
-  transform: translateX(99.9999%);
+#windows > .appWindow:not(.homescreen):not(.lockScreenWindow) {
+  /* not in the viewport */
+  transform: translateX(-100%);
   opacity: 1;
-  will-change: transform, opacity;
+}
+
+#windows > .appWindow:not(.lockScreenWindow):not(.active) {
+  will-change: transform;
 }
 
 #screen:-moz-full-screen-ancestor > #windows .appWindow.active {
-  top: 0;
-  height: 100%;
   will-change: auto;
 }
 
-#screen.edges .appWindow.will-become-inactive {
+#screen #windows > .appWindow.will-become-inactive {
   opacity: 0;
 }
 
-#screen.edges #windows > .appWindow.active:not(.will-become-inactive),
-#screen.edges #windows > .appWindow.will-become-active,
-#screen.edges #windows > .appWindow.inside-edges {
+#screen #windows > .appWindow.active:not(.will-become-inactive):not(.back),
+#screen #windows > .appWindow.will-become-active,
+#screen #windows > .appWindow.inside-edges {
   opacity: 1;
   transform: translateX(0);
 }
 
-#screen.edges #windows > .appWindow.outside-edges-left {
+#screen #windows > .appWindow.outside-edges-left {
   opacity: 1;
   transform: translateX(calc(-100% - 2rem));
 }
 
-#screen.edges #windows > .appWindow.outside-edges-right {
+#screen #windows > .appWindow.outside-edges-right {
   opacity: 1;
   transform: translateX(calc(100% + 2rem));
+}
+
+@media (orientation: landscape) {
+  #screen.software-button-enabled #windows > .appWindow.outside-edges-right {
+    transform: translateX(calc(100% + 5rem));
+  }
 }
 
 #windows .appWindow.active iframe {
@@ -643,21 +549,6 @@
   transition-duration: 0.5s;
 }
 
-#screen.locked #windows .appWindow.active iframe,
-#screen.on-homescreen #windows .appWindow.active iframe {
+#screen.locked #windows .appWindow.active iframe {
   transition-property: none;
-}
-
-#screen.rocketbar-expanded .appWindow:not(.fullscreen-app).active iframe {
-  transform: translateY(2.4rem);
-}
-
-#screen.locked.rocketbar-expanded .appWindow.active iframe,
-#screen.on-homescreen.rocketbar-expanded .appWindow.active iframe {
-  transform: none;
-}
-
-#screen:-moz-full-screen-ancestor > #windows .appWindow.active iframe {
-  top: 0;
-  height: 100%;
 }

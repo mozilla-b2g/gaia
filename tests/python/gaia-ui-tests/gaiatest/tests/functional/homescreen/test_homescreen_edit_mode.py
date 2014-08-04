@@ -13,11 +13,8 @@ class TestEditMode(GaiaTestCase):
 
         self.homescreen = Homescreen(self.marionette)
         self.apps.switch_to_displayed_app()
-        self.homescreen.wait_for_homescreen_to_load()
 
     def test_access_and_leave_edit_mode(self):
-
-        self.homescreen.go_to_next_page()
 
         # Go to edit mode
         self.homescreen.activate_edit_mode()

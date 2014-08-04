@@ -1,5 +1,3 @@
-/* global SIMSlotManager */
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 'use strict';
@@ -26,7 +24,10 @@ var SimLock = {
     // Display the dialog only after lockscreen is unlocked
     // before the transition.
     // To prevent keyboard being displayed behind it.
-    window.addEventListener('will-unlock', this);
+    //
+    // And we can't listen to 'lockscreen-appclosing' event because
+    // we need to detect if the next app is Camera.
+    window.addEventListener('lockscreen-request-unlock', this);
 
     // always monitor card state change
     var self = this;
@@ -56,7 +57,11 @@ var SimLock = {
   handleEvent: function sl_handleEvent(evt) {
     switch (evt.type) {
       case 'ftuopen':
-        SimPinDialog.close();
+        VersionHelper.getVersionInfo().then(function(info) {
+          if (!info.isUpgrade()) {
+            SimPinDialog.close();
+          }
+        });
         break;
       case 'simpinback':
         var index = evt.detail._currentSlot.index;
@@ -96,14 +101,23 @@ var SimLock = {
           this.showIfLocked();
         }
         break;
-      case 'will-unlock':
+      case 'lockscreen-request-unlock':
         // Check whether the lock screen was unlocked from the camera or not.
         // If the former is true, the SIM PIN dialog should not displayed after
         // unlock, because the camera will be opened (Bug 849718)
-        if (evt.detail && evt.detail.areaCamera)
+        if (evt.detail && evt.detail.activity &&
+            'record' === evt.detail.activity.name) {
           return;
-
-        this.showIfLocked();
+        }
+        var self = this;
+        // We should wait for lockscreen-appclosed event sent before checking
+        // the value of System.locked in showIfLocked method.
+        window.addEventListener('lockscreen-appclosed',
+          function lockscreenOnClosed() {
+            window.removeEventListener('lockscreen-appclosed',
+              lockscreenOnClosed);
+            self.showIfLocked();
+          });
         break;
       case 'appopened':
         // If an app needs 'telephony' or 'sms' permissions (i.e. mobile
@@ -145,12 +159,21 @@ var SimLock = {
   },
 
   showIfLocked: function sl_showIfLocked(currentSlotIndex, skipped) {
-    if (lockScreen && lockScreen.locked)
+    if (System.locked)
       return false;
 
-    // FTU has its specific SIM PIN UI
-    if (FtuLauncher.isFtuRunning())
+    if (SimPinDialog.visible) {
       return false;
+    }
+
+    // FTU has its specific SIM PIN UI
+    if (FtuLauncher.isFtuRunning()) {
+      VersionHelper.getVersionInfo().then(function(info) {
+        if (!info.isUpgrade()) {
+          SimPinDialog.close();
+        }
+      });
+    }
 
     if (this._duringCall) {
       this._showPrevented = true;
@@ -196,11 +219,16 @@ var SimLock = {
   }
 };
 
-if (SIMSlotManager.ready) {
-  SimLock.init();
-} else {
-  window.addEventListener('simslotready', function ready() {
-    window.removeEventListener('simslotready', ready);
+function preInit() {
+  if (SIMSlotManager.ready) {
     SimLock.init();
-  });
+  } else {
+    window.addEventListener('simslotready', function ready() {
+      window.removeEventListener('simslotready', ready);
+      SimLock.init();
+    });
+  }
 }
+
+// SIMLock will optionally load SIMLock dialog which is blocked by l10n
+navigator.mozL10n.once(preInit);

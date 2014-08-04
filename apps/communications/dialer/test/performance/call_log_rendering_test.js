@@ -22,6 +22,9 @@ marionette(mozTestInfo.appPath + ' >', function() {
     this.timeout(500000);
     client.setScriptTimeout(50000);
 
+    // inject perf event listener
+    PerformanceHelper.injectHelperAtom(client);
+
     MarionetteHelper.unlockScreen(client);
   });
 
@@ -40,8 +43,6 @@ marionette(mozTestInfo.appPath + ' >', function() {
       var waitForBody = true;
       app.launch(waitForBody);
 
-      performanceHelper.observe();
-
       app.element('optionRecents', function(err, recentsButton) {
         recentsButton.tap();
       });
@@ -51,7 +52,7 @@ marionette(mozTestInfo.appPath + ' >', function() {
           app.close();
           throw error;
         } else {
-          performanceHelper.reportRunDurations(runResults);
+          performanceHelper.reportRunDurations(runResults, 'start-call-log');
 
           assert.ok(Object.keys(runResults).length, 'empty results');
           app.close();

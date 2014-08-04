@@ -52,7 +52,7 @@ if (!window.DUMP) {
 
 suite('STK (Main menu) >', function() {
   suiteSetup(function(done) {
-    loadBodyHTML('/index.html');
+    loadBodyHTML('./_root.html');
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
     realMozSettings = navigator.mozSettings;
@@ -73,11 +73,6 @@ suite('STK (Main menu) >', function() {
     window.DUMP = realDUMP;
     mocksHelper.suiteTeardown();
     MockNavigatorSettings.mTeardown();
-  });
-
-  test('Check initialization', function() {
-    assert.ok(document.getElementById('icc-mainheader'));
-    assert.ok(document.getElementById('icc-entries'));
   });
 
   suite('Single SIM >', function() {

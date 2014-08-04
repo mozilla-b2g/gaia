@@ -19,6 +19,10 @@ html,body {
   z-index: 1;
 }
 
+#accept.hidden {
+  display: none;
+}
+
 #si-sl-screen {
   height: -moz-calc(100% - 5rem - 5rem);
   overflow: auto;

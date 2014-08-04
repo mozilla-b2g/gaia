@@ -1,13 +1,8 @@
 'use strict';
 
-mocha.globals(['SecureWindowManager', 'SecureWindowFactory', 'LockScreen',
-               'LockScreenSlide', 'Clock', 'OrientationManager',
-               'addEventListener', 'dispatchEvent', 'secureWindowManager',
-               'secureWindowFactory', 'lockScreen', 'LockScreenConnInfoManager',
-               'MediaPlaybackWidget', 'SettingsListener', 'SettingsURL']);
-
-requireApp('system/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
+requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 requireApp('system/test/unit/mock_ftu_launcher.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
@@ -56,6 +51,7 @@ suite('system/LockScreen >', function() {
   var realOrientationManager;
   var realFtuLauncher;
   var realSettingsListener;
+  var realMozSettings;
   var domPasscodePad;
   var domEmergencyCallBtn;
   var domOverlay;
@@ -93,6 +89,9 @@ suite('system/LockScreen >', function() {
 
     realSettingsListener = window.SettingsListener;
     window.SettingsListener = window.MockSettingsListener;
+
+    realMozSettings = navigator.mozSettings;
+    navigator.mozSettings = window.MockNavigatorSettings;
 
     subject = new window.LockScreen();
 
@@ -141,11 +140,9 @@ suite('system/LockScreen >', function() {
   });
 
   test('Lock: can actually lock', function() {
-    var mockLO = sinon.stub(screen, 'mozLockOrientation');
     subject.overlay = domOverlay;
     subject.lock();
     assert.isTrue(subject.locked);
-    mockLO.restore();
   });
 
   test('Unlock: can actually unlock', function() {
@@ -154,21 +151,15 @@ suite('system/LockScreen >', function() {
     assert.isFalse(subject.locked);
   });
 
-  test('Passcode: enter passcode can unlock the screen', function() {
-    subject.passCodeEntered = '0000';
-    subject.passCode = '0000';
-    subject.passcodeCode = domPasscodeCode;
+  test('Passcode: enter passcode should fire the validation event', function() {
+    var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
+    subject.passCodeEntered = 'foobar';
     subject.checkPassCode();
-    assert.equal(subject.overlay.dataset.passcodeStatus, 'success');
-  });
-
-  test('Passcode: enter passcode can unlock the screen', function() {
-    subject.passCodeEntered = '0000';
-    subject.passCode = '3141';
-
-    subject.passcodeCode = domPasscodeCode;
-    subject.checkPassCode();
-    assert.equal(subject.overlay.dataset.passcodeStatus, 'error');
+    assert.isTrue(stubDispatchEvent.calledWithMatch(function(event) {
+      return 'lockscreen-request-passcode-validate' === event.type &&
+        'foobar' === event.detail.passcode;
+    }),
+    'it did\'t fire the correspond event to validate the passcode');
   });
 
   test('Handle event: when screen changed,' +
@@ -202,12 +193,8 @@ suite('system/LockScreen >', function() {
   test('Handle event: when unlock,' +
       'would fire event to turn secure mode off',
       function() {
-        var app = new MockAppWindow();
-        var spy = this.sinon.stub(app, 'ready');
-        this.sinon.stub(MockAppWindowManager, 'getActiveApp').returns(app);
         var stubDispatch = this.sinon.stub(window, 'dispatchEvent');
         subject.unlock();
-        spy.getCall(0).args[0]();
         assert.isTrue(stubDispatch.calledWithMatch(sinon.match(
               function(e) {
                 return e.type === 'secure-modeoff';
@@ -254,6 +241,13 @@ suite('system/LockScreen >', function() {
     assert.equal(subject.message.hidden, true);
   });
 
+  test('Lock when asked via lock-immediately setting', function() {
+    window.MockNavigatorSettings.mTriggerObservers(
+      'lockscreen.lock-immediately', {settingValue: true});
+    assert.isTrue(subject.locked,
+      'it didn\'t lock after the lock-immediately setting got changed');
+  });
+
   // XXX: Test 'Screen off: by proximity sensor'.
 
   teardown(function() {
@@ -263,11 +257,13 @@ suite('system/LockScreen >', function() {
     window.OrientationManager = window.realOrientationManager;
     window.FtuLauncher = realFtuLauncher;
     window.SettingsListener = realSettingsListener;
+    navigator.mozSettings = realMozSettings;
 
     document.body.removeChild(domPasscodePad);
     subject.passcodePad = null;
 
     window.MockSettingsListener.mTeardown();
+    window.MockNavigatorSettings.mTeardown();
     stubById.restore();
   });
 });

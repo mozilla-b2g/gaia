@@ -18,13 +18,15 @@ if (!window.ImageLoader) {
       container = document.querySelector(pContainer);
 
       attachHandlers();
-      window.addEventListener('image-loader-resume', function resuming() {
-        window.clearTimeout(scrollTimer);
-        attachHandlers();
-        update();
-      });
+      window.addEventListener('image-loader-resume', resuming);
       window.addEventListener('image-loader-pause', unload);
       load();
+    }
+
+    function resuming() {
+      window.clearTimeout(scrollTimer);
+      attachHandlers();
+      update();
     }
 
     function onUpdate(evt) {
@@ -175,11 +177,21 @@ if (!window.ImageLoader) {
       return image;
     }
 
+    // It's necessary to prevent unit test errors
+    function destroy() {
+      unload();
+      window.removeEventListener('image-loader-pause', unload);
+      window.removeEventListener('image-loader-resume', resuming);
+      container = items = itemsSelector = lastScrollTime = scrollLatency = null;
+      scrollTimer = itemHeight = total = imgsLoading = loadImage = null;
+    }
+
     this.reload = load;
     this.unload = unload;
     this.setResolver = setResolver;
     this.defaultLoad = defaultLoadImage;
     this.releaseImage = releaseImage;
+    this.destroy = destroy;
   };
 
 }

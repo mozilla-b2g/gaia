@@ -2,6 +2,19 @@
 
 var NfcURI = {
 
+  // Start listening for NFC connections
+  startListening: function nfc_startListening() {
+    if (window.navigator.mozNfc) {
+      window.navigator.mozNfc.onpeerready = this.handlePeerConnectivity;
+    }
+  },
+
+  // Stop listening for NFC connections
+  stopListening: function nfc_stopListening() {
+    if (window.navigator.mozNfc) {
+      window.navigator.mozNfc.onpeerready = null;
+    }
+  },
 
   // Extract the URI data and Identifier Type
   lookupUrlRecordType: function nfc_lookupUrlRecordType(uri) {

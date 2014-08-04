@@ -5,10 +5,10 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
-var bind = require('lib/bind');
 var unbind = require('lib/bind').unbind;
 var bindAll = require('lib/bind-all');
-var events = require('vendor/evt');
+var bind = require('lib/bind');
+var events = require('evt');
 
 /**
  * Mixin event emitter
@@ -48,19 +48,27 @@ Pinch.prototype.detach = function() {
   this.el = null;
 };
 
+Pinch.prototype.enable = function() {
+  this.disabled = false;
+};
+
+Pinch.prototype.disable = function() {
+  this.disabled = true;
+};
+
 Pinch.prototype.onTouchStart = function(evt) {
-  if (evt.touches.length !== 2) {
+  if (evt.touches.length !== 2 || this.disabled) {
     return;
   }
 
   this.lastTouchA = evt.touches[0];
   this.lastTouchB = evt.touches[1];
   this.isPinching = true;
-  this.emit('pinchstarted');
+  this.emit('started');
 };
 
 Pinch.prototype.onTouchMove = function(evt) {
-  if (!this.isPinching) {
+  if (!this.isPinching || this.disabled) {
     return;
   }
 
@@ -68,20 +76,20 @@ Pinch.prototype.onTouchMove = function(evt) {
   var touchB = getNewTouchB(this, evt.touches);
   var deltaPinch = getDeltaPinch(this, touchA, touchB);
 
-  this.emit('pinchchanged', deltaPinch);
+  this.emit('changed', deltaPinch);
 
   this.lastTouchA = touchA;
   this.lastTouchB = touchB;
 };
 
 Pinch.prototype.onTouchEnd = function(evt) {
-  if (!this.isPinching) {
+  if (!this.isPinching || this.disabled) {
     return;
   }
 
   if (evt.touches.length < 2) {
     this.isPinching = false;
-    this.emit('pinchended');
+    this.emit('ended');
   }
 };
 

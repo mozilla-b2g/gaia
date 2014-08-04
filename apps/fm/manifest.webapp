@@ -33,10 +33,11 @@
   },
   "default_locale": "en-US",
   "icons": {
-    "135": "/style/icons/Fm_135.png",
-    "128": "/style/icons/Fm_120.png",
-    "90": "/style/icons/Fm_90.png",
-    "60": "/style/icons/Fm_60.png"
+    "84": "/style/icons/fm_84.png",
+    "126": "/style/icons/fm_126.png",
+    "142": "/style/icons/fm_142.png",
+    "189": "/style/icons/fm_189.png",
+    "284": "/style/icons/fm_284.png"
   },
   "orientation": "default"
 }

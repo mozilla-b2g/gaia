@@ -10,7 +10,7 @@
     <link href="../shared/style/progress_activity.css" rel="stylesheet" type="text/css">
     <link href="style/fxa.css" rel="stylesheet" type="text/css">
 
-    <link rel="resource" type="application/l10n" href="locales.ini" />
+    <link rel="resource" type="application/l10n" href="locales/locales-fxa.ini" />
 
     <link rel="import" href="elements/fxa-email.html">
     <link rel="import" href="elements/fxa-set-password.html">
@@ -23,11 +23,13 @@
     <link rel="import" href="elements/fxa-coppa.html">
 
     <script defer src="../js/ftu_launcher.js"></script>
+    <script defer src="../js/browser_frame.js"></script>
+    <script defer src="../js/entry_sheet.js"></script>
     <script defer src="../shared/js/lazy_loader.js"></script>
     <script defer src="../shared/js/l10n.js"></script>
     <script defer src="../shared/js/settings_helper.js"></script>
+    <script defer src="../shared/js/utilities.js"></script>
 
-    <script defer src="js/utils.js"></script>
     <script defer src="js/fxam_server_request.js"></script>
     <script defer src="js/fxam_overlay.js"></script>
     <script defer src="js/fxam_error_overlay.js"></script>
@@ -44,7 +46,9 @@
         <button id="fxa-module-close"><span class="icon icon-close">close</span></button>
         <h1 data-l10n-id="firefox-accounts-title">Firefox Accounts</h1>
       </header>
-      <progress id="fxa-progress" value="" max="100"></progress>
+      <div class="bb-steps">
+        <progress id="fxa-progress" value="" max="100"></progress>
+      </div>
       <article id="step-container">
         <section id="fxa-email" is="fxa-email" class="screen"></section>
         <section id="fxa-set-password" is="fxa-set-password" class="screen fxa-password"></section>
@@ -71,7 +75,7 @@
     <!-- Progress overlay -->
     <section id="fxa-overlay" role="dialog">
       <progress></progress>
-      <p id="fxa-overlay-msg" data-l10n-id="fxa-connecting-to-firefox">Connecting to Firefox</p>
+      <p id="fxa-overlay-msg" data-l10n-id="fxa-connecting">Connecting</p>
     </section>
     <!-- Error message overlay -->
     <form role="dialog" data-type="confirm" id="fxa-error-overlay" class="fade-in">

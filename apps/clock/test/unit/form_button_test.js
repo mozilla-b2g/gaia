@@ -162,7 +162,7 @@ suite('FormButton', function() {
                        '</select>'].join('');
       input = doc.querySelector('#repeat-select');
       formButton = new FormButton(input, {
-        selectOptions: Constants.DAYS,
+        selectOptions: Constants.DAYS_STARTING_MONDAY,
         formatLabel: JSON.stringify
       });
     });

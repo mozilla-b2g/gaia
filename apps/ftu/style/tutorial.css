@@ -1,0 +1,97 @@
+#tutorial {
+  background: url(images/bg_grey-noise.png);
+  z-index: 101;
+}
+
+/*
+ * Tiny devices. Number of steps is 3
+ */
+
+#tutorial #tutorial-progress {
+  display: none;
+}
+
+#tutorial-steps-container {
+  top: 0.5rem;
+}
+
+#tutorial-step-header {
+  height: 8.5rem;
+  display: flex;
+  align-items: center;
+  padding: 0 1.5rem 0.5rem 1.5rem;
+  overflow: hidden;
+  -moz-box-sizing: border-box;
+}
+
+#tutorial-step-title {
+  color: white;
+  display: block;
+  padding: 0;
+  margin: 0;
+  font-size: 1.4rem;
+  line-height: 2rem;
+}
+
+#tutorial-step-media {
+  height: calc(100% - 9.5rem);
+  text-align: center;
+  overflow: hidden;
+}
+
+.step-video-base {
+  height: 100%;
+}
+
+#tutorial-step-media img {
+  width: 28.9rem;
+}
+
+/*
+ * First step. Has no 'Back' action.
+ */
+
+/*
+ * We need !important to override Web components,
+ * as we don't have ::content yet (bug 992249).
+ */
+#tutorial[data-step="1"] #back-tutorial {
+ display: none !important;
+}
+
+/*
+ * Visible progress-bar (used for > 3 steps)
+ */
+
+#tutorial[data-progressbar] #tutorial-progress {
+  visibility: visible;
+}
+
+#tutorial[data-progressbar] .step-state {
+  top: 2.5rem;
+}
+
+#tutorial[data-progressbar] #tutorial-steps-container {
+  top: 4rem;
+}
+
+#tutorial[data-progressbar] #tutorial-step-header {
+  height: 5rem;
+}
+
+#tutorial[data-progressbar] #tutorial-step-media {
+  height: calc(100% - 6rem);
+}
+
+/*
+ * Large devices. Tablet for example
+ */
+@media (min-width: 768px) {
+  #tutorial[data-step="1"] .recommend{
+    width: 83rem;
+  }
+
+  #tutorial-step-media img {
+    width: 82.2rem;
+  }
+}

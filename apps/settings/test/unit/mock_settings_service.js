@@ -2,9 +2,13 @@
 define(function() {
   'use strict';
   var MockSettingsService = {
-    navigate: function(panelId) {
+    navigate: function(panelId, options, callback) {
+      if (typeof callback === 'function') {
+        callback();
+      }
       return;
-    }
+    },
+    back: function() {}
   };
 
   return MockSettingsService;

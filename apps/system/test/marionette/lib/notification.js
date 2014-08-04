@@ -91,11 +91,15 @@ NotificationList.prototype = {
       var id = node.getAttribute('data-notification-id');
       var query = selector + '[data-notification-id="' + id + '"]';
       details.push({
-        title: document.querySelector(query + ' > div').innerHTML,
+        title: document.querySelector(query + ' > .title-container .title')
+          .innerHTML,
         body: document.querySelector(query + ' > .detail').innerHTML,
-        lang: document.querySelector(query + ' > div').getAttribute('lang'),
-        dir: document.querySelector(query + ' > div').getAttribute('dir'),
-        manifestURL: node.getAttribute('data-manifest-u-r-l')
+        lang: document.querySelector(query + ' > .title-container')
+          .getAttribute('lang'),
+        dir: document.querySelector(query + ' > .title-container')
+          .getAttribute('dir'),
+        manifestURL: node.getAttribute('data-manifest-u-r-l'),
+        query: query
       });
     }
     return details;
@@ -151,7 +155,7 @@ NotificationList.prototype = {
       }
     }
     var count = 0;
-    for (var i = 0; i < list.length; i++) {
+    for (var i = 0; list && i < list.length; i++) {
       var notification = list[i];
       if (details.title && notification.title !== details.title) {
         continue;
@@ -168,6 +172,11 @@ NotificationList.prototype = {
       ++count;
     }
     return count;
+  },
+
+  // perform a tap action on the notification list
+  tap: function(notificationDetails) {
+    this.client.findElement(notificationDetails.query).tap(1, 1);
   },
 
   // make sure we have an item with given title and body from the lockscreen.

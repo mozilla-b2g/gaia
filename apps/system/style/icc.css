@@ -9,24 +9,44 @@
   position: fixed;
   width: 100%;
   height: 100%;
+  top: 0;
+  background: #f4f4f4;
+  color: #000;
 }
 
-#icc-view > form {
+#icc-view > section {
   display: none;
+  position: absolute;
+  width: 100%;
+  top: 0;
 }
 
-#icc-input {
-  padding: 2rem 0 20rem;
+#icc-view > section > form,
+#icc-view > section > p {
+  position: absolute;
+  width: calc(100% - 4rem);
+  height: 27rem;
+  padding: 0 2rem;
+  overflow: scroll;
+  top: 8rem;
+}
+#icc-view p {
+  color: black;
+  white-space: pre-line;
 }
 
 #icc-input menu button:first-child,
 #icc-confirm menu button:first-child {
   margin: 0;
 }
+#icc-confirm menu button {
+  width: calc((100% - 2rem) / 2);
+  margin-left: 1rem;
+}
+
 #icc-input menu button,
-#icc-confirm menu button,
 #icc-input .yesnodisabled  {
-  width: calc((100% - 2rem) / 3);
+  width: calc((100% - 2rem) / 2);
   margin-left: 1rem;
 }
 
@@ -34,7 +54,7 @@
   display: none;
 }
 .yesnomode menu button {
-  width: calc((100% - 2rem) / 4);
+  width: calc((100% - 2rem) / 3);
   margin-left: 1rem;
 }
 #icc-input.yesnomode .yesnoenabled {
@@ -43,7 +63,7 @@
 
 #icc-input.yesnomode button,
 #icc-input.yesnomode menu span {
-  width: calc((100% - 3rem) /4);
+  width: calc((100% - 3rem) / 3);
 }
 #icc-input.yesnomode menu .yesnoenabled {
   margin-left: 1rem;
@@ -62,4 +82,17 @@
   text-shadow: none;
   border-color: rgb(77, 77, 77);
   pointer-events: none;
+}
+
+#icc-input-box.full {
+  animation: full-dance .5s;
+  animation-iteration-count: 2;
+}
+
+@keyframes full-dance {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(10px); }
+  50% { transform: translateX(-10px); }
+  75% { transform: translateX(10px); }
+  100% { transform: translateX(0); }
 }

@@ -53,6 +53,9 @@
     "audio-channel-telephony",
     "audio-channel-ringer",
     "audio-channel-publicnotification",
-    "open-remote-window"
+    "open-remote-window",
+    "audio-capture",
+    "video-capture",
+    "mobileid"
   ]
 }

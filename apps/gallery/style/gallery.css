@@ -305,7 +305,7 @@ body.pickView #thumbnails {
   font-size: 0;
   border-radius: 50%;
   border: none;
-  background: rgba(95, 95, 95, 0.3) url(images/back.png) no-repeat 50% 50%;
+  background: rgba(95, 95, 95, 0.3) url(images/back.png) no-repeat 50% 50% / 3rem auto;
   transition: opacity 0.2s linear;
 }
 
@@ -402,6 +402,18 @@ body.hidden *[data-l10n-id] {
   to {
     transform: translateY(-2.1rem);
   }
+}
+
+#spinner {
+  position: absolute;
+  top: calc(50% - 1.5rem);
+  left: calc(50% - 1.5rem);
+  z-index: 1000;
+}
+
+/* override progress_activity.css */
+#spinner.hidden {
+  display: none;
 }
 
 /* buttons */
@@ -525,6 +537,7 @@ footer {
 
 #fullscreen-view.toolbar-hidden #fullscreen-back-button-tiny {
   opacity: 0;
+  pointer-events: none;
 }
 
 #pick-top {
@@ -574,8 +587,8 @@ footer {
 #edit-preview-canvas {
   position: absolute;
   top: 1.5rem;
-  left: 1.5rem;
-  width: calc(100% - 3rem);  /* I can't do right: 1.5rem here. Bug? */
+  left: 2.5rem;
+  width: calc(100% - 5rem);  /* I can't do right: 2.5rem here. Bug? */
   height: calc(100% - 3rem);  /* can't just set bottom: 1.5rem here */
 }
 

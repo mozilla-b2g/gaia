@@ -2,24 +2,6 @@ section[role="region"].skin-organic {
   background: #f4f4f4;
 }
 
-/* Make it so that invalid input areas only show up as red when they're focused.
-   This keeps the redness to a minimum in the setup cards. */
-
-input:invalid {
-  border: 0.1rem solid #ccc;
-  color: initial;
-}
-
-input:-moz-placeholder {
-  color: #666;
-}
-
-input:focus:invalid {
-  border: 0.1rem solid #820000;
-  color: #b90000;
-}
-
-
 .sup-form {
   margin: 1rem 2rem;
 }
@@ -58,19 +40,6 @@ input:focus:invalid {
   font-size: 120%;
   text-align: center;
 }
-.sup-error-code {
-  color: #aaa;
-  margin-top: 0.4rem;
-  text-align: right;
-  font-size: 110%;
-}
-.sup-error-code:before {
-  content: "[";
-}
-.sup-error-code:after {
-  content: "]";
-}
-
 
 .sup-progress-region {
   width: calc(100% - 3rem);
@@ -84,7 +53,7 @@ input:focus:invalid {
   display: inline-block;
   width: calc(100% - 7rem);
   vertical-align: middle;
-  font-weight: lighter;
+  font-weight: 300;
   font-size: 2.4rem;
   line-height: 3rem;
   letter-spacing: 0.024rem;
@@ -137,8 +106,9 @@ input:focus:invalid {
 }
 
 .tng-account-add, .tng-account-delete {
+  display: block;
   width: calc(100% - 3rem);
-  margin: 1.1rem auto;
+  margin: 1.5rem auto;
   text-align: center;
 }
 
@@ -288,14 +258,6 @@ section.card-settings-account-common li span.button {
   display: block;
   margin: 0 auto 1rem auto;
   width: calc(100% - 3rem);
-}
-
-section.card-settings-account-common li span.button select {
-  padding-left: 0;
-  text-align: left;
-  text-indent: -0.22rem;
-  /** Need to push the little select arrow off the page */
-  width: calc(100% + 10rem) !important;
 }
 
 section.card-settings-account-common li .pack-checkbox {

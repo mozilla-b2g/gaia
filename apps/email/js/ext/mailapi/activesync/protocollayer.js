@@ -2535,6 +2535,7 @@
   'use strict';
 
   var exports = {};
+  var USER_AGENT = 'JavaScript ActiveSync (jsas) Client';
 
   function nullCallback() {}
 
@@ -2702,6 +2703,7 @@
              true);
     setAuthHeader(xhr, aEmailAddress, aPassword);
     xhr.setRequestHeader('Content-Type', 'text/xml');
+    xhr.setRequestHeader('User-Agent', USER_AGENT);
     xhr.timeout = aTimeout;
 
     xhr.upload.onprogress = xhr.upload.onload = function() {
@@ -2960,6 +2962,7 @@
       var xhr = new XMLHttpRequest({mozSystem: true, mozAnon: true});
       xhr.open('OPTIONS', this.baseUrl, true);
       setAuthHeader(xhr, this._username, this._password);
+      xhr.setRequestHeader('User-Agent', USER_AGENT);
       xhr.timeout = this.timeout;
 
       xhr.upload.onprogress = xhr.upload.onload = function() {
@@ -3125,6 +3128,7 @@
       setAuthHeader(xhr, this._username, this._password);
       xhr.setRequestHeader('MS-ASProtocolVersion', this.currentVersion);
       xhr.setRequestHeader('Content-Type', aContentType);
+      xhr.setRequestHeader('User-Agent', USER_AGENT);
 
       // Add extra headers if we have any.
       if (aExtraHeaders) {

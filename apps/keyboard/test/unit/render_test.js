@@ -1,7 +1,20 @@
 /*global requireApp suite test assert setup teardown IMERender sinon */
 requireApp('keyboard/js/render.js');
 
+mocha.globals(['perfTimer']);
+
 suite('Renderer', function() {
+  suiteSetup(function() {
+    window.perfTimer = {
+      printTime: function() {},
+      startTimer: function() {}
+    };
+  });
+
+  suiteTeardown(function() {
+    window.perfTimer = null;
+  });
+
   function makeDescriptor(val) {
     return {
       configurable: true,
@@ -285,11 +298,7 @@ suite('Renderer', function() {
       ime.appendChild(activeIme);
       IMERender.activeIme = activeIme;
 
-      IMERender.init(function(key) {
-        return key.value.toUpperCase();
-      }, function() {
-        return false; // is special key
-      });
+      IMERender.init();
 
       loadKeyboardStyle(next);
     });
@@ -417,13 +426,12 @@ suite('Renderer', function() {
         ]
       };
 
-      var uppercaseFn = sinon.stub().returns('U');
-      IMERender.init(uppercaseFn, sinon.stub().returns(false));
+      IMERender.init();
       IMERender.draw(layout, { uppercase: true });
 
       var keys = document.querySelectorAll('.keyboard-key .key-element');
-      assert.equal(keys[0].textContent, 'U');
-      assert.equal(keys[1].textContent, 'U');
+      assert.equal(keys[0].textContent, 'A');
+      assert.equal(keys[1].textContent, 'B');
     });
 
     test('No uppercase flag, don\'t uppercase visually', function() {
@@ -434,8 +442,7 @@ suite('Renderer', function() {
         ]
       };
 
-      var uppercaseFn = sinon.stub().returns('U');
-      IMERender.init(uppercaseFn, sinon.stub().returns(false));
+      IMERender.init();
       IMERender.draw(layout, { uppercase: false });
 
       var keys = document.querySelectorAll('.keyboard-key .key-element');
@@ -471,7 +478,7 @@ suite('Renderer', function() {
         var layout = {
           width: 1,
           keys: [],
-          keyboardName: 'ar',
+          layoutName: 'ar',
           specificCssRule: true
         };
         IMERender.draw(layout);
@@ -482,7 +489,7 @@ suite('Renderer', function() {
         var layout = {
           width: 1,
           keys: [],
-          keyboardName: 'ar',
+          layoutName: 'ar',
           specificCssRule: false
         };
         IMERender.draw(layout);
@@ -595,7 +602,7 @@ suite('Renderer', function() {
         var layout = {
           width: (Math.random() * 8 | 0) + 2,
           keys: [],
-          keyboardName: 'test'
+          layoutName: 'test'
         };
 
         for (var ri = 0; ri < rows.length; ri++) {
@@ -669,10 +676,7 @@ suite('Renderer', function() {
     test('Highlight a key with uppercase', function() {
       var key = document.createElement('div');
 
-      IMERender.highlightKey(key, {
-        isUpperCase: true,
-        isUpperCaseLocked: false
-      });
+      IMERender.highlightKey(key, { showUpperCase: true });
 
       assert.isTrue(key.classList.contains('highlighted'));
       assert.isFalse(key.classList.contains('lowercase'));
@@ -681,25 +685,10 @@ suite('Renderer', function() {
     test('Highlight a key with lowercase', function() {
       var key = document.createElement('div');
 
-      IMERender.highlightKey(key, {
-        isUpperCase: false,
-        isUpperCaseLocked: false
-      });
+      IMERender.highlightKey(key, { showUpperCase: false });
 
       assert.isTrue(key.classList.contains('highlighted'));
       assert.isTrue(key.classList.contains('lowercase'));
-    });
-
-    test('Highlight a key with capslock', function() {
-      var key = document.createElement('div');
-
-      IMERender.highlightKey(key, {
-        isUpperCase: false,
-        isUpperCaseLocked: true
-      });
-
-      assert.isTrue(key.classList.contains('highlighted'));
-      assert.isFalse(key.classList.contains('lowercase'));
     });
   });
 });

@@ -1,6 +1,6 @@
 /*global Information, loadBodyHTML, MockContact, MockL10n, MocksHelper,
          ThreadUI, MessageManager, ContactRenderer, Utils, Template, Threads,
-         MockMessages, Settings */
+         MockMessages, Settings, Navigation */
 
 'use strict';
 
@@ -9,10 +9,11 @@ require('/test/unit/mock_utils.js');
 require('/test/unit/mock_thread_ui.js');
 require('/test/unit/mock_threads.js');
 require('/test/unit/mock_contact.js');
-require('/test/unit/mock_l10n.js');
-require('/test/unit/mock_messages.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 require('/test/unit/mock_contact.js');
 require('/test/unit/mock_contacts.js');
+require('/test/unit/mock_messages.js');
+require('/test/unit/mock_navigation.js');
 require('/test/unit/mock_settings.js');
 require('/test/unit/mock_message_manager.js');
 require('/test/unit/mock_contact_renderer.js');
@@ -20,13 +21,14 @@ require('/js/information.js');
 
 
 var mocksHelperForInformation = new MocksHelper([
-  'Utils',
+  'Contacts',
+  'ContactRenderer',
+  'MessageManager',
+  'Navigation',
+  'Settings',
   'ThreadUI',
   'Threads',
-  'Contacts',
-  'MessageManager',
-  'ContactRenderer',
-  'Settings'
+  'Utils'
 ]).init();
 
 suite('Information view', function() {
@@ -80,20 +82,23 @@ suite('Information view', function() {
 
     suite('view show/reset status', function() {
       test('view status before show method', function() {
-        assert.isFalse(reportView.parent.classList.contains('information'));
+        assert.isFalse(reportView.parent.classList.contains(
+          reportView.name + '-information'));
         assert.isTrue(reportView.container.classList.contains('hide'));
       });
 
       test('view status after show method', function() {
         this.sinon.stub(reportView, 'render');
         reportView.show();
-        assert.isTrue(reportView.parent.classList.contains('information'));
+        assert.isTrue(reportView.parent.classList.contains(
+          reportView.name + '-information'));
         assert.isFalse(reportView.container.classList.contains('hide'));
       });
 
       test('view status after reset method', function() {
         reportView.reset();
-        assert.isFalse(reportView.parent.classList.contains('information'));
+        assert.isFalse(reportView.parent.classList.contains(
+          reportView.name + '-information'));
         assert.isTrue(reportView.container.classList.contains('hide'));
       });
     });
@@ -208,13 +213,18 @@ suite('Information view', function() {
       this.sinon.spy(Utils.date.format, 'localeFormat');
     });
 
+    teardown(function() {
+      reportView.reset();
+    });
+
     test('Outgoing Message report(status sending)', function() {
       messageOpts = {
         sender: null,
         delivery: 'sending',
         deliveryStatus: 'pending'
       };
-      window.location.hash = '#report-view=1';
+
+      reportView.id = 1;
       reportView.render();
       assert.isFalse(reportView.container.classList.contains('received'));
       sinon.assert.calledWith(navigator.mozL10n.localize, reportView.type,
@@ -235,7 +245,8 @@ suite('Information view', function() {
         deliveryStatus: 'success',
         deliveryTimestamp: Date.now()
       };
-      window.location.hash = '#report-view=1';
+
+      reportView.id = 1;
       reportView.render();
       assert.isFalse(reportView.container.classList.contains('received'));
       sinon.assert.calledWith(navigator.mozL10n.localize, reportView.type,
@@ -255,7 +266,8 @@ suite('Information view', function() {
         delivery: 'error',
         deliveryStatus: 'error'
       };
-      window.location.hash = '#report-view=1';
+
+      reportView.id = 1;
       reportView.render();
       assert.isFalse(reportView.container.classList.contains('received'));
       sinon.assert.calledWith(navigator.mozL10n.localize, reportView.type,
@@ -278,7 +290,8 @@ suite('Information view', function() {
         deliveryStatus: 'success',
         deliveryTimestamp: Date.now()
       };
-      window.location.hash = '#report-view=2';
+
+      reportView.id = 2;
       reportView.render();
       assert.isFalse(reportView.container.classList.contains('received'));
       assert.equal(reportView.subject.textContent, messageOpts.subject);
@@ -301,7 +314,8 @@ suite('Information view', function() {
         deliveryStatus: 'success',
         deliveryTimestamp: Date.now()
       };
-      window.location.hash = '#report-view=2';
+
+      reportView.id = 2;
       reportView.render();
       assert.isFalse(reportView.container.classList.contains('received'));
       assert.equal(reportView.subject.textContent, '');
@@ -323,7 +337,7 @@ suite('Information view', function() {
         receiver: null
       };
       var message = MockMessages.sms(messageOpts);
-      window.location.hash = '#report-view=1';
+      reportView.id = 1;
       reportView.render();
       assert.isTrue(reportView.container.classList.contains('received'));
       sinon.assert.calledWith(navigator.mozL10n.localize, reportView.type,
@@ -344,7 +358,7 @@ suite('Information view', function() {
         attachments: [{content: testImageBlob}]
       };
       var message = MockMessages.mms(messageOpts);
-      window.location.hash = '#report-view=2';
+      reportView.id = 2;
       reportView.render();
       assert.isTrue(reportView.container.classList.contains('received'));
       assert.equal(reportView.subject.textContent, message.subject);
@@ -367,7 +381,7 @@ suite('Information view', function() {
         delivery: 'not-downloaded',
         attachments: null
       };
-      window.location.hash = '#report-view=2';
+      reportView.id = 2;
       reportView.render();
       assert.isTrue(reportView.container.classList.contains('received'));
       sinon.assert.calledWith(navigator.mozL10n.localize, reportView.type,
@@ -378,6 +392,34 @@ suite('Information view', function() {
       sinon.assert.calledWith(navigator.mozL10n.localize,
         reportView.contactTitle, 'report-from');
       sinon.assert.called(reportView.renderContactList);
+    });
+
+    test('Incoming Message with valid sent timestamp', function() {
+      messageOpts = {
+        delivery: 'received',
+        sentTimestamp: Date.now()
+      };
+
+      reportView.id = 1;
+      reportView.render();
+
+      assert.isFalse(
+        reportView.container.classList.contains('no-valid-sent-timestamp')
+      );
+    });
+
+    test('Incoming Message with invalid sent timestamp', function() {
+      messageOpts = {
+        delivery: 'received',
+        sentTimestamp: 0
+      };
+
+      reportView.id = 1;
+      reportView.render();
+
+      assert.isTrue(
+        reportView.container.classList.contains('no-valid-sent-timestamp')
+      );
     });
 
     suite('Message report with SIM information', function() {
@@ -398,7 +440,7 @@ suite('Information view', function() {
         messageOpts = {
           iccId: '1'
         };
-        window.location.hash = '#report-view=1';
+        reportView.id = 1;
       });
 
       teardown(function() {
@@ -487,7 +529,8 @@ suite('Information view', function() {
           delivery: 'sent',
           deliveryStatus: 'not-applicable'
         };
-        window.location.hash = '#report-view=1';
+
+        reportView.id = 1;
         reportView.render();
         data.deliveryClass = 'hide';
         sinon.assert.calledWith(Template.prototype.interpolate, data);
@@ -499,7 +542,8 @@ suite('Information view', function() {
           delivery: 'sent',
           deliveryStatus: 'pending'
         };
-        window.location.hash = '#report-view=1';
+
+        reportView.id = 1;
         reportView.render();
         data.deliveryL10n = 'message-requested';
         sinon.assert.calledWith(Template.prototype.interpolate, data);
@@ -512,7 +556,8 @@ suite('Information view', function() {
           deliveryStatus: 'success',
           deliveryTimestamp: Date.now()
         };
-        window.location.hash = '#report-view=1';
+
+        reportView.id = 1;
         reportView.render();
         data.deliveryDateL10n = Utils.date.format.localeFormat(
           new Date(messageOpts.deliveryTimestamp),
@@ -528,7 +573,8 @@ suite('Information view', function() {
           delivery: 'sent',
           deliveryStatus: 'error'
         };
-        window.location.hash = '#report-view=1';
+
+        reportView.id = 1;
         reportView.render();
         data.deliveryL10n = 'message-status-error';
         sinon.assert.calledWith(Template.prototype.interpolate, data);
@@ -560,7 +606,7 @@ suite('Information view', function() {
             readStatus: 'not-applicable'
           }]
         };
-        window.location.hash = '#report-view=2';
+        reportView.id = 2;
         reportView.render();
         data.readClass = 'hide';
         sinon.assert.calledWith(Template.prototype.interpolate, data);
@@ -575,7 +621,7 @@ suite('Information view', function() {
             readStatus: 'pending'
           }]
         };
-        window.location.hash = '#report-view=2';
+        reportView.id = 2;
         reportView.render();
         data.readL10n = 'message-requested';
         sinon.assert.calledWith(Template.prototype.interpolate, data);
@@ -591,7 +637,7 @@ suite('Information view', function() {
             readTimestamp: Date.now()
           }]
         };
-        window.location.hash = '#report-view=2';
+        reportView.id = 2;
         reportView.render();
         data.readDateL10n = Utils.date.format.localeFormat(
           new Date(messageOpts.deliveryInfo[0].readTimestamp),
@@ -610,10 +656,41 @@ suite('Information view', function() {
             readStatus: 'error'
           }]
         };
-        window.location.hash = '#report-view=2';
+        reportView.id = 2;
         reportView.render();
         data.readL10n = 'message-status-error';
         sinon.assert.calledWith(Template.prototype.interpolate, data);
+      });
+    });
+
+    ['onDeliverySuccess', 'onReadSuccess'].forEach(function(method) {
+      suite(method + '()', function() {
+        var fakeMessage;
+
+        setup(function() {
+          this.sinon.stub(reportView, 'refresh');
+          this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
+          fakeMessage = MockMessages.sms();
+        });
+
+        test('If showing this message, report is refreshed', function() {
+          Navigation.isCurrentPanel
+            .withArgs('report-view', { id: 1 }).returns(true);
+          reportView[method](fakeMessage);
+          sinon.assert.called(reportView.refresh);
+        });
+
+        test('If showing another message, report is not refreshed', function() {
+          Navigation.isCurrentPanel
+            .withArgs('report-view', { id: 2 }).returns(true);
+          reportView[method](fakeMessage);
+          sinon.assert.notCalled(reportView.refresh);
+        });
+
+        test('If not showing the report, it is not refreshed', function() {
+          reportView[method](fakeMessage);
+          sinon.assert.notCalled(reportView.refresh);
+        });
       });
     });
   });
@@ -639,6 +716,84 @@ suite('Information view', function() {
       sinon.assert.calledWith(groupView.renderContactList, participants);
       sinon.assert.calledWithMatch(navigator.mozL10n.localize,
         ThreadUI.headerText, 'participant', {n: participants.length});
+    });
+  });
+
+  suite('ReportView', function() {
+    var enterArgs, leaveArgs;
+
+    setup(function() {
+      reportView = new Information('report');
+      this.sinon.stub(reportView, 'show');
+      this.sinon.stub(reportView, 'reset');
+
+      enterArgs = {
+        id: 10,
+        meta: {
+          next: { panel: 'report-view', args: { id: 10 } },
+          prev: { panel: 'thread', args: { id: 1 } }
+        }
+      };
+
+      leaveArgs = {
+        id: 1,
+        meta: {
+          next: { panel: 'thread', args: { id: 1 } },
+          prev: { panel: 'report-view', args: { id: 10 } }
+        }
+      };
+    });
+
+    test('afterEnter() and beforeLeave()', function() {
+      reportView.afterEnter(enterArgs);
+      sinon.assert.called(reportView.show);
+      assert.equal(
+        reportView.id, enterArgs.id,
+        'id is set after afterEnter'
+      );
+
+      reportView.beforeLeave(leaveArgs);
+      sinon.assert.called(reportView.reset);
+      assert.isNull(reportView.id, 'id is reset after beforeLeave');
+    });
+  });
+
+  suite('GroupView', function() {
+    var enterArgs, leaveArgs;
+
+    setup(function() {
+      groupView = new Information('group');
+      this.sinon.stub(groupView, 'show');
+      this.sinon.stub(groupView, 'reset');
+
+      enterArgs = {
+        id: 1,
+        meta: {
+          next: { panel: 'group-view', args: { id: 1 } },
+          prev: { panel: 'thread', args: { id: 1 } }
+        }
+      };
+
+      leaveArgs = {
+        id: 1,
+        meta: {
+          next: { panel: 'thread', args: { id: 1 } },
+          prev: { panel: 'group-view', args: { id: 1 } }
+        }
+      };
+    });
+
+    test('afterEnter() and beforeLeave()', function() {
+      groupView.afterEnter(enterArgs);
+      sinon.assert.called(groupView.show);
+      assert.equal(
+        groupView.id, enterArgs.id,
+        'id is set after afterEnter'
+      );
+
+      groupView.beforeLeave(leaveArgs);
+      sinon.assert.called(groupView.reset);
+      assert.isNull(groupView.id, 'id is reset after beforeLeave');
     });
   });
 });

@@ -27,7 +27,7 @@ function BatteryController(app) {
   this.battery = app.battery || navigator.battery || navigator.mozBattery;
   this.levels = app.settings.battery.get('levels');
   this.notification = app.views.notification;
-  this.localize = app.localize;
+  this.l10nGet = app.l10nGet;
   this.bindEvents();
   this.updateStatus();
   debug('initialized');
@@ -57,11 +57,11 @@ BatteryController.prototype.notifications = {
   },
   verylow: {
     text: 'battery-verylow-text',
-    className: 'icon-battery-verylow'
+    className: 'icon-battery-very-low'
   },
   critical: {
     text: 'battery-critical-text',
-    className: 'icon-battery-verylow',
+    className: 'icon-battery-very-low',
     persistent: true
   }
 };
@@ -75,6 +75,12 @@ BatteryController.prototype.notifications = {
 BatteryController.prototype.updateStatus = function () {
   var previous = this.app.get('batteryStatus');
   var current = this.getStatus(this.battery);
+  // We need the app to be first localized
+  // before showing the battery status message
+  if (!this.app.localized()) {
+    this.app.on('localized', this.updateStatus);
+    return;
+  }
   if (current !== previous) {
     this.app.set('batteryStatus', current);
   }
@@ -110,7 +116,7 @@ BatteryController.prototype.displayNotification = function(status) {
   if (!notification) { return; }
 
   this.lastNotification = this.notification.display({
-    text: this.localize(notification.text),
+    text: this.l10nGet(notification.text),
     className: notification.className,
     persistent: notification.persistent
   });

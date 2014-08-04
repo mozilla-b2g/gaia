@@ -14,9 +14,8 @@ var TelephonyHelper = (function() {
       return;
     }
 
-    var conn = navigator.mozMobileConnection ||
-               (navigator.mozMobileConnections &&
-                navigator.mozMobileConnections[cardIndex]);
+    var conn = navigator.mozMobileConnections &&
+      navigator.mozMobileConnections[cardIndex];
 
     if (!conn || !conn.voice) {
       // No voice connection, the call won't make it
@@ -35,8 +34,12 @@ var TelephonyHelper = (function() {
       return;
     }
 
+    var cdmaTypes = ['evdo0', 'evdoa', 'evdob', '1xrtt', 'is95a', 'is95b'];
+    var voiceType = conn.voice ? conn.voice.type : null;
+    var isCdmaConnection = (cdmaTypes.indexOf(voiceType) !== -1);
     var activeCall = telephony.active;
-    if (!activeCall) {
+
+    if (!activeCall || isCdmaConnection) {
       startDial(cardIndex, conn, sanitizedNumber, oncall, onconnected,
                 ondisconnected, onerror);
       return;
@@ -57,7 +60,10 @@ var TelephonyHelper = (function() {
                     [480, 620, 500], [0, 0, 500],
                     [480, 620, 500], [0, 0, 500],
                     [480, 620, 500], [0, 0, 500]];
+    
+    TonePlayer.setChannel('telephony');
     TonePlayer.playSequence(sequence);
+    TonePlayer.setChannel('normal');
   }
 
   function startDial(cardIndex, conn, sanitizedNumber, oncall, onconnected,
@@ -70,7 +76,9 @@ var TelephonyHelper = (function() {
 
     // Making sure we're not dialing the same number twice
     var alreadyDialed = telephony.calls.some(function callIterator(call) {
-      return (call.number == sanitizedNumber);
+      var number = call.id ? call.id.number : call.number;
+
+      return (number == sanitizedNumber);
     });
     if (alreadyDialed) {
       return;
@@ -89,10 +97,28 @@ var TelephonyHelper = (function() {
         onerror();
         return;
       } else if (emergencyOnly) {
+        var _ = navigator.mozL10n.get;
+        loadConfirm(function() {
+          ConfirmDialog.show(
+            _('connecting') + ' ...',
+            '',
+            {
+              title: _('emergencyDialogBtnOk'),
+              callback: function() {
+                ConfirmDialog.hide();
+              }
+            }
+          );
+          document.addEventListener('visibilitychange', function hideDialog() {
+            document.removeEventListener('visibilitychange', hideDialog);
+            ConfirmDialog.hide();
+          });
+        });
+
         // If the mobileConnection has a sim card we let gecko take the
         // default service, otherwise we force the first slot.
         cardIndex = hasCard ? undefined : 0;
-        callPromise = telephony.dialEmergency(sanitizedNumber, cardIndex);
+        callPromise = telephony.dialEmergency(sanitizedNumber);
       } else {
         callPromise = telephony.dial(sanitizedNumber, cardIndex);
       }

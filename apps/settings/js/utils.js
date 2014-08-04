@@ -67,6 +67,82 @@ function openDialog(dialogID, onSubmit, onReset) {
   }
 }
 
+function openIncompatibleSettingsDialog(dialogId, newSetting,
+  oldSetting, callback) {
+  var newSettingL10n, oldSettingL10n;
+
+  if (newSetting == 'ums.enabled') {
+    newSettingL10n = 'enableUSBStorage1';
+  } else if (newSetting == 'tethering.usb.enabled') {
+    newSettingL10n = 'usb-tethering';
+  } else {
+    newSettingL10n = 'wifi-hotspot';
+  }
+
+  if (oldSetting == 'ums.enabled') {
+    oldSettingL10n = 'enableUSBStorage1';
+  } else if (oldSetting == 'tethering.usb.enabled') {
+    oldSettingL10n = 'usb-tethering';
+  } else {
+    oldSettingL10n = 'wifi-hotspot';
+  }
+
+  var dialogElement = document.querySelector('.incompatible-settings-dialog'),
+    dialogHead = document.querySelector('.is-warning-head'),
+    dialogMessage = document.querySelector('.is-warning-message'),
+    okBtn = document.querySelector('.incompatible-settings-ok-btn'),
+    cancelBtn = document.querySelector('.incompatible-settings-cancel-btn'),
+    mozL10n = navigator.mozL10n;
+
+  mozL10n.setAttributes(dialogHead, 'is-warning-head',
+    {'newSetting' : mozL10n.get(newSettingL10n)});
+  mozL10n.setAttributes(dialogMessage, 'is-warning-message',
+    {'newSetting' : mozL10n.get(newSettingL10n),
+    'oldSetting' : mozL10n.get(oldSettingL10n)});
+
+  // User has requested enable the feature so the old feature
+  // must be disabled
+  function onEnable() {
+    var lock = Settings.mozSettings.createLock();
+    var cset = {};
+
+    cset[newSetting] = true;
+    cset[oldSetting] = false;
+    lock.set(cset);
+
+    enableDialog(false);
+
+    if (callback) {
+      callback();
+    }
+  }
+
+  function onCancel() {
+    var lock = Settings.mozSettings.createLock();
+    var cset = {};
+
+    cset[newSetting] = false;
+    cset[oldSetting] = true;
+    lock.set(cset);
+
+    enableDialog(false);
+  }
+
+  var enableDialog = function enableDialog(enabled) {
+    if (enabled) {
+      okBtn.addEventListener('click', onEnable);
+      cancelBtn.addEventListener('click', onCancel);
+      dialogElement.hidden = false;
+    } else {
+      okBtn.removeEventListener('click', onEnable);
+      cancelBtn.removeEventListener('click', onCancel);
+      dialogElement.hidden = true;
+    }
+  };
+
+  enableDialog(true);
+}
+
 /**
  * JSON loader
  */
@@ -114,12 +190,6 @@ function loadJSON(href, callback) {
 })(this);
 
 /**
- * L10n helper
- */
-
-var localize = navigator.mozL10n.localize;
-
-/**
  * Helper class for formatting file size strings
  * required by *_storage.js
  */
@@ -140,7 +210,7 @@ var FileSizeFormatter = (function FileSizeFormatter(fixed) {
     var sizeDecimal = parseFloat(sizeString);
 
     return {
-      size: sizeDecimal.toString(),
+      size: sizeDecimal,
       unit: units[i]
     };
   }
@@ -154,35 +224,6 @@ var FileSizeFormatter = (function FileSizeFormatter(fixed) {
  */
 
 var DeviceStorageHelper = (function DeviceStorageHelper() {
-  function getStat(type, callback) {
-    var deviceStorage = navigator.getDeviceStorage(type);
-
-    if (!deviceStorage) {
-      console.error('Cannot get DeviceStorage for: ' + type);
-      return;
-    }
-    deviceStorage.freeSpace().onsuccess = function(e) {
-      var freeSpace = e.target.result;
-      deviceStorage.usedSpace().onsuccess = function(e) {
-        var usedSpace = e.target.result;
-        callback(usedSpace, freeSpace, type);
-      };
-    };
-  }
-
-  function getFreeSpace(callback) {
-    var deviceStorage = navigator.getDeviceStorage('sdcard');
-
-    if (!deviceStorage) {
-      console.error('Cannot get free space size in sdcard');
-      return;
-    }
-    deviceStorage.freeSpace().onsuccess = function(e) {
-      var freeSpace = e.target.result;
-      callback(freeSpace);
-    };
-  }
-
   function showFormatedSize(element, l10nId, size) {
     if (size === undefined || isNaN(size)) {
       element.textContent = '';
@@ -194,15 +235,15 @@ var DeviceStorageHelper = (function DeviceStorageHelper() {
     var sizeInfo = FileSizeFormatter.getReadableFileSize(size, fixedDigits);
 
     var _ = navigator.mozL10n.get;
-    element.textContent = _(l10nId, {
-      size: sizeInfo.size,
-      unit: _('byteUnit-' + sizeInfo.unit)
-    });
+    navigator.mozL10n.setAttributes(element,
+                                    l10nId,
+                                    {
+                                      size: sizeInfo.size,
+                                      unit: _('byteUnit-' + sizeInfo.unit)
+                                    });
   }
 
   return {
-    getStat: getStat,
-    getFreeSpace: getFreeSpace,
     showFormatedSize: showFormatedSize
   };
 })();
@@ -222,13 +263,6 @@ var getMobileConnection = function() {
 
 var getBluetooth = function() {
   return navigator.mozBluetooth;
-};
-
-var getNfc = function() {
-  if ('mozNfc' in navigator) {
-    return navigator.mozNfc;
-  }
-  return null;
 };
 
 /**
@@ -294,149 +328,6 @@ function sanitizeAddress(input) {
   } else {
     return input;
   }
-}
-
-function getTruncated(oldName, options) {
-
-  // options
-  var maxLine = options.maxLine || 2;
-  var node = options.node;
-  var ellipsisIndex = options.ellipsisIndex || 3;
-  var ellipsisCharacter = options.ellipsisCharacter || '...';
-
-  if (node === null) {
-    return oldName;
-  }
-
-  // used variables and functions
-  function hitsNewline(oldHeight, newHeight) {
-    return oldHeight !== newHeight;
-  }
-
-  var newName = '';
-  var oldHeight;
-  var newHeight;
-  var baseHeight;
-  var currentLine;
-  var ellipsisAt;
-  var hasNewEllipsisPoint = true;
-  var nameBeforeEllipsis = [];
-  var nameBeforeEllipsisString;
-  var nameAfterEllipsis = oldName.slice(-ellipsisIndex);
-  var realVisibility = node.style.visibility;
-  var realWordBreak = node.style.wordBreak;
-
-  /*
-   * Hide UI, because we are manipulating DOM
-   */
-  node.style.visibility = 'hidden';
-
-  /*
-   * Force breaking on boundaries
-   */
-  node.style.wordBreak = 'break-all';
-
-  /*
-   * Get the base height to count the currentLine at first
-   */
-  node.textContent = '.';
-  baseHeight = node.clientHeight;
-  node.textContent = '';
-
-  var needEllipsis = oldName.split('').some(function(character, index) {
-
-    nameBeforeEllipsis.push(character);
-    nameBeforeEllipsisString = nameBeforeEllipsis.join('');
-
-    oldHeight = node.clientHeight;
-    node.textContent = nameBeforeEllipsisString +
-        ellipsisCharacter + nameAfterEllipsis;
-    newHeight = node.clientHeight;
-
-    /*
-     * When index is 0, we have to update currentLine according to
-     * the first assignment (it is possible that at first the currentLine
-     * is not 0 if the width of node is too small)
-     */
-    if (index === 0) {
-      currentLine = Math.floor(newHeight / baseHeight);
-    }
-
-    if (hitsNewline(oldHeight, newHeight) && index !== 0) {
-
-      /*
-       * The reason why we have to check twice is because there is a
-       * situation that truncated string is overflowed but there is
-       * still room for original string.
-       *
-       * In this way, we have to memorize the ellipsis index and
-       * slice `nameBeforeEllipsis` to the index in the end.
-       */
-      var testHeight;
-      node.textContent = nameBeforeEllipsisString;
-      testHeight = node.clientHeight;
-
-      if (hitsNewline(oldHeight, testHeight)) {
-
-        /*
-         * We have to make it true again to keep the ellipsisAt
-         * up to date.
-         */
-        hasNewEllipsisPoint = true;
-        currentLine += 1;
-      } else {
-        /*
-         * This is the situation that we still have room, so we have
-         * to keep the ellipsisAt value for later use.
-         */
-        if (hasNewEllipsisPoint) {
-          ellipsisAt = index;
-          hasNewEllipsisPoint = false;
-        }
-      }
-    }
-
-    if (currentLine > maxLine) {
-      if (index === 0) {
-
-        /*
-         * It means that at first, the whole string is already in
-         * an overflowed situation, you have to avoid this situation.
-         * And we will bypass oldName back to you.
-         *
-         * There are some options for you :
-         *
-         *   1. Check options.ellipsisCharacter
-         *   2. Check options.maxLine
-         *   3. Check node's width (maybe too narrow)
-         */
-        console.log(
-          'Your string is in a overflowed situation, ' +
-          'please check your options');
-      }
-
-      /*
-       * Remove the last character, because it causes the overflow
-       */
-      nameBeforeEllipsis.pop();
-      node.textContent = '';
-      return true;
-    }
-  });
-
-  // restore UI
-  node.style.visibility = realVisibility;
-  node.style.wordBreak = realWordBreak;
-
-  if (!needEllipsis) {
-    newName = oldName;
-  } else {
-    newName += nameBeforeEllipsis.join('').slice(0, ellipsisAt);
-    newName += ellipsisCharacter;
-    newName += nameAfterEllipsis;
-  }
-
-  return newName;
 }
 
 /**

@@ -67,6 +67,11 @@ var Homescreen = (function() {
   }
 
   function onContextMenu(evt) {
+    // See Bug 1011389 - [APZ] Click events are fired after a long press, even
+    // if the user has moved the finger
+    evt.preventDefault();
+    evt.stopPropagation();
+
     var target = evt.target;
 
     if ('isIcon' in target.dataset) {

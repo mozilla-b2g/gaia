@@ -16,7 +16,8 @@
     "settings":{ "access": "readonly" },
     "camera":{},
     "geolocation":{},
-    "audio-channel-notification":{}
+    "audio-channel-notification":{},
+    "feature-detection": {}
   },
   "activities": {
     "record": {
@@ -54,9 +55,10 @@
   },
   "default_locale": "en-US",
   "icons": {
-    "60": "/style/icons/Camera_60.png",
-    "90": "/style/icons/Camera_90.png",
-    "120": "/style/icons/Camera_120.png",
-    "135": "/style/icons/Camera_135.png"
+    "84": "/style/icons/camera_84.png",
+    "126": "/style/icons/camera_126.png",
+    "142": "/style/icons/camera_142.png",
+    "189": "/style/icons/camera_189.png",
+    "284": "/style/icons/camera_284.png"
   }
 }

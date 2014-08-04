@@ -13,12 +13,12 @@
       <ul>
         <li>
           <p data-l10n-id="ssid-name">SSID Network Name</p>
-          <input type="text" data-ignore name="ssid" />
+          <input type="text" data-ignore name="ssid" dir="auto" />
         </li>
         <li>
           <p data-l10n-id="security">Security</p>
           <span class="button icon icon-dialog">
-            <select>
+            <select name="security">
               <option data-l10n-id="securityNone">none</option>
               <option>WEP</option>
               <option selected>WPA-PSK</option>
@@ -29,10 +29,9 @@
         <li class="eap">
           <p data-l10n-id="eap">EAP method</p>
           <span class="button icon icon-dialog" data-eapMethod>
-            <select>
+            <select name="eap">
               <option value="SIM">SIM</option>
               <option value="PEAP">PEAP</option>
-              <option value="TLS">TLS</option>
               <option value="TTLS">TTLS</option>
             </select>
           </span>
@@ -51,7 +50,7 @@
         </li>
         <li class="identity">
           <p data-l10n-id="wifi-join-username">Username</p>
-          <input type="text" data-ignore name="identity" />
+          <input type="text" data-ignore name="identity" dir="auto" />
         </li>
         <li class="password">
           <label class="pack-checkbox">
@@ -76,6 +75,8 @@
         </li>
       </ul>
     </div>
+
+    <panel data-path="panels/wifi_join_hidden/panel"></panel>
 
   </template>
 </element>

@@ -1,5 +1,6 @@
 Keyboards.da = {
   label: 'Danish',
+  shortLabel: 'Da',
   menuLabel: 'Dansk',
   imEngine: 'latin',
   autoCorrectLanguage: 'da',

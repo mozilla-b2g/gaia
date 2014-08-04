@@ -18,7 +18,6 @@
     var configs = {
       url: window.location.href,
       manifest: {
-        fullscreen: true,
         orientation: ['default']
       },
       name: 'Lockscreen',
@@ -37,6 +36,7 @@
     // and LockScreen.
     this.lockscreen = new window.LockScreen();
     window.lockScreen = this.lockscreen;
+    this.lockscreen.init();
   };
 
   /**
@@ -77,6 +77,8 @@
    */
   LockScreenWindow.prototype.closeAnimation = 'fade-out';
 
+  LockScreenWindow.prototype._DEBUG = false;
+
   /**
    * LockScreenWindow has its own styles.
    *
@@ -84,6 +86,28 @@
    * @memberof LockScreenWindow
    */
   LockScreenWindow.prototype.CLASS_LIST = 'appWindow lockScreenWindow';
+
+  LockScreenWindow.prototype._resize = function aw__resize() {
+    var height, width;
+
+    // We want the lockscreen to go below the StatusBar
+    height = self.layoutManager.height;
+    width = self.layoutManager.width;
+
+    this.width = width;
+    this.height = height;
+    this.element.style.width = this.width + 'px';
+    this.element.style.height = this.height + 'px';
+
+    this.resized = true;
+
+    /**
+     * Fired when the app is resized.
+     *
+     * @event LockScreenWindow#lockscreen-appresize
+     */
+    this.publish('resize');
+  };
 
   /**
    * Create LockScreen overlay. This method would exist until

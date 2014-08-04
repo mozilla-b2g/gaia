@@ -12,10 +12,11 @@
       "launch_path": "/dialer/index.html#keyboard-view",
       "name": "Phone",
       "icons": {
-        "60": "/dialer/style/icons/Dialer_60.png",
-        "90": "/dialer/style/icons/Dialer_90.png",
-        "120": "/dialer/style/icons/Dialer_120.png",
-        "135": "/dialer/style/icons/Dialer_135.png"
+        "84": "/dialer/style/icons/dialer_84.png",
+        "126": "/dialer/style/icons/dialer_126.png",
+        "142": "/dialer/style/icons/dialer_142.png",
+        "189": "/dialer/style/icons/dialer_189.png",
+        "284": "/dialer/style/icons/dialer_284.png"
       },
       "locales": {
         "ar": {
@@ -40,10 +41,11 @@
       "launch_path": "/contacts/index.html",
       "name": "Contacts",
       "icons": {
-        "60": "/contacts/style/icons/Contacts_60.png",
-        "90": "/contacts/style/icons/Contacts_90.png",
-        "120": "/contacts/style/icons/Contacts_120.png",
-        "135": "/contacts/style/icons/Contacts_135.png"
+        "84": "/contacts/style/icons/contacts_84.png",
+        "126": "/contacts/style/icons/contacts_126.png",
+        "142": "/contacts/style/icons/contacts_142.png",
+        "189": "/contacts/style/icons/contacts_189.png",
+        "284": "/contacts/style/icons/contacts_284.png"
       },
       "locales": {
         "ar": {
@@ -63,29 +65,6 @@
           "description": "Gaia 聯絡人"
         }
       }
-    },
-    "ftu": {
-      "launch_path": "/ftu/index.html",
-      "name": "FTU",
-      "fullscreen": "true",
-      "locales": {
-        "ar": {
-          "name": "FTU",
-          "description": "FTU"
-        },
-        "en-US": {
-          "name": "FTU",
-          "description": "FTU"
-        },
-        "fr": {
-          "name": "FTU",
-          "description": "FTU"
-        },
-        "zh-TW": {
-          "name": "FTU",
-          "description": "FTU"
-        }
-      }
     }
   },
   "permissions": {
@@ -98,9 +77,8 @@
     "desktop-notification":{},
     "alarms": {},
     "systemXHR": {},
-    "wifi-manage":{},
-    "time": {},
     "audio-channel-telephony":{},
+    "audio-channel-notification":{},
     "idle":{},
     "storage": {},
     "device-storage:sdcard": { "access": "readcreate" },
@@ -113,7 +91,7 @@
       "filters": {
         "type": {
           "required": true,
-          "value": ["webcontacts/contact","webcontacts/email","webcontacts/tel"]
+          "value": ["webcontacts/contact","webcontacts/email","webcontacts/tel","webcontacts/select"]
         }
        },
       "disposition": "inline",
@@ -161,6 +139,7 @@
       "disposition": "window"
     }
   },
+
   "messages": [
      { "alarm": "/facebook/fb_sync.html" },
      { "bluetooth-dialer-command": "/dialer/index.html#keyboard-view" },
@@ -168,25 +147,44 @@
      { "telephony-call-ended": "/dialer/index.html#keyboard-view" },
      { "ussd-received": "/dialer/index.html#keyboard-view" }
   ],
+
   "redirects": [
     {"from": "facebook",
-    "to": "/redirects/redirect.html"},
+    "to": "/shared/pages/import/redirects/redirect.html"},
     {"from": "facebook_dialogs",
-    "to": "/redirects/dialogs_end.html"},
+    "to": "/shared/pages/import/redirects/dialogs_end.html"},
     {"from": "facebook_logout",
-    "to": "/redirects/dialogs_end.html"},
+    "to": "/shared/pages/import/redirects/dialogs_end.html"},
     {"from": "live",
-    "to": "/redirects/redirect.html"},
+    "to": "/shared/pages/import/redirects/redirect.html"},
     {"from": "gmail",
-    "to": "/redirects/redirect.html"}
+    "to": "/shared/pages/import/redirects/redirect.html"}
   ],
+
   "datastores-owned": {
     "Gaia_Facebook_Friends": {
       "description": "Imported Facebook Friends"
+    },
+    "ice_contacts": {
+      "description": "Contains references to in case of emergency contacts"
+    },
+    "Import_Status_Data": {
+      "description": "Import status data shared between FTU and Contacts"
     }
   },
+
+  "connections": {
+    "ftu-connection": {
+      "description": "FTU Token Data Facebook",
+      "rules": {
+        "manifestURLs": ["app://ftu.gaiamobile.org/manifest.webapp"]
+      },
+      "handler_path": "/contacts/iac.html"
+    }
+  },
+
   "icons": {
-        "30": "/style/icons/communication_30.png",
-        "45": "/style/icons/communication_45.png"
+        "30": "/style/icons/communications_30.png",
+        "45": "/style/icons/communications_45.png"
   }
 }

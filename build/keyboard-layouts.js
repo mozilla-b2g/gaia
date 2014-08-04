@@ -74,7 +74,7 @@ function execute(options) {
   // Get web apps mapping file
   let stageFolder = utils.getEnv('STAGE_DIR');
   let webappsMappingFile = utils.resolve(
-    utils.joinPath(stageFolder, 'webapps-mapping.json'),
+    utils.joinPath(stageFolder, 'webapps_stage.json'),
     options.GAIA_DIR);
 
   if (!webappsMappingFile.exists()) {

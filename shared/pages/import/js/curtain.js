@@ -60,10 +60,11 @@ var Curtain = (function() {
     progressElement.setAttribute('value', 0);
 
     function showMessage() {
-      messages.progress.textContent = _('progressFB', {
-        current: counter,
-        total: total
-      });
+      navigator.mozL10n.setAttributes(
+        messages.progress,
+        'progressFB',
+        { current: counter, total: total }
+      );
     }
 
     this.update = function() {

@@ -107,7 +107,8 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
                'close', 'play', 'playHead', 'video-container',
                'elapsedTime', 'video-title', 'duration-text', 'elapsed-text',
                'slider-wrapper', 'spinner-overlay',
-               'menu', 'save', 'banner', 'message'];
+               'menu', 'save', 'banner', 'message', 'seek-forward',
+               'seek-backward', 'videoControlBar'];
 
     ids.forEach(function createElementRef(name) {
       dom[toCamelCase(name)] = document.getElementById(name);
@@ -136,6 +137,7 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     });
 
     dom.player.addEventListener('timeupdate', timeUpdated);
+    dom.player.addEventListener('seeked', updateSlider);
 
     // showing + hiding the loading spinner
     dom.player.addEventListener('waiting', showSpinner);
@@ -152,11 +154,7 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     // show/hide controls
     dom.videoControls.addEventListener('click', toggleVideoControls, true);
 
-    // Set the 'lang' and 'dir' attributes to <html> when the page is translated
-    window.addEventListener('localized', function showBody() {
-      document.documentElement.lang = navigator.mozL10n.language.code;
-      document.documentElement.dir = navigator.mozL10n.language.direction;
-    });
+    ForwardRewindController.init(dom.player, dom.seekForward, dom.seekBackward);
   }
 
   function checkFilename() {
@@ -373,11 +371,27 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
       endedTimer = null;
     }
 
-    dom.player.currentTime = 0;
-    pause();
+    // If we are still playing when this 'ended' event arrives, then the
+    // user played the video all the way to the end, and we skip to the
+    // beginning and pause so it is easy for the user to restart. If we
+    // reach the end because the user fast forwarded or dragged the slider
+    // to the end, then we will have paused the video before we get this
+    // event and in that case we will remain paused at the end of the video.
+    if (playing) {
+      dom.player.currentTime = 0;
+      pause();
+    }
   }
 
   function updateSlider() {
+    // We update the slider when we get a 'seeked' event.
+    // Don't do updates while we're seeking because the position we fastSeek()
+    // to probably isn't exactly where we requested and we don't want jerky
+    // updates
+    if (dom.player.seeking) {
+      return;
+    }
+
     var percent = (dom.player.currentTime / dom.player.duration) * 100;
     if (isNaN(percent)) // this happens when we end the activity
       return;
@@ -429,13 +443,14 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     pos = Math.max(pos, 0);
     pos = Math.min(pos, 1);
 
+    // Update the slider to match the position of the user's finger.
+    // Note, however, that we don't update the displayed time until
+    // we actually get a 'seeked' event.
     var percent = pos * 100 + '%';
     dom.playHead.classList.add('active');
     dom.playHead.style.left = percent;
     dom.elapsedTime.style.width = percent;
-    dom.player.currentTime = dom.player.duration * pos;
-    dom.elapsedText.textContent = MediaUtils.formatDuration(
-      dom.player.currentTime);
+    dom.player.fastSeek(dom.player.duration * pos);
   }
 
   function showBanner(msg) {

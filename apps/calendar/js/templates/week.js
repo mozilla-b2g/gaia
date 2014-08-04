@@ -3,15 +3,15 @@
 
   var Week = Calendar.Template.create({
     header: function() {
-      return '<h1>' + this.h('value') + '</h1>';
+      return '<h1>' + this.h('title') + '</h1>';
     },
 
     sidebarHour: function() {
       var hour = this.h('hour');
-      var displayHour = this.h('displayHour');
+      var displayHour = this.s('displayHour');
 
-      return '<li ' + hour + ' class="hour-' + this.h('hour') + '">' +
-                displayHour +
+      return '<li class="hour hour-' + hour + '">' +
+                '<span class="display-hour">' + displayHour + '</span>' +
               '</li>';
     },
 
@@ -22,11 +22,16 @@
     },
 
     event: function() {
-      var calendarIdClass = 'calendar-id-' + this.h('calendarId');
-      return '<li class="event ' + calendarIdClass + ' calendar-display" ' +
-        'data-id="' + this.h('busytimeId') + '">' +
-          '<div class="container ' + calendarIdClass + ' ' +
-                      'calendar-color">' +
+      var eventClassName = [
+        'event',
+        'calendar-id-' + this.h('calendarId'),
+        'calendar-bg-color',
+        'calendar-border-color'
+      ].join(' ');
+
+      return '<li class="' + eventClassName +
+        '" data-id="' + this.h('busytimeId') + '">' +
+          '<div class="container">' +
             this.h('title') +
           '</div>' +
         '</li>';
@@ -34,15 +39,13 @@
 
     frame: function() {
       return '<section class="sticky">' +
-          '<section class="children">' +
-            '<span class="all-day">' +
-              this.l10n('', 'hour-allday') +
-            '</span>' +
-          '</section>' +
+          '<span class="all-day gaia-icon icon-calendar-allday"></span>' +
         '</section>' +
         '<div class="scroll">' +
-          '<ol class="sidebar"></ol>' +
-          '<section class="children"></section>' +
+          '<div class="scroll-content">' +
+            '<ol class="sidebar"></ol>' +
+            '<section class="children"></section>' +
+          '</div>' +
         '</div>';
     }
   });

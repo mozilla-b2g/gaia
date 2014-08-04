@@ -240,6 +240,11 @@ body.picker-mode #title-player {
   display: none;
 }
 
+#title-player[hidden],
+#title-done[hidden] {
+  display: none;
+}
+
 #title-player > .icon-player {
   background-image: url("./images/now_playing.png");
 }
@@ -294,26 +299,26 @@ body.picker-mode #title-player {
 }
 
 #views-tiles {
-  left: 0;
+  transform: translateX(0);
 }
 
 #views-list {
-  left: 100%;
+  transform: translateX(100%);
 }
 
 #views-sublist {
-  left: 200%;
+  transform: translateX(200%);
   overflow-y: hidden;
 }
 
 #views-player {
-  left: 300%;
+  transform: translateX(300%);
   height: 100%;
   overflow: hidden;
 }
 
 #views-player.open-mode {
-  left: 0;
+  transform: translateX(0);
 }
 
 /* Make sure the tiles and list views are tall enough that we can scroll the
@@ -477,7 +482,7 @@ body.picker-mode #title-player {
   width: 33%;
   height: 0;
   padding-bottom: 33%;
-  font-weight: lighter;
+  font-weight: 300;
   background-color: #303030;
   overflow: hidden;
 }

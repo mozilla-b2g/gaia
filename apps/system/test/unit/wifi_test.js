@@ -1,8 +1,5 @@
 'use strict';
 
-mocha.globals(['SettingsListener', 'ScreenManager',
-  'Wifi', 'addEventListener']);
-
 requireApp('system/test/unit/mock_wifi_manager.js');
 requireApp('system/test/unit/mock_navigator_moz_power.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
@@ -99,6 +96,13 @@ suite('WiFi > ', function() {
       writable: true
     });
     navigator.mozPower = MockMozPower;
+
+    // Ensure |navigator| has property |mozAlarm| to create sinon stubs.
+    if (!navigator.hasOwnProperty('mozAlarms')) {
+      Object.defineProperty(navigator, 'mozAlarms', {
+        writable: true
+      });
+    }
 
     requireApp('system/js/wifi.js', done);
   });

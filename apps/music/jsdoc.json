@@ -1,9 +1,6 @@
 {
   "music": {
-    "src": ["apps/music/js/**/*.js",
-            "!apps/music/js/Player.js",
-            "!apps/music/js/music.js"
-    ],
+    "src": ["apps/music/js/**/*.js"],
     "options": {
       "destination": "docs/music"
     }

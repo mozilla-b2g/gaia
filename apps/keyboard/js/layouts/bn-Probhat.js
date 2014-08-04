@@ -1,5 +1,6 @@
 Keyboards['bn-Probhat'] = {
   label: 'Bangla - Probhat',
+  shortLabel: 'Bn',
   menuLabel: 'বাংলা - প্রভাত',
   alternateLayoutKey: '?১২',
   basicLayoutKey: 'কখগ',
@@ -86,7 +87,7 @@ Keyboards['bn-Probhat'] = {
         { value: '+' }, { value: '(' }, { value: ')' },
         { value: '_', visible: ['email'] }
       ], [
-        { value: 'ALT', ratio: 1.5, keyCode: KeyEvent.DOM_VK_ALT },
+        { value: 'Alt', ratio: 1.5, keyCode: KeyEvent.DOM_VK_ALT },
         { value: '!' }, { value: '\"' }, { value: "'" }, { value: ':' },
         { value: ';' }, { value: '/' }, { value: '?' },
         { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }

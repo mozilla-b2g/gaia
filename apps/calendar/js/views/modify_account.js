@@ -171,7 +171,7 @@ Calendar.ns('Views').ModifyAccount = (function() {
         event.preventDefault();
       }
 
-      window.back();
+      window.history.back();
     },
 
     save: function(options, e) {

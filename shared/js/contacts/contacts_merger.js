@@ -1,4 +1,4 @@
-/* globals SimplePhoneMatcher, utils, ContactPhotoHelper */
+/* globals Promise, SimplePhoneMatcher, utils, ContactPhotoHelper */
 
 'use strict';
 
@@ -41,8 +41,25 @@ contacts.Merger = (function() {
   // from an external source not related with the matching algorithm.
   function doMerge(pmasterContact, pmatchingContacts, callbacks) {
     window.setTimeout(function contactsMerge() {
-      mergeAll(pmasterContact, pmatchingContacts, callbacks);
+      mergeAll(pmasterContact, pmatchingContacts, filled, callbacks);
     }, 0);
+  }
+  
+  function doInMemoryMerge(pmasterContact, pmatchingContacts) {
+    return new Promise(function (resolve, reject) {
+      mergeAll(pmasterContact, pmatchingContacts, inMemoryMergeDone, {
+        success: function(masterContact) {
+          resolve(masterContact);
+        },
+        error: function(err) {
+          reject(err);
+        }
+      });
+    });
+  }
+  
+  function inMemoryMergeDone(callbacks, matchingContacts, masterContact) {
+    callbacks.success(masterContact);
   }
 
   function isSimContact(contact) {
@@ -50,11 +67,12 @@ contacts.Merger = (function() {
                                         contact.category.indexOf('sim') !== -1;
   }
 
-  function mergeAll(masterContact, matchingContacts, callbacks) {
+  function mergeAll(masterContact, matchingContacts, onFilled, callbacks) {
     var emailsHash;
     var categoriesHash;
     var telsHash;
     var mergedContact = {};
+    var mergedPhoto;
 
     mergedContact.givenName = [];
     copyStringArray(masterContact.givenName, mergedContact.givenName);
@@ -63,6 +81,8 @@ contacts.Merger = (function() {
     copyStringArray(masterContact.familyName, mergedContact.familyName);
 
     mergedContact.photo = masterContact.photo || [];
+    mergedPhoto = mergedContact.photo;
+
     mergedContact.bday = masterContact.bday;
     mergedContact.anniversary = masterContact.anniversary;
 
@@ -97,8 +117,6 @@ contacts.Merger = (function() {
 
     mergedContact.url = masterContact.url || [];
     mergedContact.note = masterContact.note || [];
-
-    var mergedPhoto = null;
 
     matchingContacts.forEach(function(aResult) {
       var theMatchingContact = aResult.matchingContact;
@@ -204,13 +222,17 @@ contacts.Merger = (function() {
         });
       }
 
-      if (!mergedPhoto && isDefined(theMatchingContact.photo)) {
+      if (!Array.isArray(mergedPhoto) || mergedPhoto.length === 0 &&
+          isDefined(theMatchingContact.photo)) {
         var photo = ContactPhotoHelper.getFullResolution(theMatchingContact);
-        mergedPhoto = photo;
+        mergedPhoto = [photo];
       }
 
-      populateField(theMatchingContact.adr, mergedContact.adr,
-                                                              DEFAULT_ADR_TYPE);
+      populateField(
+        theMatchingContact.adr,
+        mergedContact.adr,
+        DEFAULT_ADR_TYPE
+      );
 
       populateField(theMatchingContact.url, mergedContact.url);
       populateField(theMatchingContact.note, mergedContact.note);
@@ -223,32 +245,34 @@ contacts.Merger = (function() {
                             mergedContact.familyName[0] : '')).trim()];
 
     fillMasterContact(masterContact, mergedContact, mergedPhoto,
-    function filled(masterContact) {
-      // Updating the master contact
-      var req = navigator.mozContacts.save(
-        utils.misc.toMozContact(masterContact));
+                      onFilled.bind(null, callbacks, matchingContacts));
+  }
+  
+  function filled(callbacks, matchingContacts, masterContact) {
+    // Updating the master contact
+    var req = navigator.mozContacts.save(
+      utils.misc.toMozContact(masterContact));
 
-      req.onsuccess = function() {
-        // Now for all the matchingContacts they have to be removed
-        matchingContacts.forEach(function(aMatchingContact) {
-          // Only remove those contacts which are already in the DB
-          if (aMatchingContact.matchingContact.id) {
-            var contact = aMatchingContact.matchingContact;
-            navigator.mozContacts.remove(utils.misc.toMozContact(contact));
-          }
-        });
-
-        if (typeof callbacks.success === 'function') {
-          callbacks.success(masterContact);
+    req.onsuccess = function() {
+      // Now for all the matchingContacts they have to be removed
+      matchingContacts.forEach(function(aMatchingContact) {
+        // Only remove those contacts which are already in the DB
+        if (aMatchingContact.matchingContact.id) {
+          var contact = aMatchingContact.matchingContact;
+          navigator.mozContacts.remove(utils.misc.toMozContact(contact));
         }
-      };
+      });
 
-      req.onerror = function() {
-        window.console.error('Error while saving merged Contact: ',
-                             req.error.name);
-        typeof callbacks.error === 'function' && callbacks.error(req.error);
-      };
-    });
+      if (typeof callbacks.success === 'function') {
+        callbacks.success(masterContact);
+      }
+    };
+
+    req.onerror = function() {
+      window.console.error('Error while saving merged Contact: ',
+                           req.error.name);
+      typeof callbacks.error === 'function' && callbacks.error(req.error);
+    };
   }
 
   function isDefined(field) {
@@ -298,16 +322,28 @@ contacts.Merger = (function() {
 
   function populateField(source, destination, defaultType) {
     if (Array.isArray(source)) {
-      source.forEach(function(as) {
-        if (defaultType && (!as.type || !as.type[0])) {
-          as.type = [defaultType];
+      // The easiest way to compare two objects is to compare their's
+      // stringified JSON representations as strings. So we create
+      // temporary Array with JSONs of the objects to compare.
+      var stringifiedDestination = destination.map(function(element){
+        return JSON.stringify(element);
+      });
+
+      source.forEach(function(as, index) {
+        // If the source value and destination value is the same we
+        // don't want to merge and will leave contact as it is. This
+        // prevents duplication of the data like in Bug 935636
+        if (stringifiedDestination.indexOf(JSON.stringify(as)) === -1) {
+          if (defaultType && (!as.type || !as.type[0])) {
+            as.type = [defaultType];
+          }
+          destination.push(as);
         }
-        destination.push(as);
       });
     }
   }
 
-  function fillMasterContact(masterContact, mergedContact, mergedPhoto, done) {
+  function fillMasterContact(masterContact, mergedContact, mergedPhotos, done) {
     var fields = ['familyName', 'givenName', 'name', 'org', 'email', 'tel',
                   'bday', 'anniversary', 'adr', 'category',
                   'url', 'note', 'photo'];
@@ -316,10 +352,13 @@ contacts.Merger = (function() {
       masterContact[aField] = mergedContact[aField];
     });
 
-    if (!mergedPhoto) {
+    if (!Array.isArray(mergedPhotos) || !mergedPhotos[0] ||
+        mergedPhotos.length >= 2) {
       done(masterContact);
       return;
     }
+
+    var mergedPhoto = mergedPhotos[0];
 
     utils.thumbnailImage(mergedPhoto, function gotTumbnail(thumbnail) {
       if (mergedPhoto !== thumbnail) {
@@ -332,7 +371,8 @@ contacts.Merger = (function() {
   }
 
   return {
-    merge: doMerge
+    merge: doMerge,
+    inMemoryMerge: doInMemoryMerge
   };
 
 })();

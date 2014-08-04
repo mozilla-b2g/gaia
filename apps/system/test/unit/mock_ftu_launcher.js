@@ -8,5 +8,9 @@ var MockFtuLauncher = {
   },
 
   retrieve: function() {
+  },
+
+  getFtuOrigin: function() {
+    return 'app://ftu.gaiamobile.org';
   }
 };

@@ -1,12 +1,10 @@
 /*jshint maxlen:false*/
-/*global req*/
 'use strict';
 
 suite('controllers/overlay', function() {
   suiteSetup(function(done) {
     var self = this;
-
-    req([
+    requirejs([
       'app',
       'controllers/overlay',
       'views/overlay'
@@ -24,13 +22,14 @@ suite('controllers/overlay', function() {
       pick: false,
       cancel: sinon.spy()
     };
+    this.app.localized.returns(true);
 
-    this.app.localize.withArgs('nocard2-title').returns('nocard title');
-    this.app.localize.withArgs('nocard3-text').returns('nocard body');
-    this.app.localize.withArgs('nospace2-title').returns('nospace title');
-    this.app.localize.withArgs('nospace2-text').returns('nospace body');
-    this.app.localize.withArgs('pluggedin-title').returns('pluggedin title');
-    this.app.localize.withArgs('pluggedin-text').returns('pluggedin body');
+    this.app.l10nGet.withArgs('nocard2-title').returns('nocard title');
+    this.app.l10nGet.withArgs('nocard3-text').returns('nocard body');
+    this.app.l10nGet.withArgs('nospace2-title').returns('nospace title');
+    this.app.l10nGet.withArgs('nospace2-text').returns('nospace body');
+    this.app.l10nGet.withArgs('pluggedin2-title').returns('pluggedin title');
+    this.app.l10nGet.withArgs('pluggedin2-text').returns('pluggedin body');
   });
 
   suite('OverlayController()', function() {
@@ -95,6 +94,13 @@ suite('controllers/overlay', function() {
       this.controller.createOverlay('unavailable');
       assert.isTrue(this.OverlayProto.appendTo.calledWith(document.body));
     });
+
+    test('Should show spinner if the application is not localized', function() {
+      this.app.localized.returns(false);
+      this.controller.createOverlay('shutdown');
+      assert.isTrue(this.app.showSpinner.called);
+    });
+
   });
 
   suite('OverlayController#getOverlayData()', function() {

@@ -20,19 +20,26 @@
   visibility: hidden;
 }
 
-.facebook.removed dl,
-p.facebook.removed input {
-  background-color: rgba(59, 82, 152, 0.2);
-  border: 1px solid #3b5998;
+/* FB info (non-editable) */
+.view-edit-contact .facebook fieldset legend,
+.view-edit-contact .facebook fieldset input[type="date"] {
+  width: 100%;
+  border-color: #acbee4;
+  color: #8d9abb;
+  background-image: url(fb/dialog.svg);
 }
 
-.facebook.removed dl dd p:last-child {
-  border-bottom: none;
+.view-edit-contact .facebook input {
+  border-color: #acbee4;
+  color: #8d9abb;
 }
 
-.facebook.removed dl dd p {
-  border-bottom: 1px solid #3b5998;
-  border-left: 1px solid #3b5998;
+.view-edit-contact .facebook span {
+  color: #8d9abb;
+}
+
+.view-edit-contact .facebook fieldset input[value=""] {
+  display: none;
 }
 
 .with-photo.removed.facebook img {
@@ -47,6 +54,7 @@ p.facebook.removed input {
 .with-photo.removed.facebook .edit-photo  {
   right: 0
 }
+
 
 #settingsFb li p {
   margin-left: 0;

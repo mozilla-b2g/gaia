@@ -1,42 +1,51 @@
+/* global layoutManager, LayoutManager, MockL10n */
 'use strict';
-
-mocha.globals(['SettingsListener', 'removeEventListener', 'addEventListener',
-      'dispatchEvent', 'Applications', 'ManifestHelper',
-      'KeyboardManager', 'StatusBar', 'BrowserMixin', 'Template',
-      'SoftwareButtonManager', 'AppWindow', 'LockScreenWindow', 'LockScreen',
-      'OrientationManager', 'SettingsListener', 'BrowserFrame', 'lockScreen',
-      'BrowserConfigHelper', 'System', 'AppTransitionController', 'stubById']);
 
 requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/shared/js/template.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_applications.js');
+requireApp('system/test/unit/mock_layout_manager.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
+requireApp('system/test/unit/mock_statusbar.js');
 requireApp('system/test/unit/mock_screen_layout.js');
 
 var mocksForLockScreenWindow = new window.MocksHelper([
   'OrientationManager', 'Applications', 'SettingsListener',
-  'ManifestHelper', 'ScreenLayout'
+  'ManifestHelper', 'ScreenLayout', 'LayoutManager', 'StatusBar'
 ]).init();
 
 suite('system/LockScreenWindow', function() {
-  var stubById;
+  var realL10n, stubById;
   mocksForLockScreenWindow.attachTestHelpers();
 
   setup(function(done) {
     stubById = this.sinon.stub(document, 'getElementById', function(id) {
+
+      var element = document.createElement('div');
+
       // Must give a node with comment node for Template.
       if ('lockscreen-overlay-template' === id) {
-        var node = document.createElement('div'),
-            comment = document.createComment('<div id="lockscreen"></div>');
-        node.appendChild(comment);
-        return node;
-      } else {
-        return document.createElement('div');
+        var comment = document.createComment('<div id="lockscreen"></div>');
+        element.appendChild(comment);
+      } else if (id.indexOf('AppWindow' >= 0)) {
+        var container = document.createElement('div');
+        container.className = 'browser-container';
+        element.appendChild(container);
       }
+
+      return element;
     });
     // Differs from the existing mock which is expected by other components.
     window.LockScreen = function() {};
+    window.LockScreen.prototype.init = this.sinon.stub();
+    window.layoutManager = new LayoutManager();
+    window.layoutManager.start();
+
+    realL10n = window.navigator.mozL10n;
+    window.navigator.mozL10n = MockL10n;
+
     requireApp('system/js/system.js');
     requireApp('system/js/browser_config_helper.js');
     requireApp('system/js/browser_frame.js');
@@ -47,6 +56,7 @@ suite('system/LockScreenWindow', function() {
   });
 
   teardown(function() {
+    window.navigator.mozL10n = realL10n;
     stubById.restore();
   });
 
@@ -108,5 +118,13 @@ suite('system/LockScreenWindow', function() {
       assert.isNotNull(app.iframe,
         'the layout did\'t draw after window opened');
     });
+  });
+
+  test('Resize', function() {
+    var app = new window.LockScreenWindow();
+    var stubIsActive = this.sinon.stub(app, 'isActive');
+    stubIsActive.returns(true);
+    app.resize();
+    assert.equal(app.height, layoutManager.height);
   });
 });

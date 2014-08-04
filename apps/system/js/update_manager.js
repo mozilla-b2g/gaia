@@ -200,7 +200,7 @@ var UpdateManager = {
   },
 
   showDownloadPrompt: function um_showDownloadPrompt() {
-    var _localize = navigator.mozL10n.localize;
+    var _localize = navigator.mozL10n.setAttributes;
 
     this._systemUpdateDisplayed = false;
     _localize(this.downloadDialogTitle, 'numberOfUpdates', {
@@ -249,9 +249,10 @@ var UpdateManager = {
 
       var name = document.createElement('div');
       name.classList.add('name');
-      name.textContent = updatable.name;
       if (updatable.nameL10nId) {
-        name.dataset.l10nId = updatable.nameL10nId;
+        _localize(name, updatable.nameL10nId);
+      } else {
+        name.textContent = updatable.name;
       }
       listItem.appendChild(name);
 
@@ -322,7 +323,7 @@ var UpdateManager = {
   },
 
   render: function um_render() {
-    var _localize = navigator.mozL10n.localize;
+    var _localize = navigator.mozL10n.setAttributes;
 
     _localize(this.toasterMessage, 'updateAvailableInfo', {
       n: this.updatesQueue.length - this.lastUpdatesAvailable
@@ -612,8 +613,7 @@ var UpdateManager = {
   }
 };
 
-window.addEventListener('localized', function startup(evt) {
-  window.removeEventListener('localized', startup);
-
-  UpdateManager.init();
-});
+// unit tests call init() manually
+if (navigator.mozL10n) {
+  navigator.mozL10n.once(UpdateManager.init.bind(UpdateManager));
+}

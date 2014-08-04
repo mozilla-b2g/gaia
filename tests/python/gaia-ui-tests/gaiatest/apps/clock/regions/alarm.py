@@ -19,14 +19,12 @@ class NewAlarm(Clock):
     _done_locator = (By.ID, 'alarm-done')
     _time_button_locator = (By.XPATH, "//li[input[@id='time-select']]")
 
-    _hour_picker_locator = (By.CSS_SELECTOR, '#value-picker-hours div')
-    _minutes_picker_locator = (By.CSS_SELECTOR, '#value-picker-minutes div')
-    _hour24_picker_locator = (By.CSS_SELECTOR, '#value-picker-hour24-state div')
-
     def __init__(self, marionette):
         Clock.__init__(self, marionette)
         view = self.marionette.find_element(*self._alarm_view_locator)
         self.wait_for_condition(lambda m: view.location['x'] == 0 and view.is_displayed())
+        # Bug 1032852 This is to bust intermittents caused by this bug that causes keyboard not to appear upon tap
+        time.sleep(1.5)
 
     def type_alarm_label(self, value):
         self.marionette.find_element(*self._alarm_name_locator).tap()
@@ -68,79 +66,10 @@ class NewAlarm(Clock):
         self.wait_for_condition(lambda m: view.location['x'] == view.size['width'])
         return Clock(self.marionette)
 
-    @property
-    def hour(self):
-        return self.marionette.find_element(*self._current_element(*self._hour_picker_locator)).text
-
-    def spin_hour(self):
-        self.wait_for_element_displayed(*self._hour_picker_locator)
-        if int(self.hour) > 6:
-                self._flick_menu_down(self._hour_picker_locator)
-        else:
-            self._flick_menu_up(self._hour_picker_locator)
-        time.sleep(1)
-
-    @property
-    def minute(self):
-        return self.marionette.find_element(*self._current_element(*self._minutes_picker_locator)).text
-
-    def spin_minute(self):
-        if int(self.minute) > 30:
-            self._flick_menu_down(self._minutes_picker_locator)
-        else:
-            self._flick_menu_up(self._minutes_picker_locator)
-
-        time.sleep(1)
-
-    @property
-    def hour24(self):
-        return self.marionette.find_element(*self._current_element(*self._hour24_picker_locator)).text
-
-    def spin_hour24(self):
-        hour24_picker = self.marionette.find_element(*self._current_element(*self._hour24_picker_locator))
-        hour24_picker_move_y = hour24_picker.size['height'] * 2
-        hour24_picker_mid_x = hour24_picker.size['width'] / 2
-        hour24_picker_mid_y = hour24_picker.size['height'] / 2
-
-        if self.hour24 == 'AM':
-            Actions(self.marionette).flick(hour24_picker, hour24_picker_mid_x, hour24_picker_mid_y, hour24_picker_mid_x, hour24_picker_mid_y - hour24_picker_move_y)
-        else:
-            Actions(self.marionette).flick(hour24_picker, hour24_picker_mid_x, hour24_picker_mid_y, hour24_picker_mid_x, hour24_picker_mid_y + hour24_picker_move_y)
-
-        time.sleep(1)
-
     def tap_time(self):
         self.marionette.find_element(*self._time_button_locator).tap()
-
-    def _flick_menu_up(self, locator):
-        self.wait_for_element_displayed(*self._current_element(*locator))
-        current_element = self.marionette.find_element(*self._current_element(*locator))
-        next_element = self.marionette.find_element(*self._next_element(*locator))
-
-        #TODO: update this with more accurate Actions
-        action = Actions(self.marionette)
-        action.press(next_element)
-        action.move(current_element)
-        action.release()
-        action.perform()
-
-    def _flick_menu_down(self, locator):
-        self.wait_for_element_displayed(*self._current_element(*locator))
-        current_element = self.marionette.find_element(*self._current_element(*locator))
-        next_element = self.marionette.find_element(*self._next_element(*locator))
-
-        #TODO: update this with more accurate Actions
-        action = Actions(self.marionette)
-        action.press(current_element)
-        action.move(next_element)
-        action.release()
-        action.perform()
-
-    def _current_element(self, method, target):
-        return (method, '%s.picker-unit.active' % target)
-
-    def _next_element(self, method, target):
-        return (method, '%s.picker-unit.active + div' % target)
+        from gaiatest.apps.system.regions.time_picker import TimePicker
+        return TimePicker(self.marionette)
 
 
 class EditAlarm(NewAlarm):

@@ -38,17 +38,23 @@ function ds_changeHandler(label, e) {
   }
 }
 
+function ds_defaultStorageChanged(setting) {
+  log(setting.settingName + " changed to '" + setting.settingValue + "'");
+}
+
 function AddListeners() {
   for (i = 0; i < gVolumeStorages.length; i++) {
     gVolumeStorages[i].addEventListener('change',
       ds_changeHandler.bind(this, gVolumeStorages[i].storageName));
   }
+  navigator.mozSettings.addObserver('device.storage.writable.name', ds_defaultStorageChanged);
 }
 
 function RemoveListeners() {
   for (i = 0; i < gVolumeStorages.length; i++) {
     gVolumeStorages[i].removeEventListener('change', ds_changeHandler);
   }
+  navigator.mozSettings.removeObserver('device.storage.writable.name', ds_defaultStorageChanged);
 }
 
 function UpdateStorage() {
@@ -489,8 +495,8 @@ function ds_showStorages(storages) {
   for (var i = 0; i < storages.length; i++) {
     var storage = storages[i];
     if (storage) {
-      log('storage[' + i + '].storageName = ' + storage.storageName +
-          ' default = ' + storage.default);
+      log('storage[' + i + "].storageName = '" + storage.storageName +
+          "' default = " + storage.default + ' canBeShared = ' + storage.canBeShared);
     } else {
       log('storage[' + i + '] = null');
     }

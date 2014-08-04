@@ -18,7 +18,9 @@
     close: wpm_close,
     displayWapPushMessage: wpm_displayWapPushMessage,
     onVisibilityChange: wpm_onVisibilityChange,
-    setOnCloseCallback: wpm_setOnCloseCallback
+    setOnCloseCallback: wpm_setOnCloseCallback,
+    clearNotifications: wpm_clearNotifications,
+    enableAcceptButton: wpm_enableAcceptButton
   };
 
   /** Settings key for enabling/disabling WAP Push messages */
@@ -29,6 +31,9 @@
 
   /** A reference to the app's object */
   var app = null;
+
+  /** Accept button node */
+  var acceptButton = null;
 
   /** Close button node */
   var closeButton = null;
@@ -94,6 +99,7 @@
     navigator.mozSettings.addObserver(wapPushEnableKey, wpm_onSettingsChange);
 
     // Retrieve the various page elements
+    acceptButton = document.getElementById('accept');
     closeButton = document.getElementById('close');
 
     // Get the app object and configuration
@@ -145,6 +151,16 @@
   }
 
   /**
+   * Show/hide the accept button.
+   *
+   * @param {Boolean} enabled Shows the accept button when true, hides it
+   *        otherwise.
+   */
+  function wpm_enableAcceptButton(enabled) {
+    acceptButton.classList.toggle('hidden', !enabled);
+  }
+
+  /**
    * Establish if we must show this message or not; the message is shown only
    * if WAP Push functionality is enabled, the sender's MSISDN is whitelisted
    * or whitelisting is disabled
@@ -180,8 +196,12 @@
 
     /* Build the notification's text, for text/vnd.wap.connectivity-xml
      * messages this needs to be localized. */
-    var text = (message.type == 'text/vnd.wap.connectivity-xml') ?
-               _(message.text) : message.text;
+    var text = '';
+
+    if (message.text) {
+      text = (message.type == 'text/vnd.wap.connectivity-xml') ?
+             _(message.text) : message.text;
+    }
 
     if (message.href) {
       text += (text ? ' ' : '');
@@ -279,23 +299,12 @@
   function wpm_displayWapPushMessage(timestamp) {
     ParsedMessage.load(timestamp,
       function wpm_loadSuccess(message) {
-        // Retrieve pending notifications and close the matching ones
-        Notification.get({tag: timestamp}).then(
-          function onSuccess(notifications) {
-            for (var i = 0; i < notifications.length; i++) {
-              notifications[i].close();
-            }
-          },
-          function onError(reason) {
-            console.error('Notification.get() promise error: ' + reason);
-          }
-        );
-
         if (message) {
           switch (message.type) {
             case 'text/vnd.wap.si':
             case 'text/vnd.wap.sl':
               SiSlScreenHelper.populateScreen(message);
+              wpm_clearNotifications(timestamp);
               break;
             case 'text/vnd.wap.connectivity-xml':
               CpScreenHelper.populateScreen(message);
@@ -304,10 +313,27 @@
         } else {
           // Notify the user that the message has expired
           SiSlScreenHelper.populateScreen();
+          wpm_clearNotifications(timestamp);
         }
       },
       function wpm_loadError(error) {
         console.log('Could not retrieve the message:' + error + '\n');
+      }
+    );
+  }
+
+  /**
+   * Remove notifications for a given tag
+   */
+  function wpm_clearNotifications(tag) {
+    Notification.get({tag: tag}).then(
+      function onSuccess(notifications) {
+        for (var i = 0; i < notifications.length; i++) {
+          notifications[i].close();
+        }
+      },
+      function onError(reason) {
+        console.error('Notification.get() promise error: ' + reason);
       }
     );
   }

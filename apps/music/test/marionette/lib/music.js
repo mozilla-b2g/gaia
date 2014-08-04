@@ -1,6 +1,7 @@
 /* global require, module */
 'use strict';
 
+var assert = require('assert');
 var Actions = require('marionette-client').Actions;
 
 function Music(client, origin) {
@@ -18,7 +19,12 @@ Music.Selector = Object.freeze({
   songsTab: '#tabs-songs',
   firstSong: '.list-item',
   playButton: '#player-controls-play',
-  progressBar: '#player-seek-bar-progress'
+  progressBar: '#player-seek-bar-progress',
+  shareButton: '#player-cover-share',
+  shareMenu: 'form[data-z-index-level="action-menu"]',
+  pickDoneButton: '#title-done',
+  backButton: '#title-back',
+  playerIcon: '#title-player'
 });
 
 Music.prototype = {
@@ -40,8 +46,31 @@ Music.prototype = {
     return this.client.findElement(Music.Selector.playButton);
   },
 
+  get shareButton() {
+    return this.client.findElement(Music.Selector.shareButton);
+  },
+
+  // TODO(gareth): Move this shareMenu stuff into the helper.
+  get shareMenu() {
+    // Switch to the system app first.
+    this.client.switchToFrame();
+    return this.client.helper.waitForElement(Music.Selector.shareMenu);
+  },
+
   get progressBar() {
     return this.client.findElement(Music.Selector.progressBar);
+  },
+
+  get pickDoneButton() {
+    return this.client.findElement(Music.Selector.pickDoneButton);
+  },
+
+  get backButton() {
+    return this.client.findElement(Music.Selector.backButton);
+  },
+
+  get playerIcon() {
+    return this.client.findElement(Music.Selector.playerIcon);
   },
 
   get isPlaying() {
@@ -59,12 +88,34 @@ Music.prototype = {
     this.client.helper.waitForElement('body');
   },
 
-  switchToMe: function() {
-    this.launch();
+  switchToMe: function(options) {
+    options = options || {};
+
+    this.client.switchToFrame();
+
+    // Switch to music even when it is in background.
+    // We cannot use switchToApp here, because it will wait
+    // for the app to come to foreground.
+    if (options.background) {
+      var musicFrame = this.client.findElement('iframe[src*="' +
+                                          this.origin + '"]');
+      this.client.switchToFrame(musicFrame);
+    } else {
+      this.client.apps.switchToApp(this.origin);
+    }
   },
 
   waitForFirstTile: function() {
     this.client.helper.waitForElement(this.firstTile);
+  },
+
+  // Because bug 862156 so we couldn't get the correct displayed value for the
+  // player icon, instead we use the display property to check the visibility
+  // of the player icon.
+  checkPlayerIconShown: function(shouldBeShown) {
+    var display = this.playerIcon.cssProperty('display');
+    var result = (display !== 'none');
+    assert.equal(shouldBeShown, result);
   },
 
   switchToSongsView: function() {
@@ -77,5 +128,29 @@ Music.prototype = {
 
   tapPlayButton: function() {
     this.actions.tap(this.playButton).perform();
+  },
+
+  tapBackButton: function() {
+    this.actions.tap(this.backButton).perform();
+  },
+
+  shareWith: function(appName) {
+    var shareButton = this.shareButton;
+    this.client.waitFor(function() {
+      return shareButton.displayed();
+    });
+    shareButton.tap();
+
+    var list = this.shareMenu.findElements('button');
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].text() === appName) {
+        list[i].tap();
+        return;
+      }
+    }
+  },
+
+  finishPick: function() {
+    this.actions.tap(this.pickDoneButton).perform();
   }
 };

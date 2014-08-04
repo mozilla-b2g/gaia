@@ -3,14 +3,16 @@
 <head>
   <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
   <meta charset="utf-8">
+  <meta name="theme-color" content="#f97c17">
   <title>Calendar</title>
   <link rel="stylesheet" type="text/css" href="/shared/style/headers.css">
   <link rel="stylesheet" type="text/css" href="/shared/style/toolbars.css">
   <link rel="stylesheet" type="text/css" href="/shared/style/tabs.css">
-  <link rel="stylesheet" type="text/css" href="/style/icons.css">
+  <link rel="stylesheet" type="text/css" href="/shared/style/icons.css">
   <link rel="stylesheet" type="text/css" href="/style/calendar.css">
   <link rel="stylesheet" type="text/css" href="/style/ui.css">
   <link rel="stylesheet" type="text/css" href="/style/day_views.css">
+  <link rel="stylesheet" type="text/css" href="/style/month.css">
   <link rel="stylesheet" type="text/css" href="/style/building_blocks.css">
   <link rel="stylesheet" type="text/css" href="/style/first_time_use.css">
 
@@ -23,8 +25,10 @@
   <script defer src="/shared/js/accessibility_helper.js"></script>
   <script defer src="/shared/js/gesture_detector.js"></script>
   <script defer src="/shared/js/lazy_loader.js"></script>
+  <script defer src="/shared/js/font_size_utils.js"></script>
   <script defer src="/shared/js/l10n_date.js"></script>
   <script defer src="/shared/js/notification_helper.js"></script>
+  <script defer src='/shared/js/performance_testing_helper.js'></script>
   <!-- Lazily Loaded
   <script defer src="/shared/js/input_parser.js"></script>
   -->
@@ -36,6 +40,7 @@
   <script defer src="/js/calendar.js"></script>
 
   <!--- utils -->
+  <script defer src="/js/promise.js"></script>
   <script defer src="/js/presets.js"></script>
   <script defer src="/js/error.js"></script>
   <script defer src="/js/calc.js"></script>
@@ -66,6 +71,7 @@
   <script defer src="/js/views/day_based.js"></script>
   <script defer src="/js/views/month.js"></script>
   <script defer src="/js/views/day_child.js"></script>
+  <script defer src="/js/templates/months_day.js"></script>
   <script defer src="/js/views/months_day.js"></script>
 
   <!--- store -->
@@ -91,6 +97,7 @@
   <script defer src="/js/controllers/time.js"></script>
   <script defer src="/js/controllers/sync.js"></script>
   <script defer src="/js/controllers/alarm.js"></script>
+  <script defer src="/js/performance.js"></script>
   <script defer src="/js/app.js"></script>
 
   <link rel="import" href="/elements/errors.html">
@@ -108,7 +115,7 @@
 
 <section is="lazy-styles" id="lazy-styles"></section>
 <section is="errors" id="errors" role="status"></section>
-<section is="settings" class="skin-dark" id="settings" role="region"></section>
+<section is="settings" id="settings" role="region"></section>
 
 <section id="time-views" role="region">
   <header id="time-header">
@@ -148,6 +155,8 @@
   access to the details here
   -->
   <section id="months-day-view" role="tabpanel" aria-labelledby="today">
+    <div id="event-list-date"></div>
+    <div id="empty-message" data-l10n-id="no-events" class="active">No Events</div>
     <section id="event-list" class="day-events">
     </section>
   </section>
@@ -158,13 +167,12 @@
 
   <ul id="view-selector" role="tablist" class="bb-tablist">
     <li class="today" role="presentation">
-      <a id="today" href="#today"><span class="icon-today"></span></a>
+      <a id="today" href="#today"><span class="gaia-icon icon-calendar-today"></span></a>
     </li>
     <li class="month" role="presentation"><a role="tab" aria-selected="true" aria-controls="month-view" id="month" data-l10n-id="show-month-view" href="/month/">Month</a></li>
     <li class="week" role="presentation"><a role="tab" aria-selected="false" aria-controls="week-view" id="week" data-l10n-id="show-week-view" href="/week/">Week</a></li>
     <li class="day" role="presentation"><a role="tab" aria-selected="false" aria-controls="day-view" id="day" data-l10n-id="show-day-view" href="/day/">Day</a></li>
   </ul>
-
 </section>
 
 <section is="create-account" class="fullscreen-view skin-organic" id="create-account-view" role="region"></section>

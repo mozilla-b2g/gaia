@@ -4,6 +4,7 @@
  */
 
 .menu-item {
+  position: static;
   padding-left: 5.5rem;
   background-repeat: no-repeat;
   background-position: 1.4rem center;
@@ -16,159 +17,30 @@ a.menu-item::after  {
   position: absolute;
   top: calc(50% - 1.5rem);
   right: -0.5rem;
-  background: url(/shared/style_unstable/buttons/images/next.png) no-repeat;
+  background: url(/shared/style/buttons/images/next.png) no-repeat center / 3rem auto;
+}
+
+.menu-item::before {
+  left: 0;
+  height: 100%;
+  line-height: 6rem;
+  color: #657073;
 }
 
 .menu-item-desc {
   left: 4rem;
 }
 
-.menu-item::before {
-  content: '';
-  position: absolute;
-  top: calc((6.2rem - 3.2rem) / 2);
-  left: calc((2.5rem - 2.8rem) / 2);
-  width: 3rem;
-  height: 3rem;
-  background-image: url(images/icons_sprite.gif);
-  background-size: 15rem;
+#suggestions-desc {
+  left: 0;
 }
 
-li:active:not([aria-disabled="true"]) .menu-item::before,
-.menu-item:focus::before {
-  background-image: url(images/icons_sprite_active.gif);
+#menuItem-suggestions {
+  padding-left: 1.5rem;
 }
 
-#menuItem-airplaneMode::before {
-  background-position: 0 0;
-}
-
-#menuItem-gps::before {
-  background-position: -3rem 0;
-}
-
-#menuItem-wifi::before {
-  background-position: -6rem 0;
-}
-
-#menuItem-callSettings::before {
-  background-position: 0 -15rem;
-}
-
-#menuItem-messagingSettings::before {
-  background-position: -9rem -15rem;
-}
-
-#menuItem-cellularAndData::before {
-  background-position: -9rem 0;
-}
-
-#menuItem-bluetooth::before {
-  background-position: -12rem 0;
-}
-
-#menuItem-nfc::before {
-  background-position: -12rem -15rem;
-}
-
-#menuItem-internetSharing::before {
-  background-position: 0 -3rem;
-}
-
-#menuItem-sound::before {
-  background-position: -3rem -3rem;
-}
-
-#menuItem-display::before {
-  background-position: -6rem -3rem;
-}
-
-#menuItem-notifications::before {
-  background-position: -9rem -3rem;
-}
-
-#menuItem-dateAndTime::before {
-  background-position: -12rem -3rem;
-}
-
-#menuItem-languageAndRegion::before {
-  background-position: 0 -6rem;
-}
-
-#menuItem-keyboard::before {
-  background-position: -3rem -6rem;
-}
-
-#menuItem-fxa::before {
-  background-position: -6rem -6rem;
-}
-
-#menuItem-mail::before {
-  background-position: -9rem -6rem;
-}
-
-#menuItem-screenLock::before {
-  background-position: -12rem -6rem;
-}
-
-#menuItem-simManager::before {
-  background-position: 0 -9rem;
-}
-
-#menuItem-simSecurity::before {
-  background-position: 0 -9rem;
-}
-
-#menuItem-appPermissions::before {
-  background-position: -3rem -9rem;
-}
-
-#menuItem-doNotTrack::before {
-  background-position: -6rem -9rem;
-}
-
-#menuItem-deviceInfo::before {
-  background-position: -9rem -9rem;
-}
-
-#menuItem-battery::before {
-  background-position: -12rem -9rem;
-}
-
-#menuItem-enableStorage::before {
-  background-position: -6rem -15rem;
-}
-
-#menuItem-applicationStorage::before {
-  background-position: 0 -12rem;
-}
-
-#menuItem-mediaStorage::before {
-  background-position: -3rem -12rem;
-}
-
-#menuItem-accessibility::before {
-  background-position: -6rem -12rem;
-}
-
-#menuItem-developer::before {
-  background-position: -3rem -18rem;
-}
-
-#menuItem-improveBrowserOS::before {
-  background-position: -3rem -15rem;
-}
-
-#menuItem-help::before {
-  background-position: -9rem -12rem;
-}
-
-.menuItem-icc::before {
-  background-position: -12rem -12rem;
-}
-
-#menuItem-downloads::before {
-  background-position: -15rem -18rem;
+#menuItem-suggestions::before {
+  background: none;
 }
 
 /******************************************************************************

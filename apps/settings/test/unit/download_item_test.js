@@ -93,7 +93,7 @@ suite('Download item', function() {
         state: 'downloading'
       });
       downloadElement = DownloadItem.create(downloadMock);
-      l10nSpy = this.sinon.spy(navigator.mozL10n, 'localize');
+      l10nSpy = this.sinon.spy(navigator.mozL10n, 'setAttributes');
       fileFormatterSpy = this.sinon.spy(DownloadFormatter, 'getTotalSize');
       navigator.onLine = true;
     });

@@ -49,13 +49,20 @@ marionette('startup test > ' + mozTestInfo.appPath + ' >', function() {
     var memStats = [];
     performanceHelper.repeatWithDelay(function(app, next) {
       app.launch();
-      if (isHostRunner) {
-        // we can only collect memory if we have a host device (adb)
-        var memUsage = performanceHelper.getMemoryUsage(app);
-        assert.ok(memUsage, 'couldn\'t collect mem usage');
-        memStats.push(memUsage);
+
+      if (!isHostRunner) {
+        return app.close();
       }
+
+      // we can only collect memory if we have a host device (adb)
+      var memUsage = performanceHelper.getMemoryUsage(app);
+
+      // Bug 1045717: be sure to close app before we assert the value of
+      // memStats so we avoid leaking problems into other tests
       app.close();
+
+      assert.ok(memUsage, 'couldn\'t collect mem usage');
+      memStats.push(memUsage);
     });
 
     var results = PerformanceHelper.getLoadTimes(client);
@@ -72,6 +79,9 @@ marionette('startup test > ' + mozTestInfo.appPath + ' >', function() {
     }).map(function(element) {
       return element.time;
     });
+
+    // results is an Array of values, one per run.
+    assert.ok(results.length == mozTestInfo.runs, 'missing runs');
 
     PerformanceHelper.reportDuration(results);
     PerformanceHelper.reportMemory(memStats);

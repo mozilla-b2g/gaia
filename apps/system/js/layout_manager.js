@@ -1,5 +1,5 @@
-/* global KeyboardManager, softwareButtonManager, StatusBar,
-          System */
+/* global KeyboardManager, softwareButtonManager, System,
+          AttentionScreen */
 'use strict';
 
 (function(exports) {
@@ -53,10 +53,19 @@
      * @memberOf LayoutManager
      */
     get height() {
-      return window.innerHeight -
+      var height = window.innerHeight -
         (this.keyboardEnabled ? KeyboardManager.getHeight() : 0) -
-        StatusBar.height -
+        AttentionScreen.statusHeight -
         softwareButtonManager.height;
+
+      // Normalizing the height so that it always translates to an integral
+      // number of device pixels
+      var dpx = window.devicePixelRatio;
+      if ((height * dpx) % 1 !== 0) {
+        height = Math.ceil(height * dpx) / dpx;
+      }
+
+      return height;
     },
 
     /**
@@ -65,7 +74,7 @@
      * @memberOf LayoutManager
      */
     get width() {
-      return window.innerWidth;
+      return window.innerWidth - softwareButtonManager.width;
     },
 
     /**
@@ -77,7 +86,7 @@
      * @memberOf LayoutManager
      */
     match: function lm_match(width, height) {
-      return (this.height === height);
+      return (this.width === width && this.height === height);
     },
 
     /**
@@ -102,7 +111,6 @@
       window.addEventListener('mozfullscreenchange', this);
       window.addEventListener('software-button-enabled', this);
       window.addEventListener('software-button-disabled', this);
-      return this;
     },
 
     handleEvent: function lm_handleEvent(evt) {
@@ -118,6 +126,10 @@
            * @event LayoutManager#system-resize
            */
           this.publish('system-resize');
+          break;
+        case 'resize':
+          this.publish('system-resize');
+          this.publish('orientationchange');
           break;
         default:
           if (evt.type === 'keyboardhide') {

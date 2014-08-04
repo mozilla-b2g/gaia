@@ -15,11 +15,13 @@ function PerfTestApp(client, origin) {
     return;
   }
   var arr = mozTestInfo.appPath.split('/');
-  manifestPath = arr[0];
-  entryPoint = arr[1];
+  var manifestPath = arr[0];
+  var entryPoint = arr[1];
+  var origin = util.format('app://%s',
+    manifestPath.indexOf('.') !== -1 ?
+    manifestPath :
+    manifestPath + '.gaiamobile.org');
 
-  origin = util.format('app://%s.gaiamobile.org',
-                       manifestPath);
   this.entryPoint = entryPoint;
   this.client = client;
   this.origin = origin;
@@ -34,8 +36,6 @@ PerfTestApp.prototype = {
 
   /** the Webapp instance. */
   instance: null,
-
-  PERFORMANCE_ATOM: 'window.wrappedJSObject.PerformanceHelperAtom',
 
   defaultCallback: function() {
   },
@@ -88,20 +88,12 @@ PerfTestApp.prototype = {
     this.client.findElement(this.selector(name), callback);
   },
 
-  observePerfEvents: function(stopEventName) {
-
-    this.client.executeScript(
-      fs.readFileSync('./tests/performance/performance_helper_atom.js') + '\n'
-    );
-
-  },
-
   waitForPerfEvents: function(stopEventName, callback) {
     var client = this.client;
     var self = this;
 
     this.client.executeAsyncScript(
-      this.PERFORMANCE_ATOM + '.waitForEvent("' + stopEventName +
+      'window.wrappedJSObject.mozPerfWaitForEvent("' + stopEventName +
         '", function() { marionetteScriptFinished(); });',
       function(error) {
 
@@ -111,11 +103,11 @@ PerfTestApp.prototype = {
         }
 
         var runResults = client.executeScript(
-          'return ' + self.PERFORMANCE_ATOM + '.getMeasurements();'
+          'return window.wrappedJSObject.mozPerfGetMeasurements();'
         );
 
         client.executeScript(
-          self.PERFORMANCE_ATOM + '.unregister();'
+          'window.wrappedJSObject.mozPerfUnregisterListener();'
         );
 
         if (callback) {

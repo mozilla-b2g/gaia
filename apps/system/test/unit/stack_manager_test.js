@@ -1,22 +1,22 @@
 /* global StackManager, AppWindow, Event, MocksHelper,
-          HomescreenLauncher, MockSheetsTransition */
+          MockAppWindowManager, HomescreenLauncher, MockSheetsTransition */
 'use strict';
-
-mocha.globals(['homescreenLauncher', 'layoutManager']);
 
 requireApp('system/js/stack_manager.js');
 requireApp('system/test/unit/mock_app_window.js');
+requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_homescreen_launcher.js');
 requireApp('system/test/unit/mock_layout_manager.js');
 requireApp('system/test/unit/mock_sheets_transition.js');
 
 var mocksForStackManager = new MocksHelper([
-  'AppWindow', 'HomescreenLauncher', 'LayoutManager',
+  'AppWindow', 'AppWindowManager',
+  'HomescreenLauncher', 'LayoutManager',
   'SheetsTransition'
 ]).init();
 
 suite('system/StackManager >', function() {
-  var dialer, contact, settings, google, system;
+  var dialer, contact, settings, google, system, operatorVariant;
   var contact_sheet_1, contact_sheet_2;
   var settings_sheet_1, settings_sheet_2, settings_sheet_3;
   mocksForStackManager.attachTestHelpers();
@@ -24,7 +24,8 @@ suite('system/StackManager >', function() {
   setup(function() {
     this.sinon.useFakeTimers();
 
-    window.homescreenLauncher = new HomescreenLauncher().start();
+    window.homescreenLauncher = new HomescreenLauncher();
+    window.homescreenLauncher.start();
     dialer = new AppWindow({
       url: 'app://communications.gaiamobile.org/dialer/index.html',
       origin: 'app://communications.gaiamobile.org/',
@@ -58,6 +59,15 @@ suite('system/StackManager >', function() {
       manifestURL:
         'app://system.gaiamobile.org/contact/manifest.webapp',
       name: 'System',
+      manifest: { role: 'system' }
+    });
+
+    operatorVariant = new AppWindow({
+      url: 'app://opvariant.gaiamobile.org/index.html',
+      origin: 'app://opvariant.gaiamobile.org/',
+      manifestURL:
+        'app://opvariant.gaiamobile.org/contact/manifest.webapp',
+      name: 'Operator Variant',
       manifest: { role: 'system' }
     });
 
@@ -171,18 +181,48 @@ suite('system/StackManager >', function() {
     });
   });
 
-  suite('Stack vs System App', function() {
+  suite('Stack vs hidden apps', function() {
     setup(function() {
       appLaunch(system);
+      appLaunch(operatorVariant);
     });
 
-    test('system app should never be in the stack', function() {
+    test('role=system apps should never be in the stack', function() {
       StackManager.snapshot().forEach(function(app) {
         if (app.manifest) {
-          assert.notEqual(app.manifest.role,
-                          'system',
-                          'system app should not be in snapshot');
+          assert.notEqual(app.manifest.role, 'system');
         }
+      });
+    });
+
+    suite('when the app currently displayed is not part of the stack',
+    function() {
+      setup(function() {
+        appLaunch(settings);
+        appLaunch(operatorVariant);
+        MockAppWindowManager.mActiveApp = operatorVariant;
+
+        this.sinon.stub(settings, 'getActiveWindow').returns(null);
+      });
+
+      test('getCurrent should still work to allow event forwarding',
+      function() {
+        assert.equal(StackManager.getCurrent(), operatorVariant);
+      });
+
+      test('outOfStack should be true since we don\'t know where we are',
+      function() {
+        assert.isTrue(StackManager.outOfStack());
+      });
+
+      suite('but to prevent undefined swiping behaviors', function() {
+        test('getPrev should return undefined', function() {
+          assert.isUndefined(StackManager.getPrev());
+        });
+
+        test('getNext should return undefined', function() {
+          assert.isUndefined(StackManager.getNext());
+        });
       });
     });
 

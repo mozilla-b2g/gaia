@@ -1,4 +1,6 @@
-/* global debug, ConfigManager, Toolkit, addAlarmTimeout, Common  */
+/* global debug, ConfigManager, Toolkit, addAlarmTimeout, Common, LazyLoader,
+          SimManager, IACManager, DEBUGGING
+*/
 /* exported CostControl */
 'use strict';
 
@@ -21,14 +23,28 @@ var CostControl = (function() {
   function getInstance(onready) {
     debug('Initializing Cost Control');
 
-    if (costcontrol) {
+    function goOn() {
       debug('Cost Control already ready!');
       onready(costcontrol);
+    }
+
+    // Force a reload of Costcontrol when the dataSlotChange event is lost
+    if (costcontrol) {
+      if (SimManager.isMultiSim()) {
+        SimManager.requestDataSimIcc(function(dataSimIcc) {
+          if (costcontrol.iccId === dataSimIcc.iccId) {
+            goOn();
+          }
+        });
+      } else {
+        goOn();
+      }
       return;
     }
 
-    function setupCostControl() {
+    function setupCostControl(configuration, settings, iccId) {
       costcontrol = {
+        iccId: iccId,
         request: request,
         isBalanceRequestSMS: isBalanceRequestSMS,
         getDataUsageWarning: function _getDataUsageWarning() {
@@ -44,19 +60,10 @@ var CostControl = (function() {
     ConfigManager.requestAll(setupCostControl);
   }
 
-  var mobileMessageManager, connection, statistics;
+  var mobileMessageManager, statistics, isSendingBalanceRequest = false;
   function loadAPIs() {
     if ('mozMobileMessage' in window.navigator) {
       mobileMessageManager = window.navigator.mozMobileMessage;
-    }
-
-    if ('mozMobileConnection' in window.navigator) {
-      connection = window.navigator.mozMobileConnection;
-    }
-    // XXX: check bug-926169
-    // this is used to keep all tests passing while introducing multi-sim APIs
-    else if ('mozMobileConnections' in window.navigator) {
-      connection = window.navigator.mozMobileConnections[0];
     }
 
     if ('mozNetworkStats' in window.navigator) {
@@ -90,91 +97,111 @@ var CostControl = (function() {
       // Only type is set here
       result.type = requestObj.type;
       function _requestDataStatistics() {
-        requestDataStatistics(configuration, settings, callback, result);
+        SimManager.requestDataSimIcc(function(dataSim) {
+          requestDataStatistics(configuration, settings, callback, dataSim,
+                                result);
+        });
+      }
+
+      function _requestBalance(connection) {
+        // Check service
+        var issues = getServiceIssues(configuration, settings,
+                                      connection);
+        var canBeIgnoredByForcing = (issues === 'minimum_delay' && force);
+        if (issues && !canBeIgnoredByForcing) {
+          result.status = 'error';
+          result.details = issues;
+          result.data = settings.lastBalance;
+          if (callback) {
+            callback(result);
+          }
+          return;
+        }
+
+        var costIssues = getCostIssues(configuration, connection);
+        if (!force && costIssues) {
+          result.status = 'error';
+          result.details = costIssues;
+          result.data = settings.lastBalance;
+          if (callback) {
+            callback(result);
+          }
+          return;
+        }
+
+        // TODO To avoid concurrence problems, the best solution would be to
+        // implement a request queue instead of the isSendingBalanceRequest lock
+        // Check in-progress
+        var isWaiting = settings.waitingForBalance !== null;
+        var timeout = Toolkit.checkEnoughDelay(BALANCE_TIMEOUT,
+                                               settings.lastBalanceRequest);
+        if ((isWaiting && !timeout) || isSendingBalanceRequest) {
+          result.status = 'in_progress';
+          result.data = settings.lastBalance;
+          if (callback) {
+            callback(result);
+          }
+          return;
+        }
+        isSendingBalanceRequest = true;
+
+        // Dispatch
+        LazyLoader.load('js/iac_manager.js', function() {
+          requestBalance(configuration, settings, callback, result);
+        });
+      }
+
+      function _requestTopUp(connection) {
+        // Check service
+        var issuesTopUp = getServiceIssues(configuration, settings,
+                                           connection);
+        if (issuesTopUp && issuesTopUp !== 'minimum_delay') {
+          result.status = 'error';
+          result.details = issuesTopUp;
+          result.data = settings.lastDataUsage;
+          if (callback) {
+            callback(result);
+          }
+          return;
+        }
+
+        var costIssuesTopUp = getCostIssues(configuration, connection);
+        if (!force && costIssuesTopUp) {
+          result.status = 'error';
+          result.details = costIssuesTopUp;
+          result.data = settings.lastBalance;
+          if (callback) {
+            callback(result);
+          }
+          return;
+        }
+
+        // Check in-progress
+        var isWaitingTopUp = settings.waitingForTopUp !== null;
+        var timeoutTopUp = Toolkit.checkEnoughDelay(BALANCE_TIMEOUT,
+                                               settings.lastTopUpRequest);
+        if (isWaitingTopUp && !timeoutTopUp && !force) {
+          result.status = 'in_progress';
+          result.data = settings.lastDataUsage;
+          if (callback) {
+            callback(result);
+          }
+          return;
+        }
+
+        // Dispatch
+        var code = requestObj.data;
+        LazyLoader.load('js/iac_manager.js', function() {
+          requestTopUp(configuration, settings, code, callback, result);
+        });
       }
       switch (requestObj.type) {
         case 'balance':
-          // Check service
-          var issues = getServiceIssues(configuration, settings);
-          var canBeIgnoredByForcing = (issues === 'minimum_delay' && force);
-          if (issues && !canBeIgnoredByForcing) {
-            result.status = 'error';
-            result.details = issues;
-            result.data = settings.lastBalance;
-            if (callback) {
-              callback(result);
-            }
-            return;
-          }
-
-          var costIssues = getCostIssues(configuration);
-          if (!force && costIssues) {
-            result.status = 'error';
-            result.details = costIssues;
-            result.data = settings.lastBalance;
-            if (callback) {
-              callback(result);
-            }
-            return;
-          }
-
-          // Check in-progress
-          var isWaiting = settings.waitingForBalance !== null;
-          var timeout = Toolkit.checkEnoughDelay(BALANCE_TIMEOUT,
-                                                 settings.lastBalanceRequest);
-          if (isWaiting && !timeout) {
-            result.status = 'in_progress';
-            result.data = settings.lastBalance;
-            if (callback) {
-              callback(result);
-            }
-            return;
-          }
-
-          // Dispatch
-          requestBalance(configuration, settings, callback, result);
+          SimManager.requestDataConnection(_requestBalance);
           break;
 
         case 'topup':
-          // Check service
-          var issuesTopUp = getServiceIssues(configuration, settings);
-          if (issuesTopUp && issuesTopUp !== 'minimum_delay') {
-            result.status = 'error';
-            result.details = issuesTopUp;
-            result.data = settings.lastDataUsage;
-            if (callback) {
-              callback(result);
-            }
-            return;
-          }
-
-          var costIssuesTopUp = getCostIssues(configuration);
-          if (!force && costIssuesTopUp) {
-            result.status = 'error';
-            result.details = costIssuesTopUp;
-            result.data = settings.lastBalance;
-            if (callback) {
-              callback(result);
-            }
-            return;
-          }
-
-          // Check in-progress
-          var isWaitingTopUp = settings.waitingForTopUp !== null;
-          var timeoutTopUp = Toolkit.checkEnoughDelay(BALANCE_TIMEOUT,
-                                                 settings.lastTopUpRequest);
-          if (isWaitingTopUp && !timeoutTopUp && !force) {
-            result.status = 'in_progress';
-            result.data = settings.lastDataUsage;
-            if (callback) {
-              callback(result);
-            }
-            return;
-          }
-
-          // Dispatch
-          var code = requestObj.data;
-          requestTopUp(configuration, settings, code, callback, result);
+          SimManager.requestDataConnection(_requestTopUp);
           break;
 
         case 'datausage':
@@ -201,9 +228,10 @@ var CostControl = (function() {
   }
 
   // Check service status and return the most representative issue if there is
-  function getServiceIssues(configuration, settings) {
+  function getServiceIssues(configuration, settings, connection) {
 
-    if (!connection || !connection.voice || !connection.data) {
+    if (!connection || !connection.data ||
+        !connection.voice || !connection.voice.connected) {
       return 'no_service';
     }
 
@@ -212,12 +240,7 @@ var CostControl = (function() {
       return 'no_service';
     }
 
-    var voice = connection.voice;
-    if (!voice.connected) {
-      return 'no_service';
-    }
-
-    if (voice.relSignalStrength === null) {
+    if (connection.voice.relSignalStrength === null) {
       return 'no_coverage';
     }
 
@@ -235,7 +258,7 @@ var CostControl = (function() {
   }
 
   // Check cost issues and return
-  function getCostIssues(configuration) {
+  function getCostIssues(configuration, connection) {
     var inRoaming = connection.voice.roaming;
     if (inRoaming && configuration.is_roaming_free !== true) {
       return 'non_free_in_roaming';
@@ -254,56 +277,78 @@ var CostControl = (function() {
     debug('Requesting balance...');
     result.data = settings.lastBalance;
 
-    // Send request SMS
-    var newSMS = mobileMessageManager.send(
-      configuration.balance.destination,
-      configuration.balance.text
-    );
+    function sendSMS() {
+      debug('After IAC broadcast ask for starting - balance');
+      // Send request SMS
+      var newSMS = mobileMessageManager.send(
+        configuration.balance.destination,
+        configuration.balance.text
+      );
 
-    newSMS.onsuccess = function _onSuccess() {
-      debug('Request SMS sent! Waiting for response.');
+      newSMS.onsuccess = function _onSuccess() {
+        debug('Request SMS sent! Waiting for response.');
 
-      // Add the timeout
-      var newAlarm = addAlarmTimeout('balanceTimeout', BALANCE_TIMEOUT);
+        if (!DEBUGGING) {
+          mobileMessageManager.delete(newSMS.result.id);
+        }
 
-      newAlarm.onsuccess = function _alarmSet(evt) {
-        var id = evt.target.result;
-        debug('Timeout for balance (', id, ') update set to:', BALANCE_TIMEOUT);
+        // Add the timeout
+        var newAlarm = addAlarmTimeout('balanceTimeout', BALANCE_TIMEOUT);
 
-        ConfigManager.setOption(
-          {
-            'waitingForBalance': id,
-            'lastBalanceRequest': new Date()
-          },
-          function _onSet() {
-            result.status = 'success';
-            if (callback) {
-              callback(result);
+        newAlarm.onsuccess = function _alarmSet(evt) {
+          var id = evt.target.result;
+          debug('Timeout for balance (', id, ') update set to:',
+                BALANCE_TIMEOUT);
+
+          ConfigManager.setOption(
+            {
+              'waitingForBalance': id,
+              'lastBalanceRequest': new Date()
+            },
+            function _onSet() {
+              isSendingBalanceRequest = false;
+              result.status = 'success';
+              if (callback) {
+                callback(result);
+              }
             }
-          }
-        );
+          );
+        };
+
+        newAlarm.onerror = function _alarmFailedToSet(evt) {
+          ConfigManager.setOption(
+            {
+              'lastBalanceRequest': new Date()
+            },
+            function _onSet() {
+              isSendingBalanceRequest = false;
+              debug('Failed to set timeout for balance request!');
+              result.status = 'error';
+              result.details = 'timeout_fail';
+              if (callback) {
+                callback(result);
+              }
+            }
+          );
+        };
       };
 
-      newAlarm.onerror = function _alarmFailedToSet(evt) {
-        debug('Failed to set timeout for balance request!');
+      newSMS.onerror = function _onError() {
+        isSendingBalanceRequest = false;
+        debug('Request SMS failed! But returning stored balance.');
+        IACManager.broadcastEndOfSMSQuery('balance').then(function(msg) {
+          debug('After IAC broadcast ask for ending - balance');
+        });
         result.status = 'error';
-        result.details = 'timout_fail';
+        result.details = 'request_fail';
         if (callback) {
           callback(result);
         }
       };
-    };
-
-    newSMS.onerror = function _onError() {
-      debug('Request SMS failed! But returning stored balance.');
-      result.status = 'error';
-      result.details = 'request_fail';
-      if (callback) {
-        callback(result);
-      }
-    };
-
-    debug('Balance out of date. Requesting fresh data...');
+      debug('Balance out of date. Requesting fresh data...');
+    }
+    IACManager.init(configuration);
+    IACManager.broadcastStartOfSMSQuery('balance').then(sendSMS, sendSMS);
   }
 
   // Send a top up SMS and set timeouts for interrupting waiting for response
@@ -311,63 +356,78 @@ var CostControl = (function() {
   function requestTopUp(configuration, settings, code, callback, result) {
     debug('Requesting TopUp with code', code, '...');
 
-    // TODO: Ensure is free
-    var newSMS = mobileMessageManager.send(
-      configuration.topup.destination,
-      configuration.topup.text.replace(/\&code/g, code)
-    );
+    function sendSMS() {
+      debug('After IAC broadcast ask for starting - topup');
 
-    newSMS.onsuccess = function _onSuccess() {
-      debug('TopUp SMS sent! Waiting for response.');
+      // TODO: Ensure is free
+      var newSMS = mobileMessageManager.send(
+        configuration.topup.destination,
+        configuration.topup.text.replace(/\&code/g, code)
+      );
 
-      // Add the timeout (if fail, do not inform the callback)
-      var newAlarm = addAlarmTimeout('topupTimeout', TOPUP_TIMEOUT);
+      newSMS.onsuccess = function _onSuccess() {
+        debug('TopUp SMS sent! Waiting for response.');
 
-      newAlarm.onsuccess = function _alarmSet(evt) {
-        var id = evt.target.result;
-        debug('Timeout for TopUp (', id, ') update set to:', TOPUP_TIMEOUT);
+        if (!DEBUGGING) {
+          mobileMessageManager.delete(newSMS.result.id);
+        }
 
-        // XXX: waitingForTopUp can be null if no waiting or distinct
-        // than null to indicate the unique id of the timeout waiting
-        // for the response message
-        ConfigManager.setOption(
-          {
-            'waitingForTopUp': id,
-            'lastTopUpRequest': new Date()
-          },
-          function _onSet() {
-            result.status = 'success';
-            if (callback) {
-              callback(result);
+        // Add the timeout (if fail, do not inform the callback)
+        var newAlarm = addAlarmTimeout('topupTimeout', TOPUP_TIMEOUT);
+
+        newAlarm.onsuccess = function _alarmSet(evt) {
+          var id = evt.target.result;
+          debug('Timeout for TopUp (', id, ') update set to:', TOPUP_TIMEOUT);
+
+          // XXX: waitingForTopUp can be null if no waiting or distinct
+          // than null to indicate the unique id of the timeout waiting
+          // for the response message
+          ConfigManager.setOption(
+            {
+              'waitingForTopUp': id,
+              'lastTopUpRequest': new Date()
+            },
+            function _onSet() {
+              result.status = 'success';
+              if (callback) {
+                callback(result);
+              }
             }
+          );
+        };
+
+        newAlarm.onerror = function _alarmFailedToSet(evt) {
+          debug('Failed to set timeout for TopUp request!');
+          result.status = 'error';
+          result.details = 'timeout_fail';
+          if (callback) {
+            callback(result);
           }
-        );
+        };
       };
 
-      newAlarm.onerror = function _alarmFailedToSet(evt) {
-        debug('Failed to set timeout for TopUp request!');
+      newSMS.onerror = function _onError() {
+        debug('TopUp SMS failed!');
+        IACManager.broadcastEndOfSMSQuery('topup').then(function(msg) {
+          debug('After IAC broadcast ask for ending - topup');
+        });
         result.status = 'error';
-        result.details = 'timeout_fail';
+        result.details = 'request_fail';
         if (callback) {
           callback(result);
         }
       };
-    };
+    }
 
-    newSMS.onerror = function _onError() {
-      debug('TopUp SMS failed!');
-      result.status = 'error';
-      result.details = 'request_fail';
-      if (callback) {
-        callback(result);
-      }
-    };
+    IACManager.init(configuration);
+    IACManager.broadcastStartOfSMSQuery('topup').then(sendSMS, sendSMS);
   }
 
   // XXX: pending on bug XXX to get statistics by SIM
   // Ask statistics API for mobile and wifi data usage
   var DAY = 24 * 3600 * 1000; // 1 day
-  function requestDataStatistics(configuration, settings, callback, result) {
+  function requestDataStatistics(configuration, settings, callback, dataSimIcc,
+                                 result) {
     debug('Statistics out of date. Requesting fresh data...');
 
     var maxAge = 1000 * statistics.maxStorageAge;
@@ -403,7 +463,7 @@ var CostControl = (function() {
     }
 
     var wifiInterface = Common.getWifiInterface();
-    var currentSimcardNetwork = Common.getDataSIMInterface();
+    var currentSimcardNetwork = Common.getDataSIMInterface(dataSimIcc.iccId);
 
     var simRequest, wifiRequest;
     var pendingRequests = 0;
@@ -502,7 +562,10 @@ var CostControl = (function() {
   }
 
   return {
-    getInstance: getInstance
+    getInstance: getInstance,
+    reset: function _onReset() {
+      costcontrol = null;
+    }
   };
 
 }());

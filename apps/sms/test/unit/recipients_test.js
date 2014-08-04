@@ -1,29 +1,36 @@
 /*global loadBodyHTML, Recipients, MocksHelper, CustomEvent, KeyEvent,
-         MockDialog, Template, MockL10n */
+         MockDialog, Template, MockL10n, Navigation, SharedComponents,
+         MockSettings */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_gesture_detector.js');
 
 requireApp('sms/js/recipients.js');
+require('/js/shared_components.js');
 requireApp('sms/js/utils.js');
 
 requireApp('sms/test/unit/mock_dialog.js');
 requireApp('sms/test/unit/mock_utils.js');
-requireApp('sms/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
+require('/test/unit/mock_navigation.js');
+require('/test/unit/mock_settings.js');
 
 var mocksHelperForRecipients = new MocksHelper([
   'Dialog',
   'GestureDetector',
-  'Utils'
+  'Utils',
+  'Navigation',
+  'Settings'
 ]);
 
 mocksHelperForRecipients.init();
 
 suite('Recipients', function() {
   var recipients;
-  var fixture;
+  var fixture, fixtureEmail;
   var mocksHelper = mocksHelperForRecipients;
   var realL10n;
+  var outerElement;
 
   suiteSetup(function() {
     mocksHelper.suiteSetup();
@@ -52,6 +59,8 @@ suite('Recipients', function() {
     this.sinon.spy(Element.prototype, 'scrollIntoView');
     this.sinon.spy(HTMLElement.prototype, 'focus');
 
+    outerElement = document.getElementById('messages-to-field');
+    outerElement.style.minHeight = '55px';
     recipients = new Recipients({
       outer: 'messages-to-field',
       inner: 'messages-recipients-list',
@@ -68,13 +77,32 @@ suite('Recipients', function() {
 
       // Disambiguation 'display' attributes
       type: 'Type',
-      separator: ' | ',
       carrier: 'Carrier',
       className: 'recipient',
       isLookupable: false,
       isQuestionable: false,
-      isInvalid: false
+      isInvalid: false,
+      isEmail: false
     };
+
+    fixtureEmail = {
+      name: 'foo',
+      number: 'a@b.com',
+      email: 'a@b.com',
+      source: 'none',
+      // Mapped to node attr, not true boolean
+      editable: 'true',
+
+      // Disambiguation 'display' attributes
+      type: 'Type',
+      carrier: 'Carrier',
+      className: 'recipient email',
+      isLookupable: false,
+      isQuestionable: false,
+      isInvalid: false,
+      isEmail: true
+    };
+
   });
 
   teardown(function() {
@@ -148,6 +176,15 @@ suite('Recipients', function() {
       recipients.add({ number: 999 });
     });
 
+    test('recipients.add() email 1 ', function() {
+      MockSettings.supportEmailRecipient = true;
+      var recipient;
+
+      recipients.add(fixtureEmail);
+      recipient = recipients.list[0];
+
+      assert.deepEqual(recipient, fixtureEmail);
+    });
 
     test('recipients.remove(recipient) ', function() {
       var recipient;
@@ -174,6 +211,40 @@ suite('Recipients', function() {
 
     test('recipients.remove(index) ', function() {
       recipients.add(fixture);
+      assert.equal(recipients.length, 1);
+
+      recipients.remove(0);
+      assert.equal(recipients.length, 0);
+    });
+
+    test('recipients.remove(recipient) email ', function() {
+      MockSettings.supportEmailRecipient = true;
+      var recipient;
+
+      recipients.add(fixtureEmail);
+      recipient = recipients.list[0];
+
+      assert.deepEqual(recipient, fixtureEmail);
+      assert.ok(isValid(recipient, 'a@b.com'));
+
+      recipients.remove(recipient);
+      assert.equal(recipients.length, 0);
+
+      assert.ok(recipients.render.calledTwice);
+    });
+
+    test('recipients.remove(nonexistant) email ', function() {
+      MockSettings.supportEmailRecipient = true;
+      recipients.add(fixtureEmail);
+      recipients.remove(null);
+      assert.equal(recipients.length, 1);
+
+      assert.ok(recipients.render.calledOnce);
+    });
+
+    test('recipients.remove(index) email ', function() {
+      MockSettings.supportEmailRecipient = true;
+      recipients.add(fixtureEmail);
       assert.equal(recipients.length, 1);
 
       recipients.remove(0);
@@ -517,6 +588,7 @@ suite('Recipients', function() {
         is.placeholder(view.lastElementChild)
       );
 
+      Element.prototype.scrollIntoView.reset();
       recipients.length = 0;
 
       assert.ok(
@@ -527,6 +599,9 @@ suite('Recipients', function() {
       );
 
       assert.equal(view.firstElementChild, view.lastElementChild);
+
+      // this should not be called when we reset the recipients list
+      sinon.assert.notCalled(Element.prototype.scrollIntoView);
     });
 
     suite('Interaction', function() {
@@ -749,6 +824,82 @@ suite('Recipients', function() {
           assert.equal(recipients.numbers[0], '987654');
         });
       });
+
+      suite('Pan gesture on recipient view', function() {
+        var outer, inner, visible, options;
+
+        setup(function() {
+          outer = document.getElementById('messages-to-field');
+          inner = document.getElementById('messages-recipients-list');
+          outer.style.minHeight = '55px';
+          visible = Recipients.View.prototype.visible;
+          options = {
+            detail: {
+              absolute: {
+                dy: 10
+              }
+            }
+          };
+        });
+
+        test('swipe down on singleline, inner height <= min container height',
+         function() {
+          inner.style.height = '10px';
+
+          outer.dispatchEvent(
+            new CustomEvent('pan', options)
+          );
+
+          sinon.assert.notCalled(visible);
+        });
+
+        test('swipe down on singleline, inner height > min container height',
+          function() {
+          inner.style.height = '100px';
+
+          outer.dispatchEvent(
+            new CustomEvent('pan', options)
+          );
+
+          sinon.assert.calledWith(visible, 'multiline');
+        });
+
+        test('swipe down on multiline view', function() {
+          inner.style.height = '100px';
+          recipients.visible('multiline');
+          visible.reset();
+
+          outer.dispatchEvent(
+            new CustomEvent('pan', options)
+          );
+
+          sinon.assert.notCalled(visible);
+        });
+
+        test('swipe up on singleline view', function() {
+          inner.style.height = '10px';
+          options.detail.absolute.dy = -10;
+
+          outer.dispatchEvent(
+            new CustomEvent('pan', options)
+          );
+
+          sinon.assert.notCalled(visible);
+        });
+
+        test('swipe up on multiline view', function() {
+          inner.style.height = '100px';
+          options.detail.absolute.dy = -10;
+          recipients.visible('multiline');
+          visible.reset();
+
+          outer.dispatchEvent(
+            new CustomEvent('pan', options)
+          );
+
+          sinon.assert.notCalled(visible);
+        });
+      });
     });
 
     suite('Prompts', function() {
@@ -766,17 +917,44 @@ suite('Recipients', function() {
           //
           // The values MUST be strings.
           recipient = {
-            display: 'Mobile | Telco, 101',
             editable: 'false',
             email: '',
             name: 'Alan Turing',
             number: '101',
+            type: 'Mobile',
+            carrier: 'T-Mobile',
             source: 'contacts'
           };
         });
 
         test('Recipients.View.prompts.remove ', function() {
           assert.ok(Recipients.View.prompts.remove);
+        });
+
+        test('correctly rendered dialog', function() {
+          Recipients.View.prompts.remove(recipient);
+
+          var phoneDetailsNode = document.createElement('div');
+          phoneDetailsNode.innerHTML = SharedComponents.phoneDetails({
+            number: recipient.number,
+            type: recipient.type,
+            carrier: recipient.carrier
+          });
+
+          var dialogParameters = MockDialog.calls[MockDialog.calls.length - 1];
+
+          assert.equal(dialogParameters.title.value, recipient.name);
+          assert.equal(
+            dialogParameters.body.value.outerHTML,
+            phoneDetailsNode.innerHTML
+          );
+
+          assert.equal(dialogParameters.options.cancel.text.l10nId, 'cancel');
+          assert.isDefined(dialogParameters.options.cancel.method);
+
+          assert.equal(dialogParameters.options.confirm.text.l10nId, 'remove');
+          assert.isDefined(dialogParameters.options.confirm.method);
+          assert.equal(dialogParameters.options.confirm.className, 'danger');
         });
 
         test('cancel ', function(done) {
@@ -809,16 +987,13 @@ suite('Recipients', function() {
       var outer, inner, target, visible;
 
       setup(function() {
-        location.hash = '#new';
+        this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
+        Navigation.isCurrentPanel.withArgs('composer').returns(true);
 
-        outer = document.getElementById('messages-recipients-list-container');
+        outer = document.getElementById('messages-to-field');
         inner = document.getElementById('messages-recipients-list');
         target = document.createElement('input');
         visible = Recipients.View.prototype.visible;
-      });
-
-      teardown(function() {
-        location.hash = '';
       });
 
       suite('to singleline ', function() {
@@ -829,13 +1004,13 @@ suite('Recipients', function() {
 
         test('singleline ', function() {
           // Assert the last state is multiline
-          assert.equal(visible.args[0][0], 'multiline');
+          sinon.assert.calledWith(visible, 'multiline');
+          visible.reset();
 
           // Next, set back to singleline
           recipients.visible('singleline');
 
-          assert.ok(visible.called);
-          assert.equal(visible.args[1][0], 'singleline');
+          sinon.assert.calledWith(visible, 'singleline');
         });
 
         test('singleline + refocus (with recipients) ', function() {
@@ -845,7 +1020,8 @@ suite('Recipients', function() {
           recipients.add(fixture);
 
           // Assert the last state is multiline
-          assert.equal(visible.args[0][0], 'multiline');
+          sinon.assert.calledWith(visible, 'multiline');
+          visible.reset();
 
           recipients.visible('singleline', {
             refocus: target
@@ -858,13 +1034,11 @@ suite('Recipients', function() {
           var last = inner.lastElementChild;
 
           assert.ok(target.focus.called);
-          assert.ok(visible.called);
-          assert.equal(visible.args[1][0], 'singleline');
-          assert.deepEqual(visible.args[1][1], {
+          sinon.assert.calledWith(visible, 'singleline', {
             refocus: target
           });
 
-          assert.ok(last.scrollIntoView.called);
+          sinon.assert.notCalled(last.scrollIntoView);
         });
 
         test('singleline + refocus (no recipients) ', function() {
@@ -872,7 +1046,8 @@ suite('Recipients', function() {
           target.focus.reset();
 
           // Assert the last state is multiline
-          assert.equal(visible.args[0][0], 'multiline');
+          sinon.assert.calledWith(visible, 'multiline');
+          visible.reset();
 
           recipients.visible('singleline', {
             refocus: target
@@ -883,9 +1058,7 @@ suite('Recipients', function() {
           );
 
           assert.ok(target.focus.called);
-          assert.ok(visible.called);
-          assert.equal(visible.args[1][0], 'singleline');
-          assert.deepEqual(visible.args[1][1], {
+          sinon.assert.calledWith(visible, 'singleline', {
             refocus: target
           });
         });
@@ -898,13 +1071,22 @@ suite('Recipients', function() {
 
         test('multiline ', function() {
           // Assert the last state is singleline
-          assert.equal(visible.args[0][0], 'singleline');
+          sinon.assert.calledWith(visible, 'singleline');
+          visible.reset();
+
+          recipients.add(fixture);
 
           // Next, set back to multiline
           recipients.visible('multiline');
 
-          assert.ok(visible.called);
-          assert.equal(visible.args[1][0], 'multiline');
+          outer.dispatchEvent(
+            new CustomEvent('transitionend')
+          );
+
+          var last = inner.lastElementChild;
+
+          sinon.assert.calledWith(visible, 'multiline');
+          sinon.assert.called(last.scrollIntoView);
         });
       });
     });

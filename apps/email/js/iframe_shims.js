@@ -30,9 +30,9 @@ var DEFAULT_STYLE_TAG =
   // Give the layout engine an upper-bound on the width that's arguably
   // much wider than anyone should find reasonable, but might save us from
   // super pathological cases.
-  'html, body { max-width: 120rem; }\n' +
+  'html, body { max-width: 120rem; word-wrap: break-word; }\n' +
   // pre messes up wrapping very badly if left to its own devices
-  'pre { white-space: pre-wrap; }\n' +
+  'pre { white-space: pre-wrap; word-wrap: break-word; }\n' +
   '.moz-external-link { color: blue; cursor: pointer; }\n' +
   '</style>';
 

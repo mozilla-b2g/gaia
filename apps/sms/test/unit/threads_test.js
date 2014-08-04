@@ -9,21 +9,13 @@ requireApp('sms/test/unit/mock_drafts.js');
 requireApp('sms/test/unit/mock_messages.js');
 
 
-var MocksHelperForThreadsTest = new MocksHelper([
+var mocksHelperForThreadsTest = new MocksHelper([
   'Drafts'
 ]).init();
 
 suite('Threads', function() {
-  var mocksHelper = MocksHelperForThreadsTest;
 
-  suiteSetup(function() {
-    window.location.hash = '';
-    mocksHelper.suiteSetup();
-  });
-
-  suiteTeardown(function() {
-    mocksHelper.suiteTeardown();
-  });
+  mocksHelperForThreadsTest.attachTestHelpers();
 
   teardown(function() {
     Threads.clear();
@@ -208,26 +200,14 @@ suite('Threads', function() {
   });
 
   suite('Operational', function() {
-    setup(function() {
-      window.location.hash = '';
-    });
-
     teardown(function() {
       Threads.delete(5);
     });
 
-    test('Threads.currentId', function() {
-      window.location.hash = '#thread=5';
-      assert.equal(Threads.currentId, 5);
-
-      window.location.hash = '';
-      assert.equal(Threads.currentId, null);
-    });
-
     test('Threads.active', function() {
       Threads.set(5, {});
+      Threads.currentId = 5;
 
-      window.location.hash = '#thread=5';
       assert.deepEqual(Threads.active, { body: undefined,
         id: undefined,
         lastMessageSubject: undefined,
@@ -238,14 +218,13 @@ suite('Threads', function() {
         messages: []
       });
 
-      window.location.hash = '';
+      Threads.currentId = null;
       assert.equal(Threads.active, null);
     });
   });
 });
 
 suite('Thread', function() {
-  var mocksHelper = MocksHelperForThreadsTest;
   var date = new Date();
   var fixture = {
     id: 1,
@@ -256,14 +235,7 @@ suite('Thread', function() {
     unreadCount: 0
   };
 
-  suiteSetup(function() {
-    window.location.hash = '';
-    mocksHelper.suiteSetup();
-  });
-
-  suiteTeardown(function() {
-    mocksHelper.suiteTeardown();
-  });
+  mocksHelperForThreadsTest.attachTestHelpers();
 
   teardown(function() {
     Threads.clear();

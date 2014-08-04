@@ -14,6 +14,8 @@ var CallLog = {
       return;
     }
 
+    PerformanceTestingHelper.dispatch('start-call-log');
+
     this._initialized = true;
 
     var lazyFiles = [
@@ -23,7 +25,8 @@ var CallLog = {
       '/shared/js/confirm.js',
       '/shared/js/dialer/utils.js',
       '/dialer/js/phone_action_menu.js',
-      '/shared/js/sticky_header.js'
+      '/shared/js/sticky_header.js',
+      '/shared/js/sim_settings_helper.js'
     ];
     var self = this;
 
@@ -93,6 +96,7 @@ var CallLog = {
         self.allFilter.addEventListener('click',
           self.unfilter.bind(self));
         self.callLogContainer.addEventListener('click', self);
+        self.callLogContainer.addEventListener('contextmenu', self);
         self.selectAllThreads.addEventListener('click',
           self.selectAll.bind(self));
         self.deselectAllThreads.addEventListener('click',
@@ -103,13 +107,17 @@ var CallLog = {
           if (document.hidden) {
             self.pauseHeaders();
           } else {
-            self.becameVisible();
             self.updateHeadersContinuously();
+            if (window.location.hash === '#call-log-view') {
+              self.becameVisible();
+            }
           }
         });
 
         self.sticky = new StickyHeader(self.callLogContainer,
                                        document.getElementById('sticky'));
+
+        self.becameVisible();
       });
     });
 
@@ -212,8 +220,8 @@ var CallLog = {
           self.enableEditMode();
           self.sticky.refresh();
           self.updateHeadersContinuously();
-          PerformanceTestingHelper.dispatch('call-log-ready');
         }
+        PerformanceTestingHelper.dispatch('call-log-ready');
         return;
       }
 
@@ -326,7 +334,7 @@ var CallLog = {
       var parent = previousLogGroup.parentNode;
       parent.removeChild(previousLogGroup);
       this.insertInSection(logGroupDOM, parent);
-      return;
+      return logGroupDOM;
     }
 
     var groupSelector = '[data-timestamp="' + dayIndex + '"]';
@@ -337,7 +345,7 @@ var CallLog = {
       // in the right position.
       var section = sectionExists.getElementsByTagName('ol')[0];
       this.insertInSection(logGroupDOM, section);
-      return;
+      return logGroupDOM;
     }
 
     // We don't have any call for that day, so creating a new section
@@ -373,6 +381,8 @@ var CallLog = {
     }
 
     this.sticky.refresh();
+
+    return logGroupDOM;
   },
 
   // Method that places a log group in the right place inside a section
@@ -634,9 +644,7 @@ var CallLog = {
     this.callLogUpgradePercent.textContent = progress + '%';
   },
 
-  // Method that handles click events in the call log.
   // In case we are in edit mode, just update the counter of selected rows.
-  // Display the action menu, otherwise.
   handleEvent: function cl_handleEvent(evt) {
     if (document.body.classList.contains('recents-edit')) {
       this.updateHeaderCount();
@@ -649,7 +657,21 @@ var CallLog = {
     }
     var dataset = logItem.dataset;
     var phoneNumber = dataset.phoneNumber;
-    if (phoneNumber) {
+    if (!phoneNumber) {
+      return;
+    }
+
+    if (evt.type == 'click') {
+      if (navigator.mozIccManager &&
+          navigator.mozIccManager.iccIds.length > 1) {
+        KeypadManager.updatePhoneNumber(phoneNumber);
+        window.location.hash = '#keyboard-view';
+      } else {
+        SimSettingsHelper.getCardIndexFrom('outgoingCall', function(ci) {
+          CallHandler.call(phoneNumber, ci);
+        });
+      }
+    } else {
       var contactIds = (dataset.contactId) ? dataset.contactId : null;
       var contactId = null;
       if (contactIds !== null) {
@@ -663,6 +685,7 @@ var CallLog = {
         null,
         isMissedCall
       );
+      evt.preventDefault();
     }
   },
 
@@ -839,37 +862,26 @@ var CallLog = {
 
   // We need _updateContact and _removeContact aux functions to keep the
   // correct references to the log DOM element.
-  _updateContact: function _updateContact(log, phoneNumber, updateDb) {
+  _updateContact: function _updateContact(log, phoneNumber, contactId,
+                                          updateDb) {
     var self = this;
     Contacts.findByNumber(phoneNumber,
                           function(contact, matchingTel) {
       if (!contact || !matchingTel) {
-        // Remove contact info.
-        if (self._contactCache && updateDb) {
-          var group = self._getGroupFromLog(log);
-          if (!group) {
-            return;
-          }
+        self._removeContact(log, contactId, updateDb);
+        return;
+      }
 
-          CallLogDBManager.removeGroupContactInfo(null, group,
-                                                  function(result) {
-            self.updateContactInfo(log);
-          });
-        } else {
-          self.updateContactInfo(log);
-        }
+      // Update contact info.
+      if (self._contactCache && updateDb) {
+        CallLogDBManager.updateGroupContactInfo(contact, matchingTel,
+                                                function(result) {
+          if (typeof result === 'number' && result > 0) {
+            self.updateContactInfo(log, contact, matchingTel);
+          }
+        });
       } else {
-        // Update contact info.
-        if (self._contactCache && updateDb) {
-          CallLogDBManager.updateGroupContactInfo(contact, matchingTel,
-                                                  function(result) {
-            if (typeof result === 'number' && result > 0) {
-              self.updateContactInfo(log, contact, matchingTel);
-            }
-          });
-        } else {
-          self.updateContactInfo(log, contact, matchingTel);
-        }
+        self.updateContactInfo(log, contact, matchingTel);
       }
     });
   },
@@ -935,12 +947,7 @@ var CallLog = {
       var log = logs[i];
       var logInfo = log.dataset;
 
-      if (!reason ||
-          (phoneNumbers && phoneNumbers.indexOf(logInfo.phoneNumber) > -1)) {
-        this._updateContact(log, logInfo.phoneNumber, i == 0);
-      } else if (logInfo.contactId && (logInfo.contactId === contactId)) {
-        this._removeContact(log, contactId, i == 0);
-      }
+      this._updateContact(log, logInfo.phoneNumber, contactId, i == 0);
     }
   },
 
@@ -1012,20 +1019,22 @@ var CallLog = {
   },
 
   loadBackgroundImage: function cl_loadBackgroundImage(element, url) {
+    var REVOKE_TIMEOUT = 60000;
+
     if (typeof url === 'string') {
       element.style.backgroundImage = 'url(' + url + ')';
     } else if (url instanceof Blob) {
       url = URL.createObjectURL(url);
       element.style.backgroundImage = 'url(' + url + ')';
 
-      // Revoke the blob once it's ready.
-      setTimeout(function() {
-        var image = new Image();
-        image.src = url;
-        image.onload = image.onerror = function() {
-          URL.revokeObjectURL(this.src);
-        };
-      });
+      // Revoke the blob once it's ready. A 1 min timeout is added in order
+      // to avoid a race condition between the revoke an the assignment of
+      // the background image
+      var image = new Image();
+      image.src = url;
+      image.onload = image.onerror = function() {
+        setTimeout(URL.revokeObjectURL, REVOKE_TIMEOUT, image.src);
+      };
     }
   },
 
@@ -1034,12 +1043,15 @@ var CallLog = {
   },
 
   cleanNotifications: function cl_cleanNotifcations() {
-    // On startup of call log, we clear all dialer notification
+    /* On startup of call log, we clear all dialer notification except for USSD
+     * ones as those are closed only when the user taps them. */
     Notification.get()
       .then(
         function onSuccess(notifications) {
           for (var i = 0; i < notifications.length; i++) {
-            notifications[i].close();
+            if (!notifications[i].tag) {
+              notifications[i].close();
+            }
           }
         },
         function onError(reason) {

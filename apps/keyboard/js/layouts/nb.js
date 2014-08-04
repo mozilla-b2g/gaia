@@ -1,5 +1,6 @@
 Keyboards.nb = {
   label: 'Norwegian Bokmal',
+  shortLabel: 'Nb',
   menuLabel: 'Norsk',
   imEngine: 'latin',
   autoCorrectLanguage: 'nb',

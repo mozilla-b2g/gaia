@@ -1,0 +1,65 @@
+{
+  "name": "FTU",
+  "description": "First Time Experience",
+  "type": "certified",
+  "launch_path": "/index.html",
+  "fullscreen": "true",
+  "role": "system",
+
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+
+  "locales": {
+    "en-US": {
+      "name": "FTU",
+      "description": "First Time Experience"
+    }
+  },
+
+  "default_locale": "en-US",
+
+  "permissions": {
+    "telephony":{},
+    "contacts":{ "access": "readwrite" },
+    "mobileconnection":{},
+    "settings":{ "access": "readwrite" },
+    "systemXHR": {},
+    "wifi-manage":{},
+    "time": {},
+    "device-storage:sdcard": { "access": "readcreate" },
+    "phonenumberservice": {}
+  },
+
+  "orientation": "default",
+
+  "redirects": [
+    {"from": "facebook",
+    "to": "/shared/pages/import/redirects/redirect.html"},
+    {"from": "facebook_dialogs",
+    "to": "/shared/pages/import/redirects/dialogs_end.html"},
+    {"from": "facebook_logout",
+    "to": "/shared/pages/import/redirects/dialogs_end.html"},
+    {"from": "live",
+    "to": "/shared/pages/import/redirects/redirect.html"},
+    {"from": "gmail",
+    "to": "/shared/pages/import/redirects/redirect.html"}
+  ],
+
+  "datastores-owned": {
+    "Basket_Newsletter": {
+      "description": "Email address for sending newsletter"
+    }
+  },
+  "datastores-access": {
+    "Gaia_Facebook_Friends": {
+      "readonly": false,
+      "description": "Facebook contacts"
+    },
+    "Import_Status_Data": {
+      "readonly": false,
+      "description": "Import status data shared between FTU and Contacts"
+    }
+  }
+}

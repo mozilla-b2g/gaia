@@ -4,7 +4,7 @@ suite('views/preview-gallery', function() {
 
   suiteSetup(function(done) {
     var self = this;
-    window.req(['views/controls'], function(ControlsView) {
+    requirejs(['views/controls'], function(ControlsView) {
       self.ControlsView = ControlsView;
       done();
     });
@@ -15,7 +15,11 @@ suite('views/preview-gallery', function() {
 
     this.sandbox = sinon.sandbox.create();
 
-    this.image = {};
+    this.image = {
+      classList: {
+        add: function() {}
+      }
+    };
 
     window.URL = window.URL || {};
     window.URL.createObjectURL = window.URL.createObjectURL || function() {};
@@ -26,6 +30,7 @@ suite('views/preview-gallery', function() {
     this.sandbox.stub(window, 'Image', function() { return self.image; });
 
     this.view = new this.ControlsView();
+    this.view.els.image = undefined;
     this.classes = this.view.el.classList;
 
     this.sandbox.stub(this.view.els.thumbnail);
@@ -38,6 +43,7 @@ suite('views/preview-gallery', function() {
 
   suite('ControlsView#setThumbnail()', function() {
     test('Should set the thumbnail image src to the object url', function() {
+      this.view.els.image = this.image;
       this.view.setThumbnail('<blob>');
       assert.equal(this.view.els.image.src, '<object-url>');
     });

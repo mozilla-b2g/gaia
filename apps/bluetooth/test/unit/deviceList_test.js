@@ -1,8 +1,6 @@
-/* global MocksHelper, MockL10n, MockNavigatorSettings, 
+/* global MocksHelper, MockL10n, MockNavigatorSettings,
           MockMozBluetooth, gDeviceList */
 'use strict';
-
-mocha.globals(['gDeviceList']);
 
 require('/shared/test/unit/mocks/mocks_helper.js');
 require('/shared/test/unit/load_body_html_helper.js');
@@ -60,9 +58,6 @@ suite('Bluetooth app > deviceList ', function() {
     searchAgainBtn = document.getElementById('search-device');
     searchingItem = document.getElementById('bluetooth-searching');
     exitButton = document.getElementById('cancel-activity');
-  });
-
-  teardown(function() {
   });
 
   suite('deviceList > ', function() {

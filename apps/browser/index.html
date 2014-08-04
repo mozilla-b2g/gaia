@@ -6,10 +6,10 @@
     <title>Browser</title>
     <!-- Shared CSS-->
     <!-- <link rel="stylesheet" href="shared/style/headers.css"> -->
-    <!-- <link rel="stylesheet" href="shared/style_unstable/input_areas.css"> -->
+    <!-- <link rel="stylesheet" href="shared/style/input_areas.css"> -->
     <!-- <link rel="stylesheet" href="shared/style/status.css"> -->
     <!-- <link rel="stylesheet" href="shared/style/confirm.css"> -->
-    <!-- <link rel="stylesheet" href="shared/style_unstable/buttons.css"> -->
+    <!-- <link rel="stylesheet" href="shared/style/buttons.css"> -->
     <!-- <link rel="stylesheet" href="shared/style/action_menu.css"> -->
     <!-- <link rel="stylesheet" href="style/modal_dialog/modal_dialog.css"> -->
     <!-- <link rel="stylesheet" href="style/modal_dialog/prompt.css"> -->
@@ -27,12 +27,13 @@
     <!-- Shared code -->
     <script defer src="shared/js/l10n.js"></script>
     <script defer src="shared/js/lazy_loader.js"></script>
+    <script defer src="shared/js/font_size_utils.js"></script>
     <script defer src="shared/js/accessibility_helper.js"></script>
     <script defer src="shared/js/mime_mapper.js"></script>
-    <script defer src="shared/js/simple_operator_variant_helper.js"></script>
     <script defer src="shared/js/utilities.js"></script>
     <script defer src="shared/js/url_helper.js"></script>
-    <script defer src="js/nfc_util.js"></script>
+    <script defer src="shared/js/nfc_utils.js"></script>
+
     <!-- <script defer src="shared/js/gesture_detector.js"></script> -->
 
     <!-- Specific code -->
@@ -42,9 +43,11 @@
     <script defer src="js/toolbar.js"></script>
 
     <!-- Resources -->
-    <link rel="resource" type="image/png" href="shared/resources/branding/Browser_60.png"/>
-    <link rel="resource" type="image/png" href="shared/resources/branding/Browser_90.png"/>
-    <link rel="resource" type="image/png" href="shared/resources/branding/Browser_120.png"/>
+    <link rel="resource" type="image/png" href="shared/resources/branding/browser_84.png"/>
+    <link rel="resource" type="image/png" href="shared/resources/branding/browser_126.png"/>
+    <link rel="resource" type="image/png" href="shared/resources/branding/browser_142.png"/>
+    <link rel="resource" type="image/png" href="shared/resources/branding/browser_189.png"/>
+    <link rel="resource" type="image/png" href="shared/resources/branding/browser_284.png"/>
     <link rel="resource" type="image/png" href="shared/resources/branding/about_logo.png"/>
   </head>
 
@@ -56,7 +59,8 @@
         <form id="url-bar" novalidate>
           <input type="image" id="ssl-indicator" value="" />
           <input type="text" id="url-input" placeholder="Search or enter address"
-                 data-l10n-id="enter-search-or-address" x-inputmode="verbatim"/>
+                 data-l10n-id="enter-search-or-address" x-inputmode="verbatim"
+                 dir="auto" />
           <input type="image" id="url-button" value="" />
         </form>
         <span id="tabs-badge"> 1&#x203A;</span>
@@ -183,7 +187,7 @@
         <h1 data-l10n-id="edit-bookmark-header">Edit Bookmark</h1>
       </header>
       <label data-l10n-id="page-title">
-        Page Title <input type="text" id="bookmark-title"></input>
+        Page Title <input type="text" id="bookmark-title" dir="auto"></input>
       </label>
       <label data-l10n-id="address">
         Address <input type="url" id="bookmark-url"></input>
@@ -205,7 +209,7 @@
       </header>
       <span id="http-authentication-message"></span>
       <label data-l10n-id="username">Username
-        <input type="text" id="http-authentication-username" />
+        <input type="text" id="http-authentication-username" dir="auto" />
       </label>
       <label data-l10n-id="password">Password
         <input id="http-authentication-password" type="password" />

@@ -3,16 +3,19 @@
 'use strict';
 
 var assert = require('assert') || window.assert;
-var parse;
+var PropertiesParser;
 
 if (typeof navigator !== 'undefined') {
   var L10n = navigator.mozL10n._getInternalAPI();
-  parse = L10n.parse.bind(null, null);
+  PropertiesParser = L10n.PropertiesParser;
 } else {
-  parse = process.env.L20N_COV ?
-    require('../../build/cov/lib/l20n/parser').parse.bind(null, null)
-    : require('../../lib/l20n/parser').parse.bind(null,null);
+  PropertiesParser = process.env.L20N_COV ?
+    require('../../build/cov/lib/l20n/parser').PropertiesParser
+    : require('../../lib/l20n/format/properties/parser').PropertiesParser;
 }
+
+var propertiesParser = new PropertiesParser();
+var parse = propertiesParser.parse.bind(null, null);
 
 describe('L10n Parser', function() {
 
@@ -42,6 +45,22 @@ describe('L10n Parser', function() {
   it('basic attributes', function() {
     var ast = parse('id.attr1 = foo');
     assert.equal(ast.id.attr1, 'foo');
+  });
+
+  it('attribute errors', function() {
+    var strings = [
+      'key.foo.bar = foo',
+    ];
+
+    for (var i in strings) {
+      if (strings.hasOwnProperty(i)) {
+
+        /* jshint -W083 */
+        assert.throws(function() {
+          parse(strings[i]);
+        }, /Nested attributes are not supported./);
+      }
+    }
   });
 
   it('plural macro', function() {

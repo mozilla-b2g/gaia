@@ -17,14 +17,13 @@ suite('Latin suggestions', function() {
 
     imSettings = {
       resetUpperCase: sinon.stub(),
-      sendKey: sinon.stub().returns(
-        new Promise(function(res, rej) { res(); })),
-      sendString: sinon.stub(),
+      sendKey: sinon.stub().returns(Promise.resolve()),
+      sendString: sinon.stub().returns(Promise.resolve()),
       sendCandidates: sinon.stub(),
       setUpperCase: sinon.stub(),
       setLayoutPage: sinon.stub(),
-      replaceSurroundingText: sinon.stub().returns(
-        new Promise(function(res, rej) { res(); }))
+      replaceSurroundingText: sinon.stub().returns(Promise.resolve()),
+      isCapitalized: sinon.stub()
     };
     im.init(imSettings);
 
@@ -162,7 +161,22 @@ suite('Latin suggestions', function() {
     });
   });
 
-  test('dismissSuggestions hides suggestions and inserts space', function() {
+  test('New line then dot should not remove newline', function(next) {
+    setState('Hello');
+
+    im.click(KeyEvent.DOM_VK_RETURN).then(function() {
+      return im.click('.'.charCodeAt(0));
+    }).then(function() {
+      sinon.assert.callCount(imSettings.replaceSurroundingText, 0);
+      sinon.assert.callCount(imSettings.sendKey, 2);
+      assert.equal(imSettings.sendKey.args[0][0], KeyEvent.DOM_VK_RETURN);
+      assert.equal(imSettings.sendKey.args[1][0], '.'.charCodeAt(0));
+
+      next();
+    });
+  });
+
+  test('dismissSuggestions hides suggestions', function() {
     im.dismissSuggestions();
 
     // Send candidates should be called once with an empty array
@@ -170,9 +184,8 @@ suite('Latin suggestions', function() {
     sinon.assert.callCount(imSettings.sendCandidates, 1);
     sinon.assert.calledWith(imSettings.sendCandidates, []);
 
-    // Also, a space should be inserted
-    sinon.assert.callCount(imSettings.sendKey, 1);
-    sinon.assert.calledWith(imSettings.sendKey, 32);
+    // Also, a space should not be inserted
+    sinon.assert.callCount(imSettings.sendKey, 0);
   });
 
   suite('handleSuggestions', function() {

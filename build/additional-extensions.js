@@ -1,6 +1,8 @@
 'use strict';
 
-const { Cc, Ci, Cr, Cu, CC} = require('chrome');
+/* global require, exports, Promise */
+
+const { Cc, Ci, Cu} = require('chrome');
 Cu.import('resource://gre/modules/FileUtils.jsm');
 Cu.import('resource://gre/modules/Services.jsm');
 Cu.import('resource://gre/modules/Downloads.jsm');
@@ -10,7 +12,7 @@ var utils = require('./utils');
 var dm = require('./download-manager');
 var config;
 var gaiaDir;
-var profileDir;
+var stageDir;
 var AMO_URL =
   'https://services.addons.mozilla.org/en-US/firefox/api/1.5/addon/';
 
@@ -28,7 +30,7 @@ var InstallationManager = {
 
   _onTheFly: [],
 
-  _installedExtensions: {},
+  _downloadedExtensions: {},
 
   _callbacksOnAllFinished: [],
 
@@ -43,7 +45,7 @@ var InstallationManager = {
     } else {
       while (this._callbacksOnAllFinished.length > 0) {
         var cb = this._callbacksOnAllFinished.pop();
-        cb(this._installedExtensions);
+        cb(this._downloadedExtensions);
       }
       this._processing = false;
     }
@@ -110,17 +112,17 @@ var InstallationManager = {
 
     if (unpack) {
       // case 1: extract content of xpi file to
-      // <profileDir>/extensions/<extensionId>/
+      // build_stage/additional-extensions/<extensionId>/
       extensionDir =
-        utils.getFile(profileDir, 'extensions', extensionId);
+        utils.getFile(stageDir, 'additional-extensions', extensionId);
       utils.ensureFolderExists(extensionDir);
       entryEnumerator = zipReader.findEntries('*');
       while (entryEnumerator.hasMore()) {
         try {
           var zipEntryName = entryEnumerator.getNext();
           var zipEntry = zipReader.getEntry(zipEntryName);
-          var targetFile =
-            utils.getFile(profileDir, 'extensions', extensionId, zipEntryName);
+          var targetFile = utils.getFile(
+            stageDir, 'additional-extensions', extensionId, zipEntryName);
           var targetFileType = zipEntry.isDirectory ?
               Ci.nsIFile.DIRECTORY_TYPE : Ci.nsIFile.NORMAL_FILE_TYPE;
           if (!targetFile.exists()) {
@@ -132,19 +134,19 @@ var InstallationManager = {
         }
       }
     } else {
-      // case 2: put xpi file directly at <profileDir>/extensions/
-      extensionDir = utils.getFile(profileDir, 'extensions');
+      // case 2: put xpi file directly at build+stage/additional-extensions
+      extensionDir = utils.getFile(stageDir, 'additional-extensions');
       utils.ensureFolderExists(extensionDir);
       file.copyTo(extensionDir, extensionId + '.xpi');
     }
-    logLine(sourceUrl + ' installed');
+    logLine(sourceUrl + ' downloaded');
     zipReader.close();
     InstallationManager.finish(sourceUrl);
   },
 
-  init: function im_init(installedExtensions) {
-    if (installedExtensions) {
-      this._installedExtensions = installedExtensions;
+  init: function im_init(downloadedExtensions) {
+    if (downloadedExtensions) {
+      this._downloadedExtensions = downloadedExtensions;
     }
     this._processing = true;
   },
@@ -167,7 +169,7 @@ var InstallationManager = {
   },
 
   finish: function im_finish(url) {
-    this._installedExtensions[url] = 'done';
+    this._downloadedExtensions[url] = 'done';
     this._removeUrl(url);
   },
 
@@ -200,17 +202,18 @@ var AdditionalExtensions = (function() {
     return result;
   }
 
-  function loadInstalledExtensions() {
+  function loadDownloadedExtensions() {
     var file;
-    var installedExtensions;
-    logLine('load installed extensions');
+    var downloadedExtensions;
+    logLine('load downloaded extensions');
     try {
-      file = utils.getFile(profileDir, 'installed-extensions.json');
-      installedExtensions = utils.getJSON(file);
+      file = utils.getFile(
+        stageDir, 'additional-extensions', 'downloaded.json');
+      downloadedExtensions = utils.getJSON(file);
     } catch (e) {
-      installedExtensions = {};
+      downloadedExtensions = {};
     }
-    return installedExtensions;
+    return downloadedExtensions;
   }
 
   function loadCustomExtensions() {
@@ -218,7 +221,8 @@ var AdditionalExtensions = (function() {
     var customExtensions;
     logLine('load custom extensions');
     try {
-      file = utils.getFile(gaiaDir, 'build', 'config', 'custom-extensions.json');
+      file = utils.getFile(gaiaDir, 'build', 'config',
+        'custom-extensions.json');
       customExtensions = utils.getJSON(file);
     } catch (e) {
       customExtensions = {};
@@ -240,15 +244,15 @@ var AdditionalExtensions = (function() {
     return additionalExtensions;
   }
 
-  function writeInstalledExtensions(installed) {
+  function writeDownloadedExtensions(downloaded) {
     var dir;
     var file;
     var content;
     // output as an array (it's the original design of additional-extensions.py)
-    content = JSON.stringify(Object.keys(installed), undefined, 2);
-    dir = utils.getFile(profileDir);
+    content = JSON.stringify(Object.keys(downloaded), undefined, 2);
+    dir = utils.getFile(stageDir, 'additional-extensions');
     utils.ensureFolderExists(dir);
-    file = utils.getFile(profileDir, 'installed-extensions.json');
+    file = utils.getFile(stageDir, 'additional-extensions', 'downloaded.json');
     utils.writeContent(file, content);
   }
 
@@ -296,18 +300,18 @@ var AdditionalExtensions = (function() {
 
   // main function
   function execute(options) {
+    logLine(JSON.stringify(options, null, '  '));
     config = options;
     gaiaDir = config.GAIA_DIR;
-    profileDir = config.PROFILE_DIR;
+    stageDir = config.STAGE_DIR;
     var extensions;
-    var installedExtensions;
+    var downloadedExtensions;
     var keys;
-    var index;
 
     function downloadAndInstall(url) {
       try {
-        if (installedExtensions && installedExtensions[url]) {
-          logLine(' already installed');
+        if (downloadedExtensions && downloadedExtensions[url]) {
+          logLine(' already downloaded');
         } else {
           logLine('download from ' + url);
           InstallationManager.startInstalling(url);
@@ -318,12 +322,12 @@ var AdditionalExtensions = (function() {
       }
     }
 
-    installedExtensions = loadInstalledExtensions();
+    downloadedExtensions = loadDownloadedExtensions();
     extensions = merge(loadAdditionalExtensions(), loadCustomExtensions());
 
-    InstallationManager.init(installedExtensions);
+    InstallationManager.init(downloadedExtensions);
     InstallationManager.whenAllFinished(function(exts) {
-      writeInstalledExtensions(exts);
+      writeDownloadedExtensions(exts);
     });
 
     keys = Object.keys(extensions);

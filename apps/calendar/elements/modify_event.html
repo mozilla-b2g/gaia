@@ -2,7 +2,7 @@
   <template>
     <header>
       <button class="cancel">
-        <span data-l10n-id="cancel" class="icon icon-back">Cancel</span>
+        <span data-l10n-id="cancel" class="icon icon-close">Cancel</span>
       </button>
 
       <menu type="toolbar">
@@ -12,23 +12,22 @@
         </button>
       </menu>
 
-      <h1 data-l10n-id="add-event-header">
-        Create Event
-      </h1>
+      <h1 data-l10n-id="new-event-header" class="save-text">Add Event</h1>
+      <h1 data-l10n-id="edit-event-header" class="done-text">Edit Event</h1>
     </header>
 
     <form>
       <ol>
         <li class="title">
-          <input name="title" data-l10n-id="event-title" x-inputmode="latin-prose" placeholder="Title" />
+          <input type="text" name="title" data-l10n-id="event-title" x-inputmode="latin-prose" placeholder="Title" dir="auto" />
         </li>
 
         <li class="location">
-          <input name="location" data-l10n-id="event-location" x-inputmode="latin-prose" placeholder="Where?" />
+          <input type="text" name="location" data-l10n-id="event-location" x-inputmode="latin-prose" placeholder="Where?" dir="auto" />
         </li>
 
         <li class="allday">
-          <label class="pack-checkbox">
+          <label class="pack-switch">
             <input name="allday" type="checkbox" />
             <span data-l10n-id="event-is-allday">All Day Event?</span>
           </label>
@@ -36,36 +35,28 @@
 
         <li class="start-date">
           <span class="button icon icon-dialog">
-            <label>
-              <input name="startDate" data-l10n-id="event-start-date" placeholder="Date" type="date" class="hidden-input" />
-            </label>
+            <input name="startDate" data-l10n-id="event-start-date" placeholder="Date" type="date" class="hidden-input" />
             <span class="datetime" id="start-date-locale"></span>
           </span>
         </li>
 
         <li class="start-time">
           <span class="button icon icon-dialog">
-            <label>
-              <input type="time" data-l10n-id="event-start-time" placeholder="Start Time" name="startTime" class="hidden-input" />
-            </label>
+            <input type="time" data-l10n-id="event-start-time" placeholder="Start Time" name="startTime" class="hidden-input" />
             <span class="datetime" id="start-time-locale"></span>
           </span>
         </li>
 
         <li class="end-date">
           <span class="button icon icon-dialog">
-            <label>
-              <input name="endDate" data-l10n-id="event-end-date" placeholder="Date" type="date" class="hidden-input" />
-            </label>
+            <input name="endDate" data-l10n-id="event-end-date" placeholder="Date" type="date" class="hidden-input" />
             <span class="datetime" id="end-date-locale"></span>
           </span>
         </li>
 
         <li class="end-time">
           <span class="button icon icon-dialog">
-            <label>
-              <input type="time" data-l10n-id="event-end-time" placeholder="End Time" name="endTime" class="hidden-input" />
-            </label>
+            <input type="time" data-l10n-id="event-end-time" placeholder="End Time" name="endTime" class="hidden-input" />
             <span class="datetime" id="end-time-locale"></span>
           </span>
         </li>
@@ -78,7 +69,7 @@
 
         <li class="calendar-id">
           <span class="button icon icon-dialog">
-            <select name="calendarId">
+            <select name="calendarId" class="loading">
             </select>
           </span>
         </li>
@@ -90,16 +81,15 @@
         </li>
 
         <li class="notes">
-          <textarea class="fieldbox" name="description" data-l10n-id="event-description" x-inputmode="latin-prose" placeholder="Notes"></textarea>
-        </li>
-
-        <li class="delete">
-          <a role="button" data-l10n-id="event-delete" class="danger delete-record">
-            Delete Event
-          </a>
+          <textarea name="description" data-l10n-id="event-description" x-inputmode="latin-prose" placeholder="Notes" dir="auto"></textarea>
         </li>
 
       </ol>
+      <div class="delete">
+        <a role="button" data-l10n-id="event-delete" class="danger delete-record">
+          Delete Event
+        </a>
+      </div>
 
       <section role="status">
         <p class="errors"></p>

@@ -2,7 +2,7 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 /* global ParsedProvisioningDoc, ProvisioningAuthentication,
-          StoreProvisioning, WapPushManager */
+          StoreProvisioning, WapPushManager, ParsedMessage */
 
 /* exported CpScreenHelper */
 
@@ -65,6 +65,9 @@ var CpScreenHelper = (function() {
   /** The message has not been processed yet */
   var processed = false;
 
+  /** Message id for notification management */
+  var messageTag = null;
+
   /** Authentication parameter for the WAP PUSH message. */
   var authInfo = null;
 
@@ -117,15 +120,13 @@ var CpScreenHelper = (function() {
    * Makes the client provisioning screen visible and populate it.
    */
   function cpsh_populateScreen(message) {
-    screen.hidden = false;
-
     // The close button in the header is shared between screens but sadly the
     // flow differs. Let the WapPushManaget knwo what CpScreenHelper function
     // invoque when the user click on the close button.
     WapPushManager.setOnCloseCallback(cpsh_onClose);
 
-    // Show the accept button.
-    acceptButton.hidden = false;
+    WapPushManager.enableAcceptButton(true);
+    screen.hidden = false;
 
     authInfo = message.provisioning.authInfo;
     provisioningDoc = message.provisioning.provisioningDoc;
@@ -156,6 +157,8 @@ var CpScreenHelper = (function() {
     }
 
     title.textContent = message.sender;
+
+    messageTag = message.timestamp;
   }
 
   /**
@@ -171,12 +174,26 @@ var CpScreenHelper = (function() {
   }
 
   /**
+   * Deletes a message from the database
+   */
+  function cpsh_deleteMessage(messageTag) {
+    ParsedMessage.delete(messageTag,
+      function cpsh_deleteSuccess() {},
+      function cpsh_deleteError(error) {
+        console.error('Could not remove message from database: ' + error);
+      }
+    );
+  }
+
+  /**
    * Handles the application flow when the user clicks on the 'Quit' button
    * from the client provisioning quit app confirm dialog.
    */
   function cpsh_onQuit(evt) {
     evt.preventDefault();
     quitAppConfirmDialog.hidden = true;
+    WapPushManager.clearNotifications(messageTag);
+    cpsh_deleteMessage(messageTag);
     WapPushManager.close();
   }
 
@@ -280,6 +297,9 @@ var CpScreenHelper = (function() {
       processed = true;
       // Store the APNs into the database.
       StoreProvisioning.provision(apns);
+
+      WapPushManager.clearNotifications(messageTag);
+      cpsh_deleteMessage(messageTag);
 
       // Show finish confirm dialog.
       finishConfirmDialog.hidden = false;

@@ -20,15 +20,21 @@
     this._normalAudioChannelActive = false;
     this._deviceLockedTimer = 0;
     this.overlayEvents = [
-      'lock',
-      'will-unlock',
+      'cardviewshown',
+      'cardviewclosed',
+      'lockscreen-appopened',
+      'lockscreen-request-unlock',
       'attentionscreenshow',
       'attentionscreenhide',
       'status-active',
       'status-inactive',
       'mozChromeEvent',
       'appclosing',
-      'homescreenopening'
+      'homescreenopened',
+      'rocketbar-overlayopened',
+      'rocketbar-overlayclosed',
+      'utility-tray-overlayopened',
+      'utility-tray-overlayclosed'
     ];
   };
 
@@ -41,7 +47,6 @@
     this.overlayEvents.forEach(function overlayEventIterator(event) {
       window.addEventListener(event, this);
     }, this);
-    return this;
   };
 
   VisibilityManager.prototype.handleEvent = function vm_handleEvent(evt) {
@@ -54,23 +59,36 @@
       // We are actively discard audio channel state when homescreen
       // is opened.
       case 'appclosing':
-      case 'homescreenopening':
+      case 'homescreenopened':
+        if (window.taskManager.isShown()) {
+          this.publish('hidewindowforscreenreader');
+        }
         this._normalAudioChannelActive = false;
         break;
       case 'status-active':
       case 'attentionscreenhide':
-      case 'will-unlock':
-        if (window.lockScreen && window.lockScreen.locked) {
+        if (window.System.locked) {
           this.publish('showlockscreenwindow');
           return;
         }
-
         if (!AttentionScreen.isFullyVisible()) {
           this.publish('showwindow', { type: evt.type });
         }
         this._resetDeviceLockedTimer();
         break;
-      case 'lock':
+      case 'lockscreen-request-unlock':
+        var activity = evt.detail && evt.detail.activity ?
+          evt.detail.activity : null;
+
+        if (!AttentionScreen.isFullyVisible()) {
+          this.publish('showwindow', {
+            type: evt.type,
+            activity: activity  // Trigger activity opening in AWM
+          });
+        }
+        this._resetDeviceLockedTimer();
+        break;
+      case 'lockscreen-appopened':
         // If the audio is active, the app should not set non-visible
         // otherwise it will be muted.
         // TODO: Remove this hack.
@@ -93,13 +111,22 @@
       case 'attentionscreenshow':
         this._setAttentionScreenVisibility(evt);
         break;
+      case 'rocketbar-overlayopened':
+      case 'utility-tray-overlayopened':
+      case 'cardviewshown':
+        this.publish('hidewindowforscreenreader');
+        break;
+      case 'rocketbar-overlayclosed':
+      case 'utility-tray-overlayclosed':
+      case 'cardviewclosed':
+        this.publish('showwindowforscreenreader');
+        break;
       case 'mozChromeEvent':
         if (evt.detail.type == 'visible-audio-channel-changed') {
           this._resetDeviceLockedTimer();
 
           if (this._normalAudioChannelActive &&
-              evt.detail.channel !== 'normal' &&
-              window.lockScreen && window.lockScreen.locked) {
+              evt.detail.channel !== 'normal' && window.System.locked) {
             this._deviceLockedTimer = setTimeout(function setVisibility() {
               this.publish('hidewindow',
                 { screenshoting: false, type: evt.type });

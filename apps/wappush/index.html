@@ -20,6 +20,8 @@
 
     <!-- Shared code -->
     <script defer src="shared/js/notification_helper.js"></script>
+    <script defer src="shared/js/font_size_utils.js"></script>
+    <script defer src="shared/js/uuid.js"></script>
 
     <!-- Specific code -->
     <script defer src="js/activity_picker.js"></script>
@@ -44,9 +46,9 @@
       <header>
         <button id="close"><span class="icon icon-close" data-l10n-id="close"> close </span></button>
         <menu type="toolbar">
-          <button id="accept" data-l10n-id="accept" class="full recommend" hidden>Accept</button>
+          <button id="accept" data-l10n-id="accept" class="full recommend hidden">Accept</button>
         </menu>
-        <h1 id="title" data-l10n-id="title"> title </h1>
+        <h1 id="title"></h1>
       </header>
 
       <!-- SI SL message screen -->

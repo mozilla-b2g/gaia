@@ -8,19 +8,18 @@ requireApp('system/test/unit/mock_notification_screen.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_utility_tray.js');
 requireApp('system/test/unit/mock_modal_dialog.js');
-requireApp('system/test/unit/mock_l10n.js');
-requireApp('system/test/unit/mock_template.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system/test/unit/mock_ftu_launcher.js');
 requireApp('system/test/unit/mock_keyboard_manager.js');
 
+require('/shared/js/template.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_manifest_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_wake_lock.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
+require('/shared/test/unit/mocks/mock_keyboard_helper.js');
 
 requireApp('system/js/app_install_manager.js');
-mocha.globals(['applications']);
-
 var mocksForAppInstallManager = new MocksHelper([
   'StatusBar',
   'SystemBanner',
@@ -31,8 +30,8 @@ var mocksForAppInstallManager = new MocksHelper([
   'ManifestHelper',
   'LazyLoader',
   'FtuLauncher',
-  'Template',
-  'KeyboardManager'
+  'KeyboardManager',
+  'KeyboardHelper'
 ]).init();
 
 suite('system/AppInstallManager >', function() {
@@ -40,7 +39,6 @@ suite('system/AppInstallManager >', function() {
   var realDispatchResponse;
   var realRequestWakeLock;
   var realMozApps;
-  var realTemplate;
 
   var fakeDialog, fakeNotif;
   var fakeInstallCancelDialog, fakeDownloadCancelDialog;
@@ -211,7 +209,6 @@ suite('system/AppInstallManager >', function() {
     fakeImeListTemplate = document.createElement('div');
     fakeImeListTemplate.id = 'ime-list-template';
     fakeImeListTemplate.innerHTML = [
-      '<div id="ime-list-template">',
         '<!--',
         '<li>',
           '<a>${displayName}</a>',
@@ -220,8 +217,7 @@ suite('system/AppInstallManager >', function() {
             '<span></span>',
           '</label>',
         '</li>',
-        '-->',
-      '</div>'
+        '-->'
     ].join('');
 
     document.body.appendChild(fakeDialog);
@@ -1389,7 +1385,8 @@ suite('system/AppInstallManager >', function() {
           permissions: {
             input: {}
           }
-        }
+        },
+        manifestURL: 'app://app2.manifestURL'
       });
     });
 
@@ -1426,19 +1423,26 @@ suite('system/AppInstallManager >', function() {
                       setupInstalledAppDialog.classList.contains('visible'));
       AppInstallManager.handleInstallSuccess(mockAppTwo);
       assert.isTrue(AppInstallManager.showSetupDialog.calledOnce);
-      assert.equal(AppInstallManager.setupAppName.textContent,
-        'app-install-success{"appName":"' + mockAppName + '"}');
+
+      var l10nAttrs = MockL10n.getAttributes(
+        AppInstallManager.setupAppName);
+      assert.equal(l10nAttrs.id, 'app-install-success');
+      assert.deepEqual(l10nAttrs.args, {appName: mockAppName});
     });
 
     test('should show setupInstalledAppDialog two times', function() {
       this.sinon.spy(AppInstallManager, 'showSetupDialog');
       AppInstallManager.handleInstallSuccess(mockApp);
-      assert.equal(AppInstallManager.setupAppName.textContent,
-        'app-install-success{"appName":"' + mockAppName + '"}');
+      var l10nAttrs = MockL10n.getAttributes(
+        AppInstallManager.setupAppName);
+      assert.equal(l10nAttrs.id, 'app-install-success');
+      assert.deepEqual(l10nAttrs.args, {appName: mockAppName});
       AppInstallManager.setupCancelButton.click();
       AppInstallManager.handleInstallSuccess(mockAppTwo);
-      assert.equal(AppInstallManager.setupAppName.textContent,
-        'app-install-success{"appName":"' + mockAppTwoName + '"}');
+      var l10nAttrs = MockL10n.getAttributes(
+        AppInstallManager.setupAppName);
+      assert.equal(l10nAttrs.id, 'app-install-success');
+      assert.deepEqual(l10nAttrs.args, {appName: mockAppTwoName});
     });
 
     test('should show ime list', function() {
@@ -1527,6 +1531,26 @@ suite('system/AppInstallManager >', function() {
       assert.equal(0, AppInstallManager.setupQueue.length);
       assert.isFalse(AppInstallManager.
                       imeLayoutDialog.classList.contains('visible'));
+    });
+
+    test('Should enable the layout', function() {
+      this.sinon.spy(AppInstallManager, 'handleImeConfirmAction');
+      this.sinon.spy(KeyboardHelper, 'setLayoutEnabled');
+      this.sinon.spy(KeyboardHelper, 'saveToSettings');
+
+      AppInstallManager.handleInstallSuccess(mockAppTwo);
+      AppInstallManager.setupConfirmButton.click();
+      assert.equal(1, AppInstallManager.setupQueue.length);
+
+      // check the first layout
+      var checkbox = AppInstallManager.imeList.querySelector('input');
+      checkbox.checked = true;
+
+      AppInstallManager.handleImeConfirmAction();
+      sinon.assert.calledWith(KeyboardHelper.setLayoutEnabled,
+                              mockAppTwo.manifestURL, 'english', true);
+
+      sinon.assert.calledOnce(KeyboardHelper.saveToSettings);
     });
   });
 });

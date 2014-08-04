@@ -1,9 +1,7 @@
+/* global MocksHelper, MockL10n, AppWindow, AppModalDialog */
 'use strict';
 
-mocha.globals(['AppWindow', 'AppModalDialog', 'System', 'BaseUI']);
-
-
-requireApp('system/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/test/unit/mock_app_window.js');
 
@@ -94,9 +92,6 @@ suite('system/AppModalDialog', function() {
                 {'messageType': 'builtin', 'message': 'cancel'}]
     }
   };
-
-  function attachModalDialog() {
-  }
 
   test('New', function() {
     assert.isDefined(md.instanceID);

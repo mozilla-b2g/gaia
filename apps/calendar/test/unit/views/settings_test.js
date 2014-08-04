@@ -21,19 +21,6 @@ suiteGroup('Views.Settings', function() {
   var triggerEvent;
   var account;
 
-  function syncButtonVisible(yesNo) {
-    return function(done) {
-      subject.render();
-      subject.onrender = function() {
-        var contains =
-          subject.syncButton.classList.contains(Calendar.ACTIVE);
-
-        assert.equal(contains, yesNo, 'syncButton active');
-        done();
-      };
-    };
-  }
-
   function stageModels(list) {
     var object = Object.create(null);
 
@@ -78,10 +65,28 @@ suiteGroup('Views.Settings', function() {
     var div = document.createElement('div');
     div.id = 'test';
     div.innerHTML = [
-      '<div id="time-views"></div>',
       '<div id="settings">',
-        '<button class="sync">sync</button>',
-        '<ul class="calendars"></ul>',
+      '  <header>',
+      '    <button data-l10n-id="back"',
+      '            class="settings-back"></button>',
+      '  </header>',
+      '  <div class="settings-shield"></div>',
+      '  <div class="settings-drawer-container">',
+      '    <div class="settings-drawer">',
+      '      <ol class="calendars">',
+      '      </ol>',
+      '      <div role="toolbar">',
+      '        <button class="settings toolbar-item">',
+      '          <span class="icon"',
+      '                data-l10n-id="advanced-settings-short">Settings</span>',
+      '        </button>',
+      '        <button class="sync update toolbar-item">',
+      '          <span class="icon"',
+      '                data-l10n-id="drawer-sync-button">Sync</span>',
+      '        </button>',
+      '      </div>',
+      '    </div>',
+      '  </div>',
       '</div>'
     ].join('');
 
@@ -120,10 +125,6 @@ suiteGroup('Views.Settings', function() {
     assert.equal(
       subject.element, document.querySelector('#settings')
     );
-  });
-
-  test('#time-views', function() {
-    assert.ok(subject.timeViews);
   });
 
   test('#calendars', function() {
@@ -167,8 +168,6 @@ suiteGroup('Views.Settings', function() {
         };
       });
 
-      test('hides button', syncButtonVisible(false));
-
       suite('add', function() {
         setup(function(done) {
           delete syncAccount._id;
@@ -179,8 +178,6 @@ suiteGroup('Views.Settings', function() {
             done();
           };
         });
-
-        test('shows button', syncButtonVisible(true));
       });
     });
 
@@ -388,7 +385,7 @@ suiteGroup('Views.Settings', function() {
   });
 
   suite('#render', function() {
-    var accounts = testSupport.calendar.dbFixtures(
+    testSupport.calendar.dbFixtures(
       'account',
       'Account', {
         one: {
@@ -422,16 +419,6 @@ suiteGroup('Views.Settings', function() {
         }
       }
     );
-
-    test('sync button with syncable accounts', syncButtonVisible(true));
-
-    suite('sync button visibility without syncable accounts', function() {
-      setup(function(done) {
-        Calendar.App.store('Account').remove(accounts.two._id, done);
-      });
-
-      test('without syncable accounts', syncButtonVisible(false));
-    });
 
     suite('calendars', function() {
       var one;
@@ -476,31 +463,4 @@ suiteGroup('Views.Settings', function() {
     });
 
   });
-
-  suite('tap to navigate away from settings', function() {
-
-    var calledWith;
-
-    setup(function() {
-      calledWith = null;
-      app.resetState = function() {
-        calledWith = arguments;
-      };
-    });
-
-    test('#onactive', function() {
-      subject.onactive();
-      triggerEvent(subject.timeViews, 'click');
-      assert.ok(calledWith, 'navigates away');
-    });
-
-    test('#oninactive', function() {
-      subject.onactive();
-      subject.oninactive();
-      triggerEvent(subject.timeViews, 'click');
-      assert.ok(!calledWith, 'navigates away');
-    });
-
-  });
-
 });

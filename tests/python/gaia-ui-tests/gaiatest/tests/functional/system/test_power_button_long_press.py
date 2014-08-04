@@ -5,7 +5,8 @@
 from gaiatest import GaiaTestCase
 from gaiatest.apps.system.regions.sleep_view import SleepScreen
 
-MENU_ITEMS = ["Turn on airplane mode", "Ring incoming calls", "Restart", "Power off"]
+MENU_ITEMS_HAS_MOBILE = ["Turn on airplane mode", "Ring incoming calls", "Restart", "Power off"]
+MENU_ITEMS_NO_MOBILE = ["Turn on airplane mode", "Restart", "Power off"]
 
 
 class TestPowerButton(GaiaTestCase):
@@ -22,8 +23,12 @@ class TestPowerButton(GaiaTestCase):
         self.assertEqual(sleep_menu.title, "Phone")
 
         sleep_menu_items = [item.name for item in sleep_menu.menu_items]
-        for item in MENU_ITEMS:
-            self.assertIn(item, sleep_menu_items)
+        if self.device.has_mobile_connection:
+            for item in MENU_ITEMS_HAS_MOBILE:
+                self.assertIn(item, sleep_menu_items)
+        else:
+            for item in MENU_ITEMS_NO_MOBILE:
+                self.assertIn(item, sleep_menu_items)
 
         sleep_menu.tap_cancel_button()
 

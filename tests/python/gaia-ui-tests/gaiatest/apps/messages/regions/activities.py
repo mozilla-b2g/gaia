@@ -13,6 +13,8 @@ class Activities(Base):
     _actions_menu_locator = (By.CSS_SELECTOR, 'body > form[data-type="action"]')
     _settings_button_locator = (By.XPATH, '//*[text()="Settings"]')
     _add_subject_button_locator = (By.CSS_SELECTOR, 'button[data-l10n-id="add-subject"]')
+    _add_to_contact_button_locator = (By.XPATH, '//*[text()="Add to an existing contact"]')
+    _create_new_contact_button_locator = (By.CSS_SELECTOR, 'button[data-l10n-id="createNewContact"]')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
@@ -29,3 +31,19 @@ class Activities(Base):
 
     def tap_add_subject(self):
         self.marionette.find_element(*self._add_subject_button_locator).tap()
+
+    def tap_add_to_contact(self):
+        self.marionette.find_element(*self._add_to_contact_button_locator).tap()
+
+        from gaiatest.apps.contacts.app import Contacts
+        contacts = Contacts(self.marionette)
+        contacts.switch_to_contacts_frame()
+        return contacts
+
+    def tap_create_new_contact(self):
+        self.marionette.find_element(*self._create_new_contact_button_locator).tap()
+
+        from gaiatest.apps.contacts.regions.contact_form import NewContact
+        new_contact = NewContact(self.marionette)
+        new_contact.switch_to_new_contact_form()
+        return new_contact

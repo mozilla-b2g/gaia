@@ -14,8 +14,8 @@
     "device-storage:videos":{ "access": "readwrite" },
     "deprecated-hwvideo":{},
     "audio-channel-content":{},
-    "settings":{ "access": "readonly" },
-    "nfc": { "access": "readwrite" }
+    "nfc": { "access": "readwrite" },
+    "feature-detection": {}
   },
   "activities": {
     "browse": {
@@ -61,9 +61,10 @@
   },
   "default_locale": "en-US",
   "icons": {
-    "60": "/style/icons/Gallery_60.png",
-    "90": "/style/icons/Gallery_90.png",
-    "120": "/style/icons/Gallery_120.png",
-    "135": "/style/icons/Gallery_135.png"
+    "84": "/style/icons/gallery_84.png",
+    "126": "/style/icons/gallery_126.png",
+    "142": "/style/icons/gallery_142.png",
+    "189": "/style/icons/gallery_189.png",
+    "284": "/style/icons/gallery_284.png"
   }
 }

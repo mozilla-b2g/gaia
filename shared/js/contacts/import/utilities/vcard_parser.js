@@ -73,6 +73,7 @@ function b64toBlob(b64Data, contentType, sliceSize) {
 var VCFReader = (function _VCFReader() {
   var ReBasic = /^([^:]+):(.+)$/;
   var ReTuple = /([a-zA-Z]+)=(.+)/;
+  var WHITE_SPACE = ' ';
 
   // Default tel type class
   var DEFAULT_PHONE_TYPE = 'other';
@@ -284,6 +285,7 @@ var VCFReader = (function _VCFReader() {
     if (vcardObj.fn && vcardObj.fn.length) {
       var fnMeta = vcardObj.fn[0].meta;
       var fnValue = vcardObj.fn[0].value[0];
+      // For the name field, we want the data as it is
       contactObj.name = [_decodeQP(fnMeta, fnValue)];
     }
 
@@ -294,7 +296,10 @@ var VCFReader = (function _VCFReader() {
       for (var i = 0; i < values.length; i++) {
         var namePart = values[i];
         if (namePart && NAME_PARTS[i]) {
-          contactObj[NAME_PARTS[i]] = [_decodeQP(meta, namePart)];
+          // For the rest of the fields, we want to keep the merged data
+          // separated the same way, in different positions of the array.
+          // see bug 981674
+          contactObj[NAME_PARTS[i]] = _decodeQP(meta, namePart).split(',');
         }
       }
 
@@ -335,7 +340,13 @@ var VCFReader = (function _VCFReader() {
       }
 
       for (var j = 2; j < adr.value.length; j++) {
-        cur[ADDR_PARTS[j]] = _decodeQP(adr.meta, adr.value[j]);
+        var decoded = _decodeQP(adr.meta, adr.value[j]);
+        // Because of adding empty fields while parsing the vCard
+        // merging contacts sometimes doesn't work as expected
+        // Check Bug 935636 for reference
+        if (decoded !== '') {
+          cur[ADDR_PARTS[j]] = decoded;
+        }
       }
 
       contactObj.adr.push(cur);
@@ -576,6 +587,8 @@ var VCFReader = (function _VCFReader() {
     this.processed = 0;
     this.finished = false;
     this.currentChar = 0;
+
+    this.numDupsMerged = 0;
   };
 
   // Number of contacts processed at a given time.
@@ -598,6 +611,7 @@ var VCFReader = (function _VCFReader() {
      * change in case there are vcards with syntax errors or that our processor
      * can't parse.
      */
+    var self = this;
 
     var match = this.contents.match(/end:vcard/gi);
     // If there are no matches, then this probably isn't a vcard and we should
@@ -612,7 +626,9 @@ var VCFReader = (function _VCFReader() {
     this.importedContacts = [];
     this.total = match.length;
     this.onread && this.onread(this.total);
-    this.ondone = cb;
+    this.ondone = function(numImported) {
+      cb(numImported, self.numDupsMerged);
+    };
 
     LazyLoader.load(['/shared/js/simple_phone_matcher.js',
       '/shared/js/mime_mapper.js',
@@ -670,6 +686,7 @@ var VCFReader = (function _VCFReader() {
   VCFReader.prototype.post = function(contactObjects) {
     var _onParsed = this.onParsed.bind(this);
     var cursor = 0;
+    var self = this;
 
     function afterSave(ct, e) {
       _onParsed(e, ct);
@@ -691,7 +708,10 @@ var VCFReader = (function _VCFReader() {
       var matchCbs = {
         onmatch: function(matches) {
           var callbacks = {
-            success: afterSaveFn,
+            success: function(mergedContact) {
+              self.numDupsMerged++;
+              afterSave(mergedContact, null);
+            },
             error: afterSaveFn
           };
           contacts.adaptAndMerge(contact, matches, callbacks);
@@ -701,7 +721,6 @@ var VCFReader = (function _VCFReader() {
           VCFReader._save(contact, afterSaveFn);
         }
       };
-
       contacts.Matcher.match(contact, 'passive', matchCbs);
     }
 
@@ -760,7 +779,7 @@ var VCFReader = (function _VCFReader() {
 
       // Ignore beginning whitespace that indicates multiline field.
       if (multiline === true) {
-        if (ch === ' ' || ch === '\t' || ch === '\r' || ch === '\n') {
+        if ((/[\r\t\s\n]/).test(ch)) {
           continue;
         } else {
           //currentLine += '\n'
@@ -777,7 +796,6 @@ var VCFReader = (function _VCFReader() {
           multiline = true;
           continue;
         }
-
         currentLine += ch;
 
         // Continue only if this is not the last char in the string
@@ -786,9 +804,19 @@ var VCFReader = (function _VCFReader() {
         }
       }
 
+      // If the field is a photo, the field could be multiline, to know if the
+      // following line is part of the photo, we must check if the first char
+      // of the following line is a space.
+      var firstCharNextLine = this.contents[i + 2];
+      if ((firstCharNextLine === WHITE_SPACE) && (/[\r\t\s\n]/).test(next) &&
+        (/^PHOTO/i).test(currentLine)) {
+          multiline = true;
+          continue;
+      }
+
       // At this point, we know that ch is a newline, and in the vcard format,
       // if we have a space after a newline, it indicates multiline field.
-      if (next && (next === ' ' || next === '\t')) {
+      if (next && (next === WHITE_SPACE || next === '\t')) {
         multiline = true;
         continue;
       }

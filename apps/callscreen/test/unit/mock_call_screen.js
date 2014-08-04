@@ -1,4 +1,13 @@
+/* exported MockCallScreen */
+
+'use strict';
+
 var MockCallScreen = {
+  /**
+   * Setting mScenario to a non-valid value taking into consideration the
+   *  possible scenario values as declared in FontSizeManager.
+   */
+  mScenario: -1,
   callEndPromptTime: 2000,
 
   insertCall: function() {},
@@ -17,12 +26,8 @@ var MockCallScreen = {
   syncSpeakerEnabled: function() {
     this.mSyncSpeakerCalled = true;
   },
-  setCallerContactImage: function(arg) {
+  setCallerContactImage: function() {
     this.mSetCallerContactImageCalled = true;
-    this.mSetCallerContactImageArg = arg;
-  },
-  setEmergencyWallpaper: function() {
-    this.mSetEmergencyWallpaperCalled = true;
   },
   mute: function() {
     this.mMuteOn = true;
@@ -70,6 +75,9 @@ var MockCallScreen = {
   setEndConferenceCall: function() {
     this.mSetEndConferenceCall = true;
   },
+  cdmaConferenceCall: function() {},
+  hidePlaceNewCallButton: function() {},
+  showPlaceNewCallButton: function() {},
 
   set holdAndAnswerOnly(enabled) {
     this.mHoldAndAnswerOnly = enabled;
@@ -86,10 +94,18 @@ var MockCallScreen = {
   },
   mInStatusBarMode: false,
 
+  getScenario: function() {
+    this.mGetScenarioCalled = true;
+    return this.mScenario;
+  },
+
+  mGetScenarioCalled: false,
+
   // Fake dom
   calls: document.createElement('div'),
   screen: document.createElement('div'),
   incomingContainer: document.createElement('div'),
+  incomingInfo: document.createElement('div'),
   incomingNumber: document.createElement('div'),
   incomingSim: document.createElement('div'),
   incomingNumberAdditionalInfo: document.createElement('span'),
@@ -97,7 +113,6 @@ var MockCallScreen = {
   mEnableKeypadCalled: false,
   mSyncSpeakerCalled: false,
   mSetCallerContactImageCalled: false,
-  mSetCallerContactImageArg: null,
   mMuteOn: false,
   mSpeakerOn: false,
   mLastRenderMode: null,
@@ -105,8 +120,6 @@ var MockCallScreen = {
     this.mEnableKeypadCalled = false;
     this.mSyncSpeakerCalled = false;
     this.mSetCallerContactImageCalled = false;
-    this.mSetCallerContactImageArg = null;
-    this.mSetEmergencyWallpaperCalled = false;
     this.mMuteOn = false;
     this.mSpeakerOn = false;
     this.mLastRenderMode = null;
@@ -119,12 +132,12 @@ var MockCallScreen = {
     this.calls = document.createElement('div');
     this.screen = document.createElement('div');
     this.incomingContainer = document.createElement('div');
+    this.incomingInfo = document.createElement('div');
     this.incomingNumber = document.createElement('div');
     this.incomingNumberAdditionalInfo = document.createElement('span');
     this.mGroupDetailsShown = false;
     this.mRemoveCallCalled = false;
     this.mSetEndConferenceCall = false;
+    this.mGetScenarioCalled = false;
   }
 };
-
-

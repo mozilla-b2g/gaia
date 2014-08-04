@@ -5,12 +5,49 @@
 from gaiatest.apps.base import Base
 from marionette.by import By
 
+
 class TestContainer(Base):
 
     name = 'Test Container'
+
+    _app_selector = (By.CSS_SELECTOR,
+                     'iframe[src*="test-container"][src*="/index.html"]')
+
     _main_frame_locator = (By.ID, 'test-container')
+    _dummy_system_message_id = 'dummy-system-message'
 
     def launch(self):
         Base.launch(self)
         self.wait_for_element_present(*self._main_frame_locator)
 
+    def wait_until_launched(self):
+        self.marionette.switch_to_frame()
+        self.wait_for_element_present(*self._app_selector)
+
+    # Set dummy message handler which will place the message
+    # carried by dummy system message in the element with id
+    # |msg_placeholder_id|
+    def set_dummy_system_message_handler(self, msg_placeholder_id):
+        self.marionette.execute_script("""
+            navigator.mozSetMessageHandler('%s', function(msg) {
+              var messageLabel = document.createElement('label');
+              messageLabel.id = '%s';
+              messageLabel.innerHTML = msg.value;
+              let container = document.getElementById('test-container');
+              document.body.insertBefore(messageLabel, container);
+            });
+        """ % (self._dummy_system_message_id, msg_placeholder_id))
+
+    # Broadcast dummy system message which will carry message |msg|
+    def broadcast_dummy_system_message(self, msg):
+        self.marionette.set_context(self.marionette.CONTEXT_CHROME)
+        self.marionette.execute_script("""
+            Components.classes["@mozilla.org/system-message-internal;1"]
+              .getService(Ci.nsISystemMessagesInternal)
+              .broadcastMessage('%s', { value: '%s' }, {});
+        """ % (self._dummy_system_message_id, msg))
+        self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
+
+    def find_message_text(self, msg_placeholder_id):
+        message = self.marionette.find_element(By.ID, msg_placeholder_id)
+        return message.text

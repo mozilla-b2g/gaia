@@ -21,6 +21,7 @@ Browser.Selectors = {
   'mozbrowser': 'iframe[mozbrowser]',
   'tabsBadge': '#tabs-badge',
   'settingsButton': '#settings-button',
+  'bookmarkAddToHomeButton': '#bookmark-menu-add-home',
   'bookmarkButton': '#bookmark-button',
   'bookmarkMenuAdd': '#bookmark-menu-add',
   'bookmarkMenuEdit': '#bookmark-menu-edit',
@@ -73,6 +74,10 @@ Browser.prototype = {
 
   get bookmarkButton() {
     return findElement(this.client, 'bookmarkButton');
+  },
+
+  get bookmarkAddToHomeButton() {
+    return findElement(this.client, 'bookmarkAddToHomeButton');
   },
 
   get bookmarkMenuAdd() {

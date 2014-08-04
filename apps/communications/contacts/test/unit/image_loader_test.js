@@ -5,7 +5,7 @@
 require('/shared/js/contacts/utilities/image_loader.js');
 
 requireApp('communications/contacts/test/unit/mock_link.html.js');
-requireApp('communications/contacts/test/unit/mock_image.js');
+require('/shared/test/unit/mocks/mock_image.js');
 
 var mocksHelperForImageLoader = new MocksHelper([
   'Image'
@@ -34,6 +34,10 @@ suite('Image Loader Test Suite >', function() {
 
     setup(function() {
       stopSpy = this.sinon.spy(window, 'stop');
+    });
+
+    suiteTeardown(function() {
+      imgLoader.destroy();
     });
 
     function simulateImageCallback(evt) {
@@ -140,10 +144,14 @@ suite('Image Loader Test Suite >', function() {
 
     suiteSetup(function() {
       document.body.innerHTML =
-      '<ol>' +
-        '<li><span data-type="img" data-src="http://www.a.com"></span></li>' +
-      '</ol>';
-      imgLoader = new ImageLoader('ol','li');
+        '<ol>' +
+          '<li><span data-type="img" data-src="http://www.a.com"></span></li>' +
+        '</ol>';
+      imgLoader = new ImageLoader('ol', 'li');
+    });
+
+    suiteTeardown(function() {
+      imgLoader.destroy();
     });
 
     test('resuming calls new Image()', function() {

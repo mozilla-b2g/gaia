@@ -1,6 +1,4 @@
 'use strict';
-mocha.globals(['MockKeyboardHelper', 'KeyboardHelper', 'MockL10n']);
-
 suite('Languages > ', function() {
   var mockL10n;
   var mockKeyboardHelper;

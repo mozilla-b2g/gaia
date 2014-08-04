@@ -1,5 +1,6 @@
 Keyboards['bg-Pho-Trad'] = {
   label: 'Bulgarian (Phonetic)',
+  shortLabel: 'Bg',
   menuLabel: 'Български (Фонетична)',
   types: ['text', 'url', 'email'],
   imEngine: 'latin',

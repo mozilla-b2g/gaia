@@ -17,47 +17,52 @@ var TelephonySettingHelper = (function(window, document, undefined) {
    * Init function.
    */
   function tsh_init() {
-    _iccManager = window.navigator.mozIccManager;
-    _mobileConnections = window.navigator.mozMobileConnections;
-    if (!_mobileConnections || !_iccManager) {
-      return;
-    }
+    return new Promise(function(resolve, reject) {
+      _iccManager = window.navigator.mozIccManager;
+      _mobileConnections = window.navigator.mozMobileConnections;
 
-    navigator.mozL10n.once(function loadWhenIdle() {
-      var idleObserver = {
-        time: 3,
-        onidle: function() {
-          navigator.removeIdleObserver(idleObserver);
+      if (!_mobileConnections || !_iccManager) {
+        return resolve();
+      }
 
-          DsdsSettings.init();
+      navigator.mozL10n.once(function loadWhenIdle() {
+        var idleObserver = {
+          time: 3,
+          onidle: function() {
+            navigator.removeIdleObserver(idleObserver);
 
-          TelephonyItemsHandler.init();
-          TelephonyItemsHandler.handleItems();
+            DsdsSettings.init();
 
-          AirplaneModeHelper.addEventListener('statechange',
-            TelephonyItemsHandler.handleItems);
+            TelephonyItemsHandler.init();
+            TelephonyItemsHandler.handleItems();
 
-          tsh_addListeners();
+            AirplaneModeHelper.addEventListener('statechange',
+              TelephonyItemsHandler.handleItems);
 
-          _iccManager.addEventListener('iccdetected',
-            function iccDetectedHandler(evt) {
-              if (_mobileConnections[0].iccId &&
-                 (_mobileConnections[0].iccId === evt.iccId)) {
-                TelephonyItemsHandler.handleItems();
-                tsh_addListeners();
-              }
-          });
+            tsh_addListeners();
 
-          _iccManager.addEventListener('iccundetected',
-            function iccUndetectedHandler(evt) {
-              if (_iccId === evt.iccId) {
-                _mobileConnections[0].removeEventListener('datachange',
-                  TelephonyItemsHandler.handleItems);
-              }
-          });
-        }
-      };
-      navigator.addIdleObserver(idleObserver);
+            _iccManager.addEventListener('iccdetected',
+              function iccDetectedHandler(evt) {
+                if (_mobileConnections[0].iccId &&
+                  (_mobileConnections[0].iccId === evt.iccId)) {
+                  TelephonyItemsHandler.handleItems();
+                  tsh_addListeners();
+                }
+              });
+
+            _iccManager.addEventListener('iccundetected',
+              function iccUndetectedHandler(evt) {
+                if (_iccId === evt.iccId) {
+                  _mobileConnections[0].removeEventListener('datachange',
+                    TelephonyItemsHandler.handleItems);
+                }
+              });
+
+            resolve();
+          }
+        };
+        navigator.addIdleObserver(idleObserver);
+      });
     });
   }
 

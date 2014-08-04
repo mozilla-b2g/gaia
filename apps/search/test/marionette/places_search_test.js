@@ -33,6 +33,7 @@ marionette('Places tests', function() {
 
   test('Search for previously visited URL', function() {
     var url = server.url('sample.html');
+    search.triggerFirstRun(rocketbar);
     rocketbar.focus();
     rocketbar.enterText(url + '\uE006');
     rocketbar.waitForBrowserFrame();
@@ -45,6 +46,7 @@ marionette('Places tests', function() {
 
   test('Search for a string that doesnt match visited url', function() {
     var url = server.url('sample.html');
+    search.triggerFirstRun(rocketbar);
     rocketbar.focus();
     rocketbar.enterText(url + '\uE006');
     rocketbar.waitForBrowserFrame();
@@ -57,6 +59,7 @@ marionette('Places tests', function() {
 
   test('Ensures urls visited twice only show in results once', function() {
     var url = server.url('sample.html');
+    search.triggerFirstRun(rocketbar);
     rocketbar.focus();
     rocketbar.enterText(url + '\uE006');
     rocketbar.waitForBrowserFrame();
@@ -80,6 +83,7 @@ marionette('Places tests', function() {
 
   test('Ensure favicon is loaded', function() {
     var url = server.url('favicon.html');
+    search.triggerFirstRun(rocketbar);
     rocketbar.focus();
     rocketbar.enterText(url + '\uE006');
     rocketbar.waitForBrowserFrame();

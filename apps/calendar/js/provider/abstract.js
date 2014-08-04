@@ -8,11 +8,24 @@ Calendar.ns('Provider').Abstract = (function() {
         this[key] = options[key];
       }
     }
+
+
+    Calendar.Promise.denodeifyAll(this, [
+      'eventCapabilities',
+      'getAccount',
+      'findCalendars',
+      'syncEvents',
+      'ensureRecurrencesExpanded',
+      'createEvent',
+      'updateEvent',
+      'deleteEvent'
+    ]);
   }
 
   Abstract.prototype = {
 
-    defaultColor: '#D2642A',
+    // orange (used by local calendar)
+    defaultColor: '#F97C17',
 
     /**
      * Does this provider require credentials.
@@ -139,7 +152,6 @@ Calendar.ns('Provider').Abstract = (function() {
         });
       });
     }
-
   };
 
   return Abstract;

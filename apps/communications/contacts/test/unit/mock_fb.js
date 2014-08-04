@@ -205,7 +205,8 @@ Mockfb.Contact = function(devContact, mozCid) {
           'test@test.com': true,
           'Palencia': true,
           'Castilla y León': true,
-          'España': true
+          'España': true,
+          'Test ORG': true
         };
         this.result[1][date] = true;
 
@@ -218,7 +219,7 @@ Mockfb.Contact = function(devContact, mozCid) {
   };
 
   this.promoteToLinked = function promoteToLinked() {
-
+    Mockfb.promoteToLinked();
   };
 
   Object.defineProperty(this, 'uid', {
@@ -232,6 +233,18 @@ Mockfb.Contact = function(devContact, mozCid) {
 
 Mockfb.isFbContact = function(contact) {
   return this.fbContact;
+};
+
+Mockfb.promoteToLinked = function() {
+  this.fbLinked = true;
+};
+
+Mockfb.setPropagatedFlag = function(field, contact) {
+  // Do nothing...
+};
+
+Mockfb.removePropagatedFlag = function(field, contact) {
+  // Do nothing...
 };
 
 Mockfb.isFbLinked = function(contact) {

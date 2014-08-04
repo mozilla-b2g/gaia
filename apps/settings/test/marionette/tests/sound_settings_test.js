@@ -9,6 +9,10 @@ marionette('manipulate sound settings', function() {
 
   setup(function() {
     settingsApp = new Settings(client);
+
+    client.contentScript.inject(__dirname +
+      '/../mocks/mock_navigator_moz_telephony.js');
+
     settingsApp.launch();
     // Navigate to the sound menu
     soundPanel = settingsApp.soundPanel;
@@ -60,6 +64,18 @@ marionette('manipulate sound settings', function() {
     );
   });
 
+  test('check default ringtone name', function() {
+    var ringtone_name = soundPanel.selectedRingtone;
+    assert.ok(ringtone_name === 'Firefox OS' ||
+              ringtone_name === 'B2G OS');
+  });
+
+  test('check default alert tone name', function() {
+    var alerttone_name = soundPanel.selectedAlertTone;
+    assert.ok(alerttone_name === 'Firefox OS' ||
+              alerttone_name === 'B2G OS');
+  });
+
   /* Other sounds */
   test('check keypad initial state', function() {
     assert.ok(
@@ -76,48 +92,18 @@ marionette('manipulate sound settings', function() {
     );
   });
 
-  test('check camera shutter initial state', function() {
+  test('check camera initial state', function() {
     assert.ok(
-      soundPanel.isCameraShutterChecked,
-      'camera shutter sound is enabled by default'
+      soundPanel.isCameraChecked,
+      'camera sound is enabled by default'
     );
   });
 
-  test('disable camera shutter sound', function() {
-    soundPanel.tapOnCameraShutter();
+  test('disable camera sound', function() {
+    soundPanel.tapOnCamera();
     assert.ok(
-      !soundPanel.isCameraShutterChecked,
-      'camera shutter sound has been disabled'
-    );
-  });
-
-  test('check video recording initial state', function() {
-    assert.ok(
-      !soundPanel.isVideoRecordingChecked,
-      'video recording sound is disabled by default'
-    );
-  });
-
-  test('enable video recording sound', function() {
-    soundPanel.tapOnVideoRecording();
-    assert.ok(
-      soundPanel.isVideoRecordingChecked,
-      'video recording sound has been enabled'
-    );
-  });
-
-  test('check sent mail initial state', function() {
-    assert.ok(
-      soundPanel.isSentMailChecked,
-      'sent mail sound is enabled by default'
-    );
-  });
-
-  test('disable sent mail sound', function() {
-    soundPanel.tapOnSentMail();
-    assert.ok(
-      !soundPanel.isSentMailChecked,
-      'sent mail sound has been disabled'
+      !soundPanel.isCameraChecked,
+      'camera sound has been disabled'
     );
   });
 

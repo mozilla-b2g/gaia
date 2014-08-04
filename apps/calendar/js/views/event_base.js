@@ -70,7 +70,7 @@ Calendar.ns('Views').EventBase = (function() {
      * Dismiss modification and go back to previous screen.
      */
     cancel: function() {
-      window.back();
+      window.history.back();
     },
 
     /**
@@ -162,10 +162,13 @@ Calendar.ns('Views').EventBase = (function() {
           self.element.classList.add(self.READONLY);
         }
 
-        classList.remove(self.LOADING);
-
         // inheritance hook...
         self._updateUI();
+
+        // we only remove the loading class after the UI is rendered just to
+        // avoid potential race conditions during marionette tests (trying to
+        // read the data before it's on the DOM)
+        classList.remove(self.LOADING);
 
         if (callback) {
           callback();

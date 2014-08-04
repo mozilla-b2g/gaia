@@ -1,10 +1,9 @@
 suite('lib/settings', function() {
   'use strict';
-  var require = window.req;
 
   suiteSetup(function(done) {
     var self = this;
-    require([
+    requirejs([
       'lib/settings',
       'lib/setting'
     ], function(Settings, Setting) {
@@ -56,8 +55,9 @@ suite('lib/settings', function() {
   suite('Settings#alias()', function() {
     setup(function() {
       sinon.spy(this.settings, 'SettingAlias');
-      this.settings.alias('myAlias', {
-        map: {},
+      this.settings.alias({
+        key: 'myAlias',
+        settings: {},
         get: function() {}
       });
     });
@@ -71,17 +71,12 @@ suite('lib/settings', function() {
     });
 
     test('Should store the alias on self by key', function() {
-      assert.ok(this.settings.myAlias);
+      assert.isDefined(this.settings.myAlias);
     });
 
     test('Should pass in the given key', function() {
       var options = this.settings.SettingAlias.args[0][0];
       assert.equal(options.key, 'myAlias');
-    });
-
-    test('Should pass in self as `settings`', function() {
-      var options = this.settings.SettingAlias.args[0][0];
-      assert.equal(options.settings, this.settings);
     });
   });
 

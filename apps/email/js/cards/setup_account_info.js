@@ -105,24 +105,13 @@ SetupAccountInfoCard.prototype = {
         .classList.remove('collapsed');
     var errorMessageNode =
       this.domNode.getElementsByClassName('sup-error-message')[0];
-    var errorCodeNode =
-      this.domNode.getElementsByClassName('sup-error-code')[0];
 
     // Attempt to get a user-friendly string for the error we got. If we can't
     // find a match, just show the "unknown" error string.
-    var errorStr = mozL10n.get(
-      SETUP_ERROR_L10N_ID_MAP.hasOwnProperty(errName) ?
+    var errorStr = SETUP_ERROR_L10N_ID_MAP.hasOwnProperty(errName) ?
         SETUP_ERROR_L10N_ID_MAP[errName] :
-        SETUP_ERROR_L10N_ID_MAP.unknown,
-      errDetails);
-    errorMessageNode.textContent = errorStr;
-
-    // Expose the error code to the UI.  Additionally, if there was a status,
-    // expose that too.
-    var errorCodeStr = errName;
-    if (errDetails && errDetails.status)
-      errorCodeStr += '(' + errDetails.status + ')';
-    errorCodeNode.textContent = errorCodeStr;
+        SETUP_ERROR_L10N_ID_MAP.unknown;
+    mozL10n.setAttributes(errorMessageNode, errorStr, errDetails);
 
     // Make sure we are scrolled to the top of the scroll region so that the
     // error message is visible.

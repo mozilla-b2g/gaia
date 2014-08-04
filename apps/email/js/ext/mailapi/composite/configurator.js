@@ -489,8 +489,8 @@ CompositeIncomingAccount.prototype = {
    * We are being told that a synchronization pass completed, and that we may
    * want to consider persisting our state.
    */
-  __checkpointSyncCompleted: function(callback) {
-    this.saveAccountState(null, callback, 'checkpointSync');
+  __checkpointSyncCompleted: function(callback, betterReason) {
+    this.saveAccountState(null, callback, betterReason || 'checkpointSync');
   },
 
   /**
@@ -593,34 +593,6 @@ CompositeIncomingAccount.prototype = {
   },
 
   /**
-   * Create the essential Sent and Trash folders if they do not already exist.
-   *
-   * XXX Our folder type detection logic probably needs to get more multilingual
-   * and us as well.  When we do this, we can steal the localized strings from
-   * Thunderbird to bootstrap.
-   */
-  ensureEssentialFolders: function(callback) {
-    var essentialFolders = {'trash': 'Trash', 'sent': 'Sent'};
-    var pendingCallbacks = 1;
-
-    function next() {
-      if (!--pendingCallbacks) {
-        callback && callback(null);
-      }
-    }
-
-    for (var type in essentialFolders) {
-      if (!this.getFirstFolderWithType(type)) {
-        pendingCallbacks++;
-        this.universe.createFolder(
-          this.id, null, essentialFolders[type], false, next);
-      }
-    }
-
-    next();
-  },
-
-  /**
    * We receive this notification from our _backoffEndpoint.
    */
   onEndpointStateChange: function(state) {
@@ -653,7 +625,6 @@ exports.LOGFAB_DEFINITION = {
       unknownDeadConnection: {},
       connectionMismatch: {},
 
-      saveAccountState: { reason: false },
       /**
        * XXX: this is really an error/warning, but to make the logging less
        * confusing, treat it as an event.
@@ -683,6 +654,7 @@ exports.LOGFAB_DEFINITION = {
     asyncJobs: {
       checkAccount: { err: null },
       runOp: { mode: true, type: true, error: false, op: false },
+      saveAccountState: { reason: true, folderSaveCount: true },
     },
     TEST_ONLY_asyncJobs: {
     },
@@ -933,9 +905,13 @@ ImapFolderConn.prototype = {
    * we are unable to reach the server (we are offline, the server is down,
    * nework troubles), the `abortedCallback` will be invoked.  Note that it can
    * take many seconds for us to conclusively fail to reach the server.
+   *
+   * Track an isRetry flag to ensure we don't fall into an infinite retry loop.
    */
   _timelySyncSearch: function(searchOptions, searchedCallback,
-                              abortedCallback, progressCallback) {
+                              abortedCallback, progressCallback, isRetry) {
+    var gotSearchResponse = false;
+
     // If we don't have a connection, get one, then re-call.
     if (!this._conn) {
       // XXX the abortedCallback should really only be used for the duration
@@ -945,13 +921,42 @@ ImapFolderConn.prototype = {
       // causes us to not release the connection back to the account).  We
       // should tie this to the mutex or something else transactional.
       this.acquireConn(
-        this._timelySyncSearch.bind(this, searchOptions, searchedCallback,
-                                    abortedCallback, progressCallback),
+        this._timelySyncSearch.bind(this,
+                                    searchOptions, searchedCallback,
+                                    abortedCallback, progressCallback,
+                                    /* isRetry: */ isRetry),
         abortedCallback, 'sync', true);
       return;
     }
-    // We do have a connection, hook-up our abortedCallback
+    // We do have a connection. Hopefully the connection is still
+    // valid and functional. However, since this connection may have
+    // been hanging around a while, sending data now might trigger a
+    // connection reset notification. In other words, if the
+    // connection has gone stale, we want to grab a new connection and
+    // retry before aborting.
     else {
+      if (!isRetry) {
+        var origAbortedCallback = abortedCallback;
+        abortedCallback = (function() {
+          // Here, we've acquired an already-connected socket. If we
+          // were already connected, but failed to receive a response
+          // from the server, this socket is effectively dead. In that
+          // case, retry the SEARCH once again with a fresh connection,
+          // if we haven't already retried the request.
+          if (!gotSearchResponse) {
+            console.warn('Broken connection for SEARCH. Retrying.');
+            this._timelySyncSearch(searchOptions, searchedCallback,
+                                   origAbortedCallback, progressCallback,
+                                   /* isRetry: */ true);
+          }
+          // Otherwise, we received an error from this._conn.search
+          // below (i.e. there was a legitimate server problem), or we
+          // already retried, so we should actually give up.
+          else {
+            origAbortedCallback();
+          }
+        }.bind(this));
+      }
       this._deathback = abortedCallback;
     }
 
@@ -970,6 +975,7 @@ ImapFolderConn.prototype = {
     }
 
     this._conn.search(searchOptions, function(err, uids) {
+        gotSearchResponse = true;
         if (err) {
           console.error('Search error on', searchOptions, 'err:', err);
           abortedCallback();
@@ -1160,7 +1166,8 @@ console.log('BISECT CASE', serverUIDs.length, 'curDaysDelta', curDaysDelta);
         this._LOG.syncDateRange_end(0, 0, 0, startTS, endTS, null, null);
         doneCallback('aborted');
       }.bind(this),
-      progressCallback);
+      progressCallback,
+      /* isRetry: */ false);
     this._storage.getAllMessagesInImapDateRange(skewedStartTS, skewedEndTS,
                                                 callbacks.db);
   },
@@ -1665,8 +1672,9 @@ ImapFolderSyncer.prototype = {
    * Can we grow this sync range?  IMAP always lets us do this.
    */
   get canGrowSync() {
-    // localdrafts is offline-only, so we can't ask the server for messages.
-    return this.folderStorage.folderMeta.type !== 'localdrafts';
+    // Some folders, like localdrafts and outbox, cannot be synced
+    // because they are local-only.
+    return !this.folderStorage.isLocalOnly;
   },
 
   /**
@@ -1806,21 +1814,24 @@ ImapFolderSyncer.prototype = {
     //
     this._syncSlice.desiredHeaders = this._syncSlice.headers.length;
 
-    if (this._curSyncDoneCallback)
-      this._curSyncDoneCallback(err);
-
     // Save our state even if there was an error because we may have accumulated
-    // some partial state.
-    this._account.__checkpointSyncCompleted();
+    // some partial state.  Additionally, don't *actually* complete until the
+    // save has hit the disk.  This is beneficial for both tests and cronsync
+    // which has been trying to shut us down in a race with this save
+    // triggering.
+    this._account.__checkpointSyncCompleted(function () {
+      if (this._curSyncDoneCallback)
+        this._curSyncDoneCallback(err);
 
-    this._syncSlice = null;
-    this._curSyncAccuracyStamp = null;
-    this._curSyncDir = null;
-    this._nextSyncAnchorTS = null;
-    this._syncThroughTS = null;
-    this._curSyncDayStep = null;
-    this._curSyncDoNotGrowBoundary = null;
-    this._curSyncDoneCallback = null;
+      this._syncSlice = null;
+      this._curSyncAccuracyStamp = null;
+      this._curSyncDir = null;
+      this._nextSyncAnchorTS = null;
+      this._syncThroughTS = null;
+      this._curSyncDayStep = null;
+      this._curSyncDoNotGrowBoundary = null;
+      this._curSyncDoneCallback = null;
+    }.bind(this));
   },
 
   /**
@@ -2364,10 +2375,10 @@ ImapJobDriver.prototype = {
         }
       };
 
-      // localdrafts is a synthetic folder and so we never want a connection
-      // for it.  This is a somewhat awkward place to make this decision, but
-      // it does work.
-      if (needConn && storage.folderMeta.type !== 'localdrafts') {
+      // localdrafts and outbox are synthetic folders and so we never
+      // want a connection for them. This is a somewhat awkward place
+      // to make this decision, but it does work.
+      if (needConn && !storage.isLocalOnly) {
         syncer.folderConn.withConnection(function () {
           // When we release the mutex, the folder may not
           // release its connection, so be sure to reset
@@ -2824,8 +2835,8 @@ ImapJobDriver.prototype = {
           return;
         }
 
-        // There is nothing to do on localdrafts folders, server-wise.
-        if (sourceStorage.folderMeta.type === 'localdrafts') {
+        // There is nothing to do on localdrafts or outbox folders, server-wise.
+        if (sourceStorage.isLocalOnly) {
           perFolderDone();
         }
         else if (sourceStorage.folderId === targetFolderId) {
@@ -3156,6 +3167,16 @@ ImapJobDriver.prototype = {
   },
 
   //////////////////////////////////////////////////////////////////////////////
+
+  local_do_sendOutboxMessages: $jobmixins.local_do_sendOutboxMessages,
+  do_sendOutboxMessages: $jobmixins.do_sendOutboxMessages,
+  check_sendOutboxMessages: $jobmixins.check_sendOutboxMessages,
+  local_undo_sendOutboxMessages: $jobmixins.local_undo_sendOutboxMessages,
+  undo_sendOutboxMessages: $jobmixins.undo_sendOutboxMessages,
+  local_do_setOutboxSyncEnabled: $jobmixins.local_do_setOutboxSyncEnabled
+
+  //////////////////////////////////////////////////////////////////////////////
+
 };
 
 function HighLevelJobDriver() {
@@ -3232,10 +3253,12 @@ define('mailapi/imap/account',
   [
     'rdcommon/log',
     '../a64',
+    '../accountmixins',
     '../allback',
     '../errbackoff',
     '../mailslice',
     '../searchfilter',
+    '../syncbase',
     '../util',
     '../composite/incoming',
     './folder',
@@ -3247,10 +3270,12 @@ define('mailapi/imap/account',
   function(
     $log,
     $a64,
+    $acctmixins,
     $allback,
     $errbackoff,
     $mailslice,
     $searchfilter,
+    $syncbase,
     $util,
     incoming,
     $imapfolder,
@@ -3333,6 +3358,10 @@ function ImapAccount(universe, compositeAccount, accountId, credentials,
    * expunging deleted messages.
    */
   this._TEST_doNotCloseFolder = false;
+
+  // Immediately ensure that we have any required local-only folders,
+  // as those can be created even while offline.
+  this.ensureEssentialOfflineFolders();
 }
 
 exports.Account = exports.ImapAccount = ImapAccount;
@@ -3480,6 +3509,7 @@ var properties = {
       var connInfo = this._ownedConns[i];
       if (connInfo.inUseBy)
         continue;
+      console.log('Killing unused IMAP connection.');
       // this eats all future notifications, so we need to splice...
       connInfo.conn.die();
       this._ownedConns.splice(i, 1);
@@ -3631,6 +3661,18 @@ var properties = {
         // (this will trigger an expunge if not read-only...)
         if (closeFolder && !resourceProblem && !this._TEST_doNotCloseFolder)
           conn.closeBox(function() {});
+
+        // XXX: We are closing unused connections in an effort to stem
+        // problems associated with unreliable cell connections; they
+        // tend to be dropped unceremoniously when left idle for a
+        // long time, particularly on cell networks. NB: This will
+        // close the connection we just used, unless someone else is
+        // waiting for a connection.
+        if ($syncbase.KILL_CONNECTIONS_WHEN_JOBLESS &&
+            !this._demandedConns.length &&
+            !this.universe.areServerJobsWaiting(this)) {
+          this.closeUnusedConnections();
+        }
         return;
       }
     }
@@ -3820,44 +3862,86 @@ var properties = {
       // (skip those we found above)
       if (folderPub === true)
         continue;
-      // Never delete our localdrafts folder.
-      if (folderPub.type === 'localdrafts')
+      // Never delete our localdrafts or outbox folder.
+      if ($mailslice.FolderStorage.isTypeLocalOnly(folderPub.type))
         continue;
       // It must have gotten deleted!
       this._forgetFolder(folderPub.id);
     }
 
-    // Add a localdrafts folder if we don't have one.
-    var localDrafts = this.getFirstFolderWithType('localdrafts');
-    if (!localDrafts) {
-      // Try and add the folder next to the existing drafts folder, or the
-      // sent folder if there is no drafts folder.  Otherwise we must have an
-      // inbox and we want to live under that.
-      var sibling = this.getFirstFolderWithType('drafts') ||
-                    this.getFirstFolderWithType('sent');
-      var parentId = sibling ? sibling.parentId
-                             : this.getFirstFolderWithType('inbox').id;
-      // parentId will be null if we are already top-level
-      var parentFolder;
-      if (parentId) {
-        parentFolder = this._folderInfos[parentId].$meta;
-      }
-      else {
-        parentFolder = {
-          path: '', delim: '', depth: -1
-        };
-      }
-      var localDraftPath = parentFolder.path + parentFolder.delim +
-            'localdrafts';
-      // Since this is a synthetic folder; we just directly choose the name
-      // that our l10n mapping will transform.
-      this._learnAboutFolder('localdrafts', localDraftPath,  parentId,
-                             'localdrafts', parentFolder.delim,
-                             parentFolder.depth + 1);
-    }
+    // Once we've synchonized the folder list, kick off another job to
+    // check that we have all essential online folders. Once that
+    // completes, we'll check to make sure our offline-only folders
+    // (localdrafts, outbox) are in the right place according to where
+    // this server stores other built-in folders.
+    this.ensureEssentialOnlineFolders();
+    this.normalizeFolderHierarchy();
 
     callback(null);
   },
+
+  /**
+   * Ensure that local-only folders exist. This runs synchronously
+   * before we sync the folder list with the server. Ideally, these
+   * folders should reside in a proper place in the folder hierarchy,
+   * which may differ between servers depending on whether the
+   * account's other folders live underneath the inbox or as
+   * top-level-folders. But since moving folders is easy and doesn't
+   * really affect the backend, we'll just ensure they exist here, and
+   * fix up their hierarchical location when syncing the folder list.
+   */
+  ensureEssentialOfflineFolders: function() {
+    [ 'outbox', 'localdrafts' ].forEach(function(folderType) {
+      if (!this.getFirstFolderWithType(folderType)) {
+        this._learnAboutFolder(
+          /* name: */ folderType,
+          /* path: */ folderType,
+          /* parentId: */ null,
+          /* type: */ folderType,
+          /* delim: */ '',
+          /* depth: */ 0,
+          /* suppressNotification: */ true);
+      }
+    }, this);
+  },
+
+  /**
+   * Kick off jobs to create essential folders (sent, trash) if
+   * necessary. These folders should be created on both the client and
+   * the server; contrast with `ensureEssentialOfflineFolders`.
+   *
+   * TODO: Support localizing all automatically named e-mail folders
+   * regardless of the origin locale.
+   * Relevant bugs: <https://bugzil.la/905869>, <https://bugzil.la/905878>.
+   *
+   * @param {function} callback
+   *   Called when all ops have run.
+   */
+  ensureEssentialOnlineFolders: function(callback) {
+    var essentialFolders = { 'trash': 'Trash', 'sent': 'Sent' };
+    var latch = $allback.latch();
+
+    for (var type in essentialFolders) {
+      if (!this.getFirstFolderWithType(type)) {
+        this.universe.createFolder(
+          this.id, null, essentialFolders[type], false, latch.defer());
+      }
+    }
+
+    latch.then(callback);
+  },
+
+  /**
+   * Ensure that local-only folders live in a reasonable place in the
+   * folder hierarchy by moving them if necessary.
+   *
+   * We proactively create local-only folders at the root level before
+   * we synchronize with the server; if possible, we want these
+   * folders to reside as siblings to other system-level folders on
+   * the account. This is called at the end of syncFolderList, after
+   * we have learned about all existing server folders.
+   */
+  normalizeFolderHierarchy: $acctmixins.normalizeFolderHierarchy,
 
   /**
    * Asynchronously save the sent message to the sent folder, if applicable.
@@ -4040,6 +4124,7 @@ function NetSocket(port, host, crypto) {
     onopen: this._onconnect.bind(this),
     onerror: this._onerror.bind(this),
     ondata: this._ondata.bind(this),
+    onprogress: this._onprogress.bind(this),
     onclose: this._onclose.bind(this)
   };
   var routerInfo = routerMaker.register(function(data) {
@@ -4122,6 +4207,9 @@ NetSocket.prototype._onerror = function(err) {
 NetSocket.prototype._ondata = function(data) {
   var buffer = Buffer(data);
   this.emit('data', buffer);
+};
+NetSocket.prototype._onprogress = function() {
+  this.emit('progress');
 };
 NetSocket.prototype._onclose = function() {
   this.emit('close');
@@ -6334,7 +6422,7 @@ function chewStructure(msg) {
     return partInfo.size;
   }
 
-  function chewLeaf(branch) {
+  function chewLeaf(branch, parentMultipartSubtype) {
     var partInfo = branch[0], i,
         filename, disposition;
 
@@ -6364,19 +6452,39 @@ function chewStructure(msg) {
       filename = null;
     }
 
-    // - Start from explicit disposition, make attachment if non-displayable
-    if (partInfo.disposition)
-      disposition = partInfo.disposition.type.toLowerCase();
-    // UNTUNED-HEURISTIC (need test cases)
-    // Parts with content ID's explicitly want to be referenced by the message
-    // and so are inline.  (Although we might do well to check if they actually
-    // are referenced.  This heuristic could be very wrong.)
-    else if (partInfo.id)
-      disposition = 'inline';
-    else if (filename || partInfo.type !== 'text')
+    // Determining disposition:
+
+    // First, check whether an explict one exists
+    if (partInfo.disposition) {
+      // If it exists, keep it the same, except in the case of inline
+      // disposition without a content id.
+      if (partInfo.disposition.type.toLowerCase() == 'inline') {
+      // Displaying text-parts inline is not a problem for us, but we need a
+      // content id for other embedded content.  (Currently only images are
+      // supported, but that is enforced in a subsequent check.)
+        if (partInfo.type === 'text' || partInfo.id) {
+          disposition = 'inline';
+        } else {
+          disposition = 'attachment';
+        }
+      } else if (partInfo.disposition.type.toLowerCase() == 'attachment') {
+        disposition = 'attachment';
+      // This case should never trigger, but it's here for safety's sake
+      } else {
+        disposition = 'inline';
+      }
+    // Inline image attachments that belong to a multipart/related may lack a
+    // disposition but have a content-id.
+    // XXX Ensure 100% correctness in the future by fixing up mis-guesses
+    // during sanitization as part of https://bugzil.la/1024685
+    } else if (parentMultipartSubtype === 'related' && partInfo.id &&
+               partInfo.type === 'image') {
+      disposition = "inline";
+    } else if (filename || partInfo.type !== 'text') {
       disposition = 'attachment';
-    else
+    } else {
       disposition = 'inline';
+    }
 
     // Some clients want us to display things inline that we simply can't
     // display (historically and currently, PDF) or that our usage profile
@@ -6480,8 +6588,9 @@ function chewStructure(msg) {
               break;
             case 'multipart':
               // this is probably HTML with attachments, let's give it a try
-              if (chewMultipart(branch[i]))
+              if (chewMultipart(branch[i])) {
                 return true;
+              }
               break;
             default:
               // no good, keep going
@@ -6492,8 +6601,9 @@ function chewStructure(msg) {
             case 'html':
             case 'plain':
               // (returns true if successfully handled)
-              if (chewLeaf(branch[i]))
+              if (chewLeaf(branch[i]), partInfo.subtype) {
                 return true;
+              }
           }
         }
         // (If we are here, we failed to find a valid choice.)
@@ -6503,10 +6613,11 @@ function chewStructure(msg) {
       case 'signed':
       case 'related':
         for (i = 1; i < branch.length; i++) {
-          if (branch[i].length > 1)
+          if (branch[i].length > 1) {
             chewMultipart(branch[i]);
-          else
-            chewLeaf(branch[i]);
+          } else {
+            chewLeaf(branch[i], partInfo.subtype);
+          }
         }
         return true;
 
@@ -6516,10 +6627,11 @@ function chewStructure(msg) {
     }
   }
 
-  if (msg.structure.length > 1)
+  if (msg.structure.length > 1) {
     chewMultipart(msg.structure);
-  else
+  } else {
     chewLeaf(msg.structure);
+  }
 
   return {
     bodyReps: bodyReps,
@@ -8152,27 +8264,31 @@ Pop3FolderSyncer.prototype = {
    * sync, we queue up "server-only" modifications and execute them
    * upon sync. This allows us to reuse much of the existing tests for
    * certain folder operations, and becomes a no-op in production.
+   *
+   * @return {Boolean} true if a save is needed because we're actually doing
+   * something.
    */
-  _performTestDeletions: function(cb) {
+  _performTestAdditionsAndDeletions: function(cb) {
     var meta = this.storage.folderMeta;
-    var callbacksWaiting = 1;
     var numAdds = 0;
     var latch = allback.latch();
+    var saveNeeded = false;
     if (meta._TEST_pendingHeaderDeletes) {
       meta._TEST_pendingHeaderDeletes.forEach(function(header) {
-        callbacksWaiting++;
+        saveNeeded = true;
         this.storage.deleteMessageHeaderUsingHeader(header, latch.defer());
       }, this);
       meta._TEST_pendingHeaderDeletes = null;
     }
     if (meta._TEST_pendingAdds) {
       meta._TEST_pendingAdds.forEach(function(msg) {
-        callbacksWaiting++;
+        saveNeeded = true;
         this.storeMessage(msg.header, msg.bodyInfo, {}, latch.defer());
       }, this);
       meta._TEST_pendingAdds = null;
     }
     latch.then(function(results) { cb(); });
+    return saveNeeded;
   },
 
   /**
@@ -8248,7 +8364,6 @@ Pop3FolderSyncer.prototype = {
   function(conn, syncType, slice, doneCallback, progressCallback) {
     // if we could not establish a connection, abort the sync.
     var self = this;
-    this._LOG.sync_begin();
 
     // Only fetch info for messages we don't already know about.
     var filterFunc;
@@ -8267,12 +8382,19 @@ Pop3FolderSyncer.prototype = {
     var bytesStored = 0;
     var numMessagesSynced = 0;
     var latch = allback.latch();
+    // We only want to trigger a save if work is actually being done.  This is
+    // ugly/complicated because in order to let POP3 use the existing IMAP tests
+    // that did things in other folders, a test-only bypass route was created
+    // that has us actually add the messages
+    var saveNeeded;
 
     if (!this.isInbox) {
       slice.desiredHeaders = (this._TEST_pendingAdds &&
                               this._TEST_pendingAdds.length);
-      this._performTestDeletions(latch.defer());
+      saveNeeded = this._performTestAdditionsAndDeletions(latch.defer());
     } else {
+      saveNeeded = true;
+      this._LOG.sync_begin();
       var fetchDoneCb = latch.defer();
 
       // Fetch messages, ensuring that we don't actually store them all in
@@ -8285,7 +8407,7 @@ Pop3FolderSyncer.prototype = {
           // Every N messages, wait for everything to be stored to
           // disk and saved in the database. Then proceed.
           this.storage.runAfterDeferredCalls(function() {
-            this.account.__checkpointSyncCompleted(next);
+            this.account.__checkpointSyncCompleted(next, 'syncBatch');
           }.bind(this));
         }.bind(this),
         progress: function fetchProgress(evt) {
@@ -8332,8 +8454,6 @@ Pop3FolderSyncer.prototype = {
     }
 
     latch.then((function onSyncDone() {
-      this._LOG.sync_end();
-
       // Because POP3 has no concept of syncing discrete time ranges,
       // we have to trick the storage into marking everything synced
       // _except_ the dawn of time. This has to be slightly later than
@@ -8349,7 +8469,13 @@ Pop3FolderSyncer.prototype = {
         this.storage.markSyncedToDawnOfTime();
       }
 
-      this.account.__checkpointSyncCompleted();
+      if (this.isInbox) {
+        this._LOG.sync_end();
+      }
+      if (saveNeeded) {
+        this.account.__checkpointSyncCompleted(null, 'syncComplete');
+      }
+
       if (syncType === 'initial') {
         // If it's the first time we've synced, we've set
         // ignoreHeaders to true, which means that slices don't know
@@ -8592,6 +8718,13 @@ Pop3JobDriver.prototype = {
   do_downloadBodyReps: jobmixins.do_downloadBodyReps,
   local_do_downloadBodyReps: jobmixins.local_do_downloadBodyReps,
 
+  local_do_sendOutboxMessages: jobmixins.local_do_sendOutboxMessages,
+  do_sendOutboxMessages: jobmixins.do_sendOutboxMessages,
+  check_sendOutboxMessages: jobmixins.check_sendOutboxMessages,
+  local_undo_sendOutboxMessages: jobmixins.local_undo_sendOutboxMessages,
+  undo_sendOutboxMessages: jobmixins.undo_sendOutboxMessages,
+  local_do_setOutboxSyncEnabled: jobmixins.local_do_setOutboxSyncEnabled,
+
   // These utility functions are necessary.
   postJobCleanup: jobmixins.postJobCleanup,
   allJobsDone: jobmixins.allJobsDone,
@@ -8656,13 +8789,9 @@ function Pop3Account(universe, compositeAccount, accountId, credentials,
     this._conn = existingProtoConn;
   }
 
-  // Create required folders if necessary.
-  ['sent', 'localdrafts', 'trash'].forEach(function(name) {
-    var folder = this.getFirstFolderWithType(name);
-    if (!folder) {
-      this._learnAboutFolder(name, name, null, name, '/', 0, true);
-    }
-  }.bind(this));
+  // Immediately ensure that we have any required local-only folders,
+  // as those can be created even while offline.
+  this.ensureEssentialOfflineFolders();
 
   this._jobDriver = new pop3jobs.Pop3JobDriver(
       this, this._folderInfos.$mutationState, this._LOG);
@@ -8856,6 +8985,41 @@ var properties = {
   },
 
   /**
+   * Ensure that local-only folders exist. This is run immediately
+   * upon account initialization. Since POP3 doesn't support server
+   * folders, all folders are local-only, so this function does all
+   * the hard work.
+   */
+  ensureEssentialOfflineFolders: function() {
+    // Create required folders if necessary.
+    [ 'sent', 'localdrafts', 'trash', 'outbox' ].forEach(function(folderType) {
+      if (!this.getFirstFolderWithType(folderType)) {
+        this._learnAboutFolder(
+          /* name: */ folderType,
+          /* path: */ folderType,
+          /* parentId: */ null,
+          /* type: */ folderType,
+          /* delim: */ '',
+          /* depth: */ 0,
+          /* suppressNotification: */ true);
+      }
+    }, this);
+  },
+
+  /**
+   * POP3 doesn't support server folders, so all folder creation is
+   * done in `ensureEssentialOfflineFolders`.
+
+   * @param {function} callback
+   *   Called immediately, for homogeneity with other account types.
+   */
+  ensureEssentialOnlineFolders: function(callback) {
+    // All the important work is already done. Yay POP3!
+    callback && callback();
+  },
+
+
+  /**
    * Destroy the account when the account has been deleted.
    */
   accountDeleted: function() {
@@ -9012,6 +9176,12 @@ SmtpAccount.prototype = {
         console.log('smtp: idle reached, sending envelope');
         conn.useEnvelope(composer.getEnvelope());
       },
+
+      onProgress: function() {
+        // Keep the wake lock open as long as it looks like we're
+        // still communicating with the server.
+        composer.renewSmartWakeLock('SMTP XHR Progress');
+      },
       /**
        * Send the message body.
        */
@@ -9137,7 +9307,14 @@ SmtpAccount.prototype = {
         conn.close();
       }
 
+
       conn.once('idle', function() {
+        // Report progress so that we can hold a wakelock if we're still
+        // sending data to the server.
+        conn.socket.on('progress', function() {
+          callbacks.onProgress && callbacks.onProgress();
+        });
+
         callbacks.sendEnvelope(conn, bail);
       });
       conn.on('message', function() {
@@ -9148,10 +9325,16 @@ SmtpAccount.prototype = {
         callbacks.sendMessage(conn);
       });
       // And close the connection and be done once it has been sent
-      conn.on('ready', function() {
+      conn.on('ready', function(success, response) {
         bailed = true;
         conn.close();
-        callbacks.onSendComplete(conn);
+
+        if (success) {
+          callbacks.onSendComplete(conn);
+        } else {
+          console.error('SMTP: Send failed with response: "' + response + '"');
+          callbacks.onError('unknown', null);
+        }
       });
 
       // - Error cases
@@ -9328,7 +9511,12 @@ function CompositeAccount(universe, accountDef, folderInfo, dbConn,
   this.meta = this._receivePiece.meta;
   this.mutations = this._receivePiece.mutations;
   this.tzOffset = accountDef.tzOffset;
+
+  // Mix in any fields common to all accounts.
+  $acctmixins.accountConstructorMixin.call(
+    this, this._receivePiece, this._sendPiece);
 }
+
 exports.Account = exports.CompositeAccount = CompositeAccount;
 CompositeAccount.prototype = {
   toString: function() {
@@ -9351,6 +9539,7 @@ CompositeAccount.prototype = {
       syncRange: this.accountDef.syncRange,
       syncInterval: this.accountDef.syncInterval,
       notifyOnNew: this.accountDef.notifyOnNew,
+      playSoundOnSend: this.accountDef.playSoundOnSend,
 
       identities: this.identities,
 
@@ -9478,8 +9667,15 @@ CompositeAccount.prototype = {
     return this._receivePiece.runOp(op, mode, callback);
   },
 
-  ensureEssentialFolders: function(callback) {
-    return this._receivePiece.ensureEssentialFolders(callback);
+  /**
+   * Kick off jobs to create required folders, both locally and on the
+   * server. See imap/account.js and activesync/account.js for documentation.
+   *
+   * @param {function} callback
+   *   Called when all jobs have run.
+   */
+  ensureEssentialOnlineFolders: function(callback) {
+    return this._receivePiece.ensureEssentialOnlineFolders(callback);
   },
 
   getFirstFolderWithType: $acctmixins.getFirstFolderWithType,
@@ -9642,6 +9838,8 @@ exports.configurator = {
       syncInterval: oldAccountDef.syncInterval || 0,
       notifyOnNew: oldAccountDef.hasOwnProperty('notifyOnNew') ?
                    oldAccountDef.notifyOnNew : true,
+      playSoundOnSend: oldAccountDef.hasOwnProperty('playSoundOnSend') ?
+                   oldAccountDef.playSoundOnSend : true,
 
       credentials: credentials,
       receiveConnInfo: {
@@ -9697,6 +9895,8 @@ exports.configurator = {
       syncInterval: userDetails.syncInterval || 0,
       notifyOnNew: userDetails.hasOwnProperty('notifyOnNew') ?
                    userDetails.notifyOnNew : true,
+      playSoundOnSend: userDetails.hasOwnProperty('playSoundOnSend') ?
+                   userDetails.playSoundOnSend : true,
 
       credentials: credentials,
       receiveConnInfo: incomingInfo,
@@ -9744,6 +9944,8 @@ exports.configurator = {
       syncInterval: userDetails.syncInterval || 0,
       notifyOnNew: userDetails.hasOwnProperty('notifyOnNew') ?
                    userDetails.notifyOnNew : true,
+      playSoundOnSend: userDetails.hasOwnProperty('playSoundOnSend') ?
+                   userDetails.playSoundOnSend : true,
 
       credentials: credentials,
       receiveConnInfo: incomingInfo,

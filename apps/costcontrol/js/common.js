@@ -1,4 +1,4 @@
-/* global _, debug, ConfigManager, Toolkit  */
+/* global _, debug, ConfigManager, Toolkit, SimManager */
 /* exported addAlarmTimeout, setNextReset, addNetworkUsageAlarm,
             getTopUpTimeout, Common, sendBalanceThresholdNotification
 */
@@ -58,13 +58,7 @@ var Common = {
 
   allNetworkInterfaces: {},
 
-  dataSimIccId: null,
-
   allNetworkInterfaceLoaded: false,
-
-  dataSimIccIdLoaded: false,
-
-  dataSimIcc: null,
 
   startFTE: function(mode) {
     var iframe = document.getElementById('fte_view');
@@ -78,6 +72,28 @@ var Common = {
         window.removeEventListener('message', handler);
 
         iframe.classList.remove('non-ready');
+
+        // PERFORMANCE EVENTS
+        // Designates that the app's *core* chrome or navigation interface
+        // exists in the DOM and is marked as ready to be displayed.
+        window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
+
+        // Designates that the app's *core* chrome or navigation interface
+        // has its events bound and is ready for user interaction.
+        window.dispatchEvent(new CustomEvent('moz-chrome-interactive'));
+
+        // Designates that the app is visually loaded (e.g.: all of the
+        // "above-the-fold" content exists in the DOM and is marked as
+        // ready to be displayed).
+        window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
+
+        // Designates that the app has its events bound for the minimum
+        // set of functionality to allow the user to interact with the
+        // "above-the-fold" content.
+        window.dispatchEvent(new CustomEvent('moz-content-interactive'));
+
+        // Start up ended when FTE ready
+        window.dispatchEvent(new CustomEvent('moz-app-loaded'));
       }
     });
 
@@ -85,7 +101,7 @@ var Common = {
   },
 
   closeFTE: function() {
-    var iframe = document.getElementById('fte_view');
+    var iframe = window.parent.document.getElementById('fte_view');
     iframe.classList.add('non-ready');
     iframe.src = '';
   },
@@ -112,19 +128,6 @@ var Common = {
     return navigator.mozL10n.localize;
   },
 
-  getIccInfo: function _getIccInfo(iccId) {
-    if (!iccId) {
-      return undefined;
-    }
-    var iccManager = window.navigator.mozIccManager;
-    var iccInfo = iccManager.getIccById(iccId);
-    if (!iccInfo) {
-      console.error('Unrecognized iccID: ' + iccId);
-      return undefined;
-    }
-    return iccInfo;
-  },
-
   // Returns whether exists an nsIDOMNetworkStatsInterfaces object
   // that meet the argument function criteria
   getInterface: function getInterface(findFunction) {
@@ -141,13 +144,11 @@ var Common = {
     }
   },
 
-  getDataSIMInterface: function _getDataSIMInterface() {
-    if (!this.dataSimIccIdLoaded) {
-      console.warn('Data simcard is not ready yet');
+  getDataSIMInterface: function _getDataSIMInterface(iccId) {
+    if (!iccId) {
+      console.warn('Undefined icc identifier, unable get data interface');
       return;
     }
-
-    var iccId = this.dataSimIccId;
     if (iccId) {
       var findCurrentInterface = function(networkInterface) {
         if (networkInterface.id === iccId) {
@@ -187,59 +188,6 @@ var Common = {
     };
   },
 
-  loadDataSIMIccId: function _loadDataSIMIccId(onsuccess, onerror) {
-    var settings = navigator.mozSettings,
-        mobileConnections = navigator.mozMobileConnections,
-        dataSlotId = 0;
-    var req = settings &&
-              settings.createLock().get('ril.data.defaultServiceId');
-
-    req.onsuccess = function _onsuccesSlotId() {
-      dataSlotId = req.result['ril.data.defaultServiceId'] || 0;
-      var mobileConnection = mobileConnections[dataSlotId];
-      var iccId = mobileConnection.iccId || null;
-      if (!iccId) {
-        console.error('The slot ' + dataSlotId +
-                   ', configured as the data slot, is empty');
-        (typeof onerror === 'function') && onerror();
-        return;
-      }
-      Common.dataSimIccId = iccId;
-      Common.dataSimIccIdLoaded = true;
-      Common.dataSimIcc = Common.getIccInfo(iccId);
-      if (!Common.dataSimIcc) {
-        (typeof onerror === 'function') && onerror();
-      }
-      if (onsuccess) {
-        onsuccess(iccId);
-      }
-    };
-
-    req.onerror = function _onerrorSlotId() {
-      console.warn('ril.data.defaultServiceId does not exists');
-      var iccId = null;
-
-      // Load the fist slot with iccId
-      for (var i = 0; i < mobileConnections.length && !iccId; i++) {
-        if (mobileConnections[i]) {
-          iccId = mobileConnections[i].iccId;
-        }
-      }
-      if (!iccId) {
-        console.error('No SIM in the device');
-        (typeof onerror === 'function') && onerror();
-        return;
-      }
-
-      Common.dataSimIccId = iccId;
-      Common.dataSimIccIdLoaded = true;
-      Common.dataSimIcc = Common.getIccInfo(iccId);
-      if (onsuccess) {
-        onsuccess(iccId);
-      }
-    };
-  },
-
   getDataLimit: function _getDataLimit(settings) {
     var multiplier = (settings.dataLimitUnit === 'MB') ?
                      1000000 : 1000000000;
@@ -248,7 +196,6 @@ var Common = {
 
   resetData: function _resetData(mode, onsuccess, onerror) {
     // Get all availabe Interfaces
-    var currentSimcardInterface = Common.getDataSIMInterface();
     var wifiInterface = Common.getWifiInterface();
 
     // Ask reset for all available Interfaces
@@ -270,26 +217,30 @@ var Common = {
       wifiClearRequest = navigator.mozNetworkStats.clearStats(wifiInterface);
       wifiClearRequest.onerror = getOnErrorFor('wi-Fi');
     }
-    if ((mode === 'all' || mode === 'mobile') && currentSimcardInterface) {
-      mobileClearRequest = navigator.mozNetworkStats
-        .clearStats(currentSimcardInterface);
-      mobileClearRequest.onerror = getOnErrorFor('simcard');
-      mobileClearRequest.onsuccess = function _restoreDataLimitAlarm() {
-        ConfigManager.requestSettings(Common.dataSimIccId,
-                                      function _onSettings(settings) {
-          if (settings.dataLimit) {
-            // Restore network alarm
-            addNetworkUsageAlarm(currentSimcardInterface,
-                                 Common.getDataLimit(settings),
-              function _addNetworkUsageAlarmOK() {
-                ConfigManager.setOption({ 'dataUsageNotified': false });
-              });
-          }
-        });
-      };
+    if (mode === 'all' || mode === 'mobile') {
+      SimManager.requestDataSimIcc(function(dataSim) {
+        var currentSimcardInterface = Common.getDataSIMInterface(dataSim.iccId);
+        if (currentSimcardInterface) {
+          mobileClearRequest = navigator.mozNetworkStats
+            .clearStats(currentSimcardInterface);
+          mobileClearRequest.onerror = getOnErrorFor('simcard');
+          mobileClearRequest.onsuccess = function _restoreDataLimitAlarm() {
+            ConfigManager.requestSettings(dataSim.iccId,
+                                          function _onSettings(settings) {
+              if (settings.dataLimit) {
+                // Restore network alarm
+                addNetworkUsageAlarm(currentSimcardInterface,
+                                     Common.getDataLimit(settings),
+                  function _addNetworkUsageAlarmOK() {
+                    ConfigManager.setOption({ 'dataUsageNotified': false });
+                });
+              }
+            });
+          };
+        }
+      });
     }
-
-      // Set last Reset
+    // Set last Reset
     if (mode === 'all') {
       ConfigManager.setOption({ lastCompleteDataReset: new Date() });
     } else {

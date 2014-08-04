@@ -6,7 +6,7 @@
       <a href="#" class="msg-folder-list-btn">
         <span class="icon icon-menu">menu</span>
       </a>
-      <menu type="toolbar">
+      <menu type="toolbar" class="anim-opacity">
         <a href="#" class="msg-compose-btn">
           <span class="icon icon-compose">compose</span>
         </a>
@@ -26,17 +26,14 @@
   <!-- Search header -->
   <section role="region"
            class="msg-search-header msg-search-only">
-    <header>
-      <a href="#" class="msg-search-cancel">
-        <span class="icon icon-close"
-              data-l10n-id="message-search-cancel-accessible"></span>
-      </a>
-      <form>
+    <form role="search">
+      <button class="msg-search-cancel" type="submit" data-l10n-id="message-search-cancel">Cancel</button>
+      <p>
         <input type="text" required="required" class="msg-search-text"
-               data-l10n-id="message-search-input" />
+             dir="auto" data-l10n-id="message-search-input" />
         <button type="reset" data-l10n-id="form-clear-input"></button>
-      </form>
-    </header>
+      </p>
+    </form>
     <!-- Search filter switcher -->
     <header class="msg-search-controls-bar">
       <ul role="tablist" class="bb-tablist filter" data-type="filter">
@@ -71,10 +68,12 @@
       <!-- The search textbox hides under the lip of the messages.
            As soon as any typing happens in it, we push the search
            controls card. -->
-      <div class="msg-search-tease-bar msg-nonsearch-only">
-        <input class="msg-search-text-tease" type="text"
-               data-l10n-id="message-search-input" />
-      </div>
+      <form role="search" class="msg-search-tease-bar msg-nonsearch-only">
+        <p>
+          <input class="msg-search-text-tease" type="text"
+               dir="auto" data-l10n-id="message-search-input" />
+        </p>
+      </form>
       <div class="msg-messages-container">
       </div>
       <!-- maintain vertical space for the syncing/sync more div's
@@ -91,7 +90,7 @@
     </div>
   </div>
   <!-- New email notification bar -->
-  <div class="msg-list-topbar collapsed"></div>
+  <div class="message-list-topbar"></div>
   <!-- Conveys background send, plus undo-able recent actions -->
   <div class="msg-activity-infobar hidden">
   </div>
@@ -100,8 +99,10 @@
     <li role="presentation" class="msg-nonsearch-only">
       <button class="icon msg-refresh-btn" data-state="synchronized"></button>
     </li>
-    <li role="presentation" class="msg-nonsearch-only">
-      <button class="icon msg-search-btn"></button>
+    <li role="presentation" class="msg-nonsearch-only msg-last-sync">
+      <span class="msg-last-synced-label"
+            data-l10n-id="folder-last-synced-label"></span>
+      <span class="msg-last-synced-value"></span>
     </li>
     <li role="presentation">
       <button class="icon msg-edit-btn"></button>

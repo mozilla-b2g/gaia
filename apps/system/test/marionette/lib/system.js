@@ -6,18 +6,36 @@ function System(client) {
 
 module.exports = System;
 
+System.URL = 'app://system.gaiamobile.org/manifest.webapp';
+
 System.Selector = Object.freeze({
+  appTitlebar: '.appWindow.active .titlebar',
   statusbar: '#statusbar',
+  statusbarBackground: '#statusbar-background',
+  statusbarLabel: '#statusbar-label',
   topPanel: '#top-panel',
   leftPanel: '#left-panel',
-  rightPanel: '#right-panel'
+  rightPanel: '#right-panel',
+  utilityTray: '#utility-tray'
 });
 
 System.prototype = {
   client: null,
 
+  get appTitlebar() {
+    return this.client.findElement(System.Selector.appTitlebar);
+  },
+
   get statusbar() {
     return this.client.findElement(System.Selector.statusbar);
+  },
+
+  get statusbarLabel() {
+    return this.client.findElement(System.Selector.statusbarLabel);
+  },
+
+  get utilityTray() {
+    return this.client.findElement(System.Selector.utilityTray);
   },
 
   get topPanel() {
@@ -36,6 +54,10 @@ System.prototype = {
     return this.client.findElement('iframe[src*="' + url + '"]');
   },
 
+  getHomescreenIframe: function() {
+    return this.client.findElement('#homescreen iframe');
+  },
+
   waitForLaunch: function(url) {
     this.client.apps.launch(url);
     var iframe = this.getAppIframe(url);
@@ -50,6 +72,31 @@ System.prototype = {
     var osLogo = this.client.findElement('#os-logo');
     this.client.waitFor(function() {
       return osLogo.getAttribute('class') == 'hide';
+    });
+  },
+
+  goHome: function() {
+    this.client.executeScript(function() {
+      window.wrappedJSObject.dispatchEvent(new CustomEvent('home'));
+    });
+  },
+
+  stopClock: function() {
+    var client = this.client;
+    var clock = client.executeScript(function() {
+      return window.wrappedJSObject.StatusBar.icons.time;
+    });
+    client.executeScript(function() {
+      window.wrappedJSObject.StatusBar.toggleTimeLabel(false);
+    });
+    client.waitFor(function() {
+      return !clock.displayed();
+    });
+  },
+
+  stopDevtools: function() {
+    this.client.executeScript(function() {
+      window.wrappedJSObject.developerHUD.stop();
     });
   }
 };

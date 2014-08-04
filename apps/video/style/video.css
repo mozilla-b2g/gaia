@@ -236,7 +236,8 @@ span.line-break {
  * the issue.  The user can't interact with the app while the overlay
  * is displayed.
  */
-#overlay {
+#overlay,
+#confirm-dialog {
   /* it takes up the whole screen */
   position: absolute;
   top: 0;
@@ -325,7 +326,8 @@ body.hidden *[data-l10n-id] {
 }
 
 section[role="region"] > header {
-  background: rgba(0, 0, 0, 0.6);
+  /* Need to use !important,else color is not reflecting */
+  background: rgba(0, 0, 0, 0.85) !important;
 }
 
 section[role="region"] header:first-child h1 {
@@ -434,14 +436,6 @@ footer {
   background-repeat: no-repeat;
 }
 
-.icon-info {
-  display: block;
-  background-image: url('images/iconaction_media_info_30x30.png') !important;
-  background-size: 3rem;
-  background-position: center center;
-  background-repeat: no-repeat;
-}
-
 #thumbnails-delete-button {
   position: absolute;
   width: 50%;
@@ -457,28 +451,6 @@ footer {
   width: 50%;
   height: 100%;
   left: 50%;
-}
-
-#videoActionBar .single-delete-button {
-  position: absolute;
-  width: 35%;
-  height: 100%;
-  left: 0;
-  border-right: 0.1rem solid #000;
-}
-
-#videoActionBar .single-share-button {
-  position: absolute;
-  width: 35%;
-  height: 100%;
-  left: 35%;
-}
-
-#videoActionBar .single-info-button {
-  position: absolute;
-  width: 30%;
-  height: 100%;
-  left: 70%;
 }
 
 header .icon:after {
@@ -510,11 +482,11 @@ header .icon:after {
 #videoBar {
   position: absolute;
   right: 0;
-  bottom: 4rem;
+  bottom: 4.4rem;
   left: 0;
-  height: 4.2rem;
+  height: 4rem;
   font-size: 0;
-  border-bottom: 0.1rem solid rgba(189,189,189, 0.1);
+  border-bottom: 0.1rem solid rgba(255,255,255, 0.1);
   background-color: rgba(0,0,0, 0.85);
   white-space: nowrap;
   z-index: 10;
@@ -524,7 +496,6 @@ header .icon:after {
   bottom: 0;
 }
 
-#play,
 #elapsed-text,
 #timeSlider,
 #slider-wrapper,
@@ -535,86 +506,39 @@ header .icon:after {
   vertical-align: top;
 }
 
-/* play/pause button */
-#play {
-  width: 6.5rem;
-  height: 4.2rem;
-}
-
-#play:before {
-  content: " ";
-  position: absolute;
-  top: calc(50% - 3.25rem);
-  left: calc(50% - 3.25rem);
-  width: 0;
-  height: 0;
-  border: 3.25rem solid rgba(255,255,255, 0.1);
-  border-radius: 100%;
-  z-index: -1;
-}
-
-#play {
-  position: relative;
-  padding: 0;
-  margin: 0 0 0 0.5rem;
-  border: none;
-  background: none;
-  overflow: hidden;
-  z-index: 20;
-}
-
-#play:after {
-  content: "";
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  background-image: url("images/pause.png");
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: 3rem;
-}
-
-#play:active:before {
-  border-color: #00caf2;
-}
-
-#play.paused:after {
-  background-image: url("images/play.png");
-}
-
 #elapsed-text, #duration-text {
   color: #ffffff;
-  text-align: right;
+  text-align: center;
   font-size: 1.4rem;
 }
 
 #elapsed-text {
-  width: 5.2rem;
+  width: 3.2rem;
+  margin-left: 2.0rem;
 }
 
 #duration-text {
   width: 3.2rem;
-  margin-left: 1rem;
-  padding: 0 1rem;
+  margin-right: 2.0rem;
 }
 
 /* time slider */
 #timeSlider {
   position: relative;
-  width: calc(100% - 6.5rem - 12.4rem);
+  /* 12.4rem means width of button 4.4rem + right padding 4rem + left padding 4rem */
+  width: calc(100% - 12.4rem);
   z-index: 10;
 }
 
 #slider-wrapper {
   width: 100%;
-  height: 4.2rem;
+  height: 4.1rem;
+  margin-left: 1.0rem;
+  margin-right: 1.0rem;
 }
 
 #slider-wrapper div {
   position: absolute;
-  left: 1.1rem;
   pointer-events: none;
 }
 
@@ -628,6 +552,7 @@ header .icon:after {
 #elapsedTime {
   background-color: #00caf2;
   z-index: 30;
+  margin-top: -0.2rem;
 }
 
 #bufferedTime {
@@ -640,6 +565,75 @@ header .icon:after {
   height: 0.1rem;
   background-color: #a6b4b6;
   z-index: 10;
+}
+
+#videoControlBar {
+  height: 4.5rem;
+}
+
+#videoToolBar {
+  position: relative;
+  height: 4.8rem;
+  font-size: 0;
+  vertical-align: top;
+  border-top: 0.1rem solid rgba(255,255,255, 0.1);
+  background-color: #000;
+  overflow: hidden;
+}
+
+#seek-backward,
+#seek-forward,
+#play {
+  position: relative;
+  height: 100%;
+  padding: 0;
+  font-weight: 500;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: 3rem;
+}
+
+#seek-backward {
+  background-image: url("images/IconAction_Media_SkipBackwards_30x30.png");
+  width: 33%;
+}
+
+#play {
+  background-image: url("images/IconAction_Media_Pause_30x30.png");
+  width: 34%;
+}
+
+#play.paused {
+  background-image: url("images/IconAction_Media_Play_30x30.png");
+}
+
+#seek-forward {
+  background-image: url("images/IconAction_Media_SkipForward_30x30.png");
+  width: 33%;
+}
+
+.player-controls-button {
+  color: #FFFFFF;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  transition: background 10ms ease;
+}
+
+.player-controls-button:hover {
+  background: transparent;
+}
+
+.player-controls-button:active {
+  background: #00caf2;
+}
+
+.player-controls-button:disabled {
+  opacity: 0.3;
+}
+
+.player-controls-button:disabled:active {
+  background: transparent;
 }
 
 #playHead {
@@ -683,7 +677,7 @@ body:not(.pick-activity) #picker-close {
 }
 
 /* hide options when picking */
-body.pick-activity #videoActionBar,
+body.pick-activity #options,
 body.pick-activity #thumbnails-bottom {
   display: none;
 }
@@ -719,8 +713,6 @@ body.pick-activity #thumbnails-bottom {
   align-self: auto;
 }
 
-
-
 #thumbnail-list-title {
   display: none;
 }
@@ -730,7 +722,7 @@ body:not(.pick-activity) #thumbnail-list-view header {
 }
 
 /* we don't have fullscreen button when we are not in large layout */
-#fullscreen-button, #fullscreen-tool-bar {
+#fullscreen-button {
   display: none;
 }
 
@@ -758,9 +750,9 @@ body:not(.view-activity) #spinner-overlay {
   display: none;
 }
 
-/* move videoBar to bottom when picking */
-body.pick-activity #videoControls #videoBar {
-  bottom: 0;
+/* make videocontrolbar visible  when picking */
+body.pick-activity #videoControls #videoBar{
+  bottom: 4.4rem;
 }
 
 section[role="region"] > header:first-child .icon-back {
@@ -780,7 +772,6 @@ form[role="dialog"][data-type="confirm"] button.hidden {
     width: 8rem;
   }
 }
-
 
 :focus { outline:none; }
 ::-moz-focus-inner {

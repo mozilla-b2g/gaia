@@ -3,11 +3,8 @@
  * ---------------------------------- */
 
 /* Main dialog setup */
-[role="dialog"][data-type="action"],
-[role="dialog"][data-type="object"] {
-  background:
-    url(action_menu/images/ui/pattern.png) repeat left top,
-    url(action_menu/images/ui/gradient.png) no-repeat left top / 100% 100%;
+[role="dialog"][data-type="action"] {
+  background: #2d2d2d;
   overflow: hidden;
   position: fixed;
   z-index: 100;
@@ -24,8 +21,7 @@
   color: #fff;
 }
 
-[role="dialog"][data-type="action"]:before,
-[role="dialog"][data-type="object"]:before {
+[role="dialog"][data-type="action"]:before {
   content: '';
   display: inline-block;
   vertical-align: top;
@@ -34,8 +30,7 @@
   margin-left: -0.1rem;
 }
 
-[role="dialog"][data-type="action"] > header,
-[role="dialog"][data-type="object"] > header {
+[role="dialog"][data-type="action"] > header {
   -moz-box-sizing: border-box;
   font-size: 1.6rem;
   background: url(action_menu/images/ui/alpha.png) repeat 0 0;
@@ -56,8 +51,7 @@
   border-bottom: 0.1rem solid #616262;
 }
 
-[role="dialog"][data-type="action"] > header h1,
-[role="dialog"][data-type="object"] > header h1 {
+[role="dialog"][data-type="action"] > header h1 {
   font-size: 1.6rem;
   line-height: 4.9rem;
   text-align: left;
@@ -110,8 +104,7 @@
   text-decoration: none;
 }
 
-[role="dialog"][data-type="action"] button::-moz-focus-inner,
-[role="dialog"][data-type="object"] button::-moz-focus-inner {
+[role="dialog"][data-type="action"] button::-moz-focus-inner {
   outline: none;
   border: none;
 }
@@ -204,8 +197,7 @@
 }
 
 /* Content */
-[role="dialog"][data-type="action"] > section,
-[role="dialog"][data-type="object"] > section {
+[role="dialog"][data-type="action"] > section {
   color: #fff;
   position: absolute;
   top: 7rem;
@@ -217,8 +209,7 @@
 }
 
 /* Specific component code */
-[role="dialog"][data-type="action"] > menu,
-[role="dialog"][data-type="object"] > menu {
+[role="dialog"][data-type="action"] > menu {
   margin: 0;
   padding: 0;
   max-height: calc(100% - 13.5rem); /*header(5rem) + footer(7rem) + padding(1.5rem)*/
@@ -234,8 +225,7 @@
   bottom: 7rem;
 }
 
-[role="dialog"][data-type="action"] > menu > button,
-[role="dialog"][data-type="object"] > menu > button {
+[role="dialog"][data-type="action"] > menu > button {
   width: calc(100% - 3rem);
   height: 4rem;
   -moz-box-sizing: border-box;
@@ -260,8 +250,7 @@
   font-style: italic;
 }
 
-[role="dialog"][data-type="action"] > menu > button:last-child,
-[role="dialog"][data-type="object"] > menu > button:last-child {
+[role="dialog"][data-type="action"] > menu > button:last-child {
   position: fixed;
   bottom: 0;
   left: 0;
@@ -273,41 +262,36 @@
   border-radius: 2rem;
 }
 
-[role="dialog"][data-type="action"] > menu > button:last-child:before,
-[role="dialog"][data-type="object"] > menu > button:last-child:before {
+[role="dialog"][data-type="action"] > menu > button:last-child:before {
   content: '';
   position: fixed;
   width: 100%;
-  background: url(action_menu/images/ui/pattern.png) repeat scroll left top #2D2D2D;
+  background: #2D2D2D;
   height: 7rem;
   left: 0;
   bottom: 0;
   z-index: -1;
 }
 
-[role="dialog"][data-type="action"] > menu > button:nth-last-child(2),
-[role="dialog"][data-type="object"] > menu > button:nth-last-child(2) {
+[role="dialog"][data-type="action"] > menu > button:nth-last-child(2) {
   margin-bottom: 1.5rem;
 }
 
 /* Press state */
-[role="dialog"][data-type="action"] > menu > button:active,
-[role="dialog"][data-type="object"] > menu > button:active {
+[role="dialog"][data-type="action"] > menu > button:active {
   background: #00aacc;
   color: #fff;
 }
 
 /* Disabled */
-[role="dialog"][data-type="action"] > menu > button[disabled],
-[role="dialog"][data-type="object"] > menu > button[disabled] {
+[role="dialog"][data-type="action"] > menu > button[disabled] {
   background-color: rgba(87, 87, 87, 0.8);
   color: rgba(255, 255, 255, 0.4);
   opacity: 0.5;
   pointer-events: none;
 }
 
-[role="dialog"][data-type="action"] > menu > button[disabled]:last-child,
-[role="dialog"][data-type="object"] > menu > button[disabled]:last-child {
+[role="dialog"][data-type="action"] > menu > button[disabled]:last-child {
   background-color: #e7e7e7;
   color: #a6a6a6;
   opacity: 1;
@@ -317,14 +301,12 @@
  * Right to Left view
  */
 
-html[dir="rtl"] [role="dialog"][data-type="action"]:before,
-[role="dialog"][data-type="object"]:before {
+html[dir="rtl"] [role="dialog"][data-type="action"]:before {
   margin-left: auto;
   margin-right: -0.1rem;
 }
 
-html[dir="rtl"] [role="dialog"][data-type="action"] > header h1,
-html[dir="rtl"] [role="dialog"][data-type="object"] > header h1 {
+html[dir="rtl"] [role="dialog"][data-type="action"] > header h1 {
   text-align: right;
 }
 
@@ -366,19 +348,16 @@ html[dir="rtl"] [role="dialog"][data-type="action"] > header > a .icon:after {
   right: 0;
 }
 
-html[dir="rtl"] [role="dialog"][data-type="action"] > menu > button,
-html[dir="rtl"] [role="dialog"][data-type="object"] > menu > button {
+html[dir="rtl"] [role="dialog"][data-type="action"] > menu > button {
   text-align: right;
 }
 
-html[dir="rtl"] [role="dialog"][data-type="action"] > menu > button:last-child,
-html[dir="rtl"] [role="dialog"][data-type="object"] > menu > button:last-child {
+html[dir="rtl"] [role="dialog"][data-type="action"] > menu > button:last-child {
   left: auto;
   right: 0;
 }
 
-html[dir="rtl"] [role="dialog"][data-type="action"] > menu > button:last-child:before,
-html[dir="rtl"] [role="dialog"][data-type="object"] > menu > button:last-child:before {
+html[dir="rtl"] [role="dialog"][data-type="action"] > menu > button:last-child:before {
   left: auto;
   right: 0;
 }

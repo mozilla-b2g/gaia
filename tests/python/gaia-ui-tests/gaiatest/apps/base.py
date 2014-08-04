@@ -72,13 +72,10 @@ class Base(object):
         finally:
             self.marionette.set_search_timeout(self.marionette.timeout or 10000)
 
-    def select(self, match_string):
-        # cheeky Select wrapper until Marionette has its own
-        # due to the way B2G wraps the app's select box we match on text
-
-        _list_item_locator = (By.XPATH, "id('value-selector-container')/descendant::li[descendant::span[.='%s']]" % match_string)
-        _close_button_locator = (By.CSS_SELECTOR, 'button.value-option-confirm')
-
+    def find_select_item(self, match_string):
+        _list_item_locator = (
+            By.XPATH, "//section[contains(@class,'value-selector-container')]/descendant::li[descendant::span[.='%s']]" %
+            match_string)
         # have to go back to top level to get the B2G select box wrapper
         self.marionette.switch_to_frame()
         # TODO we should find something suitable to wait for, but this goes too
@@ -90,12 +87,11 @@ class Base(object):
        # TODO Remove scrollintoView upon resolution of bug 877651
         self.marionette.execute_script(
             'arguments[0].scrollIntoView(false);', [li])
-        li.tap()
 
-        # Tap close and wait for it to hide
-        close_button = self.marionette.find_element(*_close_button_locator)
-        close_button.tap()
-        self.wait_for_element_not_displayed(*_close_button_locator)
+        return li
+
+    def wait_for_select_closed(self, by, locator):
+        self.wait_for_element_not_displayed(by, locator)
 
         # TODO we should find something suitable to wait for, but this goes too
         # fast against desktop builds causing intermittent failures
@@ -103,6 +99,29 @@ class Base(object):
 
         # now back to app
         self.apps.switch_to_displayed_app()
+
+    def select(self, match_string):
+        # cheeky Select wrapper until Marionette has its own
+        # due to the way B2G wraps the app's select box we match on text
+        _close_button_locator = (By.CSS_SELECTOR, 'button.value-option-confirm')
+
+        li = self.find_select_item(match_string)
+        li.tap()
+
+        # Tap close and wait for it to hide
+        self.marionette.find_element(*_close_button_locator).tap()
+        self.wait_for_select_closed(*_close_button_locator)
+
+    def a11y_select(self, match_string):
+        # Accessibility specific select method
+        _close_button_locator = (By.CSS_SELECTOR, 'button.value-option-confirm')
+
+        li = self.find_select_item(match_string)
+        self.accessibility.click(li)
+
+        # A11y click close and wait for it to hide
+        self.accessibility.click(self.marionette.find_element(*_close_button_locator))
+        self.wait_for_select_closed(*_close_button_locator)
 
     @property
     def keyboard(self):

@@ -253,7 +253,8 @@ function getMetadata(videofile, callback) {
     // and may not fire an error event, so if we aren't able to seek
     // after a certain amount of time, we'll abort and assume that the
     // video is invalid.
-    offscreenVideo.currentTime = Math.min(5, offscreenVideo.duration / 10);
+    var t = Math.min(5, offscreenVideo.duration / 10);
+    offscreenVideo.fastSeek(t);
 
     var failed = false;                      // Did seeking fail?
     var timeout = setTimeout(fail, 10000);   // Fail after 10 seconds

@@ -1,0 +1,6 @@
+{
+  "title": "Bing",
+  "urlTemplate": "http://www.bing.com/search?q={searchTerms}",
+  "suggestionsUrlTemplate": "http://api.bing.com/osjson.aspx?query={searchTerms}",
+  "iconPath": "mobizilla/mobizilla_search3.ico"
+}

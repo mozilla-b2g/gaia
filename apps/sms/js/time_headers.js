@@ -37,29 +37,29 @@
         this.update(elements[i]);
       }
     },
-    update: function th_update(header) {
-      var ts = header.dataset.time;
+    update: function th_update(element) {
+      var ts = element.dataset.time;
       if (!ts) {
         return;
       }
 
-      var newHeader;
+      var newElement;
 
       // only date
-      if (header.dataset.isThread === 'true') {
-        newHeader = Utils.getHeaderDate(ts);
+      if (element.dataset.dateOnly === 'true') {
+        newElement = Utils.getHeaderDate(ts);
 
       // only time
-      } else if (header.dataset.timeOnly === 'true') {
-        newHeader = Utils.getFormattedHour(ts);
+      } else if (element.dataset.timeOnly === 'true') {
+        newElement = Utils.getFormattedHour(ts);
 
       // date + time
       } else {
-        newHeader = Utils.getHeaderDate(ts) + ' ' + Utils.getFormattedHour(ts);
+        newElement = Utils.getHeaderDate(ts) + ' ' + Utils.getFormattedHour(ts);
       }
 
-      if (newHeader !== header.textContent) {
-        header.textContent = newHeader;
+      if (newElement !== element.textContent) {
+        element.textContent = newElement;
       }
     }
   };

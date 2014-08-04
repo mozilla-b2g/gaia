@@ -41,6 +41,13 @@
   background: none;
 }
 
+#app-install-dialog dl > dt {
+  width: 8rem;
+  margin-right: 1rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 #app-install-cancel-dialog small:first-child {
   margin-bottom: 1rem;
 }

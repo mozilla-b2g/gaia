@@ -5,10 +5,10 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
+var debug = require('debug')('view:viewfinder');
 var bind = require('lib/bind');
 var CameraUtils = require('lib/camera-utils');
-var debug = require('debug')('view:viewfinder');
-var View = require('vendor/view');
+var View = require('view');
 
 /**
  * Locals
@@ -27,24 +27,30 @@ var clamp = function(value, minimum, maximum) {
 module.exports = View.extend({
   name: 'viewfinder',
   className: 'js-viewfinder',
-  fadeTime: 200,
+  fadeTime: 360,
 
   initialize: function() {
     this.render();
-
-    bind(this.el, 'click', this.onClick);
-    bind(this.el, 'animationend', this.onShutterEnd);
-
     this.getSize();
   },
 
   render: function() {
     this.el.innerHTML = this.template();
-
-    // Find elements
     this.els.frame = this.find('.js-frame');
     this.els.video = this.find('.js-video');
     this.els.videoContainer = this.find('.js-video-container');
+
+    // Clean up
+    delete this.template;
+
+    debug('rendered');
+    return this.bindEvents();
+  },
+
+  bindEvents: function() {
+    bind(this.el, 'click', this.onClick);
+    bind(this.el, 'animationend', this.onShutterEnd);
+    return this;
   },
 
   /**
@@ -59,10 +65,14 @@ module.exports = View.extend({
   getSize: function() {
     this.width = window.innerWidth;
     this.height = window.innerHeight;
+    return {
+      width: this.width,
+      height: this.height
+    };
   },
 
   onClick: function(e) {
-    this.emit('click');
+    this.emit('click', e);
   },
 
   enableZoom: function(minimumZoom, maximumZoom) {
@@ -115,6 +125,16 @@ module.exports = View.extend({
     this._zoom = clamp(zoom, this._minimumZoom, this._maximumZoom);
   },
 
+  _useZoomPreviewAdjustment: false,
+
+  enableZoomPreviewAdjustment: function() {
+    this._useZoomPreviewAdjustment = true;
+  },
+
+  disableZoomPreviewAdjustment: function() {
+    this._useZoomPreviewAdjustment = false;
+  },
+
   /**
    * Adjust the scale of the <video/> tag to compensate for the inability
    * of the Camera API to zoom the preview stream beyond a certain point.
@@ -122,7 +142,9 @@ module.exports = View.extend({
    * calculated by `Camera.prototype.getZoomPreviewAdjustment()`.
    */
   setZoomPreviewAdjustment: function(zoomPreviewAdjustment) {
-    this.els.video.style.transform = 'scale(' + zoomPreviewAdjustment + ')';
+    if (this._useZoomPreviewAdjustment) {
+      this.els.video.style.transform = 'scale(' + zoomPreviewAdjustment + ')';
+    }
   },
 
   stopStream: function() {
@@ -131,14 +153,28 @@ module.exports = View.extend({
 
   fadeOut: function(done) {
     debug('fade-out');
-    this.el.classList.remove('visible');
-    if (done) { setTimeout(done, this.fadeTime);}
+    var self = this;
+    this.hide();
+    clearTimeout(this.fadeTimeout);
+    this.fadeTimeout = setTimeout(function() {
+      self.emit('fadedout');
+      if (done) { done(); }
+    }, this.fadeTime);
   },
 
-  fadeIn: function(done) {
+  fadeIn: function(ms, done) {
     debug('fade-in');
-    this.el.classList.add('visible');
-    if (done) { setTimeout(done, this.fadeTime); }
+    var self = this;
+    if (typeof ms === 'function') { done = ms, ms = null; }
+    ms = ms || this.fadeTime;
+    this.el.style.transitionDuration = ms + 'ms';
+    this.show();
+    clearTimeout(this.fadeTimeout);
+    this.fadeTimeout = setTimeout(function() {
+      self.el.style.transitionDuration = '';
+      self.emit('fadedin');
+      if (done) { done(); }
+    }, ms);
   },
 
   /**
@@ -170,6 +206,7 @@ module.exports = View.extend({
    * @param  {Boolean} mirrored
    */
   updatePreview: function(preview, sensorAngle, mirrored) {
+    if (!preview) { return; }
     var aspect;
 
     // Invert dimensions if the camera's `sensorAngle` is

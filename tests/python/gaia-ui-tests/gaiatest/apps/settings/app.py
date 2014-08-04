@@ -12,29 +12,37 @@ class Settings(Base):
 
     _header_text_locator = (By.CSS_SELECTOR, '#root > header > h1')
     _data_text_locator = (By.ID, 'data-desc')
+    _wifi_text_locator = (By.ID, 'wifi-desc')
+    _battery_text_locator = (By.ID, 'battery-desc')
+    _application_storage_text_locator = (By.CSS_SELECTOR, '.application-storage-desc')
+    _media_storage_text_locator = (By.ID, 'media-storage-desc')
+    _usb_storage_text_locator = (By.CSS_SELECTOR, '.ums-desc-root')
+    _screen_lock_text_locator = (By.ID, 'screenLock-desc')
+    _language_text_locator = (By.ID, 'language-desc')
+    _bluetooth_text_locator = (By.ID, 'bluetooth-desc')
+
+    _app_loaded_locator = (By.CSS_SELECTOR, 'body[data-ready="true"]')
     _airplane_switch_locator = (By.XPATH, "//input[@id='airplaneMode-input']/..")
     _airplane_checkbox_locator = (By.ID, "airplaneMode-input")
-    _wifi_text_locator = (By.ID, 'wifi-desc')
     _gps_enabled_locator = (By.XPATH, "//input[@name='geolocation.enabled']")
     _gps_switch_locator = (By.XPATH, "//input[@name='geolocation.enabled']/..")
+    _accessibility_menu_item_locator = (By.ID, 'menuItem-accessibility')
     _cell_data_menu_item_locator = (By.ID, 'menuItem-cellularAndData')
     _bluetooth_menu_item_locator = (By.ID, 'menuItem-bluetooth')
     _keyboard_menu_item_locator = (By.ID, "menuItem-keyboard")
-    _language_menu_item_locator = (By.ID, 'menuItem-languageAndRegion')
+    _language_menu_item_locator = (By.CSS_SELECTOR, '.menuItem-languageAndRegion')
     _do_not_track_menu_item_locator = (By.ID, 'menuItem-doNotTrack')
-    _media_storage_menu_item_locator = (By.ID, 'menuItem-mediaStorage')
+    _media_storage_menu_item_locator = (By.CSS_SELECTOR, '.menuItem-mediaStorage')
     _screen_lock_menu_item_locator = (By.ID, 'menuItem-screenLock')
     _display_menu_item_locator = (By.ID, 'menuItem-display')
     _wifi_menu_item_locator = (By.ID, 'menuItem-wifi')
     _device_info_menu_item_locator = (By.ID, 'menuItem-deviceInfo')
-    _battery_menu_item_locator = (By.ID, 'menuItem-battery')
+    _battery_menu_item_locator = (By.CSS_SELECTOR, '.menuItem-battery')
     _sim_manager_menu_item_locator = (By.ID, 'menuItem-simManager')
 
     def launch(self):
         Base.launch(self)
-        # _currentPanel is set after all handlers are set
-        self.wait_for_condition(lambda m:
-                                m.execute_script("return window.wrappedJSObject.Settings && window.wrappedJSObject.Settings._currentPanel === '#root'"))
+        self.wait_for_element_present(*self._app_loaded_locator)
 
     def wait_for_airplane_toggle_ready(self):
         checkbox = self.marionette.find_element(*self._airplane_checkbox_locator)
@@ -73,6 +81,39 @@ class Settings(Base):
     @property
     def wifi_menu_item_description(self):
         return self.marionette.find_element(*self._wifi_text_locator).text
+
+    @property
+    def battery_menu_item_description(self):
+        return self.marionette.find_element(*self._battery_text_locator).text
+
+    @property
+    def application_storage_menu_item_description(self):
+        return self.marionette.find_element(*self._application_storage_text_locator).text
+
+    @property
+    def media_storage_menu_item_description(self):
+        return self.marionette.find_element(*self._media_storage_text_locator).text
+
+    @property
+    def usb_storage_menu_item_description(self):
+        return self.marionette.find_element(*self._usb_storage_text_locator).text
+
+    @property
+    def screen_lock_menu_item_description(self):
+        return self.marionette.find_element(*self._screen_lock_text_locator).text
+
+    @property
+    def language_menu_item_description(self):
+        return self.marionette.find_element(*self._language_text_locator).text
+
+    @property
+    def bluetooth_menu_item_description(self):
+        return self.marionette.find_element(*self._bluetooth_text_locator).text
+
+    def a11y_open_accessibility_settings(self):
+        from gaiatest.apps.settings.regions.accessibility import Accessibility
+        self._a11y_click_menu_item(self._accessibility_menu_item_locator)
+        return Accessibility(self.marionette)
 
     def open_cell_and_data_settings(self):
         from gaiatest.apps.settings.regions.cell_data import CellData
@@ -138,13 +179,26 @@ class Settings(Base):
         self._tap_menu_item(self._sim_manager_menu_item_locator)
         return SimManager(self.marionette)
 
-    def _tap_menu_item(self, menu_item_locator):
+    def _wait_for_menu_item(self, menu_item_locator):
         menu_item = self.marionette.find_element(*menu_item_locator)
-        parent_section = menu_item.find_element(By.XPATH, 'ancestor::section')
 
         # Some menu items require some async setup to be completed
-        self.wait_for_condition(lambda m:
-            not menu_item.find_element(By.XPATH, 'ancestor::li').get_attribute('aria-disabled'))
+        self.wait_for_condition(lambda m: not menu_item.find_element(
+            By.XPATH, 'ancestor::li').get_attribute('aria-disabled'))
 
+        return menu_item
+
+    def _wait_for_parent_section_not_displayed(self, menu_item):
+        parent_section = menu_item.find_element(By.XPATH, 'ancestor::section')
+        self.wait_for_condition(
+            lambda m: parent_section.location['x'] + parent_section.size['width'] == 0)
+
+    def _tap_menu_item(self, menu_item_locator):
+        menu_item = self._wait_for_menu_item(menu_item_locator)
         menu_item.tap()
-        self.wait_for_condition(lambda m: parent_section.location['x'] + parent_section.size['width'] == 0)
+        self._wait_for_parent_section_not_displayed(menu_item)
+
+    def _a11y_click_menu_item(self, menu_item_locator):
+        menu_item = self._wait_for_menu_item(menu_item_locator)
+        self.accessibility.click(menu_item)
+        self._wait_for_parent_section_not_displayed(menu_item)

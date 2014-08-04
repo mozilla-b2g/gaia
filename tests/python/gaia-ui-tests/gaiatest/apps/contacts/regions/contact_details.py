@@ -11,6 +11,7 @@ class ContactDetails(Base):
     _contact_name_title_locator = (By.ID, 'contact-name-title')
     _contact_image_locator = (By.ID, 'cover-img')
     _call_phone_number_button_locator = (By.ID, 'call-or-pick-0')
+    _phone_numbers_locator = (By.CSS_SELECTOR, '#contact-detail-inner .icon-call')
     _send_sms_button_locator = (By.ID, 'send-sms-button-0')
     _edit_contact_button_locator = (By.ID, 'edit-contact-button')
     _back_button_locator = (By.ID, 'details-back')
@@ -19,7 +20,7 @@ class ContactDetails(Base):
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
-        self.wait_for_condition(lambda m: m.find_element(*self._contact_name_title_locator).location['x'] == 0)
+        self.wait_for_condition(lambda m: m.find_element(*self._back_button_locator).location['x'] == 0)
 
     @property
     def full_name(self):
@@ -30,6 +31,10 @@ class ContactDetails(Base):
         return self.marionette.find_element(*self._call_phone_number_button_locator).text
 
     @property
+    def phone_numbers(self):
+        return [element.text for element in self.marionette.find_elements(*self._phone_numbers_locator)]
+
+    @property
     def comments(self):
         return self.marionette.find_element(*self._comments_locator).text
 
@@ -38,8 +43,9 @@ class ContactDetails(Base):
         return self.marionette.find_element(*self._contact_image_locator).get_attribute('style')
 
     def tap_phone_number(self):
-        self.wait_for_element_displayed(*self._call_phone_number_button_locator)
-        self.marionette.find_element(*self._call_phone_number_button_locator).tap()
+        call_button = self.marionette.find_element(*self._call_phone_number_button_locator)
+        self.wait_for_condition(lambda m: call_button.is_enabled())
+        call_button.tap()
         from gaiatest.apps.phone.regions.call_screen import CallScreen
         return CallScreen(self.marionette)
 

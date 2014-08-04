@@ -1,7 +1,7 @@
 /* exported SimCardManager */
 /* global Template, SimUIModel,
    SimSettingsHelper, MobileOperator, SimCardManager,
-   AirplaneModeHelper, localize */
+   AirplaneModeHelper */
 
 'use strict';
 
@@ -33,10 +33,15 @@
       // in order to show confirm dialog after users changing value, the better
       // way right now is to check values when `onblur` event triggered.
       this.addOutgoingDataSelectEvent();
-
       this.addVoiceChangeEventOnConns();
       this.addCardStateChangeEventOnIccs();
       this.addLocalizedChangeEventOnIccs();
+
+      // SMS app will directly change this value if users are going to
+      // donwload specific sms from differnt simcard, so we have to
+      // make sure our UI will reflect the right value at the moment.
+      SimSettingsHelper.observe('outgoingData',
+        this.outgoingDataChangeEvent.bind(this));
 
       // because in fugu, airplaneMode will not change cardState
       // but we still have to make UI consistent. In this way,
@@ -62,7 +67,6 @@
       }
     },
     handleEvent: function(evt) {
-
       var cardIndex = evt.target.value;
 
       // it means users is seleting '--' options
@@ -80,6 +84,9 @@
           SimSettingsHelper.setServiceOnCard('outgoingMessages', cardIndex);
           break;
       }
+    },
+    outgoingDataChangeEvent: function(cardIndex) {
+      this.simManagerOutgoingDataSelect.value = cardIndex;
     },
     addOutgoingDataSelectEvent: function() {
       var prevCardIndex;
@@ -203,10 +210,12 @@
       if (firstCardInfo.absent && secondCardInfo.absent ||
         this.isAirplaneMode) {
           this.simManagerSecurityEntry.setAttribute('aria-disabled', true);
-          localize(this.simManagerSecurityDesc, 'noSimCard');
+          this.simManagerSecurityDesc.setAttribute('data-l10n-id',
+                                                   'noSimCard');
       } else {
         this.simManagerSecurityEntry.setAttribute('aria-disabled', false);
-        localize(this.simManagerSecurityDesc);
+        this.simManagerSecurityDesc.removeAttribute('data-l10n-id');
+        this.simManagerSecurityDesc.textContent = '';
       }
     },
     updateSelectOptionsUI: function() {
@@ -294,7 +303,7 @@
       if (storageKey === 'outgoingCall' || storageKey === 'outgoingMessages') {
         var option = document.createElement('option');
         option.value = SimSettingsHelper.ALWAYS_ASK_OPTION_VALUE;
-        localize(option, 'sim-manager-always-ask');
+        option.setAttribute('data-l10n-id', 'sim-manager-always-ask');
 
         if (SimSettingsHelper.ALWAYS_ASK_OPTION_VALUE == selectedCardIndex) {
           option.selected = true;

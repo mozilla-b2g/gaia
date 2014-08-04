@@ -38,7 +38,8 @@ class DeviceInfo(Base):
         _os_version_locator = (By.CSS_SELECTOR, '#about-moreInfo small[data-name="deviceinfo.os"]')
         _hardware_revision_locator = (By.CSS_SELECTOR, '#about-moreInfo small[data-name="deviceinfo.hardware"]')
         _mac_address_locator = (By.CSS_SELECTOR, '#about-moreInfo small[data-name="deviceinfo.mac"]')
-        _imei_locator = (By.ID, 'deviceInfo-imei')
+        _imei1_locator = (By.CSS_SELECTOR, '#deviceInfo-imeis span[data-slot="0"]')
+        _imei2_locator = (By.CSS_SELECTOR, '#deviceInfo-imeis span[data-slot="1"]')
         _iccid_locator = (By.ID, 'deviceInfo-iccids')
         _platform_version_locator = (By.CSS_SELECTOR, '#about-moreInfo small[data-name="deviceinfo.platform_version"]')
         _build_id_locator = (By.CSS_SELECTOR, '#about-moreInfo small[data-name="deviceinfo.platform_build_id"]')
@@ -63,8 +64,12 @@ class DeviceInfo(Base):
             return self.marionette.find_element(*self._mac_address_locator).text
 
         @property
-        def imei(self):
-            return self.marionette.find_element(*self._imei_locator).text
+        def imei1(self):
+            return self.marionette.find_element(*self._imei1_locator).text.split()[2]
+
+        @property
+        def imei2(self):
+            return self.marionette.find_element(*self._imei2_locator).text.split()[2]
 
         @property
         def iccid(self):

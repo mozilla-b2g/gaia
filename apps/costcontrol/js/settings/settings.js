@@ -1,5 +1,6 @@
 /* global BalanceView, LazyLoader, AutoSettings, BalanceLowLimitView,
-          ViewManager, dataLimitConfigurer, Formatting */
+          ViewManager, dataLimitConfigurer, Formatting, PerformanceTestingHelper
+*/
 /* exported debug, sendBalanceThresholdNotification */
 /*
  * Settings is in charge of setup the setting section. It uses an AutoSettings
@@ -12,6 +13,7 @@
 // Import global objects from parent window
 var ConfigManager = window.parent.ConfigManager;
 var CostControl = window.parent.CostControl;
+var SimManager = window.parent.SimManager;
 var Common = window.parent.Common;
 var NetworkUsageAlarm = window.parent.NetworkUsageAlarm;
 
@@ -28,7 +30,7 @@ var debug = window.parent.debug;
 
 var Settings = (function() {
 
-  var costcontrol, vmanager, initialized;
+  var costcontrol, vmanager, initialized, endLoadSettingsNotified;
   var plantypeSelector, phoneActivityTitle, phoneActivitySettings;
   var balanceTitle, balanceSettings, reportsTitle;
   var balanceView;
@@ -72,13 +74,16 @@ var Settings = (function() {
       ConfigManager.observe(
         'dataLimit',
         function _onDataLimitChange(value, old, key, settings) {
-          var currentDataInterface = Common.getDataSIMInterface();
-          if (!value) {
-            NetworkUsageAlarm.clearAlarms(currentDataInterface);
-          } else {
-            addNetworkUsageAlarm(currentDataInterface,
-                                 Common.getDataLimit(settings));
-          }
+          SimManager.requestDataSimIcc(function(dataSim) {
+            var iccId = dataSim.iccId;
+            var currentDataInterface = Common.getDataSIMInterface(iccId);
+            if (!value) {
+              NetworkUsageAlarm.clearAlarms(currentDataInterface);
+            } else {
+              addNetworkUsageAlarm(currentDataInterface,
+                                   Common.getDataLimit(settings));
+            }
+          });
         },
         true
       );
@@ -269,6 +274,10 @@ var Settings = (function() {
         var hidePhoneActivity = (mode !== 'POSTPAID');
         var hideBalance = (mode !== 'PREPAID');
         var hideReportsTitle = (mode === 'PREPAID');
+        var textReportsTitle = (mode === 'POSTPAID') ?
+          'phone-and-internet-data-report' : 'internet-data-report';
+
+        reportsTitle.querySelector('h2').textContent = _(textReportsTitle);
 
         balanceLowLimitView.disabled = (mode !== 'PREPAID');
         plantypeSelector.setAttribute('aria-hidden', hidePlantypeSelector);
@@ -296,6 +305,10 @@ var Settings = (function() {
           updateTelephony(settings.lastTelephonyActivity,
                           settings.lastTelephonyReset);
           break;
+      }
+      if (endLoadSettingsNotified) {
+        PerformanceTestingHelper.dispatch('end-load-settings');
+        endLoadSettingsNotified = true;
       }
     });
   }

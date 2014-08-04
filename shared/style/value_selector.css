@@ -4,7 +4,7 @@
 
 /* Main dialog setup */
 [role="dialog"][data-type="value-selector"] {
-  background: url(value_selector/images/ui/pattern.png) repeat left top, url(value_selector/images/ui/gradient.png) no-repeat left top / 100% 100%;
+  background: #2d2d2d;
   overflow: hidden;
   position: absolute;
   z-index: 100;
@@ -52,7 +52,7 @@
   height: auto;
   list-style: none;
   position: relative;
-  font-weight: lighter;
+  font-weight: 300;
   font-size: 2.2rem;
   line-height: 3.9rem;
   color: #fff;
@@ -93,21 +93,22 @@
 }
 
 /* Checked status */
+[role="dialog"][data-type="value-selector"] [role="listbox"] li[aria-selected="true"] label {
+  background: transparent url(value_selector/images/icons/checked.png) right 1.2rem top 50% / 2.1rem no-repeat;
+}
+
 [role="dialog"][data-type="value-selector"] [role="listbox"] li[aria-selected="true"] span {
   padding-right: 2.6rem;
   margin-right: 1.2rem;
   color: #00abcd;
-  background: transparent url(value_selector/images/icons/checked.png) no-repeat 100% 50%;
-  background-size: 2rem;
 }
-
 
 /* Menu & buttons setup */
 [role="dialog"][data-type="value-selector"] menu {
   white-space: nowrap;
   margin: 0;
   padding: 1.5rem;
-  background: #2d2d2d url(value_selector/images/ui/pattern.png) repeat left top;
+  background: #4d4d4d;
   display: block;
   overflow: hidden;
   position: absolute;
@@ -189,11 +190,21 @@ button[disabled]::-moz-selection {
 }
 
 /* Right to left tweaks */
-html[dir="rtl"] #value-selector li input:checked + span,
-html[dir="rtl"] #value-selector li[aria-selected="true"] span {
+html[dir="rtl"] .value-selector li input:checked + span,
+html[dir="rtl"] .value-selector li[aria-selected="true"] span {
   padding-left: 2.6rem;
   padding-right: 1.5rem;
   margin-left: 1.2rem;
   margin-right: 0;
   background-position: 0 50%;
 }
+
+html[dir="rtl"] [role="dialog"][data-type="value-selector"] [role="listbox"] li[aria-selected="true"] label {
+  background-position: left 1.2rem top 50%;
+}
+
+html[dir="rtl"] [role="dialog"][data-type="value-selector"] [role="listbox"] li[aria-selected="true"] span {
+  padding-left: 2.6rem;
+  padding-right: 0;
+}
+

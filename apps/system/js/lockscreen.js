@@ -12,7 +12,6 @@
 (function(exports) {
 
   var LockScreen = function() {
-    this.init();
   };
   LockScreen.prototype = {
     configs: {
@@ -35,9 +34,10 @@
     /*
     * Boolean return the status of the lock screen.
     * Must not multate directly - use unlock()/lockIfEnabled()
-    * Listen to 'lock' and 'unlock' event to properly handle status changes
+    * Listen to 'lockscreen-appclosed/opening/opened' events to properly
+    * handle status changes
     */
-    _locked: true,
+    locked: true,
 
     /*
     * Boolean return whether if the lock screen is enabled or not.
@@ -62,10 +62,19 @@
     passCodeEnabled: false,
 
     /*
-    * Four digit Passcode
-    * XXX: should come for Settings
+    * Boolean should regenerate overlay color for notifications background
+    * When this is true, and when we're locking the device, we should
+    * regenerate the overlay color as specified in bug 950884
+    * Instead of doing the color generation in updateBackground,
+    *  by doing this we can reduce critical path of updateBackground,
+    * and perceived performance of selecting wallpaper.
     */
-    passCode: '0000',
+    _shouldRegenerateMaskedBackgroundColor: false,
+
+    /*
+    * String url of the background image to regenerate overlay color from
+    */
+    _regenerateMaskedBackgroundColorFrom: undefined,
 
     /*
     * The time to request for passcode input since device is off.
@@ -163,11 +172,6 @@
 
           // Resume refreshing the clock when the screen is turned on.
           this.clock.start(this.refreshClock.bind(this));
-
-          // Show the unlock keypad immediately
-          if (this.passCodeEnabled && this.checkPassCodeTimeout()) {
-            this.switchPanel('passcode');
-          }
         }
         // No matter turn on or off from screen timeout or poweroff,
         // all secure apps would be hidden.
@@ -189,13 +193,20 @@
           break;
         }
 
-        if (!evt.target.dataset.key) {
+        var key = evt.target.dataset.key;
+        if (!key &&
+            ('div' === evt.target.tagName.toLowerCase() &&
+             'a' === evt.target.parentNode.tagName.toLowerCase())
+           ) {
+          key = evt.target.parentNode.dataset.key;
+        }
+        if (!key) {
           break;
         }
 
         // Cancel the default action of <a>
         evt.preventDefault();
-        this.handlePassCodeInput(evt.target.dataset.key);
+        this.handlePassCodeInput(key);
         break;
 
       case 'touchstart':
@@ -229,7 +240,6 @@
         if (!this.locked) {
           this.switchPanel();
           this.overlay.hidden = true;
-          this.dispatchEvent('unlock', this.unlockDetail);
           this.unlockDetail = undefined;
         }
         break;
@@ -295,6 +305,40 @@
       case 'lockscreen-mode-off':
         this.modeSwitch(evt.detail, false);
         break;
+      /**
+       * we need to know whether the media player widget is shown or not,
+       * in order to decide notification container's height
+       * we listen to the same events (iac-mediacomms & appterminated) as
+       * in media player widget's codes (/apps/system/js/media_playback.js)
+       */
+      case 'iac-mediacomms':
+        if (evt.detail.type === 'status') {
+          switch (evt.detail.data.playStatus) {
+            case 'PLAYING':
+            case 'PAUSED':
+              window.lockScreenNotifications.collapseNotifications();
+              window.lockScreenNotifications.adjustContainerVisualHints();
+              break;
+            case 'STOPPED':
+            case 'mozinterruptbegin':
+              window.lockScreenNotifications.expandNotifications();
+              window.lockScreenNotifications.adjustContainerVisualHints();
+              break;
+          }
+        }
+        break;
+      case 'appterminated':
+        if (evt.detail.origin === this.mediaPlaybackWidget.origin) {
+          window.lockScreenNotifications.expandNotifications();
+          window.lockScreenNotifications.adjustContainerVisualHints();
+        }
+        break;
+      case 'scroll':
+        if (this.notificationsContainer === evt.target) {
+          window.lockScreenNotifications.adjustContainerVisualHints();
+          break;
+        }
+        break;
     }
   };  // -- LockScreen#handleEvent --
 
@@ -313,8 +357,15 @@
   LockScreen.prototype.init =
   function ls_init() {
     this.ready = true;
-    this._unlocker = new window.LockScreenSlide();
+    /**
+     * "new style" slider: as described in https://bugzil.la/950884
+     * setting this parameter to true causes the LockScreenSlide to render
+     * the slider specified in that bugzilla issue
+     */
+    this._unlocker = new window.LockScreenSlide({useNewStyle: true});
     this.getAllElements();
+    this.notificationsContainer =
+      document.getElementById('notifications-lockscreen-container');
 
     this.lockIfEnabled(true);
     this.writeSetting(this.enabled);
@@ -365,23 +416,30 @@
     this.mediaPlaybackWidget =
       new window.MediaPlaybackWidget(this.mediaContainer);
 
+    // listen to media playback events to adjust notification container height
+    window.addEventListener('iac-mediacomms', this);
+    window.addEventListener('appterminated', this);
+
     window.SettingsListener.observe('lockscreen.enabled', true,
       (function(value) {
         this.setEnabled(value);
     }).bind(this));
 
-    var wallpaperURL = new window.SettingsURL();
-
-    window.SettingsListener.observe('wallpaper.image',
-                             'resources/images/backgrounds/default.png',
-                             (function(value) {
-                               this.updateBackground(wallpaperURL.set(value));
-                               this.overlay.classList.remove('uninit');
-                             }).bind(this));
-
-    window.SettingsListener.observe(
-      'lockscreen.passcode-lock.code', '0000', (function(value) {
-      this.passCode = value;
+    // it is possible that lockscreen is initialized after wallpapermanager
+    // (e.g. user turns on lockscreen in settings after system is booted);
+    // if this is the case, then the wallpaperchange event might not be captured
+    //   and the lockscreen would initialize into empty wallpaper
+    // so we need to see if there is already a wallpaper blob available
+    if (window.wallpaperManager) {
+      var wallpaperURL = window.wallpaperManager.getBlobURL();
+      if (wallpaperURL) {
+        this.updateBackground(window.wallpaperManager.getBlobURL());
+        this.overlay.classList.remove('uninit');
+      }
+    }
+    window.addEventListener('wallpaperchange', (function(evt) {
+      this.updateBackground(evt.detail.url);
+      this.overlay.classList.remove('uninit');
     }).bind(this));
 
     window.SettingsListener.observe(
@@ -403,7 +461,37 @@
       '', (function(value) {
       this.setLockMessage(value);
     }).bind(this));
+
+    // FIXME(ggp) this is currently used by Find My Device
+    // to force locking. Should be replaced by a proper IAC API in
+    // bug 992277. We don't need to use SettingsListener because
+    // we're only interested in changes to the setting, and don't
+    // keep track of its value.
+    navigator.mozSettings.addObserver('lockscreen.lock-immediately',
+      (function(event) {
+      if (event.settingValue === true) {
+        this.lockIfEnabled(true);
+      }
+    }).bind(this));
+
+    this.notificationsContainer.addEventListener('scroll', this);
+
     navigator.mozL10n.ready(this.l10nInit.bind(this));
+
+    // when lockscreen is just initialized,
+    // it will lock itself (if enabled) before calling updatebackground,
+    // so we need to generate overlay if needed here
+    if(this._checkGenerateMaskedBackgroundColor()){
+      this._generateMaskedBackgroundColor();
+    }
+
+    // start the clock because screenchange won't trigger when
+    // screen locks just after boot
+    // Clock always uses one Timeouts/Intervals so it's safe in
+    // other scenarios (such as turning on lockscreen after boot in settings)
+    this.clock.start(this.refreshClock.bind(this));
+
+    window.lockScreenNotifications.bindLockScreen(this);
   };
 
   LockScreen.prototype.initUnlockerEvents =
@@ -528,18 +616,13 @@
         this.invokeSecureApp('camera');
         return;
       }
-
-      this.unlock(/* instant */ null, /* detail */ { areaCamera: true });
-
-      var a = new window.MozActivity({
+      var activityDetail = {
         name: 'record',
         data: {
           type: 'photos'
         }
-      });
-      a.onerror = function ls_activityError() {
-        console.log('MozActivity: camera launch error.');
       };
+      this.unlock(false, { activity: activityDetail } );
     }).bind(this);
 
     panelOrFullApp();
@@ -645,11 +728,6 @@
 
   LockScreen.prototype.unlock =
   function ls_unlock(instant, detail) {
-    // This file is loaded before the Window Manager in order to intercept
-    // hardware buttons events. As a result AppWindowManager is not defined when
-    // the device is turned on and this file is loaded.
-    var app = window.AppWindowManager ?
-      window.AppWindowManager.getActiveApp() : null;
     var wasAlreadyUnlocked = !this.locked;
     this.locked = false;
 
@@ -670,26 +748,17 @@
     }
 
     this.overlay.classList.toggle('no-transition', instant);
+    this.dispatchEvent('lockscreen-request-unlock', detail);
+    this.dispatchEvent('secure-modeoff');
+    this.overlay.classList.add('unlocked');
 
-    var nextPaint = function() {
-      this.dispatchEvent('will-unlock', detail);
-      this.dispatchEvent('secure-modeoff');
-      this.overlay.classList.add('unlocked');
-
-      // If we don't unlock instantly here,
-      // these are run in transitioned callback.
-      if (instant) {
-        this.switchPanel();
-        this.overlay.hidden = true;
-        this.dispatchEvent('unlock', detail);
-      } else {
-        this.unlockDetail = detail;
-      }
-    }.bind(this);
-    if (app) {
-      app.ready(nextPaint);
+    // If we don't unlock instantly here,
+    // these are run in transitioned callback.
+    if (instant) {
+      this.switchPanel();
+      this.overlay.hidden = true;
     } else {
-      nextPaint();
+      this.unlockDetail = detail;
     }
   };
 
@@ -704,7 +773,6 @@
 
     this.overlay.classList.remove('unlocked');
     this.overlay.hidden = false;
-    screen.mozLockOrientation(window.OrientationManager.defaultOrientation);
 
     if (!wasAlreadyLocked) {
       if (document.mozFullScreen) {
@@ -713,9 +781,12 @@
 
       // Any changes made to this,
       // also need to be reflected in apps/system/js/storage.js
-      this.dispatchEvent('lock', {detail: this.locked});
       this.dispatchEvent('secure-modeon');
       this.writeSetting(true);
+
+      if(this._checkGenerateMaskedBackgroundColor()){
+        this._generateMaskedBackgroundColor();
+      }
     }
   };
 
@@ -866,36 +937,22 @@
     }
   };
 
+  /**
+   * This function would fire an event to validate the passcode.
+   * The validator is a component in System app, and LockScreen should
+   * not validate it.
+   */
   LockScreen.prototype.checkPassCode =
   function lockscreen_checkPassCode() {
-    if (this.passCodeEntered === this.passCode) {
-      this.overlay.dataset.passcodeStatus = 'success';
-      this.passCodeError = 0;
-      this.kPassCodeErrorTimeout = 500;
-      this.kPassCodeErrorCounter = 0;
-
-      var transitionend = (function() {
-        this.passcodeCode.removeEventListener('transitionend', transitionend);
-        this.unlock();
-      }).bind(this);
-      this.passcodeCode.addEventListener('transitionend', transitionend);
-    } else {
-      this.overlay.dataset.passcodeStatus = 'error';
-      this.kPassCodeErrorCounter++;
-      //double delay if >5 failed attempts
-      if (this.kPassCodeErrorCounter > 5) {
-        this.kPassCodeErrorTimeout = 2 * this.kPassCodeErrorTimeout;
-      }
-      if ('vibrate' in navigator) {
-        navigator.vibrate([50, 50, 50]);
-      }
-
-      setTimeout((function() {
-        delete this.overlay.dataset.passcodeStatus;
-        this.passCodeEntered = '';
-        this.updatePassCodeUI();
-      }).bind(this), this.kPassCodeErrorTimeout);
-    }
+    var request = {
+      passcode: this.passCodeEntered,
+      onsuccess: this.onPasscodeValidationSuccess.bind(this),
+      onerror: this.onPasscodeValidationFailed.bind(this),
+    };
+    window.dispatchEvent(new CustomEvent(
+      'lockscreen-request-passcode-validate',
+      { detail: request }
+    ));
   };
 
   LockScreen.prototype.updateBackground =
@@ -903,6 +960,111 @@
     var background = document.getElementById('lockscreen-background'),
         url = 'url(' + value + ')';
     background.style.backgroundImage = url;
+    this._shouldRegenerateMaskedBackgroundColor = true;
+    this._regenerateMaskedBackgroundColorFrom = value;
+  };
+
+  /**
+   * Check if we should regenerate masked background color
+   */
+  LockScreen.prototype._checkGenerateMaskedBackgroundColor =
+  function ls_checkGenerateMaskedBackgroundColor() {
+    // XXX: request animation frame?
+    return (this._shouldRegenerateMaskedBackgroundColor &&
+            this._regenerateMaskedBackgroundColorFrom);
+  };
+
+  /**
+   * Generate a single color from wallpaper
+   * to be used as the background color of Masked Background
+   */
+  LockScreen.prototype._generateMaskedBackgroundColor =
+  function ls_generateMaskedBackgroundColor() {
+    // downsample the image to avoid calculation taking too much time
+    var SAMPLE_IMAGE_SIZE_BASE = 100;
+
+    var img = new Image();
+    img.onload = (function(){
+      var sampleImageWidth;
+      var sampleImageHeight;
+
+      if(img.height > img.width){
+        sampleImageWidth =
+          Math.floor(SAMPLE_IMAGE_SIZE_BASE * window.devicePixelRatio);
+        sampleImageHeight =
+          Math.floor(sampleImageWidth * (img.height / img.width));
+      }else{
+        sampleImageHeight =
+          Math.floor(SAMPLE_IMAGE_SIZE_BASE * window.devicePixelRatio);
+        sampleImageWidth =
+          Math.floor(sampleImageHeight * (img.width / img.height));
+      }
+
+      var canvas = document.createElement('canvas');
+      canvas.width = sampleImageWidth;
+      canvas.height = sampleImageHeight;
+
+      var context = canvas.getContext('2d');
+      context.drawImage(img, 0, 0, sampleImageWidth, sampleImageHeight);
+
+      var data =
+        context.getImageData(0, 0, sampleImageWidth, sampleImageHeight).data;
+      var r = 0, g = 0, b = 0;
+
+      for (var row = 0; row < sampleImageHeight; row++) {
+        for (var col = 0; col < sampleImageWidth; col++) {
+          r += data[((sampleImageWidth * row) + col) * 4];
+          g += data[((sampleImageWidth * row) + col) * 4 + 1];
+          b += data[((sampleImageWidth * row) + col) * 4 + 2];
+        }
+      }
+
+      r = r / (sampleImageWidth * sampleImageHeight) / 255;
+      g = g / (sampleImageWidth * sampleImageHeight) / 255;
+      b = b / (sampleImageWidth * sampleImageHeight) / 255;
+
+      // http://en.wikipedia.org/wiki/HSL_and_HSV#Formal_derivation
+      var M = Math.max(r, g, b);
+      var m = Math.min(r, g, b);
+      var C = M - m;
+      var h, s, l;
+
+      l = 0.5 * (M + m);
+      if (C === 0) {
+        h = s = 0; // no satuaration (monochromatic)
+      } else {
+        switch (M) {
+          case r:
+            h = ((g - b) / C) % 6;
+            break;
+          case g:
+            h = ((b - r) / C) + 2;
+            break;
+          case b:
+            h = ((r - g) / C) + 4;
+            break;
+        }
+        h *= 60;
+        h = (h + 360) % 360;
+        s = C / (1 - Math.abs(2 * l - 1));
+      }
+
+      l *= 0.9;
+
+      h = parseInt(h);
+      s = parseInt(s * 100) + '%';
+      l = parseInt(l * 100) + '%';
+
+      var value = 'hsla(' + h + ', ' + s + ', ' + l + ', 0.7)';
+      this.maskedBackground.dataset.wallpaperColor = value;
+      if (!this.maskedBackground.classList.contains('blank')) {
+        this.maskedBackground.style.backgroundColor = value;
+      }
+    }).bind(this);
+
+    img.src = this._regenerateMaskedBackgroundColorFrom;
+    this._shouldRegenerateMaskedBackgroundColor = false;
+    this._regenerateMaskedBackgroundColorFrom = undefined;
   };
 
   /**
@@ -919,7 +1081,8 @@
         'area-handle', 'area-slide', 'media-container', 'passcode-code',
         'alt-camera', 'alt-camera-button', 'slide-handle',
         'passcode-pad', 'camera', 'accessibility-camera',
-        'accessibility-unlock', 'panel-emergency-call', 'canvas', 'message'];
+        'accessibility-unlock', 'panel-emergency-call', 'canvas', 'message',
+        'notification-arrow', 'masked-background'];
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {
@@ -1002,6 +1165,45 @@
       } else {
         return true;
       }
+    };
+
+  /**
+   * When validation failed, do UI change.
+   */
+  LockScreen.prototype.onPasscodeValidationFailed =
+    function ls_onPasscodeValidationFailed() {
+      this.overlay.dataset.passcodeStatus = 'error';
+      this.kPassCodeErrorCounter++;
+      //double delay if >5 failed attempts
+      if (this.kPassCodeErrorCounter > 5) {
+        this.kPassCodeErrorTimeout = 2 * this.kPassCodeErrorTimeout;
+      }
+      if ('vibrate' in navigator) {
+        navigator.vibrate([50, 50, 50]);
+      }
+
+      setTimeout(() => {
+        delete this.overlay.dataset.passcodeStatus;
+        this.passCodeEntered = '';
+        this.updatePassCodeUI();
+      }, this.kPassCodeErrorTimeout);
+    };
+
+  /**
+   * When validation success, do UI change, then unlock.
+   */
+  LockScreen.prototype.onPasscodeValidationSuccess =
+    function ls_onPasscodeValidationSuccess() {
+      this.overlay.dataset.passcodeStatus = 'success';
+      this.passCodeError = 0;
+      this.kPassCodeErrorTimeout = 500;
+      this.kPassCodeErrorCounter = 0;
+
+      var transitionend = () => {
+        this.passcodeCode.removeEventListener('transitionend', transitionend);
+        this.unlock();
+      };
+      this.passcodeCode.addEventListener('transitionend', transitionend);
     };
 
   /** @exports LockScreen */

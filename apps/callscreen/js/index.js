@@ -4,6 +4,7 @@ window.addEventListener('load', function callSetup(evt) {
   window.removeEventListener('load', callSetup);
 
   CallsHandler.setup();
+  AudioCompetingHelper.init('callscreen');
   CallScreen.init();
   KeypadManager.init(true);
 });

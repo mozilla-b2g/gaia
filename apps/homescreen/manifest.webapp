@@ -48,6 +48,23 @@
     "bookmarks_store": {
       "readonly": false,
       "description": "Read and migrate bookmarks"
+    },
+    "collections_store": {
+      "readonly": false,
+      "description": "Read and migrate collections"
+    },
+    "vertical_preferences_store": {
+      "readonly": false,
+      "description": "Vertical homescreen preferences to save layout"
+    }
+  },
+  "connections": {
+    "migrate": {
+      "description": "It migrates bookmarks & collections",
+      "rules": {
+        "manifestURLs": ["app://ftu.gaiamobile.org/manifest.webapp"]
+      },
+      "handler_path": "/migrate.html"
     }
   }
 }

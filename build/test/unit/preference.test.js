@@ -149,11 +149,11 @@ suite('preferences.js', function() {
     });
 
     test('editDesktopPref', function () {
-      preferences.homescreen = 'testHomescreen';
+      preferences.system = 'testSystem';
       preferences.prefs = {};
       preferences.setDesktopPref();
       assert.deepEqual(preferences.prefs, {
-        'browser.startup.homepage': preferences.homescreen,
+        'browser.startup.homepage': preferences.system,
         'startup.homepage_welcome_url': '',
         'browser.shell.checkDefaultBrowser': false,
         'devtools.toolbox.host': 'side',
@@ -199,59 +199,61 @@ suite('preferences.js', function() {
         'font.name-list.sans-serif.x-western': 'Fira Sans, Roboto',
         'extensions.autoDisableScopes': 0
       });
+    });
 
-      test('editDebugPref', function () {
-        preferences.homescreen = 'testHomescreen';
-        preferences.config = {
-          GAIA_DIR: 'testGaiaDir',
-          GAIA_DOMAIN: 'testGaiaDomain',
-          GAIA_PORT: ':8080',
-          GAIA_APPDIRS: 'testAppDirs',
-          GAIA_LOCALES_PATH: 'testLocalesPath',
-          OFFICIAL: 1,
-          LOCALES_FILE: 'testLocaleFile',
-          LOCALE_BASEDIR: 'testLocaleBaseDir',
-          GAIA_DEV_PIXELS_PER_PX: 2
-        };
-        preferences.gaia = {
-          webapps: [
-            {
-              sourceAppDirectoryName: 'testSourceName',
-              sourceDirectoryName: 'testDirName'
-            }
-          ]
-        };
-        preferences.prefs = {};
-        preferences.setDebugPref();
-        assert.deepEqual(preferences.prefs, {
-          'docshell.device_size_is_page_size': true,
-          'marionette.defaultPrefs.enabled': true,
-          'nglayout.debug.disable_xul_cache': true,
-          'nglayout.debug.disable_xul_fastload': true,
-          'javascript.options.showInConsole': true,
-          'browser.dom.window.dump.enabled': true,
-          'dom.report_all_js_exceptions': true,
-          'dom.w3c_touch_events.enabled': 1,
-          'dom.promise.enabled': true,
-          'dom.wakelock.enabled': true,
-          'image.mozsamplesize.enabled': true,
-          'webgl.verbose': true,
-          'dom.max_script_run_time': 0,
-          'network.http.use-cache': false,
-          'extensions.gaia.dir': preferences.config.GAIA_DIR,
-          'extensions.gaia.domain': preferences.config.GAIA_DOMAIN,
-          'extensions.gaia.port': 8080,
-          'extensions.gaia.appdirs': preferences.config.GAIA_APPDIRS,
-          'extensions.gaia.locales_debug_path':
-            preferences.config.GAIA_LOCALES_PATH,
-          'extensions.gaia.official': true,
-          'extensions.gaia.locales_file': preferences.config.LOCALES_FILE,
-          'extensions.gaia.locale_basedir': preferences.config.LOCALE_BASEDIR,
-          'extensions.gaia.device_pixel_suffix':
-            '@' + preferences.config.GAIA_DEV_PIXELS_PER_PX + 'x',
-          'extensions.gaia.app_relative_path': 'testSourceName/testDirName',
-          'extensions.autoDisableScopes': 0
-        });
+    test('editDebugPref', function () {
+      preferences.homescreen = 'testHomescreen';
+      preferences.config = {
+        GAIA_DIR: 'testGaiaDir',
+        GAIA_DOMAIN: 'testGaiaDomain',
+        GAIA_PORT: ':8080',
+        GAIA_APPDIRS: 'testAppDirs',
+        GAIA_ALLAPPDIRS: 'testAppDir1 testAppDir2',
+        GAIA_LOCALES_PATH: 'testLocalesPath',
+        OFFICIAL: 1,
+        LOCALES_FILE: 'testLocaleFile',
+        LOCALE_BASEDIR: 'testLocaleBaseDir',
+        GAIA_DEV_PIXELS_PER_PX: 2
+      };
+      preferences.gaia = {
+        webapps: [
+          {
+            sourceAppDirectoryName: 'testSourceName',
+            sourceDirectoryName: 'testDirName'
+          }
+        ]
+      };
+      preferences.prefs = {};
+      preferences.setDebugPref();
+      assert.deepEqual(preferences.prefs, {
+        'docshell.device_size_is_page_size': true,
+        'marionette.defaultPrefs.enabled': true,
+        'nglayout.debug.disable_xul_cache': true,
+        'nglayout.debug.disable_xul_fastload': true,
+        'javascript.options.showInConsole': true,
+        'browser.dom.window.dump.enabled': true,
+        'dom.report_all_js_exceptions': true,
+        'dom.w3c_touch_events.enabled': 1,
+        'dom.promise.enabled': true,
+        'dom.wakelock.enabled': true,
+        'image.mozsamplesize.enabled': true,
+        'webgl.verbose': true,
+        'dom.max_script_run_time': 0,
+        'toolkit.identity.debug': true,
+        'network.http.use-cache': false,
+        'extensions.gaia.dir': preferences.config.GAIA_DIR,
+        'extensions.gaia.domain': preferences.config.GAIA_DOMAIN,
+        'extensions.gaia.port': 8080,
+        'extensions.gaia.appdirs': preferences.config.GAIA_APPDIRS,
+        'extensions.gaia.allappdirs': preferences.config.GAIA_ALLAPPDIRS,
+        'extensions.gaia.locales_debug_path':
+          preferences.config.GAIA_LOCALES_PATH,
+        'extensions.gaia.official': true,
+        'extensions.gaia.locales_file': preferences.config.LOCALES_FILE,
+        'extensions.gaia.locale_basedir': preferences.config.LOCALE_BASEDIR,
+        'extensions.gaia.device_pixel_suffix':
+          '@' + preferences.config.GAIA_DEV_PIXELS_PER_PX + 'x',
+        'extensions.autoDisableScopes': 0
       });
     });
 
@@ -259,9 +261,9 @@ suite('preferences.js', function() {
       preferences.prefs = {};
       preferences.setDeviceDebugPref();
       assert.deepEqual(preferences.prefs, {
-        'devtools.debugger.enable-content-actors': true,
         'devtools.debugger.prompt-connection': false,
         'devtools.debugger.forbid-certified-apps': false,
+        'javascript.options.discardSystemSource': false,
         'b2g.adb.timeout': 0
       });
     });
@@ -299,19 +301,22 @@ suite('preferences.js', function() {
         ]
       };
       preferences.config = {
-        HOMESCREEN: 'app://homescreen',
+        SYSTEM: 'app://system',
         GAIA_PORT: 8000,
-        GAIA_DOMAIN: 'domain'
+        GAIA_DOMAIN: 'domain',
+        GAIA_ALLAPPDIRS: 'testAppDir1 testAppDir2'
       };
 
       preferences.prefs = {};
       preferences.preparePref();
       assert.deepEqual(preferences.prefs, {
-        'browser.manifestURL': 'app://homescreen8000/manifest.webapp',
-        'b2g.neterror.url': 'app://homescreen8000/net_error.html',
-        'browser.homescreenURL': 'app://homescreen8000/index.html',
+        'b2g.system_manifest_url': 'app://system/manifest.webapp',
+        'b2g.neterror.url': 'app://system/net_error.html',
+        'b2g.system_startup_url': 'app://system/index.html',
         'network.http.max-connections-per-server': 15,
         'dom.mozInputMethod.enabled': true,
+        'dom.webcomponents.enabled': true,
+        'intl.uidirection.qps-plocm': 'rtl',
         'layout.css.sticky.enabled': true,
         'ril.debugging.enabled': false,
         'dom.mms.version': 0x11,

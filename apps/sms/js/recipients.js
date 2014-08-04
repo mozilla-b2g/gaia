@@ -1,4 +1,5 @@
-/*global GestureDetector, Dialog */
+/*global GestureDetector, Dialog, Navigation, SharedComponents, Utils,
+         Settings */
 
 (function(exports) {
   'use strict';
@@ -25,9 +26,10 @@
     this.editable = opts.editable || 'true';
     this.source = opts.source || 'manual';
     this.type = opts.type || '';
-    this.separator = opts.separator || '';
     this.carrier = opts.carrier || '';
     this.className = 'recipient';
+    this.isEmail = Settings.supportEmailRecipient &&
+                   Utils.isEmailAddress(this.number);
 
     // isLookupable
     //  the recipient was accepted by pressing <enter>
@@ -52,7 +54,9 @@
     // is questionable and may be invalid.
     number = this.number[0] === '+' ? this.number.slice(1) : this.number;
 
-    if (this.source === 'manual' && !rdigit.test(number)) {
+    if (this.isEmail) {
+      this.className += ' email';
+    } else if (this.source === 'manual' && !rdigit.test(number)) {
       this.isQuestionable = true;
     }
 
@@ -60,7 +64,7 @@
     // mark it visually for the user.
     //
     if (this.isQuestionable || this.isInvalid) {
-      this.className += ' attention';
+      this.className += ' invalid';
     }
   }
 
@@ -101,8 +105,7 @@
 
   Recipient.FIELDS = [
     'name', 'number', 'email', 'editable', 'source',
-    'type', 'separator', 'carrier',
-    'isQuestionable', 'isInvalid', 'isLookupable'
+    'type', 'carrier', 'isQuestionable', 'isInvalid', 'isLookupable'
   ];
 
   /**
@@ -374,6 +377,7 @@
     var template = setup.template;
     var nodes = [];
     var clone;
+    var outerCss = window.getComputedStyle(outer);
 
     priv.set(this, {
       owner: owner,
@@ -386,16 +390,7 @@
         isTransitioning: false,
         visible: 'singleline'
       },
-      dims: {
-        inner: {
-          height: 0,
-          width: 0
-        },
-        outer: {
-          height: 0,
-          width: 0
-        }
-      }
+      minHeight: parseInt(outerCss.getPropertyValue('min-height'), 10)
     });
 
     clone = inner.cloneNode(true);
@@ -559,7 +554,7 @@
       }
     });
 
-    if (view.state.visible === 'singleline') {
+    if (view.state.visible === 'singleline' && nodes.length) {
       inner.querySelector(':last-child').scrollIntoView(false);
     }
 
@@ -660,11 +655,12 @@
 
     // Once the transition has ended, the set focus to
     // the last child element in the recipients list view
-    view.inner.parentNode.addEventListener('transitionend', function te() {
+    view.outer.addEventListener('transitionend', function te() {
       var last = view.inner.lastElementChild;
       var previous;
 
-      if (location.hash === '#new' && state.visible === 'singleline') {
+      if (Navigation.isCurrentPanel('composer') &&
+          state.visible === 'singleline') {
         while (last !== null && last.isPlaceholder) {
           previous = last.previousElementSibling;
           if (!last.textContent) {
@@ -676,9 +672,7 @@
         if (opts.refocus) {
           opts.refocus.focus();
         }
-      }
-
-      if (last !== null) {
+      } else if (state.visible === 'multiline' && last !== null) {
         last.scrollIntoView(true);
       }
 
@@ -735,17 +729,6 @@
       length = typed.length;
     }
 
-    // Make sure that height of the displayed list is
-    // being tracked. If no previously known height is set,
-    // or it's just zero, update it.
-    if (!view.dims.inner.height) {
-      view.dims.inner.height = view.inner.offsetHeight;
-    }
-
-    if (!view.dims.outer.height) {
-      view.dims.outer.height = view.outer.offsetHeight;
-    }
-
     switch (event.type) {
 
       case 'pan':
@@ -753,12 +736,13 @@
         //
         //  1. The recipients in the list have caused the
         //      container to grow enough to require the
-        //      additional viewable area.
-        //      (>1 visible lines or 1.5x the original size)
+        //      additional viewable area and the view is singleline
+        //      mode originally.
         //  2. The user is "pulling down" the recipient list.
 
         // #1
-        if (view.inner.scrollHeight > (view.dims.inner.height * 1.5)) {
+        if (view.state.visible === 'singleline' &&
+            view.inner.scrollHeight > view.minHeight) {
           // #2
           if (event.detail.absolute.dy > 0) {
             this.visible('multiline');
@@ -1048,20 +1032,15 @@
       };
 
       // build fragment for dialog body
-      var dialogBody = document.createDocumentFragment();
-      if (recipient.type) {
-        var typeElement = document.createElement('span');
-        if (!navigator.mozL10n.get(recipient.type)) {
-          typeElement.textContent = recipient.type;
-        } else {
-          navigator.mozL10n.localize(typeElement, recipient.type);
-        }
-        dialogBody.appendChild(typeElement);
-      }
+      var dialogBody = document.createElement('div');
 
-      dialogBody.appendChild(document.createTextNode(
-        recipient.separator + recipient.carrier + recipient.number
-      ));
+      dialogBody.innerHTML = SharedComponents.phoneDetails({
+        number: recipient.number,
+        type: recipient.type,
+        carrier: recipient.carrier
+      });
+
+      navigator.mozL10n.translate(dialogBody);
 
       // Dialog will have a closure reference to the response
       // object, therefore it's not necessary to pass it around
@@ -1072,7 +1051,7 @@
             value: recipient.name || recipient.number
           },
           body: {
-            value: dialogBody
+            value: dialogBody.firstElementChild
           },
           options: {
             cancel: {

@@ -11,6 +11,7 @@
     "sms":{},
     "storage":{},
     "mobileconnection":{},
+    "alarms":{},
     "contacts":{ "access": "readonly" },
     "settings":{ "access": "readwrite" },
     "audio-channel-notification":{},
@@ -37,10 +38,11 @@
   },
   "default_locale": "en-US",
   "icons": {
-    "60": "/style/icons/Sms_60.png",
-    "90": "/style/icons/Sms_90.png",
-    "120": "/style/icons/Sms_120.png",
-    "135": "/style/icons/Sms_135.png"
+    "84": "/style/icons/sms_84.png",
+    "126": "/style/icons/sms_126.png",
+    "142": "/style/icons/sms_142.png",
+    "189": "/style/icons/sms_189.png",
+    "284": "/style/icons/sms_284.png"
   },
   "orientation": "default",
   "activities": {
@@ -58,7 +60,7 @@
     "share": {
       "href": "/index.html#activity-share",
       "filters": {
-        "type": ["image/*", "audio/*", "video/*"],
+        "type": ["image/*", "audio/*", "video/*", "url"],
         "number": {
           "max": 5
         }
@@ -68,9 +70,20 @@
     }
   },
   "messages": [
+     { "alarm": "/index.html" },
      { "sms-received": "/index.html" },
      { "notification": "/index.html" }
   ],
+  "connections": {
+    "costcontrolSmsQuery": {
+      "description": "Communicate between Usage and Sms",
+      "rules": {
+        "manifestURLs": [
+          "app://costcontrol.gaiamobile.org/manifest.webapp"
+        ]
+      }
+    }
+  },
   "datastores-access": {
     "Gaia_Facebook_Friends": {
       "description": "Facebook Friends"

@@ -6,8 +6,8 @@ define(function(require, exports, module) {
  */
 
 var debug = require('debug')('view:setting-options');
-var attach = require('vendor/attach');
-var View = require('vendor/view');
+var attach = require('attach');
+var View = require('view');
 
 /**
  * Exports
@@ -47,15 +47,24 @@ module.exports = View.extend({
     this.selectedKey = data.selected;
     this.el.innerHTML = this.template(data);
     this.els.ul = this.find('.js-list');
-    data.options.forEach(this.renderOption);
+
+    // we need to pass a boolean flag indicating if the
+    // options should be localized
+    var localizable = data.optionsLocalizable === false ? false : true;
+    data.options.forEach(this.renderOption.bind(this, localizable));
+
+    // Clean up
+    delete this.template;
+
+    debug('rendered');
     return this;
   },
 
-  renderOption: function(option) {
+  renderOption: function(localizable, option) {
     var li = document.createElement('li');
     var isSelected = option.key === this.selectedKey;
 
-    li.textContent = this.localize(option.title);
+    li.textContent = localizable ? this.l10n.get(option.title) : option.title;
     li.setAttribute('data-key', option.key);
     li.className = 'setting-option icon-tick';
     this.els.ul.appendChild(li);
@@ -67,14 +76,12 @@ module.exports = View.extend({
     }
   },
 
-  localize: function(value) {
-    return this.l10n.get(value) || value;
-  },
-
   template: function(data) {
     return '<div class="inner">' +
-      '<h2 class="settings_title icon-back-arrow js-back">' +
-      this.localize(data.header) + '</h2>' +
+      '<h2 class="settings_title">' +
+      '<button class="settings-back-btn icon-back js-back">' +
+      '</button>' +
+      this.l10n.get(data.header) + '</h2>' +
       '<div class="settings_items"><ul class="inner js-list"></ul></div>' +
     '</div>';
   }

@@ -74,6 +74,9 @@ var MockConfigManager = function(config) {
     },
     mRemoveObservers: function() {
       mCallbacks = {};
+    },
+    setConfig: function(newConfig) {
+      config = newConfig;
     }
   };
 };

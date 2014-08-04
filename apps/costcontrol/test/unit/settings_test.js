@@ -1,5 +1,5 @@
 /* global Settings, ConfigManager, Formatting, MocksHelper, MockCommon,
-          MockConfigManager, MockCostControl
+          MockConfigManager, MockCostControl, SimManager
 */
 'use strict';
 
@@ -17,6 +17,7 @@ require('/js/views/BalanceLowLimitView.js');
 require('/js/settings/limitdialog.js');
 require('/js/settings/autosettings.js');
 require('/js/settings/settings.js');
+require('/js/sim_manager.js');
 require('/js/utils/toolkit.js');
 
 
@@ -197,19 +198,19 @@ suite('Settings Test Suite >', function() {
   }
 
   test('Layout postpaid mode is correctly loaded', function(done) {
-    var costControlConfig  = requestToCheckLayout(assertPostpaidLayout, done);
+    var costControlConfig = requestToCheckLayout(assertPostpaidLayout, done);
     setupTestScenario(costControlConfig, 'POSTPAID');
     Settings.initialize();
   });
 
   test('Layout prepaid mode is correctly loaded', function(done) {
-    var costControlConfig  = requestToCheckLayout(assertPrepaidLayout, done);
+    var costControlConfig = requestToCheckLayout(assertPrepaidLayout, done);
     setupTestScenario(costControlConfig, 'PREPAID');
     Settings.initialize();
   });
 
   test('Layout data_usage_only mode is correctly loaded', function(done) {
-    var costControlConfig  = requestToCheckLayout(assertDataUsageOnlyLayout,
+    var costControlConfig = requestToCheckLayout(assertDataUsageOnlyLayout,
                                                   done);
     setupTestScenario(costControlConfig, 'DATA_USAGE_ONLY');
     Settings.initialize();
@@ -232,10 +233,10 @@ suite('Settings Test Suite >', function() {
       ConfigManager.mTriggerCallback('lastDataUsage', lastDataUsage,
                                      {lastCompleteDataReset: new Date() });
 
-      var mobileDataUsage =  Formatting.formatData(
+      var mobileDataUsage = Formatting.formatData(
         Formatting.roundData(lastDataUsage.mobile.total));
 
-      var wifiDataUsage =  Formatting.formatData(
+      var wifiDataUsage = Formatting.formatData(
         Formatting.roundData(lastDataUsage.wifi.total));
 
       assert.equal(mobileUsage.textContent, mobileDataUsage);
@@ -261,7 +262,7 @@ suite('Settings Test Suite >', function() {
       dataLimitCancelButton = dataLimitDialog.querySelector('a.cancel');
       dataLimitSwitchUnitButton = dataLimitDialog.
         querySelector('.switch-unit-button');
-      limitUnitValue =  dataLimitSwitchUnitButton.querySelector('span.tag');
+      limitUnitValue = dataLimitSwitchUnitButton.querySelector('span.tag');
     });
 
     function initDataLimitDialog() {
@@ -595,20 +596,19 @@ suite('Settings Test Suite >', function() {
         dataLimitInput.value = '124.56';
         dataLimitInput.dispatchEvent(evtInput);
 
-        var limitUnitValue =  dataLimitSwitchUnitButton
+        var limitUnitValue = dataLimitSwitchUnitButton
           .querySelector('span.tag');
         assert.equal(limitUnitValue.textContent, 'MB');
         triggerEvent(dataLimitSwitchUnitButton, 'click');
         assert.equal(limitUnitValue.textContent, 'GB');
 
-        sinon.stub(window, 'addNetworkUsageAlarm',
-                   function (dataInterface, dataLimit, callback) {});
+        sinon.stub(SimManager, 'requestDataSimIcc', function() {});
         triggerEvent(dataLimitOkButton, 'click');
 
         assert.equal(ConfigManager.option('dataLimitUnit'), 'GB');
         assert.equal(ConfigManager.option('dataLimitValue'), '124.56');
 
-        window.addNetworkUsageAlarm.restore();
+        SimManager.requestDataSimIcc.restore();
 
         Settings.updateUI.restore();
         done();

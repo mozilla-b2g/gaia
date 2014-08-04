@@ -24,10 +24,29 @@
       ],
       "support_contacts": "mobizilla/mobizilla_support_contacts.json",
       "default_contacts": "mobizilla/mobizilla_contacts.json",
+      "ringtone": {
+        "path": "mobizilla/mobizilla_ringtone.ogg",
+        "name": "Mobizilla ringtone",
+        "id": "builtin:mobizilla_ringtone"
+      },
       "wallpaper": "mobizilla/mobizilla_wallpaper.png",
+      "power": {
+        "poweron": {
+          "video": "mobizilla/mobizilla_poweron.mp4"
+        },
+        "poweroff": {
+          "image": "mobizilla/mobizilla_poweroff.png"
+        }
+      },
       "keyboard": "mobizilla/mobizilla_keyboard.json",
       "network_type": "mobizilla/mobizilla_network_type.json",
-      "known_networks": "mobizilla/mobizilla_known_networks.json"
+      "known_networks": "mobizilla/mobizilla_known_networks.json",
+      "nfc": true,
+      "sms": "mobizilla/mobizilla_sms.json",
+      "data_ftu": true,
+      "search": "mobizilla/mobizilla_search.json",
+      "default_search": "mobizilla/mobizilla_default_search.json",
+      "topsites": "mobizilla/mobizilla_topsites.json"
     }
   ]
 }

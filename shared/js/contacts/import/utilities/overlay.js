@@ -38,12 +38,13 @@ var utils = window.utils || {};
     this.update = function(value) {
       if (value && value <= total && value >= counter) {
         counter = value;
-        progressElement.setAttribute('value', (counter * 100) / total);
       } else {
-        progressElement.setAttribute('value', (++counter * 100) / total);
+        counter++;
       }
-       showMessage();
-     };
+      progressElement.setAttribute('value',
+        ((counter * 100) / total).toFixed()); // Percent fraction is not needed.
+      showMessage();
+    };
 
     this.setTotal = function(ptotal) {
       total = ptotal;
@@ -76,6 +77,9 @@ var utils = window.utils || {};
     overlay.classList.remove('fade-out');
     overlay.classList.add('fade-in');
     utils.overlay.isAnimationPlaying = true;
+    // Custom event that can be used to apply (screen reader) visibility
+    // changes.
+    window.dispatchEvent(new CustomEvent('loadingoverlayshowing'));
     overlay.addEventListener('animationend', function ov_onFadeIn(ev) {
       utils.overlay.isAnimationPlaying = false;
       overlay.removeEventListener('animationend', ov_onFadeIn);
@@ -114,6 +118,7 @@ var utils = window.utils || {};
   Object.defineProperty(utils.overlay, 'oncancel', {
     set: function(cancelCb) {
       if (typeof cancelCb === 'function') {
+        cancelButton.disabled = false;
         cancelButton.onclick = function on_cancel(e) {
           delete cancelButton.onclick;
           cancelCb();
@@ -156,6 +161,9 @@ var utils = window.utils || {};
     overlay.classList.remove('fade-in');
     overlay.classList.add('fade-out');
     utils.overlay.isAnimationPlaying = true;
+    // Custom event that can be used to apply (screen reader) visibility
+    // changes.
+    window.dispatchEvent(new CustomEvent('loadingoverlayhiding'));
     overlay.addEventListener('animationend', function ov_onFadeOut(ev) {
       utils.overlay.isAnimationPlaying = false;
       overlay.removeEventListener('animationend', ov_onFadeOut);

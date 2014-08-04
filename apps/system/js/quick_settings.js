@@ -75,6 +75,7 @@ var QuickSettings = {
             dataType = label[conns[j].data.type] || dataType;
           }
           this.data.dataset.network = dataType;
+          this.setAccessibilityAttributes(this.data, 'dataButton', dataType);
         }.bind(this));
       }
 
@@ -88,6 +89,8 @@ var QuickSettings = {
         } else {
           delete this.data.dataset.enabled;
         }
+        this.setAccessibilityAttributes(this.data, 'dataButton',
+          this.data.dataset.network);
       }.bind(this));
     }
   },
@@ -116,9 +119,12 @@ var QuickSettings = {
       // Set to the initializing state to block user interaction until the
       // operation completes. (unless we are being called for the first time,
       // where Bluetooth is already initialize
-      if (!btFirstSet)
+      if (!btFirstSet) {
         self.bluetooth.dataset.initializing = 'true';
+      }
       btFirstSet = false;
+
+      self.setAccessibilityAttributes(self.bluetooth, 'bluetoothButton');
     });
     window.addEventListener('bluetooth-adapter-added', this);
     window.addEventListener('bluetooth-disabled', this);
@@ -151,6 +157,8 @@ var QuickSettings = {
         self.wifi.dataset.initializing = 'true';
       }
       wifiFirstSet = false;
+
+      self.setAccessibilityAttributes(self.wifi, 'wifiButton');
     });
     window.addEventListener('wifi-enabled', this);
     window.addEventListener('wifi-disabled', this);
@@ -169,15 +177,28 @@ var QuickSettings = {
 
   monitorAirplaneModeChange: function() {
     var self = this;
-    SettingsListener.observe('ril.radio.disabled', false, function(value) {
-      self.data.dataset.airplaneMode = value;
-      if (value) {
-        self.data.classList.add('quick-settings-airplane-mode');
-        self.airplaneMode.dataset.enabled = 'true';
-      } else {
-        self.data.classList.remove('quick-settings-airplane-mode');
-        delete self.airplaneMode.dataset.enabled;
+    SettingsListener.observe('airplaneMode.status', false, function(value) {
+      delete self.airplaneMode.dataset.enabling;
+      delete self.airplaneMode.dataset.disabling;
+
+      self.data.dataset.airplaneMode = (value === 'enabled');
+      switch (value) {
+        case 'enabled':
+          self.data.classList.add('quick-settings-airplane-mode');
+          self.airplaneMode.dataset.enabled = 'true';
+          break;
+        case 'disabled':
+          self.data.classList.remove('quick-settings-airplane-mode');
+          delete self.airplaneMode.dataset.enabled;
+          break;
+        case 'enabling':
+          self.airplaneMode.dataset.enabling = 'true';
+          break;
+        case 'disabling':
+          self.airplaneMode.dataset.disabling = 'true';
+          break;
       }
+      self.setAccessibilityAttributes(self.airplaneMode, 'airplaneMode');
     });
   },
 
@@ -248,11 +269,13 @@ var QuickSettings = {
       case 'bluetooth-adapter-added':
       case 'bluetooth-disabled':
         delete this.bluetooth.dataset.initializing;
+        this.setAccessibilityAttributes(this.bluetooth, 'bluetoothButton');
         break;
       // unlock wifi toggle
       case 'wifi-enabled':
         delete this.wifi.dataset.initializing;
         this.wifi.dataset.enabled = 'true';
+        this.setAccessibilityAttributes(this.wifi, 'wifiButton');
         if (this.toggleAutoConfigWifi) {
           // Check whether it found a wifi to connect after a timeout.
           this.wifiStatusTimer = setTimeout(this.autoConfigWifi.bind(this),
@@ -262,6 +285,7 @@ var QuickSettings = {
       case 'wifi-disabled':
         delete this.wifi.dataset.initializing;
         delete this.wifi.dataset.enabled;
+        this.setAccessibilityAttributes(this.wifi, 'wifiButton');
         if (this.toggleAutoConfigWifi) {
           clearTimeout(this.wifiStatusTimer);
           this.wifiStatusTimer = null;
@@ -303,6 +327,24 @@ var QuickSettings = {
     }
   },
 
+  /**
+   * Set aria-label and aria-pressed attributes for the appropriate buttons.
+   * @param {Object} button Element.
+   * @param {String} label Button label.
+   * @param {?String} type Optional type attribute for l10n.
+   */
+  setAccessibilityAttributes: function(button, label, type) {
+    label += button.dataset.enabled === undefined ? '-off' : '-on';
+    if (button.dataset.initializing !== undefined) {
+      label += '-initializing';
+    }
+
+    button.setAttribute('aria-label', navigator.mozL10n.get(label, {
+      type: type || ''
+    }));
+    button.setAttribute('aria-pressed', button.dataset.enabled !== undefined);
+  },
+
   /* Auto-config wifi if user enabled wifi from quick settings bar.
    * If there are no known networks around, wifi settings page
    * will be opened. Otherwise nothing will be done.
@@ -334,11 +376,7 @@ var QuickSettings = {
   }
 };
 
-if (navigator.mozL10n &&
-    (navigator.mozL10n.readyState == 'complete' ||
-      navigator.mozL10n.readyState == 'interactive')) {
-  QuickSettings.init();
-} else {
-  window.addEventListener('localized', QuickSettings.init.bind(QuickSettings));
+// unit tests call init() manually
+if (navigator.mozL10n) {
+  navigator.mozL10n.once(QuickSettings.init.bind(QuickSettings));
 }
-

@@ -164,6 +164,7 @@ define(function(require) {
         listFragment.appendChild(li);
       }.bind(this));
       this._elements.list.appendChild(listFragment);
+      this._elements.mainButton.hidden = false;
     },
 
     /**

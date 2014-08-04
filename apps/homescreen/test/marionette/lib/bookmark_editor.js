@@ -3,7 +3,7 @@ var BookmarkEditor = function b_ctor(client) {
 };
 
 BookmarkEditor.Selectors = {
-  'mozbrowser': '.inline-activity.active > iframe[mozbrowser]',
+  'mozbrowser': '.inline-activity.active iframe[mozbrowser]',
   'bookmarkAddButton': '#add-button',
   'bookmarkEditButton': '#edit-button',
   'bookmarkTitleField': '#bookmark-title',

@@ -1,5 +1,6 @@
 Keyboards.ta = {
   label: 'Tamil',
+  shortLabel: 'Ta',
   imEngine: 'india',
   menuLabel: 'தமிழ்',
   secondLayout: true,

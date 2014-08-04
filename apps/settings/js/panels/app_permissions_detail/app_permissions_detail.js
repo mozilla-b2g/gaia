@@ -71,21 +71,38 @@ define(function(require) {
         elements.list.innerHTML = '';
       }
 
-      var hasInsetedPermissionSelectOptions = {};
-      table.explicitCertifiedPermissions.forEach(function(perm) {
-        if (hasInsetedPermissionSelectOptions[perm.permission]) {
-          return;
-        }
-        var value = mozPerms.get(perm.explicitPermission, app.manifestURL,
+      table.plainPermissions.forEach(function(perm) {
+        var value = mozPerms.get(perm, app.manifestURL,
           app.origin, false);
-        if (value === 'unknown') {
-          return;
+        if (this._isExplicitPerm(app, perm, value)) {
+          this._insertPermissionSelect(perm, value);
         }
-        hasInsetedPermissionSelectOptions[perm.permission] = true;
-        this._insertPermissionSelect(perm.permission, value);
-      }.bind(this));
+      }, this);
+
+      table.composedPermissions.forEach(function appIterator(perm) {
+        var value = null;
+        var display = table.accessModes.some(function modeIterator(mode) {
+          var composedPerm = perm + '-' + mode;
+          value = mozPerms.get(composedPerm, app.manifestURL, app.origin,
+            false);
+          if (this._isExplicitPerm(app, composedPerm, value)) {
+            return true;
+          }
+          return false;
+        }, this);
+
+        if (display) {
+          this._insertPermissionSelect(perm, value);
+        }
+      }, this);
 
       elements.header.hidden = !elements.list.children.length;
+    },
+
+    _isExplicitPerm: function pd_shouldDisplayPerm(app, perm, value) {
+      var isExplicit = mozPerms.isExplicit(perm, app.manifestURL,
+                                           app.origin, false);
+      return (isExplicit && value !== 'unknown');
     },
 
     /**
@@ -134,12 +151,10 @@ define(function(require) {
      */
     _insertPermissionSelect:
       function pd__insert_permission_select(perm, value) {
-        var _ = window.navigator.mozL10n.get;
         var item = document.createElement('li');
         var content = document.createElement('p');
         var contentL10nId = 'perm-' + perm.replace(':', '-');
-        content.textContent = _(contentL10nId);
-        content.dataset.l10nId = contentL10nId;
+        content.setAttribute('data-l10n-id', contentL10nId);
 
         var fakeSelect = document.createElement('span');
         fakeSelect.classList.add('button', 'icon', 'icon-dialog');
@@ -149,17 +164,17 @@ define(function(require) {
 
         var askOpt = document.createElement('option');
         askOpt.value = 'prompt';
-        askOpt.text = _('ask');
+        askOpt.setAttribute('data-l10n-id', 'ask');
         select.add(askOpt);
 
         var denyOpt = document.createElement('option');
         denyOpt.value = 'deny';
-        denyOpt.text = _('deny');
+        denyOpt.setAttribute('data-l10n-id', 'deny');
         select.add(denyOpt);
 
         var allowOpt = document.createElement('option');
         allowOpt.value = 'allow';
-        allowOpt.text = _('allow');
+        allowOpt.setAttribute('data-l10n-id', 'allow');
         select.add(allowOpt);
 
         var opt = select.querySelector('[value="' + value + '"]');
@@ -188,6 +203,7 @@ define(function(require) {
 
       if (confirm(_('uninstallConfirm', {app: name}))) {
         mozApps.mgmt.uninstall(this._app);
+        this.back();
       }
     }
   };

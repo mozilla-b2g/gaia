@@ -5,19 +5,20 @@
     <meta charset="utf-8" />
     <title>Wallpaper</title>
     <link rel="stylesheet" type="text/css" href="style/wallpaper.css"/>
-    <link rel="stylesheet" type="text/css" href="shared/style_unstable/buttons.css"/>
+    <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
     <!-- Localization -->
     <link rel="resource" type="application/l10n" href="locales/locales.ini" />
     <!-- Shared code -->
     <script type="text/javascript" src="shared/js/l10n.js"></script>
+    <script defer src="shared/js/font_size_utils.js"></script>
     <script defer src="shared/js/gesture_detector.js"></script>
     <!-- Specific code -->
     <script type="text/javascript" defer src="js/share.js"></script>
   </head>
 
   <body>
-    <div id="preview">
-      <img id="previewImage" />
+    <div id="preview" >
+      <img id="previewImage" hidden />
     </div>
     <div id="buttons">
       <button id="cancel" data-l10n-id="cancel"></button>

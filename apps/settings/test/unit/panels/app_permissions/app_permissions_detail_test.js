@@ -1,12 +1,5 @@
 /* global MockMozApps, MockPermissionSettings */
 'use strict';
-mocha.globals([
-  'MockL10n',
-  'MockPermissionSettings',
-  'MockMozApps',
-  'MockManifestHelper'
-]);
-
 suite('app permission detail > ', function() {
   var mockL10n, realL10n;
   var mockConfirmDialog, realConfirmDialog;
@@ -80,11 +73,8 @@ suite('app permission detail > ', function() {
   var mock_permissionsTable = {
     composedPermissions: ['testComposedPermissions'],
     accessModes: ['read', 'write', 'create'],
-    explicitCertifiedPermissions: [
-      {
-        explicitPermission: 'testComposedPermissions-read',
-        permission: 'testComposedPermissions'
-      }
+    plainPermissions: [
+      'testPlainPermissions'
     ]
   };
 
@@ -132,8 +122,13 @@ suite('app permission detail > ', function() {
     var mock_perm_not_composed = 'testNotComposedPermission';
     setup(function() {
       MockPermissionSettings.set('testComposedPermissions-read', 'prompt');
+      MockPermissionSettings.set('testPlainPermissions', 'allow');
       permissionDetail = PermissionDetail();
       permissionDetail.init(mock_elements, mock_permissionsTable);
+    });
+
+    teardown(function() {
+      MockPermissionSettings.mTeardown();
     });
 
     test('selectValueChanged', function() {
@@ -153,9 +148,19 @@ suite('app permission detail > ', function() {
 
     test('showAppDetails, test the content of detail dialog', function() {
       permissionDetail.showAppDetails(mock_app);
-      var selectOptions = mock_elements.list.children[0];
-      var target = selectOptions.querySelector('[selected="true"]');
+
+      var selectOption = mock_elements.list.children[0];
+      var target = selectOption.querySelector('[selected="true"]');
+      var selectItem = selectOption.querySelector('select');
+      assert.equal(target.value, 'allow');
+      assert.equal(selectItem.dataset.perm, 'testPlainPermissions');
+
+      selectOption = mock_elements.list.children[1];
+      target = selectOption.querySelector('[selected="true"]');
+      selectItem = selectOption.querySelector('select');
       assert.equal(target.value, 'prompt');
+      assert.equal(selectItem.dataset.perm, 'testComposedPermissions');
+
       assert.equal(permissionDetail._elements.detailTitle.textContent,
         mock_app.manifest.name);
       assert.equal(permissionDetail._elements.uninstallButton.disabled,
@@ -197,11 +202,15 @@ suite('app permission detail > ', function() {
     });
 
     test('uninstall', function() {
+      this.sinon.stub(permissionDetail, 'back');
+
       MockMozApps.mSetApps([mock_app]);
       permissionDetail.showAppDetails(mock_app);
       permissionDetail.uninstall();
       assert.equal(MockMozApps.mApps.length, 0,
         'should have no memeber in mozAppList if we remove it.');
+      assert.isTrue(permissionDetail.back.called,
+        'we would go back to previous panel');
     });
   });
 });

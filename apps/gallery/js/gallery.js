@@ -68,9 +68,6 @@ const LAYOUT_MODE = {
 
 var currentView;
 
-// This will be set to "ltr" or "rtl" when we get our localized event
-var languageDirection;
-
 // Register orientation watcher in ScreenLayout
 ScreenLayout.watch('portrait', '(orientation: portrait)');
 var isPortrait = ScreenLayout.getCurrentLayout('portrait');
@@ -122,25 +119,24 @@ var lastFocusedThumbnail = null;
 
 var currentOverlay;  // The id of the current overlay or null if none.
 
-// The localized event is the main entry point for the app.
-// We don't do anything until we receive it.
-navigator.mozL10n.ready(function showBody() {
-  // Set the 'lang' and 'dir' attributes to <html> when the page is translated
-  document.documentElement.lang = navigator.mozL10n.language.code;
-  document.documentElement.dir = navigator.mozL10n.language.direction;
+// Have we completed our first scan yet?
+var firstScanDone = false;
 
+// mozL10n.once is the main entry point for the app.
+navigator.mozL10n.once(function showBody() {
   // <body> children are hidden until the UI is translated
   document.body.classList.remove('hidden');
+
+  // Tell performance monitors that our chrome is visible
+  window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
 
   // load frame_script.js for preview mode and show loading background
   if (!isPhone) {
     loader.load('js/frame_scripts.js');
   }
 
-  // Now initialize the rest of the app. But don't re-initialize if the user
-  // switches languages when the app is already running
-  if (!photodb)
-    init();
+  // Now initialize the rest of the app.
+  init();
 });
 
 function init() {
@@ -162,9 +158,6 @@ function init() {
     cleanupCrop();
   };
 
-  // In crop view, the done button finishes the pick
-  $('crop-done-button').onclick = cropAndEndPick;
-
   // The camera buttons should launch the camera app
   fullscreenButtons.camera.onclick = launchCameraApp;
 
@@ -183,6 +176,9 @@ function init() {
   };
   // Handle resize events
   window.onresize = resizeHandler;
+
+  // Tell performance monitors that our chrome is ready to interact with.
+  window.dispatchEvent(new CustomEvent('moz-chrome-interactive'));
 
   // If we were not invoked by an activity, then start off in thumbnail
   // list mode, and fire up the MediaDB object.
@@ -253,7 +249,8 @@ function initDB() {
       return;
     }
 
-    loader.load('js/metadata_scripts.js', function() {
+    loader.load(['js/metadata_scripts.js',
+                 'shared/js/media/crop_resize_rotate.js'], function() {
       loaded = true;
       metadataParser(file, onsuccess, onerror, bigFile);
     });
@@ -316,6 +313,13 @@ function initDB() {
     // Hide the scanning indicator
     $('progress').classList.add('hidden');
     $('throbber').classList.remove('throb');
+
+    // If this was the first scan after startup, then tell
+    // performance monitors that the app is finally fully loaded and stable.
+    if (!firstScanDone) {
+      firstScanDone = true;
+      window.dispatchEvent(new CustomEvent('moz-app-loaded'));
+    }
   };
 
   // On devices with internal and external device storage, this handler is
@@ -343,6 +347,9 @@ function initDB() {
   photodb.ondeleted = function(event) {
     event.detail.forEach(fileDeleted);
   };
+
+  // XXX: remove this hack as part of fixing bug 1046995
+  doNotScanInBackgroundHack(photodb);
 }
 
 // Pass the filename of the poster image and get the video file back
@@ -403,12 +410,24 @@ function initThumbnails() {
   // Temporary arrays to hold enumerated files
   var batch = [];
   var batchsize = PAGE_SIZE;
+  var firstBatchDisplayed = false;
 
   photodb.enumerate('date', null, 'prev', function(fileinfo) {
     if (fileinfo) {
       // For a pick activity, don't display videos
       if (pendingPick && fileinfo.metadata.video)
         return;
+
+      // Bug 1003036 fixed an issue where explicitly created preview
+      // images could be saved with fractional sizes. We don't do that
+      // anymore, but we still need to clean up existing bad data here.
+      var metadata = fileinfo.metadata;
+      if (metadata &&
+          metadata.preview &&
+          metadata.preview.filename) {
+        metadata.preview.width = Math.floor(metadata.preview.width);
+        metadata.preview.height = Math.floor(metadata.preview.height);
+      }
 
       batch.push(fileinfo);
       if (batch.length >= batchsize) {
@@ -424,6 +443,13 @@ function initThumbnails() {
   function flush() {
     batch.forEach(thumb);
     batch.length = 0;
+    if (!firstBatchDisplayed) {
+      firstBatchDisplayed = true;
+      // Tell performance monitors that "above the fold" content is displayed
+      // and is ready to interact with.
+      window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
+      window.dispatchEvent(new CustomEvent('moz-content-interactive'));
+    }
   }
 
   function thumb(fileinfo) {
@@ -438,6 +464,13 @@ function initThumbnails() {
     if (files.length === 0) { // If we didn't find anything
       showOverlay('scanning');
     }
+
+    // Send a custom event to performance monitors to note that we're done
+    // enumerating the database at this point. We won't send the final
+    // moz-app-loaded event until we're completely stable and have
+    // finished scanning.
+    PerformanceTestingHelper.dispatch('media-enumerated');
+
     // Now that we've enumerated all the photos and videos we already know
     // about go start looking for new photos and videos.
     photodb.scan();
@@ -633,11 +666,14 @@ function setView(view) {
       // Clear the selection, if there is one
       Array.forEach(thumbnails.querySelectorAll('.selected.thumbnailImage'),
                     function(elt) { elt.classList.remove('selected'); });
-      if (!isPhone)
+      // On large devices we need to display the new current file after deletion
+      // But if we just deleted the last file then we don't do this
+      if (!isPhone && currentFileIndex !== -1)
         showFile(currentFileIndex);
       break;
     case LAYOUT_MODE.fullscreen:
-      if (!isPhone && (view === LAYOUT_MODE.list) && !isPortrait) {
+      if (!isPhone && (view === LAYOUT_MODE.list) && !isPortrait &&
+          currentFileIndex !== -1) {
         // we'll reuse and resize the fullscreen window
         // when go back to thumbnailList mode from fullscreen
         // and also does editView in landscape
@@ -727,8 +763,7 @@ function setNFCSharing(enable) {
 var pendingPick;
 var pickType;
 var pickWidth, pickHeight;
-var pickedFile;
-var cropURL;
+var pickedFileInfo;
 var cropEditor;
 
 function startPick() {
@@ -741,35 +776,48 @@ function startPick() {
   else {
     pickWidth = pickHeight = 0;
   }
-  // We need frame_scripts and ImageEditor for cropping the photo
-  loader.load(['js/frame_scripts.js', 'js/ImageEditor.js'], function() {
-    setView(LAYOUT_MODE.pick);
-  });
+
+  setView(LAYOUT_MODE.pick);
 }
 
 // Called when the user clicks on a thumbnail in pick mode
 function cropPickedImage(fileinfo) {
-  pickedFile = fileinfo;
+  pickedFileInfo = fileinfo;
 
   // Do we actually want to allow the user to crop the image?
   var nocrop = pendingPick.source.data.nocrop;
 
   if (nocrop) {
-    // If we're not cropping we don't want the word "Crop" in the title bar
+    // If we're not cropping show file name in the title bar
     // XXX: UX will probably get rid of this title bar soon, anyway.
-    $('crop-header').textContent = '';
+    var fileName = pickedFileInfo.name.split('/').pop();
+    $('crop-header').textContent =
+     fileName.substr(0, fileName.lastIndexOf('.')) || fileName;
   }
 
   setView(LAYOUT_MODE.crop);
 
   // Before the picked image is loaded, the done button is disabled
   // to avoid users picking a black/empty image.
-  $('crop-done-button').disabled = true;
-  photodb.getFile(pickedFile.name, function(file) {
-    cropURL = URL.createObjectURL(file);
+  var doneButton = $('crop-done-button');
+  doneButton.disabled = true;
 
-    var previewURL;
-    var previewData = pickedFile.metadata.preview;
+  // We need all of these for cropping the photo:
+  //  - ImageEditor to display the crop overlay.
+  //  - frame_scripts because it has gesture_detector in it.
+  //  - crop_resize_rotate.js scripts for cropResizeRotate().
+  loader.load(['js/frame_scripts.js',
+               'shared/js/media/crop_resize_rotate.js',
+               'js/ImageEditor.js'], gotScripts);
+
+  // When the scripts we need are loaded, load the picked file we need
+  function gotScripts() {
+    photodb.getFile(pickedFileInfo.name, gotFile);
+  }
+
+  // This is called with the file that needs to be cropped
+  function gotFile(pickedFile) {
+    var previewData = pickedFileInfo.metadata.preview;
     if (!previewData) {
       // If there is no preview at all, this is a small image and
       // it is its own preview. Just crop with the full-size image
@@ -781,7 +829,7 @@ function cropPickedImage(fileinfo) {
       var storage = navigator.getDeviceStorage('pictures');
       var getreq = storage.get(previewData.filename);
       getreq.onsuccess = function() {
-        startCrop(URL.createObjectURL(getreq.result));
+        startCrop(getreq.result);
       };
       // If we fail to get the preview file, just use the full-size image
       getreq.onerror = function() {
@@ -791,25 +839,74 @@ function cropPickedImage(fileinfo) {
     else {
       // Otherwise, use the internal EXIF preview.
       // This should be the normal case.
-      startCrop(URL.createObjectURL(file.slice(previewData.start,
-                                               previewData.end,
-                                               'image/jpeg')));
+      startCrop(pickedFile.slice(previewData.start,
+                                 previewData.end,
+                                 'image/jpeg'));
     }
 
-    function startCrop(previewURL) {
-      cropEditor = new ImageEditor(cropURL, $('crop-frame'), {},
-                                   cropEditorReady, previewURL);
+    function startCrop(previewBlob) {
+      // Before the user can crop the image we have to create a
+      // preview of the image at the correct size and orientation
+      // if we do not already have one.
+      var blob, metadata, outputSize, useSpinner;
+
+      if (previewBlob) {
+        // If there is a preview, use it at full size. If we're using
+        // a preview we need to pass the size of the preview, but the
+        // EXIF orientation data from the fullsize image.
+        blob = previewBlob;
+        metadata = {
+          width: previewData.width,
+          height: previewData.height,
+          rotation: pickedFileInfo.metadata.rotation,
+          mirrored: pickedFileInfo.metadata.mirrored
+        };
+        outputSize = null;
+        useSpinner = false;
+      }
+      else {
+        // If there is no preview, use the picked file, but specify a maximum
+        // size so we don't decode at a size larger than needed.
+        blob = pickedFile;
+        metadata = pickedFileInfo.metadata;
+        var windowSize = window.innerWidth * window.innerHeight *
+          window.devicePixelRatio * window.devicePixelRatio;
+        outputSize = Math.min(windowSize,
+                              CONFIG_MAX_PICK_PIXEL_SIZE ||
+                              CONFIG_MAX_IMAGE_PIXEL_SIZE);
+        useSpinner = metadata.width * metadata.height > outputSize;
+      }
+
+      // Make sure the image is rotated correctly so that it appears
+      // right side up in the crop UI. Note that we only display a spinner
+      // here if we have to downsample a large image.
+      if (useSpinner) {
+        showSpinner();
+      }
+      cropResizeRotate(blob, null, outputSize, null, metadata, gotRotatedBlob);
+    }
+
+    function gotRotatedBlob(error, rotatedBlob) {
+      hideSpinner();
+      if (error) {
+        console.error('Error while rotating image:', error);
+        rotatedBlob = pickedFile;
+      }
+      cropEditor = new ImageEditor(rotatedBlob, $('crop-frame'), {},
+                                   cropEditorReady, true);
     }
 
     function cropEditorReady() {
       // Enable the done button so that users can finish picking image.
-      $('crop-done-button').disabled = false;
+      doneButton.onclick = cropAndEndPick;
+      doneButton.disabled = false;
+
       // If the initiating app doesn't want to allow the user to crop
       // the image, we don't display the crop overlay. But we still use
       // this image editor to preview the image.
       if (nocrop) {
         // Set a fake crop region even though we won't display it
-        // so that getCroppedRegionBlob() works.
+        // so that hasBeenCropped() works.
         cropEditor.cropRegion.left = cropEditor.cropRegion.top = 0;
         cropEditor.cropRegion.right = cropEditor.dest.w;
         cropEditor.cropRegion.bottom = cropEditor.dest.h;
@@ -822,114 +919,104 @@ function cropPickedImage(fileinfo) {
       else
         cropEditor.setCropAspectRatio(); // free form cropping
     }
-  });
-}
 
-function cropAndEndPick() {
-  if (Array.isArray(pickType)) {
-    if (pickType.length === 0 ||
-        pickType.indexOf(pickedFile.type) !== -1 ||
-        pickType.indexOf('image/*') !== -1) {
-      pickType = pickedFile.type;
-    }
-    else if (pickType.indexOf('image/png') !== -1) {
-      pickType = 'image/png';
-    }
-    else {
-      pickType = 'image/jpeg';
-    }
-  }
-  else if (pickType === 'image/*') {
-    pickType = pickedFile.type;
-  }
+    function cropAndEndPick() {
+      // First, figure out what kind of image to return to the requesting app.
+      // If the activity request specifically included 'image/jpeg' or
+      // 'image/png', then we'll use that type. Otherwise, if a generic
+      // 'image/*' was requested (or if an unsupported type was requested)
+      // then we use null as the type. This value is passed to
+      // cropResizeRotate() and will leave the image unchanged if possible
+      // or will use jpeg if changes are needed.
+      if (Array.isArray(pickType)) {
+        if (pickType.indexOf(pickedFileInfo.type) !== -1) {
+          pickType = pickedFileInfo.type;
+        }
+        else if (pickType.indexOf('image/jpeg') !== -1) {
+          pickType = 'image/jpeg';
+        }
+        else if (pickType.indexOf('image/png') !== -1) {
+          pickType = 'image/png';
+        }
+        else {
+          pickType = null; // Return unchanged or convert to JPEG
+        }
+      }
+      else if (pickType === 'image/*') {
+        pickType = null;   // Return unchanged or convert to JPEG
+      }
 
-  // If we're not changing the file type or resizing the image and if
-  // we're not cropping, or if the user did not crop, then we can just
-  // use the file as it is.
-  if (pickType === pickedFile.type &&
-      !pickWidth && !pickHeight &&
-      (pendingPick.source.data.nocrop || !cropEditor.hasBeenCropped())) {
-    photodb.getFile(pickedFile.name, endPick);
-  }
-  else {
-    cropEditor.getCroppedRegionBlob(pickType, pickWidth, pickHeight,
-                                    convertToFileBackedBlob);
-  }
-}
+      if (pickType && pickType !== 'image/jpeg' && pickType !== 'image/png')
+        pickType = null;   // Return unchanged or convert to JPEG
 
-// HACK HACK HACK
-//
-// For bug 975599, we need to use a file backed blob in pendingPick.postResult
-// so this function saves the blob to a temporary file in device storage and
-// then reads that file back and passes that to endPick.
-//
-// When the underlying bug is fixed, we can remove this function and just
-// call endPick directly as the getCroppedRegionBlob callback.
-//
-
-function convertToFileBackedBlob(memoryBackedBlob) {
-  var TEMP_IMAGE_DIR = '.gallery/cropped';
-  var storage = navigator.getDeviceStorage('pictures');
-
-  function saveFileBackedBlob() {
-    // Pick a random number, remove the "0." prefix from it,
-    // add a dot then add the mime type with the "image/" removed from it
-    // to get a unique temporary filename for each cropped image
-    var filename = TEMP_IMAGE_DIR + '/' +
-                   Math.random().toString().substring(2) + '.' +
-                   memoryBackedBlob.type.substring(6);
-
-    function onerror() {
-      console.error('Failed to return file backed blob');
-      endPick(memoryBackedBlob);
-    }
-
-    var write = storage.addNamed(memoryBackedBlob, filename);
-    write.onsuccess = function() {
-      var read = storage.get(filename);
-      read.onsuccess = function() {
-        endPick(read.result);
-      };
-      read.onerror = onerror;
-    };
-    write.onerror = onerror;
-  }
-
-  // Clean up files with lastmodified date > 1 day in TEMP_IMAGE_DIR and
-  // then save the blob to a temporary file in device storage
-  var yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
-  var cursor = storage.enumerate(TEMP_IMAGE_DIR);
-  cursor.onsuccess = function() {
-    function next() {
-      cursor.continue();
-    }
-    var file = cursor.result;
-    if (file) {
-      if (file.lastModifiedDate < yesterday) {
-        var request = storage.delete(file.name);
-        request.onsuccess = request.onerror = next;
+      // In order to determine the cropRegion and outputSize arguments to
+      // cropResizeRotate() below we need to know the actual image size.
+      // If the image has EXIF rotation, we need to take that into account.
+      var fullImageWidth, fullImageHeight;
+      var rotation = pickedFileInfo.metadata.rotation || 0;
+      if (rotation === 90 || rotation === 270) {
+        fullImageWidth = pickedFileInfo.metadata.height;
+        fullImageHeight = pickedFileInfo.metadata.width;
       }
       else {
-       next();
+        fullImageWidth = pickedFileInfo.metadata.width;
+        fullImageHeight = pickedFileInfo.metadata.height;
       }
+
+      var cropRegion;
+
+      if (pendingPick.source.data.nocrop || !cropEditor.hasBeenCropped()) {
+        cropRegion = null;
+      }
+      else {
+        // Get the user's crop region from the crop editor
+        cropRegion = cropEditor.getCropRegion();
+
+        // Scale to match the actual image size
+        cropRegion.left = Math.round(cropRegion.left * fullImageWidth);
+        cropRegion.top = Math.round(cropRegion.top * fullImageHeight);
+        cropRegion.width = Math.round(cropRegion.width * fullImageWidth);
+        cropRegion.height = Math.round(cropRegion.height * fullImageHeight);
+      }
+
+      var outputSize;
+      if (pickWidth && pickHeight) {
+        outputSize = { width: pickWidth, height: pickHeight };
+      }
+      else if (CONFIG_MAX_PICK_PIXEL_SIZE) {
+        outputSize = CONFIG_MAX_PICK_PIXEL_SIZE;
+      }
+      else {
+        outputSize = null;
+      }
+
+      // show spinner if cropResizeRotate will downsample image
+      if (cropRegion !== null ||
+          outputSize !== null ||
+          (pickedFileInfo.metadata !== undefined &&
+           pickedFileInfo.metadata.rotation !== undefined &&
+           pickedFileInfo.metadata.rotation) ||
+          (pickedFileInfo.metadata.mirrored !== undefined &&
+           pickedFileInfo.metadata.mirrored)) {
+        showSpinner();
+      }
+      cropResizeRotate(pickedFile, cropRegion, outputSize, pickType,
+                       pickedFileInfo.metadata,
+                       function(error, blob) {
+                         hideSpinner();
+                         if (error) {
+                           console.error('while resizing image: ' + error);
+                           blob = pickedFile;
+                         }
+                         endPick(blob);
+                       });
     }
-    else {
-      saveFileBackedBlob();
-    }
-  };
-  cursor.onerror = function() {
-    // We expect an error if the cropped directory does not exist yet,
-    // so only report it if it is something unexpected.
-    if (cursor.error.name !== 'NotFoundError') {
-      console.error('Failed to clean temp directory', cursor.error.name);
-    }
-    saveFileBackedBlob();
-  };
+  }
 }
 
 function endPick(blob) {
   pendingPick.postResult({
-    type: pickType,
+    type: blob.type,
     blob: blob
   });
   cleanupPick();
@@ -941,10 +1028,6 @@ function cancelPick() {
 }
 
 function cleanupCrop() {
-  if (cropURL) {
-    URL.revokeObjectURL(cropURL);
-    cropURL = null;
-  }
   if (cropEditor) {
     cropEditor.destroy();
     cropEditor = null;
@@ -954,20 +1037,9 @@ function cleanupCrop() {
 function cleanupPick() {
   cleanupCrop();
   pendingPick = null;
-  pickedFile = null;
+  pickedFileInfo = null;
   setView(LAYOUT_MODE.list);
 }
-
-// XXX If the user goes to the homescreen or switches to another app
-// the pick request is implicitly cancelled
-// Remove this code when https://github.com/mozilla-b2g/gaia/issues/2916
-// is fixed and replace it with an onerror handler on the activity to
-// switch out of pickView.
-window.addEventListener('visibilitychange', function() {
-  if (document.hidden && pendingPick)
-    cancelPick();
-});
-
 
 //
 // Event handlers
@@ -1002,7 +1074,7 @@ function thumbnailClickHandler(evt) {
 function updateFocusThumbnail(n) {
   var previousIndex = currentFileIndex;
   currentFileIndex = n;
-  if (isPhone)
+  if (isPhone || currentFileIndex === -1)
     return;
 
   // If file is delted on select mode, the currentFileIndex may
@@ -1149,6 +1221,10 @@ function deleteSelectedItems() {
 }
 
 // Clicking on the share button in select mode shares all selected images
+// Note: when sharing multiple items, we make no attempt to handle EXIF
+// orientation in photos. So on devices (like Tarako) that rely on EXIF
+// orientation in the camera app, we may be leaking images that will not
+// work well on the web.
 function shareSelectedItems() {
   var blobs = selectedFileNames.map(function(name) {
     return selectedFileNamesToBlobs[name];
@@ -1156,7 +1232,11 @@ function shareSelectedItems() {
   share(blobs);
 }
 
-function share(blobs) {
+// Initiate a share activity for all of the Blobs in the blobs array.
+// Usually these blobs are File objects, with names. But when sharing a
+// single image, we sometimes pass an in-memory blob to handle EXIF orientation
+// issues. In that case, use the second name argument for the unnamed blob
+function share(blobs, blobName) {
   if (blobs.length === 0)
     return;
 
@@ -1164,13 +1244,18 @@ function share(blobs) {
 
   // Get the file name (minus path) and type of each blob
   blobs.forEach(function(blob) {
-    // Discard the path, we just want the base name
     var name = blob.name;
+
+    // Special case for blobs that are not File objects
+    if (!name && blobs.length === 1)
+      name = blobName;
+
     // We try to fix Bug 814323 by using
     // current workaround of bluetooth transfer
     // so we will pass both filenames and fullpaths
     // The fullpaths can be removed after Bug 811615 is fixed
     fullpaths.push(name);
+    // Discard the path, we just want the base name
     name = name.substring(name.lastIndexOf('/') + 1);
     names.push(name);
 
@@ -1259,7 +1344,6 @@ function showOverlay(id) {
 // the user from interacting with the UI.
 $('overlay').addEventListener('click', function dummyHandler() {});
 
-
 // Change the thumbnails quality while scrolling using the scrollstart/scrollend
 // events from shared/js/scroll_detector.js.
 window.addEventListener('scrollstart', function onScrollStart(e) {
@@ -1269,3 +1353,70 @@ window.addEventListener('scrollstart', function onScrollStart(e) {
 window.addEventListener('scrollend', function onScrollEnd(e) {
   thumbnails.classList.remove('scrolling');
 });
+
+function showSpinner() {
+  $('spinner').classList.remove('hidden');
+}
+
+function hideSpinner() {
+  $('spinner').classList.add('hidden');
+}
+
+/*
+ * This is a temporary workaround to bug 1039943: when the user launches
+ * the gallery and then switches to another app gallery's scanning and
+ * thumbnail generation process can slow down foreground apps.
+ *
+ * For now, we address this by simply making the app exit if it goes to the
+ * background while scanning and if the device has 256mb or less of memory.
+ *
+ * Bug 1046995 should fix this issue in a better way and when it does,
+ * we should remove this function and the code that invokes it.
+ */
+function doNotScanInBackgroundHack(photodb) {
+  const enoughMB = 512; // How much memory is enough to not do this hack?
+  var memoryMB = 0;     // How much memory do we have?
+
+  // Listen for visibilitychange events that happen when we go to the background
+  window.addEventListener('visibilitychange', backgroundScanKiller);
+
+  // Stop listening for those events when the scan is complete
+  photodb.addEventListener('scanend', function() {
+    window.removeEventListener('visibilitychange', backgroundScanKiller);
+  });
+
+
+  // This is what we do when we go to the background
+  function backgroundScanKiller() {
+    // If we're coming back to the foreground or if we already know that
+    // we have enough memory, then do nothing here.
+    if (!document.hidden || memoryMB >= enoughMB) {
+      return;
+    }
+
+    // If we can't query our memory (i.e. this is the 1.4 Dolphin release)
+    // then assume that we have low memory and exit
+    if (!navigator.getFeature) {
+      exit();
+    }
+    else {
+      // Otherwise we're in release 2.0 or later and can actually query
+      // how much memory we have.
+      navigator.getFeature('hardware.memory').then(function(mem) {
+        memoryMB = mem;
+        if (memoryMB < enoughMB) {
+          exit();
+        }
+      });
+    }
+
+    function exit() {
+      // If we are still hidden and still scanning, then log a message
+      // wait a bit for the log to be flushed, and then close the application
+      if (document.hidden && photodb.scanning) {
+        console.warn('[Gallery] exiting to avoid background scan.');
+        setTimeout(function() { window.close(); }, 500);
+      }
+    }
+  }
+}

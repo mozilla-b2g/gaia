@@ -1,8 +1,6 @@
 'use strict';
 
 
-mocha.globals(['dispatchEvent']);
-
 require('/shared/js/iac_handler.js');
 
 var MockMozSetMessageHandler_listeners = {};

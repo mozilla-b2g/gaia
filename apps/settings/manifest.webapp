@@ -9,6 +9,8 @@
   },
   "permissions": {
     "storage":{},
+    "browser": {},
+    "embed-apps": {},
     "mobileconnection":{},
     "voicemail":{},
     "bluetooth":{},
@@ -23,15 +25,17 @@
     "systemXHR": {},
     "settings":{ "access": "readwrite" },
     "wifi-manage":{},
-    "attention":{},
     "time":{},
     "desktop-notification":{},
     "power":{},
     "idle":{},
     "telephony":{},
     "audio-channel-notification":{},
+    "audio-channel-alarm":{},
     "downloads":{},
-    "nfc":{ "access": "readonly" }
+    "nfc":{ "access": "readonly" },
+    "sms":{},
+    "firefox-accounts": {}
   },
   "activities": {
     "configure": {
@@ -41,8 +45,6 @@
       "disposition": "window"
     }
   },
-  "messages": ["bluetooth-pairing-request",
-               "bluetooth-cancel"],
   "locales": {
     "ar": {
       "name": "الضبط",
@@ -69,14 +71,19 @@
     "download_store": {
       "readonly": false,
       "description": "Stores download finished"
+    },
+    "vertical_preferences_store": {
+      "readonly": false,
+      "description": "Vertical homescreen preferences"
     }
   },
   "default_locale": "en-US",
   "icons": {
-    "60": "/style/icons/Settings_60.png",
-    "90": "/style/icons/Settings_90.png",
-    "120": "/style/icons/Settings_120.png",
-    "135": "/style/icons/Settings_135.png"
+    "84": "/style/icons/settings_84.png",
+    "126": "/style/icons/settings_126.png",
+    "142": "/style/icons/settings_142.png",
+    "189": "/style/icons/settings_189.png",
+    "284": "/style/icons/settings_284.png"
   },
   "orientation": "default"
 }

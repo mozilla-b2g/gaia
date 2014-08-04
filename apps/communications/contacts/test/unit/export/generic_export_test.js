@@ -51,6 +51,7 @@ suite('Contacts Exporter', function() {
   var subject;
   var ids = ['1', '3'];
   var realL10n;
+  var menuOverlay;
 
   function getContactsForIds(ids) {
     var contacts = MockContactsList();
@@ -117,6 +118,7 @@ suite('Contacts Exporter', function() {
     sinon.spy(window.utils.status, 'show');
 
     mocksHelperForExporter.suiteSetup();
+
   });
 
   suiteTeardown(function() {
@@ -127,15 +129,26 @@ suite('Contacts Exporter', function() {
     MockExportStrategy.hasDeterminativeProgress.restore();
     MockExportStrategy.setProgressStep.restore();
     mocksHelperForExporter.suiteTeardown();
+
   });
 
   setup(function() {
+    menuOverlay = document.createElement('form');
+    menuOverlay.innerHTML = '<menu>' +
+      '<button data-l10n-id="cancel" id="cancel-overlay">Cancel</button>' +
+      '</menu>';
+    document.body.appendChild(menuOverlay);
+
     subject = new ContactsExporter(MockExportStrategy);
 
     MockExportStrategy.shouldShowProgress.reset();
     MockExportStrategy.doExport.reset();
     MockExportStrategy.hasDeterminativeProgress.reset();
     MockExportStrategy.setProgressStep.reset();
+  });
+
+  teardown(function() {
+    menuOverlay.parentNode.removeChild(menuOverlay);
   });
 
 

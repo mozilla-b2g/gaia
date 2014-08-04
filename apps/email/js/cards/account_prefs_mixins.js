@@ -16,7 +16,8 @@ define(function(require) {
   return {
     // Call this in target object's constructor to wire up the common prefs.
     _bindPrefs: function(checkIntervalClassName, //sync interval select box
-                         notifyEmailClassName) { //notify email checkbox
+                         notifyEmailClassName,   //notify email checkbox
+                         soundOnSendClassName) { //send sound on send checkbox
 
       if (checkIntervalClassName) {
         // Wire up the sync interval select box.
@@ -63,6 +64,23 @@ define(function(require) {
                                         false);
         notifyMailNode.checked = this.account.notifyOnNew;
       }
+
+      if (soundOnSendClassName) {
+        var soundOnSendNode = this.nodeFromClass(soundOnSendClassName);
+        soundOnSendNode.addEventListener('click',
+                                        this.onSoundOnSendClick.bind(this),
+                                        false);
+        soundOnSendNode.checked = this.account.playSoundOnSend;
+      }
+    },
+
+    _modifyAccountPref: function(data) {
+      // On account creation, may not have a full account object yet.
+      if (this.account.modifyAccount) {
+        this.account.modifyAccount(data);
+      } else {
+        evt.emitWhenListener('accountModified', this.account.id, data);
+      }
     },
 
     nodeFromClass: function(className) {
@@ -72,25 +90,19 @@ define(function(require) {
     onChangeSyncInterval: function(event) {
       var value = parseInt(event.target.value, 10);
       console.log('sync interval changed to', value);
-      var data = {syncInterval: value};
-
-      // On account creation, may not have a full account object yet.
-      if (this.account.modifyAccount)
-        this.account.modifyAccount(data);
-      else
-        evt.emitWhenListener('accountModified', this.account.id, data);
+      this._modifyAccountPref({ syncInterval: value });
     },
 
     onNotifyEmailClick: function(event) {
       var checked = event.target.checked;
       console.log('notifyOnNew changed to: ' + checked);
-      var data = {notifyOnNew: checked};
+      this._modifyAccountPref({ notifyOnNew: checked });
+    },
 
-      // On account creation, may not have a full account object yet.
-      if (this.account.modifyAccount)
-        this.account.modifyAccount(data);
-      else
-        evt.emitWhenListener('accountModified', this.account.id, data);
+    onSoundOnSendClick: function(event) {
+      var checked = event.target.checked;
+      console.log('playSoundOnSend changed to: ' + checked);
+      this._modifyAccountPref({ playSoundOnSend: checked });
     }
   };
 });

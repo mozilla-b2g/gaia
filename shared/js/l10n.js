@@ -2,6 +2,16 @@
   'use strict';
 
   /* jshint validthis:true */
+  function L10nError(message, id, loc) {
+    this.name = 'L10nError';
+    this.message = message;
+    this.id = id;
+    this.loc = loc;
+  }
+  L10nError.prototype = Object.create(Error.prototype);
+  L10nError.prototype.constructor = L10nError;
+
+
   /* jshint browser:true */
 
   var io = {
@@ -18,7 +28,7 @@
         if (e.target.status === 200 || e.target.status === 0) {
           callback(null, e.target.responseText);
         } else {
-          callback(new Error('Not found: ' + url));
+          callback(new L10nError('Not found: ' + url));
         }
       });
       xhr.addEventListener('error', callback);
@@ -28,7 +38,7 @@
       try {
         xhr.send(null);
       } catch (e) {
-        callback(new Error('Not found: ' + url));
+        callback(new L10nError('Not found: ' + url));
       }
     },
 
@@ -46,7 +56,7 @@
         if (e.target.status === 200 || e.target.status === 0) {
           callback(null, e.target.response);
         } else {
-          callback(new Error('Not found: ' + url));
+          callback(new L10nError('Not found: ' + url));
         }
       });
       xhr.addEventListener('error', callback);
@@ -56,7 +66,7 @@
       try {
         xhr.send(null);
       } catch (e) {
-        callback(new Error('Not found: ' + url));
+        callback(new L10nError('Not found: ' + url));
       }
     }
   };
@@ -284,7 +294,7 @@
       return list.indexOf(n) !== -1;
     }
     function isBetween(n, start, end) {
-      return start <= n && n <= end;
+      return typeof n === typeof start && start <= n && n <= end;
     }
 
     // list of all plural rules methods:
@@ -559,153 +569,133 @@
 
 
 
-  var nestedProps = ['style', 'dataset'];
 
-  var parsePatterns;
+  function PropertiesParser() {
+    var parsePatterns = {
+      comment: /^\s*#|^\s*$/,
+      entity: /^([^=\s]+)\s*=\s*(.+)$/,
+      multiline: /[^\\]\\$/,
+      macro: /\{\[\s*(\w+)\(([^\)]*)\)\s*\]\}/i,
+      unicode: /\\u([0-9a-fA-F]{1,4})/g,
+      entries: /[\r\n]+/,
+      controlChars: /\\([\\\n\r\t\b\f\{\}\"\'])/g
+    };
 
-  function parse(ctx, source) {
-    var ast = {};
+    this.parse = function (ctx, source) {
+      var ast = Object.create(null);
 
-    if (!parsePatterns) {
-      parsePatterns = {
-        comment: /^\s*#|^\s*$/,
-        entity: /^([^=\s]+)\s*=\s*(.+)$/,
-        multiline: /[^\\]\\$/,
-        macro: /\{\[\s*(\w+)\(([^\)]*)\)\s*\]\}/i,
-        unicode: /\\u([0-9a-fA-F]{1,4})/g,
-        entries: /[\r\n]+/,
-        controlChars: /\\([\\\n\r\t\b\f\{\}\"\'])/g
-      };
-    }
+      var entries = source.split(parsePatterns.entries);
+      for (var i = 0; i < entries.length; i++) {
+        var line = entries[i];
 
-    var entries = source.split(parsePatterns.entries);
-    for (var i = 0; i < entries.length; i++) {
-      var line = entries[i];
+        if (parsePatterns.comment.test(line)) {
+          continue;
+        }
 
-      if (parsePatterns.comment.test(line)) {
-        continue;
-      }
+        while (parsePatterns.multiline.test(line) && i < entries.length) {
+          line = line.slice(0, -1) + entries[++i].trim();
+        }
 
-      while (parsePatterns.multiline.test(line) && i < entries.length) {
-        line = line.slice(0, -1) + entries[++i].trim();
-      }
-
-      var entityMatch = line.match(parsePatterns.entity);
-      if (entityMatch) {
-        try {
-          parseEntity(entityMatch[1], entityMatch[2], ast);
-        } catch (e) {
-          if (ctx) {
-            ctx._emitter.emit('error', e);
-          } else {
-            throw e;
+        var entityMatch = line.match(parsePatterns.entity);
+        if (entityMatch) {
+          try {
+            parseEntity(entityMatch[1], entityMatch[2], ast);
+          } catch (e) {
+            if (ctx) {
+              ctx._emitter.emit('error', e);
+            } else {
+              throw e;
+            }
           }
         }
       }
-    }
-    return ast;
-  }
+      return ast;
+    };
 
-  function setEntityValue(id, attr, key, value, ast) {
-    var obj = ast;
-    var prop = id;
+    function setEntityValue(id, attr, key, value, ast) {
+      var obj = ast;
+      var prop = id;
 
-    if (attr) {
-      if (!(id in obj)) {
-        obj[id] = {};
-      }
-      if (typeof(obj[id]) === 'string') {
-        obj[id] = {'_': obj[id]};
-      }
-      obj = obj[id];
-      prop = attr;
-    }
-
-    if (!key) {
-      obj[prop] = value;
-      return;
-    }
-
-    if (!(prop in obj)) {
-      obj[prop] = {'_': {}};
-    } else if (typeof(obj[prop]) === 'string') {
-      obj[prop] = {'_index': parseMacro(obj[prop]), '_': {}};
-    }
-    obj[prop]._[key] = value;
-  }
-
-  function parseEntity(id, value, ast) {
-    var name, key;
-
-    var pos = id.indexOf('[');
-    if (pos !== -1) {
-      name = id.substr(0, pos);
-      key = id.substring(pos + 1, id.length - 1);
-    } else {
-      name = id;
-      key = null;
-    }
-
-    var nameElements = name.split('.');
-
-    var attr;
-    if (nameElements.length > 1) {
-      var attrElements = [];
-      attrElements.push(nameElements.pop());
-      if (nameElements.length > 1) {
-        // Usually the last dot separates an attribute from an id
-        //
-        // In case when there are more than one dot in the id
-        // and the second to last item is "style" or "dataset" then the last two
-        // items are becoming the attribute.
-        //
-        // ex.
-        // id.style.color = foo =>
-        //
-        // id:
-        //   style.color: foo
-        //
-        // id.other.color = foo =>
-        //
-        // id.other:
-        //   color: foo
-        if (nestedProps.indexOf(nameElements[nameElements.length - 1]) !== -1) {
-          attrElements.push(nameElements.pop());
+      if (attr) {
+        if (!(id in obj)) {
+          obj[id] = {};
         }
+        if (typeof(obj[id]) === 'string') {
+          obj[id] = {'_': obj[id]};
+        }
+        obj = obj[id];
+        prop = attr;
       }
-      name = nameElements.join('.');
-      attr = attrElements.reverse().join('.');
-    } else {
-      attr = null;
+
+      if (!key) {
+        obj[prop] = value;
+        return;
+      }
+
+      if (!(prop in obj)) {
+        obj[prop] = {'_': {}};
+      } else if (typeof(obj[prop]) === 'string') {
+        obj[prop] = {'_index': parseMacro(obj[prop]), '_': {}};
+      }
+      obj[prop]._[key] = value;
     }
 
-    setEntityValue(name, attr, key, unescapeString(value), ast);
-  }
+    function parseEntity(id, value, ast) {
+      var name, key;
 
-  function unescapeControlCharacters(str) {
-    return str.replace(parsePatterns.controlChars, '$1');
-  }
+      var pos = id.indexOf('[');
+      if (pos !== -1) {
+        name = id.substr(0, pos);
+        key = id.substring(pos + 1, id.length - 1);
+      } else {
+        name = id;
+        key = null;
+      }
 
-  function unescapeUnicode(str) {
-    return str.replace(parsePatterns.unicode, function(match, token) {
-      return unescape('%u' + '0000'.slice(token.length) + token);
-    });
-  }
+      var nameElements = name.split('.');
 
-  function unescapeString(str) {
-    if (str.lastIndexOf('\\') !== -1) {
-      str = unescapeControlCharacters(str);
+      if (nameElements.length > 2) {
+        throw new Error('Error in ID: "' + name + '".' +
+            ' Nested attributes are not supported.');
+      }
+
+      var attr;
+      if (nameElements.length > 1) {
+        name = nameElements[0];
+        attr = nameElements[1];
+      } else {
+        attr = null;
+      }
+
+      setEntityValue(name, attr, key, unescapeString(value), ast);
     }
-    return unescapeUnicode(str);
+
+    function unescapeControlCharacters(str) {
+      return str.replace(parsePatterns.controlChars, '$1');
+    }
+
+    function unescapeUnicode(str) {
+      return str.replace(parsePatterns.unicode, function(match, token) {
+        return unescape('%u' + '0000'.slice(token.length) + token);
+      });
+    }
+
+    function unescapeString(str) {
+      if (str.lastIndexOf('\\') !== -1) {
+        str = unescapeControlCharacters(str);
+      }
+      return unescapeUnicode(str);
+    }
+
+    function parseMacro(str) {
+      var match = str.match(parsePatterns.macro);
+      if (!match) {
+        throw new L10nError('Malformed macro');
+      }
+      return [match[1], match[2]];
+    }
   }
 
-  function parseMacro(str) {
-    var match = str.match(parsePatterns.macro);
-    if (!match) {
-      throw new Error('Malformed macro');
-    }
-    return [match[1], match[2]];
-  }
 
 
   var MAX_PLACEABLE_LENGTH = 2500;
@@ -722,10 +712,13 @@
       this.value = node;
     } else {
       // it's either a hash or it has attrs, or both
-      for (var key in node) {
-        if (node.hasOwnProperty(key) && key[0] !== '_') {
+      var keys = Object.keys(node);
+
+      /* jshint -W084 */
+      for (var i = 0, key; key = keys[i]; i++) {
+        if (key[0] !== '_') {
           if (!this.attributes) {
-            this.attributes = {};
+            this.attributes = Object.create(null);
           }
           this.attributes[key] = new Entity(this.id + '.' + key, node[key],
                                             env);
@@ -768,13 +761,12 @@
 
     var entity = {
       value: this.toString(ctxdata),
-      attributes: {}
+      attributes: Object.create(null)
     };
 
     for (var key in this.attributes) {
-      if (this.attributes.hasOwnProperty(key)) {
-        entity.attributes[key] = this.attributes[key].toString(ctxdata);
-      }
+      /* jshint -W089 */
+      entity.attributes[key] = this.attributes[key].toString(ctxdata);
     }
 
     return entity;
@@ -787,7 +779,9 @@
       return ctxdata[id];
     }
 
-    if (env.hasOwnProperty(id)) {
+    // XXX: special case for Node.js where still:
+    // '__proto__' in Object.create(null) => true
+    if (id in env && id !== '__proto__') {
       if (!(env[id] instanceof Entity)) {
         env[id] = new Entity(id, env[id], env);
       }
@@ -795,8 +789,9 @@
       if (typeof value === 'string') {
         // prevent Billion Laughs attacks
         if (value.length >= MAX_PLACEABLE_LENGTH) {
-          throw new Error('Too many characters in placeable (' + value.length +
-                          ', max allowed is ' + MAX_PLACEABLE_LENGTH + ')');
+          throw new L10nError('Too many characters in placeable (' +
+                              value.length + ', max allowed is ' +
+                              MAX_PLACEABLE_LENGTH + ')');
         }
         return value;
       }
@@ -809,8 +804,8 @@
     var value = str.replace(rePlaceables, function(match, id) {
       // prevent Quadratic Blowup attacks
       if (placeablesCount++ >= MAX_PLACEABLES) {
-        throw new Error('Too many placeables (' + placeablesCount +
-                        ', max allowed is ' + MAX_PLACEABLES + ')');
+        throw new L10nError('Too many placeables (' + placeablesCount +
+                            ', max allowed is ' + MAX_PLACEABLES + ')');
       }
       return subPlaceable(ctxdata, env, match, id);
     });
@@ -860,24 +855,152 @@
   }
 
   function compile(env, ast) {
-    env = env || {};
+    /* jshint -W089 */
+    env = env || Object.create(null);
     for (var id in ast) {
-      if (ast.hasOwnProperty(id)) {
-        env[id] = new Entity(id, ast[id], env);
-      }
+      env[id] = new Entity(id, ast[id], env);
     }
     return env;
   }
 
 
 
+  /* Utility functions */
+
+  // Recursively walk an AST node searching for content leaves
+  function walkContent(node, fn) {
+    if (typeof node === 'string') {
+      return fn(node);
+    }
+
+    var rv = {};
+    for (var key in node) {
+      if (key !== '_index' && (key in node)) {
+        rv[key] = walkContent(node[key], fn);
+      }
+    }
+    return rv;
+  }
+
+
+  /* Pseudolocalizations
+   *
+   * PSEUDO_STRATEGIES is a dict of strategies to be used to modify the English
+   * context in order to create pseudolocalizations.  These can be used by
+   * developers to test the localizability of their code without having to
+   * actually speak a foreign language.
+   *
+   * Currently, the following pseudolocales are supported:
+   *
+   *   qps-ploc - Ȧȧƈƈḗḗƞŧḗḗḓ Ḗḗƞɠŀīīşħ
+   *
+   *     In Accented English all English letters are replaced by accented
+   *     Unicode counterparts which don't impair the readability of the content.
+   *     This allows developers to quickly test if any given string is being
+   *     correctly displayed in its 'translated' form.  Additionally, simple
+   *     heuristics are used to make certain words longer to better simulate the
+   *     experience of international users.
+   *
+   *   qps-plocm - ɥsıʅƃuƎ pǝɹoɹɹıW
+   *
+   *     Mirrored English is a fake RTL locale.  All words are surrounded by
+   *     Unicode formatting marks forcing the RTL directionality of characters.
+   *     In addition, to make the reversed text easier to read, individual
+   *     letters are flipped.
+   *
+   *     Note: The name above is hardcoded to be RTL in case code editors have
+   *     trouble with the RLO and PDF Unicode marks.  In reality, it should be
+   *     surrounded by those marks as well.
+   *
+   * See https://bugzil.la/900182 for more information.
+   *
+   */
+
+  var reAlphas = /[a-zA-Z]/g;
+  var reVowels = /[aeiouAEIOU]/g;
+
+  // ȦƁƇḒḖƑƓĦĪĴĶĿḾȠǾƤɊŘŞŦŬṼẆẊẎẐ + [\\]^_` + ȧƀƈḓḗƒɠħīĵķŀḿƞǿƥɋřşŧŭṽẇẋẏẑ
+  var ACCENTED_MAP = '\u0226\u0181\u0187\u1E12\u1E16\u0191\u0193\u0126\u012A' +
+                     '\u0134\u0136\u013F\u1E3E\u0220\u01FE\u01A4\u024A\u0158' +
+                     '\u015E\u0166\u016C\u1E7C\u1E86\u1E8A\u1E8E\u1E90' +
+                     '[\\]^_`' +
+                     '\u0227\u0180\u0188\u1E13\u1E17\u0192\u0260\u0127\u012B' +
+                     '\u0135\u0137\u0140\u1E3F\u019E\u01FF\u01A5\u024B\u0159' +
+                     '\u015F\u0167\u016D\u1E7D\u1E87\u1E8B\u1E8F\u1E91';
+
+  // XXX Until https://bugzil.la/1007340 is fixed, ᗡℲ⅁⅂⅄ don't render correctly
+  // on the devices.  For now, use the following replacements: pɟפ˥ʎ
+  // ∀ԐↃpƎɟפHIſӼ˥WNOԀÒᴚS⊥∩ɅＭXʎZ + [\\]ᵥ_, + ɐqɔpǝɟƃɥıɾʞʅɯuodbɹsʇnʌʍxʎz
+  var FLIPPED_MAP = '\u2200\u0510\u2183p\u018E\u025F\u05E4HI\u017F' +
+                    '\u04FC\u02E5WNO\u0500\xD2\u1D1AS\u22A5\u2229\u0245' +
+                    '\uFF2DX\u028EZ' +
+                    '[\\]\u1D65_,' +
+                    '\u0250q\u0254p\u01DD\u025F\u0183\u0265\u0131\u027E' +
+                    '\u029E\u0285\u026Fuodb\u0279s\u0287n\u028C\u028Dx\u028Ez';
+
+  function makeLonger(val) {
+    return val.replace(reVowels, function(match) {
+      return match + match.toLowerCase();
+    });
+  }
+
+  function makeAccented(map, val) {
+    // Replace each Latin letter with a Unicode character from map
+    return val.replace(reAlphas, function(match) {
+      return map.charAt(match.charCodeAt(0) - 65);
+    });
+  }
+
+  var reWords = /[^\W0-9_]+/g;
+
+  function makeRTL(val) {
+    // Surround each word with Unicode formatting codes, RLO and PDF:
+    //   U+202E:   RIGHT-TO-LEFT OVERRIDE (RLO)
+    //   U+202C:   POP DIRECTIONAL FORMATTING (PDF)
+    // See http://www.w3.org/International/questions/qa-bidi-controls
+    return val.replace(reWords, function(match) {
+      return '\u202e' + match + '\u202c';
+    });
+  }
+
+  // strftime tokens (%a, %Eb), {{ placeables }} and template {vars}
+  var reExcluded = /(%[EO]?\w|\{\{?\s*.+?\s*\}?\})/;
+
+  function mapContent(fn, val) {
+    if (!val) {
+      return val;
+    }
+    var parts = val.split(reExcluded);
+    var modified = parts.map(function(part) {
+      if (reExcluded.test(part)) {
+        return part;
+      }
+      return fn(part);
+    });
+    return modified.join('');
+  }
+
+  var PSEUDO_STRATEGIES = {
+    'qps-ploc': mapContent.bind(null, function(val) {
+      return makeAccented(ACCENTED_MAP, makeLonger(val));
+    }),
+    'qps-plocm': mapContent.bind(null, function(val) {
+      return makeAccented(FLIPPED_MAP, makeRTL(val));
+    })
+  };
+
+
+
+  var propertiesParser = null;
+
   function Locale(id, ctx) {
     this.id = id;
     this.ctx = ctx;
     this.isReady = false;
-    this.entries = {
-      __plural: getPluralRule(id)
-    };
+    this.isPseudo = PSEUDO_STRATEGIES.hasOwnProperty(id);
+    this.entries = Object.create(null);
+    this.entries.__plural = getPluralRule(this.isPseudo ?
+                                          this.ctx.defaultLocale : id);
   }
 
   Locale.prototype.getEntry = function L_getEntry(id) {
@@ -885,7 +1008,7 @@
 
     var entries = this.entries;
 
-    if (!entries.hasOwnProperty(id)) {
+    if (!(id in entries)) {
       return undefined;
     }
 
@@ -929,15 +1052,18 @@
 
     function onPropLoaded(err, source) {
       if (!err && source) {
-        var ast = parse(ctx, source);
+        if (!propertiesParser) {
+          propertiesParser = new PropertiesParser();
+        }
+        var ast = propertiesParser.parse(ctx, source);
         self.addAST(ast);
       }
       onL10nLoaded(err);
     }
 
-
+    var idToFetch = this.isPseudo ? ctx.defaultLocale : this.id;
     for (var i = 0; i < ctx.resLinks.length; i++) {
-      var path = ctx.resLinks[i].replace('{{locale}}', this.id);
+      var path = ctx.resLinks[i].replace('{{locale}}', idToFetch);
       var type = path.substr(path.lastIndexOf('.') + 1);
 
       switch (type) {
@@ -952,9 +1078,17 @@
   };
 
   Locale.prototype.addAST = function(ast) {
-    for (var id in ast) {
-      if (ast.hasOwnProperty(id)) {
-        this.entries[id] = ast[id];
+    /* jshint -W084 */
+    var keys = Object.keys(ast);
+    var i = 0, key;
+
+    if (this.isPseudo) {
+      for (; key = keys[i]; i++) {
+        this.entries[key] = walkContent(ast[key], PSEUDO_STRATEGIES[this.id]);
+      }
+    } else {
+      for (; key = keys[i]; i++) {
+        this.entries[key] = ast[key];
       }
     }
   };
@@ -976,6 +1110,7 @@
     this.isReady = false;
     this.isLoading = false;
 
+    this.defaultLocale = 'en-US';
     this.supportedLocales = [];
     this.resLinks = [];
     this.locales = {};
@@ -989,7 +1124,7 @@
       /* jshint -W084 */
 
       if (!this.isReady) {
-        throw new ContextError('Context not ready');
+        throw new L10nError('Context not ready');
       }
 
       var cur = 0;
@@ -1004,14 +1139,14 @@
         var entry = locale.getEntry(id);
         if (entry === undefined) {
           cur++;
-          warning.call(this, new ContextError(id + ' not found in ' + loc, id,
-                                              loc));
+          warning.call(this, new L10nError(id + ' not found in ' + loc, id,
+                                           loc));
           continue;
         }
         return entry;
       }
 
-      error.call(this, new ContextError(id + ' not found', id));
+      error.call(this, new L10nError(id + ' not found', id));
       return null;
     }
 
@@ -1076,13 +1211,15 @@
 
     this.requestLocales = function requestLocales() {
       if (this.isLoading && !this.isReady) {
-        throw new ContextError('Context not ready');
+        throw new L10nError('Context not ready');
       }
 
       this.isLoading = true;
       var requested = Array.prototype.slice.call(arguments);
 
-      var supported = negotiate(requested.concat('en-US'), requested, 'en-US');
+      var supported = negotiate(requested.concat(this.defaultLocale),
+                                requested,
+                                this.defaultLocale);
       freeze.call(this, supported);
     };
 
@@ -1132,23 +1269,21 @@
     }
   }
 
-  Context.Error = ContextError;
 
-  function ContextError(message, id, loc) {
-    this.name = 'ContextError';
-    this.message = message;
-    this.id = id;
-    this.loc = loc;
-  }
-  ContextError.prototype = Object.create(Error.prototype);
-  ContextError.prototype.constructor = ContextError;
-
-
-  /* jshint -W104 */
 
   var DEBUG = false;
   var isPretranslated = false;
-  var rtlList = ['ar', 'he', 'fa', 'ps', 'ur'];
+  var rtlList = ['ar', 'he', 'fa', 'ps', 'qps-plocm', 'ur'];
+  var nodeObserver = null;
+  var pendingElements = null;
+
+  var moConfig = {
+    attributes: true,
+    characterData: false,
+    childList: true,
+    subtree: true,
+    attributeFilter: ['data-l10n-id', 'data-l10n-args']
+  };
 
   // Public API
 
@@ -1160,9 +1295,14 @@
     localize: function localize(element, id, args) {
       return localizeElement.call(navigator.mozL10n, element, id, args);
     },
-    translate: function translate(element) {
-      return translateFragment.call(navigator.mozL10n, element);
+    translate: function () {
+      // XXX: Remove after removing obsolete calls. Bugs 992473 and 1020136
     },
+    translateFragment: function (fragment) {
+      return translateFragment.call(navigator.mozL10n, fragment);
+    },
+    setAttributes: setL10nAttributes,
+    getAttributes: getL10nAttributes,
     ready: function ready(callback) {
       return navigator.mozL10n.ctx.ready(callback);
     },
@@ -1185,16 +1325,20 @@
     },
     _getInternalAPI: function() {
       return {
+        Error: L10nError,
         Context: Context,
         Locale: Locale,
+        Entity: Entity,
         getPluralRule: getPluralRule,
         rePlaceables: rePlaceables,
         getTranslatableChildren:  getTranslatableChildren,
-        getL10nAttributes: getL10nAttributes,
+        translateDocument: translateDocument,
         loadINI: loadINI,
         fireLocalizedEvent: fireLocalizedEvent,
-        parse: parse,
-        compile: compile
+        PropertiesParser: PropertiesParser,
+        compile: compile,
+        walkContent: walkContent,
+        PSEUDO_STRATEGIES: PSEUDO_STRATEGIES
       };
     }
   };
@@ -1232,49 +1376,37 @@
   }
 
   if (window.document) {
-    isPretranslated = (document.documentElement.lang === navigator.language);
+    isPretranslated = !PSEUDO_STRATEGIES.hasOwnProperty(navigator.language) &&
+                      (document.documentElement.lang === navigator.language);
 
-    // this is a special case for netError bug; see https://bugzil.la/444165
-    if (document.documentElement.dataset.noCompleteBug) {
-      pretranslate.call(navigator.mozL10n);
-      return;
-    }
-
-
-    if (isPretranslated) {
-      waitFor('interactive', function() {
-        window.setTimeout(initResources.bind(navigator.mozL10n));
-      });
-    } else {
-      if (document.readyState === 'complete') {
-        window.setTimeout(initResources.bind(navigator.mozL10n));
-      } else {
-        waitFor('interactive', pretranslate.bind(navigator.mozL10n));
-      }
-    }
-
+    // XXX always pretranslate if data-no-complete-bug is set;  this is
+    // a workaround for a netError page not firing some onreadystatechange
+    // events;  see https://bugzil.la/444165
+    var pretranslate = document.documentElement.dataset.noCompleteBug ?
+      true : !isPretranslated;
+    waitFor('interactive', init.bind(navigator.mozL10n, pretranslate));
   }
 
-  function pretranslate() {
-    /* jshint -W068 */
-    if (inlineLocalization.call(this)) {
-      waitFor('interactive', (function() {
-        window.setTimeout(initResources.bind(this));
-      }).bind(this));
-    } else {
-      initResources.call(this);
+  function init(pretranslate) {
+    nodeObserver = new MutationObserver(onMutations.bind(navigator.mozL10n));
+    nodeObserver.observe(document, moConfig);
+
+    if (pretranslate) {
+      inlineLocalization.call(navigator.mozL10n);
     }
+    window.setTimeout(initResources.bind(navigator.mozL10n));
   }
 
   function inlineLocalization() {
+    var locale = this.ctx.getLocale(navigator.language);
+    var scriptLoc = locale.isPseudo ? this.ctx.defaultLocale : locale.id;
     var script = document.documentElement
                          .querySelector('script[type="application/l10n"]' +
-                         '[lang="' + navigator.language + '"]');
+                         '[lang="' + scriptLoc + '"]');
     if (!script) {
-      return false;
+      return;
     }
 
-    var locale = this.ctx.getLocale(navigator.language);
     // the inline localization is happenning very early, when the ctx is not
     // yet ready and when the resources haven't been downloaded yet;  add the
     // inlined JSON directly to the current locale
@@ -1287,19 +1419,18 @@
         direction: getDirection(locale.id)
       }
     };
-    translateFragment.call(l10n);
+    translateDocument.call(l10n);
+
     // the visible DOM is now pretranslated
     isPretranslated = true;
-    return true;
   }
 
   function initResources() {
     var resLinks = document.head
                            .querySelectorAll('link[type="application/l10n"]');
     var iniLinks = [];
-    var i;
 
-    for (i = 0; i < resLinks.length; i++) {
+    for (var i = 0; i < resLinks.length; i++) {
       var link = resLinks[i];
       var url = link.getAttribute('href');
       var type = url.substr(url.lastIndexOf('.') + 1);
@@ -1331,19 +1462,59 @@
 
   function initLocale() {
     this.ctx.requestLocales(navigator.language);
-    // mozSettings won't be required here when https://bugzil.la/780953 lands
-    if (navigator.mozSettings) {
-      navigator.mozSettings.addObserver('language.current', function(event) {
-        navigator.mozL10n.language.code = event.settingValue;
-      });
+    window.addEventListener('languagechange', function l10n_langchange() {
+      navigator.mozL10n.language.code = navigator.language;
+    });
+  }
+
+  function localizeMutations(mutations) {
+    var mutation;
+
+    for (var i = 0; i < mutations.length; i++) {
+      mutation = mutations[i];
+      if (mutation.type === 'childList') {
+        var addedNode;
+
+        for (var j = 0; j < mutation.addedNodes.length; j++) {
+          addedNode = mutation.addedNodes[j];
+
+          if (addedNode.nodeType !== Node.ELEMENT_NODE) {
+            continue;
+          }
+
+          if (addedNode.childElementCount) {
+            translateFragment.call(this, addedNode);
+          } else if (addedNode.hasAttribute('data-l10n-id')) {
+            translateElement.call(this, addedNode);
+          }
+        }
+      }
+
+      if (mutation.type === 'attributes') {
+        translateElement.call(this, mutation.target);
+      }
     }
+  }
+
+  function onMutations(mutations, self) {
+    self.disconnect();
+    localizeMutations.call(this, mutations);
+    self.observe(document, moConfig);
   }
 
   function onReady() {
     if (!isPretranslated) {
-      this.translate();
+      translateDocument.call(this);
     }
     isPretranslated = false;
+
+    if (pendingElements) {
+      /* jshint boss:true */
+      for (var i = 0, element; element = pendingElements[i]; i++) {
+        translateElement.call(this, element);
+      }
+      pendingElements = null;
+    }
 
     fireLocalizedEvent.call(this);
   }
@@ -1438,13 +1609,16 @@
 
   /* jshint -W104 */
 
+  function translateDocument() {
+    document.documentElement.lang = this.language.code;
+    document.documentElement.dir = this.language.direction;
+    translateFragment.call(this, document.documentElement);
+  }
+
   function translateFragment(element) {
-    if (!element) {
-      element = document.documentElement;
-      document.documentElement.lang = this.language.code;
-      document.documentElement.dir = this.language.direction;
+    if (element.hasAttribute('data-l10n-id')) {
+      translateElement.call(this, element);
     }
-    translateElement.call(this, element);
 
     var nodes = getTranslatableChildren(element);
     for (var i = 0; i < nodes.length; i++ ) {
@@ -1452,15 +1626,25 @@
     }
   }
 
+  function setL10nAttributes(element, id, args) {
+    element.setAttribute('data-l10n-id', id);
+    if (args) {
+      element.setAttribute('data-l10n-args', JSON.stringify(args));
+    }
+  }
+
+  function getL10nAttributes(element) {
+    return {
+      id: element.getAttribute('data-l10n-id'),
+      args: JSON.parse(element.getAttribute('data-l10n-args'))
+    };
+  }
+
   function getTranslatableChildren(element) {
     return element ? element.querySelectorAll('*[data-l10n-id]') : [];
   }
 
   function localizeElement(element, id, args) {
-    if (!element) {
-      return;
-    }
-
     if (!id) {
       element.removeAttribute('data-l10n-id');
       element.removeAttribute('data-l10n-args');
@@ -1474,38 +1658,27 @@
     } else {
       element.removeAttribute('data-l10n-args');
     }
-
-    if (this.ctx.isReady) {
-      translateElement.call(this, element);
-    }
   }
-
-  function getL10nAttributes(element) {
-    if (!element) {
-      return {};
-    }
-
-    var l10nId = element.getAttribute('data-l10n-id');
-    var l10nArgs = element.getAttribute('data-l10n-args');
-
-    var args = l10nArgs ? JSON.parse(l10nArgs) : null;
-
-    return {id: l10nId, args: args};
-  }
-
-
 
   function translateElement(element) {
+    if (isPretranslated && !this.ctx.isReady) {
+      if (!pendingElements) {
+        pendingElements = [];
+      }
+      pendingElements.push(element);
+      return;
+    }
+
     var l10n = getL10nAttributes(element);
 
     if (!l10n.id) {
-      return;
+      return false;
     }
 
     var entity = this.ctx.getEntity(l10n.id, l10n.args);
 
     if (!entity) {
-      return;
+      return false;
     }
 
     if (typeof entity === 'string') {
@@ -1518,16 +1691,14 @@
     }
 
     for (var key in entity.attributes) {
-      if (entity.attributes.hasOwnProperty(key)) {
-        var attr = entity.attributes[key];
-        var pos = key.indexOf('.');
-        if (pos !== -1) {
-          element[key.substr(0, pos)][key.substr(pos + 1)] = attr;
-        } else if (key === 'ariaLabel') {
-          element.setAttribute('aria-label', attr);
-        } else {
-          element[key] = attr;
-        }
+      var attr = entity.attributes[key];
+      if (key === 'ariaLabel') {
+        element.setAttribute('aria-label', attr);
+      } else if (key === 'innerHTML') {
+        // XXX: to be removed once bug 994357 lands
+        element.innerHTML = attr;
+      } else {
+        element.setAttribute(key, attr);
       }
     }
 

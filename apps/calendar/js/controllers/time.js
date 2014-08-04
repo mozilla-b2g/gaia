@@ -20,6 +20,7 @@ Calendar.ns('Controllers').Time = (function() {
     this._collection.createIndex('eventId');
 
     this.busytime = app.store('Busytime');
+    this.calendarStore = app.store('Calendar');
   }
 
   Time.prototype = {
@@ -112,7 +113,7 @@ Calendar.ns('Controllers').Time = (function() {
     },
 
     get timespan() {
-      return this._timespan;
+      return this._currentTimespan;
     },
 
     get scale() {
@@ -481,17 +482,23 @@ Calendar.ns('Controllers').Time = (function() {
 
     /**
      * Queries busytimes cache by timespan.
+     * Only retuns busytimes from enabled calendars.
      *
      * @param {Calendar.Timespan} timespan query range.
      * @return {Array} busytimes ordered by start date.
      */
     queryCache: function(timespan) {
-      return this._collection.query(timespan);
+      var busytimes = this._collection.query(timespan);
+      return busytimes.filter(this._shouldDisplayBusytime, this);
+    },
+
+    _shouldDisplayBusytime: function(busytime) {
+      return this.calendarStore.shouldDisplayCalendar(busytime.calendarId);
     },
 
     /**
      * Adds a busytime to the collection.
-     * Emits a 'add' time event when called.
+     * Emits a 'add' time event when called (if calendar is enabled).
      *
      * @param {Object} busytime instance to add to the collection.
      */
@@ -500,12 +507,15 @@ Calendar.ns('Controllers').Time = (function() {
       var end = busytime.endDate;
 
       this._collection.add(busytime);
-      this.fireTimeEvent('add', start, end, busytime);
+
+      if (this._shouldDisplayBusytime(busytime)) {
+        this.fireTimeEvent('add', start, end, busytime);
+      }
     },
 
     /**
      * Removes a busytime from the collection.
-     * Emits a 'remove' time event when called.
+     * Emits a 'remove' time event when called (if calendar is enabled).
      *
      * @param {String} id busytime id.
      */
@@ -518,7 +528,10 @@ Calendar.ns('Controllers').Time = (function() {
         var end = busytime.endDate;
 
         collection.remove(busytime);
-        this.fireTimeEvent('remove', start, end, busytime);
+
+        if (this._shouldDisplayBusytime(busytime)) {
+          this.fireTimeEvent('remove', start, end, busytime);
+        }
       }
     },
 

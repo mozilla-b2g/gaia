@@ -1,6 +1,6 @@
 'use strict';
 /* global contacts */
-/* global MockActivities */
+/* global ActivityHandler */
 /* global MockAlphaScroll */
 /* global MockasyncStorage */
 /* global MockCookie */
@@ -11,7 +11,6 @@
 /* global Mockfb */
 /* global MockImageLoader */
 /* global MockMozContacts */
-/* global MockPerformanceTestingHelper */
 /* global MockURL */
 /* global MocksHelper */
 /* global MockNavigationStack */
@@ -37,7 +36,7 @@ requireApp('communications/contacts/test/unit/mock_extfb.js');
 requireApp('communications/contacts/test/unit/mock_activities.js');
 requireApp('communications/contacts/test/unit/mock_utils.js');
 requireApp('communications/contacts/test/unit/mock_mozContacts.js');
-require('/shared/test/unit/mocks/mock_performance_testing_helper.js');
+requireApp('communications/contacts/js/utilities/performance_helper.js');
 
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 
@@ -63,16 +62,8 @@ if (!window.mozL10n) {
   window.mozL10n = null;
 }
 
-if (!window.ActivityHandler) {
-  window.ActivityHandler = null;
-}
-
 if (!window.ImageLoader) {
   window.ImageLoader = null;
-}
-
-if (!window.PerformanceTestingHelper) {
-  window.PerformanceTestingHelper = null;
 }
 
 if (!window.asyncStorage) {
@@ -84,7 +75,8 @@ if (!window.asyncScriptsLoaded) {
 }
 
 var mocksForListView = new MocksHelper([
-  'ContactPhotoHelper'
+  'ContactPhotoHelper',
+  'ActivityHandler'
 ]).init();
 
 suite('Render contacts list', function() {
@@ -99,10 +91,8 @@ suite('Render contacts list', function() {
       realContacts,
       realFb,
       realImageLoader,
-      realPerformanceTestingHelper,
       realAsyncStorage,
       mockContacts,
-      realActivities,
       realURL,
       groupA,
       groupB,
@@ -112,6 +102,7 @@ suite('Render contacts list', function() {
       groupGreek,
       groupCyrillic,
       groupFav,
+      groupsContainer,
       groupUnd,
       containerA,
       containerB,
@@ -129,7 +120,8 @@ suite('Render contacts list', function() {
       settings,
       searchSection,
       noContacts,
-      realMozContacts;
+      realMozContacts,
+      fastScroll;
 
   function doLoad(list, values, callback) {
     var handler = function() {
@@ -159,9 +151,9 @@ suite('Render contacts list', function() {
   // Poor man's way of delaying until an element is onscreen as determined
   // by the visibility monitor.
   function doOnscreen(list, element, callback) {
+    var uuid = element.dataset.uuid;
+    list.notifyRowOnScreenByUUID(uuid, callback);
     element.scrollIntoView(true);
-    // XXX Replace this with a true callback from monitor or list
-    window.setTimeout(callback);
   }
 
   function assertNoGroup(title, container) {
@@ -271,12 +263,10 @@ suite('Render contacts list', function() {
     container = document.createElement('div');
     containerSection.appendChild(container);
 
-    var groupsContainer = document.createElement('div');
+    groupsContainer = document.createElement('div');
     groupsContainer.id = 'groups-container';
     groupsContainer.innerHTML += '<section data-type="list" ' +
       'id="groups-list"></section>';
-    groupsContainer.innerHTML += '<nav data-type="scrollbar">';
-    groupsContainer.innerHTML += '<p></p></nav>';
 
     // We need this minimal amount of style for scrolling and the visibility
     // monitor to work correctly.
@@ -292,10 +282,14 @@ suite('Render contacts list', function() {
     noContacts = document.createElement('div');
     noContacts.id = 'no-contacts';
     list = container.querySelector('#groups-list');
+    fastScroll = document.createElement('nav');
+    fastScroll.dataset.type = 'scrollbar';
+    fastScroll.innerHTML = '<p></p>';
 
     document.body.appendChild(loading);
     document.body.appendChild(settings);
     document.body.appendChild(noContacts);
+    document.body.appendChild(fastScroll);
 
     searchSection = document.createElement('section');
     searchSection.id = 'search-view';
@@ -392,13 +386,9 @@ suite('Render contacts list', function() {
     realFb = window.fb;
     window.fb = Mockfb;
     window.Contacts.extServices = MockExtFb;
-    realActivities = window.ActivityHandler;
-    window.ActivityHandler = MockActivities;
     realImageLoader = window.ImageLoader;
     window.ImageLoader = MockImageLoader;
     realURL = window.URL || {};
-    realPerformanceTestingHelper = window.PerformanceTestingHelper;
-    window.PerformanceTestingHelper = MockPerformanceTestingHelper;
     window.URL = MockURL;
     window.utils = window.utils || {};
     window.utils.alphaScroll = MockAlphaScroll;
@@ -424,9 +414,7 @@ suite('Render contacts list', function() {
     window.Contacts = realContacts;
     window.fb = realFb;
     window.mozL10n = realL10n;
-    window.ActivityHandler = realActivities;
-    window.ImageLoader = realActivities;
-    window.PerformanceTestingHelper = realPerformanceTestingHelper;
+    window.ImageLoader = realImageLoader;
     window.asyncStorage = realAsyncStorage;
     navigator.mozContacts = realMozContacts;
     mocksForListView.suiteTeardown();
@@ -476,6 +464,11 @@ suite('Render contacts list', function() {
       window.fb.isEnabled = false;
     });
 
+    setup(function() {
+      this.sinon.spy(window.utils.PerformanceHelper, 'contentInteractive');
+      this.sinon.spy(window.utils.PerformanceHelper, 'loadEnd');
+    });
+
     test('first time', function() {
       mockContacts = new MockContactsList();
       subject.load(mockContacts);
@@ -490,6 +483,9 @@ suite('Render contacts list', function() {
       assertNoGroup(groupD, containerD);
       assertNoGroup(groupGreek, containerGreek);
       assertNoGroup(groupCyrillic, containerCyrillic);
+      sinon.assert.calledOnce(
+        window.utils.PerformanceHelper.contentInteractive);
+      sinon.assert.calledOnce(window.utils.PerformanceHelper.loadEnd);
     });
 
     test('adding one at the beginning', function() {
@@ -820,6 +816,8 @@ suite('Render contacts list', function() {
       subject.remove('2');
       subject.remove('3');
       assert.isFalse(noContacts.classList.contains('hide'));
+      assert.isTrue(fastScroll.classList.contains('hide'));
+      assert.isTrue(groupsContainer.classList.contains('hide'));
       assertNoGroup(groupFav, containerFav);
       assertNoGroup(groupFav, containerFav);
     });
@@ -947,18 +945,20 @@ suite('Render contacts list', function() {
 
         // There are contacts on the list so no contacts should be hidden
         assert.isTrue(noContacts.classList.contains('hide'));
+        assert.isFalse(fastScroll.classList.contains('hide'));
+        assert.isFalse(groupsContainer.classList.contains('hide'));
 
         done();
       });
     });
 
     test('checking no contacts when coming from activity', function(done) {
-      MockActivities.currentlyHandling = true;
+      ActivityHandler.currentlyHandling = true;
       doLoad(subject, [], function() {
         assert.isTrue(noContacts.classList.contains('hide'));
         assertNoGroup(groupFav, containerFav);
         assertTotal(0, 0);
-        MockActivities.currentlyHandling = false;
+        ActivityHandler.currentlyHandling = false;
         done();
       });
     });
@@ -1594,6 +1594,48 @@ suite('Render contacts list', function() {
           }
           done();
         }, new MockNavigationStack(), { isDanger: false });
+      });
+    });
+  });
+
+  suite('Row on screen notification', function() {
+    var names = [];
+    var elements = [];
+    setup(function (done) {
+      names = ['AA', 'AB', 'AC', 'AD', 'AE',
+       'AF', 'AG', 'AH', 'AI', 'AJ', 'AK'];
+      var list = [];
+      for (var i = 0; i < names.length; ++i) {
+        var name = names[i];
+        var c = new MockContactAllFields();
+        c.id = 'mock-' + i;
+        c.familyName = [name];
+        list.push(c);
+      }
+
+      doLoad(subject, list, function () {
+        elements = assertGroup(groupA, containerA, names.length);
+        done();
+      });
+    });
+
+    test('Scroll to a deep row', function (done) {
+      var element = elements[names.length -1];
+      doOnscreen(subject, element, function (row) {
+        assert.isNotNull(row);
+        assert.equal(row, element);
+        done();
+      });
+    });
+
+    test('Notify a row that is on the screen', function(done) {
+      var element = elements[0];
+      doOnscreen(subject, element, function (r) {
+        subject.notifyRowOnScreenByUUID(element.dataset.uuid, function(row) {
+          assert.isNotNull(row);
+          assert.equal(row, element);
+          done();
+        });
       });
     });
   });

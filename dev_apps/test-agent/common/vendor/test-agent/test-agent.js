@@ -1408,8 +1408,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   }
 
   var Base = TestAgent.Mocha.ReporterBase,
-      exports = window.TestAgent.Mocha,
-      log = console.log.bind(console);
+      exports = window.TestAgent.Mocha;
 
   MochaReporter.console = window.console;
   MochaReporter.send = function mochaReporterSend() {};
@@ -1426,29 +1425,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         suiteTitle,
         currentTest;
 
-    MochaReporter.console.log = function consoleLogShim() {
-      var args = Array.prototype.slice.call(arguments),
-          message = TestAgent.format.apply(TestAgent, arguments);
-      //real console log
-      log.apply(this, arguments);
-
-      //for server
-
-      var stack, messages = args.map(function(item) {
-        if (!item) {
-          return item;
-        }
-        return (item.toString) ? item.toString() : item;
-      });
-
-      try {
-        throw new Error();
-      } catch (e) {
-        stack = e.stack;
-      }
+    function consoleShim(type) {
+      var args = Array.prototype.slice.call(arguments, 1),
+          messages = args,
+          stack = new Error().stack;
 
       if (stack) {
-        //re-orgnaize the stack to exlude the above
+        // Re-organize the stack to exlude the above
         stack = stack.split('\n').map(function(e) {
           return e.trim().replace(/^at /, '');
         });
@@ -1457,18 +1440,29 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         stack = stack.join('\n');
       }
 
-      //this is temp
-      var logDetails = {messages: [message], stack: stack };
+      if (type === 'trace') {
+        messages = [stack];
+        type = 'log';
+      }
 
+      var logDetails = { messages: messages, stack: stack };
 
       if (MochaReporter.testAgentEnvId) {
         logDetails.testAgentEnvId = MochaReporter.testAgentEnvId;
       }
 
       MochaReporter.send(
-        JSON.stringify(['log', logDetails])
+        JSON.stringify([type, logDetails])
       );
     };
+
+    MochaReporter.console.debug = consoleShim.bind(null, 'log');
+    MochaReporter.console.log = consoleShim.bind(null, 'log');
+    MochaReporter.console.info = consoleShim.bind(null, 'info');
+    MochaReporter.console.warn = consoleShim.bind(null, 'warn');
+    MochaReporter.console.error = consoleShim.bind(null, 'error');
+    MochaReporter.console.dir = consoleShim.bind(null, 'dir');
+    MochaReporter.console.trace = consoleShim.bind(null, 'trace');
 
     runner.on('suite', function onSuite(suite) {
       indentation++;
@@ -1674,8 +1668,28 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
     // We ignore log if coverage is enabled
     if (!this.coverage) {
-      this.on('log', function onLog(data) {
-        console.log.apply(console, data.messages);
+      this.on({
+
+        'log': function onLog(data) {
+          console.log.apply(console, data.messages);
+        },
+
+        'info': function onInfo(data) {
+          console.info.apply(console, data.messages);
+        },
+
+        'warn': function onWarn(data) {
+          console.warn.apply(console, data.messages);
+        },
+
+        'error': function onError(data) {
+          console.error.apply(console, data.messages);
+        },
+
+        'dir': function onDir(data) {
+          console.dir.apply(console, data.messages);
+        }
+
       });
     }
 
@@ -2956,6 +2970,21 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       worker.testRunner = this._testRunner.bind(this);
     },
 
+    extend: function extend(target) {
+      var result = target || {},
+          objs = Array.slice(arguments, 1);
+
+      return objs.reduce(function(result, obj) {
+        for (var key in obj) {
+          if (obj.hasOwnProperty(key)) {
+            result[key] = obj[key];
+          }
+        }
+
+        return result;
+      }, result);
+    },
+
     getReporter: function getReporter(box) {
       var stream = TestAgent.Mocha.JsonStreamReporter,
           self = this;
@@ -3024,19 +3053,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
           };
         }
 
-        // due to a bug in mocha, iframes added to the DOM are
-        // detected as global leaks in FF 21+, these global ignores
-        // are a workaround. see also:
-        // https://developer.mozilla.org/en-US/docs/Site_Compatibility_for_Firefox_21
-        var globalIgnores = ['0', '1', '2', '3', '4', '5'];
+        var options = self.extend({}, self.setup, {
+          ui: self.ui,
+          timeout: self.timeout,
+          reporter: self.getReporter(box)
+        });
 
         //setup mocha
-        box.mocha.setup({
-          globals: globalIgnores,
-          ui: self.ui,
-          reporter: self.getReporter(box),
-          timeout: self.timeout
-        });
+        box.mocha.setup(options);
       });
 
       self._loadTestHelpers(box, function() {

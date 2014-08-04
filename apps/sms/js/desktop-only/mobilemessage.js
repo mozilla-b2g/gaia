@@ -274,7 +274,7 @@
     });
   });
 
-  getTestFile('/test/unit/media/contact.vcf', function(contactBlob) {
+  getTestFile('/test/unit/media/contacts.vcf', function(contactBlob) {
     messagesDb.messages.push({
       id: messagesDb.id++,
       threadId: 6,
@@ -284,10 +284,10 @@
       delivery: 'received',
       deliveryInfo: [{deliveryStatus: 'success'}],
       subject: 'Test vard without text content',
-      smil: '<smil><body><par><ref src="contact.vcf"/>' +
+      smil: '<smil><body><par><ref src="contacts.vcf"/>' +
             '</par></body></smil>',
       attachments: [{
-        location: 'contact.vcf',
+        location: 'contacts.vcf',
         content: contactBlob
       }],
       timestamp: now,
@@ -303,14 +303,14 @@
       delivery: 'received',
       deliveryInfo: [{deliveryStatus: 'success'}],
       subject: 'Test vard with text content',
-      smil: '<smil><body><par><ref src="contact.vcf"/>' +
+      smil: '<smil><body><par><ref src="contacts.vcf"/>' +
             '<text src="text1"/></par></body></smil>',
       attachments: [{
         location: 'text1',
         content: new Blob(['This is a vcard'],
             { type: 'text/plain' })
       },{
-        location: 'contact.vcf',
+        location: 'contacts.vcf',
         content: contactBlob
       }],
       timestamp: now,
@@ -639,11 +639,63 @@
         threadId: 11,
         sender: '109',
         read: true,
+        body: 'Hello from old database!',
+        delivery: 'received',
+        type: 'sms',
+        timestamp: now - 172800000,
+        sentTimestamp: 0
+      },
+      {
+        threadId: 11,
+        sender: '109',
+        read: true,
         body: 'Hello!',
         delivery: 'received',
         type: 'sms',
         timestamp: now - 3600000,
         sentTimestamp: now - 3700000
+      },
+      {
+        threadId: 12,
+        receiver: ['06660'],
+        type: 'mms',
+        read: true,
+        delivery: 'sent',
+        deliveryInfo: [{
+          receiver: '052780',
+          deliveryStatus: 'success',
+          deliveryTimestamp: now,
+          readStatus: 'success',
+          readTimestamp: now
+        }],
+        subject: 'Test MMS Image message',
+        smil: '<smil><body><par><text src="text1"/></par>' +
+              '<par><img src="corrupted.jpg"/></par></body></smil>',
+        attachments: [{
+          location: 'text1',
+          content: new Blob(['sent image message'], { type: 'text/plain' })
+        },{
+          location: 'corrupted.jpg',
+          // Corrupt image blob
+          content: new Blob(['corrupted'], {type : 'image/jpg'})
+        }],
+        timestamp: now
+      },
+      {
+        threadId: 12,
+        sender: '06660',
+        type: 'mms',
+        delivery: 'received',
+        deliveryInfo: [{deliveryStatus: 'success'}],
+        subject: 'Test MMS Image message',
+        smil: '<smil><body><par><img src="corrupted.jpg"/>' +
+              '</par></body></smil>',
+        attachments: [{
+          location: 'corrupted.jpg',
+          content: new Blob(['corrupted'], {type : 'image/jpg'})
+        }],
+        timestamp: now,
+        sentTimestamp: now - 100000
       }
     ],
     threads: [
@@ -731,7 +783,14 @@
         lastMessageType: 'sms',
         timestamp: now - 60000,
         unreadCount: 0
-      }
+      },
+      {
+        id: 12,
+        participants: ['06660'],
+        lastMessageType: 'mms',
+        timestamp: now - (60000000 * 10),
+        unreadCount: 0
+      },
     ]
   };
 
@@ -1465,16 +1524,30 @@
   };
 
   MockNavigatormozMobileMessage.getSegmentInfoForText = function(text) {
-    var length = text.length;
-    var segmentLength = 160;
-    var charsUsedInLastSegment = (length % segmentLength);
-    var segments = Math.ceil(length / segmentLength);
-    return {
-      segments: segments,
-      charsAvailableInLastSegment: charsUsedInLastSegment ?
-        segmentLength - charsUsedInLastSegment :
-        0
+    var request = {
+      error: null
     };
+
+    setTimeout(function() {
+      var length = text.length;
+      var segmentLength = 160;
+      var charsUsedInLastSegment = (length % segmentLength);
+      var segments = Math.ceil(length / segmentLength);
+      if (typeof request.onsuccess === 'function') {
+        request.onsuccess.call(request, {
+          target: {
+            result: {
+              segments: segments,
+              charsAvailableInLastSegment: charsUsedInLastSegment ?
+                segmentLength - charsUsedInLastSegment :
+                0
+            }
+          }
+        });
+      }
+    }, simulation.delay());
+
+    return request;
   };
 
 }(window));

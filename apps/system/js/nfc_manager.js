@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-/* globals dump, lockScreen, CustomEvent, MozActivity, MozNDEFRecord,
+/* globals dump, CustomEvent, MozActivity, System,
    NfcHandoverManager, NfcUtils, NDEF, ScreenManager */
 'use strict';
 
@@ -30,13 +30,23 @@ var NfcManager = {
 
   hwState: 0,
 
+  // Assign priority of tech handling. Smaller number means higher priority.
+  // This list will expand with supported technologies.
+  TechPriority: {
+    'P2P': 1,
+    'NDEF': 2,
+    'NDEF_WRITEABLE': 3,
+    'NDEF_FORMATABLE': 4,
+    'Unsupported': 20
+  },
+
   _debug: function nm_debug(msg, optObject) {
     if (this.DEBUG) {
       var output = '[DEBUG] SYSTEM NFC: ' + msg;
       if (optObject) {
         output += JSON.stringify(optObject);
       }
-      dump(output);
+      dump(output + '\n');
     }
   },
 
@@ -50,12 +60,12 @@ var NfcManager = {
       'nfc-manager-tech-lost',
       this.handleTechLost.bind(this));
     window.addEventListener('screenchange', this);
-    window.addEventListener('lock', this);
-    window.addEventListener('unlock', this);
+    window.addEventListener('lockscreen-appopened', this);
+    window.addEventListener('lockscreen-appclosed', this);
     var self = this;
     window.SettingsListener.observe('nfc.enabled', false, function(enabled) {
       var state = enabled ?
-                    (lockScreen.locked ?
+                    (System.locked ?
                        self.NFC_HW_STATE_DISABLE_DISCOVERY :
                        self.NFC_HW_STATE_ON) :
                     self.NFC_HW_STATE_OFF;
@@ -65,7 +75,7 @@ var NfcManager = {
 
   isScreenUnlockAndEnabled: function nm_isScreenUnlockAndEnabled() {
     // Policy:
-    if (ScreenManager.screenEnabled && lockScreen && !lockScreen.locked) {
+    if (ScreenManager.screenEnabled && !System.locked) {
       return true;
     } else {
       return false;
@@ -114,8 +124,8 @@ var NfcManager = {
   handleEvent: function nm_handleEvent(evt) {
     var state;
     switch (evt.type) {
-      case 'lock': // Fall through
-      case 'unlock':
+      case 'lockscreen-appopened': // Fall through
+      case 'lockscreen-appclosed':
       case 'screenchange':
         if (this.hwState == this.NFC_HW_STATE_OFF) {
           return;
@@ -139,121 +149,124 @@ var NfcManager = {
     }
   },
 
-  // An NDEF Message is an array of one or more NDEF records.
-  handleNdefMessage: function nm_handleNdefMessage(ndefmessage) {
-    var action = null;
+  /**
+   * Fires NDEF related activities to launch other apps to perform
+   * further actions with NDEF Message contents. If the first NDEF record
+   * contains a well know type additional parsing will be done in helper
+   * methods. In general the name of activity will be 'nfc-ndef-discovered',
+   * in some case other names may be used (e.g. 'dial' in case of tel uri)
+   * @param {Object} msg
+   * @param {Array} msg.records - NDEF Message
+   * @param {Array} msg.techList - tech list
+   * @param {string} msg.sessionToken - session token
+   * @param {string} tech - tech from tech list with highest priority
+   */
+  fireNDEFDiscovered: function nm_fireNDEFDiscovered(msg, tech) {
+    this._debug('fireNDEFDiscovered: ' + JSON.stringify(msg));
+    var smartPoster = this.getSmartPoster(msg.records);
+    var record = smartPoster || msg.records[0] || { tnf: NDEF.TNF_EMPTY };
 
-    var record = ndefmessage[0];
-    this._debug('RECORD: ' + JSON.stringify(record));
+    var data = NDEF.payload.decode(record.tnf, record.type, record.payload);
+    var options = this.createNDEFActivityOptions(data);
+    options.data.tech = tech;
+    options.data.techList = msg.techList;
+    options.data.sessionToken = msg.sessionToken;
 
-    switch (+record.tnf) {
-      case NDEF.TNF_EMPTY:
-        action = this.formatEmpty(record);
-        break;
-      case NDEF.TNF_WELL_KNOWN:
-        action = this.formatWellKnownRecord(record);
-        break;
-      case NDEF.TNF_ABSOLUTE_URI:
-        action = this.formatURIRecord(record);
-        break;
-      case NDEF.TNF_MIME_MEDIA:
-        action = this.formatMimeMedia(record);
-        break;
-      case NDEF.TNF_EXTERNAL_TYPE:
-        action = this.formatExternalType(record);
-        break;
-      case NDEF.TNF_UNKNOWN:
-      case NDEF.TNF_UNCHANGED:
-      case NDEF.TNF_RESERVED:
-        /* falls through */
-      default:
-        this._debug('Unknown or unimplemented tnf or rtd subtype.');
-        break;
+    if (data !== null) {
+      options.data.records = msg.records;
     }
-    if (action == null) {
-      this._debug('XX Found no ndefmessage actions. XX');
-      action = this.formatNDEFUnknown(ndefmessage);
-    } else {
-      action.data.records = ndefmessage;
-    }
-    return action;
-  },
 
-  doClose: function nm_doClose(nfctag) {
-    var conn = nfctag.close();
-    var self = this;
-    conn.onsuccess = function() {
-      self._debug('NFC tech disconnected');
-    };
-    conn.onerror = function() {
-      self._debug('Disconnect failed.');
+    this._debug('options: ' + JSON.stringify(options));
+    var activity = new MozActivity(options);
+    activity.onerror = () => {
+      this._debug('Firing nfc-ndef-discovered failed');
     };
   },
 
-  handleNdefDiscoveredUseConnect:
-    function nm_handleNdefDiscoveredUseConnect(tech, session) {
-      var self = this;
+  /**
+   * Retrieves Smart Poster record from NDEF records array following
+   * the rule outlined in NFCForum-SmartPoster_RTD_1.0, 3.4:
+   * "If an NDEF message contains one or multiple URI [URI] records
+   * in addition to the Smart Poster record at the top level (i.e.,
+   * not nested), the Smart Poster record overrides them. The NDEF
+   * application MUST use only the Smart Poster record."
+   * @param {Array} records - array of NDEF records
+   * @returns {Object} record - SmartPostr record or null
+   */
+  getSmartPoster: function getSmartPoster(records) {
+    if (!Array.isArray(records) || !records.length) {
+      return null;
+    }
 
-      var nfcdom = window.navigator.mozNfc;
-      if (!nfcdom) {
-        return;
-      }
+    var smartPosters = records.filter(function isSmartPoster(r) {
+      return NfcUtils.equalArrays(r.type, NDEF.RTD_SMART_POSTER);
+    });
 
-      var token = session;
-      var nfctag = nfcdom.getNFCTag(token);
-
-      var conn = nfctag.connect(tech);
-      conn.onsuccess = function() {
-        var req = nfctag.readNDEF();
-        req.onsuccess = function() {
-          self._debug('NDEF Read result: ' + JSON.stringify(req.result));
-          self.handleNdefDiscovered(tech, session, req.result);
-          self.doClose(nfctag);
-        };
-        req.onerror = function() {
-          self._debug('Error reading NDEF record');
-          self.doClose(nfctag);
-        };
-      };
+    if (records[0].tnf === NDEF.TNF_WELL_KNOWN &&
+        NfcUtils.equalArrays(records[0].type, NDEF.RTD_URI) &&
+        smartPosters.length) {
+      return smartPosters[0];
+    }
+    return null;
   },
 
-  handleNdefDiscovered:
-    function nm_handleNdefDiscovered(tech, session, records) {
+  /**
+   * Basing on decoded payload from first record of NDEF message prepares
+   * activity options object which will be used to launch MozActivity
+   * @param {Object} paylod - decoded payload of first record from NDEF message
+   * @returns {Object} options - object used to construct MozActivity
+   */
+  createNDEFActivityOptions: function nm_createNDEFActivityOptions(payload) {
+    var options = { name: 'nfc-ndef-discovered', data: {}};
+    if (payload === null) {
+      return options;
+    }
 
-      this._debug('handleNdefDiscovered: ' + JSON.stringify(records));
-      var action = this.handleNdefMessage(records);
-      if (action == null) {
-        this._debug('Unimplemented. Handle Unknown type.');
+    if (payload.type === 'uri') {
+      if (payload.uri.indexOf('tel:') === 0) {
+        // dial a number
+        options.name = 'dial';
+        options.data.type = 'webtelephony/number';
+        options.data.number = payload.uri.substring(4);
+        options.data.uri = payload.uri;
+      } else if (payload.uri.indexOf('mailto:') === 0) {
+        // create new mail
+        options.name = 'new';
+        options.data.type = 'mail';
+        options.data.url = payload.uri;
+      } else if (payload.uri.indexOf('http://') === 0 ||
+                 payload.uri.indexOf('https://') === 0) {
+        // launch browser
+        options.data.type = 'url';
+        options.data.url = payload.uri;
       } else {
-        this._debug('Action: ' + JSON.stringify(action));
-        action.data.tech = tech;
-        action.data.sessionToken = session;
-        var a = new MozActivity(action);
-        a.onerror = function() {
-          self._debug('Firing nfc-ndef-discovered failed');
-        };
+        options.data = payload;
       }
-  },
-
-  handleNdefDiscoveredEmpty:
-    function nm_handleNdefDiscoveredEmpty(tech, sessionToken) {
-      var emptyRec = [new MozNDEFRecord(NDEF.tnf_empty, NDEF.rtd_text)];
-      this.handleNdefDiscovered(tech, sessionToken, emptyRec);
-  },
-
-  // NDEF only currently
-  handleP2P: function handleP2P(tech, sessionToken, records) {
-    if (records != null) {
-       // Incoming P2P message carries a NDEF message. Dispatch
-       // the NDEF message (this might bring another app to the
-       // foreground).
-      this.handleNdefDiscovered(tech, sessionToken, records);
-      return;
+    } else if (payload.type === 'smartposter' &&
+      (payload.uri.indexOf('http://') === 0 ||
+       payload.uri.indexOf('https://') === 0)) {
+      // smartposter adaptation for browser handling
+      options.data = payload;
+      options.data.type = 'url';
+      options.data.url = payload.uri;
+      delete options.data.uri;
+    } else if (payload.type === 'text/vcard') {
+      // contact import
+      options.name = 'import';
+      options.data = payload;
+    } else {
+      options.data = payload;
     }
 
-    // Incoming P2P message does not carry an NDEF message.
+    return options;
+  },
 
-    // Do P2P UI.
+  /**
+   * Triggers P2P UI flow which is asking the user to confirm if he wants 
+   * to share data. Handled by ShrinkingUI, which listens for 
+   * check-p2p-registration-for-active-app event.
+   */
+  triggerP2PUI: function triggerP2PUI() {
     var evt = new CustomEvent('check-p2p-registration-for-active-app', {
       bubbles: true, cancelable: false,
       detail: this
@@ -297,17 +310,25 @@ var NfcManager = {
     nfcdom.notifyUserAcceptedP2P(manifestURL);
   },
 
-  fireTagDiscovered: function nm_fireTagDiscovered(command) {
+  /**
+   * Fires nfc-tag-discovered activity to pass unsupported
+   * or NDEF_FORMATABLE tags to an app which can do some
+   * further processing.
+   * @param {Object} msg
+   * @param {string} type - tech with highest priority; for filtering 
+   */
+  fireTagDiscovered: function nm_fireTagDiscovered(msg, type) {
     var self = this;
-    // Fire off activity to whoever is registered to handle a generic
-    // binary blob.
-    var techList = command.techList;
+
     var a = new MozActivity({
       name: 'nfc-tag-discovered',
       data: {
-        type: 'tag',
-        sessionToken: command.sessionToken,
-        techList: techList
+        type: type,
+        sessionToken: msg.sessionToken,
+        techList: msg.techList,
+        // it might be possible we will have some content
+        // so app might handle it, real world testing needed
+        records: msg.records
       }
     });
     a.onerror = function() {
@@ -315,89 +336,69 @@ var NfcManager = {
     };
   },
 
-  handleTechnologyDiscovered: function nm_handleTechnologyDiscovered(command) {
-    this._debug('Technology Discovered: ' + JSON.stringify(command));
+  getPrioritizedTech: function nm_getPrioritizedTech(techList) {
+    if (techList.length === 0) {
+      return 'Unknown';
+    }
+
+    var self = this;
+    techList.sort(function sorter(techA, techB) {
+      var priorityA = self.TechPriority[techA] || self.TechPriority.Unsupported;
+      var priorityB = self.TechPriority[techB] || self.TechPriority.Unsupported;
+      return priorityA - priorityB;
+    });
+
+    return techList[0];
+  },
+
+  /**
+   * Handler for nfc-manager-tech-discovered messages which originate from
+   * gecko. Basing on the first NDEF record tnf and type this method can use
+   * NfcHandoverManager to handle handover scenarios. Basing on the techList
+   * array it can either trigger P2P sharing scenario or create MozActivities
+   * for other apps to act upon.
+   * @param {Object} msg gecko originated message
+   * @param {Array} msg.records NDEF records
+   * @param {Array} msg.techList
+   * @param {string} msg.sessionToken
+   * @param {string} msg.type set to 'techDiscovered'
+   */
+  handleTechnologyDiscovered: function nm_handleTechnologyDiscovered(msg) {
+    this._debug('Technology Discovered: ' + JSON.stringify(msg));
+    msg = msg || {};
+    msg.records = Array.isArray(msg.records) ? msg.records : [];
+    msg.techList = Array.isArray(msg.techList) ? msg.techList : [];
 
     window.dispatchEvent(new CustomEvent('nfc-tech-discovered'));
     window.navigator.vibrate([25, 50, 125]);
 
-    // Check for tech types:
-    this._debug('command.techList: ' + command.techList);
-    var techList = command.techList;
-    var records = null;
-    if (command.records && (command.records.length > 0)) {
-      records = command.records;
-    } else {
-      this._debug('No NDEF Message sent to Technology Discovered');
+    if (NfcHandoverManager.tryHandover(msg.records, msg.sessionToken)) {
+      return;
     }
 
-    if (records != null) {
-      /* First check for handover messages that
-       * are handled by the handover manager.
-       */
-      var firstRecord = records[0];
-      if ((firstRecord.tnf == NDEF.TNF_MIME_MEDIA) &&
-            NfcUtils.equalArrays(firstRecord.type,
-            NfcUtils.fromUTF8('application/vnd.bluetooth.ep.oob'))) {
-        this._debug('Handle simplified pairing record');
-        NfcHandoverManager.handleSimplifiedPairingRecord(records);
-        return;
-      }
-      if ((firstRecord.tnf == NDEF.TNF_WELL_KNOWN) &&
-          NfcUtils.equalArrays(firstRecord.type, NDEF.RTD_HANDOVER_SELECT)) {
-        this._debug('Handle Handover Select');
-        NfcHandoverManager.handleHandoverSelect(records);
-        return;
-      }
-      if ((firstRecord.tnf == NDEF.TNF_WELL_KNOWN) &&
-          NfcUtils.equalArrays(firstRecord.type, NDEF.RTD_HANDOVER_REQUEST)) {
-        this._debug('Handle Handover Request');
-        NfcHandoverManager.handleHandoverRequest(records, command.sessionToken);
-        return;
-      }
-    }
-
-    // Assign priority of tech handling. This list will expand with supported
-    // Technologies.
-    var priority = {
-      'P2P': 0,
-      'NDEF': 1,
-      'NDEF_WRITEABLE': 2,
-      'NDEF_FORMATABLE': 3,
-      'NFC_A': 4,
-      'MIFARE_ULTRALIGHT': 5
-    };
-    techList.sort(function sorter(techA, techB) {
-      return priority[techA] - priority[techB];
-    });
-
-    // One shot try. Fallback directly to tag.
-    switch (techList[0]) {
+    var tech = this.getPrioritizedTech(msg.techList);
+    switch (tech) {
       case 'P2P':
-        this.handleP2P(techList[0], command.sessionToken, records);
-        break;
-      case 'NDEF':
-        if (records) {
-          this.handleNdefDiscovered(techList[0], command.sessionToken, records);
+        if (!msg.records.length) {
+          this.triggerP2PUI();
         } else {
-          this.handleNdefDiscoveredEmpty(techList[0], command.sessionToken);
+          // if there are records in the message we've got NDEF messages shared
+          // by other device via P2P, this should be handled as regular NDEF
+          this.fireNDEFDiscovered(msg, tech);
         }
         break;
+      case 'NDEF':
       case 'NDEF_WRITEABLE':
-        this.handleNdefDiscoveredEmpty(techList[0], command.sessionToken);
+        this.fireNDEFDiscovered(msg, tech);
         break;
       case 'NDEF_FORMATABLE':
-        this.handleNdefDiscoveredUseConnect(techList[0], command.sessionToken);
-        break;
-      case 'NFC_A':
-        this._debug('NFCA unsupported: ' + command);
-        break;
-      case 'MIFARE_ULTRALIGHT':
-        this._debug('MiFare unsupported: ' + command);
+        // not moving to default for readability 
+        this.fireTagDiscovered(msg, tech);
         break;
       default:
-        this._debug('Unknown or unsupported tag type. Fire Tag-Discovered.');
-        this.fireTagDiscovered(command);
+        this._debug('Tag tech: ' + tech + ', fire Tag-Discovered.');
+        this.fireTagDiscovered(msg, tech);
+        break;
     }
   },
 
@@ -410,186 +411,6 @@ var NfcManager = {
     // Clean up P2P UI events
     window.removeEventListener('shrinking-sent', this);
     window.dispatchEvent(new CustomEvent('shrinking-stop'));
-  },
-
-  // Miscellaneous utility functions to handle formating the JSON for activities
-
-  isTypeMatch: function nm_isTypeMatch(type, stringTypeArray) {
-    var strType = NfcUtils.toUTF8(type);
-    if (stringTypeArray && stringTypeArray.length) {
-      for (var i = 0; i < stringTypeArray.length; i++) {
-        if (strType === stringTypeArray[i]) {
-          this._debug('Found a type match.');
-          return true;
-        }
-      }
-    }
-    this._debug('Did not find a match.');
-    return false;
-  },
-
-  formatEmpty: function nm_formatEmpty(record) {
-    this._debug('Activity for empty tag.');
-    return {
-      name: 'nfc-ndef-discovered',
-      data: {
-        type: 'empty'
-      }
-    };
-  },
-
-  formatNDEFUnknown: function nm_formatUnknown(record) {
-    return {
-      name: 'nfc-ndef-discovered',
-      data: {
-        type: NfcUtils.toUTF8(record.type)
-      }
-    };
-  },
-
-  formatWellKnownRecord: function nm_formatWellKnownRecord(record) {
-    this._debug('HandleWellKnowRecord');
-    if (NfcUtils.equalArrays(record.type, NDEF.RTD_TEXT)) {
-      return this.formatTextRecord(record);
-    } else if (NfcUtils.equalArrays(record.type, NDEF.RTD_URI)) {
-      return this.formatURIRecord(record);
-    } else if (NfcUtils.equalArrays(record.type, NDEF.RTD_SMART_POSTER)) {
-      return this.formatSmartPosterRecord(record);
-    } else {
-      console.log('Unknown record type: ' + JSON.stringify(record));
-    }
-    return null;
-  },
-
-  formatTextRecord: function nm_formatTextRecord(record) {
-    var status = record.payload[0];
-    var languageLength = status & NDEF.RTD_TEXT_IANA_LENGTH;
-    var language = NfcUtils.toUTF8(
-                     record.payload.subarray(1, languageLength + 1));
-    var encoding = status & NDEF.RTD_TEXT_ENCODING;
-    var text;
-    var encodingString;
-    if (encoding == NDEF.RTD_TEXT_UTF8) {
-      text = NfcUtils.toUTF8(record.payload.subarray(languageLength + 1));
-      encodingString = 'UTF-8';
-    } else if (encoding == NDEF.RTD_TEXT_UTF16) {
-      text = NfcUtils.toUTF16(record.payload.subarray(languageLength + 2));
-      encodingString = 'UTF-16';
-    }
-    var activityText = {
-      name: 'nfc-ndef-discovered',
-      data: {
-        type: 'text',
-        rtd: record.type,
-        text: text,
-        language: language,
-        encoding: encodingString
-      }
-    };
-    return activityText;
-  },
-
-  formatURIRecord: function nm_formatURIRecord(record) {
-    this._debug('XXXX Handle Ndef URI type');
-    var activityText = null;
-    var prefix = NDEF.URIS[record.payload[0]];
-    if (!prefix) {
-      return null;
-    }
-
-    switch (prefix) {
-      case 'tel:':
-        var number = NfcUtils.toUTF8(record.payload.subarray(1));
-        this._debug('Handle Ndef URI type, TEL');
-        activityText = {
-          name: 'dial',
-          data: {
-            type: 'webtelephony/number',
-            number: number,
-            uri: prefix + number
-          }
-        };
-        break;
-      case 'http://www.':
-      case 'https://www.': // Fall through.
-      case 'http://':
-      case 'https://':
-        this._debug('Handle Ndef URI type, Http(s)');
-        activityText = {
-          name: 'nfc-ndef-discovered',
-          data: {
-            type: 'url',
-            rtd: record.type,
-            url: prefix + NfcUtils.toUTF8(record.payload.subarray(1))
-          }
-        };
-        break;
-      default:
-        activityText = {
-          name: 'nfc-ndef-discovered',
-          data: {
-            type: 'uri',
-            rtd: record.type,
-            uri: prefix + NfcUtils.toUTF8(record.payload.subarray(1))
-          }
-        };
-        break;
-    }
-
-    return activityText;
-  },
-
-  formatMimeMedia: function nm_formatMimeMedia(record) {
-    var activityText = null;
-
-    this._debug('HandleMimeMedia');
-    if (this.isTypeMatch(record.type,
-                         ['text/vcard', 'text/x-vCard', 'text/x-vcard'])) {
-      activityText = this.formatVCardRecord(record);
-    } else {
-      activityText = {
-        name: 'nfc-ndef-discovered',
-        data: {
-          type: NfcUtils.toUTF8(record.type)
-        }
-      };
-    }
-    return activityText;
-  },
-
-  formatVCardRecord: function nm_formatVCardRecord(record) {
-    var vcardBlob = new Blob([NfcUtils.toUTF8(record.payload)],
-                             {'type': 'text/vcard'});
-    var activityText = {
-      name: 'import',
-      data: {
-        type: 'text/vcard',
-        blob: vcardBlob
-      }
-    };
-    return activityText;
-  },
-
-  formatExternalType: function nm_formatExternalType(record) {
-    var activityText = {
-      name: 'nfc-ndef-discovered',
-      data: {
-        type: NfcUtils.toUTF8(record.type)
-      }
-    };
-    return activityText;
-  },
-
-  // Smartposters can be multipart NDEF messages.
-  // The meaning and actions are application dependent.
-  formatSmartPosterRecord: function nm_formatSmartPosterRecord(record) {
-    var activityText = {
-      name: 'nfc-ndef-discovered',
-      data: {
-        type: 'smartposter'
-      }
-    };
-    return activityText;
   }
 };
 NfcManager.init();

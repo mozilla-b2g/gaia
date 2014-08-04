@@ -1,22 +1,32 @@
-/*global MockContact, Contacts, mocha, fb, MockFbReaderUtilsObj */
+/*global MockContact, Contacts, fb, MockFbReaderUtilsObj,
+         MockSettings, MocksHelper */
 'use strict';
-
-mocha.globals(['SimplePhoneMatcher', 'fb']);
 
 require('/shared/test/unit/mocks/mock_moz_phone_number_service.js');
 require('/shared/test/unit/mocks/mock_fb_reader_utils.js');
+requireApp('sms/js/utils.js');
 requireApp('sms/test/unit/mock_contact.js');
 requireApp('sms/js/contacts.js');
+require('/test/unit/mock_settings.js');
+require('/test/unit/mock_utils.js');
+
+var mocksHelperForContactsUnitTest = new MocksHelper([
+  'Settings',
+  'Utils'
+]).init();
 
 suite('Contacts', function(done) {
+  mocksHelperForContactsUnitTest.attachTestHelpers();
   var nativeMozContacts = navigator.mozContacts;
   var realFb = window.fb;
 
   var targetFbNumber = '+34658789147';
   var fbContactName = 'Carlos Facebook';
   var targetLocalNumber = '+34698745123';
+  var targetLocalEmail = 'a@b.com';
   var localContactName = 'Jose Local';
   var notFoundNumber = '+34633789102';
+  var notFoundEmail = 'a@c.com';
 
   suiteSetup(function() {
     // Do not use the native API.
@@ -64,20 +74,23 @@ suite('Contacts', function(done) {
                     return null;
                   }
 
-                  if (filter.filterValue === targetLocalNumber) {
+                  if (filter.filterValue === targetLocalNumber ||
+                      filter.filterValue === targetLocalEmail) {
                     return [{
                       name: [localContactName]
                     }];
                   }
 
                   if (filter.filterValue === targetFbNumber ||
-                      filter.filterValue === notFoundNumber) {
+                      filter.filterValue === notFoundNumber ||
+                      filter.filterValue === notFoundEmail) {
                     return [];
                   }
 
                   // Supports two "no match" cases
                   if (filter.filterValue === '911' ||
-                      filter.filterValue === 'wontmatch') {
+                      filter.filterValue === 'wontmatch' ||
+                      filter.filterValue === 'z@y.com') {
                     return [];
                   }
 
@@ -230,6 +243,46 @@ suite('Contacts', function(done) {
         assert.isNull(mHistory[0].request.error);
 
         done();
+      });
+    });
+
+    test('(string[tel,email,givenName,familyName], ...) Match', function(done) {
+      MockSettings.supportEmailRecipient = true;
+      var mozContacts = navigator.mozContacts;
+
+      Contacts.findContactByString('a@b.com', function(contacts) {
+        done(function() {
+          var mHistory = mozContacts.mHistory;
+
+          // contacts were found
+          assert.ok(Array.isArray(contacts));
+          assert.equal(contacts.length, 1);
+
+          // navigator.mozContacts.find was called?
+          assert.equal(mHistory.length, 1);
+          assert.equal(mHistory[0].filter.filterValue, 'a@b.com');
+          assert.isNull(mHistory[0].request.error);
+        });
+      });
+    });
+
+    test('(string[tel,email,givenName,familyName], ...) No Match',
+           function(done) {
+      MockSettings.supportEmailRecipient = true;
+      var mozContacts = navigator.mozContacts;
+
+      Contacts.findContactByString('z@y.com', function(contacts) {
+        done(function() {
+          var mHistory = mozContacts.mHistory;
+
+          // contacts were not found
+          assert.ok(Array.isArray(contacts));
+          assert.equal(contacts.length, 0);
+
+          // navigator.mozContacts.find was called?
+          assert.equal(mHistory.length, 1);
+          assert.isNull(mHistory[0].request.error);
+        });
       });
     });
 
@@ -418,6 +471,42 @@ suite('Contacts', function(done) {
       });
     });
 
+    test('name first, part of email address last', function(done) {
+      MockSettings.supportEmailRecipient = true;
+      var mozContacts = navigator.mozContacts;
+
+        Contacts.findByString('Pepito a@b', function(contacts) {
+          done(function() {
+          var mHistory = mozContacts.mHistory;
+
+          // contacts were found
+          assert.ok(Array.isArray(contacts));
+          assert.equal(contacts.length, 1);
+
+          // navigator.mozContacts.find was called?
+          assert.equal(mHistory.length, 1);
+        });
+      });
+    });
+
+    test('part of email address first, name last', function(done) {
+      MockSettings.supportEmailRecipient = true;
+      var mozContacts = navigator.mozContacts;
+
+      Contacts.findByString('a@b Pepito', function(contacts) {
+        done(function() {
+          var mHistory = mozContacts.mHistory;
+
+          // contacts were found
+          assert.ok(Array.isArray(contacts));
+          assert.equal(contacts.length, 1);
+
+          // navigator.mozContacts.find was called?
+          assert.equal(mHistory.length, 1);
+        });
+      });
+    });
+
     test('string search yields a contact without familyName', function(done) {
       Contacts.findContactByString('julien 123', function(contacts) {
         done();
@@ -558,6 +647,118 @@ suite('Contacts', function(done) {
         assert.equal(contacts.length, 0);
         delete window.fb.inError;
         done();
+      });
+    });
+  });
+
+  suite('Contacts.findByAddress', function() {
+
+    test('removes spaces', function(done) {
+      var mozContacts = navigator.mozContacts;
+
+      Contacts.findByAddress('+33 1 23 45 67 89', function(contacts) {
+        done(function() {
+          assert.equal(
+            mozContacts.mHistory[0].filter.filterValue, '+33123456789'
+          );
+        });
+      });
+    });
+
+    test('The mozContacts find() call returned an error', function(done) {
+      Contacts.findByAddress('callonerror', function(contacts) {
+        done(function() {
+          assert.equal(contacts.length, 0);
+        });
+      });
+    });
+
+    test('Local number found.', function(done) {
+      Contacts.findByAddress(targetLocalNumber, function(contacts) {
+        done(function() {
+          assert.equal(contacts.length, 1);
+          assert.isTrue(!contacts[0].isFbContact);
+          assert.equal(contacts[0].name[0], localContactName);
+        });
+      });
+    });
+
+    test('Local email found.', function(done) {
+      Contacts.findByAddress(targetLocalEmail, function(contacts) {
+        done(function() {
+          assert.equal(contacts.length, 1);
+          assert.isTrue(!contacts[0].isFbContact);
+          assert.equal(contacts[0].name[0], localContactName);
+        });
+      });
+    });
+
+    test('Local number not found. FB Number found', function(done) {
+      Contacts.findByAddress(targetFbNumber, function(contacts) {
+        done(function() {
+          assert.equal(contacts.length, 1);
+          assert.equal(contacts[0].name[0], fbContactName);
+          assert.equal(contacts[0].isFbContact, true);
+        });
+      });
+    });
+
+    test('Local number not found. FB Number not found either', function(done) {
+      Contacts.findByAddress(notFoundNumber, function(contacts) {
+        done(function() {
+          assert.equal(contacts.length, 0);
+        });
+      });
+    });
+
+    test('Local email not found. FB Number not found either', function(done) {
+      Contacts.findByAddress(notFoundEmail, function(contacts) {
+        done(function() {
+          assert.equal(contacts.length, 0);
+        });
+      });
+    });
+
+    test('Local number not found. FB returns error', function(done) {
+      fb.inError = true;
+
+      Contacts.findByAddress(targetFbNumber, function(contacts) {
+        done(function() {
+          assert.equal(contacts.length, 0);
+          delete window.fb.inError;
+        });
+      });
+    });
+  });
+
+  suite('Contacts.findExactByEmail', function() {
+
+    test('Local email found.', function(done) {
+      Contacts.findExactByEmail(targetLocalEmail, function(contacts) {
+        done(function() {
+          assert.equal(contacts.length, 1);
+          assert.isTrue(!contacts[0].isFbContact);
+          assert.equal(contacts[0].name[0], localContactName);
+        });
+      });
+    });
+
+    test('Local email not found. FB Email not found either', function(done) {
+      Contacts.findExactByEmail(notFoundEmail, function(contacts) {
+        done(function() {
+          assert.equal(contacts.length, 0);
+        });
+      });
+    });
+
+    test('Local email not found. FB returns error', function(done) {
+      fb.inError = true;
+
+      Contacts.findExactByEmail(targetLocalEmail, function(contacts) {
+        done(function() {
+          assert.equal(contacts.length, 1);
+          delete window.fb.inError;
+        });
       });
     });
   });

@@ -1,8 +1,6 @@
 'use strict';
 /* global MockNavigatorSettings, SettingsListener */
 
-mocha.globals(['SettingsListener']);
-
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/js/settings_listener.js');
 

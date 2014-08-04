@@ -108,8 +108,8 @@ window.Factory = (function() {
     return Factory.get(name).build(opts);
   };
 
-  /* instance */
-
+  /* jshint -W004 */
+  // Factory is already defined on jshintrc file
   function Factory(options) {
     if (!(this instanceof Factory)) {
       return Factory.create.apply(Factory, arguments);
@@ -119,6 +119,7 @@ window.Factory = (function() {
 
     return this;
   }
+  /* jshint +W004 */
 
   Factory.prototype = {
     parent: null,

@@ -1,5 +1,5 @@
 /*global Utils, Template, Threads, ThreadUI, MessageManager, ContactRenderer,
-         Contacts, Settings*/
+         Contacts, Settings, Navigation */
 /*exported Information */
 
 (function(exports) {
@@ -159,8 +159,7 @@ var VIEWS = {
   group: {
     name: 'participants',
     render: function renderGroup() {
-      var lastId = Threads.lastId;
-      var participants = lastId && Threads.get(lastId).participants;
+      var participants = Threads.get(this.id).participants;
       this.renderContactList(participants);
       navigator.mozL10n.localize(ThreadUI.headerText, 'participant', {
         n: participants.length
@@ -170,14 +169,29 @@ var VIEWS = {
   },
   report: {
     name: 'report',
+
+    onDeliverySuccess: function report_onDeliverySuccess(message) {
+      if (Navigation.isCurrentPanel('report-view', { id: message.id })) {
+        this.refresh();
+      }
+    },
+
+    onReadSuccess: function report_onReadSuccess(message) {
+      if (Navigation.isCurrentPanel('report-view', { id: message.id })) {
+        this.refresh();
+      }
+    },
+
     render: function renderReport() {
       var localize = navigator.mozL10n.localize;
-      var messageId = +window.location.hash.split('=')[1];
-      var request = MessageManager.getMessage(messageId);
+      var request = MessageManager.getMessage(this.id);
 
       request.onsuccess = (function() {
         var message = request.result;
         var type = message.type;
+
+        var isIncoming = message.delivery === 'received' ||
+            message.delivery === 'not-downloaded';
 
         this.subject.textContent = '';
 
@@ -206,15 +220,24 @@ var VIEWS = {
         localize(this.status, 'message-status-' + message.delivery);
 
         // Set different layout/value for received and sent message
-        if (message.delivery === 'received' ||
-            message.delivery === 'not-downloaded') {
-          this.container.classList.add('received');
-          localize(this.contactTitle, 'report-from');
+        this.container.classList.toggle('received', isIncoming);
+
+        // If incoming message is migrated from the database where sentTimestamp
+        // hadn't been supported yet then we won't have valid value for it.
+        this.container.classList.toggle(
+          'no-valid-sent-timestamp',
+          isIncoming && !message.sentTimestamp
+        );
+
+        localize(
+          this.contactTitle,
+          isIncoming ? 'report-from' : 'report-recipients'
+        );
+
+        if (isIncoming) {
           l10nContainsDateSetup(this.receivedTimeStamp, message.timestamp);
           l10nContainsDateSetup(this.sentTimeStamp, message.sentTimestamp);
         } else {
-          this.container.classList.remove('received');
-          localize(this.contactTitle, 'report-recipients');
           l10nContainsDateSetup(this.datetime, message.timestamp);
         }
 
@@ -235,12 +258,12 @@ var VIEWS = {
 };
 
 var Information = function(type) {
-  var view = VIEWS[type];
-  var prefix = 'information-' + view.name;
+  Utils.extend(this, VIEWS[type]);
+
+  var prefix = 'information-' + this.name;
   this.container = document.getElementById(prefix);
-  this.render = view.render;
   this.parent = document.getElementById('thread-messages');
-  view.elements.forEach(function(name) {
+  this.elements.forEach(function(name) {
     this[Utils.camelCase(name)] = this.container.querySelector('.' + name);
   }, this);
 
@@ -264,9 +287,19 @@ var Information = function(type) {
 Information.prototype = {
   constructor: Information,
 
+  afterEnter: function(args) {
+    this.id = args.id;
+    this.show();
+  },
+
+  beforeLeave: function() {
+    this.reset();
+    this.id = null;
+  },
+
   show: function() {
     // Hide the Messages edit icon, view container and composer form
-    this.parent.classList.add('information');
+    this.parent.classList.add(this.name + '-information');
 
     this.render();
     // Append and Show the participants list
@@ -274,7 +307,7 @@ Information.prototype = {
   },
 
   refresh: function() {
-    if (this.parent.classList.contains('information')) {
+    if (this.parent.classList.contains(this.name + '-information')) {
       this.render();
     }
   },
@@ -287,7 +320,7 @@ Information.prototype = {
       this.contactList.textContent = '';
     }
     // Restore message list view UI elements
-    this.parent.classList.remove('information');
+    this.parent.classList.remove(this.name + '-information');
   },
 
   // Param participants could be:
@@ -309,7 +342,7 @@ Information.prototype = {
       } else {
         number = participant;
       }
-      Contacts.findByPhoneNumber(number, function(results) {
+      Contacts.findByAddress(number, function(results) {
         var isContact = results !== null && !!results.length;
 
         if (isContact) {

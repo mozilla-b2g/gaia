@@ -10,26 +10,44 @@ define(function() {
     }
   };
 
-  var testDefaults = {};
+  var testDefaults = {'en-US': {}};
+  var currentLanguage = 'en-US';
+
+  // callbacks to be fired onready
+  var onreadycbs = [];
 
   return {
-    /** For unit testing: */
-    setForTest: function(key, value) {
-      testDefaults[key] = value;
-    },
     get: function get(key, params) {
-      if (key in testDefaults) {
-        return testDefaults[key];
+      var res = testDefaults[currentLanguage];
+
+      if (key in res) {
+        return res[key];
       }
       if (params) {
         return key + JSON.stringify(params);
       }
       return key;
     },
-    ready: function(cb) { setTimeout(cb); },
+    ready: function(cb) {
+      setTimeout(cb);
+      onreadycbs.push(cb);
+    },
     translate: function() {},
     localize: function() {},
-    DateTimeFormat: DateTimeFormat
+    DateTimeFormat: DateTimeFormat,
+
+    // for unit tests
+    setResources: function(lang, res) {
+      testDefaults[lang] = res;
+    },
+    language: {
+      set code(lang) {
+        currentLanguage = lang;
+        for (var cb of onreadycbs) {
+          cb();
+        }
+      }
+    },
   };
 
 });

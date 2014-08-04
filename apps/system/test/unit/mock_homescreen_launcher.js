@@ -1,7 +1,7 @@
 'use strict';
 
 (function(exports) {
-  var mHomescreenInstance = undefined;
+  var mHomescreenInstance;
   var mOrigin;
   var mReady;
 
@@ -10,9 +10,7 @@
   };
 
   MockHomescreenLauncher.prototype = {
-    start: function mhl_start() {
-      return this;
-    },
+    start: function mhl_start() {},
 
     getHomescreen: function mhl_getHomescreen() {
       return mHomescreenInstance;

@@ -5,7 +5,7 @@
 var MockFxAccountsIACHelper = (function() {
   var listeners = {
     'onlogin': [],
-    'onverifiedlogin': [],
+    'onverified': [],
     'onlogout': []
   };
 
@@ -15,9 +15,13 @@ var MockFxAccountsIACHelper = (function() {
     cb(currentState);
   }
 
+  function resendVerificationEmail(email, cb) {
+    cb();
+  }
+
   function resetListeners() {
     listeners.onlogin = [];
-    listeners.onverifiedlogin = [];
+    listeners.onverified = [];
     listeners.onlogout = [];
   }
 
@@ -59,6 +63,7 @@ var MockFxAccountsIACHelper = (function() {
 
   return {
     getAccounts: getAccounts,
+    resendVerificationEmail: resendVerificationEmail,
     setCurrentState: setCurrentState,
     getCurrentState: getCurrentState,
     addEventListener: addEventListener,

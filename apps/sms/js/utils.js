@@ -1,7 +1,7 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/* globals ContactPhotoHelper, Notification, Threads*/
+/* globals ContactPhotoHelper, Notification, Promise, Threads, Settings */
 
 (function(exports) {
   'use strict';
@@ -9,6 +9,7 @@
   var rescape = /[.?*+^$[\]\\(){}|-]/g;
   var rparams = /([^?=&]+)(?:=([^&]*))?/g;
   var rnondialablechars = /[^,#+\*\d]/g;
+  var rmail = /[\w-]+@[\w\-]/;
   var downsamplingRefSize = {
     // Estimate average Thumbnail size:
     // 120 X 60 (max pixel) X 3 (full color) / 20 (average jpeg compress ratio)
@@ -80,22 +81,15 @@
     // Please remember to revoke the photoURL after utilizing it.
     getContactDetails:
       function ut_getContactDetails(number, contacts, include) {
-      var _ = navigator.mozL10n.get;
       var details = {};
 
       include = include || {};
 
       function updateDetails(contact) {
-        var name, phone, carrier, i, length, subscriber, org;
+        var name, phone, i, length, subscriber, org;
         name = contact.name[0];
         org = contact.org && contact.org[0];
         length = contact.tel ? contact.tel.length : 0;
-        phone = length && contact.tel[0].value ? contact.tel[0] : {
-          value: '',
-          type: '',
-          carrier: ''
-        };
-        carrier = phone.carrier;
         subscriber = number.length > 7 ? number.substr(-8) : number;
 
         // Check which of the contacts phone number are we using
@@ -103,7 +97,6 @@
           // Based on E.164 (http://en.wikipedia.org/wiki/E.164)
           if (contact.tel[i].value.indexOf(subscriber) !== -1) {
             phone = contact.tel[i];
-            carrier = phone.carrier;
             break;
           }
         }
@@ -119,32 +112,10 @@
           }
         }
 
-        // Carrier logic
-        if (name) {
-          // Check if other phones with same type and carrier
-          // Convert the tel-type to string before tel-type comparison.
-          // TODO : We might need to handle multiple tel type in the future.
-          for (i = 0; i < length; i++) {
-            var telType = contact.tel[i].type && contact.tel[i].type.toString();
-            var phoneType = phone.type && phone.type.toString();
-            if (contact.tel[i].value !== phone.value &&
-                telType === phoneType &&
-                contact.tel[i].carrier === phone.carrier) {
-              carrier = phone.value;
-            }
-          }
-        }
-
         details.name = name;
-        details.carrier = carrier || phone.value || '';
         // We pick the first discovered org name as the phone number's detail
         // org information.
         details.org = details.org || org;
-
-        if (phone.type) {
-          details.carrier =
-            phone.type + (_('thread-separator') || ' | ') + details.carrier;
-        }
       }
 
       // In no contact or contact with empty information cases, we will leave
@@ -172,38 +143,35 @@
       return details;
     },
 
-    getCarrierTag: function ut_getCarrierTag(input, tels, details) {
-      /**
-        1. If a phone number has carrier associated with it
-            the output will be:
+    extend: function ut_extend(target, source) {
+      for (var key in source) {
+        if (source.hasOwnProperty(key)) {
+          target[key] = source[key];
+        }
+      }
+    },
 
-          type | carrier
-
-        2. If there is no carrier associated with the phone number
-            the output will be:
-
-          type | phonenumber
-
-        3. If for some reason a single contact has two phone numbers with
-            the same type and the same carrier the output will be:
-
-          type | phonenumber
-
-        4. If for some reason a single contact has no name and no carrier,
-            the output will be:
-
-          type
-
-        5. If for some reason a single contact has no name, no type
-            and no carrier, the output will be nothing.
-      */
+    /**
+     * Based on input number tries to extract more phone details like phone
+     * type, full phone number and phone carrier.
+     * 1. If a phone number has carrier associated with it then both "type" and
+     * "carrier" will be returned;
+     *
+     * 2. If there is no carrier associated with the phone number then "type"
+     *  and "phone number" will be returned;
+     *
+     * 3. If for some reason a single contact has two phone numbers with the
+     * same type and the same carrier then "type" and "phone number" will be
+     * returned;
+     *
+     * note: The argument "tels" can actually contain "emails" too.
+     *
+     */
+    getPhoneDetails: function ut_getPhoneDetails(input, tels) {
       var length = tels.length;
-      var hasDetails = typeof details !== 'undefined';
       var hasUniqueCarriers = true;
       var hasUniqueTypes = true;
-      var name = hasDetails ? details.name : '';
-      var found, tel, type, carrier, value, ending;
-      var _ = navigator.mozL10n.get;
+      var found, tel, type, carrier;
 
       for (var i = 0; i < length; i++) {
         tel = tels[i];
@@ -225,28 +193,14 @@
       }
 
       if (!found) {
-        return '';
+        return null;
       }
 
-      type = (found.type && found.type[0]) || '';
-      // Non localized label is better than a blank string
-      type = type && _(type) || type;
-      carrier = (hasUniqueCarriers || hasUniqueTypes) ? found.carrier : '';
-      value = carrier || found.value;
-      ending = (carrier || value);
-
-      if (hasDetails && !name && !carrier) {
-        ending = '';
-      }
-
-      if (type && ending) {
-        return _('thread-header', {
-          numberType: type,
-          numberDetail: ending
-        });
-      } else {
-        return type + ending;
-      }
+      return {
+        type: (found.type && found.type[0]) || null,
+        carrier: hasUniqueCarriers || hasUniqueTypes ? found.carrier : null,
+        number: found.value
+      };
     },
 
     // Based on "non-dialables" in https://github.com/andreasgal/PhoneNumber.js
@@ -271,6 +225,12 @@
       // String comparison starts here
       if (typeof a !== 'string' || typeof b !== 'string') {
         return false;
+      }
+
+      if (Settings.supportEmailRecipient &&
+          Utils.isEmailAddress(a) &&
+          Utils.isEmailAddress(b)) {
+        return a === b;
       }
 
       if (service && service.normalize) {
@@ -575,25 +535,19 @@
       all the information needed to display data.
     */
     getDisplayObject: function(theTitle, tel) {
-      var _ = navigator.mozL10n.get;
       var number = tel.value;
-      var title = theTitle || number;
       var type = tel.type && tel.type.length ? tel.type[0] : '';
-      // For both carrierSeparator and separator we want to avoid using an
-      // empty string as separator because of a bad l10n file.
-      var carrierSeparator = _('carrier-separator') || ', ';
-      var carrier = tel.carrier ? (tel.carrier + carrierSeparator) : '';
-      var separator = type || carrier ? (_('thread-separator') || ' | ') : '';
       var data = {
-        name: title,
+        name: theTitle || number,
         number: number,
         type: type,
-        carrier: carrier,
-        separator: separator,
-        nameHTML: '',
-        numberHTML: ''
-      };
+        carrier: tel.carrier || ''
+       };
 
+      if (Settings.supportEmailRecipient) {
+        data.email = number;
+        data.emailHTML = '';
+       }
       return data;
     },
 
@@ -610,7 +564,12 @@
         };
       });
     },
-
+    /*
+       TODO: Email Address check.
+     */
+    isEmailAddress: function(email) {
+      return rmail.test(email);
+    },
     /*
       Helper function for removing notifications. It will fetch the notification
       using the current threadId or the parameter if provided, and close them
@@ -634,6 +593,119 @@
         ).catch(function onError(reason) {
           console.error('Notification.get(tag: ' + targetTag + '): ', reason);
         });
+    },
+
+    /**
+     * Converts image DOM node to canvas respecting image ratio.
+     * @param imageNode Image DOM node to convert.
+     * @param width Target image width.
+     * @param height Target image height.
+     * @returns {Node} Canvas object created from image DOM node.
+     */
+    imageToCanvas: function(imageNode, width, height) {
+      var ratio = Math.max(imageNode.width / width, imageNode.height / height);
+
+      var canvas = document.createElement('canvas');
+      canvas.width = Math.round(imageNode.width / ratio);
+      canvas.height = Math.round(imageNode.height / ratio);
+
+      var context = canvas.getContext('2d', { willReadFrequently: true });
+
+      // Using canvas width and height with correct image proportions
+      context.drawImage(imageNode, 0, 0, canvas.width, canvas.height);
+
+      return canvas;
+    },
+
+    /**
+     * Converts image URL to data URL using specified image mime type. Preferred
+     * image dimensions can be retrieved via optional sizeRetriever delegate,
+     * otherwise actual dimensions will be used.
+     * @param imageURL Image URL to convert.
+     * @param type Image MIME type.
+     * @param sizeAdjuster Optional delegate that accepts actual image width and
+     * height as parameters and should return both these dimensions adjusted
+     * depending on consumer's code needs. These adjusted dimensions then will
+     * be used to generate image data URL.
+     * @returns {Promise.<string>} Promise that will be resolved to Data URL.
+     */
+    imageUrlToDataUrl: function(imageURL, type, sizeAdjuster) {
+      var img = new Image(),
+          deferred = Utils.Promise.defer();
+
+      img.src = imageURL;
+
+      img.onload = function onBlobLoaded() {
+        var adjustedSize = null,
+            canvas = null;
+
+        try {
+          window.URL.revokeObjectURL(img.src);
+
+          adjustedSize = sizeAdjuster ? sizeAdjuster(img.width, img.height) : {
+            width: img.width,
+            height: img.height
+          };
+
+          canvas = Utils.imageToCanvas(
+            img, adjustedSize.width, adjustedSize.height
+          );
+
+          deferred.resolve({
+            width: adjustedSize.width,
+            height: adjustedSize.height,
+            dataUrl: canvas.toDataURL(type)
+          });
+        } catch (e) {
+          deferred.reject(e);
+        } finally {
+          // Freeing up resources occupied by canvas
+          if (canvas) {
+            canvas.width = canvas.height = 0;
+            canvas = null;
+          }
+        }
+      };
+
+      img.onerror = function() {
+        deferred.reject(new Error('The image could not be loaded.'));
+      };
+
+      function cleanup() {
+        img.height = img.width = 0;
+        img = img.src = null;
+      }
+
+      // TODO: it would be helpful to have Utils.Promise.finally for such clean
+      // up cases that don't care whether promise was resolved or rejected.
+      return deferred.promise.then(function(result) {
+        cleanup();
+        return result;
+      }, function(e) {
+        cleanup();
+        return Promise.reject(e);
+      });
+    },
+
+    /**
+     * Promise related utilities
+     */
+    Promise: {
+      /**
+       * Returns object that contains promise and related resolve\reject methods
+       * to avoid wrapping long or complex code into single Promise constructor.
+       * @returns {{promise: Promise, resolve: function, reject: function}}
+       */
+      defer: function() {
+        var deferred = {};
+
+        deferred.promise = new Promise(function(resolve, reject) {
+          deferred.resolve = resolve;
+          deferred.reject = reject;
+        });
+
+        return deferred;
+      }
     }
   };
 

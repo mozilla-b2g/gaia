@@ -25,6 +25,10 @@ marionette(mozTestInfo.appPath + ' >', function() {
     // It affects the first run otherwise
     this.timeout(500000);
     client.setScriptTimeout(50000);
+
+    // inject perf event listener
+    PerformanceHelper.injectHelperAtom(client);
+
     MarionetteHelper.unlockScreen(client);
   });
 
@@ -40,9 +44,10 @@ marionette(mozTestInfo.appPath + ' >', function() {
       var waitForBody = true;
       app.launch(waitForBody);
 
-      performanceHelper.observe();
-
       app.element('wifiSelector', function(err, wifiSubpanel) {
+        client.waitFor(function() {
+          return wifiSubpanel.enabled;
+        });
         wifiSubpanel.tap();
       });
 
@@ -51,7 +56,8 @@ marionette(mozTestInfo.appPath + ' >', function() {
           app.close();
           throw error;
         } else {
-          performanceHelper.reportRunDurations(runResults);
+          performanceHelper.reportRunDurations(runResults,
+                                              'start-wifi-list-test');
           assert.ok(Object.keys(runResults).length, 'empty results');
           app.close();
         }

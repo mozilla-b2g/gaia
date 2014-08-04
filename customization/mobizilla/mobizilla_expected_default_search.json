@@ -1,0 +1,1 @@
+{"title":"Bing","urlTemplate":"http://www.bing.com/search?q={searchTerms}","suggestionsUrlTemplate":"http://api.bing.com/osjson.aspx?query={searchTerms}","iconUrl":"app://operatorvariant.gaiamobile.org/resources/mobizilla_search3.ico"}

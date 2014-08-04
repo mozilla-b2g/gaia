@@ -5,8 +5,8 @@ define(function(require, exports, module) {
 * Dependencies
 */
 
-var View = require('vendor/view');
 var mix = require('lib/mixin');
+var View = require('view');
 
 /**
  * Exports

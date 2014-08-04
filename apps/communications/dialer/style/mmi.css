@@ -1,5 +1,7 @@
 #mmi-screen {
   position: absolute;
+  display: flex;
+  flex-direction: column;
   width: 100%;
   height: 100%;
   background: white;
@@ -7,32 +9,31 @@
   z-index: 2;
 }
 
-#mmi-screen.responseForm #response {
-  display: block;
+#mmi-screen[hidden] {
+  display: none;
 }
 
 #mmi-container {
-  height: -moz-calc(100% - 5rem - 5rem);
+  flex: 1;
+  padding: 0 3rem;
   overflow: auto;
 }
 
 #message {
   font-size: 2rem;
-  padding: 1rem;
+  padding: 2rem 0;
   white-space: pre-line;
   word-wrap: break-word;
 }
 
 #response {
-  width: 100%;
-  height: 5rem;
-  background: rgb(245, 245, 245);
   display: none;
+  padding: 1.5rem 1.5rem 0.5rem;
+  border-top: 0.1rem solid #E7E7E7;
 }
 
-#response p {
-  height: 3.8rem;
-  margin: 0.6rem;
+.responseForm #response {
+  display: block;
 }
 
 #response-text[disabled] {
@@ -43,6 +44,6 @@
   Loading screen
 */
 
-#loading-overlay.hide {
+.hide {
   display: none;
 }

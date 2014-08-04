@@ -167,6 +167,8 @@ body {
   padding: 0;
   background-color: black;
 
+  transition: 0s visibility ease-in 0.01s;
+
   z-index: 11;
   visibility: hidden;
   opacity: 0.25;
@@ -177,7 +179,6 @@ body {
 
   position: absolute;
   display: block;
-  visibility: hidden;
 
   top: -5.6rem;
   left: calc(50% - 2.8rem);
@@ -189,11 +190,25 @@ body {
   border-radius: 50%;
   background-color: #00aacc;
 
+  /*
+   * Delay hiding of the bubble by 0.01s, which is long enough to make sure that
+   * it shows up but doesn't feel laggy.
+   */
+  transition: 0s visibility ease-in 0.01s;
+
   z-index: 12;
+  visibility: hidden;
 }
 
-.key.altshown, .key:not(.specialkey).touched::after, .key:not(.specialkey).touched::before {
+.key.altshown {
   visibility: initial;
+}
+
+.key:not(.specialkey).touched::after, .key:not(.specialkey).touched::before {
+  visibility: initial;
+
+  /* Override the 0.01s delay to make sure that the effect appears instantly. */
+  transition-delay: 0s;
 }
 
 /*

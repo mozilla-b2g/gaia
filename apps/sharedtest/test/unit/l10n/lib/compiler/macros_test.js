@@ -1,26 +1,12 @@
-/* global it, before, beforeEach, assert:true, describe */
-/* global window, navigator, process */
+/* global it, before, beforeEach, assert:true, describe, requireApp */
 'use strict';
-
-var assert = require('assert') || window.assert;
+var compile, assert;
 
 if (typeof navigator !== 'undefined') {
-  var L10n = navigator.mozL10n._getInternalAPI();
+  requireApp('sharedtest/test/unit/l10n/lib/compiler/header.js');
 } else {
-  var L10n = {
-    parse: require('../../../lib/l20n/parser').parse,
-    compile: process.env.L20N_COV ?
-      require('../../../build/cov/lib/l20n/compiler').compile :
-      require('../../../lib/l20n/compiler').compile,
-    getPluralRule: require('../../../lib/l20n/plurals').getPluralRule
-  };
-}
-
-function compile(source) {
-  var ast = L10n.parse(null, source);
-  var env = L10n.compile(null, ast);
-  env.__plural = L10n.getPluralRule('en-US');
-  return env;
+  compile = require('./header.js').compile;
+  assert = require('./header.js').assert;
 }
 
 describe('Macros', function(){

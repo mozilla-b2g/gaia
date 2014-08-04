@@ -42,7 +42,6 @@
   margin: 0;
   display: block;
   position: relative;
-  z-index: 1;
 }
 
 [data-type="list"] li:last-child {
@@ -73,13 +72,10 @@ li a:active {
   top: 0;
   right: -1.5rem;
   bottom: 0;
-  z-index: 3;
 }
 
 [data-type="list"].active li:active:after,
-[data-type="list"].active li:hover:after,
-[data-type="list"] li > a:active:after,
-[data-type="list"] li > a:hover:after {
+[data-type="list"] li > a:active:after {
   background-color: rgba(0,213,255,0.3);
 }
 
@@ -96,13 +92,11 @@ li a:active {
   margin: 0 0.5rem 0 0;
   height: 100%;
   position: relative;
-  z-index: 2;
 }
 
 [data-type="list"] li > a aside,
 [data-type="list"] li > a aside.icon {
   background-color: transparent;
-  z-index: -1;
 }
 
 [data-type="list"] aside.pack-end {
@@ -129,10 +123,9 @@ li a:active {
   border-radius: 2.5rem;
   margin-top: 0.5rem;
   box-sizing: border-box;
-  border: 0.1rem solid #dedede;
+  box-shadow: 0 0 0 0.1rem #dedede;
   background: transparent center center / cover;
   position: relative;
-  z-index: 1;
 
   /* Favor performance over quality */
   image-rendering: -moz-crisp-edges;
@@ -183,7 +176,6 @@ li a:active {
   bottom: 0;
   right: 0;
   left: -4rem;
-  z-index: 1;
   width: auto;
   height: auto;
 }
@@ -205,6 +197,10 @@ li a:active {
 [data-type="list"] [data-type="edit"] li > .pack-switch {
   pointer-events: auto;
   left: 0;
+}
+
+[data-type="list"] [data-type="edit"] li > a {
+  pointer-events: none;
 }
 
 [data-type="list"] [data-type="edit"] li > a:active:after,

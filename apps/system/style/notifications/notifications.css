@@ -12,6 +12,7 @@
   border-bottom: 0.1rem #2c2c2c solid;
   transform: translateY(-5rem);
   transition: transform .3s ease-in-out;
+  visibility: hidden;
 }
 
 #toaster-icon {
@@ -57,6 +58,7 @@
 
 #notification-toaster.displayed {
   transform: translateY(0);
+  visibility: visible;
 }
 
 #notification-bar {
@@ -80,7 +82,6 @@
 #notification-bar button {
   float: right;
   margin-right: 1.5rem;
-  width: 30%;
   height: 3rem;
   padding: 0;
   border: 0;
@@ -102,12 +103,10 @@
 #notifications-container {
   width: 100%;
 
-  /* minus cost control, quick settings, bar and grippy */
-  height: calc(100% - 4.5rem - 6rem - 3rem - 2rem);
+  flex: 1;
   overflow-y: scroll;
   overflow-x: hidden;
 }
-
 
 .notification {
   position: relative;
@@ -115,9 +114,17 @@
   font-size: 1.4rem;
   font-weight: 400;
   line-height: 1.9rem;
-  background-color: rgba(0, 0, 0, 0.5);
-  border-top: 0.1rem #404547 solid;
-  border-bottom: 0.1rem black solid;
+  border-top: 0.1rem solid transparent;
+  border-bottom: 0.1rem solid transparent;
+}
+
+div:not(#notifications-lockscreen-container) > .notification:after{
+  content: "";
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  width: calc(100% - 7.2rem);
+  position: absolute;
+  left: 3.6rem;
+  bottom: 0;
 }
 
 .notification:active {
@@ -132,12 +139,12 @@
   pointer-events: none;
 }
 
-.notification > div:first-of-type {
-  width: calc(100% - 12rem);
+.notification > div.title-container {
   margin-top: 1rem;
   font-size: 1.5rem;
   font-weight: 500;
   color: #fff;
+  display: flex;
 }
 
 .notification > div {
@@ -152,14 +159,13 @@
   white-space: nowrap;
 }
 
-.notification > .timestamp {
-  position: absolute;
+.notification > div.title-container .timestamp {
+  flex: initial;
   top: -.2rem;
   right: 1.5rem;
   color: #52B6CC;
-  margin-top: 1.3rem;
   padding: 0;
-  display: inline;
+  max-width: 6.5rem;
   font-size: 1.2rem;
   font-weight: bold;
   line-height: 1.6rem;
@@ -177,35 +183,34 @@
   pointer-events: none;
 }
 
+.notification > div.title-container .title {
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  margin-right: .5rem;
+}
+
+.notification.snapback,
+#notification-toaster.snapback {
+  transition: transform 0.3s ease-out;
+  transform: translateX(0);
+}
+
 .notification.disappearing,
 #notification-toaster.disappearing {
-  transition: transform 0.3s linear;
+  transition: transform 0.2s linear;
   transform: translateX(100%);
+}
+
+.notification.disappearing.left,
+#notification-toaster.disappearing.left {
+  transform: translateX(-100%);
 }
 
 .notification.disappearing ~ .notification {
   transition: transform 0.3s linear;
   transform: translateY(-6.2rem);
-}
-
-#notifications-lockscreen-container {
-  z-index: 1;
-  position: absolute;
-  top: 18rem;
-  left: 0;
-  width: 100%;
-  max-height: 18.6rem;
-  overflow-x: hidden;
-  overflow-y: auto;
-
-  background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.9),
-                              rgba(0, 0, 0, 0.6) 78%,
-                              rgba(0, 0, 0, 0));
-  background-size: 100% 18.6rem;
-}
-
-#notifications-lockscreen-container .notification {
-  background-color: transparent;
 }
 
 @keyframes fn-rotate {
@@ -216,4 +221,64 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+/* RTL View */
+
+html[dir="rtl"] #toaster-icon {
+  left: auto;
+  right: 1rem;
+}
+
+html[dir="rtl"] #notification-toaster > div {
+  left: auto;
+  right: 5rem;
+  text-align: right;
+}
+
+html[dir="rtl"] #notification-bar span {
+  margin-left: 0;
+  margin-right: 1.5rem;
+}
+
+html[dir="rtl"] #notification-bar button {
+  float: left;
+  margin-left: 1.5rem;
+  margin-right: 0;
+  text-align: left;
+}
+
+html[dir="rtl"] .notification > div {
+  margin-left: 0;
+  margin-right: 5rem;
+  text-align: right;
+}
+
+html[dir="rtl"] .notification > div.title-container .title {
+  margin-right: 0;
+  margin-left: .5rem;
+}
+
+html[dir="rtl"] .notification > div.title-container .timestamp {
+  left: 1.5rem;
+  right: auto;
+}
+
+html[dir="rtl"] .notification > img {
+  float: right;
+}
+
+html[dir="rtl"] #notifications-lockscreen-container .notification > div {
+  margin-left: 0;
+  margin-right: 3.6rem;
+}
+
+html[dir="rtl"] #notifications-lockscreen-container .notification > div.title-container .timestamp {
+  left: 0;
+  right: auto;
+}
+
+html[dir="rtl"] #notifications-lockscreen-container .notification > img {
+  margin-left: 0;
+  margin-right: 0;
 }

@@ -4,13 +4,14 @@
 /*global ActivityWindowManager, SecureWindowFactory,
          SecureWindowManager, HomescreenLauncher,
          FtuLauncher, SourceView, ScreenManager, Places, Activities,
-         DialerAgent, DevtoolsView, RemoteDebugger, HomeGesture,
-         SettingsURL, SettingsListener, VisibilityManager, Storage,
+         DeveloperHUD, DialerAgent, RemoteDebugger, HomeGesture,
+         VisibilityManager, Storage, InternetSharing, TaskManager,
          TelephonySettings, SuspendingAppPriorityManager, TTLView,
          MediaRecording, AppWindowFactory, SystemDialogManager,
          applications, Rocketbar, LayoutManager, PermissionManager,
-         HomeSearchbar, SoftwareButtonManager */
-
+         SoftwareButtonManager, Accessibility,
+         TextSelectionDialog, InternetSharing, SleepMenu, AppUsageMetrics,
+         LockScreenNotifications, LockScreenPasscodeValidator */
 'use strict';
 
 
@@ -37,8 +38,6 @@ window.addEventListener('load', function startup() {
    */
   function registerGlobalEntries() {
     /** @global */
-    window.appWindowFactory = new AppWindowFactory();
-    window.appWindowFactory.start();
     window.activityWindowManager = new ActivityWindowManager();
     window.activityWindowManager.start();
     /** @global */
@@ -56,6 +55,14 @@ window.addEventListener('load', function startup() {
 
     /** @global */
     window.lockScreenWindowManager = new window.LockScreenWindowManager();
+    window.lockScreenWindowManager.start();
+
+    // To initilaize it after LockScreenWindowManager to block home button
+    // when the screen is locked.
+    window.AppWindowManager.init();
+
+    /** @global */
+    window.textSelectionDialog = new TextSelectionDialog();
   }
 
   function safelyLaunchFTU() {
@@ -64,7 +71,13 @@ window.addEventListener('load', function startup() {
       FtuLauncher.retrieve();
     });
     /** @global */
-    window.homescreenLauncher = new HomescreenLauncher().start();
+    if (!window.homescreenLauncher) {
+      // We may have application.ready = true while reloading at firefox nightly
+      // browser. In this case, the window.homescreenLauncher haven't been
+      // created. We should create it and start it in this case.
+      window.homescreenLauncher = new HomescreenLauncher();
+    }
+    window.homescreenLauncher.start();
   }
 
   if (applications.ready) {
@@ -99,27 +112,59 @@ window.addEventListener('load', function startup() {
 
   // Please sort it alphabetically
   window.activities = new Activities();
-  window.devtoolsView = new DevtoolsView();
-  window.dialerAgent = new DialerAgent().start();
-  window.homeGesture = new HomeGesture().start();
-  window.homeSearchbar = new HomeSearchbar();
-  window.layoutManager = new LayoutManager().start();
+  window.accessibility = new Accessibility();
+  window.accessibility.start();
+  window.appUsageMetrics = new AppUsageMetrics();
+  window.appUsageMetrics.start();
+  window.appWindowFactory = new AppWindowFactory();
+  window.appWindowFactory.start();
+  window.developerHUD = new DeveloperHUD();
+  window.developerHUD.start();
+  window.dialerAgent = new DialerAgent();
+  window.dialerAgent.start();
+  window.homeGesture = new HomeGesture();
+  window.homeGesture.start();
+  if (!window.homescreenLauncher) {
+    // If application.ready is true, we already create homescreenLauncher in
+    // safelyLaunchFTU(). We should use it. If it is false, we should create it
+    // here.
+    window.homescreenLauncher = new HomescreenLauncher();
+  }
+  window.internetSharing = new InternetSharing();
+  window.internetSharing.start();
+  window.lockScreenNotifications = new LockScreenNotifications();
+  window.lockScreenPasscodeValidator = new LockScreenPasscodeValidator();
+  window.lockScreenPasscodeValidator.start();
+  window.layoutManager = new LayoutManager();
+  window.layoutManager.start();
   window.permissionManager = new PermissionManager();
   window.permissionManager.start();
   window.places = new Places();
   window.places.start();
   window.remoteDebugger = new RemoteDebugger();
   window.rocketbar = new Rocketbar();
-  window.softwareButtonManager = new SoftwareButtonManager().start();
+  window.sleepMenu = new SleepMenu();
+  window.sleepMenu.start();
+  window.softwareButtonManager = new SoftwareButtonManager();
+  window.softwareButtonManager.start();
   window.sourceView = new SourceView();
+  window.taskManager = new TaskManager();
+  window.taskManager.start();
   window.telephonySettings = new TelephonySettings();
   window.telephonySettings.start();
   window.ttlView = new TTLView();
-  window.visibilityManager = new VisibilityManager().start();
+  window.visibilityManager = new VisibilityManager();
+  window.visibilityManager.start();
+  window.wallpaperManager = new window.WallpaperManager();
+  window.wallpaperManager.start();
 
-  navigator.mozL10n.ready(function l10n_ready() {
-    window.mediaRecording = new MediaRecording().start();
-  });
+  // unit tests call init() manually
+  if (navigator.mozL10n) {
+    navigator.mozL10n.once(function l10n_ready() {
+      window.mediaRecording = new MediaRecording();
+      window.mediaRecording.start();
+    });
+  }
 
   // We need to be sure to get the focus in order to wake up the screen
   // if the phone goes to sleep before any user interaction.
@@ -139,24 +184,11 @@ window.addEventListener('load', function startup() {
 
 window.storage = new Storage();
 
-/* === Localization === */
-/* set the 'lang' and 'dir' attributes to <html> when the page is translated */
-window.addEventListener('localized', function onlocalized() {
-  document.documentElement.lang = navigator.mozL10n.language.code;
-  document.documentElement.dir = navigator.mozL10n.language.direction;
-});
-
-var wallpaperURL = new SettingsURL();
-
 // Define the default background to use for all homescreens
-SettingsListener.observe(
-  'wallpaper.image',
-  'resources/images/backgrounds/default.png',
-  function setWallpaper(value) {
-    document.getElementById('screen').style.backgroundImage =
-      'url(' + wallpaperURL.set(value) + ')';
-  }
-);
+window.addEventListener('wallpaperchange', function(evt) {
+  document.getElementById('screen').style.backgroundImage =
+    'url(' + evt.detail.url + ')';
+});
 
 // Use a setting in order to be "called" by settings app
 navigator.mozSettings.addObserver(

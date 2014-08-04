@@ -70,3 +70,18 @@ exports.isSubjectToBranding = function(path) {
   return /shared[\/\\][a-zA-Z]+[\/\\]branding$/.test(path) ||
          /branding[\/\\]initlogo.png/.test(path);
 };
+
+exports.isSubjectToDeviceType = function(path) {
+  return /locales[\/\\]?[a-zA-Z]*[\/\\]?device_type$/.test(path);
+};
+
+exports.existsInAppDirs =  function(appDirs, appName) {
+  var apps = appDirs.split(' ');
+  var exists = apps.some(function (appPath) {
+    let appFile = {
+      leafName: appPath
+    };
+    return (appName === appFile.leafName);
+  });
+  return exists;
+};

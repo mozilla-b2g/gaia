@@ -48,12 +48,12 @@ form[role="dialog"].no-overlay button {
 
 [data-type="list"].import-list aside span[data-type="img"],
 [data-type="list"].link-list aside span[data-type="img"] {
-  border-style: hidden;
+  box-shadow: none;
 }
 
 [data-type="list"].import-list li[data-visited="true"] aside span[data-type="img"],
 [data-type="list"].link-list li[data-visited="true"] aside span[data-type="img"] {
-  border-style: solid;
+  box-shadow: 0 0 0 0.1rem #dedede;
 }
 
 #groups-list.import-list li,

@@ -1,6 +1,7 @@
 import json
 import logging
 import mozlog
+from mozprofile import Profile
 from mozrunner import Runner
 from optparse import OptionParser
 import os
@@ -23,7 +24,7 @@ class TestAgentServer(tornado.websocket.WebSocketHandler):
     pending_envs = []
     passes = 0
     failures = 0
-    current_test = None
+    current_test = 'None'
     timer = None
     timeout = 120
 
@@ -42,7 +43,8 @@ class TestAgentServer(tornado.websocket.WebSocketHandler):
         self.run_tests(self.tests)
 
     def timer_fn(self):
-        self.logger.error("Timed out after %d seconds" % self.timeout)
+        self.logger.testFail("%s | Timed out after %d seconds" %
+                             (self.current_test, self.timeout))
         self.runner.cleanup()
         sys.exit(1)
 
@@ -159,11 +161,12 @@ class GaiaUnitTestRunner(object):
         if self.browser_arg:
             cmdargs += list(self.browser_arg)
 
-        self.runner = Runner.create(binary=self.binary,
-                                    profile_args={'profile': self.profile_dir},
-                                    clean_profile=False,
-                                    cmdargs=cmdargs,
-                                    symbols_path=self.symbols_path)
+        profile = Profile(profile=self.profile_dir)
+        self.runner = Runner(binary=self.binary,
+                             profile=profile,
+                             clean_profile=False,
+                             cmdargs=cmdargs,
+                             symbols_path=self.symbols_path)
         self.runner.start()
 
     def cleanup(self):
@@ -220,11 +223,12 @@ def cli():
         # build a list of tests
         appsdir = os.path.join(os.path.dirname(os.path.abspath(options.profile)), 'apps')
         for root, dirs, files in os.walk(appsdir):
-            for file in files:
+            files.sort()
+            for f in files:
                 # only include tests in a 'unit' directory
                 roots = root.split(os.path.sep)
                 if 'unit' in roots:
-                    full_path = os.path.relpath(os.path.join(root, file), appsdir)
+                    full_path = os.path.relpath(os.path.join(root, f), appsdir)
                     if full_path.endswith('_test.js') and full_path not in disabled:
                         tests.append(full_path)
 

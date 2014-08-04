@@ -34,7 +34,7 @@ class TestCameraUnlockWithPasscode(GaiaTestCase):
 
         self.assertTrue(self.device.is_locked)
 
-        camera.switch_to_camera_frame()
+        camera.switch_to_secure_camera_frame()
         camera.take_photo()
 
         # Check that thumbnail is visible

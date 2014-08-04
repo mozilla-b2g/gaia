@@ -20,9 +20,9 @@ function hasNumbers(t) {
 module.exports = AppStoragePanel;
 
 AppStoragePanel.Selectors = {
-  'appTotalSpace': '#apps-total-space',
-  'appUsedSpace': '#apps-used-space',
-  'appFreeSpace': '#apps-free-space'
+  'appTotalSpace': '.apps-total-space',
+  'appUsedSpace': '.apps-used-space',
+  'appFreeSpace': '.apps-free-space'
 };
 
 AppStoragePanel.prototype = {
@@ -30,15 +30,15 @@ AppStoragePanel.prototype = {
   __proto__: Base.prototype,
 
   get containNumberInAppTotalSpace() {
-    return hasNumbers(this.findElement('appTotalSpace').text());
+    return hasNumbers(this.waitForElement('appTotalSpace').text());
   },
 
   get containNumberInAppUsedSpace() {
-    return hasNumbers(this.findElement('appUsedSpace').text());
+    return hasNumbers(this.waitForElement('appUsedSpace').text());
   },
 
   get containNumberInAppFreeSpace() {
-    return hasNumbers(this.findElement('appFreeSpace').text());
+    return hasNumbers(this.waitForElement('appFreeSpace').text());
   }
 
 };

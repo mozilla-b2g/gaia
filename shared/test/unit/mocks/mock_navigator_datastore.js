@@ -1,11 +1,17 @@
 'use strict';
 
-var MockDatastore = {
+/* exports MockDatastore, MockDatastoreObj */
+
+function MockDatastoreObj(name, owner, records) {
+  this.name = name || 'Mock_Datastore';
+  this.owner = owner;
+  this._records = records || Object.create(null);
+}
+
+MockDatastoreObj.prototype = {
   readOnly: false,
   revisionId: '123456',
-  name: 'Mock_Datastore',
 
-  _records: Object.create(null),
   _nextId: 1,
   _inError: false,
   _cb: null,
@@ -32,15 +38,31 @@ var MockDatastore = {
       return this._reject();
     }
 
-    var record = this._clone(this._records[dsId]);
+    var self = this;
+
     return new window.Promise(function(resolve, reject) {
-      resolve(record);
+      var dsIds = Array.isArray(dsId) ? dsId : [dsId];
+
+      var results = [];
+
+      dsIds.forEach(function(aId) {
+        var record = self._clone(self._records[aId]);
+        results.push(record);
+      });
+
+      var out = Array.isArray(dsId) ? results : results[0];
+
+      resolve(out);
     });
   },
 
   put: function(obj, dsId) {
     if (this._inError === true) {
       return this._reject();
+    }
+
+    if (dsId === this._nextId) {
+      this._nextId++;
     }
 
     this._records[dsId] = this._clone(obj);
@@ -103,6 +125,8 @@ var MockDatastore = {
     }
 
     this._records = {};
+    this._nextId = 1;
+
     return new window.Promise(function(resolve, reject) {
       resolve();
     });
@@ -112,10 +136,18 @@ var MockDatastore = {
     if (type === 'change') {
       this._cb = cb;
     }
-  }
+  },
+
+  removeEventListener: function() {
+    this._cb = null;
+  },
 };
 
+var MockDatastore = new MockDatastoreObj();
+
 var MockNavigatorDatastore = {
+  _datastores: null,
+
   getDataStores: function() {
     if (MockNavigatorDatastore._notFound === true) {
       return new window.Promise(function(resolve, reject) {
@@ -124,7 +156,12 @@ var MockNavigatorDatastore = {
     }
 
     return new window.Promise(function(resolve, reject) {
-      resolve([MockDatastore]);
+      if (!MockNavigatorDatastore._datastores) {
+        resolve([MockDatastore]);
+      }
+      else {
+        resolve(MockNavigatorDatastore._datastores);
+      }
     });
   }
 };

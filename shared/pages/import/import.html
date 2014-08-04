@@ -10,13 +10,14 @@
 
     <script type="text/javascript" src="/shared/js/async_storage.js"></script>
     <script type="text/javascript" src="/shared/js/lazy_loader.js"></script>
+    <script defer type="text/javascript" src="/shared/js/font_size_utils.js"></script>
     <script defer type="text/javascript" src="/shared/js/text_normalizer.js"></script>
     <script defer type="text/javascript" src="/shared/js/simple_phone_matcher.js"></script>
     <script defer type="text/javascript" src="/shared/js/contact_photo_helper.js"></script>
 
     <script type="text/javascript" src="/shared/pages/import/js/flow.js"></script>
     <script type="text/javascript" src="/shared/pages/import/js/oauth20.js"></script>
-    <script type="text/javascript" src="js/parameters.js"></script>
+    <script type="text/javascript" src="/shared/pages/import/js/parameters.js"></script>
     <script type="text/javascript" src="/shared/pages/import/js/curtain.js"></script>
 
     <script defer type="text/javascript" src="/shared/js/contacts/contacts_matcher.js"></script>
@@ -35,6 +36,8 @@
     <script defer type="text/javascript" src="/shared/js/contacts/import/importer_ui.js"></script>
     <script defer type="text/javascript" src="/shared/js/contacts/import/import_init.js"></script>
     <script defer type="text/javascript" src="/shared/js/contacts/import/utilities/misc.js"></script>
+    <script defer type="text/javascript" src="/shared/js/component_utils.js"></script>
+    <script defer type="text/javascript" src="/shared/elements/gaia_buttons/script.js"></script>
 
     <script defer type="text/javascript" src="/shared/js/contacts/import/friends_list.js"></script>
     <script defer type="text/javascript" src="/shared/js/contacts/search.js"></script>
@@ -44,13 +47,30 @@
       <link href="/shared/js/fb/fb_tel_index.js">
       <link href="/shared/js/fb/fb_request.js">
       <link href="/shared/js/fb/fb_data_reader.js">
+
+      <link href="/shared/js/contacts/import/gmail/gmail_connector.js">
+      <link href="/shared/js/contacts/import/live/live_connector.js">
+      <link href="/shared/js/contacts/import/facebook/facebook_connector.js">
+    -->
+
+    <!--
+      <link href="/shared/pages/import/redirects/redirect.html">
+      <link href="/shared/pages/import/redirects/dialogs_end.html">
+    -->
+
+    <!--
+      <link href="/shared/js/contacts/import/facebook/fb_data.js">
+      <link href="/shared/js/contacts/import/facebook/fb_utils.js">
+      <link href="/shared/js/contacts/import/facebook/fb_contact_utils.js">
+      <link href="/shared/js/contacts/import/facebook/fb_query.js">
+      <link href="/shared/js/contacts/import/facebook/fb_contact.js">
     -->
 
     <!-- Building Blocks -->
     <link href="/shared/style/progress_activity.css" rel="stylesheet">
     <link href="/shared/style/status.css" rel="stylesheet">
     <link href="/shared/style/headers.css" rel="stylesheet">
-    <link href="/shared/style_unstable/input_areas.css" rel="stylesheet">
+    <link href="/shared/style/input_areas.css" rel="stylesheet">
     <link href="/shared/style/switches.css" rel="stylesheet">
     <link href="/shared/style/lists.css" rel="stylesheet">
     <link href="/shared/style/confirm.css" rel="stylesheet">
@@ -59,12 +79,13 @@
 
     <!--
     <link rel="stylesheet" href="/shared/pages/import/style/root.css">
+    <link rel="stylesheet" href="/shared/pages/import/style/facebook.css">
     -->
     <link rel="stylesheet" href="/shared/pages/import/style/import.css">
     <link rel="stylesheet" href="/shared/pages/import/style/search.css">
   </head>
 
-  <body role="application">
+  <body role="application" class="skin-comms">
     <section role="region" id="content" class="import">
 
       <header>
@@ -117,14 +138,14 @@
         </section> <!-- mainContent -->
 
         <form role="dialog" data-type="confirm" class="no-overlay">
-          <menu id="select-all-wrapper">
+          <gaia-buttons id="select-all-wrapper">
             <button id="deselect-all" class="edit-button" data-l10n-id="deselectAll">
               Deselect all
             </button>
             <button id="select-all" class="edit-button" data-l10n-id="selectAll">
               Select all
             </button>
-          </menu>
+          </gaia-buttons>
         </form>
 
         <nav data-type="scrollbar">

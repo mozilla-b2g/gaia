@@ -1,10 +1,6 @@
 /* global AppWindow, ActivityWindow, MocksHelper */
 'use strict';
 
-mocha.globals(['AppWindow', 'BrowserMixin', 'ActivityWindow',
-  'System', 'BrowserFrame', 'BrowserConfigHelper', 'OrientationManager',
-  'SettingsListener', 'Applications']);
-
 requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
@@ -34,8 +30,16 @@ suite('system/ActivityWindow', function() {
   };
 
   setup(function(done) {
-    stubById = this.sinon.stub(document, 'getElementById');
-    stubById.returns(document.createElement('div'));
+    stubById = this.sinon.stub(document, 'getElementById', function(id) {
+      var element = document.createElement('div');
+      if (id.indexOf('AppWindow') >= 0 || id.indexOf('activity-window') >= 0) {
+        var container = document.createElement('div');
+        container.className = 'browser-container';
+        element.appendChild(container);
+      }
+
+      return element;
+    });
     requireApp('system/js/system.js');
     requireApp('system/js/browser_config_helper.js');
     requireApp('system/js/browser_frame.js');

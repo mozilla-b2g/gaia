@@ -98,7 +98,7 @@ if (!this.AuxFB) {
      *
      */
     function isFbLinked(devContact) {
-      return (devContact.category &&
+      return (devContact && devContact.category &&
                           devContact.category.indexOf(LINKED) !== -1);
     }
 

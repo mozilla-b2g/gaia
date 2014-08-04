@@ -28,14 +28,19 @@
   height: 4rem;
 }
 
-.msg-search-tease-bar {
-  background-color: #eee;
-  text-align: center;
-  border-bottom: 0.1rem solid #bdbdbd;
-}
-
 [data-mode="search"] .msg-search-tease-bar {
   display: none;
+}
+
+/* For search filters, make sure the contents do not line break and overflow
+outside their given areas. This is particularly important for some locales.
+Do not want to set styles on the inner a tags to force ellipsis since it ends
+up with ellipsis in some ways for most languages, even English, where just using
+an overflow hide is enough to allow seeing the whole word in some cases. See
+bug 1033628 for more details. */
+.msg-search-filter {
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 /* When card is slightly shown when folder card is center,
@@ -45,20 +50,6 @@
 .card-message-list.after input,
 .card-message-list.after .msg-list-scrollouter {
   pointer-events: none;
-}
-
-input.msg-search-text-tease {
-  display: inline-block;
-  width: calc(100% - 3rem);
-  height: 3rem;
-  margin: 0.1rem 0 0.4rem;
-  font-size: 1.7rem;
-  border: 0.1rem solid #c2c2c2;
-  border-radius: 0.3rem;
-}
-
-.msg-search-text {
-  font-size: 1.7rem !important;
 }
 
 .msg-no-subject {
@@ -106,9 +97,43 @@ reflows. Foreground/background colors should be safe.
   margin-top: -.45rem;
   border-radius: 50%;
 }
-.msg-header-unread-section-unread {
-  background-color: #53b8cc;
+
+.msg-header-item.unread .msg-header-unread-section {
+  background-color: #2fc9ec;
 }
+
+.msg-header-syncing-section {
+  position: absolute;
+  top: 50%;
+  display: inline-block;
+  height: 3rem;
+  width: 3rem;
+  margin-top: -1.5rem;
+  border-radius: 50%;
+  visibility: hidden;
+}
+
+@keyframes syncing-rotation {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.msg-header-syncing-section-syncing {
+  animation: syncing-rotation 1s linear infinite;
+  visibility: visible;
+  background: url("images/icons/icon_outbox_sending.png") no-repeat center / contain;
+}
+
+/* The syncing status supercedes the unread icon. */
+.unread .msg-header-syncing-section-error + .msg-header-unread-section,
+.unread .msg-header-syncing-section-syncing + .msg-header-unread-section {
+  display: none;
+}
+
+.msg-header-syncing-section-error {
+  visibility: visible;
+  background: url("images/icons/icon_outbox_pending.png") no-repeat center / contain;
+}
+
 .msg-header-details-section {
   -moz-box-sizing: border-box;
   position: absolute;
@@ -118,8 +143,8 @@ reflows. Foreground/background colors should be safe.
   height: 100%;
   font-size: 1.6rem;
   line-height: 2rem;
-  padding: 1rem 1.5rem 0;
-  border-bottom: 0.1rem solid #e7e7e7;
+  padding: 1rem 0 0 1.5rem;
+  border-bottom: 0.1rem solid #f2f2f1;
 }
 .msg-header-icons-section {
   display: block;
@@ -144,44 +169,56 @@ reflows. Foreground/background colors should be safe.
   table-layout: fixed;
   width: -moz-available;
 }
+
 .msg-header-author {
   font-size: 1.9rem;
-  font-weight: 500;
-  color: #000;
+  font-weight: normal;
+  color: #131313;
   display: table-cell;
   width: -moz-available;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+.msg-header-item.unread .msg-header-author {
+  font-weight: 500;
+}
+
 .msg-header-date {
-  color: #808080;
+  color: #8f8f8f;
   font-size: 1.5rem;
   font-weight: 400;
   display: table-cell;
   width: -moz-min-content;
   white-space: nowrap;
 }
-.msg-header-date-unread {
-  color: #1D8399;
+.msg-header-item.unread .msg-header-date {
+  color: #008eab;
 }
+
 .msg-header-subject {
   display: block;
-  color: #000;
+  color: #131313;
   font-size: 1.5rem;
-  font-weight: 500;
+  font-weight: normal;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .msg-header-snippet {
   display: block;
-  color: #808080;
+  color: #858585;
   font-size: 1.5rem;
   font-weight: 400;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+/* Give space for icons on right if they need to be displayed. */
+.msg-header-subject.icon-short,
+.msg-header-snippet.icon-short {
+  margin-right: 1.6rem;
 }
 
 .msg-header-star {
@@ -209,22 +246,36 @@ reflows. Foreground/background colors should be safe.
   top: 5rem;
 }
 
-
 .msg-envelope-bar {
-  padding-top: 0.7rem;
   width: 100%;
   font-size: 1.4rem;
-  color: #848484;
+  color: #707070;
+}
+
+.msg-envelope-line {
+  padding: 0 1.5rem;
+  background-color: #f2f2f2;
+}
+
+.msg-envelope-from-line {
+  padding-top: 0.6rem;
+}
+
+.msg-envelope-details {
+  padding-bottom: 0.8rem;
+  background-color: #f2f2f2;
 }
 
 .msg-envelope-date {
-  font-size: 1.3rem;
-  color: #8f8f8f;
+  font-size: 1.4rem;
+  color: #657073;
 }
 
-.msg-envelope-from-line,
-.msg-envelope-details {
-  padding: 0 1.5rem 0.8rem;
+.msg-envelope-key {
+  display: inline-block;
+  height: 4rem;
+  line-height: 4rem;
+  vertical-align: middle;
 }
 
 .msg-envelope-key::after {
@@ -233,23 +284,45 @@ reflows. Foreground/background colors should be safe.
 
 
 .msg-envelope-subject-container {
-  padding: 0.5rem 1.3rem;
-  border-top: 0.1rem solid #bdbdbb;
-  border-bottom: 0.1rem solid #bdbdbb;
+  margin: 1rem 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 0.1rem solid #f2f2f1;
 }
 
 .msg-envelope-subject {
-  color: #000;
-  margin: 0;
-  font-size: 1.8rem;
-  font-weight: bold;
+  margin: 1rem 0;
+  font-size: 1.6rem;
+  font-weight: 500;
+  color: #5f5f5f;
+  word-wrap: break-word;
 }
 
 .msg-body-container {
   white-space: pre-wrap;
-  font-size: 1.7rem;
-  line-height: 2.6rem;
+  font-size: 1.6rem;
+  line-height: 2rem;
   margin: 1rem 1.5rem;
+  word-wrap: break-word;
+}
+
+.msg-peep-bubble {
+  display: inline-block;
+  margin: 0.8rem 0.3rem;
+  padding: 0.4rem 0.8rem;
+  border: 0;
+  border-radius: 1.4rem;
+  font-size: 1.5rem;
+  font-style: italic;
+  color: #2c2c2c;
+  background-color: white;
+}
+.msg-peep-bubble:active {
+  color: white;
+  background-color: #00aacc;
+}
+
+.msg-peep-bubble * {
+  pointer-events: none;
 }
 
 .card-message-reader .msg-body-container > progress {
@@ -262,31 +335,58 @@ reflows. Foreground/background colors should be safe.
 }
 
 .msg-attachments-container {
-  padding: 0 1.5rem;
-  font-size: 1.2rem;
+  margin: 0.6rem 1.5rem 1.5rem 1.5rem;
+  padding: 0;
+  border-bottom: 0.1rem solid #f2f2f1;
 }
 
-.msg-peep-bubble {
-  color: #2c2c2c;
-  display: inline-block;
-  background: #f2f2f2;
-  border: 0.1rem solid #ddd;
-  border-radius: 1rem;
-  margin: 0.3rem 0 0;
-  padding: 0.2rem 0.8rem;
-  font-weight: 500;
-  font-size: 1.3rem;
-  box-shadow: 0 0.1rem 0.1rem #fff inset;
-}
-.msg-peep-bubble * {
-  pointer-events: none;
-}
-
-.msg-attachment-item {
+/* More specific selector to override shared styles */
+.msg-attachments-container .msg-attachment-item {
   list-style-type: none;
-  height: 5.5rem;
-  line-height: 5.5rem;
+  height: 4rem;
+  min-height: 4rem;
+  border-bottom: none;
 }
+
+.msg-attachment-icon {
+  display: block;
+  float: left;
+  background: url("images/icons/icon_default.png") no-repeat center left / 3rem auto;
+  width: 3.6rem;
+  height: 4rem;
+}
+.mime-image .msg-attachment-icon {
+  background-image: url("images/icons/icon_image.png");
+}
+.mime-audio .msg-attachment-icon {
+  background-image: url("images/icons/icon_music.png");
+}
+.mime-video .msg-attachment-icon {
+  background-image: url("images/icons/icon_video.png");
+}
+
+.msg-attachment-filename,
+.msg-attachment-filesize {
+  display: block;
+  clear: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: calc(100% - 9rem);
+  white-space: nowrap;
+  font-size: 1.4rem;
+  font-weight: normal;
+  color: #393d3e;
+}
+
+.msg-attachment-filename {
+  padding-top: 0.4rem;
+}
+
+.msg-attachment-filesize {
+  max-width: 6.5rem;
+  color: #a6a6a6;
+}
+
 .msg-attachment-item[state="downloadable"]  > .msg-attachment-download {
   display: inline-block;
 }
@@ -297,38 +397,13 @@ reflows. Foreground/background colors should be safe.
   display: inline-block;
 }
 
-.msg-attachment-item  > span {
-  height: 5.5rem;
-  line-height: 5.5rem;
-}
-
-.msg-attachment-icon {
-  background: url("images/icons/message-list-attachment.png") no-repeat center / 2rem;
-  display: inline-block;
-  width: 2rem;
-  height: 2rem;
-}
-.msg-attachment-filename {
-  display: inline-block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: calc(100% - 12.5rem);
-  white-space: nowrap;
-}
-.msg-attachment-filesize {
-  color: gray;
-  display: inline-block;
-  overflow: hidden;
-  margin-left: 0.2rem;
-  max-width: 4.5rem;
-}
 .msg-attachment-download {
   display: none;
   width: 3.5rem;
   margin-bottom: 0;
   position: absolute;
-  top: 0.9rem;
-  right: 1rem;
+  top: 0;
+  right: -0.3rem;
   border: 0;
   background: transparent;
   overflow: hidden;
@@ -337,15 +412,19 @@ reflows. Foreground/background colors should be safe.
   display: none;
   margin-bottom: 0;
   position: absolute;
-  right: 1rem;
+  top: 0.6rem;
+  right: 0;
 }
 .msg-attachment-view {
   display: none;
-  width: 4.5rem;
+  width: 3.5rem;
   margin-bottom: 0;
   position: absolute;
-  top: 1rem;
-  right: 0.5rem;
+  top: 0;
+  right: -0.3rem;
+  border: 0;
+  background: transparent;
+  overflow: hidden;
 }
 
 .msg-attachment-too-large { display: none; }
@@ -354,10 +433,6 @@ reflows. Foreground/background colors should be safe.
   display: block;
   line-height: 1;
   color: rgba(0, 0, 0, 0.5);
-  margin-top: -4rem;
-  margin-bottom: -2.5rem;
-  margin-right: 6rem;
-  padding-left: 2.2rem;
 }
 .msg-attachment-item[state="toolarge"]  > .msg-attachment-download {
   display: inline-block;
@@ -367,17 +442,16 @@ reflows. Foreground/background colors should be safe.
 }
 
 .moz-external-link {
-  color: blue;
+  color: #00aacc;
   cursor: pointer;
 }
 
 .msg-body-content {
-  color: black;
+  color: #333333;
   margin: 0.4rem 0;
-  word-wrap: break-word;
 }
 .msg-body-signature {
-  color: blue;
+  color: #808080;
   margin: 0.4rem 0;
 }
 .msg-body-leadin {
@@ -386,6 +460,7 @@ reflows. Foreground/background colors should be safe.
 }
 .msg-body-q1, .msg-body-q2, .msg-body-q3, .msg-body-q4,
 .msg-body-q5, .msg-body-q6, .msg-body-q7, .msg-body-q8, .msg-body-q9 {
+  color: #808080;
   padding: 0.2rem;
   margin: 0.4rem 0;
 }
@@ -435,32 +510,28 @@ reflows. Foreground/background colors should be safe.
   background-color: #424242;;
 }
 
-/* We need to use !important on the buttons because shared/style/buttons.css definesa more specific
- * selector than ours for :active, so we can't just reorder the files to fix the problem.
-*/
-
 /* For WVGA (800 x 480) */
-.msg-refresh-btn:after {
+.msg-list-action-toolbar .msg-refresh-btn:after {
   content: '';
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 4.4rem;
-  display: block !important;
+  display: block;
   padding-bottom: 0.1rem;
-  background: url("images/icons/refresh.png") no-repeat 50% 50% / 3.2rem;
+  background: url("images/icons/refresh.png") no-repeat center center / 3rem auto;
 }
 
-.msg-refresh-btn:after {
-  opacity: 1 !important;
+.msg-list-action-toolbar .msg-refresh-btn:after {
+  opacity: 1;
 }
 
 @media all and (min-device-width: 320px) and (max-device-width: 359px) {
   .msg-refresh-btn:after {
     height: 100%;
     padding-bottom: 0;
-    background-size: 3.1rem;
+    background-size: 3rem;
   }
 }
 
@@ -473,32 +544,44 @@ reflows. Foreground/background colors should be safe.
   to   { transform: rotate(360deg); }
 }
 
-.bb-tablist .icon {
-  background-position: 50% 0;
+.bb-tablist li .icon {
+  background-position: 50% 50%;
 }
 
-.bb-tablist .msg-btn-active {
-  background-position: 50% 100% !important;
+.bb-tablist .msg-last-sync {
+  text-align: center;
+  line-height: 4.5rem;
+  color: #5f5f5f;
+  flex: 2 2 0;
+  font-size: 1.3rem;
+  font-style: italic;
 }
 
-.msg-search-btn {
-  background-image: url("images/icons/search.png") !important;
+.msg-last-sync.long .msg-last-synced-label,
+.msg-last-sync.long .msg-last-synced-value {
+  display: block;
+  line-height: 1.5rem;
 }
 
-.msg-edit-btn {
-  background-image: url("images/icons/edit-mode.png") !important;
+.msg-last-sync.long .msg-last-synced-label {
+  margin-top: 0.7rem;
 }
 
-.bottom-toolbar .msg-btn-active {
-  background-color: rgb(0, 138, 170) !important;
+.bb-tablist .icon.msg-edit-btn {
+  background-image: url("images/icons/edit-mode.png");
+  background-position: 50% 45%;
+  background-size: 3rem auto;
 }
 
-.msg-star-btn {
-  background-image: url("images/icons/star.png") !important;
+.bb-tablist .msg-star-btn {
+  background-image: url("images/icons/star.png");
+}
+.bb-tablist .msg-star-btn-on {
+  background-image: url("images/icons/star_on.png");
 }
 
-.msg-mark-read-btn {
-  background-image: url("images/icons/mark.png") !important;
+.bb-tablist .msg-mark-read-btn {
+  background-image: url("images/icons/mark.png");
 }
 
 /* Scrollable Area has to have a solid
@@ -510,20 +593,20 @@ reflows. Foreground/background colors should be safe.
   overflow: hidden;
 }
 
-.msg-delete-btn {
-  background-image: url("images/icons/delete.png") !important;
+.bb-tablist .msg-delete-btn {
+  background-image: url("images/icons/delete.png");
 }
 
-.msg-move-btn {
-  background-image: url("images/icons/move.png") !important;
+.bb-tablist .msg-move-btn {
+  background-image: url("images/icons/move.png");
 }
 
-.msg-forward-btn {
-  background-image: url("images/icons/forward.png") !important;
+.bb-tablist .msg-forward-btn {
+  background-image: url("images/icons/forward.png");
 }
 
-.msg-reply-btn {
-  background-image: url("images/icons/reply.png") !important;
+.bb-tablist .msg-reply-btn {
+  background-image: url("images/icons/reply.png");
 }
 
 /* Message list edit mode layout control */
@@ -539,6 +622,9 @@ reflows. Foreground/background colors should be safe.
 
 .msg-messages-container.show-edit .msg-header-unread-section {
   left: 3.9rem;
+}
+.msg-messages-container.show-edit .msg-header-syncing-section {
+  left: 3.5rem;
 }
 .msg-messages-container.show-edit .msg-header-details-section {
   padding-left: 4.5rem;
@@ -562,7 +648,7 @@ reflows. Foreground/background colors should be safe.
   margin: 0 auto;
   padding: 1rem 1.5rem;
   color: #010101;
-  font-weight: lighter;
+  font-weight: 300;
   font-size: 2.4rem;
   border-top: 0.1rem solid #bebebe;
 }
@@ -600,19 +686,44 @@ reflows. Foreground/background colors should be safe.
   margin: 0 3rem;
 }
 
-.msg-list-topbar {
-  -moz-box-sizing: border-box;
+.message-list-topbar {
   position: absolute;
-  top: 5rem;
-  left: 0;
-  width: 100%;
-  padding: 0.6rem 3rem;
-  color: #fff;
+  display: inline-block;
+  margin: 1.5rem 1.5rem 0 0;
+  opacity: .8;
+  transform: translateY(-6.5rem);
+  transition-property: transform;
+  transition-duration: .6s;
+  transition-timing-function: ease;
+  transition-delay: 0s;
+}
+
+.message-list-topbar[data-state="top"] {
+  transform: translateY(0);
+  right: 0;
+  width: 5rem;
+  height: 5rem;
+  border-radius: 5rem;
+  background: url('../../shared/style/headers/images/icons/up.png') no-repeat scroll center center / 3rem auto #a6a6a6;
+  font-size: 0;
+}
+
+.message-list-topbar[data-state="message"] {
+  transform: translateY(0);
+  margin: 1.5rem auto;
+  padding: 0 1.3rem;
+  height: 4rem;
+  line-height: 4rem;
   font-size: 1.4rem;
-  font-weight: 500;
-  line-height: 2.4rem;
-  background-color: #00aacc;
-  z-index: 10;
+  border-radius: 4rem;
+  color: white;
+  background-color: #a6a6a6;
+  opacity: .95;
+}
+
+.message-list-topbar.closing[data-state="message"],
+.message-list-topbar.closing[data-state="top"] {
+  transform: translateY(-6.5rem);
 }
 
 .msg-reply-menu button:before {
@@ -622,6 +733,9 @@ reflows. Foreground/background colors should be safe.
   width: 3rem;
   height: 3rem;
   margin: 0.5rem 1rem 0 0;
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: 3rem auto;
 }
 
 .msg-reply-menu-reply:before {

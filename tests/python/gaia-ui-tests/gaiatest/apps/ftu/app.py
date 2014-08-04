@@ -18,10 +18,13 @@ class Ftu(Base):
     _section_languages_locator = (By.ID, 'languages')
     _listed_languages_locator = (By.CSS_SELECTOR, "#languages ul li input[name='language.current']")
     _language_locator = (By.CSS_SELECTOR, "#languages ul li input[name='language.current'][value='%s'] ~ p")
+    _language_input_locator = (By.CSS_SELECTOR,
+                               "#languages ul li input[name='language.current'][value='%s']")
+    _selected_language_input_locator = (By.CSS_SELECTOR, "#languages ul li input:checked")
 
     # Step Cell data section
     _section_cell_data_locator = (By.ID, 'data_3g')
-    _enable_data_checkbox_locator = (By.CSS_SELECTOR, '#data_3g .pack-end')
+    _enable_data_checkbox_locator = (By.ID, 'data-connection-switch')
 
     # Step Wifi
     _section_wifi_locator = (By.ID, 'wifi')
@@ -38,7 +41,7 @@ class Ftu(Base):
 
     # Step Geolocation
     _section_geolocation_locator = (By.ID, 'geolocation')
-    _enable_geolocation_checkbox_locator = (By.CSS_SELECTOR, '#geolocation .pack-end label')
+    _enable_geolocation_checkbox_locator = (By.CSS_SELECTOR, '#geolocation-switch > label')
 
     # Section Import contacts
     _section_import_contacts_locator = (By.ID, 'import_contacts')
@@ -51,6 +54,7 @@ class Ftu(Base):
     # Section Welcome Browser
     _section_welcome_browser_locator = (By.ID, 'welcome_browser')
     _enable_statistic_checkbox_locator = (By.ID, 'form_share_statistics')
+    _statistic_checkbox_locator = (By.ID, 'share-performance')
 
     # Section Privacy Choices
     _section_browser_privacy_locator = (By.ID, 'browser_privacy')
@@ -84,32 +88,62 @@ class Ftu(Base):
     def languages_list(self):
         return len(self.marionette.find_elements(*self._listed_languages_locator))
 
+    @property
+    def selected_language(self):
+        return self.marionette.find_element(*self._selected_language_input_locator).get_attribute(
+            'value')
+
     def tap_language(self, language):
         self.marionette.find_element(self._language_locator[0], self._language_locator[1] % language).tap()
+
+    def a11y_click_language(self, language):
+        self.accessibility.click(self.marionette.find_element(self._language_input_locator[0],
+                                 self._language_input_locator[1] % language))
 
     def tap_next(self):
         self.marionette.find_element(*self._next_button_locator).tap()
 
+    def a11y_click_next(self):
+        self.accessibility.click(self.marionette.find_element(*self._next_button_locator))
+
     def tap_next_to_cell_data_section(self):
         self.tap_next()
+        self.wait_for_element_displayed(*self._section_cell_data_locator)
+
+    def a11y_click_next_to_cell_data_section(self):
+        self.a11y_click_next()
         self.wait_for_element_displayed(*self._section_cell_data_locator)
 
     def enable_data(self):
         self.wait_for_element_displayed(*self._enable_data_checkbox_locator)
         self.marionette.find_element(*self._enable_data_checkbox_locator).tap()
 
+    def a11y_enable_data(self):
+        self.wait_for_element_displayed(*self._enable_data_checkbox_locator)
+        self.accessibility.click(self.marionette.find_element(*self._enable_data_checkbox_locator))
+
     def tap_next_to_wifi_section(self):
         self.tap_next()
         self.wait_for_condition(lambda m: not self.is_element_displayed(*self._progress_activity_locator))
         self.wait_for_element_displayed(*self._section_wifi_locator)
 
+    def a11y_click_next_to_wifi_section(self):
+        self.a11y_click_next()
+        self.wait_for_condition(lambda m: not self.is_element_displayed(
+            *self._progress_activity_locator))
+        self.wait_for_element_displayed(*self._section_wifi_locator)
+
     def wait_for_networks_available(self):
         self.wait_for_condition(lambda m: len(m.find_elements(*self._found_wifi_networks_locator)) > 0, message='No networks listed on screen')
 
-    def connect_to_wifi(self, network_ssid, password, key_management=None):
+    def find_wifi_network(self, network_ssid):
         wifi_network_locator = (By.CSS_SELECTOR, '#networks-list li[data-ssid="%s"]' % network_ssid)
         wifi_network = self.wait_for_element_present(*wifi_network_locator)
         self.marionette.execute_script("arguments[0].scrollIntoView(false);", [wifi_network])
+        return wifi_network
+
+    def connect_to_wifi(self, network_ssid, password, key_management=None):
+        wifi_network = self.find_wifi_network(network_ssid)
         wifi_network.tap()
 
         # This is in the event we are using a Wifi Network that requires a password
@@ -119,8 +153,23 @@ class Ftu(Base):
             self.marionette.find_element(*self._password_input_locator).send_keys(password)
             self.marionette.find_element(*self._join_network_locator).tap()
 
+    def a11y_connect_to_wifi(self, network_ssid, password, key_management=None):
+        wifi_network = self.find_wifi_network(network_ssid)
+        self.accessibility.click(wifi_network)
+
+        # This is in the event we are using a Wifi Network that requires a password
+        # We cannot be sure of this thus need the logic
+        if key_management:
+            self.wait_for_element_displayed(*self._password_input_locator)
+            self.marionette.find_element(*self._password_input_locator).send_keys(password)
+            self.accessibility.click(self.marionette.find_element(*self._join_network_locator))
+
     def tap_next_to_timezone_section(self):
         self.tap_next()
+        self.wait_for_element_displayed(*self._section_date_time_locator)
+
+    def a11y_click_next_to_timezone_section(self):
+        self.a11y_click_next()
         self.wait_for_element_displayed(*self._section_date_time_locator)
 
     def set_timezone_continent(self, continent):
@@ -128,10 +177,20 @@ class Ftu(Base):
         self.marionette.find_element(*self._timezone_continent_locator).tap()
         self.select(continent)
 
+    def a11y_set_timezone_continent(self, continent):
+        self.wait_for_element_displayed(*self._timezone_continent_locator)
+        self.accessibility.click(self.marionette.find_element(*self._timezone_continent_locator))
+        self.a11y_select(continent)
+
     def set_timezone_city(self, city):
         self.wait_for_element_displayed(*self._timezone_city_locator)
         self.marionette.find_element(*self._timezone_city_locator).tap()
         self.select(city)
+
+    def a11y_set_timezone_city(self, city):
+        self.wait_for_element_displayed(*self._timezone_city_locator)
+        self.accessibility.click(self.marionette.find_element(*self._timezone_city_locator))
+        self.a11y_select(city)
 
     @property
     def timezone_title(self):
@@ -141,12 +200,27 @@ class Ftu(Base):
         self.tap_next()
         self.wait_for_element_displayed(*self._section_geolocation_locator)
 
+    def a11y_click_next_to_geolocation_section(self):
+        self.a11y_click_next()
+        self.wait_for_element_displayed(*self._section_geolocation_locator)
+
     def disable_geolocation(self):
         self.wait_for_element_displayed(*self._enable_geolocation_checkbox_locator)
-        self.marionette.find_element(*self._enable_geolocation_checkbox_locator).tap()
+
+        # TODO: Remove y parameter when Bug 932804 is fixed
+        self.marionette.find_element(*self._enable_geolocation_checkbox_locator).tap(y=30)
+
+    def a11y_disable_geolocation(self):
+        self.wait_for_element_displayed(*self._enable_geolocation_checkbox_locator)
+        self.accessibility.click(self.marionette.find_element(
+            *self._enable_geolocation_checkbox_locator))
 
     def tap_next_to_import_contacts_section(self):
         self.tap_next()
+        self.wait_for_element_displayed(*self._section_import_contacts_locator)
+
+    def a11y_click_next_to_import_contacts_section(self):
+        self.a11y_click_next()
         self.wait_for_element_displayed(*self._section_import_contacts_locator)
 
     def tap_import_from_sim(self):
@@ -173,15 +247,30 @@ class Ftu(Base):
         self.tap_next()
         self.wait_for_element_displayed(*self._section_firefox_accounts_locator)
 
+    def a11y_click_next_to_firefox_accounts_section(self):
+        self.a11y_click_next()
+        self.wait_for_element_displayed(*self._section_firefox_accounts_locator)
+
     def tap_next_to_welcome_browser_section(self):
         self.tap_next()
+        self.wait_for_element_displayed(*self._section_welcome_browser_locator)
+
+    def a11y_click_next_to_welcome_browser_section(self):
+        self.a11y_click_next()
         self.wait_for_element_displayed(*self._section_welcome_browser_locator)
 
     def tap_statistics_checkbox(self):
         self.marionette.find_element(*self._enable_statistic_checkbox_locator).tap()
 
+    def a11y_click_statistics_checkbox(self):
+        self.accessibility.click(self.marionette.find_element(*self._statistic_checkbox_locator))
+
     def tap_next_to_privacy_browser_section(self):
         self.tap_next()
+        self.wait_for_element_displayed(*self._section_browser_privacy_locator)
+
+    def a11y_click_next_to_privacy_browser_section(self):
+        self.a11y_click_next()
         self.wait_for_element_displayed(*self._section_browser_privacy_locator)
 
     def enter_email_address(self, email):
@@ -192,8 +281,15 @@ class Ftu(Base):
         self.tap_next()
         self.wait_for_element_displayed(*self._section_finish_locator)
 
+    def a11y_click_next_to_finish_section(self):
+        self.a11y_click_next()
+        self.wait_for_element_displayed(*self._section_finish_locator)
+
     def tap_skip_tour(self):
         self.marionette.find_element(*self._skip_tour_button_locator).tap()
+
+    def a11y_click_skip_tour(self):
+        self.accessibility.click(self.marionette.find_element(*self._skip_tour_button_locator))
 
     def run_ftu_setup_with_default_values(self):
         count =0

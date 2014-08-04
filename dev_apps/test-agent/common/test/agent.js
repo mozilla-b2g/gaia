@@ -87,7 +87,7 @@
       var env = parsed.host + '-' + parsed.url;
 
       var result = {
-        domain: parsed.domain + '/test/unit/_proxy.html',
+        domain: parsed.domain + 'test/unit/_proxy.html',
         test: '/' + parsed.url,
         env: env
       };

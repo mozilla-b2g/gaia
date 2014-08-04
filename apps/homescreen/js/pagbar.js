@@ -43,6 +43,11 @@ var PaginationBar = (function() {
     update: function pb_update(current, total) {
       scroller.setAttribute('aria-valuenow', current);
       scroller.setAttribute('aria-valuemax', total - 1);
+      scroller.setAttribute('aria-valuetext', navigator.mozL10n.get(
+        'paginationBarText', {
+          current: current + 1,
+          total: total
+        }));
       if (total && previousTotal !== total) {
         style.width = (100 / total) + '%';
         // Force a reflow otherwise the pagination bar is not resized after
@@ -55,14 +60,15 @@ var PaginationBar = (function() {
     },
 
     handleEvent: function pb_handleEvent(evt) {
-      if (evt.type != 'keypress' || !evt.ctrlKey)
+      if (evt.type !== 'keypress' || evt.ctrlKey) {
         return;
+      }
 
       switch (evt.keyCode) {
-        case evt.DOM_VK_RIGHT:
+        case evt.DOM_VK_UP:
           GridManager.goToNextPage();
           break;
-        case evt.DOM_VK_LEFT:
+        case evt.DOM_VK_DOWN:
           GridManager.goToPreviousPage();
           break;
       }

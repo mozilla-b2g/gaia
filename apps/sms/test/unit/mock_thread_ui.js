@@ -1,7 +1,9 @@
-/*global Recipients, Template */
+/*global MockRecipients, Template */
 /*exported MockThreadUI */
 
 'use strict';
+
+require('/test/unit/mock_recipients.js');
 
 var MockThreadUI = {
   LAST_MESSSAGES_BUFFERING_TIME: 600000,
@@ -16,7 +18,7 @@ var MockThreadUI = {
 
   // For Information view testing. Need to be updated with ThreadUI layout
   optionsIcon: document.createElement('a'),
-  attachButton: document.createElement('a'),
+  attachButton: document.createElement('button'),
   subheader: document.createElement('div'),
   container: document.createElement('article'),
   composeForm: document.createElement('form'),
@@ -26,12 +28,13 @@ var MockThreadUI = {
   inThread: false,
   init: function() {},
   initRecipients: function() {
-    this.recipients = new Recipients({
+    this.recipients = new MockRecipients({
       outer: 'messages-to-field',
       inner: 'messages-recipients-list',
       template: new Template('messages-recipient-tmpl')
     });
   },
+  on: function() {},
   initSentAudio: function() {},
   getAllInputs: function() {},
   getSelectedInputs: function() {},
@@ -48,7 +51,6 @@ var MockThreadUI = {
   updateInputMaxHeight: function() {},
   back: function() {},
   isKeyboardDisplayed: function() {},
-  enableSend: function() {},
   updateSmsSegmentLimit: function() {},
   updateCounter: function() {},
   updateCounterForMms: function() {},
@@ -76,7 +78,6 @@ var MockThreadUI = {
   handleEvent: function() {},
   cleanFields: function() {},
   onSendClick: function() {},
-  onBeforeEnter: function() {},
   onMessageSending: function() {},
   onMessageSent: function() {},
   onMessageFailed: function() {},

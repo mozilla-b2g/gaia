@@ -30,6 +30,8 @@ define(function() {
         oldPanel.className = newPanel.className ? '' : 'previous';
       }
       if (newPanel.className === 'current') {
+        _sendPanelReady(oldPanel && '#' + oldPanel.id, '#' + newPanel.id);
+
         if (callback) {
           callback();
         }

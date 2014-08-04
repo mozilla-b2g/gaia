@@ -110,7 +110,8 @@ var GaiaDataLayer = {
     };
   },
 
-  getSIMContacts: function(aCallback) {
+  getSIMContacts: function(aType, aCallback) {
+    var type = aType || 'adn';
     var callback = aCallback || marionetteScriptFinished;
     var icc = navigator.mozIccManager;
 
@@ -120,14 +121,14 @@ var GaiaDataLayer = {
     if (icc && icc.iccIds && icc.iccIds[0]) {
       icc = icc.getIccById(icc.iccIds[0]);
     }
-    var req = icc.readContacts('adn');
+    var req = icc.readContacts(type);
     req.onsuccess = function() {
-      console.log('success finding contacts');
+      console.log('success finding ' + type + ' contacts');
       SpecialPowers.removePermission('contacts-read', document);
       callback(req.result);
     };
     req.onerror = function() {
-      console.error('error finding contacts ' + req.error.name);
+      console.error('error finding ' + type + ' contacts ' + req.error.name);
       SpecialPowers.removePermission('contacts-read', document);
       callback([]);
     };
@@ -348,9 +349,13 @@ var GaiaDataLayer = {
   },
 
   isWiFiConnected: function(aNetwork) {
-    var manager = window.navigator.mozWifiManager;
-    return manager.connection.status === 'connected' &&
-           manager.connection.network.ssid === aNetwork.ssid;
+    let manager = window.navigator.mozWifiManager;
+    let connected = manager.connection.status === 'connected';
+    if (connected && aNetwork) {
+      return manager.connection.network.ssid === aNetwork.ssid;
+    } else {
+      return connected;
+    }
   },
 
   getMozTelephonyState: function() {
@@ -433,9 +438,8 @@ var GaiaDataLayer = {
     req.onsuccess = function() {
       var file = req.result;
       if (file) {
-        if (aType === 'music' &&
-            file.name.slice(0, 13) === '/sdcard/DCIM/' &&
-            file.name.slice(-4) === '.3gp') {
+        if (aType === 'music' && file.name.slice(-4) === '.3gp') {
+          // 3gp is both music and video; we skip the music definition
           req.continue();
         }
         else {
@@ -655,6 +659,40 @@ var GaiaDataLayer = {
          console.log("Deleting alarm with id  '" + aAlarm.id + "'");
          window.wrappedJSObject.AlarmManager.delete(aAlarm);
       });
+    });
+  },
+
+  // FIXME: Bug 1011000: will make use of SoundManager instead
+  waitForChromeEvent: function(aEventName, aCallback) {
+    window.addEventListener('mozChromeEvent', function gsm_chromeEvent(evt) {
+      window.removeEventListener('mozChromeEvent', gsm_chromeEvent);
+      waitFor(
+        function() {
+          console.log("mozChromeEvent: " + evt.detail.type);
+          if (evt.detail.type === aEventName) {
+            aCallback(evt.detail);
+          }
+        },
+        function() {
+          return true;
+        }
+      );
+    });
+  },
+
+  // FIXME: Bug 1011000: will make use of SoundManager instead
+  waitForAudioChannelChanged: function(aCallback) {
+    var callback = aCallback || marionetteScriptFinished;
+    this.waitForChromeEvent('audio-channel-changed', function(details) {
+      callback(details.channel);
+    });
+  },
+
+  // FIXME: Bug 1011000: will make use of SoundManager instead
+  waitForVisibleAudioChannelChanged: function(aCallback) {
+    var callback = aCallback || marionetteScriptFinished;
+    this.waitForChromeEvent('visible-audio-channel-changed', function(details) {
+      callback(details.channel);
     });
   }
 };

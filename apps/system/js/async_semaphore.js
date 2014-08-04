@@ -3,7 +3,7 @@
 
 'use strict';
 
-(function(window) {
+(function(exports) {
   var AsyncSemaphore = function as_contructor() {
     if (!this instanceof AsyncSemaphore) {
       return new AsyncSemaphore();
@@ -60,5 +60,5 @@
     }
   };
 
-  window.AsyncSemaphore = AsyncSemaphore;
-}(this));
+  exports.AsyncSemaphore = AsyncSemaphore;
+}(window));

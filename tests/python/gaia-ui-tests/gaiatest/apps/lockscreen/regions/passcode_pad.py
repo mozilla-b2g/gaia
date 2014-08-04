@@ -14,7 +14,7 @@ class PasscodePad(Base):
     _emergency_button_locator = (By.CSS_SELECTOR, '#lockscreen-passcode-pad a[data-key="e"]')
 
     def __init__(self, marionette):
-        self.marionette = marionette
+        Base.__init__(self, marionette)
         lockscreen_panel = self.marionette.find_element(*self._lockscreen_panel_locator)
         emergency_button = self.marionette.find_element(*self._emergency_button_locator)
         self.wait_for_condition(lambda m: lockscreen_panel.size['height'] ==

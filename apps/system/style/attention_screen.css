@@ -25,7 +25,7 @@
   transition: none;
 }
 
-#screen.attention.active-statusbar #statusbar {
+#screen.attention.active-statusbar:not(.rocketbar-focused) #statusbar {
   display: none;
 }
 
@@ -38,16 +38,17 @@
 #attention-screen > iframe {
   border: 0;
   width: 100%;
-  /* we have the 2.4rem status bar on top */
-  height: calc(100% - 2.4rem);
-  margin-top: 2.4rem;
+  /* we have the 3rem status bar on top */
+  height: calc(100% - 3rem);
+  margin-top: 3rem;
   background-color: transparent;
   position: absolute;
   top: 0;
   left: 0;
 }
 
-#attention-screen > iframe[data-hidden] {
+#attention-screen > iframe[data-hidden],
+#attention-screen > iframe:not(.active) {
   visibility: hidden;
   pointer-events: none;
 }

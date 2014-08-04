@@ -1,4 +1,5 @@
 {
+  "external": true,
   "origin": "https://marketplace.allizom.org",
   "manifestURL": "https://marketplace.allizom.org/manifest.webapp",
   "type": "web"

@@ -13,16 +13,16 @@ define(function(require) {
      * initialization
      */
     init: function support_init(elements) {
-      this.elements = elements;
+      this._elements = elements;
       /**
        * We'll stash the support info in here when reading from the
        * Settings.
        * If no values are found in Settings for support info We'll
        * refer to the JSON File Data.
        */
-      this.callSupportInfo = null;
+      this._callSupportInfo = null;
       var url = 'http://support.mozilla.org/products/firefox-os';
-      this.elements.userGuide.onclick =
+      this._elements.userGuide.onclick =
         function openUserGuide() { openLink(url); };
 
       // parse support information from data
@@ -32,9 +32,9 @@ define(function(require) {
      * Clean states for test
      */
     uninit: function() {
-      this.elements = null;
+      this._elements = null;
       this._supportInfo = null;
-      this.callSupportInfo = null;
+      this._callSupportInfo = null;
     },
     /**
      * get support data from cache or from resource file
@@ -66,8 +66,8 @@ define(function(require) {
     /**
      * Indicate to our panel that there is support info present.
      */
-    enableSupportInfo: function support_enableSupportInfo() {
-      this.elements.help.dataset.hasSupportInfo = true;
+    _enableSupportInfo: function support_enableSupportInfo() {
+      this._elements.help.dataset.hasSupportInfo = true;
     },
     /**
      * Local helper function to set the online support information
@@ -76,9 +76,9 @@ define(function(require) {
      */
     _setOnlineSupportInfo:
       function support_setOnlineSupportInfo(onlineSupportInfo) {
-      this.enableSupportInfo().bind(this);
+      this._enableSupportInfo();
       var nodes = this._createLinkNode(onlineSupportInfo);
-      Support.elements.supportText.appendChild(nodes);
+      this._elements.supportText.appendChild(nodes);
     },
     /**
      * Local helper function to set the information once we've
@@ -86,9 +86,9 @@ define(function(require) {
      */
     _setCallSupportInfo:
       function support_setCallSupportInfo(supportInfo) {
-      this.enableSupportInfo().bind(this);
+      this._enableSupportInfo();
       for (var id in supportInfo) {
-        Support.elements.supportNumber
+        this._elements.supportNumber
           .appendChild(this._createLinkNode(supportInfo[id], 'tel'));
       }
     },
@@ -107,7 +107,7 @@ define(function(require) {
       var callSupport1Title = result['support.callsupport1.title'];
       // If we have a title we'll go ahead and load the href for it too.
       if (callSupport1Title !== '') {
-        this.callSupportInfo = [
+        this._callSupportInfo = [
           {
             'title': callSupport1Title,
             'href': result['support.callsupport1.href']
@@ -118,12 +118,12 @@ define(function(require) {
         // support number. If we do, we'll load it's href as well.
         var callSupport2Title = result['support.callsupport2.title'];
         if (callSupport2Title !== '') {
-          this.callSupportInfo.push({
+          this._callSupportInfo.push({
               'title': callSupport2Title,
               'href': result['support.callsupport2.href']
           });
           // Finally set the support info retreived from Settings.
-          this._setCallSupportInfo(this.callSupportInfo);
+          this._setCallSupportInfo(this._callSupportInfo);
         }
       } else if (this._supportInfo) {
         // No customized values, use what's in the JSON file.

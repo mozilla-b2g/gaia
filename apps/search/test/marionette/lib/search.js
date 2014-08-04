@@ -18,12 +18,13 @@ Search.URL = 'app://search.gaiamobile.org';
 
 Search.Selectors = {
   iframe: 'iframe[mozapptype="search"]',
-  firstAppContainer: '#localapps',
-  firstApp: '#localapps div',
+  firstAppContainer: 'gaia-grid',
+  firstApp: 'gaia-grid .icon',
   firstContact: '#contacts div',
   firstContactContainer: '#contacts',
   firstPlace: '#places div .title',
-  firstPlaceContainer: '#places'
+  firstPlaceContainer: '#places',
+  firstRunConfirm: '#suggestions-notice-confirm'
 };
 
 Search.prototype = {
@@ -39,6 +40,20 @@ Search.prototype = {
   },
 
   /**
+   * Checks that we have a result for a given app in the results list.
+
+   */
+  checkAppResult: function(identifier, expected) {
+    var selectors = Search.Selectors;
+    var selector = '.icon[data-identifier="' + identifier + '"]';
+
+    this.client.helper.waitForElement(selectors.firstAppContainer);
+    var result = this.client.helper.waitForElement(selector);
+    assert.equal(expected, result.text());
+    return result;
+  },
+
+  /**
    * Checks that the text of a selector matches the expected result.
    * Clicks on that result.
    * @param {String} selectorKey from Search.Selectors.
@@ -51,7 +66,36 @@ Search.prototype = {
     var result = this.client.helper
       .waitForElement(selectors[selectorKey]);
     assert.equal(expected, result.text());
-    result.click();
+    return result;
+  },
+
+  /**
+   * Workaround for bug 1022768, where app permissions are not auto ALLOWed
+   * for tests on desktop. If that bug is fixed, this function should be
+   * removed.
+   */
+  removeGeolocationPermission: function() {
+    var client = this.client.scope({ context: 'chrome' });
+    client.executeScript(function(origin) {
+      var mozPerms = navigator.mozPermissionSettings;
+      mozPerms.set(
+        'geolocation', 'deny', origin + '/manifest.webapp', origin, false
+      );
+    }, [Search.URL]);
+  },
+
+  /**
+   * On first run a warning is shown to users on Search app configuration
+   * trigger this notice and confirm it.
+   */
+  triggerFirstRun: function(rocketbar) {
+    rocketbar.enterText('abc');
+    this.goToResults();
+    this.client.helper
+      .waitForElement(Search.Selectors.firstRunConfirm)
+      .click();
+    this.client.switchToFrame();
+    rocketbar.enterText('');
   },
 
   /**

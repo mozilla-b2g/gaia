@@ -317,6 +317,8 @@
   requireApp('calendar/shared/js/lazy_loader.js');
 
   requireLib('calendar.js');
+  requireLib('promise.js');
+  requireLib('performance.js');
   requireLib('error.js');
   requireApp('calendar/test/unit/loader.js');
   requireLib('responder.js');
@@ -334,6 +336,7 @@
   requireLib('store/setting.js');
   requireLib('store/ical_component.js');
   requireLib('provider/abstract.js');
+  requireLib('provider/local.js');
   requireSupport('mock_provider.js');
   requireLib('worker/manager.js');
   requireLib('controllers/service.js');

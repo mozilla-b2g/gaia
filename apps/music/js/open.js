@@ -14,16 +14,14 @@ var unknownTitleL10nId = 'unknownTitle';
 
 // We get a localized event when the application is launched and when
 // the user switches languages.
-window.addEventListener('localized', function onlocalized() {
-  // Set the 'lang' and 'dir' attributes to <html> when the page is translated
-  document.documentElement.lang = navigator.mozL10n.language.code;
-  document.documentElement.dir = navigator.mozL10n.language.direction;
-
+navigator.mozL10n.ready(function onLanguageChange() {
   // Get prepared for the localized strings, these will be used later
   unknownAlbum = navigator.mozL10n.get('unknownAlbum');
   unknownArtist = navigator.mozL10n.get('unknownArtist');
   unknownTitle = navigator.mozL10n.get('unknownTitle');
+});
 
+navigator.mozL10n.once(function onLocalizationInit() {
   navigator.mozSetMessageHandler('activity', handleOpenActivity);
 });
 

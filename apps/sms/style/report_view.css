@@ -9,7 +9,7 @@
 }
 
 .report-view  p, .report-view  span {
-  font-family: 'Fira Sans', sans-serif;
+  font-family: sans-serif;
 }
 
 .report-view .description > .type {
@@ -48,6 +48,11 @@
 
 .report-view.received .received-detail {
   display: block;
+}
+
+/* Hide sent timestamp label if we don't have valid value to display */
+.report-view.no-valid-sent-timestamp .sent-timestamp-label {
+  display: none;
 }
 
 .report-view.received .description {

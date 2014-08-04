@@ -55,6 +55,7 @@ function navigationStack(currentView) {
   var COMMS_APP_ORIGIN = location.origin;
   var screenshotViewId = 'view-screenshot';
   var _currentView = currentView;
+  document.getElementById(currentView).classList.add('current');
   this.stack = [];
 
   navigationStack._zIndex = navigationStack._zIndex || 0;
@@ -73,8 +74,11 @@ function navigationStack(currentView) {
     });
   };
 
-  this.go = function go(nextView, transition) {
+  this.go = function go(nextView, transition, callback) {
     if (_currentView === nextView) {
+      if (callback) {
+        callback();
+      }
       return;
     }
 
@@ -128,6 +132,22 @@ function navigationStack(currentView) {
         next.removeEventListener('animationend', ng_onNextBackwards);
         next.classList.remove('block-item');
       });
+    }
+
+    next.classList.add('current');
+    var realCurrentView = document.getElementById(_currentView);
+    var _callbackInner = function _callback() {
+      realCurrentView.classList.remove('current');
+      if (callback) {
+        callback();
+      }
+    };
+
+
+    if (transition === 'none') {
+      setTimeout(_callbackInner, 0);
+    } else {
+      waitForAnimation(next, _callbackInner);
     }
 
     var zIndex = ++navigationStack._zIndex;
@@ -217,10 +237,20 @@ function navigationStack(currentView) {
       });
     }
 
-    if (!backwardsClasses.current && !backwardsClasses.next && callback) {
-      setTimeout(callback, 0);
+    document.getElementById(nextView.view).classList.add('current');
+    var _callbackInner = function _callbackInner() {
+      currentClassList.remove('current');
+      if (callback) {
+        callback();
+      }
+    };
+
+
+    if ((!backwardsClasses.current && !backwardsClasses.next) ||
+        transition === 'none') {
+      setTimeout(_callbackInner, 0);
     } else {
-      waitForAnimation(current, callback);
+      waitForAnimation(current, _callbackInner);
     }
     _currentView = nextView.view;
     navigationStack._zIndex = nextView.zIndex;

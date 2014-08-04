@@ -1,6 +1,7 @@
 'use strict';
 
-['calendar',
+[
+ 'calendar',
  'responder',
  'inspect',
  'presets',
@@ -9,7 +10,8 @@
  'ext/caldav',
  'ext/uuid',
  'service/ical_recur_expansion',
- 'service/caldav'].forEach(function(script) {
+ 'service/caldav'
+].forEach(function(script) {
    // ?time= is for cache busting in development...
    // there have been cases where nightly would not
    // clear the cache of the worker.

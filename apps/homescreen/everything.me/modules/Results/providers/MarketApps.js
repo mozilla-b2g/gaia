@@ -38,9 +38,8 @@
         'offset': TEXT_MARGIN + DOWNLOAD_LABEL_FONT_SIZE + SCALE_RATIO
       });
 
-      var ariaLabel = downloadLabel + ' ' + this.cfg.name;
-      self.elIcon.setAttribute('aria-label', ariaLabel);
-      self.elName.setAttribute('aria-label', ariaLabel);
+      self.getElement().setAttribute('aria-label',
+        downloadLabel + ' ' + this.cfg.name);
       self.elName.src = canvas.toDataURL();
     };
 

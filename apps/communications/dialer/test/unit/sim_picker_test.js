@@ -16,8 +16,6 @@ var mocksHelperForSimPicker = new MocksHelper([
   'LazyL10n'
 ]).init();
 
-mocha.globals(['TelephonyHelper']);
-
 suite('SIM picker', function() {
   var subject;
   var realMozIccManager;
@@ -29,7 +27,7 @@ suite('SIM picker', function() {
   mocksHelperForSimPicker.attachTestHelpers();
 
   var loadBody = function() {
-    loadBodyHTML('/shared/elements/sim-picker.html');
+    loadBodyHTML('/shared/elements/sim_picker.html');
     document.body.innerHTML = document.body.querySelector('template').innerHTML;
   };
 
@@ -44,7 +42,6 @@ suite('SIM picker', function() {
 
     realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockMozL10n;
-    navigator.mozL10n.localize = function() {};
 
     realTelephonyHelper = window.TelephonyHelper;
     window.TelephonyHelper = null;
@@ -74,9 +71,9 @@ suite('SIM picker', function() {
 
   suite('getOrPick/getInUseSim', function() {
     test('header should contain phone number when getter provided', function() {
-      var localizeSpy = this.sinon.spy(MockMozL10n, 'localize');
+      var setAttributesSpy = this.sinon.spy(MockMozL10n, 'setAttributes');
       subject.getOrPick(0, '1111', function() {});
-      sinon.assert.calledWith(localizeSpy,
+      sinon.assert.calledWith(setAttributesSpy,
                               header,
                               'sim-picker-dial-via-with-number',
                               {phoneNumber: '1111'});
@@ -84,25 +81,23 @@ suite('SIM picker', function() {
 
     test('header should not contain phone number when getter not provided',
          function() {
-      var localizeSpy = this.sinon.spy(MockMozL10n, 'localize');
       subject.getOrPick(0, null, function() {});
-      sinon.assert.calledWith(localizeSpy,
-                              header,
-                              'sim-picker-select-sim');
+      assert.equal(header.getAttribute('data-l10n-id'),
+                   'sim-picker-select-sim');
     });
 
     test('show the menu twice with different args', function() {
-      var localizeSpy = this.sinon.spy(MockMozL10n, 'localize');
+      var setAttributesSpy = this.sinon.spy(MockMozL10n, 'setAttributes');
 
       subject.getOrPick(0, '1111', function() {});
-      sinon.assert.calledWith(localizeSpy,
+      sinon.assert.calledWith(setAttributesSpy,
                               header,
                               'sim-picker-dial-via-with-number',
                               {phoneNumber: '1111'});
       assert.equal(menu.children.length, 3);
 
       subject.getOrPick(0, '2222', function() {});
-      sinon.assert.calledWith(localizeSpy,
+      sinon.assert.calledWith(setAttributesSpy,
                               header,
                               'sim-picker-dial-via-with-number',
                               {phoneNumber: '2222'});

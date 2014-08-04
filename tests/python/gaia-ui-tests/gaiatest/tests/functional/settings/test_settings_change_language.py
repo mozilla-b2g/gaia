@@ -15,6 +15,7 @@ class TestChangeLanguage(GaiaTestCase):
         language_settings = settings.open_language_settings()
 
         language_settings.select_language(u'Fran\u00E7ais')
+        self.wait_for_condition(lambda m: language_settings.current_language == 'fr')
 
         language_settings.go_back()
 

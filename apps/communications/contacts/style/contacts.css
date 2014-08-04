@@ -31,11 +31,6 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
   padding-left: 0;
 }
 
-#contact-name-title {
-  max-width: 22rem;
-  float: left;
-}
-
 /* Contact detail main section */
 
 .view-contact-profile .view-body {
@@ -130,7 +125,7 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
   white-space: pre-wrap;
 }
 
-#bulkDelete {
+#contactsManagement li:first-child {
   margin-top: 1rem;
 }
 
@@ -144,20 +139,6 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-}
-
-#contact-detail li button.icon-call {
-  padding-left: 0;
-}
-
-#contact-detail li button>div {
-  display: inline-flex;
-  width: calc(100% - 1.5rem);
-  margin-left: 1.5rem;
-}
-
-#contact-detail li button>div b {
-  flex: 1;
 }
 
 #contact-detail .social-actions button {
@@ -189,6 +170,10 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
 
 .block-item > * {
   pointer-events: none;
+}
+
+.view:not(.current) {
+  visibility: hidden;
 }
 
 /* Edit contact section */
@@ -237,28 +222,6 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
 
 #contacts-form-notes .setbox {
   width: calc(100% - 5rem);
-}
-
-/* FB info (non-editable) */
-.view-edit-contact .facebook fieldset legend,
-.view-edit-contact .facebook fieldset input[type="date"] {
-  width: 100%;
-  border-color: #acbee4;
-  color: #8d9abb;
-  background-image: url(fb/dialog.svg);
-}
-
-.view-edit-contact .facebook input {
-  border-color: #acbee4;
-  color: #8d9abb;
-}
-
-.view-edit-contact .facebook span {
-  color: #8d9abb;
-}
-
-.view-edit-contact .facebook input[value=""] {
-  display: none;
 }
 
 hr {
@@ -390,6 +353,7 @@ section[role="region"] > header .icon.icon-settings {
   z-index: 101;
 }
 
+#ice-settings .view-body-inner,
 #view-settings .view-body-inner {
   padding: 0;
 }
@@ -398,6 +362,9 @@ section[role="region"] > header .icon.icon-settings {
 #import-settings .view-body-inner,
 #view-contact-form .view-body-inner {
   background: #f4f4f4;
+}
+#view-contact-form #thumbnail-photo {
+   background-color: transparent;
 }
 
 /* Order switch */
@@ -495,7 +462,7 @@ section[role="region"] > header .icon.icon-settings {
 
 /* Extending BB buttons Icons at left side*/
 #view-settings [data-type="list"] li button.icon {
-  padding: 0 1rem 0 4rem;
+  padding: 1.2rem 1.3rem 1.2rem 4rem;
 }
 
 #view-settings [data-type="list"] li button.icon:before {
@@ -508,7 +475,7 @@ section[role="region"] > header .icon.icon-settings {
 }
 
 #import-settings [data-type="list"] li button.icon {
-  padding: 0 1rem 0 4rem;
+  padding: 1rem 1.3rem 1rem 4rem;
 }
 
 #import-settings [data-type="list"] li button.icon:before {
@@ -550,6 +517,7 @@ section[role="region"] > header .icon.icon-settings {
   background-image: url(/contacts/style/images/bluetooth_icon.png);
 }
 
+#ice-settings li button,
 #view-settings li button {
   line-height: 1.9rem;
 }
@@ -560,6 +528,11 @@ section[role="region"] > header .icon.icon-settings {
   line-height: 1.9rem;
   color: #858585;
   padding: 0;
+}
+
+#ice-settings p.description {
+  font-size: 1.6rem;
+  padding: 1.5rem;
 }
 
 #view-settings button p span {
@@ -627,7 +600,7 @@ section[role="region"] > header .icon.icon-settings {
   border-top: 0.1rem solid rgba(96, 96, 96, 0.5);
   color: #606060;
   font-size: 2rem;
-  font-weight: lighter;
+  font-weight: 300;
   margin: 15rem 2rem 0;
 }
 
@@ -671,13 +644,6 @@ section[role="region"] > header .icon.icon-settings {
 
 .remark-missed {
   color: #CC0000;
-}
-
-.valueselector {
-  position: fixed;
-  top: -100%;
-  left: -100%;
-  opacity: 0;
 }
 
 #sources {

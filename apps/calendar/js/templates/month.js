@@ -8,7 +8,6 @@
                 ' busy-length-' + this.h('length') +
                 ' busy-' + this.h('start') +
                 ' calendar-id-' + this.h('calendarId') +
-                ' calendar-color calendar-display' +
               '">' +
               '&nbsp;' +
             '</span>';
@@ -23,7 +22,7 @@
     },
 
     weekDaysHeaderDay: function() {
-      return '<li data-l10n-id="weekday-' + this.h('day') + '-short">' +
+      return '<li data-l10n-id="' + this.h('l10n') + '">' +
           this.h('dayName') +
         '</li>';
     },
@@ -39,7 +38,7 @@
                   '" data-date="' + this.s('dateString') +
                   '" class="' + this.s('state') + '">' +
           '<span class="day">' + this.h('date') + '</span>' +
-          '<div class="busy-indicator">' + this.s('busy') + '</div>' +
+          '<div class="busy-indicator"></div>' +
         '</li>';
     }
   });

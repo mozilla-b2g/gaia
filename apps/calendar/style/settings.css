@@ -7,28 +7,97 @@ body[data-path^='/week'] #time-views {
   transition: transform 0.5s ease-in-out;
 }
 
+body[data-path^='/settings'] #settings {
+  z-index: 300;
+}
 
-body[data-path^='/advanced-settings'] #time-views,
-body[data-path^='/select-preset'] #time-views,
-body[data-path^='/create-account'] #time-views,
-body[data-path^='/settings'] #time-views {
-  position: relative;
-  transform: translateX(80%);
-  transition: transform 0.5s ease-in-out;
+/*
+Do not show pending candy stripe on settings drawer, since the
+sync icon already spins and having both animations hurts the
+animation performance.
+*/
+body[data-path^='/settings'].pending-operation #progress-indicator {
+  display: none;
 }
 
 #settings {
   font-size: 1.7rem;
   color: white;
-  width: 80%;
+  background-color: transparent;
+  width: 100%;
   z-index: 0;
   visibility: visible;
 }
 
+#settings header {
+  background: transparent;
+}
+
+/*
+The text in the back button is just for accessibility concerns,
+not actually shown since the top header should be transparent.
+*/
+#settings .settings-back {
+  font-size: 0;
+}
+
+#settings .settings-shield {
+  position: absolute;
+  top: 5rem;
+  width: 100%;
+  height: 100%;
+  background-color: black;
+
+  opacity: 0;
+  transition-property: opacity;
+  transition-duration: 0.3s;
+  transition-timing-function: ease;
+  transition-delay: 0s;
+}
+
+.settings-drawer-visible #settings .settings-shield {
+  opacity: .6;
+}
+
+#settings .settings-drawer-container {
+  position: absolute;
+  top: 5rem;
+  width: 100%;
+  min-height: calc(100% - 19rem);
+  max-height: calc(100% - 9.5rem);
+  overflow: hidden;
+}
+
+#settings .settings-drawer {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  color: #5f5f5f;
+  background-color: #f4f4f4;
+
+  transform: translateY(-100%);
+  transition-property: transform;
+  transition-duration: 0.3s;
+  transition-timing-function: ease;
+  transition-delay: 0s;
+}
+
+.settings-drawer-visible #settings .settings-drawer {
+  transform: translateY(0);
+}
+
+#settings .calendars li:active,
+#settings .toolbar-item:active {
+  color: white;
+  background-color: #00caf2;
+}
 
 #settings ol.calendars {
-  height: calc(100% - 9rem);
+  height: calc(100% - 4.5rem);
   overflow-y: scroll;
+  background-color: #eeeeee;
 }
 
 #settings .calendars label > .name {
@@ -46,8 +115,8 @@ body[data-path^='/settings'] #time-views {
 }
 
 #settings .calendars .error label {
-  background: transparent url('icons/accountwarning.png') no-repeat 2rem 0.5rem;
-  padding-left: 6rem;
+  background: transparent url('icons/accountwarning.png') no-repeat 2.3rem center / 2rem auto;
+  padding-left: 4.5rem;
 }
 
 #settings .calendars label {
@@ -55,27 +124,21 @@ body[data-path^='/settings'] #time-views {
   height: 100%;
   width: 100%;
   padding: 0 3rem;
-  border-bottom: 0.1rem solid #333b41;
   -moz-user-select: none;
 }
 
 #settings .calendars li {
+  position: relative;
   width: 100%;
-  height: 3.9rem;
-  line-height: 3.9rem;
+  height: 5rem;
+  line-height: 5rem;
+  border-bottom: 0.1rem solid #dfdfdf;
 }
 
-#settings .calendars .calendar-color {
-  float: left;
-  width: 0.5rem;
-  display: block;
-  height: 100%;
-  background-image: linear-gradient(
-    to bottom,
-    rgba(255,255,255,0.2) 0%,
-    rgba(255,255,255,0) 40%,
-    rgba(0, 0, 0, 0.3) 100%
-  )
+#settings .calendars .icon-calendar-dot:before {
+  font-size: 5rem;
+  line-height: 5rem;
+  margin-left: -1rem;
 }
 
 #settings > menu {
@@ -86,28 +149,75 @@ body[data-path^='/settings'] #time-views {
   background-color: rgba(0, 0, 0, 0.3);
 }
 
-#settings .sync {
-  display: none;
+#settings [role="toolbar"] {
+  display: flex;
+  position: absolute;
+  text-align: center;
+  background: white;
+  color: black;
+  bottom: 0;
+  height: 4.5rem;
+  line-height: 4.5rem;
 }
 
-#settings .sync.active {
-  display: block;
-}
-
-.pending-operation #settings .sync {
-  display: none;
-}
-
-#settings .settings {
-  width: 5.5rem;
-  height: 4rem;
-  background: transparent url('/style/icons/settings.png') no-repeat center / 3rem;
+#settings .toolbar-item {
+  position: relative;
+  display: inline-block;
+  flex: 1;
+  height: 100%;
+  line-height: 4.5rem;
+  text-align: center;
+  color: #858585;
   font-size: 0;
-  display: block;
 }
 
-#settings .settings:active {
-  background-color: #008aaa;
+#settings [role="toolbar"].noaccount .settings {
+  width: 100%;
+}
+
+#settings [role="toolbar"] .settings:after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4.5rem;
+  background: url("icons/settings_icon.png") no-repeat 50% 50% / 3rem auto;
+}
+
+#settings [role="toolbar"] .settings:active:after {
+  background-image: url("icons/settings_icon_press.png");
+}
+
+#settings [role="toolbar"] .sync {
+  border-left: 0.1rem solid #dfdfdf;
+}
+
+#settings [role="toolbar"] .sync:after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4.5rem;
+  background: url("icons/refresh.png") no-repeat 50% 50% / 3rem auto;
+}
+
+#settings [role="toolbar"] .sync:active:after {
+  background-image: url("icons/refresh_press.png");
+}
+
+.pending-operation #settings [role="toolbar"] .sync:after {
+  animation: 0.9s msg-refresh-rotate infinite steps(30);
+}
+
+@keyframes msg-refresh-rotate {
+  from { transform: rotate(1deg); }
+  to   { transform: rotate(360deg); }
+}
+
+#settings [role="toolbar"].noaccount .sync {
+  display: none;
 }
 
 #settings .calendars > li label {
@@ -121,28 +231,17 @@ body[data-path^='/settings'] #time-views {
 #settings .calendars input[type="checkbox"]:checked + span:after {
   width: 2.2rem;
   height: 1.9rem;
-  background: transparent url('/style/icons/checkmark.png') no-repeat center / 1.4rem;
+  background: transparent url('/style/icons/check_mark_on.png') no-repeat center / 1.4rem;
+}
+
+#settings .calendars li:active input[type="checkbox"]:checked + span:after {
+  background: transparent url('/style/icons/check_mark_press.png') no-repeat center / 1.4rem;
 }
 
 #settings .calendars input[type="checkbox"] + span:after {
   left: auto;
-  top: 0.9rem;
+  top: 1.5rem;
   right: 1.3rem;
   background: none;
   margin: 0;
-}
-
-#settings [role="toolbar"] {
-  width: 80% !important;
-}
-
-body[role="application"] [role="toolbar"] li button:active {
-  background-color: #008aaa;
-  background-size: 3rem auto;
-}
-
-body[role="application"] [role="toolbar"] li button.update {
-  background-image: url("icons/update.png");
-  background-repeat: no-repeat;
-  background-position: center center;
 }

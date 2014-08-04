@@ -8,6 +8,9 @@ var MockL10n = {
   ready: function(callback) {
     callback();
   },
+  once: function(callback) {
+    callback();
+  },
   DateTimeFormat: function() {}
 };
 

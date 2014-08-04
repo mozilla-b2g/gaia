@@ -169,7 +169,8 @@ define(function(require) {
                 settings = navigator.mozSettings;
                 lock = settings.createLock();
                 lock.set({
-                  'lockscreen.enabled': false
+                  'lockscreen.enabled': false,
+                  'lockscreen.passcode-lock.enabled': false
                 });
                 this._backToScreenLock();
               } else {
@@ -186,6 +187,13 @@ define(function(require) {
               }
               break;
           }
+
+          // We're appending new elements to DOM so to make sure headers are
+          // properly resized and centered, we emmit a lazyload event.
+          // This will be removed when the gaia-header web component lands.
+          window.dispatchEvent(new CustomEvent('lazyload', {
+            detail: this._panel
+          }));
         }
       },
 

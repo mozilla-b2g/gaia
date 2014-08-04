@@ -6,8 +6,6 @@ requireLib('querystring.js');
 requireElements('calendar/elements/modify_event.html');
 requireElements('calendar/elements/show_event.html');
 
-mocha.globals(['InputParser']);
-
 suiteGroup('Views.ModifyEvent', function() {
   /*jshint -W027 */
   'use strict';

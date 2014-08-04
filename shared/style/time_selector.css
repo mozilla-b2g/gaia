@@ -4,7 +4,7 @@
 
 /* Main dialog setup */
 [role="dialog"][data-type="time-selector"] {
-  background: url(time_selector/images/ui/pattern.png) repeat left top, url(time_selector/images/ui/gradient.png) no-repeat left top / 100% 100%;
+  background: #2d2d2d;
   overflow: hidden;
   position: absolute;
   z-index: 100;
@@ -77,7 +77,7 @@
   right: 0;
   width: calc(100% / 3);
   height: 100%;
-  background: url(time_selector/images/ui/pattern-time.png);
+  background: #4d4d4d;
 }
 
 [role="dialog"][data-type="time-selector"] .format12hrev .picker-bar-background {
@@ -191,22 +191,28 @@
 
 [role="dialog"][data-type="time-selector"]  .picker-unit {
   position: relative;
-  font: 2.2rem/5.6rem Sans-serif;
+  font: 2.2em/5.6rem Sans-serif;
   color: #fff;
   text-align: center;
   vertical-align: middle;
   width: 100%;
   height: 5.6rem;
   pointer-events: none;
+  opacity: 0.6;
+  transform: scale(0.8);
 }
 
+[role="dialog"][data-type="time-selector"]  .picker-unit.selected {
+  transform: scale(1);
+  opacity: 1;
+}
 
 /* Menu & buttons setup */
 [role="dialog"][data-type="time-selector"] menu {
   white-space: nowrap;
   margin: 0;
   padding: 1.5rem;
-  background: #2d2d2d url(time_selector/images/ui/pattern.png) repeat left top;
+  background: #4d4d4d;
   display: block;
   overflow: hidden;
   position: absolute;
@@ -285,4 +291,31 @@ button[disabled]::-moz-selection {
 
 [role="dialog"][data-type="time-selector"] menu button.full {
   width: 100%;
+}
+
+/******************************************************************************
+ * Right-To-Left tweaks
+ */
+
+html[dir="rtl"] [role="dialog"][data-type="time-selector"] .format12h .picker-bar-background {
+  left: 0;
+  right: auto;
+}
+
+html[dir="rtl"] [role="dialog"][data-type="time-selector"] .format12h .value-picker-hour24-wrapper {
+  left: 0;
+  right: auto;
+}
+
+html[dir="rtl"] [role="dialog"][data-type="time-selector"] .format12h .value-picker-hours-wrapper {
+  left: calc(100% / 3);
+}
+
+html[dir="rtl"] [role="dialog"][data-type="time-selector"] .format12h .value-picker-minutes-wrapper {
+  left: auto;
+  right: 0;
+}
+
+html[dir="rtl"] [role="dialog"][data-type="time-selector"] .format12h .value-indicator > .value-indicator-colon {
+  left: calc(100% / 3);
 }

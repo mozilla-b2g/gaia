@@ -3,6 +3,7 @@
 'use strict';
 
 var MockSimSettingsHelper = {
+  ALWAYS_ASK_OPTION_VALUE: '-1',
   _getOption: null,
   _defaultCards: {
     outgoingCall: 0,
@@ -30,5 +31,7 @@ var MockSimSettingsHelper = {
   setServiceOnCard: function() { },
   set: function() { },
   on: function() { },
-  setToSettingsDB: function() { }
+  setToSettingsDB: function() { },
+  observe: function() { },
+  unobserve: function() { }
 };

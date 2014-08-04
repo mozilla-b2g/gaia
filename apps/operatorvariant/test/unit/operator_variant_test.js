@@ -1,5 +1,5 @@
 /* global require, requireApp, suite, suiteSetup, suiteTeardown, setup,
-   teardown, test, assert, mocha, OperatorVariantManager
+   teardown, test, assert, OperatorVariantManager
  */
 
 'use strict';
@@ -12,8 +12,6 @@ require('/shared/test/unit/mocks/mock_lazy_loader.js');
 
 requireApp('operatorvariant/js/resources.js');
 requireApp('operatorvariant/js/operator_variant.js');
-
-mocha.globals(['LazyLoader']);
 
 suite(' OperatorVariantManager > ', function() {
   const TEST_NETWORK_MCC = '214';
@@ -33,6 +31,7 @@ suite(' OperatorVariantManager > ', function() {
     }
   };
   const MSG_NAME = 'first-run-with-sim';
+  const FIRST_RUN_SETTING = 'ftu.simPresentOnFirstBoot';
   var message = {
     mcc: '214',
     mnc: '007'
@@ -87,16 +86,27 @@ suite(' OperatorVariantManager > ', function() {
     var eventsDispatched = {};
     var eventsToDispatch = customizationList[TEST_MCC_MNC];
 
+    // Run the initialization with the setting set to true, the expected value
+    // is true
+    window.MockNavigatorSettings.mSettings[FIRST_RUN_SETTING] = TEST_MCC_MNC;
     navigator.mozSetMessageHandler.mTrigger(MSG_NAME, message);
+    assert.isTrue(OperatorVariantManager.simPresentOnFirstBoot,
+                  'The simPresentOnFirstBoot value should be true');
+
     window.addEventListener('customization', function customizer(event) {
       var setting = event.detail.setting;
       var value = event.detail.value;
       // Check that the value is the expected
       assert.equal(value, eventsToDispatch[setting]);
+
+      // Check that we got true as ftu.simPresentOnFirstBoot on the event.
+      assert.isTrue(event.detail.simPresentOnFirstBoot,
+                    'event simPresentOnFirstBoot should be true');
+
       // Check that we have only one event dispatched per setting
       if (eventsDispatched[setting]) {
-        assert.ok(false, 'The settting ' + setting +
-          ' was dispatched several times.');
+        assert.ok(false, 'The setting ' + setting +
+                         ' was dispatched several times.');
         done();
         return;
       }

@@ -10,7 +10,7 @@
   "permissions": {
     "browser":{},
     "systemXHR":{},
-    "settings":{ "access": "readonly" },
+    "settings":{ "access": "readwrite" },
     "geolocation" : {},
     "storage": {},
     "desktop-notification" : {},
@@ -41,20 +41,21 @@
   },
   "default_locale": "en-US",
   "icons": {
-    "60": "/shared/resources/branding/Browser_60.png",
-    "90": "/shared/resources/branding/Browser_90.png",
-    "120": "/shared/resources/branding/Browser_120.png"
+    "84": "/shared/resources/branding/browser_84.png",
+    "126": "/shared/resources/branding/browser_126.png",
+    "142": "/shared/resources/branding/browser_142.png",
+    "189": "/shared/resources/branding/browser_189.png",
+    "284": "/shared/resources/branding/browser_284.png"
   },
   "messages": [
-     { "nfc-manager-tech-discovered": "/index.html" },
-     { "nfc-manager-tech-lost": "/index.html" }
-  ],
+     { "first-run-with-sim": "/index.html" }
+   ],
   "activities": {
     "view": {
       "filters": {
         "type": "url",
         "url": {
-          "required":true, "pattern":"https?:.{1,16384}", "patternFlags":"i"
+          "required":true, "pattern":"(https?:|data:).{1,16384}", "patternFlags":"i"
         }
       }
     },

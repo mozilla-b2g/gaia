@@ -1,5 +1,6 @@
 Keyboards.hi = {
   label: 'Hindi',
+  shortLabel: 'Hi',
   imEngine: 'india',
   menuLabel: 'हिन्दी',
   secondLayout: true,
@@ -99,7 +100,7 @@ Keyboards.hi = {
         { value: '+' }, { value: '(' }, { value: ')' },
         { value: '_', visible: ['email'] }
       ], [
-        { value: 'ALT', ratio: 1.5, keyCode: KeyEvent.DOM_VK_ALT },
+        { value: 'Alt', ratio: 1.5, keyCode: KeyEvent.DOM_VK_ALT },
         { value: '!' }, { value: '\"' }, { value: "'" }, { value: ':' },
         { value: ';' }, { value: '/' }, { value: '?' },
         { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }

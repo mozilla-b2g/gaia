@@ -20,13 +20,22 @@ var Settings = {
 
   _serviceIds: null,
 
+  // we need to remove this when email functionality is ready.
+  supportEmailRecipient: false,
+
+  // We set the default maximum concatenated number of our SMS app to 10
+  // based on:
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=813686#c0
+  maxConcatenatedMessages: 10,
   mmsSizeLimitation: 295 * 1024, // Default mms message size limitation is 295K
   mmsServiceId: null, // Default mms service SIM ID
   smsServiceId: null, // Default sms service SIM ID
 
   init: function settings_init() {
     var keyHandlerSet = {
-      'dom.mms.operatorSizeLimitation': this.initMmsSizeLimitation.bind(this)
+      'dom.mms.operatorSizeLimitation': this.initMmsSizeLimitation.bind(this),
+      'operatorResource.sms.maxConcat':
+        this.initSmsMaxConcatenatedMsg.bind(this)
     };
     var settings = navigator.mozSettings;
     var conns = navigator.mozMobileConnections;
@@ -60,6 +69,13 @@ var Settings = {
 
     for (var key in keyHandlerSet) {
       setHandlerMap(key);
+    }
+  },
+
+  //Set Maximum concatenated number of our SMS
+  initSmsMaxConcatenatedMsg: function initSmsMaxConcatenatedMsg(num) {
+    if (num && !isNaN(num)) {
+      this.maxConcatenatedMessages = num;
     }
   },
 
@@ -162,7 +178,7 @@ var Settings = {
       return '';
     }
 
-    var simName = navigator.mozL10n.get('sim-name', { id: index + 1 });
+    var simName = navigator.mozL10n.get('sim-id-label', { id: index + 1 });
     return simName;
   },
 

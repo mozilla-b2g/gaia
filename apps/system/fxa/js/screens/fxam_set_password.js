@@ -35,7 +35,7 @@ var FxaModuleSetPassword = (function() {
   }
 
   function _showRegistering() {
-    FxaModuleOverlay.show(_('fxa-registering'));
+    FxaModuleOverlay.show(_('fxa-connecting'));
   }
 
   function _hideRegistering() {
@@ -63,9 +63,9 @@ var FxaModuleSetPassword = (function() {
       _ = navigator.mozL10n.get;
       // Cache DOM elements
       this.importElements(
-        'fxa-user-set-email',
         'fxa-pw-set-input',
-        'fxa-show-pw-set'
+        'fxa-show-pw-set',
+        'fxa-hello-user'
       );
       // Add Listeners
       this.fxaPwSetInput.addEventListener(
@@ -85,7 +85,13 @@ var FxaModuleSetPassword = (function() {
     options = options || {};
 
     this.email = options.email;
-    this.fxaUserSetEmail.textContent = options.email;
+
+    var helloUserText = _('fxa-hello-user');
+    helloUserText = helloUserText.replace(
+      '{{email}}',
+      '<a id="fxa-user-set-email">' + this.email + '</a>'
+    );
+    this.fxaHelloUser.innerHTML = helloUserText;
 
     _cleanForm(
       this.fxaPwSetInput,

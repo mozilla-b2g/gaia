@@ -22,7 +22,6 @@ class TestCameraFlashModes(GaiaTestCase):
 
         # Toggle flash mode to "on"
         self.camera.tap_toggle_flash_button()
-        self.camera.wait_for_flash_enabled()
         self.assertEqual(self.camera.current_flash_mode, 'on')
 
         # Take a photo
@@ -37,7 +36,6 @@ class TestCameraFlashModes(GaiaTestCase):
 
         # Toggle flash mode to "off"
         self.camera.tap_toggle_flash_button()
-        self.camera.wait_for_flash_disabled()
         self.assertEqual(self.camera.current_flash_mode, 'off')
 
         # Take a photo

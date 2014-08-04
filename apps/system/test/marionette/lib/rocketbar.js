@@ -25,6 +25,8 @@ Rocketbar.clientOptions = {
     'dom.w3c_touch_events.enabled': 1
   },
   settings: {
+    'homescreen.manifestURL':
+      'app://verticalhome.gaiamobile.org/manifest.webapp',
     'ftu.manifestURL': null,
     'keyboard.ftu.enabled': false,
     'lockscreen.enabled': false,
@@ -40,7 +42,9 @@ Rocketbar.prototype = {
     title: '#rocketbar-title',
     input: '#rocketbar-input',
     cancel: '#rocketbar-cancel',
-    backdrop: '#rocketbar-backdrop'
+    clear: '#rocketbar-clear',
+    backdrop: '#rocketbar-backdrop',
+    results: '#rocketbar-results'
   },
 
   /**
@@ -77,13 +81,30 @@ Rocketbar.prototype = {
     input.clear();
     this.client.waitFor(input.displayed.bind(input));
     input.sendKeys(text);
+
+    if (!text.length) {
+      this.client.executeScript(function() {
+        window.wrappedJSObject.rocketbar.handleInput();
+      });
+    }
+  },
+
+  /**
+   * Switches to a search browser frame.
+   * The URL of a search provider will generally contain '{searchTerms}', so
+   * we replace that with the search text.
+   */
+  switchToSearchFrame: function(url, text) {
+    url = url.replace('{searchTerms}', '');
+    return this.switchToBrowserFrame(url);
   },
 
   /**
    * Switch to a browser window frame which matches the given URL.
    */
   switchToBrowserFrame: function(url) {
-    var browserFrame = this.client.findElement('iframe[src="' + url + '"]');
+    url = url.replace(/\s+/g, '%20');
+    var browserFrame = this.client.findElement('iframe[src*="' + url + '"]');
     this.client.switchToFrame(browserFrame);
   },
 
@@ -118,6 +139,10 @@ Rocketbar.prototype = {
     return this.client.findElement(this.selectors.rocketbar);
   },
 
+  get results() {
+    return this.client.findElement(this.selectors.results);
+  },
+
   get screen() {
     return this.client.findElement(this.selectors.screen);
   },
@@ -132,6 +157,10 @@ Rocketbar.prototype = {
 
   get cancel() {
     return this.client.findElement(this.selectors.cancel);
+  },
+
+  get clear() {
+    return this.client.findElement(this.selectors.clear);
   },
 
   get backdrop() {

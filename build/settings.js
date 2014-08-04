@@ -32,23 +32,48 @@ function setWallpaper(settings, config) {
   settings['wallpaper.image'] = utils.getFileAsDataURI(wallpaper);
 }
 
-function setRingtone(settings, config) {
-  // Grab ringer_classic_courier.opus and convert it into a base64 string
-  let ringtone_name = 'shared/resources/media/ringtones/' +
-    'ringer_classic_courier.opus';
-  let ringtone = utils.resolve(ringtone_name,
+function setTone(settings, config, settingsKey, dir, name) {
+  let tone = utils.resolve(dir + name, config.GAIA_DIR);
+
+  settings[settingsKey] = utils.getFileAsDataURI(tone);
+  settings[settingsKey + '.name'] = {l10nID: name.replace(/\.\w+$/, '')};
+  settings[settingsKey + '.id'] = settings[settingsKey + '.default.id'] =
+    'builtin:' + name.replace(/\.\w+$/, '');
+}
+
+function setMediatone(settings, config) {
+  // Grab ac_classic_clock_alarm.opus and convert it into a base64 string
+  let mediatone_name = 'shared/resources/media/notifications/' +
+    'notifier_bop.opus';
+  let mediatone = utils.resolve(mediatone_name,
     config.GAIA_DIR);
 
-  settings['dialer.ringtone'] = utils.getFileAsDataURI(ringtone);
+  settings['media.ringtone'] = utils.getFileAsDataURI(mediatone);
+}
+
+function setAlarmtone(settings, config) {
+  // Grab ac_classic_clock_alarm.opus and convert it into a base64 string
+  let alarmtone_name = 'shared/resources/media/alarms/' +
+    'ac_classic_clock_alarm.opus';
+  let alarmtone = utils.resolve(alarmtone_name,
+    config.GAIA_DIR);
+
+  settings['alarm.ringtone'] = utils.getFileAsDataURI(alarmtone);
+}
+
+function setRingtone(settings, config) {
+  // Grab ringer_firefox.opus and convert it into a base64 string
+  let ringtone_dir = 'shared/resources/media/ringtones/';
+  let ringtone_name = 'ringer_firefox.opus';
+  setTone(settings, config, 'dialer.ringtone', ringtone_dir, ringtone_name);
 }
 
 function setNotification(settings, config) {
-  // Grab notifier_bell.opus and convert it into a base64 string
-  let notification_name = 'shared/resources/media/notifications/' +
-    'notifier_bell.opus';
-  let notification = utils.resolve(notification_name,
-    config.GAIA_DIR);
-  settings['notification.ringtone'] = utils.getFileAsDataURI(notification);
+  // Grab notifier_firefox.opus and convert it into a base64 string
+  let notification_dir = 'shared/resources/media/notifications/';
+  let notification_name = 'notifier_firefox.opus';
+  setTone(settings, config, 'notification.ringtone', notification_dir,
+          notification_name);
 }
 
 /* Setup the default keyboard layouts according to the current language */
@@ -95,10 +120,10 @@ function setDefaultKeyboardLayouts(lang, settings, config) {
   settings['keyboard.default-layouts'] = keyboardSettings;
 }
 
-function overrideSettings(settings, config) {
+function deviceTypeSettings(settings, config) {
   // See if any override file exists and eventually override settings
-  let override = utils.resolve(config.SETTINGS_PATH,
-    config.GAIA_DIR);
+  let override = utils.getFile(config.GAIA_DIR,
+                  'build', 'config', config.GAIA_DEVICE_TYPE, 'settings.json');
   if (override.exists()) {
     let content = utils.getJSON(override);
     for (let key in content) {
@@ -107,9 +132,60 @@ function overrideSettings(settings, config) {
   }
 }
 
+function overrideRingtoneSettings(content, key) {
+  // Override ringtone if ringtone, ringtone name, and ringtone ID properties
+  // are available.
+  if (content[key] && content[key + '.name'] && content[key + '.id']) {
+    content[key + '.default.id'] = content[key + '.id'];
+  } else if (content[key] || content[key + '.name'] || content[key + '.id']) {
+    delete content[key];
+    delete content[key + '.name'];
+    delete content[key + '.id'];
+    delete content[key + '.default.id'];
+    throw new Error('ringtone not overridden because ' + key + ', ' +
+                    key + '.name, or ' + key + '.id not found in custom ' +
+                    '\'settings.json\'. All properties must be set.');
+  }
+}
+
+function overrideSettings(settings, config) {
+  // See if any override file exists and eventually override settings
+  let override = utils.resolve(config.SETTINGS_PATH,
+    config.GAIA_DIR);
+  if (override.exists()) {
+    let content = utils.getJSON(override);
+
+    overrideRingtoneSettings(content, 'dialer.ringtone');
+    overrideRingtoneSettings(content, 'notification.ringtone');
+
+    for (let key in content) {
+      settings[key] = content[key];
+    }
+  }
+}
+
+function setHomescreenURL(settings, config) {
+  // 'homescreen' as default value of homescreen.appName
+  let appName = 'verticalhome';
+
+  if (typeof(settings['homescreen.appName']) !== 'undefined') {
+    appName = settings['homescreen.appName'];
+
+    let homescreenExists = utils.existsInAppDirs(config.GAIA_APPDIRS, appName);
+
+    if (!homescreenExists) {
+      throw new Error('homescreen APP not found: ' + appName);
+    }
+    // no longer to use this settings so remove it.
+    delete settings['homescreen.appName'];
+  }
+  settings['homescreen.manifestURL'] = utils.gaiaManifestURL(appName,
+    config.GAIA_SCHEME, config.GAIA_DOMAIN, config.GAIA_PORT);
+}
+
 function writeSettings(settings, config) {
   // Finally write the settings file
-  let settingsFile = utils.getFile(config.PROFILE_DIR, 'settings.json');
+  let settingsFile = utils.getFile(config.STAGE_DIR, 'settings_stage.json');
   let content = JSON.stringify(settings);
   utils.writeContent(settingsFile, content + '\n');
 }
@@ -123,7 +199,6 @@ function execute(config) {
   }
 
   var settings = utils.getJSON(settingsFile);
-
   if (config.TARGET_BUILD_VARIANT != 'user') {
     // We want the console to be disabled for device builds using the user variant.
     settings['debug.console.enabled'] = true;
@@ -133,13 +208,9 @@ function execute(config) {
     settings['developer.menu.enabled'] = true;
   }
 
-  // Set the homescreen URL
-  settings['homescreen.manifestURL'] = utils.gaiaManifestURL('homescreen',
-    config.GAIA_SCHEME, config.GAIA_DOMAIN, config.GAIA_PORT);
-
   // Set the ftu manifest URL
   if (config.NOFTU === '0') {
-    settings['ftu.manifestURL'] = utils.gaiaManifestURL('communications',
+    settings['ftu.manifestURL'] = utils.gaiaManifestURL('ftu',
       config.GAIA_SCHEME, config.GAIA_DOMAIN, config.GAIA_PORT);
   }
 
@@ -153,6 +224,7 @@ function execute(config) {
   if (config.HAIDA) {
     settings['rocketbar.enabled'] = true;
     settings['edgesgesture.enabled'] = true;
+    settings['in-app-sheet.enabled'] = true;
   }
 
   settings['debugger.remote-mode'] = config.REMOTE_DEBUGGER ? 'adb-only'
@@ -177,19 +249,26 @@ function execute(config) {
 
   setDefaultKeyboardLayouts(config.GAIA_DEFAULT_LOCALE, settings, config);
 
-  // Ensure not quitting xpcshell before all asynchronous code is done
-  utils.processEvents(function(){return {wait : false}});
   var queue = utils.Q.defer();
   queue.resolve();
 
   var result = queue.promise.then(function() {
     setWallpaper(settings, config);
   }).then(function() {
+    setMediatone(settings, config);
+  }).then(function() {
+    setAlarmtone(settings, config);
+  }).then(function() {
     setRingtone(settings, config);
   }).then(function() {
     setNotification(settings, config);
   }).then(function() {
+    deviceTypeSettings(settings, config);
+  }).then(function() {
     overrideSettings(settings, config);
+  }).then(function() {
+    // Set the homescreen URL
+    setHomescreenURL(settings, config);
   }).then(function() {
     writeSettings(settings, config);
     return settings;
@@ -202,8 +281,13 @@ function execute(config) {
 }
 exports.execute = execute;
 exports.setWallpaper = setWallpaper;
+exports.setMediatone = setMediatone;
+exports.setAlarmtone = setAlarmtone;
 exports.setRingtone = setRingtone;
 exports.setNotification = setNotification;
+exports.deviceTypeSettings = deviceTypeSettings;
 exports.overrideSettings = overrideSettings;
 exports.writeSettings = writeSettings;
 exports.setDefaultKeyboardLayouts = setDefaultKeyboardLayouts;
+exports.setHomescreenURL = setHomescreenURL;
+

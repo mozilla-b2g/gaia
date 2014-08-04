@@ -1,11 +1,10 @@
 suite('lib/picture-sizes/format-picture-sizes', function() {
   /*jshint maxlen:false*/
-  /*global req*/
   'use strict';
 
   suiteSetup(function(done) {
     var self = this;
-    req(['lib/format-picture-sizes'], function(formatPictureSizes) {
+    requirejs(['lib/format-picture-sizes'], function(formatPictureSizes) {
       self.formatPictureSizes = formatPictureSizes;
       done();
     });

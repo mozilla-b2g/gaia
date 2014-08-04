@@ -6,7 +6,7 @@
 var gDeviceList = null;
 
 // handle Bluetooth settings
-navigator.mozL10n.ready(function deviceList() {
+navigator.mozL10n.once(function deviceList() {
   var _ = navigator.mozL10n.get;
   var settings = window.navigator.mozSettings;
   var bluetooth = window.navigator.mozBluetooth;
@@ -32,8 +32,6 @@ navigator.mozL10n.ready(function deviceList() {
     var searchingItem = document.getElementById('bluetooth-searching');
     var exitButton = document.getElementById('cancel-activity');
 
-    var pairingMode = 'active';
-    var userCanceledPairing = false;
     var pairingAddress = null;
     var connectingAddress = null;
     var connectedAddress = null;
@@ -242,7 +240,6 @@ navigator.mozL10n.ready(function deviceList() {
         progress.classList.remove('hidden');
 
         var req = defaultAdapter.pair(device.address);
-        pairingMode = 'active';
         pairingAddress = device.address;
         var msg = 'pairing with address = ' + pairingAddress;
         debug(msg);
@@ -281,19 +278,16 @@ navigator.mozL10n.ready(function deviceList() {
           readyToSendFile(device);
         }
       } else {
-        // display failure only when active request
-        if (pairingMode === 'active' && !userCanceledPairing) {
-          // show pair process fail.
-          var msg = _('error-pair-title');
-          if (errorMessage === 'Repeated Attempts') {
-            msg = msg + '\n' + _('error-pair-toofast');
-          } else if (errorMessage === 'Authentication Failed') {
-            msg = msg + '\n' + _('error-pair-pincode');
-          }
-          debug(msg);
-          window.alert(msg);
+        // show pair process fail.
+        var msg = _('error-pair-title');
+        if (errorMessage === 'Repeated Attempts') {
+          msg = msg + '\n' + _('error-pair-toofast');
+        } else if (errorMessage === 'Authentication Failed') {
+          msg = msg + '\n' + _('error-pair-pincode');
         }
-        userCanceledPairing = false;
+        debug(msg);
+        window.alert(msg);
+
         // rollback device status
         if (openList.index[workingAddress]) {
           var small = openList.index[workingAddress][1].querySelector('small');

@@ -1,5 +1,8 @@
 {
   "layout"  : {
+    "af": [
+        {"layoutId": "en", "app": ["apps", "keyboard"]}
+    ],
     "ar": [
         {"layoutId": "ar", "app": ["apps", "keyboard"]},
         {"layoutId": "en", "app": ["apps", "keyboard"]}
@@ -24,11 +27,17 @@
     "cy": [
         {"layoutId": "en", "app": ["apps", "keyboard"]}
     ],
+    "da": [
+        {"layoutId": "da", "app": ["apps", "keyboard"]}
+    ],
     "de": [
         {"layoutId": "de", "app": ["apps", "keyboard"]}
     ],
     "el": [
         {"layoutId": "el", "app": ["apps", "keyboard"]},
+        {"layoutId": "en", "app": ["apps", "keyboard"]}
+    ],
+    "en-GB": [
         {"layoutId": "en", "app": ["apps", "keyboard"]}
     ],
     "en-US": [
@@ -102,8 +111,17 @@
     "lij": [
         {"layoutId": "en", "app": ["apps", "keyboard"]}
     ],
+    "mk": [
+        {"layoutId": "mk", "app": ["apps", "keyboard"]}
+    ],
     "ml": [
         {"layoutId": "en", "app": ["apps", "keyboard"]}
+    ],
+    "mr": [
+        {"layoutId": "en", "app": ["apps", "keyboard"]}
+    ],
+    "my": [
+        {"layoutId": "my", "app": ["apps", "keyboard"]}
     ],
     "nb": [
         {"layoutId": "nb", "app": ["apps", "keyboard"]}
@@ -123,6 +141,12 @@
     "pt-BR": [
         {"layoutId": "pt-BR", "app": ["apps", "keyboard"]}
     ],
+    "qps-ploc": [
+        {"layoutId": "en", "app": ["apps", "keyboard"]}
+    ],
+    "qps-plocm": [
+        {"layoutId": "en", "app": ["apps", "keyboard"]}
+    ],
     "ro": [
         {"layoutId": "ro", "app": ["apps", "keyboard"]}
     ],
@@ -134,6 +158,9 @@
         {"layoutId": "sk", "app": ["apps", "keyboard"]}
     ],
     "sl": [
+        {"layoutId": "en", "app": ["apps", "keyboard"]}
+    ],
+    "son": [
         {"layoutId": "en", "app": ["apps", "keyboard"]}
     ],
     "sq": [
@@ -178,11 +205,8 @@
         {"layoutId": "zh-Hant-Zhuyin", "app": ["apps", "keyboard"]},
         {"layoutId": "en", "app": ["apps", "keyboard"]}
     ],
-    "mk": [
-        {"layoutId": "mk", "app": ["apps", "keyboard"]}
-    ],
-    "my": [
-        {"layoutId": "my", "app": ["apps", "keyboard"]}
+    "zu": [
+        {"layoutId": "en", "app": ["apps", "keyboard"]}
     ]
   },
   "langIndependentLayouts": [

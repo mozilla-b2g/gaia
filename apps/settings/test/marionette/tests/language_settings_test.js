@@ -1,4 +1,3 @@
-/* global require, marionette, test, setup */
 'use strict';
 
 var Settings = require('../app/app'),

@@ -1,5 +1,6 @@
-/* globals ActivityHandler, ConfirmDialog, MockContactAllFields, MocksHelper,
-    MockMozL10n */
+/* globals Contacts, ActivityHandler, ConfirmDialog,
+           MockContactAllFields, MocksHelper, MockMozL10n
+ */
 
 'use strict';
 
@@ -10,7 +11,7 @@ requireApp('communications/contacts/js/activities.js');
 requireApp('communications/contacts/test/unit/mock_l10n.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
-requireApp('communications/contacts/test/unit/mock_value_selector.js');
+requireApp('communications/contacts/test/unit/mock_action_menu.js');
 requireApp('communications/dialer/test/unit/mock_confirm_dialog.js');
 
 if (!window._) {
@@ -31,6 +32,8 @@ suite('Test Activities', function() {
   var realMozL10n,
       real_,
       realImport;
+
+  mocksHelperForActivities.attachTestHelpers();
 
   suiteSetup(function() {
     realMozL10n = navigator.mozL10n;
@@ -54,14 +57,12 @@ suite('Test Activities', function() {
     window.utils.importFromVcard = function(file, callback) {
       callback(this.importedCount, this.importedID);
     };
-    mocksHelperForActivities.suiteSetup();
   });
+
   suiteTeardown(function() {
     navigator.mozL10n = realMozL10n;
     window._ = real_;
     window.utils.importFromVcard = realImport;
-    mocksHelperForActivities.suiteTeardown();
-    window.utils.misc.toMozContact.restore();
   });
 
   suite('Activity launching', function() {
@@ -70,6 +71,8 @@ suite('Test Activities', function() {
       ActivityHandler._launchedAsInlineActivity = false;
       window.utils.importedID = null;
       document.location.hash = '';
+
+      this.sinon.spy(Contacts, 'checkCancelableActivity');
     });
 
     test('New contact', function() {
@@ -120,7 +123,7 @@ suite('Test Activities', function() {
       assert.equal(ActivityHandler._currentActivity, activity);
     });
 
-    test('Import one contact from vcard (open details)', function() {
+    test('Import one contact', function() {
       var activity = {
         source: {
           name: 'import',
@@ -133,11 +136,13 @@ suite('Test Activities', function() {
       window.utils.importedID = '1';
       ActivityHandler.handle(activity);
       assert.equal(ActivityHandler._currentActivity, activity);
-      assert.include(document.location.hash, 'view-contact-details');
-      assert.include(document.location.hash, 'id=1');
+      assert.include(document.location.hash, 'view-contact-details',
+        'showing contact details screen');
+      assert.include(document.location.hash, 'id=1',
+        'with the proper contact id');
     });
 
-    test('Import vcard to open list (multiple contacts)', function() {
+    test('Import multiple contacts', function() {
       var activity = {
         source: {
           name: 'import',
@@ -148,9 +153,14 @@ suite('Test Activities', function() {
       };
       window.utils.importedCount = 2;
       ActivityHandler.handle(activity);
-      assert.equal(ActivityHandler._currentActivity, activity);
-      assert.include(document.location.hash, 'view-contact-list');
-      assert.equal(document.location.hash.indexOf('id'), -1);
+      assert.equal(ActivityHandler._currentActivity, activity,
+        'handling as an activity');
+      assert.include(document.location.hash, 'view-contact-list',
+        'showing list view screen');
+      assert.equal(document.location.hash.indexOf('id'), -1,
+        'no contact id as parameter');
+      assert.isTrue(Contacts.checkCancelableActivity.called,
+        'checks for activity UI specifics');
     });
   });
 
@@ -191,7 +201,7 @@ suite('Test Activities', function() {
       assert.equal(ConfirmDialog.text, window._('no_contact_phones'));
     });
 
-     test('webcontacts/tel, 1 result', function() {
+    test('webcontacts/tel, 1 result', function() {
       activity.source.data.type = 'webcontacts/tel';
       ActivityHandler._currentActivity = activity;
       // We want to test only with one phone, so erase the last one
@@ -214,7 +224,7 @@ suite('Test Activities', function() {
       }
     });
 
-   test('webcontacts/tel, many results', function() {
+    test('webcontacts/tel, many results', function() {
       activity.source.data.type = 'webcontacts/tel';
       ActivityHandler._currentActivity = activity;
       // we need to create a object from data to compare prototypes
@@ -230,9 +240,11 @@ suite('Test Activities', function() {
       // As is filtered, we only retrieve one phone number
       assert.equal(result.tel.length, 1);
 
-      // As the mock of value selector is giving us the first option
+      // As the mock of action menu is giving us the first option
       // we ensure that this option is the one filtered as well.
       assert.equal(newContact.tel[0].value, result.tel[0].value);
+      // Restore the function
+      window.utils.misc.toMozContact.restore();
     });
 
     test('webcontacts/contact, 0 results', function() {
@@ -248,6 +260,7 @@ suite('Test Activities', function() {
     test('webcontacts/contact, 1 result', function() {
       activity.source.data.type = 'webcontacts/contact';
       ActivityHandler._currentActivity = activity;
+      contact.tel.pop();
       ActivityHandler.dataPickHandler(contact);
       assert.isFalse(ConfirmDialog.showing);
       assert.equal(result.number, contact.tel[0].value);
@@ -260,6 +273,18 @@ suite('Test Activities', function() {
       assert.isFalse(ConfirmDialog.showing);
       // Mock returns always the first option from the select
       assert.equal(result.number, contact.tel[0].value);
+    });
+
+    test('webcontacts/contact, returning a Contact', function() {
+      activity.source.data.type = 'webcontacts/contact';
+      activity.source.data.fullContact = true;
+      ActivityHandler._currentActivity = activity;
+      contact.tel.pop();
+      ActivityHandler.dataPickHandler(contact);
+      assert.isFalse(ConfirmDialog.showing);
+      assert.deepEqual(result.tel, contact.tel);
+      assert.deepEqual(result.email, contact.email);
+      assert.equal(result.id, contact.id);
     });
 
     test('webcontacts/email, 0 results', function() {
@@ -287,6 +312,83 @@ suite('Test Activities', function() {
       assert.isFalse(ConfirmDialog.showing);
       // Mock returns always the first option from the select
       assert.equal(result.email, contact.email[0].value);
+    });
+
+    test('webcontacts/select, 0 results', function() {
+      activity.source.data.type = 'webcontacts/select';
+      activity.source.data.contactProperties = ['tel', 'email'];
+      ActivityHandler._currentActivity = activity;
+      contact.tel = [];
+      contact.email = [];
+      ActivityHandler.dataPickHandler(contact);
+      assert.isTrue(ConfirmDialog.showing);
+      assert.isNull(ConfirmDialog.title);
+      assert.equal(ConfirmDialog.text, window._('no_contact_data'));
+    });
+
+    test('webcontacts/select, 1 results(tel)', function() {
+      activity.source.data.type = 'webcontacts/select';
+      activity.source.data.contactProperties = ['tel', 'email'];
+      ActivityHandler._currentActivity = activity;
+      contact.tel.pop();
+      contact.email = [];
+      var newContact = Object.create(contact);
+      sinon.stub(window.utils.misc, 'toMozContact',
+        function() {return newContact;});
+      ActivityHandler.dataPickHandler(newContact);
+      contact = window.utils.misc.toMozContact(contact);
+      assert.isFalse(ConfirmDialog.showing);
+      assert.equal(JSON.stringify(result.select),
+                   JSON.stringify(contact.tel));
+      assert.equal(JSON.stringify(result.contact),
+                   JSON.stringify(contact));
+      window.utils.misc.toMozContact.restore();
+    });
+
+    test('webcontacts/select, 1 results(email)', function() {
+      activity.source.data.type = 'webcontacts/select';
+      activity.source.data.contactProperties = ['tel', 'email'];
+      ActivityHandler._currentActivity = activity;
+      contact.tel = [];
+      contact.email.pop();
+      var newContact = Object.create(contact);
+      sinon.stub(window.utils.misc, 'toMozContact',
+        function() {return newContact;});
+      ActivityHandler.dataPickHandler(newContact);
+      contact = window.utils.misc.toMozContact(contact);
+      assert.isFalse(ConfirmDialog.showing);
+      assert.equal(JSON.stringify(result.select),
+                   JSON.stringify(contact.email));
+      assert.equal(JSON.stringify(result.contact),
+                   JSON.stringify(contact));
+      window.utils.misc.toMozContact.restore();
+    });
+
+    test('webcontacts/select, many results(tel)', function() {
+      activity.source.data.type = 'webcontacts/select';
+      activity.source.data.contactProperties = ['tel', 'email'];
+      ActivityHandler._currentActivity = activity;
+      contact.email = [];
+      var newContact = Object.create(contact);
+      sinon.stub(window.utils.misc, 'toMozContact',
+        function() {return newContact;});
+      ActivityHandler.dataPickHandler(newContact);
+      assert.isFalse(ConfirmDialog.showing);
+      assert.equal(newContact.tel[0].value, result.select[0].value);
+      window.utils.misc.toMozContact.restore();
+    });
+
+    test('webcontacts/select, many results(email)', function() {
+      activity.source.data.type = 'webcontacts/select';
+      activity.source.data.contactProperties = ['tel', 'email'];
+      ActivityHandler._currentActivity = activity;
+      contact.tel = [];
+      var newContact = Object.create(contact);
+      sinon.stub(window.utils.misc, 'toMozContact',
+        function() {return newContact;});
+      ActivityHandler.dataPickHandler(newContact);
+      assert.isFalse(ConfirmDialog.showing);
+      assert.equal(newContact.email[0].value, result.select[0].value);
     });
   });
 

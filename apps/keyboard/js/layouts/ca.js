@@ -1,5 +1,6 @@
 Keyboards.ca = {
   label: 'Catalan',
+  shortLabel: 'Ca',
   menuLabel: 'Català',
   imEngine: 'latin',
   types: ['text', 'url', 'email'],
@@ -32,8 +33,7 @@ Keyboards.ca = {
       { value: 'a' }, { value: 's' }, { value: 'd' }, { value: 'f' },
       { value: 'g' } , { value: 'h' }, { value: 'j' }, { value: 'k' },
       { value: 'l' }, { value: 'ç' },
-      { value: "'", keyCode: 39, hidden: ['email', 'url'] },
-      { value: ':', visible: ['url']}, { value: '_', visible: ['email']}
+      { value: "'", keyCode: 39 }
     ], [
       { value: '⇪', ratio: 1.5, keyCode: KeyEvent.DOM_VK_CAPS_LOCK },
       { value: 'z' }, { value: 'x' }, { value: 'c' }, { value: 'v' },
@@ -74,7 +74,7 @@ Keyboards.ca = {
         { value: '+' }, { value: '(' }, { value: ')' },
         { value: '_', visible: ['email'] }
       ], [
-        { value: 'ALT', ratio: 1.5, keyCode: KeyEvent.DOM_VK_ALT },
+        { value: 'Alt', ratio: 1.5, keyCode: KeyEvent.DOM_VK_ALT },
         { value: '!' }, { value: '\"' }, { value: "'" }, { value: ':' },
         { value: ';' }, { value: '/' }, { value: '?' },
         { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }

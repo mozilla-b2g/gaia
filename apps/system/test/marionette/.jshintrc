@@ -1,5 +1,6 @@
 {
   "extends": "../../../../.jshintrc",
+  "node": true,
   "predef": [
     "suite",
     "test",
@@ -8,10 +9,6 @@
     "suiteSetup",
     "suiteTeardown",
     "marionette",
-    "marionetteScriptFinished",
-    "require",
-    "define",
-    "requireApp",
-    "sinon"
+    "marionetteScriptFinished"
   ]
 }

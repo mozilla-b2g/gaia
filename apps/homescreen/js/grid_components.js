@@ -86,14 +86,21 @@ GridItem.prototype = {
     return this.manifest.icons && this.manifest.icons['60'];
   },
 
-  getDescriptor: function gc_getDescriptor() {
-    return {
+  getDescriptor: function gc_getDescriptor(cb) {
+    var descriptor = {
       url: this.url,
       name: this.getName(),
       icon: this.getIcon(),
       iconable: this.iconable,
-      useAsyncPanZoom: this.useAsyncPanZoom
+      useAsyncPanZoom: this.useAsyncPanZoom,
+      type: this.type
     };
+
+    if (typeof cb === 'function') {
+      cb(descriptor);
+    } else {
+      return descriptor;
+    }
   }
 };
 
@@ -117,5 +124,86 @@ Collection.prototype = {
     window.dispatchEvent(new CustomEvent('collectionlaunch', {
       'detail': features
     }));
+  },
+
+  migrateURL: function sc_migratePath(url) {
+    if (url && url.startsWith(document.location.protocol)) {
+      return url.replace('//homescreen.', '//collection.');
+    } else {
+      return url;
+    }
+  },
+
+  // returns a v2.0 vertical homescreen descriptor for a collection
+  getDescriptor: function sc_getDescriptor(cb) {
+    var descriptor = GridItem.prototype.getDescriptor.call(this);
+    descriptor.pinned = this.manifest.apps || [];
+    if (this.id.startsWith(document.location.protocol)) {
+      // The id for preinstalled-SCs is the manifest URL. We have to set the
+      // default icon instead of the updated one (data:image/png;base64,...)
+      descriptor.icon = this.migrateURL(this.id).
+                             replace('/manifest.collection', '/icon.png');
+    }
+
+    asyncStorage.getItem('evme-collectionsettings_' + this.id, function(data) {
+      if (data && data.value) {
+        data = data.value;
+
+        descriptor.name = data.name || descriptor.name || '';
+
+        // category collection
+        if (data.experienceId) {
+          descriptor.categoryId = data.experienceId;
+          descriptor.cName = descriptor.name.toLowerCase();
+        }
+        // query collection
+        else {
+          descriptor.query = data.query;
+        }
+
+        // reset background, vertical uses blobs
+        descriptor.background = {};
+        descriptor.defaultIcon = this.migrateURL(data.defaultIcon);
+        descriptor.webicons = data.extraIconsData || [];
+        descriptor.pinned = data.apps.map(function _each(item) {
+          // cf. WebResult and PinnedHomeIcon classes in collection/objects.js
+
+          if (item.bookmarkURL) {
+            // homescreen bookmark -> PinnedHomeIcon
+            return {
+              identifier: item.appUrl,
+              type: 'homeIcon'
+            };
+          } else if (item.manifestURL) {
+            // homescreen mozapp (+ entry point) -> PinnedHomeIcon
+            var identifier = item.manifestURL;
+            if (item.entry_point) {
+              identifier = identifier + '-' + item.entry_point;
+            }
+
+            return {
+              identifier: identifier,
+              type: 'homeIcon'
+            };
+          } else if (item.staticType === 'cloud') {
+            // E.me web result -> WebResult
+            var data = item;
+            data.emeId = item.id;
+            data.url = data.id = data.appUrl;
+            data.renderer = 'clip';
+
+            return {
+              identifier: data.appUrl,
+              type: 'webResult',
+              data: data
+            };
+          }
+        });
+      }
+      var categoryId = descriptor.categoryId || this.providerId;
+      var id = parseInt(categoryId);
+      descriptor.id = isNaN(id) ? categoryId : id;
+      cb(descriptor);
+    }.bind(this));
   }
 };

@@ -22,7 +22,7 @@
       this);
   }
 
-  AppAuthenticationDialog.prototype.__proto__ = window.BaseUI.prototype;
+  AppAuthenticationDialog.prototype = Object.create(window.BaseUI.prototype);
 
   AppAuthenticationDialog.prototype.CLASS_NAME = 'AuthenticationDialog';
 

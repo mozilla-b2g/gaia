@@ -1,40 +1,47 @@
+#screen.dialog #left-panel,
+#screen.dialog #right-panel,
 .gesture-panel.disabled {
-  pointer-events: none;
+  visibility: hidden;
 }
 
 #left-panel {
   position: absolute;
-  height: calc(100% - 88px);
-  width: 30px;
+  height: calc(100% - 10rem);
+  width: 2rem;
   left: 0;
-  top: 44px;
+  top: 6rem;
 
   border-radius: 0 50% 50% 0;
 
   background-color: red;
   opacity: 0;
 }
-#left-panel.disabled {
-  background-color: gray;
-}
 
 #right-panel {
   position: absolute;
-  height: calc(100% - 88px);
-  width: 30px;
+  height: calc(100% - 10rem);
+  width: 2rem;
   right: 0;
-  top: 44px;
+  top: 6rem;
 
   border-radius: 50% 0 0 50%;
 
   background-color: green;
   opacity: 0;
 }
-#right-panel.disabled {
-  background-color: gray;
-}
 
 #screen.edges-debug .gesture-panel {
   opacity: 0.5;
 }
 
+@media (orientation: landscape) {
+  #left-panel {
+    top: 3rem;
+    height: calc(100% - 4rem);
+  }
+
+  #right-panel {
+    top: 3rem;
+    height: calc(100% - 4rem);
+  }
+}

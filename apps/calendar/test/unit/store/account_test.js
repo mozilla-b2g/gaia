@@ -501,6 +501,11 @@ suite('store/account', function() {
         remote: { name: 'add' }
       });
 
+      cals.add2 = Factory('calendar', {
+        accountId: account._id,
+        remote: { name: 'add2' }
+      });
+
       cals.remove = Factory('calendar', {
         accountId: account._id,
         remote: { name: 'remove' }
@@ -508,7 +513,10 @@ suite('store/account', function() {
 
       cals.update = Factory('calendar', {
         accountId: account._id,
-        remote: { name: 'update' },
+        // this color won't be used since it is not part of the palette (test
+        // case where user is updating the app and already have calendars
+        // stored in the DB)
+        remote: { name: 'update', color: '#00FFCC' },
         error: {}
       });
     });
@@ -542,12 +550,21 @@ suite('store/account', function() {
       remote[cals.update.remote.id] = {
         id: cals.update.remote.id,
         name: 'update!',
-        description: 'new desc'
+        description: 'new desc',
+        // this color will be ignored
+        color: '#F00'
       };
 
       remote[cals.add.remote.id] = {
         id: cals.add.remote.id,
         name: 'new item'
+      };
+
+      remote[cals.add2.remote.id] = {
+        id: cals.add2.remote.id,
+        name: 'add 2 calendar',
+        // this color will be ignored
+        color: '#0FC'
       };
 
       app.provider('Mock').stageFindCalendars(
@@ -576,8 +593,8 @@ suite('store/account', function() {
 
     test('after sync', function() {
       assert.equal(
-        Object.keys(syncResults).length, 2,
-        'should only have two records'
+        Object.keys(syncResults).length, 3,
+        'should only have three records'
       );
 
       // EVENTS
@@ -597,8 +614,17 @@ suite('store/account', function() {
         cals.add.remote.id
       );
 
+      var add2Obj = events.add[1][1].remote;
+
+      assert.equal(
+        add2Obj.id,
+        cals.add2.remote.id
+      );
+
       var remoteUpdate = syncResults[cals.update.remote.id];
       var remoteAdd = syncResults[cals.add.remote.id];
+      var remoteAdd2 = syncResults[cals.add2.remote.id];
+      var palette = Calendar.Store.Calendar.REMOTE_COLORS;
 
       // update
       assert.instanceOf(
@@ -621,6 +647,12 @@ suite('store/account', function() {
         'should update changed name'
       );
 
+      assert.equal(
+        remoteUpdate.color,
+        palette[0],
+        'should ignore color from remote and only use colors from palette'
+      );
+
       // add
       assert.instanceOf(
         remoteAdd,
@@ -633,8 +665,38 @@ suite('store/account', function() {
         'new item',
         'should use remote data when creating new calendar'
       );
+
+      assert.equal(
+        remoteAdd.color,
+        palette[1],
+        'should add new color from palette'
+      );
+
+      // add 2
+      assert.instanceOf(
+        remoteAdd,
+        Calendar.Models.Calendar,
+        'should add new calendar'
+      );
+
+      assert.equal(
+        remoteAdd2.name,
+        'add 2 calendar',
+        'should use remote data when creating new calendar'
+      );
+
+      assert.equal(
+        remoteAdd2.color,
+        palette[2],
+        'should add new color from palette'
+      );
+
+      assert.notEqual(
+        remoteAdd.color,
+        remoteAdd2.color,
+        'each calendar should use a different color'
+      );
     });
 
   });
-
 });

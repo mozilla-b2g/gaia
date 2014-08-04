@@ -28,6 +28,10 @@
       return new MockDOMRequest();
     },
 
+    get: function get(filename) {
+      return new MockDOMRequest();
+    },
+
     addEventListener: function addEventListener(event, listener) {
       this._listeners[event] = listener;
     }

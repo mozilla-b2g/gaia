@@ -15,23 +15,14 @@
   width: 100%;
   padding-bottom: 1rem;
   overflow: hidden;
-  transition: opacity 100ms;
 }
 
 /**
- * disabled
+ * .disabled
  */
 
 .controls.disabled {
   pointer-events: none;
-}
-
-/**
- * faded
- */
-
-.controls.faded {
-  opacity: 0.7;
 }
 
 /** Left and Right
@@ -43,6 +34,7 @@
   flex: 1;
   align-items: center;
   -moz-user-select: none;
+  transition: opacity 100ms;
 }
 
 /** Left
@@ -68,6 +60,20 @@
 
 .controls-right {
   justify-content: flex-start;
+}
+
+/**
+ * Timer
+ */
+
+.controls[data-timer="active"] {
+  pointer-events: none;
+}
+
+.controls[data-timer="active"] .controls-left,
+.controls[data-timer="active"] .controls-right {
+  opacity: 0;
+  transition-duration: 300ms;
 }
 
 /** Controls Button
@@ -152,10 +158,6 @@
 /** Mode Switch
  ---------------------------------------------------------*/
 
-/**
- * 1. Hidden by default
- */
-
 .mode-switch {
   position: relative;
   display: block;
@@ -165,97 +167,98 @@
   border-radius: 3rem;
   padding: 0.2rem;
   margin-left: 1.8rem;
-  overflow: hidden;
-  visibility: hidden; /* 1 */
   box-sizing: content-box;
+  overflow: hidden;
 }
 
 /**
- * switchable=true
+ * switch-disabled,
+ * recording
  */
 
-.controls.switchable .mode-switch {
-  visibility: visible;
-}
-
+.controls.switch-disabled .mode-switch,
 .controls.recording .mode-switch {
-  visibility: hidden;
+  pointer-events: none;
+  opacity: 0;
 }
 
 /** Mode Icon
  ---------------------------------------------------------*/
 
-.mode-switch .mode-icon {
+.mode-switch_bg-icon {
   position: absolute;
-  width: 2.4rem;
-  right: 1rem;
-  line-height: 3.6rem;
-}
-
-.mode-switch .mode-icon:before {
-  content: "\e602";
+  top: 0;
+  width: 4rem;
   font-size: 2.1rem;
+  line-height: 4rem;
+  text-align: center;
   color: #C7C7C7;
 }
 
 /**
- * mode=video
+ * first
  */
 
-.controls.mode-video .mode-switch .mode-icon {
-  left: 1.1rem;
+.mode-switch_bg-icon:nth-of-type(1) {
+  left: 0;
 }
-
-.controls.mode-video .mode-switch .mode-icon:before {
-  content: "\e60f";
-}
-
-/** Selected Mode
- ---------------------------------------------------------*/
 
 /**
- * 1. Disabled `will-change` due to performance
- *    issues on Hamachi. Leaving in place so that
- *    we can re-introduce as a later date to improve
- *    frame-rate on more capable devices.
+ * second
  */
 
-.mode-switch .selected-mode {
+.mode-switch_bg-icon:nth-of-type(2) {
+  right: 0;
+}
+
+/** Mode Switch Handle
+ ---------------------------------------------------------*/
+
+.mode-switch_handle {
   position: relative;
   width: 3.6rem;
   height: 3.6rem;
   border-radius: 50%;
   background: #EEE;
-  /*will-change: transform;*/ /* 1 */
-  transition: transform 140ms;
+  will-change: transform;
 }
 
 /**
- * mode=video
+ * Expanded touch-area
  */
 
-.controls.mode-video .mode-switch .selected-mode {
-  transform: translateX(4rem);
+.mode-switch_handle:after {
+  content: '';
+  position: absolute;
+  top: -10px; bottom: -10px;
+  left: -10px; right: -10px;
 }
 
-/** Selected Mode Icon
+/** Mode Switch Current Icon
  ---------------------------------------------------------*/
 
-.mode-switch .selected-mode-icon:before {
-  content: "\e60f";
-  display: block;
-  text-align: center;
+.mode-switch_current-icon {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
   font-size: 2.1rem;
   line-height: 3.6rem;
+  text-align: center;
+  will-change: opacity;
+}
+
+/** Mode Switch Current Icon (camera)
+ ---------------------------------------------------------*/
+
+.mode-switch_current-icon.icon-camera {
   color: #00CAF2;
 }
 
-/**
- * mode=video
- */
+/** Mode Switch Current Icon (video)
+ ---------------------------------------------------------*/
 
-.controls.mode-video .mode-switch .selected-mode-icon:before {
-  content: "\e602";
+.mode-switch_current-icon.icon-video {
   color: #D92E2E;
 }
 
@@ -288,6 +291,10 @@
   opacity: 0.35;
 }
 
+/**
+ * .mode-video
+ */
+
 .controls.mode-video .outer-circle {
   background: #D92E2E;
 }
@@ -296,17 +303,16 @@
  ---------------------------------------------------------*/
 
 /**
- * 1. Disabled `will-change` due to performance
- *    issues on Hamachi. Leaving in place so that
- *    we can re-introduce as a later date to improve
- *    frame-rate on more capable devices.
+ * 1. bug/1045624: `will-change` seems to be
+ *    impacting border-radius layer-masks
+ *    when element is transformed/transitioned.
  */
 
 .capture-button .inner-circle {
   background-color: white;
-  /*will-change: transform;*/ /* 1 */
   transform: scale(0.76);
   transition: transform 150ms ease-in;
+  /*will-change: transform;*/ /* 1 */
 }
 
 /**
@@ -355,7 +361,6 @@
   line-height: 10.2rem;
   text-align: center;
   color: #81ACB6;
-  content: "\e60f";
 }
 
 /**
@@ -371,15 +376,20 @@
 }
 
 /**
- * mode=video
+ * mode-video
+ *
+ * 1. (bug 1008488): Pixel rounding issues sometimes
+ *    means that this circle looks 'chopped'. Using a
+ *    more precise height fixes this, although
+ *    technically this is a platform issue.
  */
 
 .controls.mode-video .capture-button .center:before {
-  content: '';
+  content: "";
   top: calc(50% - 1rem);
   left: calc(50% - 1rem);
-  width: 2rem;
-  height: 2rem;
+  width: 2.001rem; /* 1 */
+  height: 2.001rem; /* 1 */
   border-radius: 50%;
   background-color: #D92E2E;
   color: white;

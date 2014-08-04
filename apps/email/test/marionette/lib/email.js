@@ -8,7 +8,6 @@ module.exports = Email;
 Email.EMAIL_ORIGIN = 'app://email.gaiamobile.org';
 
 var Selector = {
-  notificationBar: '.card-message-list .msg-list-topbar',
   setupNameInput: '.card-setup-account-info .sup-info-name',
   setupEmailInput: '.card-setup-account-info .sup-info-email',
   setupPasswordInput: '.card-setup-account-info .sup-info-password',
@@ -49,6 +48,7 @@ var Selector = {
   composeBackButton: '.card-compose .cmp-back-btn',
   composeDraftDiscard: '#cmp-draft-discard',
   composeDraftSave: '#cmp-draft-save',
+  composeErrorMessage: '.card-compose .cmp-error-message',
   refreshButton: '.card.center .msg-refresh-btn',
   messageHeaderItem:
   '.msg-messages-container .msg-header-item',
@@ -59,13 +59,16 @@ var Selector = {
   replyMenuReply: '.msg-reply-menu-reply',
   replyMenuForward: '.msg-reply-menu-forward',
   replyMenuAll: '.msg-reply-menu-reply-all',
-  searchButton: '.msg-search-btn',
+  searchTextTease: '.msg-search-text-tease',
   searchCard: '.card[data-mode="search"]',
   folderListButton: '.msg-list-header .msg-folder-list-btn',
-  settingsButton: '.fld-nav-toolbar .fld-nav-settings-btn',
+  folderListCloseButton: '.card-folder-picker .fld-header-back',
+  folderListContents: '.card-folder-picker .fld-acct-scrollinner',
+  settingsButton: '.fld-nav-toolbar',
   settingsDoneButton: '.card-settings-main [data-l10n-id="settings-done"]',
-  addAccountButton: '.tng-accounts-container .tng-account-add',
-  accountListButton: '.fld-folders-header .fld-accounts-btn',
+  addAccountButton: '.card-settings-main .tng-account-add',
+  accountListButton: '.fld-acct-header',
+  accountListContainer: '.fld-accountlist-container',
   settingsMainAccountItems: '.tng-accounts-container .tng-account-item',
   syncIntervalSelect: '.tng-account-check-interval ',
   // Checkboxes are weird: hidden to marionette, but the associated label
@@ -73,6 +76,9 @@ var Selector = {
   notifyEmailCheckbox: '.tng-notify-mail-label',
   accountSettingsBackButton: '.card-settings-account .tng-back-btn',
   localDraftsItem: '.fld-folders-container a[data-type=localdrafts]',
+  outboxItem: '.fld-folders-container a[data-type=outbox]',
+  outboxItemSyncIcon: '.msg-header-syncing-section',
+  msgLastSync: '.msg-last-synced-value',
   toaster: 'section[role="status"]'
 };
 
@@ -81,8 +87,15 @@ Email.prototype = {
    * Send some emails and then receive them.
    *
    * @param {Array} messages list of messages with to, subject, and body.
+   * @param {Number} [messageSyncIndex] the index into the list of messages in
+   * the message list that indicates synchronization is complete. Uses the last
+   * index in messages by default.
    */
-  sendAndReceiveMessages: function(messages) {
+  sendAndReceiveMessages: function(messages, messageSyncIndex) {
+    if (messageSyncIndex === undefined) {
+      messageSyncIndex = messages.length - 1;
+    }
+
     messages.forEach(function(message) {
       this.tapCompose();
       this.typeTo(message.to);
@@ -92,23 +105,12 @@ Email.prototype = {
     }.bind(this));
 
     this.tapRefreshButton();
-    this.waitForNewEmail();
-    this.tapNotificationBar();
+    this.waitForSynchronized(messageSyncIndex);
   },
 
   waitForToaster: function() {
     var toaster = this.client.helper.waitForElement(Selector.toaster);
     this.client.helper.waitForElementToDisappear(toaster);
-  },
-
-  get notificationBar() {
-    return this.client.helper.waitForElement(Selector.notificationBar);
-  },
-
-  tapNotificationBar: function() {
-    var notificationBar = this.notificationBar;
-    notificationBar.click();
-    this.client.helper.waitForElementToDisappear(notificationBar);
   },
 
   get msgDownBtn() {
@@ -143,6 +145,18 @@ Email.prototype = {
       this.client.helper.waitForElement(Selector.composeEmailContainer);
     var text = container.text();
     return text;
+  },
+
+  getComposeErrorMessage: function() {
+    return this.client.helper
+      .waitForElement(Selector.composeErrorMessage)
+      .text();
+  },
+
+  getLastSyncText: function() {
+    return this.client.helper
+      .waitForElement(Selector.msgLastSync)
+      .text();
   },
 
   manualSetupImapEmail: function(server, finalActionName) {
@@ -202,11 +216,11 @@ Email.prototype = {
     this._tapSelector(Selector.folderListButton);
     this._waitForElementNoTransition(Selector.settingsButton);
     this._waitForTransitionEnd('folder_picker');
+    this.client.helper.waitForElement(Selector.folderListContents);
   },
 
   tapFolderListCloseButton: function() {
-    this._tapSelector(Selector.folderListButton);
-    this._waitForElementNoTransition(Selector.settingsButton);
+    this._tapSelector(Selector.folderListCloseButton);
     this.waitForMessageList();
   },
 
@@ -214,8 +228,9 @@ Email.prototype = {
     // XXX: Workaround util http://bugzil.la/912873 is fixed.
     // Wait for 500ms to let the element be clickable
     this.client.helper.wait(500);
-    this._waitForElementNoTransition(Selector.accountListButton).tap();
-    this._waitForTransitionEnd('account_picker');
+
+    this.client.helper.waitForElement(Selector.accountListButton).tap();
+    this.client.helper.waitForElement(Selector.accountListContainer);
   },
 
   tapLocalDraftsItem: function() {
@@ -226,8 +241,26 @@ Email.prototype = {
     this._waitForTransitionEnd('message_list');
   },
 
+  tapOutboxItem: function() {
+    this._waitForElementNoTransition(Selector.outboxItem).tap();
+    this._waitForTransitionEnd('message_list');
+  },
+
+  getOutboxItemSyncIconForIndex: function(index) {
+    var header = this.getHeaderAtIndex(index);
+    var iconEl = header.findElement(Selector.outboxItemSyncIcon);
+    var className = iconEl.getAttribute('className');
+    if (/-syncing$/.test(className)) {
+      return 'syncing';
+    } else if (/-error$/.test(className)) {
+      return 'error';
+    } else {
+      return '';
+    }
+  },
+
   switchAccount: function(number) {
-    var accountSelector = '.acct-list-container ' +
+    var accountSelector = '.fld-accountlist-container ' +
                           'a:nth-child(' + number + ')';
     this.client.helper
       .waitForElement(accountSelector)
@@ -396,10 +429,27 @@ Email.prototype = {
       .tap();
   },
 
-  tapSearchButton: function() {
+  tapSearchArea: function() {
     this.client.helper
-      .waitForElement(Selector.searchButton)
-      .tap();
+      .waitForElement(Selector.searchTextTease)
+      .sendKeys('a');
+
+
+    var client = this.client;
+    client.waitFor(function() {
+      return client.executeScript(function(selector) {
+        var doc = window.wrappedJSObject.document,
+            selectNode = doc.querySelector(selector);
+
+        // Synthesize an event since focus does not work
+        // through marionette API
+        var event = document.createEvent('Event');
+        event.initEvent('focus', true, true);
+        selectNode.dispatchEvent(event);
+
+        return true;
+      }, [Selector.searchTextTease]);
+    });
 
     this.client.helper
       .waitForElement(Selector.searchCard);
@@ -418,8 +468,8 @@ Email.prototype = {
     this._waitForTransitionEnd('compose');
   },
 
-  waitForNewEmail: function() {
-    this._waitForElementNoTransition(Selector.notificationBar);
+  waitForSynchronized: function(index) {
+    this.getHeaderAtIndex(index);
   },
 
   launch: function() {
@@ -460,6 +510,10 @@ Email.prototype = {
       this._waitForTransitionEnd(cardId);
       return true;
     }.bind(this));
+  },
+
+  getMessageCount: function() {
+    return this.client.findElements(Selector.messageHeaderItem).length;
   },
 
   getEmailBySubject: function(subject) {

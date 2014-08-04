@@ -14,8 +14,16 @@ var FxaModuleSignupSuccess = (function() {
   var Module = Object.create(FxaModule);
   Module.init = function init(options) {
     options = options || {};
-    this.importElements('fxa-summary-email');
-    this.fxaSummaryEmail.textContent = options.email;
+    this.importElements(
+      'fxa-will-send-email'
+    );
+
+    var willSendText = navigator.mozL10n.get('fxa-will-send-email');
+    willSendText = willSendText.replace(
+      '{{email}}',
+      '<strong>' + options.email + '</strong>'
+    );
+    this.fxaWillSendEmail.innerHTML = willSendText;
   };
 
   Module.onNext = function onNext(done) {

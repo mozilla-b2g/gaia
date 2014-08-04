@@ -133,6 +133,7 @@ var BluetoothTransfer = {
     if (NfcHandoverManager.isHandoverInProgress()) {
       // Bypassing confirm dialog while incoming file transfer via NFC Handover
       this.debug('Incoming file via NFC Handover. Bypassing confirm dialog');
+      NfcHandoverManager.transferStarted();
       this.acceptReceive(evt);
       return;
     }
@@ -277,10 +278,15 @@ var BluetoothTransfer = {
     };
   },
 
-  sendFile: function bt_sendFile(mac, blob) {
+  get isSendFileQueueEmpty() {
+    return this._sendingFilesQueue.length === 0;
+  },
+
+  sendFileViaHandover: function bt_sendFileViaHandover(mac, blob) {
     var adapter = Bluetooth.getAdapter();
     if (adapter != null) {
       var sendingFilesSchedule = {
+        viaHandover: true,
         numberOfFiles: 1,
         numSuccessful: 0,
         numUnsuccessful: 0
@@ -335,8 +341,9 @@ var BluetoothTransfer = {
       (evt.received == true) ?
       _('bluetooth-receiving-progress') : _('bluetooth-sending-progress');
     var content =
-      '<img src="style/bluetooth_transfer/images/transfer.png" />' +
-      '<div class="bluetooth-transfer-progress">' + transferMode + '</div>' +
+      '<img src="style/bluetooth_transfer/images/transfer.png" ' +
+      'role="presentation" /><div class="bluetooth-transfer-progress">' +
+      transferMode + '</div>' +
       // XXX: Bug 804533 - [Bluetooth]
       // Need sending/receiving icon for Bluetooth file transfer
       '<progress value="0" max="1"></progress>';
@@ -345,6 +352,7 @@ var BluetoothTransfer = {
     transferTask.id = 'bluetooth-transfer-status';
     transferTask.className = 'notification';
     transferTask.setAttribute('data-id', address);
+    transferTask.setAttribute('role', 'link');
     transferTask.innerHTML = content;
     transferTask.addEventListener('click',
                                   this.onCancelTransferTask.bind(this));
@@ -416,10 +424,6 @@ var BluetoothTransfer = {
 
   onTransferComplete: function bt_onTransferComplete(evt) {
     var transferInfo = evt.detail.transferInfo;
-    if (NfcHandoverManager.isHandoverInProgress()) {
-      // Inform NfcHandoverManager that the transfer completed
-      NfcHandoverManager.transferComplete(transferInfo.success);
-    }
     var _ = navigator.mozL10n.get;
     // Remove transferring progress
     this.removeProgress(transferInfo);
@@ -451,8 +455,19 @@ var BluetoothTransfer = {
       }
     }
 
+    var viaHandover = false;
+    if (this._sendingFilesQueue.length > 0) {
+      viaHandover = this._sendingFilesQueue[0].viaHandover || false;
+    }
+
     // Have a report notification for sending multiple files.
     this.summarizeSentFilesReport(transferInfo);
+
+    // Inform NfcHandoverManager that the transfer completed
+    var details = {received: transferInfo.received,
+                   success: transferInfo.success,
+                   viaHandover: viaHandover};
+    NfcHandoverManager.transferComplete(details);
   },
 
   summarizeSentFilesReport: function bt_summarizeSentFilesReport(transferInfo) {

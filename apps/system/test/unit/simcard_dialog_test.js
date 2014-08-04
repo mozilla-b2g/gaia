@@ -1,10 +1,10 @@
+/* globals MockL10n, MocksHelper, MockSIMSlot, MockSIMSlotManager,
+           SimPinDialog */
 'use strict';
 
-mocha.globals(['SIMSlotManager', 'SimPinSystemDialog', 'SimPinDialog']);
-
-requireApp('system/test/unit/mock_l10n.js');
-requireApp('system/js/mock_simslot.js');
-requireApp('system/js/mock_simslot_manager.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
+requireApp('system//shared/test/unit/mocks/mock_simslot.js');
+requireApp('system//shared/test/unit/mocks/mock_simslot_manager.js');
 
 var mocksForSIMPINDialog = new MocksHelper([
   'SIMSlotManager'
@@ -25,12 +25,12 @@ suite('simcard dialog', function() {
 
   suiteSetup(function() {
     window.navigator.mozL10n = MockL10n;
-    window['SimPinSystemDialog'] = MockSimPinSystemDialog;
+    window.SimPinSystemDialog = MockSimPinSystemDialog;
   });
 
   suiteTeardown(function() {
     window.navigator.mozL10n = realL10n;
-    window['SimPinSystemDialog'] = null;
+    window.SimPinSystemDialog = null;
   });
 
   setup(function(callback) {
@@ -39,7 +39,10 @@ suite('simcard dialog', function() {
     stubById = this.sinon.stub(document, 'getElementById');
     stubById.returns(document.createElement('div'));
     MockSIMSlotManager.mInstances = [new MockSIMSlot(null, 0)];
-    requireApp('system/js/simcard_dialog.js', callback);
+    requireApp('system/js/simcard_dialog.js', function() {
+      SimPinDialog.init();
+      callback();
+    });
   });
 
   teardown(function() {
@@ -80,7 +83,7 @@ suite('simcard dialog', function() {
   });
 
   test('unlockPuk', function() {
-    var stubUnlockCardLock = this.sinon.stub(SimPinDialog, 'unlockCardLock');
+    this.sinon.stub(SimPinDialog, 'unlockCardLock');
     var stubClear = this.sinon.stub(SimPinDialog, 'clear');
     SimPinDialog.pukInput.value = '0000';
     SimPinDialog.newPinInput.value = '1111';
@@ -125,13 +128,13 @@ suite('simcard dialog', function() {
     });
 
     test('showErrorMsg', function() {
-      var stub_ = this.sinon.stub(MockL10n, 'get');
+      var stub_ = this.sinon.stub(MockL10n, 'setAttributes');
       var count = 0;
       stub_.returns(count++);
       SimPinDialog.showErrorMsg(1, 'pin');
-      assert.deepEqual(stub_.getCall(0).args[1], { n: 1 });
-      assert.deepEqual(stub_.getCall(1).args[0], 'pinErrorMsg');
-      assert.deepEqual(stub_.getCall(2).args[0], 'pinLastChanceMsg');
+      assert.deepEqual(stub_.getCall(0).args[2], { n: 1 });
+      assert.deepEqual(stub_.getCall(1).args[1], 'pinErrorMsg');
+      assert.deepEqual(stub_.getCall(2).args[1], 'pinLastChanceMsg');
     });
   });
 

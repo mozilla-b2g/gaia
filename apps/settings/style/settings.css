@@ -10,7 +10,6 @@ html, body {
   height: 100%;
   font-size: 10px;
   overflow: hidden;
-  background-color: #f4f4f4;
 }
 
 
@@ -45,21 +44,28 @@ section[role="region"] {
  */
 section[role="region"] {
   transform: translateX(+100%);
-  transition: transform .4s ease, visibility .4s;
   visibility: hidden;
-  height: 0;
 }
 
 section[role="region"].previous {
   transform: translateX(-100%);
-  height: 100%;
+  visibility: hidden;
 }
 
 section[role="region"].current {
   transform: translateX(0);
   visibility: visible;
+}
+
+/**
+ * Only use the animation when ready
+ */
+body[data-ready="true"] section[role="region"] {
+  transition: transform .4s ease, visibility .4s;
+}
+
+body[data-ready="true"] section[role="region"].current {
   transition: transform .4s ease;
-  height: 100%;
 }
 
 /**
@@ -88,6 +94,18 @@ section[role="region"] > div {
 section[role="region"],
 section[role="region"] > div > ul {
   background-color: #f4f4f4;
+}
+
+/******************************************************************************
+ * Frame section
+ */
+#frame iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
 }
 
 /******************************************************************************
@@ -159,8 +177,12 @@ body[data-filter-by="connectivity"] #root > div [data-category="connectivity"] {
 
 .link-text {
   font-size: 1.4rem;
-  color: #336699;
+  color: #35679A;
   text-decoration: underline;
+}
+
+.link-text:active {
+  background-color: #c1d6e6;
 }
 
 .hint label span {
@@ -283,7 +305,7 @@ section ul.operate-certificate {
   background: url(images/document_bg.png);
 }
 
-#wifi-certificate-files-List li.disabled a {
+.wifi-certificate-files-List li.disabled a {
   opacity: 0.6;
   pointer-events: none;
 }
@@ -370,7 +392,7 @@ section ul.operate-certificate {
   display: none;
 }
 
-#menuItem-callWaiting[data-state="unknown"] .checkbox-label {
+#menuItem-callWaiting[data-state="unknown"] .checkbox-label input ~ span:after {
   display: none;
 }
 
@@ -427,13 +449,13 @@ section ul.operate-certificate {
 
 #wallpaper-header { border: none; }
 
-#wallpaper {
+.wallpaper {
   position: relative;
   overflow: hidden;
   height: 17rem;
 }
 
-#wallpaper-button {
+.wallpaper .wallpaper-button {
   background: url(images/wallpaper_edit.png) no-repeat 25rem 11.5rem / 4.5rem;
   position: absolute;
   border: none;
@@ -443,11 +465,12 @@ section ul.operate-certificate {
   left: 0;
   margin: 0;
 }
-#wallpaper-button:active {
+
+.wallpaper .wallpaper-button:active {
   background-image: url(images/wallpaper_edit_pressed.png);
 }
 
-#wallpaper-preview {
+.wallpaper .wallpaper-preview {
   margin-top: -10rem;
   position: absolute;
   width: 100%;
@@ -491,7 +514,7 @@ ul li > label.range-icons.brightness:before {
   right: auto;
 }
 
-#brightness-manual div {
+li.brightness-manual div {
   position: relative;
   top: calc(50% - 1.5rem);
   left: 5rem;
@@ -500,20 +523,42 @@ ul li > label.range-icons.brightness:before {
 }
 
 ul li > label.range-icons.volume:before {
-  background:
-    url(images/range_icons_volume_min.png) no-repeat 0 50%,
-    url(images/range_icons_volume_max.png) no-repeat 100% 50%;
-  background-size: 3rem;
   left: 1.4rem;
   right: auto;
-  width: calc(100% - 2.1rem);
-  top: calc(50% + .6rem);
+  width: 3rem;
+  top: 4.4rem;
+}
+
+ul li > label.range-icons.volume.media:before {
+  background:
+    url(images/sound_volume_media.png) no-repeat 0 50% / 3rem;
+}
+
+ul li > label.range-icons.volume.notification:before {
+  background:
+    url(images/sound_volume_ringer.png) no-repeat 0 50% / 3rem;
+}
+
+ul li > label.range-icons.volume.alarm:before {
+  background:
+    url(images/sound_volume_alarm.png) no-repeat 0 50% / 3rem;
 }
 
 ul li > label.range-icons.volume input {
-  width: calc(100% - 10.5rem);
-  top: 0.2rem;
-  left: 0.35rem;
+  position: inherit;
+  margin-left: 5.8rem;
+  width: calc(100% - 7.5rem);
+  opacity: 0;
+  transition: opacity .6s ease 0s;
+}
+
+/******************************************************************************
+ * Accessibility
+ */
+#accessibility ul li > label.range-icons.volume input {
+  opacity: 1;
+  margin: 0 auto;
+  width: calc(100% - 3rem);
 }
 
 /******************************************************************************
@@ -654,6 +699,7 @@ ul li > label.range-icons.volume input {
 #os-license {
   width: 100%;
   height: calc(100% - 5rem);
+  border: 0;
 }
 
 
@@ -665,13 +711,13 @@ ul li > label.range-icons.volume input {
   height: auto;
 }
 
-#call-support-numbers, #online-support-text {
+#help-call-support-numbers, #help-online-support-text {
   display: block;
   line-height: 3rem;
   margin-bottom: 2rem;
 }
 
-#call-support-numbers a, #online-support-text a {
+#help-call-support-numbers a, #help-online-support-text a {
   display: block;
 }
 
@@ -689,11 +735,11 @@ ul li > label.range-icons.volume input {
 
 /* Web activity handling */
 .skin-organic section[data-dialog] > header:first-child .icon.icon-back {
-  background-image: url(/shared/style/headers/images/icons/organic/close.svg);
+  background-image: url(/shared/style/headers/images/icons/organic/close.png);
 }
 
 section[data-dialog] > header:first-child .icon.icon-back {
-  background-image: url(/shared/style/headers/images/icons/close.svg);
+  background-image: url(/shared/style/headers/images/icons/close.png);
 }
 
 /******************************************************************************
@@ -703,6 +749,7 @@ section[data-dialog] > header:first-child .icon.icon-back {
 .fxa-logo {
   background-image: url('images/fxa_logo.png');
   background-repeat: no-repeat;
+  background-size: 16.4rem;
   margin: 3rem auto 0;
   width: 17rem;
   height: 19.5rem;
@@ -711,13 +758,54 @@ section[data-dialog] > header:first-child .icon.icon-back {
 #fxa-unverified .description {
   background-image: url('images/fxa_envelope.png');
   background-repeat: no-repeat;
+  background-size: 7rem;
   background-position: 0 1.5rem;
   padding-top: 1.5rem;
+}
+
+#fxa-unverified .disabled {
+  color: #ccc;
 }
 
 #fxa-unverified-text {
   padding-top: 0.8rem;
   margin-left: 6rem;
+}
+
+/******************************************************************************
+ * Developer and Developer HUD
+ *
+ * Override default behavior to let checkbox text wrap on multiple lines
+ */
+
+#developer ul li > label > span,
+#developer-hud ul li > label > span {
+  overflow: visible;
+  white-space: normal;
+  min-height: 6rem;
+  height: auto;
+  line-height: 2.3rem;
+  padding: 1.9rem 4rem 1.5rem 3rem;
+}
+
+#developer-hud ul li > label > span.color-preview {
+  padding-left: 5rem;
+}
+
+#developer-hud ul li.hud-separator {
+  border-top: 0.1rem solid #e6e6e3;
+}
+
+/******************************************************************************
+* App Permissions
+*
+* Note: The reason why we need this style is because element.hidden will make
+* the CSS specificity 0,0,1,0 (Yes, it is a pseudo class). And because our BB
+* 's CSS specificity is much higher than this, we have to override it again
+* to make sure it will display as hidden.
+*/
+.clear-bookmarks-app[hidden] {
+  display: none;
 }
 
 /******************************************************************************
@@ -820,7 +908,7 @@ html[dir="rtl"] ul li > label.range-icons.brightness:before {
   right: 1rem;
 }
 
-html[dir="rtl"] #brightness-manual div {
+html[dir="rtl"] .brightness-manual div {
   left: auto;
   right: 5rem;
 }
@@ -844,11 +932,16 @@ html[dir="rtl"] #feedback-sad {
 }
 
 html[dir="rtl"] ul li > label.range-icons.volume:before {
-  background-position: 100% 50%, 0 50%;
+  left: auto;
+  right: 1.4rem;
+  background-position: 100% 50%;
 }
 
 html[dir="rtl"] ul li > label.range-icons.volume input {
-  left: auto;
-  right: 0.35rem;
+  margin-right: 5.8rem;
 }
 
+html[dir="rtl"] #developer-hud ul li > label > span.color-preview {
+  padding-left: 0;
+  padding-right: 5rem;
+}

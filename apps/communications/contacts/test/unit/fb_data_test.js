@@ -8,11 +8,9 @@
 require('/shared/js/lazy_loader.js');
 require('/shared/js/simple_phone_matcher.js');
 require('/shared/js/fb/fb_request.js');
-requireApp('communications/contacts/js/fb/fb_data.js');
+require('/shared/js/contacts/import/facebook/fb_data.js');
 require('/shared/test/unit/mocks/mock_navigator_datastore.js');
 require('/shared/test/unit/mocks/mock_moz_phone_number_service.js');
-
-mocha.globals(['SimplePhoneMatcher', 'TelIndexer', 'Node', 'utils']);
 
 var realDatastore, realPhoneNumberService;
 

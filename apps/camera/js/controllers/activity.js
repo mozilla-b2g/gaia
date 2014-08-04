@@ -7,7 +7,7 @@ define(function(require, exports, module) {
 
 var debug = require('debug')('controller:activity');
 var bytesToPixels = require('lib/bytes-to-pixels');
-var resizeImage = require('lib/resize-image');
+var resizeImageAndSave = require('lib/resize-image-and-save');
 var bindAll = require('lib/bind-all');
 
 /**
@@ -24,8 +24,9 @@ module.exports.ActivityController = ActivityController;
  */
 function ActivityController(app) {
   bindAll(this);
-  this.settings = app.settings;
   this.app = app;
+  this.win = app.win;
+  this.settings = app.settings;
   this.configure();
   this.bindEvents();
   debug('initialized');
@@ -47,7 +48,8 @@ ActivityController.prototype.types = {
  * @private
  */
 ActivityController.prototype.configure = function() {
-  this.app.activity[this.getName()] = true;
+  this.name = this.getName();
+  this.app.activity[this.name] = true;
 };
 
 /**
@@ -59,9 +61,20 @@ ActivityController.prototype.configure = function() {
  * @private
  */
 ActivityController.prototype.bindEvents = function() {
-  navigator.mozSetMessageHandler('activity', this.onMessage);
   this.app.on('activitycanceled', this.onActivityCanceled);
   this.app.on('confirm:selected', this.onActivityConfirmed);
+
+  // If an activity name was found, we must bind
+  // the listener straight away so we don't miss
+  // the event, otherwise we can bind more lazily.
+  if (this.name) { this.setupListener(); }
+  else { this.app.once('criticalpathdone', this.setupListener); }
+};
+
+ActivityController.prototype.setupListener = function() {
+  debug('setup listener');
+  navigator.mozSetMessageHandler('activity', this.onMessage);
+  debug('listener setup');
 };
 
 /**
@@ -74,7 +87,7 @@ ActivityController.prototype.bindEvents = function() {
  * @private
  */
 ActivityController.prototype.getName = function() {
-  var hash = location.hash;
+  var hash = this.win.location.hash;
   var name = hash && hash.substr(1);
   return this.types[name];
 };
@@ -144,6 +157,7 @@ ActivityController.prototype.configureMode = function(activity) {
 ActivityController.prototype.getMaxPixelSize = function(activity) {
   var data = activity.source.data;
   var bytes = data.maxFileSizeBytes;
+  var maxPickPixelSize = this.settings.activity.get('maxPickPixelSize') || 0;
   var maxPixelSize;
 
   // If bytes were specified then derive
@@ -154,6 +168,14 @@ ActivityController.prototype.getMaxPixelSize = function(activity) {
     maxPixelSize = bytesToPixels(bytes);
   } else if (data.width || data.height) {
     maxPixelSize = this.getMaxPixelsFromSize(data);
+  } else {
+    maxPixelSize = maxPickPixelSize;
+  }
+
+  // If the Camera app has been configured to have a max pixel size
+  // for pick activities, ensure we are at or below that value.
+  if (maxPickPixelSize > 0) {
+    maxPixelSize = Math.min(maxPixelSize, maxPickPixelSize);
   }
 
   debug('maxPixelsSize: %s', maxPixelSize);
@@ -258,12 +280,12 @@ ActivityController.prototype.onActivityConfirmed = function(newMedia) {
     debug('needs resizing: %s', needsResizing);
 
     if (needsResizing) {
-      resizeImage({
+      resizeImageAndSave({
         blob: newMedia.blob,
         width: activity.source.data.width,
         height: activity.source.data.height
-      }, function(newBlob) {
-        media.blob = newBlob;
+      }, function(resizedBlob) {
+        media.blob = resizedBlob;
         activity.postResult(media);
       });
       return;

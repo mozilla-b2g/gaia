@@ -7,72 +7,28 @@
     </header>
 
     <div>
-      <ul hidden>
-        <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="keyboard.vibration">
-            <span data-l10n-id="vibration">Vibration</span>
-          </label>
-        </li>
-        <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="keyboard.clicksound" checked>
-            <span data-l10n-id="clickSound">Click sound</span>
-          </label>
-        </li>
-        <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="keyboard.autocorrect">
-            <span data-l10n-id="autoCorrect">Auto correction</span>
-          </label>
-        </li>
-        <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="keyboard.wordsuggestion">
-            <span data-l10n-id="wordSuggestion">Word Suggestion</span>
-          </label>
-        </li>
-      </ul>
-
-      <ul>
-        <li>
-          <a href="#keyboard-selection" data-l10n-id="selectedKeyboards">Selected keyboards</a>
-        </li>
+      <header>
+        <h2 data-l10n-id="keyboardSettings">Keyboard Settings</h2>
+      </header>
+      <ul class="allKeyboardList" hidden>
       </ul>
       <header>
-        <h2 data-l10n-id="installedInputMethods">Installed input methods</h2>
+        <h2 data-l10n-id="selectedKeyboards">Selected Keyboards</h2>
       </header>
-      <ul id="allKeyboardList" hidden>
+      <ul class="enabledKeyboardList">
       </ul>
-
-      <div id="textLayoutList" hidden>
-        <header>
-          <h2 data-l10n-id="keyboardlayouts">layouts</h2>
-        </header>
-        <ul></ul>
-      </div>
-
-      <div id="numberLayoutList" hidden>
-        <header>
-          <h2 data-l10n-id="numberKeyboardLayouts">Number Layouts</h2>
-        </header>
-        <ul></ul>
-      </div>
-
-      <div id="optionLayoutList" hidden>
-        <header>
-          <h2 data-l10n-id="optionKeyboardLayouts">Option Layouts</h2>
-        </header>
-        <ul></ul>
-      </div>
-
+      <ul>
+        <li>
+          <button class="icon icon-view"
+                  data-l10n-id="selectKeyboards"
+                  data-href="#keyboard-selection-addMore">
+            Select Keyboards
+          </button>
+        </li>
+      </ul>
     </div>
 
-    <script defer src="shared/js/manifest_helper.js"></script>
-    <script src="shared/js/keyboard_helper.js"></script>
-    <script src="js/mvvm/models.js"></script>
-    <script src="js/mvvm/views.js"></script>
-    <script src="js/keyboard.js"></script>
+    <panel data-path="panels/keyboard/panel"></panel>
 
   </template>
 </element>

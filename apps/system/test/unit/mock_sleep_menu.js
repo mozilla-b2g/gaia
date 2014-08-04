@@ -1,6 +1,7 @@
 'use strict';
+/* exported MocksleepMenu */
 
-var MockSleepMenu = {
+var MocksleepMenu = {
   startPowerOff: function() {},
   hide: function() {}
 };

@@ -72,6 +72,7 @@ suite('ObservableArray', function() {
         this.observable.observe(event, this.spies[event]);
       }, this);
     });
+
     suite('pop()', function() {
       setup(function() {
         this.observable.pop();

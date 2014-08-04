@@ -17,10 +17,10 @@
       this.containerElement = configs.rearWindow.element;
     }
     configs.chrome = {
-      rocketbar: true,
+      bar: true,
       navigation: false
     };
-      
+
     AppWindow.call(this, configs);
   };
 
@@ -28,7 +28,7 @@
    * @borrows AppWindow.prototype as PopupWindow.prototype
    * @memberof PopupWindow
    */
-  PopupWindow.prototype.__proto__ = AppWindow.prototype;
+  PopupWindow.prototype = Object.create(AppWindow.prototype);
 
   PopupWindow.REGISTERED_EVENTS =
     ['mozbrowserclose', 'mozbrowsererror', 'mozbrowservisibilitychange',
@@ -39,6 +39,7 @@
   PopupWindow.SUB_COMPONENTS = {
     'transitionController': window.AppTransitionController,
     'modalDialog': window.AppModalDialog,
+    'valueSelector': window.ValueSelector,
     'authDialog': window.AppAuthenticationDialog,
     'contextmenu': window.BrowserContextMenu,
     'childWindowFactory': window.ChildWindowFactory

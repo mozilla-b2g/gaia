@@ -6,33 +6,67 @@
 /*
  * Flex layout is wrapped by 'flex-composer'. Our flex layout has
  * 2 well differentiated:
- * - 'composer-messages-container'
+ * - 'messages-container'
  * - 'messages-compose-form'
  */
 
 .flex-composer {
-  height: calc(100% - 4rem);
-  width: 100%;
-  top: 4rem;
-  position: relative;
-  overflow: hidden;
   display: flex;
   flex-direction: column;
+
+  height: 100%;
+  top: 0;
+
+  overflow: hidden;
 }
 
-#composer-messages-container {
-  flex: 1 0;
-  order: 1;
+.new .flex-composer {
+  position: relative;
+  top: 5.5rem; /* 5.5rem is the default size of the recipient panel */
+               /* In Bug 1015841 this should be able to change depending on the
+                * recipients panel height
+                * Should the recipients panel be part of the composer ? */
+
+  height: calc(100% - 5.5rem);
+}
+
+#messages-container {
+  /* We'll set flex-basis with a shrink factor of 0 to do min-height.
+   * formula: flex-basis = a % + b)
+   * a = (gap2 - gap1) / keyboard_height
+   * b = gap2 - (gap2 - gap1) * (buri_height - header) / keyboard_height + subheader + time_header
+   *
+   * with :
+   * gap1 = 4rem
+   *   minimal visible part of a thread when the keyboard is displayed, on buri
+   * gap2 = 8rem
+   *   minimal visible part of a thread when the keyboard is hidden, on a buri
+   * keyboard_height = 26rem
+   *   measured on a buri, standard english keyboard with suggestions
+   * header = 5rem
+   * subheader = 2rem
+   * buri_height = 48rem
+   * time_header = 2rem
+   *
+   * See https://bugzilla.mozilla.org/show_bug.cgi?id=1015867#c12 for more
+   * information
+   */
+  flex: 1 0 calc(15.4% + 5.38rem);
+  overflow: auto;
+}
+
+.new #messages-container {
+  flex-basis: 0;
 }
 
 #messages-compose-form {
-  bottom: 0;
-  left: 0;
-  right: 0;
+  display: flex;
+  flex-direction: row;
+
   min-height: 3rem;
-  height: auto;
-  overflow: hidden;
-  order: 2;
+  height: auto; /* overrides building blocks */
+
+  background-color: #fff;
 }
 
 /* Overwrite. No more fixed height */
@@ -48,134 +82,260 @@ form[role="search"] button[type="submit"] + p > textarea {
  */
 
 #messages-input {
+  position: relative; /* to position its generated content */
+
+  width: 100%;
   min-height: 4rem;
-  padding: .5rem;
-  padding-top: 1.2rem;
+  max-height: 100%;
+  padding: 1rem 0.5rem 0.8rem 0;
   box-sizing: border-box;
 
-  position: relative;
-  overflow: scroll;
-
+  color: #474747;
   text-align: left;
-  font-size: 1.8rem;
-  line-height: 2rem;
-}
-
-#messages-input.placeholder:after{
-  position: absolute;
-  top: 1.2rem;
-  pointer-events: none;
-
-  color: #888;
-}
-
-#messages-subject-input {
-  position: relative;
-  padding: .5rem;
-  min-height: 2.5rem;
-  box-sizing: border-box;
-
   font-size: 1.7rem;
-  line-height: 2rem;
-  font-weight: 300;
-  font-style: italic;
-  text-align: left;
-  border-bottom: .1rem solid #ccc;
+  line-height: 2.1rem;
+  overflow: auto;
 }
 
-#messages-subject-input:after {
-  position: absolute;
-  left: 0.5rem;
-  top: 0.5rem;
-  pointer-events: none;
-  
+.subject-input-visible #messages-input {
+  max-height: calc(100% - 3rem);
+}
 
-  font-style: normal;
-  font-weight: normal;
-  color: #888;
+.multiline-subject #messages-input {
+  max-height: calc(100% - 4.5rem);
+}
+
+.message-divider {
+  position: absolute;
+
+  top: 0.7rem;
+  right: 0;
+  bottom: 0.7rem;
+  width: 0.1rem;
+  height: calc(100% - 1.4rem);
+
+  background-color: #ccc;
+}
+
+.subject-input-visible .message-divider {
+  top: 3.6rem;
+  height: calc(100% - 4.3rem);
+}
+
+.multiline-subject .message-divider {
+  top: 5.2rem;
+  height: calc(100% - 5.9rem);
 }
 
 #messages-input.placeholder:after {
   content: attr(data-placeholder);
-} 
+  position: absolute;
+
+  top: 1rem;
+  left: 0;
+
+  color: #9b9b9b;
+  font-style: italic;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+
+/* Overwrite BB because of the previous rule */
+form[role="search"] button[type="submit"]:after {
+    content: "";
+    background: none;
+}
+
+#messages-subject-input {
+  box-sizing: border-box;
+  display: none;
+  position: relative;
+
+  min-height: 3rem;
+  max-height: 4.5rem;
+  padding: .6rem 0;
+  border-bottom: 0.1rem solid #9ef2e7;
+
+  color: #0b6262;
+  font-size: 1.7rem;
+  line-height: 1.7rem;
+  text-align: left;
+  overflow: auto;
+}
+
+.subject-input-visible #messages-subject-input {
+  display: block;
+}
+
+#messages-subject-input:after {
+  position: absolute;
+  top: .6rem;
+
+  color: #00adad;
+  font-weight: normal;
+  font-style: italic;
+  pointer-events: none;
+}
 
 #messages-subject-input.placeholder:after {
   content: attr(data-placeholder);
 }
 
-#messages-container {
-  height: 100%;
-  overflow: scroll;
-}
-
 /*
  * 'message-complete' contains Subject & Body
  */
-.message-complete {
-  max-height: 12rem;
-  overflow: scroll;
-  width: calc(100% - 7rem); /* Need this to keep the button space */
+.composer-message-complete {
+  flex: auto;
+  position: relative;
   min-height: 4rem;
+  min-width: 0;
 }
 
-/*
- * Send button is fixed to the bottom
- */
+.subject-input-visible .composer-message-complete:before {
+  top: 2.7rem;
+}
+
+.multiline-subject .composer-message-complete:before {
+  top: 4.7rem;
+}
+
+.composer-button-container {
+  display: flex;
+  position: relative;
+
+  flex: none;
+  flex-direction: column;
+  justify-content: space-between;
+
+  -moz-user-select: none; /* without this, tapping on the element selects its content */
+}
 
 #messages-send-button {
-  position: fixed;
-  right: 0;
-  bottom: 0;
-  display: none;
-
+  height: 4rem;
   overflow: visible;
+  background: #fff url(images/icons/actionicon_sms_send_30x30.png)
+              no-repeat center center / 3rem;
 }
 
-#messages-send-button.active {
-  background: #008aaa;
+#messages-send-button:after {
+  display: none
+}
+
+#messages-send-button[disabled] {
+  background-blend-mode: luminosity;
+  opacity: 0.625;
 }
 
 #messages-input.ignoreEvents {
   pointer-events: none;
 }
 
-#messages-send-button.has-counter:before {
-  content: attr(data-counter);
-  
-  position: absolute;
-  left: 0;
-  top: -1.9rem;
-  
+#messages-counter-label {
   box-sizing: border-box;
-  height: 1.8rem;
-  padding: 0 0.5rem;
- 
-  color: rgb(133, 133, 133);
+  position: relative;
+
+  left: 0;
+  height: 0;
+
+  color: #575757;
+  font-size: 0;
   font-weight: normal;
+  text-align: center;
+}
+
+[data-message-type='mms'] #messages-counter-label {
+  box-sizing: border-box;
+
+  height: 3rem;
+  padding-top: .7rem;
+  border-bottom: .1rem solid transparent;
+
   font-size: 1.4rem;
-  text-align: left;
-  line-height: 1.8rem;
 }
 
-[data-message-type="mms"] #messages-send-button.has-counter:before {
-  content: 'MMS';
-  color: #FF4E00;
-  font-size: 1.5rem;
-  padding-left: calc(100% - 5rem);
-  margin-top: -1.2rem;
+[data-message-type='mms'].subject-input-visible #messages-counter-label {
+  border-bottom-color: #9ef2e7;
 }
 
+.multiline-subject #messages-counter-label {
+  top: 1.5rem;
+}
 
-/*
- * Depending you are, you have a different layout.
- */
+.has-counter:after {
+  display: none;
+  content: attr(data-counter);
+  position: absolute;
 
-[data-composer-layout="composer"] #messages-send-button,
-[data-composer-layout="thread"] #messages-send-button  {
+  top: 0;
+  left: 0;
+  width: 100%;
+
+  color: #575757;
+  font-size: 1.4rem;
+  font-style: normal;
+}
+
+[data-message-type='sms'] .has-counter:after {
   display: block;
 }
 
-[data-composer-layout="thread"] .flex-composer {
-  height: 100%;
-  top: 0;
+[data-message-type='sms'].subject-input-visible .has-counter:after {
+  top: 3rem;
 }
+
+#messages-attach-button {
+  align-self: flex-end;
+  flex: none;
+
+  box-sizing: content-box;
+  width: 3rem;
+  margin: 0;
+  padding: 0 1rem 0 0.5rem;
+
+  background: transparent
+              url('images/icons/actionicon_sms_add_attachment_30x30.png')
+              no-repeat center / 3rem;
+}
+
+/*
+  DSDS
+*/
+
+.sim-indication {
+  position: absolute;
+  top: 0.3rem;
+  right: 1.9rem;
+
+  display: none;
+  line-height: 1;
+
+  color: black;
+  font-size: 1.3rem;
+  font-style: normal;
+  opacity: 0.5;
+}
+
+button[disabled] .sim-indication {
+  color: inherit;
+}
+
+.has-preferred-sim .sim-indication {
+  display: block;
+}
+
+.has-preferred-sim #messages-send-button:before {
+  position: absolute;
+  top: 1rem;
+  left: 0;
+  right: 0;
+
+  content: '...';
+  display: block;
+  width: 100%;
+
+  color: #b2b2b2;
+  text-align: center;
+  font-size: 1.8rem;
+}
+

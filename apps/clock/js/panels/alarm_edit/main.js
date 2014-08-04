@@ -16,6 +16,7 @@ var constants = require('constants');
 var AlarmEdit = function() {
   Panel.apply(this, arguments);
   this.element.innerHTML = html;
+
   mozL10n.translate(this.element);
   var handleDomEvent = this.handleDomEvent.bind(this);
 
@@ -56,10 +57,10 @@ var AlarmEdit = function() {
     }.bind(this)
   });
   this.buttons.repeat = new FormButton(this.selects.repeat, {
-    selectOptions: constants.DAYS,
+    selectOptions: constants.DAYS_STARTING_MONDAY,
     id: 'repeat-menu',
     formatLabel: function(daysOfWeek) {
-      return this.alarm.summarizeDaysOfWeek(daysOfWeek);
+      return Utils.summarizeDaysOfWeek(daysOfWeek);
     }.bind(this)
   });
   this.buttons.sound = new FormButton(this.selects.sound, {
@@ -88,8 +89,7 @@ var AlarmEdit = function() {
   // When the language changes, the value of 'weekStartsOnMonday'
   // might change. Since that's more than a simple text string, we
   // can't just use mozL10n.translate().
-  window.addEventListener('localized', this.updateL10n.bind(this));
-  this.updateL10n();
+  mozL10n.ready(this.updateL10n.bind(this));
 
   this.buttons.close.addEventListener('click', handleDomEvent);
   this.buttons.done.addEventListener('click', handleDomEvent);
@@ -214,7 +214,24 @@ Utils.extend(AlarmEdit.prototype, {
     this.initSnoozeSelect();
     this.checkboxes.vibrate.checked = this.alarm.vibrate;
 
+    // Update the labels for any FormButton dropdowns that have
+    // changed, because setting <select>.value does not fire a change
+    // event.
+    for (var key in this.buttons) {
+      var button = this.buttons[key];
+      if (button instanceof FormButton) {
+        button.refresh();
+      }
+    }
+
     location.hash = '#alarm-edit-panel';
+
+    // We're appending new elements to DOM so to make sure headers are
+    // properly resized and centered, we emmit a lazyload event.
+    // This will be removed when the gaia-header web component lands.
+    window.dispatchEvent(new CustomEvent('lazyload', {
+      detail: this.element
+    }));
   },
 
   initTimeSelect: function aev_initTimeSelect() {
@@ -240,7 +257,7 @@ Utils.extend(AlarmEdit.prototype, {
   },
 
   getSoundSelect: function aev_getSoundSelect() {
-    return this.buttons.sound.value;
+    return this.buttons.sound.value !== '0' && this.buttons.sound.value;
   },
 
   previewSound: function aev_previewSound() {
@@ -278,24 +295,19 @@ Utils.extend(AlarmEdit.prototype, {
     this.alarm.label = this.inputs.name.value;
 
     var time = this.getTimeSelect();
-    this.alarm.time = [time.hour, time.minute];
+    this.alarm.hour = time.hour;
+    this.alarm.minute = time.minute;
     this.alarm.repeat = this.buttons.repeat.value;
     this.alarm.sound = this.getSoundSelect();
     this.alarm.vibrate = this.checkboxes.vibrate.checked;
     this.alarm.snooze = parseInt(this.getSnoozeSelect(), 10);
     AudioManager.setAlarmVolume(this.getAlarmVolumeValue());
 
-    this.alarm.cancel();
-
-    this.alarm.setEnabled(true, function(err, alarm) {
-      if (err) {
-        callback && callback(err, alarm);
-        return;
-      }
+    this.alarm.schedule('normal').then(() => {
       window.dispatchEvent(new CustomEvent('alarm-changed', {
-        detail: { alarm: alarm, showBanner: true }
+        detail: { alarm: this.alarm, showBanner: true }
       }));
-      callback && callback(null, alarm);
+      callback && callback(null, this.alarm);
     });
   },
 
@@ -305,7 +317,7 @@ Utils.extend(AlarmEdit.prototype, {
       return;
     }
 
-    this.alarm.delete(callback);
+    this.alarm.delete().then(callback);
   }
 
 });

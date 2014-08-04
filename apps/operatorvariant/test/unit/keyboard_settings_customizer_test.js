@@ -14,16 +14,10 @@ suite('Keyboard settings customizer >', function() {
 
   var testCases = [
     {
-      title: 'set all posible options with valid values > ',
+      title: 'First run with valid SIM - options with valid values > ',
       inputValues: {
         'values': {
           'keyboard.vibration': false,
-          'keyboard.autocorrect': true,
-          'keyboard.clicksound': false,
-          'keyboard.wordsuggestion': true
-        },
-        'defaults': {
-          'keyboard.vibration': true,
           'keyboard.autocorrect': true,
           'keyboard.clicksound': false,
           'keyboard.wordsuggestion': true
@@ -40,64 +34,55 @@ suite('Keyboard settings customizer >', function() {
         'keyboard.autocorrect': true,
         'keyboard.clicksound': false,
         'keyboard.wordsuggestion': true
-      }
+      },
+      simPresentOnFirstBoot: true
     },
     {
-      title: 'Some value has changed previously > ',
+      title: 'First Run with valid SIM - set invalid values > ',
+      inputValues: {
+        'values': {
+          'keyboard.vibration': [],
+          'keyboard.wordsuggestion': 'aFakeValue',
+          'keyboard.clicksound': {}
+        }
+      },
+      'actualValues': {
+        'keyboard.vibration': true,
+        'keyboard.autocorrect': true,
+        'keyboard.clicksound': false,
+        'keyboard.wordsuggestion': true
+      },
+      expectedValues: {
+        'keyboard.vibration': true,
+        'keyboard.autocorrect': true,
+        'keyboard.clicksound': false,
+        'keyboard.wordsuggestion': true
+      },
+      simPresentOnFirstBoot: true
+    },
+    {
+      title: 'first run without valid SIM > ',
       inputValues: {
         'values': {
           'keyboard.vibration': false,
           'keyboard.autocorrect': true,
           'keyboard.clicksound': false,
           'keyboard.wordsuggestion': true
-        },
-        'defaults': {
-          'keyboard.vibration': true,
-          'keyboard.autocorrect': true,
-          'keyboard.clicksound': false,
-          'keyboard.wordsuggestion': true
         }
       },
       'actualValues': {
         'keyboard.vibration': true,
         'keyboard.autocorrect': true,
-        'keyboard.clicksound': true,
+        'keyboard.clicksound': undefined,
         'keyboard.wordsuggestion': true
       },
       expectedValues: {
         'keyboard.vibration': true,
         'keyboard.autocorrect': true,
-        'keyboard.clicksound': true,
-        'keyboard.wordsuggestion': true
-      }
-    },
-    {
-      title: 'set invalid values > ',
-      inputValues: {
-        'values': {
-          'keyboard.vibration': [],
-          'keyboard.wordsuggestion': 'aFakeValue',
-          'keyboard.clicksound': {}
-        },
-        'defaults': {
-          'keyboard.vibration': true,
-          'keyboard.autocorrect': true,
-          'keyboard.clicksound': false,
-          'keyboard.wordsuggestion': true
-        }
-      },
-      'actualValues': {
-        'keyboard.vibration': true,
-        'keyboard.autocorrect': true,
-        'keyboard.clicksound': false,
+        'keyboard.clicksound': undefined,
         'keyboard.wordsuggestion': true
       },
-      expectedValues: {
-        'keyboard.vibration': true,
-        'keyboard.autocorrect': true,
-        'keyboard.clicksound': false,
-        'keyboard.wordsuggestion': true
-      }
+      simPresentOnFirstBoot: false
     }
   ];
 
@@ -125,7 +110,8 @@ suite('Keyboard settings customizer >', function() {
       for (var avKey in actualValues) {
         window.MockNavigatorSettings.mSettings[avKey] = actualValues[avKey];
       }
-
+      keyboardSettingsCustomizer.simPresentOnFirstBoot =
+        testCase.simPresentOnFirstBoot;
       keyboardSettingsCustomizer.set(testCase.inputValues);
       this.sinon.clock.tick(TINY_TIMEOUT);
       var mSettings = window.MockNavigatorSettings.mSettings;

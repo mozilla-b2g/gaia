@@ -1,11 +1,6 @@
 {
   "css": [
     {
-      "src": "http://telefonicaid.github.com/Gaia-UI-Building-Blocks/widgets/input_areas/style.css",
-      "prefix": "building_blocks/input_areas/"
-    },
-
-    {
       "src": "https://raw.github.com/mozilla-b2g/Gaia-UI-Building-Blocks/master/widgets/drawer/style.css",
       "prefix": "building_blocks/drawer/",
       "grep": [

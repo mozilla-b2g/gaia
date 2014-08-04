@@ -27,6 +27,14 @@ var AttentionScreen = {
             !this.mainScreen.classList.contains('active-statusbar'));
   },
 
+  get statusHeight() {
+    if (this.isVisible() && !this.isFullyVisible()) {
+      return this.attentionScreen.getBoundingClientRect().height;
+    }
+
+    return 0;
+  },
+
   init: function as_init() {
     window.addEventListener('mozbrowseropenwindow', this.open.bind(this), true);
 
@@ -36,10 +44,11 @@ var AttentionScreen = {
     window.addEventListener('keyboardchange', this.resize.bind(this), true);
     window.addEventListener('keyboardhide', this.resize.bind(this), true);
 
-    this.bar.addEventListener('click', this.show.bind(this));
+    this.bar.addEventListener('click', this.maximize.bind(this));
 
     window.addEventListener('home', this.hide.bind(this));
     window.addEventListener('holdhome', this.hide.bind(this));
+    window.addEventListener('global-search-request', this.hide.bind(this));
     window.addEventListener('appwillopen', this.appOpenHandler.bind(this));
     window.addEventListener('launchapp', this.appLaunchHandler.bind(this));
     window.addEventListener('emergencyalert', this.hide.bind(this));
@@ -67,11 +76,12 @@ var AttentionScreen = {
   },
 
   toggle: function as_toggle(evt) {
+    var frame = evt.target;
     if (evt.detail.height <= 40) {
-      evt.target.dataset.appRequestedSmallSize = '';
+      frame.dataset.appRequestedSmallSize = '';
       this.hide();
     } else {
-      this.show();
+      this.show(frame);
     }
   },
 
@@ -108,9 +118,18 @@ var AttentionScreen = {
 
     if (!app || !this._hasAttentionPermission(app))
       return;
+    //
+    // The camera app needs to be notified before an attention screen appears
+    // so that it can stop recording video before ringer or alarm sounds are
+    // recorded. We abuse the settings API as a simple way to broadcast
+    // this message. See bugs 995540 and 1006200
+    //
+    navigator.mozSettings.createLock().set({
+      'private.broadcast.attention_screen_opening': true
+    });
 
     // Hide sleep menu/list menu if it is shown now
-    SleepMenu.hide();
+    sleepMenu.hide();
 
     // We want the user attention, so we need to turn the screen on
     // if it's off. The lockscreen will grab the focus when we do that
@@ -126,24 +145,19 @@ var AttentionScreen = {
     delete attentionFrame.dataset.hidden;
     attentionFrame.addEventListener('mozbrowserresize', this.toggle.bind(this));
 
+    if (attentionFrame.parentNode !== this.attentionScreen) {
+      this.attentionScreen.appendChild(attentionFrame);
+    }
+
     // We would like to put the dialer call screen on top of all other
     // attention screens by ensure it is the last iframe in the DOM tree
     if (this._hasTelephonyPermission(app)) {
-      if (attentionFrame.parentNode !== this.attentionScreen) {
-        this.attentionScreen.appendChild(attentionFrame);
-      }
-
       // This event is for SIM PIN lock module.
       // Because we don't need SIM PIN dialog during call
       // but the IccHelper cardstatechange event could
       // be invoked by airplane mode toggle before the call is established.
       this.dispatchEvent('callscreenwillopen');
-    } else {
-      this.attentionScreen.insertBefore(attentionFrame,
-                                        this.bar.nextElementSibling);
     }
-
-    this._updateAttentionFrameVisibility();
 
     // Make the overlay visible if we are not displayed yet.
     // alternatively, if the newly appended frame is the visible frame
@@ -156,14 +170,16 @@ var AttentionScreen = {
       this.dispatchEvent('attentionscreenshow', {
         origin: attentionFrame.dataset.frameOrigin
       });
-    } else if (!this.isFullyVisible() &&
-      this.attentionScreen.lastElementChild === attentionFrame) {
-      this.show();
+      this._updateFrameVisibility(attentionFrame);
+    } else if (!this.isFullyVisible()) {
+      this.show(attentionFrame);
+    } else {
+      this._updateFrameVisibility(attentionFrame);
     }
   },
 
   // Make sure visibililty state of all attention screens are set correctly
-  _updateAttentionFrameVisibility: function as_updateAtteFrameVisibility() {
+  _updateFrameVisibility: function as_updateFrameVisibility(activeFrame) {
     var selector = 'iframe:not([data-hidden])';
     var frames = this.attentionScreen.querySelectorAll(selector);
     var i = frames.length - 1;
@@ -172,21 +188,23 @@ var AttentionScreen = {
     if (i < 0)
       return;
 
-    // set the last one in the DOM to visible
-    // The setTimeout() and the closure is used to workaround
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=810431
-    setTimeout(function(frame) {
-      frame.setVisible(true);
-      frame.focus();
-    }, 0, frames[i]);
-
-    while (i--) {
+    while (i >= 0) {
       // The setTimeout() and the closure is used to workaround
       // https://bugzilla.mozilla.org/show_bug.cgi?id=810431
-      setTimeout(function(frame) {
-        frame.setVisible(false);
-        frame.blur();
-      }, 0, frames[i]);
+      setTimeout(function(frame, self) {
+        if (frame == activeFrame) {
+          frame.setVisible(true);
+          frame.classList.add('active');
+          frame.focus();
+          self._removeNotificationFor(frame);
+        } else {
+          frame.setVisible(false);
+          frame.classList.remove('active');
+          frame.blur();
+          self._addNotificationFor(frame);
+        }
+      }, 0, frames[i], this);
+      i--;
     }
   },
 
@@ -197,6 +215,14 @@ var AttentionScreen = {
         iframe.dataset.frameType !== 'attention' ||
         (evt.type === 'mozbrowsererror' && evt.detail.type !== 'fatal'))
       return;
+
+    //
+    // This resets the state of this settings flag.
+    // See the corresponding code in the open() method.
+    //
+    navigator.mozSettings.createLock().set({
+      'private.broadcast.attention_screen_opening': false
+    });
 
     if (iframe.dataset.hidden) {
       return;
@@ -226,6 +252,7 @@ var AttentionScreen = {
       });
 
       iframe.dataset.hidden = 'hidden';
+      iframe.classList.remove('active');
       iframe.blur();
     } else {
       this.attentionScreen.removeChild(iframe);
@@ -236,15 +263,16 @@ var AttentionScreen = {
     window.focus();
 
     // if there are other attention frames,
-    // we need to update the visibility and show() the overlay.
+    // we need to update the visibility and show(frame) the overlay.
     var selector = 'iframe:not([data-hidden])';
     if (this.attentionScreen.querySelectorAll(selector).length) {
-      this._updateAttentionFrameVisibility();
+      var frame = this.attentionScreen.lastChild;
+      this._updateFrameVisibility(frame);
 
       this.dispatchEvent('attentionscreenclose', { origin: origin });
 
       if (!this.isFullyVisible())
-        this.show();
+        this.show(frame);
 
       return;
     }
@@ -266,12 +294,76 @@ var AttentionScreen = {
     this.dispatchEvent('attentionscreenhide', { origin: origin });
   },
 
+  _addNotificationFor: function as_addNotificationFor(frame) {
+    var manifestURL = frame.dataset.manifestURL;
+    var notification = document.getElementById('notification-' + manifestURL);
+    if (notification || !manifestURL) {
+      return;
+    }
+
+    var manifest = window.applications.getByManifestURL(manifestURL).manifest;
+    var iconSrc = manifestURL.replace(
+                    '/manifest.webapp',
+                    manifest.icons[Object.keys(manifest.icons)[0]]
+                  );
+
+    // Let's create the fake notification.
+    var notification = document.createElement('div');
+    notification.id = 'notification-' + manifestURL;
+    notification.classList.add('notification');
+
+    var icon = document.createElement('img');
+    icon.src = iconSrc;
+    icon.classList.add('icon');
+    notification.appendChild(icon);
+
+    var message = document.createElement('div');
+    message.appendChild(document.createTextNode(manifest.name));
+    message.classList.add('message');
+    notification.appendChild(message);
+
+    var tip = document.createElement('div');
+    var helper = window.navigator.mozL10n.get('attentionScreen-tapToShow');
+    tip.appendChild(document.createTextNode(helper));
+    tip.classList.add('tip');
+    notification.appendChild(tip);
+
+    var container = document.getElementById('notifications-container');
+    container.insertBefore(notification, container.firstElementChild);
+
+    // Attach an event listener to the fake notification so the
+    // attention screen is shown when the user tap on it.
+    notification.addEventListener('click',
+                                  this._onNotificationTap.bind(this, frame));
+  },
+
+  _removeNotificationFor: function as_removeNotificationFor(frame) {
+    var manifestURL = frame.dataset.manifestURL;
+    var notification = document.getElementById('notification-' + manifestURL);
+    if (!notification) {
+      return;
+    }
+
+    notification.parentNode.removeChild(notification);
+  },
+
+  _onNotificationTap: function as_onNotificationTap(frame) {
+    UtilityTray.hide(true);
+    this.show(frame);
+  },
+
+  maximize: function a_maximise() {
+    var selector = 'iframe.active';
+    this.show(this.attentionScreen.querySelector(selector));
+  },
+
   // expend the attention screen overlay to full screen
-  show: function as_show() {
+  show: function as_show(frame) {
     // Attention screen now only support default orientation.
     this.tryLockOrientation();
 
-    delete this.attentionScreen.lastElementChild.dataset.appRequestedSmallSize;
+    delete frame.dataset.appRequestedSmallSize;
+    this._updateFrameVisibility(frame);
 
     // leaving "status-mode".
     this.attentionScreen.classList.remove('status-mode');
@@ -286,7 +378,7 @@ var AttentionScreen = {
       // with a transform: translateY() slide down transition.
       self.mainScreen.classList.remove('active-statusbar');
       self.dispatchEvent('status-inactive', {
-        origin: self.attentionScreen.lastElementChild.dataset.frameOrigin
+        origin: frame.dataset.frameOrigin
       });
     });
   },
@@ -301,19 +393,20 @@ var AttentionScreen = {
     // with a transform: translateY() slide up transition.
     this.mainScreen.classList.add('active-statusbar');
 
-    // The only way to hide attention screen is the home/holdhome event.
-    // So we don't fire any origin information here.
-    // The expected behavior is restore homescreen visibility to 'true'
-    // in the Window Manager.
-    this.dispatchEvent('status-active');
-
     var attentionScreen = this.attentionScreen;
-    attentionScreen.addEventListener('transitionend', function trWait() {
-      attentionScreen.removeEventListener('transitionend', trWait);
+    var safetyTimeout = null;
+    var finish = (function() {
+      clearTimeout(safetyTimeout);
+      attentionScreen.removeEventListener('transitionend', finish);
 
-      // transition completed, entering "status-mode" (40px height iframe)
+      // transition completed, entering "status-mode" and informing
+      // the rest of the system
       attentionScreen.classList.add('status-mode');
-    });
+      this.dispatchEvent('status-active');
+    }).bind(this);
+
+    attentionScreen.addEventListener('transitionend', finish);
+    safetyTimeout = setTimeout(finish, 500);
   },
 
   // If the lock request fails, request again later.
@@ -347,22 +440,34 @@ var AttentionScreen = {
     if (!this.isVisible() || this.isFullyVisible())
       return;
 
-    var attentionFrame = this.attentionScreen.lastElementChild;
-    // We don't want to reopen the attention screen when the app requested a
-    // statusbar attention screen
-    if (attentionFrame.dataset.hasOwnProperty('appRequestedSmallSize')) {
-      return;
-    }
+    var selector = 'iframe:not([data-hidden])';
+    var frames = this.attentionScreen.querySelectorAll(selector);
+    for (var i = 0; i < frames.length; i++) {
+      var frame = frames[i];
 
-    var frameOrigin = attentionFrame.dataset.frameOrigin;
-    if (origin === frameOrigin) {
-      this.show();
+      // We don't want to reopen the attention screen when the app requested a
+      // statusbar attention screen
+      if (frame.dataset.hasOwnProperty('appRequestedSmallSize')) {
+        continue;
+      }
+
+      var frameOrigin = frame.dataset.frameOrigin;
+      if (frameOrigin === origin ||
+          (frameOrigin.startsWith('app://callscreen.gaiamobile.org/') &&
+           origin.startsWith('app://communications.gaiamobile.org/dialer/'))) {
+        this.show(frame);
+        return;
+      }
     }
   },
 
   appForegroundHandler: function as_appForegroundHandler(evt) {
     // If the app behind the soon-to-be-unlocked lockscreen has an
     // attention screen we should display it
+    if (window.rocketbar.active) {
+      return;
+    }
+
     var app = evt.detail;
     this.showForOrigin(app.origin);
   },

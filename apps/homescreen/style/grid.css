@@ -41,12 +41,12 @@
   text-align: center;
 }
 
-/* Maximum 16 icons for page */
+/* Maximum 16 icons for page by default */
 .apps ol > li:nth-child(17) {
   display: none;
 }
 
-/* Maximum 12 icons for first page */
+/* Maximum 12 icons for first page by default when ev.me is available */
 body.searchPageEnabled .apps div:first-child ol > li:nth-child(13) {
   display: none;
 }
@@ -119,21 +119,22 @@ ol > li.active > div > img {
 
 /* Alternative icons when an app is being installed */
 .loading:after {
-  margin: 0.8rem;
   content: "";
   position: absolute;
   left: 0;
-  top: 0;
+  top: 0.6rem;
   z-index: 30000;
-  width: 6rem;
-  height: 6rem;
+  width: 100%;
+  height: 6.2rem;
   background: url('/style/images/loading_spinner.png');
-  background-size: 6rem;
+  background-position: top center;
+  background-repeat: no-repeat;
+  background-size: 6.2rem;
   animation: rotate 2.25s linear infinite;
 }
 
 .apps .loading:after {
-  margin-top: 0.4rem;
+  top: 0.1rem;
 }
 
 /* the panels are panning */
@@ -147,13 +148,6 @@ body[data-transitioning] .loading:after {
   background: none;
 }
 
-.loading img {
-  margin-top: 0.4rem;
-  margin-left: -0.4rem;
-  width: 6rem;
-  height: 6rem;
-}
-
 @keyframes rotate {
   from {
     transform: rotate(1deg)
@@ -163,22 +157,22 @@ body[data-transitioning] .loading:after {
   }
 }
 
-/* if disable e.me, adds 1 row of icons back */
+/* if the min device height is 640px -> one row more (5 rows per page) */
 @media (min-device-width: 320px) and (min-device-height: 640px) {
-  body.searchPageEnabled .apps ol:first-child > li:nth-child(13) {
+  /* Maximum 16 icons for first page instead of 12 when ev.me is available */
+  body.searchPageEnabled .apps div:first-child ol > li:nth-child(13) {
     display: inline-block;
   }
 
+  body.searchPageEnabled .apps div:first-child ol > li:nth-child(17) {
+    display: none;
+  }
+
+  /* Maximum 20 icons for page for the rest of pages */
   .apps ol > li:nth-child(17) {
     display: inline-block;
   }
 
-   /* Maximum 16 icons for first page */
-  body.searchPageEnabled .apps ol:first-child > li:nth-child(17) {
-    display: none;
-  }
-
-   /* Maximum 20 icons for page */
   .apps ol > li:nth-child(21) {
     display: none;
   }
@@ -196,11 +190,20 @@ body[data-transitioning] .loading:after {
     height: 1.9rem;
   }
 
+  /* Maximum 16 icons for first page instead of 12 when ev.me is available */
+  body.searchPageEnabled .apps div:first-child ol > li:nth-child(13) {
+    display: inline-block;
+  }
+
+  body.searchPageEnabled .apps div:first-child ol > li:nth-child(17) {
+    display: none;
+  }
+
+  /* Maximum 20 icons for page for the rest of pages */
   .apps ol > li:nth-child(17) {
     display: inline-block;
   }
 
-  /* Maximum 20 icons for page */
   .apps ol > li:nth-child(21) {
     display: none;
   }

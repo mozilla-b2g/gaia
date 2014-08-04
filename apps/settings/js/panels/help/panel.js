@@ -12,7 +12,7 @@ define(function(require) {
       onInit: function(panel) {
         var elements = {
           userGuide: panel.querySelector('#user-guide'),
-          help: panel.querySelector('#help'),
+          help: panel,
           supportText: panel.querySelector('#help-online-support-text'),
           supportNumber: panel.querySelector('#help-call-support-numbers')
         };

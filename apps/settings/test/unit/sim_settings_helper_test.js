@@ -1,18 +1,25 @@
 'use strict';
 
 requireApp('settings/shared/test/unit/mocks/mock_navigator_moz_settings.js');
-requireApp('settings/shared/js/sim_settings_helper.js');
 
 suite('SimSettingsHelper > ', function() {
   var realMozSettings;
 
-  suiteSetup(function() {
+  suiteSetup(function(done) {
     realMozSettings = window.navigator.mozSettings;
     window.navigator.mozSettings = MockNavigatorSettings;
+
+    // We have to load sim_settings_helper lazily because
+    // mozSettings is not ready at first
+    requireApp('settings/shared/js/sim_settings_helper.js', done);
   });
 
   suiteTeardown(function() {
     window.navigator.mozSettings = realMozSettings;
+  });
+
+  setup(function() {
+    window.navigator.mozSettings.mSetup();
   });
 
   // test for SimSettingsHelper.set method
@@ -78,13 +85,13 @@ suite('SimSettingsHelper > ', function() {
     var fakeSettingKey = 'ril.sms.defaultServiceId';
     var fakeSettingValue = 0;
 
-    suiteSetup(function() {
-      SimSettingsHelper._setToSettingsDB(fakeSettingKey, fakeSettingValue);
-    });
-
-    test('setToSettingsDB is called successfully', function() {
-      assert.equal(window.navigator.mozSettings.mSettings[fakeSettingKey],
-        fakeSettingValue);
+    test('setToSettingsDB is called successfully', function(done) {
+      SimSettingsHelper._setToSettingsDB(fakeSettingKey, fakeSettingValue,
+        function() {
+        assert.equal(window.navigator.mozSettings.mSettings[fakeSettingKey],
+          fakeSettingValue);
+        done();
+      });
     });
   });
 
@@ -283,9 +290,19 @@ suite('SimSettingsHelper > ', function() {
 
   suite('SimSettingsHelper.setServiceOnCard("key", cardIndex) > ', function() {
     var fakeCardIndex = 0;
-    var mSettings = MockNavigatorSettings.mSettings;
+    var mSettings;
+    var clock;
+
+    suiteSetup(function() {
+      clock = sinon.useFakeTimers();
+    });
+
+    suiteTeardown(function() {
+      clock.restore();
+    });
 
     setup(function() {
+      mSettings = MockNavigatorSettings.mSettings;
       this.sinon.spy(SimSettingsHelper, '_set');
       this.sinon.spy(SimSettingsHelper, '_on');
       this.sinon.spy(SimSettingsHelper, '_setToSettingsDB');
@@ -294,6 +311,7 @@ suite('SimSettingsHelper > ', function() {
     suite('outgoingCall > ', function() {
       setup(function() {
         SimSettingsHelper.setServiceOnCard('outgoingCall', fakeCardIndex);
+        clock.tick(0);
       });
 
       test('can set on outgoingCall successfully', function() {
@@ -313,6 +331,7 @@ suite('SimSettingsHelper > ', function() {
     suite('outgoingMessages > ', function() {
       setup(function() {
         SimSettingsHelper.setServiceOnCard('outgoingMessages', fakeCardIndex);
+        clock.tick(0);
       });
 
       test('can set on outgoingMessages successfully', function() {
@@ -326,6 +345,7 @@ suite('SimSettingsHelper > ', function() {
     suite('outgoingData > ', function() {
       setup(function() {
         SimSettingsHelper.setServiceOnCard('outgoingData', fakeCardIndex);
+        clock.tick(0);
       });
 
       test('can set on outgoingData successfully', function() {
@@ -343,12 +363,71 @@ suite('SimSettingsHelper > ', function() {
     suite('set string index to outgoingData > ', function() {
       setup(function() {
         SimSettingsHelper.setServiceOnCard('outgoingData', '' + fakeCardIndex);
+        clock.tick(0);
       });
 
       test('can set on service id with number successfully', function() {
         assert.equal(mSettings['ril.mms.defaultServiceId'], fakeCardIndex);
         assert.equal(mSettings['ril.data.defaultServiceId'], fakeCardIndex);
       });
+    });
+  });
+
+  suite('SimSettingsHelper._getServiceCallbacks', function() {
+    var services = ['outgoingCall', 'outgoingMessages', 'outgoingData'];
+    services.forEach(function(serviceName) {
+      test(serviceName, function() {
+        assert.isTrue(Array.isArray(
+          SimSettingsHelper._callbacks[serviceName]));
+      });
+    });
+  });
+
+  suite('SimSettingsHelper.observe > ', function() {
+    var spy1;
+    var spy2;
+    var defaultServiceId = 2;
+
+    setup(function() {
+      // Because window.navigator.mozSettings.mSetup() will remove these
+      // observers, we have to make sure to bind them back.
+      SimSettingsHelper._addSettingsObservers();
+
+      spy1 = this.sinon.spy();
+      spy2 = this.sinon.spy();
+    });
+
+    test('outgoingCall', function() {
+      SimSettingsHelper.observe('outgoingCall', spy1);
+      SimSettingsHelper.observe('outgoingCall', spy2);
+
+      MockNavigatorSettings.mTriggerObservers('ril.telephony.defaultServiceId',
+        defaultServiceId);
+
+      assert.isTrue(spy1.called);
+      assert.isTrue(spy2.called);
+    });
+
+    test('outgoingMessages', function() {
+      SimSettingsHelper.observe('outgoingMessages', spy1);
+      SimSettingsHelper.observe('outgoingMessages', spy2);
+
+      MockNavigatorSettings.mTriggerObservers('ril.sms.defaultServiceId',
+        defaultServiceId);
+
+      assert.isTrue(spy1.called);
+      assert.isTrue(spy2.called);
+    });
+
+    test('outgoingData', function() {
+      SimSettingsHelper.observe('outgoingData', spy1);
+      SimSettingsHelper.observe('outgoingData', spy2);
+
+      MockNavigatorSettings.mTriggerObservers('ril.data.defaultServiceId',
+        defaultServiceId);
+
+      assert.isTrue(spy1.called);
+      assert.isTrue(spy2.called);
     });
   });
 });

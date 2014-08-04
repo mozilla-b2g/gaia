@@ -205,6 +205,10 @@
      */
     watchEvents: function(value, checkedActions) {
       var self = this;
+      // We don't want to wait until the first event reacts in order to
+      // update the status, because we can set the status to 'enabling' or
+      // 'disabling' already through `_updateAirplaneModeStatus`.
+      self._updateAirplaneModeStatus(checkedActions);
       for (var serviceName in this._checkedActionsMap) {
 
         // if we are waiting for specific service
@@ -233,10 +237,10 @@
      */
     set enabled(value) {
       if (value !== this._enabled) {
+        this._enabled = value;
+
         // start watching events
         this.watchEvents(value, this._getCheckedActions(value));
-
-        this._enabled = value;
 
         // tell services to do their own operations
         this._serviceHelper.updateStatus(value);

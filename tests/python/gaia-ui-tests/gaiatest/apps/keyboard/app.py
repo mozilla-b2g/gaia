@@ -13,10 +13,13 @@ from gaiatest.apps.base import Base
 class Keyboard(Base):
     '''
     There are two underlying strategies in this class;
-    * send() method which uses logic to traverse the keyboard to type the string sent to it.
-        Send should be used in tests where the layout of the keyboard is not tested and only string input is important
-    * tap_x() or anything not send() methods which do not use logic to change keyboard panels.
-        Tap should be used where the keyboard is expected to open with that key visible
+
+    * send() method which uses logic to traverse the keyboard to type the
+      string sent to it. Send should be used in tests where the layout of the
+      keyboard is not tested and only string input is important
+    * tap_x() or anything not send() methods which do not use logic to change
+      keyboard panels. Tap should be used where the keyboard is expected to
+      open with that key visible
 
     The methods in this class employ a lot of aggressive frame switching to the keyboard and back to the
     displayed app because it predominantly acts as a utility class and thus it works best when the main focus
@@ -68,7 +71,7 @@ class Keyboard(Base):
                       'spanish']
 
     # special keys locators
-    _language_key_locator = (By.CSS_SELECTOR, ".keyboard-row button[data-keycode='-3']")
+    _language_key_locator = (By.CSS_SELECTOR, ".keyboard-type-container[data-active='true'] .keyboard-row button[data-keycode='-3']")
     _dotcom_key_locator = (By.CSS_SELECTOR, ".keyboard-row button[data-compositekey='.com']")
     _numeric_sign_key = '-2'
     _alpha_key = '-1'
@@ -84,6 +87,9 @@ class Keyboard(Base):
     _button_locator = (By.CSS_SELECTOR, '.keyboard-type-container[data-active] button.keyboard-key[data-keycode="%s"], .keyboard-type-container[data-active] button.keyboard-key[data-keycode-upper="%s"]')
     _highlight_key_locator = (By.CSS_SELECTOR, 'div.highlighted button')
     _predicted_word_locator = (By.CSS_SELECTOR, '.autocorrect')
+    _candidate_panel_locator = (By.CSS_SELECTOR, '.keyboard-candidate-panel')
+    _suggestions_container_locator = (By.CSS_SELECTOR, '.suggestions-container')
+    _dismiss_suggestions_button_locator = (By.CSS_SELECTOR, '.dismiss-suggestions-button')
 
     # find the key to long press and return
     def _find_key_for_longpress(self, input_value):
@@ -92,7 +98,7 @@ class Keyboard(Base):
                 return key_to_press
 
     # Try to switch to the correct layout. There are 3 keyboard layers:
-    # ABC (Default), 123 (Symbols_1) and ALT (Symbols_2)
+    # ABC (layoutPage = 0), 123 (layoutPage = 1) and ALT (layoutPage = 2)
     def _switch_to_correct_layout(self, val):
         layout_page = self._layout_page
         current_input_type = self._current_input_type
@@ -103,9 +109,9 @@ class Keyboard(Base):
         elif val.isalpha():
             is_upper_case = self._is_upper_case
             # If the key to press isalpha and the keyboard layout is not, go back to Default
-            if not layout_page == 'Default':
+            if not layout_page == 0:
                 self._tap(self._alpha_key)
-                self.wait_for_condition(lambda m: self._layout_page == 'Default')
+                self.wait_for_condition(lambda m: self._layout_page == 0)
             # If the key to press isupper and the keyboard is not (or vice versa) then press shift
             if not val.isupper() == is_upper_case:
                 self._tap(self._upper_case_key)
@@ -114,7 +120,7 @@ class Keyboard(Base):
         else:
             # If it's not space or alpha then it must be in 123 or ALT.
             # It can't be in Default so let's go into 123 and then try to find it
-            if not current_input_type == 'number' and layout_page == 'Default':
+            if not current_input_type == 'number' and layout_page == 0:
                 self._tap(self._numeric_sign_key)
                 self.wait_for_element_displayed(*self._key_locator(self._alpha_key))
             # If it is not present here then it must be in one of the ALT section
@@ -125,26 +131,26 @@ class Keyboard(Base):
 
     @property
     def _is_upper_case(self):
-        return self.marionette.execute_script('return window.wrappedJSObject.isUpperCase;')
+        return self.marionette.execute_script('return window.wrappedJSObject.app.upperCaseStateManager.isUpperCase;')
 
     @property
     def _is_upper_case_locked(self):
-        return self.marionette.execute_script('return window.wrappedJSObject.isUpperCaseLocked;')
+        return self.marionette.execute_script('return window.wrappedJSObject.app.upperCaseStateManager.isUpperCaseLocked;')
 
     @property
     def _current_input_type(self):
-        return self.marionette.execute_script('return window.wrappedJSObject.currentInputType;')
+        return self.marionette.execute_script('return window.wrappedJSObject.app.getBasicInputType();')
 
     @property
     def _layout_page(self):
-        return self.marionette.execute_script('return window.wrappedJSObject.layoutPage;')
+        return self.marionette.execute_script('return window.wrappedJSObject.app.layoutManager.currentLayoutPage;')
 
     # this is to switch to the frame of keyboard
     def switch_to_keyboard(self):
         self.marionette.switch_to_frame()
         keyboards = self.marionette.find_element(*self._keyboards_locator)
         self.wait_for_condition(lambda m: 'hide' not in keyboards.get_attribute('class') and \
-            not keyboards.get_attribute('data-transition-in'),
+            keyboards.location['y'] == 0,
             message="Keyboard not interpreted as displayed. Debug is_displayed(): %s"
                 %keyboards.is_displayed())
 
@@ -175,7 +181,7 @@ class Keyboard(Base):
         # These two tap cases are most important because they cause the keyboard to change state which affects next step
         if val.isspace():
             # Space switches back to Default layout
-            self.wait_for_condition(lambda m: self._layout_page == 'Default')
+            self.wait_for_condition(lambda m: self._layout_page == 0)
         if val.isupper() and is_upper_case and not is_upper_case_locked:
             # Tapping key with shift enabled causes the keyboard to switch back to lower
             self.wait_for_condition(lambda m: not self._is_upper_case)
@@ -330,7 +336,8 @@ keyboard.removeFocus();""")
         keyboards = self.marionette.find_element(*self._keyboards_locator)
         Wait(self.marionette).until(
             lambda m: 'hide' in keyboards.get_attribute('class') and
-            not keyboards.is_displayed(),
+            not keyboards.is_displayed() and
+            int(keyboards.location['y']) == int(keyboards.size['height']),
             message="Keyboard was not dismissed. Debug is_displayed(): %s, class: %s."
                     %(keyboards.is_displayed(), keyboards.get_attribute('class')))
         self.apps.switch_to_displayed_app()
@@ -339,4 +346,73 @@ keyboard.removeFocus();""")
         self.switch_to_keyboard()
         self.wait_for_element_displayed(*self._predicted_word_locator)
         self.marionette.find_element(*self._predicted_word_locator).tap()
+        self.apps.switch_to_displayed_app()
+
+    # Accessibility related properties and methods
+
+    def _a11y_get_role(self, locator_args):
+        self.wait_for_element_displayed(*locator_args)
+        return self.accessibility.get_role(
+            self.marionette.find_element(*locator_args))
+
+    def _a11y_get_name(self, locator_args):
+        self.wait_for_element_displayed(*locator_args)
+        return self.accessibility.get_name(
+            self.marionette.find_element(*locator_args))
+
+    @property
+    def a11y_first_predictive_word_name(self):
+        return self._a11y_get_name(self._predicted_word_locator)
+
+    @property
+    def a11y_first_predictive_word_role(self):
+        return self._a11y_get_role(self._predicted_word_locator)
+
+    @property
+    def a11y_candidate_panel_name(self):
+        return self._a11y_get_name(self._candidate_panel_locator)
+
+    @property
+    def a11y_suggestions_container_role(self):
+        return self._a11y_get_role(self._suggestions_container_locator)
+
+    @property
+    def a11y_dismiss_suggestions_button_role(self):
+        return self._a11y_get_role(self._dismiss_suggestions_button_locator)
+
+    @property
+    def a11y_dismiss_suggestions_button_name(self):
+        return self._a11y_get_name(self._dismiss_suggestions_button_locator)
+
+    @property
+    def a11y_enter_key_role(self):
+        return self._a11y_get_role(self._key_locator(self._enter_key))
+
+    @property
+    def a11y_enter_key_name(self):
+        return self._a11y_get_name(self._key_locator(self._enter_key))
+
+    @property
+    def a11y_space_key_role(self):
+        return self._a11y_get_role(self._key_locator(self._space_key))
+
+    @property
+    def a11y_space_key_name(self):
+        return self._a11y_get_name(self._key_locator(self._space_key))
+
+    @property
+    def a11y_backspace_key_name(self):
+        return self._a11y_get_name([self._button_locator[0],
+            self._button_locator[1] % (self._backspace_key, self._backspace_key)])
+
+    @property
+    def a11y_backspace_key_role(self):
+        return self._a11y_get_role([self._button_locator[0],
+            self._button_locator[1] % (self._backspace_key, self._backspace_key)])
+
+    def a11y_first_predictive_word_click(self):
+        self.switch_to_keyboard()
+        self.wait_for_element_displayed(*self._predicted_word_locator)
+        self.accessibility.click(
+            self.marionette.find_element(*self._predicted_word_locator))
         self.apps.switch_to_displayed_app()

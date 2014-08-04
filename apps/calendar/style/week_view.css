@@ -4,17 +4,21 @@
 }
 
 #week-view h1 {
-  color: white;
-  background-color: #2A2A2A;
+  color: #707070;
   text-transform: uppercase;
   font-size: 1.3rem;
   height: 2rem;
-  padding: 0.5rem 0.5rem;
-  border-right: 1px solid #131314;
-  border-left: 1px solid #515051;
-  font-weight: normal;
+  line-height: 1.9rem;
+  text-align: center;
   white-space: nowrap;
   overflow: hidden;
+  font-weight: 400;
+  border-bottom: 0.1rem solid #e2e2e2;
+}
+
+#week-view h1.is-today {
+  font-weight: 500;
+  color: #008eab;
 }
 
 #week-view {
@@ -32,95 +36,82 @@
 }
 
 /* sticky all-day styles */
-#week-view .sticky ul {
+#week-view .sticky-list {
   list-style-type: none;
   margin: 0;
-  padding: 0 0 0 2rem;
-  height: 2rem;
-  background: #2A2A2A;
+  padding: 0;
+  width: calc(100% - 2.9rem);
+  position: absolute;
+  right: 0;
 }
 
-#week-view .week-events > ol,
-#week-view .sticky .week-events {
-  border-bottom: 1px solid #ccc;
-  border-left: 1px solid #ccc;
-  text-align: center;
-  color: white;
-  font-size: 120%;
-  height: 6rem;
+#week-view .week-events > ol {
+  border-bottom: 0.1rem solid #f8f8f8;
+  border-left: 0.1rem solid #f8f8f8;
+  height: 5rem;
   position: relative;
 }
 
-#week-view .sticky li {
+#week-view .sticky-frame {
   float: left;
-}
-
-#week-view .sticky ul > li {
-  height: 6rem;
+  height: 7rem;
 }
 
 #week-view .sticky .week-events {
-  border-bottom: 0;
-  height: 100%;
-  overflow-y: scroll;
+  height: 5rem;
+  border-left: 0.1rem solid #e2e2e2;
 }
 
-#week-view .sticky .week-events li.event {
-  position: static;
-}
-
-#week-view .days-3 .sticky li {
+#week-view .days-3 .sticky-frame {
   width: 33%;
 }
 
-#week-view .days-4 .sticky li {
+#week-view .days-4 .sticky-frame {
   width: 25%;
 }
 
 #week-view .sticky {
-  border-bottom: 1px solid #2A2A2A;
-  height: 8rem;
-  overflow: hidden;
-  box-shadow: 0 5px 5px 0 rgba(1, 1, 1, 0.2);
+  background-color: #f8f8f8;
+  border-bottom: 0.1rem solid #e2e2e2;
+  height: 7.1rem;
   position: relative;
   z-index: 11;
 }
 
 #week-view .sticky .all-day {
-  transform: rotate(-90deg);
-  transform-origin: 0 0;
+  float: left;
   position: absolute;
-  top: 7.9rem;
-  left: 0.3rem;
-  width: 6rem;
-  height: 1.3rem;
-  font-size: 1.3rem;
-  line-height: 120%;
-  text-align: center;
+  top: 1.9rem;
+  width: 2.9rem;
+  height: 5.1rem;
+  color: #707070;
   overflow: hidden;
-  white-space: nowrap;
+  border-top: 0.1rem solid #e2e2e2;
+  line-height: 5rem;
 }
 
-#week-view .sticky .children {
-  width: 100%;
+#week-view .icon-calendar-allday:before {
+  margin-left: -0.2rem;
 }
 
-#week-view .sticky .children ol {
-  border-bottom: 0;
-  border-left: 0;
+#week-view .events.hour-allday {
+  border: none;
+  background-color: #f8f8f8;
+  height: 5rem;
+  overflow-y: scroll;
+  overflow-x: hidden;
 }
 
 /* sidebar styles */
 #week-view .sidebar {
-   min-height: 6rem;
-   width: 2rem;
-   color: #000;
-   text-align: center;
-   text-transform: uppercase;
-   font-size: 1.4rem;
-   border-left: none;
-   border-top: none;
-   float: left;
+  min-height: 5rem;
+  width: 2.9rem;
+  color: #707070;
+  text-align: center;
+  font-size: 1.5rem;
+  border-left: none;
+  border-top: none;
+  float: left;
 
   /**
    * set scrollable areas to a solid background color
@@ -134,34 +125,45 @@
 }
 
 #week-view .sidebar > li {
-  transform: rotate(-90deg);
-  line-height: 120%;
-  width: 6rem;
-  float: left;
-  height: 6rem;
-  text-align: center;
-  border-left: 1px solid #CCC;
+  line-height: 1.2;
+  width: 3rem;
   padding: 0.2rem;
+  float: left;
+  height: 5rem;
+  text-align: center;
+  border-bottom: 0.1rem solid #f8f8f8;
   overflow: hidden;
 }
 
+#week-view .display-hour .ampm {
+  display: block;
+  font-size: 1.3rem;
+}
+
 #week-view .scroll {
-  height: calc(100% - 7.9rem);
+  height: calc(100% - 7rem);
   overflow-y: scroll;
+  overflow-x: hidden;
   will-change: scroll-position;
 }
 
-#week-view .scroll > .children {
+#week-view .scroll-content {
+  /* XXX: z-index + position:relative is important for perf (Bug 972675) */
   position: relative;
-  float: left;
-  width: calc(100% - 2rem);
+  z-index: 0;
+  overflow: hidden;
   /**
    * set scrollable areas to a solid background color
    * see bug 968478
    */
-  background-color: #fff;
-  /* XXX: z-index + position:relative is important for perf (Bug 972675) */
-  z-index: 0;
+  background-color: #FFF;
+}
+
+
+#week-view .scroll-content > .children {
+  position: relative;
+  float: left;
+  width: calc(100% - 2.9rem);
 }
 
 #week-view .weekday .children > section {
@@ -179,33 +181,82 @@
   width: 100%;
 }
 
-/* week view event styles */
-#week-view .week-events > ol li.event {
-  position: absolute;
+#week-view .event {
   width: 100%;
   z-index: 10;
+  overflow: hidden;
+  border-left-style: solid;
+  border-left-width: 0.4rem;
+  padding: 0.6rem 0.7rem;
+}
+
+#week-view .event.has-overlaps {
+  padding: 0;
+}
+
+#week-view .sticky .event {
+  margin-bottom: 0.1rem;
+  padding-top: 0;
+  min-height: 2.8rem;
+}
+
+#week-view .sticky .event:last-child {
+  margin-bottom: 0;
+}
+
+#week-view .scroll .event {
+  position: absolute;
 }
 
 #week-view .week-events .container {
-  height: 100%;
-  margin: 1px;
-  line-height: 1.4rem;
-  min-height: 1.8rem;
-  font-size: 120%;
-  padding: 0.2rem;
   overflow: hidden;
   text-overflow: ellipsis;
-  position: relative;
+  line-height: 1.8rem;
+  font-size: 1.4rem;
+  color: #333;
+  font-weight: 500;
+  width: 100%;
+  height: 100%;
 }
 
-/* overlap */
-.weekday .event[data-overlaps="1"] { padding: 0.3rem; }
-.weekday .event[data-overlaps="2"] { padding: 0.6rem; }
-.weekday .event[data-overlaps="3"] { padding: 0.9rem; }
-.weekday .event[data-overlaps="4"] { padding: 1.2rem; }
-.weekday .event[data-overlaps="5"] { padding: 1.5rem; }
-.weekday .event[data-overlaps="6"] { padding: 1.8rem; }
-.weekday .event[data-overlaps="7"] { padding: 2.1rem; }
-.weekday .event[data-overlaps="8"] { padding: 2.4rem; }
-.weekday .event[data-overlaps="9"] { padding: 2.7rem; }
-.weekday .event[data-overlaps="10"] { padding: 3rem; }
+#week-view .week-events .has-overlaps .container {
+  /* we hide text if event overlaps with another since column is too narrow */
+  visibility: hidden;
+}
+
+/* partial hour events */
+#week-view .event.partial-hour {
+  padding-top: 0.4rem;
+  padding-bottom: 0.4rem;
+}
+
+#week-view .event.partial-hour-tiny {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+#week-view .event.partial-hour-micro .container {
+  visibility: hidden;
+}
+
+#week-view .event.partial-hour .container {
+  padding-right: 0.7rem;
+  height: auto;
+  white-space: nowrap;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+#week-view .current-time {
+  text-indent: 0.2rem;
+}
+
+#week-view .current-time:before {
+  left: 3rem;
+}
+
+#week-view .current-time:after {
+  width: calc(100% - 3rem);
+  left: 3rem;
+}

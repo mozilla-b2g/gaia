@@ -162,6 +162,7 @@ SetupManualConfig.prototype = {
         displayName: this.formItems.common.displayName.value,
         emailAddress: this.formItems.common.emailAddress.value,
         password: password,
+        outgoingPassword: config.outgoing && config.outgoing.password,
 
         domainInfo: config,
         callingCard: this

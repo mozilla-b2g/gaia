@@ -23,20 +23,34 @@ function Radicale() {
   this.childProcess = null;
   // The events stored in the server.
   this.events = [];
+  // Set up dav directories.
+  this.configFilePath = path.join(os.tmpdir(), 'config');
+  this.fileSystemPath = path.join(os.tmpdir(), 'collections');
 }
 
 Radicale.prototype = {
-  // The path to the config file.
-  configFilePath: path.join(os.tmpdir(), 'config'),
-  // The path to the directory of the file system in server.
-  fileSystemPath: path.join(os.tmpdir(), 'collections'),
+  /**
+   * Server port.
+   * @type {Number}
+   */
+  port: null,
+
+  /**
+   * The path to the config file.
+   * @type {String}
+   */
+  configFilePath: null,
+
+  /**
+   * The path to the directory of the file system in server.
+   * @type {String}
+   */
+  fileSystemPath: null,
 
   /**
    * Setup the config file for the Radicale server.
-   *
-   * @param {Object} options for the server.
    */
-  _setup: function(port) {
+  _setup: function() {
     // Setup the Radicale config file,
     // and we create it at path /radicale/install/path/config in the disk.
     var configTemplate,
@@ -48,7 +62,7 @@ Radicale.prototype = {
 
     configTemplate = fs.readFileSync(CONFIG_TMP_PATH, 'utf8'),
     config = ejs.render(configTemplate, {
-      port: port,
+      port: this.port,
       filesystemPath: this.fileSystemPath
     });
 
@@ -63,32 +77,33 @@ Radicale.prototype = {
    * after server is started.
    */
   start: function(options, callback) {
-    if (options && options.port) {
-      this._executeServer(options.port);
-      if (callback || typeof(callback) === 'function') {
-        callback(options.port);
-      }
-    } else {
-      emptyPort({ startPort: START_PORT }, function(error, port) {
-        if (!error) {
-          this._executeServer(port);
-          if (callback || typeof(callback) === 'function') {
-            callback(port);
-          }
-        } else {
-          throw error;
-        }
-      }.bind(this));
+    if (typeof options === 'function') {
+      callback = options;
+      options = {};
     }
+
+    if ('port' in options) {
+      this.port = options.port;
+      this._executeServer();
+      return callback && callback(null, options.port);
+    }
+
+    emptyPort({ startPort: START_PORT }, function(error, port) {
+      if (error) {
+        return callback && callback(error);
+      }
+
+      this.port = port;
+      this._executeServer();
+      return callback && callback(null, port);
+    }.bind(this));
   },
 
   /**
    * Execute the server with terminal command.
-   *
-   * @param {Number} port server port.
    */
-  _executeServer: function(port) {
-    this._setup(port);
+  _executeServer: function() {
+    this._setup();
     this.childProcess =
       childProcess.spawn('radicale', ['--config', this.configFilePath]);
   },

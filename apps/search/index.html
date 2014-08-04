@@ -3,40 +3,86 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1.0">
-    <link rel="stylesheet" href="style/bgimage.css">
     <link rel="stylesheet" href="style/search.css">
+    <link rel="stylesheet" href="shared/elements/gaia_grid/style/external.css">
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
+    <link rel="resource" type="application/l10n" href="/shared/elements/gaia_grid/locales/locales.ini">
+
+    <script defer src="shared/js/l10n.js"></script>
+    <script defer src="shared/js/lazy_loader.js"></script>
+
+    <!-- Confirm dialog component -->
+    <script defer src="/shared/js/component_utils.js"></script>
+    <script defer src="/shared/elements/gaia_buttons/script.js"></script>
+    <script defer src="/shared/elements/gaia_confirm/script.js"></script>
+    <!--- gaia_grid required scripts -->
+    <script defer src="shared/js/homescreens/vertical_preferences.js"></script>
+    <script defer src="shared/js/homescreens/confirm_dialog_helper.js"></script>
+    <script defer src="shared/elements/gaia_grid/js/grid_view.js"></script>
+    <script defer src="shared/elements/gaia_grid/js/grid_icon_renderer.js"></script>
+    <script defer src="shared/elements/gaia_grid/js/grid_layout.js"></script>
+    <script defer src="shared/elements/gaia_grid/js/grid_zoom.js"></script>
+    <script defer src="shared/elements/gaia_grid/script.js"></script>
+    <script defer src="shared/elements/gaia_grid/js/items/grid_item.js"></script>
+    <script defer src="shared/elements/gaia_grid/js/items/bookmark.js"></script>
+    <script defer src="shared/elements/gaia_grid/js/items/marketplace_app.js"></script>
+    <script defer src="shared/elements/gaia_grid/js/items/collection.js"></script>
+    <script defer src="shared/elements/gaia_grid/js/items/divider.js"></script>
+    <script defer src="shared/elements/gaia_grid/js/items/mozapp.js"></script>
+    <script defer src="shared/elements/gaia_grid/js/items/placeholder.js"></script>
+
+    <script defer src="shared/js/async_storage.js"></script>
     <script defer src="shared/js/url_helper.js"></script>
     <script defer src="shared/js/utilities.js"></script>
     <script defer src="shared/js/settings_listener.js"></script>
+    <script defer src="shared/js/everythingme/eme.js"></script>
+    <script defer src="shared/js/everythingme/cache.js"></script>
+    <script defer src="shared/js/everythingme/device.js"></script>
+    <script defer src="shared/js/everythingme/api.js"></script>
+    <script defer src="shared/js/dedupe.js"></script>
+    <script defer src="shared/js/sync_datastore.js"></script>
+    <script defer src="js/contextmenu.js"></script>
     <script defer src="js/search.js"></script>
-    <script defer src="js/eme/eme.js"></script>
-    <script defer src="js/eme/api.js"></script>
     <script defer src="js/providers/provider.js"></script>
+    <script defer src="js/providers/grid_provider.js"></script>
 
     <!-- Ordering of the following files will impact which queries we send first -->
-    <script defer src="js/providers/googlelink.js"></script>
     <script defer src="js/providers/marketplace.js"></script>
+    <script defer src="js/providers/bookmarks.js"></script>
     <script defer src="js/providers/places.js"></script>
     <script defer src="js/places_preload.js"></script>
     <script defer src="js/providers/local_apps.js"></script>
     <script defer src="js/providers/suggestions.js"></script>
-    <script defer src="js/providers/bgimage.js"></script>
     <script defer src="js/providers/webresults.js"></script>
 
-    <script defer src="shared/js/l10n.js"></script>
-  <head>
+  </head>
   <body>
 
     <div id="search-results" class="hidden">
-      <section id="suggestions" class="suggestions" data-l10n-id="suggestions" aria-label="Suggestions"></section>
-      <section id="contacts" class="local" data-l10n-id="contacts" aria-label="Contacts"></section>
-      <section id="places" class="local" data-l10n-id="places" aria-label="Places"></section>
-      <section id="googlelink"></section>
+
+      <div id="offline-message"></div>
+
+      <div id="suggestions-wrapper">
+        <section id="suggestions"
+                 class="suggestions" data-l10n-id="suggestions"
+                 aria-label="Suggestions"></section>
+      </div>
+
+      <div id="suggestions-notice-wrapper" hidden>
+        <p data-l10n-id="suggestions-notice">
+          Search suggestions are shown as you type. Go to the Homescreen section
+          of Settings to change your search preferences.
+        </p>
+        <button id="suggestions-notice-confirm" data-l10n-id="ok">Ok</button>
+      </div>
+
+      <section id="contacts" class="local" data-l10n-id="contacts"
+               aria-label="Contacts"></section>
+      <section id="places" class="local" data-l10n-id="places"
+               aria-label="Places"></section>
+
       <section class="apps" data-l10n-id="apps" aria-label="Apps">
-        <section id="localapps" role="presentation"></section>
-        <section id="marketplace" role="presentation"></section>
-        <section id="webresults" role="presentation"></section>
+        <gaia-grid cols="4" id="icons"></gaia-grid>
       </section>
     </div>
 
@@ -46,6 +92,10 @@
       <h2 id="history-header"><span data-l10n-id="history">HISTORY</span></h2>
       <section id="history" class="local" aria-labelledby="history-header"></section>
     </div>
+
+    <menu id="contextmenu" hidden>
+      <menuitem id="add-to-homescreen" data-l10n-id="add-to-homescreen" type="button"></menuitem>
+    </menu>
 
   </body>
 </html>

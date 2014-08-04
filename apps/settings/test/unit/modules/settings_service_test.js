@@ -4,7 +4,6 @@ mocha.setup({
   globals: [
     'Settings',
     'LazyLoader',
-    'startupLocale',
     'initLocale',
     'ScreenLayout',
     'MockL10n',
@@ -35,7 +34,7 @@ suite('SettingsService', function() {
         'modules/settings_panel': 'unit/mock_settings_panel'
       },
       'modules/settings_service': {
-        'modules/page_transitions': 'unit/mock_page_transitions',
+        'modules/page_transitions': 'unit/mock_page_transitions'
       },
       'settings': 'unit/mock_settings'
     };
@@ -59,49 +58,55 @@ suite('SettingsService', function() {
     window.navigator.mozL10n = realL10n;
   });
 
-  suite('navigate()', function() {
-    setup(function() {
-      this.SettingsService.reset();
-      this.PanelCache.reset();
+  setup(function() {
+    this.SettingsService.reset();
+    this.PanelCache.reset();
 
-      this.options = [];
-      this.panelElements = [];
-      this.mockSettingsPanelInstances = [];
+    this.options = [];
+    this.panelElements = [];
+    this.mockSettingsPanelInstances = [];
 
-      var panelInstance = function() {
-        return {
-          init: function() {},
-          uninit: function() {},
-          show: function() {},
-          hide: function() {},
-          beforeShow: function() {},
-          beforeHide: function() {}
-        };
+    var panelInstance = function() {
+      return {
+        init: function() {},
+        uninit: function() {},
+        show: function() {},
+        hide: function() {},
+        beforeShow: function() {},
+        beforeHide: function() {}
       };
+    };
 
-      for (var i = 0; i < 4; i++) {
-        this.options.push({ value: i });
-        this.mockSettingsPanelInstances.push(panelInstance());
+    for (var i = 0; i < 4; i++) {
+      this.options.push({ value: i });
+      this.mockSettingsPanelInstances.push(panelInstance());
 
-        // create panel elements
-        var panelElement = document.createElement('div');
-        panelElement.id = 'id' + i;
-        document.body.appendChild(panelElement);
-        this.panelElements.push(panelElement);
-      }
+      // create panel elements
+      var panelElement = document.createElement('div');
+      panelElement.id = 'id' + i;
+      document.body.appendChild(panelElement);
+      this.panelElements.push(panelElement);
+    }
 
-      this.callCount = 0;
-      this.MockSettingsPanel.mInnerFunction = (function() {
-        return this.mockSettingsPanelInstances[this.callCount++];
-      }).bind(this);
+    // create additional frame panel
+    var framePanelElement = document.createElement('div');
+    framePanelElement.id = 'frame';
+    document.body.appendChild(framePanelElement);
+    this.panelElements.push(framePanelElement);
+
+    this.callCount = 0;
+    this.MockSettingsPanel.mInnerFunction = (function() {
+      return this.mockSettingsPanelInstances[this.callCount++];
+    }).bind(this);
+  });
+
+  teardown(function() {
+    this.panelElements.forEach(function(panelElement) {
+      document.body.removeChild(panelElement);
     });
+  });
 
-    teardown(function() {
-      this.panelElements.forEach(function(panelElement) {
-        document.body.removeChild(panelElement);
-      });
-    });
-
+  suite('navigate()', function() {
     test('should call to panel functions correctly', function(done) {
       var mockInstances = [];
 
@@ -221,6 +226,69 @@ suite('SettingsService', function() {
       this.SettingsService.navigate(fakePanelId, {}, (function() {
         assert.equal(this.MockSettings._currentPanel, '#' + fakePanelId);
       }).bind(this));
+    });
+
+    test('can navigate to frame panel if panelId is app:app_name', function() {
+      var fakePanelId = 'app:bluetooth';
+      this.SettingsService.navigate(fakePanelId, {}, (function() {
+        assert.equal(this.MockSettings._currentPanel, '#frame');
+      }).bind(this));
+    });
+
+    test('can\'t navigate to non-trust apps', function() {
+      var fakePanelId = 'app:unknownApp';
+      this.sinon.spy(console, 'error');
+      this.SettingsService.navigate(fakePanelId, {});
+      console.error.calledWith('We only embed trust apps.');
+    });
+  });
+
+  suite('visibility change', function() {
+    var originalDocumentHidden;
+
+    setup(function(done) {
+      originalDocumentHidden = document.hidden;
+
+      this.SettingsService.init();
+      this.SettingsService.navigate('id0', this.options[0], function() {
+        this.mockInstance = sinon.mock(this.mockSettingsPanelInstances[0]);
+        done();
+      }.bind(this));
+    });
+
+    teardown(function() {
+      Object.defineProperty(document, 'hidden', {
+        value: originalDocumentHidden,
+        configurable: true
+      });
+    });
+
+    test('visible', function() {
+      Object.defineProperty(document, 'hidden', {
+        value: false,
+        configurable: true
+      });
+
+      this.mockInstance.expects('beforeShow').once()
+                       .withExactArgs(this.panelElements[0], this.options[0]);
+      this.mockInstance.expects('show').once()
+                       .withExactArgs(this.panelElements[0], this.options[0]);
+
+      window.dispatchEvent(new CustomEvent('visibilitychange'));
+      this.mockInstance.verify();
+    });
+
+    test('invisible', function() {
+      Object.defineProperty(document, 'hidden', {
+        value: true,
+        configurable: true
+      });
+
+      this.mockInstance.expects('beforeHide').once();
+      this.mockInstance.expects('hide').once();
+
+      window.dispatchEvent(new CustomEvent('visibilitychange'));
+      this.mockInstance.verify();
     });
   });
 });

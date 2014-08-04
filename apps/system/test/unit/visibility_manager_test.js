@@ -1,16 +1,15 @@
-/* globals MocksHelper, MockLockScreen, VisibilityManager,
-           MockAttentionScreen */
+/* globals MocksHelper, VisibilityManager,
+           MockAttentionScreen, MockTaskManager */
 'use strict';
 
-mocha.globals(['VisibilityManager', 'System', 'lockScreen']);
-
 requireApp('system/test/unit/mock_orientation_manager.js');
+requireApp('system/test/unit/mock_task_manager.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/test/unit/mock_attention_screen.js');
-requireApp('system/test/unit/mock_lock_screen.js');
+require('/shared/test/unit/mocks/mock_system.js');
 
 var mocksForVisibilityManager = new MocksHelper([
-  'AttentionScreen'
+  'AttentionScreen', 'System'
 ]).init();
 
 suite('system/VisibilityManager', function() {
@@ -18,14 +17,13 @@ suite('system/VisibilityManager', function() {
   var visibilityManager;
   mocksForVisibilityManager.attachTestHelpers();
   setup(function(done) {
-    window.lockScreen = MockLockScreen;
     this.sinon.useFakeTimers();
 
     stubById = this.sinon.stub(document, 'getElementById');
     stubById.returns(document.createElement('div'));
-    requireApp('system/js/system.js');
     requireApp('system/js/visibility_manager.js', function() {
-      visibilityManager = new VisibilityManager().start();
+      visibilityManager = new VisibilityManager();
+      visibilityManager.start();
       done();
     });
   });
@@ -39,7 +37,7 @@ suite('system/VisibilityManager', function() {
       visibilityManager._normalAudioChannelActive = false;
       var stubPublish = this.sinon.stub(visibilityManager, 'publish');
       visibilityManager.handleEvent({
-        type: 'lock'
+        type: 'lockscreen-appopened'
       });
 
       assert.isTrue(stubPublish.calledOnce);
@@ -47,7 +45,7 @@ suite('system/VisibilityManager', function() {
 
       visibilityManager._normalAudioChannelActive = true;
       visibilityManager.handleEvent({
-        type: 'lock'
+        type: 'lockscreen-appopened'
       });
 
       assert.isTrue(stubPublish.calledOnce);
@@ -55,12 +53,13 @@ suite('system/VisibilityManager', function() {
       visibilityManager._normalAudioChannelActive = false;
     });
 
-    test('will-unlock', function() {
+    test('lockscreen-request-unlock', function() {
       MockAttentionScreen.mFullyVisible = false;
       var stubPublish = this.sinon.stub(visibilityManager, 'publish');
 
       visibilityManager.handleEvent({
-        type: 'will-unlock'
+        type: 'lockscreen-request-unlock',
+        detail: {}
       });
 
       assert.isTrue(stubPublish.calledOnce);
@@ -68,7 +67,8 @@ suite('system/VisibilityManager', function() {
 
       MockAttentionScreen.mFullyVisible = true;
       visibilityManager.handleEvent({
-        type: 'will-unlock'
+        type: 'lockscreen-request-unlock',
+        detail: {}
       });
 
       assert.isTrue(stubPublish.calledOnce);
@@ -91,13 +91,53 @@ suite('system/VisibilityManager', function() {
     });
 
     test('show lockscreen when screen is on.', function() {
-      MockLockScreen.locked = true;
+      window.System.locked = true;
       var stubPublish = this.sinon.stub(visibilityManager, 'publish');
       visibilityManager.handleEvent({
         type: 'attentionscreenhide'
       });
 
       assert.isTrue(stubPublish.calledWith('showlockscreenwindow'));
+    });
+
+    test('rocketbar-overlayopened', function() {
+      var stubPublish = this.sinon.stub(visibilityManager, 'publish');
+      visibilityManager.handleEvent({
+        type: 'rocketbar-overlayopened'
+      });
+
+      assert.isTrue(stubPublish.called);
+      assert.isTrue(stubPublish.calledWith('hidewindowforscreenreader'));
+    });
+
+    test('rocketbar-overlayclosed', function() {
+      var stubPublish = this.sinon.stub(visibilityManager, 'publish');
+      visibilityManager.handleEvent({
+        type: 'rocketbar-overlayclosed'
+      });
+
+      assert.isTrue(stubPublish.called);
+      assert.isTrue(stubPublish.calledWith('showwindowforscreenreader'));
+    });
+
+    test('utility-tray-overlayopened', function() {
+      var stubPublish = this.sinon.stub(visibilityManager, 'publish');
+      visibilityManager.handleEvent({
+        type: 'utility-tray-overlayopened'
+      });
+
+      assert.isTrue(stubPublish.called);
+      assert.isTrue(stubPublish.calledWith('hidewindowforscreenreader'));
+    });
+
+    test('utility-tray-overlayclosed', function() {
+      var stubPublish = this.sinon.stub(visibilityManager, 'publish');
+      visibilityManager.handleEvent({
+        type: 'utility-tray-overlayclosed'
+      });
+
+      assert.isTrue(stubPublish.called);
+      assert.isTrue(stubPublish.calledWith('showwindowforscreenreader'));
     });
 
     test('Normal audio channel is on.', function() {
@@ -130,6 +170,50 @@ suite('system/VisibilityManager', function() {
       });
 
       assert.isFalse(visibilityManager._normalAudioChannelActive);
+    });
+
+    test('show task manager, hide windows from screen reader', function () {
+      var stubPublish = this.sinon.stub(visibilityManager, 'publish');
+      visibilityManager.handleEvent({
+        type: 'cardviewshown'
+      });
+
+      assert.isTrue(stubPublish.called);
+      assert.isTrue(stubPublish.calledWith('hidewindowforscreenreader'));
+    });
+
+    test('hide task manager, unhide windows from screen reader', function () {
+      var stubPublish = this.sinon.stub(visibilityManager, 'publish');
+      visibilityManager.handleEvent({
+        type: 'cardviewclosed'
+      });
+
+      assert.isTrue(stubPublish.called);
+      assert.isTrue(stubPublish.calledWith('showwindowforscreenreader'));
+    });
+
+    test('show homescreen when task manager is showing', function () {
+      var stubPublish = this.sinon.stub(visibilityManager, 'publish');
+      window.taskManager = new MockTaskManager();
+      window.taskManager.show();
+      visibilityManager.handleEvent({
+        type: 'homescreenopened'
+      });
+
+      assert.isTrue(stubPublish.called);
+      assert.isTrue(stubPublish.calledWith('hidewindowforscreenreader'));
+    });
+
+    test('show homescreen when task manager is hidden', function () {
+      var stubPublish = this.sinon.stub(visibilityManager, 'publish');
+      window.taskManager = new MockTaskManager();
+      window.taskManager.hide();
+      visibilityManager.handleEvent({
+        type: 'homescreenopened'
+      });
+
+      assert.isFalse(stubPublish.called);
+      assert.isFalse(stubPublish.calledWith('hidewindowforscreenreader'));
     });
   });
 });

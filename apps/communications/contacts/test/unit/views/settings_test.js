@@ -1,7 +1,7 @@
 'use strict';
 /* global contacts */
 /* global Contacts */
-/* global MockasyncStorage */
+/* global MockImportStatusData */
 /* global MockCookie */
 /* global MockContactsIndexHtml */
 /* global MockgetDeviceStorage */
@@ -25,6 +25,7 @@ require('/shared/test/unit/mocks/mock_iccmanager.js');
 requireApp('communications/contacts/test/unit/mock_contacts_index.html.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
+requireApp('communications/contacts/test/unit/mock_import_status_data.js');
 requireApp('communications/contacts/test/unit/mock_asyncstorage.js');
 requireApp('communications/contacts/test/unit/mock_fb.js');
 requireApp('communications/contacts/test/unit/mock_cookie.js');
@@ -73,7 +74,8 @@ if (!window.realMozIccManager) {
 }
 
 var mocksHelperForContactSettings = new MocksHelper([
-  'Contacts', 'asyncStorage', 'fb', 'ConfirmDialog', 'IccHelper'
+  'Contacts', 'ImportStatusData', 'asyncStorage', 'fb', 'ConfirmDialog',
+  'IccHelper'
 ]);
 mocksHelperForContactSettings.init();
 
@@ -403,49 +405,63 @@ suite('Contacts settings >', function() {
   });
 
   suite('Timestamp Import', function() {
-    var gmailTime = Date.now();
-    var liveTime = Date.now() - 24 * 60 * 60 * 1000;
+    var timestamps = {
+      'gmail': Date.now(),
+      'live': Date.now() - 24 * 60 * 60 * 1000,
+      'sd': Date.now() - 48 * 60 * 60 * 1000,
+      'sim': Date.now() - 72 * 60 * 60 * 1000
+    };
 
-    setup(function() {
+    setup(function(done) {
       // Restore previous tainted html
       document.body.innerHTML = MockContactsIndexHtml;
       contacts.Settings.init();
 
-      MockasyncStorage.clear();
-      MockasyncStorage.setItem('gmail_last_import_timestamp', gmailTime);
-      MockasyncStorage.setItem('live_last_import_timestamp', liveTime);
+      MockImportStatusData.clear().then(done, done);
 
-      contacts.Settings.updateTimestamps();
     });
 
-    test('Contacts from SD card and SIM are not imported yet', function() {
-      var time =
-        document.getElementById('import-sd-option').querySelector('time');
+    function assertNoContactsFrom(source) {
+      var time = document.getElementById('import-' + source + '-option')
+          .querySelector('time');
       assert.equal(time.textContent, '');
       assert.isNull(time.getAttribute('datetime'));
+    }
 
-      time = document.getElementById('import-sim-option').querySelector('time');
-      assert.equal(time.textContent, '');
-      assert.isNull(time.getAttribute('datetime'));
+    test('No contacts imported yet', function() {
+      var sources = Object.keys(timestamps);
+      for (var i = 0, l = sources.length; i < l; i++) {
+          assertNoContactsFrom(sources[i]);
+      }
     });
 
-    test('Contacts from Gmail and Live are already imported ', function() {
-      var time =
-        document.getElementById('import-gmail-option').querySelector('time');
-      assert.equal(time.textContent, gmailTime);
-      assert.equal(time.getAttribute('datetime'),
-                    (new Date(gmailTime)).toLocaleString());
+    function assertContactsImportedFrom(source) {
+      MockImportStatusData.put(source + '_last_import_timestamp',
+          timestamps[source])
+        .then(function() {
+          contacts.Settings.updateTimestamps();
+          var time = document.getElementById('import-' + source + '-option')
+            .querySelector('time');
+          assert.equal(time.textContent, timestamps[source]);
+          assert.equal(time.getAttribute('datetime'),
+              (new Date(timestamps[source])).toLocaleString());
+        });
+    }
 
-      time =
-        document.getElementById('import-live-option').querySelector('time');
-      assert.equal(time.textContent, liveTime);
-      assert.equal(time.getAttribute('datetime'),
-                    (new Date(liveTime)).toLocaleString());
-
+    test('Contacts imported from SD', function() {
+      assertContactsImportedFrom('sd');
     });
 
-    teardown(function() {
-      MockasyncStorage.clear();
+    test('Contacts imported from sim', function() {
+      assertContactsImportedFrom('sim');
+    });
+
+    test('Contacts imported from Gmail', function() {
+      assertContactsImportedFrom('gmail');
+    });
+
+    test('Contacts imported from Live', function() {
+      assertContactsImportedFrom('Live');
     });
   });
 
@@ -639,7 +655,8 @@ suite('Contacts settings >', function() {
     suite('Online', function() {
       setup(function() {
         navigator.onLine = true;
-        contacts.Settings.onLineChanged();
+        var customEvent = new CustomEvent('online');
+        window.dispatchEvent(customEvent);
       });
 
       test('Import Facebook enabled', function() {
@@ -675,7 +692,8 @@ suite('Contacts settings >', function() {
     suite('Offline', function() {
       setup(function() {
         navigator.onLine = false;
-        contacts.Settings.onLineChanged();
+        var customEvent = new CustomEvent('offline');
+        window.dispatchEvent(customEvent);
       });
       test('Import Facebook disabled', function() {
         assert.isTrue(
@@ -731,6 +749,57 @@ suite('Contacts settings >', function() {
       var bulkDelContacts = document.
                             getElementById('bulkDelete');
       assert.isNull(bulkDelContacts.getAttribute('disabled'));
+    });
+
+    test('If FB contacts are deleted but some contacts remain,' +
+                                ' bulk Delete option is enabled', function() {
+      document.addEventListener('fb_cleaned', function cleaned() {
+        document.removeEventListener('fb_cleaned', cleaned);
+        navigator.mozContacts.number = 50;
+        contacts.Settings.refresh();
+      });
+      document.dispatchEvent(new CustomEvent('fb_cleaned'));
+      contacts.Settings.refresh();
+      var bulkDelContacts = document.getElementById('bulkDelete');
+      assert.isNull(bulkDelContacts.getAttribute('disabled'));
+    });
+
+    test('If there are only FB contacts and they are deleted,' +
+                               ' bulk Delete option is disabled', function() {
+      document.addEventListener('fb_cleaned', function cleaned() {
+        document.removeEventListener('fb_cleaned', cleaned);
+        navigator.mozContacts.number = 0;
+        contacts.Settings.refresh();
+      });
+      document.dispatchEvent(new CustomEvent('fb_cleaned'));
+      var bulkDelContacts = document.getElementById('bulkDelete');
+      assert.equal(bulkDelContacts.getAttribute('disabled'), 'disabled');
+    });
+
+    suiteTeardown(function() {
+      mocksHelper.suiteTeardown();
+      navigator.mozContacts = realMozContacts;
+    });
+  });
+
+  suite('ICE options', function() {
+
+    setup(function() {
+      contacts.Settings.init();
+      mocksHelper.suiteSetup();
+      realMozContacts = navigator.mozContacts;
+      navigator.mozContacts = MockMozContacts;
+    });
+
+    test('Pressing the ICE button should init ICE module', function(done) {
+      contacts.Settings.showICEScreen(function() {
+        assert.equal(
+          contacts.Settings.navigation.currentView(),
+          'ice-settings'
+        );
+        assert.ok(contacts.ICE.loaded);
+        done();
+      });
     });
 
     suiteTeardown(function() {

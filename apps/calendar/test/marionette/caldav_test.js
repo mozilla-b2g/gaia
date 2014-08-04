@@ -10,21 +10,36 @@ var ACCOUNT_USERNAME = 'firefox-os',
     DATE_PATTERN = 'yyyymmdd"T"HHMMssZ';
 
 marionette('configure CalDAV accounts', function() {
-  var client = marionette.client(),
-      serverHelper = new Radicale(),
+  var client = marionette.client({
+    prefs: {
+      // we need to disable the keyboard to avoid intermittent failures on
+      // Travis (transitions might take longer to run and block UI)
+      'dom.mozInputMethod.enabled': false,
+      // Do not require the B2G-desktop app window to have focus (as per the
+      // system window manager) in order for it to do focus-related things.
+      'focusmanager.testmode': true,
+    }
+  });
+
+  var serverHelper = new Radicale(),
       app = null;
 
   setup(function(done) {
     app = new Calendar(client);
     app.launch({ hideSwipeHint: true });
 
-    serverHelper.start(null, function(port) {
+    serverHelper.start(function(error, port) {
+      if (error) {
+        return done(error);
+      }
+
       var accountUrl = 'http://localhost:' + port + '/' + ACCOUNT_USERNAME,
           startDate = new Date(),
           endDate = new Date(),
           event = {};
 
-      app.createCalDavAccount({
+      app.setupAccount({
+        accountType: 'caldav',
         user: ACCOUNT_USERNAME,
         fullUrl: accountUrl
       });
@@ -40,7 +55,7 @@ marionette('configure CalDAV accounts', function() {
       };
       serverHelper.addEvent(ACCOUNT_USERNAME, event);
 
-      app.syncCalendar();
+      app.sync();
       // Make sure we start the server before the setup is ended.
       done();
     });
@@ -65,6 +80,33 @@ marionette('configure CalDAV accounts', function() {
     event.click();
 
     assertEvent(ACCOUNT_USERNAME, TITLE);
+  });
+
+  test('events from disabled calendars should not be displayed', function() {
+    var events = app.monthDay.events;
+    assert.equal(events.length, 1, 'at least one event');
+
+    app.openSettingsView();
+    app.settings.toggleCalendar(ACCOUNT_USERNAME);
+    app.closeSettingsView();
+
+    assert.deepEqual(app.monthDay.events, [], 'events should be removed');
+
+    var startDate = new Date();
+    var endDate = new Date();
+    endDate.setHours(endDate.getHours() + 1);
+    var event = {
+      startDate: dateFormat(startDate, DATE_PATTERN),
+      endDate: dateFormat(endDate, DATE_PATTERN),
+      title: TITLE
+    };
+    serverHelper.addEvent(ACCOUNT_USERNAME, event);
+
+    app.openSettingsView();
+    app.settings.sync();
+    app.closeSettingsView();
+
+    assert.deepEqual(app.monthDay.events, [], 'events should not be added');
   });
 
   function assertEvent(username, title) {

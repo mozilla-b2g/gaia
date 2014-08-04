@@ -1,7 +1,5 @@
 'use strict';
 
-mocha.globals(['mozRequestAnimationFrame']);
-
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_manifest_helper.js');
 

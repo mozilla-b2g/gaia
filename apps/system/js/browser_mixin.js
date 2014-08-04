@@ -125,7 +125,7 @@
     },
 
     focus: function bm_focus() {
-      if (this.browser.element) {
+      if (this.browser && this.browser.element) {
         this.browser.element.focus();
       }
     },
@@ -148,6 +148,12 @@
       }
     },
 
+    stop: function bm_stop() {
+      if (this.browser.element) {
+        this.browser.element.stop();
+      }
+    },
+
     _setVisible: function bm__setVisible(visible) {
       if (this.browser && this.browser.element &&
           'setVisible' in this.browser.element) {
@@ -155,6 +161,20 @@
         this.browser.element.setVisible(visible);
       }
     },
+
+    /**
+     * Set aria-hidden attribute on browser's element to handle its screen
+     * reader visibility.
+     * @type {Boolean} visible A flag indicating if the element should be screen
+     * reader visible.
+     */
+    _setVisibleForScreenReader:
+      function bm__setVisibleForScreenReader(visible) {
+        if (this.browser && this.browser.element) {
+          this.debug('aria-hidden on browser element:' + !visible);
+          this.browser.element.setAttribute('aria-hidden', !visible);
+        }
+      },
 
     /**
      * Fire a DOM Request to detect the history has previous page or not.

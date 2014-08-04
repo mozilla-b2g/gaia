@@ -1,14 +1,25 @@
 define(function(require, exports, module) {
 'use strict';
 
-var View = require('vendor/view');
+var debug = require('debug')('view:loading-screen');
+var View = require('view');
 
 module.exports = View.extend({
   name: 'loading-screen',
   fadeTime: 300,
 
   initialize: function() {
+    this.render();
+  },
+
+  render: function() {
     this.el.innerHTML = this.template;
+
+    // Clean up
+    delete this.template;
+
+    debug('rendered');
+    return this;
   },
 
   show: function(done) {

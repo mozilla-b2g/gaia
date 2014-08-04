@@ -3,8 +3,18 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  * Portions Copyright (C) Philipp Kewisch, 2011-2012 */
 
-if (typeof(ICAL) === 'undefined')
-  (typeof(window) !== 'undefined') ? this.ICAL = {} : ICAL = {};
+if (typeof ICAL === 'undefined') {
+  if (typeof exports === 'object') {
+    // CommonJS
+    ICAL = exports;
+  } else if (typeof window !== 'undefined') {
+    // Browser globals
+    this.ICAL = {};
+  } else {
+    // ...?
+    ICAL = {};
+  }
+}
 
 ICAL.foldLength = 75;
 ICAL.newLineChar = '\r\n';
@@ -1204,6 +1214,9 @@ ICAL.parse = (function() {
     // name of property or begin/end
     var name;
     var value;
+    // params is only overridden if paramPos !== -1.
+    // we can't do params = params || {} later on
+    // because it sacrifices ops.
     var params = {};
 
     /**
@@ -1499,9 +1512,7 @@ ICAL.Component = (function() {
     // mostly for legacy reasons.
     this.jCal = jCal;
 
-    if (parent) {
-      this.parent = parent;
-    }
+    this.parent = parent || null;
   }
 
   Component.prototype = {
@@ -1727,6 +1738,10 @@ ICAL.Component = (function() {
     _removeObjectByIndex: function(jCalIndex, cache, index) {
       // remove cached version
       if (cache && cache[index]) {
+        var obj = cache[index];
+        if ("parent" in obj) {
+            obj.parent = null;
+        }
         cache.splice(index, 1);
       }
 
@@ -1762,26 +1777,17 @@ ICAL.Component = (function() {
     _removeAllObjects: function(jCalIndex, cache, name) {
       var cached = this[cache];
 
-      if (name) {
-        var objects = this.jCal[jCalIndex];
-        var i = objects.length - 1;
+      // Unfortunately we have to run through all children to reset their
+      // parent property.
+      var objects = this.jCal[jCalIndex];
+      var i = objects.length - 1;
 
-        // descending search required because splice
-        // is used and will effect the indices.
-        for (; i >= 0; i--) {
-          if (objects[i][NAME_INDEX] === name) {
-            this._removeObjectByIndex(jCalIndex, cached, i);
-          }
+      // descending search required because splice
+      // is used and will effect the indices.
+      for (; i >= 0; i--) {
+        if (!name || objects[i][NAME_INDEX] === name) {
+          this._removeObjectByIndex(jCalIndex, cached, i);
         }
-      } else {
-        if (cache in this) {
-          // I think its probable that when we remove all
-          // of a type we may want to add to it again so it
-          // makes sense to reuse the object in that case.
-          // For now we remove the contents of the array.
-          this[cache].length = 0;
-        }
-        this.jCal[jCalIndex].length = 0;
       }
     },
 
@@ -1796,9 +1802,14 @@ ICAL.Component = (function() {
         this._hydratedComponentCount = 0;
       }
 
+      if (component.parent) {
+        component.parent.removeSubcomponent(component);
+      }
+
       var idx = this.jCal[COMPONENT_INDEX].push(component.jCal);
       this._components[idx - 1] = component;
       this._hydratedComponentCount++;
+      component.parent = this;
     },
 
     /**
@@ -1838,16 +1849,20 @@ ICAL.Component = (function() {
         throw new TypeError('must instance of ICAL.Property');
       }
 
-      var idx = this.jCal[PROPERTY_INDEX].push(property.jCal);
-      property.component = this;
-
       if (!this._properties) {
         this._properties = [];
         this._hydratedPropertyCount = 0;
       }
 
+
+      if (property.parent) {
+        property.parent.removeProperty(property);
+      }
+
+      var idx = this.jCal[PROPERTY_INDEX].push(property.jCal);
       this._properties[idx - 1] = property;
       this._hydratedPropertyCount++;
+      property.parent = this;
     },
 
     /**
@@ -1857,10 +1872,10 @@ ICAL.Component = (function() {
      * @param {Object} value property value.
      */
     addPropertyWithValue: function(name, value) {
-      var prop = new ICAL.Property(name, this);
+      var prop = new ICAL.Property(name);
       prop.setValue(value);
 
-      this.addProperty(prop, this);
+      this.addProperty(prop);
 
       return prop;
     },
@@ -1948,9 +1963,9 @@ ICAL.Property = (function() {
    * @param {Array|String} jCal raw jCal representation OR
    *  the new name of the property (when creating).
    *
-   * @param {ICAL.Component} [component] parent component.
+   * @param {ICAL.Component} [parent] parent component.
    */
-  function Property(jCal, component) {
+  function Property(jCal, parent) {
     if (typeof(jCal) === 'string') {
       // because we a creating by name we need
       // to find the type when creating the property.
@@ -1971,7 +1986,7 @@ ICAL.Property = (function() {
     }
 
     this.jCal = jCal;
-    this.component = component;
+    this.parent = parent || null;
     this._updateType();
   }
 
@@ -2418,7 +2433,7 @@ ICAL.Binary = (function() {
       this.start = aData.start;
     }
 
-    if (aData && ('end' in aData) && ('duration' in aData)) {
+    if (aData && aData.end && aData.duration) {
       throw new Error('cannot accept both end and duration');
     }
 
@@ -2444,6 +2459,14 @@ ICAL.Binary = (function() {
     duration: null,
     icalclass: "icalperiod",
     icaltype: "period",
+
+    clone: function() {
+      return ICAL.Period.fromData({
+        start: this.start ? this.start.clone() : null,
+        end: this.end ? this.end.clone() : null,
+        duration: this.duration ? this.duration.clone() : null
+      });
+    },
 
     getDuration: function duration() {
       if (this.duration) {
@@ -4337,7 +4360,7 @@ ICAL.TimezoneService = (function() {
   };
 
   var VALID_DAY_NAMES = /^(SU|MO|TU|WE|TH|FR|SA)$/;
-  var VALID_BYDAY_PART = /^([+-])?(5[0-3]|[1-4][0-9]|[1-9])?(SU|MO|TU|WE|TH|FR|SA)$/
+  var VALID_BYDAY_PART = /^([+-])?(5[0-3]|[1-4][0-9]|[1-9])?(SU|MO|TU|WE|TH|FR|SA)$/;
   var ALLOWED_FREQ = ['SECONDLY', 'MINUTELY', 'HOURLY',
                       'DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY'];
 
@@ -4841,7 +4864,7 @@ ICAL.RecurIterator = (function() {
       }
 
       // unique and sort
-      return newRules.sort();
+      return newRules.sort(function(a,b){return a - b});
     },
 
     /**
@@ -4854,13 +4877,12 @@ ICAL.RecurIterator = (function() {
      *                           increment the current day (this.last).
      */
     _byDayAndMonthDay: function(isInit) {
-     var byMonthDay; // setup in initMonth
+      var byMonthDay; // setup in initMonth
       var byDay = this.by_data.BYDAY;
 
       var date;
       var dateIdx = 0;
       var dateLen; // setup in initMonth
-      var dayIdx = 0;
       var dayLen = byDay.length;
 
       // we are not valid by default
@@ -4868,6 +4890,10 @@ ICAL.RecurIterator = (function() {
 
       var daysInMonth;
       var self = this;
+      // we need a copy of this, because a DateTime gets normalized
+      // automatically if the day is out of range. At some points we 
+      // set the last day to 0 to start counting.
+      var lastDay = this.last.day;
 
       function initMonth() {
         daysInMonth = ICAL.Time.daysInMonth(
@@ -4881,50 +4907,52 @@ ICAL.RecurIterator = (function() {
         );
 
         dateLen = byMonthDay.length;
+
+        // For the case of more than one occurrence in one month
+        // we have to be sure to start searching after the last
+        // found date or at the last BYMONTHDAY.
+        while (byMonthDay[dateIdx] <= lastDay && dateIdx < dateLen - 1) {
+          dateIdx++;
+        }
       }
 
       function nextMonth() {
-        self.last.day = 1;
+        // since the day is incremented at the start
+        // of the loop below, we need to start at 0
+        lastDay = 0;
         self.increment_month();
-        initMonth();
-
         dateIdx = 0;
-        dayIdx = 0;
+        initMonth();
       }
 
       initMonth();
 
       // should come after initMonth
       if (isInit) {
-        this.last.day -= 1;
+        lastDay -= 1;
       }
 
       while (!dataIsValid) {
-        // find next date
-        var next = byMonthDay[dateIdx++];
-
         // increment the current date. This is really
         // important otherwise we may fall into the infinite
         // loop trap. The initial date takes care of the case
         // where the current date is the date we are looking
         // for.
-        date = this.last.day + 1;
+        date = lastDay + 1;
 
         if (date > daysInMonth) {
           nextMonth();
           continue;
         }
 
-        // after verify that the next date
-        // is in the current month we can increment
-        // it permanently.
-        this.last.day = date;
+        // find next date
+        var next = byMonthDay[dateIdx++];
 
         // this logic is dependant on the BYMONTHDAYS
         // being in order (which is done by #normalizeByMonthDayRules)
-        if (next >= this.last.day) {
+        if (next >= date) {
           // if the next month day is in the future jump to it.
-          this.last.day = next;
+          lastDay = next;
         } else {
           // in this case the 'next' monthday has past
           // we must move to the month.
@@ -4934,11 +4962,12 @@ ICAL.RecurIterator = (function() {
 
         // Now we can loop through the day rules to see
         // if one matches the current month date.
-        for (dayIdx = 0; dayIdx < dayLen; dayIdx++) {
+        for (var dayIdx = 0; dayIdx < dayLen; dayIdx++) {
           var parts = this.ruleDayOfWeek(byDay[dayIdx]);
           var pos = parts[0];
           var dow = parts[1];
 
+          this.last.day = lastDay;
           if (this.last.isNthWeekDay(dow, pos)) {
             // when we find the valid one we can mark
             // the conditions as met and break the loop.
@@ -4953,7 +4982,9 @@ ICAL.RecurIterator = (function() {
         // cannot be matched in the current month.
         // When we reach the end of possible combinations
         // in the current month we iterate to the next one.
-        if (!dataIsValid && dateIdx === (dateLen - 1)) {
+        // since dateIdx is incremented right after getting
+        // "next", we don't need dateLen -1 here.
+        if (!dataIsValid && dateIdx === dateLen) {
           nextMonth();
           continue;
         }
@@ -5032,9 +5063,10 @@ ICAL.RecurIterator = (function() {
         if (day > daysInMonth) {
           this.last.day = 1;
           data_valid = this.is_day_in_byday(this.last);
+        } else {
+          this.last.day = day;
         }
 
-        this.last.day = day;
       } else {
         this.last.day = this.by_data.BYMONTHDAY[0];
         this.increment_month();
@@ -5060,7 +5092,7 @@ ICAL.RecurIterator = (function() {
         var tt = new ICAL.Time();
         this.by_indices.BYDAY++;
 
-        if (this.by_indices.BYDAY == this.by_data.BYDAY.length) {
+        if (this.by_indices.BYDAY == Object.keys(this.by_data.BYDAY).length) {
           this.by_indices.BYDAY = 0;
           end_of_data = 1;
         }
@@ -5182,6 +5214,7 @@ ICAL.RecurIterator = (function() {
     },
 
     increment_month: function increment_month() {
+      this.last.day = 1;
       if (this.has_by_data("BYMONTH")) {
         this.by_indices.BYMONTH++;
 
@@ -5192,7 +5225,6 @@ ICAL.RecurIterator = (function() {
 
         this.last.month = this.by_data.BYMONTH[this.by_indices.BYMONTH];
       } else {
-        var inc;
         if (this.rule.freq == "MONTHLY") {
           this.last.month += this.rule.interval;
         } else {
@@ -6241,6 +6273,7 @@ ICAL.Event = (function() {
      */
     getOccurrenceDetails: function(occurrence) {
       var id = occurrence.toString();
+      var utcId = occurrence.convertToZone(ICAL.Timezone.utcTimezone).toString();
       var result = {
         //XXX: Clone?
         recurrenceId: occurrence
@@ -6248,6 +6281,11 @@ ICAL.Event = (function() {
 
       if (id in this.exceptions) {
         var item = result.item = this.exceptions[id];
+        result.startDate = item.startDate;
+        result.endDate = item.endDate;
+        result.item = item;
+      } else if (utcId in this.exceptions) {
+        var item = this.exceptions[utcId];
         result.startDate = item.startDate;
         result.endDate = item.endDate;
         result.item = item;

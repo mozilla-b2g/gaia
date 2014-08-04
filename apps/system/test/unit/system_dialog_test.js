@@ -1,17 +1,16 @@
 'use strict';
-/* global MocksHelper, SystemDialog */
-
-mocha.globals(['BaseUI', 'AppWindowManager', 'LayoutManager',
-               'System', 'SystemDialog', 'dispatchEvent', 'stubById']);
+/* global MocksHelper, SystemDialog, LayoutManager */
 
 requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_layout_manager.js');
 requireApp('system/test/unit/mock_system_dialog_manager.js');
+requireApp('system/test/unit/mock_keyboard_manager.js');
 
 var mocksForSystemDialog = new MocksHelper([
   'AppWindowManager',
   'LayoutManager',
-  'SystemDialogManager'
+  'SystemDialogManager',
+  'KeyboardManager'
 ]).init();
 
 suite('system/SystemDialog', function() {
@@ -30,11 +29,13 @@ suite('system/SystemDialog', function() {
     requireApp('system/js/system.js');
     requireApp('system/js/base_ui.js');
     requireApp('system/js/system_dialog.js', done);
+    window.layoutManager = new LayoutManager();
   });
 
   teardown(function() {
     stubById.restore();
     stubDispatch.restore();
+    window.layoutManager = null;
   });
 
   suite('Handle events', function() {

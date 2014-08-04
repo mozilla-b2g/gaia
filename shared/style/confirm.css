@@ -4,9 +4,7 @@
 
 /* Main dialog setup */
 form[role="dialog"][data-type="confirm"] {
-  background:
-    url(confirm/images/ui/pattern.png) repeat left top,
-    url(confirm/images/ui/gradient.png) no-repeat left top / 100% 100%;
+  background: #2d2d2d;
   overflow: hidden;
   position: absolute;
   z-index: 100;
@@ -32,7 +30,7 @@ form[role="dialog"][data-type="confirm"]:before {
 }
 
 form[role="dialog"][data-type="confirm"] > section {
-  font-weight: lighter;
+  font-weight: 300;
   font-size: 2.2rem;
   color: #FAFAFA;
   padding: 0 1.5rem;
@@ -59,7 +57,7 @@ form[role="dialog"][data-type="confirm"] menu {
   white-space: nowrap;
   margin: 0;
   padding: 1.5rem;
-  background: #2d2d2d url(confirm/images/ui/pattern.png) repeat left top;
+  background: #4d4d4d;
   display: block;
   overflow: hidden;
   position: absolute;
@@ -177,7 +175,7 @@ form[role="dialog"][data-type="confirm"] p img {
 }
 
 form[role="dialog"][data-type="confirm"] p strong {
-  font-weight: lighter;
+  font-weight: 300;
 }
 
 form[role="dialog"][data-type="confirm"] p small {

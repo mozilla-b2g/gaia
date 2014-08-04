@@ -1,11 +1,13 @@
 /* global MocksHelper, MockNavigatorMozIccManager, icc,
           MockNavigatorMozMobileConnections, MockNavigatormozSetMessageHandler,
-          MockL10n, MockFtuLauncher, MockNavigatorSettings */
+          MockL10n, MockFtuLauncher, MockNavigatorSettings, KeyboardEvent */
 'use strict';
 
-requireApp('system/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system/test/unit/mock_system_icc_worker.js');
 requireApp('system/test/unit/mock_ftu_launcher.js');
+requireApp('system/test/unit/mock_statusbar.js');
+requireApp('system/test/unit/mock_keyboard_manager.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
@@ -14,12 +16,12 @@ require('/shared/test/unit/mocks/mock_dump.js');
 require('/shared/test/unit/load_body_html_helper.js');
 
 
-mocha.globals(['FtuLaucher', 'icc_worker', 'icc']);
-
 var mocksForIcc = new MocksHelper([
   'Dump',
   'FtuLauncher',
-  'SystemICCWorker'
+  'SystemICCWorker',
+  'StatusBar',
+  'KeyboardManager'
 ]).init();
 
 suite('STK (icc) >', function() {
@@ -27,6 +29,7 @@ suite('STK (icc) >', function() {
   var realMozIccManager, realSettings, realL10n,
       realNavigatormozSetMessageHandler, realNavigatormozMobileConnections;
   var stkTestCommands = {};
+  var xhrFake, xhrRequests = [];
 
   suiteSetup(function() {
     loadBodyHTML('/index.html');
@@ -66,14 +69,6 @@ suite('STK (icc) >', function() {
   setup(function(done) {
     MockFtuLauncher.mIsRunning = false;
 
-    requireApp('system/js/icc.js', done);
-  });
-
-  function launchStkCommand(cmd) {
-    icc.handleSTKCommand(cmd);
-  }
-
-  setup(function() {
     window.navigator.mozIccManager.addIcc('1010011010');
 
     stkTestCommands = {
@@ -85,7 +80,7 @@ suite('STK (icc) >', function() {
           commandQualifier: 0,
           options: {
             text: 'stk Input test text',
-            duration:{
+            duration: {
               timeUnit: navigator.mozIccManager.STK_TIME_UNIT_TENTH_SECOND,
               timeInterval: 5
             },
@@ -118,19 +113,32 @@ suite('STK (icc) >', function() {
         }
       }
     };
+
+    xhrFake = sinon.useFakeXMLHttpRequest();
+    xhrFake.onCreate = function (xhr) {
+      xhrRequests.push(xhr);
+    };
+
+    requireApp('system/js/icc.js', done);
   });
+
+  teardown(function() {
+    xhrFake.restore();
+  });
+
+  function launchStkCommand(cmd) {
+    icc.handleSTKCommand(cmd);
+  }
 
   test('getIcc', function() {
     assert.isObject(window.icc.getIcc('1010011010'));
   });
 
-  test('getIccInfo', function(done) {
-    window.icc.getIccInfo();
-    setTimeout(function() {
-      assert.equal(window.icc._defaultURL,
-        'http://www.mozilla.org/en-US/firefoxos/');
-      done();
-    }, 100);
+  test('getIccInfo', function() {
+    assert.equal(1, xhrRequests.length);
+    assert.equal(xhrRequests[0].url, '/resources/icc.json');
+    assert.equal(xhrRequests[0].method, 'GET');
+    assert.equal(xhrRequests[0].responseType, 'json');
   });
 
   test('clearMenuCache', function(done) {
@@ -172,9 +180,9 @@ suite('STK (icc) >', function() {
 
   test('calculateDurationInMS', function() {
     assert.equal(window.icc.calculateDurationInMS(
-      navigator.mozIccManager.STK_TIME_UNIT_MINUTE, 1), 3600000);
+      navigator.mozIccManager.STK_TIME_UNIT_MINUTE, 1), 60000);
     assert.equal(window.icc.calculateDurationInMS(
-      navigator.mozIccManager.STK_TIME_UNIT_MINUTE, 2), 7200000);
+      navigator.mozIccManager.STK_TIME_UNIT_MINUTE, 2), 120000);
     assert.equal(window.icc.calculateDurationInMS(
       navigator.mozIccManager.STK_TIME_UNIT_SECOND, 1), 1000);
     assert.equal(window.icc.calculateDurationInMS(
@@ -221,34 +229,35 @@ suite('STK (icc) >', function() {
   });
 
   test('UI: Input (timeout 1sec)', function(done) {
-    var testCmd = stkTestCommands.STK_CMD_GET_INPUT;
+    var fakeClock = this.sinon.useFakeTimers(),
+        testCmd = stkTestCommands.STK_CMD_GET_INPUT;
     window.icc.input(testCmd, testCmd.command.options.text, 1000,
       stkTestCommands.STK_CMD_GET_INPUT.command.options, function(res, value) {
+        fakeClock.restore();
         done();
       });
+    fakeClock.tick(1000);
   });
 
-  test('UI: Input (contents)', function(done) {
+  test('UI: Input (contents)', function() {
     var testCmd = stkTestCommands.STK_CMD_GET_INPUT;
     window.icc.input(testCmd, testCmd.command.options.text, 0,
       stkTestCommands.STK_CMD_GET_INPUT.command.options, function() {});
 
-    // We need to wait because workaround. See bug #818270. Followup: #895314
-    // See function workaround_bug818270 in icc.js
-    setTimeout(function() {
-      assert.equal(document.getElementById('icc-input-msg').textContent,
-        testCmd.command.options.text);
-      assert.equal(document.getElementById('icc-input-btn').textContent, 'OK');
-      assert.equal(document.getElementById('icc-input-btn').disabled, false);
-      assert.equal(document.getElementById('icc-input-btn_back').textContent,
-        'Back');
-      assert.equal(document.getElementById('icc-input-btn_help').textContent,
-        'Help');
-      done();
-    }, 600);
+    assert.equal(document.getElementById('icc-input-msg').textContent,
+      testCmd.command.options.text);
+    assert.equal(document.getElementById('icc-input-btn').textContent, 'ok (' +
+      (testCmd.command.options.maxLength -
+      testCmd.command.options.defaultText.length) + ')');
+    assert.equal(document.getElementById('icc-input-btn').disabled, false);
+    assert.equal(document.getElementById('icc-input-btn_back').textContent,
+      'back');
+    assert.equal(document.getElementById('icc-input-btn_help').textContent,
+      'Help');
   });
 
   test('UI: Input (checkInputLengthValid)', function() {
+    var fakeClock = this.sinon.useFakeTimers();
     var testCmd = stkTestCommands.STK_CMD_GET_INPUT;
     window.icc.input(testCmd, testCmd.command.options.text, 0,
       stkTestCommands.STK_CMD_GET_INPUT.command.options, function() {});
@@ -256,25 +265,52 @@ suite('STK (icc) >', function() {
     var button = document.getElementById('icc-input-btn');
     var inputbox = document.getElementById('icc-input-box');
 
-    // We need to wait because workaround. See bug #818270. Followup: #895314
-    // See function workaround_bug818270 in icc.js
-    setTimeout(function() {
-      // Using default string shall be enabled
-      assert.equal(button.disabled, false);
-      // Length between 3 and 10, empty is disabled
-      inputbox.value = '';
-      assert.equal(button.disabled, true);
-      inputbox.value = '1';
-      assert.equal(button.disabled, true);
-      inputbox.value = '12';
-      assert.equal(button.disabled, true);
-      inputbox.value = '123';
-      assert.equal(button.disabled, false);
-      inputbox.value = '1234567890';
-      assert.equal(button.disabled, false);
-      inputbox.value = '12345678901';
-      assert.equal(button.disabled, true);
-    }, 600);
+    fakeClock.tick(500);
+    fakeClock.restore();
+
+    var event = new KeyboardEvent('keyup', {
+      'view': window,
+      'bubbles': true,
+      'cancelable': true
+    });
+
+    assert.equal(button.disabled, false);
+    // Length between 2 and 10, empty is disabled
+    inputbox.value = '';
+    inputbox.dispatchEvent(event);
+    assert.equal(button.disabled, true);
+    assert.equal(document.getElementById('icc-input-btn').textContent, 'ok (' +
+      (testCmd.command.options.maxLength - inputbox.value.length) + ')');
+
+    inputbox.value = '1';
+    inputbox.dispatchEvent(event);
+    assert.equal(button.disabled, true);
+    assert.equal(document.getElementById('icc-input-btn').textContent, 'ok (' +
+      (testCmd.command.options.maxLength - inputbox.value.length) + ')');
+
+    inputbox.value = '12';
+    inputbox.dispatchEvent(event);
+    assert.equal(button.disabled, false);
+    assert.equal(document.getElementById('icc-input-btn').textContent, 'ok (' +
+      (testCmd.command.options.maxLength - inputbox.value.length) + ')');
+
+    inputbox.value = '123';
+    inputbox.dispatchEvent(event);
+    assert.equal(button.disabled, false);
+    assert.equal(document.getElementById('icc-input-btn').textContent, 'ok (' +
+      (testCmd.command.options.maxLength - inputbox.value.length) + ')');
+
+    inputbox.value = '1234567890';
+    inputbox.dispatchEvent(event);
+    assert.equal(button.disabled, false);
+    assert.equal(document.getElementById('icc-input-btn').textContent, 'ok (' +
+      (testCmd.command.options.maxLength - inputbox.value.length) + ')');
+
+    inputbox.value = '12345678901';
+    inputbox.dispatchEvent(event);
+    assert.equal(button.disabled, true);
+    assert.equal(document.getElementById('icc-input-btn').textContent, 'ok (' +
+      (testCmd.command.options.maxLength - inputbox.value.length) + ')');
   });
 
   test('launchStkCommand: STK_CMD_GET_INPUT', function(done) {

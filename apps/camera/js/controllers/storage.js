@@ -27,8 +27,8 @@ function StorageController(app) {
   this.camera = app.camera;
   this.settings = app.settings;
   this.storage = app.storage || new Storage();
-  this.configure();
   this.bindEvents();
+  this.configure();
   debug('initialized');
 }
 
@@ -44,6 +44,7 @@ function StorageController(app) {
  * @private
  */
 StorageController.prototype.configure = function() {
+  this.storage.configure();
   this.camera.createVideoFilepath = this.storage.createVideoFilepath;
   this.updateMaxFileSize();
 };
@@ -66,6 +67,7 @@ StorageController.prototype.bindEvents = function() {
   this.app.on('visible', this.storage.check);
 
   // Storage
+  this.storage.on('volumechanged', this.app.firer('storage:volumechanged'));
   this.storage.on('itemdeleted', this.app.firer('storage:itemdeleted'));
   this.storage.on('changed', this.onChanged);
   this.storage.on('checked', this.onChecked);
@@ -170,15 +172,18 @@ StorageController.prototype.storeVideo = function(video) {
  * isn't enough space left in storage
  * to accomodate a new picture.
  *
+ * It is very unlikely that a JPEG file will have a file size that is
+ * more than half a byte per pixel. There is some fixed EXIF overhead
+ * that is the same for small and large pictures, however, so we add
+ * an additional 25,000 bytes of padding.
+ *
  * @private
  */
 StorageController.prototype.updateMaxFileSize = function() {
-  var exif = 4096;
   var pictureSize = this.settings.pictureSizes.selected('data');
-  var bytes = (pictureSize.width * pictureSize.height * 3);
-  var total = bytes + exif;
-  this.storage.setMaxFileSize(total);
-  debug('maxFileSize updated %s', total);
+  var bytes = (pictureSize.width * pictureSize.height / 2) + 25000;
+  this.storage.setMaxFileSize(bytes);
+  debug('maxFileSize updated %s', bytes);
 };
 
 });

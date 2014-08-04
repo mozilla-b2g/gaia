@@ -145,22 +145,30 @@ var DownloadUI = (function() {
   window.addEventListener('home', removeContainers);
   window.addEventListener('holdhome', removeContainers);
 
-  function createConfirm(type, req, downloads) {
-    var _ = navigator.mozL10n.get;
+  function l10n(element, l10nid, l10nargs) {
+    // First set our args.
+    if (l10nargs) {
+      element.setAttribute('data-l10n-args', JSON.stringify(l10nargs));
+    }
+    // Then localize.
+    element.setAttribute('data-l10n-id', l10nid);
+    return element;
+  }
 
+  function createConfirm(type, req, downloads) {
     addConfirm();
 
     var dialog = document.createElement('section');
 
     // Header
     var header = document.createElement('h1');
-    header.textContent = _(type.name + '_download_title');
+    l10n(header, type.name + '_download_title');
     dialog.appendChild(header);
 
     // Message
     var message = document.createElement('p');
     if (type.isPlainMessage) {
-      message.textContent = _(type.name + '_download_message');
+      l10n(message, type.name + '_download_message');
     } else {
       var args = Object.create(null);
       if (type === TYPES.DELETE_ALL) {
@@ -168,7 +176,7 @@ var DownloadUI = (function() {
       } else {
         args.name = DownloadFormatter.getFileName(downloads[0]);
       }
-      message.textContent = _(type.name + '_download_message', args);
+      l10n(message, type.name + '_download_message', args);
     }
     dialog.appendChild(message);
 
@@ -179,9 +187,8 @@ var DownloadUI = (function() {
       // Left button
       var lButton = document.createElement('button');
       lButton.type = 'button';
-      lButton.appendChild(
-        document.createTextNode(_(type.name + '_download_left_button'))
-      );
+      lButton.setAttribute('data-l10n-id',
+                           type.name + '_download_left_button');
 
       lButton.onclick = function l_cancel() {
         lButton.onclick = null;
@@ -197,9 +204,8 @@ var DownloadUI = (function() {
       rButton.classList.add(clazz);
     });
 
-    rButton.appendChild(
-      document.createTextNode(_(type.name + '_download_right_button'))
-    );
+    rButton.setAttribute('data-l10n-id',
+                         type.name + '_download_right_button');
 
     rButton.onclick = function r_confirm() {
       rButton.onclick = null;
@@ -254,8 +260,6 @@ var DownloadUI = (function() {
   }
 
   function doCreateActionMenu(req, fileName, actions) {
-    var _ = navigator.mozL10n.get;
-
     addActionMenu();
 
     var header = document.createElement('header');
@@ -268,7 +272,7 @@ var DownloadUI = (function() {
     actions.forEach(function addActionButton(action) {
       var button = document.createElement('button');
       button.id = action.id;
-      button.textContent = _(action.title);
+      l10n(button, action.title);
       button.dataset.type = action.type;
       menu.appendChild(button);
       button.addEventListener('click', function buttonCliked(evt) {

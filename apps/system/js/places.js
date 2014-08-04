@@ -1,5 +1,5 @@
 'use strict';
-/* globals SettingsListener, Promise, AppWindowManager */
+/* globals Promise, AppWindowManager */
 /* exported Places */
 
 (function(exports) {
@@ -9,7 +9,6 @@
    * B2G. Places monitors app events and syncs information with the Places
    * datastore for consumption by apps like Search.
    * @requires AppWindowManager
-   * @requires SettingsListener
    * @class Places
    */
   function Places() {}
@@ -29,13 +28,6 @@
      * @type {Object}
      */
     dataStore: null,
-
-    /**
-     * Whether or not rocketbar is enabled.
-     * @memberof Places.prototype
-     * @type {Boolean}
-     */
-    rocketBarEnabled: false,
 
     /**
      * Set when we are editing a place record in the datastore.
@@ -65,10 +57,6 @@
 
       navigator.getDataStores(this.STORE_NAME)
         .then(this.initStore.bind(this)).then(callback);
-
-      SettingsListener.observe('rocketbar.enabled', false, (function(value) {
-        this.rocketBarEnabled = value;
-      }).bind(this));
     },
 
     /**
@@ -87,9 +75,6 @@
      * @memberof Places.prototype
      */
     handleEvent: function(evt) {
-      if (!this.rocketBarEnabled) {
-        return;
-      }
       var app = evt.detail;
       switch (evt.type) {
       case 'apptitlechange':
@@ -99,7 +84,7 @@
         this.addVisit(app.config.url);
         break;
       case 'appiconchange':
-        this.setPlaceIconUri(app.config.url, app.config.favicon.href);
+        this.addPlaceIcons(app.config.url, app.favicons);
         break;
       case 'apploaded':
         var index = this.screenshotQueue.indexOf(app.config.url);
@@ -143,6 +128,7 @@
       return {
         url: url,
         title: url,
+        icons: {},
         frecency: 0
       };
     },
@@ -224,12 +210,14 @@
      * Set place icon.
      *
      * @param {String} url URL of place to update.
-     * @param {String} iconUri URL of the icon for url.
+     * @param {String} icon The icon object
      * @memberof Places.prototype
      */
-    setPlaceIconUri: function(url, iconUri) {
-      return this.editPlace(url, function(place, cb) {
-        place.iconUri = iconUri;
+    addPlaceIcons: function(url, icons) {
+      return this.editPlace(url, (place, cb) => {
+        for (var iconUri in icons) {
+          place.icons[iconUri] = icons[iconUri];
+        }
         cb(place);
       });
     }

@@ -14,13 +14,19 @@
       }
       this.config = config;
     }
-    this.instanceID = _id++;
+    this.instanceID = 'mock-app-' + _id++;
     this.groupID = this.instanceID;
     MockAppWindowHelper.mInstances.push(this);
     MockAppWindowHelper.mLatest = this;
   };
   MockAppWindow.prototype = {
     isHomescreen: false,
+    get browserContainer() {
+      if (!this._browserContainer) {
+        this._browserContainer = document.createElement('div');
+      }
+      return this._browserContainer;
+    },
     get element() {
       if (!this._element) {
         this._element = document.createElement('div');
@@ -30,6 +36,7 @@
     get browser() {
       if (!this._iframe) {
         this._iframe = document.createElement('iframe');
+        this._iframe.download = function() {};
       }
       return {
         element: this._iframe
@@ -45,6 +52,7 @@
     changeURL: function() {},
     resize: function() {},
     setVisible: function() {},
+    setVisibleForScreenReader: function() {},
     blur: function() {},
     publish: function() {},
     broadcast: function() {},
@@ -65,9 +73,14 @@
     canGoBack: function() {},
     back: function() {},
     reload: function() {},
+    stop: function() {},
+    isBrowser: function() {},
+    isCertified: function() {},
+    navigate: function() {},
     isFullScreen: function() {},
     _changeState: function() {},
     _setVisible: function() {},
+    _setVisibleForScreenReader: function() {},
     modifyURLatBackground: function() {},
     getFrameForScreenshot: function() { return this.browser.element; },
     getTopMostWindow: function() { return this; },
@@ -85,7 +98,15 @@
     requestOpen: function() {},
     transitionController: {
       clearTransitionClasses: function() {}
-    }
+    },
+    enterTaskManager: function() {},
+    leaveTaskManager: function() {},
+    applyStyle: function() {},
+    unapplyStyle: function() {},
+    transform: function() {},
+    hideContextMenu: function() {},
+    lockOrientation: function() {},
+    isVisible: function() {}
   };
   MockAppWindow.mTeardown = function() {
     MockAppWindowHelper.mInstances = [];

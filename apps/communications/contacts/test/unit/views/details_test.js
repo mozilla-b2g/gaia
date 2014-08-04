@@ -2,7 +2,7 @@
 /* global contacts */
 /* global LazyLoader */
 /* global MmiManager */
-/* global MockActivities */
+/* global ActivityHandler */
 /* global MockContactAllFields */
 /* global MockContacts */
 /* global MockContactsListObj */
@@ -10,25 +10,33 @@
 /* global MockExtFb */
 /* global Mockfb */
 /* global MocksHelper */
+/* global MockUtils */
 /* global MultiSimActionButton */
 /* global Normalizer */
 /* global TelephonyHelper */
 /* global utils */
+/* global MockWebrtcClient */
+/* global ActivityHandler */
+/* export TAG_OPTIONS */
 /* exported SCALE_RATIO */
+/* exported _ */
 
 //Avoiding lint checking the DOM file renaming it to .html
 requireApp('communications/contacts/test/unit/mock_details_dom.js.html');
+requireApp(
+  'communications/contacts/test/unit/webrtc-client/mock_webrtc_client.js');
 
 require('/shared/js/text_normalizer.js');
 require('/shared/js/contacts/import/utilities/misc.js');
 require('/shared/js/contacts/utilities/dom.js');
 require('/shared/js/contacts/utilities/templates.js');
-require('/shared/js/contacts/utilities/event_listeners.js');
+requireApp('communications/contacts/test/unit/mock_event_listeners.js');
 require('/shared/test/unit/mocks/mock_contact_all_fields.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_multi_sim_action_button.js');
 require('/dialer/test/unit/mock_mmi_manager.js');
 require('/dialer/test/unit/mock_telephony_helper.js');
+
 
 requireApp('communications/contacts/js/views/details.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
@@ -40,12 +48,12 @@ requireApp('communications/contacts/test/unit/mock_activities.js');
 
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 
-var subject,
+var _ = function(key) { return key; },
+    subject,
     container,
     realL10n,
     realOnLine,
     realFormatDate,
-    realActivityHandler,
     dom,
     contactDetails,
     listContainer,
@@ -68,22 +76,22 @@ var subject,
     fbButtons,
     linkButtons,
     realContactsList,
-    mozL10nGetSpy;
+    mozL10nGetSpy,
+    backButton,
+    realListeners;
+
+requireApp('communications/contacts/js/tag_optionsstem.js');
 
 var SCALE_RATIO = 1;
 
-if (!window.ActivityHandler) {
-  window.ActivityHandler = null;
-}
-
-mocha.globals(['fb', 'mozL10n']);
-
 var mocksHelperForDetailView = new MocksHelper([
   'ContactPhotoHelper',
+  'WebrtcClient',
   'LazyLoader',
   'MmiManager',
   'MultiSimActionButton',
-  'TelephonyHelper'
+  'TelephonyHelper',
+  'ActivityHandler'
 ]).init();
 
 suite('Render contact', function() {
@@ -101,7 +109,8 @@ suite('Render contact', function() {
   suiteSetup(function() {
     realOnLine = Object.getOwnPropertyDescriptor(navigator, 'onLine');
     realL10n = navigator.mozL10n;
-    realActivityHandler = window.ActivityHandler;
+    realListeners = utils.listeners;
+    utils.listeners = MockUtils.listeners;
     navigator.mozL10n = {
       get: function get(key) {
         return key;
@@ -125,8 +134,6 @@ suite('Render contact', function() {
         return normalizedDate.toString();
     };
 
-    window.ActivityHandler = MockActivities;
-
     Object.defineProperty(navigator, 'onLine', {
       configurable: true,
       get: navigatorOnLine,
@@ -145,6 +152,7 @@ suite('Render contact', function() {
     dom.innerHTML = MockDetailsDom;
     container = dom.querySelector('#details-list');
     subject = contacts.Details;
+    utils.listeners.dom = dom;
     subject.init(dom);
     contactDetails = dom.querySelector('#contact-detail');
     listContainer = dom.querySelector('#details-list');
@@ -158,6 +166,7 @@ suite('Render contact', function() {
     cover = dom.querySelector('#cover-img');
     detailsInner = dom.querySelector('#contact-detail-inner');
     favoriteMessage = dom.querySelector('#toggle-favorite').children[0];
+    backButton = dom.querySelector('#details-back');
 
     fbButtons = [
       '#profile_button',
@@ -178,17 +187,17 @@ suite('Render contact', function() {
     mozL10nGetSpy.restore();
     window.mozL10n = realL10n;
 
+    utils.listeners = realListeners;
+
     if (realOnLine) {
       Object.defineProperty(navigator, 'onLine', realOnLine);
     }
     utils.misc.formatDate = realFormatDate;
-    window.ActivityHandler = realActivityHandler;
   });
 
   setup(function() {
     mockContact = new MockContactAllFields(true);
     subject.setContact(mockContact);
-    TAG_OPTIONS = Contacts.getTags();
     window.set;
   });
 
@@ -810,13 +819,13 @@ suite('Render contact', function() {
     test(' > Not loading MultiSimActionButton when we are on an activity',
          function() {
       this.sinon.stub(MmiManager, 'isMMI').returns(true);
-      MockActivities.currentlyHandling = true;
+      ActivityHandler.currentlyHandling = true;
       subject.render(null, TAG_OPTIONS);
 
       sinon.assert.notCalled(MmiManager.isMMI);
       sinon.assert.neverCalledWith(LazyLoader.load,
        ['/shared/js/multi_sim_action_button.js']);
-      MockActivities.currentlyHandling = false;
+      ActivityHandler.currentlyHandling = false;
     });
 
     test('> Not loading MultiSimActionButton if we have a MMI code',
@@ -834,8 +843,9 @@ suite('Render contact', function() {
       this.sinon.stub(MmiManager, 'isMMI').returns(false);
       subject.render(null, TAG_OPTIONS);
 
-      // We have two buttons, 2 calls per button created
-      assert.equal(LazyLoader.load.callCount, 4);
+      // We have two buttons, 2 calls per button created plus webrtc
+      // client call
+      assert.equal(LazyLoader.load.callCount, 5);
       var spyCall = LazyLoader.load.getCall(1);
       assert.deepEqual(
         ['/shared/js/multi_sim_action_button.js'], spyCall.args[0]);
@@ -901,6 +911,47 @@ suite('Render contact', function() {
         assert.isFalse(contactDetails.classList.contains('calls-disabled'));
       });
     });
+  });
+
+  suite('> Handle back button', function() {
+    setup(function () {
+      this.sinon.spy(MockWebrtcClient, 'stop');
+      this.sinon.spy(window.ActivityHandler, 'postCancel');
+      this.sinon.spy(Contacts.navigation, 'back');
+    });
+
+    test('> going back from details', function () {
+      backButton.click();
+
+      sinon.assert.calledOnce(MockWebrtcClient.stop);
+      sinon.assert.notCalled(ActivityHandler.postCancel);
+      sinon.assert.calledOnce(Contacts.navigation.back);
+    });
+
+    test('> going back from details during an activity', function () {
+      ActivityHandler.currentlyHandling = true;
+      backButton.click();
+
+      sinon.assert.calledOnce(MockWebrtcClient.stop);
+      sinon.assert.calledOnce(ActivityHandler.postCancel);
+      sinon.assert.notCalled(Contacts.navigation.back);
+
+      ActivityHandler.currentlyHandling = false;
+    });
+
+    test('> going back from details during an IMPORT activity', function () {
+      ActivityHandler.currentlyHandling = true;
+      ActivityHandler.activityName = 'import';
+      backButton.click();
+
+      sinon.assert.calledOnce(MockWebrtcClient.stop);
+      sinon.assert.notCalled(ActivityHandler.postCancel);
+      sinon.assert.calledOnce(Contacts.navigation.back);
+
+      ActivityHandler.currentlyHandling = false;
+      ActivityHandler.activityName = 'view';
+    });
+
   });
 
 });

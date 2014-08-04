@@ -25,7 +25,8 @@ function SetupProgressCard(domNode, mode, args) {
     {
       displayName: args.displayName,
       emailAddress: args.emailAddress,
-      password: args.password
+      password: args.password,
+      outgoingPassword: args.outgoingPassword
     },
     args.domainInfo || null,
     function(err, errDetails, account) {

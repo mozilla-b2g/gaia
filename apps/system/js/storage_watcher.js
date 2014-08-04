@@ -101,13 +101,12 @@ var DeviceStorageWatcher = {
 
     var units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
     var i = 0;
-    while (size >= 1024 && i < units.length) {
+    while (size >= 1024 && i < (units.length) - 1) {
       size /= 1024;
       ++i;
     }
 
-    var sizeString = size.toFixed((size < 1024 * 1024) ? 0 : 1);
-    var sizeDecimal = parseFloat(sizeString);
+    var sizeDecimal = i < 2 ? Math.round(size) : Math.round(size * 10) / 10;
 
     return {
       size: sizeDecimal,
@@ -153,7 +152,7 @@ var DeviceStorageWatcher = {
   }
 };
 
-window.addEventListener('localized', function startup(evt) {
-  window.removeEventListener('localized', startup);
-  DeviceStorageWatcher.init();
-});
+// unit tests call init() manually
+if (navigator.mozL10n) {
+  navigator.mozL10n.once(DeviceStorageWatcher.init.bind(DeviceStorageWatcher));
+}

@@ -26,7 +26,9 @@ Calendar.ns('Views').WeekChild = (function() {
         this.date,
         '%a %e'
       );
-      return template.header.render(format);
+      return template.header.render({
+        title: format
+      });
     },
 
     _renderEvent: function(busytime, event) {
@@ -48,13 +50,14 @@ Calendar.ns('Views').WeekChild = (function() {
      * @param {Numeric} duration in hours, minutes as decimal part.
      */
     _assignHeight: function(element, hoursDuration) {
-      var percHeight = hoursDuration * 100;
-
-      // TODO: This is a magic calculation based on current CSS. Fix this so
-      // that it can be dynamic based on CSS, or fix CSS to not need this.
-      var pxHeight = (hoursDuration * 2) - 5;
-
-      element.style.height = 'calc(' + percHeight + '% + ' + pxHeight + 'px)';
+      // we use 0.1rem as margin between events, otherwise consecutive events
+      // would "blend". Need also to increase height to account for each border
+      // between the hours, otherwise events that spans through multiple hours
+      // would not be aligned properly
+      var percHeight = (hoursDuration * 100) + '%';
+      var remHeight = (Math.floor(hoursDuration) / 10) + 'rem';
+      element.style.height = 'calc(' + percHeight + ' + ' + remHeight +
+        ' - 0.1rem)';
     },
 
     create: function() {
@@ -64,6 +67,8 @@ Calendar.ns('Views').WeekChild = (function() {
         'afterbegin',
         this._renderHeader()
       );
+
+      this.stickyFrame.dataset.date = this.date;
 
       this.stickyFrame.appendChild(this.allDayElement);
 

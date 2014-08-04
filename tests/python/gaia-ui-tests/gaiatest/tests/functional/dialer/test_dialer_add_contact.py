@@ -40,9 +40,6 @@ class TestDialerAddContact(GaiaTestCase):
         # Click Done button, don't return Contacts because we return to Dialer
         new_contact.tap_done(return_contacts=False)
 
-        # Switch back to keypad-view
-        self.apps.switch_to_displayed_app()
-
         #Go to Contact list and Verify result
         contacts = self.phone.tap_contacts()
 

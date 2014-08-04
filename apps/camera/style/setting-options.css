@@ -17,16 +17,6 @@
   height: 100%;
 }
 
-/** Title
- ---------------------------------------------------------*/
-
-.setting-options .settings_title:before {
-  display: block;
-  position: absolute;
-  left: -1rem; top: 0;
-  font-size: 24px;
-}
-
 /** Items
  ---------------------------------------------------------*/
 
@@ -104,4 +94,26 @@
 
 .setting-option.selected:before {
   visibility: visible;
+}
+
+.settings-back-btn {
+  width: 15rem;
+  height: 9rem;
+  background: transparent;
+  border: none;
+  text-shadow: none;
+  font-size: 24px;
+  color: #FFFFFF;
+  text-align: left;
+  margin-top: 0rem;
+  margin-right: -26.1rem;
+  margin-left: -2.5rem;
+  line-height: 9rem;
+  padding-left: 0.5rem;
+  position: absolute;
+}
+
+.settings-back-btn:active {
+  background: transparent;
+  color: #008EAb;
 }

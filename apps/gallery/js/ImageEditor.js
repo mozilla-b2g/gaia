@@ -45,11 +45,12 @@ function resizeHandler() {
 
 function editPhoto(n) {
   editedPhotoIndex = n;
+  var metadata = files[n].metadata;
 
   // Start with no edits
   editSettings = {
     crop: {
-      x: 0, y: 0, w: files[n].metadata.width, h: files[n].metadata.height
+      x: 0, y: 0, w: metadata.width, h: metadata.height
     },
     gamma: 1,
     matrix: ImageProcessor.IDENTITY_MATRIX,
@@ -57,14 +58,42 @@ function editPhoto(n) {
   };
 
   // Start looking up the image file
-  photodb.getFile(files[n].name, function(file) {
-    // Once we get the file create a URL for it and use that url for the
-    // preview image and all the buttons that need it.
-    editedPhotoURL = URL.createObjectURL(file);
+  photodb.getFile(files[n].name, gotFile);
 
+  function gotFile(file) {
+    // The image editor does not handle EXIF rotation, so if the image has
+    // EXIF orientation flags, we alter the image in place before starting
+    // to edit it.
+    //
+    // For low-memory devices like Tarako, CONFIG_MAX_EDIT_PIXEL_SIZE
+    // will be set to a non-zero value, and this may cause us to downsample
+    // the image before allowing the user to edit it.
+    if ((metadata.rotation !== undefined && metadata.rotation) ||
+        (metadata.mirrored !== undefined && metadata.mirrored) ||
+        CONFIG_MAX_EDIT_PIXEL_SIZE) {
+      showSpinner();
+      cropResizeRotate(file, null, CONFIG_MAX_EDIT_PIXEL_SIZE || null,
+                       null, metadata,
+                       function(error, rotatedBlob) {
+                         hideSpinner();
+                         if (error) {
+                           console.error('Error while rotating image:', error);
+                           rotatedBlob = file;
+                         }
+                         startEdit(rotatedBlob);
+                       });
+    }
+    else {
+      startEdit(file);
+    }
+  }
+
+  // This will be called with the file the user is editing or with a rotated
+  // version of that file
+  function startEdit(blob) {
     // Create the image editor object
     // This has to come after setView or the canvas size is wrong.
-    imageEditor = new ImageEditor(editedPhotoURL,
+    imageEditor = new ImageEditor(blob,
                                   $('edit-preview-area'),
                                   editSettings);
 
@@ -77,11 +106,21 @@ function editPhoto(n) {
     window.addEventListener('resize', resizeHandler);
 
     // Set the background for all of the image buttons
-    var backgroundImage = 'url(' + editedPhotoURL + ')';
+    editedPhotoURL = URL.createObjectURL(blob);
+
+    // Use #-moz-samplesize media fragment to downsample images
+    // so the resulting images are smaller and fits 5 image buttons
+    // Here we assume image buttons are 50px high
+    var scale = window.innerWidth / 5 * window.devicePixelRatio *
+                window.devicePixelRatio * 50 /
+                (metadata.width * metadata.height);
+    var sampleSize = Downsample.areaNoMoreThan(scale);
+
+    var backgroundImage = 'url(' + editedPhotoURL + sampleSize + ')';
     editBgImageButtons.forEach(function(b) {
       b.style.backgroundImage = backgroundImage;
     });
-  });
+  }
 
   // Display the edit screen
   setView(LAYOUT_MODE.edit);
@@ -443,22 +482,19 @@ function saveEditedImage() {
  * edit-vertex-shader and edit-fragment-shader. It dynamically creates
  * canvas elements with ids edit-preview-canvas and edit-crop-canvas.
  * The stylesheet includes static styles to position those dyanamic elements.
- *
- * Bug 935273: if previewURL is passed then we're using the ImageEditor
- *  only to display a crop overlay. We avoid decoding the full-size
- *  image for as long as we can. Also, if we're only cropping then we
- *  can avoid all of the webgl stuff.
  */
-function ImageEditor(imageURL, container, edits, ready, previewURL) {
-  this.imageURL = imageURL;
+function ImageEditor(imageBlob, container, edits, ready, croponly) {
+  this.imageBlob = imageBlob;
+  this.imageURL = URL.createObjectURL(imageBlob);
   this.container = container;
   this.edits = edits || {};
+  this.croponly = !!croponly;
+
   this.source = {};     // The source rectangle (crop region) of the image
   this.dest = {};       // The destination (preview) rectangle of canvas
   this.cropRegion = {}; // Region displayed in crop overlay during drags
 
   // The canvas that displays the preview
-
   this.previewCanvas = document.createElement('canvas');
   this.previewCanvas.id = 'edit-preview-canvas'; // for stylesheet
   this.container.appendChild(this.previewCanvas);
@@ -466,7 +502,7 @@ function ImageEditor(imageURL, container, edits, ready, previewURL) {
   this.previewCanvas.height = this.previewCanvas.clientHeight;
 
   // prepare gesture detector for ImageEditor
-  this.gestureDetector = new GestureDetector(container);
+  this.gestureDetector = new GestureDetector(container, { panThreshold: 3 });
   this.gestureDetector.startDetecting();
 
   // preset the scale to something useful in case resize() gets called
@@ -482,11 +518,10 @@ function ImageEditor(imageURL, container, edits, ready, previewURL) {
   this.needsUpload = true;
 
   var self = this;
-  if (previewURL) {
-    this.croponly = true;
+  if (this.croponly) {
     this.original = null;
     this.preview = new Image();
-    this.preview.src = previewURL;
+    this.preview.src = this.imageURL;
     this.preview.onload = function() {
       self.displayCropOnlyPreview();
       if (ready)
@@ -494,11 +529,9 @@ function ImageEditor(imageURL, container, edits, ready, previewURL) {
     };
   }
   else {
-    this.croponly = false;
-
     // Start loading the image into a full-size offscreen image
     this.original = new Image();
-    this.original.src = imageURL;
+    this.original.src = this.imageURL;
     this.preview = new Image();
     this.preview.src = null;
 
@@ -645,10 +678,9 @@ ImageEditor.prototype.resize = function() {
 };
 
 ImageEditor.prototype.destroy = function() {
-  if (!this.croponly) {
+  if (this.processor) {
     this.processor.destroy();
-    this.resetPreview();
-    this.preview = null;
+    this.processor = null;
   }
 
   if (this.original) {
@@ -656,8 +688,22 @@ ImageEditor.prototype.destroy = function() {
     this.original = null;
   }
 
-  this.container.removeChild(this.previewCanvas);
-  this.previewCanvas = null;
+  if (this.preview) {
+    if (this.preview.src !== this.imageURL) {
+      URL.revokeObjectURL(this.preview.src);
+    }
+    this.preview.src = '';
+    this.preview = null;
+  }
+
+  URL.revokeObjectURL(this.imageURL);
+
+  if (this.previewCanvas) {
+    this.container.removeChild(this.previewCanvas);
+    // Setting the canvas size to 0 causes a WebGL error so we don't do it
+    // this.previewCanvas.width = 0;
+    this.previewCanvas = null;
+  }
   this.hideCropOverlay();
   this.gestureDetector.stopDetecting();
   this.gestureDetector = null;
@@ -856,7 +902,7 @@ ImageEditor.prototype.showCropOverlay = function showCropOverlay(newRegion) {
   var context = this.cropContext = canvas.getContext('2d');
 
   // Crop handle styles
-  context.translate(15, 15);
+  context.translate(25, 15);
   context.lineCap = 'round';
   // XXX
   // Please turn on the followig line when Bug 937529 is fixed. This is an
@@ -926,7 +972,7 @@ ImageEditor.prototype.drawCropControls = function(handle) {
   var height = bottom - top;
 
   // Erase everything
-  context.clearRect(-15, -15, canvas.width, canvas.height);
+  context.clearRect(-25, -15, canvas.width, canvas.height);
 
   // Overlay the preview canvas with translucent gray
   context.fillStyle = 'rgba(0, 0, 0, .5)';
@@ -1317,81 +1363,25 @@ ImageEditor.prototype.setCropAspectRatio = function(ratioWidth, ratioHeight) {
   this.drawCropControls();
 };
 
-// Get the pixels of the selected crop region, and resize them if width
-// and height are specifed, encode them as an image file of the specified
-// type and pass that file as a blob to the specified callback
-ImageEditor.prototype.getCroppedRegionBlob = function(type,
-                                                      width, height,
-                                                      callback)
-{
-  // This is similar to the code in cropImage() and getFullSizeBlob
-  // but since we're doing only cropping and no pixel manipulation I
-  // don't need to create an ImageProcessor object.
+// Return the crop region as an object with left, top, width and height
+// properties. The values of these properties are numbers between 0 and 1
+// representing fractions of the full image width and height.
+ImageEditor.prototype.getCropRegion = function() {
+  var region = this.cropRegion;
+  var previewRect = this.dest;
 
-  // If we're only doing cropping and no editing, then we haven't
-  // decoded the original image yet, so we have to do that now.
-  var self = this;
-  if (this.croponly) {
-    this.original = new Image();
-    this.original.src = this.imageURL;
-    this.original.onload = function() {
-      self.source.x = 0;
-      self.source.y = 0;
-      self.source.width = self.original.width;
-      self.source.height = self.original.height;
-      finish();
-    };
-  }
-  else {
-    finish();
-  }
+  // Convert the preview crop region to fractions
+  var left = region.left / previewRect.width;
+  var right = region.right / previewRect.width;
+  var top = region.top / previewRect.height;
+  var bottom = region.bottom / previewRect.height;
 
-  function finish() {
-    // Compute the rectangle of the original image that the user selected
-    var region = self.cropRegion;
-    var dest = self.dest;
-
-    // Convert the preview crop region to fractions
-    var left = region.left / dest.width;
-    var right = region.right / dest.width;
-    var top = region.top / dest.height;
-    var bottom = region.bottom / dest.height;
-
-    // Now convert those fractions to pixels in the original image
-    // Note that the original image may have already been cropped, so we
-    // multiply by the size of the crop region, not the full size
-    left = Math.floor(left * self.source.width);
-    right = Math.ceil(right * self.source.width);
-    top = Math.floor(top * self.source.height);
-    bottom = Math.floor(bottom * self.source.height);
-
-    // If no destination size was specified, use the source size
-    if (!width || !height) {
-      width = right - left;
-      height = bottom - top;
-    }
-
-    // Create a canvas of the desired size
-    var canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
-    var context = canvas.getContext('2d', { willReadFrequently: true });
-
-    // Copy that rectangle to our canvas
-    context.drawImage(self.original,
-                      left, top, right - left, bottom - top,
-                      0, 0, width, height);
-
-    // We're done with the original image
-    self.original.src = '';
-    self.original = null;
-
-    canvas.toBlob(function(blob) {
-      canvas.width = canvas.height = 0;
-      canvas = context = null;
-      callback(blob);
-    }, type);
-  }
+  return {
+    left: left,
+    top: top,
+    width: right - left,
+    height: bottom - top
+  };
 };
 
 // Toggle the auto enhancement on/off.

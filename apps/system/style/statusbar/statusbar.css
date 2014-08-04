@@ -6,40 +6,54 @@
   height: 2rem;
 }
 
+#screen.rocketbar-focused .gesture-panel {
+  pointer-events: none;
+}
+
 #statusbar-background {
   width: 100%;
-  height: 4.8rem;
+  height: 3rem;
   background-color: #000;
+  opacity: 1;
   padding: 0;
-  transform: scaleY(0.5);
-  transition: transform 0.5s;
+  transform: scaleY(1);
+  transition: transform 0.1s, opacity 0.5s;
   transform-origin: left top;
 }
 
-#screen.rocketbar-expanded #statusbar-background {
-  transform: scaleY(1);
-}
-
-body.rb-enabled #screen.on-homescreen:not(.cards-view):not(.rocketbar-focused) #statusbar-background {
-  transform: scaleY(1.5);
+#screen #statusbar-background {
+  visibility: hidden;
 }
 
 #statusbar {
   position: fixed;
   width: 100%;
-  height: 2.4rem;
-  top: 0;
+  height: 3rem;
+  top: -3rem;
   left: 0;
 }
 
-body:not(.rb-enabled) #statusbar {
-  transition: transform 0.2s linear;
-  will-change: transform;
+#screen.utility-tray #statusbar,
+#screen.attention #statusbar {
+  top: 0;
+  background-color: black;
 }
 
-#screen.lockscreen-camera > #statusbar,
-#statusbar.invisible {
-  transform: translateY(-100%);
+body #statusbar {
+  transition: transform 0.2s linear;
+}
+
+#screen:not(.utility-tray):not(.attention) #statusbar-background:not(.opaque) {
+  /* We want to show both the statusbar and homesearch bar at 15% opacity.
+     The homescreen has a 5% wallpaper overlay, so 0.1 is needed to match. */
+  opacity: 0.1;
+}
+
+/* Hiding the black background while the homescreen is in foreground but not
+ * utility tray or attention screen */
+#screen.lockscreen-camera > #statusbar {
+  transform: scaleY(0);
+  transform-origin: left top;
 }
 
 #statusbar-background.hidden {
@@ -54,11 +68,11 @@ body:not(.rb-enabled) #statusbar {
 #screen.locked:not(.attention) #statusbar-background {
   background-color: transparent;
   display: block;
-  transform: translateY(0);
+  transform: scaleY(1);
 }
 
-#screen:not(.locked) #statusbar.invisible.dragged {
-  background-color: black;
+#screen.locked:not(.attention) #statusbar-background:before {
+  background-color: transparent;
 }
 
 #screen.attention.locked #statusbar-time {
@@ -67,38 +81,35 @@ body:not(.rb-enabled) #statusbar {
 
 #statusbar-icons > * {
   float: right;
-  margin: 0 0.2rem;
+  margin: 0.6rem 0.2rem 0.6rem 0.3rem;
 }
 
 #statusbar-icons {
   position: absolute;
   width: calc(50% - 0.8rem);
-  height: 1.2rem;
+  height: 3rem;
   margin: 0;
   top: 0;
   right: 0;
-  padding: 0.4rem;
+  padding: 0 0.8rem;
   transition: opacity 0.3s;
   overflow: hidden;
   white-space: nowrap;
 }
 
-#screen.rocketbar-expanded:not(.on-homescreen):not(.locked) #statusbar-icons,
-#screen.rocketbar-expanded.on-homescreen.rocketbar-focused:not(.locked) #statusbar-icons,
-#screen.rocketbar-expanded.cards-view #statusbar-icons {
+#screen.rocketbar-focused:not(.locked) #statusbar-icons {
   visibility: hidden;
   opacity: 0;
 }
 
-body:not(.rb-enabled) #statusbar-icons,
-body.rb-enabled #statusbar.on-homescreen #statusbar-icons {
-  width: calc(100% - 0.8rem);
+#screen.rocketbar-focused #statusbar-background {
+  visibility: hidden;
+  opacity: 0;
 }
 
-#statusbar-title,
-body:not(.rb-enabled) #statusbar-icons > .sb-start {
-  float: left;
-  -moz-transition: visibility 0.5s ease, -moz-transform 0.5s ease;
+body #statusbar-icons {
+  width: 100%;
+  box-sizing: border-box;
 }
 
 *[dir=rtl] #statusbar-icons {
@@ -110,17 +121,15 @@ body:not(.rb-enabled) #statusbar-icons > .sb-start {
   float: left;
 }
 
-*[dir=rtl] #statusbar-icons > .sb-start {
+*[dir=rtl] body #statusbar-icons > .sb-start {
   float: right;
 }
 
 #statusbar-icons > .sb-start-upper {
   visibility: hidden;
   position: absolute;
-  top: -2.4rem;
   left: 0;
-
-  -moz-transition: visibility 0.5s ease, -moz-transform 0.5s ease;
+  top: -3rem;
 }
 
 *[dir=rtl] #statusbar-icons > .sb-start-upper {
@@ -128,39 +137,38 @@ body:not(.rb-enabled) #statusbar-icons > .sb-start {
   right: 0;
 }
 
-body:not(.rb-enabled) .utility-tray #statusbar-icons > .sb-start-upper,
+body .utility-tray #statusbar-icons > .sb-start-upper,
 .utility-tray #statusbar > #statusbar-title,
 #statusbar-title.hidden {
   visibility: visible;
-  -moz-transform: translateY(2.4rem);
+  transform: translateY(3rem);
 }
 
-body:not(.rb-enabled) .utility-tray #statusbar-icons > .sb-start {
+body .utility-tray #statusbar-icons > .sb-start {
   visibility: hidden;
-  -moz-transform: translateY(2.4rem);
+  transform: translateY(3rem);
 }
 
 #statusbar-label {
-  color: #919899;
-  font-size: 1.49rem; /* 6.5pt */
   position: relative;
-  bottom: 0.1rem;
-}
-
-body.rb-enabled #statusbar-label {
-  display: none;
+  margin-left: 0.8rem;
+  color: #ffffff;
+  font-size: 1.5rem;
+  font-weight: 400;
+  line-height: 1.6rem;
 }
 
 #statusbar-time, #statusbar-data:not(.sb-icon-data-circle) {
   position: relative;
-  bottom: 0.2rem;
   color: #fff;
-  font-size: 1.49rem; /* 6.5pt */
+  font-size: 1.5rem;
+  font-weight: 400;
+  line-height: 1.6rem;
 }
 
 #statusbar-time span {
-  margin: 0 0.3rem;
-  font-size: 1rem;
+  margin: 0;
+  font-size: 1.1rem;
 }
 
 /* signal and data icons */
@@ -172,12 +180,12 @@ body.rb-enabled #statusbar-label {
 #statusbar-connections > * {
   float: right;
   pointer-events: none;
-  margin: 0 0.2rem;
+  margin: 0.6rem 0.2rem;
 }
 
 #statusbar-connections .statusbar-data:not(.sb-icon-data-circle) {
   color: #fff;
-  font-size: 1.49rem; /* 6.5pt */
+  font-size: 1.5rem;
   position: relative;
   bottom: 0.1rem;
 }
@@ -194,7 +202,7 @@ body.rb-enabled #statusbar-label {
 #statusbar-connections[data-multiple="true"] .statusbar-signal::before {
   position: absolute;
   font-size: 0.8rem;
-  top: 0.5rem;
+  bottom: 0;
   left: -0.6rem;
 }
 
@@ -214,7 +222,7 @@ body.rb-enabled #statusbar-label {
 #statusbar-connections[data-multiple="true"] .statusbar-data {
   position: relative;
   width: 1.3rem;
-  margin: 0;
+  margin: 0.3rem 0 0 0;
   font-size: 0.8rem;
   text-align: right;
 }
@@ -242,7 +250,7 @@ body.rb-enabled #statusbar-label {
 #statusbar-call-forwardings > * {
   float: right;
   pointer-events: none;
-  margin: 0 0.6rem;
+  margin: 0.4rem 0.6rem;
 }
 
 #statusbar-call-forwardings .sb-icon-call-forwarding {
@@ -273,47 +281,47 @@ body.rb-enabled #statusbar-label {
   width: 1.6rem;
   height: 1.6rem;
   background: url('images/icons.png') no-repeat;
-  background-size: 31.4rem 9.6rem;
+  background-size: 34rem 9.6rem;
 }
 
-.sb-icon-battery {
+#statusbar-icons .sb-icon-battery {
   width: 2.5rem;
 }
 .sb-icon-battery[data-level="0"] {
   background-position: 0 0;
 }
 .sb-icon-battery[data-level="10"] {
-  background-position: -2.6rem 0;
+  background-position: -2.8rem 0;
 }
 .sb-icon-battery[data-level="20"] {
-  background-position: -5.2rem 0;
+  background-position: -5.6rem 0;
 }
 .sb-icon-battery[data-level="30"] {
-  background-position: -7.8rem 0;
+  background-position: -8.4rem 0;
 }
 .sb-icon-battery[data-level="40"] {
-  background-position: -10.4rem 0;
+  background-position: -11.2rem 0;
 }
 .sb-icon-battery[data-level="50"] {
-  background-position: -13rem 0;
+  background-position: -14rem 0;
 }
 .sb-icon-battery[data-level="60"] {
-  background-position: -15.6rem 0;
+  background-position: -16.8rem 0;
 }
 .sb-icon-battery[data-level="70"] {
-  background-position: -18.2rem 0;
+  background-position: -19.6rem 0;
 }
 .sb-icon-battery[data-level="80"] {
-  background-position: -20.8rem 0;
+  background-position: -22.4rem 0;
 }
 .sb-icon-battery[data-level="90"] {
-  background-position: -23.4rem 0;
+  background-position: -25.2rem 0;
 }
 .sb-icon-battery[data-level="100"] {
-  background-position: -26rem 0;
+  background-position: -28rem 0;
 }
 .sb-icon-battery:not([data-level]) {
-  background-position: -28.6rem 0;
+  background-position: -30.8rem 0;
 }
 
 .sb-icon-battery:not([data-level])[data-charging="true"],
@@ -321,34 +329,34 @@ body.rb-enabled #statusbar-label {
   background-position: 0 -2rem;
 }
 .sb-icon-battery[data-level="10"][data-charging="true"] {
-  background-position: -2.6rem -2rem;
+  background-position: -2.8rem -2rem;
 }
 .sb-icon-battery[data-level="20"][data-charging="true"] {
-  background-position: -5.2rem -2rem;
+  background-position: -5.6rem -2rem;
 }
 .sb-icon-battery[data-level="30"][data-charging="true"] {
-  background-position: -7.8rem -2rem;
+  background-position: -8.4rem -2rem;
 }
 .sb-icon-battery[data-level="40"][data-charging="true"] {
-  background-position: -10.4rem -2rem;
+  background-position: -11.2rem -2rem;
 }
 .sb-icon-battery[data-level="50"][data-charging="true"] {
-  background-position: -13rem -2rem;
+  background-position: -14rem -2rem;
 }
 .sb-icon-battery[data-level="60"][data-charging="true"] {
-  background-position: -15.6rem -2rem;
+  background-position: -16.8rem -2rem;
 }
 .sb-icon-battery[data-level="70"][data-charging="true"] {
-  background-position: -18.2rem -2rem;
+  background-position: -19.6rem -2rem;
 }
 .sb-icon-battery[data-level="80"][data-charging="true"] {
-  background-position: -20.8rem -2rem;
+  background-position: -22.4rem -2rem;
 }
 .sb-icon-battery[data-level="90"][data-charging="true"] {
-  background-position: -23.4rem -2rem;
+  background-position: -25.2rem -2rem;
 }
 .sb-icon-battery[data-level="100"][data-charging="true"] {
-  background-position: -26rem -2rem;
+  background-position: -28rem -2rem;
 }
 
 .sb-icon-wifi[data-level="0"][data-connecting="true"] {
@@ -362,20 +370,20 @@ body.rb-enabled #statusbar-label {
   background-position: 0 -6rem;
 }
 .sb-icon-wifi[data-level="1"] {
-  background-position: -2.1rem -6rem;
+  background-position: -2rem -6rem;
 }
 .sb-icon-wifi[data-level="2"] {
-  background-position: -4.2rem -6rem;
+  background-position: -4rem -6rem;
 }
 .sb-icon-wifi[data-level="3"] {
-  background-position: -6.3rem -6rem;
+  background-position: -6rem -6rem;
 }
 .sb-icon-wifi[data-level="4"] {
-  background-position: -8.4rem -6rem;
+  background-position: -8rem -6rem;
 }
 
 .sb-icon-data-circle {
-  background-position: -12.6rem -8rem;
+  background-position: -12rem -8rem;
 }
 
 .sb-icon-flight-mode {
@@ -389,36 +397,36 @@ body.rb-enabled #statusbar-label {
 }
 
 .sb-icon-signal[data-level="-1"] {
-  background-position: -2.1rem -4rem;
+  background-position: -2rem -4rem;
 }
 
 .sb-icon-signal[data-level="0"] {
-  background-position: -4.2rem -4rem;
+  background-position: -4rem -4rem;
 }
 
 .sb-icon-signal[data-level="1"] {
-  background-position: -6.3rem -4rem;
+  background-position: -6rem -4rem;
 }
 
 .sb-icon-signal[data-level="2"] {
-  background-position: -8.4rem -4rem;
+  background-position: -8rem -4rem;
 }
 
 .sb-icon-signal[data-level="3"] {
-  background-position: -10.5rem -4rem;
+  background-position: -10rem -4rem;
 }
 
 .sb-icon-signal[data-level="4"] {
-  background-position: -12.6rem -4rem;
+  background-position: -12rem -4rem;
 }
 
 .sb-icon-signal[data-level="5"] {
-  background-position: -14.7rem -4rem;
+  background-position: -14rem -4rem;
 }
 
 .sb-icon-signal {
   /* default icon is the "no sim" icon */
-  background-position: -14.7rem -8rem;
+  background-position: -14rem -8rem;
   position: relative;
 }
 
@@ -430,8 +438,8 @@ body.rb-enabled #statusbar-label {
   top: 0;
   left: 0;
   background: url('images/icons.png') no-repeat;
-  background-position: -16.8rem -4rem;
-  background-size: 31.4rem 9.6rem;
+  background-position: -16rem -4rem;
+  background-size: 34rem 9.6rem;
 }
 
 .sb-icon-network-activity {
@@ -448,63 +456,63 @@ body.rb-enabled #statusbar-label {
 }
 
 .sb-icon-headphones {
-  background-position: -18.9rem -4rem;
+  background-position: -18rem -4rem;
 }
 
 .sb-icon-bluetooth-headphones {
-  background-position: -23.1rem -8rem;
+  background-position: -22rem -8rem;
 }
 
 .sb-icon-bluetooth-transferring {
-  background-position: -29.4rem -8rem;
+  background-position: -28rem -8rem;
 }
 
 .sb-icon-geolocation {
-  background-position: -23.1rem -4rem;
+  background-position: -22rem -4rem;
 }
 
 .sb-icon-geolocation[data-active="true"] {
-  background-position: -21rem -4rem;
+  background-position: -20rem -4rem;
 }
 
 .sb-icon-recording {
-  background-position: -27.3rem -4rem;
+  background-position: -24rem -4rem;
 }
 
 .sb-icon-recording[data-active="true"] {
-  background-position: -25.2rem -4rem;
+  background-position: -26rem -4rem;
 }
 
 .sb-icon-alarm {
-  background-position: -29.4rem -4rem;
+  background-position: -28rem -4rem;
 }
 
 .sb-icon-tethering {
-  background-position: -12.6rem -6rem;
+  background-position: -12rem -6rem;
 }
 
 .sb-icon-tethering[data-active="true"] {
-  background-position: -10.5rem -6rem;
+  background-position: -10rem -6rem;
 }
 
 .sb-icon-bluetooth {
-  background-position: -25.2rem -6rem;
+  background-position: -24rem -6rem;
 }
 
 .sb-icon-bluetooth[data-active="true"] {
-  background-position: -23.1rem -6rem;
+  background-position: -22rem -6rem;
 }
 
 .sb-icon-mute {
-  background-position: -27.3rem -6rem;
+  background-position: -26rem -6rem;
 }
 
 .sb-icon-mute.vibration {
-  background-position: -21rem -6rem;
+  background-position: -20rem -6rem;
 }
 
 .sb-icon-usb {
-  background-position: -29.4rem -6rem;
+  background-position: -28rem -6rem;
 }
 
 .sb-icon-notification {
@@ -521,8 +529,8 @@ body.rb-enabled #statusbar-label {
   width: 1.6rem;
   height: 1.6rem;
   background: url('images/icons.png') no-repeat;
-  background-position: -18.9rem -6rem;
-  background-size: 31.4rem 9.6rem;
+  background-position: -18rem -6rem;
+  background-size: 34rem 9.6rem;
 }
 
 *[dir=rtl] .sb-icon-notification::before {
@@ -531,35 +539,38 @@ body.rb-enabled #statusbar-label {
 }
 
 .sb-icon-notification[data-unread="true"]::before {
-  background-position: -16.8rem -6rem;
+  background-position: -16rem -6rem;
+}
+
+.sb-icon-notification[data-unread="true"]::after {
+  color: #fff;
 }
 
 .sb-icon-notification::after {
   content: attr(data-num);
   position: absolute;
-  color: #666;
+  color: rgba(255,255,255, 0.4);
+  top: 0;
+  right: 0;
   width: 1.6rem;
   height: 1.6rem;
-  top: -0.2rem;
-  right: 0;
   padding: 0 0.1rem;
-  font-size: 1.49rem; /* 6.5pt */
+  font-size: 1.5rem;
+  font-weight: 400;
+  line-height: 1.6rem;
 }
 
 *[dir=rtl] .sb-icon-notification::after {
   right: auto;
   left: 0;
 }
-.sb-icon-notification[data-unread="true"]::after {
-  color: #27b9cf;
-}
 
 .sb-emergency-cb-icon-notification {
-  background-position: -25.2rem -8rem;
+  background-position: -24rem -8rem;
 }
 
 .sb-icon-sms {
-  background-position: -14.7rem -6rem;
+  background-position: -14rem -6rem;
   position: relative;
 }
 
@@ -588,13 +599,13 @@ body.rb-enabled #statusbar-label {
 }
 
 .sb-icon-call-forwarding {
-  background-position: -21rem -8rem;
+  background-position: -20rem -8rem;
 }
 
 .sb-icon-playing {
-  background-position: -18.9rem -8rem;
+  background-position: -18rem -8rem;
 }
 
 .sb-icon-nfc {
-  background-position: -27.3rem -8rem;
+  background-position: -26rem -8rem;
 }

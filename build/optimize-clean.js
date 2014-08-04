@@ -1,3 +1,7 @@
+/* global exports */
+/* global require */
+'use strict';
+
 var utils = require('./utils');
 var config;
 

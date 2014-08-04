@@ -1,5 +1,7 @@
 /* global ConfigManager, CostControl, debug, Common, asyncStorage, Formatting,
-          NotificationHelper, _, MozActivity, NetworkUsageAlarm */
+          NotificationHelper, _, MozActivity, NetworkUsageAlarm, LazyLoader,
+          SimManager, IACManager, DEBUGGING
+*/
 /* exported activity */
 /*jshint -W020 */
 /* The previous directive,ignore the "Read only" errors, that are produced when
@@ -19,6 +21,7 @@
   if (!inStandAloneMode()) {
     ConfigManager = window.parent.ConfigManager;
     CostControl = window.parent.CostControl;
+    SimManager = window.parent.SimManager;
   }
 
   // XXX: This case implies that message handler triggered by system
@@ -98,31 +101,33 @@
   window.setNextReset = setNextReset;
 
   function getTopUpTimeout(callback) {
-    ConfigManager.requestSettings(Common.dataSimIccId,
-                                  function _onSettings(settings) {
-      var request = navigator.mozAlarms.getAll();
-      request.onsuccess = function(e) {
-        var alarms = e.target.result;
-        var length = alarms.length;
-        if (!length) {
-          callback(null);
-          return;
-        }
+    SimManager.requestDataSimIcc(function(dataSimIcc) {
+      ConfigManager.requestSettings(dataSimIcc.iccId,
+                                    function _onSettings(settings) {
+        var request = navigator.mozAlarms.getAll();
+        request.onsuccess = function(e) {
+          var alarms = e.target.result;
+          var length = alarms.length;
+          if (!length) {
+            callback(null);
+            return;
+          }
 
-        var refId = settings.waitingForTopUp;
-        var index = 0, alarm, found = false;
-        while (index < length && !found) {
-          alarm = alarms[index];
-          found = (alarm.id === refId);
-          index++;
-        }
-        if (found) {
-          debug('TopUp timeout found:', alarm.date);
-          callback(alarm.date);
-        } else {
-          callback(null);
-        }
-      };
+          var refId = settings.waitingForTopUp;
+          var index = 0, alarm, found = false;
+          while (index < length && !found) {
+            alarm = alarms[index];
+            found = (alarm.id === refId);
+            index++;
+          }
+          if (found) {
+            debug('TopUp timeout found:', alarm.date);
+            callback(alarm.date);
+          } else {
+            callback(null);
+          }
+        };
+      });
     });
   }
   window.getTopUpTimeout = getTopUpTimeout;
@@ -252,88 +257,101 @@
   function _onAlarm(alarm) {
     clearTimeout(closing);
 
-    function _launchNextReset() {
-      ConfigManager.requestSettings(Common.dataSimIccId,
-                                    function _onSettings(settings) {
-        Common.resetAll(function updateNextResetAndClose() {
-          Common.updateNextReset(settings.trackingPeriod, settings.resetTime,
-                                 closeIfProceeds);
-        });
-      });
-    }
-
-    switch (alarm.data.type) {
-      case 'balanceTimeout':
-        ConfigManager.requestSettings(Common.dataSimIccId,
+    SimManager.requestDataSimIcc(function(dataSimIcc) {
+      function _launchNextReset() {
+        ConfigManager.requestSettings(dataSimIcc.iccId,
                                       function _onSettings(settings) {
-          settings.errors.BALANCE_TIMEOUT = true;
-          ConfigManager.setOption(
-            { 'errors': settings.errors, 'waitingForBalance': null },
-            function _onBalanceTimeout() {
-              debug('Timeout for balance');
-              debug('Trying to synchronize!');
-              localStorage.sync = 'errors#' + Math.random();
-              closeIfProceeds();
-            }
-          );
+          Common.resetAll(function updateNextResetAndClose() {
+            Common.updateNextReset(settings.trackingPeriod, settings.resetTime,
+                                   closeIfProceeds);
+          });
         });
-        break;
+      }
 
-      case 'topupTimeout':
-        ConfigManager.requestSettings(Common.dataSimIccId,
-                                      function _onSettings(settings) {
-          settings.errors.TOPUP_TIMEOUT = true;
-          ConfigManager.setOption(
-            { 'errors': settings.errors, 'waitingForTopUp': null },
-            function _onBalanceTimeout() {
-              debug('Timeout for topup');
-              debug('Trying to synchronize!');
-              localStorage.sync = 'errors#' + Math.random();
-              closeIfProceeds();
-            }
-          );
-        });
-        break;
+      switch (alarm.data.type) {
+        case 'balanceTimeout':
+          ConfigManager.requestSettings(dataSimIcc.iccId,
+                                        function _onSettings(settings) {
+            settings.errors.BALANCE_TIMEOUT = true;
+            ConfigManager.setOption(
+              { 'errors': settings.errors, 'waitingForBalance': null },
+              function _onBalanceTimeout() {
+                debug('Timeout for balance');
+                debug('Trying to synchronize!');
+                localStorage.sync = 'errors#' + Math.random();
+                closeIfProceeds();
+              }
+            );
+          });
+          break;
 
-      case 'nextReset':
-        if (!Common.allNetworkInterfaceLoaded) {
-          Common.loadNetworkInterfaces(_launchNextReset);
-        } else {
-          _launchNextReset();
-        }
-        break;
-    }
+        case 'topupTimeout':
+          ConfigManager.requestSettings(dataSimIcc.iccId,
+                                        function _onSettings(settings) {
+            settings.errors.TOPUP_TIMEOUT = true;
+            ConfigManager.setOption(
+              { 'errors': settings.errors, 'waitingForTopUp': null },
+              function _onBalanceTimeout() {
+                debug('Timeout for topup');
+                debug('Trying to synchronize!');
+                localStorage.sync = 'errors#' + Math.random();
+                closeIfProceeds();
+              }
+            );
+          });
+          break;
+
+        case 'nextReset':
+          if (!Common.allNetworkInterfaceLoaded) {
+            Common.loadNetworkInterfaces(_launchNextReset);
+          } else {
+            _launchNextReset();
+          }
+          break;
+      }
+    });
   }
 
   function _onNetworkAlarm(alarm) {
     clearTimeout(closing);
     navigator.mozApps.getSelf().onsuccess = function _onAppReady(evt) {
-      ConfigManager.requestSettings(Common.dataSimIccId,
-                                    function _onSettings(settings) {
-        var app = evt.target.result;
-        var iconURL = NotificationHelper.getIconURI(app);
+      SimManager.requestDataSimIcc(function(dataSimIcc) {
+        ConfigManager.requestSettings(dataSimIcc.iccId,
+                                      function _onSettings(settings) {
+          var app = evt.target.result;
+          var iconURL = NotificationHelper.getIconURI(app);
 
-        var goToDataUsage;
-        if (!inStandAloneMode()) {
-          goToDataUsage = function _goToDataUsage() {
-            if (inApplicationMode()) {
-              app.launch();
-              window.parent.CostControlApp.showDataUsageTab();
-            } else {
-              activity = new MozActivity({name: 'costcontrol/data_usage'});
-            }
-          };
-        }
-        var limit = Common.getDataLimit(settings);
-        var limitText = Formatting.formatData(Formatting.smartRound(limit));
-        var title = _('data-limit-notification-title2', { limit: limitText });
-        var message = _('data-limit-notification-text2');
-        NotificationHelper.send(title, message, iconURL, goToDataUsage);
-        ConfigManager.setOption({ 'dataUsageNotified': true });
-        closeIfProceeds();
-        return;
+          var goToDataUsage;
+          if (!inStandAloneMode()) {
+            goToDataUsage = function _goToDataUsage() {
+              if (inApplicationMode()) {
+                app.launch();
+                window.parent.CostControlApp.showDataUsageTab();
+              } else {
+                activity = new MozActivity({name: 'costcontrol/data_usage'});
+              }
+            };
+          }
+          var limit = Common.getDataLimit(settings);
+          var limitText = Formatting.formatData(Formatting.smartRound(limit));
+          var title = _('data-limit-notification-title2', { limit: limitText });
+          var message = _('data-limit-notification-text2');
+          NotificationHelper.send(title, message, iconURL, goToDataUsage);
+          ConfigManager.setOption({ 'dataUsageNotified': true },
+                                  closeIfProceeds);
+          return;
+        });
       });
     };
+  }
+
+  function disableSilentModeFor(type, configuration) {
+    LazyLoader.load('js/iac_manager.js', function() {
+      IACManager.init(configuration);
+      IACManager.broadcastEndOfSMSQuery(type).then(function(msg) {
+        debug('After broadcasting for ' + type + ' (disabling)');
+      });
+    });
   }
 
   // Register in standalone or for application
@@ -412,7 +430,12 @@
               return;
             }
 
-            // TODO: Remove the SMS
+            if (!DEBUGGING &&
+                (isBalance && (settings.waitingForBalance !== null)) ||
+                (isConfirmation && (settings.waitingForTopUp !== null))) {
+              var mobileMessageManager = window.navigator.mozMobileMessage;
+              mobileMessageManager.delete(sms.id);
+            }
 
             if (isBalance) {
               // Compose new balance
@@ -424,10 +447,14 @@
                 timestamp: new Date()
               };
 
-              // Remove the timeout
-              navigator.mozAlarms.remove(settings.waitingForBalance);
-              debug('Balance timeout:', settings.waitingForBalance, 'removed');
+              if (settings.waitingForBalance !== null) {
+                // Remove the timeout
+                navigator.mozAlarms.remove(settings.waitingForBalance);
+                debug('Balance timeout:', settings.waitingForBalance,
+                      'removed');
 
+                disableSilentModeFor('balance', configuration);
+              }
               // Store new balance and sync
               ConfigManager.setOption(
                 { 'lastBalance': newBalance, 'waitingForBalance': null },
@@ -440,9 +467,12 @@
                 }
               );
             } else if (isConfirmation) {
-              // Store SUCCESS for TopIp and sync
-              navigator.mozAlarms.remove(settings.waitingForTopUp);
-              debug('TopUp timeout:', settings.waitingForTopUp, 'removed');
+              if (settings.waitingForTopUp !== null) {
+                // Store SUCCESS for TopIp and sync
+                navigator.mozAlarms.remove(settings.waitingForTopUp);
+                debug('TopUp timeout:', settings.waitingForTopUp, 'removed');
+                disableSilentModeFor('topup', configuration);
+              }
               ConfigManager.setOption(
                 {
                   'waitingForTopUp': null,
@@ -487,13 +517,16 @@
           clearTimeout(closing);
           debug('SMS sent!');
 
-          ConfigManager.requestAll(function _onInfo(configuration, settings) {
-            var mode = ConfigManager.getApplicationMode();
-            if (mode === 'PREPAID' &&
-                !costcontrol.isBalanceRequestSMS(sms, configuration)) {
-              costcontrol.request({ type: 'balance' });
-            }
-
+          var configuration = ConfigManager.configuration;
+          var mode = ConfigManager.getApplicationMode();
+          if (mode === 'PREPAID' &&
+              !costcontrol.isBalanceRequestSMS(sms, configuration)) {
+            costcontrol.request({ type: 'balance' });
+          }
+          if (mode === 'PREPAID' &&
+              costcontrol.isBalanceRequestSMS(sms, configuration)) {
+            closeIfProceeds();
+          } else {
             var mobileMessageManager = window.navigator.mozMobileMessage;
             var infoRequest =
               mobileMessageManager.getSegmentInfoForText(sms.body);
@@ -506,23 +539,28 @@
               } else {
                 realCount = smsInfo.segments;
               }
-              updateSMSCount(settings, realCount);
+              updateSMSCount(realCount);
             };
             infoRequest.onerror = function onError() {
               console.error('Can not retrieve segment info for body ' +
                              sms.body);
-              updateSMSCount(settings, 1);
+              updateSMSCount(1);
             };
-          });
+          }
 
-          function updateSMSCount(settings, count) {
-            settings.lastTelephonyActivity.timestamp = new Date();
-            settings.lastTelephonyActivity.smscount += count;
-            ConfigManager.setOption({
-              lastTelephonyActivity: settings.lastTelephonyActivity
-            }, function _sync() {
-              localStorage.sync = 'lastTelephonyActivity#' + Math.random();
-              closeIfProceeds();
+          function updateSMSCount(count) {
+            SimManager.requestDataSimIcc(function(dataSimIcc) {
+              ConfigManager.requestSettings(dataSimIcc.iccId,
+                                            function _onSettings(settings) {
+                settings.lastTelephonyActivity.timestamp = new Date();
+                settings.lastTelephonyActivity.smscount += count;
+                ConfigManager.setOption({
+                  lastTelephonyActivity: settings.lastTelephonyActivity
+                }, function _sync() {
+                  localStorage.sync = 'lastTelephonyActivity#' + Math.random();
+                  closeIfProceeds();
+                });
+              });
             });
           }
         });
@@ -536,26 +574,26 @@
               return;
             }
             debug('Outgoing call finished!');
+            SimManager.requestDataSimIcc(function(dataSimIcc) {
+              ConfigManager.requestSettings(dataSimIcc.iccId,
+                                            function _onSettings(settings) {
+                var mode = ConfigManager.getApplicationMode();
+                if (mode === 'PREPAID') {
+                  costcontrol.request({ type: 'balance' });
+                }
 
-            ConfigManager.requestSettings(Common.dataSimIccId,
-                                          function _onSettings(settings) {
-              var mode = ConfigManager.getApplicationMode();
-              if (mode === 'PREPAID') {
-                costcontrol.request({ type: 'balance' });
-              }
-
-              settings.lastTelephonyActivity.timestamp = new Date();
-              settings.lastTelephonyActivity.calltime += tcall.duration;
-              ConfigManager.setOption({
-                lastTelephonyActivity: settings.lastTelephonyActivity
-              }, function _sync() {
-                localStorage.sync = 'lastTelephonyActivity#' + Math.random();
-                closeIfProceeds();
+                settings.lastTelephonyActivity.timestamp = new Date();
+                settings.lastTelephonyActivity.calltime += tcall.duration;
+                ConfigManager.setOption({
+                  lastTelephonyActivity: settings.lastTelephonyActivity
+                }, function _sync() {
+                  localStorage.sync = 'lastTelephonyActivity#' + Math.random();
+                  closeIfProceeds();
+                });
               });
             });
           }
         );
-
       }
 
       // Notify message handler is ready
@@ -563,9 +601,5 @@
       window.parent.dispatchEvent(readyEvent);
     });
   }
-  if (Common.dataSimIccIdLoaded) {
-    _getCCInstance();
-  } else {
-    Common.loadDataSIMIccId(_getCCInstance);
-  }
+  _getCCInstance();
 }());

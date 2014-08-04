@@ -29,6 +29,9 @@ class TestCardsViewTwoApps(GaiaTestCase):
         self.device.hold_home_button()
         self.cards_view.wait_for_cards_view()
 
+        # Wait for first app ready
+        self.cards_view.wait_for_card_ready(self._test_apps[1])
+
         # Close the current apps from the cards view
         self.cards_view.close_app(self._test_apps[1])
         self.cards_view.close_app(self._test_apps[0])

@@ -1,4 +1,4 @@
-/* globals _, ConfirmDialog, Contacts, LazyLoader, utils, ValueSelector */
+/* globals _, ConfirmDialog, Contacts, LazyLoader, utils, ActionMenu */
 /* exported ActivityHandler */
 
 'use strict';
@@ -28,12 +28,46 @@ var ActivityHandler = {
     return this._currentActivity.source.data.type;
   },
 
+  get activityData() {
+    if (!this._currentActivity) {
+      return null;
+    }
+
+    return this._currentActivity.source.data;
+  },
+
+  get activityContactProperties() {
+    if (!this._currentActivity) {
+      return null;
+    }
+
+    return this._currentActivity.source.data.contactProperties;
+  },
+
+  /* checks first if we are handling an activity, then if it is
+   * of the same type of any of the items from the list provided.
+   * @param list Array with types of activities to be checked
+   */
+  currentActivityIs: function(list) {
+    return this.currentlyHandling && list.indexOf(this.activityName) !== -1;
+  },
+
+  /* checks first if we are handling an activity, then checks that
+   * it is NOT of the same type of any of the items from the list provided.
+   * @param list Array with types of activities to be checked
+   */
+  currentActivityIsNot: function(list) {
+    return this.currentlyHandling && list.indexOf(this.activityName) === -1;
+  },
+
   launch_activity: function ah_launch(activity, action) {
     if (this._launchedAsInlineActivity) {
       return;
     }
 
     this._currentActivity = activity;
+    Contacts.checkCancelableActivity();
+
     var hash = action;
     var param, params = [];
     if (activity.source &&
@@ -48,6 +82,7 @@ var ActivityHandler = {
     }
     document.location.hash = hash;
   },
+
   handle: function ah_handle(activity) {
 
     switch (activity.source.name) {
@@ -71,7 +106,7 @@ var ActivityHandler = {
         this.importContactsFromFile(activity);
         break;
     }
-    Contacts.checkCancelableActivity();
+
   },
 
   importContactsFromFile: function ah_importContactFromVcard(activity) {
@@ -84,16 +119,18 @@ var ActivityHandler = {
         '/shared/js/contacts/import/utilities/import_from_vcard.js',
         '/shared/js/contacts/import/utilities/overlay.js'
       ], function loaded() {
-        utils.importFromVcard(activity.source.data.blob,
-          function imported(numberOfContacts, id) {
-            if (numberOfContacts === 1) {
-              activity.source.data.params = {id: id};
-              self.launch_activity(activity, 'view-contact-details');
-            } else {
-              self.launch_activity(activity, 'view-contact-list');
+        Contacts.loadFacebook(function() {
+          utils.importFromVcard(activity.source.data.blob,
+            function imported(numberOfContacts, id) {
+              if (numberOfContacts === 1) {
+                activity.source.data.params = {id: id};
+                self.launch_activity(activity, 'view-contact-details');
+              } else {
+                self.launch_activity(activity, 'view-contact-list');
+              }
             }
-          }
-        );
+          );
+        });
       });
     } else {
       this._currentActivity.postError('wrong parameters');
@@ -103,6 +140,16 @@ var ActivityHandler = {
 
   dataPickHandler: function ah_dataPickHandler(theContact) {
     var type, dataSet, noDataStr;
+    var result = {};
+    // Keeping compatibility with previous implementation. If
+    // we want to get the full contact, just pass the parameter
+    // 'fullContact' equal true.
+    if (this.activityDataType === 'webcontacts/contact' &&
+        this.activityData.fullContact === true) {
+      result = utils.misc.toMozContact(theContact);
+      this.postPickSuccess(result);
+      return;
+    }
 
     switch (this.activityDataType) {
       case 'webcontacts/tel':
@@ -120,11 +167,28 @@ var ActivityHandler = {
         dataSet = theContact.email;
         noDataStr = _('no_contact_email');
         break;
+      case 'webcontacts/select':
+        type = 'select';
+        var data = [];
+        if (this.activityContactProperties.indexOf('tel') !== -1) {
+          if (theContact.tel && theContact.tel.length) {
+            data = data.concat(theContact.tel);
+          }
+        }
+        if (this.activityContactProperties.indexOf('email') !== -1) {
+          if (theContact.email && theContact.email.length) {
+            data = data.concat(theContact.email);
+          }
+        }
+
+        dataSet = data;
+        noDataStr = _('no_contact_data');
+        break;
     }
     var hasData = dataSet && dataSet.length;
     var numOfData = hasData ? dataSet.length : 0;
 
-    var result = {};
+    
     result.name = theContact.name;
     switch (numOfData) {
       case 0:
@@ -139,8 +203,9 @@ var ActivityHandler = {
         break;
       case 1:
         // if one required type of data
-        if (this.activityDataType == 'webcontacts/tel') {
-          result = utils.misc.toMozContact(theContact);
+        if (this.activityDataType == 'webcontacts/tel' ||
+            this.activityDataType == 'webcontacts/select') {
+          result = this.pickContactsResult(theContact);
         } else {
           result[type] = dataSet[0].value;
         }
@@ -149,36 +214,72 @@ var ActivityHandler = {
         break;
       default:
         // if more than one required type of data
-        var prompt1 = new ValueSelector();
-        var data;
-        for (var i = 0; i < dataSet.length; i++) {
-          data = dataSet[i].value;
-          var carrier = dataSet[i].carrier || '';
-          prompt1.addToList(data + ' ' + carrier, data);
-        }
-
-        prompt1.onchange = (function onchange(itemData) {
-          if (this.activityDataType == 'webcontacts/tel') {
-            // filter phone from data.tel to take out the rest
-            result = utils.misc.toMozContact(theContact);
-            result.tel =
-              this.filterPhoneNumberForActivity(itemData, result.tel);
-          } else {
-            result[type] = itemData;
+        var self = this;
+        LazyLoader.load('/contacts/js/action_menu.js', function() {
+          var prompt1 = new ActionMenu();
+          var itemData;
+          var capture = function(itemData) {
+            return function() {
+              if (self.activityDataType == 'webcontacts/tel' ||
+                  self.activityDataType == 'webcontacts/select') {
+                result = self.pickContactsResult(theContact, itemData);
+              } else {
+                result[type] = itemData;
+              }
+              prompt1.hide();
+              self.postPickSuccess(result);
+            };
+          };
+          for (var i = 0, l = dataSet.length; i < l; i++) {
+            itemData = dataSet[i].value;
+            var carrier = dataSet[i].carrier || '';
+            prompt1.addToList(
+              _('pick_destination', {destination: itemData, carrier: carrier}),
+              capture(itemData)
+            );
           }
-          prompt1.hide();
-          this.postPickSuccess(result);
-        }).bind(this);
-        prompt1.show();
+          prompt1.show();
+        });
     } // switch
   },
 
-  /*
-   * We only need to return the phone number that user chose from the select
-   * Hence we filter out the rest of the phones from the contact
-   */
-  filterPhoneNumberForActivity:
-  function ah_filterPhoneNumberForActivity(itemData, dataSet) {
+  pickContactsResult:
+  function ah_pickContactsResult(theContact, itemData) {
+    var pickResult = {};
+    var contact = utils.misc.toMozContact(theContact);
+
+    if (this.activityDataType == 'webcontacts/tel') {
+      pickResult = contact;
+
+      if (itemData) {
+        pickResult.tel = this.filterDestinationForActivity(
+                            itemData, pickResult.tel);
+      }
+    } else if (this.activityDataType == 'webcontacts/select') {
+      pickResult.contact = contact;
+
+      if (!itemData) {
+        pickResult.select = pickResult.contact.tel;
+
+        if (!pickResult.select || !pickResult.select.length) {
+          pickResult.select = pickResult.contact.email;
+        }
+      } else {
+        pickResult.select = this.filterDestinationForActivity(
+                                itemData, pickResult.contact.tel);
+
+        if (!pickResult.select || !pickResult.select.length) {
+          pickResult.select = this.filterDestinationForActivity(
+                                  itemData, pickResult.contact.email);
+        }
+      }
+    }
+
+    return pickResult;
+  },
+
+  filterDestinationForActivity:
+  function ah_filterDestinationForActivity(itemData, dataSet) {
     return dataSet.filter(function isSamePhone(item) {
       return item.value == itemData;
     });

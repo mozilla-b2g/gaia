@@ -3,15 +3,56 @@
 
     <header>
       <a href="#root"><span class="icon icon-back">back</span></a>
-      <h1 data-l10n-id="homescreen-header"> Homescreen </h1>
+      <h1 data-l10n-id="vertical-homescreen-header"> Homescreen </h1>
     </header>
 
     <div>
-      <ul></ul>
+      <section id="vertical-homescreen-layout" hidden data-type="list">
+        <header>
+          <h2 data-l10n-id="vertical-homescreen-layout">Layout</h2>
+        </header>
+        <ul>
+          <li>
+            <p data-l10n-id="vertical-homescreen-icon-layout">Icon Layout</p>
+            <div class="button icon icon-dialog">
+              <select name="grid.layout.cols">
+                <option value="3" data-l10n-id="vertical-homescreen-three-columns">Three Columns</option>
+                <option value="4" data-l10n-id="vertical-homescreen-four-columns">Four Columns</option>
+              </select>
+            </div>
+          </li>
+        </ul>
+      </section>
+      <section data-type="list">
+        <header>
+          <h2 data-l10n-id="search-header">Search</h2>
+        </header>
+        <ul>
+          <li>
+            <p data-l10n-id="search-engine">Search Engine</p>
+            <div class="button icon icon-dialog">
+              <select name="search.urlTemplate">
+              </select>
+            </div>
+          </li>
+          <li>
+            <label class="pack-switch">
+              <input type="checkbox" name="search.suggestions.enabled">
+              <span data-l10n-id="search-suggestions">Search Suggestions</span>
+            </label>
+          </li>
+          <li class="description">
+            <p data-l10n-id="search-suggestions-description">
+              The characters you type when entering a search are sent
+              to multiple search providers and will be used to send you
+              search suggestions. Additional data charges may apply
+              when using this feature.
+            </p>
+          </li>
+        </ul>
+      </section>
     </div>
-
-    <script type="application/javascript" src="shared/js/manifest_helper.js"></script>
-    <script src="js/homescreen.js"></script>
-
+    <script src="shared/js/homescreens/vertical_preferences.js"></script>
+    <script src="js/vertical_homescreen.js"></script>
   </template>
 </element>

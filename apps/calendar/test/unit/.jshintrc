@@ -5,6 +5,7 @@
     "Calendar",
     "CSSStyleSheet",
     "Event",
+    "Factory",
     "ICAL",
     "IDBTransaction",
     "InputParser",

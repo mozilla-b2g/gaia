@@ -1,8 +1,9 @@
 'use strict';
-
-mocha.globals(['applications', 'HomescreenWindow', 'homescreenLauncher',
-              'SettingsListener', 'layoutManager']);
-
+/* global MocksHelper */
+/* global HomescreenLauncher */
+/* global MockSettingsListener */
+/* global MockApplications */
+/* global MockTrustedUIManager */
 
 requireApp('system/test/unit/mock_homescreen_window.js');
 requireApp('system/test/unit/mock_applications.js');
@@ -18,7 +19,7 @@ var mocksForHomescreenLauncher = new MocksHelper([
 ]).init();
 
 suite('system/HomescreenLauncher', function() {
-  var homescreen, realApplications;
+  var realApplications;
 
   setup(function() {
     realApplications = window.applications;
@@ -50,7 +51,8 @@ suite('system/HomescreenLauncher', function() {
         window.removeEventListener('homescreen-ready', homescreenReady);
         ready = true;
       });
-      window.homescreenLauncher = new HomescreenLauncher().start();
+      window.homescreenLauncher = new HomescreenLauncher();
+      window.homescreenLauncher.start();
       MockSettingsListener.mCallbacks['homescreen.manifestURL']('first.home');
       homescreen = window.homescreenLauncher.getHomescreen();
       assert.isTrue(homescreen.isHomescreen);
@@ -64,7 +66,8 @@ suite('system/HomescreenLauncher', function() {
 
     setup(function() {
       MockApplications.ready = true;
-      window.homescreenLauncher = new HomescreenLauncher().start();
+      window.homescreenLauncher = new HomescreenLauncher();
+      window.homescreenLauncher.start();
     });
 
     teardown(function() {
@@ -133,7 +136,7 @@ suite('system/HomescreenLauncher', function() {
     test('trustedUI hidden', function() {
       MockSettingsListener.mCallbacks['homescreen.manifestURL']('first.home');
       homescreen = window.homescreenLauncher.getHomescreen();
-      var stubToggle = this.sinon.stub(homescreen, 'toggle');
+      this.sinon.stub(homescreen, 'toggle');
       window.homescreenLauncher.handleEvent({
         type: 'trusteduihide'
       });
@@ -216,25 +219,33 @@ suite('system/HomescreenLauncher', function() {
       stubGetHomescreen.restore();
     });
 
-    test('homescreenopening', function() {
-      window.homescreenLauncher._screen = document.createElement('div');
-      window.homescreenLauncher.handleEvent({
-        type: 'homescreenopening'
-      });
-      assert.ok(window.homescreenLauncher._screen.classList.
-        contains('on-homescreen'));
-      window.homescreenLauncher._screen = null;
-    });
+    suite('software-button-*; resize the homescreenwindow', function() {
+      var isResizeCalled, stubGetHomescreen;
 
-    test('homescreenclosing', function() {
-      window.homescreenLauncher._screen = document.createElement('div');
-      window.homescreenLauncher._screen.classList.add('on-homescreen');
-      window.homescreenLauncher.handleEvent({
-        type: 'homescreenclosing'
+      setup(function() {
+        isResizeCalled = false;
+        stubGetHomescreen = this.sinon.stub(window.homescreenLauncher,
+          'getHomescreen',
+          function() {
+            return {'resize': function() {
+              isResizeCalled = true;
+            }};
+          });
       });
-      assert.ok(!window.homescreenLauncher._screen.classList.
-        contains('on-homescreen'));
-      window.homescreenLauncher._screen = null;
+
+      test('enabled', function() {
+        window.homescreenLauncher.handleEvent({
+          type: 'software-button-enabled'
+        });
+        assert.isTrue(isResizeCalled);
+      });
+
+      test('disabled', function() {
+        window.homescreenLauncher.handleEvent({
+          type: 'software-button-disabled'
+        });
+        assert.isTrue(isResizeCalled);
+      });
     });
   });
 });

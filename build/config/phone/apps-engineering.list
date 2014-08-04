@@ -7,7 +7,6 @@ dev_apps/bookmarks-reader
 dev_apps/ds-test
 dev_apps/demo-keyboard
 dev_apps/geoloc
-dev_apps/home2
 dev_apps/membuster
 dev_apps/music2
 dev_apps/test-ime
@@ -15,6 +14,8 @@ dev_apps/share-receiver
 dev_apps/template
 dev_apps/test-agent
 dev_apps/test-container
+dev_apps/test-iac-publisher
+dev_apps/test-iac-subscriber
 dev_apps/test-otasp
 dev_apps/test-receiver-1
 dev_apps/test-receiver-2
@@ -28,3 +29,5 @@ dev_apps/sheet-app-2
 dev_apps/sheet-app-3
 dev_apps/test-findmydevice
 dev_apps/contacts-manager
+dev_apps/contacts-ds-provider1
+dev_apps/contacts-ds-provider2

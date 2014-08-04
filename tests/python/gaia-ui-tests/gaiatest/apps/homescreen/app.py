@@ -13,59 +13,46 @@ class Homescreen(Base):
 
     name = 'Homescreen'
 
-    _homescreen_icon_locator = (By.CSS_SELECTOR, 'li.icon[aria-label="%s"]')
-    _visible_icons_locator = (By.CSS_SELECTOR, '.page[style*="translateX(0px);"] .icon')
-    _edit_mode_locator = (By.CSS_SELECTOR, 'body[data-mode="edit"]')
-    _search_bar_icon_locator = (By.CSS_SELECTOR, '#evme-activation-icon input')
-    _landing_page_locator = (By.ID, 'icongrid')
-    _collections_locator = (By.CSS_SELECTOR, 'li.icon[data-collection-name]')
-    _collection_locator = (By.CSS_SELECTOR, "li.icon[data-collection-name *= '%s']")
-    _pagination_scroller_locator = (By.CSS_SELECTOR, 'div.paginationScroller')
+    _homescreen_icon_locator = (By.CSS_SELECTOR, 'gaia-grid .icon')
+    _homescreen_all_icons_locator = (By.CSS_SELECTOR, 'gaia-grid .icon:not(.placeholder)')
+    _edit_mode_locator = (By.CSS_SELECTOR, 'body.edit-mode')
+    _search_bar_icon_locator = (By.ID, 'search-input')
+    _landing_page_locator = (By.ID, 'icons')
 
     def launch(self):
         Base.launch(self)
 
-    def wait_for_homescreen_to_load(self):
-        # The pagination scroller is shown once number of icons/pages is known
-        self.wait_for_element_displayed(*self._pagination_scroller_locator)
-        # This element is inserted by e.me init
-        self.wait_for_element_displayed(*self._search_bar_icon_locator)
-
     def tap_search_bar(self):
         search_bar = self.marionette.find_element(*self._search_bar_icon_locator)
         search_bar.tap()
+
+        # TODO These lines are a workaround for bug 1020974
+        import time
+        time.sleep(1)
+        self.marionette.switch_to_frame()
+        time.sleep(1)
+        self.marionette.find_element('id', 'rocketbar-form').tap()
+
         from gaiatest.apps.homescreen.regions.search_panel import SearchPanel
         return SearchPanel(self.marionette)
 
     def wait_for_app_icon_present(self, app_name):
-        self.wait_for_element_present(self._homescreen_icon_locator[0], self._homescreen_icon_locator[1] % app_name)
+        self.wait_for_condition(lambda m: self.installed_app(app_name))
 
     def wait_for_app_icon_not_present(self, app_name):
-        self.wait_for_element_not_present(self._homescreen_icon_locator[0], self._homescreen_icon_locator[1] % app_name)
+        self.wait_for_condition(lambda m: self.installed_app(app_name) is None)
 
     def is_app_installed(self, app_name):
         """Checks whether app is installed"""
-        is_installed = False
-        for i in range(self.homescreen_get_total_pages_number):
-            if self.is_element_displayed(self._homescreen_icon_locator[0], self._homescreen_icon_locator[1] % app_name):
-                is_installed = True
-                break
-            elif self.homescreen_has_more_pages:
-                self.go_to_next_page()
-
-        return is_installed
-
-    def go_to_next_page(self):
-        self.marionette.execute_script('window.wrappedJSObject.GridManager.goToNextPage()')
-        self.wait_for_condition(lambda m: m.find_element('tag name', 'body')
-            .get_attribute('data-transitioning') != 'true')
+        return self.installed_app(app_name) is not None
 
     def activate_edit_mode(self):
-        app = self.marionette.find_element(*self._visible_icons_locator)
+        app = self.marionette.find_element(*self._homescreen_all_icons_locator)
         Actions(self.marionette).\
             press(app).\
             wait(3).\
             release().\
+            wait(1).\
             perform()
         self.wait_for_condition(lambda m: app.is_displayed())
         # Ensure that edit mode is active
@@ -82,65 +69,71 @@ class Homescreen(Base):
         return ContextMenu(self.marionette)
 
     def move_app_to_position(self, app_position, to_position):
-        app = self.marionette.find_elements(*self._visible_icons_locator)[app_position]
-        destination = self.marionette.find_elements(*self._visible_icons_locator)[to_position]
-
+        app_elements = self.app_elements
         Actions(self.marionette).\
-            press(app).\
+            press(app_elements[app_position]).\
             wait(3).\
-            move(destination).\
+            move(app_elements[to_position]).\
             wait(1).\
             release().\
+            wait(1).\
             perform()
 
     @property
     def is_edit_mode_active(self):
         return self.is_element_present(*self._edit_mode_locator)
 
+    def tap_collection(self, collection_name):
+        for root_el in self.marionette.find_elements(*self._homescreen_all_icons_locator):
+            if root_el.text == collection_name:
+                self.marionette.execute_script(
+                    'arguments[0].scrollIntoView(false);', [root_el])
+                root_el.tap()
+                from gaiatest.apps.homescreen.regions.collections import Collection
+                return Collection(self.marionette)
+
     @property
-    def homescreen_get_total_pages_number(self):
+    def app_elements(self):
         return self.marionette.execute_script("""
-        var pageHelper = window.wrappedJSObject.GridManager.pageHelper;
-        return pageHelper.getTotalPagesNumber();""")
-
-    @property
-    def homescreen_has_more_pages(self):
-        # the naming of this could be more concise when it's in an app object!
-        return self.marionette.execute_script("""
-        var pageHelper = window.wrappedJSObject.GridManager.pageHelper;
-        return pageHelper.getCurrentPageNumber() < (pageHelper.getTotalPagesNumber() - 1);""")
-
-    @property
-    def collections_count(self):
-        return len(self.marionette.find_elements(*self._collections_locator))
-
-    def tap_collection(self, name):
-        el = self.marionette.find_element(self._collection_locator[0],
-                                          self._collection_locator[1] % name)
-        el.tap()
-
-        from gaiatest.apps.homescreen.regions.collections import Collection
-        return Collection(self.marionette)
+        var gridItems = window.wrappedJSObject.app.grid.getItems();
+        var appElements = [];
+        for(var i=0; i<gridItems.length; i++){
+        // it must have an app to be a
+        if(gridItems[i].app) appElements.push(gridItems[i].element);
+        }
+        return appElements;
+        """)
 
     @property
     def visible_apps(self):
-        return [self.InstalledApp(self.marionette, root_el)
-                for root_el in self.marionette.find_elements(*self._visible_icons_locator)]
+        # Bug 1020910 - Marionette cannot detect correctly detect icons on vertical homescreen
+        # The icons' order on screen is not represented in the DOM, thus we use the grid
+        return [self.InstalledApp(self.marionette, root_element)
+                for root_element in self.app_elements if root_element.is_displayed()]
+
+    def wait_for_number_of_apps(self, number_of_apps=1):
+        self.wait_for_condition(lambda m: len(self.app_elements) >= number_of_apps)
 
     def installed_app(self, app_name):
-        root_el = self.marionette.find_element(self._homescreen_icon_locator[0], self._homescreen_icon_locator[1] % app_name)
-        return self.InstalledApp(self.marionette, root_el)
+        for root_el in self.marionette.find_elements(*self._homescreen_all_icons_locator):
+            if root_el.text == app_name:
+                return self.InstalledApp(self.marionette, root_el)
 
     class InstalledApp(PageRegion):
 
-        _delete_app_locator = (By.CSS_SELECTOR, 'span.options')
+        _delete_app_locator = (By.CSS_SELECTOR, 'span.remove')
 
         @property
         def name(self):
-            return self.root_element.get_attribute('aria-label')
+            return self.root_element.text
 
         def tap_icon(self):
             expected_name = self.name
+
+            #TODO remove scroll after Bug 937053 is resolved
+            self.marionette.execute_script(
+                'arguments[0].scrollIntoView(false);', [self.root_element])
+
             self.root_element.tap()
             self.wait_for_condition(lambda m: self.apps.displayed_app.name.lower() == expected_name.lower())
             self.apps.switch_to_displayed_app()

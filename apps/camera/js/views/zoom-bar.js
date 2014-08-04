@@ -5,7 +5,8 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
-var View = require('vendor/view');
+var debug = require('debug')('view:zoom-bar');
+var View = require('view');
 var bind = require('lib/bind');
 var orientation = require('lib/orientation');
 
@@ -27,24 +28,36 @@ module.exports = View.extend({
 
     this._orientation = orientation.get();
 
-    // Bind events
+    // Amount (%) to adjust the Zoom Bar by when tapping the min/max indicators
+    this.zoomBarIndicatorInterval = 10;
+
+    // Amount of inactivity time (in milliseconds) to hide the Zoom Bar
+    this.zoomBarInactivityTimeout = 3000;
+  },
+
+  render: function() {
+    this.el.innerHTML = this.template();
+    this.els.maxIndicator = this.find('.zoom-bar-max-indicator');
+    this.els.minIndicator = this.find('.zoom-bar-min-indicator');
+    this.els.inner = this.find('.zoom-bar-inner');
+    this.els.track = this.find('.zoom-bar-track');
+    this.els.scrubber = this.find('.zoom-bar-scrubber');
+
+    // Clean up
+    delete this.template;
+
+    debug('rendered');
+    return this.bindEvents();
+  },
+
+  bindEvents: function() {
     bind(this.els.scrubber, 'touchstart', this.onTouchStart);
     bind(this.els.scrubber, 'touchmove', this.onTouchMove);
     bind(this.els.scrubber, 'touchend', this.onTouchEnd);
     bind(this.els.maxIndicator, 'click', this.onIncrement);
     bind(this.els.minIndicator, 'click', this.onDecrement);
     orientation.on('orientation', this.setOrientation);
-  },
-
-  render: function() {
-    this.el.innerHTML = this.template();
-
-    // Find elements
-    this.els.maxIndicator = this.find('.zoom-bar-max-indicator');
-    this.els.minIndicator = this.find('.zoom-bar-min-indicator');
-    this.els.inner = this.find('.zoom-bar-inner');
-    this.els.track = this.find('.zoom-bar-track');
-    this.els.scrubber = this.find('.zoom-bar-scrubber');
+    return this;
   },
 
   template: function() {
@@ -108,13 +121,13 @@ module.exports = View.extend({
   },
 
   onIncrement: function(evt) {
-    this.setValue(this._value + window.ZOOM_BAR_INDICATOR_INTERVAL, true);
+    this.setValue(this._value + this.zoomBarIndicatorInterval, true);
     this.flashScrubberActive();
     evt.stopPropagation();
   },
 
   onDecrement: function(evt) {
-    this.setValue(this._value - window.ZOOM_BAR_INDICATOR_INTERVAL, true);
+    this.setValue(this._value - this.zoomBarIndicatorInterval, true);
     this.flashScrubberActive();
     evt.stopPropagation();
   },
@@ -196,7 +209,7 @@ module.exports = View.extend({
     var self = this;
     this._inactivityTimeout = window.setTimeout(function() {
       self.hide();
-    }, window.ZOOM_BAR_INACTIVITY_TIMEOUT);
+    }, this.zoomBarInactivityTimeout);
   },
 
   show: function() {

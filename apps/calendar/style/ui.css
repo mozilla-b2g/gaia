@@ -39,26 +39,24 @@ ol.link-list li:only-child a {
   border-bottom: 0;
 }
 
-#today .icon-today {
+#today .icon-calendar-today {
   font-size: 1.4rem;
   line-height: 4.6rem;
 }
 
-#today .icon-today:before {
+#today .icon-calendar-today:before {
   position: absolute;
-  width: 100%;
-  display: block;
   font-size: 3rem;
-  line-height: 4.5rem;
+  line-height: 4.2rem;
+  left: 50%;
+  transform: translateX(-52%);
 }
 
 #view-selector > .today {
   border-right: 0.1rem solid #F2F2F2;
 }
 
-body[data-path="/month/"] #view-selector > .month > a,
-body[data-path="/week/"] #view-selector > .week > a,
-body[data-path="/day/"] #view-selector > .day > a {
+#view-selector a[aria-selected="true"] {
   color: #00aacc;
   font-weight: 500;
 }
@@ -105,12 +103,68 @@ body[data-path="/day/"] #view-selector > .day > a:active {
 #time-views > section {
   display: none;
   position: relative;
-  height: calc(100% - 9.6rem);
+  height: calc(100% - 9.5rem);
   background: #fff;
 }
 
 #time-views > section.active {
   display: block;
+}
+
+#time-header [type="toolbar"] {
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.settings-drawer-visible #time-header [type="toolbar"] {
+  opacity: 0;
+}
+
+.display-hour.is-hidden {
+  visibility: hidden;
+}
+
+.current-time {
+  pointer-events: none;
+  display: none;
+  position: absolute;
+  width: 100%;
+  color: #008EAB;
+  font-size: 1.2rem;
+  line-height: 1.2rem;
+  margin-top: -0.6rem;
+}
+
+.current-time.active {
+  display: block;
+}
+
+.current-time:before {
+  content: '';
+  display: block;
+  position: absolute;
+  top: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0.4rem 0 0.4rem 0.6rem;
+  border-color: transparent transparent transparent #008EAB;
+  /* scale is for smooth edges and translate for centering the line */
+  transform: scale(0.99) translateY(0.25rem);
+  /* z-index here so that only the arrow goes above the events, we want the
+   * line to be behind the event name and alarm icon */
+  z-index: 15;
+}
+
+.current-time:after {
+  content: '';
+  display: block;
+  position: absolute;
+  top: 0.6rem;
+  height: 0.1rem;
+  /* we use border-top instead of background-color to avoid rouding issues on
+   * high resolution devices */
+  border-top: 0.1rem solid #008EAB;
 }
 
 /* view loading */
@@ -130,17 +184,6 @@ body[data-path="/day/"] #view-selector > .day > a:active {
   background-color: #CCC;
   opacity: 0.5;
   text-align: center;
-}
-
-
-/* view heights */
-
-#time-views > #month-view {
-  height: auto;
-}
-
-#time-views > #months-day-view {
-  flex: 1;
 }
 
 #progress-indicator {
@@ -178,6 +221,15 @@ body[data-path="/day/"] #view-selector > .day > a:active {
   overflow-y: scroll;
 }
 
+#advanced-settings-view .create-account-item {
+  text-align: center;
+}
+
+#advanced-settings-view button {
+  margin: 1.1rem auto;
+  width: calc(100% - 3rem);
+}
+
 #advanced-settings-view .settings-list label {
   height: auto;
   margin: 0 1.5rem;
@@ -187,26 +239,9 @@ body[data-path="/day/"] #view-selector > .day > a:active {
 
 #advanced-settings-view .settings-list label span {
   display: block;
-  position: relative;
   margin-bottom: 0;
   font-size: 1.9rem;
   line-height: 3.3rem;
-}
-
-#advanced-settings-view .settings-list label .button {
-  height: 4rem;
-}
-
-#advanced-settings-view .settings-list label select {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  width: calc(100% + 3rem);
-  padding: 0.8rem 1rem 0;
-  font-size: 1.7rem;
-  font-weight: 500;
 }
 
 #advanced-settings-view .settings-list label span:first-child {
@@ -222,13 +257,22 @@ body[data-path="/day/"] #view-selector > .day > a:active {
   width: calc(100% - 3rem);
 }
 
+/* For the account listing, want the final child to still have
+   a bottom border to separate it from the Add Account button */
+#advanced-settings-view .account-list li:last-child label,
+#advanced-settings-view .account-list li:only-child label,
+#advanced-settings-view .account-list li:last-child a,
+#advanced-settings-view .account-list li:only-child a {
+  border-bottom: 0.1rem solid #C5C5C5;
+}
+
 #advanced-settings-view .account-list a {
   padding-right: 4rem;
 }
 
 #advanced-settings-view .account-list .error a {
-  background: transparent url('icons/accountwarning.png') no-repeat left;
-  padding-left: 3.5rem;
+  background: transparent url('icons/accountwarning.png') no-repeat left / 2rem auto;
+  padding-left: 2.7rem;
 }
 
 #advanced-settings-view .preset:after {
@@ -237,14 +281,6 @@ body[data-path="/day/"] #view-selector > .day > a:active {
 
 #advanced-settings-view .user {
   width: 50%;
-}
-
-#advanced-settings-view header.account-list-header.active {
-  display: block;
-}
-
-#advanced-settings-view header.account-list-header {
-  display: none;
 }
 
 /* create account view */
@@ -261,261 +297,11 @@ body[data-path="/day/"] #view-selector > .day > a:active {
   overflow: hidden;
   visibility: hidden;
   /* completely override other views */
-  background-color: #f4f4f4;
+  background-color: #FFFFFF;
   position: absolute;
   top: 0;
   width: 100%;
   height: 100%
-}
-
-/* sub common: day headers, day boxes */
-
-#month-days {
-  overflow: scroll;
-}
-
-#month-view .month li,
-#month-days li {
-  width: 14.286%;
-  line-height: 120%;
-  -moz-user-select: none;
-}
-
-.rtl #month-days li,
-.rtl #month-view .month li {
-  float: right;
-}
-
-.ltr #month-days li,
-.ltr #month-view .month li {
-  float: left;
-}
-
-/* sub: day header row */
-
-#month-days {
-  overflow: hidden;
-}
-
-#week-view .day-header,
-#month-days li {
-  height: 2rem;
-  color: white;
-  text-align: center;
-  background-color: #242931;
-  text-transform: uppercase;
-  font-size: 1.3rem;
-  padding: 0.185rem 0;
-  border-right: 0.1rem solid #131314;
-  border-left: 0.1rem solid #515051;
-}
-
-#month-days li:first-child {
-  border-left: none;
-}
-
-#month-days li:last-child {
-  border-right: none;
-}
-
-body[data-path^="/month/"] section.month.next,
-body[data-path^="/month/"] section.month.previous {
-  display: block !important;
-}
-
-section.month {
-  height: 100%;
-  color: #484848;
-  border-left: 0.1rem solid #AAA;
-  border-right: 0.1rem solid #AAA;
-  display: none;
-}
-
-/* sub: day rows */
-
-section.month.active {
-  display: block;
-}
-
-section.month li > .day {
-  font-size: 1.5rem;
-  line-height: 140%;
-}
-
-.rtl section.month li {
-  text-align: left;
-}
-
-.rtl section.month li > .day {
-  padding-left: 0.296rem;
-}
-
-.ltr section.month li {
-  text-align: right;
-}
-
-.ltr section.month li > .day {
-  padding-right: 0.35rem;
-}
-
-section.month ol {
-  height: 4.5rem;
-}
-
-section.month #month-days ol {
-  height: auto;
-}
-
-/* Make the rows a bit taller for larger resolutions */
-/* use min-height instead of min-device-width because of b2g Bug 979924 */
-@media (min-height: 640px) {
-  section.month ol {
-    height: 6rem;
-  }
-}
-
-section.month ol:last-child {
-  box-shadow: 0 5px 5px 0 rgba(1, 1, 1, 0.2);
-  position: relative;
-  z-index: 200;
-}
-
-section.month li:first-child {
-  border-left: none;
-}
-
-section.month li:last-child {
-  border-right: none;
-}
-
-section.month li {
-  padding-top: 0.3%;
-
-  border-right: 0.1rem solid #A4A4A4;
-  border-left: 0.1rem solid #FDFDFD;
-  border-top: 0.1rem solid white;
-  border-bottom: 0.1rem solid #9D9D9D;
-  height: 100%;
-  position: relative;
-  background-color: white;
-}
-
-section.month ol:last-child li {
-  border-bottom: none;
-}
-
-section.month li.past {
-  background-color: #E6E6E6;
-  color: #484848;
-}
-
-section.month li.present {
-  background-color: #525963;
-  box-shadow: inset 0.1rem 0.2rem 0.3rem 0 #333;
-  color: white;
-  border-left: none;
-  border-top: none;
-}
-
-section.month li.future {
-  background-color: #E6E6E6;
-}
-
-section.month li.selected {
-  color: white !important;
-  background-color: #1BA8C6 !important;
-}
-
-section.month li.past.other-month {
-  background-color: #C1C1C1;
-}
-
-section.month li.future.other-month {
-  background-color: #C1C1C1;
-}
-
-
-
-/* sub day rows: busy indicators */
-
-section.month li .busy-indicator,
-section.month li .busy-indicator > span{
-  height: 0.8rem;
-  padding-top: 0.37rem;
-}
-
-section.month li .busy-indicator {
-  overflow: hidden;
-  clear: both;
-  bottom: 0;
-  position: absolute;
-  width: 100%;
-}
-
-section.month li .busy-indicator:before {
-  /* &nsbp; */
-  content:"\00a0";
-}
-
-section.month li .busy-indicator > span {
-  top: 0;
-  position: absolute;
-  text-indent: -1000em;
-}
-
-/**
-Indicators are in units of 12
-*/
-.busy-length-1 { width: 8.33%; }
-.busy-length-2 { width: 16.66%; }
-.busy-length-3 { width: 24.990000000000002%; }
-.busy-length-4 { width: 33.32%; }
-.busy-length-5 { width: 41.65%; }
-.busy-length-6 { width: 49.980000000000004%; }
-.busy-length-7 { width: 58.31%; }
-.busy-length-8 { width: 66.64%; }
-.busy-length-9 { width: 74.97%; }
-.busy-length-10 { width: 83.3%; }
-.busy-length-11 { width: 91.63%; }
-.busy-length-12 { width: 100%; }
-
-/* ltr busy units */
-.ltr .busy-indicator .busy-1 { left: 0; }
-.ltr .busy-indicator .busy-2 { left: 8.33%; }
-.ltr .busy-indicator .busy-3 { left: 16.66%; }
-.ltr .busy-indicator .busy-4 { left: 24.990000000000002%; }
-.ltr .busy-indicator .busy-5 { left: 33.32%; }
-.ltr .busy-indicator .busy-6 { left: 41.65%; }
-.ltr .busy-indicator .busy-7 { left: 49.980000000000004%; }
-.ltr .busy-indicator .busy-8 { left: 58.31%; }
-.ltr .busy-indicator .busy-9 { left: 66.64%; }
-.ltr .busy-indicator .busy-10 { left: 74.97%; }
-.ltr .busy-indicator .busy-11 { left: 83.3%; }
-.ltr .busy-indicator .busy-12 { left: 91.63%; }
-
-
-/* rtl busy units */
-.rtl .busy-indicator .busy-1 { right: 0; }
-.rtl .busy-indicator .busy-2 { right: 8.33%; }
-.rtl .busy-indicator .busy-3 { right: 16.66%; }
-.rtl .busy-indicator .busy-4 { right: 24.990000000000002%; }
-.rtl .busy-indicator .busy-5 { right: 33.32%; }
-.rtl .busy-indicator .busy-6 { right: 41.65%; }
-.rtl .busy-indicator .busy-7 { right: 49.980000000000004%; }
-.rtl .busy-indicator .busy-8 { right: 58.31%; }
-.rtl .busy-indicator .busy-9 { right: 66.64%; }
-.rtl .busy-indicator .busy-10 { right: 74.97%; }
-.rtl .busy-indicator .busy-11 { right: 83.3%; }
-.rtl .busy-indicator .busy-12 { right: 91.63%; }
-
-/* sub: months day view */
-#months-day-view  h1 {
-  padding: 0.2rem 1.5rem 0;
-  font-size: 1.5rem;
-  font-weight: 500;
-  line-height: 2.8rem;
-  color: #F93700;
-  border-bottom: 0.1rem solid #F93700;
 }
 
 /* [BB][tabs]*/
@@ -555,3 +341,22 @@ section[role="status"].active {
   visibility: hidden;
 }
 
+/* these settings avoid conflicts with the shared icons */
+.gaia-icon {
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+}
+
+/* these icons uses a 32px base grid so we need to adjust the font size
+ * (shared font uses a 3rem base font-size) */
+.icon-calendar-allday:before,
+.icon-calendar-alarm:before,
+.icon-calendar-bullet:before,
+.icon-calendar-dot:before,
+.icon-calendar-today:before,
+.icon-calendar-eventalarm:before {
+  font-size: 3.2rem;
+}

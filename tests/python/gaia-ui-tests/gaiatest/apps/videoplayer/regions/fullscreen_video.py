@@ -18,8 +18,8 @@ class FullscreenVideo(Base):
     def wait_for_player_frame_displayed(self):
         self.wait_for_element_displayed(*self._video_player_frame_locator)
 
-    def display_controls_with_js(self):
-        self.marionette.execute_script("window.wrappedJSObject.setControlsVisibility(true);")
+    def show_controls(self):
+        self.marionette.find_element(*self._video_player_locator).tap()
         self.wait_for_element_displayed(*self._video_controls_locator)
 
     @property

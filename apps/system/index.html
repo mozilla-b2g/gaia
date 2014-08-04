@@ -3,6 +3,8 @@
   <head>
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
     <meta charset="utf-8">
+    <!-- Init Logo -->
+    <link rel="stylesheet" type="text/css" href="style/system/initlogo.css">
 
     <!-- Shared code -->
     <script src="shared/js/l10n.js"></script>
@@ -27,7 +29,10 @@
     <script defer src="shared/js/screen_layout.js"></script>
     <script defer src="shared/js/iac_handler.js"></script>
     <script defer src="shared/js/apn_helper.js"></script>
+    <script defer src="shared/js/utilities.js"></script>
     <script defer src="js/touch_forwarder.js"></script>
+    <script defer src="shared/js/version_helper.js"></script>
+    <script defer src="shared/js/font_size_utils.js"></script>
 
     <script defer src="js/system.js"></script>
     <script defer src="js/base_ui.js"></script>
@@ -40,18 +45,20 @@
     -->
 
     <!-- SIMSlot -->
-    <script type="text/javascript" defer src="js/simslot.js"></script>
-    <script type="text/javascript" defer src="js/simslot_manager.js"></script>
+    <script type="text/javascript" defer src="shared/js/simslot.js"></script>
+    <script type="text/javascript" defer src="shared/js/simslot_manager.js"></script>
     <script type="text/javascript" defer src="js/sim_settings_helper.js"></script>
 
 
     <!-- Wrapper -->
     <link rel="stylesheet" type="text/css" href="style/wrapper/wrapper.css">
+    <link rel="stylesheet" type="text/css" href="style/chrome/chrome.css">
 
     <!-- System -->
     <link rel="stylesheet" type="text/css" href="style/system/system.css">
     <link rel="stylesheet" type="text/css" href="style/system/keyboard.css">
     <link rel="stylesheet" type="text/css" href="style/sound_manager/sound_manager.css">
+    <link rel="stylesheet" type="text/css" href="style/ime_menu.css">
 
     <!-- Include shared building blocks -->
     <link rel="stylesheet" type="text/css" href="shared/style/confirm.css"/>
@@ -61,8 +68,13 @@
     <link rel="stylesheet" type="text/css" href="shared/style/value_selector.css">
     <link rel="stylesheet" type="text/css" href="shared/style/date_selector.css">
     <link rel="stylesheet" type="text/css" href="shared/style/time_selector.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/object_menu.css">
 
     <link rel="stylesheet" type="text/css" href="style/fake-notification.css"/>
+
+    <!-- Include shared web components -->
+    <script defer src="shared/js/component_utils.js"></script>
+    <script defer src="shared/elements/gaia_buttons/script.js"></script>
 
     <!-- Include shared resources
     <link rel="resource" type="application/json" href="shared/resources/apn.json"/>
@@ -70,9 +82,8 @@
     <link rel="resource" type="image/png" href="shared/resources/branding/initlogo_large.png"/>
     -->
 
-    <link rel="resource" type="image/png" href="shared/resources/branding/Browser_60.png"/>
-    <link rel="resource" type="image/png" href="shared/resources/branding/Browser_90.png"/>
-    <link rel="resource" type="image/png" href="shared/resources/branding/Browser_120.png"/>
+    <link rel="resource" type="image/png" href="shared/resources/branding/browser_84.png"/>
+    <link rel="resource" type="image/png" href="shared/resources/branding/browser_126.png"/>
     <!-- applications.js must not be deferred
          in order to catch webapps-registry-ready mozChromeEvent -->
     <script src="js/applications.js"></script>
@@ -92,6 +103,10 @@
     <script defer src="js/dialer_agent.js"></script>
     <script defer src="js/system_banner.js"></script>
     <script defer src="js/home_gesture.js"></script>
+    <script defer src="js/wallpaper_manager.js"></script>
+    <!--  WallpaperManager lazily loads this script if needed
+        <script defer src="shared/js/image_utils.js"></script>
+    -->
 
     <!-- TTL View -->
     <link rel="stylesheet" type="text/css" href="style/ttlview/ttlview.css">
@@ -110,6 +125,8 @@
     <script defer src="js/battery_manager.js"></script>
 
     <!-- Keyboard -->
+    <script defer src="js/input_transition.js"></script>
+    <script defer src="js/ime_switcher.js"></script>
     <script defer src="js/keyboard_manager.js"></script>
 
     <!-- Utility Tray -->
@@ -125,8 +142,12 @@
     <link rel="stylesheet" type="text/css" href="style/action_menu/action_menu_extended.css">
     <script defer src="js/action_menu.js"></script>
 
+    <!-- Ime Menu -->
+    <script defer src="js/ime_menu.js"></script>
+
     <!-- Statusbar -->
     <link rel="stylesheet" type="text/css" href="style/statusbar/statusbar.css">
+    <script defer src="js/clock.js"></script>
     <script defer src="js/statusbar.js"></script>
 
     <!-- Software button -->
@@ -137,8 +158,15 @@
     <script defer src="js/ftu_launcher.js"></script>
 
     <!-- FTU ping -->
-    <script defer src="js/uuid.js"></script>
+    <script defer src="/shared/js/uuid.js"></script>
     <script defer src="js/ftu_ping.js"></script>
+
+    <!-- App usage metrics -->
+    <script defer src="js/app_usage_metrics.js"></script>
+
+    <!-- Basket newsletter -->
+    <script defer src="/shared/js/basket_client.js"></script>
+    <script defer src="js/newsletter_manager.js"></script>
 
     <!-- ICC/STK -->
     <!-- This depends on ftu_launcher.js, please load it in order ;) -->
@@ -146,7 +174,6 @@
     <script defer src="js/icc_events.js"></script>
     <script defer src="js/icc_worker.js"></script>
     <script defer src="js/icc.js"></script>
-    <script defer src="js/stkTester.js"></script>
 
     <!-- Media Playback -->
     <script defer src="js/media_playback.js"></script>
@@ -155,11 +182,14 @@
     <!-- LockScreen -->
     <link rel="stylesheet" type="text/css" href="style/lockscreen/lockscreen.css">
     <script defer src="/shared/js/lockscreen_slide.js"></script>
-    <script defer src="js/lockscreen_connection_info_manager.js"></script>
+    <script defer src="/shared/js/lockscreen_connection_info_manager.js"></script>
     <script defer src="js/lockscreen.js"></script>
+    <script defer src="js/lockscreen_notifications.js"></script>
+    <script defer src="js/lockscreen_passcode_validator.js"></script>
 
     <!-- Airplane Mode -->
     <script defer src="js/airplane_mode.js"></script>
+    <link rel="stylesheet" type="text/css" href="style/textselection_dialog/textselection_dialog.css">
 
     <!-- Modal Dialog -->
     <link rel="stylesheet" type="text/css" href="style/modal_dialog/prompt.css">
@@ -212,9 +242,17 @@
       <script src="shared/js/download/download_store.js"></script>
     -->
 
+    <!-- Nfc -->
+    <script defer src="js/ndef_utils.js"></script>
+    <script defer src="js/nfc_handover_manager.js"></script>
+    <script defer src="js/nfc_manager.js"></script>
+
     <!-- Cards View -->
     <link rel="stylesheet" type="text/css" href="style/cards_view/cards_view.css">
-    <script defer src="js/cards_view.js"></script>
+    <script defer src="js/cards_helper.js"></script>
+    <script defer src="js/card.js"></script>
+    <script defer src="js/task_card.js"></script>
+    <script defer src="js/task_manager.js"></script>
 
     <!-- Bluetooth -->
     <script defer src="js/bluetooth.js"></script>
@@ -223,11 +261,6 @@
 
     <!-- Wifi -->
     <script defer src="js/wifi.js"></script>
-
-    <!-- Nfc -->
-    <script defer src="js/nfc_manager_utils.js"></script>
-    <script defer src="js/nfc_handover_manager.js"></script>
-    <script defer src="js/nfc_manager.js"></script>
 
     <!-- Radio  -->
     <script defer src="js/radio.js"></script>
@@ -287,7 +320,9 @@
     <!-- Windows -->
     <!-- Any module that wants to intercept the Home button and prevent the -->
     <!-- homescreen from being displayed must come before this script. -->
+    <link rel="stylesheet" type="text/css" href="style/window_layout.css">
     <link rel="stylesheet" type="text/css" href="style/window.css">
+    <link rel="stylesheet" type="text/css" href="style/app_titlebar.css">
     <script defer src="js/base_ui.js"></script>
     <script defer src="js/browser_context_menu.js"></script>
     <script defer src="js/child_window_factory.js"></script>
@@ -295,6 +330,7 @@
     <script defer src="js/app_chrome.js"></script>
     <script defer src="js/app_transition_controller.js"></script>
     <script defer src="js/app_authentication_dialog.js"></script>
+    <script defer src="js/text_selection_dialog.js"></script>
     <script defer src="js/app_window.js"></script>
     <script defer src="js/popup_window.js"></script>
     <script defer src="js/shrinking_ui.js"></script>
@@ -321,10 +357,6 @@
     <script defer src="js/layout_manager.js"></script>
     <script defer src="js/suspending_app_priority_manager.js"></script>
 
-    <!-- Devtools -->
-    <link rel="stylesheet" type="text/css" href="style/devtools_view.css">
-    <script defer src="js/devtools_view.js"></script>
-
     <!-- Edge Gestures -->
     <script defer src="js/stack_manager.js"></script>
     <script defer src="js/sheets_transition.js"></script>
@@ -335,8 +367,10 @@
     <link rel="stylesheet" type="text/css" href="style/entry_sheet/entry_sheet.css">
     <script defer src="js/entry_sheet.js"></script>
 
-    <!-- Remote Debugger -->
+    <!-- Developer Tools -->
     <script defer src="js/remote_debugger.js"></script>
+    <script defer src="js/devtools/developer_hud.js"></script>
+    <link rel="stylesheet" type="text/css" href="style/devtools/developer_hud.css">
 
     <!-- Call Forwarding  -->
     <script defer src="js/call_forwarding.js"></script>
@@ -357,7 +391,6 @@
     <!-- Rocketbar -->
     <script defer src="js/browser.js"></script>
     <script defer src="js/rocketbar.js"></script>
-    <script defer src="js/home_searchbar.js"></script>
     <script defer src="js/search_window.js"></script>
     <script defer src="shared/js/url_helper.js"></script>
     <link rel="stylesheet" type="text/css" href="style/rocketbar/rocketbar.css">
@@ -376,67 +409,13 @@
     <script defer src="js/fxa_manager.js"></script>
 
     <!-- Find My Device -->
+    <script defer src="shared/js/findmydevice_iac_api.js"></script>
     <script defer src="js/findmydevice_launcher.js"></script>
 
-    <style>
-      /* initlogos style is here to prevent flashing */
-
-      #os-logo {
-        position: absolute;
-        overflow: hidden;
-        width: 100%;
-        height: 100%;
-        background: #000 url('shared/resources/branding/initlogo.png') no-repeat center / cover;
-        z-index: 65536;
-        opacity: 1;
-        transition: opacity 1s ease 2s;
-        pointer-events: none;
-      }
-
-      #carrier-logo {
-        position: absolute;
-        overflow: hidden;
-        width: 100%;
-        height: 100%;
-        background: #000;
-      }
-
-      #carrier-logo > img,
-      #poweroff-splash > img {
-        width: 100%;
-        height: 100%;
-        position: absolute;
-        opacity: 1;
-        transition: opacity 1s ease 2s;
-      }
-
-      #carrier-logo > video,
-      #poweroff-splash > video {
-        width: 100%;
-        height: 100%;
-        position: absolute;
-        opacity: 1;
-        transition: opacity 1s ease;
-      }
-
-      #carrier-logo.transparent {
-        background: transparent;
-      }
-
-      #carrier-logo > img.hide,
-      #carrier-logo > video.hide,
-      #os-logo.hide,
-      #poweroff-splash > img.hide,
-      #poweroff-splash > video.hide {
-        opacity: 0;
-      }
-
-      @media (min-width: 1200px) and (orientation: landscape) {
-        #os-logo {
-          background: #000 url('shared/resources/branding/initlogo_large.png') no-repeat center / cover;
-        }
-      }
-    </style>
+    <!-- Mobile ID -->
+    <link rel="stylesheet" type="text/css" href="style/mobileid/mobileid.css">
+    <script defer src="js/mobileid_manager.js"></script>
+    <script defer src="js/mobileid_dialog.js"></script>
   </head>
 
   <body role="application">
@@ -449,43 +428,43 @@
       <div id="statusbar" data-z-index-level="statusbar">
         <!-- Rocketbar-->
         <div id="rocketbar">
-          <div id="rocketbar-title">
-            <span id="rocketbar-title-content" data-l10n-id="search-or-enter-address">Search or enter address</span>
-          </div>
           <form id="rocketbar-form" class="hidden">
-            <input id="rocketbar-input" type="text" x-inputmode="verbatim"
+            <input id="rocketbar-input" type="text" x-inputmode="verbatim" dir="auto"
               placeholder="Search or enter address" data-l10n-id="search-or-enter-address" value="">
             </input>
-            <button type="reset" id="rocketbar-cancel" data-l10n-id="close">Close</button>
+            <button type="button" id="rocketbar-clear" data-l10n-id="clear" aria-label="Clear"></button>
+            <button type="button" id="rocketbar-cancel"
+                    data-l10n-id="close">Close</button>
           </form>
         </div>
         <!-- Statusbar icons -->
-        <div id="statusbar-icons">
+        <div id="statusbar-icons" role="group" data-l10n-id="statusbar">
           <!-- Time -->
-          <div id="statusbar-time"></div>
+          <div id="statusbar-time" role="listitem"></div>
 
           <!-- Status -->
           <div id="statusbar-battery" class="sb-icon sb-icon-battery"
-            data-level="100" hidden></div>
+            data-level="100" hidden role="listitem"></div>
           <div id="statusbar-wifi" class="sb-icon sb-icon-wifi"
-            data-level="4" hidden></div>
-          <div id="statusbar-flight-mode" class="sb-icon sb-icon-flight-mode" hidden></div>
-          <div id="statusbar-connections"></div>
-          <div id="statusbar-headphones" class="sb-icon sb-icon-headphones" hidden></div>
-          <div id="statusbar-bluetooth-headphones" class="sb-icon sb-icon-bluetooth-headphones" hidden></div>
-          <div id="statusbar-bluetooth-transferring" class="sb-icon sb-icon-bluetooth-transferring" hidden></div>
+            data-level="4" hidden role="listitem"></div>
+          <div id="statusbar-flight-mode" class="sb-icon sb-icon-flight-mode" hidden role="listitem" data-l10n-id="statusbarFlightMode"></div>
+          <div id="statusbar-connections" role="presentation"></div>
+          <div id="statusbar-headphones" class="sb-icon sb-icon-headphones" hidden role="listitem" data-l10n-id="statusbarHeadphones"></div>
+          <div id="statusbar-bluetooth-headphones" class="sb-icon sb-icon-bluetooth-headphones" role="listitem" hidden data-l10n-id="statusbarBluetoothHeadphones"></div>
+          <div id="statusbar-bluetooth-transferring" class="sb-icon sb-icon-bluetooth-transferring" role="listitem" hidden data-l10n-id="statusbarBluetoothTransferring"></div>
 
           <!-- Permissions -->
-          <div id="statusbar-tethering" class="sb-icon sb-icon-tethering" hidden></div>
-          <div id="statusbar-alarm" class="sb-icon sb-icon-alarm" hidden></div>
-          <div id="statusbar-bluetooth" class="sb-icon sb-icon-bluetooth" hidden></div>
-          <div id="statusbar-mute" class="sb-icon sb-icon-mute" hidden></div>
-          <div id="statusbar-recording" class="sb-icon sb-icon-recording" hidden></div>
-          <div id="statusbar-sms" class="sb-icon sb-icon-sms" hidden></div>
-          <div id="statusbar-geolocation" class="sb-icon sb-icon-geolocation" hidden></div>
-          <div id="statusbar-usb" class="sb-icon sb-icon-usb" hidden></div>
-          <div id="statusbar-call-forwardings"></div>
-          <div id="statusbar-playing" class="sb-icon sb-icon-playing" hidden></div>
+          <div id="statusbar-tethering" class="sb-icon sb-icon-tethering" hidden role="listitem"></div>
+          <div id="statusbar-alarm" class="sb-icon sb-icon-alarm" hidden role="listitem" data-l10n-id="statusbarAlarm"></div>
+          <div id="statusbar-bluetooth" class="sb-icon sb-icon-bluetooth" hidden role="listitem"></div>
+          <div id="statusbar-mute" class="sb-icon sb-icon-mute" hidden role="listitem"></div>
+          <div id="statusbar-recording" class="sb-icon sb-icon-recording" hidden role="listitem" data-l10n-id="statusbarRecording"></div>
+          <div id="statusbar-sms" class="sb-icon sb-icon-sms" hidden role="listitem"></div>
+          <div id="statusbar-geolocation" class="sb-icon sb-icon-geolocation" hidden role="listitem" data-l10n-id="statusbarGeolocation"></div>
+          <div id="statusbar-usb" class="sb-icon sb-icon-usb" hidden role="listitem" data-l10n-id="statusbarUsb"></div>
+          <div id="statusbar-call-forwardings" role="presentation"></div>
+          <div id="statusbar-playing" class="sb-icon sb-icon-playing" hidden role="listitem" data-l10n-id="statusbarPlaying"></div>
+          <div id="statusbar-nfc" class="sb-icon sb-icon-nfc" hidden role="listitem" data-l10n-id="statusbarNfc"></div>
 
           <!-- Activity -->
           <!-- HACK: We use images instead of divs to enforce allocation of a
@@ -493,28 +472,38 @@
                717872 gets fixed -->
           <img id="statusbar-system-downloads"
                src="style/statusbar/images/system-downloads.png"
-               class="sb-icon-system-downloads" hidden>
+               class="sb-icon-system-downloads" hidden role="listitem" data-l10n-id="statusbarDownloads">
           <img id="statusbar-network-activity"
                src="style/statusbar/images/network-activity.png"
-               class="sb-icon-network-activity" hidden>
+               class="sb-icon-network-activity" hidden role="listitem" data-l10n-id="statusbarNetworkActivity">
 
           <!-- Carrier & date label -->
-          <div id="statusbar-label" class="sb-start-upper"></div>
+          <div id="statusbar-label" class="sb-start-upper" role="listitem"></div>
           <!-- CDMA emergency callback Notification -->
-          <div id="statusbar-emergency-cb-notification" class="sb-start sb-icon sb-emergency-cb-icon-notification" hidden></div>
+          <div id="statusbar-emergency-cb-notification" class="sb-start sb-icon sb-emergency-cb-icon-notification" hidden role="listitem" data-l10n-id="statusbarEmergencyCBNotification"></div>
           <!-- Notification -->
           <div id="statusbar-notification" class="sb-start sb-icon sb-icon-notification"
-            data-num="" hidden></div>
+            data-num="" hidden role="listitem"></div>
         </div>
       </div>
 
       <!-- Rocketbar Results -->
-      <div id="rocketbar-backdrop" class="hidden" data-z-index-level="rocketbar-results"></div>
+      <div id="rocketbar-backdrop" class="hidden" data-z-index-level="rocketbar-backdrop">
+        <div id="rocketbar-backdrop-cover"></div>
+      </div>
       <div id="rocketbar-results" class="hidden" data-z-index-level="rocketbar-results"></div>
 
       <!-- Utility Tray -->
       <div id="utility-tray" data-z-index-level="utility-tray">
-        <!-- notifications -->
+        <!-- Placeholder for notifications -->
+        <div id="notifications-placeholder"></div>
+
+        <div id="utility-tray-grippy" role="button" data-l10n-id="utilityTrayGrippy">
+        </div>
+      </div>
+
+      <!-- Notifications -->
+      <div id="utility-tray-notifications" data-z-index-level="utility-tray-notifications">
         <div id="notification-bar">
           <span id="notification-some" data-l10n-id="notifications">Notifications</span>
 
@@ -523,7 +512,7 @@
 
         <div id="notifications-container">
           <!-- Update Manager -->
-          <div id="update-manager-container" class="fake-notification">
+          <div id="update-manager-container" class="fake-notification" role="link">
             <div class="icon">
             </div>
             <div class="activity">
@@ -532,7 +521,7 @@
             </div>
           </div>
           <!-- Emergency callback Manager -->
-          <div id="emergency-callback-notification" class="fake-notification" hidden>
+          <div id="emergency-callback-notification" class="fake-notification" hidden role="link">
             <div class="icon">
             </div>
             <div class="message" data-l10n-id="emergency-callback-mode">
@@ -541,7 +530,7 @@
             </div>
           </div>
           <!-- Storage watcher notification -->
-          <div id="storage-watcher-container" class="fake-notification">
+          <div id="storage-watcher-container" class="fake-notification" role="link">
             <div class="icon">
             </div>
             <div class="message">
@@ -556,15 +545,15 @@
               </div>
               <div class="albumart">
               </div>
-              <div class="title">
+              <div class="title" data-l10n-id="mediaPlaybackTitle">
               </div>
-              <div class="artist">
+              <div class="artist" data-l10n-id="mediaPlaybackArtist">
               </div>
             </div>
-            <div class="media-playback-controls">
-              <button class="previous"></button>
+            <div class="media-playback-controls" role="toolbar" data-l10n-id="mediaPlaybackControls">
+              <button class="previous" data-l10n-id="mediaPlaybackPrevious"></button>
               <button class="play-pause"></button>
-              <button class="next"></button>
+              <button class="next" data-l10n-id="mediaPlaybackNext"></button>
             </div>
           </div>
           <!-- App Install Manager -->
@@ -575,7 +564,7 @@
           </div>
           <!-- Another entry to show IME list when the keyboard is activated -->
           <div id="keyboard-show-ime-list">
-            <div class="fake-notification">
+            <div class="fake-notification" role="link">
                 <div class="message">
                 </div>
                 <div class="tip">
@@ -583,7 +572,7 @@
             </div>
           </div>
           <!-- media recording status -->
-          <div id="media-recoding-status-list">
+          <div id="media-recoding-status-list" role="list">
           </div>
 
           <div id="desktop-notifications-container">
@@ -594,19 +583,16 @@
         <div id="cost-control-widget"></div>
 
         <!-- quick settings -->
-        <div id="quick-settings">
-          <a href="#" id="quick-settings-wifi" data-enabled="false"></a>
+        <div id="quick-settings" role="toolbar">
+          <a href="#" id="quick-settings-wifi" data-enabled="false" role="button"></a>
           <div class="separator"></div>
-          <a href="#" id="quick-settings-data" data-enabled="false"></a>
+          <a href="#" id="quick-settings-data" data-enabled="false" role="button"></a>
           <div class="separator"></div>
-          <a href="#" id="quick-settings-bluetooth" data-enabled="false"></a>
+          <a href="#" id="quick-settings-bluetooth" data-enabled="false" role="button"></a>
           <div class="separator"></div>
-          <a href="#" id="quick-settings-airplane-mode" data-enabled="false"></a>
+          <a href="#" id="quick-settings-airplane-mode" data-enabled="false" role="button"></a>
           <div class="separator"></div>
-          <a href="#" id="quick-settings-full-app" data-enabled="false"></a>
-        </div>
-
-        <div id="utility-tray-grippy" role="button">
+          <a href="#" id="quick-settings-full-app" data-enabled="false" role="button" data-l10n-id="settingsButton"></a>
         </div>
       </div>
 
@@ -617,7 +603,7 @@
       <div id="dialog-overlay" data-z-index-level="dialog-overlay">
         <!-- Unlock SIM Pin dialog -->
         <!-- Add the dialog via SystemDialog dynamically. -->
-        <!-- <div id="simpin-dialog" role="dialog" class="generic-dialog" data-z-index-level="simpin-dialog" hidden></div> -->
+        <!-- <div id="system-dialog" role="dialog" class="generic-dialog" data-z-index-level="simpin-dialog" hidden></div> -->
 
         <!-- Crash reporter -->
         <div id="crash-dialog">
@@ -684,6 +670,9 @@
         <!-- Firefox Account Dialog -->
         <!-- <div id="fxa-dialog"></div> Add the dialog via SystemDialog dynamically. -->
 
+        <!-- Mobile ID -->
+        <!-- <div id="mobileid-dialog"></div> Add the dialog via SystemDialog dynamically. -->
+
         <div id="modal-dialog">
           <div id="modal-dialog-alert" role="dialog" class="generic-dialog" tabindex="-1">
             <div class="modal-dialog-message-container inner">
@@ -736,77 +725,85 @@
         </div> <!-- end of #modal-dialog -->
       </div> <!-- end of #overlay-dialog -->
 
-      <!-- value selector -->
-      <div id="value-selector" hidden data-z-index-level="value-selector">
-        <!-- popup of options for select element -->
-        <form id="select-option-popup" role="dialog" data-type="value-selector">
-          <section id="value-selector-container">
-            <h1 data-l10n-id="choose-option">Choose your option</h1>
-            <ol role="listbox">
-            </ol>
-          </section>
-          <menu id="select-options-buttons">
-            <button class="value-option-confirm affirmative full" data-type="ok" data-l10n-id="ok">OK</button>
-          </menu>
-        </form>
-
-        <!-- Time Picker -->
-        <div id="time-picker-popup" role="dialog" data-type="time-selector" hidden>
-          <h1 data-l10n-id="select-time">Select time</h1>
-          <div id="time-picker">
-            <div class="picker-container">
-              <div class="picker-bar-background"></div>
-              <div class="value-picker-hours-wrapper">
-                <div class="value-picker-hours animation-on"></div>
-              </div>
-              <div class="value-picker-minutes-wrapper">
-                <div class="value-picker-minutes animation-on"></div>
-              </div>
-              <div class="value-picker-hour24-wrapper">
-                <div class="value-picker-hour24-state animation-on"></div>
-              </div>
-              <div class="value-indicator">
-                <div class="value-indicator-colon" id="hours-minutes-separator">:</div>
+      <div id="value-selector-template" hidden>
+      <!--
+        <div data-z-index-level="value-selector" class="value-selector" id="${id}">
+          <form class="value-selector-select-option-popup" role="dialog" data-type="value-selector" hidden>
+            <section class="value-selector-container">
+              <h1 class="value-selector-options-title" data-l10n-id="choose-option">Choose your option</h1>
+              <ol class="value-selector-options-container" role="listbox"></ol>
+            </section>
+            <menu class="value-selector-select-options-buttons">
+              <button class="value-option-confirm affirmative full" data-type="ok" data-l10n-id="ok">OK</button>
+            </menu>
+          </form>
+          <div class="value-selector-time-picker-popup" role="dialog" data-type="time-selector" hidden>
+            <h1 data-l10n-id="select-time">Select time</h1>
+            <div class="value-selector-time-picker">
+              <div class="value-selector-time-picker-container picker-container">
+                <div class="picker-bar-background"></div>
+                <div class="value-picker-hours-wrapper">
+                  <div class="value-picker-hours animation-on"></div>
+                </div>
+                <div class="value-picker-minutes-wrapper">
+                  <div class="value-picker-minutes animation-on"></div>
+                </div>
+                <div class="value-picker-hour24-wrapper">
+                  <div class="value-picker-hour24-state animation-on"></div>
+                </div>
+                <div class="value-indicator">
+                  <div aria-hidden="true" class="value-indicator-colon hours-minutes-separator">:</div>
+                </div>
               </div>
             </div>
+            <menu class="value-selector-time-picker-buttons" data-items="2">
+              <button class="value-selector-cancel" data-type="cancel" data-l10n-id="cancel">Cancel</button>
+              <button class="value-selector-confirm affirmative" data-type="ok" data-l10n-id="ok">OK</button>
+            </menu>
           </div>
-          <menu id="time-picker-buttons" data-items="2">
-            <button class="value-selector-cancel" data-type="cancel" data-l10n-id="cancel">Cancel</button>
-            <button class="value-selector-confirm affirmative" data-type="ok" data-l10n-id="ok">OK</button>
-          </menu>
-        </div>
-
-        <!-- Spin Date Picker -->
-        <div role="dialog" data-type="date-selector" id="spin-date-picker-popup" hidden>
-          <h1 data-l10n-id="select-day">Select day</h1>
-          <div id="spin-date-picker">
-            <div class="picker-container">
-              <div class="picker-bar-background"></div>
-              <div class="value-picker-date-wrapper">
-                <div class="value-picker-date animation-on"></div>
-                <div class="value-picker-date animation-on"></div>
-                <div class="value-picker-date animation-on"></div>
-                <div class="value-picker-date animation-on"></div>
+          <div role="dialog" data-type="date-selector" class="value-selector-spin-date-picker-popup" hidden>
+            <h1 data-l10n-id="select-day">Select day</h1>
+            <div class="value-selector-spin-date-picker">
+              <div class="picker-container">
+                <div class="picker-bar-background"></div>
+                <div class="value-picker-date-wrapper">
+                  <div class="value-picker-date animation-on"></div>
+                  <div class="value-picker-date animation-on"></div>
+                  <div class="value-picker-date animation-on"></div>
+                  <div class="value-picker-date animation-on"></div>
+                </div>
+                <div class="value-picker-month-wrapper">
+                  <div class="value-picker-month animation-on"></div>
+                </div>
+                <div class="value-picker-year-wrapper">
+                  <div class="value-picker-year animation-on"></div>
+                </div>
+                <div class="value-indicator"></div>
               </div>
-              <div class="value-picker-month-wrapper">
-                <div class="value-picker-month animation-on"></div>
-              </div>
-              <div class="value-picker-year-wrapper">
-                <div class="value-picker-year animation-on"></div>
-              </div>
-              <div class="value-indicator"></div>
             </div>
+            <menu class="value-selector-spin-date-picker-buttons" data-items="2">
+              <button class="value-selector-cancel" data-type="cancel" data-l10n-id="cancel">Cancel</button>
+              <button class="value-option-confirm affirmative" data-type="ok" data-l10n-id="ok">OK</button>
+            </menu>
           </div>
-          <menu id="spin-date-picker-buttons" data-items="2">
-            <button class="value-selector-cancel" data-type="cancel" data-l10n-id="cancel">Cancel</button>
-            <button class="value-option-confirm affirmative" data-type="ok" data-l10n-id="ok">OK</button>
-          </menu>
         </div>
+      -->
+      </div>
+
+      <div id="value-selector-option-template" hidden>
+      <!--
+      <li role="option" data-option-index="${index}" aria-selected="${checked}">
+        <label role="presentation" for="${for}">
+          <span>${text}</span>
+        </label>
+      </li>
+      -->
       </div>
 
       <div id="permission-screen" data-z-index-level="permission-screen">
         <div id="permission-dialog" role="dialog" class="generic-dialog">
           <div class="inner">
+            <h1 id="permission-title"></h1>
             <h2 id="permission-message"></h2>
             <div id="permission-more-info" class="hidden">
               <a id="permission-more-info-link" data-l10n-id="more-info" href="#">More Info…</a>
@@ -814,15 +811,16 @@
               <div id="permission-more-info-box" class="hidden"> </div>
             </div>
             <div id="permission-remember-section">
-              <a data-l10n-id="remember-my-choice" id="permission-remember-label">Remember my choice</a>
-              <label class="pack-switch">
+              <label class="pack-checkbox">
                 <input type="checkbox" id="permission-remember-checkbox" />
                 <span></span>
               </label>
+              <a data-l10n-id="remember-my-choice" id="permission-remember-label">Remember my choice</a>
             </div>
+            <div id="permission-device-selector"></div>
             <ul id="permission-devices">
             </ul>
-            <menu data-items="2">
+            <menu id="permission-buttons" data-items="2">
               <button id="permission-no"></button>
               <button id="permission-yes" class="affirmative"></button>
             </menu>
@@ -996,6 +994,7 @@
         <!--
         <div id="lockscreen" class="uninit" data-panel="main" data-z-index-level="lockscreen">
         <div id="lockscreen-background" class="lockscreen-background"></div>
+        <div id="lockscreen-masked-background" class="blank"></div>
         <div id="lockscreen-container">
           <div id="lockscreen-panel-main" class="lockscreen-panel">
             <div id="lockscreen-header">
@@ -1009,19 +1008,21 @@
             </div>
             <div id="notifications-lockscreen-container">
             </div>
+            <div id="lockscreen-notification-arrow">
+            </div>
             <div id="lockscreen-message" hidden></div>
             <div id="lockscreen-area"></div>
             <div id="lockscreen-media-container" hidden>
               <div class="media-playback-nowplaying">
                 <div class="icon"></div>
                 <div class="albumart"></div>
-                <div class="title"></div>
-                <div class="artist"></div>
+                <div class="title" data-l10n-id="mediaPlaybackTitle"></div>
+                <div class="artist" data-l10n-id="mediaPlaybackArtist"></div>
               </div>
-              <div class="media-playback-controls big">
-                <button class="previous"></button>
+              <div class="media-playback-controls big" role="toolbar" data-l10n-id="mediaPlaybackControls">
+                <button class="previous" data-l10n-id="mediaPlaybackPrevious"></button>
                 <button class="play-pause"></button>
-                <button class="next"></button>
+                <button class="next" data-l10n-id="mediaPlaybackNext"></button>
               </div>
             </div>
             <div id="lockscreen-icon-container">
@@ -1046,22 +1047,22 @@
             </div>
           </div>
 
-          <div id="lockscreen-panel-passcode" class="lockscreen-panel">
+          <div id="lockscreen-panel-passcode" class="lockscreen-panel" data-l10n-id="panel-passcode">
             <p id="lockscreen-passcode-code"><span></span><span></span><span></span><span></span></p>
             <div id="lockscreen-passcode-pad">
-              <a role="button" href="#" data-key="1">1<span>.</span></a>
-              <a role="button" href="#" data-key="2">2<span>ABC</span></a>
-              <a role="button" href="#" data-key="3">3<span>DEF</span></a>
-              <a role="button" href="#" data-key="4">4<span>GHI</span></a>
-              <a role="button" href="#" data-key="5">5<span>JKL</span></a>
-              <a role="button" href="#" data-key="6">6<span>MNO</span></a>
-              <a role="button" href="#" data-key="7">7<span>PQRS</span></a>
-              <a role="button" href="#" data-key="8">8<span>TUV</span></a>
-              <a role="button" href="#" data-key="9">9<span>WXYZ</span></a>
-              <a role="button" href="#" data-key="e" class="lockscreen-passcode-pad-func last-row"><span data-l10n-id="emergency-call-button">Emergency Call</span></a>
-              <a role="button" href="#" data-key="0" class="last-row">0</a>
-              <a role="button" href="#" data-key="c" class="lockscreen-passcode-pad-func last-row"><span data-l10n-id="cancel">Cancel</span></a>
-              <a role="button" href="#" data-key="b" class="last-row">⌫</a>
+              <a role="key" href="#" data-key="1" class="row0"><div>1<span></span></div></a>
+              <a role="key" href="#" data-key="2" class="row0"><div>2<span>ABC</span></div></a>
+              <a role="key" href="#" data-key="3" class="row0"><div>3<span>DEF</span></div></a>
+              <a role="key" href="#" data-key="4" class="row1"><div>4<span>GHI</span></div></a>
+              <a role="key" href="#" data-key="5" class="row1"><div>5<span>JKL</span></div></a>
+              <a role="key" href="#" data-key="6" class="row1"><div>6<span>MNO</span></div></a>
+              <a role="key" href="#" data-key="7" class="row2"><div>7<span>PQRS</span></div></a>
+              <a role="key" href="#" data-key="8" class="row2"><div>8<span>TUV</span></div></a>
+              <a role="key" href="#" data-key="9" class="row2"><div>9<span>WXYZ</span></div></a>
+              <a role="button" href="#" data-key="e" class="lockscreen-passcode-pad-func last-row row3"><div><span data-l10n-id="emergency-call-button">Emergency Call</span></div></a>
+              <a role="key" href="#" data-key="0" class="last-row row3"><div>0</div></a>
+              <a role="button" href="#" data-key="c" class="lockscreen-passcode-pad-func last-row row3"><div><span data-l10n-id="cancel">Cancel</span></div></a>
+              <a role="button" href="#" data-key="b" class="last-row row3"><div data-l10n-id="undo">⌫</div></a>
             </div>
           </div>
 
@@ -1075,14 +1076,14 @@
         <div id="attention-bar"></div>
       </div>
 
-      <div id="update-manager-toaster" data-z-index-level="notification-toaster">
+      <div id="update-manager-toaster" data-z-index-level="notification-toaster" aria-live="assertive" aria-atomic="true">
         <div class="icon">
         </div>
         <div class="message">
         </div>
       </div>
 
-      <div id="emergency-callback-toaster" data-z-index-level="notification-toaster" hidden>
+      <div id="emergency-callback-toaster" data-z-index-level="notification-toaster" hidden role="link" aria-live="assertive" aria-atomic="true">
         <div class="icon">
         </div>
         <div class="message" data-l10n-id="emergency-callback-mode">
@@ -1091,14 +1092,42 @@
         </div>
       </div>
 
-      <div id="notification-toaster" data-z-index-level="notification-toaster">
-        <img id="toaster-icon" />
+      <div id="notification-toaster" data-z-index-level="notification-toaster" role="link" aria-live="assertive" aria-atomic="true">
+        <img id="toaster-icon" role="presentation"/>
         <div id="toaster-title"></div>
         <div id="toaster-detail"></div>
       </div>
 
       <!-- keyboard -->
       <div id="keyboards" class="hide" data-z-index-level="keyboards"></div>
+
+      <!-- template for IME Menu. -->
+      <div id="ime-menu-template" hidden>
+        <!--
+        <form role="dialog" data-type="value-selector" class="ime-menu value-selector-container" data-z-index-level="action-menu">
+          <section>
+            <h1>${title}</h1>
+            <ol class="value-selector-options-container ime-menu-list" aria-multiselectable="false" role="listbox">
+            </ol>
+          </section>
+          <menu class="value-selector-select-options-buttons">
+            <button class="value-selector-cancel full" data-type="cancel" data-action="cancel" data-l10n-id="cancel">${cancelLabel}</button>
+          </menu>
+        </div>
+        -->
+      </div> <!-- end of template for IME Menu. -->
+
+      <!-- template for each IME item. -->
+      <div id="ime-menu-item-template" hidden>
+        <!--
+        <li role="option" aria-selected="${selected}" data-id="${layoutId}">
+          <label role="presentation">
+            <span class="item-label">${layoutName}</span>
+            <span class="item-note">${appName}</span>
+          </label>
+        </li>
+        -->
+      </div> <!-- end of template for each IME item. -->
 
       <!-- cards view -->
       <div id="cards-view" data-z-index-level="cards-view">
@@ -1107,66 +1136,81 @@
       </div>
 
       <!-- icc / stk -->
-      <div id="icc-view" data-z-index-level="icc-view">
-        <form role="dialog" class="generic-dialog" data-type="confirm" id="icc-alert">
-          <section>
-            <h1 id="icc-alert-title">STK Message</h1>
-            <p id="icc-alert-msg"></p>
-          </section>
+      <div id="icc-view" class="generic-dialog" data-z-index-level="icc-view" role="dialog">
+        <section role="region" class="skin-organic" id="icc-alert">
+          <header>
+            <h1 id="icc-alert-maintitle">STK Message</h1>
+            <h2 id="icc-alert-subtitle"></h2>
+          </header>
+          <p id="icc-alert-msg"></p>
           <menu>
             <button type="button" data-l10n-id="close" id="icc-alert-btn" class="recommend full">Close</button>
           </menu>
-        </form>
-        <form role="dialog" class="generic-dialog" data-type="confirm" id="icc-confirm">
-          <section>
-            <h1 id="icc-confirm-title">STK Message</h1>
-            <p id="icc-confirm-msg"></p>
-          </section>
-          <menu>
+        </section>
+        <section role="region" class="skin-organic" id="icc-confirm">
+          <header>
+            <a href="#"><span class="icon icon-back" id="icc-confirm-btn_back">back</span></a>
+            <h1 id="icc-confirm-maintitle">STK Query</h1>
+            <h2 id="icc-confirm-subtitle"></h2>
+          </header>
+          <p id="icc-confirm-msg"></p>
+          <menu data-items="2">
             <button type="button" data-l10n-id="close" id="icc-confirm-btn_close">Close</button>
-            <button type="button" data-l10n-id="back" id="icc-confirm-btn_back">Back</button>
             <button type="button" data-l10n-id="ok" id="icc-confirm-btn" class="recommend">OK</button>
           </menu>
-        </form>
-        <form role="dialog" class="generic-dialog" data-type="confirm" id="icc-asyncconfirm">
-          <section>
-            <h1 id="icc-asyncconfirm-title">STK Message</h1>
-            <p id="icc-asyncconfirm-msg"></p>
-          </section>
+        </section>
+        <section role="region" class="skin-organic" id="icc-asyncconfirm">
+          <header>
+            <h1 id="icc-asyncconfirm-maintitle">STK Query</h1>
+            <h2 id="icc-asyncconfirm-subtitle"></h2>
+          </header>
+          <p id="icc-asyncconfirm-msg"></p>
           <menu data-items="2">
             <button type="button" data-l10n-id="no" id="icc-asyncconfirm-btn-no">No</button>
             <button type="button" data-l10n-id="yes" id="icc-asyncconfirm-btn-yes" class="recommend">Yes</button>
           </menu>
-        </form>
-        <form role="dialog" class="generic-dialog" data-type="confirm" id="icc-input">
-          <section>
-            <h1 id="icc-input-title">STK Query</h1>
+        </section>
+        <section role="region" class="skin-organic" id="icc-input">
+          <header>
+            <a href="#">
+                <span class="icon icon-back" id="icc-input-btn_back">back</span>
+            </a>
+            <menu type="toolbar">
+                <button type="button" data-l10n-id="help" id="icc-input-btn_help">Help</button>
+            </menu>
+            <h1 id="icc-input-maintitle">STK Query</h1>
+            <h2 id="icc-input-subtitle"></h2>
+          </header>
+          <form>
             <p id="icc-input-msg"></p>
-            <input id="icc-input-box" required="" type="text">
-          </section>
+            <input id="icc-input-box" required="" type="text" dir="auto"></input>
+          </form>
           <menu>
-              <button type="button" data-l10n-id="help" id="icc-input-btn_help">Help</button>
-              <button type="button" data-l10n-id="back" id="icc-input-btn_back">Back</button>
-              <span class="yesnodisabled">
-                <button type="button" data-l10n-id="ok" id="icc-input-btn" class="recommend">OK</button>
-              </span>
-              <span class="yesnoenabled">
-                <button type="button" data-l10n-id="no" id="icc-input-btn_no">No</button>
-                <button type="button" data-l10n-id="yes" id="icc-input-btn_yes" class="recommend">Yes</button>
-              </span>
+            <button type="button" data-l10n-id="close" id="icc-input-btn_close">Close</button>
+            <span class="yesnodisabled">
+              <button type="button" data-l10n-id="ok" id="icc-input-btn" class="recommend">OK</button>
+            </span>
+            <span class="yesnoenabled">
+              <button type="button" data-l10n-id="no" id="icc-input-btn_no">No</button>
+              <button type="button" data-l10n-id="yes" id="icc-input-btn_yes" class="recommend">Yes</button>
+            </span>
           </menu>
-        </form>
+        </section>
       </div>
 
       <div id="sleep-menu" data-z-index-level="sleep-menu">
-        <div id="sleep-menu-container">
-          <h1 data-l10n-id="deviceMenu">Device menu</h1>
-          <ul role="menu">
-          </ul>
+        <div id="sleep-menu-container" role="dialog" data-type="object">
+          <header>
+            <h1 data-l10n-id="deviceMenu">Device menu</h1>
+          </header>
+          <section>
+            <ul role="menu">
+            </ul>
+          </section>
+          <gaia-buttons skin="dark">
+            <button data-l10n-id="cancel">Cancel</button>
+          </gaia-buttons>
         </div>
-        <menu>
-          <button data-l10n-id="cancel">Cancel</button>
-        </menu>
       </div>
 
       <div id="system-overlay" data-z-index-level="system-overlay">
@@ -1176,9 +1220,7 @@
         </div>
 
         <div id="volume" class="vibration">
-          <span class="vibration"></span>
-          <span class="mute-state"></span>
-          <span class="volume"></span>
+          <span class="channel-type"></span>
           <section>
             <div class="active"></div>
             <div class="active"></div>
@@ -1200,7 +1242,8 @@
         </div>
       </div>
 
-      <div id="top-panel" class="gesture-panel" data-z-index-level="gesture-panel"></div>
+      <div id="TextSelectionDialogRoot" data-z-index-level="text-selection-dialog"></div>
+      <div id="top-panel" class="gesture-panel" data-z-index-level="statusbar"></div>
       <div id="left-panel" class="gesture-panel disabled" data-z-index-level="gesture-panel"></div>
       <div id="right-panel" class="gesture-panel disabled" data-z-index-level="gesture-panel"></div>
       <div id="bottom-panel" class="gesture-panel" data-z-index-level="gesture-panel"></div>

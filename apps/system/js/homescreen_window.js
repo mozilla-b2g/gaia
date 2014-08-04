@@ -16,6 +16,7 @@
     this.setBrowserConfig(manifestURL);
     this.render();
     this.publish('created');
+    this.createdTime = this.launchTime = Date.now();
     return this;
   };
 
@@ -36,7 +37,11 @@
    * @event HomescreenWindow#homescreenopen
    */
   /**
-   * Fired when the homescreen window is cloing.
+   * Fired when the homescreen window is closed.
+   * @event HomescreenWindow#homescreenclosed
+   */
+  /**
+   * Fired when the homescreen window is closing.
    * @event HomescreenWindow#homescreenclosing
    */
   /**
@@ -62,7 +67,7 @@
    * @event HomescreenWindow#homescreenbackground
    */
 
-  HomescreenWindow.prototype.__proto__ = AppWindow.prototype;
+  HomescreenWindow.prototype = Object.create(AppWindow.prototype);
 
   HomescreenWindow.prototype._DEBUG = false;
 
@@ -94,12 +99,14 @@
     };
 
   HomescreenWindow.REGISTERED_EVENTS =
-    ['_opening', 'mozbrowserclose', 'mozbrowsererror',
-      'mozbrowservisibilitychange', 'mozbrowserloadend'];
+    ['_opening', '_localized', 'mozbrowserclose', 'mozbrowsererror',
+      'mozbrowservisibilitychange', 'mozbrowserloadend', '_orientationchange',
+      '_focus'];
 
   HomescreenWindow.SUB_COMPONENTS = {
     'transitionController': window.AppTransitionController,
     'modalDialog': window.AppModalDialog,
+    'valueSelector': window.ValueSelector,
     'authDialog': window.AppAuthenticationDialog,
     'childWindowFactory': window.ChildWindowFactory
   };
@@ -119,6 +126,7 @@
   HomescreenWindow.prototype._handle_mozbrowsererror =
     function hw__handle_mozbrowsererror(evt) {
       if (evt.detail.type == 'fatal') {
+        this.loaded = false;
         this.publish('crashed');
         this.restart();
       }
@@ -151,14 +159,11 @@
     }
   };
 
-  HomescreenWindow.prototype.kill = function hw_kill() {
-    this.destroy();
-    this.publish('terminated');
-  };
-
   HomescreenWindow.prototype.view = function hw_view() {
     return '<div class="appWindow homescreen" id="homescreen">' +
+              '<div class="titlebar"></div>' +
               '<div class="fade-overlay"></div>' +
+              '<div class="browser-container"></div>' +
            '</div>';
   };
 
@@ -175,16 +180,31 @@
   // the homescreen app if it was killed in the background.
   HomescreenWindow.prototype.ensure = function hw_ensure(reset) {
     this.debug('ensuring homescreen...', this.frontWindow);
-    if (this.frontWindow) {
-      this.frontWindow.kill();
-    }
     if (!this.element) {
       this.render();
     } else if (reset) {
-      this.browser.element.src = this.browser_config.url + new Date();
+      if (this.frontWindow) {
+        // Just kill front window but not switch to the first page.
+        this.frontWindow.kill();
+      } else {
+        this.browser.element.src = this.browser_config.url + Date.now();
+      }
     }
 
     return this.element;
+  };
+
+  /**
+  *
+  * The homescreen instance always resizes if it's needed.
+  * (ie. the current layout is different from the current window dimensions)
+  * This helps with the back-to-homescreen transition.
+  *
+  */
+  HomescreenWindow.prototype.resize = function aw_resize() {
+    this.debug('request RESIZE...');
+    this.debug(' will resize... ');
+    this._resize();
   };
 
   /**

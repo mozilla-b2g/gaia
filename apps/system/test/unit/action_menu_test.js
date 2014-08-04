@@ -3,7 +3,7 @@
 
 require('/shared/test/unit/load_body_html_helper.js');
 requireApp('system/js/action_menu.js');
-requireApp('system/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 
 suite('ActionMenu', function() {
   var activitiesMockup, realL10n, genericActionsMockup;
@@ -123,6 +123,7 @@ suite('ActionMenu', function() {
       var menu = new ActionMenu(activitiesMockup, title);
       menu.start();
       assert.ok(getMenu().classList.contains('visible'));
+      assert.isTrue(screenElement.classList.contains('action-menu'));
       menu.stop();
     });
 
@@ -136,6 +137,7 @@ suite('ActionMenu', function() {
       assert.ok(stub.calledOnce);
       stub.restore();
       menu.stop();
+      assert.isFalse(screenElement.classList.contains('action-menu'));
     });
 
   });
@@ -179,6 +181,39 @@ suite('ActionMenu', function() {
         type: 'attentionscreenshow'
       });
       assert.isTrue(menu.hide.called);
+    });
+  });
+
+  suite('events that dismiss action menu', function() {
+    var successCBStub;
+    var cancelCBStub;
+    var menu;
+
+    setup(function() {
+      successCBStub = this.sinon.spy();
+      cancelCBStub = this.sinon.spy();
+      menu = new ActionMenu(
+        genericActionsMockup, title, successCBStub, cancelCBStub);
+      menu.start();
+      this.sinon.spy(menu, 'hide');
+    });
+    test('home event dismisses action menu', function() {
+      assert.isFalse(menu.hide.called);
+      assert.isFalse(cancelCBStub.called);
+      menu.handleEvent({
+        type: 'home'
+      });
+      assert.isTrue(menu.hide.called);
+      assert.isTrue(cancelCBStub.called);
+    });
+    test('sheetstransitionstart event dismisses action menu', function() {
+      assert.isFalse(menu.hide.called);
+      assert.isFalse(cancelCBStub.called);
+      menu.handleEvent({
+        type: 'sheetstransitionstart'
+      });
+      assert.isTrue(menu.hide.called);
+      assert.isTrue(cancelCBStub.called);
     });
   });
 

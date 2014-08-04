@@ -227,6 +227,19 @@ var icc_worker = {
   '0x21': function STK_CMD_DISPLAY_TEXT(message) {
     DUMP('STK_CMD_DISPLAY_TEXT:', message.command.options);
     var options = message.command.options;
+
+    // Check if device is idle
+    var activeApp = AppWindowManager.getActiveApp();
+    if (!options.isHighPriority && !activeApp.isHomescreen) {
+      DUMP('Do not display the text because normal priority.');
+      icc.responseSTKCommand(message, {
+        resultCode:
+          icc._iccManager.STK_RESULT_TERMINAL_CRNTLY_UNABLE_TO_PROCESS,
+        additionalInformation: 0x01
+      });
+      return;
+    }
+
     if (options.responseNeeded) {
       icc.responseSTKCommand(message, {
         resultCode: icc._iccManager.STK_RESULT_OK
@@ -281,7 +294,8 @@ var icc_worker = {
       }, true);
 
     var timeout = (options.duration &&
-      icc.calculateDurationInMS(options.duration)) || icc._inputTimeout;
+      icc.calculateDurationInMS(options.duration.timeUnit,
+          options.duration.timeInterval)) || icc._inputTimeout;
     icc.input(message, options.text, timeout, options,
       function(response, value) {
         if (response == null) {
@@ -313,7 +327,7 @@ var icc_worker = {
       'icc.data': JSON.stringify(message)
     });
     reqIccData.onsuccess = function icc_getIccData() {
-      if (AppWindowManager.getApps(application)) {
+      if (AppWindowManager.getApp(application)) {
         return DUMP('Settings is running. Ignoring');
       }
       navigator.mozApps.mgmt.getAll().onsuccess = function gotApps(evt) {
@@ -491,7 +505,7 @@ var icc_worker = {
     this.idleTextNotifications[message.iccId] = new Notification(
       'SIM ' + icc.getSIMNumber(message.iccId) + ' STK', {
         body: options.text,
-        icon: 'style/icons/System.png',
+        icon: 'style/icons/system.png',
         tag: 'stkNotification_' + message.iccId
       });
     this.idleTextNotifications[message.iccId].onclick =

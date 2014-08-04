@@ -21,16 +21,13 @@ module.exports.CameraController = CameraController;
  * @param {App} app
  */
 function CameraController(app) {
-  debug('initializing');
   bindAll(this);
   this.app = app;
   this.camera = app.camera;
   this.settings = app.settings;
   this.activity = app.activity;
-  this.viewfinder = app.views.viewfinder;
-  this.controls = app.views.controls;
   this.hdrDisabled = this.settings.hdr.get('disabled');
-  this.localize = app.localize;
+  this.l10nGet = app.l10nGet;
   this.configure();
   this.bindEvents();
   debug('initialized');
@@ -43,23 +40,32 @@ CameraController.prototype.bindEvents = function() {
 
   // Relaying camera events means other modules
   // don't have to depend directly on camera
+  camera.on('change:previewActive', this.app.firer('camera:previewactive'));
   camera.on('change:videoElapsed', app.firer('camera:recorderTimeUpdate'));
+  camera.on('autofocuschanged', app.firer('camera:autofocuschanged'));
+  camera.on('focusconfigured',  app.firer('camera:focusconfigured'));
+  camera.on('change:focus', app.firer('camera:focusstatechanged'));
   camera.on('filesizelimitreached', this.onFileSizeLimitReached);
-  camera.on('change:focus', app.firer('camera:focuschanged'));
+  camera.on('facesdetected', app.firer('camera:facesdetected'));
+  camera.on('willrecord', app.firer('camera:willrecord'));
+  camera.on('configured', app.firer('camera:configured'));
   camera.on('change:recording', app.setter('recording'));
   camera.on('newcamera', app.firer('camera:newcamera'));
   camera.on('newimage', app.firer('camera:newimage'));
   camera.on('newvideo', app.firer('camera:newvideo'));
   camera.on('shutter', app.firer('camera:shutter'));
-  camera.on('configured', this.onCameraConfigured);
   camera.on('loaded', app.firer('camera:loaded'));
-  camera.on('ready', app.firer('camera:ready'));
-  camera.on('busy', app.firer('camera:busy'));
+  camera.on('ready', app.firer('ready'));
+  camera.on('busy', app.firer('busy'));
 
   // App
-  app.on('previewgallery:opened', this.onPreviewGalleryOpened);
+  app.on('viewfinder:focuspointchanged', this.onFocusPointChanged);
   app.on('change:batteryStatus', this.onBatteryStatusChange);
+  app.on('attentionscreenopened', this.camera.stopRecording);
   app.on('settings:configured', this.onSettingsConfigured);
+  app.on('previewgallery:opened', this.shutdownCamera);
+  app.on('previewgallery:closed', this.onGalleryClosed);
+  app.on('storage:volumechanged', this.onStorageVolumeChanged);
   app.on('storage:changed', this.onStorageChanged);
   app.on('activity:pick', this.onPickActivity);
   app.on('timer:ended', this.capture);
@@ -110,18 +116,11 @@ CameraController.prototype.onSettingsConfigured = function() {
   this.camera.setPictureSize(pictureSize);
   this.camera.configureZoom();
 
-  debug('camera configured with final settings');
-};
+  // Defer this work as it involves
+  // expensive mozSettings calls
+  setTimeout(this.updateZoomForMako);
 
-/**
- * Saves the last camera configuration
- * and relays the event through the app.
- *
- * @param  {Object} config
- * @private
- */
-CameraController.prototype.onCameraConfigured = function(config) {
-  this.app.emit('camera:configured');
+  debug('camera configured with final settings');
 };
 
 /**
@@ -189,74 +188,161 @@ CameraController.prototype.showSizeLimitAlert = function() {
   var alertText = this.activity.pick ?
     'activity-size-limit-reached' :
     'storage-size-limit-reached';
-  alert(this.localize(alertText));
+  alert(this.l10nGet(alertText));
   this.sizeLimitAlertActive = false;
 };
 
+/**
+ * Set the camera's mode (picture/video).
+ *
+ * We send a signal to say that the camera
+ * 'will change', this allows other parts
+ * of the app to respond if need be.
+ *
+ * We then wait for the viewfinder to be 'hidden'
+ * before setting the camera to prevent the
+ * user from seeing the stream flicker/jump.
+ *
+ * @param {String} mode ['picture'|'video']
+ * @private
+ */
 CameraController.prototype.setMode = function(mode) {
+  debug('set mode: %s', mode);
   var self = this;
+
+  // Abort if didn't change.
+  //
+  // TODO: Perhaps the `Setting` instance should
+  // not emit a `change` event if the value did
+  // not change? This may require some deep checking
+  // if the value is an object. Quite a risky change
+  // to make, but would remove the need for us to check
+  // here and in other change callbacks. Food 4 thought :)
+  if (this.camera.isMode(mode)) { return; }
+
   this.setFlashMode();
-  this.viewfinder.fadeOut(function() {
+  this.app.emit('camera:willchange');
+  this.app.once('viewfinder:hidden', function() {
     self.camera.setMode(mode);
   });
 };
 
+/**
+ * Updates the camera's `pictureSize` to match
+ * the size set in the app's settings.
+ *
+ * When in 'picture' mode we send a signal
+ * to say that the camera 'will change',
+ * this allows other parts of the app to
+ * repsond if need be.
+ *
+ * We then wait for the viewfinder to be hidden
+ * before setting the pictureSize to prevent the
+ * user from seeing the stream flicker/jump.
+ *
+ * @private
+ */
 CameraController.prototype.updatePictureSize = function() {
+  debug('update picture-size');
   var pictureMode = this.settings.mode.selected('key') === 'picture';
   var value = this.settings.pictureSizes.selected('data');
   var self = this;
 
-  // Only configure in video mode
+  // Don't do anything if the picture size didn't change
+  if (this.camera.isPictureSize(value)) { return; }
+
+  // If not currently in 'picture'
+  // mode, just configure.
   if (!pictureMode) {
     this.camera.setPictureSize(value, { configure: false });
     return;
   }
 
-  // Fade out, then configure
-  this.viewfinder.fadeOut(function() {
+  // Make change once the viewfinder is hidden
+  this.app.emit('camera:willchange');
+  this.app.once('viewfinder:hidden', function() {
     self.camera.setPictureSize(value);
   });
 };
 
+/**
+ * Updates the camera's `recorderProfile` to
+ * match the size set in the app's settings.
+ *
+ * When in 'picture' mode we send a signal
+ * to say that the camera 'will change',
+ * this allows other parts of the app to
+ * repsond if need be.
+ *
+ * We then wait for the viewfinder to be hidden
+ * before setting the pictureSize to prevent the
+ * user from seeing the stream flicker/jump.
+ *
+ * @private
+ */
 CameraController.prototype.updateRecorderProfile = function() {
+  debug('update recorder-profile');
   var videoMode = this.settings.mode.selected('key') === 'video';
   var key = this.settings.recorderProfiles.selected('key');
   var self = this;
 
-  // Only configure in picture mode
+  // Don't do anything if the recorder-profile didn't change
+  if (this.camera.isRecorderProfile(key)) { return; }
+
+  // If not currently in 'video'
+  // mode, just configure.
   if (!videoMode) {
     this.camera.setRecorderProfile(key, { configure: false });
     return;
   }
 
-  // Fade out, then change the setting
-  this.viewfinder.fadeOut(function() {
+  // Wait for the viewfinder to be hidden
+  this.app.emit('camera:willchange');
+  this.app.once('viewfinder:hidden', function() {
     self.camera.setRecorderProfile(key);
   });
 };
 
 /**
- * Set the 'selected' camera.
+ * Set the selected camera (front/back).
  *
- * @param {String} camera 'front'|'back'
+ * We send a signal to say that the camera
+ * 'will change', this allows other parts
+ * of the app to respond if need be.
+ *
+ * We then wait for the viewfinder to be 'hidden'
+ * before setting the camera to prevent the
+ * user from seeing the stream flicker/jump.
+ *
+ * @param {String} camera ['front'|'back']
+ * @private
  */
 CameraController.prototype.setCamera = function(camera) {
+  debug('set camera: %s', camera);
   var self = this;
-  this.viewfinder.fadeOut(function() {
+  this.app.emit('camera:willchange');
+  this.app.once('viewfinder:hidden', function() {
     self.camera.setCamera(camera);
   });
 };
 
+/**
+ * Sets the flash mode on the camera
+ * to match the current flash mode
+ * in the app's settings.
+ *
+ * @private
+ */
 CameraController.prototype.setFlashMode = function() {
   var flashSetting = this.settings.flashModes;
   this.camera.setFlashMode(flashSetting.selected('key'));
 };
 
 CameraController.prototype.onHidden = function() {
+  debug('app hidden');
   this.camera.stopRecording();
   this.camera.set('focus', 'none');
   this.camera.release();
-  debug('torn down');
 };
 
 CameraController.prototype.setISO = function() {
@@ -297,23 +383,93 @@ CameraController.prototype.onBatteryStatusChange = function(status) {
 };
 
 /**
- * Stop recording if storage becomes
- * 'shared' (unavailable) usually due
- * to the device being connected to
- * a computer via USB.
+ * Stop recording if storage changes state.
+ * Examples:
+ * 'shared' usually due to the device being connected to
+ *  a computer via USB.
+ * 'unavailable' when the SDCARD is yanked
  *
  * @private
  */
-CameraController.prototype.onStorageChanged = function(state) {
-  if (state === 'shared') { this.camera.stopRecording(); }
+CameraController.prototype.onStorageChanged = function() {
+  this.camera.stopRecording();
 };
 
 /**
- * Resets the camera zoom when the preview gallery
- * is opened.
+ * For instance, when the storage volume changes from to internal memory
+ * to the SD Card
+ *
+ * @private
  */
-CameraController.prototype.onPreviewGalleryOpened = function() {
-  this.camera.configureZoom(this.camera.previewSize());
+CameraController.prototype.onStorageVolumeChanged = function(storage) {
+  this.camera.setVideoStorage(storage.video);
+};
+
+/**
+ * Updates focus area when the user clicks on the viewfinder
+ */
+CameraController.prototype.onFocusPointChanged = function(focusPoint) {
+  this.camera.updateFocusArea(focusPoint.area);
+};
+
+CameraController.prototype.shutdownCamera = function() {
+  this.camera.stopRecording();
+  this.camera.set('previewActive', false);
+  this.camera.set('focus', 'none');
+  this.camera.release();
+};
+
+/**
+ * As the camera is shutdown when the
+ * preview gallery is opened, we must
+ * reload it when it is closed.
+ *
+ * Although if the app is has been minimised
+ * we do not want to reload the camera as
+ * the hardware must be released when the
+ * app is not visible.
+ *
+ * @private
+ */
+CameraController.prototype.onGalleryClosed = function() {
+  if (this.app.hidden) { return; }
+  this.camera.load(this.app.onReady);
+};
+
+/**
+ * For some reason, the above calculation
+ * for `maxHardwareZoom` does not work
+ * properly on Mako (Nexus-4) devices.
+ *
+ * Bug 983930 - [B2G][Camera] CameraControl API's
+ * "zoom" attribute doesn't scale preview properly
+ *
+ * @private
+ */
+CameraController.prototype.updateZoomForMako = function() {
+  debug('update zoom for mako');
+
+  var self = this;
+  navigator.mozSettings
+    .createLock()
+    .get('deviceinfo.hardware')
+    .onsuccess = onSuccess;
+
+  debug('settings request made');
+  function onSuccess(e) {
+    var device = e.target.result['deviceinfo.hardware'];
+    if (device !== 'mako') { return; }
+
+    var frontCamera = self.camera.selectedCamera === 'front';
+    var maxHardwareZoom = frontCamera ? 1 : 1.25;
+
+    // Nexus 4 needs zoom preview adjustment since the viewfinder preview
+    // stream does not automatically reflect the current zoom value.
+    self.settings.zoom.set('useZoomPreviewAdjustment', true);
+    self.camera.set('maxHardwareZoom', maxHardwareZoom);
+    self.camera.emit('zoomconfigured');
+    debug('zoom reconfigured for mako');
+  }
 };
 
 });

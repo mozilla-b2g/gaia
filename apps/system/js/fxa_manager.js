@@ -79,6 +79,7 @@ var FxAccountsManager = {
     switch (methodName) {
       case 'getAccounts':
       case 'logout':
+      case 'resendVerificationEmail':
         (function(methodName) {
           LazyLoader.load('js/fxa_client.js', function() {
             FxAccountsClient[methodName](function(data) {
@@ -100,14 +101,14 @@ var FxAccountsManager = {
         break;
       case 'refreshAuthentication':
         (function(methodName) {
-          var accountId = event.detail.accountId;
-          if (!accountId) {
+          var email = event.detail.email;
+          if (!email) {
             self.sendPortMessage({ methodName: methodName,
-                                   error: 'NO_VALID_ACCOUNTID' });
+                                   error: 'NO_VALID_EMAIL' });
             return;
           }
 
-          FxAccountsUI.refreshAuthentication(accountId, function(data) {
+          FxAccountsUI.refreshAuthentication(email, function(data) {
             self.sendPortMessage({ methodName: methodName, data: data });
           }, function(error) {
             self.sendPortMessage({ methodName: methodName, error: error });
@@ -145,12 +146,12 @@ var FxAccountsManager = {
         }.bind(this));
         break;
       case 'refreshAuthentication':
-        var accountId = message.data.accountId;
-        if (!accountId) {
+        var email = message.data.email;
+        if (!email) {
           console.error('No account id specified');
           return;
         }
-        FxAccountsUI.refreshAuthentication(accountId, function(result) {
+        FxAccountsUI.refreshAuthentication(email, function(result) {
           this._sendContentEvent({
             id: message.id,
             result: result
@@ -163,7 +164,7 @@ var FxAccountsManager = {
         }.bind(this));
         break;
       case 'onlogin':
-      case 'onverifiedlogin':
+      case 'onverified':
       case 'onlogout':
         FxAccountsManager.sendPortMessage({ eventName: message.eventName });
         break;

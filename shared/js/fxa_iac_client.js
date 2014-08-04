@@ -92,11 +92,10 @@ var FxAccountsIACHelper = function FxAccountsIACHelper() {
 
         while (cbs.length) {
           cb = cbs.shift();
-          if (typeof message.data !== 'undefined') {
+          if (!message.error) {
             cb.successCb(message.data);
           } else {
-            var errorType = message.error || 'Unknown';
-            cb.errorCb(errorType);
+            cb.errorCb(message.error);
           }
         }
       }
@@ -205,12 +204,21 @@ var FxAccountsIACHelper = function FxAccountsIACHelper() {
     }, successCb, errorCb);
   };
 
-  var refreshAuthentication = function refreshAuthentication(accountId,
+  var refreshAuthentication = function refreshAuthentication(email,
                                                              successCb,
                                                              errorCb) {
     sendMessage({
       'name': 'refreshAuthentication',
-      'accountId': accountId
+      'email': email
+    }, successCb, errorCb);
+  };
+
+  var resendVerificationEmail = function resendVerificationEmail(email,
+                                                             successCb,
+                                                             errorCb) {
+    sendMessage({
+      'name': 'resendVerificationEmail',
+      'email': email
     }, successCb, errorCb);
   };
 
@@ -226,6 +234,7 @@ var FxAccountsIACHelper = function FxAccountsIACHelper() {
     'openFlow': openFlow,
     'refreshAuthentication': refreshAuthentication,
     'removeEventListener': removeEventListener,
+    'resendVerificationEmail': resendVerificationEmail,
     'reset': reset
   };
 

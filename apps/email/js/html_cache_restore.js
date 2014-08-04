@@ -7,6 +7,15 @@ function plog(msg) {
 }
 
 /**
+ * Apparently the event catching done for the startup events from
+ * performance_testing_helper record the last event received of that type as
+ * the official time, instead of using the first. So unfortunately, we need a
+ * global to make sure we do not emit the same events later.
+ * @type {Boolean}
+ */
+var startupCacheEventsSent = false;
+
+/**
  * Version number for cache, allows expiring cache.
  * Set by build process. Set as a global because it
  * is also used in html_cache.js.
@@ -94,8 +103,56 @@ window.htmlCacheRestorePendingMessage = [];
   if (window.htmlCacheRestorePendingMessage.length) {
     startApp();
   } else {
-    cardsNode.innerHTML = retrieve();
+    var contents = retrieve();
+    cardsNode.innerHTML = contents;
+    startupCacheEventsSent = !!contents;
     window.addEventListener('load', startApp, false);
+  }
+
+  // START COPY performance_testing_helper.js
+  // A copy instead of a separate script because the gaia build system is not
+  // set up to inline this with our main script element, and we want this work
+  // to be done after the cache restore, but want to trigger the events that
+  // may be met by the cache right away without waiting for another script
+  // load after html_cache_restore.
+  function dispatch(name) {
+    if (!window.mozPerfHasListener) {
+      return;
+    }
+
+    var now = window.performance.now();
+
+    setTimeout(function() {
+      var detail = {
+        name: name,
+        timestamp: now
+      };
+      var event = new CustomEvent('x-moz-perf', { detail: detail });
+
+      window.dispatchEvent(event);
+    });
+  }
+
+  ([
+    'moz-chrome-dom-loaded',
+    'moz-chrome-interactive',
+    'moz-app-visually-complete',
+    'moz-content-interactive',
+    'moz-app-loaded'
+  ].forEach(function(eventName) {
+      window.addEventListener(eventName, function mozPerfLoadHandler() {
+        dispatch(eventName);
+      }, false);
+    }));
+
+  window.PerformanceTestingHelper = {
+    dispatch: dispatch
+  };
+  // END COPY performance_testing_helper.js
+
+  if (startupCacheEventsSent) {
+    window.dispatchEvent(new CustomEvent('moz-chrome-dom-loaded'));
+    window.dispatchEvent(new CustomEvent('moz-app-visually-complete'));
   }
 }());
 

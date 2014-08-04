@@ -3,7 +3,7 @@ suite('controllers/storage', function() {
 
   suiteSetup(function(done) {
     var self = this;
-    req([
+    requirejs([
       'controllers/storage',
       'lib/setting',
       'lib/storage',
@@ -154,8 +154,7 @@ suite('controllers/storage', function() {
       this.settings.pictureSizes.selected.withArgs('data').returns({ width: 400, height: 300 });
       this.controller.updateMaxFileSize();
 
-      var exif = 4096;
-      var expected = ((400 * 300) * 3) + exif;
+      var expected = (400 * 300 / 2) + 25000;
       var bytes = this.storage.setMaxFileSize.args[0][0];
 
       assert.equal(this.storage.setMaxFileSize.callCount, 1);

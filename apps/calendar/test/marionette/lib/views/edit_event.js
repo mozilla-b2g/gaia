@@ -12,6 +12,26 @@ EditEvent.prototype = {
 
   selector: '#modify-event-view',
 
+  waitForDisplay: function() {
+    // event details are loaded asynchronously, so we need to wait until the
+    // "loading" class is removed from the view; this will avoid intermittent
+    // failures on Travis (caused by race condition)
+    var element = this.getElement();
+
+    var selectIsReady = function() {
+      // the calendar list is also loaded asynchronously from the database, so
+      // we need to wait until it's ready as well
+      var select = element.findElement('select[name="calendarId"]');
+      return select.getAttribute('className').indexOf('loading') === -1;
+    };
+
+    this.client.waitFor(function() {
+      return element.displayed() &&
+        element.getAttribute('className').indexOf('loading') === -1 &&
+        selectIsReady();
+    });
+  },
+
   get form() {
     return this.findElement('form');
   },
@@ -26,6 +46,11 @@ EditEvent.prototype = {
 
   set location(value) {
     this.setFormValue('location', value);
+  },
+
+  set calendar(value) {
+    var select = this.findElement('select[name="calendarId"]');
+    this.client.helper.tapSelectOption(select, value);
   },
 
   set startDate(value) {

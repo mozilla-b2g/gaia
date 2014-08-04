@@ -1,5 +1,17 @@
 'use strict';
 
+/**
+ * This file contains all Node.js version of utils functions.
+ * Since we're stil in the progress to migrate to Node.js, the
+ * missing functions in this file should be in the 'utils-xpc.js'
+ *
+ * About documents:
+ * Users can find comments in the 'utils-xpc.js',
+ * which contains the complete functions used in 'utils.js'
+ */
+
+/* global require, exports, Buffer */
+
 var utils = require('./utils.js');
 var path = require('path');
 var sh = require('child_process').exec;
@@ -9,13 +21,13 @@ var Q = require('q');
 var os = require('os');
 
 function joinPath() {
-  var src = path.join.apply(this, arguments);
+  var src = path.join.apply(path, arguments);
   console.log(src);
   return src;
 }
 
 function getFile() {
-  var src = path.join.apply(this, arguments);
+  var src = path.join.apply(path, arguments);
   var fileStat;
   try {
     fileStat = fs.statSync(src);
@@ -124,6 +136,15 @@ function getLocaleBasedir(original) {
     original.replace('/', '\\', 'g') : original;
 }
 
+function existsInAppDirs(appDirs, appName) {
+  var apps = appDirs.split(' ');
+  var exists = apps.some(function (appPath) {
+    let appFile = getFile(appPath);
+    return (appName === appFile.leafName);
+  });
+  return exists;
+}
+
 var Services = {};
 
 exports.Services = Services;
@@ -142,3 +163,5 @@ exports.processEvents = processEvents;
 exports.writeContent = writeContent;
 exports.Q = Q;
 exports.getLocaleBasedir = getLocaleBasedir;
+exports.existsInAppDirs = existsInAppDirs;
+

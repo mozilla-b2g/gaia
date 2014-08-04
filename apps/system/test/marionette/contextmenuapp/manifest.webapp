@@ -1,0 +1,11 @@
+{
+  "name": "Context Menu App",
+  "description": "App used to test context menus",
+  "type": "privileged",
+  "launch_path": "/index.html",
+  "fullscreen": true,
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  }
+}

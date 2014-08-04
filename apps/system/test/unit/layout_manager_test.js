@@ -1,15 +1,20 @@
 /* global MocksHelper, LayoutManager, MockKeyboardManager,
-          MockStatusBar, MocksoftwareButtonManager */
+          MockAttentionScreen, MocksoftwareButtonManager, MockLockScreen,
+          MockStatusBar */
 'use strict';
 
-mocha.globals(['OrientationManager']);
 requireApp('system/js/layout_manager.js');
+requireApp('system/test/unit/mock_lock_screen.js');
 requireApp('system/test/unit/mock_keyboard_manager.js');
 requireApp('system/test/unit/mock_software_button_manager.js');
+requireApp('system/test/unit/mock_attention_screen.js');
 requireApp('system/test/unit/mock_statusbar.js');
 
 var mocksForLayoutManager = new MocksHelper([
-  'KeyboardManager', 'softwareButtonManager', 'StatusBar'
+  'AttentionScreen',
+  'KeyboardManager',
+  'softwareButtonManager',
+  'LockScreen'
 ]).init();
 
 suite('system/LayoutManager >', function() {
@@ -17,7 +22,9 @@ suite('system/LayoutManager >', function() {
 
   var layoutManager;
   setup(function() {
-    layoutManager = new LayoutManager().start();
+    window.lockScreen = MockLockScreen;
+    layoutManager = new LayoutManager();
+    layoutManager.start();
   });
 
   suite('handle events', function() {
@@ -27,6 +34,7 @@ suite('system/LayoutManager >', function() {
         type: 'resize'
       });
       assert.isTrue(stubPublish.calledWith('system-resize'));
+      assert.isTrue(stubPublish.calledWith('orientationchange'));
     });
 
     test('status-active', function() {
@@ -88,18 +96,89 @@ suite('system/LayoutManager >', function() {
     });
   });
 
-  test('height calculation', function() {
-    var H = window.innerHeight;
-    var W = window.innerWidth;
-    var _w = document.documentElement.clientWidth;
-    MockKeyboardManager.mHeight = 100;
-    MockStatusBar.height = 30;
-    MocksoftwareButtonManager.height = 50;
-    layoutManager.keyboardEnabled = true;
-    assert.equal(layoutManager.height, H - 100 - 30 - 50);
-    assert.equal(layoutManager.width, W);
-    assert.equal(layoutManager.clientWidth, _w);
+  suite('height calculation', function() {
+    var realDPX, stubDPX;
+    var realIH, stubIH;
+    var H, W;
+    setup(function() {
+      stubDPX = 1;
+      realDPX = window.devicePixelRatio;
 
-    assert.isTrue(layoutManager.match(W, H - 100 - 30 - 50));
+      stubIH = 545;
+      realIH = window.innerHeight;
+
+      Object.defineProperty(window, 'devicePixelRatio', {
+        configurable: true,
+        get: function() { return stubDPX; }
+      });
+
+      Object.defineProperty(window, 'innerHeight', {
+        configurable: true,
+        get: function() { return stubIH; }
+      });
+
+      H = window.innerHeight;
+      W = window.innerWidth;
+      MockAttentionScreen.statusHeight = 30;
+    });
+
+    teardown(function() {
+      Object.defineProperty(window, 'devicePixelRatio', {
+        configurable: true,
+        get: function() { return realDPX; }
+      });
+
+      Object.defineProperty(window, 'innerHeight', {
+        configurable: true,
+        get: function() { return realIH; }
+      });
+    });
+
+    test('should take into account statusbar, keyboard and home button',
+    function() {
+      var _w = document.documentElement.clientWidth;
+      MockKeyboardManager.mHeight = 100;
+      MocksoftwareButtonManager.height = 50;
+      layoutManager.keyboardEnabled = true;
+      assert.equal(layoutManager.height, H - 100 - 30 - 50);
+      assert.equal(layoutManager.width, W);
+      assert.equal(layoutManager.clientWidth, _w);
+      assert.isTrue(layoutManager.match(W, H - 100 - 30 - 50));
+    });
+
+    test('should return integral values in device pixels', function() {
+      stubDPX = 1.5;
+      assert.equal((layoutManager.height * stubDPX) % 1, 0);
+    });
+  });
+
+  suite('dimentions >', () => {
+    var H, W, _w;
+    setup(() => {
+      H = window.innerHeight;
+      W = window.innerWidth;
+      _w = document.documentElement.clientWidth;
+      MockKeyboardManager.mHeight = 100;
+      MockStatusBar.height = 30;
+      MocksoftwareButtonManager.height = 50;
+      MocksoftwareButtonManager.width = 50;
+    });
+
+    test('height calculation with keyboard enabled', () => {
+      layoutManager.keyboardEnabled = true;
+      assert.equal(layoutManager.height, H - 100 - 30 - 50);
+      assert.isTrue(layoutManager.match(W - 50, H - 100 - 30 - 50));
+    });
+
+    test('height calculation with keyboard disabled', () => {
+      layoutManager.keyboardEnabled = false;
+      assert.equal(layoutManager.height, H - 30 - 50);
+      assert.isTrue(layoutManager.match(W - 50, H - 30 - 50));
+    });
+
+    test('width calculation', () => {
+      assert.equal(layoutManager.width, W - 50);
+      assert.equal(layoutManager.clientWidth, _w);
+    });
   });
 });

@@ -23,7 +23,7 @@ class PlayerView(Base):
 
     @property
     def player_elapsed_time(self):
-        return self.marionette.find_element(*self._player_seek_elapsed_locator).text
+        return time.strptime(self.marionette.find_element(*self._player_seek_elapsed_locator).text, '%M:%S')
 
     def is_player_playing(self):
         # get 4 timestamps during approx. 1 sec

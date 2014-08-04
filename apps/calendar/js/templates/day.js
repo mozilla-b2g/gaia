@@ -5,13 +5,15 @@
     hour: function() {
       var hour = this.h('hour');
       var l10n = '';
-      var displayHour;
+      var isAllDay = hour === Calendar.Calc.ALLDAY;
 
-      if (hour === Calendar.Calc.ALLDAY) {
-        l10n = ' data-l10n-id="hour-allday" ';
-        displayHour = navigator.mozL10n.get('hour-allday');
+      if (isAllDay) {
+        l10n = 'data-l10n-id="hour-allday"';
       } else {
-        displayHour = this.h('displayHour');
+        var date = new Date();
+        date.setHours(hour, 0, 0, 0);
+        l10n = 'data-l10n-date-format="hour-format" ' +
+          'data-date="' + date + '"';
       }
 
       var classes = [
@@ -21,13 +23,17 @@
       ].join(' ');
 
       return '<section class="' + classes + '" data-hour="' + hour + '">' +
-          '<h4>' +
-            '<span ' + l10n + 'class="display-hour ' + hour + '">' +
-              displayHour +
+          '<div class="hour-header">' +
+            (isAllDay ? '<i class="gaia-icon icon-calendar-allday"></i>' : '') +
+            '<span ' + l10n + ' class="display-hour">' +
+              this.h('displayHour') +
             '</span>' +
-          '</h4>' +
-          /** has no semantic value - re-evaluate */
-          '<div class="events">' + this.s('items') + '</div>' +
+          '</div>' +
+          // we add a wrapper to allday events to improve the scroll
+          // performance and avoid glitches
+          (isAllDay ? '<div class="allday-events-wrapper">' : '') +
+            '<div class="events">' + this.s('items') + '</div>' +
+          (isAllDay ? '</div>' : '') +
         '</section>';
     },
 
@@ -37,19 +43,35 @@
 
     event: function() {
       var calendarId = this.h('calendarId');
-      return '<section class="event calendar-id-' + calendarId + ' ' +
-        this.h('classes') + ' calendar-display" ' +
+      var hasAlarm = this.arg('hasAlarm');
+
+      var eventClassName = [
+        'event',
+        'calendar-id-' + calendarId,
+        'calendar-bg-color',
+        this.h('classes')
+      ].join(' ');
+
+      var containerClassName = 'container calendar-border-color ' +
+        'calendar-id-' + calendarId;
+
+      var alarm = '';
+
+      if (hasAlarm) {
+        containerClassName += ' has-alarm';
+        alarm = '<i class="gaia-icon icon-calendar-alarm ' +
+          'calendar-text-color"></i>';
+      }
+
+      return '<section class="' + eventClassName + '" ' +
         'data-id="' + this.h('busytimeId') + '">' +
-          '<div class="container calendar-id-' + calendarId +
-              ' calendar-color">' +
-            '<h5>' + this.h('title') + '</h5>' +
-            '<span class="details">' +
-              '<span class="location">' +
-                this.h('location') +
-              '</span>' +
-              this.s('attendees') +
+          '<div class="' + containerClassName + '">' +
+            '<div class="event-title">' + this.h('title') + '</div>' +
+            '<span class="event-location">' +
+              this.h('location') +
             '</span>' +
           '</div>' +
+          alarm +
         '</section>';
     }
   });

@@ -1,6 +1,8 @@
 #! /bin/bash -ve
+make node_modules
+
 echo 'Downloading Firefox'
-./node_modules/.bin/mozilla-download --product firefox \
+DEBUG=* ./node_modules/.bin/mozilla-download --product firefox \
                  --channel tinderbox \
                  --branch mozilla-central \
                  $PWD/firefox

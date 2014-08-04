@@ -20,14 +20,20 @@ function updateState(state, stack, options) {
     options = DEFAULT_OPTIONS;
   }
 
-  state.imap = { port: stack.imapPort };
-  state.smtp = { port: stack.smtpPort };
-
-  [state.imap, state.smtp].forEach(function(serverState) {
-    serverState.username = options.credentials.username;
-    serverState.password = options.credentials.password;
-    serverState.hostname = 'localhost';
-  });
+  state.imap = {
+    port: stack.imapPort,
+    username: options.credentials.username,
+    password: options.credentials.password,
+    hostname: 'localhost'
+  };
+  state.smtp = {
+    port: stack.smtpPort,
+    username: 'outgoingUsername' in options.credentials ?
+      options.credentials.outgoingUsername : options.credentials.username,
+    password: 'outgoingPassword' in options.credentials ?
+      options.credentials.outgoingPassword : options.credentials.password,
+    hostname: 'localhost'
+  };
 }
 
 /**

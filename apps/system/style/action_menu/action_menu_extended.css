@@ -33,7 +33,6 @@ form[role="dialog"][data-type="object"].visible {
   form[role="dialog"][data-type="object"] {
     -moz-box-sizing: border-box;
     background-color: rgba(0,0,0,0.6);
-    background: url(../themes/default/images/ui/menu_bg.png) no-repeat;
   }
 
   form[role="dialog"][data-type="action"] > header,
@@ -91,7 +90,7 @@ form[role="dialog"][data-type="object"].visible {
   form[role="dialog"][data-type="action"] > menu > button:last-child,
   form[role="dialog"][data-type="object"] > menu > button:last-child {
     position: absolute;
-    background: url('../themes/default/images/ui/default.png') repeat-x scroll 0 100% #FAFAFA;
+    background: #2d2d2d;
     margin-top: 1.5rem;
     font-size: 2.3rem;
     line-height: 2.3rem;

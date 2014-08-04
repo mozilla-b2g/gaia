@@ -1,5 +1,5 @@
-/* globals ContactsSDExport, mocha, MockgetDeviceStorage,
-           MockGetStorageIfAvailable, MockGetUnusedFilename */
+/* globals ContactsSDExport, MockgetDeviceStorage, MockGetStorageIfAvailable,
+ MockGetStorageIfAvailableError, MockGetUnusedFilename */
 
 'use strict';
 
@@ -7,36 +7,25 @@ requireApp('communications/contacts/js/export/sd.js');
 requireApp('communications/contacts/test/unit/mock_get_device_storage.js');
 requireApp('communications/contacts/test/unit/export/mock_export_utils.js');
 
-mocha.globals(
-  [
-    '_',
-    'ContactToVcard',
-    'getUnusedFilename',
-    'getStorageIfAvailable'
-  ]
-);
-
 suite('Sd export', function() {
 
   var subject;
   var realDeviceStorage = null;
   var c1 = {
-        familyName: ['foo'],
-        givenName: ['bar']
-      },
-      c2 = {
-        givenName: ['bar']
-      },
-      c3 = {
-        familyName: ['foo']
-      },
-      c4 = {};
+    familyName: ['foo'],
+    givenName: ['bar']
+  };
+  var c2 = { givenName: ['bar'] };
+  var c3 = { familyName: ['foo'] };
+  var c4 = {};
+
   var updateSpy = null;
   var progressMock = function dummy() {};
   var realContactToVcard = null;
   var real_ = null;
   var realgetStorageIfAvailable = null;
   var realgetUnusedFilename = null;
+  var menuOverlay = null;
 
   suiteSetup(function() {
     // Device storage mock
@@ -64,6 +53,11 @@ suite('Sd export', function() {
   });
 
   setup(function() {
+    menuOverlay = document.createElement('form');
+    menuOverlay.innerHTML = '<menu>' +
+      '<button data-l10n-id="cancel" id="cancel-overlay">Cancel</button>' +
+      '</menu>';
+    document.body.appendChild(menuOverlay);
     subject = new ContactsSDExport();
     subject.setProgressStep(progressMock);
     realContactToVcard = window.ContactToVcard;
@@ -72,17 +66,15 @@ suite('Sd export', function() {
       window,
       'ContactToVcard',
       function(contacts, append, finish) {
-        append(' ', contacts.length);
         finish();
-        /* This dummy append call is required to trigger the otherwise
-         * asynchronous completion logic within the export code. */
-        append('', 0);
+        append(' ', contacts.length);
       }
     );
   });
 
   teardown(function() {
     window.ContactToVcard = realContactToVcard;
+    menuOverlay.parentNode.removeChild(menuOverlay);
   });
 
   test('Calling with 1 contact', function(done) {
@@ -135,6 +127,97 @@ suite('Sd export', function() {
         assert.isNull(error);
         assert.equal(contacts.length, exported);
       });
+    });
+  });
+
+  test('Calling with cancel flag activated', function(done) {
+    subject.setContactsToExport([c1]);
+    subject.cancelExport();
+    subject.doExport(function onFinish(error, exported, msg) {
+      done(function() {
+        assert.equal(1, updateSpy.callCount);
+        assert.isNull(error);
+        assert.equal(exported, 0);
+      });
+    });
+  });
+});
+
+suite('Sd export error', function() {
+
+  var subject;
+  var realDeviceStorage = null;
+  var c1 = {
+    familyName: ['foo'],
+    givenName: ['bar']
+  };
+
+  var updateSpy = null;
+  var progressMock = function dummy() {};
+  var realContactToVcard = null;
+  var real_ = null;
+  var realgetStorageIfAvailable = null;
+  var realgetUnusedFilename = null;
+  var menuOverlay = null;
+
+  suiteSetup(function() {
+    // Device storage mock
+    realDeviceStorage = navigator.getDeviceStorage;
+    navigator.getDeviceStorage = MockgetDeviceStorage;
+
+    // L10n mock
+    real_ = window._;
+    window._ = function() {};
+
+    // getStorageIfAvailable mock
+    realgetStorageIfAvailable = window.getStorageIfAvailable;
+    window.getStorageIfAvailable = MockGetStorageIfAvailableError;
+
+    // getUnusedFilename mock
+    realgetUnusedFilename = window.getUnusedFilename;
+    window.getUnusedFilename = MockGetUnusedFilename;
+  });
+
+  suiteTeardown(function() {
+    navigator.getDeviceStorage = realDeviceStorage;
+    window._ = real_;
+    window.getStorageIfAvailable = realgetStorageIfAvailable;
+    window.getUnusedFilename = realgetUnusedFilename;
+  });
+
+  setup(function() {
+    menuOverlay = document.createElement('form');
+    menuOverlay.innerHTML = '<menu>' +
+      '<button data-l10n-id="cancel" id="cancel-overlay">Cancel</button>' +
+      '</menu>';
+    document.body.appendChild(menuOverlay);
+    subject = new ContactsSDExport();
+    subject.setProgressStep(progressMock);
+    realContactToVcard = window.ContactToVcard;
+    window.ContactToVcard = function() {};
+    updateSpy = this.sinon.stub(
+      window,
+      'ContactToVcard',
+      function(contacts, append, finish) {
+        finish();
+        append(' ', contacts.length);
+      }
+    );
+  });
+
+  teardown(function() {
+    window.ContactToVcard = realContactToVcard;
+    menuOverlay.parentNode.removeChild(menuOverlay);
+  });
+
+  test('Calling with error', function(done) {
+    subject.setContactsToExport([c1]);
+    subject.doExport(function onFinish(error, exported, isRecoverable) {
+      assert.isNotNull(error);
+      assert.equal(error.reason, 'noSpace');
+      assert.equal(0, exported);
+      assert.equal(isRecoverable, true);
+      done();
     });
   });
 });

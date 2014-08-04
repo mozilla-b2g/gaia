@@ -37,6 +37,7 @@ Calendar.ns('Views').TimeParent = (function() {
 
     _initEvents: function() {
       this.app.timeController.on('purge', this);
+      this.app.store('Calendar').on('calendarVisibilityChange', this);
       this.element.addEventListener('swipe', this);
 
       this.gd = new GestureDetector(this.element);
@@ -62,6 +63,9 @@ Calendar.ns('Views').TimeParent = (function() {
 
     handleEvent: function(e) {
       switch (e.type) {
+        case 'calendarVisibilityChange':
+          this._onCalendarVisibilityChange();
+          break;
         case 'swipe':
           this._onswipe(e.detail);
           break;
@@ -69,6 +73,16 @@ Calendar.ns('Views').TimeParent = (function() {
           this.purgeFrames(e.data[0]);
           break;
       }
+    },
+
+    _onCalendarVisibilityChange: function() {
+      // we need to restore previous scroll position otherwise it would move
+      // back to top every time the calendar visibility is toggled which would
+      // be very confusing for the user
+      var scrollTop = this.currentFrame.getScrollTop() || 0;
+      this.purgeFrames(this.app.timeController.timespan);
+      this.changeDate(this.date);
+      this.currentFrame.setScrollTop(scrollTop);
     },
 
     /**
@@ -184,7 +198,7 @@ Calendar.ns('Views').TimeParent = (function() {
       var prev = this._previousTime(time);
 
       // add previous frame
-      prev = this.addFrame(prev);
+      this.addFrame(prev);
 
       // create & activate current frame
       var cur = this.currentFrame = this.addFrame(time);

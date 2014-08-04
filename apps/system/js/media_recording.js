@@ -33,7 +33,6 @@
       this.container = document.getElementById('media-recoding-status-list');
 
       window.addEventListener('mozChromeEvent', this);
-      return this;
     },
 
     /**
@@ -150,7 +149,7 @@
       var panelElement, iconElement, originElement,
           messageElement, timerElement;
       /* create panel
-       <div class="media-recoding-status">
+       <div class="media-recoding-status" role="listitem">
          <div class="icon"></div>
          <div class="origin"></div>
          <div class="message"></div>
@@ -159,6 +158,7 @@
       */
       panelElement = document.createElement('div');
       panelElement.className = 'media-recoding-status';
+      panelElement.setAttribute('role', 'listitem');
       iconElement = document.createElement('div');
       iconElement.className = 'icon';
       iconElement.style.backgroundImage = item.icon;

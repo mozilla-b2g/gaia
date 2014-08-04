@@ -13,36 +13,50 @@ from gaiatest.apps.base import PageRegion
 
 class SearchPanel(Base):
 
-    _body = (By.CSS_SELECTOR, 'body')
-    _search_title_query_locator = (By.CSS_SELECTOR, '#search-title > .query')
-    _search_title_first_word_locator = (By.CSS_SELECTOR, '#search-title [data-l10n-id="evme-helper-title-prefix"]')
-    _search_results_from_everything_me_locator = (By.CSS_SELECTOR, '#search .evme-apps ul.cloud li[data-name]')
+    _search_results_app_frame_locator = (By.CSS_SELECTOR, '.searchWindow.active iframe')
+    _search_results_locator = (By.CSS_SELECTOR, 'gaia-grid .icon')
+    _search_suggestion_ok_button_locator = (By.ID, 'suggestions-notice-confirm')
+
+    def _switch_to_search_results_frame(self):
+        self.marionette.switch_to_frame()
+        self.marionette.switch_to_frame(self.marionette.find_element(*self._search_results_app_frame_locator))
 
     def type_into_search_box(self, search_term):
         self.keyboard.send(search_term)
-        self.keyboard.tap_enter()
-        Wait(self.marionette, ignored_exceptions=StaleElementException).until(
-            lambda m: m.find_element(*self._search_title_query_locator).text.lower() == search_term.lower())
-        self.wait_for_element_displayed(*self._search_title_first_word_locator)
+        # The search results frame is not findable with AppWindowManager
+        self._switch_to_search_results_frame()
 
-    def wait_for_everything_me_loaded(self):
-        self.wait_for_condition(
-            lambda m: 'evme-loading' not in m.find_element(
-                *self._body).get_attribute('class'))
+    def wait_for_everything_me_results_to_load(self, minimum_expected_results=1):
+        self.wait_for_condition(lambda m: len(m.find_elements(*self._search_results_locator))
+                                          > minimum_expected_results)
 
-    def wait_for_everything_me_results_to_load(self):
-        self.wait_for_element_displayed(*self._search_results_from_everything_me_locator)
+    def confirm_suggestion_notice(self):
+        self.marionette.find_element(*self._search_suggestion_ok_button_locator).tap()
+        self.wait_for_element_not_displayed(*self._search_suggestion_ok_button_locator)
+
+    def _is_result_a_webapp(self, result_element):
+        # An app result is to an installable (via marketplace) webapp
+        return '.webapp' in result_element.get_attribute('data-identifier')
 
     @property
-    def results(self):
+    def app_results(self):
+        # An app result is to an installable (via marketplace) webapp
         return [self.Result(marionette=self.marionette, element=result)
-                for result in self.marionette.find_elements(*self._search_results_from_everything_me_locator)]
+                for result in self.marionette.find_elements(*self._search_results_locator)
+                    if self._is_result_a_webapp(result)]
+
+    @property
+    def link_results(self):
+        # A link result just opens a page in a frame
+        return [self.Result(marionette=self.marionette, element=result)
+                for result in self.marionette.find_elements(*self._search_results_locator)
+                    if not self._is_result_a_webapp(result)]
 
     class Result(PageRegion):
 
         @property
         def name(self):
-            return self.root_element.get_attribute('data-name')
+            return self.root_element.text
 
         def tap(self):
             app_name = self.name

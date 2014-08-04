@@ -53,7 +53,15 @@ var CellBroadcastSystem = {
       return;
     }
 
-    CarrierInfoNotifier.show(msg.body,
+    var body = msg.body;
+
+    // XXX: 'undefined' test until bug-1021177 lands
+    if (msg.etws && (!body || (body == 'undefined'))) {
+      body = navigator.mozL10n.get('cb-etws-warningType-' +
+        (msg.etws.warningType ? msg.etws.warningType : 'other'));
+    }
+
+    CarrierInfoNotifier.show(body,
       navigator.mozL10n.get('cb-channel', { channel: msg.messageId }));
   }
 };

@@ -3,13 +3,6 @@
 
 'use strict';
 
-/**
- * gDeviceList is defined here because the child window created for pairing
- * requests needs to access its method via window.opener
- */
-
-var gDeviceList = null;
-
 // handle Bluetooth settings
 navigator.mozL10n.once(function bluetoothSettings() {
   // Service ID for profiles
@@ -19,7 +12,6 @@ navigator.mozL10n.once(function bluetoothSettings() {
   };
 
   var _ = navigator.mozL10n.get;
-  var l10n = navigator.mozL10n;
   var settings = Settings.mozSettings;
   var bluetooth = getBluetooth();
   var defaultAdapter = null;
@@ -223,15 +215,12 @@ navigator.mozL10n.once(function bluetoothSettings() {
   })();
 
   // device list
-  gDeviceList = (function deviceList() {
+  var gDeviceList = (function deviceList() {
     var bluetoothSearch = document.getElementById('bluetooth-search');
     var searchAgainBtn = document.getElementById('search-device');
     var searchingItem = document.getElementById('bluetooth-searching');
     var enableMsg = document.getElementById('bluetooth-enable-msg');
-    var childWindow = null;
 
-    var pairingMode = 'active';
-    var userCanceledPairing = false;
     var pairingAddress = null;
     var connectingAddress = null;
     var connectedAddress = null;
@@ -283,6 +272,7 @@ navigator.mozL10n.once(function bluetoothSettings() {
       disconnectOpt: document.getElementById('disconnect-option'),
       unpairOpt: document.getElementById('unpair-option'),
       confirmDlg: document.getElementById('unpair-device'),
+      unpairCancel: document.getElementById('unpair-device-cancel'),
       confirmOpt: document.getElementById('confirm-option'),
 
       showActions: function showActions() {
@@ -311,11 +301,12 @@ navigator.mozL10n.once(function bluetoothSettings() {
 
       showConfirm: function showConfirm() {
         var self = this;
-        this.confirmDlg.onclick = function() {
+        this.unpairCancel.onclick = function() {
           return self.close();
         };
         this.confirmOpt.onclick = function() {
           setDeviceUnpair(self.device);
+          return self.close();
         };
         this.confirmDlg.hidden = false;
       },
@@ -345,17 +336,17 @@ navigator.mozL10n.once(function bluetoothSettings() {
       var deviceName = document.createElement('a');
       if (device.name !== '') {
         deviceName.textContent = device.name;
-        deviceName.dataset.l10nId = '';
+        deviceName.removeAttribute('data-l10n-id');
       } else {
-        l10n.localize(deviceName, 'unnamed-device');
+        deviceName.setAttribute('data-l10n-id', 'unnamed-device');
       }
 
       var deviceDesc = document.createElement('small');
       if (descL10nId) {
-        l10n.localize(deviceDesc, descL10nId);
+        deviceDesc.setAttribute('data-l10n-id', descL10nId);
       } else {
         deviceDesc.textContent = '';
-        deviceDesc.dataset.l10nId = '';
+        deviceDesc.removeAttribute('data-l10n-id');
       }
 
       var li = document.createElement('li');
@@ -396,20 +387,24 @@ navigator.mozL10n.once(function bluetoothSettings() {
     // do default actions (start discover avaliable devices)
     // when DefaultAdapter is ready.
     function initial() {
-      // Bind message handler for incoming pairing requests
-      window.removeEventListener('bluetooth-pairing-request', onRequestPairing);
-      window.addEventListener('bluetooth-pairing-request', onRequestPairing);
-
-      navigator.mozSetMessageHandler('bluetooth-cancel',
-        function bt_gotCancelMessage(message) {
-          showDevicePaired(false, null);
-        }
-      );
-
       defaultAdapter.onpairedstatuschanged = function bt_getPairedMessage(evt) {
         dispatchEvent(new CustomEvent('bluetooth-pairedstatuschanged'));
         showDevicePaired(evt.status, 'Authentication Failed');
       };
+
+      defaultAdapter.ondiscoverystatechanged =
+        function bt_discoveryStateChanged(evt) {
+          if (!evt.discovering) {
+            searchAgainBtn.disabled = false;
+            searchingItem.hidden = true;
+
+            clearTimeout(discoverTimeout);
+            discoverTimeout = null;
+          } else {
+            searchAgainBtn.disabled = true;
+            searchingItem.hidden = false;
+          }
+        };
 
       defaultAdapter.onhfpstatuschanged = function bt_hfpStatusChanged(evt) {
         showDeviceConnected(evt.address, evt.status, Profiles.HFP);
@@ -479,7 +474,7 @@ navigator.mozL10n.once(function bluetoothSettings() {
             if (device.address === connectingAddress &&
                 device.icon === 'audio-card') {
               var small = aItem.querySelector('small');
-              l10n.localize(small, 'device-status-connecting');
+              small.setAttribute('data-l10n-id', 'device-status-connecting');
               setTimeout(function() {
                 setDeviceConnect(device);
               }, 5000);
@@ -595,12 +590,12 @@ navigator.mozL10n.once(function bluetoothSettings() {
           return;
 
         var small = aItem.querySelector('small');
-        l10n.localize(small, 'device-status-pairing');
+        small.setAttribute('data-l10n-id', 'device-status-pairing');
         this.setAttribute('aria-disabled', true);
         stopDiscovery();
 
+        // pairing dialog is handled and showing via Bluetooth app
         var req = defaultAdapter.pair(device.address);
-        pairingMode = 'active';
         pairingAddress = device.address;
         req.onerror = function bt_pairError(error) {
           showDevicePaired(false, req.error.name);
@@ -638,29 +633,21 @@ navigator.mozL10n.once(function bluetoothSettings() {
           connectingAddress = workingAddress;
         }
       } else {
-        // if the attention screen still open, close it
-        if (childWindow) {
-          childWindow.PairView.closeInput();
-          childWindow.close();
+        // show pair process fail.
+        var msg = _('error-pair-title');
+        if (errorMessage === 'Repeated Attempts') {
+          msg = msg + '\n' + _('error-pair-toofast');
+        } else if (errorMessage === 'Authentication Failed') {
+          msg = msg + '\n' + _('error-pair-pincode');
         }
-        // display failure only when active request
-        if (pairingMode === 'active' && !userCanceledPairing) {
-          // show pair process fail.
-          var msg = _('error-pair-title');
-          if (errorMessage === 'Repeated Attempts') {
-            msg = msg + '\n' + _('error-pair-toofast');
-          } else if (errorMessage === 'Authentication Failed') {
-            msg = msg + '\n' + _('error-pair-pincode');
-          }
-          window.alert(msg);
-        }
-        userCanceledPairing = false;
+        window.alert(msg);
+
         // rollback device status
         if (openList.index[workingAddress]) {
           var item = openList.index[workingAddress].item;
           var small = item.querySelector('small');
           item.removeAttribute('aria-disabled');
-          l10n.localize(small, 'device-status-tap-connect');
+          small.setAttribute('data-l10n-id', 'device-status-tap-connect');
         }
       }
       // acquire a new paired list no matter paired or unpaired
@@ -738,7 +725,7 @@ navigator.mozL10n.once(function bluetoothSettings() {
 
         var small =
           pairList.index[connectingAddress].item.querySelector('small');
-        l10n.localize(small, 'device-status-connecting');
+        small.setAttribute('data-l10n-id', 'device-status-connecting');
       };
 
       // disconnect current connected device first
@@ -783,9 +770,9 @@ navigator.mozL10n.once(function bluetoothSettings() {
       var hfpConnected = deviceItem.connectedProfiles[Profiles.HFP];
       var a2dpConnected = deviceItem.connectedProfiles[Profiles.A2DP];
       if (hfpConnected && a2dpConnected) {
-        l10nId = 'device-status-connected-phone-media';
+        l10nId = 'device-status-connected-device-media';
       } else if (hfpConnected) {
-        l10nId = 'device-status-connected-phone';
+        l10nId = 'device-status-connected-device';
       } else if (a2dpConnected) {
         l10nId = 'device-status-connected-media';
       } else {
@@ -794,63 +781,26 @@ navigator.mozL10n.once(function bluetoothSettings() {
 
       var small = pairList.index[deviceAddress].item.querySelector('small');
       if (l10nId) {
-        l10n.localize(small, l10nId);
+        small.setAttribute('data-l10n-id', l10nId);
       } else {
         small.textContent = '';
-        small.dataset.l10nId = '';
+        small.removeAttribute('data-l10n-id');
       }
     }
 
-    function onRequestPairing(evt) {
-      var evt = evt.detail;
-      var showPairView = function bt_showPairView() {
-        var device = {
-          address: evt.address,
-          name: evt.name || _('unnamed-device'),
-          icon: evt.icon || 'bluetooth-default'
-        };
-
-        if (device.address !== pairingAddress) {
-          pairingAddress = device.address;
-          pairingMode = 'passive';
-        }
-
-        var passkey = evt.passkey || null;
-        var method = evt.method;
-        var protocol = window.location.protocol;
-        var host = window.location.host;
-        childWindow = window.open(protocol + '//' + host + '/onpair.html',
-                    'pair_screen', 'attention');
-        childWindow.onload = function childWindowLoaded() {
-          childWindow.PairView.init(pairingMode, method, device, passkey);
-        };
-      };
-
-      var req = navigator.mozSettings.createLock().get('lockscreen.locked');
-      req.onsuccess = function bt_onGetLocksuccess() {
-        if (!req.result['lockscreen.locked']) {
-          showPairView();
-        }
-      };
-      req.onerror = function bt_onGetLockError() {
-        // fallback to default value 'unlocked'
-        showPairView();
-      };
-    }
-
     function startDiscovery() {
-      if (!bluetooth.enabled || !defaultAdapter || discoverTimeout)
+      if (!bluetooth.enabled || !defaultAdapter ||
+          discoverTimeout || document.hidden) {
         return;
+      }
 
       var req = defaultAdapter.startDiscovery();
       req.onsuccess = function bt_discoveryStart() {
-        searchAgainBtn.disabled = true;
         if (!discoverTimeout)
           discoverTimeout = setTimeout(stopDiscovery, discoverTimeoutTime);
       };
       req.onerror = function bt_discoveryFailed() {
-        searchingItem.hidden = true;
-        searchAgainBtn.disabled = false;
+        console.error('Can not discover nearby device');
       };
     }
 
@@ -864,46 +814,14 @@ navigator.mozL10n.once(function bluetoothSettings() {
     function stopDiscovery() {
       if (!bluetooth.enabled || !defaultAdapter || !discoverTimeout)
         return;
+
       var req = defaultAdapter.stopDiscovery();
-      req.onsuccess = function bt_discoveryStopped() {
-        searchAgainBtn.disabled = false;
-        searchingItem.hidden = true;
-      };
       req.onerror = function bt_discoveryStopFailed() {
         console.error('Can not stop discover nearby device');
-        searchAgainBtn.disabled = true;
-        searchingItem.hidden = false;
       };
+
       clearTimeout(discoverTimeout);
       discoverTimeout = null;
-    }
-
-    function setConfirmation(address, confirmed) {
-      if (!bluetooth.enabled || !defaultAdapter)
-        return;
-
-      userCanceledPairing = !confirmed;
-      /*
-       * Only clear pairingAddress when in passive mode as pairingAddress is
-       * used in the onerror function when in active mode.
-       */
-      if (pairingMode === 'passive' && userCanceledPairing) {
-        pairingAddress = null;
-      }
-      var req = defaultAdapter.setPairingConfirmation(address, confirmed);
-    }
-
-    function setPinCode(address, pincode) {
-      if (!bluetooth.enabled || !defaultAdapter)
-        return;
-      defaultAdapter.setPinCode(address, pincode);
-    }
-
-    function setPasskey(address, passkey) {
-      if (!bluetooth.enabled || !defaultAdapter)
-        return;
-      var key = parseInt(passkey, 10);
-      defaultAdapter.setPasskey(address, key);
     }
 
     // API
@@ -911,11 +829,7 @@ navigator.mozL10n.once(function bluetoothSettings() {
       update: updateDeviceList,
       initWithAdapter: initial,
       startDiscovery: startDiscovery,
-      onDeviceFound: onDeviceFound,
-      setConfirmation: setConfirmation,
-      setPinCode: setPinCode,
-      setPasskey: setPasskey,
-      onRequestPairing: onRequestPairing
+      onDeviceFound: onDeviceFound
     };
 
   })();

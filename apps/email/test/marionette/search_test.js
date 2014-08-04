@@ -23,7 +23,7 @@ marionette('email message list edit mode', function() {
   });
 
   test('only one input should appear', function() {
-    app.tapSearchButton();
+    app.tapSearchArea();
 
     var inputs = app.getVisibleCardInputs();
     assert.equal(inputs.length, 1);

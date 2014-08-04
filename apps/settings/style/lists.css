@@ -151,8 +151,9 @@ ul li > label.pack-checkbox > .color-preview:before {
   height: 2rem;
   width: 2rem;
   content: "";
-  display: inline-block;
-  margin: 0 1rem -0.2rem -1rem;
+  margin: -1.1rem 0 0 -3rem;
+  top: 50%;
+  position: absolute;
 }
 
 ul li > label.pack-checkbox > .warning-counter:before {
@@ -184,18 +185,18 @@ ul li > label.pack-checkbox > .ttl-monitor:before {
 }
 
 ul li > label.pack-checkbox > .uss-monitor:before {
-  background-color: navy;
+  background-color: dimgrey;
 }
 
 ul li > label.pack-checkbox > .memory-monitor:before {
-  background-color: slategrey;
+  background-color: lightslategrey;
 }
 
 ul li > label.pack-checkbox > .memory-item:before {
-  background-color: slategrey;
-  height: 1.2rem;
-  width: 1.2rem;
-  margin: 0 1rem 0.1rem -0.2rem;
+  background-color: lightslategrey;
+  height: 2rem;
+  width: 2rem;
+  margin: -1.1rem 0 0 -3rem;
 }
 
 
@@ -331,7 +332,7 @@ ul li.sound-setting > label input[type="range"] {
   left: 1.5rem;
 }
 
-ul li#brightness-manual > label input[type="range"] {
+ul li.brightness-manual > label input[type="range"] {
   margin: 0 auto;
   width: calc(100% - 10rem);
   display: inline;
@@ -475,7 +476,11 @@ html[dir="rtl"] ul li.bluetooth-device > a{
 }
 
 html[dir="rtl"] ul li > label.pack-checkbox > .color-preview:before {
-  margin-left: 1rem;
-  margin-right: -1rem;
+  margin-left: 0;
+  margin-right: -3rem;
 }
 
+html[dir="rtl"] ul li > label.pack-checkbox > .memory-item:before {
+  margin-left: 0;
+  margin-right: -3rem;
+}

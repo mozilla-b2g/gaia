@@ -3,7 +3,8 @@
 /* global CallHandler, MocksHelper, MockLazyL10n, MockNavigatormozApps,
    MockNavigatorMozIccManager, MockNavigatormozSetMessageHandler,
    NavbarManager, Notification, MockKeypadManager, MockVoicemail,
-   MockCallLog, MockCallLogDBManager, MockNavigatorWakeLock */
+   MockCallLog, MockCallLogDBManager, MockNavigatorWakeLock, MockMmiManager,
+   MockSuggestionBar, LazyLoader, AccessibilityHelper, MockSimSettingsHelper */
 
 require(
   '/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js'
@@ -12,7 +13,9 @@ require('/shared/test/unit/mocks/mock_navigator_wake_lock.js');
 require('/dialer/test/unit/mock_call_log.js');
 require('/dialer/test/unit/mock_call_log_db_manager.js');
 require('/dialer/test/unit/mock_lazy_loader.js');
+require('/dialer/test/unit/mock_mmi_manager.js');
 require('/dialer/test/unit/mock_voicemail.js');
+require('/dialer/test/unit/mock_suggestion_bar.js');
 
 require('/shared/test/unit/mocks/mock_accessibility_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
@@ -20,9 +23,11 @@ require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/mock_notification.js');
 require('/shared/test/unit/mocks/mock_notification_helper.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
+require('/shared/test/unit/mocks/mock_sim_settings_helper.js');
 require('/shared/test/unit/mocks/dialer/mock_contacts.js');
 require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
 require('/shared/test/unit/mocks/dialer/mock_keypad.js');
+require('/shared/test/unit/mocks/dialer/mock_tone_player.js');
 require('/shared/test/unit/mocks/dialer/mock_utils.js');
 
 require('/dialer/js/dialer.js');
@@ -35,10 +40,14 @@ var mocksHelperForDialer = new MocksHelper([
   'LazyL10n',
   'LazyLoader',
   'KeypadManager',
+  'MmiManager',
   'Notification',
   'NotificationHelper',
   'SettingsListener',
+  'SimSettingsHelper',
+  'SuggestionBar',
   'Utils',
+  'TonePlayer',
   'Voicemail'
 ]).init();
 
@@ -119,9 +128,10 @@ suite('navigation bar', function() {
         this.sinon.spy(window, 'Notification');
         MockNavigatorMozIccManager.addIcc('12345', {'cardState': 'ready'});
         callEndedData = {
-          number: '123',
+          id: { number: '123' },
           serviceId: 1,
-          direction: 'incoming'
+          direction: 'incoming',
+          hangUpLocal: false
         };
       });
 
@@ -162,11 +172,24 @@ suite('navigation bar', function() {
           assert.deepEqual(MockLazyL10n.keys.missedCallMultiSims, {n: 2});
         });
       });
+
+      suite('> Rejected call', function() {
+        setup(function() {
+          callEndedData.hangUpLocal = true;
+          MockNavigatormozSetMessageHandler.mTrigger('telephony-call-ended',
+                                                     callEndedData);
+        });
+
+        test('does not send notification', function() {
+          // Requesting an app indicates that we are sending a notification.
+          assert.isNull(MockNavigatormozApps.mLastRequest);
+        });
+      });
     });
 
     suite('> insertion in the call log database', function() {
       var sysMsg;
-      var addSpy;
+      var addStub;
 
       function triggerSysMsg(data) {
         MockNavigatormozSetMessageHandler.mTrigger('telephony-call-ended',
@@ -175,7 +198,7 @@ suite('navigation bar', function() {
 
       setup(function() {
         sysMsg = {
-          number: '12345',
+          id: { number: '12345' },
           serviceId: 1,
           emergency: false,
           duration: 1200,
@@ -184,7 +207,7 @@ suite('navigation bar', function() {
       });
 
       setup(function() {
-        addSpy = this.sinon.spy(MockCallLogDBManager, 'add');
+        addStub = this.sinon.stub(MockCallLogDBManager, 'add');
       });
 
       test('should require a high priority wake lock', function() {
@@ -205,12 +228,12 @@ suite('navigation bar', function() {
 
         test('should flag the entry as voicemail if it is', function() {
           MockVoicemail.check.yield(true);
-          sinon.assert.calledWithMatch(addSpy, {voicemail: true});
+          sinon.assert.calledWithMatch(addStub, {voicemail: true});
         });
 
         test('should not flag the entry if it is not', function() {
           MockVoicemail.check.yield(false);
-          sinon.assert.calledWithMatch(addSpy, {voicemail: false});
+          sinon.assert.calledWithMatch(addStub, {voicemail: false});
         });
       });
 
@@ -218,7 +241,7 @@ suite('navigation bar', function() {
         test('should be set to now minus the call duration', function() {
           this.sinon.useFakeTimers(4200);
           triggerSysMsg(sysMsg);
-          sinon.assert.calledWithMatch(addSpy, {date: 3000});
+          sinon.assert.calledWithMatch(addStub, {date: 3000});
         });
       });
 
@@ -226,37 +249,45 @@ suite('navigation bar', function() {
         test('should be incoming for incoming calls', function() {
           sysMsg.direction = 'incoming';
           triggerSysMsg(sysMsg);
-          sinon.assert.calledWithMatch(addSpy, {type: 'incoming'});
+          sinon.assert.calledWithMatch(addStub, {type: 'incoming'});
         });
 
         test('should be alerting for outgoing calls', function() {
           sysMsg.direction = 'outgoing';
           triggerSysMsg(sysMsg);
-          sinon.assert.calledWithMatch(addSpy, {type: 'dialing'});
+          sinon.assert.calledWithMatch(addStub, {type: 'dialing'});
         });
       });
 
       test('should set the phone number', function() {
         triggerSysMsg(sysMsg);
-        sinon.assert.calledWithMatch(addSpy, {number: '12345'});
+        sinon.assert.calledWithMatch(addStub, {number: '12345'});
+      });
+
+      test('should set cdma call waiting number', function() {
+        sysMsg.secondNumber = '23456';
+        triggerSysMsg(sysMsg);
+        sinon.assert.calledWithMatch(addStub, {number: '12345'});
+        addStub.yield();
+        sinon.assert.calledWithMatch(addStub, {number: '23456'});
       });
 
       test('should set the serviceId', function() {
         triggerSysMsg(sysMsg);
-        sinon.assert.calledWithMatch(addSpy, {serviceId: 1});
+        sinon.assert.calledWithMatch(addStub, {serviceId: 1});
       });
 
       suite('> emergency', function() {
         test('should flag the entry as emergency if it is', function() {
           sysMsg.emergency = true;
           triggerSysMsg(sysMsg);
-          sinon.assert.calledWithMatch(addSpy, {emergency: true});
+          sinon.assert.calledWithMatch(addStub, {emergency: true});
         });
 
         test('should not flag the entry if it is not', function() {
           sysMsg.emergency = null;
           triggerSysMsg(sysMsg);
-          sinon.assert.calledWithMatch(addSpy, {emergency: false});
+          sinon.assert.calledWithMatch(addStub, {emergency: false});
         });
       });
 
@@ -264,12 +295,12 @@ suite('navigation bar', function() {
         test('should be connected for incoming connected calls', function() {
           sysMsg.direction = 'incoming';
           triggerSysMsg(sysMsg);
-          sinon.assert.calledWithMatch(addSpy, {status: 'connected'});
+          sinon.assert.calledWithMatch(addStub, {status: 'connected'});
         });
 
         test('should be null otherwise', function() {
           triggerSysMsg(sysMsg);
-          sinon.assert.calledWithMatch(addSpy, {status: null});
+          sinon.assert.calledWithMatch(addStub, {status: null});
         });
       });
 
@@ -279,15 +310,169 @@ suite('navigation bar', function() {
         var appendSpy = this.sinon.spy(MockCallLog, 'appendGroup');
 
         triggerSysMsg(sysMsg);
-        addSpy.yield(fakeGroup);
+        addStub.yield(fakeGroup);
 
         sinon.assert.calledWith(appendSpy, fakeGroup);
       });
 
+      test('should also insert new call waiting group for cdma log view',
+      function() {
+        var fakeGroup = '----uniq----';
+        var fakeGroupCdma = '-----cdma----';
+        var appendSpy = this.sinon.spy(MockCallLog, 'appendGroup');
+        sysMsg.secondNumber = '34567';
+
+        triggerSysMsg(sysMsg);
+        addStub.yield(fakeGroup);
+        assert.equal(MockNavigatorWakeLock.mLastWakeLock.mUnlockCount, 0);
+        addStub.yield(fakeGroupCdma);
+
+        sinon.assert.calledWith(appendSpy, fakeGroup);
+        sinon.assert.calledWith(appendSpy, fakeGroupCdma);
+      });
+
       test('should release the wake lock', function() {
         triggerSysMsg(sysMsg);
+        addStub.yield();
         var wakeLock = MockNavigatorWakeLock.mLastWakeLock;
         assert.isTrue(wakeLock.released);
+      });
+
+      test('should only unlock after cdma call is added',
+      function() {
+        sysMsg.secondNumber = '45678';
+        triggerSysMsg(sysMsg);
+        var wakeLock = MockNavigatorWakeLock.mLastWakeLock;
+        addStub.yield();
+        assert.equal(wakeLock.mUnlockCount, 0);
+        addStub.yield();
+        assert.equal(wakeLock.mUnlockCount, 1);
+      });
+    });
+
+    suite('> Receiving a ussd', function() {
+      function triggerSysMsg(serviceId, sessionEnded) {
+        MockNavigatormozSetMessageHandler.mTrigger('ussd-received', {
+          message: 'testing',
+          sessionEnded: (sessionEnded !== undefined) ? sessionEnded : true,
+          serviceId: (serviceId !== undefined) ? serviceId : 0
+        });
+      }
+
+      var realHidden, stubHidden;
+      setup(function() {
+        realHidden = document.hidden;
+
+        Object.defineProperty(document, 'hidden', {
+          configurable: true,
+          get: function() { return stubHidden; }
+        });
+
+        this.sinon.useFakeTimers();
+      });
+
+      teardown(function() {
+        Object.defineProperty(document, 'hidden', {
+          configurable: true,
+          get: function() { return realHidden; }
+        });
+      });
+
+      test('should call the MmiManager', function() {
+        this.sinon.spy(MockMmiManager, 'handleMMIReceived');
+        triggerSysMsg();
+        sinon.assert.calledWith(MockMmiManager.handleMMIReceived,
+                                'testing', true);
+      });
+
+      suite('when the app is visible', function() {
+        setup(function() {
+          stubHidden = false;
+        });
+
+        test('should not require a high priority wake lock', function() {
+          triggerSysMsg();
+          var wakeLock = MockNavigatorWakeLock.mLastWakeLock;
+          assert.isUndefined(wakeLock);
+        });
+      });
+
+      suite('when the app is invisible', function() {
+        setup(function() {
+          stubHidden = true;
+        });
+
+        test('should require a high priority wake lock', function() {
+          triggerSysMsg();
+          var wakeLock = MockNavigatorWakeLock.mLastWakeLock;
+          assert.equal(wakeLock.topic, 'high-priority');
+        });
+
+        test('should send a notification for unsolicited messages', function() {
+            this.sinon.spy(MockMmiManager, 'sendNotification');
+            triggerSysMsg(0, true);
+            sinon.assert.calledOnce(MockMmiManager.sendNotification);
+            var wakeLock = MockNavigatorWakeLock.mLastWakeLock;
+            assert.isTrue(wakeLock.released);
+          }
+        );
+
+        suite('once the app is visible', function() {
+          setup(function() {
+            triggerSysMsg();
+
+            stubHidden = false;
+          });
+
+          test('should release the wake lock', function() {
+            document.dispatchEvent(new CustomEvent('visibilitychange'));
+            var wakeLock = MockNavigatorWakeLock.mLastWakeLock;
+            assert.isTrue(wakeLock.released);
+          });
+        });
+
+        suite('after a safety timeout', function() {
+          setup(function() {
+            triggerSysMsg();
+          });
+
+          test('should release the wake lock', function() {
+            this.sinon.clock.tick(30000);
+            var wakeLock = MockNavigatorWakeLock.mLastWakeLock;
+            assert.isTrue(wakeLock.released);
+          });
+        });
+      });
+    });
+
+    suite('> Dialing MMI codes', function() {
+      setup(function (){
+        this.sinon.stub(MockMmiManager, 'isMMI').returns(true);
+        this.sinon.spy(MockMmiManager, 'send');
+        this.sinon.spy(MockKeypadManager, 'updatePhoneNumber');
+        this.sinon.spy(MockSuggestionBar, 'clear');
+      });
+
+      [0, 1].forEach(function(cardIndex) {
+        test('> Dialing a generic code on SIM ' + cardIndex, function() {
+          var number = '*123#';
+          CallHandler.call(number, cardIndex);
+
+          sinon.assert.calledWith(MockMmiManager.send, number, cardIndex);
+          sinon.assert.calledWithMatch(MockKeypadManager.updatePhoneNumber, '');
+          sinon.assert.calledOnce(MockSuggestionBar.clear);
+        });
+
+        test('> Requesting the IMEI codes on SIM ' + cardIndex, function() {
+          this.sinon.spy(MockMmiManager, 'showImei');
+
+          CallHandler.call('*#06#', cardIndex);
+
+          sinon.assert.calledOnce(MockMmiManager.showImei);
+          sinon.assert.notCalled(MockMmiManager.send);
+          sinon.assert.calledWithMatch(MockKeypadManager.updatePhoneNumber, '');
+          sinon.assert.calledOnce(MockSuggestionBar.clear);
+        });
       });
     });
 
@@ -298,32 +483,81 @@ suite('navigation bar', function() {
         });
       }
 
+      var getGroupAtPositionStub;
+      var callSpy;
+
+      setup(function() {
+        getGroupAtPositionStub =
+          this.sinon.stub(MockCallLogDBManager, 'getGroupAtPosition');
+        callSpy = this.sinon.stub(CallHandler, 'call');
+      });
+
       test('> Dialing a specific number', function() {
-        var callSpy = this.sinon.stub(CallHandler, 'call');
         sendCommand('ATD12345');
         sinon.assert.calledWith(callSpy, '12345');
       });
 
-      test('> Dialing the last recent entry', function() {
-        var getSpy = this.sinon.stub(MockCallLogDBManager,
-                                     'getGroupAtPosition');
-        var callSpy = this.sinon.stub(CallHandler, 'call');
+      suite('> Dialing the last recent entry', function() {
+        setup(function() {
+          sendCommand('BLDN');
+        });
 
-        sendCommand('BLDN');
-        sinon.assert.calledWith(getSpy, 1, 'lastEntryDate', true);
-        getSpy.yield({number: '424242'});
-        sinon.assert.calledWith(callSpy, '424242');
+        test('should call getGroupAtPosition with correct position',
+        function() {
+          sinon.assert.calledWith(
+            getGroupAtPositionStub, 1, 'lastEntryDate', true);
+        });
+
+        [0, 1].forEach(function(serviceId) {
+          test('should dial on user preferred SIM ' + serviceId,
+          function() {
+            MockSimSettingsHelper._defaultCards.outgoingCall = serviceId;
+            getGroupAtPositionStub.yield({number: '424242'});
+            sinon.assert.calledWith(callSpy, '424242', serviceId);
+          });
+        });
+
+        [0, 1].forEach(function(serviceId) {
+          test('should use serviceId (' + serviceId + ') of last call',
+          function() {
+            MockSimSettingsHelper._defaultCards.outgoingCall =
+              MockSimSettingsHelper.ALWAYS_ASK_OPTION_VALUE;
+            getGroupAtPositionStub.yield(
+              {number: '424242', serviceId: serviceId});
+            sinon.assert.calledWith(callSpy, '424242', serviceId);
+          });
+        });
       });
 
-      test('> Dialing a specific recent entry', function() {
-        var getSpy = this.sinon.stub(MockCallLogDBManager,
-                                     'getGroupAtPosition');
-        var callSpy = this.sinon.stub(CallHandler, 'call');
+      suite('> Dialing a specific recent entry', function() {
+        setup(function() {
+          sendCommand('ATD>3');
+        });
 
-        sendCommand('ATD>3');
-        sinon.assert.calledWith(getSpy, 3, 'lastEntryDate', true);
-        getSpy.yield({number: '333'});
-        sinon.assert.calledWith(callSpy, '333');
+        test('should call getGroupAtPosition with correct position',
+        function() {
+          sinon.assert.calledWith(
+            getGroupAtPositionStub, 3, 'lastEntryDate', true);
+        });
+
+        [0, 1].forEach(function(serviceId) {
+          test('should dial on user preferred SIM ' + serviceId,
+          function() {
+            MockSimSettingsHelper._defaultCards.outgoingCall = serviceId;
+            getGroupAtPositionStub.yield({number: '333'});
+            sinon.assert.calledWith(callSpy, '333', serviceId);
+          });
+        });
+
+        [0, 1].forEach(function(serviceId) {
+          test('should use serviceId (' + serviceId + ') of 3rd last call',
+          function() {
+            MockSimSettingsHelper._defaultCards.outgoingCall =
+              MockSimSettingsHelper.ALWAYS_ASK_OPTION_VALUE;
+            getGroupAtPositionStub.yield({number: '333', serviceId: serviceId});
+            sinon.assert.calledWith(callSpy, '333', serviceId);
+          });
+        });
       });
     });
 
@@ -427,6 +661,75 @@ suite('navigation bar', function() {
             domContactsIframe.src.contains('/contacts/index.html#home')
           );
         });
+      });
+    });
+  });
+
+  suite('window resize', function() {
+    var stubInnerHeight;
+
+    setup(function() {
+      Object.defineProperty(window, 'innerHeight', {
+        configurable: true,
+        get: function() { return stubInnerHeight; }
+      });
+    });
+
+    teardown(function() {
+      delete window.innerHeight;
+    });
+
+    test('should hide the navbar when the keyboard is displayed', function() {
+      stubInnerHeight = 439;
+      this.sinon.stub(NavbarManager, 'hide');
+      window.onresize();
+      sinon.assert.called(NavbarManager.hide);
+    });
+
+    test('should display the navbar when the keyboard is absent', function() {
+      stubInnerHeight = 441;
+      this.sinon.stub(NavbarManager, 'show');
+      window.onresize();
+      sinon.assert.called(NavbarManager.show);
+    });
+  });
+
+  suite('accessibility helper', function() {
+    var loadSpy;
+    var hash;
+
+    setup(function() {
+      loadSpy = this.sinon.spy(LazyLoader, 'load');
+      this.sinon.spy(AccessibilityHelper, 'setAriaSelected');
+
+      hash = window.location.hash;
+
+      NavbarManager.resourcesLoaded = false;
+    });
+
+    teardown(function() {
+      window.location.hash = hash;
+    });
+
+    ['#call-log-view',
+     '#contacts-view',
+     '#keyboard-view'].forEach(function(view) {
+      test('should load accessibility helper before using it in view ' + view,
+      function(done) {
+        function handleHashChange(event) {
+          window.removeEventListener('hashchange', handleHashChange);
+
+          assert.isTrue(loadSpy.getCall(0).args[0].indexOf(
+            '/shared/js/accessibility_helper.js') !== -1);
+          sinon.assert.callOrder(
+            loadSpy, AccessibilityHelper.setAriaSelected);
+
+          done();
+        }
+
+        window.addEventListener('hashchange', handleHashChange);
+
+        window.location.hash = view;
       });
     });
   });

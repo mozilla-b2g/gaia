@@ -134,6 +134,12 @@ DownloadNotification.prototype = {
     var req = DownloadStore.add(download);
 
     req.onsuccess = function _storeDownloadOnSuccess() {
+      var mozDownloadManager = navigator.mozDownloadManager;
+      if (mozDownloadManager) {
+        // Once we've added the download to our data store we own it so clear
+        // all references to it from the Downloads API.
+        mozDownloadManager.clearAllDone();
+      }
       console.info('The download', download.id, 'was stored successfully:',
                     download.url);
     };

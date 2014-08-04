@@ -55,6 +55,65 @@
   SecureWindow.prototype.CLASS_LIST = 'appWindow secureAppWindow';
 
   /**
+   * Closes the window for a specified period of time before sending
+   * a kill() to allow for the application to gracefully shutdown.
+   *
+   * @param {Number} delay Time (in milliseconds) to wait before
+   *                       killing the window (Default: 5000)
+   */
+  SecureWindow.prototype.softKill = function sw_softKill(delay) {
+    if (delay === 0) {
+      this.kill();
+      return;
+    }
+
+    // Prevent subsequent softKill() calls if one is already pending.
+    if (this.isSoftKillPending()) {
+      return;
+    }
+
+    delay = delay || 5000;
+
+    // Close the window immediately.
+    this.close();
+
+    // Schedule the window for killing.
+    var self = this;
+    this.softKillTimeout = setTimeout(function() {
+      console.log('[SecureWindow] softKill() - Killing now: ' +
+                  self.manifestURL);
+
+      self.kill();
+      delete self.softKillTimeout;
+    }, delay);
+
+    console.log('[SecureWindow] softKill() - Scheduled for kill in ' +
+                delay + 'ms: ' + this.manifestURL);
+  };
+
+  /**
+   * Cancels a pending softKill() from killing the window.
+   */
+  SecureWindow.prototype.cancelSoftKill = function sw_cancelSoftKill() {
+    if (this.softKillTimeout) {
+      clearTimeout(this.softKillTimeout);
+      delete this.softKillTimeout;
+
+      console.log('[SecureWindow] cancelSoftKill() - Cancelled kill: ' +
+                  this.manifestURL);
+    }
+  };
+
+  /**
+   * Checks if a softKill() is pending.
+   * @return {Boolean} Flag indicating if a softKill() is pending
+   */
+  SecureWindow.prototype.isSoftKillPending =
+    function sw_isSoftKillPending() {
+      return !!this.softKillTimeout;
+    };
+
+  /**
    * @exports SecureWindow
    */
   exports.SecureWindow = SecureWindow;

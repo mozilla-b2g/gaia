@@ -50,13 +50,11 @@ Calendar.Calc = (function() {
      * a display hour localizes for am/pm
      */
     formatHour: function(hour) {
-      if (hour === Calc.ALLDAY) {
-        return Calc.ALLDAY;
-      }
-
       var format = navigator.mozL10n.get('hour-format');
 
-      format = format || '%I %p';
+      if (hour === Calc.ALLDAY) {
+        return navigator.mozL10n.get('hour-allday');
+      }
 
       Calc._hourDate.setHours(hour);
 
@@ -65,12 +63,8 @@ Calendar.Calc = (function() {
         format
       );
 
-
       // remove leading zero
-      // XXX: rethink this?
-      if (result[0] == '0') {
-        result = result.slice(1);
-      }
+      result = result.replace(/^0/, '');
 
       return result;
     },

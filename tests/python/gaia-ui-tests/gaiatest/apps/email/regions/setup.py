@@ -140,6 +140,7 @@ class ManualSetupEmail(Base):
         el = self.marionette.find_element(*self._activesync_username_locator)
         el.clear()
         el.send_keys(value)
+        self.keyboard.dismiss()
 
     def type_activesync_hostname(self, value):
         el = self.marionette.find_element(*self._activesync_hostname_locator)

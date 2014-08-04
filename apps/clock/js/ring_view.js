@@ -28,7 +28,7 @@ function RingView() {
   PostMessageProxy.receive('ringView', this);
 
   if (window.opener) {
-    mozL10n.ready(() => {
+    mozL10n.once(() => {
       ChildWindowManager.fireReady();
     });
   }

@@ -1,4 +1,5 @@
-/* global _, ConfigManager, CostControl, debug, Toolkit, Common, Formatting */
+/* global _, ConfigManager, CostControl, debug, Toolkit, Formatting,
+          SimManager */
 /* jshint -W120 */
 
 /*
@@ -58,45 +59,47 @@ var DataUsageTab = (function() {
       resetButtonState();
 
       // Setup the model
-      ConfigManager.requestSettings(Common.dataSimIccId,
-                                    function _onSettings(settings) {
-        debug('First time setup for model');
-        model = {
-          height: toDevicePixels(graphicArea.clientHeight),
-          width: toDevicePixels(graphicArea.clientWidth),
-          originX: Math.floor(toDevicePixels(graphicArea.clientWidth) * 0.15),
-          endX: Math.floor(toDevicePixels(graphicArea.clientWidth) * 0.95),
-          axis: {
-            Y: {
-              lower: 0,
-              margin: 0.20
+      SimManager.requestDataSimIcc(function(dataSimIcc) {
+        ConfigManager.requestSettings(dataSimIcc.iccId,
+                                      function _onSettings(settings) {
+          debug('First time setup for model');
+          model = {
+            height: toDevicePixels(graphicArea.clientHeight),
+            width: toDevicePixels(graphicArea.clientWidth),
+            originX: Math.floor(toDevicePixels(graphicArea.clientWidth) * 0.15),
+            endX: Math.floor(toDevicePixels(graphicArea.clientWidth) * 0.95),
+            axis: {
+              Y: {
+                lower: 0,
+                margin: 0.20
+              },
+              X: {
+                lower: calculateLowerDate(settings),
+                upper: calculateUpperDate(settings)
+              }
             },
-            X: {
-              lower: calculateLowerDate(settings),
-              upper: calculateUpperDate(settings)
-            }
-          },
-          limits: {
-            enabled: settings.dataLimit,
-            value: getLimitInBytes(settings)
-          },
-          data: {
-            wifi: {
-              enabled: true
+            limits: {
+              enabled: settings.dataLimit,
+              value: getLimitInBytes(settings)
             },
-            mobile: {
-              enabled: true
+            data: {
+              wifi: {
+                enabled: true
+              },
+              mobile: {
+                enabled: true
+              }
             }
-          }
-        };
-        ConfigManager.observe('dataLimit', toggleDataLimit, true);
-        ConfigManager.observe('dataLimitValue', setDataLimit, true);
-        ConfigManager.observe('lastCompleteDataReset', updateDataUsage, true);
-        ConfigManager.observe('lastDataReset', updateDataUsage, true);
-        ConfigManager.observe('nextReset', changeNextReset, true);
+          };
+          ConfigManager.observe('dataLimit', toggleDataLimit, true);
+          ConfigManager.observe('dataLimitValue', setDataLimit, true);
+          ConfigManager.observe('lastCompleteDataReset', updateDataUsage, true);
+          ConfigManager.observe('lastDataReset', updateDataUsage, true);
+          ConfigManager.observe('nextReset', changeNextReset, true);
 
-        initialized = true;
-        requestDataUsage();
+          initialized = true;
+          requestDataUsage();
+        });
       });
     });
   }
@@ -128,25 +131,27 @@ var DataUsageTab = (function() {
   }
 
   function resetButtonState() {
-    ConfigManager.requestSettings(Common.dataSimIccId,
-                                  function _onSettings(settings) {
-      var isMobileChartVisible = settings.isMobileChartVisible;
-      if (typeof isMobileChartVisible === 'undefined') {
-        isMobileChartVisible = true;
-      }
-      if (isMobileChartVisible !== mobileToggle.checked) {
-        mobileToggle.checked = isMobileChartVisible;
-        toggleMobile();
-      }
+    SimManager.requestDataSimIcc(function(dataSimIcc) {
+      ConfigManager.requestSettings(dataSimIcc.iccId,
+                                    function _onSettings(settings) {
+        var isMobileChartVisible = settings.isMobileChartVisible;
+        if (typeof isMobileChartVisible === 'undefined') {
+          isMobileChartVisible = true;
+        }
+        if (isMobileChartVisible !== mobileToggle.checked) {
+          mobileToggle.checked = isMobileChartVisible;
+          toggleMobile();
+        }
 
-      var isWifiChartVisible = settings.isWifiChartVisible;
-      if (typeof isWifiChartVisible === 'undefined') {
-        isWifiChartVisible = false;
-      }
-      if (isWifiChartVisible !== wifiToggle.checked) {
-        wifiToggle.checked = isWifiChartVisible;
-        toggleWifi();
-      }
+        var isWifiChartVisible = settings.isWifiChartVisible;
+        if (typeof isWifiChartVisible === 'undefined') {
+          isWifiChartVisible = false;
+        }
+        if (isWifiChartVisible !== wifiToggle.checked) {
+          wifiToggle.checked = isWifiChartVisible;
+          toggleWifi();
+        }
+      });
     });
   }
 
@@ -170,33 +175,36 @@ var DataUsageTab = (function() {
   }
 
   function requestDataUsage() {
-    ConfigManager.requestSettings(Common.dataSimIccId,
-                                  function _onSettings(settings) {
-      var requestObj = { type: 'datausage' };
-      costcontrol.request(requestObj, updateCharts);
+    SimManager.requestDataSimIcc(function(dataSimIcc) {
+      ConfigManager.requestSettings(dataSimIcc.iccId,
+                                    function _onSettings(settings) {
+        var requestObj = { type: 'datausage' };
+        costcontrol.request(requestObj, updateCharts);
+      });
     });
   }
 
   function updateCharts(result) {
     if (result.status === 'success') {
-      ConfigManager.requestSettings(Common.dataSimIccId,
-                                    function _onSettings(settings) {
-        debug('Updating model');
-        var modelData = result.data;
-        model.data.wifi.samples = modelData.wifi.samples;
-        model.data.wifi.total = modelData.wifi.total;
-        model.data.mobile.samples = modelData.mobile.samples;
-        model.data.mobile.total = modelData.mobile.total;
-        model.limits.enabled = settings.dataLimit;
-        model.limits.value = getLimitInBytes(settings);
-        model.axis.X.upper = calculateUpperDate(settings);
-        model.axis.X.lower = calculateLowerDate(settings);
-        expandModel(model);
+      SimManager.requestDataSimIcc(function(dataSimIcc) {
+        ConfigManager.requestSettings(dataSimIcc.iccId,
+                                      function _onSettings(settings) {
+          debug('Updating model');
+          var modelData = result.data;
+          model.data.wifi.samples = modelData.wifi.samples;
+          model.data.wifi.total = modelData.wifi.total;
+          model.data.mobile.samples = modelData.mobile.samples;
+          model.data.mobile.total = modelData.mobile.total;
+          model.limits.enabled = settings.dataLimit;
+          model.limits.value = getLimitInBytes(settings);
+          model.axis.X.upper = calculateUpperDate(settings);
+          model.axis.X.lower = calculateLowerDate(settings);
+          expandModel(model);
 
-        debug('Rendering');
-        updateUI();
+          debug('Rendering');
+          updateUI();
+        });
       });
-
     } else {
       console.error('Error requesting data usage. This should not happen.');
     }
@@ -230,13 +238,14 @@ var DataUsageTab = (function() {
   }
 
   function calculateUpperDate(settings) {
+    var today = new Date();
     var trackingPeriod = settings.trackingPeriod;
     var nextReset = settings.nextReset;
-    if (trackingPeriod !== 'never') {
+    if (trackingPeriod !== 'never' && nextReset) {
       return new Date(nextReset.getTime() - DAY);
     }
 
-    var lastReset = settings.lastCompleteDataReset;
+    var lastReset = settings.lastCompleteDataReset || today;
     var offset = today.getTime() - lastReset.getTime();
     var upperDate = new Date(lastReset.getTime() + NEVER_PERIOD);
     if (offset >= NEVER_ANCHOR) {
@@ -249,7 +258,7 @@ var DataUsageTab = (function() {
 
   function calculateLowerDate(settings) {
     var lowerDate = Toolkit.toMidnight(new Date());
-    var nextReset = settings.nextReset;
+    var nextReset = settings.nextReset || lowerDate;
     var trackingPeriod = settings.trackingPeriod;
 
     if (trackingPeriod === 'weekly') {
@@ -268,7 +277,8 @@ var DataUsageTab = (function() {
       lowerDate.setYear(newYear);
 
     } else {
-      var lastReset = lowerDate = settings.lastCompleteDataReset;
+      var lastReset = settings.lastCompleteDataReset || lowerDate;
+      lowerDate = lastReset;
       var offset = today.getTime() - lastReset.getTime();
       if (offset >= NEVER_ANCHOR) {
         lowerDate = new Date(today.getTime() - NEVER_ANCHOR);
@@ -609,12 +619,39 @@ var DataUsageTab = (function() {
     ctx.lineWidth = toDevicePixels(2);
     ctx.lineJoin = 'round';
     ctx.moveTo(model.originX, model.originY);
+
     var today = Toolkit.toMidnight(new Date());
+    // offset in milliseconds
+    var offset = today.getTimezoneOffset() * 60 * 1000;
+
     var sum = 0; var x, y = model.originY;
     var lastX = model.originX, lastY = model.axis.Y.get(sum);
     for (var i = 0, len = samples.length; i < len; i++) {
-
       var sample = samples[i];
+      var sampleLocalTime = sample.date.getTime() + offset;
+      var sampleUTCDate = Toolkit.toMidnight(new Date(sampleLocalTime));
+
+      var isToday = (today.getTime() === sampleUTCDate.getTime());
+      var isTomorrow = (today.getTime() + DAY ===  sampleUTCDate.getTime());
+      var thereIsATomorrowSample = (isToday && (i + 2 === len));
+      // Depends on the hour of the day and the offset, it is possible the
+      // networkStats API returns the current data mobile in the  tomorrow
+      // sample, because on the UTC hour is another day.
+      if (thereIsATomorrowSample) {
+        // Join the value of the samples for today and tomorrow
+        var tomorrowSample = samples[i+1];
+        if (typeof sample.value === 'undefined') {
+          sample.value = tomorrowSample.value;
+        } else if (typeof tomorrowSample.value !== 'undefined') {
+          sample.value += tomorrowSample.value;
+        }
+
+        if (i === 0) {
+          lastX = model.axis.X.get(sample.date);
+        }
+        i++;
+      }
+
       if (typeof sample.value === 'undefined') {
         lastX = x = model.axis.X.get(sample.date);
         ctx.moveTo(x, y);
@@ -634,10 +671,11 @@ var DataUsageTab = (function() {
         lastY = y;
       }
 
-      var sampleDate = new Date(sample.date);
-      if (today.getTime() === Toolkit.toMidnight(sampleDate).getTime() &&
-          x >= model.originX) {
+      var onlyExistTomorrowSample = (i===0 && isTomorrow);
+      var isXInsideTheGraph = (x >= model.originX);
+      if ((isToday || onlyExistTomorrowSample) && isXInsideTheGraph) {
         drawTodayMark(ctx, x, y, '#8b9052');
+        return;
       }
     }
   }
@@ -696,10 +734,45 @@ var DataUsageTab = (function() {
     ctx.lineJoin = 'round';
 
     var today = Toolkit.toMidnight(new Date());
+    // offset in milliseconds
+    var offset = today.getTimezoneOffset() * 60 * 1000;
+
     var sum = 0; var x, y = model.originY;
     var lastX = model.originX, lastY = model.axis.Y.get(sum);
+    // Only dealing with the use cases of negative UTC offset because, due to
+    // the database granularity, the returned samples are given in UTC days, and
+    // we don't know what part of the traffic sample values correspond to the
+    // current localtime day.  The query for the samples is generated on the
+    // costcontrol module, and  the case into which the returned samples only
+    // have one record with the data for the localtime day of yesterday is not
+    // possible.
+
     for (var i = 0, len = samples.length; i < len; i++) {
       var sample = samples[i];
+      var sampleLocalTime = sample.date.getTime() + offset;
+      var sampleUTCDate = Toolkit.toMidnight(new Date(sampleLocalTime));
+
+      var isToday = (today.getTime() === sampleUTCDate.getTime());
+      var isTomorrow = (today.getTime() + DAY ===  sampleUTCDate.getTime());
+      var thereIsATomorrowSample = (isToday && (i + 2 === len));
+      // Depends on the hour of the day and the offset, it is possible the
+      // networkStats API returns the current data mobile in the tomorrow
+      // sample, because on the UTC hour is another day.
+      if (thereIsATomorrowSample) {
+        // Join the value of the samples for today and tomorrow
+        var tomorrowSample = samples[i+1];
+        if (typeof sample.value === 'undefined') {
+          sample.value = tomorrowSample.value;
+        } else if (typeof tomorrowSample.value !== 'undefined') {
+          sample.value += tomorrowSample.value;
+        }
+
+        if (i === 0) {
+          lastX = model.axis.X.get(sample.date);
+        }
+        i++;
+      }
+
       if (typeof sample.value === 'undefined') {
         lastX = x = model.axis.X.get(sample.date);
         ctx.moveTo(x, y);
@@ -718,10 +791,12 @@ var DataUsageTab = (function() {
         lastX = x;
         lastY = y;
       }
-      var sampleDate = new Date(sample.date);
-      if (today.getTime() === Toolkit.toMidnight(sampleDate).getTime() &&
-          x >= model.originX) {
+
+      var onlyExistTomorrowSample = (i===0 && isTomorrow);
+      var isXInsideTheGraph = (x >= model.originX);
+      if ((isToday || onlyExistTomorrowSample) && isXInsideTheGraph) {
         drawTodayMark(ctx, x, y, '#762d4a');
+        return;
       }
     }
 

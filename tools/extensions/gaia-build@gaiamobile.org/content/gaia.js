@@ -42,6 +42,7 @@ var Gaia = {
     config.OFFICIAL = '';
     config.GAIA_DEFAULT_LOCALE = 'en-US';
     config.GAIA_INLINE_LOCALES = '1';
+    config.GAIA_PRETRANSLATE = '1';
     config.GAIA_CONCAT_LOCALES = '1';
     config.GAIA_ENGINE = 'xpcshell';
     config.TARGET_BUILD_VARIANT = '';

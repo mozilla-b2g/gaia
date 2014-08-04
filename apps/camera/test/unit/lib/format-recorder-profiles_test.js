@@ -1,11 +1,10 @@
-suite('lib/format-precorder-profiles', function() {
+suite('lib/format-recorder-profiles', function() {
   /*jshint maxlen:false*/
-  /*global req*/
   'use strict';
 
   suiteSetup(function(done) {
     var self = this;
-    req(['lib/format-recorder-profiles'], function(formatRecorderProfiles) {
+    requirejs(['lib/format-recorder-profiles'], function(formatRecorderProfiles) {
       self.formatRecorderProfiles = formatRecorderProfiles;
       done();
     });

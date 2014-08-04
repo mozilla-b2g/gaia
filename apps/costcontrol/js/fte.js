@@ -1,4 +1,4 @@
-/* global AutoSettings, BalanceLowLimitView, Common, ConfigManager,
+/* global AutoSettings, BalanceLowLimitView, Common, ConfigManager, SimManager,
           dataLimitConfigurer, LazyLoader, debug, ViewManager */
 
 /*
@@ -20,6 +20,7 @@
     var SCRIPTS_NEEDED = [
       'js/utils/debug.js',
       'js/utils/toolkit.js',
+      'js/sim_manager.js',
       'js/common.js',
       'js/config/config_manager.js',
       'js/views/BalanceLowLimitView.js',
@@ -27,7 +28,7 @@
       'js/settings/autosettings.js'
     ];
     LazyLoader.load(SCRIPTS_NEEDED, function onScriptsLoaded() {
-      Common.loadDataSIMIccId(setupFTE);
+      setupFTE();
       parent.postMessage({
         type: 'fte_ready',
         data: ''
@@ -40,6 +41,13 @@
   var wizard, vmanager;
   var toStep2, step = 0;
   function setupFTE() {
+    if (SimManager.isMultiSim()) {
+      window.addEventListener('dataSlotChange', function _onDataSimChange() {
+        window.removeEventListener('dataSlotChange', _onDataSimChange);
+        // Close FTE if change the SimCard for data connections
+        Common.closeFTE();
+      });
+    }
     ConfigManager.requestAll(function _onSettings(configuration, settings) {
       wizard = document.getElementById('firsttime-view');
       vmanager = new ViewManager();
@@ -52,6 +60,8 @@
       // Initialize resetTime and trackingPeriod to default values
       ConfigManager.setOption({resetTime: 1, trackingPeriod: 'monthly' });
 
+      var mode = ConfigManager.getApplicationMode();
+
       var SCRIPTS_NEEDED = [
         'js/settings/limitdialog.js',
         'js/utils/formatting.js'
@@ -59,6 +69,10 @@
       LazyLoader.load(SCRIPTS_NEEDED, function onScriptsLoaded() {
         Common.loadNetworkInterfaces(function() {
           AutoSettings.addType('data-limit', dataLimitConfigurer);
+          if (mode === 'DATA_USAGE_ONLY') {
+            AutoSettings.initialize(ConfigManager, vmanager,
+                                    '#non-vivo-step-2');
+          }
         });
       });
       // Currency is set by config as well
@@ -69,14 +83,11 @@
           configuration.credit.currency;
       }
 
-      var mode = ConfigManager.getApplicationMode();
-
       if (mode === 'DATA_USAGE_ONLY') {
         debug('FTE for non supported SIM');
         wizard.dataset.steps = '3';
         reset(['step-1', 'non-vivo-step-1', 'non-vivo-step-2']);
         AutoSettings.initialize(ConfigManager, vmanager, '#non-vivo-step-1');
-        AutoSettings.initialize(ConfigManager, vmanager, '#non-vivo-step-2');
 
       } else {
         wizard.dataset.steps = '4';
@@ -116,7 +127,6 @@
         var messageHandlerFrame = document.getElementById('message-handler');
         messageHandlerFrame.src = 'message_handler.html';
       });
-
     });
   }
 
@@ -262,14 +272,16 @@
 
   function onFinish(evt) {
     evt.target.disabled = true;
-    ConfigManager.requestSettings(Common.dataSimIccId,
-                                  function _onSettings(settings) {
-      ConfigManager.setOption({ fte: false }, function _returnToApp() {
-        Common.updateNextReset(settings.trackingPeriod, settings.resetTime,
-          function _returnToTheApplication() {
-            Common.startApp();
-          }
-        );
+    SimManager.requestDataSimIcc(function(dataSim) {
+      ConfigManager.requestSettings(dataSim.iccId,
+                                    function _onSettings(settings) {
+        ConfigManager.setOption({ fte: false }, function _returnToApp() {
+          Common.updateNextReset(settings.trackingPeriod, settings.resetTime,
+            function _returnToTheApplication() {
+              Common.startApp();
+            }
+          );
+        });
       });
     });
   }
