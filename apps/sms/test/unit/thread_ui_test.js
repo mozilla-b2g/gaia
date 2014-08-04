@@ -2758,16 +2758,10 @@ suite('thread_ui.js >', function() {
             MessageManager.retrieveMMS.returnValues[0].onerror();
           });
 
-          test('Message ID code/option for dialog', function() {
-            sinon.assert.calledWithMatch(showMessageErrorSpy,
-              'NonActiveSimCardError', { messageId: message.id });
-          });
-
           test('Error dialog params and show', function() {
             var code = MockErrorDialog.calls[0][0];
             var opts = MockErrorDialog.calls[0][1];
             assert.equal(code, Errors.get('NonActiveSimCardError'));
-            assert.equal(opts.messageId, message.id);
             assert.isTrue(!!opts.confirmHandler);
             assert.equal(MockErrorDialog.prototype.show.called, true);
           });
@@ -2801,6 +2795,20 @@ suite('thread_ui.js >', function() {
           });
         });
 
+        test('response with radio disabled error', function() {
+          MessageManager.retrieveMMS.returnValues[0].error = {
+            name: 'RadioDisabledError'
+          };
+          MessageManager.retrieveMMS.returnValues[0].onerror();
+
+          // Replaced with ThreadUI specific error code
+          sinon.assert.calledWith(
+            showMessageErrorSpy,
+            'RadioDisabledToDownloadError',
+            { confirmHandler: sinon.match.func }
+          );
+        });
+
         suite('response error with other errorCode', function() {
           setup(function() {
             MessageManager.retrieveMMS.returnValues[0].error =
@@ -2809,15 +2817,9 @@ suite('thread_ui.js >', function() {
             };
             MessageManager.retrieveMMS.returnValues[0].onerror();
           });
-          test('Other error code/option for dialog', function() {
-            sinon.assert.calledWithMatch(showMessageErrorSpy,
-              'OtherError', { messageId: message.id });
-          });
           test('Error dialog params and show', function() {
             var code = MockErrorDialog.calls[0][0];
-            var opts = MockErrorDialog.calls[0][1];
             assert.equal(code, Errors.get('OtherError'));
-            assert.equal(opts.messageId, message.id);
             assert.equal(MockErrorDialog.prototype.show.called, true);
           });
         });
