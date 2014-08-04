@@ -117,6 +117,19 @@
           '</div>';
   };
 
+  AppChrome.prototype.overflowMenuView = function an_overflowMenuView() {
+    return '<div class="overflow-menu hidden">' +
+           '  <div class="list">' +
+           '    <div class="option" id="add-to-home">' +
+           '      <div class="icon"></div>' +
+           '      <div class="label" data-l10n-id="add-to-home-screen">' +
+           '        Add to Home Screen' +
+           '      </div>' +
+           '    </div>' +
+           '  </div>' +
+           '</div>';
+  };
+
   AppChrome.prototype._fetchElements = function ac__fetchElements() {
     this.element = this.containerElement.querySelector('.chrome');
     this.navigation = this.element.querySelector('.navigation');
@@ -136,6 +149,7 @@
     this.forwardButton = this.element.querySelector('.forward-button');
     this.stopButton = this.element.querySelector('.stop-button');
     this.backButton = this.element.querySelector('.back-button');
+    this.menuButton = this.element.querySelector('.menu-button');
     this.closeButton = this.element.querySelector('.close-button');
     this.killButton = this.element.querySelector('.kill');
     this.title = this.element.querySelector('.title');
@@ -214,6 +228,14 @@
       case '_namechanged':
         this.handleNameChanged(evt);
         break;
+
+      case 'transitionend':
+        this.handleTransitionEnd(evt);
+        break;
+
+      case 'animationend':
+        this.handleAnimationEnd(evt);
+        break;
     }
   };
 
@@ -249,7 +271,7 @@
         break;
 
       case this.bookmarkButton:
-        this.addBookmark();
+        this.onAddBookmark();
         break;
 
       case this.killButton:
@@ -265,6 +287,19 @@
 
       case this.title:
         window.dispatchEvent(new CustomEvent('global-search-request'));
+        break;
+
+      case this.menuButton:
+        this.showOverflowMenu();
+        break;
+
+      case this._overflowMenu:
+        this.hideOverflowMenu();
+        break;
+
+      case this.addToHomeButton:
+        evt.stopImmediatePropagation();
+        this.onAddToHome();
         break;
     }
   };
@@ -305,6 +340,10 @@
       this.stopButton.addEventListener('click', this);
     }
 
+    if (this.menuButton) {
+      this.menuButton.addEventListener('click', this);
+    }
+
     this.reloadButton.addEventListener('click', this);
     this.backButton.addEventListener('click', this);
     this.forwardButton.addEventListener('click', this);
@@ -319,8 +358,8 @@
     this.app.element.addEventListener('_loading', this);
     this.app.element.addEventListener('_loaded', this);
     this.app.element.addEventListener('_namechanged', this);
+    this.app.element.addEventListener('_opened', this);
     if (!this.useCombinedChrome()) {
-      this.app.element.addEventListener('_opened', this);
       this.app.element.addEventListener('_closing', this);
       this.app.element.addEventListener('_withkeyboard', this);
       this.app.element.addEventListener('_withoutkeyboard', this);
@@ -350,6 +389,20 @@
       this.stopButton.removeEventListener('click', this);
     }
 
+    if (this.menuButton) {
+      this.menuButton.removeEventListener('click', this);
+    }
+
+    if (this._overflowMenu) {
+      this._overflowMenu.removeEventListener('click', this);
+      this._overflowMenu.removeEventListener('animationend', this);
+      this._overflowMenu.removeEventListener('transitionend', this);
+    }
+
+    if (this.addToHomeButton) {
+      this.addToHomeButton.removeEventListener('click', this);
+    }
+
     this.reloadButton.removeEventListener('click', this);
     this.backButton.removeEventListener('click', this);
     this.forwardButton.removeEventListener('click', this);
@@ -368,8 +421,8 @@
     this.app.element.removeEventListener('_loading', this);
     this.app.element.removeEventListener('_loaded', this);
     this.app.element.removeEventListener('_namechanged', this);
+    this.app.element.removeEventListener('_opened', this);
     if (!this.useCombinedChrome()) {
-      this.app.element.removeEventListener('_opened', this);
       this.app.element.removeEventListener('_closing', this);
       this.app.element.removeEventListener('_withkeyboard', this);
       this.app.element.removeEventListener('_withoutkeyboard', this);
@@ -455,15 +508,27 @@
 
   AppChrome.prototype.handleOpened =
     function ac_handleOpened() {
-      this.toggleButtonBar(BUTTONBAR_INITIAL_OPEN_TIMEOUT);
+      if (this.navigation) {
+        this.toggleButtonBar(BUTTONBAR_INITIAL_OPEN_TIMEOUT);
+      }
 
       var dataset = this.app.config;
       if (dataset.originURL || dataset.searchURL) {
-        delete this.bookmarkButton.dataset.disabled;
+        if (this.bookmarkButton) {
+          delete this.bookmarkButton.dataset.disabled;
+        }
+        if (this.menuButton) {
+          delete this.menuButton.dataset.disabled;
+        }
         return;
       }
 
-      this.bookmarkButton.dataset.disabled = true;
+      if (this.bookmarkButton) {
+        this.bookmarkButton.dataset.disabled = true;
+      }
+      if (this.menuButton) {
+        this.menuButton.dataset.disabled = true;
+      }
     };
 
   AppChrome.prototype.handleTitleChanged = function(evt) {
@@ -622,62 +687,71 @@
   };
 
   AppChrome.prototype.addBookmark = function ac_addBookmark() {
+    var dataset = this.app.config;
+    if (!dataset.originURL && !dataset.searchURL) {
+      return;
+    }
+
+    var name, url;
+    if (dataset.originURL) {
+      name = dataset.originName;
+      url = dataset.originURL;
+    } else {
+      name = dataset.searchName;
+      url = dataset.searchURL;
+    }
+
+    var activity = new MozActivity({
+      name: 'save-bookmark',
+      data: {
+        type: 'url',
+        url: url,
+        name: name,
+        icon: dataset.icon,
+        useAsyncPanZoom: dataset.useAsyncPanZoom,
+        iconable: false
+      }
+    });
+
+    activity.onsuccess = function onsuccess() {
+      if (dataset.originURL) {
+        delete dataset.originURL;
+      } else {
+        delete dataset.searchURL;
+      }
+
+      if (!dataset.originURL &&
+          !dataset.searchURL) {
+        if (this.menuButton) {
+          this.menuButton.dataset.disabled = true;
+        }
+        if (this.bookmarkButton) {
+          this.bookmarkButton.dataset.disabled = true;
+        }
+      }
+    }.bind(this);
+  };
+
+  AppChrome.prototype.onAddBookmark = function ac_onAddBookmark() {
     if (this.bookmarkButton.dataset.disabled) {
       return;
     }
 
     this.clearButtonBarTimeout();
-    var dataset = this.app.config;
+
     var self = this;
-
     function selected(value) {
-      if (!value) {
-        return;
+      if (value) {
+        self.addBookmark();
       }
-
-      var name, url;
-      if (value === 'origin') {
-        name = dataset.originName;
-        url = dataset.originURL;
-      }
-
-      if (value === 'search') {
-        name = dataset.searchName;
-        url = dataset.searchURL;
-      }
-
-      var activity = new MozActivity({
-        name: 'save-bookmark',
-        data: {
-          type: 'url',
-          url: url,
-          name: name,
-          icon: dataset.icon,
-          useAsyncPanZoom: dataset.useAsyncPanZoom,
-          iconable: false
-        }
-      });
-
-      activity.onsuccess = function onsuccess() {
-        if (value === 'origin') {
-          delete self.app.config.originURL;
-        }
-
-        if (value === 'search') {
-          delete self.app.config.searchURL;
-        }
-
-        if (!self.app.config.originURL &&
-          !self.app.config.searchURL) {
-          self.bookmarkButton.dataset.disabled = true;
-        }
-      };
     }
 
     var data = {
       title: _('add-to-home-screen'),
       options: []
     };
+
+    var dataset = this.app.config;
 
     if (dataset.originURL) {
       data.options.push({ id: 'origin', text: dataset.originName });
@@ -689,5 +763,60 @@
 
     ModalDialog.selectOne(data, selected);
   };
+
+  AppChrome.prototype.onAddToHome = function ac_onAddToHome() {
+    this.addBookmark();
+    this.hideOverflowMenu();
+  };
+
+  AppChrome.prototype.handleAnimationEnd =
+    function ac_handleAnimationEnd(evt) {
+      this.overflowMenu.classList.remove('showing');
+    };
+
+  AppChrome.prototype.handleTransitionEnd =
+    function ac_handleTransitionEnd(evt) {
+      if (evt.target === this.overflowMenu) {
+        if (this.overflowMenu.classList.contains('hiding')) {
+          this.overflowMenu.classList.remove('hiding');
+          this.overflowMenu.classList.add('hidden');
+        }
+      }
+    };
+
+  AppChrome.prototype.__defineGetter__('overflowMenu',
+    // Instantiate the overflow menu when it's needed
+    function ac_getOverflowMenu() {
+      if (!this._overflowMenu && this.useCombinedChrome()) {
+        this.app.element.insertAdjacentHTML('afterbegin',
+                                            this.overflowMenuView());
+        this._overflowMenu = this.containerElement.
+          querySelector('.overflow-menu');
+        this.addToHomeButton = this.containerElement.
+          querySelector('#add-to-home');
+
+        this._overflowMenu.addEventListener('click', this);
+        this._overflowMenu.addEventListener('animationend', this);
+        this._overflowMenu.addEventListener('transitionend', this);
+        this.addToHomeButton.addEventListener('click', this);
+      }
+
+      return this._overflowMenu;
+    });
+
+  AppChrome.prototype.showOverflowMenu = function ac_showOverflowMenu() {
+    if (this.overflowMenu.classList.contains('hidden')) {
+      this.overflowMenu.classList.remove('hidden');
+      this.overflowMenu.classList.add('showing');
+    }
+  };
+
+  AppChrome.prototype.hideOverflowMenu = function ac_hideOverflowMenu() {
+    if (!this.overflowMenu.classList.contains('hidden') &&
+        !this.overflowMenu.classList.contains('showing')) {
+      this.overflowMenu.classList.add('hiding');
+    }
+  };
+
   exports.AppChrome = AppChrome;
 }(window));
