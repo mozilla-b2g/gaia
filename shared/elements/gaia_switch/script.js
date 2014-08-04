@@ -12,54 +12,61 @@ window.GaiaSwitch = (function(win) {
   proto.createdCallback = function() {
     var shadow = this.createShadowRoot();
     this._template = template.content.cloneNode(true);
-    this._input = this._template.querySelector('input[type="checkbox"]');
+    this._inner = this._template.firstElementChild;
 
-    var checked = this.getAttribute('checked');
-    if (checked !== null) {
-      this._input.checked = true;
-    }
-
-    var label = this._template.getElementById('switch-label');
-    label.addEventListener('click', this.handleClick.bind(this));
+    this.count = 0;
+    this.checked = this.hasAttribute('checked');
+    this._inner.addEventListener('click', this.onClick.bind(this));
 
     shadow.appendChild(this._template);
-
     ComponentUtils.style.call(this, baseurl);
   };
 
-  proto.handleClick = function(e) {
-    e.preventDefault();
-    e.stopImmediatePropagation();
-    this.checked = !this.checked;
-    var event = new MouseEvent('click', {
-      view: window,
-      bubbles: true,
-      cancelable: true
-    });
-    this.dispatchEvent(event);
+  proto.toggle = function(value) {
+    this.checked = !arguments.length ? !this.hasAttribute('checked') : value;
+  };
+
+  proto.setChecked = function(value) {
+    value = !!value;
+
+    if (this._checked === value) { return; }
+
+    var changed = this._checked !== undefined;
+    this._checked = value;
+
+    if (value) {
+      this.setAttribute('checked', '');
+      this._inner.setAttribute('checked', '');
+    } else {
+      this.removeAttribute('checked');
+      this._inner.removeAttribute('checked');
+    }
+
+    if (changed) {
+      var event = new CustomEvent('change');
+      setTimeout(this.dispatchEvent.bind(this, event));
+    }
+  },
+
+  proto.attributeChangedCallback = function(attr, oldVal, newVal) {
+    if (attr === 'checked') {
+      this.checked = newVal !== null;
+    }
+  };
+
+  proto.onClick = function(e) {
+    this.toggle();
   };
 
   /**
    * Proxy the checked property to the input element.
    */
-  Object.defineProperty( proto, 'checked', {
+  Object.defineProperty(proto, 'checked', {
     get: function() {
-      return this._input.checked;
+      return this._checked;
     },
     set: function(value) {
-      this._input.checked = value;
-    }
-  });
-
-  /**
-   * Proxy the name property to the input element.
-   */
-  Object.defineProperty( proto, 'name', {
-    get: function() {
-      return this.getAttribute('name');
-    },
-    set: function(value) {
-      this.setAttribute('name', value);
+      this.setChecked(value);
     }
   });
 
@@ -74,10 +81,19 @@ window.GaiaSwitch = (function(win) {
   // hack until we can import entire custom-elements
   // using HTML Imports (bug 877072).
   var template = document.createElement('template');
-  template.innerHTML = '<label id="switch-label" class="pack-switch">' +
-      '<input type="checkbox">' +
-      '<span><content select="label"></content></span>' +
-    '</label>';
+  // template.innerHTML = '<label id="switch-label" class="pack-switch">' +
+  //     '<input type="checkbox">' +
+  //     '<span></span>' +
+  //   '</label>';
+
+  template.innerHTML = '<button class="inner">' +
+      '<div class="track">' +
+        '<div class="head">' +
+          '<div class="circle-1"></div>' +
+          '<div class="circle-2"></div>' +
+        '</div>' +
+      '</div>' +
+    '</button>';
 
   // Register and return the constructor
   return document.registerElement('gaia-switch', { prototype: proto });

@@ -1,0 +1,17 @@
+
+[theme="custom"] {
+  --color-1: green;
+  --background: -moz-linear-gradient(left,
+      rgba(255, 0, 0, 1) 0%,
+      rgba(255, 255, 0, 1) 15%,
+      rgba(0, 255, 0, 1) 30%,
+      rgba(0, 255, 255, 1) 50%,
+      rgba(0, 0, 255, 1) 65%,
+      rgba(255, 0, 255, 1) 80%,
+      rgba(255, 0, 0, 1) 100%);
+    );
+  --text-color-1: #fff;
+  --text-color-2: #fff;
+  --border-radius: 5px;
+  --box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+}

@@ -7,6 +7,11 @@ gaia-header {
   display: block;
   height: 5rem;
   z-index: 10;
+  color: var(--text-color-1, #fff);
+  background: var(--background, #f97c17);
+  border-bottom-right-radius: var(--border-radius, 0);
+  border-bottom-left-radius: var(--border-radius, 0);
+  box-shadow: var(--box-shadow, none);
 }
 
 header {
@@ -27,6 +32,7 @@ h1 {
   font-weight: 300;
   font-style: italic;
   text-align: center;
+  color: var(--text-color-1, #fff);
 }
 
 h1 em {
@@ -58,6 +64,14 @@ button {
   text-align: center;
   text-shadow: none;
   font-style: italic;
+  color: var(--text-color-2, rgba(0,0,0,0.6));
+}
+
+a:hover,
+button:hover,
+a:active,
+button:active {
+  background: var(--active-background, rgba(0,0,0,0.7));
 }
 
 /* Pressed state */
@@ -108,26 +122,6 @@ button[disabled] {
 
 html[dir="rtl"] [icon="back"] {
   transform: rotate(180deg);
-}
-
-/* -----------------------------------------------------------------
-  HEADER SKIN: default
-  Default values in case we are not overriding them using
-  'skin'
------------------------------------------------------------------ */
-
-gaia-header {
-  color: #fff;
-  background-color: #f97c17;
-}
-
-h1 {
-  color: #fff;
-}
-
-a,
-button {
-  color: rgba(0,0,0,0.6);
 }
 
 a:active,
@@ -225,12 +219,7 @@ button:focus {
   color: #00aac5;
 }
 
-[skin="dark"] a:hover,
-[skin="dark"] button:hover,
-[skin="dark"] a:active,
-[skin="dark"] button:active {
-  background-color: rgba(0,0,0,0.4);
-}
+
 
 [data-skin="dark"] a:focus,
 [data-skin="dark"] button:focus {
@@ -241,19 +230,11 @@ button:focus {
   HEADER SKIN: organic
 ----------------------------------------------------------------- */
 
-[skin="organic"] {
-  color: #868692;
-  background-color: #f4f4f4;
-}
 
-[skin="organic"] h1 {
-  color: #868692;
-}
 
-[skin="organic"] a,
-[skin="organic"] button {
-  color: #00aac5;
-}
+/*:host-context([skin="organic"]) [icon="back"]:before {
+  background-image: url(images/icons/organic/back.png);
+}*/
 
 [data-skin="organic"] a:focus,
 [data-skin="organic"] button:focus {
@@ -261,20 +242,25 @@ button:focus {
 }
 
 /* Icons */
-[skin="organic"] [icon="back"]:before {
+
+[icons="dark"] [icon="back"]:before {
   background-image: url(images/icons/organic/back.png);
 }
 
-[skin="organic"] [icon="close"]:before {
+[icons="dark"] [icon="close"]:before {
   background-image: url(images/icons/organic/close.png);
 }
 
-[skin="organic"] [icon="add"]:before {
+[icons="dark"] [icon="add"]:before {
   background-image: url(images/icons/organic/add.png);
 }
 
-[skin="organic"] [icon="edit"]:before {
+[icons="dark"] [icon="edit"]:before {
   background-image: url(images/icons/organic/edit.png);
+}
+
+[icons="dark"] [icon="menu"]:before {
+  background-image: url(images/icons/organic/menu.png);
 }
 
 /* -----------------------------------------------------------------

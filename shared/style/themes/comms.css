@@ -1,0 +1,50 @@
+
+[theme="comms"] {
+
+  /* Raw Colors */
+  --color-orange: #00adad;
+  --color-white: #fff;
+  --color-blue: #00aac5;
+
+  --main-color: var(--color-orange);
+  --main-color-lighter: var(--color-orange);
+  --main-color-darker: var(--color-orange);
+
+  --neutral-color: #bbb;
+  --neutral-color-lighter: #bbb;
+  --neutral-color-darker: #bbb;
+
+  --text-color: var(--color-white);
+  --text-color-link: var(--color-blue);
+  --text-color-title: #333;
+  --text-color-body: #333;
+
+  /**
+   * Used to define large blocks
+   * of background color/image
+   */
+
+  --background: var(--main-color);
+  --background-hover: var(--main-color);
+  --background-down: var(--main-color);
+
+  /**
+   * Call To Action (cta)
+   */
+
+  --background-cta: var(--main-color);
+  --background-cta-hover: var(--main-color);
+  --background-cta-down: var(--main-color);
+
+  /**
+   *
+   */
+
+  --button-color: transparent;
+  --button-hover: transparent;
+  --button-active: transparent;
+
+  --box-shadow: none;
+  --font-family: sans-serif;
+  --border-radius: 0;
+}

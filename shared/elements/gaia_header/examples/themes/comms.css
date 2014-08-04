@@ -1,0 +1,7 @@
+
+[theme="comms"] {
+  --color-1: #00adad;
+  --text-color-1: #fff;
+  --text-color-2: #00aac5;
+  --background: var(--color-1);
+}
