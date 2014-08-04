@@ -6,17 +6,54 @@
 
   overflow: hidden;
   z-index: 6;
+}
 
-  background-image: -moz-element(#statusbar);
+.appWindow .titlebar .statusbar-shadow {
+  height: 100%;
+
   background-size: 100% 100%;
   background-repeat: no-repeat;
   background-position: bottom right;
 }
 
-.appWindow.light .titlebar {
+.appWindow.light .titlebar .statusbar-shadow {
   filter: url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\'><filter id=\'invert\'><feColorMatrix in=\'SourceGraphic\' color-interpolation-filters=\'sRGB\' type=\'matrix\' values=\'0.3019 0 0 0 0 0 0.3019 0 0 0 0 0 0.3019 0 0 0 0 0 1 0\'/></filter></svg>#invert");
 }
 
+.appWindow .titlebar .titlebar-maximized {
+  background-image: -moz-element(#statusbar);
+  width: 100%;
+}
+
+.appWindow .titlebar .titlebar-minimized {
+  /* TODO - Bug 1042105. Add here the minified statusbar id */
+  background-image: -moz-element(#statusbar);
+
+  /* TODO - Bug 1042105. Add here the minified size of the statusbar */
+  width: 50%;
+  margin-left: 50%;
+  background-size: cover;
+}
+
+/* Transitions between the maximized / minimized status bars */
+.chrome + .titlebar .titlebar-maximized {
+  opacity: 0;
+}
+
+.chrome.maximized + .titlebar .titlebar-maximized {
+  opacity: 1;
+}
+
+.chrome + .titlebar .titlebar-minimized {
+  transform: translateY(-3rem);
+  opacity: 1;
+}
+
+.chrome.maximized + .titlebar .titlebar-minimized {
+  opacity: 0;
+}
+
+/* Special cases */
 #screen:-moz-full-screen-ancestor .appWindow > .titlebar,
 .appWindow.fullscreen-app > .titlebar,
 .appWindow.bar .titlebar {
