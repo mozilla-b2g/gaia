@@ -654,3 +654,14 @@ form[role="dialog"].no-overlay button {
 #sim-picker {
   text-align: left;
 }
+
+
+html[dir="rtl"] .fillflow-row-action {
+  right: auto;
+  left: 0;
+}
+
+html[dir="rtl"] .view-body-inner,
+html[dir="rtl"] ::-moz-placeholder {
+  text-align: right;
+}
