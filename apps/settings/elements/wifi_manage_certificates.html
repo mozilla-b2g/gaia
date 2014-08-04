@@ -10,28 +10,23 @@
       <header>
         <h2 data-l10n-id="certificateList"> Certificate list </h2>
       </header>
-      <ul id="wifi-certificateList">
+      <ul class="wifi-certificateList">
       </ul>
       <ul class="operate-certificate">
         <li>
-          <button id="deleteCertificate"
-                  class="icon"
-                  data-l10n-id="deleteCertificate"
-                  disabled="true">
+          <button class="icon deleteCertificate" data-l10n-id="deleteCertificate" disabled="true">
             Delete certificate
           </button>
         </li>
         <li>
-          <button id="importCertificate"
-                  class="icon icon-view"
-                  data-l10n-id="importCertificate">
+          <button class="icon icon-view importCertificate" data-l10n-id="importCertificate">
             Import certificate
           </button>
         </li>
       </ul>
     </div>
 
-    <form role="dialog" data-type="confirm" id="certificate-deletion-failed" hidden>
+    <form role="dialog" data-type="confirm" class="certificate-deletion-failed" hidden>
       <section>
         <h1 data-l10n-id="certificate-deletion-failed">Certificate deletion failed</h1>
         <p data-l10n-id="certificate-deletion-failed-description">This may be due to a storage issue, for example.</p>

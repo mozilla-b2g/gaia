@@ -10,7 +10,7 @@ define(function(require) {
       onInit: function(panel) {
         elements.panel = panel;
         elements.nicknameInput =
-          panel.querySelector('#certificate-file-nickname');
+          panel.querySelector('.certificate-file-nickname');
       },
       onBeforeShow: function(panel, options) {
         elements.nicknameInput.value = options.certificateName;

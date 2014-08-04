@@ -8,7 +8,7 @@
 
     <div>
       <ul>
-        <li id="wifi-enabled">
+        <li class="wifi-enabled">
           <label class="pack-switch">
             <input type="checkbox" data-ignore>
             <span data-l10n-id="wifi">Wi-Fi</span>
@@ -21,7 +21,7 @@
             <span data-l10n-id="networkNotification">Network notification</span>
           </label>
         </li>
-        <li id="wps-column">
+        <li class="wps-column">
           <small data-l10n-id="wpsDescription2">Automatic Wi-Fi setup</small>
           <a data-l10n-id="wpsMessage">Connect with WPS</a>
         </li>
@@ -30,7 +30,7 @@
       <header>
         <h2 data-l10n-id="availableNetworks"> Available Networks </h2>
       </header>
-      <ul id="wifi-availableNetworks" data-state="off">
+      <ul class="wifi-availableNetworks" data-state="off">
         <li class="explanation" data-state="off" data-l10n-id="wifi-disabled">
           Turn Wi-Fi on to view available networks.
         </li>
@@ -47,16 +47,12 @@
       </header>
       <ul>
         <li>
-          <button id="manageNetworks"
-                  class="icon icon-view"
-                  data-l10n-id="manageNetworks">
+          <button class="icon icon-view manageNetwork" data-l10n-id="manageNetworks">
             Manage networks
           </button>
         </li>
         <li>
-          <button id="manageCertificates"
-                  class="icon icon-view"
-                  data-l10n-id="manageCertificates">
+          <button class="icon icon-view manageCertificates" data-l10n-id="manageCertificates">
             Manage certificates
           </button>
         </li>
