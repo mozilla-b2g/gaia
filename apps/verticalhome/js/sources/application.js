@@ -90,7 +90,7 @@
       app.grid.add(lastDivider);
 
       app.grid.render();
-      app.itemStore.save(app.grid.getItems());
+      app.itemStore.deferredSave(app.grid.getItems());
 
       // for packaged apps ignore the 'install' event and wait for
       // 'downloadapplied'
@@ -139,7 +139,7 @@
       var manifest = application.updateManifest || application.manifest;
 
       this.removeIconFromGrid(application.manifestURL);
-      app.itemStore.save(app.grid.getItems());
+      app.itemStore.deferredSave(app.grid.getItems());
 
       if (app.HIDDEN_ROLES.indexOf(manifest.role) !== -1) {
         return;
@@ -190,7 +190,7 @@
         this.addIconToGrid(newApp.app);
       }, this);
 
-      app.itemStore.save(app.grid.getItems());
+      app.itemStore.deferredSave(app.grid.getItems());
     },
 
     /**

@@ -56,7 +56,7 @@
         this.addIconToGrid(toAdd[i].detail);
       }
 
-      app.itemStore.save(app.grid.getItems());
+      app.itemStore.deferredSave(app.grid.getItems());
     },
 
     /**
@@ -84,7 +84,7 @@
         case 'added':
         case 'updated':
           this.addIconToGrid(e.target);
-          app.itemStore.save(app.grid.getItems());
+          app.itemStore.deferredSave(app.grid.getItems());
           break;
         case 'removed':
           // The 'id' of a bookmark is really the url.
