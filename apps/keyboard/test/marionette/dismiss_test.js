@@ -18,6 +18,10 @@ marionette('Dimiss the keyboard', function() {
     apps: apps,
     prefs: {
       'focusmanager.testmode': true
+    },
+    settings: {
+      'lockscreen.enabled': false,
+      'ftu.manifestURL': null
     }
   });
 
