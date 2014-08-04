@@ -252,12 +252,14 @@ navigator.mozL10n.once(function SettingsDateAndTime() {
   });
 
   window.addEventListener('localized', function localized() {
-    // Update date and time locale when language is changed
+    // Update date and time format, list of timezone regions
+    // when language is changed
     var d = new Date();
     var f = new navigator.mozL10n.DateTimeFormat();
     var format = _('shortTimeFormat');
     gDate.textContent = f.localeFormat(d, '%x');
     gTime.textContent = f.localeFormat(d, format);
+    tzSelect(gTimezoneRegion, gTimezoneCity, noOp, noOp);
   });
 
   document.addEventListener('visibilitychange', function visibilityChange() {
