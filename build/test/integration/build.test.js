@@ -144,7 +144,7 @@ suite('Node modules tests', function() {
     rmrf('modules.tar');
     rmrf('node_modules');
     rmrf('git-gaia-node-modules');
-    helper.exec('NODE_MODULES_GIT_URL=https://git.mozilla.org/b2g/gaia-node-modules.git make node_modules',
+    helper.exec('NODE_MODULES_GIT_URL=https://github.com/hfiguiere/gaia-node-modules.git make node_modules',
       function(error, stdout, stderr) {
         helper.checkError(error, stdout, stderr);
 
