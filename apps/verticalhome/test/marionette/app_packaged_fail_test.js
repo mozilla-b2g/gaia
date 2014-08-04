@@ -58,6 +58,9 @@ marionette('Vertical Home - Packaged App Failed Download', function() {
 
     server.unfail(server.applicationZipUri);
 
+    // helps marionette finding the icon: Bug 1046706
+    subject.moveIconToIndex(icon, 0);
+
     launchIcon(icon);
     subject.confirmDialog('resume');
     expectAppState(icon, 'ready');
