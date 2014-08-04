@@ -225,8 +225,10 @@ var icc_worker = {
 
     // Check if device is idle or settings
     var activeApp = AppWindowManager.getActiveApp();
+    var settingsOrigin = document.location.protocol + '//' +
+      document.location.host.replace('system', 'settings');
     if (!options.isHighPriority && !activeApp.isHomescreen &&
-        activeApp.origin !== 'app://settings.gaiamobile.org') {
+        activeApp.origin !== settingsOrigin) {
       DUMP('Do not display the text because normal priority.');
       icc.responseSTKCommand(message, {
         resultCode:
