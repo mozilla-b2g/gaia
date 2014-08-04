@@ -6,10 +6,10 @@
 
 #left-panel {
   position: absolute;
-  height: calc(100% - 10rem);
-  width: 2rem;
-  left: 0;
   top: 6rem;
+  bottom: 4rem;
+  left: 0;
+  width: 2rem;
 
   border-radius: 0 50% 50% 0;
 
@@ -17,15 +17,28 @@
   opacity: 0;
 }
 
-#right-panel {
+#screen > #right-panel {
   position: absolute;
-  height: calc(100% - 10rem);
-  width: 2rem;
-  right: 0;
   top: 6rem;
+  right: 0;
+  bottom: 4rem;
+  width: 2rem;
+
+  z-index: auto;
+}
+
+#right-panel-top {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
 
   border-radius: 50% 0 0 50%;
+}
 
+#right-panel-top, #right-panel-right,
+#right-panel-bottom, #right-panel-left {
   background-color: green;
   opacity: 0;
 }
@@ -35,13 +48,44 @@
 }
 
 @media (orientation: landscape) {
-  #left-panel {
+  #left-panel, #right-panel {
     top: 3rem;
-    height: calc(100% - 4rem);
+    bottom: 1rem;
   }
 
-  #right-panel {
+  #screen.software-button-enabled > #right-panel {
+    top: 0;
+    bottom: 0;
+    width: 5rem;
+  }
+
+  #screen.software-button-enabled #right-panel-top {
     top: 3rem;
-    height: calc(100% - 4rem);
+    bottom: calc(50% + 2rem);
+    border-radius: 0;
+  }
+
+  #screen.software-button-enabled #right-panel-right {
+    position: absolute;
+    top: calc(50% - 2rem);
+    right: 0;
+    height: 4rem;
+    width: 0.5rem;
+  }
+
+  #screen.software-button-enabled #right-panel-bottom {
+    position: absolute;
+    top: calc(50% + 2rem);
+    right: 0;
+    bottom: 1rem;
+    left: 0;
+  }
+
+  #screen.software-button-enabled #right-panel-left {
+    position: absolute;
+    top: calc(50% - 2rem);
+    left: 0;
+    height: 4rem;
+    width: 0.5rem;
   }
 }

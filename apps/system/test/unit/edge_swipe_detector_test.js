@@ -36,8 +36,14 @@ suite('system/EdgeSwipeDetector >', function() {
     // DOM
     EdgeSwipeDetector.previous = document.createElement('div');
     EdgeSwipeDetector.previous.classList.add('gesture-panel');
-    EdgeSwipeDetector.next = document.createElement('div');
-    EdgeSwipeDetector.next.classList.add('gesture-panel');
+    EdgeSwipeDetector.nextTop = document.createElement('div');
+    EdgeSwipeDetector.nextTop.classList.add('gesture-panel');
+    EdgeSwipeDetector.nextRight = document.createElement('div');
+    EdgeSwipeDetector.nextRight.classList.add('gesture-panel');
+    EdgeSwipeDetector.nextBottom = document.createElement('div');
+    EdgeSwipeDetector.nextBottom.classList.add('gesture-panel');
+    EdgeSwipeDetector.nextLeft = document.createElement('div');
+    EdgeSwipeDetector.nextLeft.classList.add('gesture-panel');
 
     screen = document.createElement('div');
     screen.id = 'screen';
@@ -84,29 +90,27 @@ suite('system/EdgeSwipeDetector >', function() {
 
   function launchTransitionEnd(config) {
     var evt = document.createEvent('CustomEvent');
-    config || (config = dialer);
-    evt.initCustomEvent('appopen', true, false, config);
+    evt.initCustomEvent('appopen', true, false, config || dialer);
     window.dispatchEvent(evt);
   }
 
   suite('When the homescreen is displayed', function() {
     setup(function() {
-      EdgeSwipeDetector.previous.classList.remove('disabled');
-      EdgeSwipeDetector.next.classList.remove('disabled');
+      EdgeSwipeDetector.panels.forEach(x => x.classList.remove('disabled'));
 
       homescreen();
     });
 
     test('the edges should be disabled', function() {
-      assert.isTrue(EdgeSwipeDetector.previous.classList.contains('disabled'));
-      assert.isTrue(EdgeSwipeDetector.next.classList.contains('disabled'));
+      EdgeSwipeDetector.panels.forEach(
+          x => assert.isTrue(x.classList.contains('disabled'))
+      );
     });
   });
 
   suite('When the cardsview is displayed', function() {
     setup(function() {
-      EdgeSwipeDetector.previous.classList.remove('disabled');
-      EdgeSwipeDetector.next.classList.remove('disabled');
+      EdgeSwipeDetector.panels.forEach(x => x.classList.remove('disabled'));
 
       // currently we always go to the homescreen before showing
       // the cards view. This test will fail when this behavior changes.
@@ -114,28 +118,30 @@ suite('system/EdgeSwipeDetector >', function() {
     });
 
     test('the edges should be disabled', function() {
-      assert.isTrue(EdgeSwipeDetector.previous.classList.contains('disabled'));
-      assert.isTrue(EdgeSwipeDetector.next.classList.contains('disabled'));
+      EdgeSwipeDetector.panels.forEach(
+          x => assert.isTrue(x.classList.contains('disabled'))
+      );
     });
 
     test('after a card was shown from the cards view edges should be enabled',
          function() {
       cardsViewShowCard(1);
-      assert.isFalse(EdgeSwipeDetector.previous.classList.contains('disabled'));
-      assert.isFalse(EdgeSwipeDetector.next.classList.contains('disabled'));
+      EdgeSwipeDetector.panels.forEach(
+          x => assert.isFalse(x.classList.contains('disabled'))
+      );
     });
   });
 
   suite('When an app is launched', function() {
     setup(function() {
-      EdgeSwipeDetector.previous.classList.add('disabled');
-      EdgeSwipeDetector.next.classList.add('disabled');
+      EdgeSwipeDetector.panels.forEach(x => x.classList.add('disabled'));
     });
 
     test('the edges should be enabled', function() {
       appLaunch(dialer);
-      assert.isFalse(EdgeSwipeDetector.previous.classList.contains('disabled'));
-      assert.isFalse(EdgeSwipeDetector.next.classList.contains('disabled'));
+      EdgeSwipeDetector.panels.forEach(
+          x => assert.isFalse(x.classList.contains('disabled'))
+      );
     });
 
     suite('if the edges are disabled in the settings', function() {
@@ -149,9 +155,9 @@ suite('system/EdgeSwipeDetector >', function() {
 
       test('the edges should not be enabled', function() {
         appLaunch(dialer);
-        var previous = EdgeSwipeDetector.previous;
-        assert.isTrue(previous.classList.contains('disabled'));
-        assert.isTrue(EdgeSwipeDetector.next.classList.contains('disabled'));
+        EdgeSwipeDetector.panels.forEach(
+            x => assert.isTrue(x.classList.contains('disabled'))
+        );
       });
     });
 
@@ -159,8 +165,9 @@ suite('system/EdgeSwipeDetector >', function() {
     function() {
       launchTransitionEnd();
       MockSettingsListener.mCallbacks['edgesgesture.enabled'](true);
-      assert.isFalse(EdgeSwipeDetector.previous.classList.contains('disabled'));
-      assert.isFalse(EdgeSwipeDetector.next.classList.contains('disabled'));
+      EdgeSwipeDetector.panels.forEach(
+          x => assert.isFalse(x.classList.contains('disabled'))
+      );
     });
 
     suite('in background', function() {
@@ -170,17 +177,17 @@ suite('system/EdgeSwipeDetector >', function() {
       });
 
       test('the edges should not be enabled', function() {
-        var cssPrevious = EdgeSwipeDetector.previous.classList;
-        assert.isTrue(cssPrevious.contains('disabled'));
-        var cssNext = EdgeSwipeDetector.next.classList;
-        assert.isTrue(cssNext.contains('disabled'));
+        EdgeSwipeDetector.panels.forEach(
+            x => assert.isTrue(x.classList.contains('disabled'))
+        );
       });
     });
 
     test('the edges should be disabled on the FTU', function() {
       launchTransitionEnd(ftu);
-      assert.isTrue(EdgeSwipeDetector.previous.classList.contains('disabled'));
-      assert.isTrue(EdgeSwipeDetector.next.classList.contains('disabled'));
+      EdgeSwipeDetector.panels.forEach(
+          x => assert.isTrue(x.classList.contains('disabled'))
+      );
     });
   });
 
@@ -197,22 +204,21 @@ suite('system/EdgeSwipeDetector >', function() {
     }
 
     setup(function() {
-      EdgeSwipeDetector.previous.classList.add('disabled');
-      EdgeSwipeDetector.next.classList.add('disabled');
+      EdgeSwipeDetector.panels.forEach(x => x.classList.add('disabled'));
     });
 
     test('the edges should be enabled', function() {
       wrapperLaunch(google);
-      assert.isFalse(EdgeSwipeDetector.previous.classList.contains('disabled'));
-      assert.isFalse(EdgeSwipeDetector.next.classList.contains('disabled'));
+      EdgeSwipeDetector.panels.forEach(
+          x => assert.isFalse(x.classList.contains('disabled'))
+      );
     });
   });
 
   suite('When the setting is enabled', function() {
     setup(function() {
       MockSettingsListener.mCallbacks['edgesgesture.enabled'](false);
-      EdgeSwipeDetector.previous.classList.add('disabled');
-      EdgeSwipeDetector.next.classList.add('disabled');
+      EdgeSwipeDetector.panels.forEach(x => x.classList.add('disabled'));
 
       appLaunch(dialer);
     });
@@ -222,11 +228,13 @@ suite('system/EdgeSwipeDetector >', function() {
     });
 
     test('the edges should be enabled if an app is open', function() {
-      assert.isTrue(EdgeSwipeDetector.previous.classList.contains('disabled'));
-      assert.isTrue(EdgeSwipeDetector.next.classList.contains('disabled'));
+      EdgeSwipeDetector.panels.forEach(
+          x => assert.isTrue(x.classList.contains('disabled'))
+      );
       MockSettingsListener.mCallbacks['edgesgesture.enabled'](true);
-      assert.isFalse(EdgeSwipeDetector.previous.classList.contains('disabled'));
-      assert.isFalse(EdgeSwipeDetector.next.classList.contains('disabled'));
+      EdgeSwipeDetector.panels.forEach(
+          x => assert.isFalse(x.classList.contains('disabled'))
+      );
     });
 
     test('the edges should not be enabled if the homescreen is open',
@@ -234,16 +242,16 @@ suite('system/EdgeSwipeDetector >', function() {
       homescreen();
       MockSettingsListener.mCallbacks['edgesgesture.enabled'](true);
 
-      assert.isTrue(EdgeSwipeDetector.previous.classList.contains('disabled'));
-      assert.isTrue(EdgeSwipeDetector.next.classList.contains('disabled'));
+      EdgeSwipeDetector.panels.forEach(
+          x => assert.isTrue(x.classList.contains('disabled'))
+      );
     });
   });
 
   suite('When the setting is disabled', function() {
     setup(function() {
       MockSettingsListener.mCallbacks['edgesgesture.enabled'](true);
-      EdgeSwipeDetector.previous.classList.remove('disabled');
-      EdgeSwipeDetector.next.classList.remove('disabled');
+      EdgeSwipeDetector.panels.forEach(x => x.classList.remove('disabled'));
 
       appLaunch(dialer);
     });
@@ -253,11 +261,13 @@ suite('system/EdgeSwipeDetector >', function() {
     });
 
     test('the edges should be disabled', function() {
-      assert.isFalse(EdgeSwipeDetector.previous.classList.contains('disabled'));
-      assert.isFalse(EdgeSwipeDetector.next.classList.contains('disabled'));
+      EdgeSwipeDetector.panels.forEach(
+          x => assert.isFalse(x.classList.contains('disabled'))
+      );
       MockSettingsListener.mCallbacks['edgesgesture.enabled'](false);
-      assert.isTrue(EdgeSwipeDetector.previous.classList.contains('disabled'));
-      assert.isTrue(EdgeSwipeDetector.next.classList.contains('disabled'));
+      EdgeSwipeDetector.panels.forEach(
+          x => assert.isTrue(x.classList.contains('disabled'))
+      );
     });
   });
 
@@ -453,7 +463,7 @@ suite('system/EdgeSwipeDetector >', function() {
         test('> events from the next panel should be ltr', function() {
           var beginSpy = this.sinon.spy(MockSheetsTransition, 'begin');
           var moveSpy = this.sinon.spy(MockSheetsTransition, 'moveInDirection');
-          swipe(this.sinon.clock, EdgeSwipeDetector.next, 0, (width / 2),
+          swipe(this.sinon.clock, EdgeSwipeDetector.nextTop, 0, (width / 2),
                 240, 250);
 
           assert.isTrue(beginSpy.calledWith('rtl'));
@@ -505,7 +515,7 @@ suite('system/EdgeSwipeDetector >', function() {
         assert.equal(call.args[0], recvEvents[11]);
       });
 
-      test('it should snap the sheets in place whithout waiting', function() {
+      test('it should snap the sheets in place without waiting', function() {
         var snapSpy = this.sinon.spy(MockSheetsTransition, 'snapInPlace');
         swipe(this.sinon.clock, panel, 3, 7, 20, halfScreen,
               25, true /* no touchend */);
@@ -735,7 +745,7 @@ suite('system/EdgeSwipeDetector >', function() {
 
       suite('when the progress was > 20% rtl', function() {
         setup(function() {
-          panel = EdgeSwipeDetector.next;
+          panel = EdgeSwipeDetector.nextTop;
         });
 
         test('it should snap the sheets forward', function() {

@@ -1,11 +1,19 @@
 'use strict';
 
+/* global TouchForwarder, SettingsListener, FtuLauncher, StackManager,
+    SheetsTransition */
+
 const kEdgeIntertia = 250;
 const kEdgeThreshold = 0.3;
 
 var EdgeSwipeDetector = {
   previous: document.getElementById('left-panel'),
-  next: document.getElementById('right-panel'),
+  // The right panel is split because it should be able to leave space for
+  // the software home button in landscape
+  nextTop: document.getElementById('right-panel-top'),
+  nextRight: document.getElementById('right-panel-right'),
+  nextBottom: document.getElementById('right-panel-bottom'),
+  nextLeft: document.getElementById('right-panel-left'),
   screen: document.getElementById('screen'),
 
   _touchForwarder: null,
@@ -16,10 +24,14 @@ var EdgeSwipeDetector = {
     window.addEventListener('launchapp', this);
     window.addEventListener('cardviewclosed', this);
 
+    this.panels = [this.previous, this.nextTop, this.nextRight,
+        this.nextBottom, this.nextLeft];
+
     ['touchstart', 'touchmove', 'touchend',
      'mousedown', 'mousemove', 'mouseup'].forEach(function(e) {
-      this.previous.addEventListener(e, this);
-      this.next.addEventListener(e, this);
+      this.panels.forEach(function(p) {
+        p.addEventListener(e, this);
+      }, this);
     }, this);
     this._touchForwarder = new TouchForwarder();
 
@@ -93,8 +105,9 @@ var EdgeSwipeDetector = {
 
   _updateEnabled: function esd_updateEnabled() {
     var enabled = this._lifecycleEnabled && this._settingEnabled;
-    this.previous.classList.toggle('disabled', !enabled);
-    this.next.classList.toggle('disabled', !enabled);
+    this.panels.forEach(function(p) {
+      p.classList.toggle('disabled', !enabled);
+    });
   },
 
   _touchStartEvt: null,
@@ -112,7 +125,7 @@ var EdgeSwipeDetector = {
 
   _touchStart: function esd_touchStart(e) {
     this._winWidth = window.innerWidth;
-    this._direction = (e.target == this.next) ? 'rtl' : 'ltr';
+    this._direction = (e.target == this.previous) ? 'ltr' : 'rtl';
     this._touchStartEvt = e;
     this._startDate = Date.now();
 
