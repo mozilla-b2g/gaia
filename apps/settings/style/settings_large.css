@@ -136,7 +136,7 @@
     padding-left: 6rem;
   }
 
-  section[role="region"]:not([id='root']) ul:not([id='wifi-availableNetworks']) li > progress {
+  section[role="region"]:not([id='root']) ul:not([class='wifi-availableNetworks']) li > progress {
     width: 100%;
   }
 
