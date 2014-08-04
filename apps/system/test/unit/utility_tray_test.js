@@ -298,24 +298,13 @@ suite('system/UtilityTray', function() {
 
   suite('handleEvent: launchapp', function() {
     setup(function() {
+      fakeEvt = createEvent('launchapp');
       UtilityTray.show();
+      UtilityTray.handleEvent(fakeEvt);
     });
 
     test('should be hidden', function() {
-      fakeEvt = createEvent('launchapp', false, true, {
-        origin: 'app://otherApp'
-      });
-      UtilityTray.handleEvent(fakeEvt);
       assert.equal(UtilityTray.shown, false);
-    });
-
-    test('should not be hidden if the event is sent from background app',
-      function() {
-        fakeEvt = createEvent('launchapp', false, true, {
-          origin: 'app://findmydevice.gaiamobile.org'
-        });
-        UtilityTray.handleEvent(fakeEvt);
-        assert.equal(UtilityTray.shown, true);
     });
   });
 

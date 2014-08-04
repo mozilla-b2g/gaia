@@ -76,7 +76,6 @@ var UtilityTray = {
 
   handleEvent: function ut_handleEvent(evt) {
     var target = evt.target;
-    var detail = evt.detail;
 
     switch (evt.type) {
       case 'home':
@@ -92,24 +91,8 @@ var UtilityTray = {
       case 'keyboardchangecanceled':
       case 'simpinshow':
       case 'appopening':
-        if (this.shown) {
-          this.hide();
-        }
-        break;
-
       case 'launchapp':
-        // we don't want background apps to trigger this event, otherwise,
-        // utility tray will be closed accidentally.
-        var findMyDevice =
-          window.location.origin.replace('system', 'findmydevice');
-
-        var blacklist = [findMyDevice];
-
-        var isBlockedApp = blacklist.some(function(blockedApp) {
-          return blockedApp === detail.origin;
-        });
-
-        if (!isBlockedApp && this.shown) {
+        if (this.shown) {
           this.hide();
         }
         break;
