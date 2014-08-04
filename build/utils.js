@@ -37,6 +37,18 @@ function isSubjectToBranding(path) {
          /branding[\/\\]initlogo.png/.test(path);
 }
 
+// XXX: We should use @formFactor for device specific L10N support,
+// isSubjectToDeviceType should be removed after bug 936532 landed.
+/**
+ * Detect if this path is a device specific L10N resource.
+ *
+ * @param path {string} - the file path
+ * @return {bool}
+ */
+function isSubjectToDeviceType(path) {
+  return /locales[\/\\]?[a-zA-Z]*[\/\\]?device_type$/.test(path);
+}
+
 /**
  * Get file extension from a name.
  *
@@ -194,6 +206,7 @@ exports.Q = utils.Q;
  * @exports isSubjectToBranding
  */
 exports.isSubjectToBranding = isSubjectToBranding;
+exports.isSubjectToDeviceType = isSubjectToDeviceType;
 exports.ls = utils.ls;
 exports.getFileContent = utils.getFileContent;
 exports.writeContent = utils.writeContent;
