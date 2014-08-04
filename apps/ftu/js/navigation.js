@@ -373,5 +373,14 @@ var Navigation = {
       var skipUnlockScreens = this.currentStep < this.previousStep;
       SimManager.handleCardState(check_cardState, skipUnlockScreens);
     }
+
+    // Only show the Date & Time screen if we couldn't determine the
+    // timezone from the network. (We assume that if we can
+    // determine the timezone, we can determine the time too.)
+    if (steps[self.currentStep].hash === '#date_and_time') {
+      if (!UIManager.timeZoneNeedsConfirmation) {
+        self.skipStep();
+      }
+    }
   }
 };

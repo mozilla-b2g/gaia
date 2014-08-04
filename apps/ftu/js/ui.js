@@ -111,6 +111,7 @@ var UIManager = {
   ],
 
   dataConnectionChangedByUsr: false,
+  timeZoneNeedsConfirmation: true,
 
   init: function ui_init() {
     _ = navigator.mozL10n.get;
@@ -307,7 +308,8 @@ var UIManager = {
     // Initialize the timezone selector, see /shared/js/tz_select.js
     var tzRegion = document.getElementById('tz-region');
     var tzCity = document.getElementById('tz-city');
-    tzSelect(tzRegion, tzCity, this.setTimeZone, this.setTimeZone);
+    tzSelect(tzRegion, tzCity,
+             this.setTimeZone.bind(this), this.setTimeZone.bind(this));
   },
 
   handleEvent: function ui_handleEvent(event) {
@@ -503,7 +505,9 @@ var UIManager = {
     timeLabel.innerHTML = f.localeFormat(timeToSet, format);
   },
 
-  setTimeZone: function ui_stz(timezone) {
+  setTimeZone: function ui_stz(timezone, needsConfirmation) {
+    this.timeZoneNeedsConfirmation = !!needsConfirmation;
+
     var utcOffset = timezone.utcOffset;
     document.getElementById('time_zone_overlay').className =
       'UTC' + utcOffset.replace(/[+:]/g, '');

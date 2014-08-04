@@ -119,6 +119,7 @@ var MockUIManager = {
     }.bind(this));
   },
 
+  timeZoneNeedsConfirmation: true,
   sendNewsletter: function(callback) {return callback(true);},
   updateDataConnectionStatus: function(status) {return DataMobile.getStatus();},
   displayOfflineDialog: function() {},
