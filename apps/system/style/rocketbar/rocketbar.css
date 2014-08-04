@@ -86,9 +86,9 @@
 
 #rocketbar-clear {
   border: none;
-  background: url(actionicon_textfield_clear.png) no-repeat center center;
-  background-size: 2.5rem 2.5rem;
-  width: 4.5rem;
+  background: url(clear_dark.png) no-repeat center center;
+  background-size: 2.4rem 2.4rem;
+  width: 4rem;
 }
 
 #rocketbar-cancel {
