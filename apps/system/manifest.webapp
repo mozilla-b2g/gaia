@@ -79,7 +79,7 @@
         "type": "url",
         "url": {
           "required": true,
-          "pattern": "(https?:|data:).{1,16384}",
+          "pattern": "(https?:|data:|rtsp:).{1,16384}",
           "patternFlags": "i"
         }
       }
