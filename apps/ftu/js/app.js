@@ -31,13 +31,24 @@ function notifyCollection() {
 
 var AppManager = {
 
-  init: function init(isUpgrade) {
+  init: function init(versionInfo) {
     this.isInitialized = true;
 
     UIManager.init();
     Navigation.init();
 
-    if(isUpgrade) {
+    // if it's an upgrade we can jump to tutorial directly
+    if (versionInfo && versionInfo.isUpgrade()) {
+      var stepsKey = versionInfo.delta();
+      // Play the FTU Tuto steps directly on update
+      UIManager.splashScreen.classList.remove('show');
+      UIManager.activationScreen.classList.remove('show');
+      UIManager.updateScreen.classList.add('show');
+
+      // Load and play the what's new tutorial
+      Tutorial.init(stepsKey, function() {
+        Tutorial.start();
+      });
       return;
     }
 
@@ -49,6 +60,7 @@ var AppManager = {
     ImportIntegration.init();
     TimeManager.init();
     DataMobile.init();
+    Tutorial.init();
 
     var kSplashTimeout = 700;
     // Retrieve mobile connection if available
@@ -84,29 +96,10 @@ navigator.mozL10n.ready(function showBody() {
 
   VersionHelper.getVersionInfo().then(function(versionInfo) {
     if (!AppManager.isInitialized) {
-      AppManager.init(versionInfo.isUpgrade());
-    }
-
-    if (versionInfo.isUpgrade()) {
-      var stepsKey = versionInfo.delta();
-      // Play the FTU Tuto steps directly on update
-      UIManager.splashScreen.classList.remove('show');
-      UIManager.activationScreen.classList.remove('show');
-      UIManager.updateScreen.classList.add('show');
-
-      FinishScreen.isUpgrade = true;
-
-      // Load and play the what's new tutorial
-      Tutorial.init(stepsKey, function() {
-        Tutorial.start();
-      });
-
+      AppManager.init(versionInfo);
     } else {
       UIManager.initTZ();
       UIManager.mainTitle.innerHTML = _('language');
-
-      // Just prepare tutorial to be optionally triggered by user in FTU
-      Tutorial.init();
     }
 
   });

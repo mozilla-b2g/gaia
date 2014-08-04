@@ -78,7 +78,7 @@
         }
         // Dont block progress on failure to load media
         if (evt.type === 'error') {
-          console.log('Failed to load tutorial media: ' + src);
+          console.error('Failed to load tutorial media: ' + src);
         }
         resolve(evt);
       }
@@ -173,7 +173,7 @@
       elementIDs.forEach(function(name) {
         dom[Utils.camelCase(name)] = document.getElementById(name);
         if (!dom[Utils.camelCase(name)]) {
-          console.log('Cache DOM elements: couldnt cache: ' + name);
+          console.error('Cache DOM elements: couldnt cache: ' + name);
         }
       }, this);
 
