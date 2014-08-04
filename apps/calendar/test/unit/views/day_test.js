@@ -44,6 +44,7 @@ suiteGroup('Views.Day', function() {
       this.activate = sinon.spy();
       this.deactivate = sinon.spy();
       this.setScrollTop = sinon.spy();
+      this.animatedScroll = sinon.spy();
       this.getScrollTop = sinon.spy();
       this.destroy = sinon.spy();
       this.element = document.createElement('div');
@@ -171,6 +172,14 @@ suiteGroup('Views.Day', function() {
   });
 
   suite('#onactive', function() {
+    setup(function() {
+      sinon.stub(subject, '_getDestinationScrollTop');
+    });
+
+    teardown(function() {
+      subject._getDestinationScrollTop.restore();
+    });
+
     test('mostRecentDayType === day', function() {
       controller.move(new Date(2012, 1, 15));
       // should do nothing special
@@ -222,6 +231,137 @@ suiteGroup('Views.Day', function() {
       assert.ok(subject.currentFrame.activate.calledOnce, 'activate frame');
     });
 
+    suite('pass the options param to changeDate', function() {
+      setup(function() {
+        sinon.stub(subject, 'changeDate');
+      });
+
+      teardown(function() {
+        subject.changeDate.restore();
+      });
+
+      test('start scrolling from scrollTop 0', function() {
+        var selDate = new Date(2012, 1, 1);
+        controller.move(new Date());
+        controller.selectedDay = selDate;
+
+        subject.onactive();
+        assert.ok(subject.changeDate.calledWithExactly(selDate, {
+          startScrollTop: 0
+        }));
+      });
+    });
+  });
+
+  suite('#changeDate', function() {
+    setup(function() {
+      sinon.stub(Calendar.Views.TimeParent.prototype, 'changeDate');
+      subject.currentFrame = new subject.childClass();
+    });
+
+    teardown(function() {
+      Calendar.Views.TimeParent.prototype.changeDate.restore();
+      subject._getDestinationScrollTop.restore();
+      subject.currentFrame = null;
+    });
+
+    test('do not scroll when the retun value ' +
+         'of _getDestinationScrollTop is undefined', function() {
+      sinon.stub(subject, '_getDestinationScrollTop', function() {
+        return undefined;
+      });
+
+      subject.changeDate(new Date());
+      assert.ok(subject.currentFrame.animatedScroll.notCalled);
+    });
+
+    test('scroll to scrollTop 10', function() {
+      var destinationScrollTop = 10;
+      sinon.stub(subject, '_getDestinationScrollTop', function() {
+        return destinationScrollTop;
+      });
+
+      subject.changeDate(new Date());
+      assert.ok(subject.currentFrame.animatedScroll
+        .calledWithExactly(destinationScrollTop));
+    });
+
+    test('scroll to scrollTop 10 from scrollTop 0', function() {
+      var destinationScrollTop = 10;
+      sinon.stub(subject, '_getDestinationScrollTop', function() {
+        return destinationScrollTop;
+      });
+
+      subject.changeDate(new Date(), { startScrollTop: 0 });
+      assert.ok(subject.currentFrame.setScrollTop
+        .calledWithExactly(0));
+      assert.ok(subject.currentFrame.animatedScroll
+        .calledWithExactly(destinationScrollTop));
+    });
+  });
+
+  suite('#_getDestinationScrollTop', function() {
+    var clock;
+
+    setup(function() {
+      var div = document.createElement('div');
+      div.innerHTML = [
+        '<div class="active">',
+          '<div class="day-events-wrapper"',
+            'style="height: 20px; overflow-y: scroll">',
+            '<div class="day-events">',
+              '<div class="hour-0">0AM</div>',
+              '<div class="hour-8">8AM</div>',
+              '<div class="hour-16">4PM</div>',
+              '<div class="hour-23">11PM</div>',
+            '</div>',
+          '</div>',
+        '</div>'
+      ].join('');
+      subject.element.appendChild(div);
+
+      subject.currentFrame = {
+        element: subject.element.querySelector('.active')
+      };
+
+      clock = sinon.useFakeTimers(+(new Date(2014, 8, 7, 17, 8)));
+    });
+
+    teardown(function() {
+      clock.restore();
+    });
+
+    test('today', function() {
+      assert.equal(
+        subject._getDestinationScrollTop(new Date(2014, 8, 7, 0, 0)),
+        subject.currentFrame.element.querySelector('.hour-16').offsetTop
+      );
+    });
+
+    test('next day', function() {
+      assert.equal(
+        subject._getDestinationScrollTop(new Date(2014, 8, 8, 0, 0)),
+        subject.currentFrame.element.querySelector('.hour-8').offsetTop
+      );
+    });
+
+    test('next day with the onlyToday option as true', function() {
+      assert.deepEqual(
+        subject._getDestinationScrollTop(new Date(2014, 8, 8, 0, 0), {
+          onlyToday: true
+        }),
+        undefined
+      );
+    });
+
+    test('next day with the onlyToday option as false', function() {
+      assert.deepEqual(
+        subject._getDestinationScrollTop(new Date(2014, 8, 8, 0, 0), {
+          onlyToday: false
+        }),
+        subject.currentFrame.element.querySelector('.hour-8').offsetTop
+      );
+    });
   });
 
   test('#onfirstseen', function() {

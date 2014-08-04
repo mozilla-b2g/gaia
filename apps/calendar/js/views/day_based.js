@@ -649,8 +649,34 @@ Calendar.ns('Views').DayBased = (function() {
     setScrollTop: function(scrollTop) {
       var scroll = this.element.querySelectorAll('.day-events-wrapper')[0];
       scroll.scrollTop = scrollTop;
-    }
+    },
 
+    /**
+     * Animated scroll to the destination scrollTop for am element.
+     *
+     * @param {Number} destinationScrollTop the scrollTop of destination.
+     */
+    animatedScroll: function(scrollTop) {
+      var scroll = this.element.querySelectorAll('.day-events-wrapper')[0];
+      var content = scroll.querySelector('.day-events');
+      var SPEED = 1000;
+      var scrollTo = scroll.scrollTop - scrollTop;
+      var seconds = Math.abs(scrollTo) / SPEED;
+
+      setTimeout(function() {
+        content.style.transform = 'translateY(' + scrollTo + 'px)';
+        // easeOutQuart borrowed from http://matthewlein.com/ceaser/
+        content.style.transition = 'transform ' + seconds + 's ' +
+          'cubic-bezier(0.165, 0.840, 0.440, 1.000)';
+      });
+
+      content.addEventListener('transitionend', function setScrollTop() {
+        content.removeEventListener('transitionend', setScrollTop);
+        content.style.transform = null;
+        content.style.transition = null;
+        scroll.scrollTop = scrollTop;
+      });
+    }
   };
 
   return DayBased;
