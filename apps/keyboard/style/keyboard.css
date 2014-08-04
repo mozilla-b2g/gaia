@@ -101,9 +101,6 @@ button::-moz-focus-inner {
   width: 100%;
   height: 4.3rem;
   margin: 0.4rem 0;
-
-  /* Events must originates from .keyboard-key, not its children elements */
-  pointer-events: none;
 }
 
 /* Standard key styles. */
