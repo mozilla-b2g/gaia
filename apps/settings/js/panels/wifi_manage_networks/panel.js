@@ -17,13 +17,13 @@ define(function(require) {
       onInit: function(panel) {
         elements.panel = panel;
         elements.knownNetworkListWrapper =
-          panel.querySelector('.wifi-knownNetworks');
+          panel.querySelector('#wifi-knownNetworks');
         elements.forgetNetworkDialog =
           panel.querySelector('form');
         elements.macAddress =
           panel.querySelector('[data-name="deviceinfo.mac"]');
         elements.joinHiddenBtn =
-          panel.querySelector('.joinHidden');
+          panel.querySelector('#joinHidden');
         elements.joinHiddenBtn.addEventListener('click', function() {
           var network = {};
           SettingsUtils.openDialog('wifi-joinHidden', {

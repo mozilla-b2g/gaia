@@ -12,7 +12,7 @@ from gaiatest import GaiaEnduranceTestCase
 class TestEnduranceSettings(GaiaEnduranceTestCase):
 
     settings_list = [
-                     {"menu_locator": ('id', 'menuItem-wifi'), "screen_locator": ('css selector', '.wifi-enabled input')},
+                     {"menu_locator": ('id', 'menuItem-wifi'), "screen_locator": ('css selector', '#wifi-enabled input')},
                      {"menu_locator": ('id', 'menuItem-callSettings'), "screen_locator": ('id', 'menuItem-callWaiting')},
                      {"menu_locator": ('id', 'menuItem-cellularAndData'), "screen_locator": ('id', 'dataConnection-desc')},
                      {"menu_locator": ('id', 'menuItem-bluetooth'), "screen_locator": ('css selector', '#bluetooth-status input')},

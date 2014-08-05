@@ -13,9 +13,9 @@ define(function(require) {
       onInit: function(panel) {
         elements.panel = panel;
         elements.submitWpsButton = panel.querySelector('button[type=submit]');
-        elements.apSelectionArea = panel.querySelector('.wifi-wps-pin-aps');
+        elements.apSelectionArea = panel.querySelector('#wifi-wps-pin-aps');
         elements.apSelect = elements.apSelectionArea.querySelector('select');
-        elements.pinItem = panel.querySelector('.wifi-wps-pin-area');
+        elements.pinItem = panel.querySelector('#wifi-wps-pin-area');
         elements.pinDesc = elements.pinItem.querySelector('p');
         elements.pinInput = elements.pinItem.querySelector('input');
         elements.wpsMethodRadios = panel.querySelectorAll('input[type=radio]');
