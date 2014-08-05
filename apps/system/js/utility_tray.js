@@ -118,7 +118,7 @@ var UtilityTray = {
         break;
 
       case 'touchstart':
-        if (window.System.locked) {
+        if (window.System.locked || window.System.runningFTU) {
           return;
         }
 

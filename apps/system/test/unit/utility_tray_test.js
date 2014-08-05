@@ -315,6 +315,10 @@ suite('system/UtilityTray', function() {
       fakeEvt.touches = [0];
     });
 
+    teardown(function() {
+      window.System.runningFTU = false;
+    });
+
     test('onTouchStart is not called if LockScreen is locked', function() {
       window.System.locked = true;
       var stub = this.sinon.stub(UtilityTray, 'onTouchStart');
@@ -334,6 +338,13 @@ suite('system/UtilityTray', function() {
       var stub = this.sinon.stub(UtilityTray, 'onTouchStart');
       UtilityTray.topPanel.dispatchEvent(fakeEvt);
       assert.ok(stub.calledOnce);
+    });
+
+    test('onTouchStart is called when ftu is running', function() {
+      window.System.runningFTU = true;
+      var stub = this.sinon.stub(UtilityTray, 'onTouchStart');
+      UtilityTray.topPanel.dispatchEvent(fakeEvt);
+      assert.ok(stub.notCalled);
     });
 
     test('Dont preventDefault if the target is the overlay', function() {

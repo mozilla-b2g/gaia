@@ -25,7 +25,7 @@
 
     /**
      * Get current time offset from the start.
-     * @return {Number} The time offset
+     * @return {Number} The time offset.
      * @memberOf module:System
      */
     currentTime: function() {
@@ -69,6 +69,14 @@
         detail: detail
       });
       window.dispatchEvent(evt);
+    },
+
+    get runningFTU() {
+      if ('undefined' === typeof window.FtuLauncher) {
+        return false;
+      } else {
+        return window.FtuLauncher.isFtuRunning();
+      }
     },
 
     get locked() {
