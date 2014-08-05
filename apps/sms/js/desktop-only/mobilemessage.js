@@ -876,6 +876,7 @@
 
   messagesDb.messages.push({
     threadId: 10,
+    sender: '+12125551234',
     receivers: ['+12125551234', '+15551237890'],
     delivery: 'received',
     id: messagesDb.id++,
