@@ -8,13 +8,6 @@ define(function(require, exports, module) {
 var SettingAlias = require('./setting-alias');
 var debug = require('debug')('settings');
 var Setting = require('./setting');
-var evt = require('vendor/evt');
-
-/**
- * Mixin emitter
- */
-
-evt(Settings.prototype);
 
 /**
  * Exports
@@ -36,6 +29,11 @@ function Settings(items) {
   this.addEach(items);
 }
 
+/**
+ * Add several Settings in one go.
+ *
+ * @param {Object} items
+ */
 Settings.prototype.addEach = function(items) {
   if (!items) { return; }
   var item;
@@ -48,6 +46,11 @@ Settings.prototype.addEach = function(items) {
   }
 };
 
+/**
+ * Add a new Setting to the settings collection.
+ *
+ * @param {Object} data
+ */
 Settings.prototype.add = function(data) {
   var setting = new Setting(data);
   this.items.push(setting);
@@ -55,7 +58,13 @@ Settings.prototype.add = function(data) {
   debug('added setting: %s', setting.key);
 };
 
-Settings.prototype.fetch = function(done) {
+/**
+ * Fetch all the Settings previous
+ * state from storage.
+ *
+ * @public
+ */
+Settings.prototype.fetch = function() {
   this.items.forEach(function(setting) { setting.fetch(); });
 };
 
@@ -76,12 +85,17 @@ Settings.prototype.dontSave = function() {
   });
 };
 
-Settings.prototype.alias = function(key, options) {
-  options.settings = this;
-  options.key = key;
+/**
+ * Add a SettingAlias to the settings.
+ * (see lib/setting-alias.js for more info)
+ *
+ * @param  {Object} options
+ * @public
+ */
+Settings.prototype.alias = function(options) {
   var alias = new this.SettingAlias(options);
-  this.aliases[key] = alias;
-  this[key] = alias;
+  this.aliases[options.key] = alias;
+  this[options.key] = alias;
 };
 
 Settings.prototype.removeAlias = function(key) {

@@ -9,7 +9,7 @@
   align-items: center;
   justify-content: space-between;
   opacity: 0;
-  transition: opacity 300ms;
+  transition: opacity 200ms linear;
   transform: translateZ(1px);
 }
 
