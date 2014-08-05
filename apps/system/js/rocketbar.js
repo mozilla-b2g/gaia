@@ -145,6 +145,7 @@
       window.addEventListener('apptitlechange', this);
       window.addEventListener('lockscreen-appopened', this);
       window.addEventListener('appopened', this);
+      window.addEventListener('home', this);
       window.addEventListener('launchactivity', this, true);
       window.addEventListener('searchterminated', this);
       window.addEventListener('permissiondialoghide', this);
@@ -186,6 +187,9 @@
           break;
         case 'focus':
           this.handleFocus(e);
+          break;
+        case 'home':
+          this.handleHome(e);
           break;
         case 'blur':
           this.handleBlur(e);
@@ -359,6 +363,15 @@
       // To be removed in bug 999463
       this.body.addEventListener('keyboardchange',
         this.handleKeyboardChange, true);
+    },
+
+    /**
+     * Handle press of hardware home button.
+     * @memberof Rocketbar.prototype
+     */
+    handleHome: function() {
+      this.hideResults();
+      this.deactivate();
     },
 
     /**
