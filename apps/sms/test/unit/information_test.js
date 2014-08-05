@@ -744,6 +744,16 @@ suite('Information view', function() {
       sinon.assert.called(reportView.reset);
       assert.isNull(reportView.id, 'id is reset after beforeLeave');
     });
+
+    suite('Set event listener', function() {
+      test('No event listenser for report view', function() {
+        var event = new MouseEvent('click',
+          { bubbles: true, cancelable: true });
+        var canceled = !reportView.contactList.dispatchEvent(event);
+
+        assert.isFalse(canceled);
+      });
+    });
   });
 
   suite('GroupView', function() {
@@ -782,6 +792,26 @@ suite('Information view', function() {
       groupView.beforeLeave(leaveArgs);
       sinon.assert.called(groupView.reset);
       assert.isNull(groupView.id, 'id is reset after beforeLeave');
+    });
+
+    suite('Set event listener', function() {
+      setup(function(){
+        this.sinon.stub(ThreadUI, 'promptContact');
+      });
+
+      test('Contact prompt is called when clicked on contactList', function() {
+        var event = new MouseEvent('click',
+          { bubbles: true, cancelable: true });
+        var item = document.createElement('a');
+
+        item.dataset.number = 'test number';
+        groupView.contactList.appendChild(item);
+        item.dispatchEvent(event);
+        sinon.assert.calledWith(
+          ThreadUI.promptContact,
+          { number : item.dataset.number }
+        );
+      });
     });
   });
 });
