@@ -254,26 +254,25 @@
       }
 
       var style = this.element.style;
+      var iconEl = this.element.getElementsByTagName('img')[0];
 
-      if (!style.backgroundSize) {
+      if (!iconEl.height) {
         style.height = this.grid.layout.gridItemHeight + 'px';
         // icon size + padding for shadows implemented in the icon renderer
-        style.backgroundSize =
-          ((this.grid.layout.gridIconSize * (1 / this.scale)) +
-          GridIconRenderer.prototype.unscaledCanvasPadding) + 'px';
+        iconEl.height = iconEl.width =
+          (this.grid.layout.gridIconSize * (1 / this.scale)) +
+          GridIconRenderer.prototype.unscaledCanvasPadding;
       }
 
       if (isCachedIcon) {
         var url = URL.createObjectURL(blob);
-        style.backgroundImage = 'url(' + url + ')';
+        iconEl.src = url;
         this.element.dataset.backgroundImage = url;
-        var img = new Image();
-        img.onload = img.onerror = () => {
+        iconEl.onload = iconEl.onerror = () => {
           this.grid.element.dispatchEvent(
             new CustomEvent('cached-icon-rendered')
           );
         };
-        img.src = url;
         return;
       }
 
@@ -283,7 +282,7 @@
           return;
         }
 
-        style.backgroundImage = 'url(' + URL.createObjectURL(blob) + ')';
+        iconEl.src = URL.createObjectURL(blob);
         this.detail.decoratedIconBlob = blob;
         this.grid.element.dispatchEvent(
           new CustomEvent(ICON_BLOB_DECORATED_EVENT, {
@@ -490,12 +489,14 @@
         tile.dataset.isDraggable = this.isDraggable();
         tile.setAttribute('role', 'link');
 
+        var imgEl = document.createElement('img');
+        tile.appendChild(imgEl);
+
         // This <p> has been added in order to place the title with respect
         // to this container via CSS without touching JS.
         var nameContainerEl = document.createElement('p');
-        nameContainerEl.style.marginTop = ((this.grid.layout.gridIconSize *
-          (1 / this.scale)) +
-          (GridIconRenderer.prototype.unscaledCanvasPadding / 2)) + 'px';
+        nameContainerEl.style.marginTop =
+          (GridIconRenderer.prototype.unscaledCanvasPadding / 2) + 'px';
         tile.appendChild(nameContainerEl);
 
         var nameEl = document.createElement('span');
