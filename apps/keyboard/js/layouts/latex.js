@@ -1,7 +1,7 @@
 Keyboards.latex = {
   label: 'LaTeX',
   shortLabel: 'TeX',
-  imEngine: 'latin',
+  imEngine: 'latex',
   types: ['text', 'url', 'email'],
   menuLabel: 'LaTeX',
   disableAlternateLayout: true,

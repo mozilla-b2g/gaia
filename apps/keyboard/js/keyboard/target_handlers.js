@@ -197,8 +197,12 @@ CompositeTargetHandler.prototype.commit = function() {
     compositeString = this.target.dataset.compositeKey;
   }
   var engine = this.app.inputMethodManager.currentIMEngine;
-  for (var i = 0; i < compositeString.length; i++) {
-    engine.click(compositeString.charCodeAt(i));
+  if (engine.compositeKeyClick) {
+    engine.compositeKeyClick(compositeString);
+  } else {
+    for (var i = 0; i < compositeString.length; i++) {
+      engine.click(compositeString.charCodeAt(i));
+    }
   }
 
   this.app.visualHighlightManager.hide(this.target);
