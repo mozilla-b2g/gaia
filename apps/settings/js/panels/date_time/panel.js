@@ -182,37 +182,39 @@ define(function(require) {
         }
       },
       renderTimeFormatDate: function dt_renderTimeFormatDate() {
+        // follow format
+        // http://pubs.opengroup.org/onlinepubs/007908799/xsh/strftime.html
+        //TODO: generate options from DateTime
         var options = [{
-          text: 'MM/DD/YYYY', // 12/31/2014
-          selected: false,
-          value: '',
+          format: 'MDY', // 12/31/2014
+          selected: false
         }, {
-          text: 'DD/MM/YYYY', // 31/12/2014
-          selected: false,
-          value: ''
+          format: 'DMY', // 31/12/2014
+          selected: false
         }, {
-          text: 'YYYY/MM/DD', // 2014/12/31
-          selected: false,
-          value: ''
+          format: 'YMD', // 2014/12/31
+          selected: false
         }];
         // TODO: restore state before render elements
+        var d = new Date();
         for (var i = 0; i < options.length; i++) {
+          var format = DateTime['DATEFORMAT_' + options[i].format];
           var option = document.createElement('option');
-          option.textContent = options[i].text;
+          option.textContent = d.toLocaleFormat(format);
           option.selected = options[i].selected;
-          option.value = options[i].value;
+          option.value = format;
           this._elements.timeFormatDate.appendChild(option);
         }
       },
       renderTimeFormatTime: function dt_renderTimeFormatTime() {
         var options = [{
-          text: '12-hour', // 12/31/2014
-          selected: false,
-          value: '',
+          text: '12-hour', // 2:00PM
+          selected: DateTime.timeFormat,
+          value: true,
         }, {
-          text: '24-hour', // 31/12/2014
-          selected: false,
-          value: ''
+          text: '24-hour', // 14:00
+          selected: DateTime.timeFormat,
+          value: false
         }];
         // TODO: restore state before render elements
         for (var i = 0; i < options.length; i++) {

@@ -17,10 +17,19 @@ define(function(require) {
   var _kTimezoneAutoAvailable = 'time.timezone.automatic-update.available';
   var _kTimezone = 'time.timezone';
   var _kUserSelected = 'time.timezone.user-selected';
+  var _kLocale = 'language.current';
+  var _kLocaleDate = 'locale.format.date';
+  var _kLocaleTime = 'locale.format.hour12';
   var _updateDateTimeout = null;
   var _updateClockTimeout = null;
 
   var dateTimePrototype = {
+    // consts
+    DATEFORMAT_MDY: '%m/%d/%Y',
+    DATEFORMAT_DMY: '%d/%m/%Y',
+    DATEFORMAT_YMD: '%Y/%m/%d',
+    TIMEFORMAT_24: '%H:%M',
+    TIMEFORMAT_12: '%I:%M %p',
     // public observers
     clockAutoEnabled: true,
     clockAutoAvailable: true,
@@ -43,7 +52,8 @@ define(function(require) {
      * @type {String}
      */
     clock: '',
-    enabled: false,
+    dateFormat: '%m/%d/%Y',
+    hour12: false,
     /**
      * Init DateTime module.
      *
@@ -72,8 +82,8 @@ define(function(require) {
       this._boundUserSelectedTimezone = function(value) {
         this.userSelectedTimezone = value;
       }.bind(this);
-      this.boundSetEnabled = function(value) {
-        this._setEnabled(value);
+      this._boundLocale = function(value) {
+        this._updateLocale();
       }.bind(this);
 
       this._getDefaults();
@@ -91,20 +101,34 @@ define(function(require) {
         this._boundSetTimezone);
       SettingsListener.observe(_kUserSelected, '',
         this._boundUserSelectedTimezone);
+      SettingsListener.observe(_kLocale, '', this._boundLocale);
     },
     /**
      * fill in default values to public observers
      */
     _getDefaults: function dt_getDefaults() {
-      this._autoUpdateDateTime();
-
       SettingsCache.getSettings(function(results) {
         this.clockAutoEnabled = results[_kClockAutoEnabled];
         this.clockAutoAvailable = results[_kClockAutoAvailable];
         this.timezoneAutoAvailable = results[_kTimezoneAutoAvailable];
         this.timezone = results[_kTimezone];
         this.userSelectedTimezone = results[_kUserSelected];
+        this.dateFormat = results[_kLocaleDate];
+        this.hour12 = results[_kLocaleTime];
+
+        this._updateLocale();
       }.bind(this));
+    },
+    _updateLocale: function dt_updateLocale() {
+      this.dateFormat = navigator.mozL10n.get('dateTimeFormat_%x');
+      this.hour12 = (navigator.mozL10n.get('shortTimeFormat') === '%I:%M %p');
+
+      var cset = {};
+      cset[_kLocaleDate] = this.dateFormat;
+      cset[_kLocaleTime] = this.hour12;
+      settings.createLock().set(cset);
+
+      this._autoUpdateDateTime();
     },
     /**
      * Auto update date and time
