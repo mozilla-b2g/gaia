@@ -32,7 +32,7 @@ function SettingsController(app) {
   this.notification = app.views.notification;
   this.l10nGet = app.l10nGet;
 
-  // Allow test stubs
+  // Provide test hooks
   this.nav = app.nav || navigator;
   this.SettingsView = app.SettingsView || SettingsView;
   this.formatPictureSizes = app.formatPictureSizes || formatPictureSizes;
@@ -59,9 +59,78 @@ function SettingsController(app) {
  * @return {[type]} [description]
  */
 SettingsController.prototype.configure = function() {
-  this.settings.alias('recorderProfiles', this.aliases.recorderProfiles);
-  this.settings.alias('pictureSizes', this.aliases.pictureSizes);
-  this.settings.alias('flashModes', this.aliases.flashModes);
+  this.setupRecorderProfilesAlias();
+  this.setupPictureSizesAlias();
+  this.setupFlashModesAlias();
+};
+
+/**
+ * Creates a SettingAlias that dynamically
+ * interfaces with the correct recorder
+ * profile Setting based on which camera
+ * ('front'/'back') is selected.
+ *
+ * @private
+ */
+SettingsController.prototype.setupRecorderProfilesAlias = function() {
+  var settings = this.settings;
+  this.settings.alias({
+    key: 'recorderProfiles',
+    settings: {
+      back: this.settings.recorderProfilesBack,
+      front: this.settings.recorderProfilesFront
+    },
+    get: function() {
+      var camera = settings.cameras.selected('key');
+      return this.settings[camera];
+    }
+  });
+};
+
+/**
+ * Creates a SettingAlias that dynamically
+ * interfaces with the correct picture
+ * size Setting based on which camera
+ * ('front'/'back') is selected.
+ *
+ * @private
+ */
+SettingsController.prototype.setupPictureSizesAlias = function() {
+  var settings = this.settings;
+  this.settings.alias({
+    key: 'pictureSizes',
+    settings: {
+      back: this.settings.pictureSizesBack,
+      front: this.settings.pictureSizesFront
+    },
+    get: function() {
+      var camera = settings.cameras.selected('key');
+      return this.settings[camera];
+    }
+  });
+};
+
+/**
+ * Creates a SettingAlias that dynamically
+ * interfaces with the correct flash-modes
+ * Setting based on which mode ('picture'/
+ * 'video') is selected.
+ *
+ * @private
+ */
+SettingsController.prototype.setupFlashModesAlias = function() {
+  var settings = this.settings;
+  this.settings.alias({
+    key: 'flashModes',
+    settings: {
+      picture: this.settings.flashModesPicture,
+      video: this.settings.flashModesVideo
+    },
+    get: function() {
+      var mode = settings.mode.selected('key');
+      return this.settings[mode];
+    }
+  });
 };
 
 /**
@@ -106,6 +175,11 @@ SettingsController.prototype.openSettings = function() {
     .on('click:close', this.closeSettings)
     .on('click:option', this.onOptionTap);
 
+  // Make sure the view is
+  // hidden before fading in
+  this.view.hide();
+  this.view.fadeIn();
+
   this.app.emit('settings:opened');
   debug('settings opened');
 };
@@ -115,13 +189,17 @@ SettingsController.prototype.openSettings = function() {
  *
  * @private
  */
-SettingsController.prototype.closeSettings = function() {
+SettingsController.prototype.closeSettings = function(done) {
   debug('close settings');
   if (!this.view) { return; }
-  this.view.destroy();
-  this.view = null;
-  this.app.emit('settings:closed');
-  debug('settings closed');
+  var self = this;
+  this.view.fadeOut(function() {
+    self.view.destroy();
+    self.view = null;
+    self.app.emit('settings:closed');
+    debug('settings closed');
+    if (done) { done(); }
+  });
 };
 
 /**
@@ -136,10 +214,12 @@ SettingsController.prototype.onOptionTap = function(key, setting) {
   var flashMode = this.settings.flashModesPicture.selected('key');
   var ishdrOn = setting.key === 'hdr' && key === 'on';
   var flashDeactivated = flashMode !== 'off' && ishdrOn;
+  var self = this;
 
-  setting.select(key);
-  this.closeSettings();
-  this.notify(setting, flashDeactivated);
+  self.closeSettings(function() {
+    setting.select(key);
+    self.notify(setting, flashDeactivated);
+  });
 };
 
 /**
@@ -331,47 +411,6 @@ SettingsController.prototype.menuItems = function() {
 SettingsController.prototype.validMenuItem = function(item) {
   var setting = this.settings[item.key];
   return !!setting && setting.supported();
-};
-
-/**
- * Settings aliases provide
- * convenient pointers to
- * specific settings based on
- * the state of other settings.
- *
- * @type {Object}
- */
-SettingsController.prototype.aliases = {
-  recorderProfiles: {
-    map: {
-      back: 'recorderProfilesBack',
-      front: 'recorderProfilesFront'
-    },
-    get: function() {
-      var camera = this.settings.cameras.selected('key');
-      return this.settings[this.map[camera]];
-    }
-  },
-  pictureSizes: {
-    map: {
-      back: 'pictureSizesBack',
-      front: 'pictureSizesFront'
-    },
-    get: function() {
-      var camera = this.settings.cameras.selected('key');
-      return this.settings[this.map[camera]];
-    }
-  },
-  flashModes: {
-    map: {
-      video: 'flashModesVideo',
-      picture: 'flashModesPicture'
-    },
-    get: function() {
-      var mode = this.settings.mode.selected('key');
-      return this.settings[this.map[mode]];
-    }
-  }
 };
 
 });

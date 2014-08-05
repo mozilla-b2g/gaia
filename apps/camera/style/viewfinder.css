@@ -19,7 +19,7 @@
   overflow: hidden;
   opacity: 0.001; /* 1 */
   will-change: opacity; /* 2 */
-  transition: opacity 200ms ease-in-out;
+  transition: opacity 360ms ease-in-out;
 }
 
 /**

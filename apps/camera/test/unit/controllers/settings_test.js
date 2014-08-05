@@ -57,6 +57,7 @@ suite('controllers/settings', function() {
       view.render.returns(view);
       view.appendTo.returns(view);
       view.on.returns(view);
+      view.fadeOut.callsArg(0);
       return view;
     });
 
@@ -70,12 +71,7 @@ suite('controllers/settings', function() {
 
   suite('SettingsController()', function() {
     test('Should setup aliases for `recorderProfiles`, `pictureSizes` and `flashModes`', function() {
-      var aliases = this.controller.aliases;
-      var alias = this.settings.alias;
-
-      assert.isTrue(alias.calledWith('recorderProfiles', aliases.recorderProfiles));
-      assert.isTrue(alias.calledWith('pictureSizes', aliases.pictureSizes));
-      assert.isTrue(alias.calledWith('flashModes', aliases.flashModes));
+      sinon.assert.calledThrice(this.settings.alias);
     });
 
     test('Should toggle the settings menu on \'settings:toggle\'', function() {
@@ -186,7 +182,7 @@ suite('SettingsController#configureRecorderProfiles()', function() {
   suite('SettingsController#onOptionTap()', function() {
     setup(function() {
       this.setting = sinon.createStubInstance(this.Setting);
-      sinon.stub(this.controller, 'closeSettings');
+      sinon.stub(this.controller, 'closeSettings').callsArg(0);
       sinon.stub(this.controller, 'notify');
     });
 
@@ -200,9 +196,9 @@ suite('SettingsController#configureRecorderProfiles()', function() {
       assert.isTrue(this.controller.closeSettings.called);
     });
 
-    test('Should notify', function() {
+    test('It shows a notification after the settings have closed', function() {
       this.controller.onOptionTap('the-key', this.setting);
-      assert.isTrue(this.controller.notify.called);
+      assert.isTrue(this.controller.notify.calledAfter(this.controller.closeSettings));
     });
   });
 
@@ -349,8 +345,10 @@ suite('SettingsController#configureRecorderProfiles()', function() {
 
   suite('SettingsController#closeSettings()', function() {
     setup(function() {
-      this.view = { destroy: sinon.spy() };
-      this.controller.view = this.view;
+      // Open settings first so we have a view
+      sinon.stub(this.controller, 'menuItems').returns(this.menuItems);
+      this.controller.openSettings();
+      this.view = this.controller.view;
     });
 
     test('Should not do anything if no view exists', function() {
