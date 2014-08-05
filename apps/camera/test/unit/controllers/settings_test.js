@@ -29,7 +29,7 @@ suite('controllers/settings', function() {
     var self = this;
 
     this.app = sinon.createStubInstance(this.App);
-    this.app.l10n = { get: sinon.stub() };
+    this.app.l10ngGet = sinon.stub();
 
     // Settings
     this.app.el = {};
@@ -106,7 +106,7 @@ suite('controllers/settings', function() {
         .withArgs('exclude')
         .returns(this.exclude);
 
-      this.app.l10n.get
+      this.app.l10nGet
         .withArgs('mp')
         .returns('mp');
 
@@ -209,6 +209,7 @@ suite('SettingsController#configureRecorderProfiles()', function() {
   suite('SettingsController#notify()', function() {
     setup(function() {
       this.setting = sinon.createStubInstance(this.Setting);
+      this.setting.selected.withArgs('title').returns('l10n-key');
     });
 
     test('Should display a notification', function() {
@@ -220,6 +221,17 @@ suite('SettingsController#configureRecorderProfiles()', function() {
       this.setting.get.withArgs('notifications').returns(false);
       this.controller.notify(this.setting);
       sinon.assert.notCalled(this.notification.display);
+    });
+
+    test('It localizes the option title', function() {
+      this.controller.notify(this.setting);
+      sinon.assert.calledWith(this.app.l10nGet, 'l10n-key');
+    });
+
+    test('It doesn\'t localize the title if `localizeOption` is `false`', function() {
+      this.setting.get.withArgs('optionsLocalizable').returns(false);
+      this.controller.notify(this.setting);
+      assert.isFalse(this.app.l10nGet.calledWith('l10n-key'));
     });
   });
 

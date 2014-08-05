@@ -239,6 +239,9 @@ CameraController.prototype.updatePictureSize = function() {
   var value = this.settings.pictureSizes.selected('data');
   var self = this;
 
+  // Don't do anything if the picture size didn't change
+  if (this.camera.isPictureSize(value)) { return; }
+
   // Only configure in video mode
   if (!pictureMode) {
     this.camera.setPictureSize(value, { configure: false });
@@ -255,6 +258,9 @@ CameraController.prototype.updateRecorderProfile = function() {
   var videoMode = this.settings.mode.selected('key') === 'video';
   var key = this.settings.recorderProfiles.selected('key');
   var self = this;
+
+  // Don't do anything if the recorder-profile didn't change
+  if (this.camera.isRecorderProfile(key)) { return; }
 
   // Only configure in picture mode
   if (!videoMode) {
