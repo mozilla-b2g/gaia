@@ -3,10 +3,15 @@
 
 'use strict';
 
-// The modal dialog listen to mozbrowsershowmodalprompt event.
-// Blocking the current app and then show custom modal dialog
-// (alert/confirm/prompt)
+/* exported ModalDialog */
 
+/**
+ * The modal dialog listen to mozbrowsershowmodalprompt event.
+ * Blocking the current app and then show custom modal dialog
+ * (alert/confirm/prompt)
+ *
+ * @namespace ModalDialog
+ */
 var ModalDialog = {
   // Used for element id access.
   // e.g., 'modal-dialog-alert-ok'
@@ -15,7 +20,7 @@ var ModalDialog = {
   // DOM
   elements: {},
 
-  // Get all elements when inited.
+  /** Get all elements when inited. */
   getAllElements: function md_getAllElements() {
     var elementsID = ['alert', 'alert-ok', 'alert-message',
       'prompt', 'prompt-ok', 'prompt-cancel', 'prompt-input', 'prompt-message',
@@ -42,6 +47,7 @@ var ModalDialog = {
   // e.g., 'http://uitest.gaiamobile.org': [evt1, evt2]
   currentEvents: {},
 
+  /** Initialization. Get DOM elements and add listeners. */
   init: function md_init() {
     // Get all elements initially.
     this.getAllElements();
@@ -54,13 +60,18 @@ var ModalDialog = {
     elements.customPromptButtons.addEventListener('click', this);
   },
 
-  // Default event handler
+  /**
+   * Default event handler for mozbrowser event and click event.
+   * @param {Event} evt
+   * @param {String} origin Tab ID
+   */
   handleEvent: function md_handleEvent(evt, origin) {
     var elements = this.elements;
     switch (evt.type) {
       case 'mozbrowsershowmodalprompt':
-        if (this.boundToWindow && evt.target.dataset.frameType != 'window')
+        if (this.boundToWindow && evt.target.dataset.frameType != 'window') {
           return;
+        }
         evt.preventDefault();
         if (this.originHasEvent(origin)) {
           this.currentEvents[origin].push(evt);
@@ -88,7 +99,10 @@ var ModalDialog = {
     }
   },
 
-  // Show relative dialog and set message/input value well
+  /**
+   * Show relative dialog and set message/input value well.
+   * @param {String} origin Tab ID
+   */
   show: function md_show(origin) {
     this.currentOrigin = origin;
     var evt = this.currentEvents[origin][0];
@@ -174,16 +188,25 @@ var ModalDialog = {
     }
   },
 
+  /**
+   * Hide dialog.
+   */
   hide: function md_hide() {
     document.body.classList.remove('modal-active');
     var evt = this.currentEvents[this.currentOrigin][0];
-    if (!evt)
+    if (!evt) {
       return;
-    var type = evt.detail.promptType;
+    }
+
     this.currentOrigin = null;
   },
 
-  // When user clicks OK button on alert/confirm/prompt
+  /**
+   * When user clicks OK button on alert/confirm/prompt,
+   * hide the dialog and return a value accordingly.
+   * Show the next dialog if any.
+   * @param {iframe} target
+   */
   confirmHandler: function md_confirmHandler(target) {
     document.body.classList.remove('modal-active');
     var elements = this.elements;
@@ -205,8 +228,9 @@ var ModalDialog = {
         var returnValue = {
           selectedButton: target.dataset.buttonIndex
         };
-        if (evt.detail.showCheckbox)
+        if (evt.detail.showCheckbox) {
           returnValue.checked = elements.customPromptCheckbox.checked;
+        }
         evt.detail.returnValue = returnValue;
         elements.customPrompt.classList.remove('visible');
         break;
@@ -217,14 +241,18 @@ var ModalDialog = {
         break;
     }
 
-    if (evt.detail.unblock)
+    if (evt.detail.unblock) {
       evt.detail.unblock();
+    }
 
     this.remove(this.currentOrigin);
   },
 
-  // When user clicks cancel button on confirm/prompt or
-  // when the user try to escape the dialog with the escape key
+  /**
+   * When user clicks cancel button on confirm/prompt or
+   * when the user try to escape the dialog with the escape key,
+   * hide the dialog and show the next dialog if any.
+   */
   cancelHandler: function md_cancelHandler() {
     var evt = this.currentEvents[this.currentOrigin][0];
     var elements = this.elements;
@@ -248,25 +276,40 @@ var ModalDialog = {
         break;
     }
 
-    if (evt.detail.unblock)
+    if (evt.detail.unblock) {
       evt.detail.unblock();
+    }
 
     this.remove(this.currentOrigin);
   },
 
+  /**
+   * Check if the specified tab currently has any event.
+   * @param {String} origin Tab ID
+   */
   originHasEvent: function(origin) {
     return origin in this.currentEvents;
   },
 
+  /**
+   * Clear events of the specified tab ID.
+   * @param {String} origin Tab ID
+   */
   clear: function ad_clear(origin) {
-    if (this.currentEvents[origin])
+    if (this.currentEvents[origin]) {
       delete this.currentEvents[origin];
+    }
   },
 
+  /**
+   * Remove the event of the specified tab from queue,
+   * show the next dialog if any.
+   * @param {String} origin Tab ID
+   */
   remove: function(origin) {
     if (this.currentEvents[origin]) {
       this.currentEvents[origin].shift();
-      if (this.currentEvents[origin].length != 0) {
+      if (this.currentEvents[origin].length !== 0) {
         this.show(origin);
         return;
       }
