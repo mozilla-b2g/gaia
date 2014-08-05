@@ -23,6 +23,7 @@ requireApp('system/js/activity_window_manager.js');
 requireApp('system/js/airplane_mode.js');
 requireApp('system/js/app_usage_metrics.js');
 requireApp('system/js/app_window_factory.js');
+requireApp('system/js/browser_settings.js');
 requireApp('system/js/devtools/developer_hud.js');
 requireApp('system/js/dialer_agent.js');
 requireApp('system/js/external_storage_monitor.js');

@@ -139,8 +139,8 @@
       "description": "Email address for sending newsletter"
     },
     "bookmarks_store": {
-      "readonly": true,
-      "description": "Check for existence of bookmarks"
+      "readonly": false,
+      "description": "View and modify bookmarks"
     }
   }
 }

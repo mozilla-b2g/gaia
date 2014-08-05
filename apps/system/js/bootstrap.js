@@ -12,7 +12,8 @@
          SoftwareButtonManager, Accessibility, NfcUtils, ShrinkingUI,
          TextSelectionDialog, InternetSharing, SleepMenu, AppUsageMetrics,
          LockScreenNotifications, LockScreenPasscodeValidator, NfcManager,
-         ExternalStorageMonitor, LockScreenNotificationBuilder*/
+         ExternalStorageMonitor, LockScreenNotificationBuilder,
+         BrowserSettings */
 'use strict';
 
 
@@ -199,25 +200,9 @@ window.addEventListener('wallpaperchange', function(evt) {
     'url(' + evt.detail.url + ')';
 });
 
-// Use a setting in order to be "called" by settings app
-navigator.mozSettings.addObserver(
-  'clear.remote-windows.data',
-  function clearRemoteWindowsData(setting) {
-    var shouldClear = setting.settingValue;
-    if (!shouldClear) {
-      return;
-    }
+window.browserSettings = new BrowserSettings();
+window.browserSettings.start();
 
-    // Delete all storage and cookies from our content processes
-    var request = navigator.mozApps.getSelf();
-    request.onsuccess = function() {
-      request.result.clearBrowserData();
-    };
-
-    // Reset the setting value to false
-    var lock = navigator.mozSettings.createLock();
-    lock.set({'clear.remote-windows.data': false});
-  });
 
 /* === XXX Bug 900512 === */
 // On some devices touching the hardware home button triggers

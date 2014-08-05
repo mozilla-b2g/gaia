@@ -133,6 +133,7 @@
     <link rel="import" href="/elements/sound.html">
     <link rel="import" href="/elements/display.html">
     <link rel="import" href="/elements/homescreen.html">
+    <link rel="import" href="/elements/search.html">
     <link rel="import" href="/elements/navigation.html">
     <link rel="import" href="/elements/notifications.html">
     <link rel="import" href="/elements/date_time.html">
@@ -150,6 +151,7 @@
     <link rel="import" href="/elements/app_permissions_details.html">
     <link rel="import" href="/elements/app_permissions.html">
     <link rel="import" href="/elements/do_not_track.html">
+    <link rel="import" href="/elements/browser_privacy.html">
     <link rel="import" href="/elements/about_more_info.html">
     <link rel="import" href="/elements/about_your_rights.html">
     <link rel="import" href="/elements/about_your_privacy.html">
@@ -275,6 +277,8 @@
     <section is="display" role="region" id="display"></section>
     <!-- Personalization :: Homescreen -->
     <section is="homescreen" role="region" id="homescreen"></section>
+    <!-- Personalization :: Search -->
+    <section is="search" role="region" id="search"></section>
     <!-- Personalization :: Navigation -->
     <section is="navigation" role="region" id="navigation"></section>
     <!-- Personalization :: Notifications -->
@@ -314,6 +318,8 @@
     <section is="appPermissions" role="region" id="appPermissions" data-require-sub-panels="true"></section>
     <!-- Security :: Do Not Track -->
     <section is="doNotTrack" role="region" id="doNotTrack"></section>
+    <!-- Security :: Browser -->
+    <section is="browserPrivacy" role="region" id="browserPrivacy"></section>
 
     <!-- Device :: Information :: More Information -->
     <section is="about-moreInfo" role="region" id="about-moreInfo"></section>
@@ -454,6 +460,9 @@
             <a id="menuItem-homescreen" class="menu-item gaia-icon icon-settings-homescreen" href="#homescreen" data-l10n-id="homescreen">Homescreen</a>
           </li>
           <li>
+            <a id="menuItem-search" class="menu-item gaia-icon icon-browser-search" href="#search" data-l10n-id="search">Search</a>
+          </li>
+          <li>
             <a id="menuItem-navigation" class="menu-item gaia-icon icon-settings-gesture" href="#navigation" data-l10n-id="navigation">Navigation</a>
           </li>
           <li>
@@ -528,6 +537,10 @@
               <span data-l10n-id="doNotTrack">Do Not Track</span>
               <small id="doNotTrack-desc" class="menu-item-desc"></small>
             </a>
+          </li>
+          <li>
+            <small id="browserPrivacy-desc" class="menu-item-desc"></small>
+            <a id="menuItem-browserPrivacy" class="menu-item gaia-icon icon-browsing" href="#browserPrivacy" data-l10n-id="browserPrivacy">Browser Privacy</a>
           </li>
         </ul>
 
