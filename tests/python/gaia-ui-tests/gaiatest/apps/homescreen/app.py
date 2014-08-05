@@ -2,6 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import time
+
 from marionette.by import By
 from marionette.marionette import Actions
 
@@ -88,6 +90,8 @@ class Homescreen(Base):
             if root_el.text == collection_name:
                 self.marionette.execute_script(
                     'arguments[0].scrollIntoView(false);', [root_el])
+                # TODO bug 1043293 introduced a timing/tap race issue here
+                time.sleep(0.5)
                 root_el.tap()
                 from gaiatest.apps.homescreen.regions.collections import Collection
                 return Collection(self.marionette)
@@ -134,7 +138,9 @@ class Homescreen(Base):
             self.marionette.execute_script(
                 'arguments[0].scrollIntoView(false);', [self.root_element])
 
-            self.root_element.tap()
+            # TODO bug 1043293 introduced a timing/tap race issue here
+            time.sleep(0.5)
+            self.root_element.tap(y=1)
             self.wait_for_condition(lambda m: self.apps.displayed_app.name.lower() == expected_name.lower())
             self.apps.switch_to_displayed_app()
 
