@@ -717,6 +717,9 @@
     // these suggestions. That is, if the user has typed faster than we could
     // offer suggestions, ignore them.
     if (suggestions.length === 0 || wordBeforeCursor() !== input) {
+      // We don't have this word in the default dictionary
+      // So we make arrangements for it to be added
+      markMyWord = true;
       keyboard.sendCandidates([]); // Clear any displayed suggestions
       return;
     }
@@ -1258,7 +1261,6 @@
           objectStore.openCursor().onsuccess = function(event) {
             var cursor = event.target.result;
             if (cursor) {
-              console.log(typeof(cursor.key));
               dictionary.tempObjStore[cursor.key] =
                                                      cursor.value.frequency;
               cursor.continue();
