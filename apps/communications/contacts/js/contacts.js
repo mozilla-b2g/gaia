@@ -93,6 +93,12 @@ var Contacts = (function() {
           var id = params.id;
           cList.getContactById(id, function onSuccess(savedContact) {
             currentContact = savedContact;
+
+            // Enable NFC listening is available
+            if ('mozNfc' in navigator) {
+              contacts.NFC.startListening(currentContact);
+            }
+
             contactsDetails.render(currentContact);
             if (params.tel) {
 
