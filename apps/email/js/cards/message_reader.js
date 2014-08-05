@@ -621,6 +621,7 @@ MessageReaderCard.prototype = {
             name: 'open',
             data: {
               type: mappedType,
+              filename: attachment.filename,
               blob: blob
             }
           });
