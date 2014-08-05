@@ -943,11 +943,8 @@
     // starting to show the collection
     this.beforeShow = function beforeShow(data) {
       PaginationBar.hide();
-
-      window.setTimeout(function() {
-        var elAffectedByCollection = document.getElementById('icongrid');
-        elAffectedByCollection.classList.add(CLASS_WHEN_COLLECTION_VISIBLE);
-      }, 50);
+      var elAffectedByCollection = document.getElementById('icongrid');
+      elAffectedByCollection.classList.add(CLASS_WHEN_COLLECTION_VISIBLE);
     };
 
     // the collection is shown
