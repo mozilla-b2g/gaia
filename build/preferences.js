@@ -118,6 +118,7 @@ PreferencesBuilder.prototype.setDesktopPref = function() {
   this.prefs['dom.datastore.enabled'] = true;
   this.prefs['dom.testing.datastore_enabled_for_hosted_apps'] = true;
   this.prefs['dom.inter-app-communication-api.enabled'] = true;
+  this.prefs['media.webspeech.synth.enabled'] = true;
 
   // WebSettings
   this.prefs['dom.mozSettings.enabled'] = true;
