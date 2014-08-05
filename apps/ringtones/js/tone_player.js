@@ -87,6 +87,8 @@ TonePlayer.prototype = {
    */
   stop: function() {
     this._player.pause();
+    this._player.removeAttribute('src');
+    this._player.load();
   },
 
   /**
