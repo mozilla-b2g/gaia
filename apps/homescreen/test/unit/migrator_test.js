@@ -63,6 +63,16 @@ suite('migrator.js >', function() {
   });
 
   setup(function() {
+    var mockStoredCollection = {
+      value: {
+        apps: []
+      }
+    };
+    window.asyncStorage.keys['evme-collectionsettings_idcollection'] =
+      mockStoredCollection;
+    window.asyncStorage.keys['evme-collectionsettings_idcollection2'] =
+      mockStoredCollection;
+
     bdAddStub = sinon.stub(BookmarksDatabase, 'add', function(bookmark) {
       bookmarks.push(bookmark);
 
