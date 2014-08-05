@@ -8,7 +8,7 @@ var AdmZip = require('adm-zip');
 var helper = require('./helper');
 
 suite('multilocale Integration tests', function() {
-  var localesDir = 'customization/test-locales';
+  var localesDir = 'build/test/resources/locales';
   var localesFileObj = {'en-US': '', 'zh-CN': ''};
 
   suiteSetup(function() {
@@ -25,7 +25,7 @@ suite('multilocale Integration tests', function() {
 
     var command = 'LOCALES_FILE=' + localesFilePath +
       ' LOCALE_BASEDIR=' + localesDir +
-      ' make > /dev/null';
+      ' make';
 
     if (!inlineAndConcat) {
       command = 'GAIA_INLINE_LOCALES=0 GAIA_CONCAT_LOCALES=0 ' + command;
