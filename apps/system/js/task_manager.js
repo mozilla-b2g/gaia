@@ -24,20 +24,20 @@
     this.attentionScreenApps = [];
 
     // Listen for settings changes
-    this.onRocketbarEnabledChange = function(value) {
-      debug('rocketbar.enabled: '+ value);
-      this.isRocketbar = value;
+    this.onTaskStripEnabled = function(value) {
+      debug('taskstrip.enabled: '+ value);
+      this.isTaskStrip = value;
     }.bind(this);
-    SettingsListener.observe('rocketbar.enabled', false,
-                             this.onRocketbarEnabledChange);
+    SettingsListener.observe('taskstrip.enabled', false,
+                             this.onTaskStripEnabled);
   }
 
   TaskManager.prototype = Object.create({
     /**
      * Use the carousel-style card view (false) or
-     * the Haida-style horizontal task-manager (true)
+     * the Haida-style horizontal task strip (true)
      */
-    isRocketbar: false,
+    isTaskStrip: false,
 
     /**
      * The setting that enables/disables using screenshots vs. icons for the
@@ -206,8 +206,8 @@
 
     SettingsListener.unobserve(this.SCREENSHOT_PREVIEWS_SETTING_KEY,
                                this.onPreviewSettingsChange);
-    SettingsListener.unobserve('rocketbar.enabled',
-                               this.onRocketbarEnabledChange);
+    SettingsListener.unobserve('taskstrip.enabled',
+                               this.onTaskStripEnabled);
   };
 
   /**
@@ -309,8 +309,8 @@
     var currentApp = (stack.length && this.currentPosition > -1 &&
                      stack[this.currentPosition]);
 
-    // Return early if isRocketbar and there are no apps.
-    if (!currentApp && this.isRocketbar) {
+    // Return early if isTaskStrip and there are no apps.
+    if (!currentApp && this.isTaskStrip) {
       // Fire a cardchange event to notify rocketbar that there are no cards
       this.fireCardViewClosed();
       return;
@@ -340,7 +340,7 @@
     this.fireCardViewBeforeShow();
 
     this.screenElement.classList.add('cards-view');
-    if (this.isRocketbar) {
+    if (this.isTaskStrip) {
       this.screenElement.classList.add('task-manager');
     }
 
@@ -348,7 +348,7 @@
     if (stack.length) {
       this.element.classList.remove('empty');
     } else {
-      // (we already bailed for the isRocketbar case)
+      // (we already bailed for the isTaskStrip case)
       this.element.classList.add('empty');
     }
 
@@ -394,7 +394,7 @@
       _windowWidth: this.windowWidth,
       _windowHeight: this.windowHeight
     };
-    var card = (this.isRocketbar) ?
+    var card = (this.isTaskStrip) ?
                   new TaskCard(config) :
                   new Card(config);
     this.cardsByOrigin[app.origin] = card;
@@ -523,7 +523,7 @@
     var cardElem;
     var card;
 
-    if (this.isRocketbar && ('buttonAction' in targetNode.dataset)) {
+    if (this.isTaskStrip && ('buttonAction' in targetNode.dataset)) {
       tmpNode = containerNode;
       while ((tmpNode = tmpNode.parentNode)) {
         if (tmpNode.classList && tmpNode.classList.contains('card')) {
@@ -711,7 +711,7 @@
           return;
         }
         sleepMenu.hide();
-        if (this.isRocketbar) {
+        if (this.isTaskStrip) {
           this.show();
         } else {
           app = AppWindowManager.getActiveApp();
@@ -884,7 +884,7 @@
     nextCard.element.dispatchEvent(new CustomEvent('onviewport'));
     var nextCardStyle = {};
 
-    if (this.isRocketbar) {
+    if (this.isTaskStrip) {
       // Scaling and translating cards to reach target positions
       this.stack.forEach(function(app, idx) {
         var offset = idx - currentPosition;
@@ -1004,7 +1004,7 @@
     var movementFactor = Math.abs(deltaX) / this.windowWidth;
     var currentCard = this.currentCard;
 
-    if (this.isRocketbar) {
+    if (this.isTaskStrip) {
 
       this.stack.forEach(function(app, idx) {
         var card = this.cardsByOrigin[app.origin];

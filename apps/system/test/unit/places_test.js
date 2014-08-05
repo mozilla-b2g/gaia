@@ -1,5 +1,4 @@
-/* global MocksHelper, MockNavigatorDatastore, MockSettingsListener,
-          MockDatastore, Places */
+/* global MocksHelper, MockNavigatorDatastore, MockDatastore, Places */
 
 'use strict';
 
@@ -25,10 +24,7 @@ suite('system/Places', function() {
     realDatastores = navigator.getDataStores;
     navigator.getDataStores = MockNavigatorDatastore.getDataStores;
 
-    MockSettingsListener.mTriggerCallback('rocketbar.enabled', true);
-
     subject = new Places();
-    subject.rocketBarEnabled = true;
     subject.start(done);
   });
 
