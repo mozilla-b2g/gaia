@@ -45,6 +45,8 @@ var AppManager = {
       UIManager.activationScreen.classList.remove('show');
       UIManager.updateScreen.classList.add('show');
 
+      FinishScreen.isUpgrade = true;
+
       // Load and play the what's new tutorial
       Tutorial.init(stepsKey, function() {
         Tutorial.start();
