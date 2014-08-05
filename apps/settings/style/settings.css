@@ -207,6 +207,19 @@ body[data-filter-by="connectivity"] #root > div [data-category="connectivity"] {
 
 
 /******************************************************************************
+ * Disabled items
+ */
+
+.disabled a,
+.disabled p,
+.disabled h2,
+.disabled label,
+.disabled select {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/******************************************************************************
  * Wi-Fi settings
  */
 
@@ -303,11 +316,6 @@ section ul.operate-certificate {
   bottom: 0;
   width: 100%;
   background: url(images/document_bg.png);
-}
-
-.wifi-certificate-files-List li.disabled a {
-  opacity: 0.6;
-  pointer-events: none;
 }
 
 
@@ -583,8 +591,6 @@ ul li > label.range-icons.volume input {
 #dateTime ul.disabled p,
 #dateTime ul.disabled a {
   color: #797e80;
-  opacity: 0.6;
-  pointer-events: none;
 }
 
 #dateTime .timezone.disabled {
